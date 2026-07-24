@@ -95,8 +95,68 @@ static UIWindowScene *ADForegroundWindowScene(void) {
     return nil;
 }
 
+static void ADDismissCover(void);
+static UIView *gCoverOverlay;
+
+// Dark surface parented to the zooming scene view, so SpringBoard's launch
+// animation plays exactly as it does for every other app -- only its contents
+// are dark instead of Amazon's white launch screen.
+static void ADAttachCoverToScene(UIView *host) {
+    @try {
+        if (!host) return;
+        if (gCoverOverlay && gCoverOverlay.superview == host) return;
+        UIColor *dk = [UIColor colorWithRed:0.094 green:0.102 blue:0.106 alpha:1.0];
+        UIView *ov = [[UIView alloc] initWithFrame:host.bounds];
+        ov.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        ov.backgroundColor = dk;
+        ov.userInteractionEnabled = NO;
+
+        UIImage *splash = nil;
+        for (NSString *cp in @[@"/var/jb/Library/Application Support/AmazonDark/splash-logo.png",
+                               @"/Library/Application Support/AmazonDark/splash-logo.png"]) {
+            splash = [UIImage imageWithContentsOfFile:cp];
+            if (splash) break;
+        }
+        if (splash) {
+            UIImageView *logo = [[UIImageView alloc] initWithImage:splash];
+            logo.contentMode = UIViewContentModeScaleAspectFit;
+            logo.translatesAutoresizingMaskIntoConstraints = NO;
+            [ov addSubview:logo];
+            CGFloat lw = MAX(host.bounds.size.width, 200.0) * 0.62;
+            CGFloat lh = lw * (splash.size.height / MAX(splash.size.width, 1.0));
+            [NSLayoutConstraint activateConstraints:@[
+                [logo.centerXAnchor constraintEqualToAnchor:ov.centerXAnchor],
+                [logo.centerYAnchor constraintEqualToAnchor:ov.centerYAnchor],
+                [logo.widthAnchor constraintEqualToConstant:lw],
+                [logo.heightAnchor constraintEqualToConstant:lh],
+            ]];
+        }
+        [host addSubview:ov];
+        gCoverOverlay = ov;
+        gPresentAt = CFAbsoluteTimeGetCurrent();
+        ADSBLog([NSString stringWithFormat:@"COVER overlay in scene (%@ logo=%d)",
+                 NSStringFromClass([host class]), splash ? 1 : 0]);
+
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHold * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{ ADDismissCover(); });
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHardCap * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            @try { if (gCoverOverlay){ UIView *x = gCoverOverlay; gCoverOverlay = nil;
+                       [x removeFromSuperview]; ADSBLog(@"COVER overlay hardcap"); } }
+            @catch (__unused NSException *e) {}
+        });
+    } @catch (__unused NSException *e) {}
+}
+
 static void ADDismissCover(void) {
     @try {
+        if (gCoverOverlay) {
+            UIView *ov = gCoverOverlay; gCoverOverlay = nil;
+            [UIView animateWithDuration:kCoverFade animations:^{ ov.alpha = 0.0; }
+                             completion:^(BOOL f){ @try { [ov removeFromSuperview]; }
+                                                   @catch (__unused NSException *e) {} }];
+            ADSBLog(@"COVER overlay dismissed");
+        }
         if (!gCoverWin) return;
         UIWindow *w = gCoverWin; gCoverWin = nil;
         [UIView animateWithDuration:kCoverFade animations:^{ w.alpha = 0.0; }
@@ -251,8 +311,8 @@ static void ADPresentCover(void) {
 
         // Cover disabled: it was overlaying SpringBoard's icon-zoom launch
         // animation. The launch screen is darkened at its source instead.
-        ADSBLog(@"AMAZON scene -> stock launch (cover disabled)");
-        if (getenv("AMZDARK_COVER")) ADPresentCover();
+        // Parented to the scene view: SpringBoard's zoom animates it.
+        ADAttachCoverToScene(self);
     } @catch (__unused NSException *e) {}
 }
 %end

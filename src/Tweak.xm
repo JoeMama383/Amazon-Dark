@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.133.0"
+#define AD_VERSION "v5.134.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -4180,7 +4180,7 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
                                                                      block:^(NSTimer *t){
                 @try {
                     ADLaunchScreenDarkPass();
-                    if (ADUptime() > 2.5) [t invalidate];
+                    if (ADUptime() > 1.2) [t invalidate];
                 } @catch(...) { [t invalidate]; }
             }];
             (void)lt2;
