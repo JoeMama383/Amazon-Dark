@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.131.0"
+#define AD_VERSION "v5.132.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1607,6 +1607,69 @@ static void ADCollectWebViews(UIView *v, NSMutableArray *out, int depth){
     } @catch(...) {}
 }
 
+static UIImage *ADSplashLogoImage(void){
+    static UIImage *cached = nil; static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        for (NSString *cp in @[@"/var/jb/Library/Application Support/AmazonDark/splash-logo.png",
+                               @"/Library/Application Support/AmazonDark/splash-logo.png"]){
+            cached = [UIImage imageWithContentsOfFile:cp];
+            if (cached) break;
+        }
+    });
+    return cached;
+}
+
+// Darken the launch storyboard in place. Runs while the launch screen is still
+// on screen, so the snapshot iOS captures for the icon-zoom is a dark one.
+static int gLaunchDarkLogged = 0;
+static void ADLaunchDarkenTree(UIView *v, int depth, int *bg, int *logo){
+    if (!v || depth > 8) return;
+    @try {
+        UIColor *c = v.backgroundColor;
+        if (c){
+            CGFloat r=0,g=0,b=0,a=0;
+            if ([c getRed:&r green:&g blue:&b alpha:&a] && a > 0.5){
+                CGFloat l = 0.2126*r + 0.7152*g + 0.0722*b;
+                if (l > 0.5){
+                    v.backgroundColor = [UIColor colorWithRed:0.094 green:0.102 blue:0.106 alpha:1.0];
+                    (*bg)++;
+                }
+            }
+        }
+        if ([v isKindOfClass:[UIImageView class]]){
+            UIImageView *iv = (UIImageView *)v;
+            CGSize sz = iv.bounds.size;
+            // The wordmark lockup: wide, not a small chrome glyph. Its ink is dark,
+            // so on a darkened ground it must be replaced, not merely recoloured.
+            if (iv.image && sz.width > 90.0 && sz.height > 20.0){
+                UIImage *rep = ADSplashLogoImage();
+                if (rep){
+                    iv.image = rep;
+                    iv.contentMode = UIViewContentModeScaleAspectFit;
+                    (*logo)++;
+                }
+            }
+        }
+        for (UIView *sv in v.subviews) ADLaunchDarkenTree(sv, depth + 1, bg, logo);
+    } @catch(...) {}
+}
+
+static void ADLaunchScreenDarkPass(void){
+    @try {
+        if (ADUptime() > 4.0) return;
+        int bg = 0, logo = 0;
+        for (UIWindow *w in [UIApplication sharedApplication].windows){
+            if (!w || w.hidden) continue;
+            w.backgroundColor = [UIColor colorWithRed:0.094 green:0.102 blue:0.106 alpha:1.0];
+            ADLaunchDarkenTree(w, 0, &bg, &logo);
+        }
+        if ((bg || logo) && gLaunchDarkLogged < 3){
+            gLaunchDarkLogged++;
+            ADLog(@"launchdark bg=%d logo=%d t=%.2f", bg, logo, ADUptime());
+        }
+    } @catch(...) {}
+}
+
 static void ADPostAppReady(void){
     static BOOL posted = NO;
     if (posted) return;
@@ -2030,6 +2093,7 @@ static const void *kADRNFiltersKey = &kADRNFiltersKey;
 static const void *kADRNCheckKey   = &kADRNCheckKey;
 static BOOL ADBackdropIsDark(UIView *v);
 static void ADLaunchWhiteGuard(UIView *v);
+static void ADLaunchScreenDarkPass(void);
 static void ADInvertRNSVGApply(UIView *v);
 static inline BOOL ADIsTaggedIndicator(UIView *v){
     return v && objc_getAssociatedObject(v, kADIndicatorKey) != nil;
@@ -4083,6 +4147,13 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
     ADOpenLog();
     ADRaw("[AmazonDark] " AD_VERSION " init (DarkReader web + native colour engine)");
+    @try {
+        for (NSNumber *lt in @[@0.0, @0.03, @0.08, @0.16, @0.30, @0.60, @1.0, @1.6]){
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+                           (int64_t)(lt.doubleValue * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{ ADLaunchScreenDarkPass(); });
+        }
+    } @catch(...) {}
     // Drop the cached (light) launch snapshots so the system recaptures a dark
     // one from our darkened launch views. Own-container only; no entitlements.
     @try {
