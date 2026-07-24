@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.128.0"
+#define AD_VERSION "v5.129.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -761,7 +761,33 @@ static NSString *ADDarkReaderBootstrapBuild(void){
 
            // Clear stray dark square wrappers around the buttons (the box that
            // can extend past the pill). Shapes/borders are persistent CSS above.
-           // BOX CLEARER. Small dark wrappers hugging the mlt/heart discs are our
+           // BOX KILLER. A dark background anywhere between artwork and the light
+           // card it sits on is a box we or Dark Reader painted under transparent
+           // ink -- the pharmacy wordmark case. Immediate-parent checks miss it
+           // because DR themes the whole container chain, so search UP for the
+           // light surface and clear everything dark below it.
+           "try{var BK=document.querySelectorAll('img,svg,picture');var bkn=0,bkr='';"
+             "for(var bk=0;bk<BK.length&&bk<300;bk++){var bi=BK[bk];"
+               "var br4=bi.getBoundingClientRect();"
+               "if(br4.width<8||br4.height<8)continue;"
+               "var lightAnc=null,an2=bi.parentElement,ad2=0;"
+               "while(an2&&ad2++<8){var al2=lum(getComputedStyle(an2).backgroundColor);"
+                 "if(al2!==null&&al2>0.5){lightAnc=an2;break;}"
+                 "an2=an2.parentElement;}"
+               "if(!lightAnc)continue;"
+               "var cn4=bi,cd2=0;"
+               "while(cn4&&cn4!==lightAnc&&cd2++<8){"
+                 "var cl2=lum(getComputedStyle(cn4).backgroundColor);"
+                 "if(cl2!==null&&cl2<0.30){"
+                   "cn4.style.setProperty('background-color','transparent','important');bkn++;"
+                   "if(!bkr){var kc2=cn4.className;if(kc2&&kc2.baseVal!==undefined)kc2=kc2.baseVal;"
+                     "var kr2=cn4.getBoundingClientRect();"
+                     "bkr=cn4.tagName.toLowerCase()+'.'+String(kc2||'').slice(0,22)"
+                       "+'@'+Math.round(kr2.width)+'x'+Math.round(kr2.height);}}"
+                 "cn4=cn4.parentElement;}}"
+             "if(bkn&&!window.__AD_BOXKILL__)window.__AD_BOXKILL__='n='+bkn+' first='+bkr;"
+           "}catch(e){}"
+                      // BOX CLEARER. Small dark wrappers hugging the mlt/heart discs are our
            // own earlier paint (or anything else's); the disc supplies its own
            // background, so every tight ancestor goes transparent.
            "try{var MC=document.querySelectorAll('[class*=mlt-icon-container],[class*=lists-framework-action-button]');"
@@ -1136,6 +1162,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "}catch(e){}"
              "pr=' url='+String(location.pathname||'').slice(0,28)"
                "+(window.__AD_CMPX__?(' CMPX='+window.__AD_CMPX__):'')"
+               "+(window.__AD_BOXKILL__?(' BOXKILL['+window.__AD_BOXKILL__+']'):'')"
                "+(window.__AD_FLTSCAN__?(' FLTSCAN['+window.__AD_FLTSCAN__+']'):'')"
                "+(window.__AD_CMPSCAN__?(' CMPSCAN['+window.__AD_CMPSCAN__+']'):'')"
                "+(window.__AD_CMPFIX__?(' CMPFIX['+window.__AD_CMPFIX__+']'):'')"
@@ -1563,6 +1590,14 @@ static inline double ADUptime(void);
 // Darwin notification once per launch when the UI is demonstrably up (first
 // webview attach, or activation as fallback), and the cover dismisses on
 // receipt instead of waiting out a fixed 3s hold.
+static void ADCollectWebViews(UIView *v, NSMutableArray *out, int depth){
+    if (!v || depth > 12 || out.count >= 8) return;
+    @try {
+        if ([v isKindOfClass:[WKWebView class]]) { [out addObject:v]; return; }
+        for (UIView *sv in v.subviews) ADCollectWebViews(sv, out, depth + 1);
+    } @catch(...) {}
+}
+
 static void ADPostAppReady(void){
     static BOOL posted = NO;
     if (posted) return;
@@ -3895,7 +3930,13 @@ static void ADReapplyBurst(void){
             @try {
                 const char *cn3 = object_getClassName(self);
                 BOOL sheet = (self.presentingViewController != nil);
-                BOOL hostish = (strstr(cn3, "Hosting") != NULL ||
+                // Widened from the census. The previous test wanted "Hosting" and
+                // matched none of the real names -- RCTModalHostViewController has
+                // "Host" without the "ing", which is why traitdark never fired.
+                BOOL hostish = (strstr(cn3, "Host") != NULL ||
+                                strstr(cn3, "StoreMode") != NULL ||
+                                strstr(cn3, "AMIConfigurable") != NULL ||
+                                strstr(cn3, "AMSModalLayout") != NULL ||
                                 strcasestr(cn3, "harm") != NULL ||
                                 strcasestr(cn3, "ealth") != NULL);
                 if (sheet && hostish &&
@@ -3903,6 +3944,42 @@ static void ADReapplyBurst(void){
                     self.overrideUserInterfaceStyle != UIUserInterfaceStyleDark){
                     self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
                     ADLog(@"traitdark: %s", cn3);
+                }
+            } @catch(...) {}
+            // Store-mode surfaces (Pharmacy lives here): drive the repair from the
+            // controller when it APPEARS. The prewarmed AMIConfigurableWebView
+            // exposes no URL, so the URL-change poll never interrogates it; this
+            // path does not depend on a URL, a timer, or Amazon's own delegate.
+            @try {
+                const char *cn5 = object_getClassName(self);
+                if (strstr(cn5, "StoreMode") || strstr(cn5, "AMIConfigurable")) {
+                    __weak UIViewController *wvc = self;
+                    for (NSNumber *d3 in @[@0.3, @1.2, @3.0]) {
+                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+                                       (int64_t)(d3.doubleValue * NSEC_PER_SEC)),
+                                       dispatch_get_main_queue(), ^{
+                            @try {
+                                UIViewController *v2 = wvc;
+                                if (!v2 || !v2.viewIfLoaded.window) return;
+                                NSMutableArray *found = [NSMutableArray array];
+                                ADCollectWebViews(v2.viewIfLoaded, found, 0);
+                                if (!found.count) {
+                                    ADLog(@"pharmrepair %s -> no webview found", cn5);
+                                    return;
+                                }
+                                for (WKWebView *w2 in found) {
+                                    [w2 evaluateJavaScript:ADDarkReaderReapply()
+                                         completionHandler:^(id r7, NSError *e7){
+                                        @try {
+                                            if (e7) ADLog(@"pharmrepair %s -> ERR %@/%ld",
+                                                          cn5, e7.domain, (long)e7.code);
+                                            else ADLog(@"pharmrepair %s -> %@", cn5, r7);
+                                        } @catch(...) {}
+                                    }];
+                                }
+                            } @catch(...) {}
+                        });
+                    }
                 }
             } @catch(...) {}
             gProbeArmed = YES;

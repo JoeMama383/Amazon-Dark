@@ -25,7 +25,7 @@
 static NSString * const kAMZ      = @"com.amazon.Amazon";
 static NSString * const kDefaults = @"com.colindavidr.amazondark";
 static const NSTimeInterval kCoverHold    = 3.0;  // dark cover visible time
-static const NSTimeInterval kCoverFade    = 0.30; // lift animation
+static const NSTimeInterval kCoverFade    = 0.55; // lift animation
 static const NSTimeInterval kCoverHardCap = 6.0;  // absolute max on screen
 static const NSTimeInterval kReCoverGap   = 8.0;  // ignore re-triggers within
 
@@ -196,8 +196,8 @@ static void ADPresentCover(void) {
         w.hidden = NO;   // show without becoming key (don't steal input focus)
         [UIView animateWithDuration:0.14 animations:^{ w.alpha = 1.0; }];
         if (lg && !adReduce){
-            [UIView animateWithDuration:0.45 delay:0.05
-                 usingSpringWithDamping:0.85 initialSpringVelocity:0.3
+            [UIView animateWithDuration:0.80 delay:0.06
+                 usingSpringWithDamping:0.78 initialSpringVelocity:0.2
                                 options:UIViewAnimationOptionCurveEaseOut
                              animations:^{
                                  lg.alpha = 1.0;
@@ -258,7 +258,7 @@ static void ADPresentCover(void) {
             @try {
                 if (!gCoverWin) return;
                 double shown = CFAbsoluteTimeGetCurrent() - gPresentAt;
-                double wait  = shown < 0.50 ? (0.50 - shown) : 0.0;  // no strobe
+                double wait  = shown < 0.95 ? (0.95 - shown) : 0.0;  // no strobe
                 ADSBLog([NSString stringWithFormat:@"COVER ready (shown %.2fs, wait %.2fs)", shown, wait]);
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(wait * NSEC_PER_SEC)),
                                dispatch_get_main_queue(), ^{ ADDismissCover(); });
