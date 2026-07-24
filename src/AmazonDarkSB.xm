@@ -98,6 +98,31 @@ static UIWindowScene *ADForegroundWindowScene(void) {
 static void ADDismissCover(void);
 static UIView *gCoverOverlay;
 
+// YES when Amazon already has a running process -- i.e. this is a resume, not a
+// cold launch. Nothing here is required to exist; unknown means "cover it".
+static BOOL ADAmazonProcessAlive(int *taskStateOut) {
+    if (taskStateOut) *taskStateOut = -1;
+    @try {
+        Class ctl = objc_getClass("SBApplicationController");
+        if (!ctl || ![ctl respondsToSelector:@selector(sharedInstance)]) return NO;
+        id shared = [ctl performSelector:@selector(sharedInstance)];
+        if (!shared || ![shared respondsToSelector:@selector(applicationWithBundleIdentifier:)]) return NO;
+        id app = [shared performSelector:@selector(applicationWithBundleIdentifier:) withObject:kAMZ];
+        if (!app || ![app respondsToSelector:@selector(processState)]) return NO;
+        id ps = [app performSelector:@selector(processState)];
+        if (!ps) return NO;
+        if (taskStateOut && [ps respondsToSelector:@selector(taskState)]) {
+            NSNumber *ts = [ps valueForKey:@"taskState"];
+            if (ts) *taskStateOut = ts.intValue;
+        }
+        if ([ps respondsToSelector:@selector(isRunning)]) {
+            NSNumber *r = [ps valueForKey:@"isRunning"];
+            if (r) return r.boolValue;
+        }
+    } @catch (__unused NSException *e) {}
+    return NO;
+}
+
 // Dark surface parented to the zooming scene view, so SpringBoard's launch
 // animation plays exactly as it does for every other app -- only its contents
 // are dark instead of Amazon's white launch screen.
@@ -311,6 +336,13 @@ static void ADPresentCover(void) {
 
         // Cover disabled: it was overlaying SpringBoard's icon-zoom launch
         // animation. The launch screen is darkened at its source instead.
+        // Resume: Amazon's own view is already drawn behind this scene, so the
+        // overlay would be replaying a launch that is not happening.
+        int ts = -1;
+        BOOL alive = ADAmazonProcessAlive(&ts);
+        ADSBLog([NSString stringWithFormat:@"scene attach alive=%d taskState=%d", alive ? 1 : 0, ts]);
+        if (alive) return;
+
         // Parented to the scene view: SpringBoard's zoom animates it.
         ADAttachCoverToScene(self);
     } @catch (__unused NSException *e) {}
