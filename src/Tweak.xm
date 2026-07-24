@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.132.0"
+#define AD_VERSION "v5.133.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1622,6 +1622,23 @@ static UIImage *ADSplashLogoImage(void){
 // Darken the launch storyboard in place. Runs while the launch screen is still
 // on screen, so the snapshot iOS captures for the icon-zoom is a dark one.
 static int gLaunchDarkLogged = 0;
+static void ADCountViews(UIView *v, int depth, int *n){
+    if (!v || depth > 8 || *n > 60) return;
+    (*n)++;
+    for (UIView *sv in v.subviews) ADCountViews(sv, depth + 1, n);
+}
+// True only while the launch storyboard is what is on screen: it has a handful
+// of views, whereas Amazon's real UI has hundreds.
+static BOOL ADLaunchTreeIsTrivial(void){
+    int n = 0;
+    @try {
+        for (UIWindow *w in [UIApplication sharedApplication].windows){
+            if (!w || w.hidden) continue;
+            ADCountViews(w, 0, &n);
+        }
+    } @catch(...) {}
+    return (n > 0 && n <= 40);
+}
 static void ADLaunchDarkenTree(UIView *v, int depth, int *bg, int *logo){
     if (!v || depth > 8) return;
     @try {
@@ -1641,7 +1658,7 @@ static void ADLaunchDarkenTree(UIView *v, int depth, int *bg, int *logo){
             CGSize sz = iv.bounds.size;
             // The wordmark lockup: wide, not a small chrome glyph. Its ink is dark,
             // so on a darkened ground it must be replaced, not merely recoloured.
-            if (iv.image && sz.width > 90.0 && sz.height > 20.0){
+            if (iv.image && sz.width > 90.0 && sz.height > 20.0 && ADLaunchTreeIsTrivial()){
                 UIImage *rep = ADSplashLogoImage();
                 if (rep){
                     iv.image = rep;
@@ -3994,6 +4011,12 @@ static void ADReapplyBurst(void){
 // switch or push. Gate to controllers that actually host content so we do not fire
 // the burst for every cell-sized child VC.
 %hook UIViewController
+- (void)viewDidLoad {
+    %orig;
+    // Earliest reachable point for the launch storyboard's controller: darken
+    // before the first frame is composited, so the captured snapshot is dark.
+    @try { if (ADUptime() < 2.5) ADLaunchScreenDarkPass(); } @catch(...) {}
+}
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
     @try {
@@ -4148,11 +4171,20 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
     ADOpenLog();
     ADRaw("[AmazonDark] " AD_VERSION " init (DarkReader web + native colour engine)");
     @try {
-        for (NSNumber *lt in @[@0.0, @0.03, @0.08, @0.16, @0.30, @0.60, @1.0, @1.6]){
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
-                           (int64_t)(lt.doubleValue * NSEC_PER_SEC)),
-                           dispatch_get_main_queue(), ^{ ADLaunchScreenDarkPass(); });
-        }
+        // 20ms cadence: the launch window appears somewhere in the first second and
+        // must be darkened within the same frame it becomes visible, before the
+        // system captures its snapshot.
+        dispatch_async(dispatch_get_main_queue(), ^{
+            ADLaunchScreenDarkPass();
+            __block NSTimer *lt2 = [NSTimer scheduledTimerWithTimeInterval:0.02 repeats:YES
+                                                                     block:^(NSTimer *t){
+                @try {
+                    ADLaunchScreenDarkPass();
+                    if (ADUptime() > 2.5) [t invalidate];
+                } @catch(...) { [t invalidate]; }
+            }];
+            (void)lt2;
+        });
     } @catch(...) {}
     // Drop the cached (light) launch snapshots so the system recaptures a dark
     // one from our darkened launch views. Own-container only; no entitlements.
