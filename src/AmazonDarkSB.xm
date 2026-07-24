@@ -359,7 +359,7 @@ static void ADPresentCover(void) {
         notify_register_dispatch("com.colindavidr.amazondark.ready", &adReadyToken,
                                  dispatch_get_main_queue(), ^(int t){
             @try {
-                if (!gCoverWin) return;
+                if (!gCoverWin && !gCoverOverlay) return;
                 double shown = CFAbsoluteTimeGetCurrent() - gPresentAt;
                 double wait  = shown < 1.05 ? (1.05 - shown) : 0.0;  // no strobe
                 ADSBLog([NSString stringWithFormat:@"COVER ready (shown %.2fs, wait %.2fs)", shown, wait]);
