@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.130.0"
+#define AD_VERSION "v5.131.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -766,8 +766,14 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // ink -- the pharmacy wordmark case. Immediate-parent checks miss it
            // because DR themes the whole container chain, so search UP for the
            // light surface and clear everything dark below it.
-           "try{var BK=document.querySelectorAll('img,svg,picture');var bkn=0,bkr='';"
-             "for(var bk=0;bk<BK.length&&bk<300;bk++){var bi=BK[bk];"
+           "try{var BK0=document.querySelectorAll('img,svg,picture'),BK=[];"
+             "for(var b0=0;b0<BK0.length&&b0<300;b0++)BK.push(BK0[b0]);"
+             "var BKA=document.querySelectorAll('div,span,a,section');"
+             "for(var b1=0;b1<BKA.length&&b1<1200&&BK.length<420;b1++){"
+               "var ba=BKA[b1];var bgi2=getComputedStyle(ba).backgroundImage||'';"
+               "if(bgi2.indexOf('url(')>=0)BK.push(ba);}"
+             "var bkn=0,bkr='';"
+             "for(var bk=0;bk<BK.length&&bk<420;bk++){var bi=BK[bk];"
                "var br4=bi.getBoundingClientRect();"
                "if(br4.width<8||br4.height<8)continue;"
                "var lightAnc=null,an2=bi.parentElement,ad2=0;"
@@ -775,7 +781,9 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "if(al2!==null&&al2>0.5){lightAnc=an2;break;}"
                  "an2=an2.parentElement;}"
                "if(!lightAnc)continue;"
-               "var cn4=bi,cd2=0;"
+               "var bol=lum(getComputedStyle(bi).backgroundColor);"
+               "if(bol!==null&&bol<0.30){bi.style.setProperty('background-color','transparent','important');bkn++;}"
+               "var cn4=bi.parentElement,cd2=0;"
                "while(cn4&&cn4!==lightAnc&&cd2++<8){"
                  "var cl2=lum(getComputedStyle(cn4).backgroundColor);"
                  "if(cl2!==null&&cl2<0.30){"
@@ -1711,7 +1719,12 @@ static void ADPreDarken(WKWebView *wv){
                         // Never work in the background: that is what gets the app
                         // killed and forces the cold relaunch.
                         if ([UIApplication sharedApplication].applicationState
-                                != UIApplicationStateActive) return;
+                                != UIApplicationStateActive){
+                            // Kill it outright: a timer that merely skips still keeps
+                            // the process busy and jetsam-eligible in the background.
+                            [tm invalidate];
+                            return;
+                        }
                         if (ADUptime() > 900.0){ [tm invalidate]; return; }
                         NSString *cu = wp.URL.absoluteString ?: @"";
                         NSString *lu = objc_getAssociatedObject(wp, kLastU) ?: @"";
@@ -4070,6 +4083,23 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
     ADOpenLog();
     ADRaw("[AmazonDark] " AD_VERSION " init (DarkReader web + native colour engine)");
+    // Drop the cached (light) launch snapshots so the system recaptures a dark
+    // one from our darkened launch views. Own-container only; no entitlements.
+    @try {
+        NSString *lib = [NSSearchPathForDirectoriesInDomains(
+                            NSLibraryDirectory, NSUserDomainMask, YES) firstObject];
+        NSString *snap = [lib stringByAppendingPathComponent:@"SplashBoard/Snapshots"];
+        NSFileManager *fm = [NSFileManager defaultManager];
+        NSArray *kids = [fm contentsOfDirectoryAtPath:snap error:nil];
+        NSUInteger killed = 0;
+        for (NSString *k in kids){
+            NSString *sub = [snap stringByAppendingPathComponent:k];
+            for (NSString *f in [fm contentsOfDirectoryAtPath:sub error:nil]){
+                if ([fm removeItemAtPath:[sub stringByAppendingPathComponent:f] error:nil]) killed++;
+            }
+        }
+        if (kids.count) ADLog(@"splashsnap cleared %lu file(s)", (unsigned long)killed);
+    } @catch(...) {}
     // Activation fallback for the ready signal: if no webview attaches (native-
     // only cold path), the cover still lifts shortly after the app is active.
     @try {

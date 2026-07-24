@@ -249,8 +249,10 @@ static void ADPresentCover(void) {
         }
         if (![bid isEqualToString:kAMZ]) return;
 
-        ADSBLog(@"AMAZON scene -> present cover");
-        ADPresentCover();
+        // Cover disabled: it was overlaying SpringBoard's icon-zoom launch
+        // animation. The launch screen is darkened at its source instead.
+        ADSBLog(@"AMAZON scene -> stock launch (cover disabled)");
+        if (getenv("AMZDARK_COVER")) ADPresentCover();
     } @catch (__unused NSException *e) {}
 }
 %end
