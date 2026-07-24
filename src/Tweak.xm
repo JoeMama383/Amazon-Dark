@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.129.0"
+#define AD_VERSION "v5.130.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -809,15 +809,16 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "try{var fhead=document.evaluate("
              "\"//*[contains(text(),'Filters for')]\","
              "document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;"
-             "if(fhead){var fsec=fhead,fu=0;"
-               "while(fsec.parentElement&&fu++<6){var fsr=fsec.parentElement.getBoundingClientRect();"
-                 "if(fsr.width>300&&fsr.height>220){fsec=fsec.parentElement;break;}"
-                 "fsec=fsec.parentElement;}"
+             "if(fhead){var fsec=fhead,fu=0,vw2=window.innerWidth||390,fcur=fhead,fbest=null;"
+               "while(fcur.parentElement&&fu++<10){fcur=fcur.parentElement;"
+                 "var fsr=fcur.getBoundingClientRect();"
+                 "if(fsr.width>=vw2*0.80&&fsr.height>=200)fbest=fcur;}"
+               "fsec=fbest||fhead.parentElement||fhead;"
                "var fels=fsec.querySelectorAll('img,svg,i,span,div');"
                "var fmiss=[];"
                "for(var fz=0;fz<fels.length&&fz<400;fz++){var fe2=fels[fz];"
                  "var fr3=fe2.getBoundingClientRect();"
-                 "if(fr3.width<10||fr3.width>90||fr3.height<10||fr3.height>90)continue;"
+                 "if(fr3.width<10||fr3.width>130||fr3.height<10||fr3.height>130)continue;"
                  "var fc2=fe2.className;if(fc2&&fc2.baseVal!==undefined)fc2=fc2.baseVal;fc2=String(fc2||'');"
                  "if(SKIP.test(fc2))continue;"
                  "var ftg=fe2.tagName.toLowerCase();"
@@ -1698,13 +1699,19 @@ static void ADPreDarken(WKWebView *wv){
             // Delegate-independent late coverage: watch the URL itself. Prewarmed
             // views (AMIConfigurableWebView) sit blank for minutes, then navigate
             // when their surface opens -- long after any fixed schedule.
-            {
+            static int gPollCount = 0;
+            if (gPollCount < 6){
+                gPollCount++;
                 NSTimer *poll = [NSTimer scheduledTimerWithTimeInterval:3.0 repeats:YES
                                                                   block:^(NSTimer *tm){
                     @try {
                         WKWebView *wp = weakWv;
                         static const void *kLastU = &kLastU;
                         if (!wp){ [tm invalidate]; return; }
+                        // Never work in the background: that is what gets the app
+                        // killed and forces the cold relaunch.
+                        if ([UIApplication sharedApplication].applicationState
+                                != UIApplicationStateActive) return;
                         if (ADUptime() > 900.0){ [tm invalidate]; return; }
                         NSString *cu = wp.URL.absoluteString ?: @"";
                         NSString *lu = objc_getAssociatedObject(wp, kLastU) ?: @"";

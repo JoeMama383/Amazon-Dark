@@ -121,6 +121,14 @@ static void ADPresentCover(void) {
         w.rootViewController = vc;
         w.backgroundColor = dark;
 
+        // The zooming surface. Slightly lifted from the base so the growth is
+        // legible as a surface opening rather than a logo drifting in place.
+        UIView *adCard = [[UIView alloc] initWithFrame:vc.view.bounds];
+        adCard.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        adCard.backgroundColor = [UIColor colorWithRed:0.118 green:0.126 blue:0.130 alpha:1.0];
+        adCard.layer.masksToBounds = YES;
+        [vc.view addSubview:adCard];
+
         // Inverted splash logo, generated from the app's own launch screen: dark
         // ground, light wordmark, the orange smile kept orange. Falls back to the
         // rounded app icon only if the packaged asset is missing.
@@ -138,12 +146,12 @@ static void ADPresentCover(void) {
                 logo.contentMode = UIViewContentModeScaleAspectFit;   // wordmark: no
                 logo.translatesAutoresizingMaskIntoConstraints = NO;  // corner mask
                 logo.tag = 7741;
-                [vc.view addSubview:logo];
+                [adCard addSubview:logo];
                 CGFloat lw = [UIScreen mainScreen].bounds.size.width * 0.62;
                 CGFloat lh = lw * (splash.size.height / MAX(splash.size.width, 1.0));
                 [NSLayoutConstraint activateConstraints:@[
-                    [logo.centerXAnchor constraintEqualToAnchor:vc.view.centerXAnchor],
-                    [logo.centerYAnchor constraintEqualToAnchor:vc.view.centerYAnchor],
+                    [logo.centerXAnchor constraintEqualToAnchor:adCard.centerXAnchor],
+                    [logo.centerYAnchor constraintEqualToAnchor:adCard.centerYAnchor],
                     [logo.widthAnchor constraintEqualToConstant:lw],
                     [logo.heightAnchor constraintEqualToConstant:lh],
                 ]];
@@ -165,10 +173,10 @@ static void ADPresentCover(void) {
                 logo.tag = 7741;
                 logo.layer.cornerRadius = 22.0;
                 logo.layer.masksToBounds = YES;
-                [vc.view addSubview:logo];
+                [adCard addSubview:logo];
                 [NSLayoutConstraint activateConstraints:@[
-                    [logo.centerXAnchor constraintEqualToAnchor:vc.view.centerXAnchor],
-                    [logo.centerYAnchor constraintEqualToAnchor:vc.view.centerYAnchor],
+                    [logo.centerXAnchor constraintEqualToAnchor:adCard.centerXAnchor],
+                    [logo.centerYAnchor constraintEqualToAnchor:adCard.centerYAnchor],
                     [logo.widthAnchor constraintEqualToConstant:132.0],
                     [logo.heightAnchor constraintEqualToConstant:132.0],
                 ]];
@@ -179,37 +187,38 @@ static void ADPresentCover(void) {
         w.windowLevel = UIWindowLevelAlert + 1.0;
         w.userInteractionEnabled = NO;
 
-        // INSTANT COVERAGE, SETTLE INSIDE. A grow-from-small cover exposes the
-        // system's light launch frame (and the storyboard pill) around it while
-        // it scales -- exactly the regression reported. So the surface is
-        // full-screen from its first frame with only a fast opacity ramp to
-        // avoid a hard cut, and the stock-launch feel comes from the LOGO
-        // settling (0.92 -> 1.0 spring + fade) inside the already-opaque cover.
+        // OPAQUE BASE, ZOOMING CARD. The base is dark and full-screen on frame
+        // one, so the white launch frame is never visible for even one frame --
+        // that was the flaw in the earlier zoom attempt. The card then grows from
+        // icon-sized to full-screen with its corner radius relaxing, which is the
+        // stock "app opens" motion, at a stock-like pace.
         UIView *cv = w.rootViewController.view;
-        UIView *lg = [cv viewWithTag:7741];
         BOOL adReduce = UIAccessibilityIsReduceMotionEnabled();
-        w.alpha = 0.25;                    // substantial coverage on frame one
-        if (lg && !adReduce){
-            lg.alpha = 0.0;
-            lg.transform = CGAffineTransformMakeScale(0.92, 0.92);
+        cv.alpha = 1.0;                       // base opaque immediately: no white
+        UIView *card = nil;
+        for (UIView *sv in cv.subviews) { card = sv; break; }
+        if (card && !adReduce){
+            card.layer.cornerRadius = 46.0;
+            card.transform = CGAffineTransformMakeScale(0.26, 0.26);
+            card.alpha = 0.55;
         }
         w.hidden = NO;   // show without becoming key (don't steal input focus)
-        [UIView animateWithDuration:0.14 animations:^{ w.alpha = 1.0; }];
-        if (lg && !adReduce){
-            [UIView animateWithDuration:0.80 delay:0.06
-                 usingSpringWithDamping:0.78 initialSpringVelocity:0.2
+        if (card && !adReduce){
+            [UIView animateWithDuration:0.62 delay:0.0
                                 options:UIViewAnimationOptionCurveEaseOut
                              animations:^{
-                                 lg.alpha = 1.0;
-                                 lg.transform = CGAffineTransformIdentity;
+                                 card.transform = CGAffineTransformIdentity;
+                                 card.alpha = 1.0;
                              } completion:nil];
-        } else if (lg){
-            lg.alpha = 0.0;
-            [UIView animateWithDuration:0.20 animations:^{ lg.alpha = 1.0; }];
+            CABasicAnimation *cr = [CABasicAnimation animationWithKeyPath:@"cornerRadius"];
+            cr.fromValue = @46.0; cr.toValue = @0.0; cr.duration = 0.62;
+            cr.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
+            [card.layer addAnimation:cr forKey:@"adcr"];
+            card.layer.cornerRadius = 0.0;
         }
-                gCoverWin = w;
+        gCoverWin = w;
         gPresentAt = CFAbsoluteTimeGetCurrent();
-        ADSBLog(@"COVER presented (settle)");
+        ADSBLog(@"COVER presented (zoom)");
 
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHold * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{ ADDismissCover(); });
@@ -258,7 +267,7 @@ static void ADPresentCover(void) {
             @try {
                 if (!gCoverWin) return;
                 double shown = CFAbsoluteTimeGetCurrent() - gPresentAt;
-                double wait  = shown < 0.95 ? (0.95 - shown) : 0.0;  // no strobe
+                double wait  = shown < 1.05 ? (1.05 - shown) : 0.0;  // no strobe
                 ADSBLog([NSString stringWithFormat:@"COVER ready (shown %.2fs, wait %.2fs)", shown, wait]);
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(wait * NSEC_PER_SEC)),
                                dispatch_get_main_queue(), ^{ ADDismissCover(); });
