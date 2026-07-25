@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.149.0"
+#define AD_VERSION "v5.150.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -943,7 +943,13 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // drawing sitting invisibly on the tile our theming darkened.
            "try{var TQ=document.querySelectorAll('img,svg,i,span,div');var tl=0,tfirst='';"
              "for(var tq=0;tq<TQ.length&&tq<2500;tq++){var te=TQ[tq];"
-               "if(te.__adGlyph)continue;"
+               // Recycled node: if our ink was dropped by a re-render, treat it as
+               // fresh rather than skipping it for the life of the page.
+               "if(te.__adGlyph){try{"
+                 "if(te.tagName.toLowerCase()!=='svg')continue;"
+                 "var rfl=lum(getComputedStyle(te).fill);"
+                 "if(rfl!==null&&rfl>=0.40)continue;"
+               "}catch(e){continue;}}"
                "var tcs=getComputedStyle(te);var ttag=te.tagName.toLowerCase();"
                "var tArt=(ttag==='img'||ttag==='svg');"
                "if(!tArt){var tbi=tcs.backgroundImage||'';"
@@ -994,6 +1000,24 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "if(el5.tagName.toLowerCase()!=='img'){"
                    "el5.style.setProperty('filter','invert(1)','important');return;}"
                  "var srcu=el5.currentSrc||el5.src;if(!srcu)return;"
+                 // Vector source: inspect the declarations, never a canvas render.
+                 "if(/\\.svg(\\?|$)/i.test(srcu)){try{"
+                   "fetch(srcu).then(function(r){return r.text();}).then(function(tx){try{"
+                     "var lite2=0,dark2=0;"
+                     "var mm=tx.match(/(?:fill|stroke)\\s*[=:]\\s*[\"']?#?[0-9a-zA-Z(),.%% ]+/g)||[];"
+                     "for(var mi=0;mi<mm.length;mi++){var v2=mm[mi].toLowerCase();"
+                       "if(/none|currentcolor/.test(v2))continue;"
+                       "if(/#f{3,6}|white|255,\\s*255,\\s*255|#e[0-9a-f]|#d[0-9a-f]/.test(v2)){lite2++;continue;}"
+                       "if(/#0{3,6}|black|#1[0-9a-f]|#2[0-9a-f]|#3[0-9a-f]/.test(v2))dark2++;}"
+                     "if(lite2>0){"
+                       "el5.style.removeProperty('filter');"
+                       "if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__='svg-light l='+lite2+' d='+dark2;"
+                       "return;}"
+                     "el5.style.setProperty('filter','invert(1)','important');"
+                     "el5.style.setProperty('background-color','transparent','important');"
+                     "if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__='svg-dark l='+lite2+' d='+dark2;"
+                   "}catch(e){}}).catch(function(){});"
+                 "}catch(e){}return;}"
                  "var pr6=new Image();pr6.crossOrigin='anonymous';"
                  "pr6.onload=function(){try{"
                    "var cw=Math.min(pr6.naturalWidth||32,32),ch=Math.min(pr6.naturalHeight||32,32);"
@@ -1432,6 +1456,13 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          "try{var _t=null;new MutationObserver(function(){clearTimeout(_t);"
            "_t=setTimeout(function(){try{window.__AMZDARK_FIXCONTRAST__();}catch(e){}},150);})"
            ".observe(document.documentElement,{childList:true,subtree:true});}catch(e){}"
+           // Heartbeat: cheap, idempotent, and the only thing that survives a
+           // late re-mount of an already-processed subtree.
+           "try{if(!window.__AMZDARK_HB__){window.__AMZDARK_HB__=1;var hbn=0;"
+             "var hb=setInterval(function(){try{"
+               "if(++hbn>75){clearInterval(hb);return;}"
+               "window.__AMZDARK_FIXCONTRAST__();"
+             "}catch(e){}},1200);}}catch(e){}"
          "window.__AMZDARK_APPLY__();"
          // Fast early passes so promo text / buttons are corrected before the
          // eye registers Dark Reader's first-paint colours. One-shot, bounded.
