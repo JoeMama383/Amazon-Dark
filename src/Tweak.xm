@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.136.0"
+#define AD_VERSION "v5.137.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -814,9 +814,14 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // up to three refused candidates -- the old version stopped on the
            // FIRST candidate, which was a correctly-skipped product pill, and
            // masked the real miss.
-           "try{var fhead=document.evaluate("
-             "\"//*[contains(text(),'Filters for')]\","
-             "document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;"
+           "try{var fhead=null;"
+             "var HD=document.querySelectorAll('h1,h2,h3,h4,span,div,p');"
+             "for(var hh=0;hh<HD.length&&hh<3000;hh++){var he2=HD[hh];"
+               "if(he2.children.length>2)continue;"
+               "var ht2=(he2.textContent||'').trim();"
+               "if(ht2.length<8||ht2.length>60)continue;"
+               "if(ht2.indexOf('Filters for')===0){fhead=he2;break;}}"
+             "if(!fhead&&!window.__AD_FLTSCAN__)window.__AD_FLTSCAN__='nohead';"
              "if(fhead){var fsec=fhead,fu=0,vw2=window.innerWidth||390,fcur=fhead,fbest=null;"
                "while(fcur.parentElement&&fu++<10){fcur=fcur.parentElement;"
                  "var fsr=fcur.getBoundingClientRect();"
@@ -842,7 +847,9 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "fe2.style.setProperty('background-color','transparent','important');"
                  "fe2.__adGlyph=1;"
                  "if(fmiss.length<3)fmiss.push(ftg+'.'+fc2.slice(0,22)+'@'+Math.round(fr3.width)+'x'+Math.round(fr3.height));}"
-               "if(fmiss.length&&!window.__AD_FLTSCAN__)window.__AD_FLTSCAN__='lit: '+fmiss.join(' ');"
+               "if(!window.__AD_FLTSCAN__)window.__AD_FLTSCAN__="
+                 "(fmiss.length?('lit: '+fmiss.join(' ')):('sec@'+Math.round(fsec.getBoundingClientRect().width)"
+                   "+'x'+Math.round(fsec.getBoundingClientRect().height)+' none-lit'));"
              "}"
            "}catch(e){}"
                       // COMPARE DISC BY POSITION. Name-based selection has missed in every
@@ -1599,6 +1606,24 @@ static inline double ADUptime(void);
 // Darwin notification once per launch when the UI is demonstrably up (first
 // webview attach, or activation as fallback), and the cover dismisses on
 // receipt instead of waiting out a fixed 3s hold.
+static void ADDarkenNativeTree(UIView *v, int depth, int *n){
+    if (!v || depth > 10) return;
+    @try {
+        UIColor *c = v.backgroundColor;
+        if (c){
+            CGFloat r=0,g=0,b=0,a=0;
+            if ([c getRed:&r green:&g blue:&b alpha:&a] && a > 0.3){
+                CGFloat l = 0.2126*r + 0.7152*g + 0.0722*b;
+                if (l > 0.45){
+                    v.backgroundColor = [UIColor colorWithRed:0.094 green:0.102 blue:0.106 alpha:1.0];
+                    (*n)++;
+                }
+            }
+        }
+        for (UIView *sv in v.subviews) ADDarkenNativeTree(sv, depth + 1, n);
+    } @catch(...) {}
+}
+
 static void ADCollectWebViews(UIView *v, NSMutableArray *out, int depth){
     if (!v || depth > 12 || out.count >= 8) return;
     @try {
@@ -4060,6 +4085,14 @@ static void ADReapplyBurst(void){
             @try {
                 const char *cn5 = object_getClassName(self);
                 if (strstr(cn5, "StoreMode") || strstr(cn5, "AMIConfigurable")) {
+                    ADLog(@"pharmhook %s matched", cn5);
+                    // Native pass: the light field may be this controller's own
+                    // view, not the document inside it.
+                    @try {
+                        int nbg = 0;
+                        ADDarkenNativeTree(self.viewIfLoaded, 0, &nbg);
+                        if (nbg) ADLog(@"pharmnative %s bg=%d", cn5, nbg);
+                    } @catch(...) {}
                     __weak UIViewController *wvc = self;
                     for (NSNumber *d3 in @[@0.3, @1.2, @3.0]) {
                         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
@@ -4070,8 +4103,10 @@ static void ADReapplyBurst(void){
                                 if (!v2 || !v2.viewIfLoaded.window) return;
                                 NSMutableArray *found = [NSMutableArray array];
                                 ADCollectWebViews(v2.viewIfLoaded, found, 0);
+                                int nbg2 = 0;
+                                ADDarkenNativeTree(v2.viewIfLoaded, 0, &nbg2);
                                 if (!found.count) {
-                                    ADLog(@"pharmrepair %s -> no webview found", cn5);
+                                    ADLog(@"pharmrepair %s -> no webview (native bg=%d)", cn5, nbg2);
                                     return;
                                 }
                                 for (WKWebView *w2 in found) {
