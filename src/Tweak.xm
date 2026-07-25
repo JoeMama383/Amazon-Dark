@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.144.0"
+#define AD_VERSION "v5.145.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -918,15 +918,20 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "if(!cw||!ch)return;"
                    "var cv=document.createElement('canvas');cv.width=cw;cv.height=ch;"
                    "var cx=cv.getContext('2d');cx.drawImage(pr6,0,0,cw,ch);"
-                   "var dd=cx.getImageData(0,0,cw,ch).data,sum=0,cnt=0;"
+                   "var dd=cx.getImageData(0,0,cw,ch).data,sum=0,cnt=0,lite=0;"
                    "for(var z=0;z<dd.length;z+=4){if(dd[z+3]<40)continue;"
-                     "sum+=0.2126*dd[z]+0.7152*dd[z+1]+0.0722*dd[z+2];cnt++;}"
-                   "if(!cnt)return;var avg=(sum/cnt)/255;"
-                   "if(avg<0.45){"
+                     "var lz=0.2126*dd[z]+0.7152*dd[z+1]+0.0722*dd[z+2];"
+                     "sum+=lz;cnt++;if(lz>153)lite++;}"
+                   "if(!cnt)return;var avg=(sum/cnt)/255;var lf=lite/cnt;"
+                   // Any real light content means the sprite already reads on a
+                   // dark tile; inverting it would flip it against its peers.
+                   "if(avg<0.45&&lf<0.10){"
                      "el5.style.setProperty('filter','invert(1)','important');"
                      "el5.style.setProperty('background-color','transparent','important');"
-                     "if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__='dark avg='+avg.toFixed(2);}"
-                   "else if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__='light avg='+avg.toFixed(2);"
+                     "if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__="
+                       "'inverted avg='+avg.toFixed(2)+' light='+lf.toFixed(2);}"
+                   "else if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__="
+                     "'left avg='+avg.toFixed(2)+' light='+lf.toFixed(2);"
                  "}catch(e){if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__='tainted';}};"
                  "pr6.onerror=function(){if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__='cors-fail';};"
                  "pr6.src=srcu;"
