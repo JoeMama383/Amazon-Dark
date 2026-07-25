@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.160.0"
+#define AD_VERSION "v5.161.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -615,6 +615,14 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // A filter on a container repaints everything beneath it, so only leaf
            // glyphs may ever be filtered. This is what inverted the bugle: the
            // icon itself was untouched, its wrapper was not.
+           // A raster image beyond glyph size is a photo. Silhouetting one paints
+           // a solid white rectangle, which is what happened to order thumbnails.
+           "function isPhoto(el7){try{"
+             "if(!el7||!el7.tagName)return false;"
+             "if(el7.tagName.toLowerCase()!=='img')return false;"
+             "var r7=el7.getBoundingClientRect();"
+             "return (r7.width>48||r7.height>48);"
+           "}catch(e){return false;}}"
            "function holdsArt(el6){try{"
              "return !!(el6&&el6.querySelector&&el6.querySelector('img,picture,video,canvas,svg'));"
            "}catch(e){return false;}}"
@@ -731,7 +739,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "if(gr.width>5&&gr.width<=lim&&gr.height>5&&gr.height<=lim&&!SKIP.test(cn2)&&!ot&&bgOf(el)<=0.5&&!inContent&&(inFlt||!hasAlt)){"
                  "var hasB=cs.backgroundImage&&cs.backgroundImage!=='none';"
                  "if(isI||hasB){el.style.setProperty('filter','brightness(0) invert(1)','important');"
-                   "if(isProdArt(el)||holdsArt(el))continue;"
+                   "if(isProdArt(el)||holdsArt(el)||isPhoto(el))continue;"
                "el.__adGlyph=1;el.__adBy='gfix1';gfix++;}}"
              "}catch(e){}}"
              "if(el.tagName&&el.tagName.toLowerCase()==='img'&&lfix<500){"
@@ -772,7 +780,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "var slim=ICON.test(sc3)?44:40;"
                    "var SK2=/star|prime|logo|flag|swatch|thumb|sponsor|pill-image|product-image|photo/i;"
                    "if(sr3.width>5&&sr3.width<=slim&&sr3.height>5&&sr3.height<=slim&&!SK2.test(sc3)){"
-                     "if(isProdArt(el)||holdsArt(el))continue;"
+                     "if(isProdArt(el)||holdsArt(el)||isPhoto(el))continue;"
                "el.style.setProperty('filter','brightness(0) invert(1)','important');el.__adGlyph=1;el.__adBy='gfix2';gfix++;}"
                  "}catch(e){}}"
                "var fl2=lum(cs.fill),sl=lum(cs.stroke);"
@@ -884,6 +892,29 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "im7.__adTamed=1;tamed++;}"
              "if(tamed&&!window.__AD_TAME__)window.__AD_TAME__='n='+tamed+' ceil='+cL.toFixed(2);"
            "}}catch(e){}"
+                      // ORDER THUMB AUDIT. Always reports. Names any photo-sized image that
+           // is not rendering normally, with every mark we could have left on it.
+           "try{var OI=document.querySelectorAll('img');var obad=[],oseen=0;"
+             "for(var oi=0;oi<OI.length&&oi<300&&obad.length<4;oi++){var oe=OI[oi];"
+               "var orr=oe.getBoundingClientRect();"
+               "if(orr.width<56||orr.height<56)continue;"
+               "oseen++;"
+               "var ocs=getComputedStyle(oe);"
+               "var oflt=String(ocs.filter||'none');"
+               "var obg=String(ocs.backgroundColor||'');"
+               "var suspect=(oflt.indexOf('brightness(0')>=0)||(oflt.indexOf('invert')>=0)"
+                 "||(parseFloat(ocs.opacity||'1')<0.9)||(ocs.visibility==='hidden');"
+               "if(!suspect)continue;"
+               "var ocn=oe.className;if(ocn&&ocn.baseVal!==undefined)ocn=ocn.baseVal;"
+               "obad.push(String(ocn||'img').slice(0,18)"
+                 "+'@'+Math.round(orr.width)+'x'+Math.round(orr.height)"
+                 "+'|flt='+oflt.slice(0,26)+'|op='+ocs.opacity"
+                 "+'|bg='+obg.replace(/ /g,'')"
+                 "+'|glyph='+(oe.__adGlyph?1:0)+'|by='+(oe.__adBy||'-')"
+                 "+'|tamed='+(oe.__adTamed?1:0));}"
+             "window.__AD_ORDERS__=(obad.length?('n='+obad.length+' '+obad.join(' ~ ')):"
+               "('clean photos='+oseen));"
+           "}catch(e){window.__AD_ORDERS__='err '+e;}"
                       // BEHIND-TEXT AUDIT. The dark rectangle is a sibling/backdrop element,
            // not the text's own background, so probe the paint stack under the
            // text run itself. Reports the full stack with each background and
@@ -1081,7 +1112,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "&&tpr.width>=tr.width-2&&tpr.height>=tr.height-2){tile=tp;break;}"
                  "tp=tp.parentElement;}"
                "if(!tile)continue;"
-               "if(isProdArt(te)||holdsArt(te))continue;"
+               "if(isProdArt(te)||holdsArt(te)||isPhoto(te))continue;"
                "te.__adGlyph=1;te.__adBy='tileart';tl++;"
                // Vector glyph: read its ink and lift it directly.
                "if(ttag==='svg'){try{"
@@ -1178,7 +1209,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "fe2.style.setProperty('stroke','#ffffff','important');continue;}"
                  "fe2.style.setProperty('filter','brightness(0) invert(1)','important');"
                  "fe2.style.setProperty('background-color','transparent','important');"
-                 "if(isProdArt(fe2)||holdsArt(fe2))continue;"
+                 "if(isProdArt(fe2)||holdsArt(fe2)||isPhoto(fe2))continue;"
                "fe2.__adGlyph=1;fe2.__adBy='fltpanel';"
                  "if(fmiss.length<3)fmiss.push(ftg+'.'+fc2.slice(0,22)+'@'+Math.round(fr3.width)+'x'+Math.round(fr3.height));}"
                "if(!window.__AD_FLTSCAN__)window.__AD_FLTSCAN__="
@@ -1274,7 +1305,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "if(ae.closest&&ae.closest('[class*=heart],[class*=wish],[class*=lists-framework],[class*=copilot-compare]'))continue;"
                "var ar=ae.getBoundingClientRect();"
                "if(ar.width>5&&ar.width<=60&&ar.height>5&&ar.height<=60){"
-                 "if(isProdArt(ae)||holdsArt(ae))continue;"
+                 "if(isProdArt(ae)||holdsArt(ae)||isPhoto(ae))continue;"
                "ae.style.setProperty('filter','brightness(0) invert(1)','important');ae.__adGlyph=1;ae.__adBy='aic';}}"
            "}catch(e){}"
            "try{var CDU=document.querySelectorAll('[class*=cardui],[class*=Cardui]');"
@@ -1513,6 +1544,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "}catch(e){}"
              "pr=' url='+String(location.pathname||'').slice(0,28)"
                "+(window.__AD_CMPX__?(' CMPX='+window.__AD_CMPX__):'')"
+               "+(window.__AD_ORDERS__?(' ORDERS['+window.__AD_ORDERS__+']'):'')"
                "+(window.__AD_TAME__?(' TAME['+window.__AD_TAME__+']'):'')"
                "+(window.__AD_TEXTBOX__?(' TEXTBOX['+window.__AD_TEXTBOX__+']'):'')"
                "+(window.__AD_ADCARD__?(' ADCARD['+window.__AD_ADCARD__+']'):'')"

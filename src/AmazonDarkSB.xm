@@ -363,13 +363,14 @@ static void ADPresentCover(void) {
         // One cover per launch. If the process-alive lookup fails we must not
         // fall through and cover a running app -- that is the state where no
         // ready signal can arrive, so the cover would simply sit there.
-        static NSTimeInterval lastCover = 0;
-        NSTimeInterval nowT = CFAbsoluteTimeGetCurrent();
-        BOOL tooSoon = (lastCover > 0 && (nowT - lastCover) < 20.0);
-        ADSBLog([NSString stringWithFormat:@"scene attach alive=%d taskState=%d recent=%d",
-                 alive ? 1 : 0, ts, tooSoon ? 1 : 0]);
-        if (alive || tooSoon) return;
-        lastCover = nowT;
+        // Per-scene, not per-clock: a fresh scene always gets its cover, while a
+        // scene that already had one never gets a second.
+        static const void *kCoveredKey = &kCoveredKey;
+        BOOL already = (objc_getAssociatedObject(self, kCoveredKey) != nil);
+        ADSBLog([NSString stringWithFormat:@"scene attach alive=%d taskState=%d already=%d",
+                 alive ? 1 : 0, ts, already ? 1 : 0]);
+        if (alive || already) return;
+        objc_setAssociatedObject(self, kCoveredKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 
         // Parented to the scene view: SpringBoard's zoom animates it.
         ADAttachCoverToScene(self);
