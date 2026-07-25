@@ -129,7 +129,11 @@ UIImage *ADKeyWhiteBackground(UIImage *img, const char *bgHex){
     #undef ENQUEUE
 }
 
-BOOL ADIsDarkGlyph(UIImage *img){
+// Measured variant. Reports the three numbers the verdict is computed from, so a
+// conversion can be EXPLAINED in the log rather than inferred from its effect.
+// ADIsDarkGlyph is now a thin wrapper; there is one implementation, not two.
+BOOL ADIsDarkGlyphM(UIImage *img, double *outClear, double *outL, double *outC){
+    if (outClear) *outClear = -1; if (outL) *outL = -1; if (outC) *outC = -1;
     if (!img) return NO;
     CGImageRef src = img.CGImage;
     if (!src) return NO;
@@ -206,6 +210,10 @@ BOOL ADIsDarkGlyph(UIImage *img){
     // renders as a featureless solid rectangle -- it can never be a usable glyph,
     // whatever its luminance or chroma says. This is provable rather than tuned,
     // and it is what a dark opaque product thumbnail was failing.
+    if (outClear) *outClear = clearFrac;
+    if (outL)     *outL     = meanL;
+    if (outC)     *outC     = meanC;
+
     if (clearFrac < 0.05) return NO;
 
     if (clearFrac > 0.15 && meanL < 0.42 && meanC < 0.22) return YES;
@@ -213,4 +221,9 @@ BOOL ADIsDarkGlyph(UIImage *img){
     // at all. The guard above forbids exactly that case, so it could only ever
     // have produced solid blocks; removed rather than left as dead code.
     return NO;
+}
+
+BOOL ADIsDarkGlyph(UIImage *img){
+    double a, b, c;
+    return ADIsDarkGlyphM(img, &a, &b, &c);
 }

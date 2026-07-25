@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.160.0"
+#define AD_VERSION "v5.161.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -159,6 +159,9 @@ static inline void ADMarkModifiedImage(UIImage *im){ if (im) objc_setAssociatedO
 static UIColor *ADColorFromHex(const char *hex);
 static UIImage *ADGlyphify(UIImage *img);
 static UIImage *ADGlyphifyForView(UIImage *img, UIView *v);
+static const char *gGlyphSrc = "?";
+static int gGlyphProbeN = 0;
+
 static BOOL ADIsChromeGlyphContext(UIView *v);
 static void ADRunProbe(void);
 
@@ -3573,6 +3576,7 @@ static void ADRunProbe(void){
         // (1b) Catch-up for glyphs assigned BEFORE our hooks were installed. New
         // assignments are handled earlier and more reliably by the setImage: hook.
         {
+            gGlyphSrc = "dmtw";
             UIImage *tpl = ADGlyphifyForView(self.image, self);
             if (tpl){
                 ((UIView *)self).tintColor = ADColorFromHex(gP.fgHex);
@@ -3722,7 +3726,21 @@ static const void *kADGlyphChecked = &kADGlyphChecked;
 // illustrations are larger than any real monochrome UI glyph; whitening them
 // destroys their detail. Tab-bar icons are exempt -- they are tinted by
 // selection state on their own path and must still convert.
+// ── GLYPH PROBE ─────────────────────────────────────────────────────────────
+// Reports every glyph DECISION on a view big enough to plausibly be a thumbnail,
+// with the three classifier inputs and the call site. A conversion is what turns a
+// photo into a solid tintColor rectangle, so if the orders thumbnails are being
+// whitened natively, they appear here as GLYPHCONV. If they never appear at all,
+// the native path is innocent and the pane is web -- which is the question this
+// exists to settle, rather than assume.
+
 static UIImage *ADGlyphifyForView(UIImage *img, UIView *v){
+    BOOL watch = NO; CGFloat vw = 0, vh = 0;
+    @try {
+        if (v){ vw = v.bounds.size.width; vh = v.bounds.size.height; }
+        watch = (gGlyphProbeN < 40 && img && (vw >= 24 || vh >= 24));
+    } @catch(...) {}
+
     @try {
         if (v && !ADInTabBarChain(v) && !ADIsChromeGlyphContext(v)){
             CGFloat w = v.bounds.size.width, h = v.bounds.size.height;
@@ -3733,11 +3751,37 @@ static UIImage *ADGlyphifyForView(UIImage *img, UIView *v){
             // That is the purchase-history white box: converted to a template and
             // rendered as a solid tintColor rectangle. didMoveToWindow catches
             // genuine glyphs later, once the size is actually knowable.
-            if (w <= 0 || h <= 0) return nil;
-            if (w > 40 || h > 40) return nil;
+            if (w <= 0 || h <= 0){
+                if (watch){ gGlyphProbeN++;
+                    ADLog(@"GLYPHSKIP[%s v=%.0fx%.0f why=nolayout src=%s]",
+                          object_getClassName(v), w, h, gGlyphSrc); }
+                return nil;
+            }
+            if (w > 40 || h > 40){
+                if (watch){ gGlyphProbeN++;
+                    ADLog(@"GLYPHSKIP[%s v=%.0fx%.0f why=toobig src=%s]",
+                          object_getClassName(v), w, h, gGlyphSrc); }
+                return nil;
+            }
         }
     } @catch(...) {}
-    return ADGlyphify(img);
+
+    UIImage *out = ADGlyphify(img);
+
+    if (watch){
+        @try {
+            gGlyphProbeN++;
+            double cf = -1, ml = -1, mc = -1;
+            size_t iw = 0, ih = 0;
+            if (img.CGImage){ iw = CGImageGetWidth(img.CGImage); ih = CGImageGetHeight(img.CGImage); }
+            ADIsDarkGlyphM(img, &cf, &ml, &mc);
+            ADLog(@"%s[%s v=%.0fx%.0f img=%zux%zu clear=%.2f L=%.2f C=%.2f tmpl=%d src=%s]",
+                  out ? "GLYPHCONV" : "GLYPHSKIP",
+                  v ? object_getClassName(v) : "noview", vw, vh, iw, ih,
+                  cf, ml, mc, ADImageIsTemplateish(img) ? 1 : 0, gGlyphSrc);
+        } @catch(...) {}
+    }
+    return out;
 }
 static UIImage *ADGlyphify(UIImage *img){
     if (!gP.enabled || !gP.imageBackdrop || !img) return nil;
@@ -3786,6 +3830,7 @@ static UIImage *ADGlyphify(UIImage *img){
             gADSettingImage = NO;
             return;
         }
+        gGlyphSrc = "setImage";
         UIImage *tpl = ADGlyphifyForView(image, self);
         if (tpl) {
             ((UIView *)self).tintColor = ADColorFromHex(gP.fgHex);
@@ -3815,6 +3860,7 @@ static UIImage *ADGlyphify(UIImage *img){
             ADApplyBarTint(self, ADViewIsSelectedInBar(self));
             return;
         }
+        gGlyphSrc = "btnImage";
         UIImage *tpl = ADGlyphifyForView(image, self);
         if (tpl) {
             ((UIView *)self).tintColor = ADColorFromHex(gP.fgHex);
@@ -4179,6 +4225,7 @@ static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
                         } @catch(...) {}
                     }
                 }
+                gGlyphSrc = "sweepIV";
                 UIImage *tpl = ADGlyphifyForView(((UIImageView *)v).image, v);
                 if (tpl) gSwGlyphFixed++;
                 if (tpl){
@@ -4203,6 +4250,7 @@ static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
                         gSwTintFixed++;
                     }
                 }
+                gGlyphSrc = "sweepBtn";
                 UIImage *tpl = ADGlyphifyForView(cur, b);
                 if (tpl){
                     ((UIView *)b).tintColor = ADColorFromHex(gP.fgHex);
@@ -4313,6 +4361,51 @@ static const void *kADCellSwept = &kADCellSwept;
     } @catch(...) {}
 }
 %end
+
+// ── SURFACE PROBE ───────────────────────────────────────────────────────────
+// Names the visible controller and counts what is actually on it. Every theory
+// about the orders thumbnails depends on whether that pane is native UIKit or a
+// web view, and that has been ASSUMED in both directions so far. imgs>0 web=0 is
+// native; web>0 with few imgs is a document. Reported once per distinct
+// composition so navigating produces one line per screen, not a stream.
+static void ADCollectWebViews(UIView *v, NSMutableArray *out, int depth);
+
+static void ADCountImageViews(UIView *v, int depth, int *n){
+    if (!v || depth > 24 || v.hidden || v.alpha < 0.05) return;
+    @try {
+        if ([v isKindOfClass:[UIImageView class]] &&
+            (v.bounds.size.width >= 24 || v.bounds.size.height >= 24) &&
+            ((UIImageView *)v).image) (*n)++;
+        for (UIView *s in v.subviews) ADCountImageViews(s, depth + 1, n);
+    } @catch(...) {}
+}
+
+static void ADSurfaceProbe(void){
+    @try {
+        if (!gP.enabled) return;
+        UIWindow *key = nil;
+        for (UIWindow *w in [UIApplication sharedApplication].windows)
+            if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
+        if (!key) return;
+
+        UIViewController *top = key.rootViewController;
+        int guard = 0;
+        while (top.presentedViewController && guard++ < 8) top = top.presentedViewController;
+
+        int imgs = 0;
+        ADCountImageViews(key, 0, &imgs);
+        NSMutableArray *webs = [NSMutableArray array];
+        ADCollectWebViews(key, webs, 0);
+
+        const char *vc = top ? object_getClassName(top) : "none";
+        static char last[192] = {0};
+        char now[192];
+        snprintf(now, sizeof(now), "%s|%d|%lu", vc, imgs, (unsigned long)webs.count);
+        if (strcmp(now, last) == 0) return;              // unchanged: stay quiet
+        snprintf(last, sizeof(last), "%s", now);
+        ADLog(@"SURF[vc=%s imgs=%d web=%lu]", vc, imgs, (unsigned long)webs.count);
+    } @catch(...) {}
+}
 
 static void ADSweepAllWindows(void){
     if (!ADRecolorOn()) return;
@@ -4549,6 +4642,12 @@ static void ADReapplyBurst(void){
 }
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
+    // Surface probe: 1.2s after a pane settles, so async thumbnails have landed
+    // and the count reflects what the user is actually looking at.
+    @try {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{ ADSurfaceProbe(); });
+    } @catch(...) {}
     @try {
         if (!ADRecolorOn()) return;
         if (self.view.window && self.view.bounds.size.width > 200){
