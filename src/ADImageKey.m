@@ -201,7 +201,16 @@ BOOL ADIsDarkGlyph(UIImage *img){
     //   (a) a real icon: meaningful see-through area around the strokes;
     //   (b) a small solid glyph with no transparency at all, held to a stricter
     //       darkness/neutrality bar so a small dark PHOTO cannot match.
+    // STRUCTURAL GUARD, not a threshold. A template render draws the alpha channel
+    // filled with tintColor. An image with essentially no transparency therefore
+    // renders as a featureless solid rectangle -- it can never be a usable glyph,
+    // whatever its luminance or chroma says. This is provable rather than tuned,
+    // and it is what a dark opaque product thumbnail was failing.
+    if (clearFrac < 0.05) return NO;
+
     if (clearFrac > 0.15 && meanL < 0.42 && meanC < 0.22) return YES;
-    if (W <= 64 && H <= 64 && meanL < 0.25 && meanC < 0.12) return YES;
+    // Formerly a second branch admitting small SOLID glyphs with no transparency
+    // at all. The guard above forbids exactly that case, so it could only ever
+    // have produced solid blocks; removed rather than left as dead code.
     return NO;
 }

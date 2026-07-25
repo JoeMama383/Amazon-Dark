@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.158.0"
+#define AD_VERSION "v5.159.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1615,6 +1615,33 @@ static NSString *ADPharmForceJS(void){
                    "return 'bg='+n+' text='+t+' if='+fr+'/'+fd;}catch(e){return 'err '+e;}})()";
 }
 
+// Decide whether a document may be force-darkened AT ALL. The force pass above is
+// deliberately destructive -- it repaints html/body to #181a1b and walks thousands
+// of elements through getComputedStyle -- which is correct on Pharmacy and ruinous
+// anywhere else. AMIConfigurableWebViewController is a GENERIC class: Amazon uses
+// it for ad landing pages too, so the controller match alone can never be the gate.
+//   wait     -> still parsing; forcing now paints black over a page that has not
+//               painted yet, which is exactly the reported symptom
+//   skip-ad  -> an ad/creative surface; never ours to repaint
+//   dark     -> already themed, nothing to do
+//   force:0  -> force it, and the engine is absent so it needs the bootstrap
+//   force:1  -> force it, engine already present, skip the 410KB re-inject
+static NSString *ADPharmGateJS(void){
+    return @"(function(){try{"
+            "if(document.readyState!=='complete')return 'wait';"
+            "var h=String(location.href||'');"
+            "if(/adsystem|sspa|creative|nexus|\\/gcx\\/|\\/gp\\/aw\\/d|\\/dp\\//i.test(h))return 'skip-ad';"
+            "function L(c){try{var m=/rgba?\\(([0-9.]+),\\s*([0-9.]+),\\s*([0-9.]+)(?:,\\s*([0-9.]+))?\\)/.exec(c||'');"
+              "if(!m)return null;if(m[4]!==undefined&&parseFloat(m[4])<0.15)return null;"
+              "return (0.2126*+m[1]+0.7152*+m[2]+0.0722*+m[3])/255;}catch(e){return null;}}"
+            "var l=document.body?L(getComputedStyle(document.body).backgroundColor):null;"
+            "if(l===null)l=L(getComputedStyle(document.documentElement).backgroundColor);"
+            "if(l===null)return 'nobg';"
+            "if(l<0.5)return 'dark';"
+            "return 'force:'+(window.__AMZDARK_LOADED__?1:0);"
+            "}catch(e){return 'err';}})()";
+}
+
 static NSString *ADDarkReaderBootstrap(void){
     __block NSString *out = nil;
     dispatch_sync(ADBootQueue(), ^{
@@ -2279,14 +2306,28 @@ static void ADPreDarken(WKWebView *wv){
                         // document every 3rd tick instead of skipping forever.
                         if (!cu.length){
                             if (tick % 3 != 0) return;
-                            // Prewarmed and URL-less: the Pharmacy surface. Its content
-                            // re-renders, so force it on every visit rather than once.
+                            // Prewarmed and URL-less: ASSUMED to be the Pharmacy surface.
+                            // It is not always -- an ad landing page in a configurable web
+                            // view also reports no native URL, and this fired the force
+                            // pass into it every 9 seconds, forever. Gate it exactly like
+                            // the controller path does.
                             @try {
-                                [wp evaluateJavaScript:ADPharmForceJS()
-                                     completionHandler:^(id rr, NSError *ee){
+                                __weak WKWebView *weakP = wp;
+                                [wp evaluateJavaScript:ADPharmGateJS()
+                                     completionHandler:^(id rg2, NSError *eg2){
                                     @try {
-                                        if (ee) ADLog(@"pollforce -> ERR %@/%ld", ee.domain, (long)ee.code);
-                                        else ADLog(@"pollforce -> %@", rr);
+                                        WKWebView *wp2 = weakP;
+                                        if (!wp2) return;
+                                        NSString *vd = (!eg2 && [rg2 isKindOfClass:[NSString class]])
+                                                     ? (NSString *)rg2 : @"err";
+                                        if (![vd hasPrefix:@"force"]) return;
+                                        [wp2 evaluateJavaScript:ADPharmForceJS()
+                                             completionHandler:^(id rr, NSError *ee){
+                                            @try {
+                                                if (ee) ADLog(@"pollforce -> ERR %@/%ld", ee.domain, (long)ee.code);
+                                                else ADLog(@"pollforce -> %@", rr);
+                                            } @catch(...) {}
+                                        }];
                                     } @catch(...) {}
                                 }];
                             } @catch(...) {}
@@ -2299,6 +2340,23 @@ static void ADPreDarken(WKWebView *wv){
                                 if (ep) ADLog(@"wvpoll %@ -> ERR %@/%ld", cs, ep.domain, (long)ep.code);
                                 else if ([rp isKindOfClass:[NSString class]]) ADLog(@"wvpoll %@ -> %@", cs, rp);
                                 else ADLog(@"wvpoll %@ -> (nil)", cs);
+                                // WKErrorWebContentProcessTerminated. A jetsammed content
+                                // process leaves the view blank FOREVER -- it never retries
+                                // on its own, which is what turns a transient memory spike
+                                // into a permanently black pane. Reload once per event so a
+                                // reload loop can never form.
+                                WKWebView *wr = weakWv;
+                                if (ep && wr && ep.code == 4 &&
+                                    [ep.domain isEqualToString:@"WKErrorDomain"]){
+                                    static const void *kDied = &kDied;
+                                    int deaths = [objc_getAssociatedObject(wr, kDied) intValue];
+                                    if (deaths < 2){
+                                        objc_setAssociatedObject(wr, kDied, @(deaths + 1),
+                                                                 OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                                        ADLog(@"WEBCONTENT DIED (%d) -> reloading %@", deaths + 1, cs);
+                                        [wr reload];
+                                    }
+                                }
                             } @catch(...) {}
                         }];
                     } @catch(...) { [tm invalidate]; }
@@ -2599,6 +2657,7 @@ static BOOL ADBackdropIsDark(UIView *v);
 static void ADLaunchWhiteGuard(UIView *v);
 static void ADLaunchScreenDarkPass(void);
 static NSString *ADPharmForceJS(void);
+static NSString *ADPharmGateJS(void);
 static void ADInvertRNSVGApply(UIView *v);
 static inline BOOL ADIsTaggedIndicator(UIView *v){
     return v && objc_getAssociatedObject(v, kADIndicatorKey) != nil;
@@ -3692,6 +3751,14 @@ static UIImage *ADGlyphifyForView(UIImage *img, UIView *v){
     @try {
         if (v && !ADInTabBarChain(v) && !ADIsChromeGlyphContext(v)){
             CGFloat w = v.bounds.size.width, h = v.bounds.size.height;
+            // FAIL CLOSED on an unlaid-out view. setImage: frequently lands on a
+            // cell whose bounds are still CGRectZero (async thumbnail arriving
+            // before layout), and 0 > 40 is false -- so a 200pt product photo
+            // walked straight through a gate whose whole purpose is to stop it.
+            // That is the purchase-history white box: converted to a template and
+            // rendered as a solid tintColor rectangle. didMoveToWindow catches
+            // genuine glyphs later, once the size is actually knowable.
+            if (w <= 0 || h <= 0) return nil;
             if (w > 40 || h > 40) return nil;
         }
     } @catch(...) {}
@@ -4567,14 +4634,13 @@ static void ADReapplyBurst(void){
                                 if (!v2) return;
                                 NSMutableArray *found = [NSMutableArray array];
                                 if (v2.viewIfLoaded) ADCollectWebViews(v2.viewIfLoaded, found, 0);
-                                // Fall back to the whole window hierarchy: the store-mode
-                                // sheet's view can report no window at this point, which is
-                                // what silently blocked every previous attempt.
-                                if (!found.count){
-                                    for (UIWindow *w3 in [UIApplication sharedApplication].windows){
-                                        if (w3 && !w3.hidden) ADCollectWebViews(w3, found, 0);
-                                    }
-                                }
+                                // NO window-wide fallback. It used to sweep every UIWindow
+                                // when this controller owned no web view of its own, which
+                                // meant an ad landing page -- AMIConfigurableWebViewController
+                                // is generic, Amazon uses it for ads too -- fired the force
+                                // pass and a 410KB engine re-inject into EVERY web view in
+                                // the app, three times, including whichever one was still
+                                // parsing. That is the black non-loading pane.
                                 int nbg2 = 0;
                                 ADDarkenNativeTree(v2.viewIfLoaded, 0, &nbg2);
                                 if (!found.count) {
@@ -4586,18 +4652,38 @@ static void ADReapplyBurst(void){
                                 NSString *force = ADPharmForceJS();
                                 for (WKWebView *w2 in found) {
                                     int myIdx = widx++;
-                                    [w2 evaluateJavaScript:force completionHandler:^(id rf, NSError *ef){
+                                    __weak WKWebView *weakW2 = w2;
+                                    [w2 evaluateJavaScript:ADPharmGateJS()
+                                         completionHandler:^(id rg, NSError *eg){
                                         @try {
-                                            if (ef) ADLog(@"pharmforce #%d -> ERR %@/%ld", myIdx, ef.domain, (long)ef.code);
-                                            else ADLog(@"pharmforce #%d -> %@", myIdx, rf);
-                                        } @catch(...) {}
-                                    }];
-                                    [w2 evaluateJavaScript:ADDarkReaderBootstrap()
-                                         completionHandler:^(id r7, NSError *e7){
-                                        @try {
-                                            if (e7) ADLog(@"pharmboot #%d -> ERR %@/%ld",
-                                                          myIdx, e7.domain, (long)e7.code);
-                                            else ADLog(@"pharmboot #%d -> %@", myIdx, r7);
+                                            WKWebView *w5 = weakW2;
+                                            if (!w5) return;
+                                            NSString *verdict = (!eg && [rg isKindOfClass:[NSString class]])
+                                                              ? (NSString *)rg : @"err";
+                                            if (![verdict hasPrefix:@"force"]){
+                                                ADLog(@"pharmgate #%d -> %@ (skipped)", myIdx, verdict);
+                                                return;
+                                            }
+                                            [w5 evaluateJavaScript:force completionHandler:^(id rf, NSError *ef){
+                                                @try {
+                                                    if (ef) ADLog(@"pharmforce #%d -> ERR %@/%ld", myIdx, ef.domain, (long)ef.code);
+                                                    else ADLog(@"pharmforce #%d -> %@", myIdx, rf);
+                                                } @catch(...) {}
+                                            }];
+                                            // Only pay the 410KB transfer+parse when the engine
+                                            // is genuinely absent. The bootstrap self-guards on
+                                            // __AMZDARK_LOADED__, but that guard runs AFTER the
+                                            // entire payload has been shipped and parsed.
+                                            if (![verdict hasSuffix:@":1"]){
+                                                [w5 evaluateJavaScript:ADDarkReaderBootstrap()
+                                                     completionHandler:^(id r7, NSError *e7){
+                                                    @try {
+                                                        if (e7) ADLog(@"pharmboot #%d -> ERR %@/%ld",
+                                                                      myIdx, e7.domain, (long)e7.code);
+                                                        else ADLog(@"pharmboot #%d -> %@", myIdx, r7);
+                                                    } @catch(...) {}
+                                                }];
+                                            }
                                         } @catch(...) {}
                                     }];
                                 }
