@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.145.0"
+#define AD_VERSION "v5.146.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -587,7 +587,34 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // format argument through two call sites.
            "var BG='rgb(24,26,27)';try{var hb=getComputedStyle(document.documentElement).backgroundColor;"
              "var hl=lum(hb);if(hl!==null&&hl<0.25)BG=hb;}catch(e){}"
-           "var SKIP=/star|prime|logo|flag|swatch|thumb|sponsor|pill-image|product-image|photo|heart|wish|lists-framework|avatar|profile|author|reviewer|byline|merchant|seller|brand|store|logo-|-logo|headshot|user-image|customer/i;"           // Classes the probe confirmed are monochrome UI glyphs. These get a
+           "var SKIP=/star|prime|logo|flag|swatch|thumb|sponsor|pill-image|product-image|photo|heart|wish|lists-framework|avatar|profile|author|reviewer|byline|merchant|seller|brand|store|logo-|-logo|headshot|user-image|customer/i;"
+           // PRODUCT ART GUARD. One definition, enforced at every filtering site:
+           // merchandise imagery must never be recoloured anywhere in the app.
+           // Deliberately broad -- a missed glyph is cosmetic, an inverted
+           // product photo is not.
+           "var PRODC='[class*=s-product-image],[class*=product-image],[class*=s-image],"
+             "[class*=a-dynamic-image],[class*=image-container],[data-component-type=s-search-result],"
+             "[class*=asin],[class*=carousel],[class*=faceout],[class*=gwm],[class*=cardui],"
+             "[class*=deal],[class*=promo],[class*=hero],[class*=creative],[class*=ad-],[id*=gw-]';"
+           "function isProdArt(el4){try{"
+             "if(!el4||!el4.tagName)return false;"
+             "var tg4=el4.tagName.toLowerCase();"
+             "var al4=(el4.getAttribute&&el4.getAttribute('alt'))||'';"
+             // a descriptive alt is merchandise copy, never a UI glyph
+             "if(al4.length>18)return true;"
+             "var r4=el4.getBoundingClientRect();"
+             "if(r4.width>140||r4.height>140)return true;"
+             "var cl4=el4.className;if(cl4&&cl4.baseVal!==undefined)cl4=cl4.baseVal;cl4=String(cl4||'');"
+             "if(/product|asin|thumb|photo|hero|creative|poster|cover-art/i.test(cl4))return true;"
+             "if(el4.closest&&el4.closest(PRODC)){"
+               // inside merchandising chrome: only a small, label-bearing tile
+               // icon may still be treated as a glyph
+               "if(!(r4.width<=48&&r4.height<=48))return true;"
+               "if(/sbs-pill-image|icon/i.test(cl4))return false;"
+               "return true;}"
+             "if(tg4==='img'){var nw=el4.naturalWidth||0,nh=el4.naturalHeight||0;"
+               "if(nw>400||nh>400)return true;}"
+             "}catch(e){}return false;}"           // Classes the probe confirmed are monochrome UI glyphs. These get a
            // looser size cap, because the heart measures 33x33 against a 32 limit and
            // was failing by a single pixel, while sbs-pill-image at 34x34 is a product
            // thumbnail that must keep its colour.
@@ -677,7 +704,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "if(gr.width>5&&gr.width<=lim&&gr.height>5&&gr.height<=lim&&!SKIP.test(cn2)&&!ot&&bgOf(el)<=0.5&&!inContent&&(inFlt||!hasAlt)){"
                  "var hasB=cs.backgroundImage&&cs.backgroundImage!=='none';"
                  "if(isI||hasB){el.style.setProperty('filter','brightness(0) invert(1)','important');"
-                   "el.__adGlyph=1;gfix++;}}"
+                   "if(isProdArt(el))continue;"
+               "el.__adGlyph=1;el.__adBy='gfix1';gfix++;}}"
              "}catch(e){}}"
              "if(el.tagName&&el.tagName.toLowerCase()==='img'&&lfix<500){"
                "var pw2=el.getBoundingClientRect();"
@@ -717,7 +745,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "var slim=ICON.test(sc3)?44:40;"
                    "var SK2=/star|prime|logo|flag|swatch|thumb|sponsor|pill-image|product-image|photo/i;"
                    "if(sr3.width>5&&sr3.width<=slim&&sr3.height>5&&sr3.height<=slim&&!SK2.test(sc3)){"
-                     "el.style.setProperty('filter','brightness(0) invert(1)','important');el.__adGlyph=1;gfix++;}"
+                     "if(isProdArt(el))continue;"
+               "el.style.setProperty('filter','brightness(0) invert(1)','important');el.__adGlyph=1;el.__adBy='gfix2';gfix++;}"
                  "}catch(e){}}"
                "var fl2=lum(cs.fill),sl=lum(cs.stroke);"
                "if(fl2!==null&&fl2<0.45){el.style.setProperty('fill',FG,'important');n++;}"
@@ -865,7 +894,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "+'|own='+acs.backgroundColor.replace(/ /g,'')"
                    "+'|par='+String(pbg).replace(/ /g,'')"
                    "+'|flt='+String(acs.filter||'none').slice(0,22)"
-                   "+'|glyph='+(ae2.__adGlyph?1:0));}"
+                   "+'|glyph='+(ae2.__adGlyph?1:0)"
+                   "+'|by='+(ae2.__adBy||'-'));}"
                "sp=lt+' host@'+Math.round(host.getBoundingClientRect().width)"
                  "+'x'+Math.round(host.getBoundingClientRect().height)"
                  "+' :: '+(parts.length?parts.join(' ~ '):'no-art');"
@@ -907,7 +937,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "&&tpr.width>=tr.width-2&&tpr.height>=tr.height-2){tile=tp;break;}"
                  "tp=tp.parentElement;}"
                "if(!tile)continue;"
-               "te.__adGlyph=1;tl++;"
+               "if(isProdArt(te))continue;"
+               "te.__adGlyph=1;te.__adBy='tileart';tl++;"
                "(function(el5){try{"
                  "if(el5.tagName.toLowerCase()!=='img'){"
                    "el5.style.setProperty('filter','invert(1)','important');return;}"
@@ -925,7 +956,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "if(!cnt)return;var avg=(sum/cnt)/255;var lf=lite/cnt;"
                    // Any real light content means the sprite already reads on a
                    // dark tile; inverting it would flip it against its peers.
-                   "if(avg<0.45&&lf<0.10){"
+                   "if(avg<0.28&&lf<0.03){"
                      "el5.style.setProperty('filter','invert(1)','important');"
                      "el5.style.setProperty('background-color','transparent','important');"
                      "if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__="
@@ -987,7 +1018,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "fe2.style.setProperty('stroke','#ffffff','important');continue;}"
                  "fe2.style.setProperty('filter','brightness(0) invert(1)','important');"
                  "fe2.style.setProperty('background-color','transparent','important');"
-                 "fe2.__adGlyph=1;"
+                 "if(isProdArt(fe2))continue;"
+               "fe2.__adGlyph=1;fe2.__adBy='fltpanel';"
                  "if(fmiss.length<3)fmiss.push(ftg+'.'+fc2.slice(0,22)+'@'+Math.round(fr3.width)+'x'+Math.round(fr3.height));}"
                "if(!window.__AD_FLTSCAN__)window.__AD_FLTSCAN__="
                  "(fmiss.length?('lit: '+fmiss.join(' ')):('sec@'+Math.round(fsec.getBoundingClientRect().width)"
@@ -1082,7 +1114,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "if(ae.closest&&ae.closest('[class*=heart],[class*=wish],[class*=lists-framework],[class*=copilot-compare]'))continue;"
                "var ar=ae.getBoundingClientRect();"
                "if(ar.width>5&&ar.width<=60&&ar.height>5&&ar.height<=60){"
-                 "ae.style.setProperty('filter','brightness(0) invert(1)','important');ae.__adGlyph=1;}}"
+                 "if(isProdArt(ae))continue;"
+               "ae.style.setProperty('filter','brightness(0) invert(1)','important');ae.__adGlyph=1;ae.__adBy='aic';}}"
            "}catch(e){}"
            "try{var CDU=document.querySelectorAll('[class*=cardui],[class*=Cardui]');"
              "for(var di=0;di<CDU.length&&di<20;di++){var card=CDU[di];"
