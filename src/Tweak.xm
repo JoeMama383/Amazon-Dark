@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.141.0"
+#define AD_VERSION "v5.142.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -837,6 +837,41 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "mp.style.setProperty('box-shadow','none','important');}"
                  "mp=mp.parentElement;}}"
            "}catch(e){}"
+                      // SCREW PROBE. Always reports. Anchors on the tile LABEL, so it does not
+           // depend on finding the filter panel or on any class name.
+           "try{var sp='no-label';"
+             "var LB=document.querySelectorAll('span,div,p,label,a,li');"
+             "for(var sl=0;sl<LB.length;sl++){var le=LB[sl];"
+               "if(le.children.length>2)continue;"
+               "var lt=(le.textContent||'').trim();"
+               "if(lt!=='Bugle'&&lt!=='Brad'&&lt!=='Button')continue;"
+               "var host=le,hd=0;"
+               "while(host.parentElement&&hd++<5){host=host.parentElement;"
+                 "var hr=host.getBoundingClientRect();"
+                 "if(hr.width>=100&&hr.height>=40)break;}"
+               "var arts=host.querySelectorAll('img,svg,i,span,div');var parts=[];"
+               "for(var ai=0;ai<arts.length&&parts.length<4;ai++){var ae2=arts[ai];"
+                 "var acs=getComputedStyle(ae2);"
+                 "var isImg=(ae2.tagName.toLowerCase()==='img'||ae2.tagName.toLowerCase()==='svg');"
+                 "var hasBg=((acs.backgroundImage||'').indexOf('url(')>=0);"
+                 "if(!isImg&&!hasBg)continue;"
+                 "var ar3=ae2.getBoundingClientRect();"
+                 "if(ar3.width<8||ar3.height<8)continue;"
+                 "var acn=ae2.className;if(acn&&acn.baseVal!==undefined)acn=acn.baseVal;"
+                 "var pbg=ae2.parentElement?getComputedStyle(ae2.parentElement).backgroundColor:'-';"
+                 "parts.push(ae2.tagName.toLowerCase()+'.'+String(acn||'').slice(0,18)"
+                   "+'@'+Math.round(ar3.width)+'x'+Math.round(ar3.height)"
+                   "+'|src='+(isImg?'tag':'bgimg')"
+                   "+'|own='+acs.backgroundColor.replace(/ /g,'')"
+                   "+'|par='+String(pbg).replace(/ /g,'')"
+                   "+'|flt='+String(acs.filter||'none').slice(0,22)"
+                   "+'|glyph='+(ae2.__adGlyph?1:0));}"
+               "sp=lt+' host@'+Math.round(host.getBoundingClientRect().width)"
+                 "+'x'+Math.round(host.getBoundingClientRect().height)"
+                 "+' :: '+(parts.length?parts.join(' ~ '):'no-art');"
+               "if(lt==='Bugle')break;}"
+             "window.__AD_SCREW__=sp;"
+           "}catch(e){window.__AD_SCREW__='err '+e;}"
                       // DARK ART ON A DARK TILE. Applies wherever it occurs, so no panel has
            // to be located first. The bugle screw is this shape: a monochrome
            // drawing sitting invisibly on the tile our theming darkened.
@@ -875,7 +910,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "te.__adGlyph=1;tl++;"
                "if(!tfirst)tfirst=ttag+'.'+tcn.slice(0,20)"
                  "+'@'+Math.round(tr.width)+'x'+Math.round(tr.height);}"
-             "if(tl&&!window.__AD_TILEART__)window.__AD_TILEART__='n='+tl+' first='+tfirst;"
+             "window.__AD_TILEART__='n='+tl+(tfirst?(' first='+tfirst):'');"
            "}catch(e){}"
                       // FILTER PANEL BY HEADING. The tile container uses hashed class names
            // (no filter/refinement/facet), so anchor on the visible "Filters for"
@@ -1256,6 +1291,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "}catch(e){}"
              "pr=' url='+String(location.pathname||'').slice(0,28)"
                "+(window.__AD_CMPX__?(' CMPX='+window.__AD_CMPX__):'')"
+               "+(window.__AD_SCREW__?(' SCREW['+window.__AD_SCREW__+']'):'')"
                "+(window.__AD_TILEART__?(' TILEART['+window.__AD_TILEART__+']'):'')"
                "+(window.__AD_BOXKILL__?(' BOXKILL['+window.__AD_BOXKILL__+']'):'')"
                "+(window.__AD_FLTSCAN__?(' FLTSCAN['+window.__AD_FLTSCAN__+']'):'')"
@@ -1927,7 +1963,7 @@ static void ADPreDarken(WKWebView *wv){
             if (au.length > 70) au = [au substringToIndex:70];
             ADLog(@"wvattach cls=%s url=%@ t=%.1f", object_getClassName(self), au, ADUptime());
             // Attach alone is not "drawn"; keep it only as a long stop-gap.
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.0 * NSEC_PER_SEC)),
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(4.5 * NSEC_PER_SEC)),
                            dispatch_get_main_queue(), ^{ ADPostAppReady(); });
             __weak WKWebView *weakWv = self;
             // Delegate-independent late coverage: watch the URL itself. Prewarmed
@@ -2017,10 +2053,21 @@ static void ADPreDarken(WKWebView *wv){
 }
 - (void)webView:(WKWebView *)wv didFinishNavigation:(id)nav {
     %orig;
-    // Content is drawn: this is the honest "app is up" moment for the cover.
+    // Content is drawn -- but only a REAL page counts. about:blank and the
+    // autocomplete helper finish in milliseconds, which is what lifted the cover
+    // before the shopping page had painted.
     @try {
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)),
-                       dispatch_get_main_queue(), ^{ ADPostAppReady(); });
+        NSString *nu = wv.URL.absoluteString ?: @"";
+        BOOL realPage = ([nu containsString:@"amazon.com"] &&
+                         ![nu containsString:@"about:blank"] &&
+                         ![nu containsString:@"autocomplete"] &&
+                         ![nu containsString:@"/ap/"]);
+        ADLog(@"navdone real=%d %@", realPage ? 1 : 0,
+              nu.length > 60 ? [nu substringToIndex:60] : nu);
+        if (realPage){
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{ ADPostAppReady(); });
+        }
     } @catch(...) {}
     // Late surfaces navigate long after every timer is dead; run the repair on a
     // short private schedule after EVERY finished navigation so client-side and
