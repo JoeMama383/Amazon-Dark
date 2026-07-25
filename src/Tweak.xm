@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.164.0"
+#define AD_VERSION "v5.165.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -924,6 +924,27 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "+'|art='+ov5.toFixed(2)"
                  "+'|by='+(ce2.__adBgBy||'-'));}"
              "window.__AD_ADCARD__=(hits.length?('n='+hits.length+' '+hits.join(' ~ ')):('clean scanned='+scanned));"
+           // WEB IMAGE AUDIT. The orders thumbnails live in the web content, not in
+           // any UIView, so no native probe can reach them. This reports every
+           // on-screen <img> that our passes marked or that carries a filter /
+           // opacity we could have set -- with the src tail, so a whitened product
+           // photo names itself. Once per settled document.
+           "try{if(document.readyState==='complete'&&!window.__AD_WI_DONE__){"
+             "window.__AD_WI_DONE__=1;"
+             "var IM=document.querySelectorAll('img'),wo=[],wsk=0;"
+             "for(var wi2=0;wi2<IM.length&&wi2<400&&wo.length<8;wi2++){var im9=IM[wi2];"
+               "var r9=im9.getBoundingClientRect();"
+               "if(r9.width<24||r9.height<24){wsk++;continue;}"
+               "var c9=getComputedStyle(im9);"
+               "var mk=(im9.__adGlyph?'glyph':'')+(im9.__adTamed?'+tame':'')"
+                 "+(im9.__adBy?('/'+im9.__adBy):'');"
+               "if(!mk&&c9.filter==='none'&&c9.opacity==='1')continue;"
+               "var s9=String(im9.currentSrc||im9.src||'').slice(-26);"
+               "wo.push(Math.round(r9.width)+'x'+Math.round(r9.height)"
+                 "+'|flt='+String(c9.filter).slice(0,22)+'|op='+c9.opacity"
+                 "+'|bg='+c9.backgroundColor+'|m='+(mk||'-')+'|'+s9);}"
+             "window.__AD_WHITEIMG__=(wo.length?wo.join(' ~ '):('none imgs='+IM.length+' small='+wsk));"
+           "}}catch(e){window.__AD_WHITEIMG__='err '+e;}"
            "}}catch(e){window.__AD_ADCARD__='err '+e;}"
                       // BOX KILLER. A dark background anywhere between artwork and the light
            // card it sits on is a box we or Dark Reader painted under transparent
@@ -1502,6 +1523,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(window.__AD_TAME__?(' TAME['+window.__AD_TAME__+']'):'')"
                "+(window.__AD_ADCARD__?(' ADCARD['+window.__AD_ADCARD__+']'):'')"
                "+(window.__AD_SCREW__?(' SCREW['+window.__AD_SCREW__+']'):'')"
+               "+(window.__AD_WHITEIMG__?(' WHITEIMG['+window.__AD_WHITEIMG__+']'):'')"
                "+(window.__AD_TILEART__?(' TILEART['+window.__AD_TILEART__+']'):'')"
                "+(window.__AD_BOXKILL__?(' BOXKILL['+window.__AD_BOXKILL__+']'):'')"
                "+(window.__AD_FLTSCAN__?(' FLTSCAN['+window.__AD_FLTSCAN__+']'):'')"
