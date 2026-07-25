@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.150.0"
+#define AD_VERSION "v5.151.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -489,6 +489,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "if(!n||n.nodeType!==1)return;"
              "var c=n.className;if(c&&c.baseVal!==undefined)c=c.baseVal;c=String(c||'');"
              "if(__adPinRe.test(c)){n.style.setProperty('background-color','transparent','important');}"
+             "if(typeof onArt==='function'&&onArt(n)){}else "
              "if(String(c).indexOf('a-section')>=0&&n.closest&&"
                "n.closest('[class*=puis],[class*=s-result],[class*=s-card]')&&"
                "!n.closest('[class*=s-product-image],[class*=mlt-icon],[class*=puis-heart-position]')&&"
@@ -499,6 +500,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "for(var i=0;i<q.length;i++)q[i].style.setProperty('background-color','transparent','important');"
                "var q2=n.querySelectorAll('[class*=a-section]');"
                "for(var k2=0;k2<q2.length&&k2<200;k2++){var e2=q2[k2];"
+                 "if(typeof onArt==='function'&&onArt(e2)){}else "
                  "if(e2.closest&&e2.closest('[class*=puis],[class*=s-result],[class*=s-card]')&&"
                    "!e2.closest('[class*=s-product-image],[class*=mlt-icon],[class*=puis-heart-position]')&&"
                    "!(e2.querySelector&&e2.querySelector("
@@ -568,11 +570,19 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "var ar2=AQ2[aq2].getBoundingClientRect();"
                "if(ar2.width>=110&&ar2.height>=60)ART.push(ar2);}"
            "}catch(e){}"
+           // Overlap, not containment: a caption strip that runs a few pixels wider
+           // than the creative is still chrome sitting on artwork.
+           "function artOverlap(r5){try{var best=0;"
+             "var ar5=Math.max(r5.width*r5.height,1);"
+             "for(var oa=0;oa<ART.length;oa++){var a5=ART[oa];"
+               "var ow=Math.min(r5.right,a5.right)-Math.max(r5.left,a5.left);"
+               "var oh=Math.min(r5.bottom,a5.bottom)-Math.max(r5.top,a5.top);"
+               "if(ow<=0||oh<=0)continue;"
+               "var f5=(ow*oh)/ar5;if(f5>best)best=f5;}"
+             "return best;}catch(e){return 0;}}"
            "function onArt(e2){try{var r5=e2.getBoundingClientRect();"
              "if(r5.width<1||r5.height<1)return false;"
-             "for(var oa=0;oa<ART.length;oa++){var a5=ART[oa];"
-               "if(r5.left>=a5.left-2&&r5.right<=a5.right+2&&"
-                  "r5.top>=a5.top-2&&r5.bottom<=a5.bottom+2)return true;}"
+             "return artOverlap(r5)>=0.5;"
              "}catch(e){}return false;}"
            // A dark panel inside a still-light card reads as a box behind the text.
            "function ancLight(e3){try{var pa=e3.parentElement,pd=0;"
@@ -839,11 +849,15 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "var lp=ce2.parentElement,lg=null,ld=0;"
                "while(lp&&ld++<4){var ll=lum(getComputedStyle(lp).backgroundColor);"
                  "if(ll!==null){lg=ll;break;}lp=lp.parentElement;}"
-               "if(lg===null||lg<=0.55)continue;"
+               // A creative's lightness is an IMAGE, so no ancestor reports a
+               // light colour -- overlap with artwork is the real signal.
+               "var ov5=(typeof artOverlap==='function')?artOverlap(cr6):0;"
+               "if((lg===null||lg<=0.55)&&ov5<0.5)continue;"
                "var ccl=ce2.className;if(ccl&&ccl.baseVal!==undefined)ccl=ccl.baseVal;"
                "hits.push(ce2.tagName.toLowerCase()+'.'+String(ccl||'').slice(0,20)"
                  "+'@'+Math.round(cr6.width)+'x'+Math.round(cr6.height)"
-                 "+'|bg='+cl6.toFixed(2)+'|par='+lg.toFixed(2)"
+                 "+'|bg='+cl6.toFixed(2)+'|par='+(lg===null?'none':lg.toFixed(2))"
+                 "+'|art='+ov5.toFixed(2)"
                  "+'|by='+(ce2.__adBgBy||'-'));}"
              "window.__AD_ADCARD__=(hits.length?('n='+hits.length+' '+hits.join(' ~ ')):('clean scanned='+scanned));"
            "}catch(e){window.__AD_ADCARD__='err '+e;}"
