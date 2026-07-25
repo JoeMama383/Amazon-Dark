@@ -24,9 +24,9 @@
 
 static NSString * const kAMZ      = @"com.amazon.Amazon";
 static NSString * const kDefaults = @"com.colindavidr.amazondark";
-static const NSTimeInterval kCoverHold    = 8.0;  // dark cover visible time
+static const NSTimeInterval kCoverHold    = 3.0;  // dark cover visible time
 static const NSTimeInterval kCoverFade    = 0.55; // lift animation
-static const NSTimeInterval kCoverHardCap = 12.0;  // absolute max on screen
+static const NSTimeInterval kCoverHardCap = 4.0;  // absolute max on screen
 static const NSTimeInterval kReCoverGap   = 8.0;  // ignore re-triggers within
 
 @interface SBSceneView : UIView
@@ -60,7 +60,19 @@ static BOOL ADSBEnabled(void) {
         Boolean valid = NO;
         Boolean on = CFPreferencesGetAppBooleanValue(CFSTR("enabled"),
                         (__bridge CFStringRef)kDefaults, &valid);
-        return valid ? (on ? YES : NO) : YES;   // default on
+        if (valid) return on ? YES : NO;
+        // CFPreferences came back invalid: read the file directly rather than
+        // assuming the tweak is on. Guessing "on" here is what let a disabled
+        // tweak keep drawing a cover.
+        @try {
+            for (NSString *base in @[@"/var/mobile/Library/Preferences/",
+                                     @"/var/jb/var/mobile/Library/Preferences/"]) {
+                NSString *pp = [base stringByAppendingFormat:@"%@.plist", kDefaults];
+                NSDictionary *d = [NSDictionary dictionaryWithContentsOfFile:pp];
+                if (d && d[@"enabled"] != nil) return [d[@"enabled"] boolValue];
+            }
+        } @catch (__unused NSException *e) {}
+        return YES;   // genuinely no preference written yet
     } @catch (__unused NSException *e) { return YES; }
 }
 
@@ -157,9 +169,13 @@ static void ADAttachCoverToScene(UIView *host) {
                 [logo.heightAnchor constraintEqualToConstant:lh],
             ]];
         }
+        // Re-check at the moment of attach: the switch can be turned off while
+        // SpringBoard is already running, and nothing should be covered then.
+        if (!ADSBEnabled()) { ADSBLog(@"COVER skipped (disabled)"); return; }
         [host addSubview:ov];
         gCoverOverlay = ov;
         unsigned myGen = ++gCoverGen;
+
         gPresentAt = CFAbsoluteTimeGetCurrent();
         ADSBLog([NSString stringWithFormat:@"COVER overlay in scene (%@ logo=%d)",
                  NSStringFromClass([host class]), splash ? 1 : 0]);
@@ -344,8 +360,16 @@ static void ADPresentCover(void) {
         // overlay would be replaying a launch that is not happening.
         int ts = -1;
         BOOL alive = ADAmazonProcessAlive(&ts);
-        ADSBLog([NSString stringWithFormat:@"scene attach alive=%d taskState=%d", alive ? 1 : 0, ts]);
-        if (alive) return;
+        // One cover per launch. If the process-alive lookup fails we must not
+        // fall through and cover a running app -- that is the state where no
+        // ready signal can arrive, so the cover would simply sit there.
+        static NSTimeInterval lastCover = 0;
+        NSTimeInterval nowT = CFAbsoluteTimeGetCurrent();
+        BOOL tooSoon = (lastCover > 0 && (nowT - lastCover) < 20.0);
+        ADSBLog([NSString stringWithFormat:@"scene attach alive=%d taskState=%d recent=%d",
+                 alive ? 1 : 0, ts, tooSoon ? 1 : 0]);
+        if (alive || tooSoon) return;
+        lastCover = nowT;
 
         // Parented to the scene view: SpringBoard's zoom animates it.
         ADAttachCoverToScene(self);

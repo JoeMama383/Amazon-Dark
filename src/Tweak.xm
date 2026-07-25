@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.155.0"
+#define AD_VERSION "v5.157.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -141,6 +141,8 @@ typedef struct {
     BOOL  imageKeyBackground; // corner-key white studio backdrops in photos (opt-in)
     BOOL  imageBackdrop;      // dark panel behind images (helps transparent ones)
     BOOL  nativeRecolor;      // Dark Reader colour engine over native (non-web) content
+    BOOL  whiteTame;          // clamp blown-out studio backgrounds in photos
+    long  whiteTameStrength;  // 0-100: how far the highlight ceiling drops
     long  brightness;         // Dark Reader 0..100+ (default 100)
     long  contrast;           // Dark Reader 0..100+ (default 100)
     long  sepia;              // Dark Reader 0..100  (default 0)
@@ -187,6 +189,8 @@ static void ADLoadPrefs(void){
     // Defaults: everything a "true dark mode" wants, image inversion OFF.
     gP.enabled = YES; gP.webDarkReader = YES; gP.nativeTheme = YES;
     gP.imageBackdrop = YES;
+    gP.whiteTame = NO;                 // opt-in: it is the one feature that touches photos
+    gP.whiteTameStrength = 45;
     gP.imageKeyBackground = NO;
     gP.nativeRecolor = YES;
     gP.brightness = 100; gP.contrast = 100; gP.sepia = 0; gP.grayscale = 0;
@@ -233,6 +237,8 @@ static void ADLoadPrefs(void){
         gP.webDarkReader      = ADPrefBool(d, @"webDarkReader",      gP.webDarkReader);
         gP.nativeTheme        = ADPrefBool(d, @"nativeTheme",        gP.nativeTheme);
         gP.imageBackdrop      = ADPrefBool(d, @"imageBackdrop",      gP.imageBackdrop);
+        gP.whiteTame          = ADPrefBool(d, @"whiteTame",          gP.whiteTame);
+        gP.whiteTameStrength  = ADPrefLong(d, @"whiteTameStrength",  gP.whiteTameStrength);
         gP.imageKeyBackground = ADPrefBool(d, @"imageKeyBackground", gP.imageKeyBackground);
         gP.nativeRecolor      = ADPrefBool(d, @"nativeRecolor",      gP.nativeRecolor);
         gP.brightness         = ADPrefLong(d, @"brightness",         gP.brightness);
@@ -480,7 +486,7 @@ static dispatch_queue_t ADBootQueue(void){
 static NSString *ADDarkReaderBootstrapBuild(void){
     NSString *dr = ADBundledDarkReaderJS();
     if (!dr.length) return nil;
-    return [NSString stringWithFormat:
+    NSString *adBody = [NSString stringWithFormat:
         @"(function(){try{"
          "if(window.__AMZDARK_LOADED__)return;window.__AMZDARK_LOADED__=1;"
          "try{window.__AD_EARLY__='';"
@@ -836,7 +842,41 @@ static NSString *ADDarkReaderBootstrapBuild(void){
 
            // Clear stray dark square wrappers around the buttons (the box that
            // can extend past the pill). Shapes/borders are persistent CSS above.
-           // BEHIND-TEXT AUDIT. The dark rectangle is a sibling/backdrop element,
+           // WHITE-BACKGROUND TAMING (opt-in, Settings > AmazonDark).
+           "try{if(window.__ADTAME_ON__){"
+             "var cL=Math.max(0.12,Math.min(0.95,1-0.85*(window.__ADTAME_S__||45)/100));"
+             "if(!document.getElementById('adtamef')){"
+               "var tv=[];for(var q7=0;q7<=8;q7++){var iv=q7/8;tv.push(Math.min(iv,cL).toFixed(4));}"
+               "var tvs=tv.join(' ');"
+               "var ns7='http://www.w3.org/2000/svg';"
+               "var sv7=document.createElementNS(ns7,'svg');"
+               "sv7.setAttribute('id','adtamef-host');"
+               "sv7.setAttribute('width','0');sv7.setAttribute('height','0');"
+               "sv7.style.cssText='position:absolute;width:0;height:0;overflow:hidden';"
+               "var f7=document.createElementNS(ns7,'filter');"
+               "f7.setAttribute('id','adtamef');"
+               "f7.setAttribute('color-interpolation-filters','sRGB');"
+               "var ct=document.createElementNS(ns7,'feComponentTransfer');"
+               "['feFuncR','feFuncG','feFuncB'].forEach(function(fn){"
+                 "var fe=document.createElementNS(ns7,fn);"
+                 "fe.setAttribute('type','table');fe.setAttribute('tableValues',tvs);"
+                 "ct.appendChild(fe);});"
+               "f7.appendChild(ct);sv7.appendChild(f7);"
+               "(document.body||document.documentElement).appendChild(sv7);}"
+             "var PI=document.querySelectorAll('img');var tamed=0;"
+             "for(var pi=0;pi<PI.length&&pi<300;pi++){var im7=PI[pi];"
+               "if(im7.__adTamed)continue;"
+               "var ir7=im7.getBoundingClientRect();"
+               // product imagery only: big enough to be a photo, and never a glyph
+               "if(ir7.width<90||ir7.height<90)continue;"
+               "if(im7.__adGlyph)continue;"
+               "var icn7=im7.className;if(icn7&&icn7.baseVal!==undefined)icn7=icn7.baseVal;"
+               "if(/sprite|icon|logo|pixel/i.test(String(icn7||'')))continue;"
+               "im7.style.setProperty('filter','url(#adtamef)','important');"
+               "im7.__adTamed=1;tamed++;}"
+             "if(tamed&&!window.__AD_TAME__)window.__AD_TAME__='n='+tamed+' ceil='+cL.toFixed(2);"
+           "}}catch(e){}"
+                      // BEHIND-TEXT AUDIT. The dark rectangle is a sibling/backdrop element,
            // not the text's own background, so probe the paint stack under the
            // text run itself. Reports the full stack with each background and
            // its author tag; always reports, including the clean case.
@@ -1461,6 +1501,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "}catch(e){}"
              "pr=' url='+String(location.pathname||'').slice(0,28)"
                "+(window.__AD_CMPX__?(' CMPX='+window.__AD_CMPX__):'')"
+               "+(window.__AD_TAME__?(' TAME['+window.__AD_TAME__+']'):'')"
                "+(window.__AD_TEXTBOX__?(' TEXTBOX['+window.__AD_TEXTBOX__+']'):'')"
                "+(window.__AD_ADCARD__?(' ADCARD['+window.__AD_ADCARD__+']'):'')"
                "+(window.__AD_SCREW__?(' SCREW['+window.__AD_SCREW__+']'):'')"
@@ -1509,6 +1550,9 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          "try{document.addEventListener('visibilitychange',function(){if(!document.hidden)window.__AMZDARK_APPLY__();});}catch(e){}"
          "}}catch(e){}})();",
         dr, [NSString stringWithUTF8String:gP.fgHex], ADThemeLiteral(), ADFixesLiteral()];
+    return [NSString stringWithFormat:
+            @"try{window.__ADTAME_ON__=%d;window.__ADTAME_S__=%ld;}catch(e){}\n%@",
+            gP.whiteTame ? 1 : 0, (long)gP.whiteTameStrength, adBody];
 }
 // Force-dark pass for the Pharmacy surface. Deliberately ungated -- on this pane
 // every light background is wrong -- with artwork excluded by tag rather than by
@@ -1587,7 +1631,7 @@ static NSString *ADDarkReaderBootstrap(void){
 // So: enable() stays conditional, the repair runs every time. It is idempotent
 // (it only rewrites values that currently fail) and cheap on a settled page.
 static NSString *ADDarkReaderReapply(void){
-    return [NSString stringWithFormat:
+    NSString *raBody = [NSString stringWithFormat:
         @"(function(){try{"
          "if(!(window.DarkReader&&DarkReader.enable))return 'noDR';"
          "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
@@ -1595,6 +1639,9 @@ static NSString *ADDarkReaderReapply(void){
          "return 'nofix';"
          "}catch(e){return 'err';}})();",
         ADThemeLiteral(), ADFixesLiteral()];
+    return [NSString stringWithFormat:
+            @"try{window.__ADTAME_ON__=%d;window.__ADTAME_S__=%ld;}catch(e){}\n%@",
+            gP.whiteTame ? 1 : 0, (long)gP.whiteTameStrength, raBody];
 }
 
 static void ADBootstrapDarkReaderIn(WKWebView *wv);
@@ -2034,6 +2081,8 @@ static void ADLaunchDarkenTree(UIView *v, int depth, int *bg, int *logo){
 
 static void ADLaunchScreenDarkPass(void){
     @try {
+        if (!gP.enabled) return;          // master switch: no repaint when off
+        if (!gP.enabled) return;          // master switch must gate this too
         if (ADUptime() > 4.2) return;
         int bg = 0, logo = 0;
         for (UIWindow *w in [UIApplication sharedApplication].windows){
@@ -4460,12 +4509,12 @@ static void ADReapplyBurst(void){
                 // Widened from the census. The previous test wanted "Hosting" and
                 // matched none of the real names -- RCTModalHostViewController has
                 // "Host" without the "ing", which is why traitdark never fired.
-                BOOL hostish = (strstr(cn3, "Host") != NULL ||
-                                strstr(cn3, "StoreMode") != NULL ||
-                                strstr(cn3, "AMIConfigurable") != NULL ||
-                                strstr(cn3, "AMSModalLayout") != NULL ||
-                                strcasestr(cn3, "harm") != NULL ||
-                                strcasestr(cn3, "ealth") != NULL);
+                // Narrowed after black-screen reports: a bare "Host" match also
+                // caught RCTModalHostViewController, and forcing a dark trait on
+                // a React Native modal can blank it. Only the store-mode classes
+                // the census actually named are eligible now.
+                BOOL hostish = (strstr(cn3, "StoreMode") != NULL ||
+                                strstr(cn3, "AMIConfigurable") != NULL);
                 if (sheet && hostish &&
                     [self respondsToSelector:@selector(setOverrideUserInterfaceStyle:)] &&
                     self.overrideUserInterfaceStyle != UIUserInterfaceStyleDark){
@@ -4479,6 +4528,7 @@ static void ADReapplyBurst(void){
             // path does not depend on a URL, a timer, or Amazon's own delegate.
             @try {
                 const char *cn5 = object_getClassName(self);
+                if (!gP.enabled) return;
                 if (strstr(cn5, "StoreMode") || strstr(cn5, "AMIConfigurable")) {
                     ADLog(@"pharmhook %s matched", cn5);
                     // Native pass: the light field may be this controller's own

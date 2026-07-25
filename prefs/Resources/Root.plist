@@ -2,6 +2,9 @@
     items = (
         { cell = PSGroupCell; footerText = "Respring to take effect."; },
         { cell = PSSwitchCell; label = "Enabled"; key = "enabled"; default = 1; defaults = "com.colindavidr.amazondark"; PostNotification = "com.colindavidr.amazondark/prefs-changed"; },
+        { cell = PSGroupCell; label = "Product photos"; footerText = "Lowers the ceiling on blown-out studio backgrounds. Pixels already darker than the ceiling are left untouched, so the product itself keeps its colour."; },
+        { cell = PSSwitchCell; label = "Tame white backgrounds"; key = "whiteTame"; default = 0; defaults = "com.colindavidr.amazondark"; PostNotification = "com.colindavidr.amazondark/prefs-changed"; },
+        { cell = PSSliderCell; label = "Strength"; key = "whiteTameStrength"; default = 45; min = 0; max = 100; isSegmented = 0; showValue = 1; defaults = "com.colindavidr.amazondark"; PostNotification = "com.colindavidr.amazondark/prefs-changed"; },
     );
     title = "AmazonDark";
 }
