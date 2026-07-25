@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.140.0"
+#define AD_VERSION "v5.141.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1295,6 +1295,48 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          "}}catch(e){}})();",
         dr, [NSString stringWithUTF8String:gP.fgHex], ADThemeLiteral(), ADFixesLiteral()];
 }
+// Force-dark pass for the Pharmacy surface. Deliberately ungated -- on this pane
+// every light background is wrong -- with artwork excluded by tag rather than by
+// heuristic, and same-origin child frames walked explicitly, since
+// evaluateJavaScript reaches the main frame only.
+static NSString *ADPharmForceJS(void){
+    return 
+                                  @"(function(){try{var n=0,t=0;"
+                                   "function L(c){try{var m=/rgba?\\(([0-9.]+),\\s*([0-9.]+),\\s*([0-9.]+)(?:,\\s*([0-9.]+))?\\)/.exec(c||'');"
+                                     "if(!m)return null;if(m[4]!==undefined&&parseFloat(m[4])<0.15)return null;"
+                                     "return (0.2126*+m[1]+0.7152*+m[2]+0.0722*+m[3])/255;}catch(e){return null;}}"
+                                   "var A=document.querySelectorAll('*');"
+                                   "for(var i=0;i<A.length&&i<4000;i++){var e=A[i];"
+                                     "var tg=e.tagName.toLowerCase();"
+                                     "if(tg==='img'||tg==='svg'||tg==='video'||tg==='canvas')continue;"
+                                     "var cs=getComputedStyle(e);"
+                                     "if((cs.backgroundImage||'').indexOf('url(')>=0)continue;"
+                                     "var bl=L(cs.backgroundColor);"
+                                     "if(bl!==null&&bl>0.5){e.style.setProperty('background-color','#181a1b','important');n++;}"
+                                     "var tl2=L(cs.color);"
+                                     "if(tl2!==null&&tl2<0.35){e.style.setProperty('color','#e8e6e3','important');t++;}}"
+                                   "try{document.documentElement.style.setProperty('background-color','#181a1b','important');"
+                                       "document.body.style.setProperty('background-color','#181a1b','important');}catch(e){}"
+                   "var fr=0,fd=0;try{var IF=document.querySelectorAll('iframe');fr=IF.length;"
+                     "for(var q=0;q<IF.length&&q<12;q++){var d2=null;"
+                       "try{d2=IF[q].contentDocument;}catch(e){d2=null;}"
+                       "if(!d2||!d2.body)continue;fd++;"
+                       "var B=d2.querySelectorAll('*');"
+                       "for(var k=0;k<B.length&&k<3000;k++){var e2=B[k];"
+                         "var g2=e2.tagName.toLowerCase();"
+                         "if(g2==='img'||g2==='svg'||g2==='video'||g2==='canvas')continue;"
+                         "var c2=d2.defaultView.getComputedStyle(e2);"
+                         "if((c2.backgroundImage||'').indexOf('url(')>=0)continue;"
+                         "var b2=L(c2.backgroundColor);"
+                         "if(b2!==null&&b2>0.5){e2.style.setProperty('background-color','#181a1b','important');n++;}"
+                         "var x2=L(c2.color);"
+                         "if(x2!==null&&x2<0.35){e2.style.setProperty('color','#e8e6e3','important');t++;}}"
+                       "try{d2.documentElement.style.setProperty('background-color','#181a1b','important');"
+                           "d2.body.style.setProperty('background-color','#181a1b','important');}catch(e){}}"
+                   "}catch(e){}"
+                   "return 'bg='+n+' text='+t+' if='+fr+'/'+fd;}catch(e){return 'err '+e;}})()";
+}
+
 static NSString *ADDarkReaderBootstrap(void){
     __block NSString *out = nil;
     dispatch_sync(ADBootQueue(), ^{
@@ -1923,6 +1965,17 @@ static void ADPreDarken(WKWebView *wv){
                         // document every 3rd tick instead of skipping forever.
                         if (!cu.length){
                             if (tick % 3 != 0) return;
+                            // Prewarmed and URL-less: the Pharmacy surface. Its content
+                            // re-renders, so force it on every visit rather than once.
+                            @try {
+                                [wp evaluateJavaScript:ADPharmForceJS()
+                                     completionHandler:^(id rr, NSError *ee){
+                                    @try {
+                                        if (ee) ADLog(@"pollforce -> ERR %@/%ld", ee.domain, (long)ee.code);
+                                        else ADLog(@"pollforce -> %@", rr);
+                                    } @catch(...) {}
+                                }];
+                            } @catch(...) {}
                         } else if (!changed) return;
                         NSString *cs = cu.length ? (cu.length > 60 ? [cu substringToIndex:60] : cu)
                                                  : [NSString stringWithFormat:@"(nourl:%s)", object_getClassName(wp)];
@@ -2220,6 +2273,7 @@ static const void *kADRNCheckKey   = &kADRNCheckKey;
 static BOOL ADBackdropIsDark(UIView *v);
 static void ADLaunchWhiteGuard(UIView *v);
 static void ADLaunchScreenDarkPass(void);
+static NSString *ADPharmForceJS(void);
 static void ADInvertRNSVGApply(UIView *v);
 static inline BOOL ADIsTaggedIndicator(UIView *v){
     return v && objc_getAssociatedObject(v, kADIndicatorKey) != nil;
@@ -4201,25 +4255,9 @@ static void ADReapplyBurst(void){
                                     ADLog(@"pharmrepair %s -> no webview (native bg=%d)", cn5, nbg2);
                                     return;
                                 }
+                                ADLog(@"pharmforce %s webviews=%lu", cn5, (unsigned long)found.count);
                                 int widx = 0;
-                                NSString *force =
-                                  @"(function(){try{var n=0,t=0;"
-                                   "function L(c){try{var m=/rgba?\\(([0-9.]+),\\s*([0-9.]+),\\s*([0-9.]+)(?:,\\s*([0-9.]+))?\\)/.exec(c||'');"
-                                     "if(!m)return null;if(m[4]!==undefined&&parseFloat(m[4])<0.15)return null;"
-                                     "return (0.2126*+m[1]+0.7152*+m[2]+0.0722*+m[3])/255;}catch(e){return null;}}"
-                                   "var A=document.querySelectorAll('*');"
-                                   "for(var i=0;i<A.length&&i<4000;i++){var e=A[i];"
-                                     "var tg=e.tagName.toLowerCase();"
-                                     "if(tg==='img'||tg==='svg'||tg==='video'||tg==='canvas')continue;"
-                                     "var cs=getComputedStyle(e);"
-                                     "if((cs.backgroundImage||'').indexOf('url(')>=0)continue;"
-                                     "var bl=L(cs.backgroundColor);"
-                                     "if(bl!==null&&bl>0.5){e.style.setProperty('background-color','#181a1b','important');n++;}"
-                                     "var tl2=L(cs.color);"
-                                     "if(tl2!==null&&tl2<0.35){e.style.setProperty('color','#e8e6e3','important');t++;}}"
-                                   "try{document.documentElement.style.setProperty('background-color','#181a1b','important');"
-                                       "document.body.style.setProperty('background-color','#181a1b','important');}catch(e){}"
-                                   "return 'bg='+n+' text='+t;}catch(e){return 'err '+e;}})()";
+                                NSString *force = ADPharmForceJS();
                                 for (WKWebView *w2 in found) {
                                     int myIdx = widx++;
                                     [w2 evaluateJavaScript:force completionHandler:^(id rf, NSError *ef){
