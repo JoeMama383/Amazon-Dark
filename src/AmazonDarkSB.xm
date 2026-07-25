@@ -97,6 +97,7 @@ static UIWindowScene *ADForegroundWindowScene(void) {
 
 static void ADDismissCover(void);
 static UIView *gCoverOverlay;
+static unsigned gCoverGen;
 
 // YES when Amazon already has a running process -- i.e. this is a resume, not a
 // cold launch. Nothing here is required to exist; unknown means "cover it".
@@ -158,15 +159,18 @@ static void ADAttachCoverToScene(UIView *host) {
         }
         [host addSubview:ov];
         gCoverOverlay = ov;
+        unsigned myGen = ++gCoverGen;
         gPresentAt = CFAbsoluteTimeGetCurrent();
         ADSBLog([NSString stringWithFormat:@"COVER overlay in scene (%@ logo=%d)",
                  NSStringFromClass([host class]), splash ? 1 : 0]);
 
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHold * NSEC_PER_SEC)),
-                       dispatch_get_main_queue(), ^{ ADDismissCover(); });
+                       dispatch_get_main_queue(), ^{
+            if (myGen == gCoverGen) ADDismissCover();   // never dismiss a newer cover
+        });
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHardCap * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{
-            @try { if (gCoverOverlay){ UIView *x = gCoverOverlay; gCoverOverlay = nil;
+            @try { if (gCoverOverlay && myGen == gCoverGen){ UIView *x = gCoverOverlay; gCoverOverlay = nil;
                        [x removeFromSuperview]; ADSBLog(@"COVER overlay hardcap (no signal)"); } }
             @catch (__unused NSException *e) {}
         });
@@ -361,7 +365,7 @@ static void ADPresentCover(void) {
             @try {
                 if (!gCoverWin && !gCoverOverlay) return;
                 double shown = CFAbsoluteTimeGetCurrent() - gPresentAt;
-                double wait  = shown < 1.05 ? (1.05 - shown) : 0.0;  // no strobe
+                double wait  = shown < 1.40 ? (1.40 - shown) : 0.0;  // no strobe
                 ADSBLog([NSString stringWithFormat:@"COVER ready (shown %.2fs, wait %.2fs)", shown, wait]);
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(wait * NSEC_PER_SEC)),
                                dispatch_get_main_queue(), ^{ ADDismissCover(); });
