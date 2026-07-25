@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.161.0"
+#define AD_VERSION "v5.162.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -4407,6 +4407,61 @@ static void ADSurfaceProbe(void){
     } @catch(...) {}
 }
 
+// ── PANE DUMP ───────────────────────────────────────────────────────────────
+// SURF counts UIImageViews. If the orders thumbnails are NOT UIImageViews, SURF
+// reports a low count and the glyph probe stays silent -- and both readings look
+// like "innocent" when they actually mean "never saw it". This names every view
+// class at thumbnail size or larger, with whether it has layer contents, so the
+// hosting class identifies itself instead of being guessed at.
+static void ADPaneWalk(UIView *v, int depth, NSMutableDictionary *acc){
+    if (!v || depth > 26 || v.hidden || v.alpha < 0.05) return;
+    @try {
+        CGFloat w = v.bounds.size.width, h = v.bounds.size.height;
+        if (w >= 40 && h >= 40 && w <= 320 && h <= 320){
+            NSString *k = [NSString stringWithUTF8String:object_getClassName(v)];
+            NSMutableArray *e = acc[k];
+            if (!e){ e = [NSMutableArray arrayWithObjects:@0,@0,@0,@0,@0,nil]; acc[k] = e; }
+            e[0] = @([e[0] intValue] + 1);
+            e[1] = @((int)w); e[2] = @((int)h);
+            if (v.layer.contents)  e[3] = @([e[3] intValue] + 1);
+            if (v.backgroundColor) e[4] = @([e[4] intValue] + 1);
+        }
+        for (UIView *s in v.subviews) ADPaneWalk(s, depth + 1, acc);
+    } @catch(...) {}
+}
+
+static void ADPaneDump(void){
+    @try {
+        if (!gP.enabled) return;
+        UIWindow *key = nil;
+        for (UIWindow *w in [UIApplication sharedApplication].windows)
+            if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
+        if (!key) return;
+
+        NSMutableDictionary *acc = [NSMutableDictionary dictionary];
+        ADPaneWalk(key, 0, acc);
+        if (!acc.count) return;
+
+        NSArray *keys = [acc keysSortedByValueUsingComparator:^NSComparisonResult(NSArray *a, NSArray *b){
+            return [b[0] compare:a[0]];
+        }];
+
+        NSMutableString *sig = [NSMutableString string];
+        int si = 0;
+        for (NSString *k in keys){ if (si++ >= 6) break; [sig appendFormat:@"%@%@", k, acc[k][0]]; }
+        static NSString *lastSig = nil;
+        if (lastSig && [lastSig isEqualToString:sig]) return;   // unchanged: stay quiet
+        lastSig = [sig copy];
+
+        int shown = 0;
+        for (NSString *k in keys){
+            if (shown++ >= 14) break;
+            NSArray *e = acc[k];
+            ADLog(@"VDUMP[%@ n=%@ sz=%@x%@ contents=%@ bg=%@]", k, e[0], e[1], e[2], e[3], e[4]);
+        }
+    } @catch(...) {}
+}
+
 static void ADSweepAllWindows(void){
     if (!ADRecolorOn()) return;
     @try {
@@ -4644,9 +4699,18 @@ static void ADReapplyBurst(void){
     %orig;
     // Surface probe: 1.2s after a pane settles, so async thumbnails have landed
     // and the count reflects what the user is actually looking at.
+    //
+    // The 40-line probe budget is reset HERE, per pane, not globally. A global cap
+    // was exhausted during launch and the home tab, so by the time the orders pane
+    // opened the glyph probe was already silent -- and that silence reads exactly
+    // like "the glyph path never touched it". Per-pane, an empty capture on the
+    // orders pane is real evidence instead of an artefact of the budget.
     @try {
+        gGlyphProbeN = 0;
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)),
-                       dispatch_get_main_queue(), ^{ ADSurfaceProbe(); });
+                       dispatch_get_main_queue(), ^{ ADSurfaceProbe(); ADPaneDump(); });
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.0 * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{ ADPaneDump(); });
     } @catch(...) {}
     @try {
         if (!ADRecolorOn()) return;
