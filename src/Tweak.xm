@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.137.0"
+#define AD_VERSION "v5.138.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -554,7 +554,31 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                // so anything Amazon builds inside one is unreachable from the document.
                "if(e.shadowRoot&&depth<4&&out.length<6000)collect(e.shadowRoot,out,depth+1);}"
              "}catch(e){}return out;}"
-           "var els=collect(document.body,[],0),n=0,bfix=0,lfix=0,gfix=0,bigfix=0;"           // Read the themed background off <html> rather than plumbing another
+           "var els=collect(document.body,[],0),n=0,bfix=0,lfix=0,gfix=0,bigfix=0;"
+           // Large artwork rectangles, gathered once. Anything overlapping one of
+           // these is chrome ON a creative: darkening it paints a box over the art.
+           "var ART=[];try{var AQ=document.querySelectorAll('img,picture,video');"
+             "for(var aq=0;aq<AQ.length&&aq<250&&ART.length<80;aq++){"
+               "var arr=AQ[aq].getBoundingClientRect();"
+               "if(arr.width>=110&&arr.height>=60)ART.push(arr);}"
+             "var AQ2=document.querySelectorAll('div,section,a,span');"
+             "for(var aq2=0;aq2<AQ2.length&&aq2<900&&ART.length<120;aq2++){"
+               "var bgi3=getComputedStyle(AQ2[aq2]).backgroundImage||'';"
+               "if(bgi3.indexOf('url(')<0)continue;"
+               "var ar2=AQ2[aq2].getBoundingClientRect();"
+               "if(ar2.width>=110&&ar2.height>=60)ART.push(ar2);}"
+           "}catch(e){}"
+           "function onArt(e2){try{var r5=e2.getBoundingClientRect();"
+             "if(r5.width<1||r5.height<1)return false;"
+             "for(var oa=0;oa<ART.length;oa++){var a5=ART[oa];"
+               "if(r5.left>=a5.left-2&&r5.right<=a5.right+2&&"
+                  "r5.top>=a5.top-2&&r5.bottom<=a5.bottom+2)return true;}"
+             "}catch(e){}return false;}"
+           // A dark panel inside a still-light card reads as a box behind the text.
+           "function ancLight(e3){try{var pa=e3.parentElement,pd=0;"
+             "while(pa&&pd++<4){var pl2=lum(getComputedStyle(pa).backgroundColor);"
+               "if(pl2!==null){return pl2>0.55;}pa=pa.parentElement;}"
+             "}catch(e){}return false;}"           // Read the themed background off <html> rather than plumbing another
            // format argument through two call sites.
            "var BG='rgb(24,26,27)';try{var hb=getComputedStyle(document.documentElement).backgroundColor;"
              "var hl=lum(hb);if(hl!==null&&hl<0.25)BG=hb;}catch(e){}"
@@ -586,12 +610,13 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              // does not matter. els is in document order, so an ancestor is darkened
              // before its children are contrast-checked against it.
              "if(lfix<500){var pl=lum(cs.backgroundColor);"
-               "if(pl!==null&&pl>0.55){el.style.setProperty('background-color',BG,'important');lfix++;}}"
+               "if(pl!==null&&pl>0.55&&!onArt(el)&&!ancLight(el)){"
+                 "el.style.setProperty('background-color',BG,'important');lfix++;}}"
              // LARGE light panels, uncapped. Section-sized light surfaces (the
              // pharmacy pink wrapper, the light-blue insurance strip) are never
              // content -- darken them even after the general cap is spent.
              "if(bigfix<120){var plb=lum(cs.backgroundColor);"
-               "if(plb!==null&&plb>0.55){var rb=el.getBoundingClientRect();"
+               "if(plb!==null&&plb>0.55&&!onArt(el)){var rb=el.getBoundingClientRect();"
                  "if(rb.width>=200&&rb.height>=80){"
                    "el.style.setProperty('background-color',BG,'important');bigfix++;}}}"
              // LIGHT GRADIENTS. lfix read 0 on every line while a 430x627 light panel
@@ -816,12 +841,17 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // masked the real miss.
            "try{var fhead=null;"
              "var HD=document.querySelectorAll('h1,h2,h3,h4,span,div,p');"
-             "for(var hh=0;hh<HD.length&&hh<3000;hh++){var he2=HD[hh];"
-               "if(he2.children.length>2)continue;"
+             "var cand=[];"
+             "for(var hh=0;hh<HD.length&&hh<4000;hh++){var he2=HD[hh];"
                "var ht2=(he2.textContent||'').trim();"
-               "if(ht2.length<8||ht2.length>60)continue;"
-               "if(ht2.indexOf('Filters for')===0){fhead=he2;break;}}"
-             "if(!fhead&&!window.__AD_FLTSCAN__)window.__AD_FLTSCAN__='nohead';"
+               "if(ht2.length<5||ht2.length>80)continue;"
+               "if(ht2.toLowerCase().indexOf('filter')<0)continue;"
+               "var hr2=he2.getBoundingClientRect();"
+               "if(hr2.width<60||hr2.height<10||hr2.height>90)continue;"
+               "if(cand.length<3)cand.push(ht2.slice(0,26)+'@'+Math.round(hr2.width)+'x'+Math.round(hr2.height));"
+               "if(!fhead)fhead=he2;}"
+             "if(!fhead&&!window.__AD_FLTSCAN__)"
+               "window.__AD_FLTSCAN__='nohead cands='+(cand.length?cand.join('|'):'0');"
              "if(fhead){var fsec=fhead,fu=0,vw2=window.innerWidth||390,fcur=fhead,fbest=null;"
                "while(fcur.parentElement&&fu++<10){fcur=fcur.parentElement;"
                  "var fsr=fcur.getBoundingClientRect();"
@@ -1805,8 +1835,8 @@ static void ADPreDarken(WKWebView *wv){
             NSString *au = self.URL.absoluteString ?: @"(no url yet)";
             if (au.length > 70) au = [au substringToIndex:70];
             ADLog(@"wvattach cls=%s url=%@ t=%.1f", object_getClassName(self), au, ADUptime());
-            // First UI surface on screen: the primary ready trigger.
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)),
+            // Attach alone is not "drawn"; keep it only as a long stop-gap.
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.0 * NSEC_PER_SEC)),
                            dispatch_get_main_queue(), ^{ ADPostAppReady(); });
             __weak WKWebView *weakWv = self;
             // Delegate-independent late coverage: watch the URL itself. Prewarmed
@@ -1885,6 +1915,11 @@ static void ADPreDarken(WKWebView *wv){
 }
 - (void)webView:(WKWebView *)wv didFinishNavigation:(id)nav {
     %orig;
+    // Content is drawn: this is the honest "app is up" moment for the cover.
+    @try {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{ ADPostAppReady(); });
+    } @catch(...) {}
     // Late surfaces navigate long after every timer is dead; run the repair on a
     // short private schedule after EVERY finished navigation so client-side and
     // late loads (Pharmacy) are covered without any global cadence.
@@ -4100,9 +4135,17 @@ static void ADReapplyBurst(void){
                                        dispatch_get_main_queue(), ^{
                             @try {
                                 UIViewController *v2 = wvc;
-                                if (!v2 || !v2.viewIfLoaded.window) return;
+                                if (!v2) return;
                                 NSMutableArray *found = [NSMutableArray array];
-                                ADCollectWebViews(v2.viewIfLoaded, found, 0);
+                                if (v2.viewIfLoaded) ADCollectWebViews(v2.viewIfLoaded, found, 0);
+                                // Fall back to the whole window hierarchy: the store-mode
+                                // sheet's view can report no window at this point, which is
+                                // what silently blocked every previous attempt.
+                                if (!found.count){
+                                    for (UIWindow *w3 in [UIApplication sharedApplication].windows){
+                                        if (w3 && !w3.hidden) ADCollectWebViews(w3, found, 0);
+                                    }
+                                }
                                 int nbg2 = 0;
                                 ADDarkenNativeTree(v2.viewIfLoaded, 0, &nbg2);
                                 if (!found.count) {
@@ -4245,7 +4288,7 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
             addObserverForName:UIApplicationDidBecomeActiveNotification
                         object:nil queue:[NSOperationQueue mainQueue]
                     usingBlock:^(NSNotification *n){
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.9 * NSEC_PER_SEC)),
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.6 * NSEC_PER_SEC)),
                            dispatch_get_main_queue(), ^{ ADPostAppReady(); });
         }];
     } @catch(...) {}
