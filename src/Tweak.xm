@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.153.0"
+#define AD_VERSION "v5.155.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -836,6 +836,42 @@ static NSString *ADDarkReaderBootstrapBuild(void){
 
            // Clear stray dark square wrappers around the buttons (the box that
            // can extend past the pill). Shapes/borders are persistent CSS above.
+           // BEHIND-TEXT AUDIT. The dark rectangle is a sibling/backdrop element,
+           // not the text's own background, so probe the paint stack under the
+           // text run itself. Reports the full stack with each background and
+           // its author tag; always reports, including the clean case.
+           "try{var TB=document.querySelectorAll('span,div,p,a,h1,h2,h3,h4,li');"
+             "var thits=[],tscan=0;"
+             "for(var tb=0;tb<TB.length&&tb<2500&&thits.length<3;tb++){var te3=TB[tb];"
+               "var own='';"
+               "for(var cn5=0;cn5<te3.childNodes.length&&cn5<6;cn5++){"
+                 "var nd5=te3.childNodes[cn5];"
+                 "if(nd5.nodeType===3&&nd5.nodeValue&&nd5.nodeValue.trim().length>1)"
+                   "own+=nd5.nodeValue.trim()+' ';}"
+               "own=own.trim();"
+               "if(own.length<2||own.length>60)continue;"
+               "var trr=te3.getBoundingClientRect();"
+               "if(trr.width<20||trr.height<8)continue;"
+               "if(trr.top<0||trr.top>(window.innerHeight||900))continue;"
+               "tscan++;"
+               "var cx5=Math.round(trr.left+trr.width/2),cy5=Math.round(trr.top+trr.height/2);"
+               "var stack=[];try{stack=document.elementsFromPoint(cx5,cy5)||[];}catch(e){}"
+               "var found=null,layers='';"
+               "for(var sk=0;sk<stack.length&&sk<6;sk++){var se5=stack[sk];"
+                 "var sbg=lum(getComputedStyle(se5).backgroundColor);"
+                 "var scn=se5.className;if(scn&&scn.baseVal!==undefined)scn=scn.baseVal;"
+                 "var srr=se5.getBoundingClientRect();"
+                 "layers+=' '+String(scn||se5.tagName).slice(0,16)"
+                   "+'@'+Math.round(srr.width)+'x'+Math.round(srr.height)"
+                   "+'['+(sbg===null?'-':sbg.toFixed(2))"
+                   "+(se5.__adBgBy?('/'+se5.__adBgBy):'')+']';"
+                 "if(found===null&&se5!==te3&&sbg!==null&&sbg<0.30)found=sk;}"
+               "if(found===null)continue;"
+               "var tov=(typeof artOverlap==='function')?artOverlap(trr):0;"
+               "thits.push('\\''+own.slice(0,20)+'\\' art='+tov.toFixed(2)+' ::'+layers);}"
+             "window.__AD_TEXTBOX__=(thits.length?('n='+thits.length+' '+thits.join(' || ')):"
+               "('none sampled='+tscan));"
+           "}catch(e){window.__AD_TEXTBOX__='err '+e;}"
            // AD CARD AUDIT. Always reports. A dark box sitting on a light card is
            // the defect; this names the element and, via __adBgBy, the pass that
            // painted it -- so it stops being a guess about which pass to blame.
@@ -906,18 +942,6 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "mp.style.setProperty('background-color','transparent','important');"
                    "mp.style.setProperty('box-shadow','none','important');}"
                  "mp=mp.parentElement;}}"
-           "}catch(e){}"
-                      // Clear inversions earlier builds left on SVG-sourced icons, including
-           // any applied before this rule existed.
-           "try{var SV=document.querySelectorAll('img');var cleared=0;"
-             "for(var sv=0;sv<SV.length&&sv<400;sv++){var se=SV[sv];"
-               "var ss=se.currentSrc||se.src||'';"
-               "if(!/\\.svg(\\?|#|$)/i.test(ss))continue;"
-               "var sf=String(getComputedStyle(se).filter||'none');"
-               "if(sf.indexOf('invert')<0)continue;"
-               "se.style.removeProperty('filter');"
-               "se.style.setProperty('filter','none','important');cleared++;}"
-             "if(cleared&&!window.__AD_SVGCLR__)window.__AD_SVGCLR__='n='+cleared;"
            "}catch(e){}"
                       // SCREW PROBE. Always reports. Anchors on the tile LABEL, so it does not
            // depend on finding the filter panel or on any class name.
@@ -1026,47 +1050,6 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "if(el5.tagName.toLowerCase()!=='img'){"
                    "el5.style.setProperty('filter','invert(1)','important');return;}"
                  "var srcu=el5.currentSrc||el5.src;if(!srcu)return;"
-                 // An <img> whose source is an SVG is left alone. The peers in this
-                 // family carry no filter and render correctly, so these assets
-                 // already suit a dark tile; the only one we ever broke is the one
-                 // we filtered. No fetch, no CORS, no markup parsing -- nothing
-                 // here can fail silently.
-                 "if(/\\.svg(\\?|#|$)/i.test(srcu)){try{"
-                   "el5.style.removeProperty('filter');"
-                   "if(el5.__adInlined){return;}el5.__adInlined=1;"
-                   "fetch(srcu).then(function(r){return r.ok?r.text():null;}).then(function(tx){try{"
-                     "if(!tx||tx.length>60000||tx.indexOf('<svg')<0){"
-                       "el5.style.setProperty('filter','invert(1)','important');"
-                       "if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__='svg-fallback';return;}"
-                     "var box=document.createElement('span');"
-                     "box.innerHTML=tx.replace(/<script[\\s\\S]*?<\\/script>/gi,'');"
-                     "var nsvg=box.querySelector('svg');"
-                     "if(!nsvg){el5.style.setProperty('filter','invert(1)','important');return;}"
-                     "var rr7=el5.getBoundingClientRect();"
-                     "nsvg.setAttribute('width',Math.round(rr7.width));"
-                     "nsvg.setAttribute('height',Math.round(rr7.height));"
-                     "nsvg.style.display='inline-block';"
-                     "nsvg.__adGlyph=0;"
-                     // Fill every stroke-only path so an outline reads as a solid
-                     // shape, matching the filled icons beside it.
-                     "var pth=nsvg.querySelectorAll('path,circle,rect,polygon,ellipse,g,line,polyline');"
-                     "for(var pz=0;pz<pth.length&&pz<40;pz++){var pe=pth[pz];"
-                       "var pf=(pe.getAttribute&&pe.getAttribute('fill'))||'';"
-                       "if(!pf||/^none$/i.test(pf)||/currentcolor/i.test(pf))"
-                         "pe.setAttribute('fill','#e8e6e3');"
-                       "else{var pl7=lum(pf);"
-                         "if(pl7===null||pl7<0.45)pe.setAttribute('fill','#e8e6e3');}"
-                       "var ps=(pe.getAttribute&&pe.getAttribute('stroke'))||'';"
-                       "if(ps&&!/^none$/i.test(ps)){var sl7=lum(ps);"
-                         "if(sl7===null||sl7<0.45)pe.setAttribute('stroke','#e8e6e3');}}"
-                     "if(el5.parentNode){el5.parentNode.replaceChild(nsvg,el5);"
-                       "if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__='svg-inlined paths='+pth.length;}"
-                   "}catch(e){try{el5.style.setProperty('filter','invert(1)','important');}catch(e2){}"
-                     "if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__='svg-err';}"
-                   "}).catch(function(){try{"
-                     "el5.style.setProperty('filter','invert(1)','important');"
-                     "if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__='svg-nofetch';}catch(e){}});"
-                 "}catch(e){}return;}"
                  "var pr6=new Image();pr6.crossOrigin='anonymous';"
                  "pr6.onload=function(){try{"
                    "var cw=Math.min(pr6.naturalWidth||32,32),ch=Math.min(pr6.naturalHeight||32,32);"
@@ -1478,7 +1461,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "}catch(e){}"
              "pr=' url='+String(location.pathname||'').slice(0,28)"
                "+(window.__AD_CMPX__?(' CMPX='+window.__AD_CMPX__):'')"
-               "+(window.__AD_SVGCLR__?(' SVGCLR['+window.__AD_SVGCLR__+']'):'')"
+               "+(window.__AD_TEXTBOX__?(' TEXTBOX['+window.__AD_TEXTBOX__+']'):'')"
                "+(window.__AD_ADCARD__?(' ADCARD['+window.__AD_ADCARD__+']'):'')"
                "+(window.__AD_SCREW__?(' SCREW['+window.__AD_SCREW__+']'):'')"
                "+(window.__AD_TILEART__?(' TILEART['+window.__AD_TILEART__+']'):'')"
