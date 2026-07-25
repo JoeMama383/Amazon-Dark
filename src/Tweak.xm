@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.139.0"
+#define AD_VERSION "v5.140.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -840,11 +840,17 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                       // DARK ART ON A DARK TILE. Applies wherever it occurs, so no panel has
            // to be located first. The bugle screw is this shape: a monochrome
            // drawing sitting invisibly on the tile our theming darkened.
-           "try{var TQ=document.querySelectorAll('img,svg');var tl=0,tfirst='';"
-             "for(var tq=0;tq<TQ.length&&tq<600;tq++){var te=TQ[tq];"
+           "try{var TQ=document.querySelectorAll('img,svg,i,span,div');var tl=0,tfirst='';"
+             "for(var tq=0;tq<TQ.length&&tq<2500;tq++){var te=TQ[tq];"
                "if(te.__adGlyph)continue;"
+               "var tcs=getComputedStyle(te);var ttag=te.tagName.toLowerCase();"
+               "var tArt=(ttag==='img'||ttag==='svg');"
+               "if(!tArt){var tbi=tcs.backgroundImage||'';"
+                 "if(tbi.indexOf('url(')<0)continue;"
+                 "if(te.children.length>0)continue;"
+                 "tArt=true;}"
                "var tr=te.getBoundingClientRect();"
-               "if(tr.width<18||tr.width>120||tr.height<18||tr.height>120)continue;"
+               "if(tr.width<16||tr.width>140||tr.height<16||tr.height>140)continue;"
                "var ratio=tr.width/Math.max(tr.height,1);"
                "if(ratio<0.45||ratio>2.2)continue;"
                "var tcn=te.className;if(tcn&&tcn.baseVal!==undefined)tcn=tcn.baseVal;tcn=String(tcn||'');"
@@ -852,19 +858,22 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "if(te.closest&&te.closest('[class*=s-product-image],[class*=product-image],[class*=mlt-icon],[class*=heart],[class*=lists-framework]'))continue;"
                "var talt=(te.getAttribute&&te.getAttribute('alt'))||'';"
                "if(talt.length>18)continue;"
-               "if(String(getComputedStyle(te).filter||'').indexOf('invert')>=0)continue;"
+               "if(String(tcs.filter||'').indexOf('invert')>=0)continue;"
                // the tile: a dark, icon-sized box the drawing nearly fills
-               "var tp=te.parentElement,tdep=0,tile=null;"
-               "while(tp&&tdep++<3){var tpl=lum(getComputedStyle(tp).backgroundColor);"
+               "var tile=null;"
+               "var selfL=lum(tcs.backgroundColor);"
+               "if(selfL!==null&&selfL<0.30)tile=te;"
+               "var tp=te.parentElement,tdep=0;"
+               "while(!tile&&tp&&tdep++<4){var tpl=lum(getComputedStyle(tp).backgroundColor);"
                  "var tpr=tp.getBoundingClientRect();"
-                 "if(tpl!==null&&tpl<0.30&&tpr.width<=170&&tpr.height<=170"
-                   "&&tpr.width>=tr.width&&tpr.height>=tr.height){tile=tp;break;}"
+                 "if(tpl!==null&&tpl<0.32&&tpr.width<=220&&tpr.height<=220"
+                   "&&tpr.width>=tr.width-2&&tpr.height>=tr.height-2){tile=tp;break;}"
                  "tp=tp.parentElement;}"
                "if(!tile)continue;"
                "te.style.setProperty('filter','brightness(0) invert(1)','important');"
                "te.style.setProperty('background-color','transparent','important');"
                "te.__adGlyph=1;tl++;"
-               "if(!tfirst)tfirst=te.tagName.toLowerCase()+'.'+tcn.slice(0,20)"
+               "if(!tfirst)tfirst=ttag+'.'+tcn.slice(0,20)"
                  "+'@'+Math.round(tr.width)+'x'+Math.round(tr.height);}"
              "if(tl&&!window.__AD_TILEART__)window.__AD_TILEART__='n='+tl+' first='+tfirst;"
            "}catch(e){}"
@@ -1768,7 +1777,7 @@ static void ADLaunchDarkenTree(UIView *v, int depth, int *bg, int *logo){
 
 static void ADLaunchScreenDarkPass(void){
     @try {
-        if (ADUptime() > 4.0) return;
+        if (ADUptime() > 4.2) return;
         int bg = 0, logo = 0;
         for (UIWindow *w in [UIApplication sharedApplication].windows){
             if (!w || w.hidden) continue;
@@ -4193,8 +4202,32 @@ static void ADReapplyBurst(void){
                                     return;
                                 }
                                 int widx = 0;
+                                NSString *force =
+                                  @"(function(){try{var n=0,t=0;"
+                                   "function L(c){try{var m=/rgba?\\(([0-9.]+),\\s*([0-9.]+),\\s*([0-9.]+)(?:,\\s*([0-9.]+))?\\)/.exec(c||'');"
+                                     "if(!m)return null;if(m[4]!==undefined&&parseFloat(m[4])<0.15)return null;"
+                                     "return (0.2126*+m[1]+0.7152*+m[2]+0.0722*+m[3])/255;}catch(e){return null;}}"
+                                   "var A=document.querySelectorAll('*');"
+                                   "for(var i=0;i<A.length&&i<4000;i++){var e=A[i];"
+                                     "var tg=e.tagName.toLowerCase();"
+                                     "if(tg==='img'||tg==='svg'||tg==='video'||tg==='canvas')continue;"
+                                     "var cs=getComputedStyle(e);"
+                                     "if((cs.backgroundImage||'').indexOf('url(')>=0)continue;"
+                                     "var bl=L(cs.backgroundColor);"
+                                     "if(bl!==null&&bl>0.5){e.style.setProperty('background-color','#181a1b','important');n++;}"
+                                     "var tl2=L(cs.color);"
+                                     "if(tl2!==null&&tl2<0.35){e.style.setProperty('color','#e8e6e3','important');t++;}}"
+                                   "try{document.documentElement.style.setProperty('background-color','#181a1b','important');"
+                                       "document.body.style.setProperty('background-color','#181a1b','important');}catch(e){}"
+                                   "return 'bg='+n+' text='+t;}catch(e){return 'err '+e;}})()";
                                 for (WKWebView *w2 in found) {
                                     int myIdx = widx++;
+                                    [w2 evaluateJavaScript:force completionHandler:^(id rf, NSError *ef){
+                                        @try {
+                                            if (ef) ADLog(@"pharmforce #%d -> ERR %@/%ld", myIdx, ef.domain, (long)ef.code);
+                                            else ADLog(@"pharmforce #%d -> %@", myIdx, rf);
+                                        } @catch(...) {}
+                                    }];
                                     [w2 evaluateJavaScript:ADDarkReaderBootstrap()
                                          completionHandler:^(id r7, NSError *e7){
                                         @try {
@@ -4300,7 +4333,7 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
                                                                      block:^(NSTimer *t){
                 @try {
                     ADLaunchScreenDarkPass();
-                    if (ADUptime() > 1.2) [t invalidate];
+                    if (ADUptime() > 4.0) [t invalidate];
                 } @catch(...) { [t invalidate]; }
             }];
             (void)lt2;
