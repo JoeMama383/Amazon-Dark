@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.157.0"
+#define AD_VERSION "v5.158.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -628,6 +628,11 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "if(r4.width>140||r4.height>140)return true;"
              "var cl4=el4.className;if(cl4&&cl4.baseVal!==undefined)cl4=cl4.baseVal;cl4=String(cl4||'');"
              "if(/product|asin|thumb|photo|hero|creative|poster|cover-art/i.test(cl4))return true;"
+             // Round crops are avatars, store marks and review photos -- content,
+             // never chrome. This is the shape both reported regressions shared.
+             "try{var br4=parseFloat(getComputedStyle(el4).borderRadius)||0;"
+               "var pct4=/%%/.test(getComputedStyle(el4).borderRadius);"
+               "if(r4.width>=40&&(pct4?br4>=40:(br4>=r4.width*0.4)))return true;}catch(e){}"
              "if(el4.closest&&el4.closest(PRODC)){"
                // inside merchandising chrome: only a small, label-bearing tile
                // icon may still be treated as a glyph
@@ -863,12 +868,22 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "ct.appendChild(fe);});"
                "f7.appendChild(ct);sv7.appendChild(f7);"
                "(document.body||document.documentElement).appendChild(sv7);}"
-             "var PI=document.querySelectorAll('img');var tamed=0;"
-             "for(var pi=0;pi<PI.length&&pi<300;pi++){var im7=PI[pi];"
+             "var PI0=document.querySelectorAll('img'),PI=[];"
+               "for(var z8=0;z8<PI0.length&&z8<300;z8++)PI.push(PI0[z8]);"
+               // cards that paint their picture as a CSS background
+               "var PB=document.querySelectorAll('div,span,a,section,li');"
+               "for(var z9=0;z9<PB.length&&z9<1500&&PI.length<420;z9++){"
+                 "var be9=PB[z9];"
+                 "if((getComputedStyle(be9).backgroundImage||'').indexOf('url(')<0)continue;"
+                 "PI.push(be9);}"
+             "var tamed=0;"
+             "for(var pi=0;pi<PI.length&&pi<420;pi++){var im7=PI[pi];"
                "if(im7.__adTamed)continue;"
                "var ir7=im7.getBoundingClientRect();"
                // product imagery only: big enough to be a photo, and never a glyph
-               "if(ir7.width<90||ir7.height<90)continue;"
+               // 56px: below this it is chrome, not a picture. The ad-card
+               // thumbnails that went untreated sit between 56 and 90.
+               "if(ir7.width<56||ir7.height<56)continue;"
                "if(im7.__adGlyph)continue;"
                "var icn7=im7.className;if(icn7&&icn7.baseVal!==undefined)icn7=icn7.baseVal;"
                "if(/sprite|icon|logo|pixel/i.test(String(icn7||'')))continue;"
@@ -1047,7 +1062,11 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "if(te.children.length>0)continue;"
                  "tArt=true;}"
                "var tr=te.getBoundingClientRect();"
-               "if(tr.width<16||tr.width>140||tr.height<16||tr.height>140)continue;"
+               // Vector chrome may be large; a raster image may not. 48px is above
+               // every known glyph family here (mlt 24, sbs-pill 34) and below
+               // every avatar, brand logo and review photo seen so far.
+               "var rasterCap=(ttag==='img')?48:140;"
+               "if(tr.width<16||tr.width>rasterCap||tr.height<16||tr.height>rasterCap)continue;"
                "var ratio=tr.width/Math.max(tr.height,1);"
                "if(ratio<0.45||ratio>2.2)continue;"
                "var tcn=te.className;if(tcn&&tcn.baseVal!==undefined)tcn=tcn.baseVal;tcn=String(tcn||'');"
