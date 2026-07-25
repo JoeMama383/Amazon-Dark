@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.161.0"
+#define AD_VERSION "v5.162.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -364,7 +364,8 @@ static NSString *ADFixesLiteral(void){
              "{background-color:#181a1b !important;border-radius:50%% !important;"
              "border:1.5px solid rgba(255,255,255,0.65) !important;"
              "box-shadow:none !important;box-sizing:border-box !important;}"
-             "[class*=mlt-icon-container] img,[class*=mlt-image-icon] img"
+             "[class*=mlt-icon-container] img[class*=s-image],"
+             "[class*=mlt-image-icon] img[class*=s-image]"
              "{filter:brightness(0) invert(1) !important;"
              "background-color:transparent !important;}"
              "[class*=mlt-icon-container] *,[class*=mlt-text-icon]"
@@ -892,6 +893,28 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "im7.__adTamed=1;tamed++;}"
              "if(tamed&&!window.__AD_TAME__)window.__AD_TAME__='n='+tamed+' ceil='+cL.toFixed(2);"
            "}}catch(e){}"
+                      // PHOTO RESCUE. Runs before anything else and judges by computed
+           // result, not by our own bookkeeping -- a stylesheet rule leaves no
+           // mark, which is exactly how order thumbnails were being flattened.
+           "try{var RS=document.querySelectorAll('img');var resc=0,rfirst='';"
+             "for(var rs=0;rs<RS.length&&rs<400;rs++){var re2=RS[rs];"
+               "var rr2=re2.getBoundingClientRect();"
+               "if(rr2.width<=48&&rr2.height<=48)continue;"
+               "var rf2=String(getComputedStyle(re2).filter||'none');"
+               "if(rf2==='none')continue;"
+               // brightness(0) exactly -- brightness(0.775) from the tame pass
+               // must survive, so the closing paren matters here
+               "if(rf2.indexOf('brightness(0)')<0&&rf2.indexOf('invert(')<0)continue;"
+               "re2.style.setProperty('filter','none','important');"
+               "if(!rfirst){var rcn=re2.className;"
+                 "if(rcn&&rcn.baseVal!==undefined)rcn=rcn.baseVal;"
+                 "var rp2=re2.parentElement;var rpc=rp2?rp2.className:'';"
+                 "if(rpc&&rpc.baseVal!==undefined)rpc=rpc.baseVal;"
+                 "rfirst=String(rcn||'img').slice(0,20)+'^'+String(rpc||'-').slice(0,24)"
+                   "+'@'+Math.round(rr2.width)+'x'+Math.round(rr2.height);}"
+               "resc++;}"
+             "if(resc)window.__AD_RESCUE__='n='+resc+' first='+rfirst;"
+           "}catch(e){}"
                       // ORDER THUMB AUDIT. Always reports. Names any photo-sized image that
            // is not rendering normally, with every mark we could have left on it.
            "try{var OI=document.querySelectorAll('img');var obad=[],oseen=0;"
@@ -1544,6 +1567,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "}catch(e){}"
              "pr=' url='+String(location.pathname||'').slice(0,28)"
                "+(window.__AD_CMPX__?(' CMPX='+window.__AD_CMPX__):'')"
+               "+(window.__AD_RESCUE__?(' RESCUE['+window.__AD_RESCUE__+']'):'')"
                "+(window.__AD_ORDERS__?(' ORDERS['+window.__AD_ORDERS__+']'):'')"
                "+(window.__AD_TAME__?(' TAME['+window.__AD_TAME__+']'):'')"
                "+(window.__AD_TEXTBOX__?(' TEXTBOX['+window.__AD_TEXTBOX__+']'):'')"
