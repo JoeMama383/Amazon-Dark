@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.168.0"
+#define AD_VERSION "v5.160.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -159,9 +159,6 @@ static inline void ADMarkModifiedImage(UIImage *im){ if (im) objc_setAssociatedO
 static UIColor *ADColorFromHex(const char *hex);
 static UIImage *ADGlyphify(UIImage *img);
 static UIImage *ADGlyphifyForView(UIImage *img, UIView *v);
-static const char *gGlyphSrc = "?";
-static int gGlyphProbeN = 0;
-
 static BOOL ADIsChromeGlyphContext(UIView *v);
 static void ADRunProbe(void);
 
@@ -367,31 +364,31 @@ static NSString *ADFixesLiteral(void){
              "{background-color:#181a1b !important;border-radius:50%% !important;"
              "border:1.5px solid rgba(255,255,255,0.65) !important;"
              "box-shadow:none !important;box-sizing:border-box !important;}"
-             "[class*=mlt-icon-container] img:not([src*=\\\"/images/I/\\\"]),[class*=mlt-image-icon] img:not([src*=\\\"/images/I/\\\"])"
+             "[class*=mlt-icon-container] img,[class*=mlt-image-icon] img"
              "{filter:brightness(0) invert(1) !important;"
              "background-color:transparent !important;}"
              "[class*=mlt-icon-container] *,[class*=mlt-text-icon]"
              "{color:#ffffff !important;fill:#ffffff !important;}"
-             "[class*=lists-framework-action-button] img:not([src*=\\\"/images/I/\\\"]),"
+             "[class*=lists-framework-action-button] img,"
              "[class*=lists-framework-action-button] i,"
              "[class*=lists-framework-action-button] svg,"
              "[class*=lists-framework-unfill],[class*=lists-framework-fill],"
-             "[class*=copilot-compare] [class*=on-image-button] img:not([src*=\\\"/images/I/\\\"]),"
+             "[class*=copilot-compare] [class*=on-image-button] img,"
              "[class*=copilot-compare] [class*=on-image-button] i,"
              "[class*=copilot-compare] [class*=on-image-button] svg,"
-             "[class*=copilot-compare][class*=on-image-button] img:not([src*=\\\"/images/I/\\\"]),"
+             "[class*=copilot-compare][class*=on-image-button] img,"
              "[class*=copilot-compare][class*=on-image-button] i,"
              "[class*=copilot-compare][class*=on-image-button] svg,"
-             "[class*=s-product-image] button[aria-label*=ompare] img:not([src*=\\\"/images/I/\\\"]),"
+             "[class*=s-product-image] button[aria-label*=ompare] img,"
              "[class*=s-product-image] button[aria-label*=ompare] i,"
              "[class*=s-product-image] button[aria-label*=ompare] svg,"
-             "[class*=puisg-col] [role=button][aria-label*=ompare] img:not([src*=\\\"/images/I/\\\"]),"
+             "[class*=puisg-col] [role=button][aria-label*=ompare] img,"
              "[class*=puisg-col] [role=button][aria-label*=ompare] i,"
              "[class*=puisg-col] [role=button][aria-label*=ompare] svg,"
-             "[class*=s-product-image] [data-csa-c-content-id*=ompare] img:not([src*=\\\"/images/I/\\\"]),"
+             "[class*=s-product-image] [data-csa-c-content-id*=ompare] img,"
              "[class*=s-product-image] [data-csa-c-content-id*=ompare] i,"
              "[class*=s-product-image] [data-csa-c-content-id*=ompare] svg,"
-             "[class*=puisg-col] [data-csa-c-content-id*=ompare] img:not([src*=\\\"/images/I/\\\"]),"
+             "[class*=puisg-col] [data-csa-c-content-id*=ompare] img,"
              "[class*=puisg-col] [data-csa-c-content-id*=ompare] i,"
              "[class*=puisg-col] [data-csa-c-content-id*=ompare] svg"
              "{filter:brightness(0) invert(1) !important;"
@@ -853,35 +850,14 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // WHITE-BACKGROUND TAMING (opt-in, Settings > AmazonDark).
            "try{if(window.__ADTAME_ON__){"
              "var cL=Math.max(0.12,Math.min(0.95,1-0.85*(window.__ADTAME_S__||45)/100));"
-             // Host creation is a NAMED, IDEMPOTENT function now, not an inline
-             // one-shot. Every tamed <img> carries filter:url(#adtamef), which is
-             // resolved by ID at paint time -- so if the host element disappears,
-             // every one of those references dangles at once and the images stop
-             // painting. Re-creating the host repairs them all simultaneously,
-             // which is why this has to be callable from outside the tame pass.
-             "if(!window.__ADTAME_MKHOST__){window.__ADTAME_MKHOST__=function(cL9){try{"
-               "if(document.getElementById('adtamef'))return 1;"
-               "var tv=[];for(var q7=0;q7<=8;q7++){var iv=q7/8;tv.push(Math.min(iv,cL9).toFixed(4));}"
-               "var tvs=tv.join(' ');"
-               "var ns7='http://www.w3.org/2000/svg';"
-               "var sv7=document.createElementNS(ns7,'svg');"
-               "sv7.setAttribute('id','adtamef-host');"
-               "sv7.setAttribute('width','0');sv7.setAttribute('height','0');"
-               "sv7.style.cssText='position:absolute;width:0;height:0;overflow:hidden';"
-               "var f7=document.createElementNS(ns7,'filter');"
-               "f7.setAttribute('id','adtamef');"
-               "f7.setAttribute('color-interpolation-filters','sRGB');"
-               "var ct=document.createElementNS(ns7,'feComponentTransfer');"
-               "['feFuncR','feFuncG','feFuncB'].forEach(function(fn){"
-                 "var fe=document.createElementNS(ns7,fn);"
-                 "fe.setAttribute('type','table');fe.setAttribute('tableValues',tvs);"
-                 "ct.appendChild(fe);});"
-               "f7.appendChild(ct);sv7.appendChild(f7);"
-               // documentElement, NOT body. Amazon swaps body subtrees on
-               // client-side navigation and took the host with it.
-               "(document.documentElement||document.body).appendChild(sv7);return 1;"
-             "}catch(e){return 0;}};}"
-             "window.__ADTAME_MKHOST__(cL);"
+             // Repair pass for anything a previous build left pointing at the
+             // SVG def; those elements are invisible until the style is replaced.
+             "try{var OLD=document.querySelectorAll('[style*=adtamef]');"
+               "for(var o9=0;o9<OLD.length&&o9<300;o9++){"
+                 "OLD[o9].style.removeProperty('filter');OLD[o9].__adTamed=0;}"
+               "var hostOld=document.getElementById('adtamef-host');"
+               "if(hostOld&&hostOld.parentNode)hostOld.parentNode.removeChild(hostOld);"
+             "}catch(e){}"
              "var PI0=document.querySelectorAll('img'),PI=[];"
                "for(var z8=0;z8<PI0.length&&z8<300;z8++)PI.push(PI0[z8]);"
                // cards that paint their picture as a CSS background
@@ -901,33 +877,53 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "if(im7.__adGlyph)continue;"
                "var icn7=im7.className;if(icn7&&icn7.baseVal!==undefined)icn7=icn7.baseVal;"
                "if(/sprite|icon|logo|pixel/i.test(String(icn7||'')))continue;"
-               "im7.style.setProperty('filter','url(#adtamef)','important');"
+               // Self-contained filter functions only: nothing to dereference, so
+               // nothing can fail to resolve and blank the element.
+               "var bb9=(1-0.50*((window.__ADTAME_S__||45)/100)).toFixed(3);"
+               "im7.style.setProperty('filter','brightness('+bb9+') saturate(1.08)','important');"
                "im7.__adTamed=1;tamed++;}"
              "if(tamed&&!window.__AD_TAME__)window.__AD_TAME__='n='+tamed+' ceil='+cL.toFixed(2);"
-             // UNCAPPED guard. The heartbeat stops after 75 ticks (~90s); the
-             // debounced observer only fires on mutations it sees. Neither is a
-             // guarantee, and the failure mode is every product photo on the page
-             // going blank at once. One getElementById every 2s is cheap enough
-             // that it does not need to be clever.
-             "try{if(!window.__ADTAME_GUARD__){window.__ADTAME_GUARD__=setInterval(function(){try{"
-               "if(!window.__ADTAME_ON__)return;"
-               "if(document.getElementById('adtamef'))return;"
-               "if(!window.__ADTAME_MKHOST__)return;"
-               "window.__ADTAME_MKHOST__(Math.max(0.12,Math.min(0.95,"
-                 "1-0.85*(window.__ADTAME_S__||45)/100)));"
-               "window.__AD_TAMEHOST__=(window.__AD_TAMEHOST__||0)+1;"
-             "}catch(e){}},2000);}}catch(e){}"
            "}}catch(e){}"
+                      // BEHIND-TEXT AUDIT. The dark rectangle is a sibling/backdrop element,
+           // not the text's own background, so probe the paint stack under the
+           // text run itself. Reports the full stack with each background and
+           // its author tag; always reports, including the clean case.
+           "try{var TB=document.querySelectorAll('span,div,p,a,h1,h2,h3,h4,li');"
+             "var thits=[],tscan=0;"
+             "for(var tb=0;tb<TB.length&&tb<2500&&thits.length<3;tb++){var te3=TB[tb];"
+               "var own='';"
+               "for(var cn5=0;cn5<te3.childNodes.length&&cn5<6;cn5++){"
+                 "var nd5=te3.childNodes[cn5];"
+                 "if(nd5.nodeType===3&&nd5.nodeValue&&nd5.nodeValue.trim().length>1)"
+                   "own+=nd5.nodeValue.trim()+' ';}"
+               "own=own.trim();"
+               "if(own.length<2||own.length>60)continue;"
+               "var trr=te3.getBoundingClientRect();"
+               "if(trr.width<20||trr.height<8)continue;"
+               "if(trr.top<0||trr.top>(window.innerHeight||900))continue;"
+               "tscan++;"
+               "var cx5=Math.round(trr.left+trr.width/2),cy5=Math.round(trr.top+trr.height/2);"
+               "var stack=[];try{stack=document.elementsFromPoint(cx5,cy5)||[];}catch(e){}"
+               "var found=null,layers='';"
+               "for(var sk=0;sk<stack.length&&sk<6;sk++){var se5=stack[sk];"
+                 "var sbg=lum(getComputedStyle(se5).backgroundColor);"
+                 "var scn=se5.className;if(scn&&scn.baseVal!==undefined)scn=scn.baseVal;"
+                 "var srr=se5.getBoundingClientRect();"
+                 "layers+=' '+String(scn||se5.tagName).slice(0,16)"
+                   "+'@'+Math.round(srr.width)+'x'+Math.round(srr.height)"
+                   "+'['+(sbg===null?'-':sbg.toFixed(2))"
+                   "+(se5.__adBgBy?('/'+se5.__adBgBy):'')+']';"
+                 "if(found===null&&se5!==te3&&sbg!==null&&sbg<0.30)found=sk;}"
+               "if(found===null)continue;"
+               "var tov=(typeof artOverlap==='function')?artOverlap(trr):0;"
+               "thits.push('\\''+own.slice(0,20)+'\\' art='+tov.toFixed(2)+' ::'+layers);}"
+             "window.__AD_TEXTBOX__=(thits.length?('n='+thits.length+' '+thits.join(' || ')):"
+               "('none sampled='+tscan));"
+           "}catch(e){window.__AD_TEXTBOX__='err '+e;}"
            // AD CARD AUDIT. Always reports. A dark box sitting on a light card is
            // the defect; this names the element and, via __adBgBy, the pass that
            // painted it -- so it stops being a guess about which pass to blame.
-           // ONCE PER DOCUMENT, AFTER SETTLE. This is an audit, not a repair: its
-           // value is one report, not eighty. It sits inside FIXCONTRAST, which the
-           // heartbeat alone calls 75 times, so leaving it ungated meant a 2500-element
-           // getComputedStyle sweep on every tick while the page was still painting.
-           "try{if(document.readyState==='complete'&&!window.__AD_AUDITED_CARD__){"
-             "window.__AD_AUDITED_CARD__=1;"
-             "var AC=document.querySelectorAll('div,span,section,a,p');var hits=[],scanned=0;"
+           "try{var AC=document.querySelectorAll('div,span,section,a,p');var hits=[],scanned=0;"
              "for(var ac=0;ac<AC.length&&ac<2500&&hits.length<4;ac++){var ce2=AC[ac];"
                "var cl6=lum(getComputedStyle(ce2).backgroundColor);"
                "if(cl6===null||cl6>0.30)continue;"
@@ -948,28 +944,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "+'|art='+ov5.toFixed(2)"
                  "+'|by='+(ce2.__adBgBy||'-'));}"
              "window.__AD_ADCARD__=(hits.length?('n='+hits.length+' '+hits.join(' ~ ')):('clean scanned='+scanned));"
-           // WEB IMAGE AUDIT. The orders thumbnails live in the web content, not in
-           // any UIView, so no native probe can reach them. This reports every
-           // on-screen <img> that our passes marked or that carries a filter /
-           // opacity we could have set -- with the src tail, so a whitened product
-           // photo names itself. Once per settled document.
-           "try{if(document.readyState==='complete'&&!window.__AD_WI_DONE__){"
-             "window.__AD_WI_DONE__=1;"
-             "var IM=document.querySelectorAll('img'),wo=[],wsk=0;"
-             "for(var wi2=0;wi2<IM.length&&wi2<400&&wo.length<8;wi2++){var im9=IM[wi2];"
-               "var r9=im9.getBoundingClientRect();"
-               "if(r9.width<24||r9.height<24){wsk++;continue;}"
-               "var c9=getComputedStyle(im9);"
-               "var mk=(im9.__adGlyph?'glyph':'')+(im9.__adTamed?'+tame':'')"
-                 "+(im9.__adBy?('/'+im9.__adBy):'');"
-               "if(!mk&&c9.filter==='none'&&c9.opacity==='1')continue;"
-               "var s9=String(im9.currentSrc||im9.src||'').slice(-26);"
-               "wo.push(Math.round(r9.width)+'x'+Math.round(r9.height)"
-                 "+'|flt='+String(c9.filter).slice(0,60)+'|op='+c9.opacity"
-                 "+'|bg='+c9.backgroundColor+'|m='+(mk||'-')+'|'+s9);}"
-             "window.__AD_WHITEIMG__=(wo.length?wo.join(' ~ '):('none imgs='+IM.length+' small='+wsk));"
-           "}}catch(e){window.__AD_WHITEIMG__='err '+e;}"
-           "}}catch(e){window.__AD_ADCARD__='err '+e;}"
+           "}catch(e){window.__AD_ADCARD__='err '+e;}"
                       // BOX KILLER. A dark background anywhere between artwork and the light
            // card it sits on is a box we or Dark Reader painted under transparent
            // ink -- the pharmacy wordmark case. Immediate-parent checks miss it
@@ -1018,15 +993,9 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "}catch(e){}"
                       // SCREW PROBE. Always reports. Anchors on the tile LABEL, so it does not
            // depend on finding the filter panel or on any class name.
-           // THROTTLED, not once-only: the filter panel opens after load, so this
-           // must still be able to catch it -- but it does not need to re-walk the
-           // whole document 80 times to do so. Also caps a previously UNBOUNDED loop.
-           "try{if(document.readyState!=='complete')throw 0;"
-             "if(window.__AD_SCREW_T__&&Date.now()-window.__AD_SCREW_T__<1500)throw 0;"
-             "window.__AD_SCREW_T__=Date.now();"
-             "var sp='no-label';"
+           "try{var sp='no-label';"
              "var LB=document.querySelectorAll('span,div,p,label,a,li');"
-             "for(var sl=0;sl<LB.length&&sl<3000;sl++){var le=LB[sl];"
+             "for(var sl=0;sl<LB.length;sl++){var le=LB[sl];"
                "if(le.children.length>2)continue;"
                "var lt=(le.textContent||'').trim();"
                "if(lt!=='Bugle'&&lt!=='Brad'&&lt!=='Button')continue;"
@@ -1066,7 +1035,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "+' :: '+(parts.length?parts.join(' ~ '):'no-art')+' ANC'+anc;"
                "if(lt==='Bugle')break;}"
              "window.__AD_SCREW__=sp;"
-           "}catch(e){if(e!==0)window.__AD_SCREW__='err '+e;}"
+           "}catch(e){window.__AD_SCREW__='err '+e;}"
                       // DARK ART ON A DARK TILE. Applies wherever it occurs, so no panel has
            // to be located first. The bugle screw is this shape: a monochrome
            // drawing sitting invisibly on the tile our theming darkened.
@@ -1545,10 +1514,9 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "pr=' url='+String(location.pathname||'').slice(0,28)"
                "+(window.__AD_CMPX__?(' CMPX='+window.__AD_CMPX__):'')"
                "+(window.__AD_TAME__?(' TAME['+window.__AD_TAME__+']'):'')"
+               "+(window.__AD_TEXTBOX__?(' TEXTBOX['+window.__AD_TEXTBOX__+']'):'')"
                "+(window.__AD_ADCARD__?(' ADCARD['+window.__AD_ADCARD__+']'):'')"
                "+(window.__AD_SCREW__?(' SCREW['+window.__AD_SCREW__+']'):'')"
-               "+(window.__AD_WHITEIMG__?(' WHITEIMG['+window.__AD_WHITEIMG__+']'):'')"
-               "+(window.__AD_TAMEHOST__?(' TAMEHOST[rebuilt='+window.__AD_TAMEHOST__+']'):'')"
                "+(window.__AD_TILEART__?(' TILEART['+window.__AD_TILEART__+']'):'')"
                "+(window.__AD_BOXKILL__?(' BOXKILL['+window.__AD_BOXKILL__+']'):'')"
                "+(window.__AD_FLTSCAN__?(' FLTSCAN['+window.__AD_FLTSCAN__+']'):'')"
@@ -1604,7 +1572,16 @@ static NSString *ADDarkReaderBootstrapBuild(void){
 // evaluateJavaScript reaches the main frame only.
 static NSString *ADPharmForceJS(void){
     return 
-                                  @"(function(){try{var n=0,t=0;"
+                                  @"(function(){try{"
+           // AMIConfigurableWebViewController is generic -- Amazon uses it for ad
+           // landing pages too. Identify the surface from the document before
+           // rewriting every colour on it, or an ad page ends up blank.
+           "var hh9=(location&&location.href)?location.href.toLowerCase():'';"
+           "var tt9=(document.title||'').toLowerCase();"
+           "var isPharm=(hh9.indexOf('pharmacy')>=0||hh9.indexOf('/rx')>=0"
+             "||tt9.indexOf('pharmacy')>=0||tt9.indexOf('prescription')>=0);"
+           "if(!isPharm)return 'skip not-pharmacy '+hh9.slice(0,40);"
+           "var n=0,t=0;"
                                    "function L(c){try{var m=/rgba?\\(([0-9.]+),\\s*([0-9.]+),\\s*([0-9.]+)(?:,\\s*([0-9.]+))?\\)/.exec(c||'');"
                                      "if(!m)return null;if(m[4]!==undefined&&parseFloat(m[4])<0.15)return null;"
                                      "return (0.2126*+m[1]+0.7152*+m[2]+0.0722*+m[3])/255;}catch(e){return null;}}"
@@ -1638,33 +1615,6 @@ static NSString *ADPharmForceJS(void){
                            "d2.body.style.setProperty('background-color','#181a1b','important');}catch(e){}}"
                    "}catch(e){}"
                    "return 'bg='+n+' text='+t+' if='+fr+'/'+fd;}catch(e){return 'err '+e;}})()";
-}
-
-// Decide whether a document may be force-darkened AT ALL. The force pass above is
-// deliberately destructive -- it repaints html/body to #181a1b and walks thousands
-// of elements through getComputedStyle -- which is correct on Pharmacy and ruinous
-// anywhere else. AMIConfigurableWebViewController is a GENERIC class: Amazon uses
-// it for ad landing pages too, so the controller match alone can never be the gate.
-//   wait     -> still parsing; forcing now paints black over a page that has not
-//               painted yet, which is exactly the reported symptom
-//   skip-ad  -> an ad/creative surface; never ours to repaint
-//   dark     -> already themed, nothing to do
-//   force:0  -> force it, and the engine is absent so it needs the bootstrap
-//   force:1  -> force it, engine already present, skip the 410KB re-inject
-static NSString *ADPharmGateJS(void){
-    return @"(function(){try{"
-            "if(document.readyState!=='complete')return 'wait';"
-            "var h=String(location.href||'');"
-            "if(/adsystem|sspa|creative|nexus|\\/gcx\\/|\\/gp\\/aw\\/d|\\/dp\\//i.test(h))return 'skip-ad';"
-            "function L(c){try{var m=/rgba?\\(([0-9.]+),\\s*([0-9.]+),\\s*([0-9.]+)(?:,\\s*([0-9.]+))?\\)/.exec(c||'');"
-              "if(!m)return null;if(m[4]!==undefined&&parseFloat(m[4])<0.15)return null;"
-              "return (0.2126*+m[1]+0.7152*+m[2]+0.0722*+m[3])/255;}catch(e){return null;}}"
-            "var l=document.body?L(getComputedStyle(document.body).backgroundColor):null;"
-            "if(l===null)l=L(getComputedStyle(document.documentElement).backgroundColor);"
-            "if(l===null)return 'nobg';"
-            "if(l<0.5)return 'dark';"
-            "return 'force:'+(window.__AMZDARK_LOADED__?1:0);"
-            "}catch(e){return 'err';}})()";
 }
 
 static NSString *ADDarkReaderBootstrap(void){
@@ -2079,13 +2029,7 @@ static void ADDarkenNativeTree(UIView *v, int depth, int *n){
 }
 
 static void ADCollectWebViews(UIView *v, NSMutableArray *out, int depth){
-    // DEPTH 26, NOT 12. A React Native screen nests far deeper than twelve levels,
-    // so a WKWebView living under an RN tree was invisible to every caller of this
-    // function -- including the pharmacy repair and the self-heal path, which have
-    // therefore been reporting "no webview" on panes that plainly had one. The
-    // VDUMP walk found 24 WKCompositingViews on a screen this function called
-    // web-free, which is what exposed it.
-    if (!v || depth > 26 || out.count >= 8) return;
+    if (!v || depth > 12 || out.count >= 8) return;
     @try {
         if ([v isKindOfClass:[WKWebView class]]) { [out addObject:v]; return; }
         for (UIView *sv in v.subviews) ADCollectWebViews(sv, out, depth + 1);
@@ -2337,28 +2281,14 @@ static void ADPreDarken(WKWebView *wv){
                         // document every 3rd tick instead of skipping forever.
                         if (!cu.length){
                             if (tick % 3 != 0) return;
-                            // Prewarmed and URL-less: ASSUMED to be the Pharmacy surface.
-                            // It is not always -- an ad landing page in a configurable web
-                            // view also reports no native URL, and this fired the force
-                            // pass into it every 9 seconds, forever. Gate it exactly like
-                            // the controller path does.
+                            // Prewarmed and URL-less: the Pharmacy surface. Its content
+                            // re-renders, so force it on every visit rather than once.
                             @try {
-                                __weak WKWebView *weakP = wp;
-                                [wp evaluateJavaScript:ADPharmGateJS()
-                                     completionHandler:^(id rg2, NSError *eg2){
+                                [wp evaluateJavaScript:ADPharmForceJS()
+                                     completionHandler:^(id rr, NSError *ee){
                                     @try {
-                                        WKWebView *wp2 = weakP;
-                                        if (!wp2) return;
-                                        NSString *vd = (!eg2 && [rg2 isKindOfClass:[NSString class]])
-                                                     ? (NSString *)rg2 : @"err";
-                                        if (![vd hasPrefix:@"force"]) return;
-                                        [wp2 evaluateJavaScript:ADPharmForceJS()
-                                             completionHandler:^(id rr, NSError *ee){
-                                            @try {
-                                                if (ee) ADLog(@"pollforce -> ERR %@/%ld", ee.domain, (long)ee.code);
-                                                else ADLog(@"pollforce -> %@", rr);
-                                            } @catch(...) {}
-                                        }];
+                                        if (ee) ADLog(@"pollforce -> ERR %@/%ld", ee.domain, (long)ee.code);
+                                        else ADLog(@"pollforce -> %@", rr);
                                     } @catch(...) {}
                                 }];
                             } @catch(...) {}
@@ -2371,23 +2301,6 @@ static void ADPreDarken(WKWebView *wv){
                                 if (ep) ADLog(@"wvpoll %@ -> ERR %@/%ld", cs, ep.domain, (long)ep.code);
                                 else if ([rp isKindOfClass:[NSString class]]) ADLog(@"wvpoll %@ -> %@", cs, rp);
                                 else ADLog(@"wvpoll %@ -> (nil)", cs);
-                                // WKErrorWebContentProcessTerminated. A jetsammed content
-                                // process leaves the view blank FOREVER -- it never retries
-                                // on its own, which is what turns a transient memory spike
-                                // into a permanently black pane. Reload once per event so a
-                                // reload loop can never form.
-                                WKWebView *wr = weakWv;
-                                if (ep && wr && ep.code == 4 &&
-                                    [ep.domain isEqualToString:@"WKErrorDomain"]){
-                                    static const void *kDied = &kDied;
-                                    int deaths = [objc_getAssociatedObject(wr, kDied) intValue];
-                                    if (deaths < 2){
-                                        objc_setAssociatedObject(wr, kDied, @(deaths + 1),
-                                                                 OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                                        ADLog(@"WEBCONTENT DIED (%d) -> reloading %@", deaths + 1, cs);
-                                        [wr reload];
-                                    }
-                                }
                             } @catch(...) {}
                         }];
                     } @catch(...) { [tm invalidate]; }
@@ -2688,7 +2601,6 @@ static BOOL ADBackdropIsDark(UIView *v);
 static void ADLaunchWhiteGuard(UIView *v);
 static void ADLaunchScreenDarkPass(void);
 static NSString *ADPharmForceJS(void);
-static NSString *ADPharmGateJS(void);
 static void ADInvertRNSVGApply(UIView *v);
 static inline BOOL ADIsTaggedIndicator(UIView *v){
     return v && objc_getAssociatedObject(v, kADIndicatorKey) != nil;
@@ -3629,7 +3541,6 @@ static void ADRunProbe(void){
         // (1b) Catch-up for glyphs assigned BEFORE our hooks were installed. New
         // assignments are handled earlier and more reliably by the setImage: hook.
         {
-            gGlyphSrc = "dmtw";
             UIImage *tpl = ADGlyphifyForView(self.image, self);
             if (tpl){
                 ((UIView *)self).tintColor = ADColorFromHex(gP.fgHex);
@@ -3779,62 +3690,14 @@ static const void *kADGlyphChecked = &kADGlyphChecked;
 // illustrations are larger than any real monochrome UI glyph; whitening them
 // destroys their detail. Tab-bar icons are exempt -- they are tinted by
 // selection state on their own path and must still convert.
-// ── GLYPH PROBE ─────────────────────────────────────────────────────────────
-// Reports every glyph DECISION on a view big enough to plausibly be a thumbnail,
-// with the three classifier inputs and the call site. A conversion is what turns a
-// photo into a solid tintColor rectangle, so if the orders thumbnails are being
-// whitened natively, they appear here as GLYPHCONV. If they never appear at all,
-// the native path is innocent and the pane is web -- which is the question this
-// exists to settle, rather than assume.
-
 static UIImage *ADGlyphifyForView(UIImage *img, UIView *v){
-    BOOL watch = NO; CGFloat vw = 0, vh = 0;
-    @try {
-        if (v){ vw = v.bounds.size.width; vh = v.bounds.size.height; }
-        watch = (gGlyphProbeN < 40 && img && (vw >= 24 || vh >= 24));
-    } @catch(...) {}
-
     @try {
         if (v && !ADInTabBarChain(v) && !ADIsChromeGlyphContext(v)){
             CGFloat w = v.bounds.size.width, h = v.bounds.size.height;
-            // FAIL CLOSED on an unlaid-out view. setImage: frequently lands on a
-            // cell whose bounds are still CGRectZero (async thumbnail arriving
-            // before layout), and 0 > 40 is false -- so a 200pt product photo
-            // walked straight through a gate whose whole purpose is to stop it.
-            // That is the purchase-history white box: converted to a template and
-            // rendered as a solid tintColor rectangle. didMoveToWindow catches
-            // genuine glyphs later, once the size is actually knowable.
-            if (w <= 0 || h <= 0){
-                if (watch){ gGlyphProbeN++;
-                    ADLog(@"GLYPHSKIP[%s v=%.0fx%.0f why=nolayout src=%s]",
-                          object_getClassName(v), w, h, gGlyphSrc); }
-                return nil;
-            }
-            if (w > 40 || h > 40){
-                if (watch){ gGlyphProbeN++;
-                    ADLog(@"GLYPHSKIP[%s v=%.0fx%.0f why=toobig src=%s]",
-                          object_getClassName(v), w, h, gGlyphSrc); }
-                return nil;
-            }
+            if (w > 40 || h > 40) return nil;
         }
     } @catch(...) {}
-
-    UIImage *out = ADGlyphify(img);
-
-    if (watch){
-        @try {
-            gGlyphProbeN++;
-            double cf = -1, ml = -1, mc = -1;
-            size_t iw = 0, ih = 0;
-            if (img.CGImage){ iw = CGImageGetWidth(img.CGImage); ih = CGImageGetHeight(img.CGImage); }
-            ADIsDarkGlyphM(img, &cf, &ml, &mc);
-            ADLog(@"%s[%s v=%.0fx%.0f img=%zux%zu clear=%.2f L=%.2f C=%.2f tmpl=%d src=%s]",
-                  out ? "GLYPHCONV" : "GLYPHSKIP",
-                  v ? object_getClassName(v) : "noview", vw, vh, iw, ih,
-                  cf, ml, mc, ADImageIsTemplateish(img) ? 1 : 0, gGlyphSrc);
-        } @catch(...) {}
-    }
-    return out;
+    return ADGlyphify(img);
 }
 static UIImage *ADGlyphify(UIImage *img){
     if (!gP.enabled || !gP.imageBackdrop || !img) return nil;
@@ -3883,7 +3746,6 @@ static UIImage *ADGlyphify(UIImage *img){
             gADSettingImage = NO;
             return;
         }
-        gGlyphSrc = "setImage";
         UIImage *tpl = ADGlyphifyForView(image, self);
         if (tpl) {
             ((UIView *)self).tintColor = ADColorFromHex(gP.fgHex);
@@ -3913,7 +3775,6 @@ static UIImage *ADGlyphify(UIImage *img){
             ADApplyBarTint(self, ADViewIsSelectedInBar(self));
             return;
         }
-        gGlyphSrc = "btnImage";
         UIImage *tpl = ADGlyphifyForView(image, self);
         if (tpl) {
             ((UIView *)self).tintColor = ADColorFromHex(gP.fgHex);
@@ -4278,7 +4139,6 @@ static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
                         } @catch(...) {}
                     }
                 }
-                gGlyphSrc = "sweepIV";
                 UIImage *tpl = ADGlyphifyForView(((UIImageView *)v).image, v);
                 if (tpl) gSwGlyphFixed++;
                 if (tpl){
@@ -4303,7 +4163,6 @@ static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
                         gSwTintFixed++;
                     }
                 }
-                gGlyphSrc = "sweepBtn";
                 UIImage *tpl = ADGlyphifyForView(cur, b);
                 if (tpl){
                     ((UIView *)b).tintColor = ADColorFromHex(gP.fgHex);
@@ -4414,248 +4273,6 @@ static const void *kADCellSwept = &kADCellSwept;
     } @catch(...) {}
 }
 %end
-
-// ── SURFACE PROBE ───────────────────────────────────────────────────────────
-// Names the visible controller and counts what is actually on it. Every theory
-// about the orders thumbnails depends on whether that pane is native UIKit or a
-// web view, and that has been ASSUMED in both directions so far. imgs>0 web=0 is
-// native; web>0 with few imgs is a document. Reported once per distinct
-// composition so navigating produces one line per screen, not a stream.
-static void ADCollectWebViews(UIView *v, NSMutableArray *out, int depth);
-
-static void ADCountImageViews(UIView *v, int depth, int *n){
-    if (!v || depth > 24 || v.hidden || v.alpha < 0.05) return;
-    @try {
-        if ([v isKindOfClass:[UIImageView class]] &&
-            (v.bounds.size.width >= 24 || v.bounds.size.height >= 24) &&
-            ((UIImageView *)v).image) (*n)++;
-        for (UIView *s in v.subviews) ADCountImageViews(s, depth + 1, n);
-    } @catch(...) {}
-}
-
-// WKCompositingView is WebKit's host view for a remote layer. Its presence proves
-// web content is on screen even when the WKWebView itself sits out of reach.
-static void ADCountCompositing(UIView *v, int depth, int *n){
-    if (!v || depth > 26) return;
-    @try {
-        if (strcmp(object_getClassName(v), "WKCompositingView") == 0) (*n)++;
-        for (UIView *s in v.subviews) ADCountCompositing(s, depth + 1, n);
-    } @catch(...) {}
-}
-
-// ── BLANK PROBE ─────────────────────────────────────────────────────────────
-// VDUMP aggregates by class, which is what lost the detail: "contents=2 of 45"
-// cannot say WHICH two. This reports image-bearing views individually, with the
-// ancestry needed to tell an orders thumbnail from a tab-bar icon.
-static BOOL ADIsImageish(const char *cn){
-    return strstr(cn, "Image") || strstr(cn, "image") ||
-           strstr(cn, "Photo") || strcmp(cn, "WKCompositingView") == 0;
-}
-
-static void ADBlankWalk(UIView *v, int depth, int *n){
-    if (!v || depth > 26 || *n >= 20) return;
-    @try {
-        const char *cn = object_getClassName(v);
-        CGFloat w = v.bounds.size.width, h = v.bounds.size.height;
-        if (w >= 40 && h >= 40 && w <= 320 && h <= 320 && ADIsImageish(cn)){
-            char anc[200]; anc[0] = 0;
-            UIView *p = v.superview;
-            for (int i = 0; i < 3 && p; i++){
-                strlcat(anc, "<", sizeof(anc));
-                strlcat(anc, object_getClassName(p), sizeof(anc));
-                p = p.superview;
-            }
-            CGFloat br = -1, bg2 = -1, bb = -1, ba = -1;
-            if (v.backgroundColor)
-                [v.backgroundColor getRed:&br green:&bg2 blue:&bb alpha:&ba];
-            (*n)++;
-            ADLog(@"BLANK[%s %.0fx%.0f contents=%d bg=%.2f,%.2f,%.2f/%.2f alpha=%.2f hid=%d anc=%s]",
-                  cn, w, h, v.layer.contents ? 1 : 0,
-                  br, bg2, bb, ba, v.alpha, v.hidden ? 1 : 0, anc);
-        }
-        for (UIView *s in v.subviews) ADBlankWalk(s, depth + 1, n);
-    } @catch(...) {}
-}
-
-static void ADBlankProbe(void){
-    @try {
-        if (!gP.enabled) return;
-        UIWindow *key = nil;
-        for (UIWindow *w in [UIApplication sharedApplication].windows)
-            if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
-        if (!key) return;
-        int n = 0;
-        ADBlankWalk(key, 0, &n);
-    } @catch(...) {}
-}
-
-// ── LOSS WATCHER ─────────────────────────────────────────────────────
-// The reported symptom is a TRANSITION: the thumbnail renders, then goes blank.
-// Snapshot probes cannot see that -- they photograph a moment and both the before
-// and after look unremarkable on their own. This tracks each image-bearing view
-// across ticks and reports the instant one that HAD layer contents loses them,
-// which is the event itself rather than its aftermath.
-//
-// The tab bar is excluded. It is present in the key window on every screen, so it
-// produced six lines per pane and drowned the content we were looking for.
-static const void *kADHadContents = &kADHadContents;
-static int gLostN = 0;
-
-static BOOL ADUnderTabBar(UIView *v){
-    UIView *p = v; int g = 0;
-    while (p && g++ < 30){
-        const char *c = object_getClassName(p);
-        if (strstr(c, "TabBar")) return YES;
-        p = p.superview;
-    }
-    return NO;
-}
-
-static void ADLossWalk(UIView *v, int depth, int *seen, int *withC){
-    if (!v || depth > 26 || v.hidden || v.alpha < 0.05) return;
-    @try {
-        CGFloat w = v.bounds.size.width, h = v.bounds.size.height;
-        const char *cn = object_getClassName(v);
-        BOOL sized  = (w >= 28 && h >= 28 && w <= 400 && h <= 400);
-        BOOL imgish = strstr(cn, "Image") || strstr(cn, "image") || strstr(cn, "Photo");
-        BOOL has    = (v.layer.contents != nil);
-
-        if (sized && (imgish || has) && !ADUnderTabBar(v)){
-            (*seen)++;
-            if (has) (*withC)++;
-            NSNumber *prev = objc_getAssociatedObject(v, kADHadContents);
-            if (prev && [prev boolValue] && !has && gLostN < 30){
-                gLostN++;
-                char anc[200]; anc[0] = 0;
-                UIView *p = v.superview;
-                for (int i = 0; i < 3 && p; i++){
-                    strlcat(anc, "<", sizeof(anc));
-                    strlcat(anc, object_getClassName(p), sizeof(anc));
-                    p = p.superview;
-                }
-                CGFloat br = -1, bg2 = -1, bb = -1, ba = -1;
-                if (v.backgroundColor)
-                    [v.backgroundColor getRed:&br green:&bg2 blue:&bb alpha:&ba];
-                ADLog(@"LOST[%s %.0fx%.0f bg=%.2f,%.2f,%.2f/%.2f alpha=%.2f tint=%@ anc=%s]",
-                      cn, w, h, br, bg2, bb, ba, v.alpha,
-                      ((UIView *)v).tintColor, anc);
-            }
-            objc_setAssociatedObject(v, kADHadContents, @(has),
-                                     OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
-        for (UIView *sv in v.subviews) ADLossWalk(sv, depth + 1, seen, withC);
-    } @catch(...) {}
-}
-
-static void ADLossTick(void){
-    @try {
-        if (!gP.enabled) return;
-        UIWindow *key = nil;
-        for (UIWindow *w in [UIApplication sharedApplication].windows)
-            if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
-        if (!key) return;
-        int seen = 0, withC = 0;
-        ADLossWalk(key, 0, &seen, &withC);
-        // Census, deduped. Makes silence interpretable: if seen stays 0 the walk
-        // is not reaching the thumbnails and no LOST line could ever appear.
-        static int lastSeen = -1, lastWith = -1;
-        if (seen != lastSeen || withC != lastWith){
-            lastSeen = seen; lastWith = withC;
-            ADLog(@"CENSUS[imgviews=%d withContents=%d]", seen, withC);
-        }
-    } @catch(...) {}
-}
-
-static void ADStartLossWatcher(void){
-    static dispatch_once_t once;
-    dispatch_once(&once, ^{
-        [NSTimer scheduledTimerWithTimeInterval:1.0 repeats:YES
-                                          block:^(NSTimer *t){ ADLossTick(); }];
-    });
-}
-
-static void ADSurfaceProbe(void){
-    @try {
-        if (!gP.enabled) return;
-        UIWindow *key = nil;
-        for (UIWindow *w in [UIApplication sharedApplication].windows)
-            if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
-        if (!key) return;
-
-        UIViewController *top = key.rootViewController;
-        int guard = 0;
-        while (top.presentedViewController && guard++ < 8) top = top.presentedViewController;
-
-        int imgs = 0;
-        ADCountImageViews(key, 0, &imgs);
-        NSMutableArray *webs = [NSMutableArray array];
-        ADCollectWebViews(key, webs, 0);
-
-        const char *vc = top ? object_getClassName(top) : "none";
-        // NO "unchanged" suppression. It fired once early and stayed silent
-        // afterwards, so a stale reading looked like a current one. This runs on
-        // viewDidAppear only, which is already the right cadence.
-        int comp = 0;
-        ADCountCompositing(key, 0, &comp);
-        ADLog(@"SURF[vc=%s imgs=%d web=%lu wkcomp=%d]",
-              vc, imgs, (unsigned long)webs.count, comp);
-    } @catch(...) {}
-}
-
-// ── PANE DUMP ───────────────────────────────────────────────────────────────
-// SURF counts UIImageViews. If the orders thumbnails are NOT UIImageViews, SURF
-// reports a low count and the glyph probe stays silent -- and both readings look
-// like "innocent" when they actually mean "never saw it". This names every view
-// class at thumbnail size or larger, with whether it has layer contents, so the
-// hosting class identifies itself instead of being guessed at.
-static void ADPaneWalk(UIView *v, int depth, NSMutableDictionary *acc){
-    if (!v || depth > 26 || v.hidden || v.alpha < 0.05) return;
-    @try {
-        CGFloat w = v.bounds.size.width, h = v.bounds.size.height;
-        if (w >= 40 && h >= 40 && w <= 320 && h <= 320){
-            NSString *k = [NSString stringWithUTF8String:object_getClassName(v)];
-            NSMutableArray *e = acc[k];
-            if (!e){ e = [NSMutableArray arrayWithObjects:@0,@0,@0,@0,@0,nil]; acc[k] = e; }
-            e[0] = @([e[0] intValue] + 1);
-            e[1] = @((int)w); e[2] = @((int)h);
-            if (v.layer.contents)  e[3] = @([e[3] intValue] + 1);
-            if (v.backgroundColor) e[4] = @([e[4] intValue] + 1);
-        }
-        for (UIView *s in v.subviews) ADPaneWalk(s, depth + 1, acc);
-    } @catch(...) {}
-}
-
-static void ADPaneDump(void){
-    @try {
-        if (!gP.enabled) return;
-        UIWindow *key = nil;
-        for (UIWindow *w in [UIApplication sharedApplication].windows)
-            if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
-        if (!key) return;
-
-        NSMutableDictionary *acc = [NSMutableDictionary dictionary];
-        ADPaneWalk(key, 0, acc);
-        if (!acc.count) return;
-
-        NSArray *keys = [acc keysSortedByValueUsingComparator:^NSComparisonResult(NSArray *a, NSArray *b){
-            return [b[0] compare:a[0]];
-        }];
-
-        NSMutableString *sig = [NSMutableString string];
-        int si = 0;
-        for (NSString *k in keys){ if (si++ >= 6) break; [sig appendFormat:@"%@%@", k, acc[k][0]]; }
-        static NSString *lastSig = nil;
-        if (lastSig && [lastSig isEqualToString:sig]) return;   // unchanged: stay quiet
-        lastSig = [sig copy];
-
-        int shown = 0;
-        for (NSString *k in keys){
-            if (shown++ >= 14) break;
-            NSArray *e = acc[k];
-            ADLog(@"VDUMP[%@ n=%@ sz=%@x%@ contents=%@ bg=%@]", k, e[0], e[1], e[2], e[3], e[4]);
-        }
-    } @catch(...) {}
-}
 
 static void ADSweepAllWindows(void){
     if (!ADRecolorOn()) return;
@@ -4888,26 +4505,10 @@ static void ADReapplyBurst(void){
     %orig;
     // Earliest reachable point for the launch storyboard's controller: darken
     // before the first frame is composited, so the captured snapshot is dark.
-    @try { if (ADUptime() < 2.5) ADLaunchScreenDarkPass(); } @catch(...) {}
+    // (launch darkening retired -- see ADLaunchScreenDarkPass)
 }
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
-    // Surface probe: 1.2s after a pane settles, so async thumbnails have landed
-    // and the count reflects what the user is actually looking at.
-    //
-    // The 40-line probe budget is reset HERE, per pane, not globally. A global cap
-    // was exhausted during launch and the home tab, so by the time the orders pane
-    // opened the glyph probe was already silent -- and that silence reads exactly
-    // like "the glyph path never touched it". Per-pane, an empty capture on the
-    // orders pane is real evidence instead of an artefact of the budget.
-    @try {
-        gGlyphProbeN = 0;
-        ADStartLossWatcher();
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)),
-                       dispatch_get_main_queue(), ^{ ADSurfaceProbe(); ADPaneDump(); });
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.0 * NSEC_PER_SEC)),
-                       dispatch_get_main_queue(), ^{ ADPaneDump(); });
-    } @catch(...) {}
     @try {
         if (!ADRecolorOn()) return;
         if (self.view.window && self.view.bounds.size.width > 200){
@@ -4951,11 +4552,13 @@ static void ADReapplyBurst(void){
                 if (!gP.enabled) return;
                 if (strstr(cn5, "StoreMode") || strstr(cn5, "AMIConfigurable")) {
                     ADLog(@"pharmhook %s matched", cn5);
-                    // Native pass: the light field may be this controller's own
-                    // view, not the document inside it.
+                    // Native pass only for the store-mode root. The generic
+                    // configurable webview also backs ad landing pages, and
+                    // repainting those blanked them.
                     @try {
                         int nbg = 0;
-                        ADDarkenNativeTree(self.viewIfLoaded, 0, &nbg);
+                        if (strstr(cn5, "StoreMode"))
+                            ADDarkenNativeTree(self.viewIfLoaded, 0, &nbg);
                         if (nbg) ADLog(@"pharmnative %s bg=%d", cn5, nbg);
                     } @catch(...) {}
                     __weak UIViewController *wvc = self;
@@ -4968,13 +4571,14 @@ static void ADReapplyBurst(void){
                                 if (!v2) return;
                                 NSMutableArray *found = [NSMutableArray array];
                                 if (v2.viewIfLoaded) ADCollectWebViews(v2.viewIfLoaded, found, 0);
-                                // NO window-wide fallback. It used to sweep every UIWindow
-                                // when this controller owned no web view of its own, which
-                                // meant an ad landing page -- AMIConfigurableWebViewController
-                                // is generic, Amazon uses it for ads too -- fired the force
-                                // pass and a 410KB engine re-inject into EVERY web view in
-                                // the app, three times, including whichever one was still
-                                // parsing. That is the black non-loading pane.
+                                // Fall back to the whole window hierarchy: the store-mode
+                                // sheet's view can report no window at this point, which is
+                                // what silently blocked every previous attempt.
+                                if (!found.count){
+                                    for (UIWindow *w3 in [UIApplication sharedApplication].windows){
+                                        if (w3 && !w3.hidden) ADCollectWebViews(w3, found, 0);
+                                    }
+                                }
                                 int nbg2 = 0;
                                 ADDarkenNativeTree(v2.viewIfLoaded, 0, &nbg2);
                                 if (!found.count) {
@@ -4986,38 +4590,18 @@ static void ADReapplyBurst(void){
                                 NSString *force = ADPharmForceJS();
                                 for (WKWebView *w2 in found) {
                                     int myIdx = widx++;
-                                    __weak WKWebView *weakW2 = w2;
-                                    [w2 evaluateJavaScript:ADPharmGateJS()
-                                         completionHandler:^(id rg, NSError *eg){
+                                    [w2 evaluateJavaScript:force completionHandler:^(id rf, NSError *ef){
                                         @try {
-                                            WKWebView *w5 = weakW2;
-                                            if (!w5) return;
-                                            NSString *verdict = (!eg && [rg isKindOfClass:[NSString class]])
-                                                              ? (NSString *)rg : @"err";
-                                            if (![verdict hasPrefix:@"force"]){
-                                                ADLog(@"pharmgate #%d -> %@ (skipped)", myIdx, verdict);
-                                                return;
-                                            }
-                                            [w5 evaluateJavaScript:force completionHandler:^(id rf, NSError *ef){
-                                                @try {
-                                                    if (ef) ADLog(@"pharmforce #%d -> ERR %@/%ld", myIdx, ef.domain, (long)ef.code);
-                                                    else ADLog(@"pharmforce #%d -> %@", myIdx, rf);
-                                                } @catch(...) {}
-                                            }];
-                                            // Only pay the 410KB transfer+parse when the engine
-                                            // is genuinely absent. The bootstrap self-guards on
-                                            // __AMZDARK_LOADED__, but that guard runs AFTER the
-                                            // entire payload has been shipped and parsed.
-                                            if (![verdict hasSuffix:@":1"]){
-                                                [w5 evaluateJavaScript:ADDarkReaderBootstrap()
-                                                     completionHandler:^(id r7, NSError *e7){
-                                                    @try {
-                                                        if (e7) ADLog(@"pharmboot #%d -> ERR %@/%ld",
-                                                                      myIdx, e7.domain, (long)e7.code);
-                                                        else ADLog(@"pharmboot #%d -> %@", myIdx, r7);
-                                                    } @catch(...) {}
-                                                }];
-                                            }
+                                            if (ef) ADLog(@"pharmforce #%d -> ERR %@/%ld", myIdx, ef.domain, (long)ef.code);
+                                            else ADLog(@"pharmforce #%d -> %@", myIdx, rf);
+                                        } @catch(...) {}
+                                    }];
+                                    [w2 evaluateJavaScript:ADDarkReaderBootstrap()
+                                         completionHandler:^(id r7, NSError *e7){
+                                        @try {
+                                            if (e7) ADLog(@"pharmboot #%d -> ERR %@/%ld",
+                                                          myIdx, e7.domain, (long)e7.code);
+                                            else ADLog(@"pharmboot #%d -> %@", myIdx, r7);
                                         } @catch(...) {}
                                     }];
                                 }
@@ -5111,7 +4695,9 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
         // 20ms cadence: the launch window appears somewhere in the first second and
         // must be darkened within the same frame it becomes visible, before the
         // system captures its snapshot.
-        dispatch_async(dispatch_get_main_queue(), ^{
+        // Disabled: it repaints the real UI just after the stock logo shows,
+        // which reads as an inverted flash. Dark launch is the cover's job.
+        if (0) dispatch_async(dispatch_get_main_queue(), ^{
             ADLaunchScreenDarkPass();
             __block NSTimer *lt2 = [NSTimer scheduledTimerWithTimeInterval:0.02 repeats:YES
                                                                      block:^(NSTimer *t){

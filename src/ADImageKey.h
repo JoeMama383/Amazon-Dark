@@ -47,7 +47,6 @@ UIImage *ADKeyWhiteBackground(UIImage *img, const char *bgHex);
 /// dark, and unlike photos they can be safely recoloured by switching them to
 /// template rendering — which preserves the shape exactly and only changes the tint.
 BOOL ADIsDarkGlyph(UIImage *img);
-BOOL ADIsDarkGlyphM(UIImage *img, double *outClear, double *outL, double *outC);
 
 #ifdef __cplusplus
 }
