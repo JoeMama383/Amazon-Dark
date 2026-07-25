@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.151.0"
+#define AD_VERSION "v5.152.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -907,6 +907,18 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "mp.style.setProperty('box-shadow','none','important');}"
                  "mp=mp.parentElement;}}"
            "}catch(e){}"
+                      // Clear inversions earlier builds left on SVG-sourced icons, including
+           // any applied before this rule existed.
+           "try{var SV=document.querySelectorAll('img');var cleared=0;"
+             "for(var sv=0;sv<SV.length&&sv<400;sv++){var se=SV[sv];"
+               "var ss=se.currentSrc||se.src||'';"
+               "if(!/\\.svg(\\?|#|$)/i.test(ss))continue;"
+               "var sf=String(getComputedStyle(se).filter||'none');"
+               "if(sf.indexOf('invert')<0)continue;"
+               "se.style.removeProperty('filter');"
+               "se.style.setProperty('filter','none','important');cleared++;}"
+             "if(cleared&&!window.__AD_SVGCLR__)window.__AD_SVGCLR__='n='+cleared;"
+           "}catch(e){}"
                       // SCREW PROBE. Always reports. Anchors on the tile LABEL, so it does not
            // depend on finding the filter panel or on any class name.
            "try{var sp='no-label';"
@@ -1014,23 +1026,14 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "if(el5.tagName.toLowerCase()!=='img'){"
                    "el5.style.setProperty('filter','invert(1)','important');return;}"
                  "var srcu=el5.currentSrc||el5.src;if(!srcu)return;"
-                 // Vector source: inspect the declarations, never a canvas render.
-                 "if(/\\.svg(\\?|$)/i.test(srcu)){try{"
-                   "fetch(srcu).then(function(r){return r.text();}).then(function(tx){try{"
-                     "var lite2=0,dark2=0;"
-                     "var mm=tx.match(/(?:fill|stroke)\\s*[=:]\\s*[\"']?#?[0-9a-zA-Z(),.%% ]+/g)||[];"
-                     "for(var mi=0;mi<mm.length;mi++){var v2=mm[mi].toLowerCase();"
-                       "if(/none|currentcolor/.test(v2))continue;"
-                       "if(/#f{3,6}|white|255,\\s*255,\\s*255|#e[0-9a-f]|#d[0-9a-f]/.test(v2)){lite2++;continue;}"
-                       "if(/#0{3,6}|black|#1[0-9a-f]|#2[0-9a-f]|#3[0-9a-f]/.test(v2))dark2++;}"
-                     "if(lite2>0){"
-                       "el5.style.removeProperty('filter');"
-                       "if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__='svg-light l='+lite2+' d='+dark2;"
-                       "return;}"
-                     "el5.style.setProperty('filter','invert(1)','important');"
-                     "el5.style.setProperty('background-color','transparent','important');"
-                     "if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__='svg-dark l='+lite2+' d='+dark2;"
-                   "}catch(e){}}).catch(function(){});"
+                 // An <img> whose source is an SVG is left alone. The peers in this
+                 // family carry no filter and render correctly, so these assets
+                 // already suit a dark tile; the only one we ever broke is the one
+                 // we filtered. No fetch, no CORS, no markup parsing -- nothing
+                 // here can fail silently.
+                 "if(/\\.svg(\\?|#|$)/i.test(srcu)){try{"
+                   "el5.style.removeProperty('filter');"
+                   "if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__='svg-skip';"
                  "}catch(e){}return;}"
                  "var pr6=new Image();pr6.crossOrigin='anonymous';"
                  "pr6.onload=function(){try{"
@@ -1443,6 +1446,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "}catch(e){}"
              "pr=' url='+String(location.pathname||'').slice(0,28)"
                "+(window.__AD_CMPX__?(' CMPX='+window.__AD_CMPX__):'')"
+               "+(window.__AD_SVGCLR__?(' SVGCLR['+window.__AD_SVGCLR__+']'):'')"
                "+(window.__AD_ADCARD__?(' ADCARD['+window.__AD_ADCARD__+']'):'')"
                "+(window.__AD_SCREW__?(' SCREW['+window.__AD_SCREW__+']'):'')"
                "+(window.__AD_TILEART__?(' TILEART['+window.__AD_TILEART__+']'):'')"
