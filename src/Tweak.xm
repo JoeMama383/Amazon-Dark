@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.162.0"
+#define AD_VERSION "v5.163.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2032,7 +2032,13 @@ static void ADDarkenNativeTree(UIView *v, int depth, int *n){
 }
 
 static void ADCollectWebViews(UIView *v, NSMutableArray *out, int depth){
-    if (!v || depth > 12 || out.count >= 8) return;
+    // DEPTH 26, NOT 12. A React Native screen nests far deeper than twelve levels,
+    // so a WKWebView living under an RN tree was invisible to every caller of this
+    // function -- including the pharmacy repair and the self-heal path, which have
+    // therefore been reporting "no webview" on panes that plainly had one. The
+    // VDUMP walk found 24 WKCompositingViews on a screen this function called
+    // web-free, which is what exposed it.
+    if (!v || depth > 26 || out.count >= 8) return;
     @try {
         if ([v isKindOfClass:[WKWebView class]]) { [out addObject:v]; return; }
         for (UIView *sv in v.subviews) ADCollectWebViews(sv, out, depth + 1);
@@ -4380,6 +4386,62 @@ static void ADCountImageViews(UIView *v, int depth, int *n){
     } @catch(...) {}
 }
 
+// WKCompositingView is WebKit's host view for a remote layer. Its presence proves
+// web content is on screen even when the WKWebView itself sits out of reach.
+static void ADCountCompositing(UIView *v, int depth, int *n){
+    if (!v || depth > 26) return;
+    @try {
+        if (strcmp(object_getClassName(v), "WKCompositingView") == 0) (*n)++;
+        for (UIView *s in v.subviews) ADCountCompositing(s, depth + 1, n);
+    } @catch(...) {}
+}
+
+// ── BLANK PROBE ─────────────────────────────────────────────────────────────
+// VDUMP aggregates by class, which is what lost the detail: "contents=2 of 45"
+// cannot say WHICH two. This reports image-bearing views individually, with the
+// ancestry needed to tell an orders thumbnail from a tab-bar icon.
+static BOOL ADIsImageish(const char *cn){
+    return strstr(cn, "Image") || strstr(cn, "image") ||
+           strstr(cn, "Photo") || strcmp(cn, "WKCompositingView") == 0;
+}
+
+static void ADBlankWalk(UIView *v, int depth, int *n){
+    if (!v || depth > 26 || *n >= 20) return;
+    @try {
+        const char *cn = object_getClassName(v);
+        CGFloat w = v.bounds.size.width, h = v.bounds.size.height;
+        if (w >= 40 && h >= 40 && w <= 320 && h <= 320 && ADIsImageish(cn)){
+            char anc[200]; anc[0] = 0;
+            UIView *p = v.superview;
+            for (int i = 0; i < 3 && p; i++){
+                strlcat(anc, "<", sizeof(anc));
+                strlcat(anc, object_getClassName(p), sizeof(anc));
+                p = p.superview;
+            }
+            CGFloat br = -1, bg2 = -1, bb = -1, ba = -1;
+            if (v.backgroundColor)
+                [v.backgroundColor getRed:&br green:&bg2 blue:&bb alpha:&ba];
+            (*n)++;
+            ADLog(@"BLANK[%s %.0fx%.0f contents=%d bg=%.2f,%.2f,%.2f/%.2f alpha=%.2f hid=%d anc=%s]",
+                  cn, w, h, v.layer.contents ? 1 : 0,
+                  br, bg2, bb, ba, v.alpha, v.hidden ? 1 : 0, anc);
+        }
+        for (UIView *s in v.subviews) ADBlankWalk(s, depth + 1, n);
+    } @catch(...) {}
+}
+
+static void ADBlankProbe(void){
+    @try {
+        if (!gP.enabled) return;
+        UIWindow *key = nil;
+        for (UIWindow *w in [UIApplication sharedApplication].windows)
+            if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
+        if (!key) return;
+        int n = 0;
+        ADBlankWalk(key, 0, &n);
+    } @catch(...) {}
+}
+
 static void ADSurfaceProbe(void){
     @try {
         if (!gP.enabled) return;
@@ -4398,12 +4460,13 @@ static void ADSurfaceProbe(void){
         ADCollectWebViews(key, webs, 0);
 
         const char *vc = top ? object_getClassName(top) : "none";
-        static char last[192] = {0};
-        char now[192];
-        snprintf(now, sizeof(now), "%s|%d|%lu", vc, imgs, (unsigned long)webs.count);
-        if (strcmp(now, last) == 0) return;              // unchanged: stay quiet
-        snprintf(last, sizeof(last), "%s", now);
-        ADLog(@"SURF[vc=%s imgs=%d web=%lu]", vc, imgs, (unsigned long)webs.count);
+        // NO "unchanged" suppression. It fired once early and stayed silent
+        // afterwards, so a stale reading looked like a current one. This runs on
+        // viewDidAppear only, which is already the right cadence.
+        int comp = 0;
+        ADCountCompositing(key, 0, &comp);
+        ADLog(@"SURF[vc=%s imgs=%d web=%lu wkcomp=%d]",
+              vc, imgs, (unsigned long)webs.count, comp);
     } @catch(...) {}
 }
 
@@ -4710,7 +4773,7 @@ static void ADReapplyBurst(void){
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{ ADSurfaceProbe(); ADPaneDump(); });
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.0 * NSEC_PER_SEC)),
-                       dispatch_get_main_queue(), ^{ ADPaneDump(); });
+                       dispatch_get_main_queue(), ^{ ADPaneDump(); ADBlankProbe(); });
     } @catch(...) {}
     @try {
         if (!ADRecolorOn()) return;
