@@ -24,9 +24,9 @@
 
 static NSString * const kAMZ      = @"com.amazon.Amazon";
 static NSString * const kDefaults = @"com.colindavidr.amazondark";
-static const NSTimeInterval kCoverHold    = 3.0;  // dark cover visible time
+static const NSTimeInterval kCoverHold    = 8.0;  // dark cover visible time
 static const NSTimeInterval kCoverFade    = 0.55; // lift animation
-static const NSTimeInterval kCoverHardCap = 6.0;  // absolute max on screen
+static const NSTimeInterval kCoverHardCap = 12.0;  // absolute max on screen
 static const NSTimeInterval kReCoverGap   = 8.0;  // ignore re-triggers within
 
 @interface SBSceneView : UIView
@@ -167,7 +167,7 @@ static void ADAttachCoverToScene(UIView *host) {
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHardCap * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{
             @try { if (gCoverOverlay){ UIView *x = gCoverOverlay; gCoverOverlay = nil;
-                       [x removeFromSuperview]; ADSBLog(@"COVER overlay hardcap"); } }
+                       [x removeFromSuperview]; ADSBLog(@"COVER overlay hardcap (no signal)"); } }
             @catch (__unused NSException *e) {}
         });
     } @catch (__unused NSException *e) {}
@@ -180,7 +180,7 @@ static void ADDismissCover(void) {
             [UIView animateWithDuration:kCoverFade animations:^{ ov.alpha = 0.0; }
                              completion:^(BOOL f){ @try { [ov removeFromSuperview]; }
                                                    @catch (__unused NSException *e) {} }];
-            ADSBLog(@"COVER overlay dismissed");
+            ADSBLog(@"COVER overlay dismissed (signal)");
         }
         if (!gCoverWin) return;
         UIWindow *w = gCoverWin; gCoverWin = nil;

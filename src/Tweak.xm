@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.142.0"
+#define AD_VERSION "v5.143.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -889,7 +889,9 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "var ratio=tr.width/Math.max(tr.height,1);"
                "if(ratio<0.45||ratio>2.2)continue;"
                "var tcn=te.className;if(tcn&&tcn.baseVal!==undefined)tcn=tcn.baseVal;tcn=String(tcn||'');"
-               "if(SKIP.test(tcn))continue;"
+               // sbs-pill-image is the filter TILE icon, not a product photo --
+               // confirmed by probe. Let it through SKIP for this pass only.
+               "if(SKIP.test(tcn)&&!/sbs-pill-image/i.test(tcn))continue;"
                "if(te.closest&&te.closest('[class*=s-product-image],[class*=product-image],[class*=mlt-icon],[class*=heart],[class*=lists-framework]'))continue;"
                "var talt=(te.getAttribute&&te.getAttribute('alt'))||'';"
                "if(talt.length>18)continue;"
@@ -901,7 +903,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "var tp=te.parentElement,tdep=0;"
                "while(!tile&&tp&&tdep++<4){var tpl=lum(getComputedStyle(tp).backgroundColor);"
                  "var tpr=tp.getBoundingClientRect();"
-                 "if(tpl!==null&&tpl<0.32&&tpr.width<=220&&tpr.height<=220"
+                 "if(tpl!==null&&tpl<0.32&&tpr.width<=320&&tpr.height<=320"
                    "&&tpr.width>=tr.width-2&&tpr.height>=tr.height-2){tile=tp;break;}"
                  "tp=tp.parentElement;}"
                "if(!tile)continue;"
@@ -1962,9 +1964,40 @@ static void ADPreDarken(WKWebView *wv){
             NSString *au = self.URL.absoluteString ?: @"(no url yet)";
             if (au.length > 70) au = [au substringToIndex:70];
             ADLog(@"wvattach cls=%s url=%@ t=%.1f", object_getClassName(self), au, ADUptime());
-            // Attach alone is not "drawn"; keep it only as a long stop-gap.
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(4.5 * NSEC_PER_SEC)),
-                           dispatch_get_main_queue(), ^{ ADPostAppReady(); });
+            // Measure the page directly: readyState complete AND real content
+            // height. Delegate callbacks proved unreliable (no navdone ever
+            // fired), so nothing here depends on them.
+            @try {
+                __weak WKWebView *rw = self;
+                __block int rtick = 0;
+                NSTimer *rt = [NSTimer scheduledTimerWithTimeInterval:0.15 repeats:YES
+                                                                block:^(NSTimer *t){
+                    @try {
+                        WKWebView *w4 = rw;
+                        if (!w4 || ++rtick > 60){ [t invalidate]; ADPostAppReady(); return; }
+                        NSString *u6 = w4.URL.absoluteString ?: @"";
+                        if (![u6 containsString:@"amazon.com"]) return;
+                        [w4 evaluateJavaScript:
+                            @"(function(){try{return document.readyState+':'"
+                             "+(document.body?document.body.scrollHeight:0);}catch(e){return 'e:0';}})()"
+                             completionHandler:^(id rr, NSError *ee){
+                            @try {
+                                if (ee || ![rr isKindOfClass:[NSString class]]) return;
+                                NSArray *pp = [(NSString *)rr componentsSeparatedByString:@":"];
+                                if (pp.count < 2) return;
+                                BOOL done = [pp[0] isEqualToString:@"complete"];
+                                int hgt = [pp[1] intValue];
+                                if (done && hgt > 400){
+                                    ADLog(@"pageready h=%d t=%.1f", hgt, ADUptime());
+                                    [t invalidate];
+                                    ADPostAppReady();
+                                }
+                            } @catch(...) {}
+                        }];
+                    } @catch(...) { [t invalidate]; }
+                }];
+                (void)rt;
+            } @catch(...) {}
             __weak WKWebView *weakWv = self;
             // Delegate-independent late coverage: watch the URL itself. Prewarmed
             // views (AMIConfigurableWebView) sit blank for minutes, then navigate
@@ -4448,7 +4481,7 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
             addObserverForName:UIApplicationDidBecomeActiveNotification
                         object:nil queue:[NSOperationQueue mainQueue]
                     usingBlock:^(NSNotification *n){
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.6 * NSEC_PER_SEC)),
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(9.0 * NSEC_PER_SEC)),
                            dispatch_get_main_queue(), ^{ ADPostAppReady(); });
         }];
     } @catch(...) {}
