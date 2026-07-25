@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.162.0"
+#define AD_VERSION "v5.163.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -396,6 +396,19 @@ static NSString *ADFixesLiteral(void){
              "background-color:transparent !important;}"
              "[class*=puis-heart-position] [class*=placehold],[class*=heart-placeholder]"
              "{display:none !important;}"
+             // PHOTO SHIELD. Merchandise imagery must never carry a silhouette
+             // filter, whatever rule above tried to apply one. Element selectors
+             // are included deliberately to raise specificity over the
+             // attribute-only rules that were matching these thumbnails.
+             "html body [class*=product-image] img[src],"
+             "html body [class*=s-product-image] img[src],"
+             "html body [class*=product-image] picture[class],"
+             "html body [class*=order] img[src],"
+             "html body [class*=shipment] img[src],"
+             "html body [class*=item-view] img[src],"
+             "html body [class*=asin] img[src],"
+             "html body [class*=your-orders] img[src]"
+             "{filter:none !important;}"
              "[class*=lists-framework-action-button],"
              "[class*=lists-framework-action-button] *,"
              "[class*=copilot-compare] [class*=on-image-button] *,"
@@ -906,6 +919,20 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                // must survive, so the closing paren matters here
                "if(rf2.indexOf('brightness(0)')<0&&rf2.indexOf('invert(')<0)continue;"
                "re2.style.setProperty('filter','none','important');"
+               // Identify WHICH injected rule matched, rather than only clearing
+               // the result -- the selector is what has to change permanently.
+               "if(!window.__AD_RULE__){try{"
+                 "var shts=document.styleSheets;"
+                 "for(var sh=0;sh<shts.length&&!window.__AD_RULE__;sh++){"
+                   "var rls=null;try{rls=shts[sh].cssRules;}catch(e){continue;}"
+                   "if(!rls)continue;"
+                   "for(var rl=0;rl<rls.length&&rl<4000;rl++){var one=rls[rl];"
+                     "if(!one||!one.selectorText||!one.style)continue;"
+                     "var ft=one.style.getPropertyValue('filter')||'';"
+                     "if(ft.indexOf('brightness(0)')<0&&ft.indexOf('invert(')<0)continue;"
+                     "try{if(!re2.matches(one.selectorText))continue;}catch(e){continue;}"
+                     "window.__AD_RULE__=one.selectorText.slice(0,120);break;}}"
+               "}catch(e){}}"
                "if(!rfirst){var rcn=re2.className;"
                  "if(rcn&&rcn.baseVal!==undefined)rcn=rcn.baseVal;"
                  "var rp2=re2.parentElement;var rpc=rp2?rp2.className:'';"
@@ -1567,6 +1594,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "}catch(e){}"
              "pr=' url='+String(location.pathname||'').slice(0,28)"
                "+(window.__AD_CMPX__?(' CMPX='+window.__AD_CMPX__):'')"
+               "+(window.__AD_RULE__?(' RULE['+window.__AD_RULE__+']'):'')"
                "+(window.__AD_RESCUE__?(' RESCUE['+window.__AD_RESCUE__+']'):'')"
                "+(window.__AD_ORDERS__?(' ORDERS['+window.__AD_ORDERS__+']'):'')"
                "+(window.__AD_TAME__?(' TAME['+window.__AD_TAME__+']'):'')"
