@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.148.0"
+#define AD_VERSION "v5.149.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -494,7 +494,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "!n.closest('[class*=s-product-image],[class*=mlt-icon],[class*=puis-heart-position]')&&"
                "!(n.querySelector&&n.querySelector("
                  "'[class*=mlt-icon],[class*=puis-heart-position],[class*=lists-framework-action]'))){"
-               "n.style.setProperty('background-color','#181a1b','important');}"
+               "n.style.setProperty('background-color','#181a1b','important');}""n.__adBgBy='adpin1';"
              "if(n.querySelectorAll){var q=n.querySelectorAll('[class*=unfill],[class*=placehold]');"
                "for(var i=0;i<q.length;i++)q[i].style.setProperty('background-color','transparent','important');"
                "var q2=n.querySelectorAll('[class*=a-section]');"
@@ -503,7 +503,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "!e2.closest('[class*=s-product-image],[class*=mlt-icon],[class*=puis-heart-position]')&&"
                    "!(e2.querySelector&&e2.querySelector("
                      "'[class*=mlt-icon],[class*=puis-heart-position],[class*=lists-framework-action]'))){"
-                   "e2.style.setProperty('background-color','#181a1b','important');}}}"
+                   "e2.style.setProperty('background-color','#181a1b','important');}}}""e2.__adBgBy='adpin2';"
            "}catch(e){}};"
            "new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var m=ms[i];"
              "if(m.type==='attributes'){__adPin(m.target);continue;}"
@@ -649,14 +649,14 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              // before its children are contrast-checked against it.
              "if(lfix<500){var pl=lum(cs.backgroundColor);"
                "if(pl!==null&&pl>0.55&&!onArt(el)&&!ancLight(el)){"
-                 "el.style.setProperty('background-color',BG,'important');lfix++;}}"
+                 "el.style.setProperty('background-color',BG,'important');lfix++;}}""el.__adBgBy='lfix';"
              // LARGE light panels, uncapped. Section-sized light surfaces (the
              // pharmacy pink wrapper, the light-blue insurance strip) are never
              // content -- darken them even after the general cap is spent.
              "if(bigfix<120){var plb=lum(cs.backgroundColor);"
                "if(plb!==null&&plb>0.55&&!onArt(el)){var rb=el.getBoundingClientRect();"
                  "if(rb.width>=200&&rb.height>=80){"
-                   "el.style.setProperty('background-color',BG,'important');bigfix++;}}}"
+                   "el.style.setProperty('background-color',BG,'important');bigfix++;}}}""el.__adBgBy='bigfix';"
              // LIGHT GRADIENTS. lfix read 0 on every line while a 430x627 light panel
              // sat on screen, because a gradient lives in background-IMAGE and is
              // invisible to a backgroundColor check. The probe named it:
@@ -826,7 +826,28 @@ static NSString *ADDarkReaderBootstrapBuild(void){
 
            // Clear stray dark square wrappers around the buttons (the box that
            // can extend past the pill). Shapes/borders are persistent CSS above.
-           // BOX KILLER. A dark background anywhere between artwork and the light
+           // AD CARD AUDIT. Always reports. A dark box sitting on a light card is
+           // the defect; this names the element and, via __adBgBy, the pass that
+           // painted it -- so it stops being a guess about which pass to blame.
+           "try{var AC=document.querySelectorAll('div,span,section,a,p');var hits=[],scanned=0;"
+             "for(var ac=0;ac<AC.length&&ac<2500&&hits.length<4;ac++){var ce2=AC[ac];"
+               "var cl6=lum(getComputedStyle(ce2).backgroundColor);"
+               "if(cl6===null||cl6>0.30)continue;"
+               "var cr6=ce2.getBoundingClientRect();"
+               "if(cr6.width<40||cr6.height<12||cr6.width>420)continue;"
+               "scanned++;"
+               "var lp=ce2.parentElement,lg=null,ld=0;"
+               "while(lp&&ld++<4){var ll=lum(getComputedStyle(lp).backgroundColor);"
+                 "if(ll!==null){lg=ll;break;}lp=lp.parentElement;}"
+               "if(lg===null||lg<=0.55)continue;"
+               "var ccl=ce2.className;if(ccl&&ccl.baseVal!==undefined)ccl=ccl.baseVal;"
+               "hits.push(ce2.tagName.toLowerCase()+'.'+String(ccl||'').slice(0,20)"
+                 "+'@'+Math.round(cr6.width)+'x'+Math.round(cr6.height)"
+                 "+'|bg='+cl6.toFixed(2)+'|par='+lg.toFixed(2)"
+                 "+'|by='+(ce2.__adBgBy||'-'));}"
+             "window.__AD_ADCARD__=(hits.length?('n='+hits.length+' '+hits.join(' ~ ')):('clean scanned='+scanned));"
+           "}catch(e){window.__AD_ADCARD__='err '+e;}"
+                      // BOX KILLER. A dark background anywhere between artwork and the light
            // card it sits on is a box we or Dark Reader painted under transparent
            // ink -- the pharmacy wordmark case. Immediate-parent checks miss it
            // because DR themes the whole container chain, so search UP for the
@@ -880,9 +901,11 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "if(le.children.length>2)continue;"
                "var lt=(le.textContent||'').trim();"
                "if(lt!=='Bugle'&&lt!=='Brad'&&lt!=='Button')continue;"
-               "var host=le,hd=0;"
-               "while(host.parentElement&&hd++<5){host=host.parentElement;"
-                 "if(host.querySelector&&host.querySelector('img,svg'))break;}"
+               "var host=null;"
+               "try{host=le.closest('li,[class*=a-list-item],[class*=sbs-refinement]');}catch(e){}"
+               "if(!host){host=le;var hd=0;"
+                 "while(host.parentElement&&hd++<4){host=host.parentElement;"
+                   "if(host.querySelector&&host.querySelector('img,svg'))break;}}"
                "var anc='',ap=le.parentElement,ad3=0;"
                "while(ap&&ad3++<5){var af=String(getComputedStyle(ap).filter||'none');"
                  "var acl2=ap.className;if(acl2&&acl2.baseVal!==undefined)acl2=acl2.baseVal;"
@@ -905,7 +928,10 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "+'|par='+String(pbg).replace(/ /g,'')"
                    "+'|flt='+String(acs.filter||'none').slice(0,22)"
                    "+'|glyph='+(ae2.__adGlyph?1:0)"
-                   "+'|by='+(ae2.__adBy||'-'));}"
+                   "+'|by='+(ae2.__adBy||'-')"
+                   "+'|blend='+String(acs.mixBlendMode||'-')"
+                   "+'|op='+String(acs.opacity||'-')"
+                   "+'|src='+String((ae2.currentSrc||ae2.src||'-')).slice(-26));}"
                "sp=lt+' host@'+Math.round(host.getBoundingClientRect().width)"
                  "+'x'+Math.round(host.getBoundingClientRect().height)"
                  "+' :: '+(parts.length?parts.join(' ~ '):'no-art')+' ANC'+anc;"
@@ -1379,6 +1405,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "}catch(e){}"
              "pr=' url='+String(location.pathname||'').slice(0,28)"
                "+(window.__AD_CMPX__?(' CMPX='+window.__AD_CMPX__):'')"
+               "+(window.__AD_ADCARD__?(' ADCARD['+window.__AD_ADCARD__+']'):'')"
                "+(window.__AD_SCREW__?(' SCREW['+window.__AD_SCREW__+']'):'')"
                "+(window.__AD_TILEART__?(' TILEART['+window.__AD_TILEART__+']'):'')"
                "+(window.__AD_BOXKILL__?(' BOXKILL['+window.__AD_BOXKILL__+']'):'')"
