@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.165.0"
+#define AD_VERSION "v5.166.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -853,8 +853,15 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // WHITE-BACKGROUND TAMING (opt-in, Settings > AmazonDark).
            "try{if(window.__ADTAME_ON__){"
              "var cL=Math.max(0.12,Math.min(0.95,1-0.85*(window.__ADTAME_S__||45)/100));"
-             "if(!document.getElementById('adtamef')){"
-               "var tv=[];for(var q7=0;q7<=8;q7++){var iv=q7/8;tv.push(Math.min(iv,cL).toFixed(4));}"
+             // Host creation is a NAMED, IDEMPOTENT function now, not an inline
+             // one-shot. Every tamed <img> carries filter:url(#adtamef), which is
+             // resolved by ID at paint time -- so if the host element disappears,
+             // every one of those references dangles at once and the images stop
+             // painting. Re-creating the host repairs them all simultaneously,
+             // which is why this has to be callable from outside the tame pass.
+             "if(!window.__ADTAME_MKHOST__){window.__ADTAME_MKHOST__=function(cL9){try{"
+               "if(document.getElementById('adtamef'))return 1;"
+               "var tv=[];for(var q7=0;q7<=8;q7++){var iv=q7/8;tv.push(Math.min(iv,cL9).toFixed(4));}"
                "var tvs=tv.join(' ');"
                "var ns7='http://www.w3.org/2000/svg';"
                "var sv7=document.createElementNS(ns7,'svg');"
@@ -870,7 +877,11 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "fe.setAttribute('type','table');fe.setAttribute('tableValues',tvs);"
                  "ct.appendChild(fe);});"
                "f7.appendChild(ct);sv7.appendChild(f7);"
-               "(document.body||document.documentElement).appendChild(sv7);}"
+               // documentElement, NOT body. Amazon swaps body subtrees on
+               // client-side navigation and took the host with it.
+               "(document.documentElement||document.body).appendChild(sv7);return 1;"
+             "}catch(e){return 0;}};}"
+             "window.__ADTAME_MKHOST__(cL);"
              "var PI0=document.querySelectorAll('img'),PI=[];"
                "for(var z8=0;z8<PI0.length&&z8<300;z8++)PI.push(PI0[z8]);"
                // cards that paint their picture as a CSS background
@@ -893,6 +904,19 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "im7.style.setProperty('filter','url(#adtamef)','important');"
                "im7.__adTamed=1;tamed++;}"
              "if(tamed&&!window.__AD_TAME__)window.__AD_TAME__='n='+tamed+' ceil='+cL.toFixed(2);"
+             // UNCAPPED guard. The heartbeat stops after 75 ticks (~90s); the
+             // debounced observer only fires on mutations it sees. Neither is a
+             // guarantee, and the failure mode is every product photo on the page
+             // going blank at once. One getElementById every 2s is cheap enough
+             // that it does not need to be clever.
+             "try{if(!window.__ADTAME_GUARD__){window.__ADTAME_GUARD__=setInterval(function(){try{"
+               "if(!window.__ADTAME_ON__)return;"
+               "if(document.getElementById('adtamef'))return;"
+               "if(!window.__ADTAME_MKHOST__)return;"
+               "window.__ADTAME_MKHOST__(Math.max(0.12,Math.min(0.95,"
+                 "1-0.85*(window.__ADTAME_S__||45)/100)));"
+               "window.__AD_TAMEHOST__=(window.__AD_TAMEHOST__||0)+1;"
+             "}catch(e){}},2000);}}catch(e){}"
            "}}catch(e){}"
            // AD CARD AUDIT. Always reports. A dark box sitting on a light card is
            // the defect; this names the element and, via __adBgBy, the pass that
@@ -1524,6 +1548,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(window.__AD_ADCARD__?(' ADCARD['+window.__AD_ADCARD__+']'):'')"
                "+(window.__AD_SCREW__?(' SCREW['+window.__AD_SCREW__+']'):'')"
                "+(window.__AD_WHITEIMG__?(' WHITEIMG['+window.__AD_WHITEIMG__+']'):'')"
+               "+(window.__AD_TAMEHOST__?(' TAMEHOST[rebuilt='+window.__AD_TAMEHOST__+']'):'')"
                "+(window.__AD_TILEART__?(' TILEART['+window.__AD_TILEART__+']'):'')"
                "+(window.__AD_BOXKILL__?(' BOXKILL['+window.__AD_BOXKILL__+']'):'')"
                "+(window.__AD_FLTSCAN__?(' FLTSCAN['+window.__AD_FLTSCAN__+']'):'')"
