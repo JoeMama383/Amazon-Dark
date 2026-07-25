@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.163.0"
+#define AD_VERSION "v5.164.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -4442,6 +4442,91 @@ static void ADBlankProbe(void){
     } @catch(...) {}
 }
 
+// ── LOSS WATCHER ─────────────────────────────────────────────────────
+// The reported symptom is a TRANSITION: the thumbnail renders, then goes blank.
+// Snapshot probes cannot see that -- they photograph a moment and both the before
+// and after look unremarkable on their own. This tracks each image-bearing view
+// across ticks and reports the instant one that HAD layer contents loses them,
+// which is the event itself rather than its aftermath.
+//
+// The tab bar is excluded. It is present in the key window on every screen, so it
+// produced six lines per pane and drowned the content we were looking for.
+static const void *kADHadContents = &kADHadContents;
+static int gLostN = 0;
+
+static BOOL ADUnderTabBar(UIView *v){
+    UIView *p = v; int g = 0;
+    while (p && g++ < 30){
+        const char *c = object_getClassName(p);
+        if (strstr(c, "TabBar")) return YES;
+        p = p.superview;
+    }
+    return NO;
+}
+
+static void ADLossWalk(UIView *v, int depth, int *seen, int *withC){
+    if (!v || depth > 26 || v.hidden || v.alpha < 0.05) return;
+    @try {
+        CGFloat w = v.bounds.size.width, h = v.bounds.size.height;
+        const char *cn = object_getClassName(v);
+        BOOL sized  = (w >= 28 && h >= 28 && w <= 400 && h <= 400);
+        BOOL imgish = strstr(cn, "Image") || strstr(cn, "image") || strstr(cn, "Photo");
+        BOOL has    = (v.layer.contents != nil);
+
+        if (sized && (imgish || has) && !ADUnderTabBar(v)){
+            (*seen)++;
+            if (has) (*withC)++;
+            NSNumber *prev = objc_getAssociatedObject(v, kADHadContents);
+            if (prev && [prev boolValue] && !has && gLostN < 30){
+                gLostN++;
+                char anc[200]; anc[0] = 0;
+                UIView *p = v.superview;
+                for (int i = 0; i < 3 && p; i++){
+                    strlcat(anc, "<", sizeof(anc));
+                    strlcat(anc, object_getClassName(p), sizeof(anc));
+                    p = p.superview;
+                }
+                CGFloat br = -1, bg2 = -1, bb = -1, ba = -1;
+                if (v.backgroundColor)
+                    [v.backgroundColor getRed:&br green:&bg2 blue:&bb alpha:&ba];
+                ADLog(@"LOST[%s %.0fx%.0f bg=%.2f,%.2f,%.2f/%.2f alpha=%.2f tint=%@ anc=%s]",
+                      cn, w, h, br, bg2, bb, ba, v.alpha,
+                      ((UIView *)v).tintColor, anc);
+            }
+            objc_setAssociatedObject(v, kADHadContents, @(has),
+                                     OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        for (UIView *sv in v.subviews) ADLossWalk(sv, depth + 1, seen, withC);
+    } @catch(...) {}
+}
+
+static void ADLossTick(void){
+    @try {
+        if (!gP.enabled) return;
+        UIWindow *key = nil;
+        for (UIWindow *w in [UIApplication sharedApplication].windows)
+            if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
+        if (!key) return;
+        int seen = 0, withC = 0;
+        ADLossWalk(key, 0, &seen, &withC);
+        // Census, deduped. Makes silence interpretable: if seen stays 0 the walk
+        // is not reaching the thumbnails and no LOST line could ever appear.
+        static int lastSeen = -1, lastWith = -1;
+        if (seen != lastSeen || withC != lastWith){
+            lastSeen = seen; lastWith = withC;
+            ADLog(@"CENSUS[imgviews=%d withContents=%d]", seen, withC);
+        }
+    } @catch(...) {}
+}
+
+static void ADStartLossWatcher(void){
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        [NSTimer scheduledTimerWithTimeInterval:1.0 repeats:YES
+                                          block:^(NSTimer *t){ ADLossTick(); }];
+    });
+}
+
 static void ADSurfaceProbe(void){
     @try {
         if (!gP.enabled) return;
@@ -4770,10 +4855,11 @@ static void ADReapplyBurst(void){
     // orders pane is real evidence instead of an artefact of the budget.
     @try {
         gGlyphProbeN = 0;
+        ADStartLossWatcher();
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{ ADSurfaceProbe(); ADPaneDump(); });
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.0 * NSEC_PER_SEC)),
-                       dispatch_get_main_queue(), ^{ ADPaneDump(); ADBlankProbe(); });
+                       dispatch_get_main_queue(), ^{ ADPaneDump(); });
     } @catch(...) {}
     @try {
         if (!ADRecolorOn()) return;
