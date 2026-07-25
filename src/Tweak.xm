@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.138.0"
+#define AD_VERSION "v5.139.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -576,8 +576,13 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "}catch(e){}return false;}"
            // A dark panel inside a still-light card reads as a box behind the text.
            "function ancLight(e3){try{var pa=e3.parentElement,pd=0;"
+             "var vh2=window.innerHeight||800;"
              "while(pa&&pd++<4){var pl2=lum(getComputedStyle(pa).backgroundColor);"
-               "if(pl2!==null){return pl2>0.55;}pa=pa.parentElement;}"
+               "if(pl2!==null){if(pl2<=0.55)return false;"
+                 "var pr5=pa.getBoundingClientRect();"
+                 // page-sized light ground is a target, not a protector
+                 "return (pr5.height<vh2*0.75);}"
+               "pa=pa.parentElement;}"
              "}catch(e){}return false;}"           // Read the themed background off <html> rather than plumbing another
            // format argument through two call sites.
            "var BG='rgb(24,26,27)';try{var hb=getComputedStyle(document.documentElement).backgroundColor;"
@@ -832,6 +837,37 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "mp.style.setProperty('box-shadow','none','important');}"
                  "mp=mp.parentElement;}}"
            "}catch(e){}"
+                      // DARK ART ON A DARK TILE. Applies wherever it occurs, so no panel has
+           // to be located first. The bugle screw is this shape: a monochrome
+           // drawing sitting invisibly on the tile our theming darkened.
+           "try{var TQ=document.querySelectorAll('img,svg');var tl=0,tfirst='';"
+             "for(var tq=0;tq<TQ.length&&tq<600;tq++){var te=TQ[tq];"
+               "if(te.__adGlyph)continue;"
+               "var tr=te.getBoundingClientRect();"
+               "if(tr.width<18||tr.width>120||tr.height<18||tr.height>120)continue;"
+               "var ratio=tr.width/Math.max(tr.height,1);"
+               "if(ratio<0.45||ratio>2.2)continue;"
+               "var tcn=te.className;if(tcn&&tcn.baseVal!==undefined)tcn=tcn.baseVal;tcn=String(tcn||'');"
+               "if(SKIP.test(tcn))continue;"
+               "if(te.closest&&te.closest('[class*=s-product-image],[class*=product-image],[class*=mlt-icon],[class*=heart],[class*=lists-framework]'))continue;"
+               "var talt=(te.getAttribute&&te.getAttribute('alt'))||'';"
+               "if(talt.length>18)continue;"
+               "if(String(getComputedStyle(te).filter||'').indexOf('invert')>=0)continue;"
+               // the tile: a dark, icon-sized box the drawing nearly fills
+               "var tp=te.parentElement,tdep=0,tile=null;"
+               "while(tp&&tdep++<3){var tpl=lum(getComputedStyle(tp).backgroundColor);"
+                 "var tpr=tp.getBoundingClientRect();"
+                 "if(tpl!==null&&tpl<0.30&&tpr.width<=170&&tpr.height<=170"
+                   "&&tpr.width>=tr.width&&tpr.height>=tr.height){tile=tp;break;}"
+                 "tp=tp.parentElement;}"
+               "if(!tile)continue;"
+               "te.style.setProperty('filter','brightness(0) invert(1)','important');"
+               "te.style.setProperty('background-color','transparent','important');"
+               "te.__adGlyph=1;tl++;"
+               "if(!tfirst)tfirst=te.tagName.toLowerCase()+'.'+tcn.slice(0,20)"
+                 "+'@'+Math.round(tr.width)+'x'+Math.round(tr.height);}"
+             "if(tl&&!window.__AD_TILEART__)window.__AD_TILEART__='n='+tl+' first='+tfirst;"
+           "}catch(e){}"
                       // FILTER PANEL BY HEADING. The tile container uses hashed class names
            // (no filter/refinement/facet), so anchor on the visible "Filters for"
            // heading instead, walk up to the section, and whiten every monochrome
@@ -842,7 +878,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "try{var fhead=null;"
              "var HD=document.querySelectorAll('h1,h2,h3,h4,span,div,p');"
              "var cand=[];"
-             "for(var hh=0;hh<HD.length&&hh<4000;hh++){var he2=HD[hh];"
+             "for(var hh=0;hh<HD.length;hh++){var he2=HD[hh];"
+               "if(he2.children.length>3)continue;"
                "var ht2=(he2.textContent||'').trim();"
                "if(ht2.length<5||ht2.length>80)continue;"
                "if(ht2.toLowerCase().indexOf('filter')<0)continue;"
@@ -850,8 +887,10 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "if(hr2.width<60||hr2.height<10||hr2.height>90)continue;"
                "if(cand.length<3)cand.push(ht2.slice(0,26)+'@'+Math.round(hr2.width)+'x'+Math.round(hr2.height));"
                "if(!fhead)fhead=he2;}"
-             "if(!fhead&&!window.__AD_FLTSCAN__)"
-               "window.__AD_FLTSCAN__='nohead cands='+(cand.length?cand.join('|'):'0');"
+             "if(!fhead&&!window.__AD_FLTSCAN__){var hasf=0;"
+               "try{hasf=((document.body.innerText||'').indexOf('Filters')>=0)?1:0;}catch(e){}"
+               "window.__AD_FLTSCAN__='nohead n='+HD.length+' has='+hasf"
+                 "+' cands='+(cand.length?cand.join('|'):'0');}"
              "if(fhead){var fsec=fhead,fu=0,vw2=window.innerWidth||390,fcur=fhead,fbest=null;"
                "while(fcur.parentElement&&fu++<10){fcur=fcur.parentElement;"
                  "var fsr=fcur.getBoundingClientRect();"
@@ -1208,6 +1247,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "}catch(e){}"
              "pr=' url='+String(location.pathname||'').slice(0,28)"
                "+(window.__AD_CMPX__?(' CMPX='+window.__AD_CMPX__):'')"
+               "+(window.__AD_TILEART__?(' TILEART['+window.__AD_TILEART__+']'):'')"
                "+(window.__AD_BOXKILL__?(' BOXKILL['+window.__AD_BOXKILL__+']'):'')"
                "+(window.__AD_FLTSCAN__?(' FLTSCAN['+window.__AD_FLTSCAN__+']'):'')"
                "+(window.__AD_CMPSCAN__?(' CMPSCAN['+window.__AD_CMPSCAN__+']'):'')"
@@ -4152,13 +4192,15 @@ static void ADReapplyBurst(void){
                                     ADLog(@"pharmrepair %s -> no webview (native bg=%d)", cn5, nbg2);
                                     return;
                                 }
+                                int widx = 0;
                                 for (WKWebView *w2 in found) {
-                                    [w2 evaluateJavaScript:ADDarkReaderReapply()
+                                    int myIdx = widx++;
+                                    [w2 evaluateJavaScript:ADDarkReaderBootstrap()
                                          completionHandler:^(id r7, NSError *e7){
                                         @try {
-                                            if (e7) ADLog(@"pharmrepair %s -> ERR %@/%ld",
-                                                          cn5, e7.domain, (long)e7.code);
-                                            else ADLog(@"pharmrepair %s -> %@", cn5, r7);
+                                            if (e7) ADLog(@"pharmboot #%d -> ERR %@/%ld",
+                                                          myIdx, e7.domain, (long)e7.code);
+                                            else ADLog(@"pharmboot #%d -> %@", myIdx, r7);
                                         } @catch(...) {}
                                     }];
                                 }
