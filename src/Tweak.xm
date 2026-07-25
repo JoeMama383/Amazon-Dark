@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.159.0"
+#define AD_VERSION "v5.160.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -891,46 +891,16 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "im7.__adTamed=1;tamed++;}"
              "if(tamed&&!window.__AD_TAME__)window.__AD_TAME__='n='+tamed+' ceil='+cL.toFixed(2);"
            "}}catch(e){}"
-                      // BEHIND-TEXT AUDIT. The dark rectangle is a sibling/backdrop element,
-           // not the text's own background, so probe the paint stack under the
-           // text run itself. Reports the full stack with each background and
-           // its author tag; always reports, including the clean case.
-           "try{var TB=document.querySelectorAll('span,div,p,a,h1,h2,h3,h4,li');"
-             "var thits=[],tscan=0;"
-             "for(var tb=0;tb<TB.length&&tb<2500&&thits.length<3;tb++){var te3=TB[tb];"
-               "var own='';"
-               "for(var cn5=0;cn5<te3.childNodes.length&&cn5<6;cn5++){"
-                 "var nd5=te3.childNodes[cn5];"
-                 "if(nd5.nodeType===3&&nd5.nodeValue&&nd5.nodeValue.trim().length>1)"
-                   "own+=nd5.nodeValue.trim()+' ';}"
-               "own=own.trim();"
-               "if(own.length<2||own.length>60)continue;"
-               "var trr=te3.getBoundingClientRect();"
-               "if(trr.width<20||trr.height<8)continue;"
-               "if(trr.top<0||trr.top>(window.innerHeight||900))continue;"
-               "tscan++;"
-               "var cx5=Math.round(trr.left+trr.width/2),cy5=Math.round(trr.top+trr.height/2);"
-               "var stack=[];try{stack=document.elementsFromPoint(cx5,cy5)||[];}catch(e){}"
-               "var found=null,layers='';"
-               "for(var sk=0;sk<stack.length&&sk<6;sk++){var se5=stack[sk];"
-                 "var sbg=lum(getComputedStyle(se5).backgroundColor);"
-                 "var scn=se5.className;if(scn&&scn.baseVal!==undefined)scn=scn.baseVal;"
-                 "var srr=se5.getBoundingClientRect();"
-                 "layers+=' '+String(scn||se5.tagName).slice(0,16)"
-                   "+'@'+Math.round(srr.width)+'x'+Math.round(srr.height)"
-                   "+'['+(sbg===null?'-':sbg.toFixed(2))"
-                   "+(se5.__adBgBy?('/'+se5.__adBgBy):'')+']';"
-                 "if(found===null&&se5!==te3&&sbg!==null&&sbg<0.30)found=sk;}"
-               "if(found===null)continue;"
-               "var tov=(typeof artOverlap==='function')?artOverlap(trr):0;"
-               "thits.push('\\''+own.slice(0,20)+'\\' art='+tov.toFixed(2)+' ::'+layers);}"
-             "window.__AD_TEXTBOX__=(thits.length?('n='+thits.length+' '+thits.join(' || ')):"
-               "('none sampled='+tscan));"
-           "}catch(e){window.__AD_TEXTBOX__='err '+e;}"
            // AD CARD AUDIT. Always reports. A dark box sitting on a light card is
            // the defect; this names the element and, via __adBgBy, the pass that
            // painted it -- so it stops being a guess about which pass to blame.
-           "try{var AC=document.querySelectorAll('div,span,section,a,p');var hits=[],scanned=0;"
+           // ONCE PER DOCUMENT, AFTER SETTLE. This is an audit, not a repair: its
+           // value is one report, not eighty. It sits inside FIXCONTRAST, which the
+           // heartbeat alone calls 75 times, so leaving it ungated meant a 2500-element
+           // getComputedStyle sweep on every tick while the page was still painting.
+           "try{if(document.readyState==='complete'&&!window.__AD_AUDITED_CARD__){"
+             "window.__AD_AUDITED_CARD__=1;"
+             "var AC=document.querySelectorAll('div,span,section,a,p');var hits=[],scanned=0;"
              "for(var ac=0;ac<AC.length&&ac<2500&&hits.length<4;ac++){var ce2=AC[ac];"
                "var cl6=lum(getComputedStyle(ce2).backgroundColor);"
                "if(cl6===null||cl6>0.30)continue;"
@@ -951,7 +921,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "+'|art='+ov5.toFixed(2)"
                  "+'|by='+(ce2.__adBgBy||'-'));}"
              "window.__AD_ADCARD__=(hits.length?('n='+hits.length+' '+hits.join(' ~ ')):('clean scanned='+scanned));"
-           "}catch(e){window.__AD_ADCARD__='err '+e;}"
+           "}}catch(e){window.__AD_ADCARD__='err '+e;}"
                       // BOX KILLER. A dark background anywhere between artwork and the light
            // card it sits on is a box we or Dark Reader painted under transparent
            // ink -- the pharmacy wordmark case. Immediate-parent checks miss it
@@ -1000,9 +970,15 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "}catch(e){}"
                       // SCREW PROBE. Always reports. Anchors on the tile LABEL, so it does not
            // depend on finding the filter panel or on any class name.
-           "try{var sp='no-label';"
+           // THROTTLED, not once-only: the filter panel opens after load, so this
+           // must still be able to catch it -- but it does not need to re-walk the
+           // whole document 80 times to do so. Also caps a previously UNBOUNDED loop.
+           "try{if(document.readyState!=='complete')throw 0;"
+             "if(window.__AD_SCREW_T__&&Date.now()-window.__AD_SCREW_T__<1500)throw 0;"
+             "window.__AD_SCREW_T__=Date.now();"
+             "var sp='no-label';"
              "var LB=document.querySelectorAll('span,div,p,label,a,li');"
-             "for(var sl=0;sl<LB.length;sl++){var le=LB[sl];"
+             "for(var sl=0;sl<LB.length&&sl<3000;sl++){var le=LB[sl];"
                "if(le.children.length>2)continue;"
                "var lt=(le.textContent||'').trim();"
                "if(lt!=='Bugle'&&lt!=='Brad'&&lt!=='Button')continue;"
@@ -1042,7 +1018,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "+' :: '+(parts.length?parts.join(' ~ '):'no-art')+' ANC'+anc;"
                "if(lt==='Bugle')break;}"
              "window.__AD_SCREW__=sp;"
-           "}catch(e){window.__AD_SCREW__='err '+e;}"
+           "}catch(e){if(e!==0)window.__AD_SCREW__='err '+e;}"
                       // DARK ART ON A DARK TILE. Applies wherever it occurs, so no panel has
            // to be located first. The bugle screw is this shape: a monochrome
            // drawing sitting invisibly on the tile our theming darkened.
@@ -1521,7 +1497,6 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "pr=' url='+String(location.pathname||'').slice(0,28)"
                "+(window.__AD_CMPX__?(' CMPX='+window.__AD_CMPX__):'')"
                "+(window.__AD_TAME__?(' TAME['+window.__AD_TAME__+']'):'')"
-               "+(window.__AD_TEXTBOX__?(' TEXTBOX['+window.__AD_TEXTBOX__+']'):'')"
                "+(window.__AD_ADCARD__?(' ADCARD['+window.__AD_ADCARD__+']'):'')"
                "+(window.__AD_SCREW__?(' SCREW['+window.__AD_SCREW__+']'):'')"
                "+(window.__AD_TILEART__?(' TILEART['+window.__AD_TILEART__+']'):'')"
