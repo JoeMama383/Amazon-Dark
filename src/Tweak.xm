@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.146.0"
+#define AD_VERSION "v5.147.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -931,14 +931,29 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "var selfL=lum(tcs.backgroundColor);"
                "if(selfL!==null&&selfL<0.30)tile=te;"
                "var tp=te.parentElement,tdep=0;"
-               "while(!tile&&tp&&tdep++<4){var tpl=lum(getComputedStyle(tp).backgroundColor);"
+               "while(!tile&&tp&&tdep++<5){var tpl=lum(getComputedStyle(tp).backgroundColor);"
                  "var tpr=tp.getBoundingClientRect();"
-                 "if(tpl!==null&&tpl<0.32&&tpr.width<=320&&tpr.height<=320"
+                 "if(tpl!==null&&tpl<0.32"
                    "&&tpr.width>=tr.width-2&&tpr.height>=tr.height-2){tile=tp;break;}"
                  "tp=tp.parentElement;}"
                "if(!tile)continue;"
                "if(isProdArt(te))continue;"
                "te.__adGlyph=1;te.__adBy='tileart';tl++;"
+               // Vector glyph: read its ink and lift it directly.
+               "if(ttag==='svg'){try{"
+                 "var fl4=lum(tcs.fill),sl4=lum(tcs.stroke),cl5=lum(tcs.color);"
+                 "var ink=(fl4!==null?fl4:(sl4!==null?sl4:cl5));"
+                 "if(ink===null||ink<0.40){"
+                   "te.style.setProperty('color','#e8e6e3','important');"
+                   "if(fl4===null||fl4<0.40)te.style.setProperty('fill','#e8e6e3','important');"
+                   "if(sl4!==null&&sl4<0.40)te.style.setProperty('stroke','#e8e6e3','important');"
+                   "var kids=te.querySelectorAll('path,circle,rect,polygon,g,line');"
+                   "for(var kk=0;kk<kids.length&&kk<12;kk++){"
+                     "var kf=lum(getComputedStyle(kids[kk]).fill);"
+                     "if(kf===null||kf<0.40)kids[kk].style.setProperty('fill','#e8e6e3','important');}"
+                   "if(!window.__AD_SVGINK__)window.__AD_SVGINK__='lifted ink='+(ink===null?'none':ink.toFixed(2));}"
+                 "else if(!window.__AD_SVGINK__)window.__AD_SVGINK__='left ink='+ink.toFixed(2);"
+               "}catch(e){}continue;}"
                "(function(el5){try{"
                  "if(el5.tagName.toLowerCase()!=='img'){"
                    "el5.style.setProperty('filter','invert(1)','important');return;}"
@@ -970,6 +985,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "if(!tfirst)tfirst=ttag+'.'+tcn.slice(0,20)"
                  "+'@'+Math.round(tr.width)+'x'+Math.round(tr.height);}"
              "window.__AD_TILEART__='n='+tl+(tfirst?(' first='+tfirst):'')"
+               "+(window.__AD_SVGINK__?(' svg='+window.__AD_SVGINK__):'')"
                "+(window.__AD_TILEMEAS__?(' meas='+window.__AD_TILEMEAS__):'');"
            "}catch(e){}"
                       // FILTER PANEL BY HEADING. The tile container uses hashed class names
