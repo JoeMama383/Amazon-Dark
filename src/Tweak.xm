@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.191.0"
+#define AD_VERSION "v5.192.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -347,7 +347,9 @@ static NSString *ADFixesLiteral(void){
              // explicitly flattened so nested matches cannot double-ring. Glyphs go
              // white by silhouette; the loading placeholder is hidden outright
              // because whitening a solid square asset produces a white box.
-             "[class*=lists-framework-action-button],"
+             // lists-framework-action-button intentionally omitted: it also lands on
+             // row-sized containers (Interests popup), where a disc becomes an oval
+             // spanning the row. It is styled from JS instead, size-guarded.
              "[class*=copilot-compare][class*=on-image-button],"
              "[class*=copilot-compare] [class*=on-image-button],"
              "[class*=s-product-image] button[aria-label*=ompare],"
@@ -970,6 +972,45 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "im7.__adTamed=1;tamed++;}"
              "if(tamed&&!window.__AD_TAME__)window.__AD_TAME__='n='+tamed+' ceil='+cL.toFixed(2);"
            "}}catch(e){}"
+                      // DARK LOGO LIFT. A brand mark is mostly transparent with dark ink; a
+           // product photo is opaque edge to edge. That difference is measurable,
+           // so logos can be lifted without any photo being touched.
+           "try{if(!window.__AD_LOGOQ__)window.__AD_LOGOQ__=1;"
+             "var LG=document.querySelectorAll('img');"
+             "for(var lg=0;lg<LG.length&&lg<200;lg++){var le=LG[lg];"
+               "if(le.__adLogo)continue;"
+               "var lr=le.getBoundingClientRect();"
+               "if(lr.width<40||lr.width>240||lr.height<20||lr.height>240)continue;"
+               "if(String(getComputedStyle(le).filter||'none').indexOf('invert')>=0)continue;"
+               "var lsrc=le.currentSrc||le.src;if(!lsrc)continue;"
+               "le.__adLogo=1;"
+               "(function(el8,src8){try{"
+                 "var pi8=new Image();pi8.crossOrigin='anonymous';"
+                 "pi8.onload=function(){try{"
+                   "var w8=Math.min(pi8.naturalWidth||32,40),h8=Math.min(pi8.naturalHeight||32,40);"
+                   "if(!w8||!h8)return;"
+                   "var cv8=document.createElement('canvas');cv8.width=w8;cv8.height=h8;"
+                   "var cx8=cv8.getContext('2d');cx8.drawImage(pi8,0,0,w8,h8);"
+                   "var d8=cx8.getImageData(0,0,w8,h8).data;"
+                   "var tot=0,clear=0,sum=0,cnt=0,lite=0;"
+                   "for(var z8=0;z8<d8.length;z8+=4){tot++;"
+                     "if(d8[z8+3]<40){clear++;continue;}"
+                     "var l8=0.2126*d8[z8]+0.7152*d8[z8+1]+0.0722*d8[z8+2];"
+                     "sum+=l8;cnt++;if(l8>153)lite++;}"
+                   "if(!cnt||!tot)return;"
+                   "var clearFrac=clear/tot,avg8=(sum/cnt)/255,liteFrac=lite/cnt;"
+                   // opaque edge to edge => photograph, never touched
+                   "if(clearFrac<0.35)return;"
+                   // already has light ink => renders fine on a dark ground
+                   "if(avg8>=0.45||liteFrac>=0.10)return;"
+                   "el8.style.setProperty('filter','invert(1)','important');"
+                   "if(!window.__AD_LOGO__)window.__AD_LOGO__="
+                     "'lifted clear='+clearFrac.toFixed(2)+' avg='+avg8.toFixed(2);"
+                 "}catch(e){if(!window.__AD_LOGO__)window.__AD_LOGO__='tainted';}};"
+                 "pi8.onerror=function(){if(!window.__AD_LOGO__)window.__AD_LOGO__='cors-fail';};"
+                 "pi8.src=src8;"
+               "}catch(e){}})(le,lsrc);}"
+           "}catch(e){}"
                       // PHOTO RESCUE. Runs before anything else and judges by computed
            // result, not by our own bookkeeping -- a stylesheet rule leaves no
            // mark, which is exactly how order thumbnails were being flattened.
@@ -982,6 +1023,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "if(rf2==='none')continue;"
                // brightness(0) exactly -- brightness(0.775) from the tame pass
                // must survive, so the closing paren matters here
+               "if(re2.__adLogo&&rf2.indexOf('invert(')>=0)continue;"
                "if(rf2.indexOf('brightness(0)')<0&&rf2.indexOf('invert(')<0)continue;"
                "re2.style.setProperty('filter','none','important');"
                // Identify WHICH injected rule matched, rather than only clearing
@@ -1204,6 +1246,57 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "if(lt==='Bugle')break;}"
              "window.__AD_SCREW__=sp;"
            "}catch(e){window.__AD_SCREW__='err '+e;}"
+                      // DARK-GLYPH AUDIT. Dark ink on a dark ground is invisible by
+           // definition; anything listed here is a glyph a pass should have
+           // whitened and did not.
+           "try{var DG=document.querySelectorAll('img,svg,i,span,div');"
+             "var dghits=[],dgseen=0;"
+             "for(var dg=0;dg<DG.length&&dg<2000&&dghits.length<4;dg++){var ge=DG[dg];"
+               "var gr=ge.getBoundingClientRect();"
+               "if(gr.width<12||gr.width>52||gr.height<12||gr.height>52)continue;"
+               "var gcs=getComputedStyle(ge);var gtag=ge.tagName.toLowerCase();"
+               "var hasArt=(gtag==='img'||gtag==='svg')"
+                 "||((gcs.backgroundImage||'').indexOf('url(')>=0)"
+                 "||(((gcs.webkitMaskImage||gcs.maskImage||'none'))!=='none');"
+               "if(!hasArt)continue;"
+               "dgseen++;"
+               "if(String(gcs.filter||'none').indexOf('invert')>=0)continue;"
+               "if(ge.__adGlyph)continue;"
+               // ground: nearest ancestor that paints a background
+               "var gp=ge.parentElement,gl=null,gd=0;"
+               "while(gp&&gd++<4){var v9=lum(getComputedStyle(gp).backgroundColor);"
+                 "if(v9!==null){gl=v9;break;}gp=gp.parentElement;}"
+               "if(gl===null||gl>0.30)continue;"
+               "var ink=null;"
+               "if(gtag==='svg')ink=lum(gcs.fill);"
+               "if(ink===null)ink=lum(gcs.color);"
+               "if(ink!==null&&ink>0.45)continue;"
+               "var gcn=ge.className;if(gcn&&gcn.baseVal!==undefined)gcn=gcn.baseVal;"
+               "dghits.push(gtag+'.'+String(gcn||'-').slice(0,20)"
+                 "+'@'+Math.round(gr.width)+'x'+Math.round(gr.height)"
+                 "+'|ink='+(ink===null?'-':ink.toFixed(2))"
+                 "+'|ground='+gl.toFixed(2)"
+                 "+'|src='+String((ge.currentSrc||ge.src||'-')).slice(-22));}"
+             "window.__AD_DARKGLYPH__=(dghits.length?('n='+dghits.length+' '+dghits.join(' ~ ')):"
+               "('clean art='+dgseen));"
+           "}catch(e){window.__AD_DARKGLYPH__='err '+e;}"
+                      // ACTION-BUTTON DISC. Same look the CSS used to apply, but only for
+           // elements that are genuinely icon-sized -- a row-sized container
+           // carrying the same class is left alone.
+           "try{var DB=document.querySelectorAll('[class*=lists-framework-action-button]');"
+             "var ndisc=0,dskip=0;"
+             "for(var db=0;db<DB.length&&db<80;db++){var de=DB[db];"
+               "var dr=de.getBoundingClientRect();"
+               "if(dr.width<18||dr.width>52||dr.height<18||dr.height>52){dskip++;continue;}"
+               "if(Math.abs(dr.width-dr.height)>10){dskip++;continue;}"
+               "de.style.setProperty('background-color','#181a1b','important');"
+               "de.style.setProperty('border-radius','50%%','important');"
+               "de.style.setProperty('border','1.5px solid rgba(255,255,255,0.65)','important');"
+               "de.style.setProperty('box-shadow','none','important');"
+               "de.style.setProperty('box-sizing','border-box','important');"
+               "ndisc++;}"
+             "if(ndisc||dskip)window.__AD_DISC__='on='+ndisc+' skipped='+dskip;"
+           "}catch(e){}"
                       // DARK ART ON A DARK TILE. Applies wherever it occurs, so no panel has
            // to be located first. The bugle screw is this shape: a monochrome
            // drawing sitting invisibly on the tile our theming darkened.
@@ -1765,6 +1858,9 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(window.__AD_BOXKILL__?(' BOXKILL['+window.__AD_BOXKILL__+']'):'')"
                "+(window.__AD_FLTSCAN__?(' FLTSCAN['+window.__AD_FLTSCAN__+']'):'')"
                "+(window.__AD_CMPSCAN__?(' CMPSCAN['+window.__AD_CMPSCAN__+']'):'')"
+               "+(window.__AD_DARKGLYPH__?(' DARKGLYPH['+window.__AD_DARKGLYPH__+']'):'')"
+               "+(window.__AD_DISC__?(' DISC['+window.__AD_DISC__+']'):'')"
+               "+(window.__AD_LOGO__?(' LOGO['+window.__AD_LOGO__+']'):'')"
                "+(window.__AD_CMPFIX__?(' CMPFIX['+window.__AD_CMPFIX__+']'):'')"
                "+(window.__AD_KEBAB__?(' KEBAB='+window.__AD_KEBAB__):'')"
                "+(window.__AD_CMPBAR__?(' CMPBAR='+window.__AD_CMPBAR__):'')"
