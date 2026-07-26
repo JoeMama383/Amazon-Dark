@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.199.0"
+#define AD_VERSION "v5.200.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -402,17 +402,16 @@ static NSString *ADFixesLiteral(void){
              // filter, whatever rule above tried to apply one. Element selectors
              // are included deliberately to raise specificity over the
              // attribute-only rules that were matching these thumbnails.
-             // AD-CARD TEXT. Their stock colour already reads correctly on the
-             // creative, so it is never themed -- element selectors included to
-             // outrank the attribute-only colour rules above.
-             "html body [class*=a-cardui] span,"
-             "html body [class*=a-cardui] p,"
-             "html body [class*=a-cardui] h1,"
-             "html body [class*=a-cardui] h2,"
-             "html body [class*=a-cardui] h3,"
-             "html body [class*=cardui-header] span,"
-             "html body [class*=gwm-] span,"
-             "html body [class*=gwm-] p"
+             // AD-CARD TEXT. Scoped to containers a pass has confirmed carry
+             // creative artwork -- never a container family, which covered the
+             // entire feed. Once the marker is set, every caption inside is
+             // pinned by CSS with no per-element work and no timing race.
+             "html body [data-adcrt] span,"
+             "html body [data-adcrt] p,"
+             "html body [data-adcrt] h1,"
+             "html body [data-adcrt] h2,"
+             "html body [data-adcrt] h3,"
+             "html body [data-adcrt] a"
              "{color:#0f1111 !important;-webkit-text-fill-color:#0f1111 !important;}"
              "html body [class*=product-image] img[src],"
              "html body [class*=s-product-image] img[src],"
@@ -565,6 +564,26 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // reported cases. This measures the real computed contrast of every element
          // that owns visible text and lifts ONLY the ones that actually fail, so
          // brand colours that already read fine are untouched.
+         // Re-run the repair as the page fills in (carousels, lazy tiles), debounced
+         // so a busy DOM cannot turn this into a hot loop.
+         // Mark a container that actually carries creative artwork. Cheap, and
+         // idempotent -- the marker is what the stylesheet keys off.
+         "function _adMark(el){try{"
+           "if(!el||el.nodeType!==1||el.hasAttribute('data-adcrt'))return false;"
+           "var r=el.getBoundingClientRect();"
+           "if(r.width<200||r.height<80)return false;"
+           "var art=false;"
+           "var bi=getComputedStyle(el).backgroundImage||'';"
+           "if(bi.indexOf('url(')>=0)art=true;"
+           "if(!art){try{var im=el.querySelector('img,picture');"
+             "if(im){var ir=im.getBoundingClientRect();"
+               "if(ir.width>200&&ir.height>80)art=true;"
+               "else if(!ir.width&&(im.getAttribute('width')||'').length)art=true;}"
+           "}catch(e){}}"
+           "if(!art)return false;"
+           "el.setAttribute('data-adcrt','1');"
+           "window.__AD_CRT__=(window.__AD_CRT__||0)+1;return true;"
+         "}catch(e){return false;}}"
          "window.__AMZDARK_FIXCONTRAST__=function(){try{"
            // SCROLL GUARD + RATE LIMIT. The pass measures ~50ms. That is harmless
            // occasionally and ruinous continuously -- and Amazon's feed lazy-loads
@@ -1022,6 +1041,12 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "pi8.onerror=function(){if(!window.__AD_LOGO__)window.__AD_LOGO__='cors-fail';};"
                  "pi8.src=src8;"
                "}catch(e){}})(le,lsrc);}"
+           "}catch(e){}"
+                      // CREATIVE MARKER. Server-rendered cards never fire an insertion the
+           // fast lane can see, so sweep for them here as well.
+           "try{var CQ=document.querySelectorAll('div,section,a,li');var mn=0;"
+             "for(var cq=0;cq<CQ.length&&cq<1200;cq++){if(_adMark(CQ[cq]))mn++;}"
+             "if(mn)window.__AD_CRTN__='n='+mn;"
            "}catch(e){}"
                       // PHOTO RESCUE. Runs before anything else and judges by computed
            // result, not by our own bookkeeping -- a stylesheet rule leaves no
@@ -1958,8 +1983,6 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
            "window.__AMZDARK_FIXCONTRAST__();"
          "}catch(e){}};"
-         // Re-run the repair as the page fills in (carousels, lazy tiles), debounced
-         // so a busy DOM cannot turn this into a hot loop.
          "function _adPin(root){try{"
            "if(!root||root.nodeType!==1)return;"
            "var list=[root];"
@@ -1981,7 +2004,9 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "an=an.parentElement;}"
              "if(!onart)continue;"
              "el2.__adPinned=1;"
-             "el2.style.setProperty('color','#0f1111','important');"
+             // mark the creative container; the stylesheet does the rest
+             "var mk=el2.parentElement,md=0;"
+             "while(mk&&md++<4){if(_adMark(mk))break;mk=mk.parentElement;}"
              "window.__AD_PIN__=(window.__AD_PIN__||0)+1;}"
          "}catch(e){}}"
          "try{var _t=null,_last=0;new MutationObserver(function(muts){"
