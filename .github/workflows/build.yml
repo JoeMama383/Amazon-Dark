@@ -47,6 +47,9 @@ jobs:
       - name: Lint Logos %orig usage
         run: bash scripts/lint-logos.sh
 
+      - name: Lint injected JavaScript (regression gates)
+        run: python3 scripts/lint-js.py
+
       - name: Build rootless package
         run: |
           make clean || true

@@ -181,8 +181,131 @@ def main():
                 print(f"  OK       CSS closes cleanly before {after.strip()[:20]!r} "
                       f"({len(body)} chars)")
 
+    print("  --- regression gates ---")
+    ok &= check_full_payload(src)
+    ok &= check_silhouette_guards(src)
+    ok &= check_ovr_scope(src)
+    ok &= check_format_specifiers(src)
+
     print("lint-js: " + ("OK" if ok else "FAILED"))
     return 0 if ok else 1
+
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# REGRESSION GATES. Each of these encodes a bug that actually shipped, cost
+# multiple builds to find, and would not have been caught by a parse check.
+# ─────────────────────────────────────────────────────────────────────────────
+
+GUARD_PATTERNS = ('artChk(', 'isProdArt(', 'isPhoto(', 'holdsArt(',
+                  'width>48', 'height>48', 'naturalWidth', '>64)continue')
+
+
+def check_silhouette_guards(src):
+    """Every inline silhouette write must be GUARDED BEFORE and MARKED AFTER.
+
+    The bug: at two sites the product-art guard sat BELOW the write, so a photo was
+    silhouetted and only then asked whether it was a photo -- and the guard's
+    `continue` skipped the marking line, making the offender invisible to every
+    by= audit. Grepping for isProdArt showed those sites as guarded. It took ten
+    builds to find. A guard in the wrong ORDER is far harder to spot than a
+    missing one, so order is what this checks.
+    """
+    lines = src.split('\n')
+    ok = True
+    sites = 0
+    for i, line in enumerate(lines):
+        if "setProperty('filter','brightness(0) invert(1)'" not in line:
+            continue
+        sites += 1
+        before = '\n'.join(lines[max(0, i - 8):i])
+        after = '\n'.join(lines[i:i + 5])
+        guarded = any(g in before for g in GUARD_PATTERNS)
+        marked = '__adBy' in after
+        if not guarded or not marked:
+            ok = False
+            why = []
+            if not guarded:
+                why.append('NO GUARD in the 8 preceding lines')
+            if not marked:
+                why.append('NO __adBy mark in the 5 following lines')
+            print(f"  FAIL     line {i+1}: {'; '.join(why)}")
+            print(f"           {line.strip()[:100]}")
+    if ok:
+        print(f"  OK       all {sites} silhouette sites guarded-before and marked-after")
+    return ok
+
+
+def check_ovr_scope(src):
+    """ovr() is defined inside the pass function; calling it elsewhere throws.
+
+    The bug: a mechanical edit added the time budget to 32 loops, four of which
+    were in ADPharmForceJS and ADDarkReaderReapply -- separate payloads with no
+    ovr() in scope. A ReferenceError there kills the whole script silently.
+
+    Two passes, because JS hoists function declarations: a call may legitimately
+    appear textually above the definition within the same function.
+    """
+    lines = src.split('\n')
+
+    def owner(idx):
+        cur = None
+        for j in range(idx + 1):
+            m = re.match(r'static NSString \*(\w+)\(', lines[j])
+            if m:
+                cur = m.group(1)
+        return cur
+
+    definers = {owner(i) for i, l in enumerate(lines) if 'function ovr()' in l}
+    bad = [(i + 1, owner(i)) for i, l in enumerate(lines)
+           if '!ovr()' in l and 'function ovr()' not in l and owner(i) not in definers]
+    if bad:
+        for ln, fn in bad:
+            print(f"  FAIL     line {ln}: ovr() called in {fn}, which does not define it")
+        return False
+    print(f"  OK       every ovr() call is inside {sorted(d for d in definers if d)}")
+    return True
+
+
+def check_format_specifiers(src):
+    """A lone % inside a stringWithFormat literal garbles the emitted JS.
+
+    The bug: a /%/ regex in a formatted literal. Must be written /%%/. Counts
+    %% as one escaped literal rather than flagging its second character, which
+    my ad-hoc grep got wrong.
+    """
+    ok = True
+    for name in ['ADDarkReaderBootstrapBuild', 'ADFixesLiteral', 'ADThemeLiteral']:
+        m = re.search(r'static NSString \*' + name + r'\([^)]*\)\{(.*?)\n\}', src, re.S)
+        if not m:
+            continue
+        body = strip_comments(m.group(1))
+        lits = ''.join(re.findall(r'@?"((?:[^"\\]|\\.)*)"', body))
+        stripped = lits.replace('%%', '')
+        bad = re.findall(r'%(?![@dsfl]|ld|lu|zu)', stripped)
+        if bad:
+            ok = False
+            print(f"  FAIL     {name}: {len(bad)} unescaped % (write %% for a literal percent)")
+        else:
+            print(f"  OK       {name}: no unescaped %")
+    return ok
+
+
+def check_full_payload(src):
+    """Parse the ENTIRE emitted pass, not a fragment.
+
+    The bug: hand-inserted statements landed mid-expression twice. A fragment
+    extracted around the edit parsed fine; the assembled payload did not.
+    """
+    m = re.search(r'static NSString \*ADDarkReaderBootstrapBuild\([^)]*\)\{(.*?)\n\}', src, re.S)
+    if not m:
+        print("  SKIP     ADDarkReaderBootstrapBuild not found")
+        return True
+    js = literals_in(m.group(1))
+    if len(js) < 30000:
+        print(f"  FAIL     payload extraction only {len(js)} chars - extractor is broken")
+        return False
+    return check('full injected pass', 'function W(){' + js + '}')
 
 
 if __name__ == '__main__':
