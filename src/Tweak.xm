@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.179.0"
+#define AD_VERSION "v5.180.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -552,6 +552,23 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // that owns visible text and lifts ONLY the ones that actually fail, so
          // brand colours that already read fine are untouched.
          "window.__AMZDARK_FIXCONTRAST__=function(){try{"
+           // SCROLL GUARD + RATE LIMIT. The pass measures ~50ms. That is harmless
+           // occasionally and ruinous continuously -- and Amazon's feed lazy-loads
+           // as you scroll, so the MutationObserver below fires in a steady stream
+           // and a 150ms debounce means ~50ms of blocked main thread every 150ms.
+           // That is the scroll lag: not one slow pass, one pass running constantly.
+           // Never run while a scroll is in flight; never run more than once per
+           // 400ms. Both cases schedule a single trailing run so nothing is lost.
+           "if(!window.__ADSCRINIT__){window.__ADSCRINIT__=1;var _st=null;"
+             "addEventListener('scroll',function(){window.__ADSCROLLING__=1;"
+               "clearTimeout(_st);_st=setTimeout(function(){window.__ADSCROLLING__=0;},180);},"
+               "{passive:true,capture:true});}"
+           "var _nw=Date.now();"
+           "if(window.__ADSCROLLING__||(window.__ADLAST__&&_nw-window.__ADLAST__<400)){"
+             "if(!window.__ADTRAIL__){window.__ADTRAIL__=setTimeout(function(){"
+               "window.__ADTRAIL__=null;try{window.__AMZDARK_FIXCONTRAST__();}catch(e){}},450);}"
+             "return -2;}"
+           "window.__ADLAST__=_nw;"
            "var FG='%@';"
            "function ch(v){v=v/255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);}"
            "function lum(c){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\)/.exec(c);"
@@ -1728,7 +1745,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // Re-run the repair as the page fills in (carousels, lazy tiles), debounced
          // so a busy DOM cannot turn this into a hot loop.
          "try{var _t=null;new MutationObserver(function(){clearTimeout(_t);"
-           "_t=setTimeout(function(){try{window.__AMZDARK_FIXCONTRAST__();}catch(e){}},150);})"
+           "_t=setTimeout(function(){try{window.__AMZDARK_FIXCONTRAST__();}catch(e){}},400);})"
            ".observe(document.documentElement,{childList:true,subtree:true});}catch(e){}"
            // Heartbeat: cheap, idempotent, and the only thing that survives a
            // late re-mount of an already-processed subtree.
@@ -3389,6 +3406,18 @@ static void ADHeaderProbe(void){
     }
     @try {
         if ([effect isKindOfClass:[UIBlurEffect class]]){
+            // BAR-SIZED: no blur at all. Substituting a dark MATERIAL still leaves a
+            // backdrop that samples whatever passes behind it, so the home header
+            // went pale the moment a bright hero card scrolled under it -- and any
+            // effect Amazon re-applied put that sampling straight back, undoing the
+            // nil we set in didMoveToWindow. A flat opaque fill cannot be dragged
+            // light by the content, and costs nothing per frame.
+            CGFloat h = self.bounds.size.height, w = self.bounds.size.width;
+            if (h > 0 && h < 160 && w > 200){
+                %orig(nil);
+                ((UIView *)self).backgroundColor = ADColorFromHex(gP.bgHex);
+                return;
+            }
             %orig([UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterialDark]);
             return;
         }
