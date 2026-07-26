@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.200.0"
+#define AD_VERSION "v5.201.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -572,15 +572,27 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "if(!el||el.nodeType!==1||el.hasAttribute('data-adcrt'))return false;"
            "var r=el.getBoundingClientRect();"
            "if(r.width<200||r.height<80)return false;"
-           "var art=false;"
+           // The container must PAINT the artwork itself. A product tile holds its
+           // photo in a child <img> with the text below, and must never match.
            "var bi=getComputedStyle(el).backgroundImage||'';"
-           "if(bi.indexOf('url(')>=0)art=true;"
-           "if(!art){try{var im=el.querySelector('img,picture');"
-             "if(im){var ir=im.getBoundingClientRect();"
-               "if(ir.width>200&&ir.height>80)art=true;"
-               "else if(!ir.width&&(im.getAttribute('width')||'').length)art=true;}"
-           "}catch(e){}}"
-           "if(!art)return false;"
+           "if(bi.indexOf('url(')<0)return false;"
+           // and the caption must actually sit ON it: at least one text child
+           // whose box falls inside the container's own painted area
+           "var over=false;"
+           "try{var er=el.getBoundingClientRect();"
+             "var tq=el.querySelectorAll('span,p,h1,h2,h3');"
+             "for(var t9=0;t9<tq.length&&t9<30;t9++){"
+               "var te9=tq[t9];var has=false;"
+               "for(var c9=0;c9<te9.childNodes.length&&c9<4;c9++){"
+                 "var n9=te9.childNodes[c9];"
+                 "if(n9.nodeType===3&&n9.nodeValue&&n9.nodeValue.trim()){has=true;break;}}"
+               "if(!has)continue;"
+               "var tr9=te9.getBoundingClientRect();"
+               "if(tr9.width<10||tr9.height<6)continue;"
+               "if(tr9.left>=er.left-2&&tr9.right<=er.right+2&&"
+                  "tr9.top>=er.top-2&&tr9.bottom<=er.bottom+2){over=true;break;}}"
+           "}catch(e){}"
+           "if(!over)return false;"
            "el.setAttribute('data-adcrt','1');"
            "window.__AD_CRT__=(window.__AD_CRT__||0)+1;return true;"
          "}catch(e){return false;}}"
