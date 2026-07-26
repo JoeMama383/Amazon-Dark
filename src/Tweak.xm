@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.184.0"
+#define AD_VERSION "v5.185.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -708,22 +708,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                // to whiten them. Anything over 48px already returned true above, so
                // no product photo can reach this line.
                "if(el4.closest('button,[role=button],[aria-label],[data-action],"
-                 "[class*=button],[class*=btn],[class*=action]')){"
-                 // ...but a RASTER PHOTO inside a control is still a photo. Store
-                 // marks and avatars are small images sitting inside links, and the
-                 // rule above was silhouetting them into solid white discs. A sprite
-                 // glyph is tiny and usually vector; a real bitmap is not.
-                 "if(tg4==='img'){"
-                   "var nw2=el4.naturalWidth||0,nh2=el4.naturalHeight||0;"
-                   "if(nw2>96||nh2>96)return true;"
-                   // a circular clip on an ancestor means avatar / store mark, and
-                   // the radius usually lives on the crop container, not the <img>
-                   "var pp2=el4.parentElement,dp2=0;"
-                   "while(pp2&&dp2++<3){"
-                     "var pbr2=String(getComputedStyle(pp2).borderRadius||'');"
-                     "if(/%/.test(pbr2)&&parseFloat(pbr2)>=40)return true;"
-                     "pp2=pp2.parentElement;}}"
-                 "return false;}"
+                 "[class*=button],[class*=btn],[class*=action]'))return false;"
                "return true;}"
              "if(tg4==='img'){var nw=el4.naturalWidth||0,nh=el4.naturalHeight||0;"
                "if(nw>400||nh>400)return true;}"
@@ -1108,33 +1093,6 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "+'|art='+ov5.toFixed(2)"
                  "+'|by='+(ce2.__adBgBy||'-'));}"
              "window.__AD_ADCARD__=(hits.length?('n='+hits.length+' '+hits.join(' ~ ')):('clean scanned='+scanned));"
-           // SHOP PROBE. Two symptoms on the shopping pane -- the card glyph flashing
-           // white then going dark, and store circles rendering as blank white discs
-           // -- are both the silhouette signature: brightness(0) invert(1) on an
-           // image IS a solid white block. This reports every small element inside a
-           // control with the properties that separate a sprite glyph from a photo:
-           // natural bitmap size, its own and its ancestor's border-radius, the
-           // computed filter, and which pass claimed it. Once per settled document.
-           "try{if(document.readyState==='complete'&&!window.__AD_SHOP_DONE__){"
-             "window.__AD_SHOP_DONE__=1;"
-             "var SH=document.querySelectorAll('img,svg,span,div'),so=[];"
-             "for(var si=0;si<SH.length&&si<800&&so.length<8;si++){var se=SH[si];"
-               "var sr=se.getBoundingClientRect();"
-               "if(sr.width<16||sr.width>90||sr.height<16||sr.height>90)continue;"
-               "if(!se.closest||!se.closest('button,[role=button],[aria-label],a'))continue;"
-               "var sc=getComputedStyle(se);"
-               "var pe=se.parentElement;"
-               "var pbr=pe?String(getComputedStyle(pe).borderRadius||'-'):'-';"
-               "var bgi=String(sc.backgroundImage||'');"
-               "so.push(se.tagName+'@'+Math.round(sr.width)+'x'+Math.round(sr.height)"
-                 "+'|nat='+(se.naturalWidth||0)+'x'+(se.naturalHeight||0)"
-                 "+'|br='+sc.borderRadius+'|pbr='+pbr"
-                 "+'|flt='+String(sc.filter).slice(0,24)"
-                 "+'|bgi='+(bgi.indexOf('url(')>=0?'y':'n')"
-                 "+'|by='+(se.__adBy||'-')"
-                 "+'|'+String(se.currentSrc||se.src||'').slice(-20));}"
-             "window.__AD_SHOP__=(so.length?so.join(' ~ '):('none scanned='+SH.length));"
-           "}}catch(e){window.__AD_SHOP__='err '+e;}"
            "}catch(e){window.__AD_ADCARD__='err '+e;}"
                       // BOX KILLER. A dark background anywhere between artwork and the light
            // card it sits on is a box we or Dark Reader painted under transparent
@@ -1784,7 +1742,6 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(window.__AD_TEXTBOX__?(' TEXTBOX['+window.__AD_TEXTBOX__+']'):'')"
                "+(window.__AD_ADCARD__?(' ADCARD['+window.__AD_ADCARD__+']'):'')"
                "+(window.__AD_SCREW__?(' SCREW['+window.__AD_SCREW__+']'):'')"
-               "+(window.__AD_SHOP__?(' SHOP['+window.__AD_SHOP__+']'):'')"
                "+(window.__AD_PERF__?(' PERF['+window.__AD_PERF__+']'):'')"
                "+(window.__AD_TILEART__?(' TILEART['+window.__AD_TILEART__+']'):'')"
                "+(window.__AD_BOXKILL__?(' BOXKILL['+window.__AD_BOXKILL__+']'):'')"
