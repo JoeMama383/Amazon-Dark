@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.194.0"
+#define AD_VERSION "v5.196.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2455,7 +2455,8 @@ static void ADDarkenNativeTree(UIView *v, int depth, int *n){
 // Measure a UIImage the same way the web passes measure a sprite: fraction of
 // transparent pixels, and the average luminance of the opaque ones. A glyph is
 // mostly clear with dark ink; a photograph is opaque edge to edge.
-static BOOL ADImageIsDarkGlyph(UIImage *img, CGFloat *clearOut, CGFloat *avgOut){
+static BOOL ADImageIsDarkGlyph(UIImage *img, CGFloat *clearOut, CGFloat *avgOut,
+                               CGFloat *satOut){
     if (!img) return NO;
     @try {
         CGImageRef cg = img.CGImage;
@@ -2473,21 +2474,27 @@ static BOOL ADImageIsDarkGlyph(UIImage *img, CGFloat *clearOut, CGFloat *avgOut)
         CGContextDrawImage(ctx, CGRectMake(0, 0, N, N), cg);
         CGContextRelease(ctx);
         int total = N * N, clear = 0, cnt = 0, lite = 0;
-        double sum = 0;
+        double sum = 0, sat = 0;
         for (int i = 0; i < total; i++){
             unsigned char *px = buf + (i * 4);
             if (px[3] < 40){ clear++; continue; }
             double l = 0.2126*px[0] + 0.7152*px[1] + 0.0722*px[2];
             sum += l; cnt++;
             if (l > 153) lite++;
+            // channel spread: black and grey ink sit near zero, brand colour does not
+            int mx = px[0] > px[1] ? px[0] : px[1]; if (px[2] > mx) mx = px[2];
+            int mn = px[0] < px[1] ? px[0] : px[1]; if (px[2] < mn) mn = px[2];
+            sat += (mx - mn);
         }
         free(buf);
         if (!cnt) return NO;
         CGFloat clearFrac = (CGFloat)clear / (CGFloat)total;
         CGFloat avg = (CGFloat)((sum / cnt) / 255.0);
         CGFloat liteFrac = (CGFloat)lite / (CGFloat)cnt;
+        CGFloat satFrac = (CGFloat)((sat / cnt) / 255.0);
         if (clearOut) *clearOut = clearFrac;
         if (avgOut) *avgOut = avg;
+        if (satOut) *satOut = satFrac;
         // opaque edge to edge => a picture, never touched
         if (clearFrac < 0.35) return NO;
         // already light enough to read on a dark ground
@@ -2495,6 +2502,26 @@ static BOOL ADImageIsDarkGlyph(UIImage *img, CGFloat *clearOut, CGFloat *avgOut)
         return YES;
     } @catch(...) {}
     return NO;
+}
+
+static BOOL gADGlyphWriting = NO;
+static void ADLiftNativeGlyph(UIImageView *iv);
+// Try immediately, then converge over the first second. Each attempt is a cheap
+// no-op once the image has been handled, because the guard is keyed on it.
+static void ADScheduleGlyphLift(UIImageView *iv){
+    if (!iv) return;
+    @try {
+        ADLiftNativeGlyph(iv);
+        __weak UIImageView *w = iv;
+        const double when[] = { 0.03, 0.10, 0.25, 0.60, 1.20 };
+        for (int i = 0; i < 5; i++){
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(when[i] * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{
+                @try { UIImageView *v2 = w; if (v2 && v2.window) ADLiftNativeGlyph(v2); }
+                @catch(...) {}
+            });
+        }
+    } @catch(...) {}
 }
 
 static int gNatGlyphLogged = 0;
@@ -2522,21 +2549,28 @@ static void ADLiftNativeGlyph(UIImageView *iv){
             p = p.superview;
         }
         if (gl < 0 || gl > 0.30) return;
-        CGFloat clearFrac = 0, avg = 0;
-        if (!ADImageIsDarkGlyph(iv.image, &clearFrac, &avg)) return;
-        // Anything beyond glyph size must be unmistakably a mark rather than a
-        // picture: mostly transparent, and clearly dark ink.
-        if (!glyphSized && (clearFrac < 0.50 || avg > 0.35)) return;
+        CGFloat clearFrac = 0, avg = 0, satFrac = 0;
+        if (!ADImageIsDarkGlyph(iv.image, &clearFrac, &avg, &satFrac)) return;
+        // Beyond glyph size this is a brand mark, and only a BLACK one is
+        // invisible on a dark ground. A coloured logo already reads, so it stays
+        // exactly as the brand drew it.
+        if (!glyphSized){
+            if (clearFrac < 0.50) return;   // must be a mark, not a picture
+            if (avg > 0.12) return;         // near-black ink only
+            if (satFrac > 0.10) return;     // neutral only: no brand colour
+        }
         UIImage *lifted = [iv.image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        gADGlyphWriting = YES;          // our own write must not re-enter setImage:
         iv.image = lifted;
+        gADGlyphWriting = NO;
         iv.tintColor = [UIColor colorWithRed:0.910 green:0.902 blue:0.890 alpha:1.0];
         objc_setAssociatedObject(iv, kNatGlyphKey, lifted, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         gNatGlyphTotal++;
         if (gNatGlyphLogged < 24){
             gNatGlyphLogged++;
-            ADLog(@"natglyph #%d %s %.0fx%.0f clear=%.2f avg=%.2f ground=%.2f %s",
+            ADLog(@"natglyph #%d %s %.0fx%.0f clear=%.2f avg=%.2f sat=%.2f ground=%.2f %s",
                   gNatGlyphTotal, object_getClassName(iv), sz.width, sz.height,
-                  clearFrac, avg, gl, glyphSized ? "glyph" : "mark");
+                  clearFrac, avg, satFrac, gl, glyphSized ? "glyph" : "mark");
         }
     } @catch(...) {}
 }
@@ -4170,15 +4204,7 @@ static void ADRunProbe(void){
         // Measured lift for small monochrome assets on a dark ground -- the
         // Interests plus glyph is one of these, and it is native, so no web
         // pass could ever have reached it. Photographs fail the alpha test.
-        ADLiftNativeGlyph(self);
-        {
-            __weak UIImageView *wiv9 = self;
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)),
-                           dispatch_get_main_queue(), ^{
-                @try { UIImageView *iv9 = wiv9; if (iv9 && iv9.window) ADLiftNativeGlyph(iv9); }
-                @catch(...) {}
-            });
-        }
+        ADScheduleGlyphLift(self);
         // The tab bar owns its own colours. Both branches below repaint: the backdrop
         // drops a dark panel behind any transparent artwork, and the catch-up
         // glyphifies and re-tints. Between them that is the white cart icon and the
@@ -4399,6 +4425,18 @@ static UIImage *ADGlyphify(UIImage *img){
         %orig;
         return;
     }
+    // A remotely fetched glyph arrives here, often well after didMoveToWindow.
+    // Measure from the arrival so the dark original is never shown and then
+    // corrected -- that correction is what reads as a colour flip.
+    @try {
+        if (gP.enabled && !gADGlyphWriting) {
+            __weak UIImageView *wArr = self;
+            dispatch_async(dispatch_get_main_queue(), ^{
+                @try { UIImageView *v3 = wArr; if (v3 && v3.window) ADScheduleGlyphLift(v3); }
+                @catch(...) {}
+            });
+        }
+    } @catch(...) {}
     // Detached: nothing to walk yet. Defer to didMoveToWindow, where ancestry -- and
     // therefore the tab-bar test -- is knowable.
     if (!self.superview && !self.window) {
