@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.186.0"
+#define AD_VERSION "v5.187.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1766,22 +1766,34 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // properties that separate a sprite glyph from a photo. Once per document.
            "try{if(document.readyState==='complete'&&!window.__AD_SHOP_DONE__){"
              "window.__AD_SHOP_DONE__=1;"
-             "var SH=document.querySelectorAll('img,svg,span,div'),so=[];"
-             "for(var si=0;si<SH.length&&si<800&&so.length<8;si++){var se=SH[si];"
+             "var SH=document.querySelectorAll('img,svg,span,div'),so=[],ssk=0;"
+             "for(var si=0;si<SH.length&&si<3000&&so.length<20;si++){var se=SH[si];"
                "var sr=se.getBoundingClientRect();"
-               "if(sr.width<16||sr.width>90||sr.height<16||sr.height>90)continue;"
+               "if(sr.width<18||sr.width>110||sr.height<18||sr.height>110)continue;"
+               // SQUARE-ISH ONLY. The last run filled its whole budget with 86x32
+               // and 46x20 toolbar chips and never reached anything round.
+               "var asp=sr.width/(sr.height||1);if(asp<0.7||asp>1.45)continue;"
                "if(!se.closest||!se.closest('button,[role=button],[aria-label],a'))continue;"
                "var sc=getComputedStyle(se);"
                "var pe=se.parentElement;"
                "var pbr=pe?String(getComputedStyle(pe).borderRadius||'-'):'-';"
+               // MUST BEAR ART OR BE A CIRCLE. Every entry last time was nat=0x0
+               // with no radius -- plain text spans, telling us nothing.
+               "var bgiu=String(sc.backgroundImage||'').indexOf('url(')>=0;"
+               "var isim=(se.tagName==='IMG'||se.tagName==='svg'||se.tagName==='SVG');"
+               "var circ=(/%%/.test(String(sc.borderRadius||''))||/%%/.test(pbr));"
+               "if(!isim&&!bgiu&&!circ){ssk++;continue;}"
                "so.push(se.tagName+'@'+Math.round(sr.width)+'x'+Math.round(sr.height)"
+                 "+'|cls='+String((se.className&&se.className.baseVal!==undefined)"
+                   "?se.className.baseVal:(se.className||'')).slice(0,22)"
                  "+'|nat='+(se.naturalWidth||0)+'x'+(se.naturalHeight||0)"
                  "+'|br='+sc.borderRadius+'|pbr='+pbr"
                  "+'|flt='+String(sc.filter).slice(0,24)"
                  "+'|bgi='+(String(sc.backgroundImage||'').indexOf('url(')>=0?'y':'n')"
                  "+'|by='+(se.__adBy||'-')"
                  "+'|'+String(se.currentSrc||se.src||'').slice(-20));}"
-             "window.__AD_SHOP__=(so.length?so.join(' ~ '):('none scanned='+SH.length));"
+             "window.__AD_SHOP__=(so.length?(so.join(' ~ ')+' [skipped='+ssk+' of '+SH.length+']')"
+               ":('none scanned='+SH.length+' skipped='+ssk));"
            "}}catch(e){window.__AD_SHOP__='err '+e;}"
            "window.__AD_PERF__='ms='+(Date.now()-__T0)+' cut='+__cut+' '+__ckl.join(' ');"
            "return n+'/'+bfix+'/'+lfix+'/'+gfix+'/'+bigfix+pr;}catch(e){return -1;}};"
