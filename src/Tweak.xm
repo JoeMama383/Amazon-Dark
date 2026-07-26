@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.182.0"
+#define AD_VERSION "v5.183.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1402,8 +1402,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "tgt.style.setProperty('border','1.5px solid rgba(255,255,255,0.65)','important');"
                  "tgt.style.setProperty('box-shadow','none','important');"
                  "tgt.style.setProperty('box-sizing','border-box','important');"
-                 "if(art){var arts=tgt.querySelectorAll('img,i,svg');"
-                   "for(var av=0;av<arts.length&&av<6&&((av&15)||!ovr());av++){"
+                 "if(art){var arts=tgt.querySelectorAll('img,i,svg,use,span,div');"
+                   "for(var av=0;av<arts.length&&av<12&&((av&15)||!ovr());av++){"
                      // NOT artChk here. The parent has ALREADY been positively
                      // identified as a circular control -- we just gave it a dark
                      // fill and a white border -- so its children are that control's
@@ -1414,7 +1414,11 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                      // that matters (never silhouette anything photo-sized) without
                      // that false positive.
                      "var ar9=arts[av].getBoundingClientRect();"
-                     "if(ar9.width>48||ar9.height>48)continue;"
+                     "if(ar9.width>48||ar9.height>48||ar9.width<6||ar9.height<6)continue;"
+                     "var cs9=getComputedStyle(arts[av]),tg9=arts[av].tagName;"
+                     "if(!(tg9==='IMG'||tg9==='SVG'||tg9==='svg'||tg9==='I'||tg9==='USE'"
+                       "||String(cs9.backgroundImage||'').indexOf('url(')>=0"
+                       "||String(cs9.maskImage||cs9.webkitMaskImage||'').indexOf('url(')>=0))continue;"
                      "arts[av].style.setProperty('filter','brightness(0) invert(1)','important');"
                      "arts[av].style.setProperty('background-color','transparent','important');"
                      "arts[av].__adGlyph=1;arts[av].__adBy='compdisc';}}"
@@ -1455,12 +1459,16 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "ce.style.setProperty('border','1.5px solid rgba(255,255,255,0.65)','important');"
                "ce.style.setProperty('box-shadow','none','important');"
                "ce.style.setProperty('box-sizing','border-box','important');"
-               "var cg=ce.querySelectorAll('img,i,svg');"
-               "for(var cg2=0;cg2<cg.length&&cg2<6&&((cg2&15)||!ovr());cg2++){"
+               "var cg=ce.querySelectorAll('img,i,svg,use,span,div');"
+               "for(var cg2=0;cg2<cg.length&&cg2<12&&((cg2&15)||!ovr());cg2++){"
                  // Same reasoning as the compare disc above: the parent is an
                  // identified control, so size is the right test, not provenance.
                  "var cr9=cg[cg2].getBoundingClientRect();"
-                 "if(cr9.width>48||cr9.height>48)continue;"
+                 "if(cr9.width>48||cr9.height>48||cr9.width<6||cr9.height<6)continue;"
+                 "var cs9=getComputedStyle(cg[cg2]),tg9=cg[cg2].tagName;"
+                 "if(!(tg9==='IMG'||tg9==='SVG'||tg9==='svg'||tg9==='I'||tg9==='USE'"
+                   "||String(cs9.backgroundImage||'').indexOf('url(')>=0"
+                   "||String(cs9.maskImage||cs9.webkitMaskImage||'').indexOf('url(')>=0))continue;"
                  "cg[cg2].style.setProperty('filter','brightness(0) invert(1)','important');"
                  "cg[cg2].style.setProperty('background-color','transparent','important');"
                  "cg[cg2].__adGlyph=1;cg[cg2].__adBy='heartdisc';}"
@@ -3438,6 +3446,26 @@ static void ADHeaderProbe(void){
         }
     } @catch(...) {}
     %orig;
+}
+- (void)layoutSubviews {
+    %orig;
+    // BOUNDS ARE ONLY AUTHORITATIVE HERE. setEffect: requires h > 0 to decide a view
+    // is bar-sized, but Amazon sets the effect before layout, when bounds are still
+    // zero -- so that path applied a dark MATERIAL (which still samples the feed)
+    // and nothing ever revisited it. The probe caught exactly that: a 119pt
+    // UIVisualEffectView still holding a live UIBlurEffect.
+    @try {
+        if (!ADRecolorOn() || !self.window) return;
+        CGFloat h = self.bounds.size.height, w = self.bounds.size.width;
+        if (h <= 0 || h >= 160 || w <= 200) return;
+        if (!self.effect) return;                       // already flat
+        static const void *kNilled = &kNilled;
+        int n = [objc_getAssociatedObject(self, kNilled) intValue];
+        if (n >= 4) return;                             // bounded: cannot ping-pong
+        objc_setAssociatedObject(self, kNilled, @(n + 1), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        self.effect = nil;
+        ((UIView *)self).backgroundColor = ADColorFromHex(gP.bgHex);
+    } @catch(...) {}
 }
 - (void)didMoveToWindow {
     %orig;
