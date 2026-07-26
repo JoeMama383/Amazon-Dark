@@ -24,9 +24,12 @@
 
 static NSString * const kAMZ      = @"com.amazon.Amazon";
 static NSString * const kDefaults = @"com.colindavidr.amazondark";
-static const NSTimeInterval kCoverHold    = 5.0;  // fallback only; a themed app signals sooner
+static const NSTimeInterval kCoverHold    = 8.5;  // LAST RESORT. The app guarantees a
+                                                  // signal by t=7.5s, so this must sit above
+                                                  // that or the timer pre-empts the signal -
+                                                  // which is exactly what 3.0s was doing.
 static const NSTimeInterval kCoverFade    = 0.55; // lift animation
-static const NSTimeInterval kCoverHardCap = 6.5;  // absolute max on screen
+static const NSTimeInterval kCoverHardCap = 10.0; // absolute max on screen
 static const NSTimeInterval kReCoverGap   = 8.0;  // ignore re-triggers within
 
 @interface SBSceneView : UIView
@@ -182,7 +185,15 @@ static void ADAttachCoverToScene(UIView *host) {
 
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHold * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{
-            if (myGen == gCoverGen) ADDismissCover();   // never dismiss a newer cover
+            // Log WHICH path lifted the cover. Previously a timer dismissal and a
+            // signal dismissal were indistinguishable except by the absence of the
+            // "COVER ready" line, which is a terrible thing to have to infer.
+            if (myGen == gCoverGen){
+                ADSBLog([NSString stringWithFormat:
+                         @"COVER hold-timer fired at %.2fs (no ready signal arrived)",
+                         CFAbsoluteTimeGetCurrent() - gPresentAt]);
+                ADDismissCover();   // never dismiss a newer cover
+            }
         });
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHardCap * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{

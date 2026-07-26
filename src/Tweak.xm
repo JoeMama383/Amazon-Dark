@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.173.0"
+#define AD_VERSION "v5.174.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2270,10 +2270,14 @@ static void ADPostAppReady(void){
     static BOOL posted = NO;
     static int waits = 0;
     if (posted) return;
-    // Up to 14 x 0.35s = 4.9s of grace, matched to the SpringBoard hold below.
-    if (!ADScreenLooksDark() && waits < 14){
+    // ABSOLUTE deadline, not a retry budget. The callers fire at wildly different
+    // times -- 0.25s, 0.35s, a 60-tick timer, and a 9s backstop -- so a countdown
+    // starting from "whenever we were first called" could push the signal past any
+    // cover cap. On this device the trigger landed at t=5.6s; a 4.9s budget from
+    // there would have signalled at 10.5s, long after the cover had gone.
+    if (!ADScreenLooksDark() && ADUptime() < 7.5){
         waits++;
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)),
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.30 * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{ ADPostAppReady(); });
         return;
     }
