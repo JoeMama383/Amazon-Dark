@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.207.0"
+#define AD_VERSION "v5.208.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3675,6 +3675,59 @@ static void ADInvertRNSVG(UIView *v);
 }
 %end
 
+// Is this view painted over creative artwork? Walks up looking for an image
+// view large enough to be a card creative that actually covers the label.
+static UIImageView *ADCreativeBehind(UIView *v){
+    @try {
+        if (!v) return nil;
+        CGRect vr = [v convertRect:v.bounds toView:nil];
+        UIView *p = v.superview; int d = 0;
+        while (p && d++ < 6){
+            for (UIView *sib in p.subviews){
+                if (sib == v) continue;
+                if (![sib isKindOfClass:[UIImageView class]]) continue;
+                CGRect sr = [sib convertRect:sib.bounds toView:nil];
+                if (sr.size.width < 160 || sr.size.height < 60) continue;
+                if (CGRectIntersectsRect(sr, vr)) return (UIImageView *)sib;
+            }
+            p = p.superview;
+        }
+    } @catch(...) {}
+    return nil;
+}
+
+static int gNatTextLogged = 0;
+static void ADReportNativeCaption(UILabel *lb, UIColor *from, UIColor *to){
+    @try {
+        if (gNatTextLogged >= 10) return;
+        UIImageView *art = ADCreativeBehind(lb);
+        if (!art) return;                       // only the ad-card case matters here
+        gNatTextLogged++;
+        CGFloat r1=0,g1=0,b1=0,a1=0,r2=0,g2=0,b2=0,a2=0;
+        [from getRed:&r1 green:&g1 blue:&b1 alpha:&a1];
+        [to   getRed:&r2 green:&g2 blue:&b2 alpha:&a2];
+        CGRect lr = [lb convertRect:lb.bounds toView:nil];
+        CGRect ar = [art convertRect:art.bounds toView:nil];
+        // what is painted directly behind the label?
+        NSString *behind = @"-";
+        @try {
+            UIView *sv = lb.superview;
+            UIColor *bc = sv.backgroundColor;
+            CGFloat br=0,bg=0,bb=0,ba=0;
+            if (bc && [bc getRed:&br green:&bg blue:&bb alpha:&ba] && ba > 0.05)
+                behind = [NSString stringWithFormat:@"%s/%.2f",
+                          object_getClassName(sv), 0.2126*br+0.7152*bg+0.0722*bb];
+            else behind = [NSString stringWithFormat:@"%s/clear", object_getClassName(sv)];
+        } @catch(...) {}
+        ADLog(@"natcap #%d %s '%@' %.0fx%.0f from=%.2f to=%.2f art=%s@%.0fx%.0f behind=%@",
+              gNatTextLogged, object_getClassName(lb),
+              [(lb.text ?: @"") substringToIndex:MIN((NSUInteger)18, (lb.text ?: @"").length)],
+              lr.size.width, lr.size.height,
+              0.2126*r1+0.7152*g1+0.0722*b1, 0.2126*r2+0.7152*g2+0.0722*b2,
+              object_getClassName(art), ar.size.width, ar.size.height, behind);
+    } @catch(...) {}
+}
+
 %hook UILabel
 - (void)setTextColor:(UIColor *)color {
     if (!ADRecolorOn() || !color || ADIsOwnColor(color)) {
@@ -3684,6 +3737,7 @@ static void ADInvertRNSVG(UIView *v);
     @try {
         UIColor *m = ADModifyUIColor(color, ADColorRoleForeground);
         if (!m) m = color;
+        ADReportNativeCaption(self, color, m);
         %orig(m);
         return;
     } @catch(...) {}
