@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.176.0"
+#define AD_VERSION "v5.177.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -980,7 +980,13 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // not the text's own background, so probe the paint stack under the
            // text run itself. Reports the full stack with each background and
            // its author tag; always reports, including the clean case.
-           "try{var TB=document.querySelectorAll('span,div,p,a,h1,h2,h3,h4,li');"
+           // ONCE PER DOCUMENT. Pure diagnostic, and the most expensive thing in
+           // the whole pass: up to 2500 document.elementsFromPoint hit-tests, each
+           // forcing a full render-tree hit test, re-run on every heartbeat tick
+           // and every MutationObserver debounce. Removed once already in v5.160
+           // ("blocking first paint since v5.155.0") and it came back.
+           "try{if(window.__AD_TB_DONE__)throw 0;window.__AD_TB_DONE__=1;"
+             "var TB=document.querySelectorAll('span,div,p,a,h1,h2,h3,h4,li');"
              "var thits=[],tscan=0;"
              "for(var tb=0;tb<TB.length&&tb<2500&&thits.length<3;tb++){var te3=TB[tb];"
                "var own='';"
@@ -1015,7 +1021,10 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // AD CARD AUDIT. Always reports. A dark box sitting on a light card is
            // the defect; this names the element and, via __adBgBy, the pass that
            // painted it -- so it stops being a guess about which pass to blame.
-           "try{var AC=document.querySelectorAll('div,span,section,a,p');var hits=[],scanned=0;"
+           // Same treatment: 2500 elements with a getComputedStyle each. Useful
+           // once per page, ruinous every 1.2s.
+           "try{if(window.__AD_AC_DONE__)throw 0;window.__AD_AC_DONE__=1;"
+             "var AC=document.querySelectorAll('div,span,section,a,p');var hits=[],scanned=0;"
              "for(var ac=0;ac<AC.length&&ac<2500&&hits.length<4;ac++){var ce2=AC[ac];"
                "var cl6=lum(getComputedStyle(ce2).backgroundColor);"
                "if(cl6===null||cl6>0.30)continue;"
@@ -3350,7 +3359,7 @@ static void ADHeaderProbe(void){
     }
     @try {
         if ([effect isKindOfClass:[UIBlurEffect class]]){
-            %orig([UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemThickMaterialDark]);
+            %orig([UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterialDark]);
             return;
         }
     } @catch(...) {}
@@ -3365,6 +3374,13 @@ static void ADHeaderProbe(void){
         // when it is bar-sized so the top matches the themed content below it.
         if (ADRecolorOn() && self.window && self.bounds.size.height < 160){
             ((UIView *)self).backgroundColor = ADColorFromHex(gP.bgHex);
+            // OPAQUE, not a darker blur. Any UIBlurEffect samples whatever passes
+            // behind it, so on the home tab a bright hero card scrolling under the
+            // header drags it light no matter which "dark" material we pick -- and
+            // a thicker material only costs more to composite every frame. Dropping
+            // the effect makes the bar a flat fill: maximally dark, and it stops
+            // re-blurring the feed on every scroll frame.
+            if (self.effect) self.effect = nil;
             // This is the load-bearing path, not a backstop. initWithEffect: is
             // deliberately NOT hooked: it is an init-family method and this target
             // builds with -fobjc-arc, where Logos init hooks are fragile. Every
@@ -3375,7 +3391,7 @@ static void ADHeaderProbe(void){
             if (!objc_getAssociatedObject(self, kForced) &&
                 [self.effect isKindOfClass:[UIBlurEffect class]]){
                 objc_setAssociatedObject(self, kForced, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                self.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemThickMaterialDark];
+                self.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterialDark];
             }
         }
     } @catch(...) {}
