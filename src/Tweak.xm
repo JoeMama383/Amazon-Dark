@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.204.0"
+#define AD_VERSION "v5.205.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -949,7 +949,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "if(!c||c==='none'||c==='normal')return false;return c.length>2;}"
              "try{var pb=getComputedStyle(el,'::before'),pa=getComputedStyle(el,'::after');"
                "if((hasC(pb)||hasC(pa))&&n<400){var pcl=lum(cs.color);"
-                 "if(pcl!==null&&pcl<0.50){el.style.setProperty('color',FG,'important');n++;}}"
+                 "if(pcl!==null&&pcl<0.50&&!onArt(el)){el.style.setProperty('color',FG,'important');n++;}}"
              "}catch(e){}"
              // MASK-IMAGE ICONS. The mask is the shape; the visible colour is the
              // element's background-color. Dark Reader treats that as a background and
@@ -1003,7 +1003,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "if(lum(cs.color)!==null&&lum(cs.color)>0.5)"
                  "el.style.setProperty('color','#0f1111','important');continue;}"
              "var bl=bgOf(el);var hi=Math.max(fl,bl)+0.05,lo=Math.min(fl,bl)+0.05;"
-             "if(hi/lo<3.0){el.style.setProperty('color',FG,'important');n++;}}"
+             "if(hi/lo<3.0&&!onArt(el)){el.style.setProperty('color',FG,'important');n++;}}"
 
            // Clear stray dark square wrappers around the buttons (the box that
            // can extend past the pill). Shapes/borders are persistent CSS above.
@@ -1472,7 +1472,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "if(ttag==='svg'){try{"
                  "var fl4=lum(tcs.fill),sl4=lum(tcs.stroke),cl5=lum(tcs.color);"
                  "var ink=(fl4!==null?fl4:(sl4!==null?sl4:cl5));"
-                 "if(ink===null||ink<0.40){"
+                 "if((ink===null||ink<0.40)&&!onArt(te)){"
                    "te.style.setProperty('color','#e8e6e3','important');"
                    "if(fl4===null||fl4<0.40)te.style.setProperty('fill','#e8e6e3','important');"
                    "if(sl4!==null&&sl4<0.40)te.style.setProperty('stroke','#e8e6e3','important');"
@@ -1774,7 +1774,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "||(gaf.content&&gaf.content!=='none'&&gaf.content!=='normal');"
                  "var wtx=false;for(var wz=0;wz<g.childNodes.length;wz++){var wn=g.childNodes[wz];"
                    "if(wn.nodeType===3&&wn.nodeValue&&wn.nodeValue.trim()){wtx=true;break;}}"
-                 "if(pc){var pcl=lum(gsty.color);if(pcl!==null&&pcl<0.6)g.style.setProperty('color',FG,'important');continue;}"
+                 "if(pc){var pcl=lum(gsty.color);"
+                   "if(pcl!==null&&pcl<0.6&&!onArt(g))g.style.setProperty('color',FG,'important');continue;}"
                  "if(!g.children.length&&!wtx&&gr.width<=14&&gr.height<=14){"
                    "var dbl=lum(gsty.backgroundColor);"
                    "if(dbl!==null&&dbl<0.5){g.style.setProperty('background-color',FG,'important');continue;}}}"
@@ -2216,8 +2217,14 @@ static NSString *ADPharmForceJS(void){
                          "if((c2.backgroundImage||'').indexOf('url(')>=0)continue;"
                          "var b2=L(c2.backgroundColor);"
                          "if(b2!==null&&b2>0.5){e2.style.setProperty('background-color','#181a1b','important');n++;}"
+                         "var oa2=false,an2=e2.parentElement,ad3=0;"
+                         "while(an2&&ad3++<4){var ac2=d2.defaultView.getComputedStyle(an2);"
+                           "if((ac2.backgroundImage||'').indexOf('url(')>=0){"
+                             "var ar3=an2.getBoundingClientRect();"
+                             "if(ar3.width>200&&ar3.height>80){oa2=true;break;}}"
+                           "an2=an2.parentElement;}"
                          "var x2=L(c2.color);"
-                         "if(x2!==null&&x2<0.35){e2.style.setProperty('color','#e8e6e3','important');t++;}}"
+                         "if(x2!==null&&x2<0.35&&!oa2){e2.style.setProperty('color','#e8e6e3','important');t++;}}"
                        "try{d2.documentElement.style.setProperty('background-color','#181a1b','important');"
                            "d2.body.style.setProperty('background-color','#181a1b','important');}catch(e){}}"
                    "}catch(e){}"
