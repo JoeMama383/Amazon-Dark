@@ -24,9 +24,9 @@
 
 static NSString * const kAMZ      = @"com.amazon.Amazon";
 static NSString * const kDefaults = @"com.colindavidr.amazondark";
-static const NSTimeInterval kCoverHold    = 3.0;  // dark cover visible time
+static const NSTimeInterval kCoverHold    = 5.0;  // fallback only; a themed app signals sooner
 static const NSTimeInterval kCoverFade    = 0.55; // lift animation
-static const NSTimeInterval kCoverHardCap = 4.0;  // absolute max on screen
+static const NSTimeInterval kCoverHardCap = 6.5;  // absolute max on screen
 static const NSTimeInterval kReCoverGap   = 8.0;  // ignore re-triggers within
 
 @interface SBSceneView : UIView

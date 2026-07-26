@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.171.0"
+#define AD_VERSION "v5.172.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2227,12 +2227,60 @@ static void ADLaunchScreenDarkPass(void){
     } @catch(...) {}
 }
 
+// Lifting the cover is a promise that what is underneath is dark. This posted the
+// moment a web view attached, regardless of what the screen actually looked like,
+// so on a cold launch the cover came off a half-themed app: our text recolouring
+// had landed (light text) while the backgrounds were still light. That reads as
+// "inverted", and the fully unthemed frames read as the white flash. Same cause.
+//
+// Samples the largest opaque surface on screen and retries while it is still light.
+// The deadline is absolute -- after it we post anyway, and SpringBoard's own hard
+// cap would drop the cover regardless, so this can delay the lift but never hang it.
+static void ADDarkScan(UIView *v, int depth, CGFloat *bestArea, CGFloat *bestLum){
+    if (!v || depth > 8 || v.hidden || v.alpha < 0.5) return;
+    @try {
+        CGFloat a = v.bounds.size.width * v.bounds.size.height;
+        UIColor *c = v.backgroundColor;
+        CGFloat r, g, b, al;
+        if (c && a > *bestArea && [c getRed:&r green:&g blue:&b alpha:&al] && al > 0.9){
+            *bestArea = a;
+            *bestLum  = 0.2126*r + 0.7152*g + 0.0722*b;
+        }
+        for (UIView *sv in v.subviews) ADDarkScan(sv, depth + 1, bestArea, bestLum);
+    } @catch(...) {}
+}
+
+static BOOL ADScreenLooksDark(void){
+    @try {
+        UIWindow *key = nil;
+        for (UIWindow *w in [UIApplication sharedApplication].windows)
+            if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
+        if (!key) return NO;
+        CGFloat area = 0, lum = -1;
+        ADDarkScan(key, 0, &area, &lum);
+        if (lum < 0) return NO;                      // nothing opaque yet: not ready
+        CGFloat screen = key.bounds.size.width * key.bounds.size.height;
+        if (area < screen * 0.30) return NO;         // too small to be the backdrop
+        return lum < 0.35;
+    } @catch(...) {}
+    return NO;
+}
+
 static void ADPostAppReady(void){
     static BOOL posted = NO;
+    static int waits = 0;
     if (posted) return;
+    // Up to 14 x 0.35s = 4.9s of grace, matched to the SpringBoard hold below.
+    if (!ADScreenLooksDark() && waits < 14){
+        waits++;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{ ADPostAppReady(); });
+        return;
+    }
     posted = YES;
     notify_post("com.colindavidr.amazondark.ready");
-    ADLog(@"appready posted t=%.1f", ADUptime());
+    ADLog(@"appready posted t=%.1f dark=%d waits=%d",
+          ADUptime(), ADScreenLooksDark() ? 1 : 0, waits);
 }
 static int gWkLogLeft = 6;
 // A one-line dark floor evaluated into whatever document currently exists --
@@ -3258,7 +3306,7 @@ static void ADHeaderProbe(void){
 - (instancetype)initWithEffect:(UIVisualEffect *)effect {
     @try {
         if (ADRecolorOn() && [effect isKindOfClass:[UIBlurEffect class]])
-            return %orig([UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterialDark]);
+            return %orig([UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemThickMaterialDark]);
     } @catch(...) {}
     return %orig;
 }
@@ -3269,7 +3317,7 @@ static void ADHeaderProbe(void){
     }
     @try {
         if ([effect isKindOfClass:[UIBlurEffect class]]){
-            %orig([UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterialDark]);
+            %orig([UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemThickMaterialDark]);
             return;
         }
     } @catch(...) {}
@@ -3291,7 +3339,7 @@ static void ADHeaderProbe(void){
             if (!objc_getAssociatedObject(self, kForced) &&
                 [self.effect isKindOfClass:[UIBlurEffect class]]){
                 objc_setAssociatedObject(self, kForced, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                self.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterialDark];
+                self.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemThickMaterialDark];
             }
         }
     } @catch(...) {}
