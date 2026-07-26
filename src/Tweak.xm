@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.185.0"
+#define AD_VERSION "v5.186.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1742,6 +1742,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(window.__AD_TEXTBOX__?(' TEXTBOX['+window.__AD_TEXTBOX__+']'):'')"
                "+(window.__AD_ADCARD__?(' ADCARD['+window.__AD_ADCARD__+']'):'')"
                "+(window.__AD_SCREW__?(' SCREW['+window.__AD_SCREW__+']'):'')"
+               "+(window.__AD_SHOP__?(' SHOP['+window.__AD_SHOP__+']'):'')"
                "+(window.__AD_PERF__?(' PERF['+window.__AD_PERF__+']'):'')"
                "+(window.__AD_TILEART__?(' TILEART['+window.__AD_TILEART__+']'):'')"
                "+(window.__AD_BOXKILL__?(' BOXKILL['+window.__AD_BOXKILL__+']'):'')"
@@ -1758,6 +1759,30 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(lt.length?(' light='+lt.join(' ')):'')"
                "+(ht.length?(' HEART='+ht.join(' ')):'')+htree;}"
            "}catch(e){pr=' probeERR';}"
+           // SHOP PROBE, standalone. Placed at the top level of the pass, immediately
+           // before the return -- last time I nested it inside the ADCARD block,
+           // which is gated by `throw 0` after its first run, so it may never have
+           // executed at all. Reports every small element inside a control with the
+           // properties that separate a sprite glyph from a photo. Once per document.
+           "try{if(document.readyState==='complete'&&!window.__AD_SHOP_DONE__){"
+             "window.__AD_SHOP_DONE__=1;"
+             "var SH=document.querySelectorAll('img,svg,span,div'),so=[];"
+             "for(var si=0;si<SH.length&&si<800&&so.length<8;si++){var se=SH[si];"
+               "var sr=se.getBoundingClientRect();"
+               "if(sr.width<16||sr.width>90||sr.height<16||sr.height>90)continue;"
+               "if(!se.closest||!se.closest('button,[role=button],[aria-label],a'))continue;"
+               "var sc=getComputedStyle(se);"
+               "var pe=se.parentElement;"
+               "var pbr=pe?String(getComputedStyle(pe).borderRadius||'-'):'-';"
+               "so.push(se.tagName+'@'+Math.round(sr.width)+'x'+Math.round(sr.height)"
+                 "+'|nat='+(se.naturalWidth||0)+'x'+(se.naturalHeight||0)"
+                 "+'|br='+sc.borderRadius+'|pbr='+pbr"
+                 "+'|flt='+String(sc.filter).slice(0,24)"
+                 "+'|bgi='+(String(sc.backgroundImage||'').indexOf('url(')>=0?'y':'n')"
+                 "+'|by='+(se.__adBy||'-')"
+                 "+'|'+String(se.currentSrc||se.src||'').slice(-20));}"
+             "window.__AD_SHOP__=(so.length?so.join(' ~ '):('none scanned='+SH.length));"
+           "}}catch(e){window.__AD_SHOP__='err '+e;}"
            "window.__AD_PERF__='ms='+(Date.now()-__T0)+' cut='+__cut+' '+__ckl.join(' ');"
            "return n+'/'+bfix+'/'+lfix+'/'+gfix+'/'+bigfix+pr;}catch(e){return -1;}};"
          "window.__AMZDARK_APPLY__=function(){try{"
