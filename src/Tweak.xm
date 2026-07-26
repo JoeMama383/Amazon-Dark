@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.180.0"
+#define AD_VERSION "v5.181.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -662,8 +662,14 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // now yields once the budget is spent; elements already handled are
            // marked and skipped cheaply, so successive passes pick up where the last
            // left off and coverage still converges.
-           "var __t0=Date.now(),__ckl=[],__cut=0;"
-           "function __ck(n){try{__ckl.push(n+':'+(Date.now()-__t0));}catch(e){}}"
+           // PER-SECTION budget, not one shared deadline. A single 16ms budget is
+           // first-come-first-served: the sections before RS spend all of it, so
+           // every later loop -- including TQ, the tileart pass that whitens dark
+           // icons -- exits on its first iteration having done nothing. That is the
+           // bugle and the card icon going dark. Each section now gets its own
+           // slice, so no single loop can block, but every loop still gets to run.
+           "var __T0=Date.now(),__t0=__T0,__ckl=[],__cut=0;"
+           "function __ck(n){try{__ckl.push(n+':'+(Date.now()-__T0));__t0=Date.now();}catch(e){}}"
            "function ovr(){if(Date.now()-__t0>16){__cut++;return true;}return false;}"
            "function holdsArt(el6){try{"
              "return !!(el6&&el6.querySelector&&el6.querySelector('img,picture,video,canvas,svg'));"
@@ -1267,7 +1273,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  // than keep paying -- a slightly under-themed glyph beats an
                  // unresponsive app.
                  "window.__ADTMN__=(window.__ADTMN__||0)+1;"
-                 "if(window.__ADTMN__>60){"
+                 "if(window.__ADTMN__>400){"
                    "if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__='budget-hit';return;}"
                  "var pr6=new Image();pr6.crossOrigin='anonymous';"
                  "pr6.onload=function(){try{"
@@ -1736,7 +1742,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(lt.length?(' light='+lt.join(' ')):'')"
                "+(ht.length?(' HEART='+ht.join(' ')):'')+htree;}"
            "}catch(e){pr=' probeERR';}"
-           "window.__AD_PERF__='ms='+(Date.now()-__t0)+' cut='+__cut+' '+__ckl.join(' ');"
+           "window.__AD_PERF__='ms='+(Date.now()-__T0)+' cut='+__cut+' '+__ckl.join(' ');"
            "return n+'/'+bfix+'/'+lfix+'/'+gfix+'/'+bigfix+pr;}catch(e){return -1;}};"
          "window.__AMZDARK_APPLY__=function(){try{"
            "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
@@ -3391,7 +3397,7 @@ static void ADHeaderProbe(void){
             if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
         if (!key) return;
         static int fired = 0;
-        if (fired++ > 6) return;          // a handful of samples, then quiet
+        if (fired++ > 40) return;         // enough samples to cover a scroll
         int n = 0;
         ADHeaderWalk(key, 0, &n);
     } @catch(...) {}
