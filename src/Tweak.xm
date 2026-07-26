@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.208.0"
+#define AD_VERSION "v5.210.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3696,6 +3696,28 @@ static UIImageView *ADCreativeBehind(UIView *v){
     return nil;
 }
 
+static int gNatAnyLogged = 0;
+static void ADReportAnyTextWrite(id lb, UIColor *from, UIColor *to, const char *via){
+    @try {
+        if (gNatAnyLogged >= 14) return;
+        gNatAnyLogged++;
+        NSString *txt = @"";
+        @try { if ([lb respondsToSelector:@selector(text)]) txt = [lb performSelector:@selector(text)] ?: @""; }
+        @catch(...) {}
+        CGFloat r1=0,g1=0,b1=0,a1=0,r2=0,g2=0,b2=0,a2=0;
+        [from getRed:&r1 green:&g1 blue:&b1 alpha:&a1];
+        [to   getRed:&r2 green:&g2 blue:&b2 alpha:&a2];
+        CGRect fr = CGRectZero;
+        @try { if ([lb isKindOfClass:[UIView class]]) fr = [(UIView *)lb convertRect:((UIView *)lb).bounds toView:nil]; }
+        @catch(...) {}
+        ADLog(@"nattext #%d via=%s %s '%@' %.0fx%.0f from=%.2f to=%.2f",
+              gNatAnyLogged, via, object_getClassName(lb),
+              [txt substringToIndex:MIN((NSUInteger)16, txt.length)],
+              fr.size.width, fr.size.height,
+              0.2126*r1+0.7152*g1+0.0722*b1, 0.2126*r2+0.7152*g2+0.0722*b2);
+    } @catch(...) {}
+}
+
 static int gNatTextLogged = 0;
 static void ADReportNativeCaption(UILabel *lb, UIColor *from, UIColor *to){
     @try {
@@ -3737,6 +3759,7 @@ static void ADReportNativeCaption(UILabel *lb, UIColor *from, UIColor *to){
     @try {
         UIColor *m = ADModifyUIColor(color, ADColorRoleForeground);
         if (!m) m = color;
+        ADReportAnyTextWrite(self, color, m, "UILabel.setTextColor");
         ADReportNativeCaption(self, color, m);
         %orig(m);
         return;
@@ -3831,11 +3854,37 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
     } @catch(...) { return in; }
 }
 
+// Diagnostic for the Fabric text path: what the ink was, what we changed it to,
+// and whether a creative-sized image view covers this text.
+static int gFabLogged = 0;
+static void ADReportFabricText(id vObj, NSAttributedString *before, NSAttributedString *after){
+    @try {
+        if (gFabLogged >= 12 || !before || before.length == 0) return;
+        UIColor *c1 = [before attribute:NSForegroundColorAttributeName atIndex:0 effectiveRange:NULL];
+        UIColor *c2 = after.length ? [after attribute:NSForegroundColorAttributeName atIndex:0 effectiveRange:NULL] : nil;
+        CGFloat r1=0,g1=0,b1=0,a1=0,r2=0,g2=0,b2=0,a2=0;
+        BOOL h1 = c1 && [c1 getRed:&r1 green:&g1 blue:&b1 alpha:&a1];
+        BOOL h2 = c2 && [c2 getRed:&r2 green:&g2 blue:&b2 alpha:&a2];
+        gFabLogged++;
+        UIView *v = [vObj isKindOfClass:[UIView class]] ? (UIView *)vObj : nil;
+        UIImageView *art = v ? ADCreativeBehind(v) : nil;
+        CGRect fr = v ? [v convertRect:v.bounds toView:nil] : CGRectZero;
+        ADLog(@"fabtext #%d '%@' %.0fx%.0f from=%@ to=%@ creative=%@",
+              gFabLogged,
+              [before.string substringToIndex:MIN((NSUInteger)18, before.string.length)],
+              fr.size.width, fr.size.height,
+              h1 ? [NSString stringWithFormat:@"%.2f", 0.2126*r1+0.7152*g1+0.0722*b1] : @"-",
+              h2 ? [NSString stringWithFormat:@"%.2f", 0.2126*r2+0.7152*g2+0.0722*b2] : @"-",
+              art ? [NSString stringWithFormat:@"%s", object_getClassName(art)] : @"none");
+    } @catch(...) {}
+}
+
 // Fabric text (new architecture). Setter lives on RCTParagraphComponentView.
 %hook RCTParagraphComponentView
 - (void)setAttributedText:(NSAttributedString *)attributedText {
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
+        @try { ADReportFabricText(self, attributedText, r); } @catch(...) {}
         %orig(r);
         return;
     } @catch(...) {}
@@ -5751,6 +5800,9 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
     ADOpenLog();
     ADRaw("[AmazonDark] " AD_VERSION " init (DarkReader web + native colour engine)");
+    // Which layers are live -- so "no nattext lines" can be read correctly.
+    ADLog(@"engine enabled=%d nativeRecolor=%d webDarkReader=%d",
+          gP.enabled ? 1 : 0, gP.nativeRecolor ? 1 : 0, gP.webDarkReader ? 1 : 0);
     @try {
         // 20ms cadence: the launch window appears somewhere in the first second and
         // must be darkened within the same frame it becomes visible, before the
