@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.211.0"
+#define AD_VERSION "v5.212.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -327,7 +327,13 @@ static NSString *ADFixesLiteral(void){
     // everywhere else. It cannot darken white that is baked into a JPEG's pixels -
     // that needs real pixel work, which is a separate decision.
     NSString *imgBackdrop = gP.imageBackdrop
-        ? [NSString stringWithFormat:@"img{background-color:%s !important;}", gP.bgHex]
+        ? [NSString stringWithFormat:
+             @"img{background-color:%s !important;}"
+             // ...but never behind a logo laid over a creative: the panel would
+             // paint a dark bar across the artwork instead of backing a glyph.
+             "html body [data-adcrt] img[src],"
+             "html body img[data-adonart]"
+             "{background-color:transparent !important;}", gP.bgHex]
         : @"";
     return [NSString stringWithFormat:
             @"{css:'"
@@ -1203,6 +1209,18 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "try{var CQ=document.querySelectorAll('div,section,a,li');var mn=0;"
              "for(var cq=0;cq<CQ.length&&cq<1200;cq++){if(_adMark(CQ[cq]))mn++;}"
              "if(mn)window.__AD_CRTN__='n='+mn;"
+           "}catch(e){}"
+                      // Mark images whose box falls on a creative, so the backdrop rule can
+           // exclude them. Attribute-based so the exclusion is pure CSS once set.
+           "try{var BD=document.querySelectorAll('img');var bdn=0;"
+             "for(var bd=0;bd<BD.length&&bd<300;bd++){var be=BD[bd];"
+               "if(be.hasAttribute('data-adonart'))continue;"
+               "var brr=be.getBoundingClientRect();"
+               "if(brr.width<20||brr.height<10)continue;"
+               "if(typeof artOverlap!=='function')break;"
+               "if(artOverlap(brr)<0.6)continue;"
+               "be.setAttribute('data-adonart','1');bdn++;}"
+             "if(bdn)window.__AD_ONART__='n='+bdn;"
            "}catch(e){}"
                       // PHOTO RESCUE. Runs before anything else and judges by computed
            // result, not by our own bookkeeping -- a stylesheet rule leaves no
@@ -4613,7 +4631,11 @@ static void ADRunProbe(void){
         // near-black panel reads as a box instead of a backdrop.
         CGFloat bw = self.bounds.size.width, bh = self.bounds.size.height;
         BOOL surfDark = ADAncestorSurfaceIsDark(self);
-        if (gP.imageBackdrop && (bw > 48 || bh > 48) && !ADIsChromeGlyphContext(self) && surfDark){
+        // A creative behind this image means the visible ground is a photo, not
+        // the dark ancestor colour -- a panel there is a black box over artwork.
+        BOOL overArt = (ADCreativeBehind(self) != nil);
+        if (gP.imageBackdrop && (bw > 48 || bh > 48) && !ADIsChromeGlyphContext(self)
+            && surfDark && !overArt){
             UIImage *img = self.image;
             if (img && img.CGImage){
                 CGImageAlphaInfo a = CGImageGetAlphaInfo(img.CGImage);
