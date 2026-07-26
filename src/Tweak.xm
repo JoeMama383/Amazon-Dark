@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.170.0"
+#define AD_VERSION "v5.171.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3207,8 +3207,61 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
 }
 %end
 
+// ── HEADER PROBE ────────────────────────────────────────────────────────────
+// Reports what actually paints the top band once a scroll settles. The search
+// header is dark at rest and pale after scrolling, which is the signature of a
+// live backdrop sampling whatever passes beneath it -- but "which view" has been
+// assumed twice already, so this names the class, its layer class, and the blur
+// style rather than inferring them.
+static void ADHeaderWalk(UIView *v, int depth, int *n){
+    if (!v || depth > 14 || *n >= 8 || v.hidden || v.alpha < 0.05) return;
+    @try {
+        CGRect f = [v convertRect:v.bounds toView:nil];
+        if (f.origin.y < 130 && CGRectGetMaxY(f) > 0 && f.size.width > 120 && f.size.height > 8){
+            const char *cn = object_getClassName(v);
+            const char *ln = object_getClassName(v.layer);
+            const char *ef = "-";
+            if ([v isKindOfClass:[UIVisualEffectView class]]){
+                UIVisualEffect *e = ((UIVisualEffectView *)v).effect;
+                ef = e ? object_getClassName(e) : "nil";
+            }
+            CGFloat r = -1, g = -1, b = -1, a = -1;
+            if (v.backgroundColor) [v.backgroundColor getRed:&r green:&g blue:&b alpha:&a];
+            (*n)++;
+            ADLog(@"HEADER[%s layer=%s effect=%s y=%.0f h=%.0f bg=%.2f,%.2f,%.2f/%.2f]",
+                  cn, ln, ef, f.origin.y, f.size.height, r, g, b, a);
+        }
+        for (UIView *sv in v.subviews) ADHeaderWalk(sv, depth + 1, n);
+    } @catch(...) {}
+}
+
+static void ADHeaderProbe(void){
+    @try {
+        if (!gP.enabled) return;
+        UIWindow *key = nil;
+        for (UIWindow *w in [UIApplication sharedApplication].windows)
+            if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
+        if (!key) return;
+        static int fired = 0;
+        if (fired++ > 6) return;          // a handful of samples, then quiet
+        int n = 0;
+        ADHeaderWalk(key, 0, &n);
+    } @catch(...) {}
+}
+
 // ─── system chrome that has its own switches rather than colours ───────────────────
 %hook UIVisualEffectView
+// initWithEffect: does NOT route through setEffect:, so a light blur handed in at
+// construction was never substituted. That is the home-tab search header: at rest
+// the page behind it is dark so the backdrop looks correct, and the moment a bright
+// hero card scrolls underneath, the light material samples it and the band goes pale.
+- (instancetype)initWithEffect:(UIVisualEffect *)effect {
+    @try {
+        if (ADRecolorOn() && [effect isKindOfClass:[UIBlurEffect class]])
+            return %orig([UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterialDark]);
+    } @catch(...) {}
+    return %orig;
+}
 - (void)setEffect:(UIVisualEffect *)effect {
     if (!ADRecolorOn()) {
         %orig;
@@ -3231,6 +3284,15 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
         // when it is bar-sized so the top matches the themed content below it.
         if (ADRecolorOn() && self.window && self.bounds.size.height < 160){
             ((UIView *)self).backgroundColor = ADColorFromHex(gP.bgHex);
+            // Belt and braces for a view built before our hooks were live, or one
+            // Amazon re-skins on scroll. Flagged so setting the effect (which
+            // triggers layout) cannot re-enter and loop.
+            static const void *kForced = &kForced;
+            if (!objc_getAssociatedObject(self, kForced) &&
+                [self.effect isKindOfClass:[UIBlurEffect class]]){
+                objc_setAssociatedObject(self, kForced, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                self.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterialDark];
+            }
         }
     } @catch(...) {}
 }
@@ -3268,6 +3330,7 @@ static const void *kADScrollPendKey = &kADScrollPendKey;
                 if (!ss) return;
                 objc_setAssociatedObject(ss, kADScrollPendKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
                 @try { if (ADRecolorOn() && ss.window) ADSweepViewTree(ss, 0, NO); } @catch(...) {}
+                @try { ADHeaderProbe(); } @catch(...) {}
             });
     } @catch(...) {}
 }
