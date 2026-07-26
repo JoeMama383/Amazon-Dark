@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.181.0"
+#define AD_VERSION "v5.182.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -701,6 +701,14 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                // icon may still be treated as a glyph
                "if(!(r4.width<=48&&r4.height<=48))return true;"
                "if(/sbs-pill-image|icon/i.test(cl4))return false;"
+               // A GLYPH-SIZED element inside an interactive control is chrome,
+               // whatever it happens to be overlaid on. The compare/list buttons sit
+               // on top of the product image, so they inherit the search-result
+               // container and every guarded site read them as artwork and refused
+               // to whiten them. Anything over 48px already returned true above, so
+               // no product photo can reach this line.
+               "if(el4.closest('button,[role=button],[aria-label],[data-action],"
+                 "[class*=button],[class*=btn],[class*=action]'))return false;"
                "return true;}"
              "if(tg4==='img'){var nw=el4.naturalWidth||0,nh=el4.naturalHeight||0;"
                "if(nw>400||nh>400)return true;}"
@@ -3368,10 +3376,11 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
 // assumed twice already, so this names the class, its layer class, and the blur
 // style rather than inferring them.
 static void ADHeaderWalk(UIView *v, int depth, int *n){
-    if (!v || depth > 14 || *n >= 8 || v.hidden || v.alpha < 0.05) return;
+    if (!v || depth > 20 || *n >= 14 || v.hidden || v.alpha < 0.05) return;
     @try {
         CGRect f = [v convertRect:v.bounds toView:nil];
-        if (f.origin.y < 130 && CGRectGetMaxY(f) > 0 && f.size.width > 120 && f.size.height > 8){
+        if (f.origin.y < 130 && CGRectGetMaxY(f) > 0 && f.size.width > 120 &&
+            f.size.height > 8 && f.size.height < 220){
             const char *cn = object_getClassName(v);
             const char *ln = object_getClassName(v.layer);
             const char *ef = "-";
