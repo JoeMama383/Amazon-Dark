@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.205.0"
+#define AD_VERSION "v5.206.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -650,8 +650,20 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "function lum(c){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\)/.exec(c);"
              "if(!m)return null;var a=m[4]===undefined?1:parseFloat(m[4]);if(a<0.1)return null;"
              "return 0.2126*ch(+m[1])+0.7152*ch(+m[2])+0.0722*ch(+m[3]);}"
-           "function bgOf(e){while(e){var l=lum(getComputedStyle(e).backgroundColor);"
-             "if(l!==null)return l;e=e.parentElement;}return 0.02;}"
+           // Returns null when the effective ground is ARTWORK rather than a
+           // colour. Crucially this is true from the moment CSS applies -- it
+           // reads the declaration, not the loaded pixels -- so it holds on the
+           // very first pass, before the creative has downloaded.
+           "function bgOf(e){var d=0;"
+             "while(e&&d++<14){var cs9=getComputedStyle(e);"
+               "if((cs9.backgroundImage||'').indexOf('url(')>=0){"
+                 "var tg9=(e.tagName||'').toLowerCase();"
+                 "if(tg9!=='body'&&tg9!=='html'){"
+                   "var r9=e.getBoundingClientRect();"
+                   "if(r9.width>=110&&r9.height>=60)return null;}}"
+               "var l=lum(cs9.backgroundColor);"
+               "if(l!==null)return l;e=e.parentElement;}"
+             "return 0.02;}"
            // Darkening blend modes are destructive on a dark theme: multiply/darken/
            // color-burn all SUBTRACT light, so against a dark backdrop they crush the
            // element toward black. That is what veiled the home tiles (fixed in v5.8.0
@@ -884,7 +896,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                // this does not catch the glyphs we actually want.
                "var isI=el.tagName.toLowerCase()==='img';"
                "var hasAlt=isI&&el.getAttribute&&(el.getAttribute('alt')||'').trim().length>1;"
-               "if(gr.width>5&&gr.width<=lim&&gr.height>5&&gr.height<=lim&&!SKIP.test(cn2)&&!ot&&bgOf(el)<=0.5&&!inContent&&(inFlt||!hasAlt)){"
+               "if(gr.width>5&&gr.width<=lim&&gr.height>5&&gr.height<=lim&&!SKIP.test(cn2)&&!ot&&(function(){var b9=bgOf(el);return b9!==null&&b9<=0.5;})()&&!inContent&&(inFlt||!hasAlt)){"
                  "var hasB=cs.backgroundImage&&cs.backgroundImage!=='none';"
                  "if(isI||hasB){"
                    // Guard BEFORE the write. This ran after it, so a product photo
@@ -903,13 +915,13 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                // Any image sitting on a LIGHT surface -- promo cards, banners,
                // hero lockups like the pharmacy wordmark -- must not carry the
                // dark backdrop. No width cap: a wide logo needs this too.
-               "else if(bgOf(el.parentElement||el)>0.06){"
+               "else if((function(){var b8=bgOf(el.parentElement||el);return b8!==null&&b8>0.06;})()){"
                  "el.style.setProperty('background-color','transparent','important');}}"
              "try{if(lfix<500&&el.tagName){var tn3=el.tagName.toLowerCase();"
                "if(tn3!=='img'&&tn3!=='svg'&&tn3!=='canvas'){"
                  "var ownbl=lum(cs.backgroundColor);"
                  "if(ownbl!==null&&ownbl<0.25){"
-                   "var pbl=bgOf(el.parentElement||el);"
+                   "var pbl=bgOf(el.parentElement||el);if(pbl===null)pbl=0.02;"
                    // Surface is a distinct colour (teal) or light, and clearly
                    // lighter than the element's own near-black fill: our box, not
                    // a real chip. Margin of 0.12 keeps genuine dark-on-dark chips.
@@ -1002,7 +1014,11 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "+'^'+pp.slice(0,28)+'/'+cs.color;}}catch(e){}"
                "if(lum(cs.color)!==null&&lum(cs.color)>0.5)"
                  "el.style.setProperty('color','#0f1111','important');continue;}"
-             "var bl=bgOf(el);var hi=Math.max(fl,bl)+0.05,lo=Math.min(fl,bl)+0.05;"
+             "var bl=bgOf(el);"
+             // ground is artwork: we cannot know the contrast, so leave the site's
+             // own colour alone rather than guessing and correcting later
+             "if(bl===null)continue;"
+             "var hi=Math.max(fl,bl)+0.05,lo=Math.min(fl,bl)+0.05;"
              "if(hi/lo<3.0&&!onArt(el)){el.style.setProperty('color',FG,'important');n++;}}"
 
            // Clear stray dark square wrappers around the buttons (the box that
@@ -1728,7 +1744,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "__ck('CDU');"
              "for(var di=0;di<CDU.length&&di<20&&((di&15)||!ovr());di++){var card=CDU[di];"
                "var cr=card.getBoundingClientRect();if(cr.width<120||cr.height<80)continue;"
-               "if(bgOf(card)<0.4)continue;"
+               "var bc9=bgOf(card);if(bc9===null||bc9<0.4)continue;"
                "var kids=card.querySelectorAll('*');"
                "for(var ki=0;ki<kids.length&&ki<250&&((ki&15)||!ovr());ki++){var kd=kids[ki];"
                  "var kbl=lum(getComputedStyle(kd).backgroundColor);"
