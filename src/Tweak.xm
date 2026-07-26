@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.210.0"
+#define AD_VERSION "v5.211.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3904,6 +3904,27 @@ static void ADReportFabricText(id vObj, NSAttributedString *before, NSAttributed
 %hook RCTTextView
 - (void)setTextStorage:(NSTextStorage *)textStorage {
     @try {
+        // Diagnostic: which path actually carries the ad-card captions.
+        @try {
+            static int pLog = 0;
+            if (pLog < 10 && textStorage && textStorage.length){
+                pLog++;
+                UIColor *pc = [textStorage attribute:NSForegroundColorAttributeName
+                                             atIndex:0 effectiveRange:NULL];
+                CGFloat pr2=0,pg=0,pb=0,pa=0;
+                BOOL ok = pc && [pc getRed:&pr2 green:&pg blue:&pb alpha:&pa];
+                id sObj = (id)self;   // class is only forward-declared here
+                UIView *pv = [sObj isKindOfClass:[UIView class]] ? (UIView *)sObj : nil;
+                CGRect pf = pv ? [pv convertRect:pv.bounds toView:nil] : CGRectZero;
+                UIImageView *pa2 = pv ? ADCreativeBehind(pv) : nil;
+                ADLog(@"papertext #%d '%@' %.0fx%.0f ink=%@ creative=%@",
+                      pLog,
+                      [textStorage.string substringToIndex:MIN((NSUInteger)18, textStorage.string.length)],
+                      pf.size.width, pf.size.height,
+                      ok ? [NSString stringWithFormat:@"%.2f", 0.2126*pr2+0.7152*pg+0.0722*pb] : @"-",
+                      pa2 ? @"YES" : @"none");
+            }
+        } @catch(...) {}
         if (ADRecolorOn() && textStorage.length){
             NSRange full = NSMakeRange(0, textStorage.length);
             [textStorage enumerateAttribute:NSForegroundColorAttributeName inRange:full
@@ -5800,9 +5821,14 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
     ADOpenLog();
     ADRaw("[AmazonDark] " AD_VERSION " init (DarkReader web + native colour engine)");
-    // Which layers are live -- so "no nattext lines" can be read correctly.
-    ADLog(@"engine enabled=%d nativeRecolor=%d webDarkReader=%d",
-          gP.enabled ? 1 : 0, gP.nativeRecolor ? 1 : 0, gP.webDarkReader ? 1 : 0);
+    // Report the engine state AFTER prefs load -- reading gP in the ctor gives a
+    // zero-initialised struct, which is what made the first reading meaningless.
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{
+        ADLog(@"engine enabled=%d nativeRecolor=%d webDarkReader=%d recolorOn=%d",
+              gP.enabled ? 1 : 0, gP.nativeRecolor ? 1 : 0,
+              gP.webDarkReader ? 1 : 0, ADRecolorOn() ? 1 : 0);
+    });
     @try {
         // 20ms cadence: the launch window appears somewhere in the first second and
         // must be darkened within the same frame it becomes visible, before the
