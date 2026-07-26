@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.178.0"
+#define AD_VERSION "v5.179.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3440,6 +3440,7 @@ static void ADHeaderProbe(void){
 %end
 
 static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar);
+static void ADSweepTimed(UIView *v, BOOL inTabBar, const char *why);
 static const void *kADScrollPendKey = &kADScrollPendKey;
 %hook UIScrollView
 - (void)didMoveToWindow {
@@ -3459,7 +3460,7 @@ static const void *kADScrollPendKey = &kADScrollPendKey;
                 UIScrollView *ss = ws;
                 if (!ss) return;
                 objc_setAssociatedObject(ss, kADScrollPendKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                @try { if (ADRecolorOn() && ss.window) ADSweepViewTree(ss, 0, NO); } @catch(...) {}
+                @try { if (ADRecolorOn() && ss.window) ADSweepTimed(ss, NO, "scroll"); } @catch(...) {}
                 @try { ADHeaderProbe(); } @catch(...) {}
             });
     } @catch(...) {}
@@ -4314,8 +4315,22 @@ static int gSwImgSeen = 0, gSwGlyphFixed = 0, gSwDarkLabels = 0, gSwViews = 0;
 static int gSwLabelFixed = 0, gSwTemplateSeen = 0, gSwTintFixed = 0;
 static char gSwSample[96] = {0};
 static char gSwTintNow[64] = {0};
+// BUDGET. This recursed an entire view subtree with real per-node work and no node
+// limit, on every scroll settle and every viewDidAppear. On the home feed that tree
+// is thousands of views deep in aggregate, which is the only thing left in the stack
+// that can produce a multi-second stall. Capped by nodes and by wall clock; the
+// timer re-runs, and already-handled views are cheap to revisit, so coverage still
+// converges across passes.
+static CFAbsoluteTime gSweepDeadline = 0;
+static int gSweepNodes = 0;
+static int gSweepCut = 0;
+
 static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
     if (!v || depth > 60) return;
+    if (++gSweepNodes > 3000){ gSweepCut++; return; }
+    if ((gSweepNodes & 63) == 0 && CFAbsoluteTimeGetCurrent() > gSweepDeadline){
+        gSweepCut++; return;
+    }
     @try {
         if (ADIsWebKitOwned(v)) return;                 // Dark Reader's territory
         ADInvertRNSVG(v);                               // Alexa panel vector icons
@@ -4555,7 +4570,7 @@ static const void *kADCellSwept = &kADCellSwept;
         // inherited flag cleared, so a tab bar built out of collection view cells had
         // its whole subtree treated as ordinary content -- undoing the v5.19.1 fix
         // for exactly the views it was meant to protect.
-        ADSweepViewTree(self, 0, ADInTabBarChain(self));
+        ADSweepTimed(self, ADInTabBarChain(self), "view");
     } @catch(...) {}
 }
 %end
@@ -4571,10 +4586,27 @@ static const void *kADCellSwept = &kADCellSwept;
         if (!ADRecolorOn() || !self.window) return;
         if (objc_getAssociatedObject(self, kADCellSwept)) return;
         objc_setAssociatedObject(self, kADCellSwept, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        ADSweepViewTree(self, 0, ADInTabBarChain(self));
+        ADSweepTimed(self, ADInTabBarChain(self), "view");
     } @catch(...) {}
 }
 %end
+
+// Timed entry point. Sets the budget, counts nodes, and reports anything slow so
+// the native side stops being the unmeasured half of this problem.
+static void ADSweepTimed(UIView *v, BOOL inTabBar, const char *why){
+    @try {
+        CFAbsoluteTime t0 = CFAbsoluteTimeGetCurrent();
+        gSweepNodes = 0; gSweepCut = 0;
+        gSweepDeadline = t0 + 0.008;                 // 8ms, half a frame
+        ADSweepViewTree(v, 0, inTabBar);
+        double ms = (CFAbsoluteTimeGetCurrent() - t0) * 1000.0;
+        static int logged = 0;
+        if (ms > 3.0 && logged < 40){
+            logged++;
+            ADLog(@"NPERF[%s ms=%.1f nodes=%d cut=%d]", why, ms, gSweepNodes, gSweepCut);
+        }
+    } @catch(...) {}
+}
 
 static void ADSweepAllWindows(void){
     if (!ADRecolorOn()) return;
@@ -4586,7 +4618,7 @@ static void ADSweepAllWindows(void){
         gSwTintNow[0] = 0;
         for (UIScene *sc in [UIApplication sharedApplication].connectedScenes){
             if (![sc isKindOfClass:[UIWindowScene class]]) continue;
-            for (UIWindow *w in ((UIWindowScene *)sc).windows){ nwin++; ADSweepViewTree(w, 0, NO); }
+            for (UIWindow *w in ((UIWindowScene *)sc).windows){ nwin++; ADSweepTimed(w, NO, "window"); }
         }
         static NSString *last = nil;
         NSString *now = [NSString stringWithFormat:
