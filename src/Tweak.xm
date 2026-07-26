@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.172.0"
+#define AD_VERSION "v5.173.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3299,17 +3299,6 @@ static void ADHeaderProbe(void){
 
 // ─── system chrome that has its own switches rather than colours ───────────────────
 %hook UIVisualEffectView
-// initWithEffect: does NOT route through setEffect:, so a light blur handed in at
-// construction was never substituted. That is the home-tab search header: at rest
-// the page behind it is dark so the backdrop looks correct, and the moment a bright
-// hero card scrolls underneath, the light material samples it and the band goes pale.
-- (instancetype)initWithEffect:(UIVisualEffect *)effect {
-    @try {
-        if (ADRecolorOn() && [effect isKindOfClass:[UIBlurEffect class]])
-            return %orig([UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemThickMaterialDark]);
-    } @catch(...) {}
-    return %orig;
-}
 - (void)setEffect:(UIVisualEffect *)effect {
     if (!ADRecolorOn()) {
         %orig;
@@ -3332,9 +3321,12 @@ static void ADHeaderProbe(void){
         // when it is bar-sized so the top matches the themed content below it.
         if (ADRecolorOn() && self.window && self.bounds.size.height < 160){
             ((UIView *)self).backgroundColor = ADColorFromHex(gP.bgHex);
-            // Belt and braces for a view built before our hooks were live, or one
-            // Amazon re-skins on scroll. Flagged so setting the effect (which
-            // triggers layout) cannot re-enter and loop.
+            // This is the load-bearing path, not a backstop. initWithEffect: is
+            // deliberately NOT hooked: it is an init-family method and this target
+            // builds with -fobjc-arc, where Logos init hooks are fragile. Every
+            // effect view that renders must enter a window, so catching it here
+            // covers construction-time effects without hooking init at all.
+            // Flagged so setting the effect (which triggers layout) cannot re-enter.
             static const void *kForced = &kForced;
             if (!objc_getAssociatedObject(self, kForced) &&
                 [self.effect isKindOfClass:[UIBlurEffect class]]){
