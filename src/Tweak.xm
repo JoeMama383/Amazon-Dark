@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.174.0"
+#define AD_VERSION "v5.176.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -640,6 +640,12 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "function holdsArt(el6){try{"
              "return !!(el6&&el6.querySelector&&el6.querySelector('img,picture,video,canvas,svg'));"
            "}catch(e){return false;}}"
+           "function artChk(e9){try{"
+             "var w9=Math.round(e9.getBoundingClientRect().width);"
+             "if(e9.__adArtW===w9&&e9.__adArtV!==undefined)return e9.__adArtV;"
+             "var v9=(isPhoto(e9)||holdsArt(e9)||isProdArt(e9));"
+             "e9.__adArtW=w9;e9.__adArtV=v9;return v9;"
+           "}catch(err){return true;}}"
            "function isProdArt(el4){try{"
              "if(!el4||!el4.tagName)return false;"
              "var tg4=el4.tagName.toLowerCase();"
@@ -652,8 +658,9 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "if(/product|asin|thumb|photo|hero|creative|poster|cover-art/i.test(cl4))return true;"
              // Round crops are avatars, store marks and review photos -- content,
              // never chrome. This is the shape both reported regressions shared.
-             "try{var br4=parseFloat(getComputedStyle(el4).borderRadius)||0;"
-               "var pct4=/%%/.test(getComputedStyle(el4).borderRadius);"
+             "try{var brs4=getComputedStyle(el4).borderRadius;"
+             "var br4=parseFloat(brs4)||0;"
+               "var pct4=/%%/.test(brs4);"
                "if(r4.width>=40&&(pct4?br4>=40:(br4>=r4.width*0.4)))return true;}catch(e){}"
              "if(el4.closest&&el4.closest(PRODC)){"
                // inside merchandising chrome: only a small, label-bearing tile
@@ -756,7 +763,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    // Guard BEFORE the write. This ran after it, so a product photo
                    // was silhouetted first and the continue then skipped the mark,
                    // leaving it invisible to every by= audit.
-                   "if(isProdArt(el)||holdsArt(el)||isPhoto(el))continue;"
+                   "if(artChk(el))continue;"
                    "el.style.setProperty('filter','brightness(0) invert(1)','important');"
                "el.__adGlyph=1;el.__adBy='gfix1';gfix++;}}"
              "}catch(e){}}"
@@ -798,7 +805,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "var slim=ICON.test(sc3)?44:40;"
                    "var SK2=/star|prime|logo|flag|swatch|thumb|sponsor|pill-image|product-image|photo/i;"
                    "if(sr3.width>5&&sr3.width<=slim&&sr3.height>5&&sr3.height<=slim&&!SK2.test(sc3)){"
-                     "if(isProdArt(el)||holdsArt(el)||isPhoto(el))continue;"
+                     "if(artChk(el))continue;"
                "el.style.setProperty('filter','brightness(0) invert(1)','important');el.__adGlyph=1;el.__adBy='gfix2';gfix++;}"
                  "}catch(e){}}"
                "var fl2=lum(cs.fill),sl=lum(cs.stroke);"
@@ -1166,7 +1173,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "&&tpr.width>=tr.width-2&&tpr.height>=tr.height-2){tile=tp;break;}"
                  "tp=tp.parentElement;}"
                "if(!tile)continue;"
-               "if(isProdArt(te)||holdsArt(te)||isPhoto(te))continue;"
+               "if(artChk(te))continue;"
                "te.__adGlyph=1;te.__adBy='tileart';tl++;"
                // Vector glyph: read its ink and lift it directly.
                "if(ttag==='svg'){try{"
@@ -1197,6 +1204,24 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "if(i1>=0){var s1=bgi9.slice(i1+4);var i2=s1.indexOf(')');"
                      "if(i2>0)srcu=s1.slice(0,i2).replace(/^[\\s'\\u0022]+|[\\s'\\u0022]+$/g,'');}}"
                  "if(!srcu){if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__='no-src-skipped';return;}"
+                 // CACHE BY SOURCE URL. Amazon serves these icons from a handful of
+                 // shared sprite sheets, so without this the SAME asset was fetched,
+                 // decoded, drawn to canvas and pixel-scanned once per element --
+                 // hundreds of times per page and again on every re-render. That is
+                 // the jank: repeated main-thread decode + getImageData for an answer
+                 // that depends only on the URL.
+                 "if(!window.__ADTMC__)window.__ADTMC__={};"
+                 "var cv9=window.__ADTMC__[srcu];"
+                 "if(cv9!==undefined){"
+                   "if(cv9===1){el5.style.setProperty('filter','invert(1)','important');"
+                     "el5.style.setProperty('background-color','transparent','important');}"
+                   "return;}"
+                 // Hard ceiling per document. Past this we leave icons alone rather
+                 // than keep paying -- a slightly under-themed glyph beats an
+                 // unresponsive app.
+                 "window.__ADTMN__=(window.__ADTMN__||0)+1;"
+                 "if(window.__ADTMN__>60){"
+                   "if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__='budget-hit';return;}"
                  "var pr6=new Image();pr6.crossOrigin='anonymous';"
                  "pr6.onload=function(){try{"
                    "var cw=Math.min(pr6.naturalWidth||32,32),ch=Math.min(pr6.naturalHeight||32,32);"
@@ -1210,6 +1235,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "if(!cnt)return;var avg=(sum/cnt)/255;var lf=lite/cnt;"
                    // Any real light content means the sprite already reads on a
                    // dark tile; inverting it would flip it against its peers.
+                   "window.__ADTMC__[srcu]=(avg<0.28&&lf<0.03)?1:0;"
                    "if(avg<0.28&&lf<0.03){"
                      "el5.style.setProperty('filter','invert(1)','important');"
                      "el5.style.setProperty('background-color','transparent','important');"
@@ -1218,7 +1244,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "else if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__="
                      "'left avg='+avg.toFixed(2)+' light='+lf.toFixed(2);"
                  "}catch(e){if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__='tainted';}};"
-                 "pr6.onerror=function(){if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__='cors-fail';};"
+                 "pr6.onerror=function(){window.__ADTMC__[srcu]=0;"
+               "if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__='cors-fail';};"
                  "pr6.src=srcu;"
                "}catch(e){}})(te);"
                "if(!tfirst)tfirst=ttag+'.'+tcn.slice(0,20)"
@@ -1273,7 +1300,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  // silhouetted and only then asked whether it was a product photo.
                  // Its continue also skipped the marking line below, which is why
                  // these images logged as glyph=0 by=- and no audit ever saw them.
-                 "if(isProdArt(fe2)||holdsArt(fe2)||isPhoto(fe2))continue;"
+                 "if(artChk(fe2))continue;"
                  "if(ftg==='svg'){fe2.style.setProperty('fill','#ffffff','important');"
                    "fe2.style.setProperty('stroke','#ffffff','important');continue;}"
                  "fe2.style.setProperty('filter','brightness(0) invert(1)','important');"
@@ -1314,7 +1341,17 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "tgt.style.setProperty('box-sizing','border-box','important');"
                  "if(art){var arts=tgt.querySelectorAll('img,i,svg');"
                    "for(var av=0;av<arts.length&&av<6;av++){"
-                     "if(isProdArt(arts[av])||holdsArt(arts[av])||isPhoto(arts[av]))continue;"
+                     // NOT artChk here. The parent has ALREADY been positively
+                     // identified as a circular control -- we just gave it a dark
+                     // fill and a white border -- so its children are that control's
+                     // glyph by construction. closest(PRODC) is meaningless at this
+                     // site because the control is OVERLAID on the product image, so
+                     // it inherits [data-component-type=s-search-result] and every
+                     // glyph reads as product art. A size test keeps the property
+                     // that matters (never silhouette anything photo-sized) without
+                     // that false positive.
+                     "var ar9=arts[av].getBoundingClientRect();"
+                     "if(ar9.width>48||ar9.height>48)continue;"
                      "arts[av].style.setProperty('filter','brightness(0) invert(1)','important');"
                      "arts[av].style.setProperty('background-color','transparent','important');"
                      "arts[av].__adGlyph=1;arts[av].__adBy='compdisc';}}"
@@ -1357,7 +1394,10 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "ce.style.setProperty('box-sizing','border-box','important');"
                "var cg=ce.querySelectorAll('img,i,svg');"
                "for(var cg2=0;cg2<cg.length&&cg2<6;cg2++){"
-                 "if(isProdArt(cg[cg2])||holdsArt(cg[cg2])||isPhoto(cg[cg2]))continue;"
+                 // Same reasoning as the compare disc above: the parent is an
+                 // identified control, so size is the right test, not provenance.
+                 "var cr9=cg[cg2].getBoundingClientRect();"
+                 "if(cr9.width>48||cr9.height>48)continue;"
                  "cg[cg2].style.setProperty('filter','brightness(0) invert(1)','important');"
                  "cg[cg2].style.setProperty('background-color','transparent','important');"
                  "cg[cg2].__adGlyph=1;cg[cg2].__adBy='heartdisc';}"
@@ -1377,7 +1417,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "if(ae.closest&&ae.closest('[class*=heart],[class*=wish],[class*=lists-framework],[class*=copilot-compare]'))continue;"
                "var ar=ae.getBoundingClientRect();"
                "if(ar.width>5&&ar.width<=60&&ar.height>5&&ar.height<=60){"
-                 "if(isProdArt(ae)||holdsArt(ae)||isPhoto(ae))continue;"
+                 "if(artChk(ae))continue;"
                "ae.style.setProperty('filter','brightness(0) invert(1)','important');ae.__adGlyph=1;ae.__adBy='aic';}}"
            "}catch(e){}"
            "try{var CDU=document.querySelectorAll('[class*=cardui],[class*=Cardui]');"
@@ -1420,7 +1460,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "||(gbf.webkitMaskImage&&gbf.webkitMaskImage!=='none')"
                    "||(gbf.maskImage&&gbf.maskImage!=='none');"
                  "if(gtg==='img'||sprite){"
-                   "if(isProdArt(g)||holdsArt(g)||isPhoto(g))continue;"
+                   "if(artChk(g))continue;"
                    "g.style.setProperty('filter','brightness(0) invert(1)','important');"
                    "g.__adGlyph=1;g.__adBy='gsweep';continue;}"
                  "if(mask){g.style.setProperty('background-color',FG,'important');continue;}"
