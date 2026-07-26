@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.193.0"
+#define AD_VERSION "v5.194.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2498,13 +2498,18 @@ static BOOL ADImageIsDarkGlyph(UIImage *img, CGFloat *clearOut, CGFloat *avgOut)
 }
 
 static int gNatGlyphLogged = 0;
+static int gNatGlyphTotal = 0;
 static void ADLiftNativeGlyph(UIImageView *iv){
     @try {
         if (!iv || !iv.image) return;
         static const void *kNatGlyphKey = &kNatGlyphKey;
-        if (objc_getAssociatedObject(iv, kNatGlyphKey)) return;
+        // Keyed on the image, not the view: React Native replaces the image on
+        // re-render, and a per-view mark would skip the replacement forever.
+        UIImage *done = objc_getAssociatedObject(iv, kNatGlyphKey);
+        if (done && done == iv.image) return;
         CGSize sz = iv.bounds.size;
-        if (sz.width < 10 || sz.width > 52 || sz.height < 10 || sz.height > 52) return;
+        if (sz.width < 10 || sz.height < 10 || sz.width > 260 || sz.height > 260) return;
+        BOOL glyphSized = (sz.width <= 52 && sz.height <= 52);
         // only on a dark ground, same rule the web pass uses
         CGFloat gl = -1.0;
         UIView *p = iv.superview; int d = 0;
@@ -2519,13 +2524,19 @@ static void ADLiftNativeGlyph(UIImageView *iv){
         if (gl < 0 || gl > 0.30) return;
         CGFloat clearFrac = 0, avg = 0;
         if (!ADImageIsDarkGlyph(iv.image, &clearFrac, &avg)) return;
-        objc_setAssociatedObject(iv, kNatGlyphKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        iv.image = [iv.image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        // Anything beyond glyph size must be unmistakably a mark rather than a
+        // picture: mostly transparent, and clearly dark ink.
+        if (!glyphSized && (clearFrac < 0.50 || avg > 0.35)) return;
+        UIImage *lifted = [iv.image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        iv.image = lifted;
         iv.tintColor = [UIColor colorWithRed:0.910 green:0.902 blue:0.890 alpha:1.0];
-        if (gNatGlyphLogged < 6){
+        objc_setAssociatedObject(iv, kNatGlyphKey, lifted, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        gNatGlyphTotal++;
+        if (gNatGlyphLogged < 24){
             gNatGlyphLogged++;
-            ADLog(@"natglyph %s %.0fx%.0f clear=%.2f avg=%.2f ground=%.2f",
-                  object_getClassName(iv), sz.width, sz.height, clearFrac, avg, gl);
+            ADLog(@"natglyph #%d %s %.0fx%.0f clear=%.2f avg=%.2f ground=%.2f %s",
+                  gNatGlyphTotal, object_getClassName(iv), sz.width, sz.height,
+                  clearFrac, avg, gl, glyphSized ? "glyph" : "mark");
         }
     } @catch(...) {}
 }
