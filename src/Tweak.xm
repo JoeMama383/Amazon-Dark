@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.196.0"
+#define AD_VERSION "v5.197.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1948,8 +1948,15 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          "}catch(e){}};"
          // Re-run the repair as the page fills in (carousels, lazy tiles), debounced
          // so a busy DOM cannot turn this into a hot loop.
-         "try{var _t=null;new MutationObserver(function(){clearTimeout(_t);"
-           "_t=setTimeout(function(){try{window.__AMZDARK_FIXCONTRAST__();}catch(e){}},400);})"
+         "try{var _t=null,_last=0;new MutationObserver(function(){"
+           "var _n=Date.now();"
+           "if(_n-_last>110){_last=_n;"
+             "if(window.requestAnimationFrame)requestAnimationFrame(function(){"
+               "try{window.__AMZDARK_FIXCONTRAST__();}catch(e){}});"
+             "else{try{window.__AMZDARK_FIXCONTRAST__();}catch(e){}}}"
+           "clearTimeout(_t);"
+           "_t=setTimeout(function(){_last=Date.now();"
+             "try{window.__AMZDARK_FIXCONTRAST__();}catch(e){}},400);})"
            ".observe(document.documentElement,{childList:true,subtree:true});}catch(e){}"
            // Heartbeat: cheap, idempotent, and the only thing that survives a
            // late re-mount of an already-processed subtree.
