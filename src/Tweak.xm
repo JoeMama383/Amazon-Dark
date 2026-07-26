@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.188.0"
+#define AD_VERSION "v5.189.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1752,6 +1752,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(window.__AD_ADCARD__?(' ADCARD['+window.__AD_ADCARD__+']'):'')"
                "+(window.__AD_SCREW__?(' SCREW['+window.__AD_SCREW__+']'):'')"
                "+(window.__AD_SHOP__?(' SHOP['+window.__AD_SHOP__+']'):'')"
+               "+(window.__AD_MLT__?(' MLT[n='+window.__AD_MLT__+']'):'')"
                "+(window.__AD_PERF__?(' PERF['+window.__AD_PERF__+']'):'')"
                "+(window.__AD_TILEART__?(' TILEART['+window.__AD_TILEART__+']'):'')"
                "+(window.__AD_BOXKILL__?(' BOXKILL['+window.__AD_BOXKILL__+']'):'')"
@@ -1768,6 +1769,38 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(lt.length?(' light='+lt.join(' ')):'')"
                "+(ht.length?(' HEART='+ht.join(' ')):'')+htree;}"
            "}catch(e){pr=' probeERR';}"
+           // MLT ICON CONTAINERS. A 32px circular icon container whose glyph nothing
+           // claims -- the probe reported by=- on every one of them, so it renders
+           // dark on a dark disc. The CSS rule that should cover it carries a
+           // CSS rule at line 367 only matches img[class*=s-image] -- and the probe
+           // shows the child sitting there is grey-pixel.gif at nat=1x1, a lazy
+           // placeholder, so at the moment the sheet applies there is nothing real to
+           // filter and the swapped-in glyph is never revisited. Doing it in JS
+           // instead of widening the selector, because a stylesheet
+           // cannot measure anything and size is the only safe discriminator:
+           // the container must be icon-sized, and any child with a large source
+           // bitmap is a photo and is left alone.
+           "try{var MIC=document.querySelectorAll('[class*=mlt-icon-container]');"
+             "for(var mi=0;mi<MIC.length&&mi<60&&((mi&15)||!ovr());mi++){"
+               "var mc=MIC[mi];var mr=mc.getBoundingClientRect();"
+               "if(mr.width<16||mr.width>64||mr.height<16||mr.height>64)continue;"
+               "var gl=mc.querySelectorAll('img,svg,i,use,span,div');"
+               "for(var gi2=0;gi2<gl.length&&gi2<8;gi2++){var ge=gl[gi2];"
+                 "if(ge.__adGlyph)continue;"
+                 "var gr=ge.getBoundingClientRect();"
+                 "if(gr.width>48||gr.height>48||gr.width<6||gr.height<6)continue;"
+                 "if((ge.naturalWidth||0)>96||(ge.naturalHeight||0)>96)continue;"
+                 "var gc=getComputedStyle(ge),gt=ge.tagName;"
+                 "if(!(gt==='IMG'||gt==='svg'||gt==='SVG'||gt==='I'||gt==='USE'"
+                   "||String(gc.backgroundImage||'').indexOf('url(')>=0"
+                   "||String(gc.maskImage||gc.webkitMaskImage||'').indexOf('url(')>=0))continue;"
+                 "ge.style.setProperty('filter','brightness(0) invert(1)','important');"
+                 "ge.style.setProperty('background-color','transparent','important');"
+                 "ge.__adGlyph=1;ge.__adBy='mlticon';"
+                 "window.__AD_MLT__=(window.__AD_MLT__||0)+1;}}"
+           "}catch(e){window.__AD_MLT__='err '+e;}"
+           "__ck('MIC');"
+
            // SHOP PROBE, standalone. Placed at the top level of the pass, immediately
            // before the return -- last time I nested it inside the ADCARD block,
            // which is gated by `throw 0` after its first run, so it may never have
