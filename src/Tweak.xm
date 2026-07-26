@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.187.0"
+#define AD_VERSION "v5.188.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -695,7 +695,16 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "try{var brs4=getComputedStyle(el4).borderRadius;"
              "var br4=parseFloat(brs4)||0;"
                "var pct4=/%%/.test(brs4);"
-               "if(r4.width>=40&&(pct4?br4>=40:(br4>=r4.width*0.4)))return true;}catch(e){}"
+               "var circ4=(pct4?br4>=40:(br4>=r4.width*0.4));"
+               "if(circ4){"
+                 "if(r4.width>=40)return true;"
+                 // A CIRCLE BACKED BY A REAL BITMAP is a photo scaled down -- a store
+                 // mark, an avatar, a review thumb -- not a glyph. The width>=40 floor
+                 // above missed exactly that: shop circles render at 32px from a
+                 // 192px source, so they failed the circular test and got silhouetted
+                 // into solid white discs. Display size is the wrong axis here.
+                 "if(tg4==='img'&&((el4.naturalWidth||0)>64||(el4.naturalHeight||0)>64))return true;"
+               "}}catch(e){}"
              "if(el4.closest&&el4.closest(PRODC)){"
                // inside merchandising chrome: only a small, label-bearing tile
                // icon may still be treated as a glyph
