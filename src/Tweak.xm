@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.202.0"
+#define AD_VERSION "v5.203.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -597,6 +597,28 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "window.__AD_CRT__=(window.__AD_CRT__||0)+1;return true;"
          "}catch(e){return false;}}"
          "window.__AMZDARK_FIXCONTRAST__=function(){try{"
+           // FRAME BRIDGE. Installed BEFORE the early-return guards below, so a
+           // frame still registers even on a throttled pass.
+           //
+           // The user scripts are forMainFrameOnly:NO, so every fix runs in every
+           // frame -- but evaluateJavaScript reads the MAIN frame only, so every
+           // probe result computed in a child frame has been silently discarded.
+           // That is not a CARDX bug, it is a structural blind spot, and it explains
+           // CARDX[none scanned=0], DARKGLYPH[clean art=6] and FLTSCAN[n=0] alike:
+           // those numbers are real, they are just the main frame's, and the home
+           // feed is not in it. Child frames now post their fragment to the top
+           // frame, which collects them for the report. postMessage is deliberate:
+           // it works cross-origin, which a shared global cannot.
+           "if(!window.__ADFB__){window.__ADFB__=1;"
+             "if(window.top===window){window.__AD_FRAMES__={};"
+               "addEventListener('message',function(ev){try{"
+                 "var d=ev.data;if(!d||typeof d!=='object'||d.__adfr!==1)return;"
+                 "var k=String(d.u||'?').slice(0,22);"
+                 "if(!window.__AD_FRAMES__)window.__AD_FRAMES__={};"
+                 "var kn=0;for(var kk in window.__AD_FRAMES__)kn++;"
+                 "if(kn>=6&&!(k in window.__AD_FRAMES__))return;"
+                 "window.__AD_FRAMES__[k]=String(d.r||'').slice(0,200);"
+               "}catch(e){}},false);}}"
            // SCROLL GUARD + RATE LIMIT. The pass measures ~50ms. That is harmless
            // occasionally and ruinous continuously -- and Amazon's feed lazy-loads
            // as you scroll, so the MutationObserver below fires in a steady stream
@@ -1057,6 +1079,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                       // AD-CARD STRUCTURE PROBE. Always reports.
            "try{if(!window.__AD_CARDX__){"
              "var TT=document.querySelectorAll('span,p,h1,h2,h3,a');"
+             "window.__AD_TXTN__=TT.length;"
              "var picked=null,scanned=0;"
              "for(var x1=0;x1<TT.length&&x1<2500&&!picked;x1++){var t1=TT[x1];"
                "var has=false;"
@@ -1079,7 +1102,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "a1=a1.parentElement;}"
                "if(!art)continue;"
                "picked=t1;}"
-             "if(!picked){window.__AD_CARDX__='none scanned='+scanned;}"
+             "if(!picked){window.__AD_CARDX__='none scanned='+scanned+' pool='+TT.length;}"
              "else{"
                "var chain='',cur=picked,dd=0;"
                "while(cur&&dd++<7){"
@@ -1951,6 +1974,10 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(window.__AD_CMPSCAN__?(' CMPSCAN['+window.__AD_CMPSCAN__+']'):'')"
                "+(window.__AD_DARKGLYPH__?(' DARKGLYPH['+window.__AD_DARKGLYPH__+']'):'')"
                "+(window.__AD_CARDX__?(' CARDX['+window.__AD_CARDX__+']'):'')"
+               "+(function(){try{var F=window.__AD_FRAMES__;if(!F)return '';"
+                 "var o=[],c=0;for(var k in F){if(c++>=6)break;o.push(k+' '+F[k]);}"
+                 "return o.length?(' FRAMES[n='+o.length+' :: '+o.join(' || ')+']'):' FRAMES[n=0]';"
+               "}catch(e){return ' FRAMES[err]';}})()"
                "+(window.__AD_DISC__?(' DISC['+window.__AD_DISC__+']'):'')"
                "+(window.__AD_LOGO__?(' LOGO['+window.__AD_LOGO__+']'):'')"
                "+(window.__AD_CMPFIX__?(' CMPFIX['+window.__AD_CMPFIX__+']'):'')"
@@ -2033,6 +2060,20 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                ":('none scanned='+SH.length+' skipped='+ssk));"
            "}}catch(e){window.__AD_SHOP__='err '+e;}"
            "window.__AD_PERF__='ms='+(Date.now()-__T0)+' cut='+__cut+' '+__ckl.join(' ');"
+           // CHILD FRAME -> TOP. Every frame self-describes (text-element count, body
+           // child count, path) so "nothing found" is distinguishable from "nothing
+           // here", which is exactly the ambiguity that made scanned=0 unreadable.
+           // Posts only when the fragment changes, so this is not a message storm.
+           "try{if(window.top!==window){"
+             "var _fr='t='+(window.__AD_TXTN__===undefined?'?':window.__AD_TXTN__)"
+               "+' b='+((document.body&&document.body.children.length)||0)"
+               "+(window.__AD_CARDX__?(' CARDX['+window.__AD_CARDX__+']'):'')"
+               "+(window.__AD_ADCARD__?(' ADCARD['+window.__AD_ADCARD__+']'):'')"
+               "+(window.__AD_BOXKILL__?(' BOXKILL['+window.__AD_BOXKILL__+']'):'');"
+             "if(_fr!==window.__ADFRLAST__){window.__ADFRLAST__=_fr;"
+               "window.top.postMessage({__adfr:1,"
+                 "u:String(location.pathname||'/').slice(-20),r:_fr},'*');}"
+           "}}catch(e){}"
            "return n+'/'+bfix+'/'+lfix+'/'+gfix+'/'+bigfix+pr;}catch(e){return -1;}};"
          "window.__AMZDARK_APPLY__=function(){try{"
            "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
