@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.177.0"
+#define AD_VERSION "v5.178.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -580,7 +580,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // Large artwork rectangles, gathered once. Anything overlapping one of
            // these is chrome ON a creative: darkening it paints a box over the art.
            "var ART=[];try{var AQ=document.querySelectorAll('img,picture,video');"
-             "for(var aq=0;aq<AQ.length&&aq<250&&ART.length<80;aq++){"
+           "__ck('AQ');"
+             "for(var aq=0;aq<AQ.length&&aq<250&&((aq&15)||!ovr())&&ART.length<80;aq++){"
                "var arr=AQ[aq].getBoundingClientRect();"
                "if(arr.width>=110&&arr.height>=60)ART.push(arr);}"
              "var AQ2=document.querySelectorAll('div,section,a,span');"
@@ -637,6 +638,16 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "var r7=el7.getBoundingClientRect();"
              "return (r7.width>48||r7.height>48);"
            "}catch(e){return false;}}"
+           // TIME BUDGET. This pass runs on every DOM mutation and every heartbeat
+           // tick, and across 19 loops it can visit ~13,300 elements, nearly all of
+           // them doing getComputedStyle or getBoundingClientRect. Unbounded, that
+           // is seconds of blocked main thread -- which is the scroll lag. Each loop
+           // now yields once the budget is spent; elements already handled are
+           // marked and skipped cheaply, so successive passes pick up where the last
+           // left off and coverage still converges.
+           "var __t0=Date.now(),__ckl=[],__cut=0;"
+           "function __ck(n){try{__ckl.push(n+':'+(Date.now()-__t0));}catch(e){}}"
+           "function ovr(){if(Date.now()-__t0>16){__cut++;return true;}return false;}"
            "function holdsArt(el6){try{"
              "return !!(el6&&el6.querySelector&&el6.querySelector('img,picture,video,canvas,svg'));"
            "}catch(e){return false;}}"
@@ -886,7 +897,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              // Repair pass for anything a previous build left pointing at the
              // SVG def; those elements are invisible until the style is replaced.
              "try{var OLD=document.querySelectorAll('[style*=adtamef]');"
-               "for(var o9=0;o9<OLD.length&&o9<300;o9++){"
+             "__ck('OLD');"
+               "for(var o9=0;o9<OLD.length&&o9<300&&((o9&15)||!ovr());o9++){"
                  "OLD[o9].style.removeProperty('filter');OLD[o9].__adTamed=0;}"
                "var hostOld=document.getElementById('adtamef-host');"
                "if(hostOld&&hostOld.parentNode)hostOld.parentNode.removeChild(hostOld);"
@@ -895,12 +907,13 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "for(var z8=0;z8<PI0.length&&z8<300;z8++)PI.push(PI0[z8]);"
                // cards that paint their picture as a CSS background
                "var PB=document.querySelectorAll('div,span,a,section,li');"
-               "for(var z9=0;z9<PB.length&&z9<1500&&PI.length<420;z9++){"
+               "__ck('PB');"
+               "for(var z9=0;z9<PB.length&&z9<1500&&((z9&15)||!ovr())&&PI.length<420;z9++){"
                  "var be9=PB[z9];"
                  "if((getComputedStyle(be9).backgroundImage||'').indexOf('url(')<0)continue;"
                  "PI.push(be9);}"
              "var tamed=0;"
-             "for(var pi=0;pi<PI.length&&pi<420;pi++){var im7=PI[pi];"
+             "for(var pi=0;pi<PI.length&&pi<420&&((pi&15)||!ovr());pi++){var im7=PI[pi];"
                "if(im7.__adTamed)continue;"
                "var ir7=im7.getBoundingClientRect();"
                // product imagery only: big enough to be a photo, and never a glyph
@@ -921,7 +934,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // result, not by our own bookkeeping -- a stylesheet rule leaves no
            // mark, which is exactly how order thumbnails were being flattened.
            "try{var RS=document.querySelectorAll('img');var resc=0,rfirst='';"
-             "for(var rs=0;rs<RS.length&&rs<400;rs++){var re2=RS[rs];"
+           "__ck('RS');"
+             "for(var rs=0;rs<RS.length&&rs<400&&((rs&15)||!ovr());rs++){var re2=RS[rs];"
                "var rr2=re2.getBoundingClientRect();"
                "if(rr2.width<=48&&rr2.height<=48)continue;"
                "var rf2=String(getComputedStyle(re2).filter||'none');"
@@ -937,7 +951,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "for(var sh=0;sh<shts.length&&!window.__AD_RULE__;sh++){"
                    "var rls=null;try{rls=shts[sh].cssRules;}catch(e){continue;}"
                    "if(!rls)continue;"
-                   "for(var rl=0;rl<rls.length&&rl<4000;rl++){var one=rls[rl];"
+                   "for(var rl=0;rl<rls.length&&rl<4000&&((rl&15)||!ovr());rl++){var one=rls[rl];"
                      "if(!one||!one.selectorText||!one.style)continue;"
                      "var ft=one.style.getPropertyValue('filter')||'';"
                      "if(ft.indexOf('brightness(0)')<0&&ft.indexOf('invert(')<0)continue;"
@@ -956,7 +970,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                       // ORDER THUMB AUDIT. Always reports. Names any photo-sized image that
            // is not rendering normally, with every mark we could have left on it.
            "try{var OI=document.querySelectorAll('img');var obad=[],oseen=0;"
-             "for(var oi=0;oi<OI.length&&oi<300&&obad.length<4;oi++){var oe=OI[oi];"
+           "__ck('OI');"
+             "for(var oi=0;oi<OI.length&&oi<300&&((oi&15)||!ovr())&&obad.length<4;oi++){var oe=OI[oi];"
                "var orr=oe.getBoundingClientRect();"
                "if(orr.width<56||orr.height<56)continue;"
                "oseen++;"
@@ -987,8 +1002,9 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // ("blocking first paint since v5.155.0") and it came back.
            "try{if(window.__AD_TB_DONE__)throw 0;window.__AD_TB_DONE__=1;"
              "var TB=document.querySelectorAll('span,div,p,a,h1,h2,h3,h4,li');"
+             "__ck('TB');"
              "var thits=[],tscan=0;"
-             "for(var tb=0;tb<TB.length&&tb<2500&&thits.length<3;tb++){var te3=TB[tb];"
+             "for(var tb=0;tb<TB.length&&tb<2500&&((tb&15)||!ovr())&&thits.length<3;tb++){var te3=TB[tb];"
                "var own='';"
                "for(var cn5=0;cn5<te3.childNodes.length&&cn5<6;cn5++){"
                  "var nd5=te3.childNodes[cn5];"
@@ -1003,7 +1019,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "var cx5=Math.round(trr.left+trr.width/2),cy5=Math.round(trr.top+trr.height/2);"
                "var stack=[];try{stack=document.elementsFromPoint(cx5,cy5)||[];}catch(e){}"
                "var found=null,layers='';"
-               "for(var sk=0;sk<stack.length&&sk<6;sk++){var se5=stack[sk];"
+               "for(var sk=0;sk<stack.length&&sk<6&&((sk&15)||!ovr());sk++){var se5=stack[sk];"
                  "var sbg=lum(getComputedStyle(se5).backgroundColor);"
                  "var scn=se5.className;if(scn&&scn.baseVal!==undefined)scn=scn.baseVal;"
                  "var srr=se5.getBoundingClientRect();"
@@ -1025,7 +1041,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // once per page, ruinous every 1.2s.
            "try{if(window.__AD_AC_DONE__)throw 0;window.__AD_AC_DONE__=1;"
              "var AC=document.querySelectorAll('div,span,section,a,p');var hits=[],scanned=0;"
-             "for(var ac=0;ac<AC.length&&ac<2500&&hits.length<4;ac++){var ce2=AC[ac];"
+             "__ck('AC');"
+             "for(var ac=0;ac<AC.length&&ac<2500&&((ac&15)||!ovr())&&hits.length<4;ac++){var ce2=AC[ac];"
                "var cl6=lum(getComputedStyle(ce2).backgroundColor);"
                "if(cl6===null||cl6>0.30)continue;"
                "var cr6=ce2.getBoundingClientRect();"
@@ -1054,11 +1071,12 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "try{var BK0=document.querySelectorAll('img,svg,picture'),BK=[];"
              "for(var b0=0;b0<BK0.length&&b0<300;b0++)BK.push(BK0[b0]);"
              "var BKA=document.querySelectorAll('div,span,a,section');"
-             "for(var b1=0;b1<BKA.length&&b1<1200&&BK.length<420;b1++){"
+             "__ck('BKA');"
+             "for(var b1=0;b1<BKA.length&&b1<1200&&((b1&15)||!ovr())&&BK.length<420;b1++){"
                "var ba=BKA[b1];var bgi2=getComputedStyle(ba).backgroundImage||'';"
                "if(bgi2.indexOf('url(')>=0)BK.push(ba);}"
              "var bkn=0,bkr='';"
-             "for(var bk=0;bk<BK.length&&bk<420;bk++){var bi=BK[bk];"
+             "for(var bk=0;bk<BK.length&&bk<420&&((bk&15)||!ovr());bk++){var bi=BK[bk];"
                "var br4=bi.getBoundingClientRect();"
                "if(br4.width<8||br4.height<8)continue;"
                "var lightAnc=null,an2=bi.parentElement,ad2=0;"
@@ -1084,7 +1102,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // own earlier paint (or anything else's); the disc supplies its own
            // background, so every tight ancestor goes transparent.
            "try{var MC=document.querySelectorAll('[class*=mlt-icon-container],[class*=lists-framework-action-button]');"
-             "for(var mq=0;mq<MC.length&&mq<80;mq++){var me=MC[mq];"
+           "__ck('MC');"
+             "for(var mq=0;mq<MC.length&&mq<80&&((mq&15)||!ovr());mq++){var me=MC[mq];"
                "var mp=me.parentElement,md=0;"
                "while(mp&&md++<3){var mr2=mp.getBoundingClientRect();"
                  "if(mr2.width<=64&&mr2.height<=64){"
@@ -1096,6 +1115,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // depend on finding the filter panel or on any class name.
            "try{var sp='no-label';"
              "var LB=document.querySelectorAll('span,div,p,label,a,li');"
+             "__ck('LB');"
              "for(var sl=0;sl<LB.length;sl++){var le=LB[sl];"
                "if(le.children.length>2)continue;"
                "var lt=(le.textContent||'').trim();"
@@ -1141,7 +1161,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // to be located first. The bugle screw is this shape: a monochrome
            // drawing sitting invisibly on the tile our theming darkened.
            "try{var TQ=document.querySelectorAll('img,svg,i,span,div');var tl=0,tfirst='';"
-             "for(var tq=0;tq<TQ.length&&tq<2500;tq++){var te=TQ[tq];"
+           "__ck('TQ');"
+             "for(var tq=0;tq<TQ.length&&tq<2500&&((tq&15)||!ovr());tq++){var te=TQ[tq];"
                // Recycled node: if our ink was dropped by a re-render, treat it as
                // fresh rather than skipping it for the life of the page.
                "if(te.__adGlyph){try{"
@@ -1193,7 +1214,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "if(fl4===null||fl4<0.40)te.style.setProperty('fill','#e8e6e3','important');"
                    "if(sl4!==null&&sl4<0.40)te.style.setProperty('stroke','#e8e6e3','important');"
                    "var kids=te.querySelectorAll('path,circle,rect,polygon,g,line');"
-                   "for(var kk=0;kk<kids.length&&kk<12;kk++){"
+                   "for(var kk=0;kk<kids.length&&kk<12&&((kk&15)||!ovr());kk++){"
                      "var kf=lum(getComputedStyle(kids[kk]).fill);"
                      "if(kf===null||kf<0.40)kids[kk].style.setProperty('fill','#e8e6e3','important');}"
                    "if(!window.__AD_SVGINK__)window.__AD_SVGINK__='lifted ink='+(ink===null?'none':ink.toFixed(2));}"
@@ -1272,6 +1293,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // masked the real miss.
            "try{var fhead=null;"
              "var HD=document.querySelectorAll('h1,h2,h3,h4,span,div,p');"
+             "__ck('HD');"
              "var cand=[];"
              "for(var hh=0;hh<HD.length;hh++){var he2=HD[hh];"
                "if(he2.children.length>3)continue;"
@@ -1293,7 +1315,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "fsec=fbest||fhead.parentElement||fhead;"
                "var fels=fsec.querySelectorAll('img,svg,i,span,div');"
                "var fmiss=[];"
-               "for(var fz=0;fz<fels.length&&fz<400;fz++){var fe2=fels[fz];"
+               "for(var fz=0;fz<fels.length&&fz<400&&((fz&15)||!ovr());fz++){var fe2=fels[fz];"
                  "var fr3=fe2.getBoundingClientRect();"
                  "if(fr3.width<10||fr3.width>130||fr3.height<10||fr3.height>130)continue;"
                  "var fc2=fe2.className;if(fc2&&fc2.baseVal!==undefined)fc2=fc2.baseVal;fc2=String(fc2||'');"
@@ -1327,11 +1349,12 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // owns the lower-right). Report what was found ONCE via CMPSCAN so the
            // real class can graduate into the stylesheet.
            "try{var IMGC=document.querySelectorAll('[class*=s-product-image]');"
-             "for(var ig=0;ig<IMGC.length&&ig<40;ig++){var box=IMGC[ig];"
+           "__ck('IMGC');"
+             "for(var ig=0;ig<IMGC.length&&ig<40&&((ig&15)||!ovr());ig++){var box=IMGC[ig];"
                "var br=box.getBoundingClientRect();"
                "if(br.width<80||br.height<80)continue;"
                "var alln=box.querySelectorAll('*');var tgt=null;"
-               "for(var an=0;an<alln.length&&an<150;an++){var el2=alln[an];"
+               "for(var an=0;an<alln.length&&an<150&&((an&15)||!ovr());an++){var el2=alln[an];"
                  "var er=el2.getBoundingClientRect();"
                  "if(er.width<22||er.width>46||er.height<22||er.height>46)continue;"
                  "if(er.left-br.left>br.width*0.40)continue;"
@@ -1349,7 +1372,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "tgt.style.setProperty('box-shadow','none','important');"
                  "tgt.style.setProperty('box-sizing','border-box','important');"
                  "if(art){var arts=tgt.querySelectorAll('img,i,svg');"
-                   "for(var av=0;av<arts.length&&av<6;av++){"
+                   "for(var av=0;av<arts.length&&av<6&&((av&15)||!ovr());av++){"
                      // NOT artChk here. The parent has ALREADY been positively
                      // identified as a circular control -- we just gave it a dark
                      // fill and a white border -- so its children are that control's
@@ -1390,7 +1413,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // can be pinned to the real selector next round.
            "try{var CF=document.querySelectorAll("
              "'[aria-label*=ompare],[class*=compare],[data-csa-c-content-id*=ompare]');"
-             "for(var cf=0;cf<CF.length&&cf<80;cf++){var ce=CF[cf];"
+             "for(var cf=0;cf<CF.length&&cf<80&&((cf&15)||!ovr());cf++){var ce=CF[cf];"
                "var cr2=ce.getBoundingClientRect();"
                "if(cr2.width<22||cr2.width>46||cr2.height<22||cr2.height>46)continue;"
                "if(!(ce.closest&&ce.closest('[class*=s-product-image],[class*=puisg-col]')))continue;"
@@ -1402,7 +1425,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "ce.style.setProperty('box-shadow','none','important');"
                "ce.style.setProperty('box-sizing','border-box','important');"
                "var cg=ce.querySelectorAll('img,i,svg');"
-               "for(var cg2=0;cg2<cg.length&&cg2<6;cg2++){"
+               "for(var cg2=0;cg2<cg.length&&cg2<6&&((cg2&15)||!ovr());cg2++){"
                  // Same reasoning as the compare disc above: the parent is an
                  // identified control, so size is the right test, not provenance.
                  "var cr9=cg[cg2].getBoundingClientRect();"
@@ -1415,7 +1438,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "+' csa='+String(ce.getAttribute('data-csa-c-content-id')||'-').slice(0,24);}}"
            "}catch(e){}"
                       "try{var AIC=document.querySelectorAll('[class*=a-icon]');"
-             "for(var ai=0;ai<AIC.length&&ai<500;ai++){var ae=AIC[ai];"
+                      "__ck('AIC');"
+             "for(var ai=0;ai<AIC.length&&ai<500&&((ai&15)||!ovr());ai++){var ae=AIC[ai];"
                "var acn=ae.className;if(acn&&acn.baseVal!==undefined)acn=acn.baseVal;acn=String(acn||'');"
                "if(/star|prime|logo|flag|swatch|thumb|sponsor|product|photo|-alt|toggle|switch|checkbox|heart|wish|lists-framework|copilot-compare/i.test(acn))continue;"
                "var acs=getComputedStyle(ae),abf=getComputedStyle(ae,'::before'),aba=getComputedStyle(ae,'::after');"
@@ -1430,11 +1454,12 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "ae.style.setProperty('filter','brightness(0) invert(1)','important');ae.__adGlyph=1;ae.__adBy='aic';}}"
            "}catch(e){}"
            "try{var CDU=document.querySelectorAll('[class*=cardui],[class*=Cardui]');"
-             "for(var di=0;di<CDU.length&&di<20;di++){var card=CDU[di];"
+           "__ck('CDU');"
+             "for(var di=0;di<CDU.length&&di<20&&((di&15)||!ovr());di++){var card=CDU[di];"
                "var cr=card.getBoundingClientRect();if(cr.width<120||cr.height<80)continue;"
                "if(bgOf(card)<0.4)continue;"
                "var kids=card.querySelectorAll('*');"
-               "for(var ki=0;ki<kids.length&&ki<250;ki++){var kd=kids[ki];"
+               "for(var ki=0;ki<kids.length&&ki<250&&((ki&15)||!ovr());ki++){var kd=kids[ki];"
                  "var kbl=lum(getComputedStyle(kd).backgroundColor);"
                  "if(kbl===null||kbl>=0.25)continue;"
                  "var kr=kd.getBoundingClientRect();"
@@ -1442,7 +1467,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "kd.style.setProperty('background-color','transparent','important');}}"
            "}catch(e){}"
            "try{var PRM=document.querySelectorAll('[class*=sub-header-title-font]');"
-             "for(var pi=0;pi<PRM.length&&pi<40;pi++){var pt=PRM[pi];"
+           "__ck('PRM');"
+             "for(var pi=0;pi<PRM.length&&pi<40&&((pi&15)||!ovr());pi++){var pt=PRM[pi];"
                "pt.style.setProperty('color','#0f1111','important');"
                "pt.style.setProperty('-webkit-text-fill-color','#0f1111','important');"
                // clear dark background boxes on the header ancestors
@@ -1453,7 +1479,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "}catch(e){}"
            "try{var WG=function(root){if(!root||!root.querySelectorAll)return;"
                "var gl=root.querySelectorAll('*');"
-               "for(var wi=0;wi<gl.length&&wi<90;wi++){var g=gl[wi];"
+               "for(var wi=0;wi<gl.length&&wi<90&&((wi&15)||!ovr());wi++){var g=gl[wi];"
                  "var gr=g.getBoundingClientRect();"
                  "if(gr.width<4||gr.width>40||gr.height<4||gr.height>40)continue;"
                  "var gsty=getComputedStyle(g),gtg=(g.tagName||'').toLowerCase();"
@@ -1484,7 +1510,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "};"
              "var WGT=document.querySelectorAll("
                "'[class*=sc-nested-actions]');"
-             "for(var wti=0;wti<WGT.length&&wti<40;wti++)WG(WGT[wti]);"
+             "for(var wti=0;wti<WGT.length&&wti<40&&((wti&15)||!ovr());wti++)WG(WGT[wti]);"
            "}catch(e){}"
 
            // One-shot probe. Two builds have now been spent inferring what paints
@@ -1587,7 +1613,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "}catch(e){}"
              "var fd=[];try{var FQ=document.querySelectorAll("
                "'[class*=a-expander] *,[data-hook*=review] *');"
-               "for(var y2=0;y2<FQ.length&&y2<250&&fd.length<3;y2++){var fe2=FQ[y2];"
+               "for(var y2=0;y2<FQ.length&&y2<250&&((y2&15)||!ovr())&&fd.length<3;y2++){var fe2=FQ[y2];"
                  "var c2=getComputedStyle(fe2),b2=c2.backgroundImage||'';"
                  "var pa2=getComputedStyle(fe2,'::after'),pb2=getComputedStyle(fe2,'::before');"
                  "var pab=(pa2&&pa2.backgroundImage!=='none')?pa2.backgroundImage:"
@@ -1646,12 +1672,14 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "for(var ki2=0;ki2<kk2.length&&kb.length<7;ki2++)kb.push(desc(kk2[ki2]));"
                  "window.__AD_KEBAB__=kb.join(' > ');break;}"
                "var CBQ=document.querySelectorAll('[class*=copilot-compare]');"
+               "__ck('CBQ');"
                "var cb=[];for(var cq=0;cq<CBQ.length&&cb.length<6;cq++){var cbe=CBQ[cq];"
                  "var cbr=cbe.getBoundingClientRect();if(cbr.width<6||cbr.width>40||cbr.height<6||cbr.height>40)continue;"
                  "cb.push(desc(cbe));}"
                "if(cb.length)window.__AD_CMPBAR__=cb.join(' ~ ');"
              "}catch(e){}"
              "try{var CXB=document.querySelectorAll('[class*=on-image-button]');var cxt=null;"
+             "__ck('CXB');"
                "for(var cx=0;cx<CXB.length;cx++){var cxe=CXB[cx];"
                  "var cxcl=cxe.className;if(cxcl&&cxcl.baseVal!==undefined)cxcl=cxcl.baseVal;cxcl=String(cxcl||'');"
                  "if(/compare/i.test(cxcl)||(cxe.closest&&cxe.closest('[class*=copilot-compare]'))){cxt=cxe;break;}}"
@@ -1675,6 +1703,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(window.__AD_TEXTBOX__?(' TEXTBOX['+window.__AD_TEXTBOX__+']'):'')"
                "+(window.__AD_ADCARD__?(' ADCARD['+window.__AD_ADCARD__+']'):'')"
                "+(window.__AD_SCREW__?(' SCREW['+window.__AD_SCREW__+']'):'')"
+               "+(window.__AD_PERF__?(' PERF['+window.__AD_PERF__+']'):'')"
                "+(window.__AD_TILEART__?(' TILEART['+window.__AD_TILEART__+']'):'')"
                "+(window.__AD_BOXKILL__?(' BOXKILL['+window.__AD_BOXKILL__+']'):'')"
                "+(window.__AD_FLTSCAN__?(' FLTSCAN['+window.__AD_FLTSCAN__+']'):'')"
@@ -1690,6 +1719,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(lt.length?(' light='+lt.join(' ')):'')"
                "+(ht.length?(' HEART='+ht.join(' ')):'')+htree;}"
            "}catch(e){pr=' probeERR';}"
+           "window.__AD_PERF__='ms='+(Date.now()-__t0)+' cut='+__cut+' '+__ckl.join(' ');"
            "return n+'/'+bfix+'/'+lfix+'/'+gfix+'/'+bigfix+pr;}catch(e){return -1;}};"
          "window.__AMZDARK_APPLY__=function(){try{"
            "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
