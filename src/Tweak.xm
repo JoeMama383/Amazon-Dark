@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.192.0"
+#define AD_VERSION "v5.193.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2452,6 +2452,84 @@ static void ADDarkenNativeTree(UIView *v, int depth, int *n){
     } @catch(...) {}
 }
 
+// Measure a UIImage the same way the web passes measure a sprite: fraction of
+// transparent pixels, and the average luminance of the opaque ones. A glyph is
+// mostly clear with dark ink; a photograph is opaque edge to edge.
+static BOOL ADImageIsDarkGlyph(UIImage *img, CGFloat *clearOut, CGFloat *avgOut){
+    if (!img) return NO;
+    @try {
+        CGImageRef cg = img.CGImage;
+        if (!cg) return NO;
+        const int N = 16;
+        size_t bpr = (size_t)N * 4;
+        unsigned char *buf = (unsigned char *)calloc((size_t)N * bpr, 1);
+        if (!buf) return NO;
+        CGColorSpaceRef cs = CGColorSpaceCreateDeviceRGB();
+        CGContextRef ctx = CGBitmapContextCreate(buf, N, N, 8, bpr, cs,
+                              kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+        CGColorSpaceRelease(cs);
+        if (!ctx){ free(buf); return NO; }
+        CGContextClearRect(ctx, CGRectMake(0, 0, N, N));
+        CGContextDrawImage(ctx, CGRectMake(0, 0, N, N), cg);
+        CGContextRelease(ctx);
+        int total = N * N, clear = 0, cnt = 0, lite = 0;
+        double sum = 0;
+        for (int i = 0; i < total; i++){
+            unsigned char *px = buf + (i * 4);
+            if (px[3] < 40){ clear++; continue; }
+            double l = 0.2126*px[0] + 0.7152*px[1] + 0.0722*px[2];
+            sum += l; cnt++;
+            if (l > 153) lite++;
+        }
+        free(buf);
+        if (!cnt) return NO;
+        CGFloat clearFrac = (CGFloat)clear / (CGFloat)total;
+        CGFloat avg = (CGFloat)((sum / cnt) / 255.0);
+        CGFloat liteFrac = (CGFloat)lite / (CGFloat)cnt;
+        if (clearOut) *clearOut = clearFrac;
+        if (avgOut) *avgOut = avg;
+        // opaque edge to edge => a picture, never touched
+        if (clearFrac < 0.35) return NO;
+        // already light enough to read on a dark ground
+        if (avg >= 0.45 || liteFrac >= 0.10) return NO;
+        return YES;
+    } @catch(...) {}
+    return NO;
+}
+
+static int gNatGlyphLogged = 0;
+static void ADLiftNativeGlyph(UIImageView *iv){
+    @try {
+        if (!iv || !iv.image) return;
+        static const void *kNatGlyphKey = &kNatGlyphKey;
+        if (objc_getAssociatedObject(iv, kNatGlyphKey)) return;
+        CGSize sz = iv.bounds.size;
+        if (sz.width < 10 || sz.width > 52 || sz.height < 10 || sz.height > 52) return;
+        // only on a dark ground, same rule the web pass uses
+        CGFloat gl = -1.0;
+        UIView *p = iv.superview; int d = 0;
+        while (p && d++ < 4){
+            UIColor *bc = p.backgroundColor;
+            CGFloat r,g,b,a;
+            if (bc && [bc getRed:&r green:&g blue:&b alpha:&a] && a > 0.3){
+                gl = 0.2126*r + 0.7152*g + 0.0722*b; break;
+            }
+            p = p.superview;
+        }
+        if (gl < 0 || gl > 0.30) return;
+        CGFloat clearFrac = 0, avg = 0;
+        if (!ADImageIsDarkGlyph(iv.image, &clearFrac, &avg)) return;
+        objc_setAssociatedObject(iv, kNatGlyphKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        iv.image = [iv.image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        iv.tintColor = [UIColor colorWithRed:0.910 green:0.902 blue:0.890 alpha:1.0];
+        if (gNatGlyphLogged < 6){
+            gNatGlyphLogged++;
+            ADLog(@"natglyph %s %.0fx%.0f clear=%.2f avg=%.2f ground=%.2f",
+                  object_getClassName(iv), sz.width, sz.height, clearFrac, avg, gl);
+        }
+    } @catch(...) {}
+}
+
 static void ADCollectWebViews(UIView *v, NSMutableArray *out, int depth){
     if (!v || depth > 12 || out.count >= 8) return;
     @try {
@@ -4078,6 +4156,18 @@ static void ADRunProbe(void){
     %orig;
     @try {
         if (!gP.enabled || !self.window || ADIsWebKitOwned(self)) return;
+        // Measured lift for small monochrome assets on a dark ground -- the
+        // Interests plus glyph is one of these, and it is native, so no web
+        // pass could ever have reached it. Photographs fail the alpha test.
+        ADLiftNativeGlyph(self);
+        {
+            __weak UIImageView *wiv9 = self;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{
+                @try { UIImageView *iv9 = wiv9; if (iv9 && iv9.window) ADLiftNativeGlyph(iv9); }
+                @catch(...) {}
+            });
+        }
         // The tab bar owns its own colours. Both branches below repaint: the backdrop
         // drops a dark panel behind any transparent artwork, and the catch-up
         // glyphifies and re-tints. Between them that is the white cart icon and the
