@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.198.0"
+#define AD_VERSION "v5.199.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -402,6 +402,18 @@ static NSString *ADFixesLiteral(void){
              // filter, whatever rule above tried to apply one. Element selectors
              // are included deliberately to raise specificity over the
              // attribute-only rules that were matching these thumbnails.
+             // AD-CARD TEXT. Their stock colour already reads correctly on the
+             // creative, so it is never themed -- element selectors included to
+             // outrank the attribute-only colour rules above.
+             "html body [class*=a-cardui] span,"
+             "html body [class*=a-cardui] p,"
+             "html body [class*=a-cardui] h1,"
+             "html body [class*=a-cardui] h2,"
+             "html body [class*=a-cardui] h3,"
+             "html body [class*=cardui-header] span,"
+             "html body [class*=gwm-] span,"
+             "html body [class*=gwm-] p"
+             "{color:#0f1111 !important;-webkit-text-fill-color:#0f1111 !important;}"
              "html body [class*=product-image] img[src],"
              "html body [class*=s-product-image] img[src],"
              "html body [class*=product-image] picture[class],"
