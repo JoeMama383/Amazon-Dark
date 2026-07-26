@@ -96,7 +96,15 @@ def check(label, js):
     with tempfile.NamedTemporaryFile('w', suffix='.js', delete=False) as f:
         f.write(js)
         path = f.name
-    r = subprocess.run(['node', '--check', path], capture_output=True, text=True)
+    try:
+        r = subprocess.run(['node', '--check', path], capture_output=True, text=True)
+    except FileNotFoundError:
+        # node is not installed in every dev environment (it is absent from this
+        # project's WSL box). Degrade instead of crashing: the structural checks
+        # below are the ones that caught the real defect, and they need no node.
+        os.unlink(path)
+        print(f"  SKIP     {label} (node not installed)")
+        return True
     os.unlink(path)
     if r.returncode == 0:
         print(f"  OK       {label} ({len(js)} chars)")

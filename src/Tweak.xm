@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.163.0"
+#define AD_VERSION "v5.170.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -752,8 +752,12 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "var hasAlt=isI&&el.getAttribute&&(el.getAttribute('alt')||'').trim().length>1;"
                "if(gr.width>5&&gr.width<=lim&&gr.height>5&&gr.height<=lim&&!SKIP.test(cn2)&&!ot&&bgOf(el)<=0.5&&!inContent&&(inFlt||!hasAlt)){"
                  "var hasB=cs.backgroundImage&&cs.backgroundImage!=='none';"
-                 "if(isI||hasB){el.style.setProperty('filter','brightness(0) invert(1)','important');"
+                 "if(isI||hasB){"
+                   // Guard BEFORE the write. This ran after it, so a product photo
+                   // was silhouetted first and the continue then skipped the mark,
+                   // leaving it invisible to every by= audit.
                    "if(isProdArt(el)||holdsArt(el)||isPhoto(el))continue;"
+                   "el.style.setProperty('filter','brightness(0) invert(1)','important');"
                "el.__adGlyph=1;el.__adBy='gfix1';gfix++;}}"
              "}catch(e){}}"
              "if(el.tagName&&el.tagName.toLowerCase()==='img'&&lfix<500){"
@@ -1180,9 +1184,19 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "else if(!window.__AD_SVGINK__)window.__AD_SVGINK__='left ink='+ink.toFixed(2);"
                "}catch(e){}continue;}"
                "(function(el5){try{"
-                 "if(el5.tagName.toLowerCase()!=='img'){"
-                   "el5.style.setProperty('filter','invert(1)','important');return;}"
-                 "var srcu=el5.currentSrc||el5.src;if(!srcu)return;"
+                 // NEVER invert unmeasured. This inverted any non-<img> candidate
+                 // outright, with no luminance test at all -- so on a still-loading
+                 // document the tile heuristic matched containers whose art had not
+                 // arrived and flipped every one on sight. That is the inverted
+                 // loading screen. A CSS-background icon now goes through the same
+                 // canvas measurement as an <img>; anything unmeasurable is left be.
+                 "var srcu=null;"
+                 "if(el5.tagName.toLowerCase()==='img'){srcu=el5.currentSrc||el5.src;}"
+                 "else{var bgi9=String(getComputedStyle(el5).backgroundImage||'');"
+                   "var i1=bgi9.indexOf('url(');"
+                   "if(i1>=0){var s1=bgi9.slice(i1+4);var i2=s1.indexOf(')');"
+                     "if(i2>0)srcu=s1.slice(0,i2).replace(/^[\\s'\\u0022]+|[\\s'\\u0022]+$/g,'');}}"
+                 "if(!srcu){if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__='no-src-skipped';return;}"
                  "var pr6=new Image();pr6.crossOrigin='anonymous';"
                  "pr6.onload=function(){try{"
                    "var cw=Math.min(pr6.naturalWidth||32,32),ch=Math.min(pr6.naturalHeight||32,32);"
@@ -1255,11 +1269,15 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "||((fcs2.webkitMaskImage||fcs2.maskImage||'none')!=='none');"
                  "if(!fart)continue;"
                  "if(String(fcs2.filter||'').indexOf('invert')>=0)continue;"
+                 // GUARD FIRST. This sat BELOW both writes: a product photo was
+                 // silhouetted and only then asked whether it was a product photo.
+                 // Its continue also skipped the marking line below, which is why
+                 // these images logged as glyph=0 by=- and no audit ever saw them.
+                 "if(isProdArt(fe2)||holdsArt(fe2)||isPhoto(fe2))continue;"
                  "if(ftg==='svg'){fe2.style.setProperty('fill','#ffffff','important');"
                    "fe2.style.setProperty('stroke','#ffffff','important');continue;}"
                  "fe2.style.setProperty('filter','brightness(0) invert(1)','important');"
                  "fe2.style.setProperty('background-color','transparent','important');"
-                 "if(isProdArt(fe2)||holdsArt(fe2)||isPhoto(fe2))continue;"
                "fe2.__adGlyph=1;fe2.__adBy='fltpanel';"
                  "if(fmiss.length<3)fmiss.push(ftg+'.'+fc2.slice(0,22)+'@'+Math.round(fr3.width)+'x'+Math.round(fr3.height));}"
                "if(!window.__AD_FLTSCAN__)window.__AD_FLTSCAN__="
@@ -1296,8 +1314,10 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "tgt.style.setProperty('box-sizing','border-box','important');"
                  "if(art){var arts=tgt.querySelectorAll('img,i,svg');"
                    "for(var av=0;av<arts.length&&av<6;av++){"
+                     "if(isProdArt(arts[av])||holdsArt(arts[av])||isPhoto(arts[av]))continue;"
                      "arts[av].style.setProperty('filter','brightness(0) invert(1)','important');"
-                     "arts[av].style.setProperty('background-color','transparent','important');}}"
+                     "arts[av].style.setProperty('background-color','transparent','important');"
+                     "arts[av].__adGlyph=1;arts[av].__adBy='compdisc';}}"
                  // sprite drawn by the element's own background: silhouette via a
                  // pseudo cannot be set inline, so lift the artwork with invert and
                  // let the pinned dark bg/border above stay (they are bg-COLOR and
@@ -1337,8 +1357,10 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "ce.style.setProperty('box-sizing','border-box','important');"
                "var cg=ce.querySelectorAll('img,i,svg');"
                "for(var cg2=0;cg2<cg.length&&cg2<6;cg2++){"
+                 "if(isProdArt(cg[cg2])||holdsArt(cg[cg2])||isPhoto(cg[cg2]))continue;"
                  "cg[cg2].style.setProperty('filter','brightness(0) invert(1)','important');"
-                 "cg[cg2].style.setProperty('background-color','transparent','important');}"
+                 "cg[cg2].style.setProperty('background-color','transparent','important');"
+                 "cg[cg2].__adGlyph=1;cg[cg2].__adBy='heartdisc';}"
                "if(!window.__AD_CMPFIX__){window.__AD_CMPFIX__="
                  "'cls='+ccl.slice(0,40)+' aria='+String(ce.getAttribute('aria-label')||'-').slice(0,24)"
                  "+' csa='+String(ce.getAttribute('data-csa-c-content-id')||'-').slice(0,24);}}"
@@ -1397,7 +1419,10 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "var mask=(gmi&&gmi!=='none')"
                    "||(gbf.webkitMaskImage&&gbf.webkitMaskImage!=='none')"
                    "||(gbf.maskImage&&gbf.maskImage!=='none');"
-                 "if(gtg==='img'||sprite){g.style.setProperty('filter','brightness(0) invert(1)','important');continue;}"
+                 "if(gtg==='img'||sprite){"
+                   "if(isProdArt(g)||holdsArt(g)||isPhoto(g))continue;"
+                   "g.style.setProperty('filter','brightness(0) invert(1)','important');"
+                   "g.__adGlyph=1;g.__adBy='gsweep';continue;}"
                  "if(mask){g.style.setProperty('background-color',FG,'important');continue;}"
                  "var pc=(gbf.content&&gbf.content!=='none'&&gbf.content!=='normal')"
                    "||(gaf.content&&gaf.content!=='none'&&gaf.content!=='normal');"
