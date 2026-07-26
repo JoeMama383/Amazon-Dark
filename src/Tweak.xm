@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.197.0"
+#define AD_VERSION "v5.198.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1948,7 +1948,35 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          "}catch(e){}};"
          // Re-run the repair as the page fills in (carousels, lazy tiles), debounced
          // so a busy DOM cannot turn this into a hot loop.
-         "try{var _t=null,_last=0;new MutationObserver(function(){"
+         "function _adPin(root){try{"
+           "if(!root||root.nodeType!==1)return;"
+           "var list=[root];"
+           "try{var q=root.querySelectorAll('span,div,p,a,h1,h2,h3,h4');"
+             "for(var i2=0;i2<q.length&&i2<80;i2++)list.push(q[i2]);}catch(e){}"
+           "for(var j2=0;j2<list.length;j2++){var el2=list[j2];"
+             "if(el2.__adPinned)continue;"
+             "var txt='';"
+             "for(var c2=0;c2<el2.childNodes.length&&c2<4;c2++){"
+               "var nd=el2.childNodes[c2];"
+               "if(nd.nodeType===3&&nd.nodeValue&&nd.nodeValue.trim())txt+=nd.nodeValue;}"
+             "if(!txt.trim())continue;"
+             // on a creative? the artwork lives on an ancestor, not the caption
+             "var an=el2.parentElement,d2=0,onart=false;"
+             "while(an&&d2++<4){var acs=getComputedStyle(an);"
+               "if((acs.backgroundImage||'').indexOf('url(')>=0){"
+                 "var ar=an.getBoundingClientRect();"
+                 "if(ar.width>200&&ar.height>80){onart=true;break;}}"
+               "an=an.parentElement;}"
+             "if(!onart)continue;"
+             "el2.__adPinned=1;"
+             "el2.style.setProperty('color','#0f1111','important');"
+             "window.__AD_PIN__=(window.__AD_PIN__||0)+1;}"
+         "}catch(e){}}"
+         "try{var _t=null,_last=0;new MutationObserver(function(muts){"
+           // synchronous fast lane: pin stock colour before this frame paints
+           "try{for(var m2=0;m2<muts.length&&m2<40;m2++){"
+             "var ad=muts[m2].addedNodes;"
+             "for(var a2=0;a2<ad.length&&a2<20;a2++)_adPin(ad[a2]);}}catch(e){}"
            "var _n=Date.now();"
            "if(_n-_last>110){_last=_n;"
              "if(window.requestAnimationFrame)requestAnimationFrame(function(){"
