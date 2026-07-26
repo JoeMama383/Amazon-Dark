@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.190.0"
+#define AD_VERSION "v5.191.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1079,7 +1079,12 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // painted it -- so it stops being a guess about which pass to blame.
            // Same treatment: 2500 elements with a getComputedStyle each. Useful
            // once per page, ruinous every 1.2s.
-           "try{if(window.__AD_AC_DONE__)throw 0;window.__AD_AC_DONE__=1;"
+           // RE-ARMED. I gated this to once per document in v5.177, which for an ad
+           // card injected lazily means it ran long before the card existed -- so it
+           // reported "clean" every time regardless. Up to 12 attempts across the
+           // session, latching the moment it finds something so it stops paying.
+           "try{if((window.__AD_AC_N__||0)>=12||window.__AD_AC_HIT__)throw 0;"
+             "window.__AD_AC_N__=(window.__AD_AC_N__||0)+1;"
              "var AC=document.querySelectorAll('div,span,section,a,p');var hits=[],scanned=0;"
              "__ck('AC');"
              "for(var ac=0;ac<AC.length&&ac<2500&&((ac&15)||!ovr())&&hits.length<4;ac++){var ce2=AC[ac];"
@@ -1101,7 +1106,9 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "+'|bg='+cl6.toFixed(2)+'|par='+(lg===null?'none':lg.toFixed(2))"
                  "+'|art='+ov5.toFixed(2)"
                  "+'|by='+(ce2.__adBgBy||'-'));}"
-             "window.__AD_ADCARD__=(hits.length?('n='+hits.length+' '+hits.join(' ~ ')):('clean scanned='+scanned));"
+             "if(hits.length)window.__AD_AC_HIT__=1;"
+             "window.__AD_ADCARD__=(hits.length?('n='+hits.length+' '+hits.join(' ~ '))"
+               ":('clean scanned='+scanned+' run='+window.__AD_AC_N__));"
            "}catch(e){window.__AD_ADCARD__='err '+e;}"
                       // BOX KILLER. A dark background anywhere between artwork and the light
            // card it sits on is a box we or Dark Reader painted under transparent
@@ -1897,8 +1904,23 @@ static NSString *ADPharmForceJS(void){
                                      "if(tg==='img'||tg==='svg'||tg==='video'||tg==='canvas')continue;"
                                      "var cs=getComputedStyle(e);"
                                      "if((cs.backgroundImage||'').indexOf('url(')>=0)continue;"
+                                     // ON A CREATIVE? This skipped elements carrying artwork
+                                     // THEMSELVES, but a caption sitting on an ad creative has no
+                                     // background-image of its own -- the artwork is on a parent --
+                                     // so it sailed through and got painted #181a1b. That is the
+                                     // black box behind ad-card text. Only creative-sized artwork
+                                     // counts, so a small background icon still darkens normally.
+                                     "var anc=e.parentElement,ad2=0,onart=false;"
+                                     "while(anc&&ad2++<4){"
+                                       "var acs=getComputedStyle(anc);"
+                                       "if((acs.backgroundImage||'').indexOf('url(')>=0){"
+                                         "var arr=anc.getBoundingClientRect();"
+                                         "if(arr.width>200&&arr.height>80){onart=true;break;}}"
+                                       "anc=anc.parentElement;}"
+                                     "if(onart)continue;"
                                      "var bl=L(cs.backgroundColor);"
-                                     "if(bl!==null&&bl>0.5){e.style.setProperty('background-color','#181a1b','important');n++;}"
+                                     "if(bl!==null&&bl>0.5){e.style.setProperty('background-color','#181a1b','important');"
+                                       "e.__adBgBy='reapply';n++;}"
                                      "var tl2=L(cs.color);"
                                      "if(tl2!==null&&tl2<0.35){e.style.setProperty('color','#e8e6e3','important');t++;}}"
                                    "try{document.documentElement.style.setProperty('background-color','#181a1b','important');"
