@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.203.0"
+#define AD_VERSION "v5.204.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -634,7 +634,16 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "if(window.__ADSCROLLING__||(window.__ADLAST__&&_nw-window.__ADLAST__<400)){"
              "if(!window.__ADTRAIL__){window.__ADTRAIL__=setTimeout(function(){"
                "window.__ADTRAIL__=null;try{window.__AMZDARK_FIXCONTRAST__();}catch(e){}},450);}"
-             "return -2;}"
+             // RETURN THE CACHED REPORT, NOT -2. The poll calls this function to READ
+             // the probes, but the rate limiter I added in v5.180 to fix scroll lag
+             // bails out before the report is ever assembled -- so on any surface you
+             // have to scroll to reach (i.e. the home feed) the poll got a bare -2 and
+             // every probe value came back empty or stale. That is why CARDX,
+             // DARKGLYPH and FLTSCAN all read as nothing on the home feed while the
+             // same probes returned real data on the shopping pane. Work still stops;
+             // only reporting continues.
+             "try{if(window.__ADPOST__)window.__ADPOST__();}catch(e){}"
+             "return (window.__AD_LASTREP__?(window.__AD_LASTREP__+' [thr]'):-2);}"
            "window.__ADLAST__=_nw;"
            "var FG='%@';"
            "function ch(v){v=v/255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);}"
@@ -2064,7 +2073,10 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // child count, path) so "nothing found" is distinguishable from "nothing
            // here", which is exactly the ambiguity that made scanned=0 unreadable.
            // Posts only when the fragment changes, so this is not a message storm.
-           "try{if(window.top!==window){"
+           // Poster hoisted onto window so the THROTTLED path can call it too -- a
+           // child frame that bails out early must still register, or FRAMES[n=0]
+           // just means "everything was rate limited", which is what it meant before.
+           "window.__ADPOST__=function(){try{if(window.top===window)return;"
              "var _fr='t='+(window.__AD_TXTN__===undefined?'?':window.__AD_TXTN__)"
                "+' b='+((document.body&&document.body.children.length)||0)"
                "+(window.__AD_CARDX__?(' CARDX['+window.__AD_CARDX__+']'):'')"
@@ -2073,7 +2085,10 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "if(_fr!==window.__ADFRLAST__){window.__ADFRLAST__=_fr;"
                "window.top.postMessage({__adfr:1,"
                  "u:String(location.pathname||'/').slice(-20),r:_fr},'*');}"
-           "}}catch(e){}"
+           "}catch(e){}};"
+           "try{window.__ADPOST__();}catch(e){}"
+           // Cache the assembled report so a throttled call can still hand it back.
+           "try{window.__AD_LASTREP__=n+'/'+bfix+'/'+lfix+'/'+gfix+'/'+bigfix+pr;}catch(e){}"
            "return n+'/'+bfix+'/'+lfix+'/'+gfix+'/'+bigfix+pr;}catch(e){return -1;}};"
          "window.__AMZDARK_APPLY__=function(){try{"
            "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
