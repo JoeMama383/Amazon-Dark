@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.215.0"
+#define AD_VERSION "v5.216.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3695,16 +3695,31 @@ static void ADInvertRNSVG(UIView *v);
 
 // Is this view painted over creative artwork? Walks up looking for an image
 // view large enough to be a card creative that actually covers the label.
+// "Covers" means the picture sits behind most of the text, not merely near it.
+// Touching at an edge -- a rating line beside a thumbnail, a "Sponsored" label
+// under a photo -- is not text on a creative, and treating it as such is what
+// left that copy dark on a dark card.
+static BOOL ADCoversRect(CGRect pic, CGRect text){
+    @try {
+        CGFloat area = text.size.width * text.size.height;
+        if (area <= 1) return NO;
+        CGRect inter = CGRectIntersection(pic, text);
+        if (CGRectIsNull(inter)) return NO;
+        CGFloat cov = (inter.size.width * inter.size.height) / area;
+        return cov >= 0.80;
+    } @catch(...) {}
+    return NO;
+}
+
 // Depth-first search for a picture that covers the given screen rect.
 static UIImageView *ADFindCoveringPicture(UIView *root, CGRect target, int depth){
     if (!root || depth > 5) return nil;
     @try {
         for (UIView *c in root.subviews){
-            BOOL pic = [c isKindOfClass:[UIImageView class]] || (c.layer.contents != nil);
-            if (pic){
+            if ([c isKindOfClass:[UIImageView class]] && ((UIImageView *)c).image){
                 CGRect cr = [c convertRect:c.bounds toView:nil];
                 if (cr.size.width >= 160 && cr.size.height >= 60 &&
-                    CGRectIntersectsRect(cr, target)) return (UIImageView *)c;
+                    ADCoversRect(cr, target)) return (UIImageView *)c;
             }
             UIImageView *deep = ADFindCoveringPicture(c, target, depth + 1);
             if (deep) return deep;
@@ -3719,15 +3734,9 @@ static UIImageView *ADCreativeBehind(UIView *v){
         CGRect vr = [v convertRect:v.bounds toView:nil];
         UIView *p = v.superview; int d = 0;
         while (p && d++ < 6){
-            // the ancestor may BE the picture, or may draw one into its layer
-            @try {
-                CGRect pr = [p convertRect:p.bounds toView:nil];
-                if (pr.size.width >= 160 && pr.size.height >= 60 &&
-                    CGRectIntersectsRect(pr, vr)){
-                    if ([p isKindOfClass:[UIImageView class]]) return (UIImageView *)p;
-                    if (p.layer.contents != nil) return (UIImageView *)p;
-                }
-            } @catch(...) {}
+            // An ancestor container is never "artwork behind the text" -- it always
+            // contains the label by definition. Only a real image view that
+            // COVERS the label counts, and that is tested below.
             // a picture anywhere beneath this card-sized ancestor that covers us
             @try {
                 CGRect pr2 = [p convertRect:p.bounds toView:nil];
@@ -3738,11 +3747,11 @@ static UIImageView *ADCreativeBehind(UIView *v){
             } @catch(...) {}
             for (UIView *sib in p.subviews){
                 if (sib == v) continue;
-                BOOL pic = [sib isKindOfClass:[UIImageView class]] || (sib.layer.contents != nil);
-                if (!pic) continue;
+                if (![sib isKindOfClass:[UIImageView class]]) continue;
+                if (!((UIImageView *)sib).image) continue;
                 CGRect sr = [sib convertRect:sib.bounds toView:nil];
                 if (sr.size.width < 160 || sr.size.height < 60) continue;
-                if (CGRectIntersectsRect(sr, vr)) return (UIImageView *)sib;
+                if (ADCoversRect(sr, vr)) return (UIImageView *)sib;
             }
             p = p.superview;
         }
