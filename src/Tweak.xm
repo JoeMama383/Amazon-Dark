@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.213.0"
+#define AD_VERSION "v5.214.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3701,9 +3701,19 @@ static UIImageView *ADCreativeBehind(UIView *v){
         CGRect vr = [v convertRect:v.bounds toView:nil];
         UIView *p = v.superview; int d = 0;
         while (p && d++ < 6){
+            // the ancestor may BE the picture, or may draw one into its layer
+            @try {
+                CGRect pr = [p convertRect:p.bounds toView:nil];
+                if (pr.size.width >= 160 && pr.size.height >= 60 &&
+                    CGRectIntersectsRect(pr, vr)){
+                    if ([p isKindOfClass:[UIImageView class]]) return (UIImageView *)p;
+                    if (p.layer.contents != nil) return (UIImageView *)p;
+                }
+            } @catch(...) {}
             for (UIView *sib in p.subviews){
                 if (sib == v) continue;
-                if (![sib isKindOfClass:[UIImageView class]]) continue;
+                BOOL pic = [sib isKindOfClass:[UIImageView class]] || (sib.layer.contents != nil);
+                if (!pic) continue;
                 CGRect sr = [sib convertRect:sib.bounds toView:nil];
                 if (sr.size.width < 160 || sr.size.height < 60) continue;
                 if (CGRectIntersectsRect(sr, vr)) return (UIImageView *)sib;
@@ -3976,14 +3986,21 @@ static void ADReportFabricText(id vObj, NSAttributedString *before, NSAttributed
     }
     @try {
         // Text laid over a creative keeps the colour the site chose for it.
-        if (ADCreativeBehind(self)) {
-            static int adSkip = 0;
-            if (adSkip < 8){
-                adSkip++;
-                ADLog(@"adtext skip '%@'",
+        UIImageView *artBehind = ADCreativeBehind(self);
+        {
+            static int adSeen = 0;
+            if (adSeen < 12){
+                adSeen++;
+                CGRect lr = [self convertRect:self.bounds toView:nil];
+                ADLog(@"adtext #%d '%@' %.0fx%.0f creative=%s",
+                      adSeen,
                       [attributedText.string substringToIndex:
-                          MIN((NSUInteger)18, attributedText.string.length)]);
+                          MIN((NSUInteger)16, attributedText.string.length)],
+                      lr.size.width, lr.size.height,
+                      artBehind ? "YES-skip" : "none-recolour");
             }
+        }
+        if (artBehind) {
             %orig;
             return;
         }
