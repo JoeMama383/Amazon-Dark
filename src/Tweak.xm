@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.212.0"
+#define AD_VERSION "v5.213.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -326,14 +326,12 @@ static NSString *ADFixesLiteral(void){
     // helps transparent PNGs (icons, cut-out product shots) and is a harmless no-op
     // everywhere else. It cannot darken white that is baked into a JPEG's pixels -
     // that needs real pixel work, which is a separate decision.
+    // Opt-IN, not opt-out. A blanket rule paints every image the moment it
+    // exists and can only be corrected afterwards, which is the bar flashing on
+    // and off. Only images a pass has confirmed are clear of artwork get one.
     NSString *imgBackdrop = gP.imageBackdrop
         ? [NSString stringWithFormat:
-             @"img{background-color:%s !important;}"
-             // ...but never behind a logo laid over a creative: the panel would
-             // paint a dark bar across the artwork instead of backing a glyph.
-             "html body [data-adcrt] img[src],"
-             "html body img[data-adonart]"
-             "{background-color:transparent !important;}", gP.bgHex]
+             @"html body img[data-adbackdrop]{background-color:%s !important;}", gP.bgHex]
         : @"";
     return [NSString stringWithFormat:
             @"{css:'"
@@ -1218,9 +1216,11 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "var brr=be.getBoundingClientRect();"
                "if(brr.width<20||brr.height<10)continue;"
                "if(typeof artOverlap!=='function')break;"
-               "if(artOverlap(brr)<0.6)continue;"
-               "be.setAttribute('data-adonart','1');bdn++;}"
-             "if(bdn)window.__AD_ONART__='n='+bdn;"
+               "if(artOverlap(brr)>=0.35){be.removeAttribute('data-adbackdrop');continue;}"
+               // clear of artwork: a backdrop here helps a transparent glyph and
+               // cannot paint over a picture
+               "be.setAttribute('data-adbackdrop','1');bdn++;}"
+             "if(bdn)window.__AD_ONART__='backdrops='+bdn;"
            "}catch(e){}"
                       // PHOTO RESCUE. Runs before anything else and judges by computed
            // result, not by our own bookkeeping -- a stylesheet rule leaves no
@@ -3777,6 +3777,11 @@ static void ADReportNativeCaption(UILabel *lb, UIColor *from, UIColor *to){
     @try {
         UIColor *m = ADModifyUIColor(color, ADColorRoleForeground);
         if (!m) m = color;
+        // ad-card copy keeps the colour the site chose for it
+        if (ADCreativeBehind(self)) {
+            %orig;
+            return;
+        }
         ADReportAnyTextWrite(self, color, m, "UILabel.setTextColor");
         ADReportNativeCaption(self, color, m);
         %orig(m);
@@ -3970,6 +3975,18 @@ static void ADReportFabricText(id vObj, NSAttributedString *before, NSAttributed
         return;
     }
     @try {
+        // Text laid over a creative keeps the colour the site chose for it.
+        if (ADCreativeBehind(self)) {
+            static int adSkip = 0;
+            if (adSkip < 8){
+                adSkip++;
+                ADLog(@"adtext skip '%@'",
+                      [attributedText.string substringToIndex:
+                          MIN((NSUInteger)18, attributedText.string.length)]);
+            }
+            %orig;
+            return;
+        }
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         %orig(r);
         return;
@@ -4633,7 +4650,11 @@ static void ADRunProbe(void){
         BOOL surfDark = ADAncestorSurfaceIsDark(self);
         // A creative behind this image means the visible ground is a photo, not
         // the dark ancestor colour -- a panel there is a black box over artwork.
-        BOOL overArt = (ADCreativeBehind(self) != nil);
+        // If the view is not laid out yet we cannot know what is behind it, and a
+        // wrong backdrop is visible while a missing one is not -- so treat
+        // unknown as "do not paint".
+        BOOL laidOut = (bw > 1 && bh > 1 && self.window != nil);
+        BOOL overArt = (!laidOut) || (ADCreativeBehind(self) != nil);
         if (gP.imageBackdrop && (bw > 48 || bh > 48) && !ADIsChromeGlyphContext(self)
             && surfDark && !overArt){
             UIImage *img = self.image;
