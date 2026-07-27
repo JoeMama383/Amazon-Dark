@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.214.0"
+#define AD_VERSION "v5.215.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3695,6 +3695,24 @@ static void ADInvertRNSVG(UIView *v);
 
 // Is this view painted over creative artwork? Walks up looking for an image
 // view large enough to be a card creative that actually covers the label.
+// Depth-first search for a picture that covers the given screen rect.
+static UIImageView *ADFindCoveringPicture(UIView *root, CGRect target, int depth){
+    if (!root || depth > 5) return nil;
+    @try {
+        for (UIView *c in root.subviews){
+            BOOL pic = [c isKindOfClass:[UIImageView class]] || (c.layer.contents != nil);
+            if (pic){
+                CGRect cr = [c convertRect:c.bounds toView:nil];
+                if (cr.size.width >= 160 && cr.size.height >= 60 &&
+                    CGRectIntersectsRect(cr, target)) return (UIImageView *)c;
+            }
+            UIImageView *deep = ADFindCoveringPicture(c, target, depth + 1);
+            if (deep) return deep;
+        }
+    } @catch(...) {}
+    return nil;
+}
+
 static UIImageView *ADCreativeBehind(UIView *v){
     @try {
         if (!v) return nil;
@@ -3708,6 +3726,14 @@ static UIImageView *ADCreativeBehind(UIView *v){
                     CGRectIntersectsRect(pr, vr)){
                     if ([p isKindOfClass:[UIImageView class]]) return (UIImageView *)p;
                     if (p.layer.contents != nil) return (UIImageView *)p;
+                }
+            } @catch(...) {}
+            // a picture anywhere beneath this card-sized ancestor that covers us
+            @try {
+                CGRect pr2 = [p convertRect:p.bounds toView:nil];
+                if (pr2.size.width >= 200 && pr2.size.height >= 100){
+                    UIImageView *found = ADFindCoveringPicture(p, vr, 0);
+                    if (found) return found;
                 }
             } @catch(...) {}
             for (UIView *sib in p.subviews){
@@ -3989,15 +4015,20 @@ static void ADReportFabricText(id vObj, NSAttributedString *before, NSAttributed
         UIImageView *artBehind = ADCreativeBehind(self);
         {
             static int adSeen = 0;
-            if (adSeen < 12){
-                adSeen++;
-                CGRect lr = [self convertRect:self.bounds toView:nil];
-                ADLog(@"adtext #%d '%@' %.0fx%.0f creative=%s",
-                      adSeen,
-                      [attributedText.string substringToIndex:
-                          MIN((NSUInteger)16, attributedText.string.length)],
-                      lr.size.width, lr.size.height,
-                      artBehind ? "YES-skip" : "none-recolour");
+            static NSMutableSet *adSaid = nil;
+            CGRect lr = [self convertRect:self.bounds toView:nil];
+            // laid out, feed-sized, and not something already reported
+            if (adSeen < 40 && lr.size.width > 60 && lr.size.height > 10){
+                NSString *key = [attributedText.string substringToIndex:
+                                    MIN((NSUInteger)16, attributedText.string.length)];
+                if (!adSaid) adSaid = [NSMutableSet set];
+                if (![adSaid containsObject:key]){
+                    [adSaid addObject:key];
+                    adSeen++;
+                    ADLog(@"adtext #%d '%@' %.0fx%.0f y=%.0f creative=%s",
+                          adSeen, key, lr.size.width, lr.size.height, lr.origin.y,
+                          artBehind ? "YES-skip" : "none-recolour");
+                }
             }
         }
         if (artBehind) {
