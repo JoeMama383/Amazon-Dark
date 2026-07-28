@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.232.0"
+#define AD_VERSION "v5.233.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1098,7 +1098,24 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              // own colour alone rather than guessing and correcting later
              "if(bl===null)continue;"
              "var hi=Math.max(fl,bl)+0.05,lo=Math.min(fl,bl)+0.05;"
-             "if(hi/lo<3.0&&!onArt(el)){el.style.setProperty('color',FG,'important');n++;}}"
+             // NAMED EXEMPTION. onArt exists to keep captions printed on an ad creative
+             // stock, and it must stay -- but a carousel's "Sponsored" label sits over
+             // the product thumbnail, trips the same test, and is left dark while the
+             // info icon beside it (an image, handled by a glyph pass that never
+             // consults onArt) goes light. That mismatch is the reported symptom.
+             //
+             // Scoped as tightly as I can make it: the exact word, a label-sized box,
+             // and a leaf node. A caption on a creative is none of those things.
+             "var spx=false;"
+             "try{if(el.childElementCount===0){"
+               "var stt=String(el.textContent||'').trim();"
+               "var sbr=el.getBoundingClientRect();"
+               "if(/^sponsored/i.test(stt)&&stt.length<=14"
+                 "&&sbr.width<=200&&sbr.height<=40)spx=true;}"
+             "}catch(e){}"
+             "if(hi/lo<3.0&&(spx||!onArt(el))){"
+               "el.style.setProperty('color',FG,'important');"
+               "if(spx)window.__AD_SPON__=(window.__AD_SPON__||0)+1;n++;}}"
 
            // Clear stray dark square wrappers around the buttons (the box that
            // can extend past the pill). Shapes/borders are persistent CSS above.
@@ -2182,6 +2199,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(window.__AD_DISC__?(' DISC['+window.__AD_DISC__+']'):'')"
                "+(window.__AD_LOGO__?(' LOGO['+window.__AD_LOGO__+']'):'')"
                "+(window.__AD_ADSKIP__?(' ADSKIP='+window.__AD_ADSKIP__):'')"
+               "+(window.__AD_SPON__?(' SPON='+window.__AD_SPON__):'')"
                "+(window.__AD_FRSKIP__?(' FRSKIP='+window.__AD_FRSKIP__):'')"
                "+(window.__AD_FRSRC__?(' FRSRC='+window.__AD_FRSRC__):'')"
                "+(function(){try{var F=window.__AD_FRAMES__,o=[];if(!F)return '';"
