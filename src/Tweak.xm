@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.225.0"
+#define AD_VERSION "v5.226.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3058,7 +3058,13 @@ static void ADLiftNativeGlyph(UIImageView *iv){
 }
 
 static void ADCollectWebViews(UIView *v, NSMutableArray *out, int depth){
-    if (!v || depth > 12 || out.count >= 8) return;
+    // DEPTH 30, NOT 12. A React Native screen nests far deeper than twelve levels,
+    // so any WKWebView hosted under an RN tree was invisible to every caller of this
+    // -- including whatever decides which view to poll. RATSCAN showed 9 native
+    // image views, the polled document reports stars=0 over 1134 elements, and its
+    // one child frame is an empty shell: the rating is in a web view this collector
+    // never reached. (Fixed once already in the other lineage; this one kept 12.)
+    if (!v || depth > 30 || out.count >= 12) return;
     @try {
         if ([v isKindOfClass:[WKWebView class]]) { [out addObject:v]; return; }
         for (UIView *sv in v.subviews) ADCollectWebViews(sv, out, depth + 1);
@@ -5836,6 +5842,52 @@ static void ADTextClassProbe(void){
     } @catch(...) {}
 }
 
+// ── WEB VIEW CENSUS ─────────────────────────────────────────────────────────
+// One poll, one document, and the rating is in none of them. This asks every
+// WKWebView on screen the same two questions -- how many elements do you have, and
+// how many of them look like a star rating -- so the one holding the widget names
+// itself. Until now the answer "stars=0" only ever came from a single view that
+// was never confirmed to be the right one.
+static void ADWebViewCensus(void){
+    @try {
+        if (!gP.enabled) return;
+        static int rounds = 0, found = 0;
+        if (found >= 2 || rounds++ > 200) return;
+        UIWindow *key = nil;
+        for (UIWindow *w in [UIApplication sharedApplication].windows)
+            if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
+        if (!key) return;
+        NSMutableArray *wvs = [NSMutableArray array];
+        ADCollectWebViews(key, wvs, 0);
+        if (!wvs.count){ if ((rounds % 20) == 1) ADLog(@"WVCENSUS[no webviews]"); return; }
+        int idx = 0;
+        for (WKWebView *w in wvs){
+            int myIdx = idx++;
+            NSString *js =
+              @"(function(){try{var E=document.querySelectorAll('*');var n=0;"
+               "var S=document.querySelectorAll('img,svg,i,span');"
+               "for(var i=0;i<S.length&&i<3000;i++){"
+                 "var c=String((S[i].className&&S[i].className.baseVal!==undefined)"
+                   "?S[i].className.baseVal:(S[i].className||''));"
+                 "var s=String(S[i].currentSrc||S[i].src||'');"
+                 "if(/star|rating|review/i.test(c+' '+s))n++;}"
+               "return 'els='+E.length+' stars='+n+' frames='+window.frames.length"
+                 "+' u='+String(location.pathname||'/').slice(-24);"
+               "}catch(e){return 'err';}})()";
+            [w evaluateJavaScript:js completionHandler:^(id r, NSError *e){
+                @try {
+                    NSString *v = [r isKindOfClass:[NSString class]] ? (NSString *)r
+                                : (e ? [NSString stringWithFormat:@"ERR %@/%ld", e.domain, (long)e.code]
+                                     : @"(nil)");
+                    if ([v rangeOfString:@"stars=0"].location == NSNotFound &&
+                        [v rangeOfString:@"stars="].location != NSNotFound) found++;
+                    ADLog(@"WVCENSUS[#%d of %lu %@]", myIdx, (unsigned long)wvs.count, v);
+                } @catch(...) {}
+            }];
+        }
+    } @catch(...) {}
+}
+
 static void ADSweepAllWindows(void){
     if (!ADRecolorOn()) return;
     @try {
@@ -6071,6 +6123,10 @@ static void ADReapplyBurst(void){
 }
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
+    @try {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.8 * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{ ADWebViewCensus(); });
+    } @catch(...) {}
     // 1.6s: long enough for the feed's lazy cards to render.
     @try {
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.6 * NSEC_PER_SEC)),
