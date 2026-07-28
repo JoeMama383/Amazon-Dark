@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.233.0"
+#define AD_VERSION "v5.234.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -609,9 +609,23 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "if(tg==='IMG'||tg==='PICTURE'||tg==='VIDEO'||tg==='CANVAS'"
                  "||tg==='SVG'||tg==='svg'||tg==='USE'||tg==='PATH')continue;"
                "var cs=getComputedStyle(e);"
-               "if(String(cs.backgroundImage||'').indexOf('url(')<0){"
+               // A background-image is not automatically artwork. The second creative
+               // template keeps its whole lower block white because the wrapper carries
+               // one, and skipping on its mere presence left the entire card stock.
+               // Only a RASTER url on a reasonably large box counts as a picture;
+               // gradients and tiny spacer images are just paint and may be darkened.
+               "var bgi9=String(cs.backgroundImage||'');"
+               "var isArt9=false;"
+               "if(bgi9.indexOf('url(')>=0){"
+                 "var rc9=e.getBoundingClientRect();"
+                 "isArt9=(rc9.width>=60&&rc9.height>=60);"
+                 "if(isArt9&&/\\.(svg)(\\?|\\)|$)/i.test(bgi9))isArt9=false;}"
+               "if(!isArt9){"
                  "var bg=AF.p(cs.backgroundColor);"
                  "if(bg&&bg.a>0.3&&AF.l(bg)>0.6){"
+                   "e.style.setProperty('background-color','#181a1b','important');nb++;}"
+                 "if(bgi9.indexOf('gradient')>=0&&bgi9.indexOf('url(')<0){"
+                   "e.style.setProperty('background-image','none','important');"
                    "e.style.setProperty('background-color','#181a1b','important');nb++;}}"
                "if(e.childElementCount===0&&String(e.textContent||'').trim()){"
                  "var fg=AF.p(cs.color);"
@@ -623,8 +637,14 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "try{var _at=null;new MutationObserver(function(){clearTimeout(_at);"
              "_at=setTimeout(function(){try{window.__AMZDARK_ADTHEME__();}catch(e){}},120);})"
              ".observe(document.documentElement,{childList:true,subtree:true});}catch(e){}"
-           "try{var _n=0,_iv=setInterval(function(){if(++_n>25){clearInterval(_iv);return;}"
+           // 60 ticks, and re-run on load. The taller creative paints after the old
+           // 10s window closed, so the theme had already stopped looking.
+           "try{var _n=0,_iv=setInterval(function(){if(++_n>60){clearInterval(_iv);return;}"
              "try{window.__AMZDARK_ADTHEME__();}catch(e){}},400);}catch(e){}"
+           "try{addEventListener('load',function(){"
+             "try{window.__AMZDARK_ADTHEME__();}catch(e){}"
+             "setTimeout(function(){try{window.__AMZDARK_ADTHEME__();}catch(e){}},700);"
+           "},{once:true});}catch(e){}"
          "}catch(e){}}"
          "else if(window.DarkReader&&DarkReader.enable){"
          "try{DarkReader.setFetchMethod(window.fetch);}catch(e){}"
@@ -1107,7 +1127,10 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              // Scoped as tightly as I can make it: the exact word, a label-sized box,
              // and a leaf node. A caption on a creative is none of those things.
              "var spx=false;"
-             "try{if(el.childElementCount===0){"
+             // NOT a leaf. "Sponsored" and its info icon share a span, so
+             // childElementCount===0 was never true and SPON stayed at zero.
+             // The text and size caps already do the narrowing.
+             "try{if(el.childElementCount<=2){"
                "var stt=String(el.textContent||'').trim();"
                "var sbr=el.getBoundingClientRect();"
                "if(/^sponsored/i.test(stt)&&stt.length<=14"
