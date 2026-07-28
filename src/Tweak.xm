@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.223.0"
+#define AD_VERSION "v5.224.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2225,18 +2225,41 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              // in the priority bucket and is reported first wherever it sits;
              // everything else must be below the header and is deduped by class+size,
              // so N copies of one icon can never consume the budget again.
-             "var SQ=document.querySelectorAll('img,svg,span,div,i'),pri=[],oth=[],seenK={};"
+             "var SQ=document.querySelectorAll('img,svg,span,div,i'),pri=[],oth=[],seenK={},starN=0;"
              "for(var sq=0;sq<SQ.length&&sq<2500&&(pri.length+oth.length)<10;sq++){var se2=SQ[sq];"
                "var sr2=se2.getBoundingClientRect();"
                "if(sr2.width<10||sr2.width>200||sr2.height<8||sr2.height>60)continue;"
                "if(sr2.bottom<0||sr2.top>(window.innerHeight||900))continue;"
                "var sc2=getComputedStyle(se2),sfl=String(sc2.filter||'');"
-               "if(sfl.indexOf('invert')<0&&sfl.indexOf('brightness')<0)continue;"
                "var kcls=String((se2.className&&se2.className.baseVal!==undefined)"
                  "?se2.className.baseVal:(se2.className||''));"
                "var ksrc=String(se2.currentSrc||se2.src||'');"
                "var isStar=/star|rating|review/i.test(kcls+' '+ksrc);"
-               "if(!isStar){"
+               "if(isStar)starN++;"
+               // A STAR IS REPORTED WHETHER OR NOT IT CARRIES A FILTER. The last run
+               // said none scanned=1195, but the filter test ran BEFORE the star test,
+               // so an unfiltered star was discarded and "no stars here" was
+               // indistinguishable from "stars here, no filter on them". Those point
+               // at completely different causes.
+               //
+               // The ancestor chain matters just as much: a filter on a parent inverts
+               // the whole subtree while the child's own computed filter still reads
+               // none. This project has already been caught by exactly that once -- it
+               // cost three builds of threshold tuning on the wrong element.
+               "if(isStar){"
+                 "var anc='',ap=se2.parentElement,ad4=0;"
+                 "while(ap&&ad4++<5){var af=String(getComputedStyle(ap).filter||'none');"
+                   "if(af!=='none')anc+='^'+String(ap.className||'').slice(0,10)+'='+af.slice(0,14);"
+                   "ap=ap.parentElement;}"
+                 "if(pri.length<4)pri.push('STAR '+se2.tagName+'@'"
+                   "+Math.round(sr2.width)+'x'+Math.round(sr2.height)"
+                   "+'|cls='+kcls.slice(0,18)+'|flt='+sfl.slice(0,18)"
+                   "+'|op='+sc2.opacity+'|blend='+sc2.mixBlendMode"
+                   "+'|by='+(se2.__adBy||'-')+'|anc='+(anc||'none')"
+                   "+'|'+ksrc.slice(-20));"
+                 "continue;}"
+               "if(sfl.indexOf('invert')<0&&sfl.indexOf('brightness')<0)continue;"
+               "{"
                  "if(sr2.top<160)continue;"
                  "var kk=kcls.slice(0,16)+'|'+Math.round(sr2.width)+'x'+Math.round(sr2.height);"
                  "if(seenK[kk])continue;seenK[kk]=1;}"
@@ -2249,8 +2272,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              // Latch only on a priority hit. Chrome findings must not stop the search.
              "if(pri.length)window.__AD_SIL_HIT__=1;"
              "var sv=pri.concat(oth);"
-             "window.__AD_SIL__=(sv.length?('star='+pri.length+' '+sv.join(' ~ '))"
-               ":('none scanned='+SQ.length+' run='+window.__AD_SIL_N__));"
+             "window.__AD_SIL__=(sv.length?('star='+pri.length+'/'+starN+' '+sv.join(' ~ '))"
+               ":('none scanned='+SQ.length+' stars='+starN+' run='+window.__AD_SIL_N__));"
            "}}catch(e){window.__AD_SIL__='err '+e;}"
            "try{window.__AD_LASTREP__=n+'/'+bfix+'/'+lfix+'/'+gfix+'/'+bigfix+pr;}catch(e){}"
            "return n+'/'+bfix+'/'+lfix+'/'+gfix+'/'+bigfix+pr;}catch(e){return -1;}};"
