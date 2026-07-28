@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.216.0"
+#define AD_VERSION "v5.217.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2833,13 +2833,21 @@ static void ADLiftNativeGlyph(UIImageView *iv){
         if (gl < 0 || gl > 0.30) return;
         CGFloat clearFrac = 0, avg = 0, satFrac = 0;
         if (!ADImageIsDarkGlyph(iv.image, &clearFrac, &avg, &satFrac)) return;
+        // COLOUR TEST APPLIES AT EVERY SIZE. Template rendering discards colour and
+        // keeps only alpha, so tinting a coloured image is always destructive -- that
+        // is an invariant, not a size-dependent heuristic. This guard used to sit
+        // inside the !glyphSized branch, which meant anything 52x52 or under skipped
+        // it entirely. A star rating is drawn as individual ~16px stars, so every one
+        // of them was template-tinted: the orange is discarded and a partial fill
+        // becomes a uniform white silhouette, which is why the rating reads as five
+        // white stars regardless of the score.
+        if (satFrac > 0.10) return;         // neutral only: never repaint colour
         // Beyond glyph size this is a brand mark, and only a BLACK one is
         // invisible on a dark ground. A coloured logo already reads, so it stays
         // exactly as the brand drew it.
         if (!glyphSized){
             if (clearFrac < 0.50) return;   // must be a mark, not a picture
             if (avg > 0.12) return;         // near-black ink only
-            if (satFrac > 0.10) return;     // neutral only: no brand colour
         }
         UIImage *lifted = [iv.image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
         gADGlyphWriting = YES;          // our own write must not re-enter setImage:
@@ -5504,6 +5512,91 @@ static void ADSweepTimed(UIView *v, BOOL inTabBar, const char *why){
     } @catch(...) {}
 }
 
+// ── TEXT CLASS PROBE ────────────────────────────────────────────────────────
+// Every text hook in this tweak -- UILabel setText/setAttributedText, RCTTextView
+// setTextStorage -- has reported nothing for the ad-card copy, across four builds.
+// Rather than guess at a fifth path, this asks the opposite question: find the
+// strings on screen and report WHICH CLASS is holding them.
+//
+// It matches on the visible text itself ("Sponsored", a rating like 4.4) and dumps
+// the view's class, its layer class, and whether it exposes text at all. A class
+// that draws with CoreText straight into its layer -- RCTParagraphComponentView on
+// RN's new architecture is the obvious candidate -- has no text setter to hook,
+// which would explain four builds of silence and mean the fix has to be a layer or
+// draw-time intercept rather than another setter.
+static BOOL ADProbeStringMatches(NSString *t){
+    if (!t.length || t.length > 64) return NO;
+    if ([t rangeOfString:@"Sponsored"].location != NSNotFound) return YES;
+    if ([t rangeOfString:@"out of 5"].location != NSNotFound) return YES;
+    // a bare rating: one digit, a dot, one digit
+    if (t.length >= 3 && t.length <= 5){
+        unichar a = [t characterAtIndex:0], b = [t characterAtIndex:1];
+        if (a >= '0' && a <= '9' && (b == '.' || b == ',')) return YES;
+    }
+    return NO;
+}
+
+static NSString *ADProbeTextOf(UIView *v){
+    @try {
+        if ([v respondsToSelector:@selector(attributedText)]){
+            id at = [v performSelector:@selector(attributedText)];
+            if ([at isKindOfClass:[NSAttributedString class]]) return [(NSAttributedString *)at string];
+        }
+    } @catch(...) {}
+    @try {
+        if ([v respondsToSelector:@selector(text)]){
+            id t = [v performSelector:@selector(text)];
+            if ([t isKindOfClass:[NSString class]]) return (NSString *)t;
+        }
+    } @catch(...) {}
+    @try { return v.accessibilityLabel; } @catch(...) {}
+    return nil;
+}
+
+static void ADTextClassWalk(UIView *v, int depth, int *n){
+    if (!v || depth > 30 || *n >= 12 || v.hidden || v.alpha < 0.05) return;
+    @try {
+        NSString *t = ADProbeTextOf(v);
+        if (ADProbeStringMatches(t)){
+            (*n)++;
+            CGRect f = [v convertRect:v.bounds toView:nil];
+            CGFloat r = -1, g = -1, b = -1, a = -1;
+            @try {
+                if ([v respondsToSelector:@selector(textColor)]){
+                    id tc = [v performSelector:@selector(textColor)];
+                    if ([tc isKindOfClass:[UIColor class]])
+                        [(UIColor *)tc getRed:&r green:&g blue:&b alpha:&a];
+                }
+            } @catch(...) {}
+            UIImageView *cre = ADCreativeBehind(v);
+            ADLog(@"TEXTCLASS[%s layer=%s '%@' %.0fx%.0f y=%.0f ink=%.2f,%.2f,%.2f/%.2f "
+                   "setText=%d setAttr=%d creative=%s]",
+                  object_getClassName(v), object_getClassName(v.layer),
+                  t.length > 22 ? [t substringToIndex:22] : t,
+                  f.size.width, f.size.height, f.origin.y, r, g, b, a,
+                  [v respondsToSelector:@selector(setText:)] ? 1 : 0,
+                  [v respondsToSelector:@selector(setAttributedText:)] ? 1 : 0,
+                  cre ? "YES" : "none");
+        }
+        for (UIView *sv in v.subviews) ADTextClassWalk(sv, depth + 1, n);
+    } @catch(...) {}
+}
+
+static void ADTextClassProbe(void){
+    @try {
+        if (!gP.enabled) return;
+        static int rounds = 0;
+        if (rounds++ > 8) return;
+        UIWindow *key = nil;
+        for (UIWindow *w in [UIApplication sharedApplication].windows)
+            if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
+        if (!key) return;
+        int n = 0;
+        ADTextClassWalk(key, 0, &n);
+        if (!n) ADLog(@"TEXTCLASS[none found round=%d]", rounds);
+    } @catch(...) {}
+}
+
 static void ADSweepAllWindows(void){
     if (!ADRecolorOn()) return;
     @try {
@@ -5739,6 +5832,11 @@ static void ADReapplyBurst(void){
 }
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
+    // 1.6s: long enough for the feed's lazy cards to render.
+    @try {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.6 * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{ ADTextClassProbe(); });
+    } @catch(...) {}
     @try {
         if (!ADRecolorOn()) return;
         if (self.view.window && self.view.bounds.size.width > 200){
