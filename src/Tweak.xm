@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.220.0"
+#define AD_VERSION "v5.221.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1609,15 +1609,28 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "if(!cw||!ch)return;"
                    "var cv=document.createElement('canvas');cv.width=cw;cv.height=ch;"
                    "var cx=cv.getContext('2d');cx.drawImage(pr6,0,0,cw,ch);"
-                   "var dd=cx.getImageData(0,0,cw,ch).data,sum=0,cnt=0,lite=0;"
+                   "var dd=cx.getImageData(0,0,cw,ch).data,sum=0,cnt=0,lite=0,sat=0;"
                    "for(var z=0;z<dd.length;z+=4){if(dd[z+3]<40)continue;"
                      "var lz=0.2126*dd[z]+0.7152*dd[z+1]+0.0722*dd[z+2];"
-                     "sum+=lz;cnt++;if(lz>153)lite++;}"
+                     "sum+=lz;cnt++;if(lz>153)lite++;"
+                     // channel spread: neutral ink sits near zero, brand colour does not
+                     "var mx=dd[z]>dd[z+1]?dd[z]:dd[z+1];if(dd[z+2]>mx)mx=dd[z+2];"
+                     "var mn=dd[z]<dd[z+1]?dd[z]:dd[z+1];if(dd[z+2]<mn)mn=dd[z+2];"
+                     "sat+=(mx-mn);}"
                    "if(!cnt)return;var avg=(sum/cnt)/255;var lf=lite/cnt;"
+                   "var sf=((sat/cnt)/255);"
                    // Any real light content means the sprite already reads on a
                    // dark tile; inverting it would flip it against its peers.
-                   "window.__ADTMC__[srcu]=(avg<0.28&&lf<0.03)?1:0;"
-                   "if(avg<0.28&&lf<0.03){"
+                   // COLOUR IS NEVER SILHOUETTED. invert(1) discards the hue as surely
+                   // as a template tint does, so this is the same invariant the native
+                   // path enforces -- and this pass had no colour term at all. It is
+                   // what turns an orange star rating into a solid white block: the
+                   // sprite measures dark enough to look like ink, so it gets flipped,
+                   // taking the orange and the partial fill with it. RATSCAN showed
+                   // only 9 native image views on the whole feed, so these ratings are
+                   // web content and this is the pass that reaches them.
+                   "window.__ADTMC__[srcu]=(avg<0.28&&lf<0.03&&sf<0.10)?1:0;"
+                   "if(avg<0.28&&lf<0.03&&sf<0.10){"
                      "el5.style.setProperty('filter','invert(1)','important');"
                      "el5.style.setProperty('background-color','transparent','important');"
                      "if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__="
@@ -3002,6 +3015,10 @@ static void ADLaunchDarkenTree(UIView *v, int depth, int *bg, int *logo){
             }
         }
         if ([v isKindOfClass:[UIImageView class]]){
+            // Every image view on every sweep. This used to hang off a narrow
+            // diagnostic branch (no backgroundColor, big and visible), which is why
+            // UNTINT never printed a single census line.
+            ADUntintColourImage((UIImageView *)v);
             UIImageView *iv = (UIImageView *)v;
             CGSize sz = iv.bounds.size;
             // The wordmark lockup: wide, not a small chrome glyph. Its ink is dark,
@@ -4630,9 +4647,6 @@ static void ADProbeTree(UIView *v, int depth, int *found){
             // No backgroundColor at all but big and visible => probably drawRect: or a
             // UIImageView. Naming it tells us which of the two to chase.
             BOOL isImg = [v isKindOfClass:[UIImageView class]];
-            // Runs on every sweep, so a tint applied by any pass gets reversed on the
-            // next pass rather than persisting.
-            if (isImg) ADUntintColourImage((UIImageView *)v);
             // If it draws itself, does the class override drawRect: ? That is the
             // signal for [UIColor set]/setFill painting our hooks should be catching.
             BOOL drawsSelf = [v methodForSelector:@selector(drawRect:)] !=
