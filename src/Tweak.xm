@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.222.0"
+#define AD_VERSION "v5.223.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2217,21 +2217,39 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // I have not found. Re-arms until it actually finds something.
            "try{if((window.__AD_SIL_N__||0)<40&&!window.__AD_SIL_HIT__){"
              "window.__AD_SIL_N__=(window.__AD_SIL_N__||0)+1;"
-             "var SQ=document.querySelectorAll('img,svg,span,div,i'),sv=[];"
-             "for(var sq=0;sq<SQ.length&&sq<2500&&sv.length<6;sq++){var se2=SQ[sq];"
+             // TWO BUCKETS AND A DEDUPE. The last run returned six copies of one 20x20
+             // header icon: querySelectorAll walks document order, chrome comes first,
+             // and the budget was gone before the walk reached a card. That is the
+             // fourth probe of mine eaten the same way, so this stops relying on a
+             // bigger number. Anything whose class or src names a star or rating goes
+             // in the priority bucket and is reported first wherever it sits;
+             // everything else must be below the header and is deduped by class+size,
+             // so N copies of one icon can never consume the budget again.
+             "var SQ=document.querySelectorAll('img,svg,span,div,i'),pri=[],oth=[],seenK={};"
+             "for(var sq=0;sq<SQ.length&&sq<2500&&(pri.length+oth.length)<10;sq++){var se2=SQ[sq];"
                "var sr2=se2.getBoundingClientRect();"
                "if(sr2.width<10||sr2.width>200||sr2.height<8||sr2.height>60)continue;"
                "if(sr2.bottom<0||sr2.top>(window.innerHeight||900))continue;"
                "var sc2=getComputedStyle(se2),sfl=String(sc2.filter||'');"
                "if(sfl.indexOf('invert')<0&&sfl.indexOf('brightness')<0)continue;"
-               "sv.push(se2.tagName+'@'+Math.round(sr2.width)+'x'+Math.round(sr2.height)"
+               "var kcls=String((se2.className&&se2.className.baseVal!==undefined)"
+                 "?se2.className.baseVal:(se2.className||''));"
+               "var ksrc=String(se2.currentSrc||se2.src||'');"
+               "var isStar=/star|rating|review/i.test(kcls+' '+ksrc);"
+               "if(!isStar){"
+                 "if(sr2.top<160)continue;"
+                 "var kk=kcls.slice(0,16)+'|'+Math.round(sr2.width)+'x'+Math.round(sr2.height);"
+                 "if(seenK[kk])continue;seenK[kk]=1;}"
+               "(isStar?pri:oth).push(se2.tagName+'@'+Math.round(sr2.width)+'x'+Math.round(sr2.height)"
                  "+'|cls='+String((se2.className&&se2.className.baseVal!==undefined)"
                    "?se2.className.baseVal:(se2.className||'')).slice(0,20)"
                  "+'|flt='+sfl.slice(0,20)"
                  "+'|by='+(se2.__adBy||'-')"
                  "+'|'+String(se2.currentSrc||se2.src||'').slice(-18));}"
-             "if(sv.length)window.__AD_SIL_HIT__=1;"
-             "window.__AD_SIL__=(sv.length?sv.join(' ~ ')"
+             // Latch only on a priority hit. Chrome findings must not stop the search.
+             "if(pri.length)window.__AD_SIL_HIT__=1;"
+             "var sv=pri.concat(oth);"
+             "window.__AD_SIL__=(sv.length?('star='+pri.length+' '+sv.join(' ~ '))"
                ":('none scanned='+SQ.length+' run='+window.__AD_SIL_N__));"
            "}}catch(e){window.__AD_SIL__='err '+e;}"
            "try{window.__AD_LASTREP__=n+'/'+bfix+'/'+lfix+'/'+gfix+'/'+bigfix+pr;}catch(e){}"
