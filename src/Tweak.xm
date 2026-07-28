@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.217.0"
+#define AD_VERSION "v5.218.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2808,12 +2808,47 @@ static void ADScheduleGlyphLift(UIImageView *iv){
 
 static int gNatGlyphLogged = 0;
 static int gNatGlyphTotal = 0;
+static int gNatRestored = 0;
+
 static void ADLiftNativeGlyph(UIImageView *iv){
     @try {
         if (!iv || !iv.image) return;
         static const void *kNatGlyphKey = &kNatGlyphKey;
         // Keyed on the image, not the view: React Native replaces the image on
         // re-render, and a per-view mark would skip the replacement forever.
+        static const void *kNatTintedKey = &kNatTintedKey;
+
+        // SELF-CORRECTION, BEFORE THE MARK CHECK. Refusing to lift cannot undo a lift
+        // that already happened, and this is why the stars now flash orange and then
+        // go white again: a fresh decode paints orange, then a template variant is
+        // reinstated on the view and the mark check below waves it straight through.
+        //
+        // renderingMode is a UIImage-level flag; CGImage keeps the original pixels.
+        // So an image rendering as a white silhouette still MEASURES as orange, which
+        // means we can detect the mistake and put it back. AlwaysOriginal restores the
+        // artwork whatever tint is set, and clearing tintColor stops it applying to
+        // any image that lands on this view later.
+        UIImage *curImg = iv.image;
+        if (curImg && objc_getAssociatedObject(iv, kNatTintedKey)){
+            CGFloat c2 = 0, a2 = 0, s2 = 0;
+            ADImageIsDarkGlyph(curImg, &c2, &a2, &s2);
+            if (s2 > 0.10){
+                gADGlyphWriting = YES;
+                iv.image = [curImg imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+                gADGlyphWriting = NO;
+                iv.tintColor = nil;
+                objc_setAssociatedObject(iv, kNatTintedKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                objc_setAssociatedObject(iv, kNatGlyphKey,  nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                if (gNatRestored < 12){
+                    gNatRestored++;
+                    ADLog(@"natrestore #%d %s %.0fx%.0f sat=%.2f", gNatRestored,
+                          object_getClassName(iv), iv.bounds.size.width,
+                          iv.bounds.size.height, s2);
+                }
+                return;
+            }
+        }
+
         UIImage *done = objc_getAssociatedObject(iv, kNatGlyphKey);
         if (done && done == iv.image) return;
         CGSize sz = iv.bounds.size;
@@ -2855,6 +2890,8 @@ static void ADLiftNativeGlyph(UIImageView *iv){
         gADGlyphWriting = NO;
         iv.tintColor = [UIColor colorWithRed:0.910 green:0.902 blue:0.890 alpha:1.0];
         objc_setAssociatedObject(iv, kNatGlyphKey, lifted, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        // Record that WE set this view's tint, so the correction above can take it back.
+        objc_setAssociatedObject(iv, kNatTintedKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         gNatGlyphTotal++;
         if (gNatGlyphLogged < 24){
             gNatGlyphLogged++;
@@ -5554,7 +5591,7 @@ static NSString *ADProbeTextOf(UIView *v){
 }
 
 static void ADTextClassWalk(UIView *v, int depth, int *n){
-    if (!v || depth > 30 || *n >= 12 || v.hidden || v.alpha < 0.05) return;
+    if (!v || depth > 30 || *n >= 18 || v.hidden || v.alpha < 0.05) return;
     @try {
         NSString *t = ADProbeTextOf(v);
         if (ADProbeStringMatches(t)){
@@ -5577,6 +5614,29 @@ static void ADTextClassWalk(UIView *v, int depth, int *n){
                   [v respondsToSelector:@selector(setText:)] ? 1 : 0,
                   [v respondsToSelector:@selector(setAttributedText:)] ? 1 : 0,
                   cre ? "YES" : "none");
+        }
+        // No UIView held those strings, so report what IS drawing at rating size --
+        // with the same measurements the lift gate uses, so a decision can be checked
+        // against the pixels rather than inferred. If the rating and "Sponsored" are
+        // images, this is where they show up, and that also explains why four builds
+        // of text hooks reported nothing.
+        else if ([v isKindOfClass:[UIImageView class]]){
+            UIImageView *iv = (UIImageView *)v;
+            CGFloat w = v.bounds.size.width, h = v.bounds.size.height;
+            if (iv.image && w >= 10 && w <= 220 && h >= 8 && h <= 44){
+                CGFloat c3 = 0, a3 = 0, s3 = 0;
+                ADImageIsDarkGlyph(iv.image, &c3, &a3, &s3);
+                CGRect f = [v convertRect:v.bounds toView:nil];
+                CGFloat tr = -1, tg = -1, tb = -1, ta = -1;
+                if (v.tintColor) [v.tintColor getRed:&tr green:&tg blue:&tb alpha:&ta];
+                (*n)++;
+                ADLog(@"RATIMG[%s %.0fx%.0f y=%.0f clear=%.2f avg=%.2f sat=%.2f "
+                       "tmpl=%d tint=%.2f,%.2f,%.2f/%.2f]",
+                      object_getClassName(v), w, h, f.origin.y,
+                      c3, a3, s3,
+                      iv.image.renderingMode == UIImageRenderingModeAlwaysTemplate ? 1 : 0,
+                      tr, tg, tb, ta);
+            }
         }
         for (UIView *sv in v.subviews) ADTextClassWalk(sv, depth + 1, n);
     } @catch(...) {}
