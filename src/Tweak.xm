@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.221.0"
+#define AD_VERSION "v5.222.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1086,18 +1086,30 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "var cv8=document.createElement('canvas');cv8.width=w8;cv8.height=h8;"
                    "var cx8=cv8.getContext('2d');cx8.drawImage(pi8,0,0,w8,h8);"
                    "var d8=cx8.getImageData(0,0,w8,h8).data;"
-                   "var tot=0,clear=0,sum=0,cnt=0,lite=0;"
+                   "var tot=0,clear=0,sum=0,cnt=0,lite=0,sat8=0;"
                    "for(var z8=0;z8<d8.length;z8+=4){tot++;"
                      "if(d8[z8+3]<40){clear++;continue;}"
                      "var l8=0.2126*d8[z8]+0.7152*d8[z8+1]+0.0722*d8[z8+2];"
-                     "sum+=l8;cnt++;if(l8>153)lite++;}"
+                     "sum+=l8;cnt++;if(l8>153)lite++;"
+                     "var m8=d8[z8]>d8[z8+1]?d8[z8]:d8[z8+1];if(d8[z8+2]>m8)m8=d8[z8+2];"
+                     "var n8=d8[z8]<d8[z8+1]?d8[z8]:d8[z8+1];if(d8[z8+2]<n8)n8=d8[z8+2];"
+                     "sat8+=(m8-n8);}"
                    "if(!cnt||!tot)return;"
                    "var clearFrac=clear/tot,avg8=(sum/cnt)/255,liteFrac=lite/cnt;"
+                   "var sf8=((sat8/cnt)/255);"
                    // opaque edge to edge => photograph, never touched
                    "if(clearFrac<0.35)return;"
                    // already has light ink => renders fine on a dark ground
                    "if(avg8>=0.45||liteFrac>=0.10)return;"
+                   // COLOUR IS NEVER INVERTED. This pass measured luminance only, and
+                   // an orange star sprite is dark enough on average to read as ink --
+                   // so it was flipped, hue and partial fill included. TILEART[n=0]
+                   // proves the tileart pass never ran, and this one is unstamped,
+                   // which is why every probe reported the offender as by=-.
+                   "if(sf8>=0.10){if(!window.__AD_LOGO__)window.__AD_LOGO__="
+                     "'skipped-colour sat='+sf8.toFixed(2);return;}"
                    "el8.style.setProperty('filter','invert(1)','important');"
+                   "el8.__adGlyph=1;el8.__adBy='logolift';"
                    "if(!window.__AD_LOGO__)window.__AD_LOGO__="
                      "'lifted clear='+clearFrac.toFixed(2)+' avg='+avg8.toFixed(2);"
                  "}catch(e){if(!window.__AD_LOGO__)window.__AD_LOGO__='tainted';}};"
@@ -1595,7 +1607,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "var cv9=window.__ADTMC__[srcu];"
                  "if(cv9!==undefined){"
                    "if(cv9===1){el5.style.setProperty('filter','invert(1)','important');"
-                     "el5.style.setProperty('background-color','transparent','important');}"
+                     "el5.style.setProperty('background-color','transparent','important');el5.__adBy='tilecache';}"
                    "return;}"
                  // Hard ceiling per document. Past this we leave icons alone rather
                  // than keep paying -- a slightly under-themed glyph beats an
@@ -1633,6 +1645,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "if(avg<0.28&&lf<0.03&&sf<0.10){"
                      "el5.style.setProperty('filter','invert(1)','important');"
                      "el5.style.setProperty('background-color','transparent','important');"
+                     "el5.__adBy='tileart';"
                      "if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__="
                        "'inverted avg='+avg.toFixed(2)+' light='+lf.toFixed(2);}"
                    "else if(!window.__AD_TILEMEAS__)window.__AD_TILEMEAS__="
@@ -2093,6 +2106,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "}catch(e){return ' FRAMES[err]';}})()"
                "+(window.__AD_DISC__?(' DISC['+window.__AD_DISC__+']'):'')"
                "+(window.__AD_LOGO__?(' LOGO['+window.__AD_LOGO__+']'):'')"
+               "+(window.__AD_SIL__?(' SIL['+window.__AD_SIL__+']'):'')"
                "+(window.__AD_CMPFIX__?(' CMPFIX['+window.__AD_CMPFIX__+']'):'')"
                "+(window.__AD_KEBAB__?(' KEBAB='+window.__AD_KEBAB__):'')"
                "+(window.__AD_CMPBAR__?(' CMPBAR='+window.__AD_CMPBAR__):'')"
@@ -2194,6 +2208,32 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "}catch(e){}};"
            "try{window.__ADPOST__();}catch(e){}"
            // Cache the assembled report so a throttled call can still hand it back.
+           // SILHOUETTE AUDIT. Every previous probe asked "is pass X touching this?"
+           // and the answer kept coming back no -- gfix, tileart and the native lift
+           // have each been cleared in turn. This asks the opposite question: find
+           // everything on screen that is CURRENTLY inverted and report which pass
+           // stamped it. All eleven invert writers now stamp __adBy, so by=<name>
+           // names the culprit outright, and by=- means a twelfth writer exists that
+           // I have not found. Re-arms until it actually finds something.
+           "try{if((window.__AD_SIL_N__||0)<40&&!window.__AD_SIL_HIT__){"
+             "window.__AD_SIL_N__=(window.__AD_SIL_N__||0)+1;"
+             "var SQ=document.querySelectorAll('img,svg,span,div,i'),sv=[];"
+             "for(var sq=0;sq<SQ.length&&sq<2500&&sv.length<6;sq++){var se2=SQ[sq];"
+               "var sr2=se2.getBoundingClientRect();"
+               "if(sr2.width<10||sr2.width>200||sr2.height<8||sr2.height>60)continue;"
+               "if(sr2.bottom<0||sr2.top>(window.innerHeight||900))continue;"
+               "var sc2=getComputedStyle(se2),sfl=String(sc2.filter||'');"
+               "if(sfl.indexOf('invert')<0&&sfl.indexOf('brightness')<0)continue;"
+               "sv.push(se2.tagName+'@'+Math.round(sr2.width)+'x'+Math.round(sr2.height)"
+                 "+'|cls='+String((se2.className&&se2.className.baseVal!==undefined)"
+                   "?se2.className.baseVal:(se2.className||'')).slice(0,20)"
+                 "+'|flt='+sfl.slice(0,20)"
+                 "+'|by='+(se2.__adBy||'-')"
+                 "+'|'+String(se2.currentSrc||se2.src||'').slice(-18));}"
+             "if(sv.length)window.__AD_SIL_HIT__=1;"
+             "window.__AD_SIL__=(sv.length?sv.join(' ~ ')"
+               ":('none scanned='+SQ.length+' run='+window.__AD_SIL_N__));"
+           "}}catch(e){window.__AD_SIL__='err '+e;}"
            "try{window.__AD_LASTREP__=n+'/'+bfix+'/'+lfix+'/'+gfix+'/'+bigfix+pr;}catch(e){}"
            "return n+'/'+bfix+'/'+lfix+'/'+gfix+'/'+bigfix+pr;}catch(e){return -1;}};"
          "window.__AMZDARK_APPLY__=function(){try{"
