@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.234.0"
+#define AD_VERSION "v5.235.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -620,7 +620,16 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "var rc9=e.getBoundingClientRect();"
                  "isArt9=(rc9.width>=60&&rc9.height>=60);"
                  "if(isArt9&&/\\.(svg)(\\?|\\)|$)/i.test(bgi9))isArt9=false;}"
-               "if(!isArt9){"
+               // A LIGHT CHIP BEHIND A BRAND MARK STAYS LIGHT. Images are never
+               // repainted (rule 3), so darkening the white disc behind a logo leaves
+               // dark ink on a dark ground -- the Liquid Death mark went practically
+               // invisible that way. Keeping the chip stock is the fix, because it
+               // preserves the brand exactly as drawn instead of altering artwork.
+               "var chip9=false;"
+               "try{var cr9b=e.getBoundingClientRect();"
+                 "if(cr9b.width<=120&&cr9b.height<=120&&e.querySelector"
+                   "&&e.querySelector('img,svg,picture'))chip9=true;}catch(e9){}"
+               "if(!isArt9&&!chip9){"
                  "var bg=AF.p(cs.backgroundColor);"
                  "if(bg&&bg.a>0.3&&AF.l(bg)>0.6){"
                    "e.style.setProperty('background-color','#181a1b','important');nb++;}"
@@ -1136,7 +1145,12 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "if(/^sponsored/i.test(stt)&&stt.length<=14"
                  "&&sbr.width<=200&&sbr.height<=40)spx=true;}"
              "}catch(e){}"
-             "if(hi/lo<3.0&&(spx||!onArt(el))){"
+             // spx must bypass the CONTRAST test, not just the onArt guard. bgOf sees
+             // the white product thumbnail behind the label, reads the contrast as
+             // good, and never enters this branch at all -- so the exemption never got
+             // a chance to apply and relaxing the leaf test could not have helped.
+             // A Sponsored label that is currently dark is lightened outright.
+             "if((spx&&fl<0.5)||(hi/lo<3.0&&(spx||!onArt(el)))){"
                "el.style.setProperty('color',FG,'important');"
                "if(spx)window.__AD_SPON__=(window.__AD_SPON__||0)+1;n++;}}"
 
