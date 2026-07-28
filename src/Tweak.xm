@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.227.0"
+#define AD_VERSION "v5.228.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -5906,6 +5906,68 @@ static void ADWebViewCensus(void){
     } @catch(...) {}
 }
 
+// ── LAYER DUMP ──────────────────────────────────────────────────────────────
+// A genuine change of approach. Native UIImageView, native text setters and the web
+// DOM have each been eliminated on evidence, yet 24 WKCompositingViews and 45
+// RCTViews are on screen. The gap is that React Native's Fabric components are not
+// UIImageView or UILabel subclasses -- RCTImageComponentView and
+// RCTParagraphComponentView draw into their own CALayer -- so every isKindOfClass:
+// probe I have written looked past them, and every text hook keyed on setters they
+// do not implement.
+//
+// So this asks nothing about class membership. It dumps EVERY view in the card band
+// with what its layer is actually holding: contents, filters, compositingFilter,
+// mask, and the accessibility label that Fabric does populate. Deduped by class and
+// size so one repeated icon cannot eat the budget again.
+static void ADLayerWalk(UIView *v, int depth, int *n, NSMutableSet *seen){
+    if (!v || depth > 40 || *n >= 14 || v.hidden || v.alpha < 0.05) return;
+    @try {
+        CGRect f = [v convertRect:v.bounds toView:nil];
+        CGFloat w = f.size.width, h = f.size.height;
+        NSString *al = nil;
+        @try { al = v.accessibilityLabel; } @catch(...) {}
+        BOOL ratingish = (al.length && ([al rangeOfString:@"out of 5"].location != NSNotFound ||
+                                        [al rangeOfString:@"star"].location != NSNotFound));
+        BOOL banded = (f.origin.y > 200 && w >= 24 && w <= 220 && h >= 8 && h <= 60);
+        if (ratingish || banded){
+            NSString *key = [NSString stringWithFormat:@"%s|%.0fx%.0f",
+                             object_getClassName(v), w, h];
+            if (ratingish || ![seen containsObject:key]){
+                if (!ratingish) [seen addObject:key];
+                (*n)++;
+                CALayer *l = v.layer;
+                CGFloat tr = -1, tg = -1, tb = -1, ta = -1;
+                if (v.tintColor) [v.tintColor getRed:&tr green:&tg blue:&tb alpha:&ta];
+                ADLog(@"LAYER[%s layer=%s %.0fx%.0f y=%.0f contents=%d filters=%lu "
+                       "cfilter=%s mask=%d sub=%lu tint=%.2f,%.2f,%.2f al='%@']",
+                      object_getClassName(v), object_getClassName(l), w, h, f.origin.y,
+                      l.contents ? 1 : 0, (unsigned long)l.filters.count,
+                      l.compositingFilter ? object_getClassName(l.compositingFilter) : "-",
+                      l.mask ? 1 : 0, (unsigned long)v.subviews.count,
+                      tr, tg, tb,
+                      al.length ? (al.length > 26 ? [al substringToIndex:26] : al) : @"-");
+            }
+        }
+        for (UIView *sv in v.subviews) ADLayerWalk(sv, depth + 1, n, seen);
+    } @catch(...) {}
+}
+
+static void ADLayerDump(void){
+    @try {
+        if (!gP.enabled) return;
+        static int rounds = 0, found = 0;
+        if (found >= 2 || rounds++ > 300) return;
+        UIWindow *key = nil;
+        for (UIWindow *w in [UIApplication sharedApplication].windows)
+            if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
+        if (!key) return;
+        int n = 0;
+        ADLayerWalk(key, 0, &n, [NSMutableSet set]);
+        if (n) found++;
+        else if ((rounds % 25) == 1) ADLog(@"LAYER[nothing in band round=%d]", rounds);
+    } @catch(...) {}
+}
+
 static void ADSweepAllWindows(void){
     if (!ADRecolorOn()) return;
     @try {
@@ -6141,6 +6203,10 @@ static void ADReapplyBurst(void){
 }
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
+    @try {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{ ADLayerDump(); });
+    } @catch(...) {}
     @try {
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.8 * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{ ADWebViewCensus(); });
