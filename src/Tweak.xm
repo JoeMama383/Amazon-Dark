@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.229.0"
+#define AD_VERSION "v5.230.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -560,7 +560,25 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "setTimeout(function(){__adSnap(900);},900);"
          "}catch(e){}"
          "%@\n" // DarkReader UMD
-         "if(window.DarkReader&&DarkReader.enable){"
+         // ── AD FRAME GATE ───────────────────────────────────────────────────────
+         // Gate the ENGINE out of ad content instead of hunting for elements to
+         // protect. Ten builds went into identifying which element draws a star or a
+         // caption; none of that was needed. Ad creatives render correctly on their
+         // own -- black text on a light card, orange stars -- and every symptom here
+         // (text flipping to grey then back, stars going white, black boxes behind
+         // captions) is our engine arriving after first paint and repainting content
+         // that was already right. So an ad document is left completely stock.
+         //
+         // Two doors have to be shut, not one. This is the first: the engine running
+         // INSIDE the ad frame, since the user scripts are forMainFrameOnly:NO.
+         "try{window.__ADFRAMESKIP__=(function(){try{"
+           "if(window.top===window)return 0;"
+           "var h=String(location.href||'')+' '+String(document.referrer||'');"
+           "return /amazon-adsystem|adsystem|aax|doubleclick|googlesyndication"
+             "|\\/ads?\\/|sspa|adcreative|\\/creative|nexus|\\/gcx\\//i.test(h)?1:0;"
+         "}catch(e){return 0;}})();}catch(e){}"
+         "if(window.__ADFRAMESKIP__){try{window.__AMZDARK_FIXCONTRAST__=function(){return -3;};}catch(e){}}"
+         "else if(window.DarkReader&&DarkReader.enable){"
          "try{DarkReader.setFetchMethod(window.fetch);}catch(e){}"
          // WCAG contrast repair. Dark Reader recolours from the page's own palette,
          // which can leave text only marginally separated from its background - the
@@ -2116,6 +2134,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(window.__AD_DISC__?(' DISC['+window.__AD_DISC__+']'):'')"
                "+(window.__AD_LOGO__?(' LOGO['+window.__AD_LOGO__+']'):'')"
                "+(window.__AD_ADSKIP__?(' ADSKIP='+window.__AD_ADSKIP__):'')"
+               "+(window.__AD_FRSKIP__?(' FRSKIP='+window.__AD_FRSKIP__):'')"
                "+(window.__AD_SIL__?(' SIL['+window.__AD_SIL__+']'):'')"
                "+(window.__AD_CMPFIX__?(' CMPFIX['+window.__AD_CMPFIX__+']'):'')"
                "+(window.__AD_KEBAB__?(' KEBAB='+window.__AD_KEBAB__):'')"
@@ -2410,8 +2429,23 @@ static NSString *ADPharmForceJS(void){
                                        "document.body.style.setProperty('background-color','#181a1b','important');}catch(e){}"
                    "var fr=0,fd=0;try{var IF=document.querySelectorAll('iframe');fr=IF.length;"
                      "for(var q=0;q<IF.length&&q<12;q++){var d2=null;"
+                       // Door 2, and the one that made the element guards pointless:
+                       // this walks OUT of the top frame and into each child document,
+                       // so skipping the engine inside an ad frame achieved nothing
+                       // while this kept reaching in and repainting it from outside.
+                       "try{var fsrc=String(IF[q].src||IF[q].getAttribute('src')||'');"
+                         "if(/amazon-adsystem|adsystem|aax|doubleclick|googlesyndication"
+                           "|\\/ads?\\/|sspa|adcreative|\\/creative|nexus|\\/gcx\\//i.test(fsrc)){"
+                           "window.__AD_FRSKIP__=(window.__AD_FRSKIP__||0)+1;continue;}"
+                       "}catch(e){}"
                        "try{d2=IF[q].contentDocument;}catch(e){d2=null;}"
-                       "if(!d2||!d2.body)continue;fd++;"
+                       "if(!d2||!d2.body)continue;"
+                       // An ad document can also be recognised from the inside, which
+                       // covers srcdoc and about:blank frames that have no useful src.
+                       "try{if(d2.defaultView&&d2.defaultView.__ADFRAMESKIP__){"
+                         "window.__AD_FRSKIP__=(window.__AD_FRSKIP__||0)+1;continue;}"
+                       "}catch(e){}"
+                       "fd++;"
                        "var B=d2.querySelectorAll('*');"
                        "for(var k=0;k<B.length&&k<3000;k++){var e2=B[k];"
                          "var g2=e2.tagName.toLowerCase();"
