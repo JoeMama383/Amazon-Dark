@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.228.0"
+#define AD_VERSION "v5.229.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2115,6 +2115,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "}catch(e){return ' FRAMES[err]';}})()"
                "+(window.__AD_DISC__?(' DISC['+window.__AD_DISC__+']'):'')"
                "+(window.__AD_LOGO__?(' LOGO['+window.__AD_LOGO__+']'):'')"
+               "+(window.__AD_ADSKIP__?(' ADSKIP='+window.__AD_ADSKIP__):'')"
                "+(window.__AD_SIL__?(' SIL['+window.__AD_SIL__+']'):'')"
                "+(window.__AD_CMPFIX__?(' CMPFIX['+window.__AD_CMPFIX__+']'):'')"
                "+(window.__AD_KEBAB__?(' KEBAB='+window.__AD_KEBAB__):'')"
@@ -2417,8 +2418,28 @@ static NSString *ADPharmForceJS(void){
                          "if(g2==='img'||g2==='svg'||g2==='video'||g2==='canvas')continue;"
                          "var c2=d2.defaultView.getComputedStyle(e2);"
                          "if((c2.backgroundImage||'').indexOf('url(')>=0)continue;"
+                         // ON A CREATIVE? This skipped elements carrying artwork
+                         // THEMSELVES, but a caption sitting on an ad creative has no
+                         // background-image of its own -- the artwork is on a parent --
+                         // so it sailed through and got painted #181a1b. That is the
+                         // black box behind ad-card text, and the ad cards are iframe
+                         // content, which is why this is the write that reaches them.
+                         // Only creative-sized artwork counts, so a small background
+                         // icon still darkens normally.
+                         "var oa3=false,an3=e2.parentElement,ad5=0;"
+                         "while(an3&&ad5++<5){"
+                           "var ac3=d2.defaultView.getComputedStyle(an3);"
+                           "if((ac3.backgroundImage||'').indexOf('url(')>=0){"
+                             "var ar5=an3.getBoundingClientRect();"
+                             "if(ar5.width>160&&ar5.height>60){oa3=true;break;}}"
+                           "if(an3.querySelector&&an3.querySelector('img,picture,video')){"
+                             "var ar6=an3.getBoundingClientRect();"
+                             "if(ar6.width>160&&ar6.height>60){oa3=true;break;}}"
+                           "an3=an3.parentElement;}"
+                         "if(oa3){window.__AD_ADSKIP__=(window.__AD_ADSKIP__||0)+1;continue;}"
                          "var b2=L(c2.backgroundColor);"
-                         "if(b2!==null&&b2>0.5){e2.style.setProperty('background-color','#181a1b','important');n++;}"
+                         "if(b2!==null&&b2>0.5){e2.style.setProperty('background-color','#181a1b','important');"
+                           "e2.__adBgBy='ifrfix';n++;}"
                          "var oa2=false,an2=e2.parentElement,ad3=0;"
                          "while(an2&&ad3++<4){var ac2=d2.defaultView.getComputedStyle(an2);"
                            "if((ac2.backgroundImage||'').indexOf('url(')>=0){"
