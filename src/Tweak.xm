@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.226.0"
+#define AD_VERSION "v5.227.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -5863,24 +5863,42 @@ static void ADWebViewCensus(void){
         int idx = 0;
         for (WKWebView *w in wvs){
             int myIdx = idx++;
+            // FIVE DETECTORS, REPORTED SEPARATELY. "stars=0" has been my own matcher
+            // failing, not proof of absence: it tested class and src only, and this app
+            // uses hashed CSS-module names (_cXVhZ_header-icon_2) while a sprite drawn
+            // as a CSS background-image has no src at all. Each signal is counted on
+            // its own so the log says WHICH one finds the widget -- and a genuine zero
+            // across all five is then real evidence rather than a blind spot.
             NSString *js =
-              @"(function(){try{var E=document.querySelectorAll('*');var n=0;"
-               "var S=document.querySelectorAll('img,svg,i,span');"
-               "for(var i=0;i<S.length&&i<3000;i++){"
-                 "var c=String((S[i].className&&S[i].className.baseVal!==undefined)"
-                   "?S[i].className.baseVal:(S[i].className||''));"
-                 "var s=String(S[i].currentSrc||S[i].src||'');"
-                 "if(/star|rating|review/i.test(c+' '+s))n++;}"
-               "return 'els='+E.length+' stars='+n+' frames='+window.frames.length"
-                 "+' u='+String(location.pathname||'/').slice(-24);"
-               "}catch(e){return 'err';}})()";
+              @"(function(){try{var E=document.querySelectorAll('*');"
+               "var aN=0,cN=0,bN=0,nN=0,sN=0,ex='';"
+               "var S=document.querySelectorAll('img,svg,i,span,div,a');"
+               "for(var i=0;i<S.length&&i<4000;i++){var el=S[i];"
+                 "var c=String((el.className&&el.className.baseVal!==undefined)"
+                   "?el.className.baseVal:(el.className||''));"
+                 "var sr=String(el.currentSrc||el.src||'');"
+                 "var al=String(el.getAttribute&&(el.getAttribute('aria-label')||el.getAttribute('title'))||'');"
+                 "var bg='';try{bg=String(getComputedStyle(el).backgroundImage||'');}catch(e2){}"
+                 "var tx=(el.childElementCount===0)?String(el.textContent||'').trim():'';"
+                 "var hit=0;"
+                 "if(/out of 5|stars?\\b/i.test(al)){aN++;hit=1;}"
+                 "if(/star|rating|review/i.test(c)){cN++;hit=1;}"
+                 "if(/star|rating|review/i.test(sr)||/star|rating|review/i.test(bg)){bN++;hit=1;}"
+                 "if(/^[0-5][.,][0-9]$/.test(tx)){nN++;hit=1;}"
+                 "if(hit){sN++;if(!ex)ex=el.tagName+'|c='+c.slice(0,20)+'|al='+al.slice(0,16)"
+                   "+'|bg='+(bg.indexOf('url(')>=0?'y':'n')+'|t='+tx.slice(0,6);}}"
+               "return 'els='+E.length+' any='+sN+' aria='+aN+' cls='+cN+' img='+bN+' num='+nN"
+                 "+' frames='+window.frames.length"
+                 "+' u='+String(location.pathname||'/').slice(-20)"
+                 "+(ex?(' ex='+ex):'');"
+               "}catch(e){return 'err '+e;}})()";
             [w evaluateJavaScript:js completionHandler:^(id r, NSError *e){
                 @try {
                     NSString *v = [r isKindOfClass:[NSString class]] ? (NSString *)r
                                 : (e ? [NSString stringWithFormat:@"ERR %@/%ld", e.domain, (long)e.code]
                                      : @"(nil)");
-                    if ([v rangeOfString:@"stars=0"].location == NSNotFound &&
-                        [v rangeOfString:@"stars="].location != NSNotFound) found++;
+                    if ([v rangeOfString:@" any=0 "].location == NSNotFound &&
+                        [v rangeOfString:@" any="].location != NSNotFound) found++;
                     ADLog(@"WVCENSUS[#%d of %lu %@]", myIdx, (unsigned long)wvs.count, v);
                 } @catch(...) {}
             }];
