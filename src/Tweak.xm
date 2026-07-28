@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.231.0"
+#define AD_VERSION "v5.232.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -576,7 +576,56 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "var h=String(location.href||'')+' '+String(document.referrer||'');"
            "return 1;"
          "}catch(e){return 0;}})();}catch(e){}"
-         "if(window.top!==window){try{window.__AMZDARK_FIXCONTRAST__=function(){return -3;};}catch(e){}}"
+         // MINIMAL AD-FRAME THEME. Exempting the frame made the card render stock
+         // white, which proved the ad lives in a child frame but is not dark mode.
+         // Dark Reader is still kept out of here -- its palette analysis is what
+         // turns orange stars white and flips captions -- and this runs in its place.
+         //
+         // Three rules, and nothing else is touched:
+         //   1. near-white backgrounds go dark; anything carrying a background-image
+         //      is left alone so product art and sprite sheets survive
+         //   2. leaf text that is near-BLACK AND near-NEUTRAL goes light. Saturation
+         //      is the whole point: the blue "prime" wordmark and the red deal badge
+         //      are coloured, so they keep their brand colour, while 4.9, 34 and the
+         //      title are neutral and become readable
+         //   3. img/svg/picture/video/canvas are never touched at all, which is what
+         //      preserves the stars and the orange prime check
+         "if(window.top!==window){try{"
+           // Keep reporting alive: FIXCONTRAST is where the child-frame poster lives,
+           // so a bare stub would make this frame invisible in the log.
+           "window.__AMZDARK_FIXCONTRAST__=function(){"
+             "try{if(window.__ADPOST__)window.__ADPOST__();}catch(e){}return -3;};"
+           "var AF={p:function(c){try{var m=/rgba?\\(([0-9.]+),\\s*([0-9.]+),\\s*([0-9.]+)(?:,\\s*([0-9.]+))?\\)/.exec(c||'');"
+             "if(!m)return null;return{r:+m[1],g:+m[2],b:+m[3],a:m[4]===undefined?1:+m[4]};}catch(e){return null;}},"
+             "l:function(x){return (0.2126*x.r+0.7152*x.g+0.0722*x.b)/255;},"
+             "s:function(x){var mx=Math.max(x.r,x.g,x.b),mn=Math.min(x.r,x.g,x.b);return (mx-mn)/255;}};"
+           "window.__AMZDARK_ADTHEME__=function(){try{"
+             "if(!document.body)return -1;"
+             "if(!document.getElementById('adfrmin')){var st=document.createElement('style');"
+               "st.id='adfrmin';st.textContent='html,body{background-color:#181a1b !important;}';"
+               "(document.head||document.documentElement).appendChild(st);}"
+             "var E=document.querySelectorAll('*'),nb=0,nt=0;"
+             "for(var i=0;i<E.length&&i<3000;i++){var e=E[i];var tg=e.tagName;"
+               "if(tg==='IMG'||tg==='PICTURE'||tg==='VIDEO'||tg==='CANVAS'"
+                 "||tg==='SVG'||tg==='svg'||tg==='USE'||tg==='PATH')continue;"
+               "var cs=getComputedStyle(e);"
+               "if(String(cs.backgroundImage||'').indexOf('url(')<0){"
+                 "var bg=AF.p(cs.backgroundColor);"
+                 "if(bg&&bg.a>0.3&&AF.l(bg)>0.6){"
+                   "e.style.setProperty('background-color','#181a1b','important');nb++;}}"
+               "if(e.childElementCount===0&&String(e.textContent||'').trim()){"
+                 "var fg=AF.p(cs.color);"
+                 "if(fg&&AF.l(fg)<0.5&&AF.s(fg)<0.12){"
+                   "e.style.setProperty('color','#e8e6e3','important');nt++;}}}"
+             "window.__AD_ADTHEME__='bg='+nb+' text='+nt;return nb+nt;"
+           "}catch(e){window.__AD_ADTHEME__='err '+e;return -1;}};"
+           "try{window.__AMZDARK_ADTHEME__();}catch(e){}"
+           "try{var _at=null;new MutationObserver(function(){clearTimeout(_at);"
+             "_at=setTimeout(function(){try{window.__AMZDARK_ADTHEME__();}catch(e){}},120);})"
+             ".observe(document.documentElement,{childList:true,subtree:true});}catch(e){}"
+           "try{var _n=0,_iv=setInterval(function(){if(++_n>25){clearInterval(_iv);return;}"
+             "try{window.__AMZDARK_ADTHEME__();}catch(e){}},400);}catch(e){}"
+         "}catch(e){}}"
          "else if(window.DarkReader&&DarkReader.enable){"
          "try{DarkReader.setFetchMethod(window.fetch);}catch(e){}"
          // WCAG contrast repair. Dark Reader recolours from the page's own palette,
@@ -2135,6 +2184,10 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(window.__AD_ADSKIP__?(' ADSKIP='+window.__AD_ADSKIP__):'')"
                "+(window.__AD_FRSKIP__?(' FRSKIP='+window.__AD_FRSKIP__):'')"
                "+(window.__AD_FRSRC__?(' FRSRC='+window.__AD_FRSRC__):'')"
+               "+(function(){try{var F=window.__AD_FRAMES__,o=[];if(!F)return '';"
+                 "for(var k in F){o.push(k+' '+F[k]);}"
+                 "return o.length?(' ADTH['+o.join(' | ')+']'):'';"
+               "}catch(e){return '';}})()"
                "+(window.__AD_SIL__?(' SIL['+window.__AD_SIL__+']'):'')"
                "+(window.__AD_CMPFIX__?(' CMPFIX['+window.__AD_CMPFIX__+']'):'')"
                "+(window.__AD_KEBAB__?(' KEBAB='+window.__AD_KEBAB__):'')"
@@ -2237,6 +2290,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                // has been running in the child frames all along and its result was
                // being dropped on the floor.
                "+(window.__AD_SIL__?(' SIL['+window.__AD_SIL__+']'):'')"
+               "+(window.__AD_ADTHEME__?(' ADTHEME['+window.__AD_ADTHEME__+']'):'')"
                "+(window.__AD_LOGO__?(' LOGO['+window.__AD_LOGO__+']'):'');"
              "if(_fr!==window.__ADFRLAST__){window.__ADFRLAST__=_fr;"
                "window.top.postMessage({__adfr:1,"
