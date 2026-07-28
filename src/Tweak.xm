@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.218.0"
+#define AD_VERSION "v5.219.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2810,6 +2810,39 @@ static int gNatGlyphLogged = 0;
 static int gNatGlyphTotal = 0;
 static int gNatRestored = 0;
 
+// UNTINT ANY COLOURED IMAGE, whoever tinted it. The per-view marker in
+// ADLiftNativeGlyph only covers views IT touched, but the log shows two distinct
+// tints on screen -- #E8E6E3 from that pass and #DEDBD6 from one of the fourteen
+// other tintColor writers -- so a star row tinted by any of the others was never
+// corrected, which is why no natrestore line appeared while the stars stayed white.
+//
+// This is safe without knowing the culprit because it rests on an invariant, not a
+// guess: template rendering discards colour and keeps only alpha, so nobody sets
+// AlwaysTemplate on a coloured asset deliberately. Rendering mode is a UIImage flag
+// and CGImage keeps the original pixels, so a white-rendering star still measures
+// as orange and can be put back exactly.
+static void ADUntintColourImage(UIImageView *iv){
+    @try {
+        if (!iv) return;
+        UIImage *im = iv.image;
+        if (!im || im.renderingMode != UIImageRenderingModeAlwaysTemplate) return;
+        CGFloat c = 0, a = 0, sat = 0;
+        ADImageIsDarkGlyph(im, &c, &a, &sat);
+        if (sat <= 0.10) return;                    // genuinely monochrome: leave it
+        gADGlyphWriting = YES;
+        iv.image = [im imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+        gADGlyphWriting = NO;
+        ((UIView *)iv).tintColor = nil;
+        if (gNatRestored < 16){
+            gNatRestored++;
+            ADLog(@"natrestore #%d %s %.0fx%.0f sat=%.2f", gNatRestored,
+                  object_getClassName(iv), iv.bounds.size.width,
+                  iv.bounds.size.height, sat);
+        }
+    } @catch(...) {}
+}
+
+
 static void ADLiftNativeGlyph(UIImageView *iv){
     @try {
         if (!iv || !iv.image) return;
@@ -4585,6 +4618,9 @@ static void ADProbeTree(UIView *v, int depth, int *found){
             // No backgroundColor at all but big and visible => probably drawRect: or a
             // UIImageView. Naming it tells us which of the two to chase.
             BOOL isImg = [v isKindOfClass:[UIImageView class]];
+            // Runs on every sweep, so a tint applied by any pass gets reversed on the
+            // next pass rather than persisting.
+            if (isImg) ADUntintColourImage((UIImageView *)v);
             // If it draws itself, does the class override drawRect: ? That is the
             // signal for [UIColor set]/setFill painting our hooks should be catching.
             BOOL drawsSelf = [v methodForSelector:@selector(drawRect:)] !=
@@ -5623,10 +5659,14 @@ static void ADTextClassWalk(UIView *v, int depth, int *n){
         else if ([v isKindOfClass:[UIImageView class]]){
             UIImageView *iv = (UIImageView *)v;
             CGFloat w = v.bounds.size.width, h = v.bounds.size.height;
-            if (iv.image && w >= 10 && w <= 220 && h >= 8 && h <= 44){
+            CGRect fr0 = [v convertRect:v.bounds toView:nil];
+            // SKIP CHROME. The last run spent its whole budget on the search bar and
+            // tab icons at y=66..123 and never reached a card, which is the same cap
+            // exhaustion v5.215 fixed. Cards start well below the header.
+            if (iv.image && w >= 10 && w <= 220 && h >= 8 && h <= 44 && fr0.origin.y > 240){
                 CGFloat c3 = 0, a3 = 0, s3 = 0;
                 ADImageIsDarkGlyph(iv.image, &c3, &a3, &s3);
-                CGRect f = [v convertRect:v.bounds toView:nil];
+                CGRect f = fr0;
                 CGFloat tr = -1, tg = -1, tb = -1, ta = -1;
                 if (v.tintColor) [v.tintColor getRed:&tr green:&tg blue:&tb alpha:&ta];
                 (*n)++;
