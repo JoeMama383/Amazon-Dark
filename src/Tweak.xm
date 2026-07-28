@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.230.0"
+#define AD_VERSION "v5.231.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -574,10 +574,9 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          "try{window.__ADFRAMESKIP__=(function(){try{"
            "if(window.top===window)return 0;"
            "var h=String(location.href||'')+' '+String(document.referrer||'');"
-           "return /amazon-adsystem|adsystem|aax|doubleclick|googlesyndication"
-             "|\\/ads?\\/|sspa|adcreative|\\/creative|nexus|\\/gcx\\//i.test(h)?1:0;"
+           "return 1;"
          "}catch(e){return 0;}})();}catch(e){}"
-         "if(window.__ADFRAMESKIP__){try{window.__AMZDARK_FIXCONTRAST__=function(){return -3;};}catch(e){}}"
+         "if(window.top!==window){try{window.__AMZDARK_FIXCONTRAST__=function(){return -3;};}catch(e){}}"
          "else if(window.DarkReader&&DarkReader.enable){"
          "try{DarkReader.setFetchMethod(window.fetch);}catch(e){}"
          // WCAG contrast repair. Dark Reader recolours from the page's own palette,
@@ -2135,6 +2134,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(window.__AD_LOGO__?(' LOGO['+window.__AD_LOGO__+']'):'')"
                "+(window.__AD_ADSKIP__?(' ADSKIP='+window.__AD_ADSKIP__):'')"
                "+(window.__AD_FRSKIP__?(' FRSKIP='+window.__AD_FRSKIP__):'')"
+               "+(window.__AD_FRSRC__?(' FRSRC='+window.__AD_FRSRC__):'')"
                "+(window.__AD_SIL__?(' SIL['+window.__AD_SIL__+']'):'')"
                "+(window.__AD_CMPFIX__?(' CMPFIX['+window.__AD_CMPFIX__+']'):'')"
                "+(window.__AD_KEBAB__?(' KEBAB='+window.__AD_KEBAB__):'')"
@@ -2433,10 +2433,19 @@ static NSString *ADPharmForceJS(void){
                        // this walks OUT of the top frame and into each child document,
                        // so skipping the engine inside an ad frame achieved nothing
                        // while this kept reaching in and repainting it from outside.
-                       "try{var fsrc=String(IF[q].src||IF[q].getAttribute('src')||'');"
-                         "if(/amazon-adsystem|adsystem|aax|doubleclick|googlesyndication"
-                           "|\\/ads?\\/|sspa|adcreative|\\/creative|nexus|\\/gcx\\//i.test(fsrc)){"
-                           "window.__AD_FRSKIP__=(window.__AD_FRSKIP__||0)+1;continue;}"
+                       // NO PATTERN MATCH. The child frame is served as a hashed
+                       // filename (7D0tCs28FCA1nV9.html), so matching on adsystem,
+                       // creative, sspa and friends was never going to catch it -- the
+                       // same guessing that has cost most of this hunt.
+                       //
+                       // A frame the host page embeds is content we did not lay out and
+                       // cannot reason about, and the instruction is that ad cards stay
+                       // stock. So the top frame no longer reaches into ANY child
+                       // document. The src is logged so we learn what these frames
+                       // actually are instead of inferring it.
+                       "try{var fsrc=String(IF[q].src||IF[q].getAttribute('src')||'(none)');"
+                         "if(!window.__AD_FRSRC__)window.__AD_FRSRC__=fsrc.slice(-40);"
+                         "window.__AD_FRSKIP__=(window.__AD_FRSKIP__||0)+1;continue;"
                        "}catch(e){}"
                        "try{d2=IF[q].contentDocument;}catch(e){d2=null;}"
                        "if(!d2||!d2.body)continue;"
