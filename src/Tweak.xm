@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.219.0"
+#define AD_VERSION "v5.220.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2809,6 +2809,7 @@ static void ADScheduleGlyphLift(UIImageView *iv){
 static int gNatGlyphLogged = 0;
 static int gNatGlyphTotal = 0;
 static int gNatRestored = 0;
+static int gUntintSeen = 0, gUntintTmpl = 0, gUntintColour = 0, gUntintLogged = 0;
 
 // UNTINT ANY COLOURED IMAGE, whoever tinted it. The per-view marker in
 // ADLiftNativeGlyph only covers views IT touched, but the log shows two distinct
@@ -2825,10 +2826,21 @@ static void ADUntintColourImage(UIImageView *iv){
     @try {
         if (!iv) return;
         UIImage *im = iv.image;
+        gUntintSeen++;
+        // Census every 200 image views. If tmpl stays 0 while the stars render white,
+        // they are NOT being whitened by template+tint and this corrector can never
+        // be the fix -- which is the single thing that would redirect this hunt.
+        if ((gUntintSeen % 200) == 0 && gUntintLogged < 8){
+            gUntintLogged++;
+            ADLog(@"UNTINT[seen=%d tmpl=%d coloured=%d restored=%d]",
+                  gUntintSeen, gUntintTmpl, gUntintColour, gNatRestored);
+        }
         if (!im || im.renderingMode != UIImageRenderingModeAlwaysTemplate) return;
+        gUntintTmpl++;
         CGFloat c = 0, a = 0, sat = 0;
         ADImageIsDarkGlyph(im, &c, &a, &sat);
         if (sat <= 0.10) return;                    // genuinely monochrome: leave it
+        gUntintColour++;
         gADGlyphWriting = YES;
         iv.image = [im imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
         gADGlyphWriting = NO;
@@ -5597,6 +5609,8 @@ static void ADSweepTimed(UIView *v, BOOL inTabBar, const char *why){
 // RN's new architecture is the obvious candidate -- has no text setter to hook,
 // which would explain four builds of silence and mean the fix has to be a layer or
 // draw-time intercept rather than another setter.
+static int gRatSeen = 0, gRatBelow = 0;
+
 static BOOL ADProbeStringMatches(NSString *t){
     if (!t.length || t.length > 64) return NO;
     if ([t rangeOfString:@"Sponsored"].location != NSNotFound) return YES;
@@ -5627,7 +5641,7 @@ static NSString *ADProbeTextOf(UIView *v){
 }
 
 static void ADTextClassWalk(UIView *v, int depth, int *n){
-    if (!v || depth > 30 || *n >= 18 || v.hidden || v.alpha < 0.05) return;
+    if (!v || depth > 40 || *n >= 18 || v.hidden || v.alpha < 0.05) return;
     @try {
         NSString *t = ADProbeTextOf(v);
         if (ADProbeStringMatches(t)){
@@ -5660,6 +5674,7 @@ static void ADTextClassWalk(UIView *v, int depth, int *n){
             UIImageView *iv = (UIImageView *)v;
             CGFloat w = v.bounds.size.width, h = v.bounds.size.height;
             CGRect fr0 = [v convertRect:v.bounds toView:nil];
+            if (iv.image){ gRatSeen++; if (fr0.origin.y > 240) gRatBelow++; }
             // SKIP CHROME. The last run spent its whole budget on the search bar and
             // tab icons at y=66..123 and never reached a card, which is the same cap
             // exhaustion v5.215 fixed. Cards start well below the header.
@@ -5686,14 +5701,27 @@ static void ADTextClassProbe(void){
     @try {
         if (!gP.enabled) return;
         static int rounds = 0;
-        if (rounds++ > 8) return;
+        // CAP ON FINDINGS, NOT ATTEMPTS. A flat 8-round budget is spent during launch
+        // and navigation -- every viewDidAppear consumes one -- so by the time you
+        // scroll to the ads the probe is already silent. That is why v5.218 reported
+        // only chrome and v5.219 reported nothing: both were the same exhausted
+        // budget, not evidence about the cards.
+        static int found = 0;
+        if (found >= 3 || rounds++ > 400) return;
         UIWindow *key = nil;
         for (UIWindow *w in [UIApplication sharedApplication].windows)
             if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
         if (!key) return;
         int n = 0;
+        gRatSeen = 0; gRatBelow = 0;
         ADTextClassWalk(key, 0, &n);
-        if (!n) ADLog(@"TEXTCLASS[none found round=%d]", rounds);
+        if (n) found++;
+        // Census, so silence is interpretable: imgs is every UIImageView with an
+        // image the walk reached, below is how many sat under the header. imgs>0 with
+        // below=0 means the walk never gets into the feed at all.
+        else if ((rounds % 12) == 1)
+            ADLog(@"RATSCAN[none imgs=%d below240=%d round=%d]",
+                  gRatSeen, gRatBelow, rounds);
     } @catch(...) {}
 }
 
