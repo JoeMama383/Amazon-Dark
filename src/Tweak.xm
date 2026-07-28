@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.224.0"
+#define AD_VERSION "v5.225.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -620,7 +620,16 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "var k=String(d.u||'?').slice(0,22);"
                  "if(!window.__AD_FRAMES__)window.__AD_FRAMES__={};"
                  "var kn=0;for(var kk in window.__AD_FRAMES__)kn++;"
-                 "if(kn>=6&&!(k in window.__AD_FRAMES__))return;"
+                 // Prefer frames that actually found something. A feed page can host a
+                 // dozen ad iframes and the first six were winning the slots on
+                 // arrival order alone -- the same document-order bias that ate four
+                 // probe budgets.
+                 "var interesting=/STAR |stars=[1-9]/.test(String(d.r||''));"
+                 "if(kn>=6&&!(k in window.__AD_FRAMES__)&&!interesting)return;"
+                 "if(kn>=10&&!(k in window.__AD_FRAMES__)){"
+                   "for(var dk in window.__AD_FRAMES__){"
+                     "if(!/STAR |stars=[1-9]/.test(window.__AD_FRAMES__[dk])){"
+                       "delete window.__AD_FRAMES__[dk];break;}}}"
                  "window.__AD_FRAMES__[k]=String(d.r||'').slice(0,200);"
                "}catch(e){}},false);}}"
            // SCROLL GUARD + RATE LIMIT. The pass measures ~50ms. That is harmless
@@ -2201,7 +2210,14 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(window.__AD_ADCARD__?(' ADCARD['+window.__AD_ADCARD__+']'):'')"
                "+(window.__AD_TXTSRC__?(' TXTSRC['+window.__AD_TXTSRC__+']'):'')"
                "+(window.__AD_BOXSRC__?(' BOXSRC['+window.__AD_BOXSRC__+']'):'')"
-               "+(window.__AD_BOXKILL__?(' BOXKILL['+window.__AD_BOXKILL__+']'):'');"
+               "+(window.__AD_BOXKILL__?(' BOXKILL['+window.__AD_BOXKILL__+']'):'')"
+               // SIL and LOGO were computed in every frame and forwarded from none of
+               // them. The top frame reports stars=0 across 1134 elements, which is
+               // true of THAT document -- the rating simply is not in it. The audit
+               // has been running in the child frames all along and its result was
+               // being dropped on the floor.
+               "+(window.__AD_SIL__?(' SIL['+window.__AD_SIL__+']'):'')"
+               "+(window.__AD_LOGO__?(' LOGO['+window.__AD_LOGO__+']'):'');"
              "if(_fr!==window.__ADFRLAST__){window.__ADFRLAST__=_fr;"
                "window.top.postMessage({__adfr:1,"
                  "u:String(location.pathname||'/').slice(-20),r:_fr},'*');}"
