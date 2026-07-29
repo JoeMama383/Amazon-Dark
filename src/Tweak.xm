@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.248.0"
+#define AD_VERSION "v5.249.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1268,6 +1268,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              // or its first child is actually dark ink -- SPX will now show both.
              "var kink=null;try{var kfc=el.firstElementChild;"
                "if(kfc)kink=lum(getComputedStyle(kfc).color);}catch(e){}"
+             "if(inAdCard(el))window.__AD_TXTSKIP__=(window.__AD_TXTSKIP__||0)+1;"
              "if(!inAdCard(el)&&((spx&&((fl!==null&&fl<0.55)||(kink!==null&&kink<0.55)))"
                "||(hi/lo<3.0&&!onArt(el)))){"
                "el.style.setProperty('color',FG,'important');"
@@ -2383,6 +2384,9 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(window.__AD_ADSKIP__?(' ADSKIP='+window.__AD_ADSKIP__):'')"
                "+(window.__AD_SPON__?(' SPON='+window.__AD_SPON__):'')"
                "+(window.__AD_CARDBLK__?(' CARDBLK='+window.__AD_CARDBLK__):'')"
+               "+' P1ADCARD[blk='+(window.__AD_CARDBLK__||0)+' txtskip='+(window.__AD_TXTSKIP__||0)+']'"
+               "+' P2SPON[wrote='+(window.__AD_SPON__||0)+' seen='+(window.__AD_SPXT__||0)"
+                 "+' dark='+(window.__AD_SPXL__===undefined?'-':window.__AD_SPXL__.toFixed(2))+']'"
                "+(window.__AD_SPX__?(' SPX[n='+(window.__AD_SPXT__||0)+' '+window.__AD_SPX__+']'):'')"
                "+(window.__AD_FRSKIP__?(' FRSKIP='+window.__AD_FRSKIP__):'')"
                "+(window.__AD_FRSRC__?(' FRSRC='+window.__AD_FRSRC__):'')"
@@ -3257,8 +3261,13 @@ static void ADPlusWalk(UIView *v, int depth){
     if (!v || depth > 34 || gPlusN >= 8 || v.hidden || v.alpha < 0.05) return;
     @try {
         CGFloat w = v.bounds.size.width, h = v.bounds.size.height;
+        // SKIP THE HEADER BAND. Every entry last run was the search bar -- Scan
+        // Products, Voice Search, Deliver to -- because querySelector order puts
+        // chrome first and the budget was gone before the Interests pane rendered.
+        // Fifth probe of mine consumed this way; the band test is now permanent.
+        CGRect fr = [v convertRect:v.bounds toView:nil];
         BOOL roundish = (w >= 40 && w <= 110 && h >= 40 && h <= 110 &&
-                         fabs(w - h) < 12);
+                         fabs(w - h) < 12 && fr.origin.y > 200);
         if (roundish){
             CALayer *l = v.layer;
             UIImage *im = [v isKindOfClass:[UIImageView class]] ? ((UIImageView *)v).image : nil;
@@ -3267,7 +3276,7 @@ static void ADPlusWalk(UIView *v, int depth){
             CGFloat tr = -1, tg = -1, tb = -1, ta = -1;
             if (v.tintColor) [v.tintColor getRed:&tr green:&tg blue:&tb alpha:&ta];
             gPlusN++;
-            ADLog(@"PLUS[%s layer=%s %.0fx%.0f img=%d contents=%d sub=%lu "
+            ADLog(@"P4PLUS[%s layer=%s %.0fx%.0f img=%d contents=%d sub=%lu "
                    "radius=%.0f border=%.1f tint=%.2f,%.2f,%.2f al='%@']",
                   object_getClassName(v), object_getClassName(l), w, h,
                   im ? 1 : 0, l.contents ? 1 : 0, (unsigned long)v.subviews.count,
@@ -3281,8 +3290,11 @@ static void ADPlusWalk(UIView *v, int depth){
 static void ADPlusProbe(void){
     @try {
         if (!gP.enabled) return;
+        // Re-arm per pane rather than once per process, so arriving at Interests
+        // later in a session still produces a sample.
         static int rounds = 0;
-        if (gPlusN >= 8 || rounds++ > 300) return;
+        if (rounds++ > 400) return;
+        gPlusN = 0;
         UIWindow *key = nil;
         for (UIWindow *w in [UIApplication sharedApplication].windows)
             if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
@@ -3306,6 +3318,14 @@ static void ADNormalizeBorder(UIView *v){
         if (!want) want = [UIColor colorWithRed:0.231 green:0.235 blue:0.243 alpha:1.0];
         l.borderColor = want.CGColor;
         gBorderFix++;
+        // Independent cadence. This used to sit inside the natrestore branch, so it
+        // only printed when an unrelated image correction happened -- which is why
+        // BORDER never appeared once.
+        static int logged = 0;
+        if ((gBorderFix % 25) == 1 && logged < 12){
+            logged++;
+            ADLog(@"P3BORDER[seen=%d fixed=%d]", gBorderSeen, gBorderFix);
+        }
     } @catch(...) {}
 }
 
@@ -3348,7 +3368,6 @@ static void ADUntintColourImage(UIImageView *iv){
         ((UIView *)iv).tintColor = nil;
         if (gNatRestored < 16){
             gNatRestored++;
-            ADLog(@"BORDER[seen=%d fixed=%d]", gBorderSeen, gBorderFix);
             ADLog(@"natrestore #%d %s %.0fx%.0f sat=%.2f", gNatRestored,
                   object_getClassName(iv), iv.bounds.size.width,
                   iv.bounds.size.height, sat);
