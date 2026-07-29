@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.235.0"
+#define AD_VERSION "v5.236.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -636,11 +636,49 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "if(bgi9.indexOf('gradient')>=0&&bgi9.indexOf('url(')<0){"
                    "e.style.setProperty('background-image','none','important');"
                    "e.style.setProperty('background-color','#181a1b','important');nb++;}}"
+               // RULE 4: LIFT A DARK MONOCHROME LOGO. Images are never repainted, which
+               // is right for photos and stars -- but a black wordmark on a card we
+               // just darkened is invisible, and there is no light chip behind this
+               // one to preserve. Measured, not guessed: mostly transparent, near
+               // black, neutral. A colour logo or a photo fails the test and is left
+               // exactly as drawn. Cached by src so each asset is measured once.
+               "if(tg==='IMG'){try{"
+                 "var lsrc=String(e.currentSrc||e.src||'');"
+                 "if(lsrc&&!e.__adLogoDone){e.__adLogoDone=1;"
+                   "if(!window.__ADLOGOC__)window.__ADLOGOC__={};"
+                   "var lv=window.__ADLOGOC__[lsrc];"
+                   "if(lv===1){e.style.setProperty('filter','invert(1)','important');}"
+                   "else if(lv===undefined){"
+                     "var li=new Image();li.crossOrigin='anonymous';"
+                     "li.onload=function(){try{"
+                       "var lw=Math.min(li.naturalWidth||32,32),lh=Math.min(li.naturalHeight||32,32);"
+                       "if(!lw||!lh)return;"
+                       "var lc=document.createElement('canvas');lc.width=lw;lc.height=lh;"
+                       "var lx=lc.getContext('2d');lx.drawImage(li,0,0,lw,lh);"
+                       "var ld=lx.getImageData(0,0,lw,lh).data;"
+                       "var tot=0,clr=0,sum=0,cnt=0,lite=0,sat=0;"
+                       "for(var z=0;z<ld.length;z+=4){tot++;"
+                         "if(ld[z+3]<40){clr++;continue;}"
+                         "var lz=0.2126*ld[z]+0.7152*ld[z+1]+0.0722*ld[z+2];"
+                         "sum+=lz;cnt++;if(lz>153)lite++;"
+                         "var mx=ld[z]>ld[z+1]?ld[z]:ld[z+1];if(ld[z+2]>mx)mx=ld[z+2];"
+                         "var mn=ld[z]<ld[z+1]?ld[z]:ld[z+1];if(ld[z+2]<mn)mn=ld[z+2];"
+                         "sat+=(mx-mn);}"
+                       "if(!cnt||!tot)return;"
+                       "var cf=clr/tot,av=(sum/cnt)/255,lf2=lite/cnt,sf2=((sat/cnt)/255);"
+                       "var ok=(cf>0.35&&av<0.30&&lf2<0.10&&sf2<0.10);"
+                       "window.__ADLOGOC__[lsrc]=ok?1:0;"
+                       "if(ok){e.style.setProperty('filter','invert(1)','important');"
+                         "window.__AD_ADLOGO__=(window.__AD_ADLOGO__||0)+1;}"
+                     "}catch(e2){}};"
+                     "li.onerror=function(){window.__ADLOGOC__[lsrc]=0;};"
+                     "li.src=lsrc;}}"
+               "}catch(e){}}"
                "if(e.childElementCount===0&&String(e.textContent||'').trim()){"
                  "var fg=AF.p(cs.color);"
                  "if(fg&&AF.l(fg)<0.5&&AF.s(fg)<0.12){"
                    "e.style.setProperty('color','#e8e6e3','important');nt++;}}}"
-             "window.__AD_ADTHEME__='bg='+nb+' text='+nt;return nb+nt;"
+             "window.__AD_ADTHEME__='bg='+nb+' text='+nt+' logo='+(window.__AD_ADLOGO__||0);return nb+nt;"
            "}catch(e){window.__AD_ADTHEME__='err '+e;return -1;}};"
            "try{window.__AMZDARK_ADTHEME__();}catch(e){}"
            "try{var _at=null;new MutationObserver(function(){clearTimeout(_at);"
@@ -1152,7 +1190,22 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              // A Sponsored label that is currently dark is lightened outright.
              "if((spx&&fl<0.5)||(hi/lo<3.0&&(spx||!onArt(el)))){"
                "el.style.setProperty('color',FG,'important');"
-               "if(spx)window.__AD_SPON__=(window.__AD_SPON__||0)+1;n++;}}"
+               // SPON=4 proved the write lands, yet the label still renders dark --
+               // so we are colouring a WRAPPER while an inner node carries its own
+               // colour. Inline !important beats any stylesheet, so the only way this
+               // loses is if the painted glyphs belong to a different element.
+               // -webkit-text-fill-color is set too because it overrides color
+               // outright wherever Dark Reader has applied it.
+               "if(spx){try{"
+                 "el.style.setProperty('-webkit-text-fill-color',FG,'important');"
+                 "var kids=el.querySelectorAll('*');"
+                 "for(var ki=0;ki<kids.length&&ki<6;ki++){"
+                   "var kt=kids[ki].tagName;"
+                   "if(kt==='IMG'||kt==='SVG'||kt==='svg'||kt==='PATH'||kt==='USE')continue;"
+                   "kids[ki].style.setProperty('color',FG,'important');"
+                   "kids[ki].style.setProperty('-webkit-text-fill-color',FG,'important');}"
+               "}catch(e){}"
+               "window.__AD_SPON__=(window.__AD_SPON__||0)+1;}n++;}}"
 
            // Clear stray dark square wrappers around the buttons (the box that
            // can extend past the pill). Shapes/borders are persistent CSS above.
