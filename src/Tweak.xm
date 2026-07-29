@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.239.0"
+#define AD_VERSION "v5.240.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1213,7 +1213,13 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              // good, and never enters this branch at all -- so the exemption never got
              // a chance to apply and relaxing the leaf test could not have helped.
              // A Sponsored label that is currently dark is lightened outright.
-             "if((spx&&fl<0.5)||(hi/lo<3.0&&(spx||!onArt(el)))){"
+             // NO DARKNESS TEST FOR A SPONSORED LABEL. SPX reported hit=1 with
+             // ink=rgb(178,172,162) -- luminance 0.68, a mid grey, not black. The
+             // fl<0.5 gate I wrote assumed the label would be near-black, so a label
+             // that was already partly themed failed it and was never written, while
+             // SPON counted the genuinely dark ones elsewhere. The label should simply
+             // match the card's other text, so it is set unconditionally.
+             "if(spx||(hi/lo<3.0&&!onArt(el))){"
                "el.style.setProperty('color',FG,'important');"
                // SPON=4 proved the write lands, yet the label still renders dark --
                // so we are colouring a WRAPPER while an inner node carries its own
