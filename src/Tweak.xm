@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.241.0"
+#define AD_VERSION "v5.242.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1207,7 +1207,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "}catch(e){}"
              // Self-contained: records the first Sponsored-ish node WE SEE, matched or not,
              // so the next log distinguishes "wrong node" from "never matched".
-             "try{if(el.childElementCount<=8){var _t=String(el.textContent||'').trim();if(/^sponsored/i.test(_t)){var _r=el.getBoundingClientRect();if(!window.__AD_SPXN__)window.__AD_SPXN__=0;if(window.__AD_SPXN__<4&&_r.width>4){window.__AD_SPXN__++;var _c=el.className;if(_c&&_c.baseVal!==undefined)_c=_c.baseVal;var _k=el.firstElementChild;var _ki=_k?getComputedStyle(_k).color:'-';window.__AD_SPX__=(window.__AD_SPX__?window.__AD_SPX__+' ~ ':'')+el.tagName+'@'+Math.round(_r.width)+'x'+Math.round(_r.height)+'|kids='+el.childElementCount+'|hit='+(spx?1:0)+'|ink='+getComputedStyle(el).color+'|kid='+_ki+'|cls='+String(_c||'').slice(0,22);}}}}catch(e){}"
+             "try{if(el.childElementCount<=8){var _t=String(el.textContent||'').trim();if(/^sponsored/i.test(_t)){var _r=el.getBoundingClientRect();if(_r.width>4){var _k=el.firstElementChild;var _ic=getComputedStyle(el).color;var _kc=_k?getComputedStyle(_k).color:_ic;var _l1=lum(_ic),_l2=lum(_kc);var _lm=Math.min(_l1===null?1:_l1,_l2===null?1:_l2);window.__AD_SPXT__=(window.__AD_SPXT__||0)+1;if(window.__AD_SPXL__===undefined||_lm<window.__AD_SPXL__){window.__AD_SPXL__=_lm;var _c=el.className;if(_c&&_c.baseVal!==undefined)_c=_c.baseVal;window.__AD_SPX__=el.tagName+'@'+Math.round(_r.width)+'x'+Math.round(_r.height)+'|kids='+el.childElementCount+'|hit='+(spx?1:0)+'|lum='+_lm.toFixed(2)+'|ink='+_ic+'|kid='+_kc+'|cls='+String(_c||'').slice(0,22);}}}}}catch(e){}"
              // spx must bypass the CONTRAST test, not just the onArt guard. bgOf sees
              // the white product thumbnail behind the label, reads the contrast as
              // good, and never enters this branch at all -- so the exemption never got
@@ -2327,7 +2327,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(window.__AD_LOGO__?(' LOGO['+window.__AD_LOGO__+']'):'')"
                "+(window.__AD_ADSKIP__?(' ADSKIP='+window.__AD_ADSKIP__):'')"
                "+(window.__AD_SPON__?(' SPON='+window.__AD_SPON__):'')"
-               "+(window.__AD_SPX__?(' SPX['+window.__AD_SPX__+']'):'')"
+               "+(window.__AD_SPX__?(' SPX[n='+(window.__AD_SPXT__||0)+' '+window.__AD_SPX__+']'):'')"
                "+(window.__AD_FRSKIP__?(' FRSKIP='+window.__AD_FRSKIP__):'')"
                "+(window.__AD_FRSRC__?(' FRSRC='+window.__AD_FRSRC__):'')"
                "+(function(){try{var F=window.__AD_FRAMES__,o=[];if(!F)return '';"
