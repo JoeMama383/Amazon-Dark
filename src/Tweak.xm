@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.237.0"
+#define AD_VERSION "v5.238.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1197,8 +1197,13 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "try{if(el.childElementCount<=2){"
                "var stt=String(el.textContent||'').trim();"
                "var sbr=el.getBoundingClientRect();"
+               // VISIBLE NODES ONLY, and report what matched. SPON counts writes that land,
+               // yet the label stays dark -- which means we are colouring a node that is not
+               // the one being painted. Amazon ships screen-reader duplicates of this exact
+               // string, and the old test had only an UPPER size bound, so a clipped 1px
+               // offscreen span passed it happily while the visible label went untouched.
                "if(/^sponsored/i.test(stt)&&stt.length<=14"
-                 "&&sbr.width<=200&&sbr.height<=40)spx=true;}"
+                   "&&sbr.width>=18&&sbr.height>=7&&sbr.width<=220&&sbr.height<=44)spx=true;}"
              "}catch(e){}"
              // spx must bypass the CONTRAST test, not just the onArt guard. bgOf sees
              // the white product thumbnail behind the label, reads the contrast as
