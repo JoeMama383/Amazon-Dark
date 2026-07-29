@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.252.0"
+#define AD_VERSION "v5.253.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3310,6 +3310,37 @@ static void ADPlusWalk(UIView *v, int depth){
     } @catch(...) {}
 }
 
+// P5 POSITIONAL DUMP. Six attempts have keyed on a property of the "+" -- image,
+// size, roundness, transparency -- and each matched something else. Position is the
+// one axis not yet used: the glyph sits at the far left of the Interests pane, below
+// the header and well above the tab bar. This dumps EVERYTHING in that box with no
+// property filter at all, so whatever draws it cannot avoid being listed.
+static int gP5 = 0;
+static void ADPlusPosWalk(UIView *v, int depth){
+    if (!v || depth > 36 || gP5 >= 14 || v.hidden || v.alpha < 0.05) return;
+    @try {
+        CGRect f = [v convertRect:v.bounds toView:nil];
+        CGFloat w = f.size.width, h = f.size.height;
+        if (f.origin.x < 130 && f.origin.y > 60 && f.origin.y < 260 &&
+            w >= 20 && w <= 130 && h >= 20 && h <= 130){
+            CALayer *l = v.layer;
+            UIImage *im = [v isKindOfClass:[UIImageView class]] ? ((UIImageView *)v).image : nil;
+            CGFloat br = -1, bg = -1, bb = -1, ba = -1;
+            if (v.backgroundColor) [v.backgroundColor getRed:&br green:&bg blue:&bb alpha:&ba];
+            NSString *al = nil; @try { al = v.accessibilityLabel; } @catch(...) {}
+            gP5++;
+            ADLog(@"P5POS[%s layer=%s %.0fx%.0f @%.0f,%.0f img=%d contents=%d "
+                   "sublayers=%lu rad=%.0f bw=%.1f bg=%.2f,%.2f,%.2f/%.2f sub=%lu al='%@']",
+                  object_getClassName(v), object_getClassName(l), w, h,
+                  f.origin.x, f.origin.y, im ? 1 : 0, l.contents ? 1 : 0,
+                  (unsigned long)l.sublayers.count, l.cornerRadius, l.borderWidth,
+                  br, bg, bb, ba, (unsigned long)v.subviews.count,
+                  al.length ? al : @"-");
+        }
+        for (UIView *sv in v.subviews) ADPlusPosWalk(sv, depth + 1);
+    } @catch(...) {}
+}
+
 static void ADPlusProbe(void){
     @try {
         if (!gP.enabled) return;
@@ -3321,7 +3352,7 @@ static void ADPlusProbe(void){
         UIWindow *key = nil;
         for (UIWindow *w in [UIApplication sharedApplication].windows)
             if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
-        if (key) ADPlusWalk(key, 0);
+        if (key){ ADPlusWalk(key, 0); gP5 = 0; ADPlusPosWalk(key, 0); }
     } @catch(...) {}
 }
 
