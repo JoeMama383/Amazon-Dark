@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.242.0"
+#define AD_VERSION "v5.243.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1190,6 +1190,10 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              //
              // Scoped as tightly as I can make it: the exact word, a label-sized box,
              // and a leaf node. A caption on a creative is none of those things.
+             // Reset per element sweep: the tracker persisted across passes, so it reported a
+             // historical minimum captured before our write landed rather than the
+             // current colour. That is what made lum=0.35 look like a live failure.
+             "if(!window.__ADSPXR__){window.__ADSPXR__=1;window.__AD_SPXL__=undefined;window.__AD_SPX__=null;window.__AD_SPXT__=0;}"
              "var spx=false;"
              // NOT a leaf. "Sponsored" and its info icon share a span, so
              // childElementCount===0 was never true and SPON stayed at zero.
@@ -2414,6 +2418,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "window.__AD_SHOP__=(so.length?(so.join(' ~ ')+' [skipped='+ssk+' of '+SH.length+']')"
                ":('none scanned='+SH.length+' skipped='+ssk));"
            "}}catch(e){window.__AD_SHOP__='err '+e;}"
+           "window.__ADSPXR__=0;"
            "window.__AD_PERF__='ms='+(Date.now()-__T0)+' cut='+__cut+' '+__ckl.join(' ');"
            // CHILD FRAME -> TOP. Every frame self-describes (text-element count, body
            // child count, path) so "nothing found" is distinguishable from "nothing
