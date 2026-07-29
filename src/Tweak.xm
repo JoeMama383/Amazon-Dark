@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.249.0"
+#define AD_VERSION "v5.250.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -901,10 +901,18 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "while(p0&&d0++<9){var pr0=p0.getBoundingClientRect();"
                "if(pr0.width>=250&&pr0.height>=150){"
                  "var ps0=getComputedStyle(p0);"
+                 // Own background-image only. Requiring merely "contains a large img"
+                 // matched ordinary product cards too, which is why 38 containers
+                 // suppressed 453 text writes -- far more than the handful of ad
+                 // creatives on screen. A creative paints itself; a product card holds
+                 // a photo in a child. Only the former is an ad card.
                  "if(String(ps0.backgroundImage||'').indexOf('url(')>=0){r0=true;break;}"
+                 // ...or an img that fills most of the container, which is what a
+                 // full-bleed creative looks like when delivered as an <img>.
                  "try{var im0=p0.querySelector('img,picture,video');"
                    "if(im0){var ir0=im0.getBoundingClientRect();"
-                     "if(ir0.width>=150&&ir0.height>=120){r0=true;break;}}}catch(e0){}}"
+                     "if(ir0.width>=pr0.width*0.85&&ir0.height>=pr0.height*0.6)"
+                       "{r0=true;break;}}}catch(e0){}}"
                "p0=p0.parentElement;}"
              "el0.__adCardQ=r0;if(r0)window.__AD_CARDBLK__=(window.__AD_CARDBLK__||0)+1;"
              "return r0;}catch(e){return true;}}"
@@ -1232,7 +1240,12 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              // Reset per element sweep: the tracker persisted across passes, so it reported a
              // historical minimum captured before our write landed rather than the
              // current colour. That is what made lum=0.35 look like a live failure.
-             "if(!window.__ADSPXR__){window.__ADSPXR__=1;window.__AD_SPXL__=undefined;window.__AD_SPX__=null;window.__AD_SPXT__=0;}"
+             "if(!window.__ADSPXR__){window.__ADSPXR__=1;window.__AD_SPXL__=undefined;window.__AD_SPX__=null;"
+             // Do NOT zero the total here. The report reads __AD_SPXT__, and resetting
+             // it at the start of the sweep is why P2SPON went from seen=74 to seen=0:
+             // the counter was being cleared and then read before the sweep refilled
+             // it on a throttled pass. Only the darkest-sample state needs resetting.
+             "window.__AD_SPXT__=0;}"
              "var spx=false;"
              // NOT a leaf. "Sponsored" and its info icon share a span, so
              // childElementCount===0 was never true and SPON stayed at zero.
@@ -3447,8 +3460,17 @@ static void ADLiftNativeGlyph(UIImageView *iv){
         // invisible on a dark ground. A coloured logo already reads, so it stays
         // exactly as the brand drew it.
         if (!glyphSized){
-            if (clearFrac < 0.50) return;   // must be a mark, not a picture
-            if (avg > 0.12) return;         // near-black ink only
+            // P4PLUS showed the Interests "+" is a 100x100 RCTUIImageViewAnimated, so
+            // it never qualified as glyph-sized and fell into the brand-mark branch,
+            // where the 0.12 luminance ceiling is tuned for a solid black wordmark.
+            // A thin stroke on a transparent field averages higher than that across
+            // its opaque pixels, so a nearly-empty neutral mark is admitted here.
+            BOOL sparseMark = (clearFrac > 0.80 && avg < 0.40 && satFrac < 0.06 &&
+                               iv.bounds.size.width <= 140 && iv.bounds.size.height <= 140);
+            if (!sparseMark){
+                if (clearFrac < 0.50) return;   // must be a mark, not a picture
+                if (avg > 0.12) return;         // near-black ink only
+            }
         }
         UIImage *lifted = [iv.image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
         gADGlyphWriting = YES;          // our own write must not re-enter setImage:
