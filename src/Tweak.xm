@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.250.0"
+#define AD_VERSION "v5.251.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -911,7 +911,10 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  // full-bleed creative looks like when delivered as an <img>.
                  "try{var im0=p0.querySelector('img,picture,video');"
                    "if(im0){var ir0=im0.getBoundingClientRect();"
-                     "if(ir0.width>=pr0.width*0.85&&ir0.height>=pr0.height*0.6)"
+                     // 0.85 width took this from 38 containers to 0. A creative is
+                     // image-dominated but not necessarily edge-to-edge, so require the
+                     // image to cover most of the box by AREA instead of by width.
+                     "if((ir0.width*ir0.height)>=(pr0.width*pr0.height)*0.45)"
                        "{r0=true;break;}}}catch(e0){}}"
                "p0=p0.parentElement;}"
              "el0.__adCardQ=r0;if(r0)window.__AD_CARDBLK__=(window.__AD_CARDBLK__||0)+1;"
@@ -1245,7 +1248,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              // it at the start of the sweep is why P2SPON went from seen=74 to seen=0:
              // the counter was being cleared and then read before the sweep refilled
              // it on a throttled pass. Only the darkest-sample state needs resetting.
-             "window.__AD_SPXT__=0;}"
+             "}"
              "var spx=false;"
              // NOT a leaf. "Sponsored" and its info icon share a span, so
              // childElementCount===0 was never true and SPON stayed at zero.
@@ -3446,7 +3449,19 @@ static void ADLiftNativeGlyph(UIImageView *iv){
         }
         if (gl < 0 || gl > 0.30) return;
         CGFloat clearFrac = 0, avg = 0, satFrac = 0;
-        if (!ADImageIsDarkGlyph(iv.image, &clearFrac, &avg, &satFrac)) return;
+        if (!ADImageIsDarkGlyph(iv.image, &clearFrac, &avg, &satFrac)){
+            // The + never appears in the natglyph log at all, so a gate ABOVE the log
+            // rejects it and we have never known which. Report the measurement for a
+            // plus-sized view so the rejection is attributable.
+            static int rej = 0;
+            CGFloat rw = iv.bounds.size.width, rh = iv.bounds.size.height;
+            if (rej < 10 && rw >= 60 && rw <= 140 && rh >= 60 && rh <= 140){
+                rej++;
+                ADLog(@"P4REJECT[%s %.0fx%.0f clear=%.2f avg=%.2f sat=%.2f notglyph]",
+                      object_getClassName(iv), rw, rh, clearFrac, avg, satFrac);
+            }
+            return;
+        }
         // COLOUR TEST APPLIES AT EVERY SIZE. Template rendering discards colour and
         // keeps only alpha, so tinting a coloured image is always destructive -- that
         // is an invariant, not a size-dependent heuristic. This guard used to sit
