@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.236.0"
+#define AD_VERSION "v5.237.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -680,14 +680,23 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "e.style.setProperty('color','#e8e6e3','important');nt++;}}}"
              "window.__AD_ADTHEME__='bg='+nb+' text='+nt+' logo='+(window.__AD_ADLOGO__||0);return nb+nt;"
            "}catch(e){window.__AD_ADTHEME__='err '+e;return -1;}};"
-           "try{window.__AMZDARK_ADTHEME__();}catch(e){}"
+           // Self-contained poster. The main one is defined at the END of the pass we
+           // now return from early, so it would never exist in an ad frame -- which is
+           // why ADTHEME never reached the log.
+           "window.__ADFPOST__=function(){try{if(window.top===window)return;"
+             "var f='ADFRAME '+(window.__AD_ADTHEME__||'pending');"
+             "if(f!==window.__ADFLAST__){window.__ADFLAST__=f;"
+               "window.top.postMessage({__adfr:1,"
+                 "u:String(location.pathname||'/').slice(-20),r:f},'*');}"
+           "}catch(e){}};"
+           "try{window.__AMZDARK_ADTHEME__();window.__ADFPOST__();}catch(e){}"
            "try{var _at=null;new MutationObserver(function(){clearTimeout(_at);"
              "_at=setTimeout(function(){try{window.__AMZDARK_ADTHEME__();}catch(e){}},120);})"
              ".observe(document.documentElement,{childList:true,subtree:true});}catch(e){}"
            // 60 ticks, and re-run on load. The taller creative paints after the old
            // 10s window closed, so the theme had already stopped looking.
            "try{var _n=0,_iv=setInterval(function(){if(++_n>60){clearInterval(_iv);return;}"
-             "try{window.__AMZDARK_ADTHEME__();}catch(e){}},400);}catch(e){}"
+             "try{window.__AMZDARK_ADTHEME__();window.__ADFPOST__();}catch(e){}},400);}catch(e){}"
            "try{addEventListener('load',function(){"
              "try{window.__AMZDARK_ADTHEME__();}catch(e){}"
              "setTimeout(function(){try{window.__AMZDARK_ADTHEME__();}catch(e){}},700);"
@@ -734,6 +743,14 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "window.__AD_CRT__=(window.__AD_CRT__||0)+1;return true;"
          "}catch(e){return false;}}"
          "window.__AMZDARK_FIXCONTRAST__=function(){try{"
+           // AD FRAME: STOP HERE. The stub installed by the gate 140 lines above is
+           // overwritten by this very assignment, so door 1 has never actually been
+           // shut -- only Dark Reader was being skipped while this whole pass kept
+           // running in ad frames and doing the darkening, silhouetting and contrast
+           // flipping it was supposed to be excluded from. The guard has to live
+           // INSIDE the function, because the function is what wins the assignment.
+           "if(window.__ADFRAMESKIP__){"
+             "try{if(window.__ADFPOST__)window.__ADFPOST__();}catch(e){}return -3;}"
            // FRAME BRIDGE. Installed BEFORE the early-return guards below, so a
            // frame still registers even on a throttled pass.
            //
