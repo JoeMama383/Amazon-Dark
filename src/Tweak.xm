@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.244.0"
+#define AD_VERSION "v5.245.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1222,7 +1222,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "}catch(e){}"
              // Self-contained: records the first Sponsored-ish node WE SEE, matched or not,
              // so the next log distinguishes "wrong node" from "never matched".
-             "try{if(el.childElementCount<=8){var _t=String(el.textContent||'').trim();if(/^sponsored/i.test(_t)){var _r=el.getBoundingClientRect();if(_r.width>4){var _k=el.firstElementChild;var _ic=getComputedStyle(el).color;var _kc=_k?getComputedStyle(_k).color:_ic;var _l1=lum(_ic),_l2=lum(_kc);var _lm=Math.min(_l1===null?1:_l1,_l2===null?1:_l2);window.__AD_SPXT__=(window.__AD_SPXT__||0)+1;if(window.__AD_SPXL__===undefined||_lm<window.__AD_SPXL__){window.__AD_SPXL__=_lm;var _c=el.className;if(_c&&_c.baseVal!==undefined)_c=_c.baseVal;window.__AD_SPX__=el.tagName+'@'+Math.round(_r.width)+'x'+Math.round(_r.height)+'|kids='+el.childElementCount+'|hit='+(spx?1:0)+'|lum='+_lm.toFixed(2)+'|ink='+_ic+'|kid='+_kc+'|cls='+String(_c||'').slice(0,22);}}}}}catch(e){}"
+             "try{if(el.childElementCount<=8){var _t=String(el.textContent||'').trim();if(/^sponsored/i.test(_t)){var _r=el.getBoundingClientRect();if(_r.width>4){var _k=el.firstElementChild;var _ic=getComputedStyle(el).color;var _kc=_k?getComputedStyle(_k).color:_ic;var _l1=lum(_ic),_l2=lum(_kc);var _lm=Math.min(_l1===null?1:_l1,_l2===null?1:_l2);window.__AD_SPXT__=(window.__AD_SPXT__||0)+1;if(window.__AD_SPXL__===undefined||_lm<window.__AD_SPXL__){window.__AD_SPXL__=_lm;var _c=el.className;if(_c&&_c.baseVal!==undefined)_c=_c.baseVal;window.__AD_SPX__=el.tagName+'@'+Math.round(_r.width)+'x'+Math.round(_r.height)+'|kids='+el.childElementCount+'|hit='+(spx?1:0)+'|lum='+_lm.toFixed(2)+'|ink='+_ic+'|kid='+_kc+'|cls='+String(_c||'').slice(0,18)+'|anc='+(_an||'none');}}}}}catch(e){}"
+             "var _an='',_ap=el.parentElement,_ad=0;while(_ap&&_ad++<6){var _af=getComputedStyle(_ap);var _ff=String(_af.filter||'none'),_oo=String(_af.opacity||'1'),_bb=String(_af.mixBlendMode||'normal');if(_ff!=='none'||_oo!=='1'||_bb!=='normal'){_an+='^'+String(_ap.className||'').slice(0,10)+'='+_ff.slice(0,12)+'/op'+_oo+'/'+_bb+'|by='+(_ap.__adBy||'-');}_ap=_ap.parentElement;}"
              // spx must bypass the CONTRAST test, not just the onArt guard. bgOf sees
              // the white product thumbnail behind the label, reads the contrast as
              // good, and never enters this branch at all -- so the exemption never got
