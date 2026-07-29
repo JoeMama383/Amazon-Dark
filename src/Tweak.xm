@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.238.0"
+#define AD_VERSION "v5.239.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1194,7 +1194,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              // NOT a leaf. "Sponsored" and its info icon share a span, so
              // childElementCount===0 was never true and SPON stayed at zero.
              // The text and size caps already do the narrowing.
-             "try{if(el.childElementCount<=2){"
+             "try{if(el.childElementCount<=6){"
                "var stt=String(el.textContent||'').trim();"
                "var sbr=el.getBoundingClientRect();"
                // VISIBLE NODES ONLY, and report what matched. SPON counts writes that land,
@@ -1205,6 +1205,9 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "if(/^sponsored/i.test(stt)&&stt.length<=14"
                    "&&sbr.width>=18&&sbr.height>=7&&sbr.width<=220&&sbr.height<=44)spx=true;}"
              "}catch(e){}"
+             // Self-contained: records the first Sponsored-ish node WE SEE, matched or not,
+             // so the next log distinguishes "wrong node" from "never matched".
+             "try{if(!window.__AD_SPX__&&el.childElementCount<=8){var _t=String(el.textContent||'').trim();if(/^sponsored/i.test(_t)){var _r=el.getBoundingClientRect();var _c=el.className;if(_c&&_c.baseVal!==undefined)_c=_c.baseVal;window.__AD_SPX__=el.tagName+'@'+Math.round(_r.width)+'x'+Math.round(_r.height)+'|kids='+el.childElementCount+'|len='+_t.length+'|hit='+(spx?1:0)+'|ink='+getComputedStyle(el).color+'|cls='+String(_c||'').slice(0,18);}}}catch(e){}"
              // spx must bypass the CONTRAST test, not just the onArt guard. bgOf sees
              // the white product thumbnail behind the label, reads the contrast as
              // good, and never enters this branch at all -- so the exemption never got
@@ -2312,6 +2315,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(window.__AD_LOGO__?(' LOGO['+window.__AD_LOGO__+']'):'')"
                "+(window.__AD_ADSKIP__?(' ADSKIP='+window.__AD_ADSKIP__):'')"
                "+(window.__AD_SPON__?(' SPON='+window.__AD_SPON__):'')"
+               "+(window.__AD_SPX__?(' SPX['+window.__AD_SPX__+']'):'')"
                "+(window.__AD_FRSKIP__?(' FRSKIP='+window.__AD_FRSKIP__):'')"
                "+(window.__AD_FRSRC__?(' FRSRC='+window.__AD_FRSRC__):'')"
                "+(function(){try{var F=window.__AD_FRAMES__,o=[];if(!F)return '';"
