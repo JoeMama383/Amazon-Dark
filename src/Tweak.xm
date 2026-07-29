@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.243.0"
+#define AD_VERSION "v5.244.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -602,7 +602,12 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "window.__AMZDARK_ADTHEME__=function(){try{"
              "if(!document.body)return -1;"
              "if(!document.getElementById('adfrmin')){var st=document.createElement('style');"
-               "st.id='adfrmin';st.textContent='html,body{background-color:#181a1b !important;}';"
+               "st.id='adfrmin';st.textContent='html,body{background-color:#181a1b !important;}'"
+                 // The blue box is a focus ring left behind after the Sponsored
+                 // disclosure sheet closes -- the element keeps :focus, and WebKit
+                 // paints the default highlight. Suppressed for tap targets only.
+                 "+'*{-webkit-tap-highlight-color:transparent !important;}'"
+                 "+'*:focus,*:focus-visible{outline:none !important;box-shadow:none !important;}';"
                "(document.head||document.documentElement).appendChild(st);}"
              "var E=document.querySelectorAll('*'),nb=0,nt=0;"
              "for(var i=0;i<E.length&&i<3000;i++){var e=E[i];var tg=e.tagName;"
@@ -676,7 +681,13 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "}catch(e){}}"
                "if(e.childElementCount===0&&String(e.textContent||'').trim()){"
                  "var fg=AF.p(cs.color);"
-                 "if(fg&&AF.l(fg)<0.5&&AF.s(fg)<0.12){"
+                 // 0.78, not 0.5. ADFRAME reported text=0 while a visibly dim label sat
+                 // right there: the rule demanded near-BLACK ink, so a mid-grey
+                 // secondary label ("Sponsored") never qualified. Saturation still does
+                 // the real work -- blue prime and red badges stay untouched -- so
+                 // raising the luminance ceiling only catches greys that should match
+                 // the card's other text anyway.
+                 "if(fg&&AF.l(fg)<0.78&&AF.s(fg)<0.12){"
                    "e.style.setProperty('color','#e8e6e3','important');nt++;}}}"
              "window.__AD_ADTHEME__='bg='+nb+' text='+nt+' logo='+(window.__AD_ADLOGO__||0);return nb+nt;"
            "}catch(e){window.__AD_ADTHEME__='err '+e;return -1;}};"
