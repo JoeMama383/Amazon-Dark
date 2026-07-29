@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.245.0"
+#define AD_VERSION "v5.248.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -679,7 +679,18 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                      "li.onerror=function(){window.__ADLOGOC__[lsrc]=0;};"
                      "li.src=lsrc;}}"
                "}catch(e){}}"
-               "if(e.childElementCount===0&&String(e.textContent||'').trim()){"
+               // NOT LEAF-ONLY. A label that wraps its text plus an icon -- "Sponsored"
+               // with its info glyph -- has childElementCount 1 and was therefore never
+               // recoloured, while rule 1 darkened the card around it. That is why the
+               // card goes dark and the label stays dark, and why every main-document
+               // measurement looked healthy: the element was never a candidate here.
+               // The test is now "does this element own a direct text node", which is
+               // what actually determines whether it paints glyphs.
+               "var ownTxt='';try{for(var cn=0;cn<e.childNodes.length&&cn<12;cn++){"
+                 "var nd=e.childNodes[cn];"
+                 "if(nd.nodeType===3)ownTxt+=String(nd.nodeValue||'');}"
+               "}catch(e3){}"
+               "if(ownTxt.trim()){"
                  "var fg=AF.p(cs.color);"
                  // 0.78, not 0.5. ADFRAME reported text=0 while a visibly dim label sat
                  // right there: the rule demanded near-BLACK ink, so a mid-grey
@@ -880,6 +891,23 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "if(ow<=0||oh<=0)continue;"
                "var f5=(ow*oh)/ar5;if(f5>best)best=f5;}"
              "return best;}catch(e){return 0;}}"
+           // AD CARD = NO TEXT, NO BACKGROUND. A card-sized ancestor carrying a
+           // creative (its own background-image, or a large img inside) marks its whole
+           // subtree untouchable. This is why the top-of-feed cards get a black box
+           // behind their copy and why light text lands on a light creative: our
+           // passes were treating card copy as ordinary page text. Cached per element.
+           "function inAdCard(el0){try{if(el0.__adCardQ!==undefined)return el0.__adCardQ;"
+             "var p0=el0,d0=0,r0=false;"
+             "while(p0&&d0++<9){var pr0=p0.getBoundingClientRect();"
+               "if(pr0.width>=250&&pr0.height>=150){"
+                 "var ps0=getComputedStyle(p0);"
+                 "if(String(ps0.backgroundImage||'').indexOf('url(')>=0){r0=true;break;}"
+                 "try{var im0=p0.querySelector('img,picture,video');"
+                   "if(im0){var ir0=im0.getBoundingClientRect();"
+                     "if(ir0.width>=150&&ir0.height>=120){r0=true;break;}}}catch(e0){}}"
+               "p0=p0.parentElement;}"
+             "el0.__adCardQ=r0;if(r0)window.__AD_CARDBLK__=(window.__AD_CARDBLK__||0)+1;"
+             "return r0;}catch(e){return true;}}"
            "function onArt(e2){try{var r5=e2.getBoundingClientRect();"
              "if(r5.width<1||r5.height<1)return false;"
              "return artOverlap(r5)>=0.5;"
@@ -1012,7 +1040,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              // before its children are contrast-checked against it.
              "if(lfix<500){var pl=lum(cs.backgroundColor);"
                "if(pl!==null&&pl>0.55&&!onArt(el)&&!ancLight(el)){"
-                 "el.style.setProperty('background-color',BG,'important');lfix++;}}""el.__adBgBy='lfix';"
+                 "if(!inAdCard(el))el.style.setProperty('background-color',BG,'important');lfix++;}}""el.__adBgBy='lfix';"
              // LARGE light panels, uncapped. Section-sized light surfaces (the
              // pharmacy pink wrapper, the light-blue insurance strip) are never
              // content -- darken them even after the general cap is spent.
@@ -1222,7 +1250,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "}catch(e){}"
              // Self-contained: records the first Sponsored-ish node WE SEE, matched or not,
              // so the next log distinguishes "wrong node" from "never matched".
-             "try{if(el.childElementCount<=8){var _t=String(el.textContent||'').trim();if(/^sponsored/i.test(_t)){var _r=el.getBoundingClientRect();if(_r.width>4){var _k=el.firstElementChild;var _ic=getComputedStyle(el).color;var _kc=_k?getComputedStyle(_k).color:_ic;var _l1=lum(_ic),_l2=lum(_kc);var _lm=Math.min(_l1===null?1:_l1,_l2===null?1:_l2);window.__AD_SPXT__=(window.__AD_SPXT__||0)+1;if(window.__AD_SPXL__===undefined||_lm<window.__AD_SPXL__){window.__AD_SPXL__=_lm;var _c=el.className;if(_c&&_c.baseVal!==undefined)_c=_c.baseVal;window.__AD_SPX__=el.tagName+'@'+Math.round(_r.width)+'x'+Math.round(_r.height)+'|kids='+el.childElementCount+'|hit='+(spx?1:0)+'|lum='+_lm.toFixed(2)+'|ink='+_ic+'|kid='+_kc+'|cls='+String(_c||'').slice(0,18)+'|anc='+(_an||'none');}}}}}catch(e){}"
+             "try{if(el.childElementCount<=8){var _t=String(el.textContent||'').trim();if(/^sponsored/i.test(_t)){var _r=el.getBoundingClientRect();if(_r.width>4){var _k=el.firstElementChild;var _ic=getComputedStyle(el).color;var _kc=_k?getComputedStyle(_k).color:_ic;var _l1=lum(_ic),_l2=lum(_kc);var _lm=Math.min(_l1===null?1:_l1,_l2===null?1:_l2);window.__AD_SPXT__=(window.__AD_SPXT__||0)+1;if(window.__AD_SPXL__===undefined||_lm<window.__AD_SPXL__){window.__AD_SPXL__=_lm;var _c=el.className;if(_c&&_c.baseVal!==undefined)_c=_c.baseVal;window.__AD_SPX__=el.tagName+'@'+Math.round(_r.width)+'x'+Math.round(_r.height)+'|kids='+el.childElementCount+'|hit='+(spx?1:0)+'|lum='+_lm.toFixed(2)+'|ink='+_ic+'|kid='+_kc+'|cls='+String(_c||'').slice(0,14)+'|anc='+(_an||'none')+'|self='+String(getComputedStyle(el).webkitTextFillColor||'-').slice(0,18)+'/op'+getComputedStyle(el).opacity+'/f'+String(getComputedStyle(el).filter||'none').slice(0,10);}}}}}catch(e){}"
              "var _an='',_ap=el.parentElement,_ad=0;while(_ap&&_ad++<6){var _af=getComputedStyle(_ap);var _ff=String(_af.filter||'none'),_oo=String(_af.opacity||'1'),_bb=String(_af.mixBlendMode||'normal');if(_ff!=='none'||_oo!=='1'||_bb!=='normal'){_an+='^'+String(_ap.className||'').slice(0,10)+'='+_ff.slice(0,12)+'/op'+_oo+'/'+_bb+'|by='+(_ap.__adBy||'-');}_ap=_ap.parentElement;}"
              // spx must bypass the CONTRAST test, not just the onArt guard. bgOf sees
              // the white product thumbnail behind the label, reads the contrast as
@@ -1240,8 +1268,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              // or its first child is actually dark ink -- SPX will now show both.
              "var kink=null;try{var kfc=el.firstElementChild;"
                "if(kfc)kink=lum(getComputedStyle(kfc).color);}catch(e){}"
-             "if((spx&&((fl!==null&&fl<0.55)||(kink!==null&&kink<0.55)))"
-               "||(hi/lo<3.0&&!onArt(el))){"
+             "if(!inAdCard(el)&&((spx&&((fl!==null&&fl<0.55)||(kink!==null&&kink<0.55)))"
+               "||(hi/lo<3.0&&!onArt(el)))){"
                "el.style.setProperty('color',FG,'important');"
                // SPON=4 proved the write lands, yet the label still renders dark --
                // so we are colouring a WRAPPER while an inner node carries its own
@@ -1250,13 +1278,24 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                // -webkit-text-fill-color is set too because it overrides color
                // outright wherever Dark Reader has applied it.
                "if(spx){try{"
+                 // -webkit-text-fill-color OVERRIDES color when painting but leaves
+                 // color reading unchanged, and opacity on the element itself dims
+                 // light ink toward the background. Either produces exactly what we
+                 // observe: ink=rgb(232,230,227) and dark pixels. The ancestor walk
+                 // started at parentElement, so the span's OWN opacity was never
+                 // measured. Both are forced here, and both are reported below.
                  "el.style.setProperty('-webkit-text-fill-color',FG,'important');"
+                 "el.style.setProperty('opacity','1','important');"
+                 "el.style.setProperty('mix-blend-mode','normal','important');"
+                 "el.style.setProperty('filter','none','important');"
                  "var kids=el.querySelectorAll('*');"
                  "for(var ki=0;ki<kids.length&&ki<6;ki++){"
                    "var kt=kids[ki].tagName;"
                    "if(kt==='IMG'||kt==='SVG'||kt==='svg'||kt==='PATH'||kt==='USE')continue;"
                    "kids[ki].style.setProperty('color',FG,'important');"
-                   "kids[ki].style.setProperty('-webkit-text-fill-color',FG,'important');}"
+                   "kids[ki].style.setProperty('-webkit-text-fill-color',FG,'important');"
+                   "kids[ki].style.setProperty('opacity','1','important');"
+                   "kids[ki].style.setProperty('filter','none','important');}"
                "}catch(e){}"
                "window.__AD_SPON__=(window.__AD_SPON__||0)+1;}n++;}}"
 
@@ -2343,6 +2382,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(window.__AD_LOGO__?(' LOGO['+window.__AD_LOGO__+']'):'')"
                "+(window.__AD_ADSKIP__?(' ADSKIP='+window.__AD_ADSKIP__):'')"
                "+(window.__AD_SPON__?(' SPON='+window.__AD_SPON__):'')"
+               "+(window.__AD_CARDBLK__?(' CARDBLK='+window.__AD_CARDBLK__):'')"
                "+(window.__AD_SPX__?(' SPX[n='+(window.__AD_SPXT__||0)+' '+window.__AD_SPX__+']'):'')"
                "+(window.__AD_FRSKIP__?(' FRSKIP='+window.__AD_FRSKIP__):'')"
                "+(window.__AD_FRSRC__?(' FRSRC='+window.__AD_FRSRC__):'')"
@@ -3199,6 +3239,76 @@ static void ADScheduleGlyphLift(UIImageView *iv){
 
 static int gNatGlyphLogged = 0;
 static int gNatGlyphTotal = 0;
+static int gBorderFix = 0, gBorderSeen = 0;
+
+// BORDER NORMALISATION. There was no border handling anywhere in the tweak, which
+// is why the person tab's card outlines stay stock-light while the Interests pane's
+// read grey -- and why they flicker: whatever repaints them wins, and we never had
+// an opinion. A light border on a dark card is the wrong end of the scale, so any
+// visible border lighter than mid-grey is pinned to one value. Pinned, not nudged:
+// re-applying the same colour every sweep is what stops the flashing.
+// PLUS-GLYPH PROBE. The Interests "+" stays dark and previous attempts assumed it
+// was a UIImageView the glyph lift would reach. This reports every small round view
+// in that pane with what it actually draws with -- image, layer contents, a shape
+// layer, or a label -- because those need four different fixes and we have never
+// established which one it is.
+static int gPlusN = 0;
+static void ADPlusWalk(UIView *v, int depth){
+    if (!v || depth > 34 || gPlusN >= 8 || v.hidden || v.alpha < 0.05) return;
+    @try {
+        CGFloat w = v.bounds.size.width, h = v.bounds.size.height;
+        BOOL roundish = (w >= 40 && w <= 110 && h >= 40 && h <= 110 &&
+                         fabs(w - h) < 12);
+        if (roundish){
+            CALayer *l = v.layer;
+            UIImage *im = [v isKindOfClass:[UIImageView class]] ? ((UIImageView *)v).image : nil;
+            NSString *al = nil;
+            @try { al = v.accessibilityLabel; } @catch(...) {}
+            CGFloat tr = -1, tg = -1, tb = -1, ta = -1;
+            if (v.tintColor) [v.tintColor getRed:&tr green:&tg blue:&tb alpha:&ta];
+            gPlusN++;
+            ADLog(@"PLUS[%s layer=%s %.0fx%.0f img=%d contents=%d sub=%lu "
+                   "radius=%.0f border=%.1f tint=%.2f,%.2f,%.2f al='%@']",
+                  object_getClassName(v), object_getClassName(l), w, h,
+                  im ? 1 : 0, l.contents ? 1 : 0, (unsigned long)v.subviews.count,
+                  l.cornerRadius, l.borderWidth, tr, tg, tb,
+                  al.length ? al : @"-");
+        }
+        for (UIView *sv in v.subviews) ADPlusWalk(sv, depth + 1);
+    } @catch(...) {}
+}
+
+static void ADPlusProbe(void){
+    @try {
+        if (!gP.enabled) return;
+        static int rounds = 0;
+        if (gPlusN >= 8 || rounds++ > 300) return;
+        UIWindow *key = nil;
+        for (UIWindow *w in [UIApplication sharedApplication].windows)
+            if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
+        if (key) ADPlusWalk(key, 0);
+    } @catch(...) {}
+}
+
+static void ADNormalizeBorder(UIView *v){
+    @try {
+        if (!v) return;
+        CALayer *l = v.layer;
+        if (l.borderWidth <= 0 || !l.borderColor) return;
+        gBorderSeen++;
+        UIColor *c = [UIColor colorWithCGColor:l.borderColor];
+        CGFloat r = 0, g = 0, b = 0, a = 0;
+        if (![c getRed:&r green:&g blue:&b alpha:&a]) return;
+        if (a < 0.05) return;
+        CGFloat lum = 0.2126*r + 0.7152*g + 0.0722*b;
+        if (lum < 0.28) return;                     // already dark enough
+        static UIColor *want = nil;
+        if (!want) want = [UIColor colorWithRed:0.231 green:0.235 blue:0.243 alpha:1.0];
+        l.borderColor = want.CGColor;
+        gBorderFix++;
+    } @catch(...) {}
+}
+
 static int gNatRestored = 0;
 static int gUntintSeen = 0, gUntintTmpl = 0, gUntintColour = 0, gUntintLogged = 0;
 
@@ -3238,6 +3348,7 @@ static void ADUntintColourImage(UIImageView *iv){
         ((UIView *)iv).tintColor = nil;
         if (gNatRestored < 16){
             gNatRestored++;
+            ADLog(@"BORDER[seen=%d fixed=%d]", gBorderSeen, gBorderFix);
             ADLog(@"natrestore #%d %s %.0fx%.0f sat=%.2f", gNatRestored,
                   object_getClassName(iv), iv.bounds.size.width,
                   iv.bounds.size.height, sat);
@@ -3398,6 +3509,7 @@ static void ADLaunchDarkenTree(UIView *v, int depth, int *bg, int *logo){
                 }
             }
         }
+        ADNormalizeBorder(v);
         if ([v isKindOfClass:[UIImageView class]]){
             // Every image view on every sweep. This used to hang off a narrow
             // diagnostic branch (no backgroundColor, big and visible), which is why
@@ -6484,6 +6596,10 @@ static void ADReapplyBurst(void){
 }
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
+    @try {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.2 * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{ ADPlusProbe(); });
+    } @catch(...) {}
     @try {
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{ ADLayerDump(); });
