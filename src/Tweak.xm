@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.240.0"
+#define AD_VERSION "v5.241.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1207,7 +1207,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "}catch(e){}"
              // Self-contained: records the first Sponsored-ish node WE SEE, matched or not,
              // so the next log distinguishes "wrong node" from "never matched".
-             "try{if(!window.__AD_SPX__&&el.childElementCount<=8){var _t=String(el.textContent||'').trim();if(/^sponsored/i.test(_t)){var _r=el.getBoundingClientRect();var _c=el.className;if(_c&&_c.baseVal!==undefined)_c=_c.baseVal;window.__AD_SPX__=el.tagName+'@'+Math.round(_r.width)+'x'+Math.round(_r.height)+'|kids='+el.childElementCount+'|len='+_t.length+'|hit='+(spx?1:0)+'|ink='+getComputedStyle(el).color+'|cls='+String(_c||'').slice(0,18);}}}catch(e){}"
+             "try{if(el.childElementCount<=8){var _t=String(el.textContent||'').trim();if(/^sponsored/i.test(_t)){var _r=el.getBoundingClientRect();if(!window.__AD_SPXN__)window.__AD_SPXN__=0;if(window.__AD_SPXN__<4&&_r.width>4){window.__AD_SPXN__++;var _c=el.className;if(_c&&_c.baseVal!==undefined)_c=_c.baseVal;var _k=el.firstElementChild;var _ki=_k?getComputedStyle(_k).color:'-';window.__AD_SPX__=(window.__AD_SPX__?window.__AD_SPX__+' ~ ':'')+el.tagName+'@'+Math.round(_r.width)+'x'+Math.round(_r.height)+'|kids='+el.childElementCount+'|hit='+(spx?1:0)+'|ink='+getComputedStyle(el).color+'|kid='+_ki+'|cls='+String(_c||'').slice(0,22);}}}}catch(e){}"
              // spx must bypass the CONTRAST test, not just the onArt guard. bgOf sees
              // the white product thumbnail behind the label, reads the contrast as
              // good, and never enters this branch at all -- so the exemption never got
@@ -1219,7 +1219,13 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              // that was already partly themed failed it and was never written, while
              // SPON counted the genuinely dark ones elsewhere. The label should simply
              // match the card's other text, so it is set unconditionally.
-             "if(spx||(hi/lo<3.0&&!onArt(el))){"
+             // Pull back: writing unconditionally hit 107 elements and still did not
+             // fix the label, so it was spraying, not fixing. Only act when THIS node
+             // or its first child is actually dark ink -- SPX will now show both.
+             "var kink=null;try{var kfc=el.firstElementChild;"
+               "if(kfc)kink=lum(getComputedStyle(kfc).color);}catch(e){}"
+             "if((spx&&((fl!==null&&fl<0.55)||(kink!==null&&kink<0.55)))"
+               "||(hi/lo<3.0&&!onArt(el))){"
                "el.style.setProperty('color',FG,'important');"
                // SPON=4 proved the write lands, yet the label still renders dark --
                // so we are colouring a WRAPPER while an inner node carries its own
