@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.251.0"
+#define AD_VERSION "v5.252.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3282,8 +3282,15 @@ static void ADPlusWalk(UIView *v, int depth){
         // chrome first and the budget was gone before the Interests pane rendered.
         // Fifth probe of mine consumed this way; the band test is now permanent.
         CGRect fr = [v convertRect:v.bounds toView:nil];
-        BOOL roundish = (w >= 40 && w <= 110 && h >= 40 && h <= 110 &&
-                         fabs(w - h) < 12 && fr.origin.y > 200);
+        // CIRCULAR ONLY. P4REJECT came back clear=0.00 avg=0.93 -- a fully opaque
+        // near-white image, i.e. a product thumbnail on white, not the + glyph. The
+        // tile photos are also 100x100 and filled the budget first. The + is drawn as
+        // a circle, so require an actual circular clip (or a visible ring) and let the
+        // square thumbnails fall out on their own.
+        CGFloat rad = v.layer.cornerRadius;
+        BOOL circular = (rad >= w * 0.35) || (v.layer.borderWidth > 0.4 && rad > 8);
+        BOOL roundish = (w >= 34 && w <= 110 && h >= 34 && h <= 110 &&
+                         fabs(w - h) < 12 && fr.origin.y > 200 && circular);
         if (roundish){
             CALayer *l = v.layer;
             UIImage *im = [v isKindOfClass:[UIImageView class]] ? ((UIImageView *)v).image : nil;
@@ -3455,7 +3462,10 @@ static void ADLiftNativeGlyph(UIImageView *iv){
             // plus-sized view so the rejection is attributable.
             static int rej = 0;
             CGFloat rw = iv.bounds.size.width, rh = iv.bounds.size.height;
-            if (rej < 10 && rw >= 60 && rw <= 140 && rh >= 60 && rh <= 140){
+            // Skip opaque near-white images: those are tile photos, and they were
+            // consuming every slot before the glyph could be sampled.
+            if (rej < 10 && rw >= 34 && rw <= 140 && rh >= 34 && rh <= 140 &&
+                !(clearFrac < 0.05 && avg > 0.75)){
                 rej++;
                 ADLog(@"P4REJECT[%s %.0fx%.0f clear=%.2f avg=%.2f sat=%.2f notglyph]",
                       object_getClassName(iv), rw, rh, clearFrac, avg, satFrac);
