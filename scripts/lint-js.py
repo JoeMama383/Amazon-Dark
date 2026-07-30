@@ -186,6 +186,7 @@ def main():
     ok &= check_silhouette_guards(src)
     ok &= check_ovr_scope(src)
     ok &= check_format_specifiers(src)
+    ok &= check_objc_decl_order(src)
 
     print("lint-js: " + ("OK" if ok else "FAILED"))
     return 0 if ok else 1
@@ -306,6 +307,52 @@ def check_full_payload(src):
         print(f"  FAIL     payload extraction only {len(js)} chars - extractor is broken")
         return False
     return check('full injected pass', 'function W(){' + js + '}')
+
+
+
+
+def check_objc_decl_order(src):
+    """Every static C function must be DECLARED before its first use.
+
+    Two builds reached CI with 'use of undeclared identifier' because a probe was
+    inserted above the function it calls. Logos compiles one translation unit, so
+    ordering matters and the compiler is the only thing that was catching it --
+    after a push, a CI run and a wasted cycle each time.
+    """
+    # Blank string literals as well as comments, and preserve line numbering: a
+    # function name mentioned inside an injected-JS literal is not a C call, and
+    # collapsing /* */ blocks shifts every line number after them.
+    txt = strip_comments(src)
+    txt = re.sub(r'"(?:[^"\\\n]|\\.)*"', '""', txt)
+    lines = txt.split('\n')
+    defs, fwds = {}, {}
+    for i, l in enumerate(lines):
+        m = re.match(r'\s*static\s+(?:inline\s+)?[A-Za-z_][\w\s\*]*?\b(\w+)\s*\([^;{]*\)\s*\{', l)
+        if m:
+            defs.setdefault(m.group(1), i)
+        m2 = re.match(r'\s*static\s+(?:inline\s+)?[A-Za-z_][\w\s\*]*?\b(\w+)\s*\([^;{]*\)\s*;', l)
+        if m2:
+            fwds.setdefault(m2.group(1), i)
+    ok = True
+    for name, dline in defs.items():
+        # Usable from whichever comes first -- the definition or a forward
+        # declaration. Taking the forward decl alone flagged functions that are
+        # simply defined above it, which is legal and common here.
+        first = min(dline, fwds.get(name, dline))
+        for i, l in enumerate(lines):
+            if i >= first:
+                break
+            # Skip the definition/declaration lines themselves: they contain the
+            # name followed by '(' and are not calls.
+            if re.match(r'\s*static\b', l) and name in l:
+                continue
+            if re.search(r'\b' + re.escape(name) + r'\s*\(', l):
+                print(f"  FAIL     {name}() used at line {i+1}, first declared at {first+1}")
+                ok = False
+                break
+    if ok:
+        print(f"  OK       all {len(defs)} static functions declared before use")
+    return ok
 
 
 if __name__ == '__main__':

@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.254.0"
+#define AD_VERSION "v5.255.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3267,6 +3267,8 @@ static int gBorderFix = 0, gBorderSeen = 0;
 // an opinion. A light border on a dark card is the wrong end of the scale, so any
 // visible border lighter than mid-grey is pinned to one value. Pinned, not nudged:
 // re-applying the same colour every sweep is what stops the flashing.
+static void ADBorderProbe(void);
+
 // PLUS-GLYPH PROBE. The Interests "+" stays dark and previous attempts assumed it
 // was a UIImageView the glyph lift would reach. This reports every small round view
 // in that pane with what it actually draws with -- image, layer contents, a shape
@@ -6529,11 +6531,8 @@ static void ADLayerWalk(UIView *v, int depth, int *n, NSMutableSet *seen){
 static void ADLayerDump(void){
     @try {
         if (!gP.enabled) return;
-        // RE-ARM PER PANE. Latching after two findings meant the census answered for
-        // whichever surfaces loaded first and then went quiet -- so it has never
-        // reported for the Interests pane, which is the document we now need named.
-        static int rounds = 0;
-        if (rounds++ > 400) return;
+        static int rounds = 0, found = 0;
+        if (found >= 2 || rounds++ > 400) return;
         UIWindow *key = nil;
         for (UIWindow *w in [UIApplication sharedApplication].windows)
             if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
