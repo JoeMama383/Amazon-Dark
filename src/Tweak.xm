@@ -623,7 +623,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "+'*{-webkit-tap-highlight-color:transparent !important;}'"
                  "+'*:focus,*:focus-visible{outline:none !important;box-shadow:none !important;}';"
                "(document.head||document.documentElement).appendChild(st);}"
-             "var E=document.querySelectorAll('*'),nb=0,nt=0;"
+             "var E=document.querySelectorAll('*'),nb=0,nt=0,nbd=0;"
              "for(var i=0;i<E.length&&i<3000;i++){var e=E[i];var tg=e.tagName;"
                "if(tg==='IMG'||tg==='PICTURE'||tg==='VIDEO'||tg==='CANVAS'"
                  "||tg==='SVG'||tg==='svg'||tg==='USE'||tg==='PATH')continue;"
@@ -713,8 +713,17 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  // raising the luminance ceiling only catches greys that should match
                  // the card's other text anyway.
                  "if(fg&&AF.l(fg)<0.78&&AF.s(fg)<0.12){"
-                   "e.style.setProperty('color','#e8e6e3','important');nt++;}}}"
-             "window.__AD_ADTHEME__='bg='+nb+' text='+nt+' logo='+(window.__AD_ADLOGO__||0);return nb+nt;"
+               "e.style.setProperty('color','#e8e6e3','important');nt++;}}"
+               "try{var BS=['Top','Right','Bottom','Left'];"
+                 "for(var bi=0;bi<4;bi++){"
+                   "var bw=parseFloat(cs['border'+BS[bi]+'Width'])||0;if(bw<0.5)continue;"
+                   "var bsty=cs['border'+BS[bi]+'Style'];if(bsty==='none'||bsty==='hidden')continue;"
+                   "var bcp=AF.p(cs['border'+BS[bi]+'Color']);"
+                   "if(bcp&&bcp.a>0.3&&AF.l(bcp)>0.6&&AF.s(bcp)<0.12){"
+                     "e.style.setProperty('border-'+BS[bi].toLowerCase()+'-color','#3b3c3e','important');nbd++;}}"
+               "}catch(eb){}"
+               "}"
+             "window.__AD_ADTHEME__='bg='+nb+' text='+nt+' border='+nbd+' logo='+(window.__AD_ADLOGO__||0);return nb+nt+nbd;"
            "}catch(e){window.__AD_ADTHEME__='err '+e;return -1;}};"
            // Self-contained poster. The main one is defined at the END of the pass we
            // now return from early, so it would never exist in an ad frame -- which is
@@ -6501,6 +6510,9 @@ static NSString *ADProbeWebJS(void){
              "+'|bg='+(bg==='none'||!bg?'-':bg)+'|mask='+(mk==='none'||!mk?'-':mk)"
              "+'|svg='+sv+'|col='+s2.color+'|fill='+(s2.fill||'-'));}"
          "out.push('P7PLUS[n='+pl.length+(pl.length?' '+pl.join(' ~ '):' none')+']');}"
+       "try{var FR=window.__AD_FRAMES__||{},fk=[],ff;for(ff in FR)fk.push(ff);"
+         "if(fk.length){var fo=[];for(var fx=0;fx<fk.length&&fx<4;fx++)fo.push(fk[fx]+'=>'+String(FR[fk[fx]]).slice(0,80));"
+           "out.push('P8SUB['+fo.join(' ~ ')+']');}else{out.push('P8SUB[none]');}}catch(es){out.push('P8SUB[err]');}"
        "return out.join(' ');"
        "}catch(err){return 'P8ERR['+(err&&err.message||err)+']';}})()";
 }
