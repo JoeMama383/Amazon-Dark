@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.253.0"
+#define AD_VERSION "v5.254.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3353,6 +3353,87 @@ static void ADPlusProbe(void){
         for (UIWindow *w in [UIApplication sharedApplication].windows)
             if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
         if (key){ ADPlusWalk(key, 0); gP5 = 0; ADPlusPosWalk(key, 0); }
+        ADBorderProbe();
+    } @catch(...) {}
+}
+
+// P6 HAIRLINE PROBE AND FIX. P3BORDER saw zero layer borders, so the person tab's
+// card outlines are not borderWidth at all. The remaining native possibility is a
+// thin subview with a light background -- a hairline -- which is how UIKit draws
+// separators and how a card edge is often faked. That is measurable and fixable in
+// the same pass: a view that is long and 1-3pt thin, with a light opaque background,
+// is a rule, never content.
+static int gHairSeen = 0, gHairFix = 0;
+
+static void ADHairlineFix(UIView *v){
+    @try {
+        if (!v) return;
+        CGFloat w = v.bounds.size.width, h = v.bounds.size.height;
+        BOOL thin = (h > 0 && h <= 3.5 && w >= 40) || (w > 0 && w <= 3.5 && h >= 40);
+        if (!thin) return;
+        UIColor *c = v.backgroundColor;
+        if (!c) return;
+        CGFloat r, g, b, a;
+        if (![c getRed:&r green:&g blue:&b alpha:&a]) return;
+        if (a < 0.15) return;
+        gHairSeen++;
+        CGFloat lum = 0.2126*r + 0.7152*g + 0.0722*b;
+        if (lum < 0.30) return;                     // already dark
+        static UIColor *want = nil;
+        if (!want) want = [UIColor colorWithRed:0.231 green:0.235 blue:0.243 alpha:1.0];
+        v.backgroundColor = want;
+        gHairFix++;
+        static int logged = 0;
+        if ((gHairFix % 20) == 1 && logged < 10){
+            logged++;
+            ADLog(@"P6HAIR[seen=%d fixed=%d %s %.0fx%.0f lum=%.2f]",
+                  gHairSeen, gHairFix, object_getClassName(v), w, h, lum);
+        }
+    } @catch(...) {}
+}
+
+static inline BOOL ADIsOwnColor(UIColor *c);
+
+// P6BORDER. P3BORDER saw zero layer borders, so the person-tab outlines are drawn
+// some other way, and there are only two plausible ways: a hairline subview with a
+// light background, or a card whose own background is light with a darker child
+// inset on top -- in which case the visible "border" is the parent showing through
+// at the edges. Those need opposite fixes, so both shapes are reported: thin light
+// strips, and card-sized views carrying a light background.
+static int gP6 = 0;
+static void ADBorderProbeWalk(UIView *v, int depth){
+    if (!v || depth > 36 || gP6 >= 12 || v.hidden || v.alpha < 0.05) return;
+    @try {
+        CGRect f = [v convertRect:v.bounds toView:nil];
+        CGFloat w = f.size.width, h = f.size.height;
+        UIColor *bc = v.backgroundColor;
+        CGFloat r = -1, g = -1, b = -1, a = -1;
+        BOOL got = (bc && [bc getRed:&r green:&g blue:&b alpha:&a] && a > 0.05);
+        CGFloat lum = got ? (0.2126*r + 0.7152*g + 0.0722*b) : -1;
+        BOOL hairline = (got && lum > 0.35 && ((h <= 3 && w > 40) || (w <= 3 && h > 40)));
+        BOOL lightCard = (got && lum > 0.35 && w >= 120 && w <= 430 && h >= 50 && h <= 420);
+        if ((hairline || lightCard) && f.origin.y > 60 && f.origin.y < 900){
+            gP6++;
+            ADLog(@"P6BORDER[%s %s %.0fx%.0f @%.0f,%.0f bg=%.2f,%.2f,%.2f/%.2f "
+                   "rad=%.0f sub=%lu own=%d]",
+                  hairline ? "HAIRLINE" : "LIGHTCARD", object_getClassName(v),
+                  w, h, f.origin.x, f.origin.y, r, g, b, a,
+                  v.layer.cornerRadius, (unsigned long)v.subviews.count,
+                  ADIsOwnColor(bc) ? 1 : 0);
+        }
+        for (UIView *sv in v.subviews) ADBorderProbeWalk(sv, depth + 1);
+    } @catch(...) {}
+}
+
+static void ADBorderProbe(void){
+    @try {
+        if (!gP.enabled) return;
+        static int rounds = 0;
+        if (rounds++ > 400) return;
+        UIWindow *key = nil;
+        for (UIWindow *w in [UIApplication sharedApplication].windows)
+            if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
+        if (key){ gP6 = 0; ADBorderProbeWalk(key, 0); }
     } @catch(...) {}
 }
 
@@ -3607,6 +3688,7 @@ static void ADLaunchDarkenTree(UIView *v, int depth, int *bg, int *logo){
             }
         }
         ADNormalizeBorder(v);
+        ADHairlineFix(v);
         if ([v isKindOfClass:[UIImageView class]]){
             // Every image view on every sweep. This used to hang off a narrow
             // diagnostic branch (no backgroundColor, big and visible), which is why
@@ -6341,8 +6423,11 @@ static void ADTextClassProbe(void){
 static void ADWebViewCensus(void){
     @try {
         if (!gP.enabled) return;
-        static int rounds = 0, found = 0;
-        if (found >= 2 || rounds++ > 200) return;
+        // RE-ARM PER PANE. Latching after two productive rounds meant this fired on
+        // the home feed and never ran again -- so the Interests pane, which P5POS just
+        // showed has no native "+" at all, was never censused. Every pane gets a look.
+        static int rounds = 0;
+        if (rounds++ > 400) return;
         UIWindow *key = nil;
         for (UIWindow *w in [UIApplication sharedApplication].windows)
             if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
@@ -6387,8 +6472,7 @@ static void ADWebViewCensus(void){
                     NSString *v = [r isKindOfClass:[NSString class]] ? (NSString *)r
                                 : (e ? [NSString stringWithFormat:@"ERR %@/%ld", e.domain, (long)e.code]
                                      : @"(nil)");
-                    if ([v rangeOfString:@" any=0 "].location == NSNotFound &&
-                        [v rangeOfString:@" any="].location != NSNotFound) found++;
+
                     ADLog(@"WVCENSUS[#%d of %lu %@]", myIdx, (unsigned long)wvs.count, v);
                 } @catch(...) {}
             }];
@@ -6445,8 +6529,11 @@ static void ADLayerWalk(UIView *v, int depth, int *n, NSMutableSet *seen){
 static void ADLayerDump(void){
     @try {
         if (!gP.enabled) return;
-        static int rounds = 0, found = 0;
-        if (found >= 2 || rounds++ > 300) return;
+        // RE-ARM PER PANE. Latching after two findings meant the census answered for
+        // whichever surfaces loaded first and then went quiet -- so it has never
+        // reported for the Interests pane, which is the document we now need named.
+        static int rounds = 0;
+        if (rounds++ > 400) return;
         UIWindow *key = nil;
         for (UIWindow *w in [UIApplication sharedApplication].windows)
             if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
