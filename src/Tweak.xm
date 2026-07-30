@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.255.0"
+#define AD_VERSION "v5.256.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -335,6 +335,19 @@ static NSString *ADFixesLiteral(void){
         : @"";
     return [NSString stringWithFormat:
             @"{css:'"
+             // BORDERS AT PARSE TIME. WVCENSUS shows the person tab is /gw/ajax/mshop.html and
+             // Interests is /interest-prompts -- both web -- so those outlines are CSS
+             // borders, which is why P3BORDER and P6BORDER each found zero layer borders.
+             // It also explains the flashing: a JS pass corrects after paint, so every
+             // correction is visible. A stylesheet rule cannot flash because it applies
+             // before the first frame. Only the COLOUR is set, so anything with
+             // border-width 0 is untouched and no layout changes.
+             "*{border-color:#3b3c3e !important;}"
+             // Brand-coloured edges keep their own colour: these are the few places
+             // Amazon draws a meaningful border rather than a divider.
+             "[class*=deal] [class*=badge],[class*=badge],[class*=prime],"
+             "[class*=error],[class*=alert],[class*=warning],[aria-invalid=true],"
+             "input:focus,button:focus{border-color:initial !important;}"
              "img,picture,video,canvas,svg{filter:none !important;opacity:1 !important;"
              "mix-blend-mode:normal !important;isolation:auto !important;}"
              "%@"
