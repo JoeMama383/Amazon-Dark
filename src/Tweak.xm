@@ -6454,6 +6454,44 @@ static void ADTextClassProbe(void){
 // is ObjC -> JS source -> single-quoted strings, and every escaping bug this file
 // has shipped came from that layering. Entries are space-joined into ONE line so
 // the existing grep -aoE "P8BORD\[[^]]*\]" / "P7PLUS\[[^]]*\]" pulls each token.
+// ── PERSON-TAB CARD/PILL BORDER FIX (P9FIX) ─────────────────────────────────
+// The light outlines on the person tab are real CSS borders on ROUNDED cards and
+// pills in the main document. P8BORD proved form controls / spacing borders are
+// square (r=0) while cards/pills are rounded, so border-radius is the discriminator
+// CSS cannot express. Run from the census (never the DR bootstrap, so no black-
+// screen risk). Dim a side ONLY when the element is visible, rounded (rad>=4),
+// sizeable, its border is painted (a>0.3) and neutral-light (0.10<lum<0.70,
+// sat<0.12): that hits cards + pills, skips square selects and transparent
+// spacing borders (no crop regression), and leaves brand-coloured edges alone.
+// Marked once so re-runs are cheap.
+static NSString *ADCardBorderFixJS(void){
+    return
+       @"(function(){try{"
+       "if(window.top!==window.self)return 'skip-sub';"
+       "var all=document.querySelectorAll('*'),N=Math.min(all.length,3000),done=0,samp=[];"
+       "var VH=window.innerHeight||800;"
+       "function cc(c){var a=String(c||'').split('('),b=(a[1]||'').split(')')[0].split(',');"
+         "if(b.length<3)return null;var r=+b[0],g=+b[1],bl=+b[2],al=b.length>3?+b[3]:1;"
+         "return{a:al,l:(0.2126*r+0.7152*g+0.0722*bl)/255*(al<1?al:1),s:(Math.max(r,g,bl)-Math.min(r,g,bl))/255};}"
+       "function clsN(e){var c=e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||'')).slice(0,22);}"
+       "var SD=['Top','Right','Bottom','Left'];"
+       "for(var i=0;i<N;i++){var e=all[i];if(e.__adCardB)continue;"
+         "var tg=e.tagName;if(tg==='SELECT'||tg==='INPUT'||tg==='TEXTAREA'||tg==='OPTION')continue;"
+         "var st=getComputedStyle(e);var rad=parseFloat(st.borderTopLeftRadius)||0;if(rad<4)continue;"
+         "var rc=e.getBoundingClientRect();if(rc.width<60||rc.height<16)continue;if(rc.bottom<0||rc.top>VH*3)continue;"
+         "var touched=0;"
+         "for(var k=0;k<4;k++){var w=parseFloat(st['border'+SD[k]+'Width'])||0;if(w<0.5)continue;"
+           "var sy=st['border'+SD[k]+'Style'];if(sy==='none'||sy==='hidden')continue;"
+           "var c2=cc(st['border'+SD[k]+'Color']);"
+           "if(c2&&c2.a>0.3&&c2.l>0.10&&c2.l<0.70&&c2.s<0.12){"
+             "e.style.setProperty('border-'+SD[k].toLowerCase()+'-color','#2a2a2c','important');touched++;}}"
+         "if(touched){e.__adCardB=1;done++;"
+           "if(samp.length<5)samp.push(tg+'|'+clsN(e)+'|'+Math.round(rc.width)+'x'+Math.round(rc.height)+'|r'+Math.round(rad));}}"
+       "window.__AD_CARDBFIX__=done;"
+       "return 'done='+done+(samp.length?' '+samp.join(' ~ '):'');"
+       "}catch(e){return 'err '+(e&&e.message||e);}})()";
+}
+
 static NSString *ADProbeWebJS(void){
     return
        @"(function(){try{"
@@ -6581,6 +6619,15 @@ static void ADWebViewCensus(void){
                         ADLog(@"%@", pr);
                     else if (pe)
                         ADLog(@"P8ERR[wk %@/%ld]", pe.domain, (long)pe.code);
+                } @catch(...) {}
+            }];
+            // Dim the person-tab card/pill borders in this frame; logs what it touched.
+            [w evaluateJavaScript:ADCardBorderFixJS() completionHandler:^(id fr, NSError *fe){
+                @try {
+                    if ([fr isKindOfClass:[NSString class]] && [(NSString *)fr length])
+                        ADLog(@"P9FIX[%@]", fr);
+                    else if (fe)
+                        ADLog(@"P9FIX[wk %@/%ld]", fe.domain, (long)fe.code);
                 } @catch(...) {}
             }];
         }
