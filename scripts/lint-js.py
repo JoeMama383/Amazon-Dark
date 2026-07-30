@@ -141,7 +141,7 @@ def main():
                         'var __x = ' + emitted[a:] + ';')
 
     # 2. Every other function that emits a self-contained JS expression.
-    for name in ['ADPharmGateJS', 'ADPharmForceJS']:
+    for name in ['ADPharmGateJS', 'ADPharmForceJS', 'ADProbeWebJS']:
         body = function_body(src, name)
         if body is None:
             print(f"  SKIP     {name} not found")

@@ -335,19 +335,14 @@ static NSString *ADFixesLiteral(void){
         : @"";
     return [NSString stringWithFormat:
             @"{css:'"
-             // BORDERS AT PARSE TIME. WVCENSUS shows the person tab is /gw/ajax/mshop.html and
-             // Interests is /interest-prompts -- both web -- so those outlines are CSS
-             // borders, which is why P3BORDER and P6BORDER each found zero layer borders.
-             // It also explains the flashing: a JS pass corrects after paint, so every
-             // correction is visible. A stylesheet rule cannot flash because it applies
-             // before the first frame. Only the COLOUR is set, so anything with
-             // border-width 0 is untouched and no layout changes.
-             "*{border-color:#3b3c3e !important;}"
-             // Brand-coloured edges keep their own colour: these are the few places
-             // Amazon draws a meaningful border rather than a divider.
-             "[class*=deal] [class*=badge],[class*=badge],[class*=prime],"
-             "[class*=error],[class*=alert],[class*=warning],[aria-invalid=true],"
-             "input:focus,button:focus{border-color:initial !important;}"
+             // v5.256 shipped "*{border-color:#3b3c3e !important;}" here to darken the
+             // person-tab / Interests CSS borders at parse time. Reverted in v5.257:
+             // "*" also recoloured elements using border-width:Npx;border-color:transparent
+             // as a spacing trick, making those invisible borders show as grey frames --
+             // which read as the product photos cropping/flashing frame-to-frame. The
+             // border darkening returns as a TARGETED sheet once P8BORD names the actual
+             // selectors and colours; a global rule cannot tell a spacing border from a
+             // visible one, so it stays out until we have that.
              "img,picture,video,canvas,svg{filter:none !important;opacity:1 !important;"
              "mix-blend-mode:normal !important;isolation:auto !important;}"
              "%@"
@@ -6435,6 +6430,57 @@ static void ADTextClassProbe(void){
 // how many of them look like a star rating -- so the one holding the widget names
 // itself. Until now the answer "stars=0" only ever came from a single view that
 // was never confirmed to be the right one.
+// ── WEB PROBE (P8BORD / P7PLUS) ─────────────────────────────────────────────
+// Temporary diagnostic. WVCENSUS proved both open surfaces are web (person tab =
+// /gw/ajax/mshop.html, Interests = /interest-prompts, img=0), so the light borders
+// are CSS borders and the "+" is a CSS/pseudo/mask glyph, not a layer or an <img>.
+// This names the actual offenders so the fix can be a SCOPED parse-time sheet
+// instead of a third guess. Regex-free and backslash-free on purpose: the payload
+// is ObjC -> JS source -> single-quoted strings, and every escaping bug this file
+// has shipped came from that layering. Entries are space-joined into ONE line so
+// the existing grep -aoE "P8BORD\[[^]]*\]" / "P7PLUS\[[^]]*\]" pulls each token.
+static NSString *ADProbeWebJS(void){
+    return
+      @"(function(){try{"
+       "if(window.top!==window.self)return '';"
+       "var u=String(location.pathname||'/');"
+       "var intr=u.indexOf('interest')>=0,msh=u.indexOf('mshop')>=0;"
+       "if(!intr&&!msh)return 'P8SKIP[u='+u.slice(-22)+']';"
+       "var all=document.querySelectorAll('*'),N=Math.min(all.length,4000),out=[];"
+       "function cls(e){var c=e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||'')).slice(0,26);}"
+       "function lum(s){var a=String(s||'').split('('),b=(a[1]||'').split(')')[0].split(',');"
+         "if(b.length<3)return -1;var r=parseFloat(b[0]),g=parseFloat(b[1]),bl=parseFloat(b[2]),"
+         "al=b.length>3?parseFloat(b[3]):1;if(!(al>0))return -1;"
+         "return (0.2126*r+0.7152*g+0.0722*bl)/255*(al<1?al:1);}"
+       "var bn=0,bs=[],SD=['Top','Right','Bottom','Left'];"
+       "for(var i=0;i<N;i++){var e=all[i],st=getComputedStyle(e),h='';"
+         "for(var k=0;k<4;k++){var w=parseFloat(st['border'+SD[k]+'Width'])||0;if(w<0.5)continue;"
+           "var sy=st['border'+SD[k]+'Style'];if(sy==='none'||sy==='hidden')continue;"
+           "var L=lum(st['border'+SD[k]+'Color']);"
+           "if(L>0.45){h=SD[k].charAt(0)+' w='+w.toFixed(0)+' L='+L.toFixed(2)+' '+st['border'+SD[k]+'Color'];break;}}"
+         "if(h){bn++;if(bs.length<6)bs.push(e.tagName+'|'+cls(e)+'|'+h);}}"
+       "out.push('P8BORD[n='+bn+(bs.length?' '+bs.join(' ~ '):'')+']');"
+       "if(intr){var pl=[];"
+         "for(var j=0;j<N&&pl.length<6;j++){var e2=all[j];var t=String(e2.textContent||'').trim();"
+           "var bf='',af='';try{bf=String(getComputedStyle(e2,'::before').content||'');}catch(x){}"
+           "try{af=String(getComputedStyle(e2,'::after').content||'');}catch(y){}"
+           "var c2=cls(e2).toLowerCase();"
+           "var al2=String((e2.getAttribute&&(e2.getAttribute('aria-label')||''))||'').toLowerCase();"
+           "var isP=(t==='+')||bf.indexOf('+')>=0||af.indexOf('+')>=0||bf.indexOf('2b')>=0"
+             "||c2.indexOf('add')>=0||c2.indexOf('plus')>=0||c2.indexOf('follow')>=0"
+             "||al2.indexOf('add')>=0||al2.indexOf('plus')>=0||al2.indexOf('follow')>=0;"
+           "if(!isP)continue;var s2=getComputedStyle(e2);"
+           "var bg=String(s2.backgroundImage||'');if(bg.length>44)bg=bg.slice(0,44)+'..';"
+           "var mk=String(s2.maskImage||s2.webkitMaskImage||'');if(mk.length>26)mk=mk.slice(0,26)+'..';"
+           "var sv=e2.tagName==='svg'?'SELF':((e2.querySelector&&e2.querySelector('svg'))?'child':'-');"
+           "pl.push(e2.tagName+'|'+cls(e2).slice(0,20)+'|t='+t.slice(0,4)+'|bf='+(bf||'-').slice(0,8)"
+             "+'|bg='+(bg==='none'||!bg?'-':bg)+'|mask='+(mk==='none'||!mk?'-':mk)"
+             "+'|svg='+sv+'|col='+s2.color+'|fill='+(s2.fill||'-'));}"
+         "out.push('P7PLUS[n='+pl.length+(pl.length?' '+pl.join(' ~ '):' none')+']');}"
+       "return out.join(' ');"
+       "}catch(err){return 'P8ERR['+(err&&err.message||err)+']';}})()";
+}
+
 static void ADWebViewCensus(void){
     @try {
         if (!gP.enabled) return;
@@ -6489,6 +6535,16 @@ static void ADWebViewCensus(void){
                                      : @"(nil)");
 
                     ADLog(@"WVCENSUS[#%d of %lu %@]", myIdx, (unsigned long)wvs.count, v);
+                } @catch(...) {}
+            }];
+            // Same web view, same cadence: name the CSS borders (P8BORD) and the
+            // Interests "+" candidates (P7PLUS) so the next fix is scoped, not guessed.
+            [w evaluateJavaScript:ADProbeWebJS() completionHandler:^(id pr, NSError *pe){
+                @try {
+                    if ([pr isKindOfClass:[NSString class]] && [(NSString *)pr length])
+                        ADLog(@"%@", pr);
+                    else if (pe)
+                        ADLog(@"P8ERR[wk %@/%ld]", pe.domain, (long)pe.code);
                 } @catch(...) {}
             }];
         }
