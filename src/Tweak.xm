@@ -345,6 +345,12 @@ static NSString *ADFixesLiteral(void){
              // visible one, so it stays out until we have that.
              "img,picture,video,canvas,svg{filter:none !important;opacity:1 !important;"
              "mix-blend-mode:normal !important;isolation:auto !important;}"
+             // The Interests "+" is an <img class=*add-icon*> (P7PLUS). The blanket
+             // img{filter:none} above -- there to protect product photos -- was also
+             // freezing this glyph as Amazon's dark asset. Higher specificity than the
+             // bare img rule, so it re-enables inversion for the icon ONLY, flipping
+             // lightness while preserving hue (a dark + becomes a light +).
+             "img[class*=add-icon],img[class*=plus-icon]{filter:invert(1) hue-rotate(180deg) !important;}"
              "%@"
              "[style*=\\\"background-image\\\"]{filter:none !important;}"
              // THE FIX THAT ACTUALLY WORKED, brought back. v5.27.0 whitened the heart
@@ -6441,7 +6447,7 @@ static void ADTextClassProbe(void){
 // the existing grep -aoE "P8BORD\[[^]]*\]" / "P7PLUS\[[^]]*\]" pulls each token.
 static NSString *ADProbeWebJS(void){
     return
-      @"(function(){try{"
+       @"(function(){try{"
        "if(window.top!==window.self)return '';"
        "var u=String(location.pathname||'/');"
        "var intr=u.indexOf('interest')>=0,msh=u.indexOf('mshop')>=0;"
@@ -6452,14 +6458,32 @@ static NSString *ADProbeWebJS(void){
          "if(b.length<3)return -1;var r=parseFloat(b[0]),g=parseFloat(b[1]),bl=parseFloat(b[2]),"
          "al=b.length>3?parseFloat(b[3]):1;if(!(al>0))return -1;"
          "return (0.2126*r+0.7152*g+0.0722*bl)/255*(al<1?al:1);}"
-       "var bn=0,bs=[],SD=['Top','Right','Bottom','Left'];"
-       "for(var i=0;i<N;i++){var e=all[i],st=getComputedStyle(e),h='';"
+       "function bord(st){var SD=['Top','Right','Bottom','Left'];"
          "for(var k=0;k<4;k++){var w=parseFloat(st['border'+SD[k]+'Width'])||0;if(w<0.5)continue;"
            "var sy=st['border'+SD[k]+'Style'];if(sy==='none'||sy==='hidden')continue;"
            "var L=lum(st['border'+SD[k]+'Color']);"
-           "if(L>0.45){h=SD[k].charAt(0)+' w='+w.toFixed(0)+' L='+L.toFixed(2)+' '+st['border'+SD[k]+'Color'];break;}}"
-         "if(h){bn++;if(bs.length<6)bs.push(e.tagName+'|'+cls(e)+'|'+h);}}"
+           "if(L>0.45)return SD[k].charAt(0)+' w='+w.toFixed(0)+' L='+L.toFixed(2)+' '+st['border'+SD[k]+'Color'];}"
+         "return '';}"
+       "var bn=0,bs=[],shn=0,shs=[],flt=0,dr=0;"
+       "for(var i=0;i<N;i++){var e=all[i],st=getComputedStyle(e);"
+         "var h=bord(st);if(h){bn++;if(bs.length<6)bs.push(e.tagName+'|'+cls(e)+'|'+h);}"
+         "var sh='';var bsh=String(st.boxShadow||'');"
+         "if(bsh&&bsh!=='none'){var Ls=lum(bsh);if(Ls>0.45)sh='shadow L='+Ls.toFixed(2)+' '+bsh.slice(0,34);}"
+         "if(!sh){var ow=parseFloat(st.outlineWidth)||0,ost=String(st.outlineStyle||'');"
+           "if(ow>=0.5&&ost!=='none'&&ost!==''){var Lo=lum(st.outlineColor);"
+             "if(Lo>0.45)sh='outline w='+ow.toFixed(0)+' L='+Lo.toFixed(2)+' '+st.outlineColor;}}"
+         "if(sh){shn++;if(shs.length<6)shs.push(e.tagName+'|'+cls(e)+'|'+sh);}"
+         "if(String(st.filter||'none')!=='none')flt++;"
+         "if(e.hasAttribute&&(e.hasAttribute('data-darkreader-inline-bgcolor')||e.hasAttribute('data-darkreader-inline-color')||e.hasAttribute('data-darkreader-inline-border-top')))dr++;}"
        "out.push('P8BORD[n='+bn+(bs.length?' '+bs.join(' ~ '):'')+']');"
+       "out.push('P8SHDW[n='+shn+(shs.length?' '+shs.join(' ~ '):'')+']');"
+       "out.push('P8CHURN[flt='+flt+' dr='+dr+' els='+all.length+']');"
+       "var fn2=0,fs2=[];"
+       "for(var fi=0;fi<window.frames.length&&fs2.length<5;fi++){"
+         "try{var fd=window.frames[fi].document;if(!fd)continue;var fe=fd.querySelectorAll('*'),lim=Math.min(fe.length,2000);"
+           "for(var q=0;q<lim;q++){var hh=bord(getComputedStyle(fe[q]));if(hh){fn2++;if(fs2.length<5)fs2.push('f'+fi+'|'+fe[q].tagName+'|'+cls(fe[q])+'|'+hh);}}"
+         "}catch(ce){fs2.push('f'+fi+':xorigin');}}"
+       "out.push('P8FRAME[n='+fn2+' frames='+window.frames.length+(fs2.length?' '+fs2.join(' ~ '):'')+']');"
        "if(intr){var pl=[];"
          "for(var j=0;j<N&&pl.length<6;j++){var e2=all[j];var t=String(e2.textContent||'').trim();"
            "var bf='',af='';try{bf=String(getComputedStyle(e2,'::before').content||'');}catch(x){}"
