@@ -6490,7 +6490,7 @@ static NSString *ADCardBorderFixJS(void){
          "if(bsh&&bsh!=='none'&&lite(bsh)){e.style.setProperty('box-shadow','none','important');did+='s';}"
          "if(did){done++;if(samp.length<6)samp.push(tg+'|'+clsN(e)+'|'+Math.round(rc.width)+'x'+Math.round(rc.height)+'|r'+Math.round(rad)+'|'+did);}}"
        "window.__AD_CARDBFIX__=done;"
-       "return 'done='+done+(samp.length?' '+samp.join(' ~ '):'');"
+       "return 'u='+String(location.pathname||'/').slice(-18)+' done='+done+(samp.length?' '+samp.join(' ~ '):'');"
        "}catch(e){return 'err '+(e&&e.message||e);}})()";
 }
 
@@ -6553,6 +6553,12 @@ static NSString *ADProbeWebJS(void){
        "try{var FR=window.__AD_FRAMES__||{},fk=[],ff;for(ff in FR)fk.push(ff);"
          "if(fk.length){var fo=[];for(var fx=0;fx<fk.length&&fx<4;fx++)fo.push(fk[fx]+'=>'+String(FR[fk[fx]]).slice(0,80));"
            "out.push('P8SUB['+fo.join(' ~ ')+']');}else{out.push('P8SUB[none]');}}catch(es){out.push('P8SUB[err]');}"
+       "try{var fl=[];for(var q2=0;q2<N&&fl.length<6;q2++){var e3=all[q2];var st3=getComputedStyle(e3);"
+         "var bs3=String(st3.boxShadow||'');if(!bs3||bs3==='none')continue;"
+         "var drs=(e3.hasAttribute&&e3.hasAttribute('data-darkreader-inline-boxshadow'))?1:0;"
+         "var l3=lum(bs3);"
+         "if(drs||l3>0.20){fl.push(e3.tagName+'|'+cls(e3)+'|dr='+drs+'|L='+(l3<0?'-':l3.toFixed(2))+'|'+bs3.slice(0,34));}}"
+         "out.push('P9FLASH['+(fl.length?fl.join(' ~ '):'none')+']');}catch(ef){out.push('P9FLASH[err]');}"
        "return out.join(' ');"
        "}catch(err){return 'P8ERR['+(err&&err.message||err)+']';}})()";
 }
@@ -6563,8 +6569,11 @@ static void ADWebViewCensus(void){
         // RE-ARM PER PANE. Latching after two productive rounds meant this fired on
         // the home feed and never ran again -- so the Interests pane, which P5POS just
         // showed has no native "+" at all, was never censused. Every pane gets a look.
+        // Cap raised 400 -> 2000 in v5.263: the census also drives the card/pill
+        // border fix (ADCardBorderFixJS), and at 400 it stopped mid-session, so a
+        // pane opened late (the person tab, after heavy testing) got no fix pass.
         static int rounds = 0;
-        if (rounds++ > 400) return;
+        if (rounds++ > 2000) return;
         UIWindow *key = nil;
         for (UIWindow *w in [UIApplication sharedApplication].windows)
             if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
