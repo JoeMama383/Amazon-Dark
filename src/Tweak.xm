@@ -542,7 +542,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // spacing borders stay untouched: no crop regression.
          "try{if(document&&!document.getElementById('adcardfix')){"
            "var __acs=document.createElement('style');__acs.id='adcardfix';"
-           "__acs.textContent='[class*=puis-card],[class*=gwm-tile],[class*=ape-placement],[class*=mosaic-container],[class*=plus-container],[class*=thumbnail-conta],[class*=a-cardui],[class*=card-container],[class*=s-card-container]{border-color:#2a2a2c !important;}';"
+           "__acs.textContent='[class*=puis-card],[class*=gwm-tile],[class*=ape-placement],[class*=mosaic-container],[class*=plus-container],[class*=thumbnail-conta],[class*=a-cardui],[class*=card-container],[class*=s-card-container]{border-color:#2a2a2c !important;}[class*=backdrop-overscroll],[class*=overscroll],[class*=wd-backdrop]{background-color:#181a1b !important;background-image:none !important;}';"
            "(document.head||document.documentElement).appendChild(__acs);}}catch(e){}"
          "try{window.__AD_EARLY__='';"
            "var __adPinRe=/unfill|placehold/i;"
