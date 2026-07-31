@@ -542,7 +542,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // spacing borders stay untouched: no crop regression.
          "try{if(document&&!document.getElementById('adcardfix')){"
            "var __acs=document.createElement('style');__acs.id='adcardfix';"
-           "__acs.textContent='[class*=puis-card],[class*=gwm-tile],[class*=ape-placement],[class*=mosaic-container],[class*=plus-container],[class*=thumbnail-conta],[class*=a-cardui],[class*=card-container],[class*=s-card-container]{border-style:none !important;border-image:none !important;}[class*=backdrop-overscroll],[class*=overscroll],[class*=wd-backdrop]{background-color:#181a1b !important;background-image:none !important;}';"
+           "__acs.textContent='[class*=puis-card],[class*=gwm-tile],[class*=ape-placement],[class*=mosaic-container],[class*=plus-container],[class*=thumbnail-conta],[class*=a-cardui],[class*=card-container],[class*=s-card-container],[class*=_container_]{border-style:none !important;border-image:none !important;}[class*=backdrop-overscroll],[class*=overscroll],[class*=wd-backdrop]{background-color:#181a1b !important;background-image:none !important;}';"
            "(document.head||document.documentElement).appendChild(__acs);}}catch(e){}"
          "try{window.__AD_EARLY__='';"
            "var __adPinRe=/unfill|placehold/i;"
@@ -6608,6 +6608,12 @@ static NSString *ADProbeWebJS(void){
              "SD2.push('f'+fj+'|'+Math.round(fr2.width)+'x'+Math.round(fr2.height)+'|'+fe2.tagName+'|'+cls(fe2)+'|b='+fbL.toFixed(2)+'|sh='+(fsL<0?'-':fsL.toFixed(2))+'|bg='+fgL.toFixed(2));}"
          "}catch(cy){}}"
          "out.push('P9SUBD['+(SD2.length?SD2.join(' ~ '):'none')+']');}catch(eg){out.push('P9SUBD[err]');}"
+       "try{var IMG=document.querySelectorAll('img'),IC=[];"
+         "for(var iz=0;iz<IMG.length&&IC.length<6;iz++){var im=IMG[iz];var ir=im.getBoundingClientRect();"
+           "if(ir.width<40||ir.height<40)continue;var wr=im.parentElement;if(!wr)continue;"
+           "var ws=getComputedStyle(wr),is=getComputedStyle(im);"
+           "IC.push(Math.round(ir.width)+'x'+Math.round(ir.height)+'|IMG<'+wr.tagName+'|w='+cls(wr)+'|wbg='+ws.backgroundColor+'|by='+(wr.__adBy||im.__adBy||'-')+'|of='+is.objectFit+'|ibg='+is.backgroundColor);}"
+         "out.push('P9CROP['+(IC.length?IC.join(' ~ '):'none')+']');}catch(ecc){out.push('P9CROP[err]');}"
        "return out.join(' ');"
        "}catch(err){return 'P8ERR['+(err&&err.message||err)+']';}})()";
 }
