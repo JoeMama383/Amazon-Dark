@@ -542,7 +542,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // spacing borders stay untouched: no crop regression.
          "try{if(document&&!document.getElementById('adcardfix')){"
            "var __acs=document.createElement('style');__acs.id='adcardfix';"
-           "__acs.textContent='[class*=puis-card],[class*=gwm-tile],[class*=ape-placement],[class*=mosaic-container],[class*=plus-container],[class*=thumbnail-conta],[class*=a-cardui],[class*=card-container],[class*=s-card-container]{border-color:#2a2a2c !important;}[class*=backdrop-overscroll],[class*=overscroll],[class*=wd-backdrop]{background-color:#181a1b !important;background-image:none !important;}';"
+           "__acs.textContent='[class*=puis-card],[class*=gwm-tile],[class*=ape-placement],[class*=mosaic-container],[class*=plus-container],[class*=thumbnail-conta],[class*=a-cardui],[class*=card-container],[class*=s-card-container]{border-style:none !important;border-image:none !important;}[class*=backdrop-overscroll],[class*=overscroll],[class*=wd-backdrop]{background-color:#181a1b !important;background-image:none !important;}';"
            "(document.head||document.documentElement).appendChild(__acs);}}catch(e){}"
          "try{window.__AD_EARLY__='';"
            "var __adPinRe=/unfill|placehold/i;"
@@ -6681,15 +6681,12 @@ static void ADWebViewCensus(void){
                         ADLog(@"P8ERR[wk %@/%ld]", pe.domain, (long)pe.code);
                 } @catch(...) {}
             }];
-            // Dim the person-tab card/pill borders in this frame; logs what it touched.
-            [w evaluateJavaScript:ADCardBorderFixJS() completionHandler:^(id fr, NSError *fe){
-                @try {
-                    if ([fr isKindOfClass:[NSString class]] && [(NSString *)fr length])
-                        ADLog(@"P9FIX[%@]", fr);
-                    else if (fe)
-                        ADLog(@"P9FIX[wk %@/%ld]", fe.domain, (long)fe.code);
-                } @catch(...) {}
-            }];
+            // v5.269: REMOVED the after-paint ADCardBorderFixJS pass. It ran on every
+            // page and darkened borders AFTER first paint -> a "render then darken"
+            // flash on every interface, and on the person tab it lost the race to
+            // Dark Reader (which re-applies border-color inline between ticks). Card
+            // borders are now handled pre-paint via the adcardfix stylesheet using
+            // border-style (which DR never overrides), so no JS pass is needed.
         }
     } @catch(...) {}
 }
