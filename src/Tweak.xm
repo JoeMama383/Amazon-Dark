@@ -534,6 +534,16 @@ static NSString *ADDarkReaderBootstrapBuild(void){
     NSString *adBody = [NSString stringWithFormat:
         @"(function(){try{"
          "if(window.__AMZDARK_LOADED__)return;window.__AMZDARK_LOADED__=1;"
+         // v5.264: DIM CARD/PILL BORDERS AT PARSE TIME. The person-tab card outlines and
+         // the Interests scroll-flash are one thing: real CSS borders (P9FIX tagged |b)
+         // that paint LIGHT before Dark Reader darkens them. A pre-paint stylesheet on the
+         // stable card classes makes them dark from the first frame -- no light flash, and
+         // DR has nothing to fight. Scoped to specific classes (not *), so transparent
+         // spacing borders stay untouched: no crop regression.
+         "try{if(document&&!document.getElementById('adcardfix')){"
+           "var __acs=document.createElement('style');__acs.id='adcardfix';"
+           "__acs.textContent='[class*=puis-card],[class*=gwm-tile],[class*=ape-placement],[class*=mosaic-container],[class*=plus-container],[class*=thumbnail-conta]{border-color:#2a2a2c !important;}';"
+           "(document.head||document.documentElement).appendChild(__acs);}}catch(e){}"
          "try{window.__AD_EARLY__='';"
            "var __adPinRe=/unfill|placehold/i;"
            "var __adPin=function(n){try{"
