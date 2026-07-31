@@ -6638,6 +6638,41 @@ static NSString *ADProbeWebJS(void){
 // hidden, alpha, image content, or the view hierarchy, and never repaints whole
 // views -- so it cannot blank a screen the way native modal repainting did earlier.
 static int gNatSweepLogged = 0;
+// READ-ONLY native background census (P9BG). Every native check so far counted
+// layer BORDERS (P3BORDER/P9NAT bseen) or thin hairline VIEWS (P6HAIR/hseen) --
+// nothing ever counted a plain UIView carrying a light backgroundColor. The
+// native background darkening lives in the launch-gated walker (ADUptime()>4.2),
+// so any view composed after launch keeps its stock light background, and a light
+// container behind web content reads on screen as card edges. This only READS:
+// no setter is called anywhere on this path, so it cannot blank a surface.
+static int gBGLight = 0, gBGSeen = 0;
+static NSMutableArray *gBGSamples = nil;
+static void ADNativeBGCensus(UIView *v, int depth){
+    if (!v || depth > 14) return;
+    @try {
+        if (v.hidden || v.alpha < 0.05) return;
+        CGRect fr = v.frame;
+        if (fr.size.width >= 40 && fr.size.height >= 1){
+            gBGSeen++;
+            UIColor *bg = v.backgroundColor;
+            CGFloat r=0,g=0,b=0,a=0;
+            if (bg && [bg getRed:&r green:&g blue:&b alpha:&a] && a > 0.30){
+                CGFloat L = 0.2126*r + 0.7152*g + 0.0722*b;
+                if (L > 0.35){
+                    gBGLight++;
+                    if (gBGSamples.count < 6){
+                        [gBGSamples addObject:
+                          [NSString stringWithFormat:@"%s|%dx%d|L=%.2f|a=%.2f",
+                            object_getClassName(v),
+                            (int)fr.size.width, (int)fr.size.height, L, a]];
+                    }
+                }
+            }
+        }
+        for (UIView *sv in v.subviews) ADNativeBGCensus(sv, depth + 1);
+    } @catch(...) {}
+}
+
 static void ADNativeSweepWalk(UIView *v, int depth){
     if (!v || depth > 12) return;
     @try {
@@ -6658,6 +6693,19 @@ static void ADNativeSweep(void){
         }
         int db = gBorderFix - b0, dh = gHairFix - h0;
         int dbs = gBorderSeen - bs0, dhs = gHairSeen - hs0;
+        // Read-only background census on the same cadence.
+        @try {
+            gBGLight = 0; gBGSeen = 0;
+            if (!gBGSamples) gBGSamples = [NSMutableArray array];
+            [gBGSamples removeAllObjects];
+            for (UIWindow *w2 in [UIApplication sharedApplication].windows){
+                if (!w2 || w2.hidden || w2.alpha < 0.05) continue;
+                ADNativeBGCensus(w2, 0);
+            }
+            if (gNatSweepLogged < 200)
+                ADLog(@"P9BG[light=%d seen=%d %@]", gBGLight, gBGSeen,
+                      gBGSamples.count ? [gBGSamples componentsJoinedByString:@" ~ "] : @"none");
+        } @catch(...) {}
         if (gNatSweepLogged < 200){
             gNatSweepLogged++;
             ADLog(@"P9NAT[bseen=%d bfix=%d hseen=%d hfix=%d totb=%d toth=%d]",
