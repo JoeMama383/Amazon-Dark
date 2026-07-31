@@ -6618,6 +6618,48 @@ static NSString *ADProbeWebJS(void){
        "}catch(err){return 'P8ERR['+(err&&err.message||err)+']';}})()";
 }
 
+// ── NATIVE HAIRLINE / BORDER SWEEP (P9NAT) ──────────────────────────────────
+// ADHairlineFix and ADNormalizeBorder already exist and are correct, but their only
+// caller (ADLaunchDarkenTree) is gated by "ADUptime() > 4.2" -- they run for the
+// first four seconds of app launch and never again. That is why the person-tab card
+// outlines were never darkened natively and why P6HAIR/P3BORDER never printed while
+// sitting on that pane: the walker was not running. This re-runs the same two
+// correctors on the live window on the census cadence, and reports what it saw so a
+// zero is evidence rather than silence.
+//
+// Deliberately conservative: it only recolours (a) CALayer borders that are already
+// light and (b) thin light-background hairline views. It never touches bounds,
+// hidden, alpha, image content, or the view hierarchy, and never repaints whole
+// views -- so it cannot blank a screen the way native modal repainting did earlier.
+static int gNatSweepLogged = 0;
+static void ADNativeSweepWalk(UIView *v, int depth){
+    if (!v || depth > 12) return;
+    @try {
+        if (v.hidden || v.alpha < 0.05) return;
+        ADNormalizeBorder(v);
+        ADHairlineFix(v);
+        for (UIView *sv in v.subviews) ADNativeSweepWalk(sv, depth + 1);
+    } @catch(...) {}
+}
+static void ADNativeSweep(void){
+    @try {
+        if (!gP.enabled) return;
+        if (!ADRecolorOn()) return;
+        int b0 = gBorderFix, h0 = gHairFix, bs0 = gBorderSeen, hs0 = gHairSeen;
+        for (UIWindow *w in [UIApplication sharedApplication].windows){
+            if (!w || w.hidden || w.alpha < 0.05) continue;
+            ADNativeSweepWalk(w, 0);
+        }
+        int db = gBorderFix - b0, dh = gHairFix - h0;
+        int dbs = gBorderSeen - bs0, dhs = gHairSeen - hs0;
+        if (gNatSweepLogged < 200){
+            gNatSweepLogged++;
+            ADLog(@"P9NAT[bseen=%d bfix=%d hseen=%d hfix=%d totb=%d toth=%d]",
+                  dbs, db, dhs, dh, gBorderFix, gHairFix);
+        }
+    } @catch(...) {}
+}
+
 static void ADWebViewCensus(void){
     @try {
         if (!gP.enabled) return;
@@ -6633,6 +6675,7 @@ static void ADWebViewCensus(void){
         for (UIWindow *w in [UIApplication sharedApplication].windows)
             if (w && !w.hidden && w.alpha > 0.05){ key = w; break; }
         if (!key) return;
+        ADNativeSweep();   // recurring native hairline/border correction (P9NAT)
         NSMutableArray *wvs = [NSMutableArray array];
         ADCollectWebViews(key, wvs, 0);
         if (!wvs.count){ if ((rounds % 20) == 1) ADLog(@"WVCENSUS[no webviews]"); return; }
