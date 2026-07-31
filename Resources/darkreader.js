@@ -2538,7 +2538,13 @@
                 sx = poleBg.s;
             }
         }
-        const lx = scale(l, 0, 1, 0.5, 0.2);
+        let lx = scale(l, 0, 1, 0.5, 0.2);
+        // AmazonDark v5.275: upstream maps an already-dark border (l~0.05) UP to
+        // 0.485 mid-grey, which glows as a white hairline on a near-black ground.
+        // Never brighten a dark border, and cap the ceiling below mid-grey.
+        if (lx > l + 0.06) lx = l + 0.06;
+        if (lx > 0.30) lx = 0.30;
+        if (lx < 0) lx = 0;
         return {h: hx, s: sx, l: lx, a};
     }
     function _modifyBorderColor(rgb, theme) {

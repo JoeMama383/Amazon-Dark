@@ -542,7 +542,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // spacing borders stay untouched: no crop regression.
          "try{if(document&&!document.getElementById('adcardfix')){"
            "var __acs=document.createElement('style');__acs.id='adcardfix';"
-           "__acs.textContent='[class*=backdrop-overscroll],[class*=overscroll],[class*=wd-backdrop]{background-color:#181a1b !important;background-image:none !important;}picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],[class*=s-image],[class*=unfill],[class*=placehold]{background-color:transparent !important;}[class*=_container_]{background-color:#ff0000 !important;}[class*=mosaic-container]{background-color:#00ff00 !important;}[class*=puis-card]{background-color:#00ffff !important;}[class*=gwm-tile]{background-color:#ffff00 !important;}[class*=_container_],[class*=mosaic-container],[class*=puis-card],[class*=gwm-tile]{outline:2px solid #ff00ff !important;}';"
+           "__acs.textContent='picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],[class*=s-image],[class*=unfill],[class*=placehold]{background-color:transparent !important;}';"
            "(document.head||document.documentElement).appendChild(__acs);}}catch(e){}"
          "try{window.__AD_EARLY__='';"
            "var __adPinRe=/unfill|placehold/i;"
