@@ -273,10 +273,20 @@ static NSString *ADBundledDarkReaderJS(void){
             NSString *dylib = @(info.dli_fname);
             NSString *dir = [dylib stringByDeletingLastPathComponent];
             // Theos installs BUNDLE resources to .../AmazonDark.bundle next to the dylib.
+            // v5.278: the hardcoded fallbacks below are a LEFTOVER install layout and
+            // they were winning. On device the dylib does not sit beside the bundle, so
+            // both dir-relative candidates missed and we loaded the stale loose copy at
+            // Application Support/AmazonDark/darkreader.js -- an old file that no build
+            // updates. Every engine change (the v5.275 border clamp included) silently
+            // had no effect. Search the BUNDLE path explicitly, in both rootless and
+            // rootful prefixes, before any loose fallback.
             NSArray *cands = @[
                 [dir stringByAppendingPathComponent:@"AmazonDark.bundle/darkreader.js"],
+                @"/var/jb/Library/Application Support/AmazonDark/AmazonDark.bundle/darkreader.js",
+                @"/Library/Application Support/AmazonDark/AmazonDark.bundle/darkreader.js",
                 [dir stringByAppendingPathComponent:@"darkreader.js"],
                 @"/var/jb/Library/Application Support/AmazonDark/darkreader.js",
+                @"/Library/Application Support/AmazonDark/darkreader.js",
             ];
             for (NSString *c in cands){
                 NSString *s = [NSString stringWithContentsOfFile:c encoding:NSUTF8StringEncoding error:nil];
@@ -542,7 +552,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // spacing borders stay untouched: no crop regression.
          "try{if(document&&!document.getElementById('adcardfix')){"
            "var __acs=document.createElement('style');__acs.id='adcardfix';"
-           "__acs.textContent='picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],[class*=s-image],[class*=unfill],[class*=placehold]{background-color:transparent !important;}';"
+           "__acs.textContent='picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],[class*=s-image],[class*=unfill],[class*=placehold]{background-color:transparent !important;}[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],[class*=puis-card],[class*=gwm-tile],[class*=_container_],[class*=a-section]{border-color:#2f3133 !important;}[class*=deal],[class*=badge],[class*=prime],[class*=error],[class*=alert],[class*=warning],[aria-invalid=true],input:focus,button:focus,[class*=a-button-primary],[class*=a-button-search]{border-color:initial !important;}';"
            "(document.head||document.documentElement).appendChild(__acs);}}catch(e){}"
          "try{window.__AD_EARLY__='';"
            "var __adPinRe=/unfill|placehold/i;"
