@@ -514,9 +514,21 @@ static NSString *ADFixesLiteral(void){
              "[style*=multiply],[style*=darken],[style*=color-burn],"
              "[class*=deal] [style*=blend],[class*=Deal] [style*=blend]"
              "{mix-blend-mode:normal !important;isolation:auto !important;}"
+             // v5.283: AD CARDS -- tell the ENGINE to skip them. Both frame-side doors
+             // were already shut, so the home-feed ad cards must be main-document
+             // elements that Dark Reader is theming directly. ignoreInlineStyle is
+             // Dark Reader's own opt-out and is the only thing that stops its palette
+             // analysis from rewriting a creative's text and backgrounds -- which is
+             // the grey-then-black flip, the wrong-contrast captions and the black
+             // plates behind text. The CSS rules below cover what the engine leaves.
              "',invert:[],ignoreInlineStyle:['[class*=puis-heart-position]','[class*=puis-heart-position] *',"
              "'[class*=lists-framework-action-button]','[class*=lists-framework-action-button] *',"
-             "'[class*=copilot-compare]','[class*=copilot-compare] *'],"
+             "'[class*=copilot-compare]','[class*=copilot-compare] *',"
+             "'[class*=ape]','[class*=ape] *','[id*=ape_]','[id*=ape_] *',"
+             "'[data-cel-widget*=ape]','[data-cel-widget*=ape] *',"
+             "'[class*=gw-ad]','[class*=gw-ad] *','[class*=sponsored]','[class*=sponsored] *',"
+             "'[class*=Sponsored]','[class*=Sponsored] *','[class*=billboard]','[class*=billboard] *',"
+             "'[class*=creative]','[class*=creative] *'],"
              "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
             imgBackdrop];
 }
@@ -6560,6 +6572,19 @@ static NSString *ADProbeWebJS(void){
            "+' reinj='+(window.__AD_REINJ__||0)+' nav='+(window.__AD_NAV__===undefined?'?':window.__AD_NAV__)"
            "+' drstyles='+drs+' drattr='+drAttr+' imgs='+imgs+' complete='+loaded+' sized='+sized"
            "+' rs='+document.readyState+']');}catch(ew){out.push('P9WARM[err]');}"
+       "try{var AD=[],ifr=document.querySelectorAll('iframe').length;"
+         "var cand=document.querySelectorAll('[class*=ape],[id*=ape],[data-cel-widget*=ape],[class*=gw-ad],[class*=sponsored],[class*=Sponsored]');"
+         "for(var ai=0;ai<cand.length&&AD.length<6;ai++){var ae=cand[ai];var ar=ae.getBoundingClientRect();"
+           "if(ar.width<120||ar.height<60)continue;var as=getComputedStyle(ae);"
+           "var dr=0;try{if(ae.hasAttribute){"
+             "if(ae.hasAttribute('data-darkreader-inline-bgcolor'))dr+=1;"
+             "if(ae.hasAttribute('data-darkreader-inline-color'))dr+=2;}}catch(e1){}"
+           "var inner=ae.querySelectorAll('[data-darkreader-inline-color],[data-darkreader-inline-bgcolor]').length;"
+           "var kids=ae.querySelectorAll('*').length;"
+           "var ifin=ae.querySelectorAll('iframe').length;"
+           "AD.push(ae.tagName+'|'+cls(ae)+'|'+Math.round(ar.width)+'x'+Math.round(ar.height)"
+             "+'|dr='+dr+'|drkids='+inner+'/'+kids+'|iframes='+ifin+'|bg='+as.backgroundColor+'|col='+as.color);}"
+         "out.push('P9AD[iframes='+ifr+' cand='+cand.length+(AD.length?' '+AD.join(' ~ '):' none')+']');}catch(ea){out.push('P9AD[err]');}"
        "return out.join(' ');"
        "}catch(err){return 'P8ERR['+(err&&err.message||err)+']';}})()";
 }
