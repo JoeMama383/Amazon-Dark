@@ -552,7 +552,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // spacing borders stay untouched: no crop regression.
          "try{if(document&&!document.getElementById('adcardfix')){"
            "var __acs=document.createElement('style');__acs.id='adcardfix';"
-           "__acs.textContent='picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],[class*=s-image],[class*=unfill],[class*=placehold]{background-color:transparent !important;}[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],[class*=puis-card],[class*=gwm-tile],[class*=_container_]{border-color:#2f3133 !important;}[class*=deal],[class*=badge],[class*=prime],[class*=error],[class*=alert],[class*=warning],[aria-invalid=true]{border-color:initial !important;}[class*=a-button-primary],[class*=a-button-search],[class*=a-button-oneclick],[class*=a-button-buy],.a-button-inner,.a-button-text{border-color:transparent !important;}';"
+           "__acs.textContent='picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],[class*=s-image],[class*=unfill],[class*=placehold]{background-color:transparent !important;}[class*=s-image],[class*=s-product-image] img,img[class*=s-image]{object-fit:contain !important;}[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],[class*=puis-card],[class*=gwm-tile],[class*=_container_]{border-color:#2f3133 !important;}[class*=deal],[class*=badge],[class*=prime],[class*=error],[class*=alert],[class*=warning],[aria-invalid=true]{border-color:initial !important;}[class*=a-button-primary],[class*=a-button-search],[class*=a-button-oneclick],[class*=a-button-buy],.a-button-inner,.a-button-text{border-color:transparent !important;}';"
            "(document.head||document.documentElement).appendChild(__acs);}}catch(e){}"
          "try{window.__AD_EARLY__='';"
            "var __adPinRe=/unfill|placehold/i;"
@@ -6622,7 +6622,7 @@ static NSString *ADProbeWebJS(void){
          "for(var iz=0;iz<IMG.length&&IC.length<6;iz++){var im=IMG[iz];var ir=im.getBoundingClientRect();"
            "if(ir.width<40||ir.height<40)continue;var wr=im.parentElement;if(!wr)continue;"
            "var ws=getComputedStyle(wr),is=getComputedStyle(im);"
-           "IC.push(Math.round(ir.width)+'x'+Math.round(ir.height)+'|IMG<'+wr.tagName+'|w='+cls(wr)+'|wbg='+ws.backgroundColor+'|by='+(wr.__adBy||im.__adBy||'-')+'|of='+is.objectFit+'|ibg='+is.backgroundColor);}"
+           "var nw=im.naturalWidth||0,nh=im.naturalHeight||0;""var nar=(nh>0)?(nw/nh):0,rar=(ir.height>0)?(ir.width/ir.height):0;""var fit=(nar>0&&rar>0)?Math.abs(nar-rar)/nar:-1;""IC.push(Math.round(ir.width)+'x'+Math.round(ir.height)+'|IMG<'+wr.tagName+'|w='+cls(wr)+'|wbg='+ws.backgroundColor+'|by='+(wr.__adBy||im.__adBy||'-')+'|of='+is.objectFit+'|nat='+nw+'x'+nh+'|ar='+(fit<0?'?':fit.toFixed(2))+'|ibg='+is.backgroundColor);}"
          "out.push('P9CROP['+(IC.length?IC.join(' ~ '):'none')+']');}catch(ecc){out.push('P9CROP[err]');}"
        "try{var SEL=['[class*=_container_]','[class*=mosaic-container]','[class*=puis-card]','[class*=gwm-tile]'];"
          "var PO=[];for(var pi=0;pi<SEL.length;pi++){var nl=document.querySelectorAll(SEL[pi]);"
