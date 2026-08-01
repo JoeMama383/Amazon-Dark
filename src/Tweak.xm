@@ -1011,7 +1011,23 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "p0=p0.parentElement;}"
              "el0.__adCardQ=r0;if(r0)window.__AD_CARDBLK__=(window.__AD_CARDBLK__||0)+1;"
              "return r0;}catch(e){return true;}}"
-           "function onArt(e2){try{var r5=e2.getBoundingClientRect();"
+           // v5.288: AD SUBTREES ARE OFF-LIMITS TO THE CONTRAST PASS.
+           // The reported flip -- ad text changes colour the moment you STOP
+           // scrolling the carousel -- is this pass, not Dark Reader. The scroll
+           // guard below sets __ADSCROLLING__ and defers the work to a trailing
+           // run ~450ms after scrolling settles, which is exactly when the colour
+           // changes. Every colour write in this function already consults onArt(),
+           // so folding the ad test in here excludes ads from ALL of them at once
+           // rather than patching each write site.
+           "var ADSEL2='[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_]';"
+           "function inAd(e4){try{"
+             "if(e4.__adIn!==undefined)return e4.__adIn;"
+             "var v=!!(e4.closest&&e4.closest(ADSEL2));"
+             "try{e4.__adIn=v;}catch(e){}return v;"
+           "}catch(e){return false;}}"
+           "function onArt(e2){try{"
+             "if(inAd(e2))return true;"
+             "var r5=e2.getBoundingClientRect();"
              "if(r5.width<1||r5.height<1)return false;"
              "return artOverlap(r5)>=0.5;"
              "}catch(e){}return false;}"
@@ -1135,6 +1151,12 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "be.style.setProperty('background-color',BG,'important');lfix++;}}}"
            "}catch(e){}"
            "for(var i=0;i<els.length;i++){var el=els[i];"
+             // v5.288: skip ad subtrees before ANY work. onArt() alone was not
+             // enough -- several colour writes further down (the cardui sweep, the
+             // glyph and shadow passes) never consult it, so an ad card could still
+             // be recoloured on the trailing post-scroll run. One exit here covers
+             // every branch in the pass.
+             "if(inAd(el))continue;"
              "var cs=getComputedStyle(el);"
              // NO LIGHT PANELS. Anything still measuring light after Dark Reader has
              // run is a miss -- a gradient it could not parse, a shadow subtree, an
