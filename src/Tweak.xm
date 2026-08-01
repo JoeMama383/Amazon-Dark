@@ -543,7 +543,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
     if (!dr.length) return nil;
     NSString *adBody = [NSString stringWithFormat:
         @"(function(){try{"
-         "if(window.__AMZDARK_LOADED__)return;window.__AMZDARK_LOADED__=1;"
+         "if(window.__AMZDARK_LOADED__){try{window.__AD_REINJ__=(window.__AD_REINJ__||0)+1;}catch(e){}return;}""window.__AMZDARK_LOADED__=1;""try{window.__AD_T0__=Date.now();""window.__AD_PRETHEMED__=document.querySelector('style.darkreader')?1:0;""window.__AD_NAV__=(performance&&performance.navigation)?performance.navigation.type:-1;""}catch(e){}"
          // v5.264: DIM CARD/PILL BORDERS AT PARSE TIME. The person-tab card outlines and
          // the Interests scroll-flash are one thing: real CSS borders (P9FIX tagged |b)
          // that paint LIGHT before Dark Reader darkens them. A pre-paint stylesheet on the
@@ -6645,6 +6645,17 @@ static NSString *ADProbeWebJS(void){
            "var key=chain.join('>');if(seen[key])continue;seen[key]=1;"
            "PT.push(px+','+py+'=>'+chain.join(' >> '));}"
          "out.push('P9POINT[vw='+W+'x'+H+' '+PT.join(' ~~ ')+']');}catch(ept){out.push('P9POINT[err '+(ept&&ept.message||ept)+']');}"
+       "try{var age=(window.__AD_T0__?(Date.now()-window.__AD_T0__):-1);"
+         "var drs=document.querySelectorAll('style.darkreader').length;"
+         "var drAttr=document.querySelectorAll('[data-darkreader-inline-bgcolor],[data-darkreader-inline-color]').length;"
+         "var imgs=document.querySelectorAll('img').length;"
+         "var loaded=0,sized=0;var IM=document.querySelectorAll('img');"
+         "for(var wi=0;wi<IM.length&&wi<400;wi++){if(IM[wi].complete)loaded++;"
+           "var rr=IM[wi].getBoundingClientRect();if(rr.width>2&&rr.height>2)sized++;}"
+         "out.push('P9WARM[age='+age+'ms pretheme='+(window.__AD_PRETHEMED__===undefined?'?':window.__AD_PRETHEMED__)"
+           "+' reinj='+(window.__AD_REINJ__||0)+' nav='+(window.__AD_NAV__===undefined?'?':window.__AD_NAV__)"
+           "+' drstyles='+drs+' drattr='+drAttr+' imgs='+imgs+' complete='+loaded+' sized='+sized"
+           "+' rs='+document.readyState+']');}catch(ew){out.push('P9WARM[err]');}"
        "return out.join(' ');"
        "}catch(err){return 'P8ERR['+(err&&err.message||err)+']';}})()";
 }
