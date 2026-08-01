@@ -552,7 +552,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // spacing borders stay untouched: no crop regression.
          "try{if(document&&!document.getElementById('adcardfix')){"
            "var __acs=document.createElement('style');__acs.id='adcardfix';"
-           "__acs.textContent='picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],[class*=s-image],[class*=unfill],[class*=placehold]{background-color:transparent !important;}[class*=s-image],[class*=s-product-image] img,img[class*=s-image]{object-fit:contain !important;}[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],[class*=puis-card],[class*=gwm-tile],[class*=_container_]{border-color:#2f3133 !important;}[class*=deal],[class*=badge],[class*=prime],[class*=error],[class*=alert],[class*=warning],[aria-invalid=true]{border-color:initial !important;}[class*=a-button-primary],[class*=a-button-search],[class*=a-button-oneclick],[class*=a-button-buy],.a-button-inner,.a-button-text{border-color:transparent !important;}';"
+           "__acs.textContent='picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],[class*=s-image],[class*=unfill],[class*=placehold]{background-color:transparent !important;}[class*=s-image],[class*=s-product-image] img,img[class*=s-image]{object-fit:contain !important;}[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],[class*=puis-card],[class*=gwm-tile],[class*=_container_]{border-color:#2f3133 !important;}[class*=deal],[class*=badge],[class*=prime],[class*=error],[class*=alert],[class*=warning],[aria-invalid=true]{border-color:initial !important;}[class*=a-button-primary],[class*=a-button-search],[class*=a-button-oneclick],[class*=a-button-buy],.a-button-inner,.a-button-text{border-color:transparent !important;}[class*=ape-placement],[class*=ape_],[class*=gw-ad],[class*=sponsored-],[data-cel-widget*=ape],[id*=ape_]{border-color:initial !important;background-color:initial !important;color:initial !important;filter:none !important;}';"
            "(document.head||document.documentElement).appendChild(__acs);}}catch(e){}"
          "try{window.__AD_EARLY__='';"
            "var __adPinRe=/unfill|placehold/i;"
@@ -633,117 +633,21 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "if(!m)return null;return{r:+m[1],g:+m[2],b:+m[3],a:m[4]===undefined?1:+m[4]};}catch(e){return null;}},"
              "l:function(x){return (0.2126*x.r+0.7152*x.g+0.0722*x.b)/255;},"
              "s:function(x){var mx=Math.max(x.r,x.g,x.b),mn=Math.min(x.r,x.g,x.b);return (mx-mn)/255;}};"
+           // v5.282: AD FRAMES ARE NOW FULLY STOCK. The gate above already keeps Dark
+           // Reader out; this "minimal ad-frame theme" was the remaining thing touching
+           // ad creatives, and it is the direct cause of every reported symptom -- text
+           // flipping grey then back to black (its text pass racing the creative paint),
+           // captions too light or too dark for their card (a luminance+saturation guess
+           // applied to artwork it cannot understand), and black boxes behind text (its
+           // background pass darkening a caption plate). Ad creatives already ship
+           // readable -- black text on a light card -- so the correct amount of work for
+           // us to do inside an ad frame is NONE.
+           //
+           // Kept as a reporting-only stub: the call sites below and the ADFRAME log
+           // line stay intact, so ad frames remain visible in diagnostics, but nothing
+           // is ever written to the document.
            "window.__AMZDARK_ADTHEME__=function(){try{"
-             "if(!document.body)return -1;"
-             "if(!document.getElementById('adfrmin')){var st=document.createElement('style');"
-               "st.id='adfrmin';st.textContent='html,body{background-color:#181a1b !important;}'"
-                 // The blue box is a focus ring left behind after the Sponsored
-                 // disclosure sheet closes -- the element keeps :focus, and WebKit
-                 // paints the default highlight. Suppressed for tap targets only.
-                 "+'*{-webkit-tap-highlight-color:transparent !important;}'"
-                 "+'*:focus,*:focus-visible{outline:none !important;box-shadow:none !important;}';"
-               "(document.head||document.documentElement).appendChild(st);}"
-             "var E=document.querySelectorAll('*'),nb=0,nt=0,nbd=0;"
-             "for(var i=0;i<E.length&&i<3000;i++){var e=E[i];var tg=e.tagName;"
-               "if(tg==='IMG'||tg==='PICTURE'||tg==='VIDEO'||tg==='CANVAS'"
-                 "||tg==='SVG'||tg==='svg'||tg==='USE'||tg==='PATH')continue;"
-               "var cs=getComputedStyle(e);"
-               // A background-image is not automatically artwork. The second creative
-               // template keeps its whole lower block white because the wrapper carries
-               // one, and skipping on its mere presence left the entire card stock.
-               // Only a RASTER url on a reasonably large box counts as a picture;
-               // gradients and tiny spacer images are just paint and may be darkened.
-               "var bgi9=String(cs.backgroundImage||'');"
-               "var isArt9=false;"
-               "if(bgi9.indexOf('url(')>=0){"
-                 "var rc9=e.getBoundingClientRect();"
-                 "isArt9=(rc9.width>=60&&rc9.height>=60);"
-                 "if(isArt9&&/\\.(svg)(\\?|\\)|$)/i.test(bgi9))isArt9=false;}"
-               // A LIGHT CHIP BEHIND A BRAND MARK STAYS LIGHT. Images are never
-               // repainted (rule 3), so darkening the white disc behind a logo leaves
-               // dark ink on a dark ground -- the Liquid Death mark went practically
-               // invisible that way. Keeping the chip stock is the fix, because it
-               // preserves the brand exactly as drawn instead of altering artwork.
-               "var chip9=false;"
-               "try{var cr9b=e.getBoundingClientRect();"
-                 "if(cr9b.width<=120&&cr9b.height<=120&&e.querySelector"
-                   "&&e.querySelector('img,svg,picture'))chip9=true;}catch(e9){}"
-               "if(!isArt9&&!chip9){"
-                 "var bg=AF.p(cs.backgroundColor);"
-                 "if(bg&&bg.a>0.3&&AF.l(bg)>0.6){"
-                   "e.style.setProperty('background-color','#181a1b','important');nb++;}"
-                 "if(bgi9.indexOf('gradient')>=0&&bgi9.indexOf('url(')<0){"
-                   "e.style.setProperty('background-image','none','important');"
-                   "e.style.setProperty('background-color','#181a1b','important');nb++;}}"
-               // RULE 4: LIFT A DARK MONOCHROME LOGO. Images are never repainted, which
-               // is right for photos and stars -- but a black wordmark on a card we
-               // just darkened is invisible, and there is no light chip behind this
-               // one to preserve. Measured, not guessed: mostly transparent, near
-               // black, neutral. A colour logo or a photo fails the test and is left
-               // exactly as drawn. Cached by src so each asset is measured once.
-               "if(tg==='IMG'){try{"
-                 "var lsrc=String(e.currentSrc||e.src||'');"
-                 "if(lsrc&&!e.__adLogoDone){e.__adLogoDone=1;"
-                   "if(!window.__ADLOGOC__)window.__ADLOGOC__={};"
-                   "var lv=window.__ADLOGOC__[lsrc];"
-                   "if(lv===1){e.style.setProperty('filter','invert(1)','important');}"
-                   "else if(lv===undefined){"
-                     "var li=new Image();li.crossOrigin='anonymous';"
-                     "li.onload=function(){try{"
-                       "var lw=Math.min(li.naturalWidth||32,32),lh=Math.min(li.naturalHeight||32,32);"
-                       "if(!lw||!lh)return;"
-                       "var lc=document.createElement('canvas');lc.width=lw;lc.height=lh;"
-                       "var lx=lc.getContext('2d');lx.drawImage(li,0,0,lw,lh);"
-                       "var ld=lx.getImageData(0,0,lw,lh).data;"
-                       "var tot=0,clr=0,sum=0,cnt=0,lite=0,sat=0;"
-                       "for(var z=0;z<ld.length;z+=4){tot++;"
-                         "if(ld[z+3]<40){clr++;continue;}"
-                         "var lz=0.2126*ld[z]+0.7152*ld[z+1]+0.0722*ld[z+2];"
-                         "sum+=lz;cnt++;if(lz>153)lite++;"
-                         "var mx=ld[z]>ld[z+1]?ld[z]:ld[z+1];if(ld[z+2]>mx)mx=ld[z+2];"
-                         "var mn=ld[z]<ld[z+1]?ld[z]:ld[z+1];if(ld[z+2]<mn)mn=ld[z+2];"
-                         "sat+=(mx-mn);}"
-                       "if(!cnt||!tot)return;"
-                       "var cf=clr/tot,av=(sum/cnt)/255,lf2=lite/cnt,sf2=((sat/cnt)/255);"
-                       "var ok=(cf>0.35&&av<0.30&&lf2<0.10&&sf2<0.10);"
-                       "window.__ADLOGOC__[lsrc]=ok?1:0;"
-                       "if(ok){e.style.setProperty('filter','invert(1)','important');"
-                         "window.__AD_ADLOGO__=(window.__AD_ADLOGO__||0)+1;}"
-                     "}catch(e2){}};"
-                     "li.onerror=function(){window.__ADLOGOC__[lsrc]=0;};"
-                     "li.src=lsrc;}}"
-               "}catch(e){}}"
-               // NOT LEAF-ONLY. A label that wraps its text plus an icon -- "Sponsored"
-               // with its info glyph -- has childElementCount 1 and was therefore never
-               // recoloured, while rule 1 darkened the card around it. That is why the
-               // card goes dark and the label stays dark, and why every main-document
-               // measurement looked healthy: the element was never a candidate here.
-               // The test is now "does this element own a direct text node", which is
-               // what actually determines whether it paints glyphs.
-               "var ownTxt='';try{for(var cn=0;cn<e.childNodes.length&&cn<12;cn++){"
-                 "var nd=e.childNodes[cn];"
-                 "if(nd.nodeType===3)ownTxt+=String(nd.nodeValue||'');}"
-               "}catch(e3){}"
-               "if(ownTxt.trim()){"
-                 "var fg=AF.p(cs.color);"
-                 // 0.78, not 0.5. ADFRAME reported text=0 while a visibly dim label sat
-                 // right there: the rule demanded near-BLACK ink, so a mid-grey
-                 // secondary label ("Sponsored") never qualified. Saturation still does
-                 // the real work -- blue prime and red badges stay untouched -- so
-                 // raising the luminance ceiling only catches greys that should match
-                 // the card's other text anyway.
-                 "if(fg&&AF.l(fg)<0.78&&AF.s(fg)<0.12){"
-               "e.style.setProperty('color','#e8e6e3','important');nt++;}}"
-               "try{var BS=['Top','Right','Bottom','Left'];"
-                 "for(var bi=0;bi<4;bi++){"
-                   "var bw=parseFloat(cs['border'+BS[bi]+'Width'])||0;if(bw<0.5)continue;"
-                   "var bsty=cs['border'+BS[bi]+'Style'];if(bsty==='none'||bsty==='hidden')continue;"
-                   "var bcp=AF.p(cs['border'+BS[bi]+'Color']);"
-                   "if(bcp&&bcp.a>0.3&&AF.l(bcp)>0.6&&AF.s(bcp)<0.12){"
-                     "e.style.setProperty('border-'+BS[bi].toLowerCase()+'-color','#3b3c3e','important');nbd++;}}"
-               "}catch(eb){}"
-               "}"
-             "window.__AD_ADTHEME__='bg='+nb+' text='+nt+' border='+nbd+' logo='+(window.__AD_ADLOGO__||0);return nb+nt+nbd;"
+             "window.__AD_ADTHEME__='stock (untouched)';return 0;"
            "}catch(e){window.__AD_ADTHEME__='err '+e;return -1;}};"
            // Self-contained poster. The main one is defined at the END of the pass we
            // now return from early, so it would never exist in an ad frame -- which is
