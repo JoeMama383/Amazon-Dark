@@ -517,9 +517,24 @@ static NSString *ADFixesLiteral(void){
              "[style*=multiply],[style*=darken],[style*=color-burn],"
              "[class*=deal] [style*=blend],[class*=Deal] [style*=blend]"
              "{mix-blend-mode:normal !important;isolation:auto !important;}"
+             // v5.290: STOP DARK READER TOUCHING AD / THEMED CARDS.
+             // Our own passes are already excluded (v5.288/v5.289), which stopped the
+             // flip -- but DR still repaints these cards, so they end up light-on-light
+             // or dark-on-dark. Amazon ships their brand palette as INLINE styles on
+             // the theming-card markup (P9POINT saw rgb(136,0,3) and rgb(0,70,125)),
+             // so telling DR to leave those inline values alone preserves the stock
+             // rendering rather than us trying to reconstruct it.
+             //
+             // Deliberately NARROW. v5.283 tried this with '[class*=creative]' and a
+             // bare '[class*=ape]' while also stubbing out the ad-frame theme, and that
+             // combination broke the standalone ads. The ad-frame theme is intact here
+             // and only the two card families that actually misrender are listed.
              "',invert:[],ignoreInlineStyle:['[class*=puis-heart-position]','[class*=puis-heart-position] *',"
              "'[class*=lists-framework-action-button]','[class*=lists-framework-action-button] *',"
-             "'[class*=copilot-compare]','[class*=copilot-compare] *'],"
+             "'[class*=copilot-compare]','[class*=copilot-compare] *',"
+             "'[class*=theming-card]','[class*=theming-card] *',"
+             "'[class*=ape-placement]','[class*=ape-placement] *',"
+             "'[class*=ape-wrapper]','[class*=ape-wrapper] *'],"
              "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
             imgBackdrop];
 }
