@@ -1019,7 +1019,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // changes. Every colour write in this function already consults onArt(),
            // so folding the ad test in here excludes ads from ALL of them at once
            // rather than patching each write site.
-           "var ADSEL2='[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_]';"
+           "var ADSEL2='[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_],[class*=theming-card],[class*=ape]';"
            "function inAd(e4){try{"
              "if(e4.__adIn!==undefined)return e4.__adIn;"
              "var v=!!(e4.closest&&e4.closest(ADSEL2));"
@@ -2258,12 +2258,27 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "}catch(e){}"
            "try{var PRM=document.querySelectorAll('[class*=sub-header-title-font]');"
            "__ck('PRM');"
+             // v5.289: THIS is the ad-card text flip. The sweep forced EVERY
+               // sub-header title to #0f1111 inline -- inline beats any stylesheet,
+               // which is why removing the CSS rule in v5.287 changed nothing -- and
+               // it runs inside FIXCONTRAST, i.e. on the trailing run ~450ms after
+               // scrolling stops. That is exactly the reported behaviour: bad state
+               // holds while scrolling, colour changes the moment you settle.
+               //
+               // It also stripped dark backgrounds off five ancestors, which erased
+               // an ad card's own backdrop. Now: leave ad/themed cards alone entirely,
+               // and elsewhere only darken the title when the background is genuinely
+               // light -- measured, not assumed.
              "for(var pi=0;pi<PRM.length&&pi<40&&((pi&15)||!ovr());pi++){var pt=PRM[pi];"
+               "if(inAd(pt))continue;"
+               "var ptBg=bgOf(pt);"
+               "if(ptBg===null||ptBg<0.55)continue;"
                "pt.style.setProperty('color','#0f1111','important');"
                "pt.style.setProperty('-webkit-text-fill-color','#0f1111','important');"
                // clear dark background boxes on the header ancestors
                "var pa=pt,pd=0;"
-               "while(pa&&pd++<5){var pac=getComputedStyle(pa),pal=lum(pac.backgroundColor);"
+               "while(pa&&pd++<5){if(inAd(pa))break;"
+                 "var pac=getComputedStyle(pa),pal=lum(pac.backgroundColor);"
                  "if(pal!==null&&pal<0.3)pa.style.setProperty('background-color','transparent','important');"
                  "pa=pa.parentElement;}}"
            "}catch(e){}"
