@@ -5125,6 +5125,22 @@
                         "::picker(select)"
                     );
                 }
+                // AmazonDark v5.297: keep DR rewritten rules off ad creatives.
+                try {
+                    if (selectorText !== '.darkreader-unsupported-selector') {
+                        const AD_EX = ':not([class*=ape-placement] *):not([class*=ape-wrapper] *):not([class*=theming-card] *):not([class*=ape-placement]):not([class*=ape-wrapper]):not([class*=theming-card])';
+                        selectorText = selectorText
+                            .split(',')
+                            .map((s) => {
+                                const t = s.trim();
+                                if (!t) return s;
+                                if (t.includes('::')) return t;
+                                if (/^(:root|html|body)$/i.test(t)) return t;
+                                return t + AD_EX;
+                            })
+                            .join(', ');
+                    }
+                } catch (e) {}
                 let ruleText = `${selectorText} {`;
                 for (const dec of declarations) {
                     const {property, value, important} = dec;
