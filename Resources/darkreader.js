@@ -5984,6 +5984,14 @@
         ignoreInlineSelectors,
         ignoreImageSelectors
     ) {
+        // AmazonDark v5.296: hard subtree exclusion (see module docstring).
+        try {
+            if (element && element.closest && element.closest(
+                '[class*=ape-placement],[class*=ape-wrapper],[class*=theming-card],[data-cel-widget*=ape],[id*=ape_]'
+            )) {
+                return;
+            }
+        } catch (e) {}
         if (elementsLastChanges.has(element)) {
             if (
                 Date.now() - elementsLastChanges.get(element) <
