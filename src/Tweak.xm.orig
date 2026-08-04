@@ -505,9 +505,12 @@ static NSString *ADFixesLiteral(void){
              // Promo/hero card header: no dark box behind it, and its title text
              // stays the stock dark (it sits on a light hero image).
              "[class*=a-cardui-header]{background-color:transparent !important;}"
-             "[class*=a-cardui-header] [class*=sub-header-title-font],"
-             "[class*=sub-header-title-font]"
-             "{color:#0f1111 !important;-webkit-text-fill-color:#0f1111 !important;}"
+             // v5.287: REMOVED the blanket "{color:#0f1111}" on card-header titles.
+             // P9CONTRAST measured this text at tl=0.06 (exactly #0f1111, i.e. ours)
+             // sitting on bl=0.11 -- black on black, unreadable. The rule assumed the
+             // header sits on a light hero image, which is untrue for the home-feed ad
+             // cards. Nothing replaces it: DR and the contrast repair both MEASURE the
+             // real background, so they pick a readable colour where a fixed ink cannot.
              // Darkening blends crush their content toward black on a dark theme; the
              // deal badges use them inline. Neutralise at documentStart so the text is
              // legible on first paint instead of after the repair catches up.
@@ -552,7 +555,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // spacing borders stay untouched: no crop regression.
          "try{if(document&&!document.getElementById('adcardfix')){"
            "var __acs=document.createElement('style');__acs.id='adcardfix';"
-           "__acs.textContent='picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],[class*=s-image],[class*=unfill],[class*=placehold]{background-color:transparent !important;}[class*=s-image],[class*=s-product-image] img,img[class*=s-image]{object-fit:contain !important;}[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],[class*=puis-card],[class*=gwm-tile],[class*=_container_]{border-color:#2f3133 !important;}[class*=deal],[class*=badge],[class*=prime],[class*=error],[class*=alert],[class*=warning],[aria-invalid=true]{border-color:initial !important;}[class*=a-button-primary],[class*=a-button-search],[class*=a-button-oneclick],[class*=a-button-buy],.a-button-inner,.a-button-text{border-color:transparent !important;}[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_],[class*=ape-placement] *,[class*=ape-wrapper] *,[data-cel-widget*=ape] *,[id*=ape_] *{color:#0f1111 !important;-webkit-text-fill-color:#0f1111 !important;background-color:transparent !important;filter:none !important;mix-blend-mode:normal !important;isolation:auto !important;text-shadow:none !important;}[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_]{background-color:initial !important;}[class*=ape-placement] img,[class*=ape-wrapper] img,[class*=ape-placement] svg,[class*=ape-wrapper] svg,[class*=ape-placement] picture,[class*=ape-wrapper] picture{filter:none !important;opacity:1 !important;}';"
+           "__acs.textContent='picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],[class*=s-image],[class*=unfill],[class*=placehold]{background-color:transparent !important;}[class*=s-image],[class*=s-product-image] img,img[class*=s-image]{object-fit:contain !important;}[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],[class*=puis-card],[class*=gwm-tile],[class*=_container_]{border-color:#2f3133 !important;}[class*=deal],[class*=badge],[class*=prime],[class*=error],[class*=alert],[class*=warning],[aria-invalid=true]{border-color:initial !important;}[class*=a-button-primary],[class*=a-button-search],[class*=a-button-oneclick],[class*=a-button-buy],.a-button-inner,.a-button-text{border-color:transparent !important;}[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_],[class*=ape-placement] *,[class*=ape-wrapper] *,[data-cel-widget*=ape] *,[id*=ape_] *{filter:none !important;mix-blend-mode:normal !important;isolation:auto !important;text-shadow:none !important;}[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_]{background-color:initial !important;}[class*=ape-placement] img,[class*=ape-wrapper] img,[class*=ape-placement] svg,[class*=ape-wrapper] svg,[class*=ape-placement] picture,[class*=ape-wrapper] picture{filter:none !important;opacity:1 !important;}';"
            "(document.head||document.documentElement).appendChild(__acs);}}catch(e){}"
          "try{window.__AD_EARLY__='';"
            "var __adPinRe=/unfill|placehold/i;"
@@ -781,10 +784,33 @@ static NSString *ADDarkReaderBootstrapBuild(void){
  // and each hit just clears the properties DR set -- no colour of ours is
  // imposed, so the creative renders exactly as Amazon shipped it.
          "try{(function(){"
-           "var ADSEL='[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_]';"
+           "var ADSEL='[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_],[class*=theming-card],[class*=a-cardui-header]';"
            "function isAd(n){try{return n&&n.closest&&n.closest(ADSEL);}catch(e){return null;}}"
+           "function adLum(c){try{var a=String(c||'').split('('),b=(a[1]||'').split(')')[0].split(',');"
+             "if(b.length<3)return -1;var al=b.length>3?parseFloat(b[3]):1;if(!(al>0))return -1;"
+             "return (0.2126*parseFloat(b[0])+0.7152*parseFloat(b[1])+0.0722*parseFloat(b[2]))/255;"
+           "}catch(e){return -1;}}"
+           "function adBgOf(e){var d=0;while(e&&d++<10){var L=adLum(getComputedStyle(e).backgroundColor);"
+             "if(L>=0)return L;e=e.parentElement;}return -1;}"
+           "function adFix(n){try{"
+             "if(!n||n.nodeType!==1||n.childElementCount)return;"
+             "var t=String(n.textContent||'').trim();if(t.length<2)return;"
+             "var cs=getComputedStyle(n);"
+             "var own=adLum(cs.backgroundColor),par=adBgOf(n.parentElement);"
+             "if(own>=0&&par>=0&&own<0.25&&par>0.5){"
+               "n.style.setProperty('background-color','transparent','important');}"
+             "var tl=adLum(cs.color),bl=adBgOf(n);"
+             "if(tl<0||bl<0)return;"
+             "if(Math.abs(tl-bl)>=0.32)return;"
+             "n.__adCn=(n.__adCn||0)+1;if(n.__adCn>12)return;"
+             "var ink=(bl>0.5)?'#0f1111':'#e8e6e3';"
+             "n.style.setProperty('color',ink,'important');"
+             "n.style.setProperty('-webkit-text-fill-color',ink,'important');"
+           "}catch(e){}}"
            "function strip(n){try{"
+             "adFix(n);"
              "if(!n||n.nodeType!==1)return;"
+             "n.__adStrip=(n.__adStrip||0)+1;if(n.__adStrip>12)return;"
              "if(n.hasAttribute('data-darkreader-inline-color')){"
                "n.style.removeProperty('color');n.style.removeProperty('-webkit-text-fill-color');"
                "n.removeAttribute('data-darkreader-inline-color');}"
@@ -799,8 +825,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "function sweep(root){try{"
              "var ads=(root||document).querySelectorAll(ADSEL);"
              "for(var i=0;i<ads.length&&i<40;i++){strip(ads[i]);"
-               "var kids=ads[i].querySelectorAll('[data-darkreader-inline-color],[data-darkreader-inline-bgcolor],[data-darkreader-inline-border-top]');"
-               "for(var j=0;j<kids.length&&j<200;j++)strip(kids[j]);}"
+               "var kids=ads[i].querySelectorAll('*');"
+               "for(var j=0;j<kids.length&&j<400;j++)strip(kids[j]);}"
            "}catch(e){}}"
            "sweep(document);"
            "var pend=null;"
@@ -1007,7 +1033,23 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "p0=p0.parentElement;}"
              "el0.__adCardQ=r0;if(r0)window.__AD_CARDBLK__=(window.__AD_CARDBLK__||0)+1;"
              "return r0;}catch(e){return true;}}"
-           "function onArt(e2){try{var r5=e2.getBoundingClientRect();"
+           // v5.288: AD SUBTREES ARE OFF-LIMITS TO THE CONTRAST PASS.
+           // The reported flip -- ad text changes colour the moment you STOP
+           // scrolling the carousel -- is this pass, not Dark Reader. The scroll
+           // guard below sets __ADSCROLLING__ and defers the work to a trailing
+           // run ~450ms after scrolling settles, which is exactly when the colour
+           // changes. Every colour write in this function already consults onArt(),
+           // so folding the ad test in here excludes ads from ALL of them at once
+           // rather than patching each write site.
+           "var ADSEL2='[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_],[class*=theming-card],[class*=ape]';"
+           "function inAd(e4){try{"
+             "if(e4.__adIn!==undefined)return e4.__adIn;"
+             "var v=!!(e4.closest&&e4.closest(ADSEL2));"
+             "try{e4.__adIn=v;}catch(e){}return v;"
+           "}catch(e){return false;}}"
+           "function onArt(e2){try{"
+             "if(inAd(e2))return true;"
+             "var r5=e2.getBoundingClientRect();"
              "if(r5.width<1||r5.height<1)return false;"
              "return artOverlap(r5)>=0.5;"
              "}catch(e){}return false;}"
@@ -1131,6 +1173,12 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "be.style.setProperty('background-color',BG,'important');lfix++;}}}"
            "}catch(e){}"
            "for(var i=0;i<els.length;i++){var el=els[i];"
+             // v5.288: skip ad subtrees before ANY work. onArt() alone was not
+             // enough -- several colour writes further down (the cardui sweep, the
+             // glyph and shadow passes) never consult it, so an ad card could still
+             // be recoloured on the trailing post-scroll run. One exit here covers
+             // every branch in the pass.
+             "if(inAd(el))continue;"
              "var cs=getComputedStyle(el);"
              // NO LIGHT PANELS. Anything still measuring light after Dark Reader has
              // run is a miss -- a gradient it could not parse, a shadow subtree, an
@@ -2232,12 +2280,27 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "}catch(e){}"
            "try{var PRM=document.querySelectorAll('[class*=sub-header-title-font]');"
            "__ck('PRM');"
+             // v5.289: THIS is the ad-card text flip. The sweep forced EVERY
+               // sub-header title to #0f1111 inline -- inline beats any stylesheet,
+               // which is why removing the CSS rule in v5.287 changed nothing -- and
+               // it runs inside FIXCONTRAST, i.e. on the trailing run ~450ms after
+               // scrolling stops. That is exactly the reported behaviour: bad state
+               // holds while scrolling, colour changes the moment you settle.
+               //
+               // It also stripped dark backgrounds off five ancestors, which erased
+               // an ad card's own backdrop. Now: leave ad/themed cards alone entirely,
+               // and elsewhere only darken the title when the background is genuinely
+               // light -- measured, not assumed.
              "for(var pi=0;pi<PRM.length&&pi<40&&((pi&15)||!ovr());pi++){var pt=PRM[pi];"
+               "if(inAd(pt))continue;"
+               "var ptBg=bgOf(pt);"
+               "if(ptBg===null||ptBg<0.55)continue;"
                "pt.style.setProperty('color','#0f1111','important');"
                "pt.style.setProperty('-webkit-text-fill-color','#0f1111','important');"
                // clear dark background boxes on the header ancestors
                "var pa=pt,pd=0;"
-               "while(pa&&pd++<5){var pac=getComputedStyle(pa),pal=lum(pac.backgroundColor);"
+               "while(pa&&pd++<5){if(inAd(pa))break;"
+                 "var pac=getComputedStyle(pa),pal=lum(pac.backgroundColor);"
                  "if(pal!==null&&pal<0.3)pa.style.setProperty('background-color','transparent','important');"
                  "pa=pa.parentElement;}}"
            "}catch(e){}"
