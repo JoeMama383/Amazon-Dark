@@ -2745,6 +2745,7 @@ static NSString *ADPharmForceJS(void){
                                          "if(arr.width>200&&arr.height>80){onart=true;break;}}"
                                        "anc=anc.parentElement;}"
                                      "if(onart)continue;"
+                                     "var bt=String(e.textContent||'').trim();""var isBadge=(bt.length>0&&bt.length<16&&(bt.indexOf('%')>=0||bt.indexOf('$')>=0||/off|deal|save|coupon/i.test(bt)));""if(isBadge){var bp=e.parentElement,bd=0,nearImg=false;""while(bp&&bd++<4){if(bp.querySelector&&bp.querySelector('img,picture')){nearImg=true;break;}bp=bp.parentElement;}""if(nearImg)continue;}"   /* BADGEOVERIMG */
                                      "var bl=L(cs.backgroundColor);"
                                      "if(bl!==null&&bl>0.5){e.style.setProperty('background-color','#181a1b','important');"
                                        "e.__adBgBy='reapply';n++;}"
@@ -2805,6 +2806,7 @@ static NSString *ADPharmForceJS(void){
                              "if(ar6.width>160&&ar6.height>60){oa3=true;break;}}"
                            "an3=an3.parentElement;}"
                          "if(oa3){window.__AD_ADSKIP__=(window.__AD_ADSKIP__||0)+1;continue;}"
+                         "var bt3=String(e2.textContent||'').trim();""var isB3=(bt3.length>0&&bt3.length<16&&(bt3.indexOf('%')>=0||bt3.indexOf('$')>=0||/off|deal|save|coupon/i.test(bt3)));""if(isB3){var b3=e2.parentElement,d3b=0,ni3=false;""while(b3&&d3b++<4){if(b3.querySelector&&b3.querySelector('img,picture')){ni3=true;break;}b3=b3.parentElement;}""if(ni3){window.__AD_ADSKIP__=(window.__AD_ADSKIP__||0)+1;continue;}}"   /* BADGEOVERIMG */
                          "var b2=L(c2.backgroundColor);"
                          "if(b2!==null&&b2>0.5){e2.style.setProperty('background-color','#181a1b','important');"
                            "e2.__adBgBy='ifrfix';n++;}"
