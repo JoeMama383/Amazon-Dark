@@ -5127,7 +5127,11 @@
                 }
                 // AmazonDark v5.297: keep DR rewritten rules off ad creatives.
                 try {
-                    if (selectorText !== '.darkreader-unsupported-selector') {
+                    // v5.298: text-colour rules only.
+                    const adTextRule = declarations.some((d) =>
+                        d && (d.property === 'color' ||
+                              d.property === '-webkit-text-fill-color'));
+                    if (adTextRule && selectorText !== '.darkreader-unsupported-selector') {
                         const AD_EX = ':not([class*=ape-placement] *):not([class*=ape-wrapper] *):not([class*=theming-card] *):not([class*=ape-placement]):not([class*=ape-wrapper]):not([class*=theming-card])';
                         selectorText = selectorText
                             .split(',')
