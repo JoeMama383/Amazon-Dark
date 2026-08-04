@@ -517,24 +517,9 @@ static NSString *ADFixesLiteral(void){
              "[style*=multiply],[style*=darken],[style*=color-burn],"
              "[class*=deal] [style*=blend],[class*=Deal] [style*=blend]"
              "{mix-blend-mode:normal !important;isolation:auto !important;}"
-             // v5.290: STOP DARK READER TOUCHING AD / THEMED CARDS.
-             // Our own passes are already excluded (v5.288/v5.289), which stopped the
-             // flip -- but DR still repaints these cards, so they end up light-on-light
-             // or dark-on-dark. Amazon ships their brand palette as INLINE styles on
-             // the theming-card markup (P9POINT saw rgb(136,0,3) and rgb(0,70,125)),
-             // so telling DR to leave those inline values alone preserves the stock
-             // rendering rather than us trying to reconstruct it.
-             //
-             // Deliberately NARROW. v5.283 tried this with '[class*=creative]' and a
-             // bare '[class*=ape]' while also stubbing out the ad-frame theme, and that
-             // combination broke the standalone ads. The ad-frame theme is intact here
-             // and only the two card families that actually misrender are listed.
              "',invert:[],ignoreInlineStyle:['[class*=puis-heart-position]','[class*=puis-heart-position] *',"
              "'[class*=lists-framework-action-button]','[class*=lists-framework-action-button] *',"
-             "'[class*=copilot-compare]','[class*=copilot-compare] *',"
-             "'[class*=theming-card]','[class*=theming-card] *',"
-             "'[class*=ape-placement]','[class*=ape-placement] *',"
-             "'[class*=ape-wrapper]','[class*=ape-wrapper] *'],"
+             "'[class*=copilot-compare]','[class*=copilot-compare] *'],"
              "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
             imgBackdrop];
 }
@@ -799,11 +784,11 @@ static NSString *ADDarkReaderBootstrapBuild(void){
  // and each hit just clears the properties DR set -- no colour of ours is
  // imposed, so the creative renders exactly as Amazon shipped it.
          "try{(function(){"
-           "var ADSEL='[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_]';"
+           "var ADSEL='[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_],[class*=theming-card],[class*=a-cardui-header]';"
            "function isAd(n){try{return n&&n.closest&&n.closest(ADSEL);}catch(e){return null;}}"
            "function strip(n){try{"
              "if(!n||n.nodeType!==1)return;"
-             "n.__adStrip=(n.__adStrip||0)+1;if(n.__adStrip>2)return;"
+             "n.__adStrip=(n.__adStrip||0)+1;if(n.__adStrip>12)return;"
              "if(n.hasAttribute('data-darkreader-inline-color')){"
                "n.style.removeProperty('color');n.style.removeProperty('-webkit-text-fill-color');"
                "n.removeAttribute('data-darkreader-inline-color');}"
