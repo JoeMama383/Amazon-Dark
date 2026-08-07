@@ -6638,6 +6638,76 @@ static NSAttributedString *ADVoiceLiftAttributed(NSAttributedString *in, int *ru
     return in;
 }
 
+// v5.350: Amazon's voice-permission sheet uses RCTTextView leaves whose visible
+// string is exposed only through accessibility.  This build of RCTTextView has no
+// attributedText/textStorage/textColor selector, but RN commonly keeps its TextKit
+// objects as private object ivars.  Inspect those ivars directly and recolour any
+// mutable attributed backing store in place.  This changes the ORIGINAL renderer;
+// there is no overlay and no replacement view.  ADVoiceLiftAttributed preserves
+// saturated runs (the cyan links) and only lifts dark neutral ink.
+static int gP20VoiceLeft = 12;
+static int ADVoiceRepairHiddenRCTStorage(UIView *v){
+    if (!v) return 0;
+    @try {
+        NSString *cn=NSStringFromClass([v class]);
+        if (![cn isEqualToString:@"RCTTextView"]) return 0;
+        int changedRuns=0;
+        NSMutableArray *seen=[NSMutableArray array];
+        Class c=[v class]; int depth=0;
+        while(c && c!=[UIView class] && depth++<10){
+            unsigned int n=0; Ivar *ivs=class_copyIvarList(c,&n);
+            for(unsigned int i=0;i<n;i++){
+                Ivar iv=ivs[i];
+                const char *enc=ivar_getTypeEncoding(iv);
+                if(!enc || enc[0]!='@') continue;
+                id obj=nil;
+                @try { obj=object_getIvar(v,iv); } @catch(...) { obj=nil; }
+                if(!obj) continue;
+                if(seen.count<18){
+                    const char *nm=ivar_getName(iv);
+                    [seen addObject:[NSString stringWithFormat:@"%s=%s",nm?nm:"?",object_getClassName(obj)]];
+                }
+                @try {
+                    NSMutableAttributedString *store=nil;
+                    if([obj isKindOfClass:[NSTextStorage class]] ||
+                       [obj isKindOfClass:[NSMutableAttributedString class]]){
+                        store=(NSMutableAttributedString *)obj;
+                    } else if([obj isKindOfClass:[NSLayoutManager class]]){
+                        NSTextStorage *ts=[(NSLayoutManager *)obj textStorage];
+                        if(ts) store=ts;
+                    }
+                    if(store && store.length){
+                        int rr=0;
+                        NSAttributedString *lift=ADVoiceLiftAttributed(store,&rr);
+                        if(lift!=store && rr>0){
+                            [store setAttributedString:lift];
+                            changedRuns += rr;
+                        }
+                    }
+                } @catch(...) {}
+            }
+            if(ivs) free(ivs);
+            c=class_getSuperclass(c);
+        }
+        if(changedRuns>0){
+            [v setNeedsLayout];
+            [v setNeedsDisplay];
+            [v.layer setNeedsDisplay];
+        }
+        if(gP20VoiceLeft>0){
+            gP20VoiceLeft--;
+            CGRect f=[v convertRect:v.bounds toView:nil];
+            NSString *txt=ADProbeTextOf(v) ?: @"";
+            if(txt.length>62) txt=[txt substringToIndex:62];
+            ADLog(@"P20VOICE[RCTTextView %.0fx%.0f y=%.0f '%@' runs=%d ivars=%@]",
+                  f.size.width,f.size.height,f.origin.y,txt,changedRuns,
+                  seen.count?[seen componentsJoinedByString:@" ~ "]:@"none");
+        }
+        return changedRuns;
+    } @catch(...) {}
+    return 0;
+}
+
 static void ADVoiceNativeWalk(UIView *v, int depth, int *matched, int *fixed,
                               NSMutableArray *samples){
     if (!v || depth > 45 || v.hidden || v.alpha < 0.05) return;
@@ -6696,6 +6766,13 @@ static void ADVoiceNativeWalk(UIView *v, int depth, int *matched, int *fixed,
                         }
                     }
                 } @catch(...) {}
+            }
+
+            // No public text API on Amazon's RCTTextView: repair its private
+            // mutable TextKit backing store directly (v5.350).
+            if (!did){
+                int hiddenRuns=ADVoiceRepairHiddenRCTStorage(v);
+                if(hiddenRuns>0){ runFix += hiddenRuns; did=YES; }
             }
 
             if (did) (*fixed)++;
