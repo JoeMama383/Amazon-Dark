@@ -2622,6 +2622,29 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "}catch(e){window.__AD_MLT__='err '+e;}"
            "__ck('MIC');"
 
+           // VOICE-PERMISSION SHEET COPY. The Amazon pre-permission pane reached
+           // from the search-bar microphone is already dark, and its links are
+           // already correctly cyan, but Amazon leaves the surrounding explanatory
+           // copy at stock #0f1111. Anchor on the unique visible heading, climb only
+           // to that sheet, then lift dark neutral copy while explicitly leaving
+           // links/buttons alone. This runs in the normal mutation/heartbeat pass so
+           // the dynamically-created pane is repaired whenever it is reopened.
+           "try{if(document.body&&String(document.body.textContent||'').indexOf('Shop faster with voice')>=0){"
+             "var VQ=document.querySelectorAll('h1,h2,h3,h4,[role=heading],strong,b,div,span'),vh=null;"
+             "for(var vi=0;vi<VQ.length&&vi<2200&&((vi&15)||!ovr());vi++){var vx=VQ[vi];"
+               "var vt=String(vx.textContent||'').replace(/\\s+/g,' ').trim();if(/^Shop faster with voice$/i.test(vt)){vh=vx;break;}}"
+             "if(vh){var vr=vh,vd=0;while(vr&&vd++<9){var rt=String(vr.textContent||'').replace(/\\s+/g,' ');"
+               "if(rt.indexOf('Allow microphone access')>=0&&rt.indexOf('Privacy Notice')>=0&&rt.indexOf('Continue')>=0)break;vr=vr.parentElement;}"
+               "if(vr){var VV=vr.querySelectorAll('p,span,div,h1,h2,h3,h4'),vf=0;"
+                 "for(var vj=0;vj<VV.length&&vj<800&&((vj&15)||!ovr());vj++){var ve=VV[vj];"
+                   "if(!ve||!ve.closest||ve.closest('a,button,[role=button]'))continue;"
+                   "var tx=String(ve.textContent||'').replace(/\\s+/g,' ').trim();if(!tx||tx.length>240)continue;"
+                   "var vc=getComputedStyle(ve),vl=lum(vc.color);if(vl===null||vl>=0.35)continue;"
+                   "ve.style.setProperty('color','#e8e6e3','important');ve.style.setProperty('-webkit-text-fill-color','#e8e6e3','important');ve.__adBy='voiceperm';vf++;}"
+                 "window.__AD_VOICEPERM__=vf;}}}"
+           "}catch(e){window.__AD_VOICEPERM__='err '+e;}"
+           "__ck('VOICE');"
+
            // SHOP PROBE, standalone. Placed at the top level of the pass, immediately
            // before the return -- last time I nested it inside the ADCARD block,
            // which is gated by `throw 0` after its first run, so it may never have
@@ -6888,6 +6911,10 @@ static NSString *ADProbeWebJS(void){
        // P17HEART (v5.347): verify the original Amazon paint leaf and the
        // documentStart CSS filter, without mutating the node from JavaScript.
        "try{var h17=document.querySelector('[class*=lists-treatment-hear] .a-icon');if(h17){var r17=h17.getBoundingClientRect(),s17=getComputedStyle(h17),f17=String(s17.filter||'none').replace(/\\s+/g,' ');out.push('P17HEART[node=.a-icon@'+Math.round(r17.width)+'x'+Math.round(r17.height)+' bgi='+(s17.backgroundImage&&s17.backgroundImage!=='none'?'Y':'-')+' filter='+f17.slice(0,72)+' css='+((f17.indexOf('brightness(0)')>=0&&f17.indexOf('invert(1)')>=0)?'1':'0')+']');}else out.push('P17HEART[node=none]');}catch(e17){out.push('P17HEART[err '+(e17&&e17.message||e17)+']');}"
+
+       // P18VOICE (v5.348): verify the real Amazon voice-permission pane copy.
+       // No mutations here; the main pass marks repaired nodes as voiceperm.
+       "try{var A18=document.querySelectorAll('h1,h2,h3,h4,[role=heading],strong,b,div,span'),h18=null;for(var i18=0;i18<A18.length&&i18<2600;i18++){var t18=String(A18[i18].textContent||'').replace(/\\s+/g,' ').trim();if(/^Shop faster with voice$/i.test(t18)){h18=A18[i18];break;}}if(!h18){out.push('P18VOICE[root=none]');}else{var r18=h18,d18=0;while(r18&&d18++<9){var z18=String(r18.textContent||'').replace(/\\s+/g,' ');if(z18.indexOf('Allow microphone access')>=0&&z18.indexOf('Privacy Notice')>=0&&z18.indexOf('Continue')>=0)break;r18=r18.parentElement;}var o18=[],q18=r18?r18.querySelectorAll('p,span,div,h1,h2,h3,h4'):[];for(var j18=0;j18<q18.length&&j18<800&&o18.length<12;j18++){var e18=q18[j18];if(!e18||!e18.closest||e18.closest('a,button,[role=button]'))continue;var x18=String(e18.textContent||'').replace(/\\s+/g,' ').trim();if(!x18||x18.length>180)continue;var c18=getComputedStyle(e18).color;o18.push(x18.slice(0,54)+'{c='+c18.replace(/\\s+/g,'')+',by='+(e18.__adBy||'-')+'}');}out.push('P18VOICE[root='+(r18?'Y':'-')+' fixed='+(window.__AD_VOICEPERM__===undefined?'-':window.__AD_VOICEPERM__)+' '+(o18.length?o18.join(' ~~ '):'none')+']');}}catch(e18x){out.push('P18VOICE[err '+(e18x&&e18x.message||e18x)+']');}"
 
        "/*V5313FIX*/"
        "try{(function(){"
