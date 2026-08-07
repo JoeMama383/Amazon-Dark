@@ -6815,6 +6815,31 @@ static NSString *ADProbeWebJS(void){
        "    PW.push(Math.round(rW.left)+','+Math.round(rW.top)+'|'+C.join('>'));}"
        "  out.push('P11PACKWEB[n='+PW.length+(PW.length?' '+PW.join(' ~~ '):'')+']');"
        "}catch(ePW){out.push('P11PACKWEB[err '+(ePW&&ePW.message||ePW)+']');}"
+
+       // P12MEDIA (v5.341): DOM hit-test the visible product-media controls by
+       // screen position instead of class names. P10 missed the heart/dots by
+       // selector/shape assumptions, while P11 proved the surrounding media UI
+       // is WKWebView content. Capture the exact paint stack at the heart, share
+       // and carousel-dot coordinates so the next patch can use stable selectors.
+       "try{"
+       "  var W12=window.innerWidth||414,H12=window.innerHeight||896;"
+       "  function c12(e){var c=e&&e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||'')).replace(/\\s+/g,'.').slice(0,44);}"
+       "  function rgb12(v){var m=/rgba?\\(([0-9.]+),\\s*([0-9.]+),\\s*([0-9.]+)(?:,\\s*([0-9.]+))?\\)/.exec(String(v||''));if(!m)return '-';var a=m[4]===undefined?1:+m[4];if(!(a>0.04))return '-';return Math.round(+m[1])+','+Math.round(+m[2])+','+Math.round(+m[3]);}"
+       "  function one12(e){if(!e)return '-';var r=e.getBoundingClientRect(),s=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');"
+       "    var mi=String(s.webkitMaskImage||s.maskImage||'none')!=='none'?'Y':'-';var bi=String(s.backgroundImage||'none')!=='none'?'Y':'-';"
+       "    var bc=(b&&b.content&&b.content!=='none'&&b.content!=='normal')?'Y':'-';var ac=(a&&a.content&&a.content!=='none'&&a.content!=='normal')?'Y':'-';"
+       "    var aria=String((e.getAttribute&&((e.getAttribute('aria-label')||e.getAttribute('aria-current')||e.getAttribute('aria-selected')||e.getAttribute('data-selected')||e.getAttribute('role'))))||'-').replace(/\\s+/g,' ').slice(0,28);"
+       "    return (e.tagName||'?')+'.'+c12(e)+'@'+Math.round(r.left)+','+Math.round(r.top)+','+Math.round(r.width)+'x'+Math.round(r.height)"
+       "      +'{c='+rgb12(s.color)+',bg='+rgb12(s.backgroundColor)+',bgi='+bi+',mask='+mi+',fill='+rgb12(s.fill)+',stroke='+rgb12(s.stroke)+',op='+String(s.opacity||'1').slice(0,4)+',f='+(s.filter&&s.filter!=='none'?'Y':'-')"
+       "      +',bef='+rgb12(b&&b.backgroundColor)+'/'+rgb12(b&&b.color)+'/'+rgb12(b&&b.fill)+'/'+(b&&b.backgroundImage&&b.backgroundImage!=='none'?'I':'-')+'/'+bc"
+       "      +',aft='+rgb12(a&&a.backgroundColor)+'/'+rgb12(a&&a.color)+'/'+rgb12(a&&a.fill)+'/'+(a&&a.backgroundImage&&a.backgroundImage!=='none'?'I':'-')+'/'+ac+',a='+aria+'}';}"
+       "  function hit12(tag,x,y){var A=[];try{A=document.elementsFromPoint?document.elementsFromPoint(x,y):[];}catch(_){}var R=[],seen={};for(var i=0;i<A.length&&R.length<8;i++){var e=A[i],k=(e.tagName||'?')+'|'+c12(e)+'|'+Math.round(e.getBoundingClientRect().width)+'x'+Math.round(e.getBoundingClientRect().height);if(seen[k])continue;seen[k]=1;R.push(one12(e));}return tag+'='+R.join('>');}"
+       "  var YS=[0.78,0.82,0.85],HR=[],DR=[];"
+       "  for(var yi=0;yi<YS.length;yi++){var yy=H12*YS[yi];HR.push(hit12('H'+Math.round(YS[yi]*100),W12*0.85,yy));HR.push(hit12('S'+Math.round(YS[yi]*100),W12*0.94,yy));}"
+       "  var DX=[0.40,0.44,0.48,0.52,0.56,0.60];for(var yj=0;yj<YS.length;yj++){var dy=H12*YS[yj];for(var xi=0;xi<DX.length;xi++)DR.push(hit12('D'+Math.round(DX[xi]*100)+'y'+Math.round(YS[yj]*100),W12*DX[xi],dy));}"
+       "  var PR=[];try{var pe=document.querySelector('.pack-size-badge__label,.pack-size-badge');if(pe){var pn=pe,d=0;while(pn&&d++<8){PR.push(one12(pn));pn=pn.parentElement;}}}catch(_){}"
+       "  out.push('P12MEDIA[wh='+Math.round(W12)+'x'+Math.round(H12)+' || '+HR.join(' ~~ ')+' || '+DR.join(' ~~ ')+' || packChain='+(PR.length?PR.join('>'):'none')+']');"
+       "}catch(e12){out.push('P12MEDIA[err '+(e12&&e12.message||e12)+']');}"
        "/*V5313FIX*/"
        "try{(function(){"
          "var SEL='[class*=a-cardui-header] *,[class*=a-cardui-header],'"
