@@ -6802,6 +6802,19 @@ static NSString *ADProbeWebJS(void){
        "    GR.push('y='+Math.round(DM[G[0]].y)+' '+dsM.join('~'));}"
        "  out.push('P10MEDIA[heart='+(HM.length?HM.join(' ~~ '):'none')+' || dots='+(GR.length?GR.join(' ~~ '):'none')+']');"
        "}catch(eMx){out.push('P10MEDIA[err '+(eMx&&eMx.message||eMx)+']');}"
+
+       // P11PACKWEB (v5.340): exact visible Pack text probe. The media controls
+       // proved native, but the count badge may still be web content.
+       "try{"
+       "  var PW=[],AW=document.querySelectorAll('*'),NW=Math.min(AW.length,7000);"
+       "  function p11c(e){var c=e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||'')).replace(/\\s+/g,'.').slice(0,30);}"
+       "  function p11rgb(v){var m=/rgba?\\(([0-9.]+),\\s*([0-9.]+),\\s*([0-9.]+)(?:,\\s*([0-9.]+))?\\)/.exec(String(v||''));if(!m)return '-';var a=m[4]===undefined?1:+m[4];if(!(a>0.05))return '-';return Math.round(+m[1])+','+Math.round(+m[2])+','+Math.round(+m[3]);}"
+       "  for(var qW=0;qW<NW&&PW.length<5;qW++){var eW=AW[qW];if(eW.childElementCount)continue;var tW=String(eW.textContent||'').trim();if(!/^pack$/i.test(tW))continue;"
+       "    var rW=eW.getBoundingClientRect();if(rW.width<2||rW.height<2||rW.bottom<0||rW.top>(window.innerHeight||900))continue;"
+       "    var C=[],nW=eW,dW=0;while(nW&&dW++<5){var sW=getComputedStyle(nW);C.push((nW.tagName||'?')+'.'+p11c(nW)+'{c='+p11rgb(sW.color)+',bg='+p11rgb(sW.backgroundColor)+',bgi='+(sW.backgroundImage&&sW.backgroundImage!=='none'?'Y':'-')+'}');nW=nW.parentElement;}"
+       "    PW.push(Math.round(rW.left)+','+Math.round(rW.top)+'|'+C.join('>'));}"
+       "  out.push('P11PACKWEB[n='+PW.length+(PW.length?' '+PW.join(' ~~ '):'')+']');"
+       "}catch(ePW){out.push('P11PACKWEB[err '+(ePW&&ePW.message||ePW)+']');}"
        "/*V5313FIX*/"
        "try{(function(){"
          "var SEL='[class*=a-cardui-header] *,[class*=a-cardui-header],'"
@@ -7251,6 +7264,163 @@ static void ADLayerDump(void){
     } @catch(...) {}
 }
 
+
+// ── P11 MEDIA-CONTROL PROBE (v5.340) ──────────────────────────────────────────
+// P10 proved the visible product-view heart and carousel dots are not in the DOM.
+// Probe them from the native hierarchy by geometry instead of class-name guesses.
+// The correctly-light share control is intentionally captured beside the dark
+// heart so the two can be compared property-for-property. Also name any native
+// "Pack" label and dump its actual text colour / ancestry.
+static NSString *ADP11Color(UIColor *c){
+    @try {
+        if (!c) return @"-";
+        CGFloat r=0,g=0,b=0,a=0;
+        if (![c getRed:&r green:&g blue:&b alpha:&a]) return @"?";
+        return [NSString stringWithFormat:@"%.2f,%.2f,%.2f/%.2f",r,g,b,a];
+    } @catch(...) {}
+    return @"?";
+}
+
+static NSString *ADP11LayerColor(CGColorRef cg){
+    @try {
+        if (!cg) return @"-";
+        return ADP11Color([UIColor colorWithCGColor:cg]);
+    } @catch(...) {}
+    return @"?";
+}
+
+static NSString *ADP11Chain(UIView *v){
+    @try {
+        NSMutableArray *a=[NSMutableArray array];
+        UIView *n=v; int d=0;
+        while(n && d++<5){
+            NSString *cn=[NSString stringWithUTF8String:object_getClassName(n)];
+            [a addObject:cn ?: @"?"];
+            n=n.superview;
+        }
+        return [a componentsJoinedByString:@">"];
+    } @catch(...) {}
+    return @"?";
+}
+
+static NSString *ADP11SubLayers(CALayer *l){
+    @try {
+        if (!l.sublayers.count) return @"-";
+        NSMutableArray *a=[NSMutableArray array];
+        NSUInteger n=MIN((NSUInteger)5,l.sublayers.count);
+        for(NSUInteger i=0;i<n;i++){
+            CALayer *q=l.sublayers[i];
+            NSString *piece=nil;
+            if ([q isKindOfClass:[CAShapeLayer class]]){
+                CAShapeLayer *sh=(CAShapeLayer *)q;
+                piece=[NSString stringWithFormat:@"%s(f=%@,s=%@)",
+                       object_getClassName(q),ADP11LayerColor(sh.fillColor),ADP11LayerColor(sh.strokeColor)];
+            } else {
+                piece=[NSString stringWithFormat:@"%s(bg=%@,cont=%d)",
+                       object_getClassName(q),ADP11LayerColor(q.backgroundColor),q.contents?1:0];
+            }
+            [a addObject:piece ?: @"?"];
+        }
+        return [a componentsJoinedByString:@","];
+    } @catch(...) {}
+    return @"?";
+}
+
+static NSString *ADP11Text(UIView *v){
+    @try {
+        if ([v isKindOfClass:[UILabel class]]) return ((UILabel *)v).text;
+        if ([v respondsToSelector:@selector(text)]){
+            id t=[v performSelector:@selector(text)];
+            if ([t isKindOfClass:[NSString class]]) return t;
+        }
+        NSString *al=v.accessibilityLabel;
+        if (al.length) return al;
+    } @catch(...) {}
+    return nil;
+}
+
+static int gP11Rounds=0;
+static void ADP11Walk(UIView *v, int depth, CGFloat sw, CGFloat sh, int *icons, int *dots, int *packs){
+    if (!v || depth>44 || v.hidden || v.alpha<0.05) return;
+    @try {
+        CGRect f=[v convertRect:v.bounds toView:nil];
+        CGFloat w=f.size.width,h=f.size.height,x=f.origin.x,y=f.origin.y;
+        BOOL p11Onscreen=!(w<=0 || h<=0 || x>sw || y>sh || x+w<0 || y+h<0);
+
+        NSString *txt=ADP11Text(v);
+        if (p11Onscreen && *packs<8 && txt.length){
+            NSString *t=[txt stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+            if ([t caseInsensitiveCompare:@"Pack"]==NSOrderedSame){
+                UIColor *tc=nil;
+                @try {
+                    if ([v isKindOfClass:[UILabel class]]) tc=((UILabel *)v).textColor;
+                    else if ([v respondsToSelector:@selector(textColor)]) tc=[(id)v textColor];
+                } @catch(...) {}
+                (*packs)++;
+                ADLog(@"P11PACK[%s %.0fx%.0f @%.0f,%.0f text='%@' tc=%@ tint=%@ bg=%@ lbg=%@ contents=%d sub=%lu chain=%@]",
+                      object_getClassName(v),w,h,x,y,t,
+                      ADP11Color(tc),ADP11Color(v.tintColor),ADP11Color(v.backgroundColor),
+                      ADP11LayerColor(v.layer.backgroundColor),v.layer.contents?1:0,
+                      (unsigned long)v.layer.sublayers.count,ADP11Chain(v));
+            }
+        }
+
+        // Heart + share live together on the right half beneath the product image.
+        // Capture both; the share glyph is our known-good control sample.
+        if (p11Onscreen && *icons<18 && x>sw*0.52 && y>sh*0.48 && y<sh*0.90 &&
+            w>=18 && w<=70 && h>=18 && h<=70){
+            BOOL isIV=[v isKindOfClass:[UIImageView class]];
+            BOOL isBtn=[v isKindOfClass:[UIButton class]];
+            UIImage *im=isIV?((UIImageView *)v).image:(isBtn?((UIButton *)v).currentImage:nil);
+            const char *cn=object_getClassName(v);
+            BOOL interesting=im || v.layer.contents || v.layer.sublayers.count ||
+                             (txt.length>0) || (cn && strstr(cn,"SVG")) ||
+                             (cn && strstr(cn,"Image"));
+            if (interesting){
+                CGFloat cf=0,av=0,sat=0; BOOL dg=im?ADImageIsDarkGlyph(im,&cf,&av,&sat):NO;
+                (*icons)++;
+                ADLog(@"P11ICON[%s %.0fx%.0f @%.0f,%.0f al='%@' img=%d mode=%ld dark=%d clear=%.2f avg=%.2f sat=%.2f tint=%@ bg=%@ lbg=%@ contents=%d sub=%lu layers=%@ chain=%@]",
+                      object_getClassName(v),w,h,x,y,txt.length?txt:@"-",
+                      im?1:0,im?(long)im.renderingMode:-1L,dg?1:0,cf,av,sat,
+                      ADP11Color(v.tintColor),ADP11Color(v.backgroundColor),
+                      ADP11LayerColor(v.layer.backgroundColor),v.layer.contents?1:0,
+                      (unsigned long)v.layer.sublayers.count,ADP11SubLayers(v.layer),ADP11Chain(v));
+            }
+        }
+
+        // Carousel indicators are tiny round views in the same lower media band.
+        if (p11Onscreen && *dots<24 && y>sh*0.45 && y<sh*0.90 &&
+            w>=3 && w<=20 && h>=3 && h<=20 && fabs(w-h)<=5){
+            CGFloat rad=v.layer.cornerRadius;
+            UIColor *bg=v.backgroundColor;
+            BOOL paint=(bg!=nil || v.layer.backgroundColor!=nil || v.layer.contents!=nil || v.layer.sublayers.count>0);
+            if (paint && (rad>=MIN(w,h)*0.20 || w<=10 || h<=10)){
+                (*dots)++;
+                ADLog(@"P11DOT[%s %.0fx%.0f @%.0f,%.0f rad=%.1f bg=%@ lbg=%@ tint=%@ contents=%d sub=%lu layers=%@ chain=%@]",
+                      object_getClassName(v),w,h,x,y,rad,ADP11Color(bg),
+                      ADP11LayerColor(v.layer.backgroundColor),ADP11Color(v.tintColor),
+                      v.layer.contents?1:0,(unsigned long)v.layer.sublayers.count,
+                      ADP11SubLayers(v.layer),ADP11Chain(v));
+            }
+        }
+
+        for (UIView *sv in v.subviews) ADP11Walk(sv,depth+1,sw,sh,icons,dots,packs);
+    } @catch(...) {}
+}
+
+static void ADMediaNativeProbe(void){
+    @try {
+        if (!gP.enabled || gP11Rounds++>80) return;
+        int icons=0,dots=0,packs=0;
+        for (UIWindow *w in [UIApplication sharedApplication].windows){
+            if (!w || w.hidden || w.alpha<0.05) continue;
+            CGFloat sw=w.bounds.size.width, sh=w.bounds.size.height;
+            ADP11Walk(w,0,sw,sh,&icons,&dots,&packs);
+        }
+        ADLog(@"P11MEDIA[icons=%d dots=%d packs=%d round=%d]",icons,dots,packs,gP11Rounds);
+    } @catch(...) {}
+}
+
 static void ADSweepAllWindows(void){
     if (!ADRecolorOn()) return;
     @try {
@@ -7493,6 +7663,10 @@ static void ADReapplyBurst(void){
     @try {
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{ ADLayerDump(); });
+    } @catch(...) {}
+    @try {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.4 * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{ ADMediaNativeProbe(); });
     } @catch(...) {}
     @try {
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.8 * NSEC_PER_SEC)),
