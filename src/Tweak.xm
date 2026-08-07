@@ -2266,37 +2266,36 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "'cls='+ccl.slice(0,40)+' aria='+String(ce.getAttribute('aria-label')||'-').slice(0,24)"
                  "+' csa='+String(ce.getAttribute('data-csa-c-content-id')||'-').slice(0,24);}}"
            "}catch(e){}"
-                      // v5.354: HOME-CAROUSEL SECTION REPAIR.
-           // Previous chevron probes were class-driven and P21 stayed n=0. Anchor
-           // on the actual Off to College row instead: its navigation controls are
-           // small interactive boxes at the left/right edge of that section. Mark
-           // their icon-sized paint descendants; static CSS performs the recolour.
-           // Borders use the same named-row anchors so hashed wrapper classes no
-           // longer decide whether a card ends up brown or gray.
+                      // v5.355: HOME-CAROUSEL BORDER + COLLEGE CHEVRON REPAIR.
+           // 5.354 proved the section anchor itself works (P22 reported sec=college),
+           // but static CSS was later recolored by Dark Reader and the edge-control
+           // assumption missed the per-card College arrows. Keep the section anchor,
+           // write the border colour inline after an art guard, and target the exact
+           // College .a-icon-alt paint leaves that P9VIS measured as black bg-image glyphs.
            "try{var H54=document.querySelectorAll('h1,h2,h3,h4,span,div'),S54=[],SN54=[];"
-             "__ck('SEC54');"
+             "__ck('SEC55');"
              "function n54(x){return String(x||'').replace(/\\s+/g,' ').trim().toLowerCase();}"
-             "function sec54(h){var p=h.parentElement,u=0;while(p&&u++<9){var r=p.getBoundingClientRect();if(r.width>=300&&r.height>=130&&r.height<=900)return p;p=p.parentElement;}return null;}"
-             "for(var h54=0;h54<H54.length&&h54<2500;h54++){var hh54=H54[h54];if(hh54.children&&hh54.children.length>5)continue;var tx54=n54(hh54.textContent),nm54='';"
-               "if(tx54==='off to college')nm54='college';else if(tx54==='recommended for you')nm54='recommended';else if(tx54==='deals for you')nm54='deals';else if(tx54==='keep shopping')nm54='keep';else if(tx54==='you might like')nm54='might';else continue;"
-               "var ss54=sec54(hh54);if(!ss54)continue;if(S54.indexOf(ss54)<0){S54.push(ss54);SN54.push(nm54);}}"
+             "function sec54(h){var p=h.parentElement,u=0;while(p&&u++<10){var r=p.getBoundingClientRect();if(r.width>=300&&r.height>=130&&r.height<=1100)return p;p=p.parentElement;}return null;}"
+             "for(var h54=0;h54<H54.length&&h54<3000;h54++){var hh54=H54[h54];if(hh54.children&&hh54.children.length>5)continue;var tx54=n54(hh54.textContent),nm54='';"
+               "if(tx54==='off to college')nm54='college';else if(tx54==='deals for you')nm54='deals';else if(tx54==='you might like')nm54='might';else if(tx54.indexOf('recommended')===0&&tx54.indexOf('for you')>=0)nm54='recommended';else if(tx54.indexOf('keep shopping')===0)nm54='keep';else if(tx54.indexOf('continue browsing')===0)nm54='continue';else continue;"
+               "var ss54=sec54(hh54);if(!ss54)continue;if(nm54==='college')ss54.setAttribute('data-ad-college-section','1');if(S54.indexOf(ss54)<0){S54.push(ss54);SN54.push(nm54);}}"
              "var SD54=['Top','Right','Bottom','Left'];"
-             "for(var s54=0;s54<S54.length&&s54<10;s54++){var se54=S54[s54],q54=se54.querySelectorAll('*');"
-               "for(var b54=-1;b54<q54.length&&b54<900;b54++){var be54=(b54<0?se54:q54[b54]),br54=be54.getBoundingClientRect();if(br54.width<110||br54.height<55)continue;"
+             "for(var s54=0;s54<S54.length&&s54<12;s54++){var se54=S54[s54],q54=se54.querySelectorAll('*');"
+               "for(var b54=-1;b54<q54.length&&b54<1200;b54++){var be54=(b54<0?se54:q54[b54]),br54=be54.getBoundingClientRect();if(br54.width<110||br54.height<55)continue;"
                  "var tg54=String(be54.tagName||'').toUpperCase();if(tg54==='BUTTON'||tg54==='INPUT'||tg54==='SELECT'||tg54==='TEXTAREA')continue;"
                  "var bc54=getComputedStyle(be54),rad54=Math.max(parseFloat(bc54.borderTopLeftRadius)||0,parseFloat(bc54.borderTopRightRadius)||0,parseFloat(bc54.borderBottomLeftRadius)||0,parseFloat(bc54.borderBottomRightRadius)||0);if(rad54<4)continue;"
-                 "var painted54=0;for(var sd54=0;sd54<4;sd54++){var side54=SD54[sd54],bw54=parseFloat(bc54['border'+side54+'Width'])||0,bs54=String(bc54['border'+side54+'Style']||'');if(bw54>=0.5&&bs54!=='none'&&bs54!=='hidden'){painted54=1;break;}}"
-                 "if(!painted54){var ow54=parseFloat(bc54.outlineWidth)||0,os54=String(bc54.outlineStyle||'');if(ow54>=0.5&&os54!=='none'&&os54!=='hidden')painted54=1;}if(!painted54)continue;"
-                 "be54.setAttribute('data-ad-cardborder','1');be54.setAttribute('data-ad-border-section',SN54[s54]);be54.__adBy='cardborder54';}"
-               "if(SN54[s54]!=='college')continue;var sr54=se54.getBoundingClientRect(),C54=se54.querySelectorAll('button,a,[role=button],[data-action],[class*=button]');"
-               "for(var c54=0;c54<C54.length&&c54<240;c54++){var co54=C54[c54],cr54=co54.getBoundingClientRect();if(cr54.width<18||cr54.width>90||cr54.height<18||cr54.height>100)continue;"
-                 "var edge54=(cr54.left<=sr54.left+72)||(cr54.right>=sr54.right-72);if(!edge54)continue;var ct54=n54(co54.textContent);if(/star|rating|prime|wish|heart|compare/.test(ct54))continue;"
-                 "var P54=[co54],qq54=co54.querySelectorAll('i,span,svg,path,use,div');for(var p54=0;p54<qq54.length&&p54<40;p54++)P54.push(qq54[p54]);var hit54=0;"
-                 "for(var x54=0;x54<P54.length&&x54<41;x54++){var pe54=P54[x54],pr54=pe54.getBoundingClientRect();if(pr54.width<5||pr54.width>72||pr54.height<5||pr54.height>72)continue;"
-                   "var pc54=getComputedStyle(pe54),pb54=getComputedStyle(pe54,'::before'),pa54=getComputedStyle(pe54,'::after'),cl54=String(pe54.className&&pe54.className.baseVal!==undefined?pe54.className.baseVal:(pe54.className||''));if(/star|rating|prime|logo|heart|wish|badge|product|photo/i.test(cl54))continue;"
-                   "var paint54=(String(pc54.backgroundImage||'none').indexOf('url(')>=0)||((pc54.webkitMaskImage||pc54.maskImage||'none')!=='none')||(pb54&&String(pb54.backgroundImage||'none').indexOf('url(')>=0)||(pa54&&String(pa54.backgroundImage||'none').indexOf('url(')>=0)||(pb54&&((pb54.webkitMaskImage||pb54.maskImage||'none')!=='none'))||(pa54&&((pa54.webkitMaskImage||pa54.maskImage||'none')!=='none'))||String(pe54.tagName||'').toLowerCase()==='svg'||String(pe54.tagName||'').toLowerCase()==='path'||/a-icon|chevron|arrow|caret|next|prev/i.test(cl54);"
-                   "if(!paint54)continue;pe54.setAttribute('data-ad-nav-chevron-paint','1');pe54.__adGlyph=1;pe54.__adBy='college54';hit54++;}"
-                 "if(hit54){co54.setAttribute('data-ad-nav-chevron','1');co54.setAttribute('data-ad-nav-label',(cr54.left<=sr54.left+72?'left':'right')+'-edge');}}"
+                 "var painted54=0,outline54=0;for(var sd54=0;sd54<4;sd54++){var side54=SD54[sd54],bw54=parseFloat(bc54['border'+side54+'Width'])||0,bs54=String(bc54['border'+side54+'Style']||'');if(bw54>=0.5&&bs54!=='none'&&bs54!=='hidden'){painted54=1;break;}}"
+                 "var ow54=parseFloat(bc54.outlineWidth)||0,os54=String(bc54.outlineStyle||'');if(ow54>=0.5&&os54!=='none'&&os54!=='hidden')outline54=1;if(!painted54&&!outline54)continue;"
+                 "be54.setAttribute('data-ad-cardborder','1');be54.setAttribute('data-ad-border-section',SN54[s54]);if(artChk(be54))continue;"
+                 "if(painted54){be54.style.setProperty('border-color','#3b4043','important');be54.__adBy='cardborder55';}"
+                 "if(outline54){if(artChk(be54))continue;be54.style.setProperty('outline-color','#3b4043','important');be54.__adBy='cardborder55';}"
+               "}"
+               "if(SN54[s54]!=='college')continue;var I55=se54.querySelectorAll('.a-icon-alt');"
+               "for(var i55=0;i55<I55.length&&i55<160;i55++){var ic55=I55[i55],ir55=ic55.getBoundingClientRect();if(ir55.width<5||ir55.width>80||ir55.height<5||ir55.height>80)continue;"
+                 "var is55=getComputedStyle(ic55),ib55=String(is55.backgroundImage||'none'),im55=String(is55.webkitMaskImage||is55.maskImage||'none');if(ib55.indexOf('url(')<0&&im55==='none')continue;"
+                 "if(artChk(ic55))continue;ic55.style.setProperty('filter','brightness(0) invert(1)','important');ic55.__adGlyph=1;ic55.__adBy='collegeAlt55';"
+                 "ic55.setAttribute('data-ad-nav-chevron-paint','1');"
+               "}"
              "}"
            "}catch(e){}"
            "try{var AIC=document.querySelectorAll('[class*=a-icon]');"
@@ -7145,11 +7144,11 @@ static NSString *ADProbeWebJS(void){
        // documentStart CSS filter, without mutating the node from JavaScript.
        "try{var h17=document.querySelector('[class*=lists-treatment-hear] .a-icon');if(h17){var r17=h17.getBoundingClientRect(),s17=getComputedStyle(h17),f17=String(s17.filter||'none').replace(/\\s+/g,' ');out.push('P17HEART[node=.a-icon@'+Math.round(r17.width)+'x'+Math.round(r17.height)+' bgi='+(s17.backgroundImage&&s17.backgroundImage!=='none'?'Y':'-')+' filter='+f17.slice(0,72)+' css='+((f17.indexOf('brightness(0)')>=0&&f17.indexOf('invert(1)')>=0)?'1':'0')+']');}else out.push('P17HEART[node=none]');}catch(e17){out.push('P17HEART[err '+(e17&&e17.message||e17)+']');}"
 
-       // P21CHEV (v5.354): report semantic Off-to-College edge controls
-       // and their marked paint descendants.
-       "try{var C21=document.querySelectorAll('[data-ad-nav-chevron=\"1\"]'),Q21=[];for(var i21=0;i21<C21.length&&i21<8;i21++){var c21=C21[i21],r21=c21.getBoundingClientRect(),P21=c21.querySelectorAll('[data-ad-nav-chevron-paint=\"1\"]'),pf21=[];for(var j21=0;j21<P21.length&&j21<4;j21++){var p21=P21[j21],s21=getComputedStyle(p21),rp21=p21.getBoundingClientRect();pf21.push(p21.tagName+'.'+String(p21.className||'').replace(/\\s+/g,'.').slice(0,24)+'@'+Math.round(rp21.width)+'x'+Math.round(rp21.height)+'/f='+String(s21.filter||'none').replace(/\\s+/g,' ').slice(0,34));}Q21.push(String(c21.getAttribute('data-ad-nav-label')||'-')+'|'+c21.tagName+'.'+String(c21.className||'').replace(/\\s+/g,'.').slice(0,30)+'@'+Math.round(r21.width)+'x'+Math.round(r21.height)+'|paint='+P21.length+(pf21.length?'/'+pf21.join(','):''));}out.push('P21CHEV[n='+Q21.length+(Q21.length?' '+Q21.join(' ~~ '):'')+']');}catch(e21){out.push('P21CHEV[err '+(e21&&e21.message||e21)+']');}"
+       // P21CHEV (v5.355): report the exact College .a-icon-alt paint leaves
+       // marked by the runtime pass, including final computed filter/background.
+       "try{var C21=document.querySelectorAll('[data-ad-nav-chevron-paint=\"1\"]'),Q21=[];for(var i21=0;i21<C21.length&&i21<12;i21++){var c21=C21[i21],r21=c21.getBoundingClientRect(),s21=getComputedStyle(c21);Q21.push(c21.tagName+'.'+String(c21.className||'').replace(/\\s+/g,'.').slice(0,30)+'@'+Math.round(r21.width)+'x'+Math.round(r21.height)+'|bgi='+(s21.backgroundImage&&s21.backgroundImage!=='none'?'Y':'-')+'|f='+String(s21.filter||'none').replace(/\\s+/g,' ').slice(0,46)+'|by='+String(c21.__adBy||'-'));}out.push('P21CHEV[n='+Q21.length+(Q21.length?' '+Q21.join(' ~~ '):'')+']');}catch(e21){out.push('P21CHEV[err '+(e21&&e21.message||e21)+']');}"
 
-       // P22BORDER (v5.352): report the final computed border colours on only
+       // P22BORDER (v5.355): report the final computed border colours on only
        // the card containers normalized by the guarded runtime pass.
        "try{var B22=document.querySelectorAll('[data-ad-cardborder=\"1\"]'),R22=[];for(var i22=0;i22<B22.length&&R22.length<10;i22++){var b22=B22[i22],r22=b22.getBoundingClientRect(),s22=getComputedStyle(b22);if(r22.width<120||r22.height<50)continue;R22.push(b22.tagName+'.'+String(b22.className||'').replace(/\\s+/g,'.').slice(0,32)+'@'+Math.round(r22.width)+'x'+Math.round(r22.height)+'|t='+String(s22.borderTopColor||'-')+'|l='+String(s22.borderLeftColor||'-')+'|sec='+String(b22.getAttribute('data-ad-border-section')||'-')+'|by='+String(b22.__adBy||'-'));}out.push('P22BORDER[n='+R22.length+(R22.length?' '+R22.join(' ~~ '):'')+']');}catch(e22){out.push('P22BORDER[err '+(e22&&e22.message||e22)+']');}"
 
