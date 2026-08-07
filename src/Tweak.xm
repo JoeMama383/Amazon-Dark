@@ -555,7 +555,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // spacing borders stay untouched: no crop regression.
          "try{if(document&&!document.getElementById('adcardfix')){"
            "var __acs=document.createElement('style');__acs.id='adcardfix';"
-           "__acs.textContent='picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],[class*=s-image],[class*=unfill],[class*=placehold]{background-color:transparent !important;}[class*=s-image],[class*=s-product-image] img,img[class*=s-image]{object-fit:contain !important;}[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],[class*=puis-card],[class*=gwm-tile],[class*=_container_]{border-color:#2f3133 !important;}[class*=deal],[class*=badge],[class*=prime],[class*=error],[class*=alert],[class*=warning],[aria-invalid=true]{border-color:initial !important;}[class*=a-button-primary],[class*=a-button-search],[class*=a-button-oneclick],[class*=a-button-buy],.a-button-inner,.a-button-text{border-color:transparent !important;}[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_],[class*=ape-placement] *,[class*=ape-wrapper] *,[data-cel-widget*=ape] *,[id*=ape_] *{filter:none !important;mix-blend-mode:normal !important;isolation:auto !important;text-shadow:none !important;}[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_]{background-color:initial !important;}[class*=ape-placement] img,[class*=ape-wrapper] img,[class*=ape-placement] svg,[class*=ape-wrapper] svg,[class*=ape-placement] picture,[class*=ape-wrapper] picture{filter:none !important;opacity:1 !important;}[class*=ape-placement] span,[class*=ape-placement] a,[class*=ape-placement] p,[class*=ape-placement] h1,[class*=ape-placement] h2,[class*=ape-placement] h3,[class*=ape-placement] h4,[class*=ape-wrapper] span,[class*=ape-wrapper] a,[class*=ape-wrapper] p,[class*=ape-wrapper] h1,[class*=ape-wrapper] h2,[class*=ape-wrapper] h3,[class*=ape-wrapper] h4,[class*=theming-card] span,[class*=theming-card] a,[class*=theming-card] p,[class*=theming-card] h1,[class*=theming-card] h2,[class*=theming-card] h3,[class*=theming-card] h4{background-color:transparent !important;}[class*=hybrid-widget-sponsored],[class*=hybrid-widget-sponsored] *,[class*=adFeedbackMainComponent],[class*=adFeedbackMainComponent] *,[class*=sponsored-label],[class*=sponsored-label] *{color:#c9c6c2 !important;-webkit-text-fill-color:#c9c6c2 !important;opacity:1 !important;filter:none !important;mix-blend-mode:normal !important;}[class*=theming-card] [class*=a-cardui-header],[class*=a-cardui-header][class*=theming]{background-color:transparent !important;}[class*=theming-card] [class*=a-cardui-header],[class*=theming-card] [class*=a-cardui-header] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[class*=npack-asin-card],[class*=npack-asin-card] *{filter:none !important;opacity:1 !important;mix-blend-mode:normal !important;isolation:auto !important;}[class*=npack-asin-card] [class*=a-size-mini],[class*=npack-asin-card] [class*=badge],[class*=npack-asin-card] [class*=percent]{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=npack-asin-card] [class*=badgeMessage],[class*=npack-asin-card] [class*=badgeMessage] *,[class*=cXVhZ] [class*=badgeMessage],[class*=cXVhZ] [class*=badgeMessage] *{background-color:#181a1b !important;background-image:none !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;box-shadow:none !important;}[class*=npack-asin-card] [class*=badgeMessage]::before,[class*=npack-asin-card] [class*=badgeMessage]::after,[class*=npack-asin-card] [class*=badgeMessage] *::before,[class*=npack-asin-card] [class*=badgeMessage] *::after,[class*=cXVhZ] [class*=badgeMessage]::before,[class*=cXVhZ] [class*=badgeMessage]::after,[class*=cXVhZ] [class*=badgeMessage] *::before,[class*=cXVhZ] [class*=badgeMessage] *::after{background:#181a1b !important;background-image:none !important;box-shadow:none !important;}[class*=a-cardui-header],[class*=a-cardui-header] *{background-color:transparent !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[class*=hybrid-widget-sponsored],[class*=adFeedbackMainComponent],[class*=hybrid-widget-sponsored] *,[class*=adFeedbackMainComponent] *{background-color:transparent !important;}[class*=bW9ia],[class*=bW9ia] *{filter:none !important;opacity:1 !important;mix-blend-mode:normal !important;}[class*=bW9ia] span,[class*=bW9ia] a,[class*=bW9ia] [class*=price],[class*=bW9ia] [class*=badge],[class*=bW9ia] [class*=percent]{background-color:transparent !important;}[class*=sponsored-products] img[src*=logo],[class*=sponsored-products] img[class*=logo],[class*=sponsored-brand] img,[class*=brand-logo] img{background-color:#e8e6e3 !important;border-radius:4px !important;padding:2px !important;}[class*=cXVhZ],[class*=cXVhZ] *,[class*=badgeLabel],[class*=badgeContainer],[class*=theming-card],[class*=theming-card] *,[class*=canvas-card],[class*=canvas-card] *{mix-blend-mode:normal !important;isolation:auto !important;}[class*=badgeLabel]{background-color:#cc0c39 !important;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=badgeLabel],[class*=badgeLabel] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=npack-asin-card],[class*=canvas-card],[class*=theming-card-background]{background-color:initial !important;}[class*=badgeLabel]{background-color:#cc0c39 !important;}[class*=badgeLabel],[class*=badgeLabel] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=cXVhZ],[class*=cXVhZ] *{filter:none !important;opacity:1 !important;}[class*=a-cardui] [class*=a-price-whole],[class*=a-cardui] [class*=a-price-symbol],[class*=a-cardui] [class*=a-price-decimal],[class*=a-cardui] [class*=a-truncate],[class*=theming-card] [class*=a-price-whole],[class*=theming-card] [class*=a-price-symbol],[class*=theming-card] [class*=a-price-decimal],[class*=theming-card] [class*=a-truncate],[class*=cXVhZ] [class*=a-price-whole],[class*=cXVhZ] [class*=a-price-symbol],[class*=cXVhZ] [class*=a-price-decimal],[class*=cXVhZ] [class*=a-truncate],[class*=canvas-card] [class*=a-price-whole],[class*=canvas-card] [class*=a-price-symbol],[class*=canvas-card] [class*=a-price-decimal],[class*=canvas-card] [class*=a-truncate],[class*=npack-asin-card] [class*=a-price-whole],[class*=npack-asin-card] [class*=a-price-symbol],[class*=npack-asin-card] [class*=a-price-decimal],[class*=npack-asin-card] [class*=a-truncate]{color:#e8e6e3 !important;}ul.a-pagination.a-dots li.a-selected,ul.a-pagination.a-dots li.dot-selected-t2{background-color:#ffffff !important;border-color:#ffffff !important;}';"
+           "__acs.textContent='picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],[class*=s-image],[class*=unfill],[class*=placehold]{background-color:transparent !important;}[class*=s-image],[class*=s-product-image] img,img[class*=s-image]{object-fit:contain !important;}[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],[class*=puis-card],[class*=gwm-tile],[class*=_container_]{border-color:#2f3133 !important;}[class*=deal],[class*=badge],[class*=prime],[class*=error],[class*=alert],[class*=warning],[aria-invalid=true]{border-color:initial !important;}[class*=a-button-primary],[class*=a-button-search],[class*=a-button-oneclick],[class*=a-button-buy],.a-button-inner,.a-button-text{border-color:transparent !important;}[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_],[class*=ape-placement] *,[class*=ape-wrapper] *,[data-cel-widget*=ape] *,[id*=ape_] *{filter:none !important;mix-blend-mode:normal !important;isolation:auto !important;text-shadow:none !important;}[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_]{background-color:initial !important;}[class*=ape-placement] img,[class*=ape-wrapper] img,[class*=ape-placement] svg,[class*=ape-wrapper] svg,[class*=ape-placement] picture,[class*=ape-wrapper] picture{filter:none !important;opacity:1 !important;}[class*=ape-placement] span,[class*=ape-placement] a,[class*=ape-placement] p,[class*=ape-placement] h1,[class*=ape-placement] h2,[class*=ape-placement] h3,[class*=ape-placement] h4,[class*=ape-wrapper] span,[class*=ape-wrapper] a,[class*=ape-wrapper] p,[class*=ape-wrapper] h1,[class*=ape-wrapper] h2,[class*=ape-wrapper] h3,[class*=ape-wrapper] h4,[class*=theming-card] span,[class*=theming-card] a,[class*=theming-card] p,[class*=theming-card] h1,[class*=theming-card] h2,[class*=theming-card] h3,[class*=theming-card] h4{background-color:transparent !important;}[class*=hybrid-widget-sponsored],[class*=hybrid-widget-sponsored] *,[class*=adFeedbackMainComponent],[class*=adFeedbackMainComponent] *,[class*=sponsored-label],[class*=sponsored-label] *{color:#c9c6c2 !important;-webkit-text-fill-color:#c9c6c2 !important;opacity:1 !important;filter:none !important;mix-blend-mode:normal !important;}[class*=theming-card] [class*=a-cardui-header],[class*=a-cardui-header][class*=theming]{background-color:transparent !important;}[class*=theming-card] [class*=a-cardui-header],[class*=theming-card] [class*=a-cardui-header] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[class*=npack-asin-card],[class*=npack-asin-card] *{filter:none !important;opacity:1 !important;mix-blend-mode:normal !important;isolation:auto !important;}[class*=npack-asin-card] [class*=a-size-mini],[class*=npack-asin-card] [class*=badge],[class*=npack-asin-card] [class*=percent]{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=npack-asin-card] [class*=badgeMessage],[class*=npack-asin-card] [class*=badgeMessage] *,[class*=cXVhZ] [class*=badgeMessage],[class*=cXVhZ] [class*=badgeMessage] *{background-color:#181a1b !important;background-image:none !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;box-shadow:none !important;}[class*=npack-asin-card] [class*=badgeMessage]::before,[class*=npack-asin-card] [class*=badgeMessage]::after,[class*=npack-asin-card] [class*=badgeMessage] *::before,[class*=npack-asin-card] [class*=badgeMessage] *::after,[class*=cXVhZ] [class*=badgeMessage]::before,[class*=cXVhZ] [class*=badgeMessage]::after,[class*=cXVhZ] [class*=badgeMessage] *::before,[class*=cXVhZ] [class*=badgeMessage] *::after{background:#181a1b !important;background-image:none !important;box-shadow:none !important;}[class*=a-cardui-header],[class*=a-cardui-header] *{background-color:transparent !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[class*=hybrid-widget-sponsored],[class*=adFeedbackMainComponent],[class*=hybrid-widget-sponsored] *,[class*=adFeedbackMainComponent] *{background-color:transparent !important;}[class*=bW9ia],[class*=bW9ia] *{filter:none !important;opacity:1 !important;mix-blend-mode:normal !important;}[class*=bW9ia] span,[class*=bW9ia] a,[class*=bW9ia] [class*=price],[class*=bW9ia] [class*=badge],[class*=bW9ia] [class*=percent]{background-color:transparent !important;}[class*=sponsored-products] img[src*=logo],[class*=sponsored-products] img[class*=logo],[class*=sponsored-brand] img,[class*=brand-logo] img{background-color:#e8e6e3 !important;border-radius:4px !important;padding:2px !important;}[class*=cXVhZ],[class*=cXVhZ] *,[class*=badgeLabel],[class*=badgeContainer],[class*=theming-card],[class*=theming-card] *,[class*=canvas-card],[class*=canvas-card] *{mix-blend-mode:normal !important;isolation:auto !important;}[class*=badgeLabel]{background-color:#cc0c39 !important;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=badgeLabel],[class*=badgeLabel] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=npack-asin-card],[class*=canvas-card],[class*=theming-card-background]{background-color:initial !important;}[class*=badgeLabel]{background-color:#cc0c39 !important;}[class*=badgeLabel],[class*=badgeLabel] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=cXVhZ],[class*=cXVhZ] *{filter:none !important;opacity:1 !important;}[class*=a-cardui] [class*=a-price-whole],[class*=a-cardui] [class*=a-price-symbol],[class*=a-cardui] [class*=a-price-decimal],[class*=a-cardui] [class*=a-truncate],[class*=theming-card] [class*=a-price-whole],[class*=theming-card] [class*=a-price-symbol],[class*=theming-card] [class*=a-price-decimal],[class*=theming-card] [class*=a-truncate],[class*=cXVhZ] [class*=a-price-whole],[class*=cXVhZ] [class*=a-price-symbol],[class*=cXVhZ] [class*=a-price-decimal],[class*=cXVhZ] [class*=a-truncate],[class*=canvas-card] [class*=a-price-whole],[class*=canvas-card] [class*=a-price-symbol],[class*=canvas-card] [class*=a-price-decimal],[class*=canvas-card] [class*=a-truncate],[class*=npack-asin-card] [class*=a-price-whole],[class*=npack-asin-card] [class*=a-price-symbol],[class*=npack-asin-card] [class*=a-price-decimal],[class*=npack-asin-card] [class*=a-truncate]{color:#e8e6e3 !important;}ul.a-pagination.a-dots li.a-selected,ul.a-pagination.a-dots li.dot-selected-t2{background-color:#ffffff !important;border-color:#ffffff !important;}.pack-size-badge__label{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}';"
            "(document.head||document.documentElement).appendChild(__acs);}}catch(e){}"
          "try{window.__AD_EARLY__='';"
            "var __adPinRe=/unfill|placehold/i;"
@@ -6894,15 +6894,16 @@ static NSString *ADProbeWebJS(void){
                "if(L>=0&&L<0.16){e.style.setProperty('background-color','transparent','important');c++;}}}"
            "window.__AD_BOXCLR__=c;window.__AD_BOXCLR_DEALSKIP__=sk;}catch(e){}}"
          "function dotFix(){try{var D=document.querySelectorAll('ul.a-pagination.a-dots li.new-dot-t2,ul.a-pagination.a-dots li.a-selected,ul.a-pagination.a-dots li.dot-selected-t2'),n=0;for(var i=0;i<D.length&&i<20;i++){var d=D[i],sel=d.classList&&(d.classList.contains('a-selected')||d.classList.contains('dot-selected-t2'));if(sel){var bg=getComputedStyle(d).backgroundColor,dr=d.hasAttribute&&d.hasAttribute('data-darkreader-inline-bgcolor'),mk=d.getAttribute&&d.getAttribute('data-ad-dotfix');if(dr)d.removeAttribute('data-darkreader-inline-bgcolor');if(mk!=='1'||dr||!/255\s*,\s*255\s*,\s*255/.test(bg)){d.style.setProperty('--darkreader-inline-bgcolor','#ffffff','important');d.style.setProperty('background-color','#ffffff','important');d.style.setProperty('border-color','#ffffff','important');d.setAttribute('data-ad-dotfix','1');}n++;}else if(d.getAttribute&&d.getAttribute('data-ad-dotfix')==='1'){d.style.removeProperty('--darkreader-inline-bgcolor');d.style.removeProperty('background-color');d.style.removeProperty('border-color');d.removeAttribute('data-ad-dotfix');}}window.__AD_DOTFIX__=n;}catch(e){}}"
+         "function packFix(){try{var P=document.querySelectorAll('.pack-size-badge__label'),n=0;for(var i=0;i<P.length&&i<40;i++){var p=P[i];if(p.hasAttribute&&p.hasAttribute('data-darkreader-inline-color'))p.removeAttribute('data-darkreader-inline-color');p.style.setProperty('--darkreader-inline-color','#e8e6e3','important');p.style.setProperty('color','#e8e6e3','important');p.style.setProperty('-webkit-text-fill-color','#e8e6e3','important');p.setAttribute('data-ad-packfix','1');n++;}window.__AD_PACKFIX__=n;}catch(e){}}"
          "function badgeFix(){try{"
            "var B=document.querySelectorAll('[class*=badgeLabel]');for(var i=0;i<B.length&&i<200;i++){var b=B[i];if(b.hasAttribute&&b.hasAttribute('data-darkreader-inline-bgcolor')){b.style.removeProperty('background-color');b.removeAttribute('data-darkreader-inline-bgcolor');}b.style.setProperty('background-color','#cc0c39','important');b.style.setProperty('color','#ffffff','important');b.style.setProperty('-webkit-text-fill-color','#ffffff','important');}"
            "var S=document.querySelectorAll('[class*=sponsored-products] *,[class*=npack-asin-card] *,[class*=cXVhZ] *'),n=0;for(var j=0;j<S.length&&j<2500&&n<80;j++){var x=S[j];if(x.childElementCount!==0)continue;var t=String(x.textContent||'').replace(/\\s+/g,' ').trim();"
              "if(/^\\d+%\\s*off$/i.test(t)){var p=x.parentElement;if(p){p.style.setProperty('background-color','#cc0c39','important');p.style.setProperty('color','#ffffff','important');p.style.setProperty('-webkit-text-fill-color','#ffffff','important');}x.style.setProperty('color','#ffffff','important');x.style.setProperty('-webkit-text-fill-color','#ffffff','important');n++;}"
              "else if(/^(?:limited\\s+time\\s+deal|deal\\s+selling\\s+fast)$/i.test(t)){x.style.setProperty('color','#e8e6e3','important');x.style.setProperty('-webkit-text-fill-color','#e8e6e3','important');if(x.closest&&(x.closest('[class*=npack-asin-card]')||x.closest('[class*=cXVhZ]'))){var m=x.closest('[class*=badgeMessage]')||x.parentElement;if(m){m.style.setProperty('background-color','#181a1b','important');m.style.setProperty('background-image','none','important');m.style.setProperty('box-shadow','none','important');}x.style.setProperty('background-color','#181a1b','important');x.style.setProperty('background-image','none','important');x.style.setProperty('box-shadow','none','important');}n++;}}window.__AD_SPONSORED_BADGEFIX__=n;"
-         "}catch(e){}}""badgeFix();dotFix();""clr();setTimeout(clr,300);setTimeout(clr,1200);setTimeout(clr,2500);""setTimeout(badgeFix,300);setTimeout(badgeFix,1200);setTimeout(badgeFix,2500);""setTimeout(dotFix,120);setTimeout(dotFix,500);setTimeout(dotFix,1400);setTimeout(dotFix,2800);""addEventListener('scroll',function(){clearTimeout(window.__bgT);window.__bgT=setTimeout(function(){badgeFix();dotFix();},120);},{passive:true,capture:true});""addEventListener('scroll',function(){clearTimeout(window.__bxS);window.__bxS=setTimeout(clr,120);},{passive:true,capture:true});"
+         "}catch(e){}}""badgeFix();dotFix();packFix();""clr();setTimeout(clr,300);setTimeout(clr,1200);setTimeout(clr,2500);""setTimeout(badgeFix,300);setTimeout(badgeFix,1200);setTimeout(badgeFix,2500);""setTimeout(dotFix,120);setTimeout(dotFix,500);setTimeout(dotFix,1400);setTimeout(dotFix,2800);""setTimeout(packFix,120);setTimeout(packFix,500);setTimeout(packFix,1400);setTimeout(packFix,2800);""addEventListener('scroll',function(){clearTimeout(window.__bgT);window.__bgT=setTimeout(function(){badgeFix();dotFix();packFix();},120);},{passive:true,capture:true});""addEventListener('scroll',function(){clearTimeout(window.__bxS);window.__bxS=setTimeout(clr,120);},{passive:true,capture:true});"
          "new MutationObserver(function(){clearTimeout(window.__bxT);"
-           "window.__bxT=setTimeout(function(){clr();dotFix();},60);}).observe(document.documentElement,"
-           "{subtree:true,childList:true,attributes:true,attributeFilter:['style','class','data-darkreader-inline-bgcolor']});"
+           "window.__bxT=setTimeout(function(){clr();dotFix();packFix();},60);}).observe(document.documentElement,"
+           "{subtree:true,childList:true,attributes:true,attributeFilter:['style','class','data-darkreader-inline-bgcolor','data-darkreader-inline-color']});"
        "})();}catch(e){}"
        "/*V5314FIX*//*V5315FIX*/"
 "/*V5317FIX*/"
@@ -7485,6 +7486,113 @@ static void ADMediaNativeProbe(void){
     } @catch(...) {}
 }
 
+
+// ── P15 PRODUCT-DETAIL HEART LAYER RESCUE (v5.344) ─────────────────────────────
+// P10-P14 proved the black PDP heart is not represented by a normal DOM node and
+// is not a child of the adjacent web share control. Older AmazonDark heart fixes
+// succeeded by whitening the GLYPH paint, not its surrounding disc. Reuse the
+// same Core Animation colorInvert+hueRotate recipe already proven on RNSVGSvgView,
+// but only for transparent, glyph-sized layers in the narrow heart slot immediately
+// left of Share. Dots are centered much farther left and Share itself is outside
+// the x band, so neither is eligible. This also catches WebKit compositor layers,
+// which the generic native colour hooks intentionally skip.
+static const void *kADP15HeartKey = &kADP15HeartKey;
+static const void *kADP15HeartFiltersKey = &kADP15HeartFiltersKey;
+static int gP15Rounds = 0;
+static int gP15LogLeft = 36;
+
+static BOOL ADP15LayerTransparent(CALayer *l){
+    @try {
+        if (!l.backgroundColor) return YES;
+        UIColor *c=[UIColor colorWithCGColor:l.backgroundColor];
+        CGFloat r=0,g=0,b=0,a=0;
+        if ([c getRed:&r green:&g blue:&b alpha:&a]) return a < 0.15;
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADP15ShapeDark(CALayer *l){
+    @try {
+        if (![l isKindOfClass:[CAShapeLayer class]]) return NO;
+        CAShapeLayer *sh=(CAShapeLayer *)l;
+        CGColorRef arr[2]={sh.fillColor,sh.strokeColor};
+        for(int i=0;i<2;i++){
+            if(!arr[i]) continue;
+            UIColor *c=[UIColor colorWithCGColor:arr[i]];
+            CGFloat r=0,g=0,b=0,a=0;
+            if([c getRed:&r green:&g blue:&b alpha:&a] && a>0.20 &&
+               (0.2126*r+0.7152*g+0.0722*b)<0.38) return YES;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static void ADP15ApplyHeartFilter(CALayer *l){
+    @try {
+        NSArray *ours=objc_getAssociatedObject(l,kADP15HeartFiltersKey);
+        if (objc_getAssociatedObject(l,kADP15HeartKey) && l.filters.count) return;
+        Class F=NSClassFromString(@"CAFilter"); if(!F) return;
+        id inv=[F filterWithType:@"colorInvert"]; if(!inv) return;
+        id hue=[F filterWithType:@"hueRotate"];
+        @try { [hue setValue:@(M_PI) forKey:@"inputAngle"]; } @catch(...) { hue=nil; }
+        ours=hue?@[inv,hue]:@[inv];
+        objc_setAssociatedObject(l,kADP15HeartKey,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(l,kADP15HeartFiltersKey,ours,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        l.filters=ours;
+    } @catch(...) {}
+}
+static void ADP15HeartWalk(CALayer *l, CALayer *root, CGFloat sw, CGFloat sh,
+                           int depth, int *seen, int *fixed){
+    if(!l||!root||depth>70||l.hidden||l.opacity<0.05||*seen>4500) return;
+    (*seen)++;
+    @try {
+        CGRect fr=[l convertRect:l.bounds toLayer:root];
+        CGFloat w=fabs(fr.size.width),h=fabs(fr.size.height);
+        CGFloat cx=CGRectGetMidX(fr),cy=CGRectGetMidY(fr);
+        // Measured PDP geometry across 430x813 and 430x896 captures: heart sits
+        // around x=.83W, y=.79H; Share begins around x=.91W. Give layout some room.
+        BOOL band=(cx>sw*0.75 && cx<sw*0.90 && cy>sh*0.70 && cy<sh*0.86 &&
+                   w>=6 && w<=54 && h>=6 && h<=54);
+        if(band){
+            BOOL tr=ADP15LayerTransparent(l);
+            BOOL shapeDark=ADP15ShapeDark(l);
+            BOOL hasContents=(l.contents!=nil);
+            // Filter only the actual paint leaf. Applying the same invert to a
+            // compositor parent AND its painted child would double-invert the glyph
+            // back to black. CAShapeLayer is paint by definition; contents-backed
+            // layers qualify only when they have no child layers of their own.
+            BOOL paintLeaf=shapeDark || (hasContents && l.sublayers.count==0);
+            BOOL candidate=tr && paintLeaf;
+            if(candidate){
+                ADP15ApplyHeartFilter(l); (*fixed)++;
+            }
+            if(gP15LogLeft>0){gP15LogLeft--;
+                NSString *fc=@"-",*sc=@"-";
+                if([l isKindOfClass:[CAShapeLayer class]]){
+                    CAShapeLayer *shp=(CAShapeLayer *)l;
+                    fc=ADP11LayerColor(shp.fillColor);sc=ADP11LayerColor(shp.strokeColor);
+                }
+                ADLog(@"P15HEARTLAYER[%s %.0fx%.0f @%.0f,%.0f cont=%d trans=%d shapeDark=%d fill=%@ stroke=%@ filters=%lu fixed=%d]",
+                      object_getClassName(l),w,h,fr.origin.x,fr.origin.y,
+                      hasContents?1:0,tr?1:0,shapeDark?1:0,fc,sc,
+                      (unsigned long)l.filters.count,candidate?1:0);
+            }
+        }
+        for(CALayer *q in l.sublayers) ADP15HeartWalk(q,root,sw,sh,depth+1,seen,fixed);
+    } @catch(...) {}
+}
+static void ADP15HeartLayerPass(void){
+    if(!ADRecolorOn() || gP15Rounds++>120) return;
+    @try {
+        int seen=0,fixed=0;
+        for(UIWindow *w in [UIApplication sharedApplication].windows){
+            if(!w||w.hidden||w.alpha<0.05) continue;
+            ADP15HeartWalk(w.layer,w.layer,w.bounds.size.width,w.bounds.size.height,0,&seen,&fixed);
+        }
+        if((fixed>0 || gP15Rounds<=8) && gP15LogLeft>0){gP15LogLeft--;
+            ADLog(@"P15HEARTLAYER[summary round=%d seen=%d fixed=%d]",gP15Rounds,seen,fixed);
+        }
+    } @catch(...) {}
+}
+
 static void ADSweepAllWindows(void){
     if (!ADRecolorOn()) return;
     @try {
@@ -7505,6 +7613,7 @@ static void ADSweepAllWindows(void){
                          gSwSample[0]  ? " declined=" : "", gSwSample[0]  ? gSwSample  : "",
                          gSwTintNow[0] ? " tintNow="  : "", gSwTintNow[0] ? gSwTintNow : ""];
         if (!last || ![last isEqualToString:now]){ last = now; ADLog(@"sweep %@", now); }
+        ADP15HeartLayerPass();
     } @catch(...) {}
 }
 
