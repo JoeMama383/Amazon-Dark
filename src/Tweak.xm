@@ -519,7 +519,7 @@ static NSString *ADFixesLiteral(void){
              "{mix-blend-mode:normal !important;isolation:auto !important;}"
              "',invert:[],ignoreInlineStyle:['[class*=puis-heart-position]','[class*=puis-heart-position] *',"
              "'[class*=lists-framework-action-button]','[class*=lists-framework-action-button] *',"
-             "'[class*=copilot-compare]','[class*=copilot-compare] *','[class*=badgeLabel]','[class*=badgeLabel] *','[class*=badgeContainer]','[class*=badgeContainer] *'],"
+             "'[class*=copilot-compare]','[class*=copilot-compare] *'],"
              "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
             imgBackdrop];
 }
@@ -6710,6 +6710,7 @@ static NSString *ADProbeWebJS(void){
        "  var all9=document.querySelectorAll('*'),N9=Math.min(all9.length,6000),H9=[],CN9={},TOT9=0;"
        "  for(var i9=0;i9<N9&&TOT9<24;i9++){var e9=all9[i9];"
        "    var f9=fam9(e9);if(f9==='-')continue;"
+       "    var rc9=String(e9.className&&e9.className.baseVal!==undefined?e9.className.baseVal:(e9.className||''));if(/a-offscreen/.test(rc9))continue;"
        "    if((CN9[f9]||0)>=4)continue;"
        "    var r9=e9.getBoundingClientRect();if(r9.width<6||r9.height<5)continue;"
        "    if(r9.bottom<0||r9.top>VH9*2)continue;"
@@ -6730,14 +6731,17 @@ static NSString *ADProbeWebJS(void){
        "    if(d9<0.22){H9.push(f9+'|'+tg9+'|'+tag9+pv9+'|bgL='+b9.L.toFixed(2)+'|d='+d9.toFixed(2)+(b9.img?'|+img':'')+'|'+cls9(e9));CN9[f9]=(CN9[f9]||0)+1;TOT9++;}}"
        "  out.push('P9VIS[n='+H9.length+(H9.length?' '+H9.join(' ~ '):'')+']');"
        "}catch(e9x){out.push('P9VIS[err '+(e9x&&e9x.message||e9x)+']');}"
-       // P9BADGE (v5.334): discount-badge background probe — see comment in
-       // probe source. Flags Dark Reader stripping a badge's red fill (red=0,
-       // dr=1) which P9VIS cannot detect (bg-less badge = readable light text).
+       // P9BADGE (v5.335): diagnostic-only structure dump for deal badges.
+       // The 5.334 device data disproved the DR-strip theory (broken cardui
+       // badges were dr=0). Walk percent-off / deal-label leaves up six levels
+       // and report class + background + border + text colour at each level so
+       // the exact cardui container and the reported brown border are observable.
        "try{"
        "  var VHB=window.innerHeight||900;"
-       "  function lumB(s){var m=/rgba?\\(([0-9.]+),\\s*([0-9.]+),\\s*([0-9.]+)(?:,\\s*([0-9.]+))?\\)/.exec(String(s||''));"
-       "    if(!m)return null;return {r:+m[1],g:+m[2],b:+m[3],a:m[4]===undefined?1:+m[4]};}"
-       "  function clsB(e){var c=e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||'')).slice(0,24);}"
+       "  function rgbB(s){var m=/rgba?\\(([0-9.]+),\\s*([0-9.]+),\\s*([0-9.]+)(?:,\\s*([0-9.]+))?\\)/.exec(String(s||''));"
+       "    if(!m)return '-';var a=m[4]===undefined?1:+m[4];if(!(a>0.05))return '-';"
+       "    return Math.round(+m[1])+','+Math.round(+m[2])+','+Math.round(+m[3]);}"
+       "  function clsB(e){var c=e.className;var z=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));return (z||e.tagName||'?').replace(/\\s+/g,'.').slice(0,34);}"
        "  function famB(e){try{"
        "    if(e.closest('[class*=cXVhZ]'))return 'cXVhZ';"
        "    if(e.closest('[class*=npack-asin-card]'))return 'npack';"
@@ -6745,19 +6749,20 @@ static NSString *ADProbeWebJS(void){
        "    if(e.closest('[class*=a-cardui]'))return 'cardui';"
        "  }catch(_){}return '-';}"
        "  function drB(e){try{var a=e.attributes;for(var k=0;k<a.length;k++){if(a[k].name.indexOf('data-darkreader')===0)return 1;}}catch(_){}return 0;}"
-       "  var allB=document.querySelectorAll('*'),NB=Math.min(allB.length,6000),HB=[];"
+       "  var allB=document.querySelectorAll('*'),NB=Math.min(allB.length,7000),HB=[];"
        "  for(var iB=0;iB<NB&&HB.length<10;iB++){var eB=allB[iB];"
-       "    var cB=clsB(eB),isBadge=/badge/i.test(cB);"
-       "    var txB=(eB.childElementCount===0)?String(eB.textContent||'').trim():'';"
-       "    var isPct=/\\d+%\\s*off/i.test(txB);"
-       "    if(!isBadge&&!isPct)continue;"
+       "    if(eB.childElementCount!==0)continue;"
+       "    var txB=String(eB.textContent||'').trim();"
+       "    var isPct=/\\d+%\\s*off/i.test(txB),isDeal=/limited\\s+time\\s+deal/i.test(txB);"
+       "    if(!isPct&&!isDeal)continue;"
+       "    var fB=famB(eB);if(fB==='-')continue;"
        "    var rB=eB.getBoundingClientRect();if(rB.width<8||rB.height<6)continue;"
        "    if(rB.bottom<0||rB.top>VHB*2)continue;"
-       "    var bgB=null,n=eB,d=0;"
-       "    while(n&&d++<4){var c2=lumB(getComputedStyle(n).backgroundColor);if(c2&&c2.a>0.1){bgB=c2;break;}n=n.parentElement;}"
-       "    var red=(bgB&&bgB.r>140&&bgB.g<90&&bgB.b<110)?1:0;"
-       "    var bgs=bgB?('rgb('+bgB.r+','+bgB.g+','+bgB.b+')'):'none';"
-       "    HB.push(famB(eB)+'|'+(isPct?txB.slice(0,7):'badge')+'|bg='+bgs+'|red='+red+'|dr='+drB(eB)+'|'+cB);}"
+       "    var chB=[],nB=eB,dB=0;"
+       "    while(nB&&dB<6){var sB=getComputedStyle(nB);var bwB=parseFloat(sB.borderTopWidth)||0;"
+       "      chB.push(dB+':'+clsB(nB)+'{bg='+rgbB(sB.backgroundColor)+',bd='+rgbB(sB.borderTopColor)+',bw='+bwB.toFixed(1)+',c='+rgbB(sB.color)+'}');"
+       "      nB=nB.parentElement;dB++;}"
+       "    HB.push(fB+'|'+(isPct?'pct:':'deal:')+txB.slice(0,18)+'|dr='+drB(eB)+'|'+chB.join('>'));}"
        "  out.push('P9BADGE[n='+HB.length+(HB.length?' '+HB.join(' ~ '):'')+']');"
        "}catch(eBx){out.push('P9BADGE[err '+(eBx&&eBx.message||eBx)+']');}"
        "/*V5313FIX*/"
