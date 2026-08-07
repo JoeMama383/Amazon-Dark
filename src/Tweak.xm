@@ -2622,29 +2622,6 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "}catch(e){window.__AD_MLT__='err '+e;}"
            "__ck('MIC');"
 
-           // VOICE-PERMISSION SHEET COPY. The Amazon pre-permission pane reached
-           // from the search-bar microphone is already dark, and its links are
-           // already correctly cyan, but Amazon leaves the surrounding explanatory
-           // copy at stock #0f1111. Anchor on the unique visible heading, climb only
-           // to that sheet, then lift dark neutral copy while explicitly leaving
-           // links/buttons alone. This runs in the normal mutation/heartbeat pass so
-           // the dynamically-created pane is repaired whenever it is reopened.
-           "try{if(document.body&&String(document.body.textContent||'').indexOf('Shop faster with voice')>=0){"
-             "var VQ=document.querySelectorAll('h1,h2,h3,h4,[role=heading],strong,b,div,span'),vh=null;"
-             "for(var vi=0;vi<VQ.length&&vi<2200&&((vi&15)||!ovr());vi++){var vx=VQ[vi];"
-               "var vt=String(vx.textContent||'').replace(/\\s+/g,' ').trim();if(/^Shop faster with voice$/i.test(vt)){vh=vx;break;}}"
-             "if(vh){var vr=vh,vd=0;while(vr&&vd++<9){var rt=String(vr.textContent||'').replace(/\\s+/g,' ');"
-               "if(rt.indexOf('Allow microphone access')>=0&&rt.indexOf('Privacy Notice')>=0&&rt.indexOf('Continue')>=0)break;vr=vr.parentElement;}"
-               "if(vr){var VV=vr.querySelectorAll('p,span,div,h1,h2,h3,h4'),vf=0;"
-                 "for(var vj=0;vj<VV.length&&vj<800&&((vj&15)||!ovr());vj++){var ve=VV[vj];"
-                   "if(!ve||!ve.closest||ve.closest('a,button,[role=button]'))continue;"
-                   "var tx=String(ve.textContent||'').replace(/\\s+/g,' ').trim();if(!tx||tx.length>240)continue;"
-                   "var vc=getComputedStyle(ve),vl=lum(vc.color);if(vl===null||vl>=0.35)continue;"
-                   "ve.style.setProperty('color','#e8e6e3','important');ve.style.setProperty('-webkit-text-fill-color','#e8e6e3','important');ve.__adBy='voiceperm';vf++;}"
-                 "window.__AD_VOICEPERM__=vf;}}}"
-           "}catch(e){window.__AD_VOICEPERM__='err '+e;}"
-           "__ck('VOICE');"
-
            // SHOP PROBE, standalone. Placed at the top level of the pass, immediately
            // before the return -- last time I nested it inside the ADCARD block,
            // which is gated by `throw 0` after its first run, so it may never have
@@ -6609,6 +6586,152 @@ static void ADTextClassProbe(void){
     } @catch(...) {}
 }
 
+
+// ── P19 VOICE-PERMISSION NATIVE REPAIR (v5.349) ─────────────────────────────
+// v5.348 proved the microphone pre-permission pane is not in the probed WKWebView
+// DOM (P18VOICE[root=none]). The screenshot also shows mixed black body copy and
+// cyan links inside the same paragraphs, which is characteristic of native/RN
+// attributed text. Find ONLY those unique voice-permission strings in the visible
+// UIView tree and lift dark neutral runs while preserving saturated link colours.
+// This operates on Amazon's original text objects -- no overlay and no geometry.
+static BOOL ADVoiceTargetText(NSString *t){
+    if (!t.length || t.length > 700) return NO;
+    if ([t rangeOfString:@"Allow microphone access" options:NSCaseInsensitiveSearch].location != NSNotFound) return YES;
+    if ([t rangeOfString:@"Shop faster with voice" options:NSCaseInsensitiveSearch].location != NSNotFound) return YES;
+    if ([t rangeOfString:@"You can always turn it off" options:NSCaseInsensitiveSearch].location != NSNotFound) return YES;
+    if ([t rangeOfString:@"Your audio is transcribed in the cloud" options:NSCaseInsensitiveSearch].location != NSNotFound) return YES;
+    if ([t rangeOfString:@"about shopping with voice" options:NSCaseInsensitiveSearch].location != NSNotFound) return YES;
+    return NO;
+}
+
+static BOOL ADVoiceColorIsDarkNeutral(UIColor *c){
+    if (!c) return YES;   // an attributed run with no explicit colour defaults dark
+    @try {
+        CGFloat r=0,g=0,b=0,a=0;
+        if (![c getRed:&r green:&g blue:&b alpha:&a] || a < 0.05) return NO;
+        CGFloat mx=MAX(r,MAX(g,b)), mn=MIN(r,MIN(g,b));
+        CGFloat lum=0.2126*r+0.7152*g+0.0722*b;
+        // Preserve Amazon's cyan links and any other intentional saturated accent.
+        return lum < 0.42 && (mx-mn) < 0.20;
+    } @catch(...) {}
+    return NO;
+}
+
+static NSAttributedString *ADVoiceLiftAttributed(NSAttributedString *in, int *runs){
+    if (!in.length) return in;
+    @try {
+        NSMutableAttributedString *m=[in mutableCopy];
+        __block int changed=0;
+        NSRange full=NSMakeRange(0,m.length);
+        [m enumerateAttribute:NSForegroundColorAttributeName inRange:full options:0
+                   usingBlock:^(id value, NSRange range, BOOL *stop){
+            @try {
+                UIColor *c=[value isKindOfClass:[UIColor class]] ? (UIColor *)value : nil;
+                if (!ADVoiceColorIsDarkNeutral(c)) return;
+                [m addAttribute:NSForegroundColorAttributeName value:ADColorFromHex(gP.fgHex) range:range];
+                changed++;
+            } @catch(...) {}
+        }];
+        if (runs) *runs += changed;
+        return changed ? m : in;
+    } @catch(...) {}
+    return in;
+}
+
+static void ADVoiceNativeWalk(UIView *v, int depth, int *matched, int *fixed,
+                              NSMutableArray *samples){
+    if (!v || depth > 45 || v.hidden || v.alpha < 0.05) return;
+    @try {
+        NSString *txt=ADProbeTextOf(v);
+        if (ADVoiceTargetText(txt)){
+            (*matched)++;
+            BOOL did=NO; int runFix=0;
+            BOOL hasAttr=[v respondsToSelector:@selector(attributedText)];
+            BOOL hasAttrString=[v respondsToSelector:NSSelectorFromString(@"attributedString")];
+            BOOL hasStorage=[v respondsToSelector:NSSelectorFromString(@"textStorage")];
+            BOOL canSetAttr=[v respondsToSelector:@selector(setAttributedText:)];
+            BOOL canSetPriv=[v respondsToSelector:NSSelectorFromString(@"_setAttributedString:")];
+            BOOL hasTC=[v respondsToSelector:@selector(textColor)];
+            BOOL canSetTC=[v respondsToSelector:@selector(setTextColor:)];
+            CGFloat lum=-1,sat=-1;
+
+            if (hasAttr || hasAttrString || hasStorage){
+                @try {
+                    id a=nil;
+                    if (hasAttr) a=[v performSelector:@selector(attributedText)];
+                    if (![a isKindOfClass:[NSAttributedString class]] && hasAttrString)
+                        a=[v performSelector:NSSelectorFromString(@"attributedString")];
+                    if (![a isKindOfClass:[NSAttributedString class]] && hasStorage)
+                        a=[v performSelector:NSSelectorFromString(@"textStorage")];
+                    if ([a isKindOfClass:[NSAttributedString class]] && [(NSAttributedString *)a length]){
+                        NSAttributedString *r=ADVoiceLiftAttributed((NSAttributedString *)a,&runFix);
+                        if (r != a){
+                            if ([a isKindOfClass:[NSTextStorage class]]){
+                                [(NSTextStorage *)a setAttributedString:r];
+                                did=YES;
+                            } else if (canSetAttr){
+                                [v performSelector:@selector(setAttributedText:) withObject:r];
+                                did=YES;
+                            } else if (canSetPriv){
+                                [v performSelector:NSSelectorFromString(@"_setAttributedString:") withObject:r];
+                                did=YES;
+                            }
+                        }
+                    }
+                } @catch(...) {}
+            }
+
+            if (!did && hasTC && canSetTC){
+                @try {
+                    id tc=[v performSelector:@selector(textColor)];
+                    if ([tc isKindOfClass:[UIColor class]]){
+                        CGFloat r=0,g=0,b=0,a=0;
+                        if ([(UIColor *)tc getRed:&r green:&g blue:&b alpha:&a]){
+                            CGFloat mx=MAX(r,MAX(g,b)),mn=MIN(r,MIN(g,b));
+                            lum=0.2126*r+0.7152*g+0.0722*b; sat=mx-mn;
+                        }
+                        if (ADVoiceColorIsDarkNeutral((UIColor *)tc)){
+                            [v performSelector:@selector(setTextColor:) withObject:ADColorFromHex(gP.fgHex)];
+                            did=YES;
+                        }
+                    }
+                } @catch(...) {}
+            }
+
+            if (did) (*fixed)++;
+            if (samples.count < 12){
+                CGRect f=[v convertRect:v.bounds toView:nil];
+                NSString *shortT=txt.length>54 ? [txt substringToIndex:54] : txt;
+                [samples addObject:[NSString stringWithFormat:
+                    @"%s@%.0fx%.0f y=%.0f '%@' attr=%d/set=%d priv=%d tc=%d lum=%.2f sat=%.2f runs=%d fix=%d",
+                    object_getClassName(v),f.size.width,f.size.height,f.origin.y,shortT,
+                    (hasAttr||hasAttrString||hasStorage)?1:0,canSetAttr?1:0,canSetPriv?1:0,hasTC?1:0,lum,sat,runFix,did?1:0]];
+            }
+        }
+        for (UIView *sv in v.subviews)
+            ADVoiceNativeWalk(sv,depth+1,matched,fixed,samples);
+    } @catch(...) {}
+}
+
+static void ADVoiceNativeSweep(void){
+    @try {
+        if (!ADRecolorOn()) return;
+        int matched=0,fixed=0;
+        NSMutableArray *samples=[NSMutableArray array];
+        for (UIWindow *w in [UIApplication sharedApplication].windows){
+            if (!w || w.hidden || w.alpha < 0.05) continue;
+            ADVoiceNativeWalk(w,0,&matched,&fixed,samples);
+        }
+        static NSString *last=nil;
+        NSString *now=[NSString stringWithFormat:@"P19VOICE[matched=%d fixed=%d %@]",
+                       matched,fixed,samples.count?[samples componentsJoinedByString:@" ~~ "]:@"none"];
+        if (!last || ![last isEqualToString:now]){
+            last=now;
+            ADLog(@"%@",now);
+        }
+    } @catch(...) {}
+}
+
 // ── WEB VIEW CENSUS ─────────────────────────────────────────────────────────
 // One poll, one document, and the rating is in none of them. This asks every
 // WKWebView on screen the same two questions -- how many elements do you have, and
@@ -6911,10 +7034,6 @@ static NSString *ADProbeWebJS(void){
        // P17HEART (v5.347): verify the original Amazon paint leaf and the
        // documentStart CSS filter, without mutating the node from JavaScript.
        "try{var h17=document.querySelector('[class*=lists-treatment-hear] .a-icon');if(h17){var r17=h17.getBoundingClientRect(),s17=getComputedStyle(h17),f17=String(s17.filter||'none').replace(/\\s+/g,' ');out.push('P17HEART[node=.a-icon@'+Math.round(r17.width)+'x'+Math.round(r17.height)+' bgi='+(s17.backgroundImage&&s17.backgroundImage!=='none'?'Y':'-')+' filter='+f17.slice(0,72)+' css='+((f17.indexOf('brightness(0)')>=0&&f17.indexOf('invert(1)')>=0)?'1':'0')+']');}else out.push('P17HEART[node=none]');}catch(e17){out.push('P17HEART[err '+(e17&&e17.message||e17)+']');}"
-
-       // P18VOICE (v5.348): verify the real Amazon voice-permission pane copy.
-       // No mutations here; the main pass marks repaired nodes as voiceperm.
-       "try{var A18=document.querySelectorAll('h1,h2,h3,h4,[role=heading],strong,b,div,span'),h18=null;for(var i18=0;i18<A18.length&&i18<2600;i18++){var t18=String(A18[i18].textContent||'').replace(/\\s+/g,' ').trim();if(/^Shop faster with voice$/i.test(t18)){h18=A18[i18];break;}}if(!h18){out.push('P18VOICE[root=none]');}else{var r18=h18,d18=0;while(r18&&d18++<9){var z18=String(r18.textContent||'').replace(/\\s+/g,' ');if(z18.indexOf('Allow microphone access')>=0&&z18.indexOf('Privacy Notice')>=0&&z18.indexOf('Continue')>=0)break;r18=r18.parentElement;}var o18=[],q18=r18?r18.querySelectorAll('p,span,div,h1,h2,h3,h4'):[];for(var j18=0;j18<q18.length&&j18<800&&o18.length<12;j18++){var e18=q18[j18];if(!e18||!e18.closest||e18.closest('a,button,[role=button]'))continue;var x18=String(e18.textContent||'').replace(/\\s+/g,' ').trim();if(!x18||x18.length>180)continue;var c18=getComputedStyle(e18).color;o18.push(x18.slice(0,54)+'{c='+c18.replace(/\\s+/g,'')+',by='+(e18.__adBy||'-')+'}');}out.push('P18VOICE[root='+(r18?'Y':'-')+' fixed='+(window.__AD_VOICEPERM__===undefined?'-':window.__AD_VOICEPERM__)+' '+(o18.length?o18.join(' ~~ '):'none')+']');}}catch(e18x){out.push('P18VOICE[err '+(e18x&&e18x.message||e18x)+']');}"
 
        "/*V5313FIX*/"
        "try{(function(){"
@@ -7648,6 +7767,7 @@ static void ADSweepAllWindows(void){
             if (![sc isKindOfClass:[UIWindowScene class]]) continue;
             for (UIWindow *w in ((UIWindowScene *)sc).windows){ nwin++; ADSweepTimed(w, NO, "window"); }
         }
+        ADVoiceNativeSweep();
         static NSString *last = nil;
         NSString *now = [NSString stringWithFormat:
                          @"win=%d views=%d img=%d tmpl=%d tintFixed=%d glyphFixed=%d darkLabels=%d labelFixed=%d%s%s%s%s",
