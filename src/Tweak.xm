@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.363.0"
+#define AD_VERSION "v5.364.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -644,7 +644,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // the proven v5.360 custom dark ad theme. The child can classify itself from
            // viewport shape on first paint; the parent may refine the mode by postMessage.
            "window.__ADFRAME_MODE__=((innerHeight||0)<180||((innerWidth||1)/(innerHeight||1))>2.25)?'standalone':'hero';"
-           "try{addEventListener('message',function(ev){try{var d=ev.data;if(d&&d.__amzAdMode){window.__ADFRAME_MODE__=d.__amzAdMode;window.__AMZDARK_ADTHEME__&&window.__AMZDARK_ADTHEME__();}}catch(e){};});}catch(e){}"
+           "try{addEventListener('message',function(ev){try{var d=ev.data;if(d&&d.__amzAdMode){window.__ADFRAME_MODE__=d.__amzAdMode;window.__AD_TAMEFAST364__&&window.__AD_TAMEFAST364__(document.documentElement);window.__AMZDARK_ADTHEME__&&window.__AMZDARK_ADTHEME__();}}catch(e){};});}catch(e){}"
            "var AF={p:function(c){try{var m=/rgba?\\(([0-9.]+),\\s*([0-9.]+),\\s*([0-9.]+)(?:,\\s*([0-9.]+))?\\)/.exec(c||'');"
              "if(!m)return null;return{r:+m[1],g:+m[2],b:+m[3],a:m[4]===undefined?1:+m[4]};}catch(e){return null;}},"
              "l:function(x){return (0.2126*x.r+0.7152*x.g+0.0722*x.b)/255;},"
@@ -768,6 +768,28 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "}"
              "window.__AD_STANDALONE__='bg='+nb+' text='+nt+' border='+nbd+' logo='+(window.__AD_ADLOGO__||0);return nb+nt+nbd;"
            "}catch(e){window.__AD_STANDALONE__='err '+e;return -1;}};"
+           // v5.364: first-paint tame lane for child ad frames. The 120ms theme
+           // debounce was visible on hero transitions; a MutationObserver callback runs
+           // before the next paint, so mark new media/background paint immediately and
+           // let CSS own the effect. No text-bearing parent is filtered.
+           "window.__AD_TAMEFAST364__=function(root){try{"
+             "if(!window.__ADTAME_ON__||!root||root.nodeType!==1)return 0;"
+             "var S=Math.max(0,Math.min(100,window.__ADTAME_S__||45)),bb=(1-0.50*(S/100)).toFixed(3),aa=(0.50*(S/100)).toFixed(3);"
+             "if(!document.getElementById('adfast364')){var fs=document.createElement('style');fs.id='adfast364';"
+               "fs.textContent='[data-ad-tame-fast364=\"media\"]{filter:brightness('+bb+') saturate(1.08) !important;}[data-ad-tame-fast364=\"bg\"]{background-color:rgba(0,0,0,'+aa+') !important;background-blend-mode:multiply !important;}';"
+               "(document.head||document.documentElement).appendChild(fs);}"
+             "var standalone=(window.__ADFRAME_MODE__==='standalone'),mn=standalone?26:48,A=[];"
+             "if(/^(IMG|VIDEO|CANVAS)$/i.test(String(root.tagName||'')))A.push(root);"
+             "try{var q=root.querySelectorAll('img,video,canvas');for(var i=0;i<q.length&&i<90;i++)A.push(q[i]);}catch(e){}"
+             "var m=0,b=0;for(var j=0;j<A.length&&j<100;j++){var x=A[j],r=x.getBoundingClientRect();if(r.width<mn||r.height<mn)continue;"
+               "var c=x.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));if(/sprite|icon|logo|pixel/i.test(c))continue;"
+               "x.setAttribute('data-ad-tame-fast364','media');x.__adBy='adFastMedia364';m++;}"
+             "var B=[];if(/^(DIV|SECTION|A|SPAN|LI)$/i.test(String(root.tagName||'')))B.push(root);"
+             "try{var qb=root.querySelectorAll('div,section,a,span,li');for(var k=0;k<qb.length&&k<70;k++)B.push(qb[k]);}catch(e){}"
+             "for(var z=0;z<B.length&&z<80&&b<24;z++){var e=B[z],cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none');if(bi.indexOf('url(')<0)continue;"
+               "var rr=e.getBoundingClientRect();if(rr.width<mn||rr.height<mn)continue;var cc=e.className;cc=String(cc&&cc.baseVal!==undefined?cc.baseVal:(cc||''));"
+               "if(/sprite|icon|logo|pixel/i.test(cc))continue;e.setAttribute('data-ad-tame-fast364','bg');e.__adBy='adFastBg364';b++;}"
+             "window.__AD_ADFAST364__='m='+m+' bg='+b;return m+b;}catch(e){return 0;}};"
            "window.__AMZDARK_ADTAME__=function(){try{"
              "if(!document.body)return -1;"
              "if(!window.__ADTAME_ON__){window.__AD_ADTAME__='off';return 0;}"
@@ -790,7 +812,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "var B=document.querySelectorAll('div,section,a,span,li');"
              "for(var j=0;j<B.length&&j<800&&bg<60;j++){var q=B[j],cs=getComputedStyle(q),bi=String(cs.backgroundImage||'none');"
                "if(bi.indexOf('url(')<0)continue;var rr=q.getBoundingClientRect(),minB=standalone?26:48;"
-               "if(rr.width<minB||rr.height<minB)continue;if(standalone&&rr.width>(innerWidth||390)*0.72&&rr.height>(innerHeight||80)*0.72)continue;"
+               "if(rr.width<minB||rr.height<minB)continue;"
                "var qc=q.className;if(qc&&qc.baseVal!==undefined)qc=qc.baseVal;"
                "if(/sprite|icon|logo|pixel/i.test(String(qc||'')))continue;"
                "var qsig=bi+'|'+aa;if(q.__adTame362===qsig)continue;"
@@ -817,16 +839,16 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "return n;}catch(e){return 0;}};"
            "window.__AMZDARK_ADTHEME__=function(){try{"
              "var mode=window.__ADFRAME_MODE__||'hero';"
-             "if(mode==='standalone'){var old=document.getElementById('adfrmin');if(old&&old.parentNode)old.parentNode.removeChild(old);"
+             "var fn=window.__AD_TAMEFAST364__?window.__AD_TAMEFAST364__(document.documentElement):0;if(mode==='standalone'){var old=document.getElementById('adfrmin');if(old&&old.parentNode)old.parentNode.removeChild(old);"
                "var sn=window.__AMZDARK_ADTHEME_STANDALONE__?window.__AMZDARK_ADTHEME_STANDALONE__():0;"
                "var stn=window.__AMZDARK_ADTAME__?window.__AMZDARK_ADTAME__():0;"
-               "window.__AD_ADTHEME__='mode=standalone '+String(window.__AD_STANDALONE__||('theme='+sn))+' '+String(window.__AD_ADTAME__||('tame='+stn));return sn+stn;}"
+               "window.__AD_ADTHEME__='mode=standalone '+String(window.__AD_STANDALONE__||('theme='+sn))+' '+String(window.__AD_ADTAME__||('tame='+stn))+' fast='+String(window.__AD_ADFAST364__||fn);return sn+stn+fn;}"
              "var old2=document.getElementById('adfrstand362');if(old2&&old2.parentNode)old2.parentNode.removeChild(old2);"
              "if(!document.getElementById('adfrmin')){var st=document.createElement('style');"
                "st.id='adfrmin';st.textContent='*{-webkit-tap-highlight-color:transparent !important;}';"
                "(document.head||document.documentElement).appendChild(st);}"
              "var tn=window.__AMZDARK_ADTAME__?window.__AMZDARK_ADTAME__():0,vc=window.__AD_VIDEOCTL362__?window.__AD_VIDEOCTL362__():0;"
-             "window.__AD_ADTHEME__='mode=hero stock=1 '+String(window.__AD_ADTAME__||('tame='+tn))+' ctl='+vc;return tn+vc;"
+             "window.__AD_ADTHEME__='mode=hero stock=1 '+String(window.__AD_ADTAME__||('tame='+tn))+' fast='+String(window.__AD_ADFAST364__||fn)+' ctl='+vc;return tn+vc+fn;"
            "}catch(e){window.__AD_ADTHEME__='err '+e;return -1;}};"
            // Self-contained poster. The main one is defined at the END of the pass we
            // now return from early, so it would never exist in an ad frame -- which is
@@ -838,9 +860,10 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "u:String(location.pathname||'/').slice(-20),r:f},'*');}"
            "}catch(e){}};"
            "try{window.__AMZDARK_ADTHEME__();window.__ADFPOST__();}catch(e){}"
-           "try{var _at=null;new MutationObserver(function(ms){try{for(var mi=0;mi<ms.length;mi++){if(ms[mi].type==='attributes'&&ms[mi].target)ms[mi].target.__adStand362=0;}}catch(e){}clearTimeout(_at);"
-             "_at=setTimeout(function(){try{window.__AMZDARK_ADTHEME__();window.__ADFPOST__();}catch(e){}},120);})"
-             ".observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src','poster','class']});}catch(e){}"
+           "try{var _at=null;new MutationObserver(function(ms){try{for(var mi=0;mi<ms.length;mi++){var mm=ms[mi];if(mm.type==='attributes'&&mm.target){mm.target.__adStand362=0;window.__AD_TAMEFAST364__&&window.__AD_TAMEFAST364__(mm.target);}else if(mm.type==='childList'){for(var ai=0;ai<mm.addedNodes.length&&ai<16;ai++){var an=mm.addedNodes[ai];if(an&&an.nodeType===1&&window.__AD_TAMEFAST364__)window.__AD_TAMEFAST364__(an);}}}}catch(e){}clearTimeout(_at);"
+             "_at=setTimeout(function(){try{window.__AMZDARK_ADTHEME__();window.__ADFPOST__();}catch(e){}},180);})"
+             ".observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src','srcset','poster','class','style']});}catch(e){}"
+           "try{document.addEventListener('load',function(ev){try{var t=ev.target;if(t&&t.nodeType===1&&window.__AD_TAMEFAST364__)window.__AD_TAMEFAST364__(t);}catch(e){}},true);}catch(e){}"
            // Mutations/source changes handle normal dynamic media; a short bounded poll
            // remains only as insurance for canvas/video state that changes without DOM writes.
            "try{var _n=0,_iv=setInterval(function(){if(++_n>3){clearInterval(_iv);return;}"
@@ -1561,17 +1584,17 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              // paint is darkened while authored copy remains stock and above it.
              "var PI=document.querySelectorAll('img,video,canvas');"
              "for(var pi=0;pi<PI.length&&pi<360&&((pi&15)||!ovr());pi++){var im7=PI[pi];"
-               "var band7=_adTameBand362(im7),force=(band7===2)||force7(im7),explore=(band7===-1||_adExploreIcon363(im7)||explore7(im7))&&!force;"
-               "if(explore){if(im7.__adTamed){im7.style.removeProperty('filter');im7.__adTamed=0;im7.__adBy='exploreSkip361';}continue;}"
+               "var band7=_adTameBand362(im7);if(band7===-1||_adExploreIcon363(im7)){im7.removeAttribute('data-ad-tame-fast362');if(im7.__adTamed){im7.style.removeProperty('filter');im7.__adTamed=0;im7.__adBy='tameSkip364';}continue;}var force=(band7===2)||force7(im7),explore=explore7(im7)&&!force;"
+               "if(explore){im7.removeAttribute('data-ad-tame-fast362');if(im7.__adTamed){im7.style.removeProperty('filter');im7.__adTamed=0;im7.__adBy='tameSkip364';}continue;}"
                "var tg7=String(im7.tagName||'').toUpperCase();"
                "var sig7=tg7+'|'+String(im7.currentSrc||im7.src||im7.getAttribute&&im7.getAttribute('poster')||'');"
-               "if(im7.__adTamed&&im7.__adTameSig===sig7)continue;"
-               "var ir7=im7.getBoundingClientRect();if(band7===3&&(ir7.width>128||ir7.height>128))continue;var min7=(force||band7===3)?32:56;"
+               "if(im7.__adTamed&&im7.__adTameSig===sig7&&String(getComputedStyle(im7).filter||'').indexOf('brightness')>=0)continue;"
+               "var ir7=im7.getBoundingClientRect();var min7=force?32:56;"
                "if(ir7.width<min7||ir7.height<min7)continue;"
                "if(im7.__adGlyph&&!force)continue;"
                "var icn7=im7.className;if(icn7&&icn7.baseVal!==undefined)icn7=icn7.baseVal;"
                "if(!force&&/sprite|icon|logo|pixel/i.test(String(icn7||'')))continue;"
-               "im7.style.setProperty('filter','brightness('+bb9+') saturate(1.08)','important');"
+               "im7.setAttribute('data-ad-tame-fast362','1');im7.style.setProperty('filter','brightness('+bb9+') saturate(1.08)','important');"
                "im7.__adTamed=1;im7.__adTameSig=sig7;im7.__adBy=force?'whiteTame361ctx':'whiteTame361';tamed++;}"
              // CSS-background creative: multiply ONLY the painted background. Applying
              // filter here would dim/recolour all descendant text as one composited layer.
@@ -1580,14 +1603,14 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "for(var z9=0;z9<PB.length&&z9<900&&((z9&15)||!ovr())&&bgtamed<72;z9++){"
                "var be9=PB[z9],bs9=getComputedStyle(be9),bi9=String(bs9.backgroundImage||'none');"
                "if(bi9.indexOf('url(')<0)continue;"
-               "var bandb=_adTameBand362(be9),forceb=(bandb===2)||force7(be9),exploreb=(bandb===-1||_adExploreIcon363(be9)||explore7(be9))&&!forceb;"
-               "if(exploreb){if(be9.__adTamed){be9.style.removeProperty('background-blend-mode');be9.style.removeProperty('background-color');be9.__adTamed=0;be9.__adBy='exploreSkip361';}continue;}"
-               "var br9=be9.getBoundingClientRect(),minb=(forceb||bandb===3)?32:56;if(br9.width<minb||br9.height<minb)continue;if(bandb===3&&(br9.width>128||br9.height>128||(be9.querySelector&&be9.querySelector('span,p,h1,h2,h3,h4,a'))))continue;"
+               "var bandb=_adTameBand362(be9);if(bandb===-1||_adExploreIcon363(be9)){be9.removeAttribute('data-ad-tame-bgfast364');if(be9.__adTamed){be9.style.removeProperty('background-blend-mode');be9.style.removeProperty('background-color');be9.__adTamed=0;be9.__adBy='tameSkip364';}continue;}var forceb=(bandb===2)||force7(be9),exploreb=explore7(be9)&&!forceb;"
+               "if(exploreb){be9.removeAttribute('data-ad-tame-bgfast364');if(be9.__adTamed){be9.style.removeProperty('background-blend-mode');be9.style.removeProperty('background-color');be9.__adTamed=0;be9.__adBy='tameSkip364';}continue;}"
+               "var br9=be9.getBoundingClientRect(),minb=forceb?32:56;if(br9.width<minb||br9.height<minb)continue;"
                "var bcn=be9.className;if(bcn&&bcn.baseVal!==undefined)bcn=bcn.baseVal;"
                "if(!forceb&&/sprite|icon|logo|pixel/i.test(String(bcn||'')))continue;"
-               "var bsig='BG|'+bi9;if(be9.__adTamed&&be9.__adTameSig===bsig)continue;"
+               "var bsig='BG|'+bi9;if(be9.__adTamed&&be9.__adTameSig===bsig&&String(getComputedStyle(be9).backgroundBlendMode||'').indexOf('multiply')>=0)continue;"
                "if(be9.querySelector&&be9.querySelector('span,p,h1,h2,h3,h4,a')&&_adMark(be9))try{be9.setAttribute('data-ad-stocktext','1');}catch(e){}"
-               "be9.style.setProperty('background-color','rgba(0,0,0,'+aa9+')','important');"
+               "be9.setAttribute('data-ad-tame-bgfast364','1');be9.style.setProperty('background-color','rgba(0,0,0,'+aa9+')','important');"
                "be9.style.setProperty('background-blend-mode','multiply','important');"
                "be9.__adTamed=1;be9.__adTameSig=bsig;be9.__adBy=forceb?'whiteTame361bgctx':'whiteTame361bg';bgtamed++;}"
              "if(tamed||bgtamed)window.__AD_TAME__='media='+tamed+' bg='+bgtamed+' ceil='+cL.toFixed(2);"
@@ -2916,7 +2939,10 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "return n+'/'+bfix+'/'+lfix+'/'+gfix+'/'+bigfix+pr;}catch(e){return -1;}};"
          "window.__AMZDARK_APPLY__=function(){try{"
            "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
-           "window.__AMZDARK_FIXCONTRAST__();"
+           "if(window._adTameFast362)_adTameFast362(document.documentElement);"
+           "if(window._adTextPins363)_adTextPins363(document.documentElement);"
+           "if(window.__AD_COLLEGE_FAST59__)window.__AD_COLLEGE_FAST59__();"
+           "if(window._adVideoCtlMain362)_adVideoCtlMain362();"
          "}catch(e){}};"
          // v5.362: fast White-Tame lane. Dynamic VIDEO/IMG nodes are marked on the
          // mutation/load microtask; CSS owns the paint. This avoids waiting for the
@@ -2929,42 +2955,51 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // extra children (the old exact-element test missed Explore/Alexa) and avoids
          // forcing layout on ~2600 candidates every 700ms.
          "function _adTameBands362(){try{var now=Date.now();if(window.__ADTB362__&&now-(window.__ADTB362T__||0)<1200)return window.__ADTB362__;"
-           "var b={explore:-1,shopcat:-1,sub:-1,keep:-1,watched:-1,lists:-1,how:-1,questions:-1,reviews:-1,help:-1},root=document.body||document.documentElement,sy=window.scrollY||window.pageYOffset||0;"
+           "var b={explore:-1,shopcat:-1,sub:-1,keep:-1,watched:-1,lists:-1,how:-1,questions:-1,reviews:-1,help:-1,returns:-1,related:-1},root=document.body||document.documentElement,sy=window.scrollY||window.pageYOffset||0;"
            "if(root&&document.createTreeWalker){var W=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nd,n=0;while((nd=W.nextNode())&&n++<3600){var t=String(nd.nodeValue||'').replace(/\s+/g,' ').trim().toLowerCase();if(t.length<4||t.length>90)continue;var e=nd.parentElement;if(!e||/^(SCRIPT|STYLE|NOSCRIPT)$/i.test(e.tagName))continue;var hit=0;"
              "if(t==='explore more for you'&&b.explore<0){hit=1;b.explore=0;}else if(t==='shop by category'&&b.shopcat<0){hit=2;b.shopcat=0;}"
              "else if((t==='subscribe & save'||t==='subscribe and save')&&b.sub<0){hit=3;b.sub=0;}else if(t.indexOf('keep shopping for')===0&&b.keep<0){hit=4;b.keep=0;}"
              "else if(t==='shop previously watched'&&b.watched<0){hit=5;b.watched=0;}else if(t.indexOf('lists and registries')===0&&b.lists<0){hit=6;b.lists=0;}"
              "else if((t==='how can i help?'||t==='how can i help')&&b.how<0){hit=7;b.how=0;}else if(t.indexOf('questions while you shop')===0&&b.questions<0){hit=8;b.questions=0;}"
-             "else if(t==='your reviews'&&b.reviews<0){hit=9;b.reviews=0;}else if(t.indexOf('need help?')===0&&b.help<0){hit=10;b.help=0;}if(!hit)continue;"
-             "var r=e.getBoundingClientRect();if(r.width<8||r.height<4)continue;var y=r.top+sy+r.height/2;if(hit===1)b.explore=y;else if(hit===2)b.shopcat=y;else if(hit===3)b.sub=y;else if(hit===4)b.keep=y;else if(hit===5)b.watched=y;else if(hit===6)b.lists=y;else if(hit===7)b.how=y;else if(hit===8)b.questions=y;else if(hit===9)b.reviews=y;else if(hit===10)b.help=y;}}"
+             "else if(t==='your reviews'&&b.reviews<0){hit=9;b.reviews=0;}else if(t.indexOf('need help?')===0&&b.help<0){hit=10;b.help=0;}"
+             "else if(t==='returns are easy'&&b.returns<0){hit=11;b.returns=0;}else if(t.indexOf('related products')===0&&b.related<0){hit=12;b.related=0;}if(!hit)continue;"
+             "var r=e.getBoundingClientRect();if(r.width<8||r.height<4)continue;var y=r.top+sy+r.height/2;if(hit===1)b.explore=y;else if(hit===2)b.shopcat=y;else if(hit===3)b.sub=y;else if(hit===4)b.keep=y;else if(hit===5)b.watched=y;else if(hit===6)b.lists=y;else if(hit===7)b.how=y;else if(hit===8)b.questions=y;else if(hit===9)b.reviews=y;else if(hit===10)b.help=y;else if(hit===11)b.returns=y;else if(hit===12)b.related=y;}}"
            "window.__ADTB362__=b;window.__ADTB362T__=now;return b;}catch(e){return null;}}"
-         // band: -1 explicit skip, 2 forced product-media section, 3 Reviews where
-         // only image-sized media may be tamed (never a whole review card snapshot).
+         // band: -1 explicit skip, 2 forced product-media section. Reviews is a
+         // complete opt-out in v5.364; Returns is forced by a sibling section band.
          "function _adTameBand362(e){try{var b=_adTameBands362();if(!b||!e)return 0;var r=e.getBoundingClientRect(),y=r.top+(window.scrollY||window.pageYOffset||0)+r.height/2;"
            "if(b.explore>=0&&y>b.explore&&y<(b.shopcat>b.explore?b.shopcat:b.explore+720))return -1;"
            "if(b.sub>=0&&y>b.sub&&y<(b.keep>b.sub?b.keep:b.sub+760))return 2;"
            "if(b.watched>=0&&y>b.watched&&y<(b.lists>b.watched?b.lists:b.watched+620))return 2;"
            "if(b.how>=0&&y>b.how&&y<(b.questions>b.how?b.questions:b.how+580))return 2;"
-           "if(b.reviews>=0&&y>b.reviews&&y<(b.help>b.reviews?b.help:b.reviews+520))return 3;return 0;}catch(e){return 0;}}"
-         "function _adExploreIcon363(e){try{var p=e,d=0,re=/(?:same-day|same day|pharmacy|prime video|amazon haul|whole foods|autos)/i;while(p&&d++<5){var tx=String(p.textContent||'').replace(/\s+/g,' ').trim();if(tx.length>0&&tx.length<420&&re.test(tx))return true;p=p.parentElement;}}catch(x){}return false;}"
+           "if(b.reviews>=0&&y>b.reviews&&y<(b.help>b.reviews?b.help:b.reviews+900))return -1;"
+           "if(b.returns>=0&&y>b.returns&&y<(b.related>b.returns?b.related:b.returns+520))return 2;return 0;}catch(e){return 0;}}"
+         "function _adExploreIcon363(e){try{var p=e,d=0,re=/(?:same-day|same day|pharmacy|prime video|amazon haul|whole foods|autos|your reviews)/i;while(p&&d++<5){var tx=String(p.textContent||'').replace(/\s+/g,' ').trim();if(tx.length>0&&tx.length<420&&re.test(tx))return true;p=p.parentElement;}}catch(x){}return false;}"
          "function _adTameCss362(){try{if(!window.__ADTAME_ON__)return;if(document.getElementById('adtame362'))return;"
            "var S=Math.max(0,Math.min(100,window.__ADTAME_S__||45)),bb=(1-0.50*(S/100)).toFixed(3);"
-           "var st=document.createElement('style');st.id='adtame362';st.textContent='[data-ad-tame-fast362=\"1\"]{filter:brightness('+bb+') saturate(1.08) !important;}';"
+           "var aa=(0.50*(S/100)).toFixed(3);var st=document.createElement('style');st.id='adtame362';st.textContent='[data-ad-tame-fast362=\"1\"]{filter:brightness('+bb+') saturate(1.08) !important;}[data-ad-tame-bgfast364=\"1\"]{background-color:rgba(0,0,0,'+aa+') !important;background-blend-mode:multiply !important;}';"
            "(document.head||document.documentElement).appendChild(st);}catch(e){}}"
          "function _adTameFast362(root){try{if(!window.__ADTAME_ON__||!root||root.nodeType!==1)return 0;_adTameCss362();var A=[];"
            "if(/^(IMG|VIDEO|CANVAS)$/i.test(String(root.tagName||'')))A.push(root);try{var q=root.querySelectorAll('img,video,canvas');for(var i=0;i<q.length&&i<100;i++)A.push(q[i]);}catch(e){}"
            "var n=0;for(var j=0;j<A.length&&j<120;j++){var x=A[j],tg=String(x.tagName||'').toUpperCase(),cn=x.className;cn=String(cn&&cn.baseVal!==undefined?cn.baseVal:(cn||''));var band=_adTameBand362(x),xr=x.getBoundingClientRect();"
              "if(band<0||_adExploreIcon363(x)){x.removeAttribute('data-ad-tame-fast362');if(String(x.__adBy||'').indexOf('whiteTame')===0)x.style.removeProperty('filter');x.__adTamed=0;x.__adBy='exploreSkip362';continue;}"
-             "if(band===3&&(xr.width>128||xr.height>128))continue;if(band!==2&&band!==3&&/sprite|icon|logo|pixel/i.test(cn))continue;if(x.__adGlyph&&band!==2&&band!==3)continue;var ok=(tg==='VIDEO'||tg==='CANVAS');"
-             "if(!ok&&tg==='IMG'){var nw=x.naturalWidth||+(x.getAttribute&&x.getAttribute('width')||0),nh=x.naturalHeight||+(x.getAttribute&&x.getAttribute('height')||0),mn=((band===2||band===3)?32:56);ok=(nw>=mn&&nh>=mn);}"
-             "if(!ok)continue;x.setAttribute('data-ad-tame-fast362','1');x.__adBy=(band===2?'whiteTameFast362ctx':'whiteTameFast362');n++;}return n;}catch(e){return 0;}}"
-         "try{_adTameCss362();_adTameFast362(document.documentElement);document.addEventListener('load',function(e){try{_adTameFast362(e.target);}catch(x){}},true);}catch(e){}"
+             "if(band!==2&&/sprite|icon|logo|pixel/i.test(cn))continue;if(x.__adGlyph&&band!==2)continue;var ok=(tg==='VIDEO'||tg==='CANVAS');"
+             "if(!ok&&tg==='IMG'){var nw=x.naturalWidth||+(x.getAttribute&&x.getAttribute('width')||0),nh=x.naturalHeight||+(x.getAttribute&&x.getAttribute('height')||0),mn=(band===2?32:56);ok=(nw>=mn&&nh>=mn);}"
+             "if(!ok)continue;x.setAttribute('data-ad-tame-fast362','1');x.__adBy=(band===2?'whiteTameFast362ctx':'whiteTameFast362');n++;}"
+           // CSS-background ads were the remaining sporadic Home misses once the full
+           // pass was intentionally delayed. Scan only a tiny local budget here and
+           // mark the BACKGROUND layer; child text is never filtered.
+           "var B=[];if(/^(DIV|SPAN|A|SECTION|LI)$/i.test(String(root.tagName||'')))B.push(root);try{var qb=root.querySelectorAll('div,span,a,section,li');for(var k=0;k<qb.length&&k<32;k++)B.push(qb[k]);}catch(e){}"
+           "var bg=0;for(var z=0;z<B.length&&z<36;z++){var be=B[z],bandb=_adTameBand362(be);if(bandb<0||_adExploreIcon363(be)){be.removeAttribute('data-ad-tame-bgfast364');if(String(be.__adBy||'').indexOf('whiteTame')===0)be.__adBy='tameSkip364';continue;}"
+             "var cs=getComputedStyle(be),bi=String(cs.backgroundImage||'none');if(bi.indexOf('url(')<0)continue;var br=be.getBoundingClientRect(),mn2=(bandb===2?32:56);if(br.width<mn2||br.height<mn2)continue;var bc=be.className;bc=String(bc&&bc.baseVal!==undefined?bc.baseVal:(bc||''));if(bandb!==2&&/sprite|icon|logo|pixel/i.test(bc))continue;be.setAttribute('data-ad-tame-bgfast364','1');be.__adBy=(bandb===2?'whiteTameFastBg364ctx':'whiteTameFastBg364');bg++;}"
+           "return n+bg;}catch(e){return 0;}}"
+         "try{window._adTameFast362=_adTameFast362;_adTameCss362();_adTameFast362(document.documentElement);document.addEventListener('load',function(e){try{_adTameFast362(e.target);}catch(x){}},true);}catch(e){}"
          // Exact text pins that must never depend on Dark Reader's palette pass.
          // Text-node matching handles wrappers with an adjacent info glyph.
          "function _adTextPins363(root){try{if(!root||root.nodeType!==1||!document.createTreeWalker)return 0;var W=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nd,n=0,seen=0;while((nd=W.nextNode())&&seen++<1400){var t=String(nd.nodeValue||'').replace(/\s+/g,' ').trim();if(!t||t.length>32)continue;var e=nd.parentElement;if(!e||/^(SCRIPT|STYLE|NOSCRIPT)$/i.test(e.tagName))continue;var r=e.getBoundingClientRect();if(r.width<12||r.height<5)continue;"
            "if(t.toLowerCase()==='you might like'&&r.width>=70&&r.width<=320){e.setAttribute('data-ad-yml-head363','1');e.__adBy='yml363';n++;continue;}"
            "if(/^sponsored$/i.test(t)&&r.width>=28&&r.width<=220&&r.height<=48){e.setAttribute('data-ad-sponsored-light363','1');e.__adBy='sponsored363';n++;}}window.__AD_TEXTPINS363__=n;return n;}catch(e){return 0;}}"
-         "try{_adTextPins363(document.documentElement);}catch(e){}"
+         "try{window._adTextPins363=_adTextPins363;_adTextPins363(document.documentElement);}catch(e){}"
          // Restore the stock black circular backing for top-carousel play/pause controls.
          // If the player lives in the child ad frame its own path handles it; this is
          // the main-document overlay case shown in the 5.361 screenshot.
@@ -2973,7 +3008,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "var A=host.querySelectorAll?host.querySelectorAll('button,[role=button],svg,i'):[];for(var ai=0;ai<A.length&&ai<160;ai++){var e=A[ai],r=e.getBoundingClientRect();if(r.width<10||r.width>64||r.height<10||r.height>64)continue;var cx=r.left+r.width/2,cy=r.top+r.height/2;if(cx<vr.left-12||cx>vr.right+12||cy<vr.top+vr.height*.42||cy>vr.bottom+20)continue;"
              "var c=e.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));var lab=String((e.getAttribute&&e.getAttribute('aria-label'))||(e.getAttribute&&e.getAttribute('title'))||'');var sem=/play|pause/i.test(c+' '+lab),left=cx<vr.left+Math.max(100,vr.width*.30);if(!sem&&!left)continue;"
              "var p=e,up=0;while(p.parentElement&&up++<2){var pr=p.parentElement.getBoundingClientRect();if(pr.width>=18&&pr.width<=64&&pr.height>=18&&pr.height<=64)p=p.parentElement;else break;}p.setAttribute('data-ad-videoctl362','1');p.__adBy='videoCtlMain362';n++;}}window.__AD_VIDEOCTL_MAIN362__=n;return n;}catch(e){return 0;}}"
-         "try{_adVideoCtlMain362();}catch(e){}"
+         "try{window._adVideoCtlMain362=_adVideoCtlMain362;_adVideoCtlMain362();}catch(e){}"
          // v5.359: the 5.358 device probe finally identified the College painters as
          // edge SVGs. The full contrast pass intentionally does not run while scrolling,
          // which is why those SVGs were visible black until the trailing pass/heartbeat.
@@ -3029,17 +3064,17 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // v5.363 PERFORMANCE: mutations only run the tiny marker lanes synchronously.
          // The ~50ms full contrast/tame sweep runs once after the DOM settles instead
          // of every ~220-400ms throughout lazy-loading/scrolling.
-         "try{var _t=null;new MutationObserver(function(muts){"
-           "try{for(var m2=0;m2<muts.length&&m2<40;m2++){var ad=muts[m2].addedNodes;for(var a2=0;a2<ad.length&&a2<20;a2++){_adPin(ad[a2]);_adTameFast362(ad[a2]);_adTextPins363(ad[a2]);}try{_adVideoCtlMain362();}catch(e){}}}catch(e){}"
-           "try{_adCollegeFast59();}catch(e){}clearTimeout(_t);_t=setTimeout(function(){try{if(!document.hidden)window.__AMZDARK_FIXCONTRAST__();}catch(e){}},900);})"
-           ".observe(document.documentElement,{childList:true,subtree:true});}catch(e){}"
-           // Sparse backstop for late re-mounts. Fast lanes handle normal lazy loads.
-         "try{if(!window.__AMZDARK_HB__){window.__AMZDARK_HB__=1;var hbn=0;var hb=setInterval(function(){try{if(++hbn>6){clearInterval(hb);return;}if(document.hidden||window.__ADSCROLLING__)return;window.__AMZDARK_FIXCONTRAST__();}catch(e){}},8000);}}catch(e){}"
+         "try{var _t=null;new MutationObserver(function(muts){var structural=0;"
+           "try{for(var m2=0;m2<muts.length&&m2<40;m2++){var mm2=muts[m2];if(mm2.type==='attributes'){if(mm2.target)_adTameFast362(mm2.target);continue;}structural=1;var ad=mm2.addedNodes;for(var a2=0;a2<ad.length&&a2<20;a2++){_adPin(ad[a2]);_adTameFast362(ad[a2]);_adTextPins363(ad[a2]);}try{_adVideoCtlMain362();}catch(e){}}}catch(e){}"
+           "try{_adCollegeFast59();}catch(e){}if(structural){clearTimeout(_t);_t=setTimeout(function(){try{if(!document.hidden&&!window.__ADSCROLLING__)window.__AMZDARK_FIXCONTRAST__();}catch(e){}},1400);}})"
+           ".observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src','srcset','poster','class','style']});}catch(e){}"
+         // One late backstop only. The old six 8-second full scans could collide with
+         // Home's own renderer long after the page was already stable.
+         "try{if(!window.__AMZDARK_HB__){window.__AMZDARK_HB__=1;setTimeout(function(){try{if(!document.hidden&&!window.__ADSCROLLING__)window.__AMZDARK_FIXCONTRAST__();}catch(e){}},12000);}}catch(e){}"
          "window.__AMZDARK_APPLY__();"
          // Fast early passes so promo text / buttons are corrected before the
          // eye registers Dark Reader's first-paint colours. One-shot, bounded.
-         "try{[60,300].forEach(function(t){setTimeout(function(){"
-           "try{window.__AMZDARK_FIXCONTRAST__();}catch(e){}},t);});}catch(e){}"
+         "try{setTimeout(function(){try{window.__AMZDARK_FIXCONTRAST__();}catch(e){}},350);}catch(e){}"
          // Re-apply when the page is restored from the back-forward cache (returning
          // to a tab). pageshow.persisted is true exactly in that case, and it is the
          // event that fires when no navigation happens — the cart's "went white on
@@ -5925,7 +5960,7 @@ static BOOL ADWTImageLight363(UIImage *im){
 }
 
 typedef struct {
-    CGFloat explore, shopcat, subscribe, keep, watched, lists, how, questions, reviews, help, alexa;
+    CGFloat explore, shopcat, subscribe, keep, watched, lists, how, questions, reviews, help, alexa, returns, related;
 } ADWTBands362;
 static __weak UIWindow *gADWTBandWindow362 = nil;
 static CFAbsoluteTime gADWTBandTime362 = 0;
@@ -5960,16 +5995,26 @@ static void ADWTBandWalk362(UIView *v, UIWindow *w, int depth, int *budget, ADWT
             else if ([lo isEqualToString:@"your reviews"]) b->reviews=y;
             else if ([lo containsString:@"need help"]) b->help=y;
             else if ([lo containsString:@"alexa for shopping"]) b->alexa=y;
+            else if ([lo isEqualToString:@"returns are easy"]) b->returns=y;
+            else if ([lo containsString:@"related products"]) b->related=y;
         }
         for (UIView *sv in v.subviews) ADWTBandWalk362(sv,w,depth+1,budget,b);
     } @catch(...) {}
 }
 static ADWTBands362 ADWTBandsForWindow362(UIWindow *w){
     CFAbsoluteTime now=CFAbsoluteTimeGetCurrent();
-    if (w && w==gADWTBandWindow362 && now-gADWTBandTime362<1.5) return gADWTBands362;
-    ADWTBands362 b={-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+    if (w && w==gADWTBandWindow362 && now-gADWTBandTime362<0.60) return gADWTBands362;
+    ADWTBands362 b={-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
     if (w){ int budget=900; ADWTBandWalk362(w,w,0,&budget,&b); }
     gADWTBandWindow362=w; gADWTBandTime362=now; gADWTBands362=b; return b;
+}
+static const void *kADWTForcedImage364 = &kADWTForcedImage364;
+static BOOL ADWTRawImageLike364(UIView *v){
+    if (!v) return NO;
+    const char *c=object_getClassName(v); if(!c) return NO;
+    if (strstr(c,"Text")||strstr(c,"Label")||strstr(c,"Paragraph")||strstr(c,"Button")||
+        strstr(c,"SVG")||strstr(c,"Icon")||strstr(c,"Shape")||strstr(c,"Gradient")) return NO;
+    return YES;
 }
 static BOOL ADWTExploreTile363(UIView *v){
     @try {
@@ -5985,7 +6030,7 @@ static BOOL ADWTExploreTile363(UIView *v){
     } @catch(...) {}
     return NO;
 }
-// 0 normal, 1 explicit exclusion, 2 forced product-media context, 3 Reviews media-only.
+// 0 normal, 1 explicit exclusion, 2 forced product-media context. Reviews is excluded.
 static int ADWTNativeContext(UIView *v){
     @try {
         UIWindow *w=v.window; if (!w) return 0;
@@ -5996,7 +6041,8 @@ static int ADWTNativeContext(UIView *v){
         if (b.subscribe>=0 && y>b.subscribe && (b.keep>b.subscribe ? y<b.keep : y<b.subscribe+760)) return 2;
         if (b.watched>=0 && y>b.watched && (b.lists>b.watched ? y<b.lists : y<b.watched+560)) return 2;
         if (b.how>=0 && y>b.how && (b.questions>b.how ? y<b.questions : y<b.how+520)) return 2;
-        if (b.reviews>=0 && y>b.reviews && (b.help>b.reviews ? y<b.help : y<b.reviews+520)) return 3;
+        if (b.reviews>=0 && y>b.reviews && (b.help>b.reviews ? y<b.help : y<b.reviews+900)) return 1;
+        if (b.returns>=0 && y>b.returns && (b.related>b.returns ? y<b.related : y<b.returns+520)) return 2;
         if (b.alexa>=0){ CGFloat aw=v.bounds.size.width,ah=v.bounds.size.height,ar=aw/MAX((CGFloat)1.0,ah); if(aw>=32&&ah>=32&&aw<=170&&ah<=170&&ar>=0.60&&ar<=1.65) return 2; }
         // Keep the already-working cart treatment even when its labels share no
         // ancestor with the two artwork views.
@@ -6028,10 +6074,18 @@ static void ADApplyNativeWhiteTameView(UIView *v){
         // layer.contents is allowed only in those named sections AND only for an
         // image-sized leaf. Reviews use a tighter 128pt cap so a rendered review card
         // is never treated as one image while its small product thumbnail stays eligible.
-        BOOL ivEligible=isIV && ((ctx==2)||(ctx==3&&tw<=128&&th<=128)||ADWTImageLight363(ivImage));
-        BOOL rawEligible=(!isIV && (ctx==2 || (ctx==3&&tw<=128&&th<=128)) && tw<=170 && th<=170);
-        CGFloat minDim=(ctx==2||ctx==3)?32:56;
-        if (!gP.enabled || !gP.whiteTame || !v.window || !hasMedia ||
+        // A named product section can briefly fall out of the cached screen band while
+        // its scroll view is moving. Remember the exact UIImage object that was positively
+        // classified; the same mounted image stays tamed instead of flashing on/off.
+        UIImage *forced=objc_getAssociatedObject(v,kADWTForcedImage364);
+        if (isIV && forced && forced!=ivImage){ objc_setAssociatedObject(v,kADWTForcedImage364,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); forced=nil; }
+        if (isIV && ctx==2 && ivImage){ objc_setAssociatedObject(v,kADWTForcedImage364,ivImage,OBJC_ASSOCIATION_RETAIN_NONATOMIC); forced=ivImage; }
+        BOOL lightIV=isIV && ADWTImageLight363(ivImage);
+        BOOL stickyIV=isIV && forced==ivImage && ivImage!=nil;
+        BOOL ivEligible=isIV && (ctx==2||lightIV||stickyIV);
+        BOOL rawEligible=(!isIV && ctx==2 && ADWTRawImageLike364(v) && tw<=170 && th<=170);
+        CGFloat minDim=(ctx==2||stickyIV||lightIV)?32:56;
+        if (!gP.enabled || !gP.whiteTame || (!v.window && !stickyIV) || !hasMedia ||
             ADInTabBarChain(v) || (ADIsChromeGlyphContext(v) && ctx==0) || ctx==1 ||
             (!ivEligible && !rawEligible) || tw<minDim || th<minDim) {
             if (ov) { [ov removeFromSuperlayer]; objc_setAssociatedObject(v,kADWhiteTameOverlayKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
@@ -6045,9 +6099,10 @@ static void ADApplyNativeWhiteTameView(UIView *v){
             [v.layer addSublayer:ov];
             objc_setAssociatedObject(v,kADWhiteTameOverlayKey,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             if (gADNativeTameLog++<48)
-                ADLog(@"P24NATTAME[%s %.0fx%.0f alpha=%.3f ctx=%d raw=%d band=362]",
+                ADLog(@"P24NATTAME[%s %.0fx%.0f alpha=%.3f ctx=%d raw=%d band=364]",
                       object_getClassName(v),v.bounds.size.width,v.bounds.size.height,a,ctx,isIV?0:1);
         } else {
+            if (ov.superlayer != v.layer) [v.layer addSublayer:ov];
             ov.frame=v.bounds; ov.backgroundColor=[UIColor colorWithWhite:0 alpha:a].CGColor; ov.zPosition=9999;
         }
     } @catch(...) {}
@@ -6058,13 +6113,14 @@ static void ADPrimeNativeWhiteTame363(UIView *v, UIImage *incoming){
         CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
         if(w<28||h<28) return;
         int ctx=ADWTNativeContext(v);
-        if(ctx==1) return;
-        BOOL light=(ctx==0&&incoming)?ADWTImageLight363(incoming):NO;
-        if(!(ctx==2||ctx==3)&&!light) return;
-        if(ctx==3&&(w>128||h>128)) return;
         CALayer *ov=objc_getAssociatedObject(v,kADWhiteTameOverlayKey);
+        if(ctx==1){ if(ov){[ov removeFromSuperlayer];objc_setAssociatedObject(v,kADWhiteTameOverlayKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);} objc_setAssociatedObject(v,kADWTForcedImage364,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); return; }
+        BOOL light=(ctx==0&&incoming)?ADWTImageLight363(incoming):NO;
+        if(!(ctx==2)&&!light) return;
+        if(ctx==2&&incoming) objc_setAssociatedObject(v,kADWTForcedImage364,incoming,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         CGFloat a=0.50*(MAX(0,MIN(100,gP.whiteTameStrength))/100.0);
-        if(!ov){ov=[CALayer layer];ov.name=@"AmazonDarkWhiteTame363Prime";[v.layer addSublayer:ov];objc_setAssociatedObject(v,kADWhiteTameOverlayKey,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
+        if(!ov){ov=[CALayer layer];ov.name=@"AmazonDarkWhiteTame364Prime";[v.layer addSublayer:ov];objc_setAssociatedObject(v,kADWhiteTameOverlayKey,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
+        else if(ov.superlayer!=v.layer)[v.layer addSublayer:ov];
         ov.frame=v.bounds;ov.backgroundColor=[UIColor colorWithWhite:0 alpha:a].CGColor;ov.zPosition=9999;
     } @catch(...) {}
 }
@@ -7663,7 +7719,7 @@ static NSString *ADProbeWebJS(void){
              "+'|bg='+st.backgroundColor+'|col='+st.color+'|'+ch.join('>'));}"
          "out.push('P9SPON[sub='+(__sub?1:0)+' '+(R.length?R.join(' ~ '):'none')+']');}catch(x){out.push('P9SPON[err]');}"
        // P24TAME (v5.361): media filters and background-only blend taming.
-       "try{var T24=[],E24=document.querySelectorAll('*'),V24=window.innerHeight||900;for(var i24=0;i24<E24.length&&T24.length<20;i24++){var e24=E24[i24];if(!e24.__adTamed)continue;var r24=e24.getBoundingClientRect();if(r24.width<28||r24.height<28||r24.bottom<0||r24.top>V24*2)continue;var s24=getComputedStyle(e24),c24=e24.className;if(c24&&c24.baseVal!==undefined)c24=c24.baseVal;T24.push(e24.tagName+'.'+String(c24||'').replace(/\\s+/g,'.').slice(0,28)+'@'+Math.round(r24.width)+'x'+Math.round(r24.height)+'|f='+String(s24.filter||'none').replace(/\\s+/g,' ').slice(0,26)+'|blend='+String(s24.backgroundBlendMode||'-').slice(0,12)+'|by='+(e24.__adBy||'-'));}out.push('P24TAME[n='+T24.length+(T24.length?' '+T24.join(' ~~ '):'')+']');}catch(e24x){out.push('P24TAME[err '+(e24x&&e24x.message||e24x)+']');}"
+       "try{var T24=[],E24=document.querySelectorAll('*'),V24=window.innerHeight||900;for(var i24=0;i24<E24.length&&T24.length<24;i24++){var e24=E24[i24],f24=e24.hasAttribute&&e24.hasAttribute('data-ad-tame-fast362'),b24=e24.hasAttribute&&e24.hasAttribute('data-ad-tame-bgfast364');if(!e24.__adTamed&&!f24&&!b24)continue;var r24=e24.getBoundingClientRect();if(r24.width<28||r24.height<28||r24.bottom<0||r24.top>V24*2)continue;var s24=getComputedStyle(e24),c24=e24.className;if(c24&&c24.baseVal!==undefined)c24=c24.baseVal;T24.push(e24.tagName+'.'+String(c24||'').replace(/\\s+/g,'.').slice(0,28)+'@'+Math.round(r24.width)+'x'+Math.round(r24.height)+'|f='+String(s24.filter||'none').replace(/\\s+/g,' ').slice(0,26)+'|blend='+String(s24.backgroundBlendMode||'-').slice(0,12)+'|fast='+(f24?'m':'-')+(b24?'b':'-')+'|by='+(e24.__adBy||'-'));}out.push('P24TAME[n='+T24.length+(T24.length?' '+T24.join(' ~~ '):'')+']');}catch(e24x){out.push('P24TAME[err '+(e24x&&e24x.message||e24x)+']');}"
        // P27VID (v5.362): confirm stock black play/pause backing was restored.
        "try{var A27=document.querySelectorAll('[data-ad-videoctl362]'),Q27=[];for(var i27=0;i27<A27.length&&i27<12;i27++){var e27=A27[i27],r27=e27.getBoundingClientRect(),s27=getComputedStyle(e27);Q27.push(e27.tagName+'@'+Math.round(r27.left)+','+Math.round(r27.top)+'/'+Math.round(r27.width)+'x'+Math.round(r27.height)+'|bg='+String(s27.backgroundColor||'-').replace(/ /g,'')+'|by='+(e27.__adBy||'-'));}out.push('P27VID[n='+Q27.length+(Q27.length?' '+Q27.join(' ~~ '):'')+']');}catch(e27){out.push('P27VID[err '+(e27&&e27.message||e27)+']');}"
 
@@ -7826,20 +7882,27 @@ static NSString *ADProbeWebJS(void){
 static void ADFocusedProbe363(void){
     @try {
         if (!gP.enabled) return;
+        static CFAbsoluteTime last=0; CFAbsoluteTime now=CFAbsoluteTimeGetCurrent();
+        if(now-last<4.0) return; last=now;
         ADLog(@"P28HZ[pref=%d screenMax=%ld]", gP.force120Hz?1:0,
               (long)UIScreen.mainScreen.maximumFramesPerSecond);
-        NSMutableSet *seen=[NSMutableSet set];
+        NSMutableSet *seen=[NSMutableSet set]; int sent=0;
         for (UIScene *sc in [UIApplication sharedApplication].connectedScenes){
+            if (sent>=2) break;
             if (![sc isKindOfClass:[UIWindowScene class]]) continue;
             for (UIWindow *w in ((UIWindowScene *)sc).windows){
+                if (sent>=2) break;
                 if (!w || w.hidden || w.alpha<0.05) continue;
                 NSMutableArray *wv=[NSMutableArray array];
                 ADCollectWebViews(w,wv,0);
                 for (WKWebView *web in wv){
+                    if(sent>=2) break;
                     NSValue *key=[NSValue valueWithNonretainedObject:web];
                     if ([seen containsObject:key]) continue;
                     [seen addObject:key];
                     if (!web.window || web.hidden || web.alpha<0.05) continue;
+                    CGRect wr=[web convertRect:web.bounds toView:w]; if(!CGRectIntersectsRect(wr,w.bounds)||wr.size.width<40||wr.size.height<40) continue;
+                    sent++;
                     [web evaluateJavaScript:ADProbeWebJS() completionHandler:^(id r, NSError *e){
                         @try {
                             if ([r isKindOfClass:[NSString class]] && [(NSString *)r length]) ADLog(@"%@",r);
@@ -8562,19 +8625,21 @@ static void ADStartTimer(void){
 // a forever-timer, we re-theme exactly when the view hierarchy changes. A short
 // coalesced burst (0 / 60 / 200 / 500 ms) covers the mount-to-first-paint window
 // without a standing cost.
-static void ADReapplyBurst(void){
-    // v5.363: the documentStart script handles first paint. Four complete web+native
-    // hierarchy sweeps inside 500ms were redundant and were visible as Home stalls.
+static const void *kADVCPrimed364 = &kADVCPrimed364;
+static void ADReapplyBurst(UIViewController *vc){
+    // v5.364: returning to an already-mounted tab is not a navigation. Its WKUserScript,
+    // pageshow/visibility lane and assignment hooks are already live, so globally walking
+    // every WKWebView + native window here only starved Home's renderer (black-screen until
+    // refresh). First appearance gets one 4ms-bounded local native catch-up; later returns
+    // only reassert the dark trait.
     @try {
         ADForceWindowsDarkTrait();
-        ADInjectAllWebViews();
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 450*1000000LL),
-            dispatch_get_main_queue(), ^{ @try {
-                // New WKWebViews self-inject from their mount/load hooks. Do not walk
-                // and evaluate every existing webview a second time just because a VC appeared.
-                ADForceWindowsDarkTrait();
-                ADSweepAllWindows();
-            } @catch(...) {} });
+        if (!vc || objc_getAssociatedObject(vc,kADVCPrimed364)) return;
+        objc_setAssociatedObject(vc,kADVCPrimed364,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        __weak UIViewController *wvc=vc;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,220*1000000LL),dispatch_get_main_queue(),^{ @try {
+            UIViewController *v=wvc; if(v&&v.viewIfLoaded&&v.view.window) ADSweepTimed(v.view,ADInTabBarChain(v.view),"appear364");
+        } @catch(...) {} });
     } @catch(...) {}
 }
 
@@ -8705,10 +8770,10 @@ static void ADReapplyBurst(void){
                               (long)[UIApplication sharedApplication].statusBarStyle); }
                 }
             } @catch(...) {}
-            ADReapplyBurst();
+            ADReapplyBurst(self);
             // Focused probe after the burst settles. The recursive native offender
             // scanner is intentionally not automatic anymore; it was expensive debug debt.
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1050*1000000LL),
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1750*1000000LL),
                 dispatch_get_main_queue(), ^{ ADFocusedProbe363(); });
         }
     } @catch(...) {}
@@ -8854,7 +8919,7 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
     // v5.363: bounded startup backstops. Assignment hooks + documentStart injection
     // own the steady state; nine escalating sweeps plus a second 40s timer were
     // duplicate work and could starve Home's own renderer.
-    for (NSNumber *dn in @[@0.20,@0.75,@2.0,@5.0]){
+    for (NSNumber *dn in @[@0.25,@1.50]){
         double d=dn.doubleValue;
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(d*NSEC_PER_SEC)),
             dispatch_get_main_queue(), ^{
