@@ -4453,11 +4453,24 @@ static NSInteger ADPreferredMaxHz362(void){
     return d;
 }
 - (void)setPreferredFramesPerSecond:(NSInteger)fps {
-    @try { if (gP.enabled && gP.force120Hz){ %orig(ADPreferredMaxHz362()); return; } } @catch(...) {}
+    @try {
+        if (gP.enabled && gP.force120Hz){
+            NSInteger hz = ADPreferredMaxHz362();
+            %orig(hz);
+            return;
+        }
+    } @catch(...) {}
     %orig;
 }
 - (void)setPreferredFrameRateRange:(CAFrameRateRange)range {
-    @try { if (gP.enabled && gP.force120Hz){ NSInteger hz=ADPreferredMaxHz362(); %orig(CAFrameRateRangeMake(hz,hz,hz)); return; } } @catch(...) {}
+    @try {
+        if (gP.enabled && gP.force120Hz){
+            NSInteger hz = ADPreferredMaxHz362();
+            CAFrameRateRange forcedRange = CAFrameRateRangeMake(hz, hz, hz);
+            %orig(forcedRange);
+            return;
+        }
+    } @catch(...) {}
     %orig;
 }
 %end
