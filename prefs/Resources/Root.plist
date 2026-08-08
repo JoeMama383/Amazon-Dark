@@ -1,10 +1,97 @@
-{
-    items = (
-        { cell = PSGroupCell; footerText = "Respring to take effect."; },
-        { cell = PSSwitchCell; label = "Enabled"; key = "enabled"; default = 1; defaults = "com.colindavidr.amazondark"; PostNotification = "com.colindavidr.amazondark/prefs-changed"; },
-        { cell = PSGroupCell; label = "Product photos"; footerText = "Lowers the ceiling on blown-out studio backgrounds. Pixels already darker than the ceiling are left untouched, so the product itself keeps its colour."; },
-        { cell = PSSwitchCell; label = "Tame white backgrounds"; key = "whiteTame"; default = 0; defaults = "com.colindavidr.amazondark"; PostNotification = "com.colindavidr.amazondark/prefs-changed"; },
-        { cell = PSSliderCell; label = "Strength"; key = "whiteTameStrength"; default = 45; min = 0; max = 100; isSegmented = 0; showValue = 1; defaults = "com.colindavidr.amazondark"; PostNotification = "com.colindavidr.amazondark/prefs-changed"; },
-    );
-    title = "AmazonDark";
-}
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>footerText</key>
+			<string>Respring to take effect.</string>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Enabled</string>
+			<key>key</key>
+			<string>enabled</string>
+			<key>default</key>
+			<string>1</string>
+			<key>defaults</key>
+			<string>com.colindavidr.amazondark</string>
+			<key>PostNotification</key>
+			<string>com.colindavidr.amazondark/prefs-changed</string>
+		</dict>
+		<dict>
+			<key>label</key>
+			<string>Product photos</string>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>Lowers the ceiling on blown-out studio backgrounds. Pixels already darker than the ceiling are left untouched, so the product itself keeps its colour.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Tame white backgrounds</string>
+			<key>key</key>
+			<string>whiteTame</string>
+			<key>default</key>
+			<string>0</string>
+			<key>defaults</key>
+			<string>com.colindavidr.amazondark</string>
+			<key>PostNotification</key>
+			<string>com.colindavidr.amazondark/prefs-changed</string>
+		</dict>
+		<dict>
+			<key>showValue</key>
+			<string>1</string>
+			<key>min</key>
+			<string>0</string>
+			<key>defaults</key>
+			<string>com.colindavidr.amazondark</string>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>isSegmented</key>
+			<string>0</string>
+			<key>label</key>
+			<string>Strength</string>
+			<key>key</key>
+			<string>whiteTameStrength</string>
+			<key>max</key>
+			<string>100</string>
+			<key>PostNotification</key>
+			<string>com.colindavidr.amazondark/prefs-changed</string>
+			<key>default</key>
+			<string>45</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Performance</string>
+			<key>footerText</key>
+			<string>Requests the display maximum up to 120 Hz while Amazon is running. iOS can still lower refresh rate for Low Power Mode, thermal limits, or system policy.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.colindavidr.amazondark</string>
+			<key>key</key>
+			<string>force120Hz</string>
+			<key>label</key>
+			<string>Request 120 Hz</string>
+			<key>PostNotification</key>
+			<string>com.colindavidr.amazondark/prefs-changed</string>
+		</dict>
+	</array>
+	<key>title</key>
+	<string>AmazonDark</string>
+</dict>
+</plist>
