@@ -527,7 +527,7 @@ static NSString *ADFixesLiteral(void){
              "{mix-blend-mode:normal !important;isolation:auto !important;}"
              "',invert:[],ignoreInlineStyle:['[class*=puis-heart-position]','[class*=puis-heart-position] *',"
              "'[class*=lists-framework-action-button]','[class*=lists-framework-action-button] *',"
-             "'[class*=copilot-compare]','[class*=copilot-compare] *','[data-ad-stocktext]','[data-ad-stocktext] *','[data-adcrt]','[data-adcrt] *','[data-ad-college-chevron]','[data-ad-college-chevron] *','[data-ad-college-chevron-sprite]','ul.a-pagination.a-dots li.a-selected','li.dot-selected-t2','[data-ad-cardborder]','[data-ad-nav-chevron-paint]'],"
+             "'[class*=copilot-compare]','[class*=copilot-compare] *','[data-ad-stocktext]','[data-ad-stocktext] *','[data-adcrt]','[data-adcrt] *','[data-ad-sponsored-light363]','[data-ad-sponsored-light363] *','[data-ad-college-chevron]','[data-ad-college-chevron] *','[data-ad-college-chevron-sprite]','ul.a-pagination.a-dots li.a-selected','li.dot-selected-t2','[data-ad-cardborder]','[data-ad-nav-chevron-paint]'],"
              "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
             imgBackdrop];
 }
@@ -2960,7 +2960,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "if(b.returns>=0&&y>b.returns&&y<(b.related>b.returns?b.related:b.returns+520))return 2;return 0;}catch(e){return 0;}}"
          "function _adExploreIcon363(e){try{var p=e,d=0,re=/(?:same-day|same day|pharmacy|prime video|amazon haul|whole foods|autos)/i;while(p&&d++<5){var tx=String(p.textContent||'').replace(/\s+/g,' ').trim();if(tx.length>0&&tx.length<420&&re.test(tx))return true;p=p.parentElement;}}catch(x){}return false;}"
          "function _adBgPlacement365(e){try{var p=e,d=0;while(p&&d++<4){var c=p.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));var id=String(p.id||''),cw=String((p.getAttribute&&p.getAttribute('data-cel-widget'))||'');if(/ape-placement|ape-wrapper|adfeedbackmaincomponent|ad-slot|adslot/i.test(c+' '+id+' '+cw))return true;if(p.querySelector&&p.querySelector('iframe')&&p.getBoundingClientRect().width>240)return true;p=p.parentElement;}return false;}catch(x){return false;}}"
-         "function _adKnownProduct366(e){try{if(!e)return false;var p=e,d=0;while(p&&d++<6){var c=p.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));var id=String(p.id||''),asin=String((p.getAttribute&&p.getAttribute('data-asin'))||''),href=String((p.getAttribute&&p.getAttribute('href'))||'');if(asin||/asin|product|p13n|npack|cxvhz|gwm-asin|carousel-image|product-image/i.test(c+' '+id)||/\/dp\/|\/gp\/product\//i.test(href))return true;p=p.parentElement;}return false;}catch(x){return false;}}"
+         "function _adKnownProduct366(e){try{if(!e)return false;var p=e,d=0;while(p&&d++<6){var c=p.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));var id=String(p.id||''),asin=String((p.getAttribute&&p.getAttribute('data-asin'))||''),href=String((p.getAttribute&&p.getAttribute('href'))||'');if(asin||/asin|product|p13n|npack|cxvhz|gwm-asin|carousel-image|product-image/i.test(c+' '+id)||href.indexOf('/dp/')>=0||href.indexOf('/gp/product/')>=0)return true;p=p.parentElement;}return false;}catch(x){return false;}}"
          "function _adTameCss362(){try{if(!window.__ADTAME_ON__)return;if(document.getElementById('adtame362'))return;"
            "var S=Math.max(0,Math.min(100,window.__ADTAME_S__||45)),bb=(1-0.50*(S/100)).toFixed(3);"
            "var aa=(0.50*(S/100)).toFixed(3);var st=document.createElement('style');st.id='adtame362';st.textContent='[data-ad-tame-fast362=\"1\"]{filter:brightness('+bb+') saturate(1.08) !important;}[data-ad-tame-bgfast364=\"1\"]{background-color:rgba(0,0,0,'+aa+') !important;background-blend-mode:multiply !important;}';"
@@ -2983,9 +2983,19 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          "try{window._adTameFast362=_adTameFast362;_adTameCss362();_adTameFast362(document.documentElement);document.addEventListener('load',function(e){try{_adTameFast362(e.target);}catch(x){}},true);}catch(e){}"
          // Exact text pins that must never depend on Dark Reader's palette pass.
          // Text-node matching handles wrappers with an adjacent info glyph.
+         "function _adSponsorPin366(e){try{if(!e||e.nodeType!==1)return 0;"
+           "if(typeof artChk==='function'&&artChk(e))return 0;"
+           "var c=String(e.style.getPropertyValue('color')||''),f=String(e.style.getPropertyValue('-webkit-text-fill-color')||'');"
+           "if(c!=='#fff'&&c!=='#ffffff'&&c!=='rgb(255, 255, 255)'){"
+             "e.style.setProperty('color','#fff','important');"
+             "e.__adBy='sponsored366';}"
+           "if(f!=='#fff'&&f!=='#ffffff'&&f!=='rgb(255, 255, 255)'){"
+             "e.style.setProperty('-webkit-text-fill-color','#fff','important');"
+             "e.__adBy='sponsored366';}"
+           "return 1;}catch(x){return 0;}}"
          "function _adTextPins363(root){try{if(!root||root.nodeType!==1||!document.createTreeWalker)return 0;var W=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nd,n=0,seen=0;while((nd=W.nextNode())&&seen++<1400){var t=String(nd.nodeValue||'').replace(/\s+/g,' ').trim();if(!t||t.length>32)continue;var e=nd.parentElement;if(!e||/^(SCRIPT|STYLE|NOSCRIPT)$/i.test(e.tagName))continue;var r=e.getBoundingClientRect();if(r.width<12||r.height<5)continue;"
            "if(t.toLowerCase()==='you might like'&&r.width>=70&&r.width<=320){e.setAttribute('data-ad-yml-head363','1');e.__adBy='yml363';n++;continue;}"
-           "if(/^sponsored(?: ad)?$/i.test(t)&&r.width>=28&&r.width<=260&&r.height<=48){e.setAttribute('data-ad-sponsored-light363','1');e.__adBy='sponsored363';n++;}}window.__AD_TEXTPINS363__=n;return n;}catch(e){return 0;}}"
+           "if(/^sponsored(?: ad)?$/i.test(t)&&r.width>=28&&r.width<=260&&r.height<=48){e.setAttribute('data-ad-sponsored-light363','1');_adSponsorPin366(e);n++;}}window.__AD_TEXTPINS363__=n;return n;}catch(e){return 0;}}"
          "try{window._adTextPins363=_adTextPins363;_adTextPins363(document.documentElement);}catch(e){}"
          // Restore the stock black circular backing for top-carousel play/pause controls.
          // If the player lives in the child ad frame its own path handles it; this is
@@ -3052,7 +3062,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // The ~50ms full contrast/tame sweep runs once after the DOM settles instead
          // of every ~220-400ms throughout lazy-loading/scrolling.
          "try{var _t=null;new MutationObserver(function(muts){var structural=0;"
-           "try{for(var m2=0;m2<muts.length&&m2<40;m2++){var mm2=muts[m2];if(mm2.type==='attributes'){if(mm2.target)_adTameFast362(mm2.target);continue;}structural=1;var ad=mm2.addedNodes;for(var a2=0;a2<ad.length&&a2<20;a2++){_adPin(ad[a2]);_adTameFast362(ad[a2]);_adTextPins363(ad[a2]);}try{_adVideoCtlMain362();}catch(e){}}}catch(e){}"
+           "try{for(var m2=0;m2<muts.length&&m2<40;m2++){var mm2=muts[m2];if(mm2.type==='attributes'){if(mm2.target){_adTameFast362(mm2.target);if(mm2.target.hasAttribute&&mm2.target.hasAttribute('data-ad-sponsored-light363'))_adSponsorPin366(mm2.target);}continue;}structural=1;var ad=mm2.addedNodes;for(var a2=0;a2<ad.length&&a2<20;a2++){_adPin(ad[a2]);_adTameFast362(ad[a2]);_adTextPins363(ad[a2]);}try{_adVideoCtlMain362();}catch(e){}}}catch(e){}"
            "try{_adCollegeFast59();}catch(e){}if(structural){clearTimeout(_t);_t=setTimeout(function(){try{if(!document.hidden&&!window.__ADSCROLLING__)window.__AMZDARK_FIXCONTRAST__();}catch(e){}},1900);}})"
            ".observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src','srcset','poster','class','style']});}catch(e){}"
          // One late backstop only. The old six 8-second full scans could collide with
