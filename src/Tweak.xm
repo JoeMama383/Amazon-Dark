@@ -1483,7 +1483,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "var hostOld=document.getElementById('adtamef-host');"
                "if(hostOld&&hostOld.parentNode)hostOld.parentNode.removeChild(hostOld);"
              "}catch(e){}"
-             "var PI0=document.querySelectorAll('img'),PI=[];"
+             "var PI0=document.querySelectorAll('img,video,canvas,iframe'),PI=[];"
                "for(var z8=0;z8<PI0.length&&z8<300;z8++)PI.push(PI0[z8]);"
                // cards that paint their picture as a CSS background
                "var PB=document.querySelectorAll('div,span,a,section,li');"
@@ -1494,7 +1494,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "PI.push(be9);}"
              "var tamed=0;"
              "for(var pi=0;pi<PI.length&&pi<420&&((pi&15)||!ovr());pi++){var im7=PI[pi];"
-               "if(im7.__adTamed)continue;"
+               "var tg7=String(im7.tagName||'').toUpperCase();var sig7=tg7+'|'+String(im7.currentSrc||im7.src||im7.getAttribute&&im7.getAttribute('poster')||'')+'|'+String(getComputedStyle(im7).backgroundImage||'none');if(im7.__adTamed&&im7.__adTameSig===sig7)continue;"
                "var ir7=im7.getBoundingClientRect();"
                // product imagery only: big enough to be a photo, and never a glyph
                // 56px: below this it is chrome, not a picture. The ad-card
@@ -1507,8 +1507,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                // nothing can fail to resolve and blank the element.
                "var bb9=(1-0.50*((window.__ADTAME_S__||45)/100)).toFixed(3);"
                "im7.style.setProperty('filter','brightness('+bb9+') saturate(1.08)','important');"
-               "im7.__adTamed=1;tamed++;}"
-             "if(tamed&&!window.__AD_TAME__)window.__AD_TAME__='n='+tamed+' ceil='+cL.toFixed(2);"
+               "im7.__adTamed=1;im7.__adTameSig=sig7;im7.__adBy='whiteTame360';tamed++;}"
+             "if(tamed)window.__AD_TAME__='n='+tamed+' ceil='+cL.toFixed(2)+' media=img/video/canvas/iframe/bg';"
            "}}catch(e){}"
                       // DARK LOGO LIFT. A brand mark is mostly transparent with dark ink; a
            // product photo is opaque edge to edge. That difference is measurable,
@@ -5718,6 +5718,43 @@ static void ADRunProbe(void){
 }
 %end
 
+// ── NATIVE WHITE-BACKGROUND TAME (v5.360) ─────────────────────────────────────
+// The web whiteTame pass cannot reach React/Fabric/native product imagery.  The
+// person tab is one of those late/native surfaces.  Mirror the web brightness
+// treatment with a non-interactive black scrim INSIDE large UIImageViews.  This
+// does not replace or edit pixels and follows reusable image views as their image
+// changes.  At 45%% strength the web filter is brightness(.775), so the equivalent
+// black scrim alpha is .225.
+static const void *kADWhiteTameOverlayKey = &kADWhiteTameOverlayKey;
+static int gADNativeTameLog = 0;
+static void ADApplyNativeWhiteTame(UIImageView *iv){
+    @try {
+        if (!iv || ADIsWebKitOwned(iv)) return;
+        UIView *ov = objc_getAssociatedObject(iv, kADWhiteTameOverlayKey);
+        if (!gP.enabled || !gP.whiteTame || !iv.window || !iv.image ||
+            ADInTabBarChain(iv) || ADIsChromeGlyphContext(iv) ||
+            iv.bounds.size.width < 56 || iv.bounds.size.height < 56) {
+            if (ov) { [ov removeFromSuperview]; objc_setAssociatedObject(iv, kADWhiteTameOverlayKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
+            return;
+        }
+        CGFloat a = 0.50 * (MAX(0, MIN(100, gP.whiteTameStrength)) / 100.0);
+        if (!ov) {
+            ov = [[UIView alloc] initWithFrame:iv.bounds];
+            ov.userInteractionEnabled = NO;
+            ov.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+            ov.backgroundColor = [UIColor colorWithWhite:0 alpha:a];
+            [iv addSubview:ov];
+            objc_setAssociatedObject(iv, kADWhiteTameOverlayKey, ov, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            if (gADNativeTameLog++ < 24)
+                ADLog(@"P24NATTAME[%s %.0fx%.0f alpha=%.3f]", object_getClassName(iv), iv.bounds.size.width, iv.bounds.size.height, a);
+        } else {
+            ov.frame = iv.bounds;
+            ov.backgroundColor = [UIColor colorWithWhite:0 alpha:a];
+            [iv bringSubviewToFront:ov];
+        }
+    } @catch(...) {}
+}
+
 // ════════════════════════════════════════════════════════════════════════════════
 // SURFACE 5 — image backdrops (native half of the same idea as the web CSS above).
 // ────────────────────────────────────────────────────────────────────────────────
@@ -5819,6 +5856,7 @@ static void ADRunProbe(void){
                 }
             }
         }
+        ADApplyNativeWhiteTame(self);
     } @catch(...) {}
 }
 %end
@@ -5975,7 +6013,7 @@ static UIImage *ADGlyphify(UIImage *img){
         if (gP.enabled && !gADGlyphWriting) {
             __weak UIImageView *wArr = self;
             dispatch_async(dispatch_get_main_queue(), ^{
-                @try { UIImageView *v3 = wArr; if (v3 && v3.window) ADScheduleGlyphLift(v3); }
+                @try { UIImageView *v3 = wArr; if (v3 && v3.window) { ADScheduleGlyphLift(v3); ADApplyNativeWhiteTame(v3); } }
                 @catch(...) {}
             });
         }
@@ -7305,6 +7343,9 @@ static NSString *ADProbeWebJS(void){
            "R.push(t.slice(0,14)+'|'+e.tagName+'|'+Math.round(r.width)+'x'+Math.round(r.height)"
              "+'|bg='+st.backgroundColor+'|col='+st.color+'|'+ch.join('>'));}"
          "out.push('P9SPON[sub='+(__sub?1:0)+' '+(R.length?R.join(' ~ '):'none')+']');}catch(x){out.push('P9SPON[err]');}"
+       // P24TAME (v5.360): verify whiteTame reaches dynamic video/iframe/bg
+       // media and report the visible elements carrying the authoritative marker.
+       "try{var T24=[],E24=document.querySelectorAll('*'),V24=window.innerHeight||900;for(var i24=0;i24<E24.length&&T24.length<16;i24++){var e24=E24[i24];if(!e24.__adTamed)continue;var r24=e24.getBoundingClientRect();if(r24.width<40||r24.height<40||r24.bottom<0||r24.top>V24*2)continue;var s24=getComputedStyle(e24),c24=e24.className;if(c24&&c24.baseVal!==undefined)c24=c24.baseVal;T24.push(e24.tagName+'.'+String(c24||'').replace(/\\s+/g,'.').slice(0,28)+'@'+Math.round(r24.width)+'x'+Math.round(r24.height)+'|f='+String(s24.filter||'none').replace(/\\s+/g,' ').slice(0,34)+'|by='+(e24.__adBy||'-'));}out.push('P24TAME[n='+T24.length+(T24.length?' '+T24.join(' ~~ '):'')+']');}catch(e24x){out.push('P24TAME[err '+(e24x&&e24x.message||e24x)+']');}"
        "try{var S5=[],E5=document.querySelectorAll('*');"
          "for(var z5=0;z5<E5.length&&S5.length<8;z5++){var e5=E5[z5];"
            "var r5=e5.getBoundingClientRect();"
