@@ -437,17 +437,12 @@ static NSString *ADFixesLiteral(void){
              // filter, whatever rule above tried to apply one. Element selectors
              // are included deliberately to raise specificity over the
              // attribute-only rules that were matching these thumbnails.
-             // AD-CARD TEXT. Scoped to containers a pass has confirmed carry
-             // creative artwork -- never a container family, which covered the
-             // entire feed. Once the marker is set, every caption inside is
-             // pinned by CSS with no per-element work and no timing race.
-             "html body [data-adcrt] span,"
-             "html body [data-adcrt] p,"
-             "html body [data-adcrt] h1,"
-             "html body [data-adcrt] h2,"
-             "html body [data-adcrt] h3,"
-             "html body [data-adcrt] a"
-             "{color:#0f1111 !important;-webkit-text-fill-color:#0f1111 !important;}"
+             // AD-CARD TEXT (v5.361): creative copy is authored content. Never
+             // pin its ink to dark or light here. The ad-card guard below strips
+             // Dark Reader's inline writes and the contrast pass skips the subtree;
+             // leaving colour unset is what lets mixed stock creative colours survive.
+             "html body [data-adcrt],html body [data-adcrt] *"
+             "{mix-blend-mode:normal !important;}"
              "html body [class*=product-image] img[src],"
              "html body [class*=s-product-image] img[src],"
              "html body [class*=product-image] picture[class],"
@@ -526,7 +521,7 @@ static NSString *ADFixesLiteral(void){
              "{mix-blend-mode:normal !important;isolation:auto !important;}"
              "',invert:[],ignoreInlineStyle:['[class*=puis-heart-position]','[class*=puis-heart-position] *',"
              "'[class*=lists-framework-action-button]','[class*=lists-framework-action-button] *',"
-             "'[class*=copilot-compare]','[class*=copilot-compare] *','ul.a-pagination.a-dots li.a-selected','li.dot-selected-t2','[data-ad-cardborder]','[data-ad-nav-chevron-paint]'],"
+             "'[class*=copilot-compare]','[class*=copilot-compare] *','[data-ad-stocktext]','[data-ad-stocktext] *','[data-adcrt]','[data-adcrt] *','ul.a-pagination.a-dots li.a-selected','li.dot-selected-t2','[data-ad-cardborder]','[data-ad-nav-chevron-paint]'],"
              "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
             imgBackdrop];
 }
@@ -562,7 +557,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // spacing borders stay untouched: no crop regression.
          "try{if(document&&!document.getElementById('adcardfix')){"
            "var __acs=document.createElement('style');__acs.id='adcardfix';"
-           "__acs.textContent='picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],[class*=s-image],[class*=unfill],[class*=placehold]{background-color:transparent !important;}[class*=s-image],[class*=s-product-image] img,img[class*=s-image]{object-fit:contain !important;}[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],[class*=puis-card],[class*=gwm-tile],[class*=_container_]{border-color:#3b4043 !important;}[class*=deal],[class*=badge],[class*=prime],[class*=error],[class*=alert],[class*=warning],[aria-invalid=true]{border-color:initial !important;}[class*=a-button-primary],[class*=a-button-search],[class*=a-button-oneclick],[class*=a-button-buy],.a-button-inner,.a-button-text{border-color:transparent !important;}[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_],[class*=ape-placement] *,[class*=ape-wrapper] *,[data-cel-widget*=ape] *,[id*=ape_] *{filter:none !important;mix-blend-mode:normal !important;isolation:auto !important;text-shadow:none !important;}[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_]{background-color:initial !important;}[class*=ape-placement] img,[class*=ape-wrapper] img,[class*=ape-placement] svg,[class*=ape-wrapper] svg,[class*=ape-placement] picture,[class*=ape-wrapper] picture{filter:none !important;opacity:1 !important;}[class*=ape-placement] span,[class*=ape-placement] a,[class*=ape-placement] p,[class*=ape-placement] h1,[class*=ape-placement] h2,[class*=ape-placement] h3,[class*=ape-placement] h4,[class*=ape-wrapper] span,[class*=ape-wrapper] a,[class*=ape-wrapper] p,[class*=ape-wrapper] h1,[class*=ape-wrapper] h2,[class*=ape-wrapper] h3,[class*=ape-wrapper] h4,[class*=theming-card] span,[class*=theming-card] a,[class*=theming-card] p,[class*=theming-card] h1,[class*=theming-card] h2,[class*=theming-card] h3,[class*=theming-card] h4{background-color:transparent !important;}[class*=hybrid-widget-sponsored],[class*=hybrid-widget-sponsored] *,[class*=adFeedbackMainComponent],[class*=adFeedbackMainComponent] *,[class*=sponsored-label],[class*=sponsored-label] *{color:#c9c6c2 !important;-webkit-text-fill-color:#c9c6c2 !important;opacity:1 !important;filter:none !important;mix-blend-mode:normal !important;}[class*=theming-card] [class*=a-cardui-header],[class*=a-cardui-header][class*=theming]{background-color:transparent !important;}[class*=theming-card] [class*=a-cardui-header],[class*=theming-card] [class*=a-cardui-header] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[class*=npack-asin-card],[class*=npack-asin-card] *{filter:none !important;opacity:1 !important;mix-blend-mode:normal !important;isolation:auto !important;}[class*=npack-asin-card] [class*=a-size-mini],[class*=npack-asin-card] [class*=badge],[class*=npack-asin-card] [class*=percent]{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=npack-asin-card] [class*=badgeMessage],[class*=npack-asin-card] [class*=badgeMessage] *,[class*=cXVhZ] [class*=badgeMessage],[class*=cXVhZ] [class*=badgeMessage] *{background-color:#181a1b !important;background-image:none !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;box-shadow:none !important;}[class*=npack-asin-card] [class*=badgeMessage]::before,[class*=npack-asin-card] [class*=badgeMessage]::after,[class*=npack-asin-card] [class*=badgeMessage] *::before,[class*=npack-asin-card] [class*=badgeMessage] *::after,[class*=cXVhZ] [class*=badgeMessage]::before,[class*=cXVhZ] [class*=badgeMessage]::after,[class*=cXVhZ] [class*=badgeMessage] *::before,[class*=cXVhZ] [class*=badgeMessage] *::after{background:#181a1b !important;background-image:none !important;box-shadow:none !important;}[class*=a-cardui-header],[class*=a-cardui-header] *{background-color:transparent !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[class*=hybrid-widget-sponsored],[class*=adFeedbackMainComponent],[class*=hybrid-widget-sponsored] *,[class*=adFeedbackMainComponent] *{background-color:transparent !important;}[class*=bW9ia],[class*=bW9ia] *{filter:none !important;opacity:1 !important;mix-blend-mode:normal !important;}[class*=bW9ia] span,[class*=bW9ia] a,[class*=bW9ia] [class*=price],[class*=bW9ia] [class*=badge],[class*=bW9ia] [class*=percent]{background-color:transparent !important;}[class*=sponsored-products] img[src*=logo],[class*=sponsored-products] img[class*=logo],[class*=sponsored-brand] img,[class*=brand-logo] img{background-color:#e8e6e3 !important;border-radius:4px !important;padding:2px !important;}[class*=cXVhZ],[class*=cXVhZ] *,[class*=badgeLabel],[class*=badgeContainer],[class*=theming-card],[class*=theming-card] *,[class*=canvas-card],[class*=canvas-card] *{mix-blend-mode:normal !important;isolation:auto !important;}[class*=badgeLabel]{background-color:#cc0c39 !important;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=badgeLabel],[class*=badgeLabel] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=npack-asin-card],[class*=canvas-card],[class*=theming-card-background]{background-color:initial !important;}[class*=badgeLabel]{background-color:#cc0c39 !important;}[class*=badgeLabel],[class*=badgeLabel] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=cXVhZ],[class*=cXVhZ] *{filter:none !important;opacity:1 !important;}[class*=a-cardui] [class*=a-price-whole],[class*=a-cardui] [class*=a-price-symbol],[class*=a-cardui] [class*=a-price-decimal],[class*=a-cardui] [class*=a-truncate],[class*=theming-card] [class*=a-price-whole],[class*=theming-card] [class*=a-price-symbol],[class*=theming-card] [class*=a-price-decimal],[class*=theming-card] [class*=a-truncate],[class*=cXVhZ] [class*=a-price-whole],[class*=cXVhZ] [class*=a-price-symbol],[class*=cXVhZ] [class*=a-price-decimal],[class*=cXVhZ] [class*=a-truncate],[class*=canvas-card] [class*=a-price-whole],[class*=canvas-card] [class*=a-price-symbol],[class*=canvas-card] [class*=a-price-decimal],[class*=canvas-card] [class*=a-truncate],[class*=npack-asin-card] [class*=a-price-whole],[class*=npack-asin-card] [class*=a-price-symbol],[class*=npack-asin-card] [class*=a-price-decimal],[class*=npack-asin-card] [class*=a-truncate]{color:#e8e6e3 !important;}ul.a-pagination.a-dots li.a-selected,ul.a-pagination.a-dots li.dot-selected-t2{background-color:#ffffff !important;border-color:#ffffff !important;}.pack-size-badge__label{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[data-ad-nav-chevron-paint=\"1\"],[data-ad-nav-chevron=\"1\"] [class*=a-icon],[data-ad-nav-chevron=\"1\"] i,[data-ad-nav-chevron=\"1\"] svg,[data-ad-nav-chevron=\"1\"] path,[data-ad-college-section=\"1\"] .a-icon-next-rounded,[data-ad-college-section=\"1\"] .a-icon-previous-rounded{filter:brightness(0) invert(1) !important;opacity:1 !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[data-ad-nav-chevron=\"1\"] svg,[data-ad-nav-chevron=\"1\"] path{fill:#e8e6e3 !important;stroke:#e8e6e3 !important;}.a-icon-next-rounded,.a-icon-previous-rounded,.a-carousel-goto-nextpage .a-icon,.a-carousel-goto-prevpage .a-icon,.a-carousel-button-right .a-icon,.a-carousel-button-left .a-icon,[class*=carousel] [class*=chevron],[class*=carousel] [class*=arrow],[class*=cXVhZ] [class*=chevron],[class*=cXVhZ] [class*=arrow]{filter:brightness(0) invert(1) !important;opacity:1 !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;border-color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;}[data-ad-college-chevron=\"1\"],[data-ad-college-chevron=\"1\"] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;border-color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;opacity:1 !important;}[data-ad-college-chevron=\"1\"]::before,[data-ad-college-chevron=\"1\"]::after,[data-ad-college-chevron=\"1\"] *::before,[data-ad-college-chevron=\"1\"] *::after{color:#e8e6e3 !important;border-color:#e8e6e3 !important;}[data-ad-college-chevron-sprite=\"1\"]{filter:brightness(0) invert(1) !important;}[data-ad-cardborder=\"1\"]{border-color:#3b4043 !important;outline-color:#3b4043 !important;}';"
+           "__acs.textContent='picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],[class*=s-image],[class*=unfill],[class*=placehold]{background-color:transparent !important;}[class*=s-image],[class*=s-product-image] img,img[class*=s-image]{object-fit:contain !important;}[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],[class*=puis-card],[class*=gwm-tile],[class*=_container_]{border-color:#3b4043 !important;}[class*=deal],[class*=badge],[class*=prime],[class*=error],[class*=alert],[class*=warning],[aria-invalid=true]{border-color:initial !important;}[class*=a-button-primary],[class*=a-button-search],[class*=a-button-oneclick],[class*=a-button-buy],.a-button-inner,.a-button-text{border-color:transparent !important;}[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_],[class*=ape-placement] *,[class*=ape-wrapper] *,[data-cel-widget*=ape] *,[id*=ape_] *{filter:none !important;mix-blend-mode:normal !important;isolation:auto !important;text-shadow:none !important;}[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_]{background-color:initial !important;}[class*=ape-placement] img,[class*=ape-wrapper] img,[class*=ape-placement] svg,[class*=ape-wrapper] svg,[class*=ape-placement] picture,[class*=ape-wrapper] picture{filter:none !important;opacity:1 !important;}[class*=ape-placement] span,[class*=ape-placement] a,[class*=ape-placement] p,[class*=ape-placement] h1,[class*=ape-placement] h2,[class*=ape-placement] h3,[class*=ape-placement] h4,[class*=ape-wrapper] span,[class*=ape-wrapper] a,[class*=ape-wrapper] p,[class*=ape-wrapper] h1,[class*=ape-wrapper] h2,[class*=ape-wrapper] h3,[class*=ape-wrapper] h4,[class*=theming-card] span,[class*=theming-card] a,[class*=theming-card] p,[class*=theming-card] h1,[class*=theming-card] h2,[class*=theming-card] h3,[class*=theming-card] h4{background-color:transparent !important;}[class*=hybrid-widget-sponsored],[class*=hybrid-widget-sponsored] *,[class*=adFeedbackMainComponent],[class*=adFeedbackMainComponent] *,[class*=sponsored-label],[class*=sponsored-label] *{opacity:1 !important;filter:none !important;mix-blend-mode:normal !important;}[class*=theming-card] [class*=a-cardui-header],[class*=a-cardui-header][class*=theming]{background-color:transparent !important;}[class*=npack-asin-card],[class*=npack-asin-card] *{filter:none !important;opacity:1 !important;mix-blend-mode:normal !important;isolation:auto !important;}[class*=npack-asin-card] [class*=a-size-mini],[class*=npack-asin-card] [class*=badge],[class*=npack-asin-card] [class*=percent]{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=npack-asin-card] [class*=badgeMessage],[class*=npack-asin-card] [class*=badgeMessage] *,[class*=cXVhZ] [class*=badgeMessage],[class*=cXVhZ] [class*=badgeMessage] *{background-color:#181a1b !important;background-image:none !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;box-shadow:none !important;}[class*=npack-asin-card] [class*=badgeMessage]::before,[class*=npack-asin-card] [class*=badgeMessage]::after,[class*=npack-asin-card] [class*=badgeMessage] *::before,[class*=npack-asin-card] [class*=badgeMessage] *::after,[class*=cXVhZ] [class*=badgeMessage]::before,[class*=cXVhZ] [class*=badgeMessage]::after,[class*=cXVhZ] [class*=badgeMessage] *::before,[class*=cXVhZ] [class*=badgeMessage] *::after{background:#181a1b !important;background-image:none !important;box-shadow:none !important;}[class*=a-cardui-header],[class*=a-cardui-header] *{background-color:transparent !important;}[class*=hybrid-widget-sponsored],[class*=adFeedbackMainComponent],[class*=hybrid-widget-sponsored] *,[class*=adFeedbackMainComponent] *{background-color:transparent !important;}[class*=bW9ia],[class*=bW9ia] *{filter:none !important;opacity:1 !important;mix-blend-mode:normal !important;}[class*=bW9ia] span,[class*=bW9ia] a,[class*=bW9ia] [class*=price],[class*=bW9ia] [class*=badge],[class*=bW9ia] [class*=percent]{background-color:transparent !important;}[class*=sponsored-products] img[src*=logo],[class*=sponsored-products] img[class*=logo],[class*=sponsored-brand] img,[class*=brand-logo] img{background-color:#e8e6e3 !important;border-radius:4px !important;padding:2px !important;}[class*=cXVhZ],[class*=cXVhZ] *,[class*=badgeLabel],[class*=badgeContainer],[class*=theming-card],[class*=theming-card] *,[class*=canvas-card],[class*=canvas-card] *{mix-blend-mode:normal !important;isolation:auto !important;}[class*=badgeLabel]{background-color:#cc0c39 !important;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=badgeLabel],[class*=badgeLabel] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=npack-asin-card],[class*=canvas-card],[class*=theming-card-background]{background-color:initial !important;}[class*=badgeLabel]{background-color:#cc0c39 !important;}[class*=badgeLabel],[class*=badgeLabel] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=cXVhZ],[class*=cXVhZ] *{filter:none !important;opacity:1 !important;}[class*=a-cardui] [class*=a-price-whole],[class*=a-cardui] [class*=a-price-symbol],[class*=a-cardui] [class*=a-price-decimal],[class*=a-cardui] [class*=a-truncate],[class*=cXVhZ] [class*=a-price-whole],[class*=cXVhZ] [class*=a-price-symbol],[class*=cXVhZ] [class*=a-price-decimal],[class*=cXVhZ] [class*=a-truncate],[class*=npack-asin-card] [class*=a-price-whole],[class*=npack-asin-card] [class*=a-price-symbol],[class*=npack-asin-card] [class*=a-price-decimal],[class*=npack-asin-card] [class*=a-truncate]{color:#e8e6e3 !important;}ul.a-pagination.a-dots li.a-selected,ul.a-pagination.a-dots li.dot-selected-t2{background-color:#ffffff !important;border-color:#ffffff !important;}.pack-size-badge__label{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[data-ad-nav-chevron-paint=\"1\"],[data-ad-nav-chevron=\"1\"] [class*=a-icon],[data-ad-nav-chevron=\"1\"] i,[data-ad-nav-chevron=\"1\"] svg,[data-ad-nav-chevron=\"1\"] path,[data-ad-college-section=\"1\"] .a-icon-next-rounded,[data-ad-college-section=\"1\"] .a-icon-previous-rounded{filter:brightness(0) invert(1) !important;opacity:1 !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[data-ad-nav-chevron=\"1\"] svg,[data-ad-nav-chevron=\"1\"] path{fill:#e8e6e3 !important;stroke:#e8e6e3 !important;}.a-icon-next-rounded,.a-icon-previous-rounded,.a-carousel-goto-nextpage .a-icon,.a-carousel-goto-prevpage .a-icon,.a-carousel-button-right .a-icon,.a-carousel-button-left .a-icon,[class*=carousel] [class*=chevron],[class*=carousel] [class*=arrow],[class*=cXVhZ] [class*=chevron],[class*=cXVhZ] [class*=arrow]{filter:brightness(0) invert(1) !important;opacity:1 !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;border-color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;}[data-ad-college-chevron=\"1\"],[data-ad-college-chevron=\"1\"] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;border-color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;opacity:1 !important;}[data-ad-college-chevron=\"1\"]::before,[data-ad-college-chevron=\"1\"]::after,[data-ad-college-chevron=\"1\"] *::before,[data-ad-college-chevron=\"1\"] *::after{color:#e8e6e3 !important;border-color:#e8e6e3 !important;}[data-ad-college-chevron-sprite=\"1\"]{filter:brightness(0) invert(1) !important;}[data-ad-cardborder=\"1\"]{border-color:#3b4043 !important;outline-color:#3b4043 !important;}';"
            "(document.head||document.documentElement).appendChild(__acs);}}catch(e){}"
          "try{window.__AD_EARLY__='';"
            "var __adPinRe=/unfill|placehold/i;"
@@ -624,146 +619,68 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "var h=String(location.href||'')+' '+String(document.referrer||'');"
            "return 1;"
          "}catch(e){return 0;}})();}catch(e){}"
-         // MINIMAL AD-FRAME THEME. Exempting the frame made the card render stock
-         // white, which proved the ad lives in a child frame but is not dark mode.
-         // Dark Reader is still kept out of here -- its palette analysis is what
-         // turns orange stars white and flips captions -- and this runs in its place.
-         //
-         // Three rules, and nothing else is touched:
-         //   1. near-white backgrounds go dark; anything carrying a background-image
-         //      is left alone so product art and sprite sheets survive
-         //   2. leaf text that is near-BLACK AND near-NEUTRAL goes light. Saturation
-         //      is the whole point: the blue "prime" wordmark and the red deal badge
-         //      are coloured, so they keep their brand colour, while 4.9, 34 and the
-         //      title are neutral and become readable
-         //   3. img/svg/picture/video/canvas are never touched at all, which is what
-         //      preserves the stars and the orange prime check
+         // CHILD AD FRAMES (v5.361): keep authored creative styling stock. Dark
+         // Reader remains fully gated out. White Background Taming runs separately
+         // against media/background paint only so DOM copy is never recoloured or
+         // composited underneath a whole-frame filter.
          "if(window.top!==window){try{"
            // Keep reporting alive: FIXCONTRAST is where the child-frame poster lives,
            // so a bare stub would make this frame invisible in the log.
            "window.__AMZDARK_FIXCONTRAST__=function(){"
              "try{if(window.__ADPOST__)window.__ADPOST__();}catch(e){}return -3;};"
-           "var AF={p:function(c){try{var m=/rgba?\\(([0-9.]+),\\s*([0-9.]+),\\s*([0-9.]+)(?:,\\s*([0-9.]+))?\\)/.exec(c||'');"
-             "if(!m)return null;return{r:+m[1],g:+m[2],b:+m[3],a:m[4]===undefined?1:+m[4]};}catch(e){return null;}},"
-             "l:function(x){return (0.2126*x.r+0.7152*x.g+0.0722*x.b)/255;},"
-             "s:function(x){var mx=Math.max(x.r,x.g,x.b),mn=Math.min(x.r,x.g,x.b);return (mx-mn)/255;}};"
-           // v5.300: ad iframes are now fully stock. P9CONTRAST returns none on the
-           // carousel creatives, and the probe cannot run in child frames -- so those
-           // cards live in ad iframes, where ADFRAMESKIP already keeps Dark Reader out.
-           // This minimal theme was therefore the only thing still painting them, and
-           // its luminance guesses are the dark-on-dark text and the plates behind
-           // captions. Reporting kept, all writes removed.
-           "window.__AMZDARK_ADTHEME__=function(){try{"
+           // v5.361: child ad frames stay visually STOCK. Dark Reader is gated out,
+           // and we no longer recolour their text/background/borders with a second
+           // home-grown theme. White Background Taming gets a separate media-only
+           // pass so video/photo paint can be toned without filtering the iframe as
+           // a whole (which also filtered the headline and made it look behind the tame).
+           "window.__AMZDARK_ADTAME__=function(){try{"
              "if(!document.body)return -1;"
+             "if(!window.__ADTAME_ON__){window.__AD_ADTAME__='off';return 0;}"
+             "var S=Math.max(0,Math.min(100,window.__ADTAME_S__||45));"
+             "var bb=(1-0.50*(S/100)).toFixed(3),aa=(0.50*(S/100)).toFixed(3);"
+             "function pc(c){try{var m=/rgba?\\(([0-9.]+),\\s*([0-9.]+),\\s*([0-9.]+)(?:,\\s*([0-9.]+))?\\)/.exec(String(c||''));"
+               "if(!m)return null;return{r:+m[1],g:+m[2],b:+m[3],a:m[4]===undefined?1:+m[4]};}catch(e){return null;}}"
+             "function sat(c){var mx=Math.max(c.r,c.g,c.b),mn=Math.min(c.r,c.g,c.b);return (mx-mn)/255;}"
+             "function lumc(c){return (0.2126*c.r+0.7152*c.g+0.0722*c.b)/255;}"
+             "var n=0,bg=0,solid=0,M=document.querySelectorAll('img,video,canvas');"
+             "for(var i=0;i<M.length&&i<260;i++){var e=M[i],r=e.getBoundingClientRect();"
+               "if(r.width<48||r.height<48)continue;"
+               "var cn=e.className;if(cn&&cn.baseVal!==undefined)cn=cn.baseVal;"
+               "if(/sprite|icon|logo|pixel/i.test(String(cn||'')))continue;"
+               "e.style.setProperty('filter','brightness('+bb+') saturate(1.08)','important');"
+               "e.setAttribute('data-ad-tame361','media');e.__adBy='adMedia361';n++;}"
+             // CSS background artwork is darkened at the BACKGROUND layer only.
+             // background-blend-mode does not composite child text into the effect.
+             "var B=document.querySelectorAll('div,section,a,span,li');"
+             "for(var j=0;j<B.length&&j<1600&&bg<100;j++){var q=B[j],cs=getComputedStyle(q),bi=String(cs.backgroundImage||'none');"
+               "if(bi.indexOf('url(')<0)continue;var rr=q.getBoundingClientRect();"
+               "if(rr.width<48||rr.height<48)continue;"
+               "var qc=q.className;if(qc&&qc.baseVal!==undefined)qc=qc.baseVal;"
+               "if(/sprite|icon|logo|pixel/i.test(String(qc||'')))continue;"
+               "q.style.setProperty('background-color','rgba(0,0,0,'+aa+')','important');"
+               "q.style.setProperty('background-blend-mode','multiply','important');"
+               "q.setAttribute('data-ad-tame361','bg');q.__adBy='adBg361';bg++;}"
+             // A standalone HTML ad can be a plain white card with no image wrapper.
+             // Tone only large, near-white NEUTRAL background boxes to the same
+             // brightness level. Text remains exactly the author colour.
+             "for(var k=0;k<B.length&&k<1600&&solid<40;k++){var z=B[k];"
+               "if(z.hasAttribute('data-ad-tame361'))continue;var zr=z.getBoundingClientRect();"
+               "if(zr.width<150||zr.height<80)continue;var zs=getComputedStyle(z);"
+               "if(String(zs.backgroundImage||'none')!=='none')continue;var c=pc(zs.backgroundColor);"
+               "if(!c||c.a<0.5||lumc(c)<0.88||sat(c)>0.10)continue;"
+               "var R=Math.round(c.r*+bb),G=Math.round(c.g*+bb),BL=Math.round(c.b*+bb);"
+               "z.style.setProperty('background-color','rgb('+R+','+G+','+BL+')','important');"
+               "z.setAttribute('data-ad-tame361','solid');z.__adBy='adSolid361';solid++;}"
+             "window.__AD_ADTAME__='media='+n+' bg='+bg+' solid='+solid;return n+bg+solid;"
+           "}catch(e){window.__AD_ADTAME__='err '+e;return -1;}};"
+           "window.__AMZDARK_ADTHEME__=function(){try{"
+             // Focus/tap chrome only. No creative colour/background/text writes.
              "if(!document.getElementById('adfrmin')){var st=document.createElement('style');"
-               "st.id='adfrmin';st.textContent='html,body{background-color:#181a1b !important;}'"
-                 // The blue box is a focus ring left behind after the Sponsored
-                 // disclosure sheet closes -- the element keeps :focus, and WebKit
-                 // paints the default highlight. Suppressed for tap targets only.
-                 "+'*{-webkit-tap-highlight-color:transparent !important;}'"
-                 "+'*:focus,*:focus-visible{outline:none !important;box-shadow:none !important;}';"
+               "st.id='adfrmin';st.textContent='*{-webkit-tap-highlight-color:transparent !important;}*'"
+                 "+':focus,*:focus-visible{outline:none !important;box-shadow:none !important;}';"
                "(document.head||document.documentElement).appendChild(st);}"
-             "var E=document.querySelectorAll('*'),nb=0,nt=0,nbd=0;"
-             "for(var i=0;i<E.length&&i<3000;i++){var e=E[i];var tg=e.tagName;"
-               "if(tg==='IMG'||tg==='PICTURE'||tg==='VIDEO'||tg==='CANVAS'"
-                 "||tg==='SVG'||tg==='svg'||tg==='USE'||tg==='PATH')continue;"
-               "var cs=getComputedStyle(e);"
-               // A background-image is not automatically artwork. The second creative
-               // template keeps its whole lower block white because the wrapper carries
-               // one, and skipping on its mere presence left the entire card stock.
-               // Only a RASTER url on a reasonably large box counts as a picture;
-               // gradients and tiny spacer images are just paint and may be darkened.
-               "var bgi9=String(cs.backgroundImage||'');"
-               "var isArt9=false;"
-               "if(bgi9.indexOf('url(')>=0){"
-                 "var rc9=e.getBoundingClientRect();"
-                 "isArt9=(rc9.width>=60&&rc9.height>=60);"
-                 "if(isArt9&&/\\.(svg)(\\?|\\)|$)/i.test(bgi9))isArt9=false;}"
-               // A LIGHT CHIP BEHIND A BRAND MARK STAYS LIGHT. Images are never
-               // repainted (rule 3), so darkening the white disc behind a logo leaves
-               // dark ink on a dark ground -- the Liquid Death mark went practically
-               // invisible that way. Keeping the chip stock is the fix, because it
-               // preserves the brand exactly as drawn instead of altering artwork.
-               "var chip9=false;"
-               "try{var cr9b=e.getBoundingClientRect();"
-                 "if(cr9b.width<=120&&cr9b.height<=120&&e.querySelector"
-                   "&&e.querySelector('img,svg,picture'))chip9=true;}catch(e9){}"
-               "if(!isArt9&&!chip9){"
-                 "var bg=AF.p(cs.backgroundColor);"
-                 "if(bg&&bg.a>0.3&&AF.l(bg)>0.6){"
-                   "e.style.setProperty('background-color','#181a1b','important');nb++;}"
-                 "if(bgi9.indexOf('gradient')>=0&&bgi9.indexOf('url(')<0){"
-                   "e.style.setProperty('background-image','none','important');"
-                   "e.style.setProperty('background-color','#181a1b','important');nb++;}}"
-               // RULE 4: LIFT A DARK MONOCHROME LOGO. Images are never repainted, which
-               // is right for photos and stars -- but a black wordmark on a card we
-               // just darkened is invisible, and there is no light chip behind this
-               // one to preserve. Measured, not guessed: mostly transparent, near
-               // black, neutral. A colour logo or a photo fails the test and is left
-               // exactly as drawn. Cached by src so each asset is measured once.
-               "if(tg==='IMG'){try{"
-                 "var lsrc=String(e.currentSrc||e.src||'');"
-                 "if(lsrc&&!e.__adLogoDone){e.__adLogoDone=1;"
-                   "if(!window.__ADLOGOC__)window.__ADLOGOC__={};"
-                   "var lv=window.__ADLOGOC__[lsrc];"
-                   "if(lv===1){e.style.setProperty('filter','invert(1)','important');}"
-                   "else if(lv===undefined){"
-                     "var li=new Image();li.crossOrigin='anonymous';"
-                     "li.onload=function(){try{"
-                       "var lw=Math.min(li.naturalWidth||32,32),lh=Math.min(li.naturalHeight||32,32);"
-                       "if(!lw||!lh)return;"
-                       "var lc=document.createElement('canvas');lc.width=lw;lc.height=lh;"
-                       "var lx=lc.getContext('2d');lx.drawImage(li,0,0,lw,lh);"
-                       "var ld=lx.getImageData(0,0,lw,lh).data;"
-                       "var tot=0,clr=0,sum=0,cnt=0,lite=0,sat=0;"
-                       "for(var z=0;z<ld.length;z+=4){tot++;"
-                         "if(ld[z+3]<40){clr++;continue;}"
-                         "var lz=0.2126*ld[z]+0.7152*ld[z+1]+0.0722*ld[z+2];"
-                         "sum+=lz;cnt++;if(lz>153)lite++;"
-                         "var mx=ld[z]>ld[z+1]?ld[z]:ld[z+1];if(ld[z+2]>mx)mx=ld[z+2];"
-                         "var mn=ld[z]<ld[z+1]?ld[z]:ld[z+1];if(ld[z+2]<mn)mn=ld[z+2];"
-                         "sat+=(mx-mn);}"
-                       "if(!cnt||!tot)return;"
-                       "var cf=clr/tot,av=(sum/cnt)/255,lf2=lite/cnt,sf2=((sat/cnt)/255);"
-                       "var ok=(cf>0.35&&av<0.30&&lf2<0.10&&sf2<0.10);"
-                       "window.__ADLOGOC__[lsrc]=ok?1:0;"
-                       "if(ok){e.style.setProperty('filter','invert(1)','important');"
-                         "window.__AD_ADLOGO__=(window.__AD_ADLOGO__||0)+1;}"
-                     "}catch(e2){}};"
-                     "li.onerror=function(){window.__ADLOGOC__[lsrc]=0;};"
-                     "li.src=lsrc;}}"
-               "}catch(e){}}"
-               // NOT LEAF-ONLY. A label that wraps its text plus an icon -- "Sponsored"
-               // with its info glyph -- has childElementCount 1 and was therefore never
-               // recoloured, while rule 1 darkened the card around it. That is why the
-               // card goes dark and the label stays dark, and why every main-document
-               // measurement looked healthy: the element was never a candidate here.
-               // The test is now "does this element own a direct text node", which is
-               // what actually determines whether it paints glyphs.
-               "var ownTxt='';try{for(var cn=0;cn<e.childNodes.length&&cn<12;cn++){"
-                 "var nd=e.childNodes[cn];"
-                 "if(nd.nodeType===3)ownTxt+=String(nd.nodeValue||'');}"
-               "}catch(e3){}"
-               "if(ownTxt.trim()){"
-                 "var fg=AF.p(cs.color);"
-                 // 0.78, not 0.5. ADFRAME reported text=0 while a visibly dim label sat
-                 // right there: the rule demanded near-BLACK ink, so a mid-grey
-                 // secondary label ("Sponsored") never qualified. Saturation still does
-                 // the real work -- blue prime and red badges stay untouched -- so
-                 // raising the luminance ceiling only catches greys that should match
-                 // the card's other text anyway.
-                 "if(fg&&AF.l(fg)<0.78&&AF.s(fg)<0.12){"
-               "e.style.setProperty('color','#e8e6e3','important');nt++;}}"
-               "try{var BS=['Top','Right','Bottom','Left'];"
-                 "for(var bi=0;bi<4;bi++){"
-                   "var bw=parseFloat(cs['border'+BS[bi]+'Width'])||0;if(bw<0.5)continue;"
-                   "var bsty=cs['border'+BS[bi]+'Style'];if(bsty==='none'||bsty==='hidden')continue;"
-                   "var bcp=AF.p(cs['border'+BS[bi]+'Color']);"
-                   "if(bcp&&bcp.a>0.3&&AF.l(bcp)>0.6&&AF.s(bcp)<0.12){"
-                     "e.style.setProperty('border-'+BS[bi].toLowerCase()+'-color','#3b3c3e','important');nbd++;}}"
-               "}catch(eb){}"
-               "}"
-             "window.__AD_ADTHEME__='bg='+nb+' text='+nt+' border='+nbd+' logo='+(window.__AD_ADLOGO__||0);return nb+nt+nbd;"
+             "var tn=window.__AMZDARK_ADTAME__?window.__AMZDARK_ADTAME__():0;"
+             "window.__AD_ADTHEME__='stock=1 '+String(window.__AD_ADTAME__||('tame='+tn));return tn;"
            "}catch(e){window.__AD_ADTHEME__='err '+e;return -1;}};"
            // Self-contained poster. The main one is defined at the END of the pass we
            // now return from early, so it would never exist in an ad frame -- which is
@@ -801,31 +718,9 @@ static NSString *ADDarkReaderBootstrapBuild(void){
  // and each hit just clears the properties DR set -- no colour of ours is
  // imposed, so the creative renders exactly as Amazon shipped it.
          "try{(function(){"
-           "var ADSEL='[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_],[class*=theming-card],[class*=a-cardui-header]';"
+           "var ADSEL='[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_],[class*=theming-card],[class*=a-cardui-header],[data-ad-stocktext]';"
            "function isAd(n){try{return n&&n.closest&&n.closest(ADSEL);}catch(e){return null;}}"
-           "function adLum(c){try{var a=String(c||'').split('('),b=(a[1]||'').split(')')[0].split(',');"
-             "if(b.length<3)return -1;var al=b.length>3?parseFloat(b[3]):1;if(!(al>0))return -1;"
-             "return (0.2126*parseFloat(b[0])+0.7152*parseFloat(b[1])+0.0722*parseFloat(b[2]))/255;"
-           "}catch(e){return -1;}}"
-           "function adBgOf(e){var d=0;while(e&&d++<10){var L=adLum(getComputedStyle(e).backgroundColor);"
-             "if(L>=0)return L;e=e.parentElement;}return -1;}"
-           "function adFix(n){try{"
-             "if(!n||n.nodeType!==1||n.childElementCount)return;"
-             "var t=String(n.textContent||'').trim();if(t.length<2)return;"
-             "var cs=getComputedStyle(n);"
-             "var own=adLum(cs.backgroundColor),par=adBgOf(n.parentElement);"
-             "if(own>=0&&par>=0&&own<0.25&&par>0.5){"
-               "n.style.setProperty('background-color','transparent','important');}"
-             "var tl=adLum(cs.color),bl=adBgOf(n);"
-             "if(tl<0||bl<0)return;"
-             "if(Math.abs(tl-bl)>=0.32)return;"
-             "n.__adCn=(n.__adCn||0)+1;if(n.__adCn>12)return;"
-             "var ink=(bl>0.5)?'#0f1111':'#e8e6e3';"
-             "n.style.setProperty('color',ink,'important');"
-             "n.style.setProperty('-webkit-text-fill-color',ink,'important');"
-           "}catch(e){}}"
            "function strip(n){try{"
-             "adFix(n);"
              "if(!n||n.nodeType!==1)return;"
              "n.__adStrip=(n.__adStrip||0)+1;if(n.__adStrip>12)return;"
              "if(n.hasAttribute('data-darkreader-inline-color')){"
@@ -841,7 +736,9 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "}catch(e){}}"
            "function sweep(root){try{"
              "var ads=(root||document).querySelectorAll(ADSEL);"
-             "for(var i=0;i<ads.length&&i<40;i++){strip(ads[i]);"
+             "for(var i=0;i<ads.length&&i<40;i++){"
+               "try{ads[i].setAttribute('data-ad-stocktext','1');}catch(e){}"
+               "strip(ads[i]);"
                "var kids=ads[i].querySelectorAll('*');"
                "for(var j=0;j<kids.length&&j<400;j++)strip(kids[j]);}"
            "}catch(e){}}"
@@ -1048,7 +945,9 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                      "if((ir0.width*ir0.height)>=(pr0.width*pr0.height)*0.45)"
                        "{r0=true;break;}}}catch(e0){}}"
                "p0=p0.parentElement;}"
-             "el0.__adCardQ=r0;if(r0)window.__AD_CARDBLK__=(window.__AD_CARDBLK__||0)+1;"
+             "el0.__adCardQ=r0;if(r0){"
+               "try{p0&&p0.setAttribute&&p0.setAttribute('data-ad-stocktext','1');}catch(e){}"
+               "window.__AD_CARDBLK__=(window.__AD_CARDBLK__||0)+1;}"
              "return r0;}catch(e){return true;}}"
            // v5.288: AD SUBTREES ARE OFF-LIMITS TO THE CONTRAST PASS.
            // The reported flip -- ad text changes colour the moment you STOP
@@ -1472,10 +1371,22 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // Clear stray dark square wrappers around the buttons (the box that
            // can extend past the pill). Shapes/borders are persistent CSS above.
            // WHITE-BACKGROUND TAMING (opt-in, Settings > AmazonDark).
+           // v5.361: media elements still use a filter, but CSS-background creatives
+           // use background-blend-mode instead. A CSS filter on a card container also
+           // filters every child -- including the headline -- which is exactly why
+           // some top-carousel copy was sitting "behind" the tame while img-backed
+           // cards were fine. Blend mode darkens the background image only.
            "try{if(window.__ADTAME_ON__){"
              "var cL=Math.max(0.12,Math.min(0.95,1-0.85*(window.__ADTAME_S__||45)/100));"
-             // Repair pass for anything a previous build left pointing at the
-             // SVG def; those elements are invisible until the style is replaced.
+             "var S7=(window.__ADTAME_S__||45);"
+             "var bb9=(1-0.50*(S7/100)).toFixed(3),aa9=(0.50*(S7/100)).toFixed(3);"
+             "function ctx7(e,re){try{var p=e,d=0;while(p&&d++<7){var rr=p.getBoundingClientRect();"
+               "if(rr.width>=100&&rr.height>0&&rr.height<=720){var tx=String(p.textContent||'').replace(/\\s+/g,' ').trim();"
+                 "if(tx.length>0&&tx.length<2200&&re.test(tx))return true;}p=p.parentElement;}}catch(e){}return false;}"
+             "function force7(e){return ctx7(e,/(?:returns are easy|send an amazon gift card|subscribe\\s*&\\s*save|shop previously watched)/i)"
+               "||/alexa|rufus/i.test(String(location.href||'')+' '+String(document.title||''));}"
+             "function explore7(e){return ctx7(e,/explore more for you/i);}"
+             // Repair stale experimental SVG-filter state from old builds.
              "try{var OLD=document.querySelectorAll('[style*=adtamef]');"
              "__ck('OLD');"
                "for(var o9=0;o9<OLD.length&&o9<300&&((o9&15)||!ovr());o9++){"
@@ -1483,32 +1394,43 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "var hostOld=document.getElementById('adtamef-host');"
                "if(hostOld&&hostOld.parentNode)hostOld.parentNode.removeChild(hostOld);"
              "}catch(e){}"
-             "var PI0=document.querySelectorAll('img,video,canvas,iframe'),PI=[];"
-               "for(var z8=0;z8<PI0.length&&z8<300;z8++)PI.push(PI0[z8]);"
-               // cards that paint their picture as a CSS background
-               "var PB=document.querySelectorAll('div,span,a,section,li');"
-               "__ck('PB');"
-               "for(var z9=0;z9<PB.length&&z9<1500&&((z9&15)||!ovr())&&PI.length<420;z9++){"
-                 "var be9=PB[z9];"
-                 "if((getComputedStyle(be9).backgroundImage||'').indexOf('url(')<0)continue;"
-                 "PI.push(be9);}"
-             "var tamed=0;"
-             "for(var pi=0;pi<PI.length&&pi<420&&((pi&15)||!ovr());pi++){var im7=PI[pi];"
-               "var tg7=String(im7.tagName||'').toUpperCase();var sig7=tg7+'|'+String(im7.currentSrc||im7.src||im7.getAttribute&&im7.getAttribute('poster')||'')+'|'+String(getComputedStyle(im7).backgroundImage||'none');if(im7.__adTamed&&im7.__adTameSig===sig7)continue;"
-               "var ir7=im7.getBoundingClientRect();"
-               // product imagery only: big enough to be a photo, and never a glyph
-               // 56px: below this it is chrome, not a picture. The ad-card
-               // thumbnails that went untreated sit between 56 and 90.
-               "if(ir7.width<56||ir7.height<56)continue;"
-               "if(im7.__adGlyph)continue;"
+             "var tamed=0,bgtamed=0;"
+             // Real media: filter the media itself, never its text-bearing parent.
+             // Never filter an iframe as one composited layer: that dims its DOM text too.
+             // Child ad frames run their own media-only tame below, so only the photo/video
+             // paint is darkened while authored copy remains stock and above it.
+             "var PI=document.querySelectorAll('img,video,canvas');"
+             "for(var pi=0;pi<PI.length&&pi<360&&((pi&15)||!ovr());pi++){var im7=PI[pi];"
+               "var force=force7(im7),explore=explore7(im7)&&!force;"
+               "if(explore){if(im7.__adTamed){im7.style.removeProperty('filter');im7.__adTamed=0;im7.__adBy='exploreSkip361';}continue;}"
+               "var tg7=String(im7.tagName||'').toUpperCase();"
+               "var sig7=tg7+'|'+String(im7.currentSrc||im7.src||im7.getAttribute&&im7.getAttribute('poster')||'');"
+               "if(im7.__adTamed&&im7.__adTameSig===sig7)continue;"
+               "var ir7=im7.getBoundingClientRect();var min7=force?32:56;"
+               "if(ir7.width<min7||ir7.height<min7)continue;"
+               "if(im7.__adGlyph&&!force)continue;"
                "var icn7=im7.className;if(icn7&&icn7.baseVal!==undefined)icn7=icn7.baseVal;"
-               "if(/sprite|icon|logo|pixel/i.test(String(icn7||'')))continue;"
-               // Self-contained filter functions only: nothing to dereference, so
-               // nothing can fail to resolve and blank the element.
-               "var bb9=(1-0.50*((window.__ADTAME_S__||45)/100)).toFixed(3);"
+               "if(!force&&/sprite|icon|logo|pixel/i.test(String(icn7||'')))continue;"
                "im7.style.setProperty('filter','brightness('+bb9+') saturate(1.08)','important');"
-               "im7.__adTamed=1;im7.__adTameSig=sig7;im7.__adBy='whiteTame360';tamed++;}"
-             "if(tamed)window.__AD_TAME__='n='+tamed+' ceil='+cL.toFixed(2)+' media=img/video/canvas/iframe/bg';"
+               "im7.__adTamed=1;im7.__adTameSig=sig7;im7.__adBy=force?'whiteTame361ctx':'whiteTame361';tamed++;}"
+             // CSS-background creative: multiply ONLY the painted background. Applying
+             // filter here would dim/recolour all descendant text as one composited layer.
+             "var PB=document.querySelectorAll('div,span,a,section,li');"
+             "__ck('PB');"
+             "for(var z9=0;z9<PB.length&&z9<1800&&((z9&15)||!ovr())&&bgtamed<120;z9++){"
+               "var be9=PB[z9],bs9=getComputedStyle(be9),bi9=String(bs9.backgroundImage||'none');"
+               "if(bi9.indexOf('url(')<0)continue;"
+               "var forceb=force7(be9),exploreb=explore7(be9)&&!forceb;"
+               "if(exploreb){if(be9.__adTamed){be9.style.removeProperty('background-blend-mode');be9.style.removeProperty('background-color');be9.__adTamed=0;be9.__adBy='exploreSkip361';}continue;}"
+               "var br9=be9.getBoundingClientRect(),minb=forceb?32:56;if(br9.width<minb||br9.height<minb)continue;"
+               "var bcn=be9.className;if(bcn&&bcn.baseVal!==undefined)bcn=bcn.baseVal;"
+               "if(!forceb&&/sprite|icon|logo|pixel/i.test(String(bcn||'')))continue;"
+               "var bsig='BG|'+bi9;if(be9.__adTamed&&be9.__adTameSig===bsig)continue;"
+               "if(be9.querySelector&&be9.querySelector('span,p,h1,h2,h3,h4,a'))try{be9.setAttribute('data-ad-stocktext','1');}catch(e){}"
+               "be9.style.setProperty('background-color','rgba(0,0,0,'+aa9+')','important');"
+               "be9.style.setProperty('background-blend-mode','multiply','important');"
+               "be9.__adTamed=1;be9.__adTameSig=bsig;be9.__adBy=forceb?'whiteTame361bgctx':'whiteTame361bg';bgtamed++;}"
+             "if(tamed||bgtamed)window.__AD_TAME__='media='+tamed+' bg='+bgtamed+' ceil='+cL.toFixed(2);"
            "}}catch(e){}"
                       // DARK LOGO LIFT. A brand mark is mostly transparent with dark ink; a
            // product photo is opaque edge to edge. That difference is measurable,
@@ -5718,42 +5640,103 @@ static void ADRunProbe(void){
 }
 %end
 
-// ── NATIVE WHITE-BACKGROUND TAME (v5.360) ─────────────────────────────────────
-// The web whiteTame pass cannot reach React/Fabric/native product imagery.  The
-// person tab is one of those late/native surfaces.  Mirror the web brightness
-// treatment with a non-interactive black scrim INSIDE large UIImageViews.  This
-// does not replace or edit pixels and follows reusable image views as their image
-// changes.  At 45%% strength the web filter is brightness(.775), so the equivalent
-// black scrim alpha is .225.
+// ── NATIVE WHITE-BACKGROUND TAME (v5.361) ─────────────────────────────────────
+// v5.361 proved the native path works, but it also exposed the two structural gaps:
+// (1) "Explore more for you" brand tiles are navigation artwork, not product photos,
+//     and must be excluded; (2) Fabric/RN can paint product imagery directly into
+//     layer.contents, bypassing UIImageView completely.  Context is taken from the
+//     nearest small section, so the exceptions stay local instead of becoming a
+//     global class-name guess.
 static const void *kADWhiteTameOverlayKey = &kADWhiteTameOverlayKey;
 static int gADNativeTameLog = 0;
-static void ADApplyNativeWhiteTame(UIImageView *iv){
+
+static BOOL ADWTTextMatch(UIView *root, NSString *needle, int depth, int *budget){
+    if (!root || !needle.length || depth > 6 || !budget || (*budget)-- <= 0) return NO;
     @try {
-        if (!iv || ADIsWebKitOwned(iv)) return;
-        UIView *ov = objc_getAssociatedObject(iv, kADWhiteTameOverlayKey);
-        if (!gP.enabled || !gP.whiteTame || !iv.window || !iv.image ||
-            ADInTabBarChain(iv) || ADIsChromeGlyphContext(iv) ||
-            iv.bounds.size.width < 56 || iv.bounds.size.height < 56) {
-            if (ov) { [ov removeFromSuperview]; objc_setAssociatedObject(iv, kADWhiteTameOverlayKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
+        NSString *t = root.accessibilityLabel;
+        if ([root isKindOfClass:[UILabel class]]) t = ((UILabel *)root).text ?: t;
+        else if ([root isKindOfClass:[UIButton class]]) t = ((UIButton *)root).titleLabel.text ?: t;
+        else if ([root isKindOfClass:[UITextView class]]) t = ((UITextView *)root).text ?: t;
+        if (t.length && [[t lowercaseString] containsString:[needle lowercaseString]]) return YES;
+        for (UIView *sv in root.subviews)
+            if (ADWTTextMatch(sv, needle, depth+1, budget)) return YES;
+    } @catch(...) {}
+    return NO;
+}
+// 0 normal, 1 Explore-more exclusion, 2 forced product-media context.
+static int ADWTNativeContext(UIView *v){
+    @try {
+        UIView *p=v; int d=0;
+        while(p && d++<6){
+            CGFloat h=p.bounds.size.height;
+            if (h>0 && h<=760){
+                int b=120;
+                if (ADWTTextMatch(p, @"Subscribe & Save", 0, &b) ||
+                    (b=120, ADWTTextMatch(p, @"Shop previously watched", 0, &b)) ||
+                    (b=120, ADWTTextMatch(p, @"Returns are easy", 0, &b)) ||
+                    (b=120, ADWTTextMatch(p, @"send an Amazon gift card", 0, &b)) ||
+                    (b=120, ADWTTextMatch(p, @"How can I help", 0, &b)) ||
+                    (b=120, ADWTTextMatch(p, @"alexa for shopping", 0, &b)))
+                    return 2;
+                b=120;
+                if (ADWTTextMatch(p, @"Explore more for you", 0, &b)) return 1;
+            }
+            p=p.superview;
+        }
+        // Alexa/Rufus product cards can be much deeper than the local six-ancestor
+        // window (the screenshot shows the product thumbnails inside the full-screen
+        // "alexa for shopping" surface). One bounded screen-level check makes those
+        // small Fabric/UIImageView thumbnails eligible without loosening the global
+        // 56pt product-photo threshold everywhere else.
+        UIView *w=v.window;
+        if (w){
+            int b=240;
+            if (ADWTTextMatch(w, @"alexa for shopping", 0, &b) ||
+                (b=240, ADWTTextMatch(w, @"How can I help", 0, &b))) return 2;
+        }
+    } @catch(...) {}
+    return 0;
+}
+static void ADApplyNativeWhiteTameView(UIView *v){
+    @try {
+        if (!v || ADIsWebKitOwned(v)) return;
+        BOOL isIV=[v isKindOfClass:[UIImageView class]];
+        BOOL hasMedia=isIV ? (((UIImageView *)v).image!=nil) : (v.layer.contents!=nil);
+        UIView *ov=objc_getAssociatedObject(v,kADWhiteTameOverlayKey);
+        if (!hasMedia || (!isIV && v.subviews.count>(ov?1:0))) {
+            if (ov) { [ov removeFromSuperview]; objc_setAssociatedObject(v,kADWhiteTameOverlayKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
             return;
         }
-        CGFloat a = 0.50 * (MAX(0, MIN(100, gP.whiteTameStrength)) / 100.0);
+        int ctx=ADWTNativeContext(v);
+        // Raw layer.contents is accepted ONLY in named product-media sections.
+        // That prevents Fabric icons/vector chrome from entering the generic tame.
+        if (!gP.enabled || !gP.whiteTame || !v.window || !hasMedia ||
+            ADInTabBarChain(v) || ADIsChromeGlyphContext(v) || ctx==1 ||
+            (!isIV && ctx!=2) ||
+            v.bounds.size.width < (ctx==2?32:56) ||
+            v.bounds.size.height < (ctx==2?32:56)) {
+            if (ov) { [ov removeFromSuperview]; objc_setAssociatedObject(v,kADWhiteTameOverlayKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
+            return;
+        }
+        CGFloat a=0.50*(MAX(0,MIN(100,gP.whiteTameStrength))/100.0);
         if (!ov) {
-            ov = [[UIView alloc] initWithFrame:iv.bounds];
-            ov.userInteractionEnabled = NO;
-            ov.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-            ov.backgroundColor = [UIColor colorWithWhite:0 alpha:a];
-            [iv addSubview:ov];
-            objc_setAssociatedObject(iv, kADWhiteTameOverlayKey, ov, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            if (gADNativeTameLog++ < 24)
-                ADLog(@"P24NATTAME[%s %.0fx%.0f alpha=%.3f]", object_getClassName(iv), iv.bounds.size.width, iv.bounds.size.height, a);
+            ov=[[UIView alloc] initWithFrame:v.bounds];
+            ov.userInteractionEnabled=NO;
+            ov.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+            ov.backgroundColor=[UIColor colorWithWhite:0 alpha:a];
+            [v addSubview:ov];
+            objc_setAssociatedObject(v,kADWhiteTameOverlayKey,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            if (gADNativeTameLog++<36)
+                ADLog(@"P24NATTAME[%s %.0fx%.0f alpha=%.3f ctx=%d raw=%d]",
+                      object_getClassName(v),v.bounds.size.width,v.bounds.size.height,a,ctx,isIV?0:1);
         } else {
-            ov.frame = iv.bounds;
-            ov.backgroundColor = [UIColor colorWithWhite:0 alpha:a];
-            [iv bringSubviewToFront:ov];
+            ov.frame=v.bounds;
+            ov.backgroundColor=[UIColor colorWithWhite:0 alpha:a];
+            [v bringSubviewToFront:ov];
         }
     } @catch(...) {}
 }
+static void ADApplyNativeWhiteTame(UIImageView *iv){ ADApplyNativeWhiteTameView(iv); }
 
 // ════════════════════════════════════════════════════════════════════════════════
 // SURFACE 5 — image backdrops (native half of the same idea as the web CSS above).
@@ -6324,6 +6307,7 @@ static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
         if (ADIsWebKitOwned(v)) return;                 // Dark Reader's territory
         ADInvertRNSVG(v);                               // Alexa panel vector icons
         ADLaunchWhiteGuard(v);                          // launch-window white killer
+        ADApplyNativeWhiteTameView(v);                    // UIImageView + targeted Fabric media
         // Was `return`, which skipped this view AND everything under it -- including
         // the background fill. That is where the grey boxes behind the nav tabs came
         // from: an unthemed light fill sitting exactly where we refused to look, and
@@ -7343,9 +7327,11 @@ static NSString *ADProbeWebJS(void){
            "R.push(t.slice(0,14)+'|'+e.tagName+'|'+Math.round(r.width)+'x'+Math.round(r.height)"
              "+'|bg='+st.backgroundColor+'|col='+st.color+'|'+ch.join('>'));}"
          "out.push('P9SPON[sub='+(__sub?1:0)+' '+(R.length?R.join(' ~ '):'none')+']');}catch(x){out.push('P9SPON[err]');}"
-       // P24TAME (v5.360): verify whiteTame reaches dynamic video/iframe/bg
-       // media and report the visible elements carrying the authoritative marker.
-       "try{var T24=[],E24=document.querySelectorAll('*'),V24=window.innerHeight||900;for(var i24=0;i24<E24.length&&T24.length<16;i24++){var e24=E24[i24];if(!e24.__adTamed)continue;var r24=e24.getBoundingClientRect();if(r24.width<40||r24.height<40||r24.bottom<0||r24.top>V24*2)continue;var s24=getComputedStyle(e24),c24=e24.className;if(c24&&c24.baseVal!==undefined)c24=c24.baseVal;T24.push(e24.tagName+'.'+String(c24||'').replace(/\\s+/g,'.').slice(0,28)+'@'+Math.round(r24.width)+'x'+Math.round(r24.height)+'|f='+String(s24.filter||'none').replace(/\\s+/g,' ').slice(0,34)+'|by='+(e24.__adBy||'-'));}out.push('P24TAME[n='+T24.length+(T24.length?' '+T24.join(' ~~ '):'')+']');}catch(e24x){out.push('P24TAME[err '+(e24x&&e24x.message||e24x)+']');}"
+       // P24TAME (v5.361): media filters and background-only blend taming.
+       "try{var T24=[],E24=document.querySelectorAll('*'),V24=window.innerHeight||900;for(var i24=0;i24<E24.length&&T24.length<20;i24++){var e24=E24[i24];if(!e24.__adTamed)continue;var r24=e24.getBoundingClientRect();if(r24.width<28||r24.height<28||r24.bottom<0||r24.top>V24*2)continue;var s24=getComputedStyle(e24),c24=e24.className;if(c24&&c24.baseVal!==undefined)c24=c24.baseVal;T24.push(e24.tagName+'.'+String(c24||'').replace(/\\s+/g,'.').slice(0,28)+'@'+Math.round(r24.width)+'x'+Math.round(r24.height)+'|f='+String(s24.filter||'none').replace(/\\s+/g,' ').slice(0,26)+'|blend='+String(s24.backgroundBlendMode||'-').slice(0,12)+'|by='+(e24.__adBy||'-'));}out.push('P24TAME[n='+T24.length+(T24.length?' '+T24.join(' ~~ '):'')+']');}catch(e24x){out.push('P24TAME[err '+(e24x&&e24x.message||e24x)+']');}"
+       // P25STOCK: top/home creative text must be untouched by our own forced ink
+       // and carry no Dark Reader inline colour marker after the ad strip.
+       "try{var Q25=[],A25=document.querySelectorAll('[data-ad-stocktext]'),V25=window.innerHeight||900;for(var a25=0;a25<A25.length&&Q25.length<10;a25++){var c25=A25[a25],r25=c25.getBoundingClientRect();if(r25.width<180||r25.height<80||r25.bottom<0||r25.top>V25*2)continue;var T25=c25.querySelectorAll('span,p,h1,h2,h3,h4,a');for(var t25=0;t25<T25.length&&t25<80;t25++){var x25=T25[t25];if(x25.children&&x25.children.length>2)continue;var tx25=String(x25.textContent||'').replace(/\\s+/g,' ').trim();if(tx25.length<2||tx25.length>60)continue;var xr25=x25.getBoundingClientRect();if(xr25.width<8||xr25.height<6)continue;var sx25=getComputedStyle(x25);Q25.push(tx25.slice(0,18)+'|c='+String(sx25.color||'-').replace(/ /g,'')+'|dr='+(x25.hasAttribute('data-darkreader-inline-color')?1:0)+'|fill='+String(sx25.webkitTextFillColor||'-').replace(/ /g,''));if(Q25.length>=10)break;}}out.push('P25STOCK[n='+Q25.length+(Q25.length?' '+Q25.join(' ~~ '):'')+']');}catch(e25){out.push('P25STOCK[err '+(e25&&e25.message||e25)+']');}"
        "try{var S5=[],E5=document.querySelectorAll('*');"
          "for(var z5=0;z5<E5.length&&S5.length<8;z5++){var e5=E5[z5];"
            "var r5=e5.getBoundingClientRect();"
