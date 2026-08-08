@@ -2335,7 +2335,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "function cc58(e){var c=e&&e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||''));}"
                "function dark58(v){var m=/rgba?\\(([0-9.]+),\\s*([0-9.]+),\\s*([0-9.]+)/.exec(String(v||''));return !!(m&&(0.2126*+m[1]+0.7152*+m[2]+0.0722*+m[3])<150);}"
                "function bp58(s){if(!s)return false;var S=['Top','Right','Bottom','Left'];for(var z58=0;z58<4;z58++){var q58=S[z58],w58=parseFloat(s['border'+q58+'Width'])||0;if(w58>=1&&w58<=8&&dark58(s['border'+q58+'Color']))return true;}return false;}"
-               "function mark58(e,why){if(!e||!e.setAttribute)return;var r=e.getBoundingClientRect();if(r.width<3||r.width>96||r.height<3||r.height>96)return;e.setAttribute('data-ad-college-chevron','1');e.setAttribute('data-ad-college-chevron-why',why);e.__adGlyph=1;e.__adBy='collegeEdge58';var s=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after'),tg=String(e.tagName||'').toUpperCase();if(tg==='SVG'||tg==='PATH'||tg==='I'||String(s.backgroundImage||'none')!=='none'||String(s.webkitMaskImage||s.maskImage||'none')!=='none'||(b&&String(b.backgroundImage||'none')!=='none')||(a&&String(a.backgroundImage||'none')!=='none'))e.setAttribute('data-ad-college-chevron-sprite','1');}"
+               "function mark58(e,why){if(!e||!e.setAttribute)return;var r=e.getBoundingClientRect();if(r.width<3||r.width>96||r.height<3||r.height>96)return;e.setAttribute('data-ad-college-chevron','1');if(e.__adBy!=='collegeFast59')e.setAttribute('data-ad-college-chevron-why',why);e.__adGlyph=1;if(e.__adBy!=='collegeFast59')e.__adBy='collegeEdge58';var s=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after'),tg=String(e.tagName||'').toUpperCase();if(tg==='SVG'||tg==='PATH'||tg==='I'||String(s.backgroundImage||'none')!=='none'||String(s.webkitMaskImage||s.maskImage||'none')!=='none'||(b&&String(b.backgroundImage||'none')!=='none')||(a&&String(a.backgroundImage||'none')!=='none'))e.setAttribute('data-ad-college-chevron-sprite','1');}"
                "var E58=document.querySelectorAll('a,button,i,span,div,svg,path');"
                "for(var ei58=0;ei58<E58.length&&ei58<7000;ei58++){var e58=E58[ei58],r58=e58.getBoundingClientRect(),cx58=r58.left+r58.width/2,cy58=r58.top+r58.height/2;if(r58.width<3||r58.width>96||r58.height<3||r58.height>96||cy58<y058||cy58>y158||(cx58>100&&cx58<vw58-100))continue;var tg58=String(e58.tagName||'').toUpperCase();if(/^(IMG|PICTURE|VIDEO|CANVAS)$/.test(tg58))continue;var c58=cc58(e58),al58=String(e58.getAttribute&&((e58.getAttribute('aria-label')||'')+' '+(e58.getAttribute('title')||''))||''),s58=getComputedStyle(e58),b58=getComputedStyle(e58,'::before'),a58=getComputedStyle(e58,'::after');var hint58=/arrow|chev|next|prev|carousel|nav/i.test(c58+' '+al58)||tg58==='SVG'||tg58==='PATH'||tg58==='I'||String(s58.backgroundImage||'none')!=='none'||String(s58.webkitMaskImage||s58.maskImage||'none')!=='none'||bp58(s58)||bp58(b58)||bp58(a58)||((tg58==='A'||tg58==='BUTTON')&&String(s58.cursor||'')==='pointer');if(!hint58)continue;mark58(e58,'edge');var K58=e58.querySelectorAll&&e58.querySelectorAll('i,span,svg,path,[class*=icon],[class*=arrow],[class*=chev]');if(K58)for(var ki58=0;ki58<K58.length&&ki58<16;ki58++)mark58(K58[ki58],'child');}"
              "}"
@@ -2836,6 +2836,32 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
            "window.__AMZDARK_FIXCONTRAST__();"
          "}catch(e){}};"
+         // v5.359: the 5.358 device probe finally identified the College painters as
+         // edge SVGs. The full contrast pass intentionally does not run while scrolling,
+         // which is why those SVGs were visible black until the trailing pass/heartbeat.
+         // This tiny dedicated path runs on the mutation microtask and a rAF-throttled
+         // scroll listener, so the data attribute is present before the next paint.
+         // It only marks small SVGs at the extreme screen edges in the narrow band
+         // immediately under the exact "Off to College" heading; CSS still owns paint.
+         "function _adCollegeFast59(){try{"
+           "var H=window.__AD_COLLEGE_H59__;"
+           "if(!H||!H.isConnected){H=null;var Q=document.querySelectorAll('h1,h2,h3,h4,span,div');"
+             "for(var i59=0;i59<Q.length&&i59<3500;i59++){var q59=Q[i59];if(q59.children&&q59.children.length>5)continue;"
+               "var t59=String(q59.textContent||'').replace(/\s+/g,' ').trim().toLowerCase();if(t59==='off to college'){H=q59;window.__AD_COLLEGE_H59__=q59;break;}}}"
+           "if(!H)return 0;var hr59=H.getBoundingClientRect(),vh59=window.innerHeight||900,vw59=window.innerWidth||390;"
+           "if(hr59.bottom<-160||hr59.top>vh59+160)return 0;var y059=hr59.bottom-18,y159=hr59.bottom+120,V59=document.querySelectorAll('svg'),n59=0;"
+           "for(var v59=0;v59<V59.length&&v59<1200;v59++){var e59=V59[v59],r59=e59.getBoundingClientRect(),cx59=r59.left+r59.width/2,cy59=r59.top+r59.height/2;"
+             "if(r59.width<3||r59.width>96||r59.height<3||r59.height>96||cy59<y059||cy59>y159||(cx59>100&&cx59<vw59-100))continue;"
+             "var c59=e59.className;c59=String(c59&&c59.baseVal!==undefined?c59.baseVal:(c59||''));if(/star|prime|logo|heart|wish|rating|badge|product|photo/i.test(c59))continue;"
+             "e59.setAttribute('data-ad-college-chevron','1');e59.setAttribute('data-ad-college-chevron-sprite','1');e59.setAttribute('data-ad-college-chevron-why','fast59');e59.__adGlyph=1;e59.__adBy='collegeFast59';n59++;}"
+           "window.__AD_COLLEGE_FAST59_N__=n59;return n59;}catch(e){return 0;}}"
+         "window.__AD_COLLEGE_FAST59__=_adCollegeFast59;"
+         "try{_adCollegeFast59();}catch(e){}"
+         "try{if(!window.__ADCF59INIT__){window.__ADCF59INIT__=1;var _cf59raf=0;"
+           "addEventListener('scroll',function(){if(_cf59raf)return;_cf59raf=1;"
+             "var f59=function(){_cf59raf=0;try{_adCollegeFast59();}catch(e){}};"
+             "if(window.requestAnimationFrame)requestAnimationFrame(f59);else setTimeout(f59,0);"
+           "},{passive:true,capture:true});}}catch(e){}"
          "function _adPin(root){try{"
            "if(!root||root.nodeType!==1)return;"
            "var list=[root];"
@@ -2867,6 +2893,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "try{for(var m2=0;m2<muts.length&&m2<40;m2++){"
              "var ad=muts[m2].addedNodes;"
              "for(var a2=0;a2<ad.length&&a2<20;a2++)_adPin(ad[a2]);}}catch(e){}"
+           "try{_adCollegeFast59();}catch(e){}"
            "var _n=Date.now();"
            "if(_n-_last>110){_last=_n;"
              "if(window.requestAnimationFrame)requestAnimationFrame(function(){"
