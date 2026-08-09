@@ -1,124 +1,101 @@
 # Amazon Dark
 
-True dark mode for the Amazon Shopping iOS app — a real dark theme, not a colour inversion.
+True dark mode for the Amazon Shopping iOS app — designed to look native rather than simply inverting the screen.
 
-Rootless jailbreak (NathanLR / ellekit), arm64 + arm64e, iOS 15+.
-Built against Amazon Shopping **27.11.8**.
-
----
-
-## Why v5 is a rewrite
-
-Every v3.x build applied a `colorInvert` CAFilter to the top-level `UIWindow`, then
-tried to *counter-invert* image layers back to normal. That approach fails for a
-reason no amount of tuning fixes: an inversion cannot tell a background from a
-photograph. Every image class must be enumerated and exempted by hand, the
-counter-filters land a layout pass late, and anything missed ships as a negative.
-The binary only defines **8** image-view classes, and the tweak was chasing them
-one regression at a time.
-
-v5 stops inverting anything.
-
-| Surface | Method | Images |
-|---|---|---|
-| Web views (Home, Cart, product, search) | Bundled **Dark Reader** engine | Untouched by design |
-| Native chrome (tab bar, nav/search bar) | Amazon's **own** native dark theme | Amazon's own assets |
-| Native content (cells, sheets, RN views) | **Dark Reader colour algorithm, ported to Obj-C** | Never on the code path |
-
-Images are safe *structurally*, not by exemption. The colour engine intercepts
-colour **declarations** — `backgroundColor`, `textColor`, `tintColor`, `borderColor`.
-It never touches `layer.contents`, never installs a `CAFilter`, and never sees a
-`CGImage`. A photograph is not a colour, so it is never modified. There is no
-allowlist left to maintain.
+Rootless jailbreak, arm64 + arm64e, iOS 15+.
 
 ---
 
-## How the colour engine works
+## Features
 
-`src/ADColor.m` is a port of Dark Reader's dynamic-theme algorithm
-(`modify-colors.ts` + `matrix.ts`). Each colour is converted to HSL and re-mapped
-along a curve chosen by its role:
+Amazon Dark themes both the web and native parts of the Amazon app using a combination of:
 
-- **Backgrounds** fall toward the dark pole (default `#181a1b`), clamped so a light
-  surface lands under 40% lightness.
-- **Text and tints** rise toward the light pole (default `#e8e6e3`), floored at 55%
-  lightness so nothing goes muddy. Blue hues are nudged toward 220° so links stay
-  readable.
-- **Borders** compress toward the middle so dividers stay visible without glowing.
+* **Dark Reader** for Amazon's web content
+* Amazon's **built-in native dark-mode components**
+* Custom theming for native UIKit and React Native surfaces
+* Automatic correction of icons, buttons, text, backgrounds, ads, and other Amazon-specific UI
+* Protection for product photos and other content that should keep its original appearance
 
-Hue and saturation survive the transform, so Amazon orange stays orange and link
-blue stays blue — they just sit at a lightness that works on a dark surface. The
-brightness/contrast/grayscale/sepia sliders are applied afterwards as a 5×5 colour
-matrix, deliberately **without** Dark Reader's invert term.
+The tweak is continuously adjusted for Amazon's constantly changing and dynamically loaded interface.
 
-The port is differential-tested against a direct transcription of the upstream
-TypeScript: **bit-identical across 2,187 colour/role combinations**.
+### White Background Taming
 
-Tinting is treated as foreground, which is what keeps tab-bar glyphs visible once
-the bar behind them goes dark — the exact failure that broke v3.2.1.
+Amazon product photos often have extremely bright white backgrounds.
+
+Optional **White Background Taming** reduces those bright areas while preserving the product itself.
+
+Amazon Dark uses context-aware rules so normal icons, category artwork, Person-tab glyphs, ads, and other UI elements aren't incorrectly treated like product photos.
+
+The strength can be adjusted in Settings.
+
+### Dark Launch Screen
+
+Amazon normally shows a bright white screen during a cold launch before the app loads.
+
+Amazon Dark includes a SpringBoard component that temporarily covers this with a dark launch screen until Amazon is ready.
+
+### 120 Hz
+
+An optional setting requests up to **120 Hz** while using Amazon on supported devices.
+
+iOS may still lower the refresh rate depending on Low Power Mode, temperature, hardware, or other system conditions.
+
+---
+
+## Settings
+
+Settings → **AmazonDark**
+
+Available options:
+
+* Enabled
+* Tame white backgrounds
+* Taming strength
+* Request 120 Hz
+
+White Background Taming and 120 Hz are disabled by default.
 
 ---
 
 ## Build
 
-CI builds the rootless `.deb` on every push (`.github/workflows/build.yml`) and
-attaches it to releases. Locally, with Theos installed:
+Requires Theos:
 
 ```bash
 make clean
 make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
 ```
 
-The Dark Reader engine is vendored at `Resources/darkreader.js` (MIT) and installed
-beside the dylib as `AmazonDark.bundle`. To refresh it:
-
-```bash
-npm pack darkreader && tar -xzO -f darkreader-*.tgz package/darkreader.js > Resources/darkreader.js
-```
-
-## Install
-
-```bash
-ssh root@<device> "rm -f /var/mobile/*.deb"
-scp packages/*.deb root@<device>:/var/mobile/
-ssh root@<device> "dpkg -i /var/mobile/com.colindavidr.amazondark_*.deb"
-```
-
-Then **force-quit and relaunch Amazon**. No respring — the tweak injects per-app.
-Injection must be enabled for Amazon in NathanLR's app list, or the dylib never loads.
-
-## Verify
-
-```bash
-ssh root@<device> "find /var/mobile/Containers/Data/Application -name 'AmazonDark.log' 2>/dev/null | head -1 | xargs cat"
-```
-
-Logging goes to `$TMPDIR` because a sandboxed app cannot write to `/var/mobile`.
-
-## Settings
-
-Settings → AmazonDark: master toggle, per-surface toggles, brightness / contrast /
-grayscale / sepia, and hex background/text poles. Set the background pole to
-`#000000` for OLED black. Changes apply on next foreground.
-
-If a native screen ever looks wrong, turn off **Recolor native content** — web and
-native chrome keep working independently.
+GitHub Actions automatically builds and tests the rootless `.deb` on every push.
 
 ---
 
-## Notes
+## Install
 
-- `Info.plist` of the app hard-pins `UIUserInterfaceStyle = Light`. That is why every
-  earlier attempt to force the trait alone kept getting clawed back; the window-level
-  override in `ADForceWindowsDarkTrait` is what actually sticks.
-- Amazon ships a complete native dark theme gated behind one Weblab
-  (`NAVX_DARK_MODE_IOS_1283655`, default treatment `C` = off). v5 flips it client-side
-  for the chrome. Server-driven SSNAP content will not return dark colour tokens for
-  accounts outside the cohort — which is precisely why the local colour engine exists.
-- Zero Obj-C runs in `%ctor` (raw `write()` only); all work is deferred to the main
-  queue. Every hook body is wrapped in `@try/@catch`. No auto-`killall` in `postinst`.
+Install the generated `.deb` through your package manager or with `dpkg`.
+
+After installing or updating, **respring and relaunch Amazon**.
+
+Make sure tweak injection is enabled for Amazon in your jailbreak environment.
+
+---
+
+## Compatibility
+
+Amazon uses a mixture of WebKit, UIKit, React Native, server-driven UI, custom icons, advertisements, and product media.
+
+Because of this, Amazon Dark uses targeted fixes instead of applying one global filter over the entire app.
+
+The goal is simple:
+
+**Make Amazon look like it actually shipped with a proper dark mode.**
+
+---
 
 ## Credits
 
-Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkreader)
-(MIT, © Dark Reader Ltd.) — see `Resources/DARKREADER-LICENSE`.
+Web theming is powered in part by [Dark Reader](https://github.com/darkreader/darkreader), licensed under the MIT License.
+
+See `Resources/DARKREADER-LICENSE`.
+
+Amazon Dark is an independent jailbreak tweak and is not affiliated with Amazon.
