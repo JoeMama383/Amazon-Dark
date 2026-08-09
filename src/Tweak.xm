@@ -6363,11 +6363,11 @@ static int ADWTNativeContext(UIView *v){
     return 0;
 }
 
-// v5.382: persistent active Menu-root ownership. Once the nearest screen branch
-// proves it is the hamburger menu, descendants never go through White-Tame or generic
-// glyph conversion. This prevents convert->restore churn, which is what the P44 logs
-// showed as the visible flashing.
-static const void *kADMenuRoot382Key=&kADMenuRoot382Key;
+// v5.382 crashfix: Menu ownership is queried from several hot UIImage/Fabric paths.
+// The first v5.382 implementation cached only positive Menu roots, so every image on a
+// NON-Menu screen (especially Person) re-walked up to 1,100 views.  Cache BOTH answers
+// briefly per screen root and bound the occasional scan.  Do not persist ownership on
+// reusable UIKit roots across tab transitions.
 static UIView *ADMenuRoot382(UIView *v){
     @try {
         UIWindow *w=v.window; if(!w||!v) return nil;
@@ -6375,19 +6375,27 @@ static UIView *ADMenuRoot382(UIView *v){
         UIView *root=nil,*p=v; int up=0;
         while(p&&p!=w&&up++<18){ CGFloat pw=p.bounds.size.width,ph=p.bounds.size.height; if(pw>=ww*.78&&ph>=wh*.48){root=p;break;} p=p.superview; }
         if(!root) return nil;
-        if(objc_getAssociatedObject(root,kADMenuRoot382Key)) return root;
+
+        static __weak UIView *lastRoot=nil;
+        static CFAbsoluteTime lastTime=0;
+        static BOOL lastHit=NO;
+        CFAbsoluteTime now=CFAbsoluteTimeGetCurrent();
+        if(root==lastRoot && now-lastTime<0.60) return lastHit?root:nil;
+
         BOOL canonical=NO,sw=NO,so=NO,del=NO;
         NSMutableArray *q=[NSMutableArray arrayWithObject:root];
-        for(NSUInteger qi=0;qi<q.count&&qi<1100;qi++){
+        for(NSUInteger qi=0;qi<q.count&&qi<700;qi++){
             UIView *x=q[qi]; if(x.hidden||x.alpha<.01)continue;
-            NSString *lo=[[[ADWTViewText362(x) lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] copy];
+            NSString *lo=[[ADWTViewText362(x) lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
             if([lo containsString:@"explore more for you"]||[lo containsString:@"shop by category"]) canonical=YES;
             if([lo containsString:@"switch accounts"]) sw=YES;
             if([lo isEqualToString:@"sign out"]||[lo containsString:@"sign out"]) so=YES;
             if([lo containsString:@"delivery services"]) del=YES;
-            if(qi<330){for(UIView *sv in x.subviews){if(q.count<1100)[q addObject:sv];else break;}}
+            if(canonical||(sw&&(so||del))) break;
+            if(qi<220){for(UIView *sv in x.subviews){if(q.count<700)[q addObject:sv];else break;}}
         }
-        if(canonical||(sw&&so)||(sw&&del)){ objc_setAssociatedObject(root,kADMenuRoot382Key,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC); return root; }
+        lastRoot=root; lastTime=now; lastHit=(canonical||(sw&&so)||(sw&&del));
+        return lastHit?root:nil;
     } @catch(...) {}
     return nil;
 }
@@ -6470,13 +6478,17 @@ static int ADWTStableContext365(UIView *v){
         }
         CFAbsoluteTime now=CFAbsoluteTimeGetCurrent();
         if(ctx==2){
-            objc_setAssociatedObject(v,kADWTCtxUntil365,@(now+4.0),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            if(cur)objc_setAssociatedObject(v,kADWTCtxImage382,cur,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(v,kADWTCtxUntil365,@(now+2.0),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            // Store only the pointer VALUE. Retaining the UIImage here pins every
+            // recycled Person product bitmap until the sticky window expires and can
+            // push Amazon over its per-process jetsam limit during a tab transition.
+            if(cur)objc_setAssociatedObject(v,kADWTCtxImage382,@((unsigned long long)(uintptr_t)cur),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             return 2;
         }
         NSNumber *until=objc_getAssociatedObject(v,kADWTCtxUntil365);
-        UIImage *held=objc_getAssociatedObject(v,kADWTCtxImage382);
-        if(until&&until.doubleValue>now&&cur&&held==cur)return 2;
+        NSNumber *held=objc_getAssociatedObject(v,kADWTCtxImage382);
+        unsigned long long curToken=cur?(unsigned long long)(uintptr_t)cur:0;
+        if(until&&until.doubleValue>now&&cur&&held&&held.unsignedLongLongValue==curToken)return 2;
         if(until){objc_setAssociatedObject(v,kADWTCtxUntil365,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);objc_setAssociatedObject(v,kADWTCtxImage382,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
     } @catch(...) {}
     return ctx;
