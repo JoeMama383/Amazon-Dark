@@ -168,7 +168,11 @@ static BOOL ADImageMostlyLight(UIImage *img);
 static BOOL ADIsCategoryArtwork379(UIView *v);
 static void ADRestoreCategoryArtwork379(UIImageView *iv);
 static BOOL ADIsHamburgerSurface380(UIView *v);
+static int ADMenuRole382(UIView *v);
 static BOOL ADWTInWatchedCarousel380(UIView *v);
+// Forward declarations required by the early Menu glyph gate (v5.382 lint/compile fix).
+static inline BOOL ADImageIsTemplateish(UIImage *im);
+static const void *kADOrigImageKey = &kADOrigImageKey;
 
 static long ADPrefLong(NSDictionary *d, NSString *k, long def){
     id v = d[k]; return (v && [v respondsToSelector:@selector(longValue)]) ? [v longValue] : def;
@@ -647,7 +651,7 @@ static NSString *ADFixesLiteral(void){
              // paint from a recycled product template. Filter only glyph leaves.
              ".ssf-share-trigger,[data-ad-share377=\"1\"]{color:#ffffff !important;"
              "-webkit-text-fill-color:#ffffff !important;fill:#ffffff !important;stroke:#ffffff !important;"
-             "filter:brightness(0) invert(1) !important;opacity:1 !important;}"
+             "filter:none !important;opacity:1 !important;}"
              ".ssf-share-trigger svg,.ssf-share-trigger path,[data-ad-share377=\"1\"] svg,"
              "[data-ad-share377=\"1\"] path{color:#ffffff !important;fill:#ffffff !important;"
              "stroke:#ffffff !important;opacity:1 !important;}"
@@ -657,6 +661,39 @@ static NSString *ADFixesLiteral(void){
              ".ssf-share-trigger::before,.ssf-share-trigger::after,"
              ".ssf-share-trigger *::before,.ssf-share-trigger *::after"
              "{color:#ffffff !important;filter:brightness(0) invert(1) !important;opacity:1 !important;}"
+
+             // v5.382: cards/list chrome is ONLY placed on a true icon-sized host.
+             // The v5.381 broad semantic row selector is gone; Compare remains separate.
+             "[data-ad-stockaction382=\"1\"]{position:relative !important;background:#181a1b !important;"
+             "background-color:#181a1b !important;background-image:none !important;border-radius:50%% !important;"
+             "border:1.5px solid rgba(255,255,255,.65) !important;box-shadow:none !important;"
+             "box-sizing:border-box !important;overflow:hidden !important;isolation:isolate !important;}"
+             "[data-ad-stockaction382=\"1\"] [data-ad-stockglyph382=\"1\"]{position:relative !important;z-index:2 !important;"
+             "visibility:visible !important;opacity:1 !important;background-color:transparent !important;}"
+             "[data-ad-stockglyph382=\"1\"][data-ad-stockraster382=\"1\"]{filter:brightness(0) invert(1) !important;}"
+             "[data-ad-stockglyph382=\"1\"] svg,[data-ad-stockglyph382=\"1\"] path,"
+             "svg[data-ad-stockglyph382=\"1\"],path[data-ad-stockglyph382=\"1\"]"
+             "{color:#fff !important;fill:#fff !important;stroke:#fff !important;}"
+             // Cart Share now clones the already-correct Delete control instead of
+             // receiving a hand-authored second bezel. Pseudos are explicitly cleared.
+             "[data-ad-cartclone382=\"1\"]{background-color:var(--ad-cart-bg,transparent) !important;"
+             "background-image:var(--ad-cart-bi,none) !important;border-color:var(--ad-cart-bc,#6c7073) !important;"
+             "border-style:var(--ad-cart-bs,solid) !important;border-width:var(--ad-cart-bw,1px) !important;"
+             "border-radius:var(--ad-cart-br,999px) !important;box-shadow:var(--ad-cart-sh,none) !important;"
+             "color:var(--ad-cart-fg,#e8e6e3) !important;-webkit-text-fill-color:var(--ad-cart-fg,#e8e6e3) !important;}"
+             "[data-ad-cartclone382=\"1\"]::before,[data-ad-cartclone382=\"1\"]::after"
+             "{background:transparent !important;background-image:none !important;border-color:transparent !important;box-shadow:none !important;}"
+             "[data-ad-cartclone382=\"1\"] *{color:var(--ad-cart-fg,#e8e6e3) !important;"
+             "-webkit-text-fill-color:var(--ad-cart-fg,#e8e6e3) !important;}"
+             // PDP Share: never filter the whole host. Mark/filter the actual raster,
+             // background-image or mask painter only; SVG/path paint is pinned white.
+             ".ssf-share-trigger,[data-ad-share382=\"1\"]{color:#fff !important;-webkit-text-fill-color:#fff !important;"
+             "fill:#fff !important;stroke:#fff !important;filter:none !important;opacity:1 !important;}"
+             "[data-ad-sharepaint382=\"1\"]{filter:brightness(0) invert(1) !important;opacity:1 !important;background-color:transparent !important;}"
+             "[data-ad-share382=\"1\"] svg,[data-ad-share382=\"1\"] path{color:#fff !important;fill:#fff !important;stroke:#fff !important;opacity:1 !important;}"
+             "[data-ad-share382=\"1\"]::before,[data-ad-share382=\"1\"]::after,"
+             "[data-ad-share382=\"1\"] *::before,[data-ad-share382=\"1\"] *::after"
+             "{color:#fff !important;filter:brightness(0) invert(1) !important;opacity:1 !important;}"
 
              // Home shortcut strips (Haul / Prime Video / Grocery...): brand
              // artwork sits on LIGHT pills, where the dark image backdrop reads
@@ -979,6 +1016,11 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // v5.379: compact Sponsored text must be readable even when Amazon never sends
            // a productad/standalone mode. This pass changes TEXT ONLY and is geometry+Sponsored gated.
            "window.__AD_ANYSPONINK379__=function(){try{if(!document.body)return 0;var w=innerWidth||0,h=innerHeight||999;if(w<240||w>560||h>210){window.__AD_ANYSPON379_N__=0;window.__AD_ANYSPON379_DARK__=0;window.__AD_ANYSPON379_ROOTS__=0;return 0;}var bt=String(document.body.innerText||document.body.textContent||'').replace(/\\s+/g,' ').trim();if(!bt||bt.length>1800||/captcha|verify you are human|sign[ -]?in|checkout/i.test(bt)){window.__AD_ANYSPON379_N__=0;window.__AD_ANYSPON379_DARK__=0;window.__AD_ANYSPON379_ROOTS__=0;return 0;}var media=!!document.querySelector('img,picture,video,canvas'),adlike=/\\bsponsored(?: ad)?\\b|advertis|\\$\\s*\\d|\\d(?:\\.\\d)?\\s*out of 5/i.test(bt);if(!adlike&&!media){window.__AD_ANYSPON379_N__=0;window.__AD_ANYSPON379_DARK__=0;window.__AD_ANYSPON379_ROOTS__=0;return 0;}function pc(v){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/.exec(String(v||''));return m?[+m[1],+m[2],+m[3]]:null;}var roots=[document],ri=0;while(ri<roots.length&&roots.length<32){var rt=roots[ri++],H=[];try{H=rt.querySelectorAll?rt.querySelectorAll('*'):[];}catch(er){H=[];}for(var hi=0;hi<H.length&&hi<1400&&roots.length<32;hi++){var sr=H[hi].shadowRoot;if(sr&&roots.indexOf(sr)<0)roots.push(sr);}}var n=0,dark=0,budget=0;for(var rr=0;rr<roots.length&&budget<4200;rr++){var R=roots[rr],E=[];try{E=R.querySelectorAll?R.querySelectorAll('span,p,a,div,h1,h2,h3,h4,h5,label,strong,b,small'):[];}catch(eq){E=[];}for(var i=0;i<E.length&&budget++<4200;i++){var e=E[i],own='';for(var q=0;q<e.childNodes.length&&q<14;q++){if(e.childNodes[q].nodeType===3)own+=String(e.childNodes[q].nodeValue||'');}own=own.replace(/\\s+/g,' ').trim();if(!own&&e.childElementCount<=2&&!e.querySelector('img,svg,picture,video,canvas,input,select,textarea')){var ft=String(e.textContent||'').replace(/\\s+/g,' ').trim();if(ft.length>0&&ft.length<=360)own=ft;}if(!own||own.length>360)continue;var cs=getComputedStyle(e),c=pc(cs.color),f=pc(cs.webkitTextFillColor||cs.getPropertyValue('-webkit-text-fill-color'));var base=c||f;if(!base)continue;var mx=Math.max(base[0],base[1],base[2]),mn=Math.min(base[0],base[1],base[2]),sat=(mx-mn)/255;if(sat>=.30)continue;e.style.setProperty('color','#ffffff','important');e.style.setProperty('-webkit-text-fill-color','#ffffff','important');e.style.setProperty('opacity','1','important');e.style.setProperty('visibility','visible','important');e.style.setProperty('filter','none','important');e.setAttribute('data-ad-anysponink379','1');e.__adBy='compactAdInk379';var up=e.parentElement,ud=0;while(up&&ud++<2){var uc=getComputedStyle(up);if(String(uc.filter||'none')!=='none')up.style.setProperty('filter','none','important');if(parseFloat(uc.opacity||'1')<.92)up.style.setProperty('opacity','1','important');if(uc.visibility==='hidden'||uc.visibility==='collapse')up.style.setProperty('visibility','visible','important');up=up.parentElement;}n++;var c2=pc(getComputedStyle(e).color),f2=pc(getComputedStyle(e).webkitTextFillColor||getComputedStyle(e).getPropertyValue('-webkit-text-fill-color'));function bad(q){return q&&(.2126*q[0]+.7152*q[1]+.0722*q[2])/255<.92;}if(bad(c2)||bad(f2))dark++;}}window.__AD_ANYSPON379_N__=n;window.__AD_ANYSPON379_DARK__=dark;window.__AD_ANYSPON379_ROOTS__=roots.length;return n;}catch(e){window.__AD_ANYSPON379_N__=-1;window.__AD_ANYSPON379_DARK__=-1;window.__AD_ANYSPON379_ROOTS__=-1;return 0;}};"
+           // v5.382: Home standalone-only inverse scrub. A late Dark Reader pass can
+           // recreate one large neutral OLED-black structural wrapper even though html/body
+           // and the iframe parent are transparent. Clear only large non-media dark-neutral
+           // wrappers in HOME standalone children; product/PDP strips are excluded.
+           "window.__AD_STANDDARK382__=function(){try{var mode=String(window.__ADFRAME_MODE__||''),home=(mode==='standalone'&&!window.__AD_PRODUCTREF369__);if(!home||!document.body){window.__AD_STANDDARK382_N__=0;window.__AD_STANDDARK382_LEFT__=0;return 0;}if(!document.getElementById('adstanddark382')){var st=document.createElement('style');st.id='adstanddark382';st.textContent='[data-ad-standdark382]{background-color:transparent !important;background-image:none !important;box-shadow:none !important;}[data-ad-standdarkbefore382]::before,[data-ad-standdarkafter382]::after{background-color:transparent !important;background-image:none !important;box-shadow:none !important;}';(document.head||document.documentElement).appendChild(st);}function pc(v){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([0-9.]+))?/i.exec(String(v||''));return m?[+m[1],+m[2],+m[3],m[4]===undefined?1:+m[4]]:null;}var W=innerWidth||390,H=innerHeight||130,E=document.querySelectorAll('div,section,article,a,span'),n=0,left=0;for(var i=0;i<E.length&&i<1800;i++){var e=E[i],r=e.getBoundingClientRect();if(r.width<W*.45||r.height<H*.34)continue;if(e.querySelector&&e.querySelector(':scope > img,:scope > video,:scope > canvas'))continue;var cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none'),bg=pc(cs.backgroundColor);if(!bg||bg[3]<.55||bi.indexOf('url(')>=0)continue;var mx=Math.max(bg[0],bg[1],bg[2]),mn=Math.min(bg[0],bg[1],bg[2]),lum=(.2126*bg[0]+.7152*bg[1]+.0722*bg[2])/255,sat=(mx-mn)/255;if(lum>.12||sat>.12)continue;e.setAttribute('data-ad-standdark382','1');e.style.setProperty('background-color','transparent','important');if(bi!=='none')e.style.setProperty('background-image','none','important');e.style.setProperty('box-shadow','none','important');try{var b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after'),bc=pc(b.backgroundColor),ac=pc(a.backgroundColor);if(bc&&bc[3]>.55&&(.2126*bc[0]+.7152*bc[1]+.0722*bc[2])/255<.12)e.setAttribute('data-ad-standdarkbefore382','1');if(ac&&ac[3]>.55&&(.2126*ac[0]+.7152*ac[1]+.0722*ac[2])/255<.12)e.setAttribute('data-ad-standdarkafter382','1');}catch(px){}n++;}var Q=document.querySelectorAll('[data-ad-standdark382]');for(var j=0;j<Q.length;j++){var q=pc(getComputedStyle(Q[j]).backgroundColor);if(q&&q[3]>.55&&(.2126*q[0]+.7152*q[1]+.0722*q[2])/255<.12)left++;}window.__AD_STANDDARK382_N__=n;window.__AD_STANDDARK382_LEFT__=left;return n;}catch(e){window.__AD_STANDDARK382_N__=-1;window.__AD_STANDDARK382_LEFT__=-1;return 0;}};"
            // v5.379: remove only the small neutral-white chrome. Do NOT paint it OLED black.
            "window.__AD_STRIPCHROME379__=function(){try{if(!document.body||!window.__AD_STRIPCONF375__){window.__AD_STRIPCHROME379_N__=0;window.__AD_STRIPCHROME379_LEFT__=0;return 0;}function pc(v){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([0-9.]+))?/i.exec(String(v||''));return m?[+m[1],+m[2],+m[3],m[4]===undefined?1:+m[4]]:null;}var E=document.querySelectorAll('div,span,a,label,section,button'),n=0,left=0;for(var i=0;i<E.length&&i<1400;i++){var e=E[i],r=e.getBoundingClientRect();if(r.width<18||r.width>240||r.height<10||r.height>70)continue;var c=getComputedStyle(e),bg=pc(c.backgroundColor);if(!bg||bg[3]<.55)continue;var mx=Math.max(bg[0],bg[1],bg[2]),mn=Math.min(bg[0],bg[1],bg[2]),lum=(.2126*bg[0]+.7152*bg[1]+.0722*bg[2])/255,sat=(mx-mn)/255;if(lum<.80||sat>.14)continue;if(e.querySelector&&e.querySelector('img,video,canvas'))continue;e.setAttribute('data-ad-stripchrome379','1');e.style.setProperty('background-color','transparent','important');e.style.setProperty('background-image','none','important');e.style.setProperty('box-shadow','none','important');e.style.setProperty('border-color','transparent','important');n++;}var Q=document.querySelectorAll('[data-ad-stripchrome379]');for(var j=0;j<Q.length;j++){var q=pc(getComputedStyle(Q[j]).backgroundColor);if(q){var l=(.2126*q[0]+.7152*q[1]+.0722*q[2])/255;if(l>.70)left++;}}window.__AD_STRIPCHROME379_N__=n;window.__AD_STRIPCHROME379_LEFT__=left;return n;}catch(e){window.__AD_STRIPCHROME379_N__=-1;return 0;}};"
            // v5.373: the 396x62-style Sponsored strip is text/chrome in its own
@@ -1049,7 +1091,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "return n;}catch(e){return 0;}};"
            "window.__AMZDARK_ADTHEME__=function(){try{"
              "var mode=window.__ADFRAME_MODE__||'hero',any379=window.__AD_ANYSPONINK379__?window.__AD_ANYSPONINK379__():0,sp365=window.__AD_SPON365__?window.__AD_SPON365__():0;"
-             "var strip375=window.__AD_PRODUCTSTRIP375__?window.__AD_PRODUCTSTRIP375__():0;if(strip375){var cl375=window.__AD_CLEARSTRIP374__?window.__AD_CLEARSTRIP374__():0;var in375=window.__AD_ADTEXT371__?window.__AD_ADTEXT371__():0;var tx377=window.__AD_STRIPTEXT377__?window.__AD_STRIPTEXT377__():0;var bx378=window.__AD_STRIPCHROME379__?window.__AD_STRIPCHROME379__():0;var tm375=window.__AD_STRIPMEDIA374__?window.__AD_STRIPMEDIA374__():0;var sp375=window.__AD_SPON365__?window.__AD_SPON365__():0;window.__AD_STANDALONE__='strip-stock378';window.__AD_ADTHEME__='mode='+mode+' strip379=1 any379='+String(window.__AD_ANYSPON379_N__||0)+' dark379='+String(window.__AD_ANYSPON379_DARK__||0)+' roots379='+String(window.__AD_ANYSPON379_ROOTS__||0)+' t377='+String(window.__AD_STRIPTEXT377_N__||0)+' d377='+String(window.__AD_STRIPTEXT377_DARK__||0)+' box379='+String(window.__AD_STRIPCHROME379_N__||0)+' boxleft379='+String(window.__AD_STRIPCHROME379_LEFT__||0)+' sticky='+String(window.__AD_STRIPCONF375__?1:0)+' clean375='+cl375+' chrome375='+String(window.__AD_STRIPCHROME374_LEFT__||0)+' ink375='+in375+' white376='+String(window.__AD_ADTEXT376_LOCKED__||0)+' grayleft376='+String(window.__AD_ADTEXT376_GRAYLEFT__||0)+' media375='+String(window.__AD_STRIPMEDIA374_N__||0)+' fullSkip375='+String(window.__AD_STRIPFULL374_N__||0)+' spon='+sp375;return cl375+in375+tx377+bx378+tm375+sp375;}"
+             "var strip375=window.__AD_PRODUCTSTRIP375__?window.__AD_PRODUCTSTRIP375__():0;if(strip375){var cl375=window.__AD_CLEARSTRIP374__?window.__AD_CLEARSTRIP374__():0;var in375=window.__AD_ADTEXT371__?window.__AD_ADTEXT371__():0;var tx377=window.__AD_STRIPTEXT377__?window.__AD_STRIPTEXT377__():0;var bx378=window.__AD_STRIPCHROME379__?window.__AD_STRIPCHROME379__():0;var dk382=window.__AD_STANDDARK382__?window.__AD_STANDDARK382__():0;var tm375=window.__AD_STRIPMEDIA374__?window.__AD_STRIPMEDIA374__():0;var sp375=window.__AD_SPON365__?window.__AD_SPON365__():0;window.__AD_STANDALONE__='strip-stock382';window.__AD_ADTHEME__='mode='+mode+' strip379=1 any379='+String(window.__AD_ANYSPON379_N__||0)+' dark379='+String(window.__AD_ANYSPON379_DARK__||0)+' roots379='+String(window.__AD_ANYSPON379_ROOTS__||0)+' t377='+String(window.__AD_STRIPTEXT377_N__||0)+' d377='+String(window.__AD_STRIPTEXT377_DARK__||0)+' box379='+String(window.__AD_STRIPCHROME379_N__||0)+' boxleft379='+String(window.__AD_STRIPCHROME379_LEFT__||0)+' black382='+String(window.__AD_STANDDARK382_N__||0)+' blackleft382='+String(window.__AD_STANDDARK382_LEFT__||0)+' sticky='+String(window.__AD_STRIPCONF375__?1:0)+' clean375='+cl375+' chrome375='+String(window.__AD_STRIPCHROME374_LEFT__||0)+' ink375='+in375+' white376='+String(window.__AD_ADTEXT376_LOCKED__||0)+' grayleft376='+String(window.__AD_ADTEXT376_GRAYLEFT__||0)+' media375='+String(window.__AD_STRIPMEDIA374_N__||0)+' fullSkip375='+String(window.__AD_STRIPFULL374_N__||0)+' spon='+sp375;return cl375+in375+tx377+bx378+dk382+tm375+sp375;}"
              "if(mode==='productad'){var csp=document.getElementById('adfrcompact373');if(csp&&csp.parentNode)csp.parentNode.removeChild(csp);var oldc372=document.getElementById('adfrcompact372');if(oldc372&&oldc372.parentNode)oldc372.parentNode.removeChild(oldc372);var oldp=document.getElementById('adfrstand362');if(oldp&&oldp.parentNode)oldp.parentNode.removeChild(oldp);var oldm=document.getElementById('adfrmin');if(oldm&&oldm.parentNode)oldm.parentNode.removeChild(oldm);if(!document.getElementById('adfrproduct370')){var pst=document.createElement('style');pst.id='adfrproduct370';pst.textContent='html,body{background-color:transparent !important;}';(document.head||document.documentElement).appendChild(pst);}try{var pe=document.querySelectorAll('*');for(var pi=0;pi<pe.length&&pi<900;pi++){var px=pe[pi];if(!px.__adStand362)continue;var pv=String(px.style.getPropertyValue('background-color')||'').replace(/\\s+/g,'').toLowerCase();if(pv==='#181a1b'||pv==='rgb(24,26,27)')px.style.removeProperty('background-color');var bs=['top','right','bottom','left'];for(var pbi=0;pbi<4;pbi++){var bp='border-'+bs[pbi]+'-color',bv=String(px.style.getPropertyValue(bp)||'').replace(/\\s+/g,'').toLowerCase();if(bv==='#3b3c3e'||bv==='rgb(59,60,62)')px.style.removeProperty(bp);}}}catch(pc369){}var ptx=window.__AD_ADTEXT371__?window.__AD_ADTEXT371__():0;var pt=window.__AMZDARK_ADTAME__?window.__AMZDARK_ADTAME__():0;var ps=window.__AD_SPON365__?window.__AD_SPON365__():0;window.__AD_STANDALONE__='product-stock373';window.__AD_ADTHEME__='mode=productad stock=1 ink371='+ptx+' left='+String(window.__AD_ADTEXT371_LEFT__||0)+' roots='+String(window.__AD_ADTEXT371_ROOTS__||1)+' '+String(window.__AD_ADTAME__||('tame='+pt))+' spon='+ps+' pref='+(window.__AD_PRODUCTREF369__?1:0);return ptx+pt+ps;}"
              "if(mode==='standalone'){var compact373=window.__AD_COMPACTSTRIP373__?window.__AD_COMPACTSTRIP373__():0;if(compact373){var clean373=window.__AD_CLEARSTAND373__?window.__AD_CLEARSTAND373__():0;var ink373=window.__AD_ADTEXT371__?window.__AD_ADTEXT371__():0;var tame373=window.__AD_COMPACTMEDIA373__?window.__AD_COMPACTMEDIA373__():0;var spon373=window.__AD_SPON365__?window.__AD_SPON365__():0;window.__AD_STANDALONE__='compact-stock373';window.__AD_ADTHEME__='mode=standalone compact373=1 clean373='+clean373+' chrome373='+String(window.__AD_COMPACTCHROME373_LEFT__||0)+' ink371='+ink373+' left='+String(window.__AD_ADTEXT371_LEFT__||0)+' roots='+String(window.__AD_ADTEXT371_ROOTS__||1)+' media373='+String(window.__AD_COMPACTMEDIA373_N__||0)+' spon='+spon373;return clean373+ink373+tame373+spon373;}var cst=document.getElementById('adfrcompact373');if(cst&&cst.parentNode)cst.parentNode.removeChild(cst);var cst372=document.getElementById('adfrcompact372');if(cst372&&cst372.parentNode)cst372.parentNode.removeChild(cst372);var old=document.getElementById('adfrmin');if(old&&old.parentNode)old.parentNode.removeChild(old);var prodst=document.getElementById('adfrproduct370');if(prodst&&prodst.parentNode)prodst.parentNode.removeChild(prodst);"
                "var sn=window.__AMZDARK_ADTHEME_STANDALONE__?window.__AMZDARK_ADTHEME_STANDALONE__():0;"
@@ -1074,10 +1116,10 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "u:String(location.pathname||'/').slice(-16)+'|'+String(window.__ADFRAME_MODE__||'-').slice(0,4),r:f},'*');}"
            "}catch(e){}};"
            "try{window.__AD_HEROFAST365__&&window.__AD_HEROFAST365__(document.documentElement);window.__AMZDARK_ADTHEME__();window.__ADFPOST__();}catch(e){}"
-           "try{var _at=null;new MutationObserver(function(ms){try{for(var mi=0;mi<ms.length;mi++){var mm=ms[mi];if(mm.type==='attributes'&&mm.target){mm.target.__adStand362=0;if(window.__AD_HEROFAST365__)window.__AD_HEROFAST365__(mm.target);}else if(mm.type==='childList'&&window.__AD_HEROFAST365__){for(var ai=0;ai<mm.addedNodes.length&&ai<16;ai++){var an=mm.addedNodes[ai];if(an&&an.nodeType===1)window.__AD_HEROFAST365__(an);}}}if(window.__AD_ANYSPONINK379__)window.__AD_ANYSPONINK379__();if(window.__AD_STRIPCONF375__&&window.__AD_ADTEXT371__)window.__AD_ADTEXT371__();if(window.__AD_STRIPCONF375__&&window.__AD_STRIPTEXT377__)window.__AD_STRIPTEXT377__();if(window.__AD_STRIPCONF375__&&window.__AD_STRIPCHROME379__)window.__AD_STRIPCHROME379__();}catch(e){}clearTimeout(_at);"
+           "try{var _at=null;new MutationObserver(function(ms){try{for(var mi=0;mi<ms.length;mi++){var mm=ms[mi];if(mm.type==='attributes'&&mm.target){mm.target.__adStand362=0;if(window.__AD_HEROFAST365__)window.__AD_HEROFAST365__(mm.target);}else if(mm.type==='childList'&&window.__AD_HEROFAST365__){for(var ai=0;ai<mm.addedNodes.length&&ai<16;ai++){var an=mm.addedNodes[ai];if(an&&an.nodeType===1)window.__AD_HEROFAST365__(an);}}}if(window.__AD_ANYSPONINK379__)window.__AD_ANYSPONINK379__();if(window.__AD_STRIPCONF375__&&window.__AD_ADTEXT371__)window.__AD_ADTEXT371__();if(window.__AD_STRIPCONF375__&&window.__AD_STRIPTEXT377__)window.__AD_STRIPTEXT377__();if(window.__AD_STRIPCONF375__&&window.__AD_STRIPCHROME379__)window.__AD_STRIPCHROME379__();if(window.__AD_STRIPCONF375__&&window.__AD_STANDDARK382__)window.__AD_STANDDARK382__();}catch(e){}clearTimeout(_at);"
              "_at=setTimeout(function(){try{window.__AMZDARK_ADTHEME__();window.__ADFPOST__();}catch(e){}},window.__AD_STRIPCONF375__?40:180);})"
              ".observe(document.documentElement,{childList:true,subtree:true,attributes:true,characterData:true,attributeFilter:['src','srcset','poster','class','style']});}catch(e){}"
-           "try{var __ad377rf=0;function __ad377raf(){if(++__ad377rf>180)return;try{if(window.__AD_ANYSPONINK379__)window.__AD_ANYSPONINK379__();if(window.__AD_STRIPCONF375__&&window.__AD_STRIPTEXT377__)window.__AD_STRIPTEXT377__();if(window.__AD_STRIPCONF375__&&window.__AD_STRIPCHROME379__)window.__AD_STRIPCHROME379__();}catch(e){}requestAnimationFrame(__ad377raf);}requestAnimationFrame(__ad377raf);}catch(e){}"
+           "try{var __ad377rf=0;function __ad377raf(){if(++__ad377rf>180)return;try{if(window.__AD_ANYSPONINK379__)window.__AD_ANYSPONINK379__();if(window.__AD_STRIPCONF375__&&window.__AD_STRIPTEXT377__)window.__AD_STRIPTEXT377__();if(window.__AD_STRIPCONF375__&&window.__AD_STRIPCHROME379__)window.__AD_STRIPCHROME379__();if(window.__AD_STRIPCONF375__&&window.__AD_STANDDARK382__)window.__AD_STANDDARK382__();}catch(e){}requestAnimationFrame(__ad377raf);}requestAnimationFrame(__ad377raf);}catch(e){}"
            "try{var __ad378iv=0,__ad378tm=setInterval(function(){if(++__ad378iv>60){clearInterval(__ad378tm);return;}try{if(window.__AD_ANYSPONINK379__)window.__AD_ANYSPONINK379__();if(window.__AD_STRIPCONF375__){if(window.__AD_STRIPTEXT377__)window.__AD_STRIPTEXT377__();if(window.__AD_STRIPCHROME379__)window.__AD_STRIPCHROME379__();}}catch(e){}},500);}catch(e){}"
            "try{document.addEventListener('load',function(ev){try{var t=ev.target;if(t&&t.nodeType===1&&window.__AD_HEROFAST365__)window.__AD_HEROFAST365__(t);}catch(e){}},true);}catch(e){}"
            "try{document.addEventListener('DOMContentLoaded',function(){try{window.__AMZDARK_ADTHEME__();window.__ADFPOST__();}catch(e){}},{once:true});}catch(e){}"
@@ -4112,10 +4154,19 @@ static void ADUntintColourImage(UIImageView *iv){
 static void ADLiftNativeGlyph(UIImageView *iv){
     @try {
         if (!iv || !iv.image) return;
-        // v5.379: Explore/Shop-by-category tiles are content artwork, never UI glyphs.
-        // If an earlier assignment converted one to a template, actively restore the
-        // stock pixels instead of merely declining to convert it again.
-        if (ADIsCategoryArtwork379(iv)) { ADRestoreCategoryArtwork379(iv); return; }
+        // v5.382: Menu CONTENT never enters the glyph pipeline. Only top search
+        // chrome/right chevrons (role=2) are eligible for light-glyph treatment.
+        int menuRole382=ADMenuRole382(iv);
+        if (menuRole382==1) {
+            if(ADImageIsTemplateish(iv.image)||objc_getAssociatedObject(iv.image,kADOrigImageKey)||iv.tintColor) ADRestoreCategoryArtwork379(iv);
+            return;
+        }
+        if (menuRole382==2) {
+            UIImage *mi=iv.image;
+            if(mi && mi.renderingMode!=UIImageRenderingModeAlwaysTemplate){ gADGlyphWriting=YES; iv.image=[mi imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]; gADGlyphWriting=NO; }
+            iv.tintColor=ADColorFromHex(gP.fgHex);
+            return;
+        }
         static const void *kNatGlyphKey = &kNatGlyphKey;
         // Keyed on the image, not the view: React Native replaces the image on
         // re-render, and a per-view mark would skip the replacement forever.
@@ -4826,7 +4877,6 @@ static inline UIColor *ADMarkOwnColor(UIColor *c){
 // renderingMode alone is not enough: an asset marked "Template Image" in the
 // catalogue reports UIImageRenderingModeAutomatic and is resolved to template at
 // draw time, so the AlwaysTemplate test walked straight past the app's own icons.
-static const void *kADOrigImageKey = &kADOrigImageKey;
 static UIColor *gAmazonBlue = nil;   // Amazon's own tab accent, captured live
 static BOOL ADIsTabBarItemish(UIView *v);
 // Walk UP. ADIsTabBarItemish names CONTAINER classes, so the image view that actually
@@ -6171,6 +6221,7 @@ static ADWTBands362 ADWTBandsForWindow362(UIWindow *w){
     gADWTBandWindow362=w; gADWTBandTime362=now; gADWTBands362=b; return b;
 }
 static const void *kADWTForcedImage364 = &kADWTForcedImage364;
+static UIView *ADMenuRoot382(UIView *v);
 static BOOL ADWTRawImageLike364(UIView *v){
     if (!v) return NO;
     const char *c=object_getClassName(v); if(!c) return NO;
@@ -6248,8 +6299,9 @@ static BOOL ADWTInHighlightsCarousel368(UIView *v){
     } @catch(...) {}
     return NO;
 }
-// v5.365: bounded local section resolver for React/Fabric sibling layouts.
-// Only inspect compact ancestors; never classify the whole screen from one distant heading.
+// v5.382: return to the v5.365 local-section model that originally fixed the
+// sibling React/Fabric Person panes. Nearest compact section ownership is decisive;
+// broad window headings are only a fallback. Customer Service is explicitly negative.
 static int ADWTLocalSection365(UIView *v){
     @try {
         UIWindow *w=v.window; UIView *p=v; int up=0;
@@ -6257,17 +6309,27 @@ static int ADWTLocalSection365(UIView *v){
             CGFloat h=p.bounds.size.height, ww=p.bounds.size.width;
             if(h>=40 && h<=760 && ww>=40 && (!w || ww<=w.bounds.size.width*1.25)){
                 NSMutableArray *q=[NSMutableArray arrayWithObject:p]; int seen=0;
+                BOOL neg=NO, reviews=NO, product=NO;
                 for(NSUInteger qi=0; qi<q.count && seen++<90; qi++){
                     UIView *x=q[qi]; NSString *lo=[[ADWTViewText362(x) lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-                    if([lo containsString:@"medical care"] || [lo containsString:@"your amazon highlights"] || [lo containsString:@"total savings"] || [lo containsString:@"sessions streamed"]) return 1;
-                    if([lo containsString:@"your reviews"] || [lo containsString:@"what did you think of the item"]) return 3;
+                    if([lo containsString:@"need help"] || [lo containsString:@"contact customer service"] ||
+                       [lo containsString:@"customer service"] || [lo containsString:@"medical care"] ||
+                       [lo containsString:@"your amazon highlights"] || [lo containsString:@"total savings"] ||
+                       [lo containsString:@"sessions streamed"]) neg=YES;
+                    if([lo containsString:@"your reviews"] || [lo containsString:@"what did you think of the item"]) reviews=YES;
                     if([lo containsString:@"returns are easy"] || [lo containsString:@"send an amazon gift card"] ||
                        [lo containsString:@"shop previously watched"] || [lo containsString:@"subscribe & save"] ||
-                       [lo containsString:@"subscribe and save"] || [lo containsString:@"how can i help"] ||
-                       [lo hasPrefix:@"best deals on"] || [lo hasPrefix:@"keep shopping for"] ||
-                       [lo containsString:@"alexa for shopping"]) return 2;
+                       [lo containsString:@"subscribe and save"] || [lo hasPrefix:@"best deals on"] ||
+                       [lo hasPrefix:@"keep shopping for"] || [lo containsString:@"alexa for shopping"]) product=YES;
                     if(qi<28){ for(UIView *sv in x.subviews){ if(q.count<90) [q addObject:sv]; else break; } }
                 }
+                // A compact Need-help/Customer-Service row is a hard exclusion.
+                // In a broader mixed Person wrapper, the named product section wins so
+                // one Customer-Service row cannot suppress Subscribe/Watched/Alexa.
+                if(neg && h<=280) return 1;
+                if(reviews) return 3;
+                if(product) return 2;
+                if(neg) return 1;
             }
             p=p.superview;
         }
@@ -6275,113 +6337,89 @@ static int ADWTLocalSection365(UIView *v){
     return 0;
 }
 // 0 normal, 1 explicit exclusion, 2 forced product-media context,
-// 3 Reviews photo-only context. Highlights/Explore are hard exclusions.
+// 3 Reviews photo-only context. This restores the v5.374/365 ordering.
 static int ADWTNativeContext(UIView *v){
     @try {
         UIWindow *w=v.window; if (!w) return 0;
-        // v5.381: policy must follow the view's ACTUAL screen branch. Amazon keeps
-        // inactive tab trees mounted, so window-global Menu headings were poisoning
-        // Person-tab media and making Subscribe/Watched/Alexa randomly lose taming.
-        if (ADIsHamburgerSurface380(v)) return 1;
-        if (ADWTNoTameGlyph367(v)) return 1;
-
+        if(ADMenuRoot382(v)) return 1;
         CGRect vr=[v convertRect:v.bounds toView:w]; CGFloat y=CGRectGetMidY(vr);
         ADWTBands362 b=ADWTBandsForWindow362(w);
         int local=ADWTLocalSection365(v);
-
-        // Local section ownership beats stale/window-global heading coordinates.
-        if (ADWTInWatchedCarousel380(v)) return 2;
+        if (b.medical>=0 && y>b.medical && (b.highlights>b.medical ? y<b.highlights : y<b.medical+520)) return 1;
+        if (b.highlights>=0 && y>b.highlights && (b.giftcard>b.highlights ? y<b.giftcard : y<b.highlights+520)) return 1;
+        if (b.reviews>=0 && y>b.reviews && (b.help>b.reviews ? y<b.help : y<b.reviews+900)) return 3;
         if (local==3) return 3;
         if (local==1) return 1;
-        if (local==2) return 2;
         if (ADWTInHighlightsCarousel368(v)) return 1;
-        if (ADWTExploreTile363(v)) return 1;
-
-        // The remaining bands are Person/Home product sections. Menu/Explore/Shop
-        // exclusions are deliberately NOT read from this window-global cache.
-        if (b.medical>=0 && y>b.medical &&
-            (b.highlights>b.medical ? y<b.highlights : y<b.medical+520)) return 1;
-        if (b.highlights>=0 && y>b.highlights &&
-            (b.giftcard>b.highlights ? y<b.giftcard : y<b.highlights+520)) return 1;
-        if (b.reviews>=0 && y>b.reviews &&
-            (b.help>b.reviews ? y<b.help : y<b.reviews+900)) return 3;
+        if (ADWTExploreTile363(v) || ADWTNoTameGlyph367(v)) return 1;
+        if (b.explore>=0 && y>b.explore && (b.shopcat>b.explore ? y<b.shopcat : y<b.explore+720)) return 1;
+        if (local==2) return 2;
         if (b.subscribe>=0 && y>b.subscribe && (b.keep>b.subscribe ? y<b.keep : y<b.subscribe+760)) return 2;
         if (b.keep>=0 && y>b.keep && (b.watched>b.keep ? y<b.watched : y<b.keep+900)) return 2;
         if (b.watched>=0 && y>b.watched && (b.lists>b.watched ? y<b.lists : y<b.watched+620)) return 2;
-        if (b.how>=0 && y>b.how && (b.questions>b.how ? y<b.questions : y<b.how+580)) return 2;
         if (b.returns>=0 && y>b.returns && (b.related>b.returns ? y<b.related : y<b.returns+520)) return 2;
-        if (b.alexa>=0){
-            CGFloat aw=v.bounds.size.width,ah=v.bounds.size.height,ar=aw/MAX((CGFloat)1.0,ah);
-            if(aw>=24&&ah>=24&&aw<=190&&ah<=190&&ar>=0.35&&ar<=2.50) return 2;
-        }
+        if (b.alexa>=0){ CGFloat aw=v.bounds.size.width,ah=v.bounds.size.height,ar=aw/MAX((CGFloat)1.0,ah); if(aw>=24&&ah>=24&&aw<=190&&ah<=190&&ar>=0.35&&ar<=2.50) return 2; }
     } @catch(...) {}
     return 0;
 }
 
-// v5.381: classify the hamburger/Menu surface from the nearest active screen branch,
-// not from UIWindow-global headings. Nothing in this surface receives White
-// Background Taming. Small menu artwork is also kept in AlwaysOriginal form.
-static BOOL ADIsHamburgerSurface380(UIView *v){
+// v5.382: persistent active Menu-root ownership. Once the nearest screen branch
+// proves it is the hamburger menu, descendants never go through White-Tame or generic
+// glyph conversion. This prevents convert->restore churn, which is what the P44 logs
+// showed as the visible flashing.
+static const void *kADMenuRoot382Key=&kADMenuRoot382Key;
+static UIView *ADMenuRoot382(UIView *v){
     @try {
-        UIWindow *w=v.window; if(!w || !v) return NO;
+        UIWindow *w=v.window; if(!w||!v) return nil;
         CGFloat ww=w.bounds.size.width, wh=w.bounds.size.height;
-
-        // Find the NEAREST screen-sized branch that owns v. Do not inspect UIWindow:
-        // inactive tabs remain mounted under it and caused the v5.380 false positives.
-        UIView *root=nil, *p=v; int up=0;
-        while(p && p!=w && up++<18){
-            CGFloat pw=p.bounds.size.width, ph=p.bounds.size.height;
-            if(pw>=ww*0.78 && ph>=wh*0.48){ root=p; break; }
-            p=p.superview;
-        }
-        if(!root) return NO;
-
-        static __weak UIView *lastRoot=nil; static CFAbsoluteTime lastTime=0; static BOOL lastResult=NO;
-        CFAbsoluteTime now=CFAbsoluteTimeGetCurrent();
-        if(root==lastRoot && now-lastTime<0.35) return lastResult;
-
-        BOOL found=NO;
+        UIView *root=nil,*p=v; int up=0;
+        while(p&&p!=w&&up++<18){ CGFloat pw=p.bounds.size.width,ph=p.bounds.size.height; if(pw>=ww*.78&&ph>=wh*.48){root=p;break;} p=p.superview; }
+        if(!root) return nil;
+        if(objc_getAssociatedObject(root,kADMenuRoot382Key)) return root;
+        BOOL canonical=NO,sw=NO,so=NO,del=NO;
         NSMutableArray *q=[NSMutableArray arrayWithObject:root];
-        for(NSUInteger qi=0; qi<q.count && qi<900; qi++){
-            UIView *x=q[qi];
-            if(x.hidden || x.alpha<0.01) continue;
-            NSString *lo=[[[ADWTViewText362(x) lowercaseString]
-                           stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] copy];
-            if([lo containsString:@"explore more for you"] || [lo containsString:@"shop by category"]){ found=YES; break; }
-            if(qi<280){
-                for(UIView *sv in x.subviews){ if(q.count<900)[q addObject:sv]; else break; }
-            }
+        for(NSUInteger qi=0;qi<q.count&&qi<1100;qi++){
+            UIView *x=q[qi]; if(x.hidden||x.alpha<.01)continue;
+            NSString *lo=[[[ADWTViewText362(x) lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] copy];
+            if([lo containsString:@"explore more for you"]||[lo containsString:@"shop by category"]) canonical=YES;
+            if([lo containsString:@"switch accounts"]) sw=YES;
+            if([lo isEqualToString:@"sign out"]||[lo containsString:@"sign out"]) so=YES;
+            if([lo containsString:@"delivery services"]) del=YES;
+            if(qi<330){for(UIView *sv in x.subviews){if(q.count<1100)[q addObject:sv];else break;}}
         }
-        lastRoot=root; lastTime=now; lastResult=found;
-        return found;
+        if(canonical||(sw&&so)||(sw&&del)){ objc_setAssociatedObject(root,kADMenuRoot382Key,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC); return root; }
     } @catch(...) {}
-    return NO;
+    return nil;
 }
+// 0 not Menu, 1 Menu content artwork (leave completely stock), 2 Menu chrome
+// (search magnifier/camera/mic and right-edge chevrons: allow/tint light).
+static int ADMenuRole382(UIView *v){
+    @try {
+        UIView *root=ADMenuRoot382(v); if(!root)return 0;
+        if(ADIsChromeGlyphContext(v)) return 2;
+        UIWindow *w=v.window; if(!w)return 1;
+        CGRect r=[v convertRect:v.bounds toView:w]; CGFloat vw=r.size.width,vh=r.size.height;
+        if(vw<=46&&vh<=46&&CGRectGetMaxX(r)>=w.bounds.size.width-66) return 2;
+        if(vw<=46&&vh<=46&&CGRectGetMidY(r)<=150) return 2;
+        return 1;
+    } @catch(...) {}
+    return 0;
+}
+static BOOL ADIsHamburgerSurface380(UIView *v){ return ADMenuRoot382(v)!=nil; }
 
-// Previously Watched is horizontally virtualized like Highlights, but its
-// policy is the opposite: product images SHOULD be tamed. Resolve the owning
-// horizontal carousel and keep every recycled product tile in ctx=2.
+// Kept only as a diagnostic/compatibility helper. Person policy no longer depends on
+// this fragile horizontal-scroll detector; the v5.365 local heading resolver owns it.
 static BOOL ADWTInWatchedCarousel380(UIView *v){
     @try {
         UIView *p=v; int up=0;
-        while(p && up++<10){
-            if([p isKindOfClass:[UIScrollView class]]){
-                UIScrollView *sv=(UIScrollView *)p; CGFloat bw=sv.bounds.size.width,bh=sv.bounds.size.height;
-                BOOL horiz=(bw>40&&bh>=45&&bh<=420&&sv.contentSize.width>bw*1.05);
-                if(horiz){
-                    UIView *z=sv.superview; int zu=0;
-                    while(z && zu++<4){
-                        CGFloat zh=z.bounds.size.height,zw=z.bounds.size.width;
-                        if(zh>=70&&zh<=760&&zw>=120){
-                            NSMutableArray *q=[NSMutableArray arrayWithObject:z]; int seen=0;
-                            for(NSUInteger qi=0; qi<q.count && seen++<220; qi++){
-                                UIView *x=q[qi]; NSString *lo=[[[ADWTViewText362(x) lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] copy];
-                                if([lo containsString:@"shop previously watched"]) return YES;
-                                if(qi<64){ for(UIView *c in x.subviews){ if(q.count<220)[q addObject:c]; else break; } }
-                            }
-                        }
-                        z=z.superview;
-                    }
+        while(p&&up++<8){
+            CGFloat h=p.bounds.size.height,w=p.bounds.size.width;
+            if(h>=50&&h<=520&&w>=100){
+                NSMutableArray *q=[NSMutableArray arrayWithObject:p];
+                for(NSUInteger qi=0;qi<q.count&&qi<120;qi++){
+                    UIView *x=q[qi]; NSString *lo=[[ADWTViewText362(x) lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+                    if([lo containsString:@"shop previously watched"]) return YES;
+                    if(qi<36){for(UIView *sv in x.subviews){if(q.count<120)[q addObject:sv];else break;}}
                 }
             }
             p=p.superview;
@@ -6390,66 +6428,63 @@ static BOOL ADWTInWatchedCarousel380(UIView *v){
     return NO;
 }
 
-// v5.379: explicit stock-art protection for the More-menu Explore and Shop by
-// category sections. These are 44-64px illustrations and logos, which overlap the
-// historical native-glyph size range. The section position, not pixel appearance,
-// determines policy. This also lets us undo an already-template-tinted image.
 static BOOL ADIsCategoryArtwork379(UIView *v){
     @try {
-        if (!v || ADInTabBarChain(v) || ADIsWebKitOwned(v)) return NO;
-        // Search/back/camera/mic are chrome and still need the normal light-glyph path.
-        if (ADIsChromeGlyphContext(v)) return NO;
-        CGFloat vw=v.bounds.size.width, vh=v.bounds.size.height;
-        if (vw<24 || vh<24 || vw>110 || vh>110) return NO;
-        UIWindow *w=v.window; if(!w) return NO;
-        CGRect r=[v convertRect:v.bounds toView:w]; CGFloat y=CGRectGetMidY(r);
-        // Within the active Menu branch, top search chrome is excluded above; the
-        // remaining small images are stock content artwork and must stay original.
-        if (ADIsHamburgerSurface380(v) && y>230) return YES;
-        // Do not consult UIWindow-global Explore/Shop heading coordinates here:
-        // inactive tabs are mounted and those values are not ownership information.
-        // Local fallback for the Explore row while the heading-band cache is still
-        // warming. This includes branded shortcuts such as Autos/Whole Foods/Haul.
-        if (ADWTExploreTile363(v)) return YES;
+        if(!v||ADInTabBarChain(v)||ADIsWebKitOwned(v))return NO;
+        int mr=ADMenuRole382(v);
+        if(mr==1){ CGFloat vw=v.bounds.size.width,vh=v.bounds.size.height; return vw>=20&&vh>=20&&vw<=120&&vh<=120; }
+        if(mr==2)return NO;
+        if(ADIsChromeGlyphContext(v))return NO;
+        CGFloat vw=v.bounds.size.width,vh=v.bounds.size.height;
+        if(vw>=24&&vh>=24&&vw<=110&&vh<=110&&ADWTExploreTile363(v))return YES;
     } @catch(...) {}
     return NO;
 }
 static void ADRestoreCategoryArtwork379(UIImageView *iv){
     @try {
-        if(!iv || !iv.image) return;
+        if(!iv||!iv.image)return;
         CALayer *ov=objc_getAssociatedObject(iv,kADWhiteTameOverlayKey);
-        if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(iv,kADWhiteTameOverlayKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
+        if(ov){[ov removeFromSuperlayer];objc_setAssociatedObject(iv,kADWhiteTameOverlayKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
         objc_setAssociatedObject(iv,kADWTForcedImage364,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        UIImage *cur=iv.image;
-        UIImage *orig=objc_getAssociatedObject(cur,kADOrigImageKey);
-        UIImage *want=orig ?: [cur imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
-        BOOL changed=(want && (want!=cur || cur.renderingMode!=UIImageRenderingModeAlwaysOriginal || iv.tintColor));
-        if(changed){ gADGlyphWriting=YES; iv.image=want; gADGlyphWriting=NO; iv.tintColor=nil; }
-        static int cat379log=0;
-        if(cat379log<18){ cat379log++; ADLog(@"P44MENU381[%s %.0fx%.0f changed=%d mode=%ld]",object_getClassName(iv),iv.bounds.size.width,iv.bounds.size.height,changed?1:0,(long)iv.image.renderingMode); }
+        UIImage *cur=iv.image,*orig=objc_getAssociatedObject(cur,kADOrigImageKey);
+        BOOL changed=(orig!=nil || cur.renderingMode!=UIImageRenderingModeAlwaysOriginal);
+        if(changed){
+            UIImage *want=orig ?: [cur imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+            if(want){ gADGlyphWriting=YES; iv.image=want; gADGlyphWriting=NO; }
+            iv.tintColor=nil;
+        }
+        static int mlog=0;if(mlog++<18)ADLog(@"P44MENU382[%s %.0fx%.0f role=%d changed=%d]",object_getClassName(iv),iv.bounds.size.width,iv.bounds.size.height,ADMenuRole382(iv),changed?1:0);
     } @catch(...) {}
 }
 
 static const void *kADWTCtxUntil365 = &kADWTCtxUntil365;
+static const void *kADWTCtxImage382 = &kADWTCtxImage382;
 static int ADWTStableContext365(UIView *v){
     int ctx=ADWTNativeContext(v);
     @try {
+        UIImage *cur=[v isKindOfClass:[UIImageView class]]?((UIImageView *)v).image:nil;
         if(ctx==1 || ctx==3){
             objc_setAssociatedObject(v,kADWTCtxUntil365,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(v,kADWTCtxImage382,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             return ctx;
         }
         CFAbsoluteTime now=CFAbsoluteTimeGetCurrent();
-        if(ctx==2){ objc_setAssociatedObject(v,kADWTCtxUntil365,@(now+2.0),OBJC_ASSOCIATION_RETAIN_NONATOMIC); return 2; }
+        if(ctx==2){
+            objc_setAssociatedObject(v,kADWTCtxUntil365,@(now+4.0),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            if(cur)objc_setAssociatedObject(v,kADWTCtxImage382,cur,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            return 2;
+        }
         NSNumber *until=objc_getAssociatedObject(v,kADWTCtxUntil365);
-        if(until && until.doubleValue>now) return 2;
-        if(until) objc_setAssociatedObject(v,kADWTCtxUntil365,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        UIImage *held=objc_getAssociatedObject(v,kADWTCtxImage382);
+        if(until&&until.doubleValue>now&&cur&&held==cur)return 2;
+        if(until){objc_setAssociatedObject(v,kADWTCtxUntil365,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);objc_setAssociatedObject(v,kADWTCtxImage382,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
     } @catch(...) {}
     return ctx;
 }
 static void ADApplyNativeWhiteTameView(UIView *v){
     @try {
         if (!v || ADIsWebKitOwned(v)) return;
-        if (ADIsHamburgerSurface380(v)) {
+        if (ADMenuRole382(v)!=0) {
             CALayer *menuOv=objc_getAssociatedObject(v,kADWhiteTameOverlayKey);
             if(menuOv){ [menuOv removeFromSuperlayer]; objc_setAssociatedObject(v,kADWhiteTameOverlayKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
             objc_setAssociatedObject(v,kADWTForcedImage364,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -6521,7 +6556,7 @@ static void ADApplyNativeWhiteTameView(UIView *v){
             if (gADNativeTameLog++<48)
                 ADLog(@"P24NATTAME[%s %.0fx%.0f alpha=%.3f ctx=%d raw=%d band=366]",
                       object_getClassName(v),v.bounds.size.width,v.bounds.size.height,a,ctx,isIV?0:1);
-            if (ctx==2) { static int person381log=0; if(person381log++<18) ADLog(@"P45PERSON381[%s %.0fx%.0f overlay=1 watched=%d]",object_getClassName(v),v.bounds.size.width,v.bounds.size.height,ADWTInWatchedCarousel380(v)?1:0); }
+            if (ctx==2) { static int person381log=0; if(person381log++<18) ADLog(@"P45PERSON382[%s %.0fx%.0f overlay=1 local=%d watched=%d]",object_getClassName(v),v.bounds.size.width,v.bounds.size.height,ADWTLocalSection365(v),ADWTInWatchedCarousel380(v)?1:0); }
         } else {
             if (ov.superlayer != v.layer) [v.layer addSublayer:ov];
             ov.frame=v.bounds; ov.backgroundColor=[UIColor colorWithWhite:0 alpha:a].CGColor; ov.zPosition=9999;
@@ -6531,7 +6566,7 @@ static void ADApplyNativeWhiteTameView(UIView *v){
 static void ADPrimeNativeWhiteTame363(UIView *v, UIImage *incoming){
     @try {
         if(!v||!gP.enabled||!gP.whiteTame||!v.window||ADIsWebKitOwned(v)) return;
-        if(ADIsHamburgerSurface380(v)){ CALayer *menuOv=objc_getAssociatedObject(v,kADWhiteTameOverlayKey); if(menuOv){[menuOv removeFromSuperlayer];objc_setAssociatedObject(v,kADWhiteTameOverlayKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);} objc_setAssociatedObject(v,kADWTForcedImage364,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); return; }
+        if(ADMenuRole382(v)!=0){ CALayer *menuOv=objc_getAssociatedObject(v,kADWhiteTameOverlayKey); if(menuOv){[menuOv removeFromSuperlayer];objc_setAssociatedObject(v,kADWhiteTameOverlayKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);} objc_setAssociatedObject(v,kADWTForcedImage364,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); return; }
         CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
         if(w<28||h<28) return;
         int ctx=ADWTStableContext365(v);
@@ -6568,9 +6603,12 @@ static void ADApplyNativeWhiteTame(UIImageView *iv){ ADApplyNativeWhiteTameView(
     %orig;
     @try {
         if (!gP.enabled || !self.window || ADIsWebKitOwned(self)) return;
-        // Measured lift for small monochrome assets on a dark ground -- the
-        // Interests plus glyph is one of these, and it is native, so no web
-        // pass could ever have reached it. Photographs fail the alpha test.
+        // v5.382: resolve Menu ownership BEFORE any glyph conversion or White-Tame.
+        // This prevents the convert->restore flash seen in v5.379-v5.381.
+        int mr382=ADMenuRole382(self);
+        if(mr382==1){ if(ADImageIsTemplateish(self.image)||objc_getAssociatedObject(self.image,kADOrigImageKey)||self.tintColor) ADRestoreCategoryArtwork379(self); return; }
+        if(mr382==2){ UIImage *mi=self.image; if(mi&&mi.renderingMode!=UIImageRenderingModeAlwaysTemplate){gADGlyphWriting=YES;self.image=[mi imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];gADGlyphWriting=NO;} self.tintColor=ADColorFromHex(gP.fgHex); return; }
+        // Measured lift for small monochrome assets on a dark ground.
         ADScheduleGlyphLift(self);
         // The tab bar owns its own colours. Both branches below repaint: the backdrop
         // drops a dark panel behind any transparent artwork, and the catch-up
@@ -6767,6 +6805,7 @@ static const void *kADGlyphChecked = &kADGlyphChecked;
 // selection state on their own path and must still convert.
 static UIImage *ADGlyphifyForView(UIImage *img, UIView *v){
     @try {
+        if (v && ADMenuRole382(v)==1) return nil;
         if (v && ADIsCategoryArtwork379(v)) return nil;
         if (v && !ADInTabBarChain(v) && !ADIsChromeGlyphContext(v)){
             // setImage: often fires before layout, when bounds are still 0x0. Fall
@@ -6807,6 +6846,31 @@ static UIImage *ADGlyphify(UIImage *img){
         %orig;
         return;
     }
+    // v5.382 Menu content is installed AlwaysOriginal on the FIRST assignment.
+    // Do not template it and then repair it a frame later.
+    @try {
+        int mr382=ADMenuRole382(self);
+        if(mr382==1){
+            UIImage *orig=objc_getAssociatedObject(image,kADOrigImageKey);
+            UIImage *want=orig ?: (image.renderingMode==UIImageRenderingModeAlwaysOriginal ? image : [image imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal]);
+            CALayer *ov=objc_getAssociatedObject(self,kADWhiteTameOverlayKey);
+            if(ov){[ov removeFromSuperlayer];objc_setAssociatedObject(self,kADWhiteTameOverlayKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
+            objc_setAssociatedObject(self,kADWTForcedImage364,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            self.tintColor=nil;
+            gADGlyphWriting=YES;
+            %orig(want);
+            gADGlyphWriting=NO;
+            return;
+        }
+        if(mr382==2){
+            UIImage *want=image.renderingMode==UIImageRenderingModeAlwaysTemplate ? image : [image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            gADGlyphWriting=YES;
+            %orig(want);
+            gADGlyphWriting=NO;
+            self.tintColor=ADColorFromHex(gP.fgHex);
+            return;
+        }
+    } @catch(...) {}
     // A remotely fetched glyph arrives here, often well after didMoveToWindow.
     // Measure from the arrival so the dark original is never shown and then
     // corrected -- that correction is what reads as a colour flip.
@@ -6821,7 +6885,7 @@ static UIImage *ADGlyphify(UIImage *img){
     } @catch(...) {}
     // Detached: nothing to walk yet. Defer to didMoveToWindow, where ancestry -- and
     // therefore the tab-bar test -- is knowable.
-    if (!self.superview && !self.window) {
+    if (!self.window) {
         %orig;
         return;
     }
@@ -7261,11 +7325,10 @@ static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
                 if (tabBarish){
                     ADTintBarIcon(iv, ADViewIsSelectedInBar(iv));
                 } else {
-                // v5.379: section artwork can arrive already templated from one of our
-                // earlier assignment-time passes. Restore it BEFORE the generic template
-                // tint rescue, otherwise the sweep immediately paints it white again.
-                if (ADIsCategoryArtwork379(iv)) {
-                    ADRestoreCategoryArtwork379(iv);
+                // v5.382: Menu content is stock; Menu chrome is allowed to continue
+                // through the normal light-glyph path.
+                if (ADMenuRole382(iv)==1 || ADIsCategoryArtwork379(iv)) {
+                    if(ADImageIsTemplateish(iv.image)||objc_getAssociatedObject(iv,kADOrigImageKey)) ADRestoreCategoryArtwork379(iv);
                 } else {
                     if (iv.image && ADImageIsTemplateish(iv.image)){
                         gSwTemplateSeen++;
@@ -7323,6 +7386,7 @@ static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
 
         if (!tabBarish && [v isKindOfClass:[UILabel class]]){
             UILabel *l = (UILabel *)v;
+            if(ADMenuRole382(v)==2){ l.textColor=ADColorFromHex(gP.fgHex); l.tintColor=ADColorFromHex(gP.fgHex); }
             UIColor *tc = l.textColor;
             @try {
                 CGFloat rr,gg,bb,aa;
@@ -8134,10 +8198,10 @@ static NSString *ADProbeWebJS(void){
          "function stockActionFix379(){try{var H=document.querySelectorAll('[class*=lists-framework-action-button]'),hosts=0,leaves=0,skip=0;for(var i=0;i<H.length&&i<180;i++){var h=H[i],r=h.getBoundingClientRect();if(r.width<18||r.width>64||r.height<18||r.height>64||Math.abs(r.width-r.height)>14){skip++;continue;}if(h.querySelector&&h.querySelector('[class*=mlt-icon-container],input[type=checkbox],[role=checkbox]')){skip++;continue;}h.removeAttribute('data-ad-stockaction378');h.setAttribute('data-ad-stockaction379','1');h.style.setProperty('background-color','#181a1b','important');h.style.setProperty('border-radius','50%%','important');h.style.setProperty('border','0','important');h.style.setProperty('box-shadow','inset 0 0 0 64px #181a1b,0 0 0 1.5px rgba(255,255,255,.65)','important');h.style.setProperty('overflow','hidden','important');h.style.setProperty('box-sizing','border-box','important');h.removeAttribute('data-ad-actionhost375');h.removeAttribute('data-ad-actionhost376');var old=h.querySelectorAll(':scope > [data-ad-actioncanonical375],:scope > [data-ad-actioncanonical376],:scope > [data-ad-actionfallback374]');for(var o=0;o<old.length;o++){if(old[o].parentNode)old[o].parentNode.removeChild(old[o]);}var O=h.querySelectorAll('[data-ad-actionorig375],[data-ad-actionorig376]');for(var z=0;z<O.length;z++){O[z].style.removeProperty('visibility');O[z].style.removeProperty('opacity');O[z].removeAttribute('data-ad-actionorig375');O[z].removeAttribute('data-ad-actionorig376');}var A=h.querySelectorAll('img,i,svg,path,[class*=lists-framework-unfill],[class*=lists-framework-fill],[class*=icon]');for(var j=0;j<A.length&&j<48;j++){var a=A[j],tg=String(a.tagName||'').toUpperCase(),ar=a.getBoundingClientRect();if(ar.width>70||ar.height>70)continue;a.removeAttribute('data-ad-stockglyph378');a.removeAttribute('data-ad-raster378');a.setAttribute('data-ad-stockglyph379','1');a.style.setProperty('visibility','visible','important');a.style.setProperty('opacity','1','important');a.style.setProperty('background-color','transparent','important');a.__adGlyph=1;a.__adBy='stockAction379';if(tg==='IMG'||tg==='I')a.setAttribute('data-ad-raster379','1');else if(tg==='SVG'||tg==='PATH'){a.style.setProperty('color','#ffffff','important');a.style.setProperty('fill','#ffffff','important');a.style.setProperty('stroke','#ffffff','important');}leaves++;}hosts++;}window.__AD_STOCKACTION379__='hosts='+hosts+' leaves='+leaves+' skip='+skip;}catch(e){window.__AD_STOCKACTION379__='err '+e;}}"
          "function compareStock379(){try{var C=document.querySelectorAll('[class*=mlt-icon-container]'),hosts=0,on=0,off=0,leaves=0,nested=0,inputs=0;function pick(h){try{if(h.__adManualUntil379&&Date.now()<h.__adManualUntil379)return !!h.__adManual379;var q=h.querySelector('input[type=checkbox]');if(q&&q.checked)return true;var ac=String(h.getAttribute('aria-checked')||h.getAttribute('data-checked')||h.getAttribute('data-selected')||'').toLowerCase(),cl=h.className;cl=String(cl&&cl.baseVal!==undefined?cl.baseVal:(cl||'')).toLowerCase();if(ac==='true'||/(^|[ _-])(checked|selected|active)([ _-]|$)/.test(cl))return true;var im=h.querySelector('img');if(im&&/checkbox[_-]?(?:on|checked)|checkmark|selected/i.test(String(im.getAttribute('src')||im.getAttribute('data-src')||'')))return true;return false;}catch(e){return false;}}for(var i=0;i<C.length&&i<220;i++){var h=C[i],anc=h.parentElement&&h.parentElement.closest?h.parentElement.closest('[class*=mlt-icon-container]'):null;if(anc){nested++;continue;}var r=h.getBoundingClientRect();if(r.width<18||r.width>70||r.height<18||r.height>70)continue;var sel=pick(h);h.removeAttribute('data-ad-compare378');h.setAttribute('data-ad-compare379',sel?'1':'0');h.style.setProperty('background-color',sel?'#2162a1':'#181a1b','important');h.style.setProperty('border',sel?'1.5px solid #2162a1':'1.5px solid #9aa0a3','important');h.style.setProperty('border-radius','4px','important');h.style.setProperty('box-shadow','none','important');h.style.setProperty('box-sizing','border-box','important');h.removeAttribute('data-ad-comparehost377');h.removeAttribute('data-ad-comparechecked377');var b=h.querySelector(':scope > [data-ad-comparebox377]');if(b&&b.parentNode)b.parentNode.removeChild(b);var inp=h.querySelector('input[type=checkbox]');if(inp){inputs++;inp.setAttribute('data-ad-compareinput379','1');inp.style.setProperty('opacity','0','important');inp.style.setProperty('position','absolute','important');inp.style.setProperty('inset','0','important');inp.style.setProperty('width','100%%','important');inp.style.setProperty('height','100%%','important');inp.style.setProperty('margin','0','important');inp.style.setProperty('z-index','4','important');inp.removeAttribute('data-ad-compareinput377');}var A=h.querySelectorAll('img,i,svg,path,[class*=icon],[class*=image]');for(var j=0;j<A.length&&j<36;j++){var a=A[j];if(a===inp||a.contains&&inp&&a.contains(inp))continue;var ar=a.getBoundingClientRect();if(ar.width>70||ar.height>70)continue;a.setAttribute('data-ad-compareorig379','1');a.style.setProperty('visibility','hidden','important');a.style.setProperty('opacity','0','important');a.style.setProperty('background-color','transparent','important');leaves++;}hosts++;if(sel)on++;else off++;}window.__AD_COMPARE379__='hosts='+hosts+' on='+on+' off='+off+' inputs='+inputs+' nested='+nested+' hidden='+leaves;}catch(e){window.__AD_COMPARE379__='err '+e;}}"
          "function cartChrome379(){try{var tx=String((document.body&&document.body.innerText)||'').toLowerCase();if(tx.indexOf('subtotal')<0||tx.indexOf('save for later')<0){window.__AD_CART379__='off';return;}var E=document.querySelectorAll('button,[role=button],a,span,div,input'),n=0,direct=0;function pc(v){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/.exec(String(v||''));return m?[+m[1],+m[2],+m[3]]:null;}function isLight(e){try{var c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after'),L=[pc(c.backgroundColor),pc(b.backgroundColor),pc(a.backgroundColor)];for(var k=0;k<L.length;k++){var q=L[k];if(!q)continue;var mx=Math.max(q[0],q[1],q[2]),mn=Math.min(q[0],q[1],q[2]),lum=(.2126*q[0]+.7152*q[1]+.0722*q[2])/255,sat=(mx-mn)/255;if(lum>=.76&&sat<=.16)return true;}return false;}catch(x){return false;}}function paint(e){if(!e||!e.style||e.hasAttribute('data-ad-cartchrome379'))return;e.setAttribute('data-ad-cartchrome379','1');e.style.setProperty('background-color','#181a1b','important');e.style.setProperty('background-image','none','important');e.style.setProperty('border','1px solid #6c7073','important');e.style.setProperty('border-radius','999px','important');e.style.setProperty('box-shadow','none','important');e.style.setProperty('color','#e8e6e3','important');e.style.setProperty('-webkit-text-fill-color','#e8e6e3','important');e.style.setProperty('opacity','1','important');n++;}for(var i=0;i<E.length&&i<2600;i++){var e=E[i],r=e.getBoundingClientRect();if(r.width<36||r.width>150||r.height<24||r.height>62)continue;if(r.bottom<0||r.top>(innerHeight||900)+150)continue;if(!isLight(e))continue;var txt=String(e.textContent||e.value||'').replace(/\\s+/g,' ').trim().toLowerCase();if(/checkout|add to cart|quantity/.test(txt))continue;paint(e);}var D=document.querySelectorAll('button,[role=button],a,span,div');for(var di=0;di<D.length&&di<2200;di++){var de=D[di],dt=String(de.textContent||'').replace(/\\s+/g,' ').trim();if(dt!=='Delete')continue;var dh=de.closest&&de.closest('button,[role=button],a');if(!dh)dh=de;var dr=dh.getBoundingClientRect(),best=null,bd=999,seen=[];for(var ci=0;ci<E.length&&ci<2600;ci++){var x=E[ci],host=(x.closest&&x.closest('button,[role=button],a'))||x;if(!host||host===dh||dh.contains(host)||seen.indexOf(host)>=0)continue;seen.push(host);var xr=host.getBoundingClientRect();if(xr.width<34||xr.width>125||xr.height<24||xr.height>60)continue;if(Math.abs((xr.top+xr.height/2)-(dr.top+dr.height/2))>14||xr.left<dr.right-4)continue;var gap=xr.left-dr.right;if(gap<0||gap>170||gap>=bd)continue;var xt=String(host.textContent||host.value||'').replace(/\\s+/g,' ').trim().toLowerCase();if(/delete|save for later|checkout|add to cart|quantity/.test(xt))continue;if(!isLight(host))continue;best=host;bd=gap;}if(best){paint(best);best.setAttribute('data-ad-cartdirect379','1');direct++;}}window.__AD_CART379__='fixed='+n+' direct='+direct;}catch(e){window.__AD_CART379__='err '+e;}}"
-         "function stockActionFix381(){try{var G=document.querySelectorAll('[class*=lists-framework-action-button],[class*=lists-framework-unfill],[class*=lists-framework-fill],img[src*=\\\"01rrzVoKd5L\\\"],img[src*=\\\"01rrz\\\"],[aria-label*=\\\"List\\\"],[aria-label*=\\\"list\\\"],[title*=\\\"List\\\"],[title*=\\\"list\\\"]'),hosts=[],leaves=0,skip=0,asset=0,semantic=0;function sq(e){if(!e||!e.getBoundingClientRect)return false;var r=e.getBoundingClientRect();return r.width>=26&&r.width<=60&&r.height>=26&&r.height<=60&&Math.abs(r.width-r.height)<=10;}function bad(h){return !!(h&&h.closest&&h.closest('[class*=heart],[class*=wish],[class*=mlt-icon-container],[role=checkbox]'));}function host(g){var p=g,u=0,best=null;while(p&&u++<8){if(sq(p)){if(!best)best=p;var tg=String(p.tagName||'').toUpperCase(),pc=String(p.className&&p.className.baseVal!==undefined?p.className.baseVal:(p.className||'')),ro=String(p.getAttribute&&p.getAttribute('role')||'').toLowerCase();if(tg==='BUTTON'||tg==='A'||ro==='button'||/lists-framework-action-button/i.test(pc))return p;}p=p.parentElement;}return best;}for(var i=0;i<G.length&&i<520;i++){var g=G[i],src=String((g.getAttribute&&(g.getAttribute('src')||g.getAttribute('data-src')))||'');var known=/01rrzVoKd5L|01rrz/i.test(src);var h=host(g);if(!h||bad(h)||hosts.indexOf(h)>=0){skip++;continue;}var near=h.closest&&h.closest('[data-asin],[class*=puis-card],[class*=s-result-item],[class*=product-image],[class*=asin-card]');var hc=String(h.className&&h.className.baseVal!==undefined?h.className.baseVal:(h.className||''));var lab=String((h.getAttribute&&((h.getAttribute('aria-label')||h.getAttribute('title'))))||'');var classKnown=/lists-framework-action-button/i.test(hc)||!!h.querySelector('[class*=lists-framework-unfill],[class*=lists-framework-fill]');if(!known&&!classKnown&&!near){skip++;continue;}if(/heart|wish|favorite/i.test(lab)){skip++;continue;}hosts.push(h);if(known)asset++;else semantic++;h.removeAttribute('data-ad-stockaction378');h.removeAttribute('data-ad-stockaction379');h.removeAttribute('data-ad-stockaction380');h.setAttribute('data-ad-stockaction381','1');h.style.setProperty('background-color','#181a1b','important');h.style.setProperty('background-image','none','important');h.style.setProperty('border-radius','50%%','important');h.style.setProperty('border','1.5px solid #6c7073','important');h.style.setProperty('box-shadow','inset 0 0 0 1px rgba(255,255,255,.10)','important');h.style.setProperty('overflow','hidden','important');h.style.setProperty('box-sizing','border-box','important');var A=h.querySelectorAll('img,i,svg,path,[class*=lists-framework-unfill],[class*=lists-framework-fill],[class*=icon]');for(var j=0;j<A.length&&j<56;j++){var a=A[j],ar=a.getBoundingClientRect();if(ar.width>52||ar.height>52)continue;var tg=String(a.tagName||'').toUpperCase();a.setAttribute('data-ad-stockglyph381','1');if(tg==='IMG'||tg==='I'||(!['SVG','PATH'].includes(tg)&&String(getComputedStyle(a).backgroundImage||'none')!=='none'))a.setAttribute('data-ad-stockraster381','1');a.style.setProperty('visibility','visible','important');a.style.setProperty('opacity','1','important');a.style.setProperty('background-color','transparent','important');a.__adGlyph=1;a.__adBy='stockAction381';leaves++;}}window.__AD_STOCKACTION381__='hosts='+hosts.length+' leaves='+leaves+' asset='+asset+' semantic='+semantic+' skip='+skip;}catch(e){window.__AD_STOCKACTION381__='err '+e;}}"
+         "function stockActionFix382(){try{var S=document.querySelectorAll('[class*=lists-framework-unfill],[class*=lists-framework-fill],img[src*=\\\"01rrz\\\"]'),hosts=[],leaves=0,rowSkip=0,seedSkip=0;function cls(e){var c=e&&e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||''));}function sq(e){if(!e||!e.getBoundingClientRect)return false;var r=e.getBoundingClientRect();return r.width>=24&&r.width<=58&&r.height>=24&&r.height<=58&&Math.abs(r.width-r.height)<=10;}function blocked(e){return !!(e&&e.closest&&e.closest('[class*=heart],[class*=wish],[class*=favorite],[class*=mlt-icon-container],[role=checkbox],input[type=checkbox]'));}function pick(seed){if(!seed||blocked(seed))return null;var p=seed.parentElement,u=0,best=null;while(p&&u++<6){if(blocked(p))return null;var r=p.getBoundingClientRect();if(r.width>82||r.height>82)break;if(sq(p)&&!(p.querySelector&&p.querySelector('[class*=mlt-icon-container],[role=checkbox],input[type=checkbox]'))){best=p;var tg=String(p.tagName||'').toUpperCase(),ro=String(p.getAttribute&&p.getAttribute('role')||'').toLowerCase();if(tg==='BUTTON'||tg==='A'||ro==='button'||/lists-framework-action-button/i.test(cls(p)))return p;}p=p.parentElement;}return best;}function clear(h){if(!h)return;h.removeAttribute('data-ad-stockaction382');['background-color','background-image','border-radius','border','box-shadow','box-sizing','overflow'].forEach(function(k){h.style.removeProperty(k);});}function paint(h){if(!h||hosts.indexOf(h)>=0)return;var r=h.getBoundingClientRect();if(!sq(h)){rowSkip++;return;}h.removeAttribute('data-ad-stockaction381');h.removeAttribute('data-ad-stockaction380');h.removeAttribute('data-ad-stockaction379');h.setAttribute('data-ad-stockaction382','1');h.style.setProperty('background-color','#181a1b','important');h.style.setProperty('border-radius','50%%','important');h.style.setProperty('border','1.5px solid rgba(255,255,255,.65)','important');h.style.setProperty('box-shadow','none','important');h.style.setProperty('box-sizing','border-box','important');var rr=h.getBoundingClientRect();if(rr.width>64||rr.height>64||Math.abs(rr.width-rr.height)>14){clear(h);rowSkip++;return;}hosts.push(h);var A=h.querySelectorAll('img,i,svg,path,[class*=lists-framework-unfill],[class*=lists-framework-fill]');for(var k=0;k<A.length&&k<40;k++){var a=A[k];if(blocked(a))continue;var ar=a.getBoundingClientRect();if(ar.width>52||ar.height>52)continue;var tg=String(a.tagName||'').toUpperCase(),bi='none';try{bi=String(getComputedStyle(a).backgroundImage||'none');}catch(x){}if(!(tg==='IMG'||tg==='I'||tg==='SVG'||tg==='PATH'||/lists-framework-(?:unfill|fill)/i.test(cls(a))||bi!=='none'))continue;a.setAttribute('data-ad-stockglyph382','1');if(tg==='IMG'||tg==='I'||(!['SVG','PATH'].includes(tg)&&bi!=='none'))a.setAttribute('data-ad-stockraster382','1');a.style.setProperty('visibility','visible','important');a.style.setProperty('opacity','1','important');a.style.setProperty('background-color','transparent','important');a.__adGlyph=1;a.__adBy='stockAction382';leaves++;}}for(var i=0;i<S.length&&i<260;i++){var h=pick(S[i]);if(h)paint(h);else seedSkip++;}var old=document.querySelectorAll('[data-ad-stockaction382]');for(var z=0;z<old.length;z++){var zr=old[z].getBoundingClientRect();if(zr.width>64||zr.height>64||Math.abs(zr.width-zr.height)>14){clear(old[z]);rowSkip++;}}window.__AD_STOCKACTION382__='hosts='+hosts.length+' leaves='+leaves+' rowSkip='+rowSkip+' seedSkip='+seedSkip;}catch(e){window.__AD_STOCKACTION382__='err '+e;}}"
          "function compareStock380(){try{var C=document.querySelectorAll('[class*=mlt-icon-container],[role=checkbox],input[type=checkbox]'),hosts=[],on=0,off=0,inputs=0,hidden=0,skip=0;function sig(h){try{var card=h.closest&&h.closest('[data-asin]');if(card&&card.getAttribute('data-asin'))return 'a:'+card.getAttribute('data-asin');var p=h.parentElement,u=0;while(p&&u++<5){var im=p.querySelector&&p.querySelector('img[src],img[data-src]');if(im){var z=String(im.currentSrc||im.src||im.getAttribute('data-src')||'');if(z)return 'i:'+z.slice(-80);}p=p.parentElement;}}catch(e){}return '';}function actual(h){try{var q=h.querySelector('input[type=checkbox]');if(q)return !!q.checked;var ar=String(h.getAttribute('aria-checked')||h.getAttribute('data-checked')||h.getAttribute('data-selected')||'').toLowerCase();if(ar==='true')return true;if(ar==='false')return false;var cl=String(h.className&&h.className.baseVal!==undefined?h.className.baseVal:(h.className||'')).toLowerCase();if(/(^|[ _-])(checked|selected|active)([ _-]|$)/.test(cl))return true;var im=h.querySelector('img');var src=im?String(im.getAttribute('src')||im.getAttribute('data-src')||'').toLowerCase():'';if(/checkbox[_-]?(?:on|checked)|checkmark|selected/.test(src))return true;if(/checkbox[_-]?(?:off|unchecked)/.test(src))return false;}catch(e){}return null;}function outer(e){var h=e&&e.nodeType===1?e:null;if(h&&String(h.tagName||'').toUpperCase()==='INPUT')h=h.parentElement;var best=null,p=h,u=0;while(p&&u++<6){var r=p.getBoundingClientRect();if(r.width>=24&&r.width<=44&&r.height>=24&&r.height<=44&&Math.abs(r.width-r.height)<=8)best=p;var pc=String(p.className&&p.className.baseVal!==undefined?p.className.baseVal:(p.className||''));if(/mlt-icon-container/i.test(pc)&&best)break;p=p.parentElement;}return best;}for(var i=0;i<C.length&&i<360;i++){var h=outer(C[i]);if(!h||hosts.indexOf(h)>=0){skip++;continue;}var near=h.closest&&h.closest('[class*=puis-card],[class*=s-result-item],[data-asin],[class*=product-image]');var hc=String(h.className&&h.className.baseVal!==undefined?h.className.baseVal:(h.className||''));if(!near&&!/mlt-icon-container/i.test(hc)){skip++;continue;}hosts.push(h);var hs=sig(h);if(h.__adManualSig380&&h.__adManualSig380!==hs){delete h.__adManual380;delete h.__adManualSig380;}var a=actual(h),sel=(a===null?(h.__adManual380===1):a);h.removeAttribute('data-ad-compare378');h.removeAttribute('data-ad-compare379');h.setAttribute('data-ad-compare380',sel?'1':'0');h.style.setProperty('background-color','transparent','important');h.style.setProperty('border','0','important');h.style.setProperty('box-shadow','none','important');h.style.setProperty('border-radius','4px','important');var old=h.querySelectorAll('[data-ad-compareorig379],[data-ad-compareorig378]');for(var o=0;o<old.length;o++){old[o].style.removeProperty('visibility');old[o].style.removeProperty('opacity');old[o].removeAttribute('data-ad-compareorig379');old[o].removeAttribute('data-ad-compareorig378');}var inp=h.querySelector('input[type=checkbox]');if(inp){inputs++;inp.setAttribute('data-ad-compareinput380','1');}var A=h.querySelectorAll('img,i,svg,path,[class*=icon],[class*=image]');for(var j=0;j<A.length&&j<48;j++){var x=A[j];if(inp&&(x===inp||x.contains&&x.contains(inp)))continue;var r=x.getBoundingClientRect();if(r.width>48||r.height>48)continue;x.setAttribute('data-ad-compareorig380','1');hidden++;}if(sel)on++;else off++;}window.__AD_COMPARE380__='hosts='+hosts.length+' on='+on+' off='+off+' inputs='+inputs+' hidden='+hidden+' skip='+skip;}catch(e){window.__AD_COMPARE380__='err '+e;}}"
-         "function cartChrome381(){try{var E=document.querySelectorAll('button,[role=button],a,span,div,input'),n=0,direct=0,share=0;function pc(v){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/.exec(String(v||''));return m?[+m[1],+m[2],+m[3]]:null;}function light(e){try{var C=[getComputedStyle(e),getComputedStyle(e,'::before'),getComputedStyle(e,'::after')];for(var z=0;z<C.length;z++){var q=pc(C[z].backgroundColor);if(!q)continue;var mx=Math.max(q[0],q[1],q[2]),mn=Math.min(q[0],q[1],q[2]),lum=(.2126*q[0]+.7152*q[1]+.0722*q[2])/255,sat=(mx-mn)/255;if(lum>.72&&sat<.20)return true;}}catch(x){}return false;}function hostOf(e){if(!e)return null;var h=(e.closest&&e.closest('button,[role=button],a'))||null;if(h)return h;var p=e,u=0;while(p&&u++<5){var r=p.getBoundingClientRect();if(r.width>=42&&r.width<=140&&r.height>=24&&r.height<=62)return p;p=p.parentElement;}return e;}function paint(e,isShare){if(!e||!e.style)return;e.setAttribute('data-ad-cartchrome380','1');if(isShare)e.setAttribute('data-ad-cartshare381','1');e.style.setProperty('background-color','#181a1b','important');e.style.setProperty('background-image','none','important');e.style.setProperty('border','1px solid #6c7073','important');e.style.setProperty('border-radius','999px','important');e.style.setProperty('box-shadow','none','important');e.style.setProperty('color','#e8e6e3','important');e.style.setProperty('-webkit-text-fill-color','#e8e6e3','important');e.style.setProperty('opacity','1','important');if(isShare){var K=e.querySelectorAll('*');for(var k=0;k<K.length&&k<30;k++){K[k].style.setProperty('color','#e8e6e3','important');K[k].style.setProperty('-webkit-text-fill-color','#e8e6e3','important');K[k].style.setProperty('background-color','transparent','important');K[k].style.setProperty('background-image','none','important');}}n++;}var D=document.querySelectorAll('button,[role=button],a,span,div');for(var di=0;di<D.length&&di<3500;di++){var de=D[di],dt=String(de.textContent||'').replace(/\\s+/g,' ').trim();if(dt!=='Delete')continue;var dh=hostOf(de),dr=dh.getBoundingClientRect();var row=dh.parentElement,u=0,rowText='';while(row&&u++<5){rowText=String(row.textContent||'').replace(/\\s+/g,' ').trim();if(/Save for later/i.test(rowText)&&/Delete/i.test(rowText))break;row=row.parentElement;}if(row){var R=row.querySelectorAll('button,[role=button],a,span,div');for(var ri=0;ri<R.length&&ri<180;ri++){var re=R[ri],rt=String(re.textContent||'').replace(/\\s+/g,' ').trim();if(rt!=='Share')continue;var rh=hostOf(re),rr=rh.getBoundingClientRect();if(rr.width<38||rr.width>145||rr.height<22||rr.height>64)continue;if(Math.abs((rr.top+rr.height/2)-(dr.top+dr.height/2))>22)continue;paint(rh,true);rh.setAttribute('data-ad-cartdirect381','1');share++;direct++;break;}}if(share)continue;var best=null,bd=999;for(var ci=0;ci<E.length&&ci<4400;ci++){var x=E[ci];if(!x||x===dh||dh.contains(x)||x.contains&&x.contains(dh))continue;var xr=x.getBoundingClientRect();if(xr.width<38||xr.width>128||xr.height<24||xr.height>58)continue;if(Math.abs((xr.top+xr.height/2)-(dr.top+dr.height/2))>11)continue;var gap=xr.left-dr.right;if(gap<4||gap>95||gap>=bd)continue;var tx=String(x.textContent||x.value||'').replace(/\\s+/g,' ').trim().toLowerCase();if(/delete|save for later|checkout|add to cart|quantity|ask a question/.test(tx))continue;if(!light(x))continue;best=x;bd=gap;}if(best){paint(best,false);best.setAttribute('data-ad-cartdirect381','1');direct++;}}window.__AD_CART381__='fixed='+n+' direct='+direct+' share='+share;}catch(e){window.__AD_CART381__='err '+e;}}"
-         "function shareFix377(){try{var S=document.querySelectorAll('.ssf-share-trigger'),hosts=0,leaves=0;for(var i=0;i<S.length&&i<20;i++){var h=S[i],r=h.getBoundingClientRect();if(r.width<8||r.height<8)continue;hosts++;h.setAttribute('data-ad-share375','1');h.setAttribute('data-ad-share377','1');h.style.setProperty('color','#ffffff','important');h.style.setProperty('-webkit-text-fill-color','#ffffff','important');h.style.setProperty('fill','#ffffff','important');h.style.setProperty('stroke','#ffffff','important');h.style.setProperty('opacity','1','important');var A=h.querySelectorAll('svg,path,i,img,[class*=icon]');for(var j=0;j<A.length&&j<40;j++){var a=A[j],ar=a.getBoundingClientRect();if(ar.width>90||ar.height>90)continue;var tg=String(a.tagName||'').toUpperCase();a.style.setProperty('opacity','1','important');a.style.setProperty('color','#ffffff','important');if(tg==='SVG'||tg==='PATH'){a.style.setProperty('fill','#ffffff','important');a.style.setProperty('stroke','#ffffff','important');}else a.style.setProperty('background-color','transparent','important');a.__adGlyph=1;a.__adBy='share377';a.setAttribute('data-ad-shareleaf375','1');leaves++;}}window.__AD_SHARE377__='hosts='+hosts+' leaves='+leaves;}catch(e){window.__AD_SHARE377__='err '+e;}}"
+         "function cartChrome382(){try{var D=document.querySelectorAll('button,[role=button],a,span,div'),share=0,rows=0;function hostOf(e){if(!e)return null;return (e.closest&&e.closest('button,[role=button],a'))||e;}function exact(root,word){var Q=root.querySelectorAll('button,[role=button],a,span,div');for(var i=0;i<Q.length&&i<220;i++){if(String(Q[i].textContent||'').replace(/\\s+/g,' ').trim()===word)return Q[i];}return null;}for(var di=0;di<D.length&&di<3200;di++){var de=D[di];if(String(de.textContent||'').replace(/\\s+/g,' ').trim()!=='Delete')continue;var dh=hostOf(de),row=dh.parentElement,u=0;while(row&&u++<6){var tx=String(row.textContent||'').replace(/\\s+/g,' ').trim();if(/Save for later/i.test(tx)&&/Delete/i.test(tx)&&/Share/i.test(tx))break;row=row.parentElement;}if(!row)continue;rows++;var se=exact(row,'Share');if(!se)continue;var sh=hostOf(se),dr=dh.getBoundingClientRect(),sr=sh.getBoundingClientRect();if(sr.width<34||sr.width>150||sr.height<20||sr.height>64||Math.abs((sr.top+sr.height/2)-(dr.top+dr.height/2))>24)continue;var ds=getComputedStyle(dh),fg=String(ds.color||'#e8e6e3');sh.removeAttribute('data-ad-cartshare381');sh.removeAttribute('data-ad-cartchrome380');sh.setAttribute('data-ad-cartclone382','1');sh.style.setProperty('--ad-cart-bg',String(ds.backgroundColor||'transparent'));sh.style.setProperty('--ad-cart-bi',String(ds.backgroundImage||'none'));sh.style.setProperty('--ad-cart-bc',String(ds.borderTopColor||'#6c7073'));sh.style.setProperty('--ad-cart-bs',String(ds.borderTopStyle||'solid'));sh.style.setProperty('--ad-cart-bw',String(ds.borderTopWidth||'1px'));sh.style.setProperty('--ad-cart-br',String(ds.borderRadius||'999px'));sh.style.setProperty('--ad-cart-sh',String(ds.boxShadow||'none'));sh.style.setProperty('--ad-cart-fg',fg);sh.style.setProperty('background-color',String(ds.backgroundColor||'transparent'),'important');sh.style.setProperty('background-image',String(ds.backgroundImage||'none'),'important');sh.style.setProperty('border-color',String(ds.borderTopColor||'#6c7073'),'important');sh.style.setProperty('border-style',String(ds.borderTopStyle||'solid'),'important');sh.style.setProperty('border-width',String(ds.borderTopWidth||'1px'),'important');sh.style.setProperty('border-radius',String(ds.borderRadius||'999px'),'important');sh.style.setProperty('box-shadow',String(ds.boxShadow||'none'),'important');sh.style.setProperty('color',fg,'important');sh.style.setProperty('-webkit-text-fill-color',fg,'important');share++;break;}window.__AD_CART382__='rows='+rows+' share='+share;}catch(e){window.__AD_CART382__='err '+e;}}"
+         "function shareFix382(){try{var S=document.querySelectorAll('.ssf-share-trigger'),hosts=0,paint=0,vec=0;for(var i=0;i<S.length&&i<20;i++){var h=S[i],r=h.getBoundingClientRect();if(r.width<8||r.height<8)continue;hosts++;h.removeAttribute('data-ad-share377');h.setAttribute('data-ad-share382','1');h.style.setProperty('color','#fff','important');h.style.setProperty('-webkit-text-fill-color','#fff','important');h.style.setProperty('opacity','1','important');var A=h.querySelectorAll('*');for(var j=0;j<A.length&&j<90;j++){var a=A[j],ar=a.getBoundingClientRect();if(ar.width>100||ar.height>100)continue;var tg=String(a.tagName||'').toUpperCase(),cs=getComputedStyle(a),bi=String(cs.backgroundImage||'none'),mi=String(cs.maskImage||cs.webkitMaskImage||'none');if(tg==='SVG'||tg==='PATH'||tg==='POLYGON'||tg==='USE'){a.style.setProperty('fill','#fff','important');a.style.setProperty('stroke','#fff','important');a.style.setProperty('color','#fff','important');a.style.setProperty('opacity','1','important');vec++;continue;}if(tg==='IMG'||tg==='I'||bi!=='none'||mi!=='none'){a.setAttribute('data-ad-sharepaint382','1');a.style.setProperty('opacity','1','important');a.style.setProperty('background-color','transparent','important');a.__adGlyph=1;a.__adBy='share382';paint++;}}}window.__AD_SHARE382__='hosts='+hosts+' paint='+paint+' vec='+vec;}catch(e){window.__AD_SHARE382__='err '+e;}}"
          "function sponsorFix376(){try{var E=document.querySelectorAll('span,div,p,a,h1,h2,h3,h4,h5,label'),n=0,dark=0;for(var i=0;i<E.length&&i<5000;i++){var e=E[i],t=String(e.textContent||'').replace(/\\s+/g,' ').trim();if(!/^sponsored(?: ad)?$/i.test(t))continue;if(e.childElementCount>4)continue;var cs=getComputedStyle(e),m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/.exec(String(cs.color||''));if(m&&(0.2126*(+m[1])+0.7152*(+m[2])+0.0722*(+m[3]))<220)dark++;e.style.setProperty('color','#ffffff','important');e.style.setProperty('-webkit-text-fill-color','#ffffff','important');e.style.setProperty('opacity','1','important');e.style.setProperty('visibility','visible','important');e.setAttribute('data-ad-sponsored376','1');e.__adBy='sponsored376';n++;}window.__AD_SPON376__='n='+n+' darkBefore='+dark;}catch(e){window.__AD_SPON376__='err '+e;}}"
          "function ratingFix376(){try{var A=document.querySelectorAll('[aria-label*=\"out of 5 stars\"],[class*=a-icon-star],[class*=a-star],[id*=acrCustomerReviewText],[class*=acrCustomerReviewText],[class*=averageStarRating]'),roots=[],n=0;for(var i=0;i<A.length&&i<500;i++){var a=A[i],r=a,p=0;while(r&&p++<4){var tx=String(r.textContent||'').replace(/\\s+/g,' ').trim(),rr=r.getBoundingClientRect();if(tx.length>=2&&tx.length<=140&&rr.height>4&&rr.height<=90&&(/\\d(?:\\.\\d)?/.test(tx))){break;}r=r.parentElement;}if(!r||roots.indexOf(r)>=0)continue;roots.push(r);var L=r.querySelectorAll('span,a,div');for(var j=0;j<L.length&&j<80;j++){var x=L[j];if(x.childElementCount>0)continue;var t=String(x.textContent||'').replace(/\\s+/g,' ').trim();if(!t||t.length>42)continue;var ok=/^\\d(?:\\.\\d)?$/.test(t)||/^\\(?[\\d,.]+[Kk]?\\)?$/.test(t)||/^\\d(?:\\.\\d)?\\s+out of 5 stars$/i.test(t);if(!ok)continue;x.style.setProperty('color','#ffffff','important');x.style.setProperty('-webkit-text-fill-color','#ffffff','important');x.style.setProperty('opacity','1','important');x.style.setProperty('visibility','visible','important');x.setAttribute('data-ad-rating376','1');x.__adBy='rating376';n++;}}window.__AD_RATING376__='roots='+roots.length+' ink='+n;}catch(e){window.__AD_RATING376__='err '+e;}}"
          // v5.347 PDP HEART. The confirmed 20x20 .a-icon painter is handled
@@ -8150,14 +8214,15 @@ static NSString *ADProbeWebJS(void){
            "var S=document.querySelectorAll('[class*=sponsored-products] *,[class*=npack-asin-card] *,[class*=cXVhZ] *'),n=0;for(var j=0;j<S.length&&j<2500&&n<80;j++){var x=S[j];if(x.childElementCount!==0)continue;var t=String(x.textContent||'').replace(/\\s+/g,' ').trim();"
              "if(/^\\d+%\\s*off$/i.test(t)){var p=x.parentElement;if(p){p.style.setProperty('background-color','#cc0c39','important');p.style.setProperty('color','#ffffff','important');p.style.setProperty('-webkit-text-fill-color','#ffffff','important');}x.style.setProperty('color','#ffffff','important');x.style.setProperty('-webkit-text-fill-color','#ffffff','important');n++;}"
              "else if(/^(?:limited\\s+time\\s+deal|deal\\s+selling\\s+fast)$/i.test(t)){x.style.setProperty('color','#e8e6e3','important');x.style.setProperty('-webkit-text-fill-color','#e8e6e3','important');if(x.closest&&(x.closest('[class*=npack-asin-card]')||x.closest('[class*=cXVhZ]'))){var m=x.closest('[class*=badgeMessage]')||x.parentElement;if(m){m.style.setProperty('background-color','#181a1b','important');m.style.setProperty('background-image','none','important');m.style.setProperty('box-shadow','none','important');}x.style.setProperty('background-color','#181a1b','important');x.style.setProperty('background-image','none','important');x.style.setProperty('box-shadow','none','important');}n++;}}window.__AD_SPONSORED_BADGEFIX__=n;"
-         "}catch(e){}}""badgeFix();dotFix();packFix();stockActionFix381();compareStock380();cartChrome381();shareFix377();sponsorFix376();ratingFix376();""clr();setTimeout(clr,300);setTimeout(clr,1200);setTimeout(clr,2500);""setTimeout(badgeFix,300);setTimeout(badgeFix,1200);setTimeout(badgeFix,2500);""setTimeout(dotFix,120);setTimeout(dotFix,500);setTimeout(dotFix,1400);setTimeout(dotFix,2800);""setTimeout(packFix,120);setTimeout(packFix,500);setTimeout(packFix,1400);setTimeout(packFix,2800);setTimeout(stockActionFix381,20);setTimeout(stockActionFix381,120);setTimeout(stockActionFix381,500);setTimeout(stockActionFix381,1600);setTimeout(compareStock380,20);setTimeout(compareStock380,120);setTimeout(compareStock380,500);setTimeout(compareStock380,1500);setTimeout(cartChrome381,20);setTimeout(cartChrome381,180);setTimeout(cartChrome381,700);setTimeout(cartChrome381,1800);setTimeout(sponsorFix376,20);setTimeout(sponsorFix376,180);setTimeout(sponsorFix376,700);setTimeout(sponsorFix376,1800);setTimeout(ratingFix376,40);setTimeout(ratingFix376,240);setTimeout(ratingFix376,900);setTimeout(ratingFix376,2200);setTimeout(shareFix377,40);setTimeout(shareFix377,180);setTimeout(shareFix377,700);setTimeout(shareFix377,1800);addEventListener('scroll',function(){clearTimeout(window.__bgT);window.__bgT=setTimeout(function(){badgeFix();dotFix();packFix();stockActionFix381();compareStock380();cartChrome381();shareFix377();sponsorFix376();ratingFix376();},80);},{passive:true,capture:true});""addEventListener('scroll',function(){clearTimeout(window.__bxS);window.__bxS=setTimeout(clr,120);},{passive:true,capture:true});"
+         "}catch(e){}}""badgeFix();dotFix();packFix();stockActionFix382();compareStock380();cartChrome382();shareFix382();sponsorFix376();ratingFix376();""clr();setTimeout(clr,300);setTimeout(clr,1200);setTimeout(clr,2500);""setTimeout(badgeFix,300);setTimeout(badgeFix,1200);setTimeout(badgeFix,2500);""setTimeout(dotFix,120);setTimeout(dotFix,500);setTimeout(dotFix,1400);setTimeout(dotFix,2800);""setTimeout(packFix,120);setTimeout(packFix,500);setTimeout(packFix,1400);setTimeout(packFix,2800);setTimeout(stockActionFix382,20);setTimeout(stockActionFix382,120);setTimeout(stockActionFix382,500);setTimeout(stockActionFix382,1600);setTimeout(compareStock380,20);setTimeout(compareStock380,120);setTimeout(compareStock380,500);setTimeout(compareStock380,1500);setTimeout(cartChrome382,20);setTimeout(cartChrome382,180);setTimeout(cartChrome382,700);setTimeout(cartChrome382,1800);setTimeout(sponsorFix376,20);setTimeout(sponsorFix376,180);setTimeout(sponsorFix376,700);setTimeout(sponsorFix376,1800);setTimeout(ratingFix376,40);setTimeout(ratingFix376,240);setTimeout(ratingFix376,900);setTimeout(ratingFix376,2200);setTimeout(shareFix382,40);setTimeout(shareFix382,180);setTimeout(shareFix382,700);setTimeout(shareFix382,1800);addEventListener('scroll',function(){clearTimeout(window.__bgT);window.__bgT=setTimeout(function(){badgeFix();dotFix();packFix();stockActionFix382();compareStock380();cartChrome382();shareFix382();sponsorFix376();ratingFix376();},80);},{passive:true,capture:true});""addEventListener('scroll',function(){clearTimeout(window.__bxS);window.__bxS=setTimeout(clr,120);},{passive:true,capture:true});"
          "new MutationObserver(function(){clearTimeout(window.__bxT);"
-           "window.__bxT=setTimeout(function(){clr();dotFix();packFix();stockActionFix381();compareStock380();cartChrome381();shareFix377();sponsorFix376();ratingFix376();},20);}).observe(document.documentElement,"
+           "window.__bxT=setTimeout(function(){clr();dotFix();packFix();stockActionFix382();compareStock380();cartChrome382();shareFix382();sponsorFix376();ratingFix376();},20);}).observe(document.documentElement,"
            "{subtree:true,childList:true,attributes:true,attributeFilter:['style','class','aria-current','aria-selected','data-selected','src','data-src','data-darkreader-inline-bgcolor','data-darkreader-inline-color','fill','stroke']});"
+         "try{new MutationObserver(function(){try{cartChrome382();}catch(e){}}).observe(document.documentElement,{subtree:true,childList:true});}catch(e){}"
          "try{document.addEventListener('change',function(e){try{if(e&&e.target&&(String(e.target.type||'').toLowerCase()==='checkbox'||(e.target.closest&&e.target.closest('[data-ad-compare380],[class*=mlt-icon-container]'))))setTimeout(compareStock380,0);}catch(x){}},true);document.addEventListener('click',function(e){try{if(!e||!e.target||!e.target.closest)return;var h=e.target.closest('[data-ad-compare380]');if(!h){var m=e.target.closest('[class*=mlt-icon-container]');while(m&&m.parentElement&&m.parentElement.closest&&m.parentElement.closest('[class*=mlt-icon-container]'))m=m.parentElement.closest('[class*=mlt-icon-container]');h=m;}if(!h)return;var cur=String(h.getAttribute('data-ad-compare380')||'0')==='1';h.__adManual380=cur?0:1;var card=h.closest&&h.closest('[data-asin]');h.__adManualSig380=card&&card.getAttribute('data-asin')?'a:'+card.getAttribute('data-asin'):'';h.setAttribute('data-ad-compare380',cur?'0':'1');setTimeout(compareStock380,0);setTimeout(compareStock380,120);setTimeout(compareStock380,500);}catch(x){}},true);}catch(e){}"
        "})();}catch(e){}"
        "/*V5314FIX*//*V5315FIX*/"
-"/*V5317FIX*//*V5376FIX*//*V5377FIX*//*V5378FIX*//*V5379FIX*//*V5380FIX*//*V5381FIX*/"
+"/*V5317FIX*//*V5376FIX*//*V5377FIX*//*V5378FIX*//*V5379FIX*//*V5380FIX*//*V5381FIX*//*V5382FIX*/"
        "try{var R=[],EL=document.querySelectorAll('*');"
          "for(var q=0;q<EL.length&&R.length<8;q++){var e=EL[q];"
            "var t=String(e.textContent||'').trim();"
@@ -8223,14 +8288,14 @@ static NSString *ADProbeWebJS(void){
        // P38V374: consistency state for the Pack badge and PDP carousel dots.
        "try{var PK38=[],R38=document.querySelectorAll('[class*=pack-size-badge]');for(var r38=0;r38<R38.length&&PK38.length<12;r38++){var pr38=R38[r38].getBoundingClientRect();if(pr38.width<8||pr38.height<8)continue;var L38=R38[r38].querySelectorAll('*');for(var l38=0;l38<L38.length&&PK38.length<12;l38++){var e38=L38[l38];if(e38.childElementCount!==0)continue;var tx38=String(e38.textContent||'').replace(/\\s+/g,' ').trim();if(!tx38||tx38.length>16)continue;var sc38=getComputedStyle(e38);PK38.push(tx38+'|c='+String(sc38.color||'-').replace(/ /g,'')+'|fill='+String(sc38.webkitTextFillColor||'-').replace(/ /g,'')+'|mk='+(e38.hasAttribute('data-ad-packfix374')?1:0));}}var DT38=[],U38=document.querySelectorAll('ul.a-pagination.a-dots,[class*=a-pagination][class*=dots]');for(var u38=0;u38<U38.length&&DT38.length<16;u38++){var D38=U38[u38].querySelectorAll('li');for(var d38=0;d38<D38.length&&DT38.length<16;d38++){var q38=D38[d38],qr38=q38.getBoundingClientRect();if(qr38.width<2||qr38.height<2)continue;var qs38=getComputedStyle(q38),ar38=String(q38.getAttribute('aria-current')||q38.getAttribute('aria-selected')||'-');DT38.push(String(q38.className||'-').slice(0,20)+'|sel='+(q38.hasAttribute('data-ad-dotselected374')?1:0)+'|aria='+ar38+'|bg='+String(qs38.backgroundColor||'-').replace(/ /g,''));}}out.push('P38V374[pack='+PK38.length+(PK38.length?' '+PK38.join(' ~~ '):'')+' | dots='+DT38.length+(DT38.length?' '+DT38.join(' ~~ '):'')+']');}catch(e38){out.push('P38V374[err '+(e38&&e38.message||e38)+']');}"
        // separate lists-framework cards action.
-       // P39V381: stock two-card chrome + already-confirmed Compare visual state.
-       "try{var A39=document.querySelectorAll('[data-ad-stockaction381]'),C39=document.querySelectorAll('[data-ad-compare380]'),Q39=[];for(var i39=0;i39<A39.length&&Q39.length<6;i39++){var h39=A39[i39],r39=h39.getBoundingClientRect(),s39=getComputedStyle(h39);Q39.push('A@'+Math.round(r39.left)+','+Math.round(r39.top)+'/'+Math.round(r39.width)+'x'+Math.round(r39.height)+'|bg='+String(s39.backgroundColor||'-').replace(/ /g,'')+'|br='+String(s39.borderColor||'-').replace(/ /g,''));}for(var j39=0;j39<C39.length&&Q39.length<12;j39++){var c39=C39[j39],rr39=c39.getBoundingClientRect(),st=c39.getAttribute('data-ad-compare380'),b39=getComputedStyle(c39,'::before');Q39.push('C@'+Math.round(rr39.left)+','+Math.round(rr39.top)+'/'+Math.round(rr39.width)+'x'+Math.round(rr39.height)+'|sel='+st+'|box='+String(b39.backgroundColor||'-').replace(/ /g,''));}out.push('P39V381[action='+A39.length+' compare='+C39.length+(Q39.length?' '+Q39.join(' ~~ '):'')+' state='+String(window.__AD_STOCKACTION381__||'-')+' cmp='+String(window.__AD_COMPARE380__||'-')+']');}catch(e39){out.push('P39V381[err '+(e39&&e39.message||e39)+']');}"
+       // P39V382: true icon-sized stock cards host + frozen Compare state.
+       "try{var A39=document.querySelectorAll('[data-ad-stockaction382]'),C39=document.querySelectorAll('[data-ad-compare380]'),Q39=[];for(var i39=0;i39<A39.length&&Q39.length<8;i39++){var h39=A39[i39],r39=h39.getBoundingClientRect(),s39=getComputedStyle(h39);Q39.push('A@'+Math.round(r39.left)+','+Math.round(r39.top)+'/'+Math.round(r39.width)+'x'+Math.round(r39.height)+'|bg='+String(s39.backgroundColor||'-').replace(/ /g,'')+'|br='+String(s39.borderColor||'-').replace(/ /g,''));}for(var j39=0;j39<C39.length&&Q39.length<14;j39++){var c39=C39[j39],rr39=c39.getBoundingClientRect(),st=c39.getAttribute('data-ad-compare380'),b39=getComputedStyle(c39,'::before');Q39.push('C@'+Math.round(rr39.left)+','+Math.round(rr39.top)+'/'+Math.round(rr39.width)+'x'+Math.round(rr39.height)+'|sel='+st+'|box='+String(b39.backgroundColor||'-').replace(/ /g,''));}var bad39=0;for(var b39=0;b39<A39.length;b39++){var br39=A39[b39].getBoundingClientRect();if(br39.width>64||br39.height>64||Math.abs(br39.width-br39.height)>14)bad39++;}out.push('P39V382[action='+A39.length+' malformed='+bad39+' compare='+C39.length+(Q39.length?' '+Q39.join(' ~~ '):'')+' state='+String(window.__AD_STOCKACTION382__||'-')+' cmp='+String(window.__AD_COMPARE380__||'-')+']');}catch(e39){out.push('P39V382[err '+(e39&&e39.message||e39)+']');}"
        // P40V379: Sponsored frame/parent text state.
        "try{var F40=document.querySelectorAll('iframe[data-ad-stripframe374]'),PI40=document.querySelectorAll('[data-ad-parentstripink379]'),pd40=0,Q40=[];for(var p40=0;p40<PI40.length;p40++){var m40=/rgb\\((\\d+),\\s*(\\d+),\\s*(\\d+)/.exec(String(getComputedStyle(PI40[p40]).color||''));if(m40&&(.2126*(+m40[1])+.7152*(+m40[2])+.0722*(+m40[3]))/255<.92)pd40++;}for(var i40=0;i40<F40.length&&i40<8;i40++){var f40=F40[i40],r40=f40.getBoundingClientRect();if(r40.width<250||r40.height>230)continue;Q40.push(String(f40.getAttribute('data-ad-frame-why369')||f40.getAttribute('data-ad-frame-mode362')||'-')+'@'+Math.round(r40.left)+','+Math.round(r40.top)+'/'+Math.round(r40.width)+'x'+Math.round(r40.height));}out.push('P40V379[frames='+F40.length+' forced='+String(window.__AD_FORCESTRIP379__||0)+' parentInk='+PI40.length+' parentDark='+pd40+(Q40.length?' '+Q40.join(' ~~ '):'')+']');}catch(e40){out.push('P40V379[err '+(e40&&e40.message||e40)+']');}"
-       // P41V378: Share remains stock artwork with a white silhouette only.
-       "try{var S41=document.querySelectorAll('.ssf-share-trigger,[data-ad-share377]'),Q41=[];for(var i41=0;i41<S41.length&&i41<8;i41++){var h41=S41[i41],r41=h41.getBoundingClientRect();if(r41.width<8||r41.height<8)continue;var hs41=getComputedStyle(h41),a41=h41.querySelector('svg,path,i,img,[class*=icon]'),s41=a41?getComputedStyle(a41):hs41;Q41.push(Math.round(r41.left)+','+Math.round(r41.top)+'/'+Math.round(r41.width)+'x'+Math.round(r41.height)+'|mk='+(h41.hasAttribute('data-ad-share377')?1:0)+'|hflt='+String(hs41.filter||'none').slice(0,20)+'|fill='+String(s41.fill||'-').replace(/ /g,''));}out.push('P41V378[n='+Q41.length+(Q41.length?' '+Q41.join(' ~~ '):'')+' state='+String(window.__AD_SHARE377__||'-')+']');}catch(e41){out.push('P41V378[err '+(e41&&e41.message||e41)+']');}"
-       // P43V381: exact Cart Share recovery + tame regression counters.
-       "try{var C43=document.querySelectorAll('[data-ad-cartchrome380],[data-ad-cartshare381]'),D43=document.querySelectorAll('[data-ad-cartdirect381]'),S43=document.querySelectorAll('[data-ad-cartshare381]'),K43=document.querySelectorAll('[data-ad-tame-fast362],[data-ad-tame-bgfast364]');out.push('P43V381[cart='+C43.length+' direct='+D43.length+' share='+S43.length+' tame='+K43.length+' cartState='+String(window.__AD_CART381__||'-')+' parent='+String(window.__AD_PARENTSTRIP379__||'-')+']');}catch(e43){out.push('P43V381[err '+(e43&&e43.message||e43)+']');}"
+       // P41V382: actual PDP Share painter leaves, not the whole host.
+       "try{var S41=document.querySelectorAll('[data-ad-share382]'),Q41=[];for(var i41=0;i41<S41.length&&i41<8;i41++){var h41=S41[i41],r41=h41.getBoundingClientRect();if(r41.width<8||r41.height<8)continue;var P41=h41.querySelectorAll('[data-ad-sharepaint382]'),v41=h41.querySelector('svg,path'),ps41=P41.length?getComputedStyle(P41[0]):(v41?getComputedStyle(v41):getComputedStyle(h41));Q41.push(Math.round(r41.left)+','+Math.round(r41.top)+'/'+Math.round(r41.width)+'x'+Math.round(r41.height)+'|paint='+P41.length+'|flt='+String(ps41.filter||'none').slice(0,22)+'|fill='+String(ps41.fill||'-').replace(/ /g,''));}out.push('P41V382[n='+Q41.length+(Q41.length?' '+Q41.join(' ~~ '):'')+' state='+String(window.__AD_SHARE382__||'-')+']');}catch(e41){out.push('P41V382[err '+(e41&&e41.message||e41)+']');}"
+       // P43V382: Share clones the live Delete chrome.
+       "try{var S43=document.querySelectorAll('[data-ad-cartclone382]'),Q43=[];for(var i43=0;i43<S43.length&&i43<6;i43++){var e43=S43[i43],r43=e43.getBoundingClientRect(),c43=getComputedStyle(e43);Q43.push(Math.round(r43.left)+','+Math.round(r43.top)+'/'+Math.round(r43.width)+'x'+Math.round(r43.height)+'|bg='+String(c43.backgroundColor||'-').replace(/ /g,'')+'|br='+String(c43.borderColor||'-').replace(/ /g,''));}out.push('P43V382[share='+S43.length+(Q43.length?' '+Q43.join(' ~~ '):'')+' state='+String(window.__AD_CART382__||'-')+']');}catch(e43){out.push('P43V382[err '+(e43&&e43.message||e43)+']');}"
        // P42V376: exact Sponsored labels and rating/review numerics must be pure white.
        "try{var S42=document.querySelectorAll('[data-ad-sponsored376]'),R42=document.querySelectorAll('[data-ad-rating376]'),sd42=0,rd42=0,Q42=[];for(var i42=0;i42<S42.length;i42++){var ss42=getComputedStyle(S42[i42]),c42=String(ss42.color||'').replace(/ /g,'');if(c42!=='rgb(255,255,255)')sd42++;if(Q42.length<5)Q42.push('S:'+String(S42[i42].textContent||'').replace(/\\s+/g,' ').trim()+'='+c42);}for(var j42=0;j42<R42.length;j42++){var rs42=getComputedStyle(R42[j42]),rc42=String(rs42.color||'').replace(/ /g,'');if(rc42!=='rgb(255,255,255)')rd42++;if(Q42.length<10)Q42.push('R:'+String(R42[j42].textContent||'').replace(/\\s+/g,' ').trim()+'='+rc42);}out.push('P42V376[spon='+S42.length+' sDark='+sd42+' rating='+R42.length+' rDark='+rd42+(Q42.length?' '+Q42.join(' ~~ '):'')+']');}catch(e42){out.push('P42V376[err '+(e42&&e42.message||e42)+']');}"
 
