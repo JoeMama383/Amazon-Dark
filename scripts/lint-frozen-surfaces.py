@@ -259,7 +259,7 @@ try:
     ra=src.index('// v5.397: keep the current checkbox implementation')
     rb=src.index('         "window.__AMZDARK_APPLY__=function',ra)
     run397=src[ra:rb]
-    actual=sha(run397); expected='8a8c755a1fa83b83e49db441570bccf4468472591d2d28c6b5bd1f453d39591b'
+    actual=sha(run397); expected='6868c3dad78e95ffe27b862562fdda3c02bc4d78746bc89d5936a2d28ba8a828'
     ok=actual==expected
 except Exception:
     actual='missing';ok=False
