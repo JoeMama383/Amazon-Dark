@@ -247,7 +247,7 @@ for marker,expected in V333_WINDOWS.items():
 # post-v5.333 symbol writers. Changing them requires explicit new device evidence.
 try:
     ca=src.index('// v5.397: SYMBOL THEME AUTHORITY')
-    cb=src.index('         "try{window.__AD_EARLY__',ca)
+    cb=src.index('         // v5.398: one canonical chrome geometry',ca)
     css397=src[ca:cb]
     actual=sha(css397); expected='090688032a26580b55cd71464d1691740dc79d21827aa4b1d8eb81a7216ec176'
     ok=actual==expected
@@ -257,7 +257,7 @@ print(('PASS' if ok else 'FAIL')+f': v5.333 documentStart symbol authority {actu
 bad |= not ok
 try:
     ra=src.index('// v5.397: keep the current checkbox implementation')
-    rb=src.index('         "window.__AMZDARK_APPLY__=function',ra)
+    rb=src.index('         // v5.398: normalize the 4-5 product action-symbol hosts',ra)
     run397=src[ra:rb]
     actual=sha(run397); expected='6868c3dad78e95ffe27b862562fdda3c02bc4d78746bc89d5936a2d28ba8a828'
     ok=actual==expected
@@ -284,18 +284,61 @@ if bad:
     sys.exit(1)
 print('PASS: v5.333 owns non-checkbox symbols; current checkbox and all previously frozen surfaces remain exact.')
 
-# Final checkbox CSS/selector aggregate lock. Exclude only the v5.397 authority lines;
-# everything pre-existing that can recognize or paint the checkbox must stay v5.396 exact.
+# Final pre-v5.398 checkbox CSS/selector aggregate lock. v5.398 is an explicit
+# presentation-only overlay requested from device evidence; the older state/click machinery
+# must remain byte-identical beneath it.
 checkbox_lines=[]
 for ln in src.splitlines():
-    if '397' in ln: continue
+    if '397' in ln or '398' in ln: continue
     if re.search(r'mlt-icon-container|data-ad-compare380|data-ad-comparelegacy387|data-ad-product391=\\?"checkbox',ln):
         checkbox_lines.append(ln)
 cbsha=sha('\n'.join(checkbox_lines))
 cbexp='66b7b2ba23523e295bf013b6d2c089f5c579e3573cc5396c721825f2e4d84019'
 ok=len(checkbox_lines)==28 and cbsha==cbexp
-print(('PASS' if ok else 'FAIL')+f': entire pre-v5.397 checkbox selector/CSS/runtime population lines={len(checkbox_lines)} sha={cbsha}')
+print(('PASS' if ok else 'FAIL')+f': entire pre-v5.398 checkbox selector/CSS/runtime population lines={len(checkbox_lines)} sha={cbsha}')
 if not ok:
     print('ERROR: current checkbox population changed; v5.333 symbol authority may not touch it.')
     sys.exit(1)
-print('PASS: current checkbox remains fully locked outside the v5.333 symbol authority.')
+print('PASS: legacy checkbox state/click machinery remains fully locked beneath v5.398 presentation authority.')
+
+
+# v5.398 DEVICE-EVIDENCE FIX — user reopened product control chrome/checkbox
+# presentation and Home ambient bleed only. Preserve the older engines exactly, then
+# require the new final presentation/bleed authority to remain intact.
+print('--- v5.398 canonical control chrome / Home bleed authority ---')
+try:
+    a=src.index('// v5.398: one canonical chrome geometry')
+    b=src.index('         "try{window.__AD_EARLY__',a)
+    css398=src[a:b]
+    css398_sha=sha(css398)
+except Exception:
+    css398_sha='missing'
+try:
+    a=src.index('// v5.398: normalize the 4-5 product action-symbol hosts')
+    b=src.index('         "window.__AMZDARK_APPLY__=function',a)
+    run398=src[a:b]
+    run398_sha=sha(run398)
+except Exception:
+    run398_sha='missing'
+# Hashes are filled from the intentional implementation below; changing these blocks
+# requires updating the version and explicit device evidence, not silent drift.
+CSS398_EXPECTED='e61f25a3bc97816761d049bac6c6210467c8f70c489f925e68f041f3482d09f0'
+RUN398_EXPECTED='18a7da1ddcbbaf3d4bc026cd0fd4e6879b36decfd51f375970c3c334599a1486'
+for label,actual,expected in [
+    ('v5.398 documentStart chrome/bleed',css398_sha,CSS398_EXPECTED),
+    ('v5.398 runtime chrome/bleed',run398_sha,RUN398_EXPECTED),
+]:
+    ok=actual==expected
+    print(('PASS' if ok else 'FAIL')+f': {label} {actual}')
+    if not ok: sys.exit(1)
+for token in [
+    'data-ad-control398', 'width:32px', 'height:32px', '1.5px #9aa0a3',
+    'data-ad-checkaux398', 'data-ad-selected398', 'content:none',
+    'data-ad-main396] [class*=theming-card-background]',
+    "setProperty('background-image','none','important')",
+    'P61CTRL398[', 'P62BLEED398['
+]:
+    ok=token in src
+    print(('PASS' if ok else 'FAIL')+f': v5.398 required token {token}')
+    if not ok: sys.exit(1)
+print('PASS: v5.398 keeps v5.333 glyph paint, normalizes control chrome/checkbox presentation, and directly neutralizes Home ambient bleed.')
