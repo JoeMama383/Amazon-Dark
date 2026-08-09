@@ -14,7 +14,7 @@ Rootless jailbreak, arm64 + arm64e, iOS 15+.
 
 Tap **Add Repo** to open the repository in Sileo.
 
-If needed, you can also add the repo manually in Sileo → Sources:
+If Sileo does not open automatically, add the following source manually:
 
 `https://joemama383.github.io/`
 
