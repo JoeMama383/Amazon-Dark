@@ -10,7 +10,7 @@ Rootless jailbreak, arm64 + arm64e, iOS 15+.
 
 ### Sileo
 
-**[Add Repo](sileo://url/https://colindavidr.github.io/)**
+**[Add Repo](https://colindavidr.github.io/add/)**
 
 Then find **Amazon Dark** in Sileo and install it.
 
@@ -37,13 +37,15 @@ Amazon Dark themes both the web and native parts of the Amazon Shopping app usin
 * Dark cold-launch screen
 * Optional **120 Hz** support
 
-The tweak is continuously adjusted for Amazon's dynamically loaded and frequently changing interface.
+Amazon Dark is continuously adjusted for Amazon's dynamically loaded and frequently changing interface.
 
 ### White Background Taming
 
 Amazon product photos often use extremely bright white backgrounds.
 
 Optional **White Background Taming** reduces those bright areas while preserving the product itself.
+
+Context-aware handling helps prevent normal icons, category artwork, ads, and other interface elements from being incorrectly treated like product photos.
 
 Taming strength can be adjusted in Settings.
 
@@ -55,13 +57,17 @@ Amazon Dark replaces this with a temporary dark launch screen for a more consist
 
 ### 120 Hz
 
-Amazon Dark can optionally request up to **120 Hz** on supported devices.
+Amazon Dark can optionally request up to **120 Hz** while using Amazon on supported devices.
+
+iOS may still lower the refresh rate depending on Low Power Mode, temperature, hardware, or other system conditions.
 
 ---
 
 ## Settings
 
 Settings → **AmazonDark**
+
+Available options:
 
 * Enabled
 * Tame white backgrounds
@@ -74,7 +80,9 @@ White Background Taming and 120 Hz are disabled by default.
 
 ## Compatibility
 
-Amazon Dark uses targeted fixes for Amazon's mix of WebKit, UIKit, React Native, advertisements, and product media instead of applying one global filter over the app.
+Amazon uses a mixture of WebKit, UIKit, React Native, server-driven UI, advertisements, custom icons, and product media.
+
+Amazon Dark uses targeted fixes for each type of content instead of applying one global visual filter over the entire app.
 
 **The goal: make Amazon look like it actually shipped with a proper dark mode.**
 
