@@ -5,8 +5,11 @@ Alexa, Hamburger, and Shopping Cart were confirmed good and frozen before
 v5.394.  The complete current Person-tab implementation, including the
 Subscribe & Save overlay repair, was explicitly confirmed good on-device in
 v5.394 and is frozen here from the exact v5.394 source.  Home video playback is
-separately frozen from v5.391.  Do not update expected hashes merely to make a
-later build pass: changing a frozen surface requires explicit new device evidence.
+separately frozen from v5.391.  In v5.395 the user also explicitly confirmed that
+Home carousel media WBT is complete and standalone Sponsored ads no longer have
+a black structural rectangle; those exact repair paths and their selector/marker
+population are frozen here as well.  Do not update expected hashes merely to make
+a later build pass: changing a frozen surface requires explicit new device evidence.
 """
 from pathlib import Path
 import hashlib, re, sys
@@ -113,8 +116,186 @@ vok=len(video)==5 and vsha==vexp
 print(('PASS' if vok else 'FAIL')+f': frozen Home video lines={len(video)} sha={vsha}')
 bad |= not vok
 
+# v5.395 HOME FIXES — USER-CONFIRMED GOOD. These are stronger than a function
+# hash alone: exact runtime definition/call lines are frozen, exact repair-marker
+# populations are frozen, and no additional direct media/standalone selectors may
+# be introduced outside the new v5.396 bleed-only first-paint guard/probe.
+def agg_lines(pattern, exclude=None):
+    rx=re.compile(pattern)
+    ex=re.compile(exclude) if exclude else None
+    lines=[ln for ln in src.splitlines() if rx.search(ln) and not (ex and ex.search(ln))]
+    return lines, sha('\n'.join(lines))
+
+HOME395 = {
+    '_adHomeMedia395 exact definition/calls': (r'_adHomeMedia395', None, 4, '3e444e384aec697faa7de97f191f5614e2dda0683c8758a43e71b95e9b8846e2'),
+    'Home media marker population': (r'data-ad-homemedia395|homeMedia395', None, 2, 'f7026a7152b61130636e321a3c2de4e21089e0ea866ef1d2041ebbdac3c5e1ae'),
+    '_adStandaloneSweep395 exact definition/calls': (r'_adStandaloneSweep395', None, 4, '1e931418220ed80b4fd966a2280ed2231dd067c98541e7bbb54e78c5718d8681'),
+    'Standalone repair marker population': (r'data-ad-homeauto395|data-ad-standparent395|data-ad-standbefore395|data-ad-standafter395', None, 4, '6d508367ffaf47dbc86910ebaa13cd2ff75d47825911d2d008715d2958e285d2'),
+    'Standalone iframe selector population': (r'iframe\[data-ad-frame-mode362', None, 4, '2835e55cd74e8a785c76257a97e69d6dfc3e40c4da80eac18cd711609b0278cb'),
+    # Exclude only the v5.396 first-paint guard/probe. All older direct references
+    # to the confirmed Home media classes must remain exactly the v5.395 set.
+    'Home media direct-selector population': (r'single-creative-card|single-video-card|video\.vjs-tech|data-ad-homemedia395', r'data-ad-main396|P59BLEED396', 4, 'f1976ee3a8b48cb6e9278243e8af2064b01160fb8abd62731ccc90d59753b301'),
+}
+for label,(pattern,exclude,count,expected) in HOME395.items():
+    lines,actual=agg_lines(pattern,exclude)
+    ok=(len(lines)==count and actual==expected)
+    print(('PASS' if ok else 'FAIL')+f': frozen {label} lines={len(lines)} sha={actual}')
+    bad |= not ok
+
+# Explicitly reject the known-bad standalone blend path and obvious attempts to
+# remove/clear the v5.395 ownership markers. This catches surrounding-code attacks
+# that would not modify the frozen function definitions themselves.
+for forbidden in [
+    '__AD_STANDBLEND384__',
+    "removeAttribute('data-ad-homemedia395')",
+    'removeAttribute("data-ad-homemedia395")',
+    "removeAttribute('data-ad-homeauto395')",
+    'removeAttribute("data-ad-homeauto395")',
+    "removeAttribute('data-ad-standparent395')",
+    'removeAttribute("data-ad-standparent395")',
+]:
+    ok=forbidden not in src
+    print(('PASS' if ok else 'FAIL')+f': forbidden competing writer absent: {forbidden}')
+    bad |= not ok
+
 if bad:
     print('ERROR: a user-confirmed-good frozen surface changed.')
     print('Do not update expected hashes merely to bypass this gate.')
     sys.exit(1)
-print('PASS: Alexa, Hamburger, Cart, Person, and Home video frozen surfaces are unchanged.')
+print('PASS: Alexa, Hamburger, Cart, Person, Home video, v5.395 Home WBT, and v5.395 standalone-ad fixes are frozen unchanged.')
+
+# v5.397 SYMBOL POLICY — v5.333 owns every non-checkbox symbol. The current
+# Compare checkbox is explicitly exempt and is frozen byte-for-byte from v5.396.
+# This is intentionally checked after all older surface gates so a later developer
+# cannot "fix" a symbol by reopening a confirmed Person/Home/Menu path.
+print('--- v5.397 v5.333 symbol authority / current-checkbox lock ---')
+
+# The two current checkbox state machines are exact source-line locks.
+for key, expected in {
+    'function compareStock380(){':'f97dc076a9ab899cfc8cbf591465fc8f3af95a6beaa76afe034f9a3e234afc06',
+    'function legacyCompare387(){':'e350a9b5fbd0c1a673089c3e5a6ac343ca1c09de7c1b809ae4230fddf5347d24',
+}.items():
+    lines=[ln for ln in src.splitlines() if key in ln and 'v5.397' not in ln]
+    actual=sha(lines[0]) if len(lines)==1 else '-'
+    ok=len(lines)==1 and actual==expected
+    print(('PASS' if ok else 'FAIL')+f': current checkbox {key} {actual}')
+    bad |= not ok
+
+# Freeze the complete ORIGINAL v5.396 product-control function. v5.397 wraps it
+# after definition; it does not edit one byte of the current checkbox implementation.
+plines=src.splitlines()
+try:
+    pst=next(i for i,l in enumerate(plines) if 'window.__AD_PRODUCTCTRL391RUN__=function' in l)
+    pen=next(i for i in range(pst,len(plines)) if "window.__AD_PRODUCTCTRL391__='err '" in plines[i])
+    pblock='\n'.join(plines[pst:pen+1])
+    pactual=sha(pblock); pexpected='ce65d88388dcf4036f91a719e6a45dcd01bd317f496d3fb2e324ede86480b650'
+    ok=pactual==pexpected
+except Exception:
+    pactual='missing'; ok=False
+print(('PASS' if ok else 'FAIL')+f': current checkbox/product-control original block {pactual}')
+bad |= not ok
+
+# Native symbol engine: these are exact v5.333 functions. ADLiftNativeGlyph has one
+# later Menu-ownership preamble, so its body from kNatGlyphKey onward is hashed against
+# the exact v5.333 body rather than deleting the confirmed-good Hamburger guard.
+V333_FUNCS={
+ 'ADApplyBarTint':'134e6afa1ade4ee1091e1e127b4ec60246cfff31115b7dae7eca8095bdc4fbf2',
+ 'ADBarSelectionKnown':'69dc5322387bac6d1f12688457bc8c14523dc50ca1b88a79c0d0f8c99c99c10e',
+ 'ADImageIsTemplateish':'ee7b9093d12574573612fc977fd86a7aba5c4dcb9b6f05d4cbf010806cd2e9c1',
+ 'ADIsChromeGlyphContext':'44868bbc52e617190710a6dc1d49051833e18a08eaca80559a703138f4e519e0',
+ 'ADInvertRNSVG':'96e465da0f838d56a25c391e1c39217358bab0836430b72d657717427302a67c',
+ 'ADInvertRNSVGApply':'6156fd8770a02dcee9c70e3c8c226934457b3e03834f33c2907137dee0e07bc4',
+ 'ADScheduleGlyphLift':'6e2f938410ce61b577bd0c6201d2ede0cb7c5a5f3fc6d1931859a27a3f7641dc',
+ 'ADUntintColourImage':'8743cdcb89c4da4c8fe44e3d5e28e63bf1ef4d3a7b0b7975254c8aff97f7c1b6',
+}
+for name,expected in V333_FUNCS.items():
+    actual=sha(brace_block(r'^static[^\n]*\b'+re.escape(name)+r'\s*\([^\n]*\)\s*\{',name))
+    ok=actual==expected
+    print(('PASS' if ok else 'FAIL')+f': exact v5.333 native symbol {name} {actual}')
+    bad |= not ok
+try:
+    lift=brace_block(r'^static[^\n]*\bADLiftNativeGlyph\s*\([^\n]*\)\s*\{','ADLiftNativeGlyph')
+    tail=lift[lift.index('        static const void *kNatGlyphKey'):]
+    actual=sha(tail); expected='844ea8761e455e21d95420dda8e034919028fdb19df61d06f1bf22e4ca5ff30b'
+    ok=actual==expected
+except Exception:
+    actual='missing';ok=False
+print(('PASS' if ok else 'FAIL')+f': exact v5.333 ADLiftNativeGlyph body after protected Menu preamble {actual}')
+bad |= not ok
+
+# v5.333 web glyph passes must still be present byte-identically. Each hash is a
+# 500-character source window centered on the historical writer marker.
+V333_WINDOWS={
+ 'gfix1':'c7cea9187726e0dc741280f80771c5e31a578ef3e1528ebe7c68b5d328b63af8',
+ 'gfix2':'e8c9531f44bcc1e204d766de29708876373d00c4da77420146497ddb688b470b',
+ 'logolift':'df95d7ce310b3ee802df7c9c6809e175a3cd1852d0810ff9faa56fd1045ee6e9',
+ 'tileart':'bdffdbf648176aa1767e18ef60c35f8b8afbaf25991f2ba9ce1a09cfb5390522',
+ 'fltpanel':'682d959f64db2a136d17f2952fd657fbd32f6ffa24c8171f313f7faafc9d5087',
+ "__adBy='aic'":'69185123e83d7b2f10e486bff201bc81f552a2e17ea67d9952fe5ac490cbd42a',
+ 'gsweep':'0c9c8167510b176a07fcbefd62cde3723b26f0e9a1ab7ebb270ec2df0ac13e0c',
+}
+# The canonical historical windows themselves are retained verbatim in current source;
+# locate a current marker and hash the same +/-250 chars.
+for marker,expected in V333_WINDOWS.items():
+    i=src.find(marker)
+    actual=sha(src[max(0,i-250):i+250]) if i>=0 else 'missing'
+    ok=actual==expected
+    print(('PASS' if ok else 'FAIL')+f': exact v5.333 web symbol pass {marker} {actual}')
+    bad |= not ok
+
+# New final authority blocks. These are the only v5.397 additions allowed to arbitrate
+# post-v5.333 symbol writers. Changing them requires explicit new device evidence.
+try:
+    ca=src.index('// v5.397: SYMBOL THEME AUTHORITY')
+    cb=src.index('         "try{window.__AD_EARLY__',ca)
+    css397=src[ca:cb]
+    actual=sha(css397); expected='090688032a26580b55cd71464d1691740dc79d21827aa4b1d8eb81a7216ec176'
+    ok=actual==expected
+except Exception:
+    actual='missing';ok=False
+print(('PASS' if ok else 'FAIL')+f': v5.333 documentStart symbol authority {actual}')
+bad |= not ok
+try:
+    ra=src.index('// v5.397: keep the current checkbox implementation')
+    rb=src.index('         "window.__AMZDARK_APPLY__=function',ra)
+    run397=src[ra:rb]
+    actual=sha(run397); expected='8a8c755a1fa83b83e49db441570bccf4468472591d2d28c6b5bd1f453d39591b'
+    ok=actual==expected
+except Exception:
+    actual='missing';ok=False
+print(('PASS' if ok else 'FAIL')+f': v5.333 post-modern symbol authority {actual}')
+bad |= not ok
+
+# Checkbox exclusion is mandatory in both runtime and probe. No v333 authority write
+# is allowed to originate from a Compare/MLT/checkbox node.
+required=[
+ '[class*=mlt-icon-container],[role=checkbox],input[type=checkbox],[class*=a-icon-checkbox],[data-ad-compare380],[data-ad-comparelegacy387]',
+ 'if(ischeck397(h397))continue', 'if(ischeck397(q397))continue', 'if(ischeck397(de397))continue',
+ 'cbTouched=', 'v333397', 'P60SYMBOL397['
+]
+for token in required:
+    ok=token in src
+    print(('PASS' if ok else 'FAIL')+f': symbol/checkbox separation token {token[:70]}')
+    bad |= not ok
+
+if bad:
+    print('ERROR: v5.397 symbol authority, current checkbox, or another frozen surface changed.')
+    print('Do not update these hashes to bypass the gate; reopen only with explicit device evidence.')
+    sys.exit(1)
+print('PASS: v5.333 owns non-checkbox symbols; current checkbox and all previously frozen surfaces remain exact.')
+
+# Final checkbox CSS/selector aggregate lock. Exclude only the v5.397 authority lines;
+# everything pre-existing that can recognize or paint the checkbox must stay v5.396 exact.
+checkbox_lines=[]
+for ln in src.splitlines():
+    if '397' in ln: continue
+    if re.search(r'mlt-icon-container|data-ad-compare380|data-ad-comparelegacy387|data-ad-product391=\\?"checkbox',ln):
+        checkbox_lines.append(ln)
+cbsha=sha('\n'.join(checkbox_lines))
+cbexp='66b7b2ba23523e295bf013b6d2c089f5c579e3573cc5396c721825f2e4d84019'
+ok=len(checkbox_lines)==28 and cbsha==cbexp
+print(('PASS' if ok else 'FAIL')+f': entire pre-v5.397 checkbox selector/CSS/runtime population lines={len(checkbox_lines)} sha={cbsha}')
+if not ok:
+    print('ERROR: current checkbox population changed; v5.333 symbol authority may not touch it.')
+    sys.exit(1)
+print('PASS: current checkbox remains fully locked outside the v5.333 symbol authority.')
