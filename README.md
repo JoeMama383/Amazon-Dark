@@ -10,13 +10,13 @@ Rootless jailbreak, arm64 + arm64e, iOS 15+.
 
 ### Sileo
 
-**[Add Repo](https://colindavidr.github.io/add/)**
+**[Add Repo](https://JoeMama383.github.io/add/)**
 
 Then find **Amazon Dark** in Sileo and install it.
 
 ### Manual Install
 
-**[Download the latest .deb](https://github.com/colindavidr/Amazon-Dark/releases/latest)**
+**[Download the latest .deb](https://github.com/JoeMama383/Amazon-Dark/releases/latest)**
 
 After installing or updating, respring and relaunch Amazon.
 
