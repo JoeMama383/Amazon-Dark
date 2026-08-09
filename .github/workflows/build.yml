@@ -1,5 +1,4 @@
 name: Build AmazonDark (rootless .deb)
-
 # Built on macOS, NOT ubuntu. The Linux Theos toolchain stamps arm64e with the
 # OLD ABI (capabilities 0x0) and warns "incompatible arm64e ABI compiler" on
 # every build. iOS 17 rejects that: the tweak dylib survived only because the
@@ -15,7 +14,6 @@ on:
   workflow_dispatch:
   release:
     types: [ created ]
-
 jobs:
   build:
     runs-on: macos-14
@@ -33,7 +31,6 @@ jobs:
 
       - name: Install ldid
         run: brew install ldid
-
       - name: Install patched iOS 16.5 SDK
         run: |
           git clone -n --depth=1 --filter=tree:0 https://github.com/theos/sdks.git /tmp/sdks
@@ -46,9 +43,10 @@ jobs:
 
       - name: Lint Logos %orig usage
         run: bash scripts/lint-logos.sh
-
       - name: Lint injected JavaScript (regression gates)
         run: python3 scripts/lint-js.py
+      - name: Guard frozen Alexa / Hamburger / Cart / video surfaces
+        run: python3 scripts/lint-frozen-surfaces.py src/Tweak.xm
 
       - name: Build rootless package
         run: |
@@ -56,7 +54,6 @@ jobs:
           make THEOS_PACKAGE_SCHEME=rootless package FINALPACKAGE=1
           echo "---- built packages ----"
           ls -l packages/
-
       - name: Verify arm64e ABI is 0x80 (the whole reason we build on macOS)
         run: |
           for BIN in $(find .theos -name ADPrefs -path "*bundle*" -o -name "AmazonDark.dylib" | head -2); do
@@ -66,7 +63,6 @@ jobs:
             echo "arm64e capabilities = $CAP"
             if [ "$CAP" != "0x80" ]; then echo "::warning::$BIN arm64e capabilities is $CAP, expected 0x80"; fi
           done
-
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
