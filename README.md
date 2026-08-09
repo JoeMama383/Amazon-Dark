@@ -1,6 +1,6 @@
 # Amazon Dark
 
-True dark mode for the Amazon Shopping iOS app — designed to look native instead of simply inverting the screen.
+True dark mode for the Amazon Shopping iOS app - designed to look native instead of simply inverting the screen.
 
 Rootless jailbreak, arm64 + arm64e, iOS 15+.
 
