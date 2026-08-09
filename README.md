@@ -10,7 +10,13 @@ Rootless jailbreak, arm64 + arm64e, iOS 15+.
 
 ### Sileo
 
-**[Add Repo](https://JoeMama383.github.io/add/)**
+**[Add Repo](https://joemama383.github.io/add/)**
+
+Tap **Add Repo** to open the repository in Sileo.
+
+If needed, you can also add the repo manually in Sileo → Sources:
+
+`https://joemama383.github.io/`
 
 Then find **Amazon Dark** in Sileo and install it.
 
@@ -28,14 +34,14 @@ Make sure tweak injection is enabled for Amazon in your jailbreak environment.
 
 Amazon Dark themes both the web and native parts of the Amazon Shopping app using a combination of:
 
-* **Dark Reader** for web content
-* Amazon's **native dark-mode components**
-* Custom theming for UIKit and React Native surfaces
-* Automatic correction of icons, buttons, text, backgrounds, ads, and other Amazon-specific UI
-* Protection for product photos and artwork
-* Optional **White Background Taming**
-* Dark cold-launch screen
-* Optional **120 Hz** support
+- **Dark Reader** for web content
+- Amazon's **native dark-mode components**
+- Custom theming for UIKit and React Native surfaces
+- Automatic correction of icons, buttons, text, backgrounds, ads, and other Amazon-specific UI
+- Protection for product photos and artwork
+- Optional **White Background Taming**
+- Dark cold-launch screen
+- Optional **120 Hz** support
 
 Amazon Dark is continuously adjusted for Amazon's dynamically loaded and frequently changing interface.
 
@@ -69,10 +75,10 @@ Settings → **AmazonDark**
 
 Available options:
 
-* Enabled
-* Tame white backgrounds
-* Taming strength
-* Request 120 Hz
+- Enabled
+- Tame white backgrounds
+- Taming strength
+- Request 120 Hz
 
 White Background Taming and 120 Hz are disabled by default.
 
