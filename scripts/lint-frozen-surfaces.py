@@ -300,36 +300,76 @@ if not ok:
     sys.exit(1)
 print('PASS: current checkbox remains fully locked outside the v5.333 symbol authority.')
 
-# v5.402 USER-REOPENED EXACT-FOUR STOCK-SYMBOL / HOME-BLEED AUTHORITY
-print('--- v5.402 exact-four stock-symbol / narrow-bleed authority ---')
-required402=[
-    'window.__AD_STOCKCAP402__=function',
-    'window.__AD_STOCKFIN402__=function',
-    'window.__AD_PRODUCTCTRL391_BASE402__',
-    "s402.id='adstock402'",
+# v5.403 USER-REOPENED SYMBOL / COLLEGE AUTHORITY
+print('--- v5.403 v5.333-three + working-checkbox + College backdrop authority ---')
+required403=[
+    'window.__AD_STOCKCAP403__=function',
+    'window.__AD_STOCKFIN403__=function',
+    'window.__AD_PRODUCTCTRL391_BASE403__',
+    "s403.id='adstock403'",
+    'data-ad-v333403',
+    'window.__AD_COLLEGEBG403__=function',
+    "c403.id='adcollege403'",
     "b401.id='adbleed401'",
-    'P68STOCK402[', 'P66BLEED401[', 'P67PAGE401['
+    'P69V333403[', 'P70COLLEGE403[', 'P66BLEED401[', 'P67PAGE401['
 ]
-for token in required402:
+for token in required403:
     ok=token in src
-    print(('PASS' if ok else 'FAIL')+f': v5.402 token {token}')
+    print(('PASS' if ok else 'FAIL')+f': v5.403 token {token}')
     bad |= not ok
-for forbidden402 in ['__AD_STOCKCTRL399__','__AD_BLEED399__',"id='adcontrol398'","id='adbleed398'","__AD_STOCKCAP401__","__AD_STOCKFIN401__","data-ad-stock401","adstock401"]:
-    ok=forbidden402 not in src
-    print(('PASS' if ok else 'FAIL')+f': retired broad/old stock layer absent {forbidden402}')
+for retired in ['__AD_STOCKCAP402__','__AD_STOCKFIN402__','data-ad-stock402','adstock402','P68STOCK402[',
+                '__AD_STOCKCTRL399__','__AD_BLEED399__',"id='adcontrol398'","id='adbleed398'",
+                '__AD_STOCKCAP401__','__AD_STOCKFIN401__','data-ad-stock401','adstock401']:
+    ok=retired not in src
+    print(('PASS' if ok else 'FAIL')+f': retired competing layer absent {retired}')
     bad |= not ok
-# Exact family contract: h=Heart, d=cards/list-plus, a=product down-arrow, c=Compare checkbox.
-for tok in ["t==='heart'", "t==='cards'", "t==='arrow'", "t===('c'+'heckbox')", "k='h'", "k='d'", "k='a'", "k='c'"]:
+# Heart/cards/arrow may be passively labelled for diagnostics, but only checkbox may receive
+# the v5.403 stock styling marker. The exact v5.333 authority above must remain the painter.
+for tok in ["t==='heart'", "t==='cards'", "t==='arrow'", "t===('c'+'heckbox')", "if(k!=='c'){n++;continue;}", "h.setAttribute('data-ad-stock403','c')"]:
     ok=tok in src
-    print(('PASS' if ok else 'FAIL')+f': exact-four family token {tok}')
+    print(('PASS' if ok else 'FAIL')+f': v5.333-three / checkbox-isolation token {tok}')
     bad |= not ok
-for fifth in ['data-ad-stock402=\'s\'', "share68=", "STOCKCAP402_STATE__='share"]:
-    ok=fifth not in src
-    print(('PASS' if ok else 'FAIL')+f': no fifth Share family {fifth}')
+for forbidden in ["data-ad-stock403','h'", "data-ad-stock403','d'", "data-ad-stock403','a'", 'data-ad-stock403=h', 'data-ad-stock403=d', 'data-ad-stock403=a']:
+    ok=forbidden not in src
+    print(('PASS' if ok else 'FAIL')+f': non-checkbox stock override absent {forbidden}')
+    bad |= not ok
+# College normalization is allowed to change only background-color on the already-located
+# College section and geometry-qualified full-size structural backdrop(s).
+try:
+    ca=src.index('// v5.403: College pane backdrop normalization')
+    cb=src.index('         "try{if(window.__AD_PRODUCTCTRL391RUN__)',ca)
+    college403=src[ca:cb]
+except ValueError:
+    college403=''
+for tok in ["[data-ad-college-section=\\\"1\\\"]", "setProperty('background-color',bg,'important')", "r.width<sr.width*.88", "r.height<sr.height*.42"]:
+    ok=tok in college403
+    print(('PASS' if ok else 'FAIL')+f': College scoped backdrop token {tok}')
+    bad |= not ok
+for forbidden in ['filter','mix-blend-mode','opacity','color\'','-webkit-text-fill-color','width\'','height\'','position\'','transform']:
+    # function comments can mention filter; enforce against actual style writes instead.
+    if forbidden=='filter':
+        ok="setProperty('filter'" not in college403
+    elif forbidden=='mix-blend-mode':
+        ok="setProperty('mix-blend-mode'" not in college403
+    elif forbidden=='opacity':
+        ok="setProperty('opacity'" not in college403
+    elif forbidden=="color\\'":
+        ok="setProperty('color'" not in college403
+    elif forbidden=='-webkit-text-fill-color':
+        ok="setProperty('-webkit-text-fill-color'" not in college403
+    elif forbidden=="width\\'":
+        ok="setProperty('width'" not in college403
+    elif forbidden=="height\\'":
+        ok="setProperty('height'" not in college403
+    elif forbidden=="position\\'":
+        ok="setProperty('position'" not in college403
+    else:
+        ok="setProperty('transform'" not in college403
+    print(('PASS' if ok else 'FAIL')+f': College does not write {forbidden}')
     bad |= not ok
 try:
     a=src.index('// v5.401 Home bleed experiment')
-    b=src.index('// v5.362: fast White-Tame lane',a)
+    b=src.index('// v5.403: College pane backdrop normalization',a)
     bleed401=src[a:b]
 except ValueError:
     bleed401=''
@@ -337,5 +377,8 @@ for bad401 in ['contain:paint','overflow:hidden','isolation:isolate','MutationOb
     ok=bad401 not in bleed401
     print(('PASS' if ok else 'FAIL')+f': narrow bleed avoids {bad401}')
     bad |= not ok
-print('PASS: v5.402 targets exactly four stock Amazon controls and keeps the self-clip-only Home bleed experiment.')
+if bad:
+    print('ERROR: v5.403 reopened surface contract failed.')
+    sys.exit(1)
+print('PASS: Heart/cards/arrow are back under exact v5.333 authority; checkbox stays isolated; College backdrop matches app background.')
 
