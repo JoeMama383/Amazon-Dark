@@ -383,15 +383,15 @@ if bad:
 print('PASS: Heart/cards/arrow are back under exact v5.333 authority; checkbox stays isolated; College backdrop matches app background.')
 
 
-# v5.405 USER-CONFIRMED CONTROL LOCKS + CARDS-ONLY REOPEN
-print('--- v5.405 frozen Heart / checkbox / down-arrow; cards-only reopen ---')
+# v5.406 USER-CONFIRMED CONTROL LOCKS + EXACT v5.333 CARDS RESTORE
+print('--- v5.406 frozen Heart / checkbox / down-arrow; exact v5.333 cards restore ---')
 try:
     _f=src.index('window.__AD_V333FIX404__=function()')
     _h1=src.index("var HR=document.querySelectorAll('[class*=puis-heart-position]')",_f)
     _h2=src.index("var DB=document.querySelectorAll('[class*=lists-framework-action-button]')",_h1)
     _heart=src[_h1:_h2]
     _a1=src.index("var E=document.querySelectorAll('[class*=a-icon-dropdown]",_h2)
-    _a2=src.index("window.__AD_V333FIX404_STATE__=",_a1)
+    _a2=src.index('window.__AD_V333FIX404_STATE__=',_a1)
     _arrow=src[_a1:_a2]
     _css=next(ln for ln in src.splitlines() if "s404.id='adv333404'" in ln)
 except Exception:
@@ -404,8 +404,6 @@ for _label,_body,_exp in [
     _act=sha(_body); _ok=(_act==_exp)
     print(('PASS' if _ok else 'FAIL')+f': frozen {_label} {_act}')
     if not _ok: sys.exit(1)
-# Freeze the entire current selector/source population too. This catches a later
-# competing writer even when it leaves the confirmed-good owner blocks untouched.
 for _label,_tokens,_count,_exp in [
     ('Heart selector population',['puis-heart-position'],36,'45955b18b0d7e744993a71a685aa7d9cb5babc253f341c0291f62dc66d5a9161'),
     ('Down-arrow selector population',['a-icon-dropdown','a-icon-extender','[class*=chevron]','[class*=caret]'],5,'cc221609d16b9c82eaf2a71a8d579fda3bf516be093420842ea100ed12e7c99a'),
@@ -415,22 +413,40 @@ for _label,_tokens,_count,_exp in [
     _act=sha('\n'.join(_lines)); _ok=(len(_lines)==_count and _act==_exp)
     print(('PASS' if _ok else 'FAIL')+f': frozen {_label} lines={len(_lines)} sha={_act}')
     if not _ok: sys.exit(1)
-# v5.405 itself is cards-only. It is forbidden from naming any of the three frozen
-# families, so the reopened surface cannot accidentally spill into them.
 try:
-    _b1=src.index('// v5.405 LOCK BOUNDARY: HEART / CHECKBOX / DOWN-ARROW FROZEN.')
+    _b1=src.index('// v5.406 LOCK BOUNDARY: HEART / CHECKBOX / DOWN-ARROW FROZEN.')
     _b2=src.index('// v5.404: COLLEGE PANE',_b1)
     _cards=src[_b1:_b2]
 except ValueError:
-    print('FAIL: missing v5.405 cards block'); sys.exit(1)
-_exec='\n'.join(ln for ln in _cards.splitlines() if not ln.lstrip().startswith('//'))
+    print('FAIL: missing v5.406 cards block'); sys.exit(1)
 for _forbid in ['puis-heart-position','a-icon-dropdown','a-icon-extender','[class*=chevron]','[class*=caret]','[class*=arrow]',
-                'mlt-icon-container','role=checkbox','input[type=checkbox]','a-icon-checkbox','data-ad-product391=\"checkbox\"']:
-    _ok=(_forbid not in _exec)
-    print(('PASS' if _ok else 'FAIL')+f': cards405 does not target frozen family {_forbid}')
+                "createElement('svg')",'insertAdjacentHTML','data-ad-actionfallback','data-ad-productdisc390']:
+    _ok=(_forbid not in _cards)
+    print(('PASS' if _ok else 'FAIL')+f': cards406 excludes competing/synthetic token {_forbid}')
     if not _ok: sys.exit(1)
-for _need in ['window.__AD_CARDS405__=function',"c405.id='adcards405'",'data-ad-cards405','data-ad-cardsraster405','P74CARDS405[']:
+for _need in [
+    "var DB=document.querySelectorAll('[class*=lists-framework-action-button]')",
+    'var de=DB[db]',
+    'var dr=de.getBoundingClientRect()',
+    'if(dr.width<18||dr.width>52||dr.height<18||dr.height>52)',
+    'if(Math.abs(dr.width-dr.height)>10)',
+    "de.style.setProperty('background-color','#181a1b','important')",
+    "de.style.setProperty('border-radius','50%%','important')",
+    "de.style.setProperty('border','1.5px solid rgba(255,255,255,0.65)','important')",
+    "de.style.setProperty('box-shadow','none','important')",
+    "de.style.setProperty('box-sizing','border-box','important')",
+    "c406.id='adcards406'",
+    'P75CARDS406[',
+]:
     _ok=_need in src
-    print(('PASS' if _ok else 'FAIL')+f': cards405 token {_need}')
+    print(('PASS' if _ok else 'FAIL')+f': cards406 v5.333 contract token {_need[:72]}')
     if not _ok: sys.exit(1)
-print('PASS: Heart, checkbox, and down-arrow are hard-frozen; only the two-cards control is reopened in v5.405.')
+for _forbid in ['best=', 'barea=', 'host=p', 'host=best']:
+    _ok=_forbid not in _cards
+    print(('PASS' if _ok else 'FAIL')+f': cards406 no ancestor-host logic {_forbid}')
+    if not _ok: sys.exit(1)
+for _need in ["getAttribute('data-ad-stock403')", "getAttribute('data-ad-product391')", "('check'+'box')", "getAttribute('aria-checked')"]:
+    _ok=_need in _cards
+    print(('PASS' if _ok else 'FAIL')+f': cards406 checkbox exclusion {_need}')
+    if not _ok: sys.exit(1)
+print('PASS: Heart, checkbox, and down-arrow remain hard-frozen; two-cards uses the v5.333 direct action-button contract with no ancestor climb.')
