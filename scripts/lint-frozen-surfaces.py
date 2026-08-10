@@ -300,33 +300,42 @@ if not ok:
     sys.exit(1)
 print('PASS: current checkbox remains fully locked outside the v5.333 symbol authority.')
 
-# v5.401 USER-REOPENED PRODUCT-SYMBOL / HOME-BLEED AUTHORITY
-print('--- v5.401 stock-symbol / narrow-bleed authority ---')
-required401=[
-    'window.__AD_STOCKCAP401__=function',
-    'window.__AD_STOCKFIN401__=function',
-    'window.__AD_PRODUCTCTRL391_BASE401__',
-    "s401.id='adstock401'",
+# v5.402 USER-REOPENED EXACT-FOUR STOCK-SYMBOL / HOME-BLEED AUTHORITY
+print('--- v5.402 exact-four stock-symbol / narrow-bleed authority ---')
+required402=[
+    'window.__AD_STOCKCAP402__=function',
+    'window.__AD_STOCKFIN402__=function',
+    'window.__AD_PRODUCTCTRL391_BASE402__',
+    "s402.id='adstock402'",
     "b401.id='adbleed401'",
-    'P65STOCK401[', 'P66BLEED401[', 'P67PAGE401['
+    'P68STOCK402[', 'P66BLEED401[', 'P67PAGE401['
 ]
-for token in required401:
+for token in required402:
     ok=token in src
-    print(('PASS' if ok else 'FAIL')+f': v5.401 token {token}')
-    if not ok: sys.exit(1)
-for forbidden401 in ['__AD_STOCKCTRL399__','__AD_BLEED399__',"id='adcontrol398'","id='adbleed398'"]:
-    ok=forbidden401 not in src
-    print(('PASS' if ok else 'FAIL')+f': retired broad layer absent {forbidden401}')
-    if not ok: sys.exit(1)
+    print(('PASS' if ok else 'FAIL')+f': v5.402 token {token}')
+    bad |= not ok
+for forbidden402 in ['__AD_STOCKCTRL399__','__AD_BLEED399__',"id='adcontrol398'","id='adbleed398'","__AD_STOCKCAP401__","__AD_STOCKFIN401__","data-ad-stock401","adstock401"]:
+    ok=forbidden402 not in src
+    print(('PASS' if ok else 'FAIL')+f': retired broad/old stock layer absent {forbidden402}')
+    bad |= not ok
+# Exact family contract: h=Heart, d=cards/list-plus, a=product down-arrow, c=Compare checkbox.
+for tok in ["t==='heart'", "t==='cards'", "t==='arrow'", "t===('c'+'heckbox')", "k='h'", "k='d'", "k='a'", "k='c'"]:
+    ok=tok in src
+    print(('PASS' if ok else 'FAIL')+f': exact-four family token {tok}')
+    bad |= not ok
+for fifth in ['data-ad-stock402=\'s\'', "share68=", "STOCKCAP402_STATE__='share"]:
+    ok=fifth not in src
+    print(('PASS' if ok else 'FAIL')+f': no fifth Share family {fifth}')
+    bad |= not ok
 try:
     a=src.index('// v5.401 Home bleed experiment')
-    b=src.index('// v5.362: fast White-Tame lane.',a)
+    b=src.index('// v5.362: fast White-Tame lane',a)
     bleed401=src[a:b]
-except Exception:
+except ValueError:
     bleed401=''
 for bad401 in ['contain:paint','overflow:hidden','isolation:isolate','MutationObserver','background:#181a1b','background-color:#181a1b','mix-blend-mode']:
     ok=bad401 not in bleed401
-    print(('PASS' if ok else 'FAIL')+f': v5.401 bleed avoids {bad401}')
-    if not ok: sys.exit(1)
-print('PASS: v5.401 keeps stock symbol discovery on the existing v5.391 markers and uses self-clip-only Home bleed paint.')
+    print(('PASS' if ok else 'FAIL')+f': narrow bleed avoids {bad401}')
+    bad |= not ok
+print('PASS: v5.402 targets exactly four stock Amazon controls and keeps the self-clip-only Home bleed experiment.')
 
