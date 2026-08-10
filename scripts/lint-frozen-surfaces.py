@@ -382,3 +382,55 @@ if bad:
     sys.exit(1)
 print('PASS: Heart/cards/arrow are back under exact v5.333 authority; checkbox stays isolated; College backdrop matches app background.')
 
+
+# v5.405 USER-CONFIRMED CONTROL LOCKS + CARDS-ONLY REOPEN
+print('--- v5.405 frozen Heart / checkbox / down-arrow; cards-only reopen ---')
+try:
+    _f=src.index('window.__AD_V333FIX404__=function()')
+    _h1=src.index("var HR=document.querySelectorAll('[class*=puis-heart-position]')",_f)
+    _h2=src.index("var DB=document.querySelectorAll('[class*=lists-framework-action-button]')",_h1)
+    _heart=src[_h1:_h2]
+    _a1=src.index("var E=document.querySelectorAll('[class*=a-icon-dropdown]",_h2)
+    _a2=src.index("window.__AD_V333FIX404_STATE__=",_a1)
+    _arrow=src[_a1:_a2]
+    _css=next(ln for ln in src.splitlines() if "s404.id='adv333404'" in ln)
+except Exception:
+    _heart=_arrow=_css=''
+for _label,_body,_exp in [
+    ('Heart v5.404 visual owner',_heart,'77234f4f4225d8c258912fdfc2d8fdc51bed42bdbd6aa534142e888e749dca2a'),
+    ('Down-arrow v5.404 visual owner',_arrow,'e9fcfaa77c5d89efd57e50e8deae2cfe948e6bf8b09524e047a63ed745e276e8'),
+    ('Shared v5.404 Heart/arrow paint CSS',_css,'78746c344543fcf869e3a58f6d174f17f05817c7776f525228fead5e601e058e'),
+]:
+    _act=sha(_body); _ok=(_act==_exp)
+    print(('PASS' if _ok else 'FAIL')+f': frozen {_label} {_act}')
+    if not _ok: sys.exit(1)
+# Freeze the entire current selector/source population too. This catches a later
+# competing writer even when it leaves the confirmed-good owner blocks untouched.
+for _label,_tokens,_count,_exp in [
+    ('Heart selector population',['puis-heart-position'],36,'45955b18b0d7e744993a71a685aa7d9cb5babc253f341c0291f62dc66d5a9161'),
+    ('Down-arrow selector population',['a-icon-dropdown','a-icon-extender','[class*=chevron]','[class*=caret]'],5,'cc221609d16b9c82eaf2a71a8d579fda3bf516be093420842ea100ed12e7c99a'),
+    ('Checkbox selector population',['mlt-icon-container','role=checkbox','input[type=checkbox]','a-icon-checkbox','data-ad-product391=\\"checkbox\\"','data-ad-product391="checkbox"'],22,'0b76f0193d09a02265e8f45df60aa9d761733e11468a488147b17b136d5ea89a'),
+]:
+    _lines=[ln for ln in src.splitlines() if any(t in ln for t in _tokens)]
+    _act=sha('\n'.join(_lines)); _ok=(len(_lines)==_count and _act==_exp)
+    print(('PASS' if _ok else 'FAIL')+f': frozen {_label} lines={len(_lines)} sha={_act}')
+    if not _ok: sys.exit(1)
+# v5.405 itself is cards-only. It is forbidden from naming any of the three frozen
+# families, so the reopened surface cannot accidentally spill into them.
+try:
+    _b1=src.index('// v5.405 LOCK BOUNDARY: HEART / CHECKBOX / DOWN-ARROW FROZEN.')
+    _b2=src.index('// v5.404: COLLEGE PANE',_b1)
+    _cards=src[_b1:_b2]
+except ValueError:
+    print('FAIL: missing v5.405 cards block'); sys.exit(1)
+_exec='\n'.join(ln for ln in _cards.splitlines() if not ln.lstrip().startswith('//'))
+for _forbid in ['puis-heart-position','a-icon-dropdown','a-icon-extender','[class*=chevron]','[class*=caret]','[class*=arrow]',
+                'mlt-icon-container','role=checkbox','input[type=checkbox]','a-icon-checkbox','data-ad-product391=\"checkbox\"']:
+    _ok=(_forbid not in _exec)
+    print(('PASS' if _ok else 'FAIL')+f': cards405 does not target frozen family {_forbid}')
+    if not _ok: sys.exit(1)
+for _need in ['window.__AD_CARDS405__=function',"c405.id='adcards405'",'data-ad-cards405','data-ad-cardsraster405','P74CARDS405[']:
+    _ok=_need in src
+    print(('PASS' if _ok else 'FAIL')+f': cards405 token {_need}')
+    if not _ok: sys.exit(1)
+print('PASS: Heart, checkbox, and down-arrow are hard-frozen; only the two-cards control is reopened in v5.405.')
