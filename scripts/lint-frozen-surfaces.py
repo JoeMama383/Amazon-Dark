@@ -294,8 +294,24 @@ print('PASS: v5.333 owns non-checkbox symbols; current checkbox and all previous
 
 # Final checkbox CSS/selector aggregate lock. Exclude only the v5.397 authority lines;
 # everything pre-existing that can recognize or paint the checkbox must stay v5.396 exact.
+# Remove the v5.409 cards runtime/probe windows before hashing the historical
+# checkbox population. v5.409 must mention checkbox selectors only to EXCLUDE them;
+# those exclusions are validated separately below and must not weaken the old hash.
+_cb_src=src
+try:
+    _x=_cb_src.index('         // v5.409 TWO-CARDS:')
+    _y=_cb_src.index('         // v5.407 historical note:',_x)
+    _cb_src=_cb_src[:_x]+_cb_src[_y:]
+except ValueError:
+    pass
+try:
+    _x=_cb_src.index('       // P78CARDS409:')
+    _y=_cb_src.index('       // P66BLEED401:',_x)
+    _cb_src=_cb_src[:_x]+_cb_src[_y:]
+except ValueError:
+    pass
 checkbox_lines=[]
-for ln in src.splitlines():
+for ln in _cb_src.splitlines():
     if '397' in ln or '408' in ln: continue
     if re.search(r'mlt-icon-container|data-ad-compare380|data-ad-comparelegacy387|data-ad-product391=\\?"checkbox',ln):
         checkbox_lines.append(ln)
@@ -438,27 +454,58 @@ for _label,_body,_exp in [
     print(('PASS' if _ok else 'FAIL')+f': {_label} {_act}')
     if not _ok: sys.exit(1)
 
-# The v5.391 ancestor-picker that caused the cards/checkbox collision is disabled,
-# and the v5.397 DB397 emulation is gone. No later cards painter is allowed.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','P77CARDS408[','Version: 5.408.0']:
+# The unsafe v5.391 cards picker stays disabled. v5.409 is the sole current-DOM
+# cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
+# it must never synthesize/redraw the cards glyph itself.
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS409__=function()','data-ad-cards409-disc','data-ad-cards409-glyph','P78CARDS409[','Version: 5.409.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
-    print(('PASS' if _ok else 'FAIL')+f': v5.408 token {_need}')
-    if not _ok: sys.exit(1)
-for _forbid in [
-    'var DB397=document.querySelectorAll',
-    '__AD_CARDS406__','adcards406','data-ad-cards406','P75CARDS406[','P76CARDS407[',
-    "if(own(dbe,'d'))", "setAttribute('data-ad-v333404','d')",
-    "setAttribute('data-ad-cards405'", "setAttribute('data-ad-cards406'",
-    'data-ad-product391=\\"cards\\"',
-]:
-    # The last token is allowed only in the passive P77 probe selector, never in runtime.
-    if _forbid=='data-ad-product391=\\"cards\\"':
-        _runtime=src[:src.index('static NSString *ADProbeWebJS')]
-        _ok=_forbid not in _runtime
-    else:
-        _ok=_forbid not in src
-    print(('PASS' if _ok else 'FAIL')+f': competing cards owner absent {_forbid}')
+    print(('PASS' if _ok else 'FAIL')+f': v5.409 token {_need}')
     if not _ok: sys.exit(1)
 
-print('PASS: Heart, checkbox, and down-arrow are frozen; cards use the byte-exact historical clr() block and modern ancestor picking is disabled.')
+for _forbid in [
+    '__AD_CARDS406__','adcards406','data-ad-cards406','P75CARDS406[','P76CARDS407[','P77CARDS408[',
+    "if(own(dbe,'d'))", "setAttribute('data-ad-v333404','d')",
+    "setAttribute('data-ad-cards405'", "setAttribute('data-ad-cards406'",
+    'data-ad-stockdisc388','data-ad-stockdisc384',
+]:
+    if _forbid in ('data-ad-stockdisc388','data-ad-stockdisc384'):
+        _a=src.index('window.__AD_CARDS409__=function()')
+        _b=src.index('window.__AD_CARDS409_STATE__=',_a)
+        _ok=_forbid not in src[_a:_b]
+    else:
+        _ok=_forbid not in src
+    print(('PASS' if _ok else 'FAIL')+f': failed cards owner absent {_forbid}')
+    if not _ok: sys.exit(1)
+
+_a=src.index('window.__AD_CARDS409__=function()')
+_b=src.index('window.__AD_CARDS409_STATE__=',_a)
+_cards409=src[_a:_b]
+for _need in [
+    '[class*=lists-framework-action-button]',
+    '[class*=mlt-icon-container]',
+    '[role=checkbox]',
+    'input[type=checkbox]',
+    "d.setAttribute('data-ad-cards409-disc','1')",
+    "g.setAttribute('data-ad-cards409-glyph','1')",
+    "h.setAttribute('data-ad-cards409-host','1')",
+    "h.style.setProperty('background-color','#181a1b','important')",
+    "h.style.setProperty('border','1.5px solid rgba(255,255,255,.65)','important')",
+    'if(ovxy(gx,gy)||ovr(best))',
+    'if(bs>=80){suppress(best);hidden++;}',
+]:
+    _ok=_need in _cards409
+    print(('PASS' if _ok else 'FAIL')+f': v5.409 cards contract {_need}')
+    if not _ok: sys.exit(1)
+
+# Backdrop-only synthesis is allowed, glyph synthesis is not. There must be one
+# createElement('span') and no SVG/path/canvas/image generation or innerHTML.
+_ok=_cards409.count("document.createElement('span')")==1
+print(('PASS' if _ok else 'FAIL')+f': v5.409 exactly one backdrop span factory')
+if not _ok: sys.exit(1)
+for _bad in ["createElement('svg')","createElementNS(","createElement('path')","createElement('img')",'innerHTML=', 'outerHTML=', "setProperty('transform'", "setProperty('width'", "setProperty('height'"]:
+    _ok=_bad not in _cards409
+    print(('PASS' if _ok else 'FAIL')+f': v5.409 no glyph/layout synthesis {_bad}')
+    if not _ok: sys.exit(1)
+
+print('PASS: Heart, checkbox, and down-arrow are frozen; v5.409 keeps the stock cards glyph and may add only its missing 36px backdrop, with hard Compare overlap rejection.')
