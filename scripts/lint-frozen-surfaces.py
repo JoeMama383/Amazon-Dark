@@ -134,7 +134,7 @@ HOME395 = {
     'Standalone iframe selector population': (r'iframe\[data-ad-frame-mode362', None, 4, '2835e55cd74e8a785c76257a97e69d6dfc3e40c4da80eac18cd711609b0278cb'),
     # Exclude only the v5.396 first-paint guard/probe. All older direct references
     # to the confirmed Home media classes must remain exactly the v5.395 set.
-    'Home media direct-selector population': (r'single-creative-card|single-video-card|video\.vjs-tech|data-ad-homemedia395', r'data-ad-main396|P59BLEED396', 4, 'f1976ee3a8b48cb6e9278243e8af2064b01160fb8abd62731ccc90d59753b301'),
+    'Home media direct-selector population': (r'single-creative-card|single-video-card|video\.vjs-tech|data-ad-homemedia395', r'data-ad-main396|P59BLEED396|P66BLEED401', 4, 'f1976ee3a8b48cb6e9278243e8af2064b01160fb8abd62731ccc90d59753b301'),
 }
 for label,(pattern,exclude,count,expected) in HOME395.items():
     lines,actual=agg_lines(pattern,exclude)
@@ -247,7 +247,7 @@ for marker,expected in V333_WINDOWS.items():
 # post-v5.333 symbol writers. Changing them requires explicit new device evidence.
 try:
     ca=src.index('// v5.397: SYMBOL THEME AUTHORITY')
-    cb=src.index('         // v5.399: final stock-symbol authority',ca)
+    cb=src.index('         "try{window.__AD_EARLY__',ca)
     css397=src[ca:cb]
     actual=sha(css397); expected='090688032a26580b55cd71464d1691740dc79d21827aa4b1d8eb81a7216ec176'
     ok=actual==expected
@@ -257,7 +257,7 @@ print(('PASS' if ok else 'FAIL')+f': v5.333 documentStart symbol authority {actu
 bad |= not ok
 try:
     ra=src.index('// v5.397: keep the current checkbox implementation')
-    rb=src.index('         // v5.399: keep the stock Amazon symbol itself.',ra)
+    rb=src.index('         "window.__AMZDARK_APPLY__=function',ra)
     run397=src[ra:rb]
     actual=sha(run397); expected='6868c3dad78e95ffe27b862562fdda3c02bc4d78746bc89d5936a2d28ba8a828'
     ok=actual==expected
@@ -284,11 +284,11 @@ if bad:
     sys.exit(1)
 print('PASS: v5.333 owns non-checkbox symbols; current checkbox and all previously frozen surfaces remain exact.')
 
-# Final legacy checkbox CSS/selector aggregate lock. v5.399 explicitly reopens presentation
-# only; the pre-v5.397 state/click machinery remains byte-identical beneath it.
+# Final checkbox CSS/selector aggregate lock. Exclude only the v5.397 authority lines;
+# everything pre-existing that can recognize or paint the checkbox must stay v5.396 exact.
 checkbox_lines=[]
 for ln in src.splitlines():
-    if '397' in ln or '399' in ln: continue
+    if '397' in ln: continue
     if re.search(r'mlt-icon-container|data-ad-compare380|data-ad-comparelegacy387|data-ad-product391=\\?"checkbox',ln):
         checkbox_lines.append(ln)
 cbsha=sha('\n'.join(checkbox_lines))
@@ -298,89 +298,35 @@ print(('PASS' if ok else 'FAIL')+f': entire pre-v5.397 checkbox selector/CSS/run
 if not ok:
     print('ERROR: current checkbox population changed; v5.333 symbol authority may not touch it.')
     sys.exit(1)
-print('PASS: legacy checkbox state/click machinery remains fully locked beneath v5.399 stock presentation.')
+print('PASS: current checkbox remains fully locked outside the v5.333 symbol authority.')
 
-# v5.399 DEVICE-EVIDENCE AUTHORITY — user explicitly reopened product symbol
-# presentation and Home bleed. The new symbol pass MUST keep Amazon stock glyphs;
-# the Home experiment MUST clip/contain without recoloring the creative.
-print('--- v5.399 stock-symbol / containment authority ---')
-try:
-    a=src.index('// v5.399: final stock-symbol authority')
-    b=src.index('// v5.399 Home bleed experiment:',a)
-    css399=src[a:b]
-    css399_sha=sha(css399)
-except Exception:
-    css399=''; css399_sha='missing'
-try:
-    a=src.index('// v5.399 Home bleed experiment:')
-    b=src.index('         "try{window.__AD_EARLY__',a)
-    bleedcss399=src[a:b]
-    bleedcss399_sha=sha(bleedcss399)
-except Exception:
-    bleedcss399=''; bleedcss399_sha='missing'
-try:
-    a=src.index('// v5.399: keep the stock Amazon symbol itself.')
-    b=src.index('// v5.399 Home bleed: no color/background/filter writes.',a)
-    runstock399=src[a:b]
-    runstock399_sha=sha(runstock399)
-except Exception:
-    runstock399=''; runstock399_sha='missing'
-try:
-    a=src.index('// v5.399 Home bleed: no color/background/filter writes.')
-    b=src.index('         "window.__AMZDARK_APPLY__=function',a)
-    runbleed399=src[a:b]
-    runbleed399_sha=sha(runbleed399)
-except Exception:
-    runbleed399=''; runbleed399_sha='missing'
-
-CSS399_EXPECTED='0b2b25d96bba4e71aca9bc970dafe22315c51af4c4131bdb308f3dad31a7bfb9'
-BLEEDCSS399_EXPECTED='9ac67ee4aa6fa7223f6a186ec4a99c4be564ad8dd7862129392be99c504577ff'
-RUNSTOCK399_EXPECTED='d968c3384547b2468b99b06d6a686bdd9e29d6719d2740b2ed889d0577fe9aa4'
-RUNBLEED399_EXPECTED='8a4dfad1272d3d18cb3a2264ac5685baecb78e9642e5673dc172ec93a8298030'
-for label,actual,expected in [
-    ('v5.399 stock-symbol CSS',css399_sha,CSS399_EXPECTED),
-    ('v5.399 containment-only documentStart CSS',bleedcss399_sha,BLEEDCSS399_EXPECTED),
-    ('v5.399 stock-symbol runtime',runstock399_sha,RUNSTOCK399_EXPECTED),
-    ('v5.399 containment-only runtime',runbleed399_sha,RUNBLEED399_EXPECTED),
-]:
-    ok=actual==expected
-    print(('PASS' if ok else 'FAIL')+f': {label} {actual}')
-    if not ok: sys.exit(1)
-
-for token in [
-    'data-ad-stockhost399','data-ad-stockglyph399','data-ad-stockraster399',
-    'data-ad-stockvector399','data-ad-stockpseudo399','data-ad-stockhost399=\\"checkbox\\"',
-    '1.5px solid #9aa0a3','data-ad-actioncanonical376]{display:none',
-    'data-ad-actionorig376]{visibility:visible','P63STOCK399['
-]:
+# v5.401 USER-REOPENED PRODUCT-SYMBOL / HOME-BLEED AUTHORITY
+print('--- v5.401 stock-symbol / narrow-bleed authority ---')
+required401=[
+    'window.__AD_STOCKCAP401__=function',
+    'window.__AD_STOCKFIN401__=function',
+    'window.__AD_PRODUCTCTRL391_BASE401__',
+    "s401.id='adstock401'",
+    "b401.id='adbleed401'",
+    'P65STOCK401[', 'P66BLEED401[', 'P67PAGE401['
+]
+for token in required401:
     ok=token in src
-    print(('PASS' if ok else 'FAIL')+f': v5.399 stock-symbol token {token}')
+    print(('PASS' if ok else 'FAIL')+f': v5.401 token {token}')
     if not ok: sys.exit(1)
+for forbidden401 in ['__AD_STOCKCTRL399__','__AD_BLEED399__',"id='adcontrol398'","id='adbleed398'"]:
+    ok=forbidden401 not in src
+    print(('PASS' if ok else 'FAIL')+f': retired broad layer absent {forbidden401}')
+    if not ok: sys.exit(1)
+try:
+    a=src.index('// v5.401 Home bleed experiment')
+    b=src.index('// v5.362: fast White-Tame lane.',a)
+    bleed401=src[a:b]
+except Exception:
+    bleed401=''
+for bad401 in ['contain:paint','overflow:hidden','isolation:isolate','MutationObserver','background:#181a1b','background-color:#181a1b','mix-blend-mode']:
+    ok=bad401 not in bleed401
+    print(('PASS' if ok else 'FAIL')+f': v5.401 bleed avoids {bad401}')
+    if not ok: sys.exit(1)
+print('PASS: v5.401 keeps stock symbol discovery on the existing v5.391 markers and uses self-clip-only Home bleed paint.')
 
-# Never silently go back to synthesizing replacement symbols.
-for forbidden in ['createElementNS(', 'data-ad-stocksynthetic399', '__AD_CONTROL398__',
-                  'adcontrol398', '__AD_BLEED398__', 'P61CTRL398[', 'P62BLEED398[']:
-    ok=forbidden not in (runstock399 if forbidden=='createElementNS(' else src)
-    print(('PASS' if ok else 'FAIL')+f': v5.399 forbidden legacy/synthetic path absent: {forbidden}')
-    if not ok: sys.exit(1)
-# One diagnostic-only adbleed398 mention is allowed inside P64 so the device can prove
-# the v5.398 stylesheet is not mounted. No writer/style/runtime may remain.
-ok=src.count('adbleed398')==1 and "document.getElementById('adbleed398')" in src
-print(('PASS' if ok else 'FAIL')+': v5.398 adbleed marker appears only in the P64 diagnostic')
-if not ok: sys.exit(1)
-
-# The v5.399 bleed fix is containment-only. Original creative colors/backgrounds
-# are deliberately allowed, so no v5.399 block may write them to black/none.
-for forbidden in ["setProperty('background'", "setProperty('background-color'",
-                  "setProperty('background-image'", "setProperty('filter'",
-                  "setProperty('mix-blend-mode'", 'background:#181a1b',
-                  'background-color:#181a1b', 'background-image:none']:
-    ok=forbidden not in bleedcss399 and forbidden not in runbleed399
-    print(('PASS' if ok else 'FAIL')+f': v5.399 bleed color writer absent: {forbidden}')
-    if not ok: sys.exit(1)
-for token in ['contain:paint','overflow:hidden','isolation:isolate','clip-path:inset(0)',
-              'data-ad-bleed399','data-ad-bleedhost399','P64BLEED399[']:
-    ok=token in src
-    print(('PASS' if ok else 'FAIL')+f': v5.399 containment token {token}')
-    if not ok: sys.exit(1)
-print('PASS: v5.399 uses Amazon stock symbols with one shared chrome and contains Home ambient layers without recoloring them.')
