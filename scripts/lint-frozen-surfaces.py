@@ -181,18 +181,22 @@ for key, expected in {
     print(('PASS' if ok else 'FAIL')+f': current checkbox {key} {actual}')
     bad |= not ok
 
-# Freeze the complete ORIGINAL v5.396 product-control function. v5.397 wraps it
-# after definition; it does not edit one byte of the current checkbox implementation.
+# v5.408 deliberately reopens ONLY the cards branch inside the original v5.396
+# product-control function. Hash every other line against the exact old block; the
+# one replacement line must be the explicit cards-disable marker. Heart/checkbox/
+# arrow logic therefore remains byte-identical even though the full function hash changes.
 plines=src.splitlines()
 try:
     pst=next(i for i,l in enumerate(plines) if 'window.__AD_PRODUCTCTRL391RUN__=function' in l)
     pen=next(i for i in range(pst,len(plines)) if "window.__AD_PRODUCTCTRL391__='err '" in plines[i])
-    pblock='\n'.join(plines[pst:pen+1])
-    pactual=sha(pblock); pexpected='ce65d88388dcf4036f91a719e6a45dcd01bd317f496d3fb2e324ede86480b650'
-    ok=pactual==pexpected
+    praw=plines[pst:pen+1]
+    pdisable=[l for l in praw if '__AD_CARDS391_DISABLED408__' in l]
+    pkept=[l for l in praw if '__AD_CARDS391_DISABLED408__' not in l]
+    pactual=sha('\n'.join(pkept)); pexpected='bf2bf88bf9255dbea901b2da6179572b834c5c839f623f56395edaa900b3b3b8'
+    ok=(pactual==pexpected and len(pdisable)==1 and 'var A=[]' in pdisable[0])
 except Exception:
     pactual='missing'; ok=False
-print(('PASS' if ok else 'FAIL')+f': current checkbox/product-control original block {pactual}')
+print(('PASS' if ok else 'FAIL')+f': product-control non-cards body frozen; modern cards branch disabled {pactual}')
 bad |= not ok
 
 # Native symbol engine: these are exact v5.333 functions. ADLiftNativeGlyph has one
@@ -259,18 +263,22 @@ try:
     ra=src.index('// v5.397: keep the current checkbox implementation')
     rb=src.index('         "window.__AMZDARK_APPLY__=function',ra)
     run397=src[ra:rb]
-    actual=sha(run397); expected='6868c3dad78e95ffe27b862562fdda3c02bc4d78746bc89d5936a2d28ba8a828'
-    ok=actual==expected
+    # Cards host paint is now removed from this later authority; all other v5.397
+    # reset/Heart/checkbox-exclusion/wrapper behavior must remain byte-identical.
+    rlines=run397.splitlines()
+    kept397=[l for l in rlines if 'v5.408: cards host paint is owned solely' not in l and 'var ndisc397=0,dskip397=0' not in l]
+    actual=sha('\n'.join(kept397)); expected='17a42d6d47c501778b6542378b152485528f729a80361e45e4bec2678071c9d5'
+    ok=(actual==expected and 'var DB397=document.querySelectorAll' not in run397 and 'var ndisc397=0,dskip397=0' in run397)
 except Exception:
     actual='missing';ok=False
-print(('PASS' if ok else 'FAIL')+f': v5.333 post-modern symbol authority {actual}')
+print(('PASS' if ok else 'FAIL')+f': v5.397 non-cards post-modern authority frozen {actual}')
 bad |= not ok
 
 # Checkbox exclusion is mandatory in both runtime and probe. No v333 authority write
 # is allowed to originate from a Compare/MLT/checkbox node.
 required=[
  '[class*=mlt-icon-container],[role=checkbox],input[type=checkbox],[class*=a-icon-checkbox],[data-ad-compare380],[data-ad-comparelegacy387]',
- 'if(ischeck397(h397))continue', 'if(ischeck397(q397))continue', 'if(ischeck397(de397))continue',
+ 'if(ischeck397(h397))continue', 'if(ischeck397(q397))continue', '__AD_CARDS391_DISABLED408__',
  'cbTouched=', 'v333397', 'P60SYMBOL397['
 ]
 for token in required:
@@ -288,7 +296,7 @@ print('PASS: v5.333 owns non-checkbox symbols; current checkbox and all previous
 # everything pre-existing that can recognize or paint the checkbox must stay v5.396 exact.
 checkbox_lines=[]
 for ln in src.splitlines():
-    if '397' in ln: continue
+    if '397' in ln or '408' in ln: continue
     if re.search(r'mlt-icon-container|data-ad-compare380|data-ad-comparelegacy387|data-ad-product391=\\?"checkbox',ln):
         checkbox_lines.append(ln)
 cbsha=sha('\n'.join(checkbox_lines))
@@ -383,11 +391,9 @@ if bad:
 print('PASS: Heart/cards/arrow are back under exact v5.333 authority; checkbox stays isolated; College backdrop matches app background.')
 
 
-# v5.407 USER-CONFIRMED CONTROL LOCKS + SINGLE-OWNER v5.333 CARDS RESTORE
-print('--- v5.407 frozen Heart / checkbox / down-arrow; v5.333 sole cards owner ---')
-# Heart and down-arrow are byte-locked to the exact v5.404 source that the user
-# confirmed visually. The card branch has been removed from between them; neither
-# confirmed block may change as part of this restoration.
+# v5.408 USER-CONFIRMED CONTROL LOCKS + LITERAL HISTORICAL CARDS RESTORE
+print('--- v5.408 frozen Heart / checkbox / down-arrow; literal historical cards restore ---')
+# Heart and down-arrow remain byte-locked to the exact v5.404 source the user confirmed.
 try:
     _f=src.index('window.__AD_V333FIX404__=function()')
     _h1=src.index("var HR=document.querySelectorAll('[class*=puis-heart-position]')",_f)
@@ -408,13 +414,20 @@ for _label,_body,_exp in [
     print(('PASS' if _ok else 'FAIL')+f': frozen {_label} {_act}')
     if not _ok: sys.exit(1)
 
-# The v5.397/v5.333 action path is now the ONE final cards owner. Lock both the
-# historical host painter and the two historical glyph stylesheet lines exactly.
-_action_line=next((ln for ln in src.splitlines() if 'var DB397=document.querySelectorAll' in ln), '')
-_action_sha=sha(_action_line)
-_ok=_action_sha=='f194bea14e1cffc3dae72ca3fa8242ff7490f34da6eedf253681a9593b0cdace'
-print(('PASS' if _ok else 'FAIL')+f': exact preserved v5.333 action-host runtime {_action_sha}')
+# This is no longer an emulation. The exact historical ACTION-BUTTON DISC source
+# block is copied byte-for-byte from the archived good source into clr().
+try:
+    _aa=src.index('                      // ACTION-BUTTON DISC.')
+    _ab=src.index('                      // DARK ART ON A DARK TILE.',_aa)
+    _action=src[_aa:_ab]
+except Exception:
+    _action=''
+_action_sha=sha(_action)
+_ok=_action_sha=='5392ba801d65073e24b86c0e31d84b709cd649eb004263e42c43c0fc2ab222ca'
+print(('PASS' if _ok else 'FAIL')+f': literal historical ACTION-BUTTON DISC block {_action_sha}')
 if not _ok: sys.exit(1)
+
+# Historical stock-glyph CSS stays exact.
 _css_glyph=next((ln for ln in src.splitlines() if '[class*=lists-framework-action-button] img,[class*=lists-framework-action-button] i,[class*=lists-framework-action-button] svg,[class*=lists-framework-unfill]' in ln), '')
 _css_ink=next((ln for ln in src.splitlines() if '[class*=lists-framework-action-button],[class*=lists-framework-action-button] *{color:#ffffff' in ln), '')
 for _label,_body,_exp in [
@@ -425,32 +438,27 @@ for _label,_body,_exp in [
     print(('PASS' if _ok else 'FAIL')+f': {_label} {_act}')
     if not _ok: sys.exit(1)
 
-# No post-v5.333 cards painter is permitted. This is the regression that produced
-# the naked black glyph and, one build earlier, the cards glyph inside Compare.
+# The v5.391 ancestor-picker that caused the cards/checkbox collision is disabled,
+# and the v5.397 DB397 emulation is gone. No later cards painter is allowed.
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','P77CARDS408[','Version: 5.408.0']:
+    _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
+    _ok=_need in _hay
+    print(('PASS' if _ok else 'FAIL')+f': v5.408 token {_need}')
+    if not _ok: sys.exit(1)
 for _forbid in [
-    '__AD_CARDS406__','adcards406','data-ad-cards406','P75CARDS406[',
+    'var DB397=document.querySelectorAll',
+    '__AD_CARDS406__','adcards406','data-ad-cards406','P75CARDS406[','P76CARDS407[',
     "if(own(dbe,'d'))", "setAttribute('data-ad-v333404','d')",
     "setAttribute('data-ad-cards405'", "setAttribute('data-ad-cards406'",
+    'data-ad-product391=\\"cards\\"',
 ]:
-    _ok=_forbid not in src
+    # The last token is allowed only in the passive P77 probe selector, never in runtime.
+    if _forbid=='data-ad-product391=\\"cards\\"':
+        _runtime=src[:src.index('static NSString *ADProbeWebJS')]
+        _ok=_forbid not in _runtime
+    else:
+        _ok=_forbid not in src
     print(('PASS' if _ok else 'FAIL')+f': competing cards owner absent {_forbid}')
     if not _ok: sys.exit(1)
 
-# The v5.404 finalizer may still mention the lists family only to keep arrow
-# classification away from the cards control; it may not enumerate/paint it.
-try:
-    _v404=src[src.index('window.__AD_V333FIX404__=function()'):src.index('window.__AD_V333FIX404_STATE__=',src.index('window.__AD_V333FIX404__=function()'))]
-except Exception:
-    _v404=''
-for _forbid in ["var DB=document.querySelectorAll('[class*=lists-framework-action-button]')", "own(dbe,'d')"]:
-    _ok=_forbid not in _v404
-    print(('PASS' if _ok else 'FAIL')+f': v5.404 does not own cards {_forbid}')
-    if not _ok: sys.exit(1)
-
-for _need in ['P76CARDS407[','Version: 5.407.0']:
-    _hay=src if _need.startswith('P76') else Path('layout/DEBIAN/control').read_text()
-    _ok=_need in _hay
-    print(('PASS' if _ok else 'FAIL')+f': v5.407 token {_need}')
-    if not _ok: sys.exit(1)
-
-print('PASS: Heart, checkbox, and down-arrow stay frozen; only the preserved v5.333 action path can paint the two-cards control.')
+print('PASS: Heart, checkbox, and down-arrow are frozen; cards use the byte-exact historical clr() block and modern ancestor picking is disabled.')
