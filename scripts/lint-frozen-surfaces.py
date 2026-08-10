@@ -294,18 +294,18 @@ print('PASS: v5.333 owns non-checkbox symbols; current checkbox and all previous
 
 # Final checkbox CSS/selector aggregate lock. Exclude only the v5.397 authority lines;
 # everything pre-existing that can recognize or paint the checkbox must stay v5.396 exact.
-# Remove the v5.409 cards runtime/probe windows before hashing the historical
-# checkbox population. v5.409 must mention checkbox selectors only to EXCLUDE them;
+# Remove the v5.410 cards runtime/probe windows before hashing the historical
+# checkbox population. v5.410 must mention checkbox selectors only to EXCLUDE them;
 # those exclusions are validated separately below and must not weaken the old hash.
 _cb_src=src
 try:
-    _x=_cb_src.index('         // v5.409 TWO-CARDS:')
+    _x=_cb_src.index('         // v5.410 TWO-CARDS:')
     _y=_cb_src.index('         // v5.407 historical note:',_x)
     _cb_src=_cb_src[:_x]+_cb_src[_y:]
 except ValueError:
     pass
 try:
-    _x=_cb_src.index('       // P78CARDS409:')
+    _x=_cb_src.index('       // P79CARDS410:')
     _y=_cb_src.index('       // P66BLEED401:',_x)
     _cb_src=_cb_src[:_x]+_cb_src[_y:]
 except ValueError:
@@ -454,13 +454,13 @@ for _label,_body,_exp in [
     print(('PASS' if _ok else 'FAIL')+f': {_label} {_act}')
     if not _ok: sys.exit(1)
 
-# The unsafe v5.391 cards picker stays disabled. v5.409 is the sole current-DOM
+# The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS409__=function()','data-ad-cards409-disc','data-ad-cards409-glyph','P78CARDS409[','Version: 5.409.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.410.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
-    print(('PASS' if _ok else 'FAIL')+f': v5.409 token {_need}')
+    print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
     if not _ok: sys.exit(1)
 
 for _forbid in [
@@ -470,42 +470,65 @@ for _forbid in [
     'data-ad-stockdisc388','data-ad-stockdisc384',
 ]:
     if _forbid in ('data-ad-stockdisc388','data-ad-stockdisc384'):
-        _a=src.index('window.__AD_CARDS409__=function()')
-        _b=src.index('window.__AD_CARDS409_STATE__=',_a)
+        _a=src.index('window.__AD_CARDS410__=function()')
+        _b=src.index('window.__AD_CARDS410_STATE__=',_a)
         _ok=_forbid not in src[_a:_b]
     else:
         _ok=_forbid not in src
     print(('PASS' if _ok else 'FAIL')+f': failed cards owner absent {_forbid}')
     if not _ok: sys.exit(1)
 
-_a=src.index('window.__AD_CARDS409__=function()')
-_b=src.index('window.__AD_CARDS409_STATE__=',_a)
-_cards409=src[_a:_b]
+_a=src.index('window.__AD_CARDS410__=function()')
+_b=src.index('window.__AD_CARDS410_STATE__=',_a)
+_cards410=src[_a:_b]
 for _need in [
     '[class*=lists-framework-action-button]',
     '[class*=mlt-icon-container]',
     '[role=checkbox]',
     'input[type=checkbox]',
-    "d.setAttribute('data-ad-cards409-disc','1')",
-    "g.setAttribute('data-ad-cards409-glyph','1')",
-    "h.setAttribute('data-ad-cards409-host','1')",
+    "d.setAttribute('data-ad-cards410-disc','1')",
+    "g.setAttribute('data-ad-cards410-glyph','1')",
+    "h.setAttribute('data-ad-cards410-host','1')",
     "h.style.setProperty('background-color','#181a1b','important')",
     "h.style.setProperty('border','1.5px solid rgba(255,255,255,.65)','important')",
     'if(ovxy(gx,gy)||ovr(best))',
     'if(bs>=80){suppress(best);hidden++;}',
+    'function squareHost(root,g){var p=g&&g.parentElement',
+    "g.style.setProperty('filter','brightness(0) invert(1)','important')",
+    "g.style.setProperty('fill','#fff','important')",
+    "g.style.setProperty('background-color','#fff','important')",
+    "querySelectorAll('[data-ad-cards410-disc],[data-ad-cards410-host],[data-ad-cards410-glyph]')",
 ]:
-    _ok=_need in _cards409
-    print(('PASS' if _ok else 'FAIL')+f': v5.409 cards contract {_need}')
+    _ok=_need in _cards410
+    print(('PASS' if _ok else 'FAIL')+f': v5.410 cards contract {_need}')
     if not _ok: sys.exit(1)
+
+# v5.410 on-device repair: the glyph leaf must never become its own backdrop
+# host, raster/vector/mask paint must be forced inline-important, and the 36px
+# fallback disc must render above merchandise media but below the stock glyph.
+for _need in [
+    "function squareHost(root,g){var p=g&&g.parentElement",
+    "g.style.setProperty('filter','brightness(0) invert(1)','important')",
+    "g.style.setProperty('color','#fff','important')",
+    "g.style.setProperty('fill','#fff','important')",
+    "g.style.setProperty('stroke','#fff','important')",
+    'pointer-events:none !important;z-index:1 !important;',
+]:
+    _ok=_need in src
+    print(('PASS' if _ok else 'FAIL')+f': v5.410 visible cards repair {_need}')
+    if not _ok: sys.exit(1)
+_ok='function squareHost(root,g){var p=g,b=null' not in src
+print(('PASS' if _ok else 'FAIL')+': v5.410 glyph leaf cannot be circular host')
+if not _ok: sys.exit(1)
 
 # Backdrop-only synthesis is allowed, glyph synthesis is not. There must be one
 # createElement('span') and no SVG/path/canvas/image generation or innerHTML.
-_ok=_cards409.count("document.createElement('span')")==1
-print(('PASS' if _ok else 'FAIL')+f': v5.409 exactly one backdrop span factory')
+_ok=_cards410.count("document.createElement('span')")==1
+print(('PASS' if _ok else 'FAIL')+f': v5.410 exactly one backdrop span factory')
 if not _ok: sys.exit(1)
 for _bad in ["createElement('svg')","createElementNS(","createElement('path')","createElement('img')",'innerHTML=', 'outerHTML=', "setProperty('transform'", "setProperty('width'", "setProperty('height'"]:
-    _ok=_bad not in _cards409
-    print(('PASS' if _ok else 'FAIL')+f': v5.409 no glyph/layout synthesis {_bad}')
+    _ok=_bad not in _cards410
+    print(('PASS' if _ok else 'FAIL')+f': v5.410 no glyph/layout synthesis {_bad}')
     if not _ok: sys.exit(1)
 
-print('PASS: Heart, checkbox, and down-arrow are frozen; v5.409 keeps the stock cards glyph and may add only its missing 36px backdrop, with hard Compare overlap rejection.')
+print("PASS: Heart, checkbox, and down-arrow are frozen; v5.410 keeps Amazon's stock cards glyph/geometry, forces it white, renders the 36px backdrop above media, and scrubs cards-owned paint from Compare.")
