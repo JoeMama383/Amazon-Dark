@@ -383,14 +383,17 @@ if bad:
 print('PASS: Heart/cards/arrow are back under exact v5.333 authority; checkbox stays isolated; College backdrop matches app background.')
 
 
-# v5.406 USER-CONFIRMED CONTROL LOCKS + EXACT v5.333 CARDS RESTORE
-print('--- v5.406 frozen Heart / checkbox / down-arrow; exact v5.333 cards restore ---')
+# v5.407 USER-CONFIRMED CONTROL LOCKS + SINGLE-OWNER v5.333 CARDS RESTORE
+print('--- v5.407 frozen Heart / checkbox / down-arrow; v5.333 sole cards owner ---')
+# Heart and down-arrow are byte-locked to the exact v5.404 source that the user
+# confirmed visually. The card branch has been removed from between them; neither
+# confirmed block may change as part of this restoration.
 try:
     _f=src.index('window.__AD_V333FIX404__=function()')
     _h1=src.index("var HR=document.querySelectorAll('[class*=puis-heart-position]')",_f)
-    _h2=src.index("var DB=document.querySelectorAll('[class*=lists-framework-action-button]')",_h1)
+    _h2=src.index("var E=document.querySelectorAll('[class*=a-icon-dropdown]",_h1)
     _heart=src[_h1:_h2]
-    _a1=src.index("var E=document.querySelectorAll('[class*=a-icon-dropdown]",_h2)
+    _a1=_h2
     _a2=src.index('window.__AD_V333FIX404_STATE__=',_a1)
     _arrow=src[_a1:_a2]
     _css=next(ln for ln in src.splitlines() if "s404.id='adv333404'" in ln)
@@ -404,49 +407,50 @@ for _label,_body,_exp in [
     _act=sha(_body); _ok=(_act==_exp)
     print(('PASS' if _ok else 'FAIL')+f': frozen {_label} {_act}')
     if not _ok: sys.exit(1)
-for _label,_tokens,_count,_exp in [
-    ('Heart selector population',['puis-heart-position'],36,'45955b18b0d7e744993a71a685aa7d9cb5babc253f341c0291f62dc66d5a9161'),
-    ('Down-arrow selector population',['a-icon-dropdown','a-icon-extender','[class*=chevron]','[class*=caret]'],5,'cc221609d16b9c82eaf2a71a8d579fda3bf516be093420842ea100ed12e7c99a'),
-    ('Checkbox selector population',['mlt-icon-container','role=checkbox','input[type=checkbox]','a-icon-checkbox','data-ad-product391=\\"checkbox\\"','data-ad-product391="checkbox"'],22,'0b76f0193d09a02265e8f45df60aa9d761733e11468a488147b17b136d5ea89a'),
+
+# The v5.397/v5.333 action path is now the ONE final cards owner. Lock both the
+# historical host painter and the two historical glyph stylesheet lines exactly.
+_action_line=next((ln for ln in src.splitlines() if 'var DB397=document.querySelectorAll' in ln), '')
+_action_sha=sha(_action_line)
+_ok=_action_sha=='f194bea14e1cffc3dae72ca3fa8242ff7490f34da6eedf253681a9593b0cdace'
+print(('PASS' if _ok else 'FAIL')+f': exact preserved v5.333 action-host runtime {_action_sha}')
+if not _ok: sys.exit(1)
+_css_glyph=next((ln for ln in src.splitlines() if '[class*=lists-framework-action-button] img,[class*=lists-framework-action-button] i,[class*=lists-framework-action-button] svg,[class*=lists-framework-unfill]' in ln), '')
+_css_ink=next((ln for ln in src.splitlines() if '[class*=lists-framework-action-button],[class*=lists-framework-action-button] *{color:#ffffff' in ln), '')
+for _label,_body,_exp in [
+    ('v5.333 stock cards raster inversion CSS',_css_glyph,'80acde30621c482c93dc9178f81b73d2addc947a3e9962c3d3a4fa9da7c2910c'),
+    ('v5.333 stock cards vector/ink CSS',_css_ink,'75f65ce172f9bce431debcf4eaa7070ac0a43559c4c6e0308f17ec4c6f042618'),
 ]:
-    _lines=[ln for ln in src.splitlines() if any(t in ln for t in _tokens)]
-    _act=sha('\n'.join(_lines)); _ok=(len(_lines)==_count and _act==_exp)
-    print(('PASS' if _ok else 'FAIL')+f': frozen {_label} lines={len(_lines)} sha={_act}')
+    _act=sha(_body); _ok=(_act==_exp)
+    print(('PASS' if _ok else 'FAIL')+f': {_label} {_act}')
     if not _ok: sys.exit(1)
+
+# No post-v5.333 cards painter is permitted. This is the regression that produced
+# the naked black glyph and, one build earlier, the cards glyph inside Compare.
+for _forbid in [
+    '__AD_CARDS406__','adcards406','data-ad-cards406','P75CARDS406[',
+    "if(own(dbe,'d'))", "setAttribute('data-ad-v333404','d')",
+    "setAttribute('data-ad-cards405'", "setAttribute('data-ad-cards406'",
+]:
+    _ok=_forbid not in src
+    print(('PASS' if _ok else 'FAIL')+f': competing cards owner absent {_forbid}')
+    if not _ok: sys.exit(1)
+
+# The v5.404 finalizer may still mention the lists family only to keep arrow
+# classification away from the cards control; it may not enumerate/paint it.
 try:
-    _b1=src.index('// v5.406 LOCK BOUNDARY: HEART / CHECKBOX / DOWN-ARROW FROZEN.')
-    _b2=src.index('// v5.404: COLLEGE PANE',_b1)
-    _cards=src[_b1:_b2]
-except ValueError:
-    print('FAIL: missing v5.406 cards block'); sys.exit(1)
-for _forbid in ['puis-heart-position','a-icon-dropdown','a-icon-extender','[class*=chevron]','[class*=caret]','[class*=arrow]',
-                "createElement('svg')",'insertAdjacentHTML','data-ad-actionfallback','data-ad-productdisc390']:
-    _ok=(_forbid not in _cards)
-    print(('PASS' if _ok else 'FAIL')+f': cards406 excludes competing/synthetic token {_forbid}')
+    _v404=src[src.index('window.__AD_V333FIX404__=function()'):src.index('window.__AD_V333FIX404_STATE__=',src.index('window.__AD_V333FIX404__=function()'))]
+except Exception:
+    _v404=''
+for _forbid in ["var DB=document.querySelectorAll('[class*=lists-framework-action-button]')", "own(dbe,'d')"]:
+    _ok=_forbid not in _v404
+    print(('PASS' if _ok else 'FAIL')+f': v5.404 does not own cards {_forbid}')
     if not _ok: sys.exit(1)
-for _need in [
-    "var DB=document.querySelectorAll('[class*=lists-framework-action-button]')",
-    'var de=DB[db]',
-    'var dr=de.getBoundingClientRect()',
-    'if(dr.width<18||dr.width>52||dr.height<18||dr.height>52)',
-    'if(Math.abs(dr.width-dr.height)>10)',
-    "de.style.setProperty('background-color','#181a1b','important')",
-    "de.style.setProperty('border-radius','50%%','important')",
-    "de.style.setProperty('border','1.5px solid rgba(255,255,255,0.65)','important')",
-    "de.style.setProperty('box-shadow','none','important')",
-    "de.style.setProperty('box-sizing','border-box','important')",
-    "c406.id='adcards406'",
-    'P75CARDS406[',
-]:
-    _ok=_need in src
-    print(('PASS' if _ok else 'FAIL')+f': cards406 v5.333 contract token {_need[:72]}')
+
+for _need in ['P76CARDS407[','Version: 5.407.0']:
+    _hay=src if _need.startswith('P76') else Path('layout/DEBIAN/control').read_text()
+    _ok=_need in _hay
+    print(('PASS' if _ok else 'FAIL')+f': v5.407 token {_need}')
     if not _ok: sys.exit(1)
-for _forbid in ['best=', 'barea=', 'host=p', 'host=best']:
-    _ok=_forbid not in _cards
-    print(('PASS' if _ok else 'FAIL')+f': cards406 no ancestor-host logic {_forbid}')
-    if not _ok: sys.exit(1)
-for _need in ["getAttribute('data-ad-stock403')", "getAttribute('data-ad-product391')", "('check'+'box')", "getAttribute('aria-checked')"]:
-    _ok=_need in _cards
-    print(('PASS' if _ok else 'FAIL')+f': cards406 checkbox exclusion {_need}')
-    if not _ok: sys.exit(1)
-print('PASS: Heart, checkbox, and down-arrow remain hard-frozen; two-cards uses the v5.333 direct action-button contract with no ancestor climb.')
+
+print('PASS: Heart, checkbox, and down-arrow stay frozen; only the preserved v5.333 action path can paint the two-cards control.')
