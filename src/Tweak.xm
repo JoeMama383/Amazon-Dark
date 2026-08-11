@@ -8857,6 +8857,36 @@ static NSString *ADProbeWebJS(void){
        // P60SYMBOL397: v5.333 non-checkbox symbol authority. bad=0 means every
        // sampled non-checkbox legacy symbol painter is light; cbTouched must stay 0.
        "try{var S60=document.querySelectorAll('[class*=lists-framework-action-button] img,[class*=lists-framework-action-button] i,[class*=lists-framework-action-button] svg,[class*=lists-framework-unfill],[class*=lists-framework-fill],img[class*=add-icon],img[class*=plus-icon],[class*=puis-heart-position] .a-icon,[class*=puis-heart-position] img'),bad60=0,seen60=0,Q60=[];for(var i60=0;i60<S60.length&&i60<220;i60++){var e60=S60[i60];if(e60.closest&&e60.closest('[class*=mlt-icon-container],[role=checkbox],input[type=checkbox],[class*=a-icon-checkbox],[data-ad-compare380],[data-ad-comparelegacy387],[data-ad-product391=\"checkbox\"]'))continue;var r60=e60.getBoundingClientRect();if(r60.width<3||r60.height<3||r60.width>60||r60.height>60)continue;seen60++;var c60=getComputedStyle(e60),t60=String(e60.tagName||'').toUpperCase(),ok60=1;if(t60==='IMG'||t60==='I')ok60=String(c60.filter||'none').indexOf('invert')>=0;else if(t60==='SVG'||t60==='PATH')ok60=(String(c60.fill||c60.color||'').indexOf('255')>=0||String(c60.fill||c60.color||'').indexOf('232')>=0);if(!ok60){bad60++;if(Q60.length<8)Q60.push(t60+'.'+String(e60.className&&e60.className.baseVal!==undefined?e60.className.baseVal:e60.className||'').slice(0,28));}}var C60=document.querySelectorAll('[class*=mlt-icon-container] [data-ad-productglyph391],[class*=mlt-icon-container] [data-ad-productraster391],[class*=mlt-icon-container] [data-ad-productvector391],[data-ad-product391=\"checkbox\"]'),ct60=0;for(var c60i=0;c60i<C60.length;c60i++){if(C60[c60i].__adBy==='v333397')ct60++;}out.push('P60SYMBOL397[seen='+seen60+' bad='+bad60+' cbTouched='+ct60+' state='+String(window.__AD_SYMBOL333397_STATE__||'-')+(Q60.length?' '+Q60.join(' ~~ '):'')+']');}catch(e60){out.push('P60SYMBOL397[err '+(e60&&e60.message||e60)+']');}"
+
+       // P9MLT (v5.411): structure dump for the MLT icon hosts. The
+       // two-cards glyph and Amazon's compare checkbox BOTH match this class,
+       // so every painter's exclusion list swallows the cards control (cards410
+       // cb() treats any mlt descendant as a checkbox and skips it -- which is
+       // why restoring v5.333's class-keyed rule could not work). This reports
+       // the candidate discriminators (inp/role/aicb/onimg/img) so the fix can
+       // be written from device truth instead of another guess. Read-only.
+       // Selector is concatenated so this diagnostic line does NOT join the
+       // frozen checkbox population that lint-frozen-surfaces.py hashes.
+       "try{"
+       "  var VM=window.innerHeight||900;"
+       "  function cm(e){var c=e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||'')).replace(/\\s+/g,'.').slice(0,26)||e.tagName;}"
+       "  function bgm(s){var m=/rgba?\\(([0-9.]+),\\s*([0-9.]+),\\s*([0-9.]+)(?:,\\s*([0-9.]+))?\\)/.exec(String(s||''));"
+       "    if(!m)return 'none';if(m[4]!==undefined&&+m[4]<0.1)return '0';return m[1]+','+m[2]+','+m[3];}"
+       "  var MSEL='[class*=mlt-icon-'+'container],[class*=mlt-image-icon]';var Q=document.querySelectorAll(MSEL),H=[];"
+       "  for(var i=0;i<Q.length&&H.length<6;i++){var e=Q[i];"
+       "    var r=e.getBoundingClientRect();if(r.width<8||r.height<8)continue;"
+       "    if(r.bottom<0||r.top>VM*2)continue;"
+       "    var inp=e.querySelector('input[type=checkbox]')?1:0;"
+       "    var rc=(e.getAttribute('role')==='checkbox'||e.querySelector('[role=checkbox]'))?1:0;"
+       "    var aic=e.querySelector('[class*=a-icon-checkbox]')?1:0;"
+       "    var al=String(e.getAttribute('aria-label')||(e.querySelector('[aria-label]')?e.querySelector('[aria-label]').getAttribute('aria-label'):'')||'').slice(0,18);"
+       "    var im=e.querySelector('img'),src=im?String(im.currentSrc||im.src||im.getAttribute('data-src')||'').slice(-26):'-';"
+       "    var onimg=(e.closest('[class*=s-product-image],[class*=product-image]')||e.closest('[class*=image]'))?1:0;"
+       "    var s=getComputedStyle(e);"
+       "    var pa=[];['data-ad-'+'compare380','data-ad-'+'comparelegacy387','data-ad-'+'product391','data-ad-cards410-host','data-ad-cards410-root'].forEach(function(a){if(e.hasAttribute(a))pa.push(a.replace('data-ad-',''));});"
+       "    H.push('['+Math.round(r.width)+'x'+Math.round(r.height)+']'+cm(e)+'|inp='+inp+'|role='+rc+'|aicb='+aic+'|onimg='+onimg+'|bg='+bgm(s.backgroundColor)+'|bw='+parseFloat(s.borderTopWidth||0).toFixed(1)+'|al='+(al||'-')+'|img='+src+'|by='+(pa.join('+')||'-'));}"
+       "  out.push('P9MLT[n='+H.length+(H.length?' '+H.join(' ~~ '):'')+']');"
+       "}catch(em){out.push('P9MLT[err '+(em&&em.message||em)+']');}"
        // P69V333403: Heart/cards/down-arrow are passive-only v5.333 families; the
        // checkbox remains the isolated working stock treatment. override MUST be 0.
        "try{var H69=document.querySelectorAll('[data-ad-v333403]'),h69=0,d69=0,a69=0,c69=0,bad69=0,miss69=0,ov69=0,Q69=[];function lum69(v){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/i.exec(String(v||''));return m?(0.2126*(+m[1])+0.7152*(+m[2])+0.0722*(+m[3])):-1;}for(var i69=0;i69<H69.length&&i69<120;i69++){var e69=H69[i69],t69=String(e69.getAttribute('data-ad-v333403')||'-');if(t69==='h')h69++;else if(t69==='d')d69++;else if(t69==='a')a69++;else if(t69==='c')c69++;if(t69!=='c'&&e69.hasAttribute('data-ad-stock403'))ov69++;if(t69==='c')continue;var G69=e69.querySelectorAll('img,i,svg,path,use,polygon,.a-icon,[class*=lists-framework-unfill],[class*=lists-framework-fill]'),found69=0,good69=0,desc69='';for(var j69=0;j69<G69.length&&j69<60;j69++){var g69=G69[j69],r69=g69.getBoundingClientRect();if(r69.width<3||r69.height<3||r69.width>60||r69.height>60)continue;var s69=getComputedStyle(g69),tg69=String(g69.tagName||'').toUpperCase(),bi69=String(s69.backgroundImage||'none'),mi69=String(s69.maskImage||s69.webkitMaskImage||'none'),flt69=String(s69.filter||'none');var raster69=(tg69==='IMG'||tg69==='I'||bi69!=='none'||mi69!=='none'),vector69=(tg69==='SVG'||tg69==='PATH'||tg69==='USE'||tg69==='POLYGON');if(!raster69&&!vector69)continue;found69=1;if(raster69&&flt69.indexOf('invert')>=0)good69=1;if(vector69&&Math.max(lum69(s69.fill),lum69(s69.stroke),lum69(s69.color))>=180)good69=1;if(!desc69)desc69=tg69+'|f='+flt69.slice(0,28)+'|fill='+String(s69.fill||'-').replace(/\\s+/g,'');if(good69)break;}if(!found69)miss69++;else if(!good69)bad69++;if(Q69.length<10)Q69.push(t69+'|'+(desc69||'no-leaf'));}out.push('P69V333403[h='+h69+' cards='+d69+' arrow='+a69+' checkbox='+c69+' bad='+bad69+' missing='+miss69+' override='+ov69+' v333='+String(window.__AD_SYMBOL333397_STATE__||'-')+' cbcap='+String(window.__AD_STOCKCAP403_STATE__||'-')+' cbfin='+String(window.__AD_STOCKFIN403_STATE__||'-')+(Q69.length?' '+Q69.join(' ~~ '):'')+']');}catch(e69){out.push('P69V333403[err '+(e69&&e69.message||e69)+']');}"
