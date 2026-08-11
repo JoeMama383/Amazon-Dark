@@ -170,9 +170,16 @@ print('PASS: Alexa, Hamburger, Cart, Person, Home video, v5.395 Home WBT, and v5
 # cannot "fix" a symbol by reopening a confirmed Person/Home/Menu path.
 print('--- v5.397 v5.333 symbol authority / current-checkbox lock ---')
 
+# v5.413: this lock was re-pointed ON PURPOSE. It previously froze a
+# compareStock380 whose selector claimed [class*=mlt-icon-container].
+# Device probe (P9SYM/KEBAB) proved mlt-icon-container is the TWO-CARDS
+# control -- it holds mlt-image-icon/img.s-image and has no input,
+# role=checkbox or a-icon-checkbox. The real Compare checkbox is
+# div.a-checkbox > i.a-icon-checkbox. So this gate was freezing the wrong
+# element; compare380 no longer selects the cards host.
 # The two current checkbox state machines are exact source-line locks.
 for key, expected in {
-    'function compareStock380(){':'f97dc076a9ab899cfc8cbf591465fc8f3af95a6beaa76afe034f9a3e234afc06',
+    'function compareStock380(){':'1be164c5ef54a221afbf47e1490b9944519dfba5cf1644f5377dcebb78e663b3',
     'function legacyCompare387(){':'e350a9b5fbd0c1a673089c3e5a6ac343ca1c09de7c1b809ae4230fddf5347d24',
 }.items():
     lines=[ln for ln in src.splitlines() if key in ln and 'v5.397' not in ln]
@@ -316,8 +323,8 @@ for ln in _cb_src.splitlines():
     if re.search(r'mlt-icon-container|data-ad-compare380|data-ad-comparelegacy387|data-ad-product391=\\?"checkbox',ln):
         checkbox_lines.append(ln)
 cbsha=sha('\n'.join(checkbox_lines))
-cbexp='66b7b2ba23523e295bf013b6d2c089f5c579e3573cc5396c721825f2e4d84019'
-ok=len(checkbox_lines)==28 and cbsha==cbexp
+cbexp='000910fcf256e37a7454925c43cdfcf790bf7f95ae8511ed90d9b7979a9d4290'
+ok=len(checkbox_lines)==29 and cbsha==cbexp
 print(('PASS' if ok else 'FAIL')+f': entire pre-v5.397 checkbox selector/CSS/runtime population lines={len(checkbox_lines)} sha={cbsha}')
 if not ok:
     print('ERROR: current checkbox population changed; v5.333 symbol authority may not touch it.')
@@ -457,7 +464,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.412.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.413.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
