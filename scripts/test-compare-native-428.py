@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exercise the v5.439 device-captured Cart and Shopping checkbox contract."""
+"""Exercise the v5.440 device-captured cards/checkbox ownership contract."""
 from pathlib import Path
 import importlib.util
 import shutil
@@ -12,7 +12,7 @@ SOURCE = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else ROOT / "src/Tweak
 NODE = shutil.which("node")
 
 if not NODE:
-    print("checkbox-stock-439 fixture: SKIP (node not installed)")
+    print("icon-ownership-440 fixture: SKIP (node not installed)")
     raise SystemExit(0)
 
 spec = importlib.util.spec_from_file_location("lint_js", ROOT / "scripts/lint-js.py")
@@ -33,20 +33,23 @@ retired_shopping_selectors = [
 ]
 leaked = [selector for selector in retired_shopping_selectors if selector in fixes_css]
 if leaked:
-    print("checkbox-stock-439 fixture: FAIL (retired Shopping white-silhouette CSS: " + ", ".join(leaked) + ")")
+    print("icon-ownership-440 fixture: FAIL (retired Shopping white-silhouette CSS: " + ", ".join(leaked) + ")")
     raise SystemExit(1)
 for preserved in ["'[class*=copilot-compare]'", "'[class*=a-check'+'box]'"]:
     if preserved not in fixes[css_end:]:
-        print("checkbox-stock-439 fixture: FAIL (Amazon inline artwork is no longer protected: " + preserved + ")")
+        print("icon-ownership-440 fixture: FAIL (Amazon inline artwork is no longer protected: " + preserved + ")")
         raise SystemExit(1)
 checkbox_guard = "closest('[class*=a-checkbox],[class*=a-icon-checkbox],input[type=checkbox],[role=checkbox],[class*=copilot-compare],button[aria-label*=ompare],[data-csa-c-content-id*=ompare]')"
 if checkbox_guard not in source:
-    print("checkbox-stock-439 fixture: FAIL (broad glyph writer can still enter a native checkbox subtree)")
+    print("icon-ownership-440 fixture: FAIL (broad glyph writer can still enter a native checkbox subtree)")
     raise SystemExit(1)
 emitted = lint_js.literals_in(lint_js.function_body(source, "ADProbeWebJS")).replace("%%", "%")
 start = emitted.index("function stockCheckbox434(){")
 end = emitted.index("try{window.__AD_CHECKBOX434__=", start)
 function = emitted[start:end]
+sym_start = emitted.index("function sym413(){")
+sym_end = emitted.index("try{window.__AD_SYM413_PRE__=", sym_start)
+sym_function = emitted[sym_start:sym_end]
 
 fixture = r'''
 class Style {
@@ -221,7 +224,7 @@ function shoppingResult(asin){
 const shopping=shoppingResult('SEARCH-1');
 let shoppingNativeCalls=0,shoppingPane=false;
 shopping.input.addEventListener('click',()=>{shoppingNativeCalls++;shoppingPane=true;});
-assert(stockCheckbox434()===1,'Shopping role-button checkbox was not discovered');
+assert(stockCheckbox434()===1,'Shopping role-button checkbox was not discovered: '+String(global.__AD_CHECKBOX434_STATE__));
 assert(shopping.control.getAttribute('data-ad-checkbox434-host')==='stock','Shopping semantic host was not canonicalized');
 assert(shopping.art.getAttribute('data-ad-checkbox434-art')==='stock','Shopping visible background sprite was not selected');
 assert(!shopping.hidden.hasAttribute('data-ad-checkbox434-art')&&!shopping.input.hasAttribute('data-ad-checkbox434-art'),'Shopping filter landed on hidden art/input');
@@ -282,6 +285,52 @@ assert(!pseudoInput.hasAttribute('data-ad-checkbox434-art')&&getComputedStyle(ps
 pseudoInput.click();
 assert(getComputedStyle(pseudoControl).filter==='none','wrapper-pseudo blue sprite was altered or timer-delayed');
 
+// v5.440 ownership collision: Amazon may mount the cards and checkbox families
+// at the same product-image coordinates. Cards may paint only when their own
+// artwork is visible and no visible stock checkbox occupies that location.
+function place(e,left,top,width,height){e.rect={width,height,left,top,right:left+width,bottom:top+height};return e;}
+function cardsResult(asin,left,top){
+  const card=place(element('div',{class:'puis-card','data-asin':asin},360,220),0,top-20,360,220);
+  const host=place(element('div',{class:'mlt-icon-container'},32,32),left,top,32,32);
+  const shell=place(element('span',{class:'mlt-image-icon'},24,24),left+4,top+4,24,24);
+  const glyph=place(element('img',{class:'s-image',src:'two-cards.png'},20,19),left+6,top+6,20,19);
+  shell.appendChild(glyph);host.appendChild(shell);card.appendChild(host);document.body.appendChild(card);
+  return {card,host,shell,glyph};
+}
+const activeCards=cardsResult('CARDS-ACTIVE',20,900);
+const hiddenCards=cardsResult('CARDS-HIDDEN',20,1160);hiddenCards.glyph.style.setProperty('visibility','hidden');
+const collision=cardsResult('CARDS-COLLISION',20,1420);
+const collisionCheck=place(element('div',{class:'a-checkbox'},40,40),16,1416,40,40);
+const collisionInput=place(element('input',{type:'checkbox'},24,24),20,1420,24,24);collisionInput.checked=false;
+const collisionArt=place(element('i',{class:'a-icon a-icon-checkbox'},23,23),20,1420,23,23);collisionArt.style.setProperty('background-image','url(stock-checkbox-off.png)');
+collisionCheck.appendChild(collisionInput);collisionCheck.appendChild(collisionArt);collision.card.appendChild(collisionCheck);
+
+sym413();
+assert(activeCards.host.getAttribute('data-ad-cards440-host')==='1','visible two-cards host was not painted');
+assert(activeCards.host.style.getPropertyValue('background-color')==='#181a1b','two-cards backdrop regressed from black');
+assert(activeCards.glyph.getAttribute('data-ad-cards440-glyph')==='1'&&activeCards.glyph.style.getPropertyValue('filter')==='brightness(0) invert(1)','two-cards artwork regressed from white');
+assert(activeCards.glyph.style.getPropertyValue('visibility')===''&&activeCards.glyph.style.getPropertyValue('opacity')==='','cards owner forced Amazon visibility');
+assert(!hiddenCards.host.hasAttribute('data-ad-cards440-host')&&!hiddenCards.glyph.hasAttribute('data-ad-cards440-glyph'),'hidden cards artwork was forced active');
+assert(collision.host.getAttribute('data-ad-cards440-suppressed')==='checkbox','cards were not suppressed at a live checkbox collision');
+assert(collision.host.style.getPropertyValue('visibility')==='hidden'&&collision.host.style.getPropertyValue('opacity')==='0','colliding cards subtree can still spill over checkbox');
+assert(!collision.host.hasAttribute('data-ad-cards440-host')&&!collision.glyph.hasAttribute('data-ad-cards440-glyph'),'suppressed cards retained active paint ownership');
+
+assert(stockCheckbox434()===6,'colliding stock checkbox was not independently discovered');
+assert(collisionArt.getAttribute('data-ad-checkbox434-art')==='stock'&&getComputedStyle(collisionArt).filter==='brightness(0)','collision checkbox did not remain pure black stock art');
+assert(!collisionArt.hasAttribute('data-ad-cards440-glyph')&&!collisionCheck.hasAttribute('data-ad-cards440-host'),'checkbox acquired cards ownership');
+sym413();
+assert(collision.host.getAttribute('data-ad-cards440-suppressed')==='checkbox','cards reappeared after checkbox discovery');
+
+// Once Amazon removes the visible checkbox art, the same recycled cards node may
+// become active again; no permanent hide or stale ownership is allowed.
+collisionArt.style.setProperty('visibility','hidden');sym413();
+assert(collision.host.getAttribute('data-ad-cards440-host')==='1'&&!collision.host.hasAttribute('data-ad-cards440-suppressed'),'recycled cards node stayed suppressed after checkbox disappeared');
+assert(collision.host.style.getPropertyValue('visibility')===''&&collision.host.style.getPropertyValue('opacity')==='','recycled cards node retained forced hiding');
+collisionArt.style.removeProperty('visibility');sym413();
+assert(collision.host.getAttribute('data-ad-cards440-suppressed')==='checkbox'&&!collision.glyph.hasAttribute('data-ad-cards440-glyph'),'cards were not re-suppressed when checkbox returned');
+
+document.body.removeChild(activeCards.card);document.body.removeChild(hiddenCards.card);document.body.removeChild(collision.card);
+
 function excluded(rootClass,extra={}){
   const card=element('div',{class:'puis-card'},360,200),root=element('div',{class:rootClass,...extra},50,50);
   const box=element('div',{class:'a-checkbox'},36,36),q=element('input',{type:'checkbox'},24,24),art=element('i',{class:'a-icon-checkbox'},24,24);
@@ -301,7 +350,7 @@ assert(!primeToggle.hasAttribute('data-ad-checkbox434-art'),'out-of-card Prime t
 assert(unrelated.style.getPropertyValue('filter')==='heart-lock','unrelated Heart icon changed');
 
 const style=document.getElementById('adcheckbox434'),css=style.textContent;
-assert(style.getAttribute('data-ad-native-state')==='439','old timer-state stylesheet survived');
+assert(style.getAttribute('data-ad-native-state')==='440','old timer-state stylesheet survived');
 assert(css.includes('[data-ad-checkbox434-host]{--ad-checkbox434-filter:brightness(0);}')&&css.includes(':has(input[type=checkbox]:checked')&&css.includes('[aria-pressed=true]'),'native input/ARIA state selectors are missing');
 assert(css.includes('[data-ad-checkbox434-art]{filter:var(--ad-checkbox434-filter,brightness(0)) !important;}'),'unchecked pure-black stock-art rule is missing');
 assert(!css.includes('[data-ad-checkbox434-art="unchecked"]')&&!css.includes('[data-ad-checkbox434-art="checked"]'),'JavaScript timer-state selectors survived');
@@ -318,10 +367,10 @@ const runtime=stockCheckbox434.toString();
 for(const forbidden of ['.click(','dispatchEvent','preventDefault(','stopPropagation(',"setAttribute('aria-checked'","setAttribute('data-checked'","setAttribute('data-selected'","on?'checked':'unchecked'"])
   assert(!runtime.includes(forbidden),'checkbox runtime emulates state or interaction: '+forbidden);
 
-console.log('checkbox-stock-439 fixture: PASS (device-shaped Cart/Shopping sprites; pure-black unchecked; no gray ring; native blue sprite; no orange timer race; icon exclusions)');
+console.log('icon-ownership-440 fixture: PASS (white cards on black; no spillover; pure-black checkbox; no gray ring; native blue sprite; no orange timer race)');
 '''
 
-result = subprocess.run([NODE, "-e", function + fixture], text=True, capture_output=True)
+result = subprocess.run([NODE, "-e", sym_function + function + fixture], text=True, capture_output=True)
 if result.stdout:
     print(result.stdout, end="")
 if result.stderr:

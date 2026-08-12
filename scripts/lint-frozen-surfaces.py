@@ -358,7 +358,7 @@ if not (_cards_glyph and _wrapper_skip):
     print('ERROR: cards control regression (black glyph, or bezel drawn around the cards icon).')
     sys.exit(1)
 
-# ---- LOCK E (v5.439): CHECKBOX is stock. Every shared historical control
+# ---- LOCK E (v5.440): CHECKBOX is stock. Every shared historical control
 # painter must skip it. JavaScript may discover/clean the native host and art,
 # but checked state must come from live input/ARIA/class CSS -- never a delayed
 # JavaScript checked/unchecked marker. This is what prevents the blue sprite
@@ -371,7 +371,7 @@ _cb_skips = all(token in src for token in [
 _cb_native = all(token in src for token in [
     "input[type=checkbox],[role=checkbox],[aria-checked]",
     "function art434(h,seed)",
-    "s434.setAttribute('data-ad-native-state','439')",
+    "s434.setAttribute('data-ad-native-state','440')",
     r'[data-ad-checkbox434-host]{--ad-checkbox434-filter:brightness(0);}',
     ':has(input[type=checkbox]:checked',
     '[aria-pressed=true]',
@@ -379,7 +379,7 @@ _cb_native = all(token in src for token in [
     r'[data-ad-checkbox434-shell=\"cart\"]{background-color:transparent !important;',
     "[class*=copilot-compare],button[aria-label*=ompare]",
     "h.setAttribute('data-ad-checkbox434-host','stock')",
-    "art.setAttribute('data-ad-checkbox434-art','stock')",
+    "aa.setAttribute('data-ad-checkbox434-art','stock')",
     "new MutationObserver(function(){try{window.__AD_CHECKBOX434__();}",
     "function generic434(e)",
     "e.style.removeProperty('filter')",
@@ -444,8 +444,8 @@ if not _video_ok:
     print('ERROR: a taming filter site lost its VIDEO guard; video will render black with audio only.')
     sys.exit(1)
 
-print('PASS: v5.333 owns non-checkbox symbols; v5.439 gives Cart and Shopping one native-state stock checkbox owner.')
-# v5.403 USER-REOPENED SYMBOL / COLLEGE AUTHORITY. v5.439 keeps only the
+print('PASS: v5.333 owns non-checkbox symbols; v5.440 gives Cart and Shopping one native-state stock checkbox owner.')
+# v5.403 USER-REOPENED SYMBOL / COLLEGE AUTHORITY. v5.440 keeps only the
 # non-checkbox attribution portion; the former stock403 checkbox painter is retired.
 print('--- v5.403 v5.333-three attribution + retired stock403 + College authority ---')
 required403=[
@@ -583,7 +583,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.439.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.440.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
@@ -659,11 +659,11 @@ for _bad in ["createElement('svg')","createElementNS(","createElement('path')","
 
 print("PASS: Heart and down-arrow are frozen; v5.410 keeps Amazon's stock cards glyph/geometry, forces it white, and cannot enter Compare.")
 
-# v5.434 CONTROL ISOLATION LOCKS
-# Cards and Heart remain byte-exact. The three shared sweepers are re-locked
-# after adding only their checkbox early-return, so their non-checkbox branches
-# cannot drift while Compare stays outside every custom control painter.
-print('--- v5.434 exact cards/Heart locks and checkbox early-return isolation ---')
+# v5.440 CONTROL ISOLATION LOCKS
+# The historical cards410 and Heart owners remain byte-exact. Device captures
+# reopened only sym413 and repaint425: sym413 now preserves Amazon visibility and
+# owns live MLT paint, while repaint425 is forbidden from touching MLT at all.
+print('--- v5.440 cards/checkbox mutual exclusion and frozen Heart controls ---')
 
 def exact_between(a, b, label):
     try:
@@ -689,18 +689,14 @@ _exact434_controls={
         exact_between('                      "function disc419(){try{',
                       '           "try{var _pv419=', 'disc419'),
         'dd20f14bb46efaaf74a74708023dc58921966223597d1e1e3b20cfc294ef710e'),
-    'probe control painter with checkbox skip': (
+    'visibility-aware cards/checkbox control painter': (
         exact_between('         "function sym413(){try{',
                       '         "try{window.__AD_SYM413_PRE__=', 'sym413'),
-        'b62360f16010b5e95827b29127b94def3b42d2d80608ed0e7ba93b4acf80138a'),
-# v5.439: re-pointed DELIBERATELY. CB87 remains read-only and now records the
-# native host/art markers plus Shopping role-button/copilot controls. It
-# also identifies the winning inline filter/owner; no painter behavior changed.
-# LOCK E1-E6 prove the checkbox remains untouched by every shared painter.
-    'persistent control painter with checkbox skip': (
+        '45528bb6943319a89c3c30b7fc30223bfddd1307b23255b1530d9738a9df47e4'),
+    'persistent non-MLT control painter': (
         exact_between('       "function repaint425(){',
                       '       "try{repaint425();', 'repaint425'),
-        '379fade04f0d43461acd24196a5d537677d990565c97eeb5dbbf0f497534c11a'),
+        'd9954dc5716e4957e8fd832b353922f755f48c7b4378545bc2f9d1861bcf1299'),
     'Heart shell engine': (
         exact_between('         // v5.427 HEART SHELL:',
                       '         // v5.401 Home bleed experiment:', 'heart427'),
@@ -718,8 +714,34 @@ for _label,(_body,_expected) in _exact434_controls.items():
     _actual=sha(_body); _ok=_actual==_expected
     print(('PASS' if _ok else 'FAIL')+f': exact {_label} {_actual}')
     if not _ok:
-        print('ERROR: a solved card/Heart owner or checkbox exclusion changed.')
+        print('ERROR: a solved icon owner, Heart owner, or checkbox exclusion changed.')
         sys.exit(1)
+
+_sym440=_exact434_controls['visibility-aware cards/checkbox control painter'][0]
+_repaint440=_exact434_controls['persistent non-MLT control painter'][0]
+try:
+    _cards440=_sym440[_sym440.index('"function cards(e){'):
+                      _sym440.index('"var Q=document.querySelectorAll', _sym440.index('"function cards(e){'))]
+except ValueError:
+    _cards440=''
+_cards440_required=all(token in _sym440 for token in [
+    'function checkboxAt(e)', 'function shown(e,stop)', 'function clearCards(e)',
+    'function glyph440(g)', 'data-ad-cards440-host', 'data-ad-cards440-glyph',
+    'data-ad-cards440-suppressed', "if(!glyph440(g)||!shown(g,e))continue",
+    "if(checkboxAt(e)){clearCards(e)",
+    "if(k==='cards'){if(cards(e))n++;else sk++;continue;}",
+])
+_cards440_visibility=(_cards440 and "setProperty('visibility','visible'" not in _cards440
+                      and "setProperty('opacity','1'" not in _cards440
+                      and "setProperty('visibility','hidden','important')" in _cards440
+                      and "setProperty('opacity','0','important')" in _cards440)
+_cards440_single_owner=('mlt-icon-container' not in _repaint440)
+print(('PASS' if _cards440_required else 'FAIL')+': v5.440 cards owner detects live checkbox collisions')
+print(('PASS' if _cards440_visibility else 'FAIL')+': v5.440 cards owner never forces hidden artwork visible')
+print(('PASS' if _cards440_single_owner else 'FAIL')+': v5.440 persistent painter cannot repaint MLT cards')
+if not (_cards440_required and _cards440_visibility and _cards440_single_owner):
+    print('ERROR: cards can again spill into the checkbox or acquire a second painter.')
+    sys.exit(1)
 
 for _required in [
     "if(hs&&!rc&&!/mlt-icon-container/.test(dc))",
@@ -778,30 +800,30 @@ for _required in [
     print(('PASS' if _ok else 'FAIL')+f': broad icon painter cannot enter checkbox {_required[:76]}')
     if not _ok: sys.exit(1)
 
-print('PASS: cards and Heart stay exact; all shared painters return before touching a real checkbox.')
-# v5.439 DEVICE-CAPTURED STOCK CHECKBOX CONTRACT
+print('PASS: cards and checkbox are mutually exclusive; Heart stays exact; shared painters skip real checkboxes.')
+# v5.440 DEVICE-CAPTURED STOCK CHECKBOX CONTRACT
 # Amazon owns state, geometry, the hit target, and the selected blue/checkmark
 # sprite. The tweak identifies one stock art node, makes every unchecked sprite
 # pixel pure black, and clears paint-only Cart shells without changing geometry.
-print('--- v5.439 device-captured stock checkbox / Cart + recycled Shopping contract ---')
+print('--- v5.440 device-captured stock checkbox / Cart + recycled Shopping contract ---')
 
-_checkbox434=exact_between('         // v5.439 DEVICE-CAPTURED STOCK CHECKBOX.',
+_checkbox434=exact_between('         // v5.440 DEVICE-CAPTURED STOCK CHECKBOX.',
                            '         // v5.347 PDP HEART.', 'stockCheckbox434 layer')
 _probe434=exact_between('       // P85CHECKBOX434:',
                         '       // P81CTRL (v5.417):', 'P85CHECKBOX434')
 for _label,_body,_expected in [
     ('stock checkbox runtime layer', _checkbox434,
-     'a6edcd71234abbe120d1b80f590e5a5c50ad4518cf9f8b798b806f4505589b5e'),
-    ('stock checkbox device probe', _probe434,
-     'cccb34f72fb17a6c5e132d48828f659eb0acda8432f14e8a856f9584a7687f29'),
+     '9f66c042bf0a0c68fb0d6fbad05d27f5db76b1a7214b521ed3b9bf4392eb6e43'),
+    ('stock checkbox and ownership device probes', _probe434,
+     'a697ce14d82b84b803d1faa81bd42478a5ec7e27d5fd691ec48566fe0ce76f3d'),
 ]:
     _actual=sha(_body); _ok=_actual==_expected
     print(('PASS' if _ok else 'FAIL')+f': exact {_label} {_actual}')
     if not _ok:
-        print('ERROR: the v5.439 stock checkbox contract or read-only probe changed.')
+        print('ERROR: the v5.440 stock checkbox contract or read-only probe changed.')
         sys.exit(1)
 
-# Independently lock the v5.439 Cart fixture. It proves the two gray wrappers
+# Independently retain the v5.439 Cart fixture inside the expanded v5.440 test.
 # are paint-neutralized, native click/pane behavior survives, and :checked
 # releases the blue sprite without calling the JavaScript discovery pass.
 _test434 = Path('scripts/test-compare-native-428.py').read_text()
@@ -843,10 +865,10 @@ for _required in [
     "[class*=puis-mab-chevron]",
     "[class*=copilot-compare],button[aria-label*=ompare]",
     "h.setAttribute('data-ad-checkbox434-host','stock')",
-    "art.setAttribute('data-ad-checkbox434-art','stock')",
+    "aa.setAttribute('data-ad-checkbox434-art','stock')",
     "p.setAttribute('data-ad-checkbox434-shell','cart')",
     "body434.indexOf('proceed to checkout')",
-    "s434.setAttribute('data-ad-native-state','439')",
+    "s434.setAttribute('data-ad-native-state','440')",
     r'[data-ad-checkbox434-host]{--ad-checkbox434-filter:brightness(0);}',
     ':has(input[type=checkbox]:checked',
     '[aria-pressed=true]',
@@ -857,6 +879,7 @@ for _required in [
     "if(window.requestAnimationFrame)window.requestAnimationFrame(r434)",
     "attributeFilter:['class','style','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']",
     "P85CHECKBOX434[",
+    "P88ICON440[",
     "timer='+timer85",
 ]:
     _ok=_required in _checkbox434 or _required in _probe434
@@ -924,7 +947,7 @@ _ok=("style.setProperty(" not in _checkbox434
      and _checkbox434.count("setAttribute('data-ad-checkbox434-host'")==1
      and _checkbox434.count("setAttribute('data-ad-checkbox434-art'")==1
      and _checkbox434.count("setAttribute('data-ad-checkbox434-shell'")==1)
-print(('PASS' if _ok else 'FAIL')+': runtime writes no paint/state/geometry and marks one native host/art plus Cart shell')
+print(('PASS' if _ok else 'FAIL')+': runtime writes no paint/state/geometry and marks native hosts/art plus Cart shells')
 if not _ok: sys.exit(1)
 
 for _retired in [
@@ -959,6 +982,17 @@ for _required in [
     'solid-white Shopping checked sprite was altered or delayed',
     'wrapper-pseudo stock artwork was not discovered',
     'wrapper-pseudo blue sprite was altered or timer-delayed',
+    'visible two-cards host was not painted',
+    'two-cards backdrop regressed from black',
+    'two-cards artwork regressed from white',
+    'cards owner forced Amazon visibility',
+    'hidden cards artwork was forced active',
+    'cards were not suppressed at a live checkbox collision',
+    'colliding cards subtree can still spill over checkbox',
+    'collision checkbox did not remain pure black stock art',
+    'checkbox acquired cards ownership',
+    'recycled cards node stayed suppressed after checkbox disappeared',
+    'cards were not re-suppressed when checkbox returned',
     'JavaScript timer-state selectors survived',
     'filter leaked into another icon family',
 ]:
@@ -966,4 +1000,4 @@ for _required in [
     print(('PASS' if _ok else 'FAIL')+f': DOM fixture assertion {_required}')
     if not _ok: sys.exit(1)
 
-print('PASS: v5.439 locks pure-black unchecked art in Cart and recycled Shopping, removes the Cart gray ring and stale white-box filter, and releases Amazon blue/checkmark state synchronously with no orange timer frame; other icons remain exact-locked.')
+print('PASS: v5.440 isolates cards from checkbox art, keeps cards white on black, locks pure-black unchecked art in Cart and recycled Shopping, removes the Cart gray ring, and releases Amazon blue/checkmark state synchronously with no orange timer frame.')

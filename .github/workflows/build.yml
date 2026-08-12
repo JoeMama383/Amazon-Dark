@@ -1,4 +1,8 @@
-name: Build AmazonDark (rootless .deb)
+name: AmazonDark rootless package
+run-name: >-
+  ${{ github.event_name == 'push' && github.event.head_commit.message ||
+      github.event_name == 'release' && format('{0}: release package', github.event.release.tag_name) ||
+      inputs.build_name }}
 # Built on macOS, NOT ubuntu. The Linux Theos toolchain stamps arm64e with the
 # OLD ABI (capabilities 0x0) and warns "incompatible arm64e ABI compiler" on
 # every build. iOS 17 rejects that: the tweak dylib survived only because the
@@ -12,6 +16,11 @@ on:
     branches: [ main, master, stable ]
     paths-ignore: [ '**.md', 'LICENSE' ]
   workflow_dispatch:
+    inputs:
+      build_name:
+        description: 'Run title, for example: v5.440: isolate cards and checkbox artwork'
+        required: true
+        type: string
   release:
     types: [ created ]
 jobs:
@@ -68,7 +77,7 @@ jobs:
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AmazonDark-rootless-deb
+          name: AmazonDark-v5.440-rootless-deb
           path: packages/*.deb
           if-no-files-found: error
 
