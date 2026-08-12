@@ -413,6 +413,21 @@ if not (_cb_skips and _cb_native and _cb_old_css and _cb_no_emulation
     print('ERROR: stock checkbox isolation regressed.')
     sys.exit(1)
 
+# ---- LOCK F (v5.437): <video> must never receive the image-taming CSS filter.
+#      A filter on a <video> pushes WebKit off the accelerated path: the frame
+#      renders black/absent while audio keeps playing. Device evidence was
+#      "VIDEO._c2Itd_video@422x237|f=brightness(0.5) saturate(1". Every site that
+#      applies the taming brightness filter must be guarded by a VIDEO tag test.
+import re as _re437
+_tame_sites = _re437.findall(r"(\w+)\.style\.setProperty\('filter','brightness\('\+bb\+'\) saturate\(1\.08\)','important'\);", src)
+_guarded = src.count("tagName||'').toUpperCase()!=='VIDEO'")
+_video_ok = bool(_tame_sites) and _guarded >= len(_tame_sites)
+print(('PASS' if _video_ok else 'FAIL') +
+      f': LOCK F video exempt from taming filter ({_guarded}/{len(_tame_sites)} sites guarded)')
+if not _video_ok:
+    print('ERROR: a taming filter site lost its VIDEO guard; video will render black with audio only.')
+    sys.exit(1)
+
 print('PASS: v5.333 owns non-checkbox symbols; v5.435 removes the Shopping-only white-silhouette conflict while retaining v5.434 Cart.')
 # v5.403 USER-REOPENED SYMBOL / COLLEGE AUTHORITY. v5.435 keeps only the
 # non-checkbox attribution portion; the former stock403 checkbox painter is retired.
@@ -552,7 +567,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.436.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.437.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
@@ -662,10 +677,14 @@ _exact434_controls={
         exact_between('         "function sym413(){try{',
                       '         "try{window.__AD_SYM413_PRE__=', 'sym413'),
         'b62360f16010b5e95827b29127b94def3b42d2d80608ed0e7ba93b4acf80138a'),
+# v5.437: re-pointed DELIBERATELY. Only ADDITION is a read-only CB87 capture
+# (checkbox DOM -> localStorage) placed inside the painter, because the probe
+# block does not run on search/cart frames. No painting behaviour changed:
+# LOCK E1-E6 still pass, so the checkbox is still untouched by every painter.
     'persistent control painter with checkbox skip': (
         exact_between('       "function repaint425(){',
                       '       "try{repaint425();', 'repaint425'),
-        '8e562b6577f7669ed0d4cf0417686df2862ece77fb44f21b770ac3a230e1de88'),
+        '2c75111dda6e27b7e6655ce0f95902c7d75027840c9aa2b2620fbfdcfaa36268'),
     'Heart shell engine': (
         exact_between('         // v5.427 HEART SHELL:',
                       '         // v5.401 Home bleed experiment:', 'heart427'),
