@@ -606,7 +606,7 @@ static NSString *ADFixesLiteral(void){
              "transform:rotate(45deg) !important;z-index:2 !important;pointer-events:none !important;}"
              "[data-ad-compareinput379=\"1\"]{opacity:0 !important;position:absolute !important;inset:0 !important;"
              "width:100%% !important;height:100%% !important;margin:0 !important;z-index:4 !important;cursor:pointer !important;}"
-             "[data-ad-compareorig379=\"1\"]{visibility:hidden !important;opacity:0 !important;pointer-events:none !important;}"
+             "[data-ad-compareorig379=\"1\"]{background-color:transparent !important;border:0 !important;box-shadow:none !important;}"
              // Cart's blank light pill can be a pseudo/background painter rather than the host.
              "[data-ad-cartchrome379=\"1\"]{background:#181a1b !important;background-image:none !important;"
              "border:1px solid #6c7073 !important;border-radius:999px !important;box-shadow:none !important;"
@@ -639,7 +639,7 @@ static NSString *ADFixesLiteral(void){
              "left:50%% !important;top:50%% !important;width:8px !important;height:14px !important;"
              "border:solid #fff !important;border-width:0 2.5px 2.5px 0 !important;"
              "transform:translate(-50%%,-62%%) rotate(45deg) !important;z-index:4 !important;pointer-events:none !important;}"
-             "[data-ad-compareorig380=\"1\"]{visibility:hidden !important;opacity:0 !important;pointer-events:none !important;}"
+             "[data-ad-compareorig380=\"1\"]{background-color:transparent !important;border:0 !important;box-shadow:none !important;}"
              "[data-ad-compareinput380=\"1\"]{opacity:0 !important;position:absolute !important;inset:0 !important;"
              "width:100%% !important;height:100%% !important;margin:0 !important;z-index:6 !important;cursor:pointer !important;}"
              // v5.380 Cart recovery paints the actual light rectangle immediately to
@@ -686,7 +686,7 @@ static NSString *ADFixesLiteral(void){
              "left:50%% !important;top:50%% !important;width:8px !important;height:14px !important;"
              "border:solid #fff !important;border-width:0 2.5px 2.5px 0 !important;"
              "transform:translate(-50%%,-62%%) rotate(45deg) !important;z-index:4 !important;pointer-events:none !important;}"
-             "[data-ad-comparelegacyorig387=\"1\"]{visibility:hidden !important;opacity:0 !important;pointer-events:none !important;}"
+             "[data-ad-comparelegacyorig387=\"1\"]{background-color:transparent !important;border:0 !important;box-shadow:none !important;}"
              // v5.391 product controls: paint ONLY Amazon's existing stock host at its
              // stock coordinates. No inserted span, no width/height/position/transform,
              // no parent overflow/isolation rewrite. One 1.5px inset chrome ring.

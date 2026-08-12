@@ -340,6 +340,34 @@ if not _chev_ok:
     print('ERROR: chevron dropped from the painter selector set, or the glyph exclusion was removed.')
     sys.exit(1)
 
+# ---- LOCK D (v5.429): CARDS control is solved. Two invariants:
+#      (1) the cards glyph whitening rule must exist (colour only), else the
+#          two-cards logo renders black (v5.423 regression);
+#      (2) an element that merely CONTAINS another control must not be treated
+#          as the checkbox, else a bezel is drawn around the cards icon
+#          (label.a-checkbox wrapper, v5.424 regression).
+_cards_glyph = ("[class*=mlt-icon-container] img[class*=s-image]" in src
+                and "brightness(0) invert(1)" in src)
+_wrapper_skip = "mlt-icon-'+'container],[class*=lists-framework-action-'+'button]')" in src
+print(('PASS' if _cards_glyph else 'FAIL') + ': LOCK D1 cards glyph whitening rule present')
+print(('PASS' if _wrapper_skip else 'FAIL') + ': LOCK D2 control-wrapper skip present')
+if not (_cards_glyph and _wrapper_skip):
+    print('ERROR: cards control regression (black glyph, or bezel drawn around the cards icon).')
+    sys.exit(1)
+
+# ---- LOCK E (v5.429): CHECKBOX is solved. Two invariants:
+#      (1) a host only counts as the checkbox if it really contains a checkbox;
+#      (2) NOTHING may set pointer-events:none on the native compare artwork --
+#          that is what broke tapping/Compare (v5.429 fix).
+_cb_proof = "a-icon-check'+'box]')||dexx.querySelector('input[type=check'+'box]')" in src
+_cb_click = not any(('compareorig' in ln or 'comparelegacyorig' in ln) and 'pointer-events:none' in ln
+                    for ln in src.splitlines())
+print(('PASS' if _cb_proof else 'FAIL') + ': LOCK E1 checkbox must contain a real checkbox')
+print(('PASS' if _cb_click else 'FAIL') + ': LOCK E2 native compare artwork stays hit-testable')
+if not (_cb_proof and _cb_click):
+    print('ERROR: checkbox regression (bezel on a non-checkbox, or the control is untappable).')
+    sys.exit(1)
+
 print('PASS: v5.333 owns non-checkbox symbols; current checkbox and all previously frozen surfaces remain exact.')
 
 # Final checkbox CSS/selector aggregate lock. Exclude only the v5.397 authority lines;
@@ -512,7 +540,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.428.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.429.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
