@@ -363,10 +363,11 @@ except ValueError:
 checkbox_lines=[]
 for ln in _cb_src.splitlines():
     # v5.427 names checkbox markers only to prove a Heart wrapper is not the
-    # real checkbox and to remove stale false ownership.  Its own exact/scope
-    # locks live below; exclude those lines so this original checkbox hash must
-    # remain byte-for-byte equal to the pre-v5.427 solved implementation.
-    if '397' in ln or '408' in ln or '427' in ln: continue
+    # real checkbox and to remove stale false ownership. v5.428 adds a separate
+    # native hit-target/state observer without editing this original implementation.
+    # Their own exact/scope locks live below; exclude those lines so this hash
+    # remains byte-for-byte equal to the pre-v5.427 solved implementation.
+    if '397' in ln or '408' in ln or '427' in ln or '428' in ln: continue
     if re.search(r'mlt-icon-container|data-ad-compare380|data-ad-comparelegacy387|data-ad-product391=\\?"checkbox',ln):
         checkbox_lines.append(ln)
 cbsha=sha('\n'.join(checkbox_lines))
@@ -511,7 +512,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.427.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.428.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
@@ -649,7 +650,7 @@ _exact427={
         '4dd412a76cebb129ff9d554bbe1b8ad2d6c424eee9331f60720e941c800e6139'),
     'Heart shell device probe': (
         exact_between('       // P82HEART427:',
-                      '       // P81CTRL (v5.417):', 'P82HEART427'),
+                      '       // P83COMPARE428:', 'P82HEART427'),
         'faa67839353326f4a21788c5a26ec17f2f99cfbd51118312f6aba4f4f7b3e246'),
 }
 for _label,(_body,_expected) in _exact427.items():
@@ -691,3 +692,71 @@ for _required in [
     if not _ok: sys.exit(1)
 
 print('PASS: solved two-cards and checkbox implementations are exact-locked; v5.427 only neutralizes the falsely-owned Heart wrapper.')
+
+# v5.428 COMPARE FUNCTIONALITY RESTORE
+# Keep every user-confirmed visual owner above byte-exact.  This new layer has one
+# job: expose Amazon's existing checkbox hit target again, then mirror Amazon's
+# real selected state into the already-themed square.  It must never manufacture
+# a control, dispatch a synthetic event, or enter the solved two-cards subtree.
+print('--- v5.428 native Compare behavior and selected-state contract ---')
+
+_compare428=exact_between('         // v5.428: restore Amazon',
+                          '         // v5.347 PDP HEART.', 'compareNative428 layer')
+_probe428=exact_between('       // P83COMPARE428:',
+                        '       // P81CTRL (v5.417):', 'P83COMPARE428')
+for _label,_body,_expected in [
+    ('native Compare restore layer', _compare428,
+     '652920db928082e542a93b7c67248d8dcff2124ca45ef7606464b1c83d842393'),
+    ('native Compare device probe', _probe428,
+     'c38636b5377cc6cb3a8d30b953a785613a4e6c55ff8d8ce510e6f51ac5689e34'),
+]:
+    _actual=sha(_body); _ok=_actual==_expected
+    print(('PASS' if _ok else 'FAIL')+f': exact {_label} {_actual}')
+    if not _ok:
+        print('ERROR: the v5.428 native Compare behavior or its device probe changed.')
+        sys.exit(1)
+
+for _required in [
+    "function foreign428(e)",
+    "[class*=mlt-icon-container],[class*=lists-framework-action-button]",
+    "[class*=lists-framework-action-button],[data-ad-cards410-root]",
+    "[data-ad-heart-shell427],[class*=puis-heart-position]",
+    "querySelectorAll('[class*=a-checkbox]",
+    "input[type=checkbox]",
+    'data-ad-comparehit428=\\"input\\"',
+    "visibility:visible !important;opacity:0 !important;pointer-events:auto !important",
+    "delete h.__adManual380;delete h.__adManualSig380;",
+    "var sel=selected428(h)",
+    "background-color:#2162a1 !important;border-color:#2162a1 !important",
+    "::before{background:#2162a1 !important;border-color:#2162a1 !important",
+    "border:solid #fff !important",
+    "pointer-events:none !important;z-index:7",
+    "window.__AD_PRODUCTCTRL391_PRE428__=window.__AD_PRODUCTCTRL391RUN__",
+    "setTimeout(window.__AD_COMPARE_NATIVE428__,0)",
+    "attributeFilter:['class','aria-checked','data-checked','data-selected','checked','src','data-src'",
+]:
+    _ok=_required in _compare428
+    print(('PASS' if _ok else 'FAIL')+f': native Compare contract {_required[:76]}')
+    if not _ok: sys.exit(1)
+
+for _forbidden in [
+    '.click(', 'dispatchEvent', 'preventDefault(', 'stopPropagation(',
+    'stopImmediatePropagation(', "createElement('input')", "createElement('span')",
+    "createElement('svg')", 'createElementNS(', 'innerHTML=', 'outerHTML=',
+    '.checked=', "setAttribute('aria-checked'", "setAttribute('data-checked'",
+    "setAttribute('data-ad-cards410", "setAttribute('data-ad-heart-shell427",
+]:
+    _ok=_forbidden not in _compare428
+    print(('PASS' if _ok else 'FAIL')+f': no Compare emulation/scope leak {_forbidden}')
+    if not _ok: sys.exit(1)
+
+_ok=_compare428.count("document.createElement('style')")==1
+print(('PASS' if _ok else 'FAIL')+': Compare restore creates only its one paint stylesheet')
+if not _ok: sys.exit(1)
+
+_host_writes=set(re.findall(r"\bh\.style\.setProperty\('([^']+)'", _compare428))
+_ok=_host_writes <= {'background-color','border-color'}
+print(('PASS' if _ok else 'FAIL')+f': Compare host writes are paint-only {sorted(_host_writes)}')
+if not _ok: sys.exit(1)
+
+print('PASS: v5.428 restores Amazon\'s native Compare hit target, mirrors real checked state in blue, and cannot synthesize clicks or enter the frozen cards/Heart painters.')
