@@ -381,26 +381,14 @@ static NSString *ADFixesLiteral(void){
              // THE FIX THAT ACTUALLY WORKED, brought back. v5.27.0 whitened the heart
              // with a documentStart CSS rule and it visibly worked; v5.28.0 removed it
              // because [class*=heart-position] dragged the 32px disc into the whitening
-             // (the white blob). Every JS attempt since lost a timing race CSS cannot
-             // DARK CIRCLE, CHROME RING, WHITE SYMBOL -- the specified target for
-             // both buttons, stated after the invert experiment: "circles with
-             // chrome borders and white symbols". The disc is styled on the BUTTON
-             // element across both card layouts (aria-label catches the grid
-             // compare variant whose class family differs); the wrapper span is
-             // explicitly flattened so nested matches cannot double-ring. Glyphs go
-             // white by silhouette; the loading placeholder is hidden outright
-             // because whitening a solid square asset produces a white box.
-             // lists-framework-action-button intentionally omitted: it also lands on
-             // row-sized containers (Interests popup), where a disc becomes an oval
-             // spanning the row. It is styled from JS instead, size-guarded.
-             "[class*=copilot-compare][class*=on-image-button],"
-             "[class*=copilot-compare] [class*=on-image-button],"
-             "[class*=s-product-image] button[aria-label*=ompare],"
-             "[class*=puisg-col] [role=button][aria-label*=ompare],"
-             "[class*=s-product-image] [data-csa-c-content-id*=ompare],"
-             "[class*=puisg-col] [data-csa-c-content-id*=ompare]"
-             "{background-color:transparent !important;border-radius:0 !important;"
-             "border:0 !important;box-shadow:none !important;box-sizing:border-box !important;}"
+             // (the white blob). Every JS attempt since lost a timing race that
+             // document-start CSS avoids.
+             // v5.435: retired Shopping Compare presentation removed. These old
+             // copilot/aria/content-id selectors forced every descendant through a
+             // white silhouette with greater specificity than the stock-state owner.
+             // On dark Shopping rows that produced the solid white square and also
+             // overrode filter:none after Amazon selected its blue/checkmark sprite.
+             // Cart never used this DOM family and stays byte-locked in v5.434.
              "[class*=puis-heart-position]"
              "{background-color:transparent !important;border:0 !important;"
              "box-shadow:none !important;}"
@@ -425,7 +413,7 @@ static NSString *ADFixesLiteral(void){
              "[class*=lists-treatment-hear] .a-icon"
              "{filter:brightness(0) invert(1) !important;"
              "background-color:transparent !important;}"
-             // v5.434: Compare is stock Amazon artwork and geometry.  No checkbox
+             // v5.435: Compare is stock Amazon artwork and geometry.  No checkbox
              // presentation is allowed in this document-start sheet; the narrowly
              // scoped runtime owner below applies only an unchecked-artwork filter.
              // v5.424: colour ONLY -- no radius/size/border, so this rule can
@@ -457,25 +445,7 @@ static NSString *ADFixesLiteral(void){
              "[class*=lists-framework-action-button] img,"
              "[class*=lists-framework-action-button] i,"
              "[class*=lists-framework-action-button] svg,"
-             "[class*=lists-framework-unfill],[class*=lists-framework-fill],"
-             "[class*=copilot-compare] [class*=on-image-button] img,"
-             "[class*=copilot-compare] [class*=on-image-button] i,"
-             "[class*=copilot-compare] [class*=on-image-button] svg,"
-             "[class*=copilot-compare][class*=on-image-button] img,"
-             "[class*=copilot-compare][class*=on-image-button] i,"
-             "[class*=copilot-compare][class*=on-image-button] svg,"
-             "[class*=s-product-image] button[aria-label*=ompare] img,"
-             "[class*=s-product-image] button[aria-label*=ompare] i,"
-             "[class*=s-product-image] button[aria-label*=ompare] svg,"
-             "[class*=puisg-col] [role=button][aria-label*=ompare] img,"
-             "[class*=puisg-col] [role=button][aria-label*=ompare] i,"
-             "[class*=puisg-col] [role=button][aria-label*=ompare] svg,"
-             "[class*=s-product-image] [data-csa-c-content-id*=ompare] img,"
-             "[class*=s-product-image] [data-csa-c-content-id*=ompare] i,"
-             "[class*=s-product-image] [data-csa-c-content-id*=ompare] svg,"
-             "[class*=puisg-col] [data-csa-c-content-id*=ompare] img,"
-             "[class*=puisg-col] [data-csa-c-content-id*=ompare] i,"
-             "[class*=puisg-col] [data-csa-c-content-id*=ompare] svg"
+             "[class*=lists-framework-unfill],[class*=lists-framework-fill]"
              "{filter:brightness(0) invert(1) !important;"
              "background-color:transparent !important;}"
              "[class*=puis-heart-position] [class*=placehold],[class*=heart-placeholder],"
@@ -504,9 +474,7 @@ static NSString *ADFixesLiteral(void){
              "html body [class*=your-orders] img[src]"
              "{filter:none !important;}"
              "[class*=lists-framework-action-button],"
-             "[class*=lists-framework-action-button] *,"
-             "[class*=copilot-compare] [class*=on-image-button] *,"
-             "[class*=copilot-compare][class*=on-image-button] *"
+             "[class*=lists-framework-action-button] *"
              "{color:#ffffff !important;fill:#ffffff !important;}"
              // v5.375: image-backed search action controls are not trustworthy artwork.
              // Amazon serves three visually different states for the same control

@@ -357,7 +357,7 @@ if not (_cards_glyph and _wrapper_skip):
     print('ERROR: cards control regression (black glyph, or bezel drawn around the cards icon).')
     sys.exit(1)
 
-# ---- LOCK E (v5.434): CHECKBOX is stock. Every shared historical control
+# ---- LOCK E (v5.435): CHECKBOX is stock. Every shared historical control
 # painter must skip a real checkbox. The current owner may invert only one
 # unchecked art leaf and may neutralize only the separate Cart paint shell.
 _cb_skips = all(token in src for token in [
@@ -386,18 +386,35 @@ _old_css=[
     '[data-ad-sym413=\"checkbox\"]',
 ]
 _cb_old_css = all(token not in _fixes for token in _old_css)
+_fixes_split = _fixes.find("\"',invert:")
+_fixes_presentation = _fixes[:_fixes_split] if _fixes_split >= 0 else _fixes
+_fixes_config = _fixes[_fixes_split:] if _fixes_split >= 0 else ''
+_shopping_white_selectors = [
+    '[class*=copilot-compare][class*=on-image-button]',
+    '[class*=copilot-compare] [class*=on-image-button]',
+    '[class*=s-product-image] button[aria-label*=ompare]',
+    '[class*=puisg-col] [role=button][aria-label*=ompare]',
+    '[class*=s-product-image] [data-csa-c-content-id*=ompare]',
+    '[class*=puisg-col] [data-csa-c-content-id*=ompare]',
+]
+_shopping_white_absent = all(token not in _fixes_presentation for token in _shopping_white_selectors)
+_amazon_inline_safe = ('[class*=copilot-compare]' in _fixes_config
+                       and "[class*=a-check'+'box]" in _fixes_config)
 _cb_no_emulation = ("setAttribute('data-ad-compare380'" not in src
                     and '__adManual380=' not in src)
 print(('PASS' if _cb_skips else 'FAIL') + ': LOCK E1 all shared painters skip checkbox')
 print(('PASS' if _cb_native else 'FAIL') + ': LOCK E2 unchecked-only filter / checked stock sprite contract')
 print(('PASS' if _cb_old_css else 'FAIL') + ': LOCK E3 retired checkbox CSS absent at documentStart')
 print(('PASS' if _cb_no_emulation else 'FAIL') + ': LOCK E4 no manual checkbox-state emulation')
-if not (_cb_skips and _cb_native and _cb_old_css and _cb_no_emulation):
+print(('PASS' if _shopping_white_absent else 'FAIL') + ': LOCK E5 no Shopping white-silhouette selector can outrank stock state')
+print(('PASS' if _amazon_inline_safe else 'FAIL') + ': LOCK E6 Amazon Compare/checkbox inline artwork remains protected')
+if not (_cb_skips and _cb_native and _cb_old_css and _cb_no_emulation
+        and _shopping_white_absent and _amazon_inline_safe):
     print('ERROR: stock checkbox isolation regressed.')
     sys.exit(1)
 
-print('PASS: v5.333 owns non-checkbox symbols; v5.434 covers recycled Compare art and neutralizes only the Cart shell.')
-# v5.403 USER-REOPENED SYMBOL / COLLEGE AUTHORITY. v5.434 keeps only the
+print('PASS: v5.333 owns non-checkbox symbols; v5.435 removes the Shopping-only white-silhouette conflict while retaining v5.434 Cart.')
+# v5.403 USER-REOPENED SYMBOL / COLLEGE AUTHORITY. v5.435 keeps only the
 # non-checkbox attribution portion; the former stock403 checkbox painter is retired.
 print('--- v5.403 v5.333-three attribution + retired stock403 + College authority ---')
 required403=[
@@ -535,7 +552,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.434.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.435.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
@@ -749,6 +766,42 @@ for _label,_body,_expected in [
         print('ERROR: the v5.434 stock checkbox contract or read-only probe changed.')
         sys.exit(1)
 
+# USER-CONFIRMED v5.434 CART LOCK. Shopping may be repaired only outside these
+# exact lines. This independently freezes the stylesheet contract, Cart-page
+# detection/scope, gray-shell neutralizer, stale-marker cleanup, state report,
+# and the complete native Cart interaction fixture. Updating the broader
+# checkbox hash can therefore never silently reopen the solved Cart behavior.
+_cart434_tokens = [
+    "s434.textContent=",
+    "var body434=",
+    "function scope434(e)",
+    "function shell434(h,art)",
+    "var old434=document.querySelectorAll('[data-ad-checkbox434-art]')",
+    "window.__AD_CHECKBOX434_STATE__='hosts='",
+]
+_cart434_source = '\n'.join(exact_line(token, 'Cart v5.434 '+token) for token in _cart434_tokens)
+_cart434_source_sha = sha(_cart434_source)
+_cart434_source_ok = _cart434_source_sha == 'b7080b13ab1525e13d46d0f2dd38dabdca008b2208b68a3e097fdbb69253eef5'
+print(('PASS' if _cart434_source_ok else 'FAIL')+f': exact confirmed-good Cart v5.434 runtime/CSS {_cart434_source_sha}')
+if not _cart434_source_ok:
+    print('ERROR: confirmed-good Cart checkbox behavior changed while repairing Shopping.')
+    sys.exit(1)
+
+_test434 = Path('scripts/test-compare-native-428.py').read_text()
+try:
+    _cart_fixture_start = _test434.index('// Cart: classic a-checkbox artwork plus a distinct gray square wrapper.')
+    _cart_fixture_end_token = 'document.body.removeChild(cartItem);document.body.removeChild(cartForeignToggle);'
+    _cart_fixture_end = _test434.index(_cart_fixture_end_token, _cart_fixture_start) + len(_cart_fixture_end_token)
+    _cart_fixture = _test434[_cart_fixture_start:_cart_fixture_end]
+    _cart_fixture_sha = sha(_cart_fixture)
+except ValueError:
+    _cart_fixture_sha = 'missing'
+_cart_fixture_ok = _cart_fixture_sha == '02bf22cc802cc23cb59f312e0018dd3a179bb3caf0c84f5312a18dd602cdbbb9'
+print(('PASS' if _cart_fixture_ok else 'FAIL')+f': exact confirmed-good Cart v5.434 native fixture {_cart_fixture_sha}')
+if not _cart_fixture_ok:
+    print('ERROR: the confirmed Cart click/state/blue-sprite/gray-shell regression fixture changed.')
+    sys.exit(1)
+
 for _required in [
     "function stockCheckbox434()",
     "input[type=checkbox],[role=checkbox],[aria-checked]",
@@ -839,8 +892,10 @@ for _retired in [
     print(('PASS' if _ok else 'FAIL')+f': retired checkbox painter {_retired[:76]}')
     if not _ok: sys.exit(1)
 
-_test434=Path('scripts/test-compare-native-428.py').read_text()
 for _required in [
+    'retired Shopping white-silhouette CSS',
+    'Amazon inline artwork is no longer protected',
+    'copilot-compare on-image-button compare-role-control',
     'Cart classic checkbox was not discovered',
     'Cart gray wrapper was not neutralized',
     'recycled search-result checkbox was not discovered',
@@ -855,4 +910,4 @@ for _required in [
     print(('PASS' if _ok else 'FAIL')+f': DOM fixture assertion {_required}')
     if not _ok: sys.exit(1)
 
-print('PASS: Compare covers Cart and recycled product DOM while Amazon retains state/interaction/geometry; unchecked art alone is inverted, checked blue/checkmark stays unfiltered, Cart shell paint is removed, and other icons remain exact-locked.')
+print('PASS: confirmed-good Cart is independently byte-locked; Shopping has no higher-specificity white-silhouette owner; Amazon retains state/interaction/geometry and checked blue/checkmark artwork; other icons remain exact-locked.')

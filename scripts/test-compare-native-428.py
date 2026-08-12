@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exercise v5.434 stock Compare art across Cart and recycled result DOM shapes."""
+"""Exercise the locked v5.434 Cart and v5.435 Shopping Compare contracts."""
 from pathlib import Path
 import importlib.util
 import shutil
@@ -12,13 +12,33 @@ SOURCE = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else ROOT / "src/Tweak
 NODE = shutil.which("node")
 
 if not NODE:
-    print("checkbox-stock-434 fixture: SKIP (node not installed)")
+    print("checkbox-stock-435 fixture: SKIP (node not installed)")
     raise SystemExit(0)
 
 spec = importlib.util.spec_from_file_location("lint_js", ROOT / "scripts/lint-js.py")
 lint_js = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(lint_js)
 source = SOURCE.read_text(encoding="utf-8")
+fixes = lint_js.literals_in(lint_js.function_body(source, "ADFixesLiteral")).replace("%%", "%")
+css_start = fixes.index("{css:'") + len("{css:'")
+css_end = fixes.index("',invert:", css_start)
+fixes_css = fixes[css_start:css_end]
+retired_shopping_selectors = [
+    "[class*=copilot-compare][class*=on-image-button]",
+    "[class*=copilot-compare] [class*=on-image-button]",
+    "[class*=s-product-image] button[aria-label*=ompare]",
+    "[class*=puisg-col] [role=button][aria-label*=ompare]",
+    "[class*=s-product-image] [data-csa-c-content-id*=ompare]",
+    "[class*=puisg-col] [data-csa-c-content-id*=ompare]",
+]
+leaked = [selector for selector in retired_shopping_selectors if selector in fixes_css]
+if leaked:
+    print("checkbox-stock-435 fixture: FAIL (retired Shopping white-silhouette CSS: " + ", ".join(leaked) + ")")
+    raise SystemExit(1)
+for preserved in ["'[class*=copilot-compare]'", "'[class*=a-check'+'box]'"]:
+    if preserved not in fixes[css_end:]:
+        print("checkbox-stock-435 fixture: FAIL (Amazon inline artwork is no longer protected: " + preserved + ")")
+        raise SystemExit(1)
 emitted = lint_js.literals_in(lint_js.function_body(source, "ADProbeWebJS")).replace("%%", "%")
 start = emitted.index("function stockCheckbox434(){")
 end = emitted.index("try{window.__AD_CHECKBOX434__=", start)
@@ -207,7 +227,7 @@ assert(pseudoControl.getAttribute('data-ad-checkbox434-art')==='checked'&&getCom
 // A new role-checkbox row appears after scrolling/recycling. It must be picked up
 // on the next pass without changing the two already-live controls.
 const roleCard=element('div',{class:'puis-card','data-asin':'SEARCH-3'},360,260);
-const roleControl=element('div',{class:'compare-role-control',role:'checkbox','aria-checked':'false'},38,38);
+const roleControl=element('div',{class:'copilot-compare on-image-button compare-role-control',role:'checkbox','aria-label':'Compare','aria-checked':'false','data-csa-c-content-id':'compare'},38,38);
 const roleArt=element('span',{class:'compare-role-glyph'},24,24);roleArt.style.setProperty('background-image','url(stock-checkbox-off.png)');
 roleControl.appendChild(roleArt);roleCard.appendChild(roleControl);document.body.appendChild(roleCard);
 roleControl.addEventListener('click',()=>{const on=roleControl.getAttribute('aria-checked')!=='true';roleControl.setAttribute('aria-checked',on?'true':'false');roleArt.style.setProperty('background-image',on?'url(stock-checkbox-on.png)':'url(stock-checkbox-off.png)');});
@@ -248,7 +268,7 @@ assert(shellRules.length===2&&shellRules.every(rule=>rule[1].split(';').filter(B
 assert(!/(?:width|height|position|inset|transform|margin|padding|border-radius|display|pointer-events)\s*:/i.test(css),'stylesheet changes checkbox geometry/hit target');
 assert(document.head.querySelectorAll('[id="adcheckbox434"]').length===1,'stylesheet duplicated');
 
-console.log('checkbox-stock-434 fixture: PASS (Cart shell cleanup, classic/background/input/role art, recycling, native pane/state, blue sprite, icon exclusions)');
+console.log('checkbox-stock-435 fixture: PASS (byte-locked Cart; no Shopping white-silhouette override; classic/background/input/pseudo/role art; native pane/state; blue sprite; icon exclusions)');
 '''
 
 result = subprocess.run([NODE, "-e", function + fixture], text=True, capture_output=True)
