@@ -547,7 +547,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.430.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.431.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
@@ -670,10 +670,15 @@ _exact427={
         exact_between('         "function sym413(){try{',
                       '         "try{window.__AD_SYM413_PRE__=', 'sym413'),
         'd36fdb2d2632661a9300450f592c5b8f89f202b1cdac3e785ac517e041b99628'),
+    # v5.431: re-pointed DELIBERATELY. The painter gained a same-kind nested
+    # dedupe -- an a-checkbox inside an a-checkbox was getting a second bezel,
+    # which showed as a square box behind the rounded one. Cards nested under a
+    # checkbox wrapper still paints. Verified in jsdom that cards/heart/chevron
+    # and the oval rejection are unchanged BEFORE updating this hash.
     'probe persistent control painter': (
         exact_between('       "function repaint425(){',
                       '       "try{repaint425();', 'repaint425'),
-        'e3286d8ea6bbb5ba85ae69689486fbf35308ad85ae67017791c9e0fbd671ee1a'),
+        'aebaacfc660aa215a3c9bfd5833be189b7490eeecdb22eeac69032ab719ef5d5'),
     # Freeze the fix itself so it cannot later broaden into card/checkbox DOM.
     'Heart shell engine': (
         exact_between('         // v5.427 HEART SHELL:',
@@ -740,8 +745,12 @@ _compare428=exact_between('         // v5.428: restore Amazon',
 _probe428=exact_between('       // P83COMPARE428:',
                         '       // P81CTRL (v5.417):', 'P83COMPARE428')
 for _label,_body,_expected in [
+    # v5.431: re-pointed DELIBERATELY. The invisible native input is now sized to
+    # fill its host (position/inset/100% + z-index) because the tap only landed on
+    # part of the square -- Compare opened once, then stopped responding. It stays
+    # opacity:0 + pointer-events:auto, so LOCK E2 still holds.
     ('native Compare restore layer', _compare428,
-     '652920db928082e542a93b7c67248d8dcff2124ca45ef7606464b1c83d842393'),
+     '281cffa7016c4ae99e075f9133eb077d7a13f132b77b828da75be73bd4bbcba6'),
     ('native Compare device probe', _probe428,
      'c38636b5377cc6cb3a8d30b953a785613a4e6c55ff8d8ce510e6f51ac5689e34'),
 ]:
