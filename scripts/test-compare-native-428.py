@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exercise the emitted v5.428 Compare repair against stock DOM shapes."""
+"""Exercise the v5.433 stock Compare checkbox against representative Amazon DOM."""
 from pathlib import Path
 import importlib.util
 import shutil
@@ -12,7 +12,7 @@ SOURCE = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else ROOT / "src/Tweak
 NODE = shutil.which("node")
 
 if not NODE:
-    print("compare-native-428 fixture: SKIP (node not installed)")
+    print("checkbox-stock-433 fixture: SKIP (node not installed)")
     raise SystemExit(0)
 
 spec = importlib.util.spec_from_file_location("lint_js", ROOT / "scripts/lint-js.py")
@@ -20,8 +20,8 @@ lint_js = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(lint_js)
 source = SOURCE.read_text(encoding="utf-8")
 emitted = lint_js.literals_in(lint_js.function_body(source, "ADProbeWebJS")).replace("%%", "%")
-start = emitted.index("function compareNative428(){")
-end = emitted.index("try{window.__AD_COMPARE_NATIVE428__=", start)
+start = emitted.index("function stockCheckbox433(){")
+end = emitted.index("try{window.__AD_CHECKBOX433__=", start)
 function = emitted[start:end]
 
 fixture = r'''
@@ -38,13 +38,14 @@ function matchesOne(element,selector){
   if(tag&&element.tagName!==tag[0].toUpperCase())return false;
   for(const match of selector.matchAll(/\.([A-Za-z0-9_-]+)/g))
     if(!String(element.className||'').split(/\s+/).includes(match[1]))return false;
-  const pattern=/\[([^\]\s=*]+)(?:([*]?=)(?:"([^"]*)"|'([^']*)'|([^\]]*)))?\]/g;
+  const pattern=/\[([^\]\s~*="']+)(?:([~*]?=)(?:"([^"]*)"|'([^']*)'|([^\]]*)))?\]/g;
   for(const match of selector.matchAll(pattern)){
     const value=attr(element,match[1]);if(value===undefined)return false;
     if(match[2]){
       const wanted=match[3]??match[4]??match[5]??'',actual=String(value);
       if(match[2]==='='&&actual!==wanted)return false;
       if(match[2]==='*='&&!actual.includes(wanted))return false;
+      if(match[2]==='~='&&!actual.split(/\s+/).includes(wanted))return false;
     }
   }
   return true;
@@ -85,73 +86,69 @@ global.window=global;global.document=new Document();global.__ADFRAME_MODE__=fals
 function element(tag,attrs={}){return new Element(tag,attrs);}
 function assert(value,message){if(!value)throw new Error(message);}
 
+const retiredStock=element('style',{id:'adstock403'});
+const retiredNative=element('style',{id:'adcomparenative428'});
+document.head.appendChild(retiredStock);document.head.appendChild(retiredNative);
+
 const card=element('div',{class:'puis-card','data-asin':'A1'});
-const host=element('div',{'data-ad-stock403':'c'});
-const input=element('input',{type:'checkbox'});
-const icon=element('i',{class:'a-icon-checkbox'});
-input.checked=false;host.__adManual380=1;host.__adManualSig380='stale';
-host.appendChild(input);host.appendChild(icon);card.appendChild(host);document.body.appendChild(card);
+const host=element('div',{class:'a-checkbox','data-ad-sym413':'checkbox','data-ad-compare380':'0','data-ad-stock403':'c','data-ad-product391':'checkbox'});
+const input=element('input',{type:'checkbox','data-ad-compareinput380':'1'});
+const icon=element('i',{class:'a-icon a-icon-checkbox','data-ad-compareorig380':'1','data-ad-stockglyph403':'c'});
+const synthetic=element('span',{'data-ad-comparebox377':'1'});
+input.checked=false;host.__adManual380=1;host.__adManualSig380='stale';host.__adCompareBlue428=1;
+host.style.setProperty('background-color','#181a1b');host.style.setProperty('border','1.5px solid white');
+host.style.setProperty('border-radius','4px');host.style.setProperty('width','32px');
+input.style.setProperty('opacity','0');input.style.setProperty('position','absolute');input.style.setProperty('width','100%');
+icon.style.setProperty('filter','none');icon.style.setProperty('opacity','0');icon.style.setProperty('background-color','transparent');
+icon.__adBy='disc422';
+host.appendChild(input);host.appendChild(icon);host.appendChild(synthetic);card.appendChild(host);document.body.appendChild(card);
+
 let nativeCalls=0,pane=false;
 input.addEventListener('click',()=>{nativeCalls++;pane=true;});
-assert(compareNative428()===1,'input fixture host count');
-assert(host.getAttribute('data-ad-comparefunc428')==='1','input host not marked');
-assert(input.getAttribute('data-ad-comparehit428')==='input','real input is not the hit target');
-assert(host.getAttribute('data-ad-compareselected428')==='0','stale manual state won');
-assert(!('__adManual380' in host)&&!('__adManualSig380' in host),'manual emulation not cleared');
+assert(stockCheckbox433()===1,'stock checkbox host count');
+assert(!document.getElementById('adstock403')&&!document.getElementById('adcomparenative428'),'retired stylesheet survived');
+assert(!host.hasAttribute('data-ad-sym413')&&!host.hasAttribute('data-ad-compare380')&&!host.hasAttribute('data-ad-stock403')&&!host.hasAttribute('data-ad-product391'),'old host ownership survived');
+for(const property of ['background-color','border','border-radius','width'])
+  assert(host.style.getPropertyValue(property)==='',property+' host paint/geometry survived');
+for(const property of ['opacity','position','width'])
+  assert(input.style.getPropertyValue(property)==='',property+' input rewrite survived');
+assert(!host.querySelector('[data-ad-comparebox377]'),'synthetic checkbox painter survived');
+assert(icon.getAttribute('data-ad-checkbox433-art')==='unchecked','unchecked stock artwork not marked');
+assert(icon.style.getPropertyValue('filter')===''&&icon.style.getPropertyValue('opacity')===''&&icon.style.getPropertyValue('background-color')==='','old artwork paint survived');
+assert(!host.hasAttribute('data-ad-checkbox433-art')&&!input.hasAttribute('data-ad-checkbox433-art'),'filter marker escaped stock artwork');
 
 input.click();
-assert(nativeCalls===1&&pane&&input.checked,'native handler/default did not survive');
-compareNative428();
-assert(host.getAttribute('data-ad-compareselected428')==='1','checked input not mirrored');
-assert(host.style.getPropertyValue('background-color')==='#2162a1','selected blue fill missing');
-assert(host.style.getPropertyValue('border-color')==='#2162a1','selected blue border missing');
+assert(nativeCalls===1&&pane&&input.checked,'native Amazon handler/default did not survive');
+stockCheckbox433();
+assert(icon.getAttribute('data-ad-checkbox433-art')==='checked','checked stock sprite not released');
 
-input.click();compareNative428();
-assert(host.getAttribute('data-ad-compareselected428')==='0','unchecked input not mirrored');
-assert(host.style.getPropertyValue('background-color')===''&&host.style.getPropertyValue('border-color')==='','owned blue paint not released');
+input.click();stockCheckbox433();
+assert(nativeCalls===2&&!input.checked&&icon.getAttribute('data-ad-checkbox433-art')==='unchecked','native uncheck did not restore inversion marker');
 
-const legacyCard=element('div',{class:'s-result-item'});
-const legacy=element('span',{'data-ad-comparelegacy387':'0'});
-const stockIcon=element('i',{class:'a-icon-checkbox'});
-legacy.appendChild(stockIcon);legacyCard.appendChild(legacy);document.body.appendChild(legacyCard);
-assert(compareNative428()===2,'legacy stock-art host not found');
-assert(stockIcon.getAttribute('data-ad-comparehit428')==='leaf','stock artwork not restored as native leaf target');
+const css=document.getElementById('adcheckbox433').textContent;
+assert(css==='[data-ad-checkbox433-art="unchecked"]{filter:invert(1) !important;}[data-ad-checkbox433-art="checked"]{filter:none !important;}','stylesheet is not the exact two-filter contract');
+assert(!/(background|border|radius|shadow|width|height|position|transform|opacity|visibility|content|display|pointer-events)\s*:/i.test(css),'stylesheet paints or resizes');
+assert((css.match(/filter:/g)||[]).length===2,'unexpected checkbox declarations');
+assert(document.head.querySelectorAll('[id="adcheckbox433"]').length===1,'stylesheet duplicated');
 
-const currentCard=element('div',{class:'puis-card'});
-const currentCompare=element('div',{class:'a-checkbox'});
-const currentInput=element('input',{type:'checkbox'});currentInput.checked=false;
-currentCompare.appendChild(currentInput);currentCard.appendChild(currentCompare);document.body.appendChild(currentCard);
-assert(compareNative428()===3,'current a-checkbox host was skipped');
-assert(currentCompare.hasAttribute('data-ad-comparefunc428')&&currentInput.getAttribute('data-ad-comparehit428')==='input','current native target not restored');
+function excluded(rootClass){
+  const outer=element('div',{class:'puis-card'}),root=element('div',{class:rootClass});
+  const box=element('div',{class:'a-checkbox'}),q=element('input',{type:'checkbox'}),art=element('i',{class:'a-icon-checkbox'});
+  q.checked=false;box.appendChild(q);box.appendChild(art);root.appendChild(box);outer.appendChild(root);document.body.appendChild(outer);
+  return {box,art};
+}
+const excludedControls=[excluded('mlt-icon-container'),excluded('lists-framework-action-button'),excluded('puis-heart-position'),excluded('puis-mab-chevron')];
+assert(stockCheckbox433()===1,'excluded icon family counted as Compare');
+for(const item of excludedControls){
+  assert(!item.art.hasAttribute('data-ad-checkbox433-art'),'filter leaked into another icon');
+  assert(!item.box.hasAttribute('data-ad-checkbox433-art'),'marker leaked into another icon host');
+}
 
-const mltCard=element('div',{class:'puis-card'});
-const mlt=element('div',{class:'mlt-icon-container','data-ad-compare380':'0'});
-const mltGlyph=element('i',{class:'a-icon-checkbox'});
-mlt.appendChild(mltGlyph);mltCard.appendChild(mlt);document.body.appendChild(mltCard);
-assert(compareNative428()===3,'MLT two-cards subtree entered');
-assert(!mlt.hasAttribute('data-ad-comparefunc428')&&!mltGlyph.hasAttribute('data-ad-comparehit428'),'MLT two-cards control was touched');
+const unrelated=element('i',{class:'a-icon-heart'});
+unrelated.style.setProperty('filter','heart-lock');document.body.appendChild(unrelated);stockCheckbox433();
+assert(unrelated.style.getPropertyValue('filter')==='heart-lock','unrelated icon changed');
 
-const cardsCard=element('div',{class:'puis-card'});
-const cards=element('div',{class:'lists-framework-action-button','data-ad-compare380':'0'});
-const cardsGlyph=element('i',{class:'a-icon-checkbox'});
-cards.appendChild(cardsGlyph);cardsCard.appendChild(cards);document.body.appendChild(cardsCard);
-assert(compareNative428()===3,'two-cards subtree entered');
-assert(!cards.hasAttribute('data-ad-comparefunc428')&&!cardsGlyph.hasAttribute('data-ad-comparehit428'),'two-cards control was touched');
-
-const heartCard=element('div',{class:'puis-card'});
-const heart=element('div',{class:'puis-heart-position','data-ad-compare380':'0'});
-const heartGlyph=element('i',{class:'a-icon-checkbox'});
-heart.appendChild(heartGlyph);heartCard.appendChild(heart);document.body.appendChild(heartCard);
-assert(compareNative428()===3,'Heart subtree entered');
-assert(!heart.hasAttribute('data-ad-comparefunc428')&&!heartGlyph.hasAttribute('data-ad-comparehit428'),'Heart control was touched');
-
-const styles=document.head.querySelectorAll('[id="adcomparenative428"]');
-assert(styles.length===1,'stylesheet duplicated');
-const css=styles[0].textContent;
-assert(css.includes('pointer-events:auto !important'),'native hit CSS missing');
-assert(css.includes('background-color:#2162a1')&&css.includes('border:solid #fff'),'selected blue/check CSS missing');
-assert(css.includes('::before{background:#2162a1'),'existing square painter is not pinned blue');
-console.log('compare-native-428 fixture: PASS (native handler, selected blue/check, stock/current targets, MLT/cards/Heart exclusions)');
+console.log('checkbox-stock-433 fixture: PASS (native click, cleanup, unchecked-only inversion, stock blue sprite, icon exclusions)');
 '''
 
 result = subprocess.run([NODE, "-e", function + fixture], text=True, capture_output=True)

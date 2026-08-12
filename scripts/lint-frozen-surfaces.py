@@ -164,11 +164,12 @@ if bad:
     sys.exit(1)
 print('PASS: Alexa, Hamburger, Cart, Person, Home video, v5.395 Home WBT, and v5.395 standalone-ad fixes are frozen unchanged.')
 
-# v5.397 SYMBOL POLICY — v5.333 owns every non-checkbox symbol. The current
-# Compare checkbox is explicitly exempt and is frozen byte-for-byte from v5.396.
+# v5.397 SYMBOL POLICY — v5.333 owns every non-checkbox symbol. v5.433 retires
+# the former Compare painters; this section now locks those functions as no-ops
+# while continuing to freeze the surrounding Heart/cards/arrow authorities.
 # This is intentionally checked after all older surface gates so a later developer
 # cannot "fix" a symbol by reopening a confirmed Person/Home/Menu path.
-print('--- v5.397 v5.333 symbol authority / current-checkbox lock ---')
+print('--- v5.397 symbol authority / v5.433 retired-checkbox locks ---')
 
 # v5.413: this lock was re-pointed ON PURPOSE. It previously froze a
 # compareStock380 whose selector claimed [class*=mlt-icon-container].
@@ -177,21 +178,20 @@ print('--- v5.397 v5.333 symbol authority / current-checkbox lock ---')
 # role=checkbox or a-icon-checkbox. The real Compare checkbox is
 # div.a-checkbox > i.a-icon-checkbox. So this gate was freezing the wrong
 # element; compare380 no longer selects the cards host.
-# The two current checkbox state machines are exact source-line locks.
+# The two legacy checkbox state machines must remain exact no-ops.
 for key, expected in {
-    'function compareStock380(){':'1be164c5ef54a221afbf47e1490b9944519dfba5cf1644f5377dcebb78e663b3',
-    'function legacyCompare387(){':'e350a9b5fbd0c1a673089c3e5a6ac343ca1c09de7c1b809ae4230fddf5347d24',
+    'function compareStock380(){':'9b4ac3304a8033a0e10fb359cdebb410e7a174f798ad4af3f27f0c99b688e720',
+    'function legacyCompare387(){':'2c81ceb4ca1d41c49b5f52267b94dbe6d89009c862db3240e0407a92b566bea9',
 }.items():
     lines=[ln for ln in src.splitlines() if key in ln and 'v5.397' not in ln]
     actual=sha(lines[0]) if len(lines)==1 else '-'
     ok=len(lines)==1 and actual==expected
-    print(('PASS' if ok else 'FAIL')+f': current checkbox {key} {actual}')
+    print(('PASS' if ok else 'FAIL')+f': retired checkbox painter {key} {actual}')
     bad |= not ok
 
 # v5.408 deliberately reopens ONLY the cards branch inside the original v5.396
-# product-control function. Hash every other line against the exact old block; the
-# one replacement line must be the explicit cards-disable marker. Heart/checkbox/
-# arrow logic therefore remains byte-identical even though the full function hash changes.
+# product-control function. v5.433 additionally removes its checkbox branch. Hash
+# the complete resulting non-cards body so Heart and arrow cannot drift later.
 plines=src.splitlines()
 try:
     pst=next(i for i,l in enumerate(plines) if 'window.__AD_PRODUCTCTRL391RUN__=function' in l)
@@ -199,11 +199,13 @@ try:
     praw=plines[pst:pen+1]
     pdisable=[l for l in praw if '__AD_CARDS391_DISABLED408__' in l]
     pkept=[l for l in praw if '__AD_CARDS391_DISABLED408__' not in l]
-    pactual=sha('\n'.join(pkept)); pexpected='bf2bf88bf9255dbea901b2da6179572b834c5c839f623f56395edaa900b3b3b8'
-    ok=(pactual==pexpected and len(pdisable)==1 and 'var A=[]' in pdisable[0])
+    pactual=sha('\n'.join(pkept)); pexpected='eeb2e88a5dfcfb2981bf949c09fa813da67cf88fbc0410122de93ebd6463d67f'
+    ok=(pactual==pexpected and len(pdisable)==1 and 'var A=[]' in pdisable[0]
+        and 'var C=[],seenC=[]' in '\n'.join(praw)
+        and "skin(ch,'checkbox')" not in '\n'.join(praw))
 except Exception:
     pactual='missing'; ok=False
-print(('PASS' if ok else 'FAIL')+f': product-control non-cards body frozen; modern cards branch disabled {pactual}')
+print(('PASS' if ok else 'FAIL')+f': product-control Heart/arrow body frozen; cards and checkbox branches disabled {pactual}')
 bad |= not ok
 
 # Native symbol engine: these are exact v5.333 functions. ADLiftNativeGlyph has one
@@ -355,72 +357,53 @@ if not (_cards_glyph and _wrapper_skip):
     print('ERROR: cards control regression (black glyph, or bezel drawn around the cards icon).')
     sys.exit(1)
 
-# ---- LOCK E (v5.429): CHECKBOX is solved. Two invariants:
-#      (1) a host only counts as the checkbox if it really contains a checkbox;
-#      (2) NOTHING may set pointer-events:none on the native compare artwork --
-#          that is what broke tapping/Compare (v5.429 fix).
-_cb_proof = "a-icon-check'+'box]')||dexx.querySelector('input[type=check'+'box]')" in src
-# v5.430: E2 now enforces BOTH halves. v5.429 restored the tap by making the
-# native artwork visible -> Amazon's light sprite showed through (white box,
-# dark glyph). v5.430 uses opacity:0, which is invisible AND hit-testable.
-# visibility:hidden is banned: it kills hit-testing (that was the dead button).
-import re as _re430
-_e2_rules = _re430.findall(r'\[data-ad-(?:compareorig379|compareorig380|comparelegacyorig387)=\\"1\\"\]\{([^}]*)\}', src)
-_cb_click = bool(_e2_rules) and all(
-    ('opacity:0' in _b and 'pointer-events:none' not in _b and 'visibility:hidden' not in _b)
-    for _b in _e2_rules)
-print(('PASS' if _cb_proof else 'FAIL') + ': LOCK E1 checkbox must contain a real checkbox')
-print(('PASS' if _cb_click else 'FAIL') + ': LOCK E2 native compare artwork invisible AND hit-testable')
-if not (_cb_proof and _cb_click):
-    print('ERROR: checkbox regression (bezel on a non-checkbox, or the control is untappable).')
+# ---- LOCK E (v5.433): CHECKBOX is stock. Every shared historical control
+# painter must skip a real a-checkbox, and document-start CSS must contain none
+# of the retired checkbox presentation selectors.
+_cb_skips = all(token in src for token in [
+    "if(sq){dskip++;continue;}",
+    "if(k==='checkbox'){sk++;continue;}",
+    "if(sqx){ds++;continue;}",
+])
+_cb_native = all(token in src for token in [
+    r'div.a-checkbox,[class~=\"a-checkbox\"]',
+    r'i.a-icon-checkbox,[class~=\"a-icon-checkbox\"]',
+    r'[data-ad-checkbox433-art=\"unchecked\"]{filter:invert(1) !important;}',
+    r'[data-ad-checkbox433-art=\"checked\"]{filter:none !important;}',
+])
+try:
+    _fa=src.index('static NSString *ADFixesLiteral')
+    _fb=src.index('static NSString *ADThemeLiteral', _fa)
+    _fixes=src[_fa:_fb]
+except ValueError:
+    _fixes=''
+_old_css=[
+    '[data-ad-comparehost377]{', '[data-ad-comparebox377]{',
+    '[data-ad-compare378=', '[data-ad-compare379]{',
+    '[data-ad-compare380]{', '[data-ad-comparelegacy387]{',
+    '[data-ad-product391=\"checkbox\"]::',
+    '[data-ad-sym413=\"checkbox\"]',
+]
+_cb_old_css = all(token not in _fixes for token in _old_css)
+_cb_no_emulation = ("setAttribute('data-ad-compare380'" not in src
+                    and '__adManual380=' not in src)
+print(('PASS' if _cb_skips else 'FAIL') + ': LOCK E1 all shared painters skip checkbox')
+print(('PASS' if _cb_native else 'FAIL') + ': LOCK E2 unchecked-only filter / checked stock sprite contract')
+print(('PASS' if _cb_old_css else 'FAIL') + ': LOCK E3 retired checkbox CSS absent at documentStart')
+print(('PASS' if _cb_no_emulation else 'FAIL') + ': LOCK E4 no manual checkbox-state emulation')
+if not (_cb_skips and _cb_native and _cb_old_css and _cb_no_emulation):
+    print('ERROR: stock checkbox isolation regressed.')
     sys.exit(1)
 
-print('PASS: v5.333 owns non-checkbox symbols; current checkbox and all previously frozen surfaces remain exact.')
-
-# Final checkbox CSS/selector aggregate lock. Exclude only the v5.397 authority lines;
-# everything pre-existing that can recognize or paint the checkbox must stay v5.396 exact.
-# Remove the v5.410 cards runtime/probe windows before hashing the historical
-# checkbox population. v5.410 must mention checkbox selectors only to EXCLUDE them;
-# those exclusions are validated separately below and must not weaken the old hash.
-_cb_src=src
-try:
-    _x=_cb_src.index('         // v5.410 TWO-CARDS:')
-    _y=_cb_src.index('         // v5.407 historical note:',_x)
-    _cb_src=_cb_src[:_x]+_cb_src[_y:]
-except ValueError:
-    pass
-try:
-    _x=_cb_src.index('       // P79CARDS410:')
-    _y=_cb_src.index('       // P66BLEED401:',_x)
-    _cb_src=_cb_src[:_x]+_cb_src[_y:]
-except ValueError:
-    pass
-checkbox_lines=[]
-for ln in _cb_src.splitlines():
-    # v5.427 names checkbox markers only to prove a Heart wrapper is not the
-    # real checkbox and to remove stale false ownership. v5.428 adds a separate
-    # native hit-target/state observer without editing this original implementation.
-    # Their own exact/scope locks live below; exclude those lines so this hash
-    # remains byte-for-byte equal to the pre-v5.427 solved implementation.
-    if '397' in ln or '408' in ln or '427' in ln or '428' in ln: continue
-    if re.search(r'mlt-icon-container|data-ad-compare380|data-ad-comparelegacy387|data-ad-product391=\\?"checkbox',ln):
-        checkbox_lines.append(ln)
-cbsha=sha('\n'.join(checkbox_lines))
-cbexp='cc06d233214c1d07ca50ba51decbc987c8d849eec81e3fa51632d7d5ccb7204a'
-ok=len(checkbox_lines)==31 and cbsha==cbexp
-print(('PASS' if ok else 'FAIL')+f': entire pre-v5.397 checkbox selector/CSS/runtime population lines={len(checkbox_lines)} sha={cbsha}')
-if not ok:
-    print('ERROR: current checkbox population changed; v5.333 symbol authority may not touch it.')
-    sys.exit(1)
-print('PASS: current checkbox remains fully locked outside the v5.333 symbol authority.')
-
-# v5.403 USER-REOPENED SYMBOL / COLLEGE AUTHORITY
-print('--- v5.403 v5.333-three + working-checkbox + College backdrop authority ---')
+print('PASS: v5.333 owns non-checkbox symbols; v5.433 leaves Compare stock except unchecked inversion.')
+# v5.403 USER-REOPENED SYMBOL / COLLEGE AUTHORITY. v5.433 keeps only the
+# non-checkbox attribution portion; the former stock403 checkbox painter is retired.
+print('--- v5.403 v5.333-three attribution + retired stock403 + College authority ---')
 required403=[
     'window.__AD_STOCKCAP403__=function',
     'window.__AD_STOCKFIN403__=function',
     'window.__AD_PRODUCTCTRL391_BASE403__',
-    "s403.id='adstock403'",
+    "checkbox=retired433",
     'data-ad-v333403',
     'window.__AD_COLLEGEBG403__=function',
     "c403.id='adcollege403'",
@@ -437,15 +420,19 @@ for retired in ['__AD_STOCKCAP402__','__AD_STOCKFIN402__','data-ad-stock402','ad
     ok=retired not in src
     print(('PASS' if ok else 'FAIL')+f': retired competing layer absent {retired}')
     bad |= not ok
-# Heart/cards/arrow may be passively labelled for diagnostics, but only checkbox may receive
-# the v5.403 stock styling marker. The exact v5.333 authority above must remain the painter.
-for tok in ["t==='heart'", "t==='cards'", "t==='arrow'", "t===('c'+'heckbox')", "if(k!=='c'){n++;continue;}", "h.setAttribute('data-ad-stock403','c')"]:
+# Heart/cards/arrow may be passively labelled for diagnostics. Checkbox must not
+# enter stock403 at all; stockCheckbox433 is its only owner.
+for tok in ["t==='heart'", "t==='cards'", "t==='arrow'", "else continue;h.setAttribute('data-ad-v333403',k)"]:
     ok=tok in src
     print(('PASS' if ok else 'FAIL')+f': v5.333-three / checkbox-isolation token {tok}')
     bad |= not ok
 for forbidden in ["data-ad-stock403','h'", "data-ad-stock403','d'", "data-ad-stock403','a'", 'data-ad-stock403=h', 'data-ad-stock403=d', 'data-ad-stock403=a']:
     ok=forbidden not in src
     print(('PASS' if ok else 'FAIL')+f': non-checkbox stock override absent {forbidden}')
+    bad |= not ok
+for forbidden in ["h.setAttribute('data-ad-stock403'", "s403.id='adstock403'", "document.createElement('style');s403"]:
+    ok=forbidden not in src
+    print(('PASS' if ok else 'FAIL')+f': retired checkbox stock painter absent {forbidden}')
     bad |= not ok
 # College normalization is allowed to change only background-color on the already-located
 # College section and geometry-qualified full-size structural backdrop(s).
@@ -494,11 +481,11 @@ for bad401 in ['contain:paint','overflow:hidden','isolation:isolate','MutationOb
 if bad:
     print('ERROR: v5.403 reopened surface contract failed.')
     sys.exit(1)
-print('PASS: Heart/cards/arrow are back under exact v5.333 authority; checkbox stays isolated; College backdrop matches app background.')
+print('PASS: Heart/cards/arrow remain under exact v5.333 authority; stock403 is retired; College backdrop matches app background.')
 
 
 # v5.408 USER-CONFIRMED CONTROL LOCKS + LITERAL HISTORICAL CARDS RESTORE
-print('--- v5.408 frozen Heart / checkbox / down-arrow; literal historical cards restore ---')
+print('--- v5.408 frozen Heart/down-arrow; literal historical cards restore ---')
 # Heart and down-arrow remain byte-locked to the exact v5.404 source the user confirmed.
 try:
     _f=src.index('window.__AD_V333FIX404__=function()')
@@ -547,7 +534,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.432.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.433.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
@@ -621,14 +608,13 @@ for _bad in ["createElement('svg')","createElementNS(","createElement('path')","
     print(('PASS' if _ok else 'FAIL')+f': v5.410 no glyph/layout synthesis {_bad}')
     if not _ok: sys.exit(1)
 
-print("PASS: Heart, checkbox, and down-arrow are frozen; v5.410 keeps Amazon's stock cards glyph/geometry, forces it white, renders the 36px backdrop above media, and scrubs cards-owned paint from Compare.")
+print("PASS: Heart and down-arrow are frozen; v5.410 keeps Amazon's stock cards glyph/geometry, forces it white, and cannot enter Compare.")
 
-# v5.427 USER-CONFIRMED-GOOD CARD + CHECKBOX HARD LOCKS / HEART-SHELL FIX
-# The user explicitly declared the two-cards icon and Compare checkbox solved.
-# Freeze their complete active engines, not just a handful of selector tokens.
-# The three shared guarded painters are frozen after adding the narrowly-scoped
-# Heart-shell exclusion, so later work cannot silently reopen either solved path.
-print('--- v5.427 exact cards/checkbox locks and Heart-shell isolation ---')
+# v5.433 CONTROL ISOLATION LOCKS
+# Cards and Heart remain byte-exact. The three shared sweepers are re-locked
+# after adding only their checkbox early-return, so their non-checkbox branches
+# cannot drift while Compare stays outside every custom control painter.
+print('--- v5.433 exact cards/Heart locks and checkbox early-return isolation ---')
 
 def exact_between(a, b, label):
     try:
@@ -645,45 +631,23 @@ def exact_line(token, label):
         sys.exit(1)
     return lines[0]
 
-_exact427={
-    # Complete solved control owners, unchanged from v5.426.
+_exact433_controls={
     'solved two-cards engine': (
         exact_between('window.__AD_CARDS410__=function()',
                       'window.__AD_CARDS410_STATE__=', 'cards410'),
         '9f37d09281bdadd06335cf47215037775c67cf9ca5ccec947b6bf60edb57878f'),
-    'solved checkbox capture': (
-        exact_line('         "window.__AD_STOCKCAP403__=function(){','stockcap403'),
-        '8404349a0580b9d651e2b2d1965246280dffe295294ce0786cfddb7e4b5b3191'),
-    'solved checkbox finalizer': (
-        exact_line('         "window.__AD_STOCKFIN403__=function(){','stockfin403'),
-        '47c25d0aaf39e6d285eabc539d5f4f4da242e5a8bd4244d25bb954369be3ebba'),
-    'solved checkbox CSS': (
-        exact_line("s403.id='adstock403'",'adstock403'),
-        '8fc9945e3340758ce0e14ce7de551a9d5edb0b34bec90fa86735e510ff97aa7a'),
-    # Shared painters after the false-Heart-checkbox exclusion. Exact hashes
-    # lock the already-solved cards and checkbox branches in every JS context.
-    'bootstrap guarded control painter': (
+    'bootstrap control painter with checkbox skip': (
         exact_between('                      "function disc419(){try{',
                       '           "try{var _pv419=', 'disc419'),
-        'c7c731800ff1f02007586b165a7d0867c4f67590de140e1a0674dff0c214d15a'),
-    'probe unified control painter': (
+        'dd20f14bb46efaaf74a74708023dc58921966223597d1e1e3b20cfc294ef710e'),
+    'probe control painter with checkbox skip': (
         exact_between('         "function sym413(){try{',
                       '         "try{window.__AD_SYM413_PRE__=', 'sym413'),
-        'd36fdb2d2632661a9300450f592c5b8f89f202b1cdac3e785ac517e041b99628'),
-    # v5.431: re-pointed DELIBERATELY. The painter gained a same-kind nested
-    # dedupe -- an a-checkbox inside an a-checkbox was getting a second bezel,
-    # which showed as a square box behind the rounded one. Cards nested under a
-    # checkbox wrapper still paints. Verified in jsdom that cards/heart/chevron
-    # and the oval rejection are unchanged BEFORE updating this hash.
-    # v5.432: re-pointed DELIBERATELY. The painter now EXCLUDES the checkbox
-    # sprite (a-icon-check*) from glyph whitening -- inverting it produced a
-    # solid white box inside our black square. Cards and heart glyphs are still
-    # whitened; verified in jsdom before this hash was updated.
-    'probe persistent control painter': (
+        'b62360f16010b5e95827b29127b94def3b42d2d80608ed0e7ba93b4acf80138a'),
+    'persistent control painter with checkbox skip': (
         exact_between('       "function repaint425(){',
                       '       "try{repaint425();', 'repaint425'),
-        '536e1b275f6cb4af4e0935a12b82fc4b725430016c3ad74c402d96e27f04daf4'),
-    # Freeze the fix itself so it cannot later broaden into card/checkbox DOM.
+        '8e562b6577f7669ed0d4cf0417686df2862ece77fb44f21b770ac3a230e1de88'),
     'Heart shell engine': (
         exact_between('         // v5.427 HEART SHELL:',
                       '         // v5.401 Home bleed experiment:', 'heart427'),
@@ -694,27 +658,29 @@ _exact427={
         '4dd412a76cebb129ff9d554bbe1b8ad2d6c424eee9331f60720e941c800e6139'),
     'Heart shell device probe': (
         exact_between('       // P82HEART427:',
-                      '       // P83COMPARE428:', 'P82HEART427'),
+                      '       // P84CHECKBOX433:', 'P82HEART427'),
         'faa67839353326f4a21788c5a26ec17f2f99cfbd51118312f6aba4f4f7b3e246'),
 }
-for _label,(_body,_expected) in _exact427.items():
+for _label,(_body,_expected) in _exact433_controls.items():
     _actual=sha(_body); _ok=_actual==_expected
     print(('PASS' if _ok else 'FAIL')+f': exact {_label} {_actual}')
     if not _ok:
-        print('ERROR: a solved card/checkbox owner or the scoped Heart-shell fix changed.')
+        print('ERROR: a solved card/Heart owner or checkbox exclusion changed.')
         sys.exit(1)
 
 for _required in [
     "if(hs&&!rc&&!/mlt-icon-container/.test(dc))",
     "if(hs&&!rc&&k!=='cards')",
     "if(hsx&&!rcx&&!/mlt-icon/.test(dcx))",
-    "querySelector('input[type=check'+'box],[class*=a-icon-check'+'box]')",
+    "if(sq){dskip++;continue;}",
+    "if(k==='checkbox'){sk++;continue;}",
+    "if(sqx){ds++;continue;}",
 ]:
     _ok=_required in src
-    print(('PASS' if _ok else 'FAIL')+f': shared Heart exclusion preserves solved control {_required}')
+    print(('PASS' if _ok else 'FAIL')+f': shared painter isolation {_required}')
     if not _ok: sys.exit(1)
 
-_heart427=_exact427['Heart shell engine'][0]
+_heart427=_exact433_controls['Heart shell engine'][0]
 for _forbidden in ["setProperty('width'","setProperty('height'","setProperty('position'",
                    "setProperty('transform'"]:
     _ok=_forbidden not in _heart427
@@ -727,7 +693,6 @@ for _required in [
     "if(real427(p)||card427(p))break;if(inner427(p)){p=p.parentElement;continue;}",
     "document.querySelectorAll('[class*=lists-framework-action-button],[class*=puis-heart-position]')",
     "e.setAttribute('data-ad-heart-shell427','1')",
-    "e.removeAttribute(a);",
     "e.style.setProperty('background-color','transparent','important')",
     "e.style.setProperty('border','0','important')",
 ]:
@@ -735,56 +700,73 @@ for _required in [
     print(('PASS' if _ok else 'FAIL')+f': Heart shell scope/neutralization {_required[:72]}')
     if not _ok: sys.exit(1)
 
-print('PASS: solved two-cards and checkbox implementations are exact-locked; v5.427 only neutralizes the falsely-owned Heart wrapper.')
+# The legacy expanded-control chevron rules are the only broad `.a-icon`
+# authority that could otherwise overlap an Amazon checkbox when its input is a
+# sibling rather than an ancestor.  Freeze both narrow exclusions byte-for-byte:
+# every non-checkbox chevron keeps the existing behavior, while a-checkbox art
+# can reach only stockCheckbox433 below.
+for _label,_token,_expected in [
+    ('document-start expanded-icon checkbox exclusion',
+     '__acs.textContent=__acs.textContent.replace',
+     '4e1b2d40492e69c2d94208d856927dfc45db4e0841f11bbb05877d951c4f30df'),
+    ('runtime chevron checkbox exclusion',
+     'function chevronFix383(){',
+     '7fbc8d4216bd5f57c2d1365ea2c4e65708c7d25f0694613bf26e2cb7c7132628'),
+]:
+    _line=exact_line(_token,_label); _actual=sha(_line)
+    _ok=_actual==_expected
+    print(('PASS' if _ok else 'FAIL')+f': exact {_label} {_actual}')
+    if not _ok: sys.exit(1)
+for _required in [
+    "__acs.textContent.replace('[aria-expanded] .a-icon{','[aria-expanded] .a-icon:not(.a-icon-checkbox){')",
+    "input[type=checkbox],[class*=a-icon-checkbox]'));}function mark(e)",
+]:
+    _ok=_required in src
+    print(('PASS' if _ok else 'FAIL')+f': broad icon painter cannot enter checkbox {_required[:76]}')
+    if not _ok: sys.exit(1)
 
-# v5.428 COMPARE FUNCTIONALITY RESTORE
-# Keep every user-confirmed visual owner above byte-exact.  This new layer has one
-# job: expose Amazon's existing checkbox hit target again, then mirror Amazon's
-# real selected state into the already-themed square.  It must never manufacture
-# a control, dispatch a synthetic event, or enter the solved two-cards subtree.
-print('--- v5.428 native Compare behavior and selected-state contract ---')
+print('PASS: cards and Heart stay exact; all shared painters return before touching a real checkbox.')
+# v5.433 STOCK COMPARE CONTRACT
+# Amazon owns the host, geometry, hit target, selected blue sprite and checkmark.
+# This tweak may mark only the stock artwork and may declare only filter: invert
+# while unchecked / filter: none while checked.
+print('--- v5.433 stock Compare / unchecked-filter-only contract ---')
 
-_compare428=exact_between('         // v5.428: restore Amazon',
-                          '         // v5.347 PDP HEART.', 'compareNative428 layer')
-_probe428=exact_between('       // P83COMPARE428:',
-                        '       // P81CTRL (v5.417):', 'P83COMPARE428')
+_checkbox433=exact_between('         // v5.433 STOCK COMPARE:',
+                           '         // v5.347 PDP HEART.', 'stockCheckbox433 layer')
+_probe433=exact_between('       // P84CHECKBOX433:',
+                        '       // P81CTRL (v5.417):', 'P84CHECKBOX433')
 for _label,_body,_expected in [
-    # v5.431: re-pointed DELIBERATELY. The invisible native input is now sized to
-    # fill its host (position/inset/100% + z-index) because the tap only landed on
-    # part of the square -- Compare opened once, then stopped responding. It stays
-    # opacity:0 + pointer-events:auto, so LOCK E2 still holds.
-    ('native Compare restore layer', _compare428,
-     '281cffa7016c4ae99e075f9133eb077d7a13f132b77b828da75be73bd4bbcba6'),
-    ('native Compare device probe', _probe428,
-     'c38636b5377cc6cb3a8d30b953a785613a4e6c55ff8d8ce510e6f51ac5689e34'),
+    ('stock checkbox filter layer', _checkbox433,
+     '03248f8f26297055e8fa165ff0104151c59442f260d32b198df8bb93c7c66038'),
+    ('stock checkbox device probe', _probe433,
+     'f2ba7e1596b470cfdf8bf5222e9e3ee3f965816e35f1c05a7cf4d498c3968ee2'),
 ]:
     _actual=sha(_body); _ok=_actual==_expected
     print(('PASS' if _ok else 'FAIL')+f': exact {_label} {_actual}')
     if not _ok:
-        print('ERROR: the v5.428 native Compare behavior or its device probe changed.')
+        print('ERROR: the v5.433 stock checkbox contract or read-only probe changed.')
         sys.exit(1)
 
 for _required in [
-    "function foreign428(e)",
+    "function stockCheckbox433()",
+    r'div.a-checkbox,[class~=\"a-checkbox\"]',
+    r'i.a-icon-checkbox,[class~=\"a-icon-checkbox\"]',
+    "function foreign433(e)",
     "[class*=mlt-icon-container],[class*=lists-framework-action-button]",
-    "[class*=lists-framework-action-button],[data-ad-cards410-root]",
     "[data-ad-heart-shell427],[class*=puis-heart-position]",
-    "querySelectorAll('[class*=a-checkbox]",
-    "input[type=checkbox]",
-    'data-ad-comparehit428=\\"input\\"',
-    "visibility:visible !important;opacity:0 !important;pointer-events:auto !important",
-    "delete h.__adManual380;delete h.__adManualSig380;",
-    "var sel=selected428(h)",
-    "background-color:#2162a1 !important;border-color:#2162a1 !important",
-    "::before{background:#2162a1 !important;border-color:#2162a1 !important",
-    "border:solid #fff !important",
-    "pointer-events:none !important;z-index:7",
-    "window.__AD_PRODUCTCTRL391_PRE428__=window.__AD_PRODUCTCTRL391RUN__",
-    "setTimeout(window.__AD_COMPARE_NATIVE428__,0)",
-    "attributeFilter:['class','aria-checked','data-checked','data-selected','checked','src','data-src'",
+    "[class*=puis-mab-chevron]",
+    "var q=h.querySelector('input[type=checkbox]');if(q)return !!q.checked",
+    "art.setAttribute('data-ad-checkbox433-art',on?'checked':'unchecked')",
+    r'[data-ad-checkbox433-art=\"unchecked\"]{filter:invert(1) !important;}',
+    r'[data-ad-checkbox433-art=\"checked\"]{filter:none !important;}',
+    "window.__AD_PRODUCTCTRL391_PRE433__=window.__AD_PRODUCTCTRL391RUN__",
+    "setTimeout(window.__AD_CHECKBOX433__,0)",
+    "attributeFilter:['class','aria-checked','data-checked','data-selected','checked','src','data-src']",
+    "P84CHECKBOX433[",
 ]:
-    _ok=_required in _compare428
-    print(('PASS' if _ok else 'FAIL')+f': native Compare contract {_required[:76]}')
+    _ok=_required in _checkbox433 or _required in _probe433
+    print(('PASS' if _ok else 'FAIL')+f': stock checkbox contract {_required[:78]}')
     if not _ok: sys.exit(1)
 
 for _forbidden in [
@@ -792,19 +774,60 @@ for _forbidden in [
     'stopImmediatePropagation(', "createElement('input')", "createElement('span')",
     "createElement('svg')", 'createElementNS(', 'innerHTML=', 'outerHTML=',
     '.checked=', "setAttribute('aria-checked'", "setAttribute('data-checked'",
+    "setAttribute('data-selected'", "h.setAttribute('data-ad-checkbox433-art'",
+    "setProperty(", '::before', '::after',
     "setAttribute('data-ad-cards410", "setAttribute('data-ad-heart-shell427",
 ]:
-    _ok=_forbidden not in _compare428
-    print(('PASS' if _ok else 'FAIL')+f': no Compare emulation/scope leak {_forbidden}')
+    _ok=_forbidden not in _checkbox433
+    print(('PASS' if _ok else 'FAIL')+f': no checkbox paint/emulation/scope leak {_forbidden}')
     if not _ok: sys.exit(1)
 
-_ok=_compare428.count("document.createElement('style')")==1
-print(('PASS' if _ok else 'FAIL')+': Compare restore creates only its one paint stylesheet')
+_ok=_checkbox433.count("document.createElement('style')")==1
+print(('PASS' if _ok else 'FAIL')+': checkbox creates only its two-filter stylesheet')
 if not _ok: sys.exit(1)
 
-_host_writes=set(re.findall(r"\bh\.style\.setProperty\('([^']+)'", _compare428))
-_ok=_host_writes <= {'background-color','border-color'}
-print(('PASS' if _ok else 'FAIL')+f': Compare host writes are paint-only {sorted(_host_writes)}')
+_css_match=re.search(r"s433\.textContent='([^']+)';", _checkbox433)
+_css433=_css_match.group(1) if _css_match else ''
+_declarations=[]
+for _body in re.findall(r'\{([^}]*)\}', _css433):
+    for _decl in _body.split(';'):
+        if ':' in _decl:
+            _declarations.append(_decl.split(':',1)[0].strip())
+_ok=(_declarations==['filter','filter']
+     and 'filter:invert(1) !important' in _css433
+     and 'brightness(' not in _css433
+     and 'filter:none !important' in _css433)
+print(('PASS' if _ok else 'FAIL')+f': stylesheet properties are filter-only {_declarations}')
 if not _ok: sys.exit(1)
 
-print('PASS: v5.428 restores Amazon\'s native Compare hit target, mirrors real checked state in blue, and cannot synthesize clicks or enter the frozen cards/Heart painters.')
+# The runtime may remove its own retired inline writes during an in-place upgrade,
+# but it may not write any style property. Its only new data attribute belongs to art.
+_ok=("style.setProperty(" not in _checkbox433
+     and _checkbox433.count("setAttribute('data-ad-checkbox433-art'")==1)
+print(('PASS' if _ok else 'FAIL')+': runtime writes no paint/geometry and marks artwork only')
+if not _ok: sys.exit(1)
+
+for _retired in [
+    r"function compareStock379(){window.__AD_COMPARE379__=\'retired433\';return 0;}",
+    r"function compareStock380(){window.__AD_COMPARE380__=\'retired433\';return 0;}",
+    r"function legacyCompare387(){window.__AD_COMPARELEGACY387__=\'retired433\';return 0;}",
+    "var C=[],seenC=[];/* checkbox is owned only by stockCheckbox433 */",
+    "window.__AD_STOCKFIN403__=function(){window.__AD_STOCKFIN403_STATE__='checkbox=retired433';return 0;};",
+]:
+    _ok=_retired in src
+    print(('PASS' if _ok else 'FAIL')+f': retired checkbox painter {_retired[:76]}')
+    if not _ok: sys.exit(1)
+
+_test433=Path('scripts/test-compare-native-428.py').read_text()
+for _required in [
+    'stockCheckbox433()===1',
+    'native Amazon handler/default did not survive',
+    'unchecked stock artwork not marked',
+    'checked stock sprite not released',
+    'filter leaked into another icon',
+]:
+    _ok=_required in _test433
+    print(('PASS' if _ok else 'FAIL')+f': DOM fixture assertion {_required}')
+    if not _ok: sys.exit(1)
+
+print('PASS: Compare uses Amazon stock DOM/interaction/geometry; only unchecked artwork is inverted, checked blue/checkmark is unfiltered, and other icons remain exact-locked.')
