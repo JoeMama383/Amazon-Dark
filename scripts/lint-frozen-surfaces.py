@@ -334,6 +334,12 @@ if not _guard_ok:
     print('ERROR: the 18-52px / near-square guard is missing; oversized hosts would be painted.')
     sys.exit(1)
 
+_chev_ok = ("[class*=puis-mab-chevron]" in src and "/glyph/.test(dcx)" in src)
+print(('PASS' if _chev_ok else 'FAIL') + ': LOCK C chevron in painter set and glyph-excluded')
+if not _chev_ok:
+    print('ERROR: chevron dropped from the painter selector set, or the glyph exclusion was removed.')
+    sys.exit(1)
+
 print('PASS: v5.333 owns non-checkbox symbols; current checkbox and all previously frozen surfaces remain exact.')
 
 # Final checkbox CSS/selector aggregate lock. Exclude only the v5.397 authority lines;
@@ -501,7 +507,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.424.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.425.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
