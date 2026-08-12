@@ -360,10 +360,17 @@ if not (_cards_glyph and _wrapper_skip):
 #      (2) NOTHING may set pointer-events:none on the native compare artwork --
 #          that is what broke tapping/Compare (v5.429 fix).
 _cb_proof = "a-icon-check'+'box]')||dexx.querySelector('input[type=check'+'box]')" in src
-_cb_click = not any(('compareorig' in ln or 'comparelegacyorig' in ln) and 'pointer-events:none' in ln
-                    for ln in src.splitlines())
+# v5.430: E2 now enforces BOTH halves. v5.429 restored the tap by making the
+# native artwork visible -> Amazon's light sprite showed through (white box,
+# dark glyph). v5.430 uses opacity:0, which is invisible AND hit-testable.
+# visibility:hidden is banned: it kills hit-testing (that was the dead button).
+import re as _re430
+_e2_rules = _re430.findall(r'\[data-ad-(?:compareorig379|compareorig380|comparelegacyorig387)=\\"1\\"\]\{([^}]*)\}', src)
+_cb_click = bool(_e2_rules) and all(
+    ('opacity:0' in _b and 'pointer-events:none' not in _b and 'visibility:hidden' not in _b)
+    for _b in _e2_rules)
 print(('PASS' if _cb_proof else 'FAIL') + ': LOCK E1 checkbox must contain a real checkbox')
-print(('PASS' if _cb_click else 'FAIL') + ': LOCK E2 native compare artwork stays hit-testable')
+print(('PASS' if _cb_click else 'FAIL') + ': LOCK E2 native compare artwork invisible AND hit-testable')
 if not (_cb_proof and _cb_click):
     print('ERROR: checkbox regression (bezel on a non-checkbox, or the control is untappable).')
     sys.exit(1)
@@ -540,7 +547,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.429.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.430.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
