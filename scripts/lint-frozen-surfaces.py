@@ -297,6 +297,43 @@ if bad:
     print('ERROR: v5.397 symbol authority, current checkbox, or another frozen surface changed.')
     print('Do not update these hashes to bypass the gate; reopen only with explicit device evidence.')
     sys.exit(1)
+# ---------------------------------------------------------------------------
+# v5.424 REGRESSION LOCKS (requested after the oval/heart regressions).
+# These encode two rules that cost many builds to rediscover:
+#   A. NO class-wide CSS may put a round radius on a control class. Such a rule
+#      also matches row-sized containers (e.g. puis-mab-container @168x263) and
+#      turns a product photo into a giant oval. Discs must come from the
+#      size-guarded painter, which can test dimensions; CSS cannot.
+#   B. The heart/control size guard must stay intact: 18..52px on both axes AND
+#      near-square. Removing it is what produced the oval and the 38x78 blob.
+# ---------------------------------------------------------------------------
+_CTRL_CLASSES = ('mlt-icon-container', 'puis-mab-chevron',
+                 'lists-framework-action-button', 'a-checkbox')
+_oval_offenders = []
+for _ln in src.splitlines():
+    if 'border-radius' not in _ln:
+        continue
+    if '50%' not in _ln and '50%%' not in _ln:
+        continue
+    if 'setProperty' in _ln or 'data-ad-' in _ln:
+        continue          # painter code / attribute-keyed rules are fine
+    if any(('[class*=' + _c) in _ln for _c in _CTRL_CLASSES):
+        _oval_offenders.append(_ln.strip()[:110])
+print(('PASS' if not _oval_offenders else 'FAIL') +
+      ': LOCK A no class-wide round radius on control classes')
+if _oval_offenders:
+    for _o in _oval_offenders:
+        print('   offender: ' + _o)
+    print('ERROR: a class-wide radius rule on a control class turns product photos into ovals.')
+    sys.exit(1)
+
+_guard_ok = ("drx.width<18||drx.width>52||drx.height<18||drx.height>52" in src
+             and "Math.abs(drx.width-drx.height)>10" in src)
+print(('PASS' if _guard_ok else 'FAIL') + ': LOCK B control painter size guard intact')
+if not _guard_ok:
+    print('ERROR: the 18-52px / near-square guard is missing; oversized hosts would be painted.')
+    sys.exit(1)
+
 print('PASS: v5.333 owns non-checkbox symbols; current checkbox and all previously frozen surfaces remain exact.')
 
 # Final checkbox CSS/selector aggregate lock. Exclude only the v5.397 authority lines;
@@ -323,8 +360,8 @@ for ln in _cb_src.splitlines():
     if re.search(r'mlt-icon-container|data-ad-compare380|data-ad-comparelegacy387|data-ad-product391=\\?"checkbox',ln):
         checkbox_lines.append(ln)
 cbsha=sha('\n'.join(checkbox_lines))
-cbexp='5b0a87d89c203ab33cabfee2c98b18987853b55c91f4d2c9b6535eec3a26e598'
-ok=len(checkbox_lines)==30 and cbsha==cbexp
+cbexp='cc06d233214c1d07ca50ba51decbc987c8d849eec81e3fa51632d7d5ccb7204a'
+ok=len(checkbox_lines)==31 and cbsha==cbexp
 print(('PASS' if ok else 'FAIL')+f': entire pre-v5.397 checkbox selector/CSS/runtime population lines={len(checkbox_lines)} sha={cbsha}')
 if not ok:
     print('ERROR: current checkbox population changed; v5.333 symbol authority may not touch it.')
@@ -464,7 +501,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.423.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.424.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')

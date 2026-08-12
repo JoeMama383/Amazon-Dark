@@ -433,6 +433,12 @@ static NSString *ADFixesLiteral(void){
              // input/role=checkbox/a-icon-checkbox inside it). v5.377 wrongly
              // called it the Compare checkbox and flattened it. Shared disc
              // spec below is applied to all four controls by sym413().
+             // v5.424: colour ONLY -- no radius/size/border, so this rule can
+             // never turn a container into an oval. Restores the cards glyph
+             // whitening that v5.423 removed along with the shape rules.
+             "[class*=mlt-icon-container] img[class*=s-image],"
+             "[class*=mlt-image-icon] img[class*=s-image]"
+             "{filter:brightness(0) invert(1) !important;background-color:transparent !important;}"
              // v5.374: search templates can temporarily expose a 1x1/lazy
              // placeholder in this action control. Inverting that shim creates the
              // solid white square. Hide known shims at documentStart; runtime below
@@ -9019,6 +9025,8 @@ static NSString *ADProbeWebJS(void){
            "if(drx.width<18||drx.width>52||drx.height<18||drx.height>52){ds++;continue;}"
            "if(Math.abs(drx.width-drx.height)>10){ds++;continue;}"
            "var sqx=/a-check/.test(dcx)&&!/a-icon-check/.test(dcx);"
+           "if(sqx&&!(dexx.querySelector('[class*=a-icon-check'+'box]')||dexx.querySelector('input[type=check'+'box]'))){ds++;continue;}"
+           "if(!sqx&&dexx.querySelector('[class*=mlt-icon-'+'container],[class*=lists-framework-action-'+'button]')){ds++;continue;}"
            "dexx.setAttribute('data-ad-sym413',sqx?'checkbox':(/mlt-icon/.test(dcx)?'cards':(/chevron/.test(dcx)?'chevron':'heart')));"
            "dexx.style.setProperty('background-color','#181a1b','important');"
            "dexx.style.setProperty('border-radius',(sqx?'4px':'50%%'),'important');"
