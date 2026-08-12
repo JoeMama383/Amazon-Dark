@@ -433,50 +433,6 @@ static NSString *ADFixesLiteral(void){
              // input/role=checkbox/a-icon-checkbox inside it). v5.377 wrongly
              // called it the Compare checkbox and flattened it. Shared disc
              // spec below is applied to all four controls by sym413().
-             // v5.418: CSS owns all four on-image controls. CSS survives every
-             // re-render; the JS painter did not (that was the flashing).
-             // CARDS -- circle
-             "[class*=mlt-icon-container]"
-             "{background-color:#181a1b !important;border-radius:50%% !important;"
-             "border:1.5px solid rgba(255,255,255,0.65) !important;"
-             "box-shadow:none !important;box-sizing:border-box !important;}"
-             "[class*=mlt-icon-container] img[class*=s-image],"
-             "[class*=mlt-image-icon] img[class*=s-image]"
-             "{filter:brightness(0) invert(1) !important;background-color:transparent !important;}"
-             "[class*=mlt-icon-container] *,[class*=mlt-text-icon]"
-             "{color:#ffffff !important;fill:#ffffff !important;"
-             "background-color:transparent !important;border:0 !important;box-shadow:none !important;}"
-             // HEART -- wrapper neutralized, disc on the button, scoped to the
-             // product image so a row-sized container can never become an oval.
-             "[class*=puis-heart-position]"
-             "{background-color:transparent !important;border:0 !important;box-shadow:none !important;}"
-             "[class*=s-product-image] [class*=lists-framework-action-button],"
-             "[class*=puis-heart-position] [class*=lists-framework-action-button]"
-             "{background-color:#181a1b !important;border-radius:50%% !important;"
-             "border:1.5px solid rgba(255,255,255,0.65) !important;"
-             "box-shadow:none !important;box-sizing:border-box !important;"
-             "width:32px !important;height:32px !important;overflow:hidden !important;}"
-             "[class*=lists-framework-action-button] img,"
-             "[class*=lists-framework-action-button] i,"
-             "[class*=lists-framework-action-button] svg,"
-             "[class*=lists-framework-unfill],[class*=lists-framework-fill]"
-             "{filter:brightness(0) invert(1) !important;background-color:transparent !important;"
-             "border:0 !important;box-shadow:none !important;border-radius:0 !important;"
-             "max-width:26px !important;max-height:26px !important;}"
-             // CHECKBOX -- BLACK SQUARE with SQUARE chrome bezel, nothing behind it.
-             "[class*=a-checkbox]"
-             "{background-color:#181a1b !important;border-radius:4px !important;"
-             "border:1.5px solid rgba(255,255,255,0.65) !important;"
-             "box-shadow:none !important;box-sizing:border-box !important;}"
-             "[class*=a-checkbox] *"
-             "{background-color:transparent !important;background-image:none !important;"
-             "border:0 !important;box-shadow:none !important;border-radius:0 !important;"
-             "color:#ffffff !important;fill:#ffffff !important;}"
-             // CHEVRON -- already correct on device; state it once for parity.
-             "[class*=puis-mab-chevron]:not([class*=glyph])"
-             "{background-color:#181a1b !important;border-radius:50%% !important;"
-             "border:1.5px solid rgba(255,255,255,0.65) !important;"
-             "box-shadow:none !important;box-sizing:border-box !important;}"
              // v5.374: search templates can temporarily expose a 1x1/lazy
              // placeholder in this action control. Inverting that shim creates the
              // solid white square. Hide known shims at documentStart; runtime below
