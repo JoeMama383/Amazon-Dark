@@ -236,10 +236,11 @@ except Exception:
 print(('PASS' if ok else 'FAIL')+f': exact v5.333 ADLiftNativeGlyph body after protected Menu preamble {actual}')
 bad |= not ok
 
-# v5.333 web glyph passes must still be present byte-identically. Each hash is a
-# 500-character source window centered on the historical writer marker.
+# v5.333 web glyph passes remain byte-locked. Device evidence in v5.439 permits
+# the one gfix1-window change: artChk now returns before any checkbox subtree;
+# the historical writer itself and every non-checkbox path remain unchanged.
 V333_WINDOWS={
- 'gfix1':'c7cea9187726e0dc741280f80771c5e31a578ef3e1528ebe7c68b5d328b63af8',
+ 'gfix1':'97f183a362e1bfd121398de9b658f4ca5f3a9b573ef800a8a54250038fe9fa64',
  'gfix2':'e8c9531f44bcc1e204d766de29708876373d00c4da77420146497ddb688b470b',
  'logolift':'df95d7ce310b3ee802df7c9c6809e175a3cd1852d0810ff9faa56fd1045ee6e9',
  'tileart':'bdffdbf648176aa1767e18ef60c35f8b8afbaf25991f2ba9ce1a09cfb5390522',
@@ -357,7 +358,7 @@ if not (_cards_glyph and _wrapper_skip):
     print('ERROR: cards control regression (black glyph, or bezel drawn around the cards icon).')
     sys.exit(1)
 
-# ---- LOCK E (v5.438): CHECKBOX is stock. Every shared historical control
+# ---- LOCK E (v5.439): CHECKBOX is stock. Every shared historical control
 # painter must skip it. JavaScript may discover/clean the native host and art,
 # but checked state must come from live input/ARIA/class CSS -- never a delayed
 # JavaScript checked/unchecked marker. This is what prevents the blue sprite
@@ -370,16 +371,18 @@ _cb_skips = all(token in src for token in [
 _cb_native = all(token in src for token in [
     "input[type=checkbox],[role=checkbox],[aria-checked]",
     "function art434(h,seed)",
-    "s434.setAttribute('data-ad-native-state','438')",
-    r'[data-ad-checkbox434-host]{--ad-checkbox434-filter:invert(1);}',
+    "s434.setAttribute('data-ad-native-state','439')",
+    r'[data-ad-checkbox434-host]{--ad-checkbox434-filter:brightness(0);}',
     ':has(input[type=checkbox]:checked',
     '[aria-pressed=true]',
-    r'[data-ad-checkbox434-art]{filter:var(--ad-checkbox434-filter,invert(1)) !important;}',
+    r'[data-ad-checkbox434-art]{filter:var(--ad-checkbox434-filter,brightness(0)) !important;}',
     r'[data-ad-checkbox434-shell=\"cart\"]{background-color:transparent !important;',
     "[class*=copilot-compare],button[aria-label*=ompare]",
     "h.setAttribute('data-ad-checkbox434-host','stock')",
     "art.setAttribute('data-ad-checkbox434-art','stock')",
     "new MutationObserver(function(){try{window.__AD_CHECKBOX434__();}",
+    "function generic434(e)",
+    "e.style.removeProperty('filter')",
 ])
 try:
     _fa=src.index('static NSString *ADFixesLiteral')
@@ -408,18 +411,19 @@ _shopping_white_selectors = [
 ]
 _shopping_white_absent = all(token not in _fixes_presentation for token in _shopping_white_selectors)
 _amazon_inline_safe = ('[class*=copilot-compare]' in _fixes_config
-                       and "[class*=a-check'+'box]" in _fixes_config)
+                       and "[class*=a-check'+'box]" in _fixes_config
+                       and "closest('[class*=a-checkbox],[class*=a-icon-checkbox],input[type=checkbox],[role=checkbox],[class*=copilot-compare],button[aria-label*=ompare],[data-csa-c-content-id*=ompare]')" in src)
 _cb_no_emulation = ("setAttribute('data-ad-compare380'" not in src
                     and '__adManual380=' not in src
                     and "on?'checked':'unchecked'" not in src
                     and r'[data-ad-checkbox434-art=\"unchecked\"]' not in src
                     and r'[data-ad-checkbox434-art=\"checked\"]' not in src)
 print(('PASS' if _cb_skips else 'FAIL') + ': LOCK E1 all shared painters skip checkbox')
-print(('PASS' if _cb_native else 'FAIL') + ': LOCK E2 native-state unchecked invert / checked stock sprite contract')
+print(('PASS' if _cb_native else 'FAIL') + ': LOCK E2 native-state pure-black unchecked / checked stock sprite contract')
 print(('PASS' if _cb_old_css else 'FAIL') + ': LOCK E3 retired checkbox CSS absent at documentStart')
 print(('PASS' if _cb_no_emulation else 'FAIL') + ': LOCK E4 no timer/manual checkbox-state emulation')
 print(('PASS' if _shopping_white_absent else 'FAIL') + ': LOCK E5 no Shopping white-silhouette selector can outrank stock state')
-print(('PASS' if _amazon_inline_safe else 'FAIL') + ': LOCK E6 Amazon Compare/checkbox inline artwork remains protected')
+print(('PASS' if _amazon_inline_safe else 'FAIL') + ': LOCK E6 Amazon Compare/checkbox artwork is excluded from broad writers')
 if not (_cb_skips and _cb_native and _cb_old_css and _cb_no_emulation
         and _shopping_white_absent and _amazon_inline_safe):
     print('ERROR: stock checkbox isolation regressed.')
@@ -440,8 +444,8 @@ if not _video_ok:
     print('ERROR: a taming filter site lost its VIDEO guard; video will render black with audio only.')
     sys.exit(1)
 
-print('PASS: v5.333 owns non-checkbox symbols; v5.438 gives Cart and Shopping one native-state stock checkbox owner.')
-# v5.403 USER-REOPENED SYMBOL / COLLEGE AUTHORITY. v5.438 keeps only the
+print('PASS: v5.333 owns non-checkbox symbols; v5.439 gives Cart and Shopping one native-state stock checkbox owner.')
+# v5.403 USER-REOPENED SYMBOL / COLLEGE AUTHORITY. v5.439 keeps only the
 # non-checkbox attribution portion; the former stock403 checkbox painter is retired.
 print('--- v5.403 v5.333-three attribution + retired stock403 + College authority ---')
 required403=[
@@ -579,7 +583,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.438.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.439.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
@@ -689,14 +693,14 @@ _exact434_controls={
         exact_between('         "function sym413(){try{',
                       '         "try{window.__AD_SYM413_PRE__=', 'sym413'),
         'b62360f16010b5e95827b29127b94def3b42d2d80608ed0e7ba93b4acf80138a'),
-# v5.438: re-pointed DELIBERATELY. CB87 remains read-only, but now recognizes
-# the native host/art markers plus Shopping role-button/copilot controls. It
-# still writes only diagnostics to localStorage; no painter behavior changed.
+# v5.439: re-pointed DELIBERATELY. CB87 remains read-only and now records the
+# native host/art markers plus Shopping role-button/copilot controls. It
+# also identifies the winning inline filter/owner; no painter behavior changed.
 # LOCK E1-E6 prove the checkbox remains untouched by every shared painter.
     'persistent control painter with checkbox skip': (
         exact_between('       "function repaint425(){',
                       '       "try{repaint425();', 'repaint425'),
-        'c9f47d40f2d17ee225ca1515f29c0fbadfbb787d715b0f094e074aae94067aa5'),
+        '379fade04f0d43461acd24196a5d537677d990565c97eeb5dbbf0f497534c11a'),
     'Heart shell engine': (
         exact_between('         // v5.427 HEART SHELL:',
                       '         // v5.401 Home bleed experiment:', 'heart427'),
@@ -775,29 +779,29 @@ for _required in [
     if not _ok: sys.exit(1)
 
 print('PASS: cards and Heart stay exact; all shared painters return before touching a real checkbox.')
-# v5.438 STOCK COMPARE CONTRACT
+# v5.439 DEVICE-CAPTURED STOCK CHECKBOX CONTRACT
 # Amazon owns state, geometry, the hit target, and the selected blue/checkmark
-# sprite. The tweak identifies one stock art node, inverts it only while native
-# state is unchecked, and clears paint-only Cart shells without geometry.
-print('--- v5.438 native-state stock Compare / Cart + recycled Shopping contract ---')
+# sprite. The tweak identifies one stock art node, makes every unchecked sprite
+# pixel pure black, and clears paint-only Cart shells without changing geometry.
+print('--- v5.439 device-captured stock checkbox / Cart + recycled Shopping contract ---')
 
-_checkbox434=exact_between('         // v5.438 NATIVE-STATE STOCK CHECKBOX.',
+_checkbox434=exact_between('         // v5.439 DEVICE-CAPTURED STOCK CHECKBOX.',
                            '         // v5.347 PDP HEART.', 'stockCheckbox434 layer')
 _probe434=exact_between('       // P85CHECKBOX434:',
                         '       // P81CTRL (v5.417):', 'P85CHECKBOX434')
 for _label,_body,_expected in [
     ('stock checkbox runtime layer', _checkbox434,
-     '89de475f2d47148c8617ab7933d93659cb93e9652235c9705dd760285e01af82'),
+     'a6edcd71234abbe120d1b80f590e5a5c50ad4518cf9f8b798b806f4505589b5e'),
     ('stock checkbox device probe', _probe434,
-     '6363e5d61cd4698865a60e3c7b951af542011a64abe4ed418a5abc606dd7737e'),
+     'cccb34f72fb17a6c5e132d48828f659eb0acda8432f14e8a856f9584a7687f29'),
 ]:
     _actual=sha(_body); _ok=_actual==_expected
     print(('PASS' if _ok else 'FAIL')+f': exact {_label} {_actual}')
     if not _ok:
-        print('ERROR: the v5.438 stock checkbox contract or read-only probe changed.')
+        print('ERROR: the v5.439 stock checkbox contract or read-only probe changed.')
         sys.exit(1)
 
-# Independently lock the v5.438 Cart fixture. It proves the two gray wrappers
+# Independently lock the v5.439 Cart fixture. It proves the two gray wrappers
 # are paint-neutralized, native click/pane behavior survives, and :checked
 # releases the blue sprite without calling the JavaScript discovery pass.
 _test434 = Path('scripts/test-compare-native-428.py').read_text()
@@ -809,8 +813,8 @@ try:
     _cart_fixture_sha = sha(_cart_fixture)
 except ValueError:
     _cart_fixture_sha = 'missing'
-_cart_fixture_ok = _cart_fixture_sha == 'c59c709df17e16cfbe49e2c35b8767c6932106af225a847956da61dc4756972d'
-print(('PASS' if _cart_fixture_ok else 'FAIL')+f': exact v5.438 Cart native-state/ring fixture {_cart_fixture_sha}')
+_cart_fixture_ok = _cart_fixture_sha == 'aba11a1684b48aa4d8648b82f228fa9598486568da80227a5d68681da8a697fc'
+print(('PASS' if _cart_fixture_ok else 'FAIL')+f': exact v5.439 Cart native-state/ring fixture {_cart_fixture_sha}')
 if not _cart_fixture_ok:
     print('ERROR: the Cart click/blue-sprite/no-orange/gray-shell fixture changed.')
     sys.exit(1)
@@ -823,6 +827,9 @@ for _required in [
     "function art434(h,seed)",
     "function visual434(e)",
     "function light434(c)",
+    "function generic434(e)",
+    "/^(?:gfix1|gfix2|aic|gsweep|fltpanel)$/",
+    "e.style.removeProperty('filter')",
     "backgroundImage||'none'",
     "maskImage||c.webkitMaskImage||'none'",
     "getComputedStyle(e,'::before')",
@@ -839,11 +846,11 @@ for _required in [
     "art.setAttribute('data-ad-checkbox434-art','stock')",
     "p.setAttribute('data-ad-checkbox434-shell','cart')",
     "body434.indexOf('proceed to checkout')",
-    "s434.setAttribute('data-ad-native-state','438')",
-    r'[data-ad-checkbox434-host]{--ad-checkbox434-filter:invert(1);}',
+    "s434.setAttribute('data-ad-native-state','439')",
+    r'[data-ad-checkbox434-host]{--ad-checkbox434-filter:brightness(0);}',
     ':has(input[type=checkbox]:checked',
     '[aria-pressed=true]',
-    r'[data-ad-checkbox434-art]{filter:var(--ad-checkbox434-filter,invert(1)) !important;}',
+    r'[data-ad-checkbox434-art]{filter:var(--ad-checkbox434-filter,brightness(0)) !important;}',
     r'[data-ad-checkbox434-shell=\"cart\"]{background-color:transparent !important;',
     "window.__AD_PRODUCTCTRL391_PRE434__=window.__AD_PRODUCTCTRL391RUN__",
     "new MutationObserver(function(){try{window.__AD_CHECKBOX434__();}",
@@ -899,18 +906,19 @@ _ok=(len(_art_rules)==2 and all(css_properties(body)==['filter'] for body in _ar
      and len(_shell_rules)==2
      and all(set(css_properties(body))==_shell_allowed for body in _shell_rules)
      and not any(prop in _geometry for _,body in _rules for prop in css_properties(body))
-     and '--ad-checkbox434-filter:invert(1)' in _css434
+     and '--ad-checkbox434-filter:brightness(0)' in _css434
      and ':has(input[type=checkbox]:checked' in _css434
      and '[aria-pressed=true]' in _css434
-     and 'filter:var(--ad-checkbox434-filter,invert(1)) !important' in _css434
+     and 'filter:var(--ad-checkbox434-filter,brightness(0)) !important' in _css434
      and 'filter:none !important' in _css434
-     and 'brightness(' not in _css434
+     and 'brightness(0)' in _css434
+     and 'invert(1)' not in _css434
      and 'data-ad-checkbox434-art=\\"unchecked\\"' not in _css434
      and 'data-ad-checkbox434-art=\\"checked\\"' not in _css434)
 print(('PASS' if _ok else 'FAIL')+f': native state owns filter; art is filter-only; Cart shell is paint-neutralization-only rules={[(s,css_properties(b)) for s,b in _rules]}')
 if not _ok: sys.exit(1)
 
-# Runtime cleanup may remove inline writes left by retired builds. It may add
+# Runtime cleanup may remove inline writes left by retired or broad glyph writers. It may add
 # one host, one art, and one Cart-shell marker, but no paint, state, or geometry.
 _ok=("style.setProperty(" not in _checkbox434
      and _checkbox434.count("setAttribute('data-ad-checkbox434-host'")==1
@@ -938,7 +946,8 @@ for _required in [
     'Cart gray ring survived computed shell cleanup',
     'Cart blue checked sprite waited for JavaScript or was inverted orange',
     'Shopping role-button checkbox was not discovered',
-    'Shopping unchecked white sprite was not inverted black',
+    'Shopping stale broad-writer filter survived cleanup',
+    'Shopping unchecked white sprite was not painted pure black',
     'Shopping checked stock sprite did not render',
     'Shopping blue sprite waited for repaint or flashed orange',
     'newly recycled Shopping row was not discovered',
@@ -946,7 +955,7 @@ for _required in [
     'ARIA checked blue sprite was altered or delayed',
     'solid-white Shopping checkbox was not discovered',
     'solid-white Shopping filter landed on hidden sprite',
-    'solid-white Shopping box did not render black',
+    'solid-white Shopping box did not render pure black',
     'solid-white Shopping checked sprite was altered or delayed',
     'wrapper-pseudo stock artwork was not discovered',
     'wrapper-pseudo blue sprite was altered or timer-delayed',
@@ -957,4 +966,4 @@ for _required in [
     print(('PASS' if _ok else 'FAIL')+f': DOM fixture assertion {_required}')
     if not _ok: sys.exit(1)
 
-print('PASS: v5.438 locks black unchecked art in Cart and recycled Shopping, removes the Cart gray ring, and releases Amazon blue/checkmark state synchronously with no orange timer frame; other icons remain exact-locked.')
+print('PASS: v5.439 locks pure-black unchecked art in Cart and recycled Shopping, removes the Cart gray ring and stale white-box filter, and releases Amazon blue/checkmark state synchronously with no orange timer frame; other icons remain exact-locked.')

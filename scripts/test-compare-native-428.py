@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exercise the v5.438 native-state Cart and Shopping Compare contract."""
+"""Exercise the v5.439 device-captured Cart and Shopping checkbox contract."""
 from pathlib import Path
 import importlib.util
 import shutil
@@ -12,7 +12,7 @@ SOURCE = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else ROOT / "src/Tweak
 NODE = shutil.which("node")
 
 if not NODE:
-    print("checkbox-stock-438 fixture: SKIP (node not installed)")
+    print("checkbox-stock-439 fixture: SKIP (node not installed)")
     raise SystemExit(0)
 
 spec = importlib.util.spec_from_file_location("lint_js", ROOT / "scripts/lint-js.py")
@@ -33,12 +33,16 @@ retired_shopping_selectors = [
 ]
 leaked = [selector for selector in retired_shopping_selectors if selector in fixes_css]
 if leaked:
-    print("checkbox-stock-438 fixture: FAIL (retired Shopping white-silhouette CSS: " + ", ".join(leaked) + ")")
+    print("checkbox-stock-439 fixture: FAIL (retired Shopping white-silhouette CSS: " + ", ".join(leaked) + ")")
     raise SystemExit(1)
 for preserved in ["'[class*=copilot-compare]'", "'[class*=a-check'+'box]'"]:
     if preserved not in fixes[css_end:]:
-        print("checkbox-stock-438 fixture: FAIL (Amazon inline artwork is no longer protected: " + preserved + ")")
+        print("checkbox-stock-439 fixture: FAIL (Amazon inline artwork is no longer protected: " + preserved + ")")
         raise SystemExit(1)
+checkbox_guard = "closest('[class*=a-checkbox],[class*=a-icon-checkbox],input[type=checkbox],[role=checkbox],[class*=copilot-compare],button[aria-label*=ompare],[data-csa-c-content-id*=ompare]')"
+if checkbox_guard not in source:
+    print("checkbox-stock-439 fixture: FAIL (broad glyph writer can still enter a native checkbox subtree)")
+    raise SystemExit(1)
 emitted = lint_js.literals_in(lint_js.function_body(source, "ADProbeWebJS")).replace("%%", "%")
 start = emitted.index("function stockCheckbox434(){")
 end = emitted.index("try{window.__AD_CHECKBOX434__=", start)
@@ -46,10 +50,11 @@ function = emitted[start:end]
 
 fixture = r'''
 class Style {
-  constructor(){this.values=new Map();}
-  setProperty(key,value){this.values.set(String(key),String(value));}
+  constructor(){this.values=new Map();this.priorities=new Map();}
+  setProperty(key,value,priority=''){this.values.set(String(key),String(value));this.priorities.set(String(key),String(priority));}
   getPropertyValue(key){return this.values.get(String(key))||'';}
-  removeProperty(key){const value=this.getPropertyValue(key);this.values.delete(String(key));return value;}
+  getPropertyPriority(key){return this.priorities.get(String(key))||'';}
+  removeProperty(key){const value=this.getPropertyValue(key);this.values.delete(String(key));this.priorities.delete(String(key));return value;}
 }
 function attr(element,name){return name==='class'?element.className:element.attrs.get(name);}
 function matchesOne(element,selector){
@@ -129,13 +134,13 @@ function nativeSelected434(element){
 global.getComputedStyle=(element,pseudo)=>{
   const raw=key=>element.style.getPropertyValue(key);
   let filter=raw('filter')||'none';
-  if(element.hasAttribute&&element.hasAttribute('data-ad-checkbox434-art'))filter=nativeSelected434(element)?'none':'invert(1)';
+  if(element.hasAttribute&&element.hasAttribute('data-ad-checkbox434-art')&&!raw('filter'))filter=nativeSelected434(element)?'none':'brightness(0)';
   if(element.getAttribute&&element.getAttribute('data-ad-checkbox434-shell')==='cart')filter='none';
   const shell=element.getAttribute&&element.getAttribute('data-ad-checkbox434-shell')==='cart';
   return {
     backgroundImage:pseudo==='::before'?(element.pseudoBeforeBackgroundImage||'none'):pseudo==='::after'?(element.pseudoAfterBackgroundImage||'none'):(raw('background-image')||'none'),maskImage:raw('mask-image')||'none',
     webkitMaskImage:raw('-webkit-mask-image')||'none',opacity:raw('opacity')||'1',
-    visibility:raw('visibility')||'visible',display:raw('display')||'block',filter,
+    visibility:raw('visibility')||'visible',display:raw('display')||'block',appearance:raw('appearance')||'auto',webkitAppearance:raw('-webkit-appearance')||'auto',filter,
     backgroundColor:shell?'transparent':(raw('background-color')||'transparent'),
     borderTopWidth:shell?'0px':(raw('border-width')||'0px'),
     boxShadow:shell?'none':(raw('box-shadow')||'none'),
@@ -175,7 +180,7 @@ assert(cartCount===1,'Cart classic checkbox was not discovered: count='+cartCoun
 for(const id of ['adstock403','adcomparenative428','adcheckbox433'])assert(!document.getElementById(id),'retired stylesheet survived: '+id);
 assert(cartHost.getAttribute('data-ad-checkbox434-host')==='stock','Cart native host was not marked');
 assert(cartArt.getAttribute('data-ad-checkbox434-art')==='stock','Cart stock sprite was not selected');
-assert(getComputedStyle(cartArt).filter==='invert(1)','Cart unchecked stock sprite is not inverted black');
+assert(getComputedStyle(cartArt).filter==='brightness(0)','Cart unchecked stock sprite is not pure black');
 assert(cartShell.getAttribute('data-ad-checkbox434-shell')==='cart'&&cartHost.getAttribute('data-ad-checkbox434-shell')==='cart','Cart gray wrappers were not neutralized');
 assert(getComputedStyle(cartShell).borderTopWidth==='0px'&&getComputedStyle(cartHost).boxShadow==='none','Cart gray ring survived computed shell cleanup');
 assert(!cartForeignToggle.hasAttribute('data-ad-checkbox434-art'),'Cart mode leaked into a page-wide checkbox');
@@ -184,29 +189,31 @@ assert(cartInput.style.getPropertyValue('opacity')===''&&cartInput.style.getProp
 assert(cartArt.style.getPropertyValue('opacity')===''&&cartArt.style.getPropertyValue('filter')==='','legacy sprite hiding/filter survived');
 noLayoutWrites(cartShell,'Cart outer shell');noLayoutWrites(cartHost,'Cart stock shell');noLayoutWrites(cartArt,'Cart art');
 
-// No repaint call after click: native :checked must release invert in the same
+// No repaint call after click: native :checked must release the filter in the same
 // frame, leaving Amazon's blue/checkmark sprite stock and preventing orange flash.
 cartInput.click();
 assert(cartNativeCalls===1&&cartPane&&cartInput.checked,'Cart native handler/default did not survive');
 assert(cartArt.style.getPropertyValue('background-image')==='url(stock-checkbox-on.png)','Cart checked stock sprite URL was erased');
 assert(getComputedStyle(cartArt).filter==='none','Cart blue checked sprite waited for JavaScript or was inverted orange');
 cartInput.click();
-assert(!cartInput.checked&&getComputedStyle(cartArt).filter==='invert(1)','Cart native uncheck did not synchronously restore black');
+assert(!cartInput.checked&&getComputedStyle(cartArt).filter==='brightness(0)','Cart native uncheck did not synchronously restore pure black');
 
 document.body.removeChild(cartItem);document.body.removeChild(cartForeignToggle);
 document.body.innerText='Search results for furniture leveling feet';
 
 // Shopping/scrolling shape: the semantic control is role=button/copilot, not
-// role=checkbox. A hidden legacy-looking icon coexists with the visible stock
-// background sprite; discovery must select the visible art instead of whitening
-// the hidden node or the whole control.
+// role=checkbox. This reproduces the device capture: the visible art is Amazon's
+// 23px i.a-icon.a-icon-checkbox sprite and a broad glyph writer previously left
+// brightness(0) invert(1) inline, turning it into a white box. Discovery must
+// clear that tweak-owned write and leave the stock sprite as the sole artwork.
 function shoppingResult(asin){
   const card=element('div',{class:'s-result-item','data-component-type':'s-search-result','data-asin':asin},360,260);
   const control=element('div',{class:'copilot-compare compare-control'},44,44);
   const button=element('button',{class:'on-image-button','aria-label':'Compare','data-csa-c-content-id':'compare'},40,40);
   const input=element('input',{type:'checkbox'},24,24);input.checked=false;input.style.setProperty('opacity','0');
-  const hidden=element('i',{class:'a-icon a-icon-checkbox legacy-hidden-art'},24,24);hidden.style.setProperty('opacity','0');
-  const art=element('span',{class:'selection-glyph'},24,24);art.style.setProperty('background-image','url(stock-checkbox-off.png)');
+  const hidden=element('span',{class:'legacy-hidden-art'},24,24);hidden.style.setProperty('opacity','0');
+  const art=element('i',{class:'a-icon a-icon-checkbox'},23,23);art.style.setProperty('background-image','url(stock-checkbox-off.png)');
+  art.style.setProperty('filter','brightness(0) invert(1)','important');art.__adBy='gfix1';art.__adGlyph=1;
   input.addEventListener('click',()=>art.style.setProperty('background-image',input.checked?'url(stock-checkbox-on.png)':'url(stock-checkbox-off.png)'));
   button.appendChild(input);button.appendChild(hidden);button.appendChild(art);control.appendChild(button);card.appendChild(control);document.body.appendChild(card);
   return {card,control,button,input,hidden,art};
@@ -218,7 +225,8 @@ assert(stockCheckbox434()===1,'Shopping role-button checkbox was not discovered'
 assert(shopping.control.getAttribute('data-ad-checkbox434-host')==='stock','Shopping semantic host was not canonicalized');
 assert(shopping.art.getAttribute('data-ad-checkbox434-art')==='stock','Shopping visible background sprite was not selected');
 assert(!shopping.hidden.hasAttribute('data-ad-checkbox434-art')&&!shopping.input.hasAttribute('data-ad-checkbox434-art'),'Shopping filter landed on hidden art/input');
-assert(getComputedStyle(shopping.art).filter==='invert(1)','Shopping unchecked white sprite was not inverted black');
+assert(shopping.art.style.getPropertyValue('filter')===''&&shopping.art.style.getPropertyPriority('filter')==='','Shopping stale broad-writer filter survived cleanup');
+assert(getComputedStyle(shopping.art).filter==='brightness(0)','Shopping unchecked white sprite was not painted pure black');
 assert(shopping.art.style.getPropertyValue('background-image')==='url(stock-checkbox-off.png)','Shopping unchecked stock sprite was replaced');
 shopping.input.click();
 assert(shoppingNativeCalls===1&&shoppingPane&&shopping.input.checked,'Shopping native Compare action/pane did not survive');
@@ -229,7 +237,7 @@ assert(getComputedStyle(shopping.art).filter==='none','Shopping blue sprite wait
 // while the already-selected row keeps native state and stock artwork.
 const scrolling=shoppingResult('SEARCH-2');
 assert(stockCheckbox434()===2,'newly recycled Shopping row was not discovered');
-assert(scrolling.art.getAttribute('data-ad-checkbox434-art')==='stock'&&getComputedStyle(scrolling.art).filter==='invert(1)','recycled Shopping checkbox did not render black');
+assert(scrolling.art.getAttribute('data-ad-checkbox434-art')==='stock'&&getComputedStyle(scrolling.art).filter==='brightness(0)','recycled Shopping checkbox did not render pure black');
 assert(shopping.art.getAttribute('data-ad-checkbox434-art')==='stock'&&getComputedStyle(shopping.art).filter==='none','recycling regressed the selected Shopping sprite');
 
 // Some Shopping builds expose a button with aria-pressed and no native input.
@@ -240,7 +248,7 @@ const ariaArt=element('span',{class:'compare-role-glyph'},24,24);ariaArt.style.s
 ariaControl.appendChild(ariaArt);ariaCard.appendChild(ariaControl);document.body.appendChild(ariaCard);
 ariaControl.addEventListener('click',()=>{const on=ariaControl.getAttribute('aria-pressed')!=='true';ariaControl.setAttribute('aria-pressed',on?'true':'false');ariaArt.style.setProperty('background-image',on?'url(stock-checkbox-on.png)':'url(stock-checkbox-off.png)');});
 assert(stockCheckbox434()===3,'Shopping aria-pressed Compare control was not discovered');
-assert(ariaArt.getAttribute('data-ad-checkbox434-art')==='stock'&&getComputedStyle(ariaArt).filter==='invert(1)','ARIA unchecked stock art was not black');
+assert(ariaArt.getAttribute('data-ad-checkbox434-art')==='stock'&&getComputedStyle(ariaArt).filter==='brightness(0)','ARIA unchecked stock art was not pure black');
 ariaControl.click();
 assert(getComputedStyle(ariaArt).filter==='none'&&ariaArt.style.getPropertyValue('background-image')==='url(stock-checkbox-on.png)','ARIA checked blue sprite was altered or delayed');
 
@@ -256,7 +264,7 @@ solidInput.addEventListener('click',()=>solidButton.style.setProperty('backgroun
 solidButton.appendChild(solidInput);solidButton.appendChild(solidHidden);solidControl.appendChild(solidButton);solidCard.appendChild(solidControl);document.body.appendChild(solidCard);
 assert(stockCheckbox434()===4,'solid-white Shopping checkbox was not discovered');
 assert(solidButton.getAttribute('data-ad-checkbox434-art')==='stock'&&!solidHidden.hasAttribute('data-ad-checkbox434-art'),'solid-white Shopping filter landed on hidden sprite');
-assert(getComputedStyle(solidButton).filter==='invert(1)','solid-white Shopping box did not render black');
+assert(getComputedStyle(solidButton).filter==='brightness(0)','solid-white Shopping box did not render pure black');
 solidInput.click();
 assert(getComputedStyle(solidButton).filter==='none'&&getComputedStyle(solidButton).backgroundColor==='rgb(33,98,161)','solid-white Shopping checked sprite was altered or delayed');
 
@@ -270,7 +278,7 @@ pseudoControl.pseudoBeforeBackgroundImage='url(stock-checkbox-off.png)';pseudoCo
 pseudoInput.addEventListener('click',()=>pseudoControl.pseudoBeforeBackgroundImage=pseudoInput.checked?'url(stock-checkbox-on.png)':'url(stock-checkbox-off.png)');
 assert(stockCheckbox434()===5,'wrapper-pseudo stock artwork was not discovered');
 assert(pseudoControl.getAttribute('data-ad-checkbox434-host')==='stock'&&pseudoControl.getAttribute('data-ad-checkbox434-art')==='stock','pseudo artwork did not remain its own native host');
-assert(!pseudoInput.hasAttribute('data-ad-checkbox434-art')&&getComputedStyle(pseudoControl).filter==='invert(1)','pseudo filter landed on hidden native input');
+assert(!pseudoInput.hasAttribute('data-ad-checkbox434-art')&&getComputedStyle(pseudoControl).filter==='brightness(0)','pseudo filter landed on hidden native input');
 pseudoInput.click();
 assert(getComputedStyle(pseudoControl).filter==='none','wrapper-pseudo blue sprite was altered or timer-delayed');
 
@@ -293,9 +301,9 @@ assert(!primeToggle.hasAttribute('data-ad-checkbox434-art'),'out-of-card Prime t
 assert(unrelated.style.getPropertyValue('filter')==='heart-lock','unrelated Heart icon changed');
 
 const style=document.getElementById('adcheckbox434'),css=style.textContent;
-assert(style.getAttribute('data-ad-native-state')==='438','old timer-state stylesheet survived');
-assert(css.includes('[data-ad-checkbox434-host]{--ad-checkbox434-filter:invert(1);}')&&css.includes(':has(input[type=checkbox]:checked')&&css.includes('[aria-pressed=true]'),'native input/ARIA state selectors are missing');
-assert(css.includes('[data-ad-checkbox434-art]{filter:var(--ad-checkbox434-filter,invert(1)) !important;}'),'unchecked stock-art inversion rule is missing');
+assert(style.getAttribute('data-ad-native-state')==='439','old timer-state stylesheet survived');
+assert(css.includes('[data-ad-checkbox434-host]{--ad-checkbox434-filter:brightness(0);}')&&css.includes(':has(input[type=checkbox]:checked')&&css.includes('[aria-pressed=true]'),'native input/ARIA state selectors are missing');
+assert(css.includes('[data-ad-checkbox434-art]{filter:var(--ad-checkbox434-filter,brightness(0)) !important;}'),'unchecked pure-black stock-art rule is missing');
 assert(!css.includes('[data-ad-checkbox434-art="unchecked"]')&&!css.includes('[data-ad-checkbox434-art="checked"]'),'JavaScript timer-state selectors survived');
 const rules=[...css.matchAll(/([^{}]+)\{([^}]*)\}/g)];
 const artRules=rules.filter(rule=>rule[1].includes('data-ad-checkbox434-art'));
@@ -304,13 +312,13 @@ const shellRules=rules.filter(rule=>rule[1].includes('data-ad-checkbox434-shell'
 const shellAllowed=new Set(['background-color','background-image','border','box-shadow','outline','filter']);
 assert(shellRules.length===2&&shellRules.every(rule=>rule[2].split(';').filter(Boolean).every(decl=>shellAllowed.has(decl.split(':')[0].trim()))),'Cart shell writes geometry or non-neutral paint');
 assert(!/(?:width|height|position|inset|transform|margin|padding|border-radius|display|pointer-events)\s*:/i.test(css),'stylesheet changes checkbox geometry/hit target');
-assert(!css.includes('brightness('),'checkbox uses silhouette painting instead of plain inversion');
+assert(css.includes('brightness(0)')&&!css.includes('invert(1)'),'unchecked checkbox is not pure black or still preserves a gray/orange-producing inversion');
 assert(document.head.querySelectorAll('[id="adcheckbox434"]').length===1,'stylesheet duplicated');
 const runtime=stockCheckbox434.toString();
 for(const forbidden of ['.click(','dispatchEvent','preventDefault(','stopPropagation(',"setAttribute('aria-checked'","setAttribute('data-checked'","setAttribute('data-selected'","on?'checked':'unchecked'"])
   assert(!runtime.includes(forbidden),'checkbox runtime emulates state or interaction: '+forbidden);
 
-console.log('checkbox-stock-438 fixture: PASS (Cart ring removed; Shopping role-button/recycling discovered; unchecked black; native blue sprite; no orange timer race; icon exclusions)');
+console.log('checkbox-stock-439 fixture: PASS (device-shaped Cart/Shopping sprites; pure-black unchecked; no gray ring; native blue sprite; no orange timer race; icon exclusions)');
 '''
 
 result = subprocess.run([NODE, "-e", function + fixture], text=True, capture_output=True)
