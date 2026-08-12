@@ -47,7 +47,7 @@ jobs:
         run: python3 scripts/lint-js.py
       - name: Guard frozen Alexa / Hamburger / Cart / video surfaces
         run: python3 scripts/lint-frozen-surfaces.py src/Tweak.xm
-      - name: Lock Cart and reject Shopping Compare white-silhouette overrides
+      - name: Lock native-state Cart and recycled Shopping Compare checkboxes
         run: python3 scripts/test-compare-native-428.py src/Tweak.xm
 
       - name: Build rootless package
