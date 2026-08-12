@@ -433,6 +433,19 @@ static NSString *ADFixesLiteral(void){
              // input/role=checkbox/a-icon-checkbox inside it). v5.377 wrongly
              // called it the Compare checkbox and flattened it. Shared disc
              // spec below is applied to all four controls by sym413().
+             // v5.432: the stock Compare checkmark. Hidden while unchecked so our
+             // black square + chrome bezel reads clean; shown UNFILTERED once the
+             // native input is :checked, so Amazon paints its own blue fill and
+             // white checkmark inside our box. Colour/visibility only -- no radius.
+             "[data-ad-sym413=\"checkbox\"] i[class*=a-icon-check],"
+             "[data-ad-sym413=\"checkbox\"] [class*=a-icon-check]"
+             "{opacity:0 !important;filter:none !important;transition:none !important;}"
+             "[data-ad-sym413=\"checkbox\"] input:checked ~ i[class*=a-icon-check],"
+             "[data-ad-sym413=\"checkbox\"] input:checked ~ [class*=a-icon-check],"
+             "[data-ad-sym413=\"checkbox\"] input:checked + i[class*=a-icon-check],"
+             "[data-ad-sym413=\"checkbox\"][aria-checked=\"true\"] [class*=a-icon-check],"
+             "[data-ad-sym413=\"checkbox\"] [aria-checked=\"true\"] [class*=a-icon-check]"
+             "{opacity:1 !important;filter:none !important;}"
              // v5.424: colour ONLY -- no radius/size/border, so this rule can
              // never turn a container into an oval. Restores the cards glyph
              // whitening that v5.423 removed along with the shape rules.
@@ -9167,8 +9180,10 @@ static NSString *ADProbeWebJS(void){
              "var grx=gex.getBoundingClientRect();"
              "if(grx.width>48||grx.height>48)continue;"
              "var gtx=String(gex.tagName||'').toUpperCase();"
-             "if(gtx==='IMG'||gtx==='I'||gtx==='P')"
+             "var cbart=/a-icon-check/.test(String(gex.className||''))||sqx;"
+             "if(!cbart&&(gtx==='IMG'||gtx==='I'||gtx==='P'))"
                "gex.style.setProperty('filter','brightness(0) invert(1)','important');"
+             "if(cbart){gex.style.removeProperty('filter');}"
              "gex.__adBy='disc422';"
              "gex.style.setProperty('color','#ffffff','important');"
              "gex.style.setProperty('fill','#ffffff','important');}"

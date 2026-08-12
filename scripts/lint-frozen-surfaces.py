@@ -547,7 +547,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.431.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.432.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
@@ -675,10 +675,14 @@ _exact427={
     # which showed as a square box behind the rounded one. Cards nested under a
     # checkbox wrapper still paints. Verified in jsdom that cards/heart/chevron
     # and the oval rejection are unchanged BEFORE updating this hash.
+    # v5.432: re-pointed DELIBERATELY. The painter now EXCLUDES the checkbox
+    # sprite (a-icon-check*) from glyph whitening -- inverting it produced a
+    # solid white box inside our black square. Cards and heart glyphs are still
+    # whitened; verified in jsdom before this hash was updated.
     'probe persistent control painter': (
         exact_between('       "function repaint425(){',
                       '       "try{repaint425();', 'repaint425'),
-        'aebaacfc660aa215a3c9bfd5833be189b7490eeecdb22eeac69032ab719ef5d5'),
+        '536e1b275f6cb4af4e0935a12b82fc4b725430016c3ad74c402d96e27f04daf4'),
     # Freeze the fix itself so it cannot later broaden into card/checkbox DOM.
     'Heart shell engine': (
         exact_between('         // v5.427 HEART SHELL:',
