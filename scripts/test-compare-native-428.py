@@ -379,7 +379,7 @@ assert(unrelated.style.getPropertyValue('filter')==='heart-lock','unrelated Hear
 const style=document.getElementById('adcheckbox434'),css=style.textContent;
 assert(style.getAttribute('data-ad-native-state')==='441','old timer-state stylesheet survived');
 assert(css.includes(':has(input[type=checkbox]:checked')&&css.includes('[aria-pressed=true]'),'native input/ARIA state selectors are missing');
-assert(css.includes('[data-ad-checkbox434-art]{filter:none !important;border-radius:50% !important;box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important;transition:none !important;}'),'unchecked 32px chrome stock-art rule is missing');
+assert(css.includes('[data-ad-checkbox434-art]{filter:none !important;border-radius:4px !important;box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important;transition:none !important;}'),'unchecked 32px chrome stock-art rule is missing');
 assert(!css.includes('[data-ad-checkbox434-art="unchecked"]')&&!css.includes('[data-ad-checkbox434-art="checked"]'),'JavaScript timer-state selectors survived');
 const rules=[...css.matchAll(/([^{}]+)\{([^}]*)\}/g)];
 const artRules=rules.filter(rule=>rule[1].includes('data-ad-checkbox434-art'));

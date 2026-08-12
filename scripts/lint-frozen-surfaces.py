@@ -21,10 +21,10 @@ src = SRC.read_text()
 # version makes a fresh device probe indistinguishable from an older install.
 _control = Path("layout/DEBIAN/control").read_text()
 _workflow = Path(".github/workflows/build.yml").read_text()
-_version_ok = ('#define AD_VERSION "v5.441.0"' in src
-               and "Version: 5.441.0" in _control
-               and "AmazonDark-v5.441-checkbox-chrome-rootless-deb" in _workflow)
-print(("PASS" if _version_ok else "FAIL") + ": v5.441 runtime/package/artifact identifiers agree")
+_version_ok = ('#define AD_VERSION "v5.442.0"' in src
+               and "Version: 5.442.0" in _control
+               and "AmazonDark-v5.442-checkbox-square-rootless-deb" in _workflow)
+print(("PASS" if _version_ok else "FAIL") + ": v5.442 runtime/package/artifact identifiers agree")
 if not _version_ok:
     sys.exit(1)
 
@@ -379,13 +379,18 @@ _cb_skips = all(token in src for token in [
     "if(k==='checkbox'){sk++;continue;}",
     "if(sqx){ds++;continue;}",
 ])
+# v5.442: the pinned unchecked-art rule changed 50% -> 4px ON PURPOSE. The
+# Compare checkbox now renders as a SQUARE in Shopping and Cart (it shares
+# this one rule), matching the slight corner rounding of Amazon's own checked
+# blue sprite. Only the radius moved: fill, chrome ring, sizing and the
+# checked stock-sprite passthrough are byte-identical.
 _cb_native = all(token in src for token in [
     "input[type=checkbox],[role=checkbox],[aria-checked]",
     "function art434(h,seed)",
     "s434.setAttribute('data-ad-native-state','441')",
     ':has(input[type=checkbox]:checked',
     '[aria-pressed=true]',
-    r'[data-ad-checkbox434-art]{filter:none !important;border-radius:50% !important;box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important;transition:none !important;}',
+    r'[data-ad-checkbox434-art]{filter:none !important;border-radius:4px !important;box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important;transition:none !important;}',
     r'[data-ad-checkbox434-shell=\"cart\"]{background-color:transparent !important;',
     "[class*=copilot-compare],button[aria-label*=ompare]",
     "h.setAttribute('data-ad-checkbox434-host','stock')",
@@ -593,7 +598,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.441.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.442.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
@@ -823,8 +828,11 @@ _checkbox434=exact_between('         // v5.441 DEVICE-CAPTURED STOCK CHECKBOX + 
 _probe434=exact_between('       // P85CHECKBOX441:',
                         '       // P81CTRL (v5.417):', 'P85CHECKBOX434')
 for _label,_body,_expected in [
+# v5.442: re-pointed DELIBERATELY -- radius only (50% -> 4px) so the Compare
+# checkbox is a square in both Shopping and Cart. No change to fill, chrome,
+# sizing, hit target, or the checked stock-blue sprite passthrough.
     ('stock checkbox runtime layer', _checkbox434,
-     '7d94ea304b031c197b06eeabed7b7e8e2630d9d061ef5526290f988d1ad0be60'),
+     'baebf713bb89c261cc3b1cea406e540a44c8dd7a5faf5051844e1a5b1092de2d'),
     ('stock checkbox and ownership device probes', _probe434,
      'cc7dacb734e1b81425742eba57f10041d5e4bd2a81a3551b62c96b7927307a8c'),
 ]:
@@ -883,7 +891,7 @@ for _required in [
     "s434.setAttribute('data-ad-native-state','441')",
     ':has(input[type=checkbox]:checked',
     '[aria-pressed=true]',
-    r'[data-ad-checkbox434-art]{filter:none !important;border-radius:50% !important;box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important;transition:none !important;}',
+    r'[data-ad-checkbox434-art]{filter:none !important;border-radius:4px !important;box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important;transition:none !important;}',
     r'[data-ad-checkbox434-shell=\"cart\"]{background-color:transparent !important;',
     "window.__AD_PRODUCTCTRL391_PRE434__=window.__AD_PRODUCTCTRL391RUN__",
     "new MutationObserver(function(){try{window.__AD_CHECKBOX434__();}",
@@ -966,7 +974,10 @@ _ok=(len(_art_rules)==2 and all(set(css_properties(body))<=_art_allowed for body
      and ':has(input[type=checkbox]:checked' in _css434
      and '[aria-pressed=true]' in _css434
      and 'filter:none !important' in _css434
-     and 'border-radius:50% !important' in _css434
+     # v5.442: SQUARE checkbox. The unchecked art radius is 4px (was 50%), which
+     # matches the corner rounding of Amazon's own checked blue sprite so both
+     # states share a silhouette. The checked passthrough still resets to 0.
+     and 'border-radius:4px !important' in _css434
      and 'box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important' in _css434
      and 'border-radius:0 !important' in _css434
      and 'box-shadow:none !important' in _css434

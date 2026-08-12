@@ -77,7 +77,7 @@ jobs:
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AmazonDark-v5.441-checkbox-chrome-rootless-deb
+          name: AmazonDark-v5.442-checkbox-square-rootless-deb
           path: packages/*.deb
           if-no-files-found: error
 
