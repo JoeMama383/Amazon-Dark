@@ -362,7 +362,11 @@ except ValueError:
     pass
 checkbox_lines=[]
 for ln in _cb_src.splitlines():
-    if '397' in ln or '408' in ln: continue
+    # v5.427 names checkbox markers only to prove a Heart wrapper is not the
+    # real checkbox and to remove stale false ownership.  Its own exact/scope
+    # locks live below; exclude those lines so this original checkbox hash must
+    # remain byte-for-byte equal to the pre-v5.427 solved implementation.
+    if '397' in ln or '408' in ln or '427' in ln: continue
     if re.search(r'mlt-icon-container|data-ad-compare380|data-ad-comparelegacy387|data-ad-product391=\\?"checkbox',ln):
         checkbox_lines.append(ln)
 cbsha=sha('\n'.join(checkbox_lines))
@@ -507,7 +511,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.426.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.427.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
@@ -582,3 +586,108 @@ for _bad in ["createElement('svg')","createElementNS(","createElement('path')","
     if not _ok: sys.exit(1)
 
 print("PASS: Heart, checkbox, and down-arrow are frozen; v5.410 keeps Amazon's stock cards glyph/geometry, forces it white, renders the 36px backdrop above media, and scrubs cards-owned paint from Compare.")
+
+# v5.427 USER-CONFIRMED-GOOD CARD + CHECKBOX HARD LOCKS / HEART-SHELL FIX
+# The user explicitly declared the two-cards icon and Compare checkbox solved.
+# Freeze their complete active engines, not just a handful of selector tokens.
+# The three shared guarded painters are frozen after adding the narrowly-scoped
+# Heart-shell exclusion, so later work cannot silently reopen either solved path.
+print('--- v5.427 exact cards/checkbox locks and Heart-shell isolation ---')
+
+def exact_between(a, b, label):
+    try:
+        x=src.index(a); y=src.index(b,x)
+        return src[x:y]
+    except ValueError:
+        print('FAIL: missing exact block '+label)
+        sys.exit(1)
+
+def exact_line(token, label):
+    lines=[ln for ln in src.splitlines() if token in ln]
+    if len(lines)!=1:
+        print(f'FAIL: {label} expected one source line, found {len(lines)}')
+        sys.exit(1)
+    return lines[0]
+
+_exact427={
+    # Complete solved control owners, unchanged from v5.426.
+    'solved two-cards engine': (
+        exact_between('window.__AD_CARDS410__=function()',
+                      'window.__AD_CARDS410_STATE__=', 'cards410'),
+        '9f37d09281bdadd06335cf47215037775c67cf9ca5ccec947b6bf60edb57878f'),
+    'solved checkbox capture': (
+        exact_line('         "window.__AD_STOCKCAP403__=function(){','stockcap403'),
+        '8404349a0580b9d651e2b2d1965246280dffe295294ce0786cfddb7e4b5b3191'),
+    'solved checkbox finalizer': (
+        exact_line('         "window.__AD_STOCKFIN403__=function(){','stockfin403'),
+        '47c25d0aaf39e6d285eabc539d5f4f4da242e5a8bd4244d25bb954369be3ebba'),
+    'solved checkbox CSS': (
+        exact_line("s403.id='adstock403'",'adstock403'),
+        '8fc9945e3340758ce0e14ce7de551a9d5edb0b34bec90fa86735e510ff97aa7a'),
+    # Shared painters after the false-Heart-checkbox exclusion. Exact hashes
+    # lock the already-solved cards and checkbox branches in every JS context.
+    'bootstrap guarded control painter': (
+        exact_between('                      "function disc419(){try{',
+                      '           "try{var _pv419=', 'disc419'),
+        'c7c731800ff1f02007586b165a7d0867c4f67590de140e1a0674dff0c214d15a'),
+    'probe unified control painter': (
+        exact_between('         "function sym413(){try{',
+                      '         "try{window.__AD_SYM413_PRE__=', 'sym413'),
+        'd36fdb2d2632661a9300450f592c5b8f89f202b1cdac3e785ac517e041b99628'),
+    'probe persistent control painter': (
+        exact_between('       "function repaint425(){',
+                      '       "try{repaint425();', 'repaint425'),
+        'e3286d8ea6bbb5ba85ae69689486fbf35308ad85ae67017791c9e0fbd671ee1a'),
+    # Freeze the fix itself so it cannot later broaden into card/checkbox DOM.
+    'Heart shell engine': (
+        exact_between('         // v5.427 HEART SHELL:',
+                      '         // v5.401 Home bleed experiment:', 'heart427'),
+        '839a289b242dd33365b532e21c900708c2903b494c7594dfcd29080fd15d353b'),
+    'Heart shell finalizer': (
+        exact_between('         "try{window.__AD_PRODUCTCTRL391_PRE427__=',
+                      '         // v5.407 historical note:', 'heart427-finalizer'),
+        '4dd412a76cebb129ff9d554bbe1b8ad2d6c424eee9331f60720e941c800e6139'),
+    'Heart shell device probe': (
+        exact_between('       // P82HEART427:',
+                      '       // P81CTRL (v5.417):', 'P82HEART427'),
+        'faa67839353326f4a21788c5a26ec17f2f99cfbd51118312f6aba4f4f7b3e246'),
+}
+for _label,(_body,_expected) in _exact427.items():
+    _actual=sha(_body); _ok=_actual==_expected
+    print(('PASS' if _ok else 'FAIL')+f': exact {_label} {_actual}')
+    if not _ok:
+        print('ERROR: a solved card/checkbox owner or the scoped Heart-shell fix changed.')
+        sys.exit(1)
+
+for _required in [
+    "if(hs&&!rc&&!/mlt-icon-container/.test(dc))",
+    "if(hs&&!rc&&k!=='cards')",
+    "if(hsx&&!rcx&&!/mlt-icon/.test(dcx))",
+    "querySelector('input[type=check'+'box],[class*=a-icon-check'+'box]')",
+]:
+    _ok=_required in src
+    print(('PASS' if _ok else 'FAIL')+f': shared Heart exclusion preserves solved control {_required}')
+    if not _ok: sys.exit(1)
+
+_heart427=_exact427['Heart shell engine'][0]
+for _forbidden in ["setProperty('width'","setProperty('height'","setProperty('position'",
+                   "setProperty('transform'"]:
+    _ok=_forbidden not in _heart427
+    print(('PASS' if _ok else 'FAIL')+f': Heart shell cannot mutate layout {_forbidden}')
+    if not _ok: sys.exit(1)
+for _required in [
+    "function real427(e){return !!(e&&e.querySelector&&e.querySelector('input[type=checkbox],[class*=a-icon-checkbox]'));}",
+    "function card427(e){var c=String(e&&e.className||'');return /mlt-icon-container/.test(c)||e.getAttribute('data-ad-sym413')==='cards';}",
+    "function inner427(e){return !!(e&&(e.hasAttribute('data-ad-cards410-host')||e.hasAttribute('data-ad-cards410-root')||e.hasAttribute('data-ad-cards410-disc')));}",
+    "if(real427(p)||card427(p))break;if(inner427(p)){p=p.parentElement;continue;}",
+    "document.querySelectorAll('[class*=lists-framework-action-button],[class*=puis-heart-position]')",
+    "e.setAttribute('data-ad-heart-shell427','1')",
+    "e.removeAttribute(a);",
+    "e.style.setProperty('background-color','transparent','important')",
+    "e.style.setProperty('border','0','important')",
+]:
+    _ok=_required in _heart427
+    print(('PASS' if _ok else 'FAIL')+f': Heart shell scope/neutralization {_required[:72]}')
+    if not _ok: sys.exit(1)
+
+print('PASS: solved two-cards and checkbox implementations are exact-locked; v5.427 only neutralizes the falsely-owned Heart wrapper.')

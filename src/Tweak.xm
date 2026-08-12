@@ -1220,6 +1220,19 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "if(dr.width<18||dr.width>52||dr.height<18||dr.height>52){dskip++;continue;}"
                "if(Math.abs(dr.width-dr.height)>10){dskip++;continue;}"
                "var sq=/a-check/.test(dc)&&!/a-icon-check/.test(dc);"
+               // v5.427: Amazon mounts the Heart's lists-framework root at 32x0
+               // inside a square wrapper which can also carry a-checkbox.  That
+               // wrapper is structural, not the Compare control.  Never paint it
+               // as a square: doing so creates the box behind the real round Heart.
+               "var hs=de.querySelector&&de.querySelector('[class*=lists-framework-action-'+'button],[class*=puis-heart-position]');"
+               "var rc=!!(de.querySelector&&de.querySelector('input[type=check'+'box],[class*=a-icon-check'+'box]'));"
+               "if(hs&&!rc&&!/mlt-icon-container/.test(dc)){de.setAttribute('data-ad-heart-shell427','1');"
+                 "['data-ad-disc420','data-ad-sym413','data-ad-stock403','data-ad-stocksel403','data-ad-v333403','data-ad-product391','data-ad-productselected391'].forEach(function(a){de.removeAttribute(a);});"
+                 "de.style.setProperty('background-color','transparent','important');"
+                 "de.style.setProperty('border','0','important');"
+                 "de.style.setProperty('border-radius','0','important');"
+                 "de.style.setProperty('box-shadow','none','important');"
+                 "de.style.setProperty('outline','none','important');dskip++;continue;}"
                "de.setAttribute('data-ad-disc420',sq?'checkbox':'disc');"
                "de.style.setProperty('background-color','#181a1b','important');"
                "de.style.setProperty('border-radius',(sq?'4px':'50%%'),'important');"
@@ -3300,6 +3313,35 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          "window.__AD_STOCKFIN403__=function(){try{if(window.__ADFRAME_MODE__||!document.body)return 0;var H=document.querySelectorAll('[data-ad-stock403=\"c\"]'),n=0;for(var i=0;i<H.length&&i<96;i++){var h=H[i];['background','background-color','border','border-color','border-width','border-style','border-radius','box-shadow','box-sizing','filter','width','height','min-width','min-height','max-width','max-height'].forEach(function(k){h.style.removeProperty(k);});h.removeAttribute('data-ad-product391');h.removeAttribute('data-ad-productselected391');var G=h.querySelectorAll('[data-ad-stockglyph403]');for(var j=0;j<G.length&&j<80;j++){var g=G[j];['filter','background','background-color','color','fill','stroke','visibility','opacity'].forEach(function(k){g.style.removeProperty(k);});g.removeAttribute('data-ad-productglyph391');g.removeAttribute('data-ad-productraster391');g.removeAttribute('data-ad-productvector391');g.removeAttribute('data-ad-compareorig380');g.removeAttribute('data-ad-comparelegacyorig387');}n++;}window.__AD_STOCKFIN403_STATE__='checkbox='+n;return n;}catch(e){window.__AD_STOCKFIN403_STATE__='err '+(e&&e.message||e);return -1;}};"
          "try{window.__AD_PRODUCTCTRL391_BASE403__=window.__AD_PRODUCTCTRL391_ORIG397__;window.__AD_PRODUCTCTRL391_ORIG397__=function(){var r=window.__AD_PRODUCTCTRL391_BASE403__?window.__AD_PRODUCTCTRL391_BASE403__():0;try{window.__AD_STOCKCAP403__();}catch(x){}return r;};window.__AD_PRODUCTCTRL391_WRAP403__=window.__AD_PRODUCTCTRL391RUN__;window.__AD_PRODUCTCTRL391RUN__=function(){var r=window.__AD_PRODUCTCTRL391_WRAP403__?window.__AD_PRODUCTCTRL391_WRAP403__():0;try{window.__AD_STOCKFIN403__();}catch(x){}return r;};}catch(e){}"
          "try{if(document&&!document.getElementById('adstock403')){var s403=document.createElement('style');s403.id='adstock403';s403.textContent='[data-ad-stock403=c]{background-color:#181a1b !important;border-color:#9aa0a3 !important;border-width:1.5px !important;border-style:solid !important;box-shadow:none !important;box-sizing:border-box !important;filter:none !important;}[data-ad-stockglyph403]{visibility:visible !important;opacity:1 !important;background-color:transparent !important;}[data-ad-stockraster403=1]{filter:brightness(0) invert(1) !important;}[data-ad-stockvector403=1],[data-ad-stockvector403=1] *{color:#fff !important;fill:#fff !important;stroke:#fff !important;}[data-ad-stock403=c]::before,[data-ad-stock403=c]::after{content:none !important;display:none !important;}[data-ad-stock403=c] [data-ad-stockglyph403]{visibility:visible !important;opacity:1 !important;}[data-ad-stock403=c][data-ad-stocksel403=1] [data-ad-stockraster403=1]{filter:none !important;}';(document.head||document.documentElement).appendChild(s403);}}catch(e){}"
+         // v5.427 HEART SHELL: the on-device attribution
+         // v333403+stock403+stocksel403+sym413 belongs to the square wrapper
+         // around a zero-height lists-framework Heart root.  Remove only false
+         // checkbox ownership from that wrapper and leave the real round Heart,
+         // the cards control, and div.a-checkbox > i.a-icon-checkbox untouched.
+         "window.__AD_HEARTSHELL427__=function(){try{if(window.__ADFRAME_MODE__||!document.body)return 0;"
+           "function real427(e){return !!(e&&e.querySelector&&e.querySelector('input[type=checkbox],[class*=a-icon-checkbox]'));}"
+           "function card427(e){var c=String(e&&e.className||'');return /mlt-icon-container/.test(c)||e.getAttribute('data-ad-sym413')==='cards';}"
+           "function inner427(e){return !!(e&&(e.hasAttribute('data-ad-cards410-host')||e.hasAttribute('data-ad-cards410-root')||e.hasAttribute('data-ad-cards410-disc')));}"
+           "function own427(e){return e.hasAttribute('data-ad-stock403')||e.hasAttribute('data-ad-stocksel403')||e.getAttribute('data-ad-v333403')==='c'||e.getAttribute('data-ad-product391')==='checkbox'||e.hasAttribute('data-ad-compare380')||e.hasAttribute('data-ad-comparelegacy387')||e.getAttribute('data-ad-disc420')==='checkbox'||e.getAttribute('data-ad-sym413')==='checkbox';}"
+           "function flat427(e){e.setAttribute('data-ad-heart-shell427','1');e.__adBy='heartShell427';"
+             "['data-ad-stock403','data-ad-stocksel403','data-ad-v333403','data-ad-product391','data-ad-productselected391','data-ad-compare378','data-ad-compare379','data-ad-compare380','data-ad-comparelegacy387','data-ad-disc420','data-ad-sym413','data-ad-v333404'].forEach(function(a){e.removeAttribute(a);});/*heart427*/"
+             "e.style.setProperty('background-color','transparent','important');"
+             "e.style.setProperty('border','0','important');"
+             "e.style.setProperty('border-radius','0','important');"
+             "e.style.setProperty('box-shadow','none','important');"
+             "e.style.setProperty('outline','none','important');}"
+           "var R=document.querySelectorAll('[class*=lists-framework-action-button],[class*=puis-heart-position]'),seen=[],n=0;"
+           "for(var i=0;i<R.length&&i<180;i++){var p=R[i].parentElement,d=0;while(p&&d++<4){"
+             "if(real427(p)||card427(p))break;if(inner427(p)){p=p.parentElement;continue;}var r=p.getBoundingClientRect();"
+             "var geom=r.width>=18&&r.width<=60&&r.height>=18&&r.height<=60&&Math.abs(r.width-r.height)<=12;"
+             "if(geom&&(own427(p)||p.hasAttribute('data-ad-heart-shell427'))){"
+               "var s=getComputedStyle(p),clean=(String(s.backgroundColor||'').replace(/\\s+/g,'')==='rgba(0,0,0,0)'||String(s.backgroundColor||'')==='transparent')&&parseFloat(s.borderTopWidth||0)<.1&&String(s.boxShadow||'none')==='none';"
+               "if(!clean||own427(p)||!p.hasAttribute('data-ad-heart-shell427'))flat427(p);n++;}"
+             "p=p.parentElement;}}"
+           "window.__AD_HEARTSHELL427_STATE__='roots='+R.length+' shells='+n;return n;"
+         "}catch(e){window.__AD_HEARTSHELL427_STATE__='err '+(e&&e.message||e);return -1;}};"
+         "try{window.__AD_STOCKCAP403_PRE427__=window.__AD_STOCKCAP403__;window.__AD_STOCKCAP403__=function(){var r=window.__AD_STOCKCAP403_PRE427__?window.__AD_STOCKCAP403_PRE427__():0;try{window.__AD_HEARTSHELL427__();}catch(x){}return r;};}catch(e){}"
+         "try{if(document&&!document.getElementById('adheartshell427')){var h427=document.createElement('style');h427.id='adheartshell427';h427.textContent='[data-ad-heart-shell427]{background-color:transparent !important;border:0 !important;border-radius:0 !important;box-shadow:none !important;outline:none !important;}[data-ad-heart-shell427]::before,[data-ad-heart-shell427]::after{background-color:transparent !important;border:0 !important;box-shadow:none !important;outline:none !important;}';(document.head||document.documentElement).appendChild(h427);}}catch(e){}"
          // v5.401 Home bleed experiment: v5.397 Home paint/color logic remains byte-for-byte.
          // The only new paint rule clips the actual ambient layer to its own border box.
          // No host/ancestor writes; no contain/overflow/isolation/transform/background/filter;
@@ -3340,6 +3382,11 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          "10-raster]{filter:brightness(0) invert(1) !important;background-color:transparent !important;opacity:1 !important;visibility:visible !important;}[data-ad-cards410-mask]{background-color:#fff !important;color:#fff !important;opacity:1 !important;visibility:visible !important;}[data-ad-cards410-vector],[data-ad-cards410-vector] *{color:#fff !important;fill:#fff !important;stroke:#fff !important;opacity:1 !important;visibility:visible !important;}[data-ad-cards410-before=\"raster\"]::before,[data-ad-cards410-after=\"raster\"]::after{filter:brightness(0) invert(1) !important;}[data-ad-cards410-before=\"mask\"]::before,[data-ad-cards410-after=\"mask\"]::after{background-color:#fff !important;color:#fff !"
          "important;}[data-ad-cards410-before=\"ink\"]::before,[data-ad-cards410-after=\"ink\"]::after{color:#fff !important;border-color:#fff !important;}[data-ad-cards410-suppressed]{visibility:hidden !important;opacity:0 !important;}[data-ad-cards410-suppressed]::before,[data-ad-cards410-suppressed]::after{visibility:hidden !important;opacity:0 !important;}';(document.head||document.documentElement).appendChild(c);}}catch(e){}try{window.__AD_PRODUCTCTRL391_PRE410__=window.__AD_PRODUCTCTRL391RUN__;window.__AD_PRODUCTCTRL391RUN__=function(){var r=window.__AD_PRODUCTCTRL391_PRE410__?window.__AD_PRODUCTCTRL391_PRE410__():0;try{window.__AD_CARDS410__();}catch(x){}return r;};}catch(e){}try{window.__AD_CARD"
          "S410__();setTimeout(window.__AD_CARDS410__,60);setTimeout(window.__AD_CARDS410__,300);setTimeout(window.__AD_CARDS410__,1200);}catch(e){}"
+         "try{window.__AD_PRODUCTCTRL391_PRE427__=window.__AD_PRODUCTCTRL391RUN__;window.__AD_PRODUCTCTRL391RUN__=function(){var r=window.__AD_PRODUCTCTRL391_PRE427__?window.__AD_PRODUCTCTRL391_PRE427__():0;try{window.__AD_HEARTSHELL427__();}catch(x){}return r;};}catch(e){}"
+         "try{window.__AD_HEARTSHELL427__();setTimeout(window.__AD_HEARTSHELL427__,60);setTimeout(window.__AD_HEARTSHELL427__,300);setTimeout(window.__AD_HEARTSHELL427__,1200);"
+           "if(!window.__AD_HEARTSHELL427_OBS__){window.__AD_HEARTSHELL427_OBS__=1;"
+             "new MutationObserver(function(){try{window.__AD_HEARTSHELL427__();}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class','data-ad-stock403','data-ad-stocksel403','data-ad-product391','data-ad-sym413','data-ad-disc420']});"
+             "addEventListener('scroll',function(){try{window.__AD_HEARTSHELL427__();}catch(x){}},{passive:true,capture:true});}}catch(e){}"
          // v5.407 historical note: literal root-only restoration is retained above, but
          // P77 on-device proved the current mounted roots are all row-sized (raw=14 n=0).
          // v5.410 therefore owns only the existing square descendant host selected above.
@@ -8816,6 +8863,15 @@ static NSString *ADProbeWebJS(void){
            "var Q=document.querySelectorAll('[class*=mlt-icon-container],[class*=a-checkbox],[class*=puis-mab-chevron],[class*=puis-heart-position],[class*=lists-framework-action-button]'),n=0,sk=0;"
            "for(var i=0;i<Q.length&&i<400;i++){var e=Q[i],k=kind(e);"
              "if(!k){sk++;continue;}"
+             "var hs=e.querySelector&&e.querySelector('[class*=lists-framework-action-button],[class*=puis-heart-position]');"
+             "var rc=!!(e.querySelector&&e.querySelector('input[type=checkbox],[class*=a-icon-checkbox]'));"
+             "if(hs&&!rc&&k!=='cards'){e.setAttribute('data-ad-heart-shell427','1');"
+               "['data-ad-sym413','data-ad-stock403','data-ad-stocksel403','data-ad-v333403','data-ad-product391','data-ad-productselected391'].forEach(function(a){e.removeAttribute(a);});"
+               "e.style.setProperty('background-color','transparent','important');"
+               "e.style.setProperty('border','0','important');"
+               "e.style.setProperty('border-radius','0','important');"
+               "e.style.setProperty('box-shadow','none','important');"
+               "e.style.setProperty('outline','none','important');sk++;continue;}"
              "if(!sq(e)){sk++;continue;}"
              "if(e.parentElement&&e.parentElement.closest&&e.parentElement.closest('[data-ad-sym413]')){sk++;continue;}"
              "e.setAttribute('data-ad-sym413',k);e.__adBy='sym413';"
@@ -9026,6 +9082,15 @@ static NSString *ADProbeWebJS(void){
            "if(drx.width<18||drx.width>52||drx.height<18||drx.height>52){ds++;continue;}"
            "if(Math.abs(drx.width-drx.height)>10){ds++;continue;}"
            "var sqx=/a-check/.test(dcx)&&!/a-icon-check/.test(dcx);"
+           "var hsx=dexx.querySelector&&dexx.querySelector('[class*=lists-framework-action-'+'button],[class*=puis-heart-position]');"
+           "var rcx=!!(dexx.querySelector&&dexx.querySelector('input[type=check'+'box],[class*=a-icon-check'+'box]'));"
+           "if(hsx&&!rcx&&!/mlt-icon/.test(dcx)){dexx.setAttribute('data-ad-heart-shell427','1');"
+             "['data-ad-disc420','data-ad-sym413','data-ad-stock403','data-ad-stocksel403','data-ad-v333403','data-ad-product391','data-ad-productselected391'].forEach(function(a){dexx.removeAttribute(a);});"
+             "dexx.style.setProperty('background-color','transparent','important');"
+             "dexx.style.setProperty('border','0','important');"
+             "dexx.style.setProperty('border-radius','0','important');"
+             "dexx.style.setProperty('box-shadow','none','important');"
+             "dexx.style.setProperty('outline','none','important');ds++;continue;}"
            "if(sqx&&!(dexx.querySelector('[class*=a-icon-check'+'box]')||dexx.querySelector('input[type=check'+'box]'))){ds++;continue;}"
            "if(!sqx&&dexx.querySelector('[class*=mlt-icon-'+'container],[class*=lists-framework-action-'+'button]')){ds++;continue;}"
            "dexx.setAttribute('data-ad-sym413',sqx?'checkbox':(/mlt-icon/.test(dcx)?'cards':(/chevron/.test(dcx)?'chevron':'heart')));"
@@ -9085,6 +9150,17 @@ static NSString *ADProbeWebJS(void){
        "if(Q4.length<6)Q4.push(e4.getAttribute('data-ad-sym413')+'|bg='+bc+'|bw='+bw.toFixed(1)+'|sz='+sz4);}"
        "out.push('P80SYM413{n='+Z4.length+' badBg='+b4+' badRing='+r4+' '+Q4.join(' ~ ')+' state='+String(window.__AD_SYM413__||'-')+' d422='+String(window.__AD_DISC422__||'never-ran')+' L426='+(function(){try{return localStorage.getItem('__ad426')||'none';}catch(e){return 'ls-blocked';}})()+' ATTR='+(function(){try{var h=document.querySelector('[data-ad-sym413=\\'cards\\']');if(!h)return 'no-cards';var cs=getComputedStyle(h),g=h.querySelector('img'),gs=g?getComputedStyle(g):null;var at=[];for(var i=0;i<h.attributes.length;i++){var an=h.attributes[i].name;if(an.indexOf('data-ad')===0)at.push(an.replace('data-ad-',''));}return 'bg='+String(cs.backgroundColor).replace(/\\s+/g,'')+'|r='+String(cs.borderRadius).slice(0,6)+'|bw='+parseFloat(cs.borderTopWidth||0).toFixed(1)+'|glyphf='+(gs?String(gs.filter).slice(0,26):'-')+'|by='+(at.join('+')||'-');}catch(e){return 'err';}})()+'}');"
        "}catch(e4x){out.push('P80SYM413{err '+(e4x&&e4x.message||e4x)+'}');}"
+
+       // P82HEART427: the former square wrapper must remain paint-free and
+       // must never retain any of the stale checkbox ownership markers.
+       "try{var H82=document.querySelectorAll('[data-ad-heart-shell427]'),dirty82=0,stale82=0,Q82=[];"
+       "for(var i82=0;i82<H82.length&&i82<40;i82++){var h82=H82[i82],s82=getComputedStyle(h82),r82=h82.getBoundingClientRect();"
+       "var bg82=String(s82.backgroundColor||'').replace(/\\s+/g,''),bd82=parseFloat(s82.borderTopWidth||0),sh82=String(s82.boxShadow||'none');"
+       "if((bg82!=='transparent'&&bg82!=='rgba(0,0,0,0)')||bd82>.1||sh82!=='none')dirty82++;"
+       "if(h82.hasAttribute('data-ad-stock403')||h82.hasAttribute('data-ad-stocksel403')||h82.getAttribute('data-ad-product391')==='checkbox'||h82.getAttribute('data-ad-sym413')==='checkbox')stale82++;"
+       "if(Q82.length<6)Q82.push(Math.round(r82.width)+'x'+Math.round(r82.height)+'|bg='+bg82+'|bw='+bd82.toFixed(1));}"
+       "out.push('P82HEART427[shells='+H82.length+' dirty='+dirty82+' stale='+stale82+' state='+String(window.__AD_HEARTSHELL427_STATE__||'-')+(Q82.length?' '+Q82.join(' ~~ '):'')+']');"
+       "}catch(e82){out.push('P82HEART427[err '+(e82&&e82.message||e82)+']');}"
 
        // P81CTRL (v5.417): attribution probe -- names WHICH node still paints
        // (ancestor or descendant) around each control, and lists candidate hosts
