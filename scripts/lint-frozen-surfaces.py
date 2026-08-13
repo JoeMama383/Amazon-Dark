@@ -21,10 +21,10 @@ src = SRC.read_text()
 # version makes a fresh device probe indistinguishable from an older install.
 _control = Path("layout/DEBIAN/control").read_text()
 _workflow = Path(".github/workflows/build.yml").read_text()
-_version_ok = ('#define AD_VERSION "v5.443.0"' in src
-               and "Version: 5.443.0" in _control
-               and "AmazonDark-v5.443-checkbox-square-rootless-deb" in _workflow)
-print(("PASS" if _version_ok else "FAIL") + ": v5.443 runtime/package/artifact identifiers agree")
+_version_ok = ('#define AD_VERSION "v5.444.0"' in src
+               and "Version: 5.444.0" in _control
+               and "AmazonDark-v5.444-checkbox-square-rootless-deb" in _workflow)
+print(("PASS" if _version_ok else "FAIL") + ": v5.444 runtime/package/artifact identifiers agree")
 if not _version_ok:
     sys.exit(1)
 
@@ -601,7 +601,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.443.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.444.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
@@ -715,10 +715,13 @@ _exact434_controls={
 # (r=/tag=/sheet=) inside the painter's capture block, so a future report can
 # show whether the checkbox rule actually reached the element. No painting
 # behaviour changed; LOCK E1-E6 still pass.
+# v5.444: re-pointed DELIBERATELY -- the probe payload is now version-stamped so a
+# stale localStorage entry cannot masquerade as fresh data. Read-only change; no
+# painting behaviour altered (LOCK E1-E6 still pass).
     'persistent non-MLT control painter': (
         exact_between('       "function repaint425(){',
                       '       "try{repaint425();', 'repaint425'),
-        '983e2550ecaa2905426354ca8b4cd25169086d5a28298db6d4add4b89f9bcc26'),
+        'e3c1f68f40c13aa0145f1be0a7b369d09dc8385854ef3d8115f2103bad0af1db'),
     'Heart shell engine': (
         exact_between('         // v5.427 HEART SHELL:',
                       '         // v5.401 Home bleed experiment:', 'heart427'),
@@ -840,8 +843,11 @@ for _label,_body,_expected in [
 # sizing, hit target, or the checked stock-blue sprite passthrough.
 # v5.443: re-pointed DELIBERATELY -- stylesheet version marker 441 -> 443 so the
 # square rule actually replaces the stale circular sheet in live documents.
+# v5.444: re-pointed DELIBERATELY -- the checkbox stylesheet is now evicted
+# UNCONDITIONALLY. Previously it was replaced only when the marker changed, so an
+# edited rule (v5.442's square) silently kept the old sheet in live documents.
     ('stock checkbox runtime layer', _checkbox434,
-     '07ad60627eedf4185463aa9b1a76ddce67253e992185cfb77c740af84c1f1fd2'),
+     '8a8adc4cd30004a72f2fc643ca88cfe34210b08b0a981e070b8fc8e9393be2db'),
     ('stock checkbox and ownership device probes', _probe434,
      'cc7dacb734e1b81425742eba57f10041d5e4bd2a81a3551b62c96b7927307a8c'),
 ]:
