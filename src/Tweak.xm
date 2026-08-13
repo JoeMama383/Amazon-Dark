@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.447.0"
+#define AD_VERSION "v5.448.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -171,6 +171,19 @@ static void ADRestoreCategoryArtwork379(UIImageView *iv);
 static BOOL ADIsHamburgerSurface380(UIView *v);
 static int ADMenuRole382(UIView *v);
 static BOOL ADWTInWatchedCarousel380(UIView *v);
+// v5.448: the selected-product Compare tray is native React/UIKit, not part of
+// the search WKWebView.  These tags pin only its nested minus paint; the circular
+// host is deliberately never tagged or mutated by any generic color hook.
+static const void *kADCompareHost448Key  = &kADCompareHost448Key;
+static const void *kADCompareImage448Key = &kADCompareImage448Key;
+static const void *kADCompareSolid448Key = &kADCompareSolid448Key;
+static const void *kADCompareText448Key  = &kADCompareText448Key;
+static const void *kADCompareLayer448Key = &kADCompareLayer448Key;
+static const void *kADCompareFilters448Key = &kADCompareFilters448Key;
+static BOOL gADCompare448Armed = NO;
+static BOOL ADNativeComparePhrase448(NSString *text);
+static void ADScheduleNativeCompare448(void);
+static void ADFixNativeCompare448(void);
 // Forward declarations required by the early Menu glyph gate (v5.382 lint/compile fix).
 static inline BOOL ADImageIsTemplateish(UIImage *im);
 static const void *kADOrigImageKey = &kADOrigImageKey;
@@ -745,6 +758,12 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          "try{if(document&&!document.getElementById('adcardfix')){"
            "var __acs=document.createElement('style');__acs.id='adcardfix';"
            "__acs.textContent='picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],[class*=s-image],[class*=unfill],[class*=placehold]{background-color:transparent !important;}[class*=puis-heart-position] button,[class*=puis-heart-position] [role=button],[class*=puis-heart-position] a,[class*=puis-heart-position] span,[class*=puis-heart-position] div{background-color:transparent !important;}[class*=puis-heart-position] button::before,[class*=puis-heart-position] button::after,[class*=puis-heart-position] [role=button]::before,[class*=puis-heart-position] [role=button]::after,[class*=puis-heart-position] a::before,[class*=puis-heart-position] a::after,[class*=puis-heart-position] span::before,[class*=puis-heart-position] span::after,[class*=puis-heart-position] div::before,[class*=puis-heart-position] div::after{background-color:transparent !important;}[class*=puis-heart-position] img[src*=grey-pixel],[class*=puis-heart-position] img[src*=gray-pixel],[class*=puis-heart-position] img[src*=transparent-pixel],[class*=puis-heart-position] img[src*=placeholder],[class*=puis-heart-position] img[src*=spacer],[class*=puis-heart-position] img[src*=blank],[class*=puis-heart-position] img[class*=placehold]{display:none !important;filter:none !important;opacity:0 !important;}[class*=mlt-icon-container] img[class*=s-image],[class*=mlt-image-icon] img[class*=s-image]{filter:brightness(0) invert(1) !important;background-color:transparent !important;}[class*=puis-heart-position]{background-color:transparent !important;border:0 !important;box-shadow:none !important;}[class*=lists-framework-unfill],[class*=lists-framework-fill],[class*=lists-framework-action-button] svg,[class*=lists-framework-action-button] i,[class*=lists-framework-action-button] img{filter:brightness(0) invert(1) !important;background-color:transparent !important;border:0 !important;box-shadow:none !important;border-radius:0 !important;max-width:26px !important;max-height:26px !important;}#search [class*=puis-heart-position][data-ad-heartready394=\"1\"],.s-search-results [class*=puis-heart-position][data-ad-heartready394=\"1\"],[data-component-type=\"s-search-result\"] [class*=puis-heart-position][data-ad-heartready394=\"1\"],#dp-container [class*=puis-heart-position][data-ad-heartready394=\"1\"],#ppd [class*=puis-heart-position][data-ad-heartready394=\"1\"]{visibility:visible !important;}[class*=s-image],[class*=s-product-image] img,img[class*=s-image]{object-fit:contain !important;}[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],[class*=puis-card],[class*=gwm-tile],[class*=_container_]{border-color:#3b4043 !important;}[class*=deal],[class*=badge],[class*=prime],[class*=error],[class*=alert],[class*=warning],[aria-invalid=true]{border-color:initial !important;}[class*=a-button-primary],[class*=a-button-search],[class*=a-button-oneclick],[class*=a-button-buy],.a-button-inner,.a-button-text{border-color:transparent !important;}[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_],[class*=ape-placement] *,[class*=ape-wrapper] *,[data-cel-widget*=ape] *,[id*=ape_] *{filter:none !important;mix-blend-mode:normal !important;isolation:auto !important;text-shadow:none !important;}[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_]{background-color:initial !important;}[class*=ape-placement] img,[class*=ape-wrapper] img,[class*=ape-placement] svg,[class*=ape-wrapper] svg,[class*=ape-placement] picture,[class*=ape-wrapper] picture{filter:none !important;opacity:1 !important;}[class*=ape-placement] span,[class*=ape-placement] a,[class*=ape-placement] p,[class*=ape-placement] h1,[class*=ape-placement] h2,[class*=ape-placement] h3,[class*=ape-placement] h4,[class*=ape-wrapper] span,[class*=ape-wrapper] a,[class*=ape-wrapper] p,[class*=ape-wrapper] h1,[class*=ape-wrapper] h2,[class*=ape-wrapper] h3,[class*=ape-wrapper] h4,[class*=theming-card] span,[class*=theming-card] a,[class*=theming-card] p,[class*=theming-card] h1,[class*=theming-card] h2,[class*=theming-card] h3,[class*=theming-card] h4{background-color:transparent !important;}[class*=hybrid-widget-sponsored],[class*=hybrid-widget-sponsored] *,[class*=adFeedbackMainComponent],[class*=adFeedbackMainComponent] *,[class*=sponsored-label],[class*=sponsored-label] *{opacity:1 !important;filter:none !important;mix-blend-mode:normal !important;}[class*=theming-card] [class*=a-cardui-header],[class*=a-cardui-header][class*=theming]{background-color:transparent !important;}[class*=npack-asin-card],[class*=npack-asin-card] *{filter:none !important;opacity:1 !important;mix-blend-mode:normal !important;isolation:auto !important;}[class*=npack-asin-card] [class*=a-size-mini],[class*=npack-asin-card] [class*=badge],[class*=npack-asin-card] [class*=percent]{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=npack-asin-card] [class*=badgeMessage],[class*=npack-asin-card] [class*=badgeMessage] *,[class*=cXVhZ] [class*=badgeMessage],[class*=cXVhZ] [class*=badgeMessage] *{background-color:#181a1b !important;background-image:none !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;box-shadow:none !important;}[class*=npack-asin-card] [class*=badgeMessage]::before,[class*=npack-asin-card] [class*=badgeMessage]::after,[class*=npack-asin-card] [class*=badgeMessage] *::before,[class*=npack-asin-card] [class*=badgeMessage] *::after,[class*=cXVhZ] [class*=badgeMessage]::before,[class*=cXVhZ] [class*=badgeMessage]::after,[class*=cXVhZ] [class*=badgeMessage] *::before,[class*=cXVhZ] [class*=badgeMessage] *::after{background:#181a1b !important;background-image:none !important;box-shadow:none !important;}[class*=a-cardui-header],[class*=a-cardui-header] *{background-color:transparent !important;}[class*=gwm-tile] [class*=a-cardui-header],[class*=gwm-tile] [class*=a-cardui-header] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[class*=hybrid-widget-sponsored],[class*=adFeedbackMainComponent],[class*=hybrid-widget-sponsored] *,[class*=adFeedbackMainComponent] *{background-color:transparent !important;}[class*=bW9ia],[class*=bW9ia] *{filter:none !important;opacity:1 !important;mix-blend-mode:normal !important;}[class*=bW9ia] span,[class*=bW9ia] a,[class*=bW9ia] [class*=price],[class*=bW9ia] [class*=badge],[class*=bW9ia] [class*=percent]{background-color:transparent !important;}[class*=sponsored-products] img[src*=logo],[class*=sponsored-products] img[class*=logo],[class*=sponsored-brand] img,[class*=brand-logo] img{background-color:#e8e6e3 !important;border-radius:4px !important;padding:2px !important;}[class*=cXVhZ],[class*=cXVhZ] *,[class*=badgeLabel],[class*=badgeContainer],[class*=theming-card],[class*=theming-card] *,[class*=canvas-card],[class*=canvas-card] *{mix-blend-mode:normal !important;isolation:auto !important;}[class*=badgeLabel]{background-color:#cc0c39 !important;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=badgeLabel],[class*=badgeLabel] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=npack-asin-card],[class*=canvas-card],[class*=theming-card-background]{background-color:initial !important;}[class*=badgeLabel]{background-color:#cc0c39 !important;}[class*=badgeLabel],[class*=badgeLabel] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=cXVhZ],[class*=cXVhZ] *{filter:none !important;opacity:1 !important;}[class*=a-cardui] [class*=a-price-whole],[class*=a-cardui] [class*=a-price-symbol],[class*=a-cardui] [class*=a-price-decimal],[class*=a-cardui] [class*=a-truncate],[class*=cXVhZ] [class*=a-price-whole],[class*=cXVhZ] [class*=a-price-symbol],[class*=cXVhZ] [class*=a-price-decimal],[class*=cXVhZ] [class*=a-truncate],[class*=npack-asin-card] [class*=a-price-whole],[class*=npack-asin-card] [class*=a-price-symbol],[class*=npack-asin-card] [class*=a-price-decimal],[class*=npack-asin-card] [class*=a-truncate]{color:#e8e6e3 !important;}ul.a-pagination.a-dots li.a-selected,ul.a-pagination.a-dots li.dot-selected-t2,ul.a-pagination.a-dots li[aria-current=true],ul.a-pagination.a-dots li[aria-current=page],ul.a-pagination.a-dots li[aria-selected=true],[data-ad-dotselected374]{background-color:#ffffff !important;border-color:#ffffff !important;}[data-ad-dotselected374]::before,[data-ad-dotselected374]::after,[data-ad-dotselected374] [class*=dot],[data-ad-dotselected374] span{background-color:#ffffff !important;border-color:#ffffff !important;color:#ffffff !important;fill:#ffffff !important;}[class*=pack-size-badge],[class*=pack-size-badge] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[data-ad-nav-chevron-paint=\"1\"],[data-ad-nav-chevron=\"1\"] [class*=a-icon],[data-ad-nav-chevron=\"1\"] i,[data-ad-nav-chevron=\"1\"] svg,[data-ad-nav-chevron=\"1\"] path,[data-ad-college-section=\"1\"] .a-icon-next-rounded,[data-ad-college-section=\"1\"] .a-icon-previous-rounded{filter:brightness(0) invert(1) !important;opacity:1 !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[data-ad-nav-chevron=\"1\"] svg,[data-ad-nav-chevron=\"1\"] path{fill:#e8e6e3 !important;stroke:#e8e6e3 !important;}.a-icon-next-rounded,.a-icon-previous-rounded,.a-carousel-goto-nextpage .a-icon,.a-carousel-goto-prevpage .a-icon,.a-carousel-button-right .a-icon,.a-carousel-button-left .a-icon,[class*=carousel] [class*=chevron],[class*=carousel] [class*=arrow],[class*=cXVhZ] [class*=chevron],[class*=cXVhZ] [class*=arrow]{filter:brightness(0) invert(1) !important;opacity:1 !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;border-color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;}[data-ad-college-chevron=\"1\"],[data-ad-college-chevron=\"1\"] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;border-color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;opacity:1 !important;}[data-ad-college-chevron=\"1\"]::before,[data-ad-college-chevron=\"1\"]::after,[data-ad-college-chevron=\"1\"] *::before,[data-ad-college-chevron=\"1\"] *::after{color:#e8e6e3 !important;border-color:#e8e6e3 !important;}[data-ad-college-chevron-sprite=\"1\"]{filter:brightness(0) invert(1) !important;}[data-ad-expchev383=\"1\"],[data-ad-expchev383=\"1\"] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;border-color:#e8e6e3 !important;opacity:1 !important;}[data-ad-expchev383=\"1\"]::before,[data-ad-expchev383=\"1\"]::after,[data-ad-expchev383=\"1\"] *::before,[data-ad-expchev383=\"1\"] *::after{color:#e8e6e3 !important;border-color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;filter:brightness(0) invert(1) !important;}[data-ad-expchev383=\"1\"] img,[data-ad-expchev383=\"1\"] i{filter:brightness(0) invert(1) !important;opacity:1 !important;}.a-icon-extender-expand,.a-icon-extender-collapse,.a-icon-dropdown,[class*=a-icon-extender],[aria-expanded] .a-icon{filter:brightness(0) invert(1) !important;opacity:1 !important;color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;}[data-ad-cardborder=\"1\"],[class*=\"_npack-asin-card_style_asin-cont\"],[class*=\"sc-card-style\"],[class*=\"_hp-mosaic-container_style_widgetContainer\"],[class*=\"_mosaic-container_style_widgetContainer\"]{border-color:#3b4043 !important;outline-color:#3b4043 !important;}[class*=\"_npack-asin-card_style_asin-cont\"]::before,[class*=\"_npack-asin-card_style_asin-cont\"]::after,[class*=\"sc-card-style\"]::before,[class*=\"sc-card-style\"]::after,[class*=\"_hp-mosaic-container_style_widgetContainer\"]::before,[class*=\"_hp-mosaic-container_style_widgetContainer\"]::after,[class*=\"_mosaic-container_style_widgetContainer\"]::before,[class*=\"_mosaic-container_style_widgetContainer\"]::after{border-color:#3b4043 !important;outline-color:#3b4043 !important;}[data-ad-videoctl362],[class*=ape-placement] [data-ad-videoctl362],[class*=ape-wrapper] [data-ad-videoctl362]{background:rgba(0,0,0,.72) !important;border-radius:999px !important;box-shadow:none !important;}[data-ad-videoctl362] svg,[data-ad-videoctl362] path,[data-ad-videoctl362] polygon{fill:#fff !important;stroke:#fff !important;color:#fff !important;}[data-ad-yml-head363=\"1\"],[data-ad-yml-head363=\"1\"] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;opacity:1 !important;}[data-ad-sponsored-light363=\"1\"],[data-ad-sponsored-light363=\"1\"] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;opacity:1 !important;}[data-ad-reviewink367=\"1\"]{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[data-ad-producttext370=\"1\"]{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[data-ad-productad367=\"1\"]{background-color:#181a1b !important;border-color:#3b4043 !important;outline-color:#3b4043 !important;}[data-ad-share375=\"1\"] img,[data-ad-share375=\"1\"] i,[data-ad-share375=\"1\"] [class*=icon]{filter:brightness(0) invert(1) !important;opacity:1 !important;background-color:transparent !important;}[data-ad-share375=\"1\"],[data-ad-share375=\"1\"] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[data-ad-share375=\"1\"] svg,[data-ad-share375=\"1\"] path{fill:#ffffff !important;stroke:#ffffff !important;}[data-ad-actionhost376]{background-color:#181a1b !important;border-radius:50%% !important;border:1.5px solid rgba(255,255,255,.65) !important;box-shadow:none !important;box-sizing:border-box !important;}[data-ad-actionorig376]{visibility:hidden !important;opacity:0 !important;}[data-ad-actioncanonical376]{position:absolute !important;left:50%% !important;top:50%% !important;transform:translate(-50%%,-50%%) !important;width:23px !important;height:23px !important;display:block !important;visibility:visible !important;opacity:1 !important;filter:none !important;background:transparent !important;pointer-events:none !important;z-index:3 !important;}[data-ad-actioncanonical376] rect,[data-ad-actioncanonical376] path{fill:none !important;stroke:#ffffff !important;stroke-width:1.8 !important;stroke-linecap:round !important;stroke-linejoin:round !important;}[data-ad-sponsored376=\"1\"],[data-ad-sponsored376=\"1\"] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;opacity:1 !important;visibility:visible !important;}[data-ad-rating376=\"1\"]{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;opacity:1 !important;visibility:visible !important;}[data-ad-adtext376=\"1\"]{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;opacity:1 !important;visibility:visible !important;}[data-ad-main396] [class*=single-creative-card] [class*=theming-card-background]:not([data-ad-homecreative447]),[data-ad-main396] [class*=single-video-card] [class*=theming-card-background],[data-ad-main396] [class*=theming-card] [class*=theming-card-background]:not([data-ad-homecreative447]){background:#181a1b !important;background-color:#181a1b !important;background-image:none !important;filter:none !important;mix-blend-mode:normal !important;box-shadow:none !important;animation:none !important;transition:none !important;isolation:auto !important;}[data-ad-main396] [class*=single-creative-card] [class*=theming-card-background]:not([data-ad-homecreative447])::before,[data-ad-main396] [class*=single-creative-card] [class*=theming-card-background]:not([data-ad-homecreative447])::after,[data-ad-main396] [class*=single-video-card] [class*=theming-card-background]::before,[data-ad-main396] [class*=single-video-card] [class*=theming-card-background]::after,[data-ad-main396] [class*=theming-card] [class*=theming-card-background]:not([data-ad-homecreative447])::before,[data-ad-main396] [class*=theming-card] [class*=theming-card-background]:not([data-ad-homecreative447])::after{background:#181a1b !important;background-color:#181a1b !important;background-image:none !important;filter:none !important;mix-blend-mode:normal !important;box-shadow:none !important;animation:none !important;transition:none !important;}';"
+           // v5.448: the real Home creative background is a sibling of the
+           // _single-creative-card image, not its descendant.  The runtime marker
+           // is populated by rectangle overlap below.  Exclude it from BOTH older
+           // background writers; retaining only the later black rule would still
+           // leave the native navy erased by this earlier `initial` reset.
+           "__acs.textContent=__acs.textContent.replace('[class*=npack-asin-card],[class*=canvas-card],[class*=theming-card-background]{background-color:initial !important;}','[class*=npack-asin-card],[class*=canvas-card],[class*=theming-card-background]:not([data-ad-homecreative448]){background-color:initial !important;}').replace(/data-ad-homecreative447/g,'data-ad-homecreative448');"
            "__acs.textContent=__acs.textContent.replace('[aria-expanded] .a-icon{','[aria-expanded] .a-icon:not(.a-icon-checkbox){');"
            "(document.head||document.documentElement).appendChild(__acs);}}catch(e){}"
          // v5.397: SYMBOL THEME AUTHORITY = exact v5.333 policy for every
@@ -5302,6 +5321,14 @@ static void ADInvertRNSVG(UIView *v);
     @try { if (ADRecolorOn() && self.window) ADInvertRNSVG(self); } @catch(...) {}
 }
 - (void)setBackgroundColor:(UIColor *)color {
+    // v5.448 Compare tray: only a positively-owned thin minus bar is pinned
+    // light.  Its round parent never receives this key, so its dark fill/radius
+    // remain Amazon's untouched paint.
+    if (ADRecolorOn() && objc_getAssociatedObject(self, kADCompareSolid448Key)) {
+        UIColor *want448 = ADColorFromHex(gP.fgHex);
+        %orig(want448);
+        return;
+    }
     if (!ADRecolorOn() || !color || ADIsOwnColor(color) || ADIsWebKitOwned(self)) {
         %orig;
         return;
@@ -5344,6 +5371,14 @@ static void ADInvertRNSVG(UIView *v);
     %orig;
 }
 - (void)setTintColor:(UIColor *)color {
+    // Amazon reassigns the tiny Compare-minus tint during Fabric commits.  Once
+    // semantic + geometry ownership has tagged that UIImageView, reject only
+    // those later dark resets and keep the glyph light.
+    if (ADRecolorOn() && objc_getAssociatedObject(self, kADCompareImage448Key)) {
+        UIColor *want448 = ADColorFromHex(gP.fgHex);
+        %orig(want448);
+        return;
+    }
     // Tab bar FIRST, before the generic guard below. The blue/white flash was a fight:
     // we set a tab icon blue, Amazon reset its tint (often to nil -> reverts to the
     // bar's inherited near-white), our next sweep re-blued it. Overriding every
@@ -5519,6 +5554,11 @@ static void ADReportNativeCaption(UILabel *lb, UIColor *from, UIColor *to){
 
 %hook UILabel
 - (void)setTextColor:(UIColor *)color {
+    if (ADRecolorOn() && objc_getAssociatedObject(self, kADCompareText448Key)) {
+        UIColor *want448 = ADColorFromHex(gP.fgHex);
+        %orig(want448);
+        return;
+    }
     if (!ADRecolorOn() || !color || ADIsOwnColor(color)) {
         %orig;
         return;
@@ -5658,17 +5698,33 @@ static void ADReportFabricText(id vObj, NSAttributedString *before, NSAttributed
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         @try { ADReportFabricText(self, attributedText, r); } @catch(...) {}
         %orig(r);
+        if (ADNativeComparePhrase448(attributedText.string)) {
+            gADCompare448Armed = YES;
+            ADScheduleNativeCompare448();
+        }
         return;
     } @catch(...) {}
     %orig;
+    if (ADNativeComparePhrase448(attributedText.string)) {
+        gADCompare448Armed = YES;
+        ADScheduleNativeCompare448();
+    }
 }
 - (void)_setAttributedString:(NSAttributedString *)attributedString {
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedString);
         %orig(r);
+        if (ADNativeComparePhrase448(attributedString.string)) {
+            gADCompare448Armed = YES;
+            ADScheduleNativeCompare448();
+        }
         return;
     } @catch(...) {}
     %orig;
+    if (ADNativeComparePhrase448(attributedString.string)) {
+        gADCompare448Armed = YES;
+        ADScheduleNativeCompare448();
+    }
 }
 %end
 
@@ -5713,6 +5769,10 @@ static void ADReportFabricText(id vObj, NSAttributedString *before, NSAttributed
         }
     } @catch(...) {}
     %orig;
+    if (ADNativeComparePhrase448(textStorage.string)) {
+        gADCompare448Armed = YES;
+        ADScheduleNativeCompare448();
+    }
 }
 %end
 
@@ -5772,7 +5832,8 @@ static void ADReportFabricText(id vObj, NSAttributedString *before, NSAttributed
         // sets a marked-own white, but the marker cannot survive the UIColor ->
         // CGColor forwarding, so without this check the hook mapped the white
         // straight back to the dark background colour.
-        if (objc_getAssociatedObject(self, kADIndicatorKey)) {
+        if (objc_getAssociatedObject(self, kADIndicatorKey) ||
+            objc_getAssociatedObject(self, kADCompareSolid448Key)) {
             %orig;
             return;
         }
@@ -5814,6 +5875,21 @@ static void ADReportFabricText(id vObj, NSAttributedString *before, NSAttributed
 }
 - (void)setFilters:(NSArray *)filters {
     @try {
+        if (objc_getAssociatedObject(self, kADCompareLayer448Key)) {
+            NSArray *ours448 = objc_getAssociatedObject(self, kADCompareFilters448Key);
+            if (ours448.count){
+                BOOL has448 = NO;
+                for (id f448 in (filters ?: @[])){
+                    if ([ours448 containsObject:f448]){ has448 = YES; break; }
+                }
+                if (!has448){
+                    NSMutableArray *m448 = [NSMutableArray arrayWithArray:(filters ?: @[])];
+                    [m448 addObjectsFromArray:ours448];
+                    %orig(m448);
+                    return;
+                }
+            }
+        }
         id d = self.delegate;
         if (d && [d isKindOfClass:[UIView class]] &&
             objc_getAssociatedObject(d, kADRNInvertKey)){
@@ -6361,6 +6437,14 @@ static void ADRunProbe(void){
         return;
     } @catch(...) {}
     %orig;
+}
+- (void)didMoveToWindow {
+    %orig;
+    @try { if (ADRecolorOn() && self.window && gADCompare448Armed) ADScheduleNativeCompare448(); } @catch(...) {}
+}
+- (void)layoutSubviews {
+    %orig;
+    @try { if (ADRecolorOn() && self.window && gADCompare448Armed) ADScheduleNativeCompare448(); } @catch(...) {}
 }
 %end
 
@@ -7369,6 +7453,20 @@ static UIImage *ADGlyphify(UIImage *img){
 
 %hook UIImageView
 - (void)setImage:(UIImage *)image {
+    // v5.448: the Compare tray's native 10x14 minus is replaced during React
+    // commits.  Ownership is assigned only after the native tray phrase, product
+    // thumbnail, overlapping round host, and nested glyph all agree.  Re-template
+    // that one child at assignment time so no dark reset can win a later frame.
+    if (image && ADRecolorOn() &&
+        objc_getAssociatedObject(self, kADCompareImage448Key)) {
+        UIImage *want448 = image.renderingMode == UIImageRenderingModeAlwaysTemplate
+                         ? image : [image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        gADGlyphWriting = YES;
+        %orig(want448);
+        gADGlyphWriting = NO;
+        ((UIView *)self).tintColor = ADColorFromHex(gP.fgHex);
+        return;
+    }
     if (!image || ADIsWebKitOwned(self) || !ADRecolorOn() || gADSettingImage) {
         %orig;
         return;
@@ -8096,6 +8194,347 @@ static NSString *ADProbeTextOf(UIView *v){
     } @catch(...) {}
     @try { return v.accessibilityLabel; } @catch(...) {}
     return nil;
+}
+
+// ── v5.448 NATIVE COMPARE-TRAY MINUS ─────────────────────────────────────────
+// The v5.447 device probe proved the bottom Compare tray never enters the search
+// WKWebView (P89 pane/host/glyph all remained zero).  At the same moments the
+// native glyph census repeatedly saw paired 10x14 dark-neutral UIImageViews.  Own
+// the native control by four independent facts instead: Amazon's exact tray copy,
+// a bottom-docked tray, a product-sized thumbnail at its left edge, and a small
+// round host overlapping that thumbnail.  Only a nested minus paint leaf is ever
+// changed.  No bounds, radius, host fill, interaction, or artwork is synthesized.
+static BOOL ADNativeComparePhrase448(NSString *text){
+    @try {
+        if (![text isKindOfClass:[NSString class]] || text.length == 0) return NO;
+        return ([text rangeOfString:@"Compare with similar"
+                            options:NSCaseInsensitiveSearch].location != NSNotFound ||
+                [text rangeOfString:@"keep selecting"
+                            options:NSCaseInsensitiveSearch].location != NSNotFound);
+    } @catch(...) {}
+    return NO;
+}
+
+static NSString *ADCompareColor448(UIColor *c){
+    @try {
+        if (!c) return @"-";
+        CGFloat r=0,g=0,b=0,a=0;
+        if (![c getRed:&r green:&g blue:&b alpha:&a]) return @"?";
+        return [NSString stringWithFormat:@"%.3f,%.3f,%.3f/%.3f",r,g,b,a];
+    } @catch(...) {}
+    return @"?";
+}
+
+static BOOL ADCompareDarkRound448(UIView *v){
+    @try {
+        CGFloat w=v.bounds.size.width,h=v.bounds.size.height,m=MIN(w,h);
+        if (w<18 || w>52 || h<18 || h>52 || fabs(w-h)>10) return NO;
+        CGFloat rad=v.layer.cornerRadius;
+        UIColor *bg=v.backgroundColor;
+        if (!bg && v.layer.backgroundColor) bg=[UIColor colorWithCGColor:v.layer.backgroundColor];
+        CGFloat r=0,g=0,b=0,a=0;
+        BOOL got=bg&&[bg getRed:&r green:&g blue:&b alpha:&a];
+        CGFloat lum=got?(0.2126*r+0.7152*g+0.0722*b):1.0;
+        return rad>=m*.28 && got && a>.25 && lum<.32;
+    } @catch(...) {}
+    return NO;
+}
+
+static BOOL ADCompareMinusText448(NSString *text){
+    @try {
+        NSString *t=[text stringByTrimmingCharactersInSet:
+                     [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        return ([t isEqualToString:@"-"] || [t isEqualToString:@"−"] ||
+                [t isEqualToString:@"–"]);
+    } @catch(...) {}
+    return NO;
+}
+
+static BOOL ADCompareLayerCandidate448(CALayer *l, int depth){
+    if (!l || depth>5 || l.hidden || l.opacity<.05) return NO;
+    @try {
+        CGFloat w=l.bounds.size.width,h=l.bounds.size.height;
+        if ([l isKindOfClass:[CAShapeLayer class]]){
+            CAShapeLayer *s=(CAShapeLayer *)l;
+            if (s.path){
+                CGRect p=CGPathGetBoundingBox(s.path);
+                CGFloat pw=fabs(p.size.width),ph=fabs(p.size.height);
+                if (pw>=3 && pw<=24 && ph>=1 && ph<=8 && pw/ph>=1.5) return YES;
+            }
+        }
+        if (l.contents && w>=2 && w<=24 && h>=2 && h<=24) return YES;
+        for (CALayer *q in l.sublayers)
+            if (ADCompareLayerCandidate448(q,depth+1)) return YES;
+    } @catch(...) {}
+    return NO;
+}
+
+static BOOL ADCompareViewCandidate448(UIView *v, UIView *host, int depth){
+    if (!v || depth>6 || v.hidden || v.alpha<.05) return NO;
+    @try {
+        if (v!=host){
+            CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+            NSString *txt=ADProbeTextOf(v);
+            if (ADCompareMinusText448(txt)) return YES;
+            if ([v isKindOfClass:[UIImageView class]] && ((UIImageView *)v).image &&
+                w>=2 && w<=26 && h>=2 && h<=26) return YES;
+            const char *cn=object_getClassName(v);
+            if (cn && strstr(cn,"SVG") && w>=2 && w<=26 && h>=2 && h<=26) return YES;
+            UIColor *bg=v.backgroundColor;
+            if (!bg && v.layer.backgroundColor) bg=[UIColor colorWithCGColor:v.layer.backgroundColor];
+            if (bg && w>=4 && w<=24 && h>=1 && h<=7 && w/h>=1.6) return YES;
+            if (ADCompareLayerCandidate448(v.layer,0)) return YES;
+        }
+        for (UIView *q in v.subviews)
+            if (ADCompareViewCandidate448(q,host,depth+1)) return YES;
+    } @catch(...) {}
+    return NO;
+}
+
+static UIView *ADCompareTextWalk448(UIView *v, int depth, int *seen){
+    if (!v || depth>46 || *seen>1800 || v.hidden || v.alpha<.05) return nil;
+    @try {
+        (*seen)++;
+        if (ADIsWebKitOwned(v)) return nil; // v5.447's disproven ownership path
+        if (ADNativeComparePhrase448(ADProbeTextOf(v))) return v;
+        for (UIView *q in v.subviews){
+            UIView *hit=ADCompareTextWalk448(q,depth+1,seen);
+            if (hit) return hit;
+        }
+    } @catch(...) {}
+    return nil;
+}
+
+static void ADCompareThumbWalk448(UIView *v, UIView *tray, UIWindow *win,
+                                  int depth, UIView **best, CGFloat *bestScore){
+    if (!v || depth>22 || v.hidden || v.alpha<.05) return;
+    @try {
+        if (ADIsWebKitOwned(v)) return;
+        if (v!=tray){
+            CGRect f=[v convertRect:v.bounds toView:win];
+            CGFloat w=f.size.width,h=f.size.height;
+            const char *cn=object_getClassName(v);
+            BOOL imageLike=([v isKindOfClass:[UIImageView class]] && ((UIImageView *)v).image) ||
+                           (cn && (strstr(cn,"ImageComponent")||strstr(cn,"RCTImage"))) ||
+                           v.layer.contents!=nil;
+            CGRect tr=[tray convertRect:tray.bounds toView:win];
+            if (imageLike && w>=24 && w<=96 && h>=24 && h<=96 &&
+                fabs(w-h)<=22 && f.origin.x<win.bounds.size.width*.36 &&
+                CGRectIntersectsRect(f,tr)){
+                CGFloat score=fabs(CGRectGetMidY(f)-CGRectGetMidY(tr)) + fabs(w-h) - MIN(w,h)*.2;
+                if (score<*bestScore){ *bestScore=score; *best=v; }
+            }
+        }
+        for (UIView *q in v.subviews)
+            ADCompareThumbWalk448(q,tray,win,depth+1,best,bestScore);
+    } @catch(...) {}
+}
+
+static void ADCompareHostWalk448(UIView *v, UIView *tray, UIView *thumb,
+                                 UIWindow *win, int depth, UIView **best,
+                                 CGFloat *bestScore){
+    if (!v || depth>22 || v.hidden || v.alpha<.05) return;
+    @try {
+        if (ADIsWebKitOwned(v)) return;
+        if (v!=tray && v!=thumb && ADCompareDarkRound448(v) &&
+            ADCompareViewCandidate448(v,v,0)){
+            CGRect f=[v convertRect:v.bounds toView:win];
+            CGRect tr=[tray convertRect:tray.bounds toView:win];
+            BOOL leftBand=(CGRectGetMidX(f)>18 && CGRectGetMidX(f)<win.bounds.size.width*.45);
+            BOOL near=leftBand && CGRectIntersectsRect(f,tr);
+            CGFloat score=f.origin.x+fabs(CGRectGetMidY(f)-CGRectGetMidY(tr));
+            if (thumb){
+                CGRect im=[thumb convertRect:thumb.bounds toView:win];
+                CGFloat dx=fabs(CGRectGetMidX(f)-CGRectGetMaxX(im));
+                CGFloat dy=fabs(CGRectGetMidY(f)-CGRectGetMidY(im));
+                near=(dx<=40 && dy<=32 && CGRectIntersectsRect(f,tr));
+                score=dx+dy;
+            }
+            if (near && score<*bestScore){ *bestScore=score; *best=v; }
+        }
+        for (UIView *q in v.subviews)
+            ADCompareHostWalk448(q,tray,thumb,win,depth+1,best,bestScore);
+    } @catch(...) {}
+}
+
+static int ADCompareApplyLayer448(CALayer *l, int depth){
+    if (!l || depth>5 || l.hidden || l.opacity<.05) return 0;
+    int n=0;
+    @try {
+        BOOL hit=NO;
+        if ([l isKindOfClass:[CAShapeLayer class]]){
+            CAShapeLayer *s=(CAShapeLayer *)l;
+            if (s.path){
+                CGRect p=CGPathGetBoundingBox(s.path);
+                CGFloat w=fabs(p.size.width),h=fabs(p.size.height);
+                if (w>=3 && w<=24 && h>=1 && h<=8 && w/h>=1.5){
+                    UIColor *fg=ADColorFromHex(gP.fgHex);
+                    if (s.fillColor) s.fillColor=fg.CGColor;
+                    if (s.strokeColor) s.strokeColor=fg.CGColor;
+                    objc_setAssociatedObject(l,kADCompareLayer448Key,@YES,
+                                             OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                    hit=YES; n++;
+                }
+            }
+        }
+        CGFloat w=l.bounds.size.width,h=l.bounds.size.height;
+        if (!hit && l.contents && w>=2 && w<=24 && h>=2 && h<=24){
+            Class F=NSClassFromString(@"CAFilter");
+            id inv=F?[F filterWithType:@"colorInvert"]:nil;
+            id hue=F?[F filterWithType:@"hueRotate"]:nil;
+            @try { if(hue)[hue setValue:@(M_PI) forKey:@"inputAngle"]; } @catch(...) { hue=nil; }
+            if (inv){
+                NSArray *ours=hue?@[inv,hue]:@[inv];
+                objc_setAssociatedObject(l,kADCompareLayer448Key,@YES,
+                                         OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                objc_setAssociatedObject(l,kADCompareFilters448Key,ours,
+                                         OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                l.filters=ours; n++;
+            }
+        }
+        if (!hit) for (CALayer *q in l.sublayers) n+=ADCompareApplyLayer448(q,depth+1);
+    } @catch(...) {}
+    return n;
+}
+
+static void ADComparePinWalk448(UIView *v, UIView *host, int depth,
+                                int *images, int *solids, int *texts, int *layers){
+    if (!v || depth>6 || v.hidden || v.alpha<.05) return;
+    @try {
+        BOOL ownedLeaf=NO;
+        if (v!=host){
+            CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+            NSString *txt=ADProbeTextOf(v);
+            if (ADCompareMinusText448(txt)){
+                if ([v isKindOfClass:[UILabel class]]){
+                    objc_setAssociatedObject(v,kADCompareText448Key,@YES,
+                                             OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                    ((UILabel *)v).textColor=ADColorFromHex(gP.fgHex);
+                    (*texts)++; ownedLeaf=YES;
+                } else if ([v respondsToSelector:@selector(setTextColor:)]){
+                    objc_setAssociatedObject(v,kADCompareText448Key,@YES,
+                                             OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                    [(id)v setTextColor:ADColorFromHex(gP.fgHex)];
+                    (*texts)++; ownedLeaf=YES;
+                } else {
+                    *layers+=ADCompareApplyLayer448(v.layer,0);
+                    ownedLeaf=YES;
+                }
+            } else if ([v isKindOfClass:[UIImageView class]] &&
+                       ((UIImageView *)v).image && w>=2 && w<=26 && h>=2 && h<=26){
+                UIImageView *iv=(UIImageView *)v;
+                objc_setAssociatedObject(iv,kADCompareImage448Key,@YES,
+                                         OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                UIImage *cur=iv.image;
+                [iv setImage:cur]; // enters the tagged assignment-time pin above
+                (*images)++; ownedLeaf=YES;
+            } else {
+                const char *cn=object_getClassName(v);
+                if (cn && strstr(cn,"SVG") && w>=2 && w<=26 && h>=2 && h<=26){
+                    *layers+=ADCompareApplyLayer448(v.layer,0);
+                    ownedLeaf=YES;
+                } else {
+                    UIColor *bg=v.backgroundColor;
+                    if (!bg && v.layer.backgroundColor)
+                        bg=[UIColor colorWithCGColor:v.layer.backgroundColor];
+                    if (bg && w>=4 && w<=24 && h>=1 && h<=7 && w/h>=1.6){
+                        objc_setAssociatedObject(v,kADCompareSolid448Key,@YES,
+                                                 OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                        objc_setAssociatedObject(v.layer,kADCompareSolid448Key,@YES,
+                                                 OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                        v.backgroundColor=ADColorFromHex(gP.fgHex);
+                        (*solids)++; ownedLeaf=YES;
+                    }
+                }
+            }
+            if (!ownedLeaf){
+                int ln=ADCompareApplyLayer448(v.layer,0);
+                if (ln){ *layers+=ln; ownedLeaf=YES; }
+            }
+        }
+        if (!ownedLeaf) for (UIView *q in v.subviews)
+            ADComparePinWalk448(q,host,depth+1,images,solids,texts,layers);
+    } @catch(...) {}
+}
+
+static NSString *gADCompare448LastState=nil;
+static BOOL gADCompare448Pending=NO;
+
+static void ADFixNativeCompare448(void){
+    if (!ADRecolorOn()) return;
+    @try {
+        UIView *text=nil; UIWindow *win=nil; int seen=0;
+        for (UIWindow *w in [UIApplication sharedApplication].windows){
+            if (!w || w.hidden || w.alpha<.05) continue;
+            int local=0; UIView *hit=ADCompareTextWalk448(w,0,&local); seen+=local;
+            if (hit){ text=hit; win=w; break; }
+        }
+        if (!text || !win){
+            gADCompare448Armed=NO;
+            NSString *state=@"P90COMPARE448[text=0 tray=0 thumb=0 host=0 image=0 solid=0 textGlyph=0 layer=0 pinned=0 hostStable=1]";
+            if (![state isEqualToString:gADCompare448LastState]){
+                gADCompare448LastState=state; ADLog(@"%@",state);
+            }
+            return;
+        }
+        gADCompare448Armed=YES;
+        UIView *tray=nil; CGFloat trayArea=CGFLOAT_MAX;
+        UIView *p=text; int up=0;
+        while (p && up++<12){
+            CGRect f=[p convertRect:p.bounds toView:win];
+            CGFloat area=f.size.width*f.size.height;
+            if (f.size.width>=win.bounds.size.width*.72 &&
+                f.size.height>=54 && f.size.height<=210 &&
+                CGRectGetMidY(f)>win.bounds.size.height*.66 && area<trayArea){
+                tray=p; trayArea=area;
+            }
+            p=p.superview;
+        }
+        UIView *thumb=nil,*host=nil; CGFloat ts=CGFLOAT_MAX,hs=CGFLOAT_MAX;
+        if (tray){
+            ADCompareThumbWalk448(tray,tray,win,0,&thumb,&ts);
+            ADCompareHostWalk448(tray,tray,thumb,win,0,&host,&hs);
+        }
+        int images=0,solids=0,texts=0,layers=0,stable=1;
+        NSString *hostDesc=@"-";
+        if (host){
+            UIColor *bg=host.backgroundColor;
+            if (!bg && host.layer.backgroundColor) bg=[UIColor colorWithCGColor:host.layer.backgroundColor];
+            NSString *snap=[NSString stringWithFormat:@"%@|%.3f",ADCompareColor448(bg),host.layer.cornerRadius];
+            NSString *prior=objc_getAssociatedObject(host,kADCompareHost448Key);
+            if (prior && ![prior isEqualToString:snap]) stable=0;
+            if (!prior) objc_setAssociatedObject(host,kADCompareHost448Key,snap,
+                                                 OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            CGRect hf=[host convertRect:host.bounds toView:win];
+            hostDesc=[NSString stringWithFormat:@"%s@%.0f,%.0f/%.0fx%.0f",
+                      object_getClassName(host),hf.origin.x,hf.origin.y,
+                      hf.size.width,hf.size.height];
+            ADComparePinWalk448(host,host,0,&images,&solids,&texts,&layers);
+        }
+        int pinned=images+solids+texts+layers;
+        NSString *state=[NSString stringWithFormat:
+          @"P90COMPARE448[text=1 tray=%d thumb=%d host=%d image=%d solid=%d textGlyph=%d layer=%d pinned=%d hostStable=%d %@]",
+          tray?1:0,thumb?1:0,host?1:0,images,solids,texts,layers,pinned,stable,hostDesc];
+        if (![state isEqualToString:gADCompare448LastState]){
+            gADCompare448LastState=state; ADLog(@"%@",state);
+        }
+    } @catch(NSException *e) {
+        ADLog(@"P90COMPARE448[err %@]",e.reason ?: @"unknown");
+    }
+}
+
+static void ADScheduleNativeCompare448(void){
+    if (!ADRecolorOn() || !gADCompare448Armed || gADCompare448Pending) return;
+    gADCompare448Pending=YES;
+    const double delay448[]={0.01,0.08,0.25,0.70};
+    for (int i448=0;i448<4;i448++){
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+                       (int64_t)(delay448[i448]*NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            @try { ADFixNativeCompare448(); } @catch(...) {}
+            if (i448==3) gADCompare448Pending=NO;
+        });
+    }
 }
 
 static void ADTextClassWalk(UIView *v, int depth, int *n){
@@ -8907,6 +9346,20 @@ static NSString *ADProbeWebJS(void){
            "window.__AD_COMPAREPANE447_STATE__='pane=1 root=1 host=1 glyph='+(glyph447?1:0)+' pseudo='+pseudo447+' kind='+(kind447||host447.getAttribute('data-ad-compareminus447-before')||host447.getAttribute('data-ad-compareminus447-after')||'-');return 1;"
          "}catch(e){window.__AD_COMPAREPANE447_STATE__='err '+(e&&e.message||e);return -1;}}"
          "function homeCreative447(){try{if(window.__ADFRAME_MODE__||!document.body)return 0;if(document.querySelector('#search,.s-search-results,[data-component-type=\"s-search-result\"],#productTitle,#dp-container,#ppd')){window.__AD_HOMECREATIVE447_STATE__='home=0';return 0;}var C447=document.querySelectorAll('[class*=single-creative-card] [class*=theming-card-background]'),n447=0;for(var i447=0;i447<C447.length&&i447<80;i447++){var e447=C447[i447],r447=e447.getBoundingClientRect();if(r447.width<100||r447.height<100)continue;if(!e447.hasAttribute('data-ad-homecreative447'))e447.setAttribute('data-ad-homecreative447','native');n447++;}window.__AD_HOMECREATIVE447_STATE__='home=1 native='+n447;return n447;}catch(e){window.__AD_HOMECREATIVE447_STATE__='err '+(e&&e.message||e);return -1;}}"
+         // v5.448 HOME CREATIVE.  P59 on the failed build found five real
+         // theming-card-background leaves while v5.447's descendant selector found
+         // zero.  Device geometry shows the creative IMG and its background leaf
+         // are siblings with the same 299x478 rectangle.  Correlate their paint
+         // rectangles, explicitly reject any overlapping video, then release the
+         // one creative leaf from our two black/reset rules.  No replacement color
+         // is written: Amazon's own navy/colored declaration becomes authoritative.
+         "try{if(!window.__AD_HOMEBG448_WRAP__&&typeof _adHomeBgLeaf395==='function'){window.__AD_HOMEBG448_WRAP__=1;window.__AD_HOMEBG395_PRE448__=_adHomeBgLeaf395;_adHomeBgLeaf395=function(e448){if(e448&&e448.hasAttribute&&e448.hasAttribute('data-ad-homecreative448'))return false;return window.__AD_HOMEBG395_PRE448__(e448);};}}catch(e){}"
+         "function homeCreative448(){try{if(window.__ADFRAME_MODE__||!document.body)return 0;if(document.querySelector('#search,.s-search-results,[data-component-type=\"s-search-result\"],#productTitle,#dp-container,#ppd')){window.__AD_HOMECREATIVE448_STATE__='home=0';return 0;}"
+           "function rr448(e){try{return e&&e.getBoundingClientRect?e.getBoundingClientRect():null;}catch(x){return null;}}"
+           "function ov448(a448,b448){if(!a448||!b448)return false;var l448=Math.max(a448.left,b448.left),t448=Math.max(a448.top,b448.top),r448=Math.min(a448.right,b448.right),d448=Math.min(a448.bottom,b448.bottom),iw448=Math.max(0,r448-l448),ih448=Math.max(0,d448-t448),ia448=iw448*ih448,ma448=Math.min(a448.width*a448.height,b448.width*b448.height);return ma448>0&&ia448/ma448>.72;}"
+           "var B448=document.querySelectorAll('[class*=theming-card-background]'),I448=document.querySelectorAll('img[class*=\"_single-creative-card\"],img[class*=\"single-creative-card\"],[class*=\"single-creative-card\"] img'),V448=document.querySelectorAll('img[class*=\"_single-video-card\"],img[class*=\"single-video-card\"],video.vjs-tech,[class*=\"single-video-card\"] video'),n448=0,clean448=0;"
+           "for(var b448=0;b448<B448.length&&b448<100;b448++){var e448=B448[b448],er448=rr448(e448);if(!er448||er448.width<100||er448.height<100)continue;var ci448=false,vi448=false;for(var i448=0;i448<I448.length&&i448<100;i448++){var ir448=rr448(I448[i448]);if(ir448&&ov448(er448,ir448)){ci448=true;break;}}if(!ci448)continue;for(var v448=0;v448<V448.length&&v448<100;v448++){var vr448=rr448(V448[v448]);if(vr448&&ov448(er448,vr448)){vi448=true;break;}}if(vi448)continue;if(e448.getAttribute('data-ad-homecreative448')!=='native')e448.setAttribute('data-ad-homecreative448','native');if(e448.hasAttribute('data-ad-homebg395')||String(e448.__adBy||'')==='homeBgLeaf395'){e448.style.removeProperty('filter');e448.style.removeProperty('background-blend-mode');e448.style.removeProperty('box-shadow');e448.removeAttribute('data-ad-homebg395');delete e448.__adTamed;delete e448.__adTameSig;delete e448.__adBy;clean448++;}n448++;}"
+           "window.__AD_HOMECREATIVE448_STATE__='home=1 bg='+B448.length+' creative='+I448.length+' video='+V448.length+' native='+n448+' cleanup='+clean448;return n448;}catch(e){window.__AD_HOMECREATIVE448_STATE__='err '+(e&&e.message||e);return -1;}}"
          "function homeAmbient386(){try{if(window.__ADFRAME_MODE__||!document.body){window.__AD_HOMEAMBIENT386__='off';return 0;}var SEL='[class*=\"_hp-mosaic-container_style_widgetContainer\"],[class*=\"_mosaic-container_style_widgetContainer\"],[class*=\"gwm-dashboard-container\"],[class*=\"gwm-window-layout\"],[class*=\"gwm-asin-tile\"]',S=document.querySelectorAll(SEL);if(S.length<2){window.__AD_HOMEAMBIENT386__='home=0';return 0;}function pc(v){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([0-9.]+))?/i.exec(String(v||''));return m?[+m[1],+m[2],+m[3],m[4]===undefined?1:+m[4]]:null;}function sat(q){return q?(Math.max(q[0],q[1],q[2])-Math.min(q[0],q[1],q[2]))/255:0;}var seen=[],n=0,left=0,W=innerWidth||390,H=innerHeight||700;function fix(e){if(!e||seen.indexOf(e)>=0)return;seen.push(e);var r=e.getBoundingClientRect();if(r.width<W*.82||r.height<H*.55)return;var cl=String(e.className&&e.className.baseVal!==undefined?e.className.baseVal:(e.className||'')).toLowerCase();if(/carousel|hero|slideshow|swiper|swipe|creative|product-image|image-container/.test(cl))return;var cs=getComputedStyle(e),bg=pc(cs.backgroundColor),bi=String(cs.backgroundImage||'none'),grad=/gradient\\(/i.test(bi)&&bi.indexOf('url(')<0,hot=!!(bg&&bg[3]>.35&&sat(bg)>.12);if(!hot&&!grad)return;e.setAttribute('data-ad-homeambient386','1');e.style.setProperty('background-color','#181a1b','important');if(grad)e.style.setProperty('background-image','none','important');n++;}fix(document.documentElement);fix(document.body);for(var i=0;i<S.length&&i<10;i++){var p=S[i].parentElement,u=0;while(p&&u++<8){fix(p);if(p===document.body)break;p=p.parentElement;}}var Q=document.querySelectorAll('[data-ad-homeambient386]');for(var j=0;j<Q.length;j++){var c=getComputedStyle(Q[j]),q=pc(c.backgroundColor),b=String(c.backgroundImage||'none');if((q&&q[3]>.35&&sat(q)>.12)||(/gradient\\(/i.test(b)&&b.indexOf('url(')<0))left++;}window.__AD_HOMEAMBIENT386__='home=1 fixed='+n+' left='+left+' seeds='+S.length;return n;}catch(e){window.__AD_HOMEAMBIENT386__='err '+e;return 0;}}"
          "function badgeFix(){try{"
            "var B=document.querySelectorAll('[class*=badgeLabel]');for(var i=0;i<B.length&&i<200;i++){var b=B[i];if(b.hasAttribute&&b.hasAttribute('data-darkreader-inline-bgcolor')){b.style.removeProperty('background-color');b.removeAttribute('data-darkreader-inline-bgcolor');}b.style.setProperty('background-color','#cc0c39','important');b.style.setProperty('color','#ffffff','important');b.style.setProperty('-webkit-text-fill-color','#ffffff','important');}"
@@ -8918,7 +9371,7 @@ static NSString *ADProbeWebJS(void){
            "window.__bxT=setTimeout(function(){clr();dotFix();packFix();compareStock380();legacyCompare387();cartChrome382();shareFix382();chevronFix383();sponsorFix376();ratingFix376();try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},20);}).observe(document.documentElement,"
            "{subtree:true,childList:true,attributes:true,attributeFilter:['style','class','aria-current','aria-selected','data-selected','src','data-src','data-darkreader-inline-bgcolor','data-darkreader-inline-color','fill','stroke']});"
          "try{new MutationObserver(function(){try{cartChrome382();}catch(e){}}).observe(document.documentElement,{subtree:true,childList:true});}catch(e){}"
-         "try{homeCreative447();comparePane447();setTimeout(homeCreative447,40);setTimeout(comparePane447,40);setTimeout(homeCreative447,180);setTimeout(comparePane447,180);setTimeout(homeCreative447,700);setTimeout(comparePane447,700);setTimeout(homeCreative447,1800);setTimeout(comparePane447,1800);if(!window.__AD_THEME447_OBS__){window.__AD_THEME447_OBS__=1;var t447=0,new447=function(){if(t447)return;t447=1;var f447=function(){t447=0;try{homeCreative447();comparePane447();}catch(x){}};if(window.requestAnimationFrame)window.requestAnimationFrame(f447);else setTimeout(f447,0);};new MutationObserver(new447).observe(document.documentElement,{subtree:true,childList:true});addEventListener('scroll',function(){clearTimeout(window.__AD_THEME447_SCROLL__);window.__AD_THEME447_SCROLL__=setTimeout(function(){try{homeCreative447();comparePane447();}catch(x){}},90);},{passive:true,capture:true});}}catch(e){}"
+         "try{homeCreative448();setTimeout(homeCreative448,40);setTimeout(homeCreative448,180);setTimeout(homeCreative448,700);setTimeout(homeCreative448,1800);if(!window.__AD_THEME448_OBS__){window.__AD_THEME448_OBS__=1;var t448=0,new448=function(){if(t448)return;t448=1;var f448=function(){t448=0;try{homeCreative448();}catch(x){}};if(window.requestAnimationFrame)window.requestAnimationFrame(f448);else setTimeout(f448,0);};new MutationObserver(new448).observe(document.documentElement,{subtree:true,childList:true});addEventListener('scroll',function(){clearTimeout(window.__AD_THEME448_SCROLL__);window.__AD_THEME448_SCROLL__=setTimeout(function(){try{homeCreative448();}catch(x){}},90);},{passive:true,capture:true});}}catch(e){}"
          "/* v5.439: native state remains synchronous; stockCheckbox434 discovers stock hosts/art and removes only stale tweak-owned filters. */"
        "})();}catch(e){}"
        "/*V5395FIX*//*V5394FIX*//*V5314FIX*//*V5315FIX*/"
@@ -9007,7 +9460,7 @@ static NSString *ADProbeWebJS(void){
        // P56HOME393: direct evidence for the two Home regressions. Standalone is
        // anchored to confirmed standalone iframe ancestry; bleed is anchored to video-card ancestry.
               "try{var F56=document.querySelectorAll('iframe[data-ad-homeauto395=\"1\"]'),stand56=F56.length,haz56=0,W56=innerWidth||390;for(var i56=0;i56<F56.length;i56++){var f56=F56[i56],fr56=f56.getBoundingClientRect(),p56=f56.parentElement,d56=0;while(p56&&p56!==document.body&&d56++<8){var pr56=p56.getBoundingClientRect();if(pr56.width<fr56.width*.65||pr56.width>W56*1.14||pr56.height<fr56.height*.45||pr56.height>680)break;if(!(p56.querySelector&&p56.querySelector('video'))){var s56=getComputedStyle(p56),bi56=String(s56.backgroundImage||'none'),bc56=String(s56.backgroundColor||'transparent').replace(/\\s+/g,''),sh56=String(s56.boxShadow||'none'),fl56=String(s56.filter||'none');if(bi56.indexOf('url(')<0&&((bc56!=='transparent'&&bc56!=='rgba(0,0,0,0)')||bi56!=='none'||sh56!=='none'||fl56!=='none'))haz56++;}p56=p56.parentElement;}}var M56=document.querySelectorAll('[data-ad-homemedia395]'),B56=document.querySelectorAll('[data-ad-homebg395]'),unc56=0,comp56=0;for(var m56=0;m56<M56.length;m56++){if(String(getComputedStyle(M56[m56]).filter||'').indexOf('brightness')<0)unc56++;}for(var b56=0;b56<B56.length;b56++){var bs56=getComputedStyle(B56[b56]);if(String(bs56.filter||'none')!=='none'||String(bs56.backgroundBlendMode||'normal').indexOf('multiply')>=0)comp56++;}out.push('P56HOME395[stand='+stand56+' hazard='+haz56+' media='+M56.length+' bg='+B56.length+' uncovered='+unc56+' compositor='+comp56+' sstate='+String(window.__AD_STANDSWEEP395__||'-')+' mstate='+String(window.__AD_HOMEMEDIA395__||'-')+']');}catch(e56){out.push('P56HOME395[err '+(e56&&e56.message||e56)+']');}"
-              "try{var G59=document.querySelectorAll('[class*=theming-card-background]'),risk59=0,seen59=0,released59=0;for(var g59=0;g59<G59.length&&g59<80;g59++){var e59=G59[g59],p59=e59,u59=0,ctx59='';while(p59&&u59++<7){ctx59+=' '+String(p59.className||'');p59=p59.parentElement;}if(!/single-video-card|single-creative-card|theming-card/i.test(ctx59))continue;seen59++;if(e59.hasAttribute('data-ad-homecreative447')){released59++;continue;}var c59=getComputedStyle(e59),bi59=String(c59.backgroundImage||'none'),bc59=String(c59.backgroundColor||'').replace(/\\s+/g,''),f59=String(c59.filter||'none'),mb59=String(c59.mixBlendMode||'normal');if(bi59!=='none'||(bc59!=='rgb(24,26,27)'&&bc59!=='rgba(24,26,27,1)'&&bc59!=='#181a1b')||f59!=='none'||mb59!=='normal')risk59++;}out.push('P59BLEED396[main='+(document.documentElement&&document.documentElement.hasAttribute('data-ad-main396')?1:0)+' bg='+seen59+' released='+released59+' risk='+risk59+']');}catch(e59){out.push('P59BLEED396[err '+(e59&&e59.message||e59)+']');}"
+              "try{var G59=document.querySelectorAll('[class*=theming-card-background]'),risk59=0,seen59=0,released59=0;for(var g59=0;g59<G59.length&&g59<80;g59++){var e59=G59[g59],p59=e59,u59=0,ctx59='';while(p59&&u59++<7){ctx59+=' '+String(p59.className||'');p59=p59.parentElement;}if(!/single-video-card|single-creative-card|theming-card/i.test(ctx59))continue;seen59++;if(e59.hasAttribute('data-ad-homecreative448')){released59++;continue;}var c59=getComputedStyle(e59),bi59=String(c59.backgroundImage||'none'),bc59=String(c59.backgroundColor||'').replace(/\\s+/g,''),f59=String(c59.filter||'none'),mb59=String(c59.mixBlendMode||'normal');if(bi59!=='none'||(bc59!=='rgb(24,26,27)'&&bc59!=='rgba(24,26,27,1)'&&bc59!=='#181a1b')||f59!=='none'||mb59!=='normal')risk59++;}out.push('P59BLEED396[main='+(document.documentElement&&document.documentElement.hasAttribute('data-ad-main396')?1:0)+' bg='+seen59+' released='+released59+' risk='+risk59+']');}catch(e59){out.push('P59BLEED396[err '+(e59&&e59.message||e59)+']');}"
        // P60SYMBOL397: v5.333 non-checkbox symbol authority. bad=0 means every
        // sampled non-checkbox legacy symbol painter is light; cbTouched must stay 0.
        "try{var S60=document.querySelectorAll('[class*=lists-framework-action-button] img,[class*=lists-framework-action-button] i,[class*=lists-framework-action-button] svg,[class*=lists-framework-unfill],[class*=lists-framework-fill],img[class*=add-icon],img[class*=plus-icon],[class*=puis-heart-position] .a-icon,[class*=puis-heart-position] img'),bad60=0,seen60=0,Q60=[];for(var i60=0;i60<S60.length&&i60<220;i60++){var e60=S60[i60];if(e60.closest&&e60.closest('[class*=mlt-icon-container],[role=checkbox],input[type=checkbox],[class*=a-icon-checkbox],[data-ad-compare380],[data-ad-comparelegacy387],[data-ad-product391=\"checkbox\"]'))continue;var r60=e60.getBoundingClientRect();if(r60.width<3||r60.height<3||r60.width>60||r60.height>60)continue;seen60++;var c60=getComputedStyle(e60),t60=String(e60.tagName||'').toUpperCase(),ok60=1;if(t60==='IMG'||t60==='I')ok60=String(c60.filter||'none').indexOf('invert')>=0;else if(t60==='SVG'||t60==='PATH')ok60=(String(c60.fill||c60.color||'').indexOf('255')>=0||String(c60.fill||c60.color||'').indexOf('232')>=0);if(!ok60){bad60++;if(Q60.length<8)Q60.push(t60+'.'+String(e60.className&&e60.className.baseVal!==undefined?e60.className.baseVal:e60.className||'').slice(0,28));}}var C60=document.querySelectorAll('[class*=mlt-icon-container] [data-ad-productglyph391],[class*=mlt-icon-container] [data-ad-productraster391],[class*=mlt-icon-container] [data-ad-productvector391],[data-ad-product391=\"checkbox\"]'),ct60=0;for(var c60i=0;c60i<C60.length;c60i++){if(C60[c60i].__adBy==='v333397')ct60++;}out.push('P60SYMBOL397[seen='+seen60+' bad='+bad60+' cbTouched='+ct60+' state='+String(window.__AD_SYMBOL333397_STATE__||'-')+(Q60.length?' '+Q60.join(' ~~ '):'')+']');}catch(e60){out.push('P60SYMBOL397[err '+(e60&&e60.message||e60)+']');}"
@@ -9203,6 +9656,10 @@ static NSString *ADProbeWebJS(void){
        // its minus glyph becomes light. Home creative leaves must retain native
        // v5.447 color stays within single-creative-card; video/ambient risk remains P59.
        "try{var H89=document.querySelectorAll('[data-ad-compareminus447-host]'),G89=document.querySelectorAll('[data-ad-compareminus447-glyph]'),N89=document.querySelectorAll('[data-ad-homecreative447]'),dark89=0,hostChanged89=0,forcedBlack89=0,foreign89=0,pseudo89=0,Q89=[];function lit89(v89){var m89=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([0-9.]+))?/i.exec(String(v89||''));if(!m89||(m89[4]!==undefined&&+m89[4]<.08))return false;return (.2126*(+m89[1])+.7152*(+m89[2])+.0722*(+m89[3]))/255>.62;}for(var h89=0;h89<H89.length;h89++){var he89=H89[h89],hs89=getComputedStyle(he89);if(String(hs89.backgroundColor||'')!==String(he89.getAttribute('data-ad-compareminus447-hostbg')||'')||String(hs89.borderRadius||hs89.borderTopLeftRadius||'')!==String(he89.getAttribute('data-ad-compareminus447-hostrad')||''))hostChanged89++;for(var side89=0;side89<2;side89++){var at89=side89?'data-ad-compareminus447-after':'data-ad-compareminus447-before',pv89=he89.getAttribute(at89);if(!pv89)continue;pseudo89++;var ps89=getComputedStyle(he89,side89?'::after':'::before');if(pv89==='raster'){if(String(ps89.filter||'none').indexOf('invert')<0)dark89++;}else if(pv89==='solid'){if(!lit89(ps89.backgroundColor))dark89++;}else if(!lit89(ps89.color))dark89++;}}for(var g89=0;g89<G89.length;g89++){var ge89=G89[g89],gs89=getComputedStyle(ge89),k89=ge89.getAttribute('data-ad-compareminus447-glyph');if(k89==='raster'){if(String(gs89.filter||'none').indexOf('invert')<0)dark89++;}else if(k89==='solid'){if(!lit89(gs89.backgroundColor))dark89++;}else if(!lit89(gs89.color)&&!lit89(gs89.fill)&&!lit89(gs89.stroke))dark89++;}for(var n89=0;n89<N89.length;n89++){var ne89=N89[n89],ns89=getComputedStyle(ne89),bc89=String(ns89.backgroundColor||'').replace(/\\s+/g,'');if((bc89==='rgb(24,26,27)'||bc89==='rgba(24,26,27,1)'||bc89==='#181a1b')&&String(ns89.backgroundImage||'none')==='none')forcedBlack89++;if(!(ne89.closest&&ne89.closest('[class*=single-creative-card]')))foreign89++;if(Q89.length<6){var nr89=ne89.getBoundingClientRect();Q89.push(Math.round(nr89.width)+'x'+Math.round(nr89.height)+'|bg='+bc89+'|bgi='+(String(ns89.backgroundImage||'none')==='none'?0:1));}}out.push('P89THEME447[pane='+(/compare with similar|keep selecting/i.test(String((document.body&&document.body.innerText)||''))?1:0)+' host='+H89.length+' glyph='+G89.length+' pseudo='+pseudo89+' dark='+dark89+' hostChanged='+hostChanged89+' creative='+N89.length+' forcedBlack='+forcedBlack89+' foreign='+foreign89+' cstate='+String(window.__AD_COMPAREPANE447_STATE__||'-')+' hstate='+String(window.__AD_HOMECREATIVE447_STATE__||'-')+(Q89.length?' '+Q89.join(' ~~ '):'')+']');}catch(e89){out.push('P89THEME447[err '+(e89&&e89.message||e89)+']');}"
+       // P91HOME448: the failed v5.447 ancestry assumption is retired.  Verify the
+       // released background geometrically overlaps a creative image, never a video,
+       // no longer carries the v5.395 black overlay, and is not still forced black.
+       "try{var N91=document.querySelectorAll('[data-ad-homecreative448]'),I91=document.querySelectorAll('img[class*=\"_single-creative-card\"],img[class*=\"single-creative-card\"],[class*=\"single-creative-card\"] img'),V91=document.querySelectorAll('img[class*=\"_single-video-card\"],img[class*=\"single-video-card\"],video.vjs-tech,[class*=\"single-video-card\"] video'),forced91=0,video91=0,foreign91=0,stale91=0,colored91=0,Q91=[];function ov91(a91,b91){if(!a91||!b91)return false;var l91=Math.max(a91.left,b91.left),t91=Math.max(a91.top,b91.top),r91=Math.min(a91.right,b91.right),d91=Math.min(a91.bottom,b91.bottom),z91=Math.max(0,r91-l91)*Math.max(0,d91-t91),m91=Math.min(a91.width*a91.height,b91.width*b91.height);return m91>0&&z91/m91>.72;}for(var n91=0;n91<N91.length;n91++){var e91=N91[n91],er91=e91.getBoundingClientRect(),cs91=getComputedStyle(e91),bc91=String(cs91.backgroundColor||'').replace(/\\s+/g,''),bi91=String(cs91.backgroundImage||'none'),cm91=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/i.exec(bc91),ci91=false,vi91=false;for(var i91=0;i91<I91.length&&!ci91;i91++)ci91=ov91(er91,I91[i91].getBoundingClientRect());for(var v91=0;v91<V91.length&&!vi91;v91++)vi91=ov91(er91,V91[v91].getBoundingClientRect());if(!ci91)foreign91++;if(vi91)video91++;if(e91.hasAttribute('data-ad-homebg395')||String(e91.__adBy||'')==='homeBgLeaf395'||String(e91.style.getPropertyValue('box-shadow')||'').indexOf('9999px')>=0)stale91++;if((bc91==='rgb(24,26,27)'||bc91==='rgba(24,26,27,1)'||bc91==='#181a1b')&&bi91==='none')forced91++;if(bi91!=='none'||(cm91&&Math.max(+cm91[1],+cm91[2],+cm91[3])-Math.min(+cm91[1],+cm91[2],+cm91[3])>=8))colored91++;if(Q91.length<6)Q91.push(Math.round(er91.width)+'x'+Math.round(er91.height)+'|bg='+bc91+'|bgi='+(bi91==='none'?0:1));}out.push('P91HOME448[released='+N91.length+' colored='+colored91+' forcedBlack='+forced91+' videoReleased='+video91+' stale395='+stale91+' foreign='+foreign91+' state='+String(window.__AD_HOMECREATIVE448_STATE__||'-')+(Q91.length?' '+Q91.join(' ~~ '):'')+']');}catch(e91){out.push('P91HOME448[err '+(e91&&e91.message||e91)+']');}"
        // P81CTRL (v5.417): attribution probe -- names WHICH node still paints
        // (ancestor or descendant) around each control, and lists candidate hosts
        // that were found but never painted, with their size. Read-only.
@@ -9979,6 +10436,7 @@ static void ADSweepAllWindows(void){
                          gSwSample[0]  ? " declined=" : "", gSwSample[0]  ? gSwSample  : "",
                          gSwTintNow[0] ? " tintNow="  : "", gSwTintNow[0] ? gSwTintNow : ""];
         if (!last || ![last isEqualToString:now]){ last = now; ADLog(@"sweep %@", now); }
+        if (gADCompare448Armed) ADFixNativeCompare448();
         // v5.345: P15 found no independently addressable paint layer for the PDP heart.
         // Leave the forensic code in place, but stop spending every sweep walking it.
     } @catch(...) {}

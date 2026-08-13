@@ -21,10 +21,10 @@ src = SRC.read_text()
 # version makes a fresh device probe indistinguishable from an older install.
 _control = Path("layout/DEBIAN/control").read_text()
 _workflow = Path(".github/workflows/build.yml").read_text()
-_version_ok = ('#define AD_VERSION "v5.447.0"' in src
-               and "Version: 5.447.0" in _control
-               and "AmazonDark-v5.447-compare-minus-home-creative-rootless-deb" in _workflow)
-print(("PASS" if _version_ok else "FAIL") + ": v5.447 runtime/package/artifact identifiers agree")
+_version_ok = ('#define AD_VERSION "v5.448.0"' in src
+               and "Version: 5.448.0" in _control
+               and "AmazonDark-v5.448-native-compare-minus-home-creative-rootless-deb" in _workflow)
+print(("PASS" if _version_ok else "FAIL") + ": v5.448 runtime/package/artifact identifiers agree")
 if not _version_ok:
     sys.exit(1)
 
@@ -143,9 +143,10 @@ HOME395 = {
     '_adStandaloneSweep395 exact definition/calls': (r'_adStandaloneSweep395', None, 4, '1e931418220ed80b4fd966a2280ed2231dd067c98541e7bbb54e78c5718d8681'),
     'Standalone repair marker population': (r'data-ad-homeauto395|data-ad-standparent395|data-ad-standbefore395|data-ad-standafter395', None, 4, '6d508367ffaf47dbc86910ebaa13cd2ff75d47825911d2d008715d2958e285d2'),
     'Standalone iframe selector population': (r'iframe\[data-ad-frame-mode362', None, 4, '2835e55cd74e8a785c76257a97e69d6dfc3e40c4da80eac18cd711609b0278cb'),
-    # Exclude the v5.396 bleed guard/probe and the v5.447 creative-color release.
+    # Exclude the v5.396 bleed guard/probe and the failed v5.447 / corrected
+    # v5.448 creative-color release diagnostics.
     # Every older direct reference remains exactly the user-confirmed v5.395 set.
-    'Home media direct-selector population': (r'single-creative-card|single-video-card|video\.vjs-tech|data-ad-homemedia395', r'data-ad-main396|P59BLEED396|P66BLEED401|data-ad-homecreative447|homeCreative447|P89THEME447|v5\.447', 4, 'f1976ee3a8b48cb6e9278243e8af2064b01160fb8abd62731ccc90d59753b301'),
+    'Home media direct-selector population': (r'single-creative-card|single-video-card|video\.vjs-tech|data-ad-homemedia395', r'data-ad-main396|P59BLEED396|P66BLEED401|data-ad-homecreative44[78]|homeCreative44[78]|P(?:89THEME447|91HOME448)|v5\.44[78]|I448|_single-creative-card image', 4, 'f1976ee3a8b48cb6e9278243e8af2064b01160fb8abd62731ccc90d59753b301'),
 }
 for label,(pattern,exclude,count,expected) in HOME395.items():
     lines,actual=agg_lines(pattern,exclude)
@@ -601,7 +602,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.447.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.448.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
@@ -811,7 +812,7 @@ for _required in [
 # can reach only stockCheckbox434 below.
 for _label,_token,_expected in [
     ('document-start expanded-icon checkbox exclusion',
-     '__acs.textContent=__acs.textContent.replace',
+     "__acs.textContent=__acs.textContent.replace('[aria-expanded] .a-icon{'",
      '4e1b2d40492e69c2d94208d856927dfc45db4e0841f11bbb05877d951c4f30df'),
     ('runtime chevron checkbox exclusion',
      'function chevronFix383(){',
@@ -840,7 +841,7 @@ print('--- v5.441 device-captured 32px checkbox chrome / Cart + recycled Shoppin
 _checkbox434=exact_between('         // v5.441 DEVICE-CAPTURED STOCK CHECKBOX + SHARED 32PX CHROME.',
                            '         // v5.347 PDP HEART.', 'stockCheckbox434 layer')
 _probe434=exact_between('       // P85CHECKBOX441:',
-                        '       // P81CTRL (v5.417):', 'P85CHECKBOX434')
+                        '       // P89THEME447:', 'P85CHECKBOX434')
 for _label,_body,_expected in [
 # v5.442: re-pointed DELIBERATELY -- radius only (50% -> 4px) so the Compare
 # checkbox is a square in both Shopping and Cart. No change to fill, chrome,
@@ -861,10 +862,12 @@ for _label,_body,_expected in [
 # v5.447: re-pointed DELIBERATELY. P89 is appended between the frozen P88 and P81
 # anchors, so the extracted read-only probe span grows; P85/P88 paint checks are
 # unchanged, and the new P89 gate is itself frozen below.
+# v5.448: the checkbox/ownership span now ends at P89. This freezes P85/P88
+# independently, so new diagnostic probes cannot silently re-point their hash.
     ('stock checkbox runtime layer', _checkbox434,
      '5d3b2a74f4300ae57fded182bee02789656b81f9a49f7af701ff3705e064cf3a'),
     ('stock checkbox and ownership device probes', _probe434,
-     'a5897552654b45547054a50c1750fd63de43f097955239e1f8bafac0eb141195'),
+     'ed1cf7425d25c2aaa3da8f1883b482c9d84848c47251dc3e5b5606b4f09c3567'),
 ]:
     _actual=sha(_body); _ok=_actual==_expected
     print(('PASS' if _ok else 'FAIL')+f': exact {_label} {_actual}')
@@ -1081,65 +1084,151 @@ for _required in [
 
 print('PASS: v5.441 freezes cards/checkbox ownership, paints one 32px dark/chrome unchecked icon, removes every bounded Cart shell, preserves the stock sprite, and releases Amazon blue/checkmark state synchronously.')
 
-# v5.447 COMPARE-MINUS / HOME-CREATIVE LOCK
-# The Compare tray owns only the tiny minus leaf/pseudo; its circular badge host
-# is recorded and must not receive a style write. Home releases only real
-# single-creative-card backdrop leaves from the old forced-black guard. Video,
-# generic theming-card, checkbox, cards, Heart, and all interaction stay outside.
-print('--- v5.447 Compare-minus / native Home creative paint boundary ---')
-_theme447 = exact_between('         // v5.447 COMPARE SELECTION MINUS + HOME CREATIVE COLOR.',
-                          '         "function homeAmbient386(){', 'theme447 runtime')
-_probe89 = exact_between('       // P89THEME447:',
-                         '       // P81CTRL (v5.417):', 'P89THEME447')
-_firstpaint447 = exact_line('data-ad-homecreative447]),[data-ad-main396]',
-                            'v5.447 first-paint creative release')
-_fixture447 = Path('scripts/test-theme-surfaces-447.py').read_text()
+# v5.448 NATIVE COMPARE-MINUS / SIBLING HOME-CREATIVE LOCK
+# The v5.447 device probe disproved both ownership assumptions: P89 stayed at
+# pane/host/glyph=0 because the Compare tray is native React/UIKit, and P59 found
+# five background leaves while the descendant creative selector found zero. Freeze
+# the corrected boundaries: native semantic+geometry acquisition may paint only a
+# nested minus leaf, and rectangle overlap may release only a non-video creative
+# background sibling back to Amazon's own color.
+print('--- v5.448 native Compare-minus / sibling Home creative paint boundary ---')
+_native448 = exact_between('// ── v5.448 NATIVE COMPARE-TRAY MINUS',
+                           'static void ADTextClassWalk', 'native Compare 448')
+_home448 = exact_between('         // v5.448 HOME CREATIVE.',
+                         '         "function homeAmbient386(){', 'Home creative 448')
+_probe91 = exact_between('       // P91HOME448:',
+                         '       // P81CTRL (v5.417):', 'P91HOME448')
+_firstpaint448 = exact_line("__acs.textContent=__acs.textContent.replace('[class*=npack-asin-card]",
+                            'v5.448 first-paint sibling release')
+_scheduler448 = exact_line('try{homeCreative448();setTimeout(homeCreative448,40)',
+                           'v5.448 Home scheduler')
+_fixture448 = Path('scripts/test-theme-surfaces-448.py').read_text()
+
+# Assignment-time pins are frozen independently from acquisition. This prevents
+# a later Fabric commit from restoring the dark 10x14 raster after it was found.
+_view_solid448 = exact_between(
+    '    // v5.448 Compare tray: only a positively-owned thin minus bar is pinned',
+    '    if (!ADRecolorOn() || !color || ADIsOwnColor(color) || ADIsWebKitOwned(self))',
+    'UIView Compare solid pin')
+_view_tint448 = exact_between(
+    '    // Amazon reassigns the tiny Compare-minus tint during Fabric commits.',
+    '    // Tab bar FIRST, before the generic guard below.',
+    'UIView Compare image-tint pin')
+_label_text448 = exact_between(
+    '%hook UILabel\n- (void)setTextColor:(UIColor *)color {\n'
+    '    if (ADRecolorOn() && objc_getAssociatedObject(self, kADCompareText448Key))',
+    '    if (!ADRecolorOn() || !color || ADIsOwnColor(color))',
+    'UILabel Compare text pin')
+_layer_solid448 = exact_between(
+    '        if (objc_getAssociatedObject(self, kADIndicatorKey) ||',
+    '        CGColorRef m = ADModifyCGColor(color, ADColorRoleBackground);',
+    'CALayer Compare solid pin')
+_layer_filter448 = method_in_hook('CALayer', '- (void)setFilters:(NSArray *)filters')
+_image_assign448 = exact_between(
+    "    // v5.448: the Compare tray's native 10x14 minus is replaced during React",
+    '    if (!image || ADIsWebKitOwned(self) || !ADRecolorOn() || gADSettingImage)',
+    'UIImageView Compare assignment pin')
+_rct_paragraph448 = hook_block('RCTParagraphComponentView')
+_rct_text448 = hook_block('RCTTextView')
+_rct_view448 = hook_block('RCTViewComponentView')
+
 for _label, _body, _expected in [
-    ('Compare-minus/Home creative runtime', _theme447,
-     'ca18653ad04211b197e7fa83ba0ed1ce26b6037ed3a3a90b4f079757df6bdef4'),
-    ('P89 device contract', _probe89,
-     '239c7128145a7010bca1f83b8f862eb6985e2e333b79dd50710797363272a298'),
-    ('documentStart native-creative release', _firstpaint447,
-     'b837d82d343c580363fc0d629d8cdc5eebc123142f08fadc007e0eba62771364'),
-    ('Compare-minus/Home creative DOM fixture', _fixture447,
-     'cecdf83ee65a3eaad1686d71cd4826535f293ed64ffe6ae855e523c49bdd4da6'),
+    ('native semantic/geometry/leaf owner', _native448,
+     '9ba270abac80322a7c2a908c644e96535bfeb0b7401fce8c74c30acf240cfaf3'),
+    ('sibling Home creative owner', _home448,
+     '1fb09933b1950ee3a1b3317de3610c7920c8ab79c8e5989312fe966c2d4fd875'),
+    ('P91 Home device contract', _probe91,
+     '60ed2f4f9cf23961bf0ee746a83a5c50a8ab817e169bcb0857be0fd0b05980f5'),
+    ('documentStart sibling release', _firstpaint448,
+     'f6c7587a7a83c45d044e6aa3c4721e10f82b30a70b1afe8a7b4342749b1d3aee'),
+    ('Home creative persistent scheduler', _scheduler448,
+     '7ccc952deaae7c70eed2938661e0271b1218359019adc3496925b6fb6ff41109'),
+    ('native/Home regression fixture', _fixture448,
+     'a2c79e44fa0aca92837bcef51ec760e52ca0731c863cc663201ee3cdb0b11be2'),
+    ('UIView solid-minus assignment pin', _view_solid448,
+     '229e589b4203dc46c99f04054e695d3647a773273b9a05cd5350aec314a62817'),
+    ('UIView image-tint assignment pin', _view_tint448,
+     '6dae30e57e7f8264cc9827ef8d51c377ea412b948b8b37422a18121ed81c4998'),
+    ('UILabel text-minus assignment pin', _label_text448,
+     '1be1a8786682bef6ed6f1a9cb69b77739e9ac6c4f4b6d4abb910bd2913e313b9'),
+    ('CALayer solid-minus assignment pin', _layer_solid448,
+     'ab8f71acb365be1b97ae275bd00f667b64f59a591b35601c78cf6e864a7ed202'),
+    ('CALayer raster/vector filter pin', _layer_filter448,
+     '97e271c984cb720d864adaf4d1f768761021603b291207ffd49161a0535044e4'),
+    ('UIImageView raster assignment pin', _image_assign448,
+     '08cb55f30d9f949c81114348adbe8e0d21dc8314c14e39e004076fa7fa9ec054'),
+    ('Fabric paragraph semantic trigger', _rct_paragraph448,
+     '8b4ab8a5497743b898a673c1b3bb8027610e91eec2cd923c6ca74f37a34ad357'),
+    ('Paper text semantic trigger', _rct_text448,
+     'ccb8e712227ce94018169c12e481b100fcab871bc10856bc497f65d4b822fd44'),
+    ('Fabric view persistent rescheduler', _rct_view448,
+     'b4ed3c31f4b5d0a8315ffd185c92f2d9009edd324ab72a63950ca7497ce501df'),
 ]:
     _actual = sha(_body); _ok = _actual == _expected
-    print(('PASS' if _ok else 'FAIL')+f': exact v5.447 {_label} {_actual}')
+    print(('PASS' if _ok else 'FAIL')+f': exact v5.448 {_label} {_actual}')
     if not _ok:
-        print('ERROR: the v5.447 glyph-host boundary or native creative release changed.')
+        print('ERROR: the v5.448 native glyph leaf or Home sibling boundary changed.')
         sys.exit(1)
 
 for _required in [
-    "compare with similar|keep selecting",
-    "host447.setAttribute('data-ad-compareminus447-host','1')",
-    "glyph447.setAttribute('data-ad-compareminus447-glyph',kind447)",
-    "data-ad-compareminus447-before",
-    "data-ad-compareminus447-after",
-    "[data-ad-compareminus447-glyph=solid]{background-color:#e8e6e3 !important;}",
-    "[data-ad-compareminus447-glyph=raster]{filter:brightness(0) invert(1) !important;}",
-    "document.querySelectorAll('[class*=single-creative-card] [class*=theming-card-background]')",
-    "e447.setAttribute('data-ad-homecreative447','native')",
-    "P89THEME447[",
-    "hostChanged=",
-    "forcedBlack=",
+    'kADCompareHost448Key', 'kADCompareImage448Key', 'kADCompareSolid448Key',
+    'kADCompareText448Key', 'kADCompareLayer448Key',
+    '@"Compare with similar"', '@"keep selecting"',
+    'if (ADIsWebKitOwned(v)) return nil;',
+    'f.size.height>=54 && f.size.height<=210',
+    'w>=24 && w<=96 && h>=24 && h<=96',
+    'w<18 || w>52 || h<18 || h>52',
+    'ADCompareViewCandidate448(v,v,0)',
+    'ADComparePinWalk448(host,host,0,&images,&solids,&texts,&layers)',
+    'P90COMPARE448[text=1', 'hostStable=%d',
+    'if (gADCompare448Armed) ADFixNativeCompare448();',
 ]:
-    _ok = _required in _theme447 or _required in _probe89
-    print(('PASS' if _ok else 'FAIL')+f': v5.447 paint boundary {_required[:78]}')
+    _ok = _required in src
+    print(('PASS' if _ok else 'FAIL')+f': v5.448 native Compare contract {_required[:76]}')
     if not _ok: sys.exit(1)
 
 for _forbidden in [
-    'host447.style', '.click(', 'dispatchEvent', 'preventDefault(',
-    'stopPropagation(', "createElement('svg')", 'innerHTML=', 'outerHTML=',
+    'host.backgroundColor=', 'host.layer.backgroundColor=',
+    'host.layer.cornerRadius=', '[host setFrame:', '[host setBounds:',
+    'objc_setAssociatedObject(host,kADCompareImage448Key',
+    'objc_setAssociatedObject(host,kADCompareSolid448Key',
+    'objc_setAssociatedObject(host,kADCompareText448Key',
+    'objc_setAssociatedObject(host,kADCompareLayer448Key',
+    '.click(', 'dispatchEvent', 'preventDefault(', 'stopPropagation(',
+    "createElement('svg')", 'innerHTML=', 'outerHTML=',
 ]:
-    _ok = _forbidden not in _theme447
-    print(('PASS' if _ok else 'FAIL')+f': v5.447 no host/state/artwork mutation {_forbidden}')
+    _ok = _forbidden not in _native448
+    print(('PASS' if _ok else 'FAIL')+f': v5.448 native host/state/artwork immutable {_forbidden}')
     if not _ok: sys.exit(1)
 
-_ok = ("[class*=single-video-card] [class*=theming-card-background]" in _firstpaint447
-       and "[class*=single-creative-card] [class*=theming-card-background]:not([data-ad-homecreative447])" in _firstpaint447
-       and 'single-video-card' not in _theme447[_theme447.index('function homeCreative447(){'):])
-print(('PASS' if _ok else 'FAIL')+': v5.447 releases native creative color and retains the video guard')
+for _required in [
+    "document.querySelectorAll('[class*=theming-card-background]')",
+    'img[class*=\\"_single-creative-card\\"]',
+    'img[class*=\\"_single-video-card\\"]',
+    'ia448/ma448>.72', 'if(vi448)continue',
+    "setAttribute('data-ad-homecreative448','native')",
+    "removeProperty('box-shadow')", "removeAttribute('data-ad-homebg395')",
+    'P91HOME448[released=', 'forcedBlack=', 'videoReleased=', 'stale395=',
+]:
+    _ok = _required in _home448 or _required in _probe91
+    print(('PASS' if _ok else 'FAIL')+f': v5.448 Home sibling contract {_required[:76]}')
+    if not _ok: sys.exit(1)
+
+for _forbidden in [
+    "setProperty('background-color'", "setProperty('background'", '.click(',
+    'dispatchEvent', 'preventDefault(', 'stopPropagation(', "createElement('svg')",
+    'innerHTML=', 'outerHTML=',
+]:
+    _ok = _forbidden not in _home448
+    print(('PASS' if _ok else 'FAIL')+f': v5.448 Home release invents no paint/state {_forbidden}')
+    if not _ok: sys.exit(1)
+
+_ok = ("[class*=theming-card-background]:not([data-ad-homecreative448])" in _firstpaint448
+       and "replace(/data-ad-homecreative447/g,'data-ad-homecreative448')" in _firstpaint448
+       and "[class*=single-video-card] [class*=theming-card-background]" in src
+       and 'comparePane447' not in _scheduler448
+       and 'homeCreative447' not in _scheduler448)
+print(('PASS' if _ok else 'FAIL')+': v5.448 releases the sibling creative while retaining video/failed-path guards')
 if not _ok: sys.exit(1)
 
 for _required in [
@@ -1148,7 +1237,7 @@ for _required in [
     "getComputedStyle(shopping.art).borderRadius==='4px'",
 ]:
     _ok = _required in _test434
-    print(('PASS' if _ok else 'FAIL')+f': v5.447 square-checkbox fixture {_required}')
+    print(('PASS' if _ok else 'FAIL')+f': v5.448 frozen square-checkbox fixture {_required}')
     if not _ok: sys.exit(1)
 
-print('PASS: v5.447 locks every recently edited symbol, keeps the minus host dark, and restores only native Home creative paint.')
+print('PASS: v5.448 locks every recently edited symbol, pins only the native minus leaf, keeps its host dark, restores Amazon creative color, and retains the video guard.')

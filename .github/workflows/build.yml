@@ -18,7 +18,7 @@ on:
   workflow_dispatch:
     inputs:
       build_name:
-        description: 'Run title, for example: v5.447: restore Compare minus and Home creative color'
+        description: 'Run title, for example: v5.448: pin native Compare minus and restore Home creative color'
         required: true
         type: string
   release:
@@ -58,8 +58,8 @@ jobs:
         run: python3 scripts/lint-frozen-surfaces.py src/Tweak.xm
       - name: Lock device-captured Cart and Shopping checkbox sprites
         run: python3 scripts/test-compare-native-428.py src/Tweak.xm
-      - name: Lock Compare minus and native Home creative color
-        run: python3 scripts/test-theme-surfaces-447.py src/Tweak.xm
+      - name: Lock native Compare minus and native Home creative color
+        run: python3 scripts/test-theme-surfaces-448.py src/Tweak.xm
 
       - name: Build rootless package
         run: |
@@ -79,7 +79,7 @@ jobs:
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AmazonDark-v5.447-compare-minus-home-creative-rootless-deb
+          name: AmazonDark-v5.448-native-compare-minus-home-creative-rootless-deb
           path: packages/*.deb
           if-no-files-found: error
 
