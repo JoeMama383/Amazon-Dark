@@ -83,7 +83,7 @@ jobs:
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AmazonDark-v5.454-experimental-performance-carousel-bleed-rootless-deb
+          name: AmazonDark-v5.455-pass-rate-limiter-rootless-deb
           path: packages/*.deb
           if-no-files-found: error
 

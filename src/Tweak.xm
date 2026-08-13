@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.454.0"
+#define AD_VERSION "v5.455.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1095,6 +1095,16 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "p.setAttribute('data-ad-videoctl362','1');n++;}"
              "return n;}catch(e){return 0;}};"
            "window.__AMZDARK_ADTHEME__=function(){try{"
+             "var __n454=Date.now();"
+             "window.__ADR_N__=(window.__ADR_N__||0)+1;"
+             "if(!window.__ADR_T0__)window.__ADR_T0__=__n454;"
+             "if(__n454-window.__ADR_T0__>=1000){"
+               "window.__AD_RATE__='runs/s='+window.__ADR_N__+' ms/s='+Math.round(window.__ADR_MS__||0)"
+                 "+' skipped='+(window.__ADR_SKIP__||0);"
+               "window.__ADR_N__=0;window.__ADR_MS__=0;window.__ADR_SKIP__=0;window.__ADR_T0__=__n454;}"
+             "if(window.__ADR_LAST__&&(__n454-window.__ADR_LAST__)<120&&!window.__ADR_FORCE__)"
+               "{window.__ADR_SKIP__=(window.__ADR_SKIP__||0)+1;return 0;}"
+             "window.__ADR_LAST__=__n454;"
              "var mode=window.__ADFRAME_MODE__||'hero',any379=window.__AD_ANYSPONINK379__?window.__AD_ANYSPONINK379__():0,sp365=window.__AD_SPON365__?window.__AD_SPON365__():0;"
              "var strip375=window.__AD_PRODUCTSTRIP375__?window.__AD_PRODUCTSTRIP375__():0;if(strip375){var cl375=window.__AD_CLEARSTRIP374__?window.__AD_CLEARSTRIP374__():0;var in375=window.__AD_ADTEXT371__?window.__AD_ADTEXT371__():0;var tx377=window.__AD_STRIPTEXT377__?window.__AD_STRIPTEXT377__():0;var bx378=window.__AD_STRIPCHROME379__?window.__AD_STRIPCHROME379__():0;var dk382=window.__AD_STANDDARK382__?window.__AD_STANDDARK382__():0;var tm375=window.__AD_STRIPMEDIA374__?window.__AD_STRIPMEDIA374__():0;var sp375=window.__AD_SPON365__?window.__AD_SPON365__():0;window.__AD_STANDALONE__='strip-stock382';window.__AD_ADTHEME__='mode='+mode+' strip379=1 any379='+String(window.__AD_ANYSPON379_N__||0)+' dark379='+String(window.__AD_ANYSPON379_DARK__||0)+' roots379='+String(window.__AD_ANYSPON379_ROOTS__||0)+' t377='+String(window.__AD_STRIPTEXT377_N__||0)+' d377='+String(window.__AD_STRIPTEXT377_DARK__||0)+' box379='+String(window.__AD_STRIPCHROME379_N__||0)+' boxleft379='+String(window.__AD_STRIPCHROME379_LEFT__||0)+' black382='+String(window.__AD_STANDDARK382_N__||0)+' blackleft382='+String(window.__AD_STANDDARK382_LEFT__||0)+' sticky='+String(window.__AD_STRIPCONF375__?1:0)+' clean375='+cl375+' chrome375='+String(window.__AD_STRIPCHROME374_LEFT__||0)+' ink375='+in375+' white376='+String(window.__AD_ADTEXT376_LOCKED__||0)+' grayleft376='+String(window.__AD_ADTEXT376_GRAYLEFT__||0)+' media375='+String(window.__AD_STRIPMEDIA374_N__||0)+' fullSkip375='+String(window.__AD_STRIPFULL374_N__||0)+' spon='+sp375;return cl375+in375+tx377+bx378+dk382+tm375+sp375;}"
              "if(mode==='productad'){var csp=document.getElementById('adfrcompact373');if(csp&&csp.parentNode)csp.parentNode.removeChild(csp);var oldc372=document.getElementById('adfrcompact372');if(oldc372&&oldc372.parentNode)oldc372.parentNode.removeChild(oldc372);var oldp=document.getElementById('adfrstand362');if(oldp&&oldp.parentNode)oldp.parentNode.removeChild(oldp);var oldm=document.getElementById('adfrmin');if(oldm&&oldm.parentNode)oldm.parentNode.removeChild(oldm);if(!document.getElementById('adfrproduct370')){var pst=document.createElement('style');pst.id='adfrproduct370';pst.textContent='html,body{background-color:transparent !important;}';(document.head||document.documentElement).appendChild(pst);}try{var pe=document.querySelectorAll('*');for(var pi=0;pi<pe.length&&pi<900;pi++){var px=pe[pi];if(!px.__adStand362)continue;var pv=String(px.style.getPropertyValue('background-color')||'').replace(/\\s+/g,'').toLowerCase();if(pv==='#181a1b'||pv==='rgb(24,26,27)')px.style.removeProperty('background-color');var bs=['top','right','bottom','left'];for(var pbi=0;pbi<4;pbi++){var bp='border-'+bs[pbi]+'-color',bv=String(px.style.getPropertyValue(bp)||'').replace(/\\s+/g,'').toLowerCase();if(bv==='#3b3c3e'||bv==='rgb(59,60,62)')px.style.removeProperty(bp);}}}catch(pc369){}var ptx=window.__AD_ADTEXT371__?window.__AD_ADTEXT371__():0;var pt=window.__AMZDARK_ADTAME__?window.__AMZDARK_ADTAME__():0;var ps=window.__AD_SPON365__?window.__AD_SPON365__():0;window.__AD_STANDALONE__='product-stock373';window.__AD_ADTHEME__='mode=productad stock=1 ink371='+ptx+' left='+String(window.__AD_ADTEXT371_LEFT__||0)+' roots='+String(window.__AD_ADTEXT371_ROOTS__||1)+' '+String(window.__AD_ADTAME__||('tame='+pt))+' spon='+ps+' pref='+(window.__AD_PRODUCTREF369__?1:0);return ptx+pt+ps;}"
@@ -2994,6 +3004,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(window.__AD_SHOP__?(' SHOP['+window.__AD_SHOP__+']'):'')"
                "+(window.__AD_MLT__?(' MLT[n='+window.__AD_MLT__+']'):'')"
                "+(window.__AD_PERF__?(' PERF['+window.__AD_PERF__+']'):'')"
+               "+(window.__AD_RATE__?(' RATE['+window.__AD_RATE__+']'):'')"
                "+(window.__AD_TILEART__?(' TILEART['+window.__AD_TILEART__+']'):'')"
                "+(window.__AD_BOXKILL__?(' BOXKILL['+window.__AD_BOXKILL__+']'):'')"
                "+(window.__AD_FLTSCAN__?(' FLTSCAN['+window.__AD_FLTSCAN__+']'):'')"
@@ -3078,6 +3089,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "}}catch(e){window.__AD_SHOP__='err '+e;}"
            "window.__ADSPXR__=0;"
            "window.__AD_PERF__='ms='+(Date.now()-__T0)+' cut='+__cut+' '+__ckl.join(' ');"
+           "try{window.__ADR_MS__=(window.__ADR_MS__||0)+(Date.now()-__T0);}catch(e){}"
            // CHILD FRAME -> TOP. Every frame self-describes (text-element count, body
            // child count, path) so "nothing found" is distinguishable from "nothing
            // here", which is exactly the ambiguity that made scanned=0 unreadable.
