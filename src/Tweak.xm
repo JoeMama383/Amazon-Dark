@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.453.0"
+#define AD_VERSION "v5.454.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3471,12 +3471,6 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // saturated ancestor paint. No video attributes/playback/filter/layout writes.
                   "function _adHomeMedia395(){try{if(window.__ADFRAME_MODE__||!document.body||!window.__ADTAME_ON__)return 0;if(document.querySelector('#search,.s-search-results,[data-component-type=\"s-search-result\"],#productTitle,#dp-container,#ppd')){window.__AD_HOMEMEDIA395__='home=0 product=1';return 0;}var S=Math.max(0,Math.min(100,window.__ADTAME_S__||45)),bb=(1-0.50*(S/100)).toFixed(3),E=document.querySelectorAll('img[class*=\"_single-creative-card\"],img[class*=\"_single-video-card\"],[class*=\"single-creative-card\"] img,[class*=\"single-video-card\"] img,video.vjs-tech,[class*=\"single-video-card\"] video,[class*=\"theming-card-background\"],.vjs-poster,[class*=\"vjs-poster\"]'),media=0,bg=0,uncovered=0,hazard=0;for(var i=0;i<E.length&&i<240;i++){var e=E[i],r=e.getBoundingClientRect(),tg=String(e.tagName||'').toUpperCase();if(r.width<100||r.height<70)continue;if(tg==='DIV'||tg==='SECTION'||tg==='SPAN'){if(!_adHomeBgLeaf395(e))continue;bg++;var cs=getComputedStyle(e);if(String(cs.filter||'none')!=='none'||String(cs.backgroundBlendMode||'normal').indexOf('multiply')>=0)hazard++;if(!e.hasAttribute('data-ad-homebg395'))uncovered++;continue;}if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')continue;var want='brightness('+bb+') saturate(1.08)';e.setAttribute('data-ad-tame-fast362','1');e.setAttribute('data-ad-homemedia395','1');if(String(e.style.getPropertyValue('filter')||'')!==want||e.style.getPropertyPriority('filter')!=='important')e.style.setProperty('filter',want,'important');e.__adTamed=1;e.__adTameSig='HM395|'+String(e.currentSrc||e.src||e.poster||'');e.__adBy='homeMedia395';media++;if(String(getComputedStyle(e).filter||'').indexOf('brightness')<0)uncovered++;}window.__AD_HOMEMEDIA395__='media='+media+' bg='+bg+' uncovered='+uncovered+' hazard='+hazard;return media+bg;}catch(e){window.__AD_HOMEMEDIA395__='err '+(e&&e.message||e);return 0;}}"
          "window._adHomeMedia395=_adHomeMedia395;"
-         // v5.453 EARLY HOME BACKING GUARD.  The legacy Home media pass runs before
-         // final Home owner is installed.  A documentStart-claimed non-video
-         // backing must therefore bypass the old removeProperty(background-color)
-         // compositor immediately, so Amazon's late inline color is still present
-         // when the v5.453 owner records it and layers the uniform overlay.
-         "try{if(!window.__AD_HOMEBG453_EARLY__&&typeof _adHomeBgLeaf395==='function'){window.__AD_HOMEBG453_EARLY__=1;window.__AD_HOMEBG395_RAW453__=_adHomeBgLeaf395;_adHomeBgLeaf395=function(e453){if(e453&&e453.hasAttribute&&e453.hasAttribute('data-ad-homecolor452')){var a453=e453.__adHomeAuth452||(e453.__adHomeAuth452={}),s453=e453.style,c453=String(s453.getPropertyValue('background-color')||''),i453=String(s453.getPropertyValue('background-image')||'');if(c453){a453.color=c453;a453.colorPriority=s453.getPropertyPriority('background-color');}if(i453&&i453!=='none'){a453.image=i453;a453.imagePriority=s453.getPropertyPriority('background-image');}var S453=Math.max(0,Math.min(100,window.__ADTAME_S__||45)),aa453=(0.50*(S453/100)).toFixed(3);s453.setProperty('filter','none','important');s453.setProperty('background-blend-mode','normal','important');s453.setProperty('box-shadow','inset 0 0 0 9999px rgba(0,0,0,'+aa453+')','important');e453.setAttribute('data-ad-homebg395','1');e453.__adTamed=1;e453.__adTameSig='HE453|'+String(i453||'none');e453.__adBy='homeBgLeaf395';return true;}return window.__AD_HOMEBG395_RAW453__(e453);};}}catch(e){}"
          "try{_adHomeMedia395();_adStandaloneSweep395();setTimeout(_adHomeMedia395,120);setTimeout(_adHomeMedia395,420);setTimeout(_adHomeMedia395,1100);setTimeout(_adStandaloneSweep395,180);setTimeout(_adStandaloneSweep395,700);setTimeout(_adStandaloneSweep395,1500);if(!window.__ADHOMEP395INIT__){window.__ADHOMEP395INIT__=1;var hp395=0;addEventListener('scroll',function(){if(hp395)return;hp395=1;var f=function(){hp395=0;try{_adHomeMedia395();_adStandaloneSweep395();}catch(e){}};if(requestAnimationFrame)requestAnimationFrame(f);else setTimeout(f,0);},{passive:true,capture:true});addEventListener('pageshow',function(){try{_adHomeMedia395();_adStandaloneSweep395();}catch(e){}},{passive:true});}}catch(e){}"
          // v5.359: the 5.358 device probe finally identified the College painters as
          // edge SVGs. The full contrast pass intentionally does not run while scrolling,
@@ -6153,6 +6147,40 @@ static void ADHeaderProbe(void){
 static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar);
 static void ADSweepTimed(UIView *v, BOOL inTabBar, const char *why);
 static const void *kADScrollPendKey = &kADScrollPendKey;
+
+// v5.454 experimental performance guard. v5.452's "pending" boolean did not
+// move the deadline when more motion arrived, so a long drag still ran a native
+// tree sweep every ~300ms. Keep one tiny state object per native scroll view and
+// do the unchanged v5.452 convergence work only after a true quiet edge.
+@interface ADScrollSettle454 : NSObject {
+@public
+    CFTimeInterval lastMotion;
+    BOOL pending;
+}
+@end
+@implementation ADScrollSettle454
+@end
+
+static void ADArmScrollSettle454(UIScrollView *scroll, ADScrollSettle454 *state){
+    if (!scroll || !state || state->pending) return;
+    state->pending = YES;
+    __weak UIScrollView *weakScroll = scroll;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 260*1000000LL),
+                   dispatch_get_main_queue(), ^{
+        UIScrollView *s = weakScroll;
+        state->pending = NO;
+        if (!s || !ADRecolorOn() || !s.window) return;
+        CFTimeInterval quiet = CACurrentMediaTime() - state->lastMotion;
+        if (s.tracking || s.dragging || s.decelerating || quiet < 0.22){
+            ADArmScrollSettle454(s, state);
+            return;
+        }
+        @try { ADSweepTimed(s, NO, "scroll454"); } @catch(...) {}
+        @try { if(gP.enabled&&gP.whiteTame&&s.window){NSMutableArray *sq394=[NSMutableArray arrayWithObject:s];for(NSUInteger qi394=0;qi394<sq394.count&&qi394<180;qi394++){UIView *x394=sq394[qi394];if([x394 isKindOfClass:[UIImageView class]])ADSubscribeOverlay394(x394);if(qi394<55){for(UIView *c394 in x394.subviews){if(sq394.count<180)[sq394 addObject:c394];else break;}}}} } @catch(...) {}
+        @try { ADHeaderProbe(); } @catch(...) {}
+    });
+}
+
 %hook UIScrollView
 - (void)didMoveToWindow {
     %orig;
@@ -6162,19 +6190,13 @@ static const void *kADScrollPendKey = &kADScrollPendKey;
     %orig;
     @try {
         if (!ADRecolorOn() || !self.window || ADIsWebKitOwned(self)) return;
-        // Coalesce: schedule ONE scoped sweep ~300ms after scrolling settles.
-        if (objc_getAssociatedObject(self, kADScrollPendKey)) return;
-        objc_setAssociatedObject(self, kADScrollPendKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        __weak UIScrollView *ws = self;
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 300*1000000LL),
-            dispatch_get_main_queue(), ^{
-                UIScrollView *ss = ws;
-                if (!ss) return;
-                objc_setAssociatedObject(ss, kADScrollPendKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                @try { if (ADRecolorOn() && ss.window) ADSweepTimed(ss, NO, "scroll"); } @catch(...) {}
-                @try { if(gP.enabled&&gP.whiteTame&&ss.window){NSMutableArray *sq394=[NSMutableArray arrayWithObject:ss];for(NSUInteger qi394=0;qi394<sq394.count&&qi394<180;qi394++){UIView *x394=sq394[qi394];if([x394 isKindOfClass:[UIImageView class]])ADSubscribeOverlay394(x394);if(qi394<55){for(UIView *c394 in x394.subviews){if(sq394.count<180)[sq394 addObject:c394];else break;}}}} } @catch(...) {}
-                @try { ADHeaderProbe(); } @catch(...) {}
-            });
+        ADScrollSettle454 *state=objc_getAssociatedObject(self,kADScrollPendKey);
+        if (!state){
+            state=[ADScrollSettle454 new];
+            objc_setAssociatedObject(self,kADScrollPendKey,state,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        state->lastMotion=CACurrentMediaTime();
+        ADArmScrollSettle454(self,state);
     } @catch(...) {}
 }
 %end
@@ -9590,9 +9612,13 @@ static NSString *ADProbeWebJS(void){
          "}catch(e){window.__AD_CHECKBOX434_STATE__='err '+(e&&e.message||e);return -1;}finally{window.__AD_CHECKBOX434_RUNNING__=0;}}"
          "try{window.__AD_CHECKBOX434__=stockCheckbox434;if(!window.__AD_CHECKBOX434_WRAP__){window.__AD_CHECKBOX434_WRAP__=1;"
            "window.__AD_PRODUCTCTRL391_PRE434__=window.__AD_PRODUCTCTRL391RUN__;window.__AD_PRODUCTCTRL391RUN__=function(){var r=window.__AD_PRODUCTCTRL391_PRE434__?window.__AD_PRODUCTCTRL391_PRE434__():0;try{window.__AD_CHECKBOX434__();}catch(x){}return r;};"
-           "new MutationObserver(function(){try{window.__AD_CHECKBOX434__();}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});"
-           "function queue434(){if(window.__AD_CHECKBOX434_QUEUED__)return;window.__AD_CHECKBOX434_QUEUED__=1;var r434=function(){window.__AD_CHECKBOX434_QUEUED__=0;try{window.__AD_CHECKBOX434__();}catch(x){}};if(window.requestAnimationFrame)window.requestAnimationFrame(r434);else setTimeout(r434,0);}"
-           "addEventListener('scroll',queue434,{passive:true,capture:true});}"
+           // The stock sprite remains synchronous through Amazon's :checked CSS.
+           // Only the expensive discovery scan is coalesced. In particular, never
+           // observe `style`: stockCheckbox434 writes styles itself and v5.452 could
+           // feed those writes straight back into another 1100-candidate scan.
+           "function queue434(ms434){clearTimeout(window.__AD_CHECKBOX434_T__);window.__AD_CHECKBOX434_T__=setTimeout(function(){try{if(!window.__ADSCROLLING__||ms434<100)window.__AD_CHECKBOX434__();}catch(x){}},ms434||24);}"
+           "new MutationObserver(function(){queue434(24);}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});"
+           "addEventListener('scroll',function(){queue434(320);},{passive:true,capture:true});}"
            "stockCheckbox434();setTimeout(stockCheckbox434,40);setTimeout(stockCheckbox434,180);setTimeout(stockCheckbox434,700);setTimeout(stockCheckbox434,1800);"
          "}catch(e){}"
          // v5.347 PDP HEART. The confirmed 20x20 .a-icon painter is handled
@@ -9660,23 +9686,31 @@ static NSString *ADProbeWebJS(void){
              "if(/^\\d+%\\s*off$/i.test(t)){var p=x.parentElement;if(p){p.style.setProperty('background-color','#cc0c39','important');p.style.setProperty('color','#ffffff','important');p.style.setProperty('-webkit-text-fill-color','#ffffff','important');}x.style.setProperty('color','#ffffff','important');x.style.setProperty('-webkit-text-fill-color','#ffffff','important');n++;}"
              "else if(/^(?:limited\\s+time\\s+deal|deal\\s+selling\\s+fast)$/i.test(t)){x.style.setProperty('color','#e8e6e3','important');x.style.setProperty('-webkit-text-fill-color','#e8e6e3','important');if(x.closest&&(x.closest('[class*=npack-asin-card]')||x.closest('[class*=cXVhZ]'))){var m=x.closest('[class*=badgeMessage]')||x.parentElement;if(m){m.style.setProperty('background-color','#181a1b','important');m.style.setProperty('background-image','none','important');m.style.setProperty('box-shadow','none','important');}x.style.setProperty('background-color','#181a1b','important');x.style.setProperty('background-image','none','important');x.style.setProperty('box-shadow','none','important');}n++;}}window.__AD_SPONSORED_BADGEFIX__=n;"
          "}catch(e){}}"
-         // v5.453 HOME LATE-AUTHORED COLOR + UNIFORM TAME.  The v5.452
-         // documentStart snapshot can legitimately be empty: Amazon may insert a
-         // recycled leaf first and assign its navy/orange paint afterward.  Never
-         // let that empty snapshot erase a later Amazon declaration.  Refresh only
-         // when the inline paint differs from our last output, strip our own leading
-         // gradient before reuse, and then add exactly one uniform overlay.  The
-         // v5.452 Home-only capture boundary and every non-Home owner stay frozen.
-         "function _adHomeOwnGradient453(e453,v453){return !!(e453&&(e453.hasAttribute('data-ad-homeoverlay453')||e453.hasAttribute('data-ad-homeoverlay452'))&&/^linear-gradient\\(rgba\\(0,\\s*0,\\s*0,\\s*[0-9.]+\\),\\s*rgba\\(0,\\s*0,\\s*0,\\s*[0-9.]+\\)\\)/i.test(String(v453||'')));}"
-         "function _adHomePaintSig453(s453){return s453.getPropertyValue('background-color')+'|'+s453.getPropertyPriority('background-color')+'|'+s453.getPropertyValue('background-image')+'|'+s453.getPropertyPriority('background-image');}"
-         "function _adHomeApply453(e453){try{if(!e453||!e453.hasAttribute||!e453.hasAttribute('data-ad-homecolor452'))return false;var a453=e453.__adHomeAuth452||(e453.__adHomeAuth452={}),s453=e453.style,curColor453=String(s453.getPropertyValue('background-color')||''),curImage453=String(s453.getPropertyValue('background-image')||''),curSig453=_adHomePaintSig453(s453),external453=!a453.paintSig453||curSig453!==a453.paintSig453,legacy453=e453.hasAttribute('data-ad-homebg395')||String(e453.__adBy||'')==='homeBgLeaf395'||String(s453.getPropertyValue('box-shadow')||'').indexOf('9999px')>=0,ownImage453=_adHomeOwnGradient453(e453,curImage453),tweakBlack453=/^(?:#181a1b|black|rgba?\\(\\s*24\\s*,\\s*26\\s*,\\s*27(?:\\s*,\\s*1)?\\s*\\))$/i.test(curColor453.replace(/\\s+/g,''));if(external453){if(curColor453&&!(legacy453&&tweakBlack453)){a453.color=curColor453;a453.colorPriority=s453.getPropertyPriority('background-color');}if(!ownImage453&&!legacy453){a453.image=curImage453&&curImage453!=='none'?curImage453:'';a453.imagePriority=s453.getPropertyPriority('background-image');delete a453.resolvedImage;}}if(a453.color)s453.setProperty('background-color',a453.color,'important');else if(legacy453&&tweakBlack453)s453.removeProperty('background-color');function restore453(k453,v453,p453){if(v453)s453.setProperty(k453,v453,p453||'');else s453.removeProperty(k453);}restore453('filter',a453.filter,a453.filterPriority);restore453('background-blend-mode',a453.blend,a453.blendPriority);restore453('box-shadow',a453.shadow,a453.shadowPriority);var base453=String(a453.image||'none');if(!a453.image){s453.removeProperty('background-image');try{base453=String(getComputedStyle(e453).backgroundImage||'none');}catch(x453){base453='none';}}var S453=Math.max(0,Math.min(100,window.__ADTAME_S__||45)),aa453=(0.50*(S453/100)).toFixed(3),rgba453='rgba(0,0,0,'+aa453+')',overlay453='linear-gradient('+rgba453+','+rgba453+')';s453.setProperty('background-image',overlay453+(base453&&base453!=='none'?','+base453:''),'important');s453.setProperty('background-blend-mode','normal','important');s453.removeProperty('box-shadow');e453.removeAttribute('data-ad-homebg395');e453.removeAttribute('data-ad-tame-bgfast364');e453.removeAttribute('data-ad-tame-fast362');e453.removeAttribute('data-ad-homeoverlay452');e453.setAttribute('data-ad-homeoverlay453',aa453);e453.__adTamed=1;e453.__adTameSig='HC453|'+base453;e453.__adBy='homeColorOverlay453';a453.paintSig453=_adHomePaintSig453(s453);a453.base453=base453;return true;}catch(x453){return false;}}"
-         "try{if(!window.__AD_HOMEBG453_WRAP__&&typeof _adHomeBgLeaf395==='function'){window.__AD_HOMEBG453_WRAP__=1;window.__AD_HOMEBG395_PRE453__=_adHomeBgLeaf395;_adHomeBgLeaf395=function(e453){if(e453&&e453.hasAttribute&&e453.hasAttribute('data-ad-homecolor452'))return _adHomeApply453(e453);return window.__AD_HOMEBG395_PRE453__(e453);};}}catch(e){}"
-         "window.__AD_HOMECOLOR453__=function(){try{if(window.__ADFRAME_MODE__||!document.body)return 0;if(document.querySelector('#search,.s-search-results,[data-component-type=\"s-search-result\"],#productTitle,#dp-container,#ppd')){window.__AD_HOMECOLOR453_STATE__='home=0';return 0;}if(window.__AD_HOMECAP452__)window.__AD_HOMECAP452__(document.documentElement);var E453=document.querySelectorAll('[data-ad-homecolor452=\"authored\"]'),n453=0,miss453=0,black453=0,Q453=[];for(var i453=0;i453<E453.length&&i453<160;i453++){var e453=E453[i453];if(_adHomeApply453(e453))n453++;var s453=getComputedStyle(e453),bi453=String(s453.backgroundImage||'none'),bc453=String(s453.backgroundColor||'').replace(/\\s+/g,''),a453=e453.__adHomeAuth452||{};if(e453.getAttribute('data-ad-homeoverlay453')===null||bi453.indexOf('linear-gradient')<0)miss453++;if((bc453==='rgb(24,26,27)'||bc453==='rgba(24,26,27,1)'||bc453==='#181a1b')&&a453.color&&!/^(?:#181a1b|rgb\\(24,26,27\\)|black)$/i.test(String(a453.color).replace(/\\s+/g,'')))black453++;if(Q453.length<8){var r453=e453.getBoundingClientRect();Q453.push(Math.round(r453.width)+'x'+Math.round(r453.height)+'|bg='+bc453+'|base='+String(a453.base453||'none').slice(0,28)+'|overlay='+(bi453.indexOf('linear-gradient')>=0?1:0));}}window.__AD_HOMECOLOR453_STATE__='captured='+E453.length+' tamed='+n453+' missing='+miss453+' lostAuthored='+black453+(Q453.length?' '+Q453.join(' ~~ '):'');return n453;}catch(e){window.__AD_HOMECOLOR453_STATE__='err '+(e&&e.message||e);return -1;}};"
-         "try{window.__AD_HOMECOLOR453__();setTimeout(window.__AD_HOMECOLOR453__,80);setTimeout(window.__AD_HOMECOLOR453__,260);setTimeout(window.__AD_HOMECOLOR453__,850);setTimeout(window.__AD_HOMECOLOR453__,2100);if(!window.__AD_THEME453_OBS__){window.__AD_THEME453_OBS__=1;var q453=function(){clearTimeout(window.__AD_THEME453_T__);window.__AD_THEME453_T__=setTimeout(function(){try{window.__AD_HOMECOLOR453__();}catch(x453){}},140);};new MutationObserver(q453).observe(document.documentElement,{subtree:true,childList:true});addEventListener('scroll',q453,{passive:true,capture:true});}}catch(e){}"
+         // v5.452 HOME CAROUSEL COLOR + UNIFORM TAME.  v5.451 proved that
+         // documentStart capture restores the one backing that otherwise becomes
+         // black.  Keep that authored paint, then place the standard preference-
+         // scaled darkness in a separate gradient layer.  Every captured non-video
+         // background is handled; no geometry/saturation gate can skip a card.
+         "function _adHomeApply452(e452){try{if(!e452||!e452.hasAttribute||!e452.hasAttribute('data-ad-homecolor452'))return false;var a452=e452.__adHomeAuth452||{},s452=e452.style;function put452(k452,v452,p452){if(v452)s452.setProperty(k452,v452,p452||'');else s452.removeProperty(k452);}put452('background',a452.background,a452.backgroundPriority);put452('background-color',a452.color,a452.colorPriority);put452('background-image',a452.image,a452.imagePriority);put452('filter',a452.filter,a452.filterPriority);put452('background-blend-mode',a452.blend,a452.blendPriority);put452('box-shadow',a452.shadow,a452.shadowPriority);if(a452.resolvedImage===undefined){var ci452='none';try{ci452=String(getComputedStyle(e452).backgroundImage||'none');}catch(x452){}a452.resolvedImage=ci452;}var base452=String(a452.resolvedImage||'none'),S452=Math.max(0,Math.min(100,window.__ADTAME_S__||45)),aa452=(0.50*(S452/100)).toFixed(3),rgba452='rgba(0,0,0,'+aa452+')',overlay452='linear-gradient('+rgba452+','+rgba452+')';s452.setProperty('background-image',overlay452+(base452&&base452!=='none'?','+base452:''),'important');s452.setProperty('background-blend-mode','normal','important');s452.removeProperty('box-shadow');e452.removeAttribute('data-ad-homebg395');e452.removeAttribute('data-ad-tame-bgfast364');e452.removeAttribute('data-ad-tame-fast362');e452.setAttribute('data-ad-homeoverlay452',aa452);e452.__adTamed=1;e452.__adTameSig='HC452|'+base452;e452.__adBy='homeColorOverlay452';return true;}catch(x452){return false;}}"
+         "try{if(!window.__AD_HOMEBG452_WRAP__&&typeof _adHomeBgLeaf395==='function'){window.__AD_HOMEBG452_WRAP__=1;window.__AD_HOMEBG395_PRE452__=_adHomeBgLeaf395;_adHomeBgLeaf395=function(e452){if(e452&&e452.hasAttribute&&e452.hasAttribute('data-ad-homecolor452'))return _adHomeApply452(e452);return window.__AD_HOMEBG395_PRE452__(e452);};}}catch(e){}"
+         "window.__AD_HOMECOLOR452__=function(){try{if(window.__ADFRAME_MODE__||!document.body)return 0;if(document.querySelector('#search,.s-search-results,[data-component-type=\"s-search-result\"],#productTitle,#dp-container,#ppd')){window.__AD_HOMECOLOR452_STATE__='home=0';return 0;}if(window.__AD_HOMECAP452__)window.__AD_HOMECAP452__(document.documentElement);var E452=document.querySelectorAll('[data-ad-homecolor452=\"authored\"]'),n452=0,miss452=0,Q452=[];for(var i452=0;i452<E452.length&&i452<160;i452++){var e452=E452[i452];if(_adHomeApply452(e452))n452++;var s452=getComputedStyle(e452),bi452=String(s452.backgroundImage||'none');if(e452.getAttribute('data-ad-homeoverlay452')===null||bi452.indexOf('linear-gradient')<0)miss452++;if(Q452.length<8){var r452=e452.getBoundingClientRect();Q452.push(Math.round(r452.width)+'x'+Math.round(r452.height)+'|bg='+String(s452.backgroundColor||'-').replace(/\\s+/g,'')+'|overlay='+(bi452.indexOf('linear-gradient')>=0?1:0));}}window.__AD_HOMECOLOR452_STATE__='captured='+E452.length+' tamed='+n452+' missing='+miss452+(Q452.length?' '+Q452.join(' ~~ '):'');return n452;}catch(e){window.__AD_HOMECOLOR452_STATE__='err '+(e&&e.message||e);return -1;}};"
+         "try{window.__AD_HOMECOLOR452__();setTimeout(window.__AD_HOMECOLOR452__,80);setTimeout(window.__AD_HOMECOLOR452__,260);setTimeout(window.__AD_HOMECOLOR452__,850);setTimeout(window.__AD_HOMECOLOR452__,2100);if(!window.__AD_THEME452_OBS__){window.__AD_THEME452_OBS__=1;var q452=function(){clearTimeout(window.__AD_THEME452_T__);window.__AD_THEME452_T__=setTimeout(function(){try{window.__AD_HOMECOLOR452__();}catch(x452){}},140);};new MutationObserver(q452).observe(document.documentElement,{subtree:true,childList:true});addEventListener('scroll',q452,{passive:true,capture:true});}}catch(e){}"
+         // v5.454 HOME BLEED CLIP. The supplied 60fps recording shows the owned
+         // blue backing escaping as matching tabs on both horizontal sides. The
+         // old v5.404 rule clips the background leaf to its own oversized box; it
+         // cannot clip that box to the rounded card. Mark the nearest same-sized
+         // rounded card host and clip its composited descendants there. No media,
+         // color, filter, transform, geometry, or playback property is changed.
+         "function _adHomeClipOne454(e454,A454){try{if(!e454||!e454.parentElement)return null;var er454=e454.getBoundingClientRect(),W454=innerWidth||390;if(er454.width<220||er454.width>390||er454.height<300||er454.height>570)return null;var p454=e454.parentElement,u454=0,best454=null,rad454=0,fall454=null;while(p454&&u454++<6&&p454!==document.body&&p454!==document.documentElement){var pr454=p454.getBoundingClientRect(),pc454=String(p454.className&&p454.className.baseVal!==undefined?p454.className.baseVal:(p454.className||'')),ps454=getComputedStyle(p454),rr454=Math.max(parseFloat(ps454.borderTopLeftRadius)||0,parseFloat(ps454.borderTopRightRadius)||0,parseFloat(ps454.borderBottomLeftRadius)||0,parseFloat(ps454.borderBottomRightRadius)||0),same454=pr454.width>=er454.width-48&&pr454.width<=er454.width+12&&pr454.height>=er454.height-48&&pr454.height<=er454.height+18&&Math.abs((pr454.left+pr454.right)-(er454.left+er454.right))<=12&&Math.abs((pr454.top+pr454.bottom)-(er454.top+er454.bottom))<=18,sized454=pr454.width>=220&&pr454.width<=Math.min(390,W454*.90)&&pr454.height>=300&&pr454.height<=590;if(same454&&sized454){if(rr454>=6){best454=p454;rad454=rr454;break;}if(!fall454&&/single-(?:creative|video)-card|theming-card/i.test(pc454))fall454=p454;}p454=p454.parentElement;}if(!best454&&fall454){best454=fall454;rad454=12;}if(!best454)return null;var rv454=(Math.round(Math.max(8,rad454)*10)/10)+'px';if(best454.getAttribute('data-ad-homeclip454')!=='1')best454.setAttribute('data-ad-homeclip454','1');if(best454.style.getPropertyValue('--ad-homeclip454-radius')!==rv454)best454.style.setProperty('--ad-homeclip454-radius',rv454);if(A454&&A454.indexOf(best454)<0)A454.push(best454);return best454;}catch(x454){return null;}}"
+         "window.__AD_HOMECLIP454__=function(){try{if(window.__ADFRAME_MODE__||!document.body)return 0;if(document.querySelector('#search,.s-search-results,[data-component-type=\"s-search-result\"],#productTitle,#dp-container,#ppd'))return 0;if(!document.getElementById('adhomeclip454')){var st454=document.createElement('style');st454.id='adhomeclip454';st454.textContent='[data-ad-homeclip454=\"1\"]{overflow:hidden !important;-webkit-clip-path:inset(.5px round var(--ad-homeclip454-radius,12px)) !important;clip-path:inset(.5px round var(--ad-homeclip454-radius,12px)) !important;background-clip:padding-box !important;}';(document.head||document.documentElement).appendChild(st454);}var E454=document.querySelectorAll('[data-ad-homecolor452=\"authored\"]'),A454=[],miss454=0,clean454=0;for(var i454=0;i454<E454.length&&i454<160;i454++)if(!_adHomeClipOne454(E454[i454],A454))miss454++;var O454=document.querySelectorAll('[data-ad-homeclip454=\"1\"]');for(var j454=0;j454<O454.length;j454++)if(A454.indexOf(O454[j454])<0){O454[j454].removeAttribute('data-ad-homeclip454');O454[j454].style.removeProperty('--ad-homeclip454-radius');clean454++;}window.__AD_HOMECLIP454_STATE__='owned='+E454.length+' hosts='+A454.length+' missing='+miss454+' cleaned='+clean454;return A454.length;}catch(x454){window.__AD_HOMECLIP454_STATE__='err '+(x454&&x454.message||x454);return -1;}};"
+         "try{if(!window.__AD_HOMECLIP454_WRAP__){window.__AD_HOMECLIP454_WRAP__=1;window.__AD_HOMECOLOR452_PRE454__=window.__AD_HOMECOLOR452__;window.__AD_HOMECOLOR452__=function(){var r454=window.__AD_HOMECOLOR452_PRE454__?window.__AD_HOMECOLOR452_PRE454__():0;try{window.__AD_HOMECLIP454__();}catch(x454){}return r454;};}window.__AD_HOMECLIP454__();setTimeout(window.__AD_HOMECLIP454__,320);setTimeout(window.__AD_HOMECLIP454__,1100);}catch(x454){}"
          "homeAmbient386();badgeFix();dotFix();packFix();compareStock380();legacyCompare387();cartChrome382();shareFix382();chevronFix383();sponsorFix376();ratingFix376();try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}try{if(window._adHomeVideo391)window._adHomeVideo391();}catch(e){}""clr();setTimeout(clr,300);setTimeout(clr,1200);setTimeout(clr,2500);""setTimeout(homeAmbient386,300);setTimeout(homeAmbient386,1200);setTimeout(homeAmbient386,2500);""setTimeout(badgeFix,300);setTimeout(badgeFix,1200);setTimeout(badgeFix,2500);""setTimeout(dotFix,120);setTimeout(dotFix,500);setTimeout(dotFix,1400);setTimeout(dotFix,2800);""setTimeout(packFix,120);setTimeout(packFix,500);setTimeout(packFix,1400);setTimeout(packFix,2800);setTimeout(compareStock380,0);setTimeout(compareStock380,120);setTimeout(compareStock380,500);setTimeout(compareStock380,1500);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},20);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},180);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},700);setTimeout(legacyCompare387,0);setTimeout(legacyCompare387,120);setTimeout(legacyCompare387,500);setTimeout(legacyCompare387,1500);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},60);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},220);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},650);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},1650);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},2600);setTimeout(cartChrome382,20);setTimeout(cartChrome382,180);setTimeout(cartChrome382,700);setTimeout(cartChrome382,1800);setTimeout(sponsorFix376,20);setTimeout(sponsorFix376,180);setTimeout(sponsorFix376,700);setTimeout(sponsorFix376,1800);setTimeout(ratingFix376,40);setTimeout(ratingFix376,240);setTimeout(ratingFix376,900);setTimeout(ratingFix376,2200);setTimeout(shareFix382,40);setTimeout(shareFix382,180);setTimeout(shareFix382,700);setTimeout(shareFix382,1800);setTimeout(chevronFix383,20);setTimeout(chevronFix383,180);setTimeout(chevronFix383,700);setTimeout(chevronFix383,1800);addEventListener('scroll',function(){clearTimeout(window.__bgT);window.__bgT=setTimeout(function(){homeAmbient386();badgeFix();dotFix();packFix();compareStock380();legacyCompare387();cartChrome382();shareFix382();chevronFix383();sponsorFix376();ratingFix376();try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}try{if(window._adHomeVideo391)window._adHomeVideo391();}catch(e){}},100);},{passive:true,capture:true});""addEventListener('scroll',function(){clearTimeout(window.__bxS);window.__bxS=setTimeout(clr,120);},{passive:true,capture:true});"
-         "new MutationObserver(function(){clearTimeout(window.__bxT);"
-           "window.__bxT=setTimeout(function(){clr();dotFix();packFix();compareStock380();legacyCompare387();cartChrome382();shareFix382();chevronFix383();sponsorFix376();ratingFix376();try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},20);}).observe(document.documentElement,"
-           "{subtree:true,childList:true,attributes:true,attributeFilter:['style','class','aria-current','aria-selected','data-selected','src','data-src','data-darkreader-inline-bgcolor','data-darkreader-inline-color','fill','stroke']});"
+         // v5.454: retain every v5.452 painter and its order, but stop the shared
+         // observer from watching the style/fill/stroke properties those painters
+         // write. Structural/state mutations coalesce into one quiet/idle pass.
+         "function queueRuntime454(ms454){clearTimeout(window.__bxT);window.__bxT=setTimeout(function(){if(window.__ADSCROLLING__){queueRuntime454(220);return;}var run454=function(){try{clr();dotFix();packFix();compareStock380();legacyCompare387();cartChrome382();shareFix382();chevronFix383();sponsorFix376();ratingFix376();if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}};if(window.requestIdleCallback)window.requestIdleCallback(run454,{timeout:420});else setTimeout(run454,0);},ms454||96);}"
+         "new MutationObserver(function(){queueRuntime454(96);}).observe(document.documentElement,"
+           "{subtree:true,childList:true,attributes:true,attributeFilter:['class','aria-current','aria-selected','data-selected','data-state','checked','src','data-src']});"
          "try{new MutationObserver(function(){try{cartChrome382();}catch(e){}}).observe(document.documentElement,{subtree:true,childList:true});}catch(e){}"
          "try{homeCreative448();setTimeout(homeCreative448,40);setTimeout(homeCreative448,180);setTimeout(homeCreative448,700);setTimeout(homeCreative448,1800);if(!window.__AD_THEME448_OBS__){window.__AD_THEME448_OBS__=1;var t448=0,new448=function(){if(t448)return;t448=1;var f448=function(){t448=0;try{homeCreative448();}catch(x){}};if(window.requestAnimationFrame)window.requestAnimationFrame(f448);else setTimeout(f448,0);};new MutationObserver(new448).observe(document.documentElement,{subtree:true,childList:true});addEventListener('scroll',function(){clearTimeout(window.__AD_THEME448_SCROLL__);window.__AD_THEME448_SCROLL__=setTimeout(function(){try{homeCreative448();}catch(x){}},90);},{passive:true,capture:true});}}catch(e){}"
          "/* v5.439: native state remains synchronous; stockCheckbox434 discovers stock hosts/art and removes only stale tweak-owned filters. */"
@@ -10002,10 +10036,14 @@ static NSString *ADProbeWebJS(void){
        "    miss.push(c8(m)+'['+Math.round(mr.width)+'x'+Math.round(mr.height)+']');}"
        "  out.push('P81CTRL{'+(R8.length?R8.join(' ~~ '):'none')+(miss.length?' MISSED:'+miss.join(' '):'')+'}');"
        "}catch(e8){out.push('P81CTRL{err '+(e8&&e8.message||e8)+'}');}"
-       // P96HOME453: prove that both sides of the repair coexist. Every captured
-       // non-video backing has one overlay, no saved authored color resolves to
-       // tweak black, and v5.395 still owns/tames the child creative images.
-       "try{var C96=document.querySelectorAll('[data-ad-homecolor452=\"authored\"]'),I96=document.querySelectorAll('img[class*=\"_single-creative-card\"],img[class*=\"single-creative-card\"],[class*=\"single-creative-card\"] img'),missing96=0,black96=0,stacked96=0,untamed96=0,Q96=[];for(var c96=0;c96<C96.length&&c96<160;c96++){var e96=C96[c96],s96=getComputedStyle(e96),bi96=String(s96.backgroundImage||'none'),bc96=String(s96.backgroundColor||'').replace(/\\s+/g,''),a96=e96.__adHomeAuth452||{},auth96=String(a96.color||'').replace(/\\s+/g,'');if(e96.getAttribute('data-ad-homeoverlay453')===null||bi96.indexOf('linear-gradient')<0)missing96++;if((bi96.match(/linear-gradient/g)||[]).length>1)stacked96++;if((bc96==='rgb(24,26,27)'||bc96==='rgba(24,26,27,1)'||bc96==='#181a1b')&&auth96&&!/^(?:#181a1b|rgb\\(24,26,27\\)|black)$/i.test(auth96))black96++;if(Q96.length<8){var r96=e96.getBoundingClientRect();Q96.push(Math.round(r96.width)+'x'+Math.round(r96.height)+'|bg='+bc96+'|base='+String(a96.base453||'none').slice(0,28)+'|layers='+(bi96.match(/linear-gradient/g)||[]).length);}}for(var i96=0;i96<I96.length&&i96<160;i96++){var x96=I96[i96],xr96=x96.getBoundingClientRect();if(xr96.width<100||xr96.height<70)continue;if(String(getComputedStyle(x96).filter||'none').indexOf('brightness')<0)untamed96++;}out.push('P96HOME453[captured='+C96.length+' missingOverlay='+missing96+' lostAuthored='+black96+' stacked='+stacked96+' creativeUntamed='+untamed96+' state='+String(window.__AD_HOMECOLOR453_STATE__||'-')+(Q96.length?' '+Q96.join(' ~~ '):'')+']');}catch(e96){out.push('P96HOME453[err '+(e96&&e96.message||e96)+']');}"
+       // P95HOME452: every captured non-video Home carousel background keeps its
+       // authored color and carries the uniform preference-scaled gradient overlay.
+       // Child creative images remain independently owned by v5.395 WBT.
+       "try{var C95=document.querySelectorAll('[data-ad-homecolor452=\"authored\"]'),I95=document.querySelectorAll('img[class*=\"_single-creative-card\"],img[class*=\"single-creative-card\"],[class*=\"single-creative-card\"] img'),missing95=0,black95=0,untamed95=0,Q95=[];for(var c95=0;c95<C95.length&&c95<160;c95++){var e95=C95[c95],s95=getComputedStyle(e95),bi95=String(s95.backgroundImage||'none'),bc95=String(s95.backgroundColor||'').replace(/\\s+/g,''),a95=e95.__adHomeAuth452,auth95=String(a95&&(a95.color||a95.background)||'').replace(/\\s+/g,'');if(e95.getAttribute('data-ad-homeoverlay452')===null||bi95.indexOf('linear-gradient')<0)missing95++;if(!a95||((bc95==='rgb(24,26,27)'||bc95==='rgba(24,26,27,1)'||bc95==='#181a1b')&&auth95&&!/^(?:#181a1b|rgb\\(24,26,27\\)|black)$/i.test(auth95)))black95++;if(Q95.length<8){var r95=e95.getBoundingClientRect();Q95.push(Math.round(r95.width)+'x'+Math.round(r95.height)+'|bg='+bc95+'|overlay='+(bi95.indexOf('linear-gradient')>=0?1:0));}}for(var i95=0;i95<I95.length&&i95<160;i95++){var x95=I95[i95],xr95=x95.getBoundingClientRect();if(xr95.width<100||xr95.height<70)continue;if(String(getComputedStyle(x95).filter||'none').indexOf('brightness')<0)untamed95++;}out.push('P95HOME452[captured='+C95.length+' missingOverlay='+missing95+' lostAuthored='+black95+' creativeUntamed='+untamed95+' state='+String(window.__AD_HOMECOLOR452_STATE__||'-')+(Q95.length?' '+Q95.join(' ~~ '):'')+']');}catch(e95){out.push('P95HOME452[err '+(e95&&e95.message||e95)+']');}"
+       // P98BLEED454: each v5.452-owned Home backing must resolve to one rounded
+       // card host whose descendant clip is active. `overhang` is diagnostic: it
+       // counts the exact oversized backing geometry seen in the supplied video.
+       "try{var H98=document.querySelectorAll('[data-ad-homeclip454=\"1\"]'),clipMiss98=0,paintWrite98=0,overhang98=0,Q98=[];for(var i98=0;i98<H98.length&&i98<80;i98++){var h98=H98[i98],hr98=h98.getBoundingClientRect(),s98=getComputedStyle(h98),cp98=String(s98.clipPath||s98.webkitClipPath||'none'),ov98=String(s98.overflow||'visible');if(cp98==='none'||ov98==='visible')clipMiss98++;if(h98.style.getPropertyValue('filter')||h98.style.getPropertyValue('transform')||h98.style.getPropertyValue('contain')||h98.style.getPropertyValue('background')||h98.style.getPropertyValue('background-color')||h98.style.getPropertyValue('background-image'))paintWrite98++;var B98=h98.querySelectorAll('[data-ad-homecolor452=\"authored\"]');for(var b98=0;b98<B98.length&&b98<8;b98++){var br98=B98[b98].getBoundingClientRect();if(br98.left<hr98.left-.5||br98.right>hr98.right+.5||br98.top<hr98.top-.5||br98.bottom>hr98.bottom+.5)overhang98++;}if(Q98.length<8)Q98.push(Math.round(hr98.width)+'x'+Math.round(hr98.height)+'|clip='+cp98+'|overflow='+ov98+'|r='+String(h98.style.getPropertyValue('--ad-homeclip454-radius')||'-'));}out.push('P98BLEED454[hosts='+H98.length+' clipMiss='+clipMiss98+' paintWrite='+paintWrite98+' overhang='+overhang98+' style='+(document.getElementById('adhomeclip454')?1:0)+' state='+String(window.__AD_HOMECLIP454_STATE__||'-')+(Q98.length?' '+Q98.join(' ~~ '):'')+']');}catch(e98){out.push('P98BLEED454[err '+(e98&&e98.message||e98)+']');}"
        // P94HOME450: the authored saturated backing must be compositor-free,
        // while every full-card creative image remains on the canonical brightness
        // tame.  Any v5.449 native-image marker is an explicit regression.
@@ -10195,9 +10233,41 @@ static NSString *ADProbeWebJS(void){
        "}catch(err){return 'P8ERR['+(err&&err.message||err)+']';}})()";
 }
 
-// v5.363 focused diagnostics: one web probe per visible WKWebView after a screen
-// settles. This preserves P21/P24/P26/P27/P30 evidence without the old census,
-// layer dump, media probes, or recursive native offender walk on every appearance.
+// v5.454 keeps the complete historical probe available for explicit captures, but
+// extracts only its production late-painter installer for automatic navigation.
+// The old ADFocusedProbe path evaluated hundreds of computed-style reads and
+// several querySelectorAll('*') loops in up to two WKWebViews after every screen
+// appearance. That diagnostic work was never required to theme the page.
+static NSString *ADRuntimeWebJS454(void){
+    static NSString *runtime454=nil;
+    static dispatch_once_t once454;
+    dispatch_once(&once454, ^{
+        NSString *full454=ADProbeWebJS();
+        NSRange start454=[full454 rangeOfString:@"/*V5313FIX*/"];
+        NSRange end454=NSMakeRange(NSNotFound,0);
+        if (start454.location!=NSNotFound){
+            NSRange tail454=NSMakeRange(NSMaxRange(start454),
+                                        full454.length-NSMaxRange(start454));
+            end454=[full454 rangeOfString:@"/*V5395FIX*/" options:0 range:tail454];
+        }
+        if (start454.location==NSNotFound || end454.location==NSNotFound ||
+            end454.location<=start454.location){
+            runtime454=@"'runtime454-markers-missing'";
+            return;
+        }
+        NSString *body454=[full454 substringWithRange:NSMakeRange(
+            start454.location,end454.location-start454.location)];
+        NSString *lum454=@"function lum(s){var a=String(s||'').split('('),b=(a[1]||'').split(')')[0].split(',');if(b.length<3)return -1;var r=parseFloat(b[0]),g=parseFloat(b[1]),bl=parseFloat(b[2]),al=b.length>3?parseFloat(b[3]):1;if(!(al>0))return -1;return (0.2126*r+0.7152*g+0.0722*bl)/255;}";
+        // Cheap automatic proof only: inspect the handful of marked card hosts,
+        // not the historical all-node diagnostic payload we just excluded.
+        NSString *proof454=@"try{var H454=document.querySelectorAll('[data-ad-homeclip454=\"1\"]'),m454=0;for(var i454=0;i454<H454.length&&i454<48;i454++){var s454=getComputedStyle(H454[i454]),c454=String(s454.clipPath||s454.webkitClipPath||'none'),o454=String(s454.overflow||'visible');if(c454==='none'||o454==='visible')m454++;}return 'P97PERF454[runtimeOnly=1 fullProbe=0] P98BLEED454[hosts='+H454.length+' clipMiss='+m454+' style='+(document.getElementById('adhomeclip454')?1:0)+' state='+String(window.__AD_HOMECLIP454_STATE__||'-')+']';}catch(x454){return 'P97PERF454[runtimeOnly=1 fullProbe=0] P98BLEED454[err '+(x454&&x454.message||x454)+']';}";
+        runtime454=[NSString stringWithFormat:@"(function(){%@%@%@})()",
+                    lum454,body454,proof454];
+    });
+    return runtime454;
+}
+
+// Lightweight, idempotent production runtime installation after a screen settles.
 static void ADFocusedProbe363(void){
     @try {
         if (!gP.enabled) return;
@@ -10222,10 +10292,13 @@ static void ADFocusedProbe363(void){
                     if (!web.window || web.hidden || web.alpha<0.05) continue;
                     CGRect wr=[web convertRect:web.bounds toView:w]; if(!CGRectIntersectsRect(wr,w.bounds)||wr.size.width<40||wr.size.height<40) continue;
                     sent++;
-                    [web evaluateJavaScript:ADProbeWebJS() completionHandler:^(id r, NSError *e){
+                    [web evaluateJavaScript:ADRuntimeWebJS454() completionHandler:^(id r, NSError *e){
                         @try {
-                            if ([r isKindOfClass:[NSString class]] && [(NSString *)r length]) ADLog(@"%@",r);
-                            else if (e) ADLog(@"P8ERR[wk %@/%ld]",e.domain,(long)e.code);
+                            static int runtimeLog454=0;
+                            if (e) ADLog(@"P97PERF454[runtime err %@/%ld]",e.domain,(long)e.code);
+                            else if (runtimeLog454<8 && [r isKindOfClass:[NSString class]] && [(NSString *)r length]){
+                                runtimeLog454++; ADLog(@"%@",r);
+                            }
                         } @catch(...) {}
                     }];
                 }
