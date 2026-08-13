@@ -21,10 +21,10 @@ src = SRC.read_text()
 # version makes a fresh device probe indistinguishable from an older install.
 _control = Path("layout/DEBIAN/control").read_text()
 _workflow = Path(".github/workflows/build.yml").read_text()
-_version_ok = ('#define AD_VERSION "v5.451.0"' in src
-               and "Version: 5.451.0" in _control
-               and "AmazonDark-v5.451-experimental-performance-compare-home-rootless-deb" in _workflow)
-print(("PASS" if _version_ok else "FAIL") + ": v5.451 runtime/package/artifact identifiers agree")
+_version_ok = ('#define AD_VERSION "v5.452.0"' in src
+               and "Version: 5.452.0" in _control
+               and "AmazonDark-v5.452-home-carousel-authored-color-uniform-taming-rootless-deb" in _workflow)
+print(("PASS" if _version_ok else "FAIL") + ": v5.452 runtime/package/artifact identifiers agree")
 if not _version_ok:
     sys.exit(1)
 
@@ -121,16 +121,6 @@ print(('PASS' if _rct_schedule_count == 2 else 'FAIL')+
 bad = _rct_schedule_count != 2
 items['RCTUIImageViewAnimated_hook'] = items['RCTUIImageViewAnimated_hook'].replace(_rct_compare450_schedule, '')
 items['RCTUIImageViewAnimated_layout'] = items['RCTUIImageViewAnimated_layout'].replace(_rct_compare450_schedule, '')
-# v5.451 adds one cheap layout signal after the frozen v5.450 clause. It exits for
-# non-images and moving scroll views before doing screen geometry, and is locked in
-# the v5.451 gate. Strip exactly one line here so historical WBT bytes stay frozen.
-_rct_compare451_schedule = "        ADMaybeScheduleNativeCompare451(vv);\n"
-_rct_schedule451_count = items['RCTUIImageViewAnimated_hook'].count(_rct_compare451_schedule)
-print(('PASS' if _rct_schedule451_count == 1 else 'FAIL')+
-      f': exact v5.451 RCT quiet-layout Compare signal count={_rct_schedule451_count}')
-bad |= _rct_schedule451_count != 1
-items['RCTUIImageViewAnimated_hook'] = items['RCTUIImageViewAnimated_hook'].replace(_rct_compare451_schedule, '')
-items['RCTUIImageViewAnimated_layout'] = items['RCTUIImageViewAnimated_layout'].replace(_rct_compare451_schedule, '')
 for key in ['function cartChrome379(){','function cartChrome382(){']:
     lines=[ln for ln in src.splitlines() if key in ln]
     if len(lines)!=1: raise RuntimeError(f"{key}: expected one source line, got {len(lines)}")
@@ -144,14 +134,20 @@ for key, expected in EXPECTED.items():
     bad |= not ok
 
 # Home carousel video playback was separately user-confirmed working in v5.391.
-# v5.451 changes only when its call sites run (trailing/idle instead of scroll-frame
-# work), so freeze the complete painter definition rather than freezing the old hot
-# scheduling topology. The v5.451 performance fixture separately locks every call.
-video=[ln for ln in src.splitlines() if '"function _adHomeVideo391(){' in ln]
+# v5.452 invokes no video writer. Its owner was inserted at the string-literal
+# seam immediately after badgeFix, so normalize that one split seam before
+# hashing while retaining every byte of the actual video definition/call clauses.
+video=[]
+for ln in src.splitlines():
+    if '_adHomeVideo391' not in ln:
+        continue
+    if ln.lstrip().startswith('"homeAmbient386();'):
+        ln=ln.replace('"homeAmbient386();', '"}catch(e){}}""homeAmbient386();', 1)
+    video.append(ln)
 vsha=sha('\n'.join(video))
-vexp='41bba6821b0c0a86bcdd5bd77c5e999ad6133f328d5de2bed8c635ffc91d336f'
-vok=len(video)==1 and vsha==vexp
-print(('PASS' if vok else 'FAIL')+f': frozen Home video painter lines={len(video)} sha={vsha}')
+vexp='7f6f56ed65addf48812d33e75cc7eae5b6e2eec268be6a4f7062334713e632cd'
+vok=len(video)==5 and vsha==vexp
+print(('PASS' if vok else 'FAIL')+f': frozen Home video lines={len(video)} sha={vsha}')
 bad |= not vok
 
 # v5.395 HOME FIXES — USER-CONFIRMED GOOD. These are stronger than a function
@@ -180,11 +176,16 @@ for _retired in [
     bad |= not _ok
 
 HOME395 = {
-    '_adHomeMedia395 exact definition': (r'"function _adHomeMedia395\(\)\{', None, 1, 'b0d69a663f50386669627a94230683c7bb072a8cd20bb1ddaa766fcad7f20930'),
+    '_adHomeMedia395 exact definition/calls': (r'_adHomeMedia395', r'450', 4, '3e444e384aec697faa7de97f191f5614e2dda0683c8758a43e71b95e9b8846e2'),
     'Home media marker population': (r'data-ad-homemedia395|homeMedia395', r'450', 2, 'f7026a7152b61130636e321a3c2de4e21089e0ea866ef1d2041ebbdac3c5e1ae'),
-    '_adStandaloneSweep395 exact definition': (r'"function _adStandaloneSweep395\(\)\{', None, 1, 'c6be3dadcfbf68bad71c9cd84a4dec193e0be090c0795abc13dc602b0bc7354f'),
+    '_adStandaloneSweep395 exact definition/calls': (r'_adStandaloneSweep395', None, 4, '1e931418220ed80b4fd966a2280ed2231dd067c98541e7bbb54e78c5718d8681'),
     'Standalone repair marker population': (r'data-ad-homeauto395|data-ad-standparent395|data-ad-standbefore395|data-ad-standafter395', None, 4, '6d508367ffaf47dbc86910ebaa13cd2ff75d47825911d2d008715d2958e285d2'),
     'Standalone iframe selector population': (r'iframe\[data-ad-frame-mode362', None, 4, '2835e55cd74e8a785c76257a97e69d6dfc3e40c4da80eac18cd711609b0278cb'),
+    # Exclude the v5.396 bleed guard/probe, v5.447/v5.448 diagnostics, and
+    # v5.450's narrow background-only owner/probe, and v5.452's separately
+    # locked non-video background capture/overlay.
+    # Every older direct reference remains exactly the user-confirmed v5.395 set.
+    'Home media direct-selector population': (r'single-creative-card|single-video-card|video\.vjs-tech|data-ad-homemedia395', r'data-ad-main396|P59BLEED396|P66BLEED401|data-ad-homecreative44[789]|homeCreative44[789]|P(?:89THEME447|91HOME448|94HOME450|95HOME452)|v5\.4(?:4[789]|50|52)|I44[89]|_single-creative-card image|direct 299x478|media are untouched|stale450|data-ad-homecolor452|HOMECOLOR452', 4, 'f1976ee3a8b48cb6e9278243e8af2064b01160fb8abd62731ccc90d59753b301'),
 }
 for label,(pattern,exclude,count,expected) in HOME395.items():
     lines,actual=agg_lines(pattern,exclude,_home395_src)
@@ -441,9 +442,7 @@ _cb_native = all(token in src for token in [
     "[class*=copilot-compare],button[aria-label*=ompare]",
     "h.setAttribute('data-ad-checkbox434-host','stock')",
     "aa.setAttribute('data-ad-checkbox434-art','stock')",
-    # v5.451 preserves native :checked synchrony but coalesces discovery/cleanup;
-    # the performance gate locks the exact state-only observer and trailing scroll.
-    "new MutationObserver(function(){queue434(24);}",
+    "new MutationObserver(function(){try{window.__AD_CHECKBOX434__();}",
     "function generic434(e)",
     "e.style.removeProperty('filter')",
 ])
@@ -646,7 +645,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.451.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.452.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
@@ -778,10 +777,7 @@ _exact434_controls={
     'Heart shell finalizer': (
         exact_between('         "try{window.__AD_PRODUCTCTRL391_PRE427__=',
                       '         // v5.407 historical note:', 'heart427-finalizer'),
-        # v5.451 changes only this finalizer's trigger topology: the exact same
-        # frozen Heart owner is now called by a state-only, trailing observer.
-        # The performance fixture locks the new observer/scroll contract.
-        'f4886be7df7a39be68c4b172b37736efe8fa50e3a5c3c35776b6cc5e493011e6'),
+        '4dd412a76cebb129ff9d554bbe1b8ad2d6c424eee9331f60720e941c800e6139'),
     'Heart shell device probe': (
         exact_between('       // P82HEART427:',
                       '       // P85CHECKBOX441:', 'P82HEART427'),
@@ -911,13 +907,8 @@ for _label,_body,_expected in [
 # unchanged, and the new P89 gate is itself frozen below.
 # v5.448: the checkbox/ownership span now ends at P89. This freezes P85/P88
 # independently, so new diagnostic probes cannot silently re-point their hash.
-# v5.451: re-pointed DELIBERATELY. The stock painter/state selectors are
-# unchanged; only discovery/cleanup is coalesced and style is removed from the
-# observer filter. The v5.428 fixture still proves immediate native :checked,
-# blue sprite, click behavior, and neutral Cart shell; the v5.451 gate locks the
-# new state-only/trailing trigger topology.
     ('stock checkbox runtime layer', _checkbox434,
-     '462675ca2bb6a0cf873f202357d13797440c11e917483ff9a96fdb83853f2a71'),
+     '5d3b2a74f4300ae57fded182bee02789656b81f9a49f7af701ff3705e064cf3a'),
     ('stock checkbox and ownership device probes', _probe434,
      'ed1cf7425d25c2aaa3da8f1883b482c9d84848c47251dc3e5b5606b4f09c3567'),
 ]:
@@ -979,9 +970,9 @@ for _required in [
     r'[data-ad-checkbox434-art]{filter:none !important;border-radius:4px !important;box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important;transition:none !important;}',
     r'[data-ad-checkbox434-shell=\"cart\"]{background-color:transparent !important;',
     "window.__AD_PRODUCTCTRL391_PRE434__=window.__AD_PRODUCTCTRL391RUN__",
-    "new MutationObserver(function(){queue434(24);}",
-    "addEventListener('scroll',function(){queue434(320);}",
-    "attributeFilter:['class','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']",
+    "new MutationObserver(function(){try{window.__AD_CHECKBOX434__();}",
+    "if(window.requestAnimationFrame)window.requestAnimationFrame(r434)",
+    "attributeFilter:['class','style','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']",
     "P85CHECKBOX441[",
     "P88ICON440[",
     "timer='+timer85",
@@ -1301,9 +1292,9 @@ print('PASS: v5.448 locks every recently edited symbol, pins only the native min
 # v5.395 compositor. Freeze the corrected boundaries exactly.
 print('--- v5.450 local Compare paint / authored Home color + WBT lock ---')
 _native450 = exact_between('// ── v5.450 LOCAL-STRUCTURE COMPARE CONTROL',
-                           '// ── v5.451 CROSS-WINDOW COMPARE CONTROL', 'native Compare 450')
+                           '// ── P19 VOICE-PERMISSION', 'native Compare 450')
 _home450 = exact_between('         // v5.450 HOME AUTHORED COLOR.',
-                         '         // v5.451 completes the Home boundary', 'Home color 450')
+                         '         "function badgeFix(){try{"', 'Home color 450')
 _probe94 = exact_between('       // P94HOME450:',
                          '       // P69V333403:', 'P94HOME450')
 _layer_pin450 = exact_between(
@@ -1375,15 +1366,13 @@ for _forbidden in [
     if not _ok: sys.exit(1)
 
 for _required in [
-    'static void ADFixNativeCompare450(void){',
+    '        ADFixNativeCompare450();',
     '                ADScheduleNativeCompare450();',
     '            ADScheduleNativeCompare450();',
     'const double delay450[]={0.01,0.08,0.25,0.70,1.50,3.00}',
-    'gADCompare450Pending = YES;',
-    'if (!gADCompare450Pending) ADFixNativeCompare450();',
 ]:
     _ok = _required in src
-    print(('PASS' if _ok else 'FAIL')+f': frozen v5.450 implementation remains auditable/runtime-retired {_required.strip()}')
+    print(('PASS' if _ok else 'FAIL')+f': v5.450 structural acquisition stays armed {_required.strip()}')
     if not _ok: sys.exit(1)
 
 for _retired in [
@@ -1395,3 +1384,71 @@ for _retired in [
     if not _ok: sys.exit(1)
 
 print('PASS: v5.450 permanently gates the local Compare control as a white circle/dark minus, restores only saturated authored Home backings, and keeps every full-card creative on v5.395 WBT.')
+
+# v5.452 HOME CAROUSEL LOCK
+# This release is deliberately v5.450 plus one Home-only boundary: capture the
+# authored non-video backing before our painters, restore it, and place the
+# standard preference-scaled darkness in a separate gradient. The exact v5.450
+# hashes above prove that Compare, checkbox, and all other owners stayed frozen.
+print('--- v5.452 authored Home carousel color + uniform overlay lock ---')
+_homecap452 = exact_between('         // v5.452 HOME AUTHOR-PAINT CAPTURE.',
+                            '         "try{if(document&&!document.getElementById(\'adcardfix\')){"',
+                            'Home author capture 452')
+_homeowner452 = exact_between('         // v5.452 HOME CAROUSEL COLOR + UNIFORM TAME.',
+                              '         "homeAmbient386();badgeFix()',
+                              'Home overlay owner 452')
+_probe95 = exact_between('       // P95HOME452:',
+                         '       // P94HOME450:', 'P95HOME452')
+_fixture452 = Path('scripts/test-home-carousel-452.py').read_text()
+
+for _label, _body, _expected in [
+    ('documentStart author capture', _homecap452, '40660e8a8a28a1fb6ad40b6bf29a721dd1d1eaad916f79d1f329d35ddeb55e8b'),
+    ('uniform color overlay owner', _homeowner452, 'd264b865b40ce2a769bdf83cbd7425fe4af3ab98b485c1b2a518d71582bf724a'),
+    ('P95 Home carousel contract', _probe95, 'fadd18c0947cd9757309d0515d6e169fe65b5f41cd8c5f658c1b0953acf29f7f'),
+    ('Home carousel regression fixture', _fixture452, 'ab973c4803d82b8da67c95e036f5bbdbb3bf57427454f137a6c57f1254c6e89e'),
+]:
+    _actual = sha(_body); _ok = _actual == _expected
+    print(('PASS' if _ok else 'FAIL')+f': exact v5.452 {_label} {_actual}')
+    if not _ok:
+        print('ERROR: the v5.452 authored-color capture or uniform overlay changed.')
+        sys.exit(1)
+
+for _required in [
+    'function homeDoc452()', 'function oneHome452(e452)',
+    "c452.indexOf('theming-card-background')<0",
+    'single-video-card|video-card|video-js|vjs-|sbv-video',
+    '__adHomeAuth452={background:', "data-ad-homecolor452",
+    "{childList:true,subtree:true}",
+    ':not([data-ad-homecreative448]):not([data-ad-homecolor452])',
+]:
+    _ok = _required in _homecap452 or _required in src
+    print(('PASS' if _ok else 'FAIL')+f': v5.452 early capture contract {_required[:78]}')
+    if not _ok: sys.exit(1)
+
+for _required in [
+    'function _adHomeApply452(e452)', 'window.__AD_HOMEBG395_PRE452__',
+    "return _adHomeApply452(e452)", "put452('background-color'",
+    "put452('background-image'", "overlay452='linear-gradient('",
+    '0.50*(S452/100)', "setAttribute('data-ad-homeoverlay452',aa452)",
+    "__adBy='homeColorOverlay452'", "removeAttribute('data-ad-homebg395')",
+    "querySelectorAll('[data-ad-homecolor452=",
+    "captured='+E452.length+' tamed='+n452+' missing='+miss452",
+    "P95HOME452[captured=", 'missingOverlay=', 'creativeUntamed=',
+]:
+    _ok = _required in _homeowner452 or _required in _probe95
+    print(('PASS' if _ok else 'FAIL')+f': v5.452 uniform-overlay contract {_required[:78]}')
+    if not _ok: sys.exit(1)
+
+for _forbidden in [
+    'if(r452.width', 'if(r452.height', 'Math.max(q452',
+    '.click(', 'dispatchEvent', 'preventDefault(', 'stopPropagation(',
+    "createElement('svg')", 'innerHTML=', 'outerHTML=',
+    'ADCompareScreenRect451', 'ADFixNativeCompare451', 'P95COMPARE451',
+    'queueRuntime451', '__AD_RUNTIME451_DONE__',
+]:
+    _scope = src if '451' in _forbidden else _homeowner452
+    _ok = _forbidden not in _scope
+    print(('PASS' if _ok else 'FAIL')+f': v5.452 remains Home-only / all-card {_forbidden}')
+    if not _ok: sys.exit(1)
+
+print('PASS: v5.452 is the frozen v5.450 build plus authored Home carousel color restoration and one uniform tame overlay on every captured non-video card background.')

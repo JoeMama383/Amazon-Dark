@@ -18,7 +18,7 @@ on:
   workflow_dispatch:
     inputs:
       build_name:
-        description: 'Run title, for example: v5.451 experimental: bounded 120Hz-safe theme convergence'
+        description: 'Run title, for example: v5.452: preserve and uniformly tame Home carousel colors'
         required: true
         type: string
   release:
@@ -60,8 +60,8 @@ jobs:
         run: python3 scripts/test-compare-native-428.py src/Tweak.xm
       - name: Lock local Compare paint and authored Home color boundary
         run: python3 scripts/test-theme-surfaces-450.py src/Tweak.xm
-      - name: Lock experimental performance, cross-window Compare, and Home authored color
-        run: python3 scripts/test-performance-surfaces-451.py src/Tweak.xm
+      - name: Lock authored Home carousel color and uniform overlay
+        run: python3 scripts/test-home-carousel-452.py src/Tweak.xm
 
       - name: Build rootless package
         run: |
@@ -81,7 +81,7 @@ jobs:
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AmazonDark-v5.451-experimental-performance-compare-home-rootless-deb
+          name: AmazonDark-v5.452-home-carousel-authored-color-uniform-taming-rootless-deb
           path: packages/*.deb
           if-no-files-found: error
 
