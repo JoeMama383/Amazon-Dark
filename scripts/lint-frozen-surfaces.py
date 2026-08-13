@@ -21,10 +21,10 @@ src = SRC.read_text()
 # version makes a fresh device probe indistinguishable from an older install.
 _control = Path("layout/DEBIAN/control").read_text()
 _workflow = Path(".github/workflows/build.yml").read_text()
-_version_ok = ('#define AD_VERSION "v5.442.0"' in src
-               and "Version: 5.442.0" in _control
-               and "AmazonDark-v5.442-checkbox-square-rootless-deb" in _workflow)
-print(("PASS" if _version_ok else "FAIL") + ": v5.442 runtime/package/artifact identifiers agree")
+_version_ok = ('#define AD_VERSION "v5.443.0"' in src
+               and "Version: 5.443.0" in _control
+               and "AmazonDark-v5.443-checkbox-square-rootless-deb" in _workflow)
+print(("PASS" if _version_ok else "FAIL") + ": v5.443 runtime/package/artifact identifiers agree")
 if not _version_ok:
     sys.exit(1)
 
@@ -387,7 +387,10 @@ _cb_skips = all(token in src for token in [
 _cb_native = all(token in src for token in [
     "input[type=checkbox],[role=checkbox],[aria-checked]",
     "function art434(h,seed)",
-    "s434.setAttribute('data-ad-native-state','441')",
+    # v5.443: marker bumped 441 -> 443 ON PURPOSE. The sheet is only replaced when
+    # this value changes; v5.442 edited the CSS but left the marker, so live
+    # documents kept the old circular rule and the square never shipped.
+    "s434.setAttribute('data-ad-native-state','443')",
     ':has(input[type=checkbox]:checked',
     '[aria-pressed=true]',
     r'[data-ad-checkbox434-art]{filter:none !important;border-radius:4px !important;box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important;transition:none !important;}',
@@ -598,7 +601,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.442.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.443.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
@@ -708,10 +711,14 @@ _exact434_controls={
         exact_between('         "function sym413(){try{',
                       '         "try{window.__AD_SYM413_PRE__=', 'sym413'),
         '45528bb6943319a89c3c30b7fc30223bfddd1307b23255b1530d9738a9df47e4'),
+# v5.443: re-pointed DELIBERATELY. Only additions are read-only probe fields
+# (r=/tag=/sheet=) inside the painter's capture block, so a future report can
+# show whether the checkbox rule actually reached the element. No painting
+# behaviour changed; LOCK E1-E6 still pass.
     'persistent non-MLT control painter': (
         exact_between('       "function repaint425(){',
                       '       "try{repaint425();', 'repaint425'),
-        'd9954dc5716e4957e8fd832b353922f755f48c7b4378545bc2f9d1861bcf1299'),
+        '983e2550ecaa2905426354ca8b4cd25169086d5a28298db6d4add4b89f9bcc26'),
     'Heart shell engine': (
         exact_between('         // v5.427 HEART SHELL:',
                       '         // v5.401 Home bleed experiment:', 'heart427'),
@@ -831,8 +838,10 @@ for _label,_body,_expected in [
 # v5.442: re-pointed DELIBERATELY -- radius only (50% -> 4px) so the Compare
 # checkbox is a square in both Shopping and Cart. No change to fill, chrome,
 # sizing, hit target, or the checked stock-blue sprite passthrough.
+# v5.443: re-pointed DELIBERATELY -- stylesheet version marker 441 -> 443 so the
+# square rule actually replaces the stale circular sheet in live documents.
     ('stock checkbox runtime layer', _checkbox434,
-     'baebf713bb89c261cc3b1cea406e540a44c8dd7a5faf5051844e1a5b1092de2d'),
+     '07ad60627eedf4185463aa9b1a76ddce67253e992185cfb77c740af84c1f1fd2'),
     ('stock checkbox and ownership device probes', _probe434,
      'cc7dacb734e1b81425742eba57f10041d5e4bd2a81a3551b62c96b7927307a8c'),
 ]:
@@ -888,7 +897,7 @@ for _required in [
     "aa.setAttribute('data-ad-checkbox434-art','stock')",
     "p.setAttribute('data-ad-checkbox434-shell','cart')",
     "body434.indexOf('proceed to checkout')",
-    "s434.setAttribute('data-ad-native-state','441')",
+    "s434.setAttribute('data-ad-native-state','443')",
     ':has(input[type=checkbox]:checked',
     '[aria-pressed=true]',
     r'[data-ad-checkbox434-art]{filter:none !important;border-radius:4px !important;box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important;transition:none !important;}',

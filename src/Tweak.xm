@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.442.0"
+#define AD_VERSION "v5.443.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -8836,8 +8836,8 @@ static NSString *ADProbeWebJS(void){
          // :checked removes our paint synchronously and exposes Amazon's stock blue frame.
          "function stockCheckbox434(){if(window.__ADFRAME_MODE__||!document.body||window.__AD_CHECKBOX434_RUNNING__)return 0;window.__AD_CHECKBOX434_RUNNING__=1;try{"
            "var retired434=['adstock403','adcomparenative428','adcheckbox433'];for(var ri434=0;ri434<retired434.length;ri434++){var rs434=document.getElementById(retired434[ri434]);if(rs434&&rs434.parentNode)rs434.parentNode.removeChild(rs434);}"
-           "var prior434=document.getElementById('adcheckbox434');if(prior434&&prior434.getAttribute('data-ad-native-state')!=='441'){if(prior434.parentNode)prior434.parentNode.removeChild(prior434);prior434=null;}"
-           "if(!prior434){var s434=document.createElement('style');s434.id='adcheckbox434';s434.setAttribute('data-ad-native-state','441');"
+           "var prior434=document.getElementById('adcheckbox434');if(prior434&&prior434.getAttribute('data-ad-native-state')!=='443'){if(prior434.parentNode)prior434.parentNode.removeChild(prior434);prior434=null;}"
+           "if(!prior434){var s434=document.createElement('style');s434.id='adcheckbox434';s434.setAttribute('data-ad-native-state','443');"
              "s434.textContent='[data-ad-checkbox434-art]{filter:none !important;border-radius:4px !important;box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important;transition:none !important;}'"
                "+'[data-ad-checkbox434-host]:is(input[type=checkbox]:checked,[aria-checked=true],[aria-pressed=true],[aria-selected=true],[data-checked=true],[data-selected=true],[data-state=checked],[data-state=on]) [data-ad-checkbox434-art],[data-ad-checkbox434-host]:has(input[type=checkbox]:checked,[aria-checked=true],[aria-pressed=true],[aria-selected=true],[data-checked=true],[data-selected=true],[data-state=checked],[data-state=on]) [data-ad-checkbox434-art],[data-ad-checkbox434-host][class*=checked]:not([class*=unchecked]) [data-ad-checkbox434-art],[data-ad-checkbox434-host][class*=selected]:not([class*=unselected]) [data-ad-checkbox434-art],[data-ad-checkbox434-host]:has([class*=checked]:not([class*=unchecked]),[class*=selected]:not([class*=unselected])) [data-ad-checkbox434-art],[data-ad-checkbox434-art]:is(input[type=checkbox]:checked,[aria-checked=true],[aria-pressed=true],[aria-selected=true],[data-checked=true],[data-selected=true],[data-state=checked],[data-state=on]),[data-ad-checkbox434-art][class*=checked]:not([class*=unchecked]),[data-ad-checkbox434-art][class*=selected]:not([class*=unselected]),[data-ad-checkbox434-art][src*=checkbox-on],[data-ad-checkbox434-art][src*=checkbox_checked],[data-ad-checkbox434-art][src*=checkmark],[data-ad-checkbox434-art][src*=selected],[data-ad-checkbox434-art][data-src*=checkbox-on],[data-ad-checkbox434-art][data-src*=checkbox_checked],[data-ad-checkbox434-art][data-src*=checkmark],[data-ad-checkbox434-art][data-src*=selected]{filter:none !important;border-radius:0 !important;box-shadow:none !important;}'"
                "+'[data-ad-checkbox434-shell=\"cart\"]{background-color:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important;outline:0 !important;filter:none !important;}'"
@@ -9116,7 +9116,7 @@ static NSString *ADProbeWebJS(void){
                  "+'|native='+(b87.hasAttribute('data-ad-checkbox434-host')?1:0)"
                  "+'|hostbg='+String(z87.backgroundColor||'').replace(/\\s+/g,'')"
                  "+'|hostbd='+parseFloat(z87.borderTopWidth||0).toFixed(1)"
-                 "+'|geom='+Math.round(q87.width)+'x'+Math.round(q87.height));}"
+                 "+'|geom='+Math.round(q87.width)+'x'+Math.round(q87.height)+'|r='+String(y87.borderRadius||'-').slice(0,10)+'|tag='+(g87.hasAttribute('data-ad-checkbox434-art')?1:0)+'|sheet='+(function(){try{var e=document.getElementById('adcheckbox434');return e?(String(e.getAttribute('data-ad-native-state'))+':'+(/border-radius:(\\d+px|50%)/.exec(String(e.textContent||''))||['-','?'])[1]):'none';}catch(_){return 'err';}})());}"
              "if(W87.length){var pv87='';try{pv87=localStorage.getItem('__ad87')||'';}catch(_){}"
                "var oth87='';var parts87=pv87.split(' || ');"
                "for(var t87=0;t87<parts87.length;t87++){if(parts87[t87]&&parts87[t87].indexOf(V87+'|')!==0){oth87=parts87[t87];break;}}"
