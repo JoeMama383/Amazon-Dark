@@ -21,10 +21,10 @@ src = SRC.read_text()
 # version makes a fresh device probe indistinguishable from an older install.
 _control = Path("layout/DEBIAN/control").read_text()
 _workflow = Path(".github/workflows/build.yml").read_text()
-_version_ok = ('#define AD_VERSION "v5.444.0"' in src
-               and "Version: 5.444.0" in _control
-               and "AmazonDark-v5.444-checkbox-square-rootless-deb" in _workflow)
-print(("PASS" if _version_ok else "FAIL") + ": v5.444 runtime/package/artifact identifiers agree")
+_version_ok = ('#define AD_VERSION "v5.445.0"' in src
+               and "Version: 5.445.0" in _control
+               and "AmazonDark-v5.445-checkbox-square-rootless-deb" in _workflow)
+print(("PASS" if _version_ok else "FAIL") + ": v5.445 runtime/package/artifact identifiers agree")
 if not _version_ok:
     sys.exit(1)
 
@@ -390,7 +390,7 @@ _cb_native = all(token in src for token in [
     # v5.443: marker bumped 441 -> 443 ON PURPOSE. The sheet is only replaced when
     # this value changes; v5.442 edited the CSS but left the marker, so live
     # documents kept the old circular rule and the square never shipped.
-    "s434.setAttribute('data-ad-native-state','443')",
+    "s434.setAttribute('data-ad-native-state','445')",
     ':has(input[type=checkbox]:checked',
     '[aria-pressed=true]',
     r'[data-ad-checkbox434-art]{filter:none !important;border-radius:4px !important;box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important;transition:none !important;}',
@@ -601,7 +601,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.444.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.445.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
@@ -846,8 +846,14 @@ for _label,_body,_expected in [
 # v5.444: re-pointed DELIBERATELY -- the checkbox stylesheet is now evicted
 # UNCONDITIONALLY. Previously it was replaced only when the marker changed, so an
 # edited rule (v5.442's square) silently kept the old sheet in live documents.
+# v5.445: re-pointed DELIBERATELY. Three changes: (a) stylesheet eviction is
+# marker-gated again (v5.444's unconditional eviction fed the MutationObserver
+# and stalled the app), marker bumped to 445 so new CSS still lands once;
+# (b) the square radius is also written inline at tag time so shape no longer
+# depends on sheet freshness; (c) tag/style writes are idempotent, closing the
+# observer feedback loop that kept Home from settling since v5.441.
     ('stock checkbox runtime layer', _checkbox434,
-     '8a8adc4cd30004a72f2fc643ca88cfe34210b08b0a981e070b8fc8e9393be2db'),
+     'b8d191205c98d978625551c390e3f40b2488febdda28e2e3bf65b2f70116ba07'),
     ('stock checkbox and ownership device probes', _probe434,
      'cc7dacb734e1b81425742eba57f10041d5e4bd2a81a3551b62c96b7927307a8c'),
 ]:
@@ -903,7 +909,7 @@ for _required in [
     "aa.setAttribute('data-ad-checkbox434-art','stock')",
     "p.setAttribute('data-ad-checkbox434-shell','cart')",
     "body434.indexOf('proceed to checkout')",
-    "s434.setAttribute('data-ad-native-state','443')",
+    "s434.setAttribute('data-ad-native-state','445')",
     ':has(input[type=checkbox]:checked',
     '[aria-pressed=true]',
     r'[data-ad-checkbox434-art]{filter:none !important;border-radius:4px !important;box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important;transition:none !important;}',
