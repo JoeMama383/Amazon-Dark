@@ -18,7 +18,7 @@ on:
   workflow_dispatch:
     inputs:
       build_name:
-        description: 'Run title, for example: v5.441: lock 32px checkbox chrome and stock blue state'
+        description: 'Run title, for example: v5.446: lock square checkbox at first paint'
         required: true
         type: string
   release:
@@ -77,7 +77,7 @@ jobs:
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AmazonDark-v5.445-checkbox-square-rootless-deb
+          name: AmazonDark-v5.446-checkbox-square-first-paint-rootless-deb
           path: packages/*.deb
           if-no-files-found: error
 

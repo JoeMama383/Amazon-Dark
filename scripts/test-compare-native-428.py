@@ -25,7 +25,7 @@ css_end = fixes.index("',invert:", css_start)
 fixes_css = fixes[css_start:css_end]
 first_paint_required = [
     ".a-checkbox:not(:has(input[type=checkbox]:checked)) i.a-icon-checkbox",
-    "filter:none !important;border-radius:50% !important;",
+    "filter:none !important;border-radius:4px !important;",
     "box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important;",
     ".a-checkbox:has(input[type=checkbox]:checked) i.a-icon-checkbox",
     "filter:none !important;border-radius:0 !important;box-shadow:none !important;",
@@ -35,8 +35,11 @@ missing_first_paint = [token for token in first_paint_required if token not in f
 if missing_first_paint:
     print("icon-ownership-441 fixture: FAIL (documentStart checkbox contract missing: " + ", ".join(missing_first_paint) + ")")
     raise SystemExit(1)
-if any(token in fixes_css for token in ["background-position:", "background-image:url(", ".s-coupon-checkbox"]):
-    print("icon-ownership-441 fixture: FAIL (first-paint contract alters the sprite or coupon controls)")
+if any(token in fixes_css for token in ["background-position:", "background-image:url(", ".s-coupon-checkbox", "filter:none !important;border-radius:50% !important;"]):
+    print("icon-ownership-441 fixture: FAIL (first-paint contract alters the sprite/coupon controls or revives the circle)")
+    raise SystemExit(1)
+if "br85.indexOf('50')<0" in source or "Math.abs(parseFloat(br85||'0')-4)>.1" not in source:
+    print("icon-ownership-441 fixture: FAIL (device probe does not enforce the 4px square radius)")
     raise SystemExit(1)
 retired_shopping_selectors = [
     "[class*=copilot-compare][class*=on-image-button]",
@@ -377,7 +380,7 @@ assert(!primeToggle.hasAttribute('data-ad-checkbox434-art'),'out-of-card Prime t
 assert(unrelated.style.getPropertyValue('filter')==='heart-lock','unrelated Heart icon changed');
 
 const style=document.getElementById('adcheckbox434'),css=style.textContent;
-assert(style.getAttribute('data-ad-native-state')==='445','old timer-state stylesheet survived');
+assert(style.getAttribute('data-ad-native-state')==='446','old timer-state stylesheet survived');
 assert(css.includes(':has(input[type=checkbox]:checked')&&css.includes('[aria-pressed=true]'),'native input/ARIA state selectors are missing');
 assert(css.includes('[data-ad-checkbox434-art]{filter:none !important;border-radius:4px !important;box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important;transition:none !important;}'),'unchecked 32px chrome stock-art rule is missing');
 assert(!css.includes('[data-ad-checkbox434-art="unchecked"]')&&!css.includes('[data-ad-checkbox434-art="checked"]'),'JavaScript timer-state selectors survived');
