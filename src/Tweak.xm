@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.455.0"
+#define AD_VERSION "v5.456.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3088,6 +3088,24 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                ":('none scanned='+SH.length+' skipped='+ssk));"
            "}}catch(e){window.__AD_SHOP__='err '+e;}"
            "window.__ADSPXR__=0;"
+         "try{if(!window.__ADW455__){window.__ADW455__=1;"
+           "window.__ADR_MS__=0;window.__ADR_N__=0;window.__ADR_SKIP__=0;window.__ADR_T0__=Date.now();"
+           "var W455=['__AD_CHECKBOX434__','__AD_HEARTSHELL427__','__AD_PRODUCTCTRL391RUN__',"
+             "'__AD_COLLEGEBG403__','__AD_COLLEGE404__','__AD_BLEED404__','__AD_HOMECAP452__'];"
+           "for(var wi455=0;wi455<W455.length;wi455++){(function(nm){try{"
+             "var f=window[nm];if(typeof f!=='function')return;"
+             "var last=0;"
+             "window[nm]=function(){var now=Date.now();"
+               "if(now-window.__ADR_T0__>=1000){"
+                 "window.__AD_RATE__='runs/s='+window.__ADR_N__+' ms/s='+Math.round(window.__ADR_MS__)"
+                   "+' skip='+window.__ADR_SKIP__;"
+                 "window.__ADR_N__=0;window.__ADR_MS__=0;window.__ADR_SKIP__=0;window.__ADR_T0__=now;}"
+               "if(now-last<100){window.__ADR_SKIP__++;return 0;}"
+               "last=now;window.__ADR_N__++;"
+               "var t=Date.now();try{return f.apply(this,arguments);}"
+               "finally{window.__ADR_MS__+=(Date.now()-t);}};"
+           "}catch(e){}})(W455[wi455]);}"
+         "}}catch(e){}"
            "window.__AD_PERF__='ms='+(Date.now()-__T0)+' cut='+__cut+' '+__ckl.join(' ');"
            "try{window.__ADR_MS__=(window.__ADR_MS__||0)+(Date.now()-__T0);}catch(e){}"
            // CHILD FRAME -> TOP. Every frame self-describes (text-element count, body
