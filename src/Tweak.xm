@@ -6440,11 +6440,11 @@ static void ADRunProbe(void){
 }
 - (void)didMoveToWindow {
     %orig;
-    @try { if (ADRecolorOn() && self.window && gADCompare448Armed) ADScheduleNativeCompare448(); } @catch(...) {}
+    @try { if (ADRecolorOn() && ((UIView *)self).window && gADCompare448Armed) ADScheduleNativeCompare448(); } @catch(...) {}
 }
 - (void)layoutSubviews {
     %orig;
-    @try { if (ADRecolorOn() && self.window && gADCompare448Armed) ADScheduleNativeCompare448(); } @catch(...) {}
+    @try { if (ADRecolorOn() && ((UIView *)self).window && gADCompare448Armed) ADScheduleNativeCompare448(); } @catch(...) {}
 }
 %end
 
@@ -8463,10 +8463,10 @@ static BOOL gADCompare448Pending=NO;
 static void ADFixNativeCompare448(void){
     if (!ADRecolorOn()) return;
     @try {
-        UIView *text=nil; UIWindow *win=nil; int seen=0;
+        UIView *text=nil; UIWindow *win=nil;
         for (UIWindow *w in [UIApplication sharedApplication].windows){
             if (!w || w.hidden || w.alpha<.05) continue;
-            int local=0; UIView *hit=ADCompareTextWalk448(w,0,&local); seen+=local;
+            int local=0; UIView *hit=ADCompareTextWalk448(w,0,&local);
             if (hit){ text=hit; win=w; break; }
         }
         if (!text || !win){

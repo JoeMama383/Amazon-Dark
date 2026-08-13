@@ -1134,7 +1134,7 @@ _rct_view448 = hook_block('RCTViewComponentView')
 
 for _label, _body, _expected in [
     ('native semantic/geometry/leaf owner', _native448,
-     '9ba270abac80322a7c2a908c644e96535bfeb0b7401fce8c74c30acf240cfaf3'),
+     '22e4875e52527261c45c50f753df0379e5bc5c8f82ea7e5bbeddd87f6176a8da'),
     ('sibling Home creative owner', _home448,
      '1fb09933b1950ee3a1b3317de3610c7920c8ab79c8e5989312fe966c2d4fd875'),
     ('P91 Home device contract', _probe91,
@@ -1162,7 +1162,7 @@ for _label, _body, _expected in [
     ('Paper text semantic trigger', _rct_text448,
      'ccb8e712227ce94018169c12e481b100fcab871bc10856bc497f65d4b822fd44'),
     ('Fabric view persistent rescheduler', _rct_view448,
-     'b4ed3c31f4b5d0a8315ffd185c92f2d9009edd324ab72a63950ca7497ce501df'),
+     '25fcabec6b8d53252e690601808e9d5ff991bc41288a71fc6a5cbe5f91c89c94'),
 ]:
     _actual = sha(_body); _ok = _actual == _expected
     print(('PASS' if _ok else 'FAIL')+f': exact v5.448 {_label} {_actual}')
