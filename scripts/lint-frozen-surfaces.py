@@ -21,10 +21,10 @@ src = SRC.read_text()
 # version makes a fresh device probe indistinguishable from an older install.
 _control = Path("layout/DEBIAN/control").read_text()
 _workflow = Path(".github/workflows/build.yml").read_text()
-_version_ok = ('#define AD_VERSION "v5.452.0"' in src
-               and "Version: 5.452.0" in _control
-               and "AmazonDark-v5.452-home-carousel-authored-color-uniform-taming-rootless-deb" in _workflow)
-print(("PASS" if _version_ok else "FAIL") + ": v5.452 runtime/package/artifact identifiers agree")
+_version_ok = ('#define AD_VERSION "v5.453.0"' in src
+               and "Version: 5.453.0" in _control
+               and "AmazonDark-v5.453-home-carousel-late-color-uniform-taming-rootless-deb" in _workflow)
+print(("PASS" if _version_ok else "FAIL") + ": v5.453 runtime/package/artifact identifiers agree")
 if not _version_ok:
     sys.exit(1)
 
@@ -134,7 +134,7 @@ for key, expected in EXPECTED.items():
     bad |= not ok
 
 # Home carousel video playback was separately user-confirmed working in v5.391.
-# v5.452 invokes no video writer. Its owner was inserted at the string-literal
+# v5.453 invokes no video writer. Its owner was inserted at the string-literal
 # seam immediately after badgeFix, so normalize that one split seam before
 # hashing while retaining every byte of the actual video definition/call clauses.
 video=[]
@@ -182,10 +182,10 @@ HOME395 = {
     'Standalone repair marker population': (r'data-ad-homeauto395|data-ad-standparent395|data-ad-standbefore395|data-ad-standafter395', None, 4, '6d508367ffaf47dbc86910ebaa13cd2ff75d47825911d2d008715d2958e285d2'),
     'Standalone iframe selector population': (r'iframe\[data-ad-frame-mode362', None, 4, '2835e55cd74e8a785c76257a97e69d6dfc3e40c4da80eac18cd711609b0278cb'),
     # Exclude the v5.396 bleed guard/probe, v5.447/v5.448 diagnostics, and
-    # v5.450's narrow background-only owner/probe, and v5.452's separately
-    # locked non-video background capture/overlay.
+    # v5.450's narrow background-only owner/probe, v5.452's documentStart
+    # capture boundary, and v5.453's separately locked late-color overlay owner.
     # Every older direct reference remains exactly the user-confirmed v5.395 set.
-    'Home media direct-selector population': (r'single-creative-card|single-video-card|video\.vjs-tech|data-ad-homemedia395', r'data-ad-main396|P59BLEED396|P66BLEED401|data-ad-homecreative44[789]|homeCreative44[789]|P(?:89THEME447|91HOME448|94HOME450|95HOME452)|v5\.4(?:4[789]|50|52)|I44[89]|_single-creative-card image|direct 299x478|media are untouched|stale450|data-ad-homecolor452|HOMECOLOR452', 4, 'f1976ee3a8b48cb6e9278243e8af2064b01160fb8abd62731ccc90d59753b301'),
+    'Home media direct-selector population': (r'single-creative-card|single-video-card|video\.vjs-tech|data-ad-homemedia395', r'data-ad-main396|P59BLEED396|P66BLEED401|data-ad-homecreative44[789]|homeCreative44[789]|P(?:89THEME447|91HOME448|94HOME450|95HOME452|96HOME453)|v5\.4(?:4[789]|50|52|53)|I44[89]|_single-creative-card image|direct 299x478|media are untouched|stale450|data-ad-homecolor452|HOMECOLOR45[23]', 4, 'f1976ee3a8b48cb6e9278243e8af2064b01160fb8abd62731ccc90d59753b301'),
 }
 for label,(pattern,exclude,count,expected) in HOME395.items():
     lines,actual=agg_lines(pattern,exclude,_home395_src)
@@ -645,7 +645,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.452.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.453.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
@@ -1385,32 +1385,37 @@ for _retired in [
 
 print('PASS: v5.450 permanently gates the local Compare control as a white circle/dark minus, restores only saturated authored Home backings, and keeps every full-card creative on v5.395 WBT.')
 
-# v5.452 HOME CAROUSEL LOCK
-# This release is deliberately v5.450 plus one Home-only boundary: capture the
-# authored non-video backing before our painters, restore it, and place the
-# standard preference-scaled darkness in a separate gradient. The exact v5.450
-# hashes above prove that Compare, checkbox, and all other owners stayed frozen.
-print('--- v5.452 authored Home carousel color + uniform overlay lock ---')
+# v5.453 HOME CAROUSEL LOCK
+# The v5.452 documentStart capture remains exact, while the Home-only runtime
+# owner now accepts Amazon paint that arrives after an empty initial snapshot.
+# It refreshes recycled inline paint, preserves class-authored paint, and adds
+# exactly one uniform gradient. Exact v5.450 hashes above prove that Compare,
+# checkbox, media WBT, and every other owner stayed frozen.
+print('--- v5.453 late-authored Home carousel color + uniform overlay lock ---')
 _homecap452 = exact_between('         // v5.452 HOME AUTHOR-PAINT CAPTURE.',
                             '         "try{if(document&&!document.getElementById(\'adcardfix\')){"',
                             'Home author capture 452')
-_homeowner452 = exact_between('         // v5.452 HOME CAROUSEL COLOR + UNIFORM TAME.',
+_early453 = exact_between('         // v5.453 EARLY HOME BACKING GUARD.',
+                          '         "try{_adHomeMedia395();',
+                          'early Home backing guard 453')
+_homeowner453 = exact_between('         // v5.453 HOME LATE-AUTHORED COLOR + UNIFORM TAME.',
                               '         "homeAmbient386();badgeFix()',
-                              'Home overlay owner 452')
-_probe95 = exact_between('       // P95HOME452:',
-                         '       // P94HOME450:', 'P95HOME452')
-_fixture452 = Path('scripts/test-home-carousel-452.py').read_text()
+                              'Home overlay owner 453')
+_probe96 = exact_between('       // P96HOME453:',
+                         '       // P94HOME450:', 'P96HOME453')
+_fixture453 = Path('scripts/test-home-carousel-453.py').read_text()
 
 for _label, _body, _expected in [
-    ('documentStart author capture', _homecap452, '40660e8a8a28a1fb6ad40b6bf29a721dd1d1eaad916f79d1f329d35ddeb55e8b'),
-    ('uniform color overlay owner', _homeowner452, 'd264b865b40ce2a769bdf83cbd7425fe4af3ab98b485c1b2a518d71582bf724a'),
-    ('P95 Home carousel contract', _probe95, 'fadd18c0947cd9757309d0515d6e169fe65b5f41cd8c5f658c1b0953acf29f7f'),
-    ('Home carousel regression fixture', _fixture452, 'ab973c4803d82b8da67c95e036f5bbdbb3bf57427454f137a6c57f1254c6e89e'),
+    ('v5.452 documentStart author capture', _homecap452, '40660e8a8a28a1fb6ad40b6bf29a721dd1d1eaad916f79d1f329d35ddeb55e8b'),
+    ('pre-v5.395 late-paint guard', _early453, 'ebb4be32e387512e9d0f65946fc40f931b3ae17a351d749ca6d4f535999ba141'),
+    ('late-color uniform overlay owner', _homeowner453, '95a95da8b1abcfc1689a15355274091d7d9e39bf760122e9b7cecea7789b51cb'),
+    ('P96 Home carousel contract', _probe96, '095f165f685df770c92c2e2df5c6faa8cd8dacadd2022200d85f3e8612128026'),
+    ('late/recycled color regression fixture', _fixture453, '1619914c4e434f908cd072d0d8a76365524e653e0df49b09d15afa4af6e27cda'),
 ]:
     _actual = sha(_body); _ok = _actual == _expected
-    print(('PASS' if _ok else 'FAIL')+f': exact v5.452 {_label} {_actual}')
+    print(('PASS' if _ok else 'FAIL')+f': exact v5.453 {_label} {_actual}')
     if not _ok:
-        print('ERROR: the v5.452 authored-color capture or uniform overlay changed.')
+        print('ERROR: the v5.453 late-color or uniform-overlay lock changed.')
         sys.exit(1)
 
 for _required in [
@@ -1422,33 +1427,52 @@ for _required in [
     ':not([data-ad-homecreative448]):not([data-ad-homecolor452])',
 ]:
     _ok = _required in _homecap452 or _required in src
-    print(('PASS' if _ok else 'FAIL')+f': v5.452 early capture contract {_required[:78]}')
+    print(('PASS' if _ok else 'FAIL')+f': v5.453 retained early capture contract {_required[:78]}')
     if not _ok: sys.exit(1)
 
 for _required in [
-    'function _adHomeApply452(e452)', 'window.__AD_HOMEBG395_PRE452__',
-    "return _adHomeApply452(e452)", "put452('background-color'",
-    "put452('background-image'", "overlay452='linear-gradient('",
-    '0.50*(S452/100)', "setAttribute('data-ad-homeoverlay452',aa452)",
-    "__adBy='homeColorOverlay452'", "removeAttribute('data-ad-homebg395')",
-    "querySelectorAll('[data-ad-homecolor452=",
-    "captured='+E452.length+' tamed='+n452+' missing='+miss452",
-    "P95HOME452[captured=", 'missingOverlay=', 'creativeUntamed=',
+    '__AD_HOMEBG453_EARLY__', '__AD_HOMEBG395_RAW453__',
+    "hasAttribute('data-ad-homecolor452')", 'a453.color=c453',
+    'a453.image=i453', "setProperty('box-shadow','inset 0 0 0 9999px",
+    "__adBy='homeBgLeaf395'", 'return true;',
 ]:
-    _ok = _required in _homeowner452 or _required in _probe95
-    print(('PASS' if _ok else 'FAIL')+f': v5.452 uniform-overlay contract {_required[:78]}')
+    _ok = _required in _early453
+    print(('PASS' if _ok else 'FAIL')+f': v5.453 pre-compositor guard contract {_required[:78]}')
+    if not _ok: sys.exit(1)
+
+_ok = "removeProperty('background-color')" not in _early453
+print(('PASS' if _ok else 'FAIL')+': v5.453 early guard cannot erase Amazon background-color')
+if not _ok: sys.exit(1)
+
+for _required in [
+    'function _adHomeOwnGradient453(e453,v453)',
+    'function _adHomePaintSig453(s453)', 'function _adHomeApply453(e453)',
+    'external453=!a453.paintSig453||curSig453!==a453.paintSig453',
+    'if(!ownImage453&&!legacy453)',
+    "setProperty('background-color',a453.color,'important')",
+    "s453.removeProperty('background-image')", "overlay453='linear-gradient('",
+    '0.50*(S453/100)', "setAttribute('data-ad-homeoverlay453',aa453)",
+    "__adBy='homeColorOverlay453'", "removeAttribute('data-ad-homebg395')",
+    "querySelectorAll('[data-ad-homecolor452=",
+    "captured='+E453.length+' tamed='+n453+' missing='+miss453+' lostAuthored='+black453",
+    "P96HOME453[captured=", 'missingOverlay=', 'lostAuthored=', 'stacked=', 'creativeUntamed=',
+]:
+    _ok = _required in _homeowner453 or _required in _probe96
+    print(('PASS' if _ok else 'FAIL')+f': v5.453 dual color/overlay contract {_required[:78]}')
     if not _ok: sys.exit(1)
 
 for _forbidden in [
-    'if(r452.width', 'if(r452.height', 'Math.max(q452',
+    "put453('background'", "put453('background-color'", 'resolvedImage===undefined',
+    'function _adHomeApply452', 'window.__AD_HOMECOLOR452__',
+    'if(r453.width', 'if(r453.height', 'Math.max(q453',
     '.click(', 'dispatchEvent', 'preventDefault(', 'stopPropagation(',
     "createElement('svg')", 'innerHTML=', 'outerHTML=',
     'ADCompareScreenRect451', 'ADFixNativeCompare451', 'P95COMPARE451',
     'queueRuntime451', '__AD_RUNTIME451_DONE__',
 ]:
-    _scope = src if '451' in _forbidden else _homeowner452
+    _scope = src if '451' in _forbidden else _homeowner453
     _ok = _forbidden not in _scope
-    print(('PASS' if _ok else 'FAIL')+f': v5.452 remains Home-only / all-card {_forbidden}')
+    print(('PASS' if _ok else 'FAIL')+f': v5.453 rejects the old race/broadening path {_forbidden}')
     if not _ok: sys.exit(1)
 
-print('PASS: v5.452 is the frozen v5.450 build plus authored Home carousel color restoration and one uniform tame overlay on every captured non-video card background.')
+print('PASS: v5.453 keeps the frozen v5.450 UI, preserves early/late/recycled Home carousel colors, and places one uniform tame overlay on every captured non-video card background.')
