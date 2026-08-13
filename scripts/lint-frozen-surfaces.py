@@ -21,10 +21,10 @@ src = SRC.read_text()
 # version makes a fresh device probe indistinguishable from an older install.
 _control = Path("layout/DEBIAN/control").read_text()
 _workflow = Path(".github/workflows/build.yml").read_text()
-_version_ok = ('#define AD_VERSION "v5.446.0"' in src
-               and "Version: 5.446.0" in _control
-               and "AmazonDark-v5.446-checkbox-square-first-paint-rootless-deb" in _workflow)
-print(("PASS" if _version_ok else "FAIL") + ": v5.446 runtime/package/artifact identifiers agree")
+_version_ok = ('#define AD_VERSION "v5.447.0"' in src
+               and "Version: 5.447.0" in _control
+               and "AmazonDark-v5.447-compare-minus-home-creative-rootless-deb" in _workflow)
+print(("PASS" if _version_ok else "FAIL") + ": v5.447 runtime/package/artifact identifiers agree")
 if not _version_ok:
     sys.exit(1)
 
@@ -143,9 +143,9 @@ HOME395 = {
     '_adStandaloneSweep395 exact definition/calls': (r'_adStandaloneSweep395', None, 4, '1e931418220ed80b4fd966a2280ed2231dd067c98541e7bbb54e78c5718d8681'),
     'Standalone repair marker population': (r'data-ad-homeauto395|data-ad-standparent395|data-ad-standbefore395|data-ad-standafter395', None, 4, '6d508367ffaf47dbc86910ebaa13cd2ff75d47825911d2d008715d2958e285d2'),
     'Standalone iframe selector population': (r'iframe\[data-ad-frame-mode362', None, 4, '2835e55cd74e8a785c76257a97e69d6dfc3e40c4da80eac18cd711609b0278cb'),
-    # Exclude only the v5.396 first-paint guard/probe. All older direct references
-    # to the confirmed Home media classes must remain exactly the v5.395 set.
-    'Home media direct-selector population': (r'single-creative-card|single-video-card|video\.vjs-tech|data-ad-homemedia395', r'data-ad-main396|P59BLEED396|P66BLEED401', 4, 'f1976ee3a8b48cb6e9278243e8af2064b01160fb8abd62731ccc90d59753b301'),
+    # Exclude the v5.396 bleed guard/probe and the v5.447 creative-color release.
+    # Every older direct reference remains exactly the user-confirmed v5.395 set.
+    'Home media direct-selector population': (r'single-creative-card|single-video-card|video\.vjs-tech|data-ad-homemedia395', r'data-ad-main396|P59BLEED396|P66BLEED401|data-ad-homecreative447|homeCreative447|P89THEME447|v5\.447', 4, 'f1976ee3a8b48cb6e9278243e8af2064b01160fb8abd62731ccc90d59753b301'),
 }
 for label,(pattern,exclude,count,expected) in HOME395.items():
     lines,actual=agg_lines(pattern,exclude)
@@ -601,7 +601,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.446.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.447.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
@@ -720,10 +720,12 @@ _exact434_controls={
 # painting behaviour altered (LOCK E1-E6 still pass).
 # v5.446: re-pointed DELIBERATELY -- only the read-only payload stamp advances,
 # preventing v5.444/v5.445 cached captures from being reported as v5.446 data.
+# v5.447: re-pointed DELIBERATELY -- only the read-only payload stamp advances
+# again, so this release cannot export a cached capture labeled as v5.446.
     'persistent non-MLT control painter': (
         exact_between('       "function repaint425(){',
                       '       "try{repaint425();', 'repaint425'),
-        '92b89e7a378754534cbf00ee3fc1f9c6507f764e7d6cd6b6b4799589586ec7f4'),
+        '96ef96efa28b731ab01e26693fcca6810def1a97af97df2e9b26cd766b53b2fb'),
     'Heart shell engine': (
         exact_between('         // v5.427 HEART SHELL:',
                       '         // v5.401 Home bleed experiment:', 'heart427'),
@@ -856,10 +858,13 @@ for _label,_body,_expected in [
 # v5.446: re-pointed DELIBERATELY. The high-specificity document-start rule now
 # uses the same 4px square as the runtime sheet, and the read-only probe rejects
 # any computed circular radius. Fill, chrome, sizing, and stock blue stay fixed.
+# v5.447: re-pointed DELIBERATELY. P89 is appended between the frozen P88 and P81
+# anchors, so the extracted read-only probe span grows; P85/P88 paint checks are
+# unchanged, and the new P89 gate is itself frozen below.
     ('stock checkbox runtime layer', _checkbox434,
      '5d3b2a74f4300ae57fded182bee02789656b81f9a49f7af701ff3705e064cf3a'),
     ('stock checkbox and ownership device probes', _probe434,
-     'ed1cf7425d25c2aaa3da8f1883b482c9d84848c47251dc3e5b5606b4f09c3567'),
+     'a5897552654b45547054a50c1750fd63de43f097955239e1f8bafac0eb141195'),
 ]:
     _actual=sha(_body); _ok=_actual==_expected
     print(('PASS' if _ok else 'FAIL')+f': exact {_label} {_actual}')
@@ -879,7 +884,7 @@ try:
     _cart_fixture_sha = sha(_cart_fixture)
 except ValueError:
     _cart_fixture_sha = 'missing'
-_cart_fixture_ok = _cart_fixture_sha == '1ed3674bcc492db472e6cda4fb6d2dd66e4b30032683601cf39b25941df21b32'
+_cart_fixture_ok = _cart_fixture_sha == 'c0d496e63169decbad364c70ce85dd5108e8ed3440fa0f78be9a4cfbf3feaa15'
 print(('PASS' if _cart_fixture_ok else 'FAIL')+f': exact v5.441 Cart 398x0/35x44/23x23 hierarchy fixture {_cart_fixture_sha}')
 if not _cart_fixture_ok:
     print('ERROR: the Cart click/blue-sprite/no-orange/gray-shell fixture changed.')
@@ -1039,7 +1044,7 @@ for _required in [
     'Cart classic checkbox was not discovered',
     'Cart 35x44 gray label was not neutralized',
     'Cart gray rectangle survived computed shell cleanup',
-    'Cart unchecked sprite lacks the canonical 32px dark/chrome treatment',
+    'Cart unchecked sprite regressed from the canonical square 32px dark/chrome treatment',
     'Cart blue checked sprite waited for JavaScript or was inverted orange',
     'Shopping role-button checkbox was not discovered',
     'Shopping stale broad-writer filter survived cleanup',
@@ -1075,3 +1080,75 @@ for _required in [
     if not _ok: sys.exit(1)
 
 print('PASS: v5.441 freezes cards/checkbox ownership, paints one 32px dark/chrome unchecked icon, removes every bounded Cart shell, preserves the stock sprite, and releases Amazon blue/checkmark state synchronously.')
+
+# v5.447 COMPARE-MINUS / HOME-CREATIVE LOCK
+# The Compare tray owns only the tiny minus leaf/pseudo; its circular badge host
+# is recorded and must not receive a style write. Home releases only real
+# single-creative-card backdrop leaves from the old forced-black guard. Video,
+# generic theming-card, checkbox, cards, Heart, and all interaction stay outside.
+print('--- v5.447 Compare-minus / native Home creative paint boundary ---')
+_theme447 = exact_between('         // v5.447 COMPARE SELECTION MINUS + HOME CREATIVE COLOR.',
+                          '         "function homeAmbient386(){', 'theme447 runtime')
+_probe89 = exact_between('       // P89THEME447:',
+                         '       // P81CTRL (v5.417):', 'P89THEME447')
+_firstpaint447 = exact_line('data-ad-homecreative447]),[data-ad-main396]',
+                            'v5.447 first-paint creative release')
+_fixture447 = Path('scripts/test-theme-surfaces-447.py').read_text()
+for _label, _body, _expected in [
+    ('Compare-minus/Home creative runtime', _theme447,
+     'ca18653ad04211b197e7fa83ba0ed1ce26b6037ed3a3a90b4f079757df6bdef4'),
+    ('P89 device contract', _probe89,
+     '239c7128145a7010bca1f83b8f862eb6985e2e333b79dd50710797363272a298'),
+    ('documentStart native-creative release', _firstpaint447,
+     'b837d82d343c580363fc0d629d8cdc5eebc123142f08fadc007e0eba62771364'),
+    ('Compare-minus/Home creative DOM fixture', _fixture447,
+     'cecdf83ee65a3eaad1686d71cd4826535f293ed64ffe6ae855e523c49bdd4da6'),
+]:
+    _actual = sha(_body); _ok = _actual == _expected
+    print(('PASS' if _ok else 'FAIL')+f': exact v5.447 {_label} {_actual}')
+    if not _ok:
+        print('ERROR: the v5.447 glyph-host boundary or native creative release changed.')
+        sys.exit(1)
+
+for _required in [
+    "compare with similar|keep selecting",
+    "host447.setAttribute('data-ad-compareminus447-host','1')",
+    "glyph447.setAttribute('data-ad-compareminus447-glyph',kind447)",
+    "data-ad-compareminus447-before",
+    "data-ad-compareminus447-after",
+    "[data-ad-compareminus447-glyph=solid]{background-color:#e8e6e3 !important;}",
+    "[data-ad-compareminus447-glyph=raster]{filter:brightness(0) invert(1) !important;}",
+    "document.querySelectorAll('[class*=single-creative-card] [class*=theming-card-background]')",
+    "e447.setAttribute('data-ad-homecreative447','native')",
+    "P89THEME447[",
+    "hostChanged=",
+    "forcedBlack=",
+]:
+    _ok = _required in _theme447 or _required in _probe89
+    print(('PASS' if _ok else 'FAIL')+f': v5.447 paint boundary {_required[:78]}')
+    if not _ok: sys.exit(1)
+
+for _forbidden in [
+    'host447.style', '.click(', 'dispatchEvent', 'preventDefault(',
+    'stopPropagation(', "createElement('svg')", 'innerHTML=', 'outerHTML=',
+]:
+    _ok = _forbidden not in _theme447
+    print(('PASS' if _ok else 'FAIL')+f': v5.447 no host/state/artwork mutation {_forbidden}')
+    if not _ok: sys.exit(1)
+
+_ok = ("[class*=single-video-card] [class*=theming-card-background]" in _firstpaint447
+       and "[class*=single-creative-card] [class*=theming-card-background]:not([data-ad-homecreative447])" in _firstpaint447
+       and 'single-video-card' not in _theme447[_theme447.index('function homeCreative447(){'):])
+print(('PASS' if _ok else 'FAIL')+': v5.447 releases native creative color and retains the video guard')
+if not _ok: sys.exit(1)
+
+for _required in [
+    "borderRadius:checkboxArt?(selected?'0px':'4px')",
+    "getComputedStyle(cartArt).borderRadius==='4px'",
+    "getComputedStyle(shopping.art).borderRadius==='4px'",
+]:
+    _ok = _required in _test434
+    print(('PASS' if _ok else 'FAIL')+f': v5.447 square-checkbox fixture {_required}')
+    if not _ok: sys.exit(1)
+
+print('PASS: v5.447 locks every recently edited symbol, keeps the minus host dark, and restores only native Home creative paint.')
