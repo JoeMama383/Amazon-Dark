@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.450.0"
+#define AD_VERSION "v5.451.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -193,6 +193,17 @@ static const void *kADCompareMinus450Key = &kADCompareMinus450Key;
 static const void *kADCompareHost450Key = &kADCompareHost450Key;
 static void ADScheduleNativeCompare450(void);
 static void ADFixNativeCompare450(void);
+// v5.451 experimental performance build.  The v5.450 painter remains frozen
+// below for rollback/audit purposes, but is retired at runtime.  Its acquisition
+// assumed the badge and thumbnail shared an ancestor; the device probe proved
+// they live in separate Fabric windows.  v5.451 compares screen-space geometry
+// across windows, then paints only a non-interactive CALayer overlay.
+static const void *kADCompareCircle451Key = &kADCompareCircle451Key;
+static const void *kADCompareMinus451Key = &kADCompareMinus451Key;
+static const void *kADCompareHost451Key = &kADCompareHost451Key;
+static void ADMaybeScheduleNativeCompare451(UIView *v);
+static void ADScheduleNativeCompare451(void);
+static void ADFixNativeCompare451(void);
 // Forward declarations required by the early Menu glyph gate (v5.382 lint/compile fix).
 static inline BOOL ADImageIsTemplateish(UIImage *im);
 static const void *kADOrigImageKey = &kADOrigImageKey;
@@ -764,6 +775,20 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // This lets the prepaint sheet suppress Amazon's colored carousel ambient layer
          // before recycled/overscroll content can expose it for a frame.
          "try{if(window===window.top&&document&&document.documentElement)document.documentElement.setAttribute('data-ad-main396','1');}catch(e){}"
+         // v5.451 HOME AUTHOR-PAINT CAPTURE.  Register before any of our mutation
+         // painters. MutationObserver callbacks run before the next render, so a
+         // newly inserted Home creative is claimed while its authored inline paint
+         // still exists, before homeBgLeaf395 or Dark Reader can flatten it.  Only
+         // the background leaf is marked; child images retain the established WBT.
+         "try{if(window===window.top&&!window.__AD_HOMECAP451__){"
+           "function homeDoc451(){try{var p=String(location.pathname||'/').toLowerCase();if(/\\/(?:s|dp)(?:\\/|$)|\\/gp\\/(?:aw\\/d|product)\\//.test(p))return false;if(document.querySelector('#search,.s-search-results,[data-component-type=\\\"s-search-result\\\"],#productTitle,#dp-container,#ppd'))return false;return true;}catch(x){return false;}}"
+           "function oneHome451(e){try{if(!homeDoc451()||!e||e.nodeType!==1)return 0;var c=e.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));if(c.indexOf('theming-card-background')<0)return 0;var p=e,u=0,ctx=c;while(p&&u++<7){ctx+=' '+String(p.className||'');p=p.parentElement;}if(/single-video-card|video-card|video-js|vjs-|sbv-video/i.test(ctx))return 0;if(!e.__adHomeAuth451){var s=e.style;e.__adHomeAuth451={background:s.getPropertyValue('background'),backgroundPriority:s.getPropertyPriority('background'),color:s.getPropertyValue('background-color'),colorPriority:s.getPropertyPriority('background-color'),image:s.getPropertyValue('background-image'),imagePriority:s.getPropertyPriority('background-image'),filter:s.getPropertyValue('filter'),filterPriority:s.getPropertyPriority('filter'),blend:s.getPropertyValue('background-blend-mode'),blendPriority:s.getPropertyPriority('background-blend-mode'),shadow:s.getPropertyValue('box-shadow'),shadowPriority:s.getPropertyPriority('box-shadow')};}if(e.getAttribute('data-ad-homecolor451')!=='authored')e.setAttribute('data-ad-homecolor451','authored');return 1;}catch(x){return 0;}}"
+           "function scanHome451(root){try{if(!root||root.nodeType!==1)return 0;var n=oneHome451(root),Q=root.querySelectorAll?root.querySelectorAll('[class*=theming-card-background]'):[];for(var i=0;i<Q.length&&i<100;i++)n+=oneHome451(Q[i]);return n;}catch(x){return 0;}}"
+           "window.__AD_HOMECAP451__=scanHome451;scanHome451(document.documentElement);new MutationObserver(function(ms){for(var i=0;i<ms.length&&i<40;i++){var A=ms[i].addedNodes;for(var j=0;j<A.length&&j<24;j++)scanHome451(A[j]);}}).observe(document.documentElement,{childList:true,subtree:true});"
+           // v5.450's style/class observer can observe its own cleanup writes and
+           // spin once per frame.  Its one-shot checks remain; v5.451 owns updates.
+           "window.__AD_THEME450_OBS__=1;"
+         "}}catch(e){}"
          "try{if(document&&!document.getElementById('adcardfix')){"
            "var __acs=document.createElement('style');__acs.id='adcardfix';"
            "__acs.textContent='picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],[class*=s-image],[class*=unfill],[class*=placehold]{background-color:transparent !important;}[class*=puis-heart-position] button,[class*=puis-heart-position] [role=button],[class*=puis-heart-position] a,[class*=puis-heart-position] span,[class*=puis-heart-position] div{background-color:transparent !important;}[class*=puis-heart-position] button::before,[class*=puis-heart-position] button::after,[class*=puis-heart-position] [role=button]::before,[class*=puis-heart-position] [role=button]::after,[class*=puis-heart-position] a::before,[class*=puis-heart-position] a::after,[class*=puis-heart-position] span::before,[class*=puis-heart-position] span::after,[class*=puis-heart-position] div::before,[class*=puis-heart-position] div::after{background-color:transparent !important;}[class*=puis-heart-position] img[src*=grey-pixel],[class*=puis-heart-position] img[src*=gray-pixel],[class*=puis-heart-position] img[src*=transparent-pixel],[class*=puis-heart-position] img[src*=placeholder],[class*=puis-heart-position] img[src*=spacer],[class*=puis-heart-position] img[src*=blank],[class*=puis-heart-position] img[class*=placehold]{display:none !important;filter:none !important;opacity:0 !important;}[class*=mlt-icon-container] img[class*=s-image],[class*=mlt-image-icon] img[class*=s-image]{filter:brightness(0) invert(1) !important;background-color:transparent !important;}[class*=puis-heart-position]{background-color:transparent !important;border:0 !important;box-shadow:none !important;}[class*=lists-framework-unfill],[class*=lists-framework-fill],[class*=lists-framework-action-button] svg,[class*=lists-framework-action-button] i,[class*=lists-framework-action-button] img{filter:brightness(0) invert(1) !important;background-color:transparent !important;border:0 !important;box-shadow:none !important;border-radius:0 !important;max-width:26px !important;max-height:26px !important;}#search [class*=puis-heart-position][data-ad-heartready394=\"1\"],.s-search-results [class*=puis-heart-position][data-ad-heartready394=\"1\"],[data-component-type=\"s-search-result\"] [class*=puis-heart-position][data-ad-heartready394=\"1\"],#dp-container [class*=puis-heart-position][data-ad-heartready394=\"1\"],#ppd [class*=puis-heart-position][data-ad-heartready394=\"1\"]{visibility:visible !important;}[class*=s-image],[class*=s-product-image] img,img[class*=s-image]{object-fit:contain !important;}[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],[class*=puis-card],[class*=gwm-tile],[class*=_container_]{border-color:#3b4043 !important;}[class*=deal],[class*=badge],[class*=prime],[class*=error],[class*=alert],[class*=warning],[aria-invalid=true]{border-color:initial !important;}[class*=a-button-primary],[class*=a-button-search],[class*=a-button-oneclick],[class*=a-button-buy],.a-button-inner,.a-button-text{border-color:transparent !important;}[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_],[class*=ape-placement] *,[class*=ape-wrapper] *,[data-cel-widget*=ape] *,[id*=ape_] *{filter:none !important;mix-blend-mode:normal !important;isolation:auto !important;text-shadow:none !important;}[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_]{background-color:initial !important;}[class*=ape-placement] img,[class*=ape-wrapper] img,[class*=ape-placement] svg,[class*=ape-wrapper] svg,[class*=ape-placement] picture,[class*=ape-wrapper] picture{filter:none !important;opacity:1 !important;}[class*=ape-placement] span,[class*=ape-placement] a,[class*=ape-placement] p,[class*=ape-placement] h1,[class*=ape-placement] h2,[class*=ape-placement] h3,[class*=ape-placement] h4,[class*=ape-wrapper] span,[class*=ape-wrapper] a,[class*=ape-wrapper] p,[class*=ape-wrapper] h1,[class*=ape-wrapper] h2,[class*=ape-wrapper] h3,[class*=ape-wrapper] h4,[class*=theming-card] span,[class*=theming-card] a,[class*=theming-card] p,[class*=theming-card] h1,[class*=theming-card] h2,[class*=theming-card] h3,[class*=theming-card] h4{background-color:transparent !important;}[class*=hybrid-widget-sponsored],[class*=hybrid-widget-sponsored] *,[class*=adFeedbackMainComponent],[class*=adFeedbackMainComponent] *,[class*=sponsored-label],[class*=sponsored-label] *{opacity:1 !important;filter:none !important;mix-blend-mode:normal !important;}[class*=theming-card] [class*=a-cardui-header],[class*=a-cardui-header][class*=theming]{background-color:transparent !important;}[class*=npack-asin-card],[class*=npack-asin-card] *{filter:none !important;opacity:1 !important;mix-blend-mode:normal !important;isolation:auto !important;}[class*=npack-asin-card] [class*=a-size-mini],[class*=npack-asin-card] [class*=badge],[class*=npack-asin-card] [class*=percent]{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=npack-asin-card] [class*=badgeMessage],[class*=npack-asin-card] [class*=badgeMessage] *,[class*=cXVhZ] [class*=badgeMessage],[class*=cXVhZ] [class*=badgeMessage] *{background-color:#181a1b !important;background-image:none !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;box-shadow:none !important;}[class*=npack-asin-card] [class*=badgeMessage]::before,[class*=npack-asin-card] [class*=badgeMessage]::after,[class*=npack-asin-card] [class*=badgeMessage] *::before,[class*=npack-asin-card] [class*=badgeMessage] *::after,[class*=cXVhZ] [class*=badgeMessage]::before,[class*=cXVhZ] [class*=badgeMessage]::after,[class*=cXVhZ] [class*=badgeMessage] *::before,[class*=cXVhZ] [class*=badgeMessage] *::after{background:#181a1b !important;background-image:none !important;box-shadow:none !important;}[class*=a-cardui-header],[class*=a-cardui-header] *{background-color:transparent !important;}[class*=gwm-tile] [class*=a-cardui-header],[class*=gwm-tile] [class*=a-cardui-header] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[class*=hybrid-widget-sponsored],[class*=adFeedbackMainComponent],[class*=hybrid-widget-sponsored] *,[class*=adFeedbackMainComponent] *{background-color:transparent !important;}[class*=bW9ia],[class*=bW9ia] *{filter:none !important;opacity:1 !important;mix-blend-mode:normal !important;}[class*=bW9ia] span,[class*=bW9ia] a,[class*=bW9ia] [class*=price],[class*=bW9ia] [class*=badge],[class*=bW9ia] [class*=percent]{background-color:transparent !important;}[class*=sponsored-products] img[src*=logo],[class*=sponsored-products] img[class*=logo],[class*=sponsored-brand] img,[class*=brand-logo] img{background-color:#e8e6e3 !important;border-radius:4px !important;padding:2px !important;}[class*=cXVhZ],[class*=cXVhZ] *,[class*=badgeLabel],[class*=badgeContainer],[class*=theming-card],[class*=theming-card] *,[class*=canvas-card],[class*=canvas-card] *{mix-blend-mode:normal !important;isolation:auto !important;}[class*=badgeLabel]{background-color:#cc0c39 !important;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=badgeLabel],[class*=badgeLabel] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=npack-asin-card],[class*=canvas-card],[class*=theming-card-background]{background-color:initial !important;}[class*=badgeLabel]{background-color:#cc0c39 !important;}[class*=badgeLabel],[class*=badgeLabel] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=cXVhZ],[class*=cXVhZ] *{filter:none !important;opacity:1 !important;}[class*=a-cardui] [class*=a-price-whole],[class*=a-cardui] [class*=a-price-symbol],[class*=a-cardui] [class*=a-price-decimal],[class*=a-cardui] [class*=a-truncate],[class*=cXVhZ] [class*=a-price-whole],[class*=cXVhZ] [class*=a-price-symbol],[class*=cXVhZ] [class*=a-price-decimal],[class*=cXVhZ] [class*=a-truncate],[class*=npack-asin-card] [class*=a-price-whole],[class*=npack-asin-card] [class*=a-price-symbol],[class*=npack-asin-card] [class*=a-price-decimal],[class*=npack-asin-card] [class*=a-truncate]{color:#e8e6e3 !important;}ul.a-pagination.a-dots li.a-selected,ul.a-pagination.a-dots li.dot-selected-t2,ul.a-pagination.a-dots li[aria-current=true],ul.a-pagination.a-dots li[aria-current=page],ul.a-pagination.a-dots li[aria-selected=true],[data-ad-dotselected374]{background-color:#ffffff !important;border-color:#ffffff !important;}[data-ad-dotselected374]::before,[data-ad-dotselected374]::after,[data-ad-dotselected374] [class*=dot],[data-ad-dotselected374] span{background-color:#ffffff !important;border-color:#ffffff !important;color:#ffffff !important;fill:#ffffff !important;}[class*=pack-size-badge],[class*=pack-size-badge] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[data-ad-nav-chevron-paint=\"1\"],[data-ad-nav-chevron=\"1\"] [class*=a-icon],[data-ad-nav-chevron=\"1\"] i,[data-ad-nav-chevron=\"1\"] svg,[data-ad-nav-chevron=\"1\"] path,[data-ad-college-section=\"1\"] .a-icon-next-rounded,[data-ad-college-section=\"1\"] .a-icon-previous-rounded{filter:brightness(0) invert(1) !important;opacity:1 !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[data-ad-nav-chevron=\"1\"] svg,[data-ad-nav-chevron=\"1\"] path{fill:#e8e6e3 !important;stroke:#e8e6e3 !important;}.a-icon-next-rounded,.a-icon-previous-rounded,.a-carousel-goto-nextpage .a-icon,.a-carousel-goto-prevpage .a-icon,.a-carousel-button-right .a-icon,.a-carousel-button-left .a-icon,[class*=carousel] [class*=chevron],[class*=carousel] [class*=arrow],[class*=cXVhZ] [class*=chevron],[class*=cXVhZ] [class*=arrow]{filter:brightness(0) invert(1) !important;opacity:1 !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;border-color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;}[data-ad-college-chevron=\"1\"],[data-ad-college-chevron=\"1\"] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;border-color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;opacity:1 !important;}[data-ad-college-chevron=\"1\"]::before,[data-ad-college-chevron=\"1\"]::after,[data-ad-college-chevron=\"1\"] *::before,[data-ad-college-chevron=\"1\"] *::after{color:#e8e6e3 !important;border-color:#e8e6e3 !important;}[data-ad-college-chevron-sprite=\"1\"]{filter:brightness(0) invert(1) !important;}[data-ad-expchev383=\"1\"],[data-ad-expchev383=\"1\"] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;border-color:#e8e6e3 !important;opacity:1 !important;}[data-ad-expchev383=\"1\"]::before,[data-ad-expchev383=\"1\"]::after,[data-ad-expchev383=\"1\"] *::before,[data-ad-expchev383=\"1\"] *::after{color:#e8e6e3 !important;border-color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;filter:brightness(0) invert(1) !important;}[data-ad-expchev383=\"1\"] img,[data-ad-expchev383=\"1\"] i{filter:brightness(0) invert(1) !important;opacity:1 !important;}.a-icon-extender-expand,.a-icon-extender-collapse,.a-icon-dropdown,[class*=a-icon-extender],[aria-expanded] .a-icon{filter:brightness(0) invert(1) !important;opacity:1 !important;color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;}[data-ad-cardborder=\"1\"],[class*=\"_npack-asin-card_style_asin-cont\"],[class*=\"sc-card-style\"],[class*=\"_hp-mosaic-container_style_widgetContainer\"],[class*=\"_mosaic-container_style_widgetContainer\"]{border-color:#3b4043 !important;outline-color:#3b4043 !important;}[class*=\"_npack-asin-card_style_asin-cont\"]::before,[class*=\"_npack-asin-card_style_asin-cont\"]::after,[class*=\"sc-card-style\"]::before,[class*=\"sc-card-style\"]::after,[class*=\"_hp-mosaic-container_style_widgetContainer\"]::before,[class*=\"_hp-mosaic-container_style_widgetContainer\"]::after,[class*=\"_mosaic-container_style_widgetContainer\"]::before,[class*=\"_mosaic-container_style_widgetContainer\"]::after{border-color:#3b4043 !important;outline-color:#3b4043 !important;}[data-ad-videoctl362],[class*=ape-placement] [data-ad-videoctl362],[class*=ape-wrapper] [data-ad-videoctl362]{background:rgba(0,0,0,.72) !important;border-radius:999px !important;box-shadow:none !important;}[data-ad-videoctl362] svg,[data-ad-videoctl362] path,[data-ad-videoctl362] polygon{fill:#fff !important;stroke:#fff !important;color:#fff !important;}[data-ad-yml-head363=\"1\"],[data-ad-yml-head363=\"1\"] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;opacity:1 !important;}[data-ad-sponsored-light363=\"1\"],[data-ad-sponsored-light363=\"1\"] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;opacity:1 !important;}[data-ad-reviewink367=\"1\"]{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[data-ad-producttext370=\"1\"]{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[data-ad-productad367=\"1\"]{background-color:#181a1b !important;border-color:#3b4043 !important;outline-color:#3b4043 !important;}[data-ad-share375=\"1\"] img,[data-ad-share375=\"1\"] i,[data-ad-share375=\"1\"] [class*=icon]{filter:brightness(0) invert(1) !important;opacity:1 !important;background-color:transparent !important;}[data-ad-share375=\"1\"],[data-ad-share375=\"1\"] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[data-ad-share375=\"1\"] svg,[data-ad-share375=\"1\"] path{fill:#ffffff !important;stroke:#ffffff !important;}[data-ad-actionhost376]{background-color:#181a1b !important;border-radius:50%% !important;border:1.5px solid rgba(255,255,255,.65) !important;box-shadow:none !important;box-sizing:border-box !important;}[data-ad-actionorig376]{visibility:hidden !important;opacity:0 !important;}[data-ad-actioncanonical376]{position:absolute !important;left:50%% !important;top:50%% !important;transform:translate(-50%%,-50%%) !important;width:23px !important;height:23px !important;display:block !important;visibility:visible !important;opacity:1 !important;filter:none !important;background:transparent !important;pointer-events:none !important;z-index:3 !important;}[data-ad-actioncanonical376] rect,[data-ad-actioncanonical376] path{fill:none !important;stroke:#ffffff !important;stroke-width:1.8 !important;stroke-linecap:round !important;stroke-linejoin:round !important;}[data-ad-sponsored376=\"1\"],[data-ad-sponsored376=\"1\"] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;opacity:1 !important;visibility:visible !important;}[data-ad-rating376=\"1\"]{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;opacity:1 !important;visibility:visible !important;}[data-ad-adtext376=\"1\"]{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;opacity:1 !important;visibility:visible !important;}[data-ad-main396] [class*=single-creative-card] [class*=theming-card-background]:not([data-ad-homecreative447]),[data-ad-main396] [class*=single-video-card] [class*=theming-card-background],[data-ad-main396] [class*=theming-card] [class*=theming-card-background]:not([data-ad-homecreative447]){background:#181a1b !important;background-color:#181a1b !important;background-image:none !important;filter:none !important;mix-blend-mode:normal !important;box-shadow:none !important;animation:none !important;transition:none !important;isolation:auto !important;}[data-ad-main396] [class*=single-creative-card] [class*=theming-card-background]:not([data-ad-homecreative447])::before,[data-ad-main396] [class*=single-creative-card] [class*=theming-card-background]:not([data-ad-homecreative447])::after,[data-ad-main396] [class*=single-video-card] [class*=theming-card-background]::before,[data-ad-main396] [class*=single-video-card] [class*=theming-card-background]::after,[data-ad-main396] [class*=theming-card] [class*=theming-card-background]:not([data-ad-homecreative447])::before,[data-ad-main396] [class*=theming-card] [class*=theming-card-background]:not([data-ad-homecreative447])::after{background:#181a1b !important;background-color:#181a1b !important;background-image:none !important;filter:none !important;mix-blend-mode:normal !important;box-shadow:none !important;animation:none !important;transition:none !important;}';"
@@ -773,6 +798,9 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // background writers; retaining only the later black rule would still
            // leave the native navy erased by this earlier `initial` reset.
            "__acs.textContent=__acs.textContent.replace('[class*=npack-asin-card],[class*=canvas-card],[class*=theming-card-background]{background-color:initial !important;}','[class*=npack-asin-card],[class*=canvas-card],[class*=theming-card-background]:not([data-ad-homecreative448]){background-color:initial !important;}').replace(/data-ad-homecreative447/g,'data-ad-homecreative448');"
+           // The early v5.451 marker is geometry-independent and therefore reaches
+           // the transparent/inline-color card that v5.448/450 could not correlate.
+           "__acs.textContent=__acs.textContent.replace(/:not\\(\\[data-ad-homecreative448\\]\\)/g,':not([data-ad-homecreative448]):not([data-ad-homecolor451])');"
            "__acs.textContent=__acs.textContent.replace('[aria-expanded] .a-icon{','[aria-expanded] .a-icon:not(.a-icon-checkbox){');"
            "(document.head||document.documentElement).appendChild(__acs);}}catch(e){}"
          // v5.397: SYMBOL THEME AUTHORITY = exact v5.333 policy for every
@@ -1108,11 +1136,16 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "u:String(location.pathname||'/').slice(-16)+'|'+String(window.__ADFRAME_MODE__||'-').slice(0,4),r:f},'*');}"
            "}catch(e){}};"
            "try{window.__AD_HEROFAST365__&&window.__AD_HEROFAST365__(document.documentElement);window.__AMZDARK_ADTHEME__();window.__ADFPOST__();}catch(e){}"
-           "try{var _at=null;new MutationObserver(function(ms){try{for(var mi=0;mi<ms.length;mi++){var mm=ms[mi];if(mm.type==='attributes'&&mm.target){mm.target.__adStand362=0;if(window.__AD_HEROFAST365__)window.__AD_HEROFAST365__(mm.target);}else if(mm.type==='childList'&&window.__AD_HEROFAST365__){for(var ai=0;ai<mm.addedNodes.length&&ai<16;ai++){var an=mm.addedNodes[ai];if(an&&an.nodeType===1)window.__AD_HEROFAST365__(an);}}}if(window.__AD_ANYSPONINK379__)window.__AD_ANYSPONINK379__();if(window.__AD_STRIPCONF375__&&window.__AD_ADTEXT371__)window.__AD_ADTEXT371__();if(window.__AD_STRIPCONF375__&&window.__AD_STRIPTEXT377__)window.__AD_STRIPTEXT377__();if(window.__AD_STRIPCONF375__&&window.__AD_STRIPCHROME379__)window.__AD_STRIPCHROME379__();if(window.__AD_STRIPCONF375__&&window.__AD_STANDDARK382__)window.__AD_STANDDARK382__();}catch(e){}clearTimeout(_at);"
-             "_at=setTimeout(function(){try{window.__AMZDARK_ADTHEME__();window.__ADFPOST__();}catch(e){}},window.__AD_STRIPCONF375__?40:180);})"
-             ".observe(document.documentElement,{childList:true,subtree:true,attributes:true,characterData:true,attributeFilter:['src','srcset','poster','class','style']});}catch(e){}"
-           "try{var __ad377rf=0;function __ad377raf(){if(++__ad377rf>180)return;try{if(window.__AD_ANYSPONINK379__)window.__AD_ANYSPONINK379__();if(window.__AD_STRIPCONF375__&&window.__AD_STRIPTEXT377__)window.__AD_STRIPTEXT377__();if(window.__AD_STRIPCONF375__&&window.__AD_STRIPCHROME379__)window.__AD_STRIPCHROME379__();if(window.__AD_STRIPCONF375__&&window.__AD_STANDDARK382__)window.__AD_STANDDARK382__();}catch(e){}requestAnimationFrame(__ad377raf);}requestAnimationFrame(__ad377raf);}catch(e){}"
-           "try{var __ad378iv=0,__ad378tm=setInterval(function(){if(++__ad378iv>60){clearInterval(__ad378tm);return;}try{if(window.__AD_ANYSPONINK379__)window.__AD_ANYSPONINK379__();if(window.__AD_STRIPCONF375__){if(window.__AD_STRIPTEXT377__)window.__AD_STRIPTEXT377__();if(window.__AD_STRIPCHROME379__)window.__AD_STRIPCHROME379__();}}catch(e){}},500);}catch(e){}"
+           // Do not retain MutationRecord arrays or synchronously rescan the whole
+           // document from their microtask. One trailing, scroll-aware pass covers
+           // the same late mounts without observer/self-style feedback.
+           "try{var _at=null;function _adThemeTrail451(){clearTimeout(_at);_at=setTimeout(function(){if(window.__ADSCROLLING__){_adThemeTrail451();return;}try{if(window.__AD_ANYSPONINK379__)window.__AD_ANYSPONINK379__();if(window.__AD_STRIPCONF375__&&window.__AD_ADTEXT371__)window.__AD_ADTEXT371__();if(window.__AD_STRIPCONF375__&&window.__AD_STRIPTEXT377__)window.__AD_STRIPTEXT377__();if(window.__AD_STRIPCONF375__&&window.__AD_STRIPCHROME379__)window.__AD_STRIPCHROME379__();if(window.__AD_STRIPCONF375__&&window.__AD_STANDDARK382__)window.__AD_STANDDARK382__();window.__AMZDARK_ADTHEME__();window.__ADFPOST__();}catch(e){}},240);}new MutationObserver(_adThemeTrail451)"
+             ".observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src','srcset','poster','class']});}catch(e){}"
+           // v5.451: the old probe insurance executed multiple DOM scans on every
+           // animation frame for three seconds, then every 500ms for 30 seconds.
+           // Structural observers already own late mounts; retain four bounded
+           // backstops without taxing the compositor at 120 calls per second.
+           "try{var __ad377run=function(){try{if(window.__AD_ANYSPONINK379__)window.__AD_ANYSPONINK379__();if(window.__AD_STRIPCONF375__&&window.__AD_STRIPTEXT377__)window.__AD_STRIPTEXT377__();if(window.__AD_STRIPCONF375__&&window.__AD_STRIPCHROME379__)window.__AD_STRIPCHROME379__();if(window.__AD_STRIPCONF375__&&window.__AD_STANDDARK382__)window.__AD_STANDDARK382__();}catch(e){}};[40,180,700,1600].forEach(function(d451){setTimeout(__ad377run,d451);});}catch(e){}"
            "try{document.addEventListener('load',function(ev){try{var t=ev.target;if(t&&t.nodeType===1&&window.__AD_HEROFAST365__)window.__AD_HEROFAST365__(t);}catch(e){}},true);}catch(e){}"
            "try{document.addEventListener('DOMContentLoaded',function(){try{window.__AMZDARK_ADTHEME__();window.__ADFPOST__();}catch(e){}},{once:true});}catch(e){}"
            // Mutations/source changes handle normal dynamic media; a short bounded poll
@@ -1125,7 +1158,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          "try{sym414();setTimeout(sym414,60);setTimeout(sym414,300);setTimeout(sym414,900);"
            "setTimeout(sym414,2000);setTimeout(sym414,3200);"
            "addEventListener('scroll',function(){clearTimeout(window.__symT414);"
-             "window.__symT414=setTimeout(sym414,110);},{passive:true,capture:true});"
+             "window.__symT414=setTimeout(sym414,320);},{passive:true,capture:true});"
          "}catch(e){}"
                       "function disc419(){try{"
              "var SEL='[class*=mlt-icon-'+'container],[class*=lists-framework-action-'+'button],[class*=a-check'+'box],[class*=puis-mab-chevron]';"
@@ -1185,7 +1218,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "try{disc419();setTimeout(disc419,60);setTimeout(disc419,300);setTimeout(disc419,900);"
              "setTimeout(disc419,2000);setTimeout(disc419,3200);"
              "addEventListener('scroll',function(){clearTimeout(window.__dT419);"
-               "window.__dT419=setTimeout(disc419,110);},{passive:true,capture:true});"
+               "window.__dT419=setTimeout(disc419,320);},{passive:true,capture:true});"
            "}catch(e){}"
            "try{var _n=0,_iv=setInterval(function(){if(++_n>8){clearInterval(_iv);return;}"
              "try{window.__AMZDARK_ADTHEME__();window.__ADFPOST__();}catch(e){}},2000);}catch(e){}"
@@ -1412,9 +1445,17 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // background-image element or wrapper. Lighten/screen/overlay are left
            // alone - they add light, which is harmless here.
            "var BAD={'multiply':1,'darken':1,'color-burn':1};"
+           // v5.451: initialize the clock before AQ/AQ2.  The declarations used to
+           // sit below those loops, so JavaScript hoisting exposed the functions but
+           // left their timestamps undefined; both supposedly-budgeted collectors
+           // therefore ran without a deadline. Six milliseconds leaves compositor
+           // headroom inside an 8.33ms/120Hz frame.
+           "var __T0=Date.now(),__t0=__T0,__ckl=[],__cut=0;"
+           "function __ck(n){try{__ckl.push(n+':'+(Date.now()-__T0));__t0=Date.now();}catch(e){}}"
+           "function ovr(){if(Date.now()-__t0>6){__cut++;return true;}return false;}"
            "function collect(root,out,depth){try{"
              "var list=root.querySelectorAll('*');"
-             "for(var a=0;a<list.length;a++){var e=list[a];out.push(e);"
+             "for(var a=0;a<list.length&&out.length<6000;a++){var e=list[a];out.push(e);"
                // Shadow roots are separate trees: querySelectorAll stops at the host,
                // so anything Amazon builds inside one is unreachable from the document.
                "if(e.shadowRoot&&depth<4&&out.length<6000)collect(e.shadowRoot,out,depth+1);}"
@@ -1426,9 +1467,10 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "__ck('AQ');"
              "for(var aq=0;aq<AQ.length&&aq<250&&((aq&15)||!ovr())&&ART.length<80;aq++){"
                "var arr=AQ[aq].getBoundingClientRect();"
-               "if(arr.width>=110&&arr.height>=60)ART.push(arr);}"
+             "if(arr.width>=110&&arr.height>=60)ART.push(arr);}"
              "var AQ2=document.querySelectorAll('div,section,a,span');"
-             "for(var aq2=0;aq2<AQ2.length&&aq2<900&&ART.length<120;aq2++){"
+             "__ck('AQ2');"
+             "for(var aq2=0;aq2<AQ2.length&&aq2<900&&((aq2&7)||!ovr())&&ART.length<120;aq2++){"
                "var bgi3=getComputedStyle(AQ2[aq2]).backgroundImage||'';"
                "if(bgi3.indexOf('url(')<0)continue;"
                "var ar2=AQ2[aq2].getBoundingClientRect();"
@@ -1540,9 +1582,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // icons -- exits on its first iteration having done nothing. That is the
            // bugle and the card icon going dark. Each section now gets its own
            // slice, so no single loop can block, but every loop still gets to run.
-           "var __T0=Date.now(),__t0=__T0,__ckl=[],__cut=0;"
-           "function __ck(n){try{__ckl.push(n+':'+(Date.now()-__T0));__t0=Date.now();}catch(e){}}"
-           "function ovr(){if(Date.now()-__t0>16){__cut++;return true;}return false;}"
+           // The clock/helpers are initialized above AQ in v5.451.  Per-section
+           // slicing remains, preserving the v5.181 anti-starvation behavior.
            "function holdsArt(el6){try{"
              "return !!(el6&&el6.querySelector&&el6.querySelector('img,picture,video,canvas,svg'));"
            "}catch(e){return false;}}"
@@ -1619,7 +1660,12 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "if(bmx>0.4){be.style.setProperty('background-image','none','important');"
                    "be.style.setProperty('background-color',BG,'important');lfix++;}}}"
            "}catch(e){}"
-           "for(var i=0;i<els.length;i++){var el=els[i];"
+           // v5.451 rotating CORE slice.  This was the supplied probe's 1086ms
+           // OLD checkpoint: the only main element loop had no ovr() check at all.
+           // Rotate the start index so the six-millisecond slice converges across
+           // the whole document instead of permanently starving its tail.
+           "__ck('CORE');var __coreN=els.length,__coreStart=__coreN?((window.__AD_CORE_CURSOR451__||0)%%__coreN):0,__coreDone=0;"
+           "for(var __coreStep=0;__coreStep<__coreN&&((__coreStep&7)||!ovr());__coreStep++){var i=(__coreStart+__coreStep)%%__coreN,__coreDone=__coreStep+1,el=els[i];"
              // v5.288: skip ad subtrees before ANY work. onArt() alone was not
              // enough -- several colour writes further down (the cardui sweep, the
              // glyph and shadow passes) never consult it, so an ad card could still
@@ -1898,6 +1944,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                    "kids[ki].style.setProperty('filter','none','important');}"
                "}catch(e){}"
                "window.__AD_SPON__=(window.__AD_SPON__||0)+1;}n++;}}"
+           "if(__coreN)window.__AD_CORE_CURSOR451__=(__coreStart+__coreDone)%%__coreN;"
 
            // Clear stray dark square wrappers around the buttons (the box that
            // can extend past the pill). Shapes/borders are persistent CSS above.
@@ -3278,7 +3325,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // a separate darker pane shade.  No product/image/filter/text paint is changed.
          "window.__AD_COLLEGEBG403__=function(){try{if(window.__ADFRAME_MODE__||!document.body)return 0;function bg403(){var A=[document.body,document.documentElement];for(var z=0;z<A.length;z++){if(!A[z])continue;var c=String(getComputedStyle(A[z]).backgroundColor||'').replace(/\\s+/g,'');if(c&&c!=='transparent'&&c!=='rgba(0,0,0,0)')return c;}return 'rgb(24,26,27)';}var bg=bg403(),C=document.querySelectorAll('[data-ad-college-section=\"1\"]'),n=0,fill=0;for(var i=0;i<C.length&&i<8;i++){var s=C[i],sr=s.getBoundingClientRect();s.style.setProperty('--ad-college-bg403',bg);s.setAttribute('data-ad-college-bg403','1');s.style.setProperty('background-color',bg,'important');n++;var K=s.querySelectorAll('div,section,article,ul,ol');for(var j=0;j<K.length&&j<180;j++){var e=K[j],r=e.getBoundingClientRect();if(sr.width<120||sr.height<80||r.width<sr.width*.88||r.height<sr.height*.42)continue;if(r.width*r.height<sr.width*sr.height*.38)continue;var cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none'),bc=String(cs.backgroundColor||'').replace(/\\s+/g,'');if(bi.indexOf('url(')>=0||!bc||bc==='transparent'||bc==='rgba(0,0,0,0)')continue;e.style.setProperty('--ad-college-bg403',bg);e.setAttribute('data-ad-college-bg403','1');e.style.setProperty('background-color',bg,'important');fill++;}}window.__AD_COLLEGEBG403_STATE__='section='+n+' fill='+fill+' bg='+bg;return n+fill;}catch(e){window.__AD_COLLEGEBG403_STATE__='err '+(e&&e.message||e);return -1;}};"
          "try{if(document&&!document.getElementById('adcollege403')){var c403=document.createElement('style');c403.id='adcollege403';c403.textContent='[data-ad-college-bg403=\"1\"]{background-color:var(--ad-college-bg403,#181a1b) !important;}[data-ad-college-bg403=\"1\"]::before,[data-ad-college-bg403=\"1\"]::after{background-color:var(--ad-college-bg403,#181a1b) !important;}';(document.head||document.documentElement).appendChild(c403);}}catch(e){}"
-         "try{window.__AD_COLLEGEBG403__();setTimeout(window.__AD_COLLEGEBG403__,420);setTimeout(window.__AD_COLLEGEBG403__,1250);setTimeout(window.__AD_COLLEGEBG403__,2800);if(!window.__AD_COLLEGEBG403_SCROLL__){window.__AD_COLLEGEBG403_SCROLL__=1;addEventListener('scroll',function(){clearTimeout(window.__AD_COLLEGEBG403_T__);window.__AD_COLLEGEBG403_T__=setTimeout(function(){try{window.__AD_COLLEGEBG403__();}catch(x){}},120);},{passive:true,capture:true});}}catch(e){}"
+         "try{window.__AD_COLLEGEBG403__();setTimeout(window.__AD_COLLEGEBG403__,420);setTimeout(window.__AD_COLLEGEBG403__,1250);setTimeout(window.__AD_COLLEGEBG403__,2800);if(!window.__AD_COLLEGEBG403_SCROLL__){window.__AD_COLLEGEBG403_SCROLL__=1;addEventListener('scroll',function(){clearTimeout(window.__AD_COLLEGEBG403_T__);window.__AD_COLLEGEBG403_T__=setTimeout(function(){try{window.__AD_COLLEGEBG403__();}catch(x){}},320);},{passive:true,capture:true});}}catch(e){}"
          "try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}"
          // v5.407 LOCK: v5.404 remains authoritative ONLY for the user-confirmed Heart and
          // product down-arrow. The two-cards action is deliberately excluded here so the
@@ -3310,8 +3357,9 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          "try{window.__AD_PRODUCTCTRL391_PRE427__=window.__AD_PRODUCTCTRL391RUN__;window.__AD_PRODUCTCTRL391RUN__=function(){var r=window.__AD_PRODUCTCTRL391_PRE427__?window.__AD_PRODUCTCTRL391_PRE427__():0;try{window.__AD_HEARTSHELL427__();}catch(x){}return r;};}catch(e){}"
          "try{window.__AD_HEARTSHELL427__();setTimeout(window.__AD_HEARTSHELL427__,60);setTimeout(window.__AD_HEARTSHELL427__,300);setTimeout(window.__AD_HEARTSHELL427__,1200);"
            "if(!window.__AD_HEARTSHELL427_OBS__){window.__AD_HEARTSHELL427_OBS__=1;"
-             "new MutationObserver(function(){try{window.__AD_HEARTSHELL427__();}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class','data-ad-stock403','data-ad-stocksel403','data-ad-product391','data-ad-sym413','data-ad-disc420']});"
-             "addEventListener('scroll',function(){try{window.__AD_HEARTSHELL427__();}catch(x){}},{passive:true,capture:true});}}catch(e){}"
+             "var q427=function(ms427){clearTimeout(window.__AD_HEARTSHELL427_T__);window.__AD_HEARTSHELL427_T__=setTimeout(function(){try{if(!window.__ADSCROLLING__)window.__AD_HEARTSHELL427__();}catch(x){}},ms427||180);};"
+             "new MutationObserver(function(){q427(180);}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});"
+             "addEventListener('scroll',function(){q427(300);},{passive:true,capture:true});}}catch(e){}"
          // v5.407 historical note: literal root-only restoration is retained above, but
          // P77 on-device proved the current mounted roots are all row-sized (raw=14 n=0).
          // v5.410 therefore owns only the existing square descendant host selected above.
@@ -3329,7 +3377,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // on the leaf itself only. No ancestor or card background/color/filter writes.
          "window.__AD_BLEED404__=function(){try{if(window.__ADFRAME_MODE__||!document.body)return 0;if(document.querySelector('#search,.s-search-results,[data-component-type=\\\"s-search-result\\\"],#productTitle,#dp-container,#ppd'))return 0;var E=document.querySelectorAll('[class*=theming-card-background]'),n=0;for(var i=0;i<E.length&&i<100;i++){var e=E[i],r=e.getBoundingClientRect();if(r.width<250||r.width>360||r.height<350||r.height>530)continue;e.setAttribute('data-ad-bleed404','1');n++;}window.__AD_BLEED404_STATE__='n='+n;return n;}catch(e){window.__AD_BLEED404_STATE__='err '+(e&&e.message||e);return -1;}};"
          "try{if(document){var old401=document.getElementById('adbleed401');if(old401)old401.remove();if(!document.getElementById('adbleed404')){var b404=document.createElement('style');b404.id='adbleed404';b404.textContent='[data-ad-bleed404]{-webkit-clip-path:inset(1px) !important;clip-path:inset(1px) !important;contain:paint !important;overflow:hidden !important;isolation:isolate !important;background-clip:padding-box !important;}';(document.head||document.documentElement).appendChild(b404);}}}catch(e){}"
-         "try{window.__AD_PRODUCTCTRL391RUN__();window.__AD_COLLEGE404__();window.__AD_BLEED404__();setTimeout(window.__AD_COLLEGE404__,450);setTimeout(window.__AD_COLLEGE404__,1400);setTimeout(window.__AD_BLEED404__,120);setTimeout(window.__AD_BLEED404__,500);setTimeout(window.__AD_BLEED404__,1500);if(!window.__AD404SCROLL__){window.__AD404SCROLL__=1;var t404=0;addEventListener('scroll',function(){if(t404)return;t404=1;var f=function(){t404=0;try{window.__AD_V333FIX404__();window.__AD_CARDS410__();window.__AD_COLLEGE404__();window.__AD_BLEED404__();}catch(x){}};if(requestAnimationFrame)requestAnimationFrame(f);else setTimeout(f,0);},{passive:true,capture:true});}}catch(e){}"
+         "try{window.__AD_PRODUCTCTRL391RUN__();window.__AD_COLLEGE404__();window.__AD_BLEED404__();setTimeout(window.__AD_COLLEGE404__,450);setTimeout(window.__AD_COLLEGE404__,1400);setTimeout(window.__AD_BLEED404__,120);setTimeout(window.__AD_BLEED404__,500);setTimeout(window.__AD_BLEED404__,1500);if(!window.__AD404SCROLL__){window.__AD404SCROLL__=1;addEventListener('scroll',function(){clearTimeout(window.__AD404SCROLL_T__);window.__AD404SCROLL_T__=setTimeout(function(){try{window.__AD_V333FIX404__();window.__AD_CARDS410__();window.__AD_COLLEGE404__();window.__AD_BLEED404__();}catch(x){}},300);},{passive:true,capture:true});}}catch(e){}"
          // v5.362: fast White-Tame lane. Dynamic VIDEO/IMG nodes are marked on the
          // mutation/load microtask; CSS owns the paint. This avoids waiting for the
          // expensive full contrast scanner before a newly-mounted media frame darkens.
@@ -3367,6 +3415,12 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          "function _adExploreIcon363(e){try{var p=e,d=0,re=/(?:same-day|same day|pharmacy|prime video|amazon haul|whole foods|autos)/i;while(p&&d++<5){var tx=String(p.textContent||'').replace(/\\s+/g,' ').trim();if(tx.length>0&&tx.length<420&&re.test(tx))return true;p=p.parentElement;}}catch(x){}return false;}"
          "function _adNoTameGlyph367(e){try{var p=e,d=0,re=/(?:medical care|health ai|prescriptions|personal guida|fast,? free deliv|your amazon highlights|total savings|sessions streamed|keep streaming)/i;while(p&&d++<5){var tx=String(p.textContent||'').replace(/\\s+/g,' ').trim();if(tx.length>0&&tx.length<520&&re.test(tx))return true;p=p.parentElement;}}catch(x){}return false;}"
          "function _adBgPlacement365(e){try{var p=e,d=0;while(p&&d++<4){var c=p.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));var id=String(p.id||''),cw=String((p.getAttribute&&p.getAttribute('data-cel-widget'))||'');if(/ape-placement|ape-wrapper|adfeedbackmaincomponent|ad-slot|adslot/i.test(c+' '+id+' '+cw))return true;if(p.querySelector&&p.querySelector('iframe')&&p.getBoundingClientRect().width>240)return true;p=p.parentElement;}return false;}catch(x){return false;}}function _adHomeBgLeaf395(e){try{if(window.__ADFRAME_MODE__||!e||!document.body||!window.__ADTAME_ON__)return false;if(document.querySelector('#search,.s-search-results,[data-component-type=\"s-search-result\"],#productTitle,#dp-container,#ppd'))return false;var c=e.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));if(!/theming-card-background|vjs-poster/i.test(c))return false;var p=e,u=0,ctx=c;while(p&&u++<7){ctx+=' '+String(p.className||'')+' '+String(p.id||'');if(/single-video-card|single-creative-card|video-card|video-js|vjs-|sbv-video|theming-card/i.test(ctx))break;p=p.parentElement;}if(!/single-video-card|single-creative-card|video-card|video-js|vjs-|sbv-video|theming-card/i.test(ctx))return false;var S=Math.max(0,Math.min(100,window.__ADTAME_S__||45)),aa=(0.50*(S/100)).toFixed(3);e.removeAttribute('data-ad-tame-bgfast364');e.removeAttribute('data-ad-tame-fast362');e.style.setProperty('filter','none','important');e.style.removeProperty('background-color');e.style.setProperty('background-blend-mode','normal','important');e.style.setProperty('box-shadow','inset 0 0 0 9999px rgba(0,0,0,'+aa+')','important');e.setAttribute('data-ad-homebg395','1');e.__adTamed=1;e.__adTameSig='HBG395|'+String(getComputedStyle(e).backgroundImage||'');e.__adBy='homeBgLeaf395';return true;}catch(x){return false;}}"
+         // v5.451 keeps the proven v5.395 writer frozen, then places a narrow
+         // ownership boundary in front of it. Returning true means "handled" to
+         // every existing WBT caller, so none falls through to a generic background
+         // compositor. If an early race already touched the leaf, restore only the
+         // six authored inline paint properties captured at insertion time.
+         "try{if(!window.__AD_HOMEBG451_WRAP__&&typeof _adHomeBgLeaf395==='function'){window.__AD_HOMEBG451_WRAP__=1;window.__AD_HOMEBG395_PRE451__=_adHomeBgLeaf395;_adHomeBgLeaf395=function(e451){if(e451&&e451.hasAttribute&&e451.hasAttribute('data-ad-homecolor451')){var owned451=e451.hasAttribute('data-ad-homebg395')||String(e451.__adBy||'')==='homeBgLeaf395'||String(e451.style.getPropertyValue('box-shadow')||'').indexOf('9999px')>=0;if(owned451){var a451=e451.__adHomeAuth451||{},s451=e451.style;function put451(k451,v451,p451){if(v451)s451.setProperty(k451,v451,p451||'');else s451.removeProperty(k451);}put451('background',a451.background,a451.backgroundPriority);put451('background-color',a451.color,a451.colorPriority);put451('background-image',a451.image,a451.imagePriority);put451('filter',a451.filter,a451.filterPriority);put451('background-blend-mode',a451.blend,a451.blendPriority);put451('box-shadow',a451.shadow,a451.shadowPriority);e451.removeAttribute('data-ad-homebg395');e451.removeAttribute('data-ad-tame-bgfast364');delete e451.__adTamed;delete e451.__adTameSig;delete e451.__adBy;}return true;}return window.__AD_HOMEBG395_PRE451__(e451);};}}catch(e){}"
          "function _adKnownProduct366(e){try{if(!e)return false;var p=e,d=0;while(p&&d++<6){var c=p.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));var id=String(p.id||''),asin=String((p.getAttribute&&p.getAttribute('data-asin'))||''),href=String((p.getAttribute&&p.getAttribute('href'))||'');if(asin||/asin|product|p13n|npack|cxvhz|gwm-asin|carousel-image|product-image/i.test(c+' '+id)||href.indexOf('/dp/')>=0||href.indexOf('/gp/product/')>=0)return true;p=p.parentElement;}return false;}catch(x){return false;}}"
          "function _adTameCss362(){try{if(!window.__ADTAME_ON__)return;if(document.getElementById('adtame362'))return;"
            "var S=Math.max(0,Math.min(100,window.__ADTAME_S__||45)),bb=(1-0.50*(S/100)).toFixed(3);"
@@ -3434,8 +3488,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // recycled "For you / Deals" frames cannot remain at Amazon's brown border.
          "function _adMosaicBorder371(root){try{if(!root||root.nodeType!==1)return 0;var SEL='[class*=\"_hp-mosaic-container_style_widgetContainer\"],[class*=\"_mosaic-container_style_widgetContainer\"]',A=[];try{if(root.matches&&root.matches(SEL))A.push(root);var q=root.querySelectorAll?root.querySelectorAll(SEL):[];for(var i=0;i<q.length;i++)A.push(q[i]);}catch(eq){}var n=0;for(var j=0;j<A.length;j++){var e=A[j];if(!e||!e.style)continue;var locked=(e.getAttribute&&e.getAttribute('data-ad-border-section')==='exact371'&&e.style.getPropertyValue('border-top-color')==='#3b4043'&&e.style.getPropertyValue('border-right-color')==='#3b4043'&&e.style.getPropertyValue('border-bottom-color')==='#3b4043'&&e.style.getPropertyValue('border-left-color')==='#3b4043'&&e.style.getPropertyPriority('border-top-color')==='important');if(locked)continue;e.setAttribute('data-ad-cardborder','1');e.setAttribute('data-ad-border-section','exact371');e.style.setProperty('border-top-color','#3b4043','important');e.style.setProperty('border-right-color','#3b4043','important');e.style.setProperty('border-bottom-color','#3b4043','important');e.style.setProperty('border-left-color','#3b4043','important');e.style.setProperty('outline-color','#3b4043','important');e.__adBy='cardborder371';n++;}window.__AD_MOSAIC371__=n;return n;}catch(e){return 0;}}"
          "try{window._adProductAds367=_adProductAds367;window._adCompactSponsoredInk371=_adCompactSponsoredInk371;window._adForceCompactStrip378=_adForceCompactStrip378;window._adStripParentInk379=_adStripParentInk379;window._adBorderFast367=_adBorderFast367;window._adExactBorder370=_adExactBorder370;window._adMosaicBorder371=_adMosaicBorder371;_adProductAds367(document.documentElement);_adCompactSponsoredInk371(document.documentElement);_adForceCompactStrip378(document.documentElement);_adStripParentInk379(document.documentElement);_adBorderFast367(document.documentElement);_adExactBorder370(document.documentElement);_adMosaicBorder371(document.documentElement);setTimeout(function(){try{_adExactBorder370(document.documentElement);_adMosaicBorder371(document.documentElement);}catch(e){}},120);setTimeout(function(){try{_adExactBorder370(document.documentElement);_adMosaicBorder371(document.documentElement);}catch(e){}},650);setTimeout(function(){try{_adExactBorder370(document.documentElement);_adMosaicBorder371(document.documentElement);}catch(e){}},1800);}catch(e){}"
-         "try{if(!window.__ADMB371INIT__){window.__ADMB371INIT__=1;var _mb371raf=0;addEventListener('scroll',function(){if(_mb371raf)return;_mb371raf=1;var f=function(){_mb371raf=0;try{_adMosaicBorder371(document.documentElement);}catch(e){}};if(window.requestAnimationFrame)requestAnimationFrame(f);else setTimeout(f,0);},{passive:true,capture:true});addEventListener('pageshow',function(){try{_adMosaicBorder371(document.documentElement);}catch(e){}},{passive:true});}}catch(e){}"
-         "try{if(!window.__ADPS378INIT__){window.__ADPS378INIT__=1;var _ps378=0;addEventListener('scroll',function(){clearTimeout(_ps378);_ps378=setTimeout(function(){try{_adForceCompactStrip378(document.documentElement);_adStripParentInk379(document.documentElement);}catch(e){}},90);},{passive:true,capture:true});addEventListener('pageshow',function(){try{_adForceCompactStrip378(document.documentElement);_adStripParentInk379(document.documentElement);}catch(e){}},{passive:true});}}catch(e){}"
+         "try{if(!window.__ADMB371INIT__){window.__ADMB371INIT__=1;var _mb371t=0;addEventListener('scroll',function(){clearTimeout(_mb371t);_mb371t=setTimeout(function(){try{_adMosaicBorder371(document.documentElement);}catch(e){}},320);},{passive:true,capture:true});addEventListener('pageshow',function(){try{_adMosaicBorder371(document.documentElement);}catch(e){}},{passive:true});}}catch(e){}"
+         "try{if(!window.__ADPS378INIT__){window.__ADPS378INIT__=1;var _ps378=0;addEventListener('scroll',function(){clearTimeout(_ps378);_ps378=setTimeout(function(){try{_adForceCompactStrip378(document.documentElement);_adStripParentInk379(document.documentElement);}catch(e){}},320);},{passive:true,capture:true});addEventListener('pageshow',function(){try{_adForceCompactStrip378(document.documentElement);_adStripParentInk379(document.documentElement);}catch(e){}},{passive:true});}}catch(e){}"
          // Restore the stock black circular backing for top-carousel play/pause controls.
          // If the player lives in the child ad frame its own path handles it; this is
          // the main-document overlay case shown in the 5.361 screenshot.
@@ -3450,7 +3504,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // opacity, pointer-events or media filters. It only re-issues play() for
          // visible Home ad videos that Amazon already declares muted/autoplay-capable.
          "function _adHomeVideo391(){try{if(window.__ADFRAME_MODE__||!document.body)return 0;var HS=document.querySelectorAll('[class*=\"_hp-mosaic-container_style_widgetContainer\"],[class*=\"_mosaic-container_style_widgetContainer\"],[class*=\"gwm-dashboard-container\"],[class*=\"gwm-window-layout\"],[class*=\"gwm-asin-tile\"]');if(HS.length<2){window.__AD_HOMEVIDEO391__='home=0';return 0;}if(document.querySelector('#search,.s-search-results,[data-component-type=\"s-search-result\"],#productTitle,#dp-container,#ppd')){window.__AD_HOMEVIDEO391__='home=0 product=1';return 0;}var V=document.querySelectorAll('video'),seen=0,inview=0,eligible=0,attempt=0,playing=0,reject=0,waiting=0,H=innerHeight||900,W=innerWidth||390;function cls(e){var c=e&&e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||''));}function adctx(v){var p=v,u=0,t=cls(v);while(p&&u++<7){t+=' '+cls(p)+' '+String(p.id||'');if(/single-video-card|video-card|sbv-video|vjs-tech|sponsored|advert|ad[-_]|ape[-_]|creative|theming-card/i.test(t))return true;p=p.parentElement;}return false;}function hook(v){if(v.__adHV391)return;v.__adHV391=1;var f=function(){try{setTimeout(_adHomeVideo391,40);}catch(e){}};v.addEventListener('loadeddata',f,{passive:true});v.addEventListener('canplay',f,{passive:true});v.addEventListener('emptied',f,{passive:true});}for(var i=0;i<V.length&&i<80;i++){var v=V[i],r=v.getBoundingClientRect();if(r.width<120||r.height<70)continue;seen++;if(!adctx(v))continue;var vis=r.right>0&&r.left<W&&r.bottom>0&&r.top<H;if(!vis)continue;inview++;v.setAttribute('data-ad-homevideo391','1');v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');try{v.playsInline=true;}catch(x){}hook(v);var canAuto=!!(v.autoplay||v.defaultMuted||v.muted||v.hasAttribute('muted'));if(!canAuto)continue;eligible++;if(!v.paused&&!v.ended){playing++;continue;}if(v.ended)continue;if(v.networkState===3){waiting++;continue;}var now=Date.now();if(v.__adHV391Try&&now-v.__adHV391Try<1000){waiting++;continue;}v.__adHV391Try=now;try{var pr=v.play();attempt++;if(pr&&typeof pr.then==='function'){pr.then(function(){try{window.__AD_HOMEVIDEO391_OK__=(window.__AD_HOMEVIDEO391_OK__||0)+1;}catch(x){}}).catch(function(){try{window.__AD_HOMEVIDEO391_REJ__=(window.__AD_HOMEVIDEO391_REJ__||0)+1;}catch(x){}});}}catch(x){reject++;}}window.__AD_HOMEVIDEO391__='seen='+seen+' inview='+inview+' eligible='+eligible+' attempt='+attempt+' playing='+playing+' waiting='+waiting+' reject='+reject+' ok='+(window.__AD_HOMEVIDEO391_OK__||0)+' preject='+(window.__AD_HOMEVIDEO391_REJ__||0);return attempt+playing;}catch(e){window.__AD_HOMEVIDEO391__='err '+(e&&e.message||e);return 0;}}"
-         "try{window._adHomeVideo391=_adHomeVideo391;_adHomeVideo391();if(!window.__ADHV391INIT__){window.__ADHV391INIT__=1;var hvT=0;var hvRun=function(){clearTimeout(hvT);hvT=setTimeout(function(){try{_adHomeVideo391();}catch(e){}},120);};addEventListener('scroll',hvRun,{passive:true,capture:true});addEventListener('pageshow',hvRun,{passive:true});document.addEventListener('visibilitychange',function(){if(!document.hidden)hvRun();},{passive:true});}}catch(e){}"
+         "try{window._adHomeVideo391=_adHomeVideo391;_adHomeVideo391();if(!window.__ADHV391INIT__){window.__ADHV391INIT__=1;var hvT=0;var hvRun=function(){clearTimeout(hvT);hvT=setTimeout(function(){try{_adHomeVideo391();}catch(e){}},320);};addEventListener('scroll',hvRun,{passive:true,capture:true});addEventListener('pageshow',hvRun,{passive:true});document.addEventListener('visibilitychange',function(){if(!document.hidden)hvRun();},{passive:true});}}catch(e){}"
          // v5.393: HOME VIDEO-CAROUSEL AMBIENT BACKDROP. The supplied recording
          // shows the saturated blue lane is an ancestor of the 299x478 vjs-tech card.
          // Previous generic Home classifiers missed/protected it. Anchor to the actual
@@ -3458,7 +3512,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // saturated ancestor paint. No video attributes/playback/filter/layout writes.
                   "function _adHomeMedia395(){try{if(window.__ADFRAME_MODE__||!document.body||!window.__ADTAME_ON__)return 0;if(document.querySelector('#search,.s-search-results,[data-component-type=\"s-search-result\"],#productTitle,#dp-container,#ppd')){window.__AD_HOMEMEDIA395__='home=0 product=1';return 0;}var S=Math.max(0,Math.min(100,window.__ADTAME_S__||45)),bb=(1-0.50*(S/100)).toFixed(3),E=document.querySelectorAll('img[class*=\"_single-creative-card\"],img[class*=\"_single-video-card\"],[class*=\"single-creative-card\"] img,[class*=\"single-video-card\"] img,video.vjs-tech,[class*=\"single-video-card\"] video,[class*=\"theming-card-background\"],.vjs-poster,[class*=\"vjs-poster\"]'),media=0,bg=0,uncovered=0,hazard=0;for(var i=0;i<E.length&&i<240;i++){var e=E[i],r=e.getBoundingClientRect(),tg=String(e.tagName||'').toUpperCase();if(r.width<100||r.height<70)continue;if(tg==='DIV'||tg==='SECTION'||tg==='SPAN'){if(!_adHomeBgLeaf395(e))continue;bg++;var cs=getComputedStyle(e);if(String(cs.filter||'none')!=='none'||String(cs.backgroundBlendMode||'normal').indexOf('multiply')>=0)hazard++;if(!e.hasAttribute('data-ad-homebg395'))uncovered++;continue;}if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')continue;var want='brightness('+bb+') saturate(1.08)';e.setAttribute('data-ad-tame-fast362','1');e.setAttribute('data-ad-homemedia395','1');if(String(e.style.getPropertyValue('filter')||'')!==want||e.style.getPropertyPriority('filter')!=='important')e.style.setProperty('filter',want,'important');e.__adTamed=1;e.__adTameSig='HM395|'+String(e.currentSrc||e.src||e.poster||'');e.__adBy='homeMedia395';media++;if(String(getComputedStyle(e).filter||'').indexOf('brightness')<0)uncovered++;}window.__AD_HOMEMEDIA395__='media='+media+' bg='+bg+' uncovered='+uncovered+' hazard='+hazard;return media+bg;}catch(e){window.__AD_HOMEMEDIA395__='err '+(e&&e.message||e);return 0;}}"
          "window._adHomeMedia395=_adHomeMedia395;"
-         "try{_adHomeMedia395();_adStandaloneSweep395();setTimeout(_adHomeMedia395,120);setTimeout(_adHomeMedia395,420);setTimeout(_adHomeMedia395,1100);setTimeout(_adStandaloneSweep395,180);setTimeout(_adStandaloneSweep395,700);setTimeout(_adStandaloneSweep395,1500);if(!window.__ADHOMEP395INIT__){window.__ADHOMEP395INIT__=1;var hp395=0;addEventListener('scroll',function(){if(hp395)return;hp395=1;var f=function(){hp395=0;try{_adHomeMedia395();_adStandaloneSweep395();}catch(e){}};if(requestAnimationFrame)requestAnimationFrame(f);else setTimeout(f,0);},{passive:true,capture:true});addEventListener('pageshow',function(){try{_adHomeMedia395();_adStandaloneSweep395();}catch(e){}},{passive:true});}}catch(e){}"
+         "try{_adHomeMedia395();_adStandaloneSweep395();setTimeout(_adHomeMedia395,120);setTimeout(_adHomeMedia395,420);setTimeout(_adHomeMedia395,1100);setTimeout(_adStandaloneSweep395,180);setTimeout(_adStandaloneSweep395,700);setTimeout(_adStandaloneSweep395,1500);if(!window.__ADHOMEP395INIT__){window.__ADHOMEP395INIT__=1;var hp395=0;addEventListener('scroll',function(){clearTimeout(hp395);hp395=setTimeout(function(){try{_adHomeMedia395();_adStandaloneSweep395();}catch(e){}},320);},{passive:true,capture:true});addEventListener('pageshow',function(){try{_adHomeMedia395();_adStandaloneSweep395();}catch(e){}},{passive:true});}}catch(e){}"
          // v5.359: the 5.358 device probe finally identified the College painters as
          // edge SVGs. The full contrast pass intentionally does not run while scrolling,
          // which is why those SVGs were visible black until the trailing pass/heartbeat.
@@ -3480,11 +3534,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "window.__AD_COLLEGE_FAST59_N__=n59;return n59;}catch(e){return 0;}}"
          "window.__AD_COLLEGE_FAST59__=_adCollegeFast59;"
          "try{_adCollegeFast59();}catch(e){}"
-         "try{if(!window.__ADCF59INIT__){window.__ADCF59INIT__=1;var _cf59raf=0;"
-           "addEventListener('scroll',function(){if(_cf59raf)return;_cf59raf=1;"
-             "var f59=function(){_cf59raf=0;try{_adCollegeFast59();}catch(e){}};"
-             "if(window.requestAnimationFrame)requestAnimationFrame(f59);else setTimeout(f59,0);"
-           "},{passive:true,capture:true});}}catch(e){}"
+         "try{if(!window.__ADCF59INIT__){window.__ADCF59INIT__=1;"
+           "addEventListener('scroll',function(){clearTimeout(window.__ADCF59T__);window.__ADCF59T__=setTimeout(function(){try{_adCollegeFast59();}catch(e){}},300);},{passive:true,capture:true});}}catch(e){}"
          "function _adPin(root){try{"
            "if(!root||root.nodeType!==1)return;"
            "var list=[root];"
@@ -3514,10 +3565,10 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // v5.363 PERFORMANCE: mutations only run the tiny marker lanes synchronously.
          // The ~50ms full contrast/tame sweep runs once after the DOM settles instead
          // of every ~220-400ms throughout lazy-loading/scrolling.
-         "try{var _t=null;new MutationObserver(function(muts){var structural=0;"
+         "try{var _t=null,_fast451=null;function _adMutTrail451(){clearTimeout(_fast451);_fast451=setTimeout(function(){if(window.__ADSCROLLING__){_adMutTrail451();return;}try{_adCollegeFast59();}catch(e){}try{if(window._adHomeVideo391)window._adHomeVideo391();}catch(e){}try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},320);}new MutationObserver(function(muts){var structural=0;"
            "try{for(var m2=0;m2<muts.length&&m2<40;m2++){var mm2=muts[m2];if(mm2.type==='attributes'){if(mm2.target){_adTameFast362(mm2.target);_adBorderFast367(mm2.target);_adExactBorder370(mm2.target);_adMosaicBorder371(mm2.target);if(mm2.target.hasAttribute&&mm2.target.hasAttribute('data-ad-sponsored-light363'))_adSponsorPin366(mm2.target);if(mm2.target.hasAttribute&&mm2.target.hasAttribute('data-ad-reviewink367')){mm2.target.style.setProperty('color','#e8e6e3','important');mm2.target.style.setProperty('-webkit-text-fill-color','#e8e6e3','important');}}continue;}structural=1;var ad=mm2.addedNodes;for(var a2=0;a2<ad.length&&a2<20;a2++){_adPin(ad[a2]);_adTameFast362(ad[a2]);_adTextPins363(ad[a2]);if(ad[a2]&&ad[a2].nodeType===1){var tx367=String(ad[a2].textContent||'');_adForceCompactStrip378(ad[a2]);if(tx367.length<7000&&/sponsored/i.test(tx367)){_adProductAds367(ad[a2]);_adCompactSponsoredInk371(ad[a2]);_adStripParentInk379(ad[a2]);}_adBorderFast367(ad[a2]);_adExactBorder370(ad[a2]);_adMosaicBorder371(ad[a2]);}}try{_adVideoCtlMain362();}catch(e){}}}catch(e){}"
-           "try{_adCollegeFast59();}catch(e){}try{if(structural&&window._adHomeVideo391)_adHomeVideo391();}catch(e){}try{if(structural&&window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}if(structural){clearTimeout(_t);_t=setTimeout(function(){try{if(!document.hidden&&!window.__ADSCROLLING__)window.__AMZDARK_FIXCONTRAST__();}catch(e){}},1900);}})"
-           ".observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src','srcset','poster','class','style']});}catch(e){}"
+           "_adMutTrail451();if(structural){clearTimeout(_t);_t=setTimeout(function(){try{if(!document.hidden&&!window.__ADSCROLLING__)window.__AMZDARK_FIXCONTRAST__();}catch(e){}},1900);}})"
+           ".observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src','srcset','poster','class']});}catch(e){}"
          "try{if(window._adHomeMedia395)_adHomeMedia395();}catch(e){}try{if(window._adStandaloneSweep395)_adStandaloneSweep395();}catch(e){}"
          // One late backstop only. The old six 8-second full scans could collide with
          // Home's own renderer long after the page was already stable.
@@ -5336,6 +5387,7 @@ static void ADInvertRNSVG(UIView *v);
                 ADScheduleNativeCompare450();
         }
     } @catch(...) {}
+    @try { ADMaybeScheduleNativeCompare451(self); } @catch(...) {}
 }
 - (void)setBackgroundColor:(UIColor *)color {
     // v5.448 Compare tray: only a positively-owned thin minus bar is pinned
@@ -5841,6 +5893,16 @@ static void ADReportFabricText(id vObj, NSAttributedString *before, NSAttributed
         return;
     }
     @try {
+        if (objc_getAssociatedObject(self, kADCompareCircle451Key)) {
+            CGColorRef circle451=[UIColor whiteColor].CGColor;
+            %orig(circle451);
+            return;
+        }
+        if (objc_getAssociatedObject(self, kADCompareMinus451Key)) {
+            CGColorRef minus451=ADColorFromHex(gP.bgHex).CGColor;
+            %orig(minus451);
+            return;
+        }
         if (objc_getAssociatedObject(self, kADCompareCircle450Key)) {
             CGColorRef circle450=[UIColor whiteColor].CGColor;
             %orig(circle450);
@@ -6134,6 +6196,55 @@ static void ADHeaderProbe(void){
 static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar);
 static void ADSweepTimed(UIView *v, BOOL inTabBar, const char *why);
 static const void *kADScrollPendKey = &kADScrollPendKey;
+@interface ADScrollSettle451 : NSObject {
+@public
+    CFTimeInterval lastMotion;
+    BOOL pending;
+}
+@end
+@implementation ADScrollSettle451
+@end
+
+// A true trailing-edge settle.  v5.450's boolean suppressed new timers but did
+// not move the existing deadline, so a sweep fired every 300ms *during* a long
+// scroll. Keep one small state object per scroll view and one outstanding block;
+// motion only updates a scalar, rather than allocating at 120 events/second.
+static void ADArmScrollSettle451(UIScrollView *scroll, ADScrollSettle451 *state){
+    if (!scroll || !state || state->pending) return;
+    state->pending = YES;
+    __weak UIScrollView *weakScroll = scroll;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 260*1000000LL),
+                   dispatch_get_main_queue(), ^{
+        UIScrollView *s = weakScroll;
+        state->pending = NO;
+        if (!s || !ADRecolorOn() || !s.window) return;
+        CFTimeInterval quiet = CACurrentMediaTime() - state->lastMotion;
+        if (s.tracking || s.dragging || s.decelerating || quiet < 0.22){
+            ADArmScrollSettle451(s, state);
+            return;
+        }
+        @try { ADSweepTimed(s, ADInTabBarChain(s), "scroll451"); } @catch(...) {}
+        @try { ADScheduleNativeCompare451(); } @catch(...) {}
+        // Preserve the late-media subscription lane, but bound it independently;
+        // the old 180-node walk could erase the benefit of the 4ms theme budget.
+        @try {
+            if (gP.enabled && gP.whiteTame && s.window){
+                CFAbsoluteTime stop451 = CFAbsoluteTimeGetCurrent() + 0.0015;
+                NSMutableArray *q451 = [NSMutableArray arrayWithObject:s];
+                for (NSUInteger i451=0; i451<q451.count && i451<64; i451++){
+                    if ((i451 & 7) == 0 && CFAbsoluteTimeGetCurrent() >= stop451) break;
+                    UIView *v451=q451[i451];
+                    if ([v451 isKindOfClass:[UIImageView class]]) ADSubscribeOverlay394(v451);
+                    if (i451<24) for (UIView *c451 in v451.subviews){
+                        if (q451.count>=64) break;
+                        [q451 addObject:c451];
+                    }
+                }
+            }
+        } @catch(...) {}
+    });
+}
+
 %hook UIScrollView
 - (void)didMoveToWindow {
     %orig;
@@ -6143,19 +6254,13 @@ static const void *kADScrollPendKey = &kADScrollPendKey;
     %orig;
     @try {
         if (!ADRecolorOn() || !self.window || ADIsWebKitOwned(self)) return;
-        // Coalesce: schedule ONE scoped sweep ~300ms after scrolling settles.
-        if (objc_getAssociatedObject(self, kADScrollPendKey)) return;
-        objc_setAssociatedObject(self, kADScrollPendKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        __weak UIScrollView *ws = self;
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 300*1000000LL),
-            dispatch_get_main_queue(), ^{
-                UIScrollView *ss = ws;
-                if (!ss) return;
-                objc_setAssociatedObject(ss, kADScrollPendKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                @try { if (ADRecolorOn() && ss.window) ADSweepTimed(ss, NO, "scroll"); } @catch(...) {}
-                @try { if(gP.enabled&&gP.whiteTame&&ss.window){NSMutableArray *sq394=[NSMutableArray arrayWithObject:ss];for(NSUInteger qi394=0;qi394<sq394.count&&qi394<180;qi394++){UIView *x394=sq394[qi394];if([x394 isKindOfClass:[UIImageView class]])ADSubscribeOverlay394(x394);if(qi394<55){for(UIView *c394 in x394.subviews){if(sq394.count<180)[sq394 addObject:c394];else break;}}}} } @catch(...) {}
-                @try { ADHeaderProbe(); } @catch(...) {}
-            });
+        ADScrollSettle451 *state=objc_getAssociatedObject(self,kADScrollPendKey);
+        if (!state){
+            state=[ADScrollSettle451 new];
+            objc_setAssociatedObject(self,kADScrollPendKey,state,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        state->lastMotion=CACurrentMediaTime();
+        ADArmScrollSettle451(self,state);
     } @catch(...) {}
 }
 %end
@@ -7481,6 +7586,8 @@ static UIImage *ADGlyphify(UIImage *img){
 
 %hook UIImageView
 - (void)setImage:(UIImage *)image {
+    // v5.451: assignment is the cheapest reliable signal for a late Fabric badge.
+    @try { if (image) ADMaybeScheduleNativeCompare451(self); } @catch(...) {}
     // A Compare tray may reuse an already-mounted RN image view and assign the
     // dark circle/minus raster after didMoveToWindow.  Schedule the local-structure
     // pass from that assignment too; it still requires tray, thumbnail, size,
@@ -7608,6 +7715,7 @@ static UIImage *ADGlyphify(UIImage *img){
             vv.bounds.size.width>=8 && vv.bounds.size.width<=30 &&
             vv.bounds.size.height>=8 && vv.bounds.size.height<=30)
             ADScheduleNativeCompare450();
+        ADMaybeScheduleNativeCompare451(vv);
         if (gP.enabled && gP.whiteTame && vv.window &&
             vv.bounds.size.width >= 24 && vv.bounds.size.height >= 24 &&
             vv.bounds.size.width <= 280 && vv.bounds.size.height <= 280) {
@@ -7907,12 +8015,14 @@ static char gSwTintNow[64] = {0};
 static CFAbsoluteTime gSweepDeadline = 0;
 static int gSweepNodes = 0;
 static int gSweepCut = 0;
+static BOOL gSweepAbort451 = NO;
+static NSUInteger gSweepEpoch451 = 0;
 
 static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
-    if (!v || depth > 60) return;
-    if (++gSweepNodes > 1100){ gSweepCut++; return; }
-    if ((gSweepNodes & 63) == 0 && CFAbsoluteTimeGetCurrent() > gSweepDeadline){
-        gSweepCut++; return;
+    if (!v || depth > 60 || gSweepAbort451) return;
+    if (++gSweepNodes > 480){ gSweepCut++; gSweepAbort451=YES; return; }
+    if ((gSweepNodes & 7) == 0 && CFAbsoluteTimeGetCurrent() > gSweepDeadline){
+        gSweepCut++; gSweepAbort451=YES; return;
     }
     @try {
         if (ADIsWebKitOwned(v)) return;                 // Dark Reader's territory
@@ -8129,7 +8239,20 @@ static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
                 }
             } @catch(...) {}
         }
-        for (UIView *s in v.subviews) ADSweepViewTree(s, depth + 1, tabBarish);
+        // The old cutoff returned from only one recursive child; its caller then
+        // continued every sibling, which is how a nominal 4ms sweep measured 811ms.
+        // Abort is global to this entry point. Rotate child order on later passes so
+        // a bounded root walk still converges instead of repeatedly visiting its head.
+        if (CFAbsoluteTimeGetCurrent() > gSweepDeadline){
+            gSweepCut++; gSweepAbort451=YES; return;
+        }
+        NSArray *children451=v.subviews;
+        NSUInteger count451=children451.count;
+        NSUInteger start451=count451?((gSweepEpoch451+(NSUInteger)depth*7)%count451):0;
+        for (NSUInteger step451=0; step451<count451 && !gSweepAbort451; step451++){
+            UIView *s451=children451[(start451+step451)%count451];
+            ADSweepViewTree(s451, depth + 1, tabBarish);
+        }
     } @catch(...) {}
 }
 // ─── sweep a cell as it comes into view ───────────────────────────────────────────
@@ -8145,6 +8268,7 @@ static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
 // prepareForReuse, so each cell is swept once per reuse cycle rather than on every
 // layout pass.
 static const void *kADCellSwept = &kADCellSwept;
+static void ADQueueCellSweep451(UIView *cell);
 
 %hook UICollectionViewCell
 - (void)prepareForReuse {
@@ -8161,7 +8285,7 @@ static const void *kADCellSwept = &kADCellSwept;
         // inherited flag cleared, so a tab bar built out of collection view cells had
         // its whole subtree treated as ordinary content -- undoing the v5.19.1 fix
         // for exactly the views it was meant to protect.
-        ADSweepTimed(self, ADInTabBarChain(self), "view");
+        ADQueueCellSweep451(self);
     } @catch(...) {}
 }
 %end
@@ -8177,18 +8301,19 @@ static const void *kADCellSwept = &kADCellSwept;
         if (!ADRecolorOn() || !self.window) return;
         if (objc_getAssociatedObject(self, kADCellSwept)) return;
         objc_setAssociatedObject(self, kADCellSwept, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        ADSweepTimed(self, ADInTabBarChain(self), "view");
+        ADQueueCellSweep451(self);
     } @catch(...) {}
 }
 %end
 
 // Timed entry point. Sets the budget, counts nodes, and reports anything slow so
 // the native side stops being the unmeasured half of this problem.
-static void ADSweepTimed(UIView *v, BOOL inTabBar, const char *why){
+static void ADSweepTimedBudget451(UIView *v, BOOL inTabBar, const char *why,
+                                  CFTimeInterval budget451){
     @try {
         CFAbsoluteTime t0 = CFAbsoluteTimeGetCurrent();
-        gSweepNodes = 0; gSweepCut = 0;
-        gSweepDeadline = t0 + 0.004;                 // 4ms: keep UI responsive; assignment hooks cover media immediately
+        gSweepNodes = 0; gSweepCut = 0; gSweepAbort451 = NO; gSweepEpoch451++;
+        gSweepDeadline = t0 + budget451;
         ADSweepViewTree(v, 0, inTabBar);
         double ms = (CFAbsoluteTimeGetCurrent() - t0) * 1000.0;
         static int logged = 0;
@@ -8196,6 +8321,71 @@ static void ADSweepTimed(UIView *v, BOOL inTabBar, const char *why){
             logged++;
             ADLog(@"NPERF[%s ms=%.1f nodes=%d cut=%d]", why, ms, gSweepNodes, gSweepCut);
         }
+    } @catch(...) {}
+}
+
+static void ADSweepTimed(UIView *v, BOOL inTabBar, const char *why){
+    // Leave compositor margin inside an 8.33ms 120Hz frame.
+    ADSweepTimedBudget451(v,inTabBar,why,0.0035);
+}
+
+// Recycled cells can enter layout in batches while the scroll view is already
+// compositing. Running even a bounded sweep synchronously for every cell stacks
+// those budgets into a dropped frame. Keep weak references only, wait until its
+// scroll view is quiet, then process one cell per ~120Hz interval with a sub-1ms
+// slice. Assignment hooks provide first paint; this is only the convergence lane.
+static NSHashTable *gADCellQueue451=nil;
+static BOOL gADCellDrainArmed451=NO;
+
+static UIScrollView *ADMovingScrollForCell451(UIView *v){
+    @try {
+        for (UIView *p=v.superview;p;p=p.superview){
+            if ([p isKindOfClass:[UIScrollView class]]){
+                UIScrollView *s=(UIScrollView *)p;
+                if (s.tracking || s.dragging || s.decelerating) return s;
+            }
+        }
+    } @catch(...) {}
+    return nil;
+}
+
+static void ADArmCellDrain451(CFTimeInterval delay451);
+static void ADDrainCellSweep451(void){
+    gADCellDrainArmed451=NO;
+    @try {
+        NSArray *live451=gADCellQueue451.allObjects;
+        if (!live451.count) return;
+        UIView *cell451=live451.firstObject;
+        [gADCellQueue451 removeObject:cell451];
+        if (cell451 && cell451.window){
+            if (ADMovingScrollForCell451(cell451)){
+                [gADCellQueue451 addObject:cell451];
+                ADArmCellDrain451(0.09);
+                return;
+            }
+            ADSweepTimedBudget451(cell451,ADInTabBarChain(cell451),"cell451",0.00085);
+        }
+        if (gADCellQueue451.count) ADArmCellDrain451(0.009);
+    } @catch(...) {}
+}
+
+static void ADArmCellDrain451(CFTimeInterval delay451){
+    if (gADCellDrainArmed451) return;
+    gADCellDrainArmed451=YES;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(delay451*NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{ ADDrainCellSweep451(); });
+}
+
+static void ADQueueCellSweep451(UIView *cell){
+    if (!cell || !cell.window || !ADRecolorOn()) return;
+    @try {
+        if (!gADCellQueue451) gADCellQueue451=[NSHashTable weakObjectsHashTable];
+        if (gADCellQueue451.count>=96){
+            UIView *old451=gADCellQueue451.allObjects.firstObject;
+            if (old451) [gADCellQueue451 removeObject:old451];
+        }
+        [gADCellQueue451 addObject:cell];
+        ADArmCellDrain451(0.016);
     } @catch(...) {}
 }
 
@@ -8883,6 +9073,203 @@ static void ADScheduleNativeCompare450(void){
 }
 
 
+// ── v5.451 CROSS-WINDOW COMPARE CONTROL ────────────────────────────────────
+// P94 found the small rasters but tray=0 for every one.  The reason is visible
+// in Fabric's architecture: the badge and the tray thumbnail are mounted in
+// separate native windows/portals, so no shared ancestor can exist.  Convert
+// both to UIScreen coordinates, require the device-captured lower-left geometry,
+// and cover only the owned badge host.  No UIView frame, interaction, image,
+// content mode, radius, or Amazon layer is changed.
+static CGRect ADCompareScreenRect451(UIView *v){
+    @try {
+        UIWindow *w=v.window;
+        if (!v || !w) return CGRectNull;
+        CGRect inWindow=[v convertRect:v.bounds toView:w];
+        id<UICoordinateSpace> screenSpace=UIScreen.mainScreen.coordinateSpace;
+        return [w convertRect:inWindow toCoordinateSpace:screenSpace];
+    } @catch(...) {}
+    return CGRectNull;
+}
+
+static void ADCompareCollect451(UIView *v, int depth, int *nodes,
+                                CFAbsoluteTime deadline,
+                                NSMutableArray *glyphs, NSMutableArray *thumbs){
+    if (!v || depth>42 || *nodes>=700 || v.hidden || v.alpha<.05) return;
+    if (((*nodes)&7)==0 && CFAbsoluteTimeGetCurrent()>deadline) return;
+    @try {
+        (*nodes)++;
+        if (ADIsWebKitOwned(v)) return;
+        if ([v isKindOfClass:[UIImageView class]] && ((UIImageView *)v).image){
+            CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+            if (w>=8 && w<=30 && h>=6 && h<=30 && w/h>=.50 && w/h<=1.75)
+                [glyphs addObject:v];
+            if (w>=38 && w<=104 && h>=30 && h<=96 && w/h>=.60 && w/h<=1.85)
+                [thumbs addObject:v];
+        }
+        for (UIView *q in v.subviews){
+            if (*nodes>=700 || CFAbsoluteTimeGetCurrent()>deadline) break;
+            ADCompareCollect451(q,depth+1,nodes,deadline,glyphs,thumbs);
+        }
+    } @catch(...) {}
+}
+
+static UIView *ADCompareHostForLeaf451(UIImageView *leaf){
+    UIView *fallback=nil;
+    @try {
+        UIView *p=leaf.superview; int up451=0;
+        while (p && up451++<7){
+            CGFloat w=p.bounds.size.width,h=p.bounds.size.height;
+            BOOL square=(w>=18&&w<=52&&h>=18&&h<=52&&fabs(w-h)<=10);
+            if (square && ADCompareDarkRound448(p)) return p;
+            if (!fallback && square) fallback=p;
+            if ([p isKindOfClass:[UIWindow class]]) break;
+            p=p.superview;
+        }
+        if (!fallback){
+            CGFloat w=leaf.bounds.size.width,h=leaf.bounds.size.height;
+            if (w>=16&&h>=16&&fabs(w-h)<=8) fallback=leaf;
+        }
+    } @catch(...) {}
+    return fallback;
+}
+
+static BOOL ADCompareInstallControl451(UIView *host, BOOL *created){
+    if (created) *created=NO;
+    if (!host) return NO;
+    @try {
+        CALayer *circle=objc_getAssociatedObject(host,kADCompareCircle451Key);
+        CALayer *minus=objc_getAssociatedObject(host,kADCompareMinus451Key);
+        if (circle && circle.superlayer!=host.layer){
+            objc_setAssociatedObject(host,kADCompareCircle451Key,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            circle=nil;
+        }
+        if (minus && minus.superlayer!=host.layer){
+            objc_setAssociatedObject(host,kADCompareMinus451Key,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            minus=nil;
+        }
+        BOOL made=NO;
+        if (!circle){
+            circle=[CALayer layer]; circle.name=@"AmazonDark.compareCircle451";
+            objc_setAssociatedObject(circle,kADCompareCircle451Key,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(host,kADCompareCircle451Key,circle,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            [host.layer addSublayer:circle]; made=YES;
+        }
+        if (!minus){
+            minus=[CALayer layer]; minus.name=@"AmazonDark.compareMinus451";
+            objc_setAssociatedObject(minus,kADCompareMinus451Key,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(host,kADCompareMinus451Key,minus,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            [host.layer addSublayer:minus]; made=YES;
+        }
+        objc_setAssociatedObject(host,kADCompareHost451Key,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        CGFloat hw=host.bounds.size.width,hh=host.bounds.size.height;
+        CGFloat diameter=MIN(hw,hh);
+        if (diameter<18) diameter=28;
+        diameter=MAX(22,MIN(36,diameter));
+        CGFloat bw=MAX(8.0,MIN(14.0,diameter*.46));
+        CGFloat bh=MAX(2.0,MIN(3.0,diameter*.095));
+        CGRect disc=CGRectMake(round((hw-diameter)*.5),round((hh-diameter)*.5),diameter,diameter);
+        [CATransaction begin]; [CATransaction setDisableActions:YES];
+        circle.frame=disc; circle.cornerRadius=diameter*.5;
+        circle.backgroundColor=[UIColor whiteColor].CGColor;
+        circle.opacity=1; circle.hidden=NO; circle.zPosition=10000;
+        circle.contentsScale=UIScreen.mainScreen.scale;
+        minus.frame=CGRectMake(round((hw-bw)*.5),round((hh-bh)*.5),bw,bh);
+        minus.cornerRadius=bh*.5;
+        minus.backgroundColor=ADColorFromHex(gP.bgHex).CGColor;
+        minus.opacity=1; minus.hidden=NO; minus.zPosition=10001;
+        minus.contentsScale=UIScreen.mainScreen.scale;
+        [CATransaction commit];
+        if (created) *created=made;
+        return YES;
+    } @catch(...) {}
+    return NO;
+}
+
+static NSString *gADCompare451LastState=nil;
+static BOOL gADCompare451Pending=NO;
+static CFAbsoluteTime gADCompare451LastAttempt=0;
+
+static void ADFixNativeCompare451(void){
+    if (!ADRecolorOn()) return;
+    @try {
+        CFAbsoluteTime t0=CFAbsoluteTimeGetCurrent();
+        gADCompare451LastAttempt=t0;
+        NSMutableArray *glyphs=[NSMutableArray array],*thumbs=[NSMutableArray array];
+        int nodes=0;
+        for (UIWindow *w in UIApplication.sharedApplication.windows){
+            if (!w || w.hidden || w.alpha<.05) continue;
+            ADCompareCollect451(w,0,&nodes,t0+0.0028,glyphs,thumbs);
+            if (CFAbsoluteTimeGetCurrent()>t0+0.0028) break;
+        }
+        CGRect screen=UIScreen.mainScreen.bounds;
+        int lower=0,paired=0,dark=0,painted=0,created=0;
+        CGFloat bestScore=CGFLOAT_MAX; UIImageView *bestGlyph=nil; UIView *bestThumb=nil;
+        for (UIImageView *iv in glyphs){
+            CGRect gr=ADCompareScreenRect451(iv); if (CGRectIsNull(gr)) continue;
+            CGFloat gx=CGRectGetMidX(gr),gy=CGRectGetMidY(gr);
+            if (gx>screen.size.width*.52 || gy<screen.size.height*.60 || gy>screen.size.height*.945) continue;
+            lower++;
+            for (UIView *tv in thumbs){
+                if (tv==iv) continue;
+                CGRect tr=ADCompareScreenRect451(tv); if (CGRectIsNull(tr)) continue;
+                CGFloat dx=gx-CGRectGetMaxX(tr),dy=fabs(gy-CGRectGetMidY(tr));
+                if (dx < -24 || dx > 64 || dy > 52) continue;
+                CGFloat score=fabs(dx-8)+dy+fabs(tr.size.width-64)*.08+fabs(tr.size.height-48)*.08;
+                if (score<bestScore){bestScore=score;bestGlyph=iv;bestThumb=tv;}
+            }
+        }
+        if (bestGlyph && bestThumb){
+            paired=1;
+            CGFloat clear451=0,avg451=0,sat451=0;
+            if (ADImageIsDarkGlyph(bestGlyph.image,&clear451,&avg451,&sat451) &&
+                clear451>.25 && avg451<.18 && sat451<.10){
+                dark=1;
+                UIView *host=ADCompareHostForLeaf451(bestGlyph);
+                if (host){
+                    BOOL made=NO;
+                    if (ADCompareInstallControl451(host,&made)){painted=1;created=made?1:0;}
+                }
+            }
+        }
+        NSString *state=[NSString stringWithFormat:
+          @"P95COMPARE451[nodes=%d glyph=%lu thumb=%lu lower=%d paired=%d dark=%d painted=%d created=%d ms=%.1f score=%.1f]",
+          nodes,(unsigned long)glyphs.count,(unsigned long)thumbs.count,lower,paired,dark,
+          painted,created,(CFAbsoluteTimeGetCurrent()-t0)*1000.0,bestScore];
+        if (![state isEqualToString:gADCompare451LastState]){
+            gADCompare451LastState=state; ADLog(@"%@",state);
+        }
+    } @catch(NSException *e){ ADLog(@"P95COMPARE451[err %@]",e.reason?:@"unknown"); }
+}
+
+static void ADScheduleNativeCompare451(void){
+    if (!ADRecolorOn() || gADCompare451Pending) return;
+    if (CFAbsoluteTimeGetCurrent()-gADCompare451LastAttempt<0.30) return;
+    gADCompare451Pending=YES;
+    const double delay451[]={0.01,0.18};
+    for (int i451=0;i451<2;i451++){
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(delay451[i451]*NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            @try { ADFixNativeCompare451(); } @catch(...) {}
+            if (i451==1) gADCompare451Pending=NO;
+        });
+    }
+}
+
+static void ADMaybeScheduleNativeCompare451(UIView *v){
+    if (!v || ![v isKindOfClass:[UIImageView class]] || !v.window ||
+        !ADRecolorOn() || ADIsWebKitOwned(v) || ADMovingScrollForCell451(v)) return;
+    @try {
+        CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+        if (w<8||w>30||h<6||h>30) return;
+        CGRect r=ADCompareScreenRect451(v),s=UIScreen.mainScreen.bounds;
+        if (CGRectIsNull(r)) return;
+        CGFloat x=CGRectGetMidX(r),y=CGRectGetMidY(r);
+        if (x<=s.size.width*.52 && y>=s.size.height*.60 && y<=s.size.height*.945)
+            ADScheduleNativeCompare451();
+    } @catch(...) {}
+}
+
+
 // ── P19 VOICE-PERMISSION NATIVE REPAIR (v5.349) ─────────────────────────────
 // v5.348 proved the microphone pre-permission pane is not in the probed WKWebView
 // DOM (P18VOICE[root=none]). The screenshot also shows mixed black body copy and
@@ -9004,9 +9391,18 @@ static int ADVoiceRepairHiddenRCTStorage(UIView *v){
     return 0;
 }
 
+static CFAbsoluteTime gADVoiceDeadline451=0;
+static int gADVoiceNodes451=0;
+static BOOL gADVoiceAbort451=NO;
+static NSUInteger gADVoiceEpoch451=0;
+
 static void ADVoiceNativeWalk(UIView *v, int depth, int *matched, int *fixed,
                               NSMutableArray *samples){
-    if (!v || depth > 45 || v.hidden || v.alpha < 0.05) return;
+    if (!v || depth > 45 || v.hidden || v.alpha < 0.05 || gADVoiceAbort451) return;
+    if (++gADVoiceNodes451>420 ||
+        ((gADVoiceNodes451&7)==0 && CFAbsoluteTimeGetCurrent()>gADVoiceDeadline451)){
+        gADVoiceAbort451=YES; return;
+    }
     @try {
         NSString *txt=ADProbeTextOf(v);
         if (ADVoiceTargetText(txt)){
@@ -9081,14 +9477,20 @@ static void ADVoiceNativeWalk(UIView *v, int depth, int *matched, int *fixed,
                     (hasAttr||hasAttrString||hasStorage)?1:0,canSetAttr?1:0,canSetPriv?1:0,hasTC?1:0,lum,sat,runFix,did?1:0]];
             }
         }
-        for (UIView *sv in v.subviews)
-            ADVoiceNativeWalk(sv,depth+1,matched,fixed,samples);
+        NSArray *children451=v.subviews; NSUInteger count451=children451.count;
+        NSUInteger start451=count451?((gADVoiceEpoch451+(NSUInteger)depth*5)%count451):0;
+        for (NSUInteger step451=0;step451<count451&&!gADVoiceAbort451;step451++)
+            ADVoiceNativeWalk(children451[(start451+step451)%count451],depth+1,matched,fixed,samples);
     } @catch(...) {}
 }
 
 static void ADVoiceNativeSweep(void){
     @try {
         if (!ADRecolorOn()) return;
+        static CFAbsoluteTime last451=0; CFAbsoluteTime now451=CFAbsoluteTimeGetCurrent();
+        if (now451-last451<0.70) return; last451=now451;
+        gADVoiceNodes451=0; gADVoiceAbort451=NO; gADVoiceEpoch451++;
+        gADVoiceDeadline451=now451+0.0025;
         int matched=0,fixed=0;
         NSMutableArray *samples=[NSMutableArray array];
         for (UIWindow *w in [UIApplication sharedApplication].windows){
@@ -9164,6 +9566,11 @@ static NSString *ADCardBorderFixJS(void){
 static NSString *ADProbeWebJS(void){
     return
        @"(function(){try{"
+       // The focused probe also installs the late, device-captured painters.  It
+       // used to run its full DOM census and add another observer set on every
+       // appearance.  Keep one installation/report per document; an explicit
+       // debugging session can set __AD_FORCE_PROBE451__=1 for another snapshot.
+       "if(window.__AD_PROBE451_DONE__&&!window.__AD_FORCE_PROBE451__)return 'P95PERF451[deduped=1]';window.__AD_FORCE_PROBE451__=0;window.__AD_PROBE451_DONE__=1;"
        "var __sub=(window.top!==window.self);"
        "var u=String(location.pathname||'/');"
        "var intr=u.indexOf('interest')>=0,msh=u.indexOf('mshop')>=0;"
@@ -9422,6 +9829,7 @@ static NSString *ADProbeWebJS(void){
 
        "/*V5313FIX*/"
        "try{(function(){"
+         "if(window.__AD_RUNTIME451_DONE__)return;window.__AD_RUNTIME451_DONE__=1;"
          "var SEL='[class*=a-cardui-header] *,[class*=a-cardui-header],'"
            "+'[class*=sponsored-products] *,[class*=sponsored-products],'"
            "+'[class*=hybrid-widget-sponsored] *,[class*=adFeedbackMainComponent] *';"
@@ -9511,7 +9919,7 @@ static NSString *ADProbeWebJS(void){
          "try{sym413();setTimeout(sym413,30);setTimeout(sym413,160);setTimeout(sym413,560);"
            "setTimeout(sym413,1560);setTimeout(sym413,2600);"
            "addEventListener('scroll',function(){clearTimeout(window.__symT413);"
-             "window.__symT413=setTimeout(sym413,110);},{passive:true,capture:true});"
+             "window.__symT413=setTimeout(sym413,320);},{passive:true,capture:true});"
          "}catch(e){}"
          "function compareStock379(){window.__AD_COMPARE379__=\'retired433\';return 0;}"
          "function cartChrome379(){try{var tx=String((document.body&&document.body.innerText)||'').toLowerCase();if(tx.indexOf('subtotal')<0||tx.indexOf('save for later')<0){window.__AD_CART379__='off';return;}var E=document.querySelectorAll('button,[role=button],a,span,div,input'),n=0,direct=0;function pc(v){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/.exec(String(v||''));return m?[+m[1],+m[2],+m[3]]:null;}function isLight(e){try{var c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after'),L=[pc(c.backgroundColor),pc(b.backgroundColor),pc(a.backgroundColor)];for(var k=0;k<L.length;k++){var q=L[k];if(!q)continue;var mx=Math.max(q[0],q[1],q[2]),mn=Math.min(q[0],q[1],q[2]),lum=(.2126*q[0]+.7152*q[1]+.0722*q[2])/255,sat=(mx-mn)/255;if(lum>=.76&&sat<=.16)return true;}return false;}catch(x){return false;}}function paint(e){if(!e||!e.style||e.hasAttribute('data-ad-cartchrome379'))return;e.setAttribute('data-ad-cartchrome379','1');e.style.setProperty('background-color','#181a1b','important');e.style.setProperty('background-image','none','important');e.style.setProperty('border','1px solid #6c7073','important');e.style.setProperty('border-radius','999px','important');e.style.setProperty('box-shadow','none','important');e.style.setProperty('color','#e8e6e3','important');e.style.setProperty('-webkit-text-fill-color','#e8e6e3','important');e.style.setProperty('opacity','1','important');n++;}for(var i=0;i<E.length&&i<2600;i++){var e=E[i],r=e.getBoundingClientRect();if(r.width<36||r.width>150||r.height<24||r.height>62)continue;if(r.bottom<0||r.top>(innerHeight||900)+150)continue;if(!isLight(e))continue;var txt=String(e.textContent||e.value||'').replace(/\\s+/g,' ').trim().toLowerCase();if(/checkout|add to cart|quantity/.test(txt))continue;paint(e);}var D=document.querySelectorAll('button,[role=button],a,span,div');for(var di=0;di<D.length&&di<2200;di++){var de=D[di],dt=String(de.textContent||'').replace(/\\s+/g,' ').trim();if(dt!=='Delete')continue;var dh=de.closest&&de.closest('button,[role=button],a');if(!dh)dh=de;var dr=dh.getBoundingClientRect(),best=null,bd=999,seen=[];for(var ci=0;ci<E.length&&ci<2600;ci++){var x=E[ci],host=(x.closest&&x.closest('button,[role=button],a'))||x;if(!host||host===dh||dh.contains(host)||seen.indexOf(host)>=0)continue;seen.push(host);var xr=host.getBoundingClientRect();if(xr.width<34||xr.width>125||xr.height<24||xr.height>60)continue;if(Math.abs((xr.top+xr.height/2)-(dr.top+dr.height/2))>14||xr.left<dr.right-4)continue;var gap=xr.left-dr.right;if(gap<0||gap>170||gap>=bd)continue;var xt=String(host.textContent||host.value||'').replace(/\\s+/g,' ').trim().toLowerCase();if(/delete|save for later|checkout|add to cart|quantity/.test(xt))continue;if(!isLight(host))continue;best=host;bd=gap;}if(best){paint(best);best.setAttribute('data-ad-cartdirect379','1');direct++;}}window.__AD_CART379__='fixed='+n+' direct='+direct;}catch(e){window.__AD_CART379__='err '+e;}}"
@@ -9571,9 +9979,12 @@ static NSString *ADProbeWebJS(void){
          "}catch(e){window.__AD_CHECKBOX434_STATE__='err '+(e&&e.message||e);return -1;}finally{window.__AD_CHECKBOX434_RUNNING__=0;}}"
          "try{window.__AD_CHECKBOX434__=stockCheckbox434;if(!window.__AD_CHECKBOX434_WRAP__){window.__AD_CHECKBOX434_WRAP__=1;"
            "window.__AD_PRODUCTCTRL391_PRE434__=window.__AD_PRODUCTCTRL391RUN__;window.__AD_PRODUCTCTRL391RUN__=function(){var r=window.__AD_PRODUCTCTRL391_PRE434__?window.__AD_PRODUCTCTRL391_PRE434__():0;try{window.__AD_CHECKBOX434__();}catch(x){}return r;};"
-           "new MutationObserver(function(){try{window.__AD_CHECKBOX434__();}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});"
-           "function queue434(){if(window.__AD_CHECKBOX434_QUEUED__)return;window.__AD_CHECKBOX434_QUEUED__=1;var r434=function(){window.__AD_CHECKBOX434_QUEUED__=0;try{window.__AD_CHECKBOX434__();}catch(x){}};if(window.requestAnimationFrame)window.requestAnimationFrame(r434);else setTimeout(r434,0);}"
-           "addEventListener('scroll',queue434,{passive:true,capture:true});}"
+           "function queue434(ms434){clearTimeout(window.__AD_CHECKBOX434_T__);window.__AD_CHECKBOX434_T__=setTimeout(function(){try{if(!window.__ADSCROLLING__||ms434<100)window.__AD_CHECKBOX434__();}catch(x){}},ms434||24);}"
+           // State remains synchronous through Amazon's stock :checked sprite/CSS.
+           // The scanner now handles only structural/state signals and never its
+           // own style writes; scroll work is one trailing pass, not 120 passes/sec.
+           "new MutationObserver(function(){queue434(24);}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});"
+           "addEventListener('scroll',function(){queue434(320);},{passive:true,capture:true});}"
            "stockCheckbox434();setTimeout(stockCheckbox434,40);setTimeout(stockCheckbox434,180);setTimeout(stockCheckbox434,700);setTimeout(stockCheckbox434,1800);"
          "}catch(e){}"
          // v5.347 PDP HEART. The confirmed 20x20 .a-icon painter is handled
@@ -9635,16 +10046,26 @@ static NSString *ADProbeWebJS(void){
            "var B450=document.querySelectorAll('[class*=theming-card-background]'),colored450=0,restored450=0,bad450=0,Q450=[];for(var i450=0;i450<B450.length&&i450<100;i450++){var e450=B450[i450],r450=e450.getBoundingClientRect();if(r450.width<220||r450.width>380||r450.height<300||r450.height>560)continue;var cs450=getComputedStyle(e450),q450=pc450(cs450.backgroundColor);if(!q450||q450[3]<.25||Math.max(q450[0],q450[1],q450[2])-Math.min(q450[0],q450[1],q450[2])<24)continue;colored450++;e450.setAttribute('data-ad-homecolor450','authored');var owned450=e450.hasAttribute('data-ad-homebg395')||String(e450.__adBy||'')==='homeBgLeaf395'||String(e450.style.getPropertyValue('box-shadow')||'').indexOf('9999px')>=0;if(owned450){e450.style.removeProperty('filter');e450.style.removeProperty('background-blend-mode');e450.style.removeProperty('box-shadow');e450.removeAttribute('data-ad-homebg395');delete e450.__adTamed;delete e450.__adTameSig;delete e450.__adBy;restored450++;}var ac450=getComputedStyle(e450),aq450=pc450(ac450.backgroundColor),ash450=String(ac450.boxShadow||'none'),ab450=String(ac450.backgroundBlendMode||'normal');if(!aq450||Math.max(aq450[0],aq450[1],aq450[2])-Math.min(aq450[0],aq450[1],aq450[2])<24||ash450!=='none'||ab450!=='normal')bad450++;if(Q450.length<6)Q450.push(Math.round(r450.width)+'x'+Math.round(r450.height)+'|bg='+String(ac450.backgroundColor||'-').replace(/\\s+/g,'')+'|shadow='+(ash450==='none'?0:1));}"
            "if(staleN450&&typeof _adHomeMedia395==='function'&&!window.__AD_HOME450_RETAME__){window.__AD_HOME450_RETAME__=1;try{_adHomeMedia395();}catch(x){}window.__AD_HOME450_RETAME__=0;}window.__AD_HOMECOLOR450_STATE__='home=1 backgrounds='+B450.length+' colored='+colored450+' restored='+restored450+' bad='+bad450+' stale449='+staleN450+(Q450.length?' '+Q450.join(' ~~ '):'');return colored450;}catch(e){window.__AD_HOMECOLOR450_STATE__='err '+(e&&e.message||e);return -1;}}"
          "try{homeColor450();setTimeout(homeColor450,40);setTimeout(homeColor450,180);setTimeout(homeColor450,700);setTimeout(homeColor450,1800);if(!window.__AD_THEME450_OBS__){window.__AD_THEME450_OBS__=1;var t450=0,new450=function(){if(t450)return;t450=1;var f450=function(){t450=0;try{homeColor450();}catch(x){}};if(window.requestAnimationFrame)window.requestAnimationFrame(f450);else setTimeout(f450,0);};new MutationObserver(new450).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['style','class']});addEventListener('scroll',function(){clearTimeout(window.__AD_THEME450_SCROLL__);window.__AD_THEME450_SCROLL__=setTimeout(function(){try{homeColor450();}catch(x){}},60);},{passive:true,capture:true});}}catch(e){}"
+         // v5.451 completes the Home boundary without inventing a replacement
+         // color.  All non-video theming background leaves were snapshotted before
+         // paint; this pass merely removes stale tweak ownership and lets Amazon's
+         // exact authored declaration win.  Child media keeps v5.395 WBT unchanged.
+         "window.__AD_HOMECOLOR451__=function(){try{if(window.__ADFRAME_MODE__||!document.body)return 0;if(window.__AD_HOMECAP451__)window.__AD_HOMECAP451__(document.documentElement);var E451=document.querySelectorAll('[data-ad-homecolor451=\"authored\"]'),n451=0,clean451=0,Q451=[];for(var i451=0;i451<E451.length&&i451<100;i451++){var e451=E451[i451],r451=e451.getBoundingClientRect();if(r451.width<220||r451.width>380||r451.height<300||r451.height>560)continue;var was451=e451.hasAttribute('data-ad-homebg395')||e451.hasAttribute('data-ad-tame-bgfast364')||String(e451.__adBy||'')==='homeBgLeaf395'||String(e451.style.getPropertyValue('box-shadow')||'').indexOf('9999px')>=0;if(typeof _adHomeBgLeaf395==='function')_adHomeBgLeaf395(e451);if(was451)clean451++;n451++;if(Q451.length<6){var s451=getComputedStyle(e451);Q451.push(Math.round(r451.width)+'x'+Math.round(r451.height)+'|bg='+String(s451.backgroundColor||'-').replace(/\\s+/g,'')+'|img='+(String(s451.backgroundImage||'none')==='none'?0:1));}}window.__AD_HOMECOLOR451_STATE__='owned='+n451+' cleaned='+clean451+(Q451.length?' '+Q451.join(' ~~ '):'');return n451;}catch(e){window.__AD_HOMECOLOR451_STATE__='err '+(e&&e.message||e);return -1;}};"
+         "try{window.__AD_HOMECOLOR451__();setTimeout(window.__AD_HOMECOLOR451__,80);setTimeout(window.__AD_HOMECOLOR451__,420);setTimeout(window.__AD_HOMECOLOR451__,1200);if(!window.__AD_THEME451_OBS__){window.__AD_THEME451_OBS__=1;var q451=function(){clearTimeout(window.__AD_THEME451_T__);window.__AD_THEME451_T__=setTimeout(function(){try{if(!window.__ADSCROLLING__)window.__AD_HOMECOLOR451__();}catch(x){}},220);};new MutationObserver(q451).observe(document.documentElement,{subtree:true,childList:true});addEventListener('scroll',function(){clearTimeout(window.__AD_THEME451_S__);window.__AD_THEME451_S__=setTimeout(function(){try{window.__AD_HOMECOLOR451__();}catch(x){}},320);},{passive:true,capture:true});}}catch(e){}"
          "function badgeFix(){try{"
            "var B=document.querySelectorAll('[class*=badgeLabel]');for(var i=0;i<B.length&&i<200;i++){var b=B[i];if(b.hasAttribute&&b.hasAttribute('data-darkreader-inline-bgcolor')){b.style.removeProperty('background-color');b.removeAttribute('data-darkreader-inline-bgcolor');}b.style.setProperty('background-color','#cc0c39','important');b.style.setProperty('color','#ffffff','important');b.style.setProperty('-webkit-text-fill-color','#ffffff','important');}"
            "var S=document.querySelectorAll('[class*=sponsored-products] *,[class*=npack-asin-card] *,[class*=cXVhZ] *'),n=0;for(var j=0;j<S.length&&j<2500&&n<80;j++){var x=S[j];if(x.childElementCount!==0)continue;var t=String(x.textContent||'').replace(/\\s+/g,' ').trim();"
              "if(/^\\d+%\\s*off$/i.test(t)){var p=x.parentElement;if(p){p.style.setProperty('background-color','#cc0c39','important');p.style.setProperty('color','#ffffff','important');p.style.setProperty('-webkit-text-fill-color','#ffffff','important');}x.style.setProperty('color','#ffffff','important');x.style.setProperty('-webkit-text-fill-color','#ffffff','important');n++;}"
              "else if(/^(?:limited\\s+time\\s+deal|deal\\s+selling\\s+fast)$/i.test(t)){x.style.setProperty('color','#e8e6e3','important');x.style.setProperty('-webkit-text-fill-color','#e8e6e3','important');if(x.closest&&(x.closest('[class*=npack-asin-card]')||x.closest('[class*=cXVhZ]'))){var m=x.closest('[class*=badgeMessage]')||x.parentElement;if(m){m.style.setProperty('background-color','#181a1b','important');m.style.setProperty('background-image','none','important');m.style.setProperty('box-shadow','none','important');}x.style.setProperty('background-color','#181a1b','important');x.style.setProperty('background-image','none','important');x.style.setProperty('box-shadow','none','important');}n++;}}window.__AD_SPONSORED_BADGEFIX__=n;"
-         "}catch(e){}}""homeAmbient386();badgeFix();dotFix();packFix();compareStock380();legacyCompare387();cartChrome382();shareFix382();chevronFix383();sponsorFix376();ratingFix376();try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}try{if(window._adHomeVideo391)window._adHomeVideo391();}catch(e){}""clr();setTimeout(clr,300);setTimeout(clr,1200);setTimeout(clr,2500);""setTimeout(homeAmbient386,300);setTimeout(homeAmbient386,1200);setTimeout(homeAmbient386,2500);""setTimeout(badgeFix,300);setTimeout(badgeFix,1200);setTimeout(badgeFix,2500);""setTimeout(dotFix,120);setTimeout(dotFix,500);setTimeout(dotFix,1400);setTimeout(dotFix,2800);""setTimeout(packFix,120);setTimeout(packFix,500);setTimeout(packFix,1400);setTimeout(packFix,2800);setTimeout(compareStock380,0);setTimeout(compareStock380,120);setTimeout(compareStock380,500);setTimeout(compareStock380,1500);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},20);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},180);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},700);setTimeout(legacyCompare387,0);setTimeout(legacyCompare387,120);setTimeout(legacyCompare387,500);setTimeout(legacyCompare387,1500);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},60);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},220);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},650);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},1650);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},2600);setTimeout(cartChrome382,20);setTimeout(cartChrome382,180);setTimeout(cartChrome382,700);setTimeout(cartChrome382,1800);setTimeout(sponsorFix376,20);setTimeout(sponsorFix376,180);setTimeout(sponsorFix376,700);setTimeout(sponsorFix376,1800);setTimeout(ratingFix376,40);setTimeout(ratingFix376,240);setTimeout(ratingFix376,900);setTimeout(ratingFix376,2200);setTimeout(shareFix382,40);setTimeout(shareFix382,180);setTimeout(shareFix382,700);setTimeout(shareFix382,1800);setTimeout(chevronFix383,20);setTimeout(chevronFix383,180);setTimeout(chevronFix383,700);setTimeout(chevronFix383,1800);addEventListener('scroll',function(){clearTimeout(window.__bgT);window.__bgT=setTimeout(function(){homeAmbient386();badgeFix();dotFix();packFix();compareStock380();legacyCompare387();cartChrome382();shareFix382();chevronFix383();sponsorFix376();ratingFix376();try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}try{if(window._adHomeVideo391)window._adHomeVideo391();}catch(e){}},100);},{passive:true,capture:true});""addEventListener('scroll',function(){clearTimeout(window.__bxS);window.__bxS=setTimeout(clr,120);},{passive:true,capture:true});"
-         "new MutationObserver(function(){clearTimeout(window.__bxT);"
-           "window.__bxT=setTimeout(function(){clr();dotFix();packFix();compareStock380();legacyCompare387();cartChrome382();shareFix382();chevronFix383();sponsorFix376();ratingFix376();try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},20);}).observe(document.documentElement,"
-           "{subtree:true,childList:true,attributes:true,attributeFilter:['style','class','aria-current','aria-selected','data-selected','src','data-src','data-darkreader-inline-bgcolor','data-darkreader-inline-color','fill','stroke']});"
-         "try{new MutationObserver(function(){try{cartChrome382();}catch(e){}}).observe(document.documentElement,{subtree:true,childList:true});}catch(e){}"
+         "}catch(e){}}""homeAmbient386();badgeFix();dotFix();packFix();compareStock380();legacyCompare387();cartChrome382();shareFix382();chevronFix383();sponsorFix376();ratingFix376();try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}try{if(window._adHomeVideo391)window._adHomeVideo391();}catch(e){}""clr();setTimeout(clr,300);setTimeout(clr,1200);setTimeout(clr,2500);""setTimeout(homeAmbient386,300);setTimeout(homeAmbient386,1200);setTimeout(homeAmbient386,2500);""setTimeout(badgeFix,300);setTimeout(badgeFix,1200);setTimeout(badgeFix,2500);""setTimeout(dotFix,120);setTimeout(dotFix,500);setTimeout(dotFix,1400);setTimeout(dotFix,2800);""setTimeout(packFix,120);setTimeout(packFix,500);setTimeout(packFix,1400);setTimeout(packFix,2800);setTimeout(compareStock380,0);setTimeout(compareStock380,120);setTimeout(compareStock380,500);setTimeout(compareStock380,1500);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},20);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},180);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},700);setTimeout(legacyCompare387,0);setTimeout(legacyCompare387,120);setTimeout(legacyCompare387,500);setTimeout(legacyCompare387,1500);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},60);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},220);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},650);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},1650);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},2600);setTimeout(cartChrome382,20);setTimeout(cartChrome382,180);setTimeout(cartChrome382,700);setTimeout(cartChrome382,1800);setTimeout(sponsorFix376,20);setTimeout(sponsorFix376,180);setTimeout(sponsorFix376,700);setTimeout(sponsorFix376,1800);setTimeout(ratingFix376,40);setTimeout(ratingFix376,240);setTimeout(ratingFix376,900);setTimeout(ratingFix376,2200);setTimeout(shareFix382,40);setTimeout(shareFix382,180);setTimeout(shareFix382,700);setTimeout(shareFix382,1800);setTimeout(chevronFix383,20);setTimeout(chevronFix383,180);setTimeout(chevronFix383,700);setTimeout(chevronFix383,1800);addEventListener('scroll',function(){queueRuntime451(320);},{passive:true,capture:true});"
+         // v5.451: the old observer watched style/fill/stroke, then its callback
+         // wrote those same properties and queued another whole-document scan 20ms
+         // later.  Observe only Amazon structural/state signals, coalesce them, and
+         // run after scrolling settles.  requestIdleCallback keeps the repaint off
+         // the critical 120Hz scroll frame where WebKit supports it.
+         "function queueRuntime451(ms451){clearTimeout(window.__bxT);window.__bxT=setTimeout(function(){if(window.__ADSCROLLING__){queueRuntime451(260);return;}var r451=function(){try{homeAmbient386();clr();dotFix();packFix();compareStock380();legacyCompare387();cartChrome382();shareFix382();chevronFix383();sponsorFix376();ratingFix376();if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();if(window._adHomeVideo391)window._adHomeVideo391();}catch(e){}};if(window.requestIdleCallback)window.requestIdleCallback(r451,{timeout:500});else setTimeout(r451,0);},ms451||180);}"
+         "new MutationObserver(function(){queueRuntime451(180);}).observe(document.documentElement,"
+           "{subtree:true,childList:true,attributes:true,attributeFilter:['class','aria-current','aria-selected','data-selected','src','data-src']});"
          "try{homeCreative448();setTimeout(homeCreative448,40);setTimeout(homeCreative448,180);setTimeout(homeCreative448,700);setTimeout(homeCreative448,1800);if(!window.__AD_THEME448_OBS__){window.__AD_THEME448_OBS__=1;var t448=0,new448=function(){if(t448)return;t448=1;var f448=function(){t448=0;try{homeCreative448();}catch(x){}};if(window.requestAnimationFrame)window.requestAnimationFrame(f448);else setTimeout(f448,0);};new MutationObserver(new448).observe(document.documentElement,{subtree:true,childList:true});addEventListener('scroll',function(){clearTimeout(window.__AD_THEME448_SCROLL__);window.__AD_THEME448_SCROLL__=setTimeout(function(){try{homeCreative448();}catch(x){}},90);},{passive:true,capture:true});}}catch(e){}"
          "/* v5.439: native state remains synchronous; stockCheckbox434 discovers stock hosts/art and removes only stale tweak-owned filters. */"
        "})();}catch(e){}"
@@ -10158,14 +10579,46 @@ static NSString *ADProbeWebJS(void){
        "}catch(err){return 'P8ERR['+(err&&err.message||err)+']';}})()";
 }
 
-// v5.363 focused diagnostics: one web probe per visible WKWebView after a screen
-// settles. This preserves P21/P24/P26/P27/P30 evidence without the old census,
-// layer dump, media probes, or recursive native offender walk on every appearance.
+// v5.451 extracts only the live late-painter installer from the historical probe.
+// ADFocusedProbe used to evaluate the entire diagnostic payload on every screen
+// appearance: hundreds of computed-style reads plus multiple all-node walks, even
+// though the only production requirement was the V5313 runtime block near its end.
+// Keep ADProbeWebJS intact for explicit diagnostics, but never put it on the normal
+// appearance/scroll path again.
+static NSString *ADRuntimeWebJS451(void){
+    static NSString *runtime451=nil;
+    static dispatch_once_t once451;
+    dispatch_once(&once451, ^{
+        NSString *full451=ADProbeWebJS();
+        NSRange start451=[full451 rangeOfString:@"/*V5313FIX*/"];
+        NSRange end451=NSMakeRange(NSNotFound,0);
+        if (start451.location!=NSNotFound){
+            NSRange tail451=NSMakeRange(NSMaxRange(start451),
+                                        full451.length-NSMaxRange(start451));
+            end451=[full451 rangeOfString:@"/*V5395FIX*/" options:0 range:tail451];
+        }
+        if (start451.location==NSNotFound || end451.location==NSNotFound ||
+            end451.location<=start451.location){
+            runtime451=@"'runtime451-markers-missing'";
+            return;
+        }
+        NSString *body451=[full451 substringWithRange:NSMakeRange(
+            start451.location,end451.location-start451.location)];
+        NSString *lum451=@"function lum(s){var a=String(s||'').split('('),b=(a[1]||'').split(')')[0].split(',');if(b.length<3)return -1;var r=parseFloat(b[0]),g=parseFloat(b[1]),bl=parseFloat(b[2]),al=b.length>3?parseFloat(b[3]):1;if(!(al>0))return -1;return (0.2126*r+0.7152*g+0.0722*bl)/255;}";
+        runtime451=[NSString stringWithFormat:@"(function(){%@%@;return 'runtime451';})()",
+                    lum451,body451];
+    });
+    return runtime451;
+}
+
+// Lightweight late-painter installation for each visible WKWebView. The inner
+// per-document guard makes this idempotent; the native throttle only avoids doing
+// redundant WebKit round trips during controller appearance bursts.
 static void ADFocusedProbe363(void){
     @try {
         if (!gP.enabled) return;
         static CFAbsoluteTime last=0; CFAbsoluteTime now=CFAbsoluteTimeGetCurrent();
-        if(now-last<4.0) return; last=now;
+        if(now-last<0.35) return; last=now;
         ADLog(@"P28HZ[pref=%d screenMax=%ld]", gP.force120Hz?1:0,
               (long)UIScreen.mainScreen.maximumFramesPerSecond);
         NSMutableSet *seen=[NSMutableSet set]; int sent=0;
@@ -10185,7 +10638,7 @@ static void ADFocusedProbe363(void){
                     if (!web.window || web.hidden || web.alpha<0.05) continue;
                     CGRect wr=[web convertRect:web.bounds toView:w]; if(!CGRectIntersectsRect(wr,w.bounds)||wr.size.width<40||wr.size.height<40) continue;
                     sent++;
-                    [web evaluateJavaScript:ADProbeWebJS() completionHandler:^(id r, NSError *e){
+                    [web evaluateJavaScript:ADRuntimeWebJS451() completionHandler:^(id r, NSError *e){
                         @try {
                             if ([r isKindOfClass:[NSString class]] && [(NSString *)r length]) ADLog(@"%@",r);
                             else if (e) ADLog(@"P8ERR[wk %@/%ld]",e.domain,(long)e.code);
@@ -10701,10 +11154,23 @@ static void ADSweepAllWindows(void){
         gSwTemplateSeen = gSwTintFixed = 0;
         gSwSample[0] = 0;
         gSwTintNow[0] = 0;
+        NSMutableArray *windows451=[NSMutableArray array];
         for (UIScene *sc in [UIApplication sharedApplication].connectedScenes){
             if (![sc isKindOfClass:[UIWindowScene class]]) continue;
-            for (UIWindow *w in ((UIWindowScene *)sc).windows){ nwin++; ADSweepTimed(w, NO, "window"); }
+            for (UIWindow *w in ((UIWindowScene *)sc).windows)
+                if (w && !w.hidden && w.alpha>.05) [windows451 addObject:w];
         }
+        // One budget for the batch, not 3.5ms multiplied by every Fabric window.
+        // Rotate the first window so later overlays still converge across calls.
+        static NSUInteger windowCursor451=0;
+        NSUInteger wc451=windows451.count,start451=wc451?(windowCursor451%wc451):0,done451=0;
+        CFAbsoluteTime batch451=CFAbsoluteTimeGetCurrent();
+        for (NSUInteger step451=0;step451<wc451;step451++){
+            if (step451 && CFAbsoluteTimeGetCurrent()-batch451>0.006) break;
+            UIWindow *w451=windows451[(start451+step451)%wc451];
+            nwin++; done451++; ADSweepTimed(w451,NO,"window451");
+        }
+        if (wc451) windowCursor451=(start451+MAX((NSUInteger)1,done451))%wc451;
         ADVoiceNativeSweep();
         static NSString *last = nil;
         NSString *now = [NSString stringWithFormat:
@@ -10717,7 +11183,7 @@ static void ADSweepAllWindows(void){
         if (gADCompare448Armed) ADFixNativeCompare448();
         // v5.450 is structural and deliberately has no semantic arm: it is owned
         // by the local thumbnail/tray relationship that survived Fabric windows.
-        ADFixNativeCompare450();
+        if (!gADCompare450Pending) ADFixNativeCompare450();
         // v5.345: P15 found no independently addressable paint layer for the PDP heart.
         // Leave the forensic code in place, but stop spending every sweep walking it.
     } @catch(...) {}
@@ -11057,9 +11523,9 @@ static void ADReapplyBurst(UIViewController *vc){
                 }
             } @catch(...) {}
             ADReapplyBurst(self);
-            // Focused probe after the burst settles. The recursive native offender
-            // scanner is intentionally not automatic anymore; it was expensive debug debt.
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1750*1000000LL),
+            // Install the bounded late runtime after the initial document mounts.
+            // Full diagnostic probes are intentionally never automatic.
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 350*1000000LL),
                 dispatch_get_main_queue(), ^{ ADFocusedProbe363(); });
         }
     } @catch(...) {}
@@ -11123,6 +11589,9 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
 // ─── %ctor : Obj-C-free. Process guard + open log + %init + schedule real work. ────
 %ctor {
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
+    // Keep the frozen v5.450 acquisition callable for source-level rollback, but
+    // retire its six-pass/unconditional whole-window scan in this performance build.
+    gADCompare450Pending = YES;
     ADOpenLog();
     ADRaw("[AmazonDark] " AD_VERSION " init (DarkReader web + native colour engine)");
     // Report the engine state AFTER prefs load -- reading gP in the ctor gives a
