@@ -21,10 +21,10 @@ src = SRC.read_text()
 # version makes a fresh device probe indistinguishable from an older install.
 _control = Path("layout/DEBIAN/control").read_text()
 _workflow = Path(".github/workflows/build.yml").read_text()
-_version_ok = ('#define AD_VERSION "v5.449.0"' in src
-               and "Version: 5.449.0" in _control
-               and "AmazonDark-v5.449-structural-compare-minus-home-creative-rootless-deb" in _workflow)
-print(("PASS" if _version_ok else "FAIL") + ": v5.449 runtime/package/artifact identifiers agree")
+_version_ok = ('#define AD_VERSION "v5.450.0"' in src
+               and "Version: 5.450.0" in _control
+               and "AmazonDark-v5.450-compare-light-circle-home-color-taming-rootless-deb" in _workflow)
+print(("PASS" if _version_ok else "FAIL") + ": v5.450 runtime/package/artifact identifiers agree")
 if not _version_ok:
     sys.exit(1)
 
@@ -106,13 +106,27 @@ for name in [
 items['RNSVGSvgView_hook']=hook_block('RNSVGSvgView')
 items['RCTUIImageViewAnimated_hook']=hook_block('RCTUIImageViewAnimated')
 items['RCTUIImageViewAnimated_layout']=method_in_hook('RCTUIImageViewAnimated','- (void)layoutSubviews')
+# v5.450 adds only a bounded Compare reschedule side effect to this historically
+# frozen WBT hook. Strip that exact clause before hashing so every old byte stays
+# protected; the unstripped clauses are separately hash-locked in the v5.450 gate.
+_rct_compare450_schedule = (
+    "        if (ADRecolorOn() && vv.window &&\n"
+    "            vv.bounds.size.width>=8 && vv.bounds.size.width<=30 &&\n"
+    "            vv.bounds.size.height>=8 && vv.bounds.size.height<=30)\n"
+    "            ADScheduleNativeCompare450();\n"
+)
+_rct_schedule_count = items['RCTUIImageViewAnimated_hook'].count(_rct_compare450_schedule)
+print(('PASS' if _rct_schedule_count == 2 else 'FAIL')+
+      f': exact v5.450 RCT Compare-only scheduling clauses count={_rct_schedule_count}')
+bad = _rct_schedule_count != 2
+items['RCTUIImageViewAnimated_hook'] = items['RCTUIImageViewAnimated_hook'].replace(_rct_compare450_schedule, '')
+items['RCTUIImageViewAnimated_layout'] = items['RCTUIImageViewAnimated_layout'].replace(_rct_compare450_schedule, '')
 for key in ['function cartChrome379(){','function cartChrome382(){']:
     lines=[ln for ln in src.splitlines() if key in ln]
     if len(lines)!=1: raise RuntimeError(f"{key}: expected one source line, got {len(lines)}")
     items[key]=lines[0]
 items['cart_css_lines']='\n'.join(ln for ln in src.splitlines() if 'data-ad-cart' in ln)
 
-bad=False
 for key, expected in EXPECTED.items():
     actual=sha(items[key])
     ok=actual==expected
@@ -138,32 +152,30 @@ def agg_lines(pattern, exclude=None, haystack=None):
     lines=[ln for ln in text.splitlines() if rx.search(ln) and not (ex and ex.search(ln))]
     return lines, sha('\n'.join(lines))
 
-# P24 in the failed v5.448 device probe names two legacy writers that dim the
-# direct 299x478 creative raster.  Preserve every byte of the confirmed v5.395
-# writers except these exact, marker-gated early exits.  Normalizing just these
-# clauses before the historical hashes proves no unrelated WBT behavior moved;
-# requiring each clause exactly once freezes the new exception itself.
-_home449_writer_guards = [
-    "if(x.hasAttribute&&x.hasAttribute('data-ad-homecreative449')){x.removeAttribute('data-ad-tame-fast362');x.removeAttribute('data-ad-homemedia395');if(String(x.style.getPropertyValue('filter')||'')!=='none'||x.style.getPropertyPriority('filter')!=='important')x.style.setProperty('filter','none','important');x.__adTamed=0;delete x.__adTameSig;x.__adBy='homeCreative449Native';continue;}",
-    "if(e.hasAttribute&&e.hasAttribute('data-ad-homecreative449')){e.removeAttribute('data-ad-tame-fast362');e.removeAttribute('data-ad-homemedia395');if(String(e.style.getPropertyValue('filter')||'')!=='none'||e.style.getPropertyPriority('filter')!=='important')e.style.setProperty('filter','none','important');e.__adTamed=0;delete e.__adTameSig;e.__adBy='homeCreative449Native';continue;}",
-]
+# v5.449's broad full-card image exception was disproved on-device: P93 showed
+# four creatives with filter=none and the user saw the resulting WBT regression.
+# v5.450 restores the byte-for-byte v5.395 writers.  Its separate saturated-
+# background repair is excluded from the historical line census below.
 _home395_src=src
-for _guard in _home449_writer_guards:
-    _ok=src.count(_guard)==1
-    print(('PASS' if _ok else 'FAIL')+': exact v5.449 Home writer exclusion '+sha(_guard))
+for _retired in [
+    "function homeCreative449", "homeCreative449Native",
+    "setAttribute('data-ad-homecreative449','native-image')",
+    "__AD_HOMEMEDIA449_WRAP__",
+]:
+    _ok=_retired not in src
+    print(('PASS' if _ok else 'FAIL')+': retired v5.449 Home image exemption absent '+_retired)
     bad |= not _ok
-    _home395_src=_home395_src.replace(_guard, '', 1)
 
 HOME395 = {
-    '_adHomeMedia395 exact definition/calls': (r'_adHomeMedia395', r'449', 4, '3e444e384aec697faa7de97f191f5614e2dda0683c8758a43e71b95e9b8846e2'),
-    'Home media marker population': (r'data-ad-homemedia395|homeMedia395', r'449', 2, 'f7026a7152b61130636e321a3c2de4e21089e0ea866ef1d2041ebbdac3c5e1ae'),
+    '_adHomeMedia395 exact definition/calls': (r'_adHomeMedia395', r'450', 4, '3e444e384aec697faa7de97f191f5614e2dda0683c8758a43e71b95e9b8846e2'),
+    'Home media marker population': (r'data-ad-homemedia395|homeMedia395', r'450', 2, 'f7026a7152b61130636e321a3c2de4e21089e0ea866ef1d2041ebbdac3c5e1ae'),
     '_adStandaloneSweep395 exact definition/calls': (r'_adStandaloneSweep395', None, 4, '1e931418220ed80b4fd966a2280ed2231dd067c98541e7bbb54e78c5718d8681'),
     'Standalone repair marker population': (r'data-ad-homeauto395|data-ad-standparent395|data-ad-standbefore395|data-ad-standafter395', None, 4, '6d508367ffaf47dbc86910ebaa13cd2ff75d47825911d2d008715d2958e285d2'),
     'Standalone iframe selector population': (r'iframe\[data-ad-frame-mode362', None, 4, '2835e55cd74e8a785c76257a97e69d6dfc3e40c4da80eac18cd711609b0278cb'),
-    # Exclude the v5.396 bleed guard/probe and the failed v5.447 / corrected
-    # v5.448 creative-color release diagnostics.
+    # Exclude the v5.396 bleed guard/probe, v5.447/v5.448 diagnostics, and
+    # v5.450's narrow background-only owner/probe.
     # Every older direct reference remains exactly the user-confirmed v5.395 set.
-    'Home media direct-selector population': (r'single-creative-card|single-video-card|video\.vjs-tech|data-ad-homemedia395', r'data-ad-main396|P59BLEED396|P66BLEED401|data-ad-homecreative44[789]|homeCreative44[789]|P(?:89THEME447|91HOME448|93HOME449)|v5\.44[789]|I44[89]|_single-creative-card image|direct 299x478|media are untouched', 4, 'f1976ee3a8b48cb6e9278243e8af2064b01160fb8abd62731ccc90d59753b301'),
+    'Home media direct-selector population': (r'single-creative-card|single-video-card|video\.vjs-tech|data-ad-homemedia395', r'data-ad-main396|P59BLEED396|P66BLEED401|data-ad-homecreative44[789]|homeCreative44[789]|P(?:89THEME447|91HOME448|94HOME450)|v5\.4(?:4[789]|50)|I44[89]|_single-creative-card image|direct 299x478|media are untouched|stale450', 4, 'f1976ee3a8b48cb6e9278243e8af2064b01160fb8abd62731ccc90d59753b301'),
 }
 for label,(pattern,exclude,count,expected) in HOME395.items():
     lines,actual=agg_lines(pattern,exclude,_home395_src)
@@ -172,12 +184,12 @@ for label,(pattern,exclude,count,expected) in HOME395.items():
     bad |= not ok
 
 # Explicitly reject the known-bad standalone blend path and obvious attempts to
-# remove/clear the v5.395 ownership markers. v5.449 has one evidence-backed,
-# full-card-creative exception; remove that exact gated block before applying the
-# historical global ban so no other surface can clear the marker.
-_h449_start = _home395_src.index('         // v5.449 HOME CREATIVE IMAGE.')
-_h449_end = _home395_src.index('         "function badgeFix(){try{"', _h449_start)
-_legacy_without_h449 = _home395_src[:_h449_start] + _home395_src[_h449_end:]
+# remove/clear v5.395 ownership markers.  The v5.450 block may clear a stale
+# v5.449 marker before immediately calling the canonical v5.395 retame; exclude
+# that exact locked block and apply the historical ban everywhere else.
+_h450_start = _home395_src.index('         // v5.450 HOME AUTHORED COLOR.')
+_h450_end = _home395_src.index('         "function badgeFix(){try{"', _h450_start)
+_legacy_without_h450 = _home395_src[:_h450_start] + _home395_src[_h450_end:]
 for forbidden in [
     '__AD_STANDBLEND384__',
     "removeAttribute('data-ad-homemedia395')",
@@ -187,7 +199,7 @@ for forbidden in [
     "removeAttribute('data-ad-standparent395')",
     'removeAttribute("data-ad-standparent395")',
 ]:
-    ok=forbidden not in _legacy_without_h449
+    ok=forbidden not in _legacy_without_h450
     print(('PASS' if ok else 'FAIL')+f': forbidden competing writer absent: {forbidden}')
     bad |= not ok
 
@@ -623,7 +635,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.449.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.450.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
@@ -1263,102 +1275,102 @@ for _required in [
 
 print('PASS: v5.448 locks every recently edited symbol, pins only the native minus leaf, keeps its host dark, restores Amazon creative color, and retains the video guard.')
 
-# v5.449 DEVICE-EVIDENCE LOCK
-# v5.448 produced no P90 event and P91 showed zero releases. Freeze the new
-# ownership boundaries exactly: geometry acquires the observed bottom 20x20
-# raster without semantic text, only a bounded foreground CALayer may be added,
-# and Home releases the direct full-card IMG from brightness tame without touching
-# video or theming-card backgrounds.
-print('--- v5.449 structural Compare-minus / direct Home-raster lock ---')
-_native449 = exact_between('// ── v5.449 STRUCTURAL COMPARE-TRAY MINUS',
-                           '// ── P19 VOICE-PERMISSION', 'native Compare 449')
-_home449 = exact_between('         // v5.449 HOME CREATIVE IMAGE.',
-                         '         "function badgeFix(){try{"', 'Home creative 449')
-_probe93 = exact_between('       // P93HOME449:',
-                         '       // P69V333403:', 'P93HOME449')
-_layer_pin449 = exact_between(
-    '        if (objc_getAssociatedObject(self, kADCompareOverlay449Key)) {',
-    '        if (ADLayerIsWebKitOwned(self)) {', 'CALayer Compare overlay pin')
-_image_assign449 = exact_between(
+# v5.450 DEVICE-EVIDENCE LOCK
+# P92 proved the UIWindow bottom-band coordinate was false for all three native
+# candidates. P93 proved v5.449's broad image exemption removed WBT from four
+# Home creatives, while P73 exposed one saturated authored background under the
+# v5.395 compositor. Freeze the corrected boundaries exactly.
+print('--- v5.450 local Compare paint / authored Home color + WBT lock ---')
+_native450 = exact_between('// ── v5.450 LOCAL-STRUCTURE COMPARE CONTROL',
+                           '// ── P19 VOICE-PERMISSION', 'native Compare 450')
+_home450 = exact_between('         // v5.450 HOME AUTHORED COLOR.',
+                         '         "function badgeFix(){try{"', 'Home color 450')
+_probe94 = exact_between('       // P94HOME450:',
+                         '       // P69V333403:', 'P94HOME450')
+_layer_pin450 = exact_between(
+    '        if (objc_getAssociatedObject(self, kADCompareCircle450Key)) {',
+    '        if (ADLayerIsWebKitOwned(self)) {', 'CALayer Compare paint pins')
+_image_assign450 = exact_between(
     '    // A Compare tray may reuse an already-mounted RN image view',
-    '    // v5.448: the Compare tray', 'UIImageView Compare assignment trigger')
-_fixture449 = Path('scripts/test-theme-surfaces-449.py').read_text()
+    '    // v5.448: the Compare tray', 'UIImageView Compare local trigger')
+_fixture450 = Path('scripts/test-theme-surfaces-450.py').read_text()
 
 for _label, _body, _expected in [
-    ('structural native owner', _native449,
-     'd6b3a0e38a7ce42ce7c31a5b00e5ff4b2752111ddb79b509c92c8cd80510b3d0'),
-    ('direct Home creative owner', _home449,
-     'b20d65bb535abfd0be1931ec309aa58bc62f0d6c04c0f8a2678459c59cb3c535'),
-    ('P93 direct-raster device contract', _probe93,
-     'ff627dc51bac3c90c3170305af167f155d04776e1c76fa755af5a862096754fd'),
-    ('CALayer assignment-time overlay pin', _layer_pin449,
-     'ea223ec1e6f0f72a643d0adc40cce8424b20f8c9c9bf0b4c2ccfc0d532172c1f'),
-    ('UIImageView assignment-time structural trigger', _image_assign449,
-     '71f2e5db89e0adc4c27c679efd4547d114485820ac0df281cb4fbbad992bd681'),
-    ('structural/native-raster regression fixture', _fixture449,
-     'dcb6ab60674085926467b42fe07414856b055746dbc191487be1064d8087878c'),
+    ('local native owner', _native450, 'a57433afcac631c026840f2e22356cf49b3898f4fa3c5125cff38da5d994c99b'),
+    ('authored Home color owner', _home450, 'eb51677b2d9b326351603a2dd4aa02263b8783b5320fe79d5cf56a9a80508fae'),
+    ('P94 Home device contract', _probe94, 'ee390e478ccb2b588f6982831ea69764033d22d15b1633c617db696d00ca460f'),
+    ('CALayer light/dark assignment pins', _layer_pin450, 'da5da1443110711c4971b861babf853b2e922f6858f3208ef21178d7a05ac6ef'),
+    ('UIImageView local acquisition trigger', _image_assign450, '96da1d3834e818bf892cfe50bff558a1cc849bf3140626a5aa4d1dcb376d4724'),
+    ('local/native/Home regression fixture', _fixture450, '8b8285f8b8f58587318c73fe7470d123546b0f9f825ebbb9652debfa02747a51'),
 ]:
     _actual = sha(_body); _ok = _actual == _expected
-    print(('PASS' if _ok else 'FAIL')+f': exact v5.449 {_label} {_actual}')
+    print(('PASS' if _ok else 'FAIL')+f': exact v5.450 {_label} {_actual}')
     if not _ok:
-        print('ERROR: the v5.449 structural minus or direct creative-raster boundary changed.')
+        print('ERROR: the v5.450 Compare paint or Home color/WBT boundary changed.')
         sys.exit(1)
 
 for _required in [
-    'w<8 || w>30 || h<6 || h>30',
-    'CGRectGetMidY(lf)<sh*.68', 'CGRectGetMidX(lf)>sw*.46',
-    'f.size.width>=win.bounds.size.width*.72',
-    'f.size.height>=48 && f.size.height<=230',
-    'ADCompareThumbWalk448(tray,tray,win,0,&thumb,&thumbScore)',
-    'ADCompareRoundForLeaf449', 'ADCompareDarkRaster449',
-    'dx>52 || dy>42', 'kADCompareOverlay449Key',
-    'bw=MAX(8.0,MIN(14.0,hw*.42))',
-    'bh=MAX(2.0,MIN(3.0,hh*.09))',
-    'P92COMPARE449[nodes=', 'hostStable=%d',
+    'w<8 || w>30 || h<8 || h>30 || fabs(w-h)>8',
+    'w>=240 && w<=900 && h>=44 && h<=260 && w/h>=1.8',
+    'w>=38 && w<=104 && h>=30 && h<=96',
+    'ADCompareThumbWalk450(p,p,leaf,0,&localThumb,&localScore)',
+    'ADCompareDarkRaster450', 'dx>=-16 && dx<=64 && dy<=42',
+    'kADCompareCircle450Key', 'kADCompareMinus450Key',
+    'circle.backgroundColor=[UIColor whiteColor].CGColor',
+    'minus.backgroundColor=ADColorFromHex(gP.bgHex).CGColor',
+    'P94COMPARE450[nodes=', 'geometryStable=%d',
 ]:
-    _ok = _required in _native449
-    print(('PASS' if _ok else 'FAIL')+f': v5.449 structural native contract {_required[:76]}')
+    _ok = _required in _native450
+    print(('PASS' if _ok else 'FAIL')+f': v5.450 local native contract {_required[:76]}')
     if not _ok: sys.exit(1)
 
 for _forbidden in [
-    'host.backgroundColor=', 'host.layer.backgroundColor=',
-    'host.layer.cornerRadius=', 'host.frame=', 'host.bounds=',
-    '[host setFrame:', '[host setBounds:', '[iv setImage:',
-    'kADCompareImage448Key', 'ADNativeComparePhrase448',
+    'CGRectGetMidY(lf)<', 'win.bounds', 'host.backgroundColor=',
+    'host.layer.backgroundColor=', 'host.layer.cornerRadius=',
+    'host.frame=', 'host.bounds=', '[host setFrame:', '[host setBounds:',
+    '[iv setImage:', 'ADNativeComparePhrase448',
 ]:
-    _ok = _forbidden not in _native449
-    print(('PASS' if _ok else 'FAIL')+f': v5.449 native circle/raster immutable {_forbidden}')
+    _ok = _forbidden not in _native450
+    print(('PASS' if _ok else 'FAIL')+f': v5.450 native geometry/artwork immutable {_forbidden}')
     if not _ok: sys.exit(1)
 
 for _required in [
-    'img[class*=\\"_single-creative-card\\"],img[class*=\\"single-creative-card\\"]',
-    'r449.width<220||r449.height<300', '/single-video-card/i.test(c449)',
-    "removeAttribute('data-ad-tame-fast362')",
-    "removeAttribute('data-ad-homemedia395')",
+    "querySelectorAll('[class*=theming-card-background]')",
+    "setAttribute('data-ad-homecolor450','authored')",
+    "Math.max(q450[0],q450[1],q450[2])-Math.min(q450[0],q450[1],q450[2])<24",
+    "removeProperty('box-shadow')", "removeProperty('background-blend-mode')",
+    "removeAttribute('data-ad-homebg395')", "_adHomeMedia395()",
+    'P94HOME450[colored=', 'creativeFull=', 'untamed=', 'stale449=',
+]:
+    _ok = _required in _home450 or _required in _probe94
+    print(('PASS' if _ok else 'FAIL')+f': v5.450 Home color/WBT contract {_required[:76]}')
+    if not _ok: sys.exit(1)
+
+for _forbidden in [
     "setProperty('filter','none','important')",
-    "setAttribute('data-ad-homecreative449','native-image')",
-    '__AD_HOMEMEDIA395_PRE449__', "attributeFilter:['style','class','src']",
-    'P93HOME449[creative=', 'dimmed=', 'stale=', 'background=',
+    "setAttribute('data-ad-homecreative449'", 'homeCreative449Native',
+    '.click(', 'dispatchEvent', "createElement('svg')", 'innerHTML=', 'outerHTML=',
 ]:
-    _ok = _required in _home449 or _required in _probe93
-    print(('PASS' if _ok else 'FAIL')+f': v5.449 direct Home raster contract {_required[:76]}')
-    if not _ok: sys.exit(1)
-
-for _forbidden in [
-    "querySelectorAll('[class*=theming-card-background]')", 'ia449', 'ov449(', '.click(', 'dispatchEvent',
-    "createElement('svg')", 'innerHTML=', 'outerHTML=',
-]:
-    _ok = _forbidden not in _home449
-    print(('PASS' if _ok else 'FAIL')+f': v5.449 Home owner cannot broaden/invent state {_forbidden}')
+    _ok = _forbidden not in _home450
+    print(('PASS' if _ok else 'FAIL')+f': v5.450 Home owner cannot disable image WBT/invent state {_forbidden}')
     if not _ok: sys.exit(1)
 
 for _required in [
-    '        ADFixNativeCompare449();',
-    '            if ([self isKindOfClass:[UIImageView class]] && cn449 &&',
-    '                ADScheduleNativeCompare449();',
+    '        ADFixNativeCompare450();',
+    '                ADScheduleNativeCompare450();',
+    '            ADScheduleNativeCompare450();',
+    'const double delay450[]={0.01,0.08,0.25,0.70,1.50,3.00}',
 ]:
     _ok = _required in src
-    print(('PASS' if _ok else 'FAIL')+f': v5.449 structural acquisition stays armed {_required.strip()}')
+    print(('PASS' if _ok else 'FAIL')+f': v5.450 structural acquisition stays armed {_required.strip()}')
     if not _ok: sys.exit(1)
 
-print('PASS: v5.449 permanently gates the observed 20x20 bottom-tray minus, keeps the native circle/raster immutable, releases only full-card Home creative images from dimming, and preserves video/background owners.')
+for _retired in [
+    'ADFixNativeCompare449(void)', 'ADScheduleNativeCompare449(void)',
+    'function homeCreative449', '__AD_HOMEMEDIA449_WRAP__',
+]:
+    _ok = _retired not in src
+    print(('PASS' if _ok else 'FAIL')+f': failed v5.449 path retired {_retired}')
+    if not _ok: sys.exit(1)
+
+print('PASS: v5.450 permanently gates the local Compare control as a white circle/dark minus, restores only saturated authored Home backings, and keeps every full-card creative on v5.395 WBT.')
