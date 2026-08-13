@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.448.0"
+#define AD_VERSION "v5.449.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -184,6 +184,13 @@ static BOOL gADCompare448Armed = NO;
 static BOOL ADNativeComparePhrase448(NSString *text);
 static void ADScheduleNativeCompare448(void);
 static void ADFixNativeCompare448(void);
+// v5.449: P90 never appeared on-device, proving the native tray copy does not
+// pass through either React text setter.  Acquire the observed 20x20 raster from
+// bottom-tray geometry instead, and pin a separate light minus paint over it so
+// an encoded dark circle is never template-tinted along with the minus.
+static const void *kADCompareOverlay449Key = &kADCompareOverlay449Key;
+static void ADScheduleNativeCompare449(void);
+static void ADFixNativeCompare449(void);
 // Forward declarations required by the early Menu glyph gate (v5.382 lint/compile fix).
 static inline BOOL ADImageIsTemplateish(UIImage *im);
 static const void *kADOrigImageKey = &kADOrigImageKey;
@@ -3365,7 +3372,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "(document.head||document.documentElement).appendChild(st);}catch(e){}}"
          "function _adTameFast362(root){try{if(!window.__ADTAME_ON__||!root||root.nodeType!==1)return 0;_adTameCss362();var S365=Math.max(0,Math.min(100,window.__ADTAME_S__||45)),bb365=(1-0.50*(S365/100)).toFixed(3),aa365=(0.50*(S365/100)).toFixed(3);var A=[];"
            "if(/^(IMG|VIDEO|CANVAS)$/i.test(String(root.tagName||'')))A.push(root);try{var q=root.querySelectorAll('img,video,canvas');for(var i=0;i<q.length&&i<100;i++)A.push(q[i]);}catch(e){}"
-           "var n=0;for(var j=0;j<A.length&&j<120;j++){var x=A[j],tg=String(x.tagName||'').toUpperCase(),cn=x.className;cn=String(cn&&cn.baseVal!==undefined?cn.baseVal:(cn||''));var band=_adTameBand362(x),xr=x.getBoundingClientRect(),prod366=(tg==='IMG'&&_adKnownProduct366(x)),review366=(band===3);"
+           "var n=0;for(var j=0;j<A.length&&j<120;j++){var x=A[j],tg=String(x.tagName||'').toUpperCase(),cn=x.className;cn=String(cn&&cn.baseVal!==undefined?cn.baseVal:(cn||''));if(x.hasAttribute&&x.hasAttribute('data-ad-homecreative449')){x.removeAttribute('data-ad-tame-fast362');x.removeAttribute('data-ad-homemedia395');if(String(x.style.getPropertyValue('filter')||'')!=='none'||x.style.getPropertyPriority('filter')!=='important')x.style.setProperty('filter','none','important');x.__adTamed=0;delete x.__adTameSig;x.__adBy='homeCreative449Native';continue;}var band=_adTameBand362(x),xr=x.getBoundingClientRect(),prod366=(tg==='IMG'&&_adKnownProduct366(x)),review366=(band===3);"
              "if(band<0||_adExploreIcon363(x)||_adNoTameGlyph367(x)){x.removeAttribute('data-ad-tame-fast362');if(String(x.__adBy||'').indexOf('whiteTame')===0)x.style.removeProperty('filter');x.__adTamed=0;x.__adBy='exploreSkip362';continue;}"
              "if(review366&&tg!=='IMG')continue;if(review366&&/sprite|icon|logo|pixel|star|rating|close/i.test(cn))continue;"
              "if(band!==2&&!review366&&!prod366&&/sprite|icon|logo|pixel/i.test(cn))continue;if(x.__adGlyph&&band!==2&&!review366&&!prod366)continue;var ok=(tg==='VIDEO'||tg==='CANVAS');"
@@ -3447,7 +3454,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // Previous generic Home classifiers missed/protected it. Anchor to the actual
          // ad-video DOM, skip the 299px creative itself, and neutralize only full-width
          // saturated ancestor paint. No video attributes/playback/filter/layout writes.
-                  "function _adHomeMedia395(){try{if(window.__ADFRAME_MODE__||!document.body||!window.__ADTAME_ON__)return 0;if(document.querySelector('#search,.s-search-results,[data-component-type=\"s-search-result\"],#productTitle,#dp-container,#ppd')){window.__AD_HOMEMEDIA395__='home=0 product=1';return 0;}var S=Math.max(0,Math.min(100,window.__ADTAME_S__||45)),bb=(1-0.50*(S/100)).toFixed(3),E=document.querySelectorAll('img[class*=\"_single-creative-card\"],img[class*=\"_single-video-card\"],[class*=\"single-creative-card\"] img,[class*=\"single-video-card\"] img,video.vjs-tech,[class*=\"single-video-card\"] video,[class*=\"theming-card-background\"],.vjs-poster,[class*=\"vjs-poster\"]'),media=0,bg=0,uncovered=0,hazard=0;for(var i=0;i<E.length&&i<240;i++){var e=E[i],r=e.getBoundingClientRect(),tg=String(e.tagName||'').toUpperCase();if(r.width<100||r.height<70)continue;if(tg==='DIV'||tg==='SECTION'||tg==='SPAN'){if(!_adHomeBgLeaf395(e))continue;bg++;var cs=getComputedStyle(e);if(String(cs.filter||'none')!=='none'||String(cs.backgroundBlendMode||'normal').indexOf('multiply')>=0)hazard++;if(!e.hasAttribute('data-ad-homebg395'))uncovered++;continue;}if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')continue;var want='brightness('+bb+') saturate(1.08)';e.setAttribute('data-ad-tame-fast362','1');e.setAttribute('data-ad-homemedia395','1');if(String(e.style.getPropertyValue('filter')||'')!==want||e.style.getPropertyPriority('filter')!=='important')e.style.setProperty('filter',want,'important');e.__adTamed=1;e.__adTameSig='HM395|'+String(e.currentSrc||e.src||e.poster||'');e.__adBy='homeMedia395';media++;if(String(getComputedStyle(e).filter||'').indexOf('brightness')<0)uncovered++;}window.__AD_HOMEMEDIA395__='media='+media+' bg='+bg+' uncovered='+uncovered+' hazard='+hazard;return media+bg;}catch(e){window.__AD_HOMEMEDIA395__='err '+(e&&e.message||e);return 0;}}"
+                  "function _adHomeMedia395(){try{if(window.__ADFRAME_MODE__||!document.body||!window.__ADTAME_ON__)return 0;if(document.querySelector('#search,.s-search-results,[data-component-type=\"s-search-result\"],#productTitle,#dp-container,#ppd')){window.__AD_HOMEMEDIA395__='home=0 product=1';return 0;}var S=Math.max(0,Math.min(100,window.__ADTAME_S__||45)),bb=(1-0.50*(S/100)).toFixed(3),E=document.querySelectorAll('img[class*=\"_single-creative-card\"],img[class*=\"_single-video-card\"],[class*=\"single-creative-card\"] img,[class*=\"single-video-card\"] img,video.vjs-tech,[class*=\"single-video-card\"] video,[class*=\"theming-card-background\"],.vjs-poster,[class*=\"vjs-poster\"]'),media=0,bg=0,uncovered=0,hazard=0;for(var i=0;i<E.length&&i<240;i++){var e=E[i],r=e.getBoundingClientRect(),tg=String(e.tagName||'').toUpperCase();if(r.width<100||r.height<70)continue;if(e.hasAttribute&&e.hasAttribute('data-ad-homecreative449')){e.removeAttribute('data-ad-tame-fast362');e.removeAttribute('data-ad-homemedia395');if(String(e.style.getPropertyValue('filter')||'')!=='none'||e.style.getPropertyPriority('filter')!=='important')e.style.setProperty('filter','none','important');e.__adTamed=0;delete e.__adTameSig;e.__adBy='homeCreative449Native';continue;}if(tg==='DIV'||tg==='SECTION'||tg==='SPAN'){if(!_adHomeBgLeaf395(e))continue;bg++;var cs=getComputedStyle(e);if(String(cs.filter||'none')!=='none'||String(cs.backgroundBlendMode||'normal').indexOf('multiply')>=0)hazard++;if(!e.hasAttribute('data-ad-homebg395'))uncovered++;continue;}if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')continue;var want='brightness('+bb+') saturate(1.08)';e.setAttribute('data-ad-tame-fast362','1');e.setAttribute('data-ad-homemedia395','1');if(String(e.style.getPropertyValue('filter')||'')!==want||e.style.getPropertyPriority('filter')!=='important')e.style.setProperty('filter',want,'important');e.__adTamed=1;e.__adTameSig='HM395|'+String(e.currentSrc||e.src||e.poster||'');e.__adBy='homeMedia395';media++;if(String(getComputedStyle(e).filter||'').indexOf('brightness')<0)uncovered++;}window.__AD_HOMEMEDIA395__='media='+media+' bg='+bg+' uncovered='+uncovered+' hazard='+hazard;return media+bg;}catch(e){window.__AD_HOMEMEDIA395__='err '+(e&&e.message||e);return 0;}}"
          "window._adHomeMedia395=_adHomeMedia395;"
          "try{_adHomeMedia395();_adStandaloneSweep395();setTimeout(_adHomeMedia395,120);setTimeout(_adHomeMedia395,420);setTimeout(_adHomeMedia395,1100);setTimeout(_adStandaloneSweep395,180);setTimeout(_adStandaloneSweep395,700);setTimeout(_adStandaloneSweep395,1500);if(!window.__ADHOMEP395INIT__){window.__ADHOMEP395INIT__=1;var hp395=0;addEventListener('scroll',function(){if(hp395)return;hp395=1;var f=function(){hp395=0;try{_adHomeMedia395();_adStandaloneSweep395();}catch(e){}};if(requestAnimationFrame)requestAnimationFrame(f);else setTimeout(f,0);},{passive:true,capture:true});addEventListener('pageshow',function(){try{_adHomeMedia395();_adStandaloneSweep395();}catch(e){}},{passive:true});}}catch(e){}"
          // v5.359: the 5.358 device probe finally identified the College painters as
@@ -5319,6 +5326,14 @@ static void ADInvertRNSVG(UIView *v);
 - (void)didMoveToWindow {
     %orig;
     @try { if (ADRecolorOn() && self.window) ADInvertRNSVG(self); } @catch(...) {}
+    @try {
+        if (ADRecolorOn() && self.window){
+            const char *cn449=object_getClassName(self);
+            if ([self isKindOfClass:[UIImageView class]] && cn449 &&
+                (strstr(cn449,"RCTImage") || strstr(cn449,"ImageComponent")))
+                ADScheduleNativeCompare449();
+        }
+    } @catch(...) {}
 }
 - (void)setBackgroundColor:(UIColor *)color {
     // v5.448 Compare tray: only a positively-owned thin minus bar is pinned
@@ -5824,6 +5839,12 @@ static void ADReportFabricText(id vObj, NSAttributedString *before, NSAttributed
         return;
     }
     @try {
+        if (objc_getAssociatedObject(self, kADCompareOverlay449Key)) {
+            UIColor *want449=ADColorFromHex(gP.fgHex);
+            CGColorRef paint449=want449.CGColor;
+            %orig(paint449);
+            return;
+        }
         if (ADLayerIsWebKitOwned(self)) {
             %orig;
             return;
@@ -7453,6 +7474,16 @@ static UIImage *ADGlyphify(UIImage *img){
 
 %hook UIImageView
 - (void)setImage:(UIImage *)image {
+    // A Compare tray may reuse an already-mounted RN image view and assign the
+    // dark circle/minus raster after didMoveToWindow.  Schedule the structural
+    // pass from that assignment too; the pass itself still requires tray,
+    // thumbnail, bottom-band, size, and proximity agreement before painting.
+    @try {
+        const char *cn449=object_getClassName(self);
+        if (image && ADRecolorOn() && self.window && cn449 &&
+            (strstr(cn449,"RCTImage") || strstr(cn449,"ImageComponent")))
+            ADScheduleNativeCompare449();
+    } @catch(...) {}
     // v5.448: the Compare tray's native 10x14 minus is replaced during React
     // commits.  Ownership is assigned only after the native tray phrase, product
     // thumbnail, overlapping round host, and nested glyph all agree.  Re-template
@@ -8622,6 +8653,201 @@ static void ADTextClassProbe(void){
     } @catch(...) {}
 }
 
+// ── v5.449 STRUCTURAL COMPARE-TRAY MINUS ────────────────────────────────────
+// The v5.448 probe never emitted P90COMPARE448, so neither native text setter
+// owns the tray sentence on this Amazon build.  What did appear, exactly when
+// the tray opened, was the same dark-neutral 20x20 RCTUIImageViewAnimated twice.
+// Find that paint from the screenshot's stable geometry: bottom dock, left-band
+// raster, product thumbnail, and the raster/round host overlap.  A separate bar
+// is painted above the native raster; the circle image, host fill, radius, frame,
+// interaction, and Amazon artwork are never rewritten.
+static BOOL ADCompareDarkRaster449(UIImageView *iv){
+    @try {
+        CGFloat clear449=0,avg449=0,sat449=0;
+        if (!iv.image || !ADImageIsDarkGlyph(iv.image,&clear449,&avg449,&sat449)) return NO;
+        return clear449>.25 && avg449<.18 && sat449<.10;
+    } @catch(...) {}
+    return NO;
+}
+
+static UIView *ADCompareTrayForLeaf449(UIView *leaf, UIWindow *win){
+    UIView *best=nil; CGFloat bestArea=CGFLOAT_MAX;
+    @try {
+        UIView *p=leaf.superview; int up449=0;
+        while (p && up449++<14){
+            if (ADIsWebKitOwned(p)) return nil;
+            CGRect f=[p convertRect:p.bounds toView:win];
+            CGFloat area=f.size.width*f.size.height;
+            if (f.size.width>=win.bounds.size.width*.72 &&
+                f.size.height>=48 && f.size.height<=230 &&
+                CGRectGetMidY(f)>win.bounds.size.height*.66 && area<bestArea){
+                best=p; bestArea=area;
+            }
+            p=p.superview;
+        }
+    } @catch(...) {}
+    return best;
+}
+
+static UIView *ADCompareRoundForLeaf449(UIView *leaf, UIView *tray){
+    @try {
+        UIView *p=leaf.superview; int up449=0;
+        while (p && up449++<7){
+            if (ADCompareDarkRound448(p)) return p;
+            if (p==tray) break;
+            p=p.superview;
+        }
+    } @catch(...) {}
+    return nil;
+}
+
+static CALayer *ADCompareInstallBar449(UIView *host, BOOL *created){
+    if (created) *created=NO;
+    if (!host) return nil;
+    @try {
+        CALayer *bar=objc_getAssociatedObject(host,kADCompareOverlay449Key);
+        if (bar && bar.superlayer!=host.layer){
+            objc_setAssociatedObject(host,kADCompareOverlay449Key,nil,
+                                     OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            bar=nil;
+        }
+        if (!bar){
+            bar=[CALayer layer];
+            bar.name=@"AmazonDark.compareMinus449";
+            objc_setAssociatedObject(bar,kADCompareOverlay449Key,@YES,
+                                     OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(host,kADCompareOverlay449Key,bar,
+                                     OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            [host.layer addSublayer:bar];
+            if (created) *created=YES;
+        }
+        CGFloat hw=host.bounds.size.width,hh=host.bounds.size.height;
+        CGFloat bw=MAX(8.0,MIN(14.0,hw*.42));
+        CGFloat bh=MAX(2.0,MIN(3.0,hh*.09));
+        [CATransaction begin]; [CATransaction setDisableActions:YES];
+        bar.frame=CGRectMake(round((hw-bw)*.5),round((hh-bh)*.5),bw,bh);
+        bar.cornerRadius=bh*.5;
+        bar.backgroundColor=ADColorFromHex(gP.fgHex).CGColor;
+        bar.opacity=1.0; bar.hidden=NO; bar.zPosition=10000;
+        [CATransaction commit];
+        return bar;
+    } @catch(...) {}
+    return nil;
+}
+
+static void ADCompareTryLeaf449(UIImageView *iv, UIWindow *win,
+                                int *candidate, int *bottom, int *traySeen,
+                                int *thumbSeen, int *roundSeen, int *rasterSeen,
+                                int *overlay, int *created, int *stable,
+                                NSString **sample){
+    if (!iv || !iv.image || !win || iv.hidden || iv.alpha<.05) return;
+    @try {
+        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
+        if (w<8 || w>30 || h<6 || h>30) return;
+        (*candidate)++;
+        CGRect lf=[iv convertRect:iv.bounds toView:win];
+        CGFloat sw=win.bounds.size.width,sh=win.bounds.size.height;
+        if (CGRectGetMidY(lf)<sh*.68 || CGRectGetMidY(lf)>sh*.95 ||
+            CGRectGetMidX(lf)>sw*.46) return;
+        (*bottom)++;
+        UIView *tray=ADCompareTrayForLeaf449(iv,win);
+        if (!tray) return;
+        (*traySeen)++;
+        UIView *thumb=nil; CGFloat thumbScore=CGFLOAT_MAX;
+        ADCompareThumbWalk448(tray,tray,win,0,&thumb,&thumbScore);
+        if (!thumb) return;
+        (*thumbSeen)++;
+        UIView *roundHost=ADCompareRoundForLeaf449(iv,tray);
+        UIView *host=roundHost ?: (UIView *)iv;
+        if (roundHost) (*roundSeen)++;
+        else {
+            if (w<16 || h<16 || fabs(w-h)>8 || !ADCompareDarkRaster449(iv)) return;
+            (*rasterSeen)++;
+        }
+        CGRect hf=[host convertRect:host.bounds toView:win];
+        CGRect tf=[thumb convertRect:thumb.bounds toView:win];
+        CGFloat dx=fabs(CGRectGetMidX(hf)-CGRectGetMaxX(tf));
+        CGFloat dy=fabs(CGRectGetMidY(hf)-CGRectGetMidY(tf));
+        if (dx>52 || dy>42) return;
+        UIColor *bg=host.backgroundColor;
+        if (!bg && host.layer.backgroundColor) bg=[UIColor colorWithCGColor:host.layer.backgroundColor];
+        NSString *before=[NSString stringWithFormat:@"%@|%.3f",ADCompareColor448(bg),host.layer.cornerRadius];
+        BOOL made=NO; CALayer *bar=ADCompareInstallBar449(host,&made);
+        if (!bar) return;
+        (*overlay)++; if (made) (*created)++;
+        UIColor *afterBG=host.backgroundColor;
+        if (!afterBG && host.layer.backgroundColor) afterBG=[UIColor colorWithCGColor:host.layer.backgroundColor];
+        NSString *after=[NSString stringWithFormat:@"%@|%.3f",ADCompareColor448(afterBG),host.layer.cornerRadius];
+        if (![before isEqualToString:after]) *stable=0;
+        if (sample && !*sample){
+            *sample=[NSString stringWithFormat:@"%s@%.0f,%.0f/%.0fx%.0f mode=%@ dx=%.0f dy=%.0f bar=%.0fx%.0f",
+                     object_getClassName(iv),lf.origin.x,lf.origin.y,lf.size.width,lf.size.height,
+                     roundHost?@"round":@"raster",dx,dy,bar.bounds.size.width,bar.bounds.size.height];
+        }
+    } @catch(...) {}
+}
+
+static void ADCompareLeafWalk449(UIView *v, UIWindow *win, int depth, int *nodes,
+                                 int *candidate, int *bottom, int *traySeen,
+                                 int *thumbSeen, int *roundSeen, int *rasterSeen,
+                                 int *overlay, int *created, int *stable,
+                                 NSString **sample){
+    if (!v || depth>46 || *nodes>2200 || v.hidden || v.alpha<.05) return;
+    @try {
+        (*nodes)++;
+        if (ADIsWebKitOwned(v)) return;
+        if ([v isKindOfClass:[UIImageView class]])
+            ADCompareTryLeaf449((UIImageView *)v,win,candidate,bottom,traySeen,
+                                thumbSeen,roundSeen,rasterSeen,overlay,created,
+                                stable,sample);
+        for (UIView *q in v.subviews)
+            ADCompareLeafWalk449(q,win,depth+1,nodes,candidate,bottom,traySeen,
+                                 thumbSeen,roundSeen,rasterSeen,overlay,created,
+                                 stable,sample);
+    } @catch(...) {}
+}
+
+static NSString *gADCompare449LastState=nil;
+static BOOL gADCompare449Pending=NO;
+
+static void ADFixNativeCompare449(void){
+    if (!ADRecolorOn()) return;
+    @try {
+        int nodes=0,candidate=0,bottom=0,traySeen=0,thumbSeen=0;
+        int roundSeen=0,rasterSeen=0,overlay=0,created=0,stable=1;
+        NSString *sample=nil;
+        for (UIWindow *w in [UIApplication sharedApplication].windows){
+            if (!w || w.hidden || w.alpha<.05) continue;
+            ADCompareLeafWalk449(w,w,0,&nodes,&candidate,&bottom,&traySeen,
+                                 &thumbSeen,&roundSeen,&rasterSeen,&overlay,
+                                 &created,&stable,&sample);
+        }
+        NSString *state=[NSString stringWithFormat:
+          @"P92COMPARE449[nodes=%d candidate=%d bottom=%d tray=%d thumb=%d round=%d raster=%d overlay=%d created=%d hostStable=%d %@]",
+          nodes,candidate,bottom,traySeen,thumbSeen,roundSeen,rasterSeen,
+          overlay,created,stable,sample ?: @"-"];
+        if (![state isEqualToString:gADCompare449LastState]){
+            gADCompare449LastState=state; ADLog(@"%@",state);
+        }
+    } @catch(NSException *e) {
+        ADLog(@"P92COMPARE449[err %@]",e.reason ?: @"unknown");
+    }
+}
+
+static void ADScheduleNativeCompare449(void){
+    if (!ADRecolorOn() || gADCompare449Pending) return;
+    gADCompare449Pending=YES;
+    const double delay449[]={0.01,0.08,0.25,0.70};
+    for (int i449=0;i449<4;i449++){
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+                       (int64_t)(delay449[i449]*NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            @try { ADFixNativeCompare449(); } @catch(...) {}
+            if (i449==3) gADCompare449Pending=NO;
+        });
+    }
+}
+
 
 // ── P19 VOICE-PERMISSION NATIVE REPAIR (v5.349) ─────────────────────────────
 // v5.348 proved the microphone pre-permission pane is not in the probed WKWebView
@@ -9361,6 +9587,18 @@ static NSString *ADProbeWebJS(void){
            "for(var b448=0;b448<B448.length&&b448<100;b448++){var e448=B448[b448],er448=rr448(e448);if(!er448||er448.width<100||er448.height<100)continue;var ci448=false,vi448=false;for(var i448=0;i448<I448.length&&i448<100;i448++){var ir448=rr448(I448[i448]);if(ir448&&ov448(er448,ir448)){ci448=true;break;}}if(!ci448)continue;for(var v448=0;v448<V448.length&&v448<100;v448++){var vr448=rr448(V448[v448]);if(vr448&&ov448(er448,vr448)){vi448=true;break;}}if(vi448)continue;if(e448.getAttribute('data-ad-homecreative448')!=='native')e448.setAttribute('data-ad-homecreative448','native');if(e448.hasAttribute('data-ad-homebg395')||String(e448.__adBy||'')==='homeBgLeaf395'){e448.style.removeProperty('filter');e448.style.removeProperty('background-blend-mode');e448.style.removeProperty('box-shadow');e448.removeAttribute('data-ad-homebg395');delete e448.__adTamed;delete e448.__adTameSig;delete e448.__adBy;clean448++;}n448++;}"
            "window.__AD_HOMECREATIVE448_STATE__='home=1 bg='+B448.length+' creative='+I448.length+' video='+V448.length+' native='+n448+' cleanup='+clean448;return n448;}catch(e){window.__AD_HOMECREATIVE448_STATE__='err '+(e&&e.message||e);return -1;}}"
          "function homeAmbient386(){try{if(window.__ADFRAME_MODE__||!document.body){window.__AD_HOMEAMBIENT386__='off';return 0;}var SEL='[class*=\"_hp-mosaic-container_style_widgetContainer\"],[class*=\"_mosaic-container_style_widgetContainer\"],[class*=\"gwm-dashboard-container\"],[class*=\"gwm-window-layout\"],[class*=\"gwm-asin-tile\"]',S=document.querySelectorAll(SEL);if(S.length<2){window.__AD_HOMEAMBIENT386__='home=0';return 0;}function pc(v){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([0-9.]+))?/i.exec(String(v||''));return m?[+m[1],+m[2],+m[3],m[4]===undefined?1:+m[4]]:null;}function sat(q){return q?(Math.max(q[0],q[1],q[2])-Math.min(q[0],q[1],q[2]))/255:0;}var seen=[],n=0,left=0,W=innerWidth||390,H=innerHeight||700;function fix(e){if(!e||seen.indexOf(e)>=0)return;seen.push(e);var r=e.getBoundingClientRect();if(r.width<W*.82||r.height<H*.55)return;var cl=String(e.className&&e.className.baseVal!==undefined?e.className.baseVal:(e.className||'')).toLowerCase();if(/carousel|hero|slideshow|swiper|swipe|creative|product-image|image-container/.test(cl))return;var cs=getComputedStyle(e),bg=pc(cs.backgroundColor),bi=String(cs.backgroundImage||'none'),grad=/gradient\\(/i.test(bi)&&bi.indexOf('url(')<0,hot=!!(bg&&bg[3]>.35&&sat(bg)>.12);if(!hot&&!grad)return;e.setAttribute('data-ad-homeambient386','1');e.style.setProperty('background-color','#181a1b','important');if(grad)e.style.setProperty('background-image','none','important');n++;}fix(document.documentElement);fix(document.body);for(var i=0;i<S.length&&i<10;i++){var p=S[i].parentElement,u=0;while(p&&u++<8){fix(p);if(p===document.body)break;p=p.parentElement;}}var Q=document.querySelectorAll('[data-ad-homeambient386]');for(var j=0;j<Q.length;j++){var c=getComputedStyle(Q[j]),q=pc(c.backgroundColor),b=String(c.backgroundImage||'none');if((q&&q[3]>.35&&sat(q)>.12)||(/gradient\\(/i.test(b)&&b.indexOf('url(')<0))left++;}window.__AD_HOMEAMBIENT386__='home=1 fixed='+n+' left='+left+' seeds='+S.length;return n;}catch(e){window.__AD_HOMEAMBIENT386__='err '+e;return 0;}}"
+         // v5.449 HOME CREATIVE IMAGE.  The failed P91 path looked for a
+         // theming-card-background sibling.  P24 proves the visible navy is
+         // baked into the direct 299x478 _single-creative-card IMG itself and
+         // that whiteTame361/365 still owns its brightness(.5) filter.  Release
+         // that exact full-card raster from every tweak tame owner; product
+         // tiles, background leaves, and single-video-card media are untouched.
+         "function homeCreative449(){try{if(window.__ADFRAME_MODE__||!document.body)return 0;if(document.querySelector('#search,.s-search-results,[data-component-type=\"s-search-result\"],#productTitle,#dp-container,#ppd')){window.__AD_HOMECREATIVE449_STATE__='home=0';return 0;}"
+           "var I449=document.querySelectorAll('img[class*=\"_single-creative-card\"],img[class*=\"single-creative-card\"]'),native449=0,clean449=0,dim449=0,foreign449=0;"
+           "for(var i449=0;i449<I449.length&&i449<100;i449++){var e449=I449[i449],r449=e449.getBoundingClientRect(),c449=e449.className;c449=String(c449&&c449.baseVal!==undefined?c449.baseVal:(c449||''));if(r449.width<220||r449.height<300||!/single-creative-card/i.test(c449)||/single-video-card/i.test(c449)){foreign449++;continue;}var by449=String(e449.__adBy||''),owned449=e449.hasAttribute('data-ad-tame-fast362')||e449.hasAttribute('data-ad-homemedia395')||/whiteTame|homeMedia395/i.test(by449)||/brightness\\s*\\(/i.test(String(e449.style.getPropertyValue('filter')||''));e449.removeAttribute('data-ad-tame-fast362');e449.removeAttribute('data-ad-homemedia395');if(String(e449.style.getPropertyValue('filter')||'')!=='none'||e449.style.getPropertyPriority('filter')!=='important'){e449.style.setProperty('filter','none','important');clean449++;}else if(owned449)clean449++;delete e449.__adTamed;delete e449.__adTameSig;e449.__adBy='homeCreative449Native';e449.setAttribute('data-ad-homecreative449','native-image');var f449=String(getComputedStyle(e449).filter||'none');if(f449!=='none')dim449++;native449++;}"
+           "window.__AD_HOMECREATIVE449_STATE__='home=1 creative='+I449.length+' native='+native449+' clean='+clean449+' dim='+dim449+' foreign='+foreign449;return native449;}catch(e){window.__AD_HOMECREATIVE449_STATE__='err '+(e&&e.message||e);return -1;}}"
+         "try{if(!window.__AD_HOMEMEDIA449_WRAP__&&typeof _adHomeMedia395==='function'){window.__AD_HOMEMEDIA449_WRAP__=1;window.__AD_HOMEMEDIA395_PRE449__=_adHomeMedia395;_adHomeMedia395=function(){var n449=window.__AD_HOMEMEDIA395_PRE449__();try{homeCreative449();}catch(x){}return n449;};window._adHomeMedia395=_adHomeMedia395;}}catch(e){}"
+         "try{homeCreative449();setTimeout(homeCreative449,40);setTimeout(homeCreative449,180);setTimeout(homeCreative449,700);setTimeout(homeCreative449,1800);if(!window.__AD_THEME449_OBS__){window.__AD_THEME449_OBS__=1;var t449=0,new449=function(){if(t449)return;t449=1;var f449=function(){t449=0;try{homeCreative449();}catch(x){}};if(window.requestAnimationFrame)window.requestAnimationFrame(f449);else setTimeout(f449,0);};new MutationObserver(new449).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['style','class','src']});addEventListener('scroll',function(){clearTimeout(window.__AD_THEME449_SCROLL__);window.__AD_THEME449_SCROLL__=setTimeout(function(){try{homeCreative449();}catch(x){}},60);},{passive:true,capture:true});}}catch(e){}"
          "function badgeFix(){try{"
            "var B=document.querySelectorAll('[class*=badgeLabel]');for(var i=0;i<B.length&&i<200;i++){var b=B[i];if(b.hasAttribute&&b.hasAttribute('data-darkreader-inline-bgcolor')){b.style.removeProperty('background-color');b.removeAttribute('data-darkreader-inline-bgcolor');}b.style.setProperty('background-color','#cc0c39','important');b.style.setProperty('color','#ffffff','important');b.style.setProperty('-webkit-text-fill-color','#ffffff','important');}"
            "var S=document.querySelectorAll('[class*=sponsored-products] *,[class*=npack-asin-card] *,[class*=cXVhZ] *'),n=0;for(var j=0;j<S.length&&j<2500&&n<80;j++){var x=S[j];if(x.childElementCount!==0)continue;var t=String(x.textContent||'').replace(/\\s+/g,' ').trim();"
@@ -9695,6 +9933,10 @@ static NSString *ADProbeWebJS(void){
        "    miss.push(c8(m)+'['+Math.round(mr.width)+'x'+Math.round(mr.height)+']');}"
        "  out.push('P81CTRL{'+(R8.length?R8.join(' ~~ '):'none')+(miss.length?' MISSED:'+miss.join(' '):'')+'}');"
        "}catch(e8){out.push('P81CTRL{err '+(e8&&e8.message||e8)+'}');}"
+       // P93HOME449: P24 identified the direct full-card IMG as the crushed
+       // paint.  Prove that exact raster has no brightness filter or stale tame
+       // owner; the unrelated theming backgrounds and video media are census only.
+       "try{var I93=document.querySelectorAll('img[class*=\"_single-creative-card\"],img[class*=\"single-creative-card\"]'),N93=document.querySelectorAll('[data-ad-homecreative449]'),V93=document.querySelectorAll('img[class*=\"_single-video-card\"],img[class*=\"single-video-card\"],video.vjs-tech,[class*=\"single-video-card\"] video'),B93=document.querySelectorAll('[class*=theming-card-background]'),dim93=0,stale93=0,foreign93=0,Q93=[];for(var i93=0;i93<I93.length&&i93<100;i93++){var e93=I93[i93],r93=e93.getBoundingClientRect(),s93=getComputedStyle(e93),f93=String(s93.filter||'none'),by93=String(e93.__adBy||'');if(r93.width<220||r93.height<300)continue;if(f93!=='none')dim93++;if(e93.hasAttribute('data-ad-tame-fast362')||e93.hasAttribute('data-ad-homemedia395')||/whiteTame|homeMedia395/i.test(by93))stale93++;if(!e93.hasAttribute('data-ad-homecreative449'))foreign93++;if(Q93.length<8)Q93.push(Math.round(r93.width)+'x'+Math.round(r93.height)+'|f='+f93+'|by='+(by93||'-'));}out.push('P93HOME449[creative='+I93.length+' native='+N93.length+' dimmed='+dim93+' stale='+stale93+' foreign='+foreign93+' video='+V93.length+' background='+B93.length+' state='+String(window.__AD_HOMECREATIVE449_STATE__||'-')+(Q93.length?' '+Q93.join(' ~~ '):'')+']');}catch(e93){out.push('P93HOME449[err '+(e93&&e93.message||e93)+']');}"
        // P69V333403: Heart/cards/down-arrow are passive-only v5.333 families; the
        // checkbox remains the isolated working stock treatment. override MUST be 0.
        "try{var H69=document.querySelectorAll('[data-ad-v333403]'),h69=0,d69=0,a69=0,c69=0,bad69=0,miss69=0,ov69=0,Q69=[];function lum69(v){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/i.exec(String(v||''));return m?(0.2126*(+m[1])+0.7152*(+m[2])+0.0722*(+m[3])):-1;}for(var i69=0;i69<H69.length&&i69<120;i69++){var e69=H69[i69],t69=String(e69.getAttribute('data-ad-v333403')||'-');if(t69==='h')h69++;else if(t69==='d')d69++;else if(t69==='a')a69++;else if(t69==='c')c69++;if(t69!=='c'&&e69.hasAttribute('data-ad-stock403'))ov69++;if(t69==='c')continue;var G69=e69.querySelectorAll('img,i,svg,path,use,polygon,.a-icon,[class*=lists-framework-unfill],[class*=lists-framework-fill]'),found69=0,good69=0,desc69='';for(var j69=0;j69<G69.length&&j69<60;j69++){var g69=G69[j69],r69=g69.getBoundingClientRect();if(r69.width<3||r69.height<3||r69.width>60||r69.height>60)continue;var s69=getComputedStyle(g69),tg69=String(g69.tagName||'').toUpperCase(),bi69=String(s69.backgroundImage||'none'),mi69=String(s69.maskImage||s69.webkitMaskImage||'none'),flt69=String(s69.filter||'none');var raster69=(tg69==='IMG'||tg69==='I'||bi69!=='none'||mi69!=='none'),vector69=(tg69==='SVG'||tg69==='PATH'||tg69==='USE'||tg69==='POLYGON');if(!raster69&&!vector69)continue;found69=1;if(raster69&&flt69.indexOf('invert')>=0)good69=1;if(vector69&&Math.max(lum69(s69.fill),lum69(s69.stroke),lum69(s69.color))>=180)good69=1;if(!desc69)desc69=tg69+'|f='+flt69.slice(0,28)+'|fill='+String(s69.fill||'-').replace(/\\s+/g,'');if(good69)break;}if(!found69)miss69++;else if(!good69)bad69++;if(Q69.length<10)Q69.push(t69+'|'+(desc69||'no-leaf'));}out.push('P69V333403[h='+h69+' cards='+d69+' arrow='+a69+' checkbox='+c69+' bad='+bad69+' missing='+miss69+' override='+ov69+' v333='+String(window.__AD_SYMBOL333397_STATE__||'-')+' cbcap='+String(window.__AD_STOCKCAP403_STATE__||'-')+' cbfin='+String(window.__AD_STOCKFIN403_STATE__||'-')+(Q69.length?' '+Q69.join(' ~~ '):'')+']');}catch(e69){out.push('P69V333403[err '+(e69&&e69.message||e69)+']');}"
@@ -10437,6 +10679,9 @@ static void ADSweepAllWindows(void){
                          gSwTintNow[0] ? " tintNow="  : "", gSwTintNow[0] ? gSwTintNow : ""];
         if (!last || ![last isEqualToString:now]){ last = now; ADLog(@"sweep %@", now); }
         if (gADCompare448Armed) ADFixNativeCompare448();
+        // v5.449 is structural and deliberately has no semantic arm: P90 was
+        // absent from the failed device build even while the 20x20 raster existed.
+        ADFixNativeCompare449();
         // v5.345: P15 found no independently addressable paint layer for the PDP heart.
         // Leave the forensic code in place, but stop spending every sweep walking it.
     } @catch(...) {}
