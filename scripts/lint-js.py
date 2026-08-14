@@ -297,16 +297,33 @@ def check_full_payload(src):
 
     The bug: hand-inserted statements landed mid-expression twice. A fragment
     extracted around the edit parsed fine; the assembled payload did not.
+
+    v5.474: the payload is assembled from factored pieces (frame split). Mirror
+    the runtime assembly exactly -- open + head474a + DR-slot + head474b +
+    frameCore + tail -- then parse the whole thing, and parse the subframe
+    payload standalone as well.
     """
+    def fn_literals(name):
+        mm = re.search(r'static NSString \*' + name + r'\([^)]*\)\{(.*?)\n\}', src, re.S)
+        return literals_in(mm.group(1)) if mm else None
     m = re.search(r'static NSString \*ADDarkReaderBootstrapBuild\([^)]*\)\{(.*?)\n\}', src, re.S)
     if not m:
         print("  SKIP     ADDarkReaderBootstrapBuild not found")
         return True
-    js = literals_in(m.group(1))
+    h1 = fn_literals('ADBootHead474a'); h2 = fn_literals('ADBootHead474b'); core = fn_literals('ADFrameCore474')
+    if h1 is None or h2 is None or core is None:
+        print("  FAIL     v5.474 payload helpers missing")
+        return False
+    body = literals_in(m.group(1))
+    cut = body.index('%@\n')
+    js = body[:cut] + h1 + body[cut:cut+3] + h2 + core + body[cut+3:]
     if len(js) < 30000:
         print(f"  FAIL     payload extraction only {len(js)} chars - extractor is broken")
         return False
-    return check('full injected pass', 'function W(){' + js + '}')
+    ok = check('full injected pass', 'function W(){' + js + '}')
+    frame = '(function(){try{if(window.top===window)return;' + h1 + h2 + core + '}catch(e){}})();'
+    ok2 = check('subframe injected pass (v5.474)', 'function W(){' + frame + '}')
+    return ok and ok2
 
 
 

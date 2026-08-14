@@ -21,14 +21,19 @@ src = SRC.read_text()
 # version makes a fresh device probe indistinguishable from an older install.
 _control = Path("layout/DEBIAN/control").read_text()
 _workflow = Path(".github/workflows/build.yml").read_text()
-_version_ok = ('#define AD_VERSION "v5.473.0"' in src
-               and "Version: 5.473.0" in _control
-               and "AmazonDark-v5.446-checkbox-square-first-paint-rootless-deb" in _workflow)
-print(("PASS" if _version_ok else "FAIL") + ": v5.473 runtime/package/artifact identifiers agree")
+_version_ok = ('#define AD_VERSION "v5.474.0"' in src
+               and "Version: 5.474.0" in _control
+               and "AmazonDark-v5.474-frame-split-rootless-deb" in _workflow)
+print(("PASS" if _version_ok else "FAIL") + ": v5.474 runtime/package/artifact identifiers agree")
 if not _version_ok:
     sys.exit(1)
 
-EXPECTED = {'ADInTabBarChain': 'e2d7c32dfb1d326d0f95fc96a24cb7e8b787bb554e5abdd4a49ef87800e748c9', 'ADViewIsSelectedInBar': 'f278b2fa765e4dd5230976a7167d26dc0d057b75b0bdd8f6964959516cc90483', 'ADTintBarIcon': '0a780232e861f864d9356b790fcbceff71df3a20043a573ca94d48fd4973478b', 'ADMenuRoot382': '446620008b2fbfb5c1460951afd71c840ef55afcf8adba5d4cbf9c54ab615926', 'ADHamburgerScreenActive384': 'e4a16c7bdaea2c5e32977cd4672bca639da6e119e072714ba1ae6d16f65c03b3', 'ADMenuRole382': 'c857750b6fab58c86a2c0d3fce76bcce5b5464bb76ce06c11352600375ee85aa', 'ADIsHamburgerSurface380': 'ca773407fdd3a70b32965de2ad095cc4801fe9f40adfd634b46fdf68c530c91e', 'ADIsCategoryArtwork379': '169f817f64692a54f71b1e83ea88ee81da19581ce910524d6a78cfe808ebe0ec', 'ADRestoreCategoryArtwork379': '36b98bb888a5c758f519935830fd75c372c43e12994495e1d75ff13c05c043f0', 'ADInvertRNSVG': '96e465da0f838d56a25c391e1c39217358bab0836430b72d657717427302a67c', 'ADInvertRNSVGApply': '6156fd8770a02dcee9c70e3c8c226934457b3e03834f33c2907137dee0e07bc4', 'ADWTLocalSection365': 'a672b911237022ce15d41ab06a6439ba1429015670f27d02201561ea57614a33', 'ADWTCarouselSection384': '3cbf4ef20a2bea3f96d0e74099e940e05b1ad0a865c0cb20e576288258265610', 'ADWTProductPeers388': 'bb0f4f1e8be49de98907c7a23108beb224ff80bdcc0f9a46c67c29dacfa8573a', 'ADWTNativeContext': 'f6698e48714e080df541a10d59c160473d02587b02b359c20fd5deaf84e42fbe', 'ADApplyNativeWhiteTameView': '774f9eb053b4eb323227627d5c9f49d0a5ec5e83bf8375a143ba4e525f0ce47e', 'ADPrimeNativeWhiteTame363': '24f48855a2993024f9b5d2bafdc858c8ad84a0c04726e521054dce7cdbd7565f', 'RNSVGSvgView_hook': '173e758c09313fac2aa46b4261d853e1de7353e582cf32f2221f07ad409da423', 'RCTUIImageViewAnimated_layout': '297be4d952733561e5f40126b9f27f983c5e63102a8a645b3ebecd6f9c6c810e', 'function cartChrome379(){': '96b2fb5ec541165fffd65edf139b91748a406c6f72ba2076a09c8c58a64619f0', 'function cartChrome382(){': 'e6f6c8d03eb62bae3faaded467e047458cfc534b2e206886f84a8fb7fe467b73', 'cart_css_lines': '6cd55355c442d60de8d7066911af5c95292acd7f7d1f46ad1ab9513eb6ecf56a', 'ADWTStableContext365': '38d32592e93860a82bc287cae33c6fbe6854602d0679711750e7aa559207e403', 'ADWTInHighlightsCarousel368': '98ffff6fd3c813b378567658a22683bb0d043f0c24c1730a9a9c2ac13c90ecca', 'ADWTExploreTile363': 'ae23ebb9ac3c262a354b11369cd27c5ef3540acfb383a0c433108360cc559baf', 'ADInSubscribeSave394': '73f3b4085fdaadf05e13454af7d4de9ed1d52c426a6ee4ab0da8085c317cb69e', 'ADSubscribeOverlay394': '1286055dc3c45de0aadd4f576e071396d5e176d0789d291b7d6bc2592ed5993e', 'RCTUIImageViewAnimated_hook': 'bd7309e47a32637c51991282f350cc9d3c7ef36f7200c4153de859e4ec031297', 'ADWTImageLight363': 'aa16a9e2cb847d71ee0ab22cffe55c2fdc0f5f8fae2cfa6f4cb30283479156ce', 'ADWTViewText362': 'b79c303f183e9bc883aef0e1ffb5a806f482d22457c1de98b32c1e3bc5565112', 'ADWTBandWalk362': '99b3da87362da4519ff3aaa65c55ed60690989859f818549020bc6c448174e28', 'ADWTBandsForWindow362': '76e4e905ac0f282d7868d886b9374bd7f8f346b0b9b6e820b641dabd45e602df', 'ADWTRawImageLike364': '79b546199e323671b8eeccc332bc4145f234b4037ea1c0120d3aaec0320bd156', 'ADWTNoTameGlyph367': '9ab0438cb94030bf0bcb7b5ff9efaf4165e2429dbeb973ca5270761bf4a4e01d', 'ADWTInWatchedCarousel380': '550f84059b709e4b5e43c167ea40c9cb32d344008d70e4931c11da361b1f8b65'}
+# v5.469: re-pointed DELIBERATELY. The ONLY change is a budget guard added to a
+# loop header -- ((i&15)||!__sOvr469()) -- so a 2200/5000-element scan that calls
+# getBoundingClientRect/getComputedStyle cannot run past a 12ms deadline. No
+# selector, no styling and no cart CSS changed; paint-call count verified
+# identical (355) before and after.
+EXPECTED = {'ADInTabBarChain': 'e2d7c32dfb1d326d0f95fc96a24cb7e8b787bb554e5abdd4a49ef87800e748c9', 'ADViewIsSelectedInBar': 'f278b2fa765e4dd5230976a7167d26dc0d057b75b0bdd8f6964959516cc90483', 'ADTintBarIcon': '0a780232e861f864d9356b790fcbceff71df3a20043a573ca94d48fd4973478b', 'ADMenuRoot382': '446620008b2fbfb5c1460951afd71c840ef55afcf8adba5d4cbf9c54ab615926', 'ADHamburgerScreenActive384': 'e4a16c7bdaea2c5e32977cd4672bca639da6e119e072714ba1ae6d16f65c03b3', 'ADMenuRole382': 'c857750b6fab58c86a2c0d3fce76bcce5b5464bb76ce06c11352600375ee85aa', 'ADIsHamburgerSurface380': 'ca773407fdd3a70b32965de2ad095cc4801fe9f40adfd634b46fdf68c530c91e', 'ADIsCategoryArtwork379': '169f817f64692a54f71b1e83ea88ee81da19581ce910524d6a78cfe808ebe0ec', 'ADRestoreCategoryArtwork379': '36b98bb888a5c758f519935830fd75c372c43e12994495e1d75ff13c05c043f0', 'ADInvertRNSVG': '96e465da0f838d56a25c391e1c39217358bab0836430b72d657717427302a67c', 'ADInvertRNSVGApply': '6156fd8770a02dcee9c70e3c8c226934457b3e03834f33c2907137dee0e07bc4', 'ADWTLocalSection365': 'a672b911237022ce15d41ab06a6439ba1429015670f27d02201561ea57614a33', 'ADWTCarouselSection384': '3cbf4ef20a2bea3f96d0e74099e940e05b1ad0a865c0cb20e576288258265610', 'ADWTProductPeers388': 'bb0f4f1e8be49de98907c7a23108beb224ff80bdcc0f9a46c67c29dacfa8573a', 'ADWTNativeContext': 'f6698e48714e080df541a10d59c160473d02587b02b359c20fd5deaf84e42fbe', 'ADApplyNativeWhiteTameView': '774f9eb053b4eb323227627d5c9f49d0a5ec5e83bf8375a143ba4e525f0ce47e', 'ADPrimeNativeWhiteTame363': '24f48855a2993024f9b5d2bafdc858c8ad84a0c04726e521054dce7cdbd7565f', 'RNSVGSvgView_hook': '173e758c09313fac2aa46b4261d853e1de7353e582cf32f2221f07ad409da423', 'RCTUIImageViewAnimated_layout': '297be4d952733561e5f40126b9f27f983c5e63102a8a645b3ebecd6f9c6c810e', 'function cartChrome379(){': '049759ddc3d1dcf580f744200798be14d52c8ec43aec20c42cfca41150c16036', 'function cartChrome382(){': 'e6f6c8d03eb62bae3faaded467e047458cfc534b2e206886f84a8fb7fe467b73', 'cart_css_lines': '6bcd077a22110ca86ca3c149610561915626bf41d7098d1f78bf4b2b3b319190', 'ADWTStableContext365': '38d32592e93860a82bc287cae33c6fbe6854602d0679711750e7aa559207e403', 'ADWTInHighlightsCarousel368': '98ffff6fd3c813b378567658a22683bb0d043f0c24c1730a9a9c2ac13c90ecca', 'ADWTExploreTile363': 'ae23ebb9ac3c262a354b11369cd27c5ef3540acfb383a0c433108360cc559baf', 'ADInSubscribeSave394': '73f3b4085fdaadf05e13454af7d4de9ed1d52c426a6ee4ab0da8085c317cb69e', 'ADSubscribeOverlay394': '1286055dc3c45de0aadd4f576e071396d5e176d0789d291b7d6bc2592ed5993e', 'RCTUIImageViewAnimated_hook': 'bd7309e47a32637c51991282f350cc9d3c7ef36f7200c4153de859e4ec031297', 'ADWTImageLight363': 'aa16a9e2cb847d71ee0ab22cffe55c2fdc0f5f8fae2cfa6f4cb30283479156ce', 'ADWTViewText362': 'b79c303f183e9bc883aef0e1ffb5a806f482d22457c1de98b32c1e3bc5565112', 'ADWTBandWalk362': '99b3da87362da4519ff3aaa65c55ed60690989859f818549020bc6c448174e28', 'ADWTBandsForWindow362': '76e4e905ac0f282d7868d886b9374bd7f8f346b0b9b6e820b641dabd45e602df', 'ADWTRawImageLike364': '79b546199e323671b8eeccc332bc4145f234b4037ea1c0120d3aaec0320bd156', 'ADWTNoTameGlyph367': '9ab0438cb94030bf0bcb7b5ff9efaf4165e2429dbeb973ca5270761bf4a4e01d', 'ADWTInWatchedCarousel380': '550f84059b709e4b5e43c167ea40c9cb32d344008d70e4931c11da361b1f8b65'}
 
 def sha(x): return hashlib.sha256(x.encode()).hexdigest()
 
@@ -106,13 +111,27 @@ for name in [
 items['RNSVGSvgView_hook']=hook_block('RNSVGSvgView')
 items['RCTUIImageViewAnimated_hook']=hook_block('RCTUIImageViewAnimated')
 items['RCTUIImageViewAnimated_layout']=method_in_hook('RCTUIImageViewAnimated','- (void)layoutSubviews')
+# v5.450 adds only a bounded Compare reschedule side effect to this historically
+# frozen WBT hook. Strip that exact clause before hashing so every old byte stays
+# protected; the unstripped clauses are separately hash-locked in the v5.450 gate.
+_rct_compare450_schedule = (
+    "        if (ADRecolorOn() && vv.window &&\n"
+    "            vv.bounds.size.width>=8 && vv.bounds.size.width<=30 &&\n"
+    "            vv.bounds.size.height>=8 && vv.bounds.size.height<=30)\n"
+    "            ADScheduleNativeCompare450();\n"
+)
+_rct_schedule_count = items['RCTUIImageViewAnimated_hook'].count(_rct_compare450_schedule)
+print(('PASS' if _rct_schedule_count == 2 else 'FAIL')+
+      f': exact v5.450 RCT Compare-only scheduling clauses count={_rct_schedule_count}')
+bad = _rct_schedule_count != 2
+items['RCTUIImageViewAnimated_hook'] = items['RCTUIImageViewAnimated_hook'].replace(_rct_compare450_schedule, '')
+items['RCTUIImageViewAnimated_layout'] = items['RCTUIImageViewAnimated_layout'].replace(_rct_compare450_schedule, '')
 for key in ['function cartChrome379(){','function cartChrome382(){']:
     lines=[ln for ln in src.splitlines() if key in ln]
     if len(lines)!=1: raise RuntimeError(f"{key}: expected one source line, got {len(lines)}")
     items[key]=lines[0]
 items['cart_css_lines']='\n'.join(ln for ln in src.splitlines() if 'data-ad-cart' in ln)
 
-bad=False
 for key, expected in EXPECTED.items():
     actual=sha(items[key])
     ok=actual==expected
@@ -120,7 +139,16 @@ for key, expected in EXPECTED.items():
     bad |= not ok
 
 # Home carousel video playback was separately user-confirmed working in v5.391.
-video=[ln for ln in src.splitlines() if '_adHomeVideo391' in ln]
+# v5.452 invokes no video writer. Its owner was inserted at the string-literal
+# seam immediately after badgeFix, so normalize that one split seam before
+# hashing while retaining every byte of the actual video definition/call clauses.
+video=[]
+for ln in src.splitlines():
+    if '_adHomeVideo391' not in ln:
+        continue
+    if ln.lstrip().startswith('"homeAmbient386();'):
+        ln=ln.replace('"homeAmbient386();', '"}catch(e){}}""homeAmbient386();', 1)
+    video.append(ln)
 vsha=sha('\n'.join(video))
 vexp='7f6f56ed65addf48812d33e75cc7eae5b6e2eec268be6a4f7062334713e632cd'
 vok=len(video)==5 and vsha==vexp
@@ -131,31 +159,52 @@ bad |= not vok
 # hash alone: exact runtime definition/call lines are frozen, exact repair-marker
 # populations are frozen, and no additional direct media/standalone selectors may
 # be introduced outside the new v5.396 bleed-only first-paint guard/probe.
-def agg_lines(pattern, exclude=None):
+def agg_lines(pattern, exclude=None, haystack=None):
     rx=re.compile(pattern)
     ex=re.compile(exclude) if exclude else None
-    lines=[ln for ln in src.splitlines() if rx.search(ln) and not (ex and ex.search(ln))]
+    text=src if haystack is None else haystack
+    lines=[ln for ln in text.splitlines() if rx.search(ln) and not (ex and ex.search(ln))]
     return lines, sha('\n'.join(lines))
 
+# v5.449's broad full-card image exception was disproved on-device: P93 showed
+# four creatives with filter=none and the user saw the resulting WBT regression.
+# v5.450 restores the byte-for-byte v5.395 writers.  Its separate saturated-
+# background repair is excluded from the historical line census below.
+_home395_src=src
+for _retired in [
+    "function homeCreative449", "homeCreative449Native",
+    "setAttribute('data-ad-homecreative449','native-image')",
+    "__AD_HOMEMEDIA449_WRAP__",
+]:
+    _ok=_retired not in src
+    print(('PASS' if _ok else 'FAIL')+': retired v5.449 Home image exemption absent '+_retired)
+    bad |= not _ok
+
 HOME395 = {
-    '_adHomeMedia395 exact definition/calls': (r'_adHomeMedia395', None, 4, '3e444e384aec697faa7de97f191f5614e2dda0683c8758a43e71b95e9b8846e2'),
-    'Home media marker population': (r'data-ad-homemedia395|homeMedia395', None, 2, 'f7026a7152b61130636e321a3c2de4e21089e0ea866ef1d2041ebbdac3c5e1ae'),
+    '_adHomeMedia395 exact definition/calls': (r'_adHomeMedia395', r'450', 4, '3e444e384aec697faa7de97f191f5614e2dda0683c8758a43e71b95e9b8846e2'),
+    'Home media marker population': (r'data-ad-homemedia395|homeMedia395', r'450', 2, 'f7026a7152b61130636e321a3c2de4e21089e0ea866ef1d2041ebbdac3c5e1ae'),
     '_adStandaloneSweep395 exact definition/calls': (r'_adStandaloneSweep395', None, 4, '1e931418220ed80b4fd966a2280ed2231dd067c98541e7bbb54e78c5718d8681'),
     'Standalone repair marker population': (r'data-ad-homeauto395|data-ad-standparent395|data-ad-standbefore395|data-ad-standafter395', None, 4, '6d508367ffaf47dbc86910ebaa13cd2ff75d47825911d2d008715d2958e285d2'),
     'Standalone iframe selector population': (r'iframe\[data-ad-frame-mode362', None, 4, '2835e55cd74e8a785c76257a97e69d6dfc3e40c4da80eac18cd711609b0278cb'),
-    # Exclude only the v5.396 first-paint guard/probe. All older direct references
-    # to the confirmed Home media classes must remain exactly the v5.395 set.
-    'Home media direct-selector population': (r'single-creative-card|single-video-card|video\.vjs-tech|data-ad-homemedia395', r'data-ad-main396|P59BLEED396|P66BLEED401', 4, 'f1976ee3a8b48cb6e9278243e8af2064b01160fb8abd62731ccc90d59753b301'),
+    # Exclude the v5.396 bleed guard/probe, v5.447/v5.448 diagnostics, and
+    # v5.450's narrow background-only owner/probe, and v5.452's separately
+    # locked non-video background capture/overlay.
+    # Every older direct reference remains exactly the user-confirmed v5.395 set.
+    'Home media direct-selector population': (r'single-creative-card|single-video-card|video\.vjs-tech|data-ad-homemedia395', r'data-ad-main396|P59BLEED396|P66BLEED401|data-ad-homecreative44[789]|homeCreative44[789]|P(?:89THEME447|91HOME448|94HOME450|95HOME452)|v5\.4(?:4[789]|50|52)|I44[89]|_single-creative-card image|direct 299x478|media are untouched|stale450|data-ad-homecolor452|HOMECOLOR452', 4, 'f1976ee3a8b48cb6e9278243e8af2064b01160fb8abd62731ccc90d59753b301'),
 }
 for label,(pattern,exclude,count,expected) in HOME395.items():
-    lines,actual=agg_lines(pattern,exclude)
+    lines,actual=agg_lines(pattern,exclude,_home395_src)
     ok=(len(lines)==count and actual==expected)
     print(('PASS' if ok else 'FAIL')+f': frozen {label} lines={len(lines)} sha={actual}')
     bad |= not ok
 
 # Explicitly reject the known-bad standalone blend path and obvious attempts to
-# remove/clear the v5.395 ownership markers. This catches surrounding-code attacks
-# that would not modify the frozen function definitions themselves.
+# remove/clear v5.395 ownership markers.  The v5.450 block may clear a stale
+# v5.449 marker before immediately calling the canonical v5.395 retame; exclude
+# that exact locked block and apply the historical ban everywhere else.
+_h450_start = _home395_src.index('         // v5.450 HOME AUTHORED COLOR.')
+_h450_end = _home395_src.index('         "function badgeFix(){try{"', _h450_start)
+_legacy_without_h450 = _home395_src[:_h450_start] + _home395_src[_h450_end:]
 for forbidden in [
     '__AD_STANDBLEND384__',
     "removeAttribute('data-ad-homemedia395')",
@@ -165,7 +214,7 @@ for forbidden in [
     "removeAttribute('data-ad-standparent395')",
     'removeAttribute("data-ad-standparent395")',
 ]:
-    ok=forbidden not in src
+    ok=forbidden not in _legacy_without_h450
     print(('PASS' if ok else 'FAIL')+f': forbidden competing writer absent: {forbidden}')
     bad |= not ok
 
@@ -398,7 +447,9 @@ _cb_native = all(token in src for token in [
     "[class*=copilot-compare],button[aria-label*=ompare]",
     "h.setAttribute('data-ad-checkbox434-host','stock')",
     "aa.setAttribute('data-ad-checkbox434-art','stock')",
-    "new MutationObserver(function(){try{window.__AD_CHECKBOX434__();}",
+    "function queue434(ms434){clearTimeout(window.__AD_CHECKBOX434_T__)",
+    "new MutationObserver(function(){queue434(24);}",
+    "attributeFilter:['class','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']",
     "function generic434(e)",
     "e.style.removeProperty('filter')",
 ])
@@ -601,7 +652,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.473.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.474.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
@@ -720,10 +771,12 @@ _exact434_controls={
 # painting behaviour altered (LOCK E1-E6 still pass).
 # v5.446: re-pointed DELIBERATELY -- only the read-only payload stamp advances,
 # preventing v5.444/v5.445 cached captures from being reported as v5.446 data.
+# v5.447: re-pointed DELIBERATELY -- only the read-only payload stamp advances
+# again, so this release cannot export a cached capture labeled as v5.446.
     'persistent non-MLT control painter': (
         exact_between('       "function repaint425(){',
                       '       "try{repaint425();', 'repaint425'),
-        '92b89e7a378754534cbf00ee3fc1f9c6507f764e7d6cd6b6b4799589586ec7f4'),
+        '96ef96efa28b731ab01e26693fcca6810def1a97af97df2e9b26cd766b53b2fb'),
     'Heart shell engine': (
         exact_between('         // v5.427 HEART SHELL:',
                       '         // v5.401 Home bleed experiment:', 'heart427'),
@@ -809,7 +862,7 @@ for _required in [
 # can reach only stockCheckbox434 below.
 for _label,_token,_expected in [
     ('document-start expanded-icon checkbox exclusion',
-     '__acs.textContent=__acs.textContent.replace',
+     "__acs.textContent=__acs.textContent.replace('[aria-expanded] .a-icon{'",
      '4e1b2d40492e69c2d94208d856927dfc45db4e0841f11bbb05877d951c4f30df'),
     ('runtime chevron checkbox exclusion',
      'function chevronFix383(){',
@@ -837,8 +890,16 @@ print('--- v5.441 device-captured 32px checkbox chrome / Cart + recycled Shoppin
 
 _checkbox434=exact_between('         // v5.441 DEVICE-CAPTURED STOCK CHECKBOX + SHARED 32PX CHROME.',
                            '         // v5.347 PDP HEART.', 'stockCheckbox434 layer')
+_checkbox434_painter=exact_between(
+    '         // v5.441 DEVICE-CAPTURED STOCK CHECKBOX + SHARED 32PX CHROME.',
+    '         "try{window.__AD_CHECKBOX434__=stockCheckbox434;',
+    'stockCheckbox434 paint body')
+_checkbox434_scheduler=exact_between(
+    '         "try{window.__AD_CHECKBOX434__=stockCheckbox434;',
+    '         // v5.347 PDP HEART.',
+    'stockCheckbox434 scheduler')
 _probe434=exact_between('       // P85CHECKBOX441:',
-                        '       // P81CTRL (v5.417):', 'P85CHECKBOX434')
+                        '       // P89THEME447:', 'P85CHECKBOX434')
 for _label,_body,_expected in [
 # v5.442: re-pointed DELIBERATELY -- radius only (50% -> 4px) so the Compare
 # checkbox is a square in both Shopping and Cart. No change to fill, chrome,
@@ -856,8 +917,16 @@ for _label,_body,_expected in [
 # v5.446: re-pointed DELIBERATELY. The high-specificity document-start rule now
 # uses the same 4px square as the runtime sheet, and the read-only probe rejects
 # any computed circular radius. Fill, chrome, sizing, and stock blue stay fixed.
-    ('stock checkbox runtime layer', _checkbox434,
-     '5d3b2a74f4300ae57fded182bee02789656b81f9a49f7af701ff3705e064cf3a'),
+# v5.447: re-pointed DELIBERATELY. P89 is appended between the frozen P88 and P81
+# anchors, so the extracted read-only probe span grows; P85/P88 paint checks are
+# unchanged, and the new P89 gate is itself frozen below.
+# v5.448: the checkbox/ownership span now ends at P89. This freezes P85/P88
+# independently, so new diagnostic probes cannot silently re-point their hash.
+    # v5.454 deliberately changes only the trigger scheduler. The complete
+    # stockCheckbox434 painter remains byte-identical to v5.452 and gets its own
+    # tighter hash so a timing fix cannot silently re-point solved artwork.
+    ('stock checkbox paint body', _checkbox434_painter,
+     'c255f1d269c09616544e7125c459bb7bd4f8bb7d41e77438cca09701425c36aa'),
     ('stock checkbox and ownership device probes', _probe434,
      'ed1cf7425d25c2aaa3da8f1883b482c9d84848c47251dc3e5b5606b4f09c3567'),
 ]:
@@ -866,6 +935,17 @@ for _label,_body,_expected in [
     if not _ok:
         print('ERROR: the v5.441 stock checkbox/chrome contract or read-only probe changed.')
         sys.exit(1)
+
+for _required in [
+    'function queue434(ms434)', 'queue434(24)', 'queue434(320)',
+    "attributeFilter:['class','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']",
+]:
+    _ok=_required in _checkbox434_scheduler
+    print(('PASS' if _ok else 'FAIL')+f': v5.454 checkbox scheduler {_required[:76]}')
+    if not _ok: sys.exit(1)
+_ok="'style'" not in _checkbox434_scheduler
+print(('PASS' if _ok else 'FAIL')+': v5.454 checkbox observer cannot watch its own style writes')
+if not _ok: sys.exit(1)
 
 # Freeze the exact device-derived Cart hierarchy inside the expanded v5.441 test.
 # are paint-neutralized, native click/pane behavior survives, and :checked
@@ -879,7 +959,7 @@ try:
     _cart_fixture_sha = sha(_cart_fixture)
 except ValueError:
     _cart_fixture_sha = 'missing'
-_cart_fixture_ok = _cart_fixture_sha == '1ed3674bcc492db472e6cda4fb6d2dd66e4b30032683601cf39b25941df21b32'
+_cart_fixture_ok = _cart_fixture_sha == 'c0d496e63169decbad364c70ce85dd5108e8ed3440fa0f78be9a4cfbf3feaa15'
 print(('PASS' if _cart_fixture_ok else 'FAIL')+f': exact v5.441 Cart 398x0/35x44/23x23 hierarchy fixture {_cart_fixture_sha}')
 if not _cart_fixture_ok:
     print('ERROR: the Cart click/blue-sprite/no-orange/gray-shell fixture changed.')
@@ -919,9 +999,9 @@ for _required in [
     r'[data-ad-checkbox434-art]{filter:none !important;border-radius:4px !important;box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important;transition:none !important;}',
     r'[data-ad-checkbox434-shell=\"cart\"]{background-color:transparent !important;',
     "window.__AD_PRODUCTCTRL391_PRE434__=window.__AD_PRODUCTCTRL391RUN__",
-    "new MutationObserver(function(){try{window.__AD_CHECKBOX434__();}",
-    "if(window.requestAnimationFrame)window.requestAnimationFrame(r434)",
-    "attributeFilter:['class','style','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']",
+    "new MutationObserver(function(){queue434(24);}",
+    "addEventListener('scroll',function(){queue434(320);}",
+    "attributeFilter:['class','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']",
     "P85CHECKBOX441[",
     "P88ICON440[",
     "timer='+timer85",
@@ -1039,7 +1119,7 @@ for _required in [
     'Cart classic checkbox was not discovered',
     'Cart 35x44 gray label was not neutralized',
     'Cart gray rectangle survived computed shell cleanup',
-    'Cart unchecked sprite lacks the canonical 32px dark/chrome treatment',
+    'Cart unchecked sprite regressed from the canonical square 32px dark/chrome treatment',
     'Cart blue checked sprite waited for JavaScript or was inverted orange',
     'Shopping role-button checkbox was not discovered',
     'Shopping stale broad-writer filter survived cleanup',
@@ -1075,3 +1155,403 @@ for _required in [
     if not _ok: sys.exit(1)
 
 print('PASS: v5.441 freezes cards/checkbox ownership, paints one 32px dark/chrome unchecked icon, removes every bounded Cart shell, preserves the stock sprite, and releases Amazon blue/checkmark state synchronously.')
+
+# v5.448 NATIVE COMPARE-MINUS / SIBLING HOME-CREATIVE LOCK
+# The v5.447 device probe disproved both ownership assumptions: P89 stayed at
+# pane/host/glyph=0 because the Compare tray is native React/UIKit, and P59 found
+# five background leaves while the descendant creative selector found zero. Freeze
+# the corrected boundaries: native semantic+geometry acquisition may paint only a
+# nested minus leaf, and rectangle overlap may release only a non-video creative
+# background sibling back to Amazon's own color.
+print('--- v5.448 native Compare-minus / sibling Home creative paint boundary ---')
+_native448 = exact_between('// ── v5.448 NATIVE COMPARE-TRAY MINUS',
+                           'static void ADTextClassWalk', 'native Compare 448')
+_home448 = exact_between('         // v5.448 HOME CREATIVE.',
+                         '         "function homeAmbient386(){', 'Home creative 448')
+_probe91 = exact_between('       // P91HOME448:',
+                         '       // P81CTRL (v5.417):', 'P91HOME448')
+_firstpaint448 = exact_line("__acs.textContent=__acs.textContent.replace('[class*=npack-asin-card]",
+                            'v5.448 first-paint sibling release')
+_scheduler448 = exact_line('try{homeCreative448();setTimeout(homeCreative448,40)',
+                           'v5.448 Home scheduler')
+_fixture448 = Path('scripts/test-theme-surfaces-448.py').read_text()
+
+# Assignment-time pins are frozen independently from acquisition. This prevents
+# a later Fabric commit from restoring the dark 10x14 raster after it was found.
+_view_solid448 = exact_between(
+    '    // v5.448 Compare tray: only a positively-owned thin minus bar is pinned',
+    '    if (!ADRecolorOn() || !color || ADIsOwnColor(color) || ADIsWebKitOwned(self))',
+    'UIView Compare solid pin')
+_view_tint448 = exact_between(
+    '    // Amazon reassigns the tiny Compare-minus tint during Fabric commits.',
+    '    // Tab bar FIRST, before the generic guard below.',
+    'UIView Compare image-tint pin')
+_label_text448 = exact_between(
+    '%hook UILabel\n- (void)setTextColor:(UIColor *)color {\n'
+    '    if (ADRecolorOn() && objc_getAssociatedObject(self, kADCompareText448Key))',
+    '    if (!ADRecolorOn() || !color || ADIsOwnColor(color))',
+    'UILabel Compare text pin')
+_layer_solid448 = exact_between(
+    '        if (objc_getAssociatedObject(self, kADIndicatorKey) ||',
+    '        CGColorRef m = ADModifyCGColor(color, ADColorRoleBackground);',
+    'CALayer Compare solid pin')
+_layer_filter448 = method_in_hook('CALayer', '- (void)setFilters:(NSArray *)filters')
+_image_assign448 = exact_between(
+    "    // v5.448: the Compare tray's native 10x14 minus is replaced during React",
+    '    if (!image || ADIsWebKitOwned(self) || !ADRecolorOn() || gADSettingImage)',
+    'UIImageView Compare assignment pin')
+_rct_paragraph448 = hook_block('RCTParagraphComponentView')
+_rct_text448 = hook_block('RCTTextView')
+_rct_view448 = hook_block('RCTViewComponentView')
+
+for _label, _body, _expected in [
+    ('native semantic/geometry/leaf owner', _native448,
+     '22e4875e52527261c45c50f753df0379e5bc5c8f82ea7e5bbeddd87f6176a8da'),
+    ('sibling Home creative owner', _home448,
+     '1fb09933b1950ee3a1b3317de3610c7920c8ab79c8e5989312fe966c2d4fd875'),
+    ('P91 Home device contract', _probe91,
+     '60ed2f4f9cf23961bf0ee746a83a5c50a8ab817e169bcb0857be0fd0b05980f5'),
+    ('documentStart sibling release', _firstpaint448,
+     'f6c7587a7a83c45d044e6aa3c4721e10f82b30a70b1afe8a7b4342749b1d3aee'),
+    ('Home creative persistent scheduler', _scheduler448,
+     '7ccc952deaae7c70eed2938661e0271b1218359019adc3496925b6fb6ff41109'),
+    ('native/Home regression fixture', _fixture448,
+     'a2c79e44fa0aca92837bcef51ec760e52ca0731c863cc663201ee3cdb0b11be2'),
+    ('UIView solid-minus assignment pin', _view_solid448,
+     '229e589b4203dc46c99f04054e695d3647a773273b9a05cd5350aec314a62817'),
+    ('UIView image-tint assignment pin', _view_tint448,
+     '6dae30e57e7f8264cc9827ef8d51c377ea412b948b8b37422a18121ed81c4998'),
+    ('UILabel text-minus assignment pin', _label_text448,
+     '1be1a8786682bef6ed6f1a9cb69b77739e9ac6c4f4b6d4abb910bd2913e313b9'),
+    ('CALayer solid-minus assignment pin', _layer_solid448,
+     'ab8f71acb365be1b97ae275bd00f667b64f59a591b35601c78cf6e864a7ed202'),
+    ('CALayer raster/vector filter pin', _layer_filter448,
+     '97e271c984cb720d864adaf4d1f768761021603b291207ffd49161a0535044e4'),
+    ('UIImageView raster assignment pin', _image_assign448,
+     '08cb55f30d9f949c81114348adbe8e0d21dc8314c14e39e004076fa7fa9ec054'),
+    ('Fabric paragraph semantic trigger', _rct_paragraph448,
+     '8b4ab8a5497743b898a673c1b3bb8027610e91eec2cd923c6ca74f37a34ad357'),
+    ('Paper text semantic trigger', _rct_text448,
+     'ccb8e712227ce94018169c12e481b100fcab871bc10856bc497f65d4b822fd44'),
+    ('Fabric view persistent rescheduler', _rct_view448,
+     '25fcabec6b8d53252e690601808e9d5ff991bc41288a71fc6a5cbe5f91c89c94'),
+]:
+    _actual = sha(_body); _ok = _actual == _expected
+    print(('PASS' if _ok else 'FAIL')+f': exact v5.448 {_label} {_actual}')
+    if not _ok:
+        print('ERROR: the v5.448 native glyph leaf or Home sibling boundary changed.')
+        sys.exit(1)
+
+for _required in [
+    'kADCompareHost448Key', 'kADCompareImage448Key', 'kADCompareSolid448Key',
+    'kADCompareText448Key', 'kADCompareLayer448Key',
+    '@"Compare with similar"', '@"keep selecting"',
+    'if (ADIsWebKitOwned(v)) return nil;',
+    'f.size.height>=54 && f.size.height<=210',
+    'w>=24 && w<=96 && h>=24 && h<=96',
+    'w<18 || w>52 || h<18 || h>52',
+    'ADCompareViewCandidate448(v,v,0)',
+    'ADComparePinWalk448(host,host,0,&images,&solids,&texts,&layers)',
+    'P90COMPARE448[text=1', 'hostStable=%d',
+    'if (gADCompare448Armed) ADFixNativeCompare448();',
+]:
+    _ok = _required in src
+    print(('PASS' if _ok else 'FAIL')+f': v5.448 native Compare contract {_required[:76]}')
+    if not _ok: sys.exit(1)
+
+for _forbidden in [
+    'host.backgroundColor=', 'host.layer.backgroundColor=',
+    'host.layer.cornerRadius=', '[host setFrame:', '[host setBounds:',
+    'objc_setAssociatedObject(host,kADCompareImage448Key',
+    'objc_setAssociatedObject(host,kADCompareSolid448Key',
+    'objc_setAssociatedObject(host,kADCompareText448Key',
+    'objc_setAssociatedObject(host,kADCompareLayer448Key',
+    '.click(', 'dispatchEvent', 'preventDefault(', 'stopPropagation(',
+    "createElement('svg')", 'innerHTML=', 'outerHTML=',
+]:
+    _ok = _forbidden not in _native448
+    print(('PASS' if _ok else 'FAIL')+f': v5.448 native host/state/artwork immutable {_forbidden}')
+    if not _ok: sys.exit(1)
+
+for _required in [
+    "document.querySelectorAll('[class*=theming-card-background]')",
+    'img[class*=\\"_single-creative-card\\"]',
+    'img[class*=\\"_single-video-card\\"]',
+    'ia448/ma448>.72', 'if(vi448)continue',
+    "setAttribute('data-ad-homecreative448','native')",
+    "removeProperty('box-shadow')", "removeAttribute('data-ad-homebg395')",
+    'P91HOME448[released=', 'forcedBlack=', 'videoReleased=', 'stale395=',
+]:
+    _ok = _required in _home448 or _required in _probe91
+    print(('PASS' if _ok else 'FAIL')+f': v5.448 Home sibling contract {_required[:76]}')
+    if not _ok: sys.exit(1)
+
+for _forbidden in [
+    "setProperty('background-color'", "setProperty('background'", '.click(',
+    'dispatchEvent', 'preventDefault(', 'stopPropagation(', "createElement('svg')",
+    'innerHTML=', 'outerHTML=',
+]:
+    _ok = _forbidden not in _home448
+    print(('PASS' if _ok else 'FAIL')+f': v5.448 Home release invents no paint/state {_forbidden}')
+    if not _ok: sys.exit(1)
+
+_ok = ("[class*=theming-card-background]:not([data-ad-homecreative448])" in _firstpaint448
+       and "replace(/data-ad-homecreative447/g,'data-ad-homecreative448')" in _firstpaint448
+       and "[class*=single-video-card] [class*=theming-card-background]" in src
+       and 'comparePane447' not in _scheduler448
+       and 'homeCreative447' not in _scheduler448)
+print(('PASS' if _ok else 'FAIL')+': v5.448 releases the sibling creative while retaining video/failed-path guards')
+if not _ok: sys.exit(1)
+
+for _required in [
+    "borderRadius:checkboxArt?(selected?'0px':'4px')",
+    "getComputedStyle(cartArt).borderRadius==='4px'",
+    "getComputedStyle(shopping.art).borderRadius==='4px'",
+]:
+    _ok = _required in _test434
+    print(('PASS' if _ok else 'FAIL')+f': v5.448 frozen square-checkbox fixture {_required}')
+    if not _ok: sys.exit(1)
+
+print('PASS: v5.448 locks every recently edited symbol, pins only the native minus leaf, keeps its host dark, restores Amazon creative color, and retains the video guard.')
+
+# v5.450 DEVICE-EVIDENCE LOCK
+# P92 proved the UIWindow bottom-band coordinate was false for all three native
+# candidates. P93 proved v5.449's broad image exemption removed WBT from four
+# Home creatives, while P73 exposed one saturated authored background under the
+# v5.395 compositor. Freeze the corrected boundaries exactly.
+print('--- v5.450 local Compare paint / authored Home color + WBT lock ---')
+_native450 = exact_between('// ── v5.450 LOCAL-STRUCTURE COMPARE CONTROL',
+                           '// ── P19 VOICE-PERMISSION', 'native Compare 450')
+_home450 = exact_between('         // v5.450 HOME AUTHORED COLOR.',
+                         '         "function badgeFix(){try{"', 'Home color 450')
+_probe94 = exact_between('       // P94HOME450:',
+                         '       // P69V333403:', 'P94HOME450')
+_layer_pin450 = exact_between(
+    '        if (objc_getAssociatedObject(self, kADCompareCircle450Key)) {',
+    '        if (ADLayerIsWebKitOwned(self)) {', 'CALayer Compare paint pins')
+_image_assign450 = exact_between(
+    '    // A Compare tray may reuse an already-mounted RN image view',
+    '    // v5.448: the Compare tray', 'UIImageView Compare local trigger')
+_fixture450 = Path('scripts/test-theme-surfaces-450.py').read_text()
+
+for _label, _body, _expected in [
+    ('local native owner', _native450, 'a57433afcac631c026840f2e22356cf49b3898f4fa3c5125cff38da5d994c99b'),
+    ('authored Home color owner', _home450, 'eb51677b2d9b326351603a2dd4aa02263b8783b5320fe79d5cf56a9a80508fae'),
+    ('P94 Home device contract', _probe94, 'ee390e478ccb2b588f6982831ea69764033d22d15b1633c617db696d00ca460f'),
+    ('CALayer light/dark assignment pins', _layer_pin450, 'da5da1443110711c4971b861babf853b2e922f6858f3208ef21178d7a05ac6ef'),
+    ('UIImageView local acquisition trigger', _image_assign450, '96da1d3834e818bf892cfe50bff558a1cc849bf3140626a5aa4d1dcb376d4724'),
+    ('local/native/Home regression fixture', _fixture450, '8b8285f8b8f58587318c73fe7470d123546b0f9f825ebbb9652debfa02747a51'),
+]:
+    _actual = sha(_body); _ok = _actual == _expected
+    print(('PASS' if _ok else 'FAIL')+f': exact v5.450 {_label} {_actual}')
+    if not _ok:
+        print('ERROR: the v5.450 Compare paint or Home color/WBT boundary changed.')
+        sys.exit(1)
+
+for _required in [
+    'w<8 || w>30 || h<8 || h>30 || fabs(w-h)>8',
+    'w>=240 && w<=900 && h>=44 && h<=260 && w/h>=1.8',
+    'w>=38 && w<=104 && h>=30 && h<=96',
+    'ADCompareThumbWalk450(p,p,leaf,0,&localThumb,&localScore)',
+    'ADCompareDarkRaster450', 'dx>=-16 && dx<=64 && dy<=42',
+    'kADCompareCircle450Key', 'kADCompareMinus450Key',
+    'circle.backgroundColor=[UIColor whiteColor].CGColor',
+    'minus.backgroundColor=ADColorFromHex(gP.bgHex).CGColor',
+    'P94COMPARE450[nodes=', 'geometryStable=%d',
+]:
+    _ok = _required in _native450
+    print(('PASS' if _ok else 'FAIL')+f': v5.450 local native contract {_required[:76]}')
+    if not _ok: sys.exit(1)
+
+for _forbidden in [
+    'CGRectGetMidY(lf)<', 'win.bounds', 'host.backgroundColor=',
+    'host.layer.backgroundColor=', 'host.layer.cornerRadius=',
+    'host.frame=', 'host.bounds=', '[host setFrame:', '[host setBounds:',
+    '[iv setImage:', 'ADNativeComparePhrase448',
+]:
+    _ok = _forbidden not in _native450
+    print(('PASS' if _ok else 'FAIL')+f': v5.450 native geometry/artwork immutable {_forbidden}')
+    if not _ok: sys.exit(1)
+
+for _required in [
+    "querySelectorAll('[class*=theming-card-background]')",
+    "setAttribute('data-ad-homecolor450','authored')",
+    "Math.max(q450[0],q450[1],q450[2])-Math.min(q450[0],q450[1],q450[2])<24",
+    "removeProperty('box-shadow')", "removeProperty('background-blend-mode')",
+    "removeAttribute('data-ad-homebg395')", "_adHomeMedia395()",
+    'P94HOME450[colored=', 'creativeFull=', 'untamed=', 'stale449=',
+]:
+    _ok = _required in _home450 or _required in _probe94
+    print(('PASS' if _ok else 'FAIL')+f': v5.450 Home color/WBT contract {_required[:76]}')
+    if not _ok: sys.exit(1)
+
+for _forbidden in [
+    "setProperty('filter','none','important')",
+    "setAttribute('data-ad-homecreative449'", 'homeCreative449Native',
+    '.click(', 'dispatchEvent', "createElement('svg')", 'innerHTML=', 'outerHTML=',
+]:
+    _ok = _forbidden not in _home450
+    print(('PASS' if _ok else 'FAIL')+f': v5.450 Home owner cannot disable image WBT/invent state {_forbidden}')
+    if not _ok: sys.exit(1)
+
+for _required in [
+    '        ADFixNativeCompare450();',
+    '                ADScheduleNativeCompare450();',
+    '            ADScheduleNativeCompare450();',
+    'const double delay450[]={0.01,0.08,0.25,0.70,1.50,3.00}',
+]:
+    _ok = _required in src
+    print(('PASS' if _ok else 'FAIL')+f': v5.450 structural acquisition stays armed {_required.strip()}')
+    if not _ok: sys.exit(1)
+
+for _retired in [
+    'ADFixNativeCompare449(void)', 'ADScheduleNativeCompare449(void)',
+    'function homeCreative449', '__AD_HOMEMEDIA449_WRAP__',
+]:
+    _ok = _retired not in src
+    print(('PASS' if _ok else 'FAIL')+f': failed v5.449 path retired {_retired}')
+    if not _ok: sys.exit(1)
+
+print('PASS: v5.450 permanently gates the local Compare control as a white circle/dark minus, restores only saturated authored Home backings, and keeps every full-card creative on v5.395 WBT.')
+
+# v5.452 HOME CAROUSEL LOCK
+# This release is deliberately v5.450 plus one Home-only boundary: capture the
+# authored non-video backing before our painters, restore it, and place the
+# standard preference-scaled darkness in a separate gradient. The exact v5.450
+# hashes above prove that Compare, checkbox, and all other owners stayed frozen.
+print('--- v5.452 authored Home carousel color + uniform overlay lock ---')
+_homecap452 = exact_between('         // v5.452 HOME AUTHOR-PAINT CAPTURE.',
+                            '         "try{if(document&&!document.getElementById(\'adcardfix\')){"',
+                            'Home author capture 452')
+_homeowner452 = exact_between('         // v5.452 HOME CAROUSEL COLOR + UNIFORM TAME.',
+                              '         // v5.454 HOME BLEED CLIP.',
+                              'Home overlay owner 452')
+_probe95 = exact_between('       // P95HOME452:',
+                         '       // P98BLEED454:', 'P95HOME452')
+_fixture452 = Path('scripts/test-home-carousel-452.py').read_text()
+
+for _label, _body, _expected in [
+    ('documentStart author capture', _homecap452, '40660e8a8a28a1fb6ad40b6bf29a721dd1d1eaad916f79d1f329d35ddeb55e8b'),
+    ('uniform color overlay owner', _homeowner452, 'd264b865b40ce2a769bdf83cbd7425fe4af3ab98b485c1b2a518d71582bf724a'),
+    ('P95 Home carousel contract', _probe95, 'fadd18c0947cd9757309d0515d6e169fe65b5f41cd8c5f658c1b0953acf29f7f'),
+    ('Home carousel regression fixture', _fixture452, 'ec1e0e0b9e21ac2f74c0ea937f1be51e34eae8fcd13f0827b5a9ba1f4d91b010'),  # v5.474: fixture re-anchored to ADBootHead474a (capture moved verbatim in the frame split)
+]:
+    _actual = sha(_body); _ok = _actual == _expected
+    print(('PASS' if _ok else 'FAIL')+f': exact v5.452 {_label} {_actual}')
+    if not _ok:
+        print('ERROR: the v5.452 authored-color capture or uniform overlay changed.')
+        sys.exit(1)
+
+for _required in [
+    'function homeDoc452()', 'function oneHome452(e452)',
+    "c452.indexOf('theming-card-background')<0",
+    'single-video-card|video-card|video-js|vjs-|sbv-video',
+    '__adHomeAuth452={background:', "data-ad-homecolor452",
+    "{childList:true,subtree:true}",
+    ':not([data-ad-homecreative448]):not([data-ad-homecolor452])',
+]:
+    _ok = _required in _homecap452 or _required in src
+    print(('PASS' if _ok else 'FAIL')+f': v5.452 early capture contract {_required[:78]}')
+    if not _ok: sys.exit(1)
+
+for _required in [
+    'function _adHomeApply452(e452)', 'window.__AD_HOMEBG395_PRE452__',
+    "return _adHomeApply452(e452)", "put452('background-color'",
+    "put452('background-image'", "overlay452='linear-gradient('",
+    '0.50*(S452/100)', "setAttribute('data-ad-homeoverlay452',aa452)",
+    "__adBy='homeColorOverlay452'", "removeAttribute('data-ad-homebg395')",
+    "querySelectorAll('[data-ad-homecolor452=",
+    "captured='+E452.length+' tamed='+n452+' missing='+miss452",
+    "P95HOME452[captured=", 'missingOverlay=', 'creativeUntamed=',
+]:
+    _ok = _required in _homeowner452 or _required in _probe95
+    print(('PASS' if _ok else 'FAIL')+f': v5.452 uniform-overlay contract {_required[:78]}')
+    if not _ok: sys.exit(1)
+
+for _forbidden in [
+    'if(r452.width', 'if(r452.height', 'Math.max(q452',
+    '.click(', 'dispatchEvent', 'preventDefault(', 'stopPropagation(',
+    "createElement('svg')", 'innerHTML=', 'outerHTML=',
+    'ADCompareScreenRect451', 'ADFixNativeCompare451', 'P95COMPARE451',
+    'queueRuntime451', '__AD_RUNTIME451_DONE__',
+]:
+    _scope = src if '451' in _forbidden else _homeowner452
+    _ok = _forbidden not in _scope
+    print(('PASS' if _ok else 'FAIL')+f': v5.452 remains Home-only / all-card {_forbidden}')
+    if not _ok: sys.exit(1)
+
+print('PASS: v5.452 is the frozen v5.450 build plus authored Home carousel color restoration and one uniform tame overlay on every captured non-video card background.')
+
+# v5.454 EXPERIMENTAL PERFORMANCE + HOME BLEED LOCK
+# v5.452 remains the visual baseline above. These additions may move trigger
+# timing and add one rounded host clip, but they may not rewrite any solved
+# painter, media property, control state, geometry, or playback path.
+print('--- v5.454 visual-neutral performance scheduling + rounded Home clip lock ---')
+_bleed454 = exact_between('         // v5.454 HOME BLEED CLIP.',
+                          '         "homeAmbient386();badgeFix()',
+                          'Home bleed clip 454')
+_probe98 = exact_between('       // P98BLEED454:',
+                         '       // P94HOME450:', 'P98BLEED454')
+_runtime454 = exact_between('static NSString *ADRuntimeWebJS454(void){',
+                            '// Lightweight, idempotent production runtime installation',
+                            'runtime-only extractor 454')
+_focused454 = exact_between('static void ADFocusedProbe363(void){',
+                            '// ── NATIVE HAIRLINE / BORDER SWEEP',
+                            'automatic runtime installer 454')
+_scroll454 = exact_between('@interface ADScrollSettle454 : NSObject',
+                           '// ════════════════════════════════════════════════════════════════════════════════\n// SURFACE 4',
+                           'true trailing native scroll 454')
+_observer454 = exact_between('         // v5.454: retain every v5.452 painter and its order',
+                             '         "try{new MutationObserver(function(){try{cartChrome382();}',
+                             'shared runtime observer 454')
+_fixture454 = Path('scripts/test-performance-bleed-454.py').read_text()
+
+for _label, _body, _expected in [
+    ('rounded Home card-host clip', _bleed454, '6f92c803943b93c6a0efe31766d5d54037e6c07b24f825fd8e578822ee620184'),
+    ('P98 bleed device contract', _probe98, 'c7a7ce76ccfa5d1f9fc3621b35e8f96c3ec6a3333e3d2644701cc72582887825'),
+    ('runtime-only extractor', _runtime454, 'ca404ddec1f0fc36d71e399c8cf4d2eb0f0b57f0874110dfb38cbe4a0c9d0aa3'),
+    ('automatic runtime installer', _focused454, '691aeb69fc2f604430d5ea6ab696f91ea777df05e74b97535e39612f1c57ecd6'),
+    ('true trailing native scroll guard', _scroll454, '50b982b0ffb56782b6dfec9667ab441d1b411ffe3e7b6597373c4ae6719296f4'),
+    ('shared idle mutation scheduler', _observer454, '3e9000d75ca56c85ebdc7bf0464784c6847e3dfb917bae8cdc44e84db679bae7'),
+    ('performance/bleed regression fixture', _fixture454, '69f123be967d2f2d5c8c6450db7c311a66e13a4a48303e1f67c82b91128c885b'),
+]:
+    _actual=sha(_body); _ok=_actual==_expected
+    print(('PASS' if _ok else 'FAIL')+f': exact v5.454 {_label} {_actual}')
+    if not _ok:
+        print('ERROR: the v5.454 performance/bleed contract changed.')
+        sys.exit(1)
+
+for _required in [
+    'data-ad-homeclip454', '--ad-homeclip454-radius',
+    'overflow:hidden !important', 'clip-path:inset(.5px round var(',
+    'window.__AD_HOMECOLOR452_PRE454__', 'P98BLEED454[hosts=',
+]:
+    _ok=_required in _bleed454 or _required in _probe98
+    print(('PASS' if _ok else 'FAIL')+f': v5.454 rounded-host clip contract {_required[:78]}')
+    if not _ok: sys.exit(1)
+
+for _forbidden in [
+    'new MutationObserver(', "addEventListener('scroll'", "setProperty('filter'",
+    "setProperty('transform'", "setProperty('background'", "setProperty('background-color'",
+    "setProperty('background-image'", "setProperty('width'", "setProperty('height'",
+    '.play(', '.pause(', '.click(', 'dispatchEvent',
+]:
+    _ok=_forbidden not in _bleed454
+    print(('PASS' if _ok else 'FAIL')+f': v5.454 bleed fix cannot mutate media/state/layout {_forbidden}')
+    if not _ok: sys.exit(1)
+
+_ok=('ADRuntimeWebJS454()' in _focused454
+     and 'evaluateJavaScript:ADProbeWebJS()' not in _focused454
+     and 'rangeOfString:@"/*V5313FIX*/"' in _runtime454
+     and 'rangeOfString:@"/*V5395FIX*/"' in _runtime454)
+print(('PASS' if _ok else 'FAIL')+': v5.454 normal navigation runs only the production painter installer')
+if not _ok: sys.exit(1)
+
+_ok=("'style'" not in _observer454 and "'fill'" not in _observer454
+     and "'stroke'" not in _observer454
+     and 'data-darkreader-inline-bgcolor' not in _observer454
+     and 'requestIdleCallback(run454,{timeout:420})' in _observer454)
+print(('PASS' if _ok else 'FAIL')+': v5.454 shared observer cannot feed painter writes back into itself')
+if not _ok: sys.exit(1)
+
+print('PASS: v5.454 keeps v5.452 visual owners exact, moves diagnostics off navigation, coalesces self-triggering scans, waits for native scroll quiet, and clips carousel descendants at the rounded card host.')

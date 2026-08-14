@@ -22,7 +22,7 @@ lint_js = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(lint_js)
 
 bootstrap = lint_js.literals_in(
-    lint_js.function_body(source, "ADDarkReaderBootstrapBuild")
+    lint_js.function_body(source, "ADBootHead474a")
 ).replace("%%", "%")
 runtime = lint_js.literals_in(
     lint_js.function_body(source, "ADProbeWebJS")
