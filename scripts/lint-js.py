@@ -356,4 +356,30 @@ def check_objc_decl_order(src):
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    sys.exit(main())# ── ObjC STRING LITERAL BALANCE ────────────────────────────────────────────────
+# v5.470: lint-js extracts JS from the ObjC literals, so it happily passed a file
+# whose literals were unbalanced -- an edit had split "/*MARKER*/" across lines and
+# left a dangling quote. clang caught it; we did not. Cheap structural check so a
+# broken literal fails here instead of in CI.
+def _objc_literal_balance(path):
+    bad = []
+    for n, line in enumerate(open(path, encoding='utf-8').read().split('\n'), 1):
+        stripped = line.strip()
+        if stripped.startswith('//'):
+            continue
+        t2 = re.sub(r'\\\\.', '', line)      # drop escaped chars
+        if t2.count('"') % 2:
+            bad.append((n, stripped[:90]))
+    return bad
+
+_bal = _objc_literal_balance(str(SRC) if 'SRC' in dir() else sys.argv[1] if len(sys.argv) > 1 else 'src/Tweak.xm')
+if _bal:
+    print("  FAIL     unbalanced ObjC string literal (will not compile)")
+    for n, txt in _bal[:5]:
+        print(f"           line {n}: {txt}")
+    print("lint-js: FAILED")
+    sys.exit(1)
+else:
+    print("  OK       all ObjC string literals balanced")
+
+

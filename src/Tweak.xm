@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.469.0"
+#define AD_VERSION "v5.470.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -9613,10 +9613,9 @@ static NSString *ADProbeWebJS(void){
        // Reports any large rounded container still painting the exact brown family.
        "try{function rb23(v){var m=/rgba?\\(([0-9.]+),\\s*([0-9.]+),\\s*([0-9.]+)/.exec(String(v||''));if(!m)return false;var r=+m[1],g=+m[2],b=+m[3],mx=Math.max(r,g,b),mn=Math.min(r,g,b);return r>=55&&r<=125&&g>=48&&g<=115&&b>=38&&b<=105&&(mx-mn)<=32&&r>=g-4&&g>=b-5&&(r-b)>=4;}var E23=document.querySelectorAll('li,div,section,article'),R23=[];for(var i23=0;i23<E23.length&&R23.length<12;i23++){var e23=E23[i23],r23=e23.getBoundingClientRect();if(r23.width<110||r23.height<55)continue;var s23=getComputedStyle(e23),rad23=Math.max(parseFloat(s23.borderTopLeftRadius)||0,parseFloat(s23.borderTopRightRadius)||0,parseFloat(s23.borderBottomLeftRadius)||0,parseFloat(s23.borderBottomRightRadius)||0);if(rad23<4)continue;var hit23=rb23(s23.borderTopColor)||rb23(s23.borderRightColor)||rb23(s23.borderBottomColor)||rb23(s23.borderLeftColor)||rb23(s23.outlineColor);if(!hit23)continue;R23.push(e23.tagName+'.'+String(e23.className||'').replace(/\\s+/g,'.').slice(0,42)+'@y'+Math.round(r23.top)+'/'+Math.round(r23.width)+'x'+Math.round(r23.height)+'|t='+String(s23.borderTopColor||'-')+'|by='+String(e23.__adBy||'-'));}out.push('P23BROWN[n='+R23.length+(R23.length?' '+R23.join(' ~~ '):'')+']');}catch(e23){out.push('P23BROWN[err '+(e23&&e23.message||e23)+']');}"
 
-       "/*V5313FIX*/
+       "/*V5313FIX*/"
        "var __sT469=Date.now();"
        "function __sOvr469(){try{return (Date.now()-__sT469)>12;}catch(e){return false;}}"
-       "
        "try{(function(){"
          "var SEL='[class*=a-cardui-header] *,[class*=a-cardui-header],'"
            "+'[class*=sponsored-products] *,[class*=sponsored-products],'"
