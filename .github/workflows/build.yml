@@ -83,7 +83,7 @@ jobs:
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AmazonDark-v5.459-darkreader-init-probe-rootless-deb
+          name: AmazonDark-v5.460-longframe-probe-rootless-deb
           path: packages/*.deb
           if-no-files-found: error
 
