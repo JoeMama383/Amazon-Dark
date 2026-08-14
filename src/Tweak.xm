@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.458.0"
+#define AD_VERSION "v5.459.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3010,6 +3010,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(window.__AD_MLT__?(' MLT[n='+window.__AD_MLT__+']'):'')"
                "+(window.__AD_PERF__?(' PERF['+window.__AD_PERF__+']'):'')"
                "+(window.__AD_RATE__?(' RATE['+window.__AD_RATE__+']'):'')"
+               "+(window.__AD_DRPERF__?(' DRPERF['+window.__AD_DRPERF__+']'):'')"
                "+(window.__AD_TILEART__?(' TILEART['+window.__AD_TILEART__+']'):'')"
                "+(window.__AD_BOXKILL__?(' BOXKILL['+window.__AD_BOXKILL__+']'):'')"
                "+(window.__AD_FLTSCAN__?(' FLTSCAN['+window.__AD_FLTSCAN__+']'):'')"
@@ -3269,7 +3270,16 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          "try{window.__AD_PRODUCTCTRL391_ORIG397__=window.__AD_PRODUCTCTRL391RUN__;window.__AD_PRODUCTCTRL391RUN__=function(){var r397=window.__AD_PRODUCTCTRL391_ORIG397__?window.__AD_PRODUCTCTRL391_ORIG397__():0;try{window.__AD_SYMBOL333397__();}catch(e397){}return r397;};}catch(e){}"
          "try{window.__AD_SYMBOL333397__();setTimeout(window.__AD_SYMBOL333397__,40);setTimeout(window.__AD_SYMBOL333397__,220);setTimeout(window.__AD_SYMBOL333397__,900);}catch(e){}"
          "window.__AMZDARK_APPLY__=function(){try{"
-           "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
+           "var __dr0=Date.now();"
+    "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
+    "try{var __drms=Date.now()-__dr0;"
+      "var __drsub=0;try{__drsub=(window.top!==window.self)?1:0;}catch(e){__drsub=1;}"
+      "var __drw=0,__drh=0;try{__drw=Math.round(innerWidth);__drh=Math.round(innerHeight);}catch(e){}"
+      "var __drn=0;try{__drn=document.querySelectorAll('*').length;}catch(e){}"
+      "var __drs=0;try{__drs=document.styleSheets.length;}catch(e){}"
+      "window.__AD_DRPERF__='ms='+__drms+' sub='+__drsub+' '+__drw+'x'+__drh+' nodes='+__drn+' sheets='+__drs;"
+      "if(__drsub){var k='__addr'+(Date.now()%%100000);}"
+    "}catch(e){}"
            "if(window._adTameFast362)_adTameFast362(document.documentElement);"
            "if(window._adTextPins363)_adTextPins363(document.documentElement);"
            "if(window.__AD_COLLEGE_FAST59__)window.__AD_COLLEGE_FAST59__();"
