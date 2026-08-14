@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.462.0"
+#define AD_VERSION "v5.463.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3296,10 +3296,14 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "var __dr0=Date.now();"
     "var __MO0=window.MutationObserver;"
     "try{window.MutationObserver=function(cb){"
-      "var pend=0,self=this;"
-      "var wrapped=function(recs,obs){if(pend)return;pend=1;"
-        "var run=function(){pend=0;try{cb(recs,obs);}catch(e){}};"
-        "if(window.requestAnimationFrame)requestAnimationFrame(run);else setTimeout(run,16);};"
+      "var last=0,timer=0,lastRecs=null,lastObs=null;"
+      "var fire=function(){timer=0;last=Date.now();"
+        "var r=lastRecs,o=lastObs;lastRecs=null;lastObs=null;"
+        "try{cb(r||[],o);}catch(e){}};"
+      "var wrapped=function(recs,obs){lastRecs=recs;lastObs=obs;"
+        "if(timer)return;"
+        "var wait=220-(Date.now()-last);if(wait<0)wait=0;"
+        "timer=setTimeout(fire,wait);};"
       "return new __MO0(wrapped);};"
       "window.MutationObserver.prototype=__MO0.prototype;}catch(e){}"
     "try{if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);}"

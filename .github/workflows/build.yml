@@ -83,7 +83,7 @@ jobs:
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AmazonDark-v5.462-darkreader-coalesce-rootless-deb
+          name: AmazonDark-v5.463-darkreader-throttle-rootless-deb
           path: packages/*.deb
           if-no-files-found: error
 
