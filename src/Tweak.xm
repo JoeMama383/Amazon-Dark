@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.463.0"
+#define AD_VERSION "v5.464.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -8308,13 +8308,44 @@ static const void *kADCellSwept = &kADCellSwept;
 
 // Timed entry point. Sets the budget, counts nodes, and reports anything slow so
 // the native side stops being the unmeasured half of this problem.
+// v5.464: the native side had the same blind spot the JS side had -- per-sweep
+// cost was budgeted (4ms) but the NUMBER of sweeps per second was never measured
+// or bounded. On a product page or an image carousel the sweep can fire on every
+// layout pass, so hundreds of 4ms sweeps per second block the main thread and
+// taps queue. NRATE reports sweeps/s and ms/s; the burst dedupe drops repeat
+// sweeps for the SAME reason inside 50ms, which are redundant by construction.
+static double gNRWindow = 0, gNRMs = 0;
+static int gNRCalls = 0, gNRSkipped = 0;
+static double gNRLastFor[16] = {0};
+static int ADSweepReasonSlot(const char *why){
+    if (!why) return 15;
+    unsigned h = 0; for (const char *p2 = why; *p2; p2++) h = h*31u + (unsigned)*p2;
+    return (int)(h % 15u);
+}
 static void ADSweepTimed(UIView *v, BOOL inTabBar, const char *why){
     @try {
         CFAbsoluteTime t0 = CFAbsoluteTimeGetCurrent();
+        if (gNRWindow == 0) gNRWindow = t0;
+        int slot = ADSweepReasonSlot(why);
+        if (gNRLastFor[slot] > 0 && (t0 - gNRLastFor[slot]) < 0.050) {
+            gNRSkipped++;
+            if (t0 - gNRWindow >= 1.0) {
+                ADLog(@"NRATE[sweeps/s=%d ms/s=%.0f skipped=%d]", gNRCalls, gNRMs, gNRSkipped);
+                gNRWindow = t0; gNRCalls = 0; gNRMs = 0; gNRSkipped = 0;
+            }
+            return;
+        }
+        gNRLastFor[slot] = t0;
+        gNRCalls++;
+        if (t0 - gNRWindow >= 1.0) {
+            ADLog(@"NRATE[sweeps/s=%d ms/s=%.0f skipped=%d]", gNRCalls, gNRMs, gNRSkipped);
+            gNRWindow = t0; gNRCalls = 0; gNRMs = 0; gNRSkipped = 0;
+        }
         gSweepNodes = 0; gSweepCut = 0;
         gSweepDeadline = t0 + 0.004;                 // 4ms: keep UI responsive; assignment hooks cover media immediately
         ADSweepViewTree(v, 0, inTabBar);
         double ms = (CFAbsoluteTimeGetCurrent() - t0) * 1000.0;
+        gNRMs += ms;
         static int logged = 0;
         if (ms > 3.0 && logged < 40){
             logged++;

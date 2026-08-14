@@ -21,10 +21,10 @@ src = SRC.read_text()
 # version makes a fresh device probe indistinguishable from an older install.
 _control = Path("layout/DEBIAN/control").read_text()
 _workflow = Path(".github/workflows/build.yml").read_text()
-_version_ok = ('#define AD_VERSION "v5.463.0"' in src
-               and "Version: 5.463.0" in _control
-               and "AmazonDark-v5.463-darkreader-throttle-rootless-deb" in _workflow)
-print(("PASS" if _version_ok else "FAIL") + ": v5.463 runtime/package/artifact identifiers agree")
+_version_ok = ('#define AD_VERSION "v5.464.0"' in src
+               and "Version: 5.464.0" in _control
+               and "AmazonDark-v5.464-native-sweep-rate-rootless-deb" in _workflow)
+print(("PASS" if _version_ok else "FAIL") + ": v5.464 runtime/package/artifact identifiers agree")
 if not _version_ok:
     sys.exit(1)
 
@@ -647,7 +647,7 @@ for _label,_body,_exp in [
 # The unsafe v5.391 cards picker stays disabled. v5.410 is the sole current-DOM
 # cards owner. It may create ONLY a backdrop span behind the stock Amazon glyph;
 # it must never synthesize/redraw the cards glyph itself.
-for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.463.0']:
+for _need in ['__AD_CARDS391_DISABLED408__=1;var A=[]','window.__AD_CARDS410__=function()','data-ad-cards410-disc','data-ad-cards410-glyph','P79CARDS410[','Version: 5.464.0']:
     _hay=src if not _need.startswith('Version:') else Path('layout/DEBIAN/control').read_text()
     _ok=_need in _hay
     print(('PASS' if _ok else 'FAIL')+f': v5.410 token {_need}')
