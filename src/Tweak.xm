@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.461.0"
+#define AD_VERSION "v5.462.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3294,7 +3294,16 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          "try{window.__AD_SYMBOL333397__();setTimeout(window.__AD_SYMBOL333397__,40);setTimeout(window.__AD_SYMBOL333397__,220);setTimeout(window.__AD_SYMBOL333397__,900);}catch(e){}"
          "window.__AMZDARK_APPLY__=function(){try{"
            "var __dr0=Date.now();"
-    "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
+    "var __MO0=window.MutationObserver;"
+    "try{window.MutationObserver=function(cb){"
+      "var pend=0,self=this;"
+      "var wrapped=function(recs,obs){if(pend)return;pend=1;"
+        "var run=function(){pend=0;try{cb(recs,obs);}catch(e){}};"
+        "if(window.requestAnimationFrame)requestAnimationFrame(run);else setTimeout(run,16);};"
+      "return new __MO0(wrapped);};"
+      "window.MutationObserver.prototype=__MO0.prototype;}catch(e){}"
+    "try{if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);}"
+    "finally{try{window.MutationObserver=__MO0;}catch(e){}}"
     "try{var __drms=Date.now()-__dr0;"
       "var __drsub=0;try{__drsub=(window.top!==window.self)?1:0;}catch(e){__drsub=1;}"
       "var __drw=0,__drh=0;try{__drw=Math.round(innerWidth);__drh=Math.round(innerHeight);}catch(e){}"
