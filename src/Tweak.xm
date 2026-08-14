@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.457.0"
+#define AD_VERSION "v5.458.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1447,11 +1447,11 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // these is chrome ON a creative: darkening it paints a box over the art.
            "var ART=[];try{var AQ=document.querySelectorAll('img,picture,video');"
            "__ck('AQ');"
-             "for(var aq=0;aq<AQ.length&&aq<250&&((aq&15)||!ovr())&&ART.length<80;aq++){"
+             "for(var aq=0;aq<AQ.length&&aq<(__SUBF?60:250)&&((aq&15)||!ovr())&&ART.length<80;aq++){"
                "var arr=AQ[aq].getBoundingClientRect();"
                "if(arr.width>=110&&arr.height>=60)ART.push(arr);}"
              "var AQ2=document.querySelectorAll('div,section,a,span');"
-             "for(var aq2=0;aq2<AQ2.length&&aq2<900&&((aq2&15)||!ovr())&&ART.length<120;aq2++){"
+             "for(var aq2=0;aq2<AQ2.length&&aq2<(__SUBF?120:900)&&((aq2&15)||!ovr())&&ART.length<120;aq2++){"
                "var bgi3=getComputedStyle(AQ2[aq2]).backgroundImage||'';"
                "if(bgi3.indexOf('url(')<0)continue;"
                "var ar2=AQ2[aq2].getBoundingClientRect();"
@@ -1563,6 +1563,11 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // icons -- exits on its first iteration having done nothing. That is the
            // bugle and the card icon going dark. Each section now gets its own
            // slice, so no single loop can block, but every loop still gets to run.
+           // v5.458: an ad pane is its own subframe and gets this whole pass run
+           // synchronously before it can paint (PERF ms=20..45 PER PANE -- the
+           // spinner pausing on each ad). A pane is a fraction of the page, so the
+           // full-document scan caps are wasted work there: scale them down.
+           "var __SUBF=0;try{__SUBF=(window.top!==window.self)?1:0;}catch(e){__SUBF=1;}"
            "var __T0=Date.now(),__t0=__T0,__ckl=[],__cut=0;"
            "function __ck(n){try{__ckl.push(n+':'+(Date.now()-__T0));__t0=Date.now();}catch(e){}}"
            "function ovr(){if(Date.now()-__t0>16){__cut++;return true;}return false;}"
@@ -2042,7 +2047,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                       "try{if(!window.__AD_TXTSRC__){"
                         "var QQ=document.querySelectorAll('span,p,h1,h2,h3,a,div');"
                         "var pick=null,seen=0,onart=0;"
-                        "for(var y1=0;y1<QQ.length&&y1<3000&&!pick&&((y1&15)||!ovr());y1++){var e1=QQ[y1];"
+                        "for(var y1=0;y1<QQ.length&&y1<(__SUBF?250:3000)&&!pick&&((y1&15)||!ovr());y1++){var e1=QQ[y1];"
                           "var has=false;"
                           "for(var y2=0;y2<e1.childNodes.length&&y2<4;y2++){"
                             "var q1=e1.childNodes[y2];"
@@ -2097,7 +2102,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "var TT=document.querySelectorAll('span,p,h1,h2,h3,a');"
              "window.__AD_TXTN__=TT.length;"
              "var picked=null,scanned=0;"
-             "for(var x1=0;x1<TT.length&&x1<2500&&!picked&&((x1&15)||!ovr());x1++){var t1=TT[x1];"
+             "for(var x1=0;x1<TT.length&&x1<(__SUBF?200:2500)&&!picked&&((x1&15)||!ovr());x1++){var t1=TT[x1];"
                "var has=false;"
                "for(var x2=0;x2<t1.childNodes.length&&x2<4;x2++){"
                  "var n1=t1.childNodes[x2];"
@@ -2680,7 +2685,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "function rgb57(v){var m=/rgba?\\(([0-9.]+),\\s*([0-9.]+),\\s*([0-9.]+)/.exec(String(v||''));return m?[+m[1],+m[2],+m[3]]:null;}"
              "function br57(v){var c=rgb57(v);return !!(c&&Math.abs(c[0]-84)<=7&&Math.abs(c[1]-78)<=7&&Math.abs(c[2]-69)<=7);}"
              "var GB57=document.querySelectorAll('li,div,section,article');"
-             "for(var g57=0;g57<GB57.length&&g57<6000&&((g57&15)||!ovr());g57++){var ge57=GB57[g57],gr57=ge57.getBoundingClientRect();if(gr57.width<110||gr57.height<55)continue;"
+             "for(var g57=0;g57<GB57.length&&g57<(__SUBF?400:6000)&&((g57&15)||!ovr());g57++){var ge57=GB57[g57],gr57=ge57.getBoundingClientRect();if(gr57.width<110||gr57.height<55)continue;"
                "var gs57=getComputedStyle(ge57),gd57=0,go57=0,rr57=Math.max(parseFloat(gs57.borderTopLeftRadius)||0,parseFloat(gs57.borderTopRightRadius)||0,parseFloat(gs57.borderBottomLeftRadius)||0,parseFloat(gs57.borderBottomRightRadius)||0);if(rr57<4)continue;"
                "for(var d57=0;d57<4;d57++){var sd57=SD54[d57],gw57=parseFloat(gs57['border'+sd57+'Width'])||0,gst57=String(gs57['border'+sd57+'Style']||'');if(gw57>=0.5&&gst57!=='none'&&gst57!=='hidden'&&br57(gs57['border'+sd57+'Color'])){gd57=1;break;}}"
                "var gow57=parseFloat(gs57.outlineWidth)||0,gost57=String(gs57.outlineStyle||'');if(gow57>=0.5&&gost57!=='none'&&gost57!=='hidden'&&br57(gs57.outlineColor))go57=1;if(!gd57&&!go57)continue;"
@@ -3059,7 +3064,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "try{if(document.readyState==='complete'&&!window.__AD_SHOP_DONE__){"
              "window.__AD_SHOP_DONE__=1;"
              "var SH=document.querySelectorAll('img,svg,span,div'),so=[],ssk=0;"
-             "for(var si=0;si<SH.length&&si<3000&&so.length<20&&((si&15)||!ovr());si++){var se=SH[si];"
+             "for(var si=0;si<SH.length&&si<(__SUBF?250:3000)&&so.length<20&&((si&15)||!ovr());si++){var se=SH[si];"
                "var sr=se.getBoundingClientRect();"
                "if(sr.width<18||sr.width>110||sr.height<18||sr.height>110)continue;"
                // SQUARE-ISH ONLY. The last run filled its whole budget with 86x32
@@ -3157,7 +3162,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              // everything else must be below the header and is deduped by class+size,
              // so N copies of one icon can never consume the budget again.
              "var SQ=document.querySelectorAll('img,svg,span,div,i'),pri=[],oth=[],seenK={},starN=0;"
-             "for(var sq=0;sq<SQ.length&&sq<2500&&(pri.length+oth.length)<10&&((sq&15)||!ovr());sq++){var se2=SQ[sq];"
+             "for(var sq=0;sq<SQ.length&&sq<(__SUBF?200:2500)&&(pri.length+oth.length)<10&&((sq&15)||!ovr());sq++){var se2=SQ[sq];"
                "var sr2=se2.getBoundingClientRect();"
                "if(sr2.width<10||sr2.width>200||sr2.height<8||sr2.height>60)continue;"
                "if(sr2.bottom<0||sr2.top>(window.innerHeight||900))continue;"
@@ -3514,7 +3519,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          "function _adCollegeFast59(){try{"
            "var H=window.__AD_COLLEGE_H59__;"
            "if(!H||!H.isConnected){H=null;var Q=document.querySelectorAll('h1,h2,h3,h4,span,div');"
-             "for(var i59=0;i59<Q.length&&i59<3500&&((i59&15)||!ovr());i59++){var q59=Q[i59];if(q59.children&&q59.children.length>5)continue;"
+             "for(var i59=0;i59<Q.length&&i59<(__SUBF?300:3500)&&((i59&15)||!ovr());i59++){var q59=Q[i59];if(q59.children&&q59.children.length>5)continue;"
                "var t59=String(q59.textContent||'').replace(/\\s+/g,' ').trim().toLowerCase();if(t59==='off to college'){H=q59;window.__AD_COLLEGE_H59__=q59;break;}}}"
            "if(!H)return 0;var hr59=H.getBoundingClientRect(),vh59=window.innerHeight||900,vw59=window.innerWidth||390;"
            "if(hr59.bottom<-160||hr59.top>vh59+160)return 0;var y059=hr59.bottom-18,y159=hr59.bottom+120,V59=document.querySelectorAll('svg'),n59=0;"
