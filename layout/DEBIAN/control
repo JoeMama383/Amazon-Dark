@@ -1,6 +1,6 @@
 Package: com.colindavidr.amazondark
 Name: AmazonDark
-Version: 5.474.0
+Version: 5.475.0
 Architecture: iphoneos-arm64
 Description: Dark mode for the Amazon app on rootless iOS 15+.
 Maintainer: JoeMama383

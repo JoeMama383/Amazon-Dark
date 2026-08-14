@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.474.0"
+#define AD_VERSION "v5.475.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1242,7 +1242,8 @@ static NSString *ADFrameBoot474(void){
             NSMutableString *s=[NSMutableString stringWithCapacity:96*1024];
             [s appendFormat:@"try{window.__ADTAME_ON__=%d;window.__ADTAME_S__=%ld;}catch(e){}\n",
                 gP.whiteTame?1:0,(long)gP.whiteTameStrength];
-            [s appendString:@"(function(){try{if(window.top===window)return;"];
+            [s appendString:@"(function(){try{if(window.top===window)return;"
+                            "if(window.__AMZDARK_FR474__)return;window.__AMZDARK_FR474__=1;"];
             [s appendString:ADBootHead474a()];
             [s appendString:ADBootHead474b()];
             [s appendString:ADFrameCore474()];
@@ -11411,10 +11412,13 @@ static void ADReapplyBurst(UIViewController *vc){
             // Focused probe after the burst settles. The recursive native offender
             // scanner is intentionally not automatic anymore; it was expensive debug debt.
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1750*1000000LL),
-                // v5.472 BISECTION: the recurring 79KB slice evaluation is the
-                // largest structural difference from v5.43 (which had no such pass).
-                // Disabled to measure its true cost. Re-enable by restoring this call.
-                dispatch_get_main_queue(), ^{ /* ADFocusedProbe363(); */ });
+                // v5.475: the v5.472 bisection had disabled this call to measure the
+                // recurring pass's cost. Since v5.452 the Home carousel's uniform
+                // darkness overlay LIVES in this pass -- the parse-time black rules
+                // defer to it -- so with the call absent, Home widgets render with
+                // authored/white paint. Restored. (The bisection's speed answer
+                // stands: this pass is not the freeze source.)
+                dispatch_get_main_queue(), ^{ ADFocusedProbe363(); });
         }
     } @catch(...) {}
 }
