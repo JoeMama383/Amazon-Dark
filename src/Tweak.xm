@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.456.0"
+#define AD_VERSION "v5.457.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3088,6 +3088,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                ":('none scanned='+SH.length+' skipped='+ssk));"
            "}}catch(e){window.__AD_SHOP__='err '+e;}"
            "window.__ADSPXR__=0;"
+         "try{addEventListener('scroll',function(){window.__ADSCROLLTS__=Date.now();},{passive:true,capture:true});}catch(e){}"
          "try{if(!window.__ADW455__){window.__ADW455__=1;"
            "window.__ADR_MS__=0;window.__ADR_N__=0;window.__ADR_SKIP__=0;window.__ADR_T0__=Date.now();"
            "var W455=['__AD_CHECKBOX434__','__AD_HEARTSHELL427__','__AD_PRODUCTCTRL391RUN__',"
@@ -3100,7 +3101,8 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                  "window.__AD_RATE__='runs/s='+window.__ADR_N__+' ms/s='+Math.round(window.__ADR_MS__)"
                    "+' skip='+window.__ADR_SKIP__;"
                  "window.__ADR_N__=0;window.__ADR_MS__=0;window.__ADR_SKIP__=0;window.__ADR_T0__=now;}"
-               "if(now-last<100){window.__ADR_SKIP__++;return 0;}"
+               "var fl455=(window.__ADSCROLLTS__&&(now-window.__ADSCROLLTS__)<320)?320:100;"
+               "if(now-last<fl455){window.__ADR_SKIP__++;return 0;}"
                "last=now;window.__ADR_N__++;"
                "var t=Date.now();try{return f.apply(this,arguments);}"
                "finally{window.__ADR_MS__+=(Date.now()-t);}};"
