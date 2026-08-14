@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.460.0"
+#define AD_VERSION "v5.461.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3098,16 +3098,22 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          "try{addEventListener('scroll',function(){window.__ADSCROLLTS__=Date.now();},{passive:true,capture:true});}catch(e){}"
          "try{if(!window.__ADLF__){window.__ADLF__=1;"
            "window.__LF_MAX__=0;window.__LF_N__=0;window.__LF_LAST__=0;window.__LF_T0__=Date.now();"
+           "window.__LF_DR__=0;window.__LF_DRN__=0;window.__LF_DRLEN__=0;"
            "window.__LF_OURS__=0;"
            "var lf=function(){try{var now=Date.now();"
+             "var drn=0,drlen=0;try{var DS=document.querySelectorAll('style.darkreader');drn=DS.length;"
+               "for(var di=0;di<DS.length&&di<40;di++)drlen+=(DS[di].textContent||'').length;}catch(e){}"
              "if(window.__LF_LAST__){var gap=now-window.__LF_LAST__;"
+               "var drchurn=((drn!==window.__LF_DRN__)||(Math.abs(drlen-window.__LF_DRLEN__)>2000))?1:0;"
                "if(gap>window.__LF_MAX__){window.__LF_MAX__=gap;"
+                 "window.__LF_DR__=drchurn;"
                  "window.__LF_OURS__=Math.round(window.__ADR_MS__||0);}"
                "if(gap>250)window.__LF_N__++;}"
+             "window.__LF_DRN__=drn;window.__LF_DRLEN__=drlen;"
              "window.__LF_LAST__=now;"
              "if(now-window.__LF_T0__>=2000){"
                "window.__AD_LONG__='maxgap='+window.__LF_MAX__+'ms frozen>250ms='+window.__LF_N__"
-                 "+' ourMsInWorst='+window.__LF_OURS__;"
+                 "+' ourMsInWorst='+window.__LF_OURS__+' drChurn='+window.__LF_DR__+' drStyles='+window.__LF_DRN__;"
                "window.__LF_MAX__=0;window.__LF_N__=0;window.__LF_T0__=now;}"
              "requestAnimationFrame(lf);}catch(e){}};"
            "if(window.requestAnimationFrame)requestAnimationFrame(lf);"
