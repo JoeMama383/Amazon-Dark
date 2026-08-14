@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.464.0"
+#define AD_VERSION "v5.465.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1218,7 +1218,15 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "},{once:true});}catch(e){}"
          "}catch(e){}}"
          "else if(window.DarkReader&&DarkReader.enable){"
-         "try{DarkReader.setFetchMethod(window.fetch);}catch(e){}"
+         "try{window.__DRF_N__=0;window.__DRF_MS__=0;window.__DRF_CAP__=0;"
+  "var __drfetch=function(u,o){var t0=Date.now();window.__DRF_N__++;"
+    "if(window.__DRF_N__>25){window.__DRF_CAP__++;"
+      "window.__AD_DRFETCH__='n='+window.__DRF_N__+' ms='+Math.round(window.__DRF_MS__)+' capped='+window.__DRF_CAP__;"
+      "return Promise.resolve(new Response('',{status:204}));}"
+    "return window.fetch(u,o).then(function(r){window.__DRF_MS__+=(Date.now()-t0);"
+      "window.__AD_DRFETCH__='n='+window.__DRF_N__+' ms='+Math.round(window.__DRF_MS__)+' capped='+window.__DRF_CAP__;"
+      "return r;}).catch(function(e){window.__DRF_MS__+=(Date.now()-t0);throw e;});};"
+  "DarkReader.setFetchMethod(__drfetch);}catch(e){try{DarkReader.setFetchMethod(window.fetch);}catch(e2){}}"
  // ── AD-CARD FLIP GUARD ──────────────────────────────────────────────────
  // THE FLIP, not the colour. An ad creative paints with its own correct text,
  // then Dark Reader's pass runs and rewrites it -- that is the grey-then-black
@@ -3011,6 +3019,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(window.__AD_PERF__?(' PERF['+window.__AD_PERF__+']'):'')"
                "+(window.__AD_RATE__?(' RATE['+window.__AD_RATE__+']'):'')"
                "+(window.__AD_DRPERF__?(' DRPERF['+window.__AD_DRPERF__+']'):'')"
+               "+(window.__AD_DRFETCH__?(' DRFETCH['+window.__AD_DRFETCH__+']'):'')"
                "+(window.__AD_LONG__?(' LONG['+window.__AD_LONG__+']'):'')"
                "+(window.__AD_TILEART__?(' TILEART['+window.__AD_TILEART__+']'):'')"
                "+(window.__AD_BOXKILL__?(' BOXKILL['+window.__AD_BOXKILL__+']'):'')"
