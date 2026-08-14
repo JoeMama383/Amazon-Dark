@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.472.0"
+#define AD_VERSION "v5.473.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -171,28 +171,6 @@ static void ADRestoreCategoryArtwork379(UIImageView *iv);
 static BOOL ADIsHamburgerSurface380(UIView *v);
 static int ADMenuRole382(UIView *v);
 static BOOL ADWTInWatchedCarousel380(UIView *v);
-// v5.448: the selected-product Compare tray is native React/UIKit, not part of
-// the search WKWebView.  These tags pin only its nested minus paint; the circular
-// host is deliberately never tagged or mutated by any generic color hook.
-static const void *kADCompareHost448Key  = &kADCompareHost448Key;
-static const void *kADCompareImage448Key = &kADCompareImage448Key;
-static const void *kADCompareSolid448Key = &kADCompareSolid448Key;
-static const void *kADCompareText448Key  = &kADCompareText448Key;
-static const void *kADCompareLayer448Key = &kADCompareLayer448Key;
-static const void *kADCompareFilters448Key = &kADCompareFilters448Key;
-static BOOL gADCompare448Armed = NO;
-static BOOL ADNativeComparePhrase448(NSString *text);
-static void ADScheduleNativeCompare448(void);
-static void ADFixNativeCompare448(void);
-// v5.450: P92 saw all three native glyph candidates but rejected every one at
-// the UIWindow bottom-band gate.  Own the observed Compare control by its local
-// relationship to the 64x48 product thumbnail and short/wide tray instead.  Two
-// bounded layers replace only its paint: a light circle and a dark minus.
-static const void *kADCompareCircle450Key = &kADCompareCircle450Key;
-static const void *kADCompareMinus450Key = &kADCompareMinus450Key;
-static const void *kADCompareHost450Key = &kADCompareHost450Key;
-static void ADScheduleNativeCompare450(void);
-static void ADFixNativeCompare450(void);
 // Forward declarations required by the early Menu glyph gate (v5.382 lint/compile fix).
 static inline BOOL ADImageIsTemplateish(UIImage *im);
 static const void *kADOrigImageKey = &kADOrigImageKey;
@@ -764,28 +742,9 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // This lets the prepaint sheet suppress Amazon's colored carousel ambient layer
          // before recycled/overscroll content can expose it for a frame.
          "try{if(window===window.top&&document&&document.documentElement)document.documentElement.setAttribute('data-ad-main396','1');}catch(e){}"
-         // v5.452 HOME AUTHOR-PAINT CAPTURE.  Claim only the Home carousel's
-         // non-video background leaves before adcardfix or Dark Reader can replace
-         // their authored inline paint.  Geometry is deliberately irrelevant here:
-         // partially visible and recycled cards must receive the same treatment.
-         "try{if(window===window.top&&!window.__AD_HOMECAP452__){"
-           "function homeDoc452(){try{var p452=String(location.pathname||'/').toLowerCase();if(/\\/(?:s|dp)(?:\\/|$)|\\/gp\\/(?:aw\\/d|product)\\//.test(p452))return false;if(document.querySelector('#search,.s-search-results,[data-component-type=\\\"s-search-result\\\"],#productTitle,#dp-container,#ppd'))return false;return true;}catch(x452){return false;}}"
-           "function oneHome452(e452){try{if(!homeDoc452()||!e452||e452.nodeType!==1)return 0;var c452=e452.className;c452=String(c452&&c452.baseVal!==undefined?c452.baseVal:(c452||''));if(c452.indexOf('theming-card-background')<0)return 0;var p452=e452,u452=0,ctx452=c452;while(p452&&u452++<7){ctx452+=' '+String(p452.className||'');p452=p452.parentElement;}if(/single-video-card|video-card|video-js|vjs-|sbv-video/i.test(ctx452))return 0;if(!e452.__adHomeAuth452){var s452=e452.style;e452.__adHomeAuth452={background:s452.getPropertyValue('background'),backgroundPriority:s452.getPropertyPriority('background'),color:s452.getPropertyValue('background-color'),colorPriority:s452.getPropertyPriority('background-color'),image:s452.getPropertyValue('background-image'),imagePriority:s452.getPropertyPriority('background-image'),filter:s452.getPropertyValue('filter'),filterPriority:s452.getPropertyPriority('filter'),blend:s452.getPropertyValue('background-blend-mode'),blendPriority:s452.getPropertyPriority('background-blend-mode'),shadow:s452.getPropertyValue('box-shadow'),shadowPriority:s452.getPropertyPriority('box-shadow')};}if(e452.getAttribute('data-ad-homecolor452')!=='authored')e452.setAttribute('data-ad-homecolor452','authored');return 1;}catch(x452){return 0;}}"
-           "function scanHome452(root452){try{if(!root452||root452.nodeType!==1)return 0;var n452=oneHome452(root452),Q452=root452.querySelectorAll?root452.querySelectorAll('[class*=theming-card-background]'):[];for(var i452=0;i452<Q452.length&&i452<160;i452++)n452+=oneHome452(Q452[i452]);return n452;}catch(x452){return 0;}}"
-           "window.__AD_HOMECAP452__=scanHome452;scanHome452(document.documentElement);new MutationObserver(function(ms452){for(var i452=0;i452<ms452.length&&i452<48;i452++){var A452=ms452[i452].addedNodes;for(var j452=0;j452<A452.length&&j452<32;j452++)scanHome452(A452[j452]);}}).observe(document.documentElement,{childList:true,subtree:true});"
-         "}}catch(e){}"
          "try{if(document&&!document.getElementById('adcardfix')){"
            "var __acs=document.createElement('style');__acs.id='adcardfix';"
-           "__acs.textContent='picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],[class*=s-image],[class*=unfill],[class*=placehold]{background-color:transparent !important;}[class*=puis-heart-position] button,[class*=puis-heart-position] [role=button],[class*=puis-heart-position] a,[class*=puis-heart-position] span,[class*=puis-heart-position] div{background-color:transparent !important;}[class*=puis-heart-position] button::before,[class*=puis-heart-position] button::after,[class*=puis-heart-position] [role=button]::before,[class*=puis-heart-position] [role=button]::after,[class*=puis-heart-position] a::before,[class*=puis-heart-position] a::after,[class*=puis-heart-position] span::before,[class*=puis-heart-position] span::after,[class*=puis-heart-position] div::before,[class*=puis-heart-position] div::after{background-color:transparent !important;}[class*=puis-heart-position] img[src*=grey-pixel],[class*=puis-heart-position] img[src*=gray-pixel],[class*=puis-heart-position] img[src*=transparent-pixel],[class*=puis-heart-position] img[src*=placeholder],[class*=puis-heart-position] img[src*=spacer],[class*=puis-heart-position] img[src*=blank],[class*=puis-heart-position] img[class*=placehold]{display:none !important;filter:none !important;opacity:0 !important;}[class*=mlt-icon-container] img[class*=s-image],[class*=mlt-image-icon] img[class*=s-image]{filter:brightness(0) invert(1) !important;background-color:transparent !important;}[class*=puis-heart-position]{background-color:transparent !important;border:0 !important;box-shadow:none !important;}[class*=lists-framework-unfill],[class*=lists-framework-fill],[class*=lists-framework-action-button] svg,[class*=lists-framework-action-button] i,[class*=lists-framework-action-button] img{filter:brightness(0) invert(1) !important;background-color:transparent !important;border:0 !important;box-shadow:none !important;border-radius:0 !important;max-width:26px !important;max-height:26px !important;}#search [class*=puis-heart-position][data-ad-heartready394=\"1\"],.s-search-results [class*=puis-heart-position][data-ad-heartready394=\"1\"],[data-component-type=\"s-search-result\"] [class*=puis-heart-position][data-ad-heartready394=\"1\"],#dp-container [class*=puis-heart-position][data-ad-heartready394=\"1\"],#ppd [class*=puis-heart-position][data-ad-heartready394=\"1\"]{visibility:visible !important;}[class*=s-image],[class*=s-product-image] img,img[class*=s-image]{object-fit:contain !important;}[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],[class*=puis-card],[class*=gwm-tile],[class*=_container_]{border-color:#3b4043 !important;}[class*=deal],[class*=badge],[class*=prime],[class*=error],[class*=alert],[class*=warning],[aria-invalid=true]{border-color:initial !important;}[class*=a-button-primary],[class*=a-button-search],[class*=a-button-oneclick],[class*=a-button-buy],.a-button-inner,.a-button-text{border-color:transparent !important;}[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_],[class*=ape-placement] *,[class*=ape-wrapper] *,[data-cel-widget*=ape] *,[id*=ape_] *{filter:none !important;mix-blend-mode:normal !important;isolation:auto !important;text-shadow:none !important;}[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_]{background-color:initial !important;}[class*=ape-placement] img,[class*=ape-wrapper] img,[class*=ape-placement] svg,[class*=ape-wrapper] svg,[class*=ape-placement] picture,[class*=ape-wrapper] picture{filter:none !important;opacity:1 !important;}[class*=ape-placement] span,[class*=ape-placement] a,[class*=ape-placement] p,[class*=ape-placement] h1,[class*=ape-placement] h2,[class*=ape-placement] h3,[class*=ape-placement] h4,[class*=ape-wrapper] span,[class*=ape-wrapper] a,[class*=ape-wrapper] p,[class*=ape-wrapper] h1,[class*=ape-wrapper] h2,[class*=ape-wrapper] h3,[class*=ape-wrapper] h4,[class*=theming-card] span,[class*=theming-card] a,[class*=theming-card] p,[class*=theming-card] h1,[class*=theming-card] h2,[class*=theming-card] h3,[class*=theming-card] h4{background-color:transparent !important;}[class*=hybrid-widget-sponsored],[class*=hybrid-widget-sponsored] *,[class*=adFeedbackMainComponent],[class*=adFeedbackMainComponent] *,[class*=sponsored-label],[class*=sponsored-label] *{opacity:1 !important;filter:none !important;mix-blend-mode:normal !important;}[class*=theming-card] [class*=a-cardui-header],[class*=a-cardui-header][class*=theming]{background-color:transparent !important;}[class*=npack-asin-card],[class*=npack-asin-card] *{filter:none !important;opacity:1 !important;mix-blend-mode:normal !important;isolation:auto !important;}[class*=npack-asin-card] [class*=a-size-mini],[class*=npack-asin-card] [class*=badge],[class*=npack-asin-card] [class*=percent]{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=npack-asin-card] [class*=badgeMessage],[class*=npack-asin-card] [class*=badgeMessage] *,[class*=cXVhZ] [class*=badgeMessage],[class*=cXVhZ] [class*=badgeMessage] *{background-color:#181a1b !important;background-image:none !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;box-shadow:none !important;}[class*=npack-asin-card] [class*=badgeMessage]::before,[class*=npack-asin-card] [class*=badgeMessage]::after,[class*=npack-asin-card] [class*=badgeMessage] *::before,[class*=npack-asin-card] [class*=badgeMessage] *::after,[class*=cXVhZ] [class*=badgeMessage]::before,[class*=cXVhZ] [class*=badgeMessage]::after,[class*=cXVhZ] [class*=badgeMessage] *::before,[class*=cXVhZ] [class*=badgeMessage] *::after{background:#181a1b !important;background-image:none !important;box-shadow:none !important;}[class*=a-cardui-header],[class*=a-cardui-header] *{background-color:transparent !important;}[class*=gwm-tile] [class*=a-cardui-header],[class*=gwm-tile] [class*=a-cardui-header] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[class*=hybrid-widget-sponsored],[class*=adFeedbackMainComponent],[class*=hybrid-widget-sponsored] *,[class*=adFeedbackMainComponent] *{background-color:transparent !important;}[class*=bW9ia],[class*=bW9ia] *{filter:none !important;opacity:1 !important;mix-blend-mode:normal !important;}[class*=bW9ia] span,[class*=bW9ia] a,[class*=bW9ia] [class*=price],[class*=bW9ia] [class*=badge],[class*=bW9ia] [class*=percent]{background-color:transparent !important;}[class*=sponsored-products] img[src*=logo],[class*=sponsored-products] img[class*=logo],[class*=sponsored-brand] img,[class*=brand-logo] img{background-color:#e8e6e3 !important;border-radius:4px !important;padding:2px !important;}[class*=cXVhZ],[class*=cXVhZ] *,[class*=badgeLabel],[class*=badgeContainer],[class*=theming-card],[class*=theming-card] *,[class*=canvas-card],[class*=canvas-card] *{mix-blend-mode:normal !important;isolation:auto !important;}[class*=badgeLabel]{background-color:#cc0c39 !important;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=badgeLabel],[class*=badgeLabel] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=npack-asin-card],[class*=canvas-card],[class*=theming-card-background]{background-color:initial !important;}[class*=badgeLabel]{background-color:#cc0c39 !important;}[class*=badgeLabel],[class*=badgeLabel] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=cXVhZ],[class*=cXVhZ] *{filter:none !important;opacity:1 !important;}[class*=a-cardui] [class*=a-price-whole],[class*=a-cardui] [class*=a-price-symbol],[class*=a-cardui] [class*=a-price-decimal],[class*=a-cardui] [class*=a-truncate],[class*=cXVhZ] [class*=a-price-whole],[class*=cXVhZ] [class*=a-price-symbol],[class*=cXVhZ] [class*=a-price-decimal],[class*=cXVhZ] [class*=a-truncate],[class*=npack-asin-card] [class*=a-price-whole],[class*=npack-asin-card] [class*=a-price-symbol],[class*=npack-asin-card] [class*=a-price-decimal],[class*=npack-asin-card] [class*=a-truncate]{color:#e8e6e3 !important;}ul.a-pagination.a-dots li.a-selected,ul.a-pagination.a-dots li.dot-selected-t2,ul.a-pagination.a-dots li[aria-current=true],ul.a-pagination.a-dots li[aria-current=page],ul.a-pagination.a-dots li[aria-selected=true],[data-ad-dotselected374]{background-color:#ffffff !important;border-color:#ffffff !important;}[data-ad-dotselected374]::before,[data-ad-dotselected374]::after,[data-ad-dotselected374] [class*=dot],[data-ad-dotselected374] span{background-color:#ffffff !important;border-color:#ffffff !important;color:#ffffff !important;fill:#ffffff !important;}[class*=pack-size-badge],[class*=pack-size-badge] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[data-ad-nav-chevron-paint=\"1\"],[data-ad-nav-chevron=\"1\"] [class*=a-icon],[data-ad-nav-chevron=\"1\"] i,[data-ad-nav-chevron=\"1\"] svg,[data-ad-nav-chevron=\"1\"] path,[data-ad-college-section=\"1\"] .a-icon-next-rounded,[data-ad-college-section=\"1\"] .a-icon-previous-rounded{filter:brightness(0) invert(1) !important;opacity:1 !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[data-ad-nav-chevron=\"1\"] svg,[data-ad-nav-chevron=\"1\"] path{fill:#e8e6e3 !important;stroke:#e8e6e3 !important;}.a-icon-next-rounded,.a-icon-previous-rounded,.a-carousel-goto-nextpage .a-icon,.a-carousel-goto-prevpage .a-icon,.a-carousel-button-right .a-icon,.a-carousel-button-left .a-icon,[class*=carousel] [class*=chevron],[class*=carousel] [class*=arrow],[class*=cXVhZ] [class*=chevron],[class*=cXVhZ] [class*=arrow]{filter:brightness(0) invert(1) !important;opacity:1 !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;border-color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;}[data-ad-college-chevron=\"1\"],[data-ad-college-chevron=\"1\"] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;border-color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;opacity:1 !important;}[data-ad-college-chevron=\"1\"]::before,[data-ad-college-chevron=\"1\"]::after,[data-ad-college-chevron=\"1\"] *::before,[data-ad-college-chevron=\"1\"] *::after{color:#e8e6e3 !important;border-color:#e8e6e3 !important;}[data-ad-college-chevron-sprite=\"1\"]{filter:brightness(0) invert(1) !important;}[data-ad-expchev383=\"1\"],[data-ad-expchev383=\"1\"] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;border-color:#e8e6e3 !important;opacity:1 !important;}[data-ad-expchev383=\"1\"]::before,[data-ad-expchev383=\"1\"]::after,[data-ad-expchev383=\"1\"] *::before,[data-ad-expchev383=\"1\"] *::after{color:#e8e6e3 !important;border-color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;filter:brightness(0) invert(1) !important;}[data-ad-expchev383=\"1\"] img,[data-ad-expchev383=\"1\"] i{filter:brightness(0) invert(1) !important;opacity:1 !important;}.a-icon-extender-expand,.a-icon-extender-collapse,.a-icon-dropdown,[class*=a-icon-extender],[aria-expanded] .a-icon{filter:brightness(0) invert(1) !important;opacity:1 !important;color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;}[data-ad-cardborder=\"1\"],[class*=\"_npack-asin-card_style_asin-cont\"],[class*=\"sc-card-style\"],[class*=\"_hp-mosaic-container_style_widgetContainer\"],[class*=\"_mosaic-container_style_widgetContainer\"]{border-color:#3b4043 !important;outline-color:#3b4043 !important;}[class*=\"_npack-asin-card_style_asin-cont\"]::before,[class*=\"_npack-asin-card_style_asin-cont\"]::after,[class*=\"sc-card-style\"]::before,[class*=\"sc-card-style\"]::after,[class*=\"_hp-mosaic-container_style_widgetContainer\"]::before,[class*=\"_hp-mosaic-container_style_widgetContainer\"]::after,[class*=\"_mosaic-container_style_widgetContainer\"]::before,[class*=\"_mosaic-container_style_widgetContainer\"]::after{border-color:#3b4043 !important;outline-color:#3b4043 !important;}[data-ad-videoctl362],[class*=ape-placement] [data-ad-videoctl362],[class*=ape-wrapper] [data-ad-videoctl362]{background:rgba(0,0,0,.72) !important;border-radius:999px !important;box-shadow:none !important;}[data-ad-videoctl362] svg,[data-ad-videoctl362] path,[data-ad-videoctl362] polygon{fill:#fff !important;stroke:#fff !important;color:#fff !important;}[data-ad-yml-head363=\"1\"],[data-ad-yml-head363=\"1\"] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;opacity:1 !important;}[data-ad-sponsored-light363=\"1\"],[data-ad-sponsored-light363=\"1\"] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;opacity:1 !important;}[data-ad-reviewink367=\"1\"]{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[data-ad-producttext370=\"1\"]{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[data-ad-productad367=\"1\"]{background-color:#181a1b !important;border-color:#3b4043 !important;outline-color:#3b4043 !important;}[data-ad-share375=\"1\"] img,[data-ad-share375=\"1\"] i,[data-ad-share375=\"1\"] [class*=icon]{filter:brightness(0) invert(1) !important;opacity:1 !important;background-color:transparent !important;}[data-ad-share375=\"1\"],[data-ad-share375=\"1\"] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[data-ad-share375=\"1\"] svg,[data-ad-share375=\"1\"] path{fill:#ffffff !important;stroke:#ffffff !important;}[data-ad-actionhost376]{background-color:#181a1b !important;border-radius:50%% !important;border:1.5px solid rgba(255,255,255,.65) !important;box-shadow:none !important;box-sizing:border-box !important;}[data-ad-actionorig376]{visibility:hidden !important;opacity:0 !important;}[data-ad-actioncanonical376]{position:absolute !important;left:50%% !important;top:50%% !important;transform:translate(-50%%,-50%%) !important;width:23px !important;height:23px !important;display:block !important;visibility:visible !important;opacity:1 !important;filter:none !important;background:transparent !important;pointer-events:none !important;z-index:3 !important;}[data-ad-actioncanonical376] rect,[data-ad-actioncanonical376] path{fill:none !important;stroke:#ffffff !important;stroke-width:1.8 !important;stroke-linecap:round !important;stroke-linejoin:round !important;}[data-ad-sponsored376=\"1\"],[data-ad-sponsored376=\"1\"] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;opacity:1 !important;visibility:visible !important;}[data-ad-rating376=\"1\"]{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;opacity:1 !important;visibility:visible !important;}[data-ad-adtext376=\"1\"]{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;opacity:1 !important;visibility:visible !important;}[data-ad-main396] [class*=single-creative-card] [class*=theming-card-background]:not([data-ad-homecreative447]),[data-ad-main396] [class*=single-video-card] [class*=theming-card-background],[data-ad-main396] [class*=theming-card] [class*=theming-card-background]:not([data-ad-homecreative447]){background:#181a1b !important;background-color:#181a1b !important;background-image:none !important;filter:none !important;mix-blend-mode:normal !important;box-shadow:none !important;animation:none !important;transition:none !important;isolation:auto !important;}[data-ad-main396] [class*=single-creative-card] [class*=theming-card-background]:not([data-ad-homecreative447])::before,[data-ad-main396] [class*=single-creative-card] [class*=theming-card-background]:not([data-ad-homecreative447])::after,[data-ad-main396] [class*=single-video-card] [class*=theming-card-background]::before,[data-ad-main396] [class*=single-video-card] [class*=theming-card-background]::after,[data-ad-main396] [class*=theming-card] [class*=theming-card-background]:not([data-ad-homecreative447])::before,[data-ad-main396] [class*=theming-card] [class*=theming-card-background]:not([data-ad-homecreative447])::after{background:#181a1b !important;background-color:#181a1b !important;background-image:none !important;filter:none !important;mix-blend-mode:normal !important;box-shadow:none !important;animation:none !important;transition:none !important;}';"
-           // v5.448: the real Home creative background is a sibling of the
-           // _single-creative-card image, not its descendant.  The runtime marker
-           // is populated by rectangle overlap below.  Exclude it from BOTH older
-           // background writers; retaining only the later black rule would still
-           // leave the native navy erased by this earlier `initial` reset.
-           "__acs.textContent=__acs.textContent.replace('[class*=npack-asin-card],[class*=canvas-card],[class*=theming-card-background]{background-color:initial !important;}','[class*=npack-asin-card],[class*=canvas-card],[class*=theming-card-background]:not([data-ad-homecreative448]){background-color:initial !important;}').replace(/data-ad-homecreative447/g,'data-ad-homecreative448');"
-           // Captured v5.452 leaves keep Amazon's authored backing; the runtime
-           // below supplies a separate uniform darkness layer instead of black.
-           "__acs.textContent=__acs.textContent.replace(/:not\\(\\[data-ad-homecreative448\\]\\)/g,':not([data-ad-homecreative448]):not([data-ad-homecolor452])');"
+           "__acs.textContent='picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],[class*=s-image],[class*=unfill],[class*=placehold]{background-color:transparent !important;}[class*=puis-heart-position] button,[class*=puis-heart-position] [role=button],[class*=puis-heart-position] a,[class*=puis-heart-position] span,[class*=puis-heart-position] div{background-color:transparent !important;}[class*=puis-heart-position] button::before,[class*=puis-heart-position] button::after,[class*=puis-heart-position] [role=button]::before,[class*=puis-heart-position] [role=button]::after,[class*=puis-heart-position] a::before,[class*=puis-heart-position] a::after,[class*=puis-heart-position] span::before,[class*=puis-heart-position] span::after,[class*=puis-heart-position] div::before,[class*=puis-heart-position] div::after{background-color:transparent !important;}[class*=puis-heart-position] img[src*=grey-pixel],[class*=puis-heart-position] img[src*=gray-pixel],[class*=puis-heart-position] img[src*=transparent-pixel],[class*=puis-heart-position] img[src*=placeholder],[class*=puis-heart-position] img[src*=spacer],[class*=puis-heart-position] img[src*=blank],[class*=puis-heart-position] img[class*=placehold]{display:none !important;filter:none !important;opacity:0 !important;}[class*=mlt-icon-container] img[class*=s-image],[class*=mlt-image-icon] img[class*=s-image]{filter:brightness(0) invert(1) !important;background-color:transparent !important;}[class*=puis-heart-position]{background-color:transparent !important;border:0 !important;box-shadow:none !important;}[class*=lists-framework-unfill],[class*=lists-framework-fill],[class*=lists-framework-action-button] svg,[class*=lists-framework-action-button] i,[class*=lists-framework-action-button] img{filter:brightness(0) invert(1) !important;background-color:transparent !important;border:0 !important;box-shadow:none !important;border-radius:0 !important;max-width:26px !important;max-height:26px !important;}#search [class*=puis-heart-position][data-ad-heartready394=\"1\"],.s-search-results [class*=puis-heart-position][data-ad-heartready394=\"1\"],[data-component-type=\"s-search-result\"] [class*=puis-heart-position][data-ad-heartready394=\"1\"],#dp-container [class*=puis-heart-position][data-ad-heartready394=\"1\"],#ppd [class*=puis-heart-position][data-ad-heartready394=\"1\"]{visibility:visible !important;}[class*=s-image],[class*=s-product-image] img,img[class*=s-image]{object-fit:contain !important;}[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],[class*=puis-card],[class*=gwm-tile],[class*=_container_]{border-color:#3b4043 !important;}[class*=deal],[class*=badge],[class*=prime],[class*=error],[class*=alert],[class*=warning],[aria-invalid=true]{border-color:initial !important;}[class*=a-button-primary],[class*=a-button-search],[class*=a-button-oneclick],[class*=a-button-buy],.a-button-inner,.a-button-text{border-color:transparent !important;}[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_],[class*=ape-placement] *,[class*=ape-wrapper] *,[data-cel-widget*=ape] *,[id*=ape_] *{filter:none !important;mix-blend-mode:normal !important;isolation:auto !important;text-shadow:none !important;}[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_]{background-color:initial !important;}[class*=ape-placement] img,[class*=ape-wrapper] img,[class*=ape-placement] svg,[class*=ape-wrapper] svg,[class*=ape-placement] picture,[class*=ape-wrapper] picture{filter:none !important;opacity:1 !important;}[class*=ape-placement] span,[class*=ape-placement] a,[class*=ape-placement] p,[class*=ape-placement] h1,[class*=ape-placement] h2,[class*=ape-placement] h3,[class*=ape-placement] h4,[class*=ape-wrapper] span,[class*=ape-wrapper] a,[class*=ape-wrapper] p,[class*=ape-wrapper] h1,[class*=ape-wrapper] h2,[class*=ape-wrapper] h3,[class*=ape-wrapper] h4,[class*=theming-card] span,[class*=theming-card] a,[class*=theming-card] p,[class*=theming-card] h1,[class*=theming-card] h2,[class*=theming-card] h3,[class*=theming-card] h4{background-color:transparent !important;}[class*=hybrid-widget-sponsored],[class*=hybrid-widget-sponsored] *,[class*=adFeedbackMainComponent],[class*=adFeedbackMainComponent] *,[class*=sponsored-label],[class*=sponsored-label] *{opacity:1 !important;filter:none !important;mix-blend-mode:normal !important;}[class*=theming-card] [class*=a-cardui-header],[class*=a-cardui-header][class*=theming]{background-color:transparent !important;}[class*=npack-asin-card],[class*=npack-asin-card] *{filter:none !important;opacity:1 !important;mix-blend-mode:normal !important;isolation:auto !important;}[class*=npack-asin-card] [class*=a-size-mini],[class*=npack-asin-card] [class*=badge],[class*=npack-asin-card] [class*=percent]{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=npack-asin-card] [class*=badgeMessage],[class*=npack-asin-card] [class*=badgeMessage] *,[class*=cXVhZ] [class*=badgeMessage],[class*=cXVhZ] [class*=badgeMessage] *{background-color:#181a1b !important;background-image:none !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;box-shadow:none !important;}[class*=npack-asin-card] [class*=badgeMessage]::before,[class*=npack-asin-card] [class*=badgeMessage]::after,[class*=npack-asin-card] [class*=badgeMessage] *::before,[class*=npack-asin-card] [class*=badgeMessage] *::after,[class*=cXVhZ] [class*=badgeMessage]::before,[class*=cXVhZ] [class*=badgeMessage]::after,[class*=cXVhZ] [class*=badgeMessage] *::before,[class*=cXVhZ] [class*=badgeMessage] *::after{background:#181a1b !important;background-image:none !important;box-shadow:none !important;}[class*=a-cardui-header],[class*=a-cardui-header] *{background-color:transparent !important;}[class*=gwm-tile] [class*=a-cardui-header],[class*=gwm-tile] [class*=a-cardui-header] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[class*=hybrid-widget-sponsored],[class*=adFeedbackMainComponent],[class*=hybrid-widget-sponsored] *,[class*=adFeedbackMainComponent] *{background-color:transparent !important;}[class*=bW9ia],[class*=bW9ia] *{filter:none !important;opacity:1 !important;mix-blend-mode:normal !important;}[class*=bW9ia] span,[class*=bW9ia] a,[class*=bW9ia] [class*=price],[class*=bW9ia] [class*=badge],[class*=bW9ia] [class*=percent]{background-color:transparent !important;}[class*=sponsored-products] img[src*=logo],[class*=sponsored-products] img[class*=logo],[class*=sponsored-brand] img,[class*=brand-logo] img{background-color:#e8e6e3 !important;border-radius:4px !important;padding:2px !important;}[class*=cXVhZ],[class*=cXVhZ] *,[class*=badgeLabel],[class*=badgeContainer],[class*=theming-card],[class*=theming-card] *,[class*=canvas-card],[class*=canvas-card] *{mix-blend-mode:normal !important;isolation:auto !important;}[class*=badgeLabel]{background-color:#cc0c39 !important;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=badgeLabel],[class*=badgeLabel] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=npack-asin-card],[class*=canvas-card],[class*=theming-card-background]{background-color:initial !important;}[class*=badgeLabel]{background-color:#cc0c39 !important;}[class*=badgeLabel],[class*=badgeLabel] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[class*=cXVhZ],[class*=cXVhZ] *{filter:none !important;opacity:1 !important;}[class*=a-cardui] [class*=a-price-whole],[class*=a-cardui] [class*=a-price-symbol],[class*=a-cardui] [class*=a-price-decimal],[class*=a-cardui] [class*=a-truncate],[class*=cXVhZ] [class*=a-price-whole],[class*=cXVhZ] [class*=a-price-symbol],[class*=cXVhZ] [class*=a-price-decimal],[class*=cXVhZ] [class*=a-truncate],[class*=npack-asin-card] [class*=a-price-whole],[class*=npack-asin-card] [class*=a-price-symbol],[class*=npack-asin-card] [class*=a-price-decimal],[class*=npack-asin-card] [class*=a-truncate]{color:#e8e6e3 !important;}ul.a-pagination.a-dots li.a-selected,ul.a-pagination.a-dots li.dot-selected-t2,ul.a-pagination.a-dots li[aria-current=true],ul.a-pagination.a-dots li[aria-current=page],ul.a-pagination.a-dots li[aria-selected=true],[data-ad-dotselected374]{background-color:#ffffff !important;border-color:#ffffff !important;}[data-ad-dotselected374]::before,[data-ad-dotselected374]::after,[data-ad-dotselected374] [class*=dot],[data-ad-dotselected374] span{background-color:#ffffff !important;border-color:#ffffff !important;color:#ffffff !important;fill:#ffffff !important;}[class*=pack-size-badge],[class*=pack-size-badge] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[data-ad-nav-chevron-paint=\"1\"],[data-ad-nav-chevron=\"1\"] [class*=a-icon],[data-ad-nav-chevron=\"1\"] i,[data-ad-nav-chevron=\"1\"] svg,[data-ad-nav-chevron=\"1\"] path,[data-ad-college-section=\"1\"] .a-icon-next-rounded,[data-ad-college-section=\"1\"] .a-icon-previous-rounded{filter:brightness(0) invert(1) !important;opacity:1 !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[data-ad-nav-chevron=\"1\"] svg,[data-ad-nav-chevron=\"1\"] path{fill:#e8e6e3 !important;stroke:#e8e6e3 !important;}.a-icon-next-rounded,.a-icon-previous-rounded,.a-carousel-goto-nextpage .a-icon,.a-carousel-goto-prevpage .a-icon,.a-carousel-button-right .a-icon,.a-carousel-button-left .a-icon,[class*=carousel] [class*=chevron],[class*=carousel] [class*=arrow],[class*=cXVhZ] [class*=chevron],[class*=cXVhZ] [class*=arrow]{filter:brightness(0) invert(1) !important;opacity:1 !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;border-color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;}[data-ad-college-chevron=\"1\"],[data-ad-college-chevron=\"1\"] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;border-color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;opacity:1 !important;}[data-ad-college-chevron=\"1\"]::before,[data-ad-college-chevron=\"1\"]::after,[data-ad-college-chevron=\"1\"] *::before,[data-ad-college-chevron=\"1\"] *::after{color:#e8e6e3 !important;border-color:#e8e6e3 !important;}[data-ad-college-chevron-sprite=\"1\"]{filter:brightness(0) invert(1) !important;}[data-ad-expchev383=\"1\"],[data-ad-expchev383=\"1\"] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;border-color:#e8e6e3 !important;opacity:1 !important;}[data-ad-expchev383=\"1\"]::before,[data-ad-expchev383=\"1\"]::after,[data-ad-expchev383=\"1\"] *::before,[data-ad-expchev383=\"1\"] *::after{color:#e8e6e3 !important;border-color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;filter:brightness(0) invert(1) !important;}[data-ad-expchev383=\"1\"] img,[data-ad-expchev383=\"1\"] i{filter:brightness(0) invert(1) !important;opacity:1 !important;}.a-icon-extender-expand,.a-icon-extender-collapse,.a-icon-dropdown,[class*=a-icon-extender],[aria-expanded] .a-icon{filter:brightness(0) invert(1) !important;opacity:1 !important;color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;}[data-ad-cardborder=\"1\"],[class*=\"_npack-asin-card_style_asin-cont\"],[class*=\"sc-card-style\"],[class*=\"_hp-mosaic-container_style_widgetContainer\"],[class*=\"_mosaic-container_style_widgetContainer\"]{border-color:#3b4043 !important;outline-color:#3b4043 !important;}[class*=\"_npack-asin-card_style_asin-cont\"]::before,[class*=\"_npack-asin-card_style_asin-cont\"]::after,[class*=\"sc-card-style\"]::before,[class*=\"sc-card-style\"]::after,[class*=\"_hp-mosaic-container_style_widgetContainer\"]::before,[class*=\"_hp-mosaic-container_style_widgetContainer\"]::after,[class*=\"_mosaic-container_style_widgetContainer\"]::before,[class*=\"_mosaic-container_style_widgetContainer\"]::after{border-color:#3b4043 !important;outline-color:#3b4043 !important;}[data-ad-videoctl362],[class*=ape-placement] [data-ad-videoctl362],[class*=ape-wrapper] [data-ad-videoctl362]{background:rgba(0,0,0,.72) !important;border-radius:999px !important;box-shadow:none !important;}[data-ad-videoctl362] svg,[data-ad-videoctl362] path,[data-ad-videoctl362] polygon{fill:#fff !important;stroke:#fff !important;color:#fff !important;}[data-ad-yml-head363=\"1\"],[data-ad-yml-head363=\"1\"] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;opacity:1 !important;}[data-ad-sponsored-light363=\"1\"],[data-ad-sponsored-light363=\"1\"] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;opacity:1 !important;}[data-ad-reviewink367=\"1\"]{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[data-ad-producttext370=\"1\"]{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[data-ad-productad367=\"1\"]{background-color:#181a1b !important;border-color:#3b4043 !important;outline-color:#3b4043 !important;}[data-ad-share375=\"1\"] img,[data-ad-share375=\"1\"] i,[data-ad-share375=\"1\"] [class*=icon]{filter:brightness(0) invert(1) !important;opacity:1 !important;background-color:transparent !important;}[data-ad-share375=\"1\"],[data-ad-share375=\"1\"] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}[data-ad-share375=\"1\"] svg,[data-ad-share375=\"1\"] path{fill:#ffffff !important;stroke:#ffffff !important;}[data-ad-actionhost376]{background-color:#181a1b !important;border-radius:50%% !important;border:1.5px solid rgba(255,255,255,.65) !important;box-shadow:none !important;box-sizing:border-box !important;}[data-ad-actionorig376]{visibility:hidden !important;opacity:0 !important;}[data-ad-actioncanonical376]{position:absolute !important;left:50%% !important;top:50%% !important;transform:translate(-50%%,-50%%) !important;width:23px !important;height:23px !important;display:block !important;visibility:visible !important;opacity:1 !important;filter:none !important;background:transparent !important;pointer-events:none !important;z-index:3 !important;}[data-ad-actioncanonical376] rect,[data-ad-actioncanonical376] path{fill:none !important;stroke:#ffffff !important;stroke-width:1.8 !important;stroke-linecap:round !important;stroke-linejoin:round !important;}[data-ad-sponsored376=\"1\"],[data-ad-sponsored376=\"1\"] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;opacity:1 !important;visibility:visible !important;}[data-ad-rating376=\"1\"]{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;opacity:1 !important;visibility:visible !important;}[data-ad-adtext376=\"1\"]{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;opacity:1 !important;visibility:visible !important;}[data-ad-main396] [class*=single-creative-card] [class*=theming-card-background],[data-ad-main396] [class*=single-video-card] [class*=theming-card-background],[data-ad-main396] [class*=theming-card] [class*=theming-card-background]{background:#181a1b !important;background-color:#181a1b !important;background-image:none !important;filter:none !important;mix-blend-mode:normal !important;box-shadow:none !important;animation:none !important;transition:none !important;isolation:auto !important;}[data-ad-main396] [class*=single-creative-card] [class*=theming-card-background]::before,[data-ad-main396] [class*=single-creative-card] [class*=theming-card-background]::after,[data-ad-main396] [class*=single-video-card] [class*=theming-card-background]::before,[data-ad-main396] [class*=single-video-card] [class*=theming-card-background]::after,[data-ad-main396] [class*=theming-card] [class*=theming-card-background]::before,[data-ad-main396] [class*=theming-card] [class*=theming-card-background]::after{background:#181a1b !important;background-color:#181a1b !important;background-image:none !important;filter:none !important;mix-blend-mode:normal !important;box-shadow:none !important;animation:none !important;transition:none !important;}';"
            "__acs.textContent=__acs.textContent.replace('[aria-expanded] .a-icon{','[aria-expanded] .a-icon:not(.a-icon-checkbox){');"
            "(document.head||document.documentElement).appendChild(__acs);}}catch(e){}"
          // v5.397: SYMBOL THEME AUTHORITY = exact v5.333 policy for every
@@ -1095,16 +1054,6 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "p.setAttribute('data-ad-videoctl362','1');n++;}"
              "return n;}catch(e){return 0;}};"
            "window.__AMZDARK_ADTHEME__=function(){try{"
-             "var __n454=Date.now();"
-             "window.__ADR_N__=(window.__ADR_N__||0)+1;"
-             "if(!window.__ADR_T0__)window.__ADR_T0__=__n454;"
-             "if(__n454-window.__ADR_T0__>=1000){"
-               "window.__AD_RATE__='runs/s='+window.__ADR_N__+' ms/s='+Math.round(window.__ADR_MS__||0)"
-                 "+' skipped='+(window.__ADR_SKIP__||0);"
-               "window.__ADR_N__=0;window.__ADR_MS__=0;window.__ADR_SKIP__=0;window.__ADR_T0__=__n454;}"
-             "if(window.__ADR_LAST__&&(__n454-window.__ADR_LAST__)<120&&!window.__ADR_FORCE__)"
-               "{window.__ADR_SKIP__=(window.__ADR_SKIP__||0)+1;return 0;}"
-             "window.__ADR_LAST__=__n454;"
              "var mode=window.__ADFRAME_MODE__||'hero',any379=window.__AD_ANYSPONINK379__?window.__AD_ANYSPONINK379__():0,sp365=window.__AD_SPON365__?window.__AD_SPON365__():0;"
              "var strip375=window.__AD_PRODUCTSTRIP375__?window.__AD_PRODUCTSTRIP375__():0;if(strip375){var cl375=window.__AD_CLEARSTRIP374__?window.__AD_CLEARSTRIP374__():0;var in375=window.__AD_ADTEXT371__?window.__AD_ADTEXT371__():0;var tx377=window.__AD_STRIPTEXT377__?window.__AD_STRIPTEXT377__():0;var bx378=window.__AD_STRIPCHROME379__?window.__AD_STRIPCHROME379__():0;var dk382=window.__AD_STANDDARK382__?window.__AD_STANDDARK382__():0;var tm375=window.__AD_STRIPMEDIA374__?window.__AD_STRIPMEDIA374__():0;var sp375=window.__AD_SPON365__?window.__AD_SPON365__():0;window.__AD_STANDALONE__='strip-stock382';window.__AD_ADTHEME__='mode='+mode+' strip379=1 any379='+String(window.__AD_ANYSPON379_N__||0)+' dark379='+String(window.__AD_ANYSPON379_DARK__||0)+' roots379='+String(window.__AD_ANYSPON379_ROOTS__||0)+' t377='+String(window.__AD_STRIPTEXT377_N__||0)+' d377='+String(window.__AD_STRIPTEXT377_DARK__||0)+' box379='+String(window.__AD_STRIPCHROME379_N__||0)+' boxleft379='+String(window.__AD_STRIPCHROME379_LEFT__||0)+' black382='+String(window.__AD_STANDDARK382_N__||0)+' blackleft382='+String(window.__AD_STANDDARK382_LEFT__||0)+' sticky='+String(window.__AD_STRIPCONF375__?1:0)+' clean375='+cl375+' chrome375='+String(window.__AD_STRIPCHROME374_LEFT__||0)+' ink375='+in375+' white376='+String(window.__AD_ADTEXT376_LOCKED__||0)+' grayleft376='+String(window.__AD_ADTEXT376_GRAYLEFT__||0)+' media375='+String(window.__AD_STRIPMEDIA374_N__||0)+' fullSkip375='+String(window.__AD_STRIPFULL374_N__||0)+' spon='+sp375;return cl375+in375+tx377+bx378+dk382+tm375+sp375;}"
              "if(mode==='productad'){var csp=document.getElementById('adfrcompact373');if(csp&&csp.parentNode)csp.parentNode.removeChild(csp);var oldc372=document.getElementById('adfrcompact372');if(oldc372&&oldc372.parentNode)oldc372.parentNode.removeChild(oldc372);var oldp=document.getElementById('adfrstand362');if(oldp&&oldp.parentNode)oldp.parentNode.removeChild(oldp);var oldm=document.getElementById('adfrmin');if(oldm&&oldm.parentNode)oldm.parentNode.removeChild(oldm);if(!document.getElementById('adfrproduct370')){var pst=document.createElement('style');pst.id='adfrproduct370';pst.textContent='html,body{background-color:transparent !important;}';(document.head||document.documentElement).appendChild(pst);}try{var pe=document.querySelectorAll('*');for(var pi=0;pi<pe.length&&pi<900;pi++){var px=pe[pi];if(!px.__adStand362)continue;var pv=String(px.style.getPropertyValue('background-color')||'').replace(/\\s+/g,'').toLowerCase();if(pv==='#181a1b'||pv==='rgb(24,26,27)')px.style.removeProperty('background-color');var bs=['top','right','bottom','left'];for(var pbi=0;pbi<4;pbi++){var bp='border-'+bs[pbi]+'-color',bv=String(px.style.getPropertyValue(bp)||'').replace(/\\s+/g,'').toLowerCase();if(bv==='#3b3c3e'||bv==='rgb(59,60,62)')px.style.removeProperty(bp);}}}catch(pc369){}var ptx=window.__AD_ADTEXT371__?window.__AD_ADTEXT371__():0;var pt=window.__AMZDARK_ADTAME__?window.__AMZDARK_ADTAME__():0;var ps=window.__AD_SPON365__?window.__AD_SPON365__():0;window.__AD_STANDALONE__='product-stock373';window.__AD_ADTHEME__='mode=productad stock=1 ink371='+ptx+' left='+String(window.__AD_ADTEXT371_LEFT__||0)+' roots='+String(window.__AD_ADTEXT371_ROOTS__||1)+' '+String(window.__AD_ADTAME__||('tame='+pt))+' spon='+ps+' pref='+(window.__AD_PRODUCTREF369__?1:0);return ptx+pt+ps;}"
@@ -1218,15 +1167,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "},{once:true});}catch(e){}"
          "}catch(e){}}"
          "else if(window.DarkReader&&DarkReader.enable){"
-         "try{window.__DRF_N__=0;window.__DRF_MS__=0;window.__DRF_CAP__=0;"
-  "var __drfetch=function(u,o){var t0=Date.now();window.__DRF_N__++;"
-    "if(window.__DRF_N__>25){window.__DRF_CAP__++;"
-      "window.__AD_DRFETCH__='n='+window.__DRF_N__+' ms='+Math.round(window.__DRF_MS__)+' capped='+window.__DRF_CAP__;"
-      "return Promise.resolve(new Response('',{status:204}));}"
-    "return window.fetch(u,o).then(function(r){window.__DRF_MS__+=(Date.now()-t0);"
-      "window.__AD_DRFETCH__='n='+window.__DRF_N__+' ms='+Math.round(window.__DRF_MS__)+' capped='+window.__DRF_CAP__;"
-      "return r;}).catch(function(e){window.__DRF_MS__+=(Date.now()-t0);throw e;});};"
-  "DarkReader.setFetchMethod(__drfetch);}catch(e){try{DarkReader.setFetchMethod(window.fetch);}catch(e2){}}"
+         "try{DarkReader.setFetchMethod(window.fetch);}catch(e){}"
  // ── AD-CARD FLIP GUARD ──────────────────────────────────────────────────
  // THE FLIP, not the colour. An ad creative paints with its own correct text,
  // then Dark Reader's pass runs and rewrites it -- that is the grey-then-black
@@ -1455,11 +1396,11 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // these is chrome ON a creative: darkening it paints a box over the art.
            "var ART=[];try{var AQ=document.querySelectorAll('img,picture,video');"
            "__ck('AQ');"
-             "for(var aq=0;aq<AQ.length&&aq<(__SUBF?60:250)&&((aq&15)||!ovr())&&ART.length<80;aq++){"
+             "for(var aq=0;aq<AQ.length&&aq<250&&((aq&15)||!ovr())&&ART.length<80;aq++){"
                "var arr=AQ[aq].getBoundingClientRect();"
                "if(arr.width>=110&&arr.height>=60)ART.push(arr);}"
              "var AQ2=document.querySelectorAll('div,section,a,span');"
-             "for(var aq2=0;aq2<AQ2.length&&aq2<(__SUBF?120:900)&&((aq2&15)||!ovr())&&ART.length<120;aq2++){"
+             "for(var aq2=0;aq2<AQ2.length&&aq2<900&&ART.length<120;aq2++){"
                "var bgi3=getComputedStyle(AQ2[aq2]).backgroundImage||'';"
                "if(bgi3.indexOf('url(')<0)continue;"
                "var ar2=AQ2[aq2].getBoundingClientRect();"
@@ -1571,11 +1512,6 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            // icons -- exits on its first iteration having done nothing. That is the
            // bugle and the card icon going dark. Each section now gets its own
            // slice, so no single loop can block, but every loop still gets to run.
-           // v5.458: an ad pane is its own subframe and gets this whole pass run
-           // synchronously before it can paint (PERF ms=20..45 PER PANE -- the
-           // spinner pausing on each ad). A pane is a fraction of the page, so the
-           // full-document scan caps are wasted work there: scale them down.
-           "var __SUBF=0;try{__SUBF=(window.top!==window.self)?1:0;}catch(e){__SUBF=1;}"
            "var __T0=Date.now(),__t0=__T0,__ckl=[],__cut=0;"
            "function __ck(n){try{__ckl.push(n+':'+(Date.now()-__T0));__t0=Date.now();}catch(e){}}"
            "function ovr(){if(Date.now()-__t0>16){__cut++;return true;}return false;}"
@@ -2055,7 +1991,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                       "try{if(!window.__AD_TXTSRC__){"
                         "var QQ=document.querySelectorAll('span,p,h1,h2,h3,a,div');"
                         "var pick=null,seen=0,onart=0;"
-                        "for(var y1=0;y1<QQ.length&&y1<(__SUBF?250:3000)&&!pick&&((y1&15)||!ovr());y1++){var e1=QQ[y1];"
+                        "for(var y1=0;y1<QQ.length&&y1<3000&&!pick;y1++){var e1=QQ[y1];"
                           "var has=false;"
                           "for(var y2=0;y2<e1.childNodes.length&&y2<4;y2++){"
                             "var q1=e1.childNodes[y2];"
@@ -2110,7 +2046,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "var TT=document.querySelectorAll('span,p,h1,h2,h3,a');"
              "window.__AD_TXTN__=TT.length;"
              "var picked=null,scanned=0;"
-             "for(var x1=0;x1<TT.length&&x1<(__SUBF?200:2500)&&!picked&&((x1&15)||!ovr());x1++){var t1=TT[x1];"
+             "for(var x1=0;x1<TT.length&&x1<2500&&!picked;x1++){var t1=TT[x1];"
                "var has=false;"
                "for(var x2=0;x2<t1.childNodes.length&&x2<4;x2++){"
                  "var n1=t1.childNodes[x2];"
@@ -2693,7 +2629,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              "function rgb57(v){var m=/rgba?\\(([0-9.]+),\\s*([0-9.]+),\\s*([0-9.]+)/.exec(String(v||''));return m?[+m[1],+m[2],+m[3]]:null;}"
              "function br57(v){var c=rgb57(v);return !!(c&&Math.abs(c[0]-84)<=7&&Math.abs(c[1]-78)<=7&&Math.abs(c[2]-69)<=7);}"
              "var GB57=document.querySelectorAll('li,div,section,article');"
-             "for(var g57=0;g57<GB57.length&&g57<(__SUBF?400:6000)&&((g57&15)||!ovr());g57++){var ge57=GB57[g57],gr57=ge57.getBoundingClientRect();if(gr57.width<110||gr57.height<55)continue;"
+             "for(var g57=0;g57<GB57.length&&g57<6000;g57++){var ge57=GB57[g57],gr57=ge57.getBoundingClientRect();if(gr57.width<110||gr57.height<55)continue;"
                "var gs57=getComputedStyle(ge57),gd57=0,go57=0,rr57=Math.max(parseFloat(gs57.borderTopLeftRadius)||0,parseFloat(gs57.borderTopRightRadius)||0,parseFloat(gs57.borderBottomLeftRadius)||0,parseFloat(gs57.borderBottomRightRadius)||0);if(rr57<4)continue;"
                "for(var d57=0;d57<4;d57++){var sd57=SD54[d57],gw57=parseFloat(gs57['border'+sd57+'Width'])||0,gst57=String(gs57['border'+sd57+'Style']||'');if(gw57>=0.5&&gst57!=='none'&&gst57!=='hidden'&&br57(gs57['border'+sd57+'Color'])){gd57=1;break;}}"
                "var gow57=parseFloat(gs57.outlineWidth)||0,gost57=String(gs57.outlineStyle||'');if(gow57>=0.5&&gost57!=='none'&&gost57!=='hidden'&&br57(gs57.outlineColor))go57=1;if(!gd57&&!go57)continue;"
@@ -3017,9 +2953,6 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                "+(window.__AD_SHOP__?(' SHOP['+window.__AD_SHOP__+']'):'')"
                "+(window.__AD_MLT__?(' MLT[n='+window.__AD_MLT__+']'):'')"
                "+(window.__AD_PERF__?(' PERF['+window.__AD_PERF__+']'):'')"
-               "+(window.__AD_RATE__?(' RATE['+window.__AD_RATE__+']'):'')"
-               "+(window.__AD_DRFETCH__?(' DRFETCH['+window.__AD_DRFETCH__+']'):'')"
-               "+(window.__AD_LONG__?(' LONG['+window.__AD_LONG__+']'):'')"
                "+(window.__AD_TILEART__?(' TILEART['+window.__AD_TILEART__+']'):'')"
                "+(window.__AD_BOXKILL__?(' BOXKILL['+window.__AD_BOXKILL__+']'):'')"
                "+(window.__AD_FLTSCAN__?(' FLTSCAN['+window.__AD_FLTSCAN__+']'):'')"
@@ -3074,7 +3007,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
            "try{if(document.readyState==='complete'&&!window.__AD_SHOP_DONE__){"
              "window.__AD_SHOP_DONE__=1;"
              "var SH=document.querySelectorAll('img,svg,span,div'),so=[],ssk=0;"
-             "for(var si=0;si<SH.length&&si<(__SUBF?250:3000)&&so.length<20&&((si&15)||!ovr());si++){var se=SH[si];"
+             "for(var si=0;si<SH.length&&si<3000&&so.length<20;si++){var se=SH[si];"
                "var sr=se.getBoundingClientRect();"
                "if(sr.width<18||sr.width>110||sr.height<18||sr.height>110)continue;"
                // SQUARE-ISH ONLY. The last run filled its whole budget with 86x32
@@ -3103,50 +3036,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
                ":('none scanned='+SH.length+' skipped='+ssk));"
            "}}catch(e){window.__AD_SHOP__='err '+e;}"
            "window.__ADSPXR__=0;"
-         "try{addEventListener('scroll',function(){window.__ADSCROLLTS__=Date.now();},{passive:true,capture:true});}catch(e){}"
-         "try{if(!window.__ADLF__){window.__ADLF__=1;"
-           "window.__LF_MAX__=0;window.__LF_N__=0;window.__LF_LAST__=0;window.__LF_T0__=Date.now();"
-           "window.__LF_DR__=0;window.__LF_DRN__=0;window.__LF_DRLEN__=0;"
-           "window.__LF_OURS__=0;"
-           "var lf=function(){try{var now=Date.now();"
-             "var drn=0,drlen=0;try{var DS=document.querySelectorAll('style.darkreader');drn=DS.length;"
-               "for(var di=0;di<DS.length&&di<40;di++)drlen+=(DS[di].textContent||'').length;}catch(e){}"
-             "if(window.__LF_LAST__){var gap=now-window.__LF_LAST__;"
-               "var drchurn=((drn!==window.__LF_DRN__)||(Math.abs(drlen-window.__LF_DRLEN__)>2000))?1:0;"
-               "if(gap>window.__LF_MAX__){window.__LF_MAX__=gap;"
-                 "window.__LF_DR__=drchurn;"
-                 "window.__LF_OURS__=Math.round(window.__ADR_MS__||0);}"
-               "if(gap>250)window.__LF_N__++;}"
-             "window.__LF_DRN__=drn;window.__LF_DRLEN__=drlen;"
-             "window.__LF_LAST__=now;"
-             "if(now-window.__LF_T0__>=2000){"
-               "window.__AD_LONG__='maxgap='+window.__LF_MAX__+'ms frozen>250ms='+window.__LF_N__"
-                 "+' ourMsInWorst='+window.__LF_OURS__+' drChurn='+window.__LF_DR__+' drStyles='+window.__LF_DRN__;"
-               "window.__LF_MAX__=0;window.__LF_N__=0;window.__LF_T0__=now;}"
-             "requestAnimationFrame(lf);}catch(e){}};"
-           "if(window.requestAnimationFrame)requestAnimationFrame(lf);"
-         "}}catch(e){}"
-         "try{if(!window.__ADW455__){window.__ADW455__=1;"
-           "window.__ADR_MS__=0;window.__ADR_N__=0;window.__ADR_SKIP__=0;window.__ADR_T0__=Date.now();"
-           "var W455=['__AD_CHECKBOX434__','__AD_HEARTSHELL427__','__AD_PRODUCTCTRL391RUN__',"
-             "'__AD_COLLEGEBG403__','__AD_COLLEGE404__','__AD_BLEED404__','__AD_HOMECAP452__'];"
-           "for(var wi455=0;wi455<W455.length;wi455++){(function(nm){try{"
-             "var f=window[nm];if(typeof f!=='function')return;"
-             "var last=0;"
-             "window[nm]=function(){var now=Date.now();"
-               "if(now-window.__ADR_T0__>=1000){"
-                 "window.__AD_RATE__='runs/s='+window.__ADR_N__+' ms/s='+Math.round(window.__ADR_MS__)"
-                   "+' skip='+window.__ADR_SKIP__;"
-                 "window.__ADR_N__=0;window.__ADR_MS__=0;window.__ADR_SKIP__=0;window.__ADR_T0__=now;}"
-               "var fl455=(window.__ADSCROLLTS__&&(now-window.__ADSCROLLTS__)<320)?320:100;"
-               "if(now-last<fl455){window.__ADR_SKIP__++;return 0;}"
-               "last=now;window.__ADR_N__++;"
-               "var t=Date.now();try{return f.apply(this,arguments);}"
-               "finally{window.__ADR_MS__+=(Date.now()-t);}};"
-           "}catch(e){}})(W455[wi455]);}"
-         "}}catch(e){}"
            "window.__AD_PERF__='ms='+(Date.now()-__T0)+' cut='+__cut+' '+__ckl.join(' ');"
-           "try{window.__ADR_MS__=(window.__ADR_MS__||0)+(Date.now()-__T0);}catch(e){}"
            // CHILD FRAME -> TOP. Every frame self-describes (text-element count, body
            // child count, path) so "nothing found" is distinguishable from "nothing
            // here", which is exactly the ambiguity that made scanned=0 unreadable.
@@ -3194,7 +3084,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
              // everything else must be below the header and is deduped by class+size,
              // so N copies of one icon can never consume the budget again.
              "var SQ=document.querySelectorAll('img,svg,span,div,i'),pri=[],oth=[],seenK={},starN=0;"
-             "for(var sq=0;sq<SQ.length&&sq<(__SUBF?200:2500)&&(pri.length+oth.length)<10&&((sq&15)||!ovr());sq++){var se2=SQ[sq];"
+             "for(var sq=0;sq<SQ.length&&sq<2500&&(pri.length+oth.length)<10;sq++){var se2=SQ[sq];"
                "var sr2=se2.getBoundingClientRect();"
                "if(sr2.width<10||sr2.width>200||sr2.height<8||sr2.height>60)continue;"
                "if(sr2.bottom<0||sr2.top>(window.innerHeight||900))continue;"
@@ -3301,59 +3191,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          "try{window.__AD_PRODUCTCTRL391_ORIG397__=window.__AD_PRODUCTCTRL391RUN__;window.__AD_PRODUCTCTRL391RUN__=function(){var r397=window.__AD_PRODUCTCTRL391_ORIG397__?window.__AD_PRODUCTCTRL391_ORIG397__():0;try{window.__AD_SYMBOL333397__();}catch(e397){}return r397;};}catch(e){}"
          "try{window.__AD_SYMBOL333397__();setTimeout(window.__AD_SYMBOL333397__,40);setTimeout(window.__AD_SYMBOL333397__,220);setTimeout(window.__AD_SYMBOL333397__,900);}catch(e){}"
          "window.__AMZDARK_APPLY__=function(){try{"
-           "var __dr0=Date.now();"
-    "var __MO0=window.MutationObserver;"
-    "try{window.MutationObserver=function(cb){"
-      "var last=0,timer=0,lastRecs=null,lastObs=null;"
-      "var fire=function(){timer=0;last=Date.now();"
-        "var r=lastRecs,o=lastObs;lastRecs=null;lastObs=null;"
-        "try{cb(r||[],o);}catch(e){}};"
-      "var wrapped=function(recs,obs){lastRecs=recs;lastObs=obs;"
-        "if(timer)return;"
-        "var wait=220-(Date.now()-last);if(wait<0)wait=0;"
-        "timer=setTimeout(fire,wait);};"
-      "var inst=new __MO0(wrapped);"
-      "try{(window.__DRMO468__=window.__DRMO468__||[]).push(inst);}catch(e){}"
-      "return inst;};"
-      "window.MutationObserver.prototype=__MO0.prototype;}catch(e){}"
-    "var TH468=%@,FX468=%@;"
-    "var key468='';try{var LS8=document.querySelectorAll('link[rel=stylesheet]'),ks8=[];"
-      "for(var l8=0;l8<LS8.length&&l8<24;l8++){var h8=String(LS8[l8].href||'');"
-        "ks8.push(h8.slice(h8.lastIndexOf('/')+1));}"
-      "ks8.sort();key468='adcss468:'+ks8.join('|').slice(0,220);}catch(e){}"
-    "var hit468=null;try{if(key468)hit468=localStorage.getItem(key468);}catch(e){}"
-    "try{if(hit468&&hit468.length>200&&!document.querySelector('style.darkreader')){"
-        "var st8=document.createElement('style');st8.className='darkreader darkreader--cached';"
-        "st8.textContent=hit468;(document.head||document.documentElement).appendChild(st8);"
-        "window.__AD_CACHE468__='hit '+hit468.length;}"
-      "else{if(!document.querySelector('style.darkreader'))DarkReader.enable(TH468,FX468);"
-        "window.__AD_CACHE468__='miss';"
-        "setTimeout(function(){try{if(!DarkReader.exportGeneratedCSS)return;"
-          "Promise.resolve(DarkReader.exportGeneratedCSS()).then(function(css){try{"
-            "if(css&&css.length>200&&css.length<600000&&key468){localStorage.setItem(key468,css);"
-              "window.__AD_CACHE468__='stored '+css.length;}}catch(e){}});"
-        "}catch(e){}},3000);}}"
-    "finally{try{window.MutationObserver=__MO0;}catch(e){}}"
-    "try{if(!window.__DRSETTLE468__){window.__DRSETTLE468__=1;"
-      "var park468=function(){try{var A=window.__DRMO468__||[];"
-        "for(var i8=0;i8<A.length;i8++){try{A[i8].disconnect();}catch(e){}}"
-        "window.__AD_PARK468__='parked '+A.length;}catch(e){}};"
-      "var arm468=function(){try{window.__AD_PARK468__='armed';"
-        "if(window.__AMZDARK_APPLY__)window.__AMZDARK_APPLY__();}catch(e){}};"
-      "setTimeout(park468,4000);"
-      "try{addEventListener('pageshow',function(){arm468();setTimeout(park468,4000);});}catch(e){}"
-      "try{document.addEventListener('visibilitychange',function(){"
-        "if(!document.hidden){arm468();setTimeout(park468,4000);}});}catch(e){}"
-      "try{var lu8=location.href;setInterval(function(){if(location.href!==lu8){"
-        "lu8=location.href;arm468();setTimeout(park468,4000);}},1200);}catch(e){}"
-    "}}catch(e){}"
-    "try{var __drms=Date.now()-__dr0;"
-      "var __drsub=0;try{__drsub=(window.top!==window.self)?1:0;}catch(e){__drsub=1;}"
-      "var __drw=0,__drh=0;try{__drw=Math.round(innerWidth);__drh=Math.round(innerHeight);}catch(e){}"
-      "var __drn=0;try{__drn=document.querySelectorAll('*').length;}catch(e){}"
-      "var __drs=0;try{__drs=document.styleSheets.length;}catch(e){}"
-      "if(__drsub){var k='__addr'+(Date.now()%%100000);}"
-    "}catch(e){}"
+           "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
            "if(window._adTameFast362)_adTameFast362(document.documentElement);"
            "if(window._adTextPins363)_adTextPins363(document.documentElement);"
            "if(window.__AD_COLLEGE_FAST59__)window.__AD_COLLEGE_FAST59__();"
@@ -3603,7 +3441,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          "function _adCollegeFast59(){try{"
            "var H=window.__AD_COLLEGE_H59__;"
            "if(!H||!H.isConnected){H=null;var Q=document.querySelectorAll('h1,h2,h3,h4,span,div');"
-             "for(var i59=0;i59<Q.length&&i59<(__SUBF?300:3500)&&((i59&15)||!ovr());i59++){var q59=Q[i59];if(q59.children&&q59.children.length>5)continue;"
+             "for(var i59=0;i59<Q.length&&i59<3500;i59++){var q59=Q[i59];if(q59.children&&q59.children.length>5)continue;"
                "var t59=String(q59.textContent||'').replace(/\\s+/g,' ').trim().toLowerCase();if(t59==='off to college'){H=q59;window.__AD_COLLEGE_H59__=q59;break;}}}"
            "if(!H)return 0;var hr59=H.getBoundingClientRect(),vh59=window.innerHeight||900,vw59=window.innerWidth||390;"
            "if(hr59.bottom<-160||hr59.top>vh59+160)return 0;var y059=hr59.bottom-18,y159=hr59.bottom+120,V59=document.querySelectorAll('svg'),n59=0;"
@@ -5462,24 +5300,8 @@ static void ADInvertRNSVG(UIView *v);
 - (void)didMoveToWindow {
     %orig;
     @try { if (ADRecolorOn() && self.window) ADInvertRNSVG(self); } @catch(...) {}
-    @try {
-        if (ADRecolorOn() && self.window){
-            const char *cn450=object_getClassName(self);
-            if ([self isKindOfClass:[UIImageView class]] && cn450 &&
-                (strstr(cn450,"RCTImage") || strstr(cn450,"ImageComponent")))
-                ADScheduleNativeCompare450();
-        }
-    } @catch(...) {}
 }
 - (void)setBackgroundColor:(UIColor *)color {
-    // v5.448 Compare tray: only a positively-owned thin minus bar is pinned
-    // light.  Its round parent never receives this key, so its dark fill/radius
-    // remain Amazon's untouched paint.
-    if (ADRecolorOn() && objc_getAssociatedObject(self, kADCompareSolid448Key)) {
-        UIColor *want448 = ADColorFromHex(gP.fgHex);
-        %orig(want448);
-        return;
-    }
     if (!ADRecolorOn() || !color || ADIsOwnColor(color) || ADIsWebKitOwned(self)) {
         %orig;
         return;
@@ -5522,14 +5344,6 @@ static void ADInvertRNSVG(UIView *v);
     %orig;
 }
 - (void)setTintColor:(UIColor *)color {
-    // Amazon reassigns the tiny Compare-minus tint during Fabric commits.  Once
-    // semantic + geometry ownership has tagged that UIImageView, reject only
-    // those later dark resets and keep the glyph light.
-    if (ADRecolorOn() && objc_getAssociatedObject(self, kADCompareImage448Key)) {
-        UIColor *want448 = ADColorFromHex(gP.fgHex);
-        %orig(want448);
-        return;
-    }
     // Tab bar FIRST, before the generic guard below. The blue/white flash was a fight:
     // we set a tab icon blue, Amazon reset its tint (often to nil -> reverts to the
     // bar's inherited near-white), our next sweep re-blued it. Overriding every
@@ -5705,11 +5519,6 @@ static void ADReportNativeCaption(UILabel *lb, UIColor *from, UIColor *to){
 
 %hook UILabel
 - (void)setTextColor:(UIColor *)color {
-    if (ADRecolorOn() && objc_getAssociatedObject(self, kADCompareText448Key)) {
-        UIColor *want448 = ADColorFromHex(gP.fgHex);
-        %orig(want448);
-        return;
-    }
     if (!ADRecolorOn() || !color || ADIsOwnColor(color)) {
         %orig;
         return;
@@ -5849,33 +5658,17 @@ static void ADReportFabricText(id vObj, NSAttributedString *before, NSAttributed
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         @try { ADReportFabricText(self, attributedText, r); } @catch(...) {}
         %orig(r);
-        if (ADNativeComparePhrase448(attributedText.string)) {
-            gADCompare448Armed = YES;
-            ADScheduleNativeCompare448();
-        }
         return;
     } @catch(...) {}
     %orig;
-    if (ADNativeComparePhrase448(attributedText.string)) {
-        gADCompare448Armed = YES;
-        ADScheduleNativeCompare448();
-    }
 }
 - (void)_setAttributedString:(NSAttributedString *)attributedString {
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedString);
         %orig(r);
-        if (ADNativeComparePhrase448(attributedString.string)) {
-            gADCompare448Armed = YES;
-            ADScheduleNativeCompare448();
-        }
         return;
     } @catch(...) {}
     %orig;
-    if (ADNativeComparePhrase448(attributedString.string)) {
-        gADCompare448Armed = YES;
-        ADScheduleNativeCompare448();
-    }
 }
 %end
 
@@ -5920,10 +5713,6 @@ static void ADReportFabricText(id vObj, NSAttributedString *before, NSAttributed
         }
     } @catch(...) {}
     %orig;
-    if (ADNativeComparePhrase448(textStorage.string)) {
-        gADCompare448Armed = YES;
-        ADScheduleNativeCompare448();
-    }
 }
 %end
 
@@ -5975,17 +5764,6 @@ static void ADReportFabricText(id vObj, NSAttributedString *before, NSAttributed
         return;
     }
     @try {
-        if (objc_getAssociatedObject(self, kADCompareCircle450Key)) {
-            CGColorRef circle450=[UIColor whiteColor].CGColor;
-            %orig(circle450);
-            return;
-        }
-        if (objc_getAssociatedObject(self, kADCompareMinus450Key)) {
-            UIColor *dark450=ADColorFromHex(gP.bgHex);
-            CGColorRef minus450=dark450.CGColor;
-            %orig(minus450);
-            return;
-        }
         if (ADLayerIsWebKitOwned(self)) {
             %orig;
             return;
@@ -5994,8 +5772,7 @@ static void ADReportFabricText(id vObj, NSAttributedString *before, NSAttributed
         // sets a marked-own white, but the marker cannot survive the UIColor ->
         // CGColor forwarding, so without this check the hook mapped the white
         // straight back to the dark background colour.
-        if (objc_getAssociatedObject(self, kADIndicatorKey) ||
-            objc_getAssociatedObject(self, kADCompareSolid448Key)) {
+        if (objc_getAssociatedObject(self, kADIndicatorKey)) {
             %orig;
             return;
         }
@@ -6037,21 +5814,6 @@ static void ADReportFabricText(id vObj, NSAttributedString *before, NSAttributed
 }
 - (void)setFilters:(NSArray *)filters {
     @try {
-        if (objc_getAssociatedObject(self, kADCompareLayer448Key)) {
-            NSArray *ours448 = objc_getAssociatedObject(self, kADCompareFilters448Key);
-            if (ours448.count){
-                BOOL has448 = NO;
-                for (id f448 in (filters ?: @[])){
-                    if ([ours448 containsObject:f448]){ has448 = YES; break; }
-                }
-                if (!has448){
-                    NSMutableArray *m448 = [NSMutableArray arrayWithArray:(filters ?: @[])];
-                    [m448 addObjectsFromArray:ours448];
-                    %orig(m448);
-                    return;
-                }
-            }
-        }
         id d = self.delegate;
         if (d && [d isKindOfClass:[UIView class]] &&
             objc_getAssociatedObject(d, kADRNInvertKey)){
@@ -6268,40 +6030,6 @@ static void ADHeaderProbe(void){
 static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar);
 static void ADSweepTimed(UIView *v, BOOL inTabBar, const char *why);
 static const void *kADScrollPendKey = &kADScrollPendKey;
-
-// v5.454 experimental performance guard. v5.452's "pending" boolean did not
-// move the deadline when more motion arrived, so a long drag still ran a native
-// tree sweep every ~300ms. Keep one tiny state object per native scroll view and
-// do the unchanged v5.452 convergence work only after a true quiet edge.
-@interface ADScrollSettle454 : NSObject {
-@public
-    CFTimeInterval lastMotion;
-    BOOL pending;
-}
-@end
-@implementation ADScrollSettle454
-@end
-
-static void ADArmScrollSettle454(UIScrollView *scroll, ADScrollSettle454 *state){
-    if (!scroll || !state || state->pending) return;
-    state->pending = YES;
-    __weak UIScrollView *weakScroll = scroll;
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 260*1000000LL),
-                   dispatch_get_main_queue(), ^{
-        UIScrollView *s = weakScroll;
-        state->pending = NO;
-        if (!s || !ADRecolorOn() || !s.window) return;
-        CFTimeInterval quiet = CACurrentMediaTime() - state->lastMotion;
-        if (s.tracking || s.dragging || s.decelerating || quiet < 0.22){
-            ADArmScrollSettle454(s, state);
-            return;
-        }
-        @try { ADSweepTimed(s, NO, "scroll454"); } @catch(...) {}
-        @try { if(gP.enabled&&gP.whiteTame&&s.window){NSMutableArray *sq394=[NSMutableArray arrayWithObject:s];for(NSUInteger qi394=0;qi394<sq394.count&&qi394<180;qi394++){UIView *x394=sq394[qi394];if([x394 isKindOfClass:[UIImageView class]])ADSubscribeOverlay394(x394);if(qi394<55){for(UIView *c394 in x394.subviews){if(sq394.count<180)[sq394 addObject:c394];else break;}}}} } @catch(...) {}
-        @try { ADHeaderProbe(); } @catch(...) {}
-    });
-}
-
 %hook UIScrollView
 - (void)didMoveToWindow {
     %orig;
@@ -6311,13 +6039,19 @@ static void ADArmScrollSettle454(UIScrollView *scroll, ADScrollSettle454 *state)
     %orig;
     @try {
         if (!ADRecolorOn() || !self.window || ADIsWebKitOwned(self)) return;
-        ADScrollSettle454 *state=objc_getAssociatedObject(self,kADScrollPendKey);
-        if (!state){
-            state=[ADScrollSettle454 new];
-            objc_setAssociatedObject(self,kADScrollPendKey,state,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
-        state->lastMotion=CACurrentMediaTime();
-        ADArmScrollSettle454(self,state);
+        // Coalesce: schedule ONE scoped sweep ~300ms after scrolling settles.
+        if (objc_getAssociatedObject(self, kADScrollPendKey)) return;
+        objc_setAssociatedObject(self, kADScrollPendKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        __weak UIScrollView *ws = self;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 300*1000000LL),
+            dispatch_get_main_queue(), ^{
+                UIScrollView *ss = ws;
+                if (!ss) return;
+                objc_setAssociatedObject(ss, kADScrollPendKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                @try { if (ADRecolorOn() && ss.window) ADSweepTimed(ss, NO, "scroll"); } @catch(...) {}
+                @try { if(gP.enabled&&gP.whiteTame&&ss.window){NSMutableArray *sq394=[NSMutableArray arrayWithObject:ss];for(NSUInteger qi394=0;qi394<sq394.count&&qi394<180;qi394++){UIView *x394=sq394[qi394];if([x394 isKindOfClass:[UIImageView class]])ADSubscribeOverlay394(x394);if(qi394<55){for(UIView *c394 in x394.subviews){if(sq394.count<180)[sq394 addObject:c394];else break;}}}} } @catch(...) {}
+                @try { ADHeaderProbe(); } @catch(...) {}
+            });
     } @catch(...) {}
 }
 %end
@@ -6627,14 +6361,6 @@ static void ADRunProbe(void){
         return;
     } @catch(...) {}
     %orig;
-}
-- (void)didMoveToWindow {
-    %orig;
-    @try { if (ADRecolorOn() && ((UIView *)self).window && gADCompare448Armed) ADScheduleNativeCompare448(); } @catch(...) {}
-}
-- (void)layoutSubviews {
-    %orig;
-    @try { if (ADRecolorOn() && ((UIView *)self).window && gADCompare448Armed) ADScheduleNativeCompare448(); } @catch(...) {}
 }
 %end
 
@@ -7643,30 +7369,6 @@ static UIImage *ADGlyphify(UIImage *img){
 
 %hook UIImageView
 - (void)setImage:(UIImage *)image {
-    // A Compare tray may reuse an already-mounted RN image view and assign the
-    // dark circle/minus raster after didMoveToWindow.  Schedule the local-structure
-    // pass from that assignment too; it still requires tray, thumbnail, size,
-    // dark-raster, and adjacency agreement before painting.
-    @try {
-        const char *cn450=object_getClassName(self);
-        if (image && ADRecolorOn() && self.window && cn450 &&
-            (strstr(cn450,"RCTImage") || strstr(cn450,"ImageComponent")))
-            ADScheduleNativeCompare450();
-    } @catch(...) {}
-    // v5.448: the Compare tray's native 10x14 minus is replaced during React
-    // commits.  Ownership is assigned only after the native tray phrase, product
-    // thumbnail, overlapping round host, and nested glyph all agree.  Re-template
-    // that one child at assignment time so no dark reset can win a later frame.
-    if (image && ADRecolorOn() &&
-        objc_getAssociatedObject(self, kADCompareImage448Key)) {
-        UIImage *want448 = image.renderingMode == UIImageRenderingModeAlwaysTemplate
-                         ? image : [image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-        gADGlyphWriting = YES;
-        %orig(want448);
-        gADGlyphWriting = NO;
-        ((UIView *)self).tintColor = ADColorFromHex(gP.fgHex);
-        return;
-    }
     if (!image || ADIsWebKitOwned(self) || !ADRecolorOn() || gADSettingImage) {
         %orig;
         return;
@@ -7753,10 +7455,6 @@ static UIImage *ADGlyphify(UIImage *img){
     %orig;
     @try {
         UIView *vv=(UIView *)self; ADSubscribeOverlay394(vv);
-        if (ADRecolorOn() && vv.window &&
-            vv.bounds.size.width>=8 && vv.bounds.size.width<=30 &&
-            vv.bounds.size.height>=8 && vv.bounds.size.height<=30)
-            ADScheduleNativeCompare450();
         __weak UIView *wv=vv;
         const int64_t ds394[]={80,260,700};
         for(int i=0;i<3;i++)dispatch_after(dispatch_time(DISPATCH_TIME_NOW,ds394[i]*1000000LL),dispatch_get_main_queue(),^{UIView *x=wv;if(x)ADSubscribeOverlay394(x);});
@@ -7766,10 +7464,6 @@ static UIImage *ADGlyphify(UIImage *img){
     %orig;
     @try {
         UIView *vv=(UIView *)self;
-        if (ADRecolorOn() && vv.window &&
-            vv.bounds.size.width>=8 && vv.bounds.size.width<=30 &&
-            vv.bounds.size.height>=8 && vv.bounds.size.height<=30)
-            ADScheduleNativeCompare450();
         if (gP.enabled && gP.whiteTame && vv.window &&
             vv.bounds.size.width >= 24 && vv.bounds.size.height >= 24 &&
             vv.bounds.size.width <= 280 && vv.bounds.size.height <= 280) {
@@ -8346,44 +8040,13 @@ static const void *kADCellSwept = &kADCellSwept;
 
 // Timed entry point. Sets the budget, counts nodes, and reports anything slow so
 // the native side stops being the unmeasured half of this problem.
-// v5.464: the native side had the same blind spot the JS side had -- per-sweep
-// cost was budgeted (4ms) but the NUMBER of sweeps per second was never measured
-// or bounded. On a product page or an image carousel the sweep can fire on every
-// layout pass, so hundreds of 4ms sweeps per second block the main thread and
-// taps queue. NRATE reports sweeps/s and ms/s; the burst dedupe drops repeat
-// sweeps for the SAME reason inside 50ms, which are redundant by construction.
-static double gNRWindow = 0, gNRMs = 0;
-static int gNRCalls = 0, gNRSkipped = 0;
-static double gNRLastFor[16] = {0};
-static int ADSweepReasonSlot(const char *why){
-    if (!why) return 15;
-    unsigned h = 0; for (const char *p2 = why; *p2; p2++) h = h*31u + (unsigned)*p2;
-    return (int)(h % 15u);
-}
 static void ADSweepTimed(UIView *v, BOOL inTabBar, const char *why){
     @try {
         CFAbsoluteTime t0 = CFAbsoluteTimeGetCurrent();
-        if (gNRWindow == 0) gNRWindow = t0;
-        int slot = ADSweepReasonSlot(why);
-        if (gNRLastFor[slot] > 0 && (t0 - gNRLastFor[slot]) < 0.050) {
-            gNRSkipped++;
-            if (t0 - gNRWindow >= 1.0) {
-                ADLog(@"NRATE[sweeps/s=%d ms/s=%.0f skipped=%d]", gNRCalls, gNRMs, gNRSkipped);
-                gNRWindow = t0; gNRCalls = 0; gNRMs = 0; gNRSkipped = 0;
-            }
-            return;
-        }
-        gNRLastFor[slot] = t0;
-        gNRCalls++;
-        if (t0 - gNRWindow >= 1.0) {
-            ADLog(@"NRATE[sweeps/s=%d ms/s=%.0f skipped=%d]", gNRCalls, gNRMs, gNRSkipped);
-            gNRWindow = t0; gNRCalls = 0; gNRMs = 0; gNRSkipped = 0;
-        }
         gSweepNodes = 0; gSweepCut = 0;
         gSweepDeadline = t0 + 0.004;                 // 4ms: keep UI responsive; assignment hooks cover media immediately
         ADSweepViewTree(v, 0, inTabBar);
         double ms = (CFAbsoluteTimeGetCurrent() - t0) * 1000.0;
-        gNRMs += ms;
         static int logged = 0;
         if (ms > 3.0 && logged < 40){
             logged++;
@@ -8433,347 +8096,6 @@ static NSString *ADProbeTextOf(UIView *v){
     } @catch(...) {}
     @try { return v.accessibilityLabel; } @catch(...) {}
     return nil;
-}
-
-// ── v5.448 NATIVE COMPARE-TRAY MINUS ─────────────────────────────────────────
-// The v5.447 device probe proved the bottom Compare tray never enters the search
-// WKWebView (P89 pane/host/glyph all remained zero).  At the same moments the
-// native glyph census repeatedly saw paired 10x14 dark-neutral UIImageViews.  Own
-// the native control by four independent facts instead: Amazon's exact tray copy,
-// a bottom-docked tray, a product-sized thumbnail at its left edge, and a small
-// round host overlapping that thumbnail.  Only a nested minus paint leaf is ever
-// changed.  No bounds, radius, host fill, interaction, or artwork is synthesized.
-static BOOL ADNativeComparePhrase448(NSString *text){
-    @try {
-        if (![text isKindOfClass:[NSString class]] || text.length == 0) return NO;
-        return ([text rangeOfString:@"Compare with similar"
-                            options:NSCaseInsensitiveSearch].location != NSNotFound ||
-                [text rangeOfString:@"keep selecting"
-                            options:NSCaseInsensitiveSearch].location != NSNotFound);
-    } @catch(...) {}
-    return NO;
-}
-
-static NSString *ADCompareColor448(UIColor *c){
-    @try {
-        if (!c) return @"-";
-        CGFloat r=0,g=0,b=0,a=0;
-        if (![c getRed:&r green:&g blue:&b alpha:&a]) return @"?";
-        return [NSString stringWithFormat:@"%.3f,%.3f,%.3f/%.3f",r,g,b,a];
-    } @catch(...) {}
-    return @"?";
-}
-
-static BOOL ADCompareDarkRound448(UIView *v){
-    @try {
-        CGFloat w=v.bounds.size.width,h=v.bounds.size.height,m=MIN(w,h);
-        if (w<18 || w>52 || h<18 || h>52 || fabs(w-h)>10) return NO;
-        CGFloat rad=v.layer.cornerRadius;
-        UIColor *bg=v.backgroundColor;
-        if (!bg && v.layer.backgroundColor) bg=[UIColor colorWithCGColor:v.layer.backgroundColor];
-        CGFloat r=0,g=0,b=0,a=0;
-        BOOL got=bg&&[bg getRed:&r green:&g blue:&b alpha:&a];
-        CGFloat lum=got?(0.2126*r+0.7152*g+0.0722*b):1.0;
-        return rad>=m*.28 && got && a>.25 && lum<.32;
-    } @catch(...) {}
-    return NO;
-}
-
-static BOOL ADCompareMinusText448(NSString *text){
-    @try {
-        NSString *t=[text stringByTrimmingCharactersInSet:
-                     [NSCharacterSet whitespaceAndNewlineCharacterSet]];
-        return ([t isEqualToString:@"-"] || [t isEqualToString:@"−"] ||
-                [t isEqualToString:@"–"]);
-    } @catch(...) {}
-    return NO;
-}
-
-static BOOL ADCompareLayerCandidate448(CALayer *l, int depth){
-    if (!l || depth>5 || l.hidden || l.opacity<.05) return NO;
-    @try {
-        CGFloat w=l.bounds.size.width,h=l.bounds.size.height;
-        if ([l isKindOfClass:[CAShapeLayer class]]){
-            CAShapeLayer *s=(CAShapeLayer *)l;
-            if (s.path){
-                CGRect p=CGPathGetBoundingBox(s.path);
-                CGFloat pw=fabs(p.size.width),ph=fabs(p.size.height);
-                if (pw>=3 && pw<=24 && ph>=1 && ph<=8 && pw/ph>=1.5) return YES;
-            }
-        }
-        if (l.contents && w>=2 && w<=24 && h>=2 && h<=24) return YES;
-        for (CALayer *q in l.sublayers)
-            if (ADCompareLayerCandidate448(q,depth+1)) return YES;
-    } @catch(...) {}
-    return NO;
-}
-
-static BOOL ADCompareViewCandidate448(UIView *v, UIView *host, int depth){
-    if (!v || depth>6 || v.hidden || v.alpha<.05) return NO;
-    @try {
-        if (v!=host){
-            CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
-            NSString *txt=ADProbeTextOf(v);
-            if (ADCompareMinusText448(txt)) return YES;
-            if ([v isKindOfClass:[UIImageView class]] && ((UIImageView *)v).image &&
-                w>=2 && w<=26 && h>=2 && h<=26) return YES;
-            const char *cn=object_getClassName(v);
-            if (cn && strstr(cn,"SVG") && w>=2 && w<=26 && h>=2 && h<=26) return YES;
-            UIColor *bg=v.backgroundColor;
-            if (!bg && v.layer.backgroundColor) bg=[UIColor colorWithCGColor:v.layer.backgroundColor];
-            if (bg && w>=4 && w<=24 && h>=1 && h<=7 && w/h>=1.6) return YES;
-            if (ADCompareLayerCandidate448(v.layer,0)) return YES;
-        }
-        for (UIView *q in v.subviews)
-            if (ADCompareViewCandidate448(q,host,depth+1)) return YES;
-    } @catch(...) {}
-    return NO;
-}
-
-static UIView *ADCompareTextWalk448(UIView *v, int depth, int *seen){
-    if (!v || depth>46 || *seen>1800 || v.hidden || v.alpha<.05) return nil;
-    @try {
-        (*seen)++;
-        if (ADIsWebKitOwned(v)) return nil; // v5.447's disproven ownership path
-        if (ADNativeComparePhrase448(ADProbeTextOf(v))) return v;
-        for (UIView *q in v.subviews){
-            UIView *hit=ADCompareTextWalk448(q,depth+1,seen);
-            if (hit) return hit;
-        }
-    } @catch(...) {}
-    return nil;
-}
-
-static void ADCompareThumbWalk448(UIView *v, UIView *tray, UIWindow *win,
-                                  int depth, UIView **best, CGFloat *bestScore){
-    if (!v || depth>22 || v.hidden || v.alpha<.05) return;
-    @try {
-        if (ADIsWebKitOwned(v)) return;
-        if (v!=tray){
-            CGRect f=[v convertRect:v.bounds toView:win];
-            CGFloat w=f.size.width,h=f.size.height;
-            const char *cn=object_getClassName(v);
-            BOOL imageLike=([v isKindOfClass:[UIImageView class]] && ((UIImageView *)v).image) ||
-                           (cn && (strstr(cn,"ImageComponent")||strstr(cn,"RCTImage"))) ||
-                           v.layer.contents!=nil;
-            CGRect tr=[tray convertRect:tray.bounds toView:win];
-            if (imageLike && w>=24 && w<=96 && h>=24 && h<=96 &&
-                fabs(w-h)<=22 && f.origin.x<win.bounds.size.width*.36 &&
-                CGRectIntersectsRect(f,tr)){
-                CGFloat score=fabs(CGRectGetMidY(f)-CGRectGetMidY(tr)) + fabs(w-h) - MIN(w,h)*.2;
-                if (score<*bestScore){ *bestScore=score; *best=v; }
-            }
-        }
-        for (UIView *q in v.subviews)
-            ADCompareThumbWalk448(q,tray,win,depth+1,best,bestScore);
-    } @catch(...) {}
-}
-
-static void ADCompareHostWalk448(UIView *v, UIView *tray, UIView *thumb,
-                                 UIWindow *win, int depth, UIView **best,
-                                 CGFloat *bestScore){
-    if (!v || depth>22 || v.hidden || v.alpha<.05) return;
-    @try {
-        if (ADIsWebKitOwned(v)) return;
-        if (v!=tray && v!=thumb && ADCompareDarkRound448(v) &&
-            ADCompareViewCandidate448(v,v,0)){
-            CGRect f=[v convertRect:v.bounds toView:win];
-            CGRect tr=[tray convertRect:tray.bounds toView:win];
-            BOOL leftBand=(CGRectGetMidX(f)>18 && CGRectGetMidX(f)<win.bounds.size.width*.45);
-            BOOL near=leftBand && CGRectIntersectsRect(f,tr);
-            CGFloat score=f.origin.x+fabs(CGRectGetMidY(f)-CGRectGetMidY(tr));
-            if (thumb){
-                CGRect im=[thumb convertRect:thumb.bounds toView:win];
-                CGFloat dx=fabs(CGRectGetMidX(f)-CGRectGetMaxX(im));
-                CGFloat dy=fabs(CGRectGetMidY(f)-CGRectGetMidY(im));
-                near=(dx<=40 && dy<=32 && CGRectIntersectsRect(f,tr));
-                score=dx+dy;
-            }
-            if (near && score<*bestScore){ *bestScore=score; *best=v; }
-        }
-        for (UIView *q in v.subviews)
-            ADCompareHostWalk448(q,tray,thumb,win,depth+1,best,bestScore);
-    } @catch(...) {}
-}
-
-static int ADCompareApplyLayer448(CALayer *l, int depth){
-    if (!l || depth>5 || l.hidden || l.opacity<.05) return 0;
-    int n=0;
-    @try {
-        BOOL hit=NO;
-        if ([l isKindOfClass:[CAShapeLayer class]]){
-            CAShapeLayer *s=(CAShapeLayer *)l;
-            if (s.path){
-                CGRect p=CGPathGetBoundingBox(s.path);
-                CGFloat w=fabs(p.size.width),h=fabs(p.size.height);
-                if (w>=3 && w<=24 && h>=1 && h<=8 && w/h>=1.5){
-                    UIColor *fg=ADColorFromHex(gP.fgHex);
-                    if (s.fillColor) s.fillColor=fg.CGColor;
-                    if (s.strokeColor) s.strokeColor=fg.CGColor;
-                    objc_setAssociatedObject(l,kADCompareLayer448Key,@YES,
-                                             OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                    hit=YES; n++;
-                }
-            }
-        }
-        CGFloat w=l.bounds.size.width,h=l.bounds.size.height;
-        if (!hit && l.contents && w>=2 && w<=24 && h>=2 && h<=24){
-            Class F=NSClassFromString(@"CAFilter");
-            id inv=F?[F filterWithType:@"colorInvert"]:nil;
-            id hue=F?[F filterWithType:@"hueRotate"]:nil;
-            @try { if(hue)[hue setValue:@(M_PI) forKey:@"inputAngle"]; } @catch(...) { hue=nil; }
-            if (inv){
-                NSArray *ours=hue?@[inv,hue]:@[inv];
-                objc_setAssociatedObject(l,kADCompareLayer448Key,@YES,
-                                         OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                objc_setAssociatedObject(l,kADCompareFilters448Key,ours,
-                                         OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                l.filters=ours; n++;
-            }
-        }
-        if (!hit) for (CALayer *q in l.sublayers) n+=ADCompareApplyLayer448(q,depth+1);
-    } @catch(...) {}
-    return n;
-}
-
-static void ADComparePinWalk448(UIView *v, UIView *host, int depth,
-                                int *images, int *solids, int *texts, int *layers){
-    if (!v || depth>6 || v.hidden || v.alpha<.05) return;
-    @try {
-        BOOL ownedLeaf=NO;
-        if (v!=host){
-            CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
-            NSString *txt=ADProbeTextOf(v);
-            if (ADCompareMinusText448(txt)){
-                if ([v isKindOfClass:[UILabel class]]){
-                    objc_setAssociatedObject(v,kADCompareText448Key,@YES,
-                                             OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                    ((UILabel *)v).textColor=ADColorFromHex(gP.fgHex);
-                    (*texts)++; ownedLeaf=YES;
-                } else if ([v respondsToSelector:@selector(setTextColor:)]){
-                    objc_setAssociatedObject(v,kADCompareText448Key,@YES,
-                                             OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                    [(id)v setTextColor:ADColorFromHex(gP.fgHex)];
-                    (*texts)++; ownedLeaf=YES;
-                } else {
-                    *layers+=ADCompareApplyLayer448(v.layer,0);
-                    ownedLeaf=YES;
-                }
-            } else if ([v isKindOfClass:[UIImageView class]] &&
-                       ((UIImageView *)v).image && w>=2 && w<=26 && h>=2 && h<=26){
-                UIImageView *iv=(UIImageView *)v;
-                objc_setAssociatedObject(iv,kADCompareImage448Key,@YES,
-                                         OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                UIImage *cur=iv.image;
-                [iv setImage:cur]; // enters the tagged assignment-time pin above
-                (*images)++; ownedLeaf=YES;
-            } else {
-                const char *cn=object_getClassName(v);
-                if (cn && strstr(cn,"SVG") && w>=2 && w<=26 && h>=2 && h<=26){
-                    *layers+=ADCompareApplyLayer448(v.layer,0);
-                    ownedLeaf=YES;
-                } else {
-                    UIColor *bg=v.backgroundColor;
-                    if (!bg && v.layer.backgroundColor)
-                        bg=[UIColor colorWithCGColor:v.layer.backgroundColor];
-                    if (bg && w>=4 && w<=24 && h>=1 && h<=7 && w/h>=1.6){
-                        objc_setAssociatedObject(v,kADCompareSolid448Key,@YES,
-                                                 OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                        objc_setAssociatedObject(v.layer,kADCompareSolid448Key,@YES,
-                                                 OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                        v.backgroundColor=ADColorFromHex(gP.fgHex);
-                        (*solids)++; ownedLeaf=YES;
-                    }
-                }
-            }
-            if (!ownedLeaf){
-                int ln=ADCompareApplyLayer448(v.layer,0);
-                if (ln){ *layers+=ln; ownedLeaf=YES; }
-            }
-        }
-        if (!ownedLeaf) for (UIView *q in v.subviews)
-            ADComparePinWalk448(q,host,depth+1,images,solids,texts,layers);
-    } @catch(...) {}
-}
-
-static NSString *gADCompare448LastState=nil;
-static BOOL gADCompare448Pending=NO;
-
-static void ADFixNativeCompare448(void){
-    if (!ADRecolorOn()) return;
-    @try {
-        UIView *text=nil; UIWindow *win=nil;
-        for (UIWindow *w in [UIApplication sharedApplication].windows){
-            if (!w || w.hidden || w.alpha<.05) continue;
-            int local=0; UIView *hit=ADCompareTextWalk448(w,0,&local);
-            if (hit){ text=hit; win=w; break; }
-        }
-        if (!text || !win){
-            gADCompare448Armed=NO;
-            NSString *state=@"P90COMPARE448[text=0 tray=0 thumb=0 host=0 image=0 solid=0 textGlyph=0 layer=0 pinned=0 hostStable=1]";
-            if (![state isEqualToString:gADCompare448LastState]){
-                gADCompare448LastState=state; ADLog(@"%@",state);
-            }
-            return;
-        }
-        gADCompare448Armed=YES;
-        UIView *tray=nil; CGFloat trayArea=CGFLOAT_MAX;
-        UIView *p=text; int up=0;
-        while (p && up++<12){
-            CGRect f=[p convertRect:p.bounds toView:win];
-            CGFloat area=f.size.width*f.size.height;
-            if (f.size.width>=win.bounds.size.width*.72 &&
-                f.size.height>=54 && f.size.height<=210 &&
-                CGRectGetMidY(f)>win.bounds.size.height*.66 && area<trayArea){
-                tray=p; trayArea=area;
-            }
-            p=p.superview;
-        }
-        UIView *thumb=nil,*host=nil; CGFloat ts=CGFLOAT_MAX,hs=CGFLOAT_MAX;
-        if (tray){
-            ADCompareThumbWalk448(tray,tray,win,0,&thumb,&ts);
-            ADCompareHostWalk448(tray,tray,thumb,win,0,&host,&hs);
-        }
-        int images=0,solids=0,texts=0,layers=0,stable=1;
-        NSString *hostDesc=@"-";
-        if (host){
-            UIColor *bg=host.backgroundColor;
-            if (!bg && host.layer.backgroundColor) bg=[UIColor colorWithCGColor:host.layer.backgroundColor];
-            NSString *snap=[NSString stringWithFormat:@"%@|%.3f",ADCompareColor448(bg),host.layer.cornerRadius];
-            NSString *prior=objc_getAssociatedObject(host,kADCompareHost448Key);
-            if (prior && ![prior isEqualToString:snap]) stable=0;
-            if (!prior) objc_setAssociatedObject(host,kADCompareHost448Key,snap,
-                                                 OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            CGRect hf=[host convertRect:host.bounds toView:win];
-            hostDesc=[NSString stringWithFormat:@"%s@%.0f,%.0f/%.0fx%.0f",
-                      object_getClassName(host),hf.origin.x,hf.origin.y,
-                      hf.size.width,hf.size.height];
-            ADComparePinWalk448(host,host,0,&images,&solids,&texts,&layers);
-        }
-        int pinned=images+solids+texts+layers;
-        NSString *state=[NSString stringWithFormat:
-          @"P90COMPARE448[text=1 tray=%d thumb=%d host=%d image=%d solid=%d textGlyph=%d layer=%d pinned=%d hostStable=%d %@]",
-          tray?1:0,thumb?1:0,host?1:0,images,solids,texts,layers,pinned,stable,hostDesc];
-        if (![state isEqualToString:gADCompare448LastState]){
-            gADCompare448LastState=state; ADLog(@"%@",state);
-        }
-    } @catch(NSException *e) {
-        ADLog(@"P90COMPARE448[err %@]",e.reason ?: @"unknown");
-    }
-}
-
-static void ADScheduleNativeCompare448(void){
-    if (!ADRecolorOn() || !gADCompare448Armed || gADCompare448Pending) return;
-    gADCompare448Pending=YES;
-    const double delay448[]={0.01,0.08,0.25,0.70};
-    for (int i448=0;i448<4;i448++){
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
-                       (int64_t)(delay448[i448]*NSEC_PER_SEC)),
-                       dispatch_get_main_queue(), ^{
-            @try { ADFixNativeCompare448(); } @catch(...) {}
-            if (i448==3) gADCompare448Pending=NO;
-        });
-    }
 }
 
 static void ADTextClassWalk(UIView *v, int depth, int *n){
@@ -8859,220 +8181,6 @@ static void ADTextClassProbe(void){
             ADLog(@"RATSCAN[none imgs=%d below240=%d round=%d]",
                   gRatSeen, gRatBelow, rounds);
     } @catch(...) {}
-}
-
-// ── v5.450 LOCAL-STRUCTURE COMPARE CONTROL ──────────────────────────────────
-// P92COMPARE449 proved the old scan reached three correctly-sized native glyphs
-// while its UIWindow-coordinate test rejected all three (candidate=3,bottom=0).
-// UIWindow bounds are not a stable coordinate system for Fabric surfaces.  The
-// stable relationship is local: the dark near-square raster overlaps the right
-// edge of a 64x48 product thumbnail inside the smallest short/wide ancestor.
-// Once all of those facts agree, cover only that raster with a light circle and
-// a dark minus.  The UIImage, UIView geometry, interaction, and tray are untouched.
-static BOOL ADCompareDarkRaster450(UIImageView *iv){
-    @try {
-        CGFloat clear450=0,avg450=0,sat450=0;
-        if (!iv.image || !ADImageIsDarkGlyph(iv.image,&clear450,&avg450,&sat450)) return NO;
-        return clear450>.25 && avg450<.18 && sat450<.10;
-    } @catch(...) {}
-    return NO;
-}
-
-static void ADCompareThumbWalk450(UIView *v, UIView *tray, UIView *leaf,
-                                  int depth, UIView **best, CGFloat *bestScore){
-    if (!v || depth>24 || v.hidden || v.alpha<.05) return;
-    @try {
-        if (ADIsWebKitOwned(v)) return;
-        if (v!=tray && v!=leaf){
-            CGRect f=[v convertRect:v.bounds toView:tray];
-            CGRect lf=[leaf convertRect:leaf.bounds toView:tray];
-            CGFloat w=f.size.width,h=f.size.height;
-            const char *cn=object_getClassName(v);
-            BOOL imageLike=([v isKindOfClass:[UIImageView class]] && ((UIImageView *)v).image) ||
-                           (cn && (strstr(cn,"ImageComponent")||strstr(cn,"RCTImage"))) ||
-                           v.layer.contents!=nil;
-            CGFloat dx=CGRectGetMidX(lf)-CGRectGetMaxX(f);
-            CGFloat dy=fabs(CGRectGetMidY(lf)-CGRectGetMidY(f));
-            if (imageLike && w>=38 && w<=104 && h>=30 && h<=96 &&
-                w/h>=.72 && w/h<=1.75 && dx>=-16 && dx<=64 && dy<=42 &&
-                CGRectIntersectsRect(f,CGRectInset(tray.bounds,-2,-2))){
-                CGFloat score=fabs(dx-8)+dy+fabs(w-64)*.10+fabs(h-48)*.10;
-                if (score<*bestScore){ *bestScore=score; *best=v; }
-            }
-        }
-        for (UIView *q in v.subviews)
-            ADCompareThumbWalk450(q,tray,leaf,depth+1,best,bestScore);
-    } @catch(...) {}
-}
-
-static UIView *ADCompareTrayForLeaf450(UIView *leaf, UIView **thumb,
-                                       CGFloat *relationScore){
-    UIView *bestTray=nil,*bestThumb=nil; CGFloat bestArea=CGFLOAT_MAX,bestRel=CGFLOAT_MAX;
-    @try {
-        UIView *p=leaf.superview; int up450=0;
-        while (p && up450++<16){
-            if (ADIsWebKitOwned(p)) return nil;
-            CGFloat w=p.bounds.size.width,h=p.bounds.size.height,area=w*h;
-            if (w>=240 && w<=900 && h>=44 && h<=260 && w/h>=1.8){
-                UIView *localThumb=nil; CGFloat localScore=CGFLOAT_MAX;
-                ADCompareThumbWalk450(p,p,leaf,0,&localThumb,&localScore);
-                if (localThumb && area<bestArea){
-                    bestArea=area; bestTray=p; bestThumb=localThumb; bestRel=localScore;
-                }
-            }
-            p=p.superview;
-        }
-    } @catch(...) {}
-    if (thumb) *thumb=bestThumb;
-    if (relationScore) *relationScore=bestRel;
-    return bestTray;
-}
-
-static BOOL ADCompareInstallControl450(UIImageView *host, BOOL *created){
-    if (created) *created=NO;
-    if (!host) return NO;
-    @try {
-        CALayer *circle=objc_getAssociatedObject(host,kADCompareCircle450Key);
-        CALayer *minus=objc_getAssociatedObject(host,kADCompareMinus450Key);
-        if (circle && circle.superlayer!=host.layer){
-            objc_setAssociatedObject(host,kADCompareCircle450Key,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            circle=nil;
-        }
-        if (minus && minus.superlayer!=host.layer){
-            objc_setAssociatedObject(host,kADCompareMinus450Key,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            minus=nil;
-        }
-        BOOL made=NO;
-        if (!circle){
-            circle=[CALayer layer]; circle.name=@"AmazonDark.compareCircle450";
-            objc_setAssociatedObject(circle,kADCompareCircle450Key,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            objc_setAssociatedObject(host,kADCompareCircle450Key,circle,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            [host.layer addSublayer:circle]; made=YES;
-        }
-        if (!minus){
-            minus=[CALayer layer]; minus.name=@"AmazonDark.compareMinus450";
-            objc_setAssociatedObject(minus,kADCompareMinus450Key,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            objc_setAssociatedObject(host,kADCompareMinus450Key,minus,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            [host.layer addSublayer:minus]; made=YES;
-        }
-        objc_setAssociatedObject(host,kADCompareHost450Key,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        CGFloat hw=host.bounds.size.width,hh=host.bounds.size.height,m=MIN(hw,hh);
-        CGFloat inset=MAX(.25,m*.025),bw=MAX(8.0,MIN(14.0,m*.50));
-        CGFloat bh=MAX(2.0,MIN(3.0,m*.11));
-        [CATransaction begin]; [CATransaction setDisableActions:YES];
-        circle.frame=CGRectInset(host.bounds,inset,inset);
-        circle.cornerRadius=MIN(circle.bounds.size.width,circle.bounds.size.height)*.5;
-        circle.backgroundColor=[UIColor whiteColor].CGColor;
-        circle.opacity=1.0; circle.hidden=NO; circle.zPosition=10000;
-        circle.contentsScale=[UIScreen mainScreen].scale;
-        minus.frame=CGRectMake(round((hw-bw)*.5),round((hh-bh)*.5),bw,bh);
-        minus.cornerRadius=bh*.5;
-        minus.backgroundColor=ADColorFromHex(gP.bgHex).CGColor;
-        minus.opacity=1.0; minus.hidden=NO; minus.zPosition=10001;
-        minus.contentsScale=[UIScreen mainScreen].scale;
-        [CATransaction commit];
-        if (created) *created=made;
-        return YES;
-    } @catch(...) {}
-    return NO;
-}
-
-static void ADCompareTryLeaf450(UIImageView *iv, int *candidate, int *traySeen,
-                                int *thumbSeen, int *rasterSeen, int *relationSeen,
-                                int *painted, int *created, int *stable,
-                                NSString **sample){
-    if (!iv || !iv.image || iv.hidden || iv.alpha<.05) return;
-    @try {
-        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
-        if (w<8 || w>30 || h<8 || h>30 || fabs(w-h)>8) return;
-        (*candidate)++;
-        UIView *thumb=nil; CGFloat relationScore=CGFLOAT_MAX;
-        UIView *tray=ADCompareTrayForLeaf450(iv,&thumb,&relationScore);
-        if (!tray) return;
-        (*traySeen)++;
-        if (!thumb) return;
-        (*thumbSeen)++;
-        if (w<16 || h<16 || !ADCompareDarkRaster450(iv)) return;
-        (*rasterSeen)++;
-        CGRect lf=[iv convertRect:iv.bounds toView:tray];
-        CGRect tf=[thumb convertRect:thumb.bounds toView:tray];
-        CGFloat dx=CGRectGetMidX(lf)-CGRectGetMaxX(tf);
-        CGFloat dy=fabs(CGRectGetMidY(lf)-CGRectGetMidY(tf));
-        if (dx<-16 || dx>64 || dy>42) return;
-        (*relationSeen)++;
-        NSString *before=[NSString stringWithFormat:@"%.3f,%.3f,%.3f,%.3f|%ld",
-                          iv.frame.origin.x,iv.frame.origin.y,iv.frame.size.width,
-                          iv.frame.size.height,(long)iv.contentMode];
-        BOOL made=NO;
-        if (!ADCompareInstallControl450(iv,&made)) return;
-        (*painted)++; if (made) (*created)++;
-        NSString *after=[NSString stringWithFormat:@"%.3f,%.3f,%.3f,%.3f|%ld",
-                         iv.frame.origin.x,iv.frame.origin.y,iv.frame.size.width,
-                         iv.frame.size.height,(long)iv.contentMode];
-        if (![before isEqualToString:after]) *stable=0;
-        if (sample && !*sample){
-            *sample=[NSString stringWithFormat:@"%s %.0fx%.0f tray=%.0fx%.0f thumb=%.0fx%.0f dx=%.0f dy=%.0f rel=%.1f",
-                     object_getClassName(iv),w,h,tray.bounds.size.width,tray.bounds.size.height,
-                     tf.size.width,tf.size.height,dx,dy,relationScore];
-        }
-    } @catch(...) {}
-}
-
-static void ADCompareLeafWalk450(UIView *v, int depth, int *nodes,
-                                 int *candidate, int *traySeen, int *thumbSeen,
-                                 int *rasterSeen, int *relationSeen, int *painted,
-                                 int *created, int *stable, NSString **sample){
-    if (!v || depth>46 || *nodes>2200 || v.hidden || v.alpha<.05) return;
-    @try {
-        (*nodes)++;
-        if (ADIsWebKitOwned(v)) return;
-        if ([v isKindOfClass:[UIImageView class]])
-            ADCompareTryLeaf450((UIImageView *)v,candidate,traySeen,thumbSeen,
-                                rasterSeen,relationSeen,painted,created,stable,sample);
-        for (UIView *q in v.subviews)
-            ADCompareLeafWalk450(q,depth+1,nodes,candidate,traySeen,thumbSeen,
-                                 rasterSeen,relationSeen,painted,created,stable,sample);
-    } @catch(...) {}
-}
-
-static NSString *gADCompare450LastState=nil;
-static BOOL gADCompare450Pending=NO;
-
-static void ADFixNativeCompare450(void){
-    if (!ADRecolorOn()) return;
-    @try {
-        int nodes=0,candidate=0,traySeen=0,thumbSeen=0,rasterSeen=0;
-        int relationSeen=0,painted=0,created=0,stable=1; NSString *sample=nil;
-        for (UIWindow *w in [UIApplication sharedApplication].windows){
-            if (!w || w.hidden || w.alpha<.05) continue;
-            ADCompareLeafWalk450(w,0,&nodes,&candidate,&traySeen,&thumbSeen,
-                                 &rasterSeen,&relationSeen,&painted,&created,
-                                 &stable,&sample);
-        }
-        NSString *state=[NSString stringWithFormat:
-          @"P94COMPARE450[nodes=%d candidate=%d tray=%d thumb=%d raster=%d relation=%d painted=%d created=%d geometryStable=%d %@]",
-          nodes,candidate,traySeen,thumbSeen,rasterSeen,relationSeen,painted,
-          created,stable,sample ?: @"-"];
-        if (![state isEqualToString:gADCompare450LastState]){
-            gADCompare450LastState=state; ADLog(@"%@",state);
-        }
-    } @catch(NSException *e) {
-        ADLog(@"P94COMPARE450[err %@]",e.reason ?: @"unknown");
-    }
-}
-
-static void ADScheduleNativeCompare450(void){
-    if (!ADRecolorOn() || gADCompare450Pending) return;
-    gADCompare450Pending=YES;
-    const double delay450[]={0.01,0.08,0.25,0.70,1.50,3.00};
-    for (int i450=0;i450<6;i450++){
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
-                       (int64_t)(delay450[i450]*NSEC_PER_SEC)),
-                       dispatch_get_main_queue(), ^{
-            @try { ADFixNativeCompare450(); } @catch(...) {}
-            if (i450==5) gADCompare450Pending=NO;
-        });
-    }
 }
 
 
@@ -9354,6 +8462,301 @@ static NSString *ADCardBorderFixJS(void){
        "}catch(e){return 'err '+(e&&e.message||e);}})()";
 }
 
+static NSString *ADPaint447(void){
+    // v5.473: painter-only slice of ADProbeWebJS, copied VERBATIM. The ~75 read-only
+    // probe families around it (145x getComputedStyle, 102x getBoundingClientRect,
+    // querySelectorAll('*') walks, giant readout strings) re-parsed and re-swept the
+    // visible document after every content VC appearance -- the measured freeze source.
+    // ADProbeWebJS stays defined for manual diagnostics; nothing evaluates it now.
+    // __ADPAINT447__ guard: repeat evaluations return 'dup' instead of stacking the
+    // painters' own MutationObservers/scroll listeners (they had no install guard).
+    return
+       @"(function(){try{"
+        "if(window.__ADPAINT447__)return 'P90PAINT447[dup]';window.__ADPAINT447__=1;"
+       "try{(function(){"
+         "var SEL='[class*=a-cardui-header] *,[class*=a-cardui-header],'"
+           "+'[class*=sponsored-products] *,[class*=sponsored-products],'"
+           "+'[class*=hybrid-widget-sponsored] *,[class*=adFeedbackMainComponent] *';"
+         "function dealText(e){try{var t=String(e.textContent||'').replace(/\\s+/g,' ').trim();return /^(?:\\d+%\\s*off|limited\\s+time\\s+deal|deal\\s+selling\\s+fast)$/i.test(t);}catch(_){return false;}}"
+         "function clr(){try{var N=document.querySelectorAll(SEL),c=0,sk=0;"
+           "for(var i=0;i<N.length&&i<4000;i++){var e=N[i];"
+             "if(e.querySelector&&e.querySelector('img,picture,video'))continue;"
+             "if(dealText(e)){sk++;continue;}"
+             "var bs=e.style&&e.style.backgroundColor;"
+             "if(bs){e.style.setProperty('background-color','transparent','important');c++;}"
+             "else{var cs=getComputedStyle(e),L=lum(cs.backgroundColor);"
+               "if(L>=0&&L<0.16){e.style.setProperty('background-color','transparent','important');c++;}}}"
+           "window.__AD_BOXCLR__=c;window.__AD_BOXCLR_DEALSKIP__=sk;}catch(e){}}"
+         // v5.374: Amazon recycles both PDP dot markup and Pack badge children.
+         // Key the repair to semantic selected state and the whole badge subtree,
+         // not one historical class/leaf. Markers keep the correct paint persistent.
+         "function dotFix(){try{var U=document.querySelectorAll('ul.a-pagination.a-dots,[class*=a-pagination][class*=dots]'),n=0,total=0;for(var u=0;u<U.length&&u<8;u++){var D=U[u].querySelectorAll('li');for(var i=0;i<D.length&&i<30;i++){var d=D[i];total++;var cl=String(d.className||''),ac=String(d.getAttribute&&d.getAttribute('aria-current')||'').toLowerCase(),as=String(d.getAttribute&&d.getAttribute('aria-selected')||'').toLowerCase(),ds=String(d.getAttribute&&d.getAttribute('data-selected')||'').toLowerCase(),kid=null;try{kid=d.querySelector('.a-selected,.dot-selected-t2,[aria-current=true],[aria-current=page],[aria-selected=true],[data-selected=true]');}catch(ex){}var sel=/(^|\\s)(a-selected|dot-selected-t2)(\\s|$)/.test(cl)||ac==='true'||ac==='page'||as==='true'||ds==='true'||!!kid;if(sel){if(d.hasAttribute&&d.hasAttribute('data-darkreader-inline-bgcolor'))d.removeAttribute('data-darkreader-inline-bgcolor');d.style.setProperty('--darkreader-inline-bgcolor','#ffffff','important');d.style.setProperty('background-color','#ffffff','important');d.style.setProperty('border-color','#ffffff','important');d.setAttribute('data-ad-dotselected374','1');d.setAttribute('data-ad-dotfix','1');n++;}else{if(d.getAttribute&&d.getAttribute('data-ad-dotfix')==='1'){d.style.removeProperty('--darkreader-inline-bgcolor');d.style.removeProperty('background-color');d.style.removeProperty('border-color');d.removeAttribute('data-ad-dotfix');}d.removeAttribute&&d.removeAttribute('data-ad-dotselected374');}}}window.__AD_DOTFIX__=n;window.__AD_DOTTOTAL374__=total;}catch(e){}}"
+         "function packFix(){try{var R=document.querySelectorAll('[class*=pack-size-badge]'),n=0,leaf=0;for(var i=0;i<R.length&&i<40;i++){var r=R[i],A=[r],Q=r.querySelectorAll?r.querySelectorAll('*'):[];for(var q=0;q<Q.length&&q<40;q++)A.push(Q[q]);for(var j=0;j<A.length&&j<44;j++){var p=A[j],tg=String(p.tagName||'').toUpperCase();if(tg==='SVG'||tg==='PATH'||tg==='IMG'||tg==='VIDEO'||tg==='CANVAS')continue;if(p.hasAttribute&&p.hasAttribute('data-darkreader-inline-color'))p.removeAttribute('data-darkreader-inline-color');p.style.setProperty('--darkreader-inline-color','#e8e6e3','important');p.style.setProperty('color','#e8e6e3','important');p.style.setProperty('-webkit-text-fill-color','#e8e6e3','important');p.setAttribute('data-ad-packfix374','1');if(p.childElementCount===0&&String(p.textContent||'').trim())leaf++;n++;}r.setAttribute('data-ad-packroot374','1');}window.__AD_PACKFIX__=n;window.__AD_PACKLEAF374__=leaf;}catch(e){}}"
+         // v5.440: device probes prove the two families are separate DOM nodes:
+         // mlt-icon-container is the TWO-CARDS artwork, while a-checkbox owns the
+         // stock checkbox sprite.  Amazon can mount both at the same coordinates
+         // and uses visibility to choose the active one.  Older passes forced every
+         // MLT descendant visible, which made cards spill over the checkbox.  Keep
+         // Amazon's visibility, suppress cards on a live checkbox collision, and
+         // paint only already-visible cards artwork.
+         "function sym413(){try{"
+           "var SPEC={bg:'#181a1b',bd:'1.5px solid rgba(255,255,255,0.65)'};"
+           "if(!document.getElementById('adcards440')){var s440=document.createElement('style');s440.id='adcards440';s440.textContent='[data-ad-cards440-pseudo*=b]::before,[data-ad-cards440-pseudo*=a]::after{filter:brightness(0) invert(1) !important;color:#fff !important;fill:#fff !important;stroke:#fff !important;}';(document.head||document.documentElement).appendChild(s440);}"
+           "function cn(e){var c=e&&e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||''));}"
+           "function rr(e){try{return e&&e.getBoundingClientRect?e.getBoundingClientRect():null;}catch(x){return null;}}"
+           "function sq(e){var r=rr(e);"
+           "return r.width>=22&&r.width<=48&&r.height>=22&&r.height<=48&&Math.abs(r.width-r.height)<=10;}"
+           "function kind(e){var c=cn(e);"
+             "if(/mlt-icon-container/.test(c))return 'cards';"
+             "if(/a-checkbox/.test(c)&&!/a-icon-checkbox/.test(c))return 'checkbox';"
+             "if(/puis-mab-chevron/.test(c)&&!/glyph/.test(c))return 'chevron';"
+             "if(/puis-heart-position/.test(c)||/lists-framework-action-button/.test(c))return 'heart';"
+             "return '';}"
+           "function shown(e,stop){try{var p=e,u=0;while(p&&u++<10){var s=getComputedStyle(p),o=parseFloat(s.opacity||'1');if(String(s.display||'')==='none'||/hidden|collapse/.test(String(s.visibility||''))||o<.08)return false;if(p===stop)break;p=p.parentElement;}var r=rr(e);return !!(r&&r.width>=3&&r.height>=3);}catch(x){return false;}}"
+           "function legacy(e){if(!e||e.hasAttribute('data-ad-cards440-host'))return;var old=e.getAttribute('data-ad-sym413')==='cards'||e.getAttribute('data-ad-disc420')==='disc'||e.__adBy==='sym413';if(old){['background-color','border','border-radius','box-shadow','box-sizing'].forEach(function(p){e.style.removeProperty(p);});e.removeAttribute('data-ad-sym413');e.removeAttribute('data-ad-disc420');delete e.__adBy;}var A=e.querySelectorAll('*');for(var i=0;i<A.length&&i<48;i++){var a=A[i],by=String(a.__adBy||''),owned=a.hasAttribute('data-ad-sym413glyph')||/^(?:sym413glyph|disc420|disc422)$/.test(by);if(!owned)continue;['filter','color','fill','stroke','background-color','visibility','opacity','border','box-shadow'].forEach(function(p){a.style.removeProperty(p);});a.removeAttribute('data-ad-sym413glyph');delete a.__adBy;delete a.__adGlyph;}}"
+           "function checkboxAt(e){try{var card=e.closest&&e.closest('[class*=puis-card],[class*=s-result-item],[data-component-type=\"s-search-result\"],[data-asin],[class*=s-product-image],[class*=product-image]'),Q=card?card.querySelectorAll('[class*=a-icon-checkbox]'):document.querySelectorAll('[class*=a-icon-checkbox]'),r=rr(e);if(!r)return false;var x=r.left+r.width/2,y=r.top+r.height/2;for(var i=0;i<Q.length&&i<180;i++){var q=Q[i],qr=rr(q);if(!qr||!shown(q,card||document.body))continue;var qx=qr.left+qr.width/2,qy=qr.top+qr.height/2,ix=Math.max(0,Math.min(r.right,qr.right)-Math.max(r.left,qr.left)),iy=Math.max(0,Math.min(r.bottom,qr.bottom)-Math.max(r.top,qr.top));if((Math.abs(x-qx)<18&&Math.abs(y-qy)<18)||ix*iy>Math.min(r.width*r.height,qr.width*qr.height)*.35)return true;}return false;}catch(x){return true;}}"
+           "function clearCards(e){var P=['background-color','border','border-radius','box-shadow','box-sizing'];for(var p=0;p<P.length;p++)e.style.removeProperty(P[p]);if(e.getAttribute('data-ad-cards440-suppressed')==='checkbox'){e.style.removeProperty('visibility');e.style.removeProperty('opacity');}e.removeAttribute('data-ad-cards440-host');e.removeAttribute('data-ad-cards440-suppressed');e.removeAttribute('data-ad-cards440-pseudo');e.removeAttribute('data-ad-sym413');var A=e.querySelectorAll('[data-ad-cards440-glyph],[data-ad-cards440-pseudo]');for(var i=0;i<A.length;i++){var a=A[i];['filter','color','fill','stroke','background-color'].forEach(function(k){a.style.removeProperty(k);});a.removeAttribute('data-ad-cards440-glyph');a.removeAttribute('data-ad-cards440-pseudo');if(a.__adBy==='cards440')delete a.__adBy;}}"
+           "function glyph440(g){var r=rr(g);if(!r||r.width<3||r.height<3||r.width>48||r.height>48)return false;return true;}"
+           "function cards(e){legacy(e);if(e.getAttribute('data-ad-cards440-suppressed')==='checkbox'){if(checkboxAt(e))return 0;e.style.removeProperty('visibility');e.style.removeProperty('opacity');e.removeAttribute('data-ad-cards440-suppressed');}var N=e.querySelectorAll('[class*=mlt-image-icon],img[class*=s-image],p[class*=mlt-text-icon],img,i,svg,path,use,polygon'),P=[e],live=[],pseudo='';for(var pi=0;pi<N.length&&pi<47;pi++)P.push(N[pi]);for(var i=0;i<P.length&&i<48;i++){var g=P[i],r=rr(g);if(!glyph440(g)||!shown(g,e))continue;var t=String(g.tagName||'').toUpperCase(),s=getComputedStyle(g),b=getComputedStyle(g,'::before'),a=getComputedStyle(g,'::after'),paint=/^(IMG|I|SVG|PATH|USE|POLYGON)$/.test(t)||/mlt-text-icon/.test(cn(g))||String(s.backgroundImage||'none')!=='none'||String(s.maskImage||s.webkitMaskImage||'none')!=='none';if(String(b&&b.backgroundImage||'none')!=='none'||String(b&&b.content||'none')!=='none')pseudo+='b';if(String(a&&a.backgroundImage||'none')!=='none'||String(a&&a.content||'none')!=='none')pseudo+='a';if(paint)live.push(g);}if(!live.length&&!pseudo){clearCards(e);return 0;}if(checkboxAt(e)){clearCards(e);e.setAttribute('data-ad-cards440-suppressed','checkbox');e.style.setProperty('visibility','hidden','important');e.style.setProperty('opacity','0','important');return 0;}var old=e.querySelectorAll('[data-ad-cards440-glyph],[data-ad-cards440-pseudo]');for(var o=0;o<old.length;o++){if(live.indexOf(old[o])>=0)continue;['filter','color','fill','stroke','background-color'].forEach(function(k){old[o].style.removeProperty(k);});old[o].removeAttribute('data-ad-cards440-glyph');old[o].removeAttribute('data-ad-cards440-pseudo');}e.setAttribute('data-ad-sym413','cards');e.setAttribute('data-ad-cards440-host','1');if(pseudo)e.setAttribute('data-ad-cards440-pseudo',pseudo);else e.removeAttribute('data-ad-cards440-pseudo');e.__adBy='cards440';e.style.setProperty('background-color',SPEC.bg,'important');e.style.setProperty('border',SPEC.bd,'important');e.style.setProperty('border-radius','50%%','important');e.style.setProperty('box-shadow','none','important');e.style.setProperty('box-sizing','border-box','important');for(var j=0;j<live.length;j++){var z=live[j],tg=String(z.tagName||'').toUpperCase();if(!glyph440(z))continue;z.setAttribute('data-ad-cards440-glyph','1');z.__adBy='cards440';if(/^(SVG|PATH|USE|POLYGON)$/.test(tg)){z.style.setProperty('filter','none','important');z.style.setProperty('fill','#ffffff','important');z.style.setProperty('stroke','#ffffff','important');}else z.style.setProperty('filter','brightness(0) invert(1)','important');z.style.setProperty('color','#ffffff','important');z.style.setProperty('background-color','transparent','important');if(pseudo)z.setAttribute('data-ad-cards440-pseudo',pseudo);}return 1;}"
+           "var Q=document.querySelectorAll('[class*=mlt-icon-container],[class*=a-checkbox],[class*=puis-mab-chevron],[class*=puis-heart-position],[class*=lists-framework-action-button]'),n=0,sk=0;"
+           "for(var i=0;i<Q.length&&i<400;i++){var e=Q[i],k=kind(e);"
+             "if(!k){sk++;continue;}"
+             "if(k==='cards'){if(cards(e))n++;else sk++;continue;}"
+             "var hs=e.querySelector&&e.querySelector('[class*=lists-framework-action-button],[class*=puis-heart-position]');"
+             "var rc=!!(e.querySelector&&e.querySelector('input[type=checkbox],[class*=a-icon-checkbox]'));"
+             "if(hs&&!rc&&k!=='cards'){e.setAttribute('data-ad-heart-shell427','1');"
+               "['data-ad-sym413','data-ad-stock403','data-ad-stocksel403','data-ad-v333403','data-ad-product391','data-ad-productselected391'].forEach(function(a){e.removeAttribute(a);});"
+               "e.style.setProperty('background-color','transparent','important');"
+               "e.style.setProperty('border','0','important');"
+               "e.style.setProperty('border-radius','0','important');"
+               "e.style.setProperty('box-shadow','none','important');"
+               "e.style.setProperty('outline','none','important');sk++;continue;}"
+             "if(k==='checkbox'){sk++;continue;}"
+             "if(!sq(e)){sk++;continue;}"
+             "if(e.parentElement&&e.parentElement.closest&&e.parentElement.closest('[data-ad-sym413]')){sk++;continue;}"
+             "e.setAttribute('data-ad-sym413',k);e.__adBy='sym413';"
+             "e.style.setProperty('background-color',SPEC.bg,'important');"
+             "e.style.setProperty('border',SPEC.bd,'important');"
+             "e.style.setProperty('border-radius','50%%','important');"
+             "e.style.setProperty('box-shadow','none','important');"
+             "e.style.setProperty('box-sizing','border-box','important');"
+             "var G=e.querySelectorAll('img,i,svg,path,p');"
+             "for(var j=0;j<G.length&&j<24;j++){var g=G[j],gr=g.getBoundingClientRect();"
+               "if(gr.width>48||gr.height>48)continue;"
+               "var tg=String(g.tagName||'').toUpperCase();"
+               "if(tg==='IMG'||tg==='I'||tg==='P')"
+                 "g.style.setProperty('filter','brightness(0) invert(1)','important');"
+               "g.__adBy='sym413glyph';g.setAttribute('data-ad-sym413glyph','1');"
+               "if(tg==='SVG'||tg==='PATH'){g.style.setProperty('fill','#ffffff','important');"
+                 "g.style.setProperty('color','#ffffff','important');}"
+               "g.style.setProperty('background-color','transparent','important');"
+               "g.style.setProperty('visibility','visible','important');"
+               "g.style.setProperty('opacity','1','important');"
+               "g.removeAttribute('data-ad-compareorig380');g.removeAttribute('data-ad-compareorig379');}"
+             "n++;}"
+           "window.__AD_SYM413__='n='+n+' skip='+sk;"
+         "}catch(e){window.__AD_SYM413__='err '+e;}}"
+         "try{window.__AD_SYM413_PRE__=window.__AD_PRODUCTCTRL391RUN__;"
+           "window.__AD_PRODUCTCTRL391RUN__=function(){"
+             "var r=window.__AD_SYM413_PRE__?window.__AD_SYM413_PRE__():0;try{sym413();}catch(x){}return r;};"
+         "}catch(e){}"
+         "try{sym413();setTimeout(sym413,30);setTimeout(sym413,160);setTimeout(sym413,560);"
+           "setTimeout(sym413,1560);setTimeout(sym413,2600);"
+           "addEventListener('scroll',function(){clearTimeout(window.__symT413);"
+             "window.__symT413=setTimeout(sym413,110);},{passive:true,capture:true});"
+         "}catch(e){}"
+         "function compareStock379(){window.__AD_COMPARE379__=\'retired433\';return 0;}"
+         "function cartChrome379(){try{var tx=String((document.body&&document.body.innerText)||'').toLowerCase();if(tx.indexOf('subtotal')<0||tx.indexOf('save for later')<0){window.__AD_CART379__='off';return;}var E=document.querySelectorAll('button,[role=button],a,span,div,input'),n=0,direct=0;function pc(v){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/.exec(String(v||''));return m?[+m[1],+m[2],+m[3]]:null;}function isLight(e){try{var c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after'),L=[pc(c.backgroundColor),pc(b.backgroundColor),pc(a.backgroundColor)];for(var k=0;k<L.length;k++){var q=L[k];if(!q)continue;var mx=Math.max(q[0],q[1],q[2]),mn=Math.min(q[0],q[1],q[2]),lum=(.2126*q[0]+.7152*q[1]+.0722*q[2])/255,sat=(mx-mn)/255;if(lum>=.76&&sat<=.16)return true;}return false;}catch(x){return false;}}function paint(e){if(!e||!e.style||e.hasAttribute('data-ad-cartchrome379'))return;e.setAttribute('data-ad-cartchrome379','1');e.style.setProperty('background-color','#181a1b','important');e.style.setProperty('background-image','none','important');e.style.setProperty('border','1px solid #6c7073','important');e.style.setProperty('border-radius','999px','important');e.style.setProperty('box-shadow','none','important');e.style.setProperty('color','#e8e6e3','important');e.style.setProperty('-webkit-text-fill-color','#e8e6e3','important');e.style.setProperty('opacity','1','important');n++;}for(var i=0;i<E.length&&i<2600;i++){var e=E[i],r=e.getBoundingClientRect();if(r.width<36||r.width>150||r.height<24||r.height>62)continue;if(r.bottom<0||r.top>(innerHeight||900)+150)continue;if(!isLight(e))continue;var txt=String(e.textContent||e.value||'').replace(/\\s+/g,' ').trim().toLowerCase();if(/checkout|add to cart|quantity/.test(txt))continue;paint(e);}var D=document.querySelectorAll('button,[role=button],a,span,div');for(var di=0;di<D.length&&di<2200;di++){var de=D[di],dt=String(de.textContent||'').replace(/\\s+/g,' ').trim();if(dt!=='Delete')continue;var dh=de.closest&&de.closest('button,[role=button],a');if(!dh)dh=de;var dr=dh.getBoundingClientRect(),best=null,bd=999,seen=[];for(var ci=0;ci<E.length&&ci<2600;ci++){var x=E[ci],host=(x.closest&&x.closest('button,[role=button],a'))||x;if(!host||host===dh||dh.contains(host)||seen.indexOf(host)>=0)continue;seen.push(host);var xr=host.getBoundingClientRect();if(xr.width<34||xr.width>125||xr.height<24||xr.height>60)continue;if(Math.abs((xr.top+xr.height/2)-(dr.top+dr.height/2))>14||xr.left<dr.right-4)continue;var gap=xr.left-dr.right;if(gap<0||gap>170||gap>=bd)continue;var xt=String(host.textContent||host.value||'').replace(/\\s+/g,' ').trim().toLowerCase();if(/delete|save for later|checkout|add to cart|quantity/.test(xt))continue;if(!isLight(host))continue;best=host;bd=gap;}if(best){paint(best);best.setAttribute('data-ad-cartdirect379','1');direct++;}}window.__AD_CART379__='fixed='+n+' direct='+direct;}catch(e){window.__AD_CART379__='err '+e;}}"
+         "function legacyCompare387(){window.__AD_COMPARELEGACY387__=\'retired433\';return 0;}"
+         "function compareStock380(){window.__AD_COMPARE380__=\'retired433\';return 0;}"
+         "function cartChrome382(){try{var D=document.querySelectorAll('button,[role=button],a,span,div'),share=0,rows=0;function hostOf(e){if(!e)return null;return (e.closest&&e.closest('button,[role=button],a'))||e;}function exact(root,word){var Q=root.querySelectorAll('button,[role=button],a,span,div');for(var i=0;i<Q.length&&i<220;i++){if(String(Q[i].textContent||'').replace(/\\s+/g,' ').trim()===word)return Q[i];}return null;}for(var di=0;di<D.length&&di<3200;di++){var de=D[di];if(String(de.textContent||'').replace(/\\s+/g,' ').trim()!=='Delete')continue;var dh=hostOf(de),row=dh.parentElement,u=0;while(row&&u++<6){var tx=String(row.textContent||'').replace(/\\s+/g,' ').trim();if(/Save for later/i.test(tx)&&/Delete/i.test(tx)&&/Share/i.test(tx))break;row=row.parentElement;}if(!row)continue;rows++;var se=exact(row,'Share');if(!se)continue;var sh=hostOf(se),dr=dh.getBoundingClientRect(),sr=sh.getBoundingClientRect();if(sr.width<34||sr.width>150||sr.height<20||sr.height>64||Math.abs((sr.top+sr.height/2)-(dr.top+dr.height/2))>24)continue;var ds=getComputedStyle(dh),fg=String(ds.color||'#e8e6e3');sh.removeAttribute('data-ad-cartshare381');sh.removeAttribute('data-ad-cartchrome380');sh.setAttribute('data-ad-cartclone382','1');sh.style.setProperty('--ad-cart-bg',String(ds.backgroundColor||'transparent'));sh.style.setProperty('--ad-cart-bi',String(ds.backgroundImage||'none'));sh.style.setProperty('--ad-cart-bc',String(ds.borderTopColor||'#6c7073'));sh.style.setProperty('--ad-cart-bs',String(ds.borderTopStyle||'solid'));sh.style.setProperty('--ad-cart-bw',String(ds.borderTopWidth||'1px'));sh.style.setProperty('--ad-cart-br',String(ds.borderRadius||'999px'));sh.style.setProperty('--ad-cart-sh',String(ds.boxShadow||'none'));sh.style.setProperty('--ad-cart-fg',fg);sh.style.setProperty('background-color',String(ds.backgroundColor||'transparent'),'important');sh.style.setProperty('background-image',String(ds.backgroundImage||'none'),'important');sh.style.setProperty('border-color',String(ds.borderTopColor||'#6c7073'),'important');sh.style.setProperty('border-style',String(ds.borderTopStyle||'solid'),'important');sh.style.setProperty('border-width',String(ds.borderTopWidth||'1px'),'important');sh.style.setProperty('border-radius',String(ds.borderRadius||'999px'),'important');sh.style.setProperty('box-shadow',String(ds.boxShadow||'none'),'important');sh.style.setProperty('color',fg,'important');sh.style.setProperty('-webkit-text-fill-color',fg,'important');share++;break;}window.__AD_CART382__='rows='+rows+' share='+share;}catch(e){window.__AD_CART382__='err '+e;}}"
+         "function shareFix382(){try{var S=document.querySelectorAll('.ssf-share-trigger'),hosts=0,paint=0,vec=0;for(var i=0;i<S.length&&i<20;i++){var h=S[i],r=h.getBoundingClientRect();if(r.width<8||r.height<8)continue;hosts++;h.removeAttribute('data-ad-share377');h.setAttribute('data-ad-share382','1');h.style.setProperty('color','#fff','important');h.style.setProperty('-webkit-text-fill-color','#fff','important');h.style.setProperty('opacity','1','important');var A=h.querySelectorAll('*');for(var j=0;j<A.length&&j<90;j++){var a=A[j],ar=a.getBoundingClientRect();if(ar.width>100||ar.height>100)continue;var tg=String(a.tagName||'').toUpperCase(),cs=getComputedStyle(a),bi=String(cs.backgroundImage||'none'),mi=String(cs.maskImage||cs.webkitMaskImage||'none');if(tg==='SVG'||tg==='PATH'||tg==='POLYGON'||tg==='USE'){a.style.setProperty('fill','#fff','important');a.style.setProperty('stroke','#fff','important');a.style.setProperty('color','#fff','important');a.style.setProperty('opacity','1','important');vec++;continue;}if(tg==='IMG'||tg==='I'||bi!=='none'||mi!=='none'){a.setAttribute('data-ad-sharepaint382','1');a.style.setProperty('opacity','1','important');a.style.setProperty('background-color','transparent','important');a.__adGlyph=1;a.__adBy='share382';paint++;}}}window.__AD_SHARE382__='hosts='+hosts+' paint='+paint+' vec='+vec;}catch(e){window.__AD_SHARE382__='err '+e;}}"
+         "function chevronFix383(){try{var Q=document.querySelectorAll('[aria-label*=expand i],[aria-label*=collapse i],[aria-label*=details i],[aria-expanded] [class*=a-icon],[aria-expanded][class*=a-icon],[class*=a-icon-extender],[class*=a-icon-dropdown],[class*=expander] [class*=a-icon],[class*=expand] [class*=a-icon],[class*=collapse] [class*=a-icon],button [class*=chevron],button [class*=caret],button [class*=arrow],[role=button] [class*=chevron],[role=button] [class*=caret],[role=button] [class*=arrow]'),n=0,sk=0;function bad(e){return !!(e&&e.closest&&e.closest('[class*=heart],[class*=wish],[class*=favorite],[class*=lists-framework-action-button],[class*=mlt-icon-container],[role=checkbox],input[type=checkbox],[class*=a-icon-checkbox]'));}function mark(e){if(!e||!e.setAttribute||bad(e))return;var r=e.getBoundingClientRect();if(r.width<3||r.height<3||r.width>72||r.height>72)return;e.setAttribute('data-ad-expchev383','1');e.__adGlyph=1;e.__adBy='expchev383';var tg=String(e.tagName||'').toUpperCase();if(tg==='SVG'||tg==='PATH'||tg==='POLYGON'||tg==='USE'){e.style.setProperty('color','#e8e6e3','important');e.style.setProperty('fill','#e8e6e3','important');e.style.setProperty('stroke','#e8e6e3','important');}n++;}for(var i=0;i<Q.length&&i<260;i++){var e=Q[i];if(bad(e)){sk++;continue;}mark(e);var A=e.querySelectorAll?e.querySelectorAll('svg,path,i,img,[class*=chevron],[class*=caret],[class*=arrow],[class*=a-icon]'):[];for(var j=0;j<A.length&&j<12;j++)mark(A[j]);}window.__AD_CHEV383__='n='+n+' skip='+sk;}catch(e){window.__AD_CHEV383__='err '+e;}}"
+         "function sponsorFix376(){try{var E=document.querySelectorAll('span,div,p,a,h1,h2,h3,h4,h5,label'),n=0,dark=0;for(var i=0;i<E.length&&i<5000;i++){var e=E[i],t=String(e.textContent||'').replace(/\\s+/g,' ').trim();if(!/^sponsored(?: ad)?$/i.test(t))continue;if(e.childElementCount>4)continue;var cs=getComputedStyle(e),m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/.exec(String(cs.color||''));if(m&&(0.2126*(+m[1])+0.7152*(+m[2])+0.0722*(+m[3]))<220)dark++;e.style.setProperty('color','#ffffff','important');e.style.setProperty('-webkit-text-fill-color','#ffffff','important');e.style.setProperty('opacity','1','important');e.style.setProperty('visibility','visible','important');e.setAttribute('data-ad-sponsored376','1');e.__adBy='sponsored376';n++;}window.__AD_SPON376__='n='+n+' darkBefore='+dark;}catch(e){window.__AD_SPON376__='err '+e;}}"
+         "function ratingFix376(){try{var A=document.querySelectorAll('[aria-label*=\"out of 5 stars\"],[class*=a-icon-star],[class*=a-star],[id*=acrCustomerReviewText],[class*=acrCustomerReviewText],[class*=averageStarRating]'),roots=[],n=0;for(var i=0;i<A.length&&i<500;i++){var a=A[i],r=a,p=0;while(r&&p++<4){var tx=String(r.textContent||'').replace(/\\s+/g,' ').trim(),rr=r.getBoundingClientRect();if(tx.length>=2&&tx.length<=140&&rr.height>4&&rr.height<=90&&(/\\d(?:\\.\\d)?/.test(tx))){break;}r=r.parentElement;}if(!r||roots.indexOf(r)>=0)continue;roots.push(r);var L=r.querySelectorAll('span,a,div');for(var j=0;j<L.length&&j<80;j++){var x=L[j];if(x.childElementCount>0)continue;var t=String(x.textContent||'').replace(/\\s+/g,' ').trim();if(!t||t.length>42)continue;var ok=/^\\d(?:\\.\\d)?$/.test(t)||/^\\(?[\\d,.]+[Kk]?\\)?$/.test(t)||/^\\d(?:\\.\\d)?\\s+out of 5 stars$/i.test(t);if(!ok)continue;x.style.setProperty('color','#ffffff','important');x.style.setProperty('-webkit-text-fill-color','#ffffff','important');x.style.setProperty('opacity','1','important');x.style.setProperty('visibility','visible','important');x.setAttribute('data-ad-rating376','1');x.__adBy='rating376';n++;}}window.__AD_RATING376__='roots='+roots.length+' ink='+n;}catch(e){window.__AD_RATING376__='err '+e;}}"
+         // v5.441 DEVICE-CAPTURED STOCK CHECKBOX + SHARED 32PX CHROME. Amazon
+         // remains the sole owner of geometry, hit testing, state, and the checked
+         // blue/checkmark sprite. Device P14 names Cart's hierarchy precisely:
+         // 398x0 a-checkbox > 35x44 label > 23x23 input + 23x23 sprite. The old
+         // shell pass skipped that label and let Amazon/Dark Reader intermittently
+         // paint the gray rectangle. Mark every bounded Cart wrapper regardless of
+         // existing visual paint, flatten it, and put one 32px chrome treatment on
+         // the exact stock sprite via paint-only box-shadow. No width/height or
+         // background-image/background-position write is allowed. The inset paint
+         // covers the unchecked sprite without filtering it or the chrome. Native
+         // :checked removes our paint synchronously and exposes Amazon's stock blue frame.
+         "function stockCheckbox434(){if(window.__ADFRAME_MODE__||!document.body||window.__AD_CHECKBOX434_RUNNING__)return 0;window.__AD_CHECKBOX434_RUNNING__=1;try{"
+           "var retired434=['adstock403','adcomparenative428','adcheckbox433'];for(var ri434=0;ri434<retired434.length;ri434++){var rs434=document.getElementById(retired434[ri434]);if(rs434&&rs434.parentNode)rs434.parentNode.removeChild(rs434);}"
+           "var prior434=document.getElementById('adcheckbox434');if(prior434&&prior434.getAttribute('data-ad-native-state')!=='446'){if(prior434.parentNode)prior434.parentNode.removeChild(prior434);prior434=null;}"
+           "if(!prior434){var s434=document.createElement('style');s434.id='adcheckbox434';s434.setAttribute('data-ad-native-state','446');"
+             "s434.textContent='[data-ad-checkbox434-art]{filter:none !important;border-radius:4px !important;box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important;transition:none !important;}'"
+               "+'[data-ad-checkbox434-host]:is(input[type=checkbox]:checked,[aria-checked=true],[aria-pressed=true],[aria-selected=true],[data-checked=true],[data-selected=true],[data-state=checked],[data-state=on]) [data-ad-checkbox434-art],[data-ad-checkbox434-host]:has(input[type=checkbox]:checked,[aria-checked=true],[aria-pressed=true],[aria-selected=true],[data-checked=true],[data-selected=true],[data-state=checked],[data-state=on]) [data-ad-checkbox434-art],[data-ad-checkbox434-host][class*=checked]:not([class*=unchecked]) [data-ad-checkbox434-art],[data-ad-checkbox434-host][class*=selected]:not([class*=unselected]) [data-ad-checkbox434-art],[data-ad-checkbox434-host]:has([class*=checked]:not([class*=unchecked]),[class*=selected]:not([class*=unselected])) [data-ad-checkbox434-art],[data-ad-checkbox434-art]:is(input[type=checkbox]:checked,[aria-checked=true],[aria-pressed=true],[aria-selected=true],[data-checked=true],[data-selected=true],[data-state=checked],[data-state=on]),[data-ad-checkbox434-art][class*=checked]:not([class*=unchecked]),[data-ad-checkbox434-art][class*=selected]:not([class*=unselected]),[data-ad-checkbox434-art][src*=checkbox-on],[data-ad-checkbox434-art][src*=checkbox_checked],[data-ad-checkbox434-art][src*=checkmark],[data-ad-checkbox434-art][src*=selected],[data-ad-checkbox434-art][data-src*=checkbox-on],[data-ad-checkbox434-art][data-src*=checkbox_checked],[data-ad-checkbox434-art][data-src*=checkmark],[data-ad-checkbox434-art][data-src*=selected]{filter:none !important;border-radius:0 !important;box-shadow:none !important;}'"
+               "+'[data-ad-checkbox434-shell=\"cart\"]{background-color:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important;outline:0 !important;filter:none !important;}'"
+               "+'[data-ad-checkbox434-shell=\"cart\"]::before,[data-ad-checkbox434-shell=\"cart\"]::after{background-color:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important;outline:0 !important;filter:none !important;}';"
+             "(document.head||document.documentElement).appendChild(s434);}"
+           "function cn434(e){var c=e&&e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||''));}"
+           "function rr434(e){try{return e&&e.getBoundingClientRect?e.getBoundingClientRect():null;}catch(x){return null;}}"
+           "function sq434(e,lo,hi){var r=rr434(e);return !!(r&&r.width>=lo&&r.width<=hi&&r.height>=lo&&r.height<=hi&&Math.abs(r.width-r.height)<=14);}"
+           "var body434=String(document.body.innerText||document.body.textContent||'').toLowerCase(),cart434=body434.indexOf('proceed to checkout')>=0&&(body434.indexOf('save for later')>=0||body434.indexOf('select all items')>=0||body434.indexOf('deselect all items')>=0);"
+           "var scopeSel434='[class*=puis-card],[class*=s-result-item],[data-component-type=\"s-search-result\"],[data-asin],[class*=s-product-image],[class*=product-image],[class*=sc-list-item],[class*=sc-item]';"
+           "var semanticSel434='[class*=copilot-compare],button[aria-label*=ompare],[role=button][aria-label*=ompare],[role=checkbox],[aria-checked],[data-csa-c-content-id*=ompare],[data-testid*=ompare],div.a-checkbox,[class~=a-checkbox]';"
+           "function scope434(e){return !!(e&&e.closest&&e.closest(scopeSel434));}/* Cart mode changes shell paint only, never page-wide checkbox scope */"
+           "function foreign434(e){try{return !!(e&&e.closest&&e.closest('[class*=mlt-icon-container],[class*=lists-framework-action-button],[data-ad-cards410-root],[data-ad-cards410-host],[data-ad-cards410-disc],[data-ad-cards410-glyph],[data-ad-heart-shell427],[class*=puis-heart-position],[class*=lists-treatment-hear],[class*=puis-mab-chevron]'));}catch(x){return true;}}"
+           "function owned434(e){if(!e||e.nodeType!==1)return false;var p=String(e.getAttribute('data-ad-product391')||''),v=String(e.getAttribute('data-ad-v333403')||''),d=String(e.getAttribute('data-ad-disc420')||''),s=String(e.getAttribute('data-ad-sym413')||''),v4=String(e.getAttribute('data-ad-v333404')||'');if(p==='checkbox'||v==='c'||d==='checkbox'||s==='checkbox'||v4==='c'||v4==='checkbox')return true;var A=['data-ad-comparehost377','data-ad-comparechecked377','data-ad-compareinput377','data-ad-compare378','data-ad-compareleaf378','data-ad-compare-raster378','data-ad-compare379','data-ad-compareinput379','data-ad-compareorig379','data-ad-compare380','data-ad-compareinput380','data-ad-compareorig380','data-ad-comparelegacy387','data-ad-comparelegacyorig387','data-ad-productselected391','data-ad-productglyph391','data-ad-productraster391','data-ad-productvector391','data-ad-stock403','data-ad-stocksel403','data-ad-stockglyph403','data-ad-stockraster403','data-ad-stockvector403','data-ad-sym413glyph','data-ad-comparefunc428','data-ad-compareselected428','data-ad-comparehit428'];for(var i=0;i<A.length;i++)if(e.hasAttribute(A[i]))return true;return /^(?:product391|sym413|sym413glyph|disc420|disc422)$/.test(String(e.__adBy||''));}"
+           "var marks434=['data-ad-comparehost377','data-ad-comparechecked377','data-ad-compareinput377','data-ad-compare378','data-ad-compareleaf378','data-ad-compare-raster378','data-ad-compare379','data-ad-compareinput379','data-ad-compareorig379','data-ad-compare380','data-ad-compareinput380','data-ad-compareorig380','data-ad-comparelegacy387','data-ad-comparelegacyorig387','data-ad-product391','data-ad-productselected391','data-ad-productglyph391','data-ad-productraster391','data-ad-productvector391','data-ad-stock403','data-ad-stocksel403','data-ad-stockglyph403','data-ad-stockraster403','data-ad-stockvector403','data-ad-v333403','data-ad-v333404','data-ad-disc420','data-ad-sym413','data-ad-sym413glyph','data-ad-comparefunc428','data-ad-compareselected428','data-ad-comparehit428'];"
+           "var props434=['background-color','border','border-color','border-width','border-style','border-radius','box-shadow','box-sizing','filter','width','height','min-width','min-height','max-width','max-height','position','inset','top','right','bottom','left','transform','overflow','isolation','outline','z-index','margin','pointer-events','opacity','visibility','color','fill','stroke','transition','display','cursor'];/* preserve Amazon background-image/mask sprite */"
+           "function scrub434(e){if(!owned434(e))return 0;for(var p=0;p<props434.length;p++)e.style.removeProperty(props434[p]);for(var a=0;a<marks434.length;a++)e.removeAttribute(marks434[a]);delete e.__adBy;delete e.__adGlyph;delete e.__adManual380;delete e.__adManualSig380;delete e.__adCompareBlue428;return 1;}"
+           "function generic434(e){var b=String(e&&e.__adBy||'');if(!/^(?:gfix1|gfix2|aic|gsweep|fltpanel)$/.test(b))return 0;e.style.removeProperty('filter');delete e.__adBy;delete e.__adGlyph;return 1;}"
+           "function visual434(e){try{var c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after'),bi=String(c.backgroundImage||'none'),mi=String(c.maskImage||c.webkitMaskImage||'none'),pbi=String((b&&b.backgroundImage)||'none')+' '+String((a&&a.backgroundImage)||'none'),pmi=String((b&&(b.maskImage||b.webkitMaskImage))||'none')+' '+String((a&&(a.maskImage||a.webkitMaskImage))||'none');return bi!=='none'||mi!=='none'||pbi!=='none none'||pmi!=='none none';}catch(x){return false;}}"
+           "function light434(c){try{var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([0-9.]+))?/i.exec(String(c&&c.backgroundColor||''));if(!m||(m[4]!==undefined&&+m[4]<.12))return false;return (.2126*(+m[1])+.7152*(+m[2])+.0722*(+m[3]))/255>.62;}catch(x){return false;}}"
+           "function group434(e){if(!e||!scope434(e)||foreign434(e))return null;var exact=(e.matches&&e.matches('[class*=a-icon-checkbox]'))?e:(e.querySelector&&e.querySelector('[class*=a-icon-checkbox]')),ep=e.parentElement,eu=0;while(!exact&&ep&&eu++<4){exact=ep.querySelector&&ep.querySelector('[class*=a-icon-checkbox]');if(exact||ep.matches&&ep.matches(scopeSel434))break;ep=ep.parentElement;}if(exact&&!foreign434(exact)){var ah=exact.closest&&exact.closest('div.a-checkbox,[class~=a-checkbox]');if(ah&&scope434(ah)&&!foreign434(ah))return ah;var ch=exact.closest&&exact.closest('[class*=copilot-compare]');if(ch&&scope434(ch)&&sq434(ch,16,76)&&!foreign434(ch))return ch;var bh=exact.closest&&exact.closest('button[aria-label*=ompare],[role=button][aria-label*=ompare],[data-csa-c-content-id*=ompare],[data-testid*=ompare]');if(bh&&scope434(bh)&&sq434(bh,16,76)&&!foreign434(bh))return bh;}var legit=e.closest&&e.closest('[class*=copilot-compare],[class*=compare-checkbox],button[aria-label*=ompare],[role=button][aria-label*=ompare],[role=checkbox],[aria-checked],[data-csa-c-content-id*=ompare],[data-testid*=ompare]');if(!exact&&!legit)return null;var tg0=String(e.tagName||'').toUpperCase(),p=/^(IMG|I|INPUT|SVG|PATH|USE|POLYGON)$/.test(tg0)?e.parentElement:e,sem=null,best=null,u=0;while(p&&u++<8){if(foreign434(p))return null;var tg=String(p.tagName||'').toUpperCase();if(!sem&&p.matches&&p.matches(semanticSel434)&&sq434(p,16,76))sem=p;if(!best&&!/^(IMG|I|INPUT|SVG|PATH|USE|POLYGON)$/.test(tg)&&sq434(p,16,76))best=p;if(p.matches&&p.matches(scopeSel434))break;p=p.parentElement;}return sem||best||((tg0==='INPUT')?e:(e.parentElement||e));}"
+           "function selected434(h){try{var q=(h.matches&&h.matches('input[type=checkbox]'))?h:h.querySelector('input[type=checkbox]');if(q)return !!q.checked;var A=[h],Z=h.querySelectorAll?h.querySelectorAll('[role=checkbox],[aria-checked],[aria-pressed],[aria-selected],[data-checked],[data-selected],[data-state]'):[];for(var i=0;i<Z.length&&i<32;i++)A.push(Z[i]);for(var j=0;j<A.length;j++){var e=A[j],a=String(e.getAttribute('aria-checked')||e.getAttribute('aria-pressed')||e.getAttribute('aria-selected')||e.getAttribute('data-checked')||e.getAttribute('data-selected')||e.getAttribute('data-state')||'').toLowerCase(),c=cn434(e).toLowerCase();if(a==='true'||a==='checked'||a==='on'||(/checked|selected/.test(c)&&!/unchecked|unselected/.test(c)))return true;if(a==='false'||a==='unchecked'||a==='off')return false;}var im=h.querySelector&&h.querySelector('img[src],img[data-src]'),src=im?String(im.currentSrc||im.src||im.getAttribute('data-src')||'').toLowerCase():'';return /checkbox[_-]?(?:on|checked)|checkmark|selected/.test(src)&&!/unchecked|unselected/.test(src);}catch(x){return false;}}"
+           "function art434(h,seed){try{var Q=[h],D=h.querySelectorAll?h.querySelectorAll('*'):[];for(var q=0;q<D.length&&q<100;q++)Q.push(D[q]);if(Q.indexOf(seed)<0)Q.push(seed);var best=null,bs=9999;for(var i=0;i<Q.length;i++){var e=Q[i];if(!e||foreign434(e))continue;var r=rr434(e);if(!r||r.width<8||r.height<8||r.width>76||r.height>76)continue;var tg=String(e.tagName||'').toUpperCase();if(/^(PATH|USE|POLYGON)$/.test(tg))continue;var c=cn434(e).toLowerCase(),src=String((e.currentSrc||e.src||(e.getAttribute&&e.getAttribute('data-src'))||'')).toLowerCase(),cs=getComputedStyle(e),op=parseFloat(cs.opacity||'1'),exact=/a-icon-checkbox|checkbox[-_ ]?(?:icon|sprite|image)|checkmark|check-mark|tick/.test(c+' '+src),painted=visual434(e)||light434(cs),role=e.getAttribute&&e.getAttribute('role')==='checkbox',score=999;if(exact)score=0;else if(painted)score=20;else if(/^(I|IMG|SVG)$/.test(tg))score=35;else if(tg==='INPUT'&&String(e.type||'').toLowerCase()==='checkbox')score=45;else if(role)score=60;else if(e===seed)score=90;else continue;if(e===h)score+=25;if(op<.12||String(cs.visibility||'')==='hidden'||String(cs.display||'')==='none')score+=70;score+=(r.width*r.height)/100000;if(score<bs){bs=score;best=e;}}return best||(sq434(seed,8,76)?seed:(sq434(h,8,76)?h:null));}catch(x){return null;}}"
+           "var prevHosts434=document.querySelectorAll('[data-ad-checkbox434-host]'),prevArts434=document.querySelectorAll('[data-ad-checkbox434-art]'),prevShells434=document.querySelectorAll('[data-ad-checkbox434-shell]');"
+           "var shells434=[],hosts434=[],arts434=[],unchecked434=0,checked434=0,cleaned434=0,skip434=0,cartShell434=0;"
+           "function shell434(h,art){if(!cart434||!h||!art)return;var p=art.parentElement,u=0;while(p&&u++<5){var tg=String(p.tagName||'').toUpperCase(),r=rr434(p),bounded=!!(r&&r.width>=18&&r.width<=76&&r.height>=18&&r.height<=76);if(p!==art&&p.contains&&p.contains(art)&&bounded&&!/^(IMG|I|INPUT|SVG|PATH|USE)$/.test(tg)){p.setAttribute('data-ad-checkbox434-shell','cart');if(shells434.indexOf(p)<0){shells434.push(p);cartShell434++;}}if(p.matches&&p.matches(scopeSel434))break;p=p.parentElement;}}"
+           "var C=document.querySelectorAll('input[type=checkbox],[role=checkbox],[aria-checked],[class*=a-checkbox],[class*=a-icon-checkbox],[class*=copilot-compare],button[aria-label*=ompare],[role=button][aria-label*=ompare],[data-csa-c-content-id*=ompare],[data-testid*=ompare],img[src*=checkbox],img[data-src*=checkbox]');"
+           "for(var i=0;i<C.length&&i<1100;i++){var seed=C[i],h=group434(seed);if(!h||hosts434.indexOf(h)>=0){skip434++;continue;}var Q=[h],D=h.querySelectorAll?h.querySelectorAll('*'):[];for(var q=0;q<D.length&&q<140;q++)Q.push(D[q]);for(var z=0;z<Q.length;z++){cleaned434+=generic434(Q[z]);cleaned434+=scrub434(Q[z]);Q[z].removeAttribute('data-ad-checkbox433-art');}var art=art434(h,seed);if(!art){skip434++;continue;}hosts434.push(h);var syn=h.querySelectorAll?h.querySelectorAll('[data-ad-comparebox377],[data-ad-comparecheck377]'):[];for(var sy=0;sy<syn.length;sy++){if(syn[sy].parentNode)syn[sy].parentNode.removeChild(syn[sy]);cleaned434++;}if(h.getAttribute('data-ad-checkbox434-host')!=='stock')h.setAttribute('data-ad-checkbox434-host','stock');var AL=[art],EX=h.querySelectorAll?h.querySelectorAll('[class*=a-icon-checkbox],img[src*=checkbox],img[data-src*=checkbox]'):[];for(var ex=0;ex<EX.length&&ex<24;ex++){var xa=EX[ex],xr=rr434(xa),xs=getComputedStyle(xa);if(xr&&xr.width>=8&&xr.height>=8&&xr.width<=76&&xr.height<=76&&parseFloat(xs.opacity||'1')>=.12&&String(xs.display||'')!=='none'&&String(xs.visibility||'')!=='hidden'&&AL.indexOf(xa)<0)AL.push(xa);}for(var al=0;al<AL.length;al++){var aa=AL[al];if(arts434.indexOf(aa)<0){if(aa.getAttribute('data-ad-checkbox434-art')!=='stock')aa.setAttribute('data-ad-checkbox434-art','stock');arts434.push(aa);}}shell434(h,art);if(selected434(h))checked434++;else unchecked434++;}"
+           "var old433=document.querySelectorAll('[data-ad-checkbox433-art]');for(var x433=0;x433<old433.length;x433++)old433[x433].removeAttribute('data-ad-checkbox433-art');"
+           "for(var ph=0;ph<prevHosts434.length;ph++)if(hosts434.indexOf(prevHosts434[ph])<0)prevHosts434[ph].removeAttribute('data-ad-checkbox434-host');for(var pa=0;pa<prevArts434.length;pa++)if(arts434.indexOf(prevArts434[pa])<0)prevArts434[pa].removeAttribute('data-ad-checkbox434-art');for(var ps=0;ps<prevShells434.length;ps++)if(shells434.indexOf(prevShells434[ps])<0)prevShells434[ps].removeAttribute('data-ad-checkbox434-shell');"
+           "window.__AD_CHECKBOX434_STATE__='hosts='+hosts434.length+' art='+arts434.length+' unchecked='+unchecked434+' checked='+checked434+' cart='+(cart434?1:0)+' shells='+cartShell434+' cleaned='+cleaned434+' skip='+skip434;return hosts434.length;"
+         "}catch(e){window.__AD_CHECKBOX434_STATE__='err '+(e&&e.message||e);return -1;}finally{window.__AD_CHECKBOX434_RUNNING__=0;}}"
+         "try{window.__AD_CHECKBOX434__=stockCheckbox434;if(!window.__AD_CHECKBOX434_WRAP__){window.__AD_CHECKBOX434_WRAP__=1;"
+           "window.__AD_PRODUCTCTRL391_PRE434__=window.__AD_PRODUCTCTRL391RUN__;window.__AD_PRODUCTCTRL391RUN__=function(){var r=window.__AD_PRODUCTCTRL391_PRE434__?window.__AD_PRODUCTCTRL391_PRE434__():0;try{window.__AD_CHECKBOX434__();}catch(x){}return r;};"
+           "new MutationObserver(function(){try{window.__AD_CHECKBOX434__();}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});"
+           "function queue434(){if(window.__AD_CHECKBOX434_QUEUED__)return;window.__AD_CHECKBOX434_QUEUED__=1;var r434=function(){window.__AD_CHECKBOX434_QUEUED__=0;try{window.__AD_CHECKBOX434__();}catch(x){}};if(window.requestAnimationFrame)window.requestAnimationFrame(r434);else setTimeout(r434,0);}"
+           "addEventListener('scroll',queue434,{passive:true,capture:true});}"
+           "stockCheckbox434();setTimeout(stockCheckbox434,40);setTimeout(stockCheckbox434,180);setTimeout(stockCheckbox434,700);setTimeout(stockCheckbox434,1800);"
+         "}catch(e){}"
+         // v5.347 PDP HEART. The confirmed 20x20 .a-icon painter is handled
+         // exclusively by the documentStart CSS rule above. Do not mutate its
+         // filter from JS: the regression gate correctly requires artwork guards
+         // for dynamic filter writers, while this named Amazon chrome glyph is
+         // safer and earlier as a selector-only CSS exception.
+         "function homeAmbient386(){try{if(window.__ADFRAME_MODE__||!document.body){window.__AD_HOMEAMBIENT386__='off';return 0;}var SEL='[class*=\"_hp-mosaic-container_style_widgetContainer\"],[class*=\"_mosaic-container_style_widgetContainer\"],[class*=\"gwm-dashboard-container\"],[class*=\"gwm-window-layout\"],[class*=\"gwm-asin-tile\"]',S=document.querySelectorAll(SEL);if(S.length<2){window.__AD_HOMEAMBIENT386__='home=0';return 0;}function pc(v){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([0-9.]+))?/i.exec(String(v||''));return m?[+m[1],+m[2],+m[3],m[4]===undefined?1:+m[4]]:null;}function sat(q){return q?(Math.max(q[0],q[1],q[2])-Math.min(q[0],q[1],q[2]))/255:0;}var seen=[],n=0,left=0,W=innerWidth||390,H=innerHeight||700;function fix(e){if(!e||seen.indexOf(e)>=0)return;seen.push(e);var r=e.getBoundingClientRect();if(r.width<W*.82||r.height<H*.55)return;var cl=String(e.className&&e.className.baseVal!==undefined?e.className.baseVal:(e.className||'')).toLowerCase();if(/carousel|hero|slideshow|swiper|swipe|creative|product-image|image-container/.test(cl))return;var cs=getComputedStyle(e),bg=pc(cs.backgroundColor),bi=String(cs.backgroundImage||'none'),grad=/gradient\\(/i.test(bi)&&bi.indexOf('url(')<0,hot=!!(bg&&bg[3]>.35&&sat(bg)>.12);if(!hot&&!grad)return;e.setAttribute('data-ad-homeambient386','1');e.style.setProperty('background-color','#181a1b','important');if(grad)e.style.setProperty('background-image','none','important');n++;}fix(document.documentElement);fix(document.body);for(var i=0;i<S.length&&i<10;i++){var p=S[i].parentElement,u=0;while(p&&u++<8){fix(p);if(p===document.body)break;p=p.parentElement;}}var Q=document.querySelectorAll('[data-ad-homeambient386]');for(var j=0;j<Q.length;j++){var c=getComputedStyle(Q[j]),q=pc(c.backgroundColor),b=String(c.backgroundImage||'none');if((q&&q[3]>.35&&sat(q)>.12)||(/gradient\\(/i.test(b)&&b.indexOf('url(')<0))left++;}window.__AD_HOMEAMBIENT386__='home=1 fixed='+n+' left='+left+' seeds='+S.length;return n;}catch(e){window.__AD_HOMEAMBIENT386__='err '+e;return 0;}}"
+         "function badgeFix(){try{"
+           "var B=document.querySelectorAll('[class*=badgeLabel]');for(var i=0;i<B.length&&i<200;i++){var b=B[i];if(b.hasAttribute&&b.hasAttribute('data-darkreader-inline-bgcolor')){b.style.removeProperty('background-color');b.removeAttribute('data-darkreader-inline-bgcolor');}b.style.setProperty('background-color','#cc0c39','important');b.style.setProperty('color','#ffffff','important');b.style.setProperty('-webkit-text-fill-color','#ffffff','important');}"
+           "var S=document.querySelectorAll('[class*=sponsored-products] *,[class*=npack-asin-card] *,[class*=cXVhZ] *'),n=0;for(var j=0;j<S.length&&j<2500&&n<80;j++){var x=S[j];if(x.childElementCount!==0)continue;var t=String(x.textContent||'').replace(/\\s+/g,' ').trim();"
+             "if(/^\\d+%\\s*off$/i.test(t)){var p=x.parentElement;if(p){p.style.setProperty('background-color','#cc0c39','important');p.style.setProperty('color','#ffffff','important');p.style.setProperty('-webkit-text-fill-color','#ffffff','important');}x.style.setProperty('color','#ffffff','important');x.style.setProperty('-webkit-text-fill-color','#ffffff','important');n++;}"
+             "else if(/^(?:limited\\s+time\\s+deal|deal\\s+selling\\s+fast)$/i.test(t)){x.style.setProperty('color','#e8e6e3','important');x.style.setProperty('-webkit-text-fill-color','#e8e6e3','important');if(x.closest&&(x.closest('[class*=npack-asin-card]')||x.closest('[class*=cXVhZ]'))){var m=x.closest('[class*=badgeMessage]')||x.parentElement;if(m){m.style.setProperty('background-color','#181a1b','important');m.style.setProperty('background-image','none','important');m.style.setProperty('box-shadow','none','important');}x.style.setProperty('background-color','#181a1b','important');x.style.setProperty('background-image','none','important');x.style.setProperty('box-shadow','none','important');}n++;}}window.__AD_SPONSORED_BADGEFIX__=n;"
+         "}catch(e){}}""homeAmbient386();badgeFix();dotFix();packFix();compareStock380();legacyCompare387();cartChrome382();shareFix382();chevronFix383();sponsorFix376();ratingFix376();try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}try{if(window._adHomeVideo391)window._adHomeVideo391();}catch(e){}""clr();setTimeout(clr,300);setTimeout(clr,1200);setTimeout(clr,2500);""setTimeout(homeAmbient386,300);setTimeout(homeAmbient386,1200);setTimeout(homeAmbient386,2500);""setTimeout(badgeFix,300);setTimeout(badgeFix,1200);setTimeout(badgeFix,2500);""setTimeout(dotFix,120);setTimeout(dotFix,500);setTimeout(dotFix,1400);setTimeout(dotFix,2800);""setTimeout(packFix,120);setTimeout(packFix,500);setTimeout(packFix,1400);setTimeout(packFix,2800);setTimeout(compareStock380,0);setTimeout(compareStock380,120);setTimeout(compareStock380,500);setTimeout(compareStock380,1500);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},20);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},180);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},700);setTimeout(legacyCompare387,0);setTimeout(legacyCompare387,120);setTimeout(legacyCompare387,500);setTimeout(legacyCompare387,1500);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},60);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},220);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},650);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},1650);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},2600);setTimeout(cartChrome382,20);setTimeout(cartChrome382,180);setTimeout(cartChrome382,700);setTimeout(cartChrome382,1800);setTimeout(sponsorFix376,20);setTimeout(sponsorFix376,180);setTimeout(sponsorFix376,700);setTimeout(sponsorFix376,1800);setTimeout(ratingFix376,40);setTimeout(ratingFix376,240);setTimeout(ratingFix376,900);setTimeout(ratingFix376,2200);setTimeout(shareFix382,40);setTimeout(shareFix382,180);setTimeout(shareFix382,700);setTimeout(shareFix382,1800);setTimeout(chevronFix383,20);setTimeout(chevronFix383,180);setTimeout(chevronFix383,700);setTimeout(chevronFix383,1800);addEventListener('scroll',function(){clearTimeout(window.__bgT);window.__bgT=setTimeout(function(){homeAmbient386();badgeFix();dotFix();packFix();compareStock380();legacyCompare387();cartChrome382();shareFix382();chevronFix383();sponsorFix376();ratingFix376();try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}try{if(window._adHomeVideo391)window._adHomeVideo391();}catch(e){}},100);},{passive:true,capture:true});""addEventListener('scroll',function(){clearTimeout(window.__bxS);window.__bxS=setTimeout(clr,120);},{passive:true,capture:true});"
+         "new MutationObserver(function(){clearTimeout(window.__bxT);"
+           "window.__bxT=setTimeout(function(){clr();dotFix();packFix();compareStock380();legacyCompare387();cartChrome382();shareFix382();chevronFix383();sponsorFix376();ratingFix376();try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},20);}).observe(document.documentElement,"
+           "{subtree:true,childList:true,attributes:true,attributeFilter:['style','class','aria-current','aria-selected','data-selected','src','data-src','data-darkreader-inline-bgcolor','data-darkreader-inline-color','fill','stroke']});"
+         "try{new MutationObserver(function(){try{cartChrome382();}catch(e){}}).observe(document.documentElement,{subtree:true,childList:true});}catch(e){}"
+         "/* v5.439: native state remains synchronous; stockCheckbox434 discovers stock hosts/art and removes only stale tweak-owned filters. */"
+       "})();}catch(e){}"
+       "function repaint425(){"
+       "try{"
+         // v5.440: MLT/two-cards is owned only by sym413's visibility-aware
+         // cards branch.  This persistent probe-side painter must never repaint
+         // it or force a hidden cards state over the native checkbox.
+         "var SELD='[class*=lists-framework-action-'+'button],[class*=a-check'+'box],[class*=puis-mab-chevron]';"
+         "var DBX=document.querySelectorAll(SELD),nd=0,ds=0,SMP=[];"
+         "for(var dx=0;dx<DBX.length&&dx<160;dx++){var dexx=DBX[dx];"
+           "var dcx=String(dexx.className||'');"
+           "var drx=dexx.getBoundingClientRect();"
+           "if(SMP.length<6)SMP.push(dcx.replace(/\\s+/g,'.').slice(0,16)+'@'+Math.round(drx.width)+'x'+Math.round(drx.height));"
+           "if(/glyph/.test(dcx)){ds++;continue;}"
+           "if(drx.width<18||drx.width>52||drx.height<18||drx.height>52){ds++;continue;}"
+           "if(Math.abs(drx.width-drx.height)>10){ds++;continue;}"
+           "var sqx=/a-check/.test(dcx)&&!/a-icon-check/.test(dcx);"
+           "var kind431=sqx?'checkbox':(/mlt-icon/.test(dcx)?'cards':(/chevron/.test(dcx)?'chevron':'heart'));"
+           "try{var up431=dexx.parentElement&&dexx.parentElement.closest?dexx.parentElement.closest('[data-ad-sym413]'):null;"
+             "if(up431&&up431.getAttribute('data-ad-sym413')===kind431){ds++;continue;}}catch(x431){}"
+           "var hsx=dexx.querySelector&&dexx.querySelector('[class*=lists-framework-action-'+'button],[class*=puis-heart-position]');"
+           "var rcx=!!(dexx.querySelector&&dexx.querySelector('input[type=check'+'box],[class*=a-icon-check'+'box]'));"
+           "if(hsx&&!rcx&&!/mlt-icon/.test(dcx)){dexx.setAttribute('data-ad-heart-shell427','1');"
+             "['data-ad-disc420','data-ad-sym413','data-ad-stock403','data-ad-stocksel403','data-ad-v333403','data-ad-product391','data-ad-productselected391'].forEach(function(a){dexx.removeAttribute(a);});"
+             "dexx.style.setProperty('background-color','transparent','important');"
+             "dexx.style.setProperty('border','0','important');"
+             "dexx.style.setProperty('border-radius','0','important');"
+             "dexx.style.setProperty('box-shadow','none','important');"
+             "dexx.style.setProperty('outline','none','important');ds++;continue;}"
+           "if(sqx){ds++;continue;}"
+           "if(sqx&&!(dexx.querySelector('[class*=a-icon-check'+'box]')||dexx.querySelector('input[type=check'+'box]'))){ds++;continue;}"
+           "if(!sqx&&dexx.querySelector('[class*=mlt-icon-'+'container],[class*=lists-framework-action-'+'button]')){ds++;continue;}"
+           "dexx.setAttribute('data-ad-sym413',kind431);"
+           "dexx.style.setProperty('background-color','#181a1b','important');"
+           "dexx.style.setProperty('border-radius',(sqx?'4px':'50%%'),'important');"
+           "dexx.style.setProperty('border','1.5px solid rgba(255,255,255,0.65)','important');"
+           "dexx.style.setProperty('box-shadow','none','important');"
+           "dexx.style.setProperty('box-sizing','border-box','important');"
+           "var GX=dexx.querySelectorAll('*');"
+           "for(var gx=0;gx<GX.length&&gx<16;gx++){var gex=GX[gx];"
+             "if(gex.matches&&gex.matches(SELD))continue;"
+             "gex.style.setProperty('background-color','transparent','important');"
+             "gex.style.setProperty('border','0','important');"
+             "gex.style.setProperty('box-shadow','none','important');"
+             "var grx=gex.getBoundingClientRect();"
+             "if(grx.width>48||grx.height>48)continue;"
+             "var gtx=String(gex.tagName||'').toUpperCase();"
+             "if(gtx==='IMG'||gtx==='I'||gtx==='P')"
+               "gex.style.setProperty('filter','brightness(0) invert(1)','important');"
+             "gex.__adBy='disc422';"
+             "gex.style.setProperty('color','#ffffff','important');"
+             "gex.style.setProperty('fill','#ffffff','important');}"
+           "nd++;}"
+         "window.__AD_DISC422__='on='+nd+' skipped='+ds+' cand='+DBX.length+(SMP.length?' | '+SMP.join(' '):'');"
+         "try{if(DBX.length){var A426='';"
+           "var h426=document.querySelector('[data-ad-sym413=\\'cards\\']');"
+           "if(h426){var c426=getComputedStyle(h426),g426=h426.querySelector('img');"
+             "var gs426=g426?getComputedStyle(g426):null,at426=[];"
+             "for(var q426=0;q426<h426.attributes.length;q426++){var n426=h426.attributes[q426].name;"
+               "if(n426.indexOf('data-ad')===0)at426.push(n426.replace('data-ad-',''));}"
+             "A426='bg='+String(c426.backgroundColor).replace(/\\s+/g,'')"
+               "+'|r='+String(c426.borderRadius).slice(0,6)"
+               "+'|glyphf='+(gs426?String(gs426.filter).slice(0,24):'-')"
+               "+'|by='+(at426.join('+')||'-');}"
+           "else{A426='no-cards-host';}"
+           "localStorage.setItem('__ad426',window.__AD_DISC422__+' ATTR['+A426+'] t='+Date.now());}"
+           "try{var V87=/cart/i.test(location.pathname)?'cart':(/\\/s(\\b|\\?|$)/.test(location.pathname+location.search)?'shop':'other');"
+             "var C87=document.querySelectorAll('[data-ad-checkbox434-host],[class*=a-check'+'box],[role=check'+'box],[class*=copilot-compare],button[aria-label*=ompare]'),W87=[],S87=[];"
+             "for(var j87=0;j87<C87.length&&W87.length<3;j87++){var b87=(C87[j87].closest&&C87[j87].closest('[data-ad-checkbox434-host]'))||C87[j87];if(S87.indexOf(b87)>=0)continue;S87.push(b87);"
+               "var q87=b87.getBoundingClientRect();if(q87.width<10||q87.height<10)continue;"
+               "var n87=(b87.matches&&b87.matches('input[type=check'+'box]'))?b87:b87.querySelector('input[type=check'+'box]');"
+               "var g87=b87.querySelector('[data-ad-checkbox434-art],[class*=a-icon-check]')||b87;"
+               "var y87=getComputedStyle(g87),z87=getComputedStyle(b87),ns87=n87?getComputedStyle(n87):null;"
+               "var im87=String(y87.backgroundImage||'none');im87=im87==='none'?'none':im87.slice(-26);"
+               "var in87='',pr87='',by87=String(g87.__adBy||'-');try{in87=g87.style.getPropertyValue('filter')||'-';pr87=g87.style.getPropertyPriority('filter')||'-';}catch(_){}"
+               "function k87(e){var c=e&&e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||'')).replace(/\\s+/g,'.').slice(0,28);}"
+               "W87.push(V87+'|host='+k87(b87)+'|art='+String(g87.tagName)+'.'+k87(g87)"
+                 "+'|f='+String(y87.filter||'-').slice(0,20)+'|bgi='+im87+'|bp='+String(y87.backgroundPosition||'-').replace(/\\s+/g,'').slice(0,18)"
+                 "+'|by='+by87+'|inline='+String(in87).replace(/\\s+/g,'').slice(0,22)+'|pri='+pr87"
+                 "+'|inp='+(n87?1:0)+'|chk='+(n87&&n87.checked?1:0)+'|match='+(n87&&n87.matches&&n87.matches(':checked')?1:0)"
+                 "+'|op='+(ns87?String(ns87.opacity||'-').slice(0,8):'-')+'|app='+(ns87?String(ns87.appearance||ns87.webkitAppearance||'-').slice(0,12):'-')"
+                 "+'|aria='+String(b87.getAttribute('aria-checked')||b87.getAttribute('aria-pressed')||b87.getAttribute('aria-selected')||'-')"
+                 "+'|native='+(b87.hasAttribute('data-ad-checkbox434-host')?1:0)"
+                 "+'|hostbg='+String(z87.backgroundColor||'').replace(/\\s+/g,'')"
+                 "+'|hostbd='+parseFloat(z87.borderTopWidth||0).toFixed(1)"
+                 "+'|geom='+Math.round(q87.width)+'x'+Math.round(q87.height)+'|r='+String(y87.borderRadius||'-').slice(0,10)+'|tag='+(g87.hasAttribute('data-ad-checkbox434-art')?1:0)+'|sheet='+(function(){try{var e=document.getElementById('adcheckbox434');return e?(String(e.getAttribute('data-ad-native-state'))+':'+(/border-radius:(\\d+px|50%)/.exec(String(e.textContent||''))||['-','?'])[1]):'none';}catch(_){return 'err';}})());}"
+             "if(W87.length){var pv87='';try{pv87=localStorage.getItem('__ad87')||'';"
+             "if(pv87&&pv87.indexOf('v5.446 ')!==0)pv87='';}catch(_){}"
+               "var oth87='';var parts87=pv87.split(' || ');"
+               "for(var t87=0;t87<parts87.length;t87++){if(parts87[t87]&&parts87[t87].indexOf(V87+'|')!==0){oth87=parts87[t87];break;}}"
+               "try{localStorage.setItem('__ad87','v5.446 '+W87.join(' ~ ')+(oth87?' || '+oth87:''));}catch(_){}}"
+           "}catch(e87){try{localStorage.setItem('__ad87','err '+(e87&&e87.message||e87));}catch(_){}}"
+         "}catch(e426){}"
+       "}catch(edx){window.__AD_DISC422__='err '+(edx&&edx.message||edx);}"
+       "}"
+       "try{repaint425();"
+         "if(!window.__AD_R425__){window.__AD_R425__=1;"
+           "setTimeout(repaint425,120);setTimeout(repaint425,400);setTimeout(repaint425,1200);"
+           "setTimeout(repaint425,2400);setTimeout(repaint425,4000);"
+           "addEventListener('scroll',function(){clearTimeout(window.__rT425);"
+             "window.__rT425=setTimeout(repaint425,90);},{passive:true,capture:true});"
+           "try{var mo425=new MutationObserver(function(){clearTimeout(window.__mT425);"
+             "window.__mT425=setTimeout(repaint425,120);});"
+             "mo425.observe(document.documentElement,{childList:true,subtree:true,attributes:true,"
+               "attributeFilter:['style','class']});}catch(_){}"
+         "}"
+       "}catch(e425){}"
+        "return 'P90PAINT447[armed sym413='+String(window.__AD_SYM413__||'-')"
+          "+' cb434='+String(window.__AD_CHECKBOX434_STATE__||'-')"
+          "+' d422='+String(window.__AD_DISC422__||'-')+']';"
+       "}catch(e){return 'P90PAINT447[err '+(e&&e.message||e)+']';}})();";
+}
+
 static NSString *ADProbeWebJS(void){
     return
        @"(function(){try{"
@@ -9614,261 +9017,9 @@ static NSString *ADProbeWebJS(void){
        "try{function rb23(v){var m=/rgba?\\(([0-9.]+),\\s*([0-9.]+),\\s*([0-9.]+)/.exec(String(v||''));if(!m)return false;var r=+m[1],g=+m[2],b=+m[3],mx=Math.max(r,g,b),mn=Math.min(r,g,b);return r>=55&&r<=125&&g>=48&&g<=115&&b>=38&&b<=105&&(mx-mn)<=32&&r>=g-4&&g>=b-5&&(r-b)>=4;}var E23=document.querySelectorAll('li,div,section,article'),R23=[];for(var i23=0;i23<E23.length&&R23.length<12;i23++){var e23=E23[i23],r23=e23.getBoundingClientRect();if(r23.width<110||r23.height<55)continue;var s23=getComputedStyle(e23),rad23=Math.max(parseFloat(s23.borderTopLeftRadius)||0,parseFloat(s23.borderTopRightRadius)||0,parseFloat(s23.borderBottomLeftRadius)||0,parseFloat(s23.borderBottomRightRadius)||0);if(rad23<4)continue;var hit23=rb23(s23.borderTopColor)||rb23(s23.borderRightColor)||rb23(s23.borderBottomColor)||rb23(s23.borderLeftColor)||rb23(s23.outlineColor);if(!hit23)continue;R23.push(e23.tagName+'.'+String(e23.className||'').replace(/\\s+/g,'.').slice(0,42)+'@y'+Math.round(r23.top)+'/'+Math.round(r23.width)+'x'+Math.round(r23.height)+'|t='+String(s23.borderTopColor||'-')+'|by='+String(e23.__adBy||'-'));}out.push('P23BROWN[n='+R23.length+(R23.length?' '+R23.join(' ~~ '):'')+']');}catch(e23){out.push('P23BROWN[err '+(e23&&e23.message||e23)+']');}"
 
        "/*V5313FIX*/"
-       "var __sT469=Date.now();"
-       "function __sOvr469(){try{return (Date.now()-__sT469)>12;}catch(e){return false;}}"
-       "try{(function(){"
-         "var SEL='[class*=a-cardui-header] *,[class*=a-cardui-header],'"
-           "+'[class*=sponsored-products] *,[class*=sponsored-products],'"
-           "+'[class*=hybrid-widget-sponsored] *,[class*=adFeedbackMainComponent] *';"
-         "function dealText(e){try{var t=String(e.textContent||'').replace(/\\s+/g,' ').trim();return /^(?:\\d+%\\s*off|limited\\s+time\\s+deal|deal\\s+selling\\s+fast)$/i.test(t);}catch(_){return false;}}"
-         "function clr(){try{var N=document.querySelectorAll(SEL),c=0,sk=0;"
-           "for(var i=0;i<N.length&&i<4000;i++){var e=N[i];"
-             "if(e.querySelector&&e.querySelector('img,picture,video'))continue;"
-             "if(dealText(e)){sk++;continue;}"
-             "var bs=e.style&&e.style.backgroundColor;"
-             "if(bs){e.style.setProperty('background-color','transparent','important');c++;}"
-             "else{var cs=getComputedStyle(e),L=lum(cs.backgroundColor);"
-               "if(L>=0&&L<0.16){e.style.setProperty('background-color','transparent','important');c++;}}}"
-           "window.__AD_BOXCLR__=c;window.__AD_BOXCLR_DEALSKIP__=sk;}catch(e){}}"
-         // v5.374: Amazon recycles both PDP dot markup and Pack badge children.
-         // Key the repair to semantic selected state and the whole badge subtree,
-         // not one historical class/leaf. Markers keep the correct paint persistent.
-         "function dotFix(){try{var U=document.querySelectorAll('ul.a-pagination.a-dots,[class*=a-pagination][class*=dots]'),n=0,total=0;for(var u=0;u<U.length&&u<8;u++){var D=U[u].querySelectorAll('li');for(var i=0;i<D.length&&i<30;i++){var d=D[i];total++;var cl=String(d.className||''),ac=String(d.getAttribute&&d.getAttribute('aria-current')||'').toLowerCase(),as=String(d.getAttribute&&d.getAttribute('aria-selected')||'').toLowerCase(),ds=String(d.getAttribute&&d.getAttribute('data-selected')||'').toLowerCase(),kid=null;try{kid=d.querySelector('.a-selected,.dot-selected-t2,[aria-current=true],[aria-current=page],[aria-selected=true],[data-selected=true]');}catch(ex){}var sel=/(^|\\s)(a-selected|dot-selected-t2)(\\s|$)/.test(cl)||ac==='true'||ac==='page'||as==='true'||ds==='true'||!!kid;if(sel){if(d.hasAttribute&&d.hasAttribute('data-darkreader-inline-bgcolor'))d.removeAttribute('data-darkreader-inline-bgcolor');d.style.setProperty('--darkreader-inline-bgcolor','#ffffff','important');d.style.setProperty('background-color','#ffffff','important');d.style.setProperty('border-color','#ffffff','important');d.setAttribute('data-ad-dotselected374','1');d.setAttribute('data-ad-dotfix','1');n++;}else{if(d.getAttribute&&d.getAttribute('data-ad-dotfix')==='1'){d.style.removeProperty('--darkreader-inline-bgcolor');d.style.removeProperty('background-color');d.style.removeProperty('border-color');d.removeAttribute('data-ad-dotfix');}d.removeAttribute&&d.removeAttribute('data-ad-dotselected374');}}}window.__AD_DOTFIX__=n;window.__AD_DOTTOTAL374__=total;}catch(e){}}"
-         "function packFix(){try{var R=document.querySelectorAll('[class*=pack-size-badge]'),n=0,leaf=0;for(var i=0;i<R.length&&i<40;i++){var r=R[i],A=[r],Q=r.querySelectorAll?r.querySelectorAll('*'):[];for(var q=0;q<Q.length&&q<40;q++)A.push(Q[q]);for(var j=0;j<A.length&&j<44;j++){var p=A[j],tg=String(p.tagName||'').toUpperCase();if(tg==='SVG'||tg==='PATH'||tg==='IMG'||tg==='VIDEO'||tg==='CANVAS')continue;if(p.hasAttribute&&p.hasAttribute('data-darkreader-inline-color'))p.removeAttribute('data-darkreader-inline-color');p.style.setProperty('--darkreader-inline-color','#e8e6e3','important');p.style.setProperty('color','#e8e6e3','important');p.style.setProperty('-webkit-text-fill-color','#e8e6e3','important');p.setAttribute('data-ad-packfix374','1');if(p.childElementCount===0&&String(p.textContent||'').trim())leaf++;n++;}r.setAttribute('data-ad-packroot374','1');}window.__AD_PACKFIX__=n;window.__AD_PACKLEAF374__=leaf;}catch(e){}}"
-         // v5.440: device probes prove the two families are separate DOM nodes:
-         // mlt-icon-container is the TWO-CARDS artwork, while a-checkbox owns the
-         // stock checkbox sprite.  Amazon can mount both at the same coordinates
-         // and uses visibility to choose the active one.  Older passes forced every
-         // MLT descendant visible, which made cards spill over the checkbox.  Keep
-         // Amazon's visibility, suppress cards on a live checkbox collision, and
-         // paint only already-visible cards artwork.
-         "function sym413(){try{"
-           "var SPEC={bg:'#181a1b',bd:'1.5px solid rgba(255,255,255,0.65)'};"
-           "if(!document.getElementById('adcards440')){var s440=document.createElement('style');s440.id='adcards440';s440.textContent='[data-ad-cards440-pseudo*=b]::before,[data-ad-cards440-pseudo*=a]::after{filter:brightness(0) invert(1) !important;color:#fff !important;fill:#fff !important;stroke:#fff !important;}';(document.head||document.documentElement).appendChild(s440);}"
-           "function cn(e){var c=e&&e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||''));}"
-           "function rr(e){try{return e&&e.getBoundingClientRect?e.getBoundingClientRect():null;}catch(x){return null;}}"
-           "function sq(e){var r=rr(e);"
-           "return r.width>=22&&r.width<=48&&r.height>=22&&r.height<=48&&Math.abs(r.width-r.height)<=10;}"
-           "function kind(e){var c=cn(e);"
-             "if(/mlt-icon-container/.test(c))return 'cards';"
-             "if(/a-checkbox/.test(c)&&!/a-icon-checkbox/.test(c))return 'checkbox';"
-             "if(/puis-mab-chevron/.test(c)&&!/glyph/.test(c))return 'chevron';"
-             "if(/puis-heart-position/.test(c)||/lists-framework-action-button/.test(c))return 'heart';"
-             "return '';}"
-           "function shown(e,stop){try{var p=e,u=0;while(p&&u++<10){var s=getComputedStyle(p),o=parseFloat(s.opacity||'1');if(String(s.display||'')==='none'||/hidden|collapse/.test(String(s.visibility||''))||o<.08)return false;if(p===stop)break;p=p.parentElement;}var r=rr(e);return !!(r&&r.width>=3&&r.height>=3);}catch(x){return false;}}"
-           "function legacy(e){if(!e||e.hasAttribute('data-ad-cards440-host'))return;var old=e.getAttribute('data-ad-sym413')==='cards'||e.getAttribute('data-ad-disc420')==='disc'||e.__adBy==='sym413';if(old){['background-color','border','border-radius','box-shadow','box-sizing'].forEach(function(p){e.style.removeProperty(p);});e.removeAttribute('data-ad-sym413');e.removeAttribute('data-ad-disc420');delete e.__adBy;}var A=e.querySelectorAll('*');for(var i=0;i<A.length&&i<48;i++){var a=A[i],by=String(a.__adBy||''),owned=a.hasAttribute('data-ad-sym413glyph')||/^(?:sym413glyph|disc420|disc422)$/.test(by);if(!owned)continue;['filter','color','fill','stroke','background-color','visibility','opacity','border','box-shadow'].forEach(function(p){a.style.removeProperty(p);});a.removeAttribute('data-ad-sym413glyph');delete a.__adBy;delete a.__adGlyph;}}"
-           "function checkboxAt(e){try{var card=e.closest&&e.closest('[class*=puis-card],[class*=s-result-item],[data-component-type=\"s-search-result\"],[data-asin],[class*=s-product-image],[class*=product-image]'),Q=card?card.querySelectorAll('[class*=a-icon-checkbox]'):document.querySelectorAll('[class*=a-icon-checkbox]'),r=rr(e);if(!r)return false;var x=r.left+r.width/2,y=r.top+r.height/2;for(var i=0;i<Q.length&&i<180;i++){var q=Q[i],qr=rr(q);if(!qr||!shown(q,card||document.body))continue;var qx=qr.left+qr.width/2,qy=qr.top+qr.height/2,ix=Math.max(0,Math.min(r.right,qr.right)-Math.max(r.left,qr.left)),iy=Math.max(0,Math.min(r.bottom,qr.bottom)-Math.max(r.top,qr.top));if((Math.abs(x-qx)<18&&Math.abs(y-qy)<18)||ix*iy>Math.min(r.width*r.height,qr.width*qr.height)*.35)return true;}return false;}catch(x){return true;}}"
-           "function clearCards(e){var P=['background-color','border','border-radius','box-shadow','box-sizing'];for(var p=0;p<P.length;p++)e.style.removeProperty(P[p]);if(e.getAttribute('data-ad-cards440-suppressed')==='checkbox'){e.style.removeProperty('visibility');e.style.removeProperty('opacity');}e.removeAttribute('data-ad-cards440-host');e.removeAttribute('data-ad-cards440-suppressed');e.removeAttribute('data-ad-cards440-pseudo');e.removeAttribute('data-ad-sym413');var A=e.querySelectorAll('[data-ad-cards440-glyph],[data-ad-cards440-pseudo]');for(var i=0;i<A.length;i++){var a=A[i];['filter','color','fill','stroke','background-color'].forEach(function(k){a.style.removeProperty(k);});a.removeAttribute('data-ad-cards440-glyph');a.removeAttribute('data-ad-cards440-pseudo');if(a.__adBy==='cards440')delete a.__adBy;}}"
-           "function glyph440(g){var r=rr(g);if(!r||r.width<3||r.height<3||r.width>48||r.height>48)return false;return true;}"
-           "function cards(e){legacy(e);if(e.getAttribute('data-ad-cards440-suppressed')==='checkbox'){if(checkboxAt(e))return 0;e.style.removeProperty('visibility');e.style.removeProperty('opacity');e.removeAttribute('data-ad-cards440-suppressed');}var N=e.querySelectorAll('[class*=mlt-image-icon],img[class*=s-image],p[class*=mlt-text-icon],img,i,svg,path,use,polygon'),P=[e],live=[],pseudo='';for(var pi=0;pi<N.length&&pi<47;pi++)P.push(N[pi]);for(var i=0;i<P.length&&i<48;i++){var g=P[i],r=rr(g);if(!glyph440(g)||!shown(g,e))continue;var t=String(g.tagName||'').toUpperCase(),s=getComputedStyle(g),b=getComputedStyle(g,'::before'),a=getComputedStyle(g,'::after'),paint=/^(IMG|I|SVG|PATH|USE|POLYGON)$/.test(t)||/mlt-text-icon/.test(cn(g))||String(s.backgroundImage||'none')!=='none'||String(s.maskImage||s.webkitMaskImage||'none')!=='none';if(String(b&&b.backgroundImage||'none')!=='none'||String(b&&b.content||'none')!=='none')pseudo+='b';if(String(a&&a.backgroundImage||'none')!=='none'||String(a&&a.content||'none')!=='none')pseudo+='a';if(paint)live.push(g);}if(!live.length&&!pseudo){clearCards(e);return 0;}if(checkboxAt(e)){clearCards(e);e.setAttribute('data-ad-cards440-suppressed','checkbox');e.style.setProperty('visibility','hidden','important');e.style.setProperty('opacity','0','important');return 0;}var old=e.querySelectorAll('[data-ad-cards440-glyph],[data-ad-cards440-pseudo]');for(var o=0;o<old.length;o++){if(live.indexOf(old[o])>=0)continue;['filter','color','fill','stroke','background-color'].forEach(function(k){old[o].style.removeProperty(k);});old[o].removeAttribute('data-ad-cards440-glyph');old[o].removeAttribute('data-ad-cards440-pseudo');}e.setAttribute('data-ad-sym413','cards');e.setAttribute('data-ad-cards440-host','1');if(pseudo)e.setAttribute('data-ad-cards440-pseudo',pseudo);else e.removeAttribute('data-ad-cards440-pseudo');e.__adBy='cards440';e.style.setProperty('background-color',SPEC.bg,'important');e.style.setProperty('border',SPEC.bd,'important');e.style.setProperty('border-radius','50%%','important');e.style.setProperty('box-shadow','none','important');e.style.setProperty('box-sizing','border-box','important');for(var j=0;j<live.length;j++){var z=live[j],tg=String(z.tagName||'').toUpperCase();if(!glyph440(z))continue;z.setAttribute('data-ad-cards440-glyph','1');z.__adBy='cards440';if(/^(SVG|PATH|USE|POLYGON)$/.test(tg)){z.style.setProperty('filter','none','important');z.style.setProperty('fill','#ffffff','important');z.style.setProperty('stroke','#ffffff','important');}else z.style.setProperty('filter','brightness(0) invert(1)','important');z.style.setProperty('color','#ffffff','important');z.style.setProperty('background-color','transparent','important');if(pseudo)z.setAttribute('data-ad-cards440-pseudo',pseudo);}return 1;}"
-           "var Q=document.querySelectorAll('[class*=mlt-icon-container],[class*=a-checkbox],[class*=puis-mab-chevron],[class*=puis-heart-position],[class*=lists-framework-action-button]'),n=0,sk=0;"
-           "for(var i=0;i<Q.length&&i<400;i++){var e=Q[i],k=kind(e);"
-             "if(!k){sk++;continue;}"
-             "if(k==='cards'){if(cards(e))n++;else sk++;continue;}"
-             "var hs=e.querySelector&&e.querySelector('[class*=lists-framework-action-button],[class*=puis-heart-position]');"
-             "var rc=!!(e.querySelector&&e.querySelector('input[type=checkbox],[class*=a-icon-checkbox]'));"
-             "if(hs&&!rc&&k!=='cards'){e.setAttribute('data-ad-heart-shell427','1');"
-               "['data-ad-sym413','data-ad-stock403','data-ad-stocksel403','data-ad-v333403','data-ad-product391','data-ad-productselected391'].forEach(function(a){e.removeAttribute(a);});"
-               "e.style.setProperty('background-color','transparent','important');"
-               "e.style.setProperty('border','0','important');"
-               "e.style.setProperty('border-radius','0','important');"
-               "e.style.setProperty('box-shadow','none','important');"
-               "e.style.setProperty('outline','none','important');sk++;continue;}"
-             "if(k==='checkbox'){sk++;continue;}"
-             "if(!sq(e)){sk++;continue;}"
-             "if(e.parentElement&&e.parentElement.closest&&e.parentElement.closest('[data-ad-sym413]')){sk++;continue;}"
-             "e.setAttribute('data-ad-sym413',k);e.__adBy='sym413';"
-             "e.style.setProperty('background-color',SPEC.bg,'important');"
-             "e.style.setProperty('border',SPEC.bd,'important');"
-             "e.style.setProperty('border-radius','50%%','important');"
-             "e.style.setProperty('box-shadow','none','important');"
-             "e.style.setProperty('box-sizing','border-box','important');"
-             "var G=e.querySelectorAll('img,i,svg,path,p');"
-             "for(var j=0;j<G.length&&j<24;j++){var g=G[j],gr=g.getBoundingClientRect();"
-               "if(gr.width>48||gr.height>48)continue;"
-               "var tg=String(g.tagName||'').toUpperCase();"
-               "if(tg==='IMG'||tg==='I'||tg==='P')"
-                 "g.style.setProperty('filter','brightness(0) invert(1)','important');"
-               "g.__adBy='sym413glyph';g.setAttribute('data-ad-sym413glyph','1');"
-               "if(tg==='SVG'||tg==='PATH'){g.style.setProperty('fill','#ffffff','important');"
-                 "g.style.setProperty('color','#ffffff','important');}"
-               "g.style.setProperty('background-color','transparent','important');"
-               "g.style.setProperty('visibility','visible','important');"
-               "g.style.setProperty('opacity','1','important');"
-               "g.removeAttribute('data-ad-compareorig380');g.removeAttribute('data-ad-compareorig379');}"
-             "n++;}"
-           "window.__AD_SYM413__='n='+n+' skip='+sk;"
-         "}catch(e){window.__AD_SYM413__='err '+e;}}"
-         "try{window.__AD_SYM413_PRE__=window.__AD_PRODUCTCTRL391RUN__;"
-           "window.__AD_PRODUCTCTRL391RUN__=function(){"
-             "var r=window.__AD_SYM413_PRE__?window.__AD_SYM413_PRE__():0;try{sym413();}catch(x){}return r;};"
-         "}catch(e){}"
-         "try{sym413();setTimeout(sym413,30);setTimeout(sym413,160);setTimeout(sym413,560);"
-           "setTimeout(sym413,1560);setTimeout(sym413,2600);"
-           "addEventListener('scroll',function(){clearTimeout(window.__symT413);"
-             "window.__symT413=setTimeout(sym413,110);},{passive:true,capture:true});"
-         "}catch(e){}"
-         "function compareStock379(){window.__AD_COMPARE379__=\'retired433\';return 0;}"
-         "function cartChrome379(){try{var tx=String((document.body&&document.body.innerText)||'').toLowerCase();if(tx.indexOf('subtotal')<0||tx.indexOf('save for later')<0){window.__AD_CART379__='off';return;}var E=document.querySelectorAll('button,[role=button],a,span,div,input'),n=0,direct=0;function pc(v){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/.exec(String(v||''));return m?[+m[1],+m[2],+m[3]]:null;}function isLight(e){try{var c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after'),L=[pc(c.backgroundColor),pc(b.backgroundColor),pc(a.backgroundColor)];for(var k=0;k<L.length;k++){var q=L[k];if(!q)continue;var mx=Math.max(q[0],q[1],q[2]),mn=Math.min(q[0],q[1],q[2]),lum=(.2126*q[0]+.7152*q[1]+.0722*q[2])/255,sat=(mx-mn)/255;if(lum>=.76&&sat<=.16)return true;}return false;}catch(x){return false;}}function paint(e){if(!e||!e.style||e.hasAttribute('data-ad-cartchrome379'))return;e.setAttribute('data-ad-cartchrome379','1');e.style.setProperty('background-color','#181a1b','important');e.style.setProperty('background-image','none','important');e.style.setProperty('border','1px solid #6c7073','important');e.style.setProperty('border-radius','999px','important');e.style.setProperty('box-shadow','none','important');e.style.setProperty('color','#e8e6e3','important');e.style.setProperty('-webkit-text-fill-color','#e8e6e3','important');e.style.setProperty('opacity','1','important');n++;}for(var i=0;i<E.length&&i<2600;i++){var e=E[i],r=e.getBoundingClientRect();if(r.width<36||r.width>150||r.height<24||r.height>62)continue;if(r.bottom<0||r.top>(innerHeight||900)+150)continue;if(!isLight(e))continue;var txt=String(e.textContent||e.value||'').replace(/\\s+/g,' ').trim().toLowerCase();if(/checkout|add to cart|quantity/.test(txt))continue;paint(e);}var D=document.querySelectorAll('button,[role=button],a,span,div');for(var di=0;di<D.length&&di<2200&&((di&15)||!__sOvr469());di++){var de=D[di],dt=String(de.textContent||'').replace(/\\s+/g,' ').trim();if(dt!=='Delete')continue;var dh=de.closest&&de.closest('button,[role=button],a');if(!dh)dh=de;var dr=dh.getBoundingClientRect(),best=null,bd=999,seen=[];for(var ci=0;ci<E.length&&ci<2600;ci++){var x=E[ci],host=(x.closest&&x.closest('button,[role=button],a'))||x;if(!host||host===dh||dh.contains(host)||seen.indexOf(host)>=0)continue;seen.push(host);var xr=host.getBoundingClientRect();if(xr.width<34||xr.width>125||xr.height<24||xr.height>60)continue;if(Math.abs((xr.top+xr.height/2)-(dr.top+dr.height/2))>14||xr.left<dr.right-4)continue;var gap=xr.left-dr.right;if(gap<0||gap>170||gap>=bd)continue;var xt=String(host.textContent||host.value||'').replace(/\\s+/g,' ').trim().toLowerCase();if(/delete|save for later|checkout|add to cart|quantity/.test(xt))continue;if(!isLight(host))continue;best=host;bd=gap;}if(best){paint(best);best.setAttribute('data-ad-cartdirect379','1');direct++;}}window.__AD_CART379__='fixed='+n+' direct='+direct;}catch(e){window.__AD_CART379__='err '+e;}}"
-         "function legacyCompare387(){window.__AD_COMPARELEGACY387__=\'retired433\';return 0;}"
-         "function compareStock380(){window.__AD_COMPARE380__=\'retired433\';return 0;}"
-         "function cartChrome382(){try{var D=document.querySelectorAll('button,[role=button],a,span,div'),share=0,rows=0;function hostOf(e){if(!e)return null;return (e.closest&&e.closest('button,[role=button],a'))||e;}function exact(root,word){var Q=root.querySelectorAll('button,[role=button],a,span,div');for(var i=0;i<Q.length&&i<220;i++){if(String(Q[i].textContent||'').replace(/\\s+/g,' ').trim()===word)return Q[i];}return null;}for(var di=0;di<D.length&&di<3200;di++){var de=D[di];if(String(de.textContent||'').replace(/\\s+/g,' ').trim()!=='Delete')continue;var dh=hostOf(de),row=dh.parentElement,u=0;while(row&&u++<6){var tx=String(row.textContent||'').replace(/\\s+/g,' ').trim();if(/Save for later/i.test(tx)&&/Delete/i.test(tx)&&/Share/i.test(tx))break;row=row.parentElement;}if(!row)continue;rows++;var se=exact(row,'Share');if(!se)continue;var sh=hostOf(se),dr=dh.getBoundingClientRect(),sr=sh.getBoundingClientRect();if(sr.width<34||sr.width>150||sr.height<20||sr.height>64||Math.abs((sr.top+sr.height/2)-(dr.top+dr.height/2))>24)continue;var ds=getComputedStyle(dh),fg=String(ds.color||'#e8e6e3');sh.removeAttribute('data-ad-cartshare381');sh.removeAttribute('data-ad-cartchrome380');sh.setAttribute('data-ad-cartclone382','1');sh.style.setProperty('--ad-cart-bg',String(ds.backgroundColor||'transparent'));sh.style.setProperty('--ad-cart-bi',String(ds.backgroundImage||'none'));sh.style.setProperty('--ad-cart-bc',String(ds.borderTopColor||'#6c7073'));sh.style.setProperty('--ad-cart-bs',String(ds.borderTopStyle||'solid'));sh.style.setProperty('--ad-cart-bw',String(ds.borderTopWidth||'1px'));sh.style.setProperty('--ad-cart-br',String(ds.borderRadius||'999px'));sh.style.setProperty('--ad-cart-sh',String(ds.boxShadow||'none'));sh.style.setProperty('--ad-cart-fg',fg);sh.style.setProperty('background-color',String(ds.backgroundColor||'transparent'),'important');sh.style.setProperty('background-image',String(ds.backgroundImage||'none'),'important');sh.style.setProperty('border-color',String(ds.borderTopColor||'#6c7073'),'important');sh.style.setProperty('border-style',String(ds.borderTopStyle||'solid'),'important');sh.style.setProperty('border-width',String(ds.borderTopWidth||'1px'),'important');sh.style.setProperty('border-radius',String(ds.borderRadius||'999px'),'important');sh.style.setProperty('box-shadow',String(ds.boxShadow||'none'),'important');sh.style.setProperty('color',fg,'important');sh.style.setProperty('-webkit-text-fill-color',fg,'important');share++;break;}window.__AD_CART382__='rows='+rows+' share='+share;}catch(e){window.__AD_CART382__='err '+e;}}"
-         "function shareFix382(){try{var S=document.querySelectorAll('.ssf-share-trigger'),hosts=0,paint=0,vec=0;for(var i=0;i<S.length&&i<20;i++){var h=S[i],r=h.getBoundingClientRect();if(r.width<8||r.height<8)continue;hosts++;h.removeAttribute('data-ad-share377');h.setAttribute('data-ad-share382','1');h.style.setProperty('color','#fff','important');h.style.setProperty('-webkit-text-fill-color','#fff','important');h.style.setProperty('opacity','1','important');var A=h.querySelectorAll('*');for(var j=0;j<A.length&&j<90;j++){var a=A[j],ar=a.getBoundingClientRect();if(ar.width>100||ar.height>100)continue;var tg=String(a.tagName||'').toUpperCase(),cs=getComputedStyle(a),bi=String(cs.backgroundImage||'none'),mi=String(cs.maskImage||cs.webkitMaskImage||'none');if(tg==='SVG'||tg==='PATH'||tg==='POLYGON'||tg==='USE'){a.style.setProperty('fill','#fff','important');a.style.setProperty('stroke','#fff','important');a.style.setProperty('color','#fff','important');a.style.setProperty('opacity','1','important');vec++;continue;}if(tg==='IMG'||tg==='I'||bi!=='none'||mi!=='none'){a.setAttribute('data-ad-sharepaint382','1');a.style.setProperty('opacity','1','important');a.style.setProperty('background-color','transparent','important');a.__adGlyph=1;a.__adBy='share382';paint++;}}}window.__AD_SHARE382__='hosts='+hosts+' paint='+paint+' vec='+vec;}catch(e){window.__AD_SHARE382__='err '+e;}}"
-         "function chevronFix383(){try{var Q=document.querySelectorAll('[aria-label*=expand i],[aria-label*=collapse i],[aria-label*=details i],[aria-expanded] [class*=a-icon],[aria-expanded][class*=a-icon],[class*=a-icon-extender],[class*=a-icon-dropdown],[class*=expander] [class*=a-icon],[class*=expand] [class*=a-icon],[class*=collapse] [class*=a-icon],button [class*=chevron],button [class*=caret],button [class*=arrow],[role=button] [class*=chevron],[role=button] [class*=caret],[role=button] [class*=arrow]'),n=0,sk=0;function bad(e){return !!(e&&e.closest&&e.closest('[class*=heart],[class*=wish],[class*=favorite],[class*=lists-framework-action-button],[class*=mlt-icon-container],[role=checkbox],input[type=checkbox],[class*=a-icon-checkbox]'));}function mark(e){if(!e||!e.setAttribute||bad(e))return;var r=e.getBoundingClientRect();if(r.width<3||r.height<3||r.width>72||r.height>72)return;e.setAttribute('data-ad-expchev383','1');e.__adGlyph=1;e.__adBy='expchev383';var tg=String(e.tagName||'').toUpperCase();if(tg==='SVG'||tg==='PATH'||tg==='POLYGON'||tg==='USE'){e.style.setProperty('color','#e8e6e3','important');e.style.setProperty('fill','#e8e6e3','important');e.style.setProperty('stroke','#e8e6e3','important');}n++;}for(var i=0;i<Q.length&&i<260;i++){var e=Q[i];if(bad(e)){sk++;continue;}mark(e);var A=e.querySelectorAll?e.querySelectorAll('svg,path,i,img,[class*=chevron],[class*=caret],[class*=arrow],[class*=a-icon]'):[];for(var j=0;j<A.length&&j<12;j++)mark(A[j]);}window.__AD_CHEV383__='n='+n+' skip='+sk;}catch(e){window.__AD_CHEV383__='err '+e;}}"
-         "function sponsorFix376(){try{var E=document.querySelectorAll('span,div,p,a,h1,h2,h3,h4,h5,label'),n=0,dark=0;for(var i=0;i<E.length&&i<5000&&((i&15)||!__sOvr469());i++){var e=E[i],t=String(e.textContent||'').replace(/\\s+/g,' ').trim();if(!/^sponsored(?: ad)?$/i.test(t))continue;if(e.childElementCount>4)continue;var cs=getComputedStyle(e),m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/.exec(String(cs.color||''));if(m&&(0.2126*(+m[1])+0.7152*(+m[2])+0.0722*(+m[3]))<220)dark++;e.style.setProperty('color','#ffffff','important');e.style.setProperty('-webkit-text-fill-color','#ffffff','important');e.style.setProperty('opacity','1','important');e.style.setProperty('visibility','visible','important');e.setAttribute('data-ad-sponsored376','1');e.__adBy='sponsored376';n++;}window.__AD_SPON376__='n='+n+' darkBefore='+dark;}catch(e){window.__AD_SPON376__='err '+e;}}"
-         "function ratingFix376(){try{var A=document.querySelectorAll('[aria-label*=\"out of 5 stars\"],[class*=a-icon-star],[class*=a-star],[id*=acrCustomerReviewText],[class*=acrCustomerReviewText],[class*=averageStarRating]'),roots=[],n=0;for(var i=0;i<A.length&&i<500;i++){var a=A[i],r=a,p=0;while(r&&p++<4){var tx=String(r.textContent||'').replace(/\\s+/g,' ').trim(),rr=r.getBoundingClientRect();if(tx.length>=2&&tx.length<=140&&rr.height>4&&rr.height<=90&&(/\\d(?:\\.\\d)?/.test(tx))){break;}r=r.parentElement;}if(!r||roots.indexOf(r)>=0)continue;roots.push(r);var L=r.querySelectorAll('span,a,div');for(var j=0;j<L.length&&j<80;j++){var x=L[j];if(x.childElementCount>0)continue;var t=String(x.textContent||'').replace(/\\s+/g,' ').trim();if(!t||t.length>42)continue;var ok=/^\\d(?:\\.\\d)?$/.test(t)||/^\\(?[\\d,.]+[Kk]?\\)?$/.test(t)||/^\\d(?:\\.\\d)?\\s+out of 5 stars$/i.test(t);if(!ok)continue;x.style.setProperty('color','#ffffff','important');x.style.setProperty('-webkit-text-fill-color','#ffffff','important');x.style.setProperty('opacity','1','important');x.style.setProperty('visibility','visible','important');x.setAttribute('data-ad-rating376','1');x.__adBy='rating376';n++;}}window.__AD_RATING376__='roots='+roots.length+' ink='+n;}catch(e){window.__AD_RATING376__='err '+e;}}"
-         // v5.441 DEVICE-CAPTURED STOCK CHECKBOX + SHARED 32PX CHROME. Amazon
-         // remains the sole owner of geometry, hit testing, state, and the checked
-         // blue/checkmark sprite. Device P14 names Cart's hierarchy precisely:
-         // 398x0 a-checkbox > 35x44 label > 23x23 input + 23x23 sprite. The old
-         // shell pass skipped that label and let Amazon/Dark Reader intermittently
-         // paint the gray rectangle. Mark every bounded Cart wrapper regardless of
-         // existing visual paint, flatten it, and put one 32px chrome treatment on
-         // the exact stock sprite via paint-only box-shadow. No width/height or
-         // background-image/background-position write is allowed. The inset paint
-         // covers the unchecked sprite without filtering it or the chrome. Native
-         // :checked removes our paint synchronously and exposes Amazon's stock blue frame.
-         "function stockCheckbox434(){if(window.__ADFRAME_MODE__||!document.body||window.__AD_CHECKBOX434_RUNNING__)return 0;window.__AD_CHECKBOX434_RUNNING__=1;try{"
-           "var retired434=['adstock403','adcomparenative428','adcheckbox433'];for(var ri434=0;ri434<retired434.length;ri434++){var rs434=document.getElementById(retired434[ri434]);if(rs434&&rs434.parentNode)rs434.parentNode.removeChild(rs434);}"
-           "var prior434=document.getElementById('adcheckbox434');if(prior434&&prior434.getAttribute('data-ad-native-state')!=='446'){if(prior434.parentNode)prior434.parentNode.removeChild(prior434);prior434=null;}"
-           "if(!prior434){var s434=document.createElement('style');s434.id='adcheckbox434';s434.setAttribute('data-ad-native-state','446');"
-             "s434.textContent='[data-ad-checkbox434-art]{filter:none !important;border-radius:4px !important;box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important;transition:none !important;}'"
-               "+'[data-ad-checkbox434-host]:is(input[type=checkbox]:checked,[aria-checked=true],[aria-pressed=true],[aria-selected=true],[data-checked=true],[data-selected=true],[data-state=checked],[data-state=on]) [data-ad-checkbox434-art],[data-ad-checkbox434-host]:has(input[type=checkbox]:checked,[aria-checked=true],[aria-pressed=true],[aria-selected=true],[data-checked=true],[data-selected=true],[data-state=checked],[data-state=on]) [data-ad-checkbox434-art],[data-ad-checkbox434-host][class*=checked]:not([class*=unchecked]) [data-ad-checkbox434-art],[data-ad-checkbox434-host][class*=selected]:not([class*=unselected]) [data-ad-checkbox434-art],[data-ad-checkbox434-host]:has([class*=checked]:not([class*=unchecked]),[class*=selected]:not([class*=unselected])) [data-ad-checkbox434-art],[data-ad-checkbox434-art]:is(input[type=checkbox]:checked,[aria-checked=true],[aria-pressed=true],[aria-selected=true],[data-checked=true],[data-selected=true],[data-state=checked],[data-state=on]),[data-ad-checkbox434-art][class*=checked]:not([class*=unchecked]),[data-ad-checkbox434-art][class*=selected]:not([class*=unselected]),[data-ad-checkbox434-art][src*=checkbox-on],[data-ad-checkbox434-art][src*=checkbox_checked],[data-ad-checkbox434-art][src*=checkmark],[data-ad-checkbox434-art][src*=selected],[data-ad-checkbox434-art][data-src*=checkbox-on],[data-ad-checkbox434-art][data-src*=checkbox_checked],[data-ad-checkbox434-art][data-src*=checkmark],[data-ad-checkbox434-art][data-src*=selected]{filter:none !important;border-radius:0 !important;box-shadow:none !important;}'"
-               "+'[data-ad-checkbox434-shell=\"cart\"]{background-color:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important;outline:0 !important;filter:none !important;}'"
-               "+'[data-ad-checkbox434-shell=\"cart\"]::before,[data-ad-checkbox434-shell=\"cart\"]::after{background-color:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important;outline:0 !important;filter:none !important;}';"
-             "(document.head||document.documentElement).appendChild(s434);}"
-           "function cn434(e){var c=e&&e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||''));}"
-           "function rr434(e){try{return e&&e.getBoundingClientRect?e.getBoundingClientRect():null;}catch(x){return null;}}"
-           "function sq434(e,lo,hi){var r=rr434(e);return !!(r&&r.width>=lo&&r.width<=hi&&r.height>=lo&&r.height<=hi&&Math.abs(r.width-r.height)<=14);}"
-           "var body434=String(document.body.innerText||document.body.textContent||'').toLowerCase(),cart434=body434.indexOf('proceed to checkout')>=0&&(body434.indexOf('save for later')>=0||body434.indexOf('select all items')>=0||body434.indexOf('deselect all items')>=0);"
-           "var scopeSel434='[class*=puis-card],[class*=s-result-item],[data-component-type=\"s-search-result\"],[data-asin],[class*=s-product-image],[class*=product-image],[class*=sc-list-item],[class*=sc-item]';"
-           "var semanticSel434='[class*=copilot-compare],button[aria-label*=ompare],[role=button][aria-label*=ompare],[role=checkbox],[aria-checked],[data-csa-c-content-id*=ompare],[data-testid*=ompare],div.a-checkbox,[class~=a-checkbox]';"
-           "function scope434(e){return !!(e&&e.closest&&e.closest(scopeSel434));}/* Cart mode changes shell paint only, never page-wide checkbox scope */"
-           "function foreign434(e){try{return !!(e&&e.closest&&e.closest('[class*=mlt-icon-container],[class*=lists-framework-action-button],[data-ad-cards410-root],[data-ad-cards410-host],[data-ad-cards410-disc],[data-ad-cards410-glyph],[data-ad-heart-shell427],[class*=puis-heart-position],[class*=lists-treatment-hear],[class*=puis-mab-chevron]'));}catch(x){return true;}}"
-           "function owned434(e){if(!e||e.nodeType!==1)return false;var p=String(e.getAttribute('data-ad-product391')||''),v=String(e.getAttribute('data-ad-v333403')||''),d=String(e.getAttribute('data-ad-disc420')||''),s=String(e.getAttribute('data-ad-sym413')||''),v4=String(e.getAttribute('data-ad-v333404')||'');if(p==='checkbox'||v==='c'||d==='checkbox'||s==='checkbox'||v4==='c'||v4==='checkbox')return true;var A=['data-ad-comparehost377','data-ad-comparechecked377','data-ad-compareinput377','data-ad-compare378','data-ad-compareleaf378','data-ad-compare-raster378','data-ad-compare379','data-ad-compareinput379','data-ad-compareorig379','data-ad-compare380','data-ad-compareinput380','data-ad-compareorig380','data-ad-comparelegacy387','data-ad-comparelegacyorig387','data-ad-productselected391','data-ad-productglyph391','data-ad-productraster391','data-ad-productvector391','data-ad-stock403','data-ad-stocksel403','data-ad-stockglyph403','data-ad-stockraster403','data-ad-stockvector403','data-ad-sym413glyph','data-ad-comparefunc428','data-ad-compareselected428','data-ad-comparehit428'];for(var i=0;i<A.length;i++)if(e.hasAttribute(A[i]))return true;return /^(?:product391|sym413|sym413glyph|disc420|disc422)$/.test(String(e.__adBy||''));}"
-           "var marks434=['data-ad-comparehost377','data-ad-comparechecked377','data-ad-compareinput377','data-ad-compare378','data-ad-compareleaf378','data-ad-compare-raster378','data-ad-compare379','data-ad-compareinput379','data-ad-compareorig379','data-ad-compare380','data-ad-compareinput380','data-ad-compareorig380','data-ad-comparelegacy387','data-ad-comparelegacyorig387','data-ad-product391','data-ad-productselected391','data-ad-productglyph391','data-ad-productraster391','data-ad-productvector391','data-ad-stock403','data-ad-stocksel403','data-ad-stockglyph403','data-ad-stockraster403','data-ad-stockvector403','data-ad-v333403','data-ad-v333404','data-ad-disc420','data-ad-sym413','data-ad-sym413glyph','data-ad-comparefunc428','data-ad-compareselected428','data-ad-comparehit428'];"
-           "var props434=['background-color','border','border-color','border-width','border-style','border-radius','box-shadow','box-sizing','filter','width','height','min-width','min-height','max-width','max-height','position','inset','top','right','bottom','left','transform','overflow','isolation','outline','z-index','margin','pointer-events','opacity','visibility','color','fill','stroke','transition','display','cursor'];/* preserve Amazon background-image/mask sprite */"
-           "function scrub434(e){if(!owned434(e))return 0;for(var p=0;p<props434.length;p++)e.style.removeProperty(props434[p]);for(var a=0;a<marks434.length;a++)e.removeAttribute(marks434[a]);delete e.__adBy;delete e.__adGlyph;delete e.__adManual380;delete e.__adManualSig380;delete e.__adCompareBlue428;return 1;}"
-           "function generic434(e){var b=String(e&&e.__adBy||'');if(!/^(?:gfix1|gfix2|aic|gsweep|fltpanel)$/.test(b))return 0;e.style.removeProperty('filter');delete e.__adBy;delete e.__adGlyph;return 1;}"
-           "function visual434(e){try{var c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after'),bi=String(c.backgroundImage||'none'),mi=String(c.maskImage||c.webkitMaskImage||'none'),pbi=String((b&&b.backgroundImage)||'none')+' '+String((a&&a.backgroundImage)||'none'),pmi=String((b&&(b.maskImage||b.webkitMaskImage))||'none')+' '+String((a&&(a.maskImage||a.webkitMaskImage))||'none');return bi!=='none'||mi!=='none'||pbi!=='none none'||pmi!=='none none';}catch(x){return false;}}"
-           "function light434(c){try{var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([0-9.]+))?/i.exec(String(c&&c.backgroundColor||''));if(!m||(m[4]!==undefined&&+m[4]<.12))return false;return (.2126*(+m[1])+.7152*(+m[2])+.0722*(+m[3]))/255>.62;}catch(x){return false;}}"
-           "function group434(e){if(!e||!scope434(e)||foreign434(e))return null;var exact=(e.matches&&e.matches('[class*=a-icon-checkbox]'))?e:(e.querySelector&&e.querySelector('[class*=a-icon-checkbox]')),ep=e.parentElement,eu=0;while(!exact&&ep&&eu++<4){exact=ep.querySelector&&ep.querySelector('[class*=a-icon-checkbox]');if(exact||ep.matches&&ep.matches(scopeSel434))break;ep=ep.parentElement;}if(exact&&!foreign434(exact)){var ah=exact.closest&&exact.closest('div.a-checkbox,[class~=a-checkbox]');if(ah&&scope434(ah)&&!foreign434(ah))return ah;var ch=exact.closest&&exact.closest('[class*=copilot-compare]');if(ch&&scope434(ch)&&sq434(ch,16,76)&&!foreign434(ch))return ch;var bh=exact.closest&&exact.closest('button[aria-label*=ompare],[role=button][aria-label*=ompare],[data-csa-c-content-id*=ompare],[data-testid*=ompare]');if(bh&&scope434(bh)&&sq434(bh,16,76)&&!foreign434(bh))return bh;}var legit=e.closest&&e.closest('[class*=copilot-compare],[class*=compare-checkbox],button[aria-label*=ompare],[role=button][aria-label*=ompare],[role=checkbox],[aria-checked],[data-csa-c-content-id*=ompare],[data-testid*=ompare]');if(!exact&&!legit)return null;var tg0=String(e.tagName||'').toUpperCase(),p=/^(IMG|I|INPUT|SVG|PATH|USE|POLYGON)$/.test(tg0)?e.parentElement:e,sem=null,best=null,u=0;while(p&&u++<8){if(foreign434(p))return null;var tg=String(p.tagName||'').toUpperCase();if(!sem&&p.matches&&p.matches(semanticSel434)&&sq434(p,16,76))sem=p;if(!best&&!/^(IMG|I|INPUT|SVG|PATH|USE|POLYGON)$/.test(tg)&&sq434(p,16,76))best=p;if(p.matches&&p.matches(scopeSel434))break;p=p.parentElement;}return sem||best||((tg0==='INPUT')?e:(e.parentElement||e));}"
-           "function selected434(h){try{var q=(h.matches&&h.matches('input[type=checkbox]'))?h:h.querySelector('input[type=checkbox]');if(q)return !!q.checked;var A=[h],Z=h.querySelectorAll?h.querySelectorAll('[role=checkbox],[aria-checked],[aria-pressed],[aria-selected],[data-checked],[data-selected],[data-state]'):[];for(var i=0;i<Z.length&&i<32;i++)A.push(Z[i]);for(var j=0;j<A.length;j++){var e=A[j],a=String(e.getAttribute('aria-checked')||e.getAttribute('aria-pressed')||e.getAttribute('aria-selected')||e.getAttribute('data-checked')||e.getAttribute('data-selected')||e.getAttribute('data-state')||'').toLowerCase(),c=cn434(e).toLowerCase();if(a==='true'||a==='checked'||a==='on'||(/checked|selected/.test(c)&&!/unchecked|unselected/.test(c)))return true;if(a==='false'||a==='unchecked'||a==='off')return false;}var im=h.querySelector&&h.querySelector('img[src],img[data-src]'),src=im?String(im.currentSrc||im.src||im.getAttribute('data-src')||'').toLowerCase():'';return /checkbox[_-]?(?:on|checked)|checkmark|selected/.test(src)&&!/unchecked|unselected/.test(src);}catch(x){return false;}}"
-           "function art434(h,seed){try{var Q=[h],D=h.querySelectorAll?h.querySelectorAll('*'):[];for(var q=0;q<D.length&&q<100;q++)Q.push(D[q]);if(Q.indexOf(seed)<0)Q.push(seed);var best=null,bs=9999;for(var i=0;i<Q.length;i++){var e=Q[i];if(!e||foreign434(e))continue;var r=rr434(e);if(!r||r.width<8||r.height<8||r.width>76||r.height>76)continue;var tg=String(e.tagName||'').toUpperCase();if(/^(PATH|USE|POLYGON)$/.test(tg))continue;var c=cn434(e).toLowerCase(),src=String((e.currentSrc||e.src||(e.getAttribute&&e.getAttribute('data-src'))||'')).toLowerCase(),cs=getComputedStyle(e),op=parseFloat(cs.opacity||'1'),exact=/a-icon-checkbox|checkbox[-_ ]?(?:icon|sprite|image)|checkmark|check-mark|tick/.test(c+' '+src),painted=visual434(e)||light434(cs),role=e.getAttribute&&e.getAttribute('role')==='checkbox',score=999;if(exact)score=0;else if(painted)score=20;else if(/^(I|IMG|SVG)$/.test(tg))score=35;else if(tg==='INPUT'&&String(e.type||'').toLowerCase()==='checkbox')score=45;else if(role)score=60;else if(e===seed)score=90;else continue;if(e===h)score+=25;if(op<.12||String(cs.visibility||'')==='hidden'||String(cs.display||'')==='none')score+=70;score+=(r.width*r.height)/100000;if(score<bs){bs=score;best=e;}}return best||(sq434(seed,8,76)?seed:(sq434(h,8,76)?h:null));}catch(x){return null;}}"
-           "var prevHosts434=document.querySelectorAll('[data-ad-checkbox434-host]'),prevArts434=document.querySelectorAll('[data-ad-checkbox434-art]'),prevShells434=document.querySelectorAll('[data-ad-checkbox434-shell]');"
-           "var shells434=[],hosts434=[],arts434=[],unchecked434=0,checked434=0,cleaned434=0,skip434=0,cartShell434=0;"
-           "function shell434(h,art){if(!cart434||!h||!art)return;var p=art.parentElement,u=0;while(p&&u++<5){var tg=String(p.tagName||'').toUpperCase(),r=rr434(p),bounded=!!(r&&r.width>=18&&r.width<=76&&r.height>=18&&r.height<=76);if(p!==art&&p.contains&&p.contains(art)&&bounded&&!/^(IMG|I|INPUT|SVG|PATH|USE)$/.test(tg)){p.setAttribute('data-ad-checkbox434-shell','cart');if(shells434.indexOf(p)<0){shells434.push(p);cartShell434++;}}if(p.matches&&p.matches(scopeSel434))break;p=p.parentElement;}}"
-           "var C=document.querySelectorAll('input[type=checkbox],[role=checkbox],[aria-checked],[class*=a-checkbox],[class*=a-icon-checkbox],[class*=copilot-compare],button[aria-label*=ompare],[role=button][aria-label*=ompare],[data-csa-c-content-id*=ompare],[data-testid*=ompare],img[src*=checkbox],img[data-src*=checkbox]');"
-           "for(var i=0;i<C.length&&i<1100;i++){var seed=C[i],h=group434(seed);if(!h||hosts434.indexOf(h)>=0){skip434++;continue;}var Q=[h],D=h.querySelectorAll?h.querySelectorAll('*'):[];for(var q=0;q<D.length&&q<140;q++)Q.push(D[q]);for(var z=0;z<Q.length;z++){cleaned434+=generic434(Q[z]);cleaned434+=scrub434(Q[z]);Q[z].removeAttribute('data-ad-checkbox433-art');}var art=art434(h,seed);if(!art){skip434++;continue;}hosts434.push(h);var syn=h.querySelectorAll?h.querySelectorAll('[data-ad-comparebox377],[data-ad-comparecheck377]'):[];for(var sy=0;sy<syn.length;sy++){if(syn[sy].parentNode)syn[sy].parentNode.removeChild(syn[sy]);cleaned434++;}if(h.getAttribute('data-ad-checkbox434-host')!=='stock')h.setAttribute('data-ad-checkbox434-host','stock');var AL=[art],EX=h.querySelectorAll?h.querySelectorAll('[class*=a-icon-checkbox],img[src*=checkbox],img[data-src*=checkbox]'):[];for(var ex=0;ex<EX.length&&ex<24;ex++){var xa=EX[ex],xr=rr434(xa),xs=getComputedStyle(xa);if(xr&&xr.width>=8&&xr.height>=8&&xr.width<=76&&xr.height<=76&&parseFloat(xs.opacity||'1')>=.12&&String(xs.display||'')!=='none'&&String(xs.visibility||'')!=='hidden'&&AL.indexOf(xa)<0)AL.push(xa);}for(var al=0;al<AL.length;al++){var aa=AL[al];if(arts434.indexOf(aa)<0){if(aa.getAttribute('data-ad-checkbox434-art')!=='stock')aa.setAttribute('data-ad-checkbox434-art','stock');arts434.push(aa);}}shell434(h,art);if(selected434(h))checked434++;else unchecked434++;}"
-           "var old433=document.querySelectorAll('[data-ad-checkbox433-art]');for(var x433=0;x433<old433.length;x433++)old433[x433].removeAttribute('data-ad-checkbox433-art');"
-           "for(var ph=0;ph<prevHosts434.length;ph++)if(hosts434.indexOf(prevHosts434[ph])<0)prevHosts434[ph].removeAttribute('data-ad-checkbox434-host');for(var pa=0;pa<prevArts434.length;pa++)if(arts434.indexOf(prevArts434[pa])<0)prevArts434[pa].removeAttribute('data-ad-checkbox434-art');for(var ps=0;ps<prevShells434.length;ps++)if(shells434.indexOf(prevShells434[ps])<0)prevShells434[ps].removeAttribute('data-ad-checkbox434-shell');"
-           "window.__AD_CHECKBOX434_STATE__='hosts='+hosts434.length+' art='+arts434.length+' unchecked='+unchecked434+' checked='+checked434+' cart='+(cart434?1:0)+' shells='+cartShell434+' cleaned='+cleaned434+' skip='+skip434;return hosts434.length;"
-         "}catch(e){window.__AD_CHECKBOX434_STATE__='err '+(e&&e.message||e);return -1;}finally{window.__AD_CHECKBOX434_RUNNING__=0;}}"
-         "try{window.__AD_CHECKBOX434__=stockCheckbox434;if(!window.__AD_CHECKBOX434_WRAP__){window.__AD_CHECKBOX434_WRAP__=1;"
-           "window.__AD_PRODUCTCTRL391_PRE434__=window.__AD_PRODUCTCTRL391RUN__;window.__AD_PRODUCTCTRL391RUN__=function(){var r=window.__AD_PRODUCTCTRL391_PRE434__?window.__AD_PRODUCTCTRL391_PRE434__():0;try{window.__AD_CHECKBOX434__();}catch(x){}return r;};"
-           // The stock sprite remains synchronous through Amazon's :checked CSS.
-           // Only the expensive discovery scan is coalesced. In particular, never
-           // observe `style`: stockCheckbox434 writes styles itself and v5.452 could
-           // feed those writes straight back into another 1100-candidate scan.
-           "function queue434(ms434){clearTimeout(window.__AD_CHECKBOX434_T__);window.__AD_CHECKBOX434_T__=setTimeout(function(){try{if(!window.__ADSCROLLING__||ms434<100)window.__AD_CHECKBOX434__();}catch(x){}},ms434||24);}"
-           "new MutationObserver(function(){queue434(24);}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});"
-           "addEventListener('scroll',function(){queue434(320);},{passive:true,capture:true});}"
-           "stockCheckbox434();setTimeout(stockCheckbox434,40);setTimeout(stockCheckbox434,180);setTimeout(stockCheckbox434,700);setTimeout(stockCheckbox434,1800);"
-         "}catch(e){}"
-         // v5.347 PDP HEART. The confirmed 20x20 .a-icon painter is handled
-         // exclusively by the documentStart CSS rule above. Do not mutate its
-         // filter from JS: the regression gate correctly requires artwork guards
-         // for dynamic filter writers, while this named Amazon chrome glyph is
-         // safer and earlier as a selector-only CSS exception.
-         // v5.447 COMPARE SELECTION MINUS + HOME CREATIVE COLOR.  The selected-item
-         // tray is a different family from the stock Compare checkbox.  Locate its
-         // remove badge only inside the tray named by Amazon's visible copy, retain
-         // the dark circular host byte-for-byte, and lift only the nested/pseudo minus.
-         // Home's old v5.396 first-paint guard remains authoritative for video and
-         // v5.447 ambient layers: a real single-creative-card leaf is merely tagged out of
-         // that black override so Amazon's original navy/colored creative can show.
-         "function comparePane447(){try{if(window.__ADFRAME_MODE__||!document.body)return 0;"
-           "var page447=String(document.body.innerText||document.body.textContent||'').replace(/\\s+/g,' ').toLowerCase();if(!/compare with similar|keep selecting/.test(page447)){window.__AD_COMPAREPANE447_STATE__='pane=0';return 0;}"
-           "function rr447(e){try{return e&&e.getBoundingClientRect?e.getBoundingClientRect():null;}catch(x){return null;}}"
-           "function ink447(e){var c=e&&e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||'')).toLowerCase();}"
-           "var seeds447=[],w447=null,n447=0;if(document.createTreeWalker&&window.NodeFilter){w447=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);while((n447=w447.nextNode())&&seeds447.length<12){var tx447=String(n447.nodeValue||'').replace(/\\s+/g,' ').trim().toLowerCase();if(/compare with similar|keep selecting/.test(tx447)&&n447.parentElement)seeds447.push(n447.parentElement);}}"
-           "if(!seeds447.length){var f447=document.querySelectorAll('div,section,aside');for(var fi447=0;fi447<f447.length&&fi447<2800&&seeds447.length<12;fi447++){var ft447=String(f447[fi447].textContent||'').replace(/\\s+/g,' ').trim().toLowerCase();if(/compare with similar|keep selecting/.test(ft447))seeds447.push(f447[fi447]);}}"
-           "var root447=null,area447=1e12;for(var si447=0;si447<seeds447.length;si447++){var p447=seeds447[si447],up447=0;while(p447&&up447++<10){var pr447=rr447(p447),pt447=String(p447.textContent||'').replace(/\\s+/g,' ').toLowerCase();if(pr447&&pr447.width>=240&&pr447.height>=44&&pr447.height<=190&&/compare with similar|keep selecting/.test(pt447)&&p447.querySelector&&p447.querySelector('img')){var pa447=pr447.width*pr447.height;if(pa447<area447){area447=pa447;root447=p447;}}p447=p447.parentElement;}}"
-           "if(!root447){window.__AD_COMPAREPANE447_STATE__='pane=1 root=0';return 0;}root447.setAttribute('data-ad-comparepane447','1');"
-           "var imgs447=root447.querySelectorAll('img'),nodes447=root447.querySelectorAll('button,[role=button],a,div,span'),host447=null,hostScore447=1e9,img447=null;for(var ii447=0;ii447<imgs447.length&&ii447<20;ii447++){var im447=imgs447[ii447],ir447=rr447(im447);if(!ir447||ir447.width<24||ir447.width>90||ir447.height<24||ir447.height>90)continue;for(var ni447=0;ni447<nodes447.length&&ni447<360;ni447++){var h447=nodes447[ni447];if(h447===im447||(h447.contains&&h447.contains(im447))||(h447.closest&&h447.closest('[data-ad-checkbox434-host],[class*=a-checkbox],[class*=mlt-icon-container],[class*=puis-heart-position]')))continue;var hr447=rr447(h447);if(!hr447||hr447.width<18||hr447.width>46||hr447.height<18||hr447.height>46||Math.abs(hr447.width-hr447.height)>9)continue;var hx447=hr447.left+hr447.width/2,hy447=hr447.top+hr447.height/2,ix447=ir447.left+ir447.width/2,iy447=ir447.top+ir447.height/2;if(hx447<ir447.right-14||hx447>ir447.right+32||Math.abs(hy447-iy447)>24)continue;var hs447=getComputedStyle(h447),rad447=parseFloat(hs447.borderTopLeftRadius||hs447.borderRadius||'0'),sem447=/minus|remove|delete|deselect|close/.test(ink447(h447)+' '+String(h447.getAttribute('aria-label')||''));if(rad447<Math.min(hr447.width,hr447.height)*.32&&!sem447)continue;var sc447=Math.abs(hx447-ir447.right)+Math.abs(hy447-iy447)+(sem447?-30:0);if(sc447<hostScore447){hostScore447=sc447;host447=h447;img447=im447;}}}"
-           "if(!host447){window.__AD_COMPAREPANE447_STATE__='pane=1 root=1 host=0';return 0;}var hcs447=getComputedStyle(host447);host447.setAttribute('data-ad-compareminus447-host','1');if(!host447.hasAttribute('data-ad-compareminus447-hostbg'))host447.setAttribute('data-ad-compareminus447-hostbg',String(hcs447.backgroundColor||''));if(!host447.hasAttribute('data-ad-compareminus447-hostrad'))host447.setAttribute('data-ad-compareminus447-hostrad',String(hcs447.borderRadius||hcs447.borderTopLeftRadius||''));"
-           "function pk447(e){var r447=rr447(e);if(!r447)return '';var tg447=String(e.tagName||'').toUpperCase(),cs447=getComputedStyle(e),txt447=String(e.textContent||'').replace(/\\s+/g,'').trim(),bi447=String(cs447.backgroundImage||'none'),mi447=String(cs447.maskImage||cs447.webkitMaskImage||'none'),thin447=r447.width>=4&&r447.width<=22&&r447.height>=1&&r447.height<=8&&r447.width/r447.height>=1.6;if(/^[-\\u2212\\u2013]$/.test(txt447))return 'text';if(/^(SVG|PATH|LINE|RECT|POLYGON|USE)$/.test(tg447)&&r447.width<=22&&r447.height<=22)return 'vector';if((tg447==='IMG'||tg447==='I'||bi447!=='none'||mi447!=='none')&&r447.width<=22&&r447.height<=22)return 'raster';if(thin447)return 'solid';return '';}"
-           "var cand447=host447.querySelectorAll('*'),glyph447=null,kind447='';for(var gi447=0;gi447<cand447.length&&gi447<100;gi447++){var k447=pk447(cand447[gi447]);if(k447){glyph447=cand447[gi447];kind447=k447;break;}}"
-           "function pp447(cs447){try{var ct447=String(cs447.content||'').replace(/[\"']/g,'').trim(),pw447=parseFloat(cs447.width||'0'),ph447=parseFloat(cs447.height||'0'),pbi447=String(cs447.backgroundImage||'none'),pmi447=String(cs447.maskImage||cs447.webkitMaskImage||'none'),pbg447=String(cs447.backgroundColor||'transparent');if(/^[-\\u2212\\u2013]$/.test(ct447))return 'text';if((pbi447!=='none'||pmi447!=='none')&&pw447<=22&&ph447<=22)return 'raster';if(pw447>=4&&pw447<=22&&ph447>=1&&ph447<=8&&pw447/ph447>=1.6&&pbg447!=='transparent'&&pbg447!=='rgba(0, 0, 0, 0)')return 'solid';}catch(x){}return '';}"
-           "var pseudo447=0;if(glyph447){glyph447.setAttribute('data-ad-compareminus447-glyph',kind447);}else{var kb447=pp447(getComputedStyle(host447,'::before')),ka447=pp447(getComputedStyle(host447,'::after'));if(kb447){host447.setAttribute('data-ad-compareminus447-before',kb447);pseudo447++;}if(ka447){host447.setAttribute('data-ad-compareminus447-after',ka447);pseudo447++;}}"
-           "if(!document.getElementById('adcompareminus447')){var st447=document.createElement('style');st447.id='adcompareminus447';st447.textContent='[data-ad-compareminus447-glyph],[data-ad-compareminus447-glyph] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;fill:#e8e6e3 !important;stroke:#e8e6e3 !important;}[data-ad-compareminus447-glyph=solid]{background-color:#e8e6e3 !important;}[data-ad-compareminus447-glyph=raster]{filter:brightness(0) invert(1) !important;}[data-ad-compareminus447-before=text]::before,[data-ad-compareminus447-after=text]::after{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}[data-ad-compareminus447-before=solid]::before,[data-ad-compareminus447-after=solid]::after{background-color:#e8e6e3 !important;}[data-ad-compareminus447-before=raster]::before,[data-ad-compareminus447-after=raster]::after{filter:brightness(0) invert(1) !important;}';(document.head||document.documentElement).appendChild(st447);}"
-           "window.__AD_COMPAREPANE447_STATE__='pane=1 root=1 host=1 glyph='+(glyph447?1:0)+' pseudo='+pseudo447+' kind='+(kind447||host447.getAttribute('data-ad-compareminus447-before')||host447.getAttribute('data-ad-compareminus447-after')||'-');return 1;"
-         "}catch(e){window.__AD_COMPAREPANE447_STATE__='err '+(e&&e.message||e);return -1;}}"
-         "function homeCreative447(){try{if(window.__ADFRAME_MODE__||!document.body)return 0;if(document.querySelector('#search,.s-search-results,[data-component-type=\"s-search-result\"],#productTitle,#dp-container,#ppd')){window.__AD_HOMECREATIVE447_STATE__='home=0';return 0;}var C447=document.querySelectorAll('[class*=single-creative-card] [class*=theming-card-background]'),n447=0;for(var i447=0;i447<C447.length&&i447<80;i447++){var e447=C447[i447],r447=e447.getBoundingClientRect();if(r447.width<100||r447.height<100)continue;if(!e447.hasAttribute('data-ad-homecreative447'))e447.setAttribute('data-ad-homecreative447','native');n447++;}window.__AD_HOMECREATIVE447_STATE__='home=1 native='+n447;return n447;}catch(e){window.__AD_HOMECREATIVE447_STATE__='err '+(e&&e.message||e);return -1;}}"
-         // v5.448 HOME CREATIVE.  P59 on the failed build found five real
-         // theming-card-background leaves while v5.447's descendant selector found
-         // zero.  Device geometry shows the creative IMG and its background leaf
-         // are siblings with the same 299x478 rectangle.  Correlate their paint
-         // rectangles, explicitly reject any overlapping video, then release the
-         // one creative leaf from our two black/reset rules.  No replacement color
-         // is written: Amazon's own navy/colored declaration becomes authoritative.
-         "try{if(!window.__AD_HOMEBG448_WRAP__&&typeof _adHomeBgLeaf395==='function'){window.__AD_HOMEBG448_WRAP__=1;window.__AD_HOMEBG395_PRE448__=_adHomeBgLeaf395;_adHomeBgLeaf395=function(e448){if(e448&&e448.hasAttribute&&e448.hasAttribute('data-ad-homecreative448'))return false;return window.__AD_HOMEBG395_PRE448__(e448);};}}catch(e){}"
-         "function homeCreative448(){try{if(window.__ADFRAME_MODE__||!document.body)return 0;if(document.querySelector('#search,.s-search-results,[data-component-type=\"s-search-result\"],#productTitle,#dp-container,#ppd')){window.__AD_HOMECREATIVE448_STATE__='home=0';return 0;}"
-           "function rr448(e){try{return e&&e.getBoundingClientRect?e.getBoundingClientRect():null;}catch(x){return null;}}"
-           "function ov448(a448,b448){if(!a448||!b448)return false;var l448=Math.max(a448.left,b448.left),t448=Math.max(a448.top,b448.top),r448=Math.min(a448.right,b448.right),d448=Math.min(a448.bottom,b448.bottom),iw448=Math.max(0,r448-l448),ih448=Math.max(0,d448-t448),ia448=iw448*ih448,ma448=Math.min(a448.width*a448.height,b448.width*b448.height);return ma448>0&&ia448/ma448>.72;}"
-           "var B448=document.querySelectorAll('[class*=theming-card-background]'),I448=document.querySelectorAll('img[class*=\"_single-creative-card\"],img[class*=\"single-creative-card\"],[class*=\"single-creative-card\"] img'),V448=document.querySelectorAll('img[class*=\"_single-video-card\"],img[class*=\"single-video-card\"],video.vjs-tech,[class*=\"single-video-card\"] video'),n448=0,clean448=0;"
-           "for(var b448=0;b448<B448.length&&b448<100;b448++){var e448=B448[b448],er448=rr448(e448);if(!er448||er448.width<100||er448.height<100)continue;var ci448=false,vi448=false;for(var i448=0;i448<I448.length&&i448<100;i448++){var ir448=rr448(I448[i448]);if(ir448&&ov448(er448,ir448)){ci448=true;break;}}if(!ci448)continue;for(var v448=0;v448<V448.length&&v448<100;v448++){var vr448=rr448(V448[v448]);if(vr448&&ov448(er448,vr448)){vi448=true;break;}}if(vi448)continue;if(e448.getAttribute('data-ad-homecreative448')!=='native')e448.setAttribute('data-ad-homecreative448','native');if(e448.hasAttribute('data-ad-homebg395')||String(e448.__adBy||'')==='homeBgLeaf395'){e448.style.removeProperty('filter');e448.style.removeProperty('background-blend-mode');e448.style.removeProperty('box-shadow');e448.removeAttribute('data-ad-homebg395');delete e448.__adTamed;delete e448.__adTameSig;delete e448.__adBy;clean448++;}n448++;}"
-           "window.__AD_HOMECREATIVE448_STATE__='home=1 bg='+B448.length+' creative='+I448.length+' video='+V448.length+' native='+n448+' cleanup='+clean448;return n448;}catch(e){window.__AD_HOMECREATIVE448_STATE__='err '+(e&&e.message||e);return -1;}}"
-         "function homeAmbient386(){try{if(window.__ADFRAME_MODE__||!document.body){window.__AD_HOMEAMBIENT386__='off';return 0;}var SEL='[class*=\"_hp-mosaic-container_style_widgetContainer\"],[class*=\"_mosaic-container_style_widgetContainer\"],[class*=\"gwm-dashboard-container\"],[class*=\"gwm-window-layout\"],[class*=\"gwm-asin-tile\"]',S=document.querySelectorAll(SEL);if(S.length<2){window.__AD_HOMEAMBIENT386__='home=0';return 0;}function pc(v){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([0-9.]+))?/i.exec(String(v||''));return m?[+m[1],+m[2],+m[3],m[4]===undefined?1:+m[4]]:null;}function sat(q){return q?(Math.max(q[0],q[1],q[2])-Math.min(q[0],q[1],q[2]))/255:0;}var seen=[],n=0,left=0,W=innerWidth||390,H=innerHeight||700;function fix(e){if(!e||seen.indexOf(e)>=0)return;seen.push(e);var r=e.getBoundingClientRect();if(r.width<W*.82||r.height<H*.55)return;var cl=String(e.className&&e.className.baseVal!==undefined?e.className.baseVal:(e.className||'')).toLowerCase();if(/carousel|hero|slideshow|swiper|swipe|creative|product-image|image-container/.test(cl))return;var cs=getComputedStyle(e),bg=pc(cs.backgroundColor),bi=String(cs.backgroundImage||'none'),grad=/gradient\\(/i.test(bi)&&bi.indexOf('url(')<0,hot=!!(bg&&bg[3]>.35&&sat(bg)>.12);if(!hot&&!grad)return;e.setAttribute('data-ad-homeambient386','1');e.style.setProperty('background-color','#181a1b','important');if(grad)e.style.setProperty('background-image','none','important');n++;}fix(document.documentElement);fix(document.body);for(var i=0;i<S.length&&i<10;i++){var p=S[i].parentElement,u=0;while(p&&u++<8){fix(p);if(p===document.body)break;p=p.parentElement;}}var Q=document.querySelectorAll('[data-ad-homeambient386]');for(var j=0;j<Q.length;j++){var c=getComputedStyle(Q[j]),q=pc(c.backgroundColor),b=String(c.backgroundImage||'none');if((q&&q[3]>.35&&sat(q)>.12)||(/gradient\\(/i.test(b)&&b.indexOf('url(')<0))left++;}window.__AD_HOMEAMBIENT386__='home=1 fixed='+n+' left='+left+' seeds='+S.length;return n;}catch(e){window.__AD_HOMEAMBIENT386__='err '+e;return 0;}}"
-         // v5.450 HOME AUTHORED COLOR.  P93 proved v5.449 removed taming from
-         // four full-card creative images; that path is retired.  P73 and P24
-         // identify the actual anomaly instead: one 299x478 background still
-         // carries Amazon's opaque saturated navy (rgb(0,70,125)) while our
-         // homeBgLeaf395 owner lays a 9999px dark compositor over it.  Release
-         // only large, opaque, saturated theming backgrounds from that compositor.
-         // Every creative/video IMG remains owned by the established tame writer.
-         "try{if(!window.__AD_HOMECOLOR450_WRAP__&&typeof _adHomeBgLeaf395==='function'){window.__AD_HOMECOLOR450_WRAP__=1;window.__AD_HOMEBG395_PRE450__=_adHomeBgLeaf395;_adHomeBgLeaf395=function(e450){if(e450&&e450.hasAttribute&&e450.hasAttribute('data-ad-homecolor450'))return false;return window.__AD_HOMEBG395_PRE450__(e450);};}}catch(e){}"
-         "function homeColor450(){try{if(window.__ADFRAME_MODE__||!document.body)return 0;if(document.querySelector('#search,.s-search-results,[data-component-type=\"s-search-result\"],#productTitle,#dp-container,#ppd')){window.__AD_HOMECOLOR450_STATE__='home=0';return 0;}"
-           "function pc450(v450){var m450=/rgba?\\(\\s*([0-9.]+)\\s*,\\s*([0-9.]+)\\s*,\\s*([0-9.]+)(?:\\s*,\\s*([0-9.]+))?/i.exec(String(v450||''));return m450?[+m450[1],+m450[2],+m450[3],m450[4]===undefined?1:+m450[4]]:null;}"
-           "var stale450=document.querySelectorAll('[data-ad-homecreative449]'),staleN450=0;for(var s450=0;s450<stale450.length&&s450<100;s450++){var z450=stale450[s450];z450.removeAttribute('data-ad-homecreative449');z450.removeAttribute('data-ad-tame-fast362');z450.removeAttribute('data-ad-homemedia395');z450.style.removeProperty('filter');delete z450.__adTamed;delete z450.__adTameSig;delete z450.__adBy;staleN450++;}"
-           "var B450=document.querySelectorAll('[class*=theming-card-background]'),colored450=0,restored450=0,bad450=0,Q450=[];for(var i450=0;i450<B450.length&&i450<100;i450++){var e450=B450[i450],r450=e450.getBoundingClientRect();if(r450.width<220||r450.width>380||r450.height<300||r450.height>560)continue;var cs450=getComputedStyle(e450),q450=pc450(cs450.backgroundColor);if(!q450||q450[3]<.25||Math.max(q450[0],q450[1],q450[2])-Math.min(q450[0],q450[1],q450[2])<24)continue;colored450++;e450.setAttribute('data-ad-homecolor450','authored');var owned450=e450.hasAttribute('data-ad-homebg395')||String(e450.__adBy||'')==='homeBgLeaf395'||String(e450.style.getPropertyValue('box-shadow')||'').indexOf('9999px')>=0;if(owned450){e450.style.removeProperty('filter');e450.style.removeProperty('background-blend-mode');e450.style.removeProperty('box-shadow');e450.removeAttribute('data-ad-homebg395');delete e450.__adTamed;delete e450.__adTameSig;delete e450.__adBy;restored450++;}var ac450=getComputedStyle(e450),aq450=pc450(ac450.backgroundColor),ash450=String(ac450.boxShadow||'none'),ab450=String(ac450.backgroundBlendMode||'normal');if(!aq450||Math.max(aq450[0],aq450[1],aq450[2])-Math.min(aq450[0],aq450[1],aq450[2])<24||ash450!=='none'||ab450!=='normal')bad450++;if(Q450.length<6)Q450.push(Math.round(r450.width)+'x'+Math.round(r450.height)+'|bg='+String(ac450.backgroundColor||'-').replace(/\\s+/g,'')+'|shadow='+(ash450==='none'?0:1));}"
-           "if(staleN450&&typeof _adHomeMedia395==='function'&&!window.__AD_HOME450_RETAME__){window.__AD_HOME450_RETAME__=1;try{_adHomeMedia395();}catch(x){}window.__AD_HOME450_RETAME__=0;}window.__AD_HOMECOLOR450_STATE__='home=1 backgrounds='+B450.length+' colored='+colored450+' restored='+restored450+' bad='+bad450+' stale449='+staleN450+(Q450.length?' '+Q450.join(' ~~ '):'');return colored450;}catch(e){window.__AD_HOMECOLOR450_STATE__='err '+(e&&e.message||e);return -1;}}"
-         "try{homeColor450();setTimeout(homeColor450,40);setTimeout(homeColor450,180);setTimeout(homeColor450,700);setTimeout(homeColor450,1800);if(!window.__AD_THEME450_OBS__){window.__AD_THEME450_OBS__=1;var t450=0,new450=function(){if(t450)return;t450=1;var f450=function(){t450=0;try{homeColor450();}catch(x){}};if(window.requestAnimationFrame)window.requestAnimationFrame(f450);else setTimeout(f450,0);};new MutationObserver(new450).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['style','class']});addEventListener('scroll',function(){clearTimeout(window.__AD_THEME450_SCROLL__);window.__AD_THEME450_SCROLL__=setTimeout(function(){try{homeColor450();}catch(x){}},60);},{passive:true,capture:true});}}catch(e){}"
-         "function badgeFix(){try{"
-           "var B=document.querySelectorAll('[class*=badgeLabel]');for(var i=0;i<B.length&&i<200;i++){var b=B[i];if(b.hasAttribute&&b.hasAttribute('data-darkreader-inline-bgcolor')){b.style.removeProperty('background-color');b.removeAttribute('data-darkreader-inline-bgcolor');}b.style.setProperty('background-color','#cc0c39','important');b.style.setProperty('color','#ffffff','important');b.style.setProperty('-webkit-text-fill-color','#ffffff','important');}"
-           "var S=document.querySelectorAll('[class*=sponsored-products] *,[class*=npack-asin-card] *,[class*=cXVhZ] *'),n=0;for(var j=0;j<S.length&&j<2500&&n<80;j++){var x=S[j];if(x.childElementCount!==0)continue;var t=String(x.textContent||'').replace(/\\s+/g,' ').trim();"
-             "if(/^\\d+%\\s*off$/i.test(t)){var p=x.parentElement;if(p){p.style.setProperty('background-color','#cc0c39','important');p.style.setProperty('color','#ffffff','important');p.style.setProperty('-webkit-text-fill-color','#ffffff','important');}x.style.setProperty('color','#ffffff','important');x.style.setProperty('-webkit-text-fill-color','#ffffff','important');n++;}"
-             "else if(/^(?:limited\\s+time\\s+deal|deal\\s+selling\\s+fast)$/i.test(t)){x.style.setProperty('color','#e8e6e3','important');x.style.setProperty('-webkit-text-fill-color','#e8e6e3','important');if(x.closest&&(x.closest('[class*=npack-asin-card]')||x.closest('[class*=cXVhZ]'))){var m=x.closest('[class*=badgeMessage]')||x.parentElement;if(m){m.style.setProperty('background-color','#181a1b','important');m.style.setProperty('background-image','none','important');m.style.setProperty('box-shadow','none','important');}x.style.setProperty('background-color','#181a1b','important');x.style.setProperty('background-image','none','important');x.style.setProperty('box-shadow','none','important');}n++;}}window.__AD_SPONSORED_BADGEFIX__=n;"
-         "}catch(e){}}"
-         // v5.452 HOME CAROUSEL COLOR + UNIFORM TAME.  v5.451 proved that
-         // documentStart capture restores the one backing that otherwise becomes
-         // black.  Keep that authored paint, then place the standard preference-
-         // scaled darkness in a separate gradient layer.  Every captured non-video
-         // background is handled; no geometry/saturation gate can skip a card.
-         "function _adHomeApply452(e452){try{if(!e452||!e452.hasAttribute||!e452.hasAttribute('data-ad-homecolor452'))return false;var a452=e452.__adHomeAuth452||{},s452=e452.style;function put452(k452,v452,p452){if(v452)s452.setProperty(k452,v452,p452||'');else s452.removeProperty(k452);}put452('background',a452.background,a452.backgroundPriority);put452('background-color',a452.color,a452.colorPriority);put452('background-image',a452.image,a452.imagePriority);put452('filter',a452.filter,a452.filterPriority);put452('background-blend-mode',a452.blend,a452.blendPriority);put452('box-shadow',a452.shadow,a452.shadowPriority);if(a452.resolvedImage===undefined){var ci452='none';try{ci452=String(getComputedStyle(e452).backgroundImage||'none');}catch(x452){}a452.resolvedImage=ci452;}var base452=String(a452.resolvedImage||'none'),S452=Math.max(0,Math.min(100,window.__ADTAME_S__||45)),aa452=(0.50*(S452/100)).toFixed(3),rgba452='rgba(0,0,0,'+aa452+')',overlay452='linear-gradient('+rgba452+','+rgba452+')';s452.setProperty('background-image',overlay452+(base452&&base452!=='none'?','+base452:''),'important');s452.setProperty('background-blend-mode','normal','important');s452.removeProperty('box-shadow');e452.removeAttribute('data-ad-homebg395');e452.removeAttribute('data-ad-tame-bgfast364');e452.removeAttribute('data-ad-tame-fast362');e452.setAttribute('data-ad-homeoverlay452',aa452);e452.__adTamed=1;e452.__adTameSig='HC452|'+base452;e452.__adBy='homeColorOverlay452';return true;}catch(x452){return false;}}"
-         "try{if(!window.__AD_HOMEBG452_WRAP__&&typeof _adHomeBgLeaf395==='function'){window.__AD_HOMEBG452_WRAP__=1;window.__AD_HOMEBG395_PRE452__=_adHomeBgLeaf395;_adHomeBgLeaf395=function(e452){if(e452&&e452.hasAttribute&&e452.hasAttribute('data-ad-homecolor452'))return _adHomeApply452(e452);return window.__AD_HOMEBG395_PRE452__(e452);};}}catch(e){}"
-         "window.__AD_HOMECOLOR452__=function(){try{if(window.__ADFRAME_MODE__||!document.body)return 0;if(document.querySelector('#search,.s-search-results,[data-component-type=\"s-search-result\"],#productTitle,#dp-container,#ppd')){window.__AD_HOMECOLOR452_STATE__='home=0';return 0;}if(window.__AD_HOMECAP452__)window.__AD_HOMECAP452__(document.documentElement);var E452=document.querySelectorAll('[data-ad-homecolor452=\"authored\"]'),n452=0,miss452=0,Q452=[];for(var i452=0;i452<E452.length&&i452<160;i452++){var e452=E452[i452];if(_adHomeApply452(e452))n452++;var s452=getComputedStyle(e452),bi452=String(s452.backgroundImage||'none');if(e452.getAttribute('data-ad-homeoverlay452')===null||bi452.indexOf('linear-gradient')<0)miss452++;if(Q452.length<8){var r452=e452.getBoundingClientRect();Q452.push(Math.round(r452.width)+'x'+Math.round(r452.height)+'|bg='+String(s452.backgroundColor||'-').replace(/\\s+/g,'')+'|overlay='+(bi452.indexOf('linear-gradient')>=0?1:0));}}window.__AD_HOMECOLOR452_STATE__='captured='+E452.length+' tamed='+n452+' missing='+miss452+(Q452.length?' '+Q452.join(' ~~ '):'');return n452;}catch(e){window.__AD_HOMECOLOR452_STATE__='err '+(e&&e.message||e);return -1;}};"
-         "try{window.__AD_HOMECOLOR452__();setTimeout(window.__AD_HOMECOLOR452__,80);setTimeout(window.__AD_HOMECOLOR452__,260);setTimeout(window.__AD_HOMECOLOR452__,850);setTimeout(window.__AD_HOMECOLOR452__,2100);if(!window.__AD_THEME452_OBS__){window.__AD_THEME452_OBS__=1;var q452=function(){clearTimeout(window.__AD_THEME452_T__);window.__AD_THEME452_T__=setTimeout(function(){try{window.__AD_HOMECOLOR452__();}catch(x452){}},140);};new MutationObserver(q452).observe(document.documentElement,{subtree:true,childList:true});addEventListener('scroll',q452,{passive:true,capture:true});}}catch(e){}"
-         // v5.454 HOME BLEED CLIP. The supplied 60fps recording shows the owned
-         // blue backing escaping as matching tabs on both horizontal sides. The
-         // old v5.404 rule clips the background leaf to its own oversized box; it
-         // cannot clip that box to the rounded card. Mark the nearest same-sized
-         // rounded card host and clip its composited descendants there. No media,
-         // color, filter, transform, geometry, or playback property is changed.
-         "function _adHomeClipOne454(e454,A454){try{if(!e454||!e454.parentElement)return null;var er454=e454.getBoundingClientRect(),W454=innerWidth||390;if(er454.width<220||er454.width>390||er454.height<300||er454.height>570)return null;var p454=e454.parentElement,u454=0,best454=null,rad454=0,fall454=null;while(p454&&u454++<6&&p454!==document.body&&p454!==document.documentElement){var pr454=p454.getBoundingClientRect(),pc454=String(p454.className&&p454.className.baseVal!==undefined?p454.className.baseVal:(p454.className||'')),ps454=getComputedStyle(p454),rr454=Math.max(parseFloat(ps454.borderTopLeftRadius)||0,parseFloat(ps454.borderTopRightRadius)||0,parseFloat(ps454.borderBottomLeftRadius)||0,parseFloat(ps454.borderBottomRightRadius)||0),same454=pr454.width>=er454.width-48&&pr454.width<=er454.width+12&&pr454.height>=er454.height-48&&pr454.height<=er454.height+18&&Math.abs((pr454.left+pr454.right)-(er454.left+er454.right))<=12&&Math.abs((pr454.top+pr454.bottom)-(er454.top+er454.bottom))<=18,sized454=pr454.width>=220&&pr454.width<=Math.min(390,W454*.90)&&pr454.height>=300&&pr454.height<=590;if(same454&&sized454){if(rr454>=6){best454=p454;rad454=rr454;break;}if(!fall454&&/single-(?:creative|video)-card|theming-card/i.test(pc454))fall454=p454;}p454=p454.parentElement;}if(!best454&&fall454){best454=fall454;rad454=12;}if(!best454)return null;var rv454=(Math.round(Math.max(8,rad454)*10)/10)+'px';if(best454.getAttribute('data-ad-homeclip454')!=='1')best454.setAttribute('data-ad-homeclip454','1');if(best454.style.getPropertyValue('--ad-homeclip454-radius')!==rv454)best454.style.setProperty('--ad-homeclip454-radius',rv454);if(A454&&A454.indexOf(best454)<0)A454.push(best454);return best454;}catch(x454){return null;}}"
-         "window.__AD_HOMECLIP454__=function(){try{if(window.__ADFRAME_MODE__||!document.body)return 0;if(document.querySelector('#search,.s-search-results,[data-component-type=\"s-search-result\"],#productTitle,#dp-container,#ppd'))return 0;if(!document.getElementById('adhomeclip454')){var st454=document.createElement('style');st454.id='adhomeclip454';st454.textContent='[data-ad-homeclip454=\"1\"]{overflow:hidden !important;-webkit-clip-path:inset(.5px round var(--ad-homeclip454-radius,12px)) !important;clip-path:inset(.5px round var(--ad-homeclip454-radius,12px)) !important;background-clip:padding-box !important;}';(document.head||document.documentElement).appendChild(st454);}var E454=document.querySelectorAll('[data-ad-homecolor452=\"authored\"]'),A454=[],miss454=0,clean454=0;for(var i454=0;i454<E454.length&&i454<160;i454++)if(!_adHomeClipOne454(E454[i454],A454))miss454++;var O454=document.querySelectorAll('[data-ad-homeclip454=\"1\"]');for(var j454=0;j454<O454.length;j454++)if(A454.indexOf(O454[j454])<0){O454[j454].removeAttribute('data-ad-homeclip454');O454[j454].style.removeProperty('--ad-homeclip454-radius');clean454++;}window.__AD_HOMECLIP454_STATE__='owned='+E454.length+' hosts='+A454.length+' missing='+miss454+' cleaned='+clean454;return A454.length;}catch(x454){window.__AD_HOMECLIP454_STATE__='err '+(x454&&x454.message||x454);return -1;}};"
-         "try{if(!window.__AD_HOMECLIP454_WRAP__){window.__AD_HOMECLIP454_WRAP__=1;window.__AD_HOMECOLOR452_PRE454__=window.__AD_HOMECOLOR452__;window.__AD_HOMECOLOR452__=function(){var r454=window.__AD_HOMECOLOR452_PRE454__?window.__AD_HOMECOLOR452_PRE454__():0;try{window.__AD_HOMECLIP454__();}catch(x454){}return r454;};}window.__AD_HOMECLIP454__();setTimeout(window.__AD_HOMECLIP454__,320);setTimeout(window.__AD_HOMECLIP454__,1100);}catch(x454){}"
-         "homeAmbient386();badgeFix();dotFix();packFix();compareStock380();legacyCompare387();cartChrome382();shareFix382();chevronFix383();sponsorFix376();ratingFix376();try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}try{if(window._adHomeVideo391)window._adHomeVideo391();}catch(e){}""clr();setTimeout(clr,300);setTimeout(clr,1200);setTimeout(clr,2500);""setTimeout(homeAmbient386,300);setTimeout(homeAmbient386,1200);setTimeout(homeAmbient386,2500);""setTimeout(badgeFix,300);setTimeout(badgeFix,1200);setTimeout(badgeFix,2500);""setTimeout(dotFix,120);setTimeout(dotFix,500);setTimeout(dotFix,1400);setTimeout(dotFix,2800);""setTimeout(packFix,120);setTimeout(packFix,500);setTimeout(packFix,1400);setTimeout(packFix,2800);setTimeout(compareStock380,0);setTimeout(compareStock380,120);setTimeout(compareStock380,500);setTimeout(compareStock380,1500);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},20);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},180);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},700);setTimeout(legacyCompare387,0);setTimeout(legacyCompare387,120);setTimeout(legacyCompare387,500);setTimeout(legacyCompare387,1500);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},60);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},220);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},650);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},1650);setTimeout(function(){try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}},2600);setTimeout(cartChrome382,20);setTimeout(cartChrome382,180);setTimeout(cartChrome382,700);setTimeout(cartChrome382,1800);setTimeout(sponsorFix376,20);setTimeout(sponsorFix376,180);setTimeout(sponsorFix376,700);setTimeout(sponsorFix376,1800);setTimeout(ratingFix376,40);setTimeout(ratingFix376,240);setTimeout(ratingFix376,900);setTimeout(ratingFix376,2200);setTimeout(shareFix382,40);setTimeout(shareFix382,180);setTimeout(shareFix382,700);setTimeout(shareFix382,1800);setTimeout(chevronFix383,20);setTimeout(chevronFix383,180);setTimeout(chevronFix383,700);setTimeout(chevronFix383,1800);addEventListener('scroll',function(){clearTimeout(window.__bgT);window.__bgT=setTimeout(function(){homeAmbient386();badgeFix();dotFix();packFix();compareStock380();legacyCompare387();cartChrome382();shareFix382();chevronFix383();sponsorFix376();ratingFix376();try{if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}try{if(window._adHomeVideo391)window._adHomeVideo391();}catch(e){}},100);},{passive:true,capture:true});""addEventListener('scroll',function(){clearTimeout(window.__bxS);window.__bxS=setTimeout(clr,120);},{passive:true,capture:true});"
-         // v5.454: retain every v5.452 painter and its order, but stop the shared
-         // observer from watching the style/fill/stroke properties those painters
-         // write. Structural/state mutations coalesce into one quiet/idle pass.
-         "function queueRuntime454(ms454){clearTimeout(window.__bxT);window.__bxT=setTimeout(function(){if(window.__ADSCROLLING__){queueRuntime454(220);return;}var run454=function(){try{clr();dotFix();packFix();compareStock380();legacyCompare387();cartChrome382();shareFix382();chevronFix383();sponsorFix376();ratingFix376();if(window.__AD_PRODUCTCTRL391RUN__)window.__AD_PRODUCTCTRL391RUN__();}catch(e){}};if(window.requestIdleCallback)window.requestIdleCallback(run454,{timeout:420});else setTimeout(run454,0);},ms454||96);}"
-         "new MutationObserver(function(){queueRuntime454(96);}).observe(document.documentElement,"
-           "{subtree:true,childList:true,attributes:true,attributeFilter:['class','aria-current','aria-selected','data-selected','data-state','checked','src','data-src']});"
-         "try{new MutationObserver(function(){try{cartChrome382();}catch(e){}}).observe(document.documentElement,{subtree:true,childList:true});}catch(e){}"
-         "try{homeCreative448();setTimeout(homeCreative448,40);setTimeout(homeCreative448,180);setTimeout(homeCreative448,700);setTimeout(homeCreative448,1800);if(!window.__AD_THEME448_OBS__){window.__AD_THEME448_OBS__=1;var t448=0,new448=function(){if(t448)return;t448=1;var f448=function(){t448=0;try{homeCreative448();}catch(x){}};if(window.requestAnimationFrame)window.requestAnimationFrame(f448);else setTimeout(f448,0);};new MutationObserver(new448).observe(document.documentElement,{subtree:true,childList:true});addEventListener('scroll',function(){clearTimeout(window.__AD_THEME448_SCROLL__);window.__AD_THEME448_SCROLL__=setTimeout(function(){try{homeCreative448();}catch(x){}},90);},{passive:true,capture:true});}}catch(e){}"
-         "/* v5.439: native state remains synchronous; stockCheckbox434 discovers stock hosts/art and removes only stale tweak-owned filters. */"
-       "})();}catch(e){}"
+        // v5.473: painter suite (contrast/dots/pack/sym413/cards440/cart/share/
+        // chevron/sponsored/rating/checkbox434/homeAmbient/badge) moved VERBATIM to
+        // ADPaint447 above; this dormant probe literal keeps only the read-only sweeps.
        "/*V5395FIX*//*V5394FIX*//*V5314FIX*//*V5315FIX*/"
 "/*V5317FIX*//*V5376FIX*//*V5377FIX*//*V5378FIX*//*V5379FIX*//*V5380FIX*//*V5381FIX*//*V5382FIX*//*V5383FIX*//*V5384FIX*//*V5385FIX*//*V5386FIX*//*V5387FIX*//*V5388FIX*//*V5391FIX*//*V5393FIX*/"
        "try{var R=[],EL=document.querySelectorAll('*');"
@@ -9955,7 +9106,7 @@ static NSString *ADProbeWebJS(void){
        // P56HOME393: direct evidence for the two Home regressions. Standalone is
        // anchored to confirmed standalone iframe ancestry; bleed is anchored to video-card ancestry.
               "try{var F56=document.querySelectorAll('iframe[data-ad-homeauto395=\"1\"]'),stand56=F56.length,haz56=0,W56=innerWidth||390;for(var i56=0;i56<F56.length;i56++){var f56=F56[i56],fr56=f56.getBoundingClientRect(),p56=f56.parentElement,d56=0;while(p56&&p56!==document.body&&d56++<8){var pr56=p56.getBoundingClientRect();if(pr56.width<fr56.width*.65||pr56.width>W56*1.14||pr56.height<fr56.height*.45||pr56.height>680)break;if(!(p56.querySelector&&p56.querySelector('video'))){var s56=getComputedStyle(p56),bi56=String(s56.backgroundImage||'none'),bc56=String(s56.backgroundColor||'transparent').replace(/\\s+/g,''),sh56=String(s56.boxShadow||'none'),fl56=String(s56.filter||'none');if(bi56.indexOf('url(')<0&&((bc56!=='transparent'&&bc56!=='rgba(0,0,0,0)')||bi56!=='none'||sh56!=='none'||fl56!=='none'))haz56++;}p56=p56.parentElement;}}var M56=document.querySelectorAll('[data-ad-homemedia395]'),B56=document.querySelectorAll('[data-ad-homebg395]'),unc56=0,comp56=0;for(var m56=0;m56<M56.length;m56++){if(String(getComputedStyle(M56[m56]).filter||'').indexOf('brightness')<0)unc56++;}for(var b56=0;b56<B56.length;b56++){var bs56=getComputedStyle(B56[b56]);if(String(bs56.filter||'none')!=='none'||String(bs56.backgroundBlendMode||'normal').indexOf('multiply')>=0)comp56++;}out.push('P56HOME395[stand='+stand56+' hazard='+haz56+' media='+M56.length+' bg='+B56.length+' uncovered='+unc56+' compositor='+comp56+' sstate='+String(window.__AD_STANDSWEEP395__||'-')+' mstate='+String(window.__AD_HOMEMEDIA395__||'-')+']');}catch(e56){out.push('P56HOME395[err '+(e56&&e56.message||e56)+']');}"
-              "try{var G59=document.querySelectorAll('[class*=theming-card-background]'),risk59=0,seen59=0,released59=0;for(var g59=0;g59<G59.length&&g59<80;g59++){var e59=G59[g59],p59=e59,u59=0,ctx59='';while(p59&&u59++<7){ctx59+=' '+String(p59.className||'');p59=p59.parentElement;}if(!/single-video-card|single-creative-card|theming-card/i.test(ctx59))continue;seen59++;if(e59.hasAttribute('data-ad-homecreative448')){released59++;continue;}var c59=getComputedStyle(e59),bi59=String(c59.backgroundImage||'none'),bc59=String(c59.backgroundColor||'').replace(/\\s+/g,''),f59=String(c59.filter||'none'),mb59=String(c59.mixBlendMode||'normal');if(bi59!=='none'||(bc59!=='rgb(24,26,27)'&&bc59!=='rgba(24,26,27,1)'&&bc59!=='#181a1b')||f59!=='none'||mb59!=='normal')risk59++;}out.push('P59BLEED396[main='+(document.documentElement&&document.documentElement.hasAttribute('data-ad-main396')?1:0)+' bg='+seen59+' released='+released59+' risk='+risk59+']');}catch(e59){out.push('P59BLEED396[err '+(e59&&e59.message||e59)+']');}"
+              "try{var G59=document.querySelectorAll('[class*=theming-card-background]'),risk59=0,seen59=0;for(var g59=0;g59<G59.length&&g59<80;g59++){var e59=G59[g59],p59=e59,u59=0,ctx59='';while(p59&&u59++<7){ctx59+=' '+String(p59.className||'');p59=p59.parentElement;}if(!/single-video-card|single-creative-card|theming-card/i.test(ctx59))continue;seen59++;var c59=getComputedStyle(e59),bi59=String(c59.backgroundImage||'none'),bc59=String(c59.backgroundColor||'').replace(/\\s+/g,''),f59=String(c59.filter||'none'),mb59=String(c59.mixBlendMode||'normal');if(bi59!=='none'||(bc59!=='rgb(24,26,27)'&&bc59!=='rgba(24,26,27,1)'&&bc59!=='#181a1b')||f59!=='none'||mb59!=='normal')risk59++;}out.push('P59BLEED396[main='+(document.documentElement&&document.documentElement.hasAttribute('data-ad-main396')?1:0)+' bg='+seen59+' risk='+risk59+']');}catch(e59){out.push('P59BLEED396[err '+(e59&&e59.message||e59)+']');}"
        // P60SYMBOL397: v5.333 non-checkbox symbol authority. bad=0 means every
        // sampled non-checkbox legacy symbol painter is light; cbTouched must stay 0.
        "try{var S60=document.querySelectorAll('[class*=lists-framework-action-button] img,[class*=lists-framework-action-button] i,[class*=lists-framework-action-button] svg,[class*=lists-framework-unfill],[class*=lists-framework-fill],img[class*=add-icon],img[class*=plus-icon],[class*=puis-heart-position] .a-icon,[class*=puis-heart-position] img'),bad60=0,seen60=0,Q60=[];for(var i60=0;i60<S60.length&&i60<220;i60++){var e60=S60[i60];if(e60.closest&&e60.closest('[class*=mlt-icon-container],[role=checkbox],input[type=checkbox],[class*=a-icon-checkbox],[data-ad-compare380],[data-ad-comparelegacy387],[data-ad-product391=\"checkbox\"]'))continue;var r60=e60.getBoundingClientRect();if(r60.width<3||r60.height<3||r60.width>60||r60.height>60)continue;seen60++;var c60=getComputedStyle(e60),t60=String(e60.tagName||'').toUpperCase(),ok60=1;if(t60==='IMG'||t60==='I')ok60=String(c60.filter||'none').indexOf('invert')>=0;else if(t60==='SVG'||t60==='PATH')ok60=(String(c60.fill||c60.color||'').indexOf('255')>=0||String(c60.fill||c60.color||'').indexOf('232')>=0);if(!ok60){bad60++;if(Q60.length<8)Q60.push(t60+'.'+String(e60.className&&e60.className.baseVal!==undefined?e60.className.baseVal:e60.className||'').slice(0,28));}}var C60=document.querySelectorAll('[class*=mlt-icon-container] [data-ad-productglyph391],[class*=mlt-icon-container] [data-ad-productraster391],[class*=mlt-icon-container] [data-ad-productvector391],[data-ad-product391=\"checkbox\"]'),ct60=0;for(var c60i=0;c60i<C60.length;c60i++){if(C60[c60i].__adBy==='v333397')ct60++;}out.push('P60SYMBOL397[seen='+seen60+' bad='+bad60+' cbTouched='+ct60+' state='+String(window.__AD_SYMBOL333397_STATE__||'-')+(Q60.length?' '+Q60.join(' ~~ '):'')+']');}catch(e60){out.push('P60SYMBOL397[err '+(e60&&e60.message||e60)+']');}"
@@ -10007,111 +9158,7 @@ static NSString *ADProbeWebJS(void){
        "  out.push('P9SYM[best '+(window.__AD_SYM_BEST__||cur)+' | cur n='+H.length+' runs='+(window.__AD_SYM_RUNS__||1)+']');"
        "}catch(es){out.push('P9SYM[err '+(es&&es.message||es)+']');}"
 
-       "function repaint425(){"
-       "try{"
-         // v5.440: MLT/two-cards is owned only by sym413's visibility-aware
-         // cards branch.  This persistent probe-side painter must never repaint
-         // it or force a hidden cards state over the native checkbox.
-         "var SELD='[class*=lists-framework-action-'+'button],[class*=a-check'+'box],[class*=puis-mab-chevron]';"
-         "var DBX=document.querySelectorAll(SELD),nd=0,ds=0,SMP=[];"
-         "for(var dx=0;dx<DBX.length&&dx<160;dx++){var dexx=DBX[dx];"
-           "var dcx=String(dexx.className||'');"
-           "var drx=dexx.getBoundingClientRect();"
-           "if(SMP.length<6)SMP.push(dcx.replace(/\\s+/g,'.').slice(0,16)+'@'+Math.round(drx.width)+'x'+Math.round(drx.height));"
-           "if(/glyph/.test(dcx)){ds++;continue;}"
-           "if(drx.width<18||drx.width>52||drx.height<18||drx.height>52){ds++;continue;}"
-           "if(Math.abs(drx.width-drx.height)>10){ds++;continue;}"
-           "var sqx=/a-check/.test(dcx)&&!/a-icon-check/.test(dcx);"
-           "var kind431=sqx?'checkbox':(/mlt-icon/.test(dcx)?'cards':(/chevron/.test(dcx)?'chevron':'heart'));"
-           "try{var up431=dexx.parentElement&&dexx.parentElement.closest?dexx.parentElement.closest('[data-ad-sym413]'):null;"
-             "if(up431&&up431.getAttribute('data-ad-sym413')===kind431){ds++;continue;}}catch(x431){}"
-           "var hsx=dexx.querySelector&&dexx.querySelector('[class*=lists-framework-action-'+'button],[class*=puis-heart-position]');"
-           "var rcx=!!(dexx.querySelector&&dexx.querySelector('input[type=check'+'box],[class*=a-icon-check'+'box]'));"
-           "if(hsx&&!rcx&&!/mlt-icon/.test(dcx)){dexx.setAttribute('data-ad-heart-shell427','1');"
-             "['data-ad-disc420','data-ad-sym413','data-ad-stock403','data-ad-stocksel403','data-ad-v333403','data-ad-product391','data-ad-productselected391'].forEach(function(a){dexx.removeAttribute(a);});"
-             "dexx.style.setProperty('background-color','transparent','important');"
-             "dexx.style.setProperty('border','0','important');"
-             "dexx.style.setProperty('border-radius','0','important');"
-             "dexx.style.setProperty('box-shadow','none','important');"
-             "dexx.style.setProperty('outline','none','important');ds++;continue;}"
-           "if(sqx){ds++;continue;}"
-           "if(sqx&&!(dexx.querySelector('[class*=a-icon-check'+'box]')||dexx.querySelector('input[type=check'+'box]'))){ds++;continue;}"
-           "if(!sqx&&dexx.querySelector('[class*=mlt-icon-'+'container],[class*=lists-framework-action-'+'button]')){ds++;continue;}"
-           "dexx.setAttribute('data-ad-sym413',kind431);"
-           "dexx.style.setProperty('background-color','#181a1b','important');"
-           "dexx.style.setProperty('border-radius',(sqx?'4px':'50%%'),'important');"
-           "dexx.style.setProperty('border','1.5px solid rgba(255,255,255,0.65)','important');"
-           "dexx.style.setProperty('box-shadow','none','important');"
-           "dexx.style.setProperty('box-sizing','border-box','important');"
-           "var GX=dexx.querySelectorAll('*');"
-           "for(var gx=0;gx<GX.length&&gx<16;gx++){var gex=GX[gx];"
-             "if(gex.matches&&gex.matches(SELD))continue;"
-             "gex.style.setProperty('background-color','transparent','important');"
-             "gex.style.setProperty('border','0','important');"
-             "gex.style.setProperty('box-shadow','none','important');"
-             "var grx=gex.getBoundingClientRect();"
-             "if(grx.width>48||grx.height>48)continue;"
-             "var gtx=String(gex.tagName||'').toUpperCase();"
-             "if(gtx==='IMG'||gtx==='I'||gtx==='P')"
-               "gex.style.setProperty('filter','brightness(0) invert(1)','important');"
-             "gex.__adBy='disc422';"
-             "gex.style.setProperty('color','#ffffff','important');"
-             "gex.style.setProperty('fill','#ffffff','important');}"
-           "nd++;}"
-         "window.__AD_DISC422__='on='+nd+' skipped='+ds+' cand='+DBX.length+(SMP.length?' | '+SMP.join(' '):'');"
-         "try{if(DBX.length){var A426='';"
-           "var h426=document.querySelector('[data-ad-sym413=\\'cards\\']');"
-           "if(h426){var c426=getComputedStyle(h426),g426=h426.querySelector('img');"
-             "var gs426=g426?getComputedStyle(g426):null,at426=[];"
-             "for(var q426=0;q426<h426.attributes.length;q426++){var n426=h426.attributes[q426].name;"
-               "if(n426.indexOf('data-ad')===0)at426.push(n426.replace('data-ad-',''));}"
-             "A426='bg='+String(c426.backgroundColor).replace(/\\s+/g,'')"
-               "+'|r='+String(c426.borderRadius).slice(0,6)"
-               "+'|glyphf='+(gs426?String(gs426.filter).slice(0,24):'-')"
-               "+'|by='+(at426.join('+')||'-');}"
-           "else{A426='no-cards-host';}"
-           "localStorage.setItem('__ad426',window.__AD_DISC422__+' ATTR['+A426+'] t='+Date.now());}"
-           "try{var V87=/cart/i.test(location.pathname)?'cart':(/\\/s(\\b|\\?|$)/.test(location.pathname+location.search)?'shop':'other');"
-             "var C87=document.querySelectorAll('[data-ad-checkbox434-host],[class*=a-check'+'box],[role=check'+'box],[class*=copilot-compare],button[aria-label*=ompare]'),W87=[],S87=[];"
-             "for(var j87=0;j87<C87.length&&W87.length<3;j87++){var b87=(C87[j87].closest&&C87[j87].closest('[data-ad-checkbox434-host]'))||C87[j87];if(S87.indexOf(b87)>=0)continue;S87.push(b87);"
-               "var q87=b87.getBoundingClientRect();if(q87.width<10||q87.height<10)continue;"
-               "var n87=(b87.matches&&b87.matches('input[type=check'+'box]'))?b87:b87.querySelector('input[type=check'+'box]');"
-               "var g87=b87.querySelector('[data-ad-checkbox434-art],[class*=a-icon-check]')||b87;"
-               "var y87=getComputedStyle(g87),z87=getComputedStyle(b87),ns87=n87?getComputedStyle(n87):null;"
-               "var im87=String(y87.backgroundImage||'none');im87=im87==='none'?'none':im87.slice(-26);"
-               "var in87='',pr87='',by87=String(g87.__adBy||'-');try{in87=g87.style.getPropertyValue('filter')||'-';pr87=g87.style.getPropertyPriority('filter')||'-';}catch(_){}"
-               "function k87(e){var c=e&&e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||'')).replace(/\\s+/g,'.').slice(0,28);}"
-               "W87.push(V87+'|host='+k87(b87)+'|art='+String(g87.tagName)+'.'+k87(g87)"
-                 "+'|f='+String(y87.filter||'-').slice(0,20)+'|bgi='+im87+'|bp='+String(y87.backgroundPosition||'-').replace(/\\s+/g,'').slice(0,18)"
-                 "+'|by='+by87+'|inline='+String(in87).replace(/\\s+/g,'').slice(0,22)+'|pri='+pr87"
-                 "+'|inp='+(n87?1:0)+'|chk='+(n87&&n87.checked?1:0)+'|match='+(n87&&n87.matches&&n87.matches(':checked')?1:0)"
-                 "+'|op='+(ns87?String(ns87.opacity||'-').slice(0,8):'-')+'|app='+(ns87?String(ns87.appearance||ns87.webkitAppearance||'-').slice(0,12):'-')"
-                 "+'|aria='+String(b87.getAttribute('aria-checked')||b87.getAttribute('aria-pressed')||b87.getAttribute('aria-selected')||'-')"
-                 "+'|native='+(b87.hasAttribute('data-ad-checkbox434-host')?1:0)"
-                 "+'|hostbg='+String(z87.backgroundColor||'').replace(/\\s+/g,'')"
-                 "+'|hostbd='+parseFloat(z87.borderTopWidth||0).toFixed(1)"
-                 "+'|geom='+Math.round(q87.width)+'x'+Math.round(q87.height)+'|r='+String(y87.borderRadius||'-').slice(0,10)+'|tag='+(g87.hasAttribute('data-ad-checkbox434-art')?1:0)+'|sheet='+(function(){try{var e=document.getElementById('adcheckbox434');return e?(String(e.getAttribute('data-ad-native-state'))+':'+(/border-radius:(\\d+px|50%)/.exec(String(e.textContent||''))||['-','?'])[1]):'none';}catch(_){return 'err';}})());}"
-             "if(W87.length){var pv87='';try{pv87=localStorage.getItem('__ad87')||'';"
-             "if(pv87&&pv87.indexOf('v5.447 ')!==0)pv87='';}catch(_){}"
-               "var oth87='';var parts87=pv87.split(' || ');"
-               "for(var t87=0;t87<parts87.length;t87++){if(parts87[t87]&&parts87[t87].indexOf(V87+'|')!==0){oth87=parts87[t87];break;}}"
-               "try{localStorage.setItem('__ad87','v5.447 '+W87.join(' ~ ')+(oth87?' || '+oth87:''));}catch(_){}}"
-           "}catch(e87){try{localStorage.setItem('__ad87','err '+(e87&&e87.message||e87));}catch(_){}}"
-         "}catch(e426){}"
-       "}catch(edx){window.__AD_DISC422__='err '+(edx&&edx.message||edx);}"
-       "}"
-       "try{repaint425();"
-         "if(!window.__AD_R425__){window.__AD_R425__=1;"
-           "setTimeout(repaint425,120);setTimeout(repaint425,400);setTimeout(repaint425,1200);"
-           "setTimeout(repaint425,2400);setTimeout(repaint425,4000);"
-           "addEventListener('scroll',function(){clearTimeout(window.__rT425);"
-             "window.__rT425=setTimeout(repaint425,90);},{passive:true,capture:true});"
-           "try{var mo425=new MutationObserver(function(){clearTimeout(window.__mT425);"
-             "window.__mT425=setTimeout(repaint425,120);});"
-             "mo425.observe(document.documentElement,{childList:true,subtree:true,attributes:true,"
-               "attributeFilter:['style','class']});}catch(_){}"
-         "}"
-       "}catch(e425){}"
+        // v5.473: repaint425 + its arming moved VERBATIM to ADPaint447 above.
        "try{var Z4=document.querySelectorAll('[data-ad-sym413]'),b4=0,r4=0,Q4=[];"
        "for(var z=0;z<Z4.length&&z<60;z++){var e4=Z4[z],s4=getComputedStyle(e4);"
        "var bc=String(s4.backgroundColor||'').replace(/\\s+/g,''),bw=parseFloat(s4.borderTopWidth||0);"
@@ -10147,14 +9194,6 @@ static NSString *ADProbeWebJS(void){
        // P88ICON440: proves the mutually-exclusive v5.440 ownership contract.
        // activeOverlap/crossOwner/forcedVisible/checkboxBad/cardsDark must be 0.
        "try{var H88=document.querySelectorAll('[data-ad-cards440-host],[data-ad-cards440-suppressed]'),G88=document.querySelectorAll('[data-ad-cards440-glyph]'),C88=document.querySelectorAll('[data-ad-checkbox434-art]'),active88=0,supp88=0,over88=0,cross88=0,forced88=0,dark88=0,cbBad88=0,cbBlueBad88=0,Q88=[];function ctr88(e){var r=e.getBoundingClientRect();return [r.left+r.width/2,r.top+r.height/2,r.width,r.height];}function vis88(e){var s=getComputedStyle(e),o=parseFloat(s.opacity||'1');return String(s.display||'')!=='none'&&!/hidden|collapse/.test(String(s.visibility||''))&&o>.08;}for(var h88=0;h88<H88.length;h88++){var he88=H88[h88],su88=he88.hasAttribute('data-ad-cards440-suppressed'),hc88=null;if(su88)supp88++;else active88++;if(he88.hasAttribute('data-ad-checkbox434-host')||he88.hasAttribute('data-ad-checkbox434-art')||(he88.closest&&he88.closest('[class*=a-checkbox],[class*=a-icon-checkbox]')))cross88++;if(!su88&&vis88(he88)){hc88=ctr88(he88);for(var c88=0;c88<C88.length;c88++){if(!vis88(C88[c88]))continue;var cc88=ctr88(C88[c88]);if(Math.abs(hc88[0]-cc88[0])<18&&Math.abs(hc88[1]-cc88[1])<18){over88++;break;}}}if(Q88.length<6){var hs88=getComputedStyle(he88),hr88=he88.getBoundingClientRect();Q88.push((su88?'S':'A')+'@'+Math.round(hr88.width)+'x'+Math.round(hr88.height)+'|v='+(vis88(he88)?1:0)+'|bg='+String(hs88.backgroundColor||'').replace(/\\s+/g,''));}}for(var g88=0;g88<G88.length;g88++){var ge88=G88[g88],gs88=getComputedStyle(ge88),tg88=String(ge88.tagName||'').toUpperCase(),gf88=String(gs88.filter||'none'),ink88=String(gs88.color||'')+' '+String(gs88.fill||'')+' '+String(gs88.stroke||'');if((tg88==='IMG'||tg88==='I'||tg88==='P'||String(gs88.backgroundImage||'none')!=='none')&&gf88.indexOf('invert')<0)dark88++;if(/^(SVG|PATH|USE|POLYGON)$/.test(tg88)&&!/255\\s*,\\s*255\\s*,\\s*255|#fff/i.test(ink88))dark88++;if(ge88.style.getPropertyValue('visibility')||ge88.style.getPropertyValue('opacity'))forced88++;}for(var a88=0;a88<C88.length;a88++){var ae88=C88[a88],ah88=(ae88.closest&&ae88.closest('[data-ad-checkbox434-host]'))||ae88,qi88=(ah88.matches&&ah88.matches('input[type=checkbox]'))?ah88:(ah88.querySelector&&ah88.querySelector('input[type=checkbox]')),on88=!!(qi88&&qi88.checked),as88=getComputedStyle(ae88),af88=String(as88.filter||'none'),ab88=String(as88.boxShadow||'none');if(on88){if(af88!=='none'||ab88!=='none')cbBlueBad88++;}else if(af88!=='none'||ab88.toLowerCase().indexOf('inset')<0||ab88.indexOf('rgb(24, 26, 27)')<0)cbBad88++;if(ae88.hasAttribute('data-ad-cards440-glyph')||(ae88.closest&&ae88.closest('[data-ad-cards440-host]')))cross88++;}out.push('P88ICON440[activeCards='+active88+' suppressedCards='+supp88+' activeOverlap='+over88+' crossOwner='+cross88+' forcedVisible='+forced88+' cardsDark='+dark88+' checkboxArt='+C88.length+' checkboxBad='+cbBad88+' blueBad='+cbBlueBad88+' state='+String(window.__AD_SYM413__||'-')+(Q88.length?' '+Q88.join(' ~~ '):'')+']');}catch(e88){out.push('P88ICON440[err '+(e88&&e88.message||e88)+']');}"
-       // P89THEME447: the selected-item badge host must be untouched while only
-       // its minus glyph becomes light. Home creative leaves must retain native
-       // v5.447 color stays within single-creative-card; video/ambient risk remains P59.
-       "try{var H89=document.querySelectorAll('[data-ad-compareminus447-host]'),G89=document.querySelectorAll('[data-ad-compareminus447-glyph]'),N89=document.querySelectorAll('[data-ad-homecreative447]'),dark89=0,hostChanged89=0,forcedBlack89=0,foreign89=0,pseudo89=0,Q89=[];function lit89(v89){var m89=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([0-9.]+))?/i.exec(String(v89||''));if(!m89||(m89[4]!==undefined&&+m89[4]<.08))return false;return (.2126*(+m89[1])+.7152*(+m89[2])+.0722*(+m89[3]))/255>.62;}for(var h89=0;h89<H89.length;h89++){var he89=H89[h89],hs89=getComputedStyle(he89);if(String(hs89.backgroundColor||'')!==String(he89.getAttribute('data-ad-compareminus447-hostbg')||'')||String(hs89.borderRadius||hs89.borderTopLeftRadius||'')!==String(he89.getAttribute('data-ad-compareminus447-hostrad')||''))hostChanged89++;for(var side89=0;side89<2;side89++){var at89=side89?'data-ad-compareminus447-after':'data-ad-compareminus447-before',pv89=he89.getAttribute(at89);if(!pv89)continue;pseudo89++;var ps89=getComputedStyle(he89,side89?'::after':'::before');if(pv89==='raster'){if(String(ps89.filter||'none').indexOf('invert')<0)dark89++;}else if(pv89==='solid'){if(!lit89(ps89.backgroundColor))dark89++;}else if(!lit89(ps89.color))dark89++;}}for(var g89=0;g89<G89.length;g89++){var ge89=G89[g89],gs89=getComputedStyle(ge89),k89=ge89.getAttribute('data-ad-compareminus447-glyph');if(k89==='raster'){if(String(gs89.filter||'none').indexOf('invert')<0)dark89++;}else if(k89==='solid'){if(!lit89(gs89.backgroundColor))dark89++;}else if(!lit89(gs89.color)&&!lit89(gs89.fill)&&!lit89(gs89.stroke))dark89++;}for(var n89=0;n89<N89.length;n89++){var ne89=N89[n89],ns89=getComputedStyle(ne89),bc89=String(ns89.backgroundColor||'').replace(/\\s+/g,'');if((bc89==='rgb(24,26,27)'||bc89==='rgba(24,26,27,1)'||bc89==='#181a1b')&&String(ns89.backgroundImage||'none')==='none')forcedBlack89++;if(!(ne89.closest&&ne89.closest('[class*=single-creative-card]')))foreign89++;if(Q89.length<6){var nr89=ne89.getBoundingClientRect();Q89.push(Math.round(nr89.width)+'x'+Math.round(nr89.height)+'|bg='+bc89+'|bgi='+(String(ns89.backgroundImage||'none')==='none'?0:1));}}out.push('P89THEME447[pane='+(/compare with similar|keep selecting/i.test(String((document.body&&document.body.innerText)||''))?1:0)+' host='+H89.length+' glyph='+G89.length+' pseudo='+pseudo89+' dark='+dark89+' hostChanged='+hostChanged89+' creative='+N89.length+' forcedBlack='+forcedBlack89+' foreign='+foreign89+' cstate='+String(window.__AD_COMPAREPANE447_STATE__||'-')+' hstate='+String(window.__AD_HOMECREATIVE447_STATE__||'-')+(Q89.length?' '+Q89.join(' ~~ '):'')+']');}catch(e89){out.push('P89THEME447[err '+(e89&&e89.message||e89)+']');}"
-       // P91HOME448: the failed v5.447 ancestry assumption is retired.  Verify the
-       // released background geometrically overlaps a creative image, never a video,
-       // no longer carries the v5.395 black overlay, and is not still forced black.
-       "try{var N91=document.querySelectorAll('[data-ad-homecreative448]'),I91=document.querySelectorAll('img[class*=\"_single-creative-card\"],img[class*=\"single-creative-card\"],[class*=\"single-creative-card\"] img'),V91=document.querySelectorAll('img[class*=\"_single-video-card\"],img[class*=\"single-video-card\"],video.vjs-tech,[class*=\"single-video-card\"] video'),forced91=0,video91=0,foreign91=0,stale91=0,colored91=0,Q91=[];function ov91(a91,b91){if(!a91||!b91)return false;var l91=Math.max(a91.left,b91.left),t91=Math.max(a91.top,b91.top),r91=Math.min(a91.right,b91.right),d91=Math.min(a91.bottom,b91.bottom),z91=Math.max(0,r91-l91)*Math.max(0,d91-t91),m91=Math.min(a91.width*a91.height,b91.width*b91.height);return m91>0&&z91/m91>.72;}for(var n91=0;n91<N91.length;n91++){var e91=N91[n91],er91=e91.getBoundingClientRect(),cs91=getComputedStyle(e91),bc91=String(cs91.backgroundColor||'').replace(/\\s+/g,''),bi91=String(cs91.backgroundImage||'none'),cm91=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/i.exec(bc91),ci91=false,vi91=false;for(var i91=0;i91<I91.length&&!ci91;i91++)ci91=ov91(er91,I91[i91].getBoundingClientRect());for(var v91=0;v91<V91.length&&!vi91;v91++)vi91=ov91(er91,V91[v91].getBoundingClientRect());if(!ci91)foreign91++;if(vi91)video91++;if(e91.hasAttribute('data-ad-homebg395')||String(e91.__adBy||'')==='homeBgLeaf395'||String(e91.style.getPropertyValue('box-shadow')||'').indexOf('9999px')>=0)stale91++;if((bc91==='rgb(24,26,27)'||bc91==='rgba(24,26,27,1)'||bc91==='#181a1b')&&bi91==='none')forced91++;if(bi91!=='none'||(cm91&&Math.max(+cm91[1],+cm91[2],+cm91[3])-Math.min(+cm91[1],+cm91[2],+cm91[3])>=8))colored91++;if(Q91.length<6)Q91.push(Math.round(er91.width)+'x'+Math.round(er91.height)+'|bg='+bc91+'|bgi='+(bi91==='none'?0:1));}out.push('P91HOME448[released='+N91.length+' colored='+colored91+' forcedBlack='+forced91+' videoReleased='+video91+' stale395='+stale91+' foreign='+foreign91+' state='+String(window.__AD_HOMECREATIVE448_STATE__||'-')+(Q91.length?' '+Q91.join(' ~~ '):'')+']');}catch(e91){out.push('P91HOME448[err '+(e91&&e91.message||e91)+']');}"
        // P81CTRL (v5.417): attribution probe -- names WHICH node still paints
        // (ancestor or descendant) around each control, and lists candidate hosts
        // that were found but never painted, with their size. Read-only.
@@ -10190,18 +9229,6 @@ static NSString *ADProbeWebJS(void){
        "    miss.push(c8(m)+'['+Math.round(mr.width)+'x'+Math.round(mr.height)+']');}"
        "  out.push('P81CTRL{'+(R8.length?R8.join(' ~~ '):'none')+(miss.length?' MISSED:'+miss.join(' '):'')+'}');"
        "}catch(e8){out.push('P81CTRL{err '+(e8&&e8.message||e8)+'}');}"
-       // P95HOME452: every captured non-video Home carousel background keeps its
-       // authored color and carries the uniform preference-scaled gradient overlay.
-       // Child creative images remain independently owned by v5.395 WBT.
-       "try{var C95=document.querySelectorAll('[data-ad-homecolor452=\"authored\"]'),I95=document.querySelectorAll('img[class*=\"_single-creative-card\"],img[class*=\"single-creative-card\"],[class*=\"single-creative-card\"] img'),missing95=0,black95=0,untamed95=0,Q95=[];for(var c95=0;c95<C95.length&&c95<160;c95++){var e95=C95[c95],s95=getComputedStyle(e95),bi95=String(s95.backgroundImage||'none'),bc95=String(s95.backgroundColor||'').replace(/\\s+/g,''),a95=e95.__adHomeAuth452,auth95=String(a95&&(a95.color||a95.background)||'').replace(/\\s+/g,'');if(e95.getAttribute('data-ad-homeoverlay452')===null||bi95.indexOf('linear-gradient')<0)missing95++;if(!a95||((bc95==='rgb(24,26,27)'||bc95==='rgba(24,26,27,1)'||bc95==='#181a1b')&&auth95&&!/^(?:#181a1b|rgb\\(24,26,27\\)|black)$/i.test(auth95)))black95++;if(Q95.length<8){var r95=e95.getBoundingClientRect();Q95.push(Math.round(r95.width)+'x'+Math.round(r95.height)+'|bg='+bc95+'|overlay='+(bi95.indexOf('linear-gradient')>=0?1:0));}}for(var i95=0;i95<I95.length&&i95<160;i95++){var x95=I95[i95],xr95=x95.getBoundingClientRect();if(xr95.width<100||xr95.height<70)continue;if(String(getComputedStyle(x95).filter||'none').indexOf('brightness')<0)untamed95++;}out.push('P95HOME452[captured='+C95.length+' missingOverlay='+missing95+' lostAuthored='+black95+' creativeUntamed='+untamed95+' state='+String(window.__AD_HOMECOLOR452_STATE__||'-')+(Q95.length?' '+Q95.join(' ~~ '):'')+']');}catch(e95){out.push('P95HOME452[err '+(e95&&e95.message||e95)+']');}"
-       // P98BLEED454: each v5.452-owned Home backing must resolve to one rounded
-       // card host whose descendant clip is active. `overhang` is diagnostic: it
-       // counts the exact oversized backing geometry seen in the supplied video.
-       "try{var H98=document.querySelectorAll('[data-ad-homeclip454=\"1\"]'),clipMiss98=0,paintWrite98=0,overhang98=0,Q98=[];for(var i98=0;i98<H98.length&&i98<80;i98++){var h98=H98[i98],hr98=h98.getBoundingClientRect(),s98=getComputedStyle(h98),cp98=String(s98.clipPath||s98.webkitClipPath||'none'),ov98=String(s98.overflow||'visible');if(cp98==='none'||ov98==='visible')clipMiss98++;if(h98.style.getPropertyValue('filter')||h98.style.getPropertyValue('transform')||h98.style.getPropertyValue('contain')||h98.style.getPropertyValue('background')||h98.style.getPropertyValue('background-color')||h98.style.getPropertyValue('background-image'))paintWrite98++;var B98=h98.querySelectorAll('[data-ad-homecolor452=\"authored\"]');for(var b98=0;b98<B98.length&&b98<8;b98++){var br98=B98[b98].getBoundingClientRect();if(br98.left<hr98.left-.5||br98.right>hr98.right+.5||br98.top<hr98.top-.5||br98.bottom>hr98.bottom+.5)overhang98++;}if(Q98.length<8)Q98.push(Math.round(hr98.width)+'x'+Math.round(hr98.height)+'|clip='+cp98+'|overflow='+ov98+'|r='+String(h98.style.getPropertyValue('--ad-homeclip454-radius')||'-'));}out.push('P98BLEED454[hosts='+H98.length+' clipMiss='+clipMiss98+' paintWrite='+paintWrite98+' overhang='+overhang98+' style='+(document.getElementById('adhomeclip454')?1:0)+' state='+String(window.__AD_HOMECLIP454_STATE__||'-')+(Q98.length?' '+Q98.join(' ~~ '):'')+']');}catch(e98){out.push('P98BLEED454[err '+(e98&&e98.message||e98)+']');}"
-       // P94HOME450: the authored saturated backing must be compositor-free,
-       // while every full-card creative image remains on the canonical brightness
-       // tame.  Any v5.449 native-image marker is an explicit regression.
-       "try{function pc94(v94){var m94=/rgba?\\(\\s*([0-9.]+)\\s*,\\s*([0-9.]+)\\s*,\\s*([0-9.]+)(?:\\s*,\\s*([0-9.]+))?/i.exec(String(v94||''));return m94?[+m94[1],+m94[2],+m94[3],m94[4]===undefined?1:+m94[4]]:null;}var C94=document.querySelectorAll('[data-ad-homecolor450]'),I94=document.querySelectorAll('img[class*=\"_single-creative-card\"],img[class*=\"single-creative-card\"]'),B94=document.querySelectorAll('[class*=theming-card-background]'),bad94=0,full94=0,untamed94=0,Q94=[];for(var c94=0;c94<C94.length&&c94<40;c94++){var e94=C94[c94],s94=getComputedStyle(e94),q94=pc94(s94.backgroundColor),sh94=String(s94.boxShadow||'none'),bl94=String(s94.backgroundBlendMode||'normal');if(!q94||Math.max(q94[0],q94[1],q94[2])-Math.min(q94[0],q94[1],q94[2])<24||sh94!=='none'||bl94!=='normal'||e94.hasAttribute('data-ad-homebg395'))bad94++;if(Q94.length<6){var r94=e94.getBoundingClientRect();Q94.push(Math.round(r94.width)+'x'+Math.round(r94.height)+'|bg='+String(s94.backgroundColor||'-').replace(/\\s+/g,'')+'|shadow='+(sh94==='none'?0:1));}}for(var i94=0;i94<I94.length&&i94<100;i94++){var x94=I94[i94],xr94=x94.getBoundingClientRect();if(xr94.width<220||xr94.height<300)continue;full94++;if(String(getComputedStyle(x94).filter||'none').indexOf('brightness')<0)untamed94++;}out.push('P94HOME450[colored='+C94.length+' bad='+bad94+' creativeFull='+full94+' untamed='+untamed94+' stale449='+document.querySelectorAll('[data-ad-homecreative449]').length+' backgrounds='+B94.length+' state='+String(window.__AD_HOMECOLOR450_STATE__||'-')+(Q94.length?' '+Q94.join(' ~~ '):'')+']');}catch(e94){out.push('P94HOME450[err '+(e94&&e94.message||e94)+']');}"
        // P69V333403: Heart/cards/down-arrow are passive-only v5.333 families; the
        // checkbox remains the isolated working stock treatment. override MUST be 0.
        "try{var H69=document.querySelectorAll('[data-ad-v333403]'),h69=0,d69=0,a69=0,c69=0,bad69=0,miss69=0,ov69=0,Q69=[];function lum69(v){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/i.exec(String(v||''));return m?(0.2126*(+m[1])+0.7152*(+m[2])+0.0722*(+m[3])):-1;}for(var i69=0;i69<H69.length&&i69<120;i69++){var e69=H69[i69],t69=String(e69.getAttribute('data-ad-v333403')||'-');if(t69==='h')h69++;else if(t69==='d')d69++;else if(t69==='a')a69++;else if(t69==='c')c69++;if(t69!=='c'&&e69.hasAttribute('data-ad-stock403'))ov69++;if(t69==='c')continue;var G69=e69.querySelectorAll('img,i,svg,path,use,polygon,.a-icon,[class*=lists-framework-unfill],[class*=lists-framework-fill]'),found69=0,good69=0,desc69='';for(var j69=0;j69<G69.length&&j69<60;j69++){var g69=G69[j69],r69=g69.getBoundingClientRect();if(r69.width<3||r69.height<3||r69.width>60||r69.height>60)continue;var s69=getComputedStyle(g69),tg69=String(g69.tagName||'').toUpperCase(),bi69=String(s69.backgroundImage||'none'),mi69=String(s69.maskImage||s69.webkitMaskImage||'none'),flt69=String(s69.filter||'none');var raster69=(tg69==='IMG'||tg69==='I'||bi69!=='none'||mi69!=='none'),vector69=(tg69==='SVG'||tg69==='PATH'||tg69==='USE'||tg69==='POLYGON');if(!raster69&&!vector69)continue;found69=1;if(raster69&&flt69.indexOf('invert')>=0)good69=1;if(vector69&&Math.max(lum69(s69.fill),lum69(s69.stroke),lum69(s69.color))>=180)good69=1;if(!desc69)desc69=tg69+'|f='+flt69.slice(0,28)+'|fill='+String(s69.fill||'-').replace(/\\s+/g,'');if(good69)break;}if(!found69)miss69++;else if(!good69)bad69++;if(Q69.length<10)Q69.push(t69+'|'+(desc69||'no-leaf'));}out.push('P69V333403[h='+h69+' cards='+d69+' arrow='+a69+' checkbox='+c69+' bad='+bad69+' missing='+miss69+' override='+ov69+' v333='+String(window.__AD_SYMBOL333397_STATE__||'-')+' cbcap='+String(window.__AD_STOCKCAP403_STATE__||'-')+' cbfin='+String(window.__AD_STOCKFIN403_STATE__||'-')+(Q69.length?' '+Q69.join(' ~~ '):'')+']');}catch(e69){out.push('P69V333403[err '+(e69&&e69.message||e69)+']');}"
@@ -10387,41 +9414,9 @@ static NSString *ADProbeWebJS(void){
        "}catch(err){return 'P8ERR['+(err&&err.message||err)+']';}})()";
 }
 
-// v5.454 keeps the complete historical probe available for explicit captures, but
-// extracts only its production late-painter installer for automatic navigation.
-// The old ADFocusedProbe path evaluated hundreds of computed-style reads and
-// several querySelectorAll('*') loops in up to two WKWebViews after every screen
-// appearance. That diagnostic work was never required to theme the page.
-static NSString *ADRuntimeWebJS454(void){
-    static NSString *runtime454=nil;
-    static dispatch_once_t once454;
-    dispatch_once(&once454, ^{
-        NSString *full454=ADProbeWebJS();
-        NSRange start454=[full454 rangeOfString:@"/*V5313FIX*/"];
-        NSRange end454=NSMakeRange(NSNotFound,0);
-        if (start454.location!=NSNotFound){
-            NSRange tail454=NSMakeRange(NSMaxRange(start454),
-                                        full454.length-NSMaxRange(start454));
-            end454=[full454 rangeOfString:@"/*V5395FIX*/" options:0 range:tail454];
-        }
-        if (start454.location==NSNotFound || end454.location==NSNotFound ||
-            end454.location<=start454.location){
-            runtime454=@"'runtime454-markers-missing'";
-            return;
-        }
-        NSString *body454=[full454 substringWithRange:NSMakeRange(
-            start454.location,end454.location-start454.location)];
-        NSString *lum454=@"function lum(s){var a=String(s||'').split('('),b=(a[1]||'').split(')')[0].split(',');if(b.length<3)return -1;var r=parseFloat(b[0]),g=parseFloat(b[1]),bl=parseFloat(b[2]),al=b.length>3?parseFloat(b[3]):1;if(!(al>0))return -1;return (0.2126*r+0.7152*g+0.0722*bl)/255;}";
-        // Cheap automatic proof only: inspect the handful of marked card hosts,
-        // not the historical all-node diagnostic payload we just excluded.
-        NSString *proof454=@"try{var H454=document.querySelectorAll('[data-ad-homeclip454=\"1\"]'),m454=0;for(var i454=0;i454<H454.length&&i454<48;i454++){var s454=getComputedStyle(H454[i454]),c454=String(s454.clipPath||s454.webkitClipPath||'none'),o454=String(s454.overflow||'visible');if(c454==='none'||o454==='visible')m454++;}return 'P97PERF454[runtimeOnly=1 fullProbe=0] P98BLEED454[hosts='+H454.length+' clipMiss='+m454+' style='+(document.getElementById('adhomeclip454')?1:0)+' state='+String(window.__AD_HOMECLIP454_STATE__||'-')+']';}catch(x454){return 'P97PERF454[runtimeOnly=1 fullProbe=0] P98BLEED454[err '+(x454&&x454.message||x454)+']';}";
-        runtime454=[NSString stringWithFormat:@"(function(){%@%@%@})()",
-                    lum454,body454,proof454];
-    });
-    return runtime454;
-}
-
-// Lightweight, idempotent production runtime installation after a screen settles.
+// v5.363 focused diagnostics: one web probe per visible WKWebView after a screen
+// settles. This preserves P21/P24/P26/P27/P30 evidence without the old census,
+// layer dump, media probes, or recursive native offender walk on every appearance.
 static void ADFocusedProbe363(void){
     @try {
         if (!gP.enabled) return;
@@ -10446,13 +9441,10 @@ static void ADFocusedProbe363(void){
                     if (!web.window || web.hidden || web.alpha<0.05) continue;
                     CGRect wr=[web convertRect:web.bounds toView:w]; if(!CGRectIntersectsRect(wr,w.bounds)||wr.size.width<40||wr.size.height<40) continue;
                     sent++;
-                    [web evaluateJavaScript:ADRuntimeWebJS454() completionHandler:^(id r, NSError *e){
+                    [web evaluateJavaScript:ADPaint447() completionHandler:^(id r, NSError *e){
                         @try {
-                            static int runtimeLog454=0;
-                            if (e) ADLog(@"P97PERF454[runtime err %@/%ld]",e.domain,(long)e.code);
-                            else if (runtimeLog454<8 && [r isKindOfClass:[NSString class]] && [(NSString *)r length]){
-                                runtimeLog454++; ADLog(@"%@",r);
-                            }
+                            if ([r isKindOfClass:[NSString class]] && [(NSString *)r length]) ADLog(@"%@",r);
+                            else if (e) ADLog(@"P8ERR[wk %@/%ld]",e.domain,(long)e.code);
                         } @catch(...) {}
                     }];
                 }
@@ -10613,7 +9605,7 @@ static void ADWebViewCensus(void){
             }];
             // Same web view, same cadence: name the CSS borders (P8BORD) and the
             // Interests "+" candidates (P7PLUS) so the next fix is scoped, not guessed.
-            [w evaluateJavaScript:ADProbeWebJS() completionHandler:^(id pr, NSError *pe){
+            [w evaluateJavaScript:ADPaint447() completionHandler:^(id pr, NSError *pe){
                 @try {
                     if ([pr isKindOfClass:[NSString class]] && [(NSString *)pr length])
                         ADLog(@"%@", pr);
@@ -10978,10 +9970,6 @@ static void ADSweepAllWindows(void){
                          gSwSample[0]  ? " declined=" : "", gSwSample[0]  ? gSwSample  : "",
                          gSwTintNow[0] ? " tintNow="  : "", gSwTintNow[0] ? gSwTintNow : ""];
         if (!last || ![last isEqualToString:now]){ last = now; ADLog(@"sweep %@", now); }
-        if (gADCompare448Armed) ADFixNativeCompare448();
-        // v5.450 is structural and deliberately has no semantic arm: it is owned
-        // by the local thumbnail/tray relationship that survived Fabric windows.
-        ADFixNativeCompare450();
         // v5.345: P15 found no independently addressable paint layer for the PDP heart.
         // Leave the forensic code in place, but stop spending every sweep walking it.
     } @catch(...) {}
@@ -11324,10 +10312,7 @@ static void ADReapplyBurst(UIViewController *vc){
             // Focused probe after the burst settles. The recursive native offender
             // scanner is intentionally not automatic anymore; it was expensive debug debt.
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1750*1000000LL),
-                // v5.472 BISECTION: the recurring 79KB slice evaluation is the
-                // largest structural difference from v5.43 (which had no such pass).
-                // Disabled to measure its true cost. Re-enable by restoring this call.
-                dispatch_get_main_queue(), ^{ /* ADFocusedProbe363(); */ });
+                dispatch_get_main_queue(), ^{ ADFocusedProbe363(); });
         }
     } @catch(...) {}
 }

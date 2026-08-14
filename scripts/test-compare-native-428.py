@@ -61,7 +61,7 @@ checkbox_guard = "closest('[class*=a-checkbox],[class*=a-icon-checkbox],input[ty
 if checkbox_guard not in source:
     print("icon-ownership-441 fixture: FAIL (broad glyph writer can still enter a native checkbox subtree)")
     raise SystemExit(1)
-emitted = lint_js.literals_in(lint_js.function_body(source, "ADProbeWebJS")).replace("%%", "%")
+emitted = lint_js.literals_in(lint_js.function_body(source, "ADPaint447")).replace("%%", "%")
 start = emitted.index("function stockCheckbox434(){")
 end = emitted.index("try{window.__AD_CHECKBOX434__=", start)
 function = emitted[start:end]
@@ -166,7 +166,7 @@ global.getComputedStyle=(element,pseudo)=>{
     visibility:raw('visibility')||'visible',display:raw('display')||'block',appearance:raw('appearance')||'auto',webkitAppearance:raw('-webkit-appearance')||'auto',filter,
     backgroundColor:shell?'transparent':(raw('background-color')||'transparent'),
     borderTopWidth:shell?'0px':(raw('border-width')||'0px'),
-    borderRadius:checkboxArt?(selected?'0px':'4px'):(raw('border-radius')||'0px'),
+    borderRadius:checkboxArt?(selected?'0px':'50%'):(raw('border-radius')||'0px'),
     boxShadow:shell?'none':(checkboxArt?(selected?'none':'rgb(24, 26, 27) 0px 0px 0px 64px inset, rgb(24, 26, 27) 0px 0px 0px 3px, rgba(255, 255, 255, 0.65) 0px 0px 0px 4.5px'):(raw('box-shadow')||'none')),
     getPropertyValue:raw
   };
@@ -208,7 +208,7 @@ assert(cartArt.getAttribute('data-ad-checkbox434-art')==='stock','Cart stock spr
 assert(getComputedStyle(cartArt).filter==='none','Cart unchecked stock sprite was filtered instead of paint-covered');
 assert(cartLabel.getAttribute('data-ad-checkbox434-shell')==='cart','Cart 35x44 gray label was not neutralized');
 assert(getComputedStyle(cartLabel).borderTopWidth==='0px'&&getComputedStyle(cartLabel).boxShadow==='none','Cart gray rectangle survived computed shell cleanup');
-assert(getComputedStyle(cartArt).borderRadius==='4px'&&getComputedStyle(cartArt).boxShadow.includes('0px 0px 0px 4.5px'),'Cart unchecked sprite regressed from the canonical square 32px dark/chrome treatment');
+assert(getComputedStyle(cartArt).borderRadius==='50%'&&getComputedStyle(cartArt).boxShadow.includes('0px 0px 0px 4.5px'),'Cart unchecked sprite lacks the canonical 32px dark/chrome treatment');
 assert(!cartForeignToggle.hasAttribute('data-ad-checkbox434-art'),'Cart mode leaked into a page-wide checkbox');
 assert(!cartHost.querySelector('[data-ad-comparebox377]'),'synthetic checkbox painter survived');
 assert(cartInput.style.getPropertyValue('opacity')===''&&cartInput.style.getPropertyValue('position')==='','legacy input hiding survived');
@@ -254,7 +254,7 @@ assert(shopping.art.getAttribute('data-ad-checkbox434-art')==='stock','Shopping 
 assert(!shopping.hidden.hasAttribute('data-ad-checkbox434-art')&&!shopping.input.hasAttribute('data-ad-checkbox434-art'),'Shopping filter landed on hidden art/input');
 assert(shopping.art.style.getPropertyValue('filter')===''&&shopping.art.style.getPropertyPriority('filter')==='','Shopping stale broad-writer filter survived cleanup');
 assert(getComputedStyle(shopping.art).filter==='none'&&getComputedStyle(shopping.art).boxShadow.includes('64px inset'),'Shopping unchecked white sprite was not covered with #181a1b');
-assert(getComputedStyle(shopping.art).borderRadius==='4px'&&getComputedStyle(shopping.art).boxShadow.includes('rgb(24, 26, 27)'),'Shopping unchecked sprite regressed from canonical square chrome');
+assert(getComputedStyle(shopping.art).borderRadius==='50%'&&getComputedStyle(shopping.art).boxShadow.includes('rgb(24, 26, 27)'),'Shopping unchecked sprite lacks canonical circular chrome');
 assert(shopping.art.style.getPropertyValue('background-image')==='url(stock-checkbox-off.png)','Shopping unchecked stock sprite was replaced');
 shopping.input.click();
 assert(shoppingNativeCalls===1&&shoppingPane&&shopping.input.checked,'Shopping native Compare action/pane did not survive');
