@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.465.0"
+#define AD_VERSION "v5.465.1"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -749,6 +749,7 @@ static dispatch_queue_t ADBootQueue(void){
     return q;
 }
 static NSString *ADDarkReaderBootstrapBuild(void){
+    return nil;   // VARIANT A: web/Dark Reader engine disabled for isolation
     NSString *dr = ADBundledDarkReaderJS();
     if (!dr.length) return nil;
     NSString *adBody = [NSString stringWithFormat:
