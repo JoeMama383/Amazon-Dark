@@ -83,7 +83,7 @@ jobs:
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AmazonDark-TESTA-no-web-engine-rootless-deb
+          name: AmazonDark-v5.466-deferred-darkreader-rootless-deb
           path: packages/*.deb
           if-no-files-found: error
 

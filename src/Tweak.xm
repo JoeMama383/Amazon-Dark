@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.465.1"
+#define AD_VERSION "v5.466.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -749,7 +749,6 @@ static dispatch_queue_t ADBootQueue(void){
     return q;
 }
 static NSString *ADDarkReaderBootstrapBuild(void){
-    return nil;   // VARIANT A: web/Dark Reader engine disabled for isolation
     NSString *dr = ADBundledDarkReaderJS();
     if (!dr.length) return nil;
     NSString *adBody = [NSString stringWithFormat:
@@ -3628,7 +3627,19 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          // One late backstop only. The old six 8-second full scans could collide with
          // Home's own renderer long after the page was already stable.
          "try{if(!window.__AMZDARK_HB__){window.__AMZDARK_HB__=1;setTimeout(function(){try{if(!document.hidden&&!window.__ADSCROLLING__)window.__AMZDARK_FIXCONTRAST__();}catch(e){}},12000);}}catch(e){}"
-         "window.__AMZDARK_APPLY__();"
+         // v5.466: the isolation test proved the web engine is the blocker -- with Dark
+         // Reader disabled every surface is fast. The cost is DR's INITIAL theme pass, so
+         // throttling its observers could never help: the block happens before they matter.
+         // Paint a cheap dark base immediately (no white flash), then run the heavy pass
+         // when the page is idle, so it no longer overlaps the window where taps land.
+         "try{if(!document.getElementById('adbase466')){"
+           "var b466=document.createElement('style');b466.id='adbase466';"
+           "b466.textContent='html,body{background-color:#181a1b !important;}html{color-scheme:dark !important;}';"
+           "(document.head||document.documentElement).appendChild(b466);}}catch(e){}"
+         "try{var go466=function(){try{window.__AMZDARK_APPLY__();}catch(e){}};"
+           "if(window.requestIdleCallback){requestIdleCallback(go466,{timeout:1500});}"
+           "else{setTimeout(go466,350);}"
+         "}catch(e){try{window.__AMZDARK_APPLY__();}catch(e2){}}"
          // Fast early passes so promo text / buttons are corrected before the
          // eye registers Dark Reader's first-paint colours. One-shot, bounded.
          "try{setTimeout(function(){try{window.__AMZDARK_FIXCONTRAST__();}catch(e){}},350);}catch(e){}"
