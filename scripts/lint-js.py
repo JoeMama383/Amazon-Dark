@@ -357,22 +357,27 @@ def check_objc_decl_order(src):
 
 if __name__ == '__main__':
     sys.exit(main())# ── ObjC STRING LITERAL BALANCE ────────────────────────────────────────────────
-# v5.470: lint-js extracts JS from the ObjC literals, so it happily passed a file
-# whose literals were unbalanced -- an edit had split "/*MARKER*/" across lines and
-# left a dangling quote. clang caught it; we did not. Cheap structural check so a
-# broken literal fails here instead of in CI.
-def _objc_literal_balance(path):
-    bad = []
-    for n, line in enumerate(open(path, encoding='utf-8').read().split('\n'), 1):
-        stripped = line.strip()
-        if stripped.startswith('//'):
+# v5.470: lint-js extracts JS from inside the ObjC literals, so it passed a file
+# whose literals were unbalanced -- an edit split "/*MARKER*/" across lines and left
+# a dangling quote; clang caught it, we did not.
+# The count must be escape-aware: a backslash escapes the next character, so lines
+# like .replace(/[\"']/g,'') contain a quote that is NOT a literal delimiter.
+def _unescaped_quotes(line):
+    n = 0
+    i = 0
+    while i < len(line):
+        c = line[i]
+        if c == '\\':
+            i += 2
             continue
-        t2 = re.sub(r'\\\\.', '', line)      # drop escaped chars
-        if t2.count('"') % 2:
-            bad.append((n, stripped[:90]))
-    return bad
+        if c == '"':
+            n += 1
+        i += 1
+    return n
 
-_bal = _objc_literal_balance(str(SRC) if 'SRC' in dir() else sys.argv[1] if len(sys.argv) > 1 else 'src/Tweak.xm')
+_bal_path = str(SRC) if 'SRC' in dir() else (sys.argv[1] if len(sys.argv) > 1 else 'src/Tweak.xm')
+_bal = [(n, l.strip()[:90]) for n, l in enumerate(open(_bal_path, encoding='utf-8').read().split('\n'), 1)
+        if not l.strip().startswith('//') and _unescaped_quotes(l) % 2]
 if _bal:
     print("  FAIL     unbalanced ObjC string literal (will not compile)")
     for n, txt in _bal[:5]:
