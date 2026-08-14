@@ -1266,7 +1266,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
     [adBody appendFormat:@"%@\n", dr]; // DarkReader UMD
     [adBody appendString:ADBootHead474b()];
     [adBody appendString:ADFrameCore474()];
-    [adBody appendFormat:
+    [adBody appendFormat: @""
          "else if(window.DarkReader&&DarkReader.enable){"
          "try{window.__DRF_N__=0;window.__DRF_MS__=0;window.__DRF_CAP__=0;"
   "var __drfetch=function(u,o){var t0=Date.now();window.__DRF_N__++;"
@@ -3717,7 +3717,7 @@ static NSString *ADDarkReaderBootstrapBuild(void){
          "try{window.addEventListener('pageshow',function(e){if(e.persisted)window.__AMZDARK_APPLY__();});}catch(e){}"
          "try{document.addEventListener('visibilitychange',function(){if(!document.hidden)window.__AMZDARK_APPLY__();});}catch(e){}"
          "}}catch(e){}})();",
-        , [NSString stringWithUTF8String:gP.fgHex], ADThemeLiteral(), ADFixesLiteral()];
+        [NSString stringWithUTF8String:gP.fgHex], ADThemeLiteral(), ADFixesLiteral()];
     return [NSString stringWithFormat:
             @"try{window.__ADTAME_ON__=%d;window.__ADTAME_S__=%ld;}catch(e){}\n%@",
             gP.whiteTame ? 1 : 0, (long)gP.whiteTameStrength, adBody];
