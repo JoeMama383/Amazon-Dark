@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v5.471.0"
+#define AD_VERSION "v5.472.0"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -11324,7 +11324,10 @@ static void ADReapplyBurst(UIViewController *vc){
             // Focused probe after the burst settles. The recursive native offender
             // scanner is intentionally not automatic anymore; it was expensive debug debt.
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1750*1000000LL),
-                dispatch_get_main_queue(), ^{ ADFocusedProbe363(); });
+                // v5.472 BISECTION: the recurring 79KB slice evaluation is the
+                // largest structural difference from v5.43 (which had no such pass).
+                // Disabled to measure its true cost. Re-enable by restoring this call.
+                dispatch_get_main_queue(), ^{ /* ADFocusedProbe363(); */ });
         }
     } @catch(...) {}
 }
