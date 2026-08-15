@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v6.0.11"
+#define AD_VERSION "v6.0.12"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -104,6 +104,7 @@ extern char *__progname;
 @interface AXUSplashScreenViewController : UIViewController @end
 @interface TezBaseSplashScreenViewController : UIViewController @end
 @interface WKScrollView : UIScrollView @end
+@interface WKContentView : UIView @end
 
 // ─────────────────────────────────────────────────────────────────────────────────
 // Logging is compiled out in v6.0.4 performance mode.
@@ -430,9 +431,17 @@ static NSString *ADThemeLiteral(void){
 static NSString *ADDarkReaderBootstrap(void){
     NSString *dr = ADBundledDarkReaderJS();
     if (!dr.length) return nil;
+    NSString *floorBG = [NSString stringWithUTF8String:gP.bgHex] ?: @"#181a1b";
     return [NSString stringWithFormat:
         @"(function(){try{"
-         "if(window.__AMZDARK_LOADED__)return;window.__AMZDARK_LOADED__=1;%@\n" // DarkReader UMD
+         "if(window.__AMZDARK_LOADED__)return;window.__AMZDARK_LOADED__=1;"
+         // v6.0.12: establish the page canvas before the Dark Reader UMD is parsed.
+         // This is intentionally root-only: it cannot touch product/photo pixels,
+         // but it means lazy/virtualised holes reveal the theme floor, not Amazon white.
+         "try{if(!document.getElementById('adfloor612')){var f=document.createElement('style');"
+           "f.id='adfloor612';f.textContent='html,body,#a-page,#gwm-PageContent,main{background-color:%@ !important;}';"
+           "(document.documentElement||document).appendChild(f);}}catch(e){}"
+         "%@\n" // DarkReader UMD
          "if(window.DarkReader&&DarkReader.enable){"
          "try{DarkReader.setFetchMethod(window.fetch);}catch(e){}"
          // WCAG contrast repair. Dark Reader recolours from the page's own palette,
@@ -650,7 +659,7 @@ static NSString *ADDarkReaderBootstrap(void){
          "try{window.addEventListener('pageshow',function(e){if(e.persisted)window.__AMZDARK_APPLY__();});}catch(e){}"
          "try{document.addEventListener('visibilitychange',function(){if(!document.hidden)window.__AMZDARK_APPLY__();});}catch(e){}"
          "}}catch(e){}})();",
-        dr, [NSString stringWithUTF8String:gP.fgHex], ADThemeLiteral(), ADFixesLiteral()];
+        floorBG, dr, [NSString stringWithUTF8String:gP.fgHex], ADThemeLiteral(), ADFixesLiteral()];
 }
 
 
@@ -2461,6 +2470,49 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
 - (void)didMoveToWindow {
     %orig;
     @try { if (self.window && gP.enabled && gP.webDarkReader) self.backgroundColor = ADColorFromHex(gP.bgHex); } @catch(...) {}
+}
+%end
+
+// v6.0.12: WKContentView is the inner WebKit canvas that spans the scrollable page.
+// v6.0.11 only owned WKWebView/WKScrollView; when WebKit outran lazy tile painting,
+// this inner canvas could still paint its stock white background over both of them.
+// Own ONLY the root content canvas -- never WKCompositingView/tile layers -- so media
+// and Dark Reader compositing stay untouched while an unpainted hole has a dark floor.
+%hook WKContentView
+- (void)setBackgroundColor:(UIColor *)color {
+    if (gP.enabled && gP.webDarkReader){
+        UIColor *dark612 = ADColorFromHex(gP.bgHex);
+        %orig(dark612);
+        return;
+    }
+    %orig;
+}
+- (void)setOpaque:(BOOL)opaque {
+    if (gP.enabled && gP.webDarkReader){
+        %orig(YES);
+        return;
+    }
+    %orig;
+}
+- (void)didMoveToWindow {
+    %orig;
+    @try {
+        if (!self.window || !gP.enabled || !gP.webDarkReader) return;
+        UIColor *dark612 = ADColorFromHex(gP.bgHex);
+        self.opaque = YES;
+        self.backgroundColor = dark612;
+        self.layer.backgroundColor = dark612.CGColor;
+    } @catch(...) {}
+}
+- (void)layoutSubviews {
+    %orig;
+    @try {
+        if (!self.window || !gP.enabled || !gP.webDarkReader) return;
+        UIColor *dark612 = ADColorFromHex(gP.bgHex);
+        // Layer assignment closes the path where WebKit updates the backing layer
+        // directly rather than going through UIView setBackgroundColor:.
+        self.layer.backgroundColor = dark612.CGColor;
+    } @catch(...) {}
 }
 %end
 
