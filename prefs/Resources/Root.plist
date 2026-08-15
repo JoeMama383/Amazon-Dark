@@ -74,7 +74,7 @@
 			<key>label</key>
 			<string>Performance</string>
 			<key>footerText</key>
-			<string>Requests the display maximum up to 120 Hz while Amazon is running. iOS can still lower refresh rate for Low Power Mode, thermal limits, or system policy.</string>
+			<string>Forces Amazon's Core Animation frame-rate caps toward the 120 Hz panel maximum using jailbreak-only display hooks. This increases power use and heat; hardware/thermal protection may still reduce the delivered rate.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -86,7 +86,7 @@
 			<key>key</key>
 			<string>force120Hz</string>
 			<key>label</key>
-			<string>Request 120 Hz</string>
+			<string>Force 120 Hz</string>
 			<key>PostNotification</key>
 			<string>com.colindavidr.amazondark/prefs-changed</string>
 		</dict>

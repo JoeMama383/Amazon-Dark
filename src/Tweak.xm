@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v6.0.9"
+#define AD_VERSION "v6.0.10"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -468,6 +468,11 @@ static NSString *ADDarkReaderBootstrap(void){
            // format argument through two call sites.
            "var BG='rgb(24,26,27)';try{var hb=getComputedStyle(document.documentElement).backgroundColor;"
              "var hl=lum(hb);if(hl!==null&&hl<0.25)BG=hb;}catch(e){}"
+           // v6.0.10: v5.446/v5.439 dependency restoration. The exact 23px
+           // a-icon-checkbox was being claimed by the generic glyph repair before
+           // stockCheckbox434 could own it. Protect the native checkbox/Compare
+           // subtree from every broad glyph writer; stockCheckbox434 remains sole owner.
+           "function adCbx439(e9){try{return !!(e9&&e9.closest&&e9.closest('[class*=a-checkbox],[class*=a-icon-checkbox],input[type=checkbox],[role=checkbox],[class*=copilot-compare],button[aria-label*=ompare],[data-csa-c-content-id*=ompare]'));}catch(err){return true;}}"
            "var SKIP=/star|prime|logo|flag|swatch|thumb|sponsor|pill-image|product-image|photo|heart|wish|lists-framework/i;"           // Classes the probe confirmed are monochrome UI glyphs. These get a
            // looser size cap, because the heart measures 33x33 against a 32 limit and
            // was failing by a single pixel, while sbs-pill-image at 34x34 is a product
@@ -534,8 +539,8 @@ static NSString *ADDarkReaderBootstrap(void){
                "if(gr.width>5&&gr.width<=lim&&gr.height>5&&gr.height<=lim&&!SKIP.test(cn2)&&!ot){"
                  "var isI=el.tagName.toLowerCase()==='img';"
                  "var hasB=cs.backgroundImage&&cs.backgroundImage!=='none';"
-                 "if(isI||hasB){el.style.setProperty('filter','brightness(0) invert(1)','important');"
-                   "el.__adGlyph=1;gfix++;}}"
+                 "if(isI||hasB){if(adCbx439(el))continue;el.style.setProperty('filter','brightness(0) invert(1)','important');"
+                   "el.__adGlyph=1;el.__adBy='gfix1';gfix++;}}"
              "}catch(e){}}"
              "if(BAD[cs.mixBlendMode]&&bfix<800){"
                "el.style.setProperty('mix-blend-mode','normal','important');"
@@ -554,7 +559,8 @@ static NSString *ADDarkReaderBootstrap(void){
                    "var slim=ICON.test(sc3)?44:40;"
                    "var SK2=/star|prime|logo|flag|swatch|thumb|sponsor|pill-image|product-image|photo/i;"
                    "if(sr3.width>5&&sr3.width<=slim&&sr3.height>5&&sr3.height<=slim&&!SK2.test(sc3)){"
-                     "el.style.setProperty('filter','brightness(0) invert(1)','important');el.__adGlyph=1;gfix++;}"
+                     "if(adCbx439(el))continue;"
+                     "el.style.setProperty('filter','brightness(0) invert(1)','important');el.__adGlyph=1;el.__adBy='gfix2';gfix++;}"
                  "}catch(e){}}"
                "var fl2=lum(cs.fill),sl=lum(cs.stroke);"
                "if(fl2!==null&&fl2<0.22){el.style.setProperty('fill',FG,'important');n++;}"
@@ -1218,12 +1224,21 @@ static void ADInjectAllWebViews(void){
 %end
 
 
-// ── PROMOTION OPT-IN + 120 HZ REQUEST (v6.0.9) ────────────────────────────────
-// Apple requires CADisableMinimumFrameDurationOnPhone=YES before iPhone apps can
-// access >60 Hz. v6.0.7 covered individual Foundation/CFBundle key lookups; v6.0.9
-// also covers the whole CoreFoundation info-dictionary path, because Core Animation
-// may consume the bundle dictionary directly. The legacy key is mirrored harmlessly
-// for frameworks that still inspect it. No Objective-C executes from %ctor.
+// ── PROMOTION + PRIVATE CADISPLAY 120 HZ FORCE (v6.0.10) ──────────────────────
+// Public ProMotion ranges are advisory and v6.0.9 proved Core Animation was
+// normalising Amazon back to 60 Hz even with both bundle opt-ins visible. On a
+// jailbreak we can move one layer lower: CADisplay exposes a private
+// overrideMinimumFrameDuration: policy selector. v6.0.10 experimentally clamps
+// that integer policy to 2 on the 120-Hz device and verifies the resulting
+// minimumFrameDuration/actual timing on-device rather than assuming success. We
+// install a process-local runtime interpose so later CoreAnimation calls cannot
+// silently restore the previous value while the preference is enabled.
+//
+// This affects only Amazon: AmazonDark.plist still injects this target solely into
+// com.amazon.Amazon. We intentionally do NOT inject into backboardd or globally
+// force SpringBoard; that would add system-wide battery/thermal cost and a daemon
+// crash would be much more disruptive. If this private CADisplay path is absent on
+// a future OS, every call is capability-checked and becomes a no-op.
 static NSString * const ADPromotionInfoKey607 = @"CADisableMinimumFrameDurationOnPhone";
 static NSString * const ADPromotionLegacyInfoKey609 = @"CADisableMinimumFrameDuration";
 
@@ -1266,7 +1281,7 @@ static BOOL ADIsPromotionInfoKey609(NSString *key){
     if (!m) return d;
     CFDictionarySetValue(m, CFSTR("CADisableMinimumFrameDurationOnPhone"), kCFBooleanTrue);
     CFDictionarySetValue(m, CFSTR("CADisableMinimumFrameDuration"), kCFBooleanTrue);
-    promoted = m; // process-lifetime cache; Get API returns an unretained dictionary
+    promoted = m;
     return promoted;
 }
 
@@ -1274,41 +1289,116 @@ static NSInteger ADPreferredMaxHz362(void){
     @try { return MIN((NSInteger)120, MAX((NSInteger)60, UIScreen.mainScreen.maximumFramesPerSecond)); } @catch(...) {}
     return 60;
 }
-static CAFrameRateRange ADPreferredRange609(void){
-    NSInteger hz = ADPreferredMaxHz362();
-    // Apple's high-impact ProMotion guidance: 80...120 with 120 preferred.
-    float lo = hz >= 120 ? 80.0f : (float)hz;
-    return CAFrameRateRangeMake(lo, (float)hz, (float)hz);
+
+// Private CADisplay policy interpose. method_setImplementation keeps the hook local
+// to Amazon and chains whatever implementation was present before AmazonDark.
+typedef void (*ADCADisplayOverrideIMP610)(id, SEL, NSInteger);
+static ADCADisplayOverrideIMP610 gADCADisplayOverrideOrig610 = NULL;
+static BOOL gADCADisplayOverrideInstallTried610 = NO;
+static BOOL gADCADisplayOverrideInstalled610 = NO;
+static void ADForceOverrideMinimumFrameDuration610(id self, SEL _cmd, NSInteger duration){
+    NSInteger forced = duration;
+    @try { if (gP.enabled && gP.force120Hz && ADPreferredMaxHz362() >= 120) forced = 2; } @catch(...) {}
+    if (gADCADisplayOverrideOrig610) gADCADisplayOverrideOrig610(self, _cmd, forced);
 }
-static void ADApplyPromotion609(CADisplayLink *d){
+static void ADInstallPrivateDisplayForce610(void){
+    if (gADCADisplayOverrideInstallTried610) return;
+    gADCADisplayOverrideInstallTried610 = YES;
+    @try {
+        Class c = NSClassFromString(@"CADisplay");
+        SEL sel = NSSelectorFromString(@"overrideMinimumFrameDuration:");
+        Method m = c ? class_getInstanceMethod(c, sel) : NULL;
+        if (!m) return;
+        IMP old = method_getImplementation(m);
+        if (!old || old == (IMP)ADForceOverrideMinimumFrameDuration610) return;
+        gADCADisplayOverrideOrig610 = (ADCADisplayOverrideIMP610)old;
+        method_setImplementation(m, (IMP)ADForceOverrideMinimumFrameDuration610);
+        gADCADisplayOverrideInstalled610 = YES;
+    } @catch(...) {}
+}
+
+static id ADDisplayForLink610(CADisplayLink *d){
+    @try {
+        SEL s = NSSelectorFromString(@"display");
+        if (d && [d respondsToSelector:s]) return ((id(*)(id,SEL))objc_msgSend)(d,s);
+    } @catch(...) {}
+    return nil;
+}
+
+static BOOL ADForcePrivateDisplay610(CADisplayLink *d){
+    if (!d || !gP.enabled || !gP.force120Hz || ADPreferredMaxHz362() < 120) return NO;
+    ADInstallPrivateDisplayForce610();
+    @try {
+        id display = ADDisplayForLink610(d);
+        SEL forceSel = NSSelectorFromString(@"overrideMinimumFrameDuration:");
+        if (display && [display respondsToSelector:forceSel]){
+            ((void(*)(id,SEL,NSInteger))objc_msgSend)(display, forceSel, (NSInteger)2);
+            return YES;
+        }
+    } @catch(...) {}
+    return NO;
+}
+
+static BOOL ADSetHighFrameRateReason610(CADisplayLink *d){
+    @try {
+        SEL s = NSSelectorFromString(@"setHighFrameRateReason:");
+        if (d && [d respondsToSelector:s]){
+            // Private CoreAnimation SPI; non-zero reason keeps this link classified
+            // as high-frame-rate work rather than an idle/ordinary 60-Hz client.
+            ((void(*)(id,SEL,uint32_t))objc_msgSend)(d,s,(uint32_t)0x41440001); // "AD" + 1
+            return YES;
+        }
+    } @catch(...) {}
+    return NO;
+}
+
+static CAFrameRateRange ADForcedRange610(void){
+    // CAHighFPS' proven jailbreak pattern: leave a usable low bound but pin the
+    // preferred + maximum values to the panel maximum. A rigid 120/120/120 range
+    // was normalized back to 60 on this device in v6.0.9.
+    float hz = (float)ADPreferredMaxHz362();
+    return CAFrameRateRangeMake(30.0f, hz, hz);
+}
+
+static void ADApplyPromotion610(CADisplayLink *d){
     if (!d || !gP.enabled || !gP.force120Hz) return;
     @try {
-        NSInteger hz = ADPreferredMaxHz362();
-        if (@available(iOS 15.0,*)) d.preferredFrameRateRange = ADPreferredRange609();
-        else d.preferredFramesPerSecond = hz;
+        ADForcePrivateDisplay610(d);       // policy first
+        ADSetHighFrameRateReason610(d);    // classify link as high-rate
+        // CAHighFPS does frameInterval first because Apple's implementation can
+        // rewrite preferredFramesPerSecond as a side effect. Its proven fix is to
+        // immediately force preferredFramesPerSecond back to 0 (= highest available).
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
         if ([d respondsToSelector:@selector(setFrameInterval:)]) d.frameInterval = 1;
 #pragma clang diagnostic pop
+        d.preferredFramesPerSecond = 0;
+        // Put the iOS 15+ range last so frameInterval's legacy setter cannot claw
+        // the range back to 60 after we have selected the 120-Hz ceiling.
+        if (@available(iOS 15.0,*)) d.preferredFrameRateRange = ADForcedRange610();
     } @catch(...) {}
 }
 
 %hook CADisplayLink
 + (CADisplayLink *)displayLinkWithTarget:(id)target selector:(SEL)sel {
     CADisplayLink *d = %orig;
-    ADApplyPromotion609(d);
+    ADApplyPromotion610(d);
     return d;
 }
 - (instancetype)initWithTarget:(id)target selector:(SEL)sel {
     id d = %orig;
-    ADApplyPromotion609((CADisplayLink *)d);
+    ADApplyPromotion610((CADisplayLink *)d);
     return d;
 }
 - (void)setPreferredFramesPerSecond:(NSInteger)fps {
     @try {
         if (gP.enabled && gP.force120Hz){
-            NSInteger hz = ADPreferredMaxHz362();
-            %orig(hz);
+            ADForcePrivateDisplay610(self);
+            ADSetHighFrameRateReason610(self);
+            // Match CAHighFPS: zero means "highest available" and avoids an app-
+            // side numeric cap being re-normalized to 60 by Core Animation.
+            NSInteger highest610 = 0;
+            %orig(highest610);
             return;
         }
     } @catch(...) {}
@@ -1317,8 +1407,10 @@ static void ADApplyPromotion609(CADisplayLink *d){
 - (void)setPreferredFrameRateRange:(CAFrameRateRange)range {
     @try {
         if (gP.enabled && gP.force120Hz){
-            CAFrameRateRange wanted = ADPreferredRange609();
-            %orig(wanted);
+            ADForcePrivateDisplay610(self);
+            ADSetHighFrameRateReason610(self);
+            CAFrameRateRange range610 = ADForcedRange610();
+            %orig(range610);
             return;
         }
     } @catch(...) {}
@@ -1327,22 +1419,25 @@ static void ADApplyPromotion609(CADisplayLink *d){
 - (void)setFrameInterval:(NSInteger)interval {
     @try {
         if (gP.enabled && gP.force120Hz){
-            NSInteger one = 1;
-            %orig(one);
+            ADForcePrivateDisplay610(self);
+            NSInteger one610 = 1;
+            %orig(one610);
+            // Exact load-bearing CAHighFPS behavior: setFrameInterval: can impose
+            // a 60-FPS preference internally, so clear that cap immediately after.
+            if ([self respondsToSelector:@selector(setPreferredFramesPerSecond:)])
+                self.preferredFramesPerSecond = 0;
             return;
         }
     } @catch(...) {}
     %orig;
 }
 - (void)addToRunLoop:(NSRunLoop *)runloop forMode:(NSRunLoopMode)mode {
-    ADApplyPromotion609(self);
+    ADApplyPromotion610(self);
     %orig;
 }
 %end
 
 // ── one-shot 120 Hz verification ──────────────────────────────────────────────
-// Runs only when Request 120 Hz is enabled. It samples one second, writes one
-// tiny result file, invalidates its display link, and has no standing runtime cost.
 @interface ADHzProbeTarget : NSObject
 @property(nonatomic,assign) NSUInteger frames;
 @property(nonatomic,assign) CFTimeInterval firstTS;
@@ -1372,11 +1467,29 @@ static BOOL gADHzProbeDone = NO;
         NSInteger preferredFPS = link.preferredFramesPerSecond;
         CAFrameRateRange requested = CAFrameRateRangeMake(0,0,0);
         if (@available(iOS 15.0,*)) requested = link.preferredFrameRateRange;
+
+        id display = ADDisplayForLink610(link);
+        BOOL forceAPI = display && [display respondsToSelector:NSSelectorFromString(@"overrideMinimumFrameDuration:")];
+        BOOL reasonAPI = [link respondsToSelector:NSSelectorFromString(@"setHighFrameRateReason:")];
+        double displayHz = 0, linkMaxHz = 0;
+        NSInteger actualFPS = 0, minFrameDuration = 0;
+        SEL refreshSel = NSSelectorFromString(@"refreshRate");
+        if (display && [display respondsToSelector:refreshSel]) displayHz = ((double(*)(id,SEL))objc_msgSend)(display,refreshSel);
+        SEL maxSel = NSSelectorFromString(@"maximumRefreshRate");
+        if ([link respondsToSelector:maxSel]) linkMaxHz = ((double(*)(id,SEL))objc_msgSend)(link,maxSel);
+        SEL actualSel = NSSelectorFromString(@"actualFramesPerSecond");
+        if ([link respondsToSelector:actualSel]) actualFPS = ((NSInteger(*)(id,SEL))objc_msgSend)(link,actualSel);
+        SEL minSel = NSSelectorFromString(@"minimumFrameDuration");
+        if ([link respondsToSelector:minSel]) minFrameDuration = ((NSInteger(*)(id,SEL))objc_msgSend)(link,minSel);
+
         NSString *report = [NSString stringWithFormat:
-            @"AmazonDark %@\nforce120Hz=1\nscreenMax=%ld\nbundleHighRefreshUnlocked=%d\nbundleLegacyUnlocked=%d\nlowPowerMode=%d\nthermalState=%ld\nrequestedRange=%.1f-%.1f preferred=%.1f\npreferredFPS=%ld\ndurationHz=%.1f\ncallbackHz=%.1f\ntargetTimingHz=%.1f\n",
+            @"AmazonDark %@\nforce120Hz=1\nscreenMax=%ld\nbundleHighRefreshUnlocked=%d\nbundleLegacyUnlocked=%d\nlowPowerMode=%d\nthermalState=%ld\nprivateDisplayForceAPI=%d\nprivateDisplayForceHook=%d\nhighFrameRateReasonAPI=%d\ndisplayRefreshRate=%.1f\nlinkMaximumRefreshRate=%.1f\nrequestedRange=%.1f-%.1f preferred=%.1f\npreferredFPS=%ld\nactualFPS=%ld\nminimumFrameDuration=%ld\ndurationHz=%.1f\ncallbackHz=%.1f\ntargetTimingHz=%.1f\n",
             @AD_VERSION, (long)maxHz, unlocked ? 1 : 0, legacyUnlocked ? 1 : 0,
-            lowPower ? 1 : 0, (long)thermal, requested.minimum, requested.maximum,
-            requested.preferred, (long)preferredFPS, durationHz, callbackHz, timingHz];
+            lowPower ? 1 : 0, (long)thermal, forceAPI ? 1 : 0,
+            gADCADisplayOverrideInstalled610 ? 1 : 0, reasonAPI ? 1 : 0,
+            displayHz, linkMaxHz, requested.minimum, requested.maximum, requested.preferred,
+            (long)preferredFPS, (long)actualFPS, (long)minFrameDuration,
+            durationHz, callbackHz, timingHz];
         NSString *path = [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-hz.txt"];
         [report writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
         [link invalidate]; gADHzProbeTarget = nil;
@@ -1391,6 +1504,7 @@ static void ADStartHzVerification(void){
         ADHzProbeTarget *p = [ADHzProbeTarget new];
         CADisplayLink *d = [CADisplayLink displayLinkWithTarget:p selector:@selector(tick:)];
         gADHzProbeTarget=p;
+        ADApplyPromotion610(d);
         [d addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
     } @catch(...) { gADHzProbeTarget=nil; }
 }

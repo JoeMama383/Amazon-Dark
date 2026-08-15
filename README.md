@@ -123,10 +123,14 @@ native chrome keep working independently.
 Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkreader)
 (MIT, © Dark Reader Ltd.) — see `Resources/DARKREADER-LICENSE`.
 
-## v6.0.9
+High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
-- Preserves the confirmed-good v6.0.6 dark top chrome and all v6.0.7 ProMotion/performance work.
-- Leaves Amazon's checkbox painter fully stock: no AmazonDark checkbox styling, sprite replacement, filter, geometry, or state ownership.
-- Restores the v5.446 read-only collision guard: if a live stock `a-icon-checkbox` occupies the same control coordinates as the MLT two-cards host, AmazonDark suppresses only the cards host and does not paint the stock control.
-- Restores the corresponding Heart-shell stock-control guard so Heart cleanup cannot walk into a stock checkbox subtree.
-- Removes the document-start broad MLT whitening rule; real cards artwork is whitened only after the runtime collision check passes.
+## v6.0.10
+
+- Keeps the v5.446 checkbox first-paint CSS, `sym413`, and `stockCheckbox434` owner byte-identical to the working donor.
+- Restores the missing v5.446 dependency in the broad glyph-repair pass: native checkbox/Compare subtrees are excluded **before** generic inversion, and generic glyph writes are tagged `gfix1` / `gfix2` so `stockCheckbox434` can remove them if they ever collide. This is the path that produced the white-box regression.
+- Preserves the confirmed-good v6.0.6 dark top chrome and the bounded v6.0.7 launch/performance architecture.
+- Changes the refresh-rate option to **Force 120 Hz**. AmazonDark still exposes both ProMotion bundle opt-ins, but now also attempts the private per-process `CADisplay` minimum-frame-duration policy before every display-link request.
+- Uses the open-source CAHighFPS high-FPS pattern for the public-facing display-link setters: `frameInterval=1`, `preferredFramesPerSecond=0` (highest available), and a `30...120` range with 120 preferred/max on a 120-Hz panel. Amazon attempts to lower these values are intercepted while the preference is enabled.
+- Does not inject a new hook into `backboardd` or force SpringBoard system-wide. The first private-force test stays scoped to Amazon so a bad private selector cannot destabilize the rest of the UI.
+- The one-shot verifier now reports private-force API/hook availability plus display refresh, display-link maximum/actual FPS, minimum frame duration, requested range, and measured target timing.
