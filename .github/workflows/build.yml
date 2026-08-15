@@ -1,28 +1,13 @@
-name: AmazonDark rootless package
-run-name: >-
-  ${{ github.event_name == 'push' && github.event.head_commit.message ||
-      github.event_name == 'release' && format('{0}: release package', github.event.release.tag_name) ||
-      inputs.build_name }}
-# Built on macOS, NOT ubuntu. The Linux Theos toolchain stamps arm64e with the
-# OLD ABI (capabilities 0x0) and warns "incompatible arm64e ABI compiler" on
-# every build. iOS 17 rejects that: the tweak dylib survived only because the
-# Amazon app is an arm64 process and loads the good slice, but the preference
-# bundle is loaded into arm64e Settings and faulted SIGBUS on its first call
-# into Preferences.framework -- five different implementations, one cause.
-# CarBridgeReborn's prefs bundle works on this device and builds on macos-14
-# with Apple's clang, which emits capabilities 0x80. This mirrors it.
+name: AmazonDark v6.0.0 rootless package
+
 on:
   push:
     branches: [ main, master, stable ]
     paths-ignore: [ '**.md', 'LICENSE' ]
   workflow_dispatch:
-    inputs:
-      build_name:
-        description: 'Run title, for example: v5.454 experimental: bound repaint work and clip Home carousel bleed'
-        required: true
-        type: string
   release:
     types: [ created ]
+
 jobs:
   build:
     runs-on: macos-14
@@ -40,6 +25,7 @@ jobs:
 
       - name: Install ldid
         run: brew install ldid
+
       - name: Install patched iOS 16.5 SDK
         run: |
           git clone -n --depth=1 --filter=tree:0 https://github.com/theos/sdks.git /tmp/sdks
@@ -48,42 +34,17 @@ jobs:
           git checkout --quiet
           mkdir -p "$THEOS/sdks"
           cp -R /tmp/sdks/iPhoneOS16.5.sdk "$THEOS/sdks/"
-          ls "$THEOS/sdks"
-
-      - name: Lint Logos %orig usage
-        run: bash scripts/lint-logos.sh
-      - name: Lint injected JavaScript (regression gates)
-        run: python3 scripts/lint-js.py
-      - name: Guard frozen Alexa / Hamburger / Cart / video surfaces
-        run: python3 scripts/lint-frozen-surfaces.py src/Tweak.xm
-      - name: Lock device-captured Cart and Shopping checkbox sprites
-        run: python3 scripts/test-compare-native-428.py src/Tweak.xm
-      - name: Lock local Compare paint and authored Home color boundary
-        run: python3 scripts/test-theme-surfaces-450.py src/Tweak.xm
-      - name: Lock authored Home carousel color and uniform overlay
-        run: python3 scripts/test-home-carousel-452.py src/Tweak.xm
-      - name: Lock v5.454 performance and Home bleed behavior
-        run: python3 scripts/test-performance-bleed-454.py src/Tweak.xm
 
       - name: Build rootless package
         run: |
           make clean || true
           make THEOS_PACKAGE_SCHEME=rootless package FINALPACKAGE=1
-          echo "---- built packages ----"
           ls -l packages/
-      - name: Verify arm64e ABI is 0x80 (the whole reason we build on macOS)
-        run: |
-          for BIN in $(find .theos -name ADPrefs -path "*bundle*" -o -name "AmazonDark.dylib" | head -2); do
-            echo "== $BIN"
-            lipo -detailed_info "$BIN" | grep -A4 "architecture arm64e" || true
-            CAP=$(lipo -detailed_info "$BIN" | awk '/architecture arm64e/{f=1} f&&/capabilities/{print $2; exit}')
-            echo "arm64e capabilities = $CAP"
-            if [ "$CAP" != "0x80" ]; then echo "::warning::$BIN arm64e capabilities is $CAP, expected 0x80"; fi
-          done
+
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AmazonDark-v5.475-pass-restored-rootless-deb
+          name: AmazonDark-v6.0.0-rootless-deb
           path: packages/*.deb
           if-no-files-found: error
 

@@ -1,13 +1,12 @@
 Package: com.colindavidr.amazondark
 Name: AmazonDark
-Version: 5.475.0
+Version: 6.0.0
 Architecture: iphoneos-arm64
-Description: Dark mode for the Amazon app on rootless iOS 15+.
-Maintainer: JoeMama383
-Author: JoeMama383
+Description: True dark mode for the Amazon Shopping app — a real dark theme, not a colour inversion. Dark Reader engine in web views, Amazon's own native dark theme for chrome, and a ported Dark Reader colour engine for native content. Product photos are never touched.
+Maintainer: Colin Rioux
+Author: Colin Rioux
 Section: Tweaks
 Depends: firmware (>= 15.0), mobilesubstrate, preferenceloader
 Conflicts: com.yourname.amazondark
 Replaces: com.yourname.amazondark
-Icon: https://raw.githubusercontent.com/JoeMama383/Amazon-Dark/main/prefs/Resources/icon%403x.png
-Homepage: https://github.com/JoeMama383/Amazon-Dark
+Homepage: https://github.com/colindavidr/Amazon-Dark

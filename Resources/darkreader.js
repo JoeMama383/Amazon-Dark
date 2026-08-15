@@ -2538,13 +2538,7 @@
                 sx = poleBg.s;
             }
         }
-        let lx = scale(l, 0, 1, 0.5, 0.2);
-        // AmazonDark v5.275: upstream maps an already-dark border (l~0.05) UP to
-        // 0.485 mid-grey, which glows as a white hairline on a near-black ground.
-        // Never brighten a dark border, and cap the ceiling below mid-grey.
-        if (lx > l + 0.06) lx = l + 0.06;
-        if (lx > 0.30) lx = 0.30;
-        if (lx < 0) lx = 0;
+        const lx = scale(l, 0, 1, 0.5, 0.2);
         return {h: hx, s: sx, l: lx, a};
     }
     function _modifyBorderColor(rgb, theme) {
@@ -5125,26 +5119,6 @@
                         "::picker(select)"
                     );
                 }
-                // AmazonDark v5.297: keep DR rewritten rules off ad creatives.
-                try {
-                    // v5.298: text-colour rules only.
-                    const adTextRule = declarations.some((d) =>
-                        d && (d.property === 'color' ||
-                              d.property === '-webkit-text-fill-color'));
-                    if (adTextRule && selectorText !== '.darkreader-unsupported-selector') {
-                        const AD_EX = ':not([class*=ape-placement] *):not([class*=ape-wrapper] *):not([class*=theming-card] *):not([class*=ape-placement]):not([class*=ape-wrapper]):not([class*=theming-card])';
-                        selectorText = selectorText
-                            .split(',')
-                            .map((s) => {
-                                const t = s.trim();
-                                if (!t) return s;
-                                if (t.includes('::')) return t;
-                                if (/^(:root|html|body)$/i.test(t)) return t;
-                                return t + AD_EX;
-                            })
-                            .join(', ');
-                    }
-                } catch (e) {}
                 let ruleText = `${selectorText} {`;
                 for (const dec of declarations) {
                     const {property, value, important} = dec;
@@ -6004,14 +5978,6 @@
         ignoreInlineSelectors,
         ignoreImageSelectors
     ) {
-        // AmazonDark v5.296: hard subtree exclusion (see module docstring).
-        try {
-            if (element && element.closest && element.closest(
-                '[class*=ape-placement],[class*=ape-wrapper],[class*=theming-card],[data-cel-widget*=ape],[id*=ape_]'
-            )) {
-                return;
-            }
-        } catch (e) {}
         if (elementsLastChanges.has(element)) {
             if (
                 Date.now() - elementsLastChanges.get(element) <
