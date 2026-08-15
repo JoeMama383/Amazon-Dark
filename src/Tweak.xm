@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v6.0.10"
+#define AD_VERSION "v6.0.11"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -103,6 +103,7 @@ extern char *__progname;
 
 @interface AXUSplashScreenViewController : UIViewController @end
 @interface TezBaseSplashScreenViewController : UIViewController @end
+@interface WKScrollView : UIScrollView @end
 
 // ─────────────────────────────────────────────────────────────────────────────────
 // Logging is compiled out in v6.0.4 performance mode.
@@ -153,6 +154,7 @@ static BOOL ADWTInWatchedCarousel380(UIView *v);
 static inline double ADUptime(void);
 static void ADPostAppReady(void);
 static void ADPreDarken(WKWebView *wv);
+static void ADPrimeWebBacking611(WKWebView *wv);
 
 static long ADPrefLong(NSDictionary *d, NSString *k, long def){
     id v = d[k]; return (v && [v respondsToSelector:@selector(longValue)]) ? [v longValue] : def;
@@ -1108,7 +1110,7 @@ static void ADBootstrapDarkReaderIn(WKWebView *wv){
 static int gWebSeen = 0;
 static void ADWalkWebViews(UIView *v){
     @try {
-        if ([v isKindOfClass:[WKWebView class]]){ gWebSeen++; ADEnableDarkReaderIn((WKWebView *)v); }
+        if ([v isKindOfClass:[WKWebView class]]){ gWebSeen++; ADPrimeWebBacking611((WKWebView *)v); ADEnableDarkReaderIn((WKWebView *)v); }
         for (UIView *s in v.subviews) ADWalkWebViews(s);
     } @catch(...) {}
 }
@@ -1154,6 +1156,23 @@ static void ADInjectAllWebViews(void){
 }
 %end
 
+// v6.0.11: keep WebKit's backing surfaces dark, not just the DOM. At 120 Hz a
+// very fast fling can expose an unpainted/recycled WebKit tile for a frame or two;
+// the screenshot's hard white tail is the backing surface showing through. This is
+// constant-time state, not a scroll-time repaint: once the web view/scroll view are
+// dark, missing tiles reveal #181a1b instead of UIKit/WebKit white.
+static void ADPrimeWebBacking611(WKWebView *wv){
+    if (!wv || !gP.enabled || !gP.webDarkReader) return;
+    @try {
+        UIColor *dark = ADColorFromHex(gP.bgHex);
+        wv.opaque = NO;
+        wv.backgroundColor = dark;
+        UIScrollView *sv = wv.scrollView;
+        if (sv) sv.backgroundColor = dark;
+        @try { [wv setValue:dark forKey:@"underPageBackgroundColor"]; } @catch(...) {}
+    } @catch(...) {}
+}
+
 %hook WKWebView
 - (id)initWithFrame:(CGRect)frame configuration:(WKWebViewConfiguration *)cfg {
     @try {
@@ -1170,19 +1189,17 @@ static void ADInjectAllWebViews(void){
             }
         }
     } @catch(...) {}
-    return %orig;
+    WKWebView *wv = %orig;
+    ADPrimeWebBacking611(wv);
+    return wv;
 }
 - (void)didMoveToWindow {
     %orig;
     @try {
         if (!self.window || !gP.enabled || !gP.webDarkReader) return;
+        ADPrimeWebBacking611(self);
         ADPreDarken(self);   // exact v5.446 instant dark floor for a page that is mid-load
         ADAttachThreeSymbolsUserScript605(self.configuration.userContentController);
-        // Paint the web view's own backdrop dark up front so the white page has
-        // nothing to flash before Dark Reader paints the DOM. Cheap and idempotent.
-        self.opaque = NO;
-        self.backgroundColor = ADColorFromHex(gP.bgHex);
-        @try { [self setValue:ADColorFromHex(gP.bgHex) forKey:@"underPageBackgroundColor"]; } @catch(...) {}
         // Attach a documentStart user-script even to pre-initialised web views (e.g. the
         // warmed gateway) so a pull-to-refresh re-applies Dark Reader on the next load.
         static const void *kUS = &kUS;
@@ -1246,15 +1263,19 @@ static BOOL ADIsPromotionInfoKey609(NSString *key){
     return [key isEqualToString:ADPromotionInfoKey607] || [key isEqualToString:ADPromotionLegacyInfoKey609];
 }
 
+static inline BOOL ADPromotionPreferenceOn611(void){ return gP.enabled && gP.force120Hz; }
+
 %hook NSBundle
 - (id)objectForInfoDictionaryKey:(NSString *)key {
-    @try { if (self == [NSBundle mainBundle] && ADIsPromotionInfoKey609(key)) return @YES; } @catch(...) {}
+    @try {
+        if (ADPromotionPreferenceOn611() && self == [NSBundle mainBundle] && ADIsPromotionInfoKey609(key)) return @YES;
+    } @catch(...) {}
     return %orig;
 }
 - (NSDictionary *)infoDictionary {
     NSDictionary *d = %orig;
     @try {
-        if (self != [NSBundle mainBundle]) return d;
+        if (!ADPromotionPreferenceOn611() || self != [NSBundle mainBundle]) return d;
         if ([d[ADPromotionInfoKey607] boolValue] && [d[ADPromotionLegacyInfoKey609] boolValue]) return d;
         NSMutableDictionary *m = [d mutableCopy];
         m[ADPromotionInfoKey607] = @YES;
@@ -1266,7 +1287,7 @@ static BOOL ADIsPromotionInfoKey609(NSString *key){
 %end
 
 %hookf(CFTypeRef, CFBundleGetValueForInfoDictionaryKey, CFBundleRef bundle, CFStringRef key) {
-    if (bundle == CFBundleGetMainBundle() && key &&
+    if (ADPromotionPreferenceOn611() && bundle == CFBundleGetMainBundle() && key &&
         (CFEqual(key, CFSTR("CADisableMinimumFrameDurationOnPhone")) ||
          CFEqual(key, CFSTR("CADisableMinimumFrameDuration")))) return kCFBooleanTrue;
     return %orig;
@@ -1274,7 +1295,7 @@ static BOOL ADIsPromotionInfoKey609(NSString *key){
 
 %hookf(CFDictionaryRef, CFBundleGetInfoDictionary, CFBundleRef bundle) {
     CFDictionaryRef d = %orig;
-    if (bundle != CFBundleGetMainBundle() || !d) return d;
+    if (!ADPromotionPreferenceOn611() || bundle != CFBundleGetMainBundle() || !d) return d;
     static CFDictionaryRef promoted = NULL;
     if (promoted) return promoted;
     CFMutableDictionaryRef m = CFDictionaryCreateMutableCopy(kCFAllocatorDefault, 0, d);
@@ -1288,6 +1309,26 @@ static BOOL ADIsPromotionInfoKey609(NSString *key){
 static NSInteger ADPreferredMaxHz362(void){
     @try { return MIN((NSInteger)120, MAX((NSInteger)60, UIScreen.mainScreen.maximumFramesPerSecond)); } @catch(...) {}
     return 60;
+}
+
+// Weak registry of live links lets the Settings toggle take effect immediately in
+// both directions. v6.0.10 only gated future setter calls; links already forced to
+// 120 stayed forced until relaunch. Weak storage adds no ownership/lifetime cost.
+static NSHashTable *gADDisplayLinks611 = nil;
+static void ADTrackDisplayLink611(CADisplayLink *d){
+    if (!d) return;
+    @try {
+        @synchronized([CADisplayLink class]) {
+            if (!gADDisplayLinks611) gADDisplayLinks611 = [NSHashTable weakObjectsHashTable];
+            [gADDisplayLinks611 addObject:d];
+        }
+    } @catch(...) {}
+}
+static NSArray *ADTrackedDisplayLinks611(void){
+    @try {
+        @synchronized([CADisplayLink class]) { return gADDisplayLinks611 ? gADDisplayLinks611.allObjects : @[]; }
+    } @catch(...) {}
+    return @[];
 }
 
 // Private CADisplay policy interpose. method_setImplementation keeps the hook local
@@ -1323,6 +1364,64 @@ static id ADDisplayForLink610(CADisplayLink *d){
         if (d && [d respondsToSelector:s]) return ((id(*)(id,SEL))objc_msgSend)(d,s);
     } @catch(...) {}
     return nil;
+}
+
+static const void *kADOrigLinkState611 = &kADOrigLinkState611;
+static const void *kADOrigDisplayMin611 = &kADOrigDisplayMin611;
+static void ADRememberPromotionState611(CADisplayLink *d){
+    if (!d || objc_getAssociatedObject(d,kADOrigLinkState611)) return;
+    @try {
+        NSMutableDictionary *st=[NSMutableDictionary dictionary];
+        st[@"fps"] = @(d.preferredFramesPerSecond);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        if ([d respondsToSelector:@selector(frameInterval)]) st[@"interval"] = @(d.frameInterval);
+#pragma clang diagnostic pop
+        if (@available(iOS 15.0,*)){
+            CAFrameRateRange r=d.preferredFrameRateRange;
+            st[@"range"]=[NSValue value:&r withObjCType:@encode(CAFrameRateRange)];
+        }
+        objc_setAssociatedObject(d,kADOrigLinkState611,st,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        id display=ADDisplayForLink610(d);
+        if (display && !objc_getAssociatedObject(display,kADOrigDisplayMin611)){
+            SEL minSel=NSSelectorFromString(@"minimumFrameDuration");
+            if ([d respondsToSelector:minSel]){
+                NSInteger v=((NSInteger(*)(id,SEL))objc_msgSend)(d,minSel);
+                if (v>0) objc_setAssociatedObject(display,kADOrigDisplayMin611,@(v),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            }
+        }
+    } @catch(...) {}
+}
+static void ADRestorePromotionState611(CADisplayLink *d){
+    if (!d) return;
+    @try {
+        id display=ADDisplayForLink610(d);
+        NSNumber *origMin=display ? objc_getAssociatedObject(display,kADOrigDisplayMin611) : nil;
+        SEL forceSel=NSSelectorFromString(@"overrideMinimumFrameDuration:");
+        if (origMin && display && [display respondsToSelector:forceSel])
+            ((void(*)(id,SEL,NSInteger))objc_msgSend)(display,forceSel,(NSInteger)origMin.integerValue);
+        SEL reasonSel=NSSelectorFromString(@"setHighFrameRateReason:");
+        if ([d respondsToSelector:reasonSel])
+            ((void(*)(id,SEL,uint32_t))objc_msgSend)(d,reasonSel,(uint32_t)0);
+        NSDictionary *st=objc_getAssociatedObject(d,kADOrigLinkState611);
+        if (st){
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+            NSNumber *interval=st[@"interval"];
+            if (interval && [d respondsToSelector:@selector(setFrameInterval:)]) d.frameInterval=interval.integerValue;
+#pragma clang diagnostic pop
+            NSNumber *fps=st[@"fps"];
+            if (fps) d.preferredFramesPerSecond=fps.integerValue;
+            NSValue *rv=st[@"range"];
+            if (rv){
+                if (@available(iOS 15.0,*)){
+                    CAFrameRateRange r; [rv getValue:&r]; d.preferredFrameRateRange=r;
+                }
+            }
+        }
+        objc_setAssociatedObject(d,kADOrigLinkState611,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        if (display) objc_setAssociatedObject(display,kADOrigDisplayMin611,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    } @catch(...) {}
 }
 
 static BOOL ADForcePrivateDisplay610(CADisplayLink *d){
@@ -1361,7 +1460,10 @@ static CAFrameRateRange ADForcedRange610(void){
 }
 
 static void ADApplyPromotion610(CADisplayLink *d){
-    if (!d || !gP.enabled || !gP.force120Hz) return;
+    if (!d) return;
+    ADTrackDisplayLink611(d);
+    if (!gP.enabled || !gP.force120Hz) return;
+    ADRememberPromotionState611(d);
     @try {
         ADForcePrivateDisplay610(d);       // policy first
         ADSetHighFrameRateReason610(d);    // classify link as high-rate
@@ -1382,11 +1484,13 @@ static void ADApplyPromotion610(CADisplayLink *d){
 %hook CADisplayLink
 + (CADisplayLink *)displayLinkWithTarget:(id)target selector:(SEL)sel {
     CADisplayLink *d = %orig;
+    ADTrackDisplayLink611(d);
     ADApplyPromotion610(d);
     return d;
 }
 - (instancetype)initWithTarget:(id)target selector:(SEL)sel {
     id d = %orig;
+    ADTrackDisplayLink611((CADisplayLink *)d);
     ADApplyPromotion610((CADisplayLink *)d);
     return d;
 }
@@ -1437,14 +1541,32 @@ static void ADApplyPromotion610(CADisplayLink *d){
 }
 %end
 
+// Reconfigure links immediately when the preference changes. Before forcing a
+// link we snapshot its original public range/FPS/interval and its display's private
+// minimum-frame-duration policy. OFF restores those exact values; ON reapplies the
+// proven v6.0.10 force. No guessed "stock" frame rate is written.
+static void ADRefreshPromotionState611(void){
+    NSArray *links = ADTrackedDisplayLinks611();
+    BOOL on = ADPromotionPreferenceOn611();
+    for (CADisplayLink *d in links){
+        if (!d) continue;
+        @try {
+            if (on){ ADApplyPromotion610(d); continue; }
+            ADRestorePromotionState611(d);
+        } @catch(...) {}
+    }
+}
+
 // ── one-shot 120 Hz verification ──────────────────────────────────────────────
 @interface ADHzProbeTarget : NSObject
 @property(nonatomic,assign) NSUInteger frames;
 @property(nonatomic,assign) CFTimeInterval firstTS;
 @property(nonatomic,assign) double timingHzSum;
 @property(nonatomic,assign) NSUInteger timingSamples;
+@property(nonatomic,assign) BOOL forceAtStart;
 @end
 static ADHzProbeTarget *gADHzProbeTarget = nil;
+static CADisplayLink *gADHzProbeLink611 = nil;
 static BOOL gADHzProbeDone = NO;
 @implementation ADHzProbeTarget
 - (void)tick:(CADisplayLink *)link {
@@ -1483,30 +1605,34 @@ static BOOL gADHzProbeDone = NO;
         if ([link respondsToSelector:minSel]) minFrameDuration = ((NSInteger(*)(id,SEL))objc_msgSend)(link,minSel);
 
         NSString *report = [NSString stringWithFormat:
-            @"AmazonDark %@\nforce120Hz=1\nscreenMax=%ld\nbundleHighRefreshUnlocked=%d\nbundleLegacyUnlocked=%d\nlowPowerMode=%d\nthermalState=%ld\nprivateDisplayForceAPI=%d\nprivateDisplayForceHook=%d\nhighFrameRateReasonAPI=%d\ndisplayRefreshRate=%.1f\nlinkMaximumRefreshRate=%.1f\nrequestedRange=%.1f-%.1f preferred=%.1f\npreferredFPS=%ld\nactualFPS=%ld\nminimumFrameDuration=%ld\ndurationHz=%.1f\ncallbackHz=%.1f\ntargetTimingHz=%.1f\n",
-            @AD_VERSION, (long)maxHz, unlocked ? 1 : 0, legacyUnlocked ? 1 : 0,
+            @"AmazonDark %@\nforce120Hz=%d\nscreenMax=%ld\nbundleHighRefreshUnlocked=%d\nbundleLegacyUnlocked=%d\nlowPowerMode=%d\nthermalState=%ld\nprivateDisplayForceAPI=%d\nprivateDisplayForceHook=%d\nprivateDisplayForceActive=%d\nhighFrameRateReasonAPI=%d\ndisplayRefreshRate=%.1f\nlinkMaximumRefreshRate=%.1f\nrequestedRange=%.1f-%.1f preferred=%.1f\npreferredFPS=%ld\nactualFPS=%ld\nminimumFrameDuration=%ld\ndurationHz=%.1f\ncallbackHz=%.1f\ntargetTimingHz=%.1f\n",
+            @AD_VERSION, self.forceAtStart ? 1 : 0, (long)maxHz, unlocked ? 1 : 0, legacyUnlocked ? 1 : 0,
             lowPower ? 1 : 0, (long)thermal, forceAPI ? 1 : 0,
-            gADCADisplayOverrideInstalled610 ? 1 : 0, reasonAPI ? 1 : 0,
+            gADCADisplayOverrideInstalled610 ? 1 : 0, self.forceAtStart ? 1 : 0, reasonAPI ? 1 : 0,
             displayHz, linkMaxHz, requested.minimum, requested.maximum, requested.preferred,
             (long)preferredFPS, (long)actualFPS, (long)minFrameDuration,
             durationHz, callbackHz, timingHz];
         NSString *path = [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-hz.txt"];
         [report writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
-        [link invalidate]; gADHzProbeTarget = nil;
-    } @catch(...) { [link invalidate]; gADHzProbeTarget=nil; }
+        [link invalidate]; gADHzProbeTarget = nil; gADHzProbeLink611 = nil;
+    } @catch(...) { [link invalidate]; gADHzProbeTarget=nil; gADHzProbeLink611=nil; }
 }
 @end
+static void ADStopHzVerification611(void){
+    @try { if (gADHzProbeLink611) [gADHzProbeLink611 invalidate]; } @catch(...) {}
+    gADHzProbeLink611 = nil; gADHzProbeTarget = nil; gADHzProbeDone = NO;
+}
 static void ADStartHzVerification(void){
     @try {
-        if (!gP.enabled || !gP.force120Hz){ gADHzProbeDone = NO; return; }
-        if (gADHzProbeDone || gADHzProbeTarget) return;
+        if (!gP.enabled || gADHzProbeDone || gADHzProbeTarget) return;
         gADHzProbeDone = YES;
         ADHzProbeTarget *p = [ADHzProbeTarget new];
+        p.forceAtStart = ADPromotionPreferenceOn611();
         CADisplayLink *d = [CADisplayLink displayLinkWithTarget:p selector:@selector(tick:)];
-        gADHzProbeTarget=p;
-        ADApplyPromotion610(d);
+        gADHzProbeTarget=p; gADHzProbeLink611=d;
+        if (p.forceAtStart) ADApplyPromotion610(d);
         [d addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
-    } @catch(...) { gADHzProbeTarget=nil; }
+    } @catch(...) { gADHzProbeTarget=nil; gADHzProbeLink611=nil; }
 }
 
 
@@ -2317,6 +2443,24 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
     @try {
         if (gP.enabled) ((UIView *)self).backgroundColor = ADColorFromHex(gP.bgHex);
     } @catch(...) {}
+}
+%end
+
+
+// WKScrollView is deliberately the only WebKit internal view we recolour. Dark
+// Reader owns page content; this hook owns only the scroll view's empty backing.
+%hook WKScrollView
+- (void)setBackgroundColor:(UIColor *)color {
+    if (gP.enabled && gP.webDarkReader){
+        UIColor *dark611 = ADColorFromHex(gP.bgHex);
+        %orig(dark611);
+        return;
+    }
+    %orig;
+}
+- (void)didMoveToWindow {
+    %orig;
+    @try { if (self.window && gP.enabled && gP.webDarkReader) self.backgroundColor = ADColorFromHex(gP.bgHex); } @catch(...) {}
 }
 %end
 
@@ -4168,8 +4312,10 @@ static void ADPrefsChanged(CFNotificationCenterRef center, void *observer,
                            CFDictionaryRef userInfo) {
     dispatch_async(dispatch_get_main_queue(), ^{
         @try {
+            ADStopHzVerification611();
             ADLoadPrefs();              // also re-syncs + clears the colour cache
-            ADStartHzVerification();
+            ADRefreshPromotionState611();
+            ADStartHzVerification();     // records ON or OFF; never leaves a stale report
             ADRaw("[AmazonDark] prefs reloaded (Darwin notification)");
             ADForceWindowsDarkTrait();
             ADInjectAllWebViews();      // exact re-theme on web
@@ -4234,6 +4380,7 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
 
     dispatch_async(dispatch_get_main_queue(), ^{
         ADLoadPrefs();
+        ADRefreshPromotionState611();
         ADStartHzVerification();
         ADLockDarkWeblab();
         ADForceAppearanceDark();

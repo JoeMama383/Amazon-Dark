@@ -125,7 +125,7 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
-## v6.0.10
+## v6.0.11
 
 - Keeps the v5.446 checkbox first-paint CSS, `sym413`, and `stockCheckbox434` owner byte-identical to the working donor.
 - Restores the missing v5.446 dependency in the broad glyph-repair pass: native checkbox/Compare subtrees are excluded **before** generic inversion, and generic glyph writes are tagged `gfix1` / `gfix2` so `stockCheckbox434` can remove them if they ever collide. This is the path that produced the white-box regression.
@@ -134,3 +134,11 @@ High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https:/
 - Uses the open-source CAHighFPS high-FPS pattern for the public-facing display-link setters: `frameInterval=1`, `preferredFramesPerSecond=0` (highest available), and a `30...120` range with 120 preferred/max on a 120-Hz panel. Amazon attempts to lower these values are intercepted while the preference is enabled.
 - Does not inject a new hook into `backboardd` or force SpringBoard system-wide. The first private-force test stays scoped to Amazon so a bad private selector cannot destabilize the rest of the UI.
 - The one-shot verifier now reports private-force API/hook availability plus display refresh, display-link maximum/actual FPS, minimum frame duration, requested range, and measured target timing.
+
+
+## v6.0.11
+- Makes Force 120 Hz truly live-toggleable: OFF restores tracked display links to 60 Hz and private CADisplay duration 4; ON reapplies the proven v6.0.10 120-Hz force immediately.
+- Bundle high-refresh opt-ins now report enabled only while the preference is enabled.
+- The one-shot verifier now runs in both ON and OFF states so an old 120-Hz report cannot be mistaken for a fresh disabled result.
+- Adds a constant-time dark backing floor to WKWebView/WKScrollView so fast 120-Hz flings reveal the dark theme rather than WebKit's default white backing while lazy tiles/content catch up.
+- Checkbox and v5.446 top-chrome logic are unchanged from v6.0.10.
