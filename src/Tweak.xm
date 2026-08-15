@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v6.0.0"
+#define AD_VERSION "v6.0.1"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -821,10 +821,104 @@ static NSString *ADDarkReaderReapply(void){
         ADThemeLiteral(), ADFixesLiteral()];
 }
 
+
+// ── v6.0.1: exact v5.446 four-symbol sym413 implementation ─────────────────
+// Heart / stock checkbox / two-cards / chevron. The sym413 body and its donor
+// scheduling lines below are copied verbatim from v5.446. The outer guard only
+// prevents duplicate installation when an existing WKWebView is re-healed.
+static NSString *ADFourSymbolsWebJS446(void){
+    return
+       @"(function(){try{if(window.__AD_SYM601_LOADED__)return 'already';window.__AD_SYM601_LOADED__=1;"
+         "function sym413(){try{"
+           "var SPEC={bg:'#181a1b',bd:'1.5px solid rgba(255,255,255,0.65)'};"
+           "if(!document.getElementById('adcards440')){var s440=document.createElement('style');s440.id='adcards440';s440.textContent='[data-ad-cards440-pseudo*=b]::before,[data-ad-cards440-pseudo*=a]::after{filter:brightness(0) invert(1) !important;color:#fff !important;fill:#fff !important;stroke:#fff !important;}';(document.head||document.documentElement).appendChild(s440);}"
+           "function cn(e){var c=e&&e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||''));}"
+           "function rr(e){try{return e&&e.getBoundingClientRect?e.getBoundingClientRect():null;}catch(x){return null;}}"
+           "function sq(e){var r=rr(e);"
+           "return r.width>=22&&r.width<=48&&r.height>=22&&r.height<=48&&Math.abs(r.width-r.height)<=10;}"
+           "function kind(e){var c=cn(e);"
+             "if(/mlt-icon-container/.test(c))return 'cards';"
+             "if(/a-checkbox/.test(c)&&!/a-icon-checkbox/.test(c))return 'checkbox';"
+             "if(/puis-mab-chevron/.test(c)&&!/glyph/.test(c))return 'chevron';"
+             "if(/puis-heart-position/.test(c)||/lists-framework-action-button/.test(c))return 'heart';"
+             "return '';}"
+           "function shown(e,stop){try{var p=e,u=0;while(p&&u++<10){var s=getComputedStyle(p),o=parseFloat(s.opacity||'1');if(String(s.display||'')==='none'||/hidden|collapse/.test(String(s.visibility||''))||o<.08)return false;if(p===stop)break;p=p.parentElement;}var r=rr(e);return !!(r&&r.width>=3&&r.height>=3);}catch(x){return false;}}"
+           "function legacy(e){if(!e||e.hasAttribute('data-ad-cards440-host'))return;var old=e.getAttribute('data-ad-sym413')==='cards'||e.getAttribute('data-ad-disc420')==='disc'||e.__adBy==='sym413';if(old){['background-color','border','border-radius','box-shadow','box-sizing'].forEach(function(p){e.style.removeProperty(p);});e.removeAttribute('data-ad-sym413');e.removeAttribute('data-ad-disc420');delete e.__adBy;}var A=e.querySelectorAll('*');for(var i=0;i<A.length&&i<48;i++){var a=A[i],by=String(a.__adBy||''),owned=a.hasAttribute('data-ad-sym413glyph')||/^(?:sym413glyph|disc420|disc422)$/.test(by);if(!owned)continue;['filter','color','fill','stroke','background-color','visibility','opacity','border','box-shadow'].forEach(function(p){a.style.removeProperty(p);});a.removeAttribute('data-ad-sym413glyph');delete a.__adBy;delete a.__adGlyph;}}"
+           "function checkboxAt(e){try{var card=e.closest&&e.closest('[class*=puis-card],[class*=s-result-item],[data-component-type=\"s-search-result\"],[data-asin],[class*=s-product-image],[class*=product-image]'),Q=card?card.querySelectorAll('[class*=a-icon-checkbox]'):document.querySelectorAll('[class*=a-icon-checkbox]'),r=rr(e);if(!r)return false;var x=r.left+r.width/2,y=r.top+r.height/2;for(var i=0;i<Q.length&&i<180;i++){var q=Q[i],qr=rr(q);if(!qr||!shown(q,card||document.body))continue;var qx=qr.left+qr.width/2,qy=qr.top+qr.height/2,ix=Math.max(0,Math.min(r.right,qr.right)-Math.max(r.left,qr.left)),iy=Math.max(0,Math.min(r.bottom,qr.bottom)-Math.max(r.top,qr.top));if((Math.abs(x-qx)<18&&Math.abs(y-qy)<18)||ix*iy>Math.min(r.width*r.height,qr.width*qr.height)*.35)return true;}return false;}catch(x){return true;}}"
+           "function clearCards(e){var P=['background-color','border','border-radius','box-shadow','box-sizing'];for(var p=0;p<P.length;p++)e.style.removeProperty(P[p]);if(e.getAttribute('data-ad-cards440-suppressed')==='checkbox'){e.style.removeProperty('visibility');e.style.removeProperty('opacity');}e.removeAttribute('data-ad-cards440-host');e.removeAttribute('data-ad-cards440-suppressed');e.removeAttribute('data-ad-cards440-pseudo');e.removeAttribute('data-ad-sym413');var A=e.querySelectorAll('[data-ad-cards440-glyph],[data-ad-cards440-pseudo]');for(var i=0;i<A.length;i++){var a=A[i];['filter','color','fill','stroke','background-color'].forEach(function(k){a.style.removeProperty(k);});a.removeAttribute('data-ad-cards440-glyph');a.removeAttribute('data-ad-cards440-pseudo');if(a.__adBy==='cards440')delete a.__adBy;}}"
+           "function glyph440(g){var r=rr(g);if(!r||r.width<3||r.height<3||r.width>48||r.height>48)return false;return true;}"
+           "function cards(e){legacy(e);if(e.getAttribute('data-ad-cards440-suppressed')==='checkbox'){if(checkboxAt(e))return 0;e.style.removeProperty('visibility');e.style.removeProperty('opacity');e.removeAttribute('data-ad-cards440-suppressed');}var N=e.querySelectorAll('[class*=mlt-image-icon],img[class*=s-image],p[class*=mlt-text-icon],img,i,svg,path,use,polygon'),P=[e],live=[],pseudo='';for(var pi=0;pi<N.length&&pi<47;pi++)P.push(N[pi]);for(var i=0;i<P.length&&i<48;i++){var g=P[i],r=rr(g);if(!glyph440(g)||!shown(g,e))continue;var t=String(g.tagName||'').toUpperCase(),s=getComputedStyle(g),b=getComputedStyle(g,'::before'),a=getComputedStyle(g,'::after'),paint=/^(IMG|I|SVG|PATH|USE|POLYGON)$/.test(t)||/mlt-text-icon/.test(cn(g))||String(s.backgroundImage||'none')!=='none'||String(s.maskImage||s.webkitMaskImage||'none')!=='none';if(String(b&&b.backgroundImage||'none')!=='none'||String(b&&b.content||'none')!=='none')pseudo+='b';if(String(a&&a.backgroundImage||'none')!=='none'||String(a&&a.content||'none')!=='none')pseudo+='a';if(paint)live.push(g);}if(!live.length&&!pseudo){clearCards(e);return 0;}if(checkboxAt(e)){clearCards(e);e.setAttribute('data-ad-cards440-suppressed','checkbox');e.style.setProperty('visibility','hidden','important');e.style.setProperty('opacity','0','important');return 0;}var old=e.querySelectorAll('[data-ad-cards440-glyph],[data-ad-cards440-pseudo]');for(var o=0;o<old.length;o++){if(live.indexOf(old[o])>=0)continue;['filter','color','fill','stroke','background-color'].forEach(function(k){old[o].style.removeProperty(k);});old[o].removeAttribute('data-ad-cards440-glyph');old[o].removeAttribute('data-ad-cards440-pseudo');}e.setAttribute('data-ad-sym413','cards');e.setAttribute('data-ad-cards440-host','1');if(pseudo)e.setAttribute('data-ad-cards440-pseudo',pseudo);else e.removeAttribute('data-ad-cards440-pseudo');e.__adBy='cards440';e.style.setProperty('background-color',SPEC.bg,'important');e.style.setProperty('border',SPEC.bd,'important');e.style.setProperty('border-radius','50%%','important');e.style.setProperty('box-shadow','none','important');e.style.setProperty('box-sizing','border-box','important');for(var j=0;j<live.length;j++){var z=live[j],tg=String(z.tagName||'').toUpperCase();if(!glyph440(z))continue;z.setAttribute('data-ad-cards440-glyph','1');z.__adBy='cards440';if(/^(SVG|PATH|USE|POLYGON)$/.test(tg)){z.style.setProperty('filter','none','important');z.style.setProperty('fill','#ffffff','important');z.style.setProperty('stroke','#ffffff','important');}else z.style.setProperty('filter','brightness(0) invert(1)','important');z.style.setProperty('color','#ffffff','important');z.style.setProperty('background-color','transparent','important');if(pseudo)z.setAttribute('data-ad-cards440-pseudo',pseudo);}return 1;}"
+           "var Q=document.querySelectorAll('[class*=mlt-icon-container],[class*=a-checkbox],[class*=puis-mab-chevron],[class*=puis-heart-position],[class*=lists-framework-action-button]'),n=0,sk=0;"
+           "for(var i=0;i<Q.length&&i<400;i++){var e=Q[i],k=kind(e);"
+             "if(!k){sk++;continue;}"
+             "if(k==='cards'){if(cards(e))n++;else sk++;continue;}"
+             "var hs=e.querySelector&&e.querySelector('[class*=lists-framework-action-button],[class*=puis-heart-position]');"
+             "var rc=!!(e.querySelector&&e.querySelector('input[type=checkbox],[class*=a-icon-checkbox]'));"
+             "if(hs&&!rc&&k!=='cards'){e.setAttribute('data-ad-heart-shell427','1');"
+               "['data-ad-sym413','data-ad-stock403','data-ad-stocksel403','data-ad-v333403','data-ad-product391','data-ad-productselected391'].forEach(function(a){e.removeAttribute(a);});"
+               "e.style.setProperty('background-color','transparent','important');"
+               "e.style.setProperty('border','0','important');"
+               "e.style.setProperty('border-radius','0','important');"
+               "e.style.setProperty('box-shadow','none','important');"
+               "e.style.setProperty('outline','none','important');sk++;continue;}"
+             "if(k==='checkbox'){sk++;continue;}"
+             "if(!sq(e)){sk++;continue;}"
+             "if(e.parentElement&&e.parentElement.closest&&e.parentElement.closest('[data-ad-sym413]')){sk++;continue;}"
+             "e.setAttribute('data-ad-sym413',k);e.__adBy='sym413';"
+             "e.style.setProperty('background-color',SPEC.bg,'important');"
+             "e.style.setProperty('border',SPEC.bd,'important');"
+             "e.style.setProperty('border-radius','50%%','important');"
+             "e.style.setProperty('box-shadow','none','important');"
+             "e.style.setProperty('box-sizing','border-box','important');"
+             "var G=e.querySelectorAll('img,i,svg,path,p');"
+             "for(var j=0;j<G.length&&j<24;j++){var g=G[j],gr=g.getBoundingClientRect();"
+               "if(gr.width>48||gr.height>48)continue;"
+               "var tg=String(g.tagName||'').toUpperCase();"
+               "if(tg==='IMG'||tg==='I'||tg==='P')"
+                 "g.style.setProperty('filter','brightness(0) invert(1)','important');"
+               "g.__adBy='sym413glyph';g.setAttribute('data-ad-sym413glyph','1');"
+               "if(tg==='SVG'||tg==='PATH'){g.style.setProperty('fill','#ffffff','important');"
+                 "g.style.setProperty('color','#ffffff','important');}"
+               "g.style.setProperty('background-color','transparent','important');"
+               "g.style.setProperty('visibility','visible','important');"
+               "g.style.setProperty('opacity','1','important');"
+               "g.removeAttribute('data-ad-compareorig380');g.removeAttribute('data-ad-compareorig379');}"
+             "n++;}"
+           "window.__AD_SYM413__='n='+n+' skip='+sk;"
+         "}catch(e){window.__AD_SYM413__='err '+e;}}"
+         "try{window.__AD_SYM413_PRE__=window.__AD_PRODUCTCTRL391RUN__;"
+           "window.__AD_PRODUCTCTRL391RUN__=function(){"
+             "var r=window.__AD_SYM413_PRE__?window.__AD_SYM413_PRE__():0;try{sym413();}catch(x){}return r;};"
+         "}catch(e){}"
+         "try{sym413();setTimeout(sym413,30);setTimeout(sym413,160);setTimeout(sym413,560);"
+           "setTimeout(sym413,1560);setTimeout(sym413,2600);"
+           "addEventListener('scroll',function(){clearTimeout(window.__symT413);"
+             "window.__symT413=setTimeout(sym413,110);},{passive:true,capture:true});"
+         "}catch(e){}"
+       "return 'sym413';}catch(e){return 'sym413err';}})();";
+}
+
+static void ADAttachFourSymbolsUserScript446(WKUserContentController *ucc){
+    if (!ucc) return;
+    @try {
+        NSString *js = ADFourSymbolsWebJS446();
+        if (!js.length) return;
+        for (WKUserScript *u in ucc.userScripts){
+            if ([u.source containsString:@"__AD_SYM601_LOADED__"]) return;
+        }
+        WKUserScript *us = [[WKUserScript alloc] initWithSource:js
+            injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:NO];
+        [ucc addUserScript:us];
+    } @catch(...) {}
+}
+
 static void ADEnableDarkReaderIn(WKWebView *wv){
     if (!gP.enabled || !gP.webDarkReader || !wv) return;
     @try {
         ADAttachWhiteTameUserScript446(wv.configuration.userContentController);
+        ADAttachFourSymbolsUserScript446(wv.configuration.userContentController);
+        NSString *sym446=ADFourSymbolsWebJS446();
+        if(sym446.length)[wv evaluateJavaScript:sym446 completionHandler:nil];
         NSString *twb446=ADWhiteTameWebJS446();
         if(twb446.length)[wv evaluateJavaScript:twb446 completionHandler:nil];
         // Lightweight re-apply; the heavy engine arrives via the documentStart userscript.
@@ -1035,6 +1129,8 @@ static void ADBootstrapDarkReaderIn(WKWebView *wv){
         if (js.length) [wv evaluateJavaScript:js completionHandler:nil];
         NSString *twb446 = ADWhiteTameWebJS446();
         if (twb446.length) [wv evaluateJavaScript:twb446 completionHandler:nil];
+        NSString *sym446 = ADFourSymbolsWebJS446();
+        if (sym446.length) [wv evaluateJavaScript:sym446 completionHandler:nil];
     } @catch(...) {}
 }
 
@@ -1081,6 +1177,7 @@ static void ADInjectAllWebViews(void){
                                        forMainFrameOnly:NO];
         [self addUserScript:us];
         ADAttachWhiteTameUserScript446(self);
+        ADAttachFourSymbolsUserScript446(self);
         ADLog(@"web: user scripts restored after removeAllUserScripts");
     } @catch(...) {}
 }
@@ -1098,6 +1195,7 @@ static void ADInjectAllWebViews(void){
                                                forMainFrameOnly:NO];
                 [cfg.userContentController addUserScript:us];
                 ADAttachWhiteTameUserScript446(cfg.userContentController);
+                ADAttachFourSymbolsUserScript446(cfg.userContentController);
             }
         }
     } @catch(...) {}
@@ -1107,6 +1205,8 @@ static void ADInjectAllWebViews(void){
     %orig;
     @try {
         if (!self.window || !gP.enabled || !gP.webDarkReader) return;
+        ADPreDarken(self);   // exact v5.446 instant dark floor for a page that is mid-load
+        ADAttachFourSymbolsUserScript446(self.configuration.userContentController);
         // Paint the web view's own backdrop dark up front so the white page has
         // nothing to flash before Dark Reader paints the DOM. Cheap and idempotent.
         self.opaque = NO;
@@ -1125,6 +1225,7 @@ static void ADInjectAllWebViews(void){
                                                forMainFrameOnly:NO];
                 [ucc addUserScript:us];
                 ADAttachWhiteTameUserScript446(ucc);
+                ADAttachFourSymbolsUserScript446(ucc);
             }
             objc_setAssociatedObject(self, kUS, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
@@ -1134,6 +1235,20 @@ static void ADInjectAllWebViews(void){
 - (void)webView:(WKWebView *)wv didFinishNavigation:(id)nav {
     %orig;
     ADEnableDarkReaderIn(self);
+    // v5.446 direct-port cover release: only a real Amazon page counts.
+    @try {
+        NSString *nu = wv.URL.absoluteString ?: @"";
+        BOOL realPage = ([nu containsString:@"amazon.com"] &&
+                         ![nu containsString:@"about:blank"] &&
+                         ![nu containsString:@"autocomplete"] &&
+                         ![nu containsString:@"/ap/"]);
+        ADLog(@"navdone real=%d %@", realPage ? 1 : 0,
+              nu.length > 60 ? [nu substringToIndex:60] : nu);
+        if (realPage){
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{ ADPostAppReady(); });
+        }
+    } @catch(...) {}
 }
 %end
 
@@ -3917,6 +4032,17 @@ static void ADPostAppReady(void){
           ADUptime(), ADScreenLooksDark() ? 1 : 0, waits);
 }
 
+static void ADPreDarken(WKWebView *wv){
+    @try {
+        if (![NSThread isMainThread]) return;
+        [wv evaluateJavaScript:
+            @"try{if(!document.getElementById('adpre')){var s=document.createElement('style');"
+             "s.id='adpre';s.textContent='html,body{background:#181a1b !important}';"
+             "(document.documentElement||document).appendChild(s);}}catch(e){}"
+             completionHandler:nil];
+    } @catch(...) {}
+}
+
 // ─── live settings reload ─────────────────────────────────────────────────────────
 // ADRootListController posts this Darwin notification on every toggle. Without an
 // observer the setting sat in the plist and did nothing until the app was killed,
@@ -3953,6 +4079,32 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
     ADOpenLog();
     ADRaw("[AmazonDark] " AD_VERSION " init (DarkReader web + native colour engine)");
+    // v5.446 direct-port: drop cached light launch snapshots.
+    @try {
+        NSString *lib = [NSSearchPathForDirectoriesInDomains(
+                            NSLibraryDirectory, NSUserDomainMask, YES) firstObject];
+        NSString *snap = [lib stringByAppendingPathComponent:@"SplashBoard/Snapshots"];
+        NSFileManager *fm = [NSFileManager defaultManager];
+        NSArray *kids = [fm contentsOfDirectoryAtPath:snap error:nil];
+        NSUInteger killed = 0;
+        for (NSString *k in kids){
+            NSString *sub = [snap stringByAppendingPathComponent:k];
+            for (NSString *f in [fm contentsOfDirectoryAtPath:sub error:nil]){
+                if ([fm removeItemAtPath:[sub stringByAppendingPathComponent:f] error:nil]) killed++;
+            }
+        }
+        if (kids.count) ADLog(@"splashsnap cleared %lu file(s)", (unsigned long)killed);
+    } @catch(...) {}
+    // v5.446 direct-port activation fallback for native-only cold paths.
+    @try {
+        [[NSNotificationCenter defaultCenter]
+            addObserverForName:UIApplicationDidBecomeActiveNotification
+                        object:nil queue:[NSOperationQueue mainQueue]
+                    usingBlock:^(NSNotification *n){
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(9.0 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{ ADPostAppReady(); });
+        }];
+    } @catch(...) {}
     %init;
     ADRaw("[AmazonDark] hooks registered");
     {
@@ -3975,7 +4127,6 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
         ADForceWindowsDarkTrait();
         ADInjectAllWebViews();
         ADSweepAllWindows();
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.25*NSEC_PER_SEC)),dispatch_get_main_queue(),^{ ADPostAppReady(); });
     });
     // Escalating sweeps to catch late-initialised services/web views (0.2s..~10s).
     for (double d = 0.2; d <= 10.0; d *= 1.6){

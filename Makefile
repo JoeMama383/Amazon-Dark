@@ -11,7 +11,8 @@ AmazonDark_CFLAGS += -Wno-unused-variable -Wno-unused-function
 AmazonDark_CFLAGS += -Wno-deprecated-declarations -Wno-error
 AmazonDark_FRAMEWORKS = UIKit Foundation WebKit CoreGraphics QuartzCore
 
-# v6.0.0 backport: exact v5.446 SpringBoard dark launch cover.
+# SpringBoard-side dark launch cover (injects ONLY into com.apple.springboard
+# via AmazonDarkSB.plist). Defensive: every hook guarded, cover auto-removes.
 AmazonDarkSB_FILES      = src/AmazonDarkSB.xm
 AmazonDarkSB_CFLAGS     = -fobjc-arc -fexceptions -Wno-unused-variable -Wno-error
 AmazonDarkSB_FRAMEWORKS = UIKit Foundation CoreGraphics QuartzCore

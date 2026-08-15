@@ -122,3 +122,10 @@ native chrome keep working independently.
 
 Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkreader)
 (MIT, © Dark Reader Ltd.) — see `Resources/DARKREADER-LICENSE`.
+
+
+## v6.0.1 backports
+
+- Direct v5.446 SpringBoard dark launch cover/art and cover-release integration.
+- v5.446 four-symbol sym413 web fix (Heart, checkbox, two-cards, chevron).
+- Sileo package description and package icon using the Settings preference icon artwork.
