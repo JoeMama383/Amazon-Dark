@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v6.0.5"
+#define AD_VERSION "v6.0.6"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1893,11 +1893,43 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
     }
     @try {
         if ([effect isKindOfClass:[UIBlurEffect class]]){
+            // BAR-SIZED: no blur at all. Substituting a dark MATERIAL still leaves a
+            // backdrop that samples whatever passes behind it, so the home header
+            // went pale the moment a bright hero card scrolled under it -- and any
+            // effect Amazon re-applied put that sampling straight back, undoing the
+            // nil we set in didMoveToWindow. A flat opaque fill cannot be dragged
+            // light by the content, and costs nothing per frame.
+            CGFloat h = self.bounds.size.height, w = self.bounds.size.width;
+            if (h > 0 && h < 160 && w > 200){
+                %orig(nil);
+                ((UIView *)self).backgroundColor = ADColorFromHex(gP.bgHex);
+                return;
+            }
             %orig([UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterialDark]);
             return;
         }
     } @catch(...) {}
     %orig;
+}
+- (void)layoutSubviews {
+    %orig;
+    // BOUNDS ARE ONLY AUTHORITATIVE HERE. setEffect: requires h > 0 to decide a view
+    // is bar-sized, but Amazon sets the effect before layout, when bounds are still
+    // zero -- so that path applied a dark MATERIAL (which still samples the feed)
+    // and nothing ever revisited it. The probe caught exactly that: a 119pt
+    // UIVisualEffectView still holding a live UIBlurEffect.
+    @try {
+        if (!ADRecolorOn() || !self.window) return;
+        CGFloat h = self.bounds.size.height, w = self.bounds.size.width;
+        if (h <= 0 || h >= 160 || w <= 200) return;
+        if (!self.effect) return;                       // already flat
+        static const void *kNilled = &kNilled;
+        int n = [objc_getAssociatedObject(self, kNilled) intValue];
+        if (n >= 4) return;                             // bounded: cannot ping-pong
+        objc_setAssociatedObject(self, kNilled, @(n + 1), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        self.effect = nil;
+        ((UIView *)self).backgroundColor = ADColorFromHex(gP.bgHex);
+    } @catch(...) {}
 }
 - (void)didMoveToWindow {
     %orig;
@@ -1908,6 +1940,25 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
         // when it is bar-sized so the top matches the themed content below it.
         if (ADRecolorOn() && self.window && self.bounds.size.height < 160){
             ((UIView *)self).backgroundColor = ADColorFromHex(gP.bgHex);
+            // OPAQUE, not a darker blur. Any UIBlurEffect samples whatever passes
+            // behind it, so on the home tab a bright hero card scrolling under the
+            // header drags it light no matter which "dark" material we pick -- and
+            // a thicker material only costs more to composite every frame. Dropping
+            // the effect makes the bar a flat fill: maximally dark, and it stops
+            // re-blurring the feed on every scroll frame.
+            if (self.effect) self.effect = nil;
+            // This is the load-bearing path, not a backstop. initWithEffect: is
+            // deliberately NOT hooked: it is an init-family method and this target
+            // builds with -fobjc-arc, where Logos init hooks are fragile. Every
+            // effect view that renders must enter a window, so catching it here
+            // covers construction-time effects without hooking init at all.
+            // Flagged so setting the effect (which triggers layout) cannot re-enter.
+            static const void *kForced = &kForced;
+            if (!objc_getAssociatedObject(self, kForced) &&
+                [self.effect isKindOfClass:[UIBlurEffect class]]){
+                objc_setAssociatedObject(self, kForced, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                self.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterialDark];
+            }
         }
     } @catch(...) {}
 }
