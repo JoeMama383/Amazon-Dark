@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v6.0.2"
+#define AD_VERSION "v6.0.3"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -159,7 +159,6 @@ static inline BOOL ADIsModifiedImage(UIImage *im){ return im && objc_getAssociat
 static inline void ADMarkModifiedImage(UIImage *im){ if (im) objc_setAssociatedObject(im, kADModImageKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
 static UIColor *ADColorFromHex(const char *hex);
 static UIImage *ADGlyphify(UIImage *img);
-static void ADRunProbe(void);
 static void ADApplyNativeWhiteTameView(UIView *v);
 static void ADPrimeNativeWhiteTame363(UIView *v, UIImage *incoming);
 static void ADSubscribeOverlay394(UIView *v);
@@ -325,48 +324,103 @@ static NSString *ADFixesLiteral(void){
              // THE FIX THAT ACTUALLY WORKED, brought back. v5.27.0 whitened the heart
              // with a documentStart CSS rule and it visibly worked; v5.28.0 removed it
              // because [class*=heart-position] dragged the 32px disc into the whitening
-             // (the white blob). Every JS attempt since lost a timing race CSS cannot
-             // lose: a stylesheet applies to nodes Amazon re-renders later, an inline
-             // style dies with the node it was set on. And brightness(0) invert(1) is
-             // polarity-proof -- dark or light artwork both end up a white silhouette.
-             // Scoped to glyph nodes only; the -position container stays out, so the
-             // disc keeps the dark background the rule below gives it.
-             "[class*=heart-placeholder],[class*=lists-framework-unfill],"
-             "[class*=heart] img,[class*=wish] img,[class*=lists-framework] img,"
-             "[class*=heart] svg,[class*=wish] svg,[class*=lists-framework] svg,"
-             "[class*=heart] i[class*=a-icon],[class*=lists-framework] i[class*=a-icon]"
-             "{filter:brightness(0) invert(1) !important;}"
-
-             // Heart circle. The button behind the heart is a light/white disc; on a
-             // dark theme it reads as a bright blob that hides the glyph. Darken it at
-             // documentStart so there is never a white flash. (The earlier
-             // brightness(0)+invert whitened the ENTIRE element -- circle and heart
-             // together -- which is exactly what created the blob.) The glyph itself is
-             // NOT touched any more: the artwork Amazon ships is already light -- on
-             // device the heart rendered white first and went black only when our
-             // invert caught up with it -- so the only job here is the disc.
-             "[class*=heart]:not(img):not([class*=heart-placeholder]),"
-             "[class*=lists-framework]:not(img):not([class*=unfill]),"
-             "[class*=wish]:not(img)"
-             "{background-color:#181a1b !important;}"
-             // The changeover / section shells inside the heart widget carry no
-             // heart-ish substring, so only Dark Reader's ASYNC pass darkened
-             // them -- that gap is the white box seen for the first frames.
-             // documentStart is before first paint; these cannot flash now.
-             "[class*=heart] [class*=changeover],[class*=lists-framework] [class*=changeover],"
-             "[class*=heart-position] div:not([class]),"
-             "[class*=heart] [class*=a-section],[class*=lists-framework] [class*=a-section]"
-             "{background-color:#181a1b !important;}"
-             // Glyph carriers must stay transparent or the silhouette filter
-             // inverts their fill into a light box. Placed AFTER the disc rule so
-             // ties resolve here; tripled selectors outrank Dark Reader's
-             // mirrored overrides. No background-image declaration -- v5.38.0's
-             // background-image:inherit deleted the sprite itself.
-             "[class*=lists-framework-unfill][class*=lists-framework-unfill][class*=lists-framework-unfill],"
-             "[class*=heart-placeholder][class*=heart-placeholder][class*=heart-placeholder],"
-             "[class*=heart] i[class*=a-icon],[class*=lists-framework] i[class*=a-icon],"
-             "[class*=wish] i[class*=a-icon]"
+             // (the white blob). Every JS attempt since lost a timing race that
+             // document-start CSS avoids.
+             // v5.435: retired Shopping Compare presentation removed. These old
+             // copilot/aria/content-id selectors forced every descendant through a
+             // white silhouette with greater specificity than the stock-state owner.
+             // On dark Shopping rows that produced the solid white square and also
+             // overrode filter:none after Amazon selected its blue/checkmark sprite.
+             // Cart never used this DOM family and stays byte-locked in v5.434.
+             "[class*=puis-heart-position]"
+             "{background-color:transparent !important;border:0 !important;"
+             "box-shadow:none !important;}"
+             // v5.393: SEARCH/PDP HEART FIRST-PAINT GUARD. Amazon temporarily mounts
+             // a white structural shell before the actual Heart painter hydrates. Clear
+             // only background COLOR on the tiny Heart subtree at documentStart; never
+             // move/resize it and never remove a real background-image/mask. The runtime
+             // below restores white on a real mask/pseudo glyph after positive detection.
+             "[class*=puis-heart-position] button,[class*=puis-heart-position] [role=button],"
+             "[class*=puis-heart-position] a,[class*=puis-heart-position] span,[class*=puis-heart-position] div"
              "{background-color:transparent !important;}"
+             "[class*=puis-heart-position] button::before,[class*=puis-heart-position] button::after,"
+             "[class*=puis-heart-position] [role=button]::before,[class*=puis-heart-position] [role=button]::after,"
+             "[class*=puis-heart-position] a::before,[class*=puis-heart-position] a::after,"
+             "[class*=puis-heart-position] span::before,[class*=puis-heart-position] span::after,"
+             "[class*=puis-heart-position] div::before,[class*=puis-heart-position] div::after"
+             "{background-color:transparent !important;}"
+             // PDP LISTS HEART. Device probe on v5.345 names the actual painter:
+             // 24x24 lists-treatment shells -> 20x20 .a-icon with background-image.
+             // Filter ONLY that paint leaf; touching the parent recreates the old
+             // v5.27 white-blob regression.
+             "[class*=lists-treatment-hear] .a-icon"
+             "{filter:brightness(0) invert(1) !important;"
+             "background-color:transparent !important;}"
+             // v5.446 CHECKBOX FIRST-PAINT + 32PX SQUARE CHROME. The device capture
+             // names the real Amazon painter as a 23px i.a-icon-checkbox.  Its
+             // 3px dark spread plus 1.5px chrome spread is exactly 32px overall,
+             // matching the cards/Heart/chevron controls without touching the
+             // sprite image or background-position. The inset paint covers the
+             // unchecked sprite with the exact shared #181a1b color; importantly,
+             // no filter can blacken the chrome. Native :checked removes the
+             // treatment immediately, leaving only Amazon's stock blue frame.
+             ".a-checkbox:not(:has(input[type=checkbox]:checked)) i.a-icon-checkbox,"
+             ".a-checkbox:not(:has(input[type=checkbox]:checked)) .a-icon-checkbox"
+             "{filter:none !important;border-radius:4px !important;"
+             "box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,"
+             "0 0 0 4.5px rgba(255,255,255,.65) !important;"
+             "transition:none !important;}"
+             ".a-checkbox:has(input[type=checkbox]:checked) i.a-icon-checkbox,"
+             ".a-checkbox:has(input[type=checkbox]:checked) .a-icon-checkbox"
+             "{filter:none !important;border-radius:0 !important;box-shadow:none !important;"
+             "transition:none !important;}"
+             // Cart P14 proved the intermittent gray rectangle is the 35x44
+             // label around the 23px sprite. It is not part of the sprite or hit
+             // target, so neutralize only that paint at documentStart.
+             ".sc-item-checkbox .a-checkbox>label"
+             "{background-color:transparent !important;background-image:none !important;"
+             "border:0 !important;box-shadow:none !important;outline:0 !important;filter:none !important;}"
+             ".sc-item-checkbox .a-checkbox>label::before,.sc-item-checkbox .a-checkbox>label::after"
+             "{background-color:transparent !important;background-image:none !important;"
+             "border:0 !important;box-shadow:none !important;outline:0 !important;filter:none !important;}"
+             // v5.424: colour ONLY -- no radius/size/border, so this rule can
+             // never turn a container into an oval. Restores the cards glyph
+             // whitening that v5.423 removed along with the shape rules.
+             "[class*=mlt-icon-container] img[class*=s-image],"
+             "[class*=mlt-image-icon] img[class*=s-image]"
+             "{filter:brightness(0) invert(1) !important;background-color:transparent !important;}"
+             // v5.374: search templates can temporarily expose a 1x1/lazy
+             // placeholder in this action control. Inverting that shim creates the
+             // solid white square. Hide known shims at documentStart; runtime below
+             // restores a real glyph or supplies the same cards+ fallback.
+             "[class*=lists-framework-action-button] img[src*=grey-pixel],"
+             "[class*=lists-framework-action-button] img[src*=gray-pixel],"
+             "[class*=lists-framework-action-button] img[src*=transparent-pixel],"
+             "[class*=lists-framework-action-button] img[src*=placeholder],"
+             "[class*=lists-framework-action-button] img[src*=spacer],"
+             "[class*=lists-framework-action-button] img[class*=placehold],"
+             "[class*=lists-framework-action-button] [class*=placeholder]"
+             "{display:none !important;filter:none !important;opacity:0 !important;}"
+             "[data-ad-actionfallback374]{width:22px !important;height:22px !important;"
+             "display:block !important;opacity:1 !important;filter:none !important;"
+             "background:transparent !important;pointer-events:none !important;}"
+             "[data-ad-actionfallback374] rect,[data-ad-actionfallback374] path"
+             "{fill:none !important;stroke:#ffffff !important;stroke-width:1.8 !important;}"
+             "[data-ad-actionglyph374]{opacity:1 !important;background-color:transparent !important;}"
+             "[class*=lists-framework-action-button] img[data-ad-actionglyph374]"
+             "{display:inline-block !important;opacity:1 !important;}"
+             "[class*=lists-framework-action-button] img,"
+             "[class*=lists-framework-action-button] i,"
+             "[class*=lists-framework-action-button] svg,"
+             "[class*=lists-framework-unfill],[class*=lists-framework-fill]"
+             "{filter:brightness(0) invert(1) !important;"
+             "background-color:transparent !important;}"
+             "[class*=puis-heart-position] [class*=placehold],[class*=heart-placeholder],"
+             "[class*=puis-heart-position] img[src*=grey-pixel],[class*=puis-heart-position] img[src*=gray-pixel],"
+             "[class*=puis-heart-position] img[src*=transparent-pixel],[class*=puis-heart-position] img[src*=placeholder],"
+             "[class*=puis-heart-position] img[src*=spacer],[class*=puis-heart-position] img[src*=blank],"
+             "[class*=puis-heart-position] img[class*=placehold]"
+             "{display:none !important;filter:none !important;opacity:0 !important;}"
              // Darkening blends crush their content toward black on a dark theme; the
              // deal badges use them inline. Neutralise at documentStart so the text is
              // legible on first paint instead of after the repair catches up.
@@ -824,13 +878,102 @@ static NSString *ADDarkReaderReapply(void){
 }
 
 
-// ── v6.0.2: exact v5.446 four-symbol sym413 implementation ─────────────────
+// ── v6.0.3: exact v5.446 four-symbol sym413 implementation ─────────────────
 // Heart / stock checkbox / two-cards / chevron. The sym413 body and its donor
 // scheduling lines below are copied verbatim from v5.446. The outer guard only
 // prevents duplicate installation when an existing WKWebView is re-healed.
 static NSString *ADFourSymbolsWebJS446(void){
-    return
+    return [NSString stringWithFormat:
        @"(function(){try{if(window.__AD_SYM601_LOADED__)return 'already';window.__AD_SYM601_LOADED__=1;"
+         // v6.0.3 direct v5.446 Heart + stock checkbox support. The following
+         // donor blocks are copied byte-for-byte from the exact 5.446 source.
+         // v333403+stock403+stocksel403+sym413 belongs to the square wrapper
+         // around a zero-height lists-framework Heart root.  Remove only false
+         // checkbox ownership from that wrapper and leave the real round Heart,
+         // the cards control, and div.a-checkbox > i.a-icon-checkbox untouched.
+         "window.__AD_HEARTSHELL427__=function(){try{if(window.__ADFRAME_MODE__||!document.body)return 0;"
+           "function real427(e){return !!(e&&e.querySelector&&e.querySelector('input[type=checkbox],[class*=a-icon-checkbox]'));}"
+           "function card427(e){var c=String(e&&e.className||'');return /mlt-icon-container/.test(c)||e.getAttribute('data-ad-sym413')==='cards';}"
+           "function inner427(e){return !!(e&&(e.hasAttribute('data-ad-cards410-host')||e.hasAttribute('data-ad-cards410-root')||e.hasAttribute('data-ad-cards410-disc')));}"
+           "function own427(e){return e.hasAttribute('data-ad-stock403')||e.hasAttribute('data-ad-stocksel403')||e.getAttribute('data-ad-v333403')==='c'||e.getAttribute('data-ad-product391')==='checkbox'||e.hasAttribute('data-ad-compare380')||e.hasAttribute('data-ad-comparelegacy387')||e.getAttribute('data-ad-disc420')==='checkbox'||e.getAttribute('data-ad-sym413')==='checkbox';}"
+           "function flat427(e){e.setAttribute('data-ad-heart-shell427','1');e.__adBy='heartShell427';"
+             "['data-ad-stock403','data-ad-stocksel403','data-ad-v333403','data-ad-product391','data-ad-productselected391','data-ad-compare378','data-ad-compare379','data-ad-compare380','data-ad-comparelegacy387','data-ad-disc420','data-ad-sym413','data-ad-v333404'].forEach(function(a){e.removeAttribute(a);});/*heart427*/"
+             "e.style.setProperty('background-color','transparent','important');"
+             "e.style.setProperty('border','0','important');"
+             "e.style.setProperty('border-radius','0','important');"
+             "e.style.setProperty('box-shadow','none','important');"
+             "e.style.setProperty('outline','none','important');}"
+           "var R=document.querySelectorAll('[class*=lists-framework-action-button],[class*=puis-heart-position]'),seen=[],n=0;"
+           "for(var i=0;i<R.length&&i<180;i++){var p=R[i].parentElement,d=0;while(p&&d++<4){"
+             "if(real427(p)||card427(p))break;if(inner427(p)){p=p.parentElement;continue;}var r=p.getBoundingClientRect();"
+             "var geom=r.width>=18&&r.width<=60&&r.height>=18&&r.height<=60&&Math.abs(r.width-r.height)<=12;"
+             "if(geom&&(own427(p)||p.hasAttribute('data-ad-heart-shell427'))){"
+               "var s=getComputedStyle(p),clean=(String(s.backgroundColor||'').replace(/\\s+/g,'')==='rgba(0,0,0,0)'||String(s.backgroundColor||'')==='transparent')&&parseFloat(s.borderTopWidth||0)<.1&&String(s.boxShadow||'none')==='none';"
+               "if(!clean||own427(p)||!p.hasAttribute('data-ad-heart-shell427'))flat427(p);n++;}"
+             "p=p.parentElement;}}"
+           "window.__AD_HEARTSHELL427_STATE__='roots='+R.length+' shells='+n;return n;"
+         "}catch(e){window.__AD_HEARTSHELL427_STATE__='err '+(e&&e.message||e);return -1;}};"
+         "try{window.__AD_STOCKCAP403_PRE427__=window.__AD_STOCKCAP403__;window.__AD_STOCKCAP403__=function(){var r=window.__AD_STOCKCAP403_PRE427__?window.__AD_STOCKCAP403_PRE427__():0;try{window.__AD_HEARTSHELL427__();}catch(x){}return r;};}catch(e){}"
+         "try{if(document&&!document.getElementById('adheartshell427')){var h427=document.createElement('style');h427.id='adheartshell427';h427.textContent='[data-ad-heart-shell427]{background-color:transparent !important;border:0 !important;border-radius:0 !important;box-shadow:none !important;outline:none !important;}[data-ad-heart-shell427]::before,[data-ad-heart-shell427]::after{background-color:transparent !important;border:0 !important;box-shadow:none !important;outline:none !important;}';(document.head||document.documentElement).appendChild(h427);}}catch(e){}"
+         "try{window.__AD_PRODUCTCTRL391_PRE427__=window.__AD_PRODUCTCTRL391RUN__;window.__AD_PRODUCTCTRL391RUN__=function(){var r=window.__AD_PRODUCTCTRL391_PRE427__?window.__AD_PRODUCTCTRL391_PRE427__():0;try{window.__AD_HEARTSHELL427__();}catch(x){}return r;};}catch(e){}"
+         "try{window.__AD_HEARTSHELL427__();setTimeout(window.__AD_HEARTSHELL427__,60);setTimeout(window.__AD_HEARTSHELL427__,300);setTimeout(window.__AD_HEARTSHELL427__,1200);"
+           "if(!window.__AD_HEARTSHELL427_OBS__){window.__AD_HEARTSHELL427_OBS__=1;"
+             "new MutationObserver(function(){try{window.__AD_HEARTSHELL427__();}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class','data-ad-stock403','data-ad-stocksel403','data-ad-product391','data-ad-sym413','data-ad-disc420']});"
+             "addEventListener('scroll',function(){try{window.__AD_HEARTSHELL427__();}catch(x){}},{passive:true,capture:true});}}catch(e){}"
+         // v5.441 DEVICE-CAPTURED STOCK CHECKBOX + SHARED 32PX CHROME. Amazon
+         // remains the sole owner of geometry, hit testing, state, and the checked
+         // blue/checkmark sprite. Device P14 names Cart's hierarchy precisely:
+         // 398x0 a-checkbox > 35x44 label > 23x23 input + 23x23 sprite. The old
+         // shell pass skipped that label and let Amazon/Dark Reader intermittently
+         // paint the gray rectangle. Mark every bounded Cart wrapper regardless of
+         // existing visual paint, flatten it, and put one 32px chrome treatment on
+         // the exact stock sprite via paint-only box-shadow. No width/height or
+         // background-image/background-position write is allowed. The inset paint
+         // covers the unchecked sprite without filtering it or the chrome. Native
+         // :checked removes our paint synchronously and exposes Amazon's stock blue frame.
+         "function stockCheckbox434(){if(window.__ADFRAME_MODE__||!document.body||window.__AD_CHECKBOX434_RUNNING__)return 0;window.__AD_CHECKBOX434_RUNNING__=1;try{"
+           "var retired434=['adstock403','adcomparenative428','adcheckbox433'];for(var ri434=0;ri434<retired434.length;ri434++){var rs434=document.getElementById(retired434[ri434]);if(rs434&&rs434.parentNode)rs434.parentNode.removeChild(rs434);}"
+           "var prior434=document.getElementById('adcheckbox434');if(prior434&&prior434.getAttribute('data-ad-native-state')!=='446'){if(prior434.parentNode)prior434.parentNode.removeChild(prior434);prior434=null;}"
+           "if(!prior434){var s434=document.createElement('style');s434.id='adcheckbox434';s434.setAttribute('data-ad-native-state','446');"
+             "s434.textContent='[data-ad-checkbox434-art]{filter:none !important;border-radius:4px !important;box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important;transition:none !important;}'"
+               "+'[data-ad-checkbox434-host]:is(input[type=checkbox]:checked,[aria-checked=true],[aria-pressed=true],[aria-selected=true],[data-checked=true],[data-selected=true],[data-state=checked],[data-state=on]) [data-ad-checkbox434-art],[data-ad-checkbox434-host]:has(input[type=checkbox]:checked,[aria-checked=true],[aria-pressed=true],[aria-selected=true],[data-checked=true],[data-selected=true],[data-state=checked],[data-state=on]) [data-ad-checkbox434-art],[data-ad-checkbox434-host][class*=checked]:not([class*=unchecked]) [data-ad-checkbox434-art],[data-ad-checkbox434-host][class*=selected]:not([class*=unselected]) [data-ad-checkbox434-art],[data-ad-checkbox434-host]:has([class*=checked]:not([class*=unchecked]),[class*=selected]:not([class*=unselected])) [data-ad-checkbox434-art],[data-ad-checkbox434-art]:is(input[type=checkbox]:checked,[aria-checked=true],[aria-pressed=true],[aria-selected=true],[data-checked=true],[data-selected=true],[data-state=checked],[data-state=on]),[data-ad-checkbox434-art][class*=checked]:not([class*=unchecked]),[data-ad-checkbox434-art][class*=selected]:not([class*=unselected]),[data-ad-checkbox434-art][src*=checkbox-on],[data-ad-checkbox434-art][src*=checkbox_checked],[data-ad-checkbox434-art][src*=checkmark],[data-ad-checkbox434-art][src*=selected],[data-ad-checkbox434-art][data-src*=checkbox-on],[data-ad-checkbox434-art][data-src*=checkbox_checked],[data-ad-checkbox434-art][data-src*=checkmark],[data-ad-checkbox434-art][data-src*=selected]{filter:none !important;border-radius:0 !important;box-shadow:none !important;}'"
+               "+'[data-ad-checkbox434-shell=\"cart\"]{background-color:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important;outline:0 !important;filter:none !important;}'"
+               "+'[data-ad-checkbox434-shell=\"cart\"]::before,[data-ad-checkbox434-shell=\"cart\"]::after{background-color:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important;outline:0 !important;filter:none !important;}';"
+             "(document.head||document.documentElement).appendChild(s434);}"
+           "function cn434(e){var c=e&&e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||''));}"
+           "function rr434(e){try{return e&&e.getBoundingClientRect?e.getBoundingClientRect():null;}catch(x){return null;}}"
+           "function sq434(e,lo,hi){var r=rr434(e);return !!(r&&r.width>=lo&&r.width<=hi&&r.height>=lo&&r.height<=hi&&Math.abs(r.width-r.height)<=14);}"
+           "var body434=String(document.body.innerText||document.body.textContent||'').toLowerCase(),cart434=body434.indexOf('proceed to checkout')>=0&&(body434.indexOf('save for later')>=0||body434.indexOf('select all items')>=0||body434.indexOf('deselect all items')>=0);"
+           "var scopeSel434='[class*=puis-card],[class*=s-result-item],[data-component-type=\"s-search-result\"],[data-asin],[class*=s-product-image],[class*=product-image],[class*=sc-list-item],[class*=sc-item]';"
+           "var semanticSel434='[class*=copilot-compare],button[aria-label*=ompare],[role=button][aria-label*=ompare],[role=checkbox],[aria-checked],[data-csa-c-content-id*=ompare],[data-testid*=ompare],div.a-checkbox,[class~=a-checkbox]';"
+           "function scope434(e){return !!(e&&e.closest&&e.closest(scopeSel434));}/* Cart mode changes shell paint only, never page-wide checkbox scope */"
+           "function foreign434(e){try{return !!(e&&e.closest&&e.closest('[class*=mlt-icon-container],[class*=lists-framework-action-button],[data-ad-cards410-root],[data-ad-cards410-host],[data-ad-cards410-disc],[data-ad-cards410-glyph],[data-ad-heart-shell427],[class*=puis-heart-position],[class*=lists-treatment-hear],[class*=puis-mab-chevron]'));}catch(x){return true;}}"
+           "function owned434(e){if(!e||e.nodeType!==1)return false;var p=String(e.getAttribute('data-ad-product391')||''),v=String(e.getAttribute('data-ad-v333403')||''),d=String(e.getAttribute('data-ad-disc420')||''),s=String(e.getAttribute('data-ad-sym413')||''),v4=String(e.getAttribute('data-ad-v333404')||'');if(p==='checkbox'||v==='c'||d==='checkbox'||s==='checkbox'||v4==='c'||v4==='checkbox')return true;var A=['data-ad-comparehost377','data-ad-comparechecked377','data-ad-compareinput377','data-ad-compare378','data-ad-compareleaf378','data-ad-compare-raster378','data-ad-compare379','data-ad-compareinput379','data-ad-compareorig379','data-ad-compare380','data-ad-compareinput380','data-ad-compareorig380','data-ad-comparelegacy387','data-ad-comparelegacyorig387','data-ad-productselected391','data-ad-productglyph391','data-ad-productraster391','data-ad-productvector391','data-ad-stock403','data-ad-stocksel403','data-ad-stockglyph403','data-ad-stockraster403','data-ad-stockvector403','data-ad-sym413glyph','data-ad-comparefunc428','data-ad-compareselected428','data-ad-comparehit428'];for(var i=0;i<A.length;i++)if(e.hasAttribute(A[i]))return true;return /^(?:product391|sym413|sym413glyph|disc420|disc422)$/.test(String(e.__adBy||''));}"
+           "var marks434=['data-ad-comparehost377','data-ad-comparechecked377','data-ad-compareinput377','data-ad-compare378','data-ad-compareleaf378','data-ad-compare-raster378','data-ad-compare379','data-ad-compareinput379','data-ad-compareorig379','data-ad-compare380','data-ad-compareinput380','data-ad-compareorig380','data-ad-comparelegacy387','data-ad-comparelegacyorig387','data-ad-product391','data-ad-productselected391','data-ad-productglyph391','data-ad-productraster391','data-ad-productvector391','data-ad-stock403','data-ad-stocksel403','data-ad-stockglyph403','data-ad-stockraster403','data-ad-stockvector403','data-ad-v333403','data-ad-v333404','data-ad-disc420','data-ad-sym413','data-ad-sym413glyph','data-ad-comparefunc428','data-ad-compareselected428','data-ad-comparehit428'];"
+           "var props434=['background-color','border','border-color','border-width','border-style','border-radius','box-shadow','box-sizing','filter','width','height','min-width','min-height','max-width','max-height','position','inset','top','right','bottom','left','transform','overflow','isolation','outline','z-index','margin','pointer-events','opacity','visibility','color','fill','stroke','transition','display','cursor'];/* preserve Amazon background-image/mask sprite */"
+           "function scrub434(e){if(!owned434(e))return 0;for(var p=0;p<props434.length;p++)e.style.removeProperty(props434[p]);for(var a=0;a<marks434.length;a++)e.removeAttribute(marks434[a]);delete e.__adBy;delete e.__adGlyph;delete e.__adManual380;delete e.__adManualSig380;delete e.__adCompareBlue428;return 1;}"
+           "function generic434(e){var b=String(e&&e.__adBy||'');if(!/^(?:gfix1|gfix2|aic|gsweep|fltpanel)$/.test(b))return 0;e.style.removeProperty('filter');delete e.__adBy;delete e.__adGlyph;return 1;}"
+           "function visual434(e){try{var c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after'),bi=String(c.backgroundImage||'none'),mi=String(c.maskImage||c.webkitMaskImage||'none'),pbi=String((b&&b.backgroundImage)||'none')+' '+String((a&&a.backgroundImage)||'none'),pmi=String((b&&(b.maskImage||b.webkitMaskImage))||'none')+' '+String((a&&(a.maskImage||a.webkitMaskImage))||'none');return bi!=='none'||mi!=='none'||pbi!=='none none'||pmi!=='none none';}catch(x){return false;}}"
+           "function light434(c){try{var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([0-9.]+))?/i.exec(String(c&&c.backgroundColor||''));if(!m||(m[4]!==undefined&&+m[4]<.12))return false;return (.2126*(+m[1])+.7152*(+m[2])+.0722*(+m[3]))/255>.62;}catch(x){return false;}}"
+           "function group434(e){if(!e||!scope434(e)||foreign434(e))return null;var exact=(e.matches&&e.matches('[class*=a-icon-checkbox]'))?e:(e.querySelector&&e.querySelector('[class*=a-icon-checkbox]')),ep=e.parentElement,eu=0;while(!exact&&ep&&eu++<4){exact=ep.querySelector&&ep.querySelector('[class*=a-icon-checkbox]');if(exact||ep.matches&&ep.matches(scopeSel434))break;ep=ep.parentElement;}if(exact&&!foreign434(exact)){var ah=exact.closest&&exact.closest('div.a-checkbox,[class~=a-checkbox]');if(ah&&scope434(ah)&&!foreign434(ah))return ah;var ch=exact.closest&&exact.closest('[class*=copilot-compare]');if(ch&&scope434(ch)&&sq434(ch,16,76)&&!foreign434(ch))return ch;var bh=exact.closest&&exact.closest('button[aria-label*=ompare],[role=button][aria-label*=ompare],[data-csa-c-content-id*=ompare],[data-testid*=ompare]');if(bh&&scope434(bh)&&sq434(bh,16,76)&&!foreign434(bh))return bh;}var legit=e.closest&&e.closest('[class*=copilot-compare],[class*=compare-checkbox],button[aria-label*=ompare],[role=button][aria-label*=ompare],[role=checkbox],[aria-checked],[data-csa-c-content-id*=ompare],[data-testid*=ompare]');if(!exact&&!legit)return null;var tg0=String(e.tagName||'').toUpperCase(),p=/^(IMG|I|INPUT|SVG|PATH|USE|POLYGON)$/.test(tg0)?e.parentElement:e,sem=null,best=null,u=0;while(p&&u++<8){if(foreign434(p))return null;var tg=String(p.tagName||'').toUpperCase();if(!sem&&p.matches&&p.matches(semanticSel434)&&sq434(p,16,76))sem=p;if(!best&&!/^(IMG|I|INPUT|SVG|PATH|USE|POLYGON)$/.test(tg)&&sq434(p,16,76))best=p;if(p.matches&&p.matches(scopeSel434))break;p=p.parentElement;}return sem||best||((tg0==='INPUT')?e:(e.parentElement||e));}"
+           "function selected434(h){try{var q=(h.matches&&h.matches('input[type=checkbox]'))?h:h.querySelector('input[type=checkbox]');if(q)return !!q.checked;var A=[h],Z=h.querySelectorAll?h.querySelectorAll('[role=checkbox],[aria-checked],[aria-pressed],[aria-selected],[data-checked],[data-selected],[data-state]'):[];for(var i=0;i<Z.length&&i<32;i++)A.push(Z[i]);for(var j=0;j<A.length;j++){var e=A[j],a=String(e.getAttribute('aria-checked')||e.getAttribute('aria-pressed')||e.getAttribute('aria-selected')||e.getAttribute('data-checked')||e.getAttribute('data-selected')||e.getAttribute('data-state')||'').toLowerCase(),c=cn434(e).toLowerCase();if(a==='true'||a==='checked'||a==='on'||(/checked|selected/.test(c)&&!/unchecked|unselected/.test(c)))return true;if(a==='false'||a==='unchecked'||a==='off')return false;}var im=h.querySelector&&h.querySelector('img[src],img[data-src]'),src=im?String(im.currentSrc||im.src||im.getAttribute('data-src')||'').toLowerCase():'';return /checkbox[_-]?(?:on|checked)|checkmark|selected/.test(src)&&!/unchecked|unselected/.test(src);}catch(x){return false;}}"
+           "function art434(h,seed){try{var Q=[h],D=h.querySelectorAll?h.querySelectorAll('*'):[];for(var q=0;q<D.length&&q<100;q++)Q.push(D[q]);if(Q.indexOf(seed)<0)Q.push(seed);var best=null,bs=9999;for(var i=0;i<Q.length;i++){var e=Q[i];if(!e||foreign434(e))continue;var r=rr434(e);if(!r||r.width<8||r.height<8||r.width>76||r.height>76)continue;var tg=String(e.tagName||'').toUpperCase();if(/^(PATH|USE|POLYGON)$/.test(tg))continue;var c=cn434(e).toLowerCase(),src=String((e.currentSrc||e.src||(e.getAttribute&&e.getAttribute('data-src'))||'')).toLowerCase(),cs=getComputedStyle(e),op=parseFloat(cs.opacity||'1'),exact=/a-icon-checkbox|checkbox[-_ ]?(?:icon|sprite|image)|checkmark|check-mark|tick/.test(c+' '+src),painted=visual434(e)||light434(cs),role=e.getAttribute&&e.getAttribute('role')==='checkbox',score=999;if(exact)score=0;else if(painted)score=20;else if(/^(I|IMG|SVG)$/.test(tg))score=35;else if(tg==='INPUT'&&String(e.type||'').toLowerCase()==='checkbox')score=45;else if(role)score=60;else if(e===seed)score=90;else continue;if(e===h)score+=25;if(op<.12||String(cs.visibility||'')==='hidden'||String(cs.display||'')==='none')score+=70;score+=(r.width*r.height)/100000;if(score<bs){bs=score;best=e;}}return best||(sq434(seed,8,76)?seed:(sq434(h,8,76)?h:null));}catch(x){return null;}}"
+           "var prevHosts434=document.querySelectorAll('[data-ad-checkbox434-host]'),prevArts434=document.querySelectorAll('[data-ad-checkbox434-art]'),prevShells434=document.querySelectorAll('[data-ad-checkbox434-shell]');"
+           "var shells434=[],hosts434=[],arts434=[],unchecked434=0,checked434=0,cleaned434=0,skip434=0,cartShell434=0;"
+           "function shell434(h,art){if(!cart434||!h||!art)return;var p=art.parentElement,u=0;while(p&&u++<5){var tg=String(p.tagName||'').toUpperCase(),r=rr434(p),bounded=!!(r&&r.width>=18&&r.width<=76&&r.height>=18&&r.height<=76);if(p!==art&&p.contains&&p.contains(art)&&bounded&&!/^(IMG|I|INPUT|SVG|PATH|USE)$/.test(tg)){p.setAttribute('data-ad-checkbox434-shell','cart');if(shells434.indexOf(p)<0){shells434.push(p);cartShell434++;}}if(p.matches&&p.matches(scopeSel434))break;p=p.parentElement;}}"
+           "var C=document.querySelectorAll('input[type=checkbox],[role=checkbox],[aria-checked],[class*=a-checkbox],[class*=a-icon-checkbox],[class*=copilot-compare],button[aria-label*=ompare],[role=button][aria-label*=ompare],[data-csa-c-content-id*=ompare],[data-testid*=ompare],img[src*=checkbox],img[data-src*=checkbox]');"
+           "for(var i=0;i<C.length&&i<1100;i++){var seed=C[i],h=group434(seed);if(!h||hosts434.indexOf(h)>=0){skip434++;continue;}var Q=[h],D=h.querySelectorAll?h.querySelectorAll('*'):[];for(var q=0;q<D.length&&q<140;q++)Q.push(D[q]);for(var z=0;z<Q.length;z++){cleaned434+=generic434(Q[z]);cleaned434+=scrub434(Q[z]);Q[z].removeAttribute('data-ad-checkbox433-art');}var art=art434(h,seed);if(!art){skip434++;continue;}hosts434.push(h);var syn=h.querySelectorAll?h.querySelectorAll('[data-ad-comparebox377],[data-ad-comparecheck377]'):[];for(var sy=0;sy<syn.length;sy++){if(syn[sy].parentNode)syn[sy].parentNode.removeChild(syn[sy]);cleaned434++;}if(h.getAttribute('data-ad-checkbox434-host')!=='stock')h.setAttribute('data-ad-checkbox434-host','stock');var AL=[art],EX=h.querySelectorAll?h.querySelectorAll('[class*=a-icon-checkbox],img[src*=checkbox],img[data-src*=checkbox]'):[];for(var ex=0;ex<EX.length&&ex<24;ex++){var xa=EX[ex],xr=rr434(xa),xs=getComputedStyle(xa);if(xr&&xr.width>=8&&xr.height>=8&&xr.width<=76&&xr.height<=76&&parseFloat(xs.opacity||'1')>=.12&&String(xs.display||'')!=='none'&&String(xs.visibility||'')!=='hidden'&&AL.indexOf(xa)<0)AL.push(xa);}for(var al=0;al<AL.length;al++){var aa=AL[al];if(arts434.indexOf(aa)<0){if(aa.getAttribute('data-ad-checkbox434-art')!=='stock')aa.setAttribute('data-ad-checkbox434-art','stock');arts434.push(aa);}}shell434(h,art);if(selected434(h))checked434++;else unchecked434++;}"
+           "var old433=document.querySelectorAll('[data-ad-checkbox433-art]');for(var x433=0;x433<old433.length;x433++)old433[x433].removeAttribute('data-ad-checkbox433-art');"
+           "for(var ph=0;ph<prevHosts434.length;ph++)if(hosts434.indexOf(prevHosts434[ph])<0)prevHosts434[ph].removeAttribute('data-ad-checkbox434-host');for(var pa=0;pa<prevArts434.length;pa++)if(arts434.indexOf(prevArts434[pa])<0)prevArts434[pa].removeAttribute('data-ad-checkbox434-art');for(var ps=0;ps<prevShells434.length;ps++)if(shells434.indexOf(prevShells434[ps])<0)prevShells434[ps].removeAttribute('data-ad-checkbox434-shell');"
+           "window.__AD_CHECKBOX434_STATE__='hosts='+hosts434.length+' art='+arts434.length+' unchecked='+unchecked434+' checked='+checked434+' cart='+(cart434?1:0)+' shells='+cartShell434+' cleaned='+cleaned434+' skip='+skip434;return hosts434.length;"
+         "}catch(e){window.__AD_CHECKBOX434_STATE__='err '+(e&&e.message||e);return -1;}finally{window.__AD_CHECKBOX434_RUNNING__=0;}}"
+         "try{window.__AD_CHECKBOX434__=stockCheckbox434;if(!window.__AD_CHECKBOX434_WRAP__){window.__AD_CHECKBOX434_WRAP__=1;"
+           "window.__AD_PRODUCTCTRL391_PRE434__=window.__AD_PRODUCTCTRL391RUN__;window.__AD_PRODUCTCTRL391RUN__=function(){var r=window.__AD_PRODUCTCTRL391_PRE434__?window.__AD_PRODUCTCTRL391_PRE434__():0;try{window.__AD_CHECKBOX434__();}catch(x){}return r;};"
+           "new MutationObserver(function(){try{window.__AD_CHECKBOX434__();}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});"
+           "function queue434(){if(window.__AD_CHECKBOX434_QUEUED__)return;window.__AD_CHECKBOX434_QUEUED__=1;var r434=function(){window.__AD_CHECKBOX434_QUEUED__=0;try{window.__AD_CHECKBOX434__();}catch(x){}};if(window.requestAnimationFrame)window.requestAnimationFrame(r434);else setTimeout(r434,0);}"
+           "addEventListener('scroll',queue434,{passive:true,capture:true});}"
+           "stockCheckbox434();setTimeout(stockCheckbox434,40);setTimeout(stockCheckbox434,180);setTimeout(stockCheckbox434,700);setTimeout(stockCheckbox434,1800);"
+         "}catch(e){}"
          "function sym413(){try{"
            "var SPEC={bg:'#181a1b',bd:'1.5px solid rgba(255,255,255,0.65)'};"
            "if(!document.getElementById('adcards440')){var s440=document.createElement('style');s440.id='adcards440';s440.textContent='[data-ad-cards440-pseudo*=b]::before,[data-ad-cards440-pseudo*=a]::after{filter:brightness(0) invert(1) !important;color:#fff !important;fill:#fff !important;stroke:#fff !important;}';(document.head||document.documentElement).appendChild(s440);}"
@@ -897,7 +1040,7 @@ static NSString *ADFourSymbolsWebJS446(void){
            "addEventListener('scroll',function(){clearTimeout(window.__symT413);"
              "window.__symT413=setTimeout(sym413,110);},{passive:true,capture:true});"
          "}catch(e){}"
-       "return 'sym413';}catch(e){return 'sym413err';}})();";
+       "return 'sym413';}catch(e){return 'sym413err';}})();"];
 }
 
 static void ADAttachFourSymbolsUserScript446(WKUserContentController *ucc){
@@ -993,67 +1136,7 @@ static void ADEnableDarkReaderIn(WKWebView *wv){
                 // Rather than chase every creation path, repair it here: inject the
                 // full engine directly into the live document. evaluateJavaScript does
                 // not care how the document came to exist, so this works regardless.
-                // Overlay diagnostic: name the elements veiling product images. Amazon blocks
-                // remote DOM inspection, so the page has to tell us itself. Runs once per URL.
-                if ([st containsString:@"complete"]) {
-                    static NSMutableSet *ovSeen = nil;
-                    if (!ovSeen) ovSeen = [NSMutableSet set];
-                    if (![ovSeen containsObject:u]){
-                        NSString *probe =
-                          @"(function(){try{"
-                           "var imgs=[].slice.call(document.querySelectorAll('img'));"
-                           "var big=imgs.filter(function(i){var r=i.getBoundingClientRect();"
-                             "return r.width>=80&&r.height>=80;});"
-                           "if(!big.length)return 'imgs='+imgs.length+' big=0';"
-                           "var out=[];"
-                           "for(var n=0;n<big.length&&out.length<3;n++){var im=big[n];"
-                             "var cs=getComputedStyle(im);"
-                             "var r=im.getBoundingClientRect();"
-                             "var top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);"
-                             "var cover='self';"
-                             "if(top&&top!==im){var tcs=getComputedStyle(top);"
-                               "cover=(top.tagName||'?')+'.'+String(top.className||'').slice(0,24)"
-                                 "+'{bg='+tcs.backgroundColor+',bgi='+tcs.backgroundImage.slice(0,24)"
-                                 "+',op='+tcs.opacity+'}';}"
-                             "out.push('IMG{filter='+cs.filter+',op='+cs.opacity"
-                               "+',blend='+cs.mixBlendMode+',bg='+cs.backgroundColor"
-                               "+'} cover='+cover);}"
-                           "var bgEls=[].slice.call(document.querySelectorAll('div,span,a'))"
-                             ".filter(function(e){var c=getComputedStyle(e);"
-                               "if(c.backgroundImage.indexOf('url(')<0)return false;"
-                               "var r=e.getBoundingClientRect();return r.width>=80&&r.height>=80;});"
-                           "for(var m=0;m<bgEls.length&&m<2;m++){var be=bgEls[m];"
-                             "var bc=getComputedStyle(be);"
-                             "out.push('BGEL{filter='+bc.filter+',op='+bc.opacity"
-                               "+',bg='+bc.backgroundColor+',bgi='+bc.backgroundImage.slice(0,50)+'}');}"
-                           "var htmlF=getComputedStyle(document.documentElement).filter;"
-                           "var bodyF=getComputedStyle(document.body).filter;"
-                           "var png=0,jpg=0,other=0;"
-                           "for(var q=0;q<big.length;q++){var u2=(big[q].currentSrc||big[q].src||'');"
-                             "if(/\\.png(\\?|$)/i.test(u2))png++;"
-                             "else if(/\\.jpe?g(\\?|$)/i.test(u2))jpg++;else other++;}"
-                           "var fr=document.querySelectorAll('iframe').length;"
-                           "return 'img='+big.length+' png='+png+' jpg='+jpg+' other='+other"
-                             "+' bgEl='+bgEls.length+' iframes='+fr"
-                             "+' htmlFilter='+htmlF+' bodyFilter='+bodyF"
-                             "+' || '+out.join(' || ');"
-                           "}catch(e){return 'err:'+e;}})()";
-                        [wv evaluateJavaScript:probe completionHandler:^(id r3, NSError *e3){
-                            @try {
-                                if (![r3 isKindOfClass:[NSString class]]) return;
-                                NSString *res = (NSString *)r3;
-                                // Only remember a sample that actually found media. An
-                                // empty result means we looked too early (or the content
-                                // lives in a frame), so leave the URL un-cached and try
-                                // again on the next pass rather than caching a blind spot.
-                                BOOL useful = !([res containsString:@"img=0 bgEl=0"] ||
-                                                [res hasPrefix:@"imgs=0"]);
-                                if (useful) [ovSeen addObject:u];
-                                ADLog(@"overlay@%@: %@%@", u, res, useful ? @"" : @" [retrying]");
-                            } @catch(...) {}
-                        }];
-                    }
-                }
+                // v6.0.3: historical overlay probe removed; it only scanned/logged DOM.
                 if ([st containsString:@"noflag"] || [st hasPrefix:@"noDR"]){
                     // ROOT-CAUSE HALF. noflag recurring on every navigation means our
                     // documentStart user script is not present on this web view's content
@@ -2174,135 +2257,8 @@ static void ADForceBarDark(UIView *bar){
 }
 %end
 
-// ════════════════════════════════════════════════════════════════════════════════
-// DIAGNOSTIC PROBE — make the tweak tell us what is still light.
-// ────────────────────────────────────────────────────────────────────────────────
-// Three rounds of inferring from screenshots has not converged, because a white
-// panel can be a UIView background, a drawRect: fill, a UIImage, or a web surface,
-// and they look identical in a photo but need completely different fixes. This walks
-// the live hierarchy and logs the CLASS of anything still rendering light, plus how
-// it is coloured. One line per offender tells us which mechanism to target.
-//
-// Throttled hard: at most one report per screen appearance and capped entries, so it
-// cannot spam the log or cost anything meaningful on the main thread.
-static BOOL  gProbeArmed  = NO;
-static int   gProbeReports = 0;
-// Dedupe by identity rather than capping the number of runs. The old hard cap of 6
-// reports was consumed during launch, so by the time a problem tab was opened the
-// probe had permanently stopped — which is exactly why the hamburger returned no
-// diagnostics. Reporting each distinct offender once keeps it alive indefinitely
-// without spamming.
-static NSMutableSet *gProbeSeen = nil;
-static BOOL ADProbeFirstTime(NSString *key){
-    if (!gProbeSeen) gProbeSeen = [NSMutableSet set];
-    if ([gProbeSeen containsObject:key]) return NO;
-    [gProbeSeen addObject:key];
-    return YES;
-}
-
-static void ADProbeTree(UIView *v, int depth, int *found){
-    if (!v || depth > 40 || *found >= 40) return;
-    @try {
-        if (ADIsWebKitOwned(v)) {
-            ADLog(@"  probe: WEBVIEW %s (Dark Reader territory)", object_getClassName(v));
-            return;
-        }
-        // Small image-bearing views: the Alexa panel's native icons. Either
-        // UIImageView artwork, or raw layer.contents -- React Native Fabric
-        // paints images that way and bypasses every UIImageView hook, which
-        // would explain glyphs no pass has ever touched.
-        @try {
-            CGFloat gw = v.bounds.size.width, gh = v.bounds.size.height;
-            if (gw >= 8 && gw <= 48 && gh >= 8 && gh <= 48 && !v.hidden){
-                BOOL isIv = [v isKindOfClass:[UIImageView class]];
-                UIImage *gi = isIv ? ((UIImageView *)v).image : nil;
-                BOOL layerImg = !isIv && v.layer.contents != nil;
-                if (gi || layerImg){
-                    NSString *gk = [NSString stringWithFormat:@"G%s%.0fx%.0f",
-                                    object_getClassName(v), gw, gh];
-                    if (ADProbeFirstTime(gk)){
-                        UIColor *tc = v.tintColor; CGFloat tr,tg,tb,ta; double tl = -1;
-                        if (tc && [tc getRed:&tr green:&tg blue:&tb alpha:&ta]) tl = 0.2126*tr+0.7152*tg+0.0722*tb;
-                        ADLog(@"  probe: GLYPH %s %.0fx%.0f img=%d dark=%d tmpl=%d layer=%d tint=%.2f",
-                              object_getClassName(v), gw, gh, gi?1:0,
-                              gi?ADIsDarkGlyph(gi):0, (gi && ADImageIsTemplateish(gi))?1:0,
-                              layerImg?1:0, tl);
-                        (*found)++;
-                    }
-                }
-            }
-        } @catch(...) {}
-        UIColor *bg = v.backgroundColor;
-        if (bg){
-            CGFloat r,g,b,a;
-            if ([bg getRed:&r green:&g blue:&b alpha:&a] && a > 0.2){
-                CGFloat lum = 0.2126*r + 0.7152*g + 0.0722*b;
-                if (lum > 0.55){                     // still light => an offender
-                    NSString *k = [NSString stringWithFormat:@"L%s%.0fx%.0f",
-                                   object_getClassName(v), v.bounds.size.width, v.bounds.size.height];
-                    if (ADProbeFirstTime(k)){
-                        ADLog(@"  probe: LIGHT bg %s rgba(%.2f,%.2f,%.2f,%.2f) frame=%.0fx%.0f",
-                              object_getClassName(v), r,g,b,a,
-                              v.bounds.size.width, v.bounds.size.height);
-                        (*found)++;
-                    }
-                } else if (a < 0.95 && lum < 0.35 && v.bounds.size.width > 100){
-                    // Dark AND translucent over a large area = the veil on the home tab.
-                    NSString *k = [NSString stringWithFormat:@"O%s%.0fx%.0f",
-                                   object_getClassName(v), v.bounds.size.width, v.bounds.size.height];
-                    if (ADProbeFirstTime(k)){
-                        ADLog(@"  probe: DARK-OVERLAY %s rgba(%.2f,%.2f,%.2f,%.2f) frame=%.0fx%.0f",
-                              object_getClassName(v), r,g,b,a,
-                              v.bounds.size.width, v.bounds.size.height);
-                        (*found)++;
-                    }
-                }
-            }
-        } else if (v.bounds.size.width > 150 && v.bounds.size.height > 60 && !v.hidden) {
-            // No backgroundColor at all but big and visible => probably drawRect: or a
-            // UIImageView. Naming it tells us which of the two to chase.
-            BOOL isImg = [v isKindOfClass:[UIImageView class]];
-            // If it draws itself, does the class override drawRect: ? That is the
-            // signal for [UIColor set]/setFill painting our hooks should be catching.
-            BOOL drawsSelf = [v methodForSelector:@selector(drawRect:)] !=
-                             [UIView instanceMethodForSelector:@selector(drawRect:)];
-            // For image views, is the image a tiny resizable slice (a background) or a
-            // real picture? Tiny + tiled = a themeable chrome asset.
-            const char *imgInfo = "";
-            if (isImg){
-                UIImage *im = ((UIImageView *)v).image;
-                if (im && (im.size.width < 8 || im.size.height < 8)) imgInfo = " TINY-STRETCH-IMG";
-            }
-            NSString *k = [NSString stringWithFormat:@"N%s%.0fx%.0f",
-                           object_getClassName(v), v.bounds.size.width, v.bounds.size.height];
-            if (ADProbeFirstTime(k)){
-                ADLog(@"  probe: NO-BG %s%s%s%s frame=%.0fx%.0f",
-                      object_getClassName(v),
-                      isImg ? " IMAGEVIEW" : "",
-                      drawsSelf ? " DRAWS-SELF" : "",
-                      imgInfo,
-                      v.bounds.size.width, v.bounds.size.height);
-                (*found)++;
-            }
-        }
-        for (UIView *s in v.subviews) ADProbeTree(s, depth+1, found);
-    } @catch(...) {}
-}
-
-static void ADRunProbe(void){
-    if (!gProbeArmed) return;
-    gProbeArmed = NO;
-    gProbeReports++;
-    @try {
-        int found = 0;
-        ADLog(@"── probe #%d: scanning for surfaces still light ──", gProbeReports);
-        for (UIScene *sc in [UIApplication sharedApplication].connectedScenes){
-            if (![sc isKindOfClass:[UIWindowScene class]]) continue;
-            for (UIWindow *w in ((UIWindowScene *)sc).windows) ADProbeTree(w, 0, &found);
-        }
-        ADLog(@"── probe #%d complete: %d offender(s) ──", gProbeReports, found);
-    } @catch(...) {}
-}
+// v6.0.3: retired historical native hierarchy diagnostic probe.
+// It had no theming responsibility and recursively walked windows only to log offenders.
 
 // ════════════════════════════════════════════════════════════════════════════════
 // SURFACE 3d — REACT NATIVE VIEW BACKGROUNDS
@@ -3960,11 +3916,7 @@ static void ADReapplyBurst(void){
                 [vcSeen addObject:vcKey];
                 ADLog(@"screen: %@", vcKey);
             }
-            gProbeArmed = YES;
             ADReapplyBurst();
-            // Probe after the burst has settled, so we only report genuine hold-outs.
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 900*1000000LL),
-                dispatch_get_main_queue(), ^{ ADRunProbe(); });
         }
     } @catch(...) {}
 }

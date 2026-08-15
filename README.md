@@ -124,10 +124,16 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 (MIT, © Dark Reader Ltd.) — see `Resources/DARKREADER-LICENSE`.
 
 
-## v6.0.2 backports
+## v6.0.3 backports
 
 - Build fix: preserves the v5.446 splash/readiness implementation while restoring the required forward declarations for `ADPreDarken` and `ADPostAppReady`.
 
 - Direct v5.446 SpringBoard dark launch cover/art and cover-release integration.
 - v5.446 four-symbol sym413 web fix (Heart, checkbox, two-cards, chevron).
 - Sileo package description and package icon using the Settings preference icon artwork.
+
+
+## v6.0.3
+- Direct v5.446 Heart and stock Compare checkbox/sprite support.
+- Sileo description refreshed to reflect the v5.446 feature set.
+- Removed legacy diagnostic-only native hierarchy and web overlay probes; theming paths are unchanged.
