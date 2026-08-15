@@ -123,10 +123,10 @@ native chrome keep working independently.
 Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkreader)
 (MIT, © Dark Reader Ltd.) — see `Resources/DARKREADER-LICENSE`.
 
-## v6.0.7
+## v6.0.8
 
-- Preserves the confirmed-good v6.0.6 dark top-chrome implementation and the v6.0.4 performance baseline.
-- Unlocks iPhone ProMotion availability in-process by presenting `CADisableMinimumFrameDurationOnPhone = YES` through both NSBundle and CFBundle lookup paths.
-- `Request 120 Hz` continues to request the panel maximum through `CADisplayLink`; the one-shot verifier records actual callback/timing rate, Low Power Mode, and thermal state.
-- Removes the redundant second launch sweep timer and replaces two overlapping launch sweep systems with six bounded recovery passes; event-driven hooks take over after 9 seconds.
-- AmazonDark still contains no targeted checkbox theming path; Amazon owns that stock control.
+- Preserves the confirmed-good v6.0.6 dark top chrome and all v6.0.7 ProMotion/performance work.
+- Leaves Amazon's checkbox painter fully stock: no AmazonDark checkbox styling, sprite replacement, filter, geometry, or state ownership.
+- Restores the v5.446 read-only collision guard: if a live stock `a-icon-checkbox` occupies the same control coordinates as the MLT two-cards host, AmazonDark suppresses only the cards host and does not paint the stock control.
+- Restores the corresponding Heart-shell stock-control guard so Heart cleanup cannot walk into a stock checkbox subtree.
+- Removes the document-start broad MLT whitening rule; real cards artwork is whitened only after the runtime collision check passes.
