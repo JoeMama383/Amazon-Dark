@@ -124,7 +124,7 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 (MIT, © Dark Reader Ltd.) — see `Resources/DARKREADER-LICENSE`.
 
 
-## v6.0.3 backports
+## v6.0.4 backports
 
 - Build fix: preserves the v5.446 splash/readiness implementation while restoring the required forward declarations for `ADPreDarken` and `ADPostAppReady`.
 
@@ -133,7 +133,17 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 - Sileo package description and package icon using the Settings preference icon artwork.
 
 
-## v6.0.3
+## v6.0.4
 - Direct v5.446 Heart and stock Compare checkbox/sprite support.
 - Sileo description refreshed to reflect the v5.446 feature set.
 - Removed legacy diagnostic-only native hierarchy and web overlay probes; theming paths are unchanged.
+
+
+## v6.0.4
+- v5.446 stock checkbox owner runs last and is preserved byte-for-byte; native sprite/background-position remain Amazon-owned.
+- Four-symbol scheduling consolidated to one RAF-batched observer/scroll path with no self-triggering style observation.
+- Runtime diagnostics/log-file I/O removed.
+- Historical web DOM probe removed.
+- Native full-sweep launch backstop shortened and view-transition bursts coalesced.
+- Full symbol/TWB JS is no longer resent across the bridge on every sweep; tiny kickers are used after initial installation.
+- Sileo description: Amazon Dark Mode for rootless jailbreaks, iOS 15+

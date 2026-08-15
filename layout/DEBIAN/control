@@ -1,8 +1,8 @@
 Package: com.colindavidr.amazondark
 Name: AmazonDark
-Version: 6.0.3
+Version: 6.0.4
 Architecture: iphoneos-arm64
-Description: True dark mode for the Amazon Shopping app, carrying the v5.446 feature set into the 6.x branch: Dark Reader web theming, Amazon native dark chrome, adjustable Tame White Backgrounds, optional 120 Hz, stock-preserving Heart and Compare checkbox/sprite symbology, and the dark SpringBoard launch splash. Product photos remain untouched.
+Description: Amazon Dark Mode for rootless jailbreaks, iOS 15+
 Maintainer: Colin Rioux
 Author: Colin Rioux
 Section: Tweaks

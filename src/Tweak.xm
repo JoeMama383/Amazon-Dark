@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v6.0.3"
+#define AD_VERSION "v6.0.4"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -105,28 +105,10 @@ extern char *__progname;
 @interface TezBaseSplashScreenViewController : UIViewController @end
 
 // ─────────────────────────────────────────────────────────────────────────────────
-// Logging (file-based, sandbox-safe). Raw writes only from ctor; Obj-C-free.
-// ─────────────────────────────────────────────────────────────────────────────────
-static int gFD = -1;
-static void ADOpenLog(void){
-    const char *t = getenv("TMPDIR");
-    char p[2048];
-    if (t && *t) snprintf(p, sizeof(p), "%sAmazonDark.log", t);   // TMPDIR ends with '/'
-    else         strncpy(p, "/tmp/AmazonDark.log", sizeof(p));
-    gFD = open(p, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-}
-static void ADRaw(const char *s){ if (gFD >= 0){ write(gFD, s, strlen(s)); write(gFD, "\n", 1); } }
-
-// Formatted logging. Safe after launch (Obj-C available); never called from %ctor.
-static void ADLog(NSString *fmt, ...) NS_FORMAT_FUNCTION(1,2);
-static void ADLog(NSString *fmt, ...){
-    @try {
-        va_list ap; va_start(ap, fmt);
-        NSString *m = [[NSString alloc] initWithFormat:fmt arguments:ap];
-        va_end(ap);
-        ADRaw([[@"[AmazonDark] " stringByAppendingString:m] UTF8String]);
-    } @catch(...) {}
-}
+// Logging is compiled out in v6.0.4 performance mode.
+#define ADOpenLog() ((void)0)
+#define ADRaw(...)  ((void)0)
+#define ADLog(...)  ((void)0)
 
 // ════════════════════════════════════════════════════════════════════════════════
 // PREFERENCES
@@ -641,108 +623,7 @@ static NSString *ADDarkReaderBootstrap(void){
                "else{var hf=lum(hcs.fill);if(hf!==null&&hf<0.35)he.style.setProperty('fill',FG,'important');"
                  "var hc2=lum(hcs.color);if(hc2!==null&&hc2<0.35)he.style.setProperty('color',FG,'important');}"
              "}}catch(e){}"
-           // One-shot probe. Two builds have now been spent inferring what paints
-           // these glyphs from what does NOT move. Cheaper to just ask the DOM: report
-           // the first few icon-sized elements and which mechanism draws each, so the
-           // next change targets a known selector instead of a guess.
-           // The one-shot flag was the bug: __AMZDARK_APPLY__ calls this once at
-           // bootstrap and DISCARDS the result, so the probe was always spent before
-           // the first logged invocation. Compute once, cache, return every time.
-           // Caching fixed the "consumed at bootstrap" bug but introduced its twin:
-           // the bootstrap call runs against a near-empty DOM, found nothing, and
-           // cached THAT. Hence probe=none while gfix was busy matching elements.
-           // Only cache a result that actually found something; keep retrying until
-           // one does.
-           // NO CACHE. Cached-once has now been wrong twice: spent on the bootstrap
-           // DOM, then locked to an early snapshot holding only the filter icon while
-           // the product cards had not rendered. Recompute every call -- it is two
-           // bounded scans behind a 400ms debounce -- so the log always describes the
-           // DOM as it stands right now.
-           "var pr='';try{{"
-             "var seen={},acc=[];"
-             "for(var q=0;q<els.length&&acc.length<14;q++){var pe=els[q];"
-               "var rc=pe.getBoundingClientRect();"
-               "if(rc.width<6||rc.width>40||rc.height<6||rc.height>40)continue;"
-               "if(pe.children.length>2)continue;"
-               "var pcs=getComputedStyle(pe),tg=pe.tagName.toLowerCase(),kind='';"
-               "var pbi=pcs.backgroundImage,pmi=pcs.webkitMaskImage||pcs.maskImage;"
-               "var ppb=getComputedStyle(pe,'::before');"
-               "if(tg==='img')kind='img';"
-               "else if(pmi&&pmi!=='none')kind='mask';"
-               "else if(pbi&&pbi!=='none')kind='bgimg';"
-               "else if(hasC(ppb))kind='pseudo';"
-               "else if(pe.namespaceURI==='http://www.w3.org/2000/svg')kind='svg';"
-               "else continue;"
-               "var cn=pe.className;if(cn&&cn.baseVal!==undefined)cn=cn.baseVal;"
-               "cn=(cn||'').toString().split(' ')[0].slice(0,22);"
-               "var k=kind+'.'+cn;if(seen[k])continue;seen[k]=1;"
-               "acc.push(k+'@'+Math.round(rc.width)+'x'+Math.round(rc.height)+'/'+pcs.color"
-                 "+'/f:'+((pcs.filter&&pcs.filter!=='none')?'Y':'-'));}"
-             // also name whatever is still LIGHT, which is what the Alexa card is
-             "var lt=[];for(var w=0;w<els.length&&lt.length<3;w++){var le=els[w];"
-               "var lcs=getComputedStyle(le),ll=lum(lcs.backgroundColor);"
-               // lfix has read 0 on every line, so whatever is still light is not a
-               // backgroundColor. A gradient is the obvious candidate and is invisible
-               // to lum(), so report those too rather than keep guessing at the pane.
-               "var lgi=lcs.backgroundImage||'';var lgr=lgi.indexOf('gradient')>=0;"
-               "if(!lgr&&(ll===null||ll<=0.55))continue;var lr=le.getBoundingClientRect();"
-               "if(lr.width<60||lr.height<20)continue;"
-               "var lc=le.className;if(lc&&lc.baseVal!==undefined)lc=lc.baseVal;"
-               "lt.push(le.tagName.toLowerCase()+'.'+(lc||'').toString().split(' ')[0].slice(0,18)"
-                 "+'@'+Math.round(lr.width)+'x'+Math.round(lr.height));}"
-             // Targeted: name the heart's markup directly instead of hoping it lands
-             // in the first N icon-sized elements.
-             "var ht=[];try{var hq=document.querySelectorAll("
-               "'[class*=heart],[class*=wish],[class*=favor],[aria-label*=list],[aria-label*=List]');"
-               "for(var y=0;y<hq.length&&ht.length<4;y++){var he=hq[y];"
-                 "var hr=he.getBoundingClientRect();if(hr.width<4)continue;"
-                 "var hcs=getComputedStyle(he),hk='plain';"
-                 "var hbi=hcs.backgroundImage,hmi=hcs.webkitMaskImage||hcs.maskImage;"
-                 "if(he.tagName.toLowerCase()==='img')hk='img';"
-                 "else if(hmi&&hmi!=='none')hk='mask';"
-                 "else if(hbi&&hbi!=='none')hk='bgimg';"
-                 "else if(he.namespaceURI==='http://www.w3.org/2000/svg')hk='svg';"
-                 "var hc=he.className;if(hc&&hc.baseVal!==undefined)hc=hc.baseVal;"
-                 "ht.push(hk+'.'+(hc||'').toString().split(' ')[0].slice(0,20)"
-                   "+'@'+Math.round(hr.width)+'x'+Math.round(hr.height)"
-                   "+'/f:'+(hcs.fill||'-')+'/c:'+hcs.color);}}catch(e){}"
-             // Full subtree of the first heart container, so we stop inferring which
-             // node draws the glyph. Widened after the 10-node cap cut the walk off
-             // exactly where the glyph should live (the children of the 32x32
-             // lists-framework span were nodes 11+): 24 nodes, ::after as well as
-             // ::before, pseudo paint sources, and the tail of any <img> src, which
-             // names the artwork outright.
-             "var htree='';try{var HB=document.querySelector('[class*=heart],[class*=wish],[class*=lists-framework]');"
-               "if(HB){var top=HB,up=0;"
-                 "while(top.parentElement&&up++<3){var pp2=top.parentElement;"
-                   "var pr3=pp2.getBoundingClientRect();if(pr3.width>48||pr3.height>48)break;top=pp2;}"
-                 "var stk=[top],hd=[],gd=0;"
-                 "var pc2=function(p){return !!(p&&p.content&&p.content!=='none'&&p.content!=='normal');};"
-                 "var pi2=function(p){return !!(p&&p.backgroundImage&&p.backgroundImage!=='none');};"
-                 "var pm2=function(p){return !!(p&&((p.webkitMaskImage||p.maskImage||'none')!=='none'));};"
-                 "while(stk.length&&hd.length<24&&gd++<300){var nd=stk.shift();"
-                   "var ncs=getComputedStyle(nd),nrr=nd.getBoundingClientRect();"
-                   "var nbb=getComputedStyle(nd,'::before'),naa=getComputedStyle(nd,'::after');"
-                   "var cn3=nd.className;if(cn3&&cn3.baseVal!==undefined)cn3=cn3.baseVal;"
-                   "var sr2='';if(nd.tagName.toLowerCase()==='img'){"
-                     "sr2=(nd.currentSrc||nd.src||'').split('?')[0];sr2='|src='+(sr2?sr2.slice(-26):'-');}"
-                   "hd.push(nd.tagName.toLowerCase()+'.'+String(cn3||'').split(' ')[0].slice(0,18)"
-                     "+'@'+Math.round(nrr.width)+'x'+Math.round(nrr.height)"
-                     "+'|bg='+ncs.backgroundColor.replace(/ /g,'')"
-                     "+'|bgi='+(ncs.backgroundImage==='none'?'-':'Y')"
-                     "+'|mask='+(((ncs.webkitMaskImage||ncs.maskImage||'none')==='none')?'-':'Y')"
-                     "+'|bef='+(pc2(nbb)?'Y':'-')+'|aft='+(pc2(naa)?'Y':'-')"
-                     "+'|pbgi='+(((pi2(nbb)?'b':'')+(pi2(naa)?'a':''))||'-')"
-                     "+'|pmsk='+(((pm2(nbb)?'b':'')+(pm2(naa)?'a':''))||'-')"
-                     "+'|flt='+ncs.filter+sr2);"
-                   "for(var ci2=0;ci2<nd.children.length;ci2++)stk.push(nd.children[ci2]);}"
-                 "htree=' HEARTTREE='+hd.join(' ~ ');}"
-             "}catch(e){}"
-             "pr=' url='+String(location.pathname||'').slice(0,28)"
-               "+(acc.length?(' probe='+acc.join(' ')):' probe=none')"
-               "+(lt.length?(' light='+lt.join(' ')):'')"
-               "+(ht.length?(' HEART='+ht.join(' ')):'')+htree;}"
-           "}catch(e){pr=' probeERR';}"
+           "var pr=\'\';"
            "return n+'/'+bfix+'/'+lfix+'/'+gfix+pr;}catch(e){return -1;}};"
          "window.__AMZDARK_APPLY__=function(){try{"
            "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
@@ -823,7 +704,7 @@ static NSString *ADWhiteTameWebJS446(void){
            "return n+bg;}catch(e){return 0;}}"
          "try{window._adTameFast362=_adTameFast362;_adTameCss362();_adTameFast362(document.documentElement);document.addEventListener('load',function(e){try{_adTameFast362(e.target);}catch(x){}},true);}catch(e){}"
 
-         "try{if(!window.__AD_TWB446_OBS__){window.__AD_TWB446_OBS__=1;new MutationObserver(function(muts){try{for(var mi=0;mi<muts.length&&mi<48;mi++){var mm=muts[mi];if(mm.type==='attributes'){if(mm.target)window._adTameFast362(mm.target);continue;}var aa=mm.addedNodes||[];for(var ai=0;ai<aa.length&&ai<24;ai++){if(aa[ai]&&aa[ai].nodeType===1)window._adTameFast362(aa[ai]);}}}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src','srcset','poster','class','style']});}}catch(e){}"
+         "try{if(!window.__AD_TWB446_OBS__){window.__AD_TWB446_OBS__=1;new MutationObserver(function(muts){try{for(var mi=0;mi<muts.length&&mi<48;mi++){var mm=muts[mi];if(mm.type==='attributes'){if(mm.target)window._adTameFast362(mm.target);continue;}var aa=mm.addedNodes||[];for(var ai=0;ai<aa.length&&ai<24;ai++){if(aa[ai]&&aa[ai].nodeType===1)window._adTameFast362(aa[ai]);}}}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src','srcset','poster','class']});}}catch(e){}"
          "}catch(e){}})();",
         (long)gP.whiteTameStrength];
 }
@@ -878,19 +759,14 @@ static NSString *ADDarkReaderReapply(void){
 }
 
 
-// ── v6.0.3: exact v5.446 four-symbol sym413 implementation ─────────────────
-// Heart / stock checkbox / two-cards / chevron. The sym413 body and its donor
-// scheduling lines below are copied verbatim from v5.446. The outer guard only
-// prevents duplicate installation when an existing WKWebView is re-healed.
+// ── v6.0.4: exact v5.446 symbol painters + one coalesced scheduler ───────────
+// Heart / two-cards / chevron / stock checkbox paint bodies below are copied
+// byte-for-byte from v5.446. Only their redundant scheduling is consolidated.
 static NSString *ADFourSymbolsWebJS446(void){
-    return [NSString stringWithFormat:
-       @"(function(){try{if(window.__AD_SYM601_LOADED__)return 'already';window.__AD_SYM601_LOADED__=1;"
-         // v6.0.3 direct v5.446 Heart + stock checkbox support. The following
-         // donor blocks are copied byte-for-byte from the exact 5.446 source.
-         // v333403+stock403+stocksel403+sym413 belongs to the square wrapper
-         // around a zero-height lists-framework Heart root.  Remove only false
-         // checkbox ownership from that wrapper and leave the real round Heart,
-         // the cards control, and div.a-checkbox > i.a-icon-checkbox untouched.
+    static NSString *cached = nil;
+    if (cached) return cached;
+    cached = [NSString stringWithFormat:
+       @"(function(){try{if(window.__AD_SYM604_LOADED__)return 'already';window.__AD_SYM604_LOADED__=1;"
          "window.__AD_HEARTSHELL427__=function(){try{if(window.__ADFRAME_MODE__||!document.body)return 0;"
            "function real427(e){return !!(e&&e.querySelector&&e.querySelector('input[type=checkbox],[class*=a-icon-checkbox]'));}"
            "function card427(e){var c=String(e&&e.className||'');return /mlt-icon-container/.test(c)||e.getAttribute('data-ad-sym413')==='cards';}"
@@ -913,67 +789,7 @@ static NSString *ADFourSymbolsWebJS446(void){
              "p=p.parentElement;}}"
            "window.__AD_HEARTSHELL427_STATE__='roots='+R.length+' shells='+n;return n;"
          "}catch(e){window.__AD_HEARTSHELL427_STATE__='err '+(e&&e.message||e);return -1;}};"
-         "try{window.__AD_STOCKCAP403_PRE427__=window.__AD_STOCKCAP403__;window.__AD_STOCKCAP403__=function(){var r=window.__AD_STOCKCAP403_PRE427__?window.__AD_STOCKCAP403_PRE427__():0;try{window.__AD_HEARTSHELL427__();}catch(x){}return r;};}catch(e){}"
          "try{if(document&&!document.getElementById('adheartshell427')){var h427=document.createElement('style');h427.id='adheartshell427';h427.textContent='[data-ad-heart-shell427]{background-color:transparent !important;border:0 !important;border-radius:0 !important;box-shadow:none !important;outline:none !important;}[data-ad-heart-shell427]::before,[data-ad-heart-shell427]::after{background-color:transparent !important;border:0 !important;box-shadow:none !important;outline:none !important;}';(document.head||document.documentElement).appendChild(h427);}}catch(e){}"
-         "try{window.__AD_PRODUCTCTRL391_PRE427__=window.__AD_PRODUCTCTRL391RUN__;window.__AD_PRODUCTCTRL391RUN__=function(){var r=window.__AD_PRODUCTCTRL391_PRE427__?window.__AD_PRODUCTCTRL391_PRE427__():0;try{window.__AD_HEARTSHELL427__();}catch(x){}return r;};}catch(e){}"
-         "try{window.__AD_HEARTSHELL427__();setTimeout(window.__AD_HEARTSHELL427__,60);setTimeout(window.__AD_HEARTSHELL427__,300);setTimeout(window.__AD_HEARTSHELL427__,1200);"
-           "if(!window.__AD_HEARTSHELL427_OBS__){window.__AD_HEARTSHELL427_OBS__=1;"
-             "new MutationObserver(function(){try{window.__AD_HEARTSHELL427__();}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class','data-ad-stock403','data-ad-stocksel403','data-ad-product391','data-ad-sym413','data-ad-disc420']});"
-             "addEventListener('scroll',function(){try{window.__AD_HEARTSHELL427__();}catch(x){}},{passive:true,capture:true});}}catch(e){}"
-         // v5.441 DEVICE-CAPTURED STOCK CHECKBOX + SHARED 32PX CHROME. Amazon
-         // remains the sole owner of geometry, hit testing, state, and the checked
-         // blue/checkmark sprite. Device P14 names Cart's hierarchy precisely:
-         // 398x0 a-checkbox > 35x44 label > 23x23 input + 23x23 sprite. The old
-         // shell pass skipped that label and let Amazon/Dark Reader intermittently
-         // paint the gray rectangle. Mark every bounded Cart wrapper regardless of
-         // existing visual paint, flatten it, and put one 32px chrome treatment on
-         // the exact stock sprite via paint-only box-shadow. No width/height or
-         // background-image/background-position write is allowed. The inset paint
-         // covers the unchecked sprite without filtering it or the chrome. Native
-         // :checked removes our paint synchronously and exposes Amazon's stock blue frame.
-         "function stockCheckbox434(){if(window.__ADFRAME_MODE__||!document.body||window.__AD_CHECKBOX434_RUNNING__)return 0;window.__AD_CHECKBOX434_RUNNING__=1;try{"
-           "var retired434=['adstock403','adcomparenative428','adcheckbox433'];for(var ri434=0;ri434<retired434.length;ri434++){var rs434=document.getElementById(retired434[ri434]);if(rs434&&rs434.parentNode)rs434.parentNode.removeChild(rs434);}"
-           "var prior434=document.getElementById('adcheckbox434');if(prior434&&prior434.getAttribute('data-ad-native-state')!=='446'){if(prior434.parentNode)prior434.parentNode.removeChild(prior434);prior434=null;}"
-           "if(!prior434){var s434=document.createElement('style');s434.id='adcheckbox434';s434.setAttribute('data-ad-native-state','446');"
-             "s434.textContent='[data-ad-checkbox434-art]{filter:none !important;border-radius:4px !important;box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important;transition:none !important;}'"
-               "+'[data-ad-checkbox434-host]:is(input[type=checkbox]:checked,[aria-checked=true],[aria-pressed=true],[aria-selected=true],[data-checked=true],[data-selected=true],[data-state=checked],[data-state=on]) [data-ad-checkbox434-art],[data-ad-checkbox434-host]:has(input[type=checkbox]:checked,[aria-checked=true],[aria-pressed=true],[aria-selected=true],[data-checked=true],[data-selected=true],[data-state=checked],[data-state=on]) [data-ad-checkbox434-art],[data-ad-checkbox434-host][class*=checked]:not([class*=unchecked]) [data-ad-checkbox434-art],[data-ad-checkbox434-host][class*=selected]:not([class*=unselected]) [data-ad-checkbox434-art],[data-ad-checkbox434-host]:has([class*=checked]:not([class*=unchecked]),[class*=selected]:not([class*=unselected])) [data-ad-checkbox434-art],[data-ad-checkbox434-art]:is(input[type=checkbox]:checked,[aria-checked=true],[aria-pressed=true],[aria-selected=true],[data-checked=true],[data-selected=true],[data-state=checked],[data-state=on]),[data-ad-checkbox434-art][class*=checked]:not([class*=unchecked]),[data-ad-checkbox434-art][class*=selected]:not([class*=unselected]),[data-ad-checkbox434-art][src*=checkbox-on],[data-ad-checkbox434-art][src*=checkbox_checked],[data-ad-checkbox434-art][src*=checkmark],[data-ad-checkbox434-art][src*=selected],[data-ad-checkbox434-art][data-src*=checkbox-on],[data-ad-checkbox434-art][data-src*=checkbox_checked],[data-ad-checkbox434-art][data-src*=checkmark],[data-ad-checkbox434-art][data-src*=selected]{filter:none !important;border-radius:0 !important;box-shadow:none !important;}'"
-               "+'[data-ad-checkbox434-shell=\"cart\"]{background-color:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important;outline:0 !important;filter:none !important;}'"
-               "+'[data-ad-checkbox434-shell=\"cart\"]::before,[data-ad-checkbox434-shell=\"cart\"]::after{background-color:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important;outline:0 !important;filter:none !important;}';"
-             "(document.head||document.documentElement).appendChild(s434);}"
-           "function cn434(e){var c=e&&e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||''));}"
-           "function rr434(e){try{return e&&e.getBoundingClientRect?e.getBoundingClientRect():null;}catch(x){return null;}}"
-           "function sq434(e,lo,hi){var r=rr434(e);return !!(r&&r.width>=lo&&r.width<=hi&&r.height>=lo&&r.height<=hi&&Math.abs(r.width-r.height)<=14);}"
-           "var body434=String(document.body.innerText||document.body.textContent||'').toLowerCase(),cart434=body434.indexOf('proceed to checkout')>=0&&(body434.indexOf('save for later')>=0||body434.indexOf('select all items')>=0||body434.indexOf('deselect all items')>=0);"
-           "var scopeSel434='[class*=puis-card],[class*=s-result-item],[data-component-type=\"s-search-result\"],[data-asin],[class*=s-product-image],[class*=product-image],[class*=sc-list-item],[class*=sc-item]';"
-           "var semanticSel434='[class*=copilot-compare],button[aria-label*=ompare],[role=button][aria-label*=ompare],[role=checkbox],[aria-checked],[data-csa-c-content-id*=ompare],[data-testid*=ompare],div.a-checkbox,[class~=a-checkbox]';"
-           "function scope434(e){return !!(e&&e.closest&&e.closest(scopeSel434));}/* Cart mode changes shell paint only, never page-wide checkbox scope */"
-           "function foreign434(e){try{return !!(e&&e.closest&&e.closest('[class*=mlt-icon-container],[class*=lists-framework-action-button],[data-ad-cards410-root],[data-ad-cards410-host],[data-ad-cards410-disc],[data-ad-cards410-glyph],[data-ad-heart-shell427],[class*=puis-heart-position],[class*=lists-treatment-hear],[class*=puis-mab-chevron]'));}catch(x){return true;}}"
-           "function owned434(e){if(!e||e.nodeType!==1)return false;var p=String(e.getAttribute('data-ad-product391')||''),v=String(e.getAttribute('data-ad-v333403')||''),d=String(e.getAttribute('data-ad-disc420')||''),s=String(e.getAttribute('data-ad-sym413')||''),v4=String(e.getAttribute('data-ad-v333404')||'');if(p==='checkbox'||v==='c'||d==='checkbox'||s==='checkbox'||v4==='c'||v4==='checkbox')return true;var A=['data-ad-comparehost377','data-ad-comparechecked377','data-ad-compareinput377','data-ad-compare378','data-ad-compareleaf378','data-ad-compare-raster378','data-ad-compare379','data-ad-compareinput379','data-ad-compareorig379','data-ad-compare380','data-ad-compareinput380','data-ad-compareorig380','data-ad-comparelegacy387','data-ad-comparelegacyorig387','data-ad-productselected391','data-ad-productglyph391','data-ad-productraster391','data-ad-productvector391','data-ad-stock403','data-ad-stocksel403','data-ad-stockglyph403','data-ad-stockraster403','data-ad-stockvector403','data-ad-sym413glyph','data-ad-comparefunc428','data-ad-compareselected428','data-ad-comparehit428'];for(var i=0;i<A.length;i++)if(e.hasAttribute(A[i]))return true;return /^(?:product391|sym413|sym413glyph|disc420|disc422)$/.test(String(e.__adBy||''));}"
-           "var marks434=['data-ad-comparehost377','data-ad-comparechecked377','data-ad-compareinput377','data-ad-compare378','data-ad-compareleaf378','data-ad-compare-raster378','data-ad-compare379','data-ad-compareinput379','data-ad-compareorig379','data-ad-compare380','data-ad-compareinput380','data-ad-compareorig380','data-ad-comparelegacy387','data-ad-comparelegacyorig387','data-ad-product391','data-ad-productselected391','data-ad-productglyph391','data-ad-productraster391','data-ad-productvector391','data-ad-stock403','data-ad-stocksel403','data-ad-stockglyph403','data-ad-stockraster403','data-ad-stockvector403','data-ad-v333403','data-ad-v333404','data-ad-disc420','data-ad-sym413','data-ad-sym413glyph','data-ad-comparefunc428','data-ad-compareselected428','data-ad-comparehit428'];"
-           "var props434=['background-color','border','border-color','border-width','border-style','border-radius','box-shadow','box-sizing','filter','width','height','min-width','min-height','max-width','max-height','position','inset','top','right','bottom','left','transform','overflow','isolation','outline','z-index','margin','pointer-events','opacity','visibility','color','fill','stroke','transition','display','cursor'];/* preserve Amazon background-image/mask sprite */"
-           "function scrub434(e){if(!owned434(e))return 0;for(var p=0;p<props434.length;p++)e.style.removeProperty(props434[p]);for(var a=0;a<marks434.length;a++)e.removeAttribute(marks434[a]);delete e.__adBy;delete e.__adGlyph;delete e.__adManual380;delete e.__adManualSig380;delete e.__adCompareBlue428;return 1;}"
-           "function generic434(e){var b=String(e&&e.__adBy||'');if(!/^(?:gfix1|gfix2|aic|gsweep|fltpanel)$/.test(b))return 0;e.style.removeProperty('filter');delete e.__adBy;delete e.__adGlyph;return 1;}"
-           "function visual434(e){try{var c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after'),bi=String(c.backgroundImage||'none'),mi=String(c.maskImage||c.webkitMaskImage||'none'),pbi=String((b&&b.backgroundImage)||'none')+' '+String((a&&a.backgroundImage)||'none'),pmi=String((b&&(b.maskImage||b.webkitMaskImage))||'none')+' '+String((a&&(a.maskImage||a.webkitMaskImage))||'none');return bi!=='none'||mi!=='none'||pbi!=='none none'||pmi!=='none none';}catch(x){return false;}}"
-           "function light434(c){try{var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([0-9.]+))?/i.exec(String(c&&c.backgroundColor||''));if(!m||(m[4]!==undefined&&+m[4]<.12))return false;return (.2126*(+m[1])+.7152*(+m[2])+.0722*(+m[3]))/255>.62;}catch(x){return false;}}"
-           "function group434(e){if(!e||!scope434(e)||foreign434(e))return null;var exact=(e.matches&&e.matches('[class*=a-icon-checkbox]'))?e:(e.querySelector&&e.querySelector('[class*=a-icon-checkbox]')),ep=e.parentElement,eu=0;while(!exact&&ep&&eu++<4){exact=ep.querySelector&&ep.querySelector('[class*=a-icon-checkbox]');if(exact||ep.matches&&ep.matches(scopeSel434))break;ep=ep.parentElement;}if(exact&&!foreign434(exact)){var ah=exact.closest&&exact.closest('div.a-checkbox,[class~=a-checkbox]');if(ah&&scope434(ah)&&!foreign434(ah))return ah;var ch=exact.closest&&exact.closest('[class*=copilot-compare]');if(ch&&scope434(ch)&&sq434(ch,16,76)&&!foreign434(ch))return ch;var bh=exact.closest&&exact.closest('button[aria-label*=ompare],[role=button][aria-label*=ompare],[data-csa-c-content-id*=ompare],[data-testid*=ompare]');if(bh&&scope434(bh)&&sq434(bh,16,76)&&!foreign434(bh))return bh;}var legit=e.closest&&e.closest('[class*=copilot-compare],[class*=compare-checkbox],button[aria-label*=ompare],[role=button][aria-label*=ompare],[role=checkbox],[aria-checked],[data-csa-c-content-id*=ompare],[data-testid*=ompare]');if(!exact&&!legit)return null;var tg0=String(e.tagName||'').toUpperCase(),p=/^(IMG|I|INPUT|SVG|PATH|USE|POLYGON)$/.test(tg0)?e.parentElement:e,sem=null,best=null,u=0;while(p&&u++<8){if(foreign434(p))return null;var tg=String(p.tagName||'').toUpperCase();if(!sem&&p.matches&&p.matches(semanticSel434)&&sq434(p,16,76))sem=p;if(!best&&!/^(IMG|I|INPUT|SVG|PATH|USE|POLYGON)$/.test(tg)&&sq434(p,16,76))best=p;if(p.matches&&p.matches(scopeSel434))break;p=p.parentElement;}return sem||best||((tg0==='INPUT')?e:(e.parentElement||e));}"
-           "function selected434(h){try{var q=(h.matches&&h.matches('input[type=checkbox]'))?h:h.querySelector('input[type=checkbox]');if(q)return !!q.checked;var A=[h],Z=h.querySelectorAll?h.querySelectorAll('[role=checkbox],[aria-checked],[aria-pressed],[aria-selected],[data-checked],[data-selected],[data-state]'):[];for(var i=0;i<Z.length&&i<32;i++)A.push(Z[i]);for(var j=0;j<A.length;j++){var e=A[j],a=String(e.getAttribute('aria-checked')||e.getAttribute('aria-pressed')||e.getAttribute('aria-selected')||e.getAttribute('data-checked')||e.getAttribute('data-selected')||e.getAttribute('data-state')||'').toLowerCase(),c=cn434(e).toLowerCase();if(a==='true'||a==='checked'||a==='on'||(/checked|selected/.test(c)&&!/unchecked|unselected/.test(c)))return true;if(a==='false'||a==='unchecked'||a==='off')return false;}var im=h.querySelector&&h.querySelector('img[src],img[data-src]'),src=im?String(im.currentSrc||im.src||im.getAttribute('data-src')||'').toLowerCase():'';return /checkbox[_-]?(?:on|checked)|checkmark|selected/.test(src)&&!/unchecked|unselected/.test(src);}catch(x){return false;}}"
-           "function art434(h,seed){try{var Q=[h],D=h.querySelectorAll?h.querySelectorAll('*'):[];for(var q=0;q<D.length&&q<100;q++)Q.push(D[q]);if(Q.indexOf(seed)<0)Q.push(seed);var best=null,bs=9999;for(var i=0;i<Q.length;i++){var e=Q[i];if(!e||foreign434(e))continue;var r=rr434(e);if(!r||r.width<8||r.height<8||r.width>76||r.height>76)continue;var tg=String(e.tagName||'').toUpperCase();if(/^(PATH|USE|POLYGON)$/.test(tg))continue;var c=cn434(e).toLowerCase(),src=String((e.currentSrc||e.src||(e.getAttribute&&e.getAttribute('data-src'))||'')).toLowerCase(),cs=getComputedStyle(e),op=parseFloat(cs.opacity||'1'),exact=/a-icon-checkbox|checkbox[-_ ]?(?:icon|sprite|image)|checkmark|check-mark|tick/.test(c+' '+src),painted=visual434(e)||light434(cs),role=e.getAttribute&&e.getAttribute('role')==='checkbox',score=999;if(exact)score=0;else if(painted)score=20;else if(/^(I|IMG|SVG)$/.test(tg))score=35;else if(tg==='INPUT'&&String(e.type||'').toLowerCase()==='checkbox')score=45;else if(role)score=60;else if(e===seed)score=90;else continue;if(e===h)score+=25;if(op<.12||String(cs.visibility||'')==='hidden'||String(cs.display||'')==='none')score+=70;score+=(r.width*r.height)/100000;if(score<bs){bs=score;best=e;}}return best||(sq434(seed,8,76)?seed:(sq434(h,8,76)?h:null));}catch(x){return null;}}"
-           "var prevHosts434=document.querySelectorAll('[data-ad-checkbox434-host]'),prevArts434=document.querySelectorAll('[data-ad-checkbox434-art]'),prevShells434=document.querySelectorAll('[data-ad-checkbox434-shell]');"
-           "var shells434=[],hosts434=[],arts434=[],unchecked434=0,checked434=0,cleaned434=0,skip434=0,cartShell434=0;"
-           "function shell434(h,art){if(!cart434||!h||!art)return;var p=art.parentElement,u=0;while(p&&u++<5){var tg=String(p.tagName||'').toUpperCase(),r=rr434(p),bounded=!!(r&&r.width>=18&&r.width<=76&&r.height>=18&&r.height<=76);if(p!==art&&p.contains&&p.contains(art)&&bounded&&!/^(IMG|I|INPUT|SVG|PATH|USE)$/.test(tg)){p.setAttribute('data-ad-checkbox434-shell','cart');if(shells434.indexOf(p)<0){shells434.push(p);cartShell434++;}}if(p.matches&&p.matches(scopeSel434))break;p=p.parentElement;}}"
-           "var C=document.querySelectorAll('input[type=checkbox],[role=checkbox],[aria-checked],[class*=a-checkbox],[class*=a-icon-checkbox],[class*=copilot-compare],button[aria-label*=ompare],[role=button][aria-label*=ompare],[data-csa-c-content-id*=ompare],[data-testid*=ompare],img[src*=checkbox],img[data-src*=checkbox]');"
-           "for(var i=0;i<C.length&&i<1100;i++){var seed=C[i],h=group434(seed);if(!h||hosts434.indexOf(h)>=0){skip434++;continue;}var Q=[h],D=h.querySelectorAll?h.querySelectorAll('*'):[];for(var q=0;q<D.length&&q<140;q++)Q.push(D[q]);for(var z=0;z<Q.length;z++){cleaned434+=generic434(Q[z]);cleaned434+=scrub434(Q[z]);Q[z].removeAttribute('data-ad-checkbox433-art');}var art=art434(h,seed);if(!art){skip434++;continue;}hosts434.push(h);var syn=h.querySelectorAll?h.querySelectorAll('[data-ad-comparebox377],[data-ad-comparecheck377]'):[];for(var sy=0;sy<syn.length;sy++){if(syn[sy].parentNode)syn[sy].parentNode.removeChild(syn[sy]);cleaned434++;}if(h.getAttribute('data-ad-checkbox434-host')!=='stock')h.setAttribute('data-ad-checkbox434-host','stock');var AL=[art],EX=h.querySelectorAll?h.querySelectorAll('[class*=a-icon-checkbox],img[src*=checkbox],img[data-src*=checkbox]'):[];for(var ex=0;ex<EX.length&&ex<24;ex++){var xa=EX[ex],xr=rr434(xa),xs=getComputedStyle(xa);if(xr&&xr.width>=8&&xr.height>=8&&xr.width<=76&&xr.height<=76&&parseFloat(xs.opacity||'1')>=.12&&String(xs.display||'')!=='none'&&String(xs.visibility||'')!=='hidden'&&AL.indexOf(xa)<0)AL.push(xa);}for(var al=0;al<AL.length;al++){var aa=AL[al];if(arts434.indexOf(aa)<0){if(aa.getAttribute('data-ad-checkbox434-art')!=='stock')aa.setAttribute('data-ad-checkbox434-art','stock');arts434.push(aa);}}shell434(h,art);if(selected434(h))checked434++;else unchecked434++;}"
-           "var old433=document.querySelectorAll('[data-ad-checkbox433-art]');for(var x433=0;x433<old433.length;x433++)old433[x433].removeAttribute('data-ad-checkbox433-art');"
-           "for(var ph=0;ph<prevHosts434.length;ph++)if(hosts434.indexOf(prevHosts434[ph])<0)prevHosts434[ph].removeAttribute('data-ad-checkbox434-host');for(var pa=0;pa<prevArts434.length;pa++)if(arts434.indexOf(prevArts434[pa])<0)prevArts434[pa].removeAttribute('data-ad-checkbox434-art');for(var ps=0;ps<prevShells434.length;ps++)if(shells434.indexOf(prevShells434[ps])<0)prevShells434[ps].removeAttribute('data-ad-checkbox434-shell');"
-           "window.__AD_CHECKBOX434_STATE__='hosts='+hosts434.length+' art='+arts434.length+' unchecked='+unchecked434+' checked='+checked434+' cart='+(cart434?1:0)+' shells='+cartShell434+' cleaned='+cleaned434+' skip='+skip434;return hosts434.length;"
-         "}catch(e){window.__AD_CHECKBOX434_STATE__='err '+(e&&e.message||e);return -1;}finally{window.__AD_CHECKBOX434_RUNNING__=0;}}"
-         "try{window.__AD_CHECKBOX434__=stockCheckbox434;if(!window.__AD_CHECKBOX434_WRAP__){window.__AD_CHECKBOX434_WRAP__=1;"
-           "window.__AD_PRODUCTCTRL391_PRE434__=window.__AD_PRODUCTCTRL391RUN__;window.__AD_PRODUCTCTRL391RUN__=function(){var r=window.__AD_PRODUCTCTRL391_PRE434__?window.__AD_PRODUCTCTRL391_PRE434__():0;try{window.__AD_CHECKBOX434__();}catch(x){}return r;};"
-           "new MutationObserver(function(){try{window.__AD_CHECKBOX434__();}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});"
-           "function queue434(){if(window.__AD_CHECKBOX434_QUEUED__)return;window.__AD_CHECKBOX434_QUEUED__=1;var r434=function(){window.__AD_CHECKBOX434_QUEUED__=0;try{window.__AD_CHECKBOX434__();}catch(x){}};if(window.requestAnimationFrame)window.requestAnimationFrame(r434);else setTimeout(r434,0);}"
-           "addEventListener('scroll',queue434,{passive:true,capture:true});}"
-           "stockCheckbox434();setTimeout(stockCheckbox434,40);setTimeout(stockCheckbox434,180);setTimeout(stockCheckbox434,700);setTimeout(stockCheckbox434,1800);"
-         "}catch(e){}"
          "function sym413(){try{"
            "var SPEC={bg:'#181a1b',bd:'1.5px solid rgba(255,255,255,0.65)'};"
            "if(!document.getElementById('adcards440')){var s440=document.createElement('style');s440.id='adcards440';s440.textContent='[data-ad-cards440-pseudo*=b]::before,[data-ad-cards440-pseudo*=a]::after{filter:brightness(0) invert(1) !important;color:#fff !important;fill:#fff !important;stroke:#fff !important;}';(document.head||document.documentElement).appendChild(s440);}"
@@ -1031,16 +847,55 @@ static NSString *ADFourSymbolsWebJS446(void){
              "n++;}"
            "window.__AD_SYM413__='n='+n+' skip='+sk;"
          "}catch(e){window.__AD_SYM413__='err '+e;}}"
-         "try{window.__AD_SYM413_PRE__=window.__AD_PRODUCTCTRL391RUN__;"
-           "window.__AD_PRODUCTCTRL391RUN__=function(){"
-             "var r=window.__AD_SYM413_PRE__?window.__AD_SYM413_PRE__():0;try{sym413();}catch(x){}return r;};"
+         "window.__AD_SYM604_RUN__=sym413;"
+         "function stockCheckbox434(){if(window.__ADFRAME_MODE__||!document.body||window.__AD_CHECKBOX434_RUNNING__)return 0;window.__AD_CHECKBOX434_RUNNING__=1;try{"
+           "var retired434=['adstock403','adcomparenative428','adcheckbox433'];for(var ri434=0;ri434<retired434.length;ri434++){var rs434=document.getElementById(retired434[ri434]);if(rs434&&rs434.parentNode)rs434.parentNode.removeChild(rs434);}"
+           "var prior434=document.getElementById('adcheckbox434');if(prior434&&prior434.getAttribute('data-ad-native-state')!=='446'){if(prior434.parentNode)prior434.parentNode.removeChild(prior434);prior434=null;}"
+           "if(!prior434){var s434=document.createElement('style');s434.id='adcheckbox434';s434.setAttribute('data-ad-native-state','446');"
+             "s434.textContent='[data-ad-checkbox434-art]{filter:none !important;border-radius:4px !important;box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important;transition:none !important;}'"
+               "+'[data-ad-checkbox434-host]:is(input[type=checkbox]:checked,[aria-checked=true],[aria-pressed=true],[aria-selected=true],[data-checked=true],[data-selected=true],[data-state=checked],[data-state=on]) [data-ad-checkbox434-art],[data-ad-checkbox434-host]:has(input[type=checkbox]:checked,[aria-checked=true],[aria-pressed=true],[aria-selected=true],[data-checked=true],[data-selected=true],[data-state=checked],[data-state=on]) [data-ad-checkbox434-art],[data-ad-checkbox434-host][class*=checked]:not([class*=unchecked]) [data-ad-checkbox434-art],[data-ad-checkbox434-host][class*=selected]:not([class*=unselected]) [data-ad-checkbox434-art],[data-ad-checkbox434-host]:has([class*=checked]:not([class*=unchecked]),[class*=selected]:not([class*=unselected])) [data-ad-checkbox434-art],[data-ad-checkbox434-art]:is(input[type=checkbox]:checked,[aria-checked=true],[aria-pressed=true],[aria-selected=true],[data-checked=true],[data-selected=true],[data-state=checked],[data-state=on]),[data-ad-checkbox434-art][class*=checked]:not([class*=unchecked]),[data-ad-checkbox434-art][class*=selected]:not([class*=unselected]),[data-ad-checkbox434-art][src*=checkbox-on],[data-ad-checkbox434-art][src*=checkbox_checked],[data-ad-checkbox434-art][src*=checkmark],[data-ad-checkbox434-art][src*=selected],[data-ad-checkbox434-art][data-src*=checkbox-on],[data-ad-checkbox434-art][data-src*=checkbox_checked],[data-ad-checkbox434-art][data-src*=checkmark],[data-ad-checkbox434-art][data-src*=selected]{filter:none !important;border-radius:0 !important;box-shadow:none !important;}'"
+               "+'[data-ad-checkbox434-shell=\"cart\"]{background-color:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important;outline:0 !important;filter:none !important;}'"
+               "+'[data-ad-checkbox434-shell=\"cart\"]::before,[data-ad-checkbox434-shell=\"cart\"]::after{background-color:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important;outline:0 !important;filter:none !important;}';"
+             "(document.head||document.documentElement).appendChild(s434);}"
+           "function cn434(e){var c=e&&e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||''));}"
+           "function rr434(e){try{return e&&e.getBoundingClientRect?e.getBoundingClientRect():null;}catch(x){return null;}}"
+           "function sq434(e,lo,hi){var r=rr434(e);return !!(r&&r.width>=lo&&r.width<=hi&&r.height>=lo&&r.height<=hi&&Math.abs(r.width-r.height)<=14);}"
+           "var body434=String(document.body.innerText||document.body.textContent||'').toLowerCase(),cart434=body434.indexOf('proceed to checkout')>=0&&(body434.indexOf('save for later')>=0||body434.indexOf('select all items')>=0||body434.indexOf('deselect all items')>=0);"
+           "var scopeSel434='[class*=puis-card],[class*=s-result-item],[data-component-type=\"s-search-result\"],[data-asin],[class*=s-product-image],[class*=product-image],[class*=sc-list-item],[class*=sc-item]';"
+           "var semanticSel434='[class*=copilot-compare],button[aria-label*=ompare],[role=button][aria-label*=ompare],[role=checkbox],[aria-checked],[data-csa-c-content-id*=ompare],[data-testid*=ompare],div.a-checkbox,[class~=a-checkbox]';"
+           "function scope434(e){return !!(e&&e.closest&&e.closest(scopeSel434));}/* Cart mode changes shell paint only, never page-wide checkbox scope */"
+           "function foreign434(e){try{return !!(e&&e.closest&&e.closest('[class*=mlt-icon-container],[class*=lists-framework-action-button],[data-ad-cards410-root],[data-ad-cards410-host],[data-ad-cards410-disc],[data-ad-cards410-glyph],[data-ad-heart-shell427],[class*=puis-heart-position],[class*=lists-treatment-hear],[class*=puis-mab-chevron]'));}catch(x){return true;}}"
+           "function owned434(e){if(!e||e.nodeType!==1)return false;var p=String(e.getAttribute('data-ad-product391')||''),v=String(e.getAttribute('data-ad-v333403')||''),d=String(e.getAttribute('data-ad-disc420')||''),s=String(e.getAttribute('data-ad-sym413')||''),v4=String(e.getAttribute('data-ad-v333404')||'');if(p==='checkbox'||v==='c'||d==='checkbox'||s==='checkbox'||v4==='c'||v4==='checkbox')return true;var A=['data-ad-comparehost377','data-ad-comparechecked377','data-ad-compareinput377','data-ad-compare378','data-ad-compareleaf378','data-ad-compare-raster378','data-ad-compare379','data-ad-compareinput379','data-ad-compareorig379','data-ad-compare380','data-ad-compareinput380','data-ad-compareorig380','data-ad-comparelegacy387','data-ad-comparelegacyorig387','data-ad-productselected391','data-ad-productglyph391','data-ad-productraster391','data-ad-productvector391','data-ad-stock403','data-ad-stocksel403','data-ad-stockglyph403','data-ad-stockraster403','data-ad-stockvector403','data-ad-sym413glyph','data-ad-comparefunc428','data-ad-compareselected428','data-ad-comparehit428'];for(var i=0;i<A.length;i++)if(e.hasAttribute(A[i]))return true;return /^(?:product391|sym413|sym413glyph|disc420|disc422)$/.test(String(e.__adBy||''));}"
+           "var marks434=['data-ad-comparehost377','data-ad-comparechecked377','data-ad-compareinput377','data-ad-compare378','data-ad-compareleaf378','data-ad-compare-raster378','data-ad-compare379','data-ad-compareinput379','data-ad-compareorig379','data-ad-compare380','data-ad-compareinput380','data-ad-compareorig380','data-ad-comparelegacy387','data-ad-comparelegacyorig387','data-ad-product391','data-ad-productselected391','data-ad-productglyph391','data-ad-productraster391','data-ad-productvector391','data-ad-stock403','data-ad-stocksel403','data-ad-stockglyph403','data-ad-stockraster403','data-ad-stockvector403','data-ad-v333403','data-ad-v333404','data-ad-disc420','data-ad-sym413','data-ad-sym413glyph','data-ad-comparefunc428','data-ad-compareselected428','data-ad-comparehit428'];"
+           "var props434=['background-color','border','border-color','border-width','border-style','border-radius','box-shadow','box-sizing','filter','width','height','min-width','min-height','max-width','max-height','position','inset','top','right','bottom','left','transform','overflow','isolation','outline','z-index','margin','pointer-events','opacity','visibility','color','fill','stroke','transition','display','cursor'];/* preserve Amazon background-image/mask sprite */"
+           "function scrub434(e){if(!owned434(e))return 0;for(var p=0;p<props434.length;p++)e.style.removeProperty(props434[p]);for(var a=0;a<marks434.length;a++)e.removeAttribute(marks434[a]);delete e.__adBy;delete e.__adGlyph;delete e.__adManual380;delete e.__adManualSig380;delete e.__adCompareBlue428;return 1;}"
+           "function generic434(e){var b=String(e&&e.__adBy||'');if(!/^(?:gfix1|gfix2|aic|gsweep|fltpanel)$/.test(b))return 0;e.style.removeProperty('filter');delete e.__adBy;delete e.__adGlyph;return 1;}"
+           "function visual434(e){try{var c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after'),bi=String(c.backgroundImage||'none'),mi=String(c.maskImage||c.webkitMaskImage||'none'),pbi=String((b&&b.backgroundImage)||'none')+' '+String((a&&a.backgroundImage)||'none'),pmi=String((b&&(b.maskImage||b.webkitMaskImage))||'none')+' '+String((a&&(a.maskImage||a.webkitMaskImage))||'none');return bi!=='none'||mi!=='none'||pbi!=='none none'||pmi!=='none none';}catch(x){return false;}}"
+           "function light434(c){try{var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([0-9.]+))?/i.exec(String(c&&c.backgroundColor||''));if(!m||(m[4]!==undefined&&+m[4]<.12))return false;return (.2126*(+m[1])+.7152*(+m[2])+.0722*(+m[3]))/255>.62;}catch(x){return false;}}"
+           "function group434(e){if(!e||!scope434(e)||foreign434(e))return null;var exact=(e.matches&&e.matches('[class*=a-icon-checkbox]'))?e:(e.querySelector&&e.querySelector('[class*=a-icon-checkbox]')),ep=e.parentElement,eu=0;while(!exact&&ep&&eu++<4){exact=ep.querySelector&&ep.querySelector('[class*=a-icon-checkbox]');if(exact||ep.matches&&ep.matches(scopeSel434))break;ep=ep.parentElement;}if(exact&&!foreign434(exact)){var ah=exact.closest&&exact.closest('div.a-checkbox,[class~=a-checkbox]');if(ah&&scope434(ah)&&!foreign434(ah))return ah;var ch=exact.closest&&exact.closest('[class*=copilot-compare]');if(ch&&scope434(ch)&&sq434(ch,16,76)&&!foreign434(ch))return ch;var bh=exact.closest&&exact.closest('button[aria-label*=ompare],[role=button][aria-label*=ompare],[data-csa-c-content-id*=ompare],[data-testid*=ompare]');if(bh&&scope434(bh)&&sq434(bh,16,76)&&!foreign434(bh))return bh;}var legit=e.closest&&e.closest('[class*=copilot-compare],[class*=compare-checkbox],button[aria-label*=ompare],[role=button][aria-label*=ompare],[role=checkbox],[aria-checked],[data-csa-c-content-id*=ompare],[data-testid*=ompare]');if(!exact&&!legit)return null;var tg0=String(e.tagName||'').toUpperCase(),p=/^(IMG|I|INPUT|SVG|PATH|USE|POLYGON)$/.test(tg0)?e.parentElement:e,sem=null,best=null,u=0;while(p&&u++<8){if(foreign434(p))return null;var tg=String(p.tagName||'').toUpperCase();if(!sem&&p.matches&&p.matches(semanticSel434)&&sq434(p,16,76))sem=p;if(!best&&!/^(IMG|I|INPUT|SVG|PATH|USE|POLYGON)$/.test(tg)&&sq434(p,16,76))best=p;if(p.matches&&p.matches(scopeSel434))break;p=p.parentElement;}return sem||best||((tg0==='INPUT')?e:(e.parentElement||e));}"
+           "function selected434(h){try{var q=(h.matches&&h.matches('input[type=checkbox]'))?h:h.querySelector('input[type=checkbox]');if(q)return !!q.checked;var A=[h],Z=h.querySelectorAll?h.querySelectorAll('[role=checkbox],[aria-checked],[aria-pressed],[aria-selected],[data-checked],[data-selected],[data-state]'):[];for(var i=0;i<Z.length&&i<32;i++)A.push(Z[i]);for(var j=0;j<A.length;j++){var e=A[j],a=String(e.getAttribute('aria-checked')||e.getAttribute('aria-pressed')||e.getAttribute('aria-selected')||e.getAttribute('data-checked')||e.getAttribute('data-selected')||e.getAttribute('data-state')||'').toLowerCase(),c=cn434(e).toLowerCase();if(a==='true'||a==='checked'||a==='on'||(/checked|selected/.test(c)&&!/unchecked|unselected/.test(c)))return true;if(a==='false'||a==='unchecked'||a==='off')return false;}var im=h.querySelector&&h.querySelector('img[src],img[data-src]'),src=im?String(im.currentSrc||im.src||im.getAttribute('data-src')||'').toLowerCase():'';return /checkbox[_-]?(?:on|checked)|checkmark|selected/.test(src)&&!/unchecked|unselected/.test(src);}catch(x){return false;}}"
+           "function art434(h,seed){try{var Q=[h],D=h.querySelectorAll?h.querySelectorAll('*'):[];for(var q=0;q<D.length&&q<100;q++)Q.push(D[q]);if(Q.indexOf(seed)<0)Q.push(seed);var best=null,bs=9999;for(var i=0;i<Q.length;i++){var e=Q[i];if(!e||foreign434(e))continue;var r=rr434(e);if(!r||r.width<8||r.height<8||r.width>76||r.height>76)continue;var tg=String(e.tagName||'').toUpperCase();if(/^(PATH|USE|POLYGON)$/.test(tg))continue;var c=cn434(e).toLowerCase(),src=String((e.currentSrc||e.src||(e.getAttribute&&e.getAttribute('data-src'))||'')).toLowerCase(),cs=getComputedStyle(e),op=parseFloat(cs.opacity||'1'),exact=/a-icon-checkbox|checkbox[-_ ]?(?:icon|sprite|image)|checkmark|check-mark|tick/.test(c+' '+src),painted=visual434(e)||light434(cs),role=e.getAttribute&&e.getAttribute('role')==='checkbox',score=999;if(exact)score=0;else if(painted)score=20;else if(/^(I|IMG|SVG)$/.test(tg))score=35;else if(tg==='INPUT'&&String(e.type||'').toLowerCase()==='checkbox')score=45;else if(role)score=60;else if(e===seed)score=90;else continue;if(e===h)score+=25;if(op<.12||String(cs.visibility||'')==='hidden'||String(cs.display||'')==='none')score+=70;score+=(r.width*r.height)/100000;if(score<bs){bs=score;best=e;}}return best||(sq434(seed,8,76)?seed:(sq434(h,8,76)?h:null));}catch(x){return null;}}"
+           "var prevHosts434=document.querySelectorAll('[data-ad-checkbox434-host]'),prevArts434=document.querySelectorAll('[data-ad-checkbox434-art]'),prevShells434=document.querySelectorAll('[data-ad-checkbox434-shell]');"
+           "var shells434=[],hosts434=[],arts434=[],unchecked434=0,checked434=0,cleaned434=0,skip434=0,cartShell434=0;"
+           "function shell434(h,art){if(!cart434||!h||!art)return;var p=art.parentElement,u=0;while(p&&u++<5){var tg=String(p.tagName||'').toUpperCase(),r=rr434(p),bounded=!!(r&&r.width>=18&&r.width<=76&&r.height>=18&&r.height<=76);if(p!==art&&p.contains&&p.contains(art)&&bounded&&!/^(IMG|I|INPUT|SVG|PATH|USE)$/.test(tg)){p.setAttribute('data-ad-checkbox434-shell','cart');if(shells434.indexOf(p)<0){shells434.push(p);cartShell434++;}}if(p.matches&&p.matches(scopeSel434))break;p=p.parentElement;}}"
+           "var C=document.querySelectorAll('input[type=checkbox],[role=checkbox],[aria-checked],[class*=a-checkbox],[class*=a-icon-checkbox],[class*=copilot-compare],button[aria-label*=ompare],[role=button][aria-label*=ompare],[data-csa-c-content-id*=ompare],[data-testid*=ompare],img[src*=checkbox],img[data-src*=checkbox]');"
+           "for(var i=0;i<C.length&&i<1100;i++){var seed=C[i],h=group434(seed);if(!h||hosts434.indexOf(h)>=0){skip434++;continue;}var Q=[h],D=h.querySelectorAll?h.querySelectorAll('*'):[];for(var q=0;q<D.length&&q<140;q++)Q.push(D[q]);for(var z=0;z<Q.length;z++){cleaned434+=generic434(Q[z]);cleaned434+=scrub434(Q[z]);Q[z].removeAttribute('data-ad-checkbox433-art');}var art=art434(h,seed);if(!art){skip434++;continue;}hosts434.push(h);var syn=h.querySelectorAll?h.querySelectorAll('[data-ad-comparebox377],[data-ad-comparecheck377]'):[];for(var sy=0;sy<syn.length;sy++){if(syn[sy].parentNode)syn[sy].parentNode.removeChild(syn[sy]);cleaned434++;}if(h.getAttribute('data-ad-checkbox434-host')!=='stock')h.setAttribute('data-ad-checkbox434-host','stock');var AL=[art],EX=h.querySelectorAll?h.querySelectorAll('[class*=a-icon-checkbox],img[src*=checkbox],img[data-src*=checkbox]'):[];for(var ex=0;ex<EX.length&&ex<24;ex++){var xa=EX[ex],xr=rr434(xa),xs=getComputedStyle(xa);if(xr&&xr.width>=8&&xr.height>=8&&xr.width<=76&&xr.height<=76&&parseFloat(xs.opacity||'1')>=.12&&String(xs.display||'')!=='none'&&String(xs.visibility||'')!=='hidden'&&AL.indexOf(xa)<0)AL.push(xa);}for(var al=0;al<AL.length;al++){var aa=AL[al];if(arts434.indexOf(aa)<0){if(aa.getAttribute('data-ad-checkbox434-art')!=='stock')aa.setAttribute('data-ad-checkbox434-art','stock');arts434.push(aa);}}shell434(h,art);if(selected434(h))checked434++;else unchecked434++;}"
+           "var old433=document.querySelectorAll('[data-ad-checkbox433-art]');for(var x433=0;x433<old433.length;x433++)old433[x433].removeAttribute('data-ad-checkbox433-art');"
+           "for(var ph=0;ph<prevHosts434.length;ph++)if(hosts434.indexOf(prevHosts434[ph])<0)prevHosts434[ph].removeAttribute('data-ad-checkbox434-host');for(var pa=0;pa<prevArts434.length;pa++)if(arts434.indexOf(prevArts434[pa])<0)prevArts434[pa].removeAttribute('data-ad-checkbox434-art');for(var ps=0;ps<prevShells434.length;ps++)if(shells434.indexOf(prevShells434[ps])<0)prevShells434[ps].removeAttribute('data-ad-checkbox434-shell');"
+           "window.__AD_CHECKBOX434_STATE__='hosts='+hosts434.length+' art='+arts434.length+' unchecked='+unchecked434+' checked='+checked434+' cart='+(cart434?1:0)+' shells='+cartShell434+' cleaned='+cleaned434+' skip='+skip434;return hosts434.length;"
+         "}catch(e){window.__AD_CHECKBOX434_STATE__='err '+(e&&e.message||e);return -1;}finally{window.__AD_CHECKBOX434_RUNNING__=0;}}"
+         // v6.0.4 scheduler: one observer, one scroll listener, one RAF queue.
+         // Do NOT observe style: these painters write inline style themselves, and
+         // style observation creates self-triggered mutation churn.
+         "window.__AD_SYM604_QUEUE__=function(){try{if(window.__AD_SYM604_Q__)return;window.__AD_SYM604_Q__=1;"
+           "var f=function(){window.__AD_SYM604_Q__=0;try{if(window.__AD_HEARTSHELL427__)window.__AD_HEARTSHELL427__();}catch(x){}try{if(window.__AD_SYM604_RUN__)window.__AD_SYM604_RUN__();}catch(x){}try{if(window.__AD_CHECKBOX434__)window.__AD_CHECKBOX434__();}catch(x){}};"
+           "if(window.requestAnimationFrame)requestAnimationFrame(f);else setTimeout(f,0);}catch(e){}};"
+         "try{if(!window.__AD_SYM604_OBS__){window.__AD_SYM604_OBS__=1;new MutationObserver(function(){window.__AD_SYM604_QUEUE__();}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','checked','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','src','data-src']});"
+           "addEventListener('scroll',window.__AD_SYM604_QUEUE__,{passive:true,capture:true});document.addEventListener('change',window.__AD_SYM604_QUEUE__,true);}"
+           "window.__AD_SYM604_QUEUE__();setTimeout(window.__AD_SYM604_QUEUE__,140);setTimeout(window.__AD_SYM604_QUEUE__,700);"
          "}catch(e){}"
-         "try{sym413();setTimeout(sym413,30);setTimeout(sym413,160);setTimeout(sym413,560);"
-           "setTimeout(sym413,1560);setTimeout(sym413,2600);"
-           "addEventListener('scroll',function(){clearTimeout(window.__symT413);"
-             "window.__symT413=setTimeout(sym413,110);},{passive:true,capture:true});"
-         "}catch(e){}"
-       "return 'sym413';}catch(e){return 'sym413err';}})();"];
+       "return 'sym604';}catch(e){return 'sym604err';}})();"];
+    return cached;
 }
 
 static void ADAttachFourSymbolsUserScript446(WKUserContentController *ucc){
@@ -1062,10 +917,18 @@ static void ADEnableDarkReaderIn(WKWebView *wv){
     @try {
         ADAttachWhiteTameUserScript446(wv.configuration.userContentController);
         ADAttachFourSymbolsUserScript446(wv.configuration.userContentController);
-        NSString *sym446=ADFourSymbolsWebJS446();
-        if(sym446.length)[wv evaluateJavaScript:sym446 completionHandler:nil];
-        NSString *twb446=ADWhiteTameWebJS446();
-        if(twb446.length)[wv evaluateJavaScript:twb446 completionHandler:nil];
+        [wv evaluateJavaScript:@"(function(){try{if(window.__AD_SYM604_QUEUE__){window.__AD_SYM604_QUEUE__();return 1;}return 0;}catch(e){return 0;}})();"
+             completionHandler:^(id r, NSError *e){
+                 if (!e && [r respondsToSelector:@selector(boolValue)] && [r boolValue]) return;
+                 NSString *full=ADFourSymbolsWebJS446(); if(full.length)[wv evaluateJavaScript:full completionHandler:nil];
+             }];
+        if(gP.whiteTame){
+            [wv evaluateJavaScript:@"(function(){try{if(window._adTameFast362){window._adTameFast362(document.documentElement);return 1;}return 0;}catch(e){return 0;}})();"
+                 completionHandler:^(id r, NSError *e){
+                     if (!e && [r respondsToSelector:@selector(boolValue)] && [r boolValue]) return;
+                     NSString *full=ADWhiteTameWebJS446(); if(full.length)[wv evaluateJavaScript:full completionHandler:nil];
+                 }];
+        }
         // Lightweight re-apply; the heavy engine arrives via the documentStart userscript.
         NSString *js = ADDarkReaderReapply();
         if (js.length){
@@ -1136,7 +999,7 @@ static void ADEnableDarkReaderIn(WKWebView *wv){
                 // Rather than chase every creation path, repair it here: inject the
                 // full engine directly into the live document. evaluateJavaScript does
                 // not care how the document came to exist, so this works regardless.
-                // v6.0.3: historical overlay probe removed; it only scanned/logged DOM.
+                // v6.0.4: historical overlay probe removed; it only scanned/logged DOM.
                 if ([st containsString:@"noflag"] || [st hasPrefix:@"noDR"]){
                     // ROOT-CAUSE HALF. noflag recurring on every navigation means our
                     // documentStart user script is not present on this web view's content
@@ -2257,7 +2120,7 @@ static void ADForceBarDark(UIView *bar){
 }
 %end
 
-// v6.0.3: retired historical native hierarchy diagnostic probe.
+// v6.0.4: retired historical native hierarchy diagnostic probe.
 // It had no theming responsibility and recursively walked windows only to log offenders.
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -2705,8 +2568,6 @@ static BOOL ADWTProductPeers388(UIView *v){
                 objc_setAssociatedObject(p,kADWTPeers388,@(hit),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
                 objc_setAssociatedObject(p,kADWTPeersTime388,@(now),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
                 if(hit){
-                    static int peerLog388=0;
-                    if(peerLog388++<36) ADLog(@"P52PEER388[%s %.0fx%.0f peers=%d tamed=%d]",object_getClassName(v),vw,vh,peers,tamed);
                     return YES;
                 }
             }
@@ -2836,7 +2697,6 @@ static BOOL ADHamburgerScreenActive384(UIView *v){
             }
             BOOL changed=(w!=gADMenuActiveWindow384||hit!=gADMenuActive384);
             gADMenuActiveWindow384=w; gADMenuActiveTime384=now; gADMenuActive384=hit; gADMenuActiveX384=hitX;
-            static int ml384=0; if((changed||ml384<3)&&ml384++<18)ADLog(@"P47MENUACTIVE384[active=%d x=%.2f seen=%d]",hit?1:0,hitX,seen);
         }
         return gADMenuActive384;
     } @catch(...) {}
@@ -2911,7 +2771,6 @@ static void ADRestoreCategoryArtwork379(UIImageView *iv){
             if(want){ gADGlyphWriting=YES; iv.image=want; gADGlyphWriting=NO; }
             iv.tintColor=nil;
         }
-        static int mlog=0;if(mlog++<18)ADLog(@"P44MENU383[%s %.0fx%.0f role=%d changed=%d]",object_getClassName(iv),iv.bounds.size.width,iv.bounds.size.height,ADMenuRole382(iv),changed?1:0);
     } @catch(...) {}
 }
 
@@ -3018,7 +2877,6 @@ static void ADApplyNativeWhiteTameView(UIView *v){
             if (gADNativeTameLog++<48)
                 ADLog(@"P24NATTAME[%s %.0fx%.0f alpha=%.3f ctx=%d raw=%d band=366]",
                       object_getClassName(v),v.bounds.size.width,v.bounds.size.height,a,ctx,isIV?0:1);
-            if (ctx==2) { static int person381log=0; if(person381log++<18) ADLog(@"P45PERSON383[%s %.0fx%.0f overlay=1 local=%d watched=%d]",object_getClassName(v),v.bounds.size.width,v.bounds.size.height,ADWTLocalSection365(v),ADWTInWatchedCarousel380(v)?1:0); }
         } else {
             if (ov.superlayer != v.layer) [v.layer addSublayer:ov];
             ov.frame=v.bounds; ov.backgroundColor=[UIColor colorWithWhite:0 alpha:a].CGColor; ov.zPosition=9999;
@@ -3097,7 +2955,6 @@ static void ADSubscribeOverlay394(UIView *v){
         if(!forced){forced=[CALayer layer];forced.name=@"AmazonDarkSubscribe394";[v.layer addSublayer:forced];objc_setAssociatedObject(v,kADSubscribeOverlay394,forced,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
         else if(forced.superlayer!=v.layer)[v.layer addSublayer:forced];
         forced.frame=v.bounds;forced.backgroundColor=[UIColor colorWithWhite:0 alpha:a].CGColor;forced.zPosition=9999;
-        static int sub394log=0;if(sub394log++<40)ADLog(@"P58SUB394[%s %.0fx%.0f overlay=1]",object_getClassName(v),v.bounds.size.width,v.bounds.size.height);
     } @catch(...) {}
 }
 static void ADApplyNativeWhiteTame(UIImageView *iv){ ADApplyNativeWhiteTameView(iv); }
@@ -3469,7 +3326,6 @@ static BOOL ADIsTabBarItemish(UIView *v){
 @interface CAFilter : NSObject
 + (id)filterWithType:(NSString *)type;
 @end
-static int gRNLogLeft = 8;
 static BOOL ADHasRNAncestor(UIView *v){
     UIView *p = v; int d = 0;
     while (p && d++ < 10){
@@ -3525,15 +3381,9 @@ static void ADInvertRNSVG(UIView *v){
         v.layer.filters = ours;
         objc_setAssociatedObject(v, kADRNFiltersKey, ours, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(v, kADRNInvertKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        if (gRNLogLeft > 0){ gRNLogLeft--; ADLog(@"rnsvg inverted cls=%s %.0fx%.0f", cn, w, h); }
     } @catch(...) {}
 }
 
-static int gTabDumpLeft = 16;   // one-shot budget, refreshed on each app launch
-static int gSwImgSeen = 0, gSwGlyphFixed = 0, gSwDarkLabels = 0, gSwViews = 0;
-static int gSwLabelFixed = 0, gSwTemplateSeen = 0, gSwTintFixed = 0;
-static char gSwSample[96] = {0};
-static char gSwTintNow[64] = {0};
 static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
     if (!v || depth > 60) return;
     @try {
@@ -3547,39 +3397,6 @@ static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
         // for the current tab state. Only the icon and label work needs holding back
         // here; the fill still has to be darkened like everything else.
         BOOL tabBarish = inTabBar || ADIsTabBarItemish(v);   // INHERITED, not re-derived
-        if (tabBarish && gTabDumpLeft > 0 &&
-            ([v isKindOfClass:[UIImageView class]] || [v isKindOfClass:[UIButton class]])){
-            @try {
-                UIImage *di = [v isKindOfClass:[UIImageView class]] ? ((UIImageView *)v).image
-                                                                    : ((UIButton *)v).currentImage;
-                UIColor *dt = v.tintColor; CGFloat r,g,b,a; double tl = -1;
-                if (dt && [dt getRed:&r green:&g blue:&b alpha:&a]) tl = 0.2126*r+0.7152*g+0.0722*b;
-                BOOL ownbg = (v.backgroundColor && ADIsOwnColor(v.backgroundColor));
-                UIImage *orig = di ? objc_getAssociatedObject(di, kADOrigImageKey) : nil;
-                ADLog(@"tabdump cls=%s img=%d dark=%d tmpl=%d tint=%.2f rgb=%.2f,%.2f,%.2f sel=%d bg=%d orig=%d",
-                      object_getClassName(v), di?1:0,
-                      di?ADIsDarkGlyph(di):0, (di && ADImageIsTemplateish(di))?1:0,
-                      tl, (tl>=0?r:0),(tl>=0?g:0),(tl>=0?b:0),
-                      ADViewIsSelectedInBar(v)?1:0, ownbg?1:0, orig?1:0);
-                gTabDumpLeft--;
-            } @catch(...) {}
-        }
-        // Thin non-icon bar views: candidates for the selection indicator the user
-        // wants white. Report class/size/background so it can be targeted exactly.
-        if (tabBarish && gTabDumpLeft > 0 &&
-            ![v isKindOfClass:[UIImageView class]] && ![v isKindOfClass:[UIButton class]]){
-            @try {
-                CGFloat hh = v.bounds.size.height, ww = v.bounds.size.width;
-                if (hh > 0 && hh < 8 && ww > 12){
-                    UIColor *bc = v.backgroundColor; double bl = -1; CGFloat br,bgc,bb,ba;
-                    if (bc && [bc getRed:&br green:&bgc blue:&bb alpha:&ba]) bl = 0.2126*br+0.7152*bgc+0.0722*bb;
-                    ADLog(@"tabline cls=%s w=%.0f h=%.1f bg=%.2f tagged=%d inchain=%d",
-                          object_getClassName(v), ww, hh, bl,
-                          ADIsTaggedIndicator(v) ? 1 : 0, ADInTabBarChain(v) ? 1 : 0);
-                    gTabDumpLeft--;
-                }
-            } @catch(...) {}
-        }
         if (tabBarish){
             const char *scn = object_getClassName(v);
             if (scn && strstr(scn, "BarBackgroundShadow")){
@@ -3632,36 +3449,21 @@ static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
         // on device, the search-pane X and history glyphs were still near-black under
         // v5.14.0, which means no setter path reached them. ADGlyphify caches both
         // outcomes, so a view swept repeatedly costs a dictionary lookup.
-        gSwViews++;
         if ([v isKindOfClass:[UIImageView class]]){
             @try {
                 UIImageView *iv = (UIImageView *)v;
-                if (iv.image) gSwImgSeen++;
                 if (tabBarish){
                     ADTintBarIcon(iv, ADViewIsSelectedInBar(iv));
                 } else {
                 if (iv.image && ADImageIsTemplateish(iv.image)){
-                    gSwTemplateSeen++;
                     UIColor *tint = iv.tintColor;
                     CGFloat tr,tg,tb,ta;
                     if (tint && [tint getRed:&tr green:&tg blue:&tb alpha:&ta] &&
                         (0.2126*tr + 0.7152*tg + 0.0722*tb) < 0.45 && !tabBarish){
                         ((UIView *)iv).tintColor = ADColorFromHex(gP.fgHex);
-                        gSwTintFixed++;
-                    }
-                    // Read back what a real template icon's tint RESOLVES to, whether
-                    // or not we just changed it. Recording only on the fix path would
-                    // go silent in exactly the steady state we need to inspect.
-                    if (!gSwTintNow[0]){
-                        @try {
-                            CGFloat nr,ng,nb,na;
-                            if ([((UIView *)iv).tintColor getRed:&nr green:&ng blue:&nb alpha:&na])
-                                snprintf(gSwTintNow, sizeof(gSwTintNow), "%.2f,%.2f,%.2f", nr,ng,nb);
-                        } @catch(...) {}
                     }
                 }
                 UIImage *tpl = ADGlyphify(((UIImageView *)v).image);
-                if (tpl) gSwGlyphFixed++;
                 if (tpl){
                     ((UIView *)v).tintColor = ADColorFromHex(gP.fgHex);
                     ((UIImageView *)v).image = tpl;
@@ -3675,13 +3477,11 @@ static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
                 else {
                 UIImage *cur = b.currentImage;
                 if (cur && ADImageIsTemplateish(cur)){
-                    gSwTemplateSeen++;
                     UIColor *tint = b.tintColor;
                     CGFloat tr,tg,tb,ta;
                     if (tint && [tint getRed:&tr green:&tg blue:&tb alpha:&ta] &&
                         (0.2126*tr + 0.7152*tg + 0.0722*tb) < 0.45 && !tabBarish){
                         ((UIView *)b).tintColor = ADColorFromHex(gP.fgHex);
-                        gSwTintFixed++;
                     }
                 }
                 UIImage *tpl = ADGlyphify(cur);
@@ -3696,24 +3496,9 @@ static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
         if (!tabBarish && [v isKindOfClass:[UILabel class]]){
             UILabel *l = (UILabel *)v;
             UIColor *tc = l.textColor;
-            @try {
-                CGFloat rr,gg,bb,aa;
-                if (tc && [tc getRed:&rr green:&gg blue:&bb alpha:&aa] &&
-                    (0.2126*rr+0.7152*gg+0.0722*bb) < 0.30) gSwDarkLabels++;
-            } @catch(...) {}
             if (tc && !ADIsModifiedUIColor(tc)) {
                 UIColor *mt = ADModifyUIColor(tc, ADColorRoleForeground);
-                if (mt) { l.textColor = mt; gSwLabelFixed++; }
-                else if (!gSwSample[0]) {
-                    // Record ONE declined label so we can see what it actually is.
-                    @try {
-                        CGFloat r2,g2,b2,a2;
-                        BOOL ok = [tc getRed:&r2 green:&g2 blue:&b2 alpha:&a2];
-                        snprintf(gSwSample, sizeof(gSwSample), "%s rgba=%s%.2f,%.2f,%.2f,%.2f",
-                                 object_getClassName(l), ok ? "" : "UNREADABLE ",
-                                 ok?r2:0, ok?g2:0, ok?b2:0, ok?a2:0);
-                    } @catch(...) {}
-                }
+                if (mt) { l.textColor = mt; }
             }
         } else if ([v respondsToSelector:@selector(textColor)] &&
                    [v respondsToSelector:@selector(setTextColor:)]) {
@@ -3798,23 +3583,10 @@ static const void *kADCellSwept = &kADCellSwept;
 static void ADSweepAllWindows(void){
     if (!ADRecolorOn()) return;
     @try {
-        int nwin = 0;
-        gSwViews = gSwImgSeen = gSwGlyphFixed = gSwDarkLabels = gSwLabelFixed = 0;
-        gSwTemplateSeen = gSwTintFixed = 0;
-        gSwSample[0] = 0;
-        gSwTintNow[0] = 0;
         for (UIScene *sc in [UIApplication sharedApplication].connectedScenes){
             if (![sc isKindOfClass:[UIWindowScene class]]) continue;
-            for (UIWindow *w in ((UIWindowScene *)sc).windows){ nwin++; ADSweepViewTree(w, 0, NO); }
+            for (UIWindow *w in ((UIWindowScene *)sc).windows) ADSweepViewTree(w, 0, NO);
         }
-        static NSString *last = nil;
-        NSString *now = [NSString stringWithFormat:
-                         @"win=%d views=%d img=%d tmpl=%d tintFixed=%d glyphFixed=%d darkLabels=%d labelFixed=%d%s%s%s%s",
-                         nwin, gSwViews, gSwImgSeen, gSwTemplateSeen, gSwTintFixed,
-                         gSwGlyphFixed, gSwDarkLabels, gSwLabelFixed,
-                         gSwSample[0]  ? " declined=" : "", gSwSample[0]  ? gSwSample  : "",
-                         gSwTintNow[0] ? " tintNow="  : "", gSwTintNow[0] ? gSwTintNow : ""];
-        if (!last || ![last isEqualToString:now]){ last = now; ADLog(@"sweep %@", now); }
     } @catch(...) {}
 }
 
@@ -3873,7 +3645,7 @@ static void ADSweep(void){
 // are themed at assignment. So this timer is purely a launch-time backstop.
 static int gSweepTicks = 0;
 static void ADStartTimer(void){
-    if (gSweepTicks++ > 20) {           // ~40s, then done — events take over
+    if (gSweepTicks++ > 6) {            // ~12s, then event-driven hooks take over
         ADRaw("[AmazonDark] launch sweeps complete; event-driven from here");
         return;
     }
@@ -3888,14 +3660,18 @@ static void ADStartTimer(void){
 // a forever-timer, we re-theme exactly when the view hierarchy changes. A short
 // coalesced burst (0 / 60 / 200 / 500 ms) covers the mount-to-first-paint window
 // without a standing cost.
+static uint32_t gADBurstGeneration = 0;
 static void ADReapplyBurst(void){
-    static const int64_t delays_ms[] = {0, 60, 200, 500};
-    for (int i = 0; i < 4; i++){
+    const uint32_t gen = ++gADBurstGeneration;
+    static const int64_t delays_ms[] = {0, 120, 420};
+    for (int i = 0; i < 3; i++){
+        const int pass = i;
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, delays_ms[i]*1000000LL),
             dispatch_get_main_queue(), ^{ @try {
+                if (gen != gADBurstGeneration) return;
                 ADForceWindowsDarkTrait();
                 ADInjectAllWebViews();
-                ADSweepAllWindows();
+                if (pass != 1) ADSweepAllWindows();
             } @catch(...) {} });
     }
 }
@@ -3909,13 +3685,6 @@ static void ADReapplyBurst(void){
     @try {
         if (!ADRecolorOn()) return;
         if (self.view.window && self.view.bounds.size.width > 200){
-            NSString *vcKey = [NSString stringWithUTF8String:object_getClassName(self)];
-            static NSMutableSet *vcSeen = nil;
-            if (!vcSeen) vcSeen = [NSMutableSet set];
-            if (![vcSeen containsObject:vcKey]){
-                [vcSeen addObject:vcKey];
-                ADLog(@"screen: %@", vcKey);
-            }
             ADReapplyBurst();
         }
     } @catch(...) {}
