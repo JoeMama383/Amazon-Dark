@@ -45,12 +45,8 @@
  *
  * NATHANLR SAFETY (carried over verbatim from the CarBridgeReborn sessions)
  * ----------------------------------------------------------------------------
- *  - ZERO Obj-C in %ctor: no NSLog/os_log, no @"" literals at ctor scope. The ObjC
- *    runtime is not guaranteed ready when the dylib loads on NathanLR; touching it
- *    there SIGBUS/SIGABRTs. %ctor uses only raw write() syscalls + a process guard.
- *  - All Obj-C work is deferred onto the main queue / dispatch_after sweeps.
- *  - File logging to $TMPDIR (sandbox-writable; /var/mobile is NOT writable from a
- *    sandboxed app — that mistake cost a whole session last time).
+ *  - Keep constructor work bounded and defer normal setup onto the main queue.
+ *  - All recurring recovery is event-driven or strictly bounded; no forever timer.
  *  - Every hook body is wrapped in @try/@catch so an unexpected shape is absorbed.
  *  - No auto-killall in postinst (respring races with Ellekit/dpkg triggers).
  * ============================================================================
@@ -64,12 +60,9 @@
 #import <string.h>
 #import <notify.h>
 #import <stdio.h>
-#import <unistd.h>
-#import <fcntl.h>
 #import <dlfcn.h>
-// Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
-// confirm which build is live on device.
-#define AD_VERSION "v6.0.12"
+// Keep in lockstep with layout/DEBIAN/control.
+#define AD_VERSION "v6.0.13"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -105,12 +98,7 @@ extern char *__progname;
 @interface TezBaseSplashScreenViewController : UIViewController @end
 @interface WKScrollView : UIScrollView @end
 @interface WKContentView : UIView @end
-
-// ─────────────────────────────────────────────────────────────────────────────────
-// Logging is compiled out in v6.0.4 performance mode.
-#define ADOpenLog() ((void)0)
-#define ADRaw(...)  ((void)0)
-#define ADLog(...)  ((void)0)
+@interface RNSVGSvgView : UIView @end
 
 // ════════════════════════════════════════════════════════════════════════════════
 // PREFERENCES
@@ -137,6 +125,12 @@ typedef struct {
 } ADPrefs;
 
 static ADPrefs gP;
+// v6.0.13 hot constants: these colors are requested from layout hooks constantly.
+// Reuse one marked-own UIColor per live preference value instead of allocating a
+// fresh UIColor + associated-object marker on every assignment.
+static UIColor *gADBGColor613 = nil;
+static UIColor *gADFGColor613 = nil;
+static UIColor *gADBlueColor613 = nil;
 static void ADSyncColorEngine(void);
 static const void *kADModImageKey = &kADModImageKey;
 static inline BOOL ADIsModifiedImage(UIImage *im){ return im && objc_getAssociatedObject(im, kADModImageKey) != nil; }
@@ -156,6 +150,7 @@ static inline double ADUptime(void);
 static void ADPostAppReady(void);
 static void ADPreDarken(WKWebView *wv);
 static void ADPrimeWebBacking611(WKWebView *wv);
+static void ADInvalidateWebCaches613(void);
 
 static long ADPrefLong(NSDictionary *d, NSString *k, long def){
     id v = d[k]; return (v && [v respondsToSelector:@selector(longValue)]) ? [v longValue] : def;
@@ -220,11 +215,10 @@ static void ADLoadPrefs(void){
         ADPrefHex(d, @"bgHex", "#181a1b", gP.bgHex);
         ADPrefHex(d, @"fgHex", "#e8e6e3", gP.fgHex);
     } @catch(...) {}
+    gADBGColor613 = nil;
+    gADFGColor613 = nil;
+    ADInvalidateWebCaches613();
     ADSyncColorEngine();
-    ADLog(@"prefs: enabled=%d web=%d nativeTheme=%d nativeRecolor=%d tame=%d tameStrength=%ld force120=%d bright=%ld contrast=%ld gray=%ld sepia=%ld bg=%s fg=%s",
-          gP.enabled, gP.webDarkReader, gP.nativeTheme, gP.nativeRecolor,
-          gP.whiteTame, gP.whiteTameStrength, gP.force120Hz,
-          gP.brightness, gP.contrast, gP.grayscale, gP.sepia, gP.bgHex, gP.fgHex);
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -253,14 +247,9 @@ static NSString *ADBundledDarkReaderJS(void){
                 NSString *s = [NSString stringWithContentsOfFile:c encoding:NSUTF8StringEncoding error:nil];
                 if (s.length){
                     cached = s;
-                    ADLog(@"darkreader.js loaded (%lu bytes) from %@", (unsigned long)s.length, c);
                     break;
                 }
-                ADLog(@"darkreader.js NOT at %@", c);
             }
-            if (!cached.length)
-                ADLog(@"FATAL: darkreader.js missing — web surfaces will stay LIGHT. "
-                       "Check the package installed it under Application Support/AmazonDark.");
         }
     } @catch(...) {}
     return cached;
@@ -291,7 +280,25 @@ static NSString *ADBundledDarkReaderJS(void){
 // that layers a gradient ON TOP of a background image to drop the gradient, and
 // neutralise standalone overlay layers, without touching gradients used as real
 // button or chip fills.
+// v6.0.13: all generated web payloads are immutable until preferences change.
+// Dark Reader itself is ~346 KB; rebuilding the bootstrap with stringWithFormat on
+// every navigation was pure allocation/copy churn. Cache each payload once per
+// preference generation and drop it only when ADLoadPrefs() actually reloads.
+static NSString *gADFixesLiteral613 = nil;
+static NSString *gADThemeLiteral613 = nil;
+static NSString *gADBootstrap613 = nil;
+static NSString *gADReapply613 = nil;
+static NSString *gADTameWeb613 = nil;
+static void ADInvalidateWebCaches613(void){
+    gADFixesLiteral613 = nil;
+    gADThemeLiteral613 = nil;
+    gADBootstrap613 = nil;
+    gADReapply613 = nil;
+    gADTameWeb613 = nil;
+}
+
 static NSString *ADFixesLiteral(void){
+    if (gADFixesLiteral613) return gADFixesLiteral613;
     // The image backdrop is only meaningful where an image has TRANSPARENT pixels:
     // a dark panel behind an opaque JPEG is completely hidden by the photo. So this
     // helps transparent PNGs (icons, cut-out product shots) and is a harmless no-op
@@ -300,7 +307,7 @@ static NSString *ADFixesLiteral(void){
     NSString *imgBackdrop = gP.imageBackdrop
         ? [NSString stringWithFormat:@"img{background-color:%s !important;}", gP.bgHex]
         : @"";
-    return [NSString stringWithFormat:
+    gADFixesLiteral613 = [NSString stringWithFormat:
             @"{css:'"
              "img,picture,video,canvas,svg{filter:none !important;opacity:1 !important;"
              "mix-blend-mode:normal !important;isolation:auto !important;}"
@@ -414,25 +421,29 @@ static NSString *ADFixesLiteral(void){
              "{mix-blend-mode:normal !important;isolation:auto !important;}"
              "',invert:[],ignoreInlineStyle:[],ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
             imgBackdrop];
+    return gADFixesLiteral613;
 }
 
 static NSString *ADThemeLiteral(void){
+    if (gADThemeLiteral613) return gADThemeLiteral613;
     // mode:1 = dark. styleSystemControls themes form controls/scrollbars.
     // The fixed/sticky headers Amazon uses respond better with these on.
-    return [NSString stringWithFormat:
+    gADThemeLiteral613 = [NSString stringWithFormat:
         @"{mode:1,brightness:%ld,contrast:%ld,sepia:%ld,grayscale:%ld,"
          "darkSchemeBackgroundColor:'%s',darkSchemeTextColor:'%s',"
          "styleSystemControls:true}",
         gP.brightness, gP.contrast, gP.sepia, gP.grayscale, gP.bgHex, gP.fgHex];
+    return gADThemeLiteral613;
 }
 
 // HEAVY: full Dark Reader UMD + first enable(). Injected ONCE per document at
 // documentStart via a WKUserScript. The 346KB engine is parsed a single time per page.
 static NSString *ADDarkReaderBootstrap(void){
+    if (gADBootstrap613) return gADBootstrap613;
     NSString *dr = ADBundledDarkReaderJS();
     if (!dr.length) return nil;
     NSString *floorBG = [NSString stringWithUTF8String:gP.bgHex] ?: @"#181a1b";
-    return [NSString stringWithFormat:
+    gADBootstrap613 = [NSString stringWithFormat:
         @"(function(){try{"
          "if(window.__AMZDARK_LOADED__)return;window.__AMZDARK_LOADED__=1;"
          // v6.0.12: establish the page canvas before the Dark Reader UMD is parsed.
@@ -660,6 +671,7 @@ static NSString *ADDarkReaderBootstrap(void){
          "try{document.addEventListener('visibilitychange',function(){if(!document.hidden)window.__AMZDARK_APPLY__();});}catch(e){}"
          "}}catch(e){}})();",
         floorBG, dr, [NSString stringWithUTF8String:gP.fgHex], ADThemeLiteral(), ADFixesLiteral()];
+    return gADBootstrap613;
 }
 
 
@@ -668,7 +680,8 @@ static NSString *ADDarkReaderBootstrap(void){
 // the v5.42 Dark Reader bootstrap so unrelated v5.43x/v5.44x UI fixes are not imported.
 static NSString *ADWhiteTameWebJS446(void){
     if (!gP.enabled || !gP.whiteTame) return nil;
-    return [NSString stringWithFormat:
+    if (gADTameWeb613) return gADTameWeb613;
+    gADTameWeb613 = [NSString stringWithFormat:
         @"(function(){try{window.__ADTAME_ON__=1;window.__ADTAME_S__=%ld;"
          "if(window.__AD_TWB446_INSTALLED__){if(window._adTameFast362)window._adTameFast362(document.documentElement);return;}"
          "window.__AD_TWB446_INSTALLED__=1;"
@@ -724,6 +737,7 @@ static NSString *ADWhiteTameWebJS446(void){
          "try{if(!window.__AD_TWB446_OBS__){window.__AD_TWB446_OBS__=1;new MutationObserver(function(muts){try{for(var mi=0;mi<muts.length&&mi<48;mi++){var mm=muts[mi];if(mm.type==='attributes'){if(mm.target)window._adTameFast362(mm.target);continue;}var aa=mm.addedNodes||[];for(var ai=0;ai<aa.length&&ai<24;ai++){if(aa[ai]&&aa[ai].nodeType===1)window._adTameFast362(aa[ai]);}}}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src','srcset','poster','class']});}}catch(e){}"
          "}catch(e){}})();",
         (long)gP.whiteTameStrength];
+    return gADTameWeb613;
 }
 
 static void ADAttachWhiteTameUserScript446(WKUserContentController *ucc){
@@ -765,7 +779,8 @@ static void ADAttachWhiteTameUserScript446(WKUserContentController *ucc){
 // So: enable() stays conditional, the repair runs every time. It is idempotent
 // (it only rewrites values that currently fail) and cheap on a settled page.
 static NSString *ADDarkReaderReapply(void){
-    return [NSString stringWithFormat:
+    if (gADReapply613) return gADReapply613;
+    gADReapply613 = [NSString stringWithFormat:
         @"(function(){try{"
          "if(!(window.DarkReader&&DarkReader.enable))return 'noDR';"
          "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
@@ -773,6 +788,7 @@ static NSString *ADDarkReaderReapply(void){
          "return 'nofix';"
          "}catch(e){return 'err';}})();",
         ADThemeLiteral(), ADFixesLiteral()];
+    return gADReapply613;
 }
 
 
@@ -963,138 +979,39 @@ static void ADEnableDarkReaderIn(WKWebView *wv){
                      NSString *full=ADWhiteTameWebJS446(); if(full.length)[wv evaluateJavaScript:full completionHandler:nil];
                  }];
         }
-        // Lightweight re-apply; the heavy engine arrives via the documentStart userscript.
         NSString *js = ADDarkReaderReapply();
-        if (js.length){
-            [wv evaluateJavaScript:js completionHandler:^(id r, NSError *e){
-                @try {
-                    if (![r isKindOfClass:[NSString class]]) return;
-                    NSString *res = (NSString *)r;
-                    // 'n/bfix' = text colours lifted / blend modes neutralised.
-                    // 'nofix'  = the repair function is not defined in this document.
-                    // Deduped per URL+result so a settled page cannot spam the log.
-                    static NSMutableSet *seenFix = nil;
-                    if (!seenFix) seenFix = [NSMutableSet set];
-                    NSString *u2 = wv.URL.absoluteString ?: @"(none)";
-                    if (u2.length > 60) u2 = [u2 substringToIndex:60];
-                    NSString *k = [NSString stringWithFormat:@"%@|%@", u2, res];
-                    if (![seenFix containsObject:k]){
-                        [seenFix addObject:k];
-                        ADLog(@"repair %@ -> %@", u2, res);
-                    }
-                } @catch(...) {}
-            }];
-        }
+        if (js.length) [wv evaluateJavaScript:js completionHandler:nil];
 
-        // Name the page once per URL. Tells us which surfaces are actually web —
-        // a tab that never shows up here is native and needs a different fix.
-        static NSMutableSet *seen = nil;
-        if (!seen) seen = [NSMutableSet set];
-        NSString *u = wv.URL.absoluteString ?: @"(no url)";
-        if (u.length > 90) u = [u substringToIndex:90];
-        if (![seen containsObject:u]){
-            [seen addObject:u];
-            ADLog(@"web themed: %@", u);
-        }
-
-        // Report the page's ACTUAL state back into the log. The cart keeps reverting
-        // to light on tab-return and two rounds of native-side timing fixes have not
-        // held, so stop inferring: ask the document directly whether the engine is
-        // loaded, whether its stylesheet is still attached, and what readyState it is
-        // in. Deduped per URL+state so it cannot spam.
+        // Functional self-heal only: diagnostics used to retain URL/state sets here
+        // even though logging was compiled out. Ask just the two facts repair needs.
         [wv evaluateJavaScript:
-            @"(function(){try{return (window.DarkReader?'DR':'noDR')+'/'"
-             "+(document.querySelector('style.darkreader')?'styled':'NOSTYLE')+'/'"
-             "+(window.__AMZDARK_LOADED__?'flag':'noflag')+'/'+document.readyState;}"
-             "catch(e){return 'err';}})()"
+            @"(function(){try{return (!window.__AMZDARK_LOADED__||!(window.DarkReader&&DarkReader.enable))?1:0;}catch(e){return 1;}})()"
              completionHandler:^(id result, NSError *err){
             @try {
-                NSString *st = [result isKindOfClass:[NSString class]] ? (NSString *)result
-                                                                       : @"(nonstring)";
-                // Log state TRANSITIONS: remember the last state per URL and log only
-                // when it changes, so an oscillation shows as alternating lines instead
-                // of collapsing to one. This is what will confirm the flip is fixed.
-                static NSMutableDictionary *lastState = nil;
-                if (!lastState) lastState = [NSMutableDictionary dictionary];
-                NSString *prev = lastState[u];
-                if (!prev || ![prev isEqualToString:st]){
-                    lastState[u] = st;
-                    ADLog(@"web state: %@ -> %@%@", u, st, err ? @" (evalError)" : @"");
+                if (err || ![result respondsToSelector:@selector(boolValue)] || ![result boolValue]) return;
+                WKUserContentController *ucc = wv.configuration.userContentController;
+                Class WKUS = NSClassFromString(@"WKUserScript");
+                NSString *boot = ADDarkReaderBootstrap();
+                if (ucc && WKUS && boot.length){
+                    BOOL present = NO;
+                    for (WKUserScript *existing in ucc.userScripts){
+                        if ([existing.source containsString:@"__AMZDARK_LOADED__"]){ present = YES; break; }
+                    }
+                    if (!present){
+                        WKUserScript *us = [[WKUS alloc] initWithSource:boot
+                                                           injectionTime:WKUserScriptInjectionTimeAtDocumentStart
+                                                        forMainFrameOnly:NO];
+                        [ucc addUserScript:us];
+                        ADAttachWhiteTameUserScript446(ucc);
+                    }
                 }
-
-                // SELF-HEAL. 'noflag' means __AMZDARK_LOADED__ is absent, i.e. the
-                // documentStart WKUserScript never ran in THIS document — so the page
-                // has no engine to re-enable and every light-touch re-apply is a no-op.
-                // That is the real cart failure: not a bfcache restore (which would
-                // keep the flag and lose only the styles), but a fresh document our
-                // script never reached, because the web view was created or navigated
-                // outside the window in which we attach the script.
-                //
-                // Rather than chase every creation path, repair it here: inject the
-                // full engine directly into the live document. evaluateJavaScript does
-                // not care how the document came to exist, so this works regardless.
-                // v6.0.4: historical overlay probe removed; it only scanned/logged DOM.
-                if ([st containsString:@"noflag"] || [st hasPrefix:@"noDR"]){
-                    // ROOT-CAUSE HALF. noflag recurring on every navigation means our
-                    // documentStart user script is not present on this web view's content
-                    // controller any more. The binary exports removeAllUserScripts and an
-                    // AMIPrewarmWebviewTask, so Amazon both prewarms web views (created
-                    // before we could hook init) and clears user scripts on reuse. Healing
-                    // the current document alone therefore fixes one page and leaves the
-                    // NEXT navigation unthemed — which is precisely the observed cycle:
-                    // noflag -> repair -> dark -> navigate -> noflag -> repair ...
-                    //
-                    // So re-attach the script here. Once it is back on the controller the
-                    // next document is themed at documentStart, before first paint, and
-                    // there is no white gap to repair.
-                    @try {
-                        WKUserContentController *ucc = wv.configuration.userContentController;
-                        Class WKUS = NSClassFromString(@"WKUserScript");
-                        NSString *boot = ADDarkReaderBootstrap();
-                        if (ucc && WKUS && boot.length){
-                            BOOL present = NO;
-                            for (WKUserScript *existing in ucc.userScripts){
-                                if ([existing.source containsString:@"__AMZDARK_LOADED__"]){
-                                    present = YES;
-                                    break;
-                                }
-                            }
-                            if (!present){
-                                WKUserScript *us =
-                                    [[WKUS alloc] initWithSource:boot
-                                                   injectionTime:WKUserScriptInjectionTimeAtDocumentStart
-                                                forMainFrameOnly:NO];
-                                [ucc addUserScript:us];
-                                ADAttachWhiteTameUserScript446(ucc);
-                                ADLog(@"web: user script re-attached (was stripped) for %@", u);
-                            }
-                        }
-                    } @catch(...) {}
-
-                    // Re-heal EVERY time the document is unthemed, not once per URL.
-                    // Guard on DOCUMENT identity: __AMZDARK_HEALED__ lives on window, so a
-                    // fresh document at a reused URL heals again while a single document is
-                    // never re-injected (no flash, no wasted 346KB parse).
-                    NSString *heal =
-                        @"(function(){try{"
-                         "if(window.__AMZDARK_HEALED__)return 'already';"
-                         "window.__AMZDARK_HEALED__=1;return 'heal';"
-                         "}catch(e){return 'heal';}})()";
-                    [wv evaluateJavaScript:heal completionHandler:^(id r2, NSError *e2){
-                        @try {
-                            if ([r2 isKindOfClass:[NSString class]] &&
-                                [(NSString *)r2 isEqualToString:@"heal"]){
-                                NSString *full = ADDarkReaderBootstrap();
-                                if (full.length){
-                                    ADLog(@"web repair: injecting full engine into %@", u);
-                                    [wv evaluateJavaScript:full completionHandler:^(id r3, NSError *e3){
-                                        if (e3) ADLog(@"web repair FAILED: %@", e3.localizedDescription);
-                                    }];
-                                }
-                            }
-                        } @catch(...) {}
-                    }];
-                }
+                [wv evaluateJavaScript:
+                    @"(function(){try{if(window.__AMZDARK_HEALED__)return 0;window.__AMZDARK_HEALED__=1;return 1;}catch(e){return 1;}})()"
+                     completionHandler:^(id heal, NSError *healErr){
+                    if (healErr || ![heal respondsToSelector:@selector(boolValue)] || ![heal boolValue]) return;
+                    NSString *full = ADDarkReaderBootstrap();
+                    if (full.length) [wv evaluateJavaScript:full completionHandler:nil];
+                }];
             } @catch(...) {}
         }];
     } @catch(...) {}
@@ -1107,31 +1024,60 @@ static void ADEnableDarkReaderIn(WKWebView *wv){
 static void ADBootstrapDarkReaderIn(WKWebView *wv){
     if (!gP.enabled || !gP.webDarkReader || !wv) return;
     @try {
-        NSString *js = ADDarkReaderBootstrap();
-        if (js.length) [wv evaluateJavaScript:js completionHandler:nil];
-        NSString *twb446 = ADWhiteTameWebJS446();
-        if (twb446.length) [wv evaluateJavaScript:twb446 completionHandler:nil];
-        NSString *sym446 = ADThreeSymbolsWebJS605();
-        if (sym446.length) [wv evaluateJavaScript:sym446 completionHandler:nil];
+        [wv evaluateJavaScript:@"(function(){try{return window.__AMZDARK_LOADED__?1:0;}catch(e){return 0;}})()"
+             completionHandler:^(id loaded, NSError *err){
+            if (!err && [loaded respondsToSelector:@selector(boolValue)] && [loaded boolValue]) return;
+            NSString *js = ADDarkReaderBootstrap();
+            if (js.length) [wv evaluateJavaScript:js completionHandler:nil];
+            NSString *twb446 = ADWhiteTameWebJS446();
+            if (twb446.length) [wv evaluateJavaScript:twb446 completionHandler:nil];
+            NSString *sym446 = ADThreeSymbolsWebJS605();
+            if (sym446.length) [wv evaluateJavaScript:sym446 completionHandler:nil];
+        }];
     } @catch(...) {}
 }
 
-static int gWebSeen = 0;
-static void ADWalkWebViews(UIView *v){
+// v6.0.13: discover pre-warmed web views once, then keep weak references from the
+// WKWebView hooks. Screen-change bursts no longer recursively walk every UIKit view
+// just to rediscover the same handful of web views.
+static NSHashTable *gADWebViews613 = nil;
+static BOOL gADWebDiscoveryDone613 = NO;
+static void ADTrackWebView613(WKWebView *wv){
+    if (!wv) return;
     @try {
-        if ([v isKindOfClass:[WKWebView class]]){ gWebSeen++; ADPrimeWebBacking611((WKWebView *)v); ADEnableDarkReaderIn((WKWebView *)v); }
-        for (UIView *s in v.subviews) ADWalkWebViews(s);
+        if (!gADWebViews613) gADWebViews613 = [NSHashTable weakObjectsHashTable];
+        [gADWebViews613 addObject:wv];
+    } @catch(...) {}
+}
+
+static void ADWalkWebViews613(UIView *v){
+    if (!v) return;
+    @try {
+        if ([v isKindOfClass:[WKWebView class]]){
+            WKWebView *wv=(WKWebView *)v;
+            ADTrackWebView613(wv);
+            ADPrimeWebBacking611(wv);
+            ADEnableDarkReaderIn(wv);
+            return; // WKWebView internals cannot contain another app WKWebView.
+        }
+        for (UIView *s in v.subviews) ADWalkWebViews613(s);
     } @catch(...) {}
 }
 static void ADInjectAllWebViews(void){
     @try {
-        gWebSeen = 0;
-        for (UIScene *sc in [UIApplication sharedApplication].connectedScenes){
-            if (![sc isKindOfClass:[UIWindowScene class]]) continue;
-            for (UIWindow *w in ((UIWindowScene *)sc).windows) ADWalkWebViews(w);
+        if (!gADWebDiscoveryDone613){
+            gADWebDiscoveryDone613 = YES;
+            for (UIScene *sc in [UIApplication sharedApplication].connectedScenes){
+                if (![sc isKindOfClass:[UIWindowScene class]]) continue;
+                for (UIWindow *w in ((UIWindowScene *)sc).windows) ADWalkWebViews613(w);
+            }
+            return;
         }
-        static int lastReported = -1;
-        if (gWebSeen != lastReported){ ADLog(@"web views themed: %d", gWebSeen); lastReported = gWebSeen; }
+        for (WKWebView *wv in gADWebViews613.allObjects){
+            if (!wv) continue;
+            ADPrimeWebBacking611(wv);
+            ADEnableDarkReaderIn(wv);
+        }
     } @catch(...) {}
 }
 
@@ -1160,7 +1106,6 @@ static void ADInjectAllWebViews(void){
         [self addUserScript:us];
         ADAttachWhiteTameUserScript446(self);
         ADAttachThreeSymbolsUserScript605(self);
-        ADLog(@"web: user scripts restored after removeAllUserScripts");
     } @catch(...) {}
 }
 %end
@@ -1199,12 +1144,14 @@ static void ADPrimeWebBacking611(WKWebView *wv){
         }
     } @catch(...) {}
     WKWebView *wv = %orig;
+    ADTrackWebView613(wv);
     ADPrimeWebBacking611(wv);
     return wv;
 }
 - (void)didMoveToWindow {
     %orig;
     @try {
+        ADTrackWebView613(self);
         if (!self.window || !gP.enabled || !gP.webDarkReader) return;
         ADPrimeWebBacking611(self);
         ADPreDarken(self);   // exact v5.446 instant dark floor for a page that is mid-load
@@ -1222,7 +1169,6 @@ static void ADPrimeWebBacking611(WKWebView *wv){
                                                forMainFrameOnly:NO];
                 [ucc addUserScript:us];
                 ADAttachWhiteTameUserScript446(ucc);
-                ADAttachThreeSymbolsUserScript605(ucc);
             }
             objc_setAssociatedObject(self, kUS, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
@@ -1231,6 +1177,7 @@ static void ADPrimeWebBacking611(WKWebView *wv){
 }
 - (void)webView:(WKWebView *)wv didFinishNavigation:(id)nav {
     %orig;
+    ADTrackWebView613(self);
     ADEnableDarkReaderIn(self);
     // v5.446 direct-port cover release: only a real Amazon page counts.
     @try {
@@ -1239,8 +1186,6 @@ static void ADPrimeWebBacking611(WKWebView *wv){
                          ![nu containsString:@"about:blank"] &&
                          ![nu containsString:@"autocomplete"] &&
                          ![nu containsString:@"/ap/"]);
-        ADLog(@"navdone real=%d %@", realPage ? 1 : 0,
-              nu.length > 60 ? [nu substringToIndex:60] : nu);
         if (realPage){
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)),
                            dispatch_get_main_queue(), ^{ ADPostAppReady(); });
@@ -1493,13 +1438,11 @@ static void ADApplyPromotion610(CADisplayLink *d){
 %hook CADisplayLink
 + (CADisplayLink *)displayLinkWithTarget:(id)target selector:(SEL)sel {
     CADisplayLink *d = %orig;
-    ADTrackDisplayLink611(d);
     ADApplyPromotion610(d);
     return d;
 }
 - (instancetype)initWithTarget:(id)target selector:(SEL)sel {
     id d = %orig;
-    ADTrackDisplayLink611((CADisplayLink *)d);
     ADApplyPromotion610((CADisplayLink *)d);
     return d;
 }
@@ -1639,7 +1582,6 @@ static void ADStartHzVerification(void){
         p.forceAtStart = ADPromotionPreferenceOn611();
         CADisplayLink *d = [CADisplayLink displayLinkWithTarget:p selector:@selector(tick:)];
         gADHzProbeTarget=p; gADHzProbeLink611=d;
-        if (p.forceAtStart) ADApplyPromotion610(d);
         [d addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
     } @catch(...) { gADHzProbeTarget=nil; gADHzProbeLink611=nil; }
 }
@@ -1675,7 +1617,6 @@ static void ADLockDarkWeblab(void){
         SEL lock = NSSelectorFromString(@"lockWeblab:toTreatment:");
         if ([svc respondsToSelector:lock]){
             ((void(*)(id,SEL,id,id))objc_msgSend)(svc, lock, @AD_DARK_WEBLAB, @AD_DARK_TREATMENT);
-            ADRaw("[AmazonDark] locked NAVX_DARK_MODE_IOS_1283655 -> " AD_DARK_TREATMENT);
         }
     } @catch(...) {}
 }
@@ -1957,19 +1898,6 @@ static void ADApplyBarTint(UIView *container, BOOL selected){
 static void ADInvertRNSVG(UIView *v);
 
 %hook UIView
-- (void)didMoveToWindow {
-    %orig;
-    @try { if (ADRecolorOn() && self.window) ADInvertRNSVG(self); } @catch(...) {}
-}
-// didMoveToWindow fires BEFORE layout -- a freshly mounted icon still reads
-// 0x0 there and the size gate rejects it (the gear's revert path). Layout is
-// when bounds are real, and it re-runs when React patches a mounted view, so
-// this is both the correct first application point and a healing pass. The
-// helper's first line is a class-name strcmp, so the global cost is nil.
-- (void)layoutSubviews {
-    %orig;
-    @try { if (ADRecolorOn() && self.window) ADInvertRNSVG(self); } @catch(...) {}
-}
 - (void)setBackgroundColor:(UIColor *)color {
     if (!ADRecolorOn() || !color || ADIsOwnColor(color) || ADIsWebKitOwned(self)) {
         %orig;
@@ -2066,7 +1994,29 @@ static void ADInvertRNSVG(UIView *v);
 }
 %end
 
+// v6.0.13: the old implementation hooked UIView layoutSubviews globally just to
+// reach this one RN SVG class plus tiny RN-hosted UILabel glyphs. Hook the actual
+// owners instead so ordinary views pay zero SVG-probe cost.
+%hook RNSVGSvgView
+- (void)didMoveToWindow {
+    %orig;
+    @try { if (ADRecolorOn() && self.window) ADInvertRNSVG(self); } @catch(...) {}
+}
+- (void)layoutSubviews {
+    %orig;
+    @try { if (ADRecolorOn() && self.window) ADInvertRNSVG(self); } @catch(...) {}
+}
+%end
+
 %hook UILabel
+- (void)didMoveToWindow {
+    %orig;
+    @try { if (ADRecolorOn() && self.window) ADInvertRNSVG(self); } @catch(...) {}
+}
+- (void)layoutSubviews {
+    %orig;
+    @try { if (ADRecolorOn() && self.window) ADInvertRNSVG(self); } @catch(...) {}
+}
 - (void)setTextColor:(UIColor *)color {
     if (!ADRecolorOn() || !color || ADIsOwnColor(color)) {
         %orig;
@@ -2759,7 +2709,6 @@ static BOOL ADImageMostlyLight(UIImage *img){
 // which is substantially cheaper during scrolling.
 static const void *kADWhiteTameOverlayKey = &kADWhiteTameOverlayKey;
 static const void *kADWhiteTameLightKey363 = &kADWhiteTameLightKey363;
-static int gADNativeTameLog = 0;
 static BOOL ADWTImageLight363(UIImage *im){
     if (!im) return NO;
     @try {
@@ -3392,9 +3341,6 @@ static void ADApplyNativeWhiteTameView(UIView *v){
             ov.zPosition=9999; ov.name=@"AmazonDarkWhiteTame362";
             [v.layer addSublayer:ov];
             objc_setAssociatedObject(v,kADWhiteTameOverlayKey,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            if (gADNativeTameLog++<48)
-                ADLog(@"P24NATTAME[%s %.0fx%.0f alpha=%.3f ctx=%d raw=%d band=366]",
-                      object_getClassName(v),v.bounds.size.width,v.bounds.size.height,a,ctx,isIV?0:1);
         } else {
             if (ov.superlayer != v.layer) [v.layer addSublayer:ov];
             ov.frame=v.bounds; ov.backgroundColor=[UIColor colorWithWhite:0 alpha:a].CGColor; ov.zPosition=9999;
@@ -3741,6 +3687,7 @@ static UIImage *ADGlyphify(UIImage *img){
 %hook RCTUIImageViewAnimated
 - (void)didMoveToSuperview {
     %orig;
+    if (!gP.enabled || !gP.whiteTame) return;
     @try {
         UIView *vv=(UIView *)self; ADSubscribeOverlay394(vv);
         __weak UIView *wv=vv;
@@ -4113,12 +4060,16 @@ static void ADSweepAllWindows(void){
 // there is no white flash. Set the splash VC's own view backgroundColor (no invert).
 // ════════════════════════════════════════════════════════════════════════════════
 static UIColor *ADColorFromHex(const char *hex){
+    if (hex && strcmp(hex, gP.bgHex) == 0 && gADBGColor613) return gADBGColor613;
+    if (hex && strcmp(hex, gP.fgHex) == 0 && gADFGColor613) return gADFGColor613;
+    if (hex && strcmp(hex, "#00A8E1") == 0 && gADBlueColor613) return gADBlueColor613;
     unsigned int r=24,g=26,b=27;
     if (hex && hex[0]=='#') sscanf(hex+1, "%02x%02x%02x", &r,&g,&b);
-    // Marked as ours: this is a finished theme colour, not an app colour awaiting
-    // transformation. Without the mark, handing it to tintColor ran it through the
-    // foreground curve and came back dark.
-    return ADMarkOwnColor([UIColor colorWithRed:r/255.0 green:g/255.0 blue:b/255.0 alpha:1.0]);
+    UIColor *c = ADMarkOwnColor([UIColor colorWithRed:r/255.0 green:g/255.0 blue:b/255.0 alpha:1.0]);
+    if (hex && strcmp(hex, gP.bgHex) == 0) gADBGColor613 = c;
+    else if (hex && strcmp(hex, gP.fgHex) == 0) gADFGColor613 = c;
+    else if (hex && strcmp(hex, "#00A8E1") == 0) gADBlueColor613 = c;
+    return c;
 }
 static void ADDarkenSplash(UIViewController *vc){
     if (!gP.enabled) return;
@@ -4320,7 +4271,6 @@ static BOOL ADScreenLooksDark(void){
 
 static void ADPostAppReady(void){
     static BOOL posted = NO;
-    static int waits = 0;
     if (posted) return;
     // ABSOLUTE deadline, not a retry budget. The callers fire at wildly different
     // times -- 0.25s, 0.35s, a 60-tick timer, and a 9s backstop -- so a countdown
@@ -4328,15 +4278,12 @@ static void ADPostAppReady(void){
     // cover cap. On this device the trigger landed at t=5.6s; a 4.9s budget from
     // there would have signalled at 10.5s, long after the cover had gone.
     if (!ADScreenLooksDark() && ADUptime() < 7.5){
-        waits++;
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.30 * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{ ADPostAppReady(); });
         return;
     }
     posted = YES;
     notify_post("com.colindavidr.amazondark.ready");
-    ADLog(@"appready posted t=%.1f dark=%d waits=%d",
-          ADUptime(), ADScreenLooksDark() ? 1 : 0, waits);
 }
 
 static void ADPreDarken(WKWebView *wv){
@@ -4364,11 +4311,14 @@ static void ADPrefsChanged(CFNotificationCenterRef center, void *observer,
                            CFDictionaryRef userInfo) {
     dispatch_async(dispatch_get_main_queue(), ^{
         @try {
-            ADStopHzVerification611();
-            ADLoadPrefs();              // also re-syncs + clears the colour cache
-            ADRefreshPromotionState611();
-            ADStartHzVerification();     // records ON or OFF; never leaves a stale report
-            ADRaw("[AmazonDark] prefs reloaded (Darwin notification)");
+            BOOL oldPromotion = ADPromotionPreferenceOn611();
+            ADLoadPrefs();              // also re-syncs + clears the colour/script caches
+            BOOL newPromotion = ADPromotionPreferenceOn611();
+            if (oldPromotion != newPromotion){
+                ADStopHzVerification611();
+                ADRefreshPromotionState611();
+                ADStartHzVerification();
+            }
             ADForceWindowsDarkTrait();
             ADInjectAllWebViews();      // exact re-theme on web
             ADSweepAllWindows();        // best-effort re-theme on native
@@ -4384,11 +4334,9 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
     dispatch_async(dispatch_get_main_queue(), ^{ @try { ADSweep(); } @catch(...) {} });
 }
 
-// ─── %ctor : Obj-C-free. Process guard + open log + %init + schedule real work. ────
+// ─── %ctor : process guard + hook registration + bounded startup recovery ────
 %ctor {
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
-    ADOpenLog();
-    ADRaw("[AmazonDark] " AD_VERSION " init (DarkReader web + native colour engine)");
     // v5.446 direct-port: drop cached light launch snapshots.
     @try {
         NSString *lib = [NSSearchPathForDirectoriesInDomains(
@@ -4396,14 +4344,11 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
         NSString *snap = [lib stringByAppendingPathComponent:@"SplashBoard/Snapshots"];
         NSFileManager *fm = [NSFileManager defaultManager];
         NSArray *kids = [fm contentsOfDirectoryAtPath:snap error:nil];
-        NSUInteger killed = 0;
         for (NSString *k in kids){
             NSString *sub = [snap stringByAppendingPathComponent:k];
-            for (NSString *f in [fm contentsOfDirectoryAtPath:sub error:nil]){
-                if ([fm removeItemAtPath:[sub stringByAppendingPathComponent:f] error:nil]) killed++;
-            }
+            for (NSString *f in [fm contentsOfDirectoryAtPath:sub error:nil])
+                [fm removeItemAtPath:[sub stringByAppendingPathComponent:f] error:nil];
         }
-        if (kids.count) ADLog(@"splashsnap cleared %lu file(s)", (unsigned long)killed);
     } @catch(...) {}
     // v5.446 direct-port activation fallback for native-only cold paths.
     @try {
@@ -4416,24 +4361,10 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
         }];
     } @catch(...) {}
     %init;
-    ADRaw("[AmazonDark] hooks registered");
-    {
-        const char *names[] = {"RCTParagraphComponentView","RCTTextView","RCTViewComponentView",
-                               "RCTScrollView","RCTTextAttributes",
-                               "CXIStoreModesBottomNavToolbar","CXIStoreModesTabBarView",
-                               "ANPRetailTabBar","ANXDarkModeServiceImpl"};
-        for (unsigned i = 0; i < sizeof(names)/sizeof(names[0]); i++){
-            char buf[160];
-            snprintf(buf, sizeof(buf), "[AmazonDark] class %s: %s",
-                     names[i], objc_getClass(names[i]) ? "FOUND" : "MISSING (hook inert)");
-            ADRaw(buf);
-        }
-    }
 
     dispatch_async(dispatch_get_main_queue(), ^{
         ADLoadPrefs();
         ADRefreshPromotionState611();
-        ADStartHzVerification();
         ADLockDarkWeblab();
         ADForceAppearanceDark();
         ADForceWindowsDarkTrait();
