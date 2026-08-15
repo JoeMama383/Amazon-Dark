@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v6.0.1"
+#define AD_VERSION "v6.0.2"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -170,6 +170,8 @@ static BOOL ADIsHamburgerSurface380(UIView *v);
 static int ADMenuRole382(UIView *v);
 static BOOL ADWTInWatchedCarousel380(UIView *v);
 static inline double ADUptime(void);
+static void ADPostAppReady(void);
+static void ADPreDarken(WKWebView *wv);
 
 static long ADPrefLong(NSDictionary *d, NSString *k, long def){
     id v = d[k]; return (v && [v respondsToSelector:@selector(longValue)]) ? [v longValue] : def;
@@ -822,7 +824,7 @@ static NSString *ADDarkReaderReapply(void){
 }
 
 
-// ── v6.0.1: exact v5.446 four-symbol sym413 implementation ─────────────────
+// ── v6.0.2: exact v5.446 four-symbol sym413 implementation ─────────────────
 // Heart / stock checkbox / two-cards / chevron. The sym413 body and its donor
 // scheduling lines below are copied verbatim from v5.446. The outer guard only
 // prevents duplicate installation when an existing WKWebView is re-healed.

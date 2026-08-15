@@ -124,7 +124,9 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 (MIT, © Dark Reader Ltd.) — see `Resources/DARKREADER-LICENSE`.
 
 
-## v6.0.1 backports
+## v6.0.2 backports
+
+- Build fix: preserves the v5.446 splash/readiness implementation while restoring the required forward declarations for `ADPreDarken` and `ADPostAppReady`.
 
 - Direct v5.446 SpringBoard dark launch cover/art and cover-release integration.
 - v5.446 four-symbol sym413 web fix (Heart, checkbox, two-cards, chevron).
