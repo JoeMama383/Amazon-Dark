@@ -123,32 +123,10 @@ native chrome keep working independently.
 Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkreader)
 (MIT, © Dark Reader Ltd.) — see `Resources/DARKREADER-LICENSE`.
 
+## v6.0.7
 
-## v6.0.6 backports
-
-- Build fix: preserves the v5.446 splash/readiness implementation while restoring the required forward declarations for `ADPreDarken` and `ADPostAppReady`.
-
-- Direct v5.446 SpringBoard dark launch cover/art and cover-release integration.
-- Sileo package description and package icon using the Settings preference icon artwork.
-
-
-## v6.0.6
-- Sileo description refreshed to reflect the v5.446 feature set.
-- Removed legacy diagnostic-only native hierarchy and web overlay probes; theming paths are unchanged.
-
-
-## v6.0.6
-- Four-symbol scheduling consolidated to one RAF-batched observer/scroll path with no self-triggering style observation.
-- Runtime diagnostics/log-file I/O removed.
-- Historical web DOM probe removed.
-- Native full-sweep launch backstop shortened and view-transition bursts coalesced.
-- Full symbol/TWB JS is no longer resent across the bridge on every sweep; tiny kickers are used after initial installation.
-- Sileo description: Amazon Dark Mode for rootless jailbreaks, iOS 15+
-
-## v6.0.6
-
-- Preserves the v6.0.4 performance baseline.
-- Amazon retains complete ownership of its stock Compare control; AmazonDark contains no runtime selectors, paint rules, state observers, or sprite handling for that control.
-- Ports the v5.446 status-bar ownership behavior.
-- Adds a one-shot Request 120 Hz verification file when that setting is enabled.
-- Package author/maintainer metadata uses JoeMama383.
+- Preserves the confirmed-good v6.0.6 dark top-chrome implementation and the v6.0.4 performance baseline.
+- Unlocks iPhone ProMotion availability in-process by presenting `CADisableMinimumFrameDurationOnPhone = YES` through both NSBundle and CFBundle lookup paths.
+- `Request 120 Hz` continues to request the panel maximum through `CADisplayLink`; the one-shot verifier records actual callback/timing rate, Low Power Mode, and thermal state.
+- Removes the redundant second launch sweep timer and replaces two overlapping launch sweep systems with six bounded recovery passes; event-driven hooks take over after 9 seconds.
+- AmazonDark still contains no targeted checkbox theming path; Amazon owns that stock control.

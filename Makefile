@@ -9,7 +9,7 @@ AmazonDark_FILES   = src/Tweak.xm src/ADColor.m src/ADImageKey.m
 AmazonDark_CFLAGS  = -fobjc-arc -fexceptions
 AmazonDark_CFLAGS += -Wno-unused-variable -Wno-unused-function
 AmazonDark_CFLAGS += -Wno-deprecated-declarations -Wno-error
-AmazonDark_FRAMEWORKS = UIKit Foundation WebKit CoreGraphics QuartzCore
+AmazonDark_FRAMEWORKS = UIKit Foundation WebKit CoreGraphics QuartzCore CoreFoundation
 
 # SpringBoard-side dark launch cover (injects ONLY into com.apple.springboard
 # via AmazonDarkSB.plist). Defensive: every hook guarded, cover auto-removes.

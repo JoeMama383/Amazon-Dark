@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v6.0.6"
+#define AD_VERSION "v6.0.7"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1082,10 +1082,43 @@ static void ADInjectAllWebViews(void){
 %end
 
 
-// ── OPTIONAL PROMOTION REQUEST (v5.362) ───────────────────────────────────────
-// Requests the panel maximum (up to 120Hz) from CADisplayLink when enabled. iOS can
-// still reduce refresh under Low Power Mode, thermal pressure, unsupported displays,
-// or system policy; this is a request, not a bypass of those governors.
+// ── PROMOTION OPT-IN + 120 HZ REQUEST (v6.0.7) ────────────────────────────────
+// Apple gates >60 Hz on iPhone behind CADisableMinimumFrameDurationOnPhone.
+// Amazon's shipped Info.plist does not expose that opt-in, so Core Animation capped
+// the old Request 120 Hz hook at 60 even on a 120-Hz panel.  Present the key as YES
+// from both Foundation and CoreFoundation lookup paths.  This only unlocks the
+// available range; the preference below still decides whether AmazonDark explicitly
+// requests the panel maximum. System thermal / Low Power / accessibility policy wins.
+static NSString * const ADPromotionInfoKey607 = @"CADisableMinimumFrameDurationOnPhone";
+
+%hook NSBundle
+- (id)objectForInfoDictionaryKey:(NSString *)key {
+    @try {
+        if (self == [NSBundle mainBundle] && [key isEqualToString:ADPromotionInfoKey607]) return @YES;
+    } @catch(...) {}
+    return %orig;
+}
+- (NSDictionary *)infoDictionary {
+    NSDictionary *d = %orig;
+    @try {
+        if (self != [NSBundle mainBundle] || [d[ADPromotionInfoKey607] boolValue]) return d;
+        NSMutableDictionary *m = [d mutableCopy];
+        m[ADPromotionInfoKey607] = @YES;
+        return m;
+    } @catch(...) {}
+    return d;
+}
+%end
+
+%hookf(CFTypeRef, CFBundleGetValueForInfoDictionaryKey, CFBundleRef bundle, CFStringRef key) {
+    if (bundle == CFBundleGetMainBundle() && key && CFEqual(key, CFSTR("CADisableMinimumFrameDurationOnPhone")))
+        return kCFBooleanTrue;
+    return %orig;
+}
+
+// Requests the panel maximum (up to 120 Hz) from CADisplayLink when enabled.
+// The v6.0.7 bundle-key spoof above removes Amazon's 60-Hz opt-in ceiling; this
+// remains best-effort because iOS can reduce refresh under system policy.
 static NSInteger ADPreferredMaxHz362(void){
     @try { return MIN((NSInteger)120, MAX((NSInteger)60, UIScreen.mainScreen.maximumFramesPerSecond)); } @catch(...) {}
     return 60;
@@ -1142,10 +1175,14 @@ static BOOL gADHzProbeDone = NO;
         double callbackHz = elapsed > 0 ? ((double)(self.frames - 1) / elapsed) : 0;
         double timingHz = self.timingSamples ? self.timingHzSum / (double)self.timingSamples : 0;
         NSInteger maxHz = UIScreen.mainScreen.maximumFramesPerSecond;
-        BOOL unlocked = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CADisableMinimumFrameDurationOnPhone"] boolValue];
+        BOOL unlocked = [[[NSBundle mainBundle] objectForInfoDictionaryKey:ADPromotionInfoKey607] boolValue];
+        BOOL lowPower = [NSProcessInfo processInfo].lowPowerModeEnabled;
+        NSInteger thermal = 0;
+        if (@available(iOS 11.0, *)) thermal = [NSProcessInfo processInfo].thermalState;
         NSString *report = [NSString stringWithFormat:
-            @"AmazonDark %@\\nforce120Hz=1\\nscreenMax=%ld\\nbundleHighRefreshUnlocked=%d\\ncallbackHz=%.1f\\ntargetTimingHz=%.1f\\n",
-            @AD_VERSION, (long)maxHz, unlocked ? 1 : 0, callbackHz, timingHz];
+            @"AmazonDark %@\nforce120Hz=1\nscreenMax=%ld\nbundleHighRefreshUnlocked=%d\nlowPowerMode=%d\nthermalState=%ld\ncallbackHz=%.1f\ntargetTimingHz=%.1f\n",
+            @AD_VERSION, (long)maxHz, unlocked ? 1 : 0, lowPower ? 1 : 0,
+            (long)thermal, callbackHz, timingHz];
         NSString *path = [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-hz.txt"];
         [report writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
         [link invalidate]; gADHzProbeTarget = nil;
@@ -3615,20 +3652,9 @@ static void ADSweep(void){
     ADSweepAllWindows();
 }
 
-// ─── decaying launch timer (bounded) ──────────────────────────────────────────────
-// Catches views built before injection. It stops after the launch window, but that
-// no longer leaves later tabs white: new web views re-theme themselves on mount
-// (WKWebView didMoveToWindow) and on the RN tab-switch hook below, and native views
-// are themed at assignment. So this timer is purely a launch-time backstop.
-static int gSweepTicks = 0;
-static void ADStartTimer(void){
-    if (gSweepTicks++ > 6) {            // ~12s, then event-driven hooks take over
-        ADRaw("[AmazonDark] launch sweeps complete; event-driven from here");
-        return;
-    }
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(2.0*NSEC_PER_SEC)),
-        dispatch_get_main_queue(), ^{ ADSweep(); ADStartTimer(); });
-}
+// ─── bounded launch recovery is scheduled once from %ctor (v6.0.7) ────────────
+// There is deliberately no second recursive sweep timer. New views are handled by
+// event-driven WKWebView, screen, and reusable-cell hooks below.
 
 // ─── event-driven re-theme on tab / screen change (kills the white flash) ──────────
 // The flashing you saw is a NEW web view being mounted for the tab you switch to:
@@ -3907,8 +3933,13 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
         ADInjectAllWebViews();
         ADSweepAllWindows();
     });
-    // Escalating sweeps to catch late-initialised services/web views (0.2s..~10s).
-    for (double d = 0.2; d <= 10.0; d *= 1.6){
+    // One bounded launch-recovery schedule. v6.0.6 ran this geometric series plus
+    // a second recursive 2-second timer, causing ~16 overlapping full sweeps. Six
+    // strategically spaced passes cover late services/web views; event-driven hooks
+    // own everything after 9 seconds.
+    static const double adLaunchPasses607[] = {0.20, 0.60, 1.30, 2.80, 5.50, 9.00};
+    for (unsigned i = 0; i < sizeof(adLaunchPasses607)/sizeof(adLaunchPasses607[0]); i++){
+        double d = adLaunchPasses607[i];
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(d*NSEC_PER_SEC)),
             dispatch_get_main_queue(), ^{
                 ADLockDarkWeblab();
@@ -3926,7 +3957,6 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
         (__bridge CFStringRef)UIApplicationWillEnterForegroundNotification,
         NULL, CFNotificationSuspensionBehaviorCoalesce);
 
-    ADStartTimer();
 }
 
 #pragma clang diagnostic pop
