@@ -69,7 +69,7 @@
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control. The init log is the only way to
 // confirm which build is live on device.
-#define AD_VERSION "v6.0.8"
+#define AD_VERSION "v6.0.9"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -338,9 +338,39 @@ static NSString *ADFixesLiteral(void){
              "[class*=lists-treatment-hear] .a-icon"
              "{filter:brightness(0) invert(1) !important;"
              "background-color:transparent !important;}"
-             // v6.0.8: MLT artwork is intentionally NOT touched at documentStart.
-             // The runtime cards owner below must first prove that no live stock
-             // Compare checkbox occupies the same product-control coordinates.
+             // v5.446 CHECKBOX FIRST-PAINT + 32PX SQUARE CHROME. The device capture
+             // names the real Amazon painter as a 23px i.a-icon-checkbox.  Its
+             // 3px dark spread plus 1.5px chrome spread is exactly 32px overall,
+             // matching the cards/Heart/chevron controls without touching the
+             // sprite image or background-position. The inset paint covers the
+             // unchecked sprite with the exact shared #181a1b color; importantly,
+             // no filter can blacken the chrome. Native :checked removes the
+             // treatment immediately, leaving only Amazon's stock blue frame.
+             ".a-checkbox:not(:has(input[type=checkbox]:checked)) i.a-icon-checkbox,"
+             ".a-checkbox:not(:has(input[type=checkbox]:checked)) .a-icon-checkbox"
+             "{filter:none !important;border-radius:4px !important;"
+             "box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,"
+             "0 0 0 4.5px rgba(255,255,255,.65) !important;"
+             "transition:none !important;}"
+             ".a-checkbox:has(input[type=checkbox]:checked) i.a-icon-checkbox,"
+             ".a-checkbox:has(input[type=checkbox]:checked) .a-icon-checkbox"
+             "{filter:none !important;border-radius:0 !important;box-shadow:none !important;"
+             "transition:none !important;}"
+             // Cart P14 proved the intermittent gray rectangle is the 35x44
+             // label around the 23px sprite. It is not part of the sprite or hit
+             // target, so neutralize only that paint at documentStart.
+             ".sc-item-checkbox .a-checkbox>label"
+             "{background-color:transparent !important;background-image:none !important;"
+             "border:0 !important;box-shadow:none !important;outline:0 !important;filter:none !important;}"
+             ".sc-item-checkbox .a-checkbox>label::before,.sc-item-checkbox .a-checkbox>label::after"
+             "{background-color:transparent !important;background-image:none !important;"
+             "border:0 !important;box-shadow:none !important;outline:0 !important;filter:none !important;}"
+             // v5.424: colour ONLY -- no radius/size/border, so this rule can
+             // never turn a container into an oval. Restores the cards glyph
+             // whitening that v5.423 removed along with the shape rules.
+             "[class*=mlt-icon-container] img[class*=s-image],"
+             "[class*=mlt-image-icon] img[class*=s-image]"
+             "{filter:brightness(0) invert(1) !important;background-color:transparent !important;}"
              // v5.374: search templates can temporarily expose a 1x1/lazy
              // placeholder in this action control. Inverting that shim creates the
              // solid white square. Hide known shims at documentStart; runtime below
@@ -729,9 +759,10 @@ static NSString *ADDarkReaderReapply(void){
 }
 
 
-// ── v6.0.8: Heart / two-cards / chevron with stock-control exclusion ────────
-// Amazon owns the checkbox end-to-end. We only read its geometry/presence so the
-// other three symbol painters know where they must not paint.
+// ── v6.0.9: exact v5.446 symbol/checkbox authority ───────────────────────────
+// Heart-shell protection remains the proven lightweight 6.x guard. The sym413 owner
+// and stockCheckbox434 owner below are direct source transplants from v5.446, including
+// their original timer/scroll/MutationObserver ordering. Checkbox runs as the final owner.
 static NSString *ADThreeSymbolsWebJS605(void){
     static NSString *cached = nil;
     if (cached) return cached;
@@ -761,21 +792,126 @@ static NSString *ADThreeSymbolsWebJS605(void){
            "if(!document.getElementById('adcards440')){var s440=document.createElement('style');s440.id='adcards440';s440.textContent='[data-ad-cards440-pseudo*=b]::before,[data-ad-cards440-pseudo*=a]::after{filter:brightness(0) invert(1) !important;color:#fff !important;fill:#fff !important;stroke:#fff !important;}';(document.head||document.documentElement).appendChild(s440);}"
            "function cn(e){var c=e&&e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||''));}"
            "function rr(e){try{return e&&e.getBoundingClientRect?e.getBoundingClientRect():null;}catch(x){return null;}}"
-           "function sq(e){var r=rr(e);return !!(r&&r.width>=22&&r.width<=48&&r.height>=22&&r.height<=48&&Math.abs(r.width-r.height)<=10);}"
-           "function kind(e){var c=cn(e);if(/mlt-icon-container/.test(c))return 'cards';if(/puis-mab-chevron/.test(c)&&!/glyph/.test(c))return 'chevron';if(/puis-heart-position/.test(c)||/lists-framework-action-button/.test(c))return 'heart';return '';}"
-           "function shown(e,stop){try{var p=e,u=0;while(p&&u++<10){var st=getComputedStyle(p),o=parseFloat(st.opacity||'1');if(String(st.display||'')==='none'||/hidden|collapse/.test(String(st.visibility||''))||o<.08)return false;if(p===stop)break;p=p.parentElement;}var r=rr(e);return !!(r&&r.width>=3&&r.height>=3);}catch(x){return false;}}"
+           "function sq(e){var r=rr(e);"
+           "return r.width>=22&&r.width<=48&&r.height>=22&&r.height<=48&&Math.abs(r.width-r.height)<=10;}"
+           "function kind(e){var c=cn(e);"
+             "if(/mlt-icon-container/.test(c))return 'cards';"
+             "if(/a-checkbox/.test(c)&&!/a-icon-checkbox/.test(c))return 'checkbox';"
+             "if(/puis-mab-chevron/.test(c)&&!/glyph/.test(c))return 'chevron';"
+             "if(/puis-heart-position/.test(c)||/lists-framework-action-button/.test(c))return 'heart';"
+             "return '';}"
+           "function shown(e,stop){try{var p=e,u=0;while(p&&u++<10){var s=getComputedStyle(p),o=parseFloat(s.opacity||'1');if(String(s.display||'')==='none'||/hidden|collapse/.test(String(s.visibility||''))||o<.08)return false;if(p===stop)break;p=p.parentElement;}var r=rr(e);return !!(r&&r.width>=3&&r.height>=3);}catch(x){return false;}}"
            "function legacy(e){if(!e||e.hasAttribute('data-ad-cards440-host'))return;var old=e.getAttribute('data-ad-sym413')==='cards'||e.getAttribute('data-ad-disc420')==='disc'||e.__adBy==='sym413';if(old){['background-color','border','border-radius','box-shadow','box-sizing'].forEach(function(p){e.style.removeProperty(p);});e.removeAttribute('data-ad-sym413');e.removeAttribute('data-ad-disc420');delete e.__adBy;}var A=e.querySelectorAll('*');for(var i=0;i<A.length&&i<48;i++){var a=A[i],by=String(a.__adBy||''),owned=a.hasAttribute('data-ad-sym413glyph')||/^(?:sym413glyph|disc420|disc422)$/.test(by);if(!owned)continue;['filter','color','fill','stroke','background-color','visibility','opacity','border','box-shadow'].forEach(function(p){a.style.removeProperty(p);});a.removeAttribute('data-ad-sym413glyph');delete a.__adBy;delete a.__adGlyph;}}"
            "function checkboxAt(e){try{var card=e.closest&&e.closest('[class*=puis-card],[class*=s-result-item],[data-component-type=\"s-search-result\"],[data-asin],[class*=s-product-image],[class*=product-image]'),Q=card?card.querySelectorAll('[class*=a-icon-checkbox]'):document.querySelectorAll('[class*=a-icon-checkbox]'),r=rr(e);if(!r)return false;var x=r.left+r.width/2,y=r.top+r.height/2;for(var i=0;i<Q.length&&i<180;i++){var q=Q[i],qr=rr(q);if(!qr||!shown(q,card||document.body))continue;var qx=qr.left+qr.width/2,qy=qr.top+qr.height/2,ix=Math.max(0,Math.min(r.right,qr.right)-Math.max(r.left,qr.left)),iy=Math.max(0,Math.min(r.bottom,qr.bottom)-Math.max(r.top,qr.top));if((Math.abs(x-qx)<18&&Math.abs(y-qy)<18)||ix*iy>Math.min(r.width*r.height,qr.width*qr.height)*.35)return true;}return false;}catch(x){return true;}}"
            "function clearCards(e){var P=['background-color','border','border-radius','box-shadow','box-sizing'];for(var p=0;p<P.length;p++)e.style.removeProperty(P[p]);if(e.getAttribute('data-ad-cards440-suppressed')==='checkbox'){e.style.removeProperty('visibility');e.style.removeProperty('opacity');}e.removeAttribute('data-ad-cards440-host');e.removeAttribute('data-ad-cards440-suppressed');e.removeAttribute('data-ad-cards440-pseudo');e.removeAttribute('data-ad-sym413');var A=e.querySelectorAll('[data-ad-cards440-glyph],[data-ad-cards440-pseudo]');for(var i=0;i<A.length;i++){var a=A[i];['filter','color','fill','stroke','background-color'].forEach(function(k){a.style.removeProperty(k);});a.removeAttribute('data-ad-cards440-glyph');a.removeAttribute('data-ad-cards440-pseudo');if(a.__adBy==='cards440')delete a.__adBy;}}"
-           "function glyph440(g){var r=rr(g);return !!(r&&r.width>=3&&r.height>=3&&r.width<=48&&r.height<=48);}"
-           "function cards(e){legacy(e);if(e.getAttribute('data-ad-cards440-suppressed')==='checkbox'){if(checkboxAt(e))return 0;e.style.removeProperty('visibility');e.style.removeProperty('opacity');e.removeAttribute('data-ad-cards440-suppressed');}var N=e.querySelectorAll('[class*=mlt-image-icon],img[class*=s-image],p[class*=mlt-text-icon],img,i,svg,path,use,polygon'),P=[e],live=[],pseudo='';for(var pi=0;pi<N.length&&pi<47;pi++)P.push(N[pi]);for(var i=0;i<P.length&&i<48;i++){var g=P[i];if(!glyph440(g)||!shown(g,e))continue;var t=String(g.tagName||'').toUpperCase(),st=getComputedStyle(g),bb=getComputedStyle(g,'::before'),aa=getComputedStyle(g,'::after'),paint=/^(IMG|I|SVG|PATH|USE|POLYGON)$/.test(t)||/mlt-text-icon/.test(cn(g))||String(st.backgroundImage||'none')!=='none'||String(st.maskImage||st.webkitMaskImage||'none')!=='none';if(String(bb&&bb.backgroundImage||'none')!=='none'||String(bb&&bb.content||'none')!=='none')pseudo+='b';if(String(aa&&aa.backgroundImage||'none')!=='none'||String(aa&&aa.content||'none')!=='none')pseudo+='a';if(paint)live.push(g);}if(!live.length&&!pseudo){clearCards(e);return 0;}if(checkboxAt(e)){clearCards(e);e.setAttribute('data-ad-cards440-suppressed','checkbox');e.style.setProperty('visibility','hidden','important');e.style.setProperty('opacity','0','important');return 0;}var old=e.querySelectorAll('[data-ad-cards440-glyph],[data-ad-cards440-pseudo]');for(var o=0;o<old.length;o++){if(live.indexOf(old[o])>=0)continue;['filter','color','fill','stroke','background-color'].forEach(function(k){old[o].style.removeProperty(k);});old[o].removeAttribute('data-ad-cards440-glyph');old[o].removeAttribute('data-ad-cards440-pseudo');}e.setAttribute('data-ad-sym413','cards');e.setAttribute('data-ad-cards440-host','1');if(pseudo)e.setAttribute('data-ad-cards440-pseudo',pseudo);else e.removeAttribute('data-ad-cards440-pseudo');e.__adBy='cards440';e.style.setProperty('background-color',SPEC.bg,'important');e.style.setProperty('border',SPEC.bd,'important');e.style.setProperty('border-radius','50%%','important');e.style.setProperty('box-shadow','none','important');e.style.setProperty('box-sizing','border-box','important');for(var j=0;j<live.length;j++){var z=live[j],tg=String(z.tagName||'').toUpperCase();if(!glyph440(z))continue;z.setAttribute('data-ad-cards440-glyph','1');z.__adBy='cards440';if(/^(SVG|PATH|USE|POLYGON)$/.test(tg)){z.style.setProperty('filter','none','important');z.style.setProperty('fill','#ffffff','important');z.style.setProperty('stroke','#ffffff','important');}else z.style.setProperty('filter','brightness(0) invert(1)','important');z.style.setProperty('color','#ffffff','important');z.style.setProperty('background-color','transparent','important');if(pseudo)z.setAttribute('data-ad-cards440-pseudo',pseudo);}return 1;}"
-           "var Q=document.querySelectorAll('[class*=mlt-icon-container],[class*=puis-mab-chevron],[class*=puis-heart-position],[class*=lists-framework-action-button]');"
-           "for(var i=0;i<Q.length&&i<320;i++){var e=Q[i],k=kind(e);if(!k)continue;if(k==='cards'){cards(e);continue;}var hs=e.querySelector&&e.querySelector('[class*=lists-framework-action-button],[class*=puis-heart-position]');var rc=!!(e.querySelector&&e.querySelector('input[type=checkbox],[class*=a-icon-checkbox]'));if(hs&&!rc){e.setAttribute('data-ad-heart-shell427','1');e.style.setProperty('background-color','transparent','important');e.style.setProperty('border','0','important');e.style.setProperty('border-radius','0','important');e.style.setProperty('box-shadow','none','important');e.style.setProperty('outline','none','important');continue;}if(rc)continue;if(!sq(e))continue;if(e.parentElement&&e.parentElement.closest&&e.parentElement.closest('[data-ad-sym413]'))continue;e.setAttribute('data-ad-sym413',k);e.__adBy='sym413';e.style.setProperty('background-color',SPEC.bg,'important');e.style.setProperty('border',SPEC.bd,'important');e.style.setProperty('border-radius','50%%','important');e.style.setProperty('box-shadow','none','important');e.style.setProperty('box-sizing','border-box','important');var G=e.querySelectorAll('img,i,svg,path,p');for(var j=0;j<G.length&&j<24;j++){var g=G[j],gr=g.getBoundingClientRect();if(gr.width>48||gr.height>48)continue;var tg=String(g.tagName||'').toUpperCase();if(tg==='IMG'||tg==='I'||tg==='P')g.style.setProperty('filter','brightness(0) invert(1)','important');g.__adBy='sym413glyph';g.setAttribute('data-ad-sym413glyph','1');if(tg==='SVG'||tg==='PATH'){g.style.setProperty('fill','#ffffff','important');g.style.setProperty('color','#ffffff','important');}g.style.setProperty('background-color','transparent','important');g.style.setProperty('visibility','visible','important');g.style.setProperty('opacity','1','important');}}"
-         "}catch(e){}}"
+           "function glyph440(g){var r=rr(g);if(!r||r.width<3||r.height<3||r.width>48||r.height>48)return false;return true;}"
+           "function cards(e){legacy(e);if(e.getAttribute('data-ad-cards440-suppressed')==='checkbox'){if(checkboxAt(e))return 0;e.style.removeProperty('visibility');e.style.removeProperty('opacity');e.removeAttribute('data-ad-cards440-suppressed');}var N=e.querySelectorAll('[class*=mlt-image-icon],img[class*=s-image],p[class*=mlt-text-icon],img,i,svg,path,use,polygon'),P=[e],live=[],pseudo='';for(var pi=0;pi<N.length&&pi<47;pi++)P.push(N[pi]);for(var i=0;i<P.length&&i<48;i++){var g=P[i],r=rr(g);if(!glyph440(g)||!shown(g,e))continue;var t=String(g.tagName||'').toUpperCase(),s=getComputedStyle(g),b=getComputedStyle(g,'::before'),a=getComputedStyle(g,'::after'),paint=/^(IMG|I|SVG|PATH|USE|POLYGON)$/.test(t)||/mlt-text-icon/.test(cn(g))||String(s.backgroundImage||'none')!=='none'||String(s.maskImage||s.webkitMaskImage||'none')!=='none';if(String(b&&b.backgroundImage||'none')!=='none'||String(b&&b.content||'none')!=='none')pseudo+='b';if(String(a&&a.backgroundImage||'none')!=='none'||String(a&&a.content||'none')!=='none')pseudo+='a';if(paint)live.push(g);}if(!live.length&&!pseudo){clearCards(e);return 0;}if(checkboxAt(e)){clearCards(e);e.setAttribute('data-ad-cards440-suppressed','checkbox');e.style.setProperty('visibility','hidden','important');e.style.setProperty('opacity','0','important');return 0;}var old=e.querySelectorAll('[data-ad-cards440-glyph],[data-ad-cards440-pseudo]');for(var o=0;o<old.length;o++){if(live.indexOf(old[o])>=0)continue;['filter','color','fill','stroke','background-color'].forEach(function(k){old[o].style.removeProperty(k);});old[o].removeAttribute('data-ad-cards440-glyph');old[o].removeAttribute('data-ad-cards440-pseudo');}e.setAttribute('data-ad-sym413','cards');e.setAttribute('data-ad-cards440-host','1');if(pseudo)e.setAttribute('data-ad-cards440-pseudo',pseudo);else e.removeAttribute('data-ad-cards440-pseudo');e.__adBy='cards440';e.style.setProperty('background-color',SPEC.bg,'important');e.style.setProperty('border',SPEC.bd,'important');e.style.setProperty('border-radius','50%%','important');e.style.setProperty('box-shadow','none','important');e.style.setProperty('box-sizing','border-box','important');for(var j=0;j<live.length;j++){var z=live[j],tg=String(z.tagName||'').toUpperCase();if(!glyph440(z))continue;z.setAttribute('data-ad-cards440-glyph','1');z.__adBy='cards440';if(/^(SVG|PATH|USE|POLYGON)$/.test(tg)){z.style.setProperty('filter','none','important');z.style.setProperty('fill','#ffffff','important');z.style.setProperty('stroke','#ffffff','important');}else z.style.setProperty('filter','brightness(0) invert(1)','important');z.style.setProperty('color','#ffffff','important');z.style.setProperty('background-color','transparent','important');if(pseudo)z.setAttribute('data-ad-cards440-pseudo',pseudo);}return 1;}"
+           "var Q=document.querySelectorAll('[class*=mlt-icon-container],[class*=a-checkbox],[class*=puis-mab-chevron],[class*=puis-heart-position],[class*=lists-framework-action-button]'),n=0,sk=0;"
+           "for(var i=0;i<Q.length&&i<400;i++){var e=Q[i],k=kind(e);"
+             "if(!k){sk++;continue;}"
+             "if(k==='cards'){if(cards(e))n++;else sk++;continue;}"
+             "var hs=e.querySelector&&e.querySelector('[class*=lists-framework-action-button],[class*=puis-heart-position]');"
+             "var rc=!!(e.querySelector&&e.querySelector('input[type=checkbox],[class*=a-icon-checkbox]'));"
+             "if(hs&&!rc&&k!=='cards'){e.setAttribute('data-ad-heart-shell427','1');"
+               "['data-ad-sym413','data-ad-stock403','data-ad-stocksel403','data-ad-v333403','data-ad-product391','data-ad-productselected391'].forEach(function(a){e.removeAttribute(a);});"
+               "e.style.setProperty('background-color','transparent','important');"
+               "e.style.setProperty('border','0','important');"
+               "e.style.setProperty('border-radius','0','important');"
+               "e.style.setProperty('box-shadow','none','important');"
+               "e.style.setProperty('outline','none','important');sk++;continue;}"
+             "if(k==='checkbox'){sk++;continue;}"
+             "if(!sq(e)){sk++;continue;}"
+             "if(e.parentElement&&e.parentElement.closest&&e.parentElement.closest('[data-ad-sym413]')){sk++;continue;}"
+             "e.setAttribute('data-ad-sym413',k);e.__adBy='sym413';"
+             "e.style.setProperty('background-color',SPEC.bg,'important');"
+             "e.style.setProperty('border',SPEC.bd,'important');"
+             "e.style.setProperty('border-radius','50%%','important');"
+             "e.style.setProperty('box-shadow','none','important');"
+             "e.style.setProperty('box-sizing','border-box','important');"
+             "var G=e.querySelectorAll('img,i,svg,path,p');"
+             "for(var j=0;j<G.length&&j<24;j++){var g=G[j],gr=g.getBoundingClientRect();"
+               "if(gr.width>48||gr.height>48)continue;"
+               "var tg=String(g.tagName||'').toUpperCase();"
+               "if(tg==='IMG'||tg==='I'||tg==='P')"
+                 "g.style.setProperty('filter','brightness(0) invert(1)','important');"
+               "g.__adBy='sym413glyph';g.setAttribute('data-ad-sym413glyph','1');"
+               "if(tg==='SVG'||tg==='PATH'){g.style.setProperty('fill','#ffffff','important');"
+                 "g.style.setProperty('color','#ffffff','important');}"
+               "g.style.setProperty('background-color','transparent','important');"
+               "g.style.setProperty('visibility','visible','important');"
+               "g.style.setProperty('opacity','1','important');"
+               "g.removeAttribute('data-ad-compareorig380');g.removeAttribute('data-ad-compareorig379');}"
+             "n++;}"
+           "window.__AD_SYM413__='n='+n+' skip='+sk;"
+         "}catch(e){window.__AD_SYM413__='err '+e;}}"
+         "try{window.__AD_SYM413_PRE__=window.__AD_PRODUCTCTRL391RUN__;"
+           "window.__AD_PRODUCTCTRL391RUN__=function(){"
+             "var r=window.__AD_SYM413_PRE__?window.__AD_SYM413_PRE__():0;try{sym413();}catch(x){}return r;};"
+         "}catch(e){}"
+         "try{sym413();setTimeout(sym413,30);setTimeout(sym413,160);setTimeout(sym413,560);"
+           "setTimeout(sym413,1560);setTimeout(sym413,2600);"
+           "addEventListener('scroll',function(){clearTimeout(window.__symT413);"
+             "window.__symT413=setTimeout(sym413,110);},{passive:true,capture:true});"
+         "}catch(e){}"
+         // v5.441 DEVICE-CAPTURED STOCK CHECKBOX + SHARED 32PX CHROME. Amazon
+         // remains the sole owner of geometry, hit testing, state, and the checked
+         // blue/checkmark sprite. Device P14 names Cart's hierarchy precisely:
+         // 398x0 a-checkbox > 35x44 label > 23x23 input + 23x23 sprite. The old
+         // shell pass skipped that label and let Amazon/Dark Reader intermittently
+         // paint the gray rectangle. Mark every bounded Cart wrapper regardless of
+         // existing visual paint, flatten it, and put one 32px chrome treatment on
+         // the exact stock sprite via paint-only box-shadow. No width/height or
+         // background-image/background-position write is allowed. The inset paint
+         // covers the unchecked sprite without filtering it or the chrome. Native
+         // :checked removes our paint synchronously and exposes Amazon's stock blue frame.
+         "function stockCheckbox434(){if(window.__ADFRAME_MODE__||!document.body||window.__AD_CHECKBOX434_RUNNING__)return 0;window.__AD_CHECKBOX434_RUNNING__=1;try{"
+           "var retired434=['adstock403','adcomparenative428','adcheckbox433'];for(var ri434=0;ri434<retired434.length;ri434++){var rs434=document.getElementById(retired434[ri434]);if(rs434&&rs434.parentNode)rs434.parentNode.removeChild(rs434);}"
+           "var prior434=document.getElementById('adcheckbox434');if(prior434&&prior434.getAttribute('data-ad-native-state')!=='446'){if(prior434.parentNode)prior434.parentNode.removeChild(prior434);prior434=null;}"
+           "if(!prior434){var s434=document.createElement('style');s434.id='adcheckbox434';s434.setAttribute('data-ad-native-state','446');"
+             "s434.textContent='[data-ad-checkbox434-art]{filter:none !important;border-radius:4px !important;box-shadow:inset 0 0 0 64px #181a1b,0 0 0 3px #181a1b,0 0 0 4.5px rgba(255,255,255,.65) !important;transition:none !important;}'"
+               "+'[data-ad-checkbox434-host]:is(input[type=checkbox]:checked,[aria-checked=true],[aria-pressed=true],[aria-selected=true],[data-checked=true],[data-selected=true],[data-state=checked],[data-state=on]) [data-ad-checkbox434-art],[data-ad-checkbox434-host]:has(input[type=checkbox]:checked,[aria-checked=true],[aria-pressed=true],[aria-selected=true],[data-checked=true],[data-selected=true],[data-state=checked],[data-state=on]) [data-ad-checkbox434-art],[data-ad-checkbox434-host][class*=checked]:not([class*=unchecked]) [data-ad-checkbox434-art],[data-ad-checkbox434-host][class*=selected]:not([class*=unselected]) [data-ad-checkbox434-art],[data-ad-checkbox434-host]:has([class*=checked]:not([class*=unchecked]),[class*=selected]:not([class*=unselected])) [data-ad-checkbox434-art],[data-ad-checkbox434-art]:is(input[type=checkbox]:checked,[aria-checked=true],[aria-pressed=true],[aria-selected=true],[data-checked=true],[data-selected=true],[data-state=checked],[data-state=on]),[data-ad-checkbox434-art][class*=checked]:not([class*=unchecked]),[data-ad-checkbox434-art][class*=selected]:not([class*=unselected]),[data-ad-checkbox434-art][src*=checkbox-on],[data-ad-checkbox434-art][src*=checkbox_checked],[data-ad-checkbox434-art][src*=checkmark],[data-ad-checkbox434-art][src*=selected],[data-ad-checkbox434-art][data-src*=checkbox-on],[data-ad-checkbox434-art][data-src*=checkbox_checked],[data-ad-checkbox434-art][data-src*=checkmark],[data-ad-checkbox434-art][data-src*=selected]{filter:none !important;border-radius:0 !important;box-shadow:none !important;}'"
+               "+'[data-ad-checkbox434-shell=\"cart\"]{background-color:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important;outline:0 !important;filter:none !important;}'"
+               "+'[data-ad-checkbox434-shell=\"cart\"]::before,[data-ad-checkbox434-shell=\"cart\"]::after{background-color:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important;outline:0 !important;filter:none !important;}';"
+             "(document.head||document.documentElement).appendChild(s434);}"
+           "function cn434(e){var c=e&&e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||''));}"
+           "function rr434(e){try{return e&&e.getBoundingClientRect?e.getBoundingClientRect():null;}catch(x){return null;}}"
+           "function sq434(e,lo,hi){var r=rr434(e);return !!(r&&r.width>=lo&&r.width<=hi&&r.height>=lo&&r.height<=hi&&Math.abs(r.width-r.height)<=14);}"
+           "var body434=String(document.body.innerText||document.body.textContent||'').toLowerCase(),cart434=body434.indexOf('proceed to checkout')>=0&&(body434.indexOf('save for later')>=0||body434.indexOf('select all items')>=0||body434.indexOf('deselect all items')>=0);"
+           "var scopeSel434='[class*=puis-card],[class*=s-result-item],[data-component-type=\"s-search-result\"],[data-asin],[class*=s-product-image],[class*=product-image],[class*=sc-list-item],[class*=sc-item]';"
+           "var semanticSel434='[class*=copilot-compare],button[aria-label*=ompare],[role=button][aria-label*=ompare],[role=checkbox],[aria-checked],[data-csa-c-content-id*=ompare],[data-testid*=ompare],div.a-checkbox,[class~=a-checkbox]';"
+           "function scope434(e){return !!(e&&e.closest&&e.closest(scopeSel434));}/* Cart mode changes shell paint only, never page-wide checkbox scope */"
+           "function foreign434(e){try{return !!(e&&e.closest&&e.closest('[class*=mlt-icon-container],[class*=lists-framework-action-button],[data-ad-cards410-root],[data-ad-cards410-host],[data-ad-cards410-disc],[data-ad-cards410-glyph],[data-ad-heart-shell427],[class*=puis-heart-position],[class*=lists-treatment-hear],[class*=puis-mab-chevron]'));}catch(x){return true;}}"
+           "function owned434(e){if(!e||e.nodeType!==1)return false;var p=String(e.getAttribute('data-ad-product391')||''),v=String(e.getAttribute('data-ad-v333403')||''),d=String(e.getAttribute('data-ad-disc420')||''),s=String(e.getAttribute('data-ad-sym413')||''),v4=String(e.getAttribute('data-ad-v333404')||'');if(p==='checkbox'||v==='c'||d==='checkbox'||s==='checkbox'||v4==='c'||v4==='checkbox')return true;var A=['data-ad-comparehost377','data-ad-comparechecked377','data-ad-compareinput377','data-ad-compare378','data-ad-compareleaf378','data-ad-compare-raster378','data-ad-compare379','data-ad-compareinput379','data-ad-compareorig379','data-ad-compare380','data-ad-compareinput380','data-ad-compareorig380','data-ad-comparelegacy387','data-ad-comparelegacyorig387','data-ad-productselected391','data-ad-productglyph391','data-ad-productraster391','data-ad-productvector391','data-ad-stock403','data-ad-stocksel403','data-ad-stockglyph403','data-ad-stockraster403','data-ad-stockvector403','data-ad-sym413glyph','data-ad-comparefunc428','data-ad-compareselected428','data-ad-comparehit428'];for(var i=0;i<A.length;i++)if(e.hasAttribute(A[i]))return true;return /^(?:product391|sym413|sym413glyph|disc420|disc422)$/.test(String(e.__adBy||''));}"
+           "var marks434=['data-ad-comparehost377','data-ad-comparechecked377','data-ad-compareinput377','data-ad-compare378','data-ad-compareleaf378','data-ad-compare-raster378','data-ad-compare379','data-ad-compareinput379','data-ad-compareorig379','data-ad-compare380','data-ad-compareinput380','data-ad-compareorig380','data-ad-comparelegacy387','data-ad-comparelegacyorig387','data-ad-product391','data-ad-productselected391','data-ad-productglyph391','data-ad-productraster391','data-ad-productvector391','data-ad-stock403','data-ad-stocksel403','data-ad-stockglyph403','data-ad-stockraster403','data-ad-stockvector403','data-ad-v333403','data-ad-v333404','data-ad-disc420','data-ad-sym413','data-ad-sym413glyph','data-ad-comparefunc428','data-ad-compareselected428','data-ad-comparehit428'];"
+           "var props434=['background-color','border','border-color','border-width','border-style','border-radius','box-shadow','box-sizing','filter','width','height','min-width','min-height','max-width','max-height','position','inset','top','right','bottom','left','transform','overflow','isolation','outline','z-index','margin','pointer-events','opacity','visibility','color','fill','stroke','transition','display','cursor'];/* preserve Amazon background-image/mask sprite */"
+           "function scrub434(e){if(!owned434(e))return 0;for(var p=0;p<props434.length;p++)e.style.removeProperty(props434[p]);for(var a=0;a<marks434.length;a++)e.removeAttribute(marks434[a]);delete e.__adBy;delete e.__adGlyph;delete e.__adManual380;delete e.__adManualSig380;delete e.__adCompareBlue428;return 1;}"
+           "function generic434(e){var b=String(e&&e.__adBy||'');if(!/^(?:gfix1|gfix2|aic|gsweep|fltpanel)$/.test(b))return 0;e.style.removeProperty('filter');delete e.__adBy;delete e.__adGlyph;return 1;}"
+           "function visual434(e){try{var c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after'),bi=String(c.backgroundImage||'none'),mi=String(c.maskImage||c.webkitMaskImage||'none'),pbi=String((b&&b.backgroundImage)||'none')+' '+String((a&&a.backgroundImage)||'none'),pmi=String((b&&(b.maskImage||b.webkitMaskImage))||'none')+' '+String((a&&(a.maskImage||a.webkitMaskImage))||'none');return bi!=='none'||mi!=='none'||pbi!=='none none'||pmi!=='none none';}catch(x){return false;}}"
+           "function light434(c){try{var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([0-9.]+))?/i.exec(String(c&&c.backgroundColor||''));if(!m||(m[4]!==undefined&&+m[4]<.12))return false;return (.2126*(+m[1])+.7152*(+m[2])+.0722*(+m[3]))/255>.62;}catch(x){return false;}}"
+           "function group434(e){if(!e||!scope434(e)||foreign434(e))return null;var exact=(e.matches&&e.matches('[class*=a-icon-checkbox]'))?e:(e.querySelector&&e.querySelector('[class*=a-icon-checkbox]')),ep=e.parentElement,eu=0;while(!exact&&ep&&eu++<4){exact=ep.querySelector&&ep.querySelector('[class*=a-icon-checkbox]');if(exact||ep.matches&&ep.matches(scopeSel434))break;ep=ep.parentElement;}if(exact&&!foreign434(exact)){var ah=exact.closest&&exact.closest('div.a-checkbox,[class~=a-checkbox]');if(ah&&scope434(ah)&&!foreign434(ah))return ah;var ch=exact.closest&&exact.closest('[class*=copilot-compare]');if(ch&&scope434(ch)&&sq434(ch,16,76)&&!foreign434(ch))return ch;var bh=exact.closest&&exact.closest('button[aria-label*=ompare],[role=button][aria-label*=ompare],[data-csa-c-content-id*=ompare],[data-testid*=ompare]');if(bh&&scope434(bh)&&sq434(bh,16,76)&&!foreign434(bh))return bh;}var legit=e.closest&&e.closest('[class*=copilot-compare],[class*=compare-checkbox],button[aria-label*=ompare],[role=button][aria-label*=ompare],[role=checkbox],[aria-checked],[data-csa-c-content-id*=ompare],[data-testid*=ompare]');if(!exact&&!legit)return null;var tg0=String(e.tagName||'').toUpperCase(),p=/^(IMG|I|INPUT|SVG|PATH|USE|POLYGON)$/.test(tg0)?e.parentElement:e,sem=null,best=null,u=0;while(p&&u++<8){if(foreign434(p))return null;var tg=String(p.tagName||'').toUpperCase();if(!sem&&p.matches&&p.matches(semanticSel434)&&sq434(p,16,76))sem=p;if(!best&&!/^(IMG|I|INPUT|SVG|PATH|USE|POLYGON)$/.test(tg)&&sq434(p,16,76))best=p;if(p.matches&&p.matches(scopeSel434))break;p=p.parentElement;}return sem||best||((tg0==='INPUT')?e:(e.parentElement||e));}"
+           "function selected434(h){try{var q=(h.matches&&h.matches('input[type=checkbox]'))?h:h.querySelector('input[type=checkbox]');if(q)return !!q.checked;var A=[h],Z=h.querySelectorAll?h.querySelectorAll('[role=checkbox],[aria-checked],[aria-pressed],[aria-selected],[data-checked],[data-selected],[data-state]'):[];for(var i=0;i<Z.length&&i<32;i++)A.push(Z[i]);for(var j=0;j<A.length;j++){var e=A[j],a=String(e.getAttribute('aria-checked')||e.getAttribute('aria-pressed')||e.getAttribute('aria-selected')||e.getAttribute('data-checked')||e.getAttribute('data-selected')||e.getAttribute('data-state')||'').toLowerCase(),c=cn434(e).toLowerCase();if(a==='true'||a==='checked'||a==='on'||(/checked|selected/.test(c)&&!/unchecked|unselected/.test(c)))return true;if(a==='false'||a==='unchecked'||a==='off')return false;}var im=h.querySelector&&h.querySelector('img[src],img[data-src]'),src=im?String(im.currentSrc||im.src||im.getAttribute('data-src')||'').toLowerCase():'';return /checkbox[_-]?(?:on|checked)|checkmark|selected/.test(src)&&!/unchecked|unselected/.test(src);}catch(x){return false;}}"
+           "function art434(h,seed){try{var Q=[h],D=h.querySelectorAll?h.querySelectorAll('*'):[];for(var q=0;q<D.length&&q<100;q++)Q.push(D[q]);if(Q.indexOf(seed)<0)Q.push(seed);var best=null,bs=9999;for(var i=0;i<Q.length;i++){var e=Q[i];if(!e||foreign434(e))continue;var r=rr434(e);if(!r||r.width<8||r.height<8||r.width>76||r.height>76)continue;var tg=String(e.tagName||'').toUpperCase();if(/^(PATH|USE|POLYGON)$/.test(tg))continue;var c=cn434(e).toLowerCase(),src=String((e.currentSrc||e.src||(e.getAttribute&&e.getAttribute('data-src'))||'')).toLowerCase(),cs=getComputedStyle(e),op=parseFloat(cs.opacity||'1'),exact=/a-icon-checkbox|checkbox[-_ ]?(?:icon|sprite|image)|checkmark|check-mark|tick/.test(c+' '+src),painted=visual434(e)||light434(cs),role=e.getAttribute&&e.getAttribute('role')==='checkbox',score=999;if(exact)score=0;else if(painted)score=20;else if(/^(I|IMG|SVG)$/.test(tg))score=35;else if(tg==='INPUT'&&String(e.type||'').toLowerCase()==='checkbox')score=45;else if(role)score=60;else if(e===seed)score=90;else continue;if(e===h)score+=25;if(op<.12||String(cs.visibility||'')==='hidden'||String(cs.display||'')==='none')score+=70;score+=(r.width*r.height)/100000;if(score<bs){bs=score;best=e;}}return best||(sq434(seed,8,76)?seed:(sq434(h,8,76)?h:null));}catch(x){return null;}}"
+           "var prevHosts434=document.querySelectorAll('[data-ad-checkbox434-host]'),prevArts434=document.querySelectorAll('[data-ad-checkbox434-art]'),prevShells434=document.querySelectorAll('[data-ad-checkbox434-shell]');"
+           "var shells434=[],hosts434=[],arts434=[],unchecked434=0,checked434=0,cleaned434=0,skip434=0,cartShell434=0;"
+           "function shell434(h,art){if(!cart434||!h||!art)return;var p=art.parentElement,u=0;while(p&&u++<5){var tg=String(p.tagName||'').toUpperCase(),r=rr434(p),bounded=!!(r&&r.width>=18&&r.width<=76&&r.height>=18&&r.height<=76);if(p!==art&&p.contains&&p.contains(art)&&bounded&&!/^(IMG|I|INPUT|SVG|PATH|USE)$/.test(tg)){p.setAttribute('data-ad-checkbox434-shell','cart');if(shells434.indexOf(p)<0){shells434.push(p);cartShell434++;}}if(p.matches&&p.matches(scopeSel434))break;p=p.parentElement;}}"
+           "var C=document.querySelectorAll('input[type=checkbox],[role=checkbox],[aria-checked],[class*=a-checkbox],[class*=a-icon-checkbox],[class*=copilot-compare],button[aria-label*=ompare],[role=button][aria-label*=ompare],[data-csa-c-content-id*=ompare],[data-testid*=ompare],img[src*=checkbox],img[data-src*=checkbox]');"
+           "for(var i=0;i<C.length&&i<1100;i++){var seed=C[i],h=group434(seed);if(!h||hosts434.indexOf(h)>=0){skip434++;continue;}var Q=[h],D=h.querySelectorAll?h.querySelectorAll('*'):[];for(var q=0;q<D.length&&q<140;q++)Q.push(D[q]);for(var z=0;z<Q.length;z++){cleaned434+=generic434(Q[z]);cleaned434+=scrub434(Q[z]);Q[z].removeAttribute('data-ad-checkbox433-art');}var art=art434(h,seed);if(!art){skip434++;continue;}hosts434.push(h);var syn=h.querySelectorAll?h.querySelectorAll('[data-ad-comparebox377],[data-ad-comparecheck377]'):[];for(var sy=0;sy<syn.length;sy++){if(syn[sy].parentNode)syn[sy].parentNode.removeChild(syn[sy]);cleaned434++;}if(h.getAttribute('data-ad-checkbox434-host')!=='stock')h.setAttribute('data-ad-checkbox434-host','stock');var AL=[art],EX=h.querySelectorAll?h.querySelectorAll('[class*=a-icon-checkbox],img[src*=checkbox],img[data-src*=checkbox]'):[];for(var ex=0;ex<EX.length&&ex<24;ex++){var xa=EX[ex],xr=rr434(xa),xs=getComputedStyle(xa);if(xr&&xr.width>=8&&xr.height>=8&&xr.width<=76&&xr.height<=76&&parseFloat(xs.opacity||'1')>=.12&&String(xs.display||'')!=='none'&&String(xs.visibility||'')!=='hidden'&&AL.indexOf(xa)<0)AL.push(xa);}for(var al=0;al<AL.length;al++){var aa=AL[al];if(arts434.indexOf(aa)<0){if(aa.getAttribute('data-ad-checkbox434-art')!=='stock')aa.setAttribute('data-ad-checkbox434-art','stock');arts434.push(aa);}}shell434(h,art);if(selected434(h))checked434++;else unchecked434++;}"
+           "var old433=document.querySelectorAll('[data-ad-checkbox433-art]');for(var x433=0;x433<old433.length;x433++)old433[x433].removeAttribute('data-ad-checkbox433-art');"
+           "for(var ph=0;ph<prevHosts434.length;ph++)if(hosts434.indexOf(prevHosts434[ph])<0)prevHosts434[ph].removeAttribute('data-ad-checkbox434-host');for(var pa=0;pa<prevArts434.length;pa++)if(arts434.indexOf(prevArts434[pa])<0)prevArts434[pa].removeAttribute('data-ad-checkbox434-art');for(var ps=0;ps<prevShells434.length;ps++)if(shells434.indexOf(prevShells434[ps])<0)prevShells434[ps].removeAttribute('data-ad-checkbox434-shell');"
+           "window.__AD_CHECKBOX434_STATE__='hosts='+hosts434.length+' art='+arts434.length+' unchecked='+unchecked434+' checked='+checked434+' cart='+(cart434?1:0)+' shells='+cartShell434+' cleaned='+cleaned434+' skip='+skip434;return hosts434.length;"
+         "}catch(e){window.__AD_CHECKBOX434_STATE__='err '+(e&&e.message||e);return -1;}finally{window.__AD_CHECKBOX434_RUNNING__=0;}}"
+         "try{window.__AD_CHECKBOX434__=stockCheckbox434;if(!window.__AD_CHECKBOX434_WRAP__){window.__AD_CHECKBOX434_WRAP__=1;"
+           "window.__AD_PRODUCTCTRL391_PRE434__=window.__AD_PRODUCTCTRL391RUN__;window.__AD_PRODUCTCTRL391RUN__=function(){var r=window.__AD_PRODUCTCTRL391_PRE434__?window.__AD_PRODUCTCTRL391_PRE434__():0;try{window.__AD_CHECKBOX434__();}catch(x){}return r;};"
+           "new MutationObserver(function(){try{window.__AD_CHECKBOX434__();}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});"
+           "function queue434(){if(window.__AD_CHECKBOX434_QUEUED__)return;window.__AD_CHECKBOX434_QUEUED__=1;var r434=function(){window.__AD_CHECKBOX434_QUEUED__=0;try{window.__AD_CHECKBOX434__();}catch(x){}};if(window.requestAnimationFrame)window.requestAnimationFrame(r434);else setTimeout(r434,0);}"
+           "addEventListener('scroll',queue434,{passive:true,capture:true});}"
+           "stockCheckbox434();setTimeout(stockCheckbox434,40);setTimeout(stockCheckbox434,180);setTimeout(stockCheckbox434,700);setTimeout(stockCheckbox434,1800);"
+         "}catch(e){}"
+         // Tiny 6.x reapply entry point only. It does not alter either donor owner.
          "window.__AD_SYM605_RUN__=sym413;"
-         "window.__AD_SYM605_QUEUE__=function(){try{if(window.__AD_SYM605_Q__)return;window.__AD_SYM605_Q__=1;var f=function(){window.__AD_SYM605_Q__=0;try{window.__AD_HEARTSHELL427__();}catch(x){}try{window.__AD_SYM605_RUN__();}catch(x){}};if(window.requestAnimationFrame)requestAnimationFrame(f);else setTimeout(f,0);}catch(e){}};"
-         "try{if(!window.__AD_SYM605_OBS__){window.__AD_SYM605_OBS__=1;new MutationObserver(function(){window.__AD_SYM605_QUEUE__();}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','src','data-src']});addEventListener('scroll',window.__AD_SYM605_QUEUE__,{passive:true,capture:true});}window.__AD_SYM605_QUEUE__();setTimeout(window.__AD_SYM605_QUEUE__,140);setTimeout(window.__AD_SYM605_QUEUE__,700);}catch(e){}"
-       "return 'sym605';}catch(e){return 'sym605err';}})();"];
+         "window.__AD_SYM605_QUEUE__=function(){try{if(window.__AD_SYM605_Q__)return;window.__AD_SYM605_Q__=1;var f=function(){window.__AD_SYM605_Q__=0;try{window.__AD_HEARTSHELL427__();}catch(x){}try{sym413();}catch(x){}try{window.__AD_CHECKBOX434__&&window.__AD_CHECKBOX434__();}catch(x){}};if(window.requestAnimationFrame)requestAnimationFrame(f);else setTimeout(f,0);}catch(e){}};"
+         "try{window.__AD_SYM605_QUEUE__();}catch(e){}"
+       "return 'sym609';}catch(e){return 'sym609err '+(e&&e.message||e);}})();"];
     return cached;
 }
 
@@ -1082,28 +1218,32 @@ static void ADInjectAllWebViews(void){
 %end
 
 
-// ── PROMOTION OPT-IN + 120 HZ REQUEST (v6.0.7) ────────────────────────────────
-// Apple gates >60 Hz on iPhone behind CADisableMinimumFrameDurationOnPhone.
-// Amazon's shipped Info.plist does not expose that opt-in, so Core Animation capped
-// the old Request 120 Hz hook at 60 even on a 120-Hz panel.  Present the key as YES
-// from both Foundation and CoreFoundation lookup paths.  This only unlocks the
-// available range; the preference below still decides whether AmazonDark explicitly
-// requests the panel maximum. System thermal / Low Power / accessibility policy wins.
+// ── PROMOTION OPT-IN + 120 HZ REQUEST (v6.0.9) ────────────────────────────────
+// Apple requires CADisableMinimumFrameDurationOnPhone=YES before iPhone apps can
+// access >60 Hz. v6.0.7 covered individual Foundation/CFBundle key lookups; v6.0.9
+// also covers the whole CoreFoundation info-dictionary path, because Core Animation
+// may consume the bundle dictionary directly. The legacy key is mirrored harmlessly
+// for frameworks that still inspect it. No Objective-C executes from %ctor.
 static NSString * const ADPromotionInfoKey607 = @"CADisableMinimumFrameDurationOnPhone";
+static NSString * const ADPromotionLegacyInfoKey609 = @"CADisableMinimumFrameDuration";
+
+static BOOL ADIsPromotionInfoKey609(NSString *key){
+    return [key isEqualToString:ADPromotionInfoKey607] || [key isEqualToString:ADPromotionLegacyInfoKey609];
+}
 
 %hook NSBundle
 - (id)objectForInfoDictionaryKey:(NSString *)key {
-    @try {
-        if (self == [NSBundle mainBundle] && [key isEqualToString:ADPromotionInfoKey607]) return @YES;
-    } @catch(...) {}
+    @try { if (self == [NSBundle mainBundle] && ADIsPromotionInfoKey609(key)) return @YES; } @catch(...) {}
     return %orig;
 }
 - (NSDictionary *)infoDictionary {
     NSDictionary *d = %orig;
     @try {
-        if (self != [NSBundle mainBundle] || [d[ADPromotionInfoKey607] boolValue]) return d;
+        if (self != [NSBundle mainBundle]) return d;
+        if ([d[ADPromotionInfoKey607] boolValue] && [d[ADPromotionLegacyInfoKey609] boolValue]) return d;
         NSMutableDictionary *m = [d mutableCopy];
         m[ADPromotionInfoKey607] = @YES;
+        m[ADPromotionLegacyInfoKey609] = @YES;
         return m;
     } @catch(...) {}
     return d;
@@ -1111,22 +1251,57 @@ static NSString * const ADPromotionInfoKey607 = @"CADisableMinimumFrameDurationO
 %end
 
 %hookf(CFTypeRef, CFBundleGetValueForInfoDictionaryKey, CFBundleRef bundle, CFStringRef key) {
-    if (bundle == CFBundleGetMainBundle() && key && CFEqual(key, CFSTR("CADisableMinimumFrameDurationOnPhone")))
-        return kCFBooleanTrue;
+    if (bundle == CFBundleGetMainBundle() && key &&
+        (CFEqual(key, CFSTR("CADisableMinimumFrameDurationOnPhone")) ||
+         CFEqual(key, CFSTR("CADisableMinimumFrameDuration")))) return kCFBooleanTrue;
     return %orig;
 }
 
-// Requests the panel maximum (up to 120 Hz) from CADisplayLink when enabled.
-// The v6.0.7 bundle-key spoof above removes Amazon's 60-Hz opt-in ceiling; this
-// remains best-effort because iOS can reduce refresh under system policy.
+%hookf(CFDictionaryRef, CFBundleGetInfoDictionary, CFBundleRef bundle) {
+    CFDictionaryRef d = %orig;
+    if (bundle != CFBundleGetMainBundle() || !d) return d;
+    static CFDictionaryRef promoted = NULL;
+    if (promoted) return promoted;
+    CFMutableDictionaryRef m = CFDictionaryCreateMutableCopy(kCFAllocatorDefault, 0, d);
+    if (!m) return d;
+    CFDictionarySetValue(m, CFSTR("CADisableMinimumFrameDurationOnPhone"), kCFBooleanTrue);
+    CFDictionarySetValue(m, CFSTR("CADisableMinimumFrameDuration"), kCFBooleanTrue);
+    promoted = m; // process-lifetime cache; Get API returns an unretained dictionary
+    return promoted;
+}
+
 static NSInteger ADPreferredMaxHz362(void){
     @try { return MIN((NSInteger)120, MAX((NSInteger)60, UIScreen.mainScreen.maximumFramesPerSecond)); } @catch(...) {}
     return 60;
 }
+static CAFrameRateRange ADPreferredRange609(void){
+    NSInteger hz = ADPreferredMaxHz362();
+    // Apple's high-impact ProMotion guidance: 80...120 with 120 preferred.
+    float lo = hz >= 120 ? 80.0f : (float)hz;
+    return CAFrameRateRangeMake(lo, (float)hz, (float)hz);
+}
+static void ADApplyPromotion609(CADisplayLink *d){
+    if (!d || !gP.enabled || !gP.force120Hz) return;
+    @try {
+        NSInteger hz = ADPreferredMaxHz362();
+        if (@available(iOS 15.0,*)) d.preferredFrameRateRange = ADPreferredRange609();
+        else d.preferredFramesPerSecond = hz;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        if ([d respondsToSelector:@selector(setFrameInterval:)]) d.frameInterval = 1;
+#pragma clang diagnostic pop
+    } @catch(...) {}
+}
+
 %hook CADisplayLink
 + (CADisplayLink *)displayLinkWithTarget:(id)target selector:(SEL)sel {
-    CADisplayLink *d=%orig;
-    @try { if (gP.enabled && gP.force120Hz){ NSInteger hz=ADPreferredMaxHz362(); if (@available(iOS 15.0,*)) d.preferredFrameRateRange=CAFrameRateRangeMake(hz,hz,hz); else d.preferredFramesPerSecond=hz; } } @catch(...) {}
+    CADisplayLink *d = %orig;
+    ADApplyPromotion609(d);
+    return d;
+}
+- (instancetype)initWithTarget:(id)target selector:(SEL)sel {
+    id d = %orig;
+    ADApplyPromotion609((CADisplayLink *)d);
     return d;
 }
 - (void)setPreferredFramesPerSecond:(NSInteger)fps {
@@ -1142,12 +1317,25 @@ static NSInteger ADPreferredMaxHz362(void){
 - (void)setPreferredFrameRateRange:(CAFrameRateRange)range {
     @try {
         if (gP.enabled && gP.force120Hz){
-            NSInteger hz = ADPreferredMaxHz362();
-            CAFrameRateRange forcedRange = CAFrameRateRangeMake(hz, hz, hz);
-            %orig(forcedRange);
+            CAFrameRateRange wanted = ADPreferredRange609();
+            %orig(wanted);
             return;
         }
     } @catch(...) {}
+    %orig;
+}
+- (void)setFrameInterval:(NSInteger)interval {
+    @try {
+        if (gP.enabled && gP.force120Hz){
+            NSInteger one = 1;
+            %orig(one);
+            return;
+        }
+    } @catch(...) {}
+    %orig;
+}
+- (void)addToRunLoop:(NSRunLoop *)runloop forMode:(NSRunLoopMode)mode {
+    ADApplyPromotion609(self);
     %orig;
 }
 %end
@@ -1176,13 +1364,19 @@ static BOOL gADHzProbeDone = NO;
         double timingHz = self.timingSamples ? self.timingHzSum / (double)self.timingSamples : 0;
         NSInteger maxHz = UIScreen.mainScreen.maximumFramesPerSecond;
         BOOL unlocked = [[[NSBundle mainBundle] objectForInfoDictionaryKey:ADPromotionInfoKey607] boolValue];
+        BOOL legacyUnlocked = [[[NSBundle mainBundle] objectForInfoDictionaryKey:ADPromotionLegacyInfoKey609] boolValue];
         BOOL lowPower = [NSProcessInfo processInfo].lowPowerModeEnabled;
         NSInteger thermal = 0;
         if (@available(iOS 11.0, *)) thermal = [NSProcessInfo processInfo].thermalState;
+        double durationHz = link.duration > 0.0001 ? 1.0/link.duration : 0;
+        NSInteger preferredFPS = link.preferredFramesPerSecond;
+        CAFrameRateRange requested = CAFrameRateRangeMake(0,0,0);
+        if (@available(iOS 15.0,*)) requested = link.preferredFrameRateRange;
         NSString *report = [NSString stringWithFormat:
-            @"AmazonDark %@\nforce120Hz=1\nscreenMax=%ld\nbundleHighRefreshUnlocked=%d\nlowPowerMode=%d\nthermalState=%ld\ncallbackHz=%.1f\ntargetTimingHz=%.1f\n",
-            @AD_VERSION, (long)maxHz, unlocked ? 1 : 0, lowPower ? 1 : 0,
-            (long)thermal, callbackHz, timingHz];
+            @"AmazonDark %@\nforce120Hz=1\nscreenMax=%ld\nbundleHighRefreshUnlocked=%d\nbundleLegacyUnlocked=%d\nlowPowerMode=%d\nthermalState=%ld\nrequestedRange=%.1f-%.1f preferred=%.1f\npreferredFPS=%ld\ndurationHz=%.1f\ncallbackHz=%.1f\ntargetTimingHz=%.1f\n",
+            @AD_VERSION, (long)maxHz, unlocked ? 1 : 0, legacyUnlocked ? 1 : 0,
+            lowPower ? 1 : 0, (long)thermal, requested.minimum, requested.maximum,
+            requested.preferred, (long)preferredFPS, durationHz, callbackHz, timingHz];
         NSString *path = [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-hz.txt"];
         [report writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
         [link invalidate]; gADHzProbeTarget = nil;

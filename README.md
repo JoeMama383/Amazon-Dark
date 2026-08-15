@@ -123,7 +123,7 @@ native chrome keep working independently.
 Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkreader)
 (MIT, © Dark Reader Ltd.) — see `Resources/DARKREADER-LICENSE`.
 
-## v6.0.8
+## v6.0.9
 
 - Preserves the confirmed-good v6.0.6 dark top chrome and all v6.0.7 ProMotion/performance work.
 - Leaves Amazon's checkbox painter fully stock: no AmazonDark checkbox styling, sprite replacement, filter, geometry, or state ownership.
