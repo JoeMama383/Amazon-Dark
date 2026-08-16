@@ -126,6 +126,13 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
 
+## v6.0.40
+
+- Narrows Person-tab raw/Fabric TWB from whole-view overlays to the exact bitmap-bearing CALayer leaf, preventing whole `Your Interests` cards from being dimmed.
+- Recovers child-layer / delegate-less Fabric image painters so isolated `Keep shopping for` product images no longer escape TWB.
+- Adds `Buy Again` to the direct Person product-section vocabulary for both UIImageView and raw Fabric media.
+- Keeps the event-driven v6.0.27+ TWB architecture: no TWB scroll scanner, recurring timer, MutationObserver, or layout-time hierarchy sweep.
+
 ## v6.0.39
 
 - Compile-only correction for the v6.0.38 Person/Fabric TWB owner. Logos sees `RCTView` and `RCTViewComponentView` as forward-declared runtime classes, so their reparent/window hooks now explicitly bridge `self` to `UIView *` before reading `layer.contents` and calling the existing raw-media owner.

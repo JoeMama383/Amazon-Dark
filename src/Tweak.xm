@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.39"
+#define AD_VERSION "v6.0.40"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -148,6 +148,11 @@ static UIImage *ADGlyphifyForView(UIImage *img, UIView *v);
 static void ADScheduleGlyphLift624(UIImageView *iv);
 static void ADApplyNativeWhiteTameView(UIView *v);
 static void ADApplyNativeWhiteTameRaw6038(UIView *v);
+static UIView *ADTWBOwnerViewForRawLayer6040(CALayer *layer);
+static void ADApplyNativeWhiteTameRawLayer6040(CALayer *mediaLayer, UIView *owner);
+static const void *kADTWBRawCandidate6040 = &kADTWBRawCandidate6040;
+static const void *kADTWBRawPending6040 = &kADTWBRawPending6040;
+static const void *kADTWBRawOverlay6040 = &kADTWBRawOverlay6040;
 static void ADPrimeNativeWhiteTame363(UIView *v, UIImage *incoming);
 static void ADSubscribeOverlay394(UIView *v);
 static BOOL ADImageMostlyLight(UIImage *img);
@@ -2671,17 +2676,26 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
     } @catch(...) {}
     %orig;
     @try {
-        id d=self.delegate;
-        if (d && [d isKindOfClass:[UIView class]]){
-            UIView *v=(UIView *)d;
-            if(!kADLegacyTWB6027){
-                // v6.0.38: Fabric sometimes renders Person product art directly into
-                // a leaf RCT/Fabric view's CALayer.contents instead of UIImageView.
-                // The direct v6.0.27 owner intentionally became UIImageView-only, so
-                // those visually identical sibling products silently escaped TWB.
-                ADApplyNativeWhiteTameRaw6038(v);
-            } else if (contents && gP.enabled && gP.whiteTame && v.window && !ADIsWebKitOwned(v)) {
-                ADApplyNativeWhiteTameView(v);
+        if(!kADLegacyTWB6027){
+            // v6.0.40: own the exact CALayer that received the bitmap, not an
+            // arbitrary Fabric container view. A raw product can live in a child
+            // layer whose delegate is nil, so walk only a few superlayers to the
+            // nearest UIView delegate for section semantics. Stay out of the global
+            // CALayer hot path for obviously large/non-TWB contents.
+            CALayer *existingRaw=objc_getAssociatedObject(self,kADTWBRawOverlay6040);
+            CGFloat rw=self.bounds.size.width,rh=self.bounds.size.height;
+            BOOL maybeRaw=(existingRaw || (gP.enabled&&gP.whiteTame&&contents&&rw<=280&&rh<=280));
+            if(maybeRaw){
+                UIView *owner=ADTWBOwnerViewForRawLayer6040(self);
+                if(owner) ADApplyNativeWhiteTameRawLayer6040(self,owner);
+            }
+        } else {
+            id d=self.delegate;
+            if (d && [d isKindOfClass:[UIView class]]){
+                UIView *v=(UIView *)d;
+                if (contents && gP.enabled && gP.whiteTame && v.window && !ADIsWebKitOwned(v)) {
+                    ADApplyNativeWhiteTameView(v);
+                }
             }
         }
     } @catch(...) {}
@@ -3149,14 +3163,14 @@ static void ADForceBarDark(UIView *bar){
     %orig;
     @try {
         UIView *v = (UIView *)(id)self;
-        if (!kADLegacyTWB6027 && v.layer.contents) ADApplyNativeWhiteTameRaw6038(v);
+        if (!kADLegacyTWB6027 && objc_getAssociatedObject(v,kADTWBRawPending6040)) ADApplyNativeWhiteTameRaw6038(v);
     } @catch(...) {}
 }
 - (void)didMoveToWindow {
     %orig;
     @try {
         UIView *v = (UIView *)(id)self;
-        if (!kADLegacyTWB6027 && v.layer.contents) ADApplyNativeWhiteTameRaw6038(v);
+        if (!kADLegacyTWB6027 && objc_getAssociatedObject(v,kADTWBRawPending6040)) ADApplyNativeWhiteTameRaw6038(v);
     } @catch(...) {}
 }
 %end
@@ -3195,14 +3209,14 @@ static void ADForceBarDark(UIView *bar){
     %orig;
     @try {
         UIView *v = (UIView *)(id)self;
-        if (!kADLegacyTWB6027 && v.layer.contents) ADApplyNativeWhiteTameRaw6038(v);
+        if (!kADLegacyTWB6027 && objc_getAssociatedObject(v,kADTWBRawPending6040)) ADApplyNativeWhiteTameRaw6038(v);
     } @catch(...) {}
 }
 - (void)didMoveToWindow {
     %orig;
     @try {
         UIView *v = (UIView *)(id)self;
-        if (!kADLegacyTWB6027 && v.layer.contents) ADApplyNativeWhiteTameRaw6038(v);
+        if (!kADLegacyTWB6027 && objc_getAssociatedObject(v,kADTWBRawPending6040)) ADApplyNativeWhiteTameRaw6038(v);
     } @catch(...) {}
 }
 %end
@@ -3437,7 +3451,8 @@ static int ADWTLocalSection365(UIView *v){
                        [lo containsString:@"sessions streamed"]) neg=YES;
                     if([lo containsString:@"your reviews"] || [lo containsString:@"what did you think of the item"]) reviews=YES;
                     if([lo containsString:@"returns are easy"] || [lo containsString:@"send an amazon gift card"] ||
-                       [lo isEqualToString:@"your interests"] || [lo containsString:@"shop previously watched"] || [lo containsString:@"subscribe & save"] ||
+                       [lo isEqualToString:@"your interests"] || [lo containsString:@"buy again"] ||
+                       [lo containsString:@"shop previously watched"] || [lo containsString:@"subscribe & save"] ||
                        [lo containsString:@"subscribe and save"] || [lo hasPrefix:@"best deals on"] ||
                        [lo hasPrefix:@"keep shopping for"] || [lo containsString:@"alexa for shopping"] ||
                        [lo containsString:@"lists and registries"] || [lo containsString:@"lists & registries"]) product=YES;
@@ -3505,7 +3520,8 @@ static int ADWTCarouselSection384(UIView *v){
                                        [lo isEqualToString:@"customer service"]) kind=1;
                                     else if([lo containsString:@"your reviews"]||[lo containsString:@"what did you think of the item"]) kind=3;
                                     else if([lo containsString:@"subscribe & save"]||[lo containsString:@"subscribe and save"]||
-                                            [lo isEqualToString:@"your interests"]||[lo hasPrefix:@"keep shopping for"]||[lo containsString:@"shop previously watched"]||
+                                            [lo isEqualToString:@"your interests"]||[lo containsString:@"buy again"]||
+                                            [lo hasPrefix:@"keep shopping for"]||[lo containsString:@"shop previously watched"]||
                                             [lo containsString:@"alexa for shopping"]||[lo hasPrefix:@"best deals on"]||
                                             [lo containsString:@"lists and registries"]||[lo containsString:@"lists & registries"]) kind=2;
                                     if(kind){
@@ -3840,8 +3856,8 @@ static int ADTWBTextKind6031(NSString *text){
        [lo containsString:@"need help"] || [lo containsString:@"contact customer service"] ||
        [lo isEqualToString:@"customer service"]) return 1;
     if([lo containsString:@"your reviews"] || [lo containsString:@"what did you think of the item"]) return 3;
-    if([lo isEqualToString:@"your interests"] || [lo containsString:@"shop previously watched"] ||
-       [lo containsString:@"lists and registries"] || [lo containsString:@"lists & registries"] ||
+    if([lo isEqualToString:@"your interests"] || [lo containsString:@"buy again"] ||
+       [lo containsString:@"shop previously watched"] || [lo containsString:@"lists and registries"] || [lo containsString:@"lists & registries"] ||
        [lo containsString:@"alexa for shopping"] ||
        [lo containsString:@"subscribe & save"] || [lo containsString:@"subscribe and save"] ||
        [lo hasPrefix:@"keep shopping for"] || [lo hasPrefix:@"best deals on"] ||
@@ -3902,67 +3918,161 @@ static int ADTWBDirectLocalCtx6031(UIImageView *iv){
 // accepts UIImageView only, so the existing CALayer hook became a no-op for those
 // leaves. Own only small leaf contents under the three proven sparse Person sections.
 // Classification happens on setContents:/reparent/window entry -- never on scroll.
-static BOOL ADTWBRawPersonSection6038(UIView *v){
-    if(!v||!v.window) return NO;
+static UIView *ADTWBOwnerViewForRawLayer6040(CALayer *layer){
     @try {
-        UIWindow *w=v.window;
-        CGRect vr=[v convertRect:v.bounds toView:w];
+        CALayer *p=layer; int up=0;
+        while(p&&up++<6){
+            id d=p.delegate;
+            if(d&&[d isKindOfClass:[UIView class]]) return (UIView *)d;
+            p=p.superlayer;
+        }
+    } @catch(...) {}
+    return nil;
+}
+
+static int ADTWBRawPersonCtx6040(UIView *v){
+    if(!v||!v.window) return 0;
+    @try {
+        int c=ADWTCarouselSection384(v); if(c) return c;
+        int l=ADWTLocalSection365(v); if(l) return l;
+        // Tiny local fallback for flattened Fabric trees where the heading is a
+        // nearby sibling rather than a true ancestor. Unlike v6.0.38's broad
+        // 980-point band, choose the closest matching label around this leaf.
+        UIWindow *w=v.window; CGRect vr=[v convertRect:v.bounds toView:w];
+        CGFloat vy=CGRectGetMidY(vr), best=CGFLOAT_MAX; int result=0;
         UIView *p=v; int up=0;
-        while(p&&p!=w&&up++<8){
-            CGFloat pw=p.bounds.size.width, ph=p.bounds.size.height;
-            if(pw>=80&&pw<=w.bounds.size.width*1.25&&ph>=55&&ph<=1050){
+        while(p&&p!=w&&up++<5){
+            CGFloat pw=p.bounds.size.width,ph=p.bounds.size.height;
+            if(pw>=90&&pw<=w.bounds.size.width*1.25&&ph>=60&&ph<=760){
                 NSMutableArray *q=[NSMutableArray arrayWithObject:p]; int seen=0;
-                for(NSUInteger qi=0;qi<q.count&&seen++<90;qi++){
-                    UIView *x=q[qi]; if(x.hidden||x.alpha<.01) continue;
-                    NSString *lo=[[[ADWTViewText362(x) lowercaseString]
-                                  stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] copy];
-                    BOOL target=([lo isEqualToString:@"your interests"] ||
-                                 [lo hasPrefix:@"keep shopping for"] ||
-                                 [lo containsString:@"shop previously watched"]);
-                    if(target){
-                        CGRect hr=[x convertRect:x.bounds toView:w];
-                        CGFloat y=CGRectGetMidY(vr);
-                        if(y>=CGRectGetMinY(hr)-80 && y<=CGRectGetMinY(hr)+980) return YES;
+                for(NSUInteger qi=0;qi<q.count&&seen++<80;qi++){
+                    UIView *x=q[qi]; if(x.hidden||x.alpha<.01)continue;
+                    int k=ADTWBTextKind6031(ADWTViewText362(x));
+                    if(k){
+                        CGRect xr=[x convertRect:x.bounds toView:w];
+                        CGFloat hy=CGRectGetMidY(xr),dy=fabs(vy-hy);
+                        BOOL near=(CGRectGetMaxY(xr)>=CGRectGetMinY(vr)-260 &&
+                                   CGRectGetMinY(xr)<=CGRectGetMaxY(vr)+120);
+                        if(near&&dy<best){best=dy;result=k;}
                     }
-                    if(qi<28){ for(UIView *sv in x.subviews){ if(q.count<90)[q addObject:sv]; else break; } }
+                    if(qi<24){for(UIView *sv in x.subviews){if(q.count<80)[q addObject:sv];else break;}}
                 }
             }
             p=p.superview;
         }
+        return result;
+    } @catch(...) {}
+    return 0;
+}
+
+static BOOL ADTWBRawLayerIsImageLeaf6040(CALayer *layer, UIView *owner, CALayer *ov){
+    if(!layer||!owner||!layer.contents) return NO;
+    @try {
+        id c=layer.contents;
+        if(!c || CFGetTypeID((__bridge CFTypeRef)c)!=CGImageGetTypeID()) return NO;
+        CGFloat w=layer.bounds.size.width,h=layer.bounds.size.height;
+        if(w<30||h<30||w>280||h>280) return NO;
+        // The exact regression in Your Interests was a flattened whole-card layer.
+        // A genuine bitmap painter should be a leaf. Structural card layers usually
+        // own borders/corners/child layers, and must never receive the TWB overlay.
+        for(CALayer *sl in layer.sublayers){ if(sl!=ov) return NO; }
+        if(layer==owner.layer){
+            if(owner.subviews.count>0) return NO;
+            if(layer.borderWidth>0.25 || layer.cornerRadius>=5.0) return NO;
+            NSString *lo=[[ADWTViewText362(owner) lowercaseString]
+                          stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+            if([lo containsString:@"new item"]||[lo containsString:@"viewed"]||
+               [lo containsString:@"your interests"]||[lo containsString:@"keep shopping"]||
+               [lo containsString:@"shop previously watched"]||[lo containsString:@"buy again"]) return NO;
+        }
+        const char *lc=object_getClassName(layer);
+        if(lc&&(strstr(lc,"Text")||strstr(lc,"Shape")||strstr(lc,"Gradient"))) return NO;
+        return YES;
     } @catch(...) {}
     return NO;
 }
 
-static void ADApplyNativeWhiteTameRaw6038(UIView *v){
-    if(!v || [v isKindOfClass:[UIImageView class]]) return;
+static void ADApplyNativeWhiteTameRawLayer6040(CALayer *mediaLayer, UIView *owner){
+    if(!mediaLayer||!owner||[owner isKindOfClass:[UIImageView class]]) return;
     @try {
-        CALayer *ov=objc_getAssociatedObject(v,kADWhiteTameOverlayKey);
-        BOOL base=(gP.enabled&&gP.whiteTame&&v.window&&!ADIsWebKitOwned(v)&&
-                   v.layer.contents!=nil&&v.subviews.count==0&&ADWTRawImageLike364(v)&&
-                   ADMenuRole382(v)==0&&!ADInTabBarChain(v));
-        CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
-        BOOL geom=(w>=36&&h>=36&&w<=260&&h<=260);
-        BOOL reactish=NO; UIView *rp=v; int ru=0;
-        while(rp&&ru++<5){
+        CALayer *ov=objc_getAssociatedObject(mediaLayer,kADTWBRawOverlay6040);
+        if(!mediaLayer.contents||!gP.enabled||!gP.whiteTame){
+            if(ov){[ov removeFromSuperlayer];objc_setAssociatedObject(mediaLayer,kADTWBRawOverlay6040,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
+            if(!mediaLayer.contents) objc_setAssociatedObject(mediaLayer,kADTWBRawCandidate6040,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            return;
+        }
+        // Raw ownership exists only for React/Fabric. Keep this gate ahead of all
+        // section semantics so ordinary UIKit CALayer.contents assignments stay O(1).
+        BOOL reactish=NO; UIView *rp=owner; int ru=0;
+        while(rp&&ru++<6){
             const char *rc=object_getClassName(rp);
             if(rc&&(strstr(rc,"RCT")||strstr(rc,"React")||strstr(rc,"Fabric"))){reactish=YES;break;}
             rp=rp.superview;
         }
-        BOOL own=(base&&geom&&reactish&&ADTWBRawPersonSection6038(v));
-        if(!own){
-            if(ov){[ov removeFromSuperlayer];objc_setAssociatedObject(v,kADWhiteTameOverlayKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
+        if(!reactish||ADIsWebKitOwned(owner)||ADMenuRole382(owner)!=0||ADInTabBarChain(owner)||
+           !ADWTRawImageLike364(owner)){
+            if(ov){[ov removeFromSuperlayer];objc_setAssociatedObject(mediaLayer,kADTWBRawOverlay6040,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
+            return;
+        }
+        CGFloat preW=mediaLayer.bounds.size.width,preH=mediaLayer.bounds.size.height;
+        if(!owner.window&&(preW<30||preH<30)){
+            // React can assign contents before final bounds. Remember only this raw
+            // layer and retry once when its owner mounts; no layout hook is added.
+            objc_setAssociatedObject(mediaLayer,kADTWBRawCandidate6040,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(owner,kADTWBRawPending6040,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            return;
+        }
+        // Prove that the exact contents-bearing layer is image-like BEFORE doing any
+        // Person-section lookup. This is the performance/precision fix over v6.0.38.
+        if(!ADTWBRawLayerIsImageLeaf6040(mediaLayer,owner,ov)){
+            if(ov){[ov removeFromSuperlayer];objc_setAssociatedObject(mediaLayer,kADTWBRawOverlay6040,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
+            return;
+        }
+        objc_setAssociatedObject(mediaLayer,kADTWBRawCandidate6040,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(owner,kADTWBRawPending6040,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        if(!owner.window){
+            // Contents can arrive before mounting. didMoveToWindow will recheck only
+            // this marked owner; no generic layout hook is required.
+            return;
+        }
+        int ctx=ADTWBRawPersonCtx6040(owner);
+        if(ctx!=2){
+            if(ov){[ov removeFromSuperlayer];objc_setAssociatedObject(mediaLayer,kADTWBRawOverlay6040,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
             return;
         }
         CGFloat a=0.50*(MAX(0,MIN(100,gP.whiteTameStrength))/100.0);
         if(!ov){
-            ov=[CALayer layer]; ov.name=@"AmazonDarkWhiteTameRaw6038";
-            [v.layer addSublayer:ov];
-            objc_setAssociatedObject(v,kADWhiteTameOverlayKey,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        } else if(ov.superlayer!=v.layer) [v.layer addSublayer:ov];
-        ov.frame=v.bounds;
-        ov.cornerRadius=v.layer.cornerRadius;
+            ov=[CALayer layer]; ov.name=@"AmazonDarkWhiteTameRaw6040";
+            [mediaLayer addSublayer:ov];
+            objc_setAssociatedObject(mediaLayer,kADTWBRawOverlay6040,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        } else if(ov.superlayer!=mediaLayer) [mediaLayer addSublayer:ov];
+        ov.frame=mediaLayer.bounds;
+        ov.cornerRadius=mediaLayer.cornerRadius;
         ov.backgroundColor=[UIColor colorWithWhite:0 alpha:a].CGColor;
         ov.zPosition=9999;
+    } @catch(...) {}
+}
+
+static void ADApplyNativeWhiteTameRaw6038(UIView *v){
+    if(!v||[v isKindOfClass:[UIImageView class]]) return;
+    @try {
+        // Clean up the old v6.0.38 view-wide overlay if this process ever inherited
+        // one through a live preference/reload path. Fresh launches will not have it.
+        CALayer *old=objc_getAssociatedObject(v,kADWhiteTameOverlayKey);
+        if(old&&[old.name isEqualToString:@"AmazonDarkWhiteTameRaw6038"]){
+            [old removeFromSuperlayer];
+            objc_setAssociatedObject(v,kADWhiteTameOverlayKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        // Only views previously marked by a real CALayer.contents assignment pay this
+        // bounded reparent/window-entry walk. This recovers pre-window assignments and
+        // recycled Fabric leaves without adding layout- or scroll-time work.
+        if(!objc_getAssociatedObject(v,kADTWBRawPending6040)) return;
+        NSMutableArray *q=[NSMutableArray arrayWithObject:v.layer]; int seen=0;
+        for(NSUInteger qi=0;qi<q.count&&seen++<32;qi++){
+            CALayer *l=q[qi];
+            if(objc_getAssociatedObject(l,kADTWBRawCandidate6040)) ADApplyNativeWhiteTameRawLayer6040(l,v);
+            if(qi<12){for(CALayer *sl in l.sublayers){if(q.count<32)[q addObject:sl];else break;}}
+        }
     } @catch(...) {}
 }
 
