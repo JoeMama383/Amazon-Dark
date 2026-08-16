@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.38"
+#define AD_VERSION "v6.0.39"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3147,11 +3147,17 @@ static void ADForceBarDark(UIView *bar){
 }
 - (void)didMoveToSuperview {
     %orig;
-    @try { if(!kADLegacyTWB6027 && self.layer.contents) ADApplyNativeWhiteTameRaw6038(self); } @catch(...) {}
+    @try {
+        UIView *v = (UIView *)(id)self;
+        if (!kADLegacyTWB6027 && v.layer.contents) ADApplyNativeWhiteTameRaw6038(v);
+    } @catch(...) {}
 }
 - (void)didMoveToWindow {
     %orig;
-    @try { if(!kADLegacyTWB6027 && self.layer.contents) ADApplyNativeWhiteTameRaw6038(self); } @catch(...) {}
+    @try {
+        UIView *v = (UIView *)(id)self;
+        if (!kADLegacyTWB6027 && v.layer.contents) ADApplyNativeWhiteTameRaw6038(v);
+    } @catch(...) {}
 }
 %end
 
@@ -3187,11 +3193,17 @@ static void ADForceBarDark(UIView *bar){
 }
 - (void)didMoveToSuperview {
     %orig;
-    @try { if(!kADLegacyTWB6027 && self.layer.contents) ADApplyNativeWhiteTameRaw6038(self); } @catch(...) {}
+    @try {
+        UIView *v = (UIView *)(id)self;
+        if (!kADLegacyTWB6027 && v.layer.contents) ADApplyNativeWhiteTameRaw6038(v);
+    } @catch(...) {}
 }
 - (void)didMoveToWindow {
     %orig;
-    @try { if(!kADLegacyTWB6027 && self.layer.contents) ADApplyNativeWhiteTameRaw6038(self); } @catch(...) {}
+    @try {
+        UIView *v = (UIView *)(id)self;
+        if (!kADLegacyTWB6027 && v.layer.contents) ADApplyNativeWhiteTameRaw6038(v);
+    } @catch(...) {}
 }
 %end
 

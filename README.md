@@ -126,6 +126,11 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
 
+## v6.0.39
+
+- Compile-only correction for the v6.0.38 Person/Fabric TWB owner. Logos sees `RCTView` and `RCTViewComponentView` as forward-declared runtime classes, so their reparent/window hooks now explicitly bridge `self` to `UIView *` before reading `layer.contents` and calling the existing raw-media owner.
+- No TWB classification, overlay, section vocabulary, scheduler, WebKit code, or other runtime behavior is intentionally changed from v6.0.38.
+
 ## v6.0.38
 
 - Fixes the last sparse Person-tab TWB misses under **Your Interests**, **Keep Shopping for**, and **Shop previously watched**. React/Fabric can render some product bitmaps directly into a leaf view's `CALayer.contents` instead of a `UIImageView`; the streamlined v6.0.27+ TWB owner previously ignored that renderer path.
