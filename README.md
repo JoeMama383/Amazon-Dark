@@ -126,6 +126,12 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
 
+## v6.0.36
+
+- Promotes Home ad-card titles/prices/deal badges and seasonal mosaic-card chrome into document-start CSS so they paint correctly on first insertion instead of waiting for the contrast lifecycle.
+- Replaces the title-dependent Off-to-College structural owner with a campaign-agnostic hp-mosaic/widget owner: background shells, borders, text, prices, arrows and structural effects follow the card family automatically if Amazon changes the seasonal campaign name. Product IMG/VIDEO/CANVAS remains independent and continues to follow TWB.
+- Keeps the v6.0.35 package identity transition and all v6.0.34/v6.0.35 performance/JIT/120-Hz/TWB behavior.
+
 ## v6.0.35
 
 - Uses v6.0.34 as the exact source baseline.
