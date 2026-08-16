@@ -1,6 +1,6 @@
-# AmazonDark v6.0.67
+# AmazonDark v6.0.68
 
-## v6.0.67 — clip compact video controls to circular shells
+## v6.0.68 — clip compact video controls to circular shells
 
 Built directly from v6.0.66.
 
