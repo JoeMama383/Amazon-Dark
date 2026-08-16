@@ -125,6 +125,12 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
+## v6.0.16
+
+- Restores v5.446 protection for small circular content images so store/shop logos and review/profile avatars are not claimed by the generic monochrome glyph repair.
+- Uses only candidate-local checks: content ancestry, meaningful image alt text, and circular display geometry backed by a larger natural bitmap. No new observer, timer, DOM sweep, or pixel analysis.
+- Preserves v6.0.15 native ad islands and all known-good 6.x performance, checkbox, chrome, fast-scroll, and reversible 60/120 Hz behavior.
+
 ## v6.0.15
 
 - Treats Home promotional/sponsored carousel cards as **Amazon-native ad islands**: generic contrast, glyph, TWB, and backdrop painters skip those subtrees.

@@ -62,7 +62,7 @@
 #import <stdio.h>
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.15"
+#define AD_VERSION "v6.0.16"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -508,7 +508,18 @@ static NSString *ADDarkReaderBootstrap(void){
            // stockCheckbox434 could own it. Protect the native checkbox/Compare
            // subtree from every broad glyph writer; stockCheckbox434 remains sole owner.
            "function adCbx439(e9){try{return !!(e9&&e9.closest&&e9.closest('[class*=a-checkbox],[class*=a-icon-checkbox],input[type=checkbox],[role=checkbox],[class*=copilot-compare],button[aria-label*=ompare],[data-csa-c-content-id*=ompare]'));}catch(err){return true;}}"
-           "var SKIP=/star|prime|logo|flag|swatch|thumb|sponsor|pill-image|product-image|photo|heart|wish|lists-framework/i;"           // Classes the probe confirmed are monochrome UI glyphs. These get a
+           // v6.0.16 / v5.446: small round content bitmaps are not monochrome UI glyphs.
+           // Keep the class reject broad and do ancestry/bitmap checks only on tiny <img>
+           // candidates immediately before a glyph write.
+           "var SKIP=/star|prime|logo|flag|swatch|thumb|sponsor|pill-image|product-image|photo|heart|wish|lists-framework|avatar|profile|author|reviewer|byline|merchant|seller|brand|store|logo-|-logo|headshot|user-image|customer/i;"
+           "var CONTENTIMG616='[data-hook*=review],[class*=review],[class*=profile],[class*=avatar],[class*=author],[class*=byline],[class*=merchant],[class*=seller],[class*=brand],[class*=store],[id*=review]';"
+           "function contentImg616(e,r,cs){try{if(!e||String(e.tagName||'').toLowerCase()!=='img')return false;"
+             "var al=(e.getAttribute&&e.getAttribute('alt')||'').trim();if(al.length>1)return true;"
+             "if(e.closest&&e.closest(CONTENTIMG616))return true;"
+             "var brs=String((cs&&cs.borderRadius)||''),br=parseFloat(brs)||0,pct=brs.indexOf('%%')>=0;"
+             "var circ=pct?br>=40:br>=Math.min(r.width,r.height)*0.4;"
+             "if(circ&&((e.naturalWidth||0)>64||(e.naturalHeight||0)>64))return true;"
+           "}catch(x){}return false;}"           // Classes the probe confirmed are monochrome UI glyphs. These get a
            // looser size cap, because the heart measures 33x33 against a 32 limit and
            // was failing by a single pixel, while sbs-pill-image at 34x34 is a product
            // thumbnail that must keep its colour.
@@ -574,6 +585,10 @@ static NSString *ADDarkReaderBootstrap(void){
                "var lim=ICON.test(cn2)?40:36;"
                "if(gr.width>5&&gr.width<=lim&&gr.height>5&&gr.height<=lim&&!SKIP.test(cn2)&&!ot){"
                  "var isI=el.tagName.toLowerCase()==='img';"
+                 // v5.446 device-proven case: a 32pt circular shop/avatar bitmap backed
+                 // by a larger source was being silhouetted into a solid white disc.
+                 // Run this only after the existing size/class/text gates.
+                 "if(isI&&contentImg616(el,gr,cs))continue;"
                  "var hasB=cs.backgroundImage&&cs.backgroundImage!=='none';"
                  "if(isI||hasB){if(adCbx439(el))continue;el.style.setProperty('filter','brightness(0) invert(1)','important');"
                    "el.__adGlyph=1;el.__adBy='gfix1';gfix++;}}"
@@ -593,7 +608,7 @@ static NSString *ADDarkReaderBootstrap(void){
                  "try{var sr3=el.getBoundingClientRect();"
                    "var sc3=el.className;if(sc3&&sc3.baseVal!==undefined)sc3=sc3.baseVal;sc3=(sc3||'').toString();"
                    "var slim=ICON.test(sc3)?44:40;"
-                   "var SK2=/star|prime|logo|flag|swatch|thumb|sponsor|pill-image|product-image|photo/i;"
+                   "var SK2=/star|prime|logo|flag|swatch|thumb|sponsor|pill-image|product-image|photo|avatar|profile|author|reviewer|byline|merchant|seller|brand|store|headshot|user-image|customer/i;"
                    "if(sr3.width>5&&sr3.width<=slim&&sr3.height>5&&sr3.height<=slim&&!SK2.test(sc3)){"
                      "if(adCbx439(el))continue;"
                      "el.style.setProperty('filter','brightness(0) invert(1)','important');el.__adGlyph=1;el.__adBy='gfix2';gfix++;}"
