@@ -34,6 +34,8 @@ static const NSTimeInterval kCoverHold    = 8.5;  // LAST RESORT. The app guaran
                                                   // signal by t=7.5s, so this must sit above
                                                   // that or the timer pre-empts the signal -
                                                   // which is exactly what 3.0s was doing.
+static const NSTimeInterval kCoverFade    = 0.55; // smooth final handoff into live Amazon
+static const NSTimeInterval kLogoFadeIn   = 0.20; // smooth black->centered artwork reveal
 static const NSTimeInterval kCoverHardCap = 10.0; // absolute max on screen
 static const NSTimeInterval kReCoverGap   = 8.0;  // ignore re-triggers within
 
@@ -156,10 +158,15 @@ static void ADRevealCoverLogo645(UIView *host, UIImageView *logo, unsigned gen, 
                 ADRevealCoverLogo645(host,logo,gen,attempt+1);
                 return;
             }
-            // No fade/slide/scale of our own.  Once SpringBoard's scene transition is
-            // over, expose the already-centered logo in one frame.
+            // Preserve the v6.0.45 geometry fix: the wordmark remains completely
+            // invisible while the scene moves.  Once settled, fade it in at center
+            // instead of the abrupt black->logo pop introduced by v6.0.45.
+            logo.alpha=0.0;
             logo.hidden=NO;
-            ADSBLog([NSString stringWithFormat:@"COVER logo revealed settled attempt=%d",attempt]);
+            [UIView animateWithDuration:kLogoFadeIn delay:0.0
+                                options:UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState
+                             animations:^{ logo.alpha=1.0; } completion:nil];
+            ADSBLog([NSString stringWithFormat:@"COVER logo fade-in settled attempt=%d",attempt]);
         } @catch (__unused NSException *e) {}
     });
 }
@@ -263,15 +270,19 @@ static void ADDismissCover(void) {
         ++gCoverGen; // cancels any pending scene-settle logo reveal
         if (gCoverOverlay) {
             UIView *ov = gCoverOverlay; gCoverOverlay = nil;
-            [ov removeFromSuperview];
-            ADSBLog(@"COVER overlay dismissed immediately (ready)");
+            [UIView animateWithDuration:kCoverFade delay:0.0
+                                options:UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState
+                             animations:^{ ov.alpha=0.0; }
+                             completion:^(BOOL f){ @try { [ov removeFromSuperview]; } @catch (__unused NSException *e) {} }];
+            ADSBLog(@"COVER overlay fading 0.55s (ready)");
         }
-        // Legacy window path is retained only as dead compatibility code; if it is
-        // ever reactivated, do not introduce a second custom fade here either.
         if (!gCoverWin) return;
         UIWindow *w = gCoverWin; gCoverWin = nil;
-        w.hidden = YES;
-        ADSBLog(@"COVER dismissed immediately");
+        [UIView animateWithDuration:kCoverFade delay:0.0
+                            options:UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{ w.alpha=0.0; }
+                         completion:^(BOOL f){ @try { w.hidden=YES; } @catch (__unused NSException *e) {} }];
+        ADSBLog(@"COVER window fading 0.55s");
     } @catch (__unused NSException *e) {}
 }
 
@@ -542,8 +553,10 @@ static void ADSBHandleJITRequest622(int token){
             @try {
                 if (!gCoverWin && !gCoverOverlay) return;
                 double shown = CFAbsoluteTimeGetCurrent() - gPresentAt;
-                ADSBLog([NSString stringWithFormat:@"COVER ready (shown %.2fs, stock immediate release)", shown]);
-                ADDismissCover();
+                double wait = shown < 1.40 ? (1.40 - shown) : 0.0;
+                ADSBLog([NSString stringWithFormat:@"COVER ready (shown %.2fs, wait %.2fs, fade %.2fs)", shown, wait, kCoverFade]);
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(wait*NSEC_PER_SEC)),
+                               dispatch_get_main_queue(), ^{ ADDismissCover(); });
             } @catch (__unused NSException *e) {}
         });
     } @catch (__unused NSException *e) {}

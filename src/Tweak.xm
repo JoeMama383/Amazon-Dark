@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.45"
+#define AD_VERSION "v6.0.46"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -157,6 +157,7 @@ static int ADMenuRole382(UIView *v);
 static BOOL ADWTInWatchedCarousel380(UIView *v);
 static inline double ADUptime(void);
 static void ADPostAppReady(void);
+static void ADApplyNativeWhiteTameDirect6027(UIView *v);
 static void ADPreDarken(WKWebView *wv);
 static void ADPrimeWebBacking611(WKWebView *wv);
 static void ADInvalidateWebCaches613(void);
@@ -2461,6 +2462,10 @@ static BOOL ADIsAdaptiveTopNavBackgroundView(id obj){
 // Register the real heading view when its text is assigned/attached, then resolve
 // only a small vertical band at image-ownership time.  Weak storage means recycled
 // headings disappear naturally; there is no window/page scan or scroll callback.
+static const void *kADTWBDirectCtx6031 = &kADTWBDirectCtx6031;
+static const void *kADTWBDirectCtxImage6031 = &kADTWBDirectCtxImage6031;
+static const void *kADTWBDirectCtxTime6031 = &kADTWBDirectCtxTime6031;
+static const void *kADTWBDirectCtxAttempts6031 = &kADTWBDirectCtxAttempts6031;
 static const void *kADPersonHeadingKind6044 = &kADPersonHeadingKind6044;
 static NSHashTable *ADPersonHeadingViews6044(void){
     static NSHashTable *t; static dispatch_once_t once;
@@ -2474,14 +2479,87 @@ static int ADPersonHeadingTextKind6044(NSString *text){
     if([lo containsString:@"buy again"]) return 2;
     return 0;
 }
+static UIView *ADPersonHeadingRoot6046(UIView *heading){
+    if(!heading||!heading.window) return nil;
+    @try {
+        UIWindow *w=heading.window; UIView *p=heading.superview;
+        // Reuse the exact shape the v6.0.41 diagnostic used to capture these
+        // sections: nearest screen-width wrapper with a bounded section height.
+        for(int up=0;p&&p!=w&&up<7;up++,p=p.superview){
+            CGFloat pw=p.bounds.size.width, ph=p.bounds.size.height;
+            if(pw>=w.bounds.size.width*.65 && ph>=120 && ph<=1200) return p;
+        }
+    } @catch(...) {}
+    return nil;
+}
+static int ADPersonHeadingCommonWrapper6046(UIImageView *iv){
+    if(!iv||!iv.window||!iv.image) return 0;
+    @try {
+        const char *cn=object_getClassName(iv);
+        if(!cn||!strstr(cn,"RCTUIImageView")) return 0;
+        CGFloat iw=iv.bounds.size.width, ih=iv.bounds.size.height;
+        if(iw<60||ih<60||iw>220||ih>220) return 0;
+        UIWindow *w=iv.window;
+        for(UIView *h in [ADPersonHeadingViews6044() allObjects]){
+            if(!h||h.window!=w||h.hidden||h.alpha<.01) continue;
+            NSNumber *kn=objc_getAssociatedObject(h,kADPersonHeadingKind6044);
+            if(!kn||kn.intValue!=2) continue;
+            UIView *root=ADPersonHeadingRoot6046(h);
+            if(root && [iv isDescendantOfView:root]) return 2;
+        }
+    } @catch(...) {}
+    return 0;
+}
+static void ADPersonHeadingRecoveryPass6046(UIView *heading){
+    if(!heading||!heading.window) return;
+    @try {
+        NSNumber *kn=objc_getAssociatedObject(heading,kADPersonHeadingKind6044);
+        if(!kn||kn.intValue!=2) return;
+        UIView *root=ADPersonHeadingRoot6046(heading); if(!root) return;
+        NSMutableArray *q=[NSMutableArray arrayWithObject:root];
+        NSUInteger qi=0, seen=0;
+        while(qi<q.count && seen++<140){
+            UIView *x=q[qi++];
+            if([x isKindOfClass:[UIImageView class]]){
+                UIImageView *iv=(UIImageView *)x; const char *cn=object_getClassName(iv);
+                CGFloat iw=iv.bounds.size.width, ih=iv.bounds.size.height;
+                if(cn&&strstr(cn,"RCTUIImageView")&&iv.image&&iv.window==heading.window&&
+                   iw>=60&&ih>=60&&iw<=220&&ih<=220&&
+                   iv.image.renderingMode!=UIImageRenderingModeAlwaysTemplate){
+                    // Heading registration may happen after this image already cached
+                    // an ordinary/negative context.  Promote only this section's
+                    // product-sized image and re-run the existing direct owner once.
+                    objc_setAssociatedObject(iv,kADTWBDirectCtxImage6031,iv.image,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                    objc_setAssociatedObject(iv,kADTWBDirectCtx6031,@2,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                    objc_setAssociatedObject(iv,kADTWBDirectCtxTime6031,@(CFAbsoluteTimeGetCurrent()),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                    objc_setAssociatedObject(iv,kADTWBDirectCtxAttempts6031,@0,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                    ADApplyNativeWhiteTameDirect6027(iv);
+                }
+            }
+            if(q.count<140){
+                for(UIView *sv in x.subviews){ if(q.count>=140) break; [q addObject:sv]; }
+            }
+        }
+    } @catch(...) {}
+}
+static void ADSchedulePersonHeadingRecovery6046(UIView *heading){
+    if(!heading) return;
+    __weak UIView *wh=heading;
+    dispatch_async(dispatch_get_main_queue(), ^{ UIView *h=wh; if(h) ADPersonHeadingRecoveryPass6046(h); });
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.18*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+        UIView *h=wh; if(h) ADPersonHeadingRecoveryPass6046(h);
+    });
+}
 static void ADRegisterPersonHeading6044(UIView *v, NSString *text){
     if(!v) return;
     @try {
         int kind=ADPersonHeadingTextKind6044(text);
         NSNumber *old=objc_getAssociatedObject(v,kADPersonHeadingKind6044);
         if(kind){
+            BOOL changed=(!old || old.intValue!=kind);
             objc_setAssociatedObject(v,kADPersonHeadingKind6044,@(kind),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             [ADPersonHeadingViews6044() addObject:v];
+            if(changed) ADSchedulePersonHeadingRecovery6046(v);
         } else if(old){
             objc_setAssociatedObject(v,kADPersonHeadingKind6044,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             [ADPersonHeadingViews6044() removeObject:v];
@@ -3866,10 +3944,6 @@ static int ADWTStableContext365(UIView *v){
 // bands and carousel subtree scans. Production now inspects only a tiny compact local
 // neighborhood when a new UIImage appears, caches the result, and never discovers it
 // from a scroll callback.
-static const void *kADTWBDirectCtx6031 = &kADTWBDirectCtx6031;
-static const void *kADTWBDirectCtxImage6031 = &kADTWBDirectCtxImage6031;
-static const void *kADTWBDirectCtxTime6031 = &kADTWBDirectCtxTime6031;
-static const void *kADTWBDirectCtxAttempts6031 = &kADTWBDirectCtxAttempts6031;
 
 // 0 ordinary; 1 explicit no-TWB; 2 forced product/Alexa media; 3 Reviews photo.
 static int ADTWBTextKind6031(NSString *text){
@@ -4034,9 +4108,12 @@ static void ADApplyNativeWhiteTameDirect6027(UIView *v){
         // carousel wrapper can report ctx==1 even when the local named section is
         // product media.  Give this narrow, geometry-bounded positive owner the same
         // precedence as the v6.0.42 Your Interests local-positive fix.
-        if(ctx!=2 && w<=190 && h<=190){
-            int band=ADPersonHeadingBand6044(iv);
-            if(band==2){
+        if(ctx!=2 && w<=220 && h<=220){
+            // v6.0.46: section ownership first uses the actual common wrapper proven
+            // by the v6.0.41 hierarchy dump; the old Y band remains only as fallback.
+            int person=ADPersonHeadingCommonWrapper6046(iv);
+            if(person!=2) person=ADPersonHeadingBand6044(iv);
+            if(person==2){
                 ctx=2;
                 objc_setAssociatedObject(iv,kADTWBDirectCtxImage6031,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
                 objc_setAssociatedObject(iv,kADTWBDirectCtx6031,@2,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -5011,6 +5088,14 @@ static void ADDarkenSplash(UIViewController *vc){
     @try { UIView *v = vc.view; if (v) v.backgroundColor = ADColorFromHex(gP.bgHex); } @catch(...) {}
 }
 %hook AXUSplashScreenViewController
+- (void)viewDidLoad {
+    %orig;
+    ADDarkenSplash(self);
+}
+- (void)viewWillAppear:(BOOL)a {
+    %orig;
+    ADDarkenSplash(self);
+}
 - (void)viewDidLayoutSubviews {
     %orig;
     ADDarkenSplash(self);
@@ -5021,6 +5106,14 @@ static void ADDarkenSplash(UIViewController *vc){
 }
 %end
 %hook TezBaseSplashScreenViewController
+- (void)viewDidLoad {
+    %orig;
+    ADDarkenSplash(self);
+}
+- (void)viewWillAppear:(BOOL)a {
+    %orig;
+    ADDarkenSplash(self);
+}
 - (void)viewDidLayoutSubviews {
     %orig;
     ADDarkenSplash(self);
@@ -5277,10 +5370,11 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
     dispatch_async(dispatch_get_main_queue(), ^{ @try { ADSweep(); } @catch(...) {} });
 }
 
-// ─── %ctor : process guard + hook registration + bounded startup recovery ────
-%ctor {
-    if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
-    // v5.446 direct-port: drop cached light launch snapshots.
+// v6.0.46: stale light SplashBoard snapshots can leak for one frame on a
+// soft/warm launch even though the live splash controller is themed.  Clear them at
+// process start and around background/foreground transitions.  The delayed background
+// clear is one-shot so it can catch a snapshot written just after DidEnterBackground.
+static void ADClearSplashSnapshots6046(void){
     @try {
         NSString *lib = [NSSearchPathForDirectoriesInDomains(
                             NSLibraryDirectory, NSUserDomainMask, YES) firstObject];
@@ -5293,6 +5387,16 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
                 [fm removeItemAtPath:[sub stringByAppendingPathComponent:f] error:nil];
         }
     } @catch(...) {}
+}
+static void ADClearSplashSnapshotsAfterBackground6046(NSNotification *n){
+    ADClearSplashSnapshots6046();
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.35*NSEC_PER_SEC)),dispatch_get_main_queue(),^{ ADClearSplashSnapshots6046(); });
+}
+
+// ─── %ctor : process guard + hook registration + bounded startup recovery ────
+%ctor {
+    if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
+    ADClearSplashSnapshots6046();
     // v5.446 direct-port activation fallback for native-only cold paths.
     @try {
         [[NSNotificationCenter defaultCenter]
@@ -5302,6 +5406,16 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(9.0 * NSEC_PER_SEC)),
                            dispatch_get_main_queue(), ^{ ADPostAppReady(); });
         }];
+    } @catch(...) {}
+    @try {
+        [[NSNotificationCenter defaultCenter]
+            addObserverForName:UIApplicationDidEnterBackgroundNotification
+                        object:nil queue:[NSOperationQueue mainQueue]
+                    usingBlock:^(NSNotification *n){ ADClearSplashSnapshotsAfterBackground6046(n); }];
+        [[NSNotificationCenter defaultCenter]
+            addObserverForName:UIApplicationWillEnterForegroundNotification
+                        object:nil queue:[NSOperationQueue mainQueue]
+                    usingBlock:^(NSNotification *n){ ADClearSplashSnapshots6046(); }];
     } @catch(...) {}
     %init;
 
