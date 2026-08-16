@@ -1,22 +1,13 @@
-# AmazonDark v6.0.61
+# AmazonDark v6.0.62
 
-## v6.0.61 — Highlights card-local TWB correction
+## v6.0.62 — video control glyph restoration / preference copy
 
-- Restores the exact v6.0.58 baseline for Medical Care behavior; the broad v6.0.59/60 Highlights root marker is not carried forward.
-- Your Amazon highlights now keys off the card-local descriptors `Total savings`, `Sessions streamed`, and `Keep streaming`.
-- The nearest compact non-scroll wrapper that actually contains an image is marked, so darker illustration tiles are forced through TWB without marking the surrounding Person pane or Medical row.
-- One 140 ms bounded hydration retry covers text-before-image React ordering; no recurring timer or scroll callback is added.
+Built directly from v6.0.56. The abandoned v6.0.57–v6.0.61 Person/Highlights experiments are not present.
 
-## v6.0.58 — Person illustration TWB + preference copy cleanup
-
-Built directly from v6.0.57, reversing its unsuccessful hard-exclusion experiment. Medical Care and Your Amazon highlights are now explicit positive TWB illustration contexts rather than no-TWB sections.
-
-- Forces the actual image/glyph leaves in Medical Care and Your Amazon highlights through the existing semi-transparent TWB overlay while leaving the surrounding cards/text untouched.
-- Adds card-local descriptor vocabulary (Health AI, Prescriptions, delivery copy, total savings, sessions streamed, keep streaming) so nested React cards do not depend only on the outer heading.
-- Removes the v6.0.57 `ctx==4` hard-negative state. Existing ambiguous-negative (`ctx==1`), product (`ctx==2`), Reviews (`ctx==3`), and rendered-peer behavior remain intact.
-- Applies the same positive illustration semantics to the streamlined WebKit TWB owner when those families render as web media.
-- Renames the setting to **Tame Light Backgrounds** and replaces the TWB/Performance footers with shorter, generic descriptions. Preference keys are unchanged, so existing settings carry over.
-- No Home performance scheduling, JIT implementation, 120-Hz implementation, carousel-dot, checkbox, seasonal/ad, splash, or unrelated theming behavior is intentionally changed.
+- Restores the v5.446-style dedicated play/pause control owner for HTML video ads: compact play/pause shells are detected next to the video, pinned to a circular dark backing, and their glyph paint is forced visible/light without touching the video media itself.
+- The control owner is event-driven from initial/media lifecycle and click state changes only; no scroll handler, recurring timer, or broad page recovery scan is added.
+- Reintroduces the requested Settings copy only: “Tame Light Backgrounds” plus concise Light Backgrounds and Performance descriptions. Preference keys/defaults remain unchanged.
+- Everything else is the exact v6.0.56 baseline.
 
 ## v6.0.56 — render-critical-path / infinite-scroll performance pass
 

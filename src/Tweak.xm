@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.61"
+#define AD_VERSION "v6.0.62"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -722,6 +722,18 @@ static NSString *ADDarkReaderBootstrap(void){
            "window.__AD_STRIP_DR615__=function(root){try{if(!root||root.nodeType!==1)return 0;root.setAttribute('data-ad-native615','1');var E=[root],q=root.querySelectorAll?root.querySelectorAll(window.__AD_DR_SEL6056__):[];for(var i=0;i<q.length&&i<220;i++)E.push(q[i]);for(var z=0;z<E.length;z++){var el=E[z],A=window.__AD_DR_ATTRS6056__;for(var x=0;x<A.length;x++)if(el.hasAttribute&&el.hasAttribute(A[x]))el.removeAttribute(A[x]);var st=el.style;if(st){var rm=[];for(var y=0;y<st.length;y++){var pn=st[y];if(String(pn).indexOf('--darkreader-inline-')===0)rm.push(pn);}for(var y2=0;y2<rm.length;y2++)st.removeProperty(rm[y2]);}}return E.length;}catch(e){return 0;}};"
            "window.__AD_MARK_NATIVE615__=function(root){try{if(!root)return 0;var n=0,Q=[];if(root.nodeType===1&&root.matches&&root.matches(window.__AD_NATIVE_SEL615__))Q.push(root);if(root.querySelectorAll){var q=root.querySelectorAll(window.__AD_NATIVE_SEL615__),lim=(root===document)?80:16;for(var i=0;i<q.length&&i<lim;i++)Q.push(q[i]);}for(var j=0;j<Q.length;j++){var fresh=!Q[j].hasAttribute('data-ad-native615');if(fresh){Q[j].setAttribute('data-ad-native615','1');n++;}if(fresh||Q[j]===root)window.__AD_STRIP_DR615__(Q[j]);}try{if(window.__AD_TWB6033_ADROOT__){var h=(root.nodeType===1&&root.closest)?root.closest('[data-ad-native615],'+window.__AD_NATIVE_SEL615__):null;if(h)window.__AD_TWB6033_ADROOT__(root);for(var t=0;t<Q.length&&t<4;t++)if(Q[t]!==h)window.__AD_TWB6033_ADROOT__(Q[t]);}}catch(tx){}return n;}catch(e){return 0;}};"
            "window.__AD_MARK_NATIVE615__(document);if(!window.__AD_NATIVE_OBS615__&&document.documentElement){window.__AD_NATIVE_OBS615__=1;new MutationObserver(function(ms){try{for(var i=0;i<ms.length&&i<48;i++){var A=ms[i].addedNodes||[];for(var j=0;j<A.length&&j<24;j++)if(A[j]&&A[j].nodeType===1)window.__AD_MARK_NATIVE615__(A[j]);}}catch(e){}}).observe(document.documentElement,{childList:true,subtree:true});}}catch(e){}"
+         // v6.0.62: restore the narrow v5.446 play/pause-control owner that was
+         // lost during the streamlined v6 TWB rewrite. The actual VIDEO remains under
+         // the direct media owner; this only protects its compact control shell/glyph.
+         // No scroll handler or recurring scan: initial/media lifecycle + user click only.
+         "try{if(!document.getElementById('advidctl6062')){var vs62=document.createElement('style');vs62.id='advidctl6062';"
+           "vs62.textContent='[data-ad-videoctl6062]{background:rgba(0,0,0,.72)!important;border-radius:999px!important;border:0!important;outline:0!important;box-shadow:none!important;color:#fff!important;isolation:isolate!important;}[data-ad-videoctl6062] svg,[data-ad-videoctl6062] path,[data-ad-videoctl6062] polygon,[data-ad-videoctl6062] rect,[data-ad-videoctl6062] line{filter:none!important;opacity:1!important;visibility:visible!important;color:#fff!important;fill:#fff!important;stroke:#fff!important;}[data-ad-videoctl6062] i,[data-ad-videoctl6062] [class*=play],[data-ad-videoctl6062] [class*=pause]{filter:none!important;opacity:1!important;visibility:visible!important;color:#fff!important;-webkit-text-fill-color:#fff!important;background-color:transparent!important;}[data-ad-videoctl6062] [class*=play]::before,[data-ad-videoctl6062] [class*=play]::after{color:#fff!important;border-left-color:#fff!important;}[data-ad-videoctl6062] [class*=pause]::before,[data-ad-videoctl6062] [class*=pause]::after{color:#fff!important;background-color:#fff!important;}';"
+           "(document.head||document.documentElement).appendChild(vs62);}"
+           "window.__AD_VIDEOCTL_ONE6062__=function(v){try{if(!v||String(v.tagName||'').toUpperCase()!=='VIDEO')return 0;var vr=v.getBoundingClientRect();if(vr.width<100||vr.height<70)return 0;var host=v,pd=0;while(host.parentElement&&pd++<4){var hp=host.parentElement,hr=hp.getBoundingClientRect();if(hr.width>=vr.width*.70&&hr.width<=vr.width*1.70&&hr.height>=vr.height*.70&&hr.height<=vr.height*1.75)host=hp;else break;}var A=host.querySelectorAll?host.querySelectorAll('button,[role=button],[aria-label],[title],svg,i'):[],n=0;for(var i=0;i<A.length&&i<180;i++){var e=A[i],r=e.getBoundingClientRect();if(r.width<10||r.width>80||r.height<10||r.height>80)continue;var cx=r.left+r.width/2,cy=r.top+r.height/2;if(cx<vr.left-24||cx>vr.right+24||cy<vr.top-24||cy>vr.bottom+24)continue;var c=e.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));var lab=String((e.getAttribute&&e.getAttribute('aria-label'))||(e.getAttribute&&e.getAttribute('title'))||'');var sem=c+' '+lab;if(/mute|volume|sound|caption|fullscreen/i.test(sem))continue;if(!/play|pause/i.test(sem))continue;var q=e,up=0;while(q.parentElement&&up++<2){var pr=q.parentElement.getBoundingClientRect();if(pr.width>=18&&pr.width<=84&&pr.height>=18&&pr.height<=84)q=q.parentElement;else break;}q.setAttribute('data-ad-videoctl6062','1');q.__adBy='videoCtl6062';n++;}return n;}catch(e){return 0;}};"
+           "window.__AD_VIDEOCTL6062__=function(root){try{var n=0;if(root&&String(root.tagName||'').toUpperCase()==='VIDEO')return window.__AD_VIDEOCTL_ONE6062__(root);var Q=(root&&root.querySelectorAll)?root.querySelectorAll('video'):document.querySelectorAll('video');for(var i=0;i<Q.length&&i<36;i++)n+=window.__AD_VIDEOCTL_ONE6062__(Q[i]);return n;}catch(e){return 0;}};"
+           "var vce62=function(ev){try{var t=ev&&ev.target;if(t&&String(t.tagName||'').toUpperCase()==='VIDEO')window.__AD_VIDEOCTL_ONE6062__(t);}catch(e){}};document.addEventListener('loadedmetadata',vce62,true);document.addEventListener('loadeddata',vce62,true);document.addEventListener('canplay',vce62,true);document.addEventListener('play',vce62,true);document.addEventListener('playing',vce62,true);document.addEventListener('pause',vce62,true);"
+           "document.addEventListener('click',function(ev){try{var e=ev&&ev.target,p=e,d=0,sem='';while(p&&d++<4){var c=p.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));sem+=' '+c+' '+String((p.getAttribute&&p.getAttribute('aria-label'))||(p.getAttribute&&p.getAttribute('title'))||'');p=p.parentElement;}if(!/play|pause/i.test(sem))return;setTimeout(function(){window.__AD_VIDEOCTL6062__(document);},0);setTimeout(function(){window.__AD_VIDEOCTL6062__(document);},90);}catch(e){}},true);"
+           "var vi62=function(){try{window.__AD_VIDEOCTL6062__(document);}catch(e){}};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',vi62,{once:true});else vi62();window.addEventListener('pageshow',vi62,{passive:true});}catch(e){}"
          // v6.0.36: seasonal Home mosaic cards are normal dark-theme chrome, not TWB.
          // v5.446 proved the stable owner is the hp-mosaic/widget family; the visible
          // campaign heading ("Off to College", holiday, etc.) is content and must not
@@ -823,6 +835,7 @@ static NSString *ADDarkReaderBootstrap(void){
            "}catch(e){}"
            "for(var i=0;i<els.length;i++){var el=els[i];"
              "if(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(el))continue;"
+             "if(el.closest&&el.closest('[data-ad-videoctl6062]'))continue;"
              "var cs=getComputedStyle(el);"
              // NO LIGHT PANELS. Anything still measuring light after Dark Reader has
              // run is a miss -- a gradient it could not parse, a shadow subtree, an
@@ -1050,8 +1063,8 @@ static NSString *ADWhiteTameWebJS6027(void){
          "function S(v){try{return String(v&&v.baseVal!==undefined?v.baseVal:(v||''));}catch(e){return '';}}"
          "function chain(e){var p=e,d=0,c='';while(p&&d++<6){c+=' '+S(p.className)+' '+String(p.id||'')+' '+String((p.getAttribute&&p.getAttribute('data-component-type'))||'')+' '+String((p.getAttribute&&p.getAttribute('data-hook'))||'');p=p.parentElement;}return c.toLowerCase();}"
          "function localText(e){var p=e,d=0,t='';while(p&&d++<6){var x=String(p.textContent||'').replace(/\\s+/g,' ').trim();if(x&&x.length<1200)t+=' '+x.toLowerCase();p=p.parentElement;}return t;}"
-         "function blocked(e,c,t,fo,rv){if(!fo&&e.__adGlyph)return true;if(/avatar|profile|author|reviewer|byline|merchant|seller|brand-logo|store-logo|headshot|user-image|customer-avatar|star|rating|checkbox|heart|wish|search-suggestion|recentsearch|camera|microphone|location-icon|chevron|close-icon/.test(c))return true;if(!fo&&/sprite|icon|logo/.test(c))return true;if(rv&&/sprite|icon|logo|pixel/.test(c))return true;if(/same-day|same day|pharmacy|prime video|amazon haul|whole foods|autos/.test(t)&&/nav|explore|shortcut|chip|pill|category/.test(c+t))return true;return false;}"
-         "function forced(t){return /subscribe (?:&|and) save|keep shopping for|shop previously watched|lists (?:and|&) registries|alexa for shopping|best deals on|send an amazon gift card|how can i help|returns are easy|medical care|health ai|prescriptions|personal guida|fast,? free deliv|your amazon highlights|total savings|sessions streamed|keep streaming/.test(t);}"
+         "function blocked(e,c,t,fo,rv){if(!fo&&e.__adGlyph)return true;if(/avatar|profile|author|reviewer|byline|merchant|seller|brand-logo|store-logo|headshot|user-image|customer-avatar|star|rating|checkbox|heart|wish|search-suggestion|recentsearch|camera|microphone|location-icon|chevron|close-icon/.test(c))return true;if(!fo&&/sprite|icon|logo/.test(c))return true;if(rv&&/sprite|icon|logo|pixel/.test(c))return true;if(/medical care|health ai|prescriptions|personal guida|fast,? free deliv|your amazon highlights|total savings|sessions streamed|keep streaming/.test(t))return true;if(/same-day|same day|pharmacy|prime video|amazon haul|whole foods|autos/.test(t)&&/nav|explore|shortcut|chip|pill|category/.test(c+t))return true;return false;}"
+         "function forced(t){return /subscribe (?:&|and) save|keep shopping for|shop previously watched|lists (?:and|&) registries|alexa for shopping|best deals on|send an amazon gift card|how can i help|returns are easy/.test(t);}"
          "function reviewCtx(t,c){return /your reviews|what did you think of the item/.test(t)||/review-image|customer-image|review.*photo/.test(c);}"
          "function product(e,c){var p=e,d=0;while(p&&d++<6){var asin=String((p.getAttribute&&p.getAttribute('data-asin'))||''),h=String((p.getAttribute&&p.getAttribute('href'))||''),q=S(p.className)+' '+String(p.id||'');if(asin||/asin|product|p13n|npack|cxvhz|gwm-asin|carousel-image|product-image|s-image|a-amazon-image/i.test(q)||h.indexOf('/dp/')>=0||h.indexOf('/gp/product/')>=0)return true;p=p.parentElement;}return /review-image|customer-image|review.*photo/.test(c);}"
          // Exact donor Home probes repeatedly name NPACK/GWM/mosaic roots in addition
@@ -2405,112 +2418,6 @@ static NSHashTable *ADNativeRCTViews6053(void){
 static BOOL gADPeerWake6053=NO;
 static NSUInteger gADPeerGeneration6055=1;
 static BOOL ADNativeTWBUIChain6027(UIImageView *iv);
-static void ADTWBPromoteProduct6053(UIImageView *iv, UIImage *im);
-
-// v6.0.61: card-local ownership for Your Amazon highlights illustrations.
-// v6.0.59/60 marked a broader Person ancestor and could spill into Medical Care.
-// This owner never marks a UIScrollView.  It starts from the three card-local
-// descriptors visible below the illustrations and claims only the nearest compact
-// rendered wrapper that actually contains an image leaf.
-static const void *kADHighlightsCard6061 = &kADHighlightsCard6061;
-static const void *kADHighlightsRetry6061 = &kADHighlightsRetry6061;
-static BOOL ADHighlightsCardText6061(NSString *text){
-    if(!text.length) return NO;
-    NSString *lo=[[text lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-    return [lo containsString:@"total savings"] ||
-           [lo containsString:@"sessions streamed"] ||
-           [lo containsString:@"keep streaming"];
-}
-static BOOL ADHighlightsWrapperHasImage6061(UIView *root){
-    if(!root) return NO;
-    @try {
-        NSMutableArray *q=[NSMutableArray arrayWithObject:root];
-        for(NSUInteger qi=0;qi<q.count&&qi<48;qi++){
-            UIView *x=q[qi];
-            if([x isKindOfClass:[UIImageView class]]){
-                UIImageView *iv=(UIImageView *)x;
-                CGFloat iw=iv.bounds.size.width,ih=iv.bounds.size.height;
-                if(iv.image&&iw>=28&&ih>=28&&iw<=220&&ih<=220) return YES;
-            }
-            if(q.count<48){
-                for(UIView *sv in x.subviews){ if(q.count>=48) break; [q addObject:sv]; }
-            }
-        }
-    } @catch(...) {}
-    return NO;
-}
-static UIView *ADHighlightsCardRoot6061(UIView *v){
-    if(!v||!v.window) return nil;
-    @try {
-        UIWindow *w=v.window; UIView *p=v.superview;
-        for(int up=0;p&&p!=w&&up<8;up++,p=p.superview){
-            // Never claim a scrolling container: that was the v6.0.59/60 spill path.
-            if([p isKindOfClass:[UIScrollView class]]) continue;
-            CGFloat pw=p.bounds.size.width,ph=p.bounds.size.height;
-            // A Highlights card/row is compact. A wrapper tall enough to include the
-            // Medical row plus Highlights is intentionally ineligible.
-            if(pw>=64&&pw<=w.bounds.size.width*1.05&&ph>=58&&ph<=230&&
-               ADHighlightsWrapperHasImage6061(p)) return p;
-        }
-    } @catch(...) {}
-    return nil;
-}
-static BOOL ADInHighlightsCard6061(UIView *v){
-    if(!v) return NO;
-    @try {
-        UIView *p=v;
-        for(int up=0;p&&up<8;up++,p=p.superview){
-            if([objc_getAssociatedObject(p,kADHighlightsCard6061) boolValue]) return YES;
-        }
-    } @catch(...) {}
-    return NO;
-}
-static void ADHighlightsCardRecovery6061(UIView *root){
-    if(!root||!root.window||![objc_getAssociatedObject(root,kADHighlightsCard6061) boolValue]) return;
-    @try {
-        NSMutableArray *q=[NSMutableArray arrayWithObject:root];
-        for(NSUInteger qi=0;qi<q.count&&qi<56;qi++){
-            UIView *x=q[qi];
-            if([x isKindOfClass:[UIImageView class]]){
-                UIImageView *iv=(UIImageView *)x; UIImage *im=iv.image;
-                CGFloat iw=iv.bounds.size.width,ih=iv.bounds.size.height;
-                if(im&&iv.window==root.window&&!ADIsWebKitOwned(iv)&&!ADInTabBarChain(iv)&&
-                   iw>=28&&ih>=28&&iw<=220&&ih<=220){
-                    ADTWBPromoteProduct6053(iv,im);
-                    ADApplyNativeWhiteTameView(iv);
-                }
-            }
-            if(q.count<56){
-                for(UIView *sv in x.subviews){ if(q.count>=56) break; [q addObject:sv]; }
-            }
-        }
-    } @catch(...) {}
-}
-static BOOL ADMarkHighlightsCard6061(UIView *textView){
-    if(!textView||!textView.window) return NO;
-    @try {
-        UIView *root=ADHighlightsCardRoot6061(textView); if(!root) return NO;
-        BOOL fresh=![objc_getAssociatedObject(root,kADHighlightsCard6061) boolValue];
-        objc_setAssociatedObject(root,kADHighlightsCard6061,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        if(fresh) ADHighlightsCardRecovery6061(root);
-        return YES;
-    } @catch(...) {}
-    return NO;
-}
-static void ADObserveHighlightsText6061(id obj, NSString *text){
-    if(!gP.enabled||!gP.whiteTame||!ADHighlightsCardText6061(text)||
-       ![obj isKindOfClass:[UIView class]]) return;
-    UIView *v=(UIView *)obj; if(!v.window) return;
-    if(ADMarkHighlightsCard6061(v)) return;
-    // React can hydrate the descriptor before the sibling image. One bounded retry
-    // is enough; there is no recurring timer or scroll callback.
-    if([objc_getAssociatedObject(v,kADHighlightsRetry6061) boolValue]) return;
-    objc_setAssociatedObject(v,kADHighlightsRetry6061,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    __weak UIView *wv=v;
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.14*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-        UIView *live=wv; if(live) ADMarkHighlightsCard6061(live);
-    });
-}
 static void ADNativeClearPeerNegative6055(UIImageView *iv){
     if(!iv) return;
     objc_setAssociatedObject(iv,kADPeerNegativeImage6055,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -2601,10 +2508,6 @@ static void ADNativeWakePeers6053(UIImageView *source){
 - (void)didMoveToWindow {
     %orig;
     @try { if (ADRecolorOn() && self.window) ADInvertRNSVG(self); } @catch(...) {}
-}
-- (void)setText:(NSString *)text {
-    %orig;
-    @try { ADObserveHighlightsText6061((id)self, text); } @catch(...) {}
 }
 - (void)layoutSubviews {
     %orig;
@@ -2717,21 +2620,17 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         %orig(r);
-        ADObserveHighlightsText6061((id)self, attributedText.string);
         return;
     } @catch(...) {}
     %orig;
-    @try { ADObserveHighlightsText6061((id)self, attributedText.string); } @catch(...) {}
 }
 - (void)_setAttributedString:(NSAttributedString *)attributedString {
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedString);
         %orig(r);
-        ADObserveHighlightsText6061((id)self, attributedString.string);
         return;
     } @catch(...) {}
     %orig;
-    @try { ADObserveHighlightsText6061((id)self, attributedString.string); } @catch(...) {}
 }
 %end
 
@@ -2755,7 +2654,6 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
         }
     } @catch(...) {}
     %orig;
-    @try { ADObserveHighlightsText6061((id)self, textStorage.string); } @catch(...) {}
 }
 %end
 
@@ -2764,17 +2662,14 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
 - (void)setAttributedText:(NSAttributedString *)attributedText {
     if (!ADRecolorOn() || !attributedText.length) {
         %orig;
-        @try { ADObserveHighlightsText6061((id)self, attributedText.string); } @catch(...) {}
         return;
     }
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         %orig(r);
-        ADObserveHighlightsText6061((id)self, attributedText.string);
         return;
     } @catch(...) {}
     %orig;
-    @try { ADObserveHighlightsText6061((id)self, attributedText.string); } @catch(...) {}
 }
 %end
 
@@ -3425,16 +3320,10 @@ static int ADWTLocalSection365(UIView *v){
                 BOOL neg=NO, reviews=NO, product=NO;
                 for(NSUInteger qi=0; qi<q.count && seen++<90; qi++){
                     UIView *x=q[qi]; NSString *lo=[[ADWTViewText362(x) lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-                    // v6.0.58: these Person illustration groups are deliberate TWB targets.
-                    // Include the card-local descriptors so nested React cards do not need
-                    // to inherit the outer section heading before their glyph is assigned.
-                    if([lo containsString:@"medical care"] || [lo containsString:@"health ai"] ||
-                       [lo containsString:@"prescriptions"] || [lo containsString:@"personal guida"] ||
-                       [lo containsString:@"fast, free deliv"] || [lo containsString:@"fast free deliv"] ||
-                       [lo containsString:@"your amazon highlights"] || [lo containsString:@"total savings"] ||
-                       [lo containsString:@"sessions streamed"] || [lo containsString:@"keep streaming"]) product=YES;
                     if([lo containsString:@"need help"] || [lo containsString:@"contact customer service"] ||
-                       [lo containsString:@"customer service"]) neg=YES;
+                       [lo containsString:@"customer service"] || [lo containsString:@"medical care"] ||
+                       [lo containsString:@"your amazon highlights"] || [lo containsString:@"total savings"] ||
+                       [lo containsString:@"sessions streamed"]) neg=YES;
                     if([lo containsString:@"your reviews"] || [lo containsString:@"what did you think of the item"]) reviews=YES;
                     if([lo containsString:@"returns are easy"] || [lo containsString:@"send an amazon gift card"] ||
                        [lo containsString:@"shop previously watched"] || [lo containsString:@"subscribe & save"] ||
@@ -3445,7 +3334,7 @@ static int ADWTLocalSection365(UIView *v){
                     if(qi<28){ for(UIView *sv in x.subviews){ if(q.count<90) [q addObject:sv]; else break; } }
                 }
                 int result=0;
-                if(neg && !reviews && !product && h<=280) result=1;
+                if(neg && h<=280) result=1;
                 else if(reviews) result=3;
                 else if(product) result=2;
                 else if(neg) result=1;
@@ -3503,13 +3392,9 @@ static int ADWTCarouselSection384(UIView *v){
                                 NSString *lo=[[ADWTViewText362(x) lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
                                 if(lo.length){
                                     int kind=0;
-                                    if([lo containsString:@"medical care"]||[lo containsString:@"health ai"]||
-                                       [lo containsString:@"prescriptions"]||[lo containsString:@"personal guida"]||
-                                       [lo containsString:@"fast, free deliv"]||[lo containsString:@"fast free deliv"]||
-                                       [lo containsString:@"your amazon highlights"]||[lo containsString:@"total savings"]||
-                                       [lo containsString:@"sessions streamed"]||[lo containsString:@"keep streaming"]) kind=2;
-                                    else if([lo containsString:@"need help"]||[lo containsString:@"contact customer service"]||
-                                            [lo isEqualToString:@"customer service"]) kind=1;
+                                    if([lo containsString:@"medical care"]||[lo containsString:@"your amazon highlights"]||
+                                       [lo containsString:@"need help"]||[lo containsString:@"contact customer service"]||
+                                       [lo isEqualToString:@"customer service"]) kind=1;
                                     else if([lo containsString:@"your reviews"]||[lo containsString:@"what did you think of the item"]) kind=3;
                                     else if([lo containsString:@"subscribe & save"]||[lo containsString:@"subscribe and save"]||
                                             [lo containsString:@"keep shopping for"]||[lo containsString:@"shop previously watched"]||
@@ -3708,18 +3593,13 @@ static const void *kADTWBDirectCtxImage6031 = &kADTWBDirectCtxImage6031;
 static const void *kADTWBDirectCtxTime6031 = &kADTWBDirectCtxTime6031;
 static const void *kADTWBDirectCtxAttempts6031 = &kADTWBDirectCtxAttempts6031;
 
-// 0 ordinary; 1 ambiguous no-TWB; 2 forced product/Alexa/Person illustration media;
-// 3 Reviews photo.
+// 0 ordinary; 1 explicit no-TWB; 2 forced product/Alexa media; 3 Reviews photo.
 static int ADTWBTextKind6031(NSString *text){
     if(!text.length) return 0;
     NSString *lo=[[text lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
     if(!lo.length) return 0;
-    if([lo containsString:@"medical care"] || [lo containsString:@"health ai"] ||
-       [lo containsString:@"prescriptions"] || [lo containsString:@"personal guida"] ||
-       [lo containsString:@"fast, free deliv"] || [lo containsString:@"fast free deliv"] ||
-       [lo containsString:@"your amazon highlights"] || [lo containsString:@"total savings"] ||
-       [lo containsString:@"sessions streamed"] || [lo containsString:@"keep streaming"]) return 2;
-    if([lo containsString:@"need help"] || [lo containsString:@"contact customer service"] ||
+    if([lo containsString:@"medical care"] || [lo containsString:@"your amazon highlights"] ||
+       [lo containsString:@"need help"] || [lo containsString:@"contact customer service"] ||
        [lo isEqualToString:@"customer service"]) return 1;
     if([lo containsString:@"your reviews"] || [lo containsString:@"what did you think of the item"]) return 3;
     if([lo containsString:@"shop previously watched"] ||
@@ -3735,7 +3615,6 @@ static int ADTWBTextKind6031(NSString *text){
 static int ADTWBDirectLocalCtx6031(UIImageView *iv){
     if(!iv||!iv.window) return 0;
     @try {
-        if(ADInHighlightsCard6061(iv)) return 2;
         // Reuse the exact retained v5.446 compact-section/carousel resolvers, but
         // only here at direct image assignment/reparent time. Their old scroll/window
         // scheduler remains disabled, so the detailed Person/Alexa semantics survive
@@ -3753,9 +3632,8 @@ static int ADTWBDirectLocalCtx6031(UIImageView *iv){
             if(cc==3) return 3;
             if(cc==2) return 2;
             int lc=ADWTLocalSection365(iv);
-            // A compact positive local section may override an outer mixed carousel
-            // exclusion. Illustration cards use the same positive context so their glyph
-            // leaves are forced through TWB without a separate hard-negative state.
+            // v6.0.42: a compact positive local section may override an outer mixed
+            // carousel exclusion, so cc==1 still consults local ownership.
             if(lc==3) return 3;
             if(lc==2) return 2;
             if(cc==1 || lc==1) return 1;
@@ -3780,7 +3658,8 @@ static int ADTWBDirectLocalCtx6031(UIImageView *iv){
                         if(q==1)neg=1; else if(q==2)pos=1; else if(q==3)rev=1;
                     }
                 }
-                // Named product/review/illustration ownership wins in a mixed Person wrapper.
+                // Named product/review ownership wins in a mixed Person wrapper;
+                // compact Help/Medical wrappers remain explicit exclusions.
                 if(rev) return 3;
                 if(pos) return 2;
                 if(neg&&ph<=300) return 1;
@@ -3919,8 +3798,8 @@ static void ADApplyNativeWhiteTameView(UIView *v){
             return;
         }
 
-        int ctx=(w<=240&&h<=240)?ADTWBDirectCtx6031(iv,im):0;
         ADNativeRegisterRCT6053(iv);
+        int ctx=(w<=240&&h<=240)?ADTWBDirectCtx6031(iv,im):0;
         BOOL forced=(ctx==2), review=(ctx==3);
         BOOL own=NO, lightReady=YES;
 
@@ -3939,7 +3818,7 @@ static void ADApplyNativeWhiteTameView(UIView *v){
         }
 
         // The proven v6.0.51 behavior remains the final authority for an image that
-        // would otherwise be rejected, including an AMBIGUOUS ctx==1 false negative.
+        // would otherwise be rejected, including a broad ctx==1 false negative.
         if(!own && ADNativePeerConsensus6053(iv)){
             own=YES; ctx=2; forced=YES; review=NO; lightReady=YES;
             ADTWBPromoteProduct6053(iv,im);
