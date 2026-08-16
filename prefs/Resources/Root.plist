@@ -74,7 +74,7 @@
 			<key>label</key>
 			<string>Performance</string>
 			<key>footerText</key>
-			<string>Force 120 Hz may increase power use and heat. Enable JIT uses AmazonDark's SpringBoard-side broker to request Dopamine's native per-process debug/JIT state on iOS 17.0–17.3.1. For this switch to own JIT state, disable Dopamine's systemwide 'Allow JIT in Apps' option; otherwise Dopamine may mark Amazon JIT-capable before AmazonDark loads. JIT does not by itself recompile Amazon or guarantee a speedup.</string>
+			<string>Force 120 Hz may increase power use and heat. Enable JIT asks Dopamine to grant Amazon per-process JIT state on launch. Preference changes use the normal respring workflow. Disable Dopamine's systemwide 'Allow JIT in Apps' option if you want AmazonDark to control this independently. JIT permission alone does not recompile Amazon or guarantee a speedup.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -100,7 +100,7 @@
 			<key>key</key>
 			<string>enableJIT</string>
 			<key>label</key>
-			<string>Enable JIT (Experimental)</string>
+			<string>Enable JIT</string>
 			<key>PostNotification</key>
 			<string>com.colindavidr.amazondark/prefs-changed</string>
 		</dict>

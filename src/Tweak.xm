@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.21"
+#define AD_VERSION "v6.0.22"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -119,7 +119,7 @@ typedef struct {
     BOOL  nativeRecolor;      // Dark Reader colour engine over native (non-web) content
     BOOL  whiteTame;          // v5.446: tame blown-out studio backgrounds
     BOOL  force120Hz;         // v5.446: request ProMotion maximum
-    BOOL  enableJIT;          // v6.0.21: Dopamine per-app JIT broker
+    BOOL  enableJIT;          // Dopamine per-app JIT
     long  whiteTameStrength;  // v5.446: 0-100 tame strength
     long  brightness;         // Dark Reader 0..100+ (default 100)
     long  contrast;           // Dark Reader 0..100+ (default 100)
@@ -228,19 +228,11 @@ static void ADLoadPrefs(void){
     ADSyncColorEngine();
 }
 
-// ── DOPAMINE PER-APP JIT BROKER + VERIFICATION (v6.0.21) ───────────────────
-// Dopamine's jbclient_platform_set_process_debugged() lives in the Platform
-// jbserver domain. That domain intentionally rejects normal App Store callers;
-// SpringBoard is a platform process, so AmazonDark's existing SpringBoard
-// component brokers this one request. Amazon never receives elevated privileges.
-//
-// Request/response transport is Darwin notify state only (no files, process scan,
-// helper daemon, timer loop, or SpringBoard polling). The broker validates that the
-// requested PID is Amazon before touching it.
-//
-// Verification reads csflags two ways:
-//   1) normal csops() — what the process sees after Dopamine's presentation hook;
-//   2) raw SYS_csops — the kernel state, authoritative for this diagnostic.
+// ── DOPAMINE PER-APP JIT (v6.0.22) ──────────────────────────────────────────
+// Production path: JIT is launch-time only. Settings changes already use the
+// tweak's normal respring workflow, so there is no live CS_DEBUGGED revocation.
+// Amazon asks the existing SpringBoard component to make one platform-authorized
+// Dopamine request for Amazon's own PID, then verifies raw kernel CS_DEBUGGED.
 #ifndef CS_OPS_STATUS
 #define CS_OPS_STATUS 0
 #endif
@@ -250,85 +242,62 @@ static void ADLoadPrefs(void){
 #ifndef SYS_csops
 #define SYS_csops 169
 #endif
-extern "C" int csops(pid_t pid, unsigned int ops, void *useraddr, size_t usersize);
 
-#define AD_JIT_REQ_NOTIFY_621 "com.colindavidr.amazondark/jit-request-621"
-#define AD_JIT_RES_NOTIFY_621 "com.colindavidr.amazondark/jit-result-621"
-#define AD_JIT_RC_NO_BACKEND_621 (-1001)
-#define AD_JIT_RC_EXCEPTION_621  (-1002)
-#define AD_JIT_RC_BAD_PID_621    (-1003)
+#define AD_JIT_REQ_NOTIFY_622 "com.colindavidr.amazondark/jit-request-622"
+#define AD_JIT_RES_NOTIFY_622 "com.colindavidr.amazondark/jit-result-622"
+#define AD_JIT_RC_NO_BACKEND_622 (-1001)
+#define AD_JIT_RC_EXCEPTION_622  (-1002)
+#define AD_JIT_RC_BAD_PID_622    (-1003)
 
 typedef struct {
-    uint32_t visibleFlags;
-    uint32_t kernelFlags;
-    int visibleErr;
-    int kernelErr;
-    BOOL visibleDebugged;
-    BOOL kernelDebugged;
-} ADJITState621;
+    uint32_t flags;
+    int err;
+    BOOL debugged;
+} ADJITState622;
 
-static ADJITState621 ADReadJITState621(void){
-    ADJITState621 st = {0, 0, 0, 0, NO, NO};
-
+static ADJITState622 ADReadJITState622(void){
+    ADJITState622 st = {0, 0, NO};
     errno = 0;
-    int visibleRC = csops(getpid(), CS_OPS_STATUS, &st.visibleFlags, sizeof(st.visibleFlags));
-    st.visibleErr = (visibleRC == 0 ? 0 : errno);
-    st.visibleDebugged = (visibleRC == 0 && (st.visibleFlags & CS_DEBUGGED) != 0);
-
-    errno = 0;
-    long kernelRC = syscall(SYS_csops, getpid(), CS_OPS_STATUS, &st.kernelFlags, sizeof(st.kernelFlags));
-    st.kernelErr = (kernelRC == 0 ? 0 : errno);
-    st.kernelDebugged = (kernelRC == 0 && (st.kernelFlags & CS_DEBUGGED) != 0);
+    long rc = syscall(SYS_csops, getpid(), CS_OPS_STATUS, &st.flags, sizeof(st.flags));
+    st.err = (rc == 0 ? 0 : errno);
+    st.debugged = (rc == 0 && (st.flags & CS_DEBUGGED) != 0);
     return st;
 }
 
-// 64-bit notify state:
-//   bits 63..33 = pid (31 bits)
-//   bits 32..17 = request nonce
-//   bit  16     = requested enabled state
-//   bits 15..0  = signed broker return code (response only)
-static uint64_t ADJITWireState621(pid_t pid, uint16_t nonce, BOOL enable, int rc){
-    return (((uint64_t)((uint32_t)pid & 0x7fffffffU)) << 33) |
-           (((uint64_t)nonce) << 17) |
-           ((uint64_t)(enable ? 1U : 0U) << 16) |
+// 64-bit Darwin-notify state: pid[63:32], nonce[31:16], signed rc[15:0].
+static uint64_t ADJITWireState622(pid_t pid, uint16_t nonce, int rc){
+    return (((uint64_t)(uint32_t)pid) << 32) |
+           (((uint64_t)nonce) << 16) |
            ((uint16_t)(int16_t)rc);
 }
-static pid_t ADJITWirePID621(uint64_t state){ return (pid_t)((state >> 33) & 0x7fffffffU); }
-static uint16_t ADJITWireNonce621(uint64_t state){ return (uint16_t)((state >> 17) & 0xffffU); }
-static BOOL ADJITWireEnable621(uint64_t state){ return ((state >> 16) & 1U) ? YES : NO; }
-static int ADJITWireRC621(uint64_t state){ return (int)(int16_t)(state & 0xffffU); }
+static pid_t ADJITWirePID622(uint64_t state){ return (pid_t)(uint32_t)(state >> 32); }
+static uint16_t ADJITWireNonce622(uint64_t state){ return (uint16_t)((state >> 16) & 0xffffU); }
+static int ADJITWireRC622(uint64_t state){ return (int)(int16_t)(state & 0xffffU); }
 
-static uint16_t ADNextJITNonce621(void){
+static uint16_t ADNextJITNonce622(void){
     static volatile uint32_t seq = 0;
-    uint32_t v = (uint32_t)__sync_add_and_fetch(&seq, 1);
-    uint16_t n = (uint16_t)(v & 0xffffU);
+    uint16_t n = (uint16_t)__sync_add_and_fetch(&seq, 1);
     return n ? n : 1;
 }
 
-static BOOL ADSendJITBrokerRequest621(BOOL enable, int *brokerRCOut){
+static BOOL ADSendJITBrokerRequest622(int *brokerRCOut){
     int reqToken = 0, resToken = 0;
     BOOL got = NO;
-    int rc = AD_JIT_RC_EXCEPTION_621;
-    uint16_t nonce = ADNextJITNonce621();
+    int rc = AD_JIT_RC_EXCEPTION_622;
+    uint16_t nonce = ADNextJITNonce622();
     pid_t pid = getpid();
-    uint64_t req = 0;
 
-    if (notify_register_check(AD_JIT_RES_NOTIFY_621, &resToken) != NOTIFY_STATUS_OK) goto done;
-    if (notify_register_check(AD_JIT_REQ_NOTIFY_621, &reqToken) != NOTIFY_STATUS_OK) goto done;
+    if (notify_register_check(AD_JIT_RES_NOTIFY_622, &resToken) != NOTIFY_STATUS_OK) goto done;
+    if (notify_register_check(AD_JIT_REQ_NOTIFY_622, &reqToken) != NOTIFY_STATUS_OK) goto done;
+    if (notify_set_state(reqToken, ADJITWireState622(pid, nonce, 0)) != NOTIFY_STATUS_OK) goto done;
+    if (notify_post(AD_JIT_REQ_NOTIFY_622) != NOTIFY_STATUS_OK) goto done;
 
-    req = ADJITWireState621(pid, nonce, enable, 0);
-    if (notify_set_state(reqToken, req) != NOTIFY_STATUS_OK) goto done;
-    if (notify_post(AD_JIT_REQ_NOTIFY_621) != NOTIFY_STATUS_OK) goto done;
-
-    // SpringBoard's broker is event-driven. Wait off-main for at most 350 ms for
-    // the matching pid+nonce response; normal responses arrive almost immediately.
+    // Runs on a utility queue. Normal broker responses arrive almost immediately.
     for (int i = 0; i < 35; i++){
         uint64_t res = 0;
         if (notify_get_state(resToken, &res) == NOTIFY_STATUS_OK &&
-            ADJITWirePID621(res) == pid &&
-            ADJITWireNonce621(res) == nonce &&
-            ADJITWireEnable621(res) == enable){
-            rc = ADJITWireRC621(res);
+            ADJITWirePID622(res) == pid && ADJITWireNonce622(res) == nonce){
+            rc = ADJITWireRC622(res);
             got = YES;
             break;
         }
@@ -342,14 +311,8 @@ done:
     return got;
 }
 
-static void ADWriteJITReport621(NSString *status,
-                                NSString *backend,
-                                BOOL brokerCalled,
-                                BOOL brokerResponded,
-                                int backendRC,
-                                ADJITState621 pre,
-                                ADJITState621 post,
-                                NSString *note){
+static void ADWriteJITReport622(NSString *status, BOOL responded, int backendRC,
+                                ADJITState622 pre, ADJITState622 post){
     @try {
         NSString *p = [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-jit.txt"];
         NSString *s = [NSString stringWithFormat:
@@ -357,97 +320,61 @@ static void ADWriteJITReport621(NSString *status,
              "enableJIT=%d\n"
              "status=%@\n"
              "backend=%@\n"
-             "brokerCalled=%d\n"
              "brokerResponded=%d\n"
              "backendRC=%d\n"
              "pid=%d\n"
-             "preVisibleCsopsErr=%d\n"
-             "preVisibleCsFlags=0x%08x\n"
-             "preVisibleCS_DEBUGGED=%d\n"
-             "preKernelCsopsErr=%d\n"
-             "preKernelCsFlags=0x%08x\n"
-             "preKernelCS_DEBUGGED=%d\n"
-             "postVisibleCsopsErr=%d\n"
-             "postVisibleCsFlags=0x%08x\n"
-             "postVisibleCS_DEBUGGED=%d\n"
-             "postKernelCsopsErr=%d\n"
-             "postKernelCsFlags=0x%08x\n"
-             "postKernelCS_DEBUGGED=%d\n"
-             "amazonDarkTransitionedOn=%d\n"
-             "amazonDarkTransitionedOff=%d\n"
-             "note=%@\n",
+             "preCsopsErr=%d\n"
+             "preCsFlags=0x%08x\n"
+             "preCS_DEBUGGED=%d\n"
+             "postCsopsErr=%d\n"
+             "postCsFlags=0x%08x\n"
+             "postCS_DEBUGGED=%d\n"
+             "amazonDarkTransitionedOn=%d\n",
              [NSString stringWithUTF8String:AD_VERSION], (gP.enabled && gP.enableJIT) ? 1 : 0,
-             status ?: @"-", backend ?: @"none",
-             brokerCalled ? 1 : 0, brokerResponded ? 1 : 0, backendRC, getpid(),
-             pre.visibleErr, pre.visibleFlags, pre.visibleDebugged ? 1 : 0,
-             pre.kernelErr, pre.kernelFlags, pre.kernelDebugged ? 1 : 0,
-             post.visibleErr, post.visibleFlags, post.visibleDebugged ? 1 : 0,
-             post.kernelErr, post.kernelFlags, post.kernelDebugged ? 1 : 0,
-             (!pre.kernelDebugged && post.kernelDebugged && brokerResponded && backendRC == 0) ? 1 : 0,
-             (pre.kernelDebugged && !post.kernelDebugged && brokerResponded && backendRC == 0) ? 1 : 0,
-             note ?: @"-"];
+             status ?: @"-",
+             (gP.enabled && gP.enableJIT) ? @"SpringBoard-Dopamine-jbclient_platform_set_process_debugged" : @"none",
+             responded ? 1 : 0, backendRC, getpid(),
+             pre.err, pre.flags, pre.debugged ? 1 : 0,
+             post.err, post.flags, post.debugged ? 1 : 0,
+             (!pre.debugged && post.debugged && responded && backendRC == 0) ? 1 : 0];
         [s writeToFile:p atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } @catch(...) {}
 }
 
-static void ADPerformJITRequest621(BOOL requestedOn){
-    ADJITState621 pre = ADReadJITState621();
+static void ADPerformJITRequest622(BOOL requestedOn){
+    ADJITState622 pre = ADReadJITState622();
 
-    // Clean OFF launch: do nothing at all. If this process was previously enabled
-    // live, however, use the same broker with false so the switch is reversible.
-    if (!requestedOn && !pre.kernelDebugged){
-        ADWriteJITReport621(@"off-clean", @"none", NO, NO, 0, pre, pre,
-                            @"AmazonDark made no JIT request and raw kernel CS_DEBUGGED is clear.");
+    // OFF is intentionally passive. The preference UI resprings, so a clean launch
+    // simply makes no JIT request and starts without AmazonDark-owned CS_DEBUGGED.
+    if (!requestedOn){
+        ADWriteJITReport622(pre.debugged ? @"off-baseline-debugged" : @"off-clean",
+                            NO, 0, pre, pre);
         return;
     }
 
-    // ON already true can happen if Dopamine's global setting is enabled. Still
-    // report ownership accurately instead of pretending AmazonDark caused it.
-    if (requestedOn && pre.kernelDebugged){
-        ADWriteJITReport621(@"on-baseline-already-debugged", @"none", NO, NO, 0, pre, pre,
-                            @"Raw kernel CS_DEBUGGED was already set before AmazonDark requested JIT. Disable Dopamine's global Allow JIT in Apps option to test per-app ownership.");
+    if (pre.debugged){
+        ADWriteJITReport622(@"on-already-debugged", NO, 0, pre, pre);
         return;
     }
 
-    int backendRC = AD_JIT_RC_EXCEPTION_621;
-    BOOL responded = ADSendJITBrokerRequest621(requestedOn, &backendRC);
-    ADJITState621 post = ADReadJITState621();
+    int backendRC = AD_JIT_RC_EXCEPTION_622;
+    BOOL responded = ADSendJITBrokerRequest622(&backendRC);
+    ADJITState622 post = ADReadJITState622();
+    NSString *status = @"on-failed-verification";
 
-    NSString *backend = @"SpringBoard-Dopamine-jbclient_platform_set_process_debugged";
-    NSString *status = nil;
-    NSString *note = nil;
+    if (!responded) status = @"on-broker-timeout";
+    else if (backendRC == AD_JIT_RC_NO_BACKEND_622) status = @"broker-backend-unavailable";
+    else if (backendRC == AD_JIT_RC_BAD_PID_622) status = @"broker-pid-rejected";
+    else if (backendRC != 0) status = @"on-backend-error";
+    else if (post.debugged) status = @"on-enabled-by-amazondark";
 
-    if (!responded){
-        status = requestedOn ? @"on-broker-timeout" : @"off-broker-timeout";
-        note = @"Amazon posted the JIT request but did not receive a matching SpringBoard broker response within 350 ms.";
-    } else if (backendRC == AD_JIT_RC_NO_BACKEND_621){
-        status = @"broker-backend-unavailable";
-        note = @"SpringBoard received the request but Dopamine's jbclient_platform_set_process_debugged symbol was unavailable there.";
-    } else if (backendRC == AD_JIT_RC_BAD_PID_621){
-        status = @"broker-pid-rejected";
-        note = @"SpringBoard rejected the request because the supplied PID did not resolve to Amazon's executable.";
-    } else if (backendRC != 0){
-        status = requestedOn ? @"on-backend-error" : @"off-backend-error";
-        note = [NSString stringWithFormat:@"SpringBoard reached Dopamine's Platform backend, but it returned %d.", backendRC];
-    } else if (requestedOn && post.kernelDebugged){
-        status = @"on-enabled-by-amazondark";
-        note = @"SpringBoard's platform-authorized Dopamine request succeeded and raw kernel CS_DEBUGGED transitioned from 0 to 1.";
-    } else if (!requestedOn && !post.kernelDebugged){
-        status = @"off-disabled-by-amazondark";
-        note = @"SpringBoard's platform-authorized Dopamine request succeeded and raw kernel CS_DEBUGGED transitioned from 1 to 0.";
-    } else {
-        status = requestedOn ? @"on-failed-verification" : @"off-failed-verification";
-        note = @"Dopamine's broker call returned success but the raw kernel CS_DEBUGGED state did not reach the requested value.";
-    }
-
-    ADWriteJITReport621(status, backend, YES, responded, backendRC, pre, post, note);
+    ADWriteJITReport622(status, responded, backendRC, pre, post);
 }
 
-static void ADApplyJIT621(void){
+static void ADApplyJIT622(void){
     BOOL requestedOn = gP.enabled && gP.enableJIT;
-    // Never stall Amazon's UI thread waiting for SpringBoard/XPC.
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
-        @autoreleasepool { ADPerformJITRequest621(requestedOn); }
+        @autoreleasepool { ADPerformJITRequest622(requestedOn); }
     });
 }
 
@@ -4612,10 +4539,10 @@ static void ADPreDarken(WKWebView *wv){
     } @catch(...) {}
 }
 
-// ─── live settings reload ─────────────────────────────────────────────────────────
-// ADRootListController posts this Darwin notification on every toggle. Without an
-// observer the setting sat in the plist and did nothing until the app was killed,
-// which made the whole Settings pane look broken.
+// ─── live visual/performance settings reload ───────────────────────────────────────
+// ADRootListController posts this Darwin notification on every toggle. Visual settings
+// and 120 Hz can reapply in-process; JIT is intentionally launch-time because the
+// preference workflow resprings before the next Amazon launch.
 //
 // Caveat worth knowing: web surfaces re-theme exactly, because DarkReader.enable()
 // recomputes from the untouched DOM. Native views cannot — the original colour is
@@ -4627,17 +4554,12 @@ static void ADPrefsChanged(CFNotificationCenterRef center, void *observer,
     dispatch_async(dispatch_get_main_queue(), ^{
         @try {
             BOOL oldPromotion = ADPromotionPreferenceOn611();
-            BOOL oldJIT = gP.enabled && gP.enableJIT;
             ADLoadPrefs();              // also re-syncs + clears the colour/script caches
             BOOL newPromotion = ADPromotionPreferenceOn611();
-            BOOL newJIT = gP.enabled && gP.enableJIT;
             if (oldPromotion != newPromotion){
                 ADStopHzVerification611();
                 ADRefreshPromotionState611();
                 ADStartHzVerification();
-            }
-            if (oldJIT != newJIT){
-                ADApplyJIT621();
             }
             ADForceWindowsDarkTrait();
             ADInjectAllWebViews();      // exact re-theme on web
@@ -4684,7 +4606,7 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
 
     dispatch_async(dispatch_get_main_queue(), ^{
         ADLoadPrefs();
-        ADApplyJIT621();
+        ADApplyJIT622();
         ADRefreshPromotionState611();
         ADLockDarkWeblab();
         ADForceAppearanceDark();

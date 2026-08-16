@@ -125,6 +125,15 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
+## v6.0.22
+
+- Promotes Dopamine per-app JIT from diagnostic to the minimal production path proven on-device: a clean Amazon launch goes 0→1 only when AmazonDark JIT is enabled.
+- Removes the failed live 1→0 revocation path. Settings already use the normal respring workflow, so JIT OFF is passive and the next Amazon launch stays clean.
+- Removes duplicate normal-vs-raw csops diagnostics, live-toggle JIT handling, the request enable bit, and verbose transition reporting. Production verification now reads only raw kernel CS_DEBUGGED before/after the one launch-time enable request.
+- SpringBoard's broker remains narrowly scoped to a PID whose executable path ends in `/Amazon.app/Amazon`; it always performs only the proven Dopamine enable call.
+- Renames the settings switch from **Enable JIT (Experimental)** to **Enable JIT**.
+- Preserves the v5.446 carousel-dot owner, v6.0.19 PDP performance work, and existing 120 Hz implementation unchanged.
+
 ## v6.0.21
 
 - Fixes Dopamine per-app JIT ownership after on-device diagnostics proved that `jbclient_platform_set_process_debugged` is visible inside Amazon but its Platform-domain request is rejected from a normal App Store process.
@@ -138,7 +147,7 @@ High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https:/
 ## v6.0.20
 
 - Ports the v5.446 product-carousel selected-dot owner so the selected pagination dot stays light on the dark PDP. The original semantic class/ARIA detection and Dark Reader inline-marker cleanup are retained, while recovery stays inside v6.0.19's coalesced scheduler.
-- Adds **Enable JIT (Experimental)** for Dopamine on iOS 17.0–17.3.1. Current Dopamine builds are requested through `jbclient_platform_set_process_debugged(getpid(), true)`; the older `jbdswDebugMe` symbol remains only as a compatibility fallback.
+- Introduced the **Enable JIT** preference for Dopamine on iOS 17.0–17.3.1. Current Dopamine builds are requested through `jbclient_platform_set_process_debugged(getpid(), true)`; the older `jbdswDebugMe` symbol remains only as a compatibility fallback.
 - JIT ON calls exactly one available Dopamine backend once and records the backend return code plus both normal `csops` and raw-kernel `SYS_csops` state before/after the request. The raw syscall prevents Dopamine's own userspace `csops` presentation hook from masking the kernel `CS_DEBUGGED` result.
 - JIT OFF calls no backend and reports only the raw baseline. For a clean per-app ownership test, disable Dopamine's global **Allow JIT in Apps** option before launching Amazon.
 - No SpringBoard helper, `ptrace` fallback, process scan, timer, retry loop, or recurring monitor is used. Enabling JIT grants JIT-capable process state but does not itself recompile Amazon or guarantee a speedup.
