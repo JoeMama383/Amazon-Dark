@@ -1,6 +1,14 @@
-# AmazonDark v6.0.58
+# AmazonDark v6.0.59
 
-## v6.0.58 — Person illustration TWB + preference copy cleanup
+## v6.0.59 — complete Your Amazon highlights illustration TWB
+
+- Keeps the v6.0.58 Medical Care behavior unchanged.
+- Your Amazon highlights now marks its own compact React carousel/card root when Highlights text hydrates.
+- Already-loaded compact UIImageView illustration leaves in that root are re-run immediately and once after 160 ms.
+- Later image assignments inherit forced-positive TWB from the marked Highlights root.
+- This fixes darker/blue Highlights artwork that does not qualify through the generic lightness sampler while preserving the existing bright/white tile behavior.
+- No Home performance, JIT, 120-Hz, splash, carousel-dot, or general TWB scheduling changes.
+
 
 Built directly from v6.0.57, reversing its unsuccessful hard-exclusion experiment. Medical Care and Your Amazon highlights are now explicit positive TWB illustration contexts rather than no-TWB sections.
 
