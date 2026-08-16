@@ -125,16 +125,13 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
-## v6.0.25
+## v6.0.26
 
-- Keeps v6.0.23's restored v5.446 TWB media coverage but restores the donor's media-only boundary for Home sponsored/creative cards.
-- Compact deal/coupon/discount/badge/chip/label surfaces are explicitly released from TWB background ownership, preventing `10% off` / `Limited time deal` chrome from receiving media darkening.
-- Native Home ad islands remain Amazon-owned structurally: TWB clears any stale container/background ownership and only tames qualifying IMG/VIDEO/CANVAS descendants.
-- Full-card raster/canvas creatives that cover most of a sponsored card while the card also contains live DOM text are skipped; smaller product-photo media inside the same card remains eligible.
-- The restored Home creative media owner now passes through the same native-ad media guard instead of bypassing it.
-- `theming-card-background` / `vjs-poster` ownership is restricted to genuine visual leaves with no meaningful text descendants.
-- No new observer, timer, scroll listener, DOM-wide text walk, or scheduling lane is added; all guards run inside the existing v6.0.24 TWB passes.
-- v6.0.24 glyph fixes, production Dopamine JIT, 120 Hz, carousel-dot ownership, and v6.0.19 PDP performance scheduling remain unchanged.
+- Based directly on v6.0.24; the discarded v6.0.25 experiment is not included.
+- Fixes the TWB-only recent-search clock/X regression on both render paths: web TWB can no longer reclaim known glyphs (including `s-suggestion-container` / recent-search controls) through a stale forced Home band, and native TWB releases its overlay from small template glyphs even when a forced product-section context is cached.
+- Restores v5.446's dedicated PDP Share runtime owner (`shareFix382`) so background-image, mask, raster and SVG share painters are marked and forced white after hydration.
+- Share repair piggybacks on the existing product-control/mutation/shared post-scroll schedulers and restores the donor's bounded late 1.8 s convergence; no new MutationObserver or scroll listener is added.
+- Existing v6.0.24 carousel-dot, TWB coverage, JIT broker, 120 Hz and performance scheduling remain otherwise unchanged.
 
 ## v6.0.24
 
