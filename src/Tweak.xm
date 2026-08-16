@@ -62,7 +62,7 @@
 #import <stdio.h>
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.18"
+#define AD_VERSION "v6.0.19"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -492,7 +492,7 @@ static NSString *ADDarkReaderBootstrap(void){
          // reported cases. This measures the real computed contrast of every element
          // that owns visible text and lifts ONLY the ones that actually fail, so
          // brand colours that already read fine are untouched.
-         "window.__AMZDARK_FIXCONTRAST__=function(){try{"
+         "window.__AMZDARK_FIXCONTRAST__=function(root){try{var base=(root&&root.nodeType===1)?root:(document.body||document.documentElement);"
            "var FG='%@';"
            "function ch(v){v=v/255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);}"
            "function lum(c){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\)/.exec(c);"
@@ -517,7 +517,7 @@ static NSString *ADDarkReaderBootstrap(void){
                // so anything Amazon builds inside one is unreachable from the document.
                "if(e.shadowRoot&&depth<4&&out.length<6000)collect(e.shadowRoot,out,depth+1);}"
              "}catch(e){}return out;}"
-           "var els=collect(document.body,[],0),n=0,bfix=0,lfix=0,gfix=0;"           // Read the themed background off <html> rather than plumbing another
+           "var els=[base];collect(base,els,0);var n=0,bfix=0,lfix=0,gfix=0;"           // Read the themed background off <html> rather than plumbing another
            // format argument through two call sites.
            "var BG='rgb(24,26,27)';try{var hb=getComputedStyle(document.documentElement).backgroundColor;"
              "var hl=lum(hb);if(hl!==null&&hl<0.25)BG=hb;}catch(e){}"
@@ -676,7 +676,7 @@ static NSString *ADDarkReaderBootstrap(void){
            // (a light background on the element or a near ancestor) and lighten the
            // glyph by whatever actually draws it. Doing this by mechanism avoids the
            // whole-box whitening that hid the heart behind a white disc.
-           "try{var HRT=document.querySelectorAll('[class*=heart],[class*=wish],[class*=lists-framework]');"
+           "try{var HRT=[],HS='[class*=heart],[class*=wish],[class*=lists-framework]';if(base.matches&&base.matches(HS))HRT.push(base);var HQ=base.querySelectorAll?base.querySelectorAll(HS):[];for(var hq=0;hq<HQ.length&&hq<240;hq++)HRT.push(HQ[hq]);"
              "for(var hz=0;hz<HRT.length;hz++){var he=HRT[hz];if(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(he))continue;var hcs=getComputedStyle(he);"
                // circle: darken this element's light bg, and the first light ancestor bg
                "var hcl2=he.className;if(hcl2&&hcl2.baseVal!==undefined)hcl2=hcl2.baseVal;hcl2=String(hcl2||'');"
@@ -708,8 +708,8 @@ static NSString *ADDarkReaderBootstrap(void){
          "}catch(e){}};"
          // Re-run the repair as the page fills in (carousels, lazy tiles), debounced
          // so a busy DOM cannot turn this into a hot loop.
-         "try{var _t=null;new MutationObserver(function(ms){var need=0;try{for(var mi=0;mi<ms.length&&!need;mi++){var A=ms[mi].addedNodes||[];if(!A.length){if(!(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(ms[mi].target)))need=1;continue;}for(var ai=0;ai<A.length;ai++){var n=A[ai];if(!n||n.nodeType!==1){need=1;break;}if(!(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(n))){need=1;break;}}}}catch(e){need=1;}if(!need)return;clearTimeout(_t);"
-           "_t=setTimeout(function(){try{window.__AMZDARK_FIXCONTRAST__();}catch(e){}},150);})"
+         "try{var _t=null,_roots=[];new MutationObserver(function(ms){try{for(var mi=0;mi<ms.length&&_roots.length<24;mi++){var A=ms[mi].addedNodes||[];for(var ai=0;ai<A.length&&_roots.length<24;ai++){var n=A[ai];if(n&&n.nodeType===3)n=n.parentElement;if(!n||n.nodeType!==1)continue;if(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(n))continue;if(_roots.indexOf(n)<0)_roots.push(n);}}if(!_roots.length)return;clearTimeout(_t);"
+           "_t=setTimeout(function(){try{var R=_roots;_roots=[];for(var i=0;i<R.length;i++){var r=R[i];if(!r||!r.isConnected)continue;var nested=false;for(var j=0;j<R.length;j++){if(i!==j&&R[j]&&R[j].contains&&R[j].contains(r)){nested=true;break;}}if(!nested)window.__AMZDARK_FIXCONTRAST__(r);}}catch(e){}},180);}catch(e){}})"
            ".observe(document.documentElement,{childList:true,subtree:true});}catch(e){}"
          "window.__AMZDARK_APPLY__();"
          // Re-apply when the page is restored from the back-forward cache (returning
@@ -932,8 +932,6 @@ static NSString *ADThreeSymbolsWebJS605(void){
          "}catch(e){}"
          "try{sym413();setTimeout(sym413,30);setTimeout(sym413,160);setTimeout(sym413,560);"
            "setTimeout(sym413,1560);setTimeout(sym413,2600);"
-           "addEventListener('scroll',function(){clearTimeout(window.__symT413);"
-             "window.__symT413=setTimeout(sym413,110);},{passive:true,capture:true});"
          "}catch(e){}"
          // v5.441 DEVICE-CAPTURED STOCK CHECKBOX + SHARED 32PX CHROME. Amazon
          // remains the sole owner of geometry, hit testing, state, and the checked
@@ -958,7 +956,7 @@ static NSString *ADThreeSymbolsWebJS605(void){
            "function cn434(e){var c=e&&e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||''));}"
            "function rr434(e){try{return e&&e.getBoundingClientRect?e.getBoundingClientRect():null;}catch(x){return null;}}"
            "function sq434(e,lo,hi){var r=rr434(e);return !!(r&&r.width>=lo&&r.width<=hi&&r.height>=lo&&r.height<=hi&&Math.abs(r.width-r.height)<=14);}"
-           "var body434=String(document.body.innerText||document.body.textContent||'').toLowerCase(),cart434=body434.indexOf('proceed to checkout')>=0&&(body434.indexOf('save for later')>=0||body434.indexOf('select all items')>=0||body434.indexOf('deselect all items')>=0);"
+           "var cartSeed434=document.querySelector('[class*=sc-list-item],[class*=sc-item]'),body434=cartSeed434?String(document.body.innerText||document.body.textContent||'').toLowerCase():'',cart434=!!cartSeed434&&body434.indexOf('proceed to checkout')>=0&&(body434.indexOf('save for later')>=0||body434.indexOf('select all items')>=0||body434.indexOf('deselect all items')>=0);"
            "var scopeSel434='[class*=puis-card],[class*=s-result-item],[data-component-type=\"s-search-result\"],[data-asin],[class*=s-product-image],[class*=product-image],[class*=sc-list-item],[class*=sc-item]';"
            "var semanticSel434='[class*=copilot-compare],button[aria-label*=ompare],[role=button][aria-label*=ompare],[role=checkbox],[aria-checked],[data-csa-c-content-id*=ompare],[data-testid*=ompare],div.a-checkbox,[class~=a-checkbox]';"
            "function scope434(e){return !!(e&&e.closest&&e.closest(scopeSel434));}/* Cart mode changes shell paint only, never page-wide checkbox scope */"
@@ -984,14 +982,14 @@ static NSString *ADThreeSymbolsWebJS605(void){
          "}catch(e){window.__AD_CHECKBOX434_STATE__='err '+(e&&e.message||e);return -1;}finally{window.__AD_CHECKBOX434_RUNNING__=0;}}"
          "try{window.__AD_CHECKBOX434__=stockCheckbox434;if(!window.__AD_CHECKBOX434_WRAP__){window.__AD_CHECKBOX434_WRAP__=1;"
            "window.__AD_PRODUCTCTRL391_PRE434__=window.__AD_PRODUCTCTRL391RUN__;window.__AD_PRODUCTCTRL391RUN__=function(){var r=window.__AD_PRODUCTCTRL391_PRE434__?window.__AD_PRODUCTCTRL391_PRE434__():0;try{window.__AD_CHECKBOX434__();}catch(x){}return r;};"
-           "new MutationObserver(function(){try{window.__AD_CHECKBOX434__();}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});"
-           "function queue434(){if(window.__AD_CHECKBOX434_QUEUED__)return;window.__AD_CHECKBOX434_QUEUED__=1;var r434=function(){window.__AD_CHECKBOX434_QUEUED__=0;try{window.__AD_CHECKBOX434__();}catch(x){}};if(window.requestAnimationFrame)window.requestAnimationFrame(r434);else setTimeout(r434,0);}"
-           "addEventListener('scroll',queue434,{passive:true,capture:true});}"
+           "function queue434(delay){try{clearTimeout(window.__AD_CHECKBOX434_T__);window.__AD_CHECKBOX434_T__=setTimeout(function(){try{window.__AD_CHECKBOX434__();}catch(x){}},delay||70);}catch(x){}}"
+           "new MutationObserver(function(){queue434(70);}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});}"
            "stockCheckbox434();setTimeout(stockCheckbox434,40);setTimeout(stockCheckbox434,180);setTimeout(stockCheckbox434,700);setTimeout(stockCheckbox434,1800);"
          "}catch(e){}"
          // Tiny 6.x reapply entry point only. It does not alter either donor owner.
          "window.__AD_SYM605_RUN__=sym413;"
          "window.__AD_SYM605_QUEUE__=function(){try{if(window.__AD_SYM605_Q__)return;window.__AD_SYM605_Q__=1;var f=function(){window.__AD_SYM605_Q__=0;try{window.__AD_HEARTSHELL427__();}catch(x){}try{sym413();}catch(x){}try{window.__AD_CHECKBOX434__&&window.__AD_CHECKBOX434__();}catch(x){}};if(window.requestAnimationFrame)requestAnimationFrame(f);else setTimeout(f,0);}catch(e){}};"
+         "try{if(!window.__AD_SYM_SCROLL619__){window.__AD_SYM_SCROLL619__=1;addEventListener('scroll',function(){clearTimeout(window.__AD_SYM_SCROLL_T619__);window.__AD_SYM_SCROLL_T619__=setTimeout(function(){try{window.__AD_SYM605_QUEUE__();}catch(x){}},140);},{passive:true,capture:true});}}catch(e){}"
          "try{window.__AD_SYM605_QUEUE__();}catch(e){}"
        "return 'sym609';}catch(e){return 'sym609err '+(e&&e.message||e);}})();"];
     return cached;
@@ -2525,6 +2523,11 @@ static const void *kADTWBScrollPend446 = &kADTWBScrollPend446;
     %orig;
     @try {
         if(!gP.enabled||!gP.whiteTame||!self.window||ADIsWebKitOwned(self))return;
+        // v6.0.19: this recovery exists solely for the old React Native Person/Subscribe
+        // carousel. Running it for every native PDP/product scroll view caused a bounded
+        // 180-view image walk several times per second on nested carousels.
+        const char *scn=object_getClassName(self);
+        if(!scn||(!strstr(scn,"RCT")&&!strstr(scn,"React")))return;
         if(objc_getAssociatedObject(self,kADTWBScrollPend446))return;
         objc_setAssociatedObject(self,kADTWBScrollPend446,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         __weak UIScrollView *ws=self;
@@ -4174,8 +4177,9 @@ static void ADSweep(void){
 // coalesced burst (0 / 60 / 200 / 500 ms) covers the mount-to-first-paint window
 // without a standing cost.
 static uint32_t gADBurstGeneration = 0;
-static void ADReapplyBurst(void){
+static void ADReapplyBurst(UIView *root){
     const uint32_t gen = ++gADBurstGeneration;
+    __weak UIView *weakRoot = root;
     static const int64_t delays_ms[] = {0, 120, 420};
     for (int i = 0; i < 3; i++){
         const int pass = i;
@@ -4184,7 +4188,14 @@ static void ADReapplyBurst(void){
                 if (gen != gADBurstGeneration) return;
                 ADForceWindowsDarkTrait();
                 ADInjectAllWebViews();
-                if (pass != 1) ADSweepAllWindows();
+                // v6.0.19: a viewDidAppear transition only needs the newly shown
+                // controller tree. Dedicated header/tab hooks own global chrome, and
+                // reusable-cell hooks own later content. Avoid two whole-window walks
+                // whenever PDP Details/Explore/Reviews swaps child controllers.
+                if (pass != 1){
+                    UIView *r = weakRoot;
+                    if (r && r.window) ADSweepViewTree(r, 0, ADInTabBarChain(r));
+                }
             } @catch(...) {} });
     }
 }
@@ -4255,7 +4266,7 @@ static void ADClaimStatusBarFor(Class c){
             ADClaimStatusBarFor(object_getClass(self));
             for (UIViewController *ch in self.childViewControllers)
                 ADClaimStatusBarFor(object_getClass(ch));
-            ADReapplyBurst();
+            ADReapplyBurst(self.view);
         }
     } @catch(...) {}
 }
