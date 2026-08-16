@@ -125,6 +125,15 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
+## v6.0.23
+
+- Restores v5.446 Tame White Backgrounds media coverage without restoring its expensive scroll/document scheduling.
+- Restores the v5.446 Home creative/video background owner plus Home media, hero-frame, compact sponsored-frame, and product-strip media lanes.
+- Allows qualifying photographic/video media inside v6 native ad islands to be tamed while structural ad chrome/backgrounds remain Amazon-owned.
+- Adds an idle/throttled full TWB recovery pass using v5.446-scale media/background budgets; mutation work remains subtree-scoped and coalesced.
+- Extends native settled-scroll recovery to geometry-confirmed horizontal image carousels with a 72-view budget; the existing React recovery remains unchanged in scope/budget.
+- JIT, 120 Hz, v5.446 carousel-dot ownership, checkbox/symbol fixes, and v6.0.19 PDP performance scheduling remain otherwise unchanged.
+
 ## v6.0.22
 
 - Promotes Dopamine per-app JIT from diagnostic to the minimal production path proven on-device: a clean Amazon launch goes 0→1 only when AmazonDark JIT is enabled.
