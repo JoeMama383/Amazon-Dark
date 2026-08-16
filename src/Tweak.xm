@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.44"
+#define AD_VERSION "v6.0.45"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2526,6 +2526,13 @@ static int ADPersonHeadingBand6044(UIImageView *iv){
         if (ADRecolorOn() && self.window) ADInvertRNSVG(self);
     } @catch(...) {}
 }
+// v6.0.45: Amazon can attach the native Person heading first and assign its plain
+// text afterward.  Register that path directly so heading ownership does not depend
+// on didMoveToWindow / attributed-text ordering.
+- (void)setText:(NSString *)text {
+    %orig;
+    @try { ADRegisterPersonHeading6044(self, text); } @catch(...) {}
+}
 - (void)layoutSubviews {
     %orig;
     @try { if (ADRecolorOn() && self.window) ADInvertRNSVG(self); } @catch(...) {}
@@ -4022,6 +4029,21 @@ static void ADApplyNativeWhiteTameDirect6027(UIView *v){
         // bitmap before layout and should get one classification when bounds arrive.
         if(w<1||h<1) return;
         int ctx=(w<=240&&h<=240)?ADTWBDirectCtx6031(iv,im):0;
+        // v6.0.45: v6.0.44 consulted the heading-band only after ctx==1 had
+        // already hard-returned.  Person diagnostics previously proved that a broad
+        // carousel wrapper can report ctx==1 even when the local named section is
+        // product media.  Give this narrow, geometry-bounded positive owner the same
+        // precedence as the v6.0.42 Your Interests local-positive fix.
+        if(ctx!=2 && w<=190 && h<=190){
+            int band=ADPersonHeadingBand6044(iv);
+            if(band==2){
+                ctx=2;
+                objc_setAssociatedObject(iv,kADTWBDirectCtxImage6031,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                objc_setAssociatedObject(iv,kADTWBDirectCtx6031,@2,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                objc_setAssociatedObject(iv,kADTWBDirectCtxTime6031,@(CFAbsoluteTimeGetCurrent()),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                objc_setAssociatedObject(iv,kADTWBDirectCtxAttempts6031,@0,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            }
+        }
         if(ctx==1 || w>1200 || h>1200 || ADInTabBarChain(iv)){
             ADNativeTWBRelease6027(iv);
             return;
@@ -4050,21 +4072,6 @@ static void ADApplyNativeWhiteTameDirect6027(UIView *v){
             own=ADWTImageLight363(im);
             objc_setAssociatedObject(iv,kADTWBCachedImage6027,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             objc_setAssociatedObject(iv,kADTWBDecision6027,@(own),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
-        // v6.0.44: the v6.0.43 product-peer fallback is intentionally removed.
-        // The on-device miss persisted because the affected UIKit heading is outside
-        // the React image subtree; use the event-driven heading-band owner instead.
-        if(!own && ctx==0){
-            int band=ADPersonHeadingBand6044(iv);
-            if(band==2){
-                own=YES; ctx=2;
-                objc_setAssociatedObject(iv,kADTWBCachedImage6027,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                objc_setAssociatedObject(iv,kADTWBDecision6027,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                objc_setAssociatedObject(iv,kADTWBDirectCtxImage6031,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                objc_setAssociatedObject(iv,kADTWBDirectCtx6031,@2,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                objc_setAssociatedObject(iv,kADTWBDirectCtxTime6031,@(CFAbsoluteTimeGetCurrent()),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                objc_setAssociatedObject(iv,kADTWBDirectCtxAttempts6031,@0,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            }
         }
         if(!own){ ADNativeTWBRelease6027(iv); return; }
         CGFloat a=0.50*(MAX(0,MIN(100,gP.whiteTameStrength))/100.0);

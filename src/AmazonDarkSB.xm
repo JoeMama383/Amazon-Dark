@@ -25,6 +25,7 @@
 #import <limits.h>
 #import <string.h>
 #import <stdint.h>
+#import <math.h>
 #import <sys/types.h>
 
 static NSString * const kAMZ      = @"com.amazon.Amazon";
@@ -33,7 +34,6 @@ static const NSTimeInterval kCoverHold    = 8.5;  // LAST RESORT. The app guaran
                                                   // signal by t=7.5s, so this must sit above
                                                   // that or the timer pre-empts the signal -
                                                   // which is exactly what 3.0s was doing.
-static const NSTimeInterval kCoverFade    = 0.55; // lift animation
 static const NSTimeInterval kCoverHardCap = 10.0; // absolute max on screen
 static const NSTimeInterval kReCoverGap   = 8.0;  // ignore re-triggers within
 
@@ -119,6 +119,51 @@ static void ADDismissCover(void);
 static UIView *gCoverOverlay;
 static unsigned gCoverGen;
 
+// v6.0.45 stock-transition gate.  The scene itself is supposed to ride SpringBoard's
+// native icon->fullscreen transform; our Amazon wordmark is not.  Keep the logo hidden
+// until the scene/ancestor presentation layers have converged to their model geometry.
+// This is launch-only, bounded, and self-cancels when the cover generation changes.
+static BOOL ADSceneTransitionActive645(UIView *host) {
+    @try {
+        UIView *v=host; int up=0;
+        while(v && up++<8){
+            CALayer *m=v.layer;
+            NSArray *keys=[m animationKeys];
+            if(keys.count) return YES;
+            CALayer *pr=(CALayer *)m.presentationLayer;
+            if(pr){
+                CGPoint a=pr.position,b=m.position;
+                CGRect ab=pr.bounds,bb=m.bounds;
+                if(fabs(a.x-b.x)>0.75 || fabs(a.y-b.y)>0.75 ||
+                   fabs(ab.size.width-bb.size.width)>0.75 || fabs(ab.size.height-bb.size.height)>0.75 ||
+                   !CATransform3DEqualToTransform(pr.transform,m.transform)) return YES;
+            }
+            if(v==v.window) break;
+            v=v.superview;
+        }
+    } @catch (__unused NSException *e) {}
+    return NO;
+}
+
+static void ADRevealCoverLogo645(UIView *host, UIImageView *logo, unsigned gen, int attempt) {
+    if(!host || !logo) return;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((attempt==0 ?
+                   (UIAccessibilityIsReduceMotionEnabled()?0.08:0.42) : 0.035) * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{
+        @try {
+            if(gen!=gCoverGen || !gCoverOverlay || logo.superview!=gCoverOverlay) return;
+            if(attempt<24 && ADSceneTransitionActive645(host)){
+                ADRevealCoverLogo645(host,logo,gen,attempt+1);
+                return;
+            }
+            // No fade/slide/scale of our own.  Once SpringBoard's scene transition is
+            // over, expose the already-centered logo in one frame.
+            logo.hidden=NO;
+            ADSBLog([NSString stringWithFormat:@"COVER logo revealed settled attempt=%d",attempt]);
+        } @catch (__unused NSException *e) {}
+    });
+}
+
 // YES when Amazon already has a running process -- i.e. this is a resume, not a
 // cold launch. Nothing here is required to exist; unknown means "cover it".
 static BOOL ADAmazonProcessAlive(int *taskStateOut) {
@@ -145,8 +190,9 @@ static BOOL ADAmazonProcessAlive(int *taskStateOut) {
 }
 
 // Dark surface parented to the zooming scene view, so SpringBoard's launch
-// animation plays exactly as it does for every other app -- only its contents
-// are dark instead of Amazon's white launch screen.
+// animation stays native. v6.0.45 keeps only the dark surface visible during that
+// transform; the Amazon wordmark is revealed after scene geometry settles, preventing
+// the intermittent icon-origin -> center travel without replacing the system animation.
 static void ADAttachCoverToScene(UIView *host) {
     @try {
         if (!host) return;
@@ -158,15 +204,17 @@ static void ADAttachCoverToScene(UIView *host) {
         ov.userInteractionEnabled = NO;
 
         UIImage *splash = nil;
+        UIImageView *logo = nil;
         for (NSString *cp in @[@"/var/jb/Library/Application Support/AmazonDark/splash-logo.png",
                                @"/Library/Application Support/AmazonDark/splash-logo.png"]) {
             splash = [UIImage imageWithContentsOfFile:cp];
             if (splash) break;
         }
         if (splash) {
-            UIImageView *logo = [[UIImageView alloc] initWithImage:splash];
+            logo = [[UIImageView alloc] initWithImage:splash];
             logo.contentMode = UIViewContentModeScaleAspectFit;
             logo.translatesAutoresizingMaskIntoConstraints = NO;
+            logo.hidden = YES; // do not let SpringBoard carry it from the icon origin
             [ov addSubview:logo];
             CGFloat lw = MAX(host.bounds.size.width, 200.0) * 0.62;
             CGFloat lh = lw * (splash.size.height / MAX(splash.size.width, 1.0));
@@ -183,9 +231,10 @@ static void ADAttachCoverToScene(UIView *host) {
         [host addSubview:ov];
         gCoverOverlay = ov;
         unsigned myGen = ++gCoverGen;
+        if(logo) ADRevealCoverLogo645(host,logo,myGen,0);
 
         gPresentAt = CFAbsoluteTimeGetCurrent();
-        ADSBLog([NSString stringWithFormat:@"COVER overlay in scene (%@ logo=%d)",
+        ADSBLog([NSString stringWithFormat:@"COVER overlay in scene (%@ logo=%d gated=1)",
                  NSStringFromClass([host class]), splash ? 1 : 0]);
 
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHold * NSEC_PER_SEC)),
@@ -211,18 +260,18 @@ static void ADAttachCoverToScene(UIView *host) {
 
 static void ADDismissCover(void) {
     @try {
+        ++gCoverGen; // cancels any pending scene-settle logo reveal
         if (gCoverOverlay) {
             UIView *ov = gCoverOverlay; gCoverOverlay = nil;
-            [UIView animateWithDuration:kCoverFade animations:^{ ov.alpha = 0.0; }
-                             completion:^(BOOL f){ @try { [ov removeFromSuperview]; }
-                                                   @catch (__unused NSException *e) {} }];
-            ADSBLog(@"COVER overlay dismissed (signal)");
+            [ov removeFromSuperview];
+            ADSBLog(@"COVER overlay dismissed immediately (ready)");
         }
+        // Legacy window path is retained only as dead compatibility code; if it is
+        // ever reactivated, do not introduce a second custom fade here either.
         if (!gCoverWin) return;
         UIWindow *w = gCoverWin; gCoverWin = nil;
-        [UIView animateWithDuration:kCoverFade animations:^{ w.alpha = 0.0; }
-                         completion:^(BOOL f){ @try { w.hidden = YES; } @catch (__unused NSException *e) {} }];
-        ADSBLog(@"COVER dismissed");
+        w.hidden = YES;
+        ADSBLog(@"COVER dismissed immediately");
     } @catch (__unused NSException *e) {}
 }
 
@@ -493,10 +542,8 @@ static void ADSBHandleJITRequest622(int token){
             @try {
                 if (!gCoverWin && !gCoverOverlay) return;
                 double shown = CFAbsoluteTimeGetCurrent() - gPresentAt;
-                double wait  = shown < 1.40 ? (1.40 - shown) : 0.0;  // no strobe
-                ADSBLog([NSString stringWithFormat:@"COVER ready (shown %.2fs, wait %.2fs)", shown, wait]);
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(wait * NSEC_PER_SEC)),
-                               dispatch_get_main_queue(), ^{ ADDismissCover(); });
+                ADSBLog([NSString stringWithFormat:@"COVER ready (shown %.2fs, stock immediate release)", shown]);
+                ADDismissCover();
             } @catch (__unused NSException *e) {}
         });
     } @catch (__unused NSException *e) {}
