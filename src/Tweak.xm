@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.57"
+#define AD_VERSION "v6.0.58"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1050,8 +1050,8 @@ static NSString *ADWhiteTameWebJS6027(void){
          "function S(v){try{return String(v&&v.baseVal!==undefined?v.baseVal:(v||''));}catch(e){return '';}}"
          "function chain(e){var p=e,d=0,c='';while(p&&d++<6){c+=' '+S(p.className)+' '+String(p.id||'')+' '+String((p.getAttribute&&p.getAttribute('data-component-type'))||'')+' '+String((p.getAttribute&&p.getAttribute('data-hook'))||'');p=p.parentElement;}return c.toLowerCase();}"
          "function localText(e){var p=e,d=0,t='';while(p&&d++<6){var x=String(p.textContent||'').replace(/\\s+/g,' ').trim();if(x&&x.length<1200)t+=' '+x.toLowerCase();p=p.parentElement;}return t;}"
-         "function blocked(e,c,t,fo,rv){if(!fo&&e.__adGlyph)return true;if(/avatar|profile|author|reviewer|byline|merchant|seller|brand-logo|store-logo|headshot|user-image|customer-avatar|star|rating|checkbox|heart|wish|search-suggestion|recentsearch|camera|microphone|location-icon|chevron|close-icon/.test(c))return true;if(!fo&&/sprite|icon|logo/.test(c))return true;if(rv&&/sprite|icon|logo|pixel/.test(c))return true;if(/medical care|health ai|prescriptions|personal guida|fast,? free deliv|your amazon highlights|total savings|sessions streamed|keep streaming/.test(t))return true;if(/same-day|same day|pharmacy|prime video|amazon haul|whole foods|autos/.test(t)&&/nav|explore|shortcut|chip|pill|category/.test(c+t))return true;return false;}"
-         "function forced(t){return /subscribe (?:&|and) save|keep shopping for|shop previously watched|lists (?:and|&) registries|alexa for shopping|best deals on|send an amazon gift card|how can i help|returns are easy/.test(t);}"
+         "function blocked(e,c,t,fo,rv){if(!fo&&e.__adGlyph)return true;if(/avatar|profile|author|reviewer|byline|merchant|seller|brand-logo|store-logo|headshot|user-image|customer-avatar|star|rating|checkbox|heart|wish|search-suggestion|recentsearch|camera|microphone|location-icon|chevron|close-icon/.test(c))return true;if(!fo&&/sprite|icon|logo/.test(c))return true;if(rv&&/sprite|icon|logo|pixel/.test(c))return true;if(/same-day|same day|pharmacy|prime video|amazon haul|whole foods|autos/.test(t)&&/nav|explore|shortcut|chip|pill|category/.test(c+t))return true;return false;}"
+         "function forced(t){return /subscribe (?:&|and) save|keep shopping for|shop previously watched|lists (?:and|&) registries|alexa for shopping|best deals on|send an amazon gift card|how can i help|returns are easy|medical care|health ai|prescriptions|personal guida|fast,? free deliv|your amazon highlights|total savings|sessions streamed|keep streaming/.test(t);}"
          "function reviewCtx(t,c){return /your reviews|what did you think of the item/.test(t)||/review-image|customer-image|review.*photo/.test(c);}"
          "function product(e,c){var p=e,d=0;while(p&&d++<6){var asin=String((p.getAttribute&&p.getAttribute('data-asin'))||''),h=String((p.getAttribute&&p.getAttribute('href'))||''),q=S(p.className)+' '+String(p.id||'');if(asin||/asin|product|p13n|npack|cxvhz|gwm-asin|carousel-image|product-image|s-image|a-amazon-image/i.test(q)||h.indexOf('/dp/')>=0||h.indexOf('/gp/product/')>=0)return true;p=p.parentElement;}return /review-image|customer-image|review.*photo/.test(c);}"
          // Exact donor Home probes repeatedly name NPACK/GWM/mosaic roots in addition
@@ -3304,14 +3304,17 @@ static int ADWTLocalSection365(UIView *v){
                     }
                 }
                 NSMutableArray *q=[NSMutableArray arrayWithObject:p]; int seen=0;
-                BOOL neg=NO, hardNo=NO, reviews=NO, product=NO;
+                BOOL neg=NO, reviews=NO, product=NO;
                 for(NSUInteger qi=0; qi<q.count && seen++<90; qi++){
                     UIView *x=q[qi]; NSString *lo=[[ADWTViewText362(x) lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-                    // v6.0.57: these are Amazon-owned illustration/chrome sections, not
-                    // ambiguous Person wrappers.  Keep them distinct so rendered-peer
-                    // recovery can never promote their glyph artwork into TWB.
-                    if([lo containsString:@"medical care"] || [lo containsString:@"your amazon highlights"] ||
-                       [lo containsString:@"total savings"] || [lo containsString:@"sessions streamed"]){ neg=YES; hardNo=YES; }
+                    // v6.0.58: these Person illustration groups are deliberate TWB targets.
+                    // Include the card-local descriptors so nested React cards do not need
+                    // to inherit the outer section heading before their glyph is assigned.
+                    if([lo containsString:@"medical care"] || [lo containsString:@"health ai"] ||
+                       [lo containsString:@"prescriptions"] || [lo containsString:@"personal guida"] ||
+                       [lo containsString:@"fast, free deliv"] || [lo containsString:@"fast free deliv"] ||
+                       [lo containsString:@"your amazon highlights"] || [lo containsString:@"total savings"] ||
+                       [lo containsString:@"sessions streamed"] || [lo containsString:@"keep streaming"]) product=YES;
                     if([lo containsString:@"need help"] || [lo containsString:@"contact customer service"] ||
                        [lo containsString:@"customer service"]) neg=YES;
                     if([lo containsString:@"your reviews"] || [lo containsString:@"what did you think of the item"]) reviews=YES;
@@ -3324,8 +3327,7 @@ static int ADWTLocalSection365(UIView *v){
                     if(qi<28){ for(UIView *sv in x.subviews){ if(q.count<90) [q addObject:sv]; else break; } }
                 }
                 int result=0;
-                if(hardNo && !reviews && !product && h<=320) result=4;
-                else if(neg && !reviews && !product && h<=280) result=1;
+                if(neg && !reviews && !product && h<=280) result=1;
                 else if(reviews) result=3;
                 else if(product) result=2;
                 else if(neg) result=1;
@@ -3369,7 +3371,7 @@ static int ADWTCarouselSection384(UIView *v){
                         // Positive product ownership is section state, not image state.
                         // Hold it through React relayout/reimage churn; exclusions refresh
                         // more often, and a miss is intentionally very short-lived.
-                        if((cv==2&&age<8.0)||((cv==1||cv==3||cv==4)&&age<1.5)||(cv==0&&age<0.06)) return cv;
+                        if((cv==2&&age<8.0)||((cv==1||cv==3)&&age<1.5)||(cv==0&&age<0.06)) return cv;
                     }
                     CGRect sr=[sv convertRect:sv.bounds toView:w];
                     int result=0; CGFloat best=CGFLOAT_MAX;
@@ -3383,8 +3385,11 @@ static int ADWTCarouselSection384(UIView *v){
                                 NSString *lo=[[ADWTViewText362(x) lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
                                 if(lo.length){
                                     int kind=0;
-                                    if([lo containsString:@"medical care"]||[lo containsString:@"your amazon highlights"]||
-                                       [lo containsString:@"total savings"]||[lo containsString:@"sessions streamed"]) kind=4;
+                                    if([lo containsString:@"medical care"]||[lo containsString:@"health ai"]||
+                                       [lo containsString:@"prescriptions"]||[lo containsString:@"personal guida"]||
+                                       [lo containsString:@"fast, free deliv"]||[lo containsString:@"fast free deliv"]||
+                                       [lo containsString:@"your amazon highlights"]||[lo containsString:@"total savings"]||
+                                       [lo containsString:@"sessions streamed"]||[lo containsString:@"keep streaming"]) kind=2;
                                     else if([lo containsString:@"need help"]||[lo containsString:@"contact customer service"]||
                                             [lo isEqualToString:@"customer service"]) kind=1;
                                     else if([lo containsString:@"your reviews"]||[lo containsString:@"what did you think of the item"]) kind=3;
@@ -3585,14 +3590,17 @@ static const void *kADTWBDirectCtxImage6031 = &kADTWBDirectCtxImage6031;
 static const void *kADTWBDirectCtxTime6031 = &kADTWBDirectCtxTime6031;
 static const void *kADTWBDirectCtxAttempts6031 = &kADTWBDirectCtxAttempts6031;
 
-// 0 ordinary; 1 ambiguous no-TWB; 2 forced product/Alexa media; 3 Reviews photo;
-// 4 hard Amazon-owned illustration/chrome section (never eligible for peer promotion).
+// 0 ordinary; 1 ambiguous no-TWB; 2 forced product/Alexa/Person illustration media;
+// 3 Reviews photo.
 static int ADTWBTextKind6031(NSString *text){
     if(!text.length) return 0;
     NSString *lo=[[text lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
     if(!lo.length) return 0;
-    if([lo containsString:@"medical care"] || [lo containsString:@"your amazon highlights"] ||
-       [lo containsString:@"total savings"] || [lo containsString:@"sessions streamed"]) return 4;
+    if([lo containsString:@"medical care"] || [lo containsString:@"health ai"] ||
+       [lo containsString:@"prescriptions"] || [lo containsString:@"personal guida"] ||
+       [lo containsString:@"fast, free deliv"] || [lo containsString:@"fast free deliv"] ||
+       [lo containsString:@"your amazon highlights"] || [lo containsString:@"total savings"] ||
+       [lo containsString:@"sessions streamed"] || [lo containsString:@"keep streaming"]) return 2;
     if([lo containsString:@"need help"] || [lo containsString:@"contact customer service"] ||
        [lo isEqualToString:@"customer service"]) return 1;
     if([lo containsString:@"your reviews"] || [lo containsString:@"what did you think of the item"]) return 3;
@@ -3626,14 +3634,11 @@ static int ADTWBDirectLocalCtx6031(UIImageView *iv){
             if(cc==3) return 3;
             if(cc==2) return 2;
             int lc=ADWTLocalSection365(iv);
-            // v6.0.42: a compact positive local section may override an outer mixed
-            // carousel exclusion. v6.0.57 does the same before accepting a hard-no
-            // carousel, preventing a nearby Highlights heading from poisoning a real
-            // product section while still making the actual Highlights pane absolute.
+            // A compact positive local section may override an outer mixed carousel
+            // exclusion. Illustration cards use the same positive context so their glyph
+            // leaves are forced through TWB without a separate hard-negative state.
             if(lc==3) return 3;
             if(lc==2) return 2;
-            if(lc==4) return 4;
-            if(cc==4) return 4;
             if(cc==1 || lc==1) return 1;
             // ADWTLocalSection365 covers the full retained Person/Alexa vocabulary.
             // Do not immediately perform a second sibling-text walk for React images.
@@ -3646,22 +3651,19 @@ static int ADTWBDirectLocalCtx6031(UIImageView *iv){
                 int own=ADTWBTextKind6031(ADWTViewText362(p));
                 if(own) return own;
                 NSArray *a=p.subviews; NSUInteger lim=MIN((NSUInteger)14,a.count);
-                int neg=0,hard=0,pos=0,rev=0;
+                int neg=0,pos=0,rev=0;
                 for(NSUInteger i=0;i<lim;i++){
                     UIView *x=a[i]; int k=ADTWBTextKind6031(ADWTViewText362(x));
-                    if(k==1)neg=1; else if(k==2)pos=1; else if(k==3)rev=1; else if(k==4)hard=1;
+                    if(k==1)neg=1; else if(k==2)pos=1; else if(k==3)rev=1;
                     NSArray *b=x.subviews; NSUInteger lim2=MIN((NSUInteger)8,b.count);
                     for(NSUInteger j=0;j<lim2;j++){
                         int q=ADTWBTextKind6031(ADWTViewText362(b[j]));
-                        if(q==1)neg=1; else if(q==2)pos=1; else if(q==3)rev=1; else if(q==4)hard=1;
+                        if(q==1)neg=1; else if(q==2)pos=1; else if(q==3)rev=1;
                     }
                 }
-                // Named product/review ownership wins in a mixed Person wrapper.
-                // A hard illustration section is accepted only when this compact
-                // neighborhood is not simultaneously identifying real product media.
+                // Named product/review/illustration ownership wins in a mixed Person wrapper.
                 if(rev) return 3;
                 if(pos) return 2;
-                if(hard&&ph<=320) return 4;
                 if(neg&&ph<=300) return 1;
             }
             p=p.superview;
@@ -3799,15 +3801,6 @@ static void ADApplyNativeWhiteTameView(UIView *v){
         }
 
         int ctx=(w<=240&&h<=240)?ADTWBDirectCtx6031(iv,im):0;
-        // v6.0.57: Amazon-owned illustration/chrome panes are a hard negative.
-        // Do this before registry/lightness/peer work so their glyphs receive no
-        // TWB overlay and cannot become peer donors or peer-promotion candidates.
-        if(ctx==4){
-            ADNativeTWBRelease6027(iv);
-            ADNativeClearPeerNegative6055(iv);
-            ADNativeResetRCTRegistration6055(iv);
-            return;
-        }
         ADNativeRegisterRCT6053(iv);
         BOOL forced=(ctx==2), review=(ctx==3);
         BOOL own=NO, lightReady=YES;
@@ -3828,8 +3821,6 @@ static void ADApplyNativeWhiteTameView(UIView *v){
 
         // The proven v6.0.51 behavior remains the final authority for an image that
         // would otherwise be rejected, including an AMBIGUOUS ctx==1 false negative.
-        // Hard Amazon-owned illustration context (ctx==4) returned above and can
-        // never be promoted by rendered peers.
         if(!own && ADNativePeerConsensus6053(iv)){
             own=YES; ctx=2; forced=YES; review=NO; lightReady=YES;
             ADTWBPromoteProduct6053(iv,im);

@@ -1,14 +1,15 @@
-# AmazonDark v6.0.57
+# AmazonDark v6.0.58
 
-## v6.0.57 — Person illustration hard-negative TWB ownership
+## v6.0.58 — Person illustration TWB + preference copy cleanup
 
-Built directly from v6.0.56. Fixes the select Amazon-owned illustrations/glyph cards in the Person tab (notably **Your Amazon highlights**) that could still inherit the gray TWB overlay through rendered-peer consensus.
+Built directly from v6.0.57, reversing its unsuccessful hard-exclusion experiment. Medical Care and Your Amazon highlights are now explicit positive TWB illustration contexts rather than no-TWB sections.
 
-- Adds a distinct native TWB context (`4`) for high-confidence Amazon-owned illustration/chrome sections: Medical Care / Your Amazon highlights and their immediate highlight descriptors.
-- That hard-negative context returns before RCT peer registration, pixel/lightness sampling, and rendered-peer consensus, so these glyphs are never overlaid and never become peer donors.
-- Keeps the older ambiguous negative context (`1`) peer-recoverable. This preserves the v6.0.51/52 Buy Again / Keep Shopping fix where a broad neighboring Person wrapper could falsely look negative.
-- Positive product/review semantics still win over an outer hard-negative heading when a compact local wrapper identifies the real section, avoiding cross-section poisoning.
-- No Home/WebKit scheduling, JIT, 120-Hz, carousel-dot, checkbox/glyph, seasonal/ad, splash, or general theming behavior is intentionally changed.
+- Forces the actual image/glyph leaves in Medical Care and Your Amazon highlights through the existing semi-transparent TWB overlay while leaving the surrounding cards/text untouched.
+- Adds card-local descriptor vocabulary (Health AI, Prescriptions, delivery copy, total savings, sessions streamed, keep streaming) so nested React cards do not depend only on the outer heading.
+- Removes the v6.0.57 `ctx==4` hard-negative state. Existing ambiguous-negative (`ctx==1`), product (`ctx==2`), Reviews (`ctx==3`), and rendered-peer behavior remain intact.
+- Applies the same positive illustration semantics to the streamlined WebKit TWB owner when those families render as web media.
+- Renames the setting to **Tame Light Backgrounds** and replaces the TWB/Performance footers with shorter, generic descriptions. Preference keys are unchanged, so existing settings carry over.
+- No Home performance scheduling, JIT implementation, 120-Hz implementation, carousel-dot, checkbox, seasonal/ad, splash, or unrelated theming behavior is intentionally changed.
 
 ## v6.0.56 — render-critical-path / infinite-scroll performance pass
 

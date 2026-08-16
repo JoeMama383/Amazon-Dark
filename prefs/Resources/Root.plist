@@ -26,17 +26,17 @@
 		</dict>
 		<dict>
 			<key>label</key>
-			<string>Product photos</string>
+			<string>Light backgrounds</string>
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>footerText</key>
-			<string>Lowers the ceiling on blown-out studio backgrounds. Pixels already darker than the ceiling are left untouched, so the product itself keeps its colour.</string>
+			<string>Adds a subtle overlay to bright areas in the app to reduce glare and make nighttime viewing easier.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
 			<string>PSSwitchCell</string>
 			<key>label</key>
-			<string>Tame white backgrounds</string>
+			<string>Tame Light Backgrounds</string>
 			<key>key</key>
 			<string>whiteTame</string>
 			<key>default</key>
@@ -74,7 +74,7 @@
 			<key>label</key>
 			<string>Performance</string>
 			<key>footerText</key>
-			<string>Force 120 Hz may increase power use and heat. Enable JIT asks Dopamine to grant Amazon per-process JIT state on launch. Preference changes use the normal respring workflow. Disable Dopamine's systemwide 'Allow JIT in Apps' option if you want AmazonDark to control this independently. JIT permission alone does not recompile Amazon or guarantee a speedup.</string>
+			<string>May improve smoothness or responsiveness in some situations. Results vary, and higher refresh rates may use more battery.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
