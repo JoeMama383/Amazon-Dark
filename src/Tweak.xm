@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.26"
+#define AD_VERSION "v6.0.27"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -600,17 +600,19 @@ static NSString *ADFixesLiteral(void){
              "[class*=review] [class*=expander]::after,[class*=review] [class*=expander]::before"
              "{background:none !important;background-image:none !important;"
              "content:none !important;display:none !important;}"
-             // v6.0.26 / direct v5.446 PDP Share ownership. The static selector
-             // keeps first paint readable; shareFix382 below marks the ACTUAL raster,
-             // background-image, mask or vector leaf after Amazon hydrates the control.
-             // Never filter the entire trigger host.
-             ".ssf-share-trigger,[data-ad-share382=\"1\"]{color:#fff !important;-webkit-text-fill-color:#fff !important;"
-             "fill:#fff !important;stroke:#fff !important;filter:none !important;opacity:1 !important;}"
-             "[data-ad-sharepaint382=\"1\"]{filter:brightness(0) invert(1) !important;opacity:1 !important;background-color:transparent !important;}"
-             "[data-ad-share382=\"1\"] svg,[data-ad-share382=\"1\"] path{color:#fff !important;fill:#fff !important;stroke:#fff !important;opacity:1 !important;}"
-             "[data-ad-share382=\"1\"]::before,[data-ad-share382=\"1\"]::after,"
-             "[data-ad-share382=\"1\"] *::before,[data-ad-share382=\"1\"] *::after"
-             "{color:#fff !important;filter:brightness(0) invert(1) !important;opacity:1 !important;}"
+             // v6.0.24 / v5.446: PDP Share is its own stock action glyph.
+             // Keep ownership on the actual share trigger/leaves so generic glyph
+             // repair and carousel-dot paint can never decide its colour.
+             ".ssf-share-trigger{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;"
+             "fill:#ffffff !important;stroke:#ffffff !important;filter:none !important;opacity:1 !important;}"
+             ".ssf-share-trigger svg,.ssf-share-trigger path"
+             "{color:#ffffff !important;fill:#ffffff !important;stroke:#ffffff !important;opacity:1 !important;}"
+             ".ssf-share-trigger i,.ssf-share-trigger .a-icon,.ssf-share-trigger img"
+             "{filter:brightness(0) invert(1) !important;background-color:transparent !important;"
+             "color:#ffffff !important;opacity:1 !important;}"
+             ".ssf-share-trigger::before,.ssf-share-trigger::after,"
+             ".ssf-share-trigger *::before,.ssf-share-trigger *::after"
+             "{color:#ffffff !important;filter:brightness(0) invert(1) !important;opacity:1 !important;}"
              // v6.0.20 direct v5.446 carousel-dot port. Static selectors own
              // first paint; dotFix374 below follows Amazon's live selected state.
              "ul.a-pagination.a-dots li.a-selected,"
@@ -912,7 +914,7 @@ static NSString *ADDarkReaderBootstrap(void){
 // ── v5.446 WEB WHITE-BACKGROUND TAME backport ───────────────────────────────
 // The body below is copied from the exact v5.446 donor. It is kept separate from
 // the v5.42 Dark Reader bootstrap so unrelated v5.43x/v5.44x UI fixes are not imported.
-static NSString *ADWhiteTameWebJS446(void){
+static NSString *ADWhiteTameLegacyWebJS446(void){
     if (!gP.enabled || !gP.whiteTame) return nil;
     if (gADTameWeb613) return gADTameWeb613;
     gADTameWeb613 = [NSString stringWithFormat:
@@ -945,12 +947,6 @@ static NSString *ADWhiteTameWebJS446(void){
            "if(b.returns>=0&&y>b.returns&&y<(b.related>b.returns?b.related:b.returns+520))return 2;return 0;}catch(e){return 0;}}"
          "function _adExploreIcon363(e){try{var p=e,d=0,re=/(?:same-day|same day|pharmacy|prime video|amazon haul|whole foods|autos)/i;while(p&&d++<5){var tx=String(p.textContent||'').replace(/\\s+/g,' ').trim();if(tx.length>0&&tx.length<420&&re.test(tx))return true;p=p.parentElement;}}catch(x){}return false;}"
          "function _adNoTameGlyph367(e){try{var p=e,d=0,re=/(?:medical care|health ai|prescriptions|personal guida|fast,? free deliv|your amazon highlights|total savings|sessions streamed|keep streaming)/i;while(p&&d++<5){var tx=String(p.textContent||'').replace(/\\s+/g,' ').trim();if(tx.length>0&&tx.length<520&&re.test(tx))return true;p=p.parentElement;}}catch(x){}return false;}"
-         // v6.0.26: TWB is media-only. The v6.0.23 idle/mutation recovery can run
-         // after the normal glyph pass, so a forced Home band must never overwrite a
-         // control already identified as a glyph. Recent-search clock/X leaves are
-         // also excluded by their exact Amazon ancestry even before __adGlyph lands.
-         "function _adTameUI626(e){try{if(!e)return false;var r=e.getBoundingClientRect();if(r.width<=0||r.height<=0||r.width>64||r.height>64)return false;if(e.__adGlyph)return true;var p=e,d=0,ctx='';while(p&&d++<5){var c=p.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));ctx+=' '+c+' '+String(p.id||'')+' '+String((p.getAttribute&&p.getAttribute('aria-label'))||'');p=p.parentElement;}return /s-suggestion-container|s-recentsearch|recentsearchdistinct|recentsearch|recent-search/i.test(ctx);}catch(x){return false;}}"
-         "function _adReleaseUI626(e){try{if(!e)return;var by=String(e.__adBy||''),tg=String(e.tagName||'').toUpperCase(),cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none'),mi=String(cs.maskImage||cs.webkitMaskImage||'none');if(by.indexOf('whiteTame')===0||by==='compactMedia373'||by==='stripMedia374'||by==='heroFast365'||by==='homeMedia395'){e.style.removeProperty('filter');e.style.removeProperty('background-blend-mode');e.style.removeProperty('background-color');}e.removeAttribute('data-ad-tame-fast362');e.removeAttribute('data-ad-tame-bgfast364');e.__adTamed=0;if(e.__adGlyph){if(mi!=='none')e.style.setProperty('background-color','#e8e6e3','important');else if(tg==='IMG'||bi!=='none')e.style.setProperty('filter','brightness(0) invert(1)','important');}}catch(x){}}"
          "function _adBgPlacement365(e){try{var p=e,d=0;while(p&&d++<4){var c=p.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));var id=String(p.id||''),cw=String((p.getAttribute&&p.getAttribute('data-cel-widget'))||'');if(/ape-placement|ape-wrapper|adfeedbackmaincomponent|ad-slot|adslot/i.test(c+' '+id+' '+cw))return true;if(p.querySelector&&p.querySelector('iframe')&&p.getBoundingClientRect().width>240)return true;p=p.parentElement;}return false;}catch(x){return false;}}function _adHomeBgLeaf395(e){try{if(window.__AD_TWB_FRAME_MODE446__||!e||!document.body||!window.__ADTAME_ON__)return false;if(document.querySelector('#search,.s-search-results,[data-component-type=\"s-search-result\"],#productTitle,#dp-container,#ppd'))return false;var c=e.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));if(!/theming-card-background|vjs-poster/i.test(c))return false;var p=e,u=0,ctx=c;while(p&&u++<7){ctx+=' '+String(p.className||'')+' '+String(p.id||'');if(/single-video-card|single-creative-card|video-card|video-js|vjs-|sbv-video|theming-card/i.test(ctx))break;p=p.parentElement;}if(!/single-video-card|single-creative-card|video-card|video-js|vjs-|sbv-video|theming-card/i.test(ctx))return false;var S=Math.max(0,Math.min(100,window.__ADTAME_S__||45)),aa=(0.50*(S/100)).toFixed(3);e.removeAttribute('data-ad-tame-bgfast364');e.removeAttribute('data-ad-tame-fast362');e.style.setProperty('filter','none','important');e.style.removeProperty('background-color');e.style.setProperty('background-blend-mode','normal','important');e.style.setProperty('box-shadow','inset 0 0 0 9999px rgba(0,0,0,'+aa+')','important');e.setAttribute('data-ad-homebg395','1');e.__adTamed=1;e.__adTameSig='HBG395|'+String(getComputedStyle(e).backgroundImage||'');e.__adBy='homeBgLeaf395';return true;}catch(x){return false;}}"
          "function _adKnownProduct366(e){try{if(!e)return false;var p=e,d=0;while(p&&d++<6){var c=p.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));var id=String(p.id||''),asin=String((p.getAttribute&&p.getAttribute('data-asin'))||''),href=String((p.getAttribute&&p.getAttribute('href'))||'');if(asin||/asin|product|p13n|npack|cxvhz|gwm-asin|carousel-image|product-image/i.test(c+' '+id)||href.indexOf('/dp/')>=0||href.indexOf('/gp/product/')>=0)return true;p=p.parentElement;}return false;}catch(x){return false;}}"
          "window.__AD_TWB_FRAME_MODE446__=(function(){try{if(window.top===window)return '';var u=String(document.referrer||'').toLowerCase(),prod=u.indexOf('/dp/')>=0||u.indexOf('/gp/aw/d/')>=0||u.indexOf('/gp/product/')>=0||u.indexOf('/s?')>=0||u.indexOf('/search')>=0||u.indexOf('?k=')>=0||u.indexOf('&k=')>=0||u.indexOf('field-keywords=')>=0;if(prod)return 'productad';return ((innerHeight||0)<180||((innerWidth||1)/(innerHeight||1))>2.25)?'standalone':'hero';}catch(e){return '';}})();"
@@ -969,17 +965,17 @@ static NSString *ADWhiteTameWebJS446(void){
            "(document.head||document.documentElement).appendChild(st);}catch(e){}}"
          "function _adTameFast362(root,full){try{if(!window.__ADTAME_ON__||!root||root.nodeType!==1)return 0;_adTameCss362();var mc446=full?360:100,ml446=full?420:120,bc446=full?900:120,bl446=full?930:130;var S365=Math.max(0,Math.min(100,window.__ADTAME_S__||45)),bb365=(1-0.50*(S365/100)).toFixed(3),aa365=(0.50*(S365/100)).toFixed(3);var A=[];"
            "if(/^(IMG|VIDEO|CANVAS)$/i.test(String(root.tagName||'')))A.push(root);try{var q=root.querySelectorAll('img,video,canvas');for(var i=0;i<q.length&&i<mc446;i++)A.push(q[i]);}catch(e){}"
-           "var n=0;for(var j=0;j<A.length&&j<ml446;j++){var x=A[j];if(_adTameUI626(x)){_adReleaseUI626(x);continue;}if(!_adNativeMediaOK615(x)){if(String(x.__adBy||'').indexOf('whiteTame')===0)x.style.removeProperty('filter');x.removeAttribute('data-ad-tame-fast362');x.__adTamed=0;continue;}var tg=String(x.tagName||'').toUpperCase(),cn=x.className;cn=String(cn&&cn.baseVal!==undefined?cn.baseVal:(cn||''));var band=_adTameBand362(x),xr=x.getBoundingClientRect(),prod366=(tg==='IMG'&&_adKnownProduct366(x)),review366=(band===3);"
+           "var n=0;for(var j=0;j<A.length&&j<ml446;j++){var x=A[j];if(!_adNativeMediaOK615(x)){if(String(x.__adBy||'').indexOf('whiteTame')===0)x.style.removeProperty('filter');x.removeAttribute('data-ad-tame-fast362');x.__adTamed=0;continue;}var tg=String(x.tagName||'').toUpperCase(),cn=x.className;cn=String(cn&&cn.baseVal!==undefined?cn.baseVal:(cn||''));var band=_adTameBand362(x),xr=x.getBoundingClientRect(),prod366=(tg==='IMG'&&_adKnownProduct366(x)),review366=(band===3);"
              "if(band<0||_adExploreIcon363(x)||_adNoTameGlyph367(x)){x.removeAttribute('data-ad-tame-fast362');if(String(x.__adBy||'').indexOf('whiteTame')===0)x.style.removeProperty('filter');x.__adTamed=0;x.__adBy='exploreSkip362';continue;}"
              "if(review366&&tg!=='IMG')continue;if(review366&&/sprite|icon|logo|pixel|star|rating|close/i.test(cn))continue;"
-             "if(x.__adGlyph){_adReleaseUI626(x);continue;}if(band!==2&&!review366&&!prod366&&/sprite|icon|logo|pixel/i.test(cn))continue;var ok=(tg==='VIDEO'||tg==='CANVAS');"
+             "if(band!==2&&!review366&&!prod366&&/sprite|icon|logo|pixel/i.test(cn))continue;if(x.__adGlyph&&band!==2&&!review366&&!prod366)continue;var ok=(tg==='VIDEO'||tg==='CANVAS');"
              "if(!ok&&tg==='IMG'){var nw=x.naturalWidth||+(x.getAttribute&&x.getAttribute('width')||0),nh=x.naturalHeight||+(x.getAttribute&&x.getAttribute('height')||0),mn=((band===2||review366||prod366)?24:56);ok=(nw>=mn&&nh>=mn)||((review366||prod366)&&xr.width>=24&&xr.height>=24);}"
              "if(!ok)continue;var want365='brightness('+bb365+') saturate(1.08)';x.setAttribute('data-ad-tame-fast362','1');if(String(x.style.getPropertyValue('filter')||'')!==want365||x.style.getPropertyPriority('filter')!=='important')x.style.setProperty('filter',want365,'important');x.__adTamed=1;x.__adTameSig=tg+'|'+String(x.currentSrc||x.src||x.poster||'');x.__adBy=(review366?'whiteTameReview366':(band===2?'whiteTameFast365ctx':'whiteTameFast365'));n++;}"
            // CSS-background ads were the remaining sporadic Home misses once the full
            // pass was intentionally delayed. Scan only a tiny local budget here and
            // mark the BACKGROUND layer; child text is never filtered.
            "var B=[];if(/^(DIV|SPAN|A|SECTION|LI)$/i.test(String(root.tagName||'')))B.push(root);try{var qb=root.querySelectorAll('div,span,a,section,li');for(var k=0;k<qb.length&&k<bc446;k++)B.push(qb[k]);}catch(e){}"
-           "var bg=0;for(var z=0;z<B.length&&z<bl446;z++){var be=B[z];if(_adTameUI626(be)){_adReleaseUI626(be);continue;}if(_adHomeBgLeaf395(be))continue;if(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(be)){if(String(be.__adBy||'').indexOf('whiteTameFastBg')===0){be.style.removeProperty('background-color');be.style.removeProperty('background-blend-mode');be.removeAttribute('data-ad-tame-bgfast364');be.__adTamed=0;}continue;}var bandb=_adTameBand362(be);if(bandb<0||bandb===3||_adExploreIcon363(be)||_adNoTameGlyph367(be)){be.removeAttribute('data-ad-tame-bgfast364');if(String(be.__adBy||'').indexOf('whiteTame')===0){be.style.removeProperty('background-color');be.style.removeProperty('background-blend-mode');be.__adBy='tameSkip365';}continue;}"
+           "var bg=0;for(var z=0;z<B.length&&z<bl446;z++){var be=B[z];if(_adHomeBgLeaf395(be))continue;if(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(be)){if(String(be.__adBy||'').indexOf('whiteTameFastBg')===0){be.style.removeProperty('background-color');be.style.removeProperty('background-blend-mode');be.removeAttribute('data-ad-tame-bgfast364');be.__adTamed=0;}continue;}var bandb=_adTameBand362(be);if(bandb<0||bandb===3||_adExploreIcon363(be)||_adNoTameGlyph367(be)){be.removeAttribute('data-ad-tame-bgfast364');if(String(be.__adBy||'').indexOf('whiteTame')===0){be.style.removeProperty('background-color');be.style.removeProperty('background-blend-mode');be.__adBy='tameSkip365';}continue;}"
              "if(_adBgPlacement365(be)||(be.hasAttribute&&be.hasAttribute('data-ad-productad367')))continue;var cs=getComputedStyle(be),bi=String(cs.backgroundImage||'none');if(bi.indexOf('url(')<0)continue;var br=be.getBoundingClientRect(),mn2=(bandb===2?32:56);if(br.width<mn2||br.height<mn2)continue;var bc=be.className;bc=String(bc&&bc.baseVal!==undefined?bc.baseVal:(bc||''));if(bandb!==2&&/sprite|icon|logo|pixel/i.test(bc))continue;be.setAttribute('data-ad-tame-bgfast364','1');be.style.setProperty('background-color','rgba(0,0,0,'+aa365+')','important');be.style.setProperty('background-blend-mode','multiply','important');be.__adTamed=1;be.__adTameSig='BG|'+bi;be.__adBy=(bandb===2?'whiteTameFastBg365ctx':'whiteTameFastBg365');bg++;}"
            "return n+bg;}catch(e){return 0;}}"
          "try{window._adTameFast362=_adTameFast362;window._adTameSpecial446=_adTameSpecial446;window._adScheduleTameSpecial446=function(root){try{window.__AD_TWB446_SPECIALROOT__=root||document.documentElement;if(window.__AD_TWB446_SPECIALPEND__)return;window.__AD_TWB446_SPECIALPEND__=1;setTimeout(function(){try{window.__AD_TWB446_SPECIALPEND__=0;var r=window.__AD_TWB446_SPECIALROOT__||document.documentElement;window.__AD_TWB446_SPECIALROOT__=null;_adTameSpecial446(r);}catch(e){}},140);}catch(e){}};window._adScheduleTameFull446=function(delay){try{if(window.__AD_TWB446_FULLPEND__)return;var now=Date.now(),wait=Math.max(delay||0,Math.max(0,1200-(now-(window.__AD_TWB446_LASTFULL__||0))));window.__AD_TWB446_FULLPEND__=1;setTimeout(function(){var run=function(){try{window.__AD_TWB446_FULLPEND__=0;window.__AD_TWB446_LASTFULL__=Date.now();_adTameFast362(document.documentElement,true);_adTameSpecial446(document.documentElement);}catch(e){window.__AD_TWB446_FULLPEND__=0;}};try{if(window.requestIdleCallback)requestIdleCallback(run,{timeout:700});else run();}catch(e){run();}},wait);}catch(e){}};_adTameCss362();_adTameFast362(document.documentElement);_adTameSpecial446(document.documentElement);window._adScheduleTameFull446(650);document.addEventListener('load',function(e){try{_adTameFast362(e.target);if(_adSpecialRelevant446(e.target))window._adScheduleTameSpecial446(e.target);}catch(x){}},true);window.addEventListener('pageshow',function(){try{window._adScheduleTameFull446(260);}catch(e){}},{passive:true});}catch(e){}"
@@ -990,11 +986,49 @@ static NSString *ADWhiteTameWebJS446(void){
     return gADTameWeb613;
 }
 
+// v6.0.27 TWB architecture experiment.
+// Keep the exact v5.446-derived scanner in source for A/B recovery, but production
+// uses assignment/CSS ownership so TWB does no DOM recovery walk while scrolling.
+static const BOOL kADLegacyTWB6027 = NO;
+
+static NSString *ADWhiteTameWebJS6027(void){
+    if (!gP.enabled || !gP.whiteTame) return nil;
+    CGFloat s=MAX(0,MIN(100,gP.whiteTameStrength));
+    CGFloat b=1.0-(0.50*(s/100.0));
+    return [NSString stringWithFormat:
+        @"(function(){try{"
+         "var id='ad-twb6027',st=document.getElementById(id);"
+         "if(!st){st=document.createElement('style');st.id=id;(document.head||document.documentElement).appendChild(st);}"
+         "var css='html body :is(' +"
+           "'img.s-image,'+"
+           "'.s-product-image-container img,'+"
+           "'[data-component-type=\\\"s-product-image\\\"] img,'+"
+           "'[data-component-type=\\\"s-search-result\\\"] img,'+"
+           "'#dp-container img.a-dynamic-image,'+"
+           "'#ppd img.a-dynamic-image,'+"
+           "'#landingImage,'+"
+           "'#imgTagWrapperId img,'+"
+           "'.a-carousel-card img.a-dynamic-image,'+"
+           "'img.a-amazon-image,'+"
+           "'[class*=\\\"_gwm-asin-tile\\\"] img,'+"
+           "'img[class*=\\\"_np\\\"],'+"
+           "'[class*=\\\"product-image\\\"] img' +"
+         "'):not([class*=\\\"icon\\\"]):not([class*=\\\"logo\\\"]):not([class*=\\\"avatar\\\"]):not([class*=\\\"profile\\\"]):not([class*=\\\"merchant\\\"]):not([class*=\\\"seller\\\"]):not([class*=\\\"brand\\\"]):not([class*=\\\"store\\\"]):not([class*=\\\"sprite\\\"]){filter:brightness(%.3f) saturate(1.08)!important;}'+"
+         "'html body :is(.s-suggestion,.s-suggestion-container,[class*=\\\"recentSearch\\\"],[class*=\\\"search-suggestion\\\"],[class*=\\\"avatar\\\"],[class*=\\\"profile\\\"],[class*=\\\"merchant\\\"],[class*=\\\"seller\\\"],[class*=\\\"brand\\\"],[class*=\\\"store\\\"],[class*=\\\"logo\\\"]) img{filter:none!important;}';"
+         "if(st.textContent!==css)st.textContent=css;"
+         "window.__AD_TWB6027_INSTALLED__=1;"
+         "}catch(e){}})();", b];
+}
+
+static NSString *ADWhiteTameWebJS446(void){
+    return kADLegacyTWB6027 ? ADWhiteTameLegacyWebJS446() : ADWhiteTameWebJS6027();
+}
+
 static void ADAttachWhiteTameUserScript446(WKUserContentController *ucc){
     if (!ucc || !gP.enabled || !gP.whiteTame) return;
     @try {
         for (WKUserScript *existing in ucc.userScripts){
-            if ([existing.source containsString:@"__AD_TWB446_INSTALLED__"]) return;
+            if ([existing.source containsString:@"__AD_TWB6027_INSTALLED__"] || [existing.source containsString:@"__AD_TWB446_INSTALLED__"]) return;
         }
         NSString *js=ADWhiteTameWebJS446();
         if(!js.length)return;
@@ -1138,11 +1172,6 @@ static NSString *ADThreeSymbolsWebJS605(void){
          // adaptation is scheduling: v6.0.19 already owns mutation/scroll recovery.
          "function dotFix374(){try{var U=document.querySelectorAll('ul.a-pagination.a-dots,[class*=a-pagination][class*=dots]'),n=0,total=0;for(var u=0;u<U.length&&u<8;u++){var D=U[u].querySelectorAll('li');for(var i=0;i<D.length&&i<30;i++){var d=D[i];total++;var cl=String(d.className||''),ac=String(d.getAttribute&&d.getAttribute('aria-current')||'').toLowerCase(),as=String(d.getAttribute&&d.getAttribute('aria-selected')||'').toLowerCase(),ds=String(d.getAttribute&&d.getAttribute('data-selected')||'').toLowerCase(),kid=null;try{kid=d.querySelector('.a-selected,.dot-selected-t2,[aria-current=true],[aria-current=page],[aria-selected=true],[data-selected=true]');}catch(ex){}var sel=/(^|\\s)(a-selected|dot-selected-t2)(\\s|$)/.test(cl)||ac==='true'||ac==='page'||as==='true'||ds==='true'||!!kid;if(sel){if(d.hasAttribute&&d.hasAttribute('data-darkreader-inline-bgcolor'))d.removeAttribute('data-darkreader-inline-bgcolor');d.style.setProperty('--darkreader-inline-bgcolor','#ffffff','important');d.style.setProperty('background-color','#ffffff','important');d.style.setProperty('border-color','#ffffff','important');d.setAttribute('data-ad-dotselected374','1');d.setAttribute('data-ad-dotfix','1');n++;}else{if(d.getAttribute&&d.getAttribute('data-ad-dotfix')==='1'){d.style.removeProperty('--darkreader-inline-bgcolor');d.style.removeProperty('background-color');d.style.removeProperty('border-color');d.removeAttribute('data-ad-dotfix');}d.removeAttribute&&d.removeAttribute('data-ad-dotselected374');}}}window.__AD_DOTFIX__=n;window.__AD_DOTTOTAL374__=total;}catch(e){}}"
          "window.__AD_DOTFIX374__=dotFix374;try{dotFix374();}catch(e){}"
-         // v6.0.26: direct v5.446 PDP Share runtime owner. Amazon frequently
-         // renders the share artwork as a nested background-image or mask rather
-         // than an <img>, so selector-only CSS cannot reliably see the painter.
-         "function shareFix382(){try{var S=document.querySelectorAll('.ssf-share-trigger'),hosts=0,paint=0,vec=0;for(var i=0;i<S.length&&i<20;i++){var h=S[i],r=h.getBoundingClientRect();if(r.width<8||r.height<8)continue;hosts++;h.removeAttribute('data-ad-share377');h.setAttribute('data-ad-share382','1');h.style.setProperty('color','#fff','important');h.style.setProperty('-webkit-text-fill-color','#fff','important');h.style.setProperty('opacity','1','important');var A=h.querySelectorAll('*');for(var j=0;j<A.length&&j<90;j++){var a=A[j],ar=a.getBoundingClientRect();if(ar.width>100||ar.height>100)continue;var tg=String(a.tagName||'').toUpperCase(),cs=getComputedStyle(a),bi=String(cs.backgroundImage||'none'),mi=String(cs.maskImage||cs.webkitMaskImage||'none');if(tg==='SVG'||tg==='PATH'||tg==='POLYGON'||tg==='USE'){a.style.setProperty('fill','#fff','important');a.style.setProperty('stroke','#fff','important');a.style.setProperty('color','#fff','important');a.style.setProperty('opacity','1','important');vec++;continue;}if(tg==='IMG'||tg==='I'||bi!=='none'||mi!=='none'){a.setAttribute('data-ad-sharepaint382','1');a.style.setProperty('opacity','1','important');a.style.setProperty('background-color','transparent','important');a.__adGlyph=1;a.__adBy='share382';paint++;}}}window.__AD_SHARE382__='hosts='+hosts+' paint='+paint+' vec='+vec;}catch(e){window.__AD_SHARE382__='err '+e;}}"
-         "window.__AD_SHAREFIX382__=shareFix382;try{shareFix382();setTimeout(shareFix382,40);setTimeout(shareFix382,180);setTimeout(shareFix382,700);setTimeout(shareFix382,1800);}catch(e){}"
          // v5.441 DEVICE-CAPTURED STOCK CHECKBOX + SHARED 32PX CHROME. Amazon
          // remains the sole owner of geometry, hit testing, state, and the checked
          // blue/checkmark sprite. Device P14 names Cart's hierarchy precisely:
@@ -1191,14 +1220,14 @@ static NSString *ADThreeSymbolsWebJS605(void){
            "window.__AD_CHECKBOX434_STATE__='hosts='+hosts434.length+' art='+arts434.length+' unchecked='+unchecked434+' checked='+checked434+' cart='+(cart434?1:0)+' shells='+cartShell434+' cleaned='+cleaned434+' skip='+skip434;return hosts434.length;"
          "}catch(e){window.__AD_CHECKBOX434_STATE__='err '+(e&&e.message||e);return -1;}finally{window.__AD_CHECKBOX434_RUNNING__=0;}}"
          "try{window.__AD_CHECKBOX434__=stockCheckbox434;if(!window.__AD_CHECKBOX434_WRAP__){window.__AD_CHECKBOX434_WRAP__=1;"
-           "window.__AD_PRODUCTCTRL391_PRE434__=window.__AD_PRODUCTCTRL391RUN__;window.__AD_PRODUCTCTRL391RUN__=function(){var r=window.__AD_PRODUCTCTRL391_PRE434__?window.__AD_PRODUCTCTRL391_PRE434__():0;try{window.__AD_CHECKBOX434__();}catch(x){}try{window.__AD_DOTFIX374__&&window.__AD_DOTFIX374__();}catch(x){}try{window.__AD_SHAREFIX382__&&window.__AD_SHAREFIX382__();}catch(x){}return r;};"
-           "function queue434(delay){try{clearTimeout(window.__AD_CHECKBOX434_T__);window.__AD_CHECKBOX434_T__=setTimeout(function(){try{window.__AD_CHECKBOX434__();}catch(x){}try{window.__AD_DOTFIX374__&&window.__AD_DOTFIX374__();}catch(x){}try{window.__AD_SHAREFIX382__&&window.__AD_SHAREFIX382__();}catch(x){}},delay||70);}catch(x){}}"
+           "window.__AD_PRODUCTCTRL391_PRE434__=window.__AD_PRODUCTCTRL391RUN__;window.__AD_PRODUCTCTRL391RUN__=function(){var r=window.__AD_PRODUCTCTRL391_PRE434__?window.__AD_PRODUCTCTRL391_PRE434__():0;try{window.__AD_CHECKBOX434__();}catch(x){}try{window.__AD_DOTFIX374__&&window.__AD_DOTFIX374__();}catch(x){}return r;};"
+           "function queue434(delay){try{clearTimeout(window.__AD_CHECKBOX434_T__);window.__AD_CHECKBOX434_T__=setTimeout(function(){try{window.__AD_CHECKBOX434__();}catch(x){}try{window.__AD_DOTFIX374__&&window.__AD_DOTFIX374__();}catch(x){}},delay||70);}catch(x){}}"
            "new MutationObserver(function(){queue434(70);}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','aria-current','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});}"
            "stockCheckbox434();setTimeout(stockCheckbox434,40);setTimeout(stockCheckbox434,180);setTimeout(stockCheckbox434,700);setTimeout(stockCheckbox434,1800);"
          "}catch(e){}"
          // Tiny 6.x reapply entry point only. It does not alter either donor owner.
          "window.__AD_SYM605_RUN__=sym413;"
-         "window.__AD_SYM605_QUEUE__=function(){try{if(window.__AD_SYM605_Q__)return;window.__AD_SYM605_Q__=1;var f=function(){window.__AD_SYM605_Q__=0;try{window.__AD_HEARTSHELL427__();}catch(x){}try{sym413();}catch(x){}try{window.__AD_CHECKBOX434__&&window.__AD_CHECKBOX434__();}catch(x){}try{window.__AD_DOTFIX374__&&window.__AD_DOTFIX374__();}catch(x){}try{window.__AD_SHAREFIX382__&&window.__AD_SHAREFIX382__();}catch(x){}};if(window.requestAnimationFrame)requestAnimationFrame(f);else setTimeout(f,0);}catch(e){}};"
+         "window.__AD_SYM605_QUEUE__=function(){try{if(window.__AD_SYM605_Q__)return;window.__AD_SYM605_Q__=1;var f=function(){window.__AD_SYM605_Q__=0;try{window.__AD_HEARTSHELL427__();}catch(x){}try{sym413();}catch(x){}try{window.__AD_CHECKBOX434__&&window.__AD_CHECKBOX434__();}catch(x){}try{window.__AD_DOTFIX374__&&window.__AD_DOTFIX374__();}catch(x){}};if(window.requestAnimationFrame)requestAnimationFrame(f);else setTimeout(f,0);}catch(e){}};"
          "try{if(!window.__AD_SYM_SCROLL619__){window.__AD_SYM_SCROLL619__=1;addEventListener('scroll',function(){clearTimeout(window.__AD_SYM_SCROLL_T619__);window.__AD_SYM_SCROLL_T619__=setTimeout(function(){try{window.__AD_SYM605_QUEUE__();}catch(x){}},140);},{passive:true,capture:true});}}catch(e){}"
          "try{window.__AD_SYM605_QUEUE__();}catch(e){}"
        "return 'sym609';}catch(e){return 'sym609err '+(e&&e.message||e);}})();"];
@@ -2733,6 +2762,7 @@ static const void *kADTWBScrollPend446 = &kADTWBScrollPend446;
     %orig;
     @try {
         if(!gP.enabled||!gP.whiteTame||!self.window||ADIsWebKitOwned(self))return;
+        if(!kADLegacyTWB6027)return;
         // v6.0.23: retain the v6.0.19 React recovery, and recover ordinary native
         // horizontal image carousels without restoring v5.446's every-scroll whole-tree
         // sweep. Non-React lanes are geometry-gated and use a 72-view budget.
@@ -3545,7 +3575,95 @@ static int ADWTStableContext365(UIView *v){
     } @catch(...) {}
     return ctx;
 }
+// v6.0.27 direct native TWB owner. Classification happens on image assignment and
+// is cached on the UIImageView for that exact UIImage. Layout/reapply calls only keep
+// the already-owned overlay sized correctly; they do not walk section trees.
+static const void *kADTWBCachedImage6027 = &kADTWBCachedImage6027;
+static const void *kADTWBDecision6027 = &kADTWBDecision6027;
+
+static void ADNativeTWBRelease6027(UIImageView *iv){
+    if(!iv) return;
+    @try {
+        CALayer *ov=objc_getAssociatedObject(iv,kADWhiteTameOverlayKey);
+        if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(iv,kADWhiteTameOverlayKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
+    } @catch(...) {}
+}
+
+static BOOL ADNativeTWBUIChain6027(UIImageView *iv){
+    if(!iv) return YES;
+    @try {
+        if(ADInTabBarChain(iv)||ADIsChromeGlyphContext(iv)) return YES;
+        UIView *p=iv; int up=0;
+        while(p&&up++<6){
+            const char *c=object_getClassName(p);
+            if(c&&(strstr(c,"Button")||strstr(c,"Search")||strstr(c,"Navigation")||
+                   strstr(c,"TabBar")||strstr(c,"Icon")||strstr(c,"Glyph")||
+                   strstr(c,"Symbol")||strstr(c,"Avatar")||strstr(c,"Profile")||
+                   strstr(c,"Logo")||strstr(c,"Badge")||strstr(c,"Checkbox")||
+                   strstr(c,"Radio")||strstr(c,"Rating")||strstr(c,"Star"))) return YES;
+            p=p.superview;
+        }
+        NSString *aid=[iv.accessibilityIdentifier lowercaseString];
+        if(aid.length&&([aid containsString:@"icon"]||[aid containsString:@"logo"]||
+                       [aid containsString:@"avatar"]||[aid containsString:@"profile"]||
+                       [aid containsString:@"search"]||[aid containsString:@"history"]||
+                       [aid containsString:@"close"]||[aid containsString:@"share"]||
+                       [aid containsString:@"camera"]||[aid containsString:@"microphone"])) return YES;
+    } @catch(...) {}
+    return NO;
+}
+
+static void ADApplyNativeWhiteTameDirect6027(UIView *v){
+    if(![v isKindOfClass:[UIImageView class]]) return;
+    UIImageView *iv=(UIImageView *)v;
+    @try {
+        UIImage *im=iv.image;
+        if(!gP.enabled||!gP.whiteTame||!iv.window||ADIsWebKitOwned(iv)||!im){
+            ADNativeTWBRelease6027(iv);
+            objc_setAssociatedObject(iv,kADTWBCachedImage6027,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADTWBDecision6027,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            return;
+        }
+        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
+        // Do not cache unresolved geometry; a recycled RN image often receives its
+        // bitmap before layout and should get one classification when bounds arrive.
+        if(w<1||h<1) return;
+        if(w<48||h<48||w>1200||h>1200||ADImageIsTemplateish(im)||ADNativeTWBUIChain6027(iv)){
+            // Geometry/context can change without another setImage: during RN reuse.
+            // Release visual ownership but keep the cached image-lightness decision
+            // available if the same view later becomes eligible again.
+            ADNativeTWBRelease6027(iv);
+            return;
+        }
+        UIImage *cached=objc_getAssociatedObject(iv,kADTWBCachedImage6027);
+        NSNumber *decision=objc_getAssociatedObject(iv,kADTWBDecision6027);
+        BOOL own=NO;
+        if(cached==im&&decision){
+            own=decision.boolValue;
+        } else {
+            // The sampler result itself is cached on UIImage, so a recycled image used
+            // in multiple cells incurs the 12x12 sample only once for the entire app.
+            own=ADWTImageLight363(im);
+            objc_setAssociatedObject(iv,kADTWBCachedImage6027,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADTWBDecision6027,@(own),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        if(!own){ ADNativeTWBRelease6027(iv); return; }
+        CGFloat a=0.50*(MAX(0,MIN(100,gP.whiteTameStrength))/100.0);
+        CALayer *ov=objc_getAssociatedObject(iv,kADWhiteTameOverlayKey);
+        if(!ov){
+            ov=[CALayer layer]; ov.name=@"AmazonDarkWhiteTame6027";
+            [iv.layer addSublayer:ov];
+            objc_setAssociatedObject(iv,kADWhiteTameOverlayKey,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        } else if(ov.superlayer!=iv.layer) [iv.layer addSublayer:ov];
+        ov.frame=iv.bounds;
+        ov.cornerRadius=iv.layer.cornerRadius;
+        ov.backgroundColor=[UIColor colorWithWhite:0 alpha:a].CGColor;
+        ov.zPosition=9999;
+    } @catch(...) {}
+}
+
 static void ADApplyNativeWhiteTameView(UIView *v){
+    if(!kADLegacyTWB6027){ ADApplyNativeWhiteTameDirect6027(v); return; }
     @try {
         if (!v || ADIsWebKitOwned(v)) return;
         if (ADMenuRole382(v)!=0) {
@@ -3558,16 +3676,6 @@ static void ADApplyNativeWhiteTameView(UIView *v){
         UIImage *ivImage=isIV ? ((UIImageView *)v).image : nil;
         BOOL hasMedia=isIV ? (ivImage!=nil) : (v.layer.contents!=nil);
         CALayer *ov=objc_getAssociatedObject(v,kADWhiteTameOverlayKey);
-        // v6.0.26: a glyph that has already been templated/owned by the native
-        // glyph path must beat TWB even when stale Home section bands say ctx=2.
-        // This is the native counterpart to the web __adGlyph exclusion above.
-        // Product artwork is AlwaysOriginal and does not enter this branch.
-        if (isIV && ivImage && v.bounds.size.width<=64 && v.bounds.size.height<=64 &&
-            ADImageIsTemplateish(ivImage)) {
-            if (ov) { [ov removeFromSuperlayer]; objc_setAssociatedObject(v,kADWhiteTameOverlayKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
-            objc_setAssociatedObject(v,kADWTForcedImage364,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            return;
-        }
         if (!hasMedia || (!isIV && v.subviews.count>0) ||
             v.bounds.size.width < 28 || v.bounds.size.height < 28) {
             if (ov) { [ov removeFromSuperlayer]; objc_setAssociatedObject(v,kADWhiteTameOverlayKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
@@ -3634,6 +3742,7 @@ static void ADApplyNativeWhiteTameView(UIView *v){
     } @catch(...) {}
 }
 static void ADPrimeNativeWhiteTame363(UIView *v, UIImage *incoming){
+    if(!kADLegacyTWB6027) return;
     @try {
         if(!v||!gP.enabled||!gP.whiteTame||!v.window||ADIsWebKitOwned(v)) return;
         if(ADMenuRole382(v)!=0){ CALayer *menuOv=objc_getAssociatedObject(v,kADWhiteTameOverlayKey); if(menuOv){[menuOv removeFromSuperlayer];objc_setAssociatedObject(v,kADWhiteTameOverlayKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);} objc_setAssociatedObject(v,kADWTForcedImage364,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); return; }
@@ -3778,7 +3887,7 @@ static void ADApplyNativeWhiteTame(UIImageView *iv){ ADApplyNativeWhiteTameView(
         // caches per source image so each is processed at most once; if the key
         // declines (ambiguous / not white-studio) the original is kept untouched.
         ADApplyNativeWhiteTame(self);
-        ADSubscribeOverlay394(self);
+        if(kADLegacyTWB6027) ADSubscribeOverlay394(self);
 
         if (gP.imageKeyBackground){
             UIImage *img = self.image;
@@ -3985,7 +4094,6 @@ static void ADReassertNativeGlyph624(UIImageView *iv){
         UIColor *fg=ADColorFromHex(gP.fgHex);
         if (ADImageIsTemplateish(im) || ADIsModifiedImage(im)){
             iv.tintColor=fg;
-            if (gP.whiteTame) ADApplyNativeWhiteTameView(iv);
             return;
         }
         UIImage *tpl=ADGlyphifyForView(im,iv);
@@ -3994,7 +4102,6 @@ static void ADReassertNativeGlyph624(UIImageView *iv){
             iv.image=tpl;
             gADGlyphWriting=NO;
             iv.tintColor=fg;
-            if (gP.whiteTame) ADApplyNativeWhiteTameView(iv);
         }
     } @catch(...) { gADGlyphWriting=NO; }
 }
@@ -4024,15 +4131,17 @@ static void ADScheduleGlyphLift624(UIImageView *iv){
     }
     if (!image || ADIsWebKitOwned(self)) {
         %orig;
+        if(!kADLegacyTWB6027 && !image) ADNativeTWBRelease6027(self);
         return;
     }
     // Detached: nothing to walk yet. Defer to didMoveToWindow, where ancestry -- and
     // therefore the tab-bar test -- is knowable.
     if (!self.superview && !self.window) {
         %orig;
+        if(!kADLegacyTWB6027) ADNativeTWBRelease6027(self);
         return;
     }
-    @try { if (gP.whiteTame && self.window && !ADInTabBarChain(self)) ADPrimeNativeWhiteTame363(self,image); } @catch(...) {}
+    @try { if (kADLegacyTWB6027 && gP.whiteTame && self.window && !ADInTabBarChain(self)) ADPrimeNativeWhiteTame363(self,image); } @catch(...) {}
     @try {
         // THE tab-bar fix. The dump proved unselected tab icons are dark BITMAPS
         // going invisible on the dark bar, so we still convert them. What we must NOT
@@ -4042,6 +4151,7 @@ static void ADScheduleGlyphLift624(UIImageView *iv){
         // conversion.
         if (ADInTabBarChain(self)) {
             %orig;                                       // install the artwork
+            if(!kADLegacyTWB6027) ADNativeTWBRelease6027(self);
             ADTintBarIcon(self, ADViewIsSelectedInBar(self));  // then templatise + colour
             return;
         }
@@ -4065,6 +4175,7 @@ static void ADScheduleGlyphLift624(UIImageView *iv){
 - (void)didMoveToSuperview {
     %orig;
     if (!gP.enabled || !gP.whiteTame) return;
+    if(!kADLegacyTWB6027){ ADApplyNativeWhiteTameDirect6027((UIView *)self); return; }
     @try {
         UIView *vv=(UIView *)self; ADSubscribeOverlay394(vv);
         __weak UIView *wv=vv;
@@ -4076,6 +4187,10 @@ static void ADScheduleGlyphLift624(UIImageView *iv){
     %orig;
     @try {
         UIView *vv=(UIView *)self;
+        if(!kADLegacyTWB6027){
+            if(gP.enabled&&gP.whiteTame&&vv.window) ADApplyNativeWhiteTameDirect6027(vv);
+            return;
+        }
         if (gP.enabled && gP.whiteTame && vv.window &&
             vv.bounds.size.width >= 24 && vv.bounds.size.height >= 24 &&
             vv.bounds.size.width <= 280 && vv.bounds.size.height <= 280)

@@ -125,13 +125,15 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
-## v6.0.26
+## v6.0.27
 
-- Based directly on v6.0.24; the discarded v6.0.25 experiment is not included.
-- Fixes the TWB-only recent-search clock/X regression on both render paths: web TWB can no longer reclaim known glyphs (including `s-suggestion-container` / recent-search controls) through a stale forced Home band, and native TWB releases its overlay from small template glyphs even when a forced product-section context is cached.
-- Restores v5.446's dedicated PDP Share runtime owner (`shareFix382`) so background-image, mask, raster and SVG share painters are marked and forced white after hydration.
-- Share repair piggybacks on the existing product-control/mutation/shared post-scroll schedulers and restores the donor's bounded late 1.8 s convergence; no new MutationObserver or scroll listener is added.
-- Existing v6.0.24 carousel-dot, TWB coverage, JIT broker, 120 Hz and performance scheduling remain otherwise unchanged.
+- Replaces production TWB recovery scans with a direct ownership experiment built from v6.0.24.
+- Native TWB classifies an eligible UIImageView once when its UIImage is assigned, caches the decision for that exact image, and maintains one overlay layer.
+- Native TWB no longer runs the React/horizontal-scroll descendant recovery in production mode.
+- Web TWB is declarative CSS over known Amazon product-image selectors; no TWB MutationObserver, idle full scan, or special media scheduler runs in production mode.
+- The v5.446-derived legacy TWB engines remain in source behind `kADLegacyTWB6027 = NO` for A/B fallback, but are not executed.
+- Product-image lightness sampling remains 12x12 and cached per UIImage.
+- Based directly on v6.0.24; discarded v6.0.25/v6.0.26 experiments are not included.
 
 ## v6.0.24
 
