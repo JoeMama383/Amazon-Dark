@@ -21,6 +21,11 @@
 #import <UIKit/UIKit.h>
 #import <notify.h>
 #import <objc/runtime.h>
+#import <dlfcn.h>
+#import <limits.h>
+#import <string.h>
+#import <stdint.h>
+#import <sys/types.h>
 
 static NSString * const kAMZ      = @"com.amazon.Amazon";
 static NSString * const kDefaults = @"com.colindavidr.amazondark";
@@ -346,6 +351,92 @@ static void ADPresentCover(void) {
     } @catch (__unused NSException *e) {}
 }
 
+
+// ── v6.0.21 Dopamine JIT broker ─────────────────────────────────────────────
+// Dopamine protects jbclient_platform_set_process_debugged behind its Platform
+// jbserver domain. SpringBoard is a platform binary; Amazon is not. Keep this
+// broker narrow: it accepts only a PID that resolves to Amazon.app/Amazon and
+// performs one synchronous Dopamine call, then publishes the result.
+//
+// Transport uses Darwin notify state. No helper daemon, process enumeration,
+// polling in SpringBoard, or persistent elevated state is introduced.
+#define AD_JIT_REQ_NOTIFY_621 "com.colindavidr.amazondark/jit-request-621"
+#define AD_JIT_RES_NOTIFY_621 "com.colindavidr.amazondark/jit-result-621"
+#define AD_JIT_RC_NO_BACKEND_621 (-1001)
+#define AD_JIT_RC_EXCEPTION_621  (-1002)
+#define AD_JIT_RC_BAD_PID_621    (-1003)
+
+static uint64_t ADSBJITWireState621(pid_t pid, uint16_t nonce, BOOL enable, int rc){
+    return (((uint64_t)((uint32_t)pid & 0x7fffffffU)) << 33) |
+           (((uint64_t)nonce) << 17) |
+           ((uint64_t)(enable ? 1U : 0U) << 16) |
+           ((uint16_t)(int16_t)rc);
+}
+static pid_t ADSBJITWirePID621(uint64_t state){ return (pid_t)((state >> 33) & 0x7fffffffU); }
+static uint16_t ADSBJITWireNonce621(uint64_t state){ return (uint16_t)((state >> 17) & 0xffffU); }
+static BOOL ADSBJITWireEnable621(uint64_t state){ return ((state >> 16) & 1U) ? YES : NO; }
+
+static BOOL ADSBIsAmazonPID621(pid_t pid){
+    if (pid <= 1) return NO;
+    typedef int (*ADProcPidPathFn621)(int, void *, uint32_t);
+    static ADProcPidPathFn621 procPidPath = NULL;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        procPidPath = (ADProcPidPathFn621)dlsym(RTLD_DEFAULT, "proc_pidpath");
+        if (!procPidPath){
+            void *h = dlopen("/usr/lib/libproc.dylib", RTLD_LAZY | RTLD_LOCAL);
+            if (h) procPidPath = (ADProcPidPathFn621)dlsym(h, "proc_pidpath");
+        }
+    });
+    if (!procPidPath) return NO;
+
+    char path[PATH_MAX] = {0};
+    int n = procPidPath((int)pid, path, (uint32_t)sizeof(path));
+    if (n <= 0 || !path[0]) return NO;
+    size_t len = strlen(path);
+    const char *suffix = "/Amazon.app/Amazon";
+    size_t slen = strlen(suffix);
+    return len >= slen && strcmp(path + len - slen, suffix) == 0;
+}
+
+static void ADSBHandleJITRequest621(int token){
+    @autoreleasepool {
+        @try {
+            uint64_t req = 0;
+            if (notify_get_state(token, &req) != NOTIFY_STATUS_OK) return;
+            pid_t pid = ADSBJITWirePID621(req);
+            uint16_t nonce = ADSBJITWireNonce621(req);
+            BOOL enable = ADSBJITWireEnable621(req);
+            int rc = AD_JIT_RC_EXCEPTION_621;
+
+            if (!ADSBIsAmazonPID621(pid)){
+                rc = AD_JIT_RC_BAD_PID_621;
+            } else {
+                typedef int (*ADSetProcessDebuggedFn621)(uint64_t, bool);
+                ADSetProcessDebuggedFn621 fn =
+                    (ADSetProcessDebuggedFn621)dlsym(RTLD_DEFAULT, "jbclient_platform_set_process_debugged");
+                if (!fn){
+                    rc = AD_JIT_RC_NO_BACKEND_621;
+                } else {
+                    @try { rc = fn((uint64_t)pid, enable ? true : false); }
+                    @catch (__unused NSException *e) { rc = AD_JIT_RC_EXCEPTION_621; }
+                }
+            }
+
+            int resToken = 0;
+            if (notify_register_check(AD_JIT_RES_NOTIFY_621, &resToken) == NOTIFY_STATUS_OK){
+                uint64_t res = ADSBJITWireState621(pid, nonce, enable, rc);
+                notify_set_state(resToken, res);
+                notify_post(AD_JIT_RES_NOTIFY_621);
+                notify_cancel(resToken);
+            }
+            ADSBLog([NSString stringWithFormat:@"JIT broker pid=%d enable=%d rc=%d", pid, enable ? 1 : 0, rc]);
+        } @catch (__unused NSException *e) {
+            ADSBLog(@"JIT broker exception");
+        }
+    }
+}
+
 %hook SBSceneView
 - (void)didMoveToWindow {
     %orig;
@@ -390,6 +481,16 @@ static void ADPresentCover(void) {
 %end
 
 %ctor {
+    // Dopamine JIT broker: one event-driven request channel. SpringBoard is the
+    // platform-authorized caller; the handler itself validates Amazon's PID.
+    @try {
+        static int adJITToken621 = 0;
+        notify_register_dispatch(AD_JIT_REQ_NOTIFY_621, &adJITToken621,
+                                 dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^(int t){
+            ADSBHandleJITRequest621(t);
+        });
+    } @catch (__unused NSException *e) {}
+
     // Event-driven dismissal, matching the system: the launch screen leaves at
     // the app's first frame, not on a timer. The app posts this once its UI is
     // up; the kCoverHold timer stays only as a fallback for a launch where the

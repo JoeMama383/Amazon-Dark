@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.20"
+#define AD_VERSION "v6.0.21"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -119,7 +119,7 @@ typedef struct {
     BOOL  nativeRecolor;      // Dark Reader colour engine over native (non-web) content
     BOOL  whiteTame;          // v5.446: tame blown-out studio backgrounds
     BOOL  force120Hz;         // v5.446: request ProMotion maximum
-    BOOL  enableJIT;          // v6.0.20: jailbreak-backed JIT/debug state
+    BOOL  enableJIT;          // v6.0.21: Dopamine per-app JIT broker
     long  whiteTameStrength;  // v5.446: 0-100 tame strength
     long  brightness;         // Dark Reader 0..100+ (default 100)
     long  contrast;           // Dark Reader 0..100+ (default 100)
@@ -228,16 +228,19 @@ static void ADLoadPrefs(void){
     ADSyncColorEngine();
 }
 
-// ── DOPAMINE JIT ENABLEMENT / OWNERSHIP DIAGNOSTIC (v6.0.20) ────────────────
-// Current Dopamine exposes jbclient_platform_set_process_debugged(pid, true) through
-// systemhook/libjailbreak. Older Dopamine builds exposed jbdswDebugMe(). Prefer the
-// current API and retain the legacy symbol only as a compatibility fallback.
+// ── DOPAMINE PER-APP JIT BROKER + VERIFICATION (v6.0.21) ───────────────────
+// Dopamine's jbclient_platform_set_process_debugged() lives in the Platform
+// jbserver domain. That domain intentionally rejects normal App Store callers;
+// SpringBoard is a platform process, so AmazonDark's existing SpringBoard
+// component brokers this one request. Amazon never receives elevated privileges.
 //
-// Keep this path deliberately small and observable:
-//   OFF: never call either backend; report the process baseline.
-//   ON:  call exactly one backend once; report visible + raw-kernel csflags before
-//        and after. The raw syscall bypasses Dopamine's csops presentation hook,
-//        which may intentionally mask CS_DEBUGGED in userspace.
+// Request/response transport is Darwin notify state only (no files, process scan,
+// helper daemon, timer loop, or SpringBoard polling). The broker validates that the
+// requested PID is Amazon before touching it.
+//
+// Verification reads csflags two ways:
+//   1) normal csops() — what the process sees after Dopamine's presentation hook;
+//   2) raw SYS_csops — the kernel state, authoritative for this diagnostic.
 #ifndef CS_OPS_STATUS
 #define CS_OPS_STATUS 0
 #endif
@@ -245,10 +248,15 @@ static void ADLoadPrefs(void){
 #define CS_DEBUGGED 0x10000000
 #endif
 #ifndef SYS_csops
-// Apple XNU bsd/kern/syscalls.master: csops is syscall 169.
 #define SYS_csops 169
 #endif
 extern "C" int csops(pid_t pid, unsigned int ops, void *useraddr, size_t usersize);
+
+#define AD_JIT_REQ_NOTIFY_621 "com.colindavidr.amazondark/jit-request-621"
+#define AD_JIT_RES_NOTIFY_621 "com.colindavidr.amazondark/jit-result-621"
+#define AD_JIT_RC_NO_BACKEND_621 (-1001)
+#define AD_JIT_RC_EXCEPTION_621  (-1002)
+#define AD_JIT_RC_BAD_PID_621    (-1003)
 
 typedef struct {
     uint32_t visibleFlags;
@@ -257,10 +265,10 @@ typedef struct {
     int kernelErr;
     BOOL visibleDebugged;
     BOOL kernelDebugged;
-} ADJITState620;
+} ADJITState621;
 
-static ADJITState620 ADReadJITState620(void){
-    ADJITState620 st = {0, 0, 0, 0, NO, NO};
+static ADJITState621 ADReadJITState621(void){
+    ADJITState621 st = {0, 0, 0, 0, NO, NO};
 
     errno = 0;
     int visibleRC = csops(getpid(), CS_OPS_STATUS, &st.visibleFlags, sizeof(st.visibleFlags));
@@ -274,14 +282,73 @@ static ADJITState620 ADReadJITState620(void){
     return st;
 }
 
-static void ADWriteJITReport620(NSString *status,
+// 64-bit notify state:
+//   bits 63..33 = pid (31 bits)
+//   bits 32..17 = request nonce
+//   bit  16     = requested enabled state
+//   bits 15..0  = signed broker return code (response only)
+static uint64_t ADJITWireState621(pid_t pid, uint16_t nonce, BOOL enable, int rc){
+    return (((uint64_t)((uint32_t)pid & 0x7fffffffU)) << 33) |
+           (((uint64_t)nonce) << 17) |
+           ((uint64_t)(enable ? 1U : 0U) << 16) |
+           ((uint16_t)(int16_t)rc);
+}
+static pid_t ADJITWirePID621(uint64_t state){ return (pid_t)((state >> 33) & 0x7fffffffU); }
+static uint16_t ADJITWireNonce621(uint64_t state){ return (uint16_t)((state >> 17) & 0xffffU); }
+static BOOL ADJITWireEnable621(uint64_t state){ return ((state >> 16) & 1U) ? YES : NO; }
+static int ADJITWireRC621(uint64_t state){ return (int)(int16_t)(state & 0xffffU); }
+
+static uint16_t ADNextJITNonce621(void){
+    static volatile uint32_t seq = 0;
+    uint32_t v = (uint32_t)__sync_add_and_fetch(&seq, 1);
+    uint16_t n = (uint16_t)(v & 0xffffU);
+    return n ? n : 1;
+}
+
+static BOOL ADSendJITBrokerRequest621(BOOL enable, int *brokerRCOut){
+    int reqToken = 0, resToken = 0;
+    BOOL got = NO;
+    int rc = AD_JIT_RC_EXCEPTION_621;
+    uint16_t nonce = ADNextJITNonce621();
+    pid_t pid = getpid();
+    uint64_t req = 0;
+
+    if (notify_register_check(AD_JIT_RES_NOTIFY_621, &resToken) != NOTIFY_STATUS_OK) goto done;
+    if (notify_register_check(AD_JIT_REQ_NOTIFY_621, &reqToken) != NOTIFY_STATUS_OK) goto done;
+
+    req = ADJITWireState621(pid, nonce, enable, 0);
+    if (notify_set_state(reqToken, req) != NOTIFY_STATUS_OK) goto done;
+    if (notify_post(AD_JIT_REQ_NOTIFY_621) != NOTIFY_STATUS_OK) goto done;
+
+    // SpringBoard's broker is event-driven. Wait off-main for at most 350 ms for
+    // the matching pid+nonce response; normal responses arrive almost immediately.
+    for (int i = 0; i < 35; i++){
+        uint64_t res = 0;
+        if (notify_get_state(resToken, &res) == NOTIFY_STATUS_OK &&
+            ADJITWirePID621(res) == pid &&
+            ADJITWireNonce621(res) == nonce &&
+            ADJITWireEnable621(res) == enable){
+            rc = ADJITWireRC621(res);
+            got = YES;
+            break;
+        }
+        usleep(10000);
+    }
+
+done:
+    if (reqToken) notify_cancel(reqToken);
+    if (resToken) notify_cancel(resToken);
+    if (brokerRCOut) *brokerRCOut = rc;
+    return got;
+}
+
+static void ADWriteJITReport621(NSString *status,
                                 NSString *backend,
-                                BOOL modernAvailable,
-                                BOOL legacyAvailable,
-                                BOOL backendCalled,
+                                BOOL brokerCalled,
+                                BOOL brokerResponded,
                                 int backendRC,
-                                ADJITState620 pre,
-                                ADJITState620 post,
+                                ADJITState621 pre,
+                                ADJITState621 post,
                                 NSString *note){
     @try {
         NSString *p = [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-jit.txt"];
@@ -290,9 +357,8 @@ static void ADWriteJITReport620(NSString *status,
              "enableJIT=%d\n"
              "status=%@\n"
              "backend=%@\n"
-             "modernBackendAvailable=%d\n"
-             "legacyBackendAvailable=%d\n"
-             "backendCalled=%d\n"
+             "brokerCalled=%d\n"
+             "brokerResponded=%d\n"
              "backendRC=%d\n"
              "pid=%d\n"
              "preVisibleCsopsErr=%d\n"
@@ -307,99 +373,82 @@ static void ADWriteJITReport620(NSString *status,
              "postKernelCsopsErr=%d\n"
              "postKernelCsFlags=0x%08x\n"
              "postKernelCS_DEBUGGED=%d\n"
-             "amazonDarkTransitioned=%d\n"
+             "amazonDarkTransitionedOn=%d\n"
+             "amazonDarkTransitionedOff=%d\n"
              "note=%@\n",
              [NSString stringWithUTF8String:AD_VERSION], (gP.enabled && gP.enableJIT) ? 1 : 0,
              status ?: @"-", backend ?: @"none",
-             modernAvailable ? 1 : 0, legacyAvailable ? 1 : 0,
-             backendCalled ? 1 : 0, backendRC, getpid(),
+             brokerCalled ? 1 : 0, brokerResponded ? 1 : 0, backendRC, getpid(),
              pre.visibleErr, pre.visibleFlags, pre.visibleDebugged ? 1 : 0,
              pre.kernelErr, pre.kernelFlags, pre.kernelDebugged ? 1 : 0,
              post.visibleErr, post.visibleFlags, post.visibleDebugged ? 1 : 0,
              post.kernelErr, post.kernelFlags, post.kernelDebugged ? 1 : 0,
-             (!pre.kernelDebugged && post.kernelDebugged && backendCalled && backendRC == 0) ? 1 : 0,
+             (!pre.kernelDebugged && post.kernelDebugged && brokerResponded && backendRC == 0) ? 1 : 0,
+             (pre.kernelDebugged && !post.kernelDebugged && brokerResponded && backendRC == 0) ? 1 : 0,
              note ?: @"-"];
         [s writeToFile:p atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } @catch(...) {}
 }
 
-static void ADApplyJIT620(void){
-    ADJITState620 pre = ADReadJITState620();
+static void ADPerformJITRequest621(BOOL requestedOn){
+    ADJITState621 pre = ADReadJITState621();
 
-    typedef int (*ADSetProcessDebuggedFn620)(uint64_t pid, bool fullyDebugged);
-    typedef int64_t (*ADLegacyDebugMeFn620)(void);
-
-    ADSetProcessDebuggedFn620 setProcessDebugged =
-        (ADSetProcessDebuggedFn620)dlsym(RTLD_DEFAULT, "jbclient_platform_set_process_debugged");
-    ADLegacyDebugMeFn620 legacyDebugMe =
-        (ADLegacyDebugMeFn620)dlsym(RTLD_DEFAULT, "jbdswDebugMe");
-
-    BOOL modernAvailable = (setProcessDebugged != NULL);
-    BOOL legacyAvailable = (legacyDebugMe != NULL);
-
-    // OFF is intentionally passive. Never call a Dopamine backend and report the
-    // raw kernel baseline, which is the authoritative signal for this diagnostic.
-    if (!gP.enabled || !gP.enableJIT){
-        NSString *status = pre.kernelDebugged ? @"off-baseline-already-debugged" : @"off-clean";
-        NSString *note = pre.kernelDebugged
-            ? @"Amazon started with raw kernel CS_DEBUGGED before AmazonDark requested JIT. Check Dopamine's global Allow JIT in Apps setting or whether this process was enabled elsewhere."
-            : @"AmazonDark made no JIT request and raw kernel CS_DEBUGGED is clear.";
-        ADWriteJITReport620(status, @"none", modernAvailable, legacyAvailable,
-                            NO, 0, pre, pre, note);
+    // Clean OFF launch: do nothing at all. If this process was previously enabled
+    // live, however, use the same broker with false so the switch is reversible.
+    if (!requestedOn && !pre.kernelDebugged){
+        ADWriteJITReport621(@"off-clean", @"none", NO, NO, 0, pre, pre,
+                            @"AmazonDark made no JIT request and raw kernel CS_DEBUGGED is clear.");
         return;
     }
 
-    NSString *backend = @"none";
-    int backendRC = -1;
-    BOOL backendCalled = NO;
-
-    // Current Dopamine path. systemhook itself calls this API when it needs to
-    // manually apply debug flags, and libjailbreak sends the request to jbserver.
-    if (setProcessDebugged){
-        backend = @"Dopamine-jbclient_platform_set_process_debugged";
-        backendCalled = YES;
-        @try { backendRC = setProcessDebugged((uint64_t)getpid(), true); }
-        @catch(...) { backendRC = -2; }
-    }
-    // Legacy compatibility for older Dopamine releases that still publish the
-    // original one-call JIT helper.
-    else if (legacyDebugMe){
-        backend = @"Dopamine-legacy-jbdswDebugMe";
-        backendCalled = YES;
-        int64_t rc = -1;
-        @try { rc = legacyDebugMe(); } @catch(...) { rc = -2; }
-        backendRC = (int)rc;
-    }
-
-    if (!backendCalled){
-        ADWriteJITReport620(@"on-backend-unavailable", @"none",
-                            modernAvailable, legacyAvailable, NO, -1, pre, pre,
-                            @"Neither Dopamine's current jbclient_platform_set_process_debugged API nor the legacy jbdswDebugMe API was visible in Amazon.");
+    // ON already true can happen if Dopamine's global setting is enabled. Still
+    // report ownership accurately instead of pretending AmazonDark caused it.
+    if (requestedOn && pre.kernelDebugged){
+        ADWriteJITReport621(@"on-baseline-already-debugged", @"none", NO, NO, 0, pre, pre,
+                            @"Raw kernel CS_DEBUGGED was already set before AmazonDark requested JIT. Disable Dopamine's global Allow JIT in Apps option to test per-app ownership.");
         return;
     }
 
-    ADJITState620 post = ADReadJITState620();
+    int backendRC = AD_JIT_RC_EXCEPTION_621;
+    BOOL responded = ADSendJITBrokerRequest621(requestedOn, &backendRC);
+    ADJITState621 post = ADReadJITState621();
+
+    NSString *backend = @"SpringBoard-Dopamine-jbclient_platform_set_process_debugged";
     NSString *status = nil;
     NSString *note = nil;
 
-    if (backendRC == 0 && post.kernelDebugged){
-        if (pre.kernelDebugged){
-            status = @"on-backend-called-baseline-already-debugged";
-            note = @"AmazonDark explicitly called the Dopamine JIT backend successfully, but raw kernel CS_DEBUGGED was already set before the call.";
-        } else {
-            status = @"on-enabled-by-amazondark";
-            note = @"AmazonDark called the Dopamine JIT backend and raw kernel CS_DEBUGGED transitioned from 0 to 1.";
-        }
+    if (!responded){
+        status = requestedOn ? @"on-broker-timeout" : @"off-broker-timeout";
+        note = @"Amazon posted the JIT request but did not receive a matching SpringBoard broker response within 350 ms.";
+    } else if (backendRC == AD_JIT_RC_NO_BACKEND_621){
+        status = @"broker-backend-unavailable";
+        note = @"SpringBoard received the request but Dopamine's jbclient_platform_set_process_debugged symbol was unavailable there.";
+    } else if (backendRC == AD_JIT_RC_BAD_PID_621){
+        status = @"broker-pid-rejected";
+        note = @"SpringBoard rejected the request because the supplied PID did not resolve to Amazon's executable.";
     } else if (backendRC != 0){
-        status = @"on-backend-error";
-        note = @"The Dopamine JIT backend returned a nonzero error code; JIT was not verified.";
+        status = requestedOn ? @"on-backend-error" : @"off-backend-error";
+        note = [NSString stringWithFormat:@"SpringBoard reached Dopamine's Platform backend, but it returned %d.", backendRC];
+    } else if (requestedOn && post.kernelDebugged){
+        status = @"on-enabled-by-amazondark";
+        note = @"SpringBoard's platform-authorized Dopamine request succeeded and raw kernel CS_DEBUGGED transitioned from 0 to 1.";
+    } else if (!requestedOn && !post.kernelDebugged){
+        status = @"off-disabled-by-amazondark";
+        note = @"SpringBoard's platform-authorized Dopamine request succeeded and raw kernel CS_DEBUGGED transitioned from 1 to 0.";
     } else {
-        status = @"on-failed-verification";
-        note = @"Dopamine reported backend success but raw kernel CS_DEBUGGED remained clear; JIT was not verified.";
+        status = requestedOn ? @"on-failed-verification" : @"off-failed-verification";
+        note = @"Dopamine's broker call returned success but the raw kernel CS_DEBUGGED state did not reach the requested value.";
     }
 
-    ADWriteJITReport620(status, backend, modernAvailable, legacyAvailable,
-                        YES, backendRC, pre, post, note);
+    ADWriteJITReport621(status, backend, YES, responded, backendRC, pre, post, note);
+}
+
+static void ADApplyJIT621(void){
+    BOOL requestedOn = gP.enabled && gP.enableJIT;
+    // Never stall Amazon's UI thread waiting for SpringBoard/XPC.
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
+        @autoreleasepool { ADPerformJITRequest621(requestedOn); }
+    });
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -4588,7 +4637,7 @@ static void ADPrefsChanged(CFNotificationCenterRef center, void *observer,
                 ADStartHzVerification();
             }
             if (oldJIT != newJIT){
-                ADApplyJIT620();
+                ADApplyJIT621();
             }
             ADForceWindowsDarkTrait();
             ADInjectAllWebViews();      // exact re-theme on web
@@ -4635,7 +4684,7 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
 
     dispatch_async(dispatch_get_main_queue(), ^{
         ADLoadPrefs();
-        ADApplyJIT620();
+        ADApplyJIT621();
         ADRefreshPromotionState611();
         ADLockDarkWeblab();
         ADForceAppearanceDark();

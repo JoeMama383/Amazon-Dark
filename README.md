@@ -125,6 +125,16 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
+## v6.0.21
+
+- Fixes Dopamine per-app JIT ownership after on-device diagnostics proved that `jbclient_platform_set_process_debugged` is visible inside Amazon but its Platform-domain request is rejected from a normal App Store process.
+- Routes the single set/clear request through the existing SpringBoard component, which is a platform process and therefore an authorized Dopamine Platform-domain caller.
+- Broker accepts only a PID whose executable path ends in `/Amazon.app/Amazon`; arbitrary PIDs are rejected.
+- Darwin notify state carries PID + nonce + requested state + result. No helper daemon, process scan, SpringBoard polling, or recurring timer.
+- Amazon verifies both normal `csops` presentation state and raw `SYS_csops` kernel state off the main thread.
+- JIT OFF is passive on a clean process, but if AmazonDark previously enabled JIT live it requests `fullyDebugged=false` and verifies a raw 1→0 transition.
+- Preserves the v6.0.20 v5.446 carousel-dot port and all v6.0.19 performance work unchanged.
+
 ## v6.0.20
 
 - Ports the v5.446 product-carousel selected-dot owner so the selected pagination dot stays light on the dark PDP. The original semantic class/ARIA detection and Dark Reader inline-marker cleanup are retained, while recovery stays inside v6.0.19's coalesced scheduler.
