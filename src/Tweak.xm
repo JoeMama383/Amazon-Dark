@@ -241,7 +241,7 @@ static void ADLoadPrefs(void){
 #ifndef CS_DEBUGGED
 #define CS_DEBUGGED 0x10000000
 #endif
-extern int csops(pid_t pid, unsigned int ops, void *useraddr, size_t usersize);
+extern "C" int csops(pid_t pid, unsigned int ops, void *useraddr, size_t usersize);
 
 static BOOL ADJITDebugged620(uint32_t *flagsOut, int *errOut){
     uint32_t flags = 0;
