@@ -1,15 +1,15 @@
-# AmazonDark v6.0.66
+# AmazonDark v6.0.67
 
-## v6.0.66 — remove compact video-control host boxes
+## v6.0.67 — clip compact video controls to circular shells
 
-Built directly from v6.0.65.
+Built directly from v6.0.66.
 
-- Keeps Amazon's native play/pause and mute glyph artwork untouched.
-- Keeps v6.0.65 geometric pairing so the compact play/pause control is matched with the nearby mute control instead of the large center play overlay.
-- Forces only those two compact circular shells to the same shared translucent gray (`rgba(255,255,255,0.38)`), so their appearance is deterministic even when Amazon styles the two shells differently.
-- Clears the rectangular host/wrapper paint around each compact control while leaving the selected circular shell filled. This removes the gray boxes introduced by v6.0.65.
-- Reuses the existing native-ad MutationObserver and media/click lifecycle hooks; no new observer, scroll listener, interval, or animation-frame loop is added.
-- Settings wording from v6.0.62+ remains unchanged. All other behavior stays on the v6.0.56 performance baseline.
+- Keeps the v6.0.65/66 matched compact play/pause + mute color and Amazon's native glyph artwork.
+- Stops trying to discover another parent backing layer. Instead, the actual compact control host and selected shell are clipped to a circle, so rectangular child/pseudo paint cannot show in the corners.
+- Intermediate wrappers are still cleared only; they are not clipped, avoiding unnecessary changes to layout/hit regions.
+- The large center play overlay remains outside the compact-control pairing path.
+- Reuses the existing ad observer and media/click lifecycle; no new MutationObserver, scroll listener, interval, or RAF loop is added.
+- Settings wording from v6.0.62+ remains unchanged. All other behavior remains on the v6.0.56 performance baseline.
 
 ## v6.0.56 — render-critical-path / infinite-scroll performance pass
 
