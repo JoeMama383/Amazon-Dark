@@ -126,9 +126,9 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
 
-## v6.0.49
+## v6.0.50
 
-Person-tab heading-band completion build on v6.0.43. On-device v6.0.41 diagnostics proved the remaining Keep Shopping / Buy Again misses are ordinary `RCTUIImageViewAnimated` photos, while the real `Amazon.com: Keep shopping for` heading is a separate UIKit `UILabel` outside the React image subtree. v6.0.49 removes the unsuccessful v6.0.43 peer fallback and instead weak-registers only the real **Keep Shopping for** / **Buy Again** heading views as their text is assigned or attached. A missed 60–190pt RCT product image can inherit forced-product ownership only when it lies within a bounded 460pt vertical band below one of those live headings. No whole-view/CALayer ownership, scroll scan, timer, or recurring traversal is added; Your Interests remains on the confirmed-working v6.0.42 direct owner. Splash behavior is intentionally unchanged in this build.
+Person-tab TWB correction built directly from v6.0.44. The v6.0.49 decision probe initialized but recorded no target-heading events, proving v6.0.44's heading registry was never seeing the currently visible **Keep Shopping for** / **Buy Again** headings. v6.0.50 registers final visible `UILabel` text from the already-existing `layoutSubviews` hook, then performs a bounded one-shot re-evaluation of product-sized `RCTUIImageView` descendants in the nearest section wrapper when a target heading is first discovered. The registered heading-band decision is also promoted **before** the broad `ctx==1` Person/carousel rejection, fixing v6.0.44's precedence hole. No raw UIView/CALayer owner, whole-tile overlay, scroll scan, recurring timer, or page-wide traversal is added. Your Interests and all non-Person behavior remain on the v6.0.44 baseline; splash code is byte-identical to v6.0.44.
 
 ## v6.0.43
 
