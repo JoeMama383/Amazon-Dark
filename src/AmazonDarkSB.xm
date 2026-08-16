@@ -25,7 +25,6 @@
 #import <limits.h>
 #import <string.h>
 #import <stdint.h>
-#import <math.h>
 #import <sys/types.h>
 
 static NSString * const kAMZ      = @"com.amazon.Amazon";
@@ -120,51 +119,6 @@ static void ADDismissCover(void);
 static UIView *gCoverOverlay;
 static unsigned gCoverGen;
 
-
-// Centered-geometry patch only: keep the v5.446 splash lifecycle intact, but do
-// not expose the wordmark while SpringBoard is still moving the Amazon scene.
-// The cover, timing, fade, ready signal, warm/cold behavior and fallback paths
-// remain v5.446. This bounded gate affects only when the centered logo becomes
-// visible during the system scene transform.
-static BOOL ADSceneTransitionActive648(UIView *host) {
-    @try {
-        UIView *v=host; int up=0;
-        while(v && up++<8){
-            CALayer *m=v.layer;
-            NSArray *keys=[m animationKeys];
-            if(keys.count) return YES;
-            CALayer *pr=(CALayer *)m.presentationLayer;
-            if(pr){
-                CGPoint a=pr.position,b=m.position;
-                CGRect ab=pr.bounds,bb=m.bounds;
-                if(fabs(a.x-b.x)>0.75 || fabs(a.y-b.y)>0.75 ||
-                   fabs(ab.size.width-bb.size.width)>0.75 || fabs(ab.size.height-bb.size.height)>0.75 ||
-                   !CATransform3DEqualToTransform(pr.transform,m.transform)) return YES;
-            }
-            if(v==v.window) break;
-            v=v.superview;
-        }
-    } @catch (__unused NSException *e) {}
-    return NO;
-}
-
-static void ADRevealCoverLogo648(UIView *host, UIImageView *logo, unsigned gen, int attempt) {
-    if(!host || !logo) return;
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((attempt==0 ?
-                   (UIAccessibilityIsReduceMotionEnabled()?0.08:0.42) : 0.035) * NSEC_PER_SEC)),
-                   dispatch_get_main_queue(), ^{
-        @try {
-            if(gen!=gCoverGen || !gCoverOverlay || logo.superview!=gCoverOverlay) return;
-            if(attempt<24 && ADSceneTransitionActive648(host)){
-                ADRevealCoverLogo648(host,logo,gen,attempt+1);
-                return;
-            }
-            logo.hidden=NO;
-            ADSBLog([NSString stringWithFormat:@"COVER logo revealed centered attempt=%d",attempt]);
-        } @catch (__unused NSException *e) {}
-    });
-}
-
 // YES when Amazon already has a running process -- i.e. this is a resume, not a
 // cold launch. Nothing here is required to exist; unknown means "cover it".
 static BOOL ADAmazonProcessAlive(int *taskStateOut) {
@@ -204,17 +158,15 @@ static void ADAttachCoverToScene(UIView *host) {
         ov.userInteractionEnabled = NO;
 
         UIImage *splash = nil;
-        UIImageView *logo = nil;
         for (NSString *cp in @[@"/var/jb/Library/Application Support/AmazonDark/splash-logo.png",
                                @"/Library/Application Support/AmazonDark/splash-logo.png"]) {
             splash = [UIImage imageWithContentsOfFile:cp];
             if (splash) break;
         }
         if (splash) {
-            logo = [[UIImageView alloc] initWithImage:splash];
+            UIImageView *logo = [[UIImageView alloc] initWithImage:splash];
             logo.contentMode = UIViewContentModeScaleAspectFit;
             logo.translatesAutoresizingMaskIntoConstraints = NO;
-            logo.hidden = YES;
             [ov addSubview:logo];
             CGFloat lw = MAX(host.bounds.size.width, 200.0) * 0.62;
             CGFloat lh = lw * (splash.size.height / MAX(splash.size.width, 1.0));
@@ -231,7 +183,6 @@ static void ADAttachCoverToScene(UIView *host) {
         [host addSubview:ov];
         gCoverOverlay = ov;
         unsigned myGen = ++gCoverGen;
-        if (logo) ADRevealCoverLogo648(host, logo, myGen, 0);
 
         gPresentAt = CFAbsoluteTimeGetCurrent();
         ADSBLog([NSString stringWithFormat:@"COVER overlay in scene (%@ logo=%d)",
@@ -399,6 +350,7 @@ static void ADPresentCover(void) {
         });
     } @catch (__unused NSException *e) {}
 }
+
 
 // ── v6.0.22 Dopamine JIT broker ─────────────────────────────────────────────
 // SpringBoard is the platform-authorized caller Dopamine requires. This broker

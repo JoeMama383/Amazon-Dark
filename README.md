@@ -126,21 +126,9 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
 
-## v6.0.48
+## v6.0.49
 
-Splash-only restoration: the SpringBoard splash implementation is restored to the exact v5.446 lifecycle and presentation behavior, with only the proven centered-geometry logo gate substituted. The existing Dopamine JIT broker is retained separately. No other runtime subsystem is changed from v6.0.47.
-
-## v6.0.47
-
-Splash-only correction on v6.0.46. Restores the v5.446/v6.0.1 first-frame philosophy while preserving the now-confirmed centered geometry: the cold-launch dark surface still follows SpringBoard's native scene transition, but the packaged Amazon wordmark is placed immediately in stable SpringBoard window coordinates with an explicit centered frame instead of being hidden behind a scene-settle timer. Warm/resume launches now receive a short opaque SpringBoard-space dark Amazon mask so a cached/native white splash cannot be exposed before the already-running Amazon process repaints; Amazon posts a dedicated foreground-ready signal and the mask retains the 0.55-second fade with a bounded fallback. The exact donor SplashBoard snapshot deletion semantics (including per-file deletion) are restored at process start and retained around background/foreground transitions. No TWB/Person, JIT, 120-Hz, carousel, glyph, top-chrome, or Home-card logic is changed.
-
-## v6.0.46
-
-Deterministic launch-transition + Person TWB precedence fix on v6.0.44. The SpringBoard cover still rides the stock icon-to-fullscreen scene transform, but its Amazon wordmark stays hidden until the scene/ancestor presentation geometry has settled; the zoom therefore carries only the dark launch surface and can no longer drag our logo from the Home Screen icon position. Ready release is now immediate — the custom 1.40-second minimum hold and 0.55-second fade are removed. Reduced Motion uses a shorter settle floor, and the bounded launch-only settle probe self-cancels when the cover is dismissed. Person TWB now gives the existing narrow Keep Shopping / Buy Again heading-band a positive precedence before a broad `ctx==1` exclusion can return, and plain `UILabel setText:` participates in heading registration. The band still only promotes individual 60–190pt `RCTUIImageView` product photos in the existing bounded live-heading region; no raw card/CALayer owner, page scan, scroll listener, recurring timer, or delayed TWB retry lane is added.
-
-## v6.0.44
-
-Person-tab heading-band completion build on v6.0.43. On-device v6.0.41 diagnostics proved the remaining Keep Shopping / Buy Again misses are ordinary `RCTUIImageViewAnimated` photos, while the real `Amazon.com: Keep shopping for` heading is a separate UIKit `UILabel` outside the React image subtree. v6.0.44 removes the unsuccessful v6.0.43 peer fallback and instead weak-registers only the real **Keep Shopping for** / **Buy Again** heading views as their text is assigned or attached. A missed 60–190pt RCT product image can inherit forced-product ownership only when it lies within a bounded 460pt vertical band below one of those live headings. No whole-view/CALayer ownership, scroll scan, timer, or recurring traversal is added; Your Interests remains on the confirmed-working v6.0.42 direct owner. Splash behavior is intentionally unchanged in this build.
+Person-tab heading-band completion build on v6.0.43. On-device v6.0.41 diagnostics proved the remaining Keep Shopping / Buy Again misses are ordinary `RCTUIImageViewAnimated` photos, while the real `Amazon.com: Keep shopping for` heading is a separate UIKit `UILabel` outside the React image subtree. v6.0.49 removes the unsuccessful v6.0.43 peer fallback and instead weak-registers only the real **Keep Shopping for** / **Buy Again** heading views as their text is assigned or attached. A missed 60–190pt RCT product image can inherit forced-product ownership only when it lies within a bounded 460pt vertical band below one of those live headings. No whole-view/CALayer ownership, scroll scan, timer, or recurring traversal is added; Your Interests remains on the confirmed-working v6.0.42 direct owner. Splash behavior is intentionally unchanged in this build.
 
 ## v6.0.43
 
