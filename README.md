@@ -1,4 +1,9 @@
-# AmazonDark v6.0.53
+# AmazonDark v6.0.54
+
+## v6.0.54 — compile-only correction
+
+- Fixes the ten Objective-C accessibility-ID string literals in `ADNativeTWBUIChain6027()` that were accidentally emitted as C strings during the v6.0.53 cleanup.
+- No runtime ownership, TWB, theming, scheduling, peer-consensus, JIT, 120-Hz, splash, or UI behavior is changed from v6.0.53.
 
 ## v6.0.53 — streamlined core / TWB hot-path cleanup
 

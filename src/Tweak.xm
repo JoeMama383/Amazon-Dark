@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.53"
+#define AD_VERSION "v6.0.54"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3665,11 +3665,11 @@ static BOOL ADNativeTWBUIChain6027(UIImageView *iv){
             p=p.superview;
         }
         NSString *aid=[iv.accessibilityIdentifier lowercaseString];
-        if(aid.length&&([aid containsString:"icon"]||[aid containsString:"logo"]||
-                       [aid containsString:"avatar"]||[aid containsString:"profile"]||
-                       [aid containsString:"search"]||[aid containsString:"history"]||
-                       [aid containsString:"close"]||[aid containsString:"share"]||
-                       [aid containsString:"camera"]||[aid containsString:"microphone"])) return YES;
+        if(aid.length&&([aid containsString:@"icon"]||[aid containsString:@"logo"]||
+                       [aid containsString:@"avatar"]||[aid containsString:@"profile"]||
+                       [aid containsString:@"search"]||[aid containsString:@"history"]||
+                       [aid containsString:@"close"]||[aid containsString:@"share"]||
+                       [aid containsString:@"camera"]||[aid containsString:@"microphone"])) return YES;
     } @catch(...) {}
     return NO;
 }
