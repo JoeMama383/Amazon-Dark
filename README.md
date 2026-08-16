@@ -1,4 +1,18 @@
-# AmazonDark v6.0.52
+# AmazonDark v6.0.53
+
+## v6.0.53 — streamlined core / TWB hot-path cleanup
+
+Built directly from the confirmed-working v6.0.52 behavior. This is a performance/organization pass, not a theming expansion.
+
+- Removes the production-disabled v5.446 web/native TWB scanner and its dead A/B branches while retaining the direct semantic helpers still used by production.
+- Removes the failed v6.0.44 Person heading registry and its text-hook overhead. The working v6.0.51 rendered-peer ownership is the only sparse Person fallback.
+- Removes the disabled TWB `UIScrollView setContentOffset:` recovery hook entirely.
+- Narrows `CALayer setContents:` TWB work to actual `UIImageView` delegates.
+- Caches the production TWB web payload until preferences change.
+- Streamlines rendered-peer consensus to one candidate validation / one peer enumeration and avoids allocating `allObjects` snapshots.
+- Adds a settled-image fast path: already-owned RCT images only maintain their existing overlay on layout rather than re-running semantic classification.
+- Avoids redundant CALayer writes by updating frame/corner/shade/z-position only when needed.
+- Preserves v6.0.52 Person Buy Again / Keep Shopping coverage, Your Interests semantics, JIT, 120 Hz, carousel dot, checkbox/symbol, glyph, Home/ad, Dark Reader, top chrome, splash, and all other theming behavior.
 
 Person-tab TWB correction built directly from the v6.0.44 functional baseline. The remaining Buy Again / Keep Shopping misses no longer depend on section-heading discovery. Product-sized `RCTUIImageViewAnimated` views are weakly registered as they naturally enter/reparent/layout; an otherwise untamed image may inherit TWB only when at least two same-sized RCT peers on the same rendered row already carry the real TWB overlay. Positive peers wake unresolved same-row peers once, removing React load-order dependence without a page scan, raw-layer owner, scroll callback, or recurring timer. `AmazonDarkSB.xm` is byte-identical to v6.0.44.
 
