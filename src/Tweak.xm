@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.54"
+#define AD_VERSION "v6.0.55"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -715,7 +715,7 @@ static NSString *ADDarkReaderBootstrap(void){
          "try{window.__AD_NATIVE_SEL615__='[class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=canvas-card],[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_],[class*=hybrid-widget-sponsored],[class*=adFeedbackMainComponent],[class*=sponsored-products]';"
            "window.__AD_IS_NATIVE615__=function(e){try{return !!(e&&e.closest&&(e.closest('[data-ad-native615]')||e.closest(window.__AD_NATIVE_SEL615__)));}catch(x){return false;}};"
            "window.__AD_STRIP_DR615__=function(root){try{var R=[];if(root&&root.nodeType===1&&((root.matches&&root.matches(window.__AD_NATIVE_SEL615__))||root.hasAttribute('data-ad-native615')))R.push(root);if(root&&root.querySelectorAll){var q=root.querySelectorAll('[data-ad-native615],'+window.__AD_NATIVE_SEL615__);for(var i=0;i<q.length&&i<80;i++)R.push(q[i]);}for(var r=0;r<R.length;r++){var a=R[r];a.setAttribute('data-ad-native615','1');var E=[a],k=a.querySelectorAll('*');for(var j=0;j<k.length&&j<700;j++)E.push(k[j]);for(var z=0;z<E.length;z++){var el=E[z],at=Array.prototype.slice.call(el.attributes||[]);for(var x=0;x<at.length;x++){var nm=at[x].name;if(nm.indexOf('data-darkreader-inline-')===0)el.removeAttribute(nm);}var st=el.style;if(st){var rm=[];for(var y=0;y<st.length;y++){var pn=st[y];if(String(pn).indexOf('--darkreader-inline-')===0)rm.push(pn);}for(var y2=0;y2<rm.length;y2++)st.removeProperty(rm[y2]);}}}return R.length;}catch(e){return 0;}};"
-           "window.__AD_MARK_NATIVE615__=function(root){try{if(!root)return 0;var n=0,Q=[];if(root.nodeType===1&&root.matches&&root.matches(window.__AD_NATIVE_SEL615__))Q.push(root);if(root.querySelectorAll){var q=root.querySelectorAll(window.__AD_NATIVE_SEL615__);for(var i=0;i<q.length&&i<80;i++)Q.push(q[i]);}for(var j=0;j<Q.length;j++){if(!Q[j].hasAttribute('data-ad-native615')){Q[j].setAttribute('data-ad-native615','1');n++;}}if(Q.length){window.__AD_STRIP_DR615__(root);setTimeout(function(){try{window.__AD_STRIP_DR615__(root);}catch(e){}},40);}try{if(window.__AD_TWB6033_ADROOT__){var h=(root.nodeType===1&&root.closest)?root.closest('[data-ad-native615],'+window.__AD_NATIVE_SEL615__):null;if(h)window.__AD_TWB6033_ADROOT__(h);for(var t=0;t<Q.length&&t<24;t++)window.__AD_TWB6033_ADROOT__(Q[t]);}}catch(tx){}return n;}catch(e){return 0;}};"
+           "window.__AD_MARK_NATIVE615__=function(root){try{if(!root)return 0;var n=0,Q=[];if(root.nodeType===1&&root.matches&&root.matches(window.__AD_NATIVE_SEL615__))Q.push(root);if(root.querySelectorAll){var q=root.querySelectorAll(window.__AD_NATIVE_SEL615__);for(var i=0;i<q.length&&i<80;i++)Q.push(q[i]);}for(var j=0;j<Q.length;j++){if(!Q[j].hasAttribute('data-ad-native615')){Q[j].setAttribute('data-ad-native615','1');n++;}}if(Q.length){window.__AD_STRIP_DR615__(root);setTimeout(function(){try{window.__AD_STRIP_DR615__(root);}catch(e){}},40);}try{if(window.__AD_TWB6033_ADROOT__){var h=(root.nodeType===1&&root.closest)?root.closest('[data-ad-native615],'+window.__AD_NATIVE_SEL615__):null;if(h)window.__AD_TWB6033_ADROOT__(root);for(var t=0;t<Q.length&&t<4;t++)if(Q[t]!==h)window.__AD_TWB6033_ADROOT__(Q[t]);}}catch(tx){}return n;}catch(e){return 0;}};"
            "window.__AD_MARK_NATIVE615__(document);if(!window.__AD_NATIVE_OBS615__&&document.documentElement){window.__AD_NATIVE_OBS615__=1;new MutationObserver(function(ms){try{for(var i=0;i<ms.length&&i<48;i++){var A=ms[i].addedNodes||[];for(var j=0;j<A.length&&j<24;j++)if(A[j]&&A[j].nodeType===1)window.__AD_MARK_NATIVE615__(A[j]);}}catch(e){}}).observe(document.documentElement,{childList:true,subtree:true});}}catch(e){}"
          // v6.0.36: seasonal Home mosaic cards are normal dark-theme chrome, not TWB.
          // v5.446 proved the stable owner is the hp-mosaic/widget family; the visible
@@ -729,14 +729,14 @@ static NSString *ADDarkReaderBootstrap(void){
            "function appbg(){var A=[document.body,document.documentElement];for(var z=0;z<A.length;z++){if(!A[z])continue;var c=String(getComputedStyle(A[z]).backgroundColor||'').replace(/\\s+/g,'');if(c&&c!=='transparent'&&c!=='rgba(0,0,0,0)')return c;}return 'rgb(24,26,27)';}"
            "function cn(e){var c=e&&e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;return String(c||'').toLowerCase();}"
            "var SEL='[class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer]';"
-           "function pin(pane){try{if(!pane||!pane.isConnected)return 0;var bg=appbg(),R=pane.getBoundingClientRect(),n=1;pane.setAttribute('data-ad-seasonal6036','1');pane.setAttribute('data-ad-college6034','1');pane.style.setProperty('--ad-seasonal6036-bg',bg);pane.style.setProperty('background-color',bg,'important');pane.style.setProperty('filter','none','important');pane.style.setProperty('mix-blend-mode','normal','important');pane.style.setProperty('box-shadow','none','important');pane.style.setProperty('border-color','#3b4043','important');var K=pane.getElementsByTagName?pane.getElementsByTagName('*'):[];for(var i=0;i<K.length&&i<360;i++){var e=K[i],tg=String(e.tagName||'').toUpperCase();if(!/^(DIV|SECTION|ARTICLE|UL|OL|LI|A)$/.test(tg))continue;var r=e.getBoundingClientRect();if(r.width<72||r.height<42||r.width>Math.max((innerWidth||390)*1.08,R.width*1.08))continue;var cs=getComputedStyle(e),bc=String(cs.backgroundColor||'').replace(/\\s+/g,''),bi=String(cs.backgroundImage||'none'),cl=cn(e),hasColor=!!(bc&&bc!=='transparent'&&bc!=='rgba(0,0,0,0)'),hasGrad=bi.indexOf('gradient(')>=0&&bi.indexOf('url(')<0;if(!hasColor&&!hasGrad)continue;var cardish=/mosaic|card|pane|tile|container|widget|asin|grid|product/.test(cl)||(r.width>=R.width*.36&&r.height>=80);if(!cardish)continue;e.setAttribute('data-ad-seasonal-card6036','1');e.setAttribute('data-ad-college-card6034','1');e.style.setProperty('--ad-seasonal6036-bg',bg);e.style.setProperty('background-color',bg,'important');if(hasGrad)e.style.setProperty('background-image','none','important');e.style.setProperty('filter','none','important');e.style.setProperty('mix-blend-mode','normal','important');e.style.setProperty('box-shadow','none','important');e.style.setProperty('border-color','#3b4043','important');n++;}return n;}catch(x){return 0;}}"
+           "function pin(pane,scope){try{if(!pane||!pane.isConnected)return 0;var bg=appbg(),R=pane.getBoundingClientRect(),n=1;pane.setAttribute('data-ad-seasonal6036','1');pane.setAttribute('data-ad-college6034','1');pane.style.setProperty('--ad-seasonal6036-bg',bg);pane.style.setProperty('background-color',bg,'important');pane.style.setProperty('filter','none','important');pane.style.setProperty('mix-blend-mode','normal','important');pane.style.setProperty('box-shadow','none','important');pane.style.setProperty('border-color','#3b4043','important');var K=[],src=(scope&&scope.nodeType===1&&pane.contains(scope))?scope:null,L=null,lim=360;if(src&&src!==pane){K.push(src);L=src.getElementsByTagName?src.getElementsByTagName('*'):[];lim=64;}else{L=pane.getElementsByTagName?pane.getElementsByTagName('*'):[];}for(var z=0;z<L.length&&K.length<lim;z++)K.push(L[z]);for(var i=0;i<K.length;i++){var e=K[i],tg=String(e.tagName||'').toUpperCase();if(!/^(DIV|SECTION|ARTICLE|UL|OL|LI|A)$/.test(tg))continue;var r=e.getBoundingClientRect();if(r.width<72||r.height<42||r.width>Math.max((innerWidth||390)*1.08,R.width*1.08))continue;var cs=getComputedStyle(e),bc=String(cs.backgroundColor||'').replace(/\\s+/g,''),bi=String(cs.backgroundImage||'none'),cl=cn(e),hasColor=!!(bc&&bc!=='transparent'&&bc!=='rgba(0,0,0,0)'),hasGrad=bi.indexOf('gradient(')>=0&&bi.indexOf('url(')<0;if(!hasColor&&!hasGrad)continue;var cardish=/mosaic|card|pane|tile|container|widget|asin|grid|product/.test(cl)||(r.width>=R.width*.36&&r.height>=80);if(!cardish)continue;e.setAttribute('data-ad-seasonal-card6036','1');e.setAttribute('data-ad-college-card6034','1');e.style.setProperty('--ad-seasonal6036-bg',bg);e.style.setProperty('background-color',bg,'important');if(hasGrad)e.style.setProperty('background-image','none','important');e.style.setProperty('filter','none','important');e.style.setProperty('mix-blend-mode','normal','important');e.style.setProperty('box-shadow','none','important');e.style.setProperty('border-color','#3b4043','important');n++;}return n;}catch(x){return 0;}}"
            "var B=(root&&root.nodeType===1)?root:document,R=[],q=null;function add(e){if(e&&R.indexOf(e)<0&&R.length<24)R.push(e);}"
            "if(B!==document){try{if(B.matches&&B.matches(SEL))add(B);if(B.closest)add(B.closest(SEL));}catch(x){}}"
            "try{q=B.querySelectorAll?B.querySelectorAll(SEL):[];for(var i=0;i<q.length&&i<24;i++)add(q[i]);}catch(x){}"
            // Heading fallback is retained only for an Amazon class rename; normal
            // ownership never depends on campaign copy.
            "if(!R.length&&B===document){var Q=document.getElementsByTagName('h2'),H=null;for(var h=0;h<Q.length&&h<120;h++){var t=String(Q[h].textContent||'').replace(/\\s+/g,' ').trim().toLowerCase();if(t==='off to college'){H=Q[h];break;}}if(H){var P=H.parentElement,d=0,vw=innerWidth||390;while(P&&d++<10){var rr=P.getBoundingClientRect();if(rr.width>=vw*.82&&rr.height>=150&&rr.height<=1000){add(P);break;}P=P.parentElement;}}}"
-           "var total=0;for(var j=0;j<R.length;j++)total+=pin(R[j]);window.__AD_SEASONAL6036_STATE__='roots='+R.length+' paint='+total;return total;}catch(e){window.__AD_SEASONAL6036_STATE__='err '+(e&&e.message||e);return 0;}};"
+           "var total=0;for(var j=0;j<R.length;j++){var local=(B!==document&&R[j]!==B&&R[j].contains&&R[j].contains(B))?B:null;total+=pin(R[j],local);}window.__AD_SEASONAL6036_STATE__='roots='+R.length+' paint='+total;return total;}catch(e){window.__AD_SEASONAL6036_STATE__='err '+(e&&e.message||e);return 0;}};"
          // Existing call sites and the direct-TWB structural skip use the old symbol/
          // marker names; aliasing them keeps those proven paths intact.
          "window.__AD_COLLEGE6034__=window.__AD_SEASONAL6036__;"
@@ -1057,11 +1057,10 @@ static NSString *ADWhiteTameWebJS6027(void){
          "function creativeMedia(e){try{if(!e||e.nodeType!==1)return 0;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return 0;var r=e.getBoundingClientRect(),src=String(e.currentSrc||e.src||e.poster||'').toLowerCase(),nw=(tg==='VIDEO'?(e.videoWidth||0):(e.naturalWidth||0)),nh=(tg==='VIDEO'?(e.videoHeight||0):(e.naturalHeight||0));if(creativeBlocked(e,src)||!((r.width>=32&&r.height>=32)||(nw>=32&&nh>=32)))return 0;e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6033','1');return 1;}catch(x){return 0;}}"
          // Card-local equivalent of the donor hero/Home scans. It is bounded and runs
          // only when that card itself loads/changes; no page-wide or scroll-time recovery.
-         "function adRoot(root){try{if(!root||root.nodeType!==1)return 0;var now=Date.now();if(root.__adTWB6033Stamp&&now-root.__adTWB6033Stamp<220)return 0;root.__adTWB6033Stamp=now;var A=[root],Q=root.getElementsByTagName?root.getElementsByTagName('*'):[],n=0;for(var i=0;i<Q.length&&i<160;i++)A.push(Q[i]);for(var j=0;j<A.length;j++){var e=A[j],tg=String(e.tagName||'').toUpperCase();if(tg==='IMG'||tg==='VIDEO'||tg==='CANVAS')n+=creativeMedia(e);else if(/^(DIV|SECTION|A|SPAN|LI|FIGURE|PICTURE)$/.test(tg))n+=paintBg(e);}return n;}catch(x){return 0;}}"
-         "function rootFor(e){try{var p=e,d=0;while(p&&d++<7){var q=ownClass(p)+' '+String((p.getAttribute&&p.getAttribute('data-cel-widget'))||'').toLowerCase();if(carouselFamily(q)||(p.hasAttribute&&p.hasAttribute('data-ad-native615')))return p;p=p.parentElement;}return null;}catch(x){return null;}}"
+         "function adRoot(root){try{if(!root||root.nodeType!==1)return 0;var now=Date.now();if(root.__adTWB6055Stamp&&now-root.__adTWB6055Stamp<220)return 0;root.__adTWB6055Stamp=now;var A=[root],n=0,Q=root.querySelectorAll?root.querySelectorAll('img,video,canvas,[class*=theming-card-background],[class*=vjs-poster],[class*=canvas-container],[style*=background-image]'):[];for(var i=0;i<Q.length&&A.length<36;i++)A.push(Q[i]);for(var j=0;j<A.length;j++){var e=A[j],tg=String(e.tagName||'').toUpperCase();if(tg==='IMG'||tg==='VIDEO'||tg==='CANVAS')n+=creativeMedia(e);else n+=paintBg(e);}return n;}catch(x){return 0;}}"
          "function tameBgChain(e,c){try{if(!e)return;var p=e,d=0,ctx=c||'';while(p&&d++<6){var pc=S(p.className)+' '+String(p.id||''),fam=(mode==='hero')||carouselFamily(ctx+' '+pc);if(fam)paintBg(p);ctx+=' '+pc;p=p.parentElement;}}catch(x){}}"
          "var mode=(function(){try{if(window.top===window)return 'main';var u=String(document.referrer||'').toLowerCase();if(u.indexOf('/dp/')>=0||u.indexOf('/gp/aw/d/')>=0||u.indexOf('/gp/product/')>=0||u.indexOf('/s?')>=0||u.indexOf('/search')>=0||u.indexOf('?k=')>=0||u.indexOf('&k=')>=0||u.indexOf('field-keywords=')>=0)return 'productad';return ((innerHeight||0)<180||((innerWidth||1)/(innerHeight||1))>2.25)?'standalone':'hero';}catch(e){return 'main';}})();"
-         "function tame(e){try{if(!e||e.nodeType!==1)return;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return;var r=e.getBoundingClientRect();if(r.width<2||r.height<2)return;var c=chain(e),t=localText(e),src=String(e.currentSrc||e.src||e.poster||'').toLowerCase(),fo=forced(t),rv=reviewCtx(t,c),pr=product(e,c),hf=carouselFamily(c);tameBgChain(e,c);var ar=hf?rootFor(e):null;if(ar)adRoot(ar);if((hf?creativeBlocked(e,src):blocked(e,c,t,fo,rv))||/pixel|placeholder|spacer|blank|transparent/.test(src))return;var W=innerWidth||390,H=innerHeight||700,nw=(tg==='VIDEO'?(e.videoWidth||0):(e.naturalWidth||0)),nh=(tg==='VIDEO'?(e.videoHeight||0):(e.naturalHeight||0)),ok=false;if(mode==='hero'||hf){ok=(r.width>=32&&r.height>=32)||(nw>=32&&nh>=32);}else if(mode==='productad'||mode==='standalone'){var full=(r.width>W*.64&&r.height>H*.55)||(r.width*r.height>W*H*.58);if(full&&tg!=='VIDEO')return;ok=(r.width>=26&&r.height>=26)||(nw>=26&&nh>=26);}else{if(rv&&tg!=='IMG')return;var mn=(pr||fo||rv)?24:56;ok=(r.width>=mn&&r.height>=mn)||(nw>=mn&&nh>=mn);}if(!ok)return;e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6033','1');}catch(x){}}"
+         "function tame(e){try{if(!e||e.nodeType!==1)return;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return;var r=e.getBoundingClientRect();if(r.width<2||r.height<2)return;var c=chain(e),t=localText(e),src=String(e.currentSrc||e.src||e.poster||'').toLowerCase(),fo=forced(t),rv=reviewCtx(t,c),pr=product(e,c),hf=carouselFamily(c);if(mode==='hero')tameBgChain(e,c);if((hf?creativeBlocked(e,src):blocked(e,c,t,fo,rv))||/pixel|placeholder|spacer|blank|transparent/.test(src))return;var W=innerWidth||390,H=innerHeight||700,nw=(tg==='VIDEO'?(e.videoWidth||0):(e.naturalWidth||0)),nh=(tg==='VIDEO'?(e.videoHeight||0):(e.naturalHeight||0)),ok=false;if(mode==='hero'||hf){ok=(r.width>=32&&r.height>=32)||(nw>=32&&nh>=32);}else if(mode==='productad'||mode==='standalone'){var full=(r.width>W*.64&&r.height>H*.55)||(r.width*r.height>W*H*.58);if(full&&tg!=='VIDEO')return;ok=(r.width>=26&&r.height>=26)||(nw>=26&&nh>=26);}else{if(rv&&tg!=='IMG')return;var mn=(pr||fo||rv)?24:56;ok=(r.width>=mn&&r.height>=mn)||(nw>=mn&&nh>=mn);}if(!ok)return;e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6033','1');}catch(x){}}"
          // Piggyback target for the already-existing v6.0.15 ad-island observer.
          "window.__AD_TWB6033_ADROOT__=adRoot;"
          "function ev(x){try{tame(x.target);}catch(e){}}"
@@ -2382,13 +2381,28 @@ static BOOL ADIsAdaptiveTopNavBackgroundView(id obj){
 static const void *kADWhiteTameOverlayKey = &kADWhiteTameOverlayKey;
 static const void *kADPeerWakeImage6053 = &kADPeerWakeImage6053;
 static const void *kADPeerRegistered6053 = &kADPeerRegistered6053;
+static const void *kADPeerNegativeImage6055 = &kADPeerNegativeImage6055;
+static const void *kADPeerNegativeGeneration6055 = &kADPeerNegativeGeneration6055;
+static const void *kADPeerNegativeSize6055 = &kADPeerNegativeSize6055;
 static NSHashTable *ADNativeRCTViews6053(void){
     static NSHashTable *t; static dispatch_once_t once;
     dispatch_once(&once, ^{ t=[NSHashTable weakObjectsHashTable]; });
     return t;
 }
 static BOOL gADPeerWake6053=NO;
+static NSUInteger gADPeerGeneration6055=1;
 static BOOL ADNativeTWBUIChain6027(UIImageView *iv);
+static void ADNativeClearPeerNegative6055(UIImageView *iv){
+    if(!iv) return;
+    objc_setAssociatedObject(iv,kADPeerNegativeImage6055,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(iv,kADPeerNegativeGeneration6055,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(iv,kADPeerNegativeSize6055,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+static void ADNativeResetRCTRegistration6055(UIImageView *iv){
+    if(!iv) return;
+    @try { [ADNativeRCTViews6053() removeObject:iv]; } @catch(...) {}
+    objc_setAssociatedObject(iv,kADPeerRegistered6053,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
 
 static BOOL ADNativeRCTCandidate6053(UIImageView *iv){
     if(!iv||!iv.window||!iv.image||iv.hidden||iv.alpha<.01) return NO;
@@ -2411,10 +2425,13 @@ static void ADNativeRegisterRCT6053(UIImageView *iv){
     } @catch(...) {}
 }
 static BOOL ADNativePeerMatch6053(UIImageView *source, CGRect sr, UIImageView *peer){
-    if(!peer||peer==source||peer.window!=source.window||!ADNativeRCTCandidate6053(peer)) return NO;
+    if(!peer||peer==source||peer.window!=source.window||peer.hidden||peer.alpha<.01||!peer.image||
+       !objc_getAssociatedObject(peer,kADPeerRegistered6053)) return NO;
     CGFloat sw=source.bounds.size.width,sh=source.bounds.size.height;
     CGFloat pw=peer.bounds.size.width,ph=peer.bounds.size.height;
-    if(fabs(sw-pw)>4.0||fabs(sh-ph)>4.0) return NO;
+    if(pw<60||ph<60||pw>220||ph>220||fabs(sw-pw)>4.0||fabs(sh-ph)>4.0) return NO;
+    CGFloat ratio=(ph>0)?pw/ph:99; if(ratio<1) ratio=1/ratio;
+    if(ratio>1.9||peer.image.renderingMode==UIImageRenderingModeAlwaysTemplate||ADImageIsTemplateish(peer.image)) return NO;
     CGRect pr=[peer convertRect:peer.bounds toView:peer.window];
     CGFloat rowTol=MAX(14.0,MIN(sh,ph)*0.28);
     return fabs(CGRectGetMidY(sr)-CGRectGetMidY(pr))<=rowTol &&
@@ -2424,13 +2441,21 @@ static BOOL ADNativePeerConsensus6053(UIImageView *iv){
     if(!ADNativeRCTCandidate6053(iv)) return NO;
     ADNativeRegisterRCT6053(iv);
     @try {
+        UIImage *im=iv.image;
+        NSNumber *ng=objc_getAssociatedObject(iv,kADPeerNegativeGeneration6055);
+        UIImage *ni=objc_getAssociatedObject(iv,kADPeerNegativeImage6055);
+        NSValue *ns=objc_getAssociatedObject(iv,kADPeerNegativeSize6055);
+        if(ni==im&&ng.unsignedIntegerValue==gADPeerGeneration6055&&ns&&CGSizeEqualToSize(ns.CGSizeValue,iv.bounds.size)) return NO;
         CGRect ir=[iv convertRect:iv.bounds toView:iv.window];
         int positive=0;
         for(UIImageView *p in ADNativeRCTViews6053()){
             if(!ADNativePeerMatch6053(iv,ir,p)) continue;
             CALayer *ov=objc_getAssociatedObject(p,kADWhiteTameOverlayKey);
-            if(ov&&ov.superlayer==p.layer&&++positive>=2) return YES;
+            if(ov&&ov.superlayer==p.layer&&++positive>=2){ ADNativeClearPeerNegative6055(iv); return YES; }
         }
+        objc_setAssociatedObject(iv,kADPeerNegativeImage6055,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(iv,kADPeerNegativeGeneration6055,@(gADPeerGeneration6055),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(iv,kADPeerNegativeSize6055,[NSValue valueWithCGSize:iv.bounds.size],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     } @catch(...) {}
     return NO;
 }
@@ -3226,12 +3251,26 @@ static BOOL ADWTExploreTile363(UIView *v){
 // v5.382: return to the v5.365 local-section model that originally fixed the
 // sibling React/Fabric Person panes. Nearest compact section ownership is decisive;
 // broad window headings are only a fallback. Customer Service is explicitly negative.
+// v6.0.55: cache each compact wrapper result briefly so sibling product images do not
+// repeat the same bounded text walk while a React card is being recycled/layouted.
+static const void *kADWTLocalCtx6055 = &kADWTLocalCtx6055;
+static const void *kADWTLocalTime6055 = &kADWTLocalTime6055;
 static int ADWTLocalSection365(UIView *v){
     @try {
         UIWindow *w=v.window; UIView *p=v; int up=0;
         while(p && up++<7){
             CGFloat h=p.bounds.size.height, ww=p.bounds.size.width;
             if(h>=40 && h<=760 && ww>=40 && (!w || ww<=w.bounds.size.width*1.25)){
+                CFAbsoluteTime now=CFAbsoluteTimeGetCurrent();
+                NSNumber *ct=objc_getAssociatedObject(p,kADWTLocalTime6055);
+                NSNumber *cc=objc_getAssociatedObject(p,kADWTLocalCtx6055);
+                if(ct&&cc){
+                    CFAbsoluteTime age=now-ct.doubleValue; int cv=cc.intValue;
+                    if((cv!=0&&age<2.0)||(cv==0&&age<0.20)){
+                        if(cv) return cv;
+                        p=p.superview; continue;
+                    }
+                }
                 NSMutableArray *q=[NSMutableArray arrayWithObject:p]; int seen=0;
                 BOOL neg=NO, reviews=NO, product=NO;
                 for(NSUInteger qi=0; qi<q.count && seen++<90; qi++){
@@ -3249,19 +3288,21 @@ static int ADWTLocalSection365(UIView *v){
                        [lo containsString:@"lists and registries"] || [lo containsString:@"lists & registries"]) product=YES;
                     if(qi<28){ for(UIView *sv in x.subviews){ if(q.count<90) [q addObject:sv]; else break; } }
                 }
-                // A compact Need-help/Customer-Service row is a hard exclusion.
-                // In a broader mixed Person wrapper, the named product section wins so
-                // one Customer-Service row cannot suppress Subscribe/Watched/Alexa.
-                if(neg && h<=280) return 1;
-                if(reviews) return 3;
-                if(product) return 2;
-                if(neg) return 1;
+                int result=0;
+                if(neg && h<=280) result=1;
+                else if(reviews) result=3;
+                else if(product) result=2;
+                else if(neg) result=1;
+                objc_setAssociatedObject(p,kADWTLocalCtx6055,@(result),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                objc_setAssociatedObject(p,kADWTLocalTime6055,@(now),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                if(result) return result;
             }
             p=p.superview;
         }
     } @catch(...) {}
     return 0;
 }
+
 // v5.384: Person product panes are horizontally virtualized React sections.
 // Resolve the nearest carousel from its OWN compact wrapper so first-frame image
 // assignment does not wait for the window-wide heading-band cache. This is the
@@ -3541,15 +3582,19 @@ static int ADTWBDirectLocalCtx6031(UIImageView *iv){
         }
         if(reactish){
             int cc=ADWTCarouselSection384(iv);
+            // A positive carousel cache is already authoritative; avoid repeating the
+            // local wrapper walk for every sibling image in the same section.
+            if(cc==3) return 3;
+            if(cc==2) return 2;
             int lc=ADWTLocalSection365(iv);
-            // v6.0.42: Person diagnostic proved some Your Interests carousels inherit
-            // a broad negative (cc==1) from an outer mixed Person wrapper while the
-            // compact local section is the actual product owner. Named product/review
-            // ownership therefore wins over a broad carousel exclusion; a pure
-            // exclusion still wins when neither resolver identifies positive media.
-            if(cc==3 || lc==3) return 3;
-            if(cc==2 || lc==2) return 2;
+            // v6.0.42: a compact positive local section may override an outer mixed
+            // carousel exclusion, so cc==1 still consults local ownership.
+            if(lc==3) return 3;
+            if(lc==2) return 2;
             if(cc==1 || lc==1) return 1;
+            // ADWTLocalSection365 covers the full retained Person/Alexa vocabulary.
+            // Do not immediately perform a second sibling-text walk for React images.
+            return 0;
         }
         UIView *p=iv; int up=0;
         while(p&&up++<7){
@@ -3593,8 +3638,9 @@ static int ADTWBDirectCtx6031(UIImageView *iv, UIImage *im){
             if(v!=0) return v;
             NSInteger attempts=ca.integerValue;
             // React can assign the bitmap just before its sibling heading hydrates.
-            // Permit two spaced negative re-probes, then settle for this UIImage.
-            if(attempts>=2 || (ct&&now-ct.doubleValue<0.28)) return 0;
+            // One spaced negative re-probe is enough for late React heading hydration;
+            // after that, settle this UIImage instead of rescanning during layouts.
+            if(attempts>=1 || (ct&&now-ct.doubleValue<0.28)) return 0;
         }
         int k=ADTWBDirectLocalCtx6031(iv);
         NSInteger attempts=(ci==im&&ca)?ca.integerValue+1:0;
@@ -3701,7 +3747,7 @@ static void ADApplyNativeWhiteTameView(UIView *v){
         NSNumber *ctxValue=objc_getAssociatedObject(iv,kADTWBDirectCtx6031);
         NSNumber *ctxAttempts=objc_getAssociatedObject(iv,kADTWBDirectCtxAttempts6031);
         CALayer *ov=objc_getAssociatedObject(iv,kADWhiteTameOverlayKey);
-        BOOL semanticSettled=(ctxImage==im&&ctxValue&&(ctxValue.intValue!=0||ctxAttempts.integerValue>=2));
+        BOOL semanticSettled=(ctxImage==im&&ctxValue&&(ctxValue.intValue!=0||ctxAttempts.integerValue>=1));
         if(ov&&ov.superlayer==iv.layer&&cached==im&&decision.boolValue&&semanticSettled){
             ADNativeTWBStyleOverlay6053(iv,ov);
             return;
@@ -3740,12 +3786,15 @@ static void ADApplyNativeWhiteTameView(UIView *v){
         }
 
         ov=objc_getAssociatedObject(iv,kADWhiteTameOverlayKey);
+        BOOL newPeerPositive=NO;
         if(!ov){
             ov=[CALayer layer]; ov.name=@"AmazonDarkWhiteTame6027";
             [iv.layer addSublayer:ov];
             objc_setAssociatedObject(iv,kADWhiteTameOverlayKey,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            newPeerPositive=(objc_getAssociatedObject(iv,kADPeerRegistered6053)!=nil);
         } else if(ov.superlayer!=iv.layer) [iv.layer addSublayer:ov];
         ADNativeTWBStyleOverlay6053(iv,ov);
+        if(newPeerPositive){ if(++gADPeerGeneration6055==0) gADPeerGeneration6055=1; }
         ADNativeWakePeers6053(iv);
     } @catch(...) {}
 }
@@ -4106,7 +4155,10 @@ static void ADScheduleGlyphLift624(UIImageView *iv){
 - (void)didMoveToWindow {
     %orig;
     @try {
-        UIView *vv=(UIView *)(id)self;
+        UIImageView *iv=(UIImageView *)(id)self;
+        ADNativeClearPeerNegative6055(iv);
+        ADNativeResetRCTRegistration6055(iv);
+        UIView *vv=(UIView *)iv;
         if(gP.enabled&&gP.whiteTame&&vv.window) ADApplyNativeWhiteTameView(vv);
     } @catch(...) {}
 }
@@ -4116,6 +4168,8 @@ static void ADScheduleGlyphLift624(UIImageView *iv){
     @try {
         UIImageView *iv=(UIImageView *)(id)self;
         ADTWBResetSemantic6031(iv);
+        ADNativeClearPeerNegative6055(iv);
+        ADNativeResetRCTRegistration6055(iv);
         objc_setAssociatedObject(iv,kADPeerWakeImage6053,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADApplyNativeWhiteTameView((UIView *)iv);
     } @catch(...) {}

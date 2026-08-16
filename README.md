@@ -1,4 +1,15 @@
-# AmazonDark v6.0.54
+# AmazonDark v6.0.55
+
+## v6.0.55 — Home scroll performance recovery
+
+Built from the confirmed-working v6.0.54 feature set after direct on-device A/B testing showed v6.0.30 scrolls the heavy Home feed materially faster. This revision preserves all later theming/TWB coverage while removing repeated recovery work added after v6.0.30.
+
+- Replaces v6.0.33's 160-descendant Home creative recovery with a leaf-only local pass over actual IMG/VIDEO/CANVAS and known background leaves (max 36 targets). Normal Home media returns to direct load/media-event ownership; ancestor background recovery remains only for hero child frames.
+- The existing v6.0.15 ad observer no longer re-scans an entire enclosing creative plus up to 24 card roots on each lazy insertion. It repairs only the changed subtree and at most four newly discovered ad roots.
+- Seasonal/mosaic cards still get one complete initialization, but later mutations inside an already-owned seasonal pane repair only the changed branch (max 64 descendants) instead of revisiting up to 360 descendants of the whole pane.
+- Person/Alexa semantics remain intact but compact-wrapper results are cached, positive carousel context skips the redundant local walk, React images no longer immediately perform a second duplicate sibling-text walk, and a zero semantic result gets only one delayed hydration retry instead of two.
+- The proven v6.0.51 rendered-peer fix remains. Negative peer consensus is now cached until the image/geometry changes or a new positive RCT peer appears; peer enumeration no longer re-runs the full UI-chain classifier for every already-registered peer.
+- No splash/JIT/120-Hz/carousel-dot/checkbox/glyph/theme functionality is intentionally changed.
 
 ## v6.0.54 — compile-only correction
 
