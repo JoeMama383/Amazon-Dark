@@ -62,7 +62,7 @@
 #import <stdio.h>
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.17"
+#define AD_VERSION "v6.0.18"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -423,11 +423,12 @@ static NSString *ADFixesLiteral(void){
              "[style*=multiply],[style*=darken],[style*=color-burn],"
              "[class*=deal] [style*=blend],[class*=Deal] [style*=blend]"
              "{mix-blend-mode:normal !important;isolation:auto !important;}"
-             // v6.0.17 / v5.446 long-copy fade fix. Amazon overlays a white
+             // v6.0.18 / v5.446 long-copy fade fix. Amazon overlays a white
              // read-more scrim on long descriptions/reviews. Remove only the
              // expander fade paint; never hide generic gradient content.
              "[class*=expander] [class*=fade],[class*=fade-out],"
-             "[data-hook*=review] [class*=fade],[class*=expander-fade]"
+             "[data-hook*=review] [class*=fade],[class*=expander-fade],"
+             "[class*=a-reactive-container],[class*=reactive-contain]"
              "{background:transparent !important;background-image:none !important;"
              "box-shadow:none !important;}"
              "[class*=a-expander-partial]::before,[class*=a-expander-partial]::after,"
