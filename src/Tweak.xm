@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.23"
+#define AD_VERSION "v6.0.24"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -142,6 +142,8 @@ static inline BOOL ADIsModifiedImage(UIImage *im){ return im && objc_getAssociat
 static inline void ADMarkModifiedImage(UIImage *im){ if (im) objc_setAssociatedObject(im, kADModImageKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
 static UIColor *ADColorFromHex(const char *hex);
 static UIImage *ADGlyphify(UIImage *img);
+static UIImage *ADGlyphifyForView(UIImage *img, UIView *v);
+static void ADScheduleGlyphLift624(UIImageView *iv);
 static void ADApplyNativeWhiteTameView(UIView *v);
 static void ADPrimeNativeWhiteTame363(UIView *v, UIImage *incoming);
 static void ADSubscribeOverlay394(UIView *v);
@@ -598,6 +600,19 @@ static NSString *ADFixesLiteral(void){
              "[class*=review] [class*=expander]::after,[class*=review] [class*=expander]::before"
              "{background:none !important;background-image:none !important;"
              "content:none !important;display:none !important;}"
+             // v6.0.24 / v5.446: PDP Share is its own stock action glyph.
+             // Keep ownership on the actual share trigger/leaves so generic glyph
+             // repair and carousel-dot paint can never decide its colour.
+             ".ssf-share-trigger{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;"
+             "fill:#ffffff !important;stroke:#ffffff !important;filter:none !important;opacity:1 !important;}"
+             ".ssf-share-trigger svg,.ssf-share-trigger path"
+             "{color:#ffffff !important;fill:#ffffff !important;stroke:#ffffff !important;opacity:1 !important;}"
+             ".ssf-share-trigger i,.ssf-share-trigger .a-icon,.ssf-share-trigger img"
+             "{filter:brightness(0) invert(1) !important;background-color:transparent !important;"
+             "color:#ffffff !important;opacity:1 !important;}"
+             ".ssf-share-trigger::before,.ssf-share-trigger::after,"
+             ".ssf-share-trigger *::before,.ssf-share-trigger *::after"
+             "{color:#ffffff !important;filter:brightness(0) invert(1) !important;opacity:1 !important;}"
              // v6.0.20 direct v5.446 carousel-dot port. Static selectors own
              // first paint; dotFix374 below follows Amazon's live selected state.
              "ul.a-pagination.a-dots li.a-selected,"
@@ -612,7 +627,7 @@ static NSString *ADFixesLiteral(void){
              "{background-color:#ffffff !important;border-color:#ffffff !important;"
              "color:#ffffff !important;fill:#ffffff !important;}"
              "',invert:[],ignoreInlineStyle:['[data-ad-native615]','[data-ad-native615] *',"
-             "'ul.a-pagination.a-dots li.a-selected','li.dot-selected-t2','[data-ad-dotselected374]'],"
+             "'ul.a-pagination.a-dots li.a-selected','ul.a-pagination.a-dots li.dot-selected-t2','[data-ad-dotselected374]'],"
              "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
             imgBackdrop];
     return gADFixesLiteral613;
@@ -3707,6 +3722,7 @@ static void ADApplyNativeWhiteTame(UIImageView *iv){ ADApplyNativeWhiteTameView(
             ADTintBarIcon(self, ADViewIsSelectedInBar(self));
             return;                                      // bar icons are fully handled
         }
+        ADScheduleGlyphLift624(self);
 
         // (1) Backdrop for TRANSPARENT images — cheap, always-on-when-enabled.
         // v5.446 guard: never put a rectangular backdrop behind small UI glyphs
@@ -3730,7 +3746,7 @@ static void ADApplyNativeWhiteTame(UIImageView *iv){ ADApplyNativeWhiteTameView(
         // (1b) Catch-up for glyphs assigned BEFORE our hooks were installed. New
         // assignments are handled earlier and more reliably by the setImage: hook.
         {
-            UIImage *tpl = ADGlyphify(self.image);
+            UIImage *tpl = ADGlyphifyForView(self.image, self);
             if (tpl){
                 ((UIView *)self).tintColor = ADColorFromHex(gP.fgHex);
                 self.image = tpl;
@@ -3878,6 +3894,24 @@ static NSDictionary *ADRecolorTextAttrs(NSDictionary *attrs){
 // scrolling.
 static const void *kADGlyphChecked = &kADGlyphChecked;
 
+// v6.0.24: restore v5.446's view-aware glyph gate. The 6.x streamlined
+// path called ADGlyphify() directly, which lost the donor's distinction between
+// small UI chrome and larger content artwork. More importantly, late template
+// assignments could keep Amazon's dark tint until an unrelated sweep happened.
+static UIImage *ADGlyphifyForView(UIImage *img, UIView *v){
+    @try {
+        if (v && ADMenuRole382(v)==1) return nil;
+        if (v && ADIsCategoryArtwork379(v)) return nil;
+        if (v && !ADInTabBarChain(v) && !ADIsChromeGlyphContext(v)){
+            CGFloat w=v.bounds.size.width, h=v.bounds.size.height;
+            if(w<1 && img) w=img.size.width;
+            if(h<1 && img) h=img.size.height;
+            if (w > 40 || h > 40) return nil;
+        }
+    } @catch(...) {}
+    return ADGlyphify(img);
+}
+
 static UIImage *ADGlyphify(UIImage *img){
     if (!gP.enabled || !gP.imageBackdrop || !img) return nil;
     @try {
@@ -3897,6 +3931,68 @@ static UIImage *ADGlyphify(UIImage *img){
         return tpl;
     } @catch(...) {}
     return nil;
+}
+
+// v6.0.24: v5.446 had a delayed native-glyph lift specifically because Amazon/
+// React can assign or re-tint the search-history X/clock after the first paint.
+// Restore that convergence without the donor's broad probe machinery: only small
+// glyph-sized views or known search/nav chrome are revisited, three times total.
+static BOOL ADNativeGlyphReject624(UIView *v){
+    @try {
+        UIView *p=v; int d=0;
+        while(p&&d++<6){
+            NSString *cn=NSStringFromClass([p class]).lowercaseString;
+            NSString *al=nil; @try { al=p.accessibilityLabel.lowercaseString; } @catch(...) {}
+            NSString *sig=[NSString stringWithFormat:@"%@ %@",cn?:@"",al?:@""];
+            if([sig containsString:@"star"]||[sig containsString:@"rating"]||
+               [sig containsString:@"logo"]||[sig containsString:@"avatar"]||
+               [sig containsString:@"profile"]||[sig containsString:@"brand"]||
+               [sig containsString:@"merchant"]||[sig containsString:@"seller"])
+                return YES;
+            p=p.superview;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static void ADReassertNativeGlyph624(UIImageView *iv){
+    @try {
+        if (!iv || !iv.window || !ADRecolorOn() || ADIsWebKitOwned(iv)) return;
+        if (ADInTabBarChain(iv)) return;
+        UIImage *im=iv.image; if(!im) return;
+        CGFloat w=iv.bounds.size.width, h=iv.bounds.size.height;
+        if(w<1) w=im.size.width; if(h<1) h=im.size.height;
+        if (w<5 || h<5 || w>56 || h>56) return;
+        if (ADNativeGlyphReject624(iv) || ADMenuRole382(iv)==1 || ADIsCategoryArtwork379(iv)) return;
+        UIColor *fg=ADColorFromHex(gP.fgHex);
+        if (ADImageIsTemplateish(im) || ADIsModifiedImage(im)){
+            iv.tintColor=fg;
+            return;
+        }
+        UIImage *tpl=ADGlyphifyForView(im,iv);
+        if(tpl){
+            gADGlyphWriting=YES;
+            iv.image=tpl;
+            gADGlyphWriting=NO;
+            iv.tintColor=fg;
+        }
+    } @catch(...) { gADGlyphWriting=NO; }
+}
+static void ADScheduleGlyphLift624(UIImageView *iv){
+    if(!iv) return;
+    @try {
+        UIImage *im=iv.image; if(!im) return;
+        CGFloat w=iv.bounds.size.width, h=iv.bounds.size.height;
+        if(w<1) w=im.size.width; if(h<1) h=im.size.height;
+        // Cheap gate BEFORE queueing delayed work: product photos never allocate
+        // these blocks. The affected search/action glyphs are all icon-sized.
+        if(w<5||h<5||w>56||h>56) return;
+    } @catch(...) { return; }
+    ADReassertNativeGlyph624(iv);
+    __weak UIImageView *w=iv;
+    const int64_t ms[]={80,260,700};
+    for(int i=0;i<3;i++) dispatch_after(dispatch_time(DISPATCH_TIME_NOW,ms[i]*1000000LL),dispatch_get_main_queue(),^{
+        @try { UIImageView *x=w; if(x&&x.window) ADReassertNativeGlyph624(x); } @catch(...) {}
+    });
 }
 
 %hook UIImageView
@@ -3928,15 +4024,17 @@ static UIImage *ADGlyphify(UIImage *img){
             ADTintBarIcon(self, ADViewIsSelectedInBar(self));  // then templatise + colour
             return;
         }
-        UIImage *tpl = ADGlyphify(image);
+        UIImage *tpl = ADGlyphifyForView(image, self);
         if (tpl) {
             ((UIView *)self).tintColor = ADColorFromHex(gP.fgHex);
             %orig(tpl);
+            ADScheduleGlyphLift624(self);
             if (gP.whiteTame && self.window) ADApplyNativeWhiteTame(self);
             return;
         }
     } @catch(...) {}
     %orig;
+    @try { if (self.window) ADScheduleGlyphLift624(self); } @catch(...) {}
     @try { if (gP.enabled && gP.whiteTame && self.window) ADApplyNativeWhiteTame(self); } @catch(...) {}
 }
 %end
@@ -3983,7 +4081,15 @@ static UIImage *ADGlyphify(UIImage *img){
             ADApplyBarTint(self, ADViewIsSelectedInBar(self));
             return;
         }
-        UIImage *tpl = ADGlyphify(image);
+        CGFloat bw=self.bounds.size.width, bh=self.bounds.size.height;
+        if(bw<1) bw=image.size.width; if(bh<1) bh=image.size.height;
+        if (ADImageIsTemplateish(image) && !ADNativeGlyphReject624(self) && !ADIsCategoryArtwork379(self) &&
+            (ADIsChromeGlyphContext(self) || (bw>=5 && bh>=5 && bw<=52 && bh<=52))) {
+            ((UIView *)self).tintColor = ADColorFromHex(gP.fgHex);
+            %orig(image, state);
+            return;
+        }
+        UIImage *tpl = ADGlyphifyForView(image, self);
         if (tpl) {
             ((UIView *)self).tintColor = ADColorFromHex(gP.fgHex);
             %orig(tpl, state);
@@ -4186,7 +4292,7 @@ static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
                         ((UIView *)iv).tintColor = ADColorFromHex(gP.fgHex);
                     }
                 }
-                UIImage *tpl = ADGlyphify(((UIImageView *)v).image);
+                UIImage *tpl = ADGlyphifyForView(((UIImageView *)v).image, v);
                 if (tpl){
                     ((UIView *)v).tintColor = ADColorFromHex(gP.fgHex);
                     ((UIImageView *)v).image = tpl;
@@ -4207,7 +4313,7 @@ static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
                         ((UIView *)b).tintColor = ADColorFromHex(gP.fgHex);
                     }
                 }
-                UIImage *tpl = ADGlyphify(cur);
+                UIImage *tpl = ADGlyphifyForView(cur, b);
                 if (tpl){
                     ((UIView *)b).tintColor = ADColorFromHex(gP.fgHex);
                     [b setImage:tpl forState:UIControlStateNormal];

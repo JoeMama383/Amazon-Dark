@@ -125,6 +125,14 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
+## v6.0.24
+
+- Restores v5.446's late native-glyph convergence for small search/action icons so recent-search clock/X and similar controls do not fall back to black after Amazon/React repainting.
+- Restores the v5.446 PDP `.ssf-share-trigger` white-glyph owner for the share action next to the product carousel.
+- Restores the donor's view-aware glyph-size/content gate while keeping v6 performance scheduling.
+- Narrows the Dark Reader carousel-dot ignore selector to `ul.a-pagination.a-dots li.dot-selected-t2`; the selected-dot owner itself remains unchanged.
+- Preserves v6.0.23 TWB restoration, Dopamine JIT, 120 Hz, checkbox and carousel-dot behavior.
+
 ## v6.0.23
 
 - Restores v5.446 Tame White Backgrounds media coverage without restoring its expensive scroll/document scheduling.
