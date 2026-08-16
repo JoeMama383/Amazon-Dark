@@ -62,7 +62,7 @@
 #import <stdio.h>
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.16"
+#define AD_VERSION "v6.0.17"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -423,6 +423,23 @@ static NSString *ADFixesLiteral(void){
              "[style*=multiply],[style*=darken],[style*=color-burn],"
              "[class*=deal] [style*=blend],[class*=Deal] [style*=blend]"
              "{mix-blend-mode:normal !important;isolation:auto !important;}"
+             // v6.0.17 / v5.446 long-copy fade fix. Amazon overlays a white
+             // read-more scrim on long descriptions/reviews. Remove only the
+             // expander fade paint; never hide generic gradient content.
+             "[class*=expander] [class*=fade],[class*=fade-out],"
+             "[data-hook*=review] [class*=fade],[class*=expander-fade]"
+             "{background:transparent !important;background-image:none !important;"
+             "box-shadow:none !important;}"
+             "[class*=a-expander-partial]::before,[class*=a-expander-partial]::after,"
+             "[class*=expander-content]::before,[class*=expander-content]::after,"
+             "[class*=a-expander-partial-collapse-container]::after,"
+             "[class*=a-expander-partial-collapse-container]::before,"
+             "[data-hook*=review] [class*=expander]::after,"
+             "[data-hook*=review] [class*=expander]::before,"
+             "[class*=cr-] [class*=expander]::after,[class*=cr-] [class*=expander]::before,"
+             "[class*=review] [class*=expander]::after,[class*=review] [class*=expander]::before"
+             "{background:none !important;background-image:none !important;"
+             "content:none !important;display:none !important;}"
              "',invert:[],ignoreInlineStyle:['[data-ad-native615]','[data-ad-native615] *'],ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
             imgBackdrop];
     return gADFixesLiteral613;

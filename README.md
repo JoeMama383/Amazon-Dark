@@ -125,6 +125,13 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
+## v6.0.17
+
+- Restores the v5.446 long-review/description expander-fade fix: Amazon's white read-more scrim is neutralized before it can paint over long copy.
+- Uses CSS-only paint suppression on the known expander fade elements/pseudo-elements; no observer, timer, DOM scan, or scroll-time work is added.
+- Deliberately does **not** revive the old broad `[class*=gradient]` suppression that historically hid real content.
+- Preserves the confirmed-working v6.0.16 store/avatar protection, v6.0.15 native ad islands, checkbox, chrome, fast-scroll floor, and reversible 60/120 Hz behavior.
+
 ## v6.0.16
 
 - Restores v5.446 protection for small circular content images so store/shop logos and review/profile avatars are not claimed by the generic monochrome glyph repair.
