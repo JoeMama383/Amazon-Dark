@@ -126,6 +126,10 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
 
+## v6.0.48
+
+Splash-only restoration: the SpringBoard splash implementation is restored to the exact v5.446 lifecycle and presentation behavior, with only the proven centered-geometry logo gate substituted. The existing Dopamine JIT broker is retained separately. No other runtime subsystem is changed from v6.0.47.
+
 ## v6.0.47
 
 Splash-only correction on v6.0.46. Restores the v5.446/v6.0.1 first-frame philosophy while preserving the now-confirmed centered geometry: the cold-launch dark surface still follows SpringBoard's native scene transition, but the packaged Amazon wordmark is placed immediately in stable SpringBoard window coordinates with an explicit centered frame instead of being hidden behind a scene-settle timer. Warm/resume launches now receive a short opaque SpringBoard-space dark Amazon mask so a cached/native white splash cannot be exposed before the already-running Amazon process repaints; Amazon posts a dedicated foreground-ready signal and the mask retains the 0.55-second fade with a bounded fallback. The exact donor SplashBoard snapshot deletion semantics (including per-file deletion) are restored at process start and retained around background/foreground transitions. No TWB/Person, JIT, 120-Hz, carousel, glyph, top-chrome, or Home-card logic is changed.
