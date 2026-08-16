@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.41"
+#define AD_VERSION "v6.0.42"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -160,11 +160,6 @@ static void ADPostAppReady(void);
 static void ADPreDarken(WKWebView *wv);
 static void ADPrimeWebBacking611(WKWebView *wv);
 static void ADInvalidateWebCaches613(void);
-// v6.0.41 diagnostic-only Person TWB probe. These functions never theme anything.
-static void ADPersonDiagHeading6041(UIView *v, NSString *text);
-static void ADPersonDiagImage6041(UIImageView *iv, UIImage *im, const char *event);
-static void ADPersonDiagLayer6041(CALayer *layer, id contents, const char *event);
-static void ADPersonDiagReset6041(void);
 
 static long ADPrefLong(NSDictionary *d, NSString *k, long def){
     id v = d[k]; return (v && [v respondsToSelector:@selector(longValue)]) ? [v longValue] : def;
@@ -2575,7 +2570,6 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         %orig(r);
-        ADPersonDiagHeading6041((UIView *)(id)self, r.string);
         return;
     } @catch(...) {}
     %orig;
@@ -2584,7 +2578,6 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedString);
         %orig(r);
-        ADPersonDiagHeading6041((UIView *)(id)self, r.string);
         return;
     } @catch(...) {}
     %orig;
@@ -2611,7 +2604,6 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
         }
     } @catch(...) {}
     %orig;
-    @try { ADPersonDiagHeading6041((UIView *)(id)self, textStorage.string); } @catch(...) {}
 }
 %end
 
@@ -2625,7 +2617,6 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         %orig(r);
-        ADPersonDiagHeading6041((UIView *)self, r.string);
         return;
     } @catch(...) {}
     %orig;
@@ -2672,7 +2663,6 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
     %orig;
 }
 - (void)setContents:(id)contents {
-    @try { ADPersonDiagLayer6041(self, contents, "setContents"); } @catch(...) {}
     @try { if(contents&&gP.enabled&&gP.whiteTame){ id d=self.delegate; if(d&&[d isKindOfClass:[UIView class]]) ADPrimeNativeWhiteTame363((UIView *)d,nil); } } @catch(...) {}
     %orig;
     if (!contents || !gP.enabled || !gP.whiteTame) return;
@@ -3409,7 +3399,8 @@ static int ADWTLocalSection365(UIView *v){
                     if([lo containsString:@"returns are easy"] || [lo containsString:@"send an amazon gift card"] ||
                        [lo containsString:@"shop previously watched"] || [lo containsString:@"subscribe & save"] ||
                        [lo containsString:@"subscribe and save"] || [lo hasPrefix:@"best deals on"] ||
-                       [lo hasPrefix:@"keep shopping for"] || [lo containsString:@"alexa for shopping"] ||
+                       [lo containsString:@"keep shopping for"] || [lo containsString:@"your interests"] ||
+                       [lo containsString:@"buy again"] || [lo containsString:@"alexa for shopping"] ||
                        [lo containsString:@"lists and registries"] || [lo containsString:@"lists & registries"]) product=YES;
                     if(qi<28){ for(UIView *sv in x.subviews){ if(q.count<90) [q addObject:sv]; else break; } }
                 }
@@ -3475,7 +3466,8 @@ static int ADWTCarouselSection384(UIView *v){
                                        [lo isEqualToString:@"customer service"]) kind=1;
                                     else if([lo containsString:@"your reviews"]||[lo containsString:@"what did you think of the item"]) kind=3;
                                     else if([lo containsString:@"subscribe & save"]||[lo containsString:@"subscribe and save"]||
-                                            [lo hasPrefix:@"keep shopping for"]||[lo containsString:@"shop previously watched"]||
+                                            [lo containsString:@"keep shopping for"]||[lo containsString:@"shop previously watched"]||
+                                            [lo containsString:@"your interests"]||[lo containsString:@"buy again"]||
                                             [lo containsString:@"alexa for shopping"]||[lo hasPrefix:@"best deals on"]||
                                             [lo containsString:@"lists and registries"]||[lo containsString:@"lists & registries"]) kind=2;
                                     if(kind){
@@ -3811,10 +3803,11 @@ static int ADTWBTextKind6031(NSString *text){
        [lo isEqualToString:@"customer service"]) return 1;
     if([lo containsString:@"your reviews"] || [lo containsString:@"what did you think of the item"]) return 3;
     if([lo containsString:@"shop previously watched"] ||
+       [lo containsString:@"your interests"] || [lo containsString:@"buy again"] ||
        [lo containsString:@"lists and registries"] || [lo containsString:@"lists & registries"] ||
        [lo containsString:@"alexa for shopping"] ||
        [lo containsString:@"subscribe & save"] || [lo containsString:@"subscribe and save"] ||
-       [lo hasPrefix:@"keep shopping for"] || [lo hasPrefix:@"best deals on"] ||
+       [lo containsString:@"keep shopping for"] || [lo hasPrefix:@"best deals on"] ||
        [lo containsString:@"returns are easy"] || [lo containsString:@"send an amazon gift card"]) return 2;
     return 0;
 }
@@ -3833,8 +3826,16 @@ static int ADTWBDirectLocalCtx6031(UIImageView *iv){
             rp=rp.superview;
         }
         if(reactish){
-            int cc=ADWTCarouselSection384(iv); if(cc) return cc;
-            int lc=ADWTLocalSection365(iv); if(lc) return lc;
+            int cc=ADWTCarouselSection384(iv);
+            int lc=ADWTLocalSection365(iv);
+            // v6.0.42: Person diagnostic proved some Your Interests carousels inherit
+            // a broad negative (cc==1) from an outer mixed Person wrapper while the
+            // compact local section is the actual product owner. Named product/review
+            // ownership therefore wins over a broad carousel exclusion; a pure
+            // exclusion still wins when neither resolver identifies positive media.
+            if(cc==3 || lc==3) return 3;
+            if(cc==2 || lc==2) return 2;
+            if(cc==1 || lc==1) return 1;
         }
         UIView *p=iv; int up=0;
         while(p&&up++<7){
@@ -3863,203 +3864,6 @@ static int ADTWBDirectLocalCtx6031(UIImageView *iv){
         }
     } @catch(...) {}
     return 0;
-}
-
-
-// ════════════════════════════════════════════════════════════════════════════════
-// v6.0.41 — DIAGNOSTIC-ONLY PERSON TWB RENDERER PROBE
-// No visual ownership changes live here. The previous raw/Fabric experiments are
-// intentionally absent because this build starts from v6.0.37. We record the real
-// view/layer painters for Your Interests / Keep Shopping / Buy Again / Previously
-// Watched before attempting another functional patch.
-// ════════════════════════════════════════════════════════════════════════════════
-static CFAbsoluteTime gADPersonDiagUntil6041 = 0;
-static NSMutableSet *gADPersonDiagSeen6041 = nil;
-static int gADPersonDiagLines6041 = 0;
-
-static NSString *ADPersonDiagPath6041(void){
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-person-twb-6041.txt"];
-}
-static NSString *ADPersonDiagClean6041(NSString *x){
-    if(!x.length) return @"";
-    NSString *s=[x stringByReplacingOccurrencesOfString:@"\n" withString:@" "];
-    s=[s stringByReplacingOccurrencesOfString:@"\r" withString:@" "];
-    while([s containsString:@"  "]) s=[s stringByReplacingOccurrencesOfString:@"  " withString:@" "];
-    if(s.length>96) s=[[s substringToIndex:96] stringByAppendingString:@"…"];
-    return s;
-}
-static void ADPersonDiagWrite6041(NSString *line){
-    if(!line.length || gADPersonDiagLines6041>2600) return;
-    @try {
-        NSString *p=ADPersonDiagPath6041();
-        NSData *d=[[line stringByAppendingString:@"\n"] dataUsingEncoding:NSUTF8StringEncoding];
-        NSFileManager *fm=[NSFileManager defaultManager];
-        if(![fm fileExistsAtPath:p]) [fm createFileAtPath:p contents:nil attributes:nil];
-        NSDictionary *a=[fm attributesOfItemAtPath:p error:nil];
-        if([a[NSFileSize] unsignedLongLongValue] > 1800000) return;
-        NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p];
-        [h seekToEndOfFile]; [h writeData:d]; [h closeFile];
-        gADPersonDiagLines6041++;
-    } @catch(...) {}
-}
-static BOOL ADPersonDiagOnce6041(NSString *key){
-    if(!key.length) return YES;
-    @try {
-        if(!gADPersonDiagSeen6041) gADPersonDiagSeen6041=[NSMutableSet set];
-        if([gADPersonDiagSeen6041 containsObject:key]) return NO;
-        if(gADPersonDiagSeen6041.count<1600) [gADPersonDiagSeen6041 addObject:key];
-    } @catch(...) {}
-    return YES;
-}
-static int ADPersonDiagKind6041(NSString *text){
-    NSString *lo=[[ADPersonDiagClean6041(text) lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-    if(!lo.length) return 0;
-    if([lo containsString:@"your interests"]) return 1;
-    if([lo hasPrefix:@"keep shopping for"] || [lo containsString:@"keep shopping for"]) return 2;
-    if([lo isEqualToString:@"buy again"] || [lo containsString:@"buy again"]) return 3;
-    if([lo containsString:@"shop previously watched"]) return 4;
-    return 0;
-}
-static NSString *ADPersonDiagKindName6041(int k){
-    switch(k){case 1:return @"Your Interests";case 2:return @"Keep Shopping for";case 3:return @"Buy Again";case 4:return @"Shop previously watched";default:return @"?";}
-}
-static NSString *ADPersonDiagCG6041(CGColorRef c){
-    if(!c) return @"-";
-    @try {
-        const CGFloat *v=CGColorGetComponents(c); size_t n=CGColorGetNumberOfComponents(c);
-        if(n>=4) return [NSString stringWithFormat:@"%.2f,%.2f,%.2f,%.2f",v[0],v[1],v[2],v[3]];
-        if(n==2) return [NSString stringWithFormat:@"%.2f,%.2f",v[0],v[1]];
-    } @catch(...) {}
-    return @"?";
-}
-static BOOL ADPersonDiagCGImage6041(id c, size_t *pw, size_t *ph){
-    if(pw)*pw=0; if(ph)*ph=0; if(!c) return NO;
-    @try {
-        CFTypeRef cf=(__bridge CFTypeRef)c;
-        if(CFGetTypeID(cf)!=CGImageGetTypeID()) return NO;
-        CGImageRef im=(CGImageRef)cf;
-        if(pw)*pw=CGImageGetWidth(im); if(ph)*ph=CGImageGetHeight(im);
-        return YES;
-    } @catch(...) {}
-    return NO;
-}
-static BOOL ADPersonDiagReactish6041(UIView *v){
-    UIView *p=v; for(int i=0;p&&i<8;i++,p=p.superview){
-        const char *c=object_getClassName(p);
-        if(c&&(strstr(c,"RCT")||strstr(c,"React")||strstr(c,"Fabric"))) return YES;
-    }
-    return NO;
-}
-static void ADPersonDiagDumpLayers6041(UIView *root, NSString *tag){
-    if(!root) return;
-    @try {
-        NSMutableArray *q=[NSMutableArray arrayWithObject:root.layer];
-        NSMutableArray *depth=[NSMutableArray arrayWithObject:@0];
-        int seen=0;
-        for(NSUInteger qi=0;qi<q.count&&seen++<300;qi++){
-            CALayer *l=q[qi]; int d=[depth[qi] intValue];
-            id del=l.delegate; const char *lc=object_getClassName(l); const char *dc=del?object_getClassName(del):"-";
-            size_t pw=0,ph=0; BOOL cg=ADPersonDiagCGImage6041(l.contents,&pw,&ph);
-            BOOL interesting=cg || !del || (lc&&strcmp(lc,"CALayer")!=0) || l.sublayers.count>1;
-            if(interesting){
-                ADPersonDiagWrite6041([NSString stringWithFormat:@"L|%@|d=%d|p=%p|sp=%p|cls=%s|del=%s|b=%.0fx%.0f|f=%.0f,%.0f,%.0f,%.0f|cg=%d:%zux%zu|subs=%lu|name=%@|grav=%@|border=%.1f:%@|corner=%.1f|mask=%d|opacity=%.2f",
-                    tag,d,l,l.superlayer,lc?:"?",dc?:"?",l.bounds.size.width,l.bounds.size.height,
-                    l.frame.origin.x,l.frame.origin.y,l.frame.size.width,l.frame.size.height,cg,pw,ph,
-                    (unsigned long)l.sublayers.count,l.name?:@"-",l.contentsGravity?:@"-",l.borderWidth,
-                    ADPersonDiagCG6041(l.borderColor),l.cornerRadius,l.masksToBounds,l.opacity]);
-            }
-            if(d<7){ for(CALayer *sl in l.sublayers){ if(q.count>=300)break; [q addObject:sl]; [depth addObject:@(d+1)]; } }
-        }
-    } @catch(...) {}
-}
-static void ADPersonDiagDumpSection6041(UIView *heading, int kind, NSString *phase){
-    if(!heading||!heading.window) return;
-    @try {
-        UIWindow *w=heading.window; UIView *root=nil; UIView *p=heading.superview;
-        for(int up=0;p&&p!=w&&up<7;up++,p=p.superview){
-            CGFloat pw=p.bounds.size.width, ph=p.bounds.size.height;
-            if(pw>=w.bounds.size.width*.65 && ph>=120 && ph<=1200){ root=p; break; }
-        }
-        if(!root) root=heading.superview?:heading;
-        NSString *tag=[NSString stringWithFormat:@"%@/%@",ADPersonDiagKindName6041(kind),phase];
-        CGRect rr=[root convertRect:root.bounds toView:w];
-        ADPersonDiagWrite6041([NSString stringWithFormat:@"SNAP-BEGIN|%@|root=%p|cls=%s|b=%.0fx%.0f|win=%.0f,%.0f,%.0f,%.0f|text=%@",
-            tag,root,object_getClassName(root),root.bounds.size.width,root.bounds.size.height,
-            rr.origin.x,rr.origin.y,rr.size.width,rr.size.height,ADPersonDiagClean6041(ADWTViewText362(root))]);
-        NSMutableArray *q=[NSMutableArray arrayWithObject:root];
-        NSMutableArray *depth=[NSMutableArray arrayWithObject:@0]; int seen=0;
-        for(NSUInteger qi=0;qi<q.count&&seen++<260;qi++){
-            UIView *x=q[qi]; int d=[depth[qi] intValue]; CGRect xr=[x convertRect:x.bounds toView:w];
-            CALayer *l=x.layer; size_t cpw=0,cph=0; BOOL lcg=ADPersonDiagCGImage6041(l.contents,&cpw,&cph);
-            BOOL iv=[x isKindOfClass:[UIImageView class]]; UIImage *im=iv?((UIImageView *)x).image:nil;
-            size_t ipw=im.CGImage?CGImageGetWidth(im.CGImage):0, iph=im.CGImage?CGImageGetHeight(im.CGImage):0;
-            NSString *aid=ADPersonDiagClean6041(x.accessibilityIdentifier); NSString *al=ADPersonDiagClean6041(x.accessibilityLabel);
-            NSString *tx=ADPersonDiagClean6041(ADWTViewText362(x));
-            BOOL twb=iv&&objc_getAssociatedObject(x,kADWhiteTameOverlayKey)!=nil;
-            ADPersonDiagWrite6041([NSString stringWithFormat:@"V|%@|d=%d|p=%p|par=%p|cls=%s|b=%.0fx%.0f|win=%.0f,%.0f,%.0f,%.0f|sub=%lu|layer=%s|lcg=%d:%zux%zu|ls=%lu|iv=%d|img=%zux%zu|mode=%ld|twb=%d|bg=%@|aid=%@|al=%@|text=%@",
-                tag,d,x,x.superview,object_getClassName(x),x.bounds.size.width,x.bounds.size.height,
-                xr.origin.x,xr.origin.y,xr.size.width,xr.size.height,(unsigned long)x.subviews.count,
-                object_getClassName(l),lcg,cpw,cph,(unsigned long)l.sublayers.count,iv,ipw,iph,
-                (long)(im?im.renderingMode:-1),twb,ADPersonDiagCG6041(x.backgroundColor.CGColor),aid,al,tx]);
-            if(d<7){for(UIView *sv in x.subviews){if(q.count>=260)break;[q addObject:sv];[depth addObject:@(d+1)];}}
-        }
-        ADPersonDiagDumpLayers6041(root,tag);
-        ADPersonDiagWrite6041([NSString stringWithFormat:@"SNAP-END|%@",tag]);
-    } @catch(...) {}
-}
-static void ADPersonDiagHeading6041(UIView *v, NSString *text){
-    int kind=ADPersonDiagKind6041(text); if(!kind) return;
-    @try {
-        NSString *key=[NSString stringWithFormat:@"H:%d:%p:%@",kind,v,ADPersonDiagClean6041(text)];
-        if(!ADPersonDiagOnce6041(key)) return;
-        gADPersonDiagUntil6041=CFAbsoluteTimeGetCurrent()+8.0;
-        ADPersonDiagWrite6041([NSString stringWithFormat:@"HEADING|%@|view=%p|cls=%s|text=%@",ADPersonDiagKindName6041(kind),v,object_getClassName(v),ADPersonDiagClean6041(text)]);
-        __weak UIView *wv=v;
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.18*NSEC_PER_SEC)),dispatch_get_main_queue(),^{ UIView *x=wv;if(x)ADPersonDiagDumpSection6041(x,kind,@"180ms"); });
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.90*NSEC_PER_SEC)),dispatch_get_main_queue(),^{ UIView *x=wv;if(x)ADPersonDiagDumpSection6041(x,kind,@"900ms"); });
-    } @catch(...) {}
-}
-static void ADPersonDiagImage6041(UIImageView *iv, UIImage *im, const char *event){
-    if(!iv||!im||CFAbsoluteTimeGetCurrent()>gADPersonDiagUntil6041) return;
-    @try {
-        NSString *key=[NSString stringWithFormat:@"I:%p:%p:%s",iv,im,event?:"?"];
-        if(!ADPersonDiagOnce6041(key)) return;
-        CGRect r=iv.window?[iv convertRect:iv.bounds toView:iv.window]:CGRectZero;
-        int c=iv.window?ADWTCarouselSection384(iv):0, l=iv.window?ADWTLocalSection365(iv):0;
-        size_t pw=im.CGImage?CGImageGetWidth(im.CGImage):0,ph=im.CGImage?CGImageGetHeight(im.CGImage):0;
-        ADPersonDiagWrite6041([NSString stringWithFormat:@"IMG|%s|v=%p|cls=%s|b=%.0fx%.0f|win=%.0f,%.0f,%.0f,%.0f|px=%zux%zu|mode=%ld|react=%d|car=%d|local=%d|twb=%d|aid=%@",
-            event?:"?",iv,object_getClassName(iv),iv.bounds.size.width,iv.bounds.size.height,r.origin.x,r.origin.y,r.size.width,r.size.height,
-            pw,ph,(long)im.renderingMode,ADPersonDiagReactish6041(iv),c,l,objc_getAssociatedObject(iv,kADWhiteTameOverlayKey)!=nil,
-            ADPersonDiagClean6041(iv.accessibilityIdentifier)]);
-    } @catch(...) {}
-}
-static UIView *ADPersonDiagLayerOwner6041(CALayer *l){
-    @try { for(int i=0;l&&i<7;i++,l=l.superlayer){id d=l.delegate;if(d&&[d isKindOfClass:[UIView class]])return (UIView *)d;} } @catch(...) {}
-    return nil;
-}
-static void ADPersonDiagLayer6041(CALayer *layer, id contents, const char *event){
-    if(!layer||!contents||CFAbsoluteTimeGetCurrent()>gADPersonDiagUntil6041) return;
-    @try {
-        size_t pw=0,ph=0; BOOL cg=ADPersonDiagCGImage6041(contents,&pw,&ph);
-        if(!cg) return;
-        CGFloat w=layer.bounds.size.width,h=layer.bounds.size.height;
-        if((w>0&&h>0)&&(w<18||h<18||w>500||h>500)) return;
-        NSString *key=[NSString stringWithFormat:@"C:%p:%p:%s",layer,contents,event?:"?"];
-        if(!ADPersonDiagOnce6041(key)) return;
-        UIView *o=ADPersonDiagLayerOwner6041(layer); const char *oc=o?object_getClassName(o):"-";
-        ADPersonDiagWrite6041([NSString stringWithFormat:@"CONTENTS|%s|l=%p|cls=%s|owner=%p:%s|b=%.0fx%.0f|f=%.0f,%.0f,%.0f,%.0f|px=%zux%zu|subs=%lu|grav=%@|react=%d",
-            event?:"?",layer,object_getClassName(layer),o,oc,layer.bounds.size.width,layer.bounds.size.height,
-            layer.frame.origin.x,layer.frame.origin.y,layer.frame.size.width,layer.frame.size.height,pw,ph,(unsigned long)layer.sublayers.count,
-            layer.contentsGravity?:@"-",o?ADPersonDiagReactish6041(o):0]);
-    } @catch(...) {}
-}
-static void ADPersonDiagReset6041(void){
-    @try {
-        [[NSFileManager defaultManager] removeItemAtPath:ADPersonDiagPath6041() error:nil];
-        gADPersonDiagSeen6041=[NSMutableSet set]; gADPersonDiagLines6041=0; gADPersonDiagUntil6041=0;
-        ADPersonDiagWrite6041([NSString stringWithFormat:@"AmazonDark v6.0.41 Person TWB diagnostic | %@ | path=%@",[NSDate date],ADPersonDiagPath6041()]);
-        ADPersonDiagWrite6041(@"No theming changes from v6.0.37. Open Person and scroll through Buy Again, Your Interests, Keep Shopping for, and Shop previously watched.");
-    } @catch(...) {}
 }
 
 static int ADTWBDirectCtx6031(UIImageView *iv, UIImage *im){
@@ -4364,7 +4168,6 @@ static void ADApplyNativeWhiteTame(UIImageView *iv){ ADApplyNativeWhiteTameView(
 %hook UIImageView
 - (void)didMoveToWindow {
     %orig;
-    @try { ADPersonDiagImage6041(self, self.image, "didMoveToWindow"); } @catch(...) {}
     @try {
         if (!gP.enabled || !self.window || ADIsWebKitOwned(self)) return;
         // The tab bar owns its own colours. Both branches below repaint: the backdrop
@@ -4655,7 +4458,6 @@ static void ADScheduleGlyphLift624(UIImageView *iv){
 
 %hook UIImageView
 - (void)setImage:(UIImage *)image {
-    @try { ADPersonDiagImage6041(self, image, "setImage"); } @catch(...) {}
     if (gADGlyphWriting) {
         %orig;
         return;
@@ -5385,7 +5187,6 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
 // ─── %ctor : process guard + hook registration + bounded startup recovery ────
 %ctor {
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
-    ADPersonDiagReset6041();
     // v5.446 direct-port: drop cached light launch snapshots.
     @try {
         NSString *lib = [NSSearchPathForDirectoriesInDomains(

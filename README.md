@@ -126,6 +126,10 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
 
+## v6.0.42
+
+Person-tab TWB semantic precision build, based directly on v6.0.37 after v6.0.41 diagnostics proved the remaining misses are ordinary `RCTUIImageViewAnimated` product views rather than raw Fabric image layers. Recognizes Amazon's prefixed `Amazon.com: Keep shopping for` heading, adds `Your Interests` and `Buy Again` as forced product sections, and lets a positive compact Person section beat a false broad carousel exclusion. The v6.0.38-v6.0.40 raw-layer overlay experiments and v6.0.41 diagnostic instrumentation are not included.
+
 ## v6.0.37
 
 - Keeps v6.0.36 as the functional baseline.
@@ -294,7 +298,3 @@ High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https:/
 - The one-shot verifier now runs in both ON and OFF states so an old 120-Hz report cannot be mistaken for a fresh disabled result.
 - Adds a constant-time dark backing floor to WKWebView/WKScrollView so fast 120-Hz flings reveal the dark theme rather than WebKit's default white backing while lazy tiles/content catch up.
 - Checkbox and v5.446 top-chrome logic are unchanged from v6.0.10.
-
-
-## v6.0.41
-Diagnostic-only Person-tab TWB renderer probe based on v6.0.37. No v6.0.38-v6.0.40 Fabric ownership experiments are included. Records bounded view/layer snapshots around Buy Again, Your Interests, Keep Shopping for, and Shop previously watched to `AmazonDark-person-twb-6041.txt` in Amazon's temporary directory.
