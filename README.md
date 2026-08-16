@@ -126,6 +126,16 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
 
+## v6.0.30
+
+- Makes web `VIDEO` a first-class TWB-owned media type instead of merely classifying it.
+- Reasserts video TWB directly from media lifecycle events (`loadedmetadata`, `loadeddata`, `canplay`, `playing`) with no observer, scroll scan, or timer.
+- Uses `videoWidth` / `videoHeight` for video eligibility when layout/cached media dimensions are not yet sufficient.
+- Home `vjs-tech`, single-video/video-card, `sbv-video`, and video component families receive declarative first-paint ownership.
+- Product/search demonstration videos are not rejected by the static full-frame-raster guard; TWB applies to the `VIDEO` element only, leaving surrounding ad text/controls independently owned.
+- Keeps v6.0.29 targeted image/creative coverage and v6.0.28 top-chrome lock unchanged.
+
+
 ## v6.0.28
 
 - Locks Amazon's adaptive `ANXTopNavBackgroundView` to the configured dark background so Home hero/ad-carousel colour sampling cannot recolor the search/header chrome while scrolling.
@@ -231,10 +241,3 @@ High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https:/
 - The one-shot verifier now runs in both ON and OFF states so an old 120-Hz report cannot be mistaken for a fresh disabled result.
 - Adds a constant-time dark backing floor to WKWebView/WKScrollView so fast 120-Hz flings reveal the dark theme rather than WebKit's default white backing while lazy tiles/content catch up.
 - Checkbox and v5.446 top-chrome logic are unchanged from v6.0.10.
-
-## v6.0.29
-- Keeps v6.0.27/v6.0.28's fast direct-ownership TWB architecture; the legacy scan-heavy TWB engine stays disabled.
-- Restores v5.446 semantic TWB coverage without scroll-time discovery: Home single-creative/video media, theming-card/VJS backgrounds, hero ad media, compact/product-ad media with the donor full-frame skip, generic large Home media/category art, known product media, Subscribe & Save, Keep Shopping, Previously Watched, How Can I Help, Returns, and review photos.
-- Preserves v5.446 local exclusions for Medical Care, Amazon Highlights, and Explore/navigation artwork.
-- Web TWB uses document-start CSS plus per-media load ownership and a bounded media-only initial/BFCache pass; no TWB MutationObserver, no scroll handler, no recurring timer, and no text/background DOM scanner.
-- Retains the v6.0.28 ANXTopNavBackgroundView lock.

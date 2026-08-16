@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.29"
+#define AD_VERSION "v6.0.30"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1000,7 +1000,7 @@ static NSString *ADWhiteTameWebJS6027(void){
     CGFloat a=0.50*(s/100.0);
     return [NSString stringWithFormat:
         @"(function(){try{"
-         // v6.0.29: preserve the zero-scroll-cost v6.0.27 owner, but restore the
+         // v6.0.30: preserve the zero-scroll-cost direct owner and make VIDEO first-class media.
          // exact *semantic* v5.446 TWB families with local/event-driven decisions.
          // No MutationObserver, heading-band scan, scroll handler or recurring timer.
          "var BB='brightness(%.3f) saturate(1.08)',AA='rgba(0,0,0,%.3f)';"
@@ -1030,7 +1030,10 @@ static NSString *ADWhiteTameWebJS6027(void){
            "'[class*=\\\"single-creative-card\\\"] img,'+"
            "'[class*=\\\"single-video-card\\\"] img,'+"
            "'video.vjs-tech,'+"
-           "'[class*=\\\"single-video-card\\\"] video' +"
+           "'[class*=\\\"single-video-card\\\"] video,'+"
+           "'[class*=\\\"video-card\\\"] video,'+"
+           "'[class*=\\\"sbv-video\\\"] video,'+"
+           "'[data-component-type*=\\\"video\\\"] video' +"
          "'):not([class*=\\\"icon\\\"]):not([class*=\\\"logo\\\"]):not([class*=\\\"avatar\\\"]):not([class*=\\\"profile\\\"]):not([class*=\\\"merchant\\\"]):not([class*=\\\"seller\\\"]):not([class*=\\\"brand\\\"]):not([class*=\\\"store\\\"]):not([class*=\\\"sprite\\\"]){filter:'+BB+'!important;}'+"
          "'html body :is([class*=\\\"single-creative-card\\\"],[class*=\\\"single-video-card\\\"],[class*=\\\"video-card\\\"],[class*=\\\"theming-card\\\"]) :is([class*=\\\"theming-card-background\\\"],.vjs-poster,[class*=\\\"vjs-poster\\\"]){filter:none!important;background-blend-mode:normal!important;box-shadow:inset 0 0 0 9999px '+AA+'!important;}'+"
          // Search/history and genuine identity artwork are never TWB media.
@@ -1047,16 +1050,16 @@ static NSString *ADWhiteTameWebJS6027(void){
          "function forced(t){return /subscribe[ &]+save|keep shopping for|shop previously watched|how can i help|returns are easy/.test(t);}"
          "function product(e,c){var p=e,d=0;while(p&&d++<6){var asin=String((p.getAttribute&&p.getAttribute('data-asin'))||''),h=String((p.getAttribute&&p.getAttribute('href'))||''),q=S(p.className)+' '+String(p.id||'');if(asin||/asin|product|p13n|npack|cxvhz|gwm-asin|carousel-image|product-image|s-image|a-amazon-image/i.test(q)||h.indexOf('/dp/')>=0||h.indexOf('/gp/product/')>=0)return true;p=p.parentElement;}return /review-image|customer-image|review.*photo/.test(c);}"
          "var mode=(function(){try{if(window.top===window)return 'main';var u=String(document.referrer||'').toLowerCase();if(u.indexOf('/dp/')>=0||u.indexOf('/gp/aw/d/')>=0||u.indexOf('/gp/product/')>=0||u.indexOf('/s?')>=0||u.indexOf('/search')>=0||u.indexOf('?k=')>=0||u.indexOf('&k=')>=0||u.indexOf('field-keywords=')>=0)return 'productad';return ((innerHeight||0)<180||((innerWidth||1)/(innerHeight||1))>2.25)?'standalone':'hero';}catch(e){return 'main';}})();"
-         "function tame(e){try{if(!e||e.nodeType!==1)return;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return;var r=e.getBoundingClientRect();if(r.width<2||r.height<2)return;var c=chain(e),t=localText(e),src=String(e.currentSrc||e.src||e.poster||'').toLowerCase();if(blocked(e,c,t)||/pixel|placeholder|spacer|blank|transparent/.test(src))return;var W=innerWidth||390,H=innerHeight||700,nw=e.naturalWidth||0,nh=e.naturalHeight||0,ok=false;if(mode==='hero'){ok=(r.width>=32&&r.height>=32)||(nw>=32&&nh>=32);}else if(mode==='productad'||mode==='standalone'){var full=(r.width>W*.64&&r.height>H*.55)||(r.width*r.height>W*H*.58);if(full)return;ok=(r.width>=26&&r.height>=26)||(nw>=26&&nh>=26);}else{var pr=product(e,c),fo=forced(t),rv=/review-image|customer-image|review.*photo/.test(c);var mn=(pr||fo||rv)?24:56;ok=(r.width>=mn&&r.height>=mn)||(nw>=mn&&nh>=mn);}if(!ok)return;if(tg!=='VIDEO')e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6029','1');}catch(x){}}"
+         "function tame(e){try{if(!e||e.nodeType!==1)return;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return;var r=e.getBoundingClientRect();if(r.width<2||r.height<2)return;var c=chain(e),t=localText(e),src=String(e.currentSrc||e.src||e.poster||'').toLowerCase();if(blocked(e,c,t)||/pixel|placeholder|spacer|blank|transparent/.test(src))return;var W=innerWidth||390,H=innerHeight||700,nw=(tg==='VIDEO'?(e.videoWidth||0):(e.naturalWidth||0)),nh=(tg==='VIDEO'?(e.videoHeight||0):(e.naturalHeight||0)),ok=false;if(mode==='hero'){ok=(r.width>=32&&r.height>=32)||(nw>=32&&nh>=32);}else if(mode==='productad'||mode==='standalone'){var full=(r.width>W*.64&&r.height>H*.55)||(r.width*r.height>W*H*.58);if(full&&tg!=='VIDEO')return;ok=(r.width>=26&&r.height>=26)||(nw>=26&&nh>=26);}else{var pr=product(e,c),fo=forced(t),rv=/review-image|customer-image|review.*photo/.test(c);var mn=(pr||fo||rv)?24:56;ok=(r.width>=mn&&r.height>=mn)||(nw>=mn&&nh>=mn);}if(!ok)return;e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6030','1');}catch(x){}}"
          "function ev(x){try{tame(x.target);}catch(e){}}"
          // Event-driven ownership: one O(1) classification when media actually loads.
-         "document.addEventListener('load',ev,true);document.addEventListener('loadeddata',ev,true);"
+         "document.addEventListener('load',ev,true);document.addEventListener('loadedmetadata',ev,true);document.addEventListener('loadeddata',ev,true);document.addEventListener('canplay',ev,true);document.addEventListener('playing',ev,true);"
          // One bounded initial/BFCache pass catches already-complete cached images.
          // It touches media collections only -- no div/background/text tree walk.
          "function once(){try{var tags=['img','video','canvas'],budget=420;for(var ti=0;ti<tags.length&&budget>0;ti++){var Q=document.getElementsByTagName(tags[ti]);for(var i=0;i<Q.length&&budget-- >0;i++)tame(Q[i]);}}catch(e){}}"
          "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',once,{once:true});else once();"
          "window.addEventListener('pageshow',once,{passive:true});"
-         "window.__AD_TWB6027_INSTALLED__=1;window.__AD_TWB6029_INSTALLED__=1;window.__AD_TWB6029_MODE__=mode;"
+         "window.__AD_TWB6027_INSTALLED__=1;window.__AD_TWB6029_INSTALLED__=1;window.__AD_TWB6030_INSTALLED__=1;window.__AD_TWB6030_MODE__=mode;"
          "}catch(e){}})();", b, a];
 }
 static NSString *ADWhiteTameWebJS446(void){
