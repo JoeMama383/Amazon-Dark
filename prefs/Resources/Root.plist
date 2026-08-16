@@ -74,7 +74,7 @@
 			<key>label</key>
 			<string>Performance</string>
 			<key>footerText</key>
-			<string>Forces Amazon's Core Animation frame-rate caps toward the 120 Hz panel maximum using jailbreak-only display hooks. This increases power use and heat; hardware/thermal protection may still reduce the delivered rate.</string>
+			<string>Force 120 Hz may increase power use and heat. Enable JIT uses Dopamine's native JIT/debug service on iOS 17.0–17.3.1 and verifies the resulting process state. JIT does not by itself recompile Amazon or guarantee a speedup. After switching JIT OFF, force-close and reopen Amazon to start a clean non-JIT process.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -87,6 +87,20 @@
 			<string>force120Hz</string>
 			<key>label</key>
 			<string>Force 120 Hz</string>
+			<key>PostNotification</key>
+			<string>com.colindavidr.amazondark/prefs-changed</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.colindavidr.amazondark</string>
+			<key>key</key>
+			<string>enableJIT</string>
+			<key>label</key>
+			<string>Enable JIT (Experimental)</string>
 			<key>PostNotification</key>
 			<string>com.colindavidr.amazondark/prefs-changed</string>
 		</dict>

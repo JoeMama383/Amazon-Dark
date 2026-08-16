@@ -1,7 +1,7 @@
 /*
  * AmazonDark v4.0.0  —  "True Dark" rewrite
  * ============================================================================
- * Target: Amazon Shopping iOS app (com.amazon.Amazon), v27.x, NathanLR rootless,
+ * Target: Amazon Shopping iOS app (com.amazon.Amazon), v27.x, Dopamine rootless,
  *         arm64 / arm64e. iOS 15+.
  *
  * WHY THIS IS A REWRITE (and not another v3.x inversion tweak)
@@ -61,8 +61,12 @@
 #import <notify.h>
 #import <stdio.h>
 #import <dlfcn.h>
+#import <sys/types.h>
+#import <unistd.h>
+#import <stdint.h>
+#import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.19"
+#define AD_VERSION "v6.0.20"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -115,6 +119,7 @@ typedef struct {
     BOOL  nativeRecolor;      // Dark Reader colour engine over native (non-web) content
     BOOL  whiteTame;          // v5.446: tame blown-out studio backgrounds
     BOOL  force120Hz;         // v5.446: request ProMotion maximum
+    BOOL  enableJIT;          // v6.0.20: jailbreak-backed JIT/debug state
     long  whiteTameStrength;  // v5.446: 0-100 tame strength
     long  brightness;         // Dark Reader 0..100+ (default 100)
     long  contrast;           // Dark Reader 0..100+ (default 100)
@@ -170,6 +175,7 @@ static void ADLoadPrefs(void){
     gP.imageBackdrop = YES;
     gP.whiteTame = NO;
     gP.force120Hz = NO;
+    gP.enableJIT = NO;
     gP.whiteTameStrength = 45;
     gP.imageKeyBackground = NO;
     gP.nativeRecolor = YES;
@@ -205,6 +211,7 @@ static void ADLoadPrefs(void){
         gP.imageBackdrop      = ADPrefBool(d, @"imageBackdrop",      gP.imageBackdrop);
         gP.whiteTame          = ADPrefBool(d, @"whiteTame",          gP.whiteTame);
         gP.force120Hz         = ADPrefBool(d, @"force120Hz",         gP.force120Hz);
+        gP.enableJIT          = ADPrefBool(d, @"enableJIT",          gP.enableJIT);
         gP.whiteTameStrength  = ADPrefLong(d, @"whiteTameStrength",  gP.whiteTameStrength);
         gP.imageKeyBackground = ADPrefBool(d, @"imageKeyBackground", gP.imageKeyBackground);
         gP.nativeRecolor      = ADPrefBool(d, @"nativeRecolor",      gP.nativeRecolor);
@@ -219,6 +226,78 @@ static void ADLoadPrefs(void){
     gADFGColor613 = nil;
     ADInvalidateWebCaches613();
     ADSyncColorEngine();
+}
+
+// ── DOPAMINE JIT ENABLEMENT (v6.0.20) ─────────────────────────────────────────
+// Dopamine publishes jbdswDebugMe specifically for granting the current process
+// JIT/debug state. Keep this path intentionally small: resolve the injected
+// jailbreak export, call it once, then verify CS_DEBUGGED inside Amazon.
+//
+// CS_DEBUGGED is process-lifetime state. Turning JIT OFF prevents future calls;
+// force-close/reopen Amazon to return to a fresh non-debugged process.
+#ifndef CS_OPS_STATUS
+#define CS_OPS_STATUS 0
+#endif
+#ifndef CS_DEBUGGED
+#define CS_DEBUGGED 0x10000000
+#endif
+extern int csops(pid_t pid, unsigned int ops, void *useraddr, size_t usersize);
+
+static BOOL ADJITDebugged620(uint32_t *flagsOut, int *errOut){
+    uint32_t flags = 0;
+    errno = 0;
+    int rc = csops(getpid(), CS_OPS_STATUS, &flags, sizeof(flags));
+    if (flagsOut) *flagsOut = flags;
+    if (errOut) *errOut = (rc == 0 ? 0 : errno);
+    return rc == 0 && (flags & CS_DEBUGGED) != 0;
+}
+
+static void ADWriteJITReport620(NSString *status, int backendRC){
+    @try {
+        uint32_t flags = 0; int csErr = 0;
+        BOOL debugged = ADJITDebugged620(&flags, &csErr);
+        NSString *p = [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-jit.txt"];
+        NSString *s = [NSString stringWithFormat:
+            @"AmazonDark %@\n"
+             "enableJIT=%d\n"
+             "status=%@\n"
+             "backend=Dopamine-jbdswDebugMe\n"
+             "backendRC=%d\n"
+             "pid=%d\n"
+             "csopsErr=%d\n"
+             "csFlags=0x%08x\n"
+             "CS_DEBUGGED=%d\n"
+             "note=%@\n",
+             [NSString stringWithUTF8String:AD_VERSION], (gP.enabled && gP.enableJIT) ? 1 : 0,
+             status ?: @"-", backendRC, getpid(), csErr, flags, debugged ? 1 : 0,
+             (!gP.enableJIT && debugged)
+                ? @"JIT is OFF in preferences; force-close/reopen Amazon to clear this process-lifetime debug state."
+                : @"-"];
+        [s writeToFile:p atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    } @catch(...) {}
+}
+
+static void ADApplyJIT620(void){
+    if (!gP.enabled || !gP.enableJIT){
+        ADWriteJITReport620(@"disabled-by-preference", 0);
+        return;
+    }
+    if (ADJITDebugged620(NULL, NULL)){
+        ADWriteJITReport620(@"already-enabled", 0);
+        return;
+    }
+
+    typedef int64_t (*ADDebugMeFn620)(void);
+    ADDebugMeFn620 debugMe = (ADDebugMeFn620)dlsym(RTLD_DEFAULT, "jbdswDebugMe");
+    if (!debugMe){
+        ADWriteJITReport620(@"backend-unavailable", -1);
+        return;
+    }
+
+    int64_t rc = -1;
+    @try { rc = debugMe(); } @catch(...) { rc = -2; }
+    BOOL verified = ADJITDebugged620(NULL, NULL);
+    ADWriteJITReport620((rc == 0 && verified) ? @"enabled" : @"failed-verification", (int)rc);
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -441,7 +520,22 @@ static NSString *ADFixesLiteral(void){
              "[class*=review] [class*=expander]::after,[class*=review] [class*=expander]::before"
              "{background:none !important;background-image:none !important;"
              "content:none !important;display:none !important;}"
-             "',invert:[],ignoreInlineStyle:['[data-ad-native615]','[data-ad-native615] *'],ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
+             // v6.0.20 direct v5.446 carousel-dot port. Static selectors own
+             // first paint; dotFix374 below follows Amazon's live selected state.
+             "ul.a-pagination.a-dots li.a-selected,"
+             "ul.a-pagination.a-dots li.dot-selected-t2,"
+             "ul.a-pagination.a-dots li[aria-current=true],"
+             "ul.a-pagination.a-dots li[aria-current=page],"
+             "ul.a-pagination.a-dots li[aria-selected=true],"
+             "[data-ad-dotselected374]"
+             "{background-color:#ffffff !important;border-color:#ffffff !important;}"
+             "[data-ad-dotselected374]::before,[data-ad-dotselected374]::after,"
+             "[data-ad-dotselected374] [class*=dot],[data-ad-dotselected374] span"
+             "{background-color:#ffffff !important;border-color:#ffffff !important;"
+             "color:#ffffff !important;fill:#ffffff !important;}"
+             "',invert:[],ignoreInlineStyle:['[data-ad-native615]','[data-ad-native615] *',"
+             "'ul.a-pagination.a-dots li.a-selected','li.dot-selected-t2','[data-ad-dotselected374]'],"
+             "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
             imgBackdrop];
     return gADFixesLiteral613;
 }
@@ -843,8 +937,8 @@ static NSString *ADDarkReaderReapply(void){
 
 // ── v6.0.9: exact v5.446 symbol/checkbox authority ───────────────────────────
 // Heart-shell protection remains the proven lightweight 6.x guard. The sym413 owner
-// and stockCheckbox434 owner below are direct source transplants from v5.446, including
-// their original timer/scroll/MutationObserver ordering. Checkbox runs as the final owner.
+// and stockCheckbox434 paint/state owners below remain direct v5.446 transplants; v6.0.19's
+// coalesced MutationObserver/shared post-scroll scheduler stays authoritative for performance.
 static NSString *ADThreeSymbolsWebJS605(void){
     static NSString *cached = nil;
     if (cached) return cached;
@@ -933,6 +1027,10 @@ static NSString *ADThreeSymbolsWebJS605(void){
          "try{sym413();setTimeout(sym413,30);setTimeout(sym413,160);setTimeout(sym413,560);"
            "setTimeout(sym413,1560);setTimeout(sym413,2600);"
          "}catch(e){}"
+         // v6.0.20: exact v5.446 PDP carousel selected-dot owner. The only
+         // adaptation is scheduling: v6.0.19 already owns mutation/scroll recovery.
+         "function dotFix374(){try{var U=document.querySelectorAll('ul.a-pagination.a-dots,[class*=a-pagination][class*=dots]'),n=0,total=0;for(var u=0;u<U.length&&u<8;u++){var D=U[u].querySelectorAll('li');for(var i=0;i<D.length&&i<30;i++){var d=D[i];total++;var cl=String(d.className||''),ac=String(d.getAttribute&&d.getAttribute('aria-current')||'').toLowerCase(),as=String(d.getAttribute&&d.getAttribute('aria-selected')||'').toLowerCase(),ds=String(d.getAttribute&&d.getAttribute('data-selected')||'').toLowerCase(),kid=null;try{kid=d.querySelector('.a-selected,.dot-selected-t2,[aria-current=true],[aria-current=page],[aria-selected=true],[data-selected=true]');}catch(ex){}var sel=/(^|\\s)(a-selected|dot-selected-t2)(\\s|$)/.test(cl)||ac==='true'||ac==='page'||as==='true'||ds==='true'||!!kid;if(sel){if(d.hasAttribute&&d.hasAttribute('data-darkreader-inline-bgcolor'))d.removeAttribute('data-darkreader-inline-bgcolor');d.style.setProperty('--darkreader-inline-bgcolor','#ffffff','important');d.style.setProperty('background-color','#ffffff','important');d.style.setProperty('border-color','#ffffff','important');d.setAttribute('data-ad-dotselected374','1');d.setAttribute('data-ad-dotfix','1');n++;}else{if(d.getAttribute&&d.getAttribute('data-ad-dotfix')==='1'){d.style.removeProperty('--darkreader-inline-bgcolor');d.style.removeProperty('background-color');d.style.removeProperty('border-color');d.removeAttribute('data-ad-dotfix');}d.removeAttribute&&d.removeAttribute('data-ad-dotselected374');}}}window.__AD_DOTFIX__=n;window.__AD_DOTTOTAL374__=total;}catch(e){}}"
+         "window.__AD_DOTFIX374__=dotFix374;try{dotFix374();}catch(e){}"
          // v5.441 DEVICE-CAPTURED STOCK CHECKBOX + SHARED 32PX CHROME. Amazon
          // remains the sole owner of geometry, hit testing, state, and the checked
          // blue/checkmark sprite. Device P14 names Cart's hierarchy precisely:
@@ -981,14 +1079,14 @@ static NSString *ADThreeSymbolsWebJS605(void){
            "window.__AD_CHECKBOX434_STATE__='hosts='+hosts434.length+' art='+arts434.length+' unchecked='+unchecked434+' checked='+checked434+' cart='+(cart434?1:0)+' shells='+cartShell434+' cleaned='+cleaned434+' skip='+skip434;return hosts434.length;"
          "}catch(e){window.__AD_CHECKBOX434_STATE__='err '+(e&&e.message||e);return -1;}finally{window.__AD_CHECKBOX434_RUNNING__=0;}}"
          "try{window.__AD_CHECKBOX434__=stockCheckbox434;if(!window.__AD_CHECKBOX434_WRAP__){window.__AD_CHECKBOX434_WRAP__=1;"
-           "window.__AD_PRODUCTCTRL391_PRE434__=window.__AD_PRODUCTCTRL391RUN__;window.__AD_PRODUCTCTRL391RUN__=function(){var r=window.__AD_PRODUCTCTRL391_PRE434__?window.__AD_PRODUCTCTRL391_PRE434__():0;try{window.__AD_CHECKBOX434__();}catch(x){}return r;};"
-           "function queue434(delay){try{clearTimeout(window.__AD_CHECKBOX434_T__);window.__AD_CHECKBOX434_T__=setTimeout(function(){try{window.__AD_CHECKBOX434__();}catch(x){}},delay||70);}catch(x){}}"
-           "new MutationObserver(function(){queue434(70);}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});}"
+           "window.__AD_PRODUCTCTRL391_PRE434__=window.__AD_PRODUCTCTRL391RUN__;window.__AD_PRODUCTCTRL391RUN__=function(){var r=window.__AD_PRODUCTCTRL391_PRE434__?window.__AD_PRODUCTCTRL391_PRE434__():0;try{window.__AD_CHECKBOX434__();}catch(x){}try{window.__AD_DOTFIX374__&&window.__AD_DOTFIX374__();}catch(x){}return r;};"
+           "function queue434(delay){try{clearTimeout(window.__AD_CHECKBOX434_T__);window.__AD_CHECKBOX434_T__=setTimeout(function(){try{window.__AD_CHECKBOX434__();}catch(x){}try{window.__AD_DOTFIX374__&&window.__AD_DOTFIX374__();}catch(x){}},delay||70);}catch(x){}}"
+           "new MutationObserver(function(){queue434(70);}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','aria-current','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});}"
            "stockCheckbox434();setTimeout(stockCheckbox434,40);setTimeout(stockCheckbox434,180);setTimeout(stockCheckbox434,700);setTimeout(stockCheckbox434,1800);"
          "}catch(e){}"
          // Tiny 6.x reapply entry point only. It does not alter either donor owner.
          "window.__AD_SYM605_RUN__=sym413;"
-         "window.__AD_SYM605_QUEUE__=function(){try{if(window.__AD_SYM605_Q__)return;window.__AD_SYM605_Q__=1;var f=function(){window.__AD_SYM605_Q__=0;try{window.__AD_HEARTSHELL427__();}catch(x){}try{sym413();}catch(x){}try{window.__AD_CHECKBOX434__&&window.__AD_CHECKBOX434__();}catch(x){}};if(window.requestAnimationFrame)requestAnimationFrame(f);else setTimeout(f,0);}catch(e){}};"
+         "window.__AD_SYM605_QUEUE__=function(){try{if(window.__AD_SYM605_Q__)return;window.__AD_SYM605_Q__=1;var f=function(){window.__AD_SYM605_Q__=0;try{window.__AD_HEARTSHELL427__();}catch(x){}try{sym413();}catch(x){}try{window.__AD_CHECKBOX434__&&window.__AD_CHECKBOX434__();}catch(x){}try{window.__AD_DOTFIX374__&&window.__AD_DOTFIX374__();}catch(x){}};if(window.requestAnimationFrame)requestAnimationFrame(f);else setTimeout(f,0);}catch(e){}};"
          "try{if(!window.__AD_SYM_SCROLL619__){window.__AD_SYM_SCROLL619__=1;addEventListener('scroll',function(){clearTimeout(window.__AD_SYM_SCROLL_T619__);window.__AD_SYM_SCROLL_T619__=setTimeout(function(){try{window.__AD_SYM605_QUEUE__();}catch(x){}},140);},{passive:true,capture:true});}}catch(e){}"
          "try{window.__AD_SYM605_QUEUE__();}catch(e){}"
        "return 'sym609';}catch(e){return 'sym609err '+(e&&e.message||e);}})();"];
@@ -4378,12 +4476,18 @@ static void ADPrefsChanged(CFNotificationCenterRef center, void *observer,
     dispatch_async(dispatch_get_main_queue(), ^{
         @try {
             BOOL oldPromotion = ADPromotionPreferenceOn611();
+            BOOL oldJIT = gP.enabled && gP.enableJIT;
             ADLoadPrefs();              // also re-syncs + clears the colour/script caches
             BOOL newPromotion = ADPromotionPreferenceOn611();
+            BOOL newJIT = gP.enabled && gP.enableJIT;
             if (oldPromotion != newPromotion){
                 ADStopHzVerification611();
                 ADRefreshPromotionState611();
                 ADStartHzVerification();
+            }
+            if (oldJIT != newJIT){
+                if (newJIT) ADApplyJIT620();
+                else ADWriteJITReport620(@"disabled-next-launch", 0);
             }
             ADForceWindowsDarkTrait();
             ADInjectAllWebViews();      // exact re-theme on web
@@ -4430,6 +4534,7 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
 
     dispatch_async(dispatch_get_main_queue(), ^{
         ADLoadPrefs();
+        ADApplyJIT620();
         ADRefreshPromotionState611();
         ADLockDarkWeblab();
         ADForceAppearanceDark();
