@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.32"
+#define AD_VERSION "v6.0.33"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -670,7 +670,7 @@ static NSString *ADDarkReaderBootstrap(void){
          "try{window.__AD_NATIVE_SEL615__='[class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=canvas-card],[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_],[class*=hybrid-widget-sponsored],[class*=adFeedbackMainComponent],[class*=sponsored-products]';"
            "window.__AD_IS_NATIVE615__=function(e){try{return !!(e&&e.closest&&(e.closest('[data-ad-native615]')||e.closest(window.__AD_NATIVE_SEL615__)));}catch(x){return false;}};"
            "window.__AD_STRIP_DR615__=function(root){try{var R=[];if(root&&root.nodeType===1&&((root.matches&&root.matches(window.__AD_NATIVE_SEL615__))||root.hasAttribute('data-ad-native615')))R.push(root);if(root&&root.querySelectorAll){var q=root.querySelectorAll('[data-ad-native615],'+window.__AD_NATIVE_SEL615__);for(var i=0;i<q.length&&i<80;i++)R.push(q[i]);}for(var r=0;r<R.length;r++){var a=R[r];a.setAttribute('data-ad-native615','1');var E=[a],k=a.querySelectorAll('*');for(var j=0;j<k.length&&j<700;j++)E.push(k[j]);for(var z=0;z<E.length;z++){var el=E[z],at=Array.prototype.slice.call(el.attributes||[]);for(var x=0;x<at.length;x++){var nm=at[x].name;if(nm.indexOf('data-darkreader-inline-')===0)el.removeAttribute(nm);}var st=el.style;if(st){var rm=[];for(var y=0;y<st.length;y++){var pn=st[y];if(String(pn).indexOf('--darkreader-inline-')===0)rm.push(pn);}for(var y2=0;y2<rm.length;y2++)st.removeProperty(rm[y2]);}}}return R.length;}catch(e){return 0;}};"
-           "window.__AD_MARK_NATIVE615__=function(root){try{if(!root)return 0;var n=0,Q=[];if(root.nodeType===1&&root.matches&&root.matches(window.__AD_NATIVE_SEL615__))Q.push(root);if(root.querySelectorAll){var q=root.querySelectorAll(window.__AD_NATIVE_SEL615__);for(var i=0;i<q.length&&i<80;i++)Q.push(q[i]);}for(var j=0;j<Q.length;j++){if(!Q[j].hasAttribute('data-ad-native615')){Q[j].setAttribute('data-ad-native615','1');n++;}}if(Q.length){window.__AD_STRIP_DR615__(root);setTimeout(function(){try{window.__AD_STRIP_DR615__(root);}catch(e){}},40);}return n;}catch(e){return 0;}};"
+           "window.__AD_MARK_NATIVE615__=function(root){try{if(!root)return 0;var n=0,Q=[];if(root.nodeType===1&&root.matches&&root.matches(window.__AD_NATIVE_SEL615__))Q.push(root);if(root.querySelectorAll){var q=root.querySelectorAll(window.__AD_NATIVE_SEL615__);for(var i=0;i<q.length&&i<80;i++)Q.push(q[i]);}for(var j=0;j<Q.length;j++){if(!Q[j].hasAttribute('data-ad-native615')){Q[j].setAttribute('data-ad-native615','1');n++;}}if(Q.length){window.__AD_STRIP_DR615__(root);setTimeout(function(){try{window.__AD_STRIP_DR615__(root);}catch(e){}},40);}try{if(window.__AD_TWB6033_ADROOT__){var h=(root.nodeType===1&&root.closest)?root.closest('[data-ad-native615],'+window.__AD_NATIVE_SEL615__):null;if(h)window.__AD_TWB6033_ADROOT__(h);for(var t=0;t<Q.length&&t<24;t++)window.__AD_TWB6033_ADROOT__(Q[t]);}}catch(tx){}return n;}catch(e){return 0;}};"
            "window.__AD_MARK_NATIVE615__(document);if(!window.__AD_NATIVE_OBS615__&&document.documentElement){window.__AD_NATIVE_OBS615__=1;new MutationObserver(function(ms){try{for(var i=0;i<ms.length&&i<48;i++){var A=ms[i].addedNodes||[];for(var j=0;j<A.length&&j<24;j++)if(A[j]&&A[j].nodeType===1)window.__AD_MARK_NATIVE615__(A[j]);}}catch(e){}}).observe(document.documentElement,{childList:true,subtree:true});}}catch(e){}"
          "%@\n" // DarkReader UMD
          "if(window.DarkReader&&DarkReader.enable){"
@@ -1000,91 +1000,88 @@ static NSString *ADWhiteTameWebJS6027(void){
     CGFloat a=0.50*(s/100.0);
     return [NSString stringWithFormat:
         @"(function(){try{"
-         // v6.0.32: keep v6.0.31 direct ownership; restore v5.446 parent->child ad-frame refinement and warm revisits.
-         // exact *semantic* v5.446 TWB families with local/event-driven decisions.
-         // No MutationObserver, heading-band scan, scroll handler or recurring timer.
+         // v6.0.33: v6.0.31 remains the performance baseline. Restore only the
+         // remaining v5.446 Home owners: self-owned carousel background leaves,
+         // bounded card-local creative ownership, and the Off-to-College structural pane.
+         // No TWB scroll listener, timer, or new MutationObserver is added.
          "var BB='brightness(%.3f) saturate(1.08)',AA='rgba(0,0,0,%.3f)';"
-         "var old=document.getElementById('ad-twb6027'),old2=document.getElementById('ad-twb6029'),old3=document.getElementById('ad-twb6031'),id='ad-twb6032',st=document.getElementById(id);"
+         "var U=String(location.href||'').toLowerCase(),HOME=(window.top===window&&(/\\/gp\\/gw\\/ajax\\/mshop/.test(U)||/ishome(?:pageredesign)?=true/.test(U)||/istransparentnav=true/.test(U)));if(HOME&&document.documentElement)document.documentElement.setAttribute('data-ad-twb-home6033','1');"
+         "var old=document.getElementById('ad-twb6027'),old2=document.getElementById('ad-twb6029'),old3=document.getElementById('ad-twb6031'),id='ad-twb6033',st=document.getElementById(id);"
          "if(old&&old!==st&&old.parentNode)old.parentNode.removeChild(old);if(old2&&old2!==st&&old2.parentNode)old2.parentNode.removeChild(old2);if(old3&&old3!==st&&old3.parentNode)old3.parentNode.removeChild(old3);"
          "if(!st){st=document.createElement('style');st.id=id;(document.head||document.documentElement).appendChild(st);}"
-         // 1) Stable product families from the streamlined owner.
-         // 2) v5.446 Home single-creative/single-video media.
-         // 3) v5.446 theming-card / vjs-poster BACKGROUND-only tame. An inset shadow
-         //    sits over the background layer but below live DOM text/controls.
          "var css='html body :is(' +"
            "'img.s-image,'+"
            "'.s-product-image-container img,'+"
-           "'[data-component-type=\\\"s-product-image\\\"] img,'+"
-           "'[data-component-type=\\\"s-search-result\\\"] img,'+"
+           "'[data-component-type=s-product-image] img,'+"
+           "'[data-component-type=s-search-result] img,'+"
            "'#dp-container img.a-dynamic-image,'+"
            "'#ppd img.a-dynamic-image,'+"
            "'#landingImage,'+"
            "'#imgTagWrapperId img,'+"
            "'.a-carousel-card img.a-dynamic-image,'+"
            "'img.a-amazon-image,'+"
-           "'[class*=\\\"_gwm-asin-tile\\\"] img,'+"
-           "'img[class*=\\\"_np\\\"],'+"
-           "'[class*=\\\"product-image\\\"] img,'+"
-           "'img[class*=\\\"_single-creative-card\\\"],'+"
-           "'img[class*=\\\"_single-video-card\\\"],'+"
-           "'[class*=\\\"single-creative-card\\\"] img,'+"
-           "'[class*=\\\"single-video-card\\\"] img,'+"
+           "'[class*=_gwm-asin-tile] img,'+"
+           "'img[class*=_np],'+"
+           "'[class*=product-image] img,'+"
+           "'img[class*=_single-creative-card],'+"
+           "'img[class*=_single-video-card],'+"
+           "'[class*=single-creative-card] img,'+"
+           "'[class*=single-video-card] img,'+"
            "'video.vjs-tech,'+"
-           "'[class*=\\\"single-video-card\\\"] video,'+"
-           "'[class*=\\\"video-card\\\"] video,'+"
-           "'[class*=\\\"sbv-video\\\"] video,'+"
-           "'[data-component-type*=\\\"video\\\"] video' +"
-         "'):not([class*=\\\"icon\\\"]):not([class*=\\\"logo\\\"]):not([class*=\\\"avatar\\\"]):not([class*=\\\"profile\\\"]):not([class*=\\\"merchant\\\"]):not([class*=\\\"seller\\\"]):not([class*=\\\"brand\\\"]):not([class*=\\\"store\\\"]):not([class*=\\\"sprite\\\"]){filter:'+BB+'!important;}'+"
-         "'html body :is([class*=\\\"single-creative-card\\\"],[class*=\\\"single-video-card\\\"],[class*=\\\"video-card\\\"],[class*=\\\"theming-card\\\"]) :is([class*=\\\"theming-card-background\\\"],.vjs-poster,[class*=\\\"vjs-poster\\\"]){filter:none!important;background-blend-mode:normal!important;box-shadow:inset 0 0 0 9999px '+AA+'!important;}'+"
-         // v6.0.31: canvas creatives have no load event, so WebKit selector
-         // ownership handles them at insertion time. Inline background-image leaves
-         // in the exact Home carousel families get a background-only shade.
-         "'html body :is([class*=\"single-creative-card\"],[class*=\"single-video-card\"],[class*=\"video-card\"],[class*=\"theming-card\"],[class*=\"canvas-card\"],[class*=\"sbv-video\"],[class*=\"ape-placement\"],[class*=\"ape-wrapper\"],[class*=\"hybrid-widget-sponsored\"],[class*=\"adFeedbackMainComponent\"],[class*=\"sponsored-products\"]) canvas{filter:'+BB+'!important;}'+"
-         "'html body :is([class*=\"single-creative-card\"],[class*=\"single-video-card\"],[class*=\"video-card\"],[class*=\"theming-card\"],[class*=\"canvas-card\"],[class*=\"sbv-video\"],[class*=\"ape-placement\"],[class*=\"ape-wrapper\"],[class*=\"hybrid-widget-sponsored\"],[class*=\"adFeedbackMainComponent\"],[class*=\"sponsored-products\"]) [style*=\"background-image\"]{background-blend-mode:normal!important;box-shadow:inset 0 0 0 9999px '+AA+'!important;}'+"
-         "'[data-ad-twb-before6031]::before,[data-ad-twb-after6031]::after{filter:'+BB+'!important;}'+"
-         // Search/history and genuine identity artwork are never TWB media.
-         "'html body :is(.s-suggestion,.s-suggestion-container,[class*=\\\"recentSearch\\\"],[class*=\\\"search-suggestion\\\"],[class*=\\\"avatar\\\"],[class*=\\\"profile\\\"],[class*=\\\"merchant\\\"],[class*=\\\"seller\\\"],[class*=\\\"brand\\\"],[class*=\\\"store\\\"],[class*=\\\"logo\\\"]) img{filter:none!important;}';"
+           "'[class*=single-video-card] video,'+"
+           "'[class*=video-card] video,'+"
+           "'[class*=sbv-video] video,'+"
+           "'[data-component-type*=video] video' +"
+         "'):not([class*=icon]):not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store]):not([class*=sprite]){filter:'+BB+'!important;}'+"
+         // v5.446 _adHomeBgLeaf395 owns the actual leaf itself. v6.0.31 accidentally
+         // required a second matching ancestor, so NPACK/vjs variants could escape.
+         "'html[data-ad-twb-home6033] body [class*=theming-card-background],html[data-ad-twb-home6033] body .vjs-poster,html[data-ad-twb-home6033] body [class*=vjs-poster]{filter:none!important;background-blend-mode:normal!important;box-shadow:inset 0 0 0 9999px '+AA+'!important;}'+"
+         "'html body :is([class*=single-creative-card],[class*=single-video-card],[class*=video-card],[class*=theming-card]) :is([class*=theming-card-background],.vjs-poster,[class*=vjs-poster]){filter:none!important;background-blend-mode:normal!important;box-shadow:inset 0 0 0 9999px '+AA+'!important;}'+"
+         "'html[data-ad-twb-home6033] body :is([class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-tile],[class*=mosaic-container],[class*=canvas-container]) canvas,html body :is([class*=single-creative-card],[class*=single-video-card],[class*=video-card],[class*=theming-card],[class*=canvas-card],[class*=sbv-video],[class*=ape-placement],[class*=ape-wrapper],[class*=hybrid-widget-sponsored],[class*=adFeedbackMainComponent],[class*=sponsored-products]) canvas{filter:'+BB+'!important;}'+"
+         "'html body :is([class*=single-creative-card],[class*=single-video-card],[class*=video-card],[class*=theming-card],[class*=canvas-card],[class*=sbv-video],[class*=ape-placement],[class*=ape-wrapper],[class*=hybrid-widget-sponsored],[class*=adFeedbackMainComponent],[class*=sponsored-products]) [style*=background-image]{background-blend-mode:normal!important;box-shadow:inset 0 0 0 9999px '+AA+'!important;}'+"
+         "'[data-ad-twb-before6033]::before,[data-ad-twb-after6033]::after{filter:'+BB+'!important;}'+"
+         // v5.403 Off-to-College pane: structural background is the app black and text
+         // is light. Product art remains separately TWB-owned, so the card is not flattened.
+         "'[data-ad-college6033],[data-ad-college-bg6033]{background-color:var(--ad-college6033-bg,#181a1b)!important;}'+"
+         "'[data-ad-college6033],[data-ad-college6033] h1,[data-ad-college6033] h2,[data-ad-college6033] h3,[data-ad-college6033] h4,[data-ad-college6033] h5,[data-ad-college6033] h6,[data-ad-college6033] p,[data-ad-college6033] a,[data-ad-college6033] span,[data-ad-college6033] strong{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}'+"
+         "'html body :is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion],[class*=avatar],[class*=profile],[class*=merchant],[class*=seller],[class*=brand],[class*=store],[class*=logo]) img{filter:none!important;}';"
          "if(st.textContent!==css)st.textContent=css;"
          "function S(v){try{return String(v&&v.baseVal!==undefined?v.baseVal:(v||''));}catch(e){return '';}}"
          "function chain(e){var p=e,d=0,c='';while(p&&d++<6){c+=' '+S(p.className)+' '+String(p.id||'')+' '+String((p.getAttribute&&p.getAttribute('data-component-type'))||'')+' '+String((p.getAttribute&&p.getAttribute('data-hook'))||'');p=p.parentElement;}return c.toLowerCase();}"
          "function localText(e){var p=e,d=0,t='';while(p&&d++<6){var x=String(p.textContent||'').replace(/\\s+/g,' ').trim();if(x&&x.length<1200)t+=' '+x.toLowerCase();p=p.parentElement;}return t;}"
-         // Exact v5.446 semantic exclusions, now local to the image rather than found
-         // by a 3,600-text-node heading scan.
          "function blocked(e,c,t,fo,rv){if(!fo&&e.__adGlyph)return true;if(/avatar|profile|author|reviewer|byline|merchant|seller|brand-logo|store-logo|headshot|user-image|customer-avatar|star|rating|checkbox|heart|wish|search-suggestion|recentsearch|camera|microphone|location-icon|chevron|close-icon/.test(c))return true;if(!fo&&/sprite|icon|logo/.test(c))return true;if(rv&&/sprite|icon|logo|pixel/.test(c))return true;if(/medical care|health ai|prescriptions|personal guida|fast,? free deliv|your amazon highlights|total savings|sessions streamed|keep streaming/.test(t))return true;if(/same-day|same day|pharmacy|prime video|amazon haul|whole foods|autos/.test(t)&&/nav|explore|shortcut|chip|pill|category/.test(c+t))return true;return false;}"
-         // v5.446 forced-product sections, but resolved from a handful of ancestors of
-         // the image instead of page-global y-bands.
          "function forced(t){return /subscribe (?:&|and) save|keep shopping for|shop previously watched|lists (?:and|&) registries|alexa for shopping|best deals on|send an amazon gift card|how can i help|returns are easy/.test(t);}"
          "function reviewCtx(t,c){return /your reviews|what did you think of the item/.test(t)||/review-image|customer-image|review.*photo/.test(c);}"
          "function product(e,c){var p=e,d=0;while(p&&d++<6){var asin=String((p.getAttribute&&p.getAttribute('data-asin'))||''),h=String((p.getAttribute&&p.getAttribute('href'))||''),q=S(p.className)+' '+String(p.id||'');if(asin||/asin|product|p13n|npack|cxvhz|gwm-asin|carousel-image|product-image|s-image|a-amazon-image/i.test(q)||h.indexOf('/dp/')>=0||h.indexOf('/gp/product/')>=0)return true;p=p.parentElement;}return /review-image|customer-image|review.*photo/.test(c);}"
-         "function carouselFamily(s){return /single-creative-card|single-video-card|video-card|theming-card|canvas-card|sbv-video|video-js|vjs-|ape-placement|ape-wrapper|hybrid-widget-sponsored|adfeedbackmaincomponent|sponsored-products/i.test(s);}"
-         // v5.446 hero ownership included CSS/pseudo image leaves. Re-express it
-         // from only the loaded media's short ancestor chain; no background-tree scan.
-         "function tameBgChain(e,c){try{if(!e)return;var p=e,d=0,ctx=c||'';while(p&&d++<6){var pc=S(p.className)+' '+String(p.id||''),fam=(mode==='hero')||carouselFamily(ctx+' '+pc);if(fam){var rr=p.getBoundingClientRect();if(rr.width>=32&&rr.height>=32){var cs=getComputedStyle(p),bi=String(cs.backgroundImage||'none');if(bi.indexOf('url(')>=0){p.style.setProperty('background-blend-mode','normal','important');p.style.setProperty('box-shadow','inset 0 0 0 9999px '+AA,'important');p.setAttribute('data-ad-twb-bg6031','1');}try{var bf=getComputedStyle(p,'::before'),af=getComputedStyle(p,'::after');if(String(bf.backgroundImage||'none').indexOf('url(')>=0)p.setAttribute('data-ad-twb-before6031','1');if(String(af.backgroundImage||'none').indexOf('url(')>=0)p.setAttribute('data-ad-twb-after6031','1');}catch(px){}}}ctx+=' '+pc;p=p.parentElement;}}catch(x){}}"
-         // v6.0.32: v5.446 parent-side frame classification, without its MutationObserver/scroll loop.
-         // The parent has the information a cross-origin child cannot know: document position,
-         // carousel ancestry, and whether the host page is PDP/search. It refines the child's
-         // geometry fallback through postMessage on initial discovery and iframe load only.
-         "var productRef=(function(){try{var u=String(document.referrer||'').toLowerCase();return u.indexOf('/dp/')>=0||u.indexOf('/gp/aw/d/')>=0||u.indexOf('/gp/product/')>=0||u.indexOf('/s?')>=0||u.indexOf('/search')>=0||u.indexOf('?k=')>=0||u.indexOf('&k=')>=0||u.indexOf('field-keywords=')>=0;}catch(e){return false;}})();"
-         "var mode=(function(){try{if(window.top===window)return 'main';if(productRef)return 'productad';return ((innerHeight||0)<180||((innerWidth||1)/(innerHeight||1))>2.25)?'standalone':'hero';}catch(e){return 'main';}})();"
-         "var hostProduct6032=-1;function hostProductDoc(){try{if(hostProduct6032>=0)return !!hostProduct6032;var h=String(location.href||'').toLowerCase(),v=(h.indexOf('/dp/')>=0||h.indexOf('/gp/aw/d/')>=0||h.indexOf('/gp/product/')>=0||h.indexOf('/s?')>=0||h.indexOf('/search')>=0||h.indexOf('?k=')>=0||h.indexOf('&k=')>=0||h.indexOf('field-keywords=')>=0);if(!v)v=!!document.querySelector('#dp,#ppd,#centerCol,#productTitle,#buybox,#add-to-cart-button,#buy-now-button,.s-search-results,.s-main-slot,[data-component-type=\"s-search-result\"],[data-feature-name=\"buybox\"],[data-feature-name=\"title\"]');hostProduct6032=v?1:0;return v;}catch(e){return false;}}"
-         "function classifyFrame(f){try{if(window.top!==window||!f||String(f.tagName||'').toUpperCase()!=='IFRAME')return;var r=f.getBoundingClientRect();if(r.width<120||r.height<50)return;var dy=r.top+(window.scrollY||window.pageYOffset||0),ratio=r.width/Math.max(1,r.height),cl=S(f.className),anc='',p=f.parentElement,d=0;while(p&&d++<4){anc+=' '+S(p.className);p=p.parentElement;}var hero=(r.height>=180&&ratio<2.25&&(dy<1250||/carousel|hero|billboard|rotator|slideshow/i.test(cl+anc))),pd=hostProductDoc(),pa=(!hero&&pd&&r.width>=300&&r.height>=55&&r.height<=260),nm=hero?'hero':(pa?'productad':'standalone');f.setAttribute('data-ad-frame-mode6032',nm);try{f.contentWindow&&f.contentWindow.postMessage({__amzAdMode:nm},'*');}catch(px){}}catch(e){}}"
-         "function classifyFrames(){try{if(window.top!==window)return;var F=document.getElementsByTagName('iframe');for(var i=0;i<F.length&&i<80;i++)classifyFrame(F[i]);}catch(e){}}"
-         // The remaining donor-only miss is pure CSS/pseudo artwork in hero child frames
-         // with no IMG/VIDEO descendant to trigger tameBgChain. Inspect only the child
-         // document, once per lifecycle/mode refinement, with a hard 140-element budget.
-         "function frameBgPass(){try{if(window.top===window||mode!=='hero')return;var E=document.getElementsByTagName('*'),n=0;for(var i=0;i<E.length&&i<140;i++){var e=E[i],tg=String(e.tagName||'').toUpperCase();if(!/^(HTML|BODY|DIV|SECTION|A|SPAN|LI|FIGURE|PICTURE)$/.test(tg))continue;var r=e.getBoundingClientRect();if(r.width<32||r.height<32)continue;var c=S(e.className).toLowerCase();if(/sprite|icon|logo|pixel|avatar|profile/.test(c))continue;var cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none');if(bi.indexOf('url(')>=0){e.style.setProperty('background-blend-mode','normal','important');e.style.setProperty('box-shadow','inset 0 0 0 9999px '+AA,'important');e.setAttribute('data-ad-twb-bg6032','1');n++;}try{var bf=getComputedStyle(e,'::before'),af=getComputedStyle(e,'::after');if(String(bf.backgroundImage||'none').indexOf('url(')>=0)e.setAttribute('data-ad-twb-before6031','1');if(String(af.backgroundImage||'none').indexOf('url(')>=0)e.setAttribute('data-ad-twb-after6031','1');}catch(px){}}}catch(e){}}"
-         "function tame(e){try{if(!e||e.nodeType!==1)return;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return;var r=e.getBoundingClientRect();if(r.width<2||r.height<2)return;var c=chain(e),t=localText(e),src=String(e.currentSrc||e.src||e.poster||'').toLowerCase(),fo=forced(t),rv=reviewCtx(t,c),pr=product(e,c);tameBgChain(e,c);if(blocked(e,c,t,fo,rv)||/pixel|placeholder|spacer|blank|transparent/.test(src))return;var W=innerWidth||390,H=innerHeight||700,nw=(tg==='VIDEO'?(e.videoWidth||0):(e.naturalWidth||0)),nh=(tg==='VIDEO'?(e.videoHeight||0):(e.naturalHeight||0)),ok=false;if(mode==='hero'){ok=(r.width>=32&&r.height>=32)||(nw>=32&&nh>=32);}else if(mode==='productad'||mode==='standalone'){var full=(r.width>W*.64&&r.height>H*.55)||(r.width*r.height>W*H*.58);if(full&&tg!=='VIDEO')return;ok=(r.width>=26&&r.height>=26)||(nw>=26&&nh>=26);}else{if(rv&&tg!=='IMG')return;var mn=(pr||fo||rv)?24:56;ok=(r.width>=mn&&r.height>=mn)||(nw>=mn&&nh>=mn);}if(!ok)return;e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6031','1');}catch(x){}}"
-         "function retameFrame(){try{var tags=['img','video','canvas'],budget=180;for(var ti=0;ti<tags.length&&budget>0;ti++){var Q=document.getElementsByTagName(tags[ti]);for(var i=0;i<Q.length&&budget-- >0;i++)tame(Q[i]);}frameBgPass();}catch(e){}}"
-         "if(window.top!==window){try{window.addEventListener('message',function(ev){try{var d=ev.data;if(!d||!d.__amzAdMode)return;var nm=String(d.__amzAdMode||'');if(nm!=='hero'&&nm!=='productad'&&nm!=='standalone')return;if(productRef&&nm==='standalone')nm='productad';if(mode!==nm){mode=nm;window.__AD_TWB6032_MODE__=mode;retameFrame();}else frameBgPass();}catch(e){}});}catch(e){}}"
-         "function ev(x){try{var q=x.target;if(q&&String(q.tagName||'').toUpperCase()==='IFRAME'){classifyFrame(q);return;}tame(q);}catch(e){}}"
-         // Event-driven ownership: one O(1) classification when media actually loads.
+         // Exact donor Home probes repeatedly name NPACK/GWM/mosaic roots in addition
+         // to the obvious single-creative/video classes.
+         "function carouselFamily(s){return /single-creative-card|single-video-card|video-card|theming-card|canvas-card|sbv-video|video-js|vjs-|ape-placement|ape-wrapper|hybrid-widget-sponsored|adfeedbackmaincomponent|sponsored-products|npack-asin-card|gwm-asin-tile|gwm-tile|mosaic-container|canvas-container/i.test(s);}"
+         "function ownClass(e){return (S(e&&e.className)+' '+String(e&&e.id||'')).toLowerCase();}"
+         // Donor __AD_HEROFAST365__ protects logo/icon/sprite on the media leaf itself;
+         // it does not reject a whole image because an ancestor happens to say brand.
+         "function creativeBlocked(e,src){var c=ownClass(e),al=String((e&&e.getAttribute&&e.getAttribute('alt'))||'').toLowerCase();return /sprite|icon|logo|pixel|avatar|profile|headshot|rating|star|checkbox|heart|wish/.test(c)||/logo|pixel|placeholder|spacer|blank|transparent/.test(src)||/\\b(?:logo|avatar|profile)\\b/.test(al);}"
+         "function paintBg(e){try{if(!e||e.nodeType!==1)return 0;var r=e.getBoundingClientRect();if(r.width<32||r.height<32)return 0;var c=ownClass(e);if(/sprite|icon|logo|pixel|avatar|profile/.test(c))return 0;var cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none'),known=/theming-card-background|vjs-poster/.test(c),n=0;if(known||bi.indexOf('url(')>=0){e.style.setProperty('filter','none','important');e.style.setProperty('background-blend-mode','normal','important');e.style.setProperty('box-shadow','inset 0 0 0 9999px '+AA,'important');e.setAttribute('data-ad-twb-bg6033','1');n++;}try{var bf=getComputedStyle(e,'::before'),af=getComputedStyle(e,'::after');if(String(bf.backgroundImage||'none').indexOf('url(')>=0){e.setAttribute('data-ad-twb-before6033','1');n++;}if(String(af.backgroundImage||'none').indexOf('url(')>=0){e.setAttribute('data-ad-twb-after6033','1');n++;}}catch(px){}return n;}catch(x){return 0;}}"
+         "function creativeMedia(e){try{if(!e||e.nodeType!==1)return 0;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return 0;var r=e.getBoundingClientRect(),src=String(e.currentSrc||e.src||e.poster||'').toLowerCase(),nw=(tg==='VIDEO'?(e.videoWidth||0):(e.naturalWidth||0)),nh=(tg==='VIDEO'?(e.videoHeight||0):(e.naturalHeight||0));if(creativeBlocked(e,src)||!((r.width>=32&&r.height>=32)||(nw>=32&&nh>=32)))return 0;e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6033','1');return 1;}catch(x){return 0;}}"
+         // Card-local equivalent of the donor hero/Home scans. It is bounded and runs
+         // only when that card itself loads/changes; no page-wide or scroll-time recovery.
+         "function adRoot(root){try{if(!root||root.nodeType!==1)return 0;var now=Date.now();if(root.__adTWB6033Stamp&&now-root.__adTWB6033Stamp<220)return 0;root.__adTWB6033Stamp=now;var A=[root],Q=root.getElementsByTagName?root.getElementsByTagName('*'):[],n=0;for(var i=0;i<Q.length&&i<160;i++)A.push(Q[i]);for(var j=0;j<A.length;j++){var e=A[j],tg=String(e.tagName||'').toUpperCase();if(tg==='IMG'||tg==='VIDEO'||tg==='CANVAS')n+=creativeMedia(e);else if(/^(DIV|SECTION|A|SPAN|LI|FIGURE|PICTURE)$/.test(tg))n+=paintBg(e);}return n;}catch(x){return 0;}}"
+         "function rootFor(e){try{var p=e,d=0;while(p&&d++<7){var q=ownClass(p)+' '+String((p.getAttribute&&p.getAttribute('data-cel-widget'))||'').toLowerCase();if(carouselFamily(q)||(p.hasAttribute&&p.hasAttribute('data-ad-native615')))return p;p=p.parentElement;}return null;}catch(x){return null;}}"
+         // v5.403 College pane normalization, but resolve it from media already being
+         // classified instead of searching thousands of headings on every repair pass.
+         "function collegeOwner(e,t){try{if(!HOME)return 0;var held=window.__AD_COLLEGE6033_ROOT__;if(held&&held.isConnected)return 1;var p=e,d=0,best=null,vw=innerWidth||390;while(p&&d++<9){var r=p.getBoundingClientRect();if(r.width>=vw*.88&&r.height>=150&&r.height<=900){var tx=String(p.textContent||'').replace(/\\s+/g,' ').toLowerCase();if(tx.indexOf('off to college')>=0){var ni=p.getElementsByTagName?p.getElementsByTagName('img').length:0,nv=p.getElementsByTagName?p.getElementsByTagName('video').length:0;if(ni+nv>=2){best=p;break;}}}p=p.parentElement;}if(!best)return 0;window.__AD_COLLEGE6033_ROOT__=best;best.__adCollege6033=1;best.setAttribute('data-ad-college6033','1');best.setAttribute('data-ad-college-bg6033','1');function appbg(){var A=[document.body,document.documentElement];for(var z=0;z<A.length;z++){if(!A[z])continue;var c=String(getComputedStyle(A[z]).backgroundColor||'').replace(/\\s+/g,'');if(c&&c!=='transparent'&&c!=='rgba(0,0,0,0)')return c;}return 'rgb(24,26,27)';}var bg=appbg();best.style.setProperty('--ad-college6033-bg',bg);best.style.setProperty('background-color',bg,'important');var sr=best.getBoundingClientRect(),K=best.getElementsByTagName?best.getElementsByTagName('*'):[],n=1;for(var i=0;i<K.length&&i<180;i++){var x=K[i],tg=String(x.tagName||'').toUpperCase();if(!/^(DIV|SECTION|ARTICLE|UL|OL)$/.test(tg))continue;var rr=x.getBoundingClientRect();if(sr.width<120||sr.height<80||rr.width<sr.width*.88||rr.height<sr.height*.42||rr.width*rr.height<sr.width*sr.height*.38)continue;var cs=getComputedStyle(x),bi=String(cs.backgroundImage||'none'),bc=String(cs.backgroundColor||'').replace(/\\s+/g,'');if(bi.indexOf('url(')>=0||!bc||bc==='transparent'||bc==='rgba(0,0,0,0)')continue;x.setAttribute('data-ad-college-bg6033','1');x.style.setProperty('--ad-college6033-bg',bg);x.style.setProperty('background-color',bg,'important');n++;}return n;}catch(x){return 0;}}"
+         "function tameBgChain(e,c){try{if(!e)return;var p=e,d=0,ctx=c||'';while(p&&d++<6){var pc=S(p.className)+' '+String(p.id||''),fam=(mode==='hero')||carouselFamily(ctx+' '+pc);if(fam)paintBg(p);ctx+=' '+pc;p=p.parentElement;}}catch(x){}}"
+         "var mode=(function(){try{if(window.top===window)return 'main';var u=String(document.referrer||'').toLowerCase();if(u.indexOf('/dp/')>=0||u.indexOf('/gp/aw/d/')>=0||u.indexOf('/gp/product/')>=0||u.indexOf('/s?')>=0||u.indexOf('/search')>=0||u.indexOf('?k=')>=0||u.indexOf('&k=')>=0||u.indexOf('field-keywords=')>=0)return 'productad';return ((innerHeight||0)<180||((innerWidth||1)/(innerHeight||1))>2.25)?'standalone':'hero';}catch(e){return 'main';}})();"
+         "function tame(e){try{if(!e||e.nodeType!==1)return;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return;var r=e.getBoundingClientRect();if(r.width<2||r.height<2)return;var c=chain(e),t=localText(e),src=String(e.currentSrc||e.src||e.poster||'').toLowerCase(),fo=forced(t),rv=reviewCtx(t,c),pr=product(e,c),hf=carouselFamily(c);collegeOwner(e,t);tameBgChain(e,c);var ar=hf?rootFor(e):null;if(ar)adRoot(ar);if((hf?creativeBlocked(e,src):blocked(e,c,t,fo,rv))||/pixel|placeholder|spacer|blank|transparent/.test(src))return;var W=innerWidth||390,H=innerHeight||700,nw=(tg==='VIDEO'?(e.videoWidth||0):(e.naturalWidth||0)),nh=(tg==='VIDEO'?(e.videoHeight||0):(e.naturalHeight||0)),ok=false;if(mode==='hero'||hf){ok=(r.width>=32&&r.height>=32)||(nw>=32&&nh>=32);}else if(mode==='productad'||mode==='standalone'){var full=(r.width>W*.64&&r.height>H*.55)||(r.width*r.height>W*H*.58);if(full&&tg!=='VIDEO')return;ok=(r.width>=26&&r.height>=26)||(nw>=26&&nh>=26);}else{if(rv&&tg!=='IMG')return;var mn=(pr||fo||rv)?24:56;ok=(r.width>=mn&&r.height>=mn)||(nw>=mn&&nh>=mn);}if(!ok)return;e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6033','1');}catch(x){}}"
+         // Piggyback target for the already-existing v6.0.15 ad-island observer.
+         "window.__AD_TWB6033_ADROOT__=adRoot;"
+         "function ev(x){try{tame(x.target);}catch(e){}}"
          "document.addEventListener('load',ev,true);document.addEventListener('loadedmetadata',ev,true);document.addEventListener('loadeddata',ev,true);document.addEventListener('canplay',ev,true);document.addEventListener('playing',ev,true);"
-         // One bounded initial/BFCache pass catches already-complete cached images plus
-         // at most 80 parent iframes. Child-frame CSS backgrounds use their own 140-node pass.
-         "function once(){try{var tags=['img','video','canvas'],budget=420;for(var ti=0;ti<tags.length&&budget>0;ti++){var Q=document.getElementsByTagName(tags[ti]);for(var i=0;i<Q.length&&budget-- >0;i++)tame(Q[i]);}if(window.top===window)classifyFrames();else frameBgPass();}catch(e){}}"
+         // One bounded initial/BFCache pass catches already-complete media. The only
+         // pass remains media-only; the existing v6.0.15 ad observer invokes adRoot for lazy cards.
+         "function once(){try{var tags=['img','video','canvas'],budget=420;for(var ti=0;ti<tags.length&&budget>0;ti++){var Q=document.getElementsByTagName(tags[ti]);for(var i=0;i<Q.length&&budget-- >0;i++)tame(Q[i]);}}catch(e){}}"
          "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',once,{once:true});else once();"
          "window.addEventListener('pageshow',once,{passive:true});"
-         "window.__AD_TWB6027_INSTALLED__=1;window.__AD_TWB6029_INSTALLED__=1;window.__AD_TWB6030_INSTALLED__=1;window.__AD_TWB6031_INSTALLED__=1;window.__AD_TWB6032_INSTALLED__=1;window.__AD_TWB6031_MODE__=mode;window.__AD_TWB6032_MODE__=mode;"
+         "window.__AD_TWB6027_INSTALLED__=1;window.__AD_TWB6029_INSTALLED__=1;window.__AD_TWB6030_INSTALLED__=1;window.__AD_TWB6031_INSTALLED__=1;window.__AD_TWB6033_INSTALLED__=1;window.__AD_TWB6033_MODE__=mode;"
          "}catch(e){}})();", b, a];
 }
 static NSString *ADWhiteTameWebJS446(void){
@@ -3054,62 +3051,6 @@ static void ADForceBarDark(UIView *bar){
 //
 // Still image-safe: these set a view's own background fill, never layer.contents.
 // ════════════════════════════════════════════════════════════════════════════════
-// v6.0.32: conservative warm-revisit policy. This does NOT pin WebKit tiles or
-// disable UIKit cell reuse. It only (a) gives URL-backed media a modestly warmer
-// shared cache and (b) asks already-mounted React content not to detach clipped
-// subviews on genuinely long vertical scroll surfaces when that optimization is ON.
-static const BOOL kADWarmRevisit6032 = YES;
-static void ADPrimeURLCache6032(void){
-    if (!kADWarmRevisit6032) return;
-    @try {
-        NSURLCache *cache = [NSURLCache sharedURLCache];
-        const NSUInteger wantMem = 32u * 1024u * 1024u;
-        const NSUInteger wantDisk = 128u * 1024u * 1024u;
-        if (cache.memoryCapacity < wantMem) cache.memoryCapacity = wantMem;
-        if (cache.diskCapacity < wantDisk) cache.diskCapacity = wantDisk;
-    } @catch(...) {}
-}
-
-static const void *kADRevisitRCTPrimed6032 = &kADRevisitRCTPrimed6032;
-static BOOL ADDisableReactClipping6032(id obj){
-    @try {
-        if (!obj) return NO;
-        SEL getSel = NSSelectorFromString(@"removeClippedSubviews");
-        SEL setSel = NSSelectorFromString(@"setRemoveClippedSubviews:");
-        if (![obj respondsToSelector:getSel] || ![obj respondsToSelector:setSel]) return NO;
-        BOOL on = ((BOOL(*)(id,SEL))objc_msgSend)(obj, getSel);
-        if (!on) return NO;
-        ((void(*)(id,SEL,BOOL))objc_msgSend)(obj, setSel, NO);
-        return YES;
-    } @catch(...) {}
-    return NO;
-}
-static void ADPrimeReactRevisit6032(UIView *host){
-    if (!kADWarmRevisit6032 || !gP.enabled || !host || !host.window) return;
-    @try {
-        if (objc_getAssociatedObject(host, kADRevisitRCTPrimed6032)) return;
-        UIScrollView *scroll = [host isKindOfClass:[UIScrollView class]] ? (UIScrollView *)host : nil;
-        if (!scroll){
-            for (UIView *v in host.subviews){
-                if ([v isKindOfClass:[UIScrollView class]]) { scroll=(UIScrollView *)v; break; }
-            }
-        }
-        if (!scroll) return;
-        CGFloat vh = scroll.bounds.size.height, vw = scroll.bounds.size.width;
-        CGSize cs = scroll.contentSize;
-        if (vh < 260.0 || vw < 240.0 || cs.height < vh * 2.25 || cs.height < cs.width * 1.05) return;
-        BOOL changed = ADDisableReactClipping6032(host);
-        for (UIView *v in scroll.subviews){
-            NSString *cn = NSStringFromClass([v class]);
-            if ([cn containsString:@"RCT"] || [cn containsString:@"React"] || [cn containsString:@"Fabric"])
-                changed = ADDisableReactClipping6032(v) || changed;
-        }
-        // Geometry is now known. Mark once regardless of whether Amazon had clipping
-        // enabled, so this feature adds no steady-state layout scan.
-        objc_setAssociatedObject(host, kADRevisitRCTPrimed6032, changed ? @2 : @1, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    } @catch(...) {}
-}
-
 %hook RCTView
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
     if (!ADRecolorOn() || !backgroundColor) {
@@ -3139,10 +3080,6 @@ static void ADPrimeReactRevisit6032(UIView *host){
         return;
     } @catch(...) {}
     %orig;
-}
-- (void)layoutSubviews {
-    %orig;
-    @try { ADPrimeReactRevisit6032((UIView *)self); } @catch(...) {}
 }
 %end
 
@@ -5198,7 +5135,6 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
 
     dispatch_async(dispatch_get_main_queue(), ^{
         ADLoadPrefs();
-        ADPrimeURLCache6032();
         ADApplyJIT622();
         ADRefreshPromotionState611();
         ADLockDarkWeblab();
