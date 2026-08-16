@@ -126,24 +126,6 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
 
-## v6.0.40
-
-- Narrows Person-tab raw/Fabric TWB from whole-view overlays to the exact bitmap-bearing CALayer leaf, preventing whole `Your Interests` cards from being dimmed.
-- Recovers child-layer / delegate-less Fabric image painters so isolated `Keep shopping for` product images no longer escape TWB.
-- Adds `Buy Again` to the direct Person product-section vocabulary for both UIImageView and raw Fabric media.
-- Keeps the event-driven v6.0.27+ TWB architecture: no TWB scroll scanner, recurring timer, MutationObserver, or layout-time hierarchy sweep.
-
-## v6.0.39
-
-- Compile-only correction for the v6.0.38 Person/Fabric TWB owner. Logos sees `RCTView` and `RCTViewComponentView` as forward-declared runtime classes, so their reparent/window hooks now explicitly bridge `self` to `UIView *` before reading `layer.contents` and calling the existing raw-media owner.
-- No TWB classification, overlay, section vocabulary, scheduler, WebKit code, or other runtime behavior is intentionally changed from v6.0.38.
-
-## v6.0.38
-
-- Fixes the last sparse Person-tab TWB misses under **Your Interests**, **Keep Shopping for**, and **Shop previously watched**. React/Fabric can render some product bitmaps directly into a leaf view's `CALayer.contents` instead of a `UIImageView`; the streamlined v6.0.27+ TWB owner previously ignored that renderer path.
-- Adds a bounded direct owner for those raw Fabric image leaves at `setContents:` / reparent / window-entry time only. No scroll scanner, recurring timer, or global hierarchy recovery is restored.
-- Adds **Your Interests** to the same explicit product-section semantics already used for Keep Shopping / Previously Watched, so ordinary UIImageView-backed products in that section are forced consistently too.
-
 ## v6.0.37
 
 - Keeps v6.0.36 as the functional baseline.
@@ -312,3 +294,7 @@ High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https:/
 - The one-shot verifier now runs in both ON and OFF states so an old 120-Hz report cannot be mistaken for a fresh disabled result.
 - Adds a constant-time dark backing floor to WKWebView/WKScrollView so fast 120-Hz flings reveal the dark theme rather than WebKit's default white backing while lazy tiles/content catch up.
 - Checkbox and v5.446 top-chrome logic are unchanged from v6.0.10.
+
+
+## v6.0.41
+Diagnostic-only Person-tab TWB renderer probe based on v6.0.37. No v6.0.38-v6.0.40 Fabric ownership experiments are included. Records bounded view/layer snapshots around Buy Again, Your Interests, Keep Shopping for, and Shop previously watched to `AmazonDark-person-twb-6041.txt` in Amazon's temporary directory.
