@@ -1,13 +1,14 @@
-Package: com.colindavidr.amazondark
+Package: com.joemama383.amazondark
 Name: AmazonDark
-Version: 6.0.34
+Version: 6.0.35
 Architecture: iphoneos-arm64
 Description: Amazon Dark Mode for rootless jailbreaks, iOS 15+
 Maintainer: JoeMama383
 Author: JoeMama383
 Section: Tweaks
 Depends: firmware (>= 15.0), mobilesubstrate, preferenceloader
-Conflicts: com.yourname.amazondark
-Replaces: com.yourname.amazondark
+Conflicts: com.colindavidr.amazondark, com.yourname.amazondark
+Replaces: com.colindavidr.amazondark, com.yourname.amazondark
+Provides: com.colindavidr.amazondark
 Homepage: https://github.com/JoeMama383/Amazon-Dark
 Icon: https://raw.githubusercontent.com/JoeMama383/Amazon-Dark/main/prefs/icon@3x.png

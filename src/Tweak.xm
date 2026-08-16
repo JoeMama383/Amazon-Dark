@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.34"
+#define AD_VERSION "v6.0.35"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -661,7 +661,7 @@ static NSString *ADDarkReaderBootstrap(void){
          // This is intentionally root-only: it cannot touch product/photo pixels,
          // but it means lazy/virtualised holes reveal the theme floor, not Amazon white.
          "try{if(!document.getElementById('adfloor612')){var f=document.createElement('style');"
-           "f.id='adfloor612';f.textContent='html,body,#a-page,#gwm-PageContent,main{background-color:%@ !important;}';"
+           "f.id='adfloor612';f.textContent='html,body,#a-page,#gwm-PageContent,main{background-color:%@ !important;}[class*=hp-mosaic-container]{background-color:%@ !important;}[class*=hp-mosaic-container]::before,[class*=hp-mosaic-container]::after{background-color:%@ !important;}';"
            "(document.documentElement||document).appendChild(f);}}catch(e){}"
          // v6.0.15: Amazon-native ad islands.  v5.446 proved that creative
          // subtrees must be kept out of generic recolor/glyph ownership.  Mark the
@@ -922,7 +922,7 @@ static NSString *ADDarkReaderBootstrap(void){
          "try{window.addEventListener('pageshow',function(e){if(e.persisted)window.__AMZDARK_APPLY__();});}catch(e){}"
          "try{document.addEventListener('visibilitychange',function(){if(!document.hidden)window.__AMZDARK_APPLY__();});}catch(e){}"
          "}}catch(e){}})();",
-        floorBG, dr, [NSString stringWithUTF8String:gP.fgHex], ADThemeLiteral(), ADFixesLiteral()];
+        floorBG, floorBG, floorBG, dr, [NSString stringWithUTF8String:gP.fgHex], ADThemeLiteral(), ADFixesLiteral()];
     return gADBootstrap613;
 }
 

@@ -81,7 +81,7 @@ npm pack darkreader && tar -xzO -f darkreader-*.tgz package/darkreader.js > Reso
 ```bash
 ssh root@<device> "rm -f /var/mobile/*.deb"
 scp packages/*.deb root@<device>:/var/mobile/
-ssh root@<device> "dpkg -i /var/mobile/com.colindavidr.amazondark_*.deb"
+ssh root@<device> "dpkg -i /var/mobile/com.joemama383.amazondark_*.deb"
 ```
 
 Then **force-quit and relaunch Amazon**. No respring — the tweak injects per-app.
@@ -124,6 +124,15 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 (MIT, © Dark Reader Ltd.) — see `Resources/DARKREADER-LICENSE`.
 
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
+
+
+## v6.0.35
+
+- Uses v6.0.34 as the exact source baseline.
+- Eliminates the **Off to College** green first-paint flash with a document-start rule for Amazon's `_hp-mosaic-container` structural family; the existing semantic College owner still takes over after hydration, and product media remains independently TWB-controlled.
+- Renames the Debian/Sileo package identifier from `com.colindavidr.amazondark` to `com.joemama383.amazondark`. The old identifier is declared as Conflicts/Replaces/Provides so installing v6.0.35 cleanly supersedes the old package.
+- Keeps the existing `com.colindavidr.amazondark` preference/notification domain internally for compatibility, so current settings and the working JIT broker are not reset by the package rename.
+- Updates the install example to the new package filename. No TWB scanner, observer, scroll callback, timer, or cache experiment is added.
 
 
 ## v6.0.34
