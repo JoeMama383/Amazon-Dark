@@ -1,6 +1,6 @@
 Package: com.colindavidr.amazondark
 Name: AmazonDark
-Version: 6.0.30
+Version: 6.0.31
 Architecture: iphoneos-arm64
 Description: Amazon Dark Mode for rootless jailbreaks, iOS 15+
 Maintainer: JoeMama383

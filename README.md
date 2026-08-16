@@ -126,6 +126,17 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
 
+## v6.0.31
+
+- Completes the streamlined TWB port for v5.446's small Person/Alexa media families without restoring the old window-wide heading scan.
+- Native `Shop previously watched`, `Lists and registries`, `Alexa for Shopping`, Subscribe & Save / Keep Shopping / Best Deals / Returns / gift-card media reuse v5.446's retained compact-section/carousel semantics only at direct image assignment/reparent time, then cache ownership; no scroll-driven TWB discovery is restored.
+- `Your reviews` gets the donor's photo-only small-image owner; Help/Customer Service, Medical Care, and Amazon Highlights remain explicit no-TWB sections.
+- Named product/Alexa sections may tame small image/glyph artwork even when it is not mostly-light, matching v5.446's forced-section precedence; generic UI glyphs keep the normal exclusion gate.
+- Web Person-section ownership adds `Lists and registries`, `Alexa for Shopping`, Best Deals, gift-card and `Your reviews` semantics to the local media classifier.
+- Home carousel creative coverage adds direct canvas ownership plus background/pseudo-image ownership for single-creative, single-video, theming, canvas, video-card, sbv-video, APE, hybrid-sponsored, ad-feedback and sponsored-products families. CSS-background recovery is driven only by the loaded media's short ancestor chain (or declarative inline-background selectors), not a DOM background scan.
+- Keeps v6.0.30 first-class VIDEO ownership and v6.0.28 fixed top chrome. No TWB scroll listener, MutationObserver, recurring timer, or page-wide heading/background traversal is reintroduced.
+
+
 ## v6.0.30
 
 - Makes web `VIDEO` a first-class TWB-owned media type instead of merely classifying it.

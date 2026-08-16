@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.30"
+#define AD_VERSION "v6.0.31"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1000,12 +1000,12 @@ static NSString *ADWhiteTameWebJS6027(void){
     CGFloat a=0.50*(s/100.0);
     return [NSString stringWithFormat:
         @"(function(){try{"
-         // v6.0.30: preserve the zero-scroll-cost direct owner and make VIDEO first-class media.
+         // v6.0.31: keep the zero-scroll-cost direct owner, restore the remaining v5.446 section owners, and keep VIDEO first-class media.
          // exact *semantic* v5.446 TWB families with local/event-driven decisions.
          // No MutationObserver, heading-band scan, scroll handler or recurring timer.
          "var BB='brightness(%.3f) saturate(1.08)',AA='rgba(0,0,0,%.3f)';"
-         "var old=document.getElementById('ad-twb6027'),id='ad-twb6029',st=document.getElementById(id);"
-         "if(old&&old!==st&&old.parentNode)old.parentNode.removeChild(old);"
+         "var old=document.getElementById('ad-twb6027'),old2=document.getElementById('ad-twb6029'),id='ad-twb6031',st=document.getElementById(id);"
+         "if(old&&old!==st&&old.parentNode)old.parentNode.removeChild(old);if(old2&&old2!==st&&old2.parentNode)old2.parentNode.removeChild(old2);"
          "if(!st){st=document.createElement('style');st.id=id;(document.head||document.documentElement).appendChild(st);}"
          // 1) Stable product families from the streamlined owner.
          // 2) v5.446 Home single-creative/single-video media.
@@ -1036,6 +1036,12 @@ static NSString *ADWhiteTameWebJS6027(void){
            "'[data-component-type*=\\\"video\\\"] video' +"
          "'):not([class*=\\\"icon\\\"]):not([class*=\\\"logo\\\"]):not([class*=\\\"avatar\\\"]):not([class*=\\\"profile\\\"]):not([class*=\\\"merchant\\\"]):not([class*=\\\"seller\\\"]):not([class*=\\\"brand\\\"]):not([class*=\\\"store\\\"]):not([class*=\\\"sprite\\\"]){filter:'+BB+'!important;}'+"
          "'html body :is([class*=\\\"single-creative-card\\\"],[class*=\\\"single-video-card\\\"],[class*=\\\"video-card\\\"],[class*=\\\"theming-card\\\"]) :is([class*=\\\"theming-card-background\\\"],.vjs-poster,[class*=\\\"vjs-poster\\\"]){filter:none!important;background-blend-mode:normal!important;box-shadow:inset 0 0 0 9999px '+AA+'!important;}'+"
+         // v6.0.31: canvas creatives have no load event, so WebKit selector
+         // ownership handles them at insertion time. Inline background-image leaves
+         // in the exact Home carousel families get a background-only shade.
+         "'html body :is([class*=\"single-creative-card\"],[class*=\"single-video-card\"],[class*=\"video-card\"],[class*=\"theming-card\"],[class*=\"canvas-card\"],[class*=\"sbv-video\"],[class*=\"ape-placement\"],[class*=\"ape-wrapper\"],[class*=\"hybrid-widget-sponsored\"],[class*=\"adFeedbackMainComponent\"],[class*=\"sponsored-products\"]) canvas{filter:'+BB+'!important;}'+"
+         "'html body :is([class*=\"single-creative-card\"],[class*=\"single-video-card\"],[class*=\"video-card\"],[class*=\"theming-card\"],[class*=\"canvas-card\"],[class*=\"sbv-video\"],[class*=\"ape-placement\"],[class*=\"ape-wrapper\"],[class*=\"hybrid-widget-sponsored\"],[class*=\"adFeedbackMainComponent\"],[class*=\"sponsored-products\"]) [style*=\"background-image\"]{background-blend-mode:normal!important;box-shadow:inset 0 0 0 9999px '+AA+'!important;}'+"
+         "'[data-ad-twb-before6031]::before,[data-ad-twb-after6031]::after{filter:'+BB+'!important;}'+"
          // Search/history and genuine identity artwork are never TWB media.
          "'html body :is(.s-suggestion,.s-suggestion-container,[class*=\\\"recentSearch\\\"],[class*=\\\"search-suggestion\\\"],[class*=\\\"avatar\\\"],[class*=\\\"profile\\\"],[class*=\\\"merchant\\\"],[class*=\\\"seller\\\"],[class*=\\\"brand\\\"],[class*=\\\"store\\\"],[class*=\\\"logo\\\"]) img{filter:none!important;}';"
          "if(st.textContent!==css)st.textContent=css;"
@@ -1044,13 +1050,18 @@ static NSString *ADWhiteTameWebJS6027(void){
          "function localText(e){var p=e,d=0,t='';while(p&&d++<6){var x=String(p.textContent||'').replace(/\\s+/g,' ').trim();if(x&&x.length<1200)t+=' '+x.toLowerCase();p=p.parentElement;}return t;}"
          // Exact v5.446 semantic exclusions, now local to the image rather than found
          // by a 3,600-text-node heading scan.
-         "function blocked(e,c,t){if(e.__adGlyph)return true;if(/sprite|icon|logo|avatar|profile|author|reviewer|byline|merchant|seller|brand-logo|store-logo|headshot|user-image|customer-avatar|star|rating|checkbox|heart|wish|search-suggestion|recentsearch|camera|microphone|location-icon|chevron|close-icon/.test(c))return true;if(/medical care|health ai|prescriptions|personal guida|fast,? free deliv|your amazon highlights|total savings|sessions streamed|keep streaming/.test(t))return true;if(/same-day|same day|pharmacy|prime video|amazon haul|whole foods|autos/.test(t)&&/nav|explore|shortcut|chip|pill|category/.test(c+t))return true;return false;}"
+         "function blocked(e,c,t,fo,rv){if(!fo&&e.__adGlyph)return true;if(/avatar|profile|author|reviewer|byline|merchant|seller|brand-logo|store-logo|headshot|user-image|customer-avatar|star|rating|checkbox|heart|wish|search-suggestion|recentsearch|camera|microphone|location-icon|chevron|close-icon/.test(c))return true;if(!fo&&/sprite|icon|logo/.test(c))return true;if(rv&&/sprite|icon|logo|pixel/.test(c))return true;if(/medical care|health ai|prescriptions|personal guida|fast,? free deliv|your amazon highlights|total savings|sessions streamed|keep streaming/.test(t))return true;if(/same-day|same day|pharmacy|prime video|amazon haul|whole foods|autos/.test(t)&&/nav|explore|shortcut|chip|pill|category/.test(c+t))return true;return false;}"
          // v5.446 forced-product sections, but resolved from a handful of ancestors of
          // the image instead of page-global y-bands.
-         "function forced(t){return /subscribe[ &]+save|keep shopping for|shop previously watched|how can i help|returns are easy/.test(t);}"
+         "function forced(t){return /subscribe (?:&|and) save|keep shopping for|shop previously watched|lists (?:and|&) registries|alexa for shopping|best deals on|send an amazon gift card|how can i help|returns are easy/.test(t);}"
+         "function reviewCtx(t,c){return /your reviews|what did you think of the item/.test(t)||/review-image|customer-image|review.*photo/.test(c);}"
          "function product(e,c){var p=e,d=0;while(p&&d++<6){var asin=String((p.getAttribute&&p.getAttribute('data-asin'))||''),h=String((p.getAttribute&&p.getAttribute('href'))||''),q=S(p.className)+' '+String(p.id||'');if(asin||/asin|product|p13n|npack|cxvhz|gwm-asin|carousel-image|product-image|s-image|a-amazon-image/i.test(q)||h.indexOf('/dp/')>=0||h.indexOf('/gp/product/')>=0)return true;p=p.parentElement;}return /review-image|customer-image|review.*photo/.test(c);}"
+         "function carouselFamily(s){return /single-creative-card|single-video-card|video-card|theming-card|canvas-card|sbv-video|video-js|vjs-|ape-placement|ape-wrapper|hybrid-widget-sponsored|adfeedbackmaincomponent|sponsored-products/i.test(s);}"
+         // v5.446 hero ownership included CSS/pseudo image leaves. Re-express it
+         // from only the loaded media's short ancestor chain; no background-tree scan.
+         "function tameBgChain(e,c){try{if(!e)return;var p=e,d=0,ctx=c||'';while(p&&d++<6){var pc=S(p.className)+' '+String(p.id||''),fam=(mode==='hero')||carouselFamily(ctx+' '+pc);if(fam){var rr=p.getBoundingClientRect();if(rr.width>=32&&rr.height>=32){var cs=getComputedStyle(p),bi=String(cs.backgroundImage||'none');if(bi.indexOf('url(')>=0){p.style.setProperty('background-blend-mode','normal','important');p.style.setProperty('box-shadow','inset 0 0 0 9999px '+AA,'important');p.setAttribute('data-ad-twb-bg6031','1');}try{var bf=getComputedStyle(p,'::before'),af=getComputedStyle(p,'::after');if(String(bf.backgroundImage||'none').indexOf('url(')>=0)p.setAttribute('data-ad-twb-before6031','1');if(String(af.backgroundImage||'none').indexOf('url(')>=0)p.setAttribute('data-ad-twb-after6031','1');}catch(px){}}}ctx+=' '+pc;p=p.parentElement;}}catch(x){}}"
          "var mode=(function(){try{if(window.top===window)return 'main';var u=String(document.referrer||'').toLowerCase();if(u.indexOf('/dp/')>=0||u.indexOf('/gp/aw/d/')>=0||u.indexOf('/gp/product/')>=0||u.indexOf('/s?')>=0||u.indexOf('/search')>=0||u.indexOf('?k=')>=0||u.indexOf('&k=')>=0||u.indexOf('field-keywords=')>=0)return 'productad';return ((innerHeight||0)<180||((innerWidth||1)/(innerHeight||1))>2.25)?'standalone':'hero';}catch(e){return 'main';}})();"
-         "function tame(e){try{if(!e||e.nodeType!==1)return;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return;var r=e.getBoundingClientRect();if(r.width<2||r.height<2)return;var c=chain(e),t=localText(e),src=String(e.currentSrc||e.src||e.poster||'').toLowerCase();if(blocked(e,c,t)||/pixel|placeholder|spacer|blank|transparent/.test(src))return;var W=innerWidth||390,H=innerHeight||700,nw=(tg==='VIDEO'?(e.videoWidth||0):(e.naturalWidth||0)),nh=(tg==='VIDEO'?(e.videoHeight||0):(e.naturalHeight||0)),ok=false;if(mode==='hero'){ok=(r.width>=32&&r.height>=32)||(nw>=32&&nh>=32);}else if(mode==='productad'||mode==='standalone'){var full=(r.width>W*.64&&r.height>H*.55)||(r.width*r.height>W*H*.58);if(full&&tg!=='VIDEO')return;ok=(r.width>=26&&r.height>=26)||(nw>=26&&nh>=26);}else{var pr=product(e,c),fo=forced(t),rv=/review-image|customer-image|review.*photo/.test(c);var mn=(pr||fo||rv)?24:56;ok=(r.width>=mn&&r.height>=mn)||(nw>=mn&&nh>=mn);}if(!ok)return;e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6030','1');}catch(x){}}"
+         "function tame(e){try{if(!e||e.nodeType!==1)return;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return;var r=e.getBoundingClientRect();if(r.width<2||r.height<2)return;var c=chain(e),t=localText(e),src=String(e.currentSrc||e.src||e.poster||'').toLowerCase(),fo=forced(t),rv=reviewCtx(t,c),pr=product(e,c);tameBgChain(e,c);if(blocked(e,c,t,fo,rv)||/pixel|placeholder|spacer|blank|transparent/.test(src))return;var W=innerWidth||390,H=innerHeight||700,nw=(tg==='VIDEO'?(e.videoWidth||0):(e.naturalWidth||0)),nh=(tg==='VIDEO'?(e.videoHeight||0):(e.naturalHeight||0)),ok=false;if(mode==='hero'){ok=(r.width>=32&&r.height>=32)||(nw>=32&&nh>=32);}else if(mode==='productad'||mode==='standalone'){var full=(r.width>W*.64&&r.height>H*.55)||(r.width*r.height>W*H*.58);if(full&&tg!=='VIDEO')return;ok=(r.width>=26&&r.height>=26)||(nw>=26&&nh>=26);}else{if(rv&&tg!=='IMG')return;var mn=(pr||fo||rv)?24:56;ok=(r.width>=mn&&r.height>=mn)||(nw>=mn&&nh>=mn);}if(!ok)return;e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6031','1');}catch(x){}}"
          "function ev(x){try{tame(x.target);}catch(e){}}"
          // Event-driven ownership: one O(1) classification when media actually loads.
          "document.addEventListener('load',ev,true);document.addEventListener('loadedmetadata',ev,true);document.addEventListener('loadeddata',ev,true);document.addEventListener('canplay',ev,true);document.addEventListener('playing',ev,true);"
@@ -1059,7 +1070,7 @@ static NSString *ADWhiteTameWebJS6027(void){
          "function once(){try{var tags=['img','video','canvas'],budget=420;for(var ti=0;ti<tags.length&&budget>0;ti++){var Q=document.getElementsByTagName(tags[ti]);for(var i=0;i<Q.length&&budget-- >0;i++)tame(Q[i]);}}catch(e){}}"
          "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',once,{once:true});else once();"
          "window.addEventListener('pageshow',once,{passive:true});"
-         "window.__AD_TWB6027_INSTALLED__=1;window.__AD_TWB6029_INSTALLED__=1;window.__AD_TWB6030_INSTALLED__=1;window.__AD_TWB6030_MODE__=mode;"
+         "window.__AD_TWB6027_INSTALLED__=1;window.__AD_TWB6029_INSTALLED__=1;window.__AD_TWB6030_INSTALLED__=1;window.__AD_TWB6031_INSTALLED__=1;window.__AD_TWB6031_MODE__=mode;"
          "}catch(e){}})();", b, a];
 }
 static NSString *ADWhiteTameWebJS446(void){
@@ -3691,6 +3702,107 @@ static int ADWTStableContext365(UIView *v){
     } @catch(...) {}
     return ctx;
 }
+// v6.0.31: direct semantic section ownership for the small Person/Alexa media that
+// v5.446 deliberately forced into TWB. The donor found these with window-wide heading
+// bands and carousel subtree scans. Production now inspects only a tiny compact local
+// neighborhood when a new UIImage appears, caches the result, and never discovers it
+// from a scroll callback.
+static const void *kADTWBDirectCtx6031 = &kADTWBDirectCtx6031;
+static const void *kADTWBDirectCtxImage6031 = &kADTWBDirectCtxImage6031;
+static const void *kADTWBDirectCtxTime6031 = &kADTWBDirectCtxTime6031;
+static const void *kADTWBDirectCtxAttempts6031 = &kADTWBDirectCtxAttempts6031;
+
+// 0 ordinary; 1 explicit no-TWB; 2 forced product/Alexa media; 3 Reviews photo.
+static int ADTWBTextKind6031(NSString *text){
+    if(!text.length) return 0;
+    NSString *lo=[[text lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    if(!lo.length) return 0;
+    if([lo containsString:@"medical care"] || [lo containsString:@"your amazon highlights"] ||
+       [lo containsString:@"need help"] || [lo containsString:@"contact customer service"] ||
+       [lo isEqualToString:@"customer service"]) return 1;
+    if([lo containsString:@"your reviews"] || [lo containsString:@"what did you think of the item"]) return 3;
+    if([lo containsString:@"shop previously watched"] ||
+       [lo containsString:@"lists and registries"] || [lo containsString:@"lists & registries"] ||
+       [lo containsString:@"alexa for shopping"] ||
+       [lo containsString:@"subscribe & save"] || [lo containsString:@"subscribe and save"] ||
+       [lo hasPrefix:@"keep shopping for"] || [lo hasPrefix:@"best deals on"] ||
+       [lo containsString:@"returns are easy"] || [lo containsString:@"send an amazon gift card"]) return 2;
+    return 0;
+}
+
+static int ADTWBDirectLocalCtx6031(UIImageView *iv){
+    if(!iv||!iv.window) return 0;
+    @try {
+        // Reuse the exact retained v5.446 compact-section/carousel resolvers, but
+        // only here at direct image assignment/reparent time. Their old scroll/window
+        // scheduler remains disabled, so the detailed Person/Alexa semantics survive
+        // without returning to scan-on-scroll behavior.
+        BOOL reactish=NO; UIView *rp=iv; int ru=0;
+        while(rp&&ru++<6){
+            const char *rc=object_getClassName(rp);
+            if(rc&&(strstr(rc,"RCT")||strstr(rc,"React")||strstr(rc,"Fabric"))){reactish=YES;break;}
+            rp=rp.superview;
+        }
+        if(reactish){
+            int cc=ADWTCarouselSection384(iv); if(cc) return cc;
+            int lc=ADWTLocalSection365(iv); if(lc) return lc;
+        }
+        UIView *p=iv; int up=0;
+        while(p&&up++<7){
+            CGFloat ph=p.bounds.size.height,pw=p.bounds.size.width;
+            if(ph>=36&&ph<=820&&pw>=36){
+                int own=ADTWBTextKind6031(ADWTViewText362(p));
+                if(own) return own;
+                NSArray *a=p.subviews; NSUInteger lim=MIN((NSUInteger)14,a.count);
+                int neg=0,pos=0,rev=0;
+                for(NSUInteger i=0;i<lim;i++){
+                    UIView *x=a[i]; int k=ADTWBTextKind6031(ADWTViewText362(x));
+                    if(k==1)neg=1; else if(k==2)pos=1; else if(k==3)rev=1;
+                    NSArray *b=x.subviews; NSUInteger lim2=MIN((NSUInteger)8,b.count);
+                    for(NSUInteger j=0;j<lim2;j++){
+                        int q=ADTWBTextKind6031(ADWTViewText362(b[j]));
+                        if(q==1)neg=1; else if(q==2)pos=1; else if(q==3)rev=1;
+                    }
+                }
+                // Named product/review ownership wins in a mixed Person wrapper;
+                // compact Help/Medical wrappers remain explicit exclusions.
+                if(rev) return 3;
+                if(pos) return 2;
+                if(neg&&ph<=300) return 1;
+            }
+            p=p.superview;
+        }
+    } @catch(...) {}
+    return 0;
+}
+
+static int ADTWBDirectCtx6031(UIImageView *iv, UIImage *im){
+    if(!iv||!im) return 0;
+    @try {
+        UIImage *ci=objc_getAssociatedObject(iv,kADTWBDirectCtxImage6031);
+        NSNumber *cv=objc_getAssociatedObject(iv,kADTWBDirectCtx6031);
+        NSNumber *ct=objc_getAssociatedObject(iv,kADTWBDirectCtxTime6031);
+        NSNumber *ca=objc_getAssociatedObject(iv,kADTWBDirectCtxAttempts6031);
+        CFAbsoluteTime now=CFAbsoluteTimeGetCurrent();
+        if(ci==im&&cv){
+            int v=cv.intValue;
+            if(v!=0) return v;
+            NSInteger attempts=ca.integerValue;
+            // React can assign the bitmap just before its sibling heading hydrates.
+            // Permit two spaced negative re-probes, then settle for this UIImage.
+            if(attempts>=2 || (ct&&now-ct.doubleValue<0.28)) return 0;
+        }
+        int k=ADTWBDirectLocalCtx6031(iv);
+        NSInteger attempts=(ci==im&&ca)?ca.integerValue+1:0;
+        objc_setAssociatedObject(iv,kADTWBDirectCtxImage6031,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(iv,kADTWBDirectCtx6031,@(k),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(iv,kADTWBDirectCtxTime6031,@(now),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(iv,kADTWBDirectCtxAttempts6031,@(attempts),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        return k;
+    } @catch(...) {}
+    return 0;
+}
+
 // v6.0.27 direct native TWB owner. Classification happens on image assignment and
 // is cached on the UIImageView for that exact UIImage. Layout/reapply calls only keep
 // the already-owned overlay sized correctly; they do not walk section trees.
@@ -3738,23 +3850,38 @@ static void ADApplyNativeWhiteTameDirect6027(UIView *v){
             ADNativeTWBRelease6027(iv);
             objc_setAssociatedObject(iv,kADTWBCachedImage6027,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             objc_setAssociatedObject(iv,kADTWBDecision6027,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADTWBDirectCtxImage6031,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADTWBDirectCtx6031,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADTWBDirectCtxTime6031,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADTWBDirectCtxAttempts6031,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             return;
         }
         CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
         // Do not cache unresolved geometry; a recycled RN image often receives its
         // bitmap before layout and should get one classification when bounds arrive.
         if(w<1||h<1) return;
-        if(w<48||h<48||w>1200||h>1200||ADImageIsTemplateish(im)||ADNativeTWBUIChain6027(iv)){
-            // Geometry/context can change without another setImage: during RN reuse.
-            // Release visual ownership but keep the cached image-lightness decision
-            // available if the same view later becomes eligible again.
+        int ctx=(w<=240&&h<=240)?ADTWBDirectCtx6031(iv,im):0;
+        if(ctx==1 || w>1200 || h>1200 || ADInTabBarChain(iv)){
+            ADNativeTWBRelease6027(iv);
+            return;
+        }
+        BOOL forced=(ctx==2), review=(ctx==3);
+        CGFloat minDim=forced?28:(review?30:48);
+        if(w<minDim||h<minDim || (review&&(w>200||h>200)) ||
+           ((!forced)&&(ADImageIsTemplateish(im)||ADNativeTWBUIChain6027(iv)))){
+            // Named v5.446 product/Alexa sections deliberately override the generic
+            // small-glyph/template gate; Reviews remains photo-only.
             ADNativeTWBRelease6027(iv);
             return;
         }
         UIImage *cached=objc_getAssociatedObject(iv,kADTWBCachedImage6027);
         NSNumber *decision=objc_getAssociatedObject(iv,kADTWBDecision6027);
         BOOL own=NO;
-        if(cached==im&&decision){
+        if(forced||review){
+            own=YES;
+            objc_setAssociatedObject(iv,kADTWBCachedImage6027,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADTWBDecision6027,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        } else if(cached==im&&decision){
             own=decision.boolValue;
         } else {
             // The sampler result itself is cached on UIImage, so a recycled image used
@@ -4291,7 +4418,16 @@ static void ADScheduleGlyphLift624(UIImageView *iv){
 - (void)didMoveToSuperview {
     %orig;
     if (!gP.enabled || !gP.whiteTame) return;
-    if(!kADLegacyTWB6027){ ADApplyNativeWhiteTameDirect6027((UIView *)self); return; }
+    if(!kADLegacyTWB6027){
+        // A recycled RN image view can move to a different Person/Alexa section while
+        // retaining the same UIImage. Drop only the tiny semantic cache on reparenting;
+        // the UIImage lightness sample itself remains globally cached.
+        objc_setAssociatedObject((id)self,kADTWBDirectCtxImage6031,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject((id)self,kADTWBDirectCtx6031,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject((id)self,kADTWBDirectCtxTime6031,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject((id)self,kADTWBDirectCtxAttempts6031,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        ADApplyNativeWhiteTameDirect6027((UIView *)self); return;
+    }
     @try {
         UIView *vv=(UIView *)self; ADSubscribeOverlay394(vv);
         __weak UIView *wv=vv;
