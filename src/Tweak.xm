@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.71"
+#define AD_VERSION "v6.0.72"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2625,51 +2625,6 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
     } @catch(...) { return in; }
 }
 
-// v6.0.71: narrow v5.350 voice-sheet escape hatch.  These three RCTTextView
-// leaves expose their text through accessibility while drawing from private TextKit
-// storage.  Repair only dark neutral runs so Amazon's cyan links stay untouched.
-static BOOL ADVoiceText6071(NSString *t){
-    if (!t.length || t.length > 700) return NO;
-    return [t rangeOfString:@"You can always turn it off" options:NSCaseInsensitiveSearch].location != NSNotFound ||
-           [t rangeOfString:@"Your audio is transcribed in the cloud" options:NSCaseInsensitiveSearch].location != NSNotFound ||
-           [t rangeOfString:@"about shopping with voice" options:NSCaseInsensitiveSearch].location != NSNotFound;
-}
-
-static void ADVoiceFix6071(id v){
-    if (!ADRecolorOn() || !v || !ADVoiceText6071([v accessibilityLabel])) return;
-    @try {
-        UIColor *fg=ADColorFromHex(gP.fgHex);
-        __block BOOL changed=NO;
-        for (Class c=[v class]; c && c!=[UIView class]; c=class_getSuperclass(c)) {
-            unsigned int n=0; Ivar *ivs=class_copyIvarList(c,&n);
-            for (unsigned int i=0;i<n;i++) {
-                Ivar iv=ivs[i]; const char *enc=ivar_getTypeEncoding(iv);
-                if (!enc || enc[0]!='@') continue;
-                id o=nil; @try { o=object_getIvar(v,iv); } @catch(...) {}
-                NSMutableAttributedString *st=nil;
-                if ([o isKindOfClass:[NSMutableAttributedString class]]) st=o;
-                else if ([o isKindOfClass:[NSLayoutManager class]]) st=[o textStorage];
-                if (!st.length) continue;
-                [st enumerateAttribute:NSForegroundColorAttributeName
-                               inRange:NSMakeRange(0,st.length) options:0
-                            usingBlock:^(id value, NSRange r, BOOL *stop){
-                    UIColor *col=[value isKindOfClass:[UIColor class]] ? value : nil;
-                    CGFloat rr=0,g=0,b=0,a=1, mx=0,mn=0, lum=0;
-                    BOOL dark=!col;
-                    if (col && [col getRed:&rr green:&g blue:&b alpha:&a] && a>=0.05) {
-                        mx=MAX(rr,MAX(g,b)); mn=MIN(rr,MIN(g,b));
-                        lum=0.2126*rr+0.7152*g+0.0722*b;
-                        dark=(lum<0.42 && mx-mn<0.20);
-                    }
-                    if (dark) { [st addAttribute:NSForegroundColorAttributeName value:fg range:r]; changed=YES; }
-                }];
-            }
-            if (ivs) free(ivs);
-        }
-        if (changed) { [v setNeedsLayout]; [v setNeedsDisplay]; }
-    } @catch(...) {}
-}
-
 // Fabric text (new architecture). Setter lives on RCTParagraphComponentView.
 %hook RCTParagraphComponentView
 - (void)setAttributedText:(NSAttributedString *)attributedText {
@@ -2710,15 +2665,6 @@ static void ADVoiceFix6071(id v){
         }
     } @catch(...) {}
     %orig;
-    ADVoiceFix6071(self);
-}
-- (void)setAccessibilityLabel:(NSString *)label {
-    %orig;
-    ADVoiceFix6071(self);
-}
-- (void)didMoveToWindow {
-    %orig;
-    ADVoiceFix6071(self);
 }
 %end
 
@@ -4446,10 +4392,73 @@ static void ADInvertRNSVG(UIView *v){
     } @catch(...) {}
 }
 
+// v6.0.72: streamlined port of the v5.350 voice-permission repair.
+// The donor ran this from a second whole-window voice sweep after the normal native
+// sweep.  We instead piggyback on ADSweepViewTree(), so the TextKit backing store is
+// inspected at the same hydrated/visible stage without another traversal.
+static BOOL ADVoiceTarget6072(NSString *t){
+    if (!t.length || t.length > 700) return NO;
+    static NSArray *parts=nil; static dispatch_once_t once;
+    dispatch_once(&once, ^{ parts=@[@"allow microphone access", @"shop faster with voice",
+        @"you can always turn it off", @"your audio is transcribed in the cloud",
+        @"about shopping with voice"]; });
+    NSString *lo=t.lowercaseString;
+    for (NSString *q in parts) if ([lo containsString:q]) return YES;
+    return NO;
+}
+static BOOL ADVoiceDarkNeutral6072(UIColor *c){
+    if (!c) return YES;
+    CGFloat r=0,g=0,b=0,a=0;
+    if (![c getRed:&r green:&g blue:&b alpha:&a] || a<0.05) return NO;
+    CGFloat mx=MAX(r,MAX(g,b)), mn=MIN(r,MIN(g,b));
+    return (0.2126*r+0.7152*g+0.0722*b)<0.42 && (mx-mn)<0.20;
+}
+static int ADVoiceLiftStore6072(NSMutableAttributedString *store){
+    if (!store.length) return 0;
+    @try {
+        NSMutableAttributedString *m=[store mutableCopy];
+        __block int changed=0;
+        [m enumerateAttribute:NSForegroundColorAttributeName
+                      inRange:NSMakeRange(0,m.length) options:0
+                   usingBlock:^(id value, NSRange range, BOOL *stop){
+            UIColor *c=[value isKindOfClass:[UIColor class]]?(UIColor *)value:nil;
+            if (!ADVoiceDarkNeutral6072(c)) return;
+            [m addAttribute:NSForegroundColorAttributeName value:ADColorFromHex(gP.fgHex) range:range];
+            changed++;
+        }];
+        if (changed) [store setAttributedString:m];
+        return changed;
+    } @catch(...) {}
+    return 0;
+}
+static void ADVoiceRepairView6072(UIView *v){
+    @try {
+        Class RCT=NSClassFromString(@"RCTTextView");
+        if (!RCT || ![v isKindOfClass:RCT] || !ADVoiceTarget6072(ADWTViewText362(v))) return;
+        int changed=0, depth=0;
+        for (Class c=[v class]; c && c!=[UIView class] && depth++<10; c=class_getSuperclass(c)){
+            unsigned int n=0; Ivar *ivs=class_copyIvarList(c,&n);
+            for (unsigned int i=0;i<n;i++){
+                Ivar iv=ivs[i]; const char *enc=ivar_getTypeEncoding(iv);
+                if (!enc || enc[0]!='@') continue;
+                id obj=nil; @try { obj=object_getIvar(v,iv); } @catch(...) { obj=nil; }
+                NSMutableAttributedString *store=nil;
+                if ([obj isKindOfClass:[NSTextStorage class]] ||
+                    [obj isKindOfClass:[NSMutableAttributedString class]]) store=(NSMutableAttributedString *)obj;
+                else if ([obj isKindOfClass:[NSLayoutManager class]]) store=[(NSLayoutManager *)obj textStorage];
+                if (store) changed += ADVoiceLiftStore6072(store);
+            }
+            if (ivs) free(ivs);
+        }
+        if (changed){ [v setNeedsLayout]; [v setNeedsDisplay]; [v.layer setNeedsDisplay]; }
+    } @catch(...) {}
+}
+
 static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
     if (!v || depth > 60) return;
     @try {
         if (ADIsWebKitOwned(v)) return;                 // Dark Reader's territory
+        ADVoiceRepairView6072(v);                     // hydrated native voice-sheet ink
         ADInvertRNSVG(v);                               // Alexa panel vector icons
         if ([v isKindOfClass:[UIImageView class]]) ADApplyNativeWhiteTameView(v); // direct TWB media only
         // Was `return`, which skipped this view AND everything under it -- including

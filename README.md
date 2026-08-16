@@ -1,8 +1,9 @@
-# AmazonDark v6.0.71
+# AmazonDark v6.0.72
 
-## v6.0.71 — streamlined voice permission text repair
+## v6.0.72 — restore hydrated voice-permission text repair
 
-Ports only the v5.350 private-TextKit escape hatch needed by the microphone permission sheet. Three known dark body-copy leaves are repaired in place while saturated cyan links are preserved. No window sweep, cache, delayed retry, observer, timer, or new scheduler is added. Built directly from v6.0.69.
+Built directly from v6.0.69. Ports the proven v5.350 private TextKit repair into the existing native UIView sweep rather than adding a second window traversal or relying on early RCT lifecycle hooks. Only matching RCTTextView voice-permission copy is inspected; dark neutral attributed runs are lifted while cyan links are preserved.
+
 
 ## v6.0.69 — fix tab-bar image hook recursion
 
