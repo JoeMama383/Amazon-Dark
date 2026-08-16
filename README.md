@@ -252,3 +252,11 @@ High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https:/
 - The one-shot verifier now runs in both ON and OFF states so an old 120-Hz report cannot be mistaken for a fresh disabled result.
 - Adds a constant-time dark backing floor to WKWebView/WKScrollView so fast 120-Hz flings reveal the dark theme rather than WebKit's default white backing while lazy tiles/content catch up.
 - Checkbox and v5.446 top-chrome logic are unchanged from v6.0.10.
+
+
+## v6.0.32 — carousel frame ownership + warm revisits
+
+- Restores v5.446's parent-to-child Home ad-frame mode refinement in the direct TWB engine without restoring its MutationObserver or scroll scanner. Parent pages classify existing/loaded iframes as hero, product-ad, or standalone and notify the child with the donor's `__amzAdMode` message.
+- Hero child frames get one bounded computed CSS/pseudo-background pass so carousel creatives implemented only as stylesheet backgrounds no longer need an IMG/VIDEO descendant to trigger TWB. VIDEO remains first-class TWB media.
+- Adds a conservative warm-revisit experiment: raises the shared URL cache only when below 32 MiB memory / 128 MiB disk, and on long vertical React scroll surfaces disables `removeClippedSubviews` only when Amazon has it enabled. No WebKit tile pinning, global clipping override, collection-cell retention, or recurring cache timer is used.
+- v6.0.31 Person/Alexa semantics, v6.0.28 top-chrome lock, Dopamine JIT, 120 Hz, carousel-dot, checkbox/symbol, Dark Reader and splash behavior remain otherwise unchanged.

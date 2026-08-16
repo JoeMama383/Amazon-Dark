@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.31"
+#define AD_VERSION "v6.0.32"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1000,12 +1000,12 @@ static NSString *ADWhiteTameWebJS6027(void){
     CGFloat a=0.50*(s/100.0);
     return [NSString stringWithFormat:
         @"(function(){try{"
-         // v6.0.31: keep the zero-scroll-cost direct owner, restore the remaining v5.446 section owners, and keep VIDEO first-class media.
+         // v6.0.32: keep v6.0.31 direct ownership; restore v5.446 parent->child ad-frame refinement and warm revisits.
          // exact *semantic* v5.446 TWB families with local/event-driven decisions.
          // No MutationObserver, heading-band scan, scroll handler or recurring timer.
          "var BB='brightness(%.3f) saturate(1.08)',AA='rgba(0,0,0,%.3f)';"
-         "var old=document.getElementById('ad-twb6027'),old2=document.getElementById('ad-twb6029'),id='ad-twb6031',st=document.getElementById(id);"
-         "if(old&&old!==st&&old.parentNode)old.parentNode.removeChild(old);if(old2&&old2!==st&&old2.parentNode)old2.parentNode.removeChild(old2);"
+         "var old=document.getElementById('ad-twb6027'),old2=document.getElementById('ad-twb6029'),old3=document.getElementById('ad-twb6031'),id='ad-twb6032',st=document.getElementById(id);"
+         "if(old&&old!==st&&old.parentNode)old.parentNode.removeChild(old);if(old2&&old2!==st&&old2.parentNode)old2.parentNode.removeChild(old2);if(old3&&old3!==st&&old3.parentNode)old3.parentNode.removeChild(old3);"
          "if(!st){st=document.createElement('style');st.id=id;(document.head||document.documentElement).appendChild(st);}"
          // 1) Stable product families from the streamlined owner.
          // 2) v5.446 Home single-creative/single-video media.
@@ -1060,17 +1060,31 @@ static NSString *ADWhiteTameWebJS6027(void){
          // v5.446 hero ownership included CSS/pseudo image leaves. Re-express it
          // from only the loaded media's short ancestor chain; no background-tree scan.
          "function tameBgChain(e,c){try{if(!e)return;var p=e,d=0,ctx=c||'';while(p&&d++<6){var pc=S(p.className)+' '+String(p.id||''),fam=(mode==='hero')||carouselFamily(ctx+' '+pc);if(fam){var rr=p.getBoundingClientRect();if(rr.width>=32&&rr.height>=32){var cs=getComputedStyle(p),bi=String(cs.backgroundImage||'none');if(bi.indexOf('url(')>=0){p.style.setProperty('background-blend-mode','normal','important');p.style.setProperty('box-shadow','inset 0 0 0 9999px '+AA,'important');p.setAttribute('data-ad-twb-bg6031','1');}try{var bf=getComputedStyle(p,'::before'),af=getComputedStyle(p,'::after');if(String(bf.backgroundImage||'none').indexOf('url(')>=0)p.setAttribute('data-ad-twb-before6031','1');if(String(af.backgroundImage||'none').indexOf('url(')>=0)p.setAttribute('data-ad-twb-after6031','1');}catch(px){}}}ctx+=' '+pc;p=p.parentElement;}}catch(x){}}"
-         "var mode=(function(){try{if(window.top===window)return 'main';var u=String(document.referrer||'').toLowerCase();if(u.indexOf('/dp/')>=0||u.indexOf('/gp/aw/d/')>=0||u.indexOf('/gp/product/')>=0||u.indexOf('/s?')>=0||u.indexOf('/search')>=0||u.indexOf('?k=')>=0||u.indexOf('&k=')>=0||u.indexOf('field-keywords=')>=0)return 'productad';return ((innerHeight||0)<180||((innerWidth||1)/(innerHeight||1))>2.25)?'standalone':'hero';}catch(e){return 'main';}})();"
+         // v6.0.32: v5.446 parent-side frame classification, without its MutationObserver/scroll loop.
+         // The parent has the information a cross-origin child cannot know: document position,
+         // carousel ancestry, and whether the host page is PDP/search. It refines the child's
+         // geometry fallback through postMessage on initial discovery and iframe load only.
+         "var productRef=(function(){try{var u=String(document.referrer||'').toLowerCase();return u.indexOf('/dp/')>=0||u.indexOf('/gp/aw/d/')>=0||u.indexOf('/gp/product/')>=0||u.indexOf('/s?')>=0||u.indexOf('/search')>=0||u.indexOf('?k=')>=0||u.indexOf('&k=')>=0||u.indexOf('field-keywords=')>=0;}catch(e){return false;}})();"
+         "var mode=(function(){try{if(window.top===window)return 'main';if(productRef)return 'productad';return ((innerHeight||0)<180||((innerWidth||1)/(innerHeight||1))>2.25)?'standalone':'hero';}catch(e){return 'main';}})();"
+         "var hostProduct6032=-1;function hostProductDoc(){try{if(hostProduct6032>=0)return !!hostProduct6032;var h=String(location.href||'').toLowerCase(),v=(h.indexOf('/dp/')>=0||h.indexOf('/gp/aw/d/')>=0||h.indexOf('/gp/product/')>=0||h.indexOf('/s?')>=0||h.indexOf('/search')>=0||h.indexOf('?k=')>=0||h.indexOf('&k=')>=0||h.indexOf('field-keywords=')>=0);if(!v)v=!!document.querySelector('#dp,#ppd,#centerCol,#productTitle,#buybox,#add-to-cart-button,#buy-now-button,.s-search-results,.s-main-slot,[data-component-type=\"s-search-result\"],[data-feature-name=\"buybox\"],[data-feature-name=\"title\"]');hostProduct6032=v?1:0;return v;}catch(e){return false;}}"
+         "function classifyFrame(f){try{if(window.top!==window||!f||String(f.tagName||'').toUpperCase()!=='IFRAME')return;var r=f.getBoundingClientRect();if(r.width<120||r.height<50)return;var dy=r.top+(window.scrollY||window.pageYOffset||0),ratio=r.width/Math.max(1,r.height),cl=S(f.className),anc='',p=f.parentElement,d=0;while(p&&d++<4){anc+=' '+S(p.className);p=p.parentElement;}var hero=(r.height>=180&&ratio<2.25&&(dy<1250||/carousel|hero|billboard|rotator|slideshow/i.test(cl+anc))),pd=hostProductDoc(),pa=(!hero&&pd&&r.width>=300&&r.height>=55&&r.height<=260),nm=hero?'hero':(pa?'productad':'standalone');f.setAttribute('data-ad-frame-mode6032',nm);try{f.contentWindow&&f.contentWindow.postMessage({__amzAdMode:nm},'*');}catch(px){}}catch(e){}}"
+         "function classifyFrames(){try{if(window.top!==window)return;var F=document.getElementsByTagName('iframe');for(var i=0;i<F.length&&i<80;i++)classifyFrame(F[i]);}catch(e){}}"
+         // The remaining donor-only miss is pure CSS/pseudo artwork in hero child frames
+         // with no IMG/VIDEO descendant to trigger tameBgChain. Inspect only the child
+         // document, once per lifecycle/mode refinement, with a hard 140-element budget.
+         "function frameBgPass(){try{if(window.top===window||mode!=='hero')return;var E=document.getElementsByTagName('*'),n=0;for(var i=0;i<E.length&&i<140;i++){var e=E[i],tg=String(e.tagName||'').toUpperCase();if(!/^(HTML|BODY|DIV|SECTION|A|SPAN|LI|FIGURE|PICTURE)$/.test(tg))continue;var r=e.getBoundingClientRect();if(r.width<32||r.height<32)continue;var c=S(e.className).toLowerCase();if(/sprite|icon|logo|pixel|avatar|profile/.test(c))continue;var cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none');if(bi.indexOf('url(')>=0){e.style.setProperty('background-blend-mode','normal','important');e.style.setProperty('box-shadow','inset 0 0 0 9999px '+AA,'important');e.setAttribute('data-ad-twb-bg6032','1');n++;}try{var bf=getComputedStyle(e,'::before'),af=getComputedStyle(e,'::after');if(String(bf.backgroundImage||'none').indexOf('url(')>=0)e.setAttribute('data-ad-twb-before6031','1');if(String(af.backgroundImage||'none').indexOf('url(')>=0)e.setAttribute('data-ad-twb-after6031','1');}catch(px){}}}catch(e){}}"
          "function tame(e){try{if(!e||e.nodeType!==1)return;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return;var r=e.getBoundingClientRect();if(r.width<2||r.height<2)return;var c=chain(e),t=localText(e),src=String(e.currentSrc||e.src||e.poster||'').toLowerCase(),fo=forced(t),rv=reviewCtx(t,c),pr=product(e,c);tameBgChain(e,c);if(blocked(e,c,t,fo,rv)||/pixel|placeholder|spacer|blank|transparent/.test(src))return;var W=innerWidth||390,H=innerHeight||700,nw=(tg==='VIDEO'?(e.videoWidth||0):(e.naturalWidth||0)),nh=(tg==='VIDEO'?(e.videoHeight||0):(e.naturalHeight||0)),ok=false;if(mode==='hero'){ok=(r.width>=32&&r.height>=32)||(nw>=32&&nh>=32);}else if(mode==='productad'||mode==='standalone'){var full=(r.width>W*.64&&r.height>H*.55)||(r.width*r.height>W*H*.58);if(full&&tg!=='VIDEO')return;ok=(r.width>=26&&r.height>=26)||(nw>=26&&nh>=26);}else{if(rv&&tg!=='IMG')return;var mn=(pr||fo||rv)?24:56;ok=(r.width>=mn&&r.height>=mn)||(nw>=mn&&nh>=mn);}if(!ok)return;e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6031','1');}catch(x){}}"
-         "function ev(x){try{tame(x.target);}catch(e){}}"
+         "function retameFrame(){try{var tags=['img','video','canvas'],budget=180;for(var ti=0;ti<tags.length&&budget>0;ti++){var Q=document.getElementsByTagName(tags[ti]);for(var i=0;i<Q.length&&budget-- >0;i++)tame(Q[i]);}frameBgPass();}catch(e){}}"
+         "if(window.top!==window){try{window.addEventListener('message',function(ev){try{var d=ev.data;if(!d||!d.__amzAdMode)return;var nm=String(d.__amzAdMode||'');if(nm!=='hero'&&nm!=='productad'&&nm!=='standalone')return;if(productRef&&nm==='standalone')nm='productad';if(mode!==nm){mode=nm;window.__AD_TWB6032_MODE__=mode;retameFrame();}else frameBgPass();}catch(e){}});}catch(e){}}"
+         "function ev(x){try{var q=x.target;if(q&&String(q.tagName||'').toUpperCase()==='IFRAME'){classifyFrame(q);return;}tame(q);}catch(e){}}"
          // Event-driven ownership: one O(1) classification when media actually loads.
          "document.addEventListener('load',ev,true);document.addEventListener('loadedmetadata',ev,true);document.addEventListener('loadeddata',ev,true);document.addEventListener('canplay',ev,true);document.addEventListener('playing',ev,true);"
-         // One bounded initial/BFCache pass catches already-complete cached images.
-         // It touches media collections only -- no div/background/text tree walk.
-         "function once(){try{var tags=['img','video','canvas'],budget=420;for(var ti=0;ti<tags.length&&budget>0;ti++){var Q=document.getElementsByTagName(tags[ti]);for(var i=0;i<Q.length&&budget-- >0;i++)tame(Q[i]);}}catch(e){}}"
+         // One bounded initial/BFCache pass catches already-complete cached images plus
+         // at most 80 parent iframes. Child-frame CSS backgrounds use their own 140-node pass.
+         "function once(){try{var tags=['img','video','canvas'],budget=420;for(var ti=0;ti<tags.length&&budget>0;ti++){var Q=document.getElementsByTagName(tags[ti]);for(var i=0;i<Q.length&&budget-- >0;i++)tame(Q[i]);}if(window.top===window)classifyFrames();else frameBgPass();}catch(e){}}"
          "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',once,{once:true});else once();"
          "window.addEventListener('pageshow',once,{passive:true});"
-         "window.__AD_TWB6027_INSTALLED__=1;window.__AD_TWB6029_INSTALLED__=1;window.__AD_TWB6030_INSTALLED__=1;window.__AD_TWB6031_INSTALLED__=1;window.__AD_TWB6031_MODE__=mode;"
+         "window.__AD_TWB6027_INSTALLED__=1;window.__AD_TWB6029_INSTALLED__=1;window.__AD_TWB6030_INSTALLED__=1;window.__AD_TWB6031_INSTALLED__=1;window.__AD_TWB6032_INSTALLED__=1;window.__AD_TWB6031_MODE__=mode;window.__AD_TWB6032_MODE__=mode;"
          "}catch(e){}})();", b, a];
 }
 static NSString *ADWhiteTameWebJS446(void){
@@ -3040,6 +3054,62 @@ static void ADForceBarDark(UIView *bar){
 //
 // Still image-safe: these set a view's own background fill, never layer.contents.
 // ════════════════════════════════════════════════════════════════════════════════
+// v6.0.32: conservative warm-revisit policy. This does NOT pin WebKit tiles or
+// disable UIKit cell reuse. It only (a) gives URL-backed media a modestly warmer
+// shared cache and (b) asks already-mounted React content not to detach clipped
+// subviews on genuinely long vertical scroll surfaces when that optimization is ON.
+static const BOOL kADWarmRevisit6032 = YES;
+static void ADPrimeURLCache6032(void){
+    if (!kADWarmRevisit6032) return;
+    @try {
+        NSURLCache *cache = [NSURLCache sharedURLCache];
+        const NSUInteger wantMem = 32u * 1024u * 1024u;
+        const NSUInteger wantDisk = 128u * 1024u * 1024u;
+        if (cache.memoryCapacity < wantMem) cache.memoryCapacity = wantMem;
+        if (cache.diskCapacity < wantDisk) cache.diskCapacity = wantDisk;
+    } @catch(...) {}
+}
+
+static const void *kADRevisitRCTPrimed6032 = &kADRevisitRCTPrimed6032;
+static BOOL ADDisableReactClipping6032(id obj){
+    @try {
+        if (!obj) return NO;
+        SEL getSel = NSSelectorFromString(@"removeClippedSubviews");
+        SEL setSel = NSSelectorFromString(@"setRemoveClippedSubviews:");
+        if (![obj respondsToSelector:getSel] || ![obj respondsToSelector:setSel]) return NO;
+        BOOL on = ((BOOL(*)(id,SEL))objc_msgSend)(obj, getSel);
+        if (!on) return NO;
+        ((void(*)(id,SEL,BOOL))objc_msgSend)(obj, setSel, NO);
+        return YES;
+    } @catch(...) {}
+    return NO;
+}
+static void ADPrimeReactRevisit6032(UIView *host){
+    if (!kADWarmRevisit6032 || !gP.enabled || !host || !host.window) return;
+    @try {
+        if (objc_getAssociatedObject(host, kADRevisitRCTPrimed6032)) return;
+        UIScrollView *scroll = [host isKindOfClass:[UIScrollView class]] ? (UIScrollView *)host : nil;
+        if (!scroll){
+            for (UIView *v in host.subviews){
+                if ([v isKindOfClass:[UIScrollView class]]) { scroll=(UIScrollView *)v; break; }
+            }
+        }
+        if (!scroll) return;
+        CGFloat vh = scroll.bounds.size.height, vw = scroll.bounds.size.width;
+        CGSize cs = scroll.contentSize;
+        if (vh < 260.0 || vw < 240.0 || cs.height < vh * 2.25 || cs.height < cs.width * 1.05) return;
+        BOOL changed = ADDisableReactClipping6032(host);
+        for (UIView *v in scroll.subviews){
+            NSString *cn = NSStringFromClass([v class]);
+            if ([cn containsString:@"RCT"] || [cn containsString:@"React"] || [cn containsString:@"Fabric"])
+                changed = ADDisableReactClipping6032(v) || changed;
+        }
+        // Geometry is now known. Mark once regardless of whether Amazon had clipping
+        // enabled, so this feature adds no steady-state layout scan.
+        objc_setAssociatedObject(host, kADRevisitRCTPrimed6032, changed ? @2 : @1, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    } @catch(...) {}
+}
+
 %hook RCTView
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
     if (!ADRecolorOn() || !backgroundColor) {
@@ -3069,6 +3139,10 @@ static void ADForceBarDark(UIView *bar){
         return;
     } @catch(...) {}
     %orig;
+}
+- (void)layoutSubviews {
+    %orig;
+    @try { ADPrimeReactRevisit6032((UIView *)self); } @catch(...) {}
 }
 %end
 
@@ -5124,6 +5198,7 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
 
     dispatch_async(dispatch_get_main_queue(), ^{
         ADLoadPrefs();
+        ADPrimeURLCache6032();
         ADApplyJIT622();
         ADRefreshPromotionState611();
         ADLockDarkWeblab();
