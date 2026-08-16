@@ -1,6 +1,6 @@
-# AmazonDark v6.0.63
+# AmazonDark v6.0.64
 
-## v6.0.63 — stock video-control isolation
+## v6.0.64 — stock video-control normalization
 
 Built directly from v6.0.56. The abandoned v6.0.57–v6.0.61 Person/Highlights experiments are not present.
 
