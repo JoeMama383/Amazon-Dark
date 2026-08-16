@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.50"
+#define AD_VERSION "v6.0.51"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2474,76 +2474,95 @@ static int ADPersonHeadingTextKind6044(NSString *text){
     if([lo containsString:@"buy again"]) return 2;
     return 0;
 }
-
-// v6.0.50: v6.0.49 proved that the target headings were visible on-device but
-// none of v6.0.44's registration callbacks fired.  Register from UILabel's
-// existing layout hook (where the final visible text is available), and when a
-// target heading is first discovered re-evaluate only its bounded local section.
-// This is event-driven and one-shot; there is no window scan or scroll recovery.
-static void ADApplyNativeWhiteTameDirect6027(UIView *v);
-static UIView *ADPersonHeadingRoot6050(UIView *heading){
-    if(!heading||!heading.window) return nil;
-    @try {
-        UIWindow *w=heading.window; UIView *p=heading.superview;
-        for(int up=0;p&&p!=w&&up<7;up++,p=p.superview){
-            CGFloat pw=p.bounds.size.width, ph=p.bounds.size.height;
-            if(pw>=w.bounds.size.width*.65 && ph>=120 && ph<=1200) return p;
-        }
-    } @catch(...) {}
-    return nil;
-}
-static void ADPersonHeadingRecoveryPass6050(UIView *heading){
-    if(!heading||!heading.window) return;
-    @try {
-        NSNumber *kn=objc_getAssociatedObject(heading,kADPersonHeadingKind6044);
-        if(!kn||kn.intValue!=2) return;
-        UIView *root=ADPersonHeadingRoot6050(heading); if(!root) return;
-        NSMutableArray *q=[NSMutableArray arrayWithObject:root];
-        NSUInteger qi=0, seen=0;
-        while(qi<q.count && seen++<140){
-            UIView *x=q[qi++];
-            if([x isKindOfClass:[UIImageView class]]){
-                UIImageView *iv=(UIImageView *)x;
-                const char *cn=object_getClassName(iv);
-                CGFloat iw=iv.bounds.size.width, ih=iv.bounds.size.height;
-                if(cn&&strstr(cn,"RCTUIImageView")&&iv.image&&iv.window==heading.window&&
-                   iw>=60&&ih>=60&&iw<=220&&ih<=220&&
-                   iv.image.renderingMode!=UIImageRenderingModeAlwaysTemplate){
-                    ADApplyNativeWhiteTameDirect6027(iv);
-                }
-            }
-            if(q.count<140){
-                for(UIView *sv in x.subviews){ if(q.count>=140) break; [q addObject:sv]; }
-            }
-        }
-    } @catch(...) {}
-}
-static void ADSchedulePersonHeadingRecovery6050(UIView *heading){
-    if(!heading) return;
-    __weak UIView *wh=heading;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        UIView *h=wh; if(h) ADPersonHeadingRecoveryPass6050(h);
-    });
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.18*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-        UIView *h=wh; if(h) ADPersonHeadingRecoveryPass6050(h);
-    });
-}
 static void ADRegisterPersonHeading6044(UIView *v, NSString *text){
     if(!v) return;
     @try {
         int kind=ADPersonHeadingTextKind6044(text);
         NSNumber *old=objc_getAssociatedObject(v,kADPersonHeadingKind6044);
         if(kind){
-            BOOL changed=(!old || old.intValue!=kind);
             objc_setAssociatedObject(v,kADPersonHeadingKind6044,@(kind),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             [ADPersonHeadingViews6044() addObject:v];
-            if(changed && v.window) ADSchedulePersonHeadingRecovery6050(v);
         } else if(old){
             objc_setAssociatedObject(v,kADPersonHeadingKind6044,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             [ADPersonHeadingViews6044() removeObject:v];
         }
     } @catch(...) {}
 }
+// v6.0.51: cross-subtree RCT product-peer consensus.  The v6.0.41 device trace
+// proved the surviving Buy Again / Keep Shopping misses are ordinary
+// RCTUIImageViewAnimated views sitting on the same rendered row as multiple
+// already-tamed, same-sized product peers.  Section headings and React ancestry
+// are not reliable ownership boundaries here, so keep a weak event-driven set of
+// live RCT image views and allow only strong rendered-peer consensus to promote an
+// otherwise unresolved image.  No hierarchy/window scan or recurring timer.
+static const void *kADPeerWakeImage6051 = &kADPeerWakeImage6051;
+static NSHashTable *ADNativeRCTViews6051(void){
+    static NSHashTable *t; static dispatch_once_t once;
+    dispatch_once(&once, ^{ t=[NSHashTable weakObjectsHashTable]; });
+    return t;
+}
+static BOOL gADPeerWake6051=NO;
+static void ADApplyNativeWhiteTameDirect6027(UIView *v);
+static BOOL ADNativeTWBUIChain6027(UIImageView *iv);
+static BOOL ADNativeRCTCandidate6051(UIImageView *iv){
+    if(!iv||!iv.window||!iv.image||iv.hidden||iv.alpha<.01) return NO;
+    const char *cn=object_getClassName(iv);
+    if(!cn||!strstr(cn,"RCTUIImageView")) return NO;
+    CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
+    if(w<60||h<60||w>220||h>220) return NO;
+    CGFloat ratio=(h>0)?w/h:99; if(ratio<1) ratio=1/ratio;
+    if(ratio>1.9) return NO;
+    if(iv.image.renderingMode==UIImageRenderingModeAlwaysTemplate||ADImageIsTemplateish(iv.image)) return NO;
+    if(ADInTabBarChain(iv)||ADNativeTWBUIChain6027(iv)) return NO;
+    return YES;
+}
+static void ADNativeRegisterRCT6051(UIImageView *iv){
+    @try { if(ADNativeRCTCandidate6051(iv)) [ADNativeRCTViews6051() addObject:iv]; } @catch(...) {}
+}
+static BOOL ADNativeSameRenderedRow6051(UIImageView *a, UIImageView *b){
+    if(!ADNativeRCTCandidate6051(a)||!ADNativeRCTCandidate6051(b)||a.window!=b.window) return NO;
+    CGFloat aw=a.bounds.size.width, ah=a.bounds.size.height;
+    CGFloat bw=b.bounds.size.width, bh=b.bounds.size.height;
+    if(fabs(aw-bw)>4.0||fabs(ah-bh)>4.0) return NO;
+    CGRect ar=[a convertRect:a.bounds toView:a.window];
+    CGRect br=[b convertRect:b.bounds toView:b.window];
+    CGFloat rowTol=MAX(14.0,MIN(ah,bh)*0.28);
+    if(fabs(CGRectGetMidY(ar)-CGRectGetMidY(br))>rowTol) return NO;
+    // Keep consensus local enough to avoid borrowing ownership from an unrelated
+    // same-sized carousel elsewhere in a very wide React content plane.
+    if(fabs(CGRectGetMidX(ar)-CGRectGetMidX(br))>900.0) return NO;
+    return YES;
+}
+static BOOL ADNativePeerConsensus6051(UIImageView *iv){
+    if(!ADNativeRCTCandidate6051(iv)) return NO;
+    ADNativeRegisterRCT6051(iv);
+    @try {
+        int positive=0;
+        for(UIImageView *p in [ADNativeRCTViews6051() allObjects]){
+            if(!p||p==iv||!ADNativeSameRenderedRow6051(iv,p)) continue;
+            CALayer *ov=objc_getAssociatedObject(p,kADWhiteTameOverlayKey);
+            if(ov&&ov.superlayer==p.layer){ if(++positive>=2) return YES; }
+        }
+    } @catch(...) {}
+    return NO;
+}
+static void ADNativeWakePeers6051(UIImageView *source){
+    if(gADPeerWake6051||!ADNativeRCTCandidate6051(source)) return;
+    @try {
+        UIImage *im=source.image;
+        if(objc_getAssociatedObject(source,kADPeerWakeImage6051)==im) return;
+        objc_setAssociatedObject(source,kADPeerWakeImage6051,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        ADNativeRegisterRCT6051(source);
+        gADPeerWake6051=YES;
+        for(UIImageView *p in [ADNativeRCTViews6051() allObjects]){
+            if(!p||p==source||!ADNativeSameRenderedRow6051(source,p)) continue;
+            CALayer *ov=objc_getAssociatedObject(p,kADWhiteTameOverlayKey);
+            if(!ov||ov.superlayer!=p.layer) ADApplyNativeWhiteTameDirect6027(p);
+        }
+    } @catch(...) {}
+    gADPeerWake6051=NO;
+}
+
 static int ADPersonHeadingBand6044(UIImageView *iv){
     if(!iv||!iv.window) return 0;
     @try {
@@ -2584,10 +2603,7 @@ static int ADPersonHeadingBand6044(UIImageView *iv){
 }
 - (void)layoutSubviews {
     %orig;
-    @try {
-        if(self.window) ADRegisterPersonHeading6044(self, self.attributedText.string ?: self.text);
-        if (ADRecolorOn() && self.window) ADInvertRNSVG(self);
-    } @catch(...) {}
+    @try { if (ADRecolorOn() && self.window) ADInvertRNSVG(self); } @catch(...) {}
 }
 - (void)setTextColor:(UIColor *)color {
     if (!ADRecolorOn() || !color || ADIsOwnColor(color)) {
@@ -4081,12 +4097,14 @@ static void ADApplyNativeWhiteTameDirect6027(UIView *v){
         // bitmap before layout and should get one classification when bounds arrive.
         if(w<1||h<1) return;
         int ctx=(w<=240&&h<=240)?ADTWBDirectCtx6031(iv,im):0;
-        // v6.0.50: the target heading is more specific than the broad Person/
-        // carousel exclusion.  v6.0.44 checked this only after ctx==1 had already
-        // returned, so a valid Buy Again / Keep Shopping image could never be
-        // promoted.  Resolve the narrow registered-heading band first.
-        if(ctx!=2 && w<=220 && h<=220 && ADPersonHeadingBand6044(iv)==2){
+        ADNativeRegisterRCT6051(iv);
+        // v6.0.51: a strong same-row consensus is more specific than an unresolved
+        // or broad-negative section result.  This is the exact pattern captured on
+        // device: one light product image among multiple same-sized tamed RCT peers.
+        if(ctx!=2 && ADNativePeerConsensus6051(iv)){
             ctx=2;
+            objc_setAssociatedObject(iv,kADTWBCachedImage6027,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADTWBDecision6027,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             objc_setAssociatedObject(iv,kADTWBDirectCtxImage6031,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             objc_setAssociatedObject(iv,kADTWBDirectCtx6031,@2,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             objc_setAssociatedObject(iv,kADTWBDirectCtxTime6031,@(CFAbsoluteTimeGetCurrent()),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -4121,8 +4139,18 @@ static void ADApplyNativeWhiteTameDirect6027(UIView *v){
             objc_setAssociatedObject(iv,kADTWBCachedImage6027,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             objc_setAssociatedObject(iv,kADTWBDecision6027,@(own),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
-        // v6.0.50: target-heading promotion is resolved before the broad ctx==1
-        // rejection above, so no late heading-band fallback is needed here.
+        // v6.0.51: do not rely on heading registration.  If peers became owned
+        // during this same layout wave, give an unresolved image one final rendered
+        // peer-consensus check before releasing it.
+        if(!own && ADNativePeerConsensus6051(iv)){
+            own=YES; ctx=2;
+            objc_setAssociatedObject(iv,kADTWBCachedImage6027,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADTWBDecision6027,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADTWBDirectCtxImage6031,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADTWBDirectCtx6031,@2,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADTWBDirectCtxTime6031,@(CFAbsoluteTimeGetCurrent()),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADTWBDirectCtxAttempts6031,@0,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
         if(!own){ ADNativeTWBRelease6027(iv); return; }
         CGFloat a=0.50*(MAX(0,MIN(100,gP.whiteTameStrength))/100.0);
         CALayer *ov=objc_getAssociatedObject(iv,kADWhiteTameOverlayKey);
@@ -4135,6 +4163,10 @@ static void ADApplyNativeWhiteTameDirect6027(UIView *v){
         ov.cornerRadius=iv.layer.cornerRadius;
         ov.backgroundColor=[UIColor colorWithWhite:0 alpha:a].CGColor;
         ov.zPosition=9999;
+        // If this is the second positive peer to settle, wake unresolved peers on
+        // the same rendered row once.  This removes load-order dependence without
+        // a delayed retry lane or scroll/layout hierarchy scan.
+        ADNativeWakePeers6051(iv);
     } @catch(...) {}
 }
 
@@ -4648,6 +4680,14 @@ static void ADScheduleGlyphLift624(UIImageView *iv){
 
 // v5.446: React Native image views reassert TWB during recycling/layout.
 %hook RCTUIImageViewAnimated
+- (void)didMoveToWindow {
+    %orig;
+    @try {
+        ADNativeRegisterRCT6051((UIImageView *)(id)self);
+        UIView *vv=(UIView *)(id)self;
+        if(!kADLegacyTWB6027 && gP.enabled&&gP.whiteTame&&vv.window) ADApplyNativeWhiteTameDirect6027(vv);
+    } @catch(...) {}
+}
 - (void)didMoveToSuperview {
     %orig;
     if (!gP.enabled || !gP.whiteTame) return;
@@ -4659,6 +4699,8 @@ static void ADScheduleGlyphLift624(UIImageView *iv){
         objc_setAssociatedObject((id)self,kADTWBDirectCtx6031,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject((id)self,kADTWBDirectCtxTime6031,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject((id)self,kADTWBDirectCtxAttempts6031,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject((id)self,kADPeerWakeImage6051,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        ADNativeRegisterRCT6051((UIImageView *)(id)self);
         ADApplyNativeWhiteTameDirect6027((UIView *)self); return;
     }
     @try {
@@ -4673,6 +4715,7 @@ static void ADScheduleGlyphLift624(UIImageView *iv){
     @try {
         UIView *vv=(UIView *)self;
         if(!kADLegacyTWB6027){
+            ADNativeRegisterRCT6051((UIImageView *)(id)self);
             if(gP.enabled&&gP.whiteTame&&vv.window) ADApplyNativeWhiteTameDirect6027(vv);
             return;
         }
