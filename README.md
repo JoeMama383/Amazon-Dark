@@ -126,6 +126,13 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
 
+## v6.0.37
+
+- Keeps v6.0.36 as the functional baseline.
+- Pins the seasonal mosaic panel border to the same `#3b4043` gray as neighboring Home cards in the post-Dark-Reader fixes layer, preventing Dark Reader from warming the border to tan after first paint.
+- Removes the legacy v5.446 `#181a1b` box behind `badgeMessage` deal/countdown copy (`Ends in …`, `Limited time deal`) while preserving light text and the separate red `% off` `badgeLabel`.
+- No new observer, timer, scroll listener, scan, or TWB runtime path.
+
 ## v6.0.36
 
 - Promotes Home ad-card titles/prices/deal badges and seasonal mosaic-card chrome into document-start CSS so they paint correctly on first insertion instead of waiting for the contrast lifecycle.

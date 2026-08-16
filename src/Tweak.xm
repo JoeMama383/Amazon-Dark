@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.36"
+#define AD_VERSION "v6.0.37"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -584,6 +584,34 @@ static NSString *ADFixesLiteral(void){
              "[style*=multiply],[style*=darken],[style*=color-burn],"
              "[class*=deal] [style*=blend],[class*=Deal] [style*=blend]"
              "{mix-blend-mode:normal !important;isolation:auto !important;}"
+             // v6.0.37: v5.446's exact mosaic border owner lived after Dark Reader's
+             // palette transform. Keep the seasonal panel on the same #3b4043 gray as
+             // neighboring Home cards instead of letting DR re-map it to warm tan.
+             "[class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer]"
+             "{border-color:#3b4043 !important;}"
+             "[class*=hp-mosaic-container] [class*=hp-mosaic-container],"
+             "[class*=_mosaic-container_style_widgetContainer] [class*=mosaic-container]"
+             "{border-color:#3b4043 !important;}"
+             // v6.0.37: donor badgeMessage deliberately painted #181a1b behind deal
+             // copy/countdowns. Keep its light ink but make that message surface/pseudos
+             // transparent. badgeLabel (the red %% off pill) remains independently owned.
+             "[class*=npack-asin-card] [class*=badgeMessage],"
+             "[class*=npack-asin-card] [class*=badgeMessage] *,"
+             "[class*=cXVhZ] [class*=badgeMessage],"
+             "[class*=cXVhZ] [class*=badgeMessage] *"
+             "{background-color:transparent !important;background-image:none !important;"
+             "color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;"
+             "box-shadow:none !important;border-color:transparent !important;outline:0 !important;}"
+             "[class*=npack-asin-card] [class*=badgeMessage]::before,"
+             "[class*=npack-asin-card] [class*=badgeMessage]::after,"
+             "[class*=npack-asin-card] [class*=badgeMessage] *::before,"
+             "[class*=npack-asin-card] [class*=badgeMessage] *::after,"
+             "[class*=cXVhZ] [class*=badgeMessage]::before,"
+             "[class*=cXVhZ] [class*=badgeMessage]::after,"
+             "[class*=cXVhZ] [class*=badgeMessage] *::before,"
+             "[class*=cXVhZ] [class*=badgeMessage] *::after"
+             "{background:transparent !important;background-image:none !important;"
+             "box-shadow:none !important;border-color:transparent !important;}"
              // v6.0.18 / v5.446 long-copy fade fix. Amazon overlays a white
              // read-more scrim on long descriptions/reviews. Remove only the
              // expander fade paint; never hide generic gradient content.
@@ -676,7 +704,8 @@ static NSString *ADDarkReaderBootstrap(void){
            "[class*=npack-asin-card],[class*=npack-asin-card] *,[class*=gwm-asin-tile],[class*=gwm-asin-tile] *,[class*=gwm-tile],[class*=gwm-tile] *{mix-blend-mode:normal !important;isolation:auto !important;}"
            "[class*=npack-asin-card] [class*=a-size-mini],[class*=npack-asin-card] [class*=badge],[class*=npack-asin-card] [class*=percent]{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}"
            "[class*=badgeLabel],[class*=hp-mosaic-container] [class*=badgeLabel],[class*=_mosaic-container_style_widgetContainer] [class*=badgeLabel]{background-color:#cc0c39 !important;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;mix-blend-mode:normal !important;}[class*=badgeLabel] *,[class*=hp-mosaic-container] [class*=badgeLabel] *,[class*=_mosaic-container_style_widgetContainer] [class*=badgeLabel] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}"
-           "[class*=npack-asin-card] [class*=badgeMessage],[class*=npack-asin-card] [class*=badgeMessage] *,[class*=cXVhZ] [class*=badgeMessage],[class*=cXVhZ] [class*=badgeMessage] *{background-color:#181a1b !important;background-image:none !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;box-shadow:none !important;}"
+           "[class*=npack-asin-card] [class*=badgeMessage],[class*=npack-asin-card] [class*=badgeMessage] *,[class*=cXVhZ] [class*=badgeMessage],[class*=cXVhZ] [class*=badgeMessage] *{background-color:transparent !important;background-image:none !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;box-shadow:none !important;border-color:transparent !important;outline:0 !important;}"
+           "[class*=npack-asin-card] [class*=badgeMessage]::before,[class*=npack-asin-card] [class*=badgeMessage]::after,[class*=npack-asin-card] [class*=badgeMessage] *::before,[class*=npack-asin-card] [class*=badgeMessage] *::after,[class*=cXVhZ] [class*=badgeMessage]::before,[class*=cXVhZ] [class*=badgeMessage]::after,[class*=cXVhZ] [class*=badgeMessage] *::before,[class*=cXVhZ] [class*=badgeMessage] *::after{background:transparent !important;background-image:none !important;box-shadow:none !important;border-color:transparent !important;}"
            "[class*=a-cardui] [class*=a-price-whole],[class*=a-cardui] [class*=a-price-symbol],[class*=a-cardui] [class*=a-price-decimal],[class*=a-cardui] [class*=a-truncate],[class*=cXVhZ] [class*=a-price-whole],[class*=cXVhZ] [class*=a-price-symbol],[class*=cXVhZ] [class*=a-price-decimal],[class*=cXVhZ] [class*=a-truncate],[class*=npack-asin-card] [class*=a-price-whole],[class*=npack-asin-card] [class*=a-price-symbol],[class*=npack-asin-card] [class*=a-price-decimal],[class*=npack-asin-card] [class*=a-truncate],[class*=gwm-asin-tile] [class*=a-price-whole],[class*=gwm-asin-tile] [class*=a-price-symbol],[class*=gwm-asin-tile] [class*=a-price-decimal],[class*=gwm-asin-tile] [class*=a-truncate]{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}"
            "[class*=gwm-tile] [class*=a-cardui-header],[class*=gwm-tile] [class*=a-cardui-header] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}"
            "[style*=multiply],[style*=darken],[style*=color-burn],[class*=deal] [style*=blend],[class*=Deal] [style*=blend]{mix-blend-mode:normal !important;isolation:auto !important;}';"
@@ -702,7 +731,7 @@ static NSString *ADDarkReaderBootstrap(void){
            "function appbg(){var A=[document.body,document.documentElement];for(var z=0;z<A.length;z++){if(!A[z])continue;var c=String(getComputedStyle(A[z]).backgroundColor||'').replace(/\\s+/g,'');if(c&&c!=='transparent'&&c!=='rgba(0,0,0,0)')return c;}return 'rgb(24,26,27)';}"
            "function cn(e){var c=e&&e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;return String(c||'').toLowerCase();}"
            "var SEL='[class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer]';"
-           "function pin(pane){try{if(!pane||!pane.isConnected)return 0;var bg=appbg(),R=pane.getBoundingClientRect(),n=1;pane.setAttribute('data-ad-seasonal6036','1');pane.setAttribute('data-ad-college6034','1');pane.style.setProperty('--ad-seasonal6036-bg',bg);pane.style.setProperty('background-color',bg,'important');pane.style.setProperty('filter','none','important');pane.style.setProperty('mix-blend-mode','normal','important');pane.style.setProperty('box-shadow','none','important');var K=pane.getElementsByTagName?pane.getElementsByTagName('*'):[];for(var i=0;i<K.length&&i<360;i++){var e=K[i],tg=String(e.tagName||'').toUpperCase();if(!/^(DIV|SECTION|ARTICLE|UL|OL|LI|A)$/.test(tg))continue;var r=e.getBoundingClientRect();if(r.width<72||r.height<42||r.width>Math.max((innerWidth||390)*1.08,R.width*1.08))continue;var cs=getComputedStyle(e),bc=String(cs.backgroundColor||'').replace(/\\s+/g,''),bi=String(cs.backgroundImage||'none'),cl=cn(e),hasColor=!!(bc&&bc!=='transparent'&&bc!=='rgba(0,0,0,0)'),hasGrad=bi.indexOf('gradient(')>=0&&bi.indexOf('url(')<0;if(!hasColor&&!hasGrad)continue;var cardish=/mosaic|card|pane|tile|container|widget|asin|grid|product/.test(cl)||(r.width>=R.width*.36&&r.height>=80);if(!cardish)continue;e.setAttribute('data-ad-seasonal-card6036','1');e.setAttribute('data-ad-college-card6034','1');e.style.setProperty('--ad-seasonal6036-bg',bg);e.style.setProperty('background-color',bg,'important');if(hasGrad)e.style.setProperty('background-image','none','important');e.style.setProperty('filter','none','important');e.style.setProperty('mix-blend-mode','normal','important');e.style.setProperty('box-shadow','none','important');e.style.setProperty('border-color','#3b4043','important');n++;}return n;}catch(x){return 0;}}"
+           "function pin(pane){try{if(!pane||!pane.isConnected)return 0;var bg=appbg(),R=pane.getBoundingClientRect(),n=1;pane.setAttribute('data-ad-seasonal6036','1');pane.setAttribute('data-ad-college6034','1');pane.style.setProperty('--ad-seasonal6036-bg',bg);pane.style.setProperty('background-color',bg,'important');pane.style.setProperty('filter','none','important');pane.style.setProperty('mix-blend-mode','normal','important');pane.style.setProperty('box-shadow','none','important');pane.style.setProperty('border-color','#3b4043','important');var K=pane.getElementsByTagName?pane.getElementsByTagName('*'):[];for(var i=0;i<K.length&&i<360;i++){var e=K[i],tg=String(e.tagName||'').toUpperCase();if(!/^(DIV|SECTION|ARTICLE|UL|OL|LI|A)$/.test(tg))continue;var r=e.getBoundingClientRect();if(r.width<72||r.height<42||r.width>Math.max((innerWidth||390)*1.08,R.width*1.08))continue;var cs=getComputedStyle(e),bc=String(cs.backgroundColor||'').replace(/\\s+/g,''),bi=String(cs.backgroundImage||'none'),cl=cn(e),hasColor=!!(bc&&bc!=='transparent'&&bc!=='rgba(0,0,0,0)'),hasGrad=bi.indexOf('gradient(')>=0&&bi.indexOf('url(')<0;if(!hasColor&&!hasGrad)continue;var cardish=/mosaic|card|pane|tile|container|widget|asin|grid|product/.test(cl)||(r.width>=R.width*.36&&r.height>=80);if(!cardish)continue;e.setAttribute('data-ad-seasonal-card6036','1');e.setAttribute('data-ad-college-card6034','1');e.style.setProperty('--ad-seasonal6036-bg',bg);e.style.setProperty('background-color',bg,'important');if(hasGrad)e.style.setProperty('background-image','none','important');e.style.setProperty('filter','none','important');e.style.setProperty('mix-blend-mode','normal','important');e.style.setProperty('box-shadow','none','important');e.style.setProperty('border-color','#3b4043','important');n++;}return n;}catch(x){return 0;}}"
            "var B=(root&&root.nodeType===1)?root:document,R=[],q=null;function add(e){if(e&&R.indexOf(e)<0&&R.length<24)R.push(e);}"
            "if(B!==document){try{if(B.matches&&B.matches(SEL))add(B);if(B.closest)add(B.closest(SEL));}catch(x){}}"
            "try{q=B.querySelectorAll?B.querySelectorAll(SEL):[];for(var i=0;i<q.length&&i<24;i++)add(q[i]);}catch(x){}"
