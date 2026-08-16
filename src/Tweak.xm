@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.28"
+#define AD_VERSION "v6.0.29"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -997,10 +997,20 @@ static NSString *ADWhiteTameWebJS6027(void){
     if (!gP.enabled || !gP.whiteTame) return nil;
     CGFloat s=MAX(0,MIN(100,gP.whiteTameStrength));
     CGFloat b=1.0-(0.50*(s/100.0));
+    CGFloat a=0.50*(s/100.0);
     return [NSString stringWithFormat:
         @"(function(){try{"
-         "var id='ad-twb6027',st=document.getElementById(id);"
+         // v6.0.29: preserve the zero-scroll-cost v6.0.27 owner, but restore the
+         // exact *semantic* v5.446 TWB families with local/event-driven decisions.
+         // No MutationObserver, heading-band scan, scroll handler or recurring timer.
+         "var BB='brightness(%.3f) saturate(1.08)',AA='rgba(0,0,0,%.3f)';"
+         "var old=document.getElementById('ad-twb6027'),id='ad-twb6029',st=document.getElementById(id);"
+         "if(old&&old!==st&&old.parentNode)old.parentNode.removeChild(old);"
          "if(!st){st=document.createElement('style');st.id=id;(document.head||document.documentElement).appendChild(st);}"
+         // 1) Stable product families from the streamlined owner.
+         // 2) v5.446 Home single-creative/single-video media.
+         // 3) v5.446 theming-card / vjs-poster BACKGROUND-only tame. An inset shadow
+         //    sits over the background layer but below live DOM text/controls.
          "var css='html body :is(' +"
            "'img.s-image,'+"
            "'.s-product-image-container img,'+"
@@ -1014,14 +1024,41 @@ static NSString *ADWhiteTameWebJS6027(void){
            "'img.a-amazon-image,'+"
            "'[class*=\\\"_gwm-asin-tile\\\"] img,'+"
            "'img[class*=\\\"_np\\\"],'+"
-           "'[class*=\\\"product-image\\\"] img' +"
-         "'):not([class*=\\\"icon\\\"]):not([class*=\\\"logo\\\"]):not([class*=\\\"avatar\\\"]):not([class*=\\\"profile\\\"]):not([class*=\\\"merchant\\\"]):not([class*=\\\"seller\\\"]):not([class*=\\\"brand\\\"]):not([class*=\\\"store\\\"]):not([class*=\\\"sprite\\\"]){filter:brightness(%.3f) saturate(1.08)!important;}'+"
+           "'[class*=\\\"product-image\\\"] img,'+"
+           "'img[class*=\\\"_single-creative-card\\\"],'+"
+           "'img[class*=\\\"_single-video-card\\\"],'+"
+           "'[class*=\\\"single-creative-card\\\"] img,'+"
+           "'[class*=\\\"single-video-card\\\"] img,'+"
+           "'video.vjs-tech,'+"
+           "'[class*=\\\"single-video-card\\\"] video' +"
+         "'):not([class*=\\\"icon\\\"]):not([class*=\\\"logo\\\"]):not([class*=\\\"avatar\\\"]):not([class*=\\\"profile\\\"]):not([class*=\\\"merchant\\\"]):not([class*=\\\"seller\\\"]):not([class*=\\\"brand\\\"]):not([class*=\\\"store\\\"]):not([class*=\\\"sprite\\\"]){filter:'+BB+'!important;}'+"
+         "'html body :is([class*=\\\"single-creative-card\\\"],[class*=\\\"single-video-card\\\"],[class*=\\\"video-card\\\"],[class*=\\\"theming-card\\\"]) :is([class*=\\\"theming-card-background\\\"],.vjs-poster,[class*=\\\"vjs-poster\\\"]){filter:none!important;background-blend-mode:normal!important;box-shadow:inset 0 0 0 9999px '+AA+'!important;}'+"
+         // Search/history and genuine identity artwork are never TWB media.
          "'html body :is(.s-suggestion,.s-suggestion-container,[class*=\\\"recentSearch\\\"],[class*=\\\"search-suggestion\\\"],[class*=\\\"avatar\\\"],[class*=\\\"profile\\\"],[class*=\\\"merchant\\\"],[class*=\\\"seller\\\"],[class*=\\\"brand\\\"],[class*=\\\"store\\\"],[class*=\\\"logo\\\"]) img{filter:none!important;}';"
          "if(st.textContent!==css)st.textContent=css;"
-         "window.__AD_TWB6027_INSTALLED__=1;"
-         "}catch(e){}})();", b];
+         "function S(v){try{return String(v&&v.baseVal!==undefined?v.baseVal:(v||''));}catch(e){return '';}}"
+         "function chain(e){var p=e,d=0,c='';while(p&&d++<6){c+=' '+S(p.className)+' '+String(p.id||'')+' '+String((p.getAttribute&&p.getAttribute('data-component-type'))||'')+' '+String((p.getAttribute&&p.getAttribute('data-hook'))||'');p=p.parentElement;}return c.toLowerCase();}"
+         "function localText(e){var p=e,d=0,t='';while(p&&d++<6){var x=String(p.textContent||'').replace(/\\s+/g,' ').trim();if(x&&x.length<1200)t+=' '+x.toLowerCase();p=p.parentElement;}return t;}"
+         // Exact v5.446 semantic exclusions, now local to the image rather than found
+         // by a 3,600-text-node heading scan.
+         "function blocked(e,c,t){if(e.__adGlyph)return true;if(/sprite|icon|logo|avatar|profile|author|reviewer|byline|merchant|seller|brand-logo|store-logo|headshot|user-image|customer-avatar|star|rating|checkbox|heart|wish|search-suggestion|recentsearch|camera|microphone|location-icon|chevron|close-icon/.test(c))return true;if(/medical care|health ai|prescriptions|personal guida|fast,? free deliv|your amazon highlights|total savings|sessions streamed|keep streaming/.test(t))return true;if(/same-day|same day|pharmacy|prime video|amazon haul|whole foods|autos/.test(t)&&/nav|explore|shortcut|chip|pill|category/.test(c+t))return true;return false;}"
+         // v5.446 forced-product sections, but resolved from a handful of ancestors of
+         // the image instead of page-global y-bands.
+         "function forced(t){return /subscribe[ &]+save|keep shopping for|shop previously watched|how can i help|returns are easy/.test(t);}"
+         "function product(e,c){var p=e,d=0;while(p&&d++<6){var asin=String((p.getAttribute&&p.getAttribute('data-asin'))||''),h=String((p.getAttribute&&p.getAttribute('href'))||''),q=S(p.className)+' '+String(p.id||'');if(asin||/asin|product|p13n|npack|cxvhz|gwm-asin|carousel-image|product-image|s-image|a-amazon-image/i.test(q)||h.indexOf('/dp/')>=0||h.indexOf('/gp/product/')>=0)return true;p=p.parentElement;}return /review-image|customer-image|review.*photo/.test(c);}"
+         "var mode=(function(){try{if(window.top===window)return 'main';var u=String(document.referrer||'').toLowerCase();if(u.indexOf('/dp/')>=0||u.indexOf('/gp/aw/d/')>=0||u.indexOf('/gp/product/')>=0||u.indexOf('/s?')>=0||u.indexOf('/search')>=0||u.indexOf('?k=')>=0||u.indexOf('&k=')>=0||u.indexOf('field-keywords=')>=0)return 'productad';return ((innerHeight||0)<180||((innerWidth||1)/(innerHeight||1))>2.25)?'standalone':'hero';}catch(e){return 'main';}})();"
+         "function tame(e){try{if(!e||e.nodeType!==1)return;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return;var r=e.getBoundingClientRect();if(r.width<2||r.height<2)return;var c=chain(e),t=localText(e),src=String(e.currentSrc||e.src||e.poster||'').toLowerCase();if(blocked(e,c,t)||/pixel|placeholder|spacer|blank|transparent/.test(src))return;var W=innerWidth||390,H=innerHeight||700,nw=e.naturalWidth||0,nh=e.naturalHeight||0,ok=false;if(mode==='hero'){ok=(r.width>=32&&r.height>=32)||(nw>=32&&nh>=32);}else if(mode==='productad'||mode==='standalone'){var full=(r.width>W*.64&&r.height>H*.55)||(r.width*r.height>W*H*.58);if(full)return;ok=(r.width>=26&&r.height>=26)||(nw>=26&&nh>=26);}else{var pr=product(e,c),fo=forced(t),rv=/review-image|customer-image|review.*photo/.test(c);var mn=(pr||fo||rv)?24:56;ok=(r.width>=mn&&r.height>=mn)||(nw>=mn&&nh>=mn);}if(!ok)return;if(tg!=='VIDEO')e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6029','1');}catch(x){}}"
+         "function ev(x){try{tame(x.target);}catch(e){}}"
+         // Event-driven ownership: one O(1) classification when media actually loads.
+         "document.addEventListener('load',ev,true);document.addEventListener('loadeddata',ev,true);"
+         // One bounded initial/BFCache pass catches already-complete cached images.
+         // It touches media collections only -- no div/background/text tree walk.
+         "function once(){try{var tags=['img','video','canvas'],budget=420;for(var ti=0;ti<tags.length&&budget>0;ti++){var Q=document.getElementsByTagName(tags[ti]);for(var i=0;i<Q.length&&budget-- >0;i++)tame(Q[i]);}}catch(e){}}"
+         "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',once,{once:true});else once();"
+         "window.addEventListener('pageshow',once,{passive:true});"
+         "window.__AD_TWB6027_INSTALLED__=1;window.__AD_TWB6029_INSTALLED__=1;window.__AD_TWB6029_MODE__=mode;"
+         "}catch(e){}})();", b, a];
 }
-
 static NSString *ADWhiteTameWebJS446(void){
     return kADLegacyTWB6027 ? ADWhiteTameLegacyWebJS446() : ADWhiteTameWebJS6027();
 }
