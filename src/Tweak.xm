@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.70"
+#define AD_VERSION "v6.0.71"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2625,162 +2625,48 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
     } @catch(...) { return in; }
 }
 
-
-// v6.0.70: streamlined port of the v5.349/v5.350 microphone-permission repair.
-// That sheet is native React Native, and its RCTTextView leaves can expose the
-// visible string only through accessibility while keeping the real attributed
-// renderer in private TextKit object ivars.  Touch ONLY those unique voice-sheet
-// strings, lift dark neutral ink, and leave Amazon's saturated cyan links alone.
-// Unlike the v5 donor, there is no window-wide voice sweep: work is driven only by
-// the matching RCTTextView's own mount/text/accessibility lifecycle.
-static const void *kADVoiceDone6070 = &kADVoiceDone6070;
-static const void *kADVoiceRetry6070 = &kADVoiceRetry6070;
-
-static BOOL ADVoiceTargetText6070(NSString *t){
+// v6.0.71: narrow v5.350 voice-sheet escape hatch.  These three RCTTextView
+// leaves expose their text through accessibility while drawing from private TextKit
+// storage.  Repair only dark neutral runs so Amazon's cyan links stay untouched.
+static BOOL ADVoiceText6071(NSString *t){
     if (!t.length || t.length > 700) return NO;
-    if ([t rangeOfString:@"Allow microphone access" options:NSCaseInsensitiveSearch].location != NSNotFound) return YES;
-    if ([t rangeOfString:@"Shop faster with voice" options:NSCaseInsensitiveSearch].location != NSNotFound) return YES;
-    if ([t rangeOfString:@"You can always turn it off" options:NSCaseInsensitiveSearch].location != NSNotFound) return YES;
-    if ([t rangeOfString:@"Your audio is transcribed in the cloud" options:NSCaseInsensitiveSearch].location != NSNotFound) return YES;
-    if ([t rangeOfString:@"about shopping with voice" options:NSCaseInsensitiveSearch].location != NSNotFound) return YES;
-    return NO;
+    return [t rangeOfString:@"You can always turn it off" options:NSCaseInsensitiveSearch].location != NSNotFound ||
+           [t rangeOfString:@"Your audio is transcribed in the cloud" options:NSCaseInsensitiveSearch].location != NSNotFound ||
+           [t rangeOfString:@"about shopping with voice" options:NSCaseInsensitiveSearch].location != NSNotFound;
 }
 
-static NSString *ADVoiceVisibleText6070(UIView *v){
-    if (!v) return @"";
+static void ADVoiceFix6071(id v){
+    if (!ADRecolorOn() || !v || !ADVoiceText6071([v accessibilityLabel])) return;
     @try {
-        NSString *t=v.accessibilityLabel;
-        if (ADVoiceTargetText6070(t)) return t;
-        if ([v respondsToSelector:@selector(text)]){
-            id x=[v performSelector:@selector(text)];
-            if ([x isKindOfClass:[NSString class]] && ADVoiceTargetText6070((NSString *)x)) return x;
-        }
-        if ([v respondsToSelector:@selector(attributedText)]){
-            id x=[v performSelector:@selector(attributedText)];
-            if ([x isKindOfClass:[NSAttributedString class]]){
-                NSString *q=[(NSAttributedString *)x string];
-                if (ADVoiceTargetText6070(q)) return q;
-            }
-        }
-    } @catch(...) {}
-    return @"";
-}
-
-static BOOL ADVoiceColorIsDarkNeutral6070(UIColor *c){
-    if (!c) return YES;
-    @try {
-        CGFloat r=0,g=0,b=0,a=0;
-        if (![c getRed:&r green:&g blue:&b alpha:&a] || a < 0.05) return NO;
-        CGFloat mx=MAX(r,MAX(g,b)), mn=MIN(r,MIN(g,b));
-        CGFloat lum=0.2126*r+0.7152*g+0.0722*b;
-        return lum < 0.42 && (mx-mn) < 0.20;
-    } @catch(...) {}
-    return NO;
-}
-
-static NSAttributedString *ADVoiceLiftAttributed6070(NSAttributedString *in, int *runs){
-    if (!in.length) return in;
-    @try {
-        NSMutableAttributedString *m=[in mutableCopy];
-        __block int changed=0;
-        NSRange full=NSMakeRange(0,m.length);
-        [m enumerateAttribute:NSForegroundColorAttributeName inRange:full options:0
-                   usingBlock:^(id value, NSRange range, BOOL *stop){
-            @try {
-                UIColor *c=[value isKindOfClass:[UIColor class]] ? (UIColor *)value : nil;
-                if (!ADVoiceColorIsDarkNeutral6070(c)) return;
-                [m addAttribute:NSForegroundColorAttributeName
-                          value:ADColorFromHex(gP.fgHex) range:range];
-                changed++;
-            } @catch(...) {}
-        }];
-        if (runs) *runs += changed;
-        return changed ? m : in;
-    } @catch(...) {}
-    return in;
-}
-
-static int ADVoiceRepairHiddenRCTStorage6070(UIView *v){
-    if (!v || !ADRecolorOn()) return 0;
-    @try {
-        const char *cn=object_getClassName(v);
-        if (!cn || strcmp(cn,"RCTTextView") != 0) return 0;
-        int changedRuns=0;
-        Class c=[v class]; int depth=0;
-        while(c && c!=[UIView class] && depth++<10){
-            unsigned int n=0;
-            Ivar *ivs=class_copyIvarList(c,&n);
-            for(unsigned int i=0;i<n;i++){
-                Ivar iv=ivs[i];
-                const char *enc=ivar_getTypeEncoding(iv);
-                if(!enc || enc[0]!='@') continue;
-                id obj=nil;
-                @try { obj=object_getIvar(v,iv); } @catch(...) { obj=nil; }
-                if(!obj) continue;
-                @try {
-                    NSMutableAttributedString *store=nil;
-                    if([obj isKindOfClass:[NSTextStorage class]] ||
-                       [obj isKindOfClass:[NSMutableAttributedString class]]){
-                        store=(NSMutableAttributedString *)obj;
-                    } else if([obj isKindOfClass:[NSLayoutManager class]]){
-                        NSTextStorage *ts=[(NSLayoutManager *)obj textStorage];
-                        if(ts) store=ts;
+        UIColor *fg=ADColorFromHex(gP.fgHex);
+        __block BOOL changed=NO;
+        for (Class c=[v class]; c && c!=[UIView class]; c=class_getSuperclass(c)) {
+            unsigned int n=0; Ivar *ivs=class_copyIvarList(c,&n);
+            for (unsigned int i=0;i<n;i++) {
+                Ivar iv=ivs[i]; const char *enc=ivar_getTypeEncoding(iv);
+                if (!enc || enc[0]!='@') continue;
+                id o=nil; @try { o=object_getIvar(v,iv); } @catch(...) {}
+                NSMutableAttributedString *st=nil;
+                if ([o isKindOfClass:[NSMutableAttributedString class]]) st=o;
+                else if ([o isKindOfClass:[NSLayoutManager class]]) st=[o textStorage];
+                if (!st.length) continue;
+                [st enumerateAttribute:NSForegroundColorAttributeName
+                               inRange:NSMakeRange(0,st.length) options:0
+                            usingBlock:^(id value, NSRange r, BOOL *stop){
+                    UIColor *col=[value isKindOfClass:[UIColor class]] ? value : nil;
+                    CGFloat rr=0,g=0,b=0,a=1, mx=0,mn=0, lum=0;
+                    BOOL dark=!col;
+                    if (col && [col getRed:&rr green:&g blue:&b alpha:&a] && a>=0.05) {
+                        mx=MAX(rr,MAX(g,b)); mn=MIN(rr,MIN(g,b));
+                        lum=0.2126*rr+0.7152*g+0.0722*b;
+                        dark=(lum<0.42 && mx-mn<0.20);
                     }
-                    if(store.length){
-                        int rr=0;
-                        NSAttributedString *lift=ADVoiceLiftAttributed6070(store,&rr);
-                        if(lift!=store && rr>0){
-                            [store setAttributedString:lift];
-                            changedRuns += rr;
-                        }
-                    }
-                } @catch(...) {}
+                    if (dark) { [st addAttribute:NSForegroundColorAttributeName value:fg range:r]; changed=YES; }
+                }];
             }
-            if(ivs) free(ivs);
-            c=class_getSuperclass(c);
+            if (ivs) free(ivs);
         }
-        if(changedRuns>0){
-            [v setNeedsLayout];
-            [v setNeedsDisplay];
-            [v.layer setNeedsDisplay];
-        }
-        return changedRuns;
-    } @catch(...) {}
-    return 0;
-}
-
-static void ADVoiceRepairIfTarget6070(UIView *v, BOOL allowRetry){
-    if (!v || !v.window || !ADRecolorOn()) return;
-    @try {
-        NSString *text=ADVoiceVisibleText6070(v);
-        if (!text.length) return;
-        NSString *done=objc_getAssociatedObject(v,kADVoiceDone6070);
-        if ([done isEqualToString:text]) return;
-        int changed=ADVoiceRepairHiddenRCTStorage6070(v);
-        if(changed>0){
-            objc_setAssociatedObject(v,kADVoiceDone6070,[text copy],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            objc_setAssociatedObject(v,kADVoiceRetry6070,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            return;
-        }
-        if(!allowRetry) return;
-        NSString *pending=objc_getAssociatedObject(v,kADVoiceRetry6070);
-        if([pending isEqualToString:text]) return;
-        objc_setAssociatedObject(v,kADVoiceRetry6070,[text copy],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        __weak UIView *weakV=v;
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(120*NSEC_PER_MSEC)),dispatch_get_main_queue(),^{
-            UIView *x=weakV;
-            if(!x) return;
-            @try {
-                objc_setAssociatedObject(x,kADVoiceRetry6070,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                if(!x.window || !ADRecolorOn()) return;
-                NSString *now=ADVoiceVisibleText6070(x);
-                if(!now.length) return;
-                NSString *already=objc_getAssociatedObject(x,kADVoiceDone6070);
-                if([already isEqualToString:now]) return;
-                if(ADVoiceRepairHiddenRCTStorage6070(x)>0)
-                    objc_setAssociatedObject(x,kADVoiceDone6070,[now copy],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            } @catch(...) {}
-        });
+        if (changed) { [v setNeedsLayout]; [v setNeedsDisplay]; }
     } @catch(...) {}
 }
 
@@ -2824,18 +2710,15 @@ static void ADVoiceRepairIfTarget6070(UIView *v, BOOL allowRetry){
         }
     } @catch(...) {}
     %orig;
-    @try { ADVoiceRepairIfTarget6070((UIView *)self, NO); } @catch(...) {}
+    ADVoiceFix6071(self);
 }
 - (void)setAccessibilityLabel:(NSString *)label {
     %orig;
-    @try {
-        if (ADVoiceTargetText6070(label))
-            ADVoiceRepairIfTarget6070((UIView *)self, YES);
-    } @catch(...) {}
+    ADVoiceFix6071(self);
 }
 - (void)didMoveToWindow {
     %orig;
-    @try { ADVoiceRepairIfTarget6070((UIView *)self, YES); } @catch(...) {}
+    ADVoiceFix6071(self);
 }
 %end
 
