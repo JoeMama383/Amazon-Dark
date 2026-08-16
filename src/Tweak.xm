@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.42"
+#define AD_VERSION "v6.0.43"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3979,6 +3979,24 @@ static void ADApplyNativeWhiteTameDirect6027(UIView *v){
             own=ADWTImageLight363(im);
             objc_setAssociatedObject(iv,kADTWBCachedImage6027,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             objc_setAssociatedObject(iv,kADTWBDecision6027,@(own),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        // v6.0.43: reconnect the retained v5.388 structural peer fallback only for
+        // an RCT product-sized image that the normal direct owner was about to leave
+        // untamed. This is the diagnostic pattern in Buy Again / Keep Shopping: a
+        // same-size product group is already present but one sibling's individual
+        // lightness/section decision falls through. Keeping this AFTER the normal UI
+        // and template gates means the fallback can only promote an individual image
+        // view, never a whole tile or control. The helper itself is bounded/cached.
+        if(!own && ctx==0 && ADWTProductPeers388(iv)){
+            own=YES;
+            objc_setAssociatedObject(iv,kADTWBCachedImage6027,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADTWBDecision6027,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            // Cache the successful peer promotion as product context for this exact
+            // UIImage so subsequent layout reassertions do not repeat the peer walk.
+            objc_setAssociatedObject(iv,kADTWBDirectCtxImage6031,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADTWBDirectCtx6031,@2,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADTWBDirectCtxTime6031,@(CFAbsoluteTimeGetCurrent()),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADTWBDirectCtxAttempts6031,@0,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
         if(!own){ ADNativeTWBRelease6027(iv); return; }
         CGFloat a=0.50*(MAX(0,MIN(100,gP.whiteTameStrength))/100.0);
