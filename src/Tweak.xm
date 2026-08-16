@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.72"
+#define AD_VERSION "v6.0.73"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -4348,7 +4348,7 @@ static void ADInvertRNSVG(UIView *v){
         const char *cn = object_getClassName(v);
         if (!cn) return;
         CGFloat w = v.bounds.size.width, h = v.bounds.size.height;
-        if (w < 6 || w > 48 || h < 6 || h > 48) return;   // icons, not illustrations
+        if (w < 3 || w > 48 || h < 3 || h > 48) return;   // v5.446 donor floor; tiny/transformed RN SVG glyphs still count
         BOOL take = (strcmp(cn, "RNSVGSvgView") == 0);    // root only; children ride along
         if (!take && [v isKindOfClass:[UILabel class]]){
             // The kebab: an RN-hosted UILabel whose dots are baked into layer
