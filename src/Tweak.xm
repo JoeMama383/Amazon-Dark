@@ -229,41 +229,55 @@ static void ADLoadPrefs(void){
 }
 
 // ── DOPAMINE JIT ENABLEMENT / OWNERSHIP DIAGNOSTIC (v6.0.20) ────────────────
-// Dopamine publishes jbdswDebugMe specifically for granting JIT/debug state to
-// the current process. Dopamine also has a systemwide "Allow JIT in Apps" option
-// that can set CS_DEBUGGED before AmazonDark loads, which would otherwise make a
-// per-app toggle look enabled even when AmazonDark never requested anything.
+// Current Dopamine exposes jbclient_platform_set_process_debugged(pid, true) through
+// systemhook/libjailbreak. Older Dopamine builds exposed jbdswDebugMe(). Prefer the
+// current API and retain the legacy symbol only as a compatibility fallback.
 //
 // Keep this path deliberately small and observable:
-//   OFF: never call jbdswDebugMe; report the baseline process state.
-//   ON:  always call jbdswDebugMe once; report state before and after the call.
-// This lets an on-device log distinguish Dopamine-global JIT from JIT explicitly
-// requested by AmazonDark without adding a helper, ptrace path, timer, or monitor.
+//   OFF: never call either backend; report the process baseline.
+//   ON:  call exactly one backend once; report visible + raw-kernel csflags before
+//        and after. The raw syscall bypasses Dopamine's csops presentation hook,
+//        which may intentionally mask CS_DEBUGGED in userspace.
 #ifndef CS_OPS_STATUS
 #define CS_OPS_STATUS 0
 #endif
 #ifndef CS_DEBUGGED
 #define CS_DEBUGGED 0x10000000
 #endif
+#ifndef SYS_csops
+// Apple XNU bsd/kern/syscalls.master: csops is syscall 169.
+#define SYS_csops 169
+#endif
 extern "C" int csops(pid_t pid, unsigned int ops, void *useraddr, size_t usersize);
 
 typedef struct {
-    uint32_t flags;
-    int err;
-    BOOL debugged;
+    uint32_t visibleFlags;
+    uint32_t kernelFlags;
+    int visibleErr;
+    int kernelErr;
+    BOOL visibleDebugged;
+    BOOL kernelDebugged;
 } ADJITState620;
 
 static ADJITState620 ADReadJITState620(void){
-    ADJITState620 st = {0, 0, NO};
+    ADJITState620 st = {0, 0, 0, 0, NO, NO};
+
     errno = 0;
-    int rc = csops(getpid(), CS_OPS_STATUS, &st.flags, sizeof(st.flags));
-    st.err = (rc == 0 ? 0 : errno);
-    st.debugged = (rc == 0 && (st.flags & CS_DEBUGGED) != 0);
+    int visibleRC = csops(getpid(), CS_OPS_STATUS, &st.visibleFlags, sizeof(st.visibleFlags));
+    st.visibleErr = (visibleRC == 0 ? 0 : errno);
+    st.visibleDebugged = (visibleRC == 0 && (st.visibleFlags & CS_DEBUGGED) != 0);
+
+    errno = 0;
+    long kernelRC = syscall(SYS_csops, getpid(), CS_OPS_STATUS, &st.kernelFlags, sizeof(st.kernelFlags));
+    st.kernelErr = (kernelRC == 0 ? 0 : errno);
+    st.kernelDebugged = (kernelRC == 0 && (st.kernelFlags & CS_DEBUGGED) != 0);
     return st;
 }
 
 static void ADWriteJITReport620(NSString *status,
-                                BOOL backendAvailable,
+                                NSString *backend,
+                                BOOL modernAvailable,
+                                BOOL legacyAvailable,
                                 BOOL backendCalled,
                                 int backendRC,
                                 ADJITState620 pre,
@@ -275,24 +289,35 @@ static void ADWriteJITReport620(NSString *status,
             @"AmazonDark %@\n"
              "enableJIT=%d\n"
              "status=%@\n"
-             "backend=Dopamine-jbdswDebugMe\n"
-             "backendAvailable=%d\n"
+             "backend=%@\n"
+             "modernBackendAvailable=%d\n"
+             "legacyBackendAvailable=%d\n"
              "backendCalled=%d\n"
              "backendRC=%d\n"
              "pid=%d\n"
-             "preCsopsErr=%d\n"
-             "preCsFlags=0x%08x\n"
-             "preCS_DEBUGGED=%d\n"
-             "postCsopsErr=%d\n"
-             "postCsFlags=0x%08x\n"
-             "postCS_DEBUGGED=%d\n"
+             "preVisibleCsopsErr=%d\n"
+             "preVisibleCsFlags=0x%08x\n"
+             "preVisibleCS_DEBUGGED=%d\n"
+             "preKernelCsopsErr=%d\n"
+             "preKernelCsFlags=0x%08x\n"
+             "preKernelCS_DEBUGGED=%d\n"
+             "postVisibleCsopsErr=%d\n"
+             "postVisibleCsFlags=0x%08x\n"
+             "postVisibleCS_DEBUGGED=%d\n"
+             "postKernelCsopsErr=%d\n"
+             "postKernelCsFlags=0x%08x\n"
+             "postKernelCS_DEBUGGED=%d\n"
              "amazonDarkTransitioned=%d\n"
              "note=%@\n",
              [NSString stringWithUTF8String:AD_VERSION], (gP.enabled && gP.enableJIT) ? 1 : 0,
-             status ?: @"-", backendAvailable ? 1 : 0, backendCalled ? 1 : 0,
-             backendRC, getpid(), pre.err, pre.flags, pre.debugged ? 1 : 0,
-             post.err, post.flags, post.debugged ? 1 : 0,
-             (!pre.debugged && post.debugged && backendCalled && backendRC == 0) ? 1 : 0,
+             status ?: @"-", backend ?: @"none",
+             modernAvailable ? 1 : 0, legacyAvailable ? 1 : 0,
+             backendCalled ? 1 : 0, backendRC, getpid(),
+             pre.visibleErr, pre.visibleFlags, pre.visibleDebugged ? 1 : 0,
+             pre.kernelErr, pre.kernelFlags, pre.kernelDebugged ? 1 : 0,
+             post.visibleErr, post.visibleFlags, post.visibleDebugged ? 1 : 0,
+             post.kernelErr, post.kernelFlags, post.kernelDebugged ? 1 : 0,
+             (!pre.kernelDebugged && post.kernelDebugged && backendCalled && backendRC == 0) ? 1 : 0,
              note ?: @"-"];
         [s writeToFile:p atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } @catch(...) {}
@@ -301,53 +326,80 @@ static void ADWriteJITReport620(NSString *status,
 static void ADApplyJIT620(void){
     ADJITState620 pre = ADReadJITState620();
 
-    typedef int64_t (*ADDebugMeFn620)(void);
-    ADDebugMeFn620 debugMe = (ADDebugMeFn620)dlsym(RTLD_DEFAULT, "jbdswDebugMe");
-    BOOL available = (debugMe != NULL);
+    typedef int (*ADSetProcessDebuggedFn620)(uint64_t pid, bool fullyDebugged);
+    typedef int64_t (*ADLegacyDebugMeFn620)(void);
 
-    // OFF is intentionally passive. JIT/debug state cannot be safely revoked from
-    // a running process, so never call the backend and report exactly what existed
-    // before AmazonDark made any request.
+    ADSetProcessDebuggedFn620 setProcessDebugged =
+        (ADSetProcessDebuggedFn620)dlsym(RTLD_DEFAULT, "jbclient_platform_set_process_debugged");
+    ADLegacyDebugMeFn620 legacyDebugMe =
+        (ADLegacyDebugMeFn620)dlsym(RTLD_DEFAULT, "jbdswDebugMe");
+
+    BOOL modernAvailable = (setProcessDebugged != NULL);
+    BOOL legacyAvailable = (legacyDebugMe != NULL);
+
+    // OFF is intentionally passive. Never call a Dopamine backend and report the
+    // raw kernel baseline, which is the authoritative signal for this diagnostic.
     if (!gP.enabled || !gP.enableJIT){
-        NSString *status = pre.debugged ? @"off-baseline-already-debugged" : @"off-clean";
-        NSString *note = pre.debugged
-            ? @"Amazon started with CS_DEBUGGED before AmazonDark requested JIT. On Dopamine this commonly means the systemwide 'Allow JIT in Apps' option is enabled, or this same process was enabled earlier. To give AmazonDark sole per-app control, disable Dopamine's global Allow JIT in Apps option, force-close Amazon, then test OFF again."
-            : @"AmazonDark made no JIT request and the process baseline is not CS_DEBUGGED.";
-        ADWriteJITReport620(status, available, NO, 0, pre, pre, note);
+        NSString *status = pre.kernelDebugged ? @"off-baseline-already-debugged" : @"off-clean";
+        NSString *note = pre.kernelDebugged
+            ? @"Amazon started with raw kernel CS_DEBUGGED before AmazonDark requested JIT. Check Dopamine's global Allow JIT in Apps setting or whether this process was enabled elsewhere."
+            : @"AmazonDark made no JIT request and raw kernel CS_DEBUGGED is clear.";
+        ADWriteJITReport620(status, @"none", modernAvailable, legacyAvailable,
+                            NO, 0, pre, pre, note);
         return;
     }
 
-    if (!debugMe){
-        ADWriteJITReport620(@"on-backend-unavailable", NO, NO, -1, pre, pre,
-                            @"Dopamine's jbdswDebugMe export was not visible in Amazon. Verify Dopamine/ElleKit injection and the jailbreak environment.");
+    NSString *backend = @"none";
+    int backendRC = -1;
+    BOOL backendCalled = NO;
+
+    // Current Dopamine path. systemhook itself calls this API when it needs to
+    // manually apply debug flags, and libjailbreak sends the request to jbserver.
+    if (setProcessDebugged){
+        backend = @"Dopamine-jbclient_platform_set_process_debugged";
+        backendCalled = YES;
+        @try { backendRC = setProcessDebugged((uint64_t)getpid(), true); }
+        @catch(...) { backendRC = -2; }
+    }
+    // Legacy compatibility for older Dopamine releases that still publish the
+    // original one-call JIT helper.
+    else if (legacyDebugMe){
+        backend = @"Dopamine-legacy-jbdswDebugMe";
+        backendCalled = YES;
+        int64_t rc = -1;
+        @try { rc = legacyDebugMe(); } @catch(...) { rc = -2; }
+        backendRC = (int)rc;
+    }
+
+    if (!backendCalled){
+        ADWriteJITReport620(@"on-backend-unavailable", @"none",
+                            modernAvailable, legacyAvailable, NO, -1, pre, pre,
+                            @"Neither Dopamine's current jbclient_platform_set_process_debugged API nor the legacy jbdswDebugMe API was visible in Amazon.");
         return;
     }
 
-    // Always make the explicit per-app request when the AmazonDark toggle is ON,
-    // even if Dopamine already marked the process debugged globally. This is the
-    // published Dopamine JIT path and lets the report prove the backend was called.
-    int64_t rc = -1;
-    @try { rc = debugMe(); } @catch(...) { rc = -2; }
     ADJITState620 post = ADReadJITState620();
-
     NSString *status = nil;
     NSString *note = nil;
-    if (rc == 0 && post.debugged){
-        if (pre.debugged){
+
+    if (backendRC == 0 && post.kernelDebugged){
+        if (pre.kernelDebugged){
             status = @"on-backend-called-baseline-already-debugged";
-            note = @"AmazonDark explicitly called Dopamine's JIT service successfully, but CS_DEBUGGED was already set before the call. Disable Dopamine's global 'Allow JIT in Apps' option and relaunch Amazon to prove the AmazonDark toggle owns the transition.";
+            note = @"AmazonDark explicitly called the Dopamine JIT backend successfully, but raw kernel CS_DEBUGGED was already set before the call.";
         } else {
             status = @"on-enabled-by-amazondark";
-            note = @"AmazonDark called Dopamine's JIT service and this process transitioned from CS_DEBUGGED=0 to CS_DEBUGGED=1.";
+            note = @"AmazonDark called the Dopamine JIT backend and raw kernel CS_DEBUGGED transitioned from 0 to 1.";
         }
-    } else if (rc != 0){
+    } else if (backendRC != 0){
         status = @"on-backend-error";
-        note = @"Dopamine's jbdswDebugMe call returned a nonzero error code; JIT was not verified.";
+        note = @"The Dopamine JIT backend returned a nonzero error code; JIT was not verified.";
     } else {
         status = @"on-failed-verification";
-        note = @"Dopamine reported success but CS_DEBUGGED was still absent afterward; JIT was not verified.";
+        note = @"Dopamine reported backend success but raw kernel CS_DEBUGGED remained clear; JIT was not verified.";
     }
-    ADWriteJITReport620(status, YES, YES, (int)rc, pre, post, note);
+
+    ADWriteJITReport620(status, backend, modernAvailable, legacyAvailable,
+                        YES, backendRC, pre, post, note);
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
