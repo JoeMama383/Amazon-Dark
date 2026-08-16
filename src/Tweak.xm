@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.51"
+#define AD_VERSION "v6.0.52"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2461,6 +2461,7 @@ static BOOL ADIsAdaptiveTopNavBackgroundView(id obj){
 // Register the real heading view when its text is assigned/attached, then resolve
 // only a small vertical band at image-ownership time.  Weak storage means recycled
 // headings disappear naturally; there is no window/page scan or scroll callback.
+static const void *kADWhiteTameOverlayKey = &kADWhiteTameOverlayKey;
 static const void *kADPersonHeadingKind6044 = &kADPersonHeadingKind6044;
 static NSHashTable *ADPersonHeadingViews6044(void){
     static NSHashTable *t; static dispatch_once_t once;
@@ -3365,7 +3366,6 @@ static BOOL ADImageMostlyLight(UIImage *img){
 // every image. This fixes sibling-based sections (Subscribe & Save, Previously watched,
 // Alexa) and gives Explore-more a hard exclusion band. The band map is cached briefly,
 // which is substantially cheaper during scrolling.
-static const void *kADWhiteTameOverlayKey = &kADWhiteTameOverlayKey;
 static const void *kADWhiteTameLightKey363 = &kADWhiteTameLightKey363;
 static BOOL ADWTImageLight363(UIImage *im){
     if (!im) return NO;

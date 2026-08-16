@@ -1,4 +1,4 @@
-# AmazonDark v6.0.51
+# AmazonDark v6.0.52
 
 Person-tab TWB correction built directly from the v6.0.44 functional baseline. The remaining Buy Again / Keep Shopping misses no longer depend on section-heading discovery. Product-sized `RCTUIImageViewAnimated` views are weakly registered as they naturally enter/reparent/layout; an otherwise untamed image may inherit TWB only when at least two same-sized RCT peers on the same rendered row already carry the real TWB overlay. Positive peers wake unresolved same-row peers once, removing React load-order dependence without a page scan, raw-layer owner, scroll callback, or recurring timer. `AmazonDarkSB.xm` is byte-identical to v6.0.44.
 
