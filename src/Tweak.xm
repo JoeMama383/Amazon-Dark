@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.68"
+#define AD_VERSION "v6.0.69"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2197,6 +2197,7 @@ static BOOL ADViewIsSelectedInBar(UIView *v){
     }
     return NO;
 }
+static BOOL gADBarImageWriting6069 = NO;
 static void ADTintBarIcon(UIImageView *iv, BOOL selected){
     @try {
         UIImage *img = iv.image;
@@ -2205,7 +2206,12 @@ static void ADTintBarIcon(UIImageView *iv, BOOL selected){
         // the dark bitmaps stayed dark; a template renders entirely in its tint.
         if (!ADImageIsTemplateish(img)){
             UIImage *tpl = [img imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-            if (tpl){ ADMarkModifiedImage(tpl); iv.image = tpl; }
+            if (tpl){
+                ADMarkModifiedImage(tpl);
+                gADBarImageWriting6069 = YES;
+                @try { iv.image = tpl; } @catch(...) {}
+                gADBarImageWriting6069 = NO;
+            }
         }
         UIColor *want = selected ? ADBarWhite() : ADBarBlue();
         // Idempotent: only write when it would actually change something. Each write
@@ -4158,7 +4164,7 @@ static void ADScheduleGlyphLift624(UIImageView *iv){
 
 %hook UIImageView
 - (void)setImage:(UIImage *)image {
-    if (gADGlyphWriting) {
+    if (gADBarImageWriting6069 || gADGlyphWriting) {
         %orig;
         return;
     }

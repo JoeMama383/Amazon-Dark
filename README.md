@@ -1,6 +1,8 @@
-# AmazonDark v6.0.68
+# AmazonDark v6.0.69
 
-## v6.0.68 — clip compact video controls to circular shells
+## v6.0.69 — fix tab-bar image hook recursion
+
+Crash-only correction: guards AmazonDark's internal tab-bar template-image write so `UITabBarSwappableImageView` cannot recursively re-enter the global `UIImageView setImage:` hook. Video-control behavior is unchanged from v6.0.68.
 
 Built directly from v6.0.66.
 
