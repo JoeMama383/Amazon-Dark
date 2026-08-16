@@ -1,4 +1,14 @@
-# AmazonDark v6.0.56
+# AmazonDark v6.0.57
+
+## v6.0.57 — Person illustration hard-negative TWB ownership
+
+Built directly from v6.0.56. Fixes the select Amazon-owned illustrations/glyph cards in the Person tab (notably **Your Amazon highlights**) that could still inherit the gray TWB overlay through rendered-peer consensus.
+
+- Adds a distinct native TWB context (`4`) for high-confidence Amazon-owned illustration/chrome sections: Medical Care / Your Amazon highlights and their immediate highlight descriptors.
+- That hard-negative context returns before RCT peer registration, pixel/lightness sampling, and rendered-peer consensus, so these glyphs are never overlaid and never become peer donors.
+- Keeps the older ambiguous negative context (`1`) peer-recoverable. This preserves the v6.0.51/52 Buy Again / Keep Shopping fix where a broad neighboring Person wrapper could falsely look negative.
+- Positive product/review semantics still win over an outer hard-negative heading when a compact local wrapper identifies the real section, avoiding cross-section poisoning.
+- No Home/WebKit scheduling, JIT, 120-Hz, carousel-dot, checkbox/glyph, seasonal/ad, splash, or general theming behavior is intentionally changed.
 
 ## v6.0.56 — render-critical-path / infinite-scroll performance pass
 
