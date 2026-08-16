@@ -1,11 +1,11 @@
-# AmazonDark v6.0.62
+# AmazonDark v6.0.63
 
-## v6.0.62 — video control glyph restoration / preference copy
+## v6.0.63 — stock video-control isolation
 
 Built directly from v6.0.56. The abandoned v6.0.57–v6.0.61 Person/Highlights experiments are not present.
 
-- Restores the v5.446-style dedicated play/pause control owner for HTML video ads: compact play/pause shells are detected next to the video, pinned to a circular dark backing, and their glyph paint is forced visible/light without touching the video media itself.
-- The control owner is event-driven from initial/media lifecycle and click state changes only; no scroll handler, recurring timer, or broad page recovery scan is added.
+- Replaces the v6.0.62 play/pause painter with stock-control isolation: compact Amazon play/pause controls are detected next to the video, stripped only of AmazonDark/Dark Reader ownership, and then left entirely to Amazon to render.
+- The stock-control guard is event-driven from initial/media lifecycle and click state changes and piggybacks on the existing native-ad mutation observer for lazy controls; no new observer, scroll handler, recurring timer, or broad page recovery scan is added.
 - Reintroduces the requested Settings copy only: “Tame Light Backgrounds” plus concise Light Backgrounds and Performance descriptions. Preference keys/defaults remain unchanged.
 - Everything else is the exact v6.0.56 baseline.
 
