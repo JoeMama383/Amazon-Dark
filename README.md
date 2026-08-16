@@ -1,4 +1,9 @@
-# AmazonDark v6.0.69
+# AmazonDark v6.0.70
+
+
+## v6.0.70 — restore native voice-permission text repair
+
+Built directly from the confirmed-launching v6.0.69 baseline. Ports the v5.349/v5.350 microphone-permission text repair without restoring its old window-wide diagnostic sweep. Matching `RCTTextView` leaves are identified from the unique voice-permission accessibility strings; only their private mutable TextKit attributed backing stores are inspected, and only dark neutral foreground runs are lifted to the configured foreground. Saturated Amazon cyan link runs remain untouched. Work is event-driven on text/accessibility assignment and mount, with at most one 120 ms hydration retry per matching string. No new observer, scroll listener, interval, RAF loop, or global UIView scan is added.
 
 ## v6.0.69 — fix tab-bar image hook recursion
 
