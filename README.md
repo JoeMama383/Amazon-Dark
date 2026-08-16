@@ -1,4 +1,16 @@
-# AmazonDark v6.0.55
+# AmazonDark v6.0.56
+
+## v6.0.56 — render-critical-path / infinite-scroll performance pass
+
+Built from the confirmed-faster v6.0.55 baseline. This pass targets the remaining work that can compete with Amazon/WebKit while Home is hydrating new cards and showing its loading spinner. It does **not** try to use JIT as a native-code accelerator or run theme work at 120 Hz; instead it protects the render/main-thread budget so ProMotion can actually present frames smoothly.
+
+- Dark Reader + document-start CSS remain synchronous first-paint owners, but generic contrast/seasonal fallback repair is deferred behind `requestIdleCallback` when available (short timeout fallback otherwise) instead of blocking the current hydration/mutation turn.
+- Mutation-local contrast repair is capped at 360 elements; the one full-document fallback is capped at 1,400 and is deferred rather than run on the critical path.
+- Native-ad isolation no longer walks up to 700 descendants, inspects every attribute/style, and repeats the whole cleanup 40 ms later. It queries only nodes carrying actual `data-darkreader-inline-*` / `--darkreader-inline-*` ownership markers and removes only those markers.
+- The checkbox/dot MutationObserver no longer schedules an expensive whole-document checkbox pass for every generic Home `class`/`src` mutation. It wakes only for mutations that can actually contain checkbox/Compare/pagination-dot state.
+- Generic symbol/checkbox/dot reapply is idle/deferred. Post-scroll symbol repair deliberately omits the whole-document checkbox pass because checkbox state already has its own targeted observer.
+- The native 12×12 TWB image-lightness classifier is unchanged mathematically, but first-time pixel draw/decode now runs on a utility queue and re-enters the existing owner on the main thread when ready. Cached and forced semantic decisions remain immediate.
+- The v6.0.51/52 Person rendered-peer fix, v6.0.55 negative peer cache, Home carousel/video/media ownership, seasonal cards, JIT toggle, 120-Hz forcing, carousel dot, checkbox/symbol behavior, splash, and general theming are preserved.
 
 ## v6.0.55 — Home scroll performance recovery
 
