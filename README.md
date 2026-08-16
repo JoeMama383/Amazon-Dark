@@ -125,6 +125,14 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
+## v6.0.15
+
+- Treats Home promotional/sponsored carousel cards as **Amazon-native ad islands**: generic contrast, glyph, TWB, and backdrop painters skip those subtrees.
+- Restores the v5.446 web-image backdrop policy: no blanket `img { background }`; only explicitly opted-in `img[data-adbackdrop]` can receive a dark backing. This removes the rectangular black plates behind transparent brand/logo artwork.
+- Adds the v5.446-style Dark Reader escape path in a leaner form: ad roots are marked before Dark Reader starts, ignored by inline-style processing, and any Dark Reader inline ownership metadata/custom properties are stripped without deleting Amazon's original inline CSS values.
+- Ad-only DOM churn no longer schedules a full contrast-repair sweep.
+- The proven checkbox, dark top chrome, reversible 60/120 Hz force, fast-scroll dark floor, and v6.0.13 runtime cleanup are otherwise unchanged.
+
 ## v6.0.14
 
 - Fast-scroll white-floor follow-up: darkens the inner `WKContentView` root canvas so recycled/unpainted WebKit tiles cannot expose the stock white content backing during aggressive flings.

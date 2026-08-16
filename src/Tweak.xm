@@ -62,7 +62,7 @@
 #import <stdio.h>
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.14"
+#define AD_VERSION "v6.0.15"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -304,8 +304,12 @@ static NSString *ADFixesLiteral(void){
     // helps transparent PNGs (icons, cut-out product shots) and is a harmless no-op
     // everywhere else. It cannot darken white that is baked into a JPEG's pixels -
     // that needs real pixel work, which is a separate decision.
+    // v6.0.15 / v5.446 policy: backdrop is OPT-IN, never blanket.  A blanket
+    // img{} fill is what painted rectangular dark boxes behind transparent ad logos.
+    // Current 6.x does not need to mark web images proactively, so this remains a
+    // zero-cost escape hatch for explicitly confirmed transparent artwork only.
     NSString *imgBackdrop = gP.imageBackdrop
-        ? [NSString stringWithFormat:@"img{background-color:%s !important;}", gP.bgHex]
+        ? [NSString stringWithFormat:@"html body img[data-adbackdrop]{background-color:%s !important;}", gP.bgHex]
         : @"";
     gADFixesLiteral613 = [NSString stringWithFormat:
             @"{css:'"
@@ -419,7 +423,7 @@ static NSString *ADFixesLiteral(void){
              "[style*=multiply],[style*=darken],[style*=color-burn],"
              "[class*=deal] [style*=blend],[class*=Deal] [style*=blend]"
              "{mix-blend-mode:normal !important;isolation:auto !important;}"
-             "',invert:[],ignoreInlineStyle:[],ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
+             "',invert:[],ignoreInlineStyle:['[data-ad-native615]','[data-ad-native615] *'],ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
             imgBackdrop];
     return gADFixesLiteral613;
 }
@@ -452,6 +456,15 @@ static NSString *ADDarkReaderBootstrap(void){
          "try{if(!document.getElementById('adfloor612')){var f=document.createElement('style');"
            "f.id='adfloor612';f.textContent='html,body,#a-page,#gwm-PageContent,main{background-color:%@ !important;}';"
            "(document.documentElement||document).appendChild(f);}}catch(e){}"
+         // v6.0.15: Amazon-native ad islands.  v5.446 proved that creative
+         // subtrees must be kept out of generic recolor/glyph ownership.  Mark the
+         // known Home ad-card families before Dark Reader starts so all later
+         // guards can use one cheap ancestor test.
+         "try{window.__AD_NATIVE_SEL615__='[class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=canvas-card],[class*=ape-placement],[class*=ape-wrapper],[data-cel-widget*=ape],[id*=ape_],[class*=hybrid-widget-sponsored],[class*=adFeedbackMainComponent],[class*=sponsored-products]';"
+           "window.__AD_IS_NATIVE615__=function(e){try{return !!(e&&e.closest&&(e.closest('[data-ad-native615]')||e.closest(window.__AD_NATIVE_SEL615__)));}catch(x){return false;}};"
+           "window.__AD_STRIP_DR615__=function(root){try{var R=[];if(root&&root.nodeType===1&&((root.matches&&root.matches(window.__AD_NATIVE_SEL615__))||root.hasAttribute('data-ad-native615')))R.push(root);if(root&&root.querySelectorAll){var q=root.querySelectorAll('[data-ad-native615],'+window.__AD_NATIVE_SEL615__);for(var i=0;i<q.length&&i<80;i++)R.push(q[i]);}for(var r=0;r<R.length;r++){var a=R[r];a.setAttribute('data-ad-native615','1');var E=[a],k=a.querySelectorAll('*');for(var j=0;j<k.length&&j<700;j++)E.push(k[j]);for(var z=0;z<E.length;z++){var el=E[z],at=Array.prototype.slice.call(el.attributes||[]);for(var x=0;x<at.length;x++){var nm=at[x].name;if(nm.indexOf('data-darkreader-inline-')===0)el.removeAttribute(nm);}var st=el.style;if(st){var rm=[];for(var y=0;y<st.length;y++){var pn=st[y];if(String(pn).indexOf('--darkreader-inline-')===0)rm.push(pn);}for(var y2=0;y2<rm.length;y2++)st.removeProperty(rm[y2]);}}}return R.length;}catch(e){return 0;}};"
+           "window.__AD_MARK_NATIVE615__=function(root){try{if(!root)return 0;var n=0,Q=[];if(root.nodeType===1&&root.matches&&root.matches(window.__AD_NATIVE_SEL615__))Q.push(root);if(root.querySelectorAll){var q=root.querySelectorAll(window.__AD_NATIVE_SEL615__);for(var i=0;i<q.length&&i<80;i++)Q.push(q[i]);}for(var j=0;j<Q.length;j++){if(!Q[j].hasAttribute('data-ad-native615')){Q[j].setAttribute('data-ad-native615','1');n++;}}if(Q.length){window.__AD_STRIP_DR615__(root);setTimeout(function(){try{window.__AD_STRIP_DR615__(root);}catch(e){}},40);}return n;}catch(e){return 0;}};"
+           "window.__AD_MARK_NATIVE615__(document);if(!window.__AD_NATIVE_OBS615__&&document.documentElement){window.__AD_NATIVE_OBS615__=1;new MutationObserver(function(ms){try{for(var i=0;i<ms.length&&i<48;i++){var A=ms[i].addedNodes||[];for(var j=0;j<A.length&&j<24;j++)if(A[j]&&A[j].nodeType===1)window.__AD_MARK_NATIVE615__(A[j]);}}catch(e){}}).observe(document.documentElement,{childList:true,subtree:true});}}catch(e){}"
          "%@\n" // DarkReader UMD
          "if(window.DarkReader&&DarkReader.enable){"
          "try{DarkReader.setFetchMethod(window.fetch);}catch(e){}"
@@ -516,6 +529,7 @@ static NSString *ADDarkReaderBootstrap(void){
                    "be.style.setProperty('background-color',BG,'important');lfix++;}}}"
            "}catch(e){}"
            "for(var i=0;i<els.length;i++){var el=els[i];"
+             "if(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(el))continue;"
              "var cs=getComputedStyle(el);"
              // NO LIGHT PANELS. Anything still measuring light after Dark Reader has
              // run is a miss -- a gradient it could not parse, a shadow subtree, an
@@ -630,7 +644,7 @@ static NSString *ADDarkReaderBootstrap(void){
            // glyph by whatever actually draws it. Doing this by mechanism avoids the
            // whole-box whitening that hid the heart behind a white disc.
            "try{var HRT=document.querySelectorAll('[class*=heart],[class*=wish],[class*=lists-framework]');"
-             "for(var hz=0;hz<HRT.length;hz++){var he=HRT[hz];var hcs=getComputedStyle(he);"
+             "for(var hz=0;hz<HRT.length;hz++){var he=HRT[hz];if(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(he))continue;var hcs=getComputedStyle(he);"
                // circle: darken this element's light bg, and the first light ancestor bg
                "var hcl2=he.className;if(hcl2&&hcl2.baseVal!==undefined)hcl2=hcl2.baseVal;hcl2=String(hcl2||'');"
                "if(/unfill|placehold|a-icon/i.test(hcl2)){he.style.setProperty('background-color','transparent','important');}"
@@ -655,11 +669,13 @@ static NSString *ADDarkReaderBootstrap(void){
            "return n+'/'+bfix+'/'+lfix+'/'+gfix+pr;}catch(e){return -1;}};"
          "window.__AMZDARK_APPLY__=function(){try{"
            "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
+           "if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);"
            "window.__AMZDARK_FIXCONTRAST__();"
+           "if(window.__AD_STRIP_DR615__)window.__AD_STRIP_DR615__(document);"
          "}catch(e){}};"
          // Re-run the repair as the page fills in (carousels, lazy tiles), debounced
          // so a busy DOM cannot turn this into a hot loop.
-         "try{var _t=null;new MutationObserver(function(){clearTimeout(_t);"
+         "try{var _t=null;new MutationObserver(function(ms){var need=0;try{for(var mi=0;mi<ms.length&&!need;mi++){var A=ms[mi].addedNodes||[];if(!A.length){if(!(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(ms[mi].target)))need=1;continue;}for(var ai=0;ai<A.length;ai++){var n=A[ai];if(!n||n.nodeType!==1){need=1;break;}if(!(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(n))){need=1;break;}}}}catch(e){need=1;}if(!need)return;clearTimeout(_t);"
            "_t=setTimeout(function(){try{window.__AMZDARK_FIXCONTRAST__();}catch(e){}},150);})"
            ".observe(document.documentElement,{childList:true,subtree:true});}catch(e){}"
          "window.__AMZDARK_APPLY__();"
@@ -711,15 +727,15 @@ static NSString *ADWhiteTameWebJS446(void){
            "if(b.returns>=0&&y>b.returns&&y<(b.related>b.returns?b.related:b.returns+520))return 2;return 0;}catch(e){return 0;}}"
          "function _adExploreIcon363(e){try{var p=e,d=0,re=/(?:same-day|same day|pharmacy|prime video|amazon haul|whole foods|autos)/i;while(p&&d++<5){var tx=String(p.textContent||'').replace(/\\s+/g,' ').trim();if(tx.length>0&&tx.length<420&&re.test(tx))return true;p=p.parentElement;}}catch(x){}return false;}"
          "function _adNoTameGlyph367(e){try{var p=e,d=0,re=/(?:medical care|health ai|prescriptions|personal guida|fast,? free deliv|your amazon highlights|total savings|sessions streamed|keep streaming)/i;while(p&&d++<5){var tx=String(p.textContent||'').replace(/\\s+/g,' ').trim();if(tx.length>0&&tx.length<520&&re.test(tx))return true;p=p.parentElement;}}catch(x){}return false;}"
-         "function _adBgPlacement365(e){try{var p=e,d=0;while(p&&d++<4){var c=p.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));var id=String(p.id||''),cw=String((p.getAttribute&&p.getAttribute('data-cel-widget'))||'');if(/ape-placement|ape-wrapper|adfeedbackmaincomponent|ad-slot|adslot/i.test(c+' '+id+' '+cw))return true;if(p.querySelector&&p.querySelector('iframe')&&p.getBoundingClientRect().width>240)return true;p=p.parentElement;}return false;}catch(x){return false;}}function _adHomeBgLeaf395(e){try{if(window.__ADFRAME_MODE__||!e||!document.body||!window.__ADTAME_ON__)return false;if(document.querySelector('#search,.s-search-results,[data-component-type=\"s-search-result\"],#productTitle,#dp-container,#ppd'))return false;var c=e.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));if(!/theming-card-background|vjs-poster/i.test(c))return false;var p=e,u=0,ctx=c;while(p&&u++<7){ctx+=' '+String(p.className||'')+' '+String(p.id||'');if(/single-video-card|single-creative-card|video-card|video-js|vjs-|sbv-video|theming-card/i.test(ctx))break;p=p.parentElement;}if(!/single-video-card|single-creative-card|video-card|video-js|vjs-|sbv-video|theming-card/i.test(ctx))return false;var S=Math.max(0,Math.min(100,window.__ADTAME_S__||45)),aa=(0.50*(S/100)).toFixed(3);e.removeAttribute('data-ad-tame-bgfast364');e.removeAttribute('data-ad-tame-fast362');e.style.setProperty('filter','none','important');e.style.removeProperty('background-color');e.style.setProperty('background-blend-mode','normal','important');e.style.setProperty('box-shadow','inset 0 0 0 9999px rgba(0,0,0,'+aa+')','important');e.setAttribute('data-ad-homebg395','1');e.__adTamed=1;e.__adTameSig='HBG395|'+String(getComputedStyle(e).backgroundImage||'');e.__adBy='homeBgLeaf395';return true;}catch(x){return false;}}"
+         "function _adBgPlacement365(e){try{var p=e,d=0;while(p&&d++<4){var c=p.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));var id=String(p.id||''),cw=String((p.getAttribute&&p.getAttribute('data-cel-widget'))||'');if(/ape-placement|ape-wrapper|adfeedbackmaincomponent|ad-slot|adslot/i.test(c+' '+id+' '+cw))return true;if(p.querySelector&&p.querySelector('iframe')&&p.getBoundingClientRect().width>240)return true;p=p.parentElement;}return false;}catch(x){return false;}}function _adHomeBgLeaf395(e){return false;}"
          "function _adKnownProduct366(e){try{if(!e)return false;var p=e,d=0;while(p&&d++<6){var c=p.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));var id=String(p.id||''),asin=String((p.getAttribute&&p.getAttribute('data-asin'))||''),href=String((p.getAttribute&&p.getAttribute('href'))||'');if(asin||/asin|product|p13n|npack|cxvhz|gwm-asin|carousel-image|product-image/i.test(c+' '+id)||href.indexOf('/dp/')>=0||href.indexOf('/gp/product/')>=0)return true;p=p.parentElement;}return false;}catch(x){return false;}}"
          "function _adTameCss362(){try{if(!window.__ADTAME_ON__)return;if(document.getElementById('adtame362'))return;"
            "var S=Math.max(0,Math.min(100,window.__ADTAME_S__||45)),bb=(1-0.50*(S/100)).toFixed(3);"
            "var aa=(0.50*(S/100)).toFixed(3);var st=document.createElement('style');st.id='adtame362';st.textContent='[data-ad-tame-fast362=\"1\"]{filter:brightness('+bb+') saturate(1.08) !important;}[data-ad-tame-bgfast364=\"1\"]{background-color:rgba(0,0,0,'+aa+') !important;background-blend-mode:multiply !important;}';"
            "(document.head||document.documentElement).appendChild(st);}catch(e){}}"
-         "function _adTameFast362(root){try{if(!window.__ADTAME_ON__||!root||root.nodeType!==1)return 0;_adTameCss362();var S365=Math.max(0,Math.min(100,window.__ADTAME_S__||45)),bb365=(1-0.50*(S365/100)).toFixed(3),aa365=(0.50*(S365/100)).toFixed(3);var A=[];"
+         "function _adTameFast362(root){try{if(!window.__ADTAME_ON__||!root||root.nodeType!==1||(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(root)))return 0;_adTameCss362();var S365=Math.max(0,Math.min(100,window.__ADTAME_S__||45)),bb365=(1-0.50*(S365/100)).toFixed(3),aa365=(0.50*(S365/100)).toFixed(3);var A=[];"
            "if(/^(IMG|VIDEO|CANVAS)$/i.test(String(root.tagName||'')))A.push(root);try{var q=root.querySelectorAll('img,video,canvas');for(var i=0;i<q.length&&i<100;i++)A.push(q[i]);}catch(e){}"
-           "var n=0;for(var j=0;j<A.length&&j<120;j++){var x=A[j],tg=String(x.tagName||'').toUpperCase(),cn=x.className;cn=String(cn&&cn.baseVal!==undefined?cn.baseVal:(cn||''));var band=_adTameBand362(x),xr=x.getBoundingClientRect(),prod366=(tg==='IMG'&&_adKnownProduct366(x)),review366=(band===3);"
+           "var n=0;for(var j=0;j<A.length&&j<120;j++){var x=A[j];if(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(x)){if(String(x.__adBy||'').indexOf('whiteTame')===0)x.style.removeProperty('filter');x.removeAttribute('data-ad-tame-fast362');x.__adTamed=0;continue;}var tg=String(x.tagName||'').toUpperCase(),cn=x.className;cn=String(cn&&cn.baseVal!==undefined?cn.baseVal:(cn||''));var band=_adTameBand362(x),xr=x.getBoundingClientRect(),prod366=(tg==='IMG'&&_adKnownProduct366(x)),review366=(band===3);"
              "if(band<0||_adExploreIcon363(x)||_adNoTameGlyph367(x)){x.removeAttribute('data-ad-tame-fast362');if(String(x.__adBy||'').indexOf('whiteTame')===0)x.style.removeProperty('filter');x.__adTamed=0;x.__adBy='exploreSkip362';continue;}"
              "if(review366&&tg!=='IMG')continue;if(review366&&/sprite|icon|logo|pixel|star|rating|close/i.test(cn))continue;"
              "if(band!==2&&!review366&&!prod366&&/sprite|icon|logo|pixel/i.test(cn))continue;if(x.__adGlyph&&band!==2&&!review366&&!prod366)continue;var ok=(tg==='VIDEO'||tg==='CANVAS');"
@@ -729,7 +745,7 @@ static NSString *ADWhiteTameWebJS446(void){
            // pass was intentionally delayed. Scan only a tiny local budget here and
            // mark the BACKGROUND layer; child text is never filtered.
            "var B=[];if(/^(DIV|SPAN|A|SECTION|LI)$/i.test(String(root.tagName||'')))B.push(root);try{var qb=root.querySelectorAll('div,span,a,section,li');for(var k=0;k<qb.length&&k<120;k++)B.push(qb[k]);}catch(e){}"
-           "var bg=0;for(var z=0;z<B.length&&z<130;z++){var be=B[z],bandb=_adTameBand362(be);if(bandb<0||bandb===3||_adExploreIcon363(be)||_adNoTameGlyph367(be)){be.removeAttribute('data-ad-tame-bgfast364');if(String(be.__adBy||'').indexOf('whiteTame')===0){be.style.removeProperty('background-color');be.style.removeProperty('background-blend-mode');be.__adBy='tameSkip365';}continue;}"
+           "var bg=0;for(var z=0;z<B.length&&z<130;z++){var be=B[z];if(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(be)){if(String(be.__adBy||'').indexOf('whiteTame')===0||String(be.__adBy||'').indexOf('homeBgLeaf')===0){be.style.removeProperty('background-color');be.style.removeProperty('background-blend-mode');be.style.removeProperty('box-shadow');}be.removeAttribute('data-ad-tame-bgfast364');be.removeAttribute('data-ad-homebg395');be.__adTamed=0;continue;}var bandb=_adTameBand362(be);if(bandb<0||bandb===3||_adExploreIcon363(be)||_adNoTameGlyph367(be)){be.removeAttribute('data-ad-tame-bgfast364');if(String(be.__adBy||'').indexOf('whiteTame')===0){be.style.removeProperty('background-color');be.style.removeProperty('background-blend-mode');be.__adBy='tameSkip365';}continue;}"
              "if(_adHomeBgLeaf395(be))continue;if(_adBgPlacement365(be)||(be.hasAttribute&&be.hasAttribute('data-ad-productad367')))continue;var cs=getComputedStyle(be),bi=String(cs.backgroundImage||'none');if(bi.indexOf('url(')<0)continue;var br=be.getBoundingClientRect(),mn2=(bandb===2?32:56);if(br.width<mn2||br.height<mn2)continue;var bc=be.className;bc=String(bc&&bc.baseVal!==undefined?bc.baseVal:(bc||''));if(bandb!==2&&/sprite|icon|logo|pixel/i.test(bc))continue;be.setAttribute('data-ad-tame-bgfast364','1');be.style.setProperty('background-color','rgba(0,0,0,'+aa365+')','important');be.style.setProperty('background-blend-mode','multiply','important');be.__adTamed=1;be.__adTameSig='BG|'+bi;be.__adBy=(bandb===2?'whiteTameFastBg365ctx':'whiteTameFastBg365');bg++;}"
            "return n+bg;}catch(e){return 0;}}"
          "try{window._adTameFast362=_adTameFast362;_adTameCss362();_adTameFast362(document.documentElement);document.addEventListener('load',function(e){try{_adTameFast362(e.target);}catch(x){}},true);}catch(e){}"
