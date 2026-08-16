@@ -125,7 +125,7 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
-## v6.0.13
+## v6.0.14
 
 - Fast-scroll white-floor follow-up: darkens the inner `WKContentView` root canvas so recycled/unpainted WebKit tiles cannot expose the stock white content backing during aggressive flings.
 - Adds a root-only documentStart floor for `html`, `body`, `#a-page`, `#gwm-PageContent`, and `main` before Dark Reader parses.

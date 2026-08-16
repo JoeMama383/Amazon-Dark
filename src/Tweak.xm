@@ -62,7 +62,7 @@
 #import <stdio.h>
 #import <dlfcn.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.13"
+#define AD_VERSION "v6.0.14"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3457,7 +3457,13 @@ static void ADApplyNativeWhiteTame(UIImageView *iv){ ADApplyNativeWhiteTameView(
         }
 
         // (1) Backdrop for TRANSPARENT images — cheap, always-on-when-enabled.
-        if (gP.imageBackdrop){
+        // v5.446 guard: never put a rectangular backdrop behind small UI glyphs
+        // or native search/nav chrome. Camera/mic/search icons are transparent
+        // artwork, so painting their UIImageView bounds is exactly what creates
+        // the visible dark boxes around them. Large transparent artwork can still
+        // use the generic backdrop path.
+        CGFloat bw = self.bounds.size.width, bh = self.bounds.size.height;
+        if (gP.imageBackdrop && (bw > 48 || bh > 48) && !ADIsChromeGlyphContext(self)){
             UIImage *img = self.image;
             if (img && img.CGImage){
                 CGImageAlphaInfo a = CGImageGetAlphaInfo(img.CGImage);
