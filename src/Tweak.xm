@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.27"
+#define AD_VERSION "v6.0.28"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -97,6 +97,8 @@ extern char *__progname;
 - (BOOL)isDarkModeExperienceActive;
 - (BOOL)systemDarkModeActive;
 @end
+
+@interface ANXTopNavBackgroundView : UIView @end
 
 @interface AXUSplashScreenViewController : UIViewController @end
 @interface TezBaseSplashScreenViewController : UIViewController @end
@@ -2183,8 +2185,36 @@ static void ADApplyBarTint(UIView *container, BOOL selected){
 // ─── UIView / UILabel / controls ──────────────────────────────────────────────────
 static void ADInvertRNSVG(UIView *v);
 
+// v6.0.28: Amazon's Home nav is intentionally "transparent" so it can sample the
+// active hero/ad card and tint the chrome to that card's average colour.  The old
+// broad scroll recovery happened to repaint this view after the adaptive update;
+// v6.0.19 correctly removed that expensive recovery but left this actual owner
+// unclaimed.  Own only ANXTopNavBackgroundView here -- not every nav/search view.
+// Catch nil/clear assignments too: transparency is precisely how the carousel colour
+// leaks through.  isKindOfClass keeps subclasses/KVO wrappers covered.
+static BOOL ADIsAdaptiveTopNavBackgroundView(id obj){
+    if (!obj) return NO;
+    @try {
+        Class c = NSClassFromString(@"ANXTopNavBackgroundView");
+        if (c && [obj isKindOfClass:c]) return YES;
+        const char *cn = object_getClassName(obj);
+        return cn && strstr(cn, "ANXTopNavBackgroundView");
+    } @catch(...) {}
+    return NO;
+}
+
 %hook UIView
 - (void)setBackgroundColor:(UIColor *)color {
+    // Authoritative Home top-chrome lock.  This intentionally precedes the nil/own
+    // guards because Amazon's adaptive-nav implementation frequently clears the fill
+    // to reveal/sample the carousel underneath.
+    @try {
+        if (ADRecolorOn() && ADIsAdaptiveTopNavBackgroundView(self)) {
+            UIColor *locked = ADColorFromHex(gP.bgHex);
+            %orig(locked);
+            return;
+        }
+    } @catch(...) {}
     if (!ADRecolorOn() || !color || ADIsOwnColor(color) || ADIsWebKitOwned(self)) {
         %orig;
         return;
@@ -2466,6 +2496,18 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
 // ─── CALayer: catches React Native (Fabric sets layer colours directly) ───────────
 %hook CALayer
 - (void)setBackgroundColor:(CGColorRef)color {
+    // Amazon can bypass UIView and drive the adaptive Home nav's backing layer
+    // directly.  Mirror the view-level lock so neither direct-layer updates nor a
+    // transparent clear can hand the chrome back to carousel colour sampling.
+    @try {
+        id d = self.delegate;
+        if (ADRecolorOn() && ADIsAdaptiveTopNavBackgroundView(d)) {
+            UIColor *locked = ADColorFromHex(gP.bgHex);
+            CGColorRef lockedCG = locked.CGColor;
+            %orig(lockedCG);
+            return;
+        }
+    } @catch(...) {}
     if (!ADRecolorOn() || !color) {
         %orig;
         return;
@@ -2601,6 +2643,40 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
 %end
 
 // ─── system chrome that has its own switches rather than colours ───────────────────
+// v6.0.28: direct owner for Amazon's adaptive/transparent Home top-nav backdrop.
+// This view is what the Home carousel retints.  Reasserting here is O(1) and replaces
+// the old accidental dependency on broad scroll-time hierarchy recovery.
+%hook ANXTopNavBackgroundView
+- (void)setBackgroundColor:(UIColor *)color {
+    if (!ADRecolorOn()) {
+        %orig;
+        return;
+    }
+    UIColor *locked = ADColorFromHex(gP.bgHex);
+    %orig(locked);
+}
+- (void)didMoveToWindow {
+    %orig;
+    @try {
+        if (ADRecolorOn() && self.window) {
+            UIColor *locked = ADColorFromHex(gP.bgHex);
+            self.backgroundColor = locked;
+            self.layer.backgroundColor = locked.CGColor;
+        }
+    } @catch(...) {}
+}
+- (void)layoutSubviews {
+    %orig;
+    @try {
+        if (ADRecolorOn() && self.window) {
+            UIColor *locked = ADColorFromHex(gP.bgHex);
+            self.backgroundColor = locked;
+            self.layer.backgroundColor = locked.CGColor;
+        }
+    } @catch(...) {}
+}
+%end
+
 %hook UIVisualEffectView
 - (void)setEffect:(UIVisualEffect *)effect {
     if (!ADRecolorOn()) {

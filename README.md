@@ -125,6 +125,13 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
+
+## v6.0.28
+
+- Locks Amazon's adaptive `ANXTopNavBackgroundView` to the configured dark background so Home hero/ad-carousel colour sampling cannot recolor the search/header chrome while scrolling.
+- The lock intercepts both UIView and direct CALayer background assignments, including nil/transparent clears, rather than restoring a broad scroll-time hierarchy sweep.
+- Built directly on v6.0.27; TWB direct-ownership experiment, JIT, 120 Hz, carousel dots, symbols/checkboxes, and WebKit floor remain unchanged.
+
 ## v6.0.27
 
 - Replaces production TWB recovery scans with a direct ownership experiment built from v6.0.24.
