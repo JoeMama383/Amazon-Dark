@@ -35,9 +35,10 @@ static const NSTimeInterval kCoverHold    = 8.5;  // LAST RESORT. The app guaran
                                                   // that or the timer pre-empts the signal -
                                                   // which is exactly what 3.0s was doing.
 static const NSTimeInterval kCoverFade    = 0.55; // smooth final handoff into live Amazon
-static const NSTimeInterval kLogoFadeIn   = 0.20; // smooth black->centered artwork reveal
 static const NSTimeInterval kCoverHardCap = 10.0; // absolute max on screen
-static const NSTimeInterval kReCoverGap   = 8.0;  // ignore re-triggers within
+static const NSTimeInterval kReCoverGap   = 8.0;  // legacy custom-window path only
+static const NSTimeInterval kWarmMin647    = 0.20; // minimum warm-mask dwell before fade
+static const NSTimeInterval kWarmFallback647 = 0.75; // warm resume fallback if app signal races/misses
 
 @interface SBSceneView : UIView
 @end
@@ -50,6 +51,9 @@ static const NSTimeInterval kReCoverGap   = 8.0;  // ignore re-triggers within
 static UIWindow *gCoverWin;
 static double gPresentAt;
 static NSTimeInterval gLastPresent;
+static UIView *gStableCover647;
+static BOOL gWarmCover647;
+static NSTimeInterval gLastWarmPresent647;
 
 static void ADSBLog(NSString *msg) {
     @try {
@@ -121,54 +125,61 @@ static void ADDismissCover(void);
 static UIView *gCoverOverlay;
 static unsigned gCoverGen;
 
-// v6.0.45 stock-transition gate.  The scene itself is supposed to ride SpringBoard's
-// native icon->fullscreen transform; our Amazon wordmark is not.  Keep the logo hidden
-// until the scene/ancestor presentation layers have converged to their model geometry.
-// This is launch-only, bounded, and self-cancels when the cover generation changes.
-static BOOL ADSceneTransitionActive645(UIView *host) {
+// v6.0.47: keep the proven centered result without withholding artwork.
+// The dark cold-launch surface still lives inside SBSceneView so Apple's native
+// scene transform remains untouched.  The Amazon wordmark itself is placed in
+// SpringBoard window coordinates with an explicit frame (no Auto Layout), so it
+// is centered and visible on the first frame without inheriting the scene transform.
+static UIImage *ADSplashImage647(void){
     @try {
-        UIView *v=host; int up=0;
-        while(v && up++<8){
-            CALayer *m=v.layer;
-            NSArray *keys=[m animationKeys];
-            if(keys.count) return YES;
-            CALayer *pr=(CALayer *)m.presentationLayer;
-            if(pr){
-                CGPoint a=pr.position,b=m.position;
-                CGRect ab=pr.bounds,bb=m.bounds;
-                if(fabs(a.x-b.x)>0.75 || fabs(a.y-b.y)>0.75 ||
-                   fabs(ab.size.width-bb.size.width)>0.75 || fabs(ab.size.height-bb.size.height)>0.75 ||
-                   !CATransform3DEqualToTransform(pr.transform,m.transform)) return YES;
-            }
-            if(v==v.window) break;
-            v=v.superview;
+        for (NSString *cp in @[@"/var/jb/Library/Application Support/AmazonDark/splash-logo.png",
+                               @"/Library/Application Support/AmazonDark/splash-logo.png"]) {
+            UIImage *im=[UIImage imageWithContentsOfFile:cp];
+            if(im) return im;
         }
     } @catch (__unused NSException *e) {}
-    return NO;
+    return nil;
 }
 
-static void ADRevealCoverLogo645(UIView *host, UIImageView *logo, unsigned gen, int attempt) {
-    if(!host || !logo) return;
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((attempt==0 ?
-                   (UIAccessibilityIsReduceMotionEnabled()?0.08:0.42) : 0.035) * NSEC_PER_SEC)),
-                   dispatch_get_main_queue(), ^{
-        @try {
-            if(gen!=gCoverGen || !gCoverOverlay || logo.superview!=gCoverOverlay) return;
-            if(attempt<24 && ADSceneTransitionActive645(host)){
-                ADRevealCoverLogo645(host,logo,gen,attempt+1);
-                return;
-            }
-            // Preserve the v6.0.45 geometry fix: the wordmark remains completely
-            // invisible while the scene moves.  Once settled, fade it in at center
-            // instead of the abrupt black->logo pop introduced by v6.0.45.
-            logo.alpha=0.0;
-            logo.hidden=NO;
-            [UIView animateWithDuration:kLogoFadeIn delay:0.0
-                                options:UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState
-                             animations:^{ logo.alpha=1.0; } completion:nil];
-            ADSBLog([NSString stringWithFormat:@"COVER logo fade-in settled attempt=%d",attempt]);
-        } @catch (__unused NSException *e) {}
-    });
+static void ADRemoveStableCover647(void){
+    @try {
+        if(gStableCover647){ UIView *v=gStableCover647; gStableCover647=nil; [v removeFromSuperview]; }
+        gWarmCover647=NO;
+    } @catch (__unused NSException *e) {}
+}
+
+static void ADShowStableCover647(UIView *sceneHost, UIView *forcedStableHost, BOOL opaque){
+    @try {
+        UIView *stableHost=forcedStableHost ?: sceneHost.window ?: sceneHost;
+        if(!stableHost) return;
+        ADRemoveStableCover647();
+
+        CGRect stableBounds=stableHost.bounds;
+        if(CGRectGetWidth(stableBounds)<100.0 || CGRectGetHeight(stableBounds)<100.0)
+            stableBounds=[UIScreen mainScreen].bounds;
+        UIView *cover=[[UIView alloc] initWithFrame:stableBounds];
+        cover.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+        cover.backgroundColor=opaque ? [UIColor colorWithRed:0.094 green:0.102 blue:0.106 alpha:1.0] : [UIColor clearColor];
+        cover.userInteractionEnabled=NO;
+
+        UIImage *splash=ADSplashImage647();
+        if(splash){
+            CGFloat sw=MAX(CGRectGetWidth(cover.bounds),200.0);
+            CGFloat lw=sw*0.62;
+            CGFloat lh=lw*(splash.size.height/MAX(splash.size.width,1.0));
+            UIImageView *logo=[[UIImageView alloc] initWithImage:splash];
+            logo.contentMode=UIViewContentModeScaleAspectFit;
+            logo.bounds=CGRectMake(0,0,lw,lh);
+            logo.center=CGPointMake(CGRectGetMidX(cover.bounds),CGRectGetMidY(cover.bounds));
+            logo.autoresizingMask=UIViewAutoresizingFlexibleLeftMargin|UIViewAutoresizingFlexibleRightMargin|
+                                  UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleBottomMargin;
+            [cover addSubview:logo];
+        }
+        [stableHost addSubview:cover];
+        gStableCover647=cover;
+        gWarmCover647=opaque;
+        ADSBLog([NSString stringWithFormat:@"COVER stable first-frame logo=%d opaque=%d", splash?1:0, opaque?1:0]);
+    } @catch (__unused NSException *e) {}
 }
 
 // YES when Amazon already has a running process -- i.e. this is a resume, not a
@@ -196,10 +207,9 @@ static BOOL ADAmazonProcessAlive(int *taskStateOut) {
     return NO;
 }
 
-// Dark surface parented to the zooming scene view, so SpringBoard's launch
-// animation stays native. v6.0.45 keeps only the dark surface visible during that
-// transform; the Amazon wordmark is revealed after scene geometry settles, preventing
-// the intermittent icon-origin -> center travel without replacing the system animation.
+// Cold launch: keep only the dark surface inside the zooming scene.  The
+// wordmark is a separate stable-window-coordinate overlay, so it is visible
+// immediately and always originates at true screen center.
 static void ADAttachCoverToScene(UIView *host) {
     @try {
         if (!host) return;
@@ -210,56 +220,54 @@ static void ADAttachCoverToScene(UIView *host) {
         ov.backgroundColor = dk;
         ov.userInteractionEnabled = NO;
 
-        UIImage *splash = nil;
-        UIImageView *logo = nil;
-        for (NSString *cp in @[@"/var/jb/Library/Application Support/AmazonDark/splash-logo.png",
-                               @"/Library/Application Support/AmazonDark/splash-logo.png"]) {
-            splash = [UIImage imageWithContentsOfFile:cp];
-            if (splash) break;
-        }
-        if (splash) {
-            logo = [[UIImageView alloc] initWithImage:splash];
-            logo.contentMode = UIViewContentModeScaleAspectFit;
-            logo.translatesAutoresizingMaskIntoConstraints = NO;
-            logo.hidden = YES; // do not let SpringBoard carry it from the icon origin
-            [ov addSubview:logo];
-            CGFloat lw = MAX(host.bounds.size.width, 200.0) * 0.62;
-            CGFloat lh = lw * (splash.size.height / MAX(splash.size.width, 1.0));
-            [NSLayoutConstraint activateConstraints:@[
-                [logo.centerXAnchor constraintEqualToAnchor:ov.centerXAnchor],
-                [logo.centerYAnchor constraintEqualToAnchor:ov.centerYAnchor],
-                [logo.widthAnchor constraintEqualToConstant:lw],
-                [logo.heightAnchor constraintEqualToConstant:lh],
-            ]];
-        }
-        // Re-check at the moment of attach: the switch can be turned off while
-        // SpringBoard is already running, and nothing should be covered then.
         if (!ADSBEnabled()) { ADSBLog(@"COVER skipped (disabled)"); return; }
         [host addSubview:ov];
         gCoverOverlay = ov;
         unsigned myGen = ++gCoverGen;
-        if(logo) ADRevealCoverLogo645(host,logo,myGen,0);
+        if(!gStableCover647) ADShowStableCover647(host, nil, NO);
+        else { gStableCover647.backgroundColor=[UIColor clearColor]; gWarmCover647=NO; }
 
         gPresentAt = CFAbsoluteTimeGetCurrent();
-        ADSBLog([NSString stringWithFormat:@"COVER overlay in scene (%@ logo=%d gated=1)",
-                 NSStringFromClass([host class]), splash ? 1 : 0]);
+        ADSBLog([NSString stringWithFormat:@"COVER cold scene+stable artwork (%@)", NSStringFromClass([host class])]);
 
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHold * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{
-            // Log WHICH path lifted the cover. Previously a timer dismissal and a
-            // signal dismissal were indistinguishable except by the absence of the
-            // "COVER ready" line, which is a terrible thing to have to infer.
             if (myGen == gCoverGen){
-                ADSBLog([NSString stringWithFormat:
-                         @"COVER hold-timer fired at %.2fs (no ready signal arrived)",
+                ADSBLog([NSString stringWithFormat:@"COVER hold-timer fired at %.2fs (no ready signal arrived)",
                          CFAbsoluteTimeGetCurrent() - gPresentAt]);
-                ADDismissCover();   // never dismiss a newer cover
+                ADDismissCover();
             }
         });
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHardCap * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{
-            @try { if (gCoverOverlay && myGen == gCoverGen){ UIView *x = gCoverOverlay; gCoverOverlay = nil;
-                       [x removeFromSuperview]; ADSBLog(@"COVER overlay hardcap (no signal)"); } }
+            @try {
+                if (myGen == gCoverGen){
+                    if(gCoverOverlay){ UIView *x=gCoverOverlay; gCoverOverlay=nil; [x removeFromSuperview]; }
+                    ADRemoveStableCover647();
+                    ADSBLog(@"COVER cold hardcap (no signal)");
+                }
+            } @catch (__unused NSException *e) {}
+        });
+    } @catch (__unused NSException *e) {}
+}
+
+// Warm/resume launch: mask the app/snapshot from SpringBoard space rather than
+// relying on Amazon's process to erase a cached white frame before iOS displays it.
+// This cover is outside SBSceneView, so Amazon continues rendering underneath it.
+static void ADPresentWarmCover647(UIView *host){
+    @try {
+        NSTimeInterval now=CFAbsoluteTimeGetCurrent();
+        if(now-gLastWarmPresent647<0.35) return;
+        gLastWarmPresent647=now;
+        unsigned myGen=++gCoverGen;
+        gPresentAt=now;
+        if(!gStableCover647) ADShowStableCover647(host, nil, YES);
+        else gStableCover647.backgroundColor=[UIColor colorWithRed:0.094 green:0.102 blue:0.106 alpha:1.0];
+        gWarmCover647=YES;
+        ADSBLog(@"COVER warm mask presented");
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(kWarmFallback647*NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            @try { if(myGen==gCoverGen && gWarmCover647){ ADSBLog(@"COVER warm fallback"); ADDismissCover(); } }
             @catch (__unused NSException *e) {}
         });
     } @catch (__unused NSException *e) {}
@@ -267,22 +275,29 @@ static void ADAttachCoverToScene(UIView *host) {
 
 static void ADDismissCover(void) {
     @try {
-        ++gCoverGen; // cancels any pending scene-settle logo reveal
+        ++gCoverGen;
         if (gCoverOverlay) {
             UIView *ov = gCoverOverlay; gCoverOverlay = nil;
             [UIView animateWithDuration:kCoverFade delay:0.0
                                 options:UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState
                              animations:^{ ov.alpha=0.0; }
                              completion:^(BOOL f){ @try { [ov removeFromSuperview]; } @catch (__unused NSException *e) {} }];
-            ADSBLog(@"COVER overlay fading 0.55s (ready)");
         }
-        if (!gCoverWin) return;
-        UIWindow *w = gCoverWin; gCoverWin = nil;
-        [UIView animateWithDuration:kCoverFade delay:0.0
-                            options:UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState
-                         animations:^{ w.alpha=0.0; }
-                         completion:^(BOOL f){ @try { w.hidden=YES; } @catch (__unused NSException *e) {} }];
-        ADSBLog(@"COVER window fading 0.55s");
+        if(gStableCover647){
+            UIView *v=gStableCover647; gStableCover647=nil; gWarmCover647=NO;
+            [UIView animateWithDuration:kCoverFade delay:0.0
+                                options:UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState
+                             animations:^{ v.alpha=0.0; }
+                             completion:^(BOOL f){ @try { [v removeFromSuperview]; } @catch (__unused NSException *e) {} }];
+        }
+        if (gCoverWin) {
+            UIWindow *w = gCoverWin; gCoverWin = nil;
+            [UIView animateWithDuration:kCoverFade delay:0.0
+                                options:UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState
+                             animations:^{ w.alpha=0.0; }
+                             completion:^(BOOL f){ @try { w.hidden=YES; } @catch (__unused NSException *e) {} }];
+        }
+        ADSBLog(@"COVER fading 0.55s");
     } @catch (__unused NSException *e) {}
 }
 
@@ -489,6 +504,23 @@ static void ADSBHandleJITRequest622(int token){
 }
 
 %hook SBSceneView
+- (void)willMoveToWindow:(UIWindow *)newWindow {
+    %orig;
+    @try {
+        if(!newWindow || !ADSBEnabled()) return;
+        NSString *hitPath=nil;
+        NSString *bid=ADSceneBundleId(self,&hitPath);
+        if(![bid isEqualToString:kAMZ]) return;
+
+        // First-frame anti-flash cover. This is installed in the stable SpringBoard
+        // window coordinate space BEFORE the Amazon scene is exposed. Explicit frame
+        // geometry means the wordmark is centered immediately and never rides the
+        // icon-origin scene transform. didMoveToWindow decides cold vs warm lifecycle.
+        ++gCoverGen; // invalidate any stale timer/fade from a prior transition
+        ADShowStableCover647(self,newWindow,YES);
+        ADSBLog(@"COVER prewindow first-frame installed");
+    } @catch (__unused NSException *e) {}
+}
 - (void)didMoveToWindow {
     %orig;
     @try {
@@ -507,25 +539,23 @@ static void ADSBHandleJITRequest622(int token){
         }
         if (![bid isEqualToString:kAMZ]) return;
 
-        // Cover disabled: it was overlaying SpringBoard's icon-zoom launch
-        // animation. The launch screen is darkened at its source instead.
-        // Resume: Amazon's own view is already drawn behind this scene, so the
-        // overlay would be replaying a launch that is not happening.
         int ts = -1;
         BOOL alive = ADAmazonProcessAlive(&ts);
-        // One cover per launch. If the process-alive lookup fails we must not
-        // fall through and cover a running app -- that is the state where no
-        // ready signal can arrive, so the cover would simply sit there.
-        // Per-scene, not per-clock: a fresh scene always gets its cover, while a
-        // scene that already had one never gets a second.
         static const void *kCoveredKey = &kCoveredKey;
         BOOL already = (objc_getAssociatedObject(self, kCoveredKey) != nil);
         ADSBLog([NSString stringWithFormat:@"scene attach alive=%d taskState=%d already=%d",
                  alive ? 1 : 0, ts, already ? 1 : 0]);
-        if (alive || already) return;
-        objc_setAssociatedObject(self, kCoveredKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 
-        // Parented to the scene view: SpringBoard's zoom animates it.
+        // A running Amazon process is a warm/resume path.  The old code skipped
+        // coverage here, which allowed iOS to expose a stale/native white splash
+        // before Amazon had a chance to repaint it.  Mask that transition from
+        // stable SpringBoard coordinates and let Amazon render underneath.
+        if(alive){ ADPresentWarmCover647(self); return; }
+
+        // Cold launch: one scene-attached dark surface per scene, plus the stable
+        // centered artwork overlay created by ADAttachCoverToScene().
+        if(already) return;
+        objc_setAssociatedObject(self, kCoveredKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADAttachCoverToScene(self);
     } @catch (__unused NSException *e) {}
 }
@@ -560,6 +590,26 @@ static void ADSBHandleJITRequest622(int token){
             } @catch (__unused NSException *e) {}
         });
     } @catch (__unused NSException *e) {}
+
+    // Warm foreground handoff. Amazon posts this on each DidBecomeActive.  Only a
+    // warm SpringBoard cover consumes it; cold launch continues to use the original
+    // dark-screen readiness notification above.
+    @try {
+        static int adForegroundToken647 = 0;
+        notify_register_dispatch("com.colindavidr.amazondark.foreground-ready-647", &adForegroundToken647,
+                                 dispatch_get_main_queue(), ^(int t){
+            @try {
+                if(!gWarmCover647 || !gStableCover647) return;
+                double shown=CFAbsoluteTimeGetCurrent()-gPresentAt;
+                double wait=shown<kWarmMin647 ? (kWarmMin647-shown) : 0.0;
+                unsigned gen=gCoverGen;
+                ADSBLog([NSString stringWithFormat:@"COVER warm ready shown=%.2f wait=%.2f",shown,wait]);
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(wait*NSEC_PER_SEC)),
+                               dispatch_get_main_queue(), ^{ if(gWarmCover647 && gen==gCoverGen) ADDismissCover(); });
+            } @catch (__unused NSException *e) {}
+        });
+    } @catch (__unused NSException *e) {}
+
     @autoreleasepool {
         @try { %init; ADSBLog(@"AmazonDarkSB ctor"); }
         @catch (__unused NSException *e) {}

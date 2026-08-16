@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.46"
+#define AD_VERSION "v6.0.47"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -5370,39 +5370,46 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
     dispatch_async(dispatch_get_main_queue(), ^{ @try { ADSweep(); } @catch(...) {} });
 }
 
-// v6.0.46: stale light SplashBoard snapshots can leak for one frame on a
-// soft/warm launch even though the live splash controller is themed.  Clear them at
-// process start and around background/foreground transitions.  The delayed background
-// clear is one-shot so it can catch a snapshot written just after DidEnterBackground.
-static void ADClearSplashSnapshots6046(void){
+// v6.0.47: restore the v5.446/v6.0.1 cached-snapshot per-file deletion loop
+// and keep the later one-shot lifecycle
+// calls as reinforcement. SpringBoard now masks warm resumes as well, so this cleanup
+// is no longer the only thing standing between iOS and a stale white frame.
+static void ADClearSplashSnapshots6047(void){
     @try {
         NSString *lib = [NSSearchPathForDirectoriesInDomains(
                             NSLibraryDirectory, NSUserDomainMask, YES) firstObject];
         NSString *snap = [lib stringByAppendingPathComponent:@"SplashBoard/Snapshots"];
         NSFileManager *fm = [NSFileManager defaultManager];
         NSArray *kids = [fm contentsOfDirectoryAtPath:snap error:nil];
+        NSUInteger killed = 0;
         for (NSString *k in kids){
             NSString *sub = [snap stringByAppendingPathComponent:k];
-            for (NSString *f in [fm contentsOfDirectoryAtPath:sub error:nil])
-                [fm removeItemAtPath:[sub stringByAppendingPathComponent:f] error:nil];
+            for (NSString *f in [fm contentsOfDirectoryAtPath:sub error:nil]){
+                if ([fm removeItemAtPath:[sub stringByAppendingPathComponent:f] error:nil]) killed++;
+            }
         }
+        (void)killed;
     } @catch(...) {}
 }
-static void ADClearSplashSnapshotsAfterBackground6046(NSNotification *n){
-    ADClearSplashSnapshots6046();
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.35*NSEC_PER_SEC)),dispatch_get_main_queue(),^{ ADClearSplashSnapshots6046(); });
+static void ADClearSplashSnapshotsAfterBackground6047(NSNotification *n){
+    ADClearSplashSnapshots6047();
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.35*NSEC_PER_SEC)),dispatch_get_main_queue(),^{ ADClearSplashSnapshots6047(); });
 }
 
 // ─── %ctor : process guard + hook registration + bounded startup recovery ────
 %ctor {
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
-    ADClearSplashSnapshots6046();
+    ADClearSplashSnapshots6047();
     // v5.446 direct-port activation fallback for native-only cold paths.
     @try {
         [[NSNotificationCenter defaultCenter]
             addObserverForName:UIApplicationDidBecomeActiveNotification
                         object:nil queue:[NSOperationQueue mainQueue]
                     usingBlock:^(NSNotification *n){
+            // Warm/resume cover lives in SpringBoard and is already masking any
+            // stale/native splash. Tell it the live Amazon process is active; cold
+            // launches ignore this channel and keep the original dark-screen ready gate.
+            notify_post("com.colindavidr.amazondark.foreground-ready-647");
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(9.0 * NSEC_PER_SEC)),
                            dispatch_get_main_queue(), ^{ ADPostAppReady(); });
         }];
@@ -5411,11 +5418,11 @@ static void ADClearSplashSnapshotsAfterBackground6046(NSNotification *n){
         [[NSNotificationCenter defaultCenter]
             addObserverForName:UIApplicationDidEnterBackgroundNotification
                         object:nil queue:[NSOperationQueue mainQueue]
-                    usingBlock:^(NSNotification *n){ ADClearSplashSnapshotsAfterBackground6046(n); }];
+                    usingBlock:^(NSNotification *n){ ADClearSplashSnapshotsAfterBackground6047(n); }];
         [[NSNotificationCenter defaultCenter]
             addObserverForName:UIApplicationWillEnterForegroundNotification
                         object:nil queue:[NSOperationQueue mainQueue]
-                    usingBlock:^(NSNotification *n){ ADClearSplashSnapshots6046(); }];
+                    usingBlock:^(NSNotification *n){ ADClearSplashSnapshots6047(); }];
     } @catch(...) {}
     %init;
 
