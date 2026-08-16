@@ -43,7 +43,7 @@
  * is a true dark mode with color settings, like CarBridge / OneSettings, not a
  * one-size invert.
  *
- * NATHANLR SAFETY (carried over verbatim from the CarBridgeReborn sessions)
+ * ROOTLESS SAFETY (preserved from the known-good runtime design)
  * ----------------------------------------------------------------------------
  *  - Keep constructor work bounded and defer normal setup onto the main queue.
  *  - All recurring recovery is event-driven or strictly bounded; no forever timer.
@@ -228,13 +228,17 @@ static void ADLoadPrefs(void){
     ADSyncColorEngine();
 }
 
-// ── DOPAMINE JIT ENABLEMENT (v6.0.20) ─────────────────────────────────────────
-// Dopamine publishes jbdswDebugMe specifically for granting the current process
-// JIT/debug state. Keep this path intentionally small: resolve the injected
-// jailbreak export, call it once, then verify CS_DEBUGGED inside Amazon.
+// ── DOPAMINE JIT ENABLEMENT / OWNERSHIP DIAGNOSTIC (v6.0.20) ────────────────
+// Dopamine publishes jbdswDebugMe specifically for granting JIT/debug state to
+// the current process. Dopamine also has a systemwide "Allow JIT in Apps" option
+// that can set CS_DEBUGGED before AmazonDark loads, which would otherwise make a
+// per-app toggle look enabled even when AmazonDark never requested anything.
 //
-// CS_DEBUGGED is process-lifetime state. Turning JIT OFF prevents future calls;
-// force-close/reopen Amazon to return to a fresh non-debugged process.
+// Keep this path deliberately small and observable:
+//   OFF: never call jbdswDebugMe; report the baseline process state.
+//   ON:  always call jbdswDebugMe once; report state before and after the call.
+// This lets an on-device log distinguish Dopamine-global JIT from JIT explicitly
+// requested by AmazonDark without adding a helper, ptrace path, timer, or monitor.
 #ifndef CS_OPS_STATUS
 #define CS_OPS_STATUS 0
 #endif
@@ -243,61 +247,107 @@ static void ADLoadPrefs(void){
 #endif
 extern "C" int csops(pid_t pid, unsigned int ops, void *useraddr, size_t usersize);
 
-static BOOL ADJITDebugged620(uint32_t *flagsOut, int *errOut){
-    uint32_t flags = 0;
+typedef struct {
+    uint32_t flags;
+    int err;
+    BOOL debugged;
+} ADJITState620;
+
+static ADJITState620 ADReadJITState620(void){
+    ADJITState620 st = {0, 0, NO};
     errno = 0;
-    int rc = csops(getpid(), CS_OPS_STATUS, &flags, sizeof(flags));
-    if (flagsOut) *flagsOut = flags;
-    if (errOut) *errOut = (rc == 0 ? 0 : errno);
-    return rc == 0 && (flags & CS_DEBUGGED) != 0;
+    int rc = csops(getpid(), CS_OPS_STATUS, &st.flags, sizeof(st.flags));
+    st.err = (rc == 0 ? 0 : errno);
+    st.debugged = (rc == 0 && (st.flags & CS_DEBUGGED) != 0);
+    return st;
 }
 
-static void ADWriteJITReport620(NSString *status, int backendRC){
+static void ADWriteJITReport620(NSString *status,
+                                BOOL backendAvailable,
+                                BOOL backendCalled,
+                                int backendRC,
+                                ADJITState620 pre,
+                                ADJITState620 post,
+                                NSString *note){
     @try {
-        uint32_t flags = 0; int csErr = 0;
-        BOOL debugged = ADJITDebugged620(&flags, &csErr);
         NSString *p = [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-jit.txt"];
         NSString *s = [NSString stringWithFormat:
             @"AmazonDark %@\n"
              "enableJIT=%d\n"
              "status=%@\n"
              "backend=Dopamine-jbdswDebugMe\n"
+             "backendAvailable=%d\n"
+             "backendCalled=%d\n"
              "backendRC=%d\n"
              "pid=%d\n"
-             "csopsErr=%d\n"
-             "csFlags=0x%08x\n"
-             "CS_DEBUGGED=%d\n"
+             "preCsopsErr=%d\n"
+             "preCsFlags=0x%08x\n"
+             "preCS_DEBUGGED=%d\n"
+             "postCsopsErr=%d\n"
+             "postCsFlags=0x%08x\n"
+             "postCS_DEBUGGED=%d\n"
+             "amazonDarkTransitioned=%d\n"
              "note=%@\n",
              [NSString stringWithUTF8String:AD_VERSION], (gP.enabled && gP.enableJIT) ? 1 : 0,
-             status ?: @"-", backendRC, getpid(), csErr, flags, debugged ? 1 : 0,
-             (!gP.enableJIT && debugged)
-                ? @"JIT is OFF in preferences; force-close/reopen Amazon to clear this process-lifetime debug state."
-                : @"-"];
+             status ?: @"-", backendAvailable ? 1 : 0, backendCalled ? 1 : 0,
+             backendRC, getpid(), pre.err, pre.flags, pre.debugged ? 1 : 0,
+             post.err, post.flags, post.debugged ? 1 : 0,
+             (!pre.debugged && post.debugged && backendCalled && backendRC == 0) ? 1 : 0,
+             note ?: @"-"];
         [s writeToFile:p atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } @catch(...) {}
 }
 
 static void ADApplyJIT620(void){
-    if (!gP.enabled || !gP.enableJIT){
-        ADWriteJITReport620(@"disabled-by-preference", 0);
-        return;
-    }
-    if (ADJITDebugged620(NULL, NULL)){
-        ADWriteJITReport620(@"already-enabled", 0);
-        return;
-    }
+    ADJITState620 pre = ADReadJITState620();
 
     typedef int64_t (*ADDebugMeFn620)(void);
     ADDebugMeFn620 debugMe = (ADDebugMeFn620)dlsym(RTLD_DEFAULT, "jbdswDebugMe");
-    if (!debugMe){
-        ADWriteJITReport620(@"backend-unavailable", -1);
+    BOOL available = (debugMe != NULL);
+
+    // OFF is intentionally passive. JIT/debug state cannot be safely revoked from
+    // a running process, so never call the backend and report exactly what existed
+    // before AmazonDark made any request.
+    if (!gP.enabled || !gP.enableJIT){
+        NSString *status = pre.debugged ? @"off-baseline-already-debugged" : @"off-clean";
+        NSString *note = pre.debugged
+            ? @"Amazon started with CS_DEBUGGED before AmazonDark requested JIT. On Dopamine this commonly means the systemwide 'Allow JIT in Apps' option is enabled, or this same process was enabled earlier. To give AmazonDark sole per-app control, disable Dopamine's global Allow JIT in Apps option, force-close Amazon, then test OFF again."
+            : @"AmazonDark made no JIT request and the process baseline is not CS_DEBUGGED.";
+        ADWriteJITReport620(status, available, NO, 0, pre, pre, note);
         return;
     }
 
+    if (!debugMe){
+        ADWriteJITReport620(@"on-backend-unavailable", NO, NO, -1, pre, pre,
+                            @"Dopamine's jbdswDebugMe export was not visible in Amazon. Verify Dopamine/ElleKit injection and the jailbreak environment.");
+        return;
+    }
+
+    // Always make the explicit per-app request when the AmazonDark toggle is ON,
+    // even if Dopamine already marked the process debugged globally. This is the
+    // published Dopamine JIT path and lets the report prove the backend was called.
     int64_t rc = -1;
     @try { rc = debugMe(); } @catch(...) { rc = -2; }
-    BOOL verified = ADJITDebugged620(NULL, NULL);
-    ADWriteJITReport620((rc == 0 && verified) ? @"enabled" : @"failed-verification", (int)rc);
+    ADJITState620 post = ADReadJITState620();
+
+    NSString *status = nil;
+    NSString *note = nil;
+    if (rc == 0 && post.debugged){
+        if (pre.debugged){
+            status = @"on-backend-called-baseline-already-debugged";
+            note = @"AmazonDark explicitly called Dopamine's JIT service successfully, but CS_DEBUGGED was already set before the call. Disable Dopamine's global 'Allow JIT in Apps' option and relaunch Amazon to prove the AmazonDark toggle owns the transition.";
+        } else {
+            status = @"on-enabled-by-amazondark";
+            note = @"AmazonDark called Dopamine's JIT service and this process transitioned from CS_DEBUGGED=0 to CS_DEBUGGED=1.";
+        }
+    } else if (rc != 0){
+        status = @"on-backend-error";
+        note = @"Dopamine's jbdswDebugMe call returned a nonzero error code; JIT was not verified.";
+    } else {
+        status = @"on-failed-verification";
+        note = @"Dopamine reported success but CS_DEBUGGED was still absent afterward; JIT was not verified.";
+    }
+    ADWriteJITReport620(status, YES, YES, (int)rc, pre, post, note);
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -4486,8 +4536,7 @@ static void ADPrefsChanged(CFNotificationCenterRef center, void *observer,
                 ADStartHzVerification();
             }
             if (oldJIT != newJIT){
-                if (newJIT) ADApplyJIT620();
-                else ADWriteJITReport620(@"disabled-next-launch", 0);
+                ADApplyJIT620();
             }
             ADForceWindowsDarkTrait();
             ADInjectAllWebViews();      // exact re-theme on web

@@ -128,9 +128,10 @@ High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https:/
 ## v6.0.20
 
 - Ports the v5.446 product-carousel selected-dot owner so the selected pagination dot stays light on the dark PDP. The original semantic class/ARIA detection and Dark Reader inline-marker cleanup are retained, while recovery stays inside v6.0.19's coalesced scheduler.
-- Adds **Enable JIT (Experimental)** for Dopamine on iOS 17.0–17.3.1. The implementation follows Dopamine's published `jbdswDebugMe` path directly and verifies `CS_DEBUGGED` inside Amazon before reporting success.
-- Removes the provisional SpringBoard `ptrace` fallback, PID discovery, extra Darwin notifications, retry loops, and dynamic library path probing. JIT now has one backend and one verification path.
-- JIT OFF prevents future enablement; force-close/reopen Amazon if the current process was already placed in debug/JIT state. Enabling JIT grants JIT-capable process state but does not itself recompile Amazon or guarantee a speedup.
+- Adds **Enable JIT (Experimental)** for Dopamine on iOS 17.0–17.3.1. The implementation follows Dopamine's published `jbdswDebugMe` path directly and records `CS_DEBUGGED` both before and after the backend call.
+- JIT ON always makes an explicit `jbdswDebugMe` request and records `backendAvailable`, `backendCalled`, `backendRC`, pre/post code-signing flags, and whether AmazonDark caused the `CS_DEBUGGED` transition. JIT OFF never calls the backend and reports only the process baseline.
+- Dopamine itself can globally enable JIT for apps via its **Allow JIT in Apps** setting. If that setting is enabled, Amazon can already be `CS_DEBUGGED=1` before AmazonDark loads, so AmazonDark reports that baseline instead of falsely claiming ownership. Disable Dopamine's global JIT option and relaunch Amazon when testing AmazonDark's per-app toggle.
+- Removes the provisional SpringBoard `ptrace` fallback, PID discovery, extra Darwin notifications, retry loops, and dynamic library path probing. JIT remains one backend and one bounded verification path. Enabling JIT grants JIT-capable process state but does not itself recompile Amazon or guarantee a speedup.
 - Preserves v6.0.19 PDP performance work, the v5.446 visual ports, and the existing reversible 120 Hz implementation.
 
 ## v6.0.19

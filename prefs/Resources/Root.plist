@@ -74,7 +74,7 @@
 			<key>label</key>
 			<string>Performance</string>
 			<key>footerText</key>
-			<string>Force 120 Hz may increase power use and heat. Enable JIT uses Dopamine's native JIT/debug service on iOS 17.0–17.3.1 and verifies the resulting process state. JIT does not by itself recompile Amazon or guarantee a speedup. After switching JIT OFF, force-close and reopen Amazon to start a clean non-JIT process.</string>
+			<string>Force 120 Hz may increase power use and heat. Enable JIT uses Dopamine's native per-process JIT service on iOS 17.0–17.3.1. For this switch to own JIT state, disable Dopamine's systemwide 'Allow JIT in Apps' option; otherwise Dopamine may mark Amazon JIT-capable before AmazonDark loads. JIT does not by itself recompile Amazon or guarantee a speedup.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
