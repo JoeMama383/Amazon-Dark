@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.60"
+#define AD_VERSION "v6.0.61"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2407,77 +2407,109 @@ static NSUInteger gADPeerGeneration6055=1;
 static BOOL ADNativeTWBUIChain6027(UIImageView *iv);
 static void ADTWBPromoteProduct6053(UIImageView *iv, UIImage *im);
 
-// v6.0.59: Your Amazon highlights is a horizontally virtualized Person carousel.
-// Some illustration leaves are dark enough to fail the generic lightness sampler and
-// can be assigned before their card text hydrates.  Once a Highlights descriptor is
-// observed, mark only that compact carousel/card root and re-run its image leaves.
-static const void *kADHighlightsRoot6059 = &kADHighlightsRoot6059;
-static BOOL ADHighlightsText6059(NSString *text){
+// v6.0.61: card-local ownership for Your Amazon highlights illustrations.
+// v6.0.59/60 marked a broader Person ancestor and could spill into Medical Care.
+// This owner never marks a UIScrollView.  It starts from the three card-local
+// descriptors visible below the illustrations and claims only the nearest compact
+// rendered wrapper that actually contains an image leaf.
+static const void *kADHighlightsCard6061 = &kADHighlightsCard6061;
+static const void *kADHighlightsRetry6061 = &kADHighlightsRetry6061;
+static BOOL ADHighlightsCardText6061(NSString *text){
     if(!text.length) return NO;
     NSString *lo=[[text lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-    return [lo containsString:@"your amazon highlights"] ||
-           [lo containsString:@"total savings"] ||
+    return [lo containsString:@"total savings"] ||
            [lo containsString:@"sessions streamed"] ||
            [lo containsString:@"keep streaming"];
 }
-static UIView *ADHighlightsRootForText6059(UIView *v){
-    if(!v||!v.window) return nil;
+static BOOL ADHighlightsWrapperHasImage6061(UIView *root){
+    if(!root) return NO;
     @try {
-        UIWindow *w=v.window; UIView *p=v.superview; UIView *fallback=nil;
-        for(int up=0;p&&p!=w&&up<10;up++,p=p.superview){
-            CGFloat pw=p.bounds.size.width,ph=p.bounds.size.height;
-            if([p isKindOfClass:[UIScrollView class]] && pw>=120 && ph>=55 && ph<=300) return p;
-            if(!fallback && pw>=120 && ph>=70 && ph<=240) fallback=p;
-        }
-        return fallback;
-    } @catch(...) {}
-    return nil;
-}
-static BOOL ADInHighlightsRoot6059(UIView *v){
-    if(!v) return NO;
-    @try {
-        UIView *p=v;
-        for(int up=0;p&&up<11;up++,p=p.superview){
-            if([objc_getAssociatedObject(p,kADHighlightsRoot6059) boolValue]) return YES;
+        NSMutableArray *q=[NSMutableArray arrayWithObject:root];
+        for(NSUInteger qi=0;qi<q.count&&qi<48;qi++){
+            UIView *x=q[qi];
+            if([x isKindOfClass:[UIImageView class]]){
+                UIImageView *iv=(UIImageView *)x;
+                CGFloat iw=iv.bounds.size.width,ih=iv.bounds.size.height;
+                if(iv.image&&iw>=28&&ih>=28&&iw<=220&&ih<=220) return YES;
+            }
+            if(q.count<48){
+                for(UIView *sv in x.subviews){ if(q.count>=48) break; [q addObject:sv]; }
+            }
         }
     } @catch(...) {}
     return NO;
 }
-static void ADHighlightsRecoveryPass6059(UIView *root){
-    if(!root||!root.window||![objc_getAssociatedObject(root,kADHighlightsRoot6059) boolValue]) return;
+static UIView *ADHighlightsCardRoot6061(UIView *v){
+    if(!v||!v.window) return nil;
+    @try {
+        UIWindow *w=v.window; UIView *p=v.superview;
+        for(int up=0;p&&p!=w&&up<8;up++,p=p.superview){
+            // Never claim a scrolling container: that was the v6.0.59/60 spill path.
+            if([p isKindOfClass:[UIScrollView class]]) continue;
+            CGFloat pw=p.bounds.size.width,ph=p.bounds.size.height;
+            // A Highlights card/row is compact. A wrapper tall enough to include the
+            // Medical row plus Highlights is intentionally ineligible.
+            if(pw>=64&&pw<=w.bounds.size.width*1.05&&ph>=58&&ph<=230&&
+               ADHighlightsWrapperHasImage6061(p)) return p;
+        }
+    } @catch(...) {}
+    return nil;
+}
+static BOOL ADInHighlightsCard6061(UIView *v){
+    if(!v) return NO;
+    @try {
+        UIView *p=v;
+        for(int up=0;p&&up<8;up++,p=p.superview){
+            if([objc_getAssociatedObject(p,kADHighlightsCard6061) boolValue]) return YES;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static void ADHighlightsCardRecovery6061(UIView *root){
+    if(!root||!root.window||![objc_getAssociatedObject(root,kADHighlightsCard6061) boolValue]) return;
     @try {
         NSMutableArray *q=[NSMutableArray arrayWithObject:root];
-        NSUInteger qi=0,seen=0;
-        while(qi<q.count && seen++<120){
-            UIView *x=q[qi++];
+        for(NSUInteger qi=0;qi<q.count&&qi<56;qi++){
+            UIView *x=q[qi];
             if([x isKindOfClass:[UIImageView class]]){
                 UIImageView *iv=(UIImageView *)x; UIImage *im=iv.image;
                 CGFloat iw=iv.bounds.size.width,ih=iv.bounds.size.height;
                 if(im&&iv.window==root.window&&!ADIsWebKitOwned(iv)&&!ADInTabBarChain(iv)&&
-                   iw>=28&&ih>=28&&iw<=240&&ih<=240){
+                   iw>=28&&ih>=28&&iw<=220&&ih<=220){
                     ADTWBPromoteProduct6053(iv,im);
                     ADApplyNativeWhiteTameView(iv);
                 }
             }
-            if(q.count<120){
-                for(UIView *sv in x.subviews){ if(q.count>=120) break; [q addObject:sv]; }
+            if(q.count<56){
+                for(UIView *sv in x.subviews){ if(q.count>=56) break; [q addObject:sv]; }
             }
         }
     } @catch(...) {}
 }
-static void ADObserveHighlightsText6059(UIView *v, NSString *text){
-    if(!gP.enabled||!gP.whiteTame||!v||!v.window||!ADHighlightsText6059(text)) return;
+static BOOL ADMarkHighlightsCard6061(UIView *textView){
+    if(!textView||!textView.window) return NO;
     @try {
-        UIView *root=ADHighlightsRootForText6059(v); if(!root) return;
-        BOOL fresh=![objc_getAssociatedObject(root,kADHighlightsRoot6059) boolValue];
-        objc_setAssociatedObject(root,kADHighlightsRoot6059,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        if(!fresh) return;
-        __weak UIView *wr=root;
-        dispatch_async(dispatch_get_main_queue(), ^{ UIView *r=wr; if(r) ADHighlightsRecoveryPass6059(r); });
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.16*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-            UIView *r=wr; if(r) ADHighlightsRecoveryPass6059(r);
-        });
+        UIView *root=ADHighlightsCardRoot6061(textView); if(!root) return NO;
+        BOOL fresh=![objc_getAssociatedObject(root,kADHighlightsCard6061) boolValue];
+        objc_setAssociatedObject(root,kADHighlightsCard6061,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        if(fresh) ADHighlightsCardRecovery6061(root);
+        return YES;
     } @catch(...) {}
+    return NO;
+}
+static void ADObserveHighlightsText6061(id obj, NSString *text){
+    if(!gP.enabled||!gP.whiteTame||!ADHighlightsCardText6061(text)||
+       ![obj isKindOfClass:[UIView class]]) return;
+    UIView *v=(UIView *)obj; if(!v.window) return;
+    if(ADMarkHighlightsCard6061(v)) return;
+    // React can hydrate the descriptor before the sibling image. One bounded retry
+    // is enough; there is no recurring timer or scroll callback.
+    if([objc_getAssociatedObject(v,kADHighlightsRetry6061) boolValue]) return;
+    objc_setAssociatedObject(v,kADHighlightsRetry6061,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    __weak UIView *wv=v;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.14*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+        UIView *live=wv; if(live) ADMarkHighlightsCard6061(live);
+    });
 }
 static void ADNativeClearPeerNegative6055(UIImageView *iv){
     if(!iv) return;
@@ -2572,7 +2604,7 @@ static void ADNativeWakePeers6053(UIImageView *source){
 }
 - (void)setText:(NSString *)text {
     %orig;
-    @try { ADObserveHighlightsText6059(self, text); } @catch(...) {}
+    @try { ADObserveHighlightsText6061((id)self, text); } @catch(...) {}
 }
 - (void)layoutSubviews {
     %orig;
@@ -2685,21 +2717,21 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         %orig(r);
-        ADObserveHighlightsText6059((UIView *)self, attributedText.string);
+        ADObserveHighlightsText6061((id)self, attributedText.string);
         return;
     } @catch(...) {}
     %orig;
-    @try { ADObserveHighlightsText6059((UIView *)self, attributedText.string); } @catch(...) {}
+    @try { ADObserveHighlightsText6061((id)self, attributedText.string); } @catch(...) {}
 }
 - (void)_setAttributedString:(NSAttributedString *)attributedString {
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedString);
         %orig(r);
-        ADObserveHighlightsText6059((UIView *)self, attributedString.string);
+        ADObserveHighlightsText6061((id)self, attributedString.string);
         return;
     } @catch(...) {}
     %orig;
-    @try { ADObserveHighlightsText6059((UIView *)self, attributedString.string); } @catch(...) {}
+    @try { ADObserveHighlightsText6061((id)self, attributedString.string); } @catch(...) {}
 }
 %end
 
@@ -2723,7 +2755,7 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
         }
     } @catch(...) {}
     %orig;
-    @try { ADObserveHighlightsText6059((UIView *)self, textStorage.string); } @catch(...) {}
+    @try { ADObserveHighlightsText6061((id)self, textStorage.string); } @catch(...) {}
 }
 %end
 
@@ -2732,17 +2764,17 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
 - (void)setAttributedText:(NSAttributedString *)attributedText {
     if (!ADRecolorOn() || !attributedText.length) {
         %orig;
-        @try { ADObserveHighlightsText6059(self, attributedText.string); } @catch(...) {}
+        @try { ADObserveHighlightsText6061((id)self, attributedText.string); } @catch(...) {}
         return;
     }
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         %orig(r);
-        ADObserveHighlightsText6059(self, attributedText.string);
+        ADObserveHighlightsText6061((id)self, attributedText.string);
         return;
     } @catch(...) {}
     %orig;
-    @try { ADObserveHighlightsText6059(self, attributedText.string); } @catch(...) {}
+    @try { ADObserveHighlightsText6061((id)self, attributedText.string); } @catch(...) {}
 }
 %end
 
@@ -3703,7 +3735,7 @@ static int ADTWBTextKind6031(NSString *text){
 static int ADTWBDirectLocalCtx6031(UIImageView *iv){
     if(!iv||!iv.window) return 0;
     @try {
-        if(ADInHighlightsRoot6059(iv)) return 2;
+        if(ADInHighlightsCard6061(iv)) return 2;
         // Reuse the exact retained v5.446 compact-section/carousel resolvers, but
         // only here at direct image assignment/reparent time. Their old scroll/window
         // scheduler remains disabled, so the detailed Person/Alexa semantics survive
