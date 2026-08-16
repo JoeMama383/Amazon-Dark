@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.59"
+#define AD_VERSION "v6.0.60"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2685,21 +2685,21 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         %orig(r);
-        ADObserveHighlightsText6059(self, attributedText.string);
+        ADObserveHighlightsText6059((UIView *)self, attributedText.string);
         return;
     } @catch(...) {}
     %orig;
-    @try { ADObserveHighlightsText6059(self, attributedText.string); } @catch(...) {}
+    @try { ADObserveHighlightsText6059((UIView *)self, attributedText.string); } @catch(...) {}
 }
 - (void)_setAttributedString:(NSAttributedString *)attributedString {
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedString);
         %orig(r);
-        ADObserveHighlightsText6059(self, attributedString.string);
+        ADObserveHighlightsText6059((UIView *)self, attributedString.string);
         return;
     } @catch(...) {}
     %orig;
-    @try { ADObserveHighlightsText6059(self, attributedString.string); } @catch(...) {}
+    @try { ADObserveHighlightsText6059((UIView *)self, attributedString.string); } @catch(...) {}
 }
 %end
 
@@ -2723,7 +2723,7 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
         }
     } @catch(...) {}
     %orig;
-    @try { ADObserveHighlightsText6059(self, textStorage.string); } @catch(...) {}
+    @try { ADObserveHighlightsText6059((UIView *)self, textStorage.string); } @catch(...) {}
 }
 %end
 

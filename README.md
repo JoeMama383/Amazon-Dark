@@ -1,6 +1,6 @@
-# AmazonDark v6.0.59
+# AmazonDark v6.0.60
 
-## v6.0.59 — complete Your Amazon highlights illustration TWB
+## v6.0.60 — complete Your Amazon highlights illustration TWB
 
 - Keeps the v6.0.58 Medical Care behavior unchanged.
 - Your Amazon highlights now marks its own compact React carousel/card root when Highlights text hydrates.
