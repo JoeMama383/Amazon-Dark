@@ -126,6 +126,14 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
 
+## v6.0.34
+
+- Uses v6.0.33 as the exact source baseline.
+- Closes the final Home carousel TWB gap for `_canvas-card_` creatives whose visible painter is a solid `canvas-container` rather than an image or URL-backed background.
+- Moves **Off to College** structural background ownership out of TWB and into the always-on dark-theme bootstrap, so the pane/card shells stay dark even with TWB disabled.
+- College product imagery remains separately eligible for TWB when TWB is enabled.
+- Reuses the existing Dark Reader/contrast lifecycle; no new observer, scroll handler, display link, recurring timer, or cache experiment is added.
+
 ## v6.0.33
 
 - **Exact base: v6.0.31.** The rejected v6.0.32 cache/frame experiment is not carried forward.
