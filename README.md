@@ -126,6 +126,12 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
 
+## v6.0.38
+
+- Fixes the last sparse Person-tab TWB misses under **Your Interests**, **Keep Shopping for**, and **Shop previously watched**. React/Fabric can render some product bitmaps directly into a leaf view's `CALayer.contents` instead of a `UIImageView`; the streamlined v6.0.27+ TWB owner previously ignored that renderer path.
+- Adds a bounded direct owner for those raw Fabric image leaves at `setContents:` / reparent / window-entry time only. No scroll scanner, recurring timer, or global hierarchy recovery is restored.
+- Adds **Your Interests** to the same explicit product-section semantics already used for Keep Shopping / Previously Watched, so ordinary UIImageView-backed products in that section are forced consistently too.
+
 ## v6.0.37
 
 - Keeps v6.0.36 as the functional baseline.

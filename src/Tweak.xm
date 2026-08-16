@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.37"
+#define AD_VERSION "v6.0.38"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -147,6 +147,7 @@ static UIImage *ADGlyphify(UIImage *img);
 static UIImage *ADGlyphifyForView(UIImage *img, UIView *v);
 static void ADScheduleGlyphLift624(UIImageView *iv);
 static void ADApplyNativeWhiteTameView(UIView *v);
+static void ADApplyNativeWhiteTameRaw6038(UIView *v);
 static void ADPrimeNativeWhiteTame363(UIView *v, UIImage *incoming);
 static void ADSubscribeOverlay394(UIView *v);
 static BOOL ADImageMostlyLight(UIImage *img);
@@ -2663,14 +2664,25 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
     %orig;
 }
 - (void)setContents:(id)contents {
-    @try { if(contents&&gP.enabled&&gP.whiteTame){ id d=self.delegate; if(d&&[d isKindOfClass:[UIView class]]) ADPrimeNativeWhiteTame363((UIView *)d,nil); } } @catch(...) {}
+    @try {
+        if(kADLegacyTWB6027 && contents&&gP.enabled&&gP.whiteTame){
+            id d=self.delegate; if(d&&[d isKindOfClass:[UIView class]]) ADPrimeNativeWhiteTame363((UIView *)d,nil);
+        }
+    } @catch(...) {}
     %orig;
-    if (!contents || !gP.enabled || !gP.whiteTame) return;
     @try {
         id d=self.delegate;
         if (d && [d isKindOfClass:[UIView class]]){
             UIView *v=(UIView *)d;
-            if (v.window && !ADIsWebKitOwned(v)) ADApplyNativeWhiteTameView(v);
+            if(!kADLegacyTWB6027){
+                // v6.0.38: Fabric sometimes renders Person product art directly into
+                // a leaf RCT/Fabric view's CALayer.contents instead of UIImageView.
+                // The direct v6.0.27 owner intentionally became UIImageView-only, so
+                // those visually identical sibling products silently escaped TWB.
+                ADApplyNativeWhiteTameRaw6038(v);
+            } else if (contents && gP.enabled && gP.whiteTame && v.window && !ADIsWebKitOwned(v)) {
+                ADApplyNativeWhiteTameView(v);
+            }
         }
     } @catch(...) {}
 }
@@ -3133,6 +3145,14 @@ static void ADForceBarDark(UIView *bar){
     } @catch(...) {}
     %orig;
 }
+- (void)didMoveToSuperview {
+    %orig;
+    @try { if(!kADLegacyTWB6027 && self.layer.contents) ADApplyNativeWhiteTameRaw6038(self); } @catch(...) {}
+}
+- (void)didMoveToWindow {
+    %orig;
+    @try { if(!kADLegacyTWB6027 && self.layer.contents) ADApplyNativeWhiteTameRaw6038(self); } @catch(...) {}
+}
 %end
 
 %hook RCTScrollView
@@ -3164,6 +3184,14 @@ static void ADForceBarDark(UIView *bar){
         return;
     } @catch(...) {}
     %orig;
+}
+- (void)didMoveToSuperview {
+    %orig;
+    @try { if(!kADLegacyTWB6027 && self.layer.contents) ADApplyNativeWhiteTameRaw6038(self); } @catch(...) {}
+}
+- (void)didMoveToWindow {
+    %orig;
+    @try { if(!kADLegacyTWB6027 && self.layer.contents) ADApplyNativeWhiteTameRaw6038(self); } @catch(...) {}
 }
 %end
 
@@ -3397,7 +3425,7 @@ static int ADWTLocalSection365(UIView *v){
                        [lo containsString:@"sessions streamed"]) neg=YES;
                     if([lo containsString:@"your reviews"] || [lo containsString:@"what did you think of the item"]) reviews=YES;
                     if([lo containsString:@"returns are easy"] || [lo containsString:@"send an amazon gift card"] ||
-                       [lo containsString:@"shop previously watched"] || [lo containsString:@"subscribe & save"] ||
+                       [lo isEqualToString:@"your interests"] || [lo containsString:@"shop previously watched"] || [lo containsString:@"subscribe & save"] ||
                        [lo containsString:@"subscribe and save"] || [lo hasPrefix:@"best deals on"] ||
                        [lo hasPrefix:@"keep shopping for"] || [lo containsString:@"alexa for shopping"] ||
                        [lo containsString:@"lists and registries"] || [lo containsString:@"lists & registries"]) product=YES;
@@ -3465,7 +3493,7 @@ static int ADWTCarouselSection384(UIView *v){
                                        [lo isEqualToString:@"customer service"]) kind=1;
                                     else if([lo containsString:@"your reviews"]||[lo containsString:@"what did you think of the item"]) kind=3;
                                     else if([lo containsString:@"subscribe & save"]||[lo containsString:@"subscribe and save"]||
-                                            [lo hasPrefix:@"keep shopping for"]||[lo containsString:@"shop previously watched"]||
+                                            [lo isEqualToString:@"your interests"]||[lo hasPrefix:@"keep shopping for"]||[lo containsString:@"shop previously watched"]||
                                             [lo containsString:@"alexa for shopping"]||[lo hasPrefix:@"best deals on"]||
                                             [lo containsString:@"lists and registries"]||[lo containsString:@"lists & registries"]) kind=2;
                                     if(kind){
@@ -3800,7 +3828,7 @@ static int ADTWBTextKind6031(NSString *text){
        [lo containsString:@"need help"] || [lo containsString:@"contact customer service"] ||
        [lo isEqualToString:@"customer service"]) return 1;
     if([lo containsString:@"your reviews"] || [lo containsString:@"what did you think of the item"]) return 3;
-    if([lo containsString:@"shop previously watched"] ||
+    if([lo isEqualToString:@"your interests"] || [lo containsString:@"shop previously watched"] ||
        [lo containsString:@"lists and registries"] || [lo containsString:@"lists & registries"] ||
        [lo containsString:@"alexa for shopping"] ||
        [lo containsString:@"subscribe & save"] || [lo containsString:@"subscribe and save"] ||
@@ -3853,6 +3881,77 @@ static int ADTWBDirectLocalCtx6031(UIImageView *iv){
         }
     } @catch(...) {}
     return 0;
+}
+
+
+// v6.0.38: the remaining Person-tab TWB holes are Fabric image leaves that do not
+// instantiate UIImageView at all. React can put a CGImage directly in CALayer.contents
+// on a plain RCTView/RCTViewComponentView. The v6.0.27 direct owner intentionally
+// accepts UIImageView only, so the existing CALayer hook became a no-op for those
+// leaves. Own only small leaf contents under the three proven sparse Person sections.
+// Classification happens on setContents:/reparent/window entry -- never on scroll.
+static BOOL ADTWBRawPersonSection6038(UIView *v){
+    if(!v||!v.window) return NO;
+    @try {
+        UIWindow *w=v.window;
+        CGRect vr=[v convertRect:v.bounds toView:w];
+        UIView *p=v; int up=0;
+        while(p&&p!=w&&up++<8){
+            CGFloat pw=p.bounds.size.width, ph=p.bounds.size.height;
+            if(pw>=80&&pw<=w.bounds.size.width*1.25&&ph>=55&&ph<=1050){
+                NSMutableArray *q=[NSMutableArray arrayWithObject:p]; int seen=0;
+                for(NSUInteger qi=0;qi<q.count&&seen++<90;qi++){
+                    UIView *x=q[qi]; if(x.hidden||x.alpha<.01) continue;
+                    NSString *lo=[[[ADWTViewText362(x) lowercaseString]
+                                  stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] copy];
+                    BOOL target=([lo isEqualToString:@"your interests"] ||
+                                 [lo hasPrefix:@"keep shopping for"] ||
+                                 [lo containsString:@"shop previously watched"]);
+                    if(target){
+                        CGRect hr=[x convertRect:x.bounds toView:w];
+                        CGFloat y=CGRectGetMidY(vr);
+                        if(y>=CGRectGetMinY(hr)-80 && y<=CGRectGetMinY(hr)+980) return YES;
+                    }
+                    if(qi<28){ for(UIView *sv in x.subviews){ if(q.count<90)[q addObject:sv]; else break; } }
+                }
+            }
+            p=p.superview;
+        }
+    } @catch(...) {}
+    return NO;
+}
+
+static void ADApplyNativeWhiteTameRaw6038(UIView *v){
+    if(!v || [v isKindOfClass:[UIImageView class]]) return;
+    @try {
+        CALayer *ov=objc_getAssociatedObject(v,kADWhiteTameOverlayKey);
+        BOOL base=(gP.enabled&&gP.whiteTame&&v.window&&!ADIsWebKitOwned(v)&&
+                   v.layer.contents!=nil&&v.subviews.count==0&&ADWTRawImageLike364(v)&&
+                   ADMenuRole382(v)==0&&!ADInTabBarChain(v));
+        CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+        BOOL geom=(w>=36&&h>=36&&w<=260&&h<=260);
+        BOOL reactish=NO; UIView *rp=v; int ru=0;
+        while(rp&&ru++<5){
+            const char *rc=object_getClassName(rp);
+            if(rc&&(strstr(rc,"RCT")||strstr(rc,"React")||strstr(rc,"Fabric"))){reactish=YES;break;}
+            rp=rp.superview;
+        }
+        BOOL own=(base&&geom&&reactish&&ADTWBRawPersonSection6038(v));
+        if(!own){
+            if(ov){[ov removeFromSuperlayer];objc_setAssociatedObject(v,kADWhiteTameOverlayKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
+            return;
+        }
+        CGFloat a=0.50*(MAX(0,MIN(100,gP.whiteTameStrength))/100.0);
+        if(!ov){
+            ov=[CALayer layer]; ov.name=@"AmazonDarkWhiteTameRaw6038";
+            [v.layer addSublayer:ov];
+            objc_setAssociatedObject(v,kADWhiteTameOverlayKey,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        } else if(ov.superlayer!=v.layer) [v.layer addSublayer:ov];
+        ov.frame=v.bounds;
+        ov.cornerRadius=v.layer.cornerRadius;
+        ov.backgroundColor=[UIColor colorWithWhite:0 alpha:a].CGColor;
+        ov.zPosition=9999;
+    } @catch(...) {}
 }
 
 static int ADTWBDirectCtx6031(UIImageView *iv, UIImage *im){
