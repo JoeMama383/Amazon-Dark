@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.43"
+#define AD_VERSION "v6.0.44"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2454,10 +2454,77 @@ static BOOL ADIsAdaptiveTopNavBackgroundView(id obj){
 }
 %end
 
+// v6.0.44: event-driven Person heading registry for the two sparse sections
+// whose UIKit heading lives OUTSIDE the React image subtree.  The direct TWB owner
+// cannot discover these reliably by walking ancestors/descendants, because the
+// heading and RCTUIImageViewAnimated product grid are siblings under a wider host.
+// Register the real heading view when its text is assigned/attached, then resolve
+// only a small vertical band at image-ownership time.  Weak storage means recycled
+// headings disappear naturally; there is no window/page scan or scroll callback.
+static const void *kADPersonHeadingKind6044 = &kADPersonHeadingKind6044;
+static NSHashTable *ADPersonHeadingViews6044(void){
+    static NSHashTable *t; static dispatch_once_t once;
+    dispatch_once(&once, ^{ t=[NSHashTable weakObjectsHashTable]; });
+    return t;
+}
+static int ADPersonHeadingTextKind6044(NSString *text){
+    if(!text.length) return 0;
+    NSString *lo=[[text lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    if([lo containsString:@"keep shopping for"]) return 2;
+    if([lo containsString:@"buy again"]) return 2;
+    return 0;
+}
+static void ADRegisterPersonHeading6044(UIView *v, NSString *text){
+    if(!v) return;
+    @try {
+        int kind=ADPersonHeadingTextKind6044(text);
+        NSNumber *old=objc_getAssociatedObject(v,kADPersonHeadingKind6044);
+        if(kind){
+            objc_setAssociatedObject(v,kADPersonHeadingKind6044,@(kind),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            [ADPersonHeadingViews6044() addObject:v];
+        } else if(old){
+            objc_setAssociatedObject(v,kADPersonHeadingKind6044,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            [ADPersonHeadingViews6044() removeObject:v];
+        }
+    } @catch(...) {}
+}
+static int ADPersonHeadingBand6044(UIImageView *iv){
+    if(!iv||!iv.window) return 0;
+    @try {
+        const char *cn=object_getClassName(iv);
+        if(!cn||!strstr(cn,"RCTUIImageView")) return 0;
+        CGFloat iw=iv.bounds.size.width, ih=iv.bounds.size.height;
+        // Diagnostic v6.0.41: affected Buy Again / Keep Shopping product peers are
+        // ordinary ~75-100pt RCT images.  Keep the fallback photo-sized only.
+        if(iw<60||ih<60||iw>190||ih>190) return 0;
+        UIWindow *w=iv.window;
+        CGRect ir=[iv convertRect:iv.bounds toView:w];
+        CGFloat iy=CGRectGetMidY(ir);
+        CGFloat best=CGFLOAT_MAX; int result=0;
+        NSArray *heads=[ADPersonHeadingViews6044() allObjects];
+        for(UIView *h in heads){
+            if(!h||h.window!=w||h.hidden||h.alpha<.01) continue;
+            NSNumber *kn=objc_getAssociatedObject(h,kADPersonHeadingKind6044);
+            if(!kn||kn.intValue!=2) continue;
+            CGRect hr=[h convertRect:h.bounds toView:w];
+            CGFloat anchor=CGRectGetMaxY(hr);
+            CGFloat dy=iy-anchor;
+            // Both proven grids sit immediately below their heading; 460pt covers
+            // the two-row Keep Shopping grid without bleeding into distant sections.
+            if(dy>=-12.0&&dy<=460.0&&dy<best){ best=dy; result=2; }
+        }
+        return result;
+    } @catch(...) {}
+    return 0;
+}
+
 %hook UILabel
 - (void)didMoveToWindow {
     %orig;
-    @try { if (ADRecolorOn() && self.window) ADInvertRNSVG(self); } @catch(...) {}
+    @try {
+        if(self.window) ADRegisterPersonHeading6044(self, self.attributedText.string ?: self.text);
+        if (ADRecolorOn() && self.window) ADInvertRNSVG(self);
+    } @catch(...) {}
 }
 - (void)layoutSubviews {
     %orig;
@@ -2568,6 +2635,7 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
 %hook RCTParagraphComponentView
 - (void)setAttributedText:(NSAttributedString *)attributedText {
     @try {
+        ADRegisterPersonHeading6044((UIView *)(id)self, attributedText.string);
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         %orig(r);
         return;
@@ -2576,6 +2644,7 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
 }
 - (void)_setAttributedString:(NSAttributedString *)attributedString {
     @try {
+        ADRegisterPersonHeading6044((UIView *)(id)self, attributedString.string);
         NSAttributedString *r = ADRecolorAttributedString(attributedString);
         %orig(r);
         return;
@@ -2588,6 +2657,7 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
 %hook RCTTextView
 - (void)setTextStorage:(NSTextStorage *)textStorage {
     @try {
+        ADRegisterPersonHeading6044((UIView *)(id)self, textStorage.string);
         if (ADRecolorOn() && textStorage.length){
             NSRange full = NSMakeRange(0, textStorage.length);
             [textStorage enumerateAttribute:NSForegroundColorAttributeName inRange:full
@@ -2610,6 +2680,7 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
 // Some Amazon custom labels vend an attributed string through UILabel directly.
 %hook UILabel
 - (void)setAttributedText:(NSAttributedString *)attributedText {
+    @try { ADRegisterPersonHeading6044(self, attributedText.string); } @catch(...) {}
     if (!ADRecolorOn() || !attributedText.length) {
         %orig;
         return;
@@ -3980,23 +4051,20 @@ static void ADApplyNativeWhiteTameDirect6027(UIView *v){
             objc_setAssociatedObject(iv,kADTWBCachedImage6027,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             objc_setAssociatedObject(iv,kADTWBDecision6027,@(own),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
-        // v6.0.43: reconnect the retained v5.388 structural peer fallback only for
-        // an RCT product-sized image that the normal direct owner was about to leave
-        // untamed. This is the diagnostic pattern in Buy Again / Keep Shopping: a
-        // same-size product group is already present but one sibling's individual
-        // lightness/section decision falls through. Keeping this AFTER the normal UI
-        // and template gates means the fallback can only promote an individual image
-        // view, never a whole tile or control. The helper itself is bounded/cached.
-        if(!own && ctx==0 && ADWTProductPeers388(iv)){
-            own=YES;
-            objc_setAssociatedObject(iv,kADTWBCachedImage6027,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            objc_setAssociatedObject(iv,kADTWBDecision6027,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            // Cache the successful peer promotion as product context for this exact
-            // UIImage so subsequent layout reassertions do not repeat the peer walk.
-            objc_setAssociatedObject(iv,kADTWBDirectCtxImage6031,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            objc_setAssociatedObject(iv,kADTWBDirectCtx6031,@2,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            objc_setAssociatedObject(iv,kADTWBDirectCtxTime6031,@(CFAbsoluteTimeGetCurrent()),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            objc_setAssociatedObject(iv,kADTWBDirectCtxAttempts6031,@0,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        // v6.0.44: the v6.0.43 product-peer fallback is intentionally removed.
+        // The on-device miss persisted because the affected UIKit heading is outside
+        // the React image subtree; use the event-driven heading-band owner instead.
+        if(!own && ctx==0){
+            int band=ADPersonHeadingBand6044(iv);
+            if(band==2){
+                own=YES; ctx=2;
+                objc_setAssociatedObject(iv,kADTWBCachedImage6027,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                objc_setAssociatedObject(iv,kADTWBDecision6027,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                objc_setAssociatedObject(iv,kADTWBDirectCtxImage6031,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                objc_setAssociatedObject(iv,kADTWBDirectCtx6031,@2,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                objc_setAssociatedObject(iv,kADTWBDirectCtxTime6031,@(CFAbsoluteTimeGetCurrent()),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                objc_setAssociatedObject(iv,kADTWBDirectCtxAttempts6031,@0,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            }
         }
         if(!own){ ADNativeTWBRelease6027(iv); return; }
         CGFloat a=0.50*(MAX(0,MIN(100,gP.whiteTameStrength))/100.0);

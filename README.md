@@ -126,6 +126,10 @@ Colour algorithm ported from [Dark Reader](https://github.com/darkreader/darkrea
 High-FPS display-link forcing pattern adapted from [PoomSmart/CAHighFPS](https://github.com/PoomSmart/CAHighFPS) (MIT).
 
 
+## v6.0.44
+
+Person-tab heading-band completion build on v6.0.43. On-device v6.0.41 diagnostics proved the remaining Keep Shopping / Buy Again misses are ordinary `RCTUIImageViewAnimated` photos, while the real `Amazon.com: Keep shopping for` heading is a separate UIKit `UILabel` outside the React image subtree. v6.0.44 removes the unsuccessful v6.0.43 peer fallback and instead weak-registers only the real **Keep Shopping for** / **Buy Again** heading views as their text is assigned or attached. A missed 60–190pt RCT product image can inherit forced-product ownership only when it lies within a bounded 460pt vertical band below one of those live headings. No whole-view/CALayer ownership, scroll scan, timer, or recurring traversal is added; Your Interests remains on the confirmed-working v6.0.42 direct owner. Splash behavior is intentionally unchanged in this build.
+
 ## v6.0.43
 
 Person-tab sparse-product completion build based directly on v6.0.42. Restores the retained v5.388 `ADWTProductPeers388()` fallback only when the streamlined direct semantic resolver returns ordinary/unknown **and the normal per-image lightness decision would otherwise leave that image untamed**. This targets the proven Buy Again / Keep Shopping pattern where same-size `RCTUIImageViewAnimated` siblings are product images but one sibling falls through individually. The peer fallback runs after the normal UI/template gates and can only promote the individual `UIImageView`; it never overlays a whole tile. A successful peer decision is cached into the existing per-image semantic cache so repeated layout reassertions stay O(1). No raw Fabric/CALayer overlay, observer, scroll scan, timer, or diagnostic instrumentation is added.
