@@ -1,13 +1,15 @@
-# AmazonDark v6.0.64
+# AmazonDark v6.0.65
 
-## v6.0.64 — stock video-control normalization
+## v6.0.65 — match compact video-control shell colors
 
-Built directly from v6.0.56. The abandoned v6.0.57–v6.0.61 Person/Highlights experiments are not present.
+Built directly from v6.0.64.
 
-- Replaces the v6.0.62 play/pause painter with stock-control isolation: compact Amazon play/pause controls are detected next to the video, stripped only of AmazonDark/Dark Reader ownership, and then left entirely to Amazon to render.
-- The stock-control guard is event-driven from initial/media lifecycle and click state changes and piggybacks on the existing native-ad mutation observer for lazy controls; no new observer, scroll handler, recurring timer, or broad page recovery scan is added.
-- Reintroduces the requested Settings copy only: “Tame Light Backgrounds” plus concise Light Backgrounds and Performance descriptions. Preference keys/defaults remain unchanged.
-- Everything else is the exact v6.0.56 baseline.
+- Keeps Amazon's native play/pause and mute glyph artwork untouched.
+- Fixes the v6.0.64 selector mistake where the large center play overlay could be chosen instead of the compact side pause control. The compact play/pause control is now paired geometrically with the nearby mute control.
+- Forces only those two compact circular shells to the same shared translucent gray (`rgba(255,255,255,0.38)`), so their appearance is deterministic even when Amazon styles the two shells differently.
+- Removes the v6.0.64 mute-color sampling and wrapper/red-box normalization. Amazon's stock red paused-state rectangle is left alone.
+- Reuses the existing native-ad MutationObserver and media/click lifecycle hooks; no new observer, scroll listener, interval, or animation-frame loop is added.
+- Settings wording from v6.0.62+ remains unchanged. All other behavior stays on the v6.0.56 performance baseline.
 
 ## v6.0.56 — render-critical-path / infinite-scroll performance pass
 
