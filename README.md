@@ -1,13 +1,13 @@
-# AmazonDark v6.0.65
+# AmazonDark v6.0.66
 
-## v6.0.65 — match compact video-control shell colors
+## v6.0.66 — remove compact video-control host boxes
 
-Built directly from v6.0.64.
+Built directly from v6.0.65.
 
 - Keeps Amazon's native play/pause and mute glyph artwork untouched.
-- Fixes the v6.0.64 selector mistake where the large center play overlay could be chosen instead of the compact side pause control. The compact play/pause control is now paired geometrically with the nearby mute control.
+- Keeps v6.0.65 geometric pairing so the compact play/pause control is matched with the nearby mute control instead of the large center play overlay.
 - Forces only those two compact circular shells to the same shared translucent gray (`rgba(255,255,255,0.38)`), so their appearance is deterministic even when Amazon styles the two shells differently.
-- Removes the v6.0.64 mute-color sampling and wrapper/red-box normalization. Amazon's stock red paused-state rectangle is left alone.
+- Clears the rectangular host/wrapper paint around each compact control while leaving the selected circular shell filled. This removes the gray boxes introduced by v6.0.65.
 - Reuses the existing native-ad MutationObserver and media/click lifecycle hooks; no new observer, scroll listener, interval, or animation-frame loop is added.
 - Settings wording from v6.0.62+ remains unchanged. All other behavior stays on the v6.0.56 performance baseline.
 
