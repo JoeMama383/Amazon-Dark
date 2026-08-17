@@ -1,8 +1,15 @@
-# AmazonDark v6.0.86
+# AmazonDark v6.0.87
 
-## v6.0.86 — first-frame Search history glyph ownership
+## v6.0.87 — make autocomplete history/delete mask glyphs first-paint
 
-Built directly from the working v6.0.85. The recent-search clock and remove/X glyphs were already covered by the v5.446-derived generic web glyph repair, but that owner lived in the later contrast pass. On the live Search pane this left Amazon's near-black SVG/generated glyph paint visible for seconds; TWB could extend the delay because its search-media protection writes `filter:none` before the later glyph repair converges. v6.0.86 promotes the donor's SVG, generated-icon, and semantic search-control treatment into the existing document-start stylesheet and repeats it in the Dark Reader fixes sheet so it survives theme installation. TWB still excludes genuine suggestion/product imagery, but now immediately reasserts white only on icon-like/search-history images instead of being allowed to win over the glyph owner. No new observer, timer, DOM scan, scroll callback, RAF, dispatch-after, or native hierarchy work is added; the existing delayed repair remains only as a fallback.
+- Built directly from v6.0.85; the failed v6.0.86 filter-based search-glyph experiment is not included.
+- Uses the exact renderer proven by the final v5.446 runtime probe: `I.icon-past-search-suggestion` and `I.icon-close.s-suggestion-icon-left` are 20x20 CSS mask glyphs.
+- Pins the mask host `background-color` to the light foreground in the existing documentStart stylesheet and Dark Reader fixes, with `filter:none`.
+- No new observer, timer, DOM scan, scroll callback, RAF, native traversal, or delayed repair path.
+
+## v6.0.85 — restore v5.446 Interests/Alexa glyph + first-paint ownership
+
+Built directly from v6.0.84. Restores three exact v5.446 ownership paths that had been lost during later streamlining: the Interests `add-icon` / `plus-icon` bitmap inversion in both Dark Reader fixes and the document-start prepaint sheet; the final v5.446 React Native SVG geometry floor of 3pt (needed by Alexa's ~4x12 vertical ellipsis) with root-only `RNSVGSvgView` filter healing; and the donor's parse-time card/pill border plus empty-card skeleton dark floor used by Interests/person-like web surfaces to prevent light hydration flashes. The retired UILabel snapshot lane remains absent, so the RNSVG owner is leaner than v6.0.84. No new observer, timer, DOM scan, scroll callback, RAF, or recurring work is added.
 
 ## v6.0.82 — route lazy Home product copy through the existing native-safe local pass
 

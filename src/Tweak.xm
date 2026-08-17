@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.86"
+#define AD_VERSION "v6.0.87"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -478,24 +478,13 @@ static NSString *ADFixesLiteral(void){
              // protection above freezes Amazon's dark add/plus bitmap unless this
              // higher-specificity rule re-enables the donor invert on that glyph only.
              "img[class*=add-icon],img[class*=plus-icon]{filter:invert(1) hue-rotate(180deg) !important;}"
-             // v6.0.86: promote the v5.446 search-history glyph repair to first paint.
-             // The donor measured the recent-search X/clock as dark SVG / generated
-             // icon paint while the surrounding text was already themed. Own only
-             // those search-suggestion glyph leaves; product suggestion imagery is
-             // deliberately not selected.
-             ":is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) "
-             ":is(i,.a-icon,[class*=history-icon],[class*=recent-icon],[class*=clock-icon],[class*=close-icon],[class*=clear-icon],[class*=remove-icon])"
-             "{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;filter:brightness(0) invert(1) !important;background-color:transparent !important;}"
-             ":is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) "
-             "svg{color:#e8e6e3 !important;filter:brightness(0) invert(1) !important;}"
-             ":is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) "
-             ":is(i,.a-icon,[class*=history-icon],[class*=recent-icon],[class*=clock-icon],[class*=close-icon],[class*=clear-icon],[class*=remove-icon])::before,"
-             ":is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) "
-             ":is(i,.a-icon,[class*=history-icon],[class*=recent-icon],[class*=clock-icon],[class*=close-icon],[class*=clear-icon],[class*=remove-icon])::after"
-             "{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}"
-             ":is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) "
-             ":is([aria-label*=remove],[aria-label*=clear],[aria-label*=delete],[aria-label*=history]) :is(img,i,.a-icon)"
-             "{filter:brightness(0) invert(1) !important;background-color:transparent !important;color:#e8e6e3 !important;}"
+             // v6.0.87: exact v5.446 autocomplete renderer. The recent-search clock
+             // and delete X are 20x20 MASK elements (icon-past-search-suggestion /
+             // icon-close), so their visible ink is background-color. Filtering the
+             // mask host is wrong; pin the mask paint itself at stylesheet time.
+             ".s-suggestion-container [class*=icon-past-search-sugge],"
+             ".s-suggestion-container .icon-close.s-suggestion-icon-left"
+             "{background-color:#e8e6e3 !important;filter:none !important;opacity:1 !important;}"
              "%@"
              "[style*=\\\"background-image\\\"]{filter:none !important;}"
              // THE FIX THAT ACTUALLY WORKED, brought back. v5.27.0 whitened the heart
@@ -731,13 +720,10 @@ static NSString *ADDarkReaderBootstrap(void){
            // in this already-existing documentStart sheet so Amazon never gets a light
            // hydration frame before Dark Reader's own override sheet is available.
            "img[class*=add-icon],img[class*=plus-icon]{filter:invert(1) hue-rotate(180deg) !important;}"
-           // v6.0.86: search-history X/clock must be correct before Dark Reader or
-           // the generic contrast pass runs. This is selector-only and exists at
-           // documentStart, so opening Search never exposes Amazon's black glyph frame.
-           ":is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) :is(i,.a-icon,[class*=history-icon],[class*=recent-icon],[class*=clock-icon],[class*=close-icon],[class*=clear-icon],[class*=remove-icon]){color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;filter:brightness(0) invert(1) !important;background-color:transparent !important;}"
-           ":is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) svg{color:#e8e6e3 !important;filter:brightness(0) invert(1) !important;}"
-           ":is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) :is(i,.a-icon,[class*=history-icon],[class*=recent-icon],[class*=clock-icon],[class*=close-icon],[class*=clear-icon],[class*=remove-icon])::before,:is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) :is(i,.a-icon,[class*=history-icon],[class*=recent-icon],[class*=clock-icon],[class*=close-icon],[class*=clear-icon],[class*=remove-icon])::after{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}"
-           ":is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) :is([aria-label*=remove],[aria-label*=clear],[aria-label*=delete],[aria-label*=history]) :is(img,i,.a-icon){filter:brightness(0) invert(1) !important;background-color:transparent !important;color:#e8e6e3 !important;}"
+           // v6.0.87: first-frame ownership for the autocomplete mask glyphs proven
+           // by the final v5.446 runtime probe. Keep filter:none: the mask shape is
+           // already supplied by Amazon; background-color is the glyph's actual ink.
+           ".s-suggestion-container [class*=icon-past-search-sugge],.s-suggestion-container .icon-close.s-suggestion-icon-left{background-color:#e8e6e3 !important;filter:none !important;opacity:1 !important;}"
            "[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],"
            "[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],"
            "[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],"
@@ -1149,12 +1135,7 @@ static NSString *ADWhiteTameWebJS6027(void){
          // An inset shadow dims only that background plane and leaves live text/art above it.
          "'html[data-ad-twb-home6033] body [class*=canvas-card] [class*=canvas-container],html[data-ad-twb-home6033] body [class*=canvas-card][class*=canvas-container]{filter:none!important;background-blend-mode:normal!important;box-shadow:inset 0 0 0 9999px '+AA+'!important;}'+"
          "'[data-ad-twb-before6033]::before,[data-ad-twb-after6033]::after{filter:'+BB+'!important;}'+"
-         "'html body :is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion],[class*=avatar],[class*=profile],[class*=merchant],[class*=seller],[class*=brand],[class*=store],[class*=logo]) img{filter:none!important;}'+"
-         // v6.0.86: TWB must never win over the search-history glyph owner. Keep
-         // suggestion/product imagery untouched, then re-whiten only icon-like images
-         // or images under semantic remove/clear/history controls.
-         "'html body :is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) img:is([class*=icon],[class*=history],[class*=recent],[class*=clock],[class*=close],[class*=clear],[class*=remove]){filter:brightness(0) invert(1)!important;background-color:transparent!important;}'+"
-         "'html body :is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) :is([aria-label*=remove],[aria-label*=clear],[aria-label*=delete],[aria-label*=history]) img{filter:brightness(0) invert(1)!important;background-color:transparent!important;}';"
+         "'html body :is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion],[class*=avatar],[class*=profile],[class*=merchant],[class*=seller],[class*=brand],[class*=store],[class*=logo]) img{filter:none!important;}';"
          "if(st.textContent!==css)st.textContent=css;"
          "function S(v){try{return String(v&&v.baseVal!==undefined?v.baseVal:(v||''));}catch(e){return '';}}"
          "function chain(e){var p=e,d=0,c='';while(p&&d++<6){c+=' '+S(p.className)+' '+String(p.id||'')+' '+String((p.getAttribute&&p.getAttribute('data-component-type'))||'')+' '+String((p.getAttribute&&p.getAttribute('data-hook'))||'');p=p.parentElement;}return c.toLowerCase();}"
