@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.79-probe"
+#define AD_VERSION "v6.0.80-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1504,7 +1504,7 @@ static NSString *ADHomeTextProbeJS6079(void){
 static void ADAppendHomeTextProbe6079(NSString *s){
     if (!s.length) return;
     @try {
-        NSString *p=[NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-home-text-probe-6079.txt"];
+        NSString *p=[NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-home-text-probe-6080.txt"];
         NSString *old=[NSString stringWithContentsOfFile:p encoding:NSUTF8StringEncoding error:nil] ?: @"";
         NSString *next=[old stringByAppendingFormat:@"%@\\n",s];
         [next writeToFile:p atomically:YES encoding:NSUTF8StringEncoding error:nil];
@@ -1542,8 +1542,8 @@ static void ADHomeTextProbeNativeWalk6079(UIView *v, NSMutableString *out, int *
 static void ADRunHomeTextProbe6079(void){
     dispatch_async(dispatch_get_main_queue(), ^{
         @try {
-            NSString *p=[NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-home-text-probe-6079.txt"];
-            NSString *head=[NSString stringWithFormat:@"AmazonDark v6.0.79 Home product-text ownership probe\\n=================================================\\nversion=%@ enabled=%d web=%d native=%d trackedWebViews=%lu\\n",
+            NSString *p=[NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-home-text-probe-6080.txt"];
+            NSString *head=[NSString stringWithFormat:@"AmazonDark v6.0.80 Home product-text ownership probe\\n=================================================\\nversion=%@ enabled=%d web=%d native=%d trackedWebViews=%lu\\n",
                 @AD_VERSION,gP.enabled?1:0,gP.webDarkReader?1:0,gP.nativeRecolor?1:0,(unsigned long)gADWebViews613.allObjects.count];
             [head writeToFile:p atomically:YES encoding:NSUTF8StringEncoding error:nil];
             int wi=0;
@@ -1566,12 +1566,6 @@ static void ADRunHomeTextProbe6079(void){
             ADAppendHomeTextProbe6079(native);
         } @catch(...) {}
     });
-}
-
-static void ADHomeTextProbeNotify6079(CFNotificationCenterRef center, void *observer,
-                                      CFStringRef name, const void *object,
-                                      CFDictionaryRef userInfo){
-    ADRunHomeTextProbe6079();
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -5138,7 +5132,14 @@ static void ADPrefsChanged(CFNotificationCenterRef center, void *observer,
 static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
                               CFStringRef name, const void *object,
                               CFDictionaryRef userInfo) {
-    dispatch_async(dispatch_get_main_queue(), ^{ @try { ADSweep(); } @catch(...) {} });
+    dispatch_async(dispatch_get_main_queue(), ^{
+        @try {
+            ADSweep();
+            // v6.0.80 diagnostic: foregrounding Amazon is the manual trigger.
+            // No external notify utility is required and no recurring work is added.
+            ADRunHomeTextProbe6079();
+        } @catch(...) {}
+    });
 }
 
 // ─── %ctor : process guard + hook registration + bounded startup recovery ────
@@ -5198,10 +5199,6 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
         NULL, ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),
         NULL, CFNotificationSuspensionBehaviorCoalesce);
-    CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),
-        NULL, ADHomeTextProbeNotify6079,
-        CFSTR("com.colindavidr.amazondark/probe-home-text-6079"),
-        NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
     CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(),
         NULL, ADAppForegrounded,
         (__bridge CFStringRef)UIApplicationWillEnterForegroundNotification,
