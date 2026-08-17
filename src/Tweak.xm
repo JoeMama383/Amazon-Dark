@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.94"
+#define AD_VERSION "v6.0.95"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -736,6 +736,21 @@ static NSString *ADDarkReaderBootstrap(void){
     gADBootstrap613 = [NSString stringWithFormat:
         @"(function(){try{"
          "if(window.__AMZDARK_LOADED__)return;window.__AMZDARK_LOADED__=1;"
+         // v6.0.95 diagnostic only: capture the transient white structural shell
+         // around Color swatches / "+N other colors/patterns" while Amazon recycles
+         // result rows. Records a bounded ring buffer only; production paint is unchanged.
+         "try{if(!window.__AD_FLASH6095_INSTALLED__){window.__AD_FLASH6095_INSTALLED__=1;window.__AD_FLASH6095__=[];"
+           "var adfSeen6095=new WeakMap();"
+           "function adfS6095(v,n){v=String(v==null?'':v);return v.length>(n||180)?v.slice(0,n||180):v;}"
+           "function adfLum6095(c){try{var m=/rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(String(c||''));if(!m)return -1;return (.2126*(+m[1])+.7152*(+m[2])+.0722*(+m[3]))/255;}catch(x){return -1;}}"
+           "function adfD6095(e){try{var c=getComputedStyle(e),r=e.getBoundingClientRect(),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');return {tag:e.tagName||'',id:adfS6095(e.id,60),cl:adfS6095(e.className&&e.className.baseVal||e.className,180),r:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],bg:adfS6095(c.backgroundColor,70),bgi:adfS6095(c.backgroundImage,120),bs:adfS6095(c.boxShadow,120),bd:adfS6095(c.border,100),op:adfS6095(c.opacity,30),disp:adfS6095(c.display,40),vis:adfS6095(c.visibility,40),sty:adfS6095(e.getAttribute&&e.getAttribute('style'),220),bef:[adfS6095(b.backgroundColor,70),adfS6095(b.backgroundImage,120),adfS6095(b.boxShadow,120),adfS6095(b.content,80)],aft:[adfS6095(a.backgroundColor,70),adfS6095(a.backgroundImage,120),adfS6095(a.boxShadow,120),adfS6095(a.content,80)],txt:adfS6095(String(e.textContent||'').replace(/\s+/g,' ').trim(),180)};}catch(x){return {err:String(x)}}}"
+           "function adfChain6095(e){var z=[],p=e,d=0;while(p&&d++<8){z.push(adfD6095(p));p=p.parentElement;}return z;}"
+           "function adfTarget6095(e){try{if(!e||e.nodeType!==1)return null;var sel='[data-csa-c-content-id=variation-options-link],[class*=s-variations-options-justify-content],[class*=s-variation-options-text],[class*=s-variation-options-link],[class*=s-color-swatch-container-list-view],[class*=puis-csi-with-label-container]';var q=e.matches&&e.matches(sel)?e:(e.closest&&e.closest(sel));if(q)return q;var t=String(e.textContent||'').replace(/\s+/g,' ').trim();if(t.length<700&&(/other colors?\/patterns?/i.test(t)||/^color\s*:/i.test(t)||/color:\s*color:/i.test(t)))return e;return null;}catch(x){return null;}}"
+           "function adfSnap6095(why,e){try{var q=adfTarget6095(e);if(!q||!q.isConnected)return;var now=Date.now(),last=adfSeen6095.get(q)||0;if(now-last<90&&why==='mut')return;adfSeen6095.set(q,now);var R=q.getBoundingClientRect();if(R.width<20||R.height<6||R.width>460||R.height>180)return;var rec={t:now,why:why,url:String(location.href),target:adfD6095(q),chain:adfChain6095(q),bright:[]};var A=q.querySelectorAll?q.querySelectorAll('div,span,a,label,section,button,ul,li'):[];for(var i=0;i<A.length&&rec.bright.length<36;i++){var x=A[i],rx=x.getBoundingClientRect();if(rx.width<10||rx.height<5||rx.width>460||rx.height>180)continue;var cx=getComputedStyle(x),L=adfLum6095(cx.backgroundColor),pb=adfLum6095(getComputedStyle(x,'::before').backgroundColor),pa=adfLum6095(getComputedStyle(x,'::after').backgroundColor);if(L>.38||pb>.38||pa>.38||String(cx.backgroundImage||'')!=='none'||String(cx.boxShadow||'')!=='none')rec.bright.push(adfD6095(x));}window.__AD_FLASH6095__.push(rec);if(window.__AD_FLASH6095__.length>220)window.__AD_FLASH6095__.splice(0,window.__AD_FLASH6095__.length-220);}catch(x){}}"
+           "function adfTouch6095(n){try{if(!n)return;if(n.nodeType===3)n=n.parentElement;if(!n||n.nodeType!==1)return;var q=adfTarget6095(n);if(!q&&n.querySelector){q=n.querySelector('[data-csa-c-content-id=variation-options-link],[class*=s-variations-options-justify-content],[class*=s-variation-options-text],[class*=s-variation-options-link],[class*=s-color-swatch-container-list-view],[class*=puis-csi-with-label-container]');}if(!q)return;adfSnap6095('mut',q);setTimeout(function(){adfSnap6095('t0',q);},0);setTimeout(function(){adfSnap6095('t20',q);},20);setTimeout(function(){adfSnap6095('t100',q);},100);}catch(x){}}"
+           "window.__AD_FLASH6095_DUMP__=function(){try{return JSON.stringify({url:String(location.href),n:window.__AD_FLASH6095__.length,records:window.__AD_FLASH6095__});}catch(e){return 'ERR '+String(e);}};"
+           "if(document.documentElement){new MutationObserver(function(ms){try{for(var i=0;i<ms.length&&i<48;i++){var m=ms[i];adfTouch6095(m.target);var A=m.addedNodes||[];for(var j=0;j<A.length&&j<20;j++)adfTouch6095(A[j]);}}catch(e){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','hidden','aria-hidden']});}"
+         "}}catch(e){}"
          // v6.0.12: establish the page canvas before the Dark Reader UMD is parsed.
          // This is intentionally root-only: it cannot touch product/photo pixels,
          // but it means lazy/virtualised holes reveal the theme floor, not Amazon white.
@@ -1607,6 +1622,50 @@ static void ADInjectAllWebViews(void){
             ADEnableDarkReaderIn(wv);
         }
     } @catch(...) {}
+}
+
+
+// v6.0.95 diagnostic-only exporter for the transient variation/swatch shell ring
+// buffer installed at documentStart above. Reproduce the flash by scrolling, then
+// background Amazon once; WILL_RESIGN_ACTIVE writes all WebView buffers to tmp.
+static NSString *ADFlashProbePath6095(void){
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-white-shell-probe-6095.txt"];
+}
+static void ADAppendFlashProbe6095(NSString *line){
+    if (!line.length) return;
+    @try {
+        NSString *path=ADFlashProbePath6095();
+        NSFileHandle *fh=[NSFileHandle fileHandleForWritingAtPath:path];
+        if (!fh){ [line writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil]; return; }
+        [fh seekToEndOfFile]; [fh writeData:[line dataUsingEncoding:NSUTF8StringEncoding]]; [fh closeFile];
+    } @catch(...) {}
+}
+static void ADResetFlashProbe6095(void){
+    @try {
+        NSString *h=[NSString stringWithFormat:@"AmazonDark transient white-shell probe 6095\nversion=%s\npid=%d\n\n",AD_VERSION,getpid()];
+        [h writeToFile:ADFlashProbePath6095() atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    } @catch(...) {}
+}
+static void ADDumpFlashProbe6095(NSString *label){
+    if (![NSThread isMainThread]){ dispatch_async(dispatch_get_main_queue(), ^{ ADDumpFlashProbe6095(label); }); return; }
+    @try {
+        NSArray *views=gADWebViews613.allObjects; NSUInteger idx=0;
+        ADAppendFlashProbe6095([NSString stringWithFormat:@"DUMP %@ uptime=%.3f webviews=%lu\n",label?:@"?",ADUptime(),(unsigned long)views.count]);
+        for (WKWebView *wv in views){
+            if (!wv || !wv.window) continue;
+            NSString *url=wv.URL.absoluteString?:@""; NSUInteger my=idx++;
+            [wv evaluateJavaScript:@"(function(){try{return window.__AD_FLASH6095_DUMP__?window.__AD_FLASH6095_DUMP__():'NO_PROBE';}catch(e){return 'ERR '+String(e);}})();" completionHandler:^(id result,NSError *error){
+                NSString *body=error?[NSString stringWithFormat:@"ERROR %@",error]:([result isKindOfClass:[NSString class]]?result:[result description]);
+                ADAppendFlashProbe6095([NSString stringWithFormat:@"WEBVIEW %lu %@\n%@\n\n",(unsigned long)my,url,body?:@"(nil)"]);
+            }];
+        }
+        if (!idx) ADAppendFlashProbe6095(@"NO MOUNTED WEBVIEWS\n\n");
+    } @catch(...) {}
+}
+static void ADFlashWillResign6095(CFNotificationCenterRef center, void *observer,
+                                  CFStringRef name, const void *object,
+                                  CFDictionaryRef userInfo){
+    dispatch_async(dispatch_get_main_queue(), ^{ @try { ADDumpFlashProbe6095(@"WILL_RESIGN_ACTIVE"); } @catch(...) {} });
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -5199,6 +5258,11 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
         NULL, ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),
         NULL, CFNotificationSuspensionBehaviorCoalesce);
+    ADResetFlashProbe6095();
+    CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(),
+        NULL, ADFlashWillResign6095,
+        (__bridge CFStringRef)UIApplicationWillResignActiveNotification,
+        NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
     CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(),
         NULL, ADAppForegrounded,
         (__bridge CFStringRef)UIApplicationWillEnterForegroundNotification,

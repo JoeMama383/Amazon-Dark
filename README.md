@@ -1,6 +1,6 @@
-# AmazonDark v6.0.94
+# AmazonDark v6.0.95
 
-## v6.0.94 — certification badges + transparent variation shells + zero scroll listener
+## v6.0.95 — certification badges + transparent variation shells + zero scroll listener
 
 - Fixes recycled search-result certification/feature badges (Works with Alexa, Carbon impact, etc.) turning into blank white squares after scrolling offscreen and back. The v6.0.93 probe proved those 16x16 `IMG.s-image` assets were being claimed by `gfix1` and forced through `brightness(0) invert(1)`.
 - Makes the variation-options and color-swatch structural shells transparent from documentStart and in the Dark Reader fixes sheet, eliminating the visible replacement rectangle while preserving Amazon-owned color circles.
@@ -424,3 +424,7 @@ Person-tab TWB semantic precision build, based directly on v6.0.37 after v6.0.41
 - The one-shot verifier now runs in both ON and OFF states so an old 120-Hz report cannot be mistaken for a fresh disabled result.
 - Adds a constant-time dark backing floor to WKWebView/WKScrollView so fast 120-Hz flings reveal the dark theme rather than WebKit's default white backing while lazy tiles/content catch up.
 - Checkbox and v5.446 top-chrome logic are unchanged from v6.0.10.
+
+
+### v6.0.95 diagnostic probe
+Captures transient first-paint white shells around search-result color swatches and `+N other colors/patterns` during row recycling. Production theming remains v6.0.94 behavior; reproduce by scrolling, then background Amazon once to dump the bounded ring buffer.
