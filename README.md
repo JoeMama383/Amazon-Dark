@@ -1,6 +1,9 @@
-# AmazonDark v6.0.91 probe
+# AmazonDark v6.0.92 probe
 
-## v6.0.91 — diagnostic search-pane renderer snapshot
+## v6.0.92 — signal-triggered search-pane renderer snapshot
+
+This is the v6.0.91 renderer probe rebuilt with a **SIGUSR2 trigger** because the test device does not have `notifyutil`. On launch AmazonDark writes Amazon's PID to `/var/mobile/AmazonDark-search-probe-6092.pid`; sending SIGUSR2 to that PID runs the same bounded snapshot. No probe work runs before the signal. Production theming behavior remains based on v6.0.90.
+
 
 - Diagnostic-only build based directly on v6.0.90.
 - Adds one manually triggered Darwin-notification snapshot for the Heating/Cooling search-result pane.

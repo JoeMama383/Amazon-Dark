@@ -65,8 +65,9 @@
 #import <unistd.h>
 #import <stdint.h>
 #import <errno.h>
+#import <signal.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.91"
+#define AD_VERSION "v6.0.92"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1593,11 +1594,13 @@ static void ADInjectAllWebViews(void){
 }
 
 
-// v6.0.91 diagnostic only: manual, bounded snapshot for the search/product drill-in
+// v6.0.92 diagnostic only: bounded snapshot for the search/product drill-in
 // pane where feature-badge bitmaps, variation rows, and colour swatch shells can
-// intermittently render as white boxes. Nothing runs until the Darwin notification
-// is posted; production paint/timing behavior is otherwise byte-for-byte v6.0.90.
-static NSString *ADSearchPaneProbeJS6091(void){
+// intermittently render as white boxes. v6.0.91 used a Darwin-notification trigger,
+// but this device has no notifyutil binary. v6.0.92 adds a SIGUSR2 dispatch-source
+// trigger and writes Amazon's PID to /var/mobile/AmazonDark-search-probe-6092.pid.
+// No snapshot runs until SIGUSR2 is sent; production paint/timing remains v6.0.90.
+static NSString *ADSearchPaneProbeJS6092(void){
     return @"(function(){try{"
         "function S(v,n){v=String(v==null?'':v);return v.length>(n||180)?v.slice(0,n||180):v;}"
         "function V(e){try{var r=e.getBoundingClientRect();var c=getComputedStyle(e);return r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth&&c.display!=='none'&&c.visibility!=='hidden'&&parseFloat(c.opacity||'1')>.02;}catch(x){return false;}}"
@@ -1613,14 +1616,14 @@ static NSString *ADSearchPaneProbeJS6091(void){
     "}catch(e){return 'ERR '+String(e&&e.stack||e);}})();";
 }
 
-static NSString *ADSearchPaneProbePath6091(void){
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-search-pane-probe-6091.txt"];
+static NSString *ADSearchPaneProbePath6092(void){
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-search-pane-probe-6092.txt"];
 }
 
-static void ADAppendSearchPaneProbe6091(NSString *line){
+static void ADAppendSearchPaneProbe6092(NSString *line){
     if (!line.length) return;
     @try {
-        NSString *path = ADSearchPaneProbePath6091();
+        NSString *path = ADSearchPaneProbePath6092();
         NSFileHandle *fh = [NSFileHandle fileHandleForWritingAtPath:path];
         if (!fh){
             [line writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
@@ -1632,15 +1635,15 @@ static void ADAppendSearchPaneProbe6091(NSString *line){
     } @catch(...) {}
 }
 
-static void ADProbeSearchPane6091(CFNotificationCenterRef center, void *observer,
+static void ADProbeSearchPane6092(CFNotificationCenterRef center, void *observer,
                                   CFStringRef name, const void *object,
                                   CFDictionaryRef userInfo){
     dispatch_async(dispatch_get_main_queue(), ^{
         @try {
-            NSString *path = ADSearchPaneProbePath6091();
-            NSString *head = [NSString stringWithFormat:@"AmazonDark search-pane probe 6091\\nversion=%s\\nwebviews=%lu\\n\\n", AD_VERSION, (unsigned long)gADWebViews613.allObjects.count];
+            NSString *path = ADSearchPaneProbePath6092();
+            NSString *head = [NSString stringWithFormat:@"AmazonDark search-pane probe 6092\\nversion=%s\\nwebviews=%lu\\n\\n", AD_VERSION, (unsigned long)gADWebViews613.allObjects.count];
             [head writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
-            NSString *js = ADSearchPaneProbeJS6091();
+            NSString *js = ADSearchPaneProbeJS6092();
             NSUInteger idx = 0;
             for (WKWebView *wv in gADWebViews613.allObjects){
                 if (!wv || !wv.window) continue;
@@ -1649,12 +1652,32 @@ static void ADProbeSearchPane6091(CFNotificationCenterRef center, void *observer
                 [wv evaluateJavaScript:js completionHandler:^(id result, NSError *error){
                     NSString *body = error ? [NSString stringWithFormat:@"ERROR %@", error] : ([result isKindOfClass:[NSString class]] ? result : [result description]);
                     NSString *line = [NSString stringWithFormat:@"WEBVIEW %lu %@\\n%@\\n\\n", (unsigned long)my, url, body ?: @"(nil)"];
-                    ADAppendSearchPaneProbe6091(line);
+                    ADAppendSearchPaneProbe6092(line);
                 }];
             }
-            if (!idx) ADAppendSearchPaneProbe6091(@"NO MOUNTED WEBVIEWS\\n");
+            if (!idx) ADAppendSearchPaneProbe6092(@"NO MOUNTED WEBVIEWS\\n");
         } @catch(...) {}
     });
+}
+
+
+static dispatch_source_t gADSearchPaneSignal6092;
+static NSString *ADSearchPanePIDPath6092(void){
+    return @"/var/mobile/AmazonDark-search-probe-6092.pid";
+}
+static void ADInstallSearchPaneSignal6092(void){
+    @try {
+        NSString *pid = [NSString stringWithFormat:@"%d\n", getpid()];
+        [pid writeToFile:ADSearchPanePIDPath6092() atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        signal(SIGUSR2, SIG_IGN);
+        if (gADSearchPaneSignal6092) return;
+        gADSearchPaneSignal6092 = dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL, SIGUSR2, 0, dispatch_get_main_queue());
+        if (!gADSearchPaneSignal6092) return;
+        dispatch_source_set_event_handler(gADSearchPaneSignal6092, ^{
+            ADProbeSearchPane6092(NULL, NULL, NULL, NULL, NULL);
+        });
+        dispatch_resume(gADSearchPaneSignal6092);
+    } @catch(...) {}
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -5248,9 +5271,10 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),
         NULL, CFNotificationSuspensionBehaviorCoalesce);
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),
-        NULL, ADProbeSearchPane6091,
-        CFSTR("com.colindavidr.amazondark/probe-search-pane-6091"),
+        NULL, ADProbeSearchPane6092,
+        CFSTR("com.colindavidr.amazondark/probe-search-pane-6092"),
         NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
+    ADInstallSearchPaneSignal6092();
     CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(),
         NULL, ADAppForegrounded,
         (__bridge CFStringRef)UIApplicationWillEnterForegroundNotification,
