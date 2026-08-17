@@ -1,11 +1,9 @@
-# AmazonDark v6.0.74
+# AmazonDark v6.0.75
 
+## v6.0.75 — restore voice permission microphone bitmap glyph
 
-## v6.0.74 — one-shot voice-sheet microphone ownership probe
+Built directly from v6.0.72. The v6.0.74 ownership probe identified the remaining dark microphone as a 44x44 `RCTUIImageViewAnimated` bitmap, not an RNSVG root. The streamlined v6 glyph gate rejected non-chrome images above 40x40 before pixel classification, while v5.446's measured native-glyph lane treated neutral glyphs through 52x52 as normal glyphs. v6.0.75 adds only a semantic exception for the 36-52pt RCT image under the `Allow microphone access` + `Shop faster with voice` sheet header, then reuses the existing dark-glyph measurement, template conversion, tint, and convergence path. No probe code or global size expansion ships.
 
-- Keeps the working v6.0.72 voice-permission text repair unchanged.
-- Restores the exact v5.446 RN SVG minimum-size floor (3 pt instead of 6 pt), allowing tiny/transformed `RNSVGSvgView` microphone artwork to use the existing light-glyph filter.
-- No new hook, scan, observer, timer, DOM query, or overlay.
 
 ## v6.0.72 — restore hydrated voice-permission text repair
 

@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.74"
+#define AD_VERSION "v6.0.75"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -4065,6 +4065,28 @@ static const void *kADGlyphChecked = &kADGlyphChecked;
 // path called ADGlyphify() directly, which lost the donor's distinction between
 // small UI chrome and larger content artwork. More importantly, late template
 // assignments could keep Amazon's dark tint until an unrelated sweep happened.
+// v6.0.75: the voice-permission probe proved its 44x44 microphone is not RNSVG.
+// It is an RCTUIImageViewAnimated bitmap under the two voice-permission headings.
+// v5.446's measured native-glyph lane admitted neutral glyphs through 52x52; the
+// streamlined v6 view gate stops ordinary content at 40x40. Restore only this one
+// semantic exception instead of widening every native image back to the donor band.
+static BOOL ADIsVoicePermissionMic6075(UIView *v){
+    if (!v) return NO;
+    @try {
+        const char *cn=object_getClassName(v);
+        if (!cn || !strstr(cn,"RCTUIImageViewAnimated")) return NO;
+        CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+        if (w<36||h<36||w>52||h>52) return NO;
+        UIView *p=v.superview; int d=0;
+        while(p&&d++<5){
+            NSString *a=nil; @try { a=p.accessibilityLabel.lowercaseString; } @catch(...) {}
+            if(a.length&&[a containsString:@"allow microphone access"]&&
+                         [a containsString:@"shop faster with voice"]) return YES;
+            p=p.superview;
+        }
+    } @catch(...) {}
+    return NO;
+}
 static UIImage *ADGlyphifyForView(UIImage *img, UIView *v){
     @try {
         if (v && ADMenuRole382(v)==1) return nil;
@@ -4073,7 +4095,7 @@ static UIImage *ADGlyphifyForView(UIImage *img, UIView *v){
             CGFloat w=v.bounds.size.width, h=v.bounds.size.height;
             if(w<1 && img) w=img.size.width;
             if(h<1 && img) h=img.size.height;
-            if (w > 40 || h > 40) return nil;
+            if ((w > 40 || h > 40) && !ADIsVoicePermissionMic6075(v)) return nil;
         }
     } @catch(...) {}
     return ADGlyphify(img);
@@ -4348,7 +4370,7 @@ static void ADInvertRNSVG(UIView *v){
         const char *cn = object_getClassName(v);
         if (!cn) return;
         CGFloat w = v.bounds.size.width, h = v.bounds.size.height;
-        if (w < 3 || w > 48 || h < 3 || h > 48) return;   // v5.446 donor floor; tiny/transformed RN SVG glyphs still count
+        if (w < 6 || w > 48 || h < 6 || h > 48) return;   // icons, not illustrations
         BOOL take = (strcmp(cn, "RNSVGSvgView") == 0);    // root only; children ride along
         if (!take && [v isKindOfClass:[UILabel class]]){
             // The kebab: an RN-hosted UILabel whose dots are baked into layer
@@ -4431,94 +4453,10 @@ static int ADVoiceLiftStore6072(NSMutableAttributedString *store){
     } @catch(...) {}
     return 0;
 }
-// v6.0.74 diagnostic: one-shot voice-sheet microphone ownership snapshot.
-// Triggered only after the existing v6.0.72 semantic text gate proves that the
-// microphone permission sheet is mounted.  It does not recolour or mutate views.
-static BOOL gADVoiceMicProbeDone6074=NO;
-static NSString *ADProbeClean6074(NSString *s){
-    if(!s.length) return @"-";
-    s=[s stringByReplacingOccurrencesOfString:@"\n" withString:@" "];
-    s=[s stringByReplacingOccurrencesOfString:@"\r" withString:@" "];
-    return s.length>120?[s substringToIndex:120]:s;
-}
-static double ADProbeLum6074(UIColor *c){
-    if(!c) return -1;
-    CGFloat r=0,g=0,b=0,a=0;
-    if(![c getRed:&r green:&g blue:&b alpha:&a]||a<0.02) return -1;
-    return 0.2126*r+0.7152*g+0.0722*b;
-}
-static NSString *ADProbeFilters6074(CALayer *l){
-    @try {
-        NSArray *fs=l.filters;
-        if(!fs.count) return @"-";
-        NSMutableArray *a=[NSMutableArray arrayWithCapacity:fs.count];
-        for(id f in fs) [a addObject:NSStringFromClass([f class])?:@"?"];
-        return [a componentsJoinedByString:@","];
-    } @catch(...) {}
-    return @"?";
-}
-static void ADProbeVoiceWalk6074(UIView *v, int depth, int *visited, int *written,
-                                 CGFloat hitY, NSMutableString *out){
-    if(!v||depth>45||*visited>=900||*written>=320) return;
-    (*visited)++;
-    @try {
-        CGRect r=[v convertRect:v.bounds toView:nil];
-        NSString *cn=NSStringFromClass([v class])?:@"?";
-        NSString *lo=cn.lowercaseString;
-        NSString *al=ADProbeClean6074(v.accessibilityLabel);
-        NSString *aid=ADProbeClean6074(v.accessibilityIdentifier);
-        BOOL named=([lo containsString:@"rnsvg"]||[lo containsString:@"rct"]||
-                    [lo containsString:@"svg"]||[lo containsString:@"image"]||
-                    [lo containsString:@"icon"]||[lo containsString:@"mic"]||
-                    [lo containsString:@"voice"]);
-        BOOL upperSmall=(r.size.width>=2&&r.size.width<=150&&r.size.height>=2&&r.size.height<=150&&
-                         CGRectGetMinY(r)>=70&&CGRectGetMinY(r)<=MAX(520.0,hitY));
-        BOOL a11y=(![al isEqualToString:@"-"]||![aid isEqualToString:@"-"]);
-        if(named||upperSmall||a11y){
-            NSString *parent=v.superview?NSStringFromClass([v.superview class]):@"-";
-            CALayer *l=v.layer;
-            [out appendFormat:@"V d=%d cls=%@ parent=%@ xywh=%.1f,%.1f,%.1f,%.1f hidden=%d alpha=%.2f bg=%.3f tint=%.3f exactRNSVG=%d rnsKind=%d contents=%d layer=%@ filters=%@ sublayers=%lu a11y='%@' aid='%@'\n",
-                depth,cn,parent,r.origin.x,r.origin.y,r.size.width,r.size.height,
-                v.hidden?1:0,v.alpha,ADProbeLum6074(v.backgroundColor),ADProbeLum6074(v.tintColor),
-                [cn isEqualToString:@"RNSVGSvgView"]?1:0,
-                (NSClassFromString(@"RNSVGSvgView")&&[v isKindOfClass:NSClassFromString(@"RNSVGSvgView")])?1:0,
-                l.contents?1:0,NSStringFromClass([l class])?:@"?",ADProbeFilters6074(l),(unsigned long)l.sublayers.count,al,aid];
-            (*written)++;
-            int sl=0;
-            for(CALayer *x in (l.sublayers?:@[])){
-                if(sl++>=8||*written>=320) break;
-                [out appendFormat:@"  L cls=%@ frame=%.1f,%.1f,%.1f,%.1f contents=%d filters=%@ sub=%lu\n",
-                    NSStringFromClass([x class])?:@"?",x.frame.origin.x,x.frame.origin.y,
-                    x.frame.size.width,x.frame.size.height,x.contents?1:0,ADProbeFilters6074(x),(unsigned long)x.sublayers.count];
-                (*written)++;
-            }
-        }
-        for(UIView *sv in v.subviews) ADProbeVoiceWalk6074(sv,depth+1,visited,written,hitY,out);
-    } @catch(...) {}
-}
-static void ADVoiceMicProbe6074(UIView *hit){
-    if(gADVoiceMicProbeDone6074||!hit.window) return;
-    gADVoiceMicProbeDone6074=YES;
-    @try {
-        CGRect hr=[hit convertRect:hit.bounds toView:nil];
-        NSMutableString *out=[NSMutableString string];
-        [out appendString:@"AmazonDark v6.0.74 microphone ownership probe\n=============================================\n"];
-        [out appendFormat:@"enabled=%d nativeRecolor=%d hit=%@ hitXYWH=%.1f,%.1f,%.1f,%.1f hitText='%@'\n",
-            gP.enabled?1:0,gP.nativeRecolor?1:0,NSStringFromClass([hit class]),
-            hr.origin.x,hr.origin.y,hr.size.width,hr.size.height,ADProbeClean6074(ADWTViewText362(hit))];
-        int visited=0,written=0;
-        ADProbeVoiceWalk6074(hit.window,0,&visited,&written,CGRectGetMinY(hr),out);
-        [out appendFormat:@"SUMMARY visited=%d written=%d\n",visited,written];
-        NSString *path=[NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-microphone-probe-6074.txt"];
-        [out writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
-    } @catch(...) {}
-}
-
 static void ADVoiceRepairView6072(UIView *v){
     @try {
         Class RCT=NSClassFromString(@"RCTTextView");
         if (!RCT || ![v isKindOfClass:RCT] || !ADVoiceTarget6072(ADWTViewText362(v))) return;
-        ADVoiceMicProbe6074(v);
         int changed=0, depth=0;
         for (Class c=[v class]; c && c!=[UIView class] && depth++<10; c=class_getSuperclass(c)){
             unsigned int n=0; Ivar *ivs=class_copyIvarList(c,&n);
