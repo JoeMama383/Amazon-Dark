@@ -65,9 +65,8 @@
 #import <unistd.h>
 #import <stdint.h>
 #import <errno.h>
-#import <signal.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.93"
+#define AD_VERSION "v6.0.94"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -602,18 +601,19 @@ static NSString *ADFixesLiteral(void){
              "picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],"
              "[class*=s-image],[class*=unfill],[class*=placehold]"
              "{background-color:transparent !important;}"
-             // v6.0.89: search-results variation/coupon first-paint ownership. The
-             // Heating & Cooling drill-in is normal Amazon search-result markup: its
-             // variation-options strip and red s-coupon-tile are stock light surfaces
-             // until Dark Reader finishes. Own only those two semantic components here.
-             // Dark Reader's neutral variables take over automatically once available,
-             // while the fallbacks keep the very first frame dark.
+             // v6.0.94: the v6.0.89 dark replacement stopped the white first-paint
+             // flash, but left a visible darker rectangle after settling.  These are
+             // structural option/swatch shells, not content surfaces: make the shells
+             // transparent from first paint so the already-dark product card is the
+             // only background owner.  Do not target descendants so the actual colour
+             // circles keep Amazon's own fills/borders.
              "[data-csa-c-content-id=variation-options-link],[class*=s-variations-options-justify-content],"
-             "[class*=s-variation-options-text],[class*=s-variation-options-link]"
-             "{background-color:var(--darkreader-neutral-background,#181a1b) !important;background-image:none !important;}"
+             "[class*=s-variation-options-text],[class*=s-variation-options-link],"
+             "[class*=s-color-swatch-container-list-view],[class*=puis-csi-with-label-container]"
+             "{background-color:transparent !important;background-image:none !important;box-shadow:none !important;}"
              "[data-csa-c-content-id=variation-options-link] [class*=a-truncate],"
              "[class*=s-variation-options-link] [class*=a-truncate]"
-             "{background-color:transparent !important;background-image:none !important;}"
+             "{background-color:transparent !important;background-image:none !important;box-shadow:none !important;}"
              ".s-coupon-tile.red{background-color:#440000 !important;background-image:none !important;}"
              ".s-coupon-tile.red label,.s-coupon-tile.red span"
              "{color:var(--darkreader-neutral-text,#e8e6e3) !important;"
@@ -747,16 +747,17 @@ static NSString *ADDarkReaderBootstrap(void){
            "picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],"
            "[class*=s-image],[class*=unfill],[class*=placehold]"
            "{background-color:transparent !important;}"
-           // v6.0.89: prepaint the two stock search-result surfaces that otherwise
-           // appear white/pink before Dark Reader has emitted its transformed sheet.
-           // Use DR neutral variables with dark fallbacks so final palette ownership
-           // remains synchronized without adding any after-paint repair pass.
+           // v6.0.94: own variation + colour-swatch structural shells as transparent
+           // at documentStart.  This prevents both the stock white first frame and the
+           // darker replacement rectangle left by v6.0.89; the dark card underneath
+           // remains visible while swatch circles themselves stay Amazon-owned.
            "[data-csa-c-content-id=variation-options-link],[class*=s-variations-options-justify-content],"
-           "[class*=s-variation-options-text],[class*=s-variation-options-link]"
-           "{background-color:var(--darkreader-neutral-background,#181a1b) !important;background-image:none !important;}"
+           "[class*=s-variation-options-text],[class*=s-variation-options-link],"
+           "[class*=s-color-swatch-container-list-view],[class*=puis-csi-with-label-container]"
+           "{background-color:transparent !important;background-image:none !important;box-shadow:none !important;}"
            "[data-csa-c-content-id=variation-options-link] [class*=a-truncate],"
            "[class*=s-variation-options-link] [class*=a-truncate]"
-           "{background-color:transparent !important;background-image:none !important;}"
+           "{background-color:transparent !important;background-image:none !important;box-shadow:none !important;}"
            ".s-coupon-tile.red{background-color:#440000 !important;background-image:none !important;}"
            ".s-coupon-tile.red label,.s-coupon-tile.red span"
            "{color:var(--darkreader-neutral-text,#e8e6e3) !important;"
@@ -915,7 +916,14 @@ static NSString *ADDarkReaderBootstrap(void){
            // authored content, not chrome. No new traversal is introduced; this runs
            // only for the already-visited tiny IMG candidate.
            "var PRODUCTCTX6090='[data-component-type=s-search-result],[class*=s-result-item],[class*=puis-card],[data-asin],[class*=s-product-image],[class*=product-image],[class*=faceout],[class*=gwm],[class*=cardui]';"
-           "function productBadgeImg6090(e,r){try{if(!e||!e.closest||!e.closest(PRODUCTCTX6090))return false;"
+           "function productBadgeImg6094(e,r){try{if(!e||!e.closest||!e.closest(PRODUCTCTX6090))return false;"
+             // v6.0.93 lifecycle probe named the failing renderer exactly:
+             // IMG.s-image inside .s-pc-certification-faceout, usually wrapped by an
+             // A role=button.  v6.0.90 rejected that wrapper as interactive before it
+             // could classify the bitmap as content, then gfix1 whitened the entire
+             // opaque PNG.  Exact certification/faceout ancestry wins before the UI
+             // control reject; the surrounding chevron/control remains untouched.
+             "if(e.closest('.s-pc-certification-faceout,.s-pc-faceout-container,[data-cy=s-pc-faceout-badge]'))return true;"
              "if(e.closest('button,[role=button],input,[class*=a-checkbox],[class*=a-icon-checkbox],[class*=puis-heart-position],[class*=lists-framework-action-button],[class*=mlt-icon-container],[data-action]'))return false;"
              "if(!r||r.width<8||r.height<8||r.width>48||r.height>48)return false;"
              "var p=e.parentElement,d=0;while(p&&d++<4){var pr=p.getBoundingClientRect();"
@@ -926,7 +934,7 @@ static NSString *ADDarkReaderBootstrap(void){
            "function contentImg616(e,r,cs){try{if(!e||String(e.tagName||'').toLowerCase()!=='img')return false;"
              "var al=(e.getAttribute&&e.getAttribute('alt')||'').trim();if(al.length>1)return true;"
              "if(e.closest&&e.closest(CONTENTIMG616))return true;"
-             "if(productBadgeImg6090(e,r))return true;"
+             "if(productBadgeImg6094(e,r))return true;"
              "var brs=String((cs&&cs.borderRadius)||''),br=parseFloat(brs)||0,pct=brs.indexOf('%%')>=0;"
              "var circ=pct?br>=40:br>=Math.min(r.width,r.height)*0.4;"
              "if(circ&&((e.naturalWidth||0)>64||(e.naturalHeight||0)>64))return true;"
@@ -976,12 +984,12 @@ static NSString *ADDarkReaderBootstrap(void){
            "for(var i=0;i<els.length;i++){var el=els[i];"
              "if(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(el)){n+=prodInk6078(el);continue;}"
              "var cs=getComputedStyle(el);"
-             // v6.0.90: if a recycled product-badge IMG was previously claimed by
+             // v6.0.94: if a recycled product-badge IMG was previously claimed by
              // gfix1 earlier in this same WebView, release that stale inline filter
              // before the normal glyph gate runs again. This is O(1) and only does
              // geometry/ancestry work on elements already marked as a generic glyph.
              "try{if(el.__adGlyph&&/^gfix/.test(String(el.__adBy||''))&&String(el.tagName||'').toLowerCase()==='img'){"
-               "var hr6090=el.getBoundingClientRect();if(contentImg616(el,hr6090,cs)){el.style.removeProperty('filter');el.__adGlyph=0;el.__adBy='productBadge6090';}}}catch(h6090){}"
+               "var hr6090=el.getBoundingClientRect();if(contentImg616(el,hr6090,cs)){el.style.removeProperty('filter');el.__adGlyph=0;el.__adBy='productBadge6094';}}}catch(h6090){}"
              // NO LIGHT PANELS. Anything still measuring light after Dark Reader has
              // run is a miss -- a gradient it could not parse, a shadow subtree, an
              // inline style it skipped. Correct by COMPUTED value so the mechanism
@@ -1448,13 +1456,21 @@ static NSString *ADThreeSymbolsWebJS605(void){
            // scan.  Only schedule when the mutation can actually contain a checkbox or dot.
            "var REL434='input[type=checkbox],[role=checkbox],[aria-checked],[class*=a-checkbox],[class*=a-icon-checkbox],[class*=copilot-compare],button[aria-label*=ompare],[role=button][aria-label*=ompare],[data-csa-c-content-id*=ompare],[data-testid*=ompare],img[src*=checkbox],img[data-src*=checkbox],ul.a-pagination.a-dots,[class*=a-pagination][class*=dots]';"
            "function rel434(n){try{if(!n||n.nodeType!==1)return false;if(n.matches&&n.matches(REL434))return true;if(n.closest&&n.closest('ul.a-pagination.a-dots,[class*=a-pagination][class*=dots],[class*=a-checkbox],[class*=copilot-compare],[role=checkbox]'))return true;return !!(n.querySelector&&n.querySelector(REL434));}catch(x){return false;}}"
-           "new MutationObserver(function(ms){try{for(var i=0;i<ms.length;i++){var m=ms[i];if(m.type==='attributes'&&rel434(m.target)){queue434(90);return;}var A=m.addedNodes||[];for(var j=0;j<A.length;j++)if(rel434(A[j])){queue434(90);return;}}}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','aria-current','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});}"
+           // v6.0.94 performance: retire the global post-scroll reconciliation path.
+           // Reuse this already-existing filtered observer for the few Heart/cards
+           // structures that used to depend on scroll-stop recovery.  No new observer
+           // is created; symbol work now wakes only when a relevant node/state changes.
+           "var RELSYM6094='[class*=puis-heart-position],[class*=lists-framework-action-button],[class*=lists-framework-heart],[class*=mlt-icon-container]';"
+           "function relsym6094(n){try{if(!n||n.nodeType!==1)return false;if(n.matches&&n.matches(RELSYM6094))return true;if(n.closest&&n.closest(RELSYM6094))return true;return !!(n.querySelector&&n.querySelector(RELSYM6094));}catch(x){return false;}}"
+           "function qsym6094(){try{if(window.__AD_SYM605_QUEUE__)window.__AD_SYM605_QUEUE__();}catch(x){}}"
+           "new MutationObserver(function(ms){try{var qc=0,qs=0;for(var i=0;i<ms.length;i++){var m=ms[i];if(m.type==='attributes'){if(!qc&&rel434(m.target))qc=1;if(!qs&&relsym6094(m.target))qs=1;}var A=m.addedNodes||[];for(var j=0;j<A.length&&(!qc||!qs);j++){if(!qc&&rel434(A[j]))qc=1;if(!qs&&relsym6094(A[j]))qs=1;}if(qc&&qs)break;}if(qc)queue434(90);if(qs)qsym6094();}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','aria-current','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});}"
            "stockCheckbox434();setTimeout(stockCheckbox434,40);setTimeout(stockCheckbox434,180);setTimeout(stockCheckbox434,700);setTimeout(stockCheckbox434,1800);"
          "}catch(e){}"
          // Tiny 6.x reapply entry point only. It does not alter either donor owner.
          "window.__AD_SYM605_RUN__=sym413;"
          "window.__AD_SYM605_QUEUE__=function(){try{if(window.__AD_SYM605_Q__)return;window.__AD_SYM605_Q__=1;var f=function(){window.__AD_SYM605_Q__=0;try{window.__AD_HEARTSHELL427__();}catch(x){}try{sym413();}catch(x){}try{window.__AD_CHECKBOX434__&&window.__AD_CHECKBOX434__();}catch(x){}try{window.__AD_DOTFIX374__&&window.__AD_DOTFIX374__();}catch(x){}};if(window.requestIdleCallback)requestIdleCallback(f,{timeout:220});else setTimeout(f,40);}catch(e){}};"
-         "try{if(!window.__AD_SYM_SCROLL619__){window.__AD_SYM_SCROLL619__=1;window.__AD_SYM_SCROLL6056__=function(){try{var f=function(){try{window.__AD_HEARTSHELL427__();}catch(x){}try{sym413();}catch(x){}try{window.__AD_DOTFIX374__&&window.__AD_DOTFIX374__();}catch(x){}};if(window.requestIdleCallback)requestIdleCallback(f,{timeout:220});else setTimeout(f,40);}catch(x){}};addEventListener('scroll',function(){clearTimeout(window.__AD_SYM_SCROLL_T619__);window.__AD_SYM_SCROLL_T619__=setTimeout(function(){try{window.__AD_SYM_SCROLL6056__();}catch(x){}},180);},{passive:true,capture:true});}}catch(e){}"
+         // v6.0.94: no web scroll listener. Heart/cards recovery is mutation/state
+         // driven through the existing filtered checkbox/dot observer above.
          "try{window.__AD_SYM605_QUEUE__();}catch(e){}"
        "return 'sym609';}catch(e){return 'sym609err '+(e&&e.message||e);}})();"];
     return cached;
@@ -1593,82 +1609,6 @@ static void ADInjectAllWebViews(void){
     } @catch(...) {}
 }
 
-
-// v6.0.93 diagnostic only: automatic lifecycle snapshot for the search/product
-// drill-in pane. v6.0.91's notifyutil trigger was unavailable on-device and the
-// v6.0.92 SIGUSR2 trigger proved unreliable in this process. This probe therefore
-// needs no shell-side trigger at all: it snapshots only on real WK navigation and
-// app foreground lifecycle events. No recurring timer/observer/scroll work is added.
-static NSString *ADSearchPaneProbeJS6093(void){
-    return @"(function(){try{"
-        "function S(v,n){v=String(v==null?'':v);return v.length>(n||180)?v.slice(0,n||180):v;}"
-        "function V(e){try{var r=e.getBoundingClientRect();var c=getComputedStyle(e);return r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth&&c.display!=='none'&&c.visibility!=='hidden'&&parseFloat(c.opacity||'1')>.02;}catch(x){return false;}}"
-        "function P(c){try{var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/.exec(String(c||''));if(!m)return -1;return (.2126*(+m[1])+.7152*(+m[2])+.0722*(+m[3]))/255;}catch(x){return -1;}}"
-        "function D(e){try{var c=getComputedStyle(e),r=e.getBoundingClientRect(),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');return {tag:e.tagName||'',id:S(e.id,70),cl:S(e.className&&e.className.baseVal||e.className,180),role:S(e.getAttribute&&e.getAttribute('role'),60),csa:S(e.getAttribute&&e.getAttribute('data-csa-c-content-id'),100),by:S(e.__adBy,60),glyph:e.__adGlyph?1:0,r:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],bg:S(c.backgroundColor,70),bgi:S(c.backgroundImage,120),f:S(c.filter,120),op:S(c.opacity,30),bd:S(c.border,100),rad:S(c.borderRadius,60),col:S(c.color,70),tfc:S(c.webkitTextFillColor,70),drbg:S(e.getAttribute&&e.getAttribute('data-darkreader-inline-bgcolor'),80),bef:[S(b.backgroundColor,60),S(b.backgroundImage,100),S(b.content,80)],aft:[S(a.backgroundColor,60),S(a.backgroundImage,100),S(a.content,80)],txt:S(String(e.textContent||'').replace(/\\s+/g,' ').trim(),180)};}catch(x){return {err:String(x)}}}"
-        "function H(e){var z=[],p=e,d=0;while(p&&d++<7){z.push(D(p));p=p.parentElement;}return z;}"
-        "var O={url:String(location.href),vh:innerHeight,vw:innerWidth,vis:String(document.visibilityState||''),feature:[],text:[],swatch:[],light:[]};"
-        "var I=document.images||[];for(var i=0;i<I.length&&O.feature.length<40;i++){var e=I[i],r=e.getBoundingClientRect();if(!V(e)||r.width<7||r.height<7||r.width>72||r.height>72)continue;var tx=String((e.parentElement&&e.parentElement.textContent)||'').replace(/\\s+/g,' ').trim();var sem=/works with alexa|recycled materials|carbon impact|climate pledge|materials|impact/i.test(tx);if(!sem&&!e.__adBy&&!e.__adGlyph)continue;var q=D(e);q.src=S(e.currentSrc||e.src||e.getAttribute('data-src'),220);q.alt=S(e.getAttribute('alt'),120);q.nat=[e.naturalWidth||0,e.naturalHeight||0];q.chain=H(e);O.feature.push(q);}"
-        "var E=document.querySelectorAll('a,span,div,label,button');for(var j=0;j<E.length&&O.text.length<30;j++){var t=E[j];if(!V(t))continue;var x=String(t.textContent||'').replace(/\\s+/g,' ').trim();if(!/other color\\/pattern|^color\\s*:/i.test(x)||x.length>220)continue;O.text.push({kind:/other color\\/pattern/i.test(x)?'variation':'color-label',chain:H(t)});}"
-        "var C=document.querySelectorAll('[role=radio],[class*=swatch],[class*=twister],[class*=variation],input[type=radio],button');for(var m=0;m<C.length&&O.swatch.length<48;m++){var q=C[m];if(!V(q))continue;var rr=q.getBoundingClientRect();if(rr.width<8||rr.height<8||rr.width>100||rr.height>100)continue;var an=q,pn=0,hit=false;while(an&&pn++<6){var at=String(an.textContent||'').replace(/\\s+/g,' ').trim();if(/^color\\s*:/i.test(at)||/color\\s*:/i.test(at)){hit=true;break;}an=an.parentElement;}if(hit)O.swatch.push(H(q));}"
-        "var A=document.querySelectorAll('div,span,a,label,section,ul,li');for(var n=0;n<A.length&&O.light.length<50;n++){var y=A[n];if(!V(y))continue;var ry=y.getBoundingClientRect();if(ry.width<20||ry.height<8||ry.width>460||ry.height>130)continue;var cy=getComputedStyle(y),L=P(cy.backgroundColor);if(L<.42)continue;var tx2=String(y.textContent||'').replace(/\\s+/g,' ').trim();var near=/other color\\/pattern|color\\s*:|works with alexa|recycled materials|carbon impact/i.test(tx2);var prod=y.closest&&y.closest('[data-component-type=s-search-result],[class*=s-result-item],[class*=puis-card],[data-asin]');if(!near&&!prod)continue;O.light.push(H(y));}"
-        "return JSON.stringify(O);"
-    "}catch(e){return 'ERR '+String(e&&e.stack||e);}})();";
-}
-
-static NSString *ADSearchPaneProbePath6093(void){
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-search-lifecycle-probe-6093.txt"];
-}
-
-static NSUInteger gADSearchPaneProbeSeq6093 = 0;
-static void ADAppendSearchPaneProbe6093(NSString *line){
-    if (!line.length) return;
-    @try {
-        NSString *path = ADSearchPaneProbePath6093();
-        NSFileHandle *fh = [NSFileHandle fileHandleForWritingAtPath:path];
-        if (!fh){
-            [line writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
-            return;
-        }
-        [fh seekToEndOfFile];
-        [fh writeData:[line dataUsingEncoding:NSUTF8StringEncoding]];
-        [fh closeFile];
-    } @catch(...) {}
-}
-
-static void ADResetSearchPaneProbe6093(void){
-    @try {
-        NSString *head = [NSString stringWithFormat:@"AmazonDark automatic search lifecycle probe 6093\\nversion=%s\\npid=%d\\n\\n", AD_VERSION, getpid()];
-        [head writeToFile:ADSearchPaneProbePath6093() atomically:YES encoding:NSUTF8StringEncoding error:nil];
-    } @catch(...) {}
-}
-
-static void ADProbeSearchPane6093(NSString *label){
-    if (![NSThread isMainThread]){
-        dispatch_async(dispatch_get_main_queue(), ^{ ADProbeSearchPane6093(label); });
-        return;
-    }
-    @try {
-        NSUInteger seq = ++gADSearchPaneProbeSeq6093;
-        NSArray *views = gADWebViews613.allObjects;
-        NSString *mark = [NSString stringWithFormat:@"EVENT %lu label=%@ uptime=%.3f webviews=%lu\\n", (unsigned long)seq, label ?: @"?", ADUptime(), (unsigned long)views.count];
-        ADAppendSearchPaneProbe6093(mark);
-        NSString *js = ADSearchPaneProbeJS6093();
-        NSUInteger idx = 0;
-        for (WKWebView *wv in views){
-            if (!wv || !wv.window) continue;
-            NSString *url = wv.URL.absoluteString ?: @"";
-            NSUInteger my = idx++;
-            NSString *lab = [label copy] ?: @"?";
-            [wv evaluateJavaScript:js completionHandler:^(id result, NSError *error){
-                NSString *body = error ? [NSString stringWithFormat:@"ERROR %@", error] : ([result isKindOfClass:[NSString class]] ? result : [result description]);
-                NSString *line = [NSString stringWithFormat:@"SNAP %lu %@ WEBVIEW %lu %@\\n%@\\n\\n", (unsigned long)seq, lab, (unsigned long)my, url, body ?: @"(nil)"];
-                ADAppendSearchPaneProbe6093(line);
-            }];
-        }
-        if (!idx) ADAppendSearchPaneProbe6093([NSString stringWithFormat:@"SNAP %lu %@ NO MOUNTED WEBVIEWS\\n\\n", (unsigned long)seq, label ?: @"?"]);
-    } @catch(...) {}
-}
-
 // ════════════════════════════════════════════════════════════════════════════════
 // WKUserContentController — restore our script the moment Amazon strips it.
 // ────────────────────────────────────────────────────────────────────────────────
@@ -1766,10 +1706,7 @@ static void ADPrimeWebBacking611(WKWebView *wv){
 - (void)webView:(WKWebView *)wv didFinishNavigation:(id)nav {
     %orig;
     ADTrackWebView613(self);
-    ADProbeSearchPane6093(@"NAV_PRE_ENABLE");
     ADEnableDarkReaderIn(self);
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)),
-                   dispatch_get_main_queue(), ^{ ADProbeSearchPane6093(@"NAV_POST_350MS"); });
     // v5.446 direct-port cover release: only a real Amazon page counts.
     @try {
         NSString *nu = wv.URL.absoluteString ?: @"";
@@ -5197,28 +5134,12 @@ static void ADPrefsChanged(CFNotificationCenterRef center, void *observer,
     });
 }
 
-// Diagnostic-only v6.0.93 baseline: capture the still-good pane immediately before
-// Amazon leaves the foreground. This gives us a true BEFORE snapshot without any
-// shell trigger or PID utility.
-static void ADAppWillResign6093(CFNotificationCenterRef center, void *observer,
-                                CFStringRef name, const void *object,
-                                CFDictionaryRef userInfo) {
-    dispatch_async(dispatch_get_main_queue(), ^{ @try { ADProbeSearchPane6093(@"WILL_RESIGN_ACTIVE"); } @catch(...) {} });
-}
-
 // Foreground: a backgrounded app can be re-laid-out by the system, and web tabs may
 // have been reclaimed. One sweep on return is far cheaper than a forever-timer.
 static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
                               CFStringRef name, const void *object,
                               CFDictionaryRef userInfo) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-        @try {
-            ADProbeSearchPane6093(@"FOREGROUND_ENTER");
-            ADSweep();
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)),
-                           dispatch_get_main_queue(), ^{ ADProbeSearchPane6093(@"FOREGROUND_POST_350MS"); });
-        } @catch(...) {}
-    });
+    dispatch_async(dispatch_get_main_queue(), ^{ @try { ADSweep(); } @catch(...) {} });
 }
 
 // ─── %ctor : process guard + hook registration + bounded startup recovery ────
@@ -5278,11 +5199,6 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
         NULL, ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),
         NULL, CFNotificationSuspensionBehaviorCoalesce);
-    ADResetSearchPaneProbe6093();
-    CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(),
-        NULL, ADAppWillResign6093,
-        (__bridge CFStringRef)UIApplicationWillResignActiveNotification,
-        NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
     CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(),
         NULL, ADAppForegrounded,
         (__bridge CFStringRef)UIApplicationWillEnterForegroundNotification,
