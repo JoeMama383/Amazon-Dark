@@ -1,7 +1,7 @@
-# AmazonDark v6.0.73
+# AmazonDark v6.0.74
 
 
-## v6.0.73 — complete voice-sheet microphone glyph
+## v6.0.74 — one-shot voice-sheet microphone ownership probe
 
 - Keeps the working v6.0.72 voice-permission text repair unchanged.
 - Restores the exact v5.446 RN SVG minimum-size floor (3 pt instead of 6 pt), allowing tiny/transformed `RNSVGSvgView` microphone artwork to use the existing light-glyph filter.
