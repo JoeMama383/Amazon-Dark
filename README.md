@@ -1,6 +1,15 @@
-# AmazonDark v6.0.95
+# AmazonDark v6.0.97
 
-## v6.0.95 — certification badges + transparent variation shells + zero scroll listener
+
+## v6.0.97 — white-shell fix + targeted recycle probe
+
+- Builds directly on the clean v6.0.94/v6.0.96 production runtime.
+- Keeps the confirmed recycled certification-glyph fix and zero web scroll listeners.
+- Extends document-start transparency to the exact variation/swatch structural inner wrappers captured by probe 6093 (`rush-component`, `text-wrapper`, `puis-cs-label`, and truncate full/cut wrappers) without touching actual swatch/radio artwork.
+- Ships a targeted diagnostic ring buffer in the same build. It reuses the existing lazy-content MutationObserver instead of adding a new document observer, and records only variation/swatch mutations already flowing through that observer. Background Amazon once after reproducing the flash to dump `AmazonDark-white-shell-probe-6097.txt`.
+- No new web scroll listener, interval, RAF, or production DOM observer.
+
+## v6.0.94 — certification badges + transparent variation shells + zero scroll listener
 
 - Fixes recycled search-result certification/feature badges (Works with Alexa, Carbon impact, etc.) turning into blank white squares after scrolling offscreen and back. The v6.0.93 probe proved those 16x16 `IMG.s-image` assets were being claimed by `gfix1` and forced through `brightness(0) invert(1)`.
 - Makes the variation-options and color-swatch structural shells transparent from documentStart and in the Dark Reader fixes sheet, eliminating the visible replacement rectangle while preserving Amazon-owned color circles.
@@ -424,7 +433,3 @@ Person-tab TWB semantic precision build, based directly on v6.0.37 after v6.0.41
 - The one-shot verifier now runs in both ON and OFF states so an old 120-Hz report cannot be mistaken for a fresh disabled result.
 - Adds a constant-time dark backing floor to WKWebView/WKScrollView so fast 120-Hz flings reveal the dark theme rather than WebKit's default white backing while lazy tiles/content catch up.
 - Checkbox and v5.446 top-chrome logic are unchanged from v6.0.10.
-
-
-### v6.0.95 diagnostic probe
-Captures transient first-paint white shells around search-result color swatches and `+N other colors/patterns` during row recycling. Production theming remains v6.0.94 behavior; reproduce by scrolling, then background Amazon once to dump the bounded ring buffer.

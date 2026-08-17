@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.95"
+#define AD_VERSION "v6.0.97"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -601,18 +601,31 @@ static NSString *ADFixesLiteral(void){
              "picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],"
              "[class*=s-image],[class*=unfill],[class*=placehold]"
              "{background-color:transparent !important;}"
-             // v6.0.94: the v6.0.89 dark replacement stopped the white first-paint
-             // flash, but left a visible darker rectangle after settling.  These are
-             // structural option/swatch shells, not content surfaces: make the shells
-             // transparent from first paint so the already-dark product card is the
-             // only background owner.  Do not target descendants so the actual colour
-             // circles keep Amazon's own fills/borders.
+             // v6.0.97: keep the v6.0.94 transparent outer shells, and pre-own the
+             // exact structural inner wrappers proven by the 6093 probe.  Recycled
+             // result rows can briefly instantiate these inner wrappers with Amazon's
+             // stock light paint before their final classes/styles settle.  Only named
+             // text/structure wrappers are cleared; swatch/radio/button artwork is not
+             // selected, so the actual colour circles retain Amazon's fills/borders.
              "[data-csa-c-content-id=variation-options-link],[class*=s-variations-options-justify-content],"
              "[class*=s-variation-options-text],[class*=s-variation-options-link],"
              "[class*=s-color-swatch-container-list-view],[class*=puis-csi-with-label-container]"
              "{background-color:transparent !important;background-image:none !important;box-shadow:none !important;}"
              "[data-csa-c-content-id=variation-options-link] [class*=a-truncate],"
-             "[class*=s-variation-options-link] [class*=a-truncate]"
+             "[data-csa-c-content-id=variation-options-link] [class*=a-truncate-full],"
+             "[data-csa-c-content-id=variation-options-link] [class*=a-truncate-cut],"
+             "[class*=s-variation-options-link] [class*=a-truncate],"
+             "[class*=s-variation-options-link] [class*=a-truncate-full],"
+             "[class*=s-variation-options-link] [class*=a-truncate-cut],"
+             "[class*=s-variation-options-link] [class*=rush-component],"
+             "[class*=s-variation-options-link] [class*=text-wrapper],"
+             "[class*=s-color-swatch-container-list-view] [class*=puis-csi-with-label-container],"
+             "[class*=s-color-swatch-container-list-view] [class*=puis-cs-label],"
+             "[class*=s-color-swatch-container-list-view] [class*=text-wrapper],"
+             "[class*=s-color-swatch-container-list-view] [class*=rush-component],"
+             "[class*=s-color-swatch-container-list-view] [class*=a-truncate],"
+             "[class*=s-color-swatch-container-list-view] [class*=a-truncate-full],"
+             "[class*=s-color-swatch-container-list-view] [class*=a-truncate-cut]"
              "{background-color:transparent !important;background-image:none !important;box-shadow:none !important;}"
              ".s-coupon-tile.red{background-color:#440000 !important;background-image:none !important;}"
              ".s-coupon-tile.red label,.s-coupon-tile.red span"
@@ -736,21 +749,6 @@ static NSString *ADDarkReaderBootstrap(void){
     gADBootstrap613 = [NSString stringWithFormat:
         @"(function(){try{"
          "if(window.__AMZDARK_LOADED__)return;window.__AMZDARK_LOADED__=1;"
-         // v6.0.95 diagnostic only: capture the transient white structural shell
-         // around Color swatches / "+N other colors/patterns" while Amazon recycles
-         // result rows. Records a bounded ring buffer only; production paint is unchanged.
-         "try{if(!window.__AD_FLASH6095_INSTALLED__){window.__AD_FLASH6095_INSTALLED__=1;window.__AD_FLASH6095__=[];"
-           "var adfSeen6095=new WeakMap();"
-           "function adfS6095(v,n){v=String(v==null?'':v);return v.length>(n||180)?v.slice(0,n||180):v;}"
-           "function adfLum6095(c){try{var m=/rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(String(c||''));if(!m)return -1;return (.2126*(+m[1])+.7152*(+m[2])+.0722*(+m[3]))/255;}catch(x){return -1;}}"
-           "function adfD6095(e){try{var c=getComputedStyle(e),r=e.getBoundingClientRect(),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');return {tag:e.tagName||'',id:adfS6095(e.id,60),cl:adfS6095(e.className&&e.className.baseVal||e.className,180),r:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],bg:adfS6095(c.backgroundColor,70),bgi:adfS6095(c.backgroundImage,120),bs:adfS6095(c.boxShadow,120),bd:adfS6095(c.border,100),op:adfS6095(c.opacity,30),disp:adfS6095(c.display,40),vis:adfS6095(c.visibility,40),sty:adfS6095(e.getAttribute&&e.getAttribute('style'),220),bef:[adfS6095(b.backgroundColor,70),adfS6095(b.backgroundImage,120),adfS6095(b.boxShadow,120),adfS6095(b.content,80)],aft:[adfS6095(a.backgroundColor,70),adfS6095(a.backgroundImage,120),adfS6095(a.boxShadow,120),adfS6095(a.content,80)],txt:adfS6095(String(e.textContent||'').replace(/\s+/g,' ').trim(),180)};}catch(x){return {err:String(x)}}}"
-           "function adfChain6095(e){var z=[],p=e,d=0;while(p&&d++<8){z.push(adfD6095(p));p=p.parentElement;}return z;}"
-           "function adfTarget6095(e){try{if(!e||e.nodeType!==1)return null;var sel='[data-csa-c-content-id=variation-options-link],[class*=s-variations-options-justify-content],[class*=s-variation-options-text],[class*=s-variation-options-link],[class*=s-color-swatch-container-list-view],[class*=puis-csi-with-label-container]';var q=e.matches&&e.matches(sel)?e:(e.closest&&e.closest(sel));if(q)return q;var t=String(e.textContent||'').replace(/\s+/g,' ').trim();if(t.length<700&&(/other colors?\/patterns?/i.test(t)||/^color\s*:/i.test(t)||/color:\s*color:/i.test(t)))return e;return null;}catch(x){return null;}}"
-           "function adfSnap6095(why,e){try{var q=adfTarget6095(e);if(!q||!q.isConnected)return;var now=Date.now(),last=adfSeen6095.get(q)||0;if(now-last<90&&why==='mut')return;adfSeen6095.set(q,now);var R=q.getBoundingClientRect();if(R.width<20||R.height<6||R.width>460||R.height>180)return;var rec={t:now,why:why,url:String(location.href),target:adfD6095(q),chain:adfChain6095(q),bright:[]};var A=q.querySelectorAll?q.querySelectorAll('div,span,a,label,section,button,ul,li'):[];for(var i=0;i<A.length&&rec.bright.length<36;i++){var x=A[i],rx=x.getBoundingClientRect();if(rx.width<10||rx.height<5||rx.width>460||rx.height>180)continue;var cx=getComputedStyle(x),L=adfLum6095(cx.backgroundColor),pb=adfLum6095(getComputedStyle(x,'::before').backgroundColor),pa=adfLum6095(getComputedStyle(x,'::after').backgroundColor);if(L>.38||pb>.38||pa>.38||String(cx.backgroundImage||'')!=='none'||String(cx.boxShadow||'')!=='none')rec.bright.push(adfD6095(x));}window.__AD_FLASH6095__.push(rec);if(window.__AD_FLASH6095__.length>220)window.__AD_FLASH6095__.splice(0,window.__AD_FLASH6095__.length-220);}catch(x){}}"
-           "function adfTouch6095(n){try{if(!n)return;if(n.nodeType===3)n=n.parentElement;if(!n||n.nodeType!==1)return;var q=adfTarget6095(n);if(!q&&n.querySelector){q=n.querySelector('[data-csa-c-content-id=variation-options-link],[class*=s-variations-options-justify-content],[class*=s-variation-options-text],[class*=s-variation-options-link],[class*=s-color-swatch-container-list-view],[class*=puis-csi-with-label-container]');}if(!q)return;adfSnap6095('mut',q);setTimeout(function(){adfSnap6095('t0',q);},0);setTimeout(function(){adfSnap6095('t20',q);},20);setTimeout(function(){adfSnap6095('t100',q);},100);}catch(x){}}"
-           "window.__AD_FLASH6095_DUMP__=function(){try{return JSON.stringify({url:String(location.href),n:window.__AD_FLASH6095__.length,records:window.__AD_FLASH6095__});}catch(e){return 'ERR '+String(e);}};"
-           "if(document.documentElement){new MutationObserver(function(ms){try{for(var i=0;i<ms.length&&i<48;i++){var m=ms[i];adfTouch6095(m.target);var A=m.addedNodes||[];for(var j=0;j<A.length&&j<20;j++)adfTouch6095(A[j]);}}catch(e){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','hidden','aria-hidden']});}"
-         "}}catch(e){}"
          // v6.0.12: establish the page canvas before the Dark Reader UMD is parsed.
          // This is intentionally root-only: it cannot touch product/photo pixels,
          // but it means lazy/virtualised holes reveal the theme floor, not Amazon white.
@@ -771,7 +769,20 @@ static NSString *ADDarkReaderBootstrap(void){
            "[class*=s-color-swatch-container-list-view],[class*=puis-csi-with-label-container]"
            "{background-color:transparent !important;background-image:none !important;box-shadow:none !important;}"
            "[data-csa-c-content-id=variation-options-link] [class*=a-truncate],"
-           "[class*=s-variation-options-link] [class*=a-truncate]"
+           "[data-csa-c-content-id=variation-options-link] [class*=a-truncate-full],"
+           "[data-csa-c-content-id=variation-options-link] [class*=a-truncate-cut],"
+           "[class*=s-variation-options-link] [class*=a-truncate],"
+           "[class*=s-variation-options-link] [class*=a-truncate-full],"
+           "[class*=s-variation-options-link] [class*=a-truncate-cut],"
+           "[class*=s-variation-options-link] [class*=rush-component],"
+           "[class*=s-variation-options-link] [class*=text-wrapper],"
+           "[class*=s-color-swatch-container-list-view] [class*=puis-csi-with-label-container],"
+           "[class*=s-color-swatch-container-list-view] [class*=puis-cs-label],"
+           "[class*=s-color-swatch-container-list-view] [class*=text-wrapper],"
+           "[class*=s-color-swatch-container-list-view] [class*=rush-component],"
+           "[class*=s-color-swatch-container-list-view] [class*=a-truncate],"
+           "[class*=s-color-swatch-container-list-view] [class*=a-truncate-full],"
+           "[class*=s-color-swatch-container-list-view] [class*=a-truncate-cut]"
            "{background-color:transparent !important;background-image:none !important;box-shadow:none !important;}"
            ".s-coupon-tile.red{background-color:#440000 !important;background-image:none !important;}"
            ".s-coupon-tile.red label,.s-coupon-tile.red span"
@@ -1154,12 +1165,25 @@ static NSString *ADDarkReaderBootstrap(void){
            "if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);"
            "window.__AD_IDLE6056__(function(){window.__AMZDARK_FIXCONTRAST__();if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);},260);"
          "}catch(e){}};"
+         // v6.0.97 diagnostic: reuse the EXISTING lazy-content MutationObserver below
+         // instead of installing another document observer.  Only mutations that already
+         // reached that bounded observer can enter this tiny variation/swatch ring buffer.
+         // This lets us capture the recycled-row flash while shipping the CSS fix in the
+         // same build, without putting probe work on documentStart or the scroll path.
+         "window.__AD_FLASH6097__=[];"
+         "function adfS6097(v,n){v=String(v==null?'':v);return v.length>(n||180)?v.slice(0,n||180):v;}"
+         "function adfL6097(c){try{var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/.exec(String(c||''));if(!m)return -1;return(.2126*(+m[1])+.7152*(+m[2])+.0722*(+m[3]))/255;}catch(e){return -1;}}"
+         "function adfD6097(e){try{var c=getComputedStyle(e),r=e.getBoundingClientRect(),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');return{tag:e.tagName||'',cl:adfS6097(e.className&&e.className.baseVal||e.className,180),r:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],bg:adfS6097(c.backgroundColor,70),bgi:adfS6097(c.backgroundImage,120),bs:adfS6097(c.boxShadow,120),sty:adfS6097(e.getAttribute&&e.getAttribute('style'),220),bef:[adfS6097(b.backgroundColor,70),adfS6097(b.backgroundImage,120),adfS6097(b.boxShadow,120),adfS6097(b.content,80)],aft:[adfS6097(a.backgroundColor,70),adfS6097(a.backgroundImage,120),adfS6097(a.boxShadow,120),adfS6097(a.content,80)],txt:adfS6097(String(e.textContent||'').replace(/\\s+/g,' ').trim(),160)};}catch(x){return{err:String(x)}}}"
+         "function adfT6097(e){try{if(!e||e.nodeType!==1)return null;var S='[data-csa-c-content-id=variation-options-link],[class*=s-variations-options-justify-content],[class*=s-variation-options-text],[class*=s-variation-options-link],[class*=s-color-swatch-container-list-view],[class*=puis-csi-with-label-container]';if(e.matches&&e.matches(S))return e;if(e.closest){var q=e.closest(S);if(q)return q;}var c=String(e.className&&e.className.baseVal||e.className||'');if(!/(variation|swatch|puis-csi|puis-cs-label|text-wrapper|rush-component|a-truncate)/i.test(c))return null;var t=String(e.textContent||'').replace(/\\s+/g,' ').trim();if(t.length<600&&(/other colors?\\/patterns?/i.test(t)||/^color\\s*:/i.test(t)||/color:\\s*color:/i.test(t)))return e;return null;}catch(x){return null;}}"
+         "function adfSnap6097(why,e){try{var q=adfT6097(e);if(!q||!q.isConnected)return;var R=q.getBoundingClientRect();if(R.width<20||R.height<5||R.width>460||R.height>180)return;var rec={t:Date.now(),why:why,url:String(location.href),target:adfD6097(q),bright:[]},p=q,d=0;rec.chain=[];while(p&&d++<7){rec.chain.push(adfD6097(p));p=p.parentElement;}var A=q.querySelectorAll?q.querySelectorAll('div,span,a,label,section,button,ul,li'):[];for(var i=0;i<A.length&&rec.bright.length<28;i++){var x=A[i],rx=x.getBoundingClientRect();if(rx.width<10||rx.height<4||rx.width>460||rx.height>180)continue;var cx=getComputedStyle(x),L=adfL6097(cx.backgroundColor),pb=adfL6097(getComputedStyle(x,'::before').backgroundColor),pa=adfL6097(getComputedStyle(x,'::after').backgroundColor);if(L>.32||pb>.32||pa>.32||String(cx.backgroundImage||'')!=='none'||String(cx.boxShadow||'')!=='none')rec.bright.push(adfD6097(x));}window.__AD_FLASH6097__.push(rec);if(window.__AD_FLASH6097__.length>180)window.__AD_FLASH6097__.splice(0,window.__AD_FLASH6097__.length-180);}catch(x){}}"
+         "window.__AD_FLASH_TOUCH6097__=function(n){try{if(!n)return;if(n.nodeType===3)n=n.parentElement;if(!n||n.nodeType!==1)return;var q=adfT6097(n);if(!q)return;adfSnap6097('mut',q);setTimeout(function(){adfSnap6097('t0',q);},0);setTimeout(function(){adfSnap6097('t20',q);},20);setTimeout(function(){adfSnap6097('t80',q);},80);}catch(x){}};"
+         "window.__AD_FLASH6097_DUMP__=function(){try{return JSON.stringify({url:String(location.href),n:window.__AD_FLASH6097__.length,records:window.__AD_FLASH6097__});}catch(e){return'ERR '+String(e);}};"
          // Re-run fallback repair as lazy content arrives, but never synchronously in
          // the MutationObserver. v6.0.82 no longer discards native-ad descendants here:
          // __AMZDARK_FIXCONTRAST__ routes every such element through prodInk6078 and
          // continues before generic paint. Native-local roots are capped at 120.
          // Coalesce nested roots and let WebKit finish rendering.
-         "try{var _t=null,_roots=[],_idle=0;function run6056(){_idle=0;try{var R=_roots;_roots=[];for(var i=0;i<R.length;i++){var r=R[i];if(!r||!r.isConnected)continue;var nested=false;for(var j=0;j<R.length;j++){if(i!==j&&R[j]&&R[j].contains&&R[j].contains(r)){nested=true;break;}}if(!nested){window.__AMZDARK_FIXCONTRAST__(r);if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(r);}}}catch(e){}}new MutationObserver(function(ms){try{for(var mi=0;mi<ms.length&&_roots.length<12;mi++){var A=ms[mi].addedNodes||[];for(var ai=0;ai<A.length&&_roots.length<12;ai++){var n=A[ai];if(n&&n.nodeType===3)n=n.parentElement;if(!n||n.nodeType!==1)continue;if(_roots.indexOf(n)<0)_roots.push(n);}}if(!_roots.length)return;clearTimeout(_t);_t=setTimeout(function(){if(_idle)return;_idle=1;window.__AD_IDLE6056__(run6056,320);},120);}catch(e){}})"
+         "try{var _t=null,_roots=[],_idle=0;function run6056(){_idle=0;try{var R=_roots;_roots=[];for(var i=0;i<R.length;i++){var r=R[i];if(!r||!r.isConnected)continue;var nested=false;for(var j=0;j<R.length;j++){if(i!==j&&R[j]&&R[j].contains&&R[j].contains(r)){nested=true;break;}}if(!nested){window.__AMZDARK_FIXCONTRAST__(r);if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(r);}}}catch(e){}}new MutationObserver(function(ms){try{for(var mi=0;mi<ms.length&&_roots.length<12;mi++){var A=ms[mi].addedNodes||[];for(var ai=0;ai<A.length&&_roots.length<12;ai++){var n=A[ai];if(n&&n.nodeType===3)n=n.parentElement;if(!n||n.nodeType!==1)continue;if(window.__AD_FLASH_TOUCH6097__)window.__AD_FLASH_TOUCH6097__(n);if(_roots.indexOf(n)<0)_roots.push(n);}}if(!_roots.length)return;clearTimeout(_t);_t=setTimeout(function(){if(_idle)return;_idle=1;window.__AD_IDLE6056__(run6056,320);},120);}catch(e){}})"
            ".observe(document.documentElement,{childList:true,subtree:true});}catch(e){}"
          "window.__AMZDARK_APPLY__();"
          // Re-apply when the page is restored from the back-forward cache (returning
@@ -1624,48 +1648,46 @@ static void ADInjectAllWebViews(void){
     } @catch(...) {}
 }
 
-
-// v6.0.95 diagnostic-only exporter for the transient variation/swatch shell ring
-// buffer installed at documentStart above. Reproduce the flash by scrolling, then
-// background Amazon once; WILL_RESIGN_ACTIVE writes all WebView buffers to tmp.
-static NSString *ADFlashProbePath6095(void){
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-white-shell-probe-6095.txt"];
+// v6.0.97 diagnostic exporter.  The JS ring buffer above reuses an existing DOM
+// observer; backgrounding once after reproducing the flash simply dumps that buffer.
+static NSString *ADFlashProbePath6097(void){
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-white-shell-probe-6097.txt"];
 }
-static void ADAppendFlashProbe6095(NSString *line){
+static void ADAppendFlashProbe6097(NSString *line){
     if (!line.length) return;
     @try {
-        NSString *path=ADFlashProbePath6095();
+        NSString *path=ADFlashProbePath6097();
         NSFileHandle *fh=[NSFileHandle fileHandleForWritingAtPath:path];
         if (!fh){ [line writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil]; return; }
         [fh seekToEndOfFile]; [fh writeData:[line dataUsingEncoding:NSUTF8StringEncoding]]; [fh closeFile];
     } @catch(...) {}
 }
-static void ADResetFlashProbe6095(void){
+static void ADResetFlashProbe6097(void){
     @try {
-        NSString *h=[NSString stringWithFormat:@"AmazonDark transient white-shell probe 6095\nversion=%s\npid=%d\n\n",AD_VERSION,getpid()];
-        [h writeToFile:ADFlashProbePath6095() atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        NSString *h=[NSString stringWithFormat:@"AmazonDark targeted white-shell probe 6097\nversion=%s\npid=%d\n\n",AD_VERSION,getpid()];
+        [h writeToFile:ADFlashProbePath6097() atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } @catch(...) {}
 }
-static void ADDumpFlashProbe6095(NSString *label){
-    if (![NSThread isMainThread]){ dispatch_async(dispatch_get_main_queue(), ^{ ADDumpFlashProbe6095(label); }); return; }
+static void ADDumpFlashProbe6097(NSString *label){
+    if (![NSThread isMainThread]){ dispatch_async(dispatch_get_main_queue(), ^{ ADDumpFlashProbe6097(label); }); return; }
     @try {
         NSArray *views=gADWebViews613.allObjects; NSUInteger idx=0;
-        ADAppendFlashProbe6095([NSString stringWithFormat:@"DUMP %@ uptime=%.3f webviews=%lu\n",label?:@"?",ADUptime(),(unsigned long)views.count]);
+        ADAppendFlashProbe6097([NSString stringWithFormat:@"DUMP %@ uptime=%.3f webviews=%lu\n",label?:@"?",ADUptime(),(unsigned long)views.count]);
         for (WKWebView *wv in views){
             if (!wv || !wv.window) continue;
             NSString *url=wv.URL.absoluteString?:@""; NSUInteger my=idx++;
-            [wv evaluateJavaScript:@"(function(){try{return window.__AD_FLASH6095_DUMP__?window.__AD_FLASH6095_DUMP__():'NO_PROBE';}catch(e){return 'ERR '+String(e);}})();" completionHandler:^(id result,NSError *error){
+            [wv evaluateJavaScript:@"(function(){try{return window.__AD_FLASH6097_DUMP__?window.__AD_FLASH6097_DUMP__():'NO_PROBE';}catch(e){return 'ERR '+String(e);}})();" completionHandler:^(id result,NSError *error){
                 NSString *body=error?[NSString stringWithFormat:@"ERROR %@",error]:([result isKindOfClass:[NSString class]]?result:[result description]);
-                ADAppendFlashProbe6095([NSString stringWithFormat:@"WEBVIEW %lu %@\n%@\n\n",(unsigned long)my,url,body?:@"(nil)"]);
+                ADAppendFlashProbe6097([NSString stringWithFormat:@"WEBVIEW %lu %@\n%@\n\n",(unsigned long)my,url,body?:@"(nil)"]);
             }];
         }
-        if (!idx) ADAppendFlashProbe6095(@"NO MOUNTED WEBVIEWS\n\n");
+        if (!idx) ADAppendFlashProbe6097(@"NO MOUNTED WEBVIEWS\n\n");
     } @catch(...) {}
 }
-static void ADFlashWillResign6095(CFNotificationCenterRef center, void *observer,
+static void ADFlashWillResign6097(CFNotificationCenterRef center, void *observer,
                                   CFStringRef name, const void *object,
                                   CFDictionaryRef userInfo){
-    dispatch_async(dispatch_get_main_queue(), ^{ @try { ADDumpFlashProbe6095(@"WILL_RESIGN_ACTIVE"); } @catch(...) {} });
+    dispatch_async(dispatch_get_main_queue(), ^{ @try { ADDumpFlashProbe6097(@"WILL_RESIGN_ACTIVE"); } @catch(...) {} });
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -5204,6 +5226,7 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
 // ─── %ctor : process guard + hook registration + bounded startup recovery ────
 %ctor {
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
+    ADResetFlashProbe6097();
     // v5.446 direct-port: drop cached light launch snapshots.
     @try {
         NSString *lib = [NSSearchPathForDirectoriesInDomains(
@@ -5258,14 +5281,13 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
         NULL, ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),
         NULL, CFNotificationSuspensionBehaviorCoalesce);
-    ADResetFlashProbe6095();
-    CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(),
-        NULL, ADFlashWillResign6095,
-        (__bridge CFStringRef)UIApplicationWillResignActiveNotification,
-        NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
     CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(),
         NULL, ADAppForegrounded,
         (__bridge CFStringRef)UIApplicationWillEnterForegroundNotification,
+        NULL, CFNotificationSuspensionBehaviorCoalesce);
+    CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(),
+        NULL, ADFlashWillResign6097,
+        (__bridge CFStringRef)UIApplicationWillResignActiveNotification,
         NULL, CFNotificationSuspensionBehaviorCoalesce);
 
 }
