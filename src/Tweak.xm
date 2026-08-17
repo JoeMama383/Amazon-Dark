@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.100"
+#define AD_VERSION "v6.0.101"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -593,6 +593,17 @@ static NSString *ADFixesLiteral(void){
              "[style*=multiply],[style*=darken],[style*=color-burn],"
              "[class*=deal] [style*=blend],[class*=Deal] [style*=blend]"
              "{mix-blend-mode:normal !important;isolation:auto !important;}"
+             // v6.0.101: the search-result deal chip is raw Amazon #cc0c39 before
+             // Dark Reader and settles near #a50b31 after DR. Lock the final hue in
+             // Dark Reader's authoritative fixes sheet so it cannot shift after first paint.
+             "[class*=badgeLabel]{background-color:#a50b31 !important;color:#ffffff !important;"
+             "-webkit-text-fill-color:#ffffff !important;mix-blend-mode:normal !important;transition:none !important;}"
+             "[class*=badgeLabel] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}"
+             // v6.0.101: v6.0.100 removed the white swatch background plane, but the
+             // remaining circular flash is the stock light ring itself. Preserve
+             // selected/unselected state while owning border/outline colour only.
+             ".s-color-swatch-outer-circle{border-color:#2f2f32 !important;outline-color:#2f2f32 !important;transition:none !important;}"
+             ".s-color-swatch-outer-circle.s-color-swatch-outer-circle-selected{border-color:#6d6b68 !important;outline-color:#6d6b68 !important;}"
              // v6.0.88: exact v5.446 v5.264-era Interests/image-wrapper prepaint.
              // This is the missing half of the historical flash fix: product-art
              // wrappers are transparent before hydration so the already-dark pane
@@ -834,6 +845,11 @@ static NSString *ADDarkReaderBootstrap(void){
              ".s-color-swatch-container,.s-color-swatch-outer-circle,"
              ".puis-status-badge-container,[data-component-type=s-status-badge-component] .a-badge-region"
              "{background:transparent !important;background-color:transparent !important;background-image:none !important;box-shadow:none !important;}"
+             // v6.0.101: first-paint ring colours matched to the settled dark state.
+             // Never touch .s-color-swatch-inner-circle-fill; the real swatch colours
+             // and selected-state geometry remain Amazon-owned.
+             ".s-color-swatch-outer-circle{border-color:#2f2f32 !important;outline-color:#2f2f32 !important;transition:none !important;}"
+             ".s-color-swatch-outer-circle.s-color-swatch-outer-circle-selected{border-color:#6d6b68 !important;outline-color:#6d6b68 !important;}"
            "[data-csa-c-content-id=variation-options-link] [class*=a-truncate],"
            "[data-csa-c-content-id=variation-options-link] [class*=a-truncate-full],"
            "[data-csa-c-content-id=variation-options-link] [class*=a-truncate-cut],"
@@ -906,7 +922,7 @@ static NSString *ADDarkReaderBootstrap(void){
            // readable after Amazon hydrates a recycled card.
            "[class*=npack-asin-card],[class*=npack-asin-card] *,[class*=gwm-asin-tile],[class*=gwm-asin-tile] *,[class*=gwm-tile],[class*=gwm-tile] *,[class*=cXVhZ],[class*=cXVhZ] *{mix-blend-mode:normal !important;isolation:auto !important;}"
            "[class*=npack-asin-card] [class*=a-size-mini],[class*=npack-asin-card] [class*=badge],[class*=npack-asin-card] [class*=percent]{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}"
-           "[class*=badgeLabel],[class*=hp-mosaic-container] [class*=badgeLabel],[class*=_mosaic-container_style_widgetContainer] [class*=badgeLabel]{background-color:#cc0c39 !important;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;mix-blend-mode:normal !important;}[class*=badgeLabel] *,[class*=hp-mosaic-container] [class*=badgeLabel] *,[class*=_mosaic-container_style_widgetContainer] [class*=badgeLabel] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}"
+           "[class*=badgeLabel],[class*=hp-mosaic-container] [class*=badgeLabel],[class*=_mosaic-container_style_widgetContainer] [class*=badgeLabel]{background-color:#a50b31 !important;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;mix-blend-mode:normal !important;}[class*=badgeLabel] *,[class*=hp-mosaic-container] [class*=badgeLabel] *,[class*=_mosaic-container_style_widgetContainer] [class*=badgeLabel] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}"
            "[class*=npack-asin-card] [class*=badgeMessage],[class*=npack-asin-card] [class*=badgeMessage] *,[class*=cXVhZ] [class*=badgeMessage],[class*=cXVhZ] [class*=badgeMessage] *{background-color:transparent !important;background-image:none !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;box-shadow:none !important;border-color:transparent !important;outline:0 !important;}"
            "[class*=npack-asin-card] [class*=badgeMessage]::before,[class*=npack-asin-card] [class*=badgeMessage]::after,[class*=npack-asin-card] [class*=badgeMessage] *::before,[class*=npack-asin-card] [class*=badgeMessage] *::after,[class*=cXVhZ] [class*=badgeMessage]::before,[class*=cXVhZ] [class*=badgeMessage]::after,[class*=cXVhZ] [class*=badgeMessage] *::before,[class*=cXVhZ] [class*=badgeMessage] *::after{background:transparent !important;background-image:none !important;box-shadow:none !important;border-color:transparent !important;}"
            "[class*=a-cardui] [class*=a-price-whole],[class*=a-cardui] [class*=a-price-symbol],[class*=a-cardui] [class*=a-price-decimal],[class*=a-cardui] [class*=a-truncate],[class*=cXVhZ] [class*=a-price-whole],[class*=cXVhZ] [class*=a-price-symbol],[class*=cXVhZ] [class*=a-price-decimal],[class*=cXVhZ] [class*=a-truncate],[class*=npack-asin-card] [class*=a-price-whole],[class*=npack-asin-card] [class*=a-price-symbol],[class*=npack-asin-card] [class*=a-price-decimal],[class*=npack-asin-card] [class*=a-truncate],[class*=gwm-asin-tile] [class*=a-price-whole],[class*=gwm-asin-tile] [class*=a-price-symbol],[class*=gwm-asin-tile] [class*=a-price-decimal],[class*=gwm-asin-tile] [class*=a-truncate]{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}"
@@ -1257,20 +1273,20 @@ static NSString *ADDarkReaderBootstrap(void){
          // reached that bounded observer can enter this tiny variation/swatch ring buffer.
          // This lets us capture the recycled-row flash while shipping the CSS fix in the
          // same build, without putting probe work on documentStart or the scroll path.
-         "window.__AD_FLASH6100__=[];"
-         "function adfS6100(v,n){v=String(v==null?'':v);return v.length>(n||180)?v.slice(0,n||180):v;}"
-         "function adfL6100(c){try{var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/.exec(String(c||''));if(!m)return -1;return(.2126*(+m[1])+.7152*(+m[2])+.0722*(+m[3]))/255;}catch(e){return -1;}}"
-         "function adfD6100(e){try{var c=getComputedStyle(e),r=e.getBoundingClientRect(),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');return{tag:e.tagName||'',cl:adfS6100(e.className&&e.className.baseVal||e.className,180),r:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],bg:adfS6100(c.backgroundColor,70),bgi:adfS6100(c.backgroundImage,120),bs:adfS6100(c.boxShadow,120),sty:adfS6100(e.getAttribute&&e.getAttribute('style'),220),bef:[adfS6100(b.backgroundColor,70),adfS6100(b.backgroundImage,120),adfS6100(b.boxShadow,120),adfS6100(b.content,80)],aft:[adfS6100(a.backgroundColor,70),adfS6100(a.backgroundImage,120),adfS6100(a.boxShadow,120),adfS6100(a.content,80)],txt:adfS6100(String(e.textContent||'').replace(/\\s+/g,' ').trim(),160)};}catch(x){return{err:String(x)}}}"
-         "function adfT6100(e){try{if(!e||e.nodeType!==1)return null;var S='[data-csa-c-content-id=variation-options-link],[class*=s-variations-options-justify-content],[class*=s-variation-options-text],[class*=s-variation-options-link],[class*=s-color-swatch-container-list-view],.s-color-swatch-container,.s-color-swatch-outer-circle,[class*=puis-csi-with-label-container],[data-component-type=s-status-badge-component],.puis-status-badge-container,.a-badge-region';if(e.matches&&e.matches(S))return e;if(e.closest){var q=e.closest(S);if(q)return q;}if(e.querySelector){var d=e.querySelector(S);if(d)return d;}var c=String(e.className&&e.className.baseVal||e.className||'');if(!/(variation|swatch|puis-csi|puis-cs-label|text-wrapper|rush-component|a-truncate|a-badge-region|badge)/i.test(c))return null;var t=String(e.textContent||'').replace(/\\s+/g,' ').trim();if(t.length<600&&(/other colors?\\/patterns?/i.test(t)||/^color\\s*:/i.test(t)||/color:\\s*color:/i.test(t)))return e;return null;}catch(x){return null;}}"
-         "function adfSnap6100(why,e){try{var q=adfT6100(e);if(!q||!q.isConnected)return;var R=q.getBoundingClientRect();if(R.width<20||R.height<5||R.width>460||R.height>180)return;var rec={t:Date.now(),why:why,url:String(location.href),target:adfD6100(q),bright:[]},p=q,d=0;rec.chain=[];while(p&&d++<7){rec.chain.push(adfD6100(p));p=p.parentElement;}var A=q.querySelectorAll?q.querySelectorAll('div,span,a,label,section,button,ul,li'):[];for(var i=0;i<A.length&&rec.bright.length<28;i++){var x=A[i],rx=x.getBoundingClientRect();if(rx.width<10||rx.height<4||rx.width>460||rx.height>180)continue;var cx=getComputedStyle(x),L=adfL6100(cx.backgroundColor),pb=adfL6100(getComputedStyle(x,'::before').backgroundColor),pa=adfL6100(getComputedStyle(x,'::after').backgroundColor);if(L>.32||pb>.32||pa>.32||String(cx.backgroundImage||'')!=='none'||String(cx.boxShadow||'')!=='none')rec.bright.push(adfD6100(x));}window.__AD_FLASH6100__.push(rec);if(window.__AD_FLASH6100__.length>180)window.__AD_FLASH6100__.splice(0,window.__AD_FLASH6100__.length-180);}catch(x){}}"
-         "window.__AD_FLASH_TOUCH6100__=function(n){try{if(!n)return;if(n.nodeType===3)n=n.parentElement;if(!n||n.nodeType!==1)return;var q=adfT6100(n);if(!q)return;adfSnap6100('mut',q);setTimeout(function(){adfSnap6100('t0',q);},0);setTimeout(function(){adfSnap6100('t12',q);},12);setTimeout(function(){adfSnap6100('t48',q);},48);}catch(x){}};"
-         "window.__AD_FLASH6100_DUMP__=function(){try{var S='[data-csa-c-content-id=variation-options-link],[class*=s-variation-options-link],[class*=s-color-swatch-container-list-view],.s-color-swatch-container,.s-color-swatch-outer-circle,[class*=puis-csi-with-label-container],[data-component-type=s-status-badge-component],.puis-status-badge-container,.a-badge-region';var A=document.querySelectorAll(S);for(var i=0;i<A.length&&i<24;i++){var r=A[i].getBoundingClientRect();if(r.bottom>0&&r.top<innerHeight&&r.width>20&&r.height>4)adfSnap6100('dump-visible',A[i]);}return JSON.stringify({url:String(location.href),n:window.__AD_FLASH6100__.length,records:window.__AD_FLASH6100__});}catch(e){return'ERR '+String(e);}};"
+         "window.__AD_FLASH6101__=[];"
+         "function adfS6101(v,n){v=String(v==null?'':v);return v.length>(n||180)?v.slice(0,n||180):v;}"
+         "function adfL6101(c){try{var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/.exec(String(c||''));if(!m)return -1;return(.2126*(+m[1])+.7152*(+m[2])+.0722*(+m[3]))/255;}catch(e){return -1;}}"
+         "function adfD6101(e){try{var c=getComputedStyle(e),r=e.getBoundingClientRect(),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');return{tag:e.tagName||'',cl:adfS6101(e.className&&e.className.baseVal||e.className,180),r:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],bg:adfS6101(c.backgroundColor,70),bgi:adfS6101(c.backgroundImage,120),bs:adfS6101(c.boxShadow,120),bd:adfS6101(c.border,120),bc:adfS6101(c.borderColor,90),ol:adfS6101(c.outline,120),oc:adfS6101(c.outlineColor,90),col:adfS6101(c.color,70),f:adfS6101(c.filter,100),sty:adfS6101(e.getAttribute&&e.getAttribute('style'),220),bef:[adfS6101(b.backgroundColor,70),adfS6101(b.backgroundImage,120),adfS6101(b.boxShadow,120),adfS6101(b.content,80)],aft:[adfS6101(a.backgroundColor,70),adfS6101(a.backgroundImage,120),adfS6101(a.boxShadow,120),adfS6101(a.content,80)],txt:adfS6101(String(e.textContent||'').replace(/\\s+/g,' ').trim(),160)};}catch(x){return{err:String(x)}}}"
+         "function adfT6101(e){try{if(!e||e.nodeType!==1)return null;var S='[data-csa-c-content-id=variation-options-link],[class*=s-variations-options-justify-content],[class*=s-variation-options-text],[class*=s-variation-options-link],[class*=s-color-swatch-container-list-view],.s-color-swatch-container,.s-color-swatch-outer-circle,[class*=puis-csi-with-label-container],[data-component-type=s-status-badge-component],.puis-status-badge-container,.a-badge-region,[class*=badgeLabel]';if(e.matches&&e.matches(S))return e;if(e.closest){var q=e.closest(S);if(q)return q;}if(e.querySelector){var d=e.querySelector(S);if(d)return d;}var c=String(e.className&&e.className.baseVal||e.className||'');if(!/(variation|swatch|puis-csi|puis-cs-label|text-wrapper|rush-component|a-truncate|a-badge-region|badgeLabel|badge)/i.test(c))return null;var t=String(e.textContent||'').replace(/\\s+/g,' ').trim();if(t.length<600&&(/other colors?\\/patterns?/i.test(t)||/^color\\s*:/i.test(t)||/color:\\s*color:/i.test(t)||/limited time deal/i.test(t)))return e;return null;}catch(x){return null;}}"
+         "function adfSnap6101(why,e){try{var q=adfT6101(e);if(!q||!q.isConnected)return;var R=q.getBoundingClientRect();if(R.width<20||R.height<5||R.width>460||R.height>180)return;var rec={t:Date.now(),why:why,url:String(location.href),target:adfD6101(q),bright:[]},p=q,d=0;rec.chain=[];while(p&&d++<7){rec.chain.push(adfD6101(p));p=p.parentElement;}var A=q.querySelectorAll?q.querySelectorAll('div,span,a,label,section,button,ul,li'):[];for(var i=0;i<A.length&&rec.bright.length<28;i++){var x=A[i],rx=x.getBoundingClientRect();if(rx.width<10||rx.height<4||rx.width>460||rx.height>180)continue;var cx=getComputedStyle(x),L=adfL6101(cx.backgroundColor),BL=adfL6101(cx.borderColor),OL=adfL6101(cx.outlineColor),pb=adfL6101(getComputedStyle(x,'::before').backgroundColor),pa=adfL6101(getComputedStyle(x,'::after').backgroundColor);if(L>.32||BL>.55||OL>.55||pb>.32||pa>.32||String(cx.backgroundImage||'')!=='none'||String(cx.boxShadow||'')!=='none')rec.bright.push(adfD6101(x));}window.__AD_FLASH6101__.push(rec);if(window.__AD_FLASH6101__.length>180)window.__AD_FLASH6101__.splice(0,window.__AD_FLASH6101__.length-180);}catch(x){}}"
+         "window.__AD_FLASH_TOUCH6101__=function(n){try{if(!n)return;if(n.nodeType===3)n=n.parentElement;if(!n||n.nodeType!==1)return;var q=adfT6101(n);if(!q)return;adfSnap6101('mut',q);setTimeout(function(){adfSnap6101('t0',q);},0);setTimeout(function(){adfSnap6101('t12',q);},12);setTimeout(function(){adfSnap6101('t48',q);},48);}catch(x){}};"
+         "window.__AD_FLASH6101_DUMP__=function(){try{var S='[data-csa-c-content-id=variation-options-link],[class*=s-variation-options-link],[class*=s-color-swatch-container-list-view],.s-color-swatch-container,.s-color-swatch-outer-circle,[class*=puis-csi-with-label-container],[data-component-type=s-status-badge-component],.puis-status-badge-container,.a-badge-region,[class*=badgeLabel]';var A=document.querySelectorAll(S);for(var i=0;i<A.length&&i<24;i++){var r=A[i].getBoundingClientRect();if(r.bottom>0&&r.top<innerHeight&&r.width>20&&r.height>4)adfSnap6101('dump-visible',A[i]);}return JSON.stringify({url:String(location.href),n:window.__AD_FLASH6101__.length,records:window.__AD_FLASH6101__});}catch(e){return'ERR '+String(e);}};"
          // Re-run fallback repair as lazy content arrives, but never synchronously in
          // the MutationObserver. v6.0.82 no longer discards native-ad descendants here:
          // __AMZDARK_FIXCONTRAST__ routes every such element through prodInk6078 and
          // continues before generic paint. Native-local roots are capped at 120.
          // Coalesce nested roots and let WebKit finish rendering.
-         "try{var _t=null,_roots=[],_idle=0;function run6056(){_idle=0;try{var R=_roots;_roots=[];for(var i=0;i<R.length;i++){var r=R[i];if(!r||!r.isConnected)continue;var nested=false;for(var j=0;j<R.length;j++){if(i!==j&&R[j]&&R[j].contains&&R[j].contains(r)){nested=true;break;}}if(!nested){window.__AMZDARK_FIXCONTRAST__(r);if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(r);}}}catch(e){}}new MutationObserver(function(ms){try{for(var mi=0;mi<ms.length&&_roots.length<12;mi++){var A=ms[mi].addedNodes||[];for(var ai=0;ai<A.length&&_roots.length<12;ai++){var n=A[ai];if(n&&n.nodeType===3)n=n.parentElement;if(!n||n.nodeType!==1)continue;if(window.__AD_FLASH_TOUCH6100__)window.__AD_FLASH_TOUCH6100__(n);if(_roots.indexOf(n)<0)_roots.push(n);}}if(!_roots.length)return;clearTimeout(_t);_t=setTimeout(function(){if(_idle)return;_idle=1;window.__AD_IDLE6056__(run6056,320);},120);}catch(e){}})"
+         "try{var _t=null,_roots=[],_idle=0;function run6056(){_idle=0;try{var R=_roots;_roots=[];for(var i=0;i<R.length;i++){var r=R[i];if(!r||!r.isConnected)continue;var nested=false;for(var j=0;j<R.length;j++){if(i!==j&&R[j]&&R[j].contains&&R[j].contains(r)){nested=true;break;}}if(!nested){window.__AMZDARK_FIXCONTRAST__(r);if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(r);}}}catch(e){}}new MutationObserver(function(ms){try{for(var mi=0;mi<ms.length&&_roots.length<12;mi++){var A=ms[mi].addedNodes||[];for(var ai=0;ai<A.length&&_roots.length<12;ai++){var n=A[ai];if(n&&n.nodeType===3)n=n.parentElement;if(!n||n.nodeType!==1)continue;if(window.__AD_FLASH_TOUCH6101__)window.__AD_FLASH_TOUCH6101__(n);if(_roots.indexOf(n)<0)_roots.push(n);}}if(!_roots.length)return;clearTimeout(_t);_t=setTimeout(function(){if(_idle)return;_idle=1;window.__AD_IDLE6056__(run6056,320);},120);}catch(e){}})"
            ".observe(document.documentElement,{childList:true,subtree:true});}catch(e){}"
          "window.__AMZDARK_APPLY__();"
          // Re-apply when the page is restored from the back-forward cache (returning
@@ -1737,44 +1753,44 @@ static void ADInjectAllWebViews(void){
 
 // v6.0.98 diagnostic exporter.  The JS ring buffer above reuses an existing DOM
 // observer; backgrounding once after reproducing the flash simply dumps that buffer.
-static NSString *ADFlashProbePath6100(void){
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-component-shell-probe-6100.txt"];
+static NSString *ADFlashProbePath6101(void){
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-component-shell-probe-6101.txt"];
 }
-static void ADAppendFlashProbe6100(NSString *line){
+static void ADAppendFlashProbe6101(NSString *line){
     if (!line.length) return;
     @try {
-        NSString *path=ADFlashProbePath6100();
+        NSString *path=ADFlashProbePath6101();
         NSFileHandle *fh=[NSFileHandle fileHandleForWritingAtPath:path];
         if (!fh){ [line writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil]; return; }
         [fh seekToEndOfFile]; [fh writeData:[line dataUsingEncoding:NSUTF8StringEncoding]]; [fh closeFile];
     } @catch(...) {}
 }
-static void ADResetFlashProbe6100(void){
+static void ADResetFlashProbe6101(void){
     @try {
-        NSString *h=[NSString stringWithFormat:@"AmazonDark targeted component-shell probe 6100\nversion=%s\npid=%d\n\n",AD_VERSION,getpid()];
-        [h writeToFile:ADFlashProbePath6100() atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        NSString *h=[NSString stringWithFormat:@"AmazonDark targeted component-shell probe 6101\nversion=%s\npid=%d\n\n",AD_VERSION,getpid()];
+        [h writeToFile:ADFlashProbePath6101() atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } @catch(...) {}
 }
-static void ADDumpFlashProbe6100(NSString *label){
-    if (![NSThread isMainThread]){ dispatch_async(dispatch_get_main_queue(), ^{ ADDumpFlashProbe6100(label); }); return; }
+static void ADDumpFlashProbe6101(NSString *label){
+    if (![NSThread isMainThread]){ dispatch_async(dispatch_get_main_queue(), ^{ ADDumpFlashProbe6101(label); }); return; }
     @try {
         NSArray *views=gADWebViews613.allObjects; NSUInteger idx=0;
-        ADAppendFlashProbe6100([NSString stringWithFormat:@"DUMP %@ uptime=%.3f webviews=%lu\n",label?:@"?",ADUptime(),(unsigned long)views.count]);
+        ADAppendFlashProbe6101([NSString stringWithFormat:@"DUMP %@ uptime=%.3f webviews=%lu\n",label?:@"?",ADUptime(),(unsigned long)views.count]);
         for (WKWebView *wv in views){
             if (!wv || !wv.window) continue;
             NSString *url=wv.URL.absoluteString?:@""; NSUInteger my=idx++;
-            [wv evaluateJavaScript:@"(function(){try{return window.__AD_FLASH6100_DUMP__?window.__AD_FLASH6100_DUMP__():'NO_PROBE';}catch(e){return 'ERR '+String(e);}})();" completionHandler:^(id result,NSError *error){
+            [wv evaluateJavaScript:@"(function(){try{return window.__AD_FLASH6101_DUMP__?window.__AD_FLASH6101_DUMP__():'NO_PROBE';}catch(e){return 'ERR '+String(e);}})();" completionHandler:^(id result,NSError *error){
                 NSString *body=error?[NSString stringWithFormat:@"ERROR %@",error]:([result isKindOfClass:[NSString class]]?result:[result description]);
-                ADAppendFlashProbe6100([NSString stringWithFormat:@"WEBVIEW %lu %@\n%@\n\n",(unsigned long)my,url,body?:@"(nil)"]);
+                ADAppendFlashProbe6101([NSString stringWithFormat:@"WEBVIEW %lu %@\n%@\n\n",(unsigned long)my,url,body?:@"(nil)"]);
             }];
         }
-        if (!idx) ADAppendFlashProbe6100(@"NO MOUNTED WEBVIEWS\n\n");
+        if (!idx) ADAppendFlashProbe6101(@"NO MOUNTED WEBVIEWS\n\n");
     } @catch(...) {}
 }
-static void ADFlashWillResign6100(CFNotificationCenterRef center, void *observer,
+static void ADFlashWillResign6101(CFNotificationCenterRef center, void *observer,
                                   CFStringRef name, const void *object,
                                   CFDictionaryRef userInfo){
-    dispatch_async(dispatch_get_main_queue(), ^{ @try { ADDumpFlashProbe6100(@"WILL_RESIGN_ACTIVE"); } @catch(...) {} });
+    dispatch_async(dispatch_get_main_queue(), ^{ @try { ADDumpFlashProbe6101(@"WILL_RESIGN_ACTIVE"); } @catch(...) {} });
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -5313,7 +5329,7 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
 // ─── %ctor : process guard + hook registration + bounded startup recovery ────
 %ctor {
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
-    ADResetFlashProbe6100();
+    ADResetFlashProbe6101();
     // v5.446 direct-port: drop cached light launch snapshots.
     @try {
         NSString *lib = [NSSearchPathForDirectoriesInDomains(
@@ -5373,7 +5389,7 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
         (__bridge CFStringRef)UIApplicationWillEnterForegroundNotification,
         NULL, CFNotificationSuspensionBehaviorCoalesce);
     CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(),
-        NULL, ADFlashWillResign6100,
+        NULL, ADFlashWillResign6101,
         (__bridge CFStringRef)UIApplicationWillResignActiveNotification,
         NULL, CFNotificationSuspensionBehaviorCoalesce);
 
