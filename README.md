@@ -1,4 +1,13 @@
-# AmazonDark v6.0.90
+# AmazonDark v6.0.91 probe
+
+## v6.0.91 — diagnostic search-pane renderer snapshot
+
+- Diagnostic-only build based directly on v6.0.90.
+- Adds one manually triggered Darwin-notification snapshot for the Heating/Cooling search-result pane.
+- Captures visible product feature-badge IMG state, `gfix` ownership/filtering, variation `+1 other color/pattern` ancestry, Color/swatch candidates, and bright structural shells with computed CSS/pseudo-element paint.
+- Nothing runs until `com.colindavidr.amazondark/probe-search-pane-6091` is posted.
+- No production theming rule, MutationObserver, scroll listener, timer, TWB owner, checkbox/dot owner, JIT/120-Hz path, or launch schedule is changed.
+- The planned scroll-listener performance removal is intentionally deferred until after this snapshot so the diagnostic build does not change the renderer/timing we are trying to capture.
 
 ## v6.0.90 — preserve product feature-badge artwork
 

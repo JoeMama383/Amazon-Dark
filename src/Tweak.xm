@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.90"
+#define AD_VERSION "v6.0.91"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1590,6 +1590,71 @@ static void ADInjectAllWebViews(void){
             ADEnableDarkReaderIn(wv);
         }
     } @catch(...) {}
+}
+
+
+// v6.0.91 diagnostic only: manual, bounded snapshot for the search/product drill-in
+// pane where feature-badge bitmaps, variation rows, and colour swatch shells can
+// intermittently render as white boxes. Nothing runs until the Darwin notification
+// is posted; production paint/timing behavior is otherwise byte-for-byte v6.0.90.
+static NSString *ADSearchPaneProbeJS6091(void){
+    return @"(function(){try{"
+        "function S(v,n){v=String(v==null?'':v);return v.length>(n||180)?v.slice(0,n||180):v;}"
+        "function V(e){try{var r=e.getBoundingClientRect();var c=getComputedStyle(e);return r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth&&c.display!=='none'&&c.visibility!=='hidden'&&parseFloat(c.opacity||'1')>.02;}catch(x){return false;}}"
+        "function P(c){try{var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/.exec(String(c||''));if(!m)return -1;return (.2126*(+m[1])+.7152*(+m[2])+.0722*(+m[3]))/255;}catch(x){return -1;}}"
+        "function D(e){try{var c=getComputedStyle(e),r=e.getBoundingClientRect(),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');return {tag:e.tagName||'',id:S(e.id,70),cl:S(e.className&&e.className.baseVal||e.className,180),role:S(e.getAttribute&&e.getAttribute('role'),60),csa:S(e.getAttribute&&e.getAttribute('data-csa-c-content-id'),100),by:S(e.__adBy,60),glyph:e.__adGlyph?1:0,r:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],bg:S(c.backgroundColor,70),bgi:S(c.backgroundImage,120),f:S(c.filter,120),op:S(c.opacity,30),bd:S(c.border,100),rad:S(c.borderRadius,60),col:S(c.color,70),tfc:S(c.webkitTextFillColor,70),drbg:S(e.getAttribute&&e.getAttribute('data-darkreader-inline-bgcolor'),80),bef:[S(b.backgroundColor,60),S(b.backgroundImage,100),S(b.content,80)],aft:[S(a.backgroundColor,60),S(a.backgroundImage,100),S(a.content,80)],txt:S(String(e.textContent||'').replace(/\\s+/g,' ').trim(),180)};}catch(x){return {err:String(x)}}}"
+        "function H(e){var z=[],p=e,d=0;while(p&&d++<7){z.push(D(p));p=p.parentElement;}return z;}"
+        "var O={url:String(location.href),vh:innerHeight,vw:innerWidth,feature:[],text:[],swatch:[],light:[]};"
+        "var I=document.images||[];for(var i=0;i<I.length&&O.feature.length<40;i++){var e=I[i],r=e.getBoundingClientRect();if(!V(e)||r.width<7||r.height<7||r.width>72||r.height>72)continue;var tx=String((e.parentElement&&e.parentElement.textContent)||'').replace(/\\s+/g,' ').trim();var sem=/works with alexa|recycled materials|carbon impact|climate pledge|materials|impact/i.test(tx);if(!sem&&!e.__adBy&&!e.__adGlyph)continue;var q=D(e);q.src=S(e.currentSrc||e.src||e.getAttribute('data-src'),220);q.alt=S(e.getAttribute('alt'),120);q.nat=[e.naturalWidth||0,e.naturalHeight||0];q.chain=H(e);O.feature.push(q);}"
+        "var E=document.querySelectorAll('a,span,div,label,button');for(var j=0;j<E.length&&O.text.length<30;j++){var t=E[j];if(!V(t))continue;var x=String(t.textContent||'').replace(/\\s+/g,' ').trim();if(!/other color\\/pattern|^color\\s*:/i.test(x)||x.length>220)continue;O.text.push({kind:/other color\\/pattern/i.test(x)?'variation':'color-label',chain:H(t)});}"
+        "var C=document.querySelectorAll('[role=radio],[class*=swatch],[class*=twister],[class*=variation],input[type=radio],button');for(var m=0;m<C.length&&O.swatch.length<48;m++){var q=C[m];if(!V(q))continue;var rr=q.getBoundingClientRect();if(rr.width<8||rr.height<8||rr.width>100||rr.height>100)continue;var an=q,pn=0,hit=false;while(an&&pn++<6){var at=String(an.textContent||'').replace(/\\s+/g,' ').trim();if(/^color\\s*:/i.test(at)||/color\\s*:/i.test(at)){hit=true;break;}an=an.parentElement;}if(hit)O.swatch.push(H(q));}"
+        "var A=document.querySelectorAll('div,span,a,label,section,ul,li');for(var n=0;n<A.length&&O.light.length<50;n++){var y=A[n];if(!V(y))continue;var ry=y.getBoundingClientRect();if(ry.width<20||ry.height<8||ry.width>460||ry.height>130)continue;var cy=getComputedStyle(y),L=P(cy.backgroundColor);if(L<.78)continue;var tx2=String(y.textContent||'').replace(/\\s+/g,' ').trim();var near=/other color\\/pattern|color\\s*:|works with alexa|recycled materials|carbon impact/i.test(tx2);var prod=y.closest&&y.closest('[data-component-type=s-search-result],[class*=s-result-item],[class*=puis-card],[data-asin]');if(!near&&!prod)continue;O.light.push(H(y));}"
+        "return JSON.stringify(O);"
+    "}catch(e){return 'ERR '+String(e&&e.stack||e);}})();";
+}
+
+static NSString *ADSearchPaneProbePath6091(void){
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-search-pane-probe-6091.txt"];
+}
+
+static void ADAppendSearchPaneProbe6091(NSString *line){
+    if (!line.length) return;
+    @try {
+        NSString *path = ADSearchPaneProbePath6091();
+        NSFileHandle *fh = [NSFileHandle fileHandleForWritingAtPath:path];
+        if (!fh){
+            [line writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
+            return;
+        }
+        [fh seekToEndOfFile];
+        [fh writeData:[line dataUsingEncoding:NSUTF8StringEncoding]];
+        [fh closeFile];
+    } @catch(...) {}
+}
+
+static void ADProbeSearchPane6091(CFNotificationCenterRef center, void *observer,
+                                  CFStringRef name, const void *object,
+                                  CFDictionaryRef userInfo){
+    dispatch_async(dispatch_get_main_queue(), ^{
+        @try {
+            NSString *path = ADSearchPaneProbePath6091();
+            NSString *head = [NSString stringWithFormat:@"AmazonDark search-pane probe 6091\\nversion=%s\\nwebviews=%lu\\n\\n", AD_VERSION, (unsigned long)gADWebViews613.allObjects.count];
+            [head writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
+            NSString *js = ADSearchPaneProbeJS6091();
+            NSUInteger idx = 0;
+            for (WKWebView *wv in gADWebViews613.allObjects){
+                if (!wv || !wv.window) continue;
+                NSString *url = wv.URL.absoluteString ?: @"";
+                NSUInteger my = idx++;
+                [wv evaluateJavaScript:js completionHandler:^(id result, NSError *error){
+                    NSString *body = error ? [NSString stringWithFormat:@"ERROR %@", error] : ([result isKindOfClass:[NSString class]] ? result : [result description]);
+                    NSString *line = [NSString stringWithFormat:@"WEBVIEW %lu %@\\n%@\\n\\n", (unsigned long)my, url, body ?: @"(nil)"];
+                    ADAppendSearchPaneProbe6091(line);
+                }];
+            }
+            if (!idx) ADAppendSearchPaneProbe6091(@"NO MOUNTED WEBVIEWS\\n");
+        } @catch(...) {}
+    });
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -5182,6 +5247,10 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
         NULL, ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),
         NULL, CFNotificationSuspensionBehaviorCoalesce);
+    CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),
+        NULL, ADProbeSearchPane6091,
+        CFSTR("com.colindavidr.amazondark/probe-search-pane-6091"),
+        NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
     CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(),
         NULL, ADAppForegrounded,
         (__bridge CFStringRef)UIApplicationWillEnterForegroundNotification,
