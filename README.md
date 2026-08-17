@@ -1,4 +1,8 @@
-# AmazonDark v6.0.75
+# AmazonDark v6.0.76
+
+## v6.0.76 — keep scroll indicators light app-wide
+
+Built directly from v6.0.75. AmazonDark already requested `UIScrollViewIndicatorStyleWhite` from `didMoveToWindow`, but that was only a one-time assignment; Amazon, WebKit, or React Native could set the indicator style again after mount and return the thumb to dark. v6.0.76 makes the existing public `UIScrollView` style owner authoritative by forcing later `setIndicatorStyle:` assignments to `UIScrollViewIndicatorStyleWhite` while native recoloring is active. It does not paint private scrollbar views and does not alter native indicator geometry, opacity, fade timing, scrolling, or content behavior. No probe, timer, observer, scan, scroll callback, or display-link work is added.
 
 ## v6.0.75 — restore voice permission microphone bitmap glyph
 

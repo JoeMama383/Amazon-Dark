@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.75"
+#define AD_VERSION "v6.0.76"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3022,6 +3022,17 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
 - (void)didMoveToWindow {
     %orig;
     @try { if (ADRecolorOn() && self.window) self.indicatorStyle = UIScrollViewIndicatorStyleWhite; } @catch(...) {}
+}
+// v6.0.76: didMoveToWindow was only a one-time request. Amazon/WebKit/RN can
+// assign the style again after mount, which silently returns the thumb to dark.
+// Own the public UIScrollView style setter instead of painting private indicator
+// views, so native geometry, alpha, fade timing, and both axes remain untouched.
+- (void)setIndicatorStyle:(UIScrollViewIndicatorStyle)style {
+    if (ADRecolorOn()) {
+        %orig(UIScrollViewIndicatorStyleWhite);
+        return;
+    }
+    %orig;
 }
 %end
 
