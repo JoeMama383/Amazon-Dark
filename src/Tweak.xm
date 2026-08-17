@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.88"
+#define AD_VERSION "v6.0.89"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -601,6 +601,22 @@ static NSString *ADFixesLiteral(void){
              "picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],"
              "[class*=s-image],[class*=unfill],[class*=placehold]"
              "{background-color:transparent !important;}"
+             // v6.0.89: search-results variation/coupon first-paint ownership. The
+             // Heating & Cooling drill-in is normal Amazon search-result markup: its
+             // variation-options strip and red s-coupon-tile are stock light surfaces
+             // until Dark Reader finishes. Own only those two semantic components here.
+             // Dark Reader's neutral variables take over automatically once available,
+             // while the fallbacks keep the very first frame dark.
+             "[data-csa-c-content-id=variation-options-link],[class*=s-variations-options-justify-content],"
+             "[class*=s-variation-options-text],[class*=s-variation-options-link]"
+             "{background-color:var(--darkreader-neutral-background,#181a1b) !important;background-image:none !important;}"
+             "[data-csa-c-content-id=variation-options-link] [class*=a-truncate],"
+             "[class*=s-variation-options-link] [class*=a-truncate]"
+             "{background-color:transparent !important;background-image:none !important;}"
+             ".s-coupon-tile.red{background-color:#440000 !important;background-image:none !important;}"
+             ".s-coupon-tile.red label,.s-coupon-tile.red span"
+             "{color:var(--darkreader-neutral-text,#e8e6e3) !important;"
+             "-webkit-text-fill-color:var(--darkreader-neutral-text,#e8e6e3) !important;}"
              // v6.0.85: direct v5.446 person/Interests card + pill prepaint family.
              // These stable structural classes were the donor's parse-time owner for
              // the light card outlines seen while Interests-like surfaces hydrate.
@@ -730,6 +746,20 @@ static NSString *ADDarkReaderBootstrap(void){
            "picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],"
            "[class*=s-image],[class*=unfill],[class*=placehold]"
            "{background-color:transparent !important;}"
+           // v6.0.89: prepaint the two stock search-result surfaces that otherwise
+           // appear white/pink before Dark Reader has emitted its transformed sheet.
+           // Use DR neutral variables with dark fallbacks so final palette ownership
+           // remains synchronized without adding any after-paint repair pass.
+           "[data-csa-c-content-id=variation-options-link],[class*=s-variations-options-justify-content],"
+           "[class*=s-variation-options-text],[class*=s-variation-options-link]"
+           "{background-color:var(--darkreader-neutral-background,#181a1b) !important;background-image:none !important;}"
+           "[data-csa-c-content-id=variation-options-link] [class*=a-truncate],"
+           "[class*=s-variation-options-link] [class*=a-truncate]"
+           "{background-color:transparent !important;background-image:none !important;}"
+           ".s-coupon-tile.red{background-color:#440000 !important;background-image:none !important;}"
+           ".s-coupon-tile.red label,.s-coupon-tile.red span"
+           "{color:var(--darkreader-neutral-text,#e8e6e3) !important;"
+           "-webkit-text-fill-color:var(--darkreader-neutral-text,#e8e6e3) !important;}"
            // v6.0.85: direct v5.446 Interests/person-card first-paint rules. Keep them
            // in this already-existing documentStart sheet so Amazon never gets a light
            // hydration frame before Dark Reader's own override sheet is available.

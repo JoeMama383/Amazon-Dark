@@ -1,10 +1,19 @@
-# AmazonDark v6.0.88
+# AmazonDark v6.0.89
 
-## v6.0.88 — make autocomplete history/delete mask glyphs first-paint
+## v6.0.89 — eliminate search variation/coupon first-paint flashes
 
-- Built directly from v6.0.85; the failed v6.0.86 filter-based search-glyph experiment is not included.
-- Uses the exact renderer proven by the final v5.446 runtime probe: `I.icon-past-search-suggestion` and `I.icon-close.s-suggestion-icon-left` are 20x20 CSS mask glyphs.
-- Pins the mask host `background-color` to the light foreground in the existing documentStart stylesheet and Dark Reader fixes, with `filter:none`.
+- Built directly from the confirmed-working v6.0.88 baseline.
+- Fixes the product drill-in/search-results flash where `+1 other color/pattern` briefly received a white rectangular backing and red `Coupon price` tiles briefly appeared pale pink before settling dark.
+- Adds only declarative first-paint ownership for Amazon's stable variation-options family (`s-variations-options-*` / `s-variation-options-*`) and red `.s-coupon-tile` component in the existing documentStart sheet and Dark Reader fixes.
+- Variation rows use Dark Reader's own neutral background/text CSS variables with dark fallbacks, so the first frame is dark and the final palette remains synchronized after Dark Reader initializes.
+- The coupon tile's dark-red floor is pinned to `#440000`, matching the previously captured on-device final computed state; the stock coupon checkbox is not restyled.
+- No new JavaScript traversal, MutationObserver, timer, scroll callback, RAF, dispatch, native hierarchy walk, or image sampling is added.
+
+## v6.0.88 — restore product image-wrapper first-paint transparency
+
+- Built directly from the confirmed-working v6.0.87 baseline.
+- Restores the missing v5.446/v5.264-era declarative image-wrapper rule (`picture`, image/thumbnail containers, `s-image`, `unfill`, and placeholder families) in both the existing documentStart floor and Dark Reader fixes.
+- Keeps those wrappers transparent during lazy hydration so the already-dark pane floor shows through instead of a stock white product-art shell.
 - No new observer, timer, DOM scan, scroll callback, RAF, native traversal, or delayed repair path.
 
 ## v6.0.85 — restore v5.446 Interests/Alexa glyph + first-paint ownership
