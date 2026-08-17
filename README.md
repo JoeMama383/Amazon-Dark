@@ -1,4 +1,9 @@
-# AmazonDark v6.0.78
+# AmazonDark v6.0.79 Probe
+
+## v6.0.79 — on-demand Home product-text ownership probe
+
+Diagnostic-only build on v6.0.78. The v6.0.78 attempted product-copy bridge did not change the missed dark Home titles/prices, so this build does not add another paint rule. A Darwin notification triggers one bounded snapshot of visible web text and visible native text renderers. The report records computed color/fill/background, native-ad isolation state, v6.0.78 ownership marker, Dark Reader marker, product/card ancestry, frame ownership, and same-origin visible iframe contents. Nothing runs until the notification is posted. No recurring timer, scroll handler, observer, layout hook, or production painter is added.
+
 
 ## v6.0.78 — restore missed Home product-copy ink
 
