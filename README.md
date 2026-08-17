@@ -1,4 +1,11 @@
-# AmazonDark v6.0.99
+# AmazonDark v6.0.100
+
+## v6.0.100 — exact swatch-row white-shell fix + targeted proof probe
+
+- Probe 6099 finally identified the actual white paint: `.s-color-swatch-container` itself becomes `rgb(255,255,255)` during recycled-row hydration, while the outer `.s-color-swatch-container-list-view` is already transparent.
+- The same capture showed `.s-color-swatch-outer-circle` nodes becoming white 26x26 boxes around the real color fills. v6.0.100 makes only the row background and outer ring boxes transparent; `.s-color-swatch-inner-circle-fill` remains Amazon-owned so the real color values are preserved.
+- Adds explicit transparent first-paint ownership for `.puis-status-badge-container` and the status component's `.a-badge-region`, without touching the actual Amazon's Choice / Best Seller badge label artwork.
+- Probe 6100 ships in the same build, reuses the existing lazy-content observer, and now targets the exact inner swatch row/ring/status containers. No new observer, scroll listener, interval, or RAF is added.
 
 ## v6.0.99 — remove recycled component shell boxes + targeted proof probe
 
