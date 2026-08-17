@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.77"
+#define AD_VERSION "v6.0.78"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -839,8 +839,31 @@ static NSString *ADDarkReaderBootstrap(void){
                  "if(bmx>0.4){be.style.setProperty('background-image','none','important');"
                    "be.style.setProperty('background-color',BG,'important');lfix++;}}}"
            "}catch(e){}"
+           // v6.0.78: Home product-copy bridge for Amazon-owned/native ad islands.
+           // v6.0.15 intentionally keeps these islands out of broad Dark Reader/contrast
+           // ownership, but some current recommendation widgets use the same family for
+           // ordinary product cards. Their black title/price leaves therefore never reach
+           // the generic contrast writer. Reuse this already-bounded traversal and lift
+           // only dark-neutral DIRECT text that belongs to a real product card and does
+           // not overlap product artwork. No extra DOM scan/observer is introduced.
+           "function prodInk6078(e){try{if(!e||!e.childNodes)return 0;"
+             "var tg=String(e.tagName||'').toUpperCase();if(!/^(?:A|SPAN|DIV|P|H1|H2|H3|H4|H5|STRONG|SMALL|SUP|B|EM)$/.test(tg))return 0;"
+             "var own='';for(var q=0;q<e.childNodes.length&&q<10;q++){var nd=e.childNodes[q];if(nd.nodeType===3)own+=String(nd.nodeValue||'');}"
+             "own=own.replace(/\s+/g,' ').trim();if(!own||own.length>320)return 0;"
+             "function neutral6078(v){var m=/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/.exec(String(v||''));if(!m)return false;var mx=Math.max(+m[1],+m[2],+m[3]),mn=Math.min(+m[1],+m[2],+m[3]);return (mx-mn)<48;}"
+             "var cs=getComputedStyle(e),cl=lum(cs.color),fc=String(cs.webkitTextFillColor||''),fl=lum(fc);"
+             "if(!((cl!==null&&cl<0.48&&neutral6078(cs.color))||(fl!==null&&fl<0.48&&neutral6078(fc))))return 0;"
+             "var bl=bgOf(e);if(bl===null||bl>0.35)return 0;"
+             "var p=e,card=null,d=0;while(p&&d++<7){var r=p.getBoundingClientRect();if(r.width>=120&&r.width<=540&&r.height>=120&&r.height<=760&&p.querySelector){"
+               "var ph=null,im=null;try{ph=p.querySelector('a[href*=\"/dp/\"],a[href*=\"/gp/product/\"],[data-asin]');im=p.querySelector('img,picture');}catch(z){}"
+               "if(ph&&im){card=p;break;}}p=p.parentElement;}if(!card)return 0;"
+             "var er=e.getBoundingClientRect(),imgs=card.getElementsByTagName?card.getElementsByTagName('img'):[],saw=0;"
+             "for(var j=0;j<imgs.length&&j<10;j++){var ir=imgs[j].getBoundingClientRect();if(ir.width<70||ir.height<70)continue;saw++;var ow=Math.min(er.right,ir.right)-Math.max(er.left,ir.left),oh=Math.min(er.bottom,ir.bottom)-Math.max(er.top,ir.top);if(ow>0&&oh>0&&((ow*oh)/Math.max(1,er.width*er.height))>0.18)return 0;}"
+             "if(!saw)return 0;var a=e,ad=0;while(a&&a!==card.parentElement&&ad++<6){var bi=String(getComputedStyle(a).backgroundImage||'none');if(bi.indexOf('url(')>=0)return 0;a=a.parentElement;}"
+             "e.style.setProperty('color',FG,'important');e.style.setProperty('-webkit-text-fill-color',FG,'important');e.setAttribute('data-ad-productink6078','1');return 1;"
+           "}catch(x){return 0;}}"
            "for(var i=0;i<els.length;i++){var el=els[i];"
-             "if(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(el))continue;"
+             "if(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(el)){n+=prodInk6078(el);continue;}"
              "var cs=getComputedStyle(el);"
              // NO LIGHT PANELS. Anything still measuring light after Dark Reader has
              // run is a miss -- a gradient it could not parse, a shadow subtree, an
