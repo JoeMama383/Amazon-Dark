@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.76"
+#define AD_VERSION "v6.0.77"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2080,6 +2080,22 @@ static inline BOOL ADLayerIsWebKitOwned(CALayer *l){
 
 static inline BOOL ADRecolorOn(void){ return gP.enabled && gP.nativeRecolor; }
 
+// v6.0.77: UIKit owns the real scroll-indicator thumb.  The v6.0.74 ownership
+// probe showed its private _UIScrollViewScrollIndicator wrapper contains a plain
+// UIView whose light thumb background was being fed back through our generic
+// native background curve and mapped to #181a1b.  Recognise only that tiny
+// private indicator subtree so UIKit's UIScrollViewIndicatorStyleWhite pixels
+// survive unchanged.  This is not a custom scrollbar painter.
+static BOOL ADInNativeScrollIndicator6077(UIView *v){
+    UIView *p=v; int d=0;
+    while (p && d++ < 4){
+        const char *cn=object_getClassName(p);
+        if (cn && strstr(cn, "UIScrollViewScrollIndicator")) return YES;
+        p=p.superview;
+    }
+    return NO;
+}
+
 // ─── colours the tweak creates itself ─────────────────────────────────────────
 // Anything we build from the theme is ALREADY the final on-screen value. Running it
 // back through ADModifyUIColor is not idempotent: the foreground curve maps light to
@@ -2299,6 +2315,15 @@ static BOOL ADIsAdaptiveTopNavBackgroundView(id obj){
         if (ADRecolorOn() && ADIsAdaptiveTopNavBackgroundView(self)) {
             UIColor *locked = ADColorFromHex(gP.bgHex);
             %orig(locked);
+            return;
+        }
+    } @catch(...) {}
+    // UIKit's private scroll-thumb views are already styled by the authoritative
+    // UIScrollViewIndicatorStyleWhite owner below.  Do not feed their system color
+    // through the generic background curve or the white thumb becomes dark again.
+    @try {
+        if (ADRecolorOn() && ADInNativeScrollIndicator6077(self)) {
+            %orig;
             return;
         }
     } @catch(...) {}
@@ -2696,6 +2721,16 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
             UIColor *locked = ADColorFromHex(gP.bgHex);
             CGColorRef lockedCG = locked.CGColor;
             %orig(lockedCG);
+            return;
+        }
+    } @catch(...) {}
+    // Same scroll-thumb exemption at the backing-layer level: UIKit may update
+    // the indicator fill directly on CALayer instead of UIView.backgroundColor.
+    @try {
+        id d=self.delegate;
+        if (ADRecolorOn() && [d isKindOfClass:[UIView class]] &&
+            ADInNativeScrollIndicator6077((UIView *)d)) {
+            %orig;
             return;
         }
     } @catch(...) {}
@@ -4491,6 +4526,7 @@ static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
     if (!v || depth > 60) return;
     @try {
         if (ADIsWebKitOwned(v)) return;                 // Dark Reader's territory
+        if (ADInNativeScrollIndicator6077(v)) return;  // UIKit owns native scroll-thumb paint
         ADVoiceRepairView6072(v);                     // hydrated native voice-sheet ink
         ADInvertRNSVG(v);                               // Alexa panel vector icons
         if ([v isKindOfClass:[UIImageView class]]) ADApplyNativeWhiteTameView(v); // direct TWB media only

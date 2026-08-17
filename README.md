@@ -1,4 +1,8 @@
-# AmazonDark v6.0.76
+# AmazonDark v6.0.77
+
+## v6.0.77 — preserve UIKit's light scroll thumb
+
+Built directly from v6.0.76 after on-device confirmation that the vertical scroll thumb remained dark. The earlier v6.0.74 ownership probe had already identified the real cause: `_UIScrollViewScrollIndicator` contains a small UIKit-owned `UIView` whose background was being remapped by AmazonDark's generic native background engine to the dark theme color. v6.0.77 keeps the authoritative `UIScrollViewIndicatorStyleWhite` setter from v6.0.76 and exempts only the private native indicator subtree from AmazonDark's UIView background transform, CALayer background transform, and catch-up sweep. UIKit still owns the indicator geometry, opacity, fade animation, scrolling behavior, and both axes; AmazonDark does not draw a replacement scrollbar. No timer, observer, scroll callback, layout hook, display link, or recurring scan is added.
 
 ## v6.0.76 — keep scroll indicators light app-wide
 
