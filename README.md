@@ -1,7 +1,8 @@
-# AmazonDark v6.0.83 Probe
+# AmazonDark v6.0.84
 
-Diagnostic-only build on v6.0.82. Adds a one-shot viewport-first Home product-card text ownership probe on the second app activation. Production theming behavior is unchanged.
+## v6.0.84 — restore cXVhZ compositing neutrality for Home product copy
 
+Built directly from production v6.0.82 after the viewport-first v6.0.83 probe isolated every remaining affected visible product card to Amazon's hashed `_cXVhZ_*` family. The probe reported the cards but no dark computed text leaves, proving the title/price `color` itself was already light and the failure occurred later in compositing. The exact v5.446 donor contains a declarative `[class*=cXVhZ],[class*=cXVhZ] *{mix-blend-mode:normal!important;isolation:auto!important;}` rule; current v6 retained equivalent ownership for NPACK/GWM but had dropped cXVhZ from that rule. v6.0.84 restores only that missing donor selector pair. No text scan, mutation path, timer, observer, RAF, scroll work, filter, opacity override, or product-image recoloring is added. v6.0.82's native-safe lazy product-copy route, v6.0.77 scroll indicator, and v6.0.75/v6.0.72 voice repairs remain unchanged.
 
 ## v6.0.82 — route lazy Home product copy through the existing native-safe local pass
 

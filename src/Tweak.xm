@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.83-probe"
+#define AD_VERSION "v6.0.84"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -699,7 +699,7 @@ static NSString *ADDarkReaderBootstrap(void){
            // v5.446's Home-card prepaint rules.  These are deliberately selector-only:
            // no text walk is needed for product titles/prices or deal badges to arrive
            // readable after Amazon hydrates a recycled card.
-           "[class*=npack-asin-card],[class*=npack-asin-card] *,[class*=gwm-asin-tile],[class*=gwm-asin-tile] *,[class*=gwm-tile],[class*=gwm-tile] *{mix-blend-mode:normal !important;isolation:auto !important;}"
+           "[class*=npack-asin-card],[class*=npack-asin-card] *,[class*=gwm-asin-tile],[class*=gwm-asin-tile] *,[class*=gwm-tile],[class*=gwm-tile] *,[class*=cXVhZ],[class*=cXVhZ] *{mix-blend-mode:normal !important;isolation:auto !important;}"
            "[class*=npack-asin-card] [class*=a-size-mini],[class*=npack-asin-card] [class*=badge],[class*=npack-asin-card] [class*=percent]{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}"
            "[class*=badgeLabel],[class*=hp-mosaic-container] [class*=badgeLabel],[class*=_mosaic-container_style_widgetContainer] [class*=badgeLabel]{background-color:#cc0c39 !important;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;mix-blend-mode:normal !important;}[class*=badgeLabel] *,[class*=hp-mosaic-container] [class*=badgeLabel] *,[class*=_mosaic-container_style_widgetContainer] [class*=badgeLabel] *{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;}"
            "[class*=npack-asin-card] [class*=badgeMessage],[class*=npack-asin-card] [class*=badgeMessage] *,[class*=cXVhZ] [class*=badgeMessage],[class*=cXVhZ] [class*=badgeMessage] *{background-color:transparent !important;background-image:none !important;color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;box-shadow:none !important;border-color:transparent !important;outline:0 !important;}"
@@ -1474,70 +1474,6 @@ static void ADInjectAllWebViews(void){
             ADEnableDarkReaderIn(wv);
         }
     } @catch(...) {}
-}
-
-
-// v6.0.83-probe: viewport-first Home product-copy ownership diagnostic.
-// v6.0.81 proved a document-order scan can exhaust its cap before reaching a deep
-// Home viewport. This probe starts from visible product markers/cards instead and
-// mirrors prodInk6078's gates so each missed dark text leaf reports WHY it was rejected.
-static NSString *ADHomeCardProbeJS6083(void){
-    return @"(function(){try{"
-      "var O=[],cards=[],MAXC=28,MAXL=140;"
-      "function S(v,n){v=String(v==null?'':v).replace(/\\s+/g,' ').trim();n=n||180;return v.length>n?v.slice(0,n)+'…':v;}"
-      "function rgb(v){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\)/.exec(String(v||''));return m?[+m[1],+m[2],+m[3],m[4]==null?1:+m[4]]:null;}"
-      "function L(v){var a=rgb(v);if(!a||a[3]<.05)return null;function x(q){q/=255;return q<=.03928?q/12.92:Math.pow((q+.055)/1.055,2.4);}return .2126*x(a[0])+.7152*x(a[1])+.0722*x(a[2]);}"
-      "function neutral(v){var a=rgb(v);return !!(a&&(Math.max(a[0],a[1],a[2])-Math.min(a[0],a[1],a[2])<48));}"
-      "function visible(e){if(!e||!e.getBoundingClientRect)return false;var r=e.getBoundingClientRect(),c=getComputedStyle(e);return !(c.display==='none'||c.visibility==='hidden'||+c.opacity<.03||r.width<1||r.height<1||r.right<0||r.bottom<0||r.left>innerWidth||r.top>innerHeight);}"
-      "function own(e){var t='';for(var i=0;i<e.childNodes.length&&i<14;i++){var n=e.childNodes[i];if(n.nodeType===3)t+=String(n.nodeValue||'')+' ';}return S(t,320);}"
-      "function bgLum(e){while(e){var l=L(getComputedStyle(e).backgroundColor);if(l!==null)return l;e=e.parentElement;}return .02;}"
-      "function addCard(c){if(!c||cards.indexOf(c)>=0||cards.length>=MAXC)return;var r=c.getBoundingClientRect();if(r.width<90||r.height<80||r.right<0||r.bottom<0||r.left>innerWidth||r.top>innerHeight)return;cards.push(c);}"
-      "function cardFor(m){var p=m,d=0,best=null;while(p&&d++<9){var r=p.getBoundingClientRect();if(r.width>=110&&r.width<=620&&r.height>=100&&r.height<=820){best=p;try{if(p.querySelector('a[href*=\\\"/dp/\\\"],a[href*=\\\"/gp/product/\\\"],[data-asin]')&&p.querySelector('img,picture,video,canvas'))return p;}catch(_){}}p=p.parentElement;}return best;}"
-      "var M=document.querySelectorAll('[data-asin],a[href*=\\\"/dp/\\\"],a[href*=\\\"/gp/product/\\\"]');"
-      "for(var i=0;i<M.length&&cards.length<MAXC;i++){if(!visible(M[i]))continue;addCard(cardFor(M[i]));}"
-      // Fallback for visible recommendation cards where the product marker itself is
-      // clipped/offscreen but its text is visible: sample viewport points and climb.
-      "for(var yy=80;yy<innerHeight&&cards.length<MAXC;yy+=90){for(var xx=35;xx<innerWidth&&cards.length<MAXC;xx+=80){var st=document.elementsFromPoint?document.elementsFromPoint(xx,yy):[];for(var z=0;z<st.length&&z<5;z++){var c=cardFor(st[z]);if(c){try{if(c.querySelector('a[href*=\\\"/dp/\\\"],a[href*=\\\"/gp/product/\\\"],[data-asin]'))addCard(c);}catch(_){}}}}}"
-      "O.push('viewport='+innerWidth+'x'+innerHeight+' cards='+cards.length+' productMarkers='+M.length);"
-      "for(var ci=0;ci<cards.length&&O.length<MAXL;ci++){var card=cards[ci],cr=card.getBoundingClientRect();var nat=0;try{nat=window.__AD_IS_NATIVE615__?(__AD_IS_NATIVE615__(card)?1:0):0;}catch(_){}var ims=card.querySelectorAll?card.querySelectorAll('img,picture,video,canvas'):[];O.push('CARD '+ci+' xywh='+[Math.round(cr.left),Math.round(cr.top),Math.round(cr.width),Math.round(cr.height)].join(',')+' native615='+nat+' cls='+S(card.className&&card.className.baseVal!==undefined?card.className.baseVal:card.className,100)+' asin='+S(card.getAttribute&&card.getAttribute('data-asin'),30)+' media='+ims.length);"
-        "var Q=card.querySelectorAll?card.querySelectorAll('a,span,div,p,h1,h2,h3,h4,h5,strong,small,sup,b,em,li'):[];"
-        "for(var qi=0;qi<Q.length&&O.length<MAXL;qi++){var e=Q[qi];if(!visible(e))continue;var t=own(e);if(!t&&e.children.length===0)t=S(e.textContent,320);if(!t)continue;var cs=getComputedStyle(e),cl=L(cs.color),fc=String(cs.webkitTextFillColor||''),fl=L(fc);var dark=((cl!==null&&cl<.55)||(fl!==null&&fl<.55));if(!dark)continue;var reasons=[];var tg=String(e.tagName||'').toUpperCase();if(!/^(?:A|SPAN|DIV|P|H1|H2|H3|H4|H5|STRONG|SMALL|SUP|B|EM)$/.test(tg))reasons.push('tag');if(!own(e))reasons.push('no-direct');if(!( (cl!==null&&cl<.48&&neutral(cs.color)) || (fl!==null&&fl<.48&&neutral(fc)) ))reasons.push('not-dark-neutral');var bl=bgLum(e);if(bl===null||bl>.35)reasons.push('bg='+String(bl));"
-          "var er=e.getBoundingClientRect(),saw=0,over=0,imgs=card.getElementsByTagName?card.getElementsByTagName('img'):[];for(var j=0;j<imgs.length&&j<14;j++){var ir=imgs[j].getBoundingClientRect();if(ir.width<70||ir.height<70)continue;saw++;var ow=Math.min(er.right,ir.right)-Math.max(er.left,ir.left),oh=Math.min(er.bottom,ir.bottom)-Math.max(er.top,ir.top);if(ow>0&&oh>0&&((ow*oh)/Math.max(1,er.width*er.height))>.18)over=1;}if(!saw)reasons.push('no-img70');if(over)reasons.push('overlap');var a=e,art=0,ad=0;while(a&&a!==card.parentElement&&ad++<6){if(String(getComputedStyle(a).backgroundImage||'none').indexOf('url(')>=0){art=1;break;}a=a.parentElement;}if(art)reasons.push('bg-art');"
-          "var mark=e.hasAttribute&&e.hasAttribute('data-ad-productink6078')?1:0,nn=0;try{nn=window.__AD_IS_NATIVE615__?(__AD_IS_NATIVE615__(e)?1:0):0;}catch(_){}var aa=null;try{aa=e.closest('a[href]');}catch(_){}O.push(' TXT c='+ci+' xywh='+[Math.round(er.left),Math.round(er.top),Math.round(er.width),Math.round(er.height)].join(',')+' text='+JSON.stringify(S(t,210))+' color='+cs.color+' fill='+fc+' bg='+cs.backgroundColor+' bgLum='+String(bl)+' native='+nn+' prodmark='+mark+' ipColor='+e.style.getPropertyPriority('color')+' ipFill='+e.style.getPropertyPriority('-webkit-text-fill-color')+' href='+S(aa&&aa.getAttribute('href'),90)+' why='+(reasons.length?reasons.join('|'):'WOULD-PASS')+' cls='+S(e.className&&e.className.baseVal!==undefined?e.className.baseVal:e.className,90));"
-        "}"
-      "}"
-      "var F=document.querySelectorAll('iframe');for(var fi=0;fi<F.length&&fi<20;fi++){if(!visible(F[fi]))continue;var fr=F[fi].getBoundingClientRect();O.push('IFRAME xywh='+[Math.round(fr.left),Math.round(fr.top),Math.round(fr.width),Math.round(fr.height)].join(',')+' src='+S(F[fi].src,150));}"
-      "return 'url='+location.href+' title='+S(document.title,100)+'\\n'+O.join('\\n');"
-    "}catch(e){return 'PROBEERR '+(e&&e.stack||e);}})();";
-}
-
-static void ADHomeCardProbeWrite6083(NSString *body){
-    @try {
-        NSString *p=[NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-home-card-text-probe-6083.txt"];
-        NSString *head=[NSString stringWithFormat:@"AmazonDark v6.0.83 viewport Home-card text probe\n=================================================\nversion=%@ enabled=%d web=%d native=%d\n", @AD_VERSION,gP.enabled?1:0,gP.webDarkReader?1:0,gP.nativeRecolor?1:0];
-        [[head stringByAppendingFormat:@"%@\n",body?:@"-"] writeToFile:p atomically:YES encoding:NSUTF8StringEncoding error:nil];
-    } @catch(...) {}
-}
-
-static void ADRunHomeCardProbe6083(void){
-    dispatch_async(dispatch_get_main_queue(), ^{
-        @try {
-            ADHomeCardProbeWrite6083(@"status=triggered; awaiting WebKit result");
-            WKWebView *best=nil; CGFloat bestArea=0;
-            for (WKWebView *wv in gADWebViews613.allObjects){
-                if (!wv || !wv.window || wv.hidden || wv.alpha<0.03) continue;
-                CGRect r=[wv convertRect:wv.bounds toView:wv.window],x=CGRectIntersection(r,wv.window.bounds);
-                CGFloat area=MAX(0,x.size.width)*MAX(0,x.size.height);
-                if (area>bestArea){ best=wv; bestArea=area; }
-            }
-            if (!best){ ADHomeCardProbeWrite6083(@"status=no-visible-webview"); return; }
-            NSString *meta=[NSString stringWithFormat:@"webviewURL=%@ visibleArea=%.0f",best.URL.absoluteString?:@"-",bestArea];
-            [best evaluateJavaScript:ADHomeCardProbeJS6083() completionHandler:^(id result,NSError *err){
-                NSString *body=err?[NSString stringWithFormat:@"%@\nWEBERR %@",meta,err]:[NSString stringWithFormat:@"%@\n%@",meta,([result isKindOfClass:[NSString class]]?result:[result description])?:@"-"];
-                ADHomeCardProbeWrite6083(body);
-            }];
-        } @catch(...) { ADHomeCardProbeWrite6083(@"status=objc-exception"); }
-    });
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -5107,8 +5043,6 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
     dispatch_async(dispatch_get_main_queue(), ^{ @try { ADSweep(); } @catch(...) {} });
 }
 
-static BOOL gADSeenActive6083 = NO;
-
 // ─── %ctor : process guard + hook registration + bounded startup recovery ────
 %ctor {
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
@@ -5131,9 +5065,6 @@ static BOOL gADSeenActive6083 = NO;
             addObserverForName:UIApplicationDidBecomeActiveNotification
                         object:nil queue:[NSOperationQueue mainQueue]
                     usingBlock:^(NSNotification *n){
-            if (!gADSeenActive6083) gADSeenActive6083 = YES;
-            else dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)),
-                                dispatch_get_main_queue(), ^{ ADRunHomeCardProbe6083(); });
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(9.0 * NSEC_PER_SEC)),
                            dispatch_get_main_queue(), ^{ ADPostAppReady(); });
         }];
