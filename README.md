@@ -1,8 +1,8 @@
-# AmazonDark v6.0.84
+# AmazonDark v6.0.86
 
-## v6.0.84 — restore cXVhZ compositing neutrality for Home product copy
+## v6.0.86 — first-frame Search history glyph ownership
 
-Built directly from production v6.0.82 after the viewport-first v6.0.83 probe isolated every remaining affected visible product card to Amazon's hashed `_cXVhZ_*` family. The probe reported the cards but no dark computed text leaves, proving the title/price `color` itself was already light and the failure occurred later in compositing. The exact v5.446 donor contains a declarative `[class*=cXVhZ],[class*=cXVhZ] *{mix-blend-mode:normal!important;isolation:auto!important;}` rule; current v6 retained equivalent ownership for NPACK/GWM but had dropped cXVhZ from that rule. v6.0.84 restores only that missing donor selector pair. No text scan, mutation path, timer, observer, RAF, scroll work, filter, opacity override, or product-image recoloring is added. v6.0.82's native-safe lazy product-copy route, v6.0.77 scroll indicator, and v6.0.75/v6.0.72 voice repairs remain unchanged.
+Built directly from the working v6.0.85. The recent-search clock and remove/X glyphs were already covered by the v5.446-derived generic web glyph repair, but that owner lived in the later contrast pass. On the live Search pane this left Amazon's near-black SVG/generated glyph paint visible for seconds; TWB could extend the delay because its search-media protection writes `filter:none` before the later glyph repair converges. v6.0.86 promotes the donor's SVG, generated-icon, and semantic search-control treatment into the existing document-start stylesheet and repeats it in the Dark Reader fixes sheet so it survives theme installation. TWB still excludes genuine suggestion/product imagery, but now immediately reasserts white only on icon-like/search-history images instead of being allowed to win over the glyph owner. No new observer, timer, DOM scan, scroll callback, RAF, dispatch-after, or native hierarchy work is added; the existing delayed repair remains only as a fallback.
 
 ## v6.0.82 — route lazy Home product copy through the existing native-safe local pass
 

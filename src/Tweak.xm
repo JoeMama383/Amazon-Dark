@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.84"
+#define AD_VERSION "v6.0.86"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -474,6 +474,28 @@ static NSString *ADFixesLiteral(void){
             @"{css:'"
              "img,picture,video,canvas,svg{filter:none !important;opacity:1 !important;"
              "mix-blend-mode:normal !important;isolation:auto !important;}"
+             // v6.0.85: direct v5.446 Interests add-glyph owner. The blanket media
+             // protection above freezes Amazon's dark add/plus bitmap unless this
+             // higher-specificity rule re-enables the donor invert on that glyph only.
+             "img[class*=add-icon],img[class*=plus-icon]{filter:invert(1) hue-rotate(180deg) !important;}"
+             // v6.0.86: promote the v5.446 search-history glyph repair to first paint.
+             // The donor measured the recent-search X/clock as dark SVG / generated
+             // icon paint while the surrounding text was already themed. Own only
+             // those search-suggestion glyph leaves; product suggestion imagery is
+             // deliberately not selected.
+             ":is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) "
+             ":is(i,.a-icon,[class*=history-icon],[class*=recent-icon],[class*=clock-icon],[class*=close-icon],[class*=clear-icon],[class*=remove-icon])"
+             "{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;filter:brightness(0) invert(1) !important;background-color:transparent !important;}"
+             ":is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) "
+             "svg{color:#e8e6e3 !important;filter:brightness(0) invert(1) !important;}"
+             ":is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) "
+             ":is(i,.a-icon,[class*=history-icon],[class*=recent-icon],[class*=clock-icon],[class*=close-icon],[class*=clear-icon],[class*=remove-icon])::before,"
+             ":is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) "
+             ":is(i,.a-icon,[class*=history-icon],[class*=recent-icon],[class*=clock-icon],[class*=close-icon],[class*=clear-icon],[class*=remove-icon])::after"
+             "{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}"
+             ":is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) "
+             ":is([aria-label*=remove],[aria-label*=clear],[aria-label*=delete],[aria-label*=history]) :is(img,i,.a-icon)"
+             "{filter:brightness(0) invert(1) !important;background-color:transparent !important;color:#e8e6e3 !important;}"
              "%@"
              "[style*=\\\"background-image\\\"]{filter:none !important;}"
              // THE FIX THAT ACTUALLY WORKED, brought back. v5.27.0 whitened the heart
@@ -582,6 +604,23 @@ static NSString *ADFixesLiteral(void){
              "[style*=multiply],[style*=darken],[style*=color-burn],"
              "[class*=deal] [style*=blend],[class*=Deal] [style*=blend]"
              "{mix-blend-mode:normal !important;isolation:auto !important;}"
+             // v6.0.85: direct v5.446 person/Interests card + pill prepaint family.
+             // These stable structural classes were the donor's parse-time owner for
+             // the light card outlines seen while Interests-like surfaces hydrate.
+             "[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],"
+             "[class*=gwm-window-layout],[class*=window-container],[class*=gwm-dashboard-container],"
+             "[class*=wd-backdrop],[class*=theming-card],[class*=a-unordered-list],"
+             "[class*=mosaic-container],[class*=puis-card],[class*=gwm-tile],[class*=_container_]"
+             "{border-color:#3b4043 !important;}"
+             "[class*=deal],[class*=badge],[class*=prime],[class*=error],[class*=alert],"
+             "[class*=warning],[aria-invalid=true]{border-color:initial !important;}"
+             "[class*=a-button-primary],[class*=a-button-search],[class*=a-button-oneclick],"
+             "[class*=a-button-buy],.a-button-inner,.a-button-text{border-color:transparent !important;}"
+             // v5.446 card-skeleton owner: empty structural shells carry no content,
+             // so giving them the dark floor prevents a white hydration flash without
+             // covering product imagery or live card content.
+             "[class*=puis] [class*=a-section]:empty,[class*=s-result] [class*=a-section]:empty,"
+             "[class*=s-card] [class*=a-section]:empty{background-color:#181a1b !important;}"
              // v6.0.37: v5.446's exact mosaic border owner lived after Dark Reader's
              // palette transform. Keep the seasonal panel on the same #3b4043 gray as
              // neighboring Home cards instead of letting DR re-map it to warm tan.
@@ -688,6 +727,27 @@ static NSString *ADDarkReaderBootstrap(void){
          // but it means lazy/virtualised holes reveal the theme floor, not Amazon white.
          "try{if(!document.getElementById('adfloor612')){var f=document.createElement('style');"
            "f.id='adfloor612';f.textContent='html,body,#a-page,#gwm-PageContent,main{background-color:%@ !important;}"
+           // v6.0.85: direct v5.446 Interests/person-card first-paint rules. Keep them
+           // in this already-existing documentStart sheet so Amazon never gets a light
+           // hydration frame before Dark Reader's own override sheet is available.
+           "img[class*=add-icon],img[class*=plus-icon]{filter:invert(1) hue-rotate(180deg) !important;}"
+           // v6.0.86: search-history X/clock must be correct before Dark Reader or
+           // the generic contrast pass runs. This is selector-only and exists at
+           // documentStart, so opening Search never exposes Amazon's black glyph frame.
+           ":is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) :is(i,.a-icon,[class*=history-icon],[class*=recent-icon],[class*=clock-icon],[class*=close-icon],[class*=clear-icon],[class*=remove-icon]){color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;filter:brightness(0) invert(1) !important;background-color:transparent !important;}"
+           ":is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) svg{color:#e8e6e3 !important;filter:brightness(0) invert(1) !important;}"
+           ":is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) :is(i,.a-icon,[class*=history-icon],[class*=recent-icon],[class*=clock-icon],[class*=close-icon],[class*=clear-icon],[class*=remove-icon])::before,:is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) :is(i,.a-icon,[class*=history-icon],[class*=recent-icon],[class*=clock-icon],[class*=close-icon],[class*=clear-icon],[class*=remove-icon])::after{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}"
+           ":is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) :is([aria-label*=remove],[aria-label*=clear],[aria-label*=delete],[aria-label*=history]) :is(img,i,.a-icon){filter:brightness(0) invert(1) !important;background-color:transparent !important;color:#e8e6e3 !important;}"
+           "[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],"
+           "[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],"
+           "[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],"
+           "[class*=puis-card],[class*=gwm-tile],[class*=_container_]{border-color:#3b4043 !important;}"
+           "[class*=deal],[class*=badge],[class*=prime],[class*=error],[class*=alert],"
+           "[class*=warning],[aria-invalid=true]{border-color:initial !important;}"
+           "[class*=a-button-primary],[class*=a-button-search],[class*=a-button-oneclick],"
+           "[class*=a-button-buy],.a-button-inner,.a-button-text{border-color:transparent !important;}"
+           "[class*=puis] [class*=a-section]:empty,[class*=s-result] [class*=a-section]:empty,"
+           "[class*=s-card] [class*=a-section]:empty{background-color:%@ !important;}"
            // v6.0.36: promote the donor Home-card paint to documentStart.  The
            // seasonal mosaic family is semantic by class, not by the campaign title,
            // so College/holiday/back-to-school replacements inherit the same shell,
@@ -1029,7 +1089,7 @@ static NSString *ADDarkReaderBootstrap(void){
          "try{window.addEventListener('pageshow',function(e){if(e.persisted)window.__AMZDARK_APPLY__();});}catch(e){}"
          "try{document.addEventListener('visibilitychange',function(){if(!document.hidden)window.__AMZDARK_APPLY__();});}catch(e){}"
          "}}catch(e){}})();",
-        floorBG, floorBG, floorBG, dr, [NSString stringWithUTF8String:gP.fgHex], ADThemeLiteral(), ADFixesLiteral()];
+        floorBG, floorBG, floorBG, floorBG, dr, [NSString stringWithUTF8String:gP.fgHex], ADThemeLiteral(), ADFixesLiteral()];
     return gADBootstrap613;
 }
 
@@ -1089,7 +1149,12 @@ static NSString *ADWhiteTameWebJS6027(void){
          // An inset shadow dims only that background plane and leaves live text/art above it.
          "'html[data-ad-twb-home6033] body [class*=canvas-card] [class*=canvas-container],html[data-ad-twb-home6033] body [class*=canvas-card][class*=canvas-container]{filter:none!important;background-blend-mode:normal!important;box-shadow:inset 0 0 0 9999px '+AA+'!important;}'+"
          "'[data-ad-twb-before6033]::before,[data-ad-twb-after6033]::after{filter:'+BB+'!important;}'+"
-         "'html body :is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion],[class*=avatar],[class*=profile],[class*=merchant],[class*=seller],[class*=brand],[class*=store],[class*=logo]) img{filter:none!important;}';"
+         "'html body :is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion],[class*=avatar],[class*=profile],[class*=merchant],[class*=seller],[class*=brand],[class*=store],[class*=logo]) img{filter:none!important;}'+"
+         // v6.0.86: TWB must never win over the search-history glyph owner. Keep
+         // suggestion/product imagery untouched, then re-whiten only icon-like images
+         // or images under semantic remove/clear/history controls.
+         "'html body :is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) img:is([class*=icon],[class*=history],[class*=recent],[class*=clock],[class*=close],[class*=clear],[class*=remove]){filter:brightness(0) invert(1)!important;background-color:transparent!important;}'+"
+         "'html body :is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]) :is([aria-label*=remove],[aria-label*=clear],[aria-label*=delete],[aria-label*=history]) img{filter:brightness(0) invert(1)!important;background-color:transparent!important;}';"
          "if(st.textContent!==css)st.textContent=css;"
          "function S(v){try{return String(v&&v.baseVal!==undefined?v.baseVal:(v||''));}catch(e){return '';}}"
          "function chain(e){var p=e,d=0,c='';while(p&&d++<6){c+=' '+S(p.className)+' '+String(p.id||'')+' '+String((p.getAttribute&&p.getAttribute('data-component-type'))||'')+' '+String((p.getAttribute&&p.getAttribute('data-hook'))||'');p=p.parentElement;}return c.toLowerCase();}"
@@ -2199,7 +2264,6 @@ static const void *kADIndicatorKey = &kADIndicatorKey;
 // below and the ADInvertRNSVG helper further down).
 static const void *kADRNInvertKey  = &kADRNInvertKey;
 static const void *kADRNFiltersKey = &kADRNFiltersKey;
-static const void *kADRNCheckKey   = &kADRNCheckKey;
 static inline BOOL ADIsTaggedIndicator(UIView *v){
     return v && objc_getAssociatedObject(v, kADIndicatorKey) != nil;
 }
@@ -2454,11 +2518,11 @@ static BOOL ADIsAdaptiveTopNavBackgroundView(id obj){
 %hook RNSVGSvgView
 - (void)didMoveToWindow {
     %orig;
-    @try { if (ADRecolorOn() && self.window) ADInvertRNSVG(self); } @catch(...) {}
+    @try { if (gP.enabled && self.window) ADInvertRNSVG(self); } @catch(...) {}
 }
 - (void)layoutSubviews {
     %orig;
-    @try { if (ADRecolorOn() && self.window) ADInvertRNSVG(self); } @catch(...) {}
+    @try { if (gP.enabled && self.window) ADInvertRNSVG(self); } @catch(...) {}
 }
 %end
 
@@ -4428,50 +4492,17 @@ static BOOL ADIsTabBarItemish(UIView *v){
 @interface CAFilter : NSObject
 + (id)filterWithType:(NSString *)type;
 @end
-static BOOL ADHasRNAncestor(UIView *v){
-    UIView *p = v; int d = 0;
-    while (p && d++ < 10){
-        const char *pc = object_getClassName(p);
-        if (pc && (strncmp(pc, "RCT", 3) == 0 || strncmp(pc, "RNS", 3) == 0)) return YES;
-        p = p.superview;
-    }
-    return NO;
-}
 static void ADInvertRNSVG(UIView *v){
     @try {
         const char *cn = object_getClassName(v);
         if (!cn) return;
         CGFloat w = v.bounds.size.width, h = v.bounds.size.height;
-        if (w < 6 || w > 48 || h < 6 || h > 48) return;   // icons, not illustrations
-        BOOL take = (strcmp(cn, "RNSVGSvgView") == 0);    // root only; children ride along
-        if (!take && [v isKindOfClass:[UILabel class]]){
-            // The kebab: an RN-hosted UILabel whose dots are baked into layer
-            // contents. The colour-property gate could never match -- the sweep
-            // recolours textColor, so the PROPERTY reads light while the PIXELS
-            // stay dark (v5.41.0 logged zero cls=UILabel for exactly this
-            // reason). So judge by pixels: render the label once and ask
-            // ADIsDarkGlyph. A label whose text genuinely went light fails the
-            // darkness test and is left alone; capped attempts keep the render
-            // cost bounded while late-drawn contents still get a look.
-            if (v.layer.contents != nil && ADHasRNAncestor(v)){
-                NSNumber *att = objc_getAssociatedObject(v, kADRNCheckKey);
-                if (att.intValue < 4){
-                    objc_setAssociatedObject(v, kADRNCheckKey, @(att.intValue + 1),
-                                             OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                    @try {
-                        UIGraphicsBeginImageContextWithOptions(v.bounds.size, NO, 1);
-                        [v drawViewHierarchyInRect:v.bounds afterScreenUpdates:NO];
-                        UIImage *im = UIGraphicsGetImageFromCurrentImageContext();
-                        UIGraphicsEndImageContext();
-                        if (im && ADIsDarkGlyph(im)) take = YES;
-                    } @catch(...) {}
-                }
-            }
-        }
-        if (!take) return;
-        // Heal, don't just flag: React clears layer.filters when it re-renders a
-        // mounted view, which is why every icon reverted to black after visiting
-        // the dots menu. If our filters are gone, put them back.
+        // v6.0.85: exact v5.446 final floor. Alexa's vertical ellipsis is only
+        // ~4x12pt, so the streamlined 6pt floor excluded it before ownership.
+        if (w < 3 || w > 48 || h < 3 || h > 48) return;
+        if (strcmp(cn, "RNSVGSvgView") != 0) return; // donor final: root only
+        // Heal, don't just flag: React can clear layer.filters when a mounted SVG
+        // re-renders. If our filters disappeared, re-assert the same donor pair.
         if (objc_getAssociatedObject(v, kADRNInvertKey) && v.layer.filters.count) return;
         Class F = NSClassFromString(@"CAFilter");
         if (!F) return;
