@@ -1,4 +1,7 @@
-# AmazonDark v6.0.82
+# AmazonDark v6.0.83 Probe
+
+Diagnostic-only build on v6.0.82. Adds a one-shot viewport-first Home product-card text ownership probe on the second app activation. Production theming behavior is unchanged.
+
 
 ## v6.0.82 — route lazy Home product copy through the existing native-safe local pass
 
