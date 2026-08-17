@@ -1,4 +1,13 @@
-# AmazonDark v6.0.89
+# AmazonDark v6.0.90
+
+## v6.0.90 — preserve product feature-badge artwork
+
+- Built directly from the confirmed-working v6.0.89 baseline.
+- Fixes intermittent blank white squares beside product metadata such as Works with Alexa, Recycled materials, and Carbon impact on search/drill-in result cards.
+- Root cause: the generic tiny-image glyph repair (`gfix1`) could claim a full-colour 8–48px product badge when Amazon recycled a row without useful `alt` text. Its `brightness(0) invert(1)` silhouette filter turns every opaque pixel in the badge bitmap white, so the entire square becomes blank.
+- Restores the v5.446 product-art principle only at the already-visited image leaf: a tiny image inside a non-interactive product metadata row is treated as authored content rather than UI chrome. Interactive controls, checkbox/Compare, Heart, Lists, and two-cards action hosts remain eligible for their dedicated glyph owners.
+- Releases any stale `gfix1` filter when a recycled node later resolves as product-badge artwork.
+- No new DOM traversal, MutationObserver, timer, scroll callback, RAF, dispatch, native hierarchy walk, or image sampling is added.
 
 ## v6.0.89 — eliminate search variation/coupon first-paint flashes
 

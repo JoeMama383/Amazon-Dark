@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.89"
+#define AD_VERSION "v6.0.90"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -903,9 +903,29 @@ static NSString *ADDarkReaderBootstrap(void){
            // candidates immediately before a glyph write.
            "var SKIP=/star|prime|logo|flag|swatch|thumb|sponsor|pill-image|product-image|photo|heart|wish|lists-framework|avatar|profile|author|reviewer|byline|merchant|seller|brand|store|logo-|-logo|headshot|user-image|customer/i;"
            "var CONTENTIMG616='[data-hook*=review],[class*=review],[class*=profile],[class*=avatar],[class*=author],[class*=byline],[class*=merchant],[class*=seller],[class*=brand],[class*=store],[id*=review]';"
+           // v6.0.90: Amazon's search-result feature badges (Works with Alexa,
+           // recycled-material / carbon-impact marks, etc.) are tiny full-colour IMG
+           // assets next to short product metadata text. Some recycled rows omit alt
+           // text, so v6.0.16's narrow contentImg616 guard let the generic gfix1 lane
+           // treat the same opaque bitmap as a monochrome UI glyph. brightness(0)+
+           // invert(1) then turns every opaque pixel white, producing the exact blank
+           // white square seen on-device. Restore the v5.446 product-art principle at
+           // this leaf only: a tiny IMG in a non-interactive product metadata row is
+           // authored content, not chrome. No new traversal is introduced; this runs
+           // only for the already-visited tiny IMG candidate.
+           "var PRODUCTCTX6090='[data-component-type=s-search-result],[class*=s-result-item],[class*=puis-card],[data-asin],[class*=s-product-image],[class*=product-image],[class*=faceout],[class*=gwm],[class*=cardui]';"
+           "function productBadgeImg6090(e,r){try{if(!e||!e.closest||!e.closest(PRODUCTCTX6090))return false;"
+             "if(e.closest('button,[role=button],input,[class*=a-checkbox],[class*=a-icon-checkbox],[class*=puis-heart-position],[class*=lists-framework-action-button],[class*=mlt-icon-container],[data-action]'))return false;"
+             "if(!r||r.width<8||r.height<8||r.width>48||r.height>48)return false;"
+             "var p=e.parentElement,d=0;while(p&&d++<4){var pr=p.getBoundingClientRect();"
+               "var tx=String(p.textContent||'').replace(/\\s+/g,' ').trim();"
+               "if(tx.length>=3&&tx.length<=180&&pr.height>0&&pr.height<=64&&pr.width>=r.width*1.8)return true;"
+               "if(p.matches&&p.matches(PRODUCTCTX6090))break;p=p.parentElement;}"
+             "return false;}catch(x){return false;}}"
            "function contentImg616(e,r,cs){try{if(!e||String(e.tagName||'').toLowerCase()!=='img')return false;"
              "var al=(e.getAttribute&&e.getAttribute('alt')||'').trim();if(al.length>1)return true;"
              "if(e.closest&&e.closest(CONTENTIMG616))return true;"
+             "if(productBadgeImg6090(e,r))return true;"
              "var brs=String((cs&&cs.borderRadius)||''),br=parseFloat(brs)||0,pct=brs.indexOf('%%')>=0;"
              "var circ=pct?br>=40:br>=Math.min(r.width,r.height)*0.4;"
              "if(circ&&((e.naturalWidth||0)>64||(e.naturalHeight||0)>64))return true;"
@@ -955,6 +975,12 @@ static NSString *ADDarkReaderBootstrap(void){
            "for(var i=0;i<els.length;i++){var el=els[i];"
              "if(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(el)){n+=prodInk6078(el);continue;}"
              "var cs=getComputedStyle(el);"
+             // v6.0.90: if a recycled product-badge IMG was previously claimed by
+             // gfix1 earlier in this same WebView, release that stale inline filter
+             // before the normal glyph gate runs again. This is O(1) and only does
+             // geometry/ancestry work on elements already marked as a generic glyph.
+             "try{if(el.__adGlyph&&/^gfix/.test(String(el.__adBy||''))&&String(el.tagName||'').toLowerCase()==='img'){"
+               "var hr6090=el.getBoundingClientRect();if(contentImg616(el,hr6090,cs)){el.style.removeProperty('filter');el.__adGlyph=0;el.__adBy='productBadge6090';}}}catch(h6090){}"
              // NO LIGHT PANELS. Anything still measuring light after Dark Reader has
              // run is a miss -- a gradient it could not parse, a shadow subtree, an
              // inline style it skipped. Correct by COMPUTED value so the mechanism
