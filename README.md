@@ -1,5 +1,20 @@
-# AmazonDark v6.0.97
+# AmazonDark v6.0.99
 
+## v6.0.99 — remove recycled component shell boxes + targeted proof probe
+
+- Targets the actual full-width structural shells behind `+N other colors/patterns`, color-swatch rows, and search-result status badges (Amazon's Choice / Best Seller), rather than the tiny certification glyphs.
+- Makes only the outer component rows/wrappers transparent at documentStart and in the Dark Reader fixes sheet; real swatch circles and `.a-badge` / `.a-badge-label` artwork remain Amazon-owned.
+- Reuses the existing lazy-content observer for a bounded diagnostic ring buffer and adds a one-time visible-target snapshot only when the app backgrounds. No scroll listener, interval, or RAF is added.
+
+
+
+## v6.0.98 — pseudo-shell prepaint + descendant-aware recycle probe
+
+- Builds directly on v6.0.97, retaining the confirmed certification-glyph fix and zero web scroll listeners.
+- The 6097 log returned `n:0`, proving the probe never reached the affected variation/swatch roots. The existing lazy-content observer often receives a generic card/container as the added node, while the old probe checked only that node and its ancestors.
+- Production fix: keeps the v6.0.94/97 transparent variation/swatch shells and additionally clears `::before` / `::after` background, background-image, and box-shadow paint on only those structural shells and their truncate wrappers. Actual color swatch/radio/button descendants remain Amazon-owned.
+- Probe fix: the same existing lazy-content observer is reused; the probe now looks one level inward with a targeted `querySelector()` for the known variation/swatch root when the added node is a generic card wrapper. It records immediate, 0 ms, 12 ms, and 48 ms states.
+- No new MutationObserver, scroll listener, interval, RAF, native hierarchy walk, or page-wide scan is added.
 
 ## v6.0.97 — white-shell fix + targeted recycle probe
 
