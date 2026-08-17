@@ -1,9 +1,10 @@
-# AmazonDark v6.0.81 Probe
+# AmazonDark v6.0.82
 
-## v6.0.81 — lightweight Home text probe trigger correction
+## v6.0.82 — route lazy Home product copy through the existing native-safe local pass
 
-Diagnostic-only correction to v6.0.80. The previous build registered a UIKit lifecycle notification with `CFNotificationCenterGetLocalCenter()`, but `UIApplicationDidBecomeActiveNotification` / `UIApplicationWillEnterForegroundNotification` are delivered through `NSNotificationCenter`, so the intended trigger could silently never run. v6.0.81 attaches the probe to the already-existing `UIApplicationDidBecomeActiveNotification` observer: the cold-launch active event only arms it; the next return to Amazon runs one 350 ms delayed snapshot. The probe is also much lighter: it selects only the largest visible `WKWebView`, scans at most 1,000 visible candidate text elements, records at most 90 dark-text leaves, and performs no native hierarchy walk or iframe recursion. It writes the report header before JavaScript evaluation so trigger success is observable even if WebKit evaluation fails. No recurring timer, scroll handler, MutationObserver, layout hook, or production painter is added.
+Built directly from v6.0.78 after the v6.0.81 probe hit its 1,000-node document-order cap while reporting zero dark visible text on a deep-scrolled Home viewport. Combined with the source routing, that exposes why v6.0.78 did not land: its new `prodInk6078()` owner lived inside `__AMZDARK_FIXCONTRAST__`, but the existing mutation observer explicitly discarded every added node inside `data-ad-native615` / Amazon-owned ad islands before that local repair could run. The full-document fallback is intentionally capped at 1,400 nodes for performance, so deep Home cards could remain permanently outside both paths.
 
+v6.0.82 changes that routing rather than adding another painter. Existing lazy-content mutations are still coalesced and deferred to browser idle time, but native-island roots are now admitted to the same local repair. Inside `__AMZDARK_FIXCONTRAST__` every native-island element immediately takes the `prodInk6078()` branch and `continue`s, so generic background/glyph/contrast ownership remains excluded. Native-island local passes are additionally capped at 120 descendants instead of the normal 360. No new MutationObserver, selector sweep, scroll listener, timer, RAF, or scheduler is added. v6.0.77 scroll-indicator ownership and v6.0.75/v6.0.72 voice-sheet repairs remain unchanged.
 
 ## v6.0.78 — restore missed Home product-copy ink
 

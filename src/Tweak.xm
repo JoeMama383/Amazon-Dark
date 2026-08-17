@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.81-probe"
+#define AD_VERSION "v6.0.82"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -792,7 +792,7 @@ static NSString *ADDarkReaderBootstrap(void){
            "var BAD={'multiply':1,'darken':1,'color-burn':1};"
            // v6.0.56: contrast repair is fallback work, not the primary painter.  Bound
            // mutation-local passes so one huge hydrated subtree cannot monopolize WebKit.
-           "var cap=(base===document.body||base===document.documentElement)?1400:360;"
+           "var cap=(base===document.body||base===document.documentElement)?1400:((window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(base))?120:360);"
            "function collect(root,out,depth){try{if(out.length>=cap)return out;"
              "var list=root.querySelectorAll('*');"
              "for(var a=0;a<list.length&&out.length<cap;a++){var e=list[a];out.push(e);"
@@ -839,7 +839,7 @@ static NSString *ADDarkReaderBootstrap(void){
                  "if(bmx>0.4){be.style.setProperty('background-image','none','important');"
                    "be.style.setProperty('background-color',BG,'important');lfix++;}}}"
            "}catch(e){}"
-           // v6.0.78: Home product-copy bridge for Amazon-owned/native ad islands.
+           // v6.0.82: Home product-copy bridge for Amazon-owned/native ad islands.
            // v6.0.15 intentionally keeps these islands out of broad Dark Reader/contrast
            // ownership, but some current recommendation widgets use the same family for
            // ordinary product cards. Their black title/price leaves therefore never reach
@@ -1015,8 +1015,11 @@ static NSString *ADDarkReaderBootstrap(void){
            "window.__AD_IDLE6056__(function(){window.__AMZDARK_FIXCONTRAST__();if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);},260);"
          "}catch(e){}};"
          // Re-run fallback repair as lazy content arrives, but never synchronously in
-         // the MutationObserver.  Coalesce nested roots and let WebKit finish rendering.
-         "try{var _t=null,_roots=[],_idle=0;function run6056(){_idle=0;try{var R=_roots;_roots=[];for(var i=0;i<R.length;i++){var r=R[i];if(!r||!r.isConnected)continue;var nested=false;for(var j=0;j<R.length;j++){if(i!==j&&R[j]&&R[j].contains&&R[j].contains(r)){nested=true;break;}}if(!nested){window.__AMZDARK_FIXCONTRAST__(r);if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(r);}}}catch(e){}}new MutationObserver(function(ms){try{for(var mi=0;mi<ms.length&&_roots.length<12;mi++){var A=ms[mi].addedNodes||[];for(var ai=0;ai<A.length&&_roots.length<12;ai++){var n=A[ai];if(n&&n.nodeType===3)n=n.parentElement;if(!n||n.nodeType!==1)continue;if(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(n))continue;if(_roots.indexOf(n)<0)_roots.push(n);}}if(!_roots.length)return;clearTimeout(_t);_t=setTimeout(function(){if(_idle)return;_idle=1;window.__AD_IDLE6056__(run6056,320);},120);}catch(e){}})"
+         // the MutationObserver. v6.0.82 no longer discards native-ad descendants here:
+         // __AMZDARK_FIXCONTRAST__ routes every such element through prodInk6078 and
+         // continues before generic paint. Native-local roots are capped at 120.
+         // Coalesce nested roots and let WebKit finish rendering.
+         "try{var _t=null,_roots=[],_idle=0;function run6056(){_idle=0;try{var R=_roots;_roots=[];for(var i=0;i<R.length;i++){var r=R[i];if(!r||!r.isConnected)continue;var nested=false;for(var j=0;j<R.length;j++){if(i!==j&&R[j]&&R[j].contains&&R[j].contains(r)){nested=true;break;}}if(!nested){window.__AMZDARK_FIXCONTRAST__(r);if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(r);}}}catch(e){}}new MutationObserver(function(ms){try{for(var mi=0;mi<ms.length&&_roots.length<12;mi++){var A=ms[mi].addedNodes||[];for(var ai=0;ai<A.length&&_roots.length<12;ai++){var n=A[ai];if(n&&n.nodeType===3)n=n.parentElement;if(!n||n.nodeType!==1)continue;if(_roots.indexOf(n)<0)_roots.push(n);}}if(!_roots.length)return;clearTimeout(_t);_t=setTimeout(function(){if(_idle)return;_idle=1;window.__AD_IDLE6056__(run6056,320);},120);}catch(e){}})"
            ".observe(document.documentElement,{childList:true,subtree:true});}catch(e){}"
          "window.__AMZDARK_APPLY__();"
          // Re-apply when the page is restored from the back-forward cache (returning
@@ -1471,61 +1474,6 @@ static void ADInjectAllWebViews(void){
             ADEnableDarkReaderIn(wv);
         }
     } @catch(...) {}
-}
-
-
-// v6.0.81-probe: minimal Home product-text ownership snapshot.
-// v6.0.80 used the wrong notification center for UIKit foreground notifications and
-// also gathered far more hierarchy state than this question needs. This replacement
-// runs only on the SECOND UIApplicationDidBecomeActiveNotification, selects one
-// visible/largest WKWebView, and inspects only visible dark text in that DOM.
-static NSString *ADHomeTextProbeJS6081(void){
-    return @"(function(){try{"
-      "var OUT=[],MAX=90,seen=0;"
-      "function S(v,n){v=String(v==null?'':v).replace(/\\s+/g,' ').trim();n=n||180;return v.length>n?v.slice(0,n)+'…':v;}"
-      "function rgb(v){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\)/.exec(String(v||''));return m?[+m[1],+m[2],+m[3],m[4]==null?1:+m[4]]:null;}"
-      "function lum(v){var a=rgb(v);if(!a||a[3]<.05)return 2;return (.2126*a[0]+.7152*a[1]+.0722*a[2])/255;}"
-      "function neutral(v){var a=rgb(v);return !!(a&&(Math.max(a[0],a[1],a[2])-Math.min(a[0],a[1],a[2])<55));}"
-      "function vis(e){var r=e.getBoundingClientRect(),c=getComputedStyle(e);return !(c.display==='none'||c.visibility==='hidden'||+c.opacity<.03||r.width<1||r.height<1||r.right<0||r.bottom<0||r.left>innerWidth||r.top>innerHeight);}"
-      "function own(e){var t='';for(var i=0;i<e.childNodes.length&&i<12;i++){var n=e.childNodes[i];if(n.nodeType===3)t+=String(n.nodeValue||'')+' ';}return S(t,220);}"
-      "function chain(e){var a=[],p=e,d=0;while(p&&d++<5){var c=p.className;if(c&&c.baseVal!==undefined)c=c.baseVal;a.push(String(p.tagName||'?')+'#'+S(p.id,28)+'.'+S(c,75)+'{asin='+S(p.getAttribute&&p.getAttribute('data-asin'),20)+',native='+(p.hasAttribute&&p.hasAttribute('data-ad-native615')?1:0)+'}');p=p.parentElement;}return a.join(' <= ');}"
-      "var q=document.querySelectorAll('a,span,div,p,strong,small,sup,b,em');"
-      "for(var i=0;i<q.length&&seen<1000&&OUT.length<MAX;i++,seen++){var e=q[i];if(!vis(e))continue;var t=own(e);if(!t&&e.children.length===0)t=S(e.textContent,220);if(!t)continue;var c=getComputedStyle(e),fc=String(c.webkitTextFillColor||'');if(!((lum(c.color)<.48&&neutral(c.color))||(lum(fc)<.48&&neutral(fc))))continue;var r=e.getBoundingClientRect(),nat=0;try{nat=window.__AD_IS_NATIVE615__?(__AD_IS_NATIVE615__(e)?1:0):0;}catch(_){}var aa=null;try{aa=e.closest('a[href]');}catch(_){}OUT.push('WEB xywh='+[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)].join(',')+' tag='+e.tagName+' text='+JSON.stringify(S(t,200))+' color='+c.color+' fill='+fc+' bg='+c.backgroundColor+' native615='+nat+' markedNative='+(e.closest&&e.closest('[data-ad-native615]')?1:0)+' prodink6078='+(e.hasAttribute&&e.hasAttribute('data-ad-productink6078')?1:0)+' dr='+(e.hasAttribute&&e.hasAttribute('data-darkreader-inline-color')?1:0)+' href='+S(aa&&aa.getAttribute('href'),95)+' chain='+chain(e));}"
-      "return 'url='+location.href+' title='+S(document.title,100)+' darkVisible='+OUT.length+' scanned='+seen+'\\n'+OUT.join('\\n');"
-    "}catch(e){return 'PROBEERR '+(e&&e.stack||e);}})();";
-}
-
-static void ADHomeTextProbeWrite6081(NSString *body){
-    @try {
-        NSString *p=[NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-home-text-probe-6081.txt"];
-        NSString *head=[NSString stringWithFormat:@"AmazonDark v6.0.81 Home product-text ownership probe\n=================================================\nversion=%@ enabled=%d web=%d native=%d\n", @AD_VERSION,gP.enabled?1:0,gP.webDarkReader?1:0,gP.nativeRecolor?1:0];
-        NSString *out=[head stringByAppendingFormat:@"%@\n",body?:@"-"];
-        [out writeToFile:p atomically:YES encoding:NSUTF8StringEncoding error:nil];
-    } @catch(...) {}
-}
-
-static void ADRunHomeTextProbe6081(void){
-    dispatch_async(dispatch_get_main_queue(), ^{
-        @try {
-            // Create the file FIRST so trigger success is observable even if WebKit
-            // rejects evaluation or the page changes during the async completion.
-            ADHomeTextProbeWrite6081(@"status=triggered; awaiting WebKit result");
-            WKWebView *best=nil; CGFloat bestArea=0;
-            for (WKWebView *wv in gADWebViews613.allObjects){
-                if (!wv || !wv.window || wv.hidden || wv.alpha<0.03) continue;
-                CGRect r=[wv convertRect:wv.bounds toView:wv.window];
-                CGRect x=CGRectIntersection(r,wv.window.bounds);
-                CGFloat area=MAX(0,x.size.width)*MAX(0,x.size.height);
-                if (area>bestArea){ best=wv; bestArea=area; }
-            }
-            if (!best){ ADHomeTextProbeWrite6081(@"status=no-visible-webview"); return; }
-            NSString *meta=[NSString stringWithFormat:@"webviewURL=%@ visibleArea=%.0f",best.URL.absoluteString?:@"-",bestArea];
-            [best evaluateJavaScript:ADHomeTextProbeJS6081() completionHandler:^(id result,NSError *err){
-                NSString *body=err?[NSString stringWithFormat:@"%@\nWEBERR %@",meta,err]:[NSString stringWithFormat:@"%@\n%@",meta,([result isKindOfClass:[NSString class]]?result:[result description])?:@"-"];
-                ADHomeTextProbeWrite6081(body);
-            }];
-        } @catch(...) { ADHomeTextProbeWrite6081(@"status=objc-exception"); }
-    });
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -5087,11 +5035,13 @@ static void ADPrefsChanged(CFNotificationCenterRef center, void *observer,
     });
 }
 
-// v6.0.81 probe trigger state. UIApplication lifecycle notifications are posted via
-// NSNotificationCenter, not CFNotificationCenterGetLocalCenter(). The first active
-// event is cold launch; the second/subsequent event is the deliberate return to
-// Amazon with the bad Home cards left visible.
-static BOOL gADSeenActive6081 = NO;
+// Foreground: a backgrounded app can be re-laid-out by the system, and web tabs may
+// have been reclaimed. One sweep on return is far cheaper than a forever-timer.
+static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
+                              CFStringRef name, const void *object,
+                              CFDictionaryRef userInfo) {
+    dispatch_async(dispatch_get_main_queue(), ^{ @try { ADSweep(); } @catch(...) {} });
+}
 
 // ─── %ctor : process guard + hook registration + bounded startup recovery ────
 %ctor {
@@ -5115,12 +5065,6 @@ static BOOL gADSeenActive6081 = NO;
             addObserverForName:UIApplicationDidBecomeActiveNotification
                         object:nil queue:[NSOperationQueue mainQueue]
                     usingBlock:^(NSNotification *n){
-            if (!gADSeenActive6081){
-                gADSeenActive6081 = YES;
-            } else {
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)),
-                               dispatch_get_main_queue(), ^{ ADRunHomeTextProbe6081(); });
-            }
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(9.0 * NSEC_PER_SEC)),
                            dispatch_get_main_queue(), ^{ ADPostAppReady(); });
         }];
@@ -5155,6 +5099,10 @@ static BOOL gADSeenActive6081 = NO;
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),
         NULL, ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),
+        NULL, CFNotificationSuspensionBehaviorCoalesce);
+    CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(),
+        NULL, ADAppForegrounded,
+        (__bridge CFStringRef)UIApplicationWillEnterForegroundNotification,
         NULL, CFNotificationSuspensionBehaviorCoalesce);
 
 }
