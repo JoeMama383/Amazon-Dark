@@ -1,8 +1,8 @@
-# AmazonDark v6.0.80 Probe
+# AmazonDark v6.0.81 Probe
 
-## v6.0.80 — foreground-triggered Home product-text ownership probe
+## v6.0.81 — lightweight Home text probe trigger correction
 
-Diagnostic-only follow-up to v6.0.79. The terminal environment does not provide notifyutil, so the probe no longer depends on an externally posted Darwin notification. Instead, returning Amazon to the foreground triggers one bounded snapshot of visible web text and visible native text renderers through the app's existing foreground callback. The report records computed color/fill/background, native-ad isolation state, v6.0.78 ownership marker, Dark Reader marker, product/card ancestry, frame ownership, and same-origin visible iframe contents. No recurring timer, scroll handler, new observer, layout hook, or production painter is added.
+Diagnostic-only correction to v6.0.80. The previous build registered a UIKit lifecycle notification with `CFNotificationCenterGetLocalCenter()`, but `UIApplicationDidBecomeActiveNotification` / `UIApplicationWillEnterForegroundNotification` are delivered through `NSNotificationCenter`, so the intended trigger could silently never run. v6.0.81 attaches the probe to the already-existing `UIApplicationDidBecomeActiveNotification` observer: the cold-launch active event only arms it; the next return to Amazon runs one 350 ms delayed snapshot. The probe is also much lighter: it selects only the largest visible `WKWebView`, scans at most 1,000 visible candidate text elements, records at most 90 dark-text leaves, and performs no native hierarchy walk or iframe recursion. It writes the report header before JavaScript evaluation so trigger success is observable even if WebKit evaluation fails. No recurring timer, scroll handler, MutationObserver, layout hook, or production painter is added.
 
 
 ## v6.0.78 — restore missed Home product-copy ink

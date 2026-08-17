@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.80-probe"
+#define AD_VERSION "v6.0.81-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1474,97 +1474,57 @@ static void ADInjectAllWebViews(void){
 }
 
 
-// v6.0.79-probe: on-demand Home product-text ownership snapshot.
-// This is diagnostic only. Nothing runs until NewTerm posts the Darwin notification.
-// The web pass is viewport-only and capped; the native pass records only visible text
-// renderers. No production paint/classifier is changed by this probe.
-static NSString *ADHomeTextProbeJS6079(void){
+// v6.0.81-probe: minimal Home product-text ownership snapshot.
+// v6.0.80 used the wrong notification center for UIKit foreground notifications and
+// also gathered far more hierarchy state than this question needs. This replacement
+// runs only on the SECOND UIApplicationDidBecomeActiveNotification, selects one
+// visible/largest WKWebView, and inspects only visible dark text in that DOM.
+static NSString *ADHomeTextProbeJS6081(void){
     return @"(function(){try{"
-      "var OUT=[],MAX=120,scanned=0;"
-      "function S(v,n){v=String(v==null?'':v).replace(/\\s+/g,' ').trim();return v.length>(n||180)?v.slice(0,n||180)+'…':v;}"
+      "var OUT=[],MAX=90,seen=0;"
+      "function S(v,n){v=String(v==null?'':v).replace(/\\s+/g,' ').trim();n=n||180;return v.length>n?v.slice(0,n)+'…':v;}"
       "function rgb(v){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\)/.exec(String(v||''));return m?[+m[1],+m[2],+m[3],m[4]==null?1:+m[4]]:null;}"
-      "function L(v){var a=rgb(v);if(!a||a[3]<.05)return null;function c(x){x/=255;return x<=.03928?x/12.92:Math.pow((x+.055)/1.055,2.4);}return .2126*c(a[0])+.7152*c(a[1])+.0722*c(a[2]);}"
+      "function lum(v){var a=rgb(v);if(!a||a[3]<.05)return 2;return (.2126*a[0]+.7152*a[1]+.0722*a[2])/255;}"
       "function neutral(v){var a=rgb(v);return !!(a&&(Math.max(a[0],a[1],a[2])-Math.min(a[0],a[1],a[2])<55));}"
-      "function own(e){var t='';for(var i=0;i<e.childNodes.length&&i<16;i++){var n=e.childNodes[i];if(n.nodeType===3)t+=String(n.nodeValue||'')+' ';}return S(t,240);}"
-      "function vis(e,ox,oy){var r=e.getBoundingClientRect(),cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden'||+cs.opacity<.03)return null;if(r.width<1||r.height<1||r.right<0||r.bottom<0||r.left>innerWidth||r.top>innerHeight)return null;return [Math.round(r.left+(ox||0)),Math.round(r.top+(oy||0)),Math.round(r.width),Math.round(r.height)];}"
-      "function chain(e){var a=[],p=e,d=0;while(p&&d++<6){var c=p.className;if(c&&c.baseVal!==undefined)c=c.baseVal;a.push(String(p.tagName||'?')+'#'+S(p.id,35)+'.'+S(c,90)+'{asin='+S(p.getAttribute&&p.getAttribute('data-asin'),24)+',cel='+S(p.getAttribute&&p.getAttribute('data-cel-widget'),42)+',native='+(p.hasAttribute&&p.hasAttribute('data-ad-native615')?1:0)+'}');p=p.parentElement;}return a.join(' <= ');}"
-      "function scan(doc,label,ox,oy){var q=[];try{q=doc.querySelectorAll('a,span,div,p,h1,h2,h3,h4,h5,strong,small,sup,b,em');}catch(x){}"
-        "for(var i=0;i<q.length&&scanned<2400&&OUT.length<MAX;i++,scanned++){var e=q[i],r=vis(e,ox,oy);if(!r)continue;var t=own(e);if(!t&&e.children&&e.children.length===0)t=S(e.textContent,240);if(!t)continue;var cs=getComputedStyle(e),cl=L(cs.color),fc=String(cs.webkitTextFillColor||''),fl=L(fc);if(!((cl!==null&&cl<.52&&neutral(cs.color))||(fl!==null&&fl<.52&&neutral(fc))))continue;"
-          "var nat=0;try{nat=window.__AD_IS_NATIVE615__?(__AD_IS_NATIVE615__(e)?1:0):0;}catch(x){}"
-          "var dr=e.getAttribute&&e.getAttribute('data-darkreader-inline-color')||'';var ink=e.getAttribute&&e.getAttribute('data-ad-productink6078')||'';"
-          "var href='';try{var aa=e.closest&&e.closest('a[href]');href=aa?aa.getAttribute('href')||'':'';}catch(x){}"
-          "OUT.push('WEB frame='+label+' xywh='+r.join(',')+' tag='+e.tagName+' id='+S(e.id,45)+' cls='+S(e.className&&e.className.baseVal!==undefined?e.className.baseVal:e.className,120)+' text='+JSON.stringify(S(t,220))+' color='+cs.color+' fill='+fc+' bg='+cs.backgroundColor+' inlineColor='+S(e.style&&e.style.color,40)+' inlineFill='+S(e.style&&e.style.webkitTextFillColor,40)+' native615='+nat+' markedNative='+(e.closest&&e.closest('[data-ad-native615]')?1:0)+' prodink6078='+(ink?1:0)+' drColor='+(dr?1:0)+' href='+S(href,110)+' chain='+chain(e));}"
-        "var fs=[];try{fs=doc.querySelectorAll('iframe');}catch(x){}for(var f=0;f<fs.length&&f<12&&OUT.length<MAX;f++){var fr=fs[f],rr=vis(fr,ox,oy);if(!rr)continue;var src=S(fr.src,140);try{var fd=fr.contentDocument;if(fd){OUT.push('FRAME sameOrigin=1 xywh='+rr.join(',')+' src='+src);scan(fd,label+'/f'+f,(ox||0)+fr.getBoundingClientRect().left,(oy||0)+fr.getBoundingClientRect().top);}else OUT.push('FRAME sameOrigin=0 xywh='+rr.join(',')+' src='+src);}catch(x){OUT.push('FRAME sameOrigin=0 xywh='+rr.join(',')+' src='+src);}}"
-      "}"
-      "scan(document,'main',0,0);"
-      "return 'url='+location.href+' title='+S(document.title,120)+' loaded='+(window.__AMZDARK_LOADED__?1:0)+' visibleDarkText='+OUT.length+' scanned='+scanned+'\\n'+OUT.join('\\n');"
+      "function vis(e){var r=e.getBoundingClientRect(),c=getComputedStyle(e);return !(c.display==='none'||c.visibility==='hidden'||+c.opacity<.03||r.width<1||r.height<1||r.right<0||r.bottom<0||r.left>innerWidth||r.top>innerHeight);}"
+      "function own(e){var t='';for(var i=0;i<e.childNodes.length&&i<12;i++){var n=e.childNodes[i];if(n.nodeType===3)t+=String(n.nodeValue||'')+' ';}return S(t,220);}"
+      "function chain(e){var a=[],p=e,d=0;while(p&&d++<5){var c=p.className;if(c&&c.baseVal!==undefined)c=c.baseVal;a.push(String(p.tagName||'?')+'#'+S(p.id,28)+'.'+S(c,75)+'{asin='+S(p.getAttribute&&p.getAttribute('data-asin'),20)+',native='+(p.hasAttribute&&p.hasAttribute('data-ad-native615')?1:0)+'}');p=p.parentElement;}return a.join(' <= ');}"
+      "var q=document.querySelectorAll('a,span,div,p,strong,small,sup,b,em');"
+      "for(var i=0;i<q.length&&seen<1000&&OUT.length<MAX;i++,seen++){var e=q[i];if(!vis(e))continue;var t=own(e);if(!t&&e.children.length===0)t=S(e.textContent,220);if(!t)continue;var c=getComputedStyle(e),fc=String(c.webkitTextFillColor||'');if(!((lum(c.color)<.48&&neutral(c.color))||(lum(fc)<.48&&neutral(fc))))continue;var r=e.getBoundingClientRect(),nat=0;try{nat=window.__AD_IS_NATIVE615__?(__AD_IS_NATIVE615__(e)?1:0):0;}catch(_){}var aa=null;try{aa=e.closest('a[href]');}catch(_){}OUT.push('WEB xywh='+[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)].join(',')+' tag='+e.tagName+' text='+JSON.stringify(S(t,200))+' color='+c.color+' fill='+fc+' bg='+c.backgroundColor+' native615='+nat+' markedNative='+(e.closest&&e.closest('[data-ad-native615]')?1:0)+' prodink6078='+(e.hasAttribute&&e.hasAttribute('data-ad-productink6078')?1:0)+' dr='+(e.hasAttribute&&e.hasAttribute('data-darkreader-inline-color')?1:0)+' href='+S(aa&&aa.getAttribute('href'),95)+' chain='+chain(e));}"
+      "return 'url='+location.href+' title='+S(document.title,100)+' darkVisible='+OUT.length+' scanned='+seen+'\\n'+OUT.join('\\n');"
     "}catch(e){return 'PROBEERR '+(e&&e.stack||e);}})();";
 }
 
-static void ADAppendHomeTextProbe6079(NSString *s){
-    if (!s.length) return;
+static void ADHomeTextProbeWrite6081(NSString *body){
     @try {
-        NSString *p=[NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-home-text-probe-6080.txt"];
-        NSString *old=[NSString stringWithContentsOfFile:p encoding:NSUTF8StringEncoding error:nil] ?: @"";
-        NSString *next=[old stringByAppendingFormat:@"%@\\n",s];
-        [next writeToFile:p atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        NSString *p=[NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-home-text-probe-6081.txt"];
+        NSString *head=[NSString stringWithFormat:@"AmazonDark v6.0.81 Home product-text ownership probe\n=================================================\nversion=%@ enabled=%d web=%d native=%d\n", @AD_VERSION,gP.enabled?1:0,gP.webDarkReader?1:0,gP.nativeRecolor?1:0];
+        NSString *out=[head stringByAppendingFormat:@"%@\n",body?:@"-"];
+        [out writeToFile:p atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } @catch(...) {}
 }
 
-static void ADHomeTextProbeNativeWalk6079(UIView *v, NSMutableString *out, int *seen, int depth){
-    if (!v || !out || !seen || *seen >= 140 || depth > 55) return;
-    @try {
-        if (v.hidden || v.alpha < 0.03 || !v.window) return;
-        CGRect r=[v convertRect:v.bounds toView:v.window];
-        if (!CGRectIntersectsRect(r,v.window.bounds)) return;
-        const char *cn=object_getClassName(v); NSString *cls=cn?[NSString stringWithUTF8String:cn]:@"?";
-        BOOL textish=[v isKindOfClass:[UILabel class]] || [cls containsString:@"RCTTextView"];
-        if (textish){
-            NSString *txt=@""; NSString *col=@"-";
-            if ([v isKindOfClass:[UILabel class]]){
-                UILabel *l=(UILabel *)v; txt=l.text ?: l.accessibilityLabel ?: @"";
-                UIColor *c=l.textColor; CGFloat rr,gg,bb,aa;
-                if (c && [c getRed:&rr green:&gg blue:&bb alpha:&aa])
-                    col=[NSString stringWithFormat:@"%.3f,%.3f,%.3f,%.2f",rr,gg,bb,aa];
-            } else txt=v.accessibilityLabel ?: @"";
-            if (txt.length){
-                NSString *par=v.superview?NSStringFromClass(v.superview.class):@"-";
-                [out appendFormat:@"NATIVE cls=%@ parent=%@ xywh=%.1f,%.1f,%.1f,%.1f color=%@ text='%@' aid='%@'\\n",
-                    cls,par,r.origin.x,r.origin.y,r.size.width,r.size.height,col,
-                    [txt stringByReplacingOccurrencesOfString:@"\\n" withString:@" "],v.accessibilityIdentifier?:@"-"];
-                (*seen)++;
-            }
-        }
-        for (UIView *s in v.subviews) ADHomeTextProbeNativeWalk6079(s,out,seen,depth+1);
-    } @catch(...) {}
-}
-
-static void ADRunHomeTextProbe6079(void){
+static void ADRunHomeTextProbe6081(void){
     dispatch_async(dispatch_get_main_queue(), ^{
         @try {
-            NSString *p=[NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-home-text-probe-6080.txt"];
-            NSString *head=[NSString stringWithFormat:@"AmazonDark v6.0.80 Home product-text ownership probe\\n=================================================\\nversion=%@ enabled=%d web=%d native=%d trackedWebViews=%lu\\n",
-                @AD_VERSION,gP.enabled?1:0,gP.webDarkReader?1:0,gP.nativeRecolor?1:0,(unsigned long)gADWebViews613.allObjects.count];
-            [head writeToFile:p atomically:YES encoding:NSUTF8StringEncoding error:nil];
-            int wi=0;
+            // Create the file FIRST so trigger success is observable even if WebKit
+            // rejects evaluation or the page changes during the async completion.
+            ADHomeTextProbeWrite6081(@"status=triggered; awaiting WebKit result");
+            WKWebView *best=nil; CGFloat bestArea=0;
             for (WKWebView *wv in gADWebViews613.allObjects){
-                if (!wv || !wv.window) continue; int idx=wi++;
-                NSString *url=wv.URL.absoluteString ?: @"-";
-                ADAppendHomeTextProbe6079([NSString stringWithFormat:@"\\n=== WEBVIEW %d url=%@ frame=%.1f,%.1f,%.1f,%.1f ===",idx,url,wv.frame.origin.x,wv.frame.origin.y,wv.frame.size.width,wv.frame.size.height]);
-                [wv evaluateJavaScript:ADHomeTextProbeJS6079() completionHandler:^(id result,NSError *err){
-                    NSString *body=err?[NSString stringWithFormat:@"WEBERR %@",err]:([result isKindOfClass:[NSString class]]?result:[result description]);
-                    ADAppendHomeTextProbe6079([NSString stringWithFormat:@"WEBVIEW_RESULT %d\\n%@",idx,body?:@"-"]);
-                }];
+                if (!wv || !wv.window || wv.hidden || wv.alpha<0.03) continue;
+                CGRect r=[wv convertRect:wv.bounds toView:wv.window];
+                CGRect x=CGRectIntersection(r,wv.window.bounds);
+                CGFloat area=MAX(0,x.size.width)*MAX(0,x.size.height);
+                if (area>bestArea){ best=wv; bestArea=area; }
             }
-            NSMutableString *native=[NSMutableString stringWithString:@"\\n=== VISIBLE NATIVE TEXT RENDERERS ===\\n"];
-            int seen=0;
-            for (UIScene *sc in [UIApplication sharedApplication].connectedScenes){
-                if (![sc isKindOfClass:[UIWindowScene class]]) continue;
-                for (UIWindow *w in ((UIWindowScene *)sc).windows) ADHomeTextProbeNativeWalk6079(w,native,&seen,0);
-            }
-            [native appendFormat:@"NATIVE_SUMMARY recorded=%d\\n",seen];
-            ADAppendHomeTextProbe6079(native);
-        } @catch(...) {}
+            if (!best){ ADHomeTextProbeWrite6081(@"status=no-visible-webview"); return; }
+            NSString *meta=[NSString stringWithFormat:@"webviewURL=%@ visibleArea=%.0f",best.URL.absoluteString?:@"-",bestArea];
+            [best evaluateJavaScript:ADHomeTextProbeJS6081() completionHandler:^(id result,NSError *err){
+                NSString *body=err?[NSString stringWithFormat:@"%@\nWEBERR %@",meta,err]:[NSString stringWithFormat:@"%@\n%@",meta,([result isKindOfClass:[NSString class]]?result:[result description])?:@"-"];
+                ADHomeTextProbeWrite6081(body);
+            }];
+        } @catch(...) { ADHomeTextProbeWrite6081(@"status=objc-exception"); }
     });
 }
 
@@ -5127,20 +5087,11 @@ static void ADPrefsChanged(CFNotificationCenterRef center, void *observer,
     });
 }
 
-// Foreground: a backgrounded app can be re-laid-out by the system, and web tabs may
-// have been reclaimed. One sweep on return is far cheaper than a forever-timer.
-static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
-                              CFStringRef name, const void *object,
-                              CFDictionaryRef userInfo) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-        @try {
-            ADSweep();
-            // v6.0.80 diagnostic: foregrounding Amazon is the manual trigger.
-            // No external notify utility is required and no recurring work is added.
-            ADRunHomeTextProbe6079();
-        } @catch(...) {}
-    });
-}
+// v6.0.81 probe trigger state. UIApplication lifecycle notifications are posted via
+// NSNotificationCenter, not CFNotificationCenterGetLocalCenter(). The first active
+// event is cold launch; the second/subsequent event is the deliberate return to
+// Amazon with the bad Home cards left visible.
+static BOOL gADSeenActive6081 = NO;
 
 // ─── %ctor : process guard + hook registration + bounded startup recovery ────
 %ctor {
@@ -5164,6 +5115,12 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
             addObserverForName:UIApplicationDidBecomeActiveNotification
                         object:nil queue:[NSOperationQueue mainQueue]
                     usingBlock:^(NSNotification *n){
+            if (!gADSeenActive6081){
+                gADSeenActive6081 = YES;
+            } else {
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)),
+                               dispatch_get_main_queue(), ^{ ADRunHomeTextProbe6081(); });
+            }
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(9.0 * NSEC_PER_SEC)),
                            dispatch_get_main_queue(), ^{ ADPostAppReady(); });
         }];
@@ -5198,10 +5155,6 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),
         NULL, ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),
-        NULL, CFNotificationSuspensionBehaviorCoalesce);
-    CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(),
-        NULL, ADAppForegrounded,
-        (__bridge CFStringRef)UIApplicationWillEnterForegroundNotification,
         NULL, CFNotificationSuspensionBehaviorCoalesce);
 
 }
