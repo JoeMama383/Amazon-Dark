@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.87"
+#define AD_VERSION "v6.0.88"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -593,6 +593,14 @@ static NSString *ADFixesLiteral(void){
              "[style*=multiply],[style*=darken],[style*=color-burn],"
              "[class*=deal] [style*=blend],[class*=Deal] [style*=blend]"
              "{mix-blend-mode:normal !important;isolation:auto !important;}"
+             // v6.0.88: exact v5.446 v5.264-era Interests/image-wrapper prepaint.
+             // This is the missing half of the historical flash fix: product-art
+             // wrappers are transparent before hydration so the already-dark pane
+             // floor shows through instead of Amazon white.  Keep this declarative;
+             // do NOT restore the retired after-paint ADCardBorderFixJS census.
+             "picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],"
+             "[class*=s-image],[class*=unfill],[class*=placehold]"
+             "{background-color:transparent !important;}"
              // v6.0.85: direct v5.446 person/Interests card + pill prepaint family.
              // These stable structural classes were the donor's parse-time owner for
              // the light card outlines seen while Interests-like surfaces hydrate.
@@ -716,6 +724,12 @@ static NSString *ADDarkReaderBootstrap(void){
          // but it means lazy/virtualised holes reveal the theme floor, not Amazon white.
          "try{if(!document.getElementById('adfloor612')){var f=document.createElement('style');"
            "f.id='adfloor612';f.textContent='html,body,#a-page,#gwm-PageContent,main{background-color:%@ !important;}"
+           // v6.0.88: restore the exact v5.446 adcardfix image-wrapper floor.
+           // The historical Interests work made these wrappers transparent at parse
+           // time; v6.0.85 accidentally ported the borders/skeletons but omitted this.
+           "picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],"
+           "[class*=s-image],[class*=unfill],[class*=placehold]"
+           "{background-color:transparent !important;}"
            // v6.0.85: direct v5.446 Interests/person-card first-paint rules. Keep them
            // in this already-existing documentStart sheet so Amazon never gets a light
            // hydration frame before Dark Reader's own override sheet is available.

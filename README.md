@@ -1,6 +1,6 @@
-# AmazonDark v6.0.87
+# AmazonDark v6.0.88
 
-## v6.0.87 — make autocomplete history/delete mask glyphs first-paint
+## v6.0.88 — make autocomplete history/delete mask glyphs first-paint
 
 - Built directly from v6.0.85; the failed v6.0.86 filter-based search-glyph experiment is not included.
 - Uses the exact renderer proven by the final v5.446 runtime probe: `I.icon-past-search-suggestion` and `I.icon-close.s-suggestion-icon-left` are 20x20 CSS mask glyphs.
