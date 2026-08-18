@@ -1,10 +1,10 @@
-# AmazonDark v6.0.116
+# AmazonDark v6.0.103
 
-## v6.0.116 — restore v5.446 Search glyph ownership
+## v6.0.103 — make the More Like This two-cards icon single-paint
 
-- Exact production base: v6.0.103. No v6.0.104-v6.0.115 symbol/menu experiments are stacked into this tree.
-- Removes the v6.0.87 clock/X rule that painted the Search suggestion glyph host itself light. That rule is the source of the visible white square behind the black clock/X on the current Search pane.
-- Restores the exact v5.446 Search/nav bitmap backdrop rule in both the earliest documentStart sheet and the post-DarkReader fixes sheet: real IMG chrome keeps a transparent surround, while the existing generic glyph pipeline owns the actual monochrome ink.
-- There is no Search-specific JavaScript renderer detector, no Search mutation scan, and no new glyph owner. The working v5.446 separation between transparent icon backdrop and generic mechanism-aware glyph repair is restored instead.
-- v6.0.103 two-cards first-paint behavior, Heart behavior, checkbox/Compare, carousel dot, product-image protections, TWB, video, voice, 120 Hz, JIT, top chrome, and SpringBoard source are otherwise unchanged.
-- No new MutationObserver, scroll listener, interval, RAF loop, timeout, dispatch, querySelectorAll call, native hierarchy walk, or image sampler is added.
+- Exact source base: v6.0.101. The unsuccessful v6.0.102 swatch/deal experiment is intentionally not carried forward.
+- Fixes the lower-left More Like This two-cards control painting in two visible stages (temporary white/gray child art, then the final cards glyph).
+- The finished dark circular chrome + white stacked-cards/plus glyph is now owned in the earliest documentStart CSS and repeated in the post-DarkReader fixes sheet, so first paint and settled paint are identical.
+- Amazon's lazy child IMG/SVG/icon painters inside only `.mlt-icon-container` are kept visually transparent; their layout and click target are not removed.
+- The existing `sym413` pass now recognizes `.mlt-icon-container` as declaratively owned and skips its old 48-descendant live-art scan after one cleanup.
+- No new observer, scroll listener, interval, RAF, timeout, selector traversal, native hook, or image sampler is added.

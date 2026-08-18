@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.116"
+#define AD_VERSION "v6.0.117"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1057,7 +1057,7 @@ static NSString *ADDarkReaderBootstrap(void){
            // v6.0.16 / v5.446: small round content bitmaps are not monochrome UI glyphs.
            // Keep the class reject broad and do ancestry/bitmap checks only on tiny <img>
            // candidates immediately before a glyph write.
-           "var SKIP=/star|prime|logo|flag|swatch|thumb|sponsor|pill-image|product-image|photo|heart|wish|lists-framework|avatar|profile|author|reviewer|byline|merchant|seller|brand|store|logo-|-logo|headshot|user-image|customer/i;"
+           "var SKIP=/star|prime|logo|flag|swatch|thumb|sponsor|pill-image|product-image|photo|heart|wish|lists-framework|mlt-icon-container|avatar|profile|author|reviewer|byline|merchant|seller|brand|store|logo-|-logo|headshot|user-image|customer/i;"
            "var CONTENTIMG616='[data-hook*=review],[class*=review],[class*=profile],[class*=avatar],[class*=author],[class*=byline],[class*=merchant],[class*=seller],[class*=brand],[class*=store],[id*=review]';"
            // v6.0.90: Amazon's search-result feature badges (Works with Alexa,
            // recycled-material / carbon-impact marks, etc.) are tiny full-colour IMG
