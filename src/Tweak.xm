@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.121"
+#define AD_VERSION "v6.0.122"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -626,14 +626,21 @@ static NSString *ADFixesLiteral(void){
              "background-repeat:no-repeat !important;background-position:center !important;"
              "background-size:16px 16px !important;border:0 !important;border-radius:0 !important;"
              "box-shadow:none !important;outline:0 !important;transition:none !important;}"
-             // v6.0.121: common Share first-paint leaves from the v5.440/v5.446 probe.
-             // Alternate product-template leaves are resolved by the bounded exact-row
-             // insertion owner below, without filtering the row or scanning the document.
-             ".puis-mab-overlay-row .aok-inline-block,"
-             ".puis-mab-overlay-row .a-icon-share"
-             "{filter:brightness(0) invert(1) !important;background-color:transparent !important;"
-             "color:#ffffff !important;fill:#ffffff !important;stroke:#ffffff !important;"
-             "border:0 !important;box-shadow:none !important;outline:0 !important;}"
+             // v6.0.122: Share is the fourth/final MAB action row. Product templates
+             // disagree about the inner painter path, so stop filtering a path-dependent
+             // ancestor/leaf pair. Own only the probe-confirmed 20px right-side row widget:
+             // hide Amazon's varying inner painter and draw one stable white share glyph.
+             ".puis-mab-overlay .puis-mab-overlay-row:last-child [class*=puis-mab-overlay-row-wid]"
+             "{filter:none !important;background-color:transparent !important;"
+             "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZD0iTTMuMiA3LjJ2Ni4xaDkuNlY3LjIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik04IDEwVjIuNU01LjQgNS4xIDggMi41bDIuNiAyLjYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==) !important;"
+             "background-repeat:no-repeat !important;background-position:center !important;"
+             "background-size:16px 16px !important;border:0 !important;box-shadow:none !important;"
+             "outline:0 !important;}"
+             ".puis-mab-overlay .puis-mab-overlay-row:last-child [class*=puis-mab-overlay-row-wid] > *"
+             "{opacity:0 !important;filter:none !important;}"
+             ".puis-mab-overlay .puis-mab-overlay-row:last-child [class*=puis-mab-overlay-row-wid]::before,"
+             ".puis-mab-overlay .puis-mab-overlay-row:last-child [class*=puis-mab-overlay-row-wid]::after"
+             "{content:none !important;background:none !important;opacity:0 !important;}"
              "[class*=puis-heart-position] [class*=placehold],[class*=heart-placeholder],"
              "[class*=puis-heart-position] img[src*=grey-pixel],[class*=puis-heart-position] img[src*=gray-pixel],"
              "[class*=puis-heart-position] img[src*=transparent-pixel],[class*=puis-heart-position] img[src*=placeholder],"
@@ -997,13 +1004,19 @@ static NSString *ADDarkReaderBootstrap(void){
            "background-repeat:no-repeat !important;background-position:center !important;"
            "background-size:16px 16px !important;border:0 !important;border-radius:0 !important;"
            "box-shadow:none !important;outline:0 !important;transition:none !important;}"
-           // v6.0.121: common Share first-paint leaves; alternate template paths are
-           // handled by the bounded exact-row insertion owner below.
-           ".puis-mab-overlay-row .aok-inline-block,"
-           ".puis-mab-overlay-row .a-icon-share"
-           "{filter:brightness(0) invert(1) !important;background-color:transparent !important;"
-           "color:#ffffff !important;fill:#ffffff !important;stroke:#ffffff !important;"
-           "border:0 !important;box-shadow:none !important;outline:0 !important;}"
+           // v6.0.122: duplicate the canonical final-row Share owner after Dark Reader.
+           // This is path-independent and never filters the row/menu shell.
+           ".puis-mab-overlay .puis-mab-overlay-row:last-child [class*=puis-mab-overlay-row-wid]"
+           "{filter:none !important;background-color:transparent !important;"
+           "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZD0iTTMuMiA3LjJ2Ni4xaDkuNlY3LjIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik04IDEwVjIuNU01LjQgNS4xIDggMi41bDIuNiAyLjYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==) !important;"
+           "background-repeat:no-repeat !important;background-position:center !important;"
+           "background-size:16px 16px !important;border:0 !important;box-shadow:none !important;"
+           "outline:0 !important;}"
+           ".puis-mab-overlay .puis-mab-overlay-row:last-child [class*=puis-mab-overlay-row-wid] > *"
+           "{opacity:0 !important;filter:none !important;}"
+           ".puis-mab-overlay .puis-mab-overlay-row:last-child [class*=puis-mab-overlay-row-wid]::before,"
+           ".puis-mab-overlay .puis-mab-overlay-row:last-child [class*=puis-mab-overlay-row-wid]::after"
+           "{content:none !important;background:none !important;opacity:0 !important;}"
            "[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],"
            "[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],"
            "[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],"
@@ -1682,15 +1695,8 @@ static NSString *ADThreeSymbolsWebJS605(void){
            "function cn434(e){var c=e&&e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||''));}"
            "function rr434(e){try{return e&&e.getBoundingClientRect?e.getBoundingClientRect():null;}catch(x){return null;}}"
            "function sq434(e,lo,hi){var r=rr434(e);return !!(r&&r.width>=lo&&r.width<=hi&&r.height>=lo&&r.height<=hi&&Math.abs(r.width-r.height)<=14);}"
-           // v6.0.121: reintroduce the v6.0.115 exact MAB insertion gate, but keep it
-           // bounded to the mounted overlay. This gives Select a deterministic owner and
-           // makes Share path-tolerant across product templates without a document scan.
-           "function mabClass6121(e){try{return !!(e&&e.nodeType===1&&cn434(e).indexOf('puis-mab-')>=0);}catch(x){return false;}}"
-           "function mab6121(root){try{if(!root||root.nodeType!==1)return 0;var box=(root.classList&&root.classList.contains('puis-mab-overlay'))?root:(root.closest&&root.closest('.puis-mab-overlay'))||root,R=[],n=0;if(box.classList&&box.classList.contains('puis-mab-overlay-row'))R.push(box);var L=box.getElementsByClassName?box.getElementsByClassName('puis-mab-overlay-row'):[];for(var i=0;i<L.length&&i<12;i++)if(R.indexOf(L[i])<0)R.push(L[i]);for(var j=0;j<R.length;j++){var r=R[j],sv=null,ml=null,cb=null,tx=String(r.textContent||'').trim().toLowerCase(),A=null;A=r.getElementsByClassName?r.getElementsByClassName('puis-mab-overlay-heart'):[];if(A&&A.length)sv=A[0];A=r.getElementsByClassName?r.getElementsByClassName('mlt-icon-container'):[];if(A&&A.length)ml=A[0];A=r.getElementsByClassName?r.getElementsByClassName('a-icon-checkbox'):[];if(A&&A.length){for(var ci=0;ci<A.length&&ci<8;ci++){if(String(A[ci].tagName||'').toUpperCase()==='I'){cb=A[ci];break;}}if(!cb)cb=A[0];}if(sv){sv.setAttribute('data-ad-mabsave6121','1');sv.style.setProperty('filter','brightness(0) invert(1)','important');sv.style.setProperty('background-color','transparent','important');sv.__adGlyph=1;sv.__adBy='mabsave6121';n++;}if(ml){ml.setAttribute('data-ad-mabmlt6121','1');ml.style.setProperty('background-color','transparent','important');ml.style.setProperty('border','0','important');ml.style.setProperty('border-radius','0','important');ml.style.setProperty('box-shadow','none','important');ml.style.setProperty('outline','0','important');n++;}if(cb){var h=cb.closest&&cb.closest('.a-checkbox');cb.removeAttribute('data-ad-checkbox434-art');if(h)h.removeAttribute('data-ad-checkbox434-host');cb.setAttribute('data-ad-mabselect6121','1');cb.style.setProperty('filter','none','important');cb.style.setProperty('background-color','transparent','important');cb.style.setProperty('background-image','url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHJlY3QgeD0iMS40IiB5PSIxLjQiIHdpZHRoPSIxMy4yIiBoZWlnaHQ9IjEzLjIiIHJ4PSIxLjciIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiLz48cGF0aCBkPSJNNC4yIDguMiA2LjggMTAuOCAxMiA1LjYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==)','important');cb.style.setProperty('background-repeat','no-repeat','important');cb.style.setProperty('background-position','center','important');cb.style.setProperty('background-size','16px 16px','important');cb.style.setProperty('border','0','important');cb.style.setProperty('border-radius','0','important');cb.style.setProperty('box-shadow','none','important');cb.style.setProperty('outline','0','important');cb.__adGlyph=1;cb.__adBy='mabselect6121';n++;}if(tx.indexOf('share')===0){var sh=null,fb=null,D=r.getElementsByTagName?r.getElementsByTagName('*'):[];for(var qi=0;qi<D.length&&qi<40;qi++){var q=D[qi],qn=cn434(q).toLowerCase(),qa=String(q.getAttribute&&q.getAttribute('data-action')||'').toLowerCase();if(qn.indexOf('a-icon-share')>=0||qn.indexOf('aok-inline-block')>=0||qn.indexOf('lists-framework-unfill')>=0||qn.indexOf('lists-framework-fill')>=0||qa.indexOf('share')>=0){sh=q;break;}if(!fb){var qt=String(q.tagName||'').toUpperCase();if(/^(I|SVG|IMG|SPAN)$/.test(qt)||qn.indexOf('share')>=0||qn.indexOf('icon')>=0){var qr=q.getBoundingClientRect();if(qr.width>=8&&qr.height>=8&&qr.width<=30&&qr.height<=30){var qc=getComputedStyle(q),bi=String(qc.backgroundImage||'none'),mi=String(qc.maskImage||qc.webkitMaskImage||'none');if(bi!=='none'||mi!=='none'||/^(I|SVG|IMG)$/.test(qt))fb=q;}}}}sh=sh||fb;if(sh){sh.setAttribute('data-ad-mabshare6121','1');sh.style.setProperty('filter','brightness(0) invert(1)','important');sh.style.setProperty('background-color','transparent','important');sh.style.setProperty('color','#ffffff','important');sh.style.setProperty('fill','#ffffff','important');sh.style.setProperty('stroke','#ffffff','important');sh.style.setProperty('opacity','1','important');sh.__adGlyph=1;sh.__adBy='mabshare6121';var V=sh.getElementsByTagName?sh.getElementsByTagName('*'):[];for(var vi=0;vi<V.length&&vi<12;vi++){var v=V[vi],vt=String(v.tagName||'').toUpperCase();if(!/^(SVG|PATH|USE|POLYGON|I|IMG)$/.test(vt))continue;v.style.setProperty('background-color','transparent','important');v.style.setProperty('opacity','1','important');if(/^(SVG|PATH|USE|POLYGON)$/.test(vt)){v.style.setProperty('filter','none','important');v.style.setProperty('fill','#ffffff','important');v.style.setProperty('stroke','#ffffff','important');}else v.style.setProperty('filter','brightness(0) invert(1)','important');}n++;}}}window.__AD_MAB6121__=n;return n;}catch(x){window.__AD_MAB6121__=-1;return 0;}}"
-           "var cartSeed434=document.querySelector('[class*=sc-list-item],[class*=sc-item]'),body434=cartSeed434?String(document.body.innerText||document.body.textContent||'').toLowerCase():'',cart434=!!cartSeed434&&body434.indexOf('proceed to checkout')>=0&&(body434.indexOf('save for later')>=0||body434.indexOf('select all items')>=0||body434.indexOf('deselect all items')>=0);"
-           "var scopeSel434='[class*=puis-card],[class*=s-result-item],[data-component-type=\"s-search-result\"],[data-asin],[class*=s-product-image],[class*=product-image],[class*=sc-list-item],[class*=sc-item]';"
-           "var semanticSel434='[class*=copilot-compare],button[aria-label*=ompare],[role=button][aria-label*=ompare],[role=checkbox],[aria-checked],[data-csa-c-content-id*=ompare],[data-testid*=ompare],div.a-checkbox,[class~=a-checkbox]';"
-           "function scope434(e){return !!(e&&e.closest&&e.closest(scopeSel434));}/* Cart mode changes shell paint only, never page-wide checkbox scope */"
+           // v6.0.122: no MAB insertion-time repair lane. Keep chevron/menu mount behavior
+           // on the known-good v6.0.120 observer path; Select/Share are first-paint CSS owners.
            "function foreign434(e){try{return !!(e&&e.closest&&e.closest('[class*=mlt-icon-container],[class*=lists-framework-action-button],[data-ad-cards410-root],[data-ad-cards410-host],[data-ad-cards410-disc],[data-ad-cards410-glyph],[data-ad-heart-shell427],[class*=puis-heart-position],[class*=lists-treatment-hear],[class*=puis-mab-chevron],.puis-mab-overlay-row'));}catch(x){return true;}}"
            "function owned434(e){if(!e||e.nodeType!==1)return false;var p=String(e.getAttribute('data-ad-product391')||''),v=String(e.getAttribute('data-ad-v333403')||''),d=String(e.getAttribute('data-ad-disc420')||''),s=String(e.getAttribute('data-ad-sym413')||''),v4=String(e.getAttribute('data-ad-v333404')||'');if(p==='checkbox'||v==='c'||d==='checkbox'||s==='checkbox'||v4==='c'||v4==='checkbox')return true;var A=['data-ad-comparehost377','data-ad-comparechecked377','data-ad-compareinput377','data-ad-compare378','data-ad-compareleaf378','data-ad-compare-raster378','data-ad-compare379','data-ad-compareinput379','data-ad-compareorig379','data-ad-compare380','data-ad-compareinput380','data-ad-compareorig380','data-ad-comparelegacy387','data-ad-comparelegacyorig387','data-ad-productselected391','data-ad-productglyph391','data-ad-productraster391','data-ad-productvector391','data-ad-stock403','data-ad-stocksel403','data-ad-stockglyph403','data-ad-stockraster403','data-ad-stockvector403','data-ad-sym413glyph','data-ad-comparefunc428','data-ad-compareselected428','data-ad-comparehit428'];for(var i=0;i<A.length;i++)if(e.hasAttribute(A[i]))return true;return /^(?:product391|sym413|sym413glyph|disc420|disc422)$/.test(String(e.__adBy||''));}"
            "var marks434=['data-ad-comparehost377','data-ad-comparechecked377','data-ad-compareinput377','data-ad-compare378','data-ad-compareleaf378','data-ad-compare-raster378','data-ad-compare379','data-ad-compareinput379','data-ad-compareorig379','data-ad-compare380','data-ad-compareinput380','data-ad-compareorig380','data-ad-comparelegacy387','data-ad-comparelegacyorig387','data-ad-product391','data-ad-productselected391','data-ad-productglyph391','data-ad-productraster391','data-ad-productvector391','data-ad-stock403','data-ad-stocksel403','data-ad-stockglyph403','data-ad-stockraster403','data-ad-stockvector403','data-ad-v333403','data-ad-v333404','data-ad-disc420','data-ad-sym413','data-ad-sym413glyph','data-ad-comparefunc428','data-ad-compareselected428','data-ad-comparehit428'];"
@@ -1726,7 +1732,7 @@ static NSString *ADThreeSymbolsWebJS605(void){
            "var RELSYM6094='[class*=puis-heart-position],[class*=lists-framework-action-button],[class*=lists-framework-heart],[class*=mlt-icon-container]';"
            "function relsym6094(n){try{if(!n||n.nodeType!==1)return false;if(n.matches&&n.matches(RELSYM6094))return true;if(n.closest&&n.closest(RELSYM6094))return true;return !!(n.querySelector&&n.querySelector(RELSYM6094));}catch(x){return false;}}"
            "function qsym6094(){try{if(window.__AD_SYM605_QUEUE__)window.__AD_SYM605_QUEUE__();}catch(x){}}"
-           "new MutationObserver(function(ms){try{var qc=0,qs=0;for(var i=0;i<ms.length;i++){var m=ms[i],mab=0,A=m.addedNodes||[];if(m.type==='childList'){var mt=m.target;if(mabClass6121(mt)){mab6121(mt);mab=1;}for(var mj=0;mj<A.length&&!mab;mj++){var an=A[mj];if(mabClass6121(an)){mab6121(an);mab=1;break;}var fc=an&&an.nodeType===1&&an.firstElementChild;if(mabClass6121(fc)){mab6121(fc);mab=1;break;}}if(mab)continue;}if(m.type==='attributes'){if(!qc&&rel434(m.target))qc=1;if(!qs&&relsym6094(m.target))qs=1;}for(var j=0;j<A.length&&(!qc||!qs);j++){if(!qc&&rel434(A[j]))qc=1;if(!qs&&relsym6094(A[j]))qs=1;}if(qc&&qs)break;}if(qc)queue434(90);if(qs)qsym6094();}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','aria-current','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});}"
+           "new MutationObserver(function(ms){try{var qc=0,qs=0;for(var i=0;i<ms.length;i++){var m=ms[i];if(m.type==='attributes'){if(!qc&&rel434(m.target))qc=1;if(!qs&&relsym6094(m.target))qs=1;}var A=m.addedNodes||[];for(var j=0;j<A.length&&(!qc||!qs);j++){if(!qc&&rel434(A[j]))qc=1;if(!qs&&relsym6094(A[j]))qs=1;}if(qc&&qs)break;}if(qc)queue434(90);if(qs)qsym6094();}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','aria-current','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});}"
            "stockCheckbox434();setTimeout(stockCheckbox434,40);setTimeout(stockCheckbox434,180);setTimeout(stockCheckbox434,700);setTimeout(stockCheckbox434,1800);"
          "}catch(e){}"
          // Tiny 6.x reapply entry point only. It does not alter either donor owner.
