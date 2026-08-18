@@ -1,6 +1,6 @@
-# AmazonDark v6.0.123
+# AmazonDark v6.0.124
 
-## v6.0.123 — correct submenu action glyph ownership
+## v6.0.124 — correct submenu action glyph ownership
 
 - Keeps the v6.0.122 chevron first-paint rollback that removed the white flash.
 - Fixes the v6.0.122 selector bug that painted the Share glyph into Save, Select, and More like this.
