@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.112"
+#define AD_VERSION "v6.0.113"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -566,17 +566,24 @@ static NSString *ADFixesLiteral(void){
              "[class*=mlt-icon-container] [class*=mlt-text-icon]"
              "{opacity:0 !important;filter:none !important;background-color:transparent !important;"
              "transition:none !important;animation:none !important;}"
-             // v6.0.112: product-card overflow menu is not the circular MLT button.
-             // Historical v5.446 probes identify the right-side menu painter as the
-             // puis-mab-overlay-row widget family. Keep the canonical cards/+ first-frame
-             // glyph, but remove the button chrome only inside that overlay. For the other
-             // menu rows, whiten the small right-side widget as a rendered bitmap; alpha is
-             // preserved, so Save/Select/Share glyphs become light without painting a box.
+             // v6.0.113: overflow-menu correction rebuilt from the v6.0.104 base.
+             // Do not filter the 20px row-widget wrapper and do not use :has() here:
+             // v6.0.112 made that dynamic wrapper a composited filter surface, which
+             // caused the white-circle flash and expensive style invalidation while
+             // the menu mounted. Paint only the actual historical v5.446 glyph leaves.
+             // The menu MLT host keeps the canonical cards/+ background-image from
+             // v6.0.104, but loses circular button chrome only inside this overlay.
              "[class*=puis-mab-overlay-row] [class*=mlt-icon-container]"
              "{background-color:transparent !important;border:0 !important;border-radius:0 !important;"
              "box-shadow:none !important;outline:0 !important;}"
-             "[class*=puis-mab-overlay-row]:not(:has([class*=mlt-icon-container])) [class*=puis-mab-overlay-row-wid]"
-             "{filter:brightness(0) invert(1) !important;}"
+             "[class*=puis-mab-overlay-row] [class*=puis-mab-overlay-heart],"
+             "[class*=puis-mab-overlay-row] i.a-icon-checkbox,"
+             "[class*=puis-mab-overlay-row] [class*=a-icon-share],"
+             "[class*=puis-mab-overlay-row] .aok-inline-block"
+             "{filter:brightness(0) invert(1) !important;background-color:transparent !important;"
+             "color:#ffffff !important;fill:#ffffff !important;stroke:#ffffff !important;}"
+             "[class*=puis-mab-overlay-row] svg,[class*=puis-mab-overlay-row] svg path"
+             "{color:#ffffff !important;fill:#ffffff !important;stroke:#ffffff !important;}"
              // v5.374: search templates can temporarily expose a 1x1/lazy
              // placeholder in this action control. Inverting that shim creates the
              // solid white square. Hide known shims at documentStart; runtime below
@@ -934,13 +941,21 @@ static NSString *ADDarkReaderBootstrap(void){
            "[class*=mlt-icon-container] [class*=mlt-text-icon]"
            "{opacity:0 !important;filter:none !important;background-color:transparent !important;"
            "transition:none !important;animation:none !important;}"
-           // v6.0.112: mirror the overlay-only menu correction at documentStart.
-           // This beats the global v6.0.104 MLT chrome before the dropdown's first visible frame.
+           // v6.0.113: mirror the same leaf-only overlay treatment at documentStart.
+           // This intentionally contains no overlay :has() selector and no filtered
+           // row/widget wrapper, so menu insertion cannot create a large compositing
+           // layer or hold the WebView's first touch while styles are re-evaluated.
            "[class*=puis-mab-overlay-row] [class*=mlt-icon-container]"
            "{background-color:transparent !important;border:0 !important;border-radius:0 !important;"
            "box-shadow:none !important;outline:0 !important;}"
-           "[class*=puis-mab-overlay-row]:not(:has([class*=mlt-icon-container])) [class*=puis-mab-overlay-row-wid]"
-           "{filter:brightness(0) invert(1) !important;}"
+           "[class*=puis-mab-overlay-row] [class*=puis-mab-overlay-heart],"
+           "[class*=puis-mab-overlay-row] i.a-icon-checkbox,"
+           "[class*=puis-mab-overlay-row] [class*=a-icon-share],"
+           "[class*=puis-mab-overlay-row] .aok-inline-block"
+           "{filter:brightness(0) invert(1) !important;background-color:transparent !important;"
+           "color:#ffffff !important;fill:#ffffff !important;stroke:#ffffff !important;}"
+           "[class*=puis-mab-overlay-row] svg,[class*=puis-mab-overlay-row] svg path"
+           "{color:#ffffff !important;fill:#ffffff !important;stroke:#ffffff !important;}"
            "[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],"
            "[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],"
            "[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],"

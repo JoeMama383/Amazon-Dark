@@ -1,10 +1,11 @@
-# AmazonDark v6.0.112
+# AmazonDark v6.0.113
 
-## v6.0.112 — correct the product-card overflow menu symbols
+## v6.0.113 — stabilize the product-card overflow menu without blocking first touch
 
-- Exact code base is v6.0.104, the last-good build requested for this branch. No v6.0.105–v6.0.111 Heart experiments are included.
-- Keeps the v6.0.104 main More-like-this control unchanged: its circular dark button and canonical white stacked-cards/plus glyph still paint on the first frame and remain protected from `gfix1`.
-- In the chevron overflow menu only, strips that circular button chrome from `.mlt-icon-container` while retaining the canonical stacked-cards/plus background image. The menu therefore shows the bare cards/+ glyph instead of a second circular control.
-- Restores light menu action glyphs by whitening only the historical `puis-mab-overlay-row-wid*` right-side widget on non-MLT rows. This covers the black Save and Select painters without touching row text or the More-like-this host.
-- The same rules are present in both the earliest documentStart sheet and `ADFixesLiteral`, so the corrected menu paint is available on its first visible frame and remains authoritative after Dark Reader.
-- No new JavaScript, MutationObserver, selector traversal, scroll listener, interval, RAF, timeout, dispatch queue, native hierarchy walk, or image sampler is added.
+- Rebuilt directly from the v6.0.104 last-good production base; none of the later Heart experiments are included.
+- Keeps the v6.0.104 More-like-this two-cards first-frame owner unchanged on the normal circular button.
+- Inside the product-card overflow menu only, removes that circular chrome while retaining the canonical white stacked-cards/plus glyph.
+- Replaces v6.0.112's filtered `puis-mab-overlay-row-wid` wrapper and dynamic `:has()` exclusion with direct leaf-only selectors derived from the v5.446 probe family.
+- Save (`puis-mab-overlay-heart`), Select (`i.a-icon-checkbox`), and the Share 16px `aok-inline-block` leaf are whitened directly; SVG leaves are forced to white fill/stroke.
+- No whole menu-row/filter compositing surface is created, so opening the menu should no longer flash a white disc or delay touch handling.
+- No new observer, selector traversal, scroll listener, interval, RAF, timeout, dispatch queue, or native hierarchy walk is added.
