@@ -1,11 +1,13 @@
-# AmazonDark v6.0.104
+# AmazonDark v6.0.106
 
-## v6.0.104 — keep the More-like-this two-cards icon stable after first paint
+## v6.0.106 — Heart first-paint lifecycle probe (diagnostic only)
 
-- Exact production base is v6.0.101; the v6.0.102 swatch/deal experiment is not included.
-- Retains the v6.0.103 first-frame approach: `.mlt-icon-container` paints one canonical dark circle + white stacked-cards/plus SVG immediately, while Amazon's transient child IMG/SVG artwork remains visually hidden.
-- Fixes the v6.0.103 regression where that correct first frame later became a solid white disc.
-- Root cause is the existing generic `gfix1` lane: because v6.0.103 gave the small `.mlt-icon-container` itself a CSS `background-image`, the later glyph repair classified the whole 32px host as monochrome artwork and applied `filter: brightness(0) invert(1)` to the entire circle.
-- v6.0.104 adds only `.mlt-icon-container` to that generic glyph lane's existing `SKIP` family. The dedicated two-cards owner remains authoritative, so the host cannot be re-filtered after hydration.
-- The runtime `sym413/cards440` path still short-circuits this exact host after one cleanup, so Amazon's later placeholder/bitmap swaps cannot become visible or re-own the icon.
+Production paint is byte-for-byte v6.0.105. This build only expands the already-shipping bounded probe to capture Search-result Heart insertion/class/src hydration, reusing existing observers and the existing background dump path.
+
+- Production base is v6.0.104; the working v6.0.104 two-cards first-frame/persistence fix is retained unchanged.
+- Applies the same ownership model to the Search-result Heart: `[class*=lists-framework-action-button]` paints the finished dark circular chrome plus a canonical white outline Heart directly from CSS.
+- The identical Heart rule is present in both the earliest documentStart sheet and `ADFixesLiteral`, so the settled icon exists before Amazon/Dark Reader can expose a placeholder frame.
+- Amazon's transient Heart IMG/I/SVG/fill/unfill children stay `opacity:0`; their placeholder -> final artwork swaps therefore cannot create a visible second render cycle.
+- The existing symbol runtime now short-circuits the exact `lists-framework-action-button` Heart host after one legacy cleanup (`data-ad-heart6105`), just as v6.0.104 does for `.mlt-icon-container`.
+- The generic `gfix1` lane already excludes the `heart` / `lists-framework` families, so unlike the v6.0.103 cards regression the canonical Heart host is not eligible for whole-control inversion.
 - No new observer, scroll listener, interval, RAF, timeout, dispatch queue, or selector traversal is added.
