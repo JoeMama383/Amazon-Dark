@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.126"
+#define AD_VERSION "v6.0.127"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -484,6 +484,21 @@ static NSString *ADFixesLiteral(void){
              "[class*=nav-search] img,[class*=searchbar] img,[class*=search-bar] img,"
              "[role=search] img,[class*=nav-] img[class*=icon],[class*=header] img[class*=icon]"
              "{background-color:transparent !important;}"
+             // v6.0.127: restore v5.446's Sponsored ownership declaratively. The
+             // donor pins exact Sponsored labels to white, while its generic glyph
+             // lane whitens the tiny ad-feedback sprite. Keep that behavior here
+             // without reviving sponsorFix376's document-wide text scan/timers.
+             "[class*=sponsored-label],[class*=sponsored-label] *,"
+             "[class*=adFeedbackMainComponent],[class*=adFeedbackMainComponent] *,"
+             "html body :is(span,div,a,p):has(>[class*=ad-feedback-spr])"
+             "{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;"
+             "opacity:1 !important;visibility:visible !important;mix-blend-mode:normal !important;}"
+             "[class*=ad-feedback-spr]"
+             "{filter:brightness(0) invert(1) !important;opacity:1 !important;visibility:visible !important;"
+             "background-color:transparent !important;mix-blend-mode:normal !important;}"
+             "[class*=adFeedbackMainComponent] svg,[class*=adFeedbackMainComponent] path,"
+             "[class*=sponsored-label] svg,[class*=sponsored-label] path"
+             "{color:#ffffff !important;fill:#ffffff !important;stroke:#ffffff !important;opacity:1 !important;}"
              "%@"
              "[style*=\\\"background-image\\\"]{filter:none !important;}"
              // THE FIX THAT ACTUALLY WORKED, brought back. v5.27.0 whitened the heart
@@ -833,7 +848,9 @@ static NSString *ADFixesLiteral(void){
              "{background-color:#ffffff !important;border-color:#ffffff !important;"
              "color:#ffffff !important;fill:#ffffff !important;}"
              "',invert:[],ignoreInlineStyle:['[data-ad-native615]','[data-ad-native615] *',"
-             "'ul.a-pagination.a-dots li.a-selected','ul.a-pagination.a-dots li.dot-selected-t2','[data-ad-dotselected374]','html body .puis-mab-overlay .puis-mab-overlay-row-share .puis-mab-overlay-icon-share'],"
+             "'ul.a-pagination.a-dots li.a-selected','ul.a-pagination.a-dots li.dot-selected-t2','[data-ad-dotselected374]',"
+             "'[class*=ad-feedback-spr]','[class*=adFeedbackMainComponent]','[class*=adFeedbackMainComponent] *','[class*=sponsored-label]','[class*=sponsored-label] *',"
+             "'html body .puis-mab-overlay .puis-mab-overlay-row-share .puis-mab-overlay-icon-share'],"
              "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
             imgBackdrop];
     return gADFixesLiteral613;
@@ -957,6 +974,21 @@ static NSString *ADDarkReaderBootstrap(void){
              "[class*=nav-search] img,[class*=searchbar] img,[class*=search-bar] img,"
              "[role=search] img,[class*=nav-] img[class*=icon],[class*=header] img[class*=icon]"
              "{background-color:transparent !important;}"
+             // v6.0.127: restore v5.446's Sponsored ownership declaratively. The
+             // donor pins exact Sponsored labels to white, while its generic glyph
+             // lane whitens the tiny ad-feedback sprite. Keep that behavior here
+             // without reviving sponsorFix376's document-wide text scan/timers.
+             "[class*=sponsored-label],[class*=sponsored-label] *,"
+             "[class*=adFeedbackMainComponent],[class*=adFeedbackMainComponent] *,"
+             "html body :is(span,div,a,p):has(>[class*=ad-feedback-spr])"
+             "{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;"
+             "opacity:1 !important;visibility:visible !important;mix-blend-mode:normal !important;}"
+             "[class*=ad-feedback-spr]"
+             "{filter:brightness(0) invert(1) !important;opacity:1 !important;visibility:visible !important;"
+             "background-color:transparent !important;mix-blend-mode:normal !important;}"
+             "[class*=adFeedbackMainComponent] svg,[class*=adFeedbackMainComponent] path,"
+             "[class*=sponsored-label] svg,[class*=sponsored-label] path"
+             "{color:#ffffff !important;fill:#ffffff !important;stroke:#ffffff !important;opacity:1 !important;}"
            // v6.0.103: first-frame two-cards owner. This is intentionally duplicated
            // in ADFixesLiteral so the exact same paint exists before and after Dark Reader.
            "[class*=mlt-icon-container]"
