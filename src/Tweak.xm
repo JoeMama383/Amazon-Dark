@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.118"
+#define AD_VERSION "v6.0.119"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -591,6 +591,32 @@ static NSString *ADFixesLiteral(void){
              "[class*=lists-framework-unfill],[class*=lists-framework-fill]"
              "{filter:brightness(0) invert(1) !important;"
              "background-color:transparent !important;}"
+             // v6.0.119: restore the v5.446 action-control foreground owner that was
+             // lost in the v6.0.103 rollback branch. In the chevron overflow menu this
+             // is what keeps Save/Select/Share vector/icon ink white without painting
+             // a backdrop behind the glyph.
+             "[class*=lists-framework-action-button],"
+             "[class*=lists-framework-action-button] *"
+             "{color:#ffffff !important;fill:#ffffff !important;}"
+             // v6.0.119: v5.446-style overflow-menu leaf ownership. Use the exact
+             // indexed row token (not the slow substring/:has overlay selectors from
+             // v6.0.112-114). The current v6.0.103 MLT first-frame owner did not exist
+             // in the donor, so remove only its circular chrome inside this menu while
+             // preserving its canonical stacked-cards/+ background-image.
+             ".puis-mab-overlay-row .mlt-icon-container"
+             "{background-color:transparent !important;border:0 !important;"
+             "border-radius:0 !important;box-shadow:none !important;outline:0 !important;}"
+             // v5.440/v5.446 probes identify these as the actual tiny menu painters:
+             // Save = .puis-mab-overlay-heart, Select = i.a-icon-checkbox, Share =
+             // a-icon-share / an empty 16px aok-inline-block background painter.
+             // Filter only those leaves, never the row/wrapper, so alpha stays clear.
+             ".puis-mab-overlay-row .puis-mab-overlay-heart,"
+             ".puis-mab-overlay-row i.a-icon.a-icon-checkbox,"
+             ".puis-mab-overlay-row .a-icon-share,"
+             ".puis-mab-overlay-row .aok-inline-block:empty"
+             "{filter:brightness(0) invert(1) !important;color:#ffffff !important;"
+             "fill:#ffffff !important;stroke:#ffffff !important;border:0 !important;"
+             "box-shadow:none !important;outline:0 !important;}"
              "[class*=puis-heart-position] [class*=placehold],[class*=heart-placeholder],"
              "[class*=puis-heart-position] img[src*=grey-pixel],[class*=puis-heart-position] img[src*=gray-pixel],"
              "[class*=puis-heart-position] img[src*=transparent-pixel],[class*=puis-heart-position] img[src*=placeholder],"
@@ -924,6 +950,29 @@ static NSString *ADDarkReaderBootstrap(void){
            "[class*=mlt-icon-container] [class*=mlt-text-icon]"
            "{opacity:0 !important;filter:none !important;background-color:transparent !important;"
            "transition:none !important;animation:none !important;}"
+           // v6.0.119: exact v5.446 documentStart treatment for lists-framework
+           // action glyph leaves. This was present in the donor's earliest CSS but
+           // missing from the v6.0.103-derived branch.
+           "[class*=lists-framework-unfill],[class*=lists-framework-fill],"
+           "[class*=lists-framework-action-button] svg,[class*=lists-framework-action-button] i,"
+           "[class*=lists-framework-action-button] img"
+           "{filter:brightness(0) invert(1) !important;background-color:transparent !important;"
+           "border:0 !important;box-shadow:none !important;border-radius:0 !important;"
+           "max-width:26px !important;max-height:26px !important;}"
+           "[class*=lists-framework-action-button],[class*=lists-framework-action-button] *"
+           "{color:#ffffff !important;fill:#ffffff !important;}"
+           // v6.0.119 overflow compatibility for the 6.x canonical MLT owner. The
+           // donor had no synthetic host circle here; flatten only the menu copy.
+           ".puis-mab-overlay-row .mlt-icon-container"
+           "{background-color:transparent !important;border:0 !important;"
+           "border-radius:0 !important;box-shadow:none !important;outline:0 !important;}"
+           ".puis-mab-overlay-row .puis-mab-overlay-heart,"
+           ".puis-mab-overlay-row i.a-icon.a-icon-checkbox,"
+           ".puis-mab-overlay-row .a-icon-share,"
+           ".puis-mab-overlay-row .aok-inline-block:empty"
+           "{filter:brightness(0) invert(1) !important;color:#ffffff !important;"
+           "fill:#ffffff !important;stroke:#ffffff !important;border:0 !important;"
+           "box-shadow:none !important;outline:0 !important;}"
            "[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],"
            "[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],"
            "[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],"

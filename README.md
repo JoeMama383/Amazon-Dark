@@ -1,4 +1,13 @@
-# AmazonDark v6.0.103
+# AmazonDark v6.0.119
+
+## v6.0.119 — restore v5.446 chevron-menu glyph paint
+
+- Exact production base: v6.0.118; the successful initial-Search repair path is preserved.
+- Restores the v5.446 `lists-framework-action-button` foreground and documentStart glyph-leaf rules that were lost when the branch returned to the v6.0.103 base.
+- In the chevron overflow menu, Save / Select / Share are handled at their actual tiny glyph painters rather than filtering the menu row.
+- The submenu More-like-this copy keeps the canonical white stacked-cards/+ image but drops the main product-card circular chrome.
+- Uses the exact `.puis-mab-overlay-row` class token; no overlay `:has()` selector, DOM scan, observer, timer, scroll listener, RAF, or event listener is added.
+- The normal product-card two-cards button, Heart behavior, Search first-open path, checkbox owner outside the menu, and all other v6.0.118 behavior remain unchanged.
 
 ## v6.0.103 — make the More Like This two-cards icon single-paint
 
