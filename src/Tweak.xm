@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.119"
+#define AD_VERSION "v6.0.120"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -611,12 +611,28 @@ static NSString *ADFixesLiteral(void){
              // a-icon-share / an empty 16px aok-inline-block background painter.
              // Filter only those leaves, never the row/wrapper, so alpha stays clear.
              ".puis-mab-overlay-row .puis-mab-overlay-heart,"
-             ".puis-mab-overlay-row i.a-icon.a-icon-checkbox,"
-             ".puis-mab-overlay-row .a-icon-share,"
-             ".puis-mab-overlay-row .aok-inline-block:empty"
+             ".puis-mab-overlay-row .a-icon-share"
              "{filter:brightness(0) invert(1) !important;color:#ffffff !important;"
              "fill:#ffffff !important;stroke:#ffffff !important;border:0 !important;"
              "box-shadow:none !important;outline:0 !important;}"
+             // v6.0.120: the Select row is a real Amazon .a-checkbox. The global
+             // product-checkbox chrome intentionally paints an unchecked 23px sprite
+             // dark, which is correct on product cards but hides this menu action.
+             // In the MAB overlay only, restore the donor sprite itself and invert it
+             // to a plain white checkbox glyph. No :has(), JS, sizing, or hit-target work.
+             "html body .puis-mab-overlay .a-checkbox i.a-icon.a-icon-checkbox,"
+             "html body .puis-mab-overlay .a-checkbox .a-icon-checkbox.a-icon-checkbox"
+             "{filter:brightness(0) invert(1) !important;background-color:transparent !important;"
+             "border:0 !important;border-radius:0 !important;box-shadow:none !important;"
+             "outline:0 !important;transition:none !important;}"
+             // v6.0.120: v5.440/v5.446 probe identifies Share as the 16px
+             // aok-inline-block background-image painter. It is not reliably :empty,
+             // so the old selector missed hydrated variants and left the glyph black.
+             ".puis-mab-overlay .aok-inline-block,"
+             ".puis-mab-overlay .a-icon-share"
+             "{filter:brightness(0) invert(1) !important;background-color:transparent !important;"
+             "color:#ffffff !important;fill:#ffffff !important;stroke:#ffffff !important;"
+             "border:0 !important;box-shadow:none !important;outline:0 !important;}"
              "[class*=puis-heart-position] [class*=placehold],[class*=heart-placeholder],"
              "[class*=puis-heart-position] img[src*=grey-pixel],[class*=puis-heart-position] img[src*=gray-pixel],"
              "[class*=puis-heart-position] img[src*=transparent-pixel],[class*=puis-heart-position] img[src*=placeholder],"
@@ -967,12 +983,28 @@ static NSString *ADDarkReaderBootstrap(void){
            "{background-color:transparent !important;border:0 !important;"
            "border-radius:0 !important;box-shadow:none !important;outline:0 !important;}"
            ".puis-mab-overlay-row .puis-mab-overlay-heart,"
-           ".puis-mab-overlay-row i.a-icon.a-icon-checkbox,"
-           ".puis-mab-overlay-row .a-icon-share,"
-           ".puis-mab-overlay-row .aok-inline-block:empty"
+           ".puis-mab-overlay-row .a-icon-share"
            "{filter:brightness(0) invert(1) !important;color:#ffffff !important;"
            "fill:#ffffff !important;stroke:#ffffff !important;border:0 !important;"
            "box-shadow:none !important;outline:0 !important;}"
+           // v6.0.120: the Select row is a real Amazon .a-checkbox. The global
+           // product-checkbox chrome intentionally paints an unchecked 23px sprite
+           // dark, which is correct on product cards but hides this menu action.
+           // In the MAB overlay only, restore the donor sprite itself and invert it
+           // to a plain white checkbox glyph. No :has(), JS, sizing, or hit-target work.
+           "html body .puis-mab-overlay .a-checkbox i.a-icon.a-icon-checkbox,"
+           "html body .puis-mab-overlay .a-checkbox .a-icon-checkbox.a-icon-checkbox"
+           "{filter:brightness(0) invert(1) !important;background-color:transparent !important;"
+           "border:0 !important;border-radius:0 !important;box-shadow:none !important;"
+           "outline:0 !important;transition:none !important;}"
+           // v6.0.120: v5.440/v5.446 probe identifies Share as the 16px
+           // aok-inline-block background-image painter. It is not reliably :empty,
+           // so the old selector missed hydrated variants and left the glyph black.
+           ".puis-mab-overlay .aok-inline-block,"
+           ".puis-mab-overlay .a-icon-share"
+           "{filter:brightness(0) invert(1) !important;background-color:transparent !important;"
+           "color:#ffffff !important;fill:#ffffff !important;stroke:#ffffff !important;"
+           "border:0 !important;box-shadow:none !important;outline:0 !important;}"
            "[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],"
            "[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],"
            "[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],"

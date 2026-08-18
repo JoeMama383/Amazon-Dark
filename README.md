@@ -1,13 +1,13 @@
-# AmazonDark v6.0.119
+# AmazonDark v6.0.120
 
-## v6.0.119 — restore v5.446 chevron-menu glyph paint
+## v6.0.120 — finish chevron-menu Select + Share glyph paint
 
-- Exact production base: v6.0.118; the successful initial-Search repair path is preserved.
-- Restores the v5.446 `lists-framework-action-button` foreground and documentStart glyph-leaf rules that were lost when the branch returned to the v6.0.103 base.
-- In the chevron overflow menu, Save / Select / Share are handled at their actual tiny glyph painters rather than filtering the menu row.
-- The submenu More-like-this copy keeps the canonical white stacked-cards/+ image but drops the main product-card circular chrome.
-- Uses the exact `.puis-mab-overlay-row` class token; no overlay `:has()` selector, DOM scan, observer, timer, scroll listener, RAF, or event listener is added.
-- The normal product-card two-cards button, Heart behavior, Search first-open path, checkbox owner outside the menu, and all other v6.0.118 behavior remain unchanged.
+- Exact production base: v6.0.119; its Search/path fixes, chevron responsiveness, and current two-cards behavior are preserved.
+- Fixes the missing **Select** glyph by exempting only the chevron overlay's real `i.a-icon.a-icon-checkbox` from the product-card unchecked-checkbox chrome and whitening the stock sprite directly.
+- Fixes intermittent dark **Share** by targeting the v5.440/v5.446-probed 16px `.aok-inline-block` background-image painter without the incorrect `:empty` requirement.
+- Save and More-like-this behavior from v6.0.119 are left intact; the submenu cards/+ stays ringless while the main product-card two-cards button keeps its circle.
+- The fixes are duplicated in the existing early documentStart and post-DarkReader CSS owners, so they do not wait on a later JavaScript repair.
+- No new JavaScript, DOM scan, observer, timer, scroll listener, RAF, event listener, or `:has()` selector was added.
 
 ## v6.0.103 — make the More Like This two-cards icon single-paint
 
