@@ -1,4 +1,14 @@
-# AmazonDark v6.0.120
+# AmazonDark v6.0.121
+
+## v6.0.121 — deterministic Select glyph + path-tolerant Share
+
+- Restores the v6.0.115 custom 16px white square/check painter for the chevron-menu Select row.
+- Excludes the chevron overlay from the global product-checkbox owner so Select cannot be reclaimed after mount.
+- Reuses the existing filtered MutationObserver for a bounded `puis-mab-*` insertion fast path; no new observer, timer, scroll listener, RAF loop, or document scan.
+- Share is resolved within the exact Share row and accepts the known `aok-inline-block` / `a-icon-share` paths plus a bounded tiny-painter fallback for product-template variants.
+- Menu insertions are terminal for that observer mutation, preventing the overlay itself from waking the heavier checkbox/symbol reconciliation queues.
+- Main product-card two-cards/Heart behavior is otherwise unchanged from v6.0.120.
+
 
 ## v6.0.120 — finish chevron-menu Select + Share glyph paint
 
