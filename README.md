@@ -1,19 +1,14 @@
-# AmazonDark v6.0.128
+# AmazonDark v6.0.129 probe
 
-## v6.0.128 — Home standalone-ad TWB scope correction
+Built directly from v6.0.128 after the standalone-ad scope/glyph patch produced no visible change.
 
-Built directly from the v6.0.127 production source. The v6.0.126 MAB Share fix and the v6.0.127 Sponsored-label correction are retained.
+This is diagnostic-only. Production behavior is intentionally unchanged from v6.0.128. The probe captures the exact live DOM and computed paint ownership for visible `Sponsored` labels, nearby info-glyph candidates, the nearest ad shell, child media/iframes, and active TWB markers when the app backgrounds.
 
-The Home standalone-ad regression was a scope problem in White Background Taming, not a missing Sponsored color rule. The current 6.x TWB simplification had broadened ownership beyond the v5.446 donor: ad-placement/background wrappers could receive the same tame layer as real creative media, and the standalone/product-ad media path allowed a carousel-family match to bypass the existing full-frame skip. That can make the whole ad rectangle — including the Sponsored feedback area — look dimmed even when the label itself is already white.
+No new MutationObserver, scroll listener, interval, requestAnimationFrame loop, or recurring scan is added. The older component-shell diagnostic hook is replaced with a no-op during mutations; the actual scan runs only when the existing native background exporter asks for a dump.
 
-v6.0.128 restores the donor separation between ad chrome and photo content:
-
-- Restores v5.446's transparent `hybrid-widget-sponsored` / `adFeedbackMainComponent` structural backgrounds in both document-start and Dark Reader override CSS.
-- Restores the bounded v5.446 `_adBgPlacement365` rule so APE/ad-feedback/ad-slot background wrappers are never White Background Tamed.
-- Removes placement/sponsored wrapper families from the static canvas/background-image TWB owner; actual creative-card canvas/background media remain covered.
-- Prioritizes `productad` / `standalone` full-frame media rejection before generic carousel-family eligibility, so a whole-ad image/canvas cannot be tamed as one giant photo layer.
-- Keeps smaller inner IMG/VIDEO/CANVAS creative media eligible for normal TWB, preserving the intended photo-only behavior.
-- Changes the exact `ad-feedback-spr` treatment from `brightness(0) invert(1)` to `invert(1)` so a black-circle/white-`i` sprite becomes a white-circle/dark-`i` sprite instead of being collapsed to one flat color.
-- Adds no MutationObserver, timer, scroll listener, RAF, `querySelectorAll`, or `dispatch_after` call site.
-
-Performance counters remain unchanged from v6.0.127 for the six tracked hot-path metrics: 3 actual MutationObservers, 33 `querySelectorAll(` call sites, 0 scroll listeners, 0 `setInterval(`, 0 `requestAnimationFrame(`, and 6 `dispatch_after(`. The donor ad-background guard remains a bounded four-parent ancestry check; the iframe test uses a tag lookup rather than adding another selector query. No page-wide scan is introduced.
+## Reproduction
+1. Open Home and scroll to the standalone horizontal ad with the lighter full-width rectangle.
+2. Background Amazon once.
+3. Return to Amazon and open a product/search submenu containing the standalone sponsored ad whose photo-only taming is correct.
+4. Background Amazon again.
+5. Export `/tmp/AmazonDark-standalone-ad-probe-6129.txt` (the exact tmp prefix can vary on iOS; use the provided shell command from ChatGPT).
