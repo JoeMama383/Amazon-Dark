@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.122"
+#define AD_VERSION "v6.0.123"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -626,20 +626,22 @@ static NSString *ADFixesLiteral(void){
              "background-repeat:no-repeat !important;background-position:center !important;"
              "background-size:16px 16px !important;border:0 !important;border-radius:0 !important;"
              "box-shadow:none !important;outline:0 !important;transition:none !important;}"
-             // v6.0.122: Share is the fourth/final MAB action row. Product templates
-             // disagree about the inner painter path, so stop filtering a path-dependent
-             // ancestor/leaf pair. Own only the probe-confirmed 20px right-side row widget:
-             // hide Amazon's varying inner painter and draw one stable white share glyph.
-             ".puis-mab-overlay .puis-mab-overlay-row:last-child [class*=puis-mab-overlay-row-wid]"
+             // v6.0.123: Share is structurally different from Save/Select/More-like-this.
+             // The v5.440/v5.446 capture shows those three inside .puis-mab-overlay-row-item,
+             // while Share is the row mounted under .a-declarative. v6.0.122 incorrectly used
+             // :last-child on each row, which matched the first three wrappers and painted
+             // Share artwork into all of them while missing the real Share row. Own only the
+             // probe-confirmed 20px right-side widget inside the .a-declarative Share branch.
+             ".puis-mab-overlay .a-declarative > .puis-mab-overlay-row [class*=puis-mab-overlay-row-wid]"
              "{filter:none !important;background-color:transparent !important;"
              "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZD0iTTMuMiA3LjJ2Ni4xaDkuNlY3LjIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik04IDEwVjIuNU01LjQgNS4xIDggMi41bDIuNiAyLjYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==) !important;"
              "background-repeat:no-repeat !important;background-position:center !important;"
              "background-size:16px 16px !important;border:0 !important;box-shadow:none !important;"
              "outline:0 !important;}"
-             ".puis-mab-overlay .puis-mab-overlay-row:last-child [class*=puis-mab-overlay-row-wid] > *"
+             ".puis-mab-overlay .a-declarative > .puis-mab-overlay-row [class*=puis-mab-overlay-row-wid] > *"
              "{opacity:0 !important;filter:none !important;}"
-             ".puis-mab-overlay .puis-mab-overlay-row:last-child [class*=puis-mab-overlay-row-wid]::before,"
-             ".puis-mab-overlay .puis-mab-overlay-row:last-child [class*=puis-mab-overlay-row-wid]::after"
+             ".puis-mab-overlay .a-declarative > .puis-mab-overlay-row [class*=puis-mab-overlay-row-wid]::before,"
+             ".puis-mab-overlay .a-declarative > .puis-mab-overlay-row [class*=puis-mab-overlay-row-wid]::after"
              "{content:none !important;background:none !important;opacity:0 !important;}"
              "[class*=puis-heart-position] [class*=placehold],[class*=heart-placeholder],"
              "[class*=puis-heart-position] img[src*=grey-pixel],[class*=puis-heart-position] img[src*=gray-pixel],"
@@ -1004,18 +1006,19 @@ static NSString *ADDarkReaderBootstrap(void){
            "background-repeat:no-repeat !important;background-position:center !important;"
            "background-size:16px 16px !important;border:0 !important;border-radius:0 !important;"
            "box-shadow:none !important;outline:0 !important;transition:none !important;}"
-           // v6.0.122: duplicate the canonical final-row Share owner after Dark Reader.
-           // This is path-independent and never filters the row/menu shell.
-           ".puis-mab-overlay .puis-mab-overlay-row:last-child [class*=puis-mab-overlay-row-wid]"
+           // v6.0.123: duplicate the structurally-scoped Share owner after Dark Reader.
+           // Only the .a-declarative Share branch is canonicalized; Save/Select/MLT keep
+           // their independent painters and the row/menu shell is never filtered.
+           ".puis-mab-overlay .a-declarative > .puis-mab-overlay-row [class*=puis-mab-overlay-row-wid]"
            "{filter:none !important;background-color:transparent !important;"
            "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZD0iTTMuMiA3LjJ2Ni4xaDkuNlY3LjIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik04IDEwVjIuNU01LjQgNS4xIDggMi41bDIuNiAyLjYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==) !important;"
            "background-repeat:no-repeat !important;background-position:center !important;"
            "background-size:16px 16px !important;border:0 !important;box-shadow:none !important;"
            "outline:0 !important;}"
-           ".puis-mab-overlay .puis-mab-overlay-row:last-child [class*=puis-mab-overlay-row-wid] > *"
+           ".puis-mab-overlay .a-declarative > .puis-mab-overlay-row [class*=puis-mab-overlay-row-wid] > *"
            "{opacity:0 !important;filter:none !important;}"
-           ".puis-mab-overlay .puis-mab-overlay-row:last-child [class*=puis-mab-overlay-row-wid]::before,"
-           ".puis-mab-overlay .puis-mab-overlay-row:last-child [class*=puis-mab-overlay-row-wid]::after"
+           ".puis-mab-overlay .a-declarative > .puis-mab-overlay-row [class*=puis-mab-overlay-row-wid]::before,"
+           ".puis-mab-overlay .a-declarative > .puis-mab-overlay-row [class*=puis-mab-overlay-row-wid]::after"
            "{content:none !important;background:none !important;opacity:0 !important;}"
            "[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],"
            "[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],"

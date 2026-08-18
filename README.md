@@ -1,12 +1,12 @@
-# AmazonDark v6.0.122
+# AmazonDark v6.0.123
 
-## v6.0.122 — restore chevron first paint + canonical Share
+## v6.0.123 — correct submenu action glyph ownership
 
-- Removes the v6.0.121 MAB insertion-time JavaScript lane and restores the v6.0.120 filtered observer callback so the product-card chevron no longer regresses to the transient white-disc paint during menu mount.
-- Keeps the v6.0.121 custom 16px white Select checkbox/check painter as a documentStart/post-DarkReader CSS owner.
-- Replaces path-dependent Share filtering with one canonical white share glyph on the probe-confirmed 20px right-side widget of the final MAB action row. The varying Amazon inner Share painter is visually suppressed, so template/hydration path differences cannot leave it black or double-invert it.
-- No new observer, timer, scroll listener, RAF loop, global DOM scan, or native hierarchy walk.
-
+- Keeps the v6.0.122 chevron first-paint rollback that removed the white flash.
+- Fixes the v6.0.122 selector bug that painted the Share glyph into Save, Select, and More like this.
+- Uses the v5.440/v5.446-captured DOM split: Share is the MAB row under `.a-declarative`; the other rows stay independently owned.
+- Keeps the custom white Select square/check and current two-cards menu glyph unchanged.
+- No new observers, timers, scroll listeners, or animation loops.
 
 ## v6.0.121 — deterministic Select glyph + path-tolerant Share
 
