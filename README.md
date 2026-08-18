@@ -1,13 +1,11 @@
-# AmazonDark v6.0.106
+# AmazonDark v6.0.107
 
-## v6.0.106 — Heart first-paint lifecycle probe (diagnostic only)
+## v6.0.107 — restore the Heart's opaque dark disc in every search submenu
 
-Production paint is byte-for-byte v6.0.105. This build only expands the already-shipping bounded probe to capture Search-result Heart insertion/class/src hydration, reusing existing observers and the existing background dump path.
-
-- Production base is v6.0.104; the working v6.0.104 two-cards first-frame/persistence fix is retained unchanged.
-- Applies the same ownership model to the Search-result Heart: `[class*=lists-framework-action-button]` paints the finished dark circular chrome plus a canonical white outline Heart directly from CSS.
-- The identical Heart rule is present in both the earliest documentStart sheet and `ADFixesLiteral`, so the settled icon exists before Amazon/Dark Reader can expose a placeholder frame.
-- Amazon's transient Heart IMG/I/SVG/fill/unfill children stay `opacity:0`; their placeholder -> final artwork swaps therefore cannot create a visible second render cycle.
-- The existing symbol runtime now short-circuits the exact `lists-framework-action-button` Heart host after one legacy cleanup (`data-ad-heart6105`), just as v6.0.104 does for `.mlt-icon-container`.
-- The generic `gfix1` lane already excludes the `heart` / `lists-framework` families, so unlike the v6.0.103 cards regression the canonical Heart host is not eligible for whole-control inversion.
-- No new observer, scroll listener, interval, RAF, timeout, dispatch queue, or selector traversal is added.
+- Production base is v6.0.105; the v6.0.106 Heart lifecycle probe is diagnostic-only and is not shipped here.
+- The probe exposed a CSS-specificity collision: the legacy first-paint shell guard `[class*=puis-heart-position] div` forces `background-color: transparent !important`, which outranked v6.0.105's lower-specificity `[class*=lists-framework-action-button]` dark-disc rule.
+- That is why the white Heart/border could be correct while the circular backdrop became transparent over product imagery.
+- v6.0.107 keeps the v6.0.105 canonical Heart SVG and hidden transient Amazon child artwork, but raises only the real Heart host selector to `[class*=puis-heart-position] [class*=lists-framework-action-button]` / `[class*=lists-framework-action-button][class*=puis-heart-icon-container]`.
+- The old shell-flattening guard remains untouched for temporary wrappers; only the actual circular Heart action button wins back `#181a1b`.
+- v6.0.104's two-cards first-frame/persistence logic is unchanged.
+- No new observer, selector traversal, timer, scroll listener, RAF, dispatch queue, or image sampler is added.
