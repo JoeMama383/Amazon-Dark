@@ -1,11 +1,13 @@
-# AmazonDark v6.0.107
+# AmazonDark v6.0.108
 
-## v6.0.107 — restore the Heart's opaque dark disc in every search submenu
+## v6.0.108 — true first-frame Heart + exact two-cards visual size
 
-- Production base is v6.0.105; the v6.0.106 Heart lifecycle probe is diagnostic-only and is not shipped here.
-- The probe exposed a CSS-specificity collision: the legacy first-paint shell guard `[class*=puis-heart-position] div` forces `background-color: transparent !important`, which outranked v6.0.105's lower-specificity `[class*=lists-framework-action-button]` dark-disc rule.
-- That is why the white Heart/border could be correct while the circular backdrop became transparent over product imagery.
-- v6.0.107 keeps the v6.0.105 canonical Heart SVG and hidden transient Amazon child artwork, but raises only the real Heart host selector to `[class*=puis-heart-position] [class*=lists-framework-action-button]` / `[class*=lists-framework-action-button][class*=puis-heart-icon-container]`.
-- The old shell-flattening guard remains untouched for temporary wrappers; only the actual circular Heart action button wins back `#181a1b`.
-- v6.0.104's two-cards first-frame/persistence logic is unchanged.
-- No new observer, selector traversal, timer, scroll listener, RAF, dispatch queue, or image sampler is added.
+- Production base: v6.0.107.
+- v6.0.107 fixed the transparent Heart backdrop, but the first-frame race remained: some rows briefly expose only a tiny transient child before Amazon mounts the final `lists-framework-action-button`, creating the visible white dot before the Heart appears.
+- v6.0.108 moves visual ownership to the stable `[class*=puis-heart-position]` shell, which necessarily exists before that transient child can paint.
+- The shell receives one self-contained 32x32 SVG containing the `#181a1b` disc, 1.5px translucent-white chrome, and white outline Heart. The control therefore has no dependency on Amazon's lazy Heart bitmap/SVG for its first visible frame.
+- Every Amazon descendant inside that tiny Heart shell is kept at `opacity:0`; the real button remains in the DOM and remains tappable, but placeholder -> hydrated artwork swaps can no longer create a second visual cycle.
+- The Heart's visual circle is now exactly 32x32, matching the More-like-this two-cards control instead of the 35x35 Heart host measured by the v6.0.106 device probe.
+- The identical rule is present in both the earliest documentStart sheet and `ADFixesLiteral`, so Dark Reader cannot introduce a later paint handoff.
+- v6.0.104 two-cards behavior and the v6.0.107 opaque-backdrop correction are otherwise unchanged.
+- No new observer, selector traversal, timer, scroll listener, RAF, `dispatch_after`, or image sampler.

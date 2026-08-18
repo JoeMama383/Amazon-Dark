@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.107"
+#define AD_VERSION "v6.0.108"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -601,8 +601,8 @@ static NSString *ADFixesLiteral(void){
              // v6.0.107: keep the v6.0.105 one-owner first-frame Heart, but use
              // a higher-specificity host selector. The older v5.393 structural-shell rule
              // ([class*=puis-heart-position] div) intentionally clears temporary shells
-             // and otherwise wins background-color by specificity. The real 32px action
-             // button now owns the dark disc + white Heart while lazy child art stays hidden.
+             // and otherwise wins background-color by specificity. v6.0.108 keeps this
+             // inner-host paint only as a fallback; the stable outer shell is the visible owner.
              "[class*=puis-heart-position] [class*=lists-framework-action-button],"
              "[class*=lists-framework-action-button][class*=puis-heart-icon-container]"
              "{background-color:#181a1b !important;border:1.5px solid rgba(255,255,255,.65) !important;"
@@ -618,6 +618,17 @@ static NSString *ADFixesLiteral(void){
              "[class*=lists-framework-action-button] img[data-ad-actionglyph374]"
              "{opacity:0 !important;filter:none !important;background-color:transparent !important;"
              "transition:none !important;animation:none !important;}"
+             // v6.0.108: FIRST-FRAME HEART OWNER MOVED TO THE STABLE OUTER SHELL.
+             // The final lists-framework action-button is lazy; the white dot can paint
+             // before that host exists. Own paint on puis-heart-position itself instead.
+             // One 32px SVG contains the disc, chrome and Heart, matching two-cards size.
+             "[class*=puis-heart-position]"
+             "{background-color:transparent !important;border:0 !important;box-shadow:none !important;"
+             "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTUuMjUiIGZpbGw9IiMxODFhMWIiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLW9wYWNpdHk9Ii42NSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48c3ZnIHg9IjUiIHk9IjUiIHdpZHRoPSIyMiIgaGVpZ2h0PSIyMiIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMjAuODQgNC42MWE1LjUgNS41IDAgMCAwLTcuNzggMEwxMiA1LjY3bC0xLjA2LTEuMDZhNS41IDUuNSAwIDAgMC03Ljc4IDcuNzhsMS4wNiAxLjA2TDEyIDIxLjIzbDcuNzgtNy43OCAxLjA2LTEuMDZhNS41IDUuNSAwIDAgMCAwLTcuNzh6IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz48L3N2Zz4=) !important;"
+             "background-repeat:no-repeat !important;background-position:center !important;"
+             "background-size:32px 32px !important;transition:none !important;animation:none !important;}"
+             "[class*=puis-heart-position] *"
+             "{opacity:0 !important;transition:none !important;animation:none !important;}"
              // Darkening blends crush their content toward black on a dark theme; the
              // deal badges use them inline. Neutralise at documentStart so the text is
              // legible on first paint instead of after the repair catches up.
@@ -961,6 +972,17 @@ static NSString *ADDarkReaderBootstrap(void){
            "[class*=lists-framework-action-button] img[data-ad-actionglyph374]"
            "{opacity:0 !important;filter:none !important;background-color:transparent !important;"
            "transition:none !important;animation:none !important;}"
+           // v6.0.108: FIRST-FRAME HEART OWNER MOVED TO THE STABLE OUTER SHELL.
+           // The final lists-framework action-button is lazy; the white dot can paint
+           // before that host exists. Own paint on puis-heart-position itself instead.
+           // One 32px SVG contains the disc, chrome and Heart, matching two-cards size.
+           "[class*=puis-heart-position]"
+           "{background-color:transparent !important;border:0 !important;box-shadow:none !important;"
+           "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTUuMjUiIGZpbGw9IiMxODFhMWIiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLW9wYWNpdHk9Ii42NSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48c3ZnIHg9IjUiIHk9IjUiIHdpZHRoPSIyMiIgaGVpZ2h0PSIyMiIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMjAuODQgNC42MWE1LjUgNS41IDAgMCAwLTcuNzggMEwxMiA1LjY3bC0xLjA2LTEuMDZhNS41IDUuNSAwIDAgMC03Ljc4IDcuNzhsMS4wNiAxLjA2TDEyIDIxLjIzbDcuNzgtNy43OCAxLjA2LTEuMDZhNS41IDUuNSAwIDAgMCAwLTcuNzh6IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz48L3N2Zz4=) !important;"
+           "background-repeat:no-repeat !important;background-position:center !important;"
+           "background-size:32px 32px !important;transition:none !important;animation:none !important;}"
+           "[class*=puis-heart-position] *"
+           "{opacity:0 !important;transition:none !important;animation:none !important;}"
            "[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],"
            "[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],"
            "[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],"
