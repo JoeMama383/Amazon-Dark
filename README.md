@@ -1,12 +1,11 @@
-# AmazonDark v6.0.114
+# AmazonDark v6.0.115
 
-## v6.0.114 — exact-token overflow glyphs + restore chevron responsiveness
+## Overflow-menu symbol repair from the v6.0.104 last-good base
 
-- Rebuilt directly from the v6.0.104 last-good production base; v6.0.105-v6.0.113 are not stacked into this tree.
-- Keeps the v6.0.104 Heart and normal More-like-this two-cards behavior unchanged.
-- Replaces every v6.0.113 `[class*=puis-mab-overlay-row] ...` rule with exact class-token selectors from the historical v5.44x probe family.
-- Save is whitened only on `.puis-mab-overlay-heart`.
-- Select is whitened only on its small `i.a-icon.a-icon-checkbox`, while explicitly removing the unrelated 32px compare-checkbox box-shadow/radius inside the overflow menu.
-- More-like-this keeps the v6.0.104 canonical cards/plus glyph but loses the circular button chrome only inside `.puis-mab-overlay-row`.
-- Share is returned completely to the v6.0.104 stock path; no generic `.aok-inline-block` filter is applied.
-- No overlay-wide SVG rule, `:has()` overlay selector, JavaScript repair, new observer, scan, timer, RAF, scroll listener, or native hierarchy walk is added.
+- Exact code base: **v6.0.104**. Builds v6.0.105-v6.0.114 are not stacked into this source tree.
+- Fixes the missing/dark **Select** glyph with a deterministic 16 px white checkbox/checkmark painter.
+- Locks the stock **Share** background-image white on the exact Share-row leaf and prevents the generic glyph lane from flipping it back dark.
+- Keeps **Save** white.
+- Keeps the overflow-menu **More like this** painter as cards + plus only; the normal product-card button retains its circular chrome.
+- Menu insertion is handled inside the already-existing filtered MutationObserver. Menu mutations are excluded from the expensive Compare-checkbox / symbol reconciliation queues, so opening the menu does not trigger a whole-page checkbox pass.
+- No new observer, scroll listener, interval, RAF loop, timer, dispatch queue, global selector scan, or native hierarchy walk is added.
