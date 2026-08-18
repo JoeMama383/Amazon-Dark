@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.110"
+#define AD_VERSION "v6.0.116"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -478,13 +478,12 @@ static NSString *ADFixesLiteral(void){
              // protection above freezes Amazon's dark add/plus bitmap unless this
              // higher-specificity rule re-enables the donor invert on that glyph only.
              "img[class*=add-icon],img[class*=plus-icon]{filter:invert(1) hue-rotate(180deg) !important;}"
-             // v6.0.87: exact v5.446 autocomplete renderer. The recent-search clock
-             // and delete X are 20x20 MASK elements (icon-past-search-suggestion /
-             // icon-close), so their visible ink is background-color. Filtering the
-             // mask host is wrong; pin the mask paint itself at stylesheet time.
-             ".s-suggestion-container [class*=icon-past-search-sugge],"
-             ".s-suggestion-container .icon-close.s-suggestion-icon-left"
-             "{background-color:#e8e6e3 !important;filter:none !important;opacity:1 !important;}"
+             // v6.0.116: exact v5.446 Search/nav bitmap backdrop rule.
+             // Search glyph hosts stay unpainted; only real IMG chrome is guaranteed
+             // a transparent surround, while the donor generic glyph pass owns ink.
+             "[class*=nav-search] img,[class*=searchbar] img,[class*=search-bar] img,"
+             "[role=search] img,[class*=nav-] img[class*=icon],[class*=header] img[class*=icon]"
+             "{background-color:transparent !important;}"
              "%@"
              "[style*=\\\"background-image\\\"]{filter:none !important;}"
              // THE FIX THAT ACTUALLY WORKED, brought back. v5.27.0 whitened the heart
@@ -549,20 +548,15 @@ static NSString *ADFixesLiteral(void){
              ".sc-item-checkbox .a-checkbox>label::before,.sc-item-checkbox .a-checkbox>label::after"
              "{background-color:transparent !important;background-image:none !important;"
              "border:0 !important;box-shadow:none !important;outline:0 !important;filter:none !important;}"
-             // v6.0.104: the More-like-this two-cards control was visually racing its
+             // v6.0.103: the More-like-this two-cards control was visually racing its
              // own lazy <img>: the host circle could paint while the image was still a
              // grey/white shim, then repaint again when Amazon swapped in the real cards
-             // bitmap. Own the finished glyph declaratively instead. v6.0.109 moves the
-             // dedicated host from 32px to the previous Heart's 35px control size; Amazon's
+             // bitmap. Own the finished glyph declaratively instead. The host keeps its
+             // existing geometry/click target; only paint is supplied here, and Amazon's
              // transient child artwork stays invisible so there is no second visual cycle.
-             // v6.0.110: the 35px cards host sits 5px lower than the 35px Heart in Amazon's
-             // overlay geometry. Shift only its visual/hit box upward so their centers align.
              "[class*=mlt-icon-container]"
-             "{width:35px !important;height:35px !important;min-width:35px !important;min-height:35px !important;"
-             "max-width:35px !important;max-height:35px !important;background-color:#181a1b !important;"
-             "border:1.5px solid rgba(255,255,255,.65) !important;border-radius:50%% !important;"
-             "box-shadow:none !important;box-sizing:border-box !important;"
-             "transform:translateY(-5px) !important;transform-origin:center !important;"
+             "{background-color:#181a1b !important;border:1.5px solid rgba(255,255,255,.65) !important;"
+             "border-radius:50%% !important;box-shadow:none !important;box-sizing:border-box !important;"
              "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHJlY3QgeD0iOC4yIiB5PSI0LjQiIHdpZHRoPSIxMC4yIiBoZWlnaHQ9IjEzLjQiIHJ4PSIxLjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjYiLz48cmVjdCB4PSI1LjQiIHk9IjcuMiIgd2lkdGg9IjEwLjIiIGhlaWdodD0iMTMuNCIgcng9IjEuNCIgZmlsbD0iIzE4MWExYiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjEuNiIvPjxwYXRoIGQ9Ik0xMC41IDEwLjh2Nk03LjUgMTMuOGg2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMS42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=) !important;"
              "background-repeat:no-repeat !important;background-position:center !important;"
              "background-size:24px 24px !important;transition:none !important;animation:none !important;}"
@@ -603,44 +597,6 @@ static NSString *ADFixesLiteral(void){
              "[class*=puis-heart-position] img[src*=spacer],[class*=puis-heart-position] img[src*=blank],"
              "[class*=puis-heart-position] img[class*=placehold]"
              "{display:none !important;filter:none !important;opacity:0 !important;}"
-             // v6.0.107: keep the v6.0.105 one-owner first-frame Heart, but use
-             // a higher-specificity host selector. The older v5.393 structural-shell rule
-             // ([class*=puis-heart-position] div) intentionally clears temporary shells
-             // and otherwise wins background-color by specificity. v6.0.109 keeps this
-             // inner-host paint only as a fallback; the stable outer shell is the visible owner.
-             "[class*=puis-heart-position] [class*=lists-framework-action-button],"
-             "[class*=lists-framework-action-button][class*=puis-heart-icon-container]"
-             "{width:35px !important;height:35px !important;min-width:35px !important;min-height:35px !important;"
-             "max-width:35px !important;max-height:35px !important;background-color:#181a1b !important;"
-             "border:1.5px solid rgba(255,255,255,.65) !important;border-radius:50%% !important;"
-             "box-shadow:none !important;box-sizing:border-box !important;"
-             "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTIwLjg0IDQuNjFhNS41IDUuNSAwIDAgMC03Ljc4IDBMMTIgNS42N2wtMS4wNi0xLjA2YTUuNSA1LjUgMCAwIDAtNy43OCA3Ljc4bDEuMDYgMS4wNkwxMiAyMS4yM2w3Ljc4LTcuNzggMS4wNi0xLjA2YTUuNSA1LjUgMCAwIDAgMC03Ljc4eiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjEuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+) !important;"
-             "background-repeat:no-repeat !important;background-position:center !important;"
-             "background-size:22px 22px !important;transition:none !important;animation:none !important;}"
-             "[class*=lists-framework-action-button] img,[class*=lists-framework-action-button] i,"
-             "[class*=lists-framework-action-button] svg,[class*=lists-framework-action-button] [class*=lists-framework-unfill],"
-             "[class*=lists-framework-action-button] [class*=lists-framework-fill],"
-             "[class*=lists-framework-action-button] [data-ad-actionfallback374],"
-             "[class*=lists-framework-action-button] [data-ad-actionglyph374],"
-             "[class*=lists-framework-action-button] img[data-ad-actionglyph374]"
-             "{opacity:0 !important;filter:none !important;background-color:transparent !important;"
-             "transition:none !important;animation:none !important;}"
-             // v6.0.109: keep stable-shell first-frame ownership; restore native 35px Heart scale.
-             // The final lists-framework action-button is lazy; the white dot can paint
-             // before that host exists. Own paint on puis-heart-position itself instead.
-             // One 35px SVG now reproduces the pre-v6.0.108 Heart scale; two-cards is matched to it.
-             "[class*=puis-heart-position]"
-             "{background-color:transparent !important;border:0 !important;box-shadow:none !important;"
-             "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNSAzNSI+PGNpcmNsZSBjeD0iMTcuNSIgY3k9IjE3LjUiIHI9IjE2Ljc1IiBmaWxsPSIjMTgxYTFiIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1vcGFjaXR5PSIuNjUiIHN0cm9rZS13aWR0aD0iMS41Ii8+PHN2ZyB4PSI2LjUiIHk9IjYuNSIgd2lkdGg9IjIyIiBoZWlnaHQ9IjIyIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGQ9Ik0yMC44NCA0LjYxYTUuNSA1LjUgMCAwIDAtNy43OCAwTDEyIDUuNjdsLTEuMDYtMS4wNmE1LjUgNS41IDAgMCAwLTcuNzggNy43OGwxLjA2IDEuMDZMMTIgMjEuMjNsNy43OC03Ljc4IDEuMDYtMS4wNmE1LjUgNS41IDAgMCAwIDAtNy43OHoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPjwvc3ZnPg==) !important;"
-             "background-repeat:no-repeat !important;background-position:center !important;"
-             "background-size:35px 35px !important;transition:none !important;animation:none !important;}"
-             // v6.0.110: Amazon already toggles the filled-heart container synchronously on tap.
-             // Keep descendants invisible (to preserve one-owner first paint), but let that native
-             // state bit switch our stable shell from outline to a white-filled Heart immediately.
-             "[class*=puis-heart-position]:has([class*=lists-framework-filled-heart]:not(.aok-hidden))"
-             "{background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNSAzNSI+PGNpcmNsZSBjeD0iMTcuNSIgY3k9IjE3LjUiIHI9IjE2Ljc1IiBmaWxsPSIjMTgxYTFiIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1vcGFjaXR5PSIuNjUiIHN0cm9rZS13aWR0aD0iMS41Ii8+PHN2ZyB4PSI2LjUiIHk9IjYuNSIgd2lkdGg9IjIyIiBoZWlnaHQ9IjIyIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGQ9Ik0yMC44NCA0LjYxYTUuNSA1LjUgMCAwIDAtNy43OCAwTDEyIDUuNjdsLTEuMDYtMS4wNmE1LjUgNS41IDAgMCAwLTcuNzggNy43OGwxLjA2IDEuMDZMMTIgMjEuMjNsNy43OC03Ljc4IDEuMDYtMS4wNmE1LjUgNS41IDAgMCAwIDAtNy43OHoiIGZpbGw9IiNmZmYiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPjwvc3ZnPg==) !important;}"
-             "[class*=puis-heart-position] *"
-             "{opacity:0 !important;transition:none !important;animation:none !important;}"
              // Darkening blends crush their content toward black on a dark theme; the
              // deal badges use them inline. Neutralise at documentStart so the text is
              // legible on first paint instead of after the repair catches up.
@@ -949,18 +905,17 @@ static NSString *ADDarkReaderBootstrap(void){
            // in this already-existing documentStart sheet so Amazon never gets a light
            // hydration frame before Dark Reader's own override sheet is available.
            "img[class*=add-icon],img[class*=plus-icon]{filter:invert(1) hue-rotate(180deg) !important;}"
-           // v6.0.87: first-frame ownership for the autocomplete mask glyphs proven
-           // by the final v5.446 runtime probe. Keep filter:none: the mask shape is
-           // already supplied by Amazon; background-color is the glyph's actual ink.
-           ".s-suggestion-container [class*=icon-past-search-sugge],.s-suggestion-container .icon-close.s-suggestion-icon-left{background-color:#e8e6e3 !important;filter:none !important;opacity:1 !important;}"
-           // v6.0.109: first-frame two-cards owner, now matched to the previous Heart's 35px size.
-           // This is duplicated in ADFixesLiteral so first and settled paint stay identical.
+             // v6.0.116: exact v5.446 Search/nav bitmap backdrop rule.
+             // Search glyph hosts stay unpainted; only real IMG chrome is guaranteed
+             // a transparent surround, while the donor generic glyph pass owns ink.
+             "[class*=nav-search] img,[class*=searchbar] img,[class*=search-bar] img,"
+             "[role=search] img,[class*=nav-] img[class*=icon],[class*=header] img[class*=icon]"
+             "{background-color:transparent !important;}"
+           // v6.0.103: first-frame two-cards owner. This is intentionally duplicated
+           // in ADFixesLiteral so the exact same paint exists before and after Dark Reader.
            "[class*=mlt-icon-container]"
-           "{width:35px !important;height:35px !important;min-width:35px !important;min-height:35px !important;"
-           "max-width:35px !important;max-height:35px !important;background-color:#181a1b !important;"
-           "border:1.5px solid rgba(255,255,255,.65) !important;border-radius:50%% !important;"
-           "box-shadow:none !important;box-sizing:border-box !important;"
-           "transform:translateY(-5px) !important;transform-origin:center !important;"
+           "{background-color:#181a1b !important;border:1.5px solid rgba(255,255,255,.65) !important;"
+           "border-radius:50%% !important;box-shadow:none !important;box-sizing:border-box !important;"
            "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHJlY3QgeD0iOC4yIiB5PSI0LjQiIHdpZHRoPSIxMC4yIiBoZWlnaHQ9IjEzLjQiIHJ4PSIxLjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjYiLz48cmVjdCB4PSI1LjQiIHk9IjcuMiIgd2lkdGg9IjEwLjIiIGhlaWdodD0iMTMuNCIgcng9IjEuNCIgZmlsbD0iIzE4MWExYiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjEuNiIvPjxwYXRoIGQ9Ik0xMC41IDEwLjh2Nk03LjUgMTMuOGg2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMS42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=) !important;"
            "background-repeat:no-repeat !important;background-position:center !important;"
            "background-size:24px 24px !important;transition:none !important;animation:none !important;}"
@@ -969,37 +924,6 @@ static NSString *ADDarkReaderBootstrap(void){
            "[class*=mlt-icon-container] [class*=mlt-text-icon]"
            "{opacity:0 !important;filter:none !important;background-color:transparent !important;"
            "transition:none !important;animation:none !important;}"
-           // v6.0.107: same Heart ownership, with specificity above the legacy
-           // [class*=puis-heart-position] div transparent-shell guard. Duplicate it
-           // here and in ADFixesLiteral so the dark disc survives every submenu.
-           "[class*=puis-heart-position] [class*=lists-framework-action-button],"
-           "[class*=lists-framework-action-button][class*=puis-heart-icon-container]"
-           "{background-color:#181a1b !important;border:1.5px solid rgba(255,255,255,.65) !important;"
-           "border-radius:50%% !important;box-shadow:none !important;box-sizing:border-box !important;"
-           "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTIwLjg0IDQuNjFhNS41IDUuNSAwIDAgMC03Ljc4IDBMMTIgNS42N2wtMS4wNi0xLjA2YTUuNSA1LjUgMCAwIDAtNy43OCA3Ljc4bDEuMDYgMS4wNkwxMiAyMS4yM2w3Ljc4LTcuNzggMS4wNi0xLjA2YTUuNSA1LjUgMCAwIDAgMC03Ljc4eiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjEuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+) !important;"
-           "background-repeat:no-repeat !important;background-position:center !important;"
-           "background-size:22px 22px !important;transition:none !important;animation:none !important;}"
-           "[class*=lists-framework-action-button] img,[class*=lists-framework-action-button] i,"
-           "[class*=lists-framework-action-button] svg,[class*=lists-framework-action-button] [class*=lists-framework-unfill],"
-           "[class*=lists-framework-action-button] [class*=lists-framework-fill],"
-           "[class*=lists-framework-action-button] [data-ad-actionfallback374],"
-           "[class*=lists-framework-action-button] [data-ad-actionglyph374],"
-           "[class*=lists-framework-action-button] img[data-ad-actionglyph374]"
-           "{opacity:0 !important;filter:none !important;background-color:transparent !important;"
-           "transition:none !important;animation:none !important;}"
-           // v6.0.109: keep stable-shell first-frame ownership; restore native 35px Heart scale.
-           // The final lists-framework action-button is lazy; the white dot can paint
-           // before that host exists. Own paint on puis-heart-position itself instead.
-           // One 35px SVG now reproduces the pre-v6.0.108 Heart scale; two-cards is matched to it.
-           "[class*=puis-heart-position]"
-           "{background-color:transparent !important;border:0 !important;box-shadow:none !important;"
-           "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNSAzNSI+PGNpcmNsZSBjeD0iMTcuNSIgY3k9IjE3LjUiIHI9IjE2Ljc1IiBmaWxsPSIjMTgxYTFiIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1vcGFjaXR5PSIuNjUiIHN0cm9rZS13aWR0aD0iMS41Ii8+PHN2ZyB4PSI2LjUiIHk9IjYuNSIgd2lkdGg9IjIyIiBoZWlnaHQ9IjIyIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGQ9Ik0yMC44NCA0LjYxYTUuNSA1LjUgMCAwIDAtNy43OCAwTDEyIDUuNjdsLTEuMDYtMS4wNmE1LjUgNS41IDAgMCAwLTcuNzggNy43OGwxLjA2IDEuMDZMMTIgMjEuMjNsNy43OC03Ljc4IDEuMDYtMS4wNmE1LjUgNS41IDAgMCAwIDAtNy43OHoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPjwvc3ZnPg==) !important;"
-           "background-repeat:no-repeat !important;background-position:center !important;"
-           "background-size:35px 35px !important;transition:none !important;animation:none !important;}"
-           "[class*=puis-heart-position]:has([class*=lists-framework-filled-heart]:not(.aok-hidden))"
-           "{background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNSAzNSI+PGNpcmNsZSBjeD0iMTcuNSIgY3k9IjE3LjUiIHI9IjE2Ljc1IiBmaWxsPSIjMTgxYTFiIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1vcGFjaXR5PSIuNjUiIHN0cm9rZS13aWR0aD0iMS41Ii8+PHN2ZyB4PSI2LjUiIHk9IjYuNSIgd2lkdGg9IjIyIiBoZWlnaHQ9IjIyIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGQ9Ik0yMC44NCA0LjYxYTUuNSA1LjUgMCAwIDAtNy43OCAwTDEyIDUuNjdsLTEuMDYtMS4wNmE1LjUgNS41IDAgMCAwLTcuNzggNy43OGwxLjA2IDEuMDZMMTIgMjEuMjNsNy43OC03Ljc4IDEuMDYtMS4wNmE1LjUgNS41IDAgMCAwIDAtNy43OHoiIGZpbGw9IiNmZmYiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPjwvc3ZnPg==) !important;}"
-           "[class*=puis-heart-position] *"
-           "{opacity:0 !important;transition:none !important;animation:none !important;}"
            "[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],"
            "[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],"
            "[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],"
@@ -1133,12 +1057,7 @@ static NSString *ADDarkReaderBootstrap(void){
            // v6.0.16 / v5.446: small round content bitmaps are not monochrome UI glyphs.
            // Keep the class reject broad and do ancestry/bitmap checks only on tiny <img>
            // candidates immediately before a glyph write.
-           // v6.0.104: v6.0.103 put the canonical stacked-cards SVG on the
-           // 32px mlt host background. The later gfix1 lane treats any <=36px DOM
-           // element with backgroundImage as monochrome glyph artwork and applies
-           // brightness(0) invert(1), which explains the delayed solid-white disc.
-           // Exclude only the exact mlt host family; its canonical CSS is already final.
-           "var SKIP=/star|prime|logo|flag|swatch|thumb|sponsor|pill-image|product-image|photo|heart|wish|lists-framework|mlt-icon-container|avatar|profile|author|reviewer|byline|merchant|seller|brand|store|logo-|-logo|headshot|user-image|customer/i;"
+           "var SKIP=/star|prime|logo|flag|swatch|thumb|sponsor|pill-image|product-image|photo|heart|wish|lists-framework|avatar|profile|author|reviewer|byline|merchant|seller|brand|store|logo-|-logo|headshot|user-image|customer/i;"
            "var CONTENTIMG616='[data-hook*=review],[class*=review],[class*=profile],[class*=avatar],[class*=author],[class*=byline],[class*=merchant],[class*=seller],[class*=brand],[class*=store],[id*=review]';"
            // v6.0.90: Amazon's search-result feature badges (Works with Alexa,
            // recycled-material / carbon-impact marks, etc.) are tiny full-colour IMG
@@ -1599,13 +1518,11 @@ static NSString *ADThreeSymbolsWebJS605(void){
            "function checkboxAt(e){try{var card=e.closest&&e.closest('[class*=puis-card],[class*=s-result-item],[data-component-type=\"s-search-result\"],[data-asin],[class*=s-product-image],[class*=product-image]'),Q=card?card.querySelectorAll('[class*=a-icon-checkbox]'):document.querySelectorAll('[class*=a-icon-checkbox]'),r=rr(e);if(!r)return false;var x=r.left+r.width/2,y=r.top+r.height/2;for(var i=0;i<Q.length&&i<180;i++){var q=Q[i],qr=rr(q);if(!qr||!shown(q,card||document.body))continue;var qx=qr.left+qr.width/2,qy=qr.top+qr.height/2,ix=Math.max(0,Math.min(r.right,qr.right)-Math.max(r.left,qr.left)),iy=Math.max(0,Math.min(r.bottom,qr.bottom)-Math.max(r.top,qr.top));if((Math.abs(x-qx)<18&&Math.abs(y-qy)<18)||ix*iy>Math.min(r.width*r.height,qr.width*qr.height)*.35)return true;}return false;}catch(x){return true;}}"
            "function clearCards(e){var P=['background-color','border','border-radius','box-shadow','box-sizing'];for(var p=0;p<P.length;p++)e.style.removeProperty(P[p]);if(e.getAttribute('data-ad-cards440-suppressed')==='checkbox'){e.style.removeProperty('visibility');e.style.removeProperty('opacity');}e.removeAttribute('data-ad-cards440-host');e.removeAttribute('data-ad-cards440-suppressed');e.removeAttribute('data-ad-cards440-pseudo');e.removeAttribute('data-ad-sym413');var A=e.querySelectorAll('[data-ad-cards440-glyph],[data-ad-cards440-pseudo]');for(var i=0;i<A.length;i++){var a=A[i];['filter','color','fill','stroke','background-color'].forEach(function(k){a.style.removeProperty(k);});a.removeAttribute('data-ad-cards440-glyph');a.removeAttribute('data-ad-cards440-pseudo');if(a.__adBy==='cards440')delete a.__adBy;}}"
            "function glyph440(g){var r=rr(g);if(!r||r.width<3||r.height<3||r.width>48||r.height>48)return false;return true;}"
-           "function heart6105(e){if(!/lists-framework-action-button/.test(cn(e)))return 0;if(e.getAttribute('data-ad-heart6105')!=='1'){legacy(e);e.removeAttribute('data-ad-heart-shell427');e.setAttribute('data-ad-heart6105','1');}return 1;}"
-           "function cards(e){if(/mlt-icon-container/.test(cn(e))){if(e.getAttribute('data-ad-cards6104')!=='1'){legacy(e);clearCards(e);e.setAttribute('data-ad-cards6104','1');}return 1;}legacy(e);if(e.getAttribute('data-ad-cards440-suppressed')==='checkbox'){if(checkboxAt(e))return 0;e.style.removeProperty('visibility');e.style.removeProperty('opacity');e.removeAttribute('data-ad-cards440-suppressed');}var N=e.querySelectorAll('[class*=mlt-image-icon],img[class*=s-image],p[class*=mlt-text-icon],img,i,svg,path,use,polygon'),P=[e],live=[],pseudo='';for(var pi=0;pi<N.length&&pi<47;pi++)P.push(N[pi]);for(var i=0;i<P.length&&i<48;i++){var g=P[i],r=rr(g);if(!glyph440(g)||!shown(g,e))continue;var t=String(g.tagName||'').toUpperCase(),s=getComputedStyle(g),b=getComputedStyle(g,'::before'),a=getComputedStyle(g,'::after'),paint=/^(IMG|I|SVG|PATH|USE|POLYGON)$/.test(t)||/mlt-text-icon/.test(cn(g))||String(s.backgroundImage||'none')!=='none'||String(s.maskImage||s.webkitMaskImage||'none')!=='none';if(String(b&&b.backgroundImage||'none')!=='none'||String(b&&b.content||'none')!=='none')pseudo+='b';if(String(a&&a.backgroundImage||'none')!=='none'||String(a&&a.content||'none')!=='none')pseudo+='a';if(paint)live.push(g);}if(!live.length&&!pseudo){clearCards(e);return 0;}if(checkboxAt(e)){clearCards(e);e.setAttribute('data-ad-cards440-suppressed','checkbox');e.style.setProperty('visibility','hidden','important');e.style.setProperty('opacity','0','important');return 0;}var old=e.querySelectorAll('[data-ad-cards440-glyph],[data-ad-cards440-pseudo]');for(var o=0;o<old.length;o++){if(live.indexOf(old[o])>=0)continue;['filter','color','fill','stroke','background-color'].forEach(function(k){old[o].style.removeProperty(k);});old[o].removeAttribute('data-ad-cards440-glyph');old[o].removeAttribute('data-ad-cards440-pseudo');}e.setAttribute('data-ad-sym413','cards');e.setAttribute('data-ad-cards440-host','1');if(pseudo)e.setAttribute('data-ad-cards440-pseudo',pseudo);else e.removeAttribute('data-ad-cards440-pseudo');e.__adBy='cards440';e.style.setProperty('background-color',SPEC.bg,'important');e.style.setProperty('border',SPEC.bd,'important');e.style.setProperty('border-radius','50%%','important');e.style.setProperty('box-shadow','none','important');e.style.setProperty('box-sizing','border-box','important');for(var j=0;j<live.length;j++){var z=live[j],tg=String(z.tagName||'').toUpperCase();if(!glyph440(z))continue;z.setAttribute('data-ad-cards440-glyph','1');z.__adBy='cards440';if(/^(SVG|PATH|USE|POLYGON)$/.test(tg)){z.style.setProperty('filter','none','important');z.style.setProperty('fill','#ffffff','important');z.style.setProperty('stroke','#ffffff','important');}else z.style.setProperty('filter','brightness(0) invert(1)','important');z.style.setProperty('color','#ffffff','important');z.style.setProperty('background-color','transparent','important');if(pseudo)z.setAttribute('data-ad-cards440-pseudo',pseudo);}return 1;}"
+           "function cards(e){if(/mlt-icon-container/.test(cn(e))){if(e.getAttribute('data-ad-cards6103')!=='1'){legacy(e);clearCards(e);e.setAttribute('data-ad-cards6103','1');}return 1;}legacy(e);if(e.getAttribute('data-ad-cards440-suppressed')==='checkbox'){if(checkboxAt(e))return 0;e.style.removeProperty('visibility');e.style.removeProperty('opacity');e.removeAttribute('data-ad-cards440-suppressed');}var N=e.querySelectorAll('[class*=mlt-image-icon],img[class*=s-image],p[class*=mlt-text-icon],img,i,svg,path,use,polygon'),P=[e],live=[],pseudo='';for(var pi=0;pi<N.length&&pi<47;pi++)P.push(N[pi]);for(var i=0;i<P.length&&i<48;i++){var g=P[i],r=rr(g);if(!glyph440(g)||!shown(g,e))continue;var t=String(g.tagName||'').toUpperCase(),s=getComputedStyle(g),b=getComputedStyle(g,'::before'),a=getComputedStyle(g,'::after'),paint=/^(IMG|I|SVG|PATH|USE|POLYGON)$/.test(t)||/mlt-text-icon/.test(cn(g))||String(s.backgroundImage||'none')!=='none'||String(s.maskImage||s.webkitMaskImage||'none')!=='none';if(String(b&&b.backgroundImage||'none')!=='none'||String(b&&b.content||'none')!=='none')pseudo+='b';if(String(a&&a.backgroundImage||'none')!=='none'||String(a&&a.content||'none')!=='none')pseudo+='a';if(paint)live.push(g);}if(!live.length&&!pseudo){clearCards(e);return 0;}if(checkboxAt(e)){clearCards(e);e.setAttribute('data-ad-cards440-suppressed','checkbox');e.style.setProperty('visibility','hidden','important');e.style.setProperty('opacity','0','important');return 0;}var old=e.querySelectorAll('[data-ad-cards440-glyph],[data-ad-cards440-pseudo]');for(var o=0;o<old.length;o++){if(live.indexOf(old[o])>=0)continue;['filter','color','fill','stroke','background-color'].forEach(function(k){old[o].style.removeProperty(k);});old[o].removeAttribute('data-ad-cards440-glyph');old[o].removeAttribute('data-ad-cards440-pseudo');}e.setAttribute('data-ad-sym413','cards');e.setAttribute('data-ad-cards440-host','1');if(pseudo)e.setAttribute('data-ad-cards440-pseudo',pseudo);else e.removeAttribute('data-ad-cards440-pseudo');e.__adBy='cards440';e.style.setProperty('background-color',SPEC.bg,'important');e.style.setProperty('border',SPEC.bd,'important');e.style.setProperty('border-radius','50%%','important');e.style.setProperty('box-shadow','none','important');e.style.setProperty('box-sizing','border-box','important');for(var j=0;j<live.length;j++){var z=live[j],tg=String(z.tagName||'').toUpperCase();if(!glyph440(z))continue;z.setAttribute('data-ad-cards440-glyph','1');z.__adBy='cards440';if(/^(SVG|PATH|USE|POLYGON)$/.test(tg)){z.style.setProperty('filter','none','important');z.style.setProperty('fill','#ffffff','important');z.style.setProperty('stroke','#ffffff','important');}else z.style.setProperty('filter','brightness(0) invert(1)','important');z.style.setProperty('color','#ffffff','important');z.style.setProperty('background-color','transparent','important');if(pseudo)z.setAttribute('data-ad-cards440-pseudo',pseudo);}return 1;}"
            "var Q=document.querySelectorAll('[class*=mlt-icon-container],[class*=a-checkbox],[class*=puis-mab-chevron],[class*=puis-heart-position],[class*=lists-framework-action-button]'),n=0,sk=0;"
            "for(var i=0;i<Q.length&&i<400;i++){var e=Q[i],k=kind(e);"
              "if(!k){sk++;continue;}"
              "if(k==='cards'){if(cards(e))n++;else sk++;continue;}"
-             "if(k==='heart'&&heart6105(e)){n++;continue;}"
              "var hs=e.querySelector&&e.querySelector('[class*=lists-framework-action-button],[class*=puis-heart-position]');"
              "var rc=!!(e.querySelector&&e.querySelector('input[type=checkbox],[class*=a-icon-checkbox]'));"
              "if(hs&&!rc&&k!=='cards'){e.setAttribute('data-ad-heart-shell427','1');"
