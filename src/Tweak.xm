@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.111"
+#define AD_VERSION "v6.0.112"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -556,11 +556,8 @@ static NSString *ADFixesLiteral(void){
              // existing geometry/click target; only paint is supplied here, and Amazon's
              // transient child artwork stays invisible so there is no second visual cycle.
              "[class*=mlt-icon-container]"
-             "{width:35px !important;height:35px !important;min-width:35px !important;min-height:35px !important;"
-             "max-width:35px !important;max-height:35px !important;background-color:#181a1b !important;"
-             "border:1.5px solid rgba(255,255,255,.65) !important;border-radius:50%% !important;"
-             "box-shadow:none !important;box-sizing:border-box !important;"
-             "transform:translateY(-5px) !important;transform-origin:center !important;"
+             "{background-color:#181a1b !important;border:1.5px solid rgba(255,255,255,.65) !important;"
+             "border-radius:50%% !important;box-shadow:none !important;box-sizing:border-box !important;"
              "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHJlY3QgeD0iOC4yIiB5PSI0LjQiIHdpZHRoPSIxMC4yIiBoZWlnaHQ9IjEzLjQiIHJ4PSIxLjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjYiLz48cmVjdCB4PSI1LjQiIHk9IjcuMiIgd2lkdGg9IjEwLjIiIGhlaWdodD0iMTMuNCIgcng9IjEuNCIgZmlsbD0iIzE4MWExYiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjEuNiIvPjxwYXRoIGQ9Ik0xMC41IDEwLjh2Nk03LjUgMTMuOGg2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMS42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=) !important;"
              "background-repeat:no-repeat !important;background-position:center !important;"
              "background-size:24px 24px !important;transition:none !important;animation:none !important;}"
@@ -569,6 +566,17 @@ static NSString *ADFixesLiteral(void){
              "[class*=mlt-icon-container] [class*=mlt-text-icon]"
              "{opacity:0 !important;filter:none !important;background-color:transparent !important;"
              "transition:none !important;animation:none !important;}"
+             // v6.0.112: product-card overflow menu is not the circular MLT button.
+             // Historical v5.446 probes identify the right-side menu painter as the
+             // puis-mab-overlay-row widget family. Keep the canonical cards/+ first-frame
+             // glyph, but remove the button chrome only inside that overlay. For the other
+             // menu rows, whiten the small right-side widget as a rendered bitmap; alpha is
+             // preserved, so Save/Select/Share glyphs become light without painting a box.
+             "[class*=puis-mab-overlay-row] [class*=mlt-icon-container]"
+             "{background-color:transparent !important;border:0 !important;border-radius:0 !important;"
+             "box-shadow:none !important;outline:0 !important;}"
+             "[class*=puis-mab-overlay-row]:not(:has([class*=mlt-icon-container])) [class*=puis-mab-overlay-row-wid]"
+             "{filter:brightness(0) invert(1) !important;}"
              // v5.374: search templates can temporarily expose a 1x1/lazy
              // placeholder in this action control. Inverting that shim creates the
              // solid white square. Hide known shims at documentStart; runtime below
@@ -916,11 +924,8 @@ static NSString *ADDarkReaderBootstrap(void){
            // v6.0.104: first-frame two-cards owner. This is intentionally duplicated
            // in ADFixesLiteral so the exact same paint exists before and after Dark Reader.
            "[class*=mlt-icon-container]"
-           "{width:35px !important;height:35px !important;min-width:35px !important;min-height:35px !important;"
-           "max-width:35px !important;max-height:35px !important;background-color:#181a1b !important;"
-           "border:1.5px solid rgba(255,255,255,.65) !important;border-radius:50%% !important;"
-           "box-shadow:none !important;box-sizing:border-box !important;"
-           "transform:translateY(-5px) !important;transform-origin:center !important;"
+           "{background-color:#181a1b !important;border:1.5px solid rgba(255,255,255,.65) !important;"
+           "border-radius:50%% !important;box-shadow:none !important;box-sizing:border-box !important;"
            "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHJlY3QgeD0iOC4yIiB5PSI0LjQiIHdpZHRoPSIxMC4yIiBoZWlnaHQ9IjEzLjQiIHJ4PSIxLjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjYiLz48cmVjdCB4PSI1LjQiIHk9IjcuMiIgd2lkdGg9IjEwLjIiIGhlaWdodD0iMTMuNCIgcng9IjEuNCIgZmlsbD0iIzE4MWExYiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjEuNiIvPjxwYXRoIGQ9Ik0xMC41IDEwLjh2Nk03LjUgMTMuOGg2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMS42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=) !important;"
            "background-repeat:no-repeat !important;background-position:center !important;"
            "background-size:24px 24px !important;transition:none !important;animation:none !important;}"
@@ -929,6 +934,13 @@ static NSString *ADDarkReaderBootstrap(void){
            "[class*=mlt-icon-container] [class*=mlt-text-icon]"
            "{opacity:0 !important;filter:none !important;background-color:transparent !important;"
            "transition:none !important;animation:none !important;}"
+           // v6.0.112: mirror the overlay-only menu correction at documentStart.
+           // This beats the global v6.0.104 MLT chrome before the dropdown's first visible frame.
+           "[class*=puis-mab-overlay-row] [class*=mlt-icon-container]"
+           "{background-color:transparent !important;border:0 !important;border-radius:0 !important;"
+           "box-shadow:none !important;outline:0 !important;}"
+           "[class*=puis-mab-overlay-row]:not(:has([class*=mlt-icon-container])) [class*=puis-mab-overlay-row-wid]"
+           "{filter:brightness(0) invert(1) !important;}"
            "[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],"
            "[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],"
            "[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],"

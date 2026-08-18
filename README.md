@@ -1,9 +1,10 @@
-# AmazonDark v6.0.111
+# AmazonDark v6.0.112
 
-## v6.0.111 — restore pre-first-frame Heart logic
+## v6.0.112 — correct the product-card overflow menu symbols
 
-- Production source is rebuilt from v6.0.104 for the Heart path, restoring the exact Heart handling that existed before the v6.0.105–v6.0.110 first-frame experiments.
-- Removes the later synthetic/stable-shell Heart painter, descendant suppression, `heart6105` runtime short-circuit, forced Heart sizing, and selected-state CSS override.
-- Restores Amazon's original/native Heart state behavior as handled by the v6.0.104 symbol pipeline, including the stock filled/unfilled transition when the Heart is tapped.
-- Keeps the two-cards control from v6.0.110 untouched: 35x35 host, 24x24 canonical cards glyph, first-frame child suppression, and the current `translateY(-5px)` alignment.
-- No new observers, scroll listeners, recurring timers, RAF loops, `dispatch_after` calls, or image-sampling work.
+- Exact code base is v6.0.104, the last-good build requested for this branch. No v6.0.105–v6.0.111 Heart experiments are included.
+- Keeps the v6.0.104 main More-like-this control unchanged: its circular dark button and canonical white stacked-cards/plus glyph still paint on the first frame and remain protected from `gfix1`.
+- In the chevron overflow menu only, strips that circular button chrome from `.mlt-icon-container` while retaining the canonical stacked-cards/plus background image. The menu therefore shows the bare cards/+ glyph instead of a second circular control.
+- Restores light menu action glyphs by whitening only the historical `puis-mab-overlay-row-wid*` right-side widget on non-MLT rows. This covers the black Save and Select painters without touching row text or the More-like-this host.
+- The same rules are present in both the earliest documentStart sheet and `ADFixesLiteral`, so the corrected menu paint is available on its first visible frame and remains authoritative after Dark Reader.
+- No new JavaScript, MutationObserver, selector traversal, scroll listener, interval, RAF, timeout, dispatch queue, native hierarchy walk, or image sampler is added.
