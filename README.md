@@ -1,4 +1,9 @@
-# AmazonDark v6.0.124
+# AmazonDark v6.0.125 PROBE
+
+## v6.0.125 — MAB Share DOM probe
+
+Diagnostic-only build from v6.0.124. It does not change the Share painter. Open a product chevron menu where Share is black, leave the menu open, then background Amazon once. The exact row/painter DOM snapshot is exported to `AmazonDark-mab-share-probe-6125.txt` in Amazon’s tmp directory.
+
 
 ## v6.0.124 — correct submenu action glyph ownership
 
