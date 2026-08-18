@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.129-probe"
+#define AD_VERSION "v6.0.130-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1421,7 +1421,7 @@ static NSString *ADDarkReaderBootstrap(void){
            "if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);"
            "window.__AD_IDLE6056__(function(){window.__AMZDARK_FIXCONTRAST__();if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);},260);"
          "}catch(e){}};"
-         // v6.0.129 PROBE: v6.0.128 did not change either standalone-ad symptom,
+         // v6.0.130 PROBE: v6.0.128 did not change either standalone-ad symptom,
          // so stop guessing at the shell/path.  Dump exact live Sponsored label,
          // info-glyph, ad-root, media, iframe and TWB ownership only when the app is
          // backgrounded.  The existing MutationObserver hook remains a no-op here:
@@ -1921,7 +1921,9 @@ static void ADInjectAllWebViews(void){
 // v6.0.98 diagnostic exporter.  The JS ring buffer above reuses an existing DOM
 // observer; backgrounding once after reproducing the flash simply dumps that buffer.
 static NSString *ADFlashProbePath6101(void){
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-standalone-ad-probe-6129.txt"];
+    // v6.0.130 probe: write straight into the user-visible push/Documents folder.
+    // This removes the old temp-file + manual export step entirely.
+    return @"/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/AmazonDark-standalone-ad-probe-6130.txt";
 }
 static void ADAppendFlashProbe6101(NSString *line){
     if (!line.length) return;
@@ -1934,7 +1936,7 @@ static void ADAppendFlashProbe6101(NSString *line){
 }
 static void ADResetFlashProbe6101(void){
     @try {
-        NSString *h=[NSString stringWithFormat:@"AmazonDark standalone-ad DOM/TWB probe 6129\nversion=%s\npid=%d\n\n",AD_VERSION,getpid()];
+        NSString *h=[NSString stringWithFormat:@"AmazonDark standalone-ad DOM/TWB probe 6130\nversion=%s\npid=%d\n\n",AD_VERSION,getpid()];
         [h writeToFile:ADFlashProbePath6101() atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } @catch(...) {}
 }

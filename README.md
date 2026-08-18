@@ -1,4 +1,4 @@
-# AmazonDark v6.0.129 probe
+# AmazonDark v6.0.130 probe
 
 Built directly from v6.0.128 after the standalone-ad scope/glyph patch produced no visible change.
 
@@ -11,4 +11,4 @@ No new MutationObserver, scroll listener, interval, requestAnimationFrame loop, 
 2. Background Amazon once.
 3. Return to Amazon and open a product/search submenu containing the standalone sponsored ad whose photo-only taming is correct.
 4. Background Amazon again.
-5. Export `/tmp/AmazonDark-standalone-ad-probe-6129.txt` (the exact tmp prefix can vary on iOS; use the provided shell command from ChatGPT).
+5. Export `/tmp/AmazonDark-standalone-ad-probe-6130.txt` (the exact tmp prefix can vary on iOS; use the provided shell command from ChatGPT).
