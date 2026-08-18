@@ -1,13 +1,10 @@
-# AmazonDark v6.0.108
+# AmazonDark v6.0.109
 
-## v6.0.108 — true first-frame Heart + exact two-cards visual size
+## v6.0.109 — restore Heart scale + match two-cards control
 
-- Production base: v6.0.107.
-- v6.0.107 fixed the transparent Heart backdrop, but the first-frame race remained: some rows briefly expose only a tiny transient child before Amazon mounts the final `lists-framework-action-button`, creating the visible white dot before the Heart appears.
-- v6.0.108 moves visual ownership to the stable `[class*=puis-heart-position]` shell, which necessarily exists before that transient child can paint.
-- The shell receives one self-contained 32x32 SVG containing the `#181a1b` disc, 1.5px translucent-white chrome, and white outline Heart. The control therefore has no dependency on Amazon's lazy Heart bitmap/SVG for its first visible frame.
-- Every Amazon descendant inside that tiny Heart shell is kept at `opacity:0`; the real button remains in the DOM and remains tappable, but placeholder -> hydrated artwork swaps can no longer create a second visual cycle.
-- The Heart's visual circle is now exactly 32x32, matching the More-like-this two-cards control instead of the 35x35 Heart host measured by the v6.0.106 device probe.
-- The identical rule is present in both the earliest documentStart sheet and `ADFixesLiteral`, so Dark Reader cannot introduce a later paint handoff.
-- v6.0.104 two-cards behavior and the v6.0.107 opaque-backdrop correction are otherwise unchanged.
-- No new observer, selector traversal, timer, scroll listener, RAF, `dispatch_after`, or image sampler.
+- Production base: v6.0.108.
+- Keeps the v6.0.108 stable-shell first-frame Heart ownership that removed the tiny white-dot / delayed-hydration paint race.
+- Restores the Heart to the pre-v6.0.108 device-measured scale: the stable `puis-heart-position` shell is naturally 35x35, and its self-contained first-frame SVG is again 35x35 with the same 22px Heart glyph used by v6.0.107.
+- Enlarges the dedicated `mlt-icon-container` two-cards control from its prior 32x32 host geometry to 35x35 so its circular control matches that previous Heart size. The stacked-cards glyph itself remains 24x24.
+- Both size rules are duplicated in the earliest documentStart sheet and `ADFixesLiteral`, preserving identical first-frame and settled paint.
+- No new observer, selector traversal, timer, scroll listener, RAF, `dispatch_after`, timeout, or image sampler.

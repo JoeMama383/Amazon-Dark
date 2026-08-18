@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.108"
+#define AD_VERSION "v6.0.109"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -552,12 +552,14 @@ static NSString *ADFixesLiteral(void){
              // v6.0.104: the More-like-this two-cards control was visually racing its
              // own lazy <img>: the host circle could paint while the image was still a
              // grey/white shim, then repaint again when Amazon swapped in the real cards
-             // bitmap. Own the finished glyph declaratively instead. The host keeps its
-             // existing geometry/click target; only paint is supplied here, and Amazon's
+             // bitmap. Own the finished glyph declaratively instead. v6.0.109 moves the
+             // dedicated host from 32px to the previous Heart's 35px control size; Amazon's
              // transient child artwork stays invisible so there is no second visual cycle.
              "[class*=mlt-icon-container]"
-             "{background-color:#181a1b !important;border:1.5px solid rgba(255,255,255,.65) !important;"
-             "border-radius:50%% !important;box-shadow:none !important;box-sizing:border-box !important;"
+             "{width:35px !important;height:35px !important;min-width:35px !important;min-height:35px !important;"
+             "max-width:35px !important;max-height:35px !important;background-color:#181a1b !important;"
+             "border:1.5px solid rgba(255,255,255,.65) !important;border-radius:50%% !important;"
+             "box-shadow:none !important;box-sizing:border-box !important;"
              "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHJlY3QgeD0iOC4yIiB5PSI0LjQiIHdpZHRoPSIxMC4yIiBoZWlnaHQ9IjEzLjQiIHJ4PSIxLjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjYiLz48cmVjdCB4PSI1LjQiIHk9IjcuMiIgd2lkdGg9IjEwLjIiIGhlaWdodD0iMTMuNCIgcng9IjEuNCIgZmlsbD0iIzE4MWExYiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjEuNiIvPjxwYXRoIGQ9Ik0xMC41IDEwLjh2Nk03LjUgMTMuOGg2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMS42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=) !important;"
              "background-repeat:no-repeat !important;background-position:center !important;"
              "background-size:24px 24px !important;transition:none !important;animation:none !important;}"
@@ -601,12 +603,14 @@ static NSString *ADFixesLiteral(void){
              // v6.0.107: keep the v6.0.105 one-owner first-frame Heart, but use
              // a higher-specificity host selector. The older v5.393 structural-shell rule
              // ([class*=puis-heart-position] div) intentionally clears temporary shells
-             // and otherwise wins background-color by specificity. v6.0.108 keeps this
+             // and otherwise wins background-color by specificity. v6.0.109 keeps this
              // inner-host paint only as a fallback; the stable outer shell is the visible owner.
              "[class*=puis-heart-position] [class*=lists-framework-action-button],"
              "[class*=lists-framework-action-button][class*=puis-heart-icon-container]"
-             "{background-color:#181a1b !important;border:1.5px solid rgba(255,255,255,.65) !important;"
-             "border-radius:50%% !important;box-shadow:none !important;box-sizing:border-box !important;"
+             "{width:35px !important;height:35px !important;min-width:35px !important;min-height:35px !important;"
+             "max-width:35px !important;max-height:35px !important;background-color:#181a1b !important;"
+             "border:1.5px solid rgba(255,255,255,.65) !important;border-radius:50%% !important;"
+             "box-shadow:none !important;box-sizing:border-box !important;"
              "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTIwLjg0IDQuNjFhNS41IDUuNSAwIDAgMC03Ljc4IDBMMTIgNS42N2wtMS4wNi0xLjA2YTUuNSA1LjUgMCAwIDAtNy43OCA3Ljc4bDEuMDYgMS4wNkwxMiAyMS4yM2w3Ljc4LTcuNzggMS4wNi0xLjA2YTUuNSA1LjUgMCAwIDAgMC03Ljc4eiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjEuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+) !important;"
              "background-repeat:no-repeat !important;background-position:center !important;"
              "background-size:22px 22px !important;transition:none !important;animation:none !important;}"
@@ -618,15 +622,15 @@ static NSString *ADFixesLiteral(void){
              "[class*=lists-framework-action-button] img[data-ad-actionglyph374]"
              "{opacity:0 !important;filter:none !important;background-color:transparent !important;"
              "transition:none !important;animation:none !important;}"
-             // v6.0.108: FIRST-FRAME HEART OWNER MOVED TO THE STABLE OUTER SHELL.
+             // v6.0.109: keep stable-shell first-frame ownership; restore native 35px Heart scale.
              // The final lists-framework action-button is lazy; the white dot can paint
              // before that host exists. Own paint on puis-heart-position itself instead.
-             // One 32px SVG contains the disc, chrome and Heart, matching two-cards size.
+             // One 35px SVG now reproduces the pre-v6.0.108 Heart scale; two-cards is matched to it.
              "[class*=puis-heart-position]"
              "{background-color:transparent !important;border:0 !important;box-shadow:none !important;"
-             "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTUuMjUiIGZpbGw9IiMxODFhMWIiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLW9wYWNpdHk9Ii42NSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48c3ZnIHg9IjUiIHk9IjUiIHdpZHRoPSIyMiIgaGVpZ2h0PSIyMiIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMjAuODQgNC42MWE1LjUgNS41IDAgMCAwLTcuNzggMEwxMiA1LjY3bC0xLjA2LTEuMDZhNS41IDUuNSAwIDAgMC03Ljc4IDcuNzhsMS4wNiAxLjA2TDEyIDIxLjIzbDcuNzgtNy43OCAxLjA2LTEuMDZhNS41IDUuNSAwIDAgMCAwLTcuNzh6IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz48L3N2Zz4=) !important;"
+             "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNSAzNSI+PGNpcmNsZSBjeD0iMTcuNSIgY3k9IjE3LjUiIHI9IjE2Ljc1IiBmaWxsPSIjMTgxYTFiIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1vcGFjaXR5PSIuNjUiIHN0cm9rZS13aWR0aD0iMS41Ii8+PHN2ZyB4PSI2LjUiIHk9IjYuNSIgd2lkdGg9IjIyIiBoZWlnaHQ9IjIyIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGQ9Ik0yMC44NCA0LjYxYTUuNSA1LjUgMCAwIDAtNy43OCAwTDEyIDUuNjdsLTEuMDYtMS4wNmE1LjUgNS41IDAgMCAwLTcuNzggNy43OGwxLjA2IDEuMDZMMTIgMjEuMjNsNy43OC03Ljc4IDEuMDYtMS4wNmE1LjUgNS41IDAgMCAwIDAtNy43OHoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPjwvc3ZnPg==) !important;"
              "background-repeat:no-repeat !important;background-position:center !important;"
-             "background-size:32px 32px !important;transition:none !important;animation:none !important;}"
+             "background-size:35px 35px !important;transition:none !important;animation:none !important;}"
              "[class*=puis-heart-position] *"
              "{opacity:0 !important;transition:none !important;animation:none !important;}"
              // Darkening blends crush their content toward black on a dark theme; the
@@ -941,11 +945,13 @@ static NSString *ADDarkReaderBootstrap(void){
            // by the final v5.446 runtime probe. Keep filter:none: the mask shape is
            // already supplied by Amazon; background-color is the glyph's actual ink.
            ".s-suggestion-container [class*=icon-past-search-sugge],.s-suggestion-container .icon-close.s-suggestion-icon-left{background-color:#e8e6e3 !important;filter:none !important;opacity:1 !important;}"
-           // v6.0.104: first-frame two-cards owner. This is intentionally duplicated
-           // in ADFixesLiteral so the exact same paint exists before and after Dark Reader.
+           // v6.0.109: first-frame two-cards owner, now matched to the previous Heart's 35px size.
+           // This is duplicated in ADFixesLiteral so first and settled paint stay identical.
            "[class*=mlt-icon-container]"
-           "{background-color:#181a1b !important;border:1.5px solid rgba(255,255,255,.65) !important;"
-           "border-radius:50%% !important;box-shadow:none !important;box-sizing:border-box !important;"
+           "{width:35px !important;height:35px !important;min-width:35px !important;min-height:35px !important;"
+           "max-width:35px !important;max-height:35px !important;background-color:#181a1b !important;"
+           "border:1.5px solid rgba(255,255,255,.65) !important;border-radius:50%% !important;"
+           "box-shadow:none !important;box-sizing:border-box !important;"
            "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHJlY3QgeD0iOC4yIiB5PSI0LjQiIHdpZHRoPSIxMC4yIiBoZWlnaHQ9IjEzLjQiIHJ4PSIxLjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjYiLz48cmVjdCB4PSI1LjQiIHk9IjcuMiIgd2lkdGg9IjEwLjIiIGhlaWdodD0iMTMuNCIgcng9IjEuNCIgZmlsbD0iIzE4MWExYiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjEuNiIvPjxwYXRoIGQ9Ik0xMC41IDEwLjh2Nk03LjUgMTMuOGg2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMS42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=) !important;"
            "background-repeat:no-repeat !important;background-position:center !important;"
            "background-size:24px 24px !important;transition:none !important;animation:none !important;}"
@@ -972,15 +978,15 @@ static NSString *ADDarkReaderBootstrap(void){
            "[class*=lists-framework-action-button] img[data-ad-actionglyph374]"
            "{opacity:0 !important;filter:none !important;background-color:transparent !important;"
            "transition:none !important;animation:none !important;}"
-           // v6.0.108: FIRST-FRAME HEART OWNER MOVED TO THE STABLE OUTER SHELL.
+           // v6.0.109: keep stable-shell first-frame ownership; restore native 35px Heart scale.
            // The final lists-framework action-button is lazy; the white dot can paint
            // before that host exists. Own paint on puis-heart-position itself instead.
-           // One 32px SVG contains the disc, chrome and Heart, matching two-cards size.
+           // One 35px SVG now reproduces the pre-v6.0.108 Heart scale; two-cards is matched to it.
            "[class*=puis-heart-position]"
            "{background-color:transparent !important;border:0 !important;box-shadow:none !important;"
-           "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTUuMjUiIGZpbGw9IiMxODFhMWIiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLW9wYWNpdHk9Ii42NSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48c3ZnIHg9IjUiIHk9IjUiIHdpZHRoPSIyMiIgaGVpZ2h0PSIyMiIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMjAuODQgNC42MWE1LjUgNS41IDAgMCAwLTcuNzggMEwxMiA1LjY3bC0xLjA2LTEuMDZhNS41IDUuNSAwIDAgMC03Ljc4IDcuNzhsMS4wNiAxLjA2TDEyIDIxLjIzbDcuNzgtNy43OCAxLjA2LTEuMDZhNS41IDUuNSAwIDAgMCAwLTcuNzh6IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz48L3N2Zz4=) !important;"
+           "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNSAzNSI+PGNpcmNsZSBjeD0iMTcuNSIgY3k9IjE3LjUiIHI9IjE2Ljc1IiBmaWxsPSIjMTgxYTFiIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1vcGFjaXR5PSIuNjUiIHN0cm9rZS13aWR0aD0iMS41Ii8+PHN2ZyB4PSI2LjUiIHk9IjYuNSIgd2lkdGg9IjIyIiBoZWlnaHQ9IjIyIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGQ9Ik0yMC44NCA0LjYxYTUuNSA1LjUgMCAwIDAtNy43OCAwTDEyIDUuNjdsLTEuMDYtMS4wNmE1LjUgNS41IDAgMCAwLTcuNzggNy43OGwxLjA2IDEuMDZMMTIgMjEuMjNsNy43OC03Ljc4IDEuMDYtMS4wNmE1LjUgNS41IDAgMCAwIDAtNy43OHoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPjwvc3ZnPg==) !important;"
            "background-repeat:no-repeat !important;background-position:center !important;"
-           "background-size:32px 32px !important;transition:none !important;animation:none !important;}"
+           "background-size:35px 35px !important;transition:none !important;animation:none !important;}"
            "[class*=puis-heart-position] *"
            "{opacity:0 !important;transition:none !important;animation:none !important;}"
            "[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],"
