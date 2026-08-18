@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.117"
+#define AD_VERSION "v6.0.118"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1311,7 +1311,18 @@ static NSString *ADDarkReaderBootstrap(void){
          // __AMZDARK_FIXCONTRAST__ routes every such element through prodInk6078 and
          // continues before generic paint. Native-local roots are capped at 120.
          // Coalesce nested roots and let WebKit finish rendering.
-         "try{var _t=null,_roots=[],_idle=0;function run6056(){_idle=0;try{var R=_roots;_roots=[];for(var i=0;i<R.length;i++){var r=R[i];if(!r||!r.isConnected)continue;var nested=false;for(var j=0;j<R.length;j++){if(i!==j&&R[j]&&R[j].contains&&R[j].contains(r)){nested=true;break;}}if(!nested){window.__AMZDARK_FIXCONTRAST__(r);if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(r);}}}catch(e){}}new MutationObserver(function(ms){try{for(var mi=0;mi<ms.length&&_roots.length<12;mi++){var A=ms[mi].addedNodes||[];for(var ai=0;ai<A.length&&_roots.length<12;ai++){var n=A[ai];if(n&&n.nodeType===3)n=n.parentElement;if(!n||n.nodeType!==1)continue;if(window.__AD_FLASH_TOUCH6101__)window.__AD_FLASH_TOUCH6101__(n);if(_roots.indexOf(n)<0)_roots.push(n);}}if(!_roots.length)return;clearTimeout(_t);_t=setTimeout(function(){if(_idle)return;_idle=1;window.__AD_IDLE6056__(run6056,320);},120);}catch(e){}})"
+         // v6.0.118: Search first-open path parity. Background/foreground already
+         // proves the settled generic glyph repair is correct because visibility regain
+         // calls __AMZDARK_APPLY__(), which runs a FULL-root FIXCONTRAST pass. The
+         // initial lazy-content path only repaired each added subtree, so Amazon could
+         // finish a clock/X/magnifier painter on an existing node after that local pass
+         // and leave it dark until the lifecycle repair. Reuse this SAME observer,
+         // debounce and idle callback: when a real Search-suggestion family enters the
+         // DOM, promote that one coalesced batch to the exact full-root repair path.
+         // No new observer, timer, interval, RAF, scroll listener or recurring scan.
+         "try{var _t=null,_roots=[],_idle=0,_searchFull6118=0;"
+         "function search6118(n){try{if(!n||n.nodeType!==1)return false;var S='.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]';return !!((n.matches&&n.matches(S))||(n.closest&&n.closest(S))||(n.querySelector&&n.querySelector(S)));}catch(e){return false;}}"
+         "function run6056(){_idle=0;try{var R=_roots,full=_searchFull6118;_roots=[];_searchFull6118=0;if(full){var d=document.body||document.documentElement;window.__AMZDARK_FIXCONTRAST__(d);if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);return;}for(var i=0;i<R.length;i++){var r=R[i];if(!r||!r.isConnected)continue;var nested=false;for(var j=0;j<R.length;j++){if(i!==j&&R[j]&&R[j].contains&&R[j].contains(r)){nested=true;break;}}if(!nested){window.__AMZDARK_FIXCONTRAST__(r);if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(r);}}}catch(e){}}new MutationObserver(function(ms){try{for(var mi=0;mi<ms.length&&_roots.length<12;mi++){var A=ms[mi].addedNodes||[];for(var ai=0;ai<A.length&&_roots.length<12;ai++){var n=A[ai];if(n&&n.nodeType===3)n=n.parentElement;if(!n||n.nodeType!==1)continue;if(window.__AD_FLASH_TOUCH6101__)window.__AD_FLASH_TOUCH6101__(n);if(!_searchFull6118&&search6118(n))_searchFull6118=1;if(_roots.indexOf(n)<0)_roots.push(n);}}if(!_roots.length)return;clearTimeout(_t);_t=setTimeout(function(){if(_idle)return;_idle=1;window.__AD_IDLE6056__(run6056,320);},120);}catch(e){}})"
            ".observe(document.documentElement,{childList:true,subtree:true});}catch(e){}"
          "window.__AMZDARK_APPLY__();"
          // Re-apply when the page is restored from the back-forward cache (returning
