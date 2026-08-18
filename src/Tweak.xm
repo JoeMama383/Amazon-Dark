@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.113"
+#define AD_VERSION "v6.0.114"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -566,24 +566,26 @@ static NSString *ADFixesLiteral(void){
              "[class*=mlt-icon-container] [class*=mlt-text-icon]"
              "{opacity:0 !important;filter:none !important;background-color:transparent !important;"
              "transition:none !important;animation:none !important;}"
-             // v6.0.113: overflow-menu correction rebuilt from the v6.0.104 base.
-             // Do not filter the 20px row-widget wrapper and do not use :has() here:
-             // v6.0.112 made that dynamic wrapper a composited filter surface, which
-             // caused the white-circle flash and expensive style invalidation while
-             // the menu mounted. Paint only the actual historical v5.446 glyph leaves.
-             // The menu MLT host keeps the canonical cards/+ background-image from
-             // v6.0.104, but loses circular button chrome only inside this overlay.
-             "[class*=puis-mab-overlay-row] [class*=mlt-icon-container]"
+             // v6.0.114: product-card overflow menu. Historical v5.44x probes
+             // give us exact class tokens for these four tiny menu painters, so
+             // do not use substring ancestry selectors or a generic aok-inline-block
+             // rule here. Those v6.0.112/113 selectors made menu insertion expensive
+             // on the large Search DOM and could delay the chevron's first touch.
+             // The normal v6.0.104 two-cards button remains unchanged; only its
+             // overlay instance loses the outer circular chrome.
+             ".puis-mab-overlay-row .mlt-icon-container"
              "{background-color:transparent !important;border:0 !important;border-radius:0 !important;"
              "box-shadow:none !important;outline:0 !important;}"
-             "[class*=puis-mab-overlay-row] [class*=puis-mab-overlay-heart],"
-             "[class*=puis-mab-overlay-row] i.a-icon-checkbox,"
-             "[class*=puis-mab-overlay-row] [class*=a-icon-share],"
-             "[class*=puis-mab-overlay-row] .aok-inline-block"
+             // Save is a 20x19 CSS-background painter in the overlay row.
+             ".puis-mab-overlay-row .puis-mab-overlay-heart"
+             "{filter:brightness(0) invert(1) !important;background-color:transparent !important;}"
+             // Select reuses Amazon's a-icon-checkbox sprite, but it is NOT the
+             // product-card compare checkbox. Beat the global 32px checkbox-chrome
+             // owner only inside this overlay and preserve the stock sprite image.
+             "html body .puis-mab-overlay-row .a-checkbox i.a-icon.a-icon-checkbox,"
+             "html body .puis-mab-overlay-row i.a-icon.a-icon-checkbox"
              "{filter:brightness(0) invert(1) !important;background-color:transparent !important;"
-             "color:#ffffff !important;fill:#ffffff !important;stroke:#ffffff !important;}"
-             "[class*=puis-mab-overlay-row] svg,[class*=puis-mab-overlay-row] svg path"
-             "{color:#ffffff !important;fill:#ffffff !important;stroke:#ffffff !important;}"
+             "border:0 !important;border-radius:0 !important;box-shadow:none !important;outline:0 !important;}"
              // v5.374: search templates can temporarily expose a 1x1/lazy
              // placeholder in this action control. Inverting that shim creates the
              // solid white square. Hide known shims at documentStart; runtime below
@@ -941,21 +943,18 @@ static NSString *ADDarkReaderBootstrap(void){
            "[class*=mlt-icon-container] [class*=mlt-text-icon]"
            "{opacity:0 !important;filter:none !important;background-color:transparent !important;"
            "transition:none !important;animation:none !important;}"
-           // v6.0.113: mirror the same leaf-only overlay treatment at documentStart.
-           // This intentionally contains no overlay :has() selector and no filtered
-           // row/widget wrapper, so menu insertion cannot create a large compositing
-           // layer or hold the WebView's first touch while styles are re-evaluated.
-           "[class*=puis-mab-overlay-row] [class*=mlt-icon-container]"
+           // v6.0.114: mirror the same exact-token overlay ownership at
+           // documentStart. No :has(), no [class*=puis-mab-overlay-row] ancestry,
+           // no generic .aok-inline-block rule, and no overlay-wide SVG selector.
+           ".puis-mab-overlay-row .mlt-icon-container"
            "{background-color:transparent !important;border:0 !important;border-radius:0 !important;"
            "box-shadow:none !important;outline:0 !important;}"
-           "[class*=puis-mab-overlay-row] [class*=puis-mab-overlay-heart],"
-           "[class*=puis-mab-overlay-row] i.a-icon-checkbox,"
-           "[class*=puis-mab-overlay-row] [class*=a-icon-share],"
-           "[class*=puis-mab-overlay-row] .aok-inline-block"
+           ".puis-mab-overlay-row .puis-mab-overlay-heart"
+           "{filter:brightness(0) invert(1) !important;background-color:transparent !important;}"
+           "html body .puis-mab-overlay-row .a-checkbox i.a-icon.a-icon-checkbox,"
+           "html body .puis-mab-overlay-row i.a-icon.a-icon-checkbox"
            "{filter:brightness(0) invert(1) !important;background-color:transparent !important;"
-           "color:#ffffff !important;fill:#ffffff !important;stroke:#ffffff !important;}"
-           "[class*=puis-mab-overlay-row] svg,[class*=puis-mab-overlay-row] svg path"
-           "{color:#ffffff !important;fill:#ffffff !important;stroke:#ffffff !important;}"
+           "border:0 !important;border-radius:0 !important;box-shadow:none !important;outline:0 !important;}"
            "[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],"
            "[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],"
            "[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],"
