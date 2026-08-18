@@ -1,10 +1,10 @@
-# AmazonDark v6.0.109
+# AmazonDark v6.0.110
 
-## v6.0.109 — restore Heart scale + match two-cards control
+## v6.0.110 — restore Heart selected state + align symbol row
 
-- Production base: v6.0.108.
-- Keeps the v6.0.108 stable-shell first-frame Heart ownership that removed the tiny white-dot / delayed-hydration paint race.
-- Restores the Heart to the pre-v6.0.108 device-measured scale: the stable `puis-heart-position` shell is naturally 35x35, and its self-contained first-frame SVG is again 35x35 with the same 22px Heart glyph used by v6.0.107.
-- Enlarges the dedicated `mlt-icon-container` two-cards control from its prior 32x32 host geometry to 35x35 so its circular control matches that previous Heart size. The stacked-cards glyph itself remains 24x24.
-- Both size rules are duplicated in the earliest documentStart sheet and `ADFixesLiteral`, preserving identical first-frame and settled paint.
-- No new observer, selector traversal, timer, scroll listener, RAF, `dispatch_after`, timeout, or image sampler.
+- Production base: v6.0.109.
+- Fixes the Heart regression introduced by stable-shell first-frame ownership: Amazon's native filled/unfilled state still changed on tap, but v6.0.109 hid every native Heart descendant and always painted the same static outline SVG, so the selected white fill could never become visible.
+- Keeps the one-owner first-frame Heart shell, but uses Amazon's existing `lists-framework-filled-heart` / `aok-hidden` state as a pure-CSS state bit. When Amazon reveals the filled-heart branch, the stable shell switches immediately to a white-filled Heart SVG. No click handler, observer, timer, or polling was added.
+- Keeps both controls at 35x35. The screenshot shows the two-cards control centered about 5 px below the Heart, so `mlt-icon-container` is shifted upward 5 px while preserving its 35x35 hit box/visual control and first-frame ownership.
+- The selected-state and alignment rules are duplicated in the earliest documentStart sheet and `ADFixesLiteral` so first-paint and settled paint agree.
+- No new observer, selector traversal, scroll listener, recurring timer, RAF, `dispatch_after`, timeout, or image sampler.

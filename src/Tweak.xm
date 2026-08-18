@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.109"
+#define AD_VERSION "v6.0.110"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -555,11 +555,14 @@ static NSString *ADFixesLiteral(void){
              // bitmap. Own the finished glyph declaratively instead. v6.0.109 moves the
              // dedicated host from 32px to the previous Heart's 35px control size; Amazon's
              // transient child artwork stays invisible so there is no second visual cycle.
+             // v6.0.110: the 35px cards host sits 5px lower than the 35px Heart in Amazon's
+             // overlay geometry. Shift only its visual/hit box upward so their centers align.
              "[class*=mlt-icon-container]"
              "{width:35px !important;height:35px !important;min-width:35px !important;min-height:35px !important;"
              "max-width:35px !important;max-height:35px !important;background-color:#181a1b !important;"
              "border:1.5px solid rgba(255,255,255,.65) !important;border-radius:50%% !important;"
              "box-shadow:none !important;box-sizing:border-box !important;"
+             "transform:translateY(-5px) !important;transform-origin:center !important;"
              "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHJlY3QgeD0iOC4yIiB5PSI0LjQiIHdpZHRoPSIxMC4yIiBoZWlnaHQ9IjEzLjQiIHJ4PSIxLjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjYiLz48cmVjdCB4PSI1LjQiIHk9IjcuMiIgd2lkdGg9IjEwLjIiIGhlaWdodD0iMTMuNCIgcng9IjEuNCIgZmlsbD0iIzE4MWExYiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjEuNiIvPjxwYXRoIGQ9Ik0xMC41IDEwLjh2Nk03LjUgMTMuOGg2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMS42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=) !important;"
              "background-repeat:no-repeat !important;background-position:center !important;"
              "background-size:24px 24px !important;transition:none !important;animation:none !important;}"
@@ -631,6 +634,11 @@ static NSString *ADFixesLiteral(void){
              "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNSAzNSI+PGNpcmNsZSBjeD0iMTcuNSIgY3k9IjE3LjUiIHI9IjE2Ljc1IiBmaWxsPSIjMTgxYTFiIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1vcGFjaXR5PSIuNjUiIHN0cm9rZS13aWR0aD0iMS41Ii8+PHN2ZyB4PSI2LjUiIHk9IjYuNSIgd2lkdGg9IjIyIiBoZWlnaHQ9IjIyIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGQ9Ik0yMC44NCA0LjYxYTUuNSA1LjUgMCAwIDAtNy43OCAwTDEyIDUuNjdsLTEuMDYtMS4wNmE1LjUgNS41IDAgMCAwLTcuNzggNy43OGwxLjA2IDEuMDZMMTIgMjEuMjNsNy43OC03Ljc4IDEuMDYtMS4wNmE1LjUgNS41IDAgMCAwIDAtNy43OHoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPjwvc3ZnPg==) !important;"
              "background-repeat:no-repeat !important;background-position:center !important;"
              "background-size:35px 35px !important;transition:none !important;animation:none !important;}"
+             // v6.0.110: Amazon already toggles the filled-heart container synchronously on tap.
+             // Keep descendants invisible (to preserve one-owner first paint), but let that native
+             // state bit switch our stable shell from outline to a white-filled Heart immediately.
+             "[class*=puis-heart-position]:has([class*=lists-framework-filled-heart]:not(.aok-hidden))"
+             "{background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNSAzNSI+PGNpcmNsZSBjeD0iMTcuNSIgY3k9IjE3LjUiIHI9IjE2Ljc1IiBmaWxsPSIjMTgxYTFiIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1vcGFjaXR5PSIuNjUiIHN0cm9rZS13aWR0aD0iMS41Ii8+PHN2ZyB4PSI2LjUiIHk9IjYuNSIgd2lkdGg9IjIyIiBoZWlnaHQ9IjIyIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGQ9Ik0yMC44NCA0LjYxYTUuNSA1LjUgMCAwIDAtNy43OCAwTDEyIDUuNjdsLTEuMDYtMS4wNmE1LjUgNS41IDAgMCAwLTcuNzggNy43OGwxLjA2IDEuMDZMMTIgMjEuMjNsNy43OC03Ljc4IDEuMDYtMS4wNmE1LjUgNS41IDAgMCAwIDAtNy43OHoiIGZpbGw9IiNmZmYiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPjwvc3ZnPg==) !important;}"
              "[class*=puis-heart-position] *"
              "{opacity:0 !important;transition:none !important;animation:none !important;}"
              // Darkening blends crush their content toward black on a dark theme; the
@@ -952,6 +960,7 @@ static NSString *ADDarkReaderBootstrap(void){
            "max-width:35px !important;max-height:35px !important;background-color:#181a1b !important;"
            "border:1.5px solid rgba(255,255,255,.65) !important;border-radius:50%% !important;"
            "box-shadow:none !important;box-sizing:border-box !important;"
+           "transform:translateY(-5px) !important;transform-origin:center !important;"
            "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHJlY3QgeD0iOC4yIiB5PSI0LjQiIHdpZHRoPSIxMC4yIiBoZWlnaHQ9IjEzLjQiIHJ4PSIxLjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjYiLz48cmVjdCB4PSI1LjQiIHk9IjcuMiIgd2lkdGg9IjEwLjIiIGhlaWdodD0iMTMuNCIgcng9IjEuNCIgZmlsbD0iIzE4MWExYiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjEuNiIvPjxwYXRoIGQ9Ik0xMC41IDEwLjh2Nk03LjUgMTMuOGg2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMS42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=) !important;"
            "background-repeat:no-repeat !important;background-position:center !important;"
            "background-size:24px 24px !important;transition:none !important;animation:none !important;}"
@@ -987,6 +996,8 @@ static NSString *ADDarkReaderBootstrap(void){
            "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNSAzNSI+PGNpcmNsZSBjeD0iMTcuNSIgY3k9IjE3LjUiIHI9IjE2Ljc1IiBmaWxsPSIjMTgxYTFiIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1vcGFjaXR5PSIuNjUiIHN0cm9rZS13aWR0aD0iMS41Ii8+PHN2ZyB4PSI2LjUiIHk9IjYuNSIgd2lkdGg9IjIyIiBoZWlnaHQ9IjIyIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGQ9Ik0yMC44NCA0LjYxYTUuNSA1LjUgMCAwIDAtNy43OCAwTDEyIDUuNjdsLTEuMDYtMS4wNmE1LjUgNS41IDAgMCAwLTcuNzggNy43OGwxLjA2IDEuMDZMMTIgMjEuMjNsNy43OC03Ljc4IDEuMDYtMS4wNmE1LjUgNS41IDAgMCAwIDAtNy43OHoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPjwvc3ZnPg==) !important;"
            "background-repeat:no-repeat !important;background-position:center !important;"
            "background-size:35px 35px !important;transition:none !important;animation:none !important;}"
+           "[class*=puis-heart-position]:has([class*=lists-framework-filled-heart]:not(.aok-hidden))"
+           "{background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNSAzNSI+PGNpcmNsZSBjeD0iMTcuNSIgY3k9IjE3LjUiIHI9IjE2Ljc1IiBmaWxsPSIjMTgxYTFiIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1vcGFjaXR5PSIuNjUiIHN0cm9rZS13aWR0aD0iMS41Ii8+PHN2ZyB4PSI2LjUiIHk9IjYuNSIgd2lkdGg9IjIyIiBoZWlnaHQ9IjIyIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGQ9Ik0yMC44NCA0LjYxYTUuNSA1LjUgMCAwIDAtNy43OCAwTDEyIDUuNjdsLTEuMDYtMS4wNmE1LjUgNS41IDAgMCAwLTcuNzggNy43OGwxLjA2IDEuMDZMMTIgMjEuMjNsNy43OC03Ljc4IDEuMDYtMS4wNmE1LjUgNS41IDAgMCAwIDAtNy43OHoiIGZpbGw9IiNmZmYiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPjwvc3ZnPg==) !important;}"
            "[class*=puis-heart-position] *"
            "{opacity:0 !important;transition:none !important;animation:none !important;}"
            "[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],"
