@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.125-probe"
+#define AD_VERSION "v6.0.126"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -626,21 +626,17 @@ static NSString *ADFixesLiteral(void){
              "background-repeat:no-repeat !important;background-position:center !important;"
              "background-size:16px 16px !important;border:0 !important;border-radius:0 !important;"
              "box-shadow:none !important;outline:0 !important;transition:none !important;}"
-             // v6.0.124: canonical Share painter is keyed by a tiny runtime marker on the
-             // actual row whose text is Share. This avoids guessing Amazon's variable inner
-             // Share path while keeping all paint declarative and leaf-sized. The existing
-             // filtered observer only sets the marker when a real MAB overlay is mounting.
-             "[data-ad-mabshare6124]"
-             "{filter:none !important;background-color:transparent !important;"
-             "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZD0iTTMuMiA3LjJ2Ni4xaDkuNlY3LjIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik04IDEwVjIuNU01LjQgNS4xIDggMi41bDIuNiAyLjYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==) !important;"
-             "background-repeat:no-repeat !important;background-position:center !important;"
-             "background-size:16px 16px !important;border:0 !important;box-shadow:none !important;"
-             "outline:0 !important;}"
-             "[data-ad-mabshare6124] *"
-             "{opacity:0 !important;filter:none !important;background-image:none !important;}"
-             "[data-ad-mabshare6124]::before,[data-ad-mabshare6124]::after,"
-             "[data-ad-mabshare6124] *::before,[data-ad-mabshare6124] *::after"
-             "{content:none !important;background:none !important;opacity:0 !important;}"
+             // v6.0.126: probe 6125 identifies Share's real painter conclusively.
+             // Every sampled product uses the same mask-backed leaf:
+             // .puis-mab-overlay-icon-share. Its mask is already the correct Amazon
+             // Share shape; only the mask ink (background-color) is unstable. Hidden
+             // overlays computed ~#e8e6e3 while the visible broken overlay computed
+             // ~#0c0d0e. Own only that leaf's ink, never the row or chevron.
+             "html body .puis-mab-overlay .puis-mab-overlay-row-share .puis-mab-overlay-icon-share"
+             "{filter:none !important;background-color:#ffffff !important;"
+             "color:#ffffff !important;fill:#ffffff !important;stroke:#ffffff !important;"
+             "border:0 !important;box-shadow:none !important;outline:0 !important;"
+             "transition:none !important;animation:none !important;}"
              "[class*=puis-heart-position] [class*=placehold],[class*=heart-placeholder],"
              "[class*=puis-heart-position] img[src*=grey-pixel],[class*=puis-heart-position] img[src*=gray-pixel],"
              "[class*=puis-heart-position] img[src*=transparent-pixel],[class*=puis-heart-position] img[src*=placeholder],"
@@ -837,7 +833,7 @@ static NSString *ADFixesLiteral(void){
              "{background-color:#ffffff !important;border-color:#ffffff !important;"
              "color:#ffffff !important;fill:#ffffff !important;}"
              "',invert:[],ignoreInlineStyle:['[data-ad-native615]','[data-ad-native615] *',"
-             "'ul.a-pagination.a-dots li.a-selected','ul.a-pagination.a-dots li.dot-selected-t2','[data-ad-dotselected374]'],"
+             "'ul.a-pagination.a-dots li.a-selected','ul.a-pagination.a-dots li.dot-selected-t2','[data-ad-dotselected374]','html body .puis-mab-overlay .puis-mab-overlay-row-share .puis-mab-overlay-icon-share'],"
              "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
             imgBackdrop];
     return gADFixesLiteral613;
@@ -1004,19 +1000,14 @@ static NSString *ADDarkReaderBootstrap(void){
            "background-repeat:no-repeat !important;background-position:center !important;"
            "background-size:16px 16px !important;border:0 !important;border-radius:0 !important;"
            "box-shadow:none !important;outline:0 !important;transition:none !important;}"
-           // v6.0.124: marker-based canonical Share painter, duplicated after Dark Reader.
-           // Marker assignment is scoped to the actual text-labelled Share row only.
-           "[data-ad-mabshare6124]"
-           "{filter:none !important;background-color:transparent !important;"
-           "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZD0iTTMuMiA3LjJ2Ni4xaDkuNlY3LjIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik04IDEwVjIuNU01LjQgNS4xIDggMi41bDIuNiAyLjYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==) !important;"
-           "background-repeat:no-repeat !important;background-position:center !important;"
-           "background-size:16px 16px !important;border:0 !important;box-shadow:none !important;"
-           "outline:0 !important;}"
-           "[data-ad-mabshare6124] *"
-           "{opacity:0 !important;filter:none !important;background-image:none !important;}"
-           "[data-ad-mabshare6124]::before,[data-ad-mabshare6124]::after,"
-           "[data-ad-mabshare6124] *::before,[data-ad-mabshare6124] *::after"
-           "{content:none !important;background:none !important;opacity:0 !important;}"
+           // v6.0.126: same exact Share mask-leaf owner after Dark Reader.
+           // The probe proves the stock mask itself is correct; keep it and lock only
+           // the mask paint to white so hydration/visibility changes cannot darken it.
+           "html body .puis-mab-overlay .puis-mab-overlay-row-share .puis-mab-overlay-icon-share"
+           "{filter:none !important;background-color:#ffffff !important;"
+           "color:#ffffff !important;fill:#ffffff !important;stroke:#ffffff !important;"
+           "border:0 !important;box-shadow:none !important;outline:0 !important;"
+           "transition:none !important;animation:none !important;}"
            "[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],"
            "[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],"
            "[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],"
@@ -1695,24 +1686,6 @@ static NSString *ADThreeSymbolsWebJS605(void){
            "function cn434(e){var c=e&&e.className;return String(c&&c.baseVal!==undefined?c.baseVal:(c||''));}"
            "function rr434(e){try{return e&&e.getBoundingClientRect?e.getBoundingClientRect():null;}catch(x){return null;}}"
            "function sq434(e,lo,hi){var r=rr434(e);return !!(r&&r.width>=lo&&r.width<=hi&&r.height>=lo&&r.height<=hi&&Math.abs(r.width-r.height)<=14);}"
-           // v6.0.125 PROBE: the v6.0.124 Share marker still does not paint on-device.
-           // Do not guess another Share path. Reuse this already-existing filtered
-           // observer and the existing background exporter to capture the exact live MAB
-           // row/painter hierarchy, computed styles, pseudos, geometry and tweak markers.
-           // No new observer, scroll hook, RAF or interval is added. Diagnostic only.
-           "window.__AD_MABPROBE6125__=[];"
-           "function mabS6125(v,n){v=String(v==null?\'\':v);return v.length>(n||180)?v.slice(0,n||180):v;}"
-           "function mabN6125(e){try{if(!e||e.nodeType!==1)return null;var c=getComputedStyle(e),b=getComputedStyle(e,\'::before\'),a=getComputedStyle(e,\'::after\'),r=e.getBoundingClientRect(),cl=e.className;cl=cl&&cl.baseVal!==undefined?cl.baseVal:cl;return{tag:String(e.tagName||\'\'),cl:mabS6125(cl,220),id:mabS6125(e.id||\'\',90),r:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],txt:mabS6125(String(e.textContent||\'\').replace(/\\s+/g,\' \').trim(),120),role:mabS6125(e.getAttribute&&e.getAttribute(\'role\'),80),aria:mabS6125(e.getAttribute&&e.getAttribute(\'aria-label\'),100),act:mabS6125(e.getAttribute&&e.getAttribute(\'data-action\'),100),csa:mabS6125(e.getAttribute&&e.getAttribute(\'data-csa-c-content-id\'),100),by:mabS6125(e.__adBy||\'\',80),mark:mabS6125((e.getAttribute&&e.getAttribute(\'data-ad-mabshare6124\'))||\'\',20),src:mabS6125(e.currentSrc||e.src||(e.getAttribute&&e.getAttribute(\'data-src\'))||\'\',180),css:{d:mabS6125(c.display,40),v:mabS6125(c.visibility,40),op:mabS6125(c.opacity,40),f:mabS6125(c.filter,120),col:mabS6125(c.color,80),fill:mabS6125(c.fill,80),stroke:mabS6125(c.stroke,80),bg:mabS6125(c.backgroundColor,80),bgi:mabS6125(c.backgroundImage,220),mask:mabS6125(c.webkitMaskImage||c.maskImage,220),ff:mabS6125(c.fontFamily,100),fs:mabS6125(c.fontSize,40)},bef:{ct:mabS6125(b.content,100),f:mabS6125(b.filter,120),col:mabS6125(b.color,80),bg:mabS6125(b.backgroundColor,80),bgi:mabS6125(b.backgroundImage,220),mask:mabS6125(b.webkitMaskImage||b.maskImage,220)},aft:{ct:mabS6125(a.content,100),f:mabS6125(a.filter,120),col:mabS6125(a.color,80),bg:mabS6125(a.backgroundColor,80),bgi:mabS6125(a.backgroundImage,220),mask:mabS6125(a.webkitMaskImage||a.maskImage,220)}};}catch(x){return{err:String(x)}}}"
-           "function mabSnap6125(box,why){try{if(!box||box.nodeType!==1)return 0;var rec={t:Date.now(),why:String(why||\'?\'),url:String(location.href),state:String(window.__AD_MABSHARE6124__||\'-\'),overlay:mabN6125(box),rows:[]},R=box.getElementsByClassName?box.getElementsByClassName(\'puis-mab-overlay-row\'):[];rec.html=mabS6125(box.outerHTML||\'\',3200);for(var i=0;i<R.length&&i<8;i++){var r=R[i],rr={i:i,text:mabS6125(String(r.textContent||\'\').replace(/\\s+/g,\' \').trim(),180),html:mabS6125(r.outerHTML||\'\',2600),nodes:[]},D=r.getElementsByTagName?r.getElementsByTagName(\'*\'):[];rr.nodes.push(mabN6125(r));for(var j=0;j<D.length&&j<70;j++)rr.nodes.push(mabN6125(D[j]));rec.rows.push(rr);}window.__AD_MABPROBE6125__.push(rec);if(window.__AD_MABPROBE6125__.length>18)window.__AD_MABPROBE6125__.splice(0,window.__AD_MABPROBE6125__.length-18);return rec.rows.length;}catch(x){window.__AD_MABPROBE6125_ERR__=String(x);return 0;}}"
-           "function mabProbeFind6125(n){try{if(!n||n.nodeType!==1)return null;if(n.classList&&n.classList.contains(\'puis-mab-overlay\'))return n;var c=n.closest&&n.closest(\'.puis-mab-overlay\');if(c)return c;var L=n.getElementsByClassName?n.getElementsByClassName(\'puis-mab-overlay\'):[];return L&&L.length?L[0]:null;}catch(x){return null;}}"
-           "window.__AD_MABPROBE6125_CAPTURE__=function(box,why){try{if(!box||box.nodeType!==1)return 0;var k=box.getAttribute&&box.getAttribute(\'data-ad-mabprobe6125\');if(k===\'1\')return mabSnap6125(box,String(why||\'repeat\')+\'-repeat\');box.setAttribute&&box.setAttribute(\'data-ad-mabprobe6125\',\'1\');mabSnap6125(box,String(why||\'mount\')+\'-pre\');setTimeout(function(){mabSnap6125(box,\'t40\');},40);setTimeout(function(){mabSnap6125(box,\'t240\');},240);setTimeout(function(){mabSnap6125(box,\'t900\');},900);return 1;}catch(x){return 0;}};"
-           "window.__AD_MABPROBE6125_DUMP__=function(){try{var B=document.getElementsByClassName?document.getElementsByClassName(\'puis-mab-overlay\'):[];for(var i=0;i<B.length&&i<4;i++)mabSnap6125(B[i],\'dump\');return JSON.stringify({url:String(location.href),n:window.__AD_MABPROBE6125__.length,marker:String(window.__AD_MABSHARE6124__||\'-\'),err:String(window.__AD_MABPROBE6125_ERR__||\'\'),records:window.__AD_MABPROBE6125__});}catch(e){return \'ERR \'+String(e);}};"
-           // v6.0.124: narrow MAB Share marker. Unlike v6.0.115/121, this never keys
-           // off generic `puis-mab-*` classes, so the product-card chevron cannot enter
-           // this path. Work occurs only when a real `.puis-mab-overlay` is inserted or
-           // receives children, then touches at most the menu's small row set.
-           "function mabBox6124(n){try{if(!n||n.nodeType!==1)return null;if(n.classList&&n.classList.contains('puis-mab-overlay'))return n;var c=n.closest&&n.closest('.puis-mab-overlay');if(c)return c;var f=n.firstElementChild;if(f&&f.classList&&f.classList.contains('puis-mab-overlay'))return f;return null;}catch(x){return null;}}"
-           "function mabShare6124(box){try{if(!box||box.nodeType!==1)return 0;try{if(window.__AD_MABPROBE6125_CAPTURE__)window.__AD_MABPROBE6125_CAPTURE__(box,'mabShare6124');}catch(px){}var R=box.getElementsByClassName?box.getElementsByClassName('puis-mab-overlay-row'):[],n=0;for(var i=0;i<R.length&&i<8;i++){var r=R[i],tx=String(r.textContent||'').trim().toLowerCase();if(!(tx==='share'||tx.indexOf('share ')===0))continue;var w=r.querySelector&&r.querySelector('[class*=puis-mab-overlay-row-wid]');if(!w)continue;if(w.getAttribute('data-ad-mabshare6124')!=='1')w.setAttribute('data-ad-mabshare6124','1');n++;}window.__AD_MABSHARE6124__=n;return n;}catch(x){window.__AD_MABSHARE6124__=-1;return 0;}}"
            "function foreign434(e){try{return !!(e&&e.closest&&e.closest('[class*=mlt-icon-container],[class*=lists-framework-action-button],[data-ad-cards410-root],[data-ad-cards410-host],[data-ad-cards410-disc],[data-ad-cards410-glyph],[data-ad-heart-shell427],[class*=puis-heart-position],[class*=lists-treatment-hear],[class*=puis-mab-chevron],.puis-mab-overlay-row'));}catch(x){return true;}}"
            "function owned434(e){if(!e||e.nodeType!==1)return false;var p=String(e.getAttribute('data-ad-product391')||''),v=String(e.getAttribute('data-ad-v333403')||''),d=String(e.getAttribute('data-ad-disc420')||''),s=String(e.getAttribute('data-ad-sym413')||''),v4=String(e.getAttribute('data-ad-v333404')||'');if(p==='checkbox'||v==='c'||d==='checkbox'||s==='checkbox'||v4==='c'||v4==='checkbox')return true;var A=['data-ad-comparehost377','data-ad-comparechecked377','data-ad-compareinput377','data-ad-compare378','data-ad-compareleaf378','data-ad-compare-raster378','data-ad-compare379','data-ad-compareinput379','data-ad-compareorig379','data-ad-compare380','data-ad-compareinput380','data-ad-compareorig380','data-ad-comparelegacy387','data-ad-comparelegacyorig387','data-ad-productselected391','data-ad-productglyph391','data-ad-productraster391','data-ad-productvector391','data-ad-stock403','data-ad-stocksel403','data-ad-stockglyph403','data-ad-stockraster403','data-ad-stockvector403','data-ad-sym413glyph','data-ad-comparefunc428','data-ad-compareselected428','data-ad-comparehit428'];for(var i=0;i<A.length;i++)if(e.hasAttribute(A[i]))return true;return /^(?:product391|sym413|sym413glyph|disc420|disc422)$/.test(String(e.__adBy||''));}"
            "var marks434=['data-ad-comparehost377','data-ad-comparechecked377','data-ad-compareinput377','data-ad-compare378','data-ad-compareleaf378','data-ad-compare-raster378','data-ad-compare379','data-ad-compareinput379','data-ad-compareorig379','data-ad-compare380','data-ad-compareinput380','data-ad-compareorig380','data-ad-comparelegacy387','data-ad-comparelegacyorig387','data-ad-product391','data-ad-productselected391','data-ad-productglyph391','data-ad-productraster391','data-ad-productvector391','data-ad-stock403','data-ad-stocksel403','data-ad-stockglyph403','data-ad-stockraster403','data-ad-stockvector403','data-ad-v333403','data-ad-v333404','data-ad-disc420','data-ad-sym413','data-ad-sym413glyph','data-ad-comparefunc428','data-ad-compareselected428','data-ad-comparehit428'];"
@@ -1748,7 +1721,7 @@ static NSString *ADThreeSymbolsWebJS605(void){
            "var RELSYM6094='[class*=puis-heart-position],[class*=lists-framework-action-button],[class*=lists-framework-heart],[class*=mlt-icon-container]';"
            "function relsym6094(n){try{if(!n||n.nodeType!==1)return false;if(n.matches&&n.matches(RELSYM6094))return true;if(n.closest&&n.closest(RELSYM6094))return true;return !!(n.querySelector&&n.querySelector(RELSYM6094));}catch(x){return false;}}"
            "function qsym6094(){try{if(window.__AD_SYM605_QUEUE__)window.__AD_SYM605_QUEUE__();}catch(x){}}"
-           "new MutationObserver(function(ms){try{var qc=0,qs=0;for(var i=0;i<ms.length;i++){var m=ms[i],mb=null;if(m.type==='childList'){mb=mabBox6124(m.target);if(mb)mabShare6124(mb);}if(m.type==='attributes'){if(!qc&&rel434(m.target))qc=1;if(!qs&&relsym6094(m.target))qs=1;}var A=m.addedNodes||[];for(var j=0;j<A.length&&(!qc||!qs||!mb);j++){var an=A[j];try{var pbx=mabProbeFind6125(an);if(pbx&&window.__AD_MABPROBE6125_CAPTURE__)window.__AD_MABPROBE6125_CAPTURE__(pbx,'observer-added');}catch(px){}if(!mb){var bx=mabBox6124(an);if(bx){mabShare6124(bx);mb=bx;}}if(!qc&&rel434(an))qc=1;if(!qs&&relsym6094(an))qs=1;}if(qc&&qs&&mb)break;}if(qc)queue434(90);if(qs)qsym6094();}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','aria-current','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});}"
+           "new MutationObserver(function(ms){try{var qc=0,qs=0;for(var i=0;i<ms.length;i++){var m=ms[i];if(m.type==='attributes'){if(!qc&&rel434(m.target))qc=1;if(!qs&&relsym6094(m.target))qs=1;}var A=m.addedNodes||[];for(var j=0;j<A.length&&(!qc||!qs);j++){var an=A[j];if(!qc&&rel434(an))qc=1;if(!qs&&relsym6094(an))qs=1;}if(qc&&qs)break;}if(qc)queue434(90);if(qs)qsym6094();}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','aria-current','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});}"
            "stockCheckbox434();setTimeout(stockCheckbox434,40);setTimeout(stockCheckbox434,180);setTimeout(stockCheckbox434,700);setTimeout(stockCheckbox434,1800);"
          "}catch(e){}"
          // Tiny 6.x reapply entry point only. It does not alter either donor owner.
@@ -1897,7 +1870,7 @@ static void ADInjectAllWebViews(void){
 // v6.0.98 diagnostic exporter.  The JS ring buffer above reuses an existing DOM
 // observer; backgrounding once after reproducing the flash simply dumps that buffer.
 static NSString *ADFlashProbePath6101(void){
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-mab-share-probe-6125.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-component-shell-probe-6101.txt"];
 }
 static void ADAppendFlashProbe6101(NSString *line){
     if (!line.length) return;
@@ -1910,7 +1883,7 @@ static void ADAppendFlashProbe6101(NSString *line){
 }
 static void ADResetFlashProbe6101(void){
     @try {
-        NSString *h=[NSString stringWithFormat:@"AmazonDark MAB Share DOM probe 6125\nversion=%s\npid=%d\n\n",AD_VERSION,getpid()];
+        NSString *h=[NSString stringWithFormat:@"AmazonDark targeted component-shell probe 6101\nversion=%s\npid=%d\n\n",AD_VERSION,getpid()];
         [h writeToFile:ADFlashProbePath6101() atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } @catch(...) {}
 }
@@ -1922,7 +1895,7 @@ static void ADDumpFlashProbe6101(NSString *label){
         for (WKWebView *wv in views){
             if (!wv || !wv.window) continue;
             NSString *url=wv.URL.absoluteString?:@""; NSUInteger my=idx++;
-            [wv evaluateJavaScript:@"(function(){try{return window.__AD_MABPROBE6125_DUMP__?window.__AD_MABPROBE6125_DUMP__():'NO_MAB_PROBE';}catch(e){return 'ERR '+String(e);}})();" completionHandler:^(id result,NSError *error){
+            [wv evaluateJavaScript:@"(function(){try{return window.__AD_FLASH6101_DUMP__?window.__AD_FLASH6101_DUMP__():'NO_PROBE';}catch(e){return 'ERR '+String(e);}})();" completionHandler:^(id result,NSError *error){
                 NSString *body=error?[NSString stringWithFormat:@"ERROR %@",error]:([result isKindOfClass:[NSString class]]?result:[result description]);
                 ADAppendFlashProbe6101([NSString stringWithFormat:@"WEBVIEW %lu %@\n%@\n\n",(unsigned long)my,url,body?:@"(nil)"]);
             }];
