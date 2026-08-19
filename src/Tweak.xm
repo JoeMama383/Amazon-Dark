@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.146"
+#define AD_VERSION "v6.0.147"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3388,12 +3388,161 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
     } @catch(...) { return in; }
 }
 
+
+// ════════════════════════════════════════════════════════════════════════════════
+// v6.0.147 — neutral gray border ownership for Person cards + native search chrome
+// ────────────────────────────────────────────────────────────────────────────────
+// Screenshot comparison shows the intended neighboring outline at about #494D4D.
+// Keep this owner narrow:
+//   • Person: only the three named React-Native controls that still retain a bright
+//     stock outline (Redeem Gift Card, Reload Balance, Explore more to shop).
+//   • Search: only Amazon's native SBSearchBar / SBSearchField layer border.
+// No fills, text, icons, dimensions or corner geometry are changed.
+static const void *kADPersonBorderTarget6147 = &kADPersonBorderTarget6147;
+static const void *kADPersonBorderOverlay6147 = &kADPersonBorderOverlay6147;
+
+static UIColor *ADNeutralBorderGray6147(void){
+    static UIColor *c=nil; static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        c=ADMarkOwnColor([[UIColor alloc] initWithRed:(73.0/255.0)
+                                                green:(77.0/255.0)
+                                                 blue:(77.0/255.0)
+                                                alpha:1.0]);
+    });
+    return c;
+}
+static BOOL ADIsRCTBorderHost6147(UIView *v){
+    if(!v) return NO;
+    const char *cn=object_getClassName(v);
+    return cn && (strstr(cn,"RCTView") || strstr(cn,"RCTViewComponentView"));
+}
+static BOOL ADPersonBorderPhrase6147(NSString *text, BOOL *wideShort){
+    if(wideShort) *wideShort=NO;
+    if(!text.length) return NO;
+    NSString *lo=text.lowercaseString;
+    if([lo containsString:@"redeem gift card"] || [lo containsString:@"reload balance"]){
+        if(wideShort) *wideShort=YES;
+        return YES;
+    }
+    return [lo containsString:@"explore more to shop"];
+}
+static void ADPaintPersonBorder6147(UIView *v){
+    if(!ADRecolorOn() || !v || !objc_getAssociatedObject(v,kADPersonBorderTarget6147)) return;
+    @try {
+        UIColor *gray=ADNeutralBorderGray6147();
+        // Simple RN borders use CALayer directly.
+        v.layer.borderColor=gray.CGColor;
+
+        // Rounded RN borders can be rasterized into layer.contents instead.  A
+        // one-point outline above the stock border guarantees that path is neutral
+        // too, without replacing the card/background artwork.
+        CAShapeLayer *ov=objc_getAssociatedObject(v,kADPersonBorderOverlay6147);
+        if(!ov){
+            ov=[CAShapeLayer layer];
+            ov.fillColor=[UIColor clearColor].CGColor;
+            ov.strokeColor=gray.CGColor;
+            ov.lineWidth=1.0;
+            ov.contentsScale=UIScreen.mainScreen.scale;
+            ov.zPosition=CGFLOAT_MAX;
+            [v.layer addSublayer:ov];
+            objc_setAssociatedObject(v,kADPersonBorderOverlay6147,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        [CATransaction begin];
+        [CATransaction setDisableActions:YES];
+        ov.frame=v.bounds;
+        CGFloat inset=0.5;
+        CGRect rr=CGRectInset(v.bounds,inset,inset);
+        CGFloat cr=v.layer.cornerRadius;
+        if(cr<1.0) cr=8.0;
+        ov.path=[UIBezierPath bezierPathWithRoundedRect:rr cornerRadius:MAX(0,cr-inset)].CGPath;
+        ov.strokeColor=gray.CGColor;
+        ov.hidden=(v.hidden || v.alpha<0.01 || CGRectIsEmpty(v.bounds));
+        [CATransaction commit];
+    } @catch(...) {}
+}
+static void ADClaimPersonBorder6147(UIView *textView, NSString *text){
+    BOOL shortButton=NO;
+    if(!ADRecolorOn() || !textView || !ADPersonBorderPhrase6147(text,&shortButton)) return;
+    @try {
+        UIView *p=textView.superview, *fallback=nil;
+        for(int d=0;p && d<9;d++,p=p.superview){
+            if(!ADIsRCTBorderHost6147(p)) continue;
+            CGFloat w=p.bounds.size.width,h=p.bounds.size.height;
+            if(w<80 || h<32 || w>430 || h>260) continue;
+            if(shortButton){
+                if(w>=120 && w<=230 && h>=40 && h<=90){ fallback=p; break; }
+            } else {
+                if(w>=100 && w<=260 && h>=70 && h<=230){ fallback=p; break; }
+            }
+            if(!fallback) fallback=p;
+        }
+        if(!fallback) return;
+        objc_setAssociatedObject(fallback,kADPersonBorderTarget6147,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        ADPaintPersonBorder6147(fallback);
+    } @catch(...) {}
+}
+static void ADClaimPersonBorderDeferred6147(UIView *textView, NSString *text){
+    BOOL dummy=NO;
+    if(!textView || !ADPersonBorderPhrase6147(text,&dummy)) return;
+    ADClaimPersonBorder6147(textView,text);
+    __weak UIView *weakView=textView;
+    NSString *copy=[text copy];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        UIView *strongView=weakView;
+        if(strongView && strongView.window) ADClaimPersonBorder6147(strongView,copy);
+    });
+}
+static BOOL ADIsAmazonSearchBorderLayer6147(CALayer *layer){
+    if(!layer) return NO;
+    @try {
+        id d=layer.delegate;
+        if(!d || ![d isKindOfClass:[UIView class]]) return NO;
+        const char *cn=object_getClassName(d);
+        return cn && (!strcmp(cn,"SBSearchBar") || !strcmp(cn,"SBSearchField"));
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADIsPersonBorderLayer6147(CALayer *layer){
+    if(!layer) return NO;
+    @try {
+        id d=layer.delegate;
+        return d && [d isKindOfClass:[UIView class]] &&
+               objc_getAssociatedObject(d,kADPersonBorderTarget6147)!=nil;
+    } @catch(...) {}
+    return NO;
+}
+
+
+static void ADPaintAmazonSearchBorder6147(UIView *v){
+    if(!ADRecolorOn() || !v) return;
+    @try {
+        v.layer.borderColor=ADNeutralBorderGray6147().CGColor;
+    } @catch(...) {}
+}
+
+// Reassert after native search geometry settles. This is the exact owner named by
+// probe 6140; it avoids waiting for a later Amazon border-color assignment.
+%hook SBSearchBar
+- (void)layoutSubviews {
+    %orig;
+    ADPaintAmazonSearchBorder6147(self);
+}
+%end
+
+%hook SBSearchField
+- (void)layoutSubviews {
+    %orig;
+    ADPaintAmazonSearchBorder6147(self);
+}
+%end
+
 // Fabric text (new architecture). Setter lives on RCTParagraphComponentView.
 %hook RCTParagraphComponentView
 - (void)setAttributedText:(NSAttributedString *)attributedText {
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         %orig(r);
+        ADClaimPersonBorderDeferred6147(self,attributedText.string);
         return;
     } @catch(...) {}
     %orig;
@@ -3402,6 +3551,7 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedString);
         %orig(r);
+        ADClaimPersonBorderDeferred6147(self,attributedString.string);
         return;
     } @catch(...) {}
     %orig;
@@ -3411,7 +3561,9 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
 // Paper text (old architecture) — still present in this binary.
 %hook RCTTextView
 - (void)setTextStorage:(NSTextStorage *)textStorage {
+    NSString *adBorderText6147=nil;
     @try {
+        adBorderText6147=[textStorage.string copy];
         if (ADRecolorOn() && textStorage.length){
             NSRange full = NSMakeRange(0, textStorage.length);
             [textStorage enumerateAttribute:NSForegroundColorAttributeName inRange:full
@@ -3428,6 +3580,7 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
         }
     } @catch(...) {}
     %orig;
+    @try { ADClaimPersonBorderDeferred6147(self,adBorderText6147); } @catch(...) {}
 }
 %end
 
@@ -3513,6 +3666,14 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
         return;
     }
     @try {
+        // v6.0.147: the native Amazon search field was the remaining brown/tan
+        // border owner.  The earlier probe named these exact classes and showed
+        // rgba(0.404,0.373,0.329,.60). Neutralize the hue without touching fill.
+        if (ADIsAmazonSearchBorderLayer6147(self) || ADIsPersonBorderLayer6147(self)) {
+            CGColorRef gray=ADNeutralBorderGray6147().CGColor;
+            %orig(gray);
+            return;
+        }
         if (ADLayerIsWebKitOwned(self)) {
             %orig;
             return;
@@ -3943,6 +4104,15 @@ static void ADForceBarDark(UIView *bar){
     } @catch(...) {}
     %orig;
 }
+- (void)layoutSubviews {
+    %orig;
+    // Tagged-only fast path. Ordinary RCTView instances pay one associated-object
+    // lookup and do no semantic scan.
+    @try {
+        if(objc_getAssociatedObject(self,kADPersonBorderTarget6147))
+            ADPaintPersonBorder6147(self);
+    } @catch(...) {}
+}
 %end
 
 %hook RCTScrollView
@@ -3974,6 +4144,13 @@ static void ADForceBarDark(UIView *bar){
         return;
     } @catch(...) {}
     %orig;
+}
+- (void)layoutSubviews {
+    %orig;
+    @try {
+        if(objc_getAssociatedObject(self,kADPersonBorderTarget6147))
+            ADPaintPersonBorder6147(self);
+    } @catch(...) {}
 }
 %end
 

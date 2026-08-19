@@ -1,3 +1,9 @@
+## v6.0.147 — normalize Person-card and search-bar borders
+
+- Person tab: changes only the bright outlines around **Redeem Gift Card**, **Reload Balance**, and **Explore more to shop** to the same thin neutral gray (`#494D4D`) sampled from neighboring AmazonDark cards.
+- Native search chrome: replaces the remaining brown/tan `SBSearchBar` / `SBSearchField` border with the same neutral gray.
+- Leaves fills, text, icons, dimensions, corner geometry, and all v6.0.146 behavior unchanged.
+
 ## v6.0.146 — repackage of v6.0.145
 
 No functional changes from v6.0.145. This release exists only to produce a fresh GitHub Actions artifact after the previous artifact was deleted.
