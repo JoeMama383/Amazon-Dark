@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.138"
+#define AD_VERSION "v6.0.139"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -5027,6 +5027,75 @@ static void ADVoiceRepairView6072(UIView *v){
     } @catch(...) {}
 }
 
+// v6.0.139: Person > Sign Out confirmation is already structurally correct in
+// v6.0.138. Only own the two requested button paints: black ink on the stock
+// yellow Sign Out button, and a medium-gray Cancel button with white ink.
+// The context gate requires the signed-in confirmation copy plus BOTH button labels,
+// so ordinary Sign Out / Cancel controls elsewhere in Amazon remain untouched.
+static BOOL ADSignOutDialogContext6139(UIButton *b){
+    @try {
+        UIView *p=b.superview; int up=0;
+        while(p && up++<6){
+            BOOL signedIn=NO, signOut=NO, cancel=NO;
+            NSMutableArray *q=[NSMutableArray arrayWithObject:p];
+            for(NSUInteger qi=0; qi<q.count && qi<96; qi++){
+                UIView *x=q[qi];
+                NSString *lo=[[ADWTViewText362(x) lowercaseString]
+                    stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+                if([lo containsString:@"you are signed in as"]) signedIn=YES;
+                if([lo isEqualToString:@"sign out"]) signOut=YES;
+                if([lo isEqualToString:@"cancel"]) cancel=YES;
+                if(signedIn && signOut && cancel) return YES;
+                if(qi<32){
+                    for(UIView *sv in x.subviews){
+                        if(q.count<96) [q addObject:sv]; else break;
+                    }
+                }
+            }
+            p=p.superview;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static void ADSignOutDialogButton6139(UIButton *b){
+    if(!b || !b.window) return;
+    @try {
+        NSString *lo=[[(b.currentTitle ?: b.titleLabel.text ?: @"") lowercaseString]
+            stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        BOOL isSignOut=[lo isEqualToString:@"sign out"];
+        BOOL isCancel=[lo isEqualToString:@"cancel"];
+        if((!isSignOut && !isCancel) || !ADSignOutDialogContext6139(b)) return;
+
+        if(isSignOut){
+            UIColor *black=ADColorFromHex("#000000");
+            [b setTitleColor:black forState:UIControlStateNormal];
+            [b setTitleColor:black forState:UIControlStateHighlighted];
+            [b setTitleColor:black forState:UIControlStateSelected];
+        } else {
+            UIColor *gray=ADColorFromHex("#666666");
+            UIColor *white=ADColorFromHex("#FFFFFF");
+            b.backgroundColor=gray;
+            b.layer.backgroundColor=gray.CGColor;
+            [b setTitleColor:white forState:UIControlStateNormal];
+            [b setTitleColor:white forState:UIControlStateHighlighted];
+            [b setTitleColor:white forState:UIControlStateSelected];
+
+            // Some Amazon builds put the visible rectangle on a one-level wrapper
+            // around the UIButton. Only recolor a wrapper whose geometry is effectively
+            // the same as the button; never touch the dialog/card background itself.
+            UIView *box=b.superview;
+            if(box){
+                CGFloat dw=fabs(box.bounds.size.width-b.bounds.size.width);
+                CGFloat dh=fabs(box.bounds.size.height-b.bounds.size.height);
+                if(dw<=12.0 && dh<=12.0 && box.bounds.size.height>=36.0 && box.bounds.size.height<=110.0){
+                    box.backgroundColor=gray;
+                    box.layer.backgroundColor=gray.CGColor;
+                }
+            }
+        }
+    } @catch(...) {}
+}
+
 static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
     if (!v || depth > 60) return;
     @try {
@@ -5170,6 +5239,7 @@ static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
                     UIColor *mt = ADModifyUIColor(tc, ADColorRoleForeground);
                     if (mt) [b setTitleColor:mt forState:UIControlStateNormal];
                 }
+                ADSignOutDialogButton6139(b);
             } @catch(...) {}
         }
         for (UIView *s in v.subviews) ADSweepViewTree(s, depth + 1, tabBarish);

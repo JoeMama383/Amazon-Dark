@@ -1,3 +1,11 @@
+# AmazonDark v6.0.139
+
+Targeted Person > Sign Out dialog paint correction on the v6.0.138 base. No other UI ownership changes are included.
+
+- Existing yellow **Sign Out** button is preserved; its title ink is pinned to black.
+- Existing **Cancel** button background is changed to medium gray (`#666666`) and its title ink to white.
+- Dialog/card background, title/body text, button geometry, borders, spacing, Sponsored handling, TWB/TLB, and all other v6.0.138 behavior are unchanged.
+
 # AmazonDark v6.0.138
 
 Corrective build based on the pre-135 dark-background architecture. The failed 135-137 Sponsored/APE experiments are not carried forward.
