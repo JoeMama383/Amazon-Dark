@@ -16,9 +16,8 @@ AmazonDarkSB_FILES      = src/AmazonDarkSB.xm
 AmazonDarkSB_CFLAGS     = -fobjc-arc -fexceptions -Wno-unused-variable -Wno-error
 AmazonDarkSB_FRAMEWORKS = UIKit Foundation CoreGraphics QuartzCore
 
-# Runtime Dark Reader bundle.
-AmazonDark_BUNDLE_RESOURCE_DIRS = Resources
-
+# Dark Reader is staged explicitly under Application Support via layout/.
+# This is the runtime path used on rootless devices and avoids duplicate payloads.
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 

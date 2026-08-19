@@ -1,3 +1,11 @@
+# AmazonDark v6.0.155
+
+- Restores the deterministic Dark Reader runtime payload at `/Library/Application Support/AmazonDark/darkreader.js` (rootless runtime: `/var/jb/Library/Application Support/AmazonDark/darkreader.js`).
+- Restores dark web surfaces on Home, Search, Cart, PDP/product views, and other WKWebView-backed panes after the v6.0.154 cleanup removed the reliable installed fallback.
+- Restores the existing checkbox owner indirectly by bringing the shared web bootstrap back online; checkbox painting logic itself is not broadened or rewritten.
+- Keeps the v6.0.154 cleanup architecture and reduced observer/selector footprint.
+- Uses one installed Dark Reader copy rather than keeping both a bundle copy and an Application Support copy.
+
 # AmazonDark
 
 AmazonDark is a rootless iOS tweak that applies a dark theme to the Amazon Shopping app while preserving Amazon-owned product imagery, branded artwork, layout, interaction, and native component geometry.
@@ -38,7 +46,7 @@ The project is built with Theos for rootless iOS 15+ targets. The top-level `Mak
 - `AmazonDarkSB` — SpringBoard launch-cover and optional JIT-broker companion.
 - `ADPrefs` — Settings preference bundle.
 
-Dark Reader is packaged from `Resources/` into `AmazonDark.bundle` by the Theos resource target.
+Dark Reader is installed once at `/Library/Application Support/AmazonDark/darkreader.js`; rootless packaging maps that to `/var/jb/Library/Application Support/AmazonDark/darkreader.js` at runtime. The loader also retains bundle/sibling fallbacks for compatibility.
 
 ```bash
 make clean package

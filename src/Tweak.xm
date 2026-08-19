@@ -16,7 +16,7 @@
 #import <unistd.h>
 #import <stdint.h>
 
-#define AD_VERSION "v6.0.154"
+#define AD_VERSION "v6.0.155"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -232,6 +232,8 @@ static NSString *ADBundledDarkReaderJS(void){
             NSString *dir = [dylib stringByDeletingLastPathComponent];
 
             NSArray *cands = @[
+                @"/var/jb/Library/Application Support/AmazonDark/darkreader.js",
+                @"/Library/Application Support/AmazonDark/darkreader.js",
                 [dir stringByAppendingPathComponent:@"AmazonDark.bundle/darkreader.js"],
                 [dir stringByAppendingPathComponent:@"darkreader.js"],
             ];
