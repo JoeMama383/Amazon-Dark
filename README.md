@@ -1,4 +1,10 @@
-# AmazonDark v6.0.135
+# AmazonDark v6.0.136
+
+## v6.0.136
+
+Sponsored info badges now keep Amazon's stock artwork, native dimensions, baseline, and spacing. AmazonDark no longer injects, sizes, or synthesizes a replacement Sponsored SVG. The semantic Sponsored owner locates the existing native info painter and normalizes only its visible ink to white across bitmap/background-image, IMG, SVG, mask, and pseudo-element variants.
+
+Only one existing glyph path is marked per Sponsored label. If a template has no native info glyph, AmazonDark creates none. This removes the v6.0.135 duplicate gray+white Home glyph and eliminates custom-glyph height/spacing drift. Sponsored label typography is also left at Amazon's native font metrics; only light ink/visibility is normalized. The v6.0.135 standalone/APE floor cleanup remains unchanged.
 
 Dark-mode and UI consistency tweak for the Amazon iOS app.
 
@@ -25,6 +31,6 @@ This release replaces the failed v6.0.134 Sponsored normalization with one rende
 - Keeps the existing performance architecture: no added recurring scheduler or page-scroll work.
 
 ## Package
-- Package version: `6.0.135`
-- Runtime version: `v6.0.135`
+- Package version: `6.0.136`
+- Runtime version: `v6.0.136`
 - Rootless iOS 15+

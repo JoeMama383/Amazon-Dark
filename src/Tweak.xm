@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.135"
+#define AD_VERSION "v6.0.136"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -484,57 +484,19 @@ static NSString *ADFixesLiteral(void){
              "[class*=nav-search] img,[class*=searchbar] img,[class*=search-bar] img,"
              "[role=search] img,[class*=nav-] img[class*=icon],[class*=header] img[class*=icon]"
              "{background-color:transparent !important;}"
-             // v6.0.135: canonical Sponsored owner. Every template gets the same
-             // text metrics and the same 12px white-disc/dark-i artwork. Runtime
-             // marks classless/lazy variants; known Amazon families paint correctly
-             // from first frame. Native glyph contents/pseudos are fully suppressed.
-             "[class*=sponsored-label],[class*=ad-feedback-text],[id^=ad-feedback-text-],[data-ad-sponsor-label6135]"
+             // v6.0.136: keep Amazon's stock Sponsored info artwork and geometry.
+             // Only normalize its visible ink/opacity. No replacement SVG, no forced
+             // width/height/margin/baseline, and no fallback glyph is synthesized.
+             "[class*=sponsored-label],[class*=ad-feedback-text],[id^=ad-feedback-text-],[data-ad-sponsor-label6136]"
              "{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;"
-             "font-family:\"Amazon Ember\",Arial,sans-serif !important;font-size:13px !important;"
-             "line-height:16px !important;font-weight:400 !important;font-style:normal !important;"
-             "letter-spacing:0 !important;text-transform:none !important;"
              "opacity:1 !important;visibility:visible !important;filter:none !important;"
              "mix-blend-mode:normal !important;}"
-             "[data-ad-sponsor-label6135]{background-image:none !important;"
-             "-webkit-mask:none !important;mask:none !important;}"
-             "[data-ad-sponsor-label6135]::before"
-             "{content:none !important;display:none !important;background:none !important;"
-             "-webkit-mask:none !important;mask:none !important;box-shadow:none !important;}"
-             "[data-ad-sponsor-label6135]:not([data-ad-sponsor-fallback6135])::after"
-             "{content:none !important;display:none !important;background:none !important;"
-             "-webkit-mask:none !important;mask:none !important;box-shadow:none !important;}"
-             "[class*=ad-feedback-spr],[data-ad-sponsor-glyph6135]"
-             "{display:inline-block !important;width:12px !important;min-width:12px !important;max-width:12px !important;"
-             "height:12px !important;min-height:12px !important;max-height:12px !important;"
-             "padding:0 !important;margin:0 0 0 4px !important;box-sizing:border-box !important;"
-             "vertical-align:-1px !important;flex:0 0 12px !important;overflow:hidden !important;"
-             "border:0 !important;border-radius:50%% !important;outline:0 !important;box-shadow:none !important;"
-             "filter:none !important;opacity:1 !important;visibility:visible !important;"
-             "transform:none !important;-webkit-transform:none !important;"
-             "color:transparent !important;-webkit-text-fill-color:transparent !important;"
-             "font-size:0 !important;line-height:0 !important;text-indent:-9999px !important;"
-             "content:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjYiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy4xNSIgcj0iLjgyIiBmaWxsPSIjMTgxYTFiIi8+PHJlY3QgeD0iNS4yMiIgeT0iNC41NSIgd2lkdGg9IjEuNTYiIGhlaWdodD0iNC41IiByeD0iLjc4IiBmaWxsPSIjMTgxYTFiIi8+PC9zdmc+) !important;"
-             "-webkit-mask-image:none !important;mask-image:none !important;"
-             "background-color:transparent !important;background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjYiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy4xNSIgcj0iLjgyIiBmaWxsPSIjMTgxYTFiIi8+PHJlY3QgeD0iNS4yMiIgeT0iNC41NSIgd2lkdGg9IjEuNTYiIGhlaWdodD0iNC41IiByeD0iLjc4IiBmaWxsPSIjMTgxYTFiIi8+PC9zdmc+) !important;"
-             "background-repeat:no-repeat !important;background-position:center !important;"
-             "background-size:12px 12px !important;mix-blend-mode:normal !important;}"
-             "[class*=ad-feedback-spr]>* ,[data-ad-sponsor-glyph6135]>*"
-             "{display:none !important;opacity:0 !important;visibility:hidden !important;}"
-             "[class*=ad-feedback-spr]::before,[class*=ad-feedback-spr]::after,"
-             "[data-ad-sponsor-glyph6135]::before,[data-ad-sponsor-glyph6135]::after"
-             "{content:none !important;display:none !important;background:none !important;"
-             "-webkit-mask:none !important;mask:none !important;box-shadow:none !important;}"
-             "[data-ad-sponsor-fallback6135]::after"
-             "{content:\"\" !important;display:inline-block !important;width:12px !important;height:12px !important;"
-             "min-width:12px !important;min-height:12px !important;margin-left:4px !important;"
-             "vertical-align:-1px !important;border:0 !important;border-radius:50%% !important;"
-             "background-color:transparent !important;background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjYiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy4xNSIgcj0iLjgyIiBmaWxsPSIjMTgxYTFiIi8+PHJlY3QgeD0iNS4yMiIgeT0iNC41NSIgd2lkdGg9IjEuNTYiIGhlaWdodD0iNC41IiByeD0iLjc4IiBmaWxsPSIjMTgxYTFiIi8+PC9zdmc+) !important;"
-             "background-repeat:no-repeat !important;background-position:center !important;"
-             "background-size:12px 12px !important;filter:none !important;opacity:1 !important;"
-             "transform:none !important;-webkit-transform:none !important;}"
-             "[data-ad-sponsor-parent-before6135]::before,[data-ad-sponsor-parent-after6135]::after"
-             "{content:none !important;display:none !important;background:none !important;"
-             "-webkit-mask:none !important;mask:none !important;box-shadow:none !important;}"
+             "[class*=ad-feedback-spr],[data-ad-sponsor-glyph6136]"
+             "{filter:brightness(0) invert(1) !important;opacity:1 !important;"
+             "visibility:visible !important;mix-blend-mode:normal !important;}"
+             "[data-ad-sponsor-parent-before6136]::before,[data-ad-sponsor-parent-after6136]::after"
+             "{filter:brightness(0) invert(1) !important;opacity:1 !important;"
+             "visibility:visible !important;mix-blend-mode:normal !important;}"
              // APE/standalone structural chrome must reveal the live page floor.
              "[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback],"
              "[data-ad-ape-shell6135],[data-ad-standfloor6135]"
@@ -892,7 +854,7 @@ static NSString *ADFixesLiteral(void){
              "color:#ffffff !important;fill:#ffffff !important;}"
              "',invert:[],ignoreInlineStyle:['[data-ad-native615]','[data-ad-native615] *',"
              "'ul.a-pagination.a-dots li.a-selected','ul.a-pagination.a-dots li.dot-selected-t2','[data-ad-dotselected374]',"
-             "'[class*=ad-feedback-spr]','[class*=adFeedbackMainComponent]','[class*=adFeedbackMainComponent] *','[class*=sponsored-label]','[class*=sponsored-label] *','[class*=ad-feedback-text]','[id^=ad-feedback-text-]','[class*=ape-wrapper]','[class*=ape-placement]','[class*=ape-feedback]','[data-ad-sponsor-label6135]','[data-ad-sponsor-glyph6135]','[data-ad-sponsor-fallback6135]','[data-ad-sponsor-parent-before6135]','[data-ad-sponsor-parent-after6135]','[data-ad-ape-shell6135]','[data-ad-standfloor6135]',"
+             "'[class*=ad-feedback-spr]','[class*=adFeedbackMainComponent]','[class*=adFeedbackMainComponent] *','[class*=sponsored-label]','[class*=sponsored-label] *','[class*=ad-feedback-text]','[id^=ad-feedback-text-]','[class*=ape-wrapper]','[class*=ape-placement]','[class*=ape-feedback]','[data-ad-sponsor-label6136]','[data-ad-sponsor-glyph6136]','[data-ad-sponsor-parent-before6136]','[data-ad-sponsor-parent-after6136]','[data-ad-ape-shell6135]','[data-ad-standfloor6135]',"
              "'html body .puis-mab-overlay .puis-mab-overlay-row-share .puis-mab-overlay-icon-share'],"
              "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
             imgBackdrop];
@@ -1017,57 +979,19 @@ static NSString *ADDarkReaderBootstrap(void){
              "[class*=nav-search] img,[class*=searchbar] img,[class*=search-bar] img,"
              "[role=search] img,[class*=nav-] img[class*=icon],[class*=header] img[class*=icon]"
              "{background-color:transparent !important;}"
-             // v6.0.135: canonical Sponsored owner. Every template gets the same
-             // text metrics and the same 12px white-disc/dark-i artwork. Runtime
-             // marks classless/lazy variants; known Amazon families paint correctly
-             // from first frame. Native glyph contents/pseudos are fully suppressed.
-             "[class*=sponsored-label],[class*=ad-feedback-text],[id^=ad-feedback-text-],[data-ad-sponsor-label6135]"
+             // v6.0.136: keep Amazon's stock Sponsored info artwork and geometry.
+             // Only normalize its visible ink/opacity. No replacement SVG, no forced
+             // width/height/margin/baseline, and no fallback glyph is synthesized.
+             "[class*=sponsored-label],[class*=ad-feedback-text],[id^=ad-feedback-text-],[data-ad-sponsor-label6136]"
              "{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;"
-             "font-family:\"Amazon Ember\",Arial,sans-serif !important;font-size:13px !important;"
-             "line-height:16px !important;font-weight:400 !important;font-style:normal !important;"
-             "letter-spacing:0 !important;text-transform:none !important;"
              "opacity:1 !important;visibility:visible !important;filter:none !important;"
              "mix-blend-mode:normal !important;}"
-             "[data-ad-sponsor-label6135]{background-image:none !important;"
-             "-webkit-mask:none !important;mask:none !important;}"
-             "[data-ad-sponsor-label6135]::before"
-             "{content:none !important;display:none !important;background:none !important;"
-             "-webkit-mask:none !important;mask:none !important;box-shadow:none !important;}"
-             "[data-ad-sponsor-label6135]:not([data-ad-sponsor-fallback6135])::after"
-             "{content:none !important;display:none !important;background:none !important;"
-             "-webkit-mask:none !important;mask:none !important;box-shadow:none !important;}"
-             "[class*=ad-feedback-spr],[data-ad-sponsor-glyph6135]"
-             "{display:inline-block !important;width:12px !important;min-width:12px !important;max-width:12px !important;"
-             "height:12px !important;min-height:12px !important;max-height:12px !important;"
-             "padding:0 !important;margin:0 0 0 4px !important;box-sizing:border-box !important;"
-             "vertical-align:-1px !important;flex:0 0 12px !important;overflow:hidden !important;"
-             "border:0 !important;border-radius:50%% !important;outline:0 !important;box-shadow:none !important;"
-             "filter:none !important;opacity:1 !important;visibility:visible !important;"
-             "transform:none !important;-webkit-transform:none !important;"
-             "color:transparent !important;-webkit-text-fill-color:transparent !important;"
-             "font-size:0 !important;line-height:0 !important;text-indent:-9999px !important;"
-             "content:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjYiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy4xNSIgcj0iLjgyIiBmaWxsPSIjMTgxYTFiIi8+PHJlY3QgeD0iNS4yMiIgeT0iNC41NSIgd2lkdGg9IjEuNTYiIGhlaWdodD0iNC41IiByeD0iLjc4IiBmaWxsPSIjMTgxYTFiIi8+PC9zdmc+) !important;"
-             "-webkit-mask-image:none !important;mask-image:none !important;"
-             "background-color:transparent !important;background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjYiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy4xNSIgcj0iLjgyIiBmaWxsPSIjMTgxYTFiIi8+PHJlY3QgeD0iNS4yMiIgeT0iNC41NSIgd2lkdGg9IjEuNTYiIGhlaWdodD0iNC41IiByeD0iLjc4IiBmaWxsPSIjMTgxYTFiIi8+PC9zdmc+) !important;"
-             "background-repeat:no-repeat !important;background-position:center !important;"
-             "background-size:12px 12px !important;mix-blend-mode:normal !important;}"
-             "[class*=ad-feedback-spr]>* ,[data-ad-sponsor-glyph6135]>*"
-             "{display:none !important;opacity:0 !important;visibility:hidden !important;}"
-             "[class*=ad-feedback-spr]::before,[class*=ad-feedback-spr]::after,"
-             "[data-ad-sponsor-glyph6135]::before,[data-ad-sponsor-glyph6135]::after"
-             "{content:none !important;display:none !important;background:none !important;"
-             "-webkit-mask:none !important;mask:none !important;box-shadow:none !important;}"
-             "[data-ad-sponsor-fallback6135]::after"
-             "{content:\"\" !important;display:inline-block !important;width:12px !important;height:12px !important;"
-             "min-width:12px !important;min-height:12px !important;margin-left:4px !important;"
-             "vertical-align:-1px !important;border:0 !important;border-radius:50%% !important;"
-             "background-color:transparent !important;background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjYiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy4xNSIgcj0iLjgyIiBmaWxsPSIjMTgxYTFiIi8+PHJlY3QgeD0iNS4yMiIgeT0iNC41NSIgd2lkdGg9IjEuNTYiIGhlaWdodD0iNC41IiByeD0iLjc4IiBmaWxsPSIjMTgxYTFiIi8+PC9zdmc+) !important;"
-             "background-repeat:no-repeat !important;background-position:center !important;"
-             "background-size:12px 12px !important;filter:none !important;opacity:1 !important;"
-             "transform:none !important;-webkit-transform:none !important;}"
-             "[data-ad-sponsor-parent-before6135]::before,[data-ad-sponsor-parent-after6135]::after"
-             "{content:none !important;display:none !important;background:none !important;"
-             "-webkit-mask:none !important;mask:none !important;box-shadow:none !important;}"
+             "[class*=ad-feedback-spr],[data-ad-sponsor-glyph6136]"
+             "{filter:brightness(0) invert(1) !important;opacity:1 !important;"
+             "visibility:visible !important;mix-blend-mode:normal !important;}"
+             "[data-ad-sponsor-parent-before6136]::before,[data-ad-sponsor-parent-after6136]::after"
+             "{filter:brightness(0) invert(1) !important;opacity:1 !important;"
+             "visibility:visible !important;mix-blend-mode:normal !important;}"
              // APE/standalone structural chrome must reveal the live page floor.
              "[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback],"
              "[data-ad-ape-shell6135],[data-ad-standfloor6135]"
@@ -1156,27 +1080,25 @@ static NSString *ADDarkReaderBootstrap(void){
            "[class*=gwm-tile] [class*=a-cardui-header],[class*=gwm-tile] [class*=a-cardui-header] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}"
            "[style*=multiply],[style*=darken],[style*=color-burn],[class*=deal] [style*=blend],[class*=Deal] [style*=blend]{mix-blend-mode:normal !important;isolation:auto !important;}';"
            "(document.documentElement||document).appendChild(f);}}catch(e){}"
-         // v6.0.135: semantic Sponsored normalizer + standalone floor. This owns
-         // the rendered result, not Amazon's source sprite/font variant. It reuses
-         // the existing native-ad observer; no new observer/timer/scroll/RAF path.
-         "try{\n"
-         "var ADSPURI6135='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjYiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy4xNSIgcj0iLjgyIiBmaWxsPSIjMTgxYTFiIi8+PHJlY3QgeD0iNS4yMiIgeT0iNC41NSIgd2lkdGg9IjEuNTYiIGhlaWdodD0iNC41IiByeD0iLjc4IiBmaWxsPSIjMTgxYTFiIi8+PC9zdmc+';\n"
-         "function adSpC6135(e){try{var c=e&&e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;return String(c||'').toLowerCase();}catch(x){return '';}}\n"
-         "function adSpDirect6135(e){try{var s='',N=e&&e.childNodes||[];for(var i=0;i<N.length;i++)if(N[i].nodeType===3)s+=' '+String(N[i].nodeValue||'');return s.replace(/\\s+/g,' ').trim();}catch(x){return '';}}\n"
-         "function adSpExact6135(e){try{return /^sponsored(?: ad)?$/i.test(adSpDirect6135(e));}catch(x){return false;}}\n"
-         "function adSpMarkGlyph6135(g){try{if(!g||g.nodeType!==1)return 0;g.setAttribute('data-ad-sponsor-glyph6135','1');var st=g.style,U='url('+ADSPURI6135+')',P=['width','min-width','max-width','height','min-height','max-height'];for(var i=0;i<P.length;i++)st.setProperty(P[i],'12px','important');st.setProperty('display','inline-block','important');st.setProperty('padding','0','important');st.setProperty('margin','0 0 0 4px','important');st.setProperty('box-sizing','border-box','important');st.setProperty('vertical-align','-1px','important');st.setProperty('flex','0 0 12px','important');st.setProperty('overflow','hidden','important');st.setProperty('border','0','important');st.setProperty('border-radius','50%%','important');st.setProperty('outline','0','important');st.setProperty('box-shadow','none','important');st.setProperty('filter','none','important');st.setProperty('opacity','1','important');st.setProperty('visibility','visible','important');st.setProperty('transform','none','important');st.setProperty('-webkit-transform','none','important');st.setProperty('color','transparent','important');st.setProperty('-webkit-text-fill-color','transparent','important');st.setProperty('font-size','0','important');st.setProperty('line-height','0','important');st.setProperty('text-indent','-9999px','important');st.setProperty('-webkit-mask-image','none','important');st.setProperty('mask-image','none','important');st.setProperty('background-color','transparent','important');st.setProperty('background-image',U,'important');st.setProperty('background-repeat','no-repeat','important');st.setProperty('background-position','center','important');st.setProperty('background-size','12px 12px','important');st.setProperty('mix-blend-mode','normal','important');st.setProperty('content',U,'important');var tg=String(g.tagName||'').toUpperCase();if(tg==='IMG'){g.setAttribute('src',ADSPURI6135);g.removeAttribute('srcset');st.setProperty('object-fit','contain','important');}var C=g.children||[];for(var j=0;j<C.length&&j<12;j++){var cs=C[j].style;if(cs){cs.setProperty('display','none','important');cs.setProperty('opacity','0','important');cs.setProperty('visibility','hidden','important');}}return 1;}catch(x){return 0;}}\n"
-         "function adSpPseudo6135(host,label){try{if(!host||host===label||host.nodeType!==1)return 0;var hr=host.getBoundingClientRect(),lr=label.getBoundingClientRect();if(hr.height>72)return 0;var z=0,P=['::before','::after'];for(var k=0;k<2;k++){var cs=getComputedStyle(host,P[k]),w=parseFloat(cs.width)||0,h=parseFloat(cs.height)||0,bi=String(cs.backgroundImage||'none'),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),ct=String(cs.content||'none').replace(/['\\x22]/g,'');var icon=((w>=5&&w<=26&&h>=5&&h<=26&&(bi!=='none'||mi!=='none'))||/^(?:i|ⓘ|info)$/i.test(ct));if(icon){host.setAttribute(k===0?'data-ad-sponsor-parent-before6135':'data-ad-sponsor-parent-after6135','1');z++;}}return z;}catch(x){return 0;}}\n"
-         "function adSpFindGlyph6135(label){try{var lr=label.getBoundingClientRect(),roots=[label,label.parentElement,label.parentElement&&label.parentElement.parentElement],best=null,bs=-999;for(var q=0;q<roots.length;q++){var root=roots[q];if(!root||!root.querySelectorAll)continue;var Q=root.querySelectorAll('i,img,svg,span,div,[role=img],[class*=feedback],[class*=info],[class*=sponsor]');for(var i=0;i<Q.length&&i<96;i++){var e=Q[i];if(e===label||(e.contains&&e.contains(label)))continue;var r=e.getBoundingClientRect();if(r.width<5||r.height<5||r.width>28||r.height>28)continue;var cy=r.top+r.height/2,lcy=lr.top+lr.height/2;if(Math.abs(cy-lcy)>17||r.right<lr.left-8||r.left>lr.right+38)continue;var c=adSpC6135(e),cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none'),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),tg=String(e.tagName||'').toUpperCase(),tx=String(e.textContent||'').trim(),ar=String((e.getAttribute&&e.getAttribute('aria-label'))||'')+' '+String((e.getAttribute&&e.getAttribute('title'))||''),sc=0;if(/ad-feedback-spr|feedback.*(?:spr|icon)|(?:sponsor|info).*icon|icon.*info/.test(c))sc+=14;if(bi!=='none'||mi!=='none')sc+=6;if(/^(IMG|SVG|I)$/.test(tg))sc+=4;if(/info|feedback|sponsor/i.test(ar))sc+=5;if(r.left>=lr.right-5&&r.left<=lr.right+34)sc+=6;if(Math.abs(cy-lcy)<=9)sc+=4;if(label.contains&&label.contains(e))sc+=3;if(tx.length>2)sc-=10;if(sc>bs){bs=sc;best=e;}}}var ps=0;if(label.parentElement)ps+=adSpPseudo6135(label.parentElement,label);if(label.parentElement&&label.parentElement.parentElement)ps+=adSpPseudo6135(label.parentElement.parentElement,label);if(best&&bs>=8){adSpMarkGlyph6135(best);label.removeAttribute('data-ad-sponsor-fallback6135');return 1;}label.setAttribute('data-ad-sponsor-fallback6135','1');return ps?1:0;}catch(x){try{label.setAttribute('data-ad-sponsor-fallback6135','1');}catch(_){}return 0;}}\n"
-         "function adSpOwn6135(e){try{if(!e||e.nodeType!==1||!adSpExact6135(e))return 0;e.setAttribute('data-ad-sponsor-label6135','1');var st=e.style;st.setProperty('color','#ffffff','important');st.setProperty('-webkit-text-fill-color','#ffffff','important');st.setProperty('font-family','Amazon Ember, Arial, sans-serif','important');st.setProperty('font-size','13px','important');st.setProperty('line-height','16px','important');st.setProperty('font-weight','400','important');st.setProperty('font-style','normal','important');st.setProperty('letter-spacing','0','important');st.setProperty('text-transform','none','important');st.setProperty('opacity','1','important');st.setProperty('visibility','visible','important');st.setProperty('filter','none','important');st.setProperty('mix-blend-mode','normal','important');st.setProperty('background-image','none','important');st.setProperty('-webkit-mask','none','important');st.setProperty('mask','none','important');adSpFindGlyph6135(e);return 1;}catch(x){return 0;}}\n"
-         "window.__AD_SPONSOR6135__=function(root,lim){try{if(!root)return 0;var base=root===document?(document.body||document.documentElement):root;if(!base)return 0;var txt=String(base.textContent||'');if(!/sponsored/i.test(txt))return 0;var n=0,budget=lim||((root===document)?9000:220);if(base.nodeType===1&&adSpExact6135(base))n+=adSpOwn6135(base);var W=document.createTreeWalker(base,NodeFilter.SHOW_TEXT),nd,seen=0;while((nd=W.nextNode())&&seen++<budget){var t=String(nd.nodeValue||'').replace(/\\s+/g,' ').trim();if(!/^sponsored(?: ad)?$/i.test(t))continue;var e=nd.parentElement;if(e)n+=adSpOwn6135(e);}return n;}catch(e){return 0;}};\n"
+         // v6.0.136: semantic Sponsored normalizer. Keep Amazon's native glyph
+         // object, dimensions, baseline, spacing and internal artwork; only normalize
+         // the stock glyph's visible ink. No replacement SVG or synthesized fallback.
+         "function adSpC6136(e){try{var c=e&&e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;return String(c||'').toLowerCase();}catch(x){return '';}}\n"
+         "function adSpDirect6136(e){try{var s='',N=e&&e.childNodes||[];for(var i=0;i<N.length;i++)if(N[i].nodeType===3)s+=' '+String(N[i].nodeValue||'');return s.replace(/\\s+/g,' ').trim();}catch(x){return '';}}\n"
+         "function adSpExact6136(e){try{return /^sponsored(?: ad)?$/i.test(adSpDirect6136(e));}catch(x){return false;}}\n"
+         "function adSpMarkGlyph6136(g){try{if(!g||g.nodeType!==1)return 0;g.setAttribute('data-ad-sponsor-glyph6136','1');var st=g.style;st.setProperty('filter','brightness(0) invert(1)','important');st.setProperty('opacity','1','important');st.setProperty('visibility','visible','important');st.setProperty('mix-blend-mode','normal','important');return 1;}catch(x){return 0;}}\n"
+         "function adSpPseudo6136(host,label){try{if(!host||host===label||host.nodeType!==1)return 0;var hr=host.getBoundingClientRect();if(hr.height>72)return 0;var P=['::after','::before'];for(var k=0;k<2;k++){var cs=getComputedStyle(host,P[k]),w=parseFloat(cs.width)||0,h=parseFloat(cs.height)||0,bi=String(cs.backgroundImage||'none'),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),ct=String(cs.content||'none').replace(/['\\x22]/g,'');var icon=((w>=5&&w<=26&&h>=5&&h<=26&&(bi!=='none'||mi!=='none'))||/^(?:i|ⓘ|info)$/i.test(ct));if(icon){host.setAttribute(k===0?'data-ad-sponsor-parent-after6136':'data-ad-sponsor-parent-before6136','1');return 1;}}return 0;}catch(x){return 0;}}\n"
+         "function adSpFindGlyph6136(label){try{var lr=label.getBoundingClientRect(),roots=[label,label.parentElement,label.parentElement&&label.parentElement.parentElement],best=null,bs=-999;for(var q=0;q<roots.length;q++){var root=roots[q];if(!root||!root.querySelectorAll)continue;var Q=root.querySelectorAll('i,img,svg,span,div,[role=img],[class*=feedback],[class*=info],[class*=sponsor]');for(var i=0;i<Q.length&&i<96;i++){var e=Q[i];if(e===label||(e.contains&&e.contains(label)))continue;var r=e.getBoundingClientRect();if(r.width<5||r.height<5||r.width>28||r.height>28)continue;var cy=r.top+r.height/2,lcy=lr.top+lr.height/2;if(Math.abs(cy-lcy)>17||r.right<lr.left-8||r.left>lr.right+38)continue;var c=adSpC6136(e),cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none'),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),tg=String(e.tagName||'').toUpperCase(),tx=String(e.textContent||'').trim(),ar=String((e.getAttribute&&e.getAttribute('aria-label'))||'')+' '+String((e.getAttribute&&e.getAttribute('title'))||''),sc=0;if(/ad-feedback-spr|feedback.*(?:spr|icon)|(?:sponsor|info).*icon|icon.*info/.test(c))sc+=14;if(bi!=='none'||mi!=='none')sc+=6;if(/^(IMG|SVG|I)$/.test(tg))sc+=4;if(/info|feedback|sponsor/i.test(ar))sc+=5;if(r.left>=lr.right-5&&r.left<=lr.right+34)sc+=6;if(Math.abs(cy-lcy)<=9)sc+=4;if(label.contains&&label.contains(e))sc+=3;if(tx.length>2)sc-=10;if(sc>bs){bs=sc;best=e;}}}if(best&&bs>=8)return adSpMarkGlyph6136(best);if(label.parentElement&&adSpPseudo6136(label.parentElement,label))return 1;if(label.parentElement&&label.parentElement.parentElement)return adSpPseudo6136(label.parentElement.parentElement,label);return 0;}catch(x){return 0;}}\n"
+         "function adSpOwn6136(e){try{if(!e||e.nodeType!==1||!adSpExact6136(e))return 0;e.setAttribute('data-ad-sponsor-label6136','1');var st=e.style;st.setProperty('color','#ffffff','important');st.setProperty('-webkit-text-fill-color','#ffffff','important');st.setProperty('opacity','1','important');st.setProperty('visibility','visible','important');st.setProperty('filter','none','important');st.setProperty('mix-blend-mode','normal','important');adSpFindGlyph6136(e);return 1;}catch(x){return 0;}}\n"
+         "window.__AD_SPONSOR6136__=function(root,lim){try{if(!root)return 0;var base=root===document?(document.body||document.documentElement):root;if(!base)return 0;var txt=String(base.textContent||'');if(!/sponsored/i.test(txt))return 0;var n=0,budget=lim||((root===document)?9000:220);if(base.nodeType===1&&adSpExact6136(base))n+=adSpOwn6136(base);var W=document.createTreeWalker(base,NodeFilter.SHOW_TEXT),nd,seen=0;while((nd=W.nextNode())&&seen++<budget){var t=String(nd.nodeValue||'').replace(/\\s+/g,' ').trim();if(!/^sponsored(?: ad)?$/i.test(t))continue;var e=nd.parentElement;if(e)n+=adSpOwn6136(e);}return n;}catch(e){return 0;}};\n"
          "function adFrameMode6135(){try{if(window.top===window)return 'main';if(window.__ADFRAME_MODE__)return String(window.__ADFRAME_MODE__);var u=String(document.referrer||'').toLowerCase();if(u.indexOf('/dp/')>=0||u.indexOf('/gp/aw/d/')>=0||u.indexOf('/gp/product/')>=0||u.indexOf('/s?')>=0||u.indexOf('/search')>=0||u.indexOf('?k=')>=0||u.indexOf('&k=')>=0||u.indexOf('field-keywords=')>=0)return 'productad';return ((innerHeight||0)<190||((innerWidth||1)/(innerHeight||1))>2.15)?'standalone':'hero';}catch(x){return 'main';}}\n"
          "try{var _fm6135=adFrameMode6135();if(_fm6135!=='main')window.__ADFRAME_MODE__=_fm6135;}catch(_fm){}\n"
          "function adFloorClear6135(e,mark){try{if(!e||e.nodeType!==1)return 0;var tg=String(e.tagName||'').toUpperCase();if(/^(IMG|VIDEO|CANVAS|SVG|PICTURE)$/.test(tg))return 0;var cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none');if(bi&&bi!=='none')return 0;e.style.setProperty('background-color','transparent','important');e.style.setProperty('border-color','transparent','important');e.style.setProperty('outline-color','transparent','important');e.style.setProperty('box-shadow','none','important');if(mark)e.setAttribute(mark,'1');return 1;}catch(x){return 0;}}\n"
          "window.__AD_APESHELL6135__=function(root){try{if(window.top!==window||!root)return 0;var base=root===document?document:root,S='[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback],[data-cel-widget*=ape],[id*=ape_]',A=[],n=0;function add(e){if(e&&A.indexOf(e)<0&&A.length<24)A.push(e);}if(base.nodeType===1&&base.matches&&base.matches(S))add(base);var Q=base.querySelectorAll?base.querySelectorAll(S):[];for(var i=0;i<Q.length&&i<24;i++)add(Q[i]);for(var j=0;j<A.length;j++){var e=A[j],er=e.getBoundingClientRect();n+=adFloorClear6135(e,'data-ad-ape-shell6135');var C=e.children||[];for(var k=0;k<C.length&&k<14;k++){var ch=C[k],tg=String(ch.tagName||'').toUpperCase(),cr=ch.getBoundingClientRect();if(tg==='IFRAME'){ch.style.setProperty('background-color','transparent','important');continue;}if(er.width>0&&cr.width>=er.width*.68&&cr.height>=18&&cr.height<=260)n+=adFloorClear6135(ch,'data-ad-ape-shell6135');}}return n;}catch(e){return 0;}};\n"
          "window.__AD_STANDFLOOR6135__=function(root){try{if(adFrameMode6135()!=='standalone'||!document.body)return 0;if(!/sponsored/i.test(String(document.body.textContent||'')))return 0;var vw=innerWidth||390,vh=innerHeight||120,n=0,R=[document.documentElement,document.body],Q=document.body.getElementsByTagName('*');for(var i=0;i<Q.length&&R.length<260;i++)R.push(Q[i]);for(var j=0;j<R.length;j++){var e=R[j],tg=String(e.tagName||'').toUpperCase();if(/^(IMG|VIDEO|CANVAS|SVG|PICTURE)$/.test(tg))continue;var r=e.getBoundingClientRect();if(e===document.documentElement||e===document.body||(r.width>=vw*.78&&r.height>=24&&r.height<=Math.max(230,vh*1.15))||(r.width>=vw*.64&&r.height>=vh*.60)){n+=adFloorClear6135(e,'data-ad-standfloor6135');}}return n;}catch(e){return 0;}};\n"
-         "function adSpInit6135(){try{window.__AD_SPONSOR6135__(document,9000);window.__AD_APESHELL6135__(document);window.__AD_STANDFLOOR6135__(document);}catch(e){}}\n"
-         "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',adSpInit6135,{once:true});else adSpInit6135();\n"
-         "window.addEventListener('pageshow',adSpInit6135,{passive:true});\n"
+         "function adSpInit6136(){try{window.__AD_SPONSOR6136__(document,9000);window.__AD_APESHELL6135__(document);window.__AD_STANDFLOOR6135__(document);}catch(e){}}\n"
+         "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',adSpInit6136,{once:true});else adSpInit6136();\n"
+         "window.addEventListener('pageshow',adSpInit6136,{passive:true});\n"
          "}catch(e){}\n"
          // v6.0.15: Amazon-native ad islands.  v5.446 proved that creative
          // subtrees must be kept out of generic recolor/glyph ownership.  Mark the
@@ -1191,7 +1113,7 @@ static NSString *ADDarkReaderBootstrap(void){
            "window.__AD_DR_SEL6056__='[data-darkreader-inline-bg],[data-darkreader-inline-bgcolor],[data-darkreader-inline-bgimage],[data-darkreader-inline-border],[data-darkreader-inline-border-bottom],[data-darkreader-inline-border-bottom-short],[data-darkreader-inline-border-left],[data-darkreader-inline-border-left-short],[data-darkreader-inline-border-right],[data-darkreader-inline-border-right-short],[data-darkreader-inline-border-top],[data-darkreader-inline-border-top-short],[data-darkreader-inline-border-short],[data-darkreader-inline-boxshadow],[data-darkreader-inline-color],[data-darkreader-inline-fill],[data-darkreader-inline-invert],[data-darkreader-inline-outline],[data-darkreader-inline-stopcolor],[data-darkreader-inline-stroke],[style*=\"--darkreader-inline-\"]';"
            "window.__AD_STRIP_DR615__=function(root){try{if(!root||root.nodeType!==1)return 0;root.setAttribute('data-ad-native615','1');var E=[root],q=root.querySelectorAll?root.querySelectorAll(window.__AD_DR_SEL6056__):[];for(var i=0;i<q.length&&i<220;i++)E.push(q[i]);for(var z=0;z<E.length;z++){var el=E[z],A=window.__AD_DR_ATTRS6056__;for(var x=0;x<A.length;x++)if(el.hasAttribute&&el.hasAttribute(A[x]))el.removeAttribute(A[x]);var st=el.style;if(st){var rm=[];for(var y=0;y<st.length;y++){var pn=st[y];if(String(pn).indexOf('--darkreader-inline-')===0)rm.push(pn);}for(var y2=0;y2<rm.length;y2++)st.removeProperty(rm[y2]);}}return E.length;}catch(e){return 0;}};"
            "window.__AD_MARK_NATIVE615__=function(root){try{if(!root)return 0;var n=0,Q=[];if(root.nodeType===1&&root.matches&&root.matches(window.__AD_NATIVE_SEL615__))Q.push(root);if(root.querySelectorAll){var q=root.querySelectorAll(window.__AD_NATIVE_SEL615__),lim=(root===document)?80:16;for(var i=0;i<q.length&&i<lim;i++)Q.push(q[i]);}for(var j=0;j<Q.length;j++){var fresh=!Q[j].hasAttribute('data-ad-native615');if(fresh){Q[j].setAttribute('data-ad-native615','1');n++;}if(fresh||Q[j]===root)window.__AD_STRIP_DR615__(Q[j]);}try{if(window.__AD_TWB6033_ADROOT__){var h=(root.nodeType===1&&root.closest)?root.closest('[data-ad-native615],'+window.__AD_NATIVE_SEL615__):null;if(h)window.__AD_TWB6033_ADROOT__(root);for(var t=0;t<Q.length&&t<4;t++)if(Q[t]!==h)window.__AD_TWB6033_ADROOT__(Q[t]);}}catch(tx){}return n;}catch(e){return 0;}};"
-           "window.__AD_MARK_NATIVE615__(document);if(window.__AD_SPONSOR6135__)window.__AD_SPONSOR6135__(document,9000);if(window.__AD_APESHELL6135__)window.__AD_APESHELL6135__(document);if(window.__AD_STANDFLOOR6135__)window.__AD_STANDFLOOR6135__(document);if(!window.__AD_NATIVE_OBS615__&&document.documentElement){window.__AD_NATIVE_OBS615__=1;new MutationObserver(function(ms){try{for(var i=0;i<ms.length&&i<48;i++){var A=ms[i].addedNodes||[];for(var j=0;j<A.length&&j<24;j++)if(A[j]&&A[j].nodeType===1){window.__AD_MARK_NATIVE615__(A[j]);if(window.__AD_SPONSOR6135__)window.__AD_SPONSOR6135__(A[j],220);if(window.__AD_APESHELL6135__)window.__AD_APESHELL6135__(A[j]);if(window.__AD_STANDFLOOR6135__)window.__AD_STANDFLOOR6135__(A[j]);if(window.__AD_VIDEOSTOCK6066__)window.__AD_VIDEOSTOCK6066__(A[j]);}}}catch(e){}}).observe(document.documentElement,{childList:true,subtree:true});}}catch(e){}"
+           "window.__AD_MARK_NATIVE615__(document);if(window.__AD_SPONSOR6136__)window.__AD_SPONSOR6136__(document,9000);if(window.__AD_APESHELL6135__)window.__AD_APESHELL6135__(document);if(window.__AD_STANDFLOOR6135__)window.__AD_STANDFLOOR6135__(document);if(!window.__AD_NATIVE_OBS615__&&document.documentElement){window.__AD_NATIVE_OBS615__=1;new MutationObserver(function(ms){try{for(var i=0;i<ms.length&&i<48;i++){var A=ms[i].addedNodes||[];for(var j=0;j<A.length&&j<24;j++)if(A[j]&&A[j].nodeType===1){window.__AD_MARK_NATIVE615__(A[j]);if(window.__AD_SPONSOR6136__)window.__AD_SPONSOR6136__(A[j],220);if(window.__AD_APESHELL6135__)window.__AD_APESHELL6135__(A[j]);if(window.__AD_STANDFLOOR6135__)window.__AD_STANDFLOOR6135__(A[j]);if(window.__AD_VIDEOSTOCK6066__)window.__AD_VIDEOSTOCK6066__(A[j]);}}}catch(e){}}).observe(document.documentElement,{childList:true,subtree:true});}}catch(e){}"
          // v6.0.67: preserve the matched compact-control tint and Amazon's native
          // glyphs. Clip only each compact control host + selected shell to a circle
          // so rectangular child/pseudo backing paint cannot remain visible in the
@@ -1517,7 +1439,7 @@ static NSString *ADDarkReaderBootstrap(void){
            "if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);"
            "window.__AD_IDLE6056__(function(){window.__AMZDARK_FIXCONTRAST__();if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);},260);"
          "}catch(e){}};"
-         // v6.0.135: production build ships no standalone-ad diagnostic dump.
+         // v6.0.136: production build ships no standalone-ad diagnostic dump.
          // Re-run fallback repair as lazy content arrives, but never synchronously in
          // the MutationObserver. v6.0.82 no longer discards native-ad descendants here:
          // __AMZDARK_FIXCONTRAST__ routes every such element through prodInk6078 and
@@ -1998,7 +1920,7 @@ static void ADInjectAllWebViews(void){
     } @catch(...) {}
 }
 
-// v6.0.135: standalone-ad diagnostic exporter removed from production.
+// v6.0.136: standalone-ad diagnostic exporter remains removed from production.
 
 // ════════════════════════════════════════════════════════════════════════════════
 // WKUserContentController — restore our script the moment Amazon strips it.
