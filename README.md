@@ -1,10 +1,10 @@
-## v6.0.141 — probe-derived Sign Out dialog button colors
+## v6.0.142 — darker Sign Out surface, native text restored
 
-- Built directly from the v6.0.138 production baseline; the temporary v6.0.140 probe is not shipped.
-- Probe 6140 identified the dialog controls as native `AWButton` instances with background-image artwork and real `UIButtonLabel` text.
-- `Sign Out` keeps Amazon's stock yellow background image and uses black title text.
-- `Cancel` preserves Amazon's stock background-image geometry/alpha mask, recolors that image to medium gray (`#666666`), and uses white title text.
-- Ownership is bounded to an `AWButton` inside the compact dialog that simultaneously contains `Sign Out`, `Cancel`, and a `You are signed in as ...` sibling label. No global button styling was added.
+- Built from v6.0.141 behavior while removing the special Sign Out text-color owner.
+- `Sign Out` now leaves its title color entirely to Amazon/the existing foreground pipeline.
+- Only the stock `AWButton` background image is recolored, to a darker yellow (`#D4A017`), preserving Amazon's original alpha mask, stretch caps, dimensions, and button geometry.
+- `Cancel` is unchanged from v6.0.141: medium gray (`#666666`) stock-image surface with white title text.
+- Targeting remains limited to the compact native dialog that contains `Sign Out`, `Cancel`, and `You are signed in as ...`.
 
 # AmazonDark v6.0.138
 

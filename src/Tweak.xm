@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.141"
+#define AD_VERSION "v6.0.142"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3080,7 +3080,7 @@ static void ADNativeWakePeers6053(UIImageView *source){
 
 
 // ════════════════════════════════════════════════════════════════════════════════
-// v6.0.141 — Sign Out confirmation controls (probe 6140)
+// v6.0.142 — Sign Out confirmation button surfaces (probe 6140)
 // ────────────────────────────────────────────────────────────────────────────────
 // Probe 6140 proved this dialog is native UIKit, not WebKit.  The two controls are
 // Amazon AWButton instances with background-image artwork and real UIButtonLabels:
@@ -3090,14 +3090,15 @@ static void ADNativeWakePeers6053(UIImageView *source){
 // deliberately local: exact AWButton class + exact two titles + the sibling
 // "You are signed in as ..." label in the same compact modal container.
 static const void *kADCancelGrayImage6141 = &kADCancelGrayImage6141;
+static const void *kADSignOutYellowImage6142 = &kADSignOutYellowImage6142;
 
 static UIColor *ADOwnedRGBA6141(CGFloat r, CGFloat g, CGFloat b, CGFloat a){
     UIColor *c=[[UIColor alloc] initWithRed:r green:g blue:b alpha:a];
     return ADMarkOwnColor(c);
 }
-static UIColor *ADSignOutBlack6141(void){ return ADOwnedRGBA6141(0.0,0.0,0.0,1.0); }
 static UIColor *ADCancelWhite6141(void){ return ADOwnedRGBA6141(1.0,1.0,1.0,1.0); }
 static UIColor *ADCancelGray6141(void){ return ADOwnedRGBA6141(0.40,0.40,0.40,1.0); } // #666666
+static UIColor *ADSignOutYellow6142(void){ return ADOwnedRGBA6141(0.831,0.627,0.090,1.0); } // #D4A017
 
 static BOOL ADAWButton6141(UIButton *b){
     if(!b) return NO;
@@ -3168,27 +3169,42 @@ static void ADPaintSignOutDialogButton6141(UIButton *b){
     BOOL so=NO,ca=NO;
     if(!ADSignOutDialogButton6141(b,&so,&ca)) return;
     @try {
-        UIColor *ink=so ? ADSignOutBlack6141() : ADCancelWhite6141();
         const UIControlState states[]={UIControlStateNormal,UIControlStateHighlighted,
                                       UIControlStateSelected,UIControlStateDisabled};
-        for(NSUInteger i=0;i<sizeof(states)/sizeof(states[0]);i++)
-            [b setTitleColor:ink forState:states[i]];
-        b.titleLabel.textColor=ink;
         if(ca){
+            // Cancel keeps explicit white ink; its stock background-image geometry is
+            // preserved and recolored to medium gray.
+            UIColor *ink=ADCancelWhite6141();
+            for(NSUInteger i=0;i<sizeof(states)/sizeof(states[0]);i++)
+                [b setTitleColor:ink forState:states[i]];
+            b.titleLabel.textColor=ink;
             UIImage *ours=objc_getAssociatedObject(b,kADCancelGrayImage6141);
             UIImage *cur=[b backgroundImageForState:UIControlStateNormal];
             if(!ours || cur!=ours){
-                // Tint Amazon's own background-image alpha/shape rather than replacing
-                // the control geometry with a custom rectangle.
                 UIImage *src=cur;
                 if(src){
                     UIImage *gray=ADTintButtonBackground6141(src,ADCancelGray6141());
                     if(gray){
                         objc_setAssociatedObject(b,kADCancelGrayImage6141,gray,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                        [b setBackgroundImage:gray forState:UIControlStateNormal];
-                        [b setBackgroundImage:gray forState:UIControlStateHighlighted];
-                        [b setBackgroundImage:gray forState:UIControlStateSelected];
-                        [b setBackgroundImage:gray forState:UIControlStateDisabled];
+                        for(NSUInteger i=0;i<sizeof(states)/sizeof(states[0]);i++)
+                            [b setBackgroundImage:gray forState:states[i]];
+                    }
+                }
+            }
+        } else if(so){
+            // Do not own Sign Out text at all.  Amazon/the existing generic foreground
+            // pipeline decides the label color.  Only darken Amazon's stock yellow
+            // background image while retaining its alpha mask, stretch caps and shape.
+            UIImage *ours=objc_getAssociatedObject(b,kADSignOutYellowImage6142);
+            UIImage *cur=[b backgroundImageForState:UIControlStateNormal];
+            if(!ours || cur!=ours){
+                UIImage *src=cur;
+                if(src){
+                    UIImage *yellow=ADTintButtonBackground6141(src,ADSignOutYellow6142());
+                    if(yellow){
+                        objc_setAssociatedObject(b,kADSignOutYellowImage6142,yellow,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                        for(NSUInteger i=0;i<sizeof(states)/sizeof(states[0]);i++)
+                            [b setBackgroundImage:yellow forState:states[i]];
                     }
                 }
             }
@@ -3206,13 +3222,13 @@ static void ADPaintSignOutDialogButton6141(UIButton *b){
     @try { if (ADRecolorOn() && self.window) ADInvertRNSVG(self); } @catch(...) {}
 }
 - (void)setTextColor:(UIColor *)color {
-    // Probe 6140: the button ink is a real UIButtonLabel below an AWButton.
-    // Own it before the generic foreground curve so Sign Out can remain black.
+    // Cancel remains explicitly white in this exact dialog.  Sign Out has no
+    // special text owner; it falls through to the normal foreground pipeline.
     @try {
         if (ADRecolorOn() && [self.superview isKindOfClass:[UIButton class]]) {
             BOOL so=NO,ca=NO; UIButton *b=(UIButton *)self.superview;
-            if(ADSignOutDialogButton6141(b,&so,&ca)){
-                UIColor *want=so?ADSignOutBlack6141():ADCancelWhite6141();
+            if(ADSignOutDialogButton6141(b,&so,&ca) && ca){
+                UIColor *want=ADCancelWhite6141();
                 %orig(want);
                 return;
             }
@@ -3268,8 +3284,8 @@ static void ADPaintSignOutDialogButton6141(UIButton *b){
 - (void)setTitleColor:(UIColor *)color forState:(UIControlState)state {
     @try {
         BOOL so=NO,ca=NO;
-        if(ADSignOutDialogButton6141(self,&so,&ca)){
-            UIColor *want=so?ADSignOutBlack6141():ADCancelWhite6141();
+        if(ADSignOutDialogButton6141(self,&so,&ca) && ca){
+            UIColor *want=ADCancelWhite6141();
             %orig(want,state);
             return;
         }
