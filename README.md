@@ -1,3 +1,7 @@
+## v6.0.150 — finish Person-tab raster borders
+
+Probe 6149 showed that the remaining bright borders were not ordinary `borderColor` values. The visible white outline was baked into React Native `CALayer.contents` on two raster-backed card families: the outer **Explore more to shop** card and the compact **Your Account** carousel buttons. v6.0.150 replaces only those probe-proven raster plates with their existing dark logical fill plus the same 1pt `#494D4D` outline already used by Redeem Gift Card / Reload Balance. The layer-contents hook prevents React Native from repainting the stale white plate after layout. The working search-bar border logic is unchanged. The 6149 diagnostic exporter is removed.
+
 ## v6.0.149 — Person-tab border recovery + targeted probe
 
 - Keeps the working v6.0.148 native search-bar border correction unchanged.

@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.149"
+#define AD_VERSION "v6.0.150"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1966,7 +1966,6 @@ static void ADInjectAllWebViews(void){
 
 // v6.0.98 diagnostic exporter.  The JS ring buffer above reuses an existing DOM
 // observer; backgrounding once after reproducing the flash simply dumps that buffer.
-static void ADDumpPersonBorderProbe6149(void); // v6.0.149 targeted Person border probe
 static NSString *gADFlashProbePath6131 = nil;
 static NSString *ADFlashProbeRequestedPath6131(void){
     return @"/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/AmazonDark-standalone-ad-probe-6131.txt";
@@ -2030,7 +2029,6 @@ static void ADFlashWillResign6101(CFNotificationCenterRef center, void *observer
                                   CFDictionaryRef userInfo){
     dispatch_async(dispatch_get_main_queue(), ^{
         @try { ADDumpFlashProbe6101(@"WILL_RESIGN_ACTIVE"); } @catch(...) {}
-        @try { ADDumpPersonBorderProbe6149(); } @catch(...) {}
     });
 }
 
@@ -3404,6 +3402,7 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
 // No fills, text, icons, dimensions or corner geometry are changed.
 static const void *kADPersonBorderTarget6147 = &kADPersonBorderTarget6147;
 static const void *kADPersonBorderOverlay6147 = &kADPersonBorderOverlay6147;
+static const void *kADPersonRasterCard6150 = &kADPersonRasterCard6150;
 
 static UIColor *ADNeutralBorderGray6147(void){
     static UIColor *c=nil; static dispatch_once_t once;
@@ -3437,6 +3436,68 @@ static BOOL ADPersonBorderPhrase6147(NSString *text, BOOL *wideShort){
     }
     return [lo containsString:@"explore more to shop"];
 }
+// v6.0.150 — the 6149 probe identified the two remaining bright-border families
+// as React-Native raster-backed cards. Their visible stock outline is baked into
+// CALayer.contents rather than CALayer.borderColor:
+//   • Explore more to shop: outer RCTView 160x187, contents=YES.
+//   • Your Account chips: compact RCTViews with accessibility "..., List item N of 6",
+//     contents=YES.
+// Rebuild only those known raster plates from their already-dark logical background
+// plus the same #494D4D 1pt outline used by the neighboring cards. Text/images are
+// child views, so discarding the stale raster plate cannot erase card content.
+static int ADPersonRasterKind6150(NSString *text){
+    if(!text.length) return 0;
+    NSString *lo=text.lowercaseString;
+    lo=[lo stringByReplacingOccurrencesOfString:@"\n" withString:@" "];
+    lo=[lo stringByReplacingOccurrencesOfString:@"\r" withString:@" "];
+    lo=[lo stringByReplacingOccurrencesOfString:@"\t" withString:@" "];
+    while([lo containsString:@"  "]) lo=[lo stringByReplacingOccurrencesOfString:@"  " withString:@" "];
+    lo=[lo stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    if([lo containsString:@"explore more to shop"]) return 1;
+    NSRange item=[lo rangeOfString:@", list item "];
+    NSRange six=[lo rangeOfString:@" of 6" options:NSBackwardsSearch];
+    if(item.location!=NSNotFound && six.location!=NSNotFound && six.location>item.location) return 2;
+    return 0;
+}
+static BOOL ADPersonRasterGeometry6150(UIView *v, int kind){
+    if(!v || kind<=0) return NO;
+    CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+    if(kind==1) return w>=130.0 && w<=195.0 && h>=145.0 && h<=225.0;
+    if(kind==2) return w>=105.0 && w<=300.0 && h>=42.0 && h<=88.0;
+    return NO;
+}
+static void ADPaintPersonRasterCard6150(id obj, int kind){
+    UIView *v=(UIView *)obj;
+    if(!ADRecolorOn() || !v || !ADPersonRasterGeometry6150(v,kind)) return;
+    @try {
+        BOOL already=objc_getAssociatedObject(v,kADPersonRasterCard6150)!=nil;
+        if(!already && !v.layer.contents) return;
+        UIColor *fill=v.backgroundColor;
+        objc_setAssociatedObject(v,kADPersonRasterCard6150,@(kind),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(v.layer,kADPersonRasterCard6150,@(kind),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        [CATransaction begin];
+        [CATransaction setDisableActions:YES];
+        // Stop the old white RN raster border from competing with our real layer border.
+        v.layer.contents=nil;
+        if(fill) v.layer.backgroundColor=fill.CGColor;
+        v.layer.borderColor=ADNeutralBorderGray6147().CGColor;
+        v.layer.borderWidth=1.0;
+        if(v.layer.cornerRadius<1.0) v.layer.cornerRadius=8.0;
+        [CATransaction commit];
+    } @catch(...) {}
+}
+static void ADPersonRasterLayout6150(id obj){
+    UIView *v=(UIView *)obj;
+    if(!ADRecolorOn() || !v || !v.window) return;
+    @try {
+        NSString *a=v.accessibilityLabel;
+        int kind=ADPersonRasterKind6150(a);
+        if(kind && ADPersonRasterGeometry6150(v,kind) &&
+           (v.layer.contents || objc_getAssociatedObject(v,kADPersonRasterCard6150)))
+            ADPaintPersonRasterCard6150(v,kind);
+    } @catch(...) {}
+}
+
 static void ADPaintPersonBorder6147(id obj){
     UIView *v=(UIView *)obj;
     if(!ADRecolorOn() || !v || !objc_getAssociatedObject(v,kADPersonBorderTarget6147)) return;
@@ -3476,21 +3537,31 @@ static void ADClaimPersonBorder6147(UIView *textView, NSString *text){
     BOOL shortButton=NO;
     if(!ADRecolorOn() || !textView || !ADPersonBorderPhrase6147(text,&shortButton)) return;
     @try {
-        UIView *p=textView.superview, *fallback=nil;
+        UIView *p=textView.superview, *fallback=nil, *raster=nil;
         for(int d=0;p && d<9;d++,p=p.superview){
             if(!ADIsRCTBorderHost6147(p)) continue;
             CGFloat w=p.bounds.size.width,h=p.bounds.size.height;
             if(w<80 || h<32 || w>430 || h>260) continue;
-            if(shortButton){
-                if(w>=120 && w<=230 && h>=40 && h<=90){ fallback=p; break; }
-            } else {
-                if(w>=100 && w<=260 && h>=70 && h<=230){ fallback=p; break; }
-            }
+            BOOL geom=shortButton ? (w>=120 && w<=230 && h>=40 && h<=90)
+                                  : (w>=100 && w<=260 && h>=70 && h<=230);
+            if(!geom){ if(!fallback) fallback=p; continue; }
             if(!fallback) fallback=p;
+            // 6149 showed Explore's real white painter on the *outer* RCTView
+            // whose layer.contents is populated, one level above the inner card.
+            // Prefer that raster owner instead of stopping on the first child host.
+            if(p.layer.contents || objc_getAssociatedObject(p,kADPersonRasterCard6150)){ raster=p; break; }
+            if(shortButton) break;
         }
-        if(!fallback) return;
-        objc_setAssociatedObject(fallback,kADPersonBorderTarget6147,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        ADPaintPersonBorder6147(fallback);
+        UIView *target=raster ?: fallback;
+        if(!target) return;
+        int rk=ADPersonRasterKind6150(text);
+        if(rk && (target.layer.contents || objc_getAssociatedObject(target,kADPersonRasterCard6150)) &&
+           ADPersonRasterGeometry6150(target,rk)){
+            ADPaintPersonRasterCard6150(target,rk);
+            return;
+        }
+        objc_setAssociatedObject(target,kADPersonBorderTarget6147,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        ADPaintPersonBorder6147(target);
     } @catch(...) {}
 }
 static void ADClaimPersonBorderDeferred6147(id obj, NSString *text){
@@ -3585,101 +3656,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
         if(objc_getAssociatedObject(v,kADPersonBorderTarget6147)){
             ADNeutralizeClaimedLayerTree6149(v.layer,0);
             ADPaintPersonBorder6147(v);
-        }
-    } @catch(...) {}
-}
-
-// ── targeted probe: exact visible Person-tab lower-half hierarchy ─────────────
-static NSString *ADPersonProbeRGBA6149(UIColor *c){
-    if(!c) return @"nil";
-    @try {
-        CGFloat r=0,g=0,b=0,a=0;
-        if([c getRed:&r green:&g blue:&b alpha:&a])
-            return [NSString stringWithFormat:@"rgba(%.3f,%.3f,%.3f,%.3f)",r,g,b,a];
-    } @catch(...) {}
-    return [c description] ?: @"?";
-}
-static NSString *ADPersonProbeCG6149(CGColorRef c){
-    if(!c) return @"nil";
-    @try { return ADPersonProbeRGBA6149([UIColor colorWithCGColor:c]); } @catch(...) {}
-    return @"?";
-}
-static NSString *ADPersonProbeText6149(UIView *v){
-    NSString *t=ADWTViewText362(v);
-    if(!t.length) return @"";
-    t=[t stringByReplacingOccurrencesOfString:@"\n" withString:@" "];
-    if(t.length>180) t=[[t substringToIndex:180] stringByAppendingString:@"…"];
-    return t;
-}
-static void ADPersonProbeLayer6149(NSMutableString *out, CALayer *l, int depth){
-    if(!out||!l||depth>3) return;
-    @try {
-        NSString *pad=[@"" stringByPaddingToLength:(NSUInteger)(depth*2) withString:@" " startingAtIndex:0];
-        NSString *stroke=@"-"; CGFloat lw=0;
-        if([l isKindOfClass:[CAShapeLayer class]]){
-            CAShapeLayer *s=(CAShapeLayer *)l; stroke=ADPersonProbeCG6149(s.strokeColor); lw=s.lineWidth;
-        }
-        [out appendFormat:@"%@LAYER %@ frame={%.1f,%.1f,%.1f,%.1f} bg=%@ border=%@ bw=%.2f cr=%.2f stroke=%@ lw=%.2f contents=%@ opacity=%.2f\n",
-         pad,NSStringFromClass([l class]),l.frame.origin.x,l.frame.origin.y,l.frame.size.width,l.frame.size.height,
-         ADPersonProbeCG6149(l.backgroundColor),ADPersonProbeCG6149(l.borderColor),l.borderWidth,l.cornerRadius,
-         stroke,lw,l.contents?@"YES":@"NO",l.opacity];
-        NSUInteger lim=MIN((NSUInteger)10,l.sublayers.count);
-        for(NSUInteger i=0;i<lim;i++) ADPersonProbeLayer6149(out,l.sublayers[i],depth+1);
-    } @catch(...) {}
-}
-static void ADPersonProbeWalk6149(NSMutableString *out, UIView *v, UIWindow *w, int depth, int *count){
-    if(!out||!v||!w||!count||*count>900||depth>45) return;
-    @try {
-        if(v.hidden||v.alpha<0.01) return;
-        CGRect r=[v convertRect:v.bounds toView:w];
-        CGRect visible=CGRectIntersection(r,w.bounds);
-        if(CGRectIsNull(visible)||CGRectIsEmpty(visible)) return;
-        (*count)++;
-        NSString *txt=ADPersonProbeText6149(v);
-        const char *cn=object_getClassName(v);
-        BOOL react=(cn&&(strstr(cn,"RCT")||strstr(cn,"React")||strstr(cn,"Fabric")));
-        BOOL target=ADPersonBorderPhrase6147(txt,NULL);
-        BOOL borderish=v.layer.borderWidth>0.05||v.layer.contents!=nil;
-        for(CALayer *sl in v.layer.sublayers){
-            if(sl.borderWidth>0.05 || [sl isKindOfClass:[CAShapeLayer class]]) { borderish=YES; break; }
-        }
-        // Capture the whole lower half plus every React/border/target view on-screen,
-        // so one screenshot frame is enough to identify the real painter.
-        if(CGRectGetMaxY(r)>=w.bounds.size.height*0.32 || react || borderish || target || txt.length){
-            [out appendFormat:@"VIEW #%d d=%d %@ frame={%.1f,%.1f,%.1f,%.1f} bounds={%.1f,%.1f} alpha=%.2f bg=%@ tint=%@ target=%d tagged=%d text=\"%@\"\n",
-             *count,depth,cn?[NSString stringWithUTF8String:cn]:NSStringFromClass([v class]),r.origin.x,r.origin.y,r.size.width,r.size.height,
-             v.bounds.size.width,v.bounds.size.height,v.alpha,
-             ADPersonProbeRGBA6149(v.backgroundColor),ADPersonProbeRGBA6149(v.tintColor),
-             target?1:0,objc_getAssociatedObject(v,kADPersonBorderTarget6147)?1:0,txt];
-            ADPersonProbeLayer6149(out,v.layer,1);
-        }
-        for(UIView *s in v.subviews) ADPersonProbeWalk6149(out,s,w,depth+1,count);
-    } @catch(...) {}
-}
-static void ADDumpPersonBorderProbe6149(void){
-    if(![NSThread isMainThread]){ dispatch_async(dispatch_get_main_queue(), ^{ ADDumpPersonBorderProbe6149(); }); return; }
-    @try {
-        NSString *name=@"AmazonDark-person-border-probe-6149.txt";
-        NSString *shared=[@"/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents" stringByAppendingPathComponent:name];
-        NSString *local=[[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:name];
-        NSMutableString *out=[NSMutableString stringWithFormat:@"AmazonDark Person border probe 6149\nversion=%s\npid=%d\nshared=%@\nlocal=%@\nuptime=%.3f\n\n=== VISIBLE NATIVE VIEW/LAYER DUMP ===\n",
-                              AD_VERSION,getpid(),shared,local,ADUptime()];
-        int count=0; int wins=0;
-        for(UIScene *sc in [UIApplication sharedApplication].connectedScenes){
-            if(![sc isKindOfClass:[UIWindowScene class]]) continue;
-            for(UIWindow *w in ((UIWindowScene *)sc).windows){
-                if(!w||w.hidden||w.alpha<.01) continue;
-                wins++;
-                [out appendFormat:@"\nWINDOW %d %@ frame={%.1f,%.1f,%.1f,%.1f}\n",wins,NSStringFromClass([w class]),w.frame.origin.x,w.frame.origin.y,w.frame.size.width,w.frame.size.height];
-                ADPersonProbeWalk6149(out,w,w,0,&count);
-            }
-        }
-        [out appendFormat:@"\n=== SUMMARY ===\nwindows=%d visited=%d\n=== END PROBE ===\n",wins,count];
-        NSError *e=nil;
-        BOOL ok=[out writeToFile:shared atomically:YES encoding:NSUTF8StringEncoding error:&e];
-        if(!ok){
-            [out appendFormat:@"\nsharedWriteError=%@ (%ld) %@\n",e.domain?:@"?",(long)e.code,e.localizedDescription?:@"?"];
-            [out writeToFile:local atomically:YES encoding:NSUTF8StringEncoding error:nil];
         }
     } @catch(...) {}
 }
@@ -3787,6 +3763,20 @@ static void ADDumpPersonBorderProbe6149(void){
             return;
         }
     } @catch(...) {}
+    // v6.0.150: claimed Person raster cards are reconstructed as ordinary layers.
+    // Preserve their already-dark logical fill exactly; if Amazon later tries to
+    // restore an opaque bright neutral fill, still run it through the background map.
+    @try {
+        if (ADRecolorOn() && objc_getAssociatedObject(self,kADPersonRasterCard6150)) {
+            CGColorRef out=color;
+            if(color && ADBrightNeutralCG6149(color)) {
+                CGColorRef m=ADModifyCGColor(color,ADColorRoleBackground);
+                if(m) out=m;
+            }
+            %orig(out);
+            return;
+        }
+    } @catch(...) {}
     // Same scroll-thumb exemption at the backing-layer level: UIKit may update
     // the indicator fill directly on CALayer instead of UIView.backgroundColor.
     @try {
@@ -3822,6 +3812,15 @@ static void ADDumpPersonBorderProbe6149(void){
     %orig;
 }
 - (void)setContents:(id)contents {
+    // React Native regenerates its rasterized border image after layout/state changes.
+    // Once one of the two probe-proven Person cards is claimed, never let that stale
+    // white plate back onto the layer while recoloring is enabled.
+    @try {
+        if(ADRecolorOn() && objc_getAssociatedObject(self,kADPersonRasterCard6150)){
+            %orig(nil);
+            return;
+        }
+    } @catch(...) {}
     %orig;
     if (!contents || !gP.enabled || !gP.whiteTame) return;
     @try {
@@ -4278,8 +4277,9 @@ static void ADForceBarDark(UIView *bar){
 }
 - (void)layoutSubviews {
     %orig;
-    // Tagged-only fast path. Ordinary RCTView instances pay one associated-object
-    // lookup and do no semantic scan.
+    // v6.0.150: only accessibility-labelled compact raster cards perform the
+    // semantic check. The normal RCTView path remains a cheap nil-label fast path.
+    @try { ADPersonRasterLayout6150(self); } @catch(...) {}
     @try {
         if(objc_getAssociatedObject(self,kADPersonBorderTarget6147)){
             ADNeutralizeClaimedLayerTree6149(((UIView *)self).layer,0);
@@ -4321,6 +4321,7 @@ static void ADForceBarDark(UIView *bar){
 }
 - (void)layoutSubviews {
     %orig;
+    @try { ADPersonRasterLayout6150(self); } @catch(...) {}
     @try {
         if(objc_getAssociatedObject(self,kADPersonBorderTarget6147)){
             ADNeutralizeClaimedLayerTree6149(((UIView *)self).layer,0);
