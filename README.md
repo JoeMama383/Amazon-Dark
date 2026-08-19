@@ -1,3 +1,8 @@
+## v6.0.148 — compile fix for Person/search border owner
+
+- Preserves the v6.0.147 visual changes exactly: the bright Person-tab borders around Redeem Gift Card, Reload Balance, and Explore more to shop use the thin neutral gray border, and the native Amazon search field loses its brown/tan border.
+- Fixes the Logos/Clang build failure by accepting hooked forward-declared classes at the helper boundary and casting to `UIView *` internally. No border matching, colors, fills, text, icons, spacing, or geometry changed.
+
 ## v6.0.147 — normalize Person-card and search-bar borders
 
 - Person tab: changes only the bright outlines around **Redeem Gift Card**, **Reload Balance**, and **Explore more to shop** to the same thin neutral gray (`#494D4D`) sampled from neighboring AmazonDark cards.

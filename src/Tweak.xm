@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.147"
+#define AD_VERSION "v6.0.148"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3390,7 +3390,7 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
 
 
 // ════════════════════════════════════════════════════════════════════════════════
-// v6.0.147 — neutral gray border ownership for Person cards + native search chrome
+// v6.0.148 — compile-safe neutral gray border ownership for Person cards + native search chrome
 // ────────────────────────────────────────────────────────────────────────────────
 // Screenshot comparison shows the intended neighboring outline at about #494D4D.
 // Keep this owner narrow:
@@ -3426,7 +3426,8 @@ static BOOL ADPersonBorderPhrase6147(NSString *text, BOOL *wideShort){
     }
     return [lo containsString:@"explore more to shop"];
 }
-static void ADPaintPersonBorder6147(UIView *v){
+static void ADPaintPersonBorder6147(id obj){
+    UIView *v=(UIView *)obj;
     if(!ADRecolorOn() || !v || !objc_getAssociatedObject(v,kADPersonBorderTarget6147)) return;
     @try {
         UIColor *gray=ADNeutralBorderGray6147();
@@ -3481,7 +3482,8 @@ static void ADClaimPersonBorder6147(UIView *textView, NSString *text){
         ADPaintPersonBorder6147(fallback);
     } @catch(...) {}
 }
-static void ADClaimPersonBorderDeferred6147(UIView *textView, NSString *text){
+static void ADClaimPersonBorderDeferred6147(id obj, NSString *text){
+    UIView *textView=(UIView *)obj;
     BOOL dummy=NO;
     if(!textView || !ADPersonBorderPhrase6147(text,&dummy)) return;
     ADClaimPersonBorder6147(textView,text);
@@ -3513,7 +3515,8 @@ static BOOL ADIsPersonBorderLayer6147(CALayer *layer){
 }
 
 
-static void ADPaintAmazonSearchBorder6147(UIView *v){
+static void ADPaintAmazonSearchBorder6147(id obj){
+    UIView *v=(UIView *)obj;
     if(!ADRecolorOn() || !v) return;
     @try {
         v.layer.borderColor=ADNeutralBorderGray6147().CGColor;
@@ -3666,7 +3669,7 @@ static void ADPaintAmazonSearchBorder6147(UIView *v){
         return;
     }
     @try {
-        // v6.0.147: the native Amazon search field was the remaining brown/tan
+        // v6.0.148: the native Amazon search field was the remaining brown/tan
         // border owner.  The earlier probe named these exact classes and showed
         // rgba(0.404,0.373,0.329,.60). Neutralize the hue without touching fill.
         if (ADIsAmazonSearchBorderLayer6147(self) || ADIsPersonBorderLayer6147(self)) {
