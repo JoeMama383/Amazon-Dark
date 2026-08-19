@@ -1,4 +1,4 @@
-# AmazonDark v6.0.132
+# AmazonDark v6.0.133
 
 Production build. Restores the ad-frame classification the 5.x → 6.x rewrite dropped,
 narrows White Background Taming so it can no longer claim a whole sponsored ad shell,
@@ -42,6 +42,33 @@ own header.
 No new MutationObserver, scroll listener, interval, `requestAnimationFrame` loop, or
 recurring scan. `SPON()` reads `document.body.textContent` at most once per frame and
 caches the result; `textContent` does not force layout the way `innerText` would.
+
+## Home standalone ad (v6.0.133, probe-driven)
+
+The 6131 probe settled two things that were previously inference.
+
+**It was never TWB.** Every node in the ad's chain — `ape-wrapper`, `ape-placement`,
+the iframe, `mobile-mshop-ad` — reports empty `data-ad-twb6033` and
+`data-ad-twb-bg6033`, and no TWB-marked node in the dump overlaps the ad's rect. The
+lighter box is a plain background mismatch: `div.celwidget.ape-wrapper` computes to
+`rgb(24,26,27)` while `body` and `#a-page` are `rgb(19,21,22)`. `ape-placement` also
+carries a `1px solid rgb(59,64,67)` border, which is the visible outline. Both are now
+transparent so the page floor shows through.
+
+**The dark Sponsored label is a fourth template.** It is
+`span#ad-feedback-text-<uuid>` with no class at all and an inline `color:#555555`,
+under `#af-label-primary-link-<uuid>` and `.ape-feedback`. Nothing keyed on
+`sponsored-label` or `adFeedbackMainComponent` could reach it. Every other Sponsored
+label in the dump already computes `rgb(255,255,255)`. The id-prefix selectors now
+cover it.
+
+Both shells and the label are also added to Dark Reader's `ignoreInlineStyle`, or the
+transparent background is reinstated on the next pass — the same mechanism as the
+v5.334 discount-badge relapse.
+
+The info glyph is deliberately untouched this build: `near` is empty for every label
+in the dump, so the probe found no glyph element beside any Sponsored label on Home.
+It is either a pseudo-element or lives inside the cross-origin ad iframe.
 
 ## Dead and duplicated code removed (v6.0.132)
 

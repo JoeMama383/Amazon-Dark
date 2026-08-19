@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.132"
+#define AD_VERSION "v6.0.133"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -488,7 +488,17 @@ static void ADInvalidateWebCaches613(void){
     "[class*=ad-feedback-spr] path,[class*=ad-feedback-spr] img" \
     "{opacity:0 !important;filter:none !important;background-image:none !important;}" \
     "[class*=hybrid-widget-sponsored],[class*=adFeedbackMainComponent]" \
-    "{background-color:transparent !important;}"
+    "{background-color:transparent !important;}" \
+    "[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback]," \
+    "[id^=ape_][id*=_wrapper],[id^=ape_][id*=_placement]" \
+    "{background:transparent !important;background-color:transparent !important;" \
+    "background-image:none !important;border-color:transparent !important;" \
+    "box-shadow:none !important;outline:0 !important;}" \
+    "[class*=ape-feedback],[class*=ape-feedback] *," \
+    "[id^=ad-feedback-text-],[id^=af-label-primary-link-]," \
+    "[id^=af-label-primary-link-] *" \
+    "{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;" \
+    "opacity:1 !important;visibility:visible !important;mix-blend-mode:normal !important;}"
 
 #define AD_CSS_SWATCH_RINGS \
     ".s-color-swatch-outer-circle{border-color:#2f2f32 !important;outline-color:#2f2f32 !important;transition:none !important;}" \
@@ -876,6 +886,7 @@ static NSString *ADFixesLiteral(void){
              "',invert:[],ignoreInlineStyle:['[data-ad-native615]','[data-ad-native615] *',"
              "'ul.a-pagination.a-dots li.a-selected','ul.a-pagination.a-dots li.dot-selected-t2','[data-ad-dotselected374]',"
              "'[class*=ad-feedback-spr]','[class*=adFeedbackMainComponent]','[class*=adFeedbackMainComponent] *','[class*=sponsored-label]','[class*=sponsored-label] *',"
+             "'[class*=ape-wrapper]','[class*=ape-placement]','[class*=ape-feedback]','[class*=ape-feedback] *','[id^=ad-feedback-text-]',"
              "'html body .puis-mab-overlay .puis-mab-overlay-row-share .puis-mab-overlay-icon-share'],"
              "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
             imgBackdrop];
