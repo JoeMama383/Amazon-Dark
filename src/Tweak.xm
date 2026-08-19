@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.151"
+#define AD_VERSION "v6.0.152"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -484,18 +484,27 @@ static NSString *ADFixesLiteral(void){
              "[class*=nav-search] img,[class*=searchbar] img,[class*=search-bar] img,"
              "[role=search] img,[class*=nav-] img[class*=icon],[class*=header] img[class*=icon]"
              "{background-color:transparent !important;}"
-             // v6.0.138: keep Sponsored presentation stock-owned. Only the
-             // text ink is bridged to Amazon/Dark Reader's dark-mode secondary gray;
-             // glyph artwork, geometry, spacing and internal "i" remain untouched.
+             // v6.0.152: Sponsored text and info-badge ink are one palette owner.
+             // The Home product-card family uses several 11/12px sprite variants; leaving
+             // those stock-owned let the circle remain dark even while the label was gray.
              "[class*=sponsored-label],[class*=ad-feedback-text],[id^=ad-feedback-text-],"
              "[id^=af-label-primary-link-],[data-ad-sponsorgray6138]"
              "{color:#b1aaa0 !important;-webkit-text-fill-color:#b1aaa0 !important;"
              "opacity:1 !important;visibility:visible !important;}"
-             // First-paint stock sprite policy: never invert/replace the native asset.
-             // Color is supplied for currentColor/icon-font variants; background-image
-             // pixels, dimensions and the native internal i remain Amazon-owned.
-             "[class*=ad-feedback-spr]"
-             "{filter:none !important;color:#b1aaa0 !important;opacity:1 !important;visibility:visible !important;}"
+             // Known first-paint host plus the semantic runtime marker share one canonical
+             // 12px badge. This preserves the information-glyph shape while making the outer
+             // disc exactly the same #b1aaa0 secondary gray as the Sponsored text.
+             "[class*=ad-feedback-spr],[data-ad-sponsorglyph6138]"
+             "{filter:none !important;color:#b1aaa0 !important;background-color:transparent !important;"
+             "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjUuMjUiIGZpbGw9IiNiMWFhYTAiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy41NSIgcj0iLjcyIiBmaWxsPSIjMTMxNTE2Ii8+PHJlY3QgeD0iNS40MiIgeT0iNS4wNSIgd2lkdGg9IjEuMTYiIGhlaWdodD0iMy42NSIgcng9Ii41OCIgZmlsbD0iIzEzMTUxNiIvPjwvc3ZnPg==) !important;"
+             "background-repeat:no-repeat !important;background-position:center !important;"
+             "background-size:contain !important;opacity:1 !important;visibility:visible !important;}"
+             "[class*=ad-feedback-spr]::before,[class*=ad-feedback-spr]::after,"
+             "[data-ad-sponsorglyph6138]::before,[data-ad-sponsorglyph6138]::after"
+             "{filter:none !important;color:#b1aaa0 !important;background-color:transparent !important;"
+             "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjUuMjUiIGZpbGw9IiNiMWFhYTAiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy41NSIgcj0iLjcyIiBmaWxsPSIjMTMxNTE2Ii8+PHJlY3QgeD0iNS40MiIgeT0iNS4wNSIgd2lkdGg9IjEuMTYiIGhlaWdodD0iMy42NSIgcng9Ii41OCIgZmlsbD0iIzEzMTUxNiIvPjwvc3ZnPg==) !important;"
+             "background-repeat:no-repeat !important;background-position:center !important;"
+             "background-size:contain !important;opacity:1 !important;visibility:visible !important;}"
              // Keep the probe-proven v6.0.133 APE floor ownership. This is not the
              // 6.0.134+ ancestor clearer: only Amazon's known APE placement chrome is
              // transparent so the already-dark page floor shows through.
@@ -1001,18 +1010,27 @@ static NSString *ADDarkReaderBootstrap(void){
              "[class*=nav-search] img,[class*=searchbar] img,[class*=search-bar] img,"
              "[role=search] img,[class*=nav-] img[class*=icon],[class*=header] img[class*=icon]"
              "{background-color:transparent !important;}"
-             // v6.0.138: keep Sponsored presentation stock-owned. Only the
-             // text ink is bridged to Amazon/Dark Reader's dark-mode secondary gray;
-             // glyph artwork, geometry, spacing and internal "i" remain untouched.
+             // v6.0.152: Sponsored text and info-badge ink are one palette owner.
+             // The Home product-card family uses several 11/12px sprite variants; leaving
+             // those stock-owned let the circle remain dark even while the label was gray.
              "[class*=sponsored-label],[class*=ad-feedback-text],[id^=ad-feedback-text-],"
              "[id^=af-label-primary-link-],[data-ad-sponsorgray6138]"
              "{color:#b1aaa0 !important;-webkit-text-fill-color:#b1aaa0 !important;"
              "opacity:1 !important;visibility:visible !important;}"
-             // First-paint stock sprite policy: never invert/replace the native asset.
-             // Color is supplied for currentColor/icon-font variants; background-image
-             // pixels, dimensions and the native internal i remain Amazon-owned.
-             "[class*=ad-feedback-spr]"
-             "{filter:none !important;color:#b1aaa0 !important;opacity:1 !important;visibility:visible !important;}"
+             // Known first-paint host plus the semantic runtime marker share one canonical
+             // 12px badge. This preserves the information-glyph shape while making the outer
+             // disc exactly the same #b1aaa0 secondary gray as the Sponsored text.
+             "[class*=ad-feedback-spr],[data-ad-sponsorglyph6138]"
+             "{filter:none !important;color:#b1aaa0 !important;background-color:transparent !important;"
+             "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjUuMjUiIGZpbGw9IiNiMWFhYTAiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy41NSIgcj0iLjcyIiBmaWxsPSIjMTMxNTE2Ii8+PHJlY3QgeD0iNS40MiIgeT0iNS4wNSIgd2lkdGg9IjEuMTYiIGhlaWdodD0iMy42NSIgcng9Ii41OCIgZmlsbD0iIzEzMTUxNiIvPjwvc3ZnPg==) !important;"
+             "background-repeat:no-repeat !important;background-position:center !important;"
+             "background-size:contain !important;opacity:1 !important;visibility:visible !important;}"
+             "[class*=ad-feedback-spr]::before,[class*=ad-feedback-spr]::after,"
+             "[data-ad-sponsorglyph6138]::before,[data-ad-sponsorglyph6138]::after"
+             "{filter:none !important;color:#b1aaa0 !important;background-color:transparent !important;"
+             "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjUuMjUiIGZpbGw9IiNiMWFhYTAiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy41NSIgcj0iLjcyIiBmaWxsPSIjMTMxNTE2Ii8+PHJlY3QgeD0iNS40MiIgeT0iNS4wNSIgd2lkdGg9IjEuMTYiIGhlaWdodD0iMy42NSIgcng9Ii41OCIgZmlsbD0iIzEzMTUxNiIvPjwvc3ZnPg==) !important;"
+             "background-repeat:no-repeat !important;background-position:center !important;"
+             "background-size:contain !important;opacity:1 !important;visibility:visible !important;}"
              // Keep the probe-proven v6.0.133 APE floor ownership. This is not the
              // 6.0.134+ ancestor clearer: only Amazon's known APE placement chrome is
              // transparent so the already-dark page floor shows through.
@@ -1302,10 +1320,11 @@ static NSString *ADDarkReaderBootstrap(void){
            // Amazon's stock info artwork.
            "function adSponsorText6138(e){try{if(!e||!e.childNodes)return false;var t='';for(var si=0;si<e.childNodes.length&&si<12;si++){var sn=e.childNodes[si];if(sn.nodeType===3)t+=' '+String(sn.nodeValue||'');}t=t.replace(/\s+/g,' ').trim();return /^sponsored(?: ad)?$/i.test(t);}catch(x){return false;}}"
            "function adSponsorCtx6138(e){try{var p=e,d=0;while(p&&d++<4){var c=p.className;if(c&&c.baseVal!==undefined)c=c.baseVal;var z=(String(c||'')+' '+String(p.id||'')).toLowerCase();if(/sponsor|ad-feedback|adfeedback|ape-feedback/.test(z)||adSponsorText6138(p))return true;var tx=String(p.textContent||'').replace(/\s+/g,' ').trim();if(tx.length<=120&&/\bsponsored(?: ad)?\b/i.test(tx))return true;p=p.parentElement;}return false;}catch(x){return false;}}"
-           // Keep Amazon's stock info artwork. Only color-driven glyph implementations
-           // are bridged to the same secondary gray; background-image sprites are left
-           // byte-for-byte stock and merely protected from generic inversion.
-           "function adSponsorGlyph6138(e){try{if(!e||e.nodeType!==1||adSponsorText6138(e)||!adSponsorCtx6138(e))return false;var r=e.getBoundingClientRect();if(r.width<5||r.height<5||r.width>30||r.height>30)return false;var cs=getComputedStyle(e),c=e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;var z=(String(c||'')+' '+String(e.id||'')+' '+String((e.getAttribute&&e.getAttribute('aria-label'))||'')+' '+String((e.getAttribute&&e.getAttribute('title'))||'')).toLowerCase(),tg=String(e.tagName||'').toUpperCase(),bi=String(cs.backgroundImage||'none'),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),pb=null,pa=null,pc=false;try{pb=getComputedStyle(e,'::before');pa=getComputedStyle(e,'::after');pc=(pb&&pb.content&&pb.content!=='none'&&pb.content!=='normal')||(pa&&pa.content&&pa.content!=='none'&&pa.content!=='normal');}catch(q){}var known=/ad-feedback-spr|feedback.*(?:spr|icon)|(?:sponsor|info).*icon|icon.*info/.test(z),vector=(tg==='SVG'||tg==='PATH'||(e.namespaceURI==='http://www.w3.org/2000/svg'));if(!known&&!vector&&mi==='none'&&bi==='none'&&!pc)return false;e.setAttribute('data-ad-sponsorglyph6138','1');e.style.setProperty('opacity','1','important');e.style.setProperty('visibility','visible','important');e.style.setProperty('mix-blend-mode','normal','important');if(mi!=='none'){e.style.setProperty('background-color','#b1aaa0','important');e.style.setProperty('filter','none','important');}else if(vector){var f=lum(cs.fill),st=lum(cs.stroke);e.style.setProperty('color','#b1aaa0','important');if(f!==null&&f<0.55)e.style.setProperty('fill','#b1aaa0','important');if(st!==null&&st<0.55)e.style.setProperty('stroke','#b1aaa0','important');e.style.setProperty('filter','none','important');}else if(bi==='none'){e.style.setProperty('color','#b1aaa0','important');e.style.setProperty('-webkit-text-fill-color','#b1aaa0','important');e.style.setProperty('filter','none','important');}else{e.style.setProperty('filter','none','important');}return true;}catch(x){return false;}}"
+           // v6.0.152: the semantic bridge now owns bitmap-backed info badges too.
+           // Several Home ad-card templates expose the 11/12px info icon only as an
+           // anonymous background-image/IMG sprite; preserving that stock bitmap is why
+           // those badges stayed dark while the adjacent Sponsored label was #b1aaa0.
+           "function adSponsorGlyph6138(e){try{if(!e||e.nodeType!==1||adSponsorText6138(e)||!adSponsorCtx6138(e))return false;var r=e.getBoundingClientRect();if(r.width<5||r.height<5||r.width>30||r.height>30)return false;var cs=getComputedStyle(e),c=e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;var z=(String(c||'')+' '+String(e.id||'')+' '+String((e.getAttribute&&e.getAttribute('aria-label'))||'')+' '+String((e.getAttribute&&e.getAttribute('title'))||'')).toLowerCase(),tg=String(e.tagName||'').toUpperCase(),bi=String(cs.backgroundImage||'none'),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),pb=null,pa=null,pc=false;try{pb=getComputedStyle(e,'::before');pa=getComputedStyle(e,'::after');pc=(pb&&pb.content&&pb.content!=='none'&&pb.content!=='normal')||(pa&&pa.content&&pa.content!=='none'&&pa.content!=='normal');}catch(q){}var known=/ad-feedback-spr|feedback.*(?:spr|icon)|(?:sponsor|info).*icon|icon.*info/.test(z),vector=(tg==='SVG'||tg==='PATH'||(e.namespaceURI==='http://www.w3.org/2000/svg'));if(!known&&!vector&&mi==='none'&&bi==='none'&&!pc)return false;e.setAttribute('data-ad-sponsorglyph6138','1');e.style.setProperty('opacity','1','important');e.style.setProperty('visibility','visible','important');e.style.setProperty('mix-blend-mode','normal','important');e.style.setProperty('filter','none','important');if(tg==='IMG'){try{e.setAttribute('src','data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjUuMjUiIGZpbGw9IiNiMWFhYTAiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy41NSIgcj0iLjcyIiBmaWxsPSIjMTMxNTE2Ii8+PHJlY3QgeD0iNS40MiIgeT0iNS4wNSIgd2lkdGg9IjEuMTYiIGhlaWdodD0iMy42NSIgcng9Ii41OCIgZmlsbD0iIzEzMTUxNiIvPjwvc3ZnPg==');}catch(q){}e.style.setProperty('background-color','transparent','important');e.style.setProperty('object-fit','contain','important');}else if(mi!=='none'){e.style.setProperty('background-color','#b1aaa0','important');}else if(vector){e.style.setProperty('color','#b1aaa0','important');e.style.setProperty('fill','#b1aaa0','important');e.style.setProperty('stroke','#b1aaa0','important');}else if(bi!=='none'||pc||known){e.style.setProperty('color','#b1aaa0','important');e.style.setProperty('background-color','transparent','important');e.style.setProperty('background-image','url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjUuMjUiIGZpbGw9IiNiMWFhYTAiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy41NSIgcj0iLjcyIiBmaWxsPSIjMTMxNTE2Ii8+PHJlY3QgeD0iNS40MiIgeT0iNS4wNSIgd2lkdGg9IjEuMTYiIGhlaWdodD0iMy42NSIgcng9Ii41OCIgZmlsbD0iIzEzMTUxNiIvPjwvc3ZnPg==)','important');e.style.setProperty('background-repeat','no-repeat','important');e.style.setProperty('background-position','center','important');e.style.setProperty('background-size','contain','important');}else{e.style.setProperty('color','#b1aaa0','important');e.style.setProperty('-webkit-text-fill-color','#b1aaa0','important');}return true;}catch(x){return false;}}"
            "for(var i=0;i<els.length;i++){var el=els[i];"
              "if(adSigninFooterText6144(el)){adSigninFooter6144(el);}"
              "if(adCartCreditText6143(el)){adCartCredit6143(el);}"

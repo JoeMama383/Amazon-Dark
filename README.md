@@ -1,3 +1,12 @@
+## v6.0.152 — Sponsored info-glyph color parity
+
+The Home product-card Sponsored labels were already pinned to AmazonDark's secondary gray (`#b1aaa0`), but several 11/12 px information-badge variants remained dark because v6.0.138 intentionally preserved stock bitmap/background-image glyphs. v6.0.152 closes that gap without widening the Sponsor scan.
+
+- Keeps Sponsored text at the existing `#b1aaa0` secondary gray.
+- The known `ad-feedback-spr` first-paint host and the existing semantic `data-ad-sponsorglyph6138` marker now use one canonical 12 px information badge whose outer disc is exactly `#b1aaa0`.
+- The existing bounded Sponsored bridge now also replaces positively identified bitmap/background-image badge variants rather than leaving their dark stock pixels untouched; known IMG/vector/mask variants remain geometry-gated to 5–30 px and Sponsor-context-gated.
+- No new MutationObserver, timer, RAF loop, scroll listener, or page-wide Sponsor scan is added. The working v6.0.151 Person-border and search-border fixes are unchanged.
+
 ## v6.0.151 — single-source Person borders + first-paint suppression
 
 The 6.0.150 result exposed two separate ownership conflicts. **Explore more to shop** was correctly losing its white React-Native raster plate, but our replacement `CALayer.borderColor` was then being re-mapped by the generic border engine to the familiar brown/tan hue. **Redeem Gift Card / Reload Balance** still retained their stock raster border under our gray overlay, producing the doubled/misaligned edge visible when zoomed in.
