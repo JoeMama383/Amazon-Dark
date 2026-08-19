@@ -1,10 +1,10 @@
-# AmazonDark v6.0.139
+# AmazonDark v6.0.140 probe
 
-Targeted Person > Sign Out dialog paint correction on the v6.0.138 base. No other UI ownership changes are included.
+Temporary **Sign Out confirmation dialog probe**, built directly from the stable v6.0.138 behavior. No v6.0.139 button recolor is included. With the Sign Out confirmation visible, background Amazon once. The probe captures the visible UIKit/layer tree plus computed DOM/CSS for `Sign Out`, `Cancel`, and `You are signed in as`, then the SpringBoard companion automatically relays the completed file to:
 
-- Existing yellow **Sign Out** button is preserved; its title ink is pinned to black.
-- Existing **Cancel** button background is changed to medium gray (`#666666`) and its title ink to white.
-- Dialog/card background, title/body text, button geometry, borders, spacing, Sponsored handling, TWB/TLB, and all other v6.0.138 behavior are unchanged.
+`/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/AmazonDark-signout-dialog-probe-6140.txt`
+
+No recurring observer, scroll listener, interval, or RAF loop is added.
 
 # AmazonDark v6.0.138
 

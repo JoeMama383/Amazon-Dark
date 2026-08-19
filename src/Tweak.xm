@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.139"
+#define AD_VERSION "v6.0.140-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1988,6 +1988,296 @@ static void ADFlashWillResign6101(CFNotificationCenterRef center, void *observer
                                   CFDictionaryRef userInfo){
     dispatch_async(dispatch_get_main_queue(), ^{ @try { ADDumpFlashProbe6101(@"WILL_RESIGN_ACTIVE"); } @catch(...) {} });
 }
+
+
+// ════════════════════════════════════════════════════════════════════════════════
+// v6.0.140 temporary Sign Out dialog probe.
+// Captures BOTH native UIKit/layer state and the DOM/CSS state of every mounted
+// WKWebView when Amazon resigns active with the confirmation dialog visible.
+// Amazon writes the capture inside its own sandbox, then SpringBoard relays the
+// finished file into the same Shared/AppGroup Documents folder used for source ZIPs.
+// No recurring observer/timer is added; this is a one-shot background snapshot.
+// ════════════════════════════════════════════════════════════════════════════════
+#define AD_SIGNOUT_PROBE_NOTIFY_6140 "com.colindavidr.amazondark.signoutprobe6140.ready"
+static NSString * const kADSignOutProbeName6140 = @"AmazonDark-signout-dialog-probe-6140.txt";
+
+static NSString *ADProbeColor6140(UIColor *c){
+    if (!c) return @"nil";
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0;
+        if ([c getRed:&r green:&g blue:&b alpha:&a])
+            return [NSString stringWithFormat:@"rgba(%.3f,%.3f,%.3f,%.3f)",r,g,b,a];
+        if ([c getWhite:&w alpha:&a])
+            return [NSString stringWithFormat:@"white(%.3f,%.3f)",w,a];
+        CGColorRef cg=c.CGColor;
+        size_t n=CGColorGetNumberOfComponents(cg);
+        const CGFloat *v=CGColorGetComponents(cg);
+        if (n>=4) return [NSString stringWithFormat:@"rgba(%.3f,%.3f,%.3f,%.3f)",v[0],v[1],v[2],v[3]];
+        if (n>=2) return [NSString stringWithFormat:@"white(%.3f,%.3f)",v[0],v[1]];
+        return [c description];
+    } @catch(...) { return @"<?>"; }
+}
+
+static NSString *ADProbeCGColor6140(CGColorRef cg){
+    if (!cg) return @"nil";
+    @try { return ADProbeColor6140([UIColor colorWithCGColor:cg]); }
+    @catch(...) { return @"<?>"; }
+}
+
+static NSString *ADProbeSafeText6140(NSString *s){
+    if (!s.length) return @"";
+    NSString *x=[s stringByReplacingOccurrencesOfString:@"\n" withString:@"\\n"];
+    if (x.length>500) x=[[x substringToIndex:500] stringByAppendingString:@"…"];
+    return x;
+}
+
+static void ADProbeAppend6140(NSString *path, NSString *s){
+    if (!path.length || !s.length) return;
+    @try {
+        NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding];
+        NSFileHandle *fh=[NSFileHandle fileHandleForWritingAtPath:path];
+        if (!fh) {
+            [[NSFileManager defaultManager] createFileAtPath:path contents:d attributes:nil];
+        } else {
+            [fh seekToEndOfFile];
+            [fh writeData:d];
+            [fh closeFile];
+        }
+    } @catch(...) {}
+}
+
+static void ADProbeLayer6140(CALayer *l, NSMutableString *o){
+    if (!l || !o) return;
+    @try {
+        [o appendFormat:@" layer=%@ bg=%@ border=%@ bw=%.2f cr=%.2f op=%.3f hidden=%d masks=%d",
+         NSStringFromClass([l class]), ADProbeCGColor6140(l.backgroundColor),
+         ADProbeCGColor6140(l.borderColor), l.borderWidth, l.cornerRadius,
+         l.opacity, l.hidden?1:0, l.masksToBounds?1:0];
+        if ([l isKindOfClass:[CAGradientLayer class]]){
+            CAGradientLayer *g=(CAGradientLayer *)l;
+            NSMutableArray *cols=[NSMutableArray array];
+            for (id c in g.colors ?: @[]){
+                CGColorRef cg=(__bridge CGColorRef)c;
+                [cols addObject:ADProbeCGColor6140(cg)];
+            }
+            [o appendFormat:@" gradientColors=%@ locations=%@ start={%.2f,%.2f} end={%.2f,%.2f}",
+             cols, g.locations ?: @[], g.startPoint.x,g.startPoint.y,g.endPoint.x,g.endPoint.y];
+        }
+        if (l.sublayers.count){
+            NSUInteger lim=MIN((NSUInteger)l.sublayers.count,(NSUInteger)8);
+            [o appendFormat:@" sublayers=%lu[",(unsigned long)l.sublayers.count];
+            for (NSUInteger i=0;i<lim;i++){
+                CALayer *sl=l.sublayers[i];
+                [o appendFormat:@"%@%@{bg=%@,border=%@,bw=%.1f,cr=%.1f,op=%.2f}",
+                 i?@",":@"",NSStringFromClass([sl class]),
+                 ADProbeCGColor6140(sl.backgroundColor),ADProbeCGColor6140(sl.borderColor),
+                 sl.borderWidth,sl.cornerRadius,sl.opacity];
+            }
+            [o appendString:@"]"];
+        }
+    } @catch(...) {}
+}
+
+static BOOL ADProbeInterestingText6140(NSString *s){
+    if (!s.length) return NO;
+    NSString *x=s.lowercaseString;
+    return [x containsString:@"sign out"] || [x containsString:@"cancel"] ||
+           [x containsString:@"you are signed in as"];
+}
+
+static void ADProbeWalkView6140(UIView *v, NSUInteger depth, NSMutableString *o,
+                                NSUInteger *count, NSMutableArray<UIView *> *hits){
+    if (!v || !o || !count || *count>=1200 || depth>30) return;
+    @try {
+        CGRect r=[v convertRect:v.bounds toView:nil];
+        CGRect screen=[UIScreen mainScreen].bounds;
+        BOOL onscreen=CGRectIntersectsRect(r,screen) && !v.hidden && v.alpha>0.001;
+        NSString *txt=@"";
+        NSString *extra=@"";
+        if ([v isKindOfClass:[UILabel class]]){
+            UILabel *l=(UILabel *)v;
+            txt=l.text ?: @"";
+            extra=[NSString stringWithFormat:@" UILabel color=%@ font=%@/%.2f align=%ld lines=%ld",
+                   ADProbeColor6140(l.textColor),l.font.fontName,l.font.pointSize,
+                   (long)l.textAlignment,(long)l.numberOfLines];
+        } else if ([v isKindOfClass:[UIButton class]]){
+            UIButton *b=(UIButton *)v;
+            txt=b.currentTitle ?: b.titleLabel.text ?: @"";
+            extra=[NSString stringWithFormat:
+                   @" UIButton type=%ld state=%lu titleColor.current=%@ normal=%@ highlighted=%@ disabled=%@ selected=%@ image=%@ bgImage=%@",
+                   (long)b.buttonType,(unsigned long)b.state,
+                   ADProbeColor6140([b titleColorForState:b.state]),
+                   ADProbeColor6140([b titleColorForState:UIControlStateNormal]),
+                   ADProbeColor6140([b titleColorForState:UIControlStateHighlighted]),
+                   ADProbeColor6140([b titleColorForState:UIControlStateDisabled]),
+                   ADProbeColor6140([b titleColorForState:UIControlStateSelected]),
+                   b.currentImage?@"Y":@"N",b.currentBackgroundImage?@"Y":@"N"];
+        } else if ([v isKindOfClass:[UITextView class]]){
+            UITextView *t=(UITextView *)v; txt=t.text ?: @"";
+            extra=[NSString stringWithFormat:@" UITextView color=%@ font=%@/%.2f",
+                   ADProbeColor6140(t.textColor),t.font.fontName,t.font.pointSize];
+        }
+        BOOL hit=ADProbeInterestingText6140(txt);
+        if (hit && hits) [hits addObject:v];
+        if (onscreen || hit){
+            (*count)++;
+            NSMutableString *line=[NSMutableString stringWithFormat:
+                @"VIEW #%lu depth=%lu %@ frame={%.1f,%.1f,%.1f,%.1f} bounds={%.1f,%.1f,%.1f,%.1f} hidden=%d alpha=%.3f UI=%d bg=%@ tint=%@ tag=%ld%@",
+                (unsigned long)*count,(unsigned long)depth,NSStringFromClass([v class]),
+                r.origin.x,r.origin.y,r.size.width,r.size.height,
+                v.bounds.origin.x,v.bounds.origin.y,v.bounds.size.width,v.bounds.size.height,
+                v.hidden?1:0,v.alpha,v.userInteractionEnabled?1:0,
+                ADProbeColor6140(v.backgroundColor),ADProbeColor6140(v.tintColor),(long)v.tag,extra];
+            ADProbeLayer6140(v.layer,line);
+            if (txt.length) [line appendFormat:@" text=\"%@\"",ADProbeSafeText6140(txt)];
+            [line appendString:@"\n"];
+            [o appendString:line];
+        }
+        for (UIView *s in v.subviews) ADProbeWalkView6140(s,depth+1,o,count,hits);
+    } @catch(...) {}
+}
+
+static NSString *ADProbeNativeDump6140(void){
+    NSMutableString *o=[NSMutableString stringWithString:@"=== NATIVE VISIBLE VIEW/LAYER DUMP ===\n"];
+    @try {
+        NSUInteger n=0;
+        NSMutableArray<UIView *> *hits=[NSMutableArray array];
+        NSArray *wins=[UIApplication sharedApplication].windows;
+        [o appendFormat:@"windows=%lu screen={%.1f,%.1f}\n",(unsigned long)wins.count,
+         [UIScreen mainScreen].bounds.size.width,[UIScreen mainScreen].bounds.size.height];
+        for (UIWindow *w in wins){
+            [o appendFormat:@"WINDOW %@ level=%.1f key=%d hidden=%d alpha=%.3f root=%@\n",
+             NSStringFromClass([w class]),w.windowLevel,w.isKeyWindow?1:0,w.hidden?1:0,w.alpha,
+             NSStringFromClass([w.rootViewController class])];
+            ADProbeWalkView6140(w,0,o,&n,hits);
+        }
+        [o appendFormat:@"\n=== TARGET CHAINS (%lu hits) ===\n",(unsigned long)hits.count];
+        for (UIView *h in hits){
+            NSString *txt=@"";
+            if ([h isKindOfClass:[UILabel class]]) txt=((UILabel *)h).text ?: @"";
+            else if ([h isKindOfClass:[UIButton class]]) txt=((UIButton *)h).currentTitle ?: @"";
+            [o appendFormat:@"TARGET \"%@\"\n",ADProbeSafeText6140(txt)];
+            UIView *p=h; NSUInteger d=0;
+            while (p && d++<12){
+                CGRect r=[p convertRect:p.bounds toView:nil];
+                NSMutableString *line=[NSMutableString stringWithFormat:
+                    @"  ^%lu %@ frame={%.1f,%.1f,%.1f,%.1f} bg=%@ alpha=%.3f",
+                    (unsigned long)(d-1),NSStringFromClass([p class]),
+                    r.origin.x,r.origin.y,r.size.width,r.size.height,
+                    ADProbeColor6140(p.backgroundColor),p.alpha];
+                ADProbeLayer6140(p.layer,line);
+                [line appendString:@"\n"];
+                [o appendString:line];
+                p=p.superview;
+            }
+        }
+    } @catch(NSException *e) {
+        [o appendFormat:@"NATIVE_EXCEPTION %@ %@\n",e.name,e.reason];
+    }
+    [o appendString:@"\n"];
+    return o;
+}
+
+static NSString *ADProbeDOMJS6140(void){
+    return @"(function(){try{"
+    "function css(el,p){try{var c=getComputedStyle(el,p||null),r=el.getBoundingClientRect();return {tag:el.tagName,id:el.id||'',cl:String(el.className||'').slice(0,500),text:String(el.innerText||el.textContent||'').replace(/\\s+/g,' ').trim().slice(0,500),rect:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],color:c.color,bg:c.backgroundColor,bgi:c.backgroundImage,border:c.border,bw:c.borderWidth,bc:c.borderColor,br:c.borderRadius,opacity:c.opacity,display:c.display,visibility:c.visibility,font:c.font,fontFamily:c.fontFamily,fontSize:c.fontSize,fontWeight:c.fontWeight,lineHeight:c.lineHeight,letterSpacing:c.letterSpacing,filter:c.filter,transform:c.transform,content:c.content,position:c.position,z:c.zIndex,boxShadow:c.boxShadow};}catch(e){return {err:String(e)}}}"
+    "function chain(el){var a=[],p=el,d=0;while(p&&d++<10){a.push(css(p));p=p.parentElement;}return a;}"
+    "function html(el){try{return String(el.outerHTML||'').slice(0,1800)}catch(e){return ''}}"
+    "var all=document.querySelectorAll('body *'),hits=[];"
+    "for(var i=0;i<all.length&&hits.length<40;i++){var e=all[i],t=String(e.innerText||e.textContent||'').replace(/\\s+/g,' ').trim();"
+    "if(!t||t.length>260)continue;var l=t.toLowerCase();"
+    "if(l==='sign out'||l==='cancel'||l.indexOf('you are signed in as')>=0){"
+    "var rec={self:css(e),before:css(e,'::before'),after:css(e,'::after'),chain:chain(e),html:html(e),children:[]};"
+    "for(var k=0;k<e.children.length&&k<12;k++)rec.children.push({self:css(e.children[k]),before:css(e.children[k],'::before'),after:css(e.children[k],'::after'),html:html(e.children[k])});"
+    "hits.push(rec);}}"
+    "var ctrls=[],q=document.querySelectorAll('button,input,[role=button],a');"
+    "for(var j=0;j<q.length&&ctrls.length<100;j++){var x=q[j],r=x.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight||r.right<0||r.left>innerWidth)continue;"
+    "var tt=String(x.innerText||x.value||x.getAttribute('aria-label')||'').replace(/\\s+/g,' ').trim();"
+    "if(tt||r.width>80)ctrls.push({self:css(x),before:css(x,'::before'),after:css(x,'::after'),html:html(x)});}"
+    "return JSON.stringify({url:location.href,title:document.title,viewport:[innerWidth,innerHeight],hits:hits,visibleControls:ctrls});"
+    "}catch(e){return 'PROBE_ERR '+String(e)+'\\n'+(e&&e.stack||'');}})();";
+}
+
+static NSString *ADSignOutProbeLocalPath6140(void){
+    return [[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"]
+            stringByAppendingPathComponent:kADSignOutProbeName6140];
+}
+
+static void ADSignOutProbeFinish6140(NSString *path, UIBackgroundTaskIdentifier bg){
+    ADProbeAppend6140(path,@"\n=== END PROBE ===\n");
+    notify_post(AD_SIGNOUT_PROBE_NOTIFY_6140);
+    if (bg!=UIBackgroundTaskInvalid){
+        @try { [[UIApplication sharedApplication] endBackgroundTask:bg]; } @catch(...) {}
+    }
+}
+
+static void ADDumpSignOutProbe6140(void){
+    if (![NSThread isMainThread]){
+        dispatch_async(dispatch_get_main_queue(), ^{ ADDumpSignOutProbe6140(); });
+        return;
+    }
+    @try {
+        NSString *path=ADSignOutProbeLocalPath6140();
+        [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
+        NSString *hdr=[NSString stringWithFormat:
+            @"AmazonDark Sign Out dialog probe 6140\nversion=%s\npid=%d\nlocal=%@\nrelayTarget=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/%@\nuptime=%.3f\n\n",
+            AD_VERSION,getpid(),path,kADSignOutProbeName6140,ADUptime()];
+        ADProbeAppend6140(path,hdr);
+        ADProbeAppend6140(path,ADProbeNativeDump6140());
+
+        __block UIBackgroundTaskIdentifier bg=UIBackgroundTaskInvalid;
+        bg=[[UIApplication sharedApplication] beginBackgroundTaskWithName:@"AmazonDarkSignOutProbe6140"
+            expirationHandler:^{
+                ADProbeAppend6140(path,@"\nBACKGROUND_TASK_EXPIRED\n");
+                notify_post(AD_SIGNOUT_PROBE_NOTIFY_6140);
+                if (bg!=UIBackgroundTaskInvalid){
+                    [[UIApplication sharedApplication] endBackgroundTask:bg];
+                    bg=UIBackgroundTaskInvalid;
+                }
+            }];
+
+        NSArray *views=gADWebViews613.allObjects ?: @[];
+        NSMutableArray<WKWebView *> *mounted=[NSMutableArray array];
+        for (WKWebView *wv in views) if (wv && wv.window) [mounted addObject:wv];
+        ADProbeAppend6140(path,[NSString stringWithFormat:@"=== DOM/CSS DUMPS mountedWebViews=%lu ===\n",(unsigned long)mounted.count]);
+
+        if (!mounted.count){
+            ADSignOutProbeFinish6140(path,bg);
+            return;
+        }
+
+        dispatch_group_t group=dispatch_group_create();
+        NSString *js=ADProbeDOMJS6140();
+        __block NSUInteger idx=0;
+        for (WKWebView *wv in mounted){
+            NSUInteger my=idx++;
+            NSString *url=wv.URL.absoluteString ?: @"";
+            dispatch_group_enter(group);
+            [wv evaluateJavaScript:js completionHandler:^(id result,NSError *error){
+                NSString *body=error?[NSString stringWithFormat:@"ERROR %@",error]:
+                    ([result isKindOfClass:[NSString class]]?(NSString *)result:[result description]);
+                ADProbeAppend6140(path,[NSString stringWithFormat:
+                    @"\n--- WEBVIEW %lu %@ ---\n%@\n",(unsigned long)my,url,body?:@"(nil)"]);
+                dispatch_group_leave(group);
+            }];
+        }
+        dispatch_group_notify(group,dispatch_get_main_queue(),^{
+            ADSignOutProbeFinish6140(path,bg);
+            bg=UIBackgroundTaskInvalid;
+        });
+    } @catch(NSException *e) {
+        NSString *path=ADSignOutProbeLocalPath6140();
+        ADProbeAppend6140(path,[NSString stringWithFormat:@"PROBE_EXCEPTION %@ %@\n",e.name,e.reason]);
+        notify_post(AD_SIGNOUT_PROBE_NOTIFY_6140);
+    }
+}
+
+static void ADSignOutWillResign6140(CFNotificationCenterRef center, void *observer,
+                                    CFStringRef name, const void *object,
+                                    CFDictionaryRef userInfo){
+    dispatch_async(dispatch_get_main_queue(), ^{ @try { ADDumpSignOutProbe6140(); } @catch(...) {} });
+}
+
 
 // ════════════════════════════════════════════════════════════════════════════════
 // WKUserContentController — restore our script the moment Amazon strips it.
@@ -5027,75 +5317,6 @@ static void ADVoiceRepairView6072(UIView *v){
     } @catch(...) {}
 }
 
-// v6.0.139: Person > Sign Out confirmation is already structurally correct in
-// v6.0.138. Only own the two requested button paints: black ink on the stock
-// yellow Sign Out button, and a medium-gray Cancel button with white ink.
-// The context gate requires the signed-in confirmation copy plus BOTH button labels,
-// so ordinary Sign Out / Cancel controls elsewhere in Amazon remain untouched.
-static BOOL ADSignOutDialogContext6139(UIButton *b){
-    @try {
-        UIView *p=b.superview; int up=0;
-        while(p && up++<6){
-            BOOL signedIn=NO, signOut=NO, cancel=NO;
-            NSMutableArray *q=[NSMutableArray arrayWithObject:p];
-            for(NSUInteger qi=0; qi<q.count && qi<96; qi++){
-                UIView *x=q[qi];
-                NSString *lo=[[ADWTViewText362(x) lowercaseString]
-                    stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-                if([lo containsString:@"you are signed in as"]) signedIn=YES;
-                if([lo isEqualToString:@"sign out"]) signOut=YES;
-                if([lo isEqualToString:@"cancel"]) cancel=YES;
-                if(signedIn && signOut && cancel) return YES;
-                if(qi<32){
-                    for(UIView *sv in x.subviews){
-                        if(q.count<96) [q addObject:sv]; else break;
-                    }
-                }
-            }
-            p=p.superview;
-        }
-    } @catch(...) {}
-    return NO;
-}
-static void ADSignOutDialogButton6139(UIButton *b){
-    if(!b || !b.window) return;
-    @try {
-        NSString *lo=[[(b.currentTitle ?: b.titleLabel.text ?: @"") lowercaseString]
-            stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-        BOOL isSignOut=[lo isEqualToString:@"sign out"];
-        BOOL isCancel=[lo isEqualToString:@"cancel"];
-        if((!isSignOut && !isCancel) || !ADSignOutDialogContext6139(b)) return;
-
-        if(isSignOut){
-            UIColor *black=ADColorFromHex("#000000");
-            [b setTitleColor:black forState:UIControlStateNormal];
-            [b setTitleColor:black forState:UIControlStateHighlighted];
-            [b setTitleColor:black forState:UIControlStateSelected];
-        } else {
-            UIColor *gray=ADColorFromHex("#666666");
-            UIColor *white=ADColorFromHex("#FFFFFF");
-            b.backgroundColor=gray;
-            b.layer.backgroundColor=gray.CGColor;
-            [b setTitleColor:white forState:UIControlStateNormal];
-            [b setTitleColor:white forState:UIControlStateHighlighted];
-            [b setTitleColor:white forState:UIControlStateSelected];
-
-            // Some Amazon builds put the visible rectangle on a one-level wrapper
-            // around the UIButton. Only recolor a wrapper whose geometry is effectively
-            // the same as the button; never touch the dialog/card background itself.
-            UIView *box=b.superview;
-            if(box){
-                CGFloat dw=fabs(box.bounds.size.width-b.bounds.size.width);
-                CGFloat dh=fabs(box.bounds.size.height-b.bounds.size.height);
-                if(dw<=12.0 && dh<=12.0 && box.bounds.size.height>=36.0 && box.bounds.size.height<=110.0){
-                    box.backgroundColor=gray;
-                    box.layer.backgroundColor=gray.CGColor;
-                }
-            }
-        }
-    } @catch(...) {}
-}
-
 static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
     if (!v || depth > 60) return;
     @try {
@@ -5239,7 +5460,6 @@ static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
                     UIColor *mt = ADModifyUIColor(tc, ADColorRoleForeground);
                     if (mt) [b setTitleColor:mt forState:UIControlStateNormal];
                 }
-                ADSignOutDialogButton6139(b);
             } @catch(...) {}
         }
         for (UIView *s in v.subviews) ADSweepViewTree(s, depth + 1, tabBarish);
@@ -5595,7 +5815,6 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
 // ─── %ctor : process guard + hook registration + bounded startup recovery ────
 %ctor {
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
-    ADResetFlashProbe6101();
     // v5.446 direct-port: drop cached light launch snapshots.
     @try {
         NSString *lib = [NSSearchPathForDirectoriesInDomains(
@@ -5655,7 +5874,7 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
         (__bridge CFStringRef)UIApplicationWillEnterForegroundNotification,
         NULL, CFNotificationSuspensionBehaviorCoalesce);
     CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(),
-        NULL, ADFlashWillResign6101,
+        NULL, ADSignOutWillResign6140,
         (__bridge CFStringRef)UIApplicationWillResignActiveNotification,
         NULL, CFNotificationSuspensionBehaviorCoalesce);
 
