@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.148"
+#define AD_VERSION "v6.0.149"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1966,6 +1966,7 @@ static void ADInjectAllWebViews(void){
 
 // v6.0.98 diagnostic exporter.  The JS ring buffer above reuses an existing DOM
 // observer; backgrounding once after reproducing the flash simply dumps that buffer.
+static void ADDumpPersonBorderProbe6149(void); // v6.0.149 targeted Person border probe
 static NSString *gADFlashProbePath6131 = nil;
 static NSString *ADFlashProbeRequestedPath6131(void){
     return @"/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/AmazonDark-standalone-ad-probe-6131.txt";
@@ -2027,7 +2028,10 @@ static void ADDumpFlashProbe6101(NSString *label){
 static void ADFlashWillResign6101(CFNotificationCenterRef center, void *observer,
                                   CFStringRef name, const void *object,
                                   CFDictionaryRef userInfo){
-    dispatch_async(dispatch_get_main_queue(), ^{ @try { ADDumpFlashProbe6101(@"WILL_RESIGN_ACTIVE"); } @catch(...) {} });
+    dispatch_async(dispatch_get_main_queue(), ^{
+        @try { ADDumpFlashProbe6101(@"WILL_RESIGN_ACTIVE"); } @catch(...) {}
+        @try { ADDumpPersonBorderProbe6149(); } @catch(...) {}
+    });
 }
 
 
@@ -3420,6 +3424,13 @@ static BOOL ADPersonBorderPhrase6147(NSString *text, BOOL *wideShort){
     if(wideShort) *wideShort=NO;
     if(!text.length) return NO;
     NSString *lo=text.lowercaseString;
+    // React/Fabric may preserve visual line breaks in the backing string
+    // ("Explore\nmore to\nshop"). Normalize those before semantic matching.
+    lo=[lo stringByReplacingOccurrencesOfString:@"\n" withString:@" "];
+    lo=[lo stringByReplacingOccurrencesOfString:@"\r" withString:@" "];
+    lo=[lo stringByReplacingOccurrencesOfString:@"\t" withString:@" "];
+    while([lo containsString:@"  "]) lo=[lo stringByReplacingOccurrencesOfString:@"  " withString:@" "];
+    lo=[lo stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
     if([lo containsString:@"redeem gift card"] || [lo containsString:@"reload balance"]){
         if(wideShort) *wideShort=YES;
         return YES;
@@ -3523,6 +3534,156 @@ static void ADPaintAmazonSearchBorder6147(id obj){
     } @catch(...) {}
 }
 
+
+static NSString *ADWTViewText362(UIView *v); // forward: defined in retained Person/TWB helpers below
+
+// v6.0.149 — layout-time recovery + targeted Person-border probe.
+//
+// v6.0.147/148 only attempted to claim the Person card from the React text setter.
+// Fabric can hydrate that text before the view is attached to its final card, so
+// even the one-main-queue deferred claim can run while superview geometry is still
+// incomplete. Re-running the SAME bounded claim from the text view's layout pass
+// gives it the final hierarchy and does not add any new scan/timer/observer.
+//
+// As a second guarded recovery, once a card is positively claimed, inspect its own
+// border/stroke layers and neutralize any bright neutral stroke before drawing our
+// 1pt overlay. This covers both direct CALayer borders and RN shape-layer borders;
+// rasterized RN borders remain covered by the overlay.
+static BOOL ADBrightNeutralCG6149(CGColorRef cg){
+    if(!cg) return NO;
+    @try {
+        UIColor *c=[UIColor colorWithCGColor:cg];
+        CGFloat r=0,g=0,b=0,a=0;
+        if(![c getRed:&r green:&g blue:&b alpha:&a]) return NO;
+        CGFloat mx=MAX(r,MAX(g,b)), mn=MIN(r,MIN(g,b));
+        return a>0.10 && mx>0.72 && (mx-mn)<0.10;
+    } @catch(...) {}
+    return NO;
+}
+static void ADNeutralizeClaimedLayerTree6149(CALayer *layer, int depth){
+    if(!layer || depth>3) return;
+    @try {
+        CGColorRef gray=ADNeutralBorderGray6147().CGColor;
+        if(layer.borderWidth>0.1 && ADBrightNeutralCG6149(layer.borderColor))
+            layer.borderColor=gray;
+        if([layer isKindOfClass:[CAShapeLayer class]]){
+            CAShapeLayer *s=(CAShapeLayer *)layer;
+            if(s.lineWidth>0.1 && s.lineWidth<=5.0 && ADBrightNeutralCG6149(s.strokeColor))
+                s.strokeColor=gray;
+        }
+        for(CALayer *sl in layer.sublayers) ADNeutralizeClaimedLayerTree6149(sl,depth+1);
+    } @catch(...) {}
+}
+static void ADPersonBorderLayoutRecovery6149(id obj){
+    UIView *v=(UIView *)obj;
+    if(!ADRecolorOn() || !v || !v.window) return;
+    @try {
+        NSString *t=ADWTViewText362(v);
+        BOOL dummy=NO;
+        if(ADPersonBorderPhrase6147(t,&dummy))
+            ADClaimPersonBorder6147(v,t);
+        if(objc_getAssociatedObject(v,kADPersonBorderTarget6147)){
+            ADNeutralizeClaimedLayerTree6149(v.layer,0);
+            ADPaintPersonBorder6147(v);
+        }
+    } @catch(...) {}
+}
+
+// ── targeted probe: exact visible Person-tab lower-half hierarchy ─────────────
+static NSString *ADPersonProbeRGBA6149(UIColor *c){
+    if(!c) return @"nil";
+    @try {
+        CGFloat r=0,g=0,b=0,a=0;
+        if([c getRed:&r green:&g blue:&b alpha:&a])
+            return [NSString stringWithFormat:@"rgba(%.3f,%.3f,%.3f,%.3f)",r,g,b,a];
+    } @catch(...) {}
+    return [c description] ?: @"?";
+}
+static NSString *ADPersonProbeCG6149(CGColorRef c){
+    if(!c) return @"nil";
+    @try { return ADPersonProbeRGBA6149([UIColor colorWithCGColor:c]); } @catch(...) {}
+    return @"?";
+}
+static NSString *ADPersonProbeText6149(UIView *v){
+    NSString *t=ADWTViewText362(v);
+    if(!t.length) return @"";
+    t=[t stringByReplacingOccurrencesOfString:@"\n" withString:@" "];
+    if(t.length>180) t=[[t substringToIndex:180] stringByAppendingString:@"…"];
+    return t;
+}
+static void ADPersonProbeLayer6149(NSMutableString *out, CALayer *l, int depth){
+    if(!out||!l||depth>3) return;
+    @try {
+        NSString *pad=[@"" stringByPaddingToLength:(NSUInteger)(depth*2) withString:@" " startingAtIndex:0];
+        NSString *stroke=@"-"; CGFloat lw=0;
+        if([l isKindOfClass:[CAShapeLayer class]]){
+            CAShapeLayer *s=(CAShapeLayer *)l; stroke=ADPersonProbeCG6149(s.strokeColor); lw=s.lineWidth;
+        }
+        [out appendFormat:@"%@LAYER %@ frame={%.1f,%.1f,%.1f,%.1f} bg=%@ border=%@ bw=%.2f cr=%.2f stroke=%@ lw=%.2f contents=%@ opacity=%.2f\n",
+         pad,NSStringFromClass([l class]),l.frame.origin.x,l.frame.origin.y,l.frame.size.width,l.frame.size.height,
+         ADPersonProbeCG6149(l.backgroundColor),ADPersonProbeCG6149(l.borderColor),l.borderWidth,l.cornerRadius,
+         stroke,lw,l.contents?@"YES":@"NO",l.opacity];
+        NSUInteger lim=MIN((NSUInteger)10,l.sublayers.count);
+        for(NSUInteger i=0;i<lim;i++) ADPersonProbeLayer6149(out,l.sublayers[i],depth+1);
+    } @catch(...) {}
+}
+static void ADPersonProbeWalk6149(NSMutableString *out, UIView *v, UIWindow *w, int depth, int *count){
+    if(!out||!v||!w||!count||*count>900||depth>45) return;
+    @try {
+        if(v.hidden||v.alpha<0.01) return;
+        CGRect r=[v convertRect:v.bounds toView:w];
+        CGRect visible=CGRectIntersection(r,w.bounds);
+        if(CGRectIsNull(visible)||CGRectIsEmpty(visible)) return;
+        (*count)++;
+        NSString *txt=ADPersonProbeText6149(v);
+        const char *cn=object_getClassName(v);
+        BOOL react=(cn&&(strstr(cn,"RCT")||strstr(cn,"React")||strstr(cn,"Fabric")));
+        BOOL target=ADPersonBorderPhrase6147(txt,NULL);
+        BOOL borderish=v.layer.borderWidth>0.05||v.layer.contents!=nil;
+        for(CALayer *sl in v.layer.sublayers){
+            if(sl.borderWidth>0.05 || [sl isKindOfClass:[CAShapeLayer class]]) { borderish=YES; break; }
+        }
+        // Capture the whole lower half plus every React/border/target view on-screen,
+        // so one screenshot frame is enough to identify the real painter.
+        if(CGRectGetMaxY(r)>=w.bounds.size.height*0.32 || react || borderish || target || txt.length){
+            [out appendFormat:@"VIEW #%d d=%d %@ frame={%.1f,%.1f,%.1f,%.1f} bounds={%.1f,%.1f} alpha=%.2f bg=%@ tint=%@ target=%d tagged=%d text=\"%@\"\n",
+             *count,depth,cn?[NSString stringWithUTF8String:cn]:NSStringFromClass([v class]),r.origin.x,r.origin.y,r.size.width,r.size.height,
+             v.bounds.size.width,v.bounds.size.height,v.alpha,
+             ADPersonProbeRGBA6149(v.backgroundColor),ADPersonProbeRGBA6149(v.tintColor),
+             target?1:0,objc_getAssociatedObject(v,kADPersonBorderTarget6147)?1:0,txt];
+            ADPersonProbeLayer6149(out,v.layer,1);
+        }
+        for(UIView *s in v.subviews) ADPersonProbeWalk6149(out,s,w,depth+1,count);
+    } @catch(...) {}
+}
+static void ADDumpPersonBorderProbe6149(void){
+    if(![NSThread isMainThread]){ dispatch_async(dispatch_get_main_queue(), ^{ ADDumpPersonBorderProbe6149(); }); return; }
+    @try {
+        NSString *name=@"AmazonDark-person-border-probe-6149.txt";
+        NSString *shared=[@"/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents" stringByAppendingPathComponent:name];
+        NSString *local=[[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:name];
+        NSMutableString *out=[NSMutableString stringWithFormat:@"AmazonDark Person border probe 6149\nversion=%s\npid=%d\nshared=%@\nlocal=%@\nuptime=%.3f\n\n=== VISIBLE NATIVE VIEW/LAYER DUMP ===\n",
+                              AD_VERSION,getpid(),shared,local,ADUptime()];
+        int count=0; int wins=0;
+        for(UIScene *sc in [UIApplication sharedApplication].connectedScenes){
+            if(![sc isKindOfClass:[UIWindowScene class]]) continue;
+            for(UIWindow *w in ((UIWindowScene *)sc).windows){
+                if(!w||w.hidden||w.alpha<.01) continue;
+                wins++;
+                [out appendFormat:@"\nWINDOW %d %@ frame={%.1f,%.1f,%.1f,%.1f}\n",wins,NSStringFromClass([w class]),w.frame.origin.x,w.frame.origin.y,w.frame.size.width,w.frame.size.height];
+                ADPersonProbeWalk6149(out,w,w,0,&count);
+            }
+        }
+        [out appendFormat:@"\n=== SUMMARY ===\nwindows=%d visited=%d\n=== END PROBE ===\n",wins,count];
+        NSError *e=nil;
+        BOOL ok=[out writeToFile:shared atomically:YES encoding:NSUTF8StringEncoding error:&e];
+        if(!ok){
+            [out appendFormat:@"\nsharedWriteError=%@ (%ld) %@\n",e.domain?:@"?",(long)e.code,e.localizedDescription?:@"?"];
+            [out writeToFile:local atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        }
+    } @catch(...) {}
+}
+
 // Reassert after native search geometry settles. This is the exact owner named by
 // probe 6140; it avoids waiting for a later Amazon border-color assignment.
 %hook SBSearchBar
@@ -3559,6 +3720,10 @@ static void ADPaintAmazonSearchBorder6147(id obj){
     } @catch(...) {}
     %orig;
 }
+- (void)layoutSubviews {
+    %orig;
+    @try { ADPersonBorderLayoutRecovery6149(self); } @catch(...) {}
+}
 %end
 
 // Paper text (old architecture) — still present in this binary.
@@ -3584,6 +3749,10 @@ static void ADPaintAmazonSearchBorder6147(id obj){
     } @catch(...) {}
     %orig;
     @try { ADClaimPersonBorderDeferred6147(self,adBorderText6147); } @catch(...) {}
+}
+- (void)layoutSubviews {
+    %orig;
+    @try { ADPersonBorderLayoutRecovery6149(self); } @catch(...) {}
 }
 %end
 
@@ -4112,8 +4281,10 @@ static void ADForceBarDark(UIView *bar){
     // Tagged-only fast path. Ordinary RCTView instances pay one associated-object
     // lookup and do no semantic scan.
     @try {
-        if(objc_getAssociatedObject(self,kADPersonBorderTarget6147))
+        if(objc_getAssociatedObject(self,kADPersonBorderTarget6147)){
+            ADNeutralizeClaimedLayerTree6149(((UIView *)self).layer,0);
             ADPaintPersonBorder6147(self);
+        }
     } @catch(...) {}
 }
 %end
@@ -4151,8 +4322,10 @@ static void ADForceBarDark(UIView *bar){
 - (void)layoutSubviews {
     %orig;
     @try {
-        if(objc_getAssociatedObject(self,kADPersonBorderTarget6147))
+        if(objc_getAssociatedObject(self,kADPersonBorderTarget6147)){
+            ADNeutralizeClaimedLayerTree6149(((UIView *)self).layer,0);
             ADPaintPersonBorder6147(self);
+        }
     } @catch(...) {}
 }
 %end

@@ -1,3 +1,11 @@
+## v6.0.149 — Person-tab border recovery + targeted probe
+
+- Keeps the working v6.0.148 native search-bar border correction unchanged.
+- Normalizes React/Fabric line breaks before target matching (for example `Explore\nmore to\nshop`), then retries the Person-tab card claim from the React text view's **layout pass**, after Fabric/Paper hierarchy and geometry have settled. This addresses both likely v6.0.147/148 miss paths: split backing text and a setter firing before the final bordered card existed.
+- Once a target card is positively claimed, bright neutral direct `CALayer` borders and `CAShapeLayer` strokes are changed to the same `#494D4D` gray before the existing 1 pt neutral overlay is maintained. Rasterized RN border artwork remains covered by the overlay.
+- Includes a temporary native probe for the visible Person-tab lower half. Backgrounding Amazon once writes `AmazonDark-person-border-probe-6149.txt`; the probe records visible React/native classes, frames, text, direct border colors, nested shape-layer strokes, `layer.contents`, and whether the target card was tagged.
+- Adds no MutationObserver, scroll listener, interval, RAF loop, or recurring scheduler.
+
 ## v6.0.148 — compile fix for Person/search border owner
 
 - Preserves the v6.0.147 visual changes exactly: the bright Person-tab borders around Redeem Gift Card, Reload Balance, and Explore more to shop use the thin neutral gray border, and the native Amazon search field loses its brown/tan border.
