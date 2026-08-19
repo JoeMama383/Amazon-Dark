@@ -1,11 +1,9 @@
 #!/bin/sh
 # AmazonDark postinst
-# No auto-killall/respring — learned from the CarBridgeReborn sessions that an
-# automatic respring races the NathanLR/Ellekit dpkg triggers. The user force-quits
-# and relaunches Amazon from the app switcher to activate.
+# Avoid package-time respring; activate by force-quitting and relaunching Amazon.
 echo "[AmazonDark] Installed. Force-quit and relaunch Amazon to activate."
 echo "[AmazonDark] Tune it in Settings > AmazonDark."
-# Remove stale PreferenceLoader entries from earlier layouts.
+# Remove obsolete PreferenceLoader alias.
 rm -f /var/jb/Library/PreferenceLoader/Preferences/AmazonDarkPrefs.plist 2>/dev/null || true
 rm -f /Library/PreferenceLoader/Preferences/AmazonDarkPrefs.plist 2>/dev/null || true
 exit 0
