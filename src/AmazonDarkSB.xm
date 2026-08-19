@@ -471,6 +471,20 @@ static void ADSBHandleJITRequest622(int token){
 }
 %end
 
+
+// v6.0.143 Cart credit-banner probe relay. Amazon writes inside its sandbox; SpringBoard
+// copies the completed report into the same Shared/AppGroup Documents folder used for
+// AmazonDark source ZIPs and NewTerm push commands.
+#define AD_CARTCREDIT_PROBE_NOTIFY_6143 "com.colindavidr.amazondark.cartcreditprobe6143.ready"
+static NSString * const kADCartCreditProbeName6143 = @"AmazonDark-cart-credit-probe-6143.txt";
+static NSString * const kADCartCreditProbeDest6143 = @"/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/AmazonDark-cart-credit-probe-6143.txt";
+static NSString *ADSBFindCartCreditProbe6143(void){
+    @try{NSFileManager *fm=[NSFileManager defaultManager];for(NSString *root in @[@"/private/var/mobile/Containers/Data/Application",@"/var/mobile/Containers/Data/Application"]){for(NSString *kid in [fm contentsOfDirectoryAtPath:root error:nil]){NSString *p=[[[root stringByAppendingPathComponent:kid]stringByAppendingPathComponent:@"Documents"]stringByAppendingPathComponent:kADCartCreditProbeName6143];BOOL dir=NO;if([fm fileExistsAtPath:p isDirectory:&dir]&&!dir)return p;}}}@catch(...){}return nil;
+}
+static void ADSBRelayCartCreditProbe6143(void){
+    @autoreleasepool{@try{NSFileManager *fm=[NSFileManager defaultManager];NSString *src=ADSBFindCartCreditProbe6143();if(!src.length){ADSBLog(@"PROBE6143 relay: source not found");return;}NSString *dd=[kADCartCreditProbeDest6143 stringByDeletingLastPathComponent];[fm createDirectoryAtPath:dd withIntermediateDirectories:YES attributes:nil error:nil];[fm removeItemAtPath:kADCartCreditProbeDest6143 error:nil];NSError *er=nil;BOOL ok=[fm copyItemAtPath:src toPath:kADCartCreditProbeDest6143 error:&er];if(ok){[fm setAttributes:@{NSFilePosixPermissions:@0666} ofItemAtPath:kADCartCreditProbeDest6143 error:nil];ADSBLog([NSString stringWithFormat:@"PROBE6143 relay OK %@ -> %@",src,kADCartCreditProbeDest6143]);}else ADSBLog([NSString stringWithFormat:@"PROBE6143 relay FAILED %@ %@",er.domain?:@"?",er.localizedDescription?:@"?"]);}@catch(NSException *e){ADSBLog([NSString stringWithFormat:@"PROBE6143 relay exception %@ %@",e.name,e.reason]);}}
+}
+
 %ctor {
     // Dopamine JIT broker: one event-driven enable request channel. SpringBoard is
     // the platform-authorized caller; the handler itself validates Amazon's PID.
@@ -479,6 +493,16 @@ static void ADSBHandleJITRequest622(int token){
         notify_register_dispatch(AD_JIT_REQ_NOTIFY_622, &adJITToken622,
                                  dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^(int t){
             ADSBHandleJITRequest622(t);
+        });
+    } @catch (__unused NSException *e) {}
+
+    // One-shot Cart credit-banner probe relay.
+    @try {
+        static int adCartCreditProbeToken6143 = 0;
+        notify_register_dispatch(AD_CARTCREDIT_PROBE_NOTIFY_6143, &adCartCreditProbeToken6143,
+                                 dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^(int t){
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.35*NSEC_PER_SEC)),
+                           dispatch_get_global_queue(QOS_CLASS_UTILITY,0), ^{ ADSBRelayCartCreditProbe6143(); });
         });
     } @catch (__unused NSException *e) {}
 

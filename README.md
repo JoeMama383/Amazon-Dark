@@ -1,3 +1,11 @@
+## v6.0.143 — unsigned Cart credit banner darkening + capture probe
+
+- Starts from v6.0.142.
+- Targets the unsigned-cart Amazon Visa promo semantically by the copy `Pay for this order` plus `$50 off` / `upon approval` / `Amazon Visa`; no guessed Amazon class is required.
+- Reuses the existing bounded web contrast traversal and existing MutationObserver lifecycle. No additional web observer, interval, RAF loop, or scroll listener is added.
+- The positively identified short/wide promo shell is painted with the current dark page background, structural descendants are made transparent, and promo text is lifted to the configured light foreground. Product/card artwork (`img`, `picture`, `svg`, video/canvas) is not recolored.
+- Includes a temporary v6.0.143 verification probe. Backgrounding Amazon writes `AmazonDark-cart-credit-probe-6143.txt` and SpringBoard relays it to the normal Shared/AppGroup Documents push folder. The probe records mounted native WKWebView hosts plus DOM/CSS chains around the exact promo copy and whether `data-ad-cartcredit6143` landed.
+
 ## v6.0.142 — darker Sign Out surface, native text restored
 
 - Built from v6.0.141 behavior while removing the special Sign Out text-color owner.
