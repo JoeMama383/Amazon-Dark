@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.152"
+#define AD_VERSION "v6.0.153"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2770,6 +2770,12 @@ static UIColor *ADBarBlue(void){
 }
 static UIColor *ADBarWhite(void){ return ADColorFromHex(gP.fgHex); }   // marked-own ~white
 static const void *kADBarSelKey = &kADBarSelKey;
+// v6.0.153: transient finger-down state is separate from Amazon's committed
+// selected state. Reusing kADBarSelKey for both let the next correction pass read
+// Amazon's still-old `selected` bit and repaint the just-tapped glyph blue for a
+// frame (or longer on a busy transition). The press key wins only while the touch
+// is being committed; setSelected:YES clears it once Amazon catches up.
+static const void *kADBarPressKey = &kADBarPressKey;
 static const void *kADIndicatorKey = &kADIndicatorKey;
 // React-Native glyph invert bookkeeping (used by the CALayer setFilters guard
 // below and the ADInvertRNSVG helper further down).
@@ -2795,18 +2801,41 @@ static void ADRememberBarSelection(UIView *root, BOOL selected){
         for (UIView *s in root.subviews) ADRememberBarSelection(s, selected);
     } @catch(...) {}
 }
+static void ADRememberBarPress(UIView *root, BOOL selected){
+    if (!root) return;
+    @try {
+        objc_setAssociatedObject(root, kADBarPressKey, @(selected), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        for (UIView *s in root.subviews) ADRememberBarPress(s, selected);
+    } @catch(...) {}
+}
+static void ADClearBarPress(UIView *root){
+    if (!root) return;
+    @try {
+        objc_setAssociatedObject(root, kADBarPressKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        for (UIView *s in root.subviews) ADClearBarPress(s);
+    } @catch(...) {}
+}
 // Recorded state beats a live ancestor walk: during a tap the walk can observe the
-// pre-tap value and repaint blue over the white we just set.
+// pre-tap value and repaint blue over the white we just set. v6.0.153 gives the
+// transient finger-down claim first priority, then the committed Amazon selection.
 static BOOL ADBarSelectionKnown(UIView *v, BOOL *out){
-    int d = 0;
-    while (v && d++ < 12){
-        NSNumber *n = objc_getAssociatedObject(v, kADBarSelKey);
+    int d = 0; UIView *p = v;
+    while (p && d++ < 12){
+        NSNumber *n = objc_getAssociatedObject(p, kADBarPressKey);
         if (n){ *out = n.boolValue; return YES; }
-        v = v.superview;
+        p = p.superview;
+    }
+    d = 0; p = v;
+    while (p && d++ < 12){
+        NSNumber *n = objc_getAssociatedObject(p, kADBarSelKey);
+        if (n){ *out = n.boolValue; return YES; }
+        p = p.superview;
     }
     return NO;
 }
 static BOOL ADViewIsSelectedInBar(UIView *v){
+    BOOL known = NO;
+    if (ADBarSelectionKnown(v, &known)) return known;
     int d = 0;
     while (v && d++ < 12){
         if ([v isKindOfClass:[UIControl class]] && ((UIControl *)v).selected) return YES;
@@ -2858,8 +2887,11 @@ static void ADApplyBarTint(UIView *container, BOOL selected);
 static void ADCorrectBarTintsIn(UIView *v){
     if (!v) return;
     @try {
-        if ([v isKindOfClass:[UIControl class]] && ADInTabBarChain(v))
-            ADApplyBarTint(v, ((UIControl *)v).selected);
+        if ([v isKindOfClass:[UIControl class]] && ADInTabBarChain(v)){
+            BOOL sel = NO;
+            if (!ADBarSelectionKnown(v, &sel)) sel = ((UIControl *)v).selected;
+            ADApplyBarTint(v, sel);
+        }
         for (UIView *sv in v.subviews) ADCorrectBarTintsIn(sv);
     } @catch(...) {}
 }
@@ -2883,6 +2915,63 @@ static void ADApplyBarTint(UIView *container, BOOL selected){
     @try {
         if ([container isKindOfClass:[UIImageView class]]) ADTintBarIcon((UIImageView *)container, selected);
         for (UIView *s in container.subviews) ADApplyBarTint(s, selected);
+    } @catch(...) {}
+}
+
+// v6.0.153: resolve the nearest Amazon bottom-nav host so finger-down can perform
+// one exclusive color swap: tapped branch -> white, every sibling tab branch ->
+// Amazon blue. This avoids waiting for Amazon's delayed selected-state transition.
+static UIView *ADBarHostForView6153(UIView *v){
+    UIView *fallback = nil; int d = 0;
+    while (v && d++ < 14){
+        const char *cn = object_getClassName(v);
+        if (cn){
+            if (strstr(cn, "CXIStoreModesBottomNavToolbar") ||
+                strstr(cn, "CXIStoreModesTabBarView") || strstr(cn, "ANPRetailTabBar")) return v;
+            if (strstr(cn, "BottomNav") || strstr(cn, "TabBar") || strstr(cn, "NavToolbar")) fallback = v;
+        }
+        v = v.superview;
+    }
+    return fallback;
+}
+static BOOL ADSameBarBranch6153(UIView *candidate, UIView *pressed){
+    if (!candidate || !pressed) return NO;
+    if (candidate == pressed) return YES;
+    @try {
+        if ([pressed isDescendantOfView:candidate]) return YES;
+        if ([candidate isDescendantOfView:pressed]) return YES;
+    } @catch(...) {}
+    return NO;
+}
+static void ADClaimBarPressWalk6153(UIView *v, UIView *pressed){
+    if (!v) return;
+    @try {
+        if ([v isKindOfClass:[UIControl class]] && ADInTabBarChain(v)){
+            BOOL hit = ADSameBarBranch6153(v, pressed);
+            ADRememberBarPress(v, hit);
+            ADApplyBarTint(v, hit);
+        }
+        for (UIView *s in v.subviews) ADClaimBarPressWalk6153(s, pressed);
+    } @catch(...) {}
+}
+static void ADClaimBarPress6153(UIView *pressed){
+    if (!pressed) return;
+    @try {
+        UIView *host = ADBarHostForView6153(pressed);
+        if (host){
+            ADClearBarPress(host);
+            ADClaimBarPressWalk6153(host, pressed);
+        } else {
+            ADRememberBarPress(pressed, YES);
+            ADApplyBarTint(pressed, YES);
+        }
+    } @catch(...) {}
+}
+static void ADReleaseBarPress6153(UIView *v){
+    if (!v) return;
+    @try {
+        UIView *host = ADBarHostForView6153(v);
+        ADClearBarPress(host ?: v);
     } @catch(...) {}
 }
 
@@ -5592,35 +5681,50 @@ static void ADScheduleGlyphLift624(UIImageView *iv){
 %end
 
 // Selection changes after the launch timer stops, so a tap must re-colour the tab
-// itself. setSelected: is the exact event; ADApplyBarTint reads the NEW value.
+// itself. setSelected: remains the committed source of truth. v6.0.153 keeps the
+// finger-down claim separate so correction work cannot race it back to blue.
 %hook UIControl
 - (void)setSelected:(BOOL)selected {
     %orig;
     @try {
         if (ADRecolorOn() && ADInTabBarChain(self)){
-            // Record first so any tint assignment triggered by this change reads the
-            // NEW value rather than re-deriving a stale one.
             ADRememberBarSelection(self, selected);
             ADApplyBarTint(self, selected);
+            // Once Amazon commits the newly-selected item, transient press ownership
+            // is no longer needed. Clear the whole bar only on YES: the old item often
+            // receives setSelected:NO first, and clearing there would reopen the race.
+            if (selected) ADReleaseBarPress6153(self);
             ADScheduleBarCorrection();
         }
     } @catch(...) {}
 }
-// The residual lag is upstream of us: Amazon flips `selected` only partway
-// through its own transition, and no amount of snap-on-assignment can beat the
-// moment the assignment happens. Finger-down is the earliest truthful signal --
-// paint the tapped tab white immediately and let the deferred correction pass
-// re-read real state afterwards, which also cleans up a cancelled touch.
+// Finger-down is earlier than Amazon's selected-state transition. Claim the entire
+// bar atomically here: the touched branch snaps white and its sibling tabs snap blue.
+// Do NOT queue a correction from this path; that was the v6.0.152 race, because the
+// next run-loop could still observe Amazon's pre-tap selected bit.
 - (BOOL)beginTrackingWithTouch:(UITouch *)touch withEvent:(UIEvent *)event {
     BOOL r = %orig;
     @try {
+        if (ADRecolorOn() && ADInTabBarChain(self)) ADClaimBarPress6153(self);
+    } @catch(...) {}
+    return r;
+}
+// Some Amazon tab controls assert highlighted state before/without a conventional
+// beginTracking callback. Treat highlighted=YES as the same touch-down signal.
+- (void)setHighlighted:(BOOL)highlighted {
+    %orig;
+    @try {
+        if (highlighted && ADRecolorOn() && ADInTabBarChain(self)) ADClaimBarPress6153(self);
+    } @catch(...) {}
+}
+- (void)cancelTrackingWithEvent:(UIEvent *)event {
+    %orig;
+    @try {
         if (ADRecolorOn() && ADInTabBarChain(self)){
-            ADRememberBarSelection(self, YES);
-            ADApplyBarTint(self, YES);
+            ADReleaseBarPress6153(self);
             ADScheduleBarCorrection();
         }
     } @catch(...) {}
-    return r;
 }
 %end
 

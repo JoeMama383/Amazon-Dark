@@ -1,3 +1,14 @@
+## v6.0.153 — instantaneous bottom-nav selection
+
+The bottom navigation already snapped selected glyphs white, but the touch-down path reused the committed selection cache and immediately queued a correction. On a busy tab transition that correction could run before Amazon flipped its real `selected` bit, briefly repainting the newly tapped glyph blue and making the response feel delayed or inconsistent.
+
+- Adds a transient finger-down owner separate from Amazon's committed selected state.
+- On touch-down, the tapped tab branch is painted white immediately while sibling tab branches are painted Amazon blue in the same pass.
+- Deferred correction and image/tint catch-up paths now honor the transient state, so they cannot race the new white glyph back to blue before Amazon commits the selection.
+- `setSelected:YES` clears transient ownership only after Amazon has caught up; cancelled touches release it and fall back to the normal correction pass.
+- Adds a `setHighlighted:YES` fallback for Amazon tab controls that signal press/highlight before a conventional tracking callback.
+- No vibration/haptic feedback, timer, RAF loop, scroll listener, or new recurring scheduler is added; this is purely a lower-latency visual state handoff.
+
 ## v6.0.152 — Sponsored info-glyph color parity
 
 The Home product-card Sponsored labels were already pinned to AmazonDark's secondary gray (`#b1aaa0`), but several 11/12 px information-badge variants remained dark because v6.0.138 intentionally preserved stock bitmap/background-image glyphs. v6.0.152 closes that gap without widening the Sponsor scan.
