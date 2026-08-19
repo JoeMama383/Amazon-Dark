@@ -1,3 +1,9 @@
+## v6.0.151 — single-source Person borders + first-paint suppression
+
+The 6.0.150 result exposed two separate ownership conflicts. **Explore more to shop** was correctly losing its white React-Native raster plate, but our replacement `CALayer.borderColor` was then being re-mapped by the generic border engine to the familiar brown/tan hue. **Redeem Gift Card / Reload Balance** still retained their stock raster border under our gray overlay, producing the doubled/misaligned edge visible when zoomed in.
+
+v6.0.151 makes the probe-proven raster cards use one border source only. Explore, Gift Card, and the compact Your Account chips now suppress the stale host `CALayer.contents` plate and render a single 1pt `#494D4D` `CAShapeLayer` outline. The direct `CALayer` border is kept at zero so the generic border curve cannot recolor it or stack another edge underneath. The `CALayer setContents:` owner also recognizes these semantic/geometry-gated RCT cards on the **first raster assignment**, so the initial white Explore outline should never reach the screen. The working search-bar border owner is unchanged.
+
 ## v6.0.150 — finish Person-tab raster borders
 
 Probe 6149 showed that the remaining bright borders were not ordinary `borderColor` values. The visible white outline was baked into React Native `CALayer.contents` on two raster-backed card families: the outer **Explore more to shop** card and the compact **Your Account** carousel buttons. v6.0.150 replaces only those probe-proven raster plates with their existing dark logical fill plus the same 1pt `#494D4D` outline already used by Redeem Gift Card / Reload Balance. The layer-contents hook prevents React Native from repainting the stale white plate after layout. The working search-bar border logic is unchanged. The 6149 diagnostic exporter is removed.

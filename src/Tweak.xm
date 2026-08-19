@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.150"
+#define AD_VERSION "v6.0.151"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3396,13 +3396,15 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
 // ────────────────────────────────────────────────────────────────────────────────
 // Screenshot comparison shows the intended neighboring outline at about #494D4D.
 // Keep this owner narrow:
-//   • Person: only the three named React-Native controls that still retain a bright
-//     stock outline (Redeem Gift Card, Reload Balance, Explore more to shop).
+//   • Person: probe-proven raster-backed borders only (Gift Card buttons,
+//     Explore more to shop, and Your Account chips).
 //   • Search: only Amazon's native SBSearchBar / SBSearchField layer border.
-// No fills, text, icons, dimensions or corner geometry are changed.
+// No text, icons, dimensions, or unrelated card styling are changed.
 static const void *kADPersonBorderTarget6147 = &kADPersonBorderTarget6147;
 static const void *kADPersonBorderOverlay6147 = &kADPersonBorderOverlay6147;
 static const void *kADPersonRasterCard6150 = &kADPersonRasterCard6150;
+
+static NSString *ADWTViewText362(UIView *v); // forward: retained Person/TWB helper below
 
 static UIColor *ADNeutralBorderGray6147(void){
     static UIColor *c=nil; static dispatch_once_t once;
@@ -3436,15 +3438,23 @@ static BOOL ADPersonBorderPhrase6147(NSString *text, BOOL *wideShort){
     }
     return [lo containsString:@"explore more to shop"];
 }
-// v6.0.150 — the 6149 probe identified the two remaining bright-border families
-// as React-Native raster-backed cards. Their visible stock outline is baked into
-// CALayer.contents rather than CALayer.borderColor:
-//   • Explore more to shop: outer RCTView 160x187, contents=YES.
-//   • Your Account chips: compact RCTViews with accessibility "..., List item N of 6",
-//     contents=YES.
-// Rebuild only those known raster plates from their already-dark logical background
-// plus the same #494D4D 1pt outline used by the neighboring cards. Text/images are
-// child views, so discarding the stale raster plate cannot erase card content.
+
+// v6.0.151 — one authoritative outline for the probe-proven raster card families.
+//
+// 6149 established that the white line is baked into React Native CALayer.contents.
+// v6.0.150 successfully removed that plate for Explore/Your Account, but then drew a
+// direct CALayer border on top. The generic CALayer border hook subsequently remapped
+// our #494D4D CGColor to the brown/tan border curve, explaining the settled brown
+// Explore outline. Gift Card still kept its stock raster plate underneath our overlay,
+// which produced the visible doubled/misaligned edge.
+//
+// 151 therefore does three things:
+//   1. Treat Redeem Gift Card / Reload Balance as the same raster-backed family.
+//   2. Suppress the raster plate itself, including its *first* setContents assignment.
+//   3. Render exactly one CAShapeLayer outline in #494D4D; no direct CALayer border.
+//
+// The controls are semantic + geometry gated. Their visible text/images are child views,
+// so removing only the host's stale raster plate does not erase the control content.
 static int ADPersonRasterKind6150(NSString *text){
     if(!text.length) return 0;
     NSString *lo=text.lowercaseString;
@@ -3454,6 +3464,7 @@ static int ADPersonRasterKind6150(NSString *text){
     while([lo containsString:@"  "]) lo=[lo stringByReplacingOccurrencesOfString:@"  " withString:@" "];
     lo=[lo stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
     if([lo containsString:@"explore more to shop"]) return 1;
+    if([lo containsString:@"redeem gift card"] || [lo containsString:@"reload balance"]) return 3;
     NSRange item=[lo rangeOfString:@", list item "];
     NSRange six=[lo rangeOfString:@" of 6" options:NSBackwardsSearch];
     if(item.location!=NSNotFound && six.location!=NSNotFound && six.location>item.location) return 2;
@@ -3464,7 +3475,104 @@ static BOOL ADPersonRasterGeometry6150(UIView *v, int kind){
     CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
     if(kind==1) return w>=130.0 && w<=195.0 && h>=145.0 && h<=225.0;
     if(kind==2) return w>=105.0 && w<=300.0 && h>=42.0 && h<=88.0;
+    if(kind==3) return w>=120.0 && w<=230.0 && h>=40.0 && h<=90.0;
     return NO;
+}
+static BOOL ADPersonRasterCandidateGeometry6151(UIView *v){
+    if(!v) return NO;
+    CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+    BOOL tall=(w>=130.0 && w<=195.0 && h>=145.0 && h<=225.0);
+    BOOL shortWide=(w>=105.0 && w<=300.0 && h>=40.0 && h<=90.0);
+    return tall || shortWide;
+}
+static int ADPersonRasterKindForView6151(UIView *v){
+    if(!v || !ADIsRCTBorderHost6147(v) || !ADPersonRasterCandidateGeometry6151(v)) return 0;
+    @try {
+        int kind=ADPersonRasterKind6150(v.accessibilityLabel);
+        if(kind && ADPersonRasterGeometry6150(v,kind)) return kind;
+        // The outer Explore host did not expose a reliable accessibility label in
+        // every render path. Only raster-sized RCT hosts pay this bounded text lookup.
+        NSString *t=ADWTViewText362(v);
+        kind=ADPersonRasterKind6150(t);
+        if(kind && ADPersonRasterGeometry6150(v,kind)) return kind;
+    } @catch(...) {}
+    return 0;
+}
+static BOOL ADLayerInsidePersonRaster6151(CALayer *layer){
+    if(!layer) return NO;
+    @try {
+        CALayer *p=layer;
+        for(int d=0;p && d<5;d++,p=p.superlayer){
+            if(objc_getAssociatedObject(p,kADPersonRasterCard6150)) return YES;
+            id del=p.delegate;
+            if(del && [del isKindOfClass:[UIView class]] &&
+               objc_getAssociatedObject(del,kADPersonRasterCard6150)) return YES;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static void ADMarkPersonRaster6151(UIView *v, int kind){
+    if(!v || kind<=0) return;
+    @try {
+        objc_setAssociatedObject(v,kADPersonRasterCard6150,@(kind),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(v.layer,kADPersonRasterCard6150,@(kind),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    } @catch(...) {}
+}
+static void ADClearNestedPersonShapeStrokes6151(CALayer *root, CAShapeLayer *keep, int depth){
+    if(!root || depth>4) return;
+    @try {
+        for(CALayer *sl in (root.sublayers ?: @[])){
+            if(sl==keep) continue;
+            if([sl isKindOfClass:[CAShapeLayer class]]){
+                CAShapeLayer *s=(CAShapeLayer *)sl;
+                if(s.lineWidth>=0.25 && s.lineWidth<=5.0)
+                    s.lineWidth=0.0;
+            }
+            ADClearNestedPersonShapeStrokes6151(sl,keep,depth+1);
+        }
+    } @catch(...) {}
+}
+static void ADInstallPersonRasterOutline6151(UIView *v, int kind){
+    if(!ADRecolorOn() || !v || !ADPersonRasterGeometry6150(v,kind)) return;
+    @try {
+        UIColor *gray=ADNeutralBorderGray6147();
+        UIColor *fill=v.backgroundColor;
+
+        [CATransaction begin];
+        [CATransaction setDisableActions:YES];
+
+        // Never use CALayer.borderColor here. CGColor loses the ADMarkOwnColor marker,
+        // so the generic border hook can remap our neutral gray to the brown/tan curve.
+        v.layer.borderWidth=0.0;
+        if(fill) v.layer.backgroundColor=fill.CGColor;
+        if(v.layer.cornerRadius<1.0) v.layer.cornerRadius=8.0;
+
+        CAShapeLayer *ov=objc_getAssociatedObject(v,kADPersonBorderOverlay6147);
+        if(!ov){
+            ov=[CAShapeLayer layer];
+            ov.fillColor=[UIColor clearColor].CGColor;
+            ov.lineWidth=1.0;
+            ov.contentsScale=UIScreen.mainScreen.scale;
+            ov.zPosition=CGFLOAT_MAX;
+            [v.layer addSublayer:ov];
+            objc_setAssociatedObject(v,kADPersonBorderOverlay6147,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        // Remove any stale RN/previous border shape so there is one physical line,
+        // not a gray overlay sitting one pixel off a raster/shape border underneath.
+        ADClearNestedPersonShapeStrokes6151(v.layer,ov,0);
+
+        ov.frame=v.bounds;
+        CGFloat inset=0.5;
+        CGRect rr=CGRectInset(v.bounds,inset,inset);
+        CGFloat cr=v.layer.cornerRadius;
+        if(cr<1.0) cr=8.0;
+        ov.path=[UIBezierPath bezierPathWithRoundedRect:rr cornerRadius:MAX(0,cr-inset)].CGPath;
+        ov.strokeColor=gray.CGColor;
+        ov.lineWidth=1.0;
+        ov.hidden=(v.hidden || v.alpha<0.01 || CGRectIsEmpty(v.bounds));
+
+        [CATransaction commit];
+    } @catch(...) {}
 }
 static void ADPaintPersonRasterCard6150(id obj, int kind){
     UIView *v=(UIView *)obj;
@@ -3472,26 +3580,18 @@ static void ADPaintPersonRasterCard6150(id obj, int kind){
     @try {
         BOOL already=objc_getAssociatedObject(v,kADPersonRasterCard6150)!=nil;
         if(!already && !v.layer.contents) return;
-        UIColor *fill=v.backgroundColor;
-        objc_setAssociatedObject(v,kADPersonRasterCard6150,@(kind),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(v.layer,kADPersonRasterCard6150,@(kind),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        [CATransaction begin];
-        [CATransaction setDisableActions:YES];
-        // Stop the old white RN raster border from competing with our real layer border.
+        ADMarkPersonRaster6151(v,kind);
+        // The CALayer hook below also blocks later RN attempts to restore this image.
         v.layer.contents=nil;
-        if(fill) v.layer.backgroundColor=fill.CGColor;
-        v.layer.borderColor=ADNeutralBorderGray6147().CGColor;
-        v.layer.borderWidth=1.0;
-        if(v.layer.cornerRadius<1.0) v.layer.cornerRadius=8.0;
-        [CATransaction commit];
+        ADInstallPersonRasterOutline6151(v,kind);
     } @catch(...) {}
 }
 static void ADPersonRasterLayout6150(id obj){
     UIView *v=(UIView *)obj;
     if(!ADRecolorOn() || !v || !v.window) return;
     @try {
-        NSString *a=v.accessibilityLabel;
-        int kind=ADPersonRasterKind6150(a);
+        int kind=[objc_getAssociatedObject(v,kADPersonRasterCard6150) intValue];
+        if(!kind) kind=ADPersonRasterKindForView6151(v);
         if(kind && ADPersonRasterGeometry6150(v,kind) &&
            (v.layer.contents || objc_getAssociatedObject(v,kADPersonRasterCard6150)))
             ADPaintPersonRasterCard6150(v,kind);
@@ -3606,7 +3706,6 @@ static void ADPaintAmazonSearchBorder6147(id obj){
 }
 
 
-static NSString *ADWTViewText362(UIView *v); // forward: defined in retained Person/TWB helpers below
 
 // v6.0.149 — layout-time recovery + targeted Person-border probe.
 //
@@ -3763,8 +3862,8 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
             return;
         }
     } @catch(...) {}
-    // v6.0.150: claimed Person raster cards are reconstructed as ordinary layers.
-    // Preserve their already-dark logical fill exactly; if Amazon later tries to
+    // v6.0.151: claimed Person raster cards keep their logical dark fill while the
+    // stale border raster is suppressed. If Amazon later tries to
     // restore an opaque bright neutral fill, still run it through the background map.
     @try {
         if (ADRecolorOn() && objc_getAssociatedObject(self,kADPersonRasterCard6150)) {
@@ -3812,13 +3911,27 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     %orig;
 }
 - (void)setContents:(id)contents {
-    // React Native regenerates its rasterized border image after layout/state changes.
-    // Once one of the two probe-proven Person cards is claimed, never let that stale
-    // white plate back onto the layer while recoloring is enabled.
+    // v6.0.151: intercept the raster plate at its first assignment, not one layout
+    // later.  This is what removes the brief white Explore border flash.
     @try {
-        if(ADRecolorOn() && objc_getAssociatedObject(self,kADPersonRasterCard6150)){
-            %orig(nil);
-            return;
+        if(ADRecolorOn()){
+            int kind=[objc_getAssociatedObject(self,kADPersonRasterCard6150) intValue];
+            UIView *rv=nil;
+            id d=self.delegate;
+            if(d && [d isKindOfClass:[UIView class]]) rv=(UIView *)d;
+
+            if(!kind && contents && rv && ADIsRCTBorderHost6147(rv) &&
+               ADPersonRasterCandidateGeometry6151(rv)){
+                kind=ADPersonRasterKindForView6151(rv);
+                if(kind) ADMarkPersonRaster6151(rv,kind);
+            }
+
+            if(kind){
+                %orig(nil);
+                if(rv && ADPersonRasterGeometry6150(rv,kind))
+                    ADInstallPersonRasterOutline6151(rv,kind);
+                return;
+            }
         }
     } @catch(...) {}
     %orig;
@@ -3831,6 +3944,17 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
         }
     } @catch(...) {}
 }
+- (void)setBorderWidth:(CGFloat)width {
+    // Raster-backed Person cards use one CAShapeLayer outline only. Prevent RN from
+    // restoring a second direct layer border around that authoritative outline.
+    @try {
+        if(ADRecolorOn() && ADLayerInsidePersonRaster6151(self)){
+            %orig(0.0);
+            return;
+        }
+    } @catch(...) {}
+    %orig;
+}
 - (void)setBorderColor:(CGColorRef)color {
     if (!ADRecolorOn() || !color) {
         %orig;
@@ -3840,7 +3964,8 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
         // v6.0.148: the native Amazon search field was the remaining brown/tan
         // border owner.  The earlier probe named these exact classes and showed
         // rgba(0.404,0.373,0.329,.60). Neutralize the hue without touching fill.
-        if (ADIsAmazonSearchBorderLayer6147(self) || ADIsPersonBorderLayer6147(self)) {
+        if (ADIsAmazonSearchBorderLayer6147(self) || ADIsPersonBorderLayer6147(self) ||
+            ADLayerInsidePersonRaster6151(self)) {
             CGColorRef gray=ADNeutralBorderGray6147().CGColor;
             %orig(gray);
             return;
@@ -4262,6 +4387,10 @@ static void ADForceBarDark(UIView *bar){
 // Still image-safe: these set a view's own background fill, never layer.contents.
 // ════════════════════════════════════════════════════════════════════════════════
 %hook RCTView
+- (void)didMoveToWindow {
+    %orig;
+    @try { ADPersonRasterLayout6150(self); } @catch(...) {}
+}
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
     if (!ADRecolorOn() || !backgroundColor) {
         %orig;
@@ -4277,8 +4406,8 @@ static void ADForceBarDark(UIView *bar){
 }
 - (void)layoutSubviews {
     %orig;
-    // v6.0.150: only accessibility-labelled compact raster cards perform the
-    // semantic check. The normal RCTView path remains a cheap nil-label fast path.
+    // v6.0.151: only compact raster-sized RCT hosts perform the semantic check.
+    // The normal RCTView path remains a cheap geometry/label fast path.
     @try { ADPersonRasterLayout6150(self); } @catch(...) {}
     @try {
         if(objc_getAssociatedObject(self,kADPersonBorderTarget6147)){
@@ -4306,6 +4435,10 @@ static void ADForceBarDark(UIView *bar){
 %end
 
 %hook RCTViewComponentView
+- (void)didMoveToWindow {
+    %orig;
+    @try { ADPersonRasterLayout6150(self); } @catch(...) {}
+}
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
     if (!ADRecolorOn() || !backgroundColor) {
         %orig;
