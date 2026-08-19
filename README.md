@@ -1,3 +1,14 @@
+# AmazonDark v6.0.137
+
+## v6.0.137 — restore stock Sponsored presentation and dark backgrounds
+
+- Removes the v6.0.135/v6.0.136 Sponsored text and glyph ownership path. AmazonDark no longer recolors, filters, resizes, replaces, duplicates, or synthesizes Sponsored labels/info glyphs. Amazon owns their stock gray typography, icon geometry, spacing, and artwork.
+- Removes the v6.0.135 APE/standalone floor clearer and its Dark Reader ignore entries. This backs out the structural transparency path associated with the light-background regression.
+- Removes all 6135/6136 callbacks from the existing native-ad MutationObserver; no replacement observer, timer, tree walk, scroll listener, or RAF loop is added.
+- Other 6.x theming systems are intentionally unchanged.
+
+# Previous release notes
+
 # AmazonDark v6.0.136
 
 ## v6.0.136
