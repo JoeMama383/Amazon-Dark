@@ -471,62 +471,6 @@ static void ADSBHandleJITRequest622(int token){
 }
 %end
 
-
-// v6.0.140 probe relay. Amazon itself is sandboxed and cannot reliably write into
-// the Files-visible Shared/AppGroup folder. The app writes its probe to its own
-// Documents directory and posts a Darwin notification; SpringBoard copies that
-// completed file into the exact Documents folder used by the normal push workflow.
-#define AD_SIGNOUT_PROBE_NOTIFY_6140 "com.colindavidr.amazondark.signoutprobe6140.ready"
-static NSString * const kADProbeName6140 = @"AmazonDark-signout-dialog-probe-6140.txt";
-static NSString * const kADProbeDest6140 =
-    @"/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/AmazonDark-signout-dialog-probe-6140.txt";
-
-static NSString *ADSBFindProbe6140(void){
-    @try {
-        NSFileManager *fm=[NSFileManager defaultManager];
-        NSArray *roots=@[@"/private/var/mobile/Containers/Data/Application",
-                         @"/var/mobile/Containers/Data/Application"];
-        for (NSString *root in roots){
-            NSArray *kids=[fm contentsOfDirectoryAtPath:root error:nil];
-            for (NSString *kid in kids){
-                NSString *p=[[[root stringByAppendingPathComponent:kid]
-                              stringByAppendingPathComponent:@"Documents"]
-                             stringByAppendingPathComponent:kADProbeName6140];
-                BOOL dir=NO;
-                if ([fm fileExistsAtPath:p isDirectory:&dir] && !dir) return p;
-            }
-        }
-    } @catch (__unused NSException *e) {}
-    return nil;
-}
-
-static void ADSBRelayProbe6140(void){
-    @autoreleasepool {
-        @try {
-            NSFileManager *fm=[NSFileManager defaultManager];
-            NSString *src=ADSBFindProbe6140();
-            if (!src.length){
-                ADSBLog(@"PROBE6140 relay: source not found");
-                return;
-            }
-            NSString *destDir=[kADProbeDest6140 stringByDeletingLastPathComponent];
-            [fm createDirectoryAtPath:destDir withIntermediateDirectories:YES attributes:nil error:nil];
-            [fm removeItemAtPath:kADProbeDest6140 error:nil];
-            NSError *err=nil;
-            BOOL ok=[fm copyItemAtPath:src toPath:kADProbeDest6140 error:&err];
-            if (ok){
-                [fm setAttributes:@{NSFilePosixPermissions:@0666}
-                     ofItemAtPath:kADProbeDest6140 error:nil];
-                ADSBLog([NSString stringWithFormat:@"PROBE6140 relay OK %@ -> %@",src,kADProbeDest6140]);
-            } else {
-                ADSBLog([NSString stringWithFormat:@"PROBE6140 relay FAILED %@ %@",err.domain?:@"?",err.localizedDescription?:@"?"]);
-            }
-        } @catch (NSException *e) {
-            ADSBLog([NSString stringWithFormat:@"PROBE6140 relay exception %@ %@",e.name,e.reason]);
-        }
-    }
-}
-
 %ctor {
     // Dopamine JIT broker: one event-driven enable request channel. SpringBoard is
     // the platform-authorized caller; the handler itself validates Amazon's PID.
@@ -535,19 +479,6 @@ static void ADSBRelayProbe6140(void){
         notify_register_dispatch(AD_JIT_REQ_NOTIFY_622, &adJITToken622,
                                  dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^(int t){
             ADSBHandleJITRequest622(t);
-        });
-    } @catch (__unused NSException *e) {}
-
-    // One-shot Sign Out dialog probe relay.
-    @try {
-        static int adProbeToken6140 = 0;
-        notify_register_dispatch(AD_SIGNOUT_PROBE_NOTIFY_6140, &adProbeToken6140,
-                                 dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^(int t){
-            // Give the Amazon-side append/close a fraction of a second to settle.
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.35*NSEC_PER_SEC)),
-                           dispatch_get_global_queue(QOS_CLASS_UTILITY,0), ^{
-                ADSBRelayProbe6140();
-            });
         });
     } @catch (__unused NSException *e) {}
 

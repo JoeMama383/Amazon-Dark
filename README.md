@@ -1,10 +1,10 @@
-# AmazonDark v6.0.140 probe
+## v6.0.141 — probe-derived Sign Out dialog button colors
 
-Temporary **Sign Out confirmation dialog probe**, built directly from the stable v6.0.138 behavior. No v6.0.139 button recolor is included. With the Sign Out confirmation visible, background Amazon once. The probe captures the visible UIKit/layer tree plus computed DOM/CSS for `Sign Out`, `Cancel`, and `You are signed in as`, then the SpringBoard companion automatically relays the completed file to:
-
-`/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/AmazonDark-signout-dialog-probe-6140.txt`
-
-No recurring observer, scroll listener, interval, or RAF loop is added.
+- Built directly from the v6.0.138 production baseline; the temporary v6.0.140 probe is not shipped.
+- Probe 6140 identified the dialog controls as native `AWButton` instances with background-image artwork and real `UIButtonLabel` text.
+- `Sign Out` keeps Amazon's stock yellow background image and uses black title text.
+- `Cancel` preserves Amazon's stock background-image geometry/alpha mask, recolors that image to medium gray (`#666666`), and uses white title text.
+- Ownership is bounded to an `AWButton` inside the compact dialog that simultaneously contains `Sign Out`, `Cancel`, and a `You are signed in as ...` sibling label. No global button styling was added.
 
 # AmazonDark v6.0.138
 
