@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.143"
+#define AD_VERSION "v6.0.144"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1264,6 +1264,14 @@ static NSString *ADDarkReaderBootstrap(void){
            // the bootstrap is injected forMainFrameOnly:NO.
            "function adCartCreditText6143(e){try{if(!e||e.nodeType!==1)return false;var t=String(e.textContent||'').replace(/\\s+/g,' ').trim();if(t.length<18||t.length>420)return false;return /pay for this order/i.test(t)&&(/[$]?50\\s*off/i.test(t)||/upon approval/i.test(t)||/amazon visa/i.test(t));}catch(x){return false;}}"
            "function adCartCredit6143(e){try{if(!adCartCreditText6143(e))return 0;var vw=innerWidth||390,p=e,best=null,d=0;while(p&&d++<7){var r=p.getBoundingClientRect();if(r.width>=vw*.72&&r.height>=44&&r.height<=190){best=p;if(r.width>=vw*.90)break;}p=p.parentElement;}if(!best)return 0;if(best.getAttribute('data-ad-cartcredit6143')==='1')return 1;best.setAttribute('data-ad-cartcredit6143','1');best.style.setProperty('background-color',BG,'important');best.style.setProperty('background-image','none','important');best.style.setProperty('box-shadow','none','important');best.style.setProperty('border-color','transparent','important');var Q=best.querySelectorAll?best.querySelectorAll('div,section,article,span,p,a,strong,b,em,small,h1,h2,h3,h4,h5,h6'):[];for(var ci=0;ci<Q.length&&ci<96;ci++){var q=Q[ci],tg=String(q.tagName||'').toUpperCase(),qr=q.getBoundingClientRect(),qs=getComputedStyle(q);if(/^(?:DIV|SECTION|ARTICLE)$/.test(tg)){var ql=lum(qs.backgroundColor);if((ql!==null&&ql>.50)||(qr.width>=best.getBoundingClientRect().width*.55&&qr.height>=18)){q.style.setProperty('background-color','transparent','important');if(String(qs.backgroundImage||'none').indexOf('url(')<0)q.style.setProperty('background-image','none','important');q.style.setProperty('box-shadow','none','important');}}var own='';for(var cj=0;cj<q.childNodes.length&&cj<12;cj++){var cn=q.childNodes[cj];if(cn.nodeType===3)own+=String(cn.nodeValue||'');}if(own.replace(/\\s+/g,' ').trim()){q.style.setProperty('color',FG,'important');q.style.setProperty('-webkit-text-fill-color',FG,'important');q.style.setProperty('opacity','1','important');}}return 1;}catch(x){return 0;}}"
+           // v6.0.144: /ap/signin footer-strip repair. The 6143 capture showed this
+           // screen is a single top-level WKWebView; the odd light/gray gradient sits
+           // behind the footer link group ("Conditions of Use", "Privacy Notice",
+           // "Help"). Identify only that semantic group inside the EXISTING traversal
+           // and collapse its structural/pseudo backgrounds to the configured page BG.
+           // Link ink, copyright text, form controls, and the rest of sign-in are untouched.
+           "function adSigninFooterText6144(e){try{if(!e||e.nodeType!==1)return false;var p=String(location.pathname||'').toLowerCase();if(p.indexOf('/ap/signin')!==0)return false;var t=String(e.textContent||'').replace(/\\s+/g,' ').trim();if(t.length<24||t.length>180)return false;if(/welcome to amazon|enter mobile number or email/i.test(t))return false;return /conditions of use/i.test(t)&&/privacy notice/i.test(t)&&/(?:^|\\s)help(?:\\s|$)/i.test(t);}catch(x){return false;}}"
+           "function adSigninFooter6144(e){try{if(!adSigninFooterText6144(e))return 0;var vw=innerWidth||390,p=e,best=null,d=0;while(p&&d++<6){var r=p.getBoundingClientRect();if(r.width>=vw*.72&&r.height>=18&&r.height<=170)best=p;else if(best&&r.height>170)break;p=p.parentElement;}if(!best)return 0;if(best.getAttribute('data-ad-signinfooter6144')==='1')return 1;best.setAttribute('data-ad-signinfooter6144','1');var sid='ad-signinfooter6144-style',st=document.getElementById(sid);if(!st){st=document.createElement('style');st.id=sid;st.textContent='[data-ad-signinfooter6144],[data-ad-signinfooter6144]::before,[data-ad-signinfooter6144]::after{background-color:'+BG+'!important;background-image:none!important;box-shadow:none!important;}[data-ad-signinfooter6144] div,[data-ad-signinfooter6144] section,[data-ad-signinfooter6144] footer,[data-ad-signinfooter6144] aside,[data-ad-signinfooter6144] nav,[data-ad-signinfooter6144] ul,[data-ad-signinfooter6144] li,[data-ad-signinfooter6144] table,[data-ad-signinfooter6144] tbody,[data-ad-signinfooter6144] tr,[data-ad-signinfooter6144] td{background-color:transparent!important;background-image:none!important;box-shadow:none!important;}[data-ad-signinfooter6144] div::before,[data-ad-signinfooter6144] div::after,[data-ad-signinfooter6144] section::before,[data-ad-signinfooter6144] section::after,[data-ad-signinfooter6144] footer::before,[data-ad-signinfooter6144] footer::after,[data-ad-signinfooter6144] aside::before,[data-ad-signinfooter6144] aside::after,[data-ad-signinfooter6144] nav::before,[data-ad-signinfooter6144] nav::after,[data-ad-signinfooter6144] li::before,[data-ad-signinfooter6144] li::after{background-color:transparent!important;background-image:none!important;box-shadow:none!important;}';(document.head||document.documentElement).appendChild(st);}best.style.setProperty('background-color',BG,'important');best.style.setProperty('background-image','none','important');best.style.setProperty('box-shadow','none','important');var Q=best.querySelectorAll?best.querySelectorAll('div,section,footer,aside,nav,ul,li,table,tbody,tr,td'):[];for(var fi=0;fi<Q.length&&fi<80;fi++){Q[fi].style.setProperty('background-color','transparent','important');Q[fi].style.setProperty('background-image','none','important');Q[fi].style.setProperty('box-shadow','none','important');}return 1;}catch(x){return 0;}}"
            // v6.0.138: semantic Sponsored bridge. This reuses the existing bounded
            // contrast traversal instead of adding another document scan. It also
            // identifies Sponsor ancestry so generic glyph whitening cannot repaint
@@ -1275,6 +1283,7 @@ static NSString *ADDarkReaderBootstrap(void){
            // byte-for-byte stock and merely protected from generic inversion.
            "function adSponsorGlyph6138(e){try{if(!e||e.nodeType!==1||adSponsorText6138(e)||!adSponsorCtx6138(e))return false;var r=e.getBoundingClientRect();if(r.width<5||r.height<5||r.width>30||r.height>30)return false;var cs=getComputedStyle(e),c=e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;var z=(String(c||'')+' '+String(e.id||'')+' '+String((e.getAttribute&&e.getAttribute('aria-label'))||'')+' '+String((e.getAttribute&&e.getAttribute('title'))||'')).toLowerCase(),tg=String(e.tagName||'').toUpperCase(),bi=String(cs.backgroundImage||'none'),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),pb=null,pa=null,pc=false;try{pb=getComputedStyle(e,'::before');pa=getComputedStyle(e,'::after');pc=(pb&&pb.content&&pb.content!=='none'&&pb.content!=='normal')||(pa&&pa.content&&pa.content!=='none'&&pa.content!=='normal');}catch(q){}var known=/ad-feedback-spr|feedback.*(?:spr|icon)|(?:sponsor|info).*icon|icon.*info/.test(z),vector=(tg==='SVG'||tg==='PATH'||(e.namespaceURI==='http://www.w3.org/2000/svg'));if(!known&&!vector&&mi==='none'&&bi==='none'&&!pc)return false;e.setAttribute('data-ad-sponsorglyph6138','1');e.style.setProperty('opacity','1','important');e.style.setProperty('visibility','visible','important');e.style.setProperty('mix-blend-mode','normal','important');if(mi!=='none'){e.style.setProperty('background-color','#b1aaa0','important');e.style.setProperty('filter','none','important');}else if(vector){var f=lum(cs.fill),st=lum(cs.stroke);e.style.setProperty('color','#b1aaa0','important');if(f!==null&&f<0.55)e.style.setProperty('fill','#b1aaa0','important');if(st!==null&&st<0.55)e.style.setProperty('stroke','#b1aaa0','important');e.style.setProperty('filter','none','important');}else if(bi==='none'){e.style.setProperty('color','#b1aaa0','important');e.style.setProperty('-webkit-text-fill-color','#b1aaa0','important');e.style.setProperty('filter','none','important');}else{e.style.setProperty('filter','none','important');}return true;}catch(x){return false;}}"
            "for(var i=0;i<els.length;i++){var el=els[i];"
+             "if(adSigninFooterText6144(el)){adSigninFooter6144(el);}"
              "if(adCartCreditText6143(el)){adCartCredit6143(el);}"
              "if(adSponsorText6138(el)){el.setAttribute('data-ad-sponsorgray6138','1');el.style.setProperty('color','#b1aaa0','important');el.style.setProperty('-webkit-text-fill-color','#b1aaa0','important');el.style.setProperty('opacity','1','important');el.style.setProperty('visibility','visible','important');continue;}"
              "if(adSponsorGlyph6138(el))continue;"
@@ -1997,81 +2006,6 @@ static void ADFlashWillResign6101(CFNotificationCenterRef center, void *observer
     dispatch_async(dispatch_get_main_queue(), ^{ @try { ADDumpFlashProbe6101(@"WILL_RESIGN_ACTIVE"); } @catch(...) {} });
 }
 
-
-// ════════════════════════════════════════════════════════════════════════════════
-// v6.0.143 — unsigned Cart credit-banner fix verification probe
-// Runs only when Amazon resigns active. It captures the native view host plus the
-// live DOM/CSS around the exact "Pay for this order ... Amazon Visa" promotion.
-// The finished file is relayed by AmazonDarkSB into the normal shared Documents
-// folder used by the source-ZIP push workflow.
-#define AD_CARTCREDIT_PROBE_NOTIFY_6143 "com.colindavidr.amazondark.cartcreditprobe6143.ready"
-static NSString * const kADCartCreditProbeName6143 = @"AmazonDark-cart-credit-probe-6143.txt";
-
-static NSString *ADProbeColor6143(UIColor *c){
-    if(!c) return @"nil";
-    @try { CGFloat r=0,g=0,b=0,a=0,w=0;
-        if([c getRed:&r green:&g blue:&b alpha:&a]) return [NSString stringWithFormat:@"rgba(%.3f,%.3f,%.3f,%.3f)",r,g,b,a];
-        if([c getWhite:&w alpha:&a]) return [NSString stringWithFormat:@"white(%.3f,%.3f)",w,a];
-    } @catch(...) {}
-    return [c description] ?: @"<?>";
-}
-static NSString *ADProbeCG6143(CGColorRef c){ if(!c)return @"nil"; @try{return ADProbeColor6143([UIColor colorWithCGColor:c]);}@catch(...){return @"<?>";} }
-static NSString *ADProbeSafe6143(NSString *s){ if(!s.length)return @""; NSString *x=[s stringByReplacingOccurrencesOfString:@"\n" withString:@"\\n"]; return x.length>420?[[x substringToIndex:420]stringByAppendingString:@"…"]:x; }
-static void ADProbeAppend6143(NSString *p,NSString *s){ if(!p.length||!s.length)return; @try{NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding];NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p];if(!h)[[NSFileManager defaultManager]createFileAtPath:p contents:d attributes:nil];else{[h seekToEndOfFile];[h writeData:d];[h closeFile];}}@catch(...){} }
-static BOOL ADProbeTarget6143(NSString *s){ if(!s.length)return NO; NSString *x=s.lowercaseString; return [x containsString:@"pay for this order"]||[x containsString:@"$50 off"]||[x containsString:@"upon approval"]||[x containsString:@"amazon visa"]; }
-static NSString *ADProbeViewText6143(UIView *v){
-    @try{
-        if([v isKindOfClass:[UILabel class]])return ((UILabel *)v).text?:@"";
-        if([v isKindOfClass:[UIButton class]])return ((UIButton *)v).currentTitle?:((UIButton *)v).titleLabel.text?:@"";
-        if([v isKindOfClass:[UITextView class]])return ((UITextView *)v).text?:@"";
-        NSString *a=v.accessibilityLabel; if(a.length)return a;
-    }@catch(...){}
-    return @"";
-}
-static void ADProbeNativeWalk6143(UIView *v,NSMutableString *o,NSUInteger depth,NSUInteger *seen){
-    if(!v||depth>30||*seen>1500)return;
-    @try{
-        (*seen)++; NSString *tx=ADProbeViewText6143(v); BOOL hit=ADProbeTarget6143(tx);
-        if([v isKindOfClass:NSClassFromString(@"WKWebView")]){
-            WKWebView *w=(WKWebView *)v; CGRect r=[w convertRect:w.bounds toView:nil];
-            [o appendFormat:@"WEBHOST %@ frame={%.1f,%.1f,%.1f,%.1f} url=%@ bg=%@ alpha=%.3f\n",NSStringFromClass([w class]),r.origin.x,r.origin.y,r.size.width,r.size.height,w.URL.absoluteString?:@"",ADProbeColor6143(w.backgroundColor),w.alpha];
-        }
-        if(hit){
-            [o appendFormat:@"TARGET native=\"%@\"\n",ADProbeSafe6143(tx)]; UIView *p=v; NSUInteger d=0;
-            while(p&&d++<10){CGRect r=[p convertRect:p.bounds toView:nil];[o appendFormat:@"  ^%lu %@ frame={%.1f,%.1f,%.1f,%.1f} bg=%@ tint=%@ layerBg=%@ alpha=%.3f\n",(unsigned long)(d-1),NSStringFromClass([p class]),r.origin.x,r.origin.y,r.size.width,r.size.height,ADProbeColor6143(p.backgroundColor),ADProbeColor6143(p.tintColor),ADProbeCG6143(p.layer.backgroundColor),p.alpha];p=p.superview;}
-        }
-        for(UIView *s in v.subviews)ADProbeNativeWalk6143(s,o,depth+1,seen);
-    }@catch(...){}
-}
-static NSString *ADProbeNative6143(void){ NSMutableString *o=[NSMutableString stringWithString:@"=== NATIVE / WEBVIEW HOSTS ===\n"]; @try{NSUInteger n=0;for(UIWindow *w in [UIApplication sharedApplication].windows)ADProbeNativeWalk6143(w,o,0,&n);[o appendFormat:@"visited=%lu\n\n",(unsigned long)n];}@catch(NSException *e){[o appendFormat:@"NATIVE_EXCEPTION %@ %@\n",e.name,e.reason];} return o; }
-static NSString *ADProbeDOMJS6143(void){
-    return @"(function(){try{"
-    "function S(v,n){v=String(v==null?'':v).replace(/\\s+/g,' ').trim();return v.length>(n||320)?v.slice(0,n||320):v;}"
-    "function N(e){try{var c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after'),r=e.getBoundingClientRect();return{tag:e.tagName,id:S(e.id,120),cl:S(e.className&&e.className.baseVal!==undefined?e.className.baseVal:e.className,260),txt:S(e.textContent,420),rect:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],mark:e.getAttribute&&e.getAttribute('data-ad-cartcredit6143')||'',style:S(e.getAttribute&&e.getAttribute('style'),360),css:{color:c.color,fill:c.webkitTextFillColor,bg:c.backgroundColor,bgi:S(c.backgroundImage,260),border:S(c.border,180),shadow:S(c.boxShadow,220),display:c.display,vis:c.visibility,op:c.opacity,filter:S(c.filter,120)},bef:{content:S(b.content,100),bg:b.backgroundColor,bgi:S(b.backgroundImage,160)},aft:{content:S(a.content,100),bg:a.backgroundColor,bgi:S(a.backgroundImage,160)}};}catch(x){return{err:String(x)}}}"
-    "function C(e){var A=[],p=e,d=0;while(p&&d++<10){A.push(N(p));p=p.parentElement;}return A;}"
-    "function Kids(e){var A=[],Q=e&&e.querySelectorAll?e.querySelectorAll('*'):[];for(var i=0;i<Q.length&&i<70;i++){var q=Q[i],r=q.getBoundingClientRect();if(r.width<4||r.height<4)continue;var t=S(q.textContent,180),c=getComputedStyle(q);if(t||c.backgroundColor!=='rgba(0, 0, 0, 0)'||String(c.backgroundImage||'none')!=='none')A.push(N(q));if(A.length>=32)break;}return A;}"
-    "var out={url:String(location.href),top:(window.top===window),wh:[innerWidth||0,innerHeight||0],targets:[],marked:[],iframes:[]},seen=[];"
-    "var W=document.createTreeWalker(document.body||document.documentElement,NodeFilter.SHOW_TEXT),nd,k=0;while((nd=W.nextNode())&&k++<12000&&out.targets.length<12){var t=S(nd.nodeValue,500);if(!/(pay for this order|\\$?50\\s*off|upon approval|amazon visa)/i.test(t))continue;var e=nd.parentElement;if(!e||seen.indexOf(e)>=0)continue;seen.push(e);out.targets.push({leaf:N(e),chain:C(e),kids:Kids(e.parentElement||e)});}"
-    "var M=document.querySelectorAll('[data-ad-cartcredit6143]');for(var m=0;m<M.length&&m<8;m++)out.marked.push({node:N(M[m]),kids:Kids(M[m])});"
-    "var F=document.getElementsByTagName('iframe');for(var i=0;i<F.length&&i<20;i++){var fr=F[i].getBoundingClientRect();if(fr.width<40||fr.height<20)continue;out.iframes.push(N(F[i]));}"
-    "return JSON.stringify(out);}catch(e){return 'ERR '+String(e);}})();";
-}
-static NSString *ADCartCreditProbeLocal6143(void){ return [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject] stringByAppendingPathComponent:kADCartCreditProbeName6143]; }
-static void ADCartCreditProbeFinish6143(NSString *p,UIBackgroundTaskIdentifier bg){ ADProbeAppend6143(p,@"\n=== END PROBE ===\n");notify_post(AD_CARTCREDIT_PROBE_NOTIFY_6143);if(bg!=UIBackgroundTaskInvalid){@try{[[UIApplication sharedApplication]endBackgroundTask:bg];}@catch(...){}} }
-static void ADDumpCartCreditProbe6143(void){
-    if(![NSThread isMainThread]){dispatch_async(dispatch_get_main_queue(),^{ADDumpCartCreditProbe6143();});return;}
-    @try{
-        NSString *p=ADCartCreditProbeLocal6143();[[NSFileManager defaultManager]removeItemAtPath:p error:nil];
-        ADProbeAppend6143(p,[NSString stringWithFormat:@"AmazonDark unsigned Cart credit-banner probe 6143\nversion=%s\npid=%d\nlocal=%@\nrelayTarget=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/%@\nuptime=%.3f\n\n",AD_VERSION,getpid(),p,kADCartCreditProbeName6143,ADUptime()]);
-        ADProbeAppend6143(p,ADProbeNative6143());
-        __block UIBackgroundTaskIdentifier bg=UIBackgroundTaskInvalid; bg=[[UIApplication sharedApplication]beginBackgroundTaskWithName:@"AmazonDarkCartCreditProbe6143" expirationHandler:^{ADProbeAppend6143(p,@"\nBACKGROUND_TASK_EXPIRED\n");notify_post(AD_CARTCREDIT_PROBE_NOTIFY_6143);if(bg!=UIBackgroundTaskInvalid){[[UIApplication sharedApplication]endBackgroundTask:bg];bg=UIBackgroundTaskInvalid;}}];
-        NSArray *views=gADWebViews613.allObjects?:@[]; NSMutableArray *mounted=[NSMutableArray array];for(WKWebView *w in views)if(w&&w.window)[mounted addObject:w];ADProbeAppend6143(p,[NSString stringWithFormat:@"=== DOM/CSS DUMPS mountedWebViews=%lu ===\n",(unsigned long)mounted.count]);
-        if(!mounted.count){ADCartCreditProbeFinish6143(p,bg);return;} dispatch_group_t g=dispatch_group_create(); NSString *js=ADProbeDOMJS6143(); __block NSUInteger idx=0;
-        for(WKWebView *w in mounted){NSUInteger my=idx++;NSString *u=w.URL.absoluteString?:@"";dispatch_group_enter(g);[w evaluateJavaScript:js completionHandler:^(id r,NSError *e){NSString *body=e?[NSString stringWithFormat:@"ERROR %@",e]:([r isKindOfClass:[NSString class]]?(NSString *)r:[r description]);ADProbeAppend6143(p,[NSString stringWithFormat:@"\n--- WEBVIEW %lu %@ ---\n%@\n",(unsigned long)my,u,body?:@"(nil)"]);dispatch_group_leave(g);}];}
-        dispatch_group_notify(g,dispatch_get_main_queue(),^{ADCartCreditProbeFinish6143(p,bg);bg=UIBackgroundTaskInvalid;});
-    }@catch(NSException *e){NSString *p=ADCartCreditProbeLocal6143();ADProbeAppend6143(p,[NSString stringWithFormat:@"PROBE_EXCEPTION %@ %@\n",e.name,e.reason]);notify_post(AD_CARTCREDIT_PROBE_NOTIFY_6143);}
-}
-static void ADCartCreditWillResign6143(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef u){dispatch_async(dispatch_get_main_queue(),^{@try{ADDumpCartCreditProbe6143();}@catch(...){}});}
 
 // ════════════════════════════════════════════════════════════════════════════════
 // WKUserContentController — restore our script the moment Amazon strips it.
@@ -5828,10 +5762,6 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
         NULL, CFNotificationSuspensionBehaviorCoalesce);
     CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(),
         NULL, ADFlashWillResign6101,
-        (__bridge CFStringRef)UIApplicationWillResignActiveNotification,
-        NULL, CFNotificationSuspensionBehaviorCoalesce);
-    CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(),
-        NULL, ADCartCreditWillResign6143,
         (__bridge CFStringRef)UIApplicationWillResignActiveNotification,
         NULL, CFNotificationSuspensionBehaviorCoalesce);
 
