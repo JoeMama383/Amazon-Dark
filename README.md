@@ -1,3 +1,10 @@
+## v6.0.145 — eliminate first-paint sign-in footer gradient
+
+- Keeps the successful v6.0.144 `/ap/signin` footer normalization as a hydrated-DOM fallback.
+- Adds auth-footer/divider selectors to AmazonDark's existing document-start stylesheet so the stock light gradient/pseudo-element is suppressed before the first visible frame.
+- The new first-paint rule is structural and auth-specific (`#auth-footer` / `.auth-footer`); it does not recolor the footer links, copyright copy, sign-in form, or Continue button.
+- All v6.0.143 Cart-credit and v6.0.142 native Sign Out/Cancel behavior is preserved.
+
 ## v6.0.144 — normalize Amazon sign-in footer strip
 
 - Starts from the confirmed-working v6.0.143 behavior.

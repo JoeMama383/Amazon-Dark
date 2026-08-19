@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.144"
+#define AD_VERSION "v6.0.145"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -886,6 +886,30 @@ static NSString *ADDarkReaderBootstrap(void){
          // but it means lazy/virtualised holes reveal the theme floor, not Amazon white.
          "try{if(!document.getElementById('adfloor612')){var f=document.createElement('style');"
            "f.id='adfloor612';f.textContent='html,body,#a-page,#gwm-PageContent,main{background-color:%@ !important;}"
+           // v6.0.145: first-paint /ap/signin footer ownership.  v6.0.144 proved
+           // the footer can be normalized correctly once its text is hydrated, but
+           // that semantic pass necessarily happens after Amazon has had a chance to
+           // paint the stock auth divider/gradient.  These auth-specific structural
+           // selectors live in the existing documentStart sheet instead: they are
+           // active before #auth-footer is created, so its divider/pseudo paint never
+           // receives a visible first frame.  The 6144 semantic repair below remains
+           // as a fallback for markup variants that do not use the classic auth IDs.
+           "#auth-footer,.auth-footer,[id*=auth-footer],"
+           "#auth-footer .a-divider,#auth-footer .a-divider-inner,#auth-footer .a-divider-section,"
+           ".auth-footer .a-divider,.auth-footer .a-divider-inner,.auth-footer .a-divider-section,"
+           "[id*=auth-footer] .a-divider,[id*=auth-footer] .a-divider-inner,[id*=auth-footer] .a-divider-section,"
+           "#auth-footer .auth-footer-separator,#auth-footer .auth-footer-seperator,"
+           ".auth-footer .auth-footer-separator,.auth-footer .auth-footer-seperator"
+           "{background-color:transparent !important;background-image:none !important;box-shadow:none !important;}"
+           "#auth-footer::before,#auth-footer::after,.auth-footer::before,.auth-footer::after,"
+           "[id*=auth-footer]::before,[id*=auth-footer]::after,"
+           "#auth-footer .a-divider::before,#auth-footer .a-divider::after,"
+           "#auth-footer .a-divider-inner::before,#auth-footer .a-divider-inner::after,"
+           ".auth-footer .a-divider::before,.auth-footer .a-divider::after,"
+           ".auth-footer .a-divider-inner::before,.auth-footer .a-divider-inner::after,"
+           "[id*=auth-footer] .a-divider::before,[id*=auth-footer] .a-divider::after,"
+           "[id*=auth-footer] .a-divider-inner::before,[id*=auth-footer] .a-divider-inner::after"
+           "{background:transparent !important;background-image:none !important;box-shadow:none !important;border-color:transparent !important;}"
            // v6.0.88: restore the exact v5.446 adcardfix image-wrapper floor.
            // The historical Interests work made these wrappers transparent at parse
            // time; v6.0.85 accidentally ported the borders/skeletons but omitted this.
