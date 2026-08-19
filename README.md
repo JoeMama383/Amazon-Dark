@@ -1,3 +1,7 @@
+## v6.0.146 — repackage of v6.0.145
+
+No functional changes from v6.0.145. This release exists only to produce a fresh GitHub Actions artifact after the previous artifact was deleted.
+
 ## v6.0.145 — eliminate first-paint sign-in footer gradient
 
 - Keeps the successful v6.0.144 `/ap/signin` footer normalization as a hydrated-DOM fallback.

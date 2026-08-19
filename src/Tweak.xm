@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.145"
+#define AD_VERSION "v6.0.146"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
