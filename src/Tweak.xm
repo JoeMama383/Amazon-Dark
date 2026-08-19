@@ -456,82 +456,6 @@ static void ADInvalidateWebCaches613(void){
     gADTameWeb613 = nil;
 }
 
-// ── shared stylesheet blocks ─────────────────────────────────────────────────
-// v6.0.132: each block below was maintained as two hand-kept copies -- one in the
-// documentStart floor sheet, one in the Dark Reader fixes sheet.  Two copies is
-// deliberate (the same paint has to exist before and after Dark Reader runs); two
-// EDITABLE copies is not, and is how they silently drift apart.  One definition,
-// two use sites, byte-identical emitted CSS.
-//
-// These expand to runs of adjacent string literals, so every use site must still
-// contain at least one @-prefixed segment elsewhere in the run -- both do, at the
-// head of their stringWithFormat: argument.
-#define AD_CSS_SPONSOR_BLOCK \
-    "[class*=nav-search] img,[class*=searchbar] img,[class*=search-bar] img," \
-    "[role=search] img,[class*=nav-] img[class*=icon],[class*=header] img[class*=icon]" \
-    "{background-color:transparent !important;}" \
-    "[class*=sponsored-label],[class*=sponsored-label] *," \
-    "[class*=adFeedbackMainComponent],[class*=adFeedbackMainComponent] *," \
-    "html body :is(span,div,a,p):has(>[class*=ad-feedback-spr])" \
-    "{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;" \
-    "opacity:1 !important;visibility:visible !important;mix-blend-mode:normal !important;}" \
-    "[class*=adFeedbackMainComponent] svg,[class*=adFeedbackMainComponent] path," \
-    "[class*=sponsored-label] svg,[class*=sponsored-label] path" \
-    "{color:#ffffff !important;fill:#ffffff !important;stroke:#ffffff !important;opacity:1 !important;}" \
-    "[class*=ad-feedback-spr]" \
-    "{filter:none !important;opacity:1 !important;visibility:visible !important;" \
-    "background-color:transparent !important;mix-blend-mode:normal !important;" \
-    "background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PGNpcmNsZSBjeD0iOCIgY3k9IjgiIHI9IjcuMyIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjgiIGN5PSI0LjUiIHI9IjEuMDUiIGZpbGw9IiMxODFhMWIiLz48cGF0aCBkPSJNOCA2Ljl2NC43IiBmaWxsPSJub25lIiBzdHJva2U9IiMxODFhMWIiIHN0cm9rZS13aWR0aD0iMS45IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=) !important;" \
-    "background-repeat:no-repeat !important;background-position:center !important;" \
-    "background-size:contain !important;transition:none !important;animation:none !important;}" \
-    "[class*=ad-feedback-spr] > *,[class*=ad-feedback-spr] svg," \
-    "[class*=ad-feedback-spr] path,[class*=ad-feedback-spr] img" \
-    "{opacity:0 !important;filter:none !important;background-image:none !important;}" \
-    "[class*=hybrid-widget-sponsored],[class*=adFeedbackMainComponent]" \
-    "{background-color:transparent !important;}" \
-    "[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback]," \
-    "[id^=ape_][id*=_wrapper],[id^=ape_][id*=_placement]" \
-    "{background:transparent !important;background-color:transparent !important;" \
-    "background-image:none !important;border-color:transparent !important;" \
-    "box-shadow:none !important;outline:0 !important;}" \
-    "[class*=ape-feedback],[class*=ape-feedback] *," \
-    "[id^=ad-feedback-text-],[id^=af-label-primary-link-]," \
-    "[id^=af-label-primary-link-] *" \
-    "{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;" \
-    "opacity:1 !important;visibility:visible !important;mix-blend-mode:normal !important;}"
-
-#define AD_CSS_AUI_BUTTONS \
-    ".a-button-primary,.a-button-primary .a-button-inner," \
-    ".a-button-primary .a-button-text,.a-button-primary .a-button-input," \
-    ".a-button-primary a,.a-button-primary span" \
-    "{color:#0f1111 !important;-webkit-text-fill-color:#0f1111 !important;" \
-    "opacity:1 !important;mix-blend-mode:normal !important;}" \
-    ".a-button:not(.a-button-primary)," \
-    ".a-button:not(.a-button-primary) .a-button-inner," \
-    ".a-button:not(.a-button-primary) .a-button-text," \
-    ".a-button:not(.a-button-primary) .a-button-input" \
-    "{background:#181a1b !important;background-color:#181a1b !important;" \
-    "background-image:none !important;border-color:#3b4043 !important;" \
-    "color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;" \
-    "opacity:1 !important;mix-blend-mode:normal !important;}" \
-    ".a-popover-wrapper,.a-popover-inner,.a-popover-header,.a-modal-scroller" \
-    "{background-color:#181a1b !important;background-image:none !important;" \
-    "color:#ffffff !important;}"
-
-#define AD_CSS_SWATCH_RINGS \
-    ".s-color-swatch-outer-circle{border-color:#2f2f32 !important;outline-color:#2f2f32 !important;transition:none !important;}" \
-    ".s-color-swatch-outer-circle.s-color-swatch-outer-circle-selected{border-color:#6d6b68 !important;outline-color:#6d6b68 !important;}"
-
-#define AD_CSS_SWATCH_SHELLS \
-    ".s-color-swatch-container,.s-color-swatch-outer-circle," \
-    ".puis-status-badge-container,[data-component-type=s-status-badge-component] .a-badge-region" \
-    "{background:transparent !important;background-color:transparent !important;background-image:none !important;box-shadow:none !important;}"
-
-#define AD_CSS_SWATCH_PSEUDOS \
-    ".s-color-swatch-container::before,.s-color-swatch-container::after," \
-    ".s-color-swatch-outer-circle::before,.s-color-swatch-outer-circle::after," \
-    ".puis-status-badge-container::before,.puis-status-badge-container::after,"
-
 static NSString *ADFixesLiteral(void){
     if (gADFixesLiteral613) return gADFixesLiteral613;
     // The image backdrop is only meaningful where an image has TRANSPARENT pixels:
@@ -557,8 +481,67 @@ static NSString *ADFixesLiteral(void){
              // v6.0.116: exact v5.446 Search/nav bitmap backdrop rule.
              // Search glyph hosts stay unpainted; only real IMG chrome is guaranteed
              // a transparent surround, while the donor generic glyph pass owns ink.
-             AD_CSS_SPONSOR_BLOCK
-             AD_CSS_AUI_BUTTONS
+             "[class*=nav-search] img,[class*=searchbar] img,[class*=search-bar] img,"
+             "[role=search] img,[class*=nav-] img[class*=icon],[class*=header] img[class*=icon]"
+             "{background-color:transparent !important;}"
+             // v6.0.135: canonical Sponsored owner. Every template gets the same
+             // text metrics and the same 12px white-disc/dark-i artwork. Runtime
+             // marks classless/lazy variants; known Amazon families paint correctly
+             // from first frame. Native glyph contents/pseudos are fully suppressed.
+             "[class*=sponsored-label],[class*=ad-feedback-text],[id^=ad-feedback-text-],[data-ad-sponsor-label6135]"
+             "{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;"
+             "font-family:\"Amazon Ember\",Arial,sans-serif !important;font-size:13px !important;"
+             "line-height:16px !important;font-weight:400 !important;font-style:normal !important;"
+             "letter-spacing:0 !important;text-transform:none !important;"
+             "opacity:1 !important;visibility:visible !important;filter:none !important;"
+             "mix-blend-mode:normal !important;}"
+             "[data-ad-sponsor-label6135]{background-image:none !important;"
+             "-webkit-mask:none !important;mask:none !important;}"
+             "[data-ad-sponsor-label6135]::before"
+             "{content:none !important;display:none !important;background:none !important;"
+             "-webkit-mask:none !important;mask:none !important;box-shadow:none !important;}"
+             "[data-ad-sponsor-label6135]:not([data-ad-sponsor-fallback6135])::after"
+             "{content:none !important;display:none !important;background:none !important;"
+             "-webkit-mask:none !important;mask:none !important;box-shadow:none !important;}"
+             "[class*=ad-feedback-spr],[data-ad-sponsor-glyph6135]"
+             "{display:inline-block !important;width:12px !important;min-width:12px !important;max-width:12px !important;"
+             "height:12px !important;min-height:12px !important;max-height:12px !important;"
+             "padding:0 !important;margin:0 0 0 4px !important;box-sizing:border-box !important;"
+             "vertical-align:-1px !important;flex:0 0 12px !important;overflow:hidden !important;"
+             "border:0 !important;border-radius:50%% !important;outline:0 !important;box-shadow:none !important;"
+             "filter:none !important;opacity:1 !important;visibility:visible !important;"
+             "transform:none !important;-webkit-transform:none !important;"
+             "color:transparent !important;-webkit-text-fill-color:transparent !important;"
+             "font-size:0 !important;line-height:0 !important;text-indent:-9999px !important;"
+             "content:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjYiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy4xNSIgcj0iLjgyIiBmaWxsPSIjMTgxYTFiIi8+PHJlY3QgeD0iNS4yMiIgeT0iNC41NSIgd2lkdGg9IjEuNTYiIGhlaWdodD0iNC41IiByeD0iLjc4IiBmaWxsPSIjMTgxYTFiIi8+PC9zdmc+) !important;"
+             "-webkit-mask-image:none !important;mask-image:none !important;"
+             "background-color:transparent !important;background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjYiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy4xNSIgcj0iLjgyIiBmaWxsPSIjMTgxYTFiIi8+PHJlY3QgeD0iNS4yMiIgeT0iNC41NSIgd2lkdGg9IjEuNTYiIGhlaWdodD0iNC41IiByeD0iLjc4IiBmaWxsPSIjMTgxYTFiIi8+PC9zdmc+) !important;"
+             "background-repeat:no-repeat !important;background-position:center !important;"
+             "background-size:12px 12px !important;mix-blend-mode:normal !important;}"
+             "[class*=ad-feedback-spr]>* ,[data-ad-sponsor-glyph6135]>*"
+             "{display:none !important;opacity:0 !important;visibility:hidden !important;}"
+             "[class*=ad-feedback-spr]::before,[class*=ad-feedback-spr]::after,"
+             "[data-ad-sponsor-glyph6135]::before,[data-ad-sponsor-glyph6135]::after"
+             "{content:none !important;display:none !important;background:none !important;"
+             "-webkit-mask:none !important;mask:none !important;box-shadow:none !important;}"
+             "[data-ad-sponsor-fallback6135]::after"
+             "{content:\"\" !important;display:inline-block !important;width:12px !important;height:12px !important;"
+             "min-width:12px !important;min-height:12px !important;margin-left:4px !important;"
+             "vertical-align:-1px !important;border:0 !important;border-radius:50%% !important;"
+             "background-color:transparent !important;background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjYiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy4xNSIgcj0iLjgyIiBmaWxsPSIjMTgxYTFiIi8+PHJlY3QgeD0iNS4yMiIgeT0iNC41NSIgd2lkdGg9IjEuNTYiIGhlaWdodD0iNC41IiByeD0iLjc4IiBmaWxsPSIjMTgxYTFiIi8+PC9zdmc+) !important;"
+             "background-repeat:no-repeat !important;background-position:center !important;"
+             "background-size:12px 12px !important;filter:none !important;opacity:1 !important;"
+             "transform:none !important;-webkit-transform:none !important;}"
+             "[data-ad-sponsor-parent-before6135]::before,[data-ad-sponsor-parent-after6135]::after"
+             "{content:none !important;display:none !important;background:none !important;"
+             "-webkit-mask:none !important;mask:none !important;box-shadow:none !important;}"
+             // APE/standalone structural chrome must reveal the live page floor.
+             "[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback],"
+             "[data-ad-ape-shell6135],[data-ad-standfloor6135]"
+             "{background-color:transparent !important;border-color:transparent !important;"
+             "outline-color:transparent !important;box-shadow:none !important;}"
+             "[class*=ape-wrapper] iframe,[class*=ape-placement] iframe"
+             "{background-color:transparent !important;}"
              "%@"
              "[style*=\\\"background-image\\\"]{filter:none !important;}"
              // THE FIX THAT ACTUALLY WORKED, brought back. v5.27.0 whitened the heart
@@ -733,7 +716,8 @@ static NSString *ADFixesLiteral(void){
              // v6.0.101: v6.0.100 removed the white swatch background plane, but the
              // remaining circular flash is the stock light ring itself. Preserve
              // selected/unselected state while owning border/outline colour only.
-             AD_CSS_SWATCH_RINGS
+             ".s-color-swatch-outer-circle{border-color:#2f2f32 !important;outline-color:#2f2f32 !important;transition:none !important;}"
+             ".s-color-swatch-outer-circle.s-color-swatch-outer-circle-selected{border-color:#6d6b68 !important;outline-color:#6d6b68 !important;}"
              // v6.0.88: exact v5.446 v5.264-era Interests/image-wrapper prepaint.
              // This is the missing half of the historical flash fix: product-art
              // wrappers are transparent before hydration so the already-dark pane
@@ -773,7 +757,9 @@ static NSString *ADFixesLiteral(void){
              "{background:transparent !important;background-color:transparent !important;background-image:none !important;box-shadow:none !important;border-color:transparent !important;outline:0 !important;}"
              // v6.0.100: exact probe-proven inner shell ownership. Do not clear
              // swatch borders: only the stock white background plane is removed.
-             AD_CSS_SWATCH_SHELLS
+             ".s-color-swatch-container,.s-color-swatch-outer-circle,"
+             ".puis-status-badge-container,[data-component-type=s-status-badge-component] .a-badge-region"
+             "{background:transparent !important;background-color:transparent !important;background-image:none !important;box-shadow:none !important;}"
              "[data-csa-c-content-id=variation-options-link] [class*=a-truncate],"
              "[data-csa-c-content-id=variation-options-link] [class*=a-truncate-full],"
              "[data-csa-c-content-id=variation-options-link] [class*=a-truncate-cut],"
@@ -799,7 +785,9 @@ static NSString *ADFixesLiteral(void){
              "[class*=s-variation-options-text]::before,[class*=s-variation-options-text]::after,"
              "[class*=s-variation-options-link]::before,[class*=s-variation-options-link]::after,"
              "[class*=s-color-swatch-container-list-view]::before,[class*=s-color-swatch-container-list-view]::after,"
-             AD_CSS_SWATCH_PSEUDOS
+             ".s-color-swatch-container::before,.s-color-swatch-container::after,"
+             ".s-color-swatch-outer-circle::before,.s-color-swatch-outer-circle::after,"
+             ".puis-status-badge-container::before,.puis-status-badge-container::after,"
              "[class*=puis-csi-with-label-container]::before,[class*=puis-csi-with-label-container]::after,"
              "[class*=s-variation-options-link] [class*=a-truncate]::before,[class*=s-variation-options-link] [class*=a-truncate]::after,"
              "[class*=s-color-swatch-container-list-view] [class*=a-truncate]::before,[class*=s-color-swatch-container-list-view] [class*=a-truncate]::after,"
@@ -904,9 +892,7 @@ static NSString *ADFixesLiteral(void){
              "color:#ffffff !important;fill:#ffffff !important;}"
              "',invert:[],ignoreInlineStyle:['[data-ad-native615]','[data-ad-native615] *',"
              "'ul.a-pagination.a-dots li.a-selected','ul.a-pagination.a-dots li.dot-selected-t2','[data-ad-dotselected374]',"
-             "'[class*=ad-feedback-spr]','[class*=adFeedbackMainComponent]','[class*=adFeedbackMainComponent] *','[class*=sponsored-label]','[class*=sponsored-label] *',"
-             "'[class*=ape-wrapper]','[class*=ape-placement]','[class*=ape-feedback]','[class*=ape-feedback] *','[id^=ad-feedback-text-]',"
-             "'.a-button','.a-button-inner','.a-button-text','.a-button-primary','.a-popover-wrapper','.a-popover-inner',"
+             "'[class*=ad-feedback-spr]','[class*=adFeedbackMainComponent]','[class*=adFeedbackMainComponent] *','[class*=sponsored-label]','[class*=sponsored-label] *','[class*=ad-feedback-text]','[id^=ad-feedback-text-]','[class*=ape-wrapper]','[class*=ape-placement]','[class*=ape-feedback]','[data-ad-sponsor-label6135]','[data-ad-sponsor-glyph6135]','[data-ad-sponsor-fallback6135]','[data-ad-sponsor-parent-before6135]','[data-ad-sponsor-parent-after6135]','[data-ad-ape-shell6135]','[data-ad-standfloor6135]',"
              "'html body .puis-mab-overlay .puis-mab-overlay-row-share .puis-mab-overlay-icon-share'],"
              "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
             imgBackdrop];
@@ -972,11 +958,14 @@ static NSString *ADDarkReaderBootstrap(void){
            "{background:transparent !important;background-color:transparent !important;background-image:none !important;box-shadow:none !important;border-color:transparent !important;outline:0 !important;}"
              // v6.0.100: exact probe-proven inner shell ownership. Do not clear
              // swatch borders: only the stock white background plane is removed.
-             AD_CSS_SWATCH_SHELLS
+             ".s-color-swatch-container,.s-color-swatch-outer-circle,"
+             ".puis-status-badge-container,[data-component-type=s-status-badge-component] .a-badge-region"
+             "{background:transparent !important;background-color:transparent !important;background-image:none !important;box-shadow:none !important;}"
              // v6.0.101: first-paint ring colours matched to the settled dark state.
              // Never touch .s-color-swatch-inner-circle-fill; the real swatch colours
              // and selected-state geometry remain Amazon-owned.
-             AD_CSS_SWATCH_RINGS
+             ".s-color-swatch-outer-circle{border-color:#2f2f32 !important;outline-color:#2f2f32 !important;transition:none !important;}"
+             ".s-color-swatch-outer-circle.s-color-swatch-outer-circle-selected{border-color:#6d6b68 !important;outline-color:#6d6b68 !important;}"
            "[data-csa-c-content-id=variation-options-link] [class*=a-truncate],"
            "[data-csa-c-content-id=variation-options-link] [class*=a-truncate-full],"
            "[data-csa-c-content-id=variation-options-link] [class*=a-truncate-cut],"
@@ -1002,7 +991,9 @@ static NSString *ADDarkReaderBootstrap(void){
            "[class*=s-variation-options-text]::before,[class*=s-variation-options-text]::after,"
            "[class*=s-variation-options-link]::before,[class*=s-variation-options-link]::after,"
            "[class*=s-color-swatch-container-list-view]::before,[class*=s-color-swatch-container-list-view]::after,"
-             AD_CSS_SWATCH_PSEUDOS
+             ".s-color-swatch-container::before,.s-color-swatch-container::after,"
+             ".s-color-swatch-outer-circle::before,.s-color-swatch-outer-circle::after,"
+             ".puis-status-badge-container::before,.puis-status-badge-container::after,"
            "[class*=puis-csi-with-label-container]::before,[class*=puis-csi-with-label-container]::after,"
            "[class*=s-variation-options-link] [class*=a-truncate]::before,[class*=s-variation-options-link] [class*=a-truncate]::after,"
            "[class*=s-color-swatch-container-list-view] [class*=a-truncate]::before,[class*=s-color-swatch-container-list-view] [class*=a-truncate]::after,"
@@ -1023,8 +1014,67 @@ static NSString *ADDarkReaderBootstrap(void){
              // v6.0.116: exact v5.446 Search/nav bitmap backdrop rule.
              // Search glyph hosts stay unpainted; only real IMG chrome is guaranteed
              // a transparent surround, while the donor generic glyph pass owns ink.
-             AD_CSS_SPONSOR_BLOCK
-             AD_CSS_AUI_BUTTONS
+             "[class*=nav-search] img,[class*=searchbar] img,[class*=search-bar] img,"
+             "[role=search] img,[class*=nav-] img[class*=icon],[class*=header] img[class*=icon]"
+             "{background-color:transparent !important;}"
+             // v6.0.135: canonical Sponsored owner. Every template gets the same
+             // text metrics and the same 12px white-disc/dark-i artwork. Runtime
+             // marks classless/lazy variants; known Amazon families paint correctly
+             // from first frame. Native glyph contents/pseudos are fully suppressed.
+             "[class*=sponsored-label],[class*=ad-feedback-text],[id^=ad-feedback-text-],[data-ad-sponsor-label6135]"
+             "{color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;"
+             "font-family:\"Amazon Ember\",Arial,sans-serif !important;font-size:13px !important;"
+             "line-height:16px !important;font-weight:400 !important;font-style:normal !important;"
+             "letter-spacing:0 !important;text-transform:none !important;"
+             "opacity:1 !important;visibility:visible !important;filter:none !important;"
+             "mix-blend-mode:normal !important;}"
+             "[data-ad-sponsor-label6135]{background-image:none !important;"
+             "-webkit-mask:none !important;mask:none !important;}"
+             "[data-ad-sponsor-label6135]::before"
+             "{content:none !important;display:none !important;background:none !important;"
+             "-webkit-mask:none !important;mask:none !important;box-shadow:none !important;}"
+             "[data-ad-sponsor-label6135]:not([data-ad-sponsor-fallback6135])::after"
+             "{content:none !important;display:none !important;background:none !important;"
+             "-webkit-mask:none !important;mask:none !important;box-shadow:none !important;}"
+             "[class*=ad-feedback-spr],[data-ad-sponsor-glyph6135]"
+             "{display:inline-block !important;width:12px !important;min-width:12px !important;max-width:12px !important;"
+             "height:12px !important;min-height:12px !important;max-height:12px !important;"
+             "padding:0 !important;margin:0 0 0 4px !important;box-sizing:border-box !important;"
+             "vertical-align:-1px !important;flex:0 0 12px !important;overflow:hidden !important;"
+             "border:0 !important;border-radius:50%% !important;outline:0 !important;box-shadow:none !important;"
+             "filter:none !important;opacity:1 !important;visibility:visible !important;"
+             "transform:none !important;-webkit-transform:none !important;"
+             "color:transparent !important;-webkit-text-fill-color:transparent !important;"
+             "font-size:0 !important;line-height:0 !important;text-indent:-9999px !important;"
+             "content:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjYiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy4xNSIgcj0iLjgyIiBmaWxsPSIjMTgxYTFiIi8+PHJlY3QgeD0iNS4yMiIgeT0iNC41NSIgd2lkdGg9IjEuNTYiIGhlaWdodD0iNC41IiByeD0iLjc4IiBmaWxsPSIjMTgxYTFiIi8+PC9zdmc+) !important;"
+             "-webkit-mask-image:none !important;mask-image:none !important;"
+             "background-color:transparent !important;background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjYiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy4xNSIgcj0iLjgyIiBmaWxsPSIjMTgxYTFiIi8+PHJlY3QgeD0iNS4yMiIgeT0iNC41NSIgd2lkdGg9IjEuNTYiIGhlaWdodD0iNC41IiByeD0iLjc4IiBmaWxsPSIjMTgxYTFiIi8+PC9zdmc+) !important;"
+             "background-repeat:no-repeat !important;background-position:center !important;"
+             "background-size:12px 12px !important;mix-blend-mode:normal !important;}"
+             "[class*=ad-feedback-spr]>* ,[data-ad-sponsor-glyph6135]>*"
+             "{display:none !important;opacity:0 !important;visibility:hidden !important;}"
+             "[class*=ad-feedback-spr]::before,[class*=ad-feedback-spr]::after,"
+             "[data-ad-sponsor-glyph6135]::before,[data-ad-sponsor-glyph6135]::after"
+             "{content:none !important;display:none !important;background:none !important;"
+             "-webkit-mask:none !important;mask:none !important;box-shadow:none !important;}"
+             "[data-ad-sponsor-fallback6135]::after"
+             "{content:\"\" !important;display:inline-block !important;width:12px !important;height:12px !important;"
+             "min-width:12px !important;min-height:12px !important;margin-left:4px !important;"
+             "vertical-align:-1px !important;border:0 !important;border-radius:50%% !important;"
+             "background-color:transparent !important;background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjYiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy4xNSIgcj0iLjgyIiBmaWxsPSIjMTgxYTFiIi8+PHJlY3QgeD0iNS4yMiIgeT0iNC41NSIgd2lkdGg9IjEuNTYiIGhlaWdodD0iNC41IiByeD0iLjc4IiBmaWxsPSIjMTgxYTFiIi8+PC9zdmc+) !important;"
+             "background-repeat:no-repeat !important;background-position:center !important;"
+             "background-size:12px 12px !important;filter:none !important;opacity:1 !important;"
+             "transform:none !important;-webkit-transform:none !important;}"
+             "[data-ad-sponsor-parent-before6135]::before,[data-ad-sponsor-parent-after6135]::after"
+             "{content:none !important;display:none !important;background:none !important;"
+             "-webkit-mask:none !important;mask:none !important;box-shadow:none !important;}"
+             // APE/standalone structural chrome must reveal the live page floor.
+             "[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback],"
+             "[data-ad-ape-shell6135],[data-ad-standfloor6135]"
+             "{background-color:transparent !important;border-color:transparent !important;"
+             "outline-color:transparent !important;box-shadow:none !important;}"
+             "[class*=ape-wrapper] iframe,[class*=ape-placement] iframe"
+             "{background-color:transparent !important;}"
            // v6.0.103: first-frame two-cards owner. This is intentionally duplicated
            // in ADFixesLiteral so the exact same paint exists before and after Dark Reader.
            "[class*=mlt-icon-container]"
@@ -1106,6 +1156,28 @@ static NSString *ADDarkReaderBootstrap(void){
            "[class*=gwm-tile] [class*=a-cardui-header],[class*=gwm-tile] [class*=a-cardui-header] *{color:#e8e6e3 !important;-webkit-text-fill-color:#e8e6e3 !important;}"
            "[style*=multiply],[style*=darken],[style*=color-burn],[class*=deal] [style*=blend],[class*=Deal] [style*=blend]{mix-blend-mode:normal !important;isolation:auto !important;}';"
            "(document.documentElement||document).appendChild(f);}}catch(e){}"
+         // v6.0.135: semantic Sponsored normalizer + standalone floor. This owns
+         // the rendered result, not Amazon's source sprite/font variant. It reuses
+         // the existing native-ad observer; no new observer/timer/scroll/RAF path.
+         "try{\n"
+         "var ADSPURI6135='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjYiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy4xNSIgcj0iLjgyIiBmaWxsPSIjMTgxYTFiIi8+PHJlY3QgeD0iNS4yMiIgeT0iNC41NSIgd2lkdGg9IjEuNTYiIGhlaWdodD0iNC41IiByeD0iLjc4IiBmaWxsPSIjMTgxYTFiIi8+PC9zdmc+';\n"
+         "function adSpC6135(e){try{var c=e&&e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;return String(c||'').toLowerCase();}catch(x){return '';}}\n"
+         "function adSpDirect6135(e){try{var s='',N=e&&e.childNodes||[];for(var i=0;i<N.length;i++)if(N[i].nodeType===3)s+=' '+String(N[i].nodeValue||'');return s.replace(/\\s+/g,' ').trim();}catch(x){return '';}}\n"
+         "function adSpExact6135(e){try{return /^sponsored(?: ad)?$/i.test(adSpDirect6135(e));}catch(x){return false;}}\n"
+         "function adSpMarkGlyph6135(g){try{if(!g||g.nodeType!==1)return 0;g.setAttribute('data-ad-sponsor-glyph6135','1');var st=g.style,U='url('+ADSPURI6135+')',P=['width','min-width','max-width','height','min-height','max-height'];for(var i=0;i<P.length;i++)st.setProperty(P[i],'12px','important');st.setProperty('display','inline-block','important');st.setProperty('padding','0','important');st.setProperty('margin','0 0 0 4px','important');st.setProperty('box-sizing','border-box','important');st.setProperty('vertical-align','-1px','important');st.setProperty('flex','0 0 12px','important');st.setProperty('overflow','hidden','important');st.setProperty('border','0','important');st.setProperty('border-radius','50%%','important');st.setProperty('outline','0','important');st.setProperty('box-shadow','none','important');st.setProperty('filter','none','important');st.setProperty('opacity','1','important');st.setProperty('visibility','visible','important');st.setProperty('transform','none','important');st.setProperty('-webkit-transform','none','important');st.setProperty('color','transparent','important');st.setProperty('-webkit-text-fill-color','transparent','important');st.setProperty('font-size','0','important');st.setProperty('line-height','0','important');st.setProperty('text-indent','-9999px','important');st.setProperty('-webkit-mask-image','none','important');st.setProperty('mask-image','none','important');st.setProperty('background-color','transparent','important');st.setProperty('background-image',U,'important');st.setProperty('background-repeat','no-repeat','important');st.setProperty('background-position','center','important');st.setProperty('background-size','12px 12px','important');st.setProperty('mix-blend-mode','normal','important');st.setProperty('content',U,'important');var tg=String(g.tagName||'').toUpperCase();if(tg==='IMG'){g.setAttribute('src',ADSPURI6135);g.removeAttribute('srcset');st.setProperty('object-fit','contain','important');}var C=g.children||[];for(var j=0;j<C.length&&j<12;j++){var cs=C[j].style;if(cs){cs.setProperty('display','none','important');cs.setProperty('opacity','0','important');cs.setProperty('visibility','hidden','important');}}return 1;}catch(x){return 0;}}\n"
+         "function adSpPseudo6135(host,label){try{if(!host||host===label||host.nodeType!==1)return 0;var hr=host.getBoundingClientRect(),lr=label.getBoundingClientRect();if(hr.height>72)return 0;var z=0,P=['::before','::after'];for(var k=0;k<2;k++){var cs=getComputedStyle(host,P[k]),w=parseFloat(cs.width)||0,h=parseFloat(cs.height)||0,bi=String(cs.backgroundImage||'none'),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),ct=String(cs.content||'none').replace(/['\\x22]/g,'');var icon=((w>=5&&w<=26&&h>=5&&h<=26&&(bi!=='none'||mi!=='none'))||/^(?:i|ⓘ|info)$/i.test(ct));if(icon){host.setAttribute(k===0?'data-ad-sponsor-parent-before6135':'data-ad-sponsor-parent-after6135','1');z++;}}return z;}catch(x){return 0;}}\n"
+         "function adSpFindGlyph6135(label){try{var lr=label.getBoundingClientRect(),roots=[label,label.parentElement,label.parentElement&&label.parentElement.parentElement],best=null,bs=-999;for(var q=0;q<roots.length;q++){var root=roots[q];if(!root||!root.querySelectorAll)continue;var Q=root.querySelectorAll('i,img,svg,span,div,[role=img],[class*=feedback],[class*=info],[class*=sponsor]');for(var i=0;i<Q.length&&i<96;i++){var e=Q[i];if(e===label||(e.contains&&e.contains(label)))continue;var r=e.getBoundingClientRect();if(r.width<5||r.height<5||r.width>28||r.height>28)continue;var cy=r.top+r.height/2,lcy=lr.top+lr.height/2;if(Math.abs(cy-lcy)>17||r.right<lr.left-8||r.left>lr.right+38)continue;var c=adSpC6135(e),cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none'),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),tg=String(e.tagName||'').toUpperCase(),tx=String(e.textContent||'').trim(),ar=String((e.getAttribute&&e.getAttribute('aria-label'))||'')+' '+String((e.getAttribute&&e.getAttribute('title'))||''),sc=0;if(/ad-feedback-spr|feedback.*(?:spr|icon)|(?:sponsor|info).*icon|icon.*info/.test(c))sc+=14;if(bi!=='none'||mi!=='none')sc+=6;if(/^(IMG|SVG|I)$/.test(tg))sc+=4;if(/info|feedback|sponsor/i.test(ar))sc+=5;if(r.left>=lr.right-5&&r.left<=lr.right+34)sc+=6;if(Math.abs(cy-lcy)<=9)sc+=4;if(label.contains&&label.contains(e))sc+=3;if(tx.length>2)sc-=10;if(sc>bs){bs=sc;best=e;}}}var ps=0;if(label.parentElement)ps+=adSpPseudo6135(label.parentElement,label);if(label.parentElement&&label.parentElement.parentElement)ps+=adSpPseudo6135(label.parentElement.parentElement,label);if(best&&bs>=8){adSpMarkGlyph6135(best);label.removeAttribute('data-ad-sponsor-fallback6135');return 1;}label.setAttribute('data-ad-sponsor-fallback6135','1');return ps?1:0;}catch(x){try{label.setAttribute('data-ad-sponsor-fallback6135','1');}catch(_){}return 0;}}\n"
+         "function adSpOwn6135(e){try{if(!e||e.nodeType!==1||!adSpExact6135(e))return 0;e.setAttribute('data-ad-sponsor-label6135','1');var st=e.style;st.setProperty('color','#ffffff','important');st.setProperty('-webkit-text-fill-color','#ffffff','important');st.setProperty('font-family','Amazon Ember, Arial, sans-serif','important');st.setProperty('font-size','13px','important');st.setProperty('line-height','16px','important');st.setProperty('font-weight','400','important');st.setProperty('font-style','normal','important');st.setProperty('letter-spacing','0','important');st.setProperty('text-transform','none','important');st.setProperty('opacity','1','important');st.setProperty('visibility','visible','important');st.setProperty('filter','none','important');st.setProperty('mix-blend-mode','normal','important');st.setProperty('background-image','none','important');st.setProperty('-webkit-mask','none','important');st.setProperty('mask','none','important');adSpFindGlyph6135(e);return 1;}catch(x){return 0;}}\n"
+         "window.__AD_SPONSOR6135__=function(root,lim){try{if(!root)return 0;var base=root===document?(document.body||document.documentElement):root;if(!base)return 0;var txt=String(base.textContent||'');if(!/sponsored/i.test(txt))return 0;var n=0,budget=lim||((root===document)?9000:220);if(base.nodeType===1&&adSpExact6135(base))n+=adSpOwn6135(base);var W=document.createTreeWalker(base,NodeFilter.SHOW_TEXT),nd,seen=0;while((nd=W.nextNode())&&seen++<budget){var t=String(nd.nodeValue||'').replace(/\\s+/g,' ').trim();if(!/^sponsored(?: ad)?$/i.test(t))continue;var e=nd.parentElement;if(e)n+=adSpOwn6135(e);}return n;}catch(e){return 0;}};\n"
+         "function adFrameMode6135(){try{if(window.top===window)return 'main';if(window.__ADFRAME_MODE__)return String(window.__ADFRAME_MODE__);var u=String(document.referrer||'').toLowerCase();if(u.indexOf('/dp/')>=0||u.indexOf('/gp/aw/d/')>=0||u.indexOf('/gp/product/')>=0||u.indexOf('/s?')>=0||u.indexOf('/search')>=0||u.indexOf('?k=')>=0||u.indexOf('&k=')>=0||u.indexOf('field-keywords=')>=0)return 'productad';return ((innerHeight||0)<190||((innerWidth||1)/(innerHeight||1))>2.15)?'standalone':'hero';}catch(x){return 'main';}}\n"
+         "try{var _fm6135=adFrameMode6135();if(_fm6135!=='main')window.__ADFRAME_MODE__=_fm6135;}catch(_fm){}\n"
+         "function adFloorClear6135(e,mark){try{if(!e||e.nodeType!==1)return 0;var tg=String(e.tagName||'').toUpperCase();if(/^(IMG|VIDEO|CANVAS|SVG|PICTURE)$/.test(tg))return 0;var cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none');if(bi&&bi!=='none')return 0;e.style.setProperty('background-color','transparent','important');e.style.setProperty('border-color','transparent','important');e.style.setProperty('outline-color','transparent','important');e.style.setProperty('box-shadow','none','important');if(mark)e.setAttribute(mark,'1');return 1;}catch(x){return 0;}}\n"
+         "window.__AD_APESHELL6135__=function(root){try{if(window.top!==window||!root)return 0;var base=root===document?document:root,S='[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback],[data-cel-widget*=ape],[id*=ape_]',A=[],n=0;function add(e){if(e&&A.indexOf(e)<0&&A.length<24)A.push(e);}if(base.nodeType===1&&base.matches&&base.matches(S))add(base);var Q=base.querySelectorAll?base.querySelectorAll(S):[];for(var i=0;i<Q.length&&i<24;i++)add(Q[i]);for(var j=0;j<A.length;j++){var e=A[j],er=e.getBoundingClientRect();n+=adFloorClear6135(e,'data-ad-ape-shell6135');var C=e.children||[];for(var k=0;k<C.length&&k<14;k++){var ch=C[k],tg=String(ch.tagName||'').toUpperCase(),cr=ch.getBoundingClientRect();if(tg==='IFRAME'){ch.style.setProperty('background-color','transparent','important');continue;}if(er.width>0&&cr.width>=er.width*.68&&cr.height>=18&&cr.height<=260)n+=adFloorClear6135(ch,'data-ad-ape-shell6135');}}return n;}catch(e){return 0;}};\n"
+         "window.__AD_STANDFLOOR6135__=function(root){try{if(adFrameMode6135()!=='standalone'||!document.body)return 0;if(!/sponsored/i.test(String(document.body.textContent||'')))return 0;var vw=innerWidth||390,vh=innerHeight||120,n=0,R=[document.documentElement,document.body],Q=document.body.getElementsByTagName('*');for(var i=0;i<Q.length&&R.length<260;i++)R.push(Q[i]);for(var j=0;j<R.length;j++){var e=R[j],tg=String(e.tagName||'').toUpperCase();if(/^(IMG|VIDEO|CANVAS|SVG|PICTURE)$/.test(tg))continue;var r=e.getBoundingClientRect();if(e===document.documentElement||e===document.body||(r.width>=vw*.78&&r.height>=24&&r.height<=Math.max(230,vh*1.15))||(r.width>=vw*.64&&r.height>=vh*.60)){n+=adFloorClear6135(e,'data-ad-standfloor6135');}}return n;}catch(e){return 0;}};\n"
+         "function adSpInit6135(){try{window.__AD_SPONSOR6135__(document,9000);window.__AD_APESHELL6135__(document);window.__AD_STANDFLOOR6135__(document);}catch(e){}}\n"
+         "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',adSpInit6135,{once:true});else adSpInit6135();\n"
+         "window.addEventListener('pageshow',adSpInit6135,{passive:true});\n"
+         "}catch(e){}\n"
          // v6.0.15: Amazon-native ad islands.  v5.446 proved that creative
          // subtrees must be kept out of generic recolor/glyph ownership.  Mark the
          // known Home ad-card families before Dark Reader starts so all later
@@ -1119,7 +1191,7 @@ static NSString *ADDarkReaderBootstrap(void){
            "window.__AD_DR_SEL6056__='[data-darkreader-inline-bg],[data-darkreader-inline-bgcolor],[data-darkreader-inline-bgimage],[data-darkreader-inline-border],[data-darkreader-inline-border-bottom],[data-darkreader-inline-border-bottom-short],[data-darkreader-inline-border-left],[data-darkreader-inline-border-left-short],[data-darkreader-inline-border-right],[data-darkreader-inline-border-right-short],[data-darkreader-inline-border-top],[data-darkreader-inline-border-top-short],[data-darkreader-inline-border-short],[data-darkreader-inline-boxshadow],[data-darkreader-inline-color],[data-darkreader-inline-fill],[data-darkreader-inline-invert],[data-darkreader-inline-outline],[data-darkreader-inline-stopcolor],[data-darkreader-inline-stroke],[style*=\"--darkreader-inline-\"]';"
            "window.__AD_STRIP_DR615__=function(root){try{if(!root||root.nodeType!==1)return 0;root.setAttribute('data-ad-native615','1');var E=[root],q=root.querySelectorAll?root.querySelectorAll(window.__AD_DR_SEL6056__):[];for(var i=0;i<q.length&&i<220;i++)E.push(q[i]);for(var z=0;z<E.length;z++){var el=E[z],A=window.__AD_DR_ATTRS6056__;for(var x=0;x<A.length;x++)if(el.hasAttribute&&el.hasAttribute(A[x]))el.removeAttribute(A[x]);var st=el.style;if(st){var rm=[];for(var y=0;y<st.length;y++){var pn=st[y];if(String(pn).indexOf('--darkreader-inline-')===0)rm.push(pn);}for(var y2=0;y2<rm.length;y2++)st.removeProperty(rm[y2]);}}return E.length;}catch(e){return 0;}};"
            "window.__AD_MARK_NATIVE615__=function(root){try{if(!root)return 0;var n=0,Q=[];if(root.nodeType===1&&root.matches&&root.matches(window.__AD_NATIVE_SEL615__))Q.push(root);if(root.querySelectorAll){var q=root.querySelectorAll(window.__AD_NATIVE_SEL615__),lim=(root===document)?80:16;for(var i=0;i<q.length&&i<lim;i++)Q.push(q[i]);}for(var j=0;j<Q.length;j++){var fresh=!Q[j].hasAttribute('data-ad-native615');if(fresh){Q[j].setAttribute('data-ad-native615','1');n++;}if(fresh||Q[j]===root)window.__AD_STRIP_DR615__(Q[j]);}try{if(window.__AD_TWB6033_ADROOT__){var h=(root.nodeType===1&&root.closest)?root.closest('[data-ad-native615],'+window.__AD_NATIVE_SEL615__):null;if(h)window.__AD_TWB6033_ADROOT__(root);for(var t=0;t<Q.length&&t<4;t++)if(Q[t]!==h)window.__AD_TWB6033_ADROOT__(Q[t]);}}catch(tx){}return n;}catch(e){return 0;}};"
-           "window.__AD_MARK_NATIVE615__(document);if(!window.__AD_NATIVE_OBS615__&&document.documentElement){window.__AD_NATIVE_OBS615__=1;new MutationObserver(function(ms){try{for(var i=0;i<ms.length&&i<48;i++){var A=ms[i].addedNodes||[];for(var j=0;j<A.length&&j<24;j++)if(A[j]&&A[j].nodeType===1){window.__AD_MARK_NATIVE615__(A[j]);if(window.__AD_VIDEOSTOCK6066__)window.__AD_VIDEOSTOCK6066__(A[j]);}}}catch(e){}}).observe(document.documentElement,{childList:true,subtree:true});}}catch(e){}"
+           "window.__AD_MARK_NATIVE615__(document);if(window.__AD_SPONSOR6135__)window.__AD_SPONSOR6135__(document,9000);if(window.__AD_APESHELL6135__)window.__AD_APESHELL6135__(document);if(window.__AD_STANDFLOOR6135__)window.__AD_STANDFLOOR6135__(document);if(!window.__AD_NATIVE_OBS615__&&document.documentElement){window.__AD_NATIVE_OBS615__=1;new MutationObserver(function(ms){try{for(var i=0;i<ms.length&&i<48;i++){var A=ms[i].addedNodes||[];for(var j=0;j<A.length&&j<24;j++)if(A[j]&&A[j].nodeType===1){window.__AD_MARK_NATIVE615__(A[j]);if(window.__AD_SPONSOR6135__)window.__AD_SPONSOR6135__(A[j],220);if(window.__AD_APESHELL6135__)window.__AD_APESHELL6135__(A[j]);if(window.__AD_STANDFLOOR6135__)window.__AD_STANDFLOOR6135__(A[j]);if(window.__AD_VIDEOSTOCK6066__)window.__AD_VIDEOSTOCK6066__(A[j]);}}}catch(e){}}).observe(document.documentElement,{childList:true,subtree:true});}}catch(e){}"
          // v6.0.67: preserve the matched compact-control tint and Amazon's native
          // glyphs. Clip only each compact control host + selected shell to a circle
          // so rectangular child/pseudo backing paint cannot remain visible in the
@@ -1445,22 +1517,7 @@ static NSString *ADDarkReaderBootstrap(void){
            "if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);"
            "window.__AD_IDLE6056__(function(){window.__AMZDARK_FIXCONTRAST__();if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);},260);"
          "}catch(e){}};"
-         // v6.0.130 PROBE: v6.0.128 did not change either standalone-ad symptom,
-         // so stop guessing at the shell/path.  Dump exact live Sponsored label,
-         // info-glyph, ad-root, media, iframe and TWB ownership only when the app is
-         // backgrounded.  The existing MutationObserver hook remains a no-op here:
-         // no new observer, timer, scroll hook, RAF, interval or steady-state scan.
-         "window.__AD_STANDAD6131__=[];"
-         "function sapS6131(v,n){v=String(v==null?'':v);return v.length>(n||180)?v.slice(0,n||180):v;}"
-         "function sapCls6131(e){try{var c=e&&e.className;return sapS6131(c&&c.baseVal!==undefined?c.baseVal:(c||''),240);}catch(x){return'';}}"
-         "function sapN6131(e){try{if(!e||e.nodeType!==1)return null;var c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after'),r=e.getBoundingClientRect();return{tag:String(e.tagName||''),cl:sapCls6131(e),id:sapS6131(e.id||'',100),r:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],txt:sapS6131(String(e.textContent||'').replace(/\\s+/g,' ').trim(),150),role:sapS6131(e.getAttribute&&e.getAttribute('role'),80),aria:sapS6131(e.getAttribute&&e.getAttribute('aria-label'),120),title:sapS6131(e.getAttribute&&e.getAttribute('title'),120),src:sapS6131(e.currentSrc||e.src||(e.getAttribute&&e.getAttribute('data-src'))||'',220),by:sapS6131(e.__adBy||'',90),twb:String((e.getAttribute&&e.getAttribute('data-ad-twb6033'))||''),twbbg:String((e.getAttribute&&e.getAttribute('data-ad-twb-bg6033'))||''),native:String((e.getAttribute&&e.getAttribute('data-ad-native615'))||''),style:sapS6131(e.getAttribute&&e.getAttribute('style'),260),css:{d:sapS6131(c.display,40),v:sapS6131(c.visibility,40),op:sapS6131(c.opacity,40),f:sapS6131(c.filter,120),col:sapS6131(c.color,80),fill:sapS6131(c.fill,80),stroke:sapS6131(c.stroke,80),bg:sapS6131(c.backgroundColor,90),bgi:sapS6131(c.backgroundImage,240),mask:sapS6131(c.webkitMaskImage||c.maskImage,240),bs:sapS6131(c.boxShadow,180),bd:sapS6131(c.border,140),blend:sapS6131(c.mixBlendMode,60)},bef:{ct:sapS6131(b.content,90),bg:sapS6131(b.backgroundColor,90),bgi:sapS6131(b.backgroundImage,220),mask:sapS6131(b.webkitMaskImage||b.maskImage,220),f:sapS6131(b.filter,120),col:sapS6131(b.color,80),bs:sapS6131(b.boxShadow,140)},aft:{ct:sapS6131(a.content,90),bg:sapS6131(a.backgroundColor,90),bgi:sapS6131(a.backgroundImage,220),mask:sapS6131(a.webkitMaskImage||a.maskImage,220),f:sapS6131(a.filter,120),col:sapS6131(a.color,80),bs:sapS6131(a.boxShadow,140)}};}catch(x){return{err:String(x)}}}"
-         "function sapChain6131(e,lim){var A=[];try{var p=e,d=0;while(p&&d++<(lim||9)){A.push(sapN6131(p));p=p.parentElement;}}catch(x){}return A;}"
-         "function sapNear6131(label){var A=[];try{var lr=label.getBoundingClientRect(),root=label.parentElement||label,Q=root.querySelectorAll?root.querySelectorAll('i,svg,path,img,span,div,button,[role=button]'):[];for(var i=0;i<Q.length&&i<90&&A.length<20;i++){var e=Q[i];if(e===label)continue;var r=e.getBoundingClientRect();if(r.width<5||r.height<5||r.width>46||r.height>46)continue;var cx=r.left+r.width/2,cy=r.top+r.height/2,lcy=lr.top+lr.height/2;if(Math.abs(cy-lcy)>34||cx<lr.left-50||cx>lr.right+90)continue;var cs=getComputedStyle(e),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),bi=String(cs.backgroundImage||'none'),cl=sapCls6131(e);if(/info|feedback|sponsor|icon|sprite/i.test(cl)||mi!=='none'||bi!=='none'||/^(I|SVG|PATH|IMG)$/.test(String(e.tagName||'')))A.push(sapN6131(e));}}catch(x){}return A;}"
-         "function sapRoot6131(label){try{var p=label,d=0,best=null;while(p&&d++<11){var r=p.getBoundingClientRect();if(r.width>=220&&r.height>=42&&r.height<=420)best=p;if(r.width>=(innerWidth||390)*.88&&r.height>=48){best=p;break;}p=p.parentElement;}return best;}catch(x){return null;}}"
-         "function sapMedia6131(root){var A=[];try{if(!root)return A;var Q=root.querySelectorAll?root.querySelectorAll('img,video,canvas,iframe,[data-ad-twb6033],[data-ad-twb-bg6033]'):[];for(var i=0;i<Q.length&&i<120&&A.length<36;i++){var e=Q[i],r=e.getBoundingClientRect();if(r.width<10||r.height<10)continue;A.push(sapN6131(e));}}catch(x){}return A;}"
-         "function sapDump6131(){try{var out={url:String(location.href),top:(window.top===window),wh:[innerWidth||0,innerHeight||0],home:!!(document.documentElement&&document.documentElement.hasAttribute('data-ad-twb-home6033')),labels:[],frames:[],twb:[]};var W=document.createTreeWalker(document.body||document.documentElement,NodeFilter.SHOW_TEXT),nd,seen=0;while((nd=W.nextNode())&&seen++<9000&&out.labels.length<24){var t=String(nd.nodeValue||'').replace(/\\s+/g,' ').trim();if(!/^sponsored(?: ad)?$/i.test(t))continue;var e=nd.parentElement;if(!e)continue;var r=e.getBoundingClientRect();if(r.width<18||r.height<5||r.bottom<-80||r.top>(innerHeight||900)+120)continue;var root=sapRoot6131(e);out.labels.push({text:t,label:sapN6131(e),chain:sapChain6131(e,10),near:sapNear6131(e),root:root?sapN6131(root):null,media:sapMedia6131(root)});}var F=document.getElementsByTagName('iframe');for(var i=0;i<F.length&&out.frames.length<18;i++){var f=F[i],fr=f.getBoundingClientRect();if(fr.width<80||fr.height<24)continue;out.frames.push({frame:sapN6131(f),chain:sapChain6131(f,8)});}var T=document.getElementsByTagName?document.getElementsByTagName('*'):[];for(var j=0;j<T.length&&out.twb.length<50;j++){var z=T[j];if(!(z.hasAttribute&&((z.hasAttribute('data-ad-twb6033'))||(z.hasAttribute('data-ad-twb-bg6033')))))continue;var zr=z.getBoundingClientRect();if(zr.width<20||zr.height<20||zr.bottom<-100||zr.top>(innerHeight||900)+160)continue;out.twb.push(sapN6131(z));}window.__AD_STANDAD6131__.push(out);if(window.__AD_STANDAD6131__.length>8)window.__AD_STANDAD6131__.shift();return JSON.stringify(out);}catch(e){return 'ERR '+String(e);}}"
-         "window.__AD_STANDAD6131_DUMP__=sapDump6131;"
-         "window.__AD_FLASH6101_DUMP__=sapDump6131;"
+         // v6.0.135: production build ships no standalone-ad diagnostic dump.
          // Re-run fallback repair as lazy content arrives, but never synchronously in
          // the MutationObserver. v6.0.82 no longer discards native-ad descendants here:
          // __AMZDARK_FIXCONTRAST__ routes every such element through prodInk6078 and
@@ -1566,25 +1623,14 @@ static NSString *ADWhiteTameWebJS6027(void){
          // v6.0.128: exact v5.446 _adBgPlacement365 policy. The four-parent check is
          // bounded and only prevents TWB from claiming structural ad backgrounds.
          "function adPlacement(e){try{var p=e,d=0;while(p&&d++<4){var c=S(p.className),id=String(p.id||''),cw=String((p.getAttribute&&p.getAttribute('data-cel-widget'))||'');if(/ape-placement|ape-wrapper|adfeedbackmaincomponent|ad-slot|adslot/i.test(c+' '+id+' '+cw))return true;if(p.getElementsByTagName&&p.getElementsByTagName('iframe').length&&p.getBoundingClientRect().width>240)return true;p=p.parentElement;}return false;}catch(x){return false;}}"
-         "function paintBg(e){try{if(!e||e.nodeType!==1)return 0;if(e.closest&&e.closest('[data-ad-college6034]'))return 0;if(adPlacement(e))return 0;var r=e.getBoundingClientRect();if(r.width<32||r.height<32)return 0;var c=ownClass(e);if(/sprite|icon|logo|pixel|avatar|profile/.test(c))return 0;if(mode!=='main'&&SPON()){var SW=innerWidth||390,SH=innerHeight||700;if((r.width>SW*.82&&r.height>SH*.55)||(r.width*r.height>SW*SH*.62))return 0;}var cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none'),known=/theming-card-background|vjs-poster/.test(c),solidCanvas=HOME&&/canvas-container/.test(c)&&e.closest&&e.closest('[class*=canvas-card]'),n=0;if(known||solidCanvas||bi.indexOf('url(')>=0){e.style.setProperty('filter','none','important');e.style.setProperty('background-blend-mode','normal','important');e.style.setProperty('box-shadow','inset 0 0 0 9999px '+AA,'important');e.setAttribute('data-ad-twb-bg6033','1');n++;}try{var bf=getComputedStyle(e,'::before'),af=getComputedStyle(e,'::after');if(String(bf.backgroundImage||'none').indexOf('url(')>=0){e.setAttribute('data-ad-twb-before6033','1');n++;}if(String(af.backgroundImage||'none').indexOf('url(')>=0){e.setAttribute('data-ad-twb-after6033','1');n++;}}catch(px){}return n;}catch(x){return 0;}}"
-         "function creativeMedia(e){try{if(!e||e.nodeType!==1)return 0;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return 0;var r=e.getBoundingClientRect(),src=String(e.currentSrc||e.src||e.poster||'').toLowerCase(),nw=(tg==='VIDEO'?(e.videoWidth||0):(e.naturalWidth||0)),nh=(tg==='VIDEO'?(e.videoHeight||0):(e.naturalHeight||0));if(creativeBlocked(e,src)||!((r.width>=32&&r.height>=32)||(nw>=32&&nh>=32)))return 0;if(mode==='productad'||mode==='standalone'||(mode==='hero'&&SPON())){var W=innerWidth||390,H=innerHeight||700,full=(r.width>W*.64&&r.height>H*.55)||(r.width*r.height>W*H*.58);if(full&&tg!=='VIDEO'){e.style.removeProperty('filter');e.removeAttribute('data-ad-twb6033');return 0;}}e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6033','1');return 1;}catch(x){return 0;}}"
+         "function paintBg(e){try{if(!e||e.nodeType!==1)return 0;if(e.closest&&e.closest('[data-ad-college6034]'))return 0;if(adPlacement(e))return 0;var r=e.getBoundingClientRect();if(r.width<32||r.height<32)return 0;var c=ownClass(e);if(/sprite|icon|logo|pixel|avatar|profile/.test(c))return 0;var cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none'),known=/theming-card-background|vjs-poster/.test(c),solidCanvas=HOME&&/canvas-container/.test(c)&&e.closest&&e.closest('[class*=canvas-card]'),n=0;if(known||solidCanvas||bi.indexOf('url(')>=0){e.style.setProperty('filter','none','important');e.style.setProperty('background-blend-mode','normal','important');e.style.setProperty('box-shadow','inset 0 0 0 9999px '+AA,'important');e.setAttribute('data-ad-twb-bg6033','1');n++;}try{var bf=getComputedStyle(e,'::before'),af=getComputedStyle(e,'::after');if(String(bf.backgroundImage||'none').indexOf('url(')>=0){e.setAttribute('data-ad-twb-before6033','1');n++;}if(String(af.backgroundImage||'none').indexOf('url(')>=0){e.setAttribute('data-ad-twb-after6033','1');n++;}}catch(px){}return n;}catch(x){return 0;}}"
+         "function creativeMedia(e){try{if(!e||e.nodeType!==1)return 0;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return 0;var r=e.getBoundingClientRect(),src=String(e.currentSrc||e.src||e.poster||'').toLowerCase(),nw=(tg==='VIDEO'?(e.videoWidth||0):(e.naturalWidth||0)),nh=(tg==='VIDEO'?(e.videoHeight||0):(e.naturalHeight||0));if(creativeBlocked(e,src)||!((r.width>=32&&r.height>=32)||(nw>=32&&nh>=32)))return 0;if(mode==='productad'||mode==='standalone'||(mode==='hero'&&SPON6131())){var W=innerWidth||390,H=innerHeight||700,full=(r.width>W*.64&&r.height>H*.55)||(r.width*r.height>W*H*.58);if(full&&tg!=='VIDEO'){e.style.removeProperty('filter');e.removeAttribute('data-ad-twb6033');return 0;}}e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6033','1');return 1;}catch(x){return 0;}}"
          // Card-local equivalent of the donor hero/Home scans. It is bounded and runs
          // only when that card itself loads/changes; no page-wide or scroll-time recovery.
          "function adRoot(root){try{if(!root||root.nodeType!==1)return 0;var now=Date.now();if(root.__adTWB6055Stamp&&now-root.__adTWB6055Stamp<220)return 0;root.__adTWB6055Stamp=now;var A=[root],n=0,Q=root.querySelectorAll?root.querySelectorAll('img,video,canvas,[class*=theming-card-background],[class*=vjs-poster],[class*=canvas-container],[style*=background-image]'):[];for(var i=0;i<Q.length&&A.length<36;i++)A.push(Q[i]);for(var j=0;j<A.length;j++){var e=A[j],tg=String(e.tagName||'').toUpperCase();if(tg==='IMG'||tg==='VIDEO'||tg==='CANVAS')n+=creativeMedia(e);else n+=paintBg(e);}return n;}catch(x){return 0;}}"
          "function tameBgChain(e,c){try{if(!e)return;var p=e,d=0,ctx=c||'';while(p&&d++<6){var pc=S(p.className)+' '+String(p.id||''),fam=(mode==='hero')||carouselFamily(ctx+' '+pc);if(fam)paintBg(p);ctx+=' '+pc;p=p.parentElement;}}catch(x){}}"
-         "var mode=(function(){try{if(window.top===window)return 'main';var u=String(document.referrer||'').toLowerCase();if(u.indexOf('/dp/')>=0||u.indexOf('/gp/aw/d/')>=0||u.indexOf('/gp/product/')>=0||u.indexOf('/s?')>=0||u.indexOf('/search')>=0||u.indexOf('?k=')>=0||u.indexOf('&k=')>=0||u.indexOf('field-keywords=')>=0)return 'productad';return ((innerHeight||0)<180||((innerWidth||1)/(innerHeight||1))>2.25)?'standalone':'hero';}catch(e){return 'main';}})();"
-         // v6.0.131: v5.446 set __ADFRAME_MODE__ inside every ad frame and left it
-         // undefined in the main document; two main-document-only guards
-         // (__AD_HEARTSHELL427__, stockCheckbox434) still test it.  The 6.x rewrite
-         // dropped the assignment, so both guards passed inside every ad iframe and
-         // ran search/product control work in documents that have no such controls.
-         "window.__ADFRAME_MODE__=(mode==='main'?'':mode);"
-         // v6.0.131: the donor identified sponsored ad shells by the frame's own
-         // copy (__AD_COMPACTSTRIP373__ / __AD_PRODUCTSTRIP375__ both keyed on this
-         // exact test).  Evaluated lazily and cached: at documentStart there is no
-         // body yet, and textContent avoids forcing layout the way innerText would.
-         "var _spon6131=-1;function SPON(){try{if(mode==='main')return false;if(_spon6131>=0)return !!_spon6131;if(!document.body)return false;var t=String(document.body.textContent||'').replace(/\\s+/g,' ');if(!t)return false;_spon6131=/\\bsponsored(?: ad)?\\b/i.test(t)?1:0;return !!_spon6131;}catch(e){return false;}}"
-         "function tame(e){try{if(!e||e.nodeType!==1)return;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return;var r=e.getBoundingClientRect();if(r.width<2||r.height<2)return;var c=chain(e),t=localText(e),src=String(e.currentSrc||e.src||e.poster||'').toLowerCase(),fo=forced(t),rv=reviewCtx(t,c),pr=product(e,c),hf=carouselFamily(c);if(mode==='hero')tameBgChain(e,c);if((hf?creativeBlocked(e,src):blocked(e,c,t,fo,rv))||/pixel|placeholder|spacer|blank|transparent/.test(src))return;var W=innerWidth||390,H=innerHeight||700,nw=(tg==='VIDEO'?(e.videoWidth||0):(e.naturalWidth||0)),nh=(tg==='VIDEO'?(e.videoHeight||0):(e.naturalHeight||0)),ok=false;if(mode==='productad'||mode==='standalone'||(mode==='hero'&&SPON())){var full=(r.width>W*.64&&r.height>H*.55)||(r.width*r.height>W*H*.58);if(full&&tg!=='VIDEO'){e.style.removeProperty('filter');e.removeAttribute('data-ad-twb6033');return;}ok=(r.width>=26&&r.height>=26)||(nw>=26&&nh>=26);}else if(mode==='hero'||hf){ok=(r.width>=32&&r.height>=32)||(nw>=32&&nh>=32);}else{if(rv&&tg!=='IMG')return;var mn=(pr||fo||rv)?24:56;ok=(r.width>=mn&&r.height>=mn)||(nw>=mn&&nh>=mn);}if(!ok)return;e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6033','1');}catch(x){}}"
+         "var mode=(function(){try{if(window.top===window)return 'main';var u=String(document.referrer||'').toLowerCase();if(u.indexOf('/dp/')>=0||u.indexOf('/gp/aw/d/')>=0||u.indexOf('/gp/product/')>=0||u.indexOf('/s?')>=0||u.indexOf('/search')>=0||u.indexOf('?k=')>=0||u.indexOf('&k=')>=0||u.indexOf('field-keywords=')>=0)return 'productad';return ((innerHeight||0)<180||((innerWidth||1)/(innerHeight||1))>2.25)?'standalone':'hero';}catch(e){return 'main';}})();if(mode!=='main')window.__ADFRAME_MODE__=mode;var _sp6131=null;function SPON6131(){try{if(_sp6131!==null)return _sp6131;_sp6131=/sponsored/i.test(String(document.body&&document.body.textContent||''));return _sp6131;}catch(e){return false;}}"
+         "function tame(e){try{if(!e||e.nodeType!==1)return;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return;var r=e.getBoundingClientRect();if(r.width<2||r.height<2)return;var c=chain(e),t=localText(e),src=String(e.currentSrc||e.src||e.poster||'').toLowerCase(),fo=forced(t),rv=reviewCtx(t,c),pr=product(e,c),hf=carouselFamily(c);if(mode==='hero')tameBgChain(e,c);if((hf?creativeBlocked(e,src):blocked(e,c,t,fo,rv))||/pixel|placeholder|spacer|blank|transparent/.test(src))return;var W=innerWidth||390,H=innerHeight||700,nw=(tg==='VIDEO'?(e.videoWidth||0):(e.naturalWidth||0)),nh=(tg==='VIDEO'?(e.videoHeight||0):(e.naturalHeight||0)),ok=false;if(mode==='productad'||mode==='standalone'||(mode==='hero'&&SPON6131())){var full=(r.width>W*.64&&r.height>H*.55)||(r.width*r.height>W*H*.58);if(full&&tg!=='VIDEO'){e.style.removeProperty('filter');e.removeAttribute('data-ad-twb6033');return;}ok=(r.width>=26&&r.height>=26)||(nw>=26&&nh>=26);}else if(mode==='hero'||hf){ok=(r.width>=32&&r.height>=32)||(nw>=32&&nh>=32);}else{if(rv&&tg!=='IMG')return;var mn=(pr||fo||rv)?24:56;ok=(r.width>=mn&&r.height>=mn)||(nw>=mn&&nh>=mn);}if(!ok)return;e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6033','1');}catch(x){}}"
          // Piggyback target for the already-existing v6.0.15 ad-island observer.
          "window.__AD_TWB6033_ADROOT__=adRoot;"
          "function ev(x){try{tame(x.target);}catch(e){}}"
@@ -1952,92 +1998,7 @@ static void ADInjectAllWebViews(void){
     } @catch(...) {}
 }
 
-// v6.0.98 diagnostic exporter.  The JS ring buffer above reuses an existing DOM
-// observer; backgrounding once after reproducing the flash simply dumps that buffer.
-// v6.0.131: v6.0.129 wrote to NSTemporaryDirectory() and v6.0.130 wrote straight
-// to the NewTerm push folder.  Neither file ever appeared, and the reason is the
-// same in both cases: the write is attempted from inside Amazon, whose sandbox has
-// no access to another app's App Group container, and every write here is wrapped
-// in @try with error:nil, so the denial is completely silent.  %ctor calls
-// ADResetFlashProbe6101() at launch, so not even the header landed -- which is why
-// the folder was empty rather than holding a header-only file.
-//
-// Resolve the destination once, by actually probing each candidate with a real
-// write.  Amazon's own container is guaranteed writable, so the probe can no longer
-// fail silently; the App Group path is still tried first so that if it ever is
-// reachable the file lands where it is most convenient.
-static NSString *ADFlashProbeDir6131(void){
-    static NSString *cached = nil;
-    static dispatch_once_t once;
-    dispatch_once(&once, ^{
-        NSArray *candidates = @[
-            @"/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents",
-            [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"],
-            NSTemporaryDirectory() ?: @"/tmp"
-        ];
-        NSFileManager *fm = [NSFileManager defaultManager];
-        for (NSString *dir in candidates){
-            if (!dir.length) continue;
-            @try {
-                [fm createDirectoryAtPath:dir withIntermediateDirectories:YES
-                               attributes:nil error:nil];
-                NSString *t = [dir stringByAppendingPathComponent:@".amazondark-write-test"];
-                NSError *err = nil;
-                BOOL ok = [@"1" writeToFile:t atomically:YES
-                                   encoding:NSUTF8StringEncoding error:&err];
-                if (!ok) continue;
-                [fm removeItemAtPath:t error:nil];
-                cached = [dir copy];
-                break;
-            } @catch(...) {}
-        }
-        if (!cached) cached = NSTemporaryDirectory() ?: @"/tmp";
-    });
-    return cached;
-}
-static NSString *ADFlashProbePath6101(void){
-    return [ADFlashProbeDir6131()
-            stringByAppendingPathComponent:@"AmazonDark-standalone-ad-probe-6131.txt"];
-}
-static void ADAppendFlashProbe6101(NSString *line){
-    if (!line.length) return;
-    @try {
-        NSString *path=ADFlashProbePath6101();
-        NSFileHandle *fh=[NSFileHandle fileHandleForWritingAtPath:path];
-        if (!fh){ [line writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil]; return; }
-        [fh seekToEndOfFile]; [fh writeData:[line dataUsingEncoding:NSUTF8StringEncoding]]; [fh closeFile];
-    } @catch(...) {}
-}
-static void ADResetFlashProbe6101(void){
-    @try {
-        NSString *path=ADFlashProbePath6101();
-        NSString *h=[NSString stringWithFormat:@"AmazonDark standalone-ad DOM/TWB probe 6131\nversion=%s\npid=%d\npath=%@\n\n",AD_VERSION,getpid(),path];
-        [h writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
-        [[NSFileManager defaultManager] setAttributes:@{NSFilePosixPermissions:@(0666)}
-                                         ofItemAtPath:path error:nil];
-    } @catch(...) {}
-}
-static void ADDumpFlashProbe6101(NSString *label){
-    if (![NSThread isMainThread]){ dispatch_async(dispatch_get_main_queue(), ^{ ADDumpFlashProbe6101(label); }); return; }
-    @try {
-        NSArray *views=gADWebViews613.allObjects; NSUInteger idx=0;
-        ADAppendFlashProbe6101([NSString stringWithFormat:@"DUMP %@ uptime=%.3f webviews=%lu\n",label?:@"?",ADUptime(),(unsigned long)views.count]);
-        for (WKWebView *wv in views){
-            if (!wv || !wv.window) continue;
-            NSString *url=wv.URL.absoluteString?:@""; NSUInteger my=idx++;
-            [wv evaluateJavaScript:@"(function(){try{return window.__AD_FLASH6101_DUMP__?window.__AD_FLASH6101_DUMP__():'NO_PROBE';}catch(e){return 'ERR '+String(e);}})();" completionHandler:^(id result,NSError *error){
-                NSString *body=error?[NSString stringWithFormat:@"ERROR %@",error]:([result isKindOfClass:[NSString class]]?result:[result description]);
-                ADAppendFlashProbe6101([NSString stringWithFormat:@"WEBVIEW %lu %@\n%@\n\n",(unsigned long)my,url,body?:@"(nil)"]);
-            }];
-        }
-        if (!idx) ADAppendFlashProbe6101(@"NO MOUNTED WEBVIEWS\n\n");
-    } @catch(...) {}
-}
-static void ADFlashWillResign6101(CFNotificationCenterRef center, void *observer,
-                                  CFStringRef name, const void *object,
-                                  CFDictionaryRef userInfo){
-    dispatch_async(dispatch_get_main_queue(), ^{ @try { ADDumpFlashProbe6101(@"WILL_RESIGN_ACTIVE"); } @catch(...) {} });
-}
+// v6.0.135: standalone-ad diagnostic exporter removed from production.
 
 // ════════════════════════════════════════════════════════════════════════════════
 // WKUserContentController — restore our script the moment Amazon strips it.
@@ -5575,7 +5536,6 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
 // ─── %ctor : process guard + hook registration + bounded startup recovery ────
 %ctor {
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
-    ADResetFlashProbe6101();
     // v5.446 direct-port: drop cached light launch snapshots.
     @try {
         NSString *lib = [NSSearchPathForDirectoriesInDomains(
@@ -5633,10 +5593,6 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
     CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(),
         NULL, ADAppForegrounded,
         (__bridge CFStringRef)UIApplicationWillEnterForegroundNotification,
-        NULL, CFNotificationSuspensionBehaviorCoalesce);
-    CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(),
-        NULL, ADFlashWillResign6101,
-        (__bridge CFStringRef)UIApplicationWillResignActiveNotification,
         NULL, CFNotificationSuspensionBehaviorCoalesce);
 
 }
