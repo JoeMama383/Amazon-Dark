@@ -1,59 +1,61 @@
-# AmazonDark v6.0.165
+# AmazonDark v6.0.166
 
-Corrects a regression I introduced in v6.0.164 and narrows the one measurement that
-still has not been explained.
+One change, on the 6.0.165 tree. Everything else is untouched.
 
-## Regression fixed: untamed product and ad photos
+## What the bisection established
 
-v6.0.164 replaced the source-scan dedupe in `ADAttachWhiteTameUserScript446` and
-`ADAttachThreeSymbolsUserScript605` with an associated-object marker on the user
-content controller. `-[WKUserContentController removeAllUserScripts]` is hooked and
-re-attaches both scripts afterwards — but the marker survived that call, so both
-helpers returned early and **never re-added the scripts**. TWB is White Background
-Taming, which is why product photos and the ad creative above them stopped being tamed.
+Not argued — eliminated, one toggle at a time:
 
-The old scan was self-correcting because it inspected real state. The marker asserted
-something that stopped being true. Both helpers are now **byte-identical to v6.0.159**.
+- 5.43.0 renders the heavy PDP section (slowly); 6.0.165 never finishes.
+- White Background Taming off: still fails. TWB excluded.
+- 5.43.0 has no symbols script at all and fails the same way. Symbols script excluded,
+  and with it the whole 96KB of bootstrap growth between the two builds.
+- Tweak fully off: renders fine. So it is us.
+- What both builds share is exactly three things: an identical `darkreader.js`, an
+  equivalent theme object, and the documentStart floor sheet.
+- Independent confirmation: when Dark Reader silently failed to apply while the rest of
+  the tweak still ran, performance jumped roughly tenfold.
 
-## What v6.0.164 proved
+The cost is Dark Reader's dynamic theme, not the code around it. The 824ms of native
+hook time measured across a whole session was never going to explain this.
 
-**The layout fix worked.** `RCTView layoutSubviews` went from 115.5 µs/call across
-3,566 calls (411.7ms) to **1.97 µs/call** across 663 calls (1.3ms) — 58× per call. That
-change is kept.
+## The change
 
-**The attach dedupe was not the 22ms.** `WKWebView didMoveToWindow` measured 16,403
-µs/call against 22,347 before; across different sessions that is not a real reduction.
-The `containsString:` scan was not the dominant cost, so the diagnosis was wrong.
+`disableStyleSheetsProxy` was `false`, which leaves Dark Reader's CSSOM proxy
+installed. That proxy wraps `insertRule`/`deleteRule` and the sheet collections so
+stylesheets created after `enable()` get re-themed. Amazon's PDP builds a large number
+of sheets during hydration and each one re-enters Dark Reader through it. Turning the
+proxy off keeps the initial theming pass and drops the re-entry.
 
-**Person-raster was never the Reviews cause.** `claims taken=0  contents suppressed=0`
-for the whole session, including the Reviews tab. That branch never fired, so it cannot
-have been blanking anything. The v6.0.164 suppression condition is kept because it is
-strictly the safer of the two, but it is unproven and inert, not a fix.
+`ignoreImageAnalysis:['*']` was already set, so Dark Reader is not fetching or
+analysing those publisher images. If Dark Reader is the cause it is the stylesheet and
+DOM pass, which is what this targets.
 
-## New measurement
+**The trade, stated plainly:** stylesheets injected after the first pass are no longer
+auto-themed, so a late-hydrating widget can stay light until something else triggers a
+re-apply. Visible but usable, versus content that never appears.
 
-`WKWebView -didMoveToWindow` is still 508.5ms across 31 calls, now the single largest
-entry. Its body is sub-instrumented so the next dump attributes that time precisely:
+## Switchable
 
-- `ADTrackWebView613`
-- `ADPrimeWebBacking611`
-- `ADPreDarken`
-- attach symbols script
-- build boot `WKUserScript`
-- `addUserScript(boot 346KB)`
-- attach TWB script
+Both sides can be compared in one install:
 
-These appear indented under the parent row in the table.
+    touch /var/mobile/.ad_dr_proxy   restore the proxy (6.0.165 behaviour)
+    rm    /var/mobile/.ad_dr_proxy   proxy off (6.0.166 default)
 
-## Still open
+Relaunch Amazon after either. The flag is read once per launch.
 
-The Reviews tab does not fully render, and the cause is not in the native hooks — the
-counters rule out the only native path that blanks content. Reviews on a PDP is web
-content, so the next place to look is the web side, not this one.
+## If it does not help
+
+Then the stall is Dark Reader's initial pass rather than the proxy, and the next step
+is a different architecture, not another knob: cache `exportGeneratedCSS()` per origin
+and inject it as a plain stylesheet on subsequent loads, so heavy pages get themed CSS
+with no DOM walk at all.
 
 ## Verification
 
-- Both attach helpers byte-compared against v6.0.159: identical.
-- Nested scope guards compile clean under clang.
-- All six injected JS payloads byte-identical to v6.0.159.
-- Balance 0/0/0, `scripts/lint-logos.sh`.
+- Both emitted variants of the fixes literal (`proxy:true` and `proxy:false`) parse as
+  JavaScript.
+- Format specifiers and arguments in the fixes literal: 2 and 2.
+- Bootstrap payload unchanged; all other payloads parse.
+- Whole-file balance 0/0/0, `scripts/lint-logos.sh`.
+- v6.0.163 hook instrumentation retained; dump file is now `-166`.

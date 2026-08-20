@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.165"
+#define AD_VERSION "v6.0.166"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -303,7 +303,7 @@ static NSString *ADPerfDir163(void){
 }
 
 static NSString *ADPerfPath163(void){
-    return [ADPerfDir163() stringByAppendingPathComponent:@"AmazonDark-hook-perf-165.txt"];
+    return [ADPerfDir163() stringByAppendingPathComponent:@"AmazonDark-hook-perf-166.txt"];
 }
 
 static void ADPerfDump163(NSString *label){
@@ -1140,9 +1140,40 @@ static NSString *ADFixesLiteral(void){
              "'ul.a-pagination.a-dots li.a-selected','ul.a-pagination.a-dots li.dot-selected-t2','[data-ad-dotselected374]',"
              "'[class*=ape-wrapper]','[class*=ape-placement]','[class*=ape-feedback]','[class*=ape-feedback] *',"
              "'html body .puis-mab-overlay .puis-mab-overlay-row-share .puis-mab-overlay-icon-share'],"
-             "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
-            imgBackdrop];
+             "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:%@}",
+            imgBackdrop, ADDRProxyWanted166() ? @"false" : @"true"];
     return gADFixesLiteral613;
+}
+
+
+// ── Dark Reader stylesheet proxy (v6.0.166) ──────────────────────────────────
+// Established by elimination, not by argument: 5.43.0 and 6.0.165 both fail to render
+// the heavy PDP section, and the only things they share are darkreader.js, an
+// equivalent theme object and the documentStart floor sheet. With the tweak fully off
+// the section renders. And when Dark Reader silently failed to apply while the rest of
+// the tweak ran, performance jumped roughly tenfold. The cost is Dark Reader's dynamic
+// theme, not the code around it.
+//
+// disableStyleSheetsProxy has been false, which leaves Dark Reader's CSSOM proxy
+// installed: it wraps insertRule/deleteRule and the sheet collections so that
+// stylesheets created after enable() are re-themed. Amazon's PDP builds a large number
+// of sheets during hydration, and each one re-enters Dark Reader through that proxy.
+// Turning the proxy off keeps the initial theming pass and drops the re-entry.
+//
+// The trade: stylesheets injected AFTER the first pass are no longer auto-themed, so a
+// late-hydrating widget can stay light until something else triggers a re-apply. That
+// is a visible-but-usable failure; the current one is unusable content.
+//
+// Left switchable so both sides can be compared in one install:
+//   touch /var/mobile/.ad_dr_proxy    restore the proxy (old 6.0.165 behaviour)
+static BOOL ADDRProxyWanted166(void){
+    static BOOL wanted = NO;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        wanted = [[NSFileManager defaultManager]
+                  fileExistsAtPath:@"/var/mobile/.ad_dr_proxy"];
+    });
+    return wanted;
 }
 
 static NSString *ADThemeLiteral(void){
