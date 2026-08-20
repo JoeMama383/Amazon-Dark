@@ -1,62 +1,59 @@
-# AmazonDark v6.0.164
+# AmazonDark v6.0.165
 
-Built on **v6.0.159** (`a8957c0`), with the v6.0.163 instrumentation retained so the
-next capture measures the delta directly. Two perf fixes and one rendering fix, all
-derived from the 163 dump rather than from theory.
+Corrects a regression I introduced in v6.0.164 and narrows the one measurement that
+still has not been explained.
 
-## 1. Attach dedupe was O(payload) — the 22.3ms/call
+## Regression fixed: untamed product and ad photos
 
-`ADAttachThreeSymbolsUserScript605` and `ADAttachWhiteTameUserScript446` both deduped
-by running `containsString:` over every already-installed user script's source.
-`ucc.userScripts` holds the 346KB Dark Reader bootstrap, and `-[WKUserScript source]`
-returns a copy on each access, so every call searched roughly half a megabyte of JS.
-The symbols helper runs on every `WKWebView -didMoveToWindow`, which is exactly where
-the measured **22,347 µs/call** came from — 290.5ms across 13 calls, 31% of all time.
+v6.0.164 replaced the source-scan dedupe in `ADAttachWhiteTameUserScript446` and
+`ADAttachThreeSymbolsUserScript605` with an associated-object marker on the user
+content controller. `-[WKUserContentController removeAllUserScripts]` is hooked and
+re-attaches both scripts afterwards — but the marker survived that call, so both
+helpers returned early and **never re-added the scripts**. TWB is White Background
+Taming, which is why product photos and the ad creative above them stopped being tamed.
 
-Both now mark the controller with an associated object and answer in constant time.
-The source scan is kept as a fallback for a controller that was populated before the
-marker existed, and sets the marker when it finds a match.
+The old scan was self-correcting because it inspected real state. The marker asserted
+something that stopped being true. Both helpers are now **byte-identical to v6.0.159**.
 
-## 2. Person-raster layout queried semantics before geometry
+## What v6.0.164 proved
 
-`RCTView -layoutSubviews` measured **115.5 µs/call**, 3,566 calls, **411.7ms — 44% of
-all time**. `ADPersonRasterLayout6150` read associated objects and semantics
-(`accessibilityLabel`, then `ADWTViewText362`'s `isKindOfClass` / `respondsToSelector`
-/ `performSelector` chain) *before* testing whether the view could be a candidate at
-all. The geometry test is pure arithmetic on `bounds`, and on a screen of RCT views
-almost nothing passes it.
+**The layout fix worked.** `RCTView layoutSubviews` went from 115.5 µs/call across
+3,566 calls (411.7ms) to **1.97 µs/call** across 663 calls (1.3ms) — 58× per call. That
+change is kept.
 
-The cheap reject now runs first. Views already holding a claim still fall through, so
-stale-claim retirement is unchanged.
+**The attach dedupe was not the 22ms.** `WKWebView didMoveToWindow` measured 16,403
+µs/call against 22,347 before; across different sessions that is not a real reduction.
+The `containsString:` scan was not the dominant cost, so the diagnosis was wrong.
 
-## 3. Reviews tab rendered blank
+**Person-raster was never the Reviews cause.** `claims taken=0  contents suppressed=0`
+for the whole session, including the Reviews tab. That branch never fired, so it cannot
+have been blanking anything. The v6.0.164 suppression condition is kept because it is
+strictly the safer of the two, but it is unproven and inert, not a fix.
 
-`-[CALayer setContents:]` suppressed with `%orig(nil)` when
-`(!hasSemantic || live==stored)`. The `!hasSemantic` arm is the bug. A recycled RCT
-view whose text has not been bound yet reports `hasSemantic=NO`, which satisfied the
-suppression **and** failed the retirement test directly above it (that one requires
-`hasSemantic && live!=stored`). So its contents were set to nil and the claim was never
-released. If RN never issues another `setContents:` on that layer, it stays blank
-permanently. Review cards land inside the kind-2 window (105–300 × 42–88), which is why
-that tab voids out while the surrounding page renders.
+## New measurement
 
-Suppression now requires positive confirmation: `hasSemantic && live==stored`. A view
-is blanked only while it is actually carrying a Person-matching label.
+`WKWebView -didMoveToWindow` is still 508.5ms across 31 calls, now the single largest
+entry. Its body is sub-instrumented so the next dump attributes that time precisely:
 
-**The trade, stated plainly:** if a genuine Person card ever has no label at the moment
-its contents arrive, it will now render untamed instead of being claimed. That is the
-right side to err on — an untamed Person card is a cosmetic miss, a blanked Reviews tab
-is unusable content.
+- `ADTrackWebView613`
+- `ADPrimeWebBacking611`
+- `ADPreDarken`
+- attach symbols script
+- build boot `WKUserScript`
+- `addUserScript(boot 346KB)`
+- attach TWB script
 
-## New counters
+These appear indented under the parent row in the table.
 
-The dump gains `Person-raster claims taken=N  contents suppressed=N`. On a Reviews
-capture, suppressions should now be 0 where 163 would have blanked.
+## Still open
+
+The Reviews tab does not fully render, and the cause is not in the native hooks — the
+counters rule out the only native path that blanks content. Reviews on a PDP is web
+content, so the next place to look is the web side, not this one.
 
 ## Verification
 
-- Suppression logic checked as a truth table against 163: the recycled-card case flips
-  from blanked to rendered, the live Person card still blanks, and both retirement
-  cases are unchanged. 5/5.
-- All six injected JS payloads **byte-identical to v6.0.159**.
-- Whole-file brace/paren/bracket balance 0/0/0, `scripts/lint-logos.sh`.
+- Both attach helpers byte-compared against v6.0.159: identical.
+- Nested scope guards compile clean under clang.
+- All six injected JS payloads byte-identical to v6.0.159.
+- Balance 0/0/0, `scripts/lint-logos.sh`.

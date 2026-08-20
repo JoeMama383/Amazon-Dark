@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.164"
+#define AD_VERSION "v6.0.165"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -170,10 +170,24 @@ typedef enum {
     ADP_RCTUIImageViewAnimated_layoutSubviews,
     ADP_UICollectionViewCell_layoutSubviews,
     ADP_UITableViewCell_layoutSubviews,
+    ADP_sub_TrackWebView,
+    ADP_sub_PrimeWebBacking,
+    ADP_sub_PreDarken,
+    ADP_sub_AttachSymbols,
+    ADP_sub_BuildBootScript,
+    ADP_sub_AddBootScript,
+    ADP_sub_AttachTWB,
     ADP__COUNT
 } ADPerfSlot;
 
 static const char *gADPerfName[ADP__COUNT] = {
+    [ADP_sub_TrackWebView]     = "  \u2514 ADTrackWebView613",
+    [ADP_sub_PrimeWebBacking]  = "  \u2514 ADPrimeWebBacking611",
+    [ADP_sub_PreDarken]        = "  \u2514 ADPreDarken",
+    [ADP_sub_AttachSymbols]    = "  \u2514 attach symbols script",
+    [ADP_sub_BuildBootScript]  = "  \u2514 build boot WKUserScript",
+    [ADP_sub_AddBootScript]    = "  \u2514 addUserScript(boot 346KB)",
+    [ADP_sub_AttachTWB]        = "  \u2514 attach TWB script",
     [ADP_WKWebView_didMoveToWindow] = "WKWebView didMoveToWindow",
     [ADP_UIView_setBackgroundColor] = "UIView setBackgroundColor",
     [ADP_UIView_setTintColor] = "UIView setTintColor",
@@ -289,7 +303,7 @@ static NSString *ADPerfDir163(void){
 }
 
 static NSString *ADPerfPath163(void){
-    return [ADPerfDir163() stringByAppendingPathComponent:@"AmazonDark-hook-perf-164.txt"];
+    return [ADPerfDir163() stringByAppendingPathComponent:@"AmazonDark-hook-perf-165.txt"];
 }
 
 static void ADPerfDump163(NSString *label){
@@ -1881,15 +1895,9 @@ static NSString *ADWhiteTameWebJS(void){ return ADWhiteTameWebJS6027(); }
 static void ADAttachWhiteTameUserScript446(WKUserContentController *ucc){
     if (!ucc || !gP.enabled || !gP.whiteTame) return;
     @try {
-        static const void *kTWBAttached = &kTWBAttached;
-        if (objc_getAssociatedObject(ucc, kTWBAttached)) return;
         for (WKUserScript *existing in ucc.userScripts){
-            if ([existing.source containsString:@"__AD_TWB6027_INSTALLED__"] || [existing.source containsString:@"__AD_TWB446_INSTALLED__"]){
-                objc_setAssociatedObject(ucc, kTWBAttached, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                return;
-            }
+            if ([existing.source containsString:@"__AD_TWB6027_INSTALLED__"] || [existing.source containsString:@"__AD_TWB446_INSTALLED__"]) return;
         }
-        objc_setAssociatedObject(ucc, kTWBAttached, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         NSString *js=ADWhiteTameWebJS();
         if(!js.length)return;
         WKUserScript *us=[[WKUserScript alloc] initWithSource:js injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
@@ -2106,17 +2114,11 @@ static NSString *ADThreeSymbolsWebJS605(void){
 static void ADAttachThreeSymbolsUserScript605(WKUserContentController *ucc){
     if (!ucc) return;
     @try {
-        static const void *kSym605Attached = &kSym605Attached;
-        if (objc_getAssociatedObject(ucc, kSym605Attached)) return;
         NSString *js = ADThreeSymbolsWebJS605();
         if (!js.length) return;
         for (WKUserScript *u in ucc.userScripts){
-            if ([u.source containsString:@"__AD_SYM605_LOADED__"]){
-                objc_setAssociatedObject(ucc, kSym605Attached, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                return;
-            }
+            if ([u.source containsString:@"__AD_SYM605_LOADED__"]) return;
         }
-        objc_setAssociatedObject(ucc, kSym605Attached, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         WKUserScript *us = [[WKUserScript alloc] initWithSource:js
             injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:NO];
         [ucc addUserScript:us];
@@ -2313,11 +2315,13 @@ static void ADPrimeWebBacking611(WKWebView *wv){
     AD_PERF(ADP_WKWebView_didMoveToWindow);
     %orig;
     @try {
-        ADTrackWebView613(self);
+        { AD_PERF(ADP_sub_TrackWebView); ADTrackWebView613(self); }
         if (!self.window || !gP.enabled || !gP.webDarkReader) return;
-        ADPrimeWebBacking611(self);
-        ADPreDarken(self);   // exact v5.446 instant dark floor for a page that is mid-load
-        ADAttachThreeSymbolsUserScript605(self.configuration.userContentController);
+        { AD_PERF(ADP_sub_PrimeWebBacking); ADPrimeWebBacking611(self); }
+        // exact v5.446 instant dark floor for a page that is mid-load
+        { AD_PERF(ADP_sub_PreDarken); ADPreDarken(self); }
+        { AD_PERF(ADP_sub_AttachSymbols);
+          ADAttachThreeSymbolsUserScript605(self.configuration.userContentController); }
         // Attach a documentStart user-script even to pre-initialised web views (e.g. the
         // warmed gateway) so a pull-to-refresh re-applies Dark Reader on the next load.
         static const void *kUS = &kUS;
@@ -2326,11 +2330,13 @@ static void ADPrimeWebBacking611(WKWebView *wv){
             Class WKUS = NSClassFromString(@"WKUserScript");
             WKUserContentController *ucc = self.configuration.userContentController;
             if (js.length && WKUS && ucc){
-                WKUserScript *us = [[WKUS alloc] initWithSource:js
-                                                  injectionTime:WKUserScriptInjectionTimeAtDocumentStart
-                                               forMainFrameOnly:NO];
-                [ucc addUserScript:us];
-                ADAttachWhiteTameUserScript446(ucc);
+                WKUserScript *us;
+                { AD_PERF(ADP_sub_BuildBootScript);
+                  us = [[WKUS alloc] initWithSource:js
+                                      injectionTime:WKUserScriptInjectionTimeAtDocumentStart
+                                   forMainFrameOnly:NO]; }
+                { AD_PERF(ADP_sub_AddBootScript); [ucc addUserScript:us]; }
+                { AD_PERF(ADP_sub_AttachTWB); ADAttachWhiteTameUserScript446(ucc); }
             }
             objc_setAssociatedObject(self, kUS, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
