@@ -1,41 +1,48 @@
-# AmazonDark v6.0.170
+# AmazonDark v6.0.171 — defer the first Dark Reader pass
 
-## The measurement never ran
+The change every session since v5.463 has proposed and none has built.
 
-`didFinishNavigation:` was hooked inside `%hook WKWebView`. That is a
-`WKNavigationDelegate` callback and `WKWebView` never receives it — Logos added the
-method and nothing ever called it. So `ADCaptureDRCost168` did not execute in v6.0.168
-or v6.0.169, which is why no `DRCOST` line appeared either time, including the line
-that was meant to report its own silence.
+## Why
 
-Sampling now runs from `-[WKWebView didMoveToWindow]`, which the v6.0.169 capture shows
-firing 11 times, on a 2.5s delay with a weak reference.
+Dark Reader's initial pass parses every stylesheet and walks every element before it
+can paint, on the web process main thread. On a PDP — the largest DOM in the app — that
+is what stalls rendering. The bisection supports this and nothing else:
 
-## Attach dedupe, done properly
+- v5.43.0 fails the same section despite having none of the later machinery
+- White Background Taming off: still fails
+- the symbols script does not exist in v5.43.0 at all
+- tweak fully off: the section renders
+- when Dark Reader silently failed to apply while everything else ran, performance
+  jumped roughly tenfold
 
-`attach symbols script` measured 2,456 µs/call and `attach TWB script` 3,818 µs/call —
-about 30ms of the 285ms total, and the largest remaining cost that is ours. Both helpers
-dedupe by running `containsString:` over every installed user script's source, and
-`ucc.userScripts` holds the 346KB Dark Reader bootstrap.
+Three builds were then spent trying to measure the pass. All three failed for the same
+reason: `didFinishNavigation:` was hooked on `WKWebView`, which never receives it. Rather
+than spend a fourth, this build acts on the bisection, which is evidence enough.
 
-v6.0.164 replaced that with an associated-object marker and broke White Background
-Taming: `removeAllUserScripts` drops the scripts, the marker survived, and the helpers
-returned early forever. v6.0.165 reverted it.
+## What changed
 
-The marker is sound as long as the hook that drops the scripts also drops the marker.
-`-[WKUserContentController removeAllUserScripts]` now clears both markers before
-re-attaching. The source scan is kept as a fallback and sets the marker when it matches.
+The `DarkReader.enable` wrapper added in v6.0.169 now defers instead of calling
+straight through, so every call site is covered at once. Theming waits for
+`readyState === 'complete'`, then runs on `requestIdleCallback` with a 1500ms timeout.
+A 3000ms fallback covers Amazon documents that never reach 'complete' because a
+long-poll or ad frame keeps them loading.
 
-## State of the native side
+The documentStart floor sheet already paints the dark background, so the page does not
+flash white. It shows dark chrome with briefly unthemed content, then darkens.
 
-284.8ms across 29,541 calls for a whole session, `RCTView layoutSubviews` down to
-0.62 µs from 115.5. After this build there is nothing left on the native side worth
-cutting; the remaining cost is Dark Reader's initial theming pass.
+**The trade, stated plainly:** content is visibly unthemed for a moment on every page.
+That is the cost of not competing with the renderer for the main thread. If it reads as
+worse than the current stall, the flag below reverts it instantly.
+
+    touch /var/mobile/.ad_no_defer   theme immediately (pre-171 behaviour)
+    rm -f /var/mobile/.ad_no_defer   defer (171 default)
+
+Relaunch after either.
 
 ## Verification
 
-- Marker keys declared L1944, used L1950/L2176/L2332 — the use-before-declare check
-  that caught the v6.0.167 build failure, now passing.
-- Dead `didFinishNavigation` capture site removed; capture defined before its call site.
-- Balance 0/0/0, declared-before-use audit clean, all payloads parse,
-  `scripts/lint-logos.sh`.
+- Behavioural test: theming does not run at call time, runs after `load`, paint
+  precedes theme, timing still recorded. 4/4.
+- Format specifiers and arguments in the bootstrap: 9 and 9, each verified in position
+  — the new flag is the 5th, immediately after `__ADNODEFER171__=`.
+- Balance 0/0/0, declared-before-use audit clean, all payloads parse, lint-logos.

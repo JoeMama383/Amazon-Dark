@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.170"
+#define AD_VERSION "v6.0.171"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -303,7 +303,7 @@ static NSString *ADPerfDir163(void){
 }
 
 static NSString *ADPerfPath163(void){
-    return [ADPerfDir163() stringByAppendingPathComponent:@"AmazonDark-hook-perf-170.txt"];
+    return [ADPerfDir163() stringByAppendingPathComponent:@"AmazonDark-hook-perf-171.txt"];
 }
 
 static void ADPerfDump163(NSString *label){
@@ -753,6 +753,16 @@ static void ADInvalidateWebCaches613(void){
 //
 // Left switchable so both sides can be compared in one install:
 //   touch /var/mobile/.ad_dr_proxy    restore the proxy (old 6.0.165 behaviour)
+// Escape hatch so the old behaviour can be compared on the same install.
+static BOOL ADNoDefer171(void){
+    static BOOL v = NO;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        v = [[NSFileManager defaultManager] fileExistsAtPath:@"/var/mobile/.ad_no_defer"];
+    });
+    return v;
+}
+
 static BOOL ADDRProxyWanted166(void){
     static BOOL wanted = NO;
     static dispatch_once_t once;
@@ -1481,6 +1491,7 @@ static NSString *ADDarkReaderBootstrap(void){
          // Existing call sites and the direct-TWB structural skip use the old symbol/
          // marker names; aliasing them keeps those proven paths intact.
          "window.__AD_COLLEGE6034__=window.__AD_SEASONAL6036__;"
+         "window.__ADNODEFER171__=%@;"
          "%@\n" // DarkReader UMD
          "if(window.DarkReader&&DarkReader.enable){"
          // v6.0.168: record how long the initial Dark Reader pass actually costs, and
@@ -1492,14 +1503,45 @@ static NSString *ADDarkReaderBootstrap(void){
          "var _cnt169=function(){try{return document.getElementsByTagName?document.getElementsByTagName('*').length:-1;}catch(e){return -1;}};"
          "var _sh169=function(){try{return document.styleSheets?document.styleSheets.length:-1;}catch(e){return -1;}};"
          "if(!DarkReader.__adWrapped169){var _en169=DarkReader.enable;DarkReader.__adWrapped169=1;"
-         "DarkReader.enable=function(){var r=window.__ADDRT168__={t0:_now169(),sheets:_sh169(),nodes:_cnt169()};"
-         "var out;try{out=_en169.apply(DarkReader,arguments);}finally{"
+         // v6.0.171: DEFER THE FIRST PASS UNTIL AFTER THE PAGE HAS PAINTED.
+         //
+         // Dark Reader's initial pass parses every stylesheet and walks every element
+         // before it can paint, and it does that on the web process main thread. On a
+         // PDP -- the largest DOM in the app -- that is what stalls rendering. The
+         // bisection supports this and nothing else: v5.43.0 fails the same section
+         // despite having none of our later machinery; White Background Taming off
+         // still fails; the symbols script does not exist in 5.43.0 at all; with the
+         // tweak fully off the section renders; and when Dark Reader silently failed to
+         // apply while everything else ran, performance jumped roughly tenfold.
+         //
+         // So stop competing with the page for the main thread while it is trying to
+         // render. Let the document reach 'complete', then theme on an idle callback.
+         // The documentStart floor sheet is already painting the dark background, so
+         // the page does not flash white -- it shows dark chrome with briefly
+         // unthemed content, then darkens.
+         //
+         //   touch /var/mobile/.ad_no_defer   theme immediately (pre-171 behaviour)
+         "DarkReader.enable=function(){"
+         "var _args=arguments;"
+         "var _apply=function(){var r=window.__ADDRT168__={t0:_now169(),sheets:_sh169(),nodes:_cnt169()};"
+         "var out;try{out=_en169.apply(DarkReader,_args);}finally{"
          "r.ms=_now169()-r.t0;r.sheetsAfter=_sh169();r.nodesAfter=_cnt169();"
          "r.url=String(location.href||'').slice(0,160);r.cssLen=-1;"
          "try{var pr=DarkReader.exportGeneratedCSS&&DarkReader.exportGeneratedCSS();"
          "if(pr&&pr.then){pr.then(function(c){r.css=c||'';r.cssLen=r.css.length;},function(){r.cssLen=-2;});}"
          "else if(typeof pr==='string'){r.css=pr;r.cssLen=pr.length;}}catch(e){r.cssLen=-3;}}"
-         "return out;};}}catch(e){}"
+         "return out;};"
+         "if(window.__ADNODEFER171__){return _apply();}"
+         "var _sched=function(){try{if(window.requestIdleCallback)"
+         "window.requestIdleCallback(function(){_apply();},{timeout:1500});"
+         "else setTimeout(function(){_apply();},150);}catch(e){setTimeout(function(){_apply();},150);}};"
+         "try{if(document.readyState==='complete'){_sched();}"
+         "else{window.addEventListener('load',function(){_sched();},{once:true});"
+         // Belt and braces: some Amazon documents never reach 'complete' because a
+         // long-poll or ad frame keeps them loading. Cap the wait so those still theme.
+         "setTimeout(function(){if(!window.__ADDRT168__)_sched();},3000);}}"
+         "catch(e){_apply();}"
+         "return undefined;};}}catch(e){}"
          "try{DarkReader.setFetchMethod(window.fetch);}catch(e){}"
          // WCAG contrast repair. Dark Reader recolours from the page's own palette,
          // which can leave text only marginally separated from its background - the
@@ -1839,7 +1881,8 @@ static NSString *ADDarkReaderBootstrap(void){
          "try{window.addEventListener('pageshow',function(e){if(e.persisted)window.__AMZDARK_APPLY__();});}catch(e){}"
          "try{document.addEventListener('visibilitychange',function(){if(!document.hidden)window.__AMZDARK_APPLY__();});}catch(e){}"
          "}}catch(e){}})();",
-        floorBG, floorBG, floorBG, floorBG, dr, [NSString stringWithUTF8String:gP.fgHex], ADThemeLiteral(), ADFixesLiteral()];
+        floorBG, floorBG, floorBG, floorBG,
+        ADNoDefer171() ? @"1" : @"0", dr, [NSString stringWithUTF8String:gP.fgHex], ADThemeLiteral(), ADFixesLiteral()];
     return gADBootstrap613;
 }
 
