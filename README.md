@@ -1,85 +1,53 @@
-# Amazon Dark
+# AmazonDark v6.0.163 — hook instrumentation
 
-## v6.0.162 — OLED structural floor ownership
+Built on **v6.0.159** (`a8957c0`), not on HEAD. 6.0.160 and 6.0.161 are excluded
+deliberately: 161 re-touches the Dark Reader ownership boundary that 159 restored, and
+159 is the stable rendering baseline.
 
-- Preserves the compact v6.0.161 recovery/runtime architecture.
-- Makes the web structural floor true OLED black (`#000000`) instead of inheriting Dark Reader or the previous dark-gray page floor.
-- Extends document-start CSS ownership to the major Search, Home, Cart, result-card and suggestion surface families that were still painting white.
-- Removes the old 300-background repair ceiling while retaining the existing bounded document/subtree scan caps, so already-scanned bright wrappers are no longer left white simply because earlier wrappers consumed the repair budget.
-- Keeps Dark Reader optional: AmazonDark's direct background/contrast owner remains authoritative when the engine is missing, late or fails.
-- Adds no MutationObserver, querySelectorAll call site, scroll listener, recurring timer, RAF loop, timeout or native dispatch-after site.
+This build changes no rendering behaviour. Its only purpose is to find out where the
+native time actually goes.
 
-# AmazonDark
+## Why this and not another optimization pass
 
-AmazonDark is a rootless iOS tweak that applies a dark theme to the Amazon Shopping app while preserving Amazon-owned imagery, layout, interaction, and native component geometry.
+The web side is already near the floor: 3 MutationObservers, 0 intervals, 0 RAF loops,
+0 scroll listeners, 17 one-shot timeouts. Source-tree size costs nothing at runtime.
+Meanwhile this tree hooks **94 methods across 46 classes, 57 of them on UIKit and Core
+Animation hot paths** — including `-[CALayer setContents:]` and
+`-[CALayer setBackgroundColor:]`, which run on every commit, every scroll frame and
+every image decode completion, and `layoutSubviews` on 19 classes. The file also
+contains 71 `objc_getAssociatedObject` and 76 `objc_setAssociatedObject` calls;
+association lookups take a global lock.
 
-## v6.0.161 — independent web-surface owner
+The stock app does none of this, which is the most plausible remaining explanation for
+the gap. But "plausible" is exactly what Dark Reader throttling and the iframe payload
+split were, and both were wrong. So this measures instead of assuming.
 
-This release keeps the compact, fast v6.0.160 architecture but stops making AmazonDark's own structural darkening depend on Dark Reader successfully initializing.
+## What was added
 
-### Why
+All 57 hot-path hooks accumulate a call count and inclusive wall time. Instrumentation
+uses a cleanup-attribute scope guard, so every early return is covered without editing
+any return path. Per call: two relaxed atomic adds and two `mach_absolute_time` reads —
+far below the association lookups and class-name walks these hooks already do.
 
-v6.0.160 was reported to be exceptionally fast, but several web-backed Amazon surfaces stayed light. The source showed an important coupling: the existing bounded `__AMZDARK_FIXCONTRAST__` owner — which already darkens bright structural backgrounds, gradients, low-contrast text and several Amazon-specific surfaces — was defined only inside `if (window.DarkReader && DarkReader.enable)`. If Dark Reader failed or arrived late, the lightweight AmazonDark owner never existed either.
+The table is written on every `UIApplicationWillResignActive` and truncated at launch,
+so one session stands alone and backgrounding twice appends two tables. The destination
+is resolved by really writing a test file to each candidate, so a sandbox denial cannot
+fail silently, and the chosen path is printed in the header.
 
-### v6.0.161 architecture
+## Reading the dump
 
-- The bundled Dark Reader payload is now isolated in its own guarded `try` block. A Dark Reader initialization failure cannot abort AmazonDark's own web owner.
-- `__AMZDARK_FIXCONTRAST__`, the existing bounded contrast/background owner and its existing incremental observer now install whether Dark Reader is available or not.
-- `__AMZDARK_APPLY__` treats Dark Reader as an optional enhancement: it enables it when available, but always queues AmazonDark's own structural/contrast pass.
-- Recovery no longer treats “Dark Reader unavailable” as equivalent to “AmazonDark missing.” It heals only when the AmazonDark bootstrap/contrast owner itself is absent.
-- Bootstrap ownership is now re-entrant-safe. A partial installation can heal instead of being permanently blocked by the old `__AMZDARK_LOADED__` early return.
-- No new MutationObserver, selector call site, scroll listener, interval, RAF loop, timeout, or native dispatch point is added.
+`AmazonDark-hook-perf-163.txt`, sorted by call count, plus a list of hooks that never
+fired at all.
 
-This is intentionally a hybrid first step rather than deleting Dark Reader outright. The goal is to preserve the v6.0.160 speed while making the dark page floor and bright-surface cleanup owned by AmazonDark itself. If this proves complete on-device, Dark Reader can be demoted further in a later build without guessing.
+**Time is inclusive of `%orig`**, so it contains the real UIKit work as well as ours.
+Rank primarily by count. Compare inclusive time only between hooks wrapping the same
+underlying method. The `never fired` list is immediately actionable: those hooks can be
+deleted outright.
 
-### Preserved theming
+## Verification
 
-All v6.0.160 native and web theming owners remain: Tame Light Backgrounds, checkbox/Heart/cards/dot ownership, Sponsored text/info badge treatment, Person-tab borders, neutral search border, Sign Out/Cancel surfaces, unsigned-Cart treatment, sign-in footer first paint, Home seasonal/mosaic handling, video/voice handling, splash cover, JIT and 120 Hz preferences.
-
-## v6.0.160 — optimized recovery baseline
-
-This release returns to the compact v6.0.154–v6.0.158 architecture instead of the expanded v6.0.152 rollback, while keeping the rendering safeguards learned from the later failures.
-
-### Performance architecture retained
-
-- Two injected `MutationObserver` instances remain; there are no web scroll listeners, recurring intervals, or `requestAnimationFrame` loops.
-- The native-ad watcher stays consolidated into the bounded contrast observer.
-- The broad contrast `querySelectorAll('*')` collection remains replaced by a capped `TreeWalker`.
-- Checkbox stale-marker cleanup remains one selector pass instead of four document scans.
-- TWB installation remains idempotent, preventing repeated media/listener installation and repeated initial media passes.
-- Home seasonal/mosaic runtime work remains gated away from PDP, Search, Cart, and auth documents.
-- Offscreen retained WKWebViews remain skipped when fully detached.
-- Recycled React/Fabric Person-card ownership remains self-invalidating so stale raster suppression cannot blank reused Home/Person content.
-- Diagnostic/probe/report-file code, temporary 120 Hz verification code, and JIT logging remain removed.
-- SpringBoard preference reads remain cached and event-driven.
-
-### Dark-background reliability correction
-
-The prior optimized recovery could still leave a visible document light when a WKWebView was already bootstrapped but Dark Reader needed to be re-enabled after remounting.
-
-v6.0.160 changes that without restoring the old heavy TWB fallback:
-
-- `didMoveToWindow` bootstrap now re-applies the existing Dark Reader owner when `__AMZDARK_LOADED__` is already present instead of returning immediately.
-- Transition-mounted WKWebViews are eligible for recovery as soon as they have either a `window` or a `superview`; fully detached retained controllers remain skipped.
-- All three existing appearance checkpoints can submit bounded WebView recovery again. Because TWB is now idempotent, those checkpoints do not stack the old full TWB payload, media handlers, or 420-item initial pass.
-- Native view-tree sweeps remain limited to the existing first/last checkpoints.
-
-This keeps the compact optimized architecture while closing the timing gap that produced light Home/Search/PDP surfaces after the earlier reduction.
-
-### Preserved theming
-
-Dark Reader/bootstrap styling, Tame Light Backgrounds, Home/Search/PDP repairs, Person-tab gray borders, neutral search border, Sign Out/Cancel surfaces, unsigned-Cart credit treatment, sign-in footer first paint, checkbox/Heart/cards/dot ownership, Sponsored text/info badge treatment, video/voice handling, splash cover, JIT preference, and 120 Hz preference remain present.
-
-## Build
-
-The top-level Theos project builds `AmazonDark`, `AmazonDarkSB`, and the `ADPrefs` Settings bundle.
-
-Dark Reader is installed once at `/Library/Application Support/AmazonDark/darkreader.js`; rootless packaging maps this to `/var/jb/Library/Application Support/AmazonDark/darkreader.js`.
-
-```bash
-make clean package
-```
-
-## Project
-
-Maintained as `JoeMama383/Amazon-Dark`.
+- All six injected JS payloads are **byte-identical to v6.0.159** — the web path is
+  untouched.
+- Counter core compiles clean under clang.
+- String/comment-aware whole-file brace, paren and bracket balance: 0/0/0.
+- `scripts/lint-logos.sh`.
