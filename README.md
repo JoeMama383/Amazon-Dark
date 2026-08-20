@@ -2,6 +2,29 @@
 
 AmazonDark is a rootless iOS tweak that applies a dark theme to the Amazon Shopping app while preserving Amazon-owned imagery, layout, interaction, and native component geometry.
 
+## v6.0.161 — independent web-surface owner
+
+This release keeps the compact, fast v6.0.160 architecture but stops making AmazonDark's own structural darkening depend on Dark Reader successfully initializing.
+
+### Why
+
+v6.0.160 was reported to be exceptionally fast, but several web-backed Amazon surfaces stayed light. The source showed an important coupling: the existing bounded `__AMZDARK_FIXCONTRAST__` owner — which already darkens bright structural backgrounds, gradients, low-contrast text and several Amazon-specific surfaces — was defined only inside `if (window.DarkReader && DarkReader.enable)`. If Dark Reader failed or arrived late, the lightweight AmazonDark owner never existed either.
+
+### v6.0.161 architecture
+
+- The bundled Dark Reader payload is now isolated in its own guarded `try` block. A Dark Reader initialization failure cannot abort AmazonDark's own web owner.
+- `__AMZDARK_FIXCONTRAST__`, the existing bounded contrast/background owner and its existing incremental observer now install whether Dark Reader is available or not.
+- `__AMZDARK_APPLY__` treats Dark Reader as an optional enhancement: it enables it when available, but always queues AmazonDark's own structural/contrast pass.
+- Recovery no longer treats “Dark Reader unavailable” as equivalent to “AmazonDark missing.” It heals only when the AmazonDark bootstrap/contrast owner itself is absent.
+- Bootstrap ownership is now re-entrant-safe. A partial installation can heal instead of being permanently blocked by the old `__AMZDARK_LOADED__` early return.
+- No new MutationObserver, selector call site, scroll listener, interval, RAF loop, timeout, or native dispatch point is added.
+
+This is intentionally a hybrid first step rather than deleting Dark Reader outright. The goal is to preserve the v6.0.160 speed while making the dark page floor and bright-surface cleanup owned by AmazonDark itself. If this proves complete on-device, Dark Reader can be demoted further in a later build without guessing.
+
+### Preserved theming
+
+All v6.0.160 native and web theming owners remain: Tame Light Backgrounds, checkbox/Heart/cards/dot ownership, Sponsored text/info badge treatment, Person-tab borders, neutral search border, Sign Out/Cancel surfaces, unsigned-Cart treatment, sign-in footer first paint, Home seasonal/mosaic handling, video/voice handling, splash cover, JIT and 120 Hz preferences.
+
 ## v6.0.160 — optimized recovery baseline
 
 This release returns to the compact v6.0.154–v6.0.158 architecture instead of the expanded v6.0.152 rollback, while keeping the rendering safeguards learned from the later failures.

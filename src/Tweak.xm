@@ -16,7 +16,7 @@
 #import <unistd.h>
 #import <stdint.h>
 
-#define AD_VERSION "v6.0.160"
+#define AD_VERSION "v6.0.161"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -594,7 +594,7 @@ static NSString *ADDarkReaderBootstrap(void){
     NSString *floorBG = [NSString stringWithUTF8String:gP.bgHex] ?: @"#181a1b";
     gADBootstrap613 = [NSString stringWithFormat:
         @"(function(){try{"
-         "if(window.__AMZDARK_LOADED__)return;window.__AMZDARK_LOADED__=1;"
+         "if(window.__AMZDARK_INSTALLING__)return;if(window.__AMZDARK_LOADED__&&window.__AMZDARK_FIXCONTRAST__){try{window.__AMZDARK_APPLY__&&window.__AMZDARK_APPLY__();}catch(_e){}return;}window.__AMZDARK_INSTALLING__=1;window.__AMZDARK_LOADED__=1;"
 
          "try{if(!document.getElementById('adfloor612')){var f=document.createElement('style');"
            "f.id='adfloor612';f.textContent='html,body,#a-page,#gwm-PageContent,main{background-color:%@ !important;}"
@@ -696,9 +696,8 @@ static NSString *ADDarkReaderBootstrap(void){
            "var total=0;for(var j=0;j<R.length;j++){var local=(B!==document&&R[j]!==B&&R[j].contains&&R[j].contains(B))?B:null;total+=pin(R[j],local);}return total;}catch(e){return 0;}};"
 
          "window.__AD_COLLEGE6034__=window.__AD_SEASONAL6036__;"
-         "%@\n"
-         "if(window.DarkReader&&DarkReader.enable){"
-         "try{DarkReader.setFetchMethod(window.fetch);}catch(e){}"
+         "try{%@\n}catch(_dr){}\n"
+         "try{if(window.DarkReader&&DarkReader.setFetchMethod)DarkReader.setFetchMethod(window.fetch);}catch(e){}"
 
          "window.__AMZDARK_FIXCONTRAST__=function(root){try{var base=(root&&root.nodeType===1)?root:(document.body||document.documentElement);"
            "var FG='%@';"
@@ -898,7 +897,7 @@ static NSString *ADDarkReaderBootstrap(void){
 
          "window.__AD_IDLE6056__=function(fn,to){try{if(window.requestIdleCallback)return requestIdleCallback(function(){try{fn();}catch(e){}},{timeout:to||240});return setTimeout(function(){try{fn();}catch(e){}},60);}catch(e){return setTimeout(fn,60);}};"
          "window.__AMZDARK_APPLY__=function(){try{"
-           "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
+           "if(window.DarkReader&&DarkReader.enable&&!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
            "if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);"
            "window.__AD_IDLE6056__(function(){window.__AMZDARK_FIXCONTRAST__();if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);},260);"
          "}catch(e){}};"
@@ -911,7 +910,7 @@ static NSString *ADDarkReaderBootstrap(void){
 
          "try{window.addEventListener('pageshow',function(e){if(e.persisted)window.__AMZDARK_APPLY__();});}catch(e){}"
          "try{document.addEventListener('visibilitychange',function(){if(!document.hidden)window.__AMZDARK_APPLY__();});}catch(e){}"
-         "}}catch(e){}})();",
+         "window.__AMZDARK_INSTALLING__=0;}catch(e){try{window.__AMZDARK_INSTALLING__=0;}catch(_x){}}})();",
         floorBG, floorBG, floorBG, floorBG, dr, [NSString stringWithUTF8String:gP.fgHex], ADThemeLiteral(), ADFixesLiteral()];
     return gADBootstrap613;
 }
@@ -1016,10 +1015,10 @@ static NSString *ADDarkReaderReapply(void){
     if (gADReapply613) return gADReapply613;
     gADReapply613 = [NSString stringWithFormat:
         @"(function(){try{"
-         "if(!(window.DarkReader&&DarkReader.enable))return 'noDR';"
-         "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
+         "var hasDR=!!(window.DarkReader&&DarkReader.enable);"
+         "if(hasDR&&!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
          "if(window.__AMZDARK_FIXCONTRAST__){if(window.__AD_IDLE6056__){window.__AD_IDLE6056__(function(){window.__AMZDARK_FIXCONTRAST__();if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);},260);return 'queued';}return ''+window.__AMZDARK_FIXCONTRAST__();}"
-         "return 'nofix';"
+         "return hasDR?'nofix':'owned';"
          "}catch(e){return 'err';}})();",
         ADThemeLiteral(), ADFixesLiteral()];
     return gADReapply613;
@@ -1207,7 +1206,7 @@ static void ADEnableDarkReaderIn(WKWebView *wv){
         if (js.length) [wv evaluateJavaScript:js completionHandler:nil];
 
         [wv evaluateJavaScript:
-            @"(function(){try{return (!window.__AMZDARK_LOADED__||!(window.DarkReader&&DarkReader.enable))?1:0;}catch(e){return 1;}})()"
+            @"(function(){try{return (!window.__AMZDARK_LOADED__||!window.__AMZDARK_FIXCONTRAST__)?1:0;}catch(e){return 1;}})()"
              completionHandler:^(id result, NSError *err){
             @try {
                 if (err || ![result respondsToSelector:@selector(boolValue)] || ![result boolValue]) return;
