@@ -1,92 +1,115 @@
-# AmazonDark v6.0.157
+## v6.0.159 — safe cleanup rebuild from v6.0.152
 
-## v6.0.158 — restore late web-theme recovery
+This build deliberately returns to the exact v6.0.152 rendering/theming baseline instead of continuing the v6.0.154–v6.0.158 runtime reductions.
 
-- Restores one delayed visible-WKWebView recovery pass at 420 ms after navigation/appearance.
-- Fixes the v6.0.157 regression where Home/Search/PDP web surfaces could remain stock white when the immediate pass ran before Amazon attached or hydrated the destination WKWebView.
-- Keeps the 120 ms web pass removed, so appearance recovery is still two passes instead of the older three.
-- Retains v6.0.157 TWB idempotence, off-window WebView skip, seasonal/PDP gate, and v6.0.156 recycled-render safeguards.
+What changed:
+- Preserves the v6.0.152 WebView/Dark Reader bootstrap, reapply timing, TWB ownership, checkbox owner, Sponsored owner, and launch recovery architecture.
+- Keeps the installed Dark Reader payload at `/Library/Application Support/AmazonDark/darkreader.js`; only the duplicate bundled copy is removed.
+- Removes dormant standalone-ad probe/export code and the temporary 120 Hz verification display-link/report path; the actual 120 Hz forcing remains.
+- Keeps the proven Person/Fabric recycled-view ownership invalidation so old border/raster claims cannot blank reused Home/Person content.
+- Removes stale duplicate preference-bundle source/layout files and file logging.
+- Generalizes support-source headers and keeps active theming behavior intact.
 
+This is intentionally a conservative performance pass: no MutationObserver consolidation, no WebView recovery-pass reduction, no Dark Reader timing changes, and no broad selector rewrites.
 
-## PDP render-path cleanup
-- Fixes an obsolete TWB reapply probe that was causing the full White-Tame payload to be evaluated repeatedly on already-themed WKWebViews.
-- Makes TWB installation idempotent so media/load handlers cannot stack during navigation recovery.
-- Runs heavy tracked-WKWebView recovery once per three-stage native appearance burst instead of three times, and skips tracked WKWebViews that are not currently attached to a window.
-- Skips the Home seasonal/mosaic runtime owner entirely on PDP, Search, Cart, and auth documents.
-- Keeps the v6.0.156 recycled React/Fabric safety fix while gating its semantic work to actual compact Person-card candidates.
-- Preserves current dark theming, TWB, Sponsored styling, checkbox/glyph ownership, JIT, 120 Hz, splash, and Person border treatment.
+## v6.0.152 — Sponsored info-glyph color parity
 
-## Recycled React/Fabric render ownership
+The Home product-card Sponsored labels were already pinned to AmazonDark's secondary gray (`#b1aaa0`), but several 11/12 px information-badge variants remained dark because v6.0.138 intentionally preserved stock bitmap/background-image glyphs. v6.0.152 closes that gap without widening the Sponsor scan.
 
-- Makes the Person-tab raster-border owner self-invalidating instead of permanent.
-- Clears destructive raster/content suppression when an RCT/Fabric view detaches for reuse.
-- Re-validates semantic text and geometry before every `CALayer.contents` suppression, so a view recycled into Home or another Person section can render normally.
-- Retires stale Person border overlays when a recycled view no longer represents the original target.
-- Requests one native redraw only when stale ownership is actually removed; no timer, observer, scroll callback, cache override, or global rerender loop is added.
-- Retains the v6.0.155 Dark Reader payload restoration, v6.0.154 cleanup architecture, current Person/search borders, checkbox theming, TWB, JIT, 120 Hz, Sponsored, and splash behavior.
+- Keeps Sponsored text at the existing `#b1aaa0` secondary gray.
+- The known `ad-feedback-spr` first-paint host and the existing semantic `data-ad-sponsorglyph6138` marker now use one canonical 12 px information badge whose outer disc is exactly `#b1aaa0`.
+- The existing bounded Sponsored bridge now also replaces positively identified bitmap/background-image badge variants rather than leaving their dark stock pixels untouched; known IMG/vector/mask variants remain geometry-gated to 5–30 px and Sponsor-context-gated.
+- No new MutationObserver, timer, RAF loop, scroll listener, or page-wide Sponsor scan is added. The working v6.0.151 Person-border and search-border fixes are unchanged.
 
----
+## v6.0.151 — single-source Person borders + first-paint suppression
 
-# AmazonDark v6.0.155
+The 6.0.150 result exposed two separate ownership conflicts. **Explore more to shop** was correctly losing its white React-Native raster plate, but our replacement `CALayer.borderColor` was then being re-mapped by the generic border engine to the familiar brown/tan hue. **Redeem Gift Card / Reload Balance** still retained their stock raster border under our gray overlay, producing the doubled/misaligned edge visible when zoomed in.
 
-- Restores the deterministic Dark Reader runtime payload at `/Library/Application Support/AmazonDark/darkreader.js` (rootless runtime: `/var/jb/Library/Application Support/AmazonDark/darkreader.js`).
-- Restores dark web surfaces on Home, Search, Cart, PDP/product views, and other WKWebView-backed panes after the v6.0.154 cleanup removed the reliable installed fallback.
-- Restores the existing checkbox owner indirectly by bringing the shared web bootstrap back online; checkbox painting logic itself is not broadened or rewritten.
-- Keeps the v6.0.154 cleanup architecture and reduced observer/selector footprint.
-- Uses one installed Dark Reader copy rather than keeping both a bundle copy and an Application Support copy.
+v6.0.151 makes the probe-proven raster cards use one border source only. Explore, Gift Card, and the compact Your Account chips now suppress the stale host `CALayer.contents` plate and render a single 1pt `#494D4D` `CAShapeLayer` outline. The direct `CALayer` border is kept at zero so the generic border curve cannot recolor it or stack another edge underneath. The `CALayer setContents:` owner also recognizes these semantic/geometry-gated RCT cards on the **first raster assignment**, so the initial white Explore outline should never reach the screen. The working search-bar border owner is unchanged.
 
-# AmazonDark
+## v6.0.150 — finish Person-tab raster borders
 
-AmazonDark is a rootless iOS tweak that applies a dark theme to the Amazon Shopping app while preserving Amazon-owned product imagery, branded artwork, layout, interaction, and native component geometry.
+Probe 6149 showed that the remaining bright borders were not ordinary `borderColor` values. The visible white outline was baked into React Native `CALayer.contents` on two raster-backed card families: the outer **Explore more to shop** card and the compact **Your Account** carousel buttons. v6.0.150 replaces only those probe-proven raster plates with their existing dark logical fill plus the same 1pt `#494D4D` outline already used by Redeem Gift Card / Reload Balance. The layer-contents hook prevents React Native from repainting the stale white plate after layout. The working search-bar border logic is unchanged. The 6149 diagnostic exporter is removed.
 
-## v6.0.154 — runtime consolidation and source cleanup
+## v6.0.149 — Person-tab border recovery + targeted probe
 
-This release is built directly from **v6.0.152**. The v6.0.153 bottom-navigation experiment is not included. The visual/theming target is therefore v6.0.152; this pass focuses on reducing work around that target rather than changing it.
+- Keeps the working v6.0.148 native search-bar border correction unchanged.
+- Normalizes React/Fabric line breaks before target matching (for example `Explore\nmore to\nshop`), then retries the Person-tab card claim from the React text view's **layout pass**, after Fabric/Paper hierarchy and geometry have settled. This addresses both likely v6.0.147/148 miss paths: split backing text and a setter firing before the final bordered card existed.
+- Once a target card is positively claimed, bright neutral direct `CALayer` borders and `CAShapeLayer` strokes are changed to the same `#494D4D` gray before the existing 1 pt neutral overlay is maintained. Rasterized RN border artwork remains covered by the overlay.
+- Includes a temporary native probe for the visible Person-tab lower half. Backgrounding Amazon once writes `AmazonDark-person-border-probe-6149.txt`; the probe records visible React/native classes, frames, text, direct border colors, nested shape-layer strokes, `layer.contents`, and whether the target card was tagged.
+- Adds no MutationObserver, scroll listener, interval, RAF loop, or recurring scheduler.
 
-### Runtime cleanup
+## v6.0.148 — compile fix for Person/search border owner
 
-- Consolidates the native-ad DOM watcher into the existing bounded contrast observer, reducing the injected web observer count without removing native-ad marking, video-control protection, or contrast recovery.
-- Replaces the broad `querySelectorAll('*')` contrast collection with a capped `TreeWalker`, so a document pass stops when its existing element budget is reached instead of first materializing every descendant.
-- Collapses four checkbox stale-marker document scans into one selector pass and removes checkbox/symbol/dot counters that existed only for diagnostics.
-- Removes the dormant standalone-ad probe/exporter, its launch file initialization, and its background DOM dump path.
-- JIT now exits before dispatch/syscall work when disabled. When enabled, it retains the existing broker request path but no longer writes a launch report file or performs report-only follow-up work.
-- Removes the temporary 120 Hz verification display link and report-file path. The actual 120 Hz preference, display-link ownership, frame-rate hooks, and restore logic remain intact.
-- SpringBoard preference state is cached and refreshed by the existing Darwin preference notification instead of synchronizing preferences on each scene check.
-- Removes file logging from the SpringBoard companion and Settings bundle.
+- Preserves the v6.0.147 visual changes exactly: the bright Person-tab borders around Redeem Gift Card, Reload Balance, and Explore more to shop use the thin neutral gray border, and the native Amazon search field loses its brown/tan border.
+- Fixes the Logos/Clang build failure by accepting hooked forward-declared classes at the helper boundary and casting to `UIView *` internally. No border matching, colors, fills, text, icons, spacing, or geometry changed.
 
-### Source and package cleanup
+## v6.0.147 — normalize Person-card and search-bar borders
 
-- Factors repeated first-paint/post-Dark-Reader CSS into shared string macros while preserving the emitted CSS token stream at both use sites.
-- Removes obsolete probe code, unused SpringBoard cover code, stale PreferenceBundle source/layout copies, and the duplicate installed Dark Reader payload. The canonical bundled `Resources/darkreader.js` remains authoritative.
-- Replaces version-by-version source commentary with concise subsystem headers and removes stale build archaeology from active source files.
-- Keeps the existing PreferenceLoader entry and builds the Settings bundle from the single top-level Theos target.
+- Person tab: changes only the bright outlines around **Redeem Gift Card**, **Reload Balance**, and **Explore more to shop** to the same thin neutral gray (`#494D4D`) sampled from neighboring AmazonDark cards.
+- Native search chrome: replaces the remaining brown/tan `SBSearchBar` / `SBSearchField` border with the same neutral gray.
+- Leaves fills, text, icons, dimensions, corner geometry, and all v6.0.146 behavior unchanged.
 
-### Preserved theming
+## v6.0.146 — repackage of v6.0.145
 
-The v6.0.152 theming paths remain in place, including Dark Reader/bootstrap styling, native dark-theme hooks, Tame Light Backgrounds, Home/Search/PDP repairs, Person-tab raster borders, the neutral search border, Sign Out/Cancel surfaces, unsigned-Cart Visa treatment, sign-in footer first paint, checkbox/Heart/cards/dot ownership, video controls, Sponsored text and 12 px info badge treatment, splash cover, JIT toggle, and 120 Hz toggle.
+No functional changes from v6.0.145. This release exists only to produce a fresh GitHub Actions artifact after the previous artifact was deleted.
 
-The existing `:has()` selector architecture is intentionally retained. Earlier code review identified it as a possible style-recalculation cost, but replacing it with mutation-time element marking would change ownership architecture rather than merely compress it; that is outside this theming-preserving cleanup.
+## v6.0.145 — eliminate first-paint sign-in footer gradient
 
-## Build
+- Keeps the successful v6.0.144 `/ap/signin` footer normalization as a hydrated-DOM fallback.
+- Adds auth-footer/divider selectors to AmazonDark's existing document-start stylesheet so the stock light gradient/pseudo-element is suppressed before the first visible frame.
+- The new first-paint rule is structural and auth-specific (`#auth-footer` / `.auth-footer`); it does not recolor the footer links, copyright copy, sign-in form, or Continue button.
+- All v6.0.143 Cart-credit and v6.0.142 native Sign Out/Cancel behavior is preserved.
 
-The project is built with Theos for rootless iOS 15+ targets. The top-level `Makefile` builds:
+## v6.0.144 — normalize Amazon sign-in footer strip
 
-- `AmazonDark` — Amazon app theming/runtime component.
-- `AmazonDarkSB` — SpringBoard launch-cover and optional JIT-broker companion.
-- `ADPrefs` — Settings preference bundle.
+- Starts from the confirmed-working v6.0.143 behavior.
+- Uses the v6.0.143 capture showing the affected screen is a single top-level `WKWebView` at `/ap/signin`.
+- On `/ap/signin` only, the existing bounded contrast traversal recognizes the narrow footer group containing `Conditions of Use`, `Privacy Notice`, and `Help`.
+- That positively identified footer shell, its structural descendants, and structural pseudo-elements lose their light/gradient background paint and inherit the configured dark page background. Link colors, copyright text, form fields, the Continue button, and all other sign-in UI are left alone.
+- The successful unsigned-Cart Visa banner fix from v6.0.143 is retained.
+- The temporary v6.0.143 Cart-credit probe and SpringBoard relay are removed from this production build; no background probe file is generated by v6.0.144.
+- No new MutationObserver, scroll listener, interval, RAF loop, or recurring scheduler is introduced.
 
-Dark Reader is installed once at `/Library/Application Support/AmazonDark/darkreader.js`; rootless packaging maps that to `/var/jb/Library/Application Support/AmazonDark/darkreader.js` at runtime. The loader also retains bundle/sibling fallbacks for compatibility.
+## v6.0.143 — unsigned Cart credit banner darkening + capture probe
 
-```bash
-make clean package
-```
+- Starts from v6.0.142.
+- Targets the unsigned-cart Amazon Visa promo semantically by the copy `Pay for this order` plus `$50 off` / `upon approval` / `Amazon Visa`; no guessed Amazon class is required.
+- Reuses the existing bounded web contrast traversal and existing MutationObserver lifecycle. No additional web observer, interval, RAF loop, or scroll listener is added.
+- The positively identified short/wide promo shell is painted with the current dark page background, structural descendants are made transparent, and promo text is lifted to the configured light foreground. Product/card artwork (`img`, `picture`, `svg`, video/canvas) is not recolored.
+- Includes a temporary v6.0.143 verification probe. Backgrounding Amazon writes `AmazonDark-cart-credit-probe-6143.txt` and SpringBoard relays it to the normal Shared/AppGroup Documents push folder. The probe records mounted native WKWebView hosts plus DOM/CSS chains around the exact promo copy and whether `data-ad-cartcredit6143` landed.
 
-GitHub Actions is also configured to compile/package the source tree.
+## v6.0.142 — darker Sign Out surface, native text restored
 
-## Install / activate
+- Built from v6.0.141 behavior while removing the special Sign Out text-color owner.
+- `Sign Out` now leaves its title color entirely to Amazon/the existing foreground pipeline.
+- Only the stock `AWButton` background image is recolored, to a darker yellow (`#D4A017`), preserving Amazon's original alpha mask, stretch caps, dimensions, and button geometry.
+- `Cancel` is unchanged from v6.0.141: medium gray (`#666666`) stock-image surface with white title text.
+- Targeting remains limited to the compact native dialog that contains `Sign Out`, `Cancel`, and `You are signed in as ...`.
 
-Install the generated rootless `.deb`, then force-quit and relaunch Amazon. Preference changes can be made under **Settings → AmazonDark**; use the Settings pane's Respring action when needed.
+# AmazonDark v6.0.138
 
-## Project
+Corrective build based on the pre-135 dark-background architecture. The failed 135-137 Sponsored/APE experiments are not carried forward.
 
-Maintained as `JoeMama383/Amazon-Dark`.
+## Sponsored presentation
+
+Sponsored labels are bridged to the same dark-mode secondary gray (`#b1aaa0`) before the native-ad early-exit, so the native-island and generic-contrast paths no longer disagree. Amazon remains the owner of the info-glyph artwork, size, baseline, spacing, and internal "i". The existing bounded contrast traversal recognizes Sponsored ancestry, protects stock background-image sprites from generic inversion, and only redirects color-driven stock variants (SVG/pseudo/mask/icon-font) from dark/black ink to the same secondary gray. No custom Sponsored SVG, fallback icon, duplicate badge, or Sponsor-specific document scan is present.
+
+## Background preservation
+
+The v6.0.134-137 Sponsor-driven ancestor/standalone shell clearers are not carried forward. The only APE transparency retained is the narrow v6.0.133 probe-derived `ape-wrapper` / `ape-placement` / `ape-feedback` ownership that already existed on the last dark-background baseline. No new broad parent, iframe, card, or page-floor transparency path is added.
+
+# AmazonDark v6.0.131 probe
+
+Built directly from v6.0.128 after the standalone-ad scope/glyph patch produced no visible change.
+
+This is diagnostic-only. Production behavior is intentionally unchanged from v6.0.128. The probe captures the exact live DOM and computed paint ownership for visible `Sponsored` labels, nearby info-glyph candidates, the nearest ad shell, child media/iframes, and active TWB markers when the app backgrounds.
+
+No new MutationObserver, scroll listener, interval, requestAnimationFrame loop, or recurring scan is added. The older component-shell diagnostic hook is replaced with a no-op during mutations; the actual scan runs only when the existing native background exporter asks for a dump.
+
+## Reproduction
+1. Open Home and scroll to the standalone horizontal ad with the lighter full-width rectangle.
+2. Background Amazon once.
+3. Return to Amazon and open a product/search submenu containing the standalone sponsored ad whose photo-only taming is correct.
+4. Background Amazon again.
+5. On launch the probe first attempts the requested shared Documents path. If iOS rejects that cross-container write, it automatically falls back to Amazon's own Documents directory and records the primary-write error in the file header. Use the one-line NewTerm copy command from ChatGPT to copy the fallback file into the requested shared Documents folder.
