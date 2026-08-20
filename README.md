@@ -1,4 +1,4 @@
-# AmazonDark v6.0.166
+# AmazonDark v6.0.167
 
 One change, on the 6.0.165 tree. Everything else is untouched.
 
@@ -40,7 +40,7 @@ re-apply. Visible but usable, versus content that never appears.
 Both sides can be compared in one install:
 
     touch /var/mobile/.ad_dr_proxy   restore the proxy (6.0.165 behaviour)
-    rm    /var/mobile/.ad_dr_proxy   proxy off (6.0.166 default)
+    rm    /var/mobile/.ad_dr_proxy   proxy off (6.0.167 default)
 
 Relaunch Amazon after either. The flag is read once per launch.
 
@@ -51,6 +51,16 @@ is a different architecture, not another knob: cache `exportGeneratedCSS()` per 
 and inject it as a plain stylesheet on subsequent loads, so heavy pages get themed CSS
 with no DOM walk at all.
 
+## Fix from v6.0.166
+
+v6.0.166 failed to compile: `ADDRProxyWanted166` was defined above `ADThemeLiteral`,
+but `ADFixesLiteral` sits above that and calls it — used before declared. The helper is
+now defined above `ADFixesLiteral`. No other change.
+
+The clang harness in this repo compiled only the instrumentation core, which is why it
+did not catch this. It now also compiles the real `ADFixesLiteral` region against
+Foundation stubs, and a declared-before-use audit runs over every `static AD*` helper.
+
 ## Verification
 
 - Both emitted variants of the fixes literal (`proxy:true` and `proxy:false`) parse as
@@ -58,4 +68,4 @@ with no DOM walk at all.
 - Format specifiers and arguments in the fixes literal: 2 and 2.
 - Bootstrap payload unchanged; all other payloads parse.
 - Whole-file balance 0/0/0, `scripts/lint-logos.sh`.
-- v6.0.163 hook instrumentation retained; dump file is now `-166`.
+- v6.0.163 hook instrumentation retained; dump file is now `-167`.
