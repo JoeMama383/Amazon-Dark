@@ -1,71 +1,50 @@
-# AmazonDark v6.0.167
+# AmazonDark v6.0.168
 
-One change, on the 6.0.165 tree. Everything else is untouched.
+Keeps the v6.0.167 proxy change and adds measurement plus a cache write. No behaviour
+change to theming.
 
-## What the bisection established
+## Where this stands
 
-Not argued — eliminated, one toggle at a time:
+v6.0.167 turned the heavy PDP section from *never renders* into *renders slowly* — the
+same shape as v5.43.0. So the CSSOM proxy was a real part of it, and what remains is
+the one pass Dark Reader cannot skip: parse every stylesheet, walk every element, emit
+a theme.
 
-- 5.43.0 renders the heavy PDP section (slowly); 6.0.165 never finishes.
-- White Background Taming off: still fails. TWB excluded.
-- 5.43.0 has no symbols script at all and fails the same way. Symbols script excluded,
-  and with it the whole 96KB of bootstrap growth between the two builds.
-- Tweak fully off: renders fine. So it is us.
-- What both builds share is exactly three things: an identical `darkreader.js`, an
-  equivalent theme object, and the documentStart floor sheet.
-- Independent confirmation: when Dark Reader silently failed to apply while the rest of
-  the tweak still ran, performance jumped roughly tenfold.
+## What this build measures
 
-The cost is Dark Reader's dynamic theme, not the code around it. The 824ms of native
-hook time measured across a whole session was never going to explain this.
+The page records `performance.now()` either side of `DarkReader.enable()`, plus
+stylesheet and element counts before and after, then calls `exportGeneratedCSS()`. The
+native side samples that 1.2s after `didFinishNavigation` and appends one line per
+navigation to the perf dump:
 
-## The change
+    DRCOST {"ms":...,"sheets":...,"sheetsAfter":...,"nodes":...,"nodesAfter":...,"cssLen":...,"url":"..."}
 
-`disableStyleSheetsProxy` was `false`, which leaves Dark Reader's CSSOM proxy
-installed. That proxy wraps `insertRule`/`deleteRule` and the sheet collections so
-stylesheets created after `enable()` get re-themed. Amazon's PDP builds a large number
-of sheets during hydration and each one re-enters Dark Reader through it. Turning the
-proxy off keeps the initial theming pass and drops the re-entry.
+## What it caches
 
-`ignoreImageAnalysis:['*']` was already set, so Dark Reader is not fetching or
-analysing those publisher images. If Dark Reader is the cause it is the stylesheet and
-DOM pass, which is what this targets.
+The generated CSS is written to `ad-drcache/` beside the dump, keyed by page shape
+(`pdp`, `search`, `home`, `cart`, `other`), keeping **two samples per shape**.
 
-**The trade, stated plainly:** stylesheets injected after the first pass are no longer
-auto-themed, so a late-hydrating widget can stay light until something else triggers a
-re-apply. Visible but usable, versus content that never appears.
+Nothing consumes the cache yet, deliberately. The open question is whether one PDP's
+generated CSS is reusable on a *different* PDP. Two samples of the same shape can be
+diffed to answer that. Shipping a cache that applies before that is known would theme
+pages wrong on the device instead of wrong in a file.
 
-## Switchable
+If the two PDP samples are near-identical, the cache path is sound: inject stored CSS
+at documentStart and skip `DarkReader.enable()` entirely — no stylesheet parse, no DOM
+walk, no observer. If they differ substantially, caching is the wrong answer and the
+numbers will say so before another build is spent on it.
 
-Both sides can be compared in one install:
+## Reading it
 
-    touch /var/mobile/.ad_dr_proxy   restore the proxy (6.0.165 behaviour)
-    rm    /var/mobile/.ad_dr_proxy   proxy off (6.0.167 default)
-
-Relaunch Amazon after either. The flag is read once per launch.
-
-## If it does not help
-
-Then the stall is Dark Reader's initial pass rather than the proxy, and the next step
-is a different architecture, not another knob: cache `exportGeneratedCSS()` per origin
-and inject it as a plain stylesheet on subsequent loads, so heavy pages get themed CSS
-with no DOM walk at all.
-
-## Fix from v6.0.166
-
-v6.0.166 failed to compile: `ADDRProxyWanted166` was defined above `ADThemeLiteral`,
-but `ADFixesLiteral` sits above that and calls it — used before declared. The helper is
-now defined above `ADFixesLiteral`. No other change.
-
-The clang harness in this repo compiled only the instrumentation core, which is why it
-did not catch this. It now also compiles the real `ADFixesLiteral` region against
-Foundation stubs, and a declared-before-use audit runs over every `static AD*` helper.
+- `ms` is the honest cost of the pass. If it is seconds, caching wins outright. If it
+  is a few hundred ms and the wait is still long, the remaining time is Amazon's own
+  hydration and Dark Reader is not the thing left to fix.
+- `cssLen` sizes the cache.
+- `nodes` vs `nodesAfter` shows how much the page grew during the pass.
 
 ## Verification
 
-- Both emitted variants of the fixes literal (`proxy:true` and `proxy:false`) parse as
-  JavaScript.
-- Format specifiers and arguments in the fixes literal: 2 and 2.
-- Bootstrap payload unchanged; all other payloads parse.
-- Whole-file balance 0/0/0, `scripts/lint-logos.sh`.
-- v6.0.163 hook instrumentation retained; dump file is now `-167`.
+- Capture region compiles clean under clang against Foundation stubs (exit 0).
+- Declared-before-use audit over every `static AD*` helper: clean.
+- Both emitted variants of the fixes literal parse as JavaScript.
+- All other payloads parse; balance 0/0/0; `scripts/lint-logos.sh`.

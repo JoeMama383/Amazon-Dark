@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.167"
+#define AD_VERSION "v6.0.168"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -303,7 +303,7 @@ static NSString *ADPerfDir163(void){
 }
 
 static NSString *ADPerfPath163(void){
-    return [ADPerfDir163() stringByAppendingPathComponent:@"AmazonDark-hook-perf-167.txt"];
+    return [ADPerfDir163() stringByAppendingPathComponent:@"AmazonDark-hook-perf-168.txt"];
 }
 
 static void ADPerfDump163(NSString *label){
@@ -1483,6 +1483,14 @@ static NSString *ADDarkReaderBootstrap(void){
          "window.__AD_COLLEGE6034__=window.__AD_SEASONAL6036__;"
          "%@\n" // DarkReader UMD
          "if(window.DarkReader&&DarkReader.enable){"
+         // v6.0.168: record how long the initial Dark Reader pass actually costs, and
+         // how much CSS it produces. 6.0.167 turned the page from never-renders into
+         // renders-slowly, which is the same shape as 5.43.0 -- so what remains is the
+         // one pass Dark Reader cannot skip: parse every stylesheet, walk every
+         // element, emit a theme. Numbers first, architecture second.
+         "try{window.__ADDRT168__={t0:(performance&&performance.now)?performance.now():0,"
+         "sheets:(document.styleSheets?document.styleSheets.length:-1),"
+         "nodes:(document.getElementsByTagName?document.getElementsByTagName('*').length:-1)};}catch(e){}"
          "try{DarkReader.setFetchMethod(window.fetch);}catch(e){}"
          // WCAG contrast repair. Dark Reader recolours from the page's own palette,
          // which can leave text only marginally separated from its background - the
@@ -1792,6 +1800,12 @@ static NSString *ADDarkReaderBootstrap(void){
          "window.__AD_IDLE6056__=function(fn,to){try{if(window.requestIdleCallback)return requestIdleCallback(function(){try{fn();}catch(e){}},{timeout:to||240});return setTimeout(function(){try{fn();}catch(e){}},60);}catch(e){return setTimeout(fn,60);}};"
          "window.__AMZDARK_APPLY__=function(){try{"
            "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
+           "try{var _r=window.__ADDRT168__;if(_r&&!_r.ms){"
+           "_r.ms=((performance&&performance.now)?performance.now():0)-_r.t0;"
+           "_r.sheetsAfter=(document.styleSheets?document.styleSheets.length:-1);"
+           "_r.nodesAfter=(document.getElementsByTagName?document.getElementsByTagName('*').length:-1);"
+           "try{_r.css=(DarkReader.exportGeneratedCSS?DarkReader.exportGeneratedCSS():'');}catch(e){_r.css='';}"
+           "_r.cssLen=_r.css?_r.css.length:0;_r.url=String(location.href||'').slice(0,160);}}catch(e){}"
            "if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);"
            "window.__AD_IDLE6056__(function(){window.__AMZDARK_FIXCONTRAST__();if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);},260);"
          "}catch(e){}};"
@@ -2321,6 +2335,73 @@ static void ADPrimeWebBacking611(WKWebView *wv){
     } @catch(...) {}
 }
 
+
+// ── Dark Reader cost capture + CSS cache write (v6.0.168) ────────────────────
+// Read back what the page recorded, append the numbers to the perf dump, and write
+// the generated CSS to disk keyed by page shape. Nothing consumes the cache yet: the
+// open question is whether one PDP's generated CSS is reusable on a different PDP.
+// Sizes and a stored sample answer that; applying a cache before knowing would theme
+// pages wrong on the device rather than in a file.
+static NSString *ADPageShape168(NSString *url){
+    NSString *u = url ?: @"";
+    if ([u containsString:@"/dp/"] || [u containsString:@"/gp/product/"] ||
+        [u containsString:@"/gp/aw/d/"])                       return @"pdp";
+    if ([u containsString:@"/s?"] || [u containsString:@"field-keywords="]) return @"search";
+    if ([u containsString:@"/gp/gw/"] || [u containsString:@"mshop.html"])  return @"home";
+    if ([u containsString:@"/cart"] || [u containsString:@"/gp/cart"])      return @"cart";
+    return @"other";
+}
+
+static void ADCaptureDRCost168(WKWebView *wv){
+    if (!wv) return;
+    @try {
+        [wv evaluateJavaScript:
+            @"(function(){try{var r=window.__ADDRT168__;if(!r||!r.ms)return '';"
+             "return JSON.stringify({ms:Math.round(r.ms),sheets:r.sheets,sheetsAfter:r.sheetsAfter,"
+             "nodes:r.nodes,nodesAfter:r.nodesAfter,cssLen:r.cssLen,url:r.url});}catch(e){return '';}})()"
+         completionHandler:^(id res, NSError *err){
+            NSString *j = [res isKindOfClass:NSString.class] ? (NSString *)res : nil;
+            if (!j.length) return;
+            @try {
+                NSString *path = ADPerfPath163();
+                NSString *line = [NSString stringWithFormat:@"DRCOST %@\n", j];
+                NSString *prev = [NSString stringWithContentsOfFile:path
+                                    encoding:NSUTF8StringEncoding error:nil];
+                [(prev.length ? [prev stringByAppendingString:line] : line)
+                    writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
+                [[NSFileManager defaultManager] setAttributes:@{NSFilePosixPermissions:@(0666)}
+                                                 ofItemAtPath:path error:nil];
+            } @catch(...) {}
+         }];
+
+        // Store the generated CSS itself, one file per page shape, so a later build can
+        // diff two PDP captures and settle whether the cache generalises.
+        [wv evaluateJavaScript:
+            @"(function(){try{var r=window.__ADDRT168__;return (r&&r.css)?r.css:'';}catch(e){return '';}})()"
+         completionHandler:^(id res, NSError *err){
+            NSString *css = [res isKindOfClass:NSString.class] ? (NSString *)res : nil;
+            if (css.length < 64) return;
+            @try {
+                NSString *shape = ADPageShape168(wv.URL.absoluteString);
+                NSString *dir = [ADPerfDir163() stringByAppendingPathComponent:@"ad-drcache"];
+                [[NSFileManager defaultManager] createDirectoryAtPath:dir
+                    withIntermediateDirectories:YES attributes:nil error:nil];
+                // Keep two samples per shape so they can be compared against each other.
+                NSString *a = [dir stringByAppendingPathComponent:
+                               [NSString stringWithFormat:@"%@-1.css", shape]];
+                NSString *b = [dir stringByAppendingPathComponent:
+                               [NSString stringWithFormat:@"%@-2.css", shape]];
+                NSFileManager *fm = [NSFileManager defaultManager];
+                NSString *dest = [fm fileExistsAtPath:a] ? b : a;
+                if ([fm fileExistsAtPath:a] && [fm fileExistsAtPath:b]) return;
+                [css writeToFile:dest atomically:YES encoding:NSUTF8StringEncoding error:nil];
+                [fm setAttributes:@{NSFilePosixPermissions:@(0666)} ofItemAtPath:dest error:nil];
+            } @catch(...) {}
+         }];
+    } @catch(...) {}
+}
+// ── end capture ──────────────────────────────────────────────────────────────
+
 %hook WKWebView
 - (id)initWithFrame:(CGRect)frame configuration:(WKWebViewConfiguration *)cfg {
     @try {
@@ -2378,6 +2459,9 @@ static void ADPrimeWebBacking611(WKWebView *wv){
     %orig;
     ADTrackWebView613(self);
     ADEnableDarkReaderIn(self);
+    // Dark Reader finishes asynchronously after enable(); sample once it has settled.
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{ ADCaptureDRCost168(wv); });
     // v5.446 direct-port cover release: only a real Amazon page counts.
     @try {
         NSString *nu = wv.URL.absoluteString ?: @"";
