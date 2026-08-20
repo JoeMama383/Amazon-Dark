@@ -16,7 +16,7 @@
 #import <unistd.h>
 #import <stdint.h>
 
-#define AD_VERSION "v6.0.157"
+#define AD_VERSION "v6.0.158"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -4683,10 +4683,12 @@ static void ADReapplyBurst(UIView *root){
             dispatch_get_main_queue(), ^{ @try {
                 if (gen != gADBurstGeneration) return;
                 ADForceWindowsDarkTrait();
-                // Web documents already own lazy hydration through document-start scripts and
-                // their filtered observers/events. Re-submitting the full web recovery on all
-                // three stabilization passes is redundant and particularly costly on PDP.
-                if (pass == 0) ADInjectAllWebViews();
+                // Keep the immediate pass, then one late safety pass after Amazon has attached/
+                // hydrated the destination WKWebView. v6.0.157 removed both delayed web passes;
+                // some Home/Search/PDP documents therefore missed the only recovery that could
+                // install/re-enable Dark Reader after a transition. The 120 ms middle pass stays
+                // removed, and TWB reinjection remains idempotent.
+                if (pass == 0 || pass == 2) ADInjectAllWebViews();
 
                 if (pass != 1){
                     UIView *r = weakRoot;

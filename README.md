@@ -1,5 +1,13 @@
 # AmazonDark v6.0.157
 
+## v6.0.158 — restore late web-theme recovery
+
+- Restores one delayed visible-WKWebView recovery pass at 420 ms after navigation/appearance.
+- Fixes the v6.0.157 regression where Home/Search/PDP web surfaces could remain stock white when the immediate pass ran before Amazon attached or hydrated the destination WKWebView.
+- Keeps the 120 ms web pass removed, so appearance recovery is still two passes instead of the older three.
+- Retains v6.0.157 TWB idempotence, off-window WebView skip, seasonal/PDP gate, and v6.0.156 recycled-render safeguards.
+
+
 ## PDP render-path cleanup
 - Fixes an obsolete TWB reapply probe that was causing the full White-Tame payload to be evaluated repeatedly on already-themed WKWebViews.
 - Makes TWB installation idempotent so media/load handlers cannot stack during navigation recovery.
