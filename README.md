@@ -1,48 +1,47 @@
-# AmazonDark v6.0.171 — defer the first Dark Reader pass
+# AmazonDark v6.0.169
 
-The change every session since v5.463 has proposed and none has built.
+Fixes the v6.0.168 measurement, which produced no output at all.
 
-## Why
+## Why 168 recorded nothing
 
-Dark Reader's initial pass parses every stylesheet and walks every element before it
-can paint, on the web process main thread. On a PDP — the largest DOM in the app — that
-is what stalls rendering. The bisection supports this and nothing else:
+It timed one specific `DarkReader.enable(...)` call site. The enable that actually runs
+reaches a different path, so `__ADDRT168__.ms` was never set and the capture returned an
+empty string — no `DRCOST` line, which read as "the capture is broken" rather than
+"the wrong site was instrumented".
 
-- v5.43.0 fails the same section despite having none of the later machinery
-- White Background Taming off: still fails
-- the symbols script does not exist in v5.43.0 at all
-- tweak fully off: the section renders
-- when Dark Reader silently failed to apply while everything else ran, performance
-  jumped roughly tenfold
+Second defect: `exportGeneratedCSS()` returns a **Promise**. 168 read `.length` off the
+Promise, so `cssLen` would have been meaningless even if a line had been written.
 
-Three builds were then spent trying to measure the pass. All three failed for the same
-reason: `didFinishNavigation:` was hooked on `WKWebView`, which never receives it. Rather
-than spend a fourth, this build acts on the bisection, which is evidence enough.
+## What 169 does
 
-## What changed
+Wraps `DarkReader.enable` itself, once, at bootstrap. Every call site is then covered
+whichever one fires, and the wrap is idempotent. The Promise form of
+`exportGeneratedCSS()` is resolved properly, with the string form still handled.
 
-The `DarkReader.enable` wrapper added in v6.0.169 now defers instead of calling
-straight through, so every call site is covered at once. Theming waits for
-`readyState === 'complete'`, then runs on `requestIdleCallback` with a 1500ms timeout.
-A 3000ms fallback covers Amazon documents that never reach 'complete' because a
-long-poll or ad frame keeps them loading.
+Silence is now diagnostic rather than ambiguous. If nothing was recorded, the capture
+still writes a line saying so, including whether Dark Reader is present, whether the
+wrap installed, and whether the page carries `style.darkreader`:
 
-The documentStart floor sheet already paints the dark background, so the page does not
-flash white. It shows dark chrome with briefly unthemed content, then darkens.
+    DRCOST {"noRecord":1,"hasDR":1,"wrapped":0,"themed":1,"url":"..."}
 
-**The trade, stated plainly:** content is visibly unthemed for a moment on every page.
-That is the cost of not competing with the renderer for the main thread. If it reads as
-worse than the current stall, the flag below reverts it instantly.
+Negative `cssLen` values are states, not sizes: `-1` export not resolved yet, `-2`
+export rejected, `-3` export threw, `-9` field never set.
 
-    touch /var/mobile/.ad_no_defer   theme immediately (pre-171 behaviour)
-    rm -f /var/mobile/.ad_no_defer   defer (171 default)
+## What the history says
 
-Relaunch after either.
+This problem is not a 6.x regression. At v5.463 the reports were 15+ second tap delays
+and a frozen PDP carousel — the same failure, two major versions back. Every theory
+since has been tested and dropped: Dark Reader throttling, the iframe payload split,
+and native hook trimming. v5.43.0 fails the heavy PDP section too, so that section is
+not something 6.x broke.
+
+The one constant across every version, and the one thing never addressed, is Dark
+Reader's initial theming pass. Deferring it was proposed at v5.463 and never built.
+This build measures it.
 
 ## Verification
 
-- Behavioural test: theming does not run at call time, runs after `load`, paint
-  precedes theme, timing still recorded. 4/4.
-- Format specifiers and arguments in the bootstrap: 9 and 9, each verified in position
-  — the new flag is the 5th, immediately after `__ADNODEFER171__=`.
-- Balance 0/0/0, declared-before-use audit clean, all payloads parse, lint-logos.
+- Wrapper tested behaviourally in node: timing recorded, Promise CSS captured
+  (90,000 chars), wrap flag set, second call does not double-wrap. 4/4.
+- All payloads parse; both fixes-literal variants parse.
+- Balance 0/0/0; declared-before-use audit clean; `scripts/lint-logos.sh`.

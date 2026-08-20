@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.171"
+#define AD_VERSION "v6.0.169"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -303,7 +303,7 @@ static NSString *ADPerfDir163(void){
 }
 
 static NSString *ADPerfPath163(void){
-    return [ADPerfDir163() stringByAppendingPathComponent:@"AmazonDark-hook-perf-171.txt"];
+    return [ADPerfDir163() stringByAppendingPathComponent:@"AmazonDark-hook-perf-169.txt"];
 }
 
 static void ADPerfDump163(NSString *label){
@@ -753,16 +753,6 @@ static void ADInvalidateWebCaches613(void){
 //
 // Left switchable so both sides can be compared in one install:
 //   touch /var/mobile/.ad_dr_proxy    restore the proxy (old 6.0.165 behaviour)
-// Escape hatch so the old behaviour can be compared on the same install.
-static BOOL ADNoDefer171(void){
-    static BOOL v = NO;
-    static dispatch_once_t once;
-    dispatch_once(&once, ^{
-        v = [[NSFileManager defaultManager] fileExistsAtPath:@"/var/mobile/.ad_no_defer"];
-    });
-    return v;
-}
-
 static BOOL ADDRProxyWanted166(void){
     static BOOL wanted = NO;
     static dispatch_once_t once;
@@ -1491,7 +1481,6 @@ static NSString *ADDarkReaderBootstrap(void){
          // Existing call sites and the direct-TWB structural skip use the old symbol/
          // marker names; aliasing them keeps those proven paths intact.
          "window.__AD_COLLEGE6034__=window.__AD_SEASONAL6036__;"
-         "window.__ADNODEFER171__=%@;"
          "%@\n" // DarkReader UMD
          "if(window.DarkReader&&DarkReader.enable){"
          // v6.0.168: record how long the initial Dark Reader pass actually costs, and
@@ -1503,45 +1492,14 @@ static NSString *ADDarkReaderBootstrap(void){
          "var _cnt169=function(){try{return document.getElementsByTagName?document.getElementsByTagName('*').length:-1;}catch(e){return -1;}};"
          "var _sh169=function(){try{return document.styleSheets?document.styleSheets.length:-1;}catch(e){return -1;}};"
          "if(!DarkReader.__adWrapped169){var _en169=DarkReader.enable;DarkReader.__adWrapped169=1;"
-         // v6.0.171: DEFER THE FIRST PASS UNTIL AFTER THE PAGE HAS PAINTED.
-         //
-         // Dark Reader's initial pass parses every stylesheet and walks every element
-         // before it can paint, and it does that on the web process main thread. On a
-         // PDP -- the largest DOM in the app -- that is what stalls rendering. The
-         // bisection supports this and nothing else: v5.43.0 fails the same section
-         // despite having none of our later machinery; White Background Taming off
-         // still fails; the symbols script does not exist in 5.43.0 at all; with the
-         // tweak fully off the section renders; and when Dark Reader silently failed to
-         // apply while everything else ran, performance jumped roughly tenfold.
-         //
-         // So stop competing with the page for the main thread while it is trying to
-         // render. Let the document reach 'complete', then theme on an idle callback.
-         // The documentStart floor sheet is already painting the dark background, so
-         // the page does not flash white -- it shows dark chrome with briefly
-         // unthemed content, then darkens.
-         //
-         //   touch /var/mobile/.ad_no_defer   theme immediately (pre-171 behaviour)
-         "DarkReader.enable=function(){"
-         "var _args=arguments;"
-         "var _apply=function(){var r=window.__ADDRT168__={t0:_now169(),sheets:_sh169(),nodes:_cnt169()};"
-         "var out;try{out=_en169.apply(DarkReader,_args);}finally{"
+         "DarkReader.enable=function(){var r=window.__ADDRT168__={t0:_now169(),sheets:_sh169(),nodes:_cnt169()};"
+         "var out;try{out=_en169.apply(DarkReader,arguments);}finally{"
          "r.ms=_now169()-r.t0;r.sheetsAfter=_sh169();r.nodesAfter=_cnt169();"
          "r.url=String(location.href||'').slice(0,160);r.cssLen=-1;"
          "try{var pr=DarkReader.exportGeneratedCSS&&DarkReader.exportGeneratedCSS();"
          "if(pr&&pr.then){pr.then(function(c){r.css=c||'';r.cssLen=r.css.length;},function(){r.cssLen=-2;});}"
          "else if(typeof pr==='string'){r.css=pr;r.cssLen=pr.length;}}catch(e){r.cssLen=-3;}}"
-         "return out;};"
-         "if(window.__ADNODEFER171__){return _apply();}"
-         "var _sched=function(){try{if(window.requestIdleCallback)"
-         "window.requestIdleCallback(function(){_apply();},{timeout:1500});"
-         "else setTimeout(function(){_apply();},150);}catch(e){setTimeout(function(){_apply();},150);}};"
-         "try{if(document.readyState==='complete'){_sched();}"
-         "else{window.addEventListener('load',function(){_sched();},{once:true});"
-         // Belt and braces: some Amazon documents never reach 'complete' because a
-         // long-poll or ad frame keeps them loading. Cap the wait so those still theme.
-         "setTimeout(function(){if(!window.__ADDRT168__)_sched();},3000);}}"
-         "catch(e){_apply();}"
-         "return undefined;};}}catch(e){}"
+         "return out;};}}catch(e){}"
          "try{DarkReader.setFetchMethod(window.fetch);}catch(e){}"
          // WCAG contrast repair. Dark Reader recolours from the page's own palette,
          // which can leave text only marginally separated from its background - the
@@ -1881,8 +1839,7 @@ static NSString *ADDarkReaderBootstrap(void){
          "try{window.addEventListener('pageshow',function(e){if(e.persisted)window.__AMZDARK_APPLY__();});}catch(e){}"
          "try{document.addEventListener('visibilitychange',function(){if(!document.hidden)window.__AMZDARK_APPLY__();});}catch(e){}"
          "}}catch(e){}})();",
-        floorBG, floorBG, floorBG, floorBG,
-        ADNoDefer171() ? @"1" : @"0", dr, [NSString stringWithUTF8String:gP.fgHex], ADThemeLiteral(), ADFixesLiteral()];
+        floorBG, floorBG, floorBG, floorBG, dr, [NSString stringWithUTF8String:gP.fgHex], ADThemeLiteral(), ADFixesLiteral()];
     return gADBootstrap613;
 }
 
@@ -1984,22 +1941,12 @@ static NSString *ADWhiteTameWebJS6027(void){
 }
 static NSString *ADWhiteTameWebJS(void){ return ADWhiteTameWebJS6027(); }
 
-static const void *kADSym605Attached170 = &kADSym605Attached170;
-static const void *kADTWBAttached170     = &kADTWBAttached170;
-
 static void ADAttachWhiteTameUserScript446(WKUserContentController *ucc){
     if (!ucc || !gP.enabled || !gP.whiteTame) return;
     @try {
-        if (objc_getAssociatedObject(ucc, kADTWBAttached170)) return;
         for (WKUserScript *existing in ucc.userScripts){
-            if ([existing.source containsString:@"__AD_TWB6027_INSTALLED__"] || [existing.source containsString:@"__AD_TWB446_INSTALLED__"]){
-                objc_setAssociatedObject(ucc, kADTWBAttached170, @YES,
-                                         OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                return;
-            }
+            if ([existing.source containsString:@"__AD_TWB6027_INSTALLED__"] || [existing.source containsString:@"__AD_TWB446_INSTALLED__"]) return;
         }
-        objc_setAssociatedObject(ucc, kADTWBAttached170, @YES,
-                                 OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         NSString *js=ADWhiteTameWebJS();
         if(!js.length)return;
         WKUserScript *us=[[WKUserScript alloc] initWithSource:js injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
@@ -2216,18 +2163,11 @@ static NSString *ADThreeSymbolsWebJS605(void){
 static void ADAttachThreeSymbolsUserScript605(WKUserContentController *ucc){
     if (!ucc) return;
     @try {
-        if (objc_getAssociatedObject(ucc, kADSym605Attached170)) return;
         NSString *js = ADThreeSymbolsWebJS605();
         if (!js.length) return;
         for (WKUserScript *u in ucc.userScripts){
-            if ([u.source containsString:@"__AD_SYM605_LOADED__"]){
-                objc_setAssociatedObject(ucc, kADSym605Attached170, @YES,
-                                         OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                return;
-            }
+            if ([u.source containsString:@"__AD_SYM605_LOADED__"]) return;
         }
-        objc_setAssociatedObject(ucc, kADSym605Attached170, @YES,
-                                 OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         WKUserScript *us = [[WKUserScript alloc] initWithSource:js
             injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:NO];
         [ucc addUserScript:us];
@@ -2367,14 +2307,6 @@ static void ADInjectAllWebViews(void){
 %hook WKUserContentController
 - (void)removeAllUserScripts {
     %orig;
-    // The scripts are gone, so the "already attached" markers must go with them.
-    // v6.0.164 set markers without clearing them here; the helpers then returned early
-    // forever and White Background Taming was never re-added, which is what left
-    // product and ad photos untamed until v6.0.165 reverted it.
-    @try {
-        objc_setAssociatedObject(self, kADSym605Attached170, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(self, kADTWBAttached170, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    } @catch(...) {}
     @try {
         if (!gP.enabled || !gP.webDarkReader) return;
         NSString *boot = ADDarkReaderBootstrap();
@@ -2511,20 +2443,6 @@ static void ADCaptureDRCost168(WKWebView *wv){
         { AD_PERF(ADP_sub_PreDarken); ADPreDarken(self); }
         { AD_PERF(ADP_sub_AttachSymbols);
           ADAttachThreeSymbolsUserScript605(self.configuration.userContentController); }
-        // v6.0.170: the capture used to hang off -didFinishNavigation:, which is a
-        // WKNavigationDelegate callback hooked on WKWebView -- a class that never
-        // receives it. Logos added the method and nothing ever called it, so the
-        // measurement produced no output in either 168 or 169, including the line that
-        // was supposed to report its own silence. didMoveToWindow does fire (11 times
-        // in the 6.0.169 capture), so sample from here instead.
-        {
-            __weak WKWebView *weakSelf = self;
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.5 * NSEC_PER_SEC)),
-                           dispatch_get_main_queue(), ^{
-                WKWebView *strongSelf = weakSelf;
-                if (strongSelf) ADCaptureDRCost168(strongSelf);
-            });
-        }
         // Attach a documentStart user-script even to pre-initialised web views (e.g. the
         // warmed gateway) so a pull-to-refresh re-applies Dark Reader on the next load.
         static const void *kUS = &kUS;
@@ -2550,7 +2468,9 @@ static void ADCaptureDRCost168(WKWebView *wv){
     %orig;
     ADTrackWebView613(self);
     ADEnableDarkReaderIn(self);
-
+    // Dark Reader finishes asynchronously after enable(); sample once it has settled.
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{ ADCaptureDRCost168(wv); });
     // v5.446 direct-port cover release: only a real Amazon page counts.
     @try {
         NSString *nu = wv.URL.absoluteString ?: @"";
