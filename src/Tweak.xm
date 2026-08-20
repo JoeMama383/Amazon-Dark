@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.169"
+#define AD_VERSION "v6.0.170"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -303,7 +303,7 @@ static NSString *ADPerfDir163(void){
 }
 
 static NSString *ADPerfPath163(void){
-    return [ADPerfDir163() stringByAppendingPathComponent:@"AmazonDark-hook-perf-169.txt"];
+    return [ADPerfDir163() stringByAppendingPathComponent:@"AmazonDark-hook-perf-170.txt"];
 }
 
 static void ADPerfDump163(NSString *label){
@@ -1941,12 +1941,22 @@ static NSString *ADWhiteTameWebJS6027(void){
 }
 static NSString *ADWhiteTameWebJS(void){ return ADWhiteTameWebJS6027(); }
 
+static const void *kADSym605Attached170 = &kADSym605Attached170;
+static const void *kADTWBAttached170     = &kADTWBAttached170;
+
 static void ADAttachWhiteTameUserScript446(WKUserContentController *ucc){
     if (!ucc || !gP.enabled || !gP.whiteTame) return;
     @try {
+        if (objc_getAssociatedObject(ucc, kADTWBAttached170)) return;
         for (WKUserScript *existing in ucc.userScripts){
-            if ([existing.source containsString:@"__AD_TWB6027_INSTALLED__"] || [existing.source containsString:@"__AD_TWB446_INSTALLED__"]) return;
+            if ([existing.source containsString:@"__AD_TWB6027_INSTALLED__"] || [existing.source containsString:@"__AD_TWB446_INSTALLED__"]){
+                objc_setAssociatedObject(ucc, kADTWBAttached170, @YES,
+                                         OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                return;
+            }
         }
+        objc_setAssociatedObject(ucc, kADTWBAttached170, @YES,
+                                 OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         NSString *js=ADWhiteTameWebJS();
         if(!js.length)return;
         WKUserScript *us=[[WKUserScript alloc] initWithSource:js injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
@@ -2163,11 +2173,18 @@ static NSString *ADThreeSymbolsWebJS605(void){
 static void ADAttachThreeSymbolsUserScript605(WKUserContentController *ucc){
     if (!ucc) return;
     @try {
+        if (objc_getAssociatedObject(ucc, kADSym605Attached170)) return;
         NSString *js = ADThreeSymbolsWebJS605();
         if (!js.length) return;
         for (WKUserScript *u in ucc.userScripts){
-            if ([u.source containsString:@"__AD_SYM605_LOADED__"]) return;
+            if ([u.source containsString:@"__AD_SYM605_LOADED__"]){
+                objc_setAssociatedObject(ucc, kADSym605Attached170, @YES,
+                                         OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                return;
+            }
         }
+        objc_setAssociatedObject(ucc, kADSym605Attached170, @YES,
+                                 OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         WKUserScript *us = [[WKUserScript alloc] initWithSource:js
             injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:NO];
         [ucc addUserScript:us];
@@ -2307,6 +2324,14 @@ static void ADInjectAllWebViews(void){
 %hook WKUserContentController
 - (void)removeAllUserScripts {
     %orig;
+    // The scripts are gone, so the "already attached" markers must go with them.
+    // v6.0.164 set markers without clearing them here; the helpers then returned early
+    // forever and White Background Taming was never re-added, which is what left
+    // product and ad photos untamed until v6.0.165 reverted it.
+    @try {
+        objc_setAssociatedObject(self, kADSym605Attached170, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(self, kADTWBAttached170, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    } @catch(...) {}
     @try {
         if (!gP.enabled || !gP.webDarkReader) return;
         NSString *boot = ADDarkReaderBootstrap();
@@ -2443,6 +2468,20 @@ static void ADCaptureDRCost168(WKWebView *wv){
         { AD_PERF(ADP_sub_PreDarken); ADPreDarken(self); }
         { AD_PERF(ADP_sub_AttachSymbols);
           ADAttachThreeSymbolsUserScript605(self.configuration.userContentController); }
+        // v6.0.170: the capture used to hang off -didFinishNavigation:, which is a
+        // WKNavigationDelegate callback hooked on WKWebView -- a class that never
+        // receives it. Logos added the method and nothing ever called it, so the
+        // measurement produced no output in either 168 or 169, including the line that
+        // was supposed to report its own silence. didMoveToWindow does fire (11 times
+        // in the 6.0.169 capture), so sample from here instead.
+        {
+            __weak WKWebView *weakSelf = self;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.5 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{
+                WKWebView *strongSelf = weakSelf;
+                if (strongSelf) ADCaptureDRCost168(strongSelf);
+            });
+        }
         // Attach a documentStart user-script even to pre-initialised web views (e.g. the
         // warmed gateway) so a pull-to-refresh re-applies Dark Reader on the next load.
         static const void *kUS = &kUS;
@@ -2468,9 +2507,7 @@ static void ADCaptureDRCost168(WKWebView *wv){
     %orig;
     ADTrackWebView613(self);
     ADEnableDarkReaderIn(self);
-    // Dark Reader finishes asynchronously after enable(); sample once it has settled.
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)),
-                   dispatch_get_main_queue(), ^{ ADCaptureDRCost168(wv); });
+
     // v5.446 direct-port cover release: only a real Amazon page counts.
     @try {
         NSString *nu = wv.URL.absoluteString ?: @"";

@@ -1,47 +1,41 @@
-# AmazonDark v6.0.169
+# AmazonDark v6.0.170
 
-Fixes the v6.0.168 measurement, which produced no output at all.
+## The measurement never ran
 
-## Why 168 recorded nothing
+`didFinishNavigation:` was hooked inside `%hook WKWebView`. That is a
+`WKNavigationDelegate` callback and `WKWebView` never receives it — Logos added the
+method and nothing ever called it. So `ADCaptureDRCost168` did not execute in v6.0.168
+or v6.0.169, which is why no `DRCOST` line appeared either time, including the line
+that was meant to report its own silence.
 
-It timed one specific `DarkReader.enable(...)` call site. The enable that actually runs
-reaches a different path, so `__ADDRT168__.ms` was never set and the capture returned an
-empty string — no `DRCOST` line, which read as "the capture is broken" rather than
-"the wrong site was instrumented".
+Sampling now runs from `-[WKWebView didMoveToWindow]`, which the v6.0.169 capture shows
+firing 11 times, on a 2.5s delay with a weak reference.
 
-Second defect: `exportGeneratedCSS()` returns a **Promise**. 168 read `.length` off the
-Promise, so `cssLen` would have been meaningless even if a line had been written.
+## Attach dedupe, done properly
 
-## What 169 does
+`attach symbols script` measured 2,456 µs/call and `attach TWB script` 3,818 µs/call —
+about 30ms of the 285ms total, and the largest remaining cost that is ours. Both helpers
+dedupe by running `containsString:` over every installed user script's source, and
+`ucc.userScripts` holds the 346KB Dark Reader bootstrap.
 
-Wraps `DarkReader.enable` itself, once, at bootstrap. Every call site is then covered
-whichever one fires, and the wrap is idempotent. The Promise form of
-`exportGeneratedCSS()` is resolved properly, with the string form still handled.
+v6.0.164 replaced that with an associated-object marker and broke White Background
+Taming: `removeAllUserScripts` drops the scripts, the marker survived, and the helpers
+returned early forever. v6.0.165 reverted it.
 
-Silence is now diagnostic rather than ambiguous. If nothing was recorded, the capture
-still writes a line saying so, including whether Dark Reader is present, whether the
-wrap installed, and whether the page carries `style.darkreader`:
+The marker is sound as long as the hook that drops the scripts also drops the marker.
+`-[WKUserContentController removeAllUserScripts]` now clears both markers before
+re-attaching. The source scan is kept as a fallback and sets the marker when it matches.
 
-    DRCOST {"noRecord":1,"hasDR":1,"wrapped":0,"themed":1,"url":"..."}
+## State of the native side
 
-Negative `cssLen` values are states, not sizes: `-1` export not resolved yet, `-2`
-export rejected, `-3` export threw, `-9` field never set.
-
-## What the history says
-
-This problem is not a 6.x regression. At v5.463 the reports were 15+ second tap delays
-and a frozen PDP carousel — the same failure, two major versions back. Every theory
-since has been tested and dropped: Dark Reader throttling, the iframe payload split,
-and native hook trimming. v5.43.0 fails the heavy PDP section too, so that section is
-not something 6.x broke.
-
-The one constant across every version, and the one thing never addressed, is Dark
-Reader's initial theming pass. Deferring it was proposed at v5.463 and never built.
-This build measures it.
+284.8ms across 29,541 calls for a whole session, `RCTView layoutSubviews` down to
+0.62 µs from 115.5. After this build there is nothing left on the native side worth
+cutting; the remaining cost is Dark Reader's initial theming pass.
 
 ## Verification
 
-- Wrapper tested behaviourally in node: timing recorded, Promise CSS captured
-  (90,000 chars), wrap flag set, second call does not double-wrap. 4/4.
-- All payloads parse; both fixes-literal variants parse.
-- Balance 0/0/0; declared-before-use audit clean; `scripts/lint-logos.sh`.
+- Marker keys declared L1944, used L1950/L2176/L2332 — the use-before-declare check
+  that caught the v6.0.167 build failure, now passing.
+- Dead `didFinishNavigation` capture site removed; capture defined before its call site.
+- Balance 0/0/0, declared-before-use audit clean, all payloads parse,
+  `scripts/lint-logos.sh`.
