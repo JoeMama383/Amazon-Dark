@@ -16,7 +16,7 @@
 #import <unistd.h>
 #import <stdint.h>
 
-#define AD_VERSION "v6.0.155"
+#define AD_VERSION "v6.0.156"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -2474,6 +2474,60 @@ static void ADMarkPersonRaster6151(UIView *v, int kind){
         objc_setAssociatedObject(v.layer,kADPersonRasterCard6150,@(kind),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     } @catch(...) {}
 }
+// Recycled React/Fabric component views can keep Objective-C associations when Amazon
+// reconfigures them for a different card or even a different tab. Person raster ownership
+// must therefore be self-invalidating: a stale claim must never keep suppressing future
+// CALayer contents after the original semantic card is gone.
+static BOOL ADPersonRasterHasSemantic6156(UIView *v){
+    if(!v) return NO;
+    @try {
+        if(v.accessibilityLabel.length) return YES;
+        return ADWTViewText362(v).length>0;
+    } @catch(...) {}
+    return NO;
+}
+static void ADRemovePersonOutline6156(UIView *v){
+    if(!v) return;
+    @try {
+        CAShapeLayer *ov=objc_getAssociatedObject(v,kADPersonBorderOverlay6147);
+        if(ov){ [ov removeFromSuperlayer]; }
+        objc_setAssociatedObject(v,kADPersonBorderOverlay6147,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    } @catch(...) {}
+}
+static void ADClearPersonRasterClaim6156(UIView *v, BOOL redraw){
+    if(!v) return;
+    @try {
+        objc_setAssociatedObject(v,kADPersonRasterCard6150,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(v.layer,kADPersonRasterCard6150,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        if(!objc_getAssociatedObject(v,kADPersonBorderTarget6147)) ADRemovePersonOutline6156(v);
+        if(redraw && v.window){
+            [v setNeedsLayout];
+            [v setNeedsDisplay];
+            [v.layer setNeedsDisplay];
+        }
+    } @catch(...) {}
+}
+static void ADClearPersonBorderClaim6156(UIView *v, BOOL redraw){
+    if(!v) return;
+    @try {
+        objc_setAssociatedObject(v,kADPersonBorderTarget6147,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        if(!objc_getAssociatedObject(v,kADPersonRasterCard6150)) ADRemovePersonOutline6156(v);
+        if(redraw && v.window){
+            [v setNeedsLayout];
+            [v setNeedsDisplay];
+            [v.layer setNeedsDisplay];
+        }
+    } @catch(...) {}
+}
+static void ADClearPersonReuseClaims6156(UIView *v){
+    if(!v) return;
+    @try {
+        objc_setAssociatedObject(v,kADPersonRasterCard6150,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(v.layer,kADPersonRasterCard6150,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(v,kADPersonBorderTarget6147,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        ADRemovePersonOutline6156(v);
+    } @catch(...) {}
+}
 static void ADClearNestedPersonShapeStrokes6151(CALayer *root, CAShapeLayer *keep, int depth){
     if(!root || depth>4) return;
     @try {
@@ -2541,13 +2595,32 @@ static void ADPaintPersonRasterCard6150(id obj, int kind){
 }
 static void ADPersonRasterLayout6150(id obj){
     UIView *v=(UIView *)obj;
-    if(!ADRecolorOn() || !v || !v.window) return;
+    if(!ADRecolorOn() || !v) return;
     @try {
-        int kind=[objc_getAssociatedObject(v,kADPersonRasterCard6150) intValue];
-        if(!kind) kind=ADPersonRasterKindForView6151(v);
-        if(kind && ADPersonRasterGeometry6150(v,kind) &&
+        // A detached RCT/Fabric view is eligible for reuse. Never carry a destructive
+        // raster suppression claim into its next owner.
+        if(!v.window){
+            ADClearPersonReuseClaims6156(v);
+            return;
+        }
+
+        int stored=[objc_getAssociatedObject(v,kADPersonRasterCard6150) intValue];
+        int live=ADPersonRasterKindForView6151(v);
+        BOOL hasSemantic=ADPersonRasterHasSemantic6156(v);
+
+        // Geometry changes are definitive reuse. When semantic text has hydrated, a
+        // missing/different kind is also definitive reuse. Unknown/empty semantics are
+        // allowed briefly so the original first-paint suppression does not regress.
+        if(stored && (!ADPersonRasterGeometry6150(v,stored) ||
+           (hasSemantic && live!=stored))){
+            ADClearPersonRasterClaim6156(v,YES);
+            stored=0;
+        }
+
+        if(!stored && live) stored=live;
+        if(stored && ADPersonRasterGeometry6150(v,stored) &&
            (v.layer.contents || objc_getAssociatedObject(v,kADPersonRasterCard6150)))
-            ADPaintPersonRasterCard6150(v,kind);
+            ADPaintPersonRasterCard6150(v,stored);
     } @catch(...) {}
 }
 
@@ -2683,8 +2756,11 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     @try {
         NSString *t=ADWTViewText362(v);
         BOOL dummy=NO;
-        if(ADPersonBorderPhrase6147(t,&dummy))
-            ADClaimPersonBorder6147(v,t);
+        BOOL live=ADPersonBorderPhrase6147(t,&dummy);
+        if(live) ADClaimPersonBorder6147(v,t);
+        else if(t.length && objc_getAssociatedObject(v,kADPersonBorderTarget6147))
+            ADClearPersonBorderClaim6156(v,YES);
+
         if(objc_getAssociatedObject(v,kADPersonBorderTarget6147)){
             ADNeutralizeClaimedLayerTree6149(v.layer,0);
             ADPaintPersonBorder6147(v);
@@ -2833,21 +2909,38 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
 
     @try {
         if(ADRecolorOn()){
-            int kind=[objc_getAssociatedObject(self,kADPersonRasterCard6150) intValue];
+            int stored=[objc_getAssociatedObject(self,kADPersonRasterCard6150) intValue];
             UIView *rv=nil;
             id d=self.delegate;
             if(d && [d isKindOfClass:[UIView class]]) rv=(UIView *)d;
 
-            if(!kind && contents && rv && ADIsRCTBorderHost6147(rv) &&
-               ADPersonRasterCandidateGeometry6151(rv)){
-                kind=ADPersonRasterKindForView6151(rv);
-                if(kind) ADMarkPersonRaster6151(rv,kind);
+            int live=0;
+            BOOL hasSemantic=NO;
+            if(rv && ADIsRCTBorderHost6147(rv) && ADPersonRasterCandidateGeometry6151(rv)){
+                live=ADPersonRasterKindForView6151(rv);
+                hasSemantic=ADPersonRasterHasSemantic6156(rv);
             }
 
-            if(kind){
+            // v6.0.151's claim used to live forever. A recycled Fabric/RCT layer could
+            // therefore suppress every later bitmap with %orig(nil), producing an active
+            // but visually blank Home/Person surface. Validate ownership before each
+            // destructive contents decision and retire stale claims immediately.
+            if(stored && (!rv || !ADIsRCTBorderHost6147(rv) ||
+               !ADPersonRasterGeometry6150(rv,stored) || (hasSemantic && live!=stored))){
+                if(rv) ADClearPersonRasterClaim6156(rv,YES);
+                else objc_setAssociatedObject(self,kADPersonRasterCard6150,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                stored=0;
+            }
+
+            if(!stored && contents && live){
+                ADMarkPersonRaster6151(rv,live);
+                stored=live;
+            }
+
+            if(stored && rv && ADPersonRasterGeometry6150(rv,stored) &&
+               (!hasSemantic || live==stored)){
                 %orig(nil);
-                if(rv && ADPersonRasterGeometry6150(rv,kind))
-                    ADInstallPersonRasterOutline6151(rv,kind);
+                ADInstallPersonRasterOutline6151(rv,stored);
                 return;
             }
         }
@@ -3208,7 +3301,10 @@ static void ADForceBarDark(UIView *bar){
 %hook RCTView
 - (void)didMoveToWindow {
     %orig;
-    @try { ADPersonRasterLayout6150(self); } @catch(...) {}
+    @try {
+        ADPersonRasterLayout6150(self);
+        if(((UIView *)self).window) ADPersonBorderLayoutRecovery6149(self);
+    } @catch(...) {}
 }
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
     if (!ADRecolorOn() || !backgroundColor) {
@@ -3228,10 +3324,8 @@ static void ADForceBarDark(UIView *bar){
 
     @try { ADPersonRasterLayout6150(self); } @catch(...) {}
     @try {
-        if(objc_getAssociatedObject(self,kADPersonBorderTarget6147)){
-            ADNeutralizeClaimedLayerTree6149(((UIView *)self).layer,0);
-            ADPaintPersonBorder6147(self);
-        }
+        if(objc_getAssociatedObject(self,kADPersonBorderTarget6147))
+            ADPersonBorderLayoutRecovery6149(self);
     } @catch(...) {}
 }
 %end
@@ -3255,7 +3349,10 @@ static void ADForceBarDark(UIView *bar){
 %hook RCTViewComponentView
 - (void)didMoveToWindow {
     %orig;
-    @try { ADPersonRasterLayout6150(self); } @catch(...) {}
+    @try {
+        ADPersonRasterLayout6150(self);
+        if(((UIView *)self).window) ADPersonBorderLayoutRecovery6149(self);
+    } @catch(...) {}
 }
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
     if (!ADRecolorOn() || !backgroundColor) {
@@ -3274,10 +3371,8 @@ static void ADForceBarDark(UIView *bar){
     %orig;
     @try { ADPersonRasterLayout6150(self); } @catch(...) {}
     @try {
-        if(objc_getAssociatedObject(self,kADPersonBorderTarget6147)){
-            ADNeutralizeClaimedLayerTree6149(((UIView *)self).layer,0);
-            ADPaintPersonBorder6147(self);
-        }
+        if(objc_getAssociatedObject(self,kADPersonBorderTarget6147))
+            ADPersonBorderLayoutRecovery6149(self);
     } @catch(...) {}
 }
 %end

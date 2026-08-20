@@ -1,3 +1,16 @@
+# AmazonDark v6.0.156
+
+## Recycled React/Fabric render ownership
+
+- Makes the Person-tab raster-border owner self-invalidating instead of permanent.
+- Clears destructive raster/content suppression when an RCT/Fabric view detaches for reuse.
+- Re-validates semantic text and geometry before every `CALayer.contents` suppression, so a view recycled into Home or another Person section can render normally.
+- Retires stale Person border overlays when a recycled view no longer represents the original target.
+- Requests one native redraw only when stale ownership is actually removed; no timer, observer, scroll callback, cache override, or global rerender loop is added.
+- Retains the v6.0.155 Dark Reader payload restoration, v6.0.154 cleanup architecture, current Person/search borders, checkbox theming, TWB, JIT, 120 Hz, Sponsored, and splash behavior.
+
+---
+
 # AmazonDark v6.0.155
 
 - Restores the deterministic Dark Reader runtime payload at `/Library/Application Support/AmazonDark/darkreader.js` (rootless runtime: `/var/jb/Library/Application Support/AmazonDark/darkreader.js`).
