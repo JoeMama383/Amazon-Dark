@@ -1,53 +1,62 @@
-# AmazonDark v6.0.163 — hook instrumentation
+# AmazonDark v6.0.164
 
-Built on **v6.0.159** (`a8957c0`), not on HEAD. 6.0.160 and 6.0.161 are excluded
-deliberately: 161 re-touches the Dark Reader ownership boundary that 159 restored, and
-159 is the stable rendering baseline.
+Built on **v6.0.159** (`a8957c0`), with the v6.0.163 instrumentation retained so the
+next capture measures the delta directly. Two perf fixes and one rendering fix, all
+derived from the 163 dump rather than from theory.
 
-This build changes no rendering behaviour. Its only purpose is to find out where the
-native time actually goes.
+## 1. Attach dedupe was O(payload) — the 22.3ms/call
 
-## Why this and not another optimization pass
+`ADAttachThreeSymbolsUserScript605` and `ADAttachWhiteTameUserScript446` both deduped
+by running `containsString:` over every already-installed user script's source.
+`ucc.userScripts` holds the 346KB Dark Reader bootstrap, and `-[WKUserScript source]`
+returns a copy on each access, so every call searched roughly half a megabyte of JS.
+The symbols helper runs on every `WKWebView -didMoveToWindow`, which is exactly where
+the measured **22,347 µs/call** came from — 290.5ms across 13 calls, 31% of all time.
 
-The web side is already near the floor: 3 MutationObservers, 0 intervals, 0 RAF loops,
-0 scroll listeners, 17 one-shot timeouts. Source-tree size costs nothing at runtime.
-Meanwhile this tree hooks **94 methods across 46 classes, 57 of them on UIKit and Core
-Animation hot paths** — including `-[CALayer setContents:]` and
-`-[CALayer setBackgroundColor:]`, which run on every commit, every scroll frame and
-every image decode completion, and `layoutSubviews` on 19 classes. The file also
-contains 71 `objc_getAssociatedObject` and 76 `objc_setAssociatedObject` calls;
-association lookups take a global lock.
+Both now mark the controller with an associated object and answer in constant time.
+The source scan is kept as a fallback for a controller that was populated before the
+marker existed, and sets the marker when it finds a match.
 
-The stock app does none of this, which is the most plausible remaining explanation for
-the gap. But "plausible" is exactly what Dark Reader throttling and the iframe payload
-split were, and both were wrong. So this measures instead of assuming.
+## 2. Person-raster layout queried semantics before geometry
 
-## What was added
+`RCTView -layoutSubviews` measured **115.5 µs/call**, 3,566 calls, **411.7ms — 44% of
+all time**. `ADPersonRasterLayout6150` read associated objects and semantics
+(`accessibilityLabel`, then `ADWTViewText362`'s `isKindOfClass` / `respondsToSelector`
+/ `performSelector` chain) *before* testing whether the view could be a candidate at
+all. The geometry test is pure arithmetic on `bounds`, and on a screen of RCT views
+almost nothing passes it.
 
-All 57 hot-path hooks accumulate a call count and inclusive wall time. Instrumentation
-uses a cleanup-attribute scope guard, so every early return is covered without editing
-any return path. Per call: two relaxed atomic adds and two `mach_absolute_time` reads —
-far below the association lookups and class-name walks these hooks already do.
+The cheap reject now runs first. Views already holding a claim still fall through, so
+stale-claim retirement is unchanged.
 
-The table is written on every `UIApplicationWillResignActive` and truncated at launch,
-so one session stands alone and backgrounding twice appends two tables. The destination
-is resolved by really writing a test file to each candidate, so a sandbox denial cannot
-fail silently, and the chosen path is printed in the header.
+## 3. Reviews tab rendered blank
 
-## Reading the dump
+`-[CALayer setContents:]` suppressed with `%orig(nil)` when
+`(!hasSemantic || live==stored)`. The `!hasSemantic` arm is the bug. A recycled RCT
+view whose text has not been bound yet reports `hasSemantic=NO`, which satisfied the
+suppression **and** failed the retirement test directly above it (that one requires
+`hasSemantic && live!=stored`). So its contents were set to nil and the claim was never
+released. If RN never issues another `setContents:` on that layer, it stays blank
+permanently. Review cards land inside the kind-2 window (105–300 × 42–88), which is why
+that tab voids out while the surrounding page renders.
 
-`AmazonDark-hook-perf-163.txt`, sorted by call count, plus a list of hooks that never
-fired at all.
+Suppression now requires positive confirmation: `hasSemantic && live==stored`. A view
+is blanked only while it is actually carrying a Person-matching label.
 
-**Time is inclusive of `%orig`**, so it contains the real UIKit work as well as ours.
-Rank primarily by count. Compare inclusive time only between hooks wrapping the same
-underlying method. The `never fired` list is immediately actionable: those hooks can be
-deleted outright.
+**The trade, stated plainly:** if a genuine Person card ever has no label at the moment
+its contents arrive, it will now render untamed instead of being claimed. That is the
+right side to err on — an untamed Person card is a cosmetic miss, a blanked Reviews tab
+is unusable content.
+
+## New counters
+
+The dump gains `Person-raster claims taken=N  contents suppressed=N`. On a Reviews
+capture, suppressions should now be 0 where 163 would have blanked.
 
 ## Verification
 
-- All six injected JS payloads are **byte-identical to v6.0.159** — the web path is
-  untouched.
-- Counter core compiles clean under clang.
-- String/comment-aware whole-file brace, paren and bracket balance: 0/0/0.
-- `scripts/lint-logos.sh`.
+- Suppression logic checked as a truth table against 163: the recycled-card case flips
+  from blanked to rendered, the live Person card still blanks, and both retirement
+  cases are unchanged. 5/5.
+- All six injected JS payloads **byte-identical to v6.0.159**.
+- Whole-file brace/paren/bracket balance 0/0/0, `scripts/lint-logos.sh`.

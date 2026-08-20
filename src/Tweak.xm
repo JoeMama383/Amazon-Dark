@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.163"
+#define AD_VERSION "v6.0.164"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -233,6 +233,14 @@ static const char *gADPerfName[ADP__COUNT] = {
     [ADP_UITableViewCell_layoutSubviews] = "UITableViewCell layoutSubviews",
 };
 
+static atomic_ullong gADPerfRasterClaim164;
+static atomic_ullong gADPerfRasterSuppress164;
+static inline void ADPerfBumpClaim164(void){
+    atomic_fetch_add_explicit(&gADPerfRasterClaim164, 1ULL, memory_order_relaxed);
+}
+static inline void ADPerfBumpSuppress164(void){
+    atomic_fetch_add_explicit(&gADPerfRasterSuppress164, 1ULL, memory_order_relaxed);
+}
 static atomic_ullong gADPerfCount[ADP__COUNT];
 static atomic_ullong gADPerfTicks[ADP__COUNT];
 static mach_timebase_info_data_t gADPerfTB;
@@ -281,7 +289,7 @@ static NSString *ADPerfDir163(void){
 }
 
 static NSString *ADPerfPath163(void){
-    return [ADPerfDir163() stringByAppendingPathComponent:@"AmazonDark-hook-perf-163.txt"];
+    return [ADPerfDir163() stringByAppendingPathComponent:@"AmazonDark-hook-perf-164.txt"];
 }
 
 static void ADPerfDump163(NSString *label){
@@ -318,6 +326,9 @@ static void ADPerfDump163(NSString *label){
             [s appendFormat:@"%-38s %10llu %12.1f %11.3f\n",
                 gADPerfName[i], n[i], ms, (ms * 1000.0) / (double)n[i]];
         }
+        [s appendFormat:@"\nPerson-raster claims taken=%llu  contents suppressed=%llu\n",
+            atomic_load_explicit(&gADPerfRasterClaim164, memory_order_relaxed),
+            atomic_load_explicit(&gADPerfRasterSuppress164, memory_order_relaxed)];
         [s appendFormat:@"\nnever fired (%d of %d):\n", dead, (int)ADP__COUNT];
         for (int i = 0; i < ADP__COUNT; i++)
             if (atomic_load_explicit(&gADPerfCount[i], memory_order_relaxed) == 0)
@@ -1870,9 +1881,15 @@ static NSString *ADWhiteTameWebJS(void){ return ADWhiteTameWebJS6027(); }
 static void ADAttachWhiteTameUserScript446(WKUserContentController *ucc){
     if (!ucc || !gP.enabled || !gP.whiteTame) return;
     @try {
+        static const void *kTWBAttached = &kTWBAttached;
+        if (objc_getAssociatedObject(ucc, kTWBAttached)) return;
         for (WKUserScript *existing in ucc.userScripts){
-            if ([existing.source containsString:@"__AD_TWB6027_INSTALLED__"] || [existing.source containsString:@"__AD_TWB446_INSTALLED__"]) return;
+            if ([existing.source containsString:@"__AD_TWB6027_INSTALLED__"] || [existing.source containsString:@"__AD_TWB446_INSTALLED__"]){
+                objc_setAssociatedObject(ucc, kTWBAttached, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                return;
+            }
         }
+        objc_setAssociatedObject(ucc, kTWBAttached, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         NSString *js=ADWhiteTameWebJS();
         if(!js.length)return;
         WKUserScript *us=[[WKUserScript alloc] initWithSource:js injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
@@ -2089,11 +2106,17 @@ static NSString *ADThreeSymbolsWebJS605(void){
 static void ADAttachThreeSymbolsUserScript605(WKUserContentController *ucc){
     if (!ucc) return;
     @try {
+        static const void *kSym605Attached = &kSym605Attached;
+        if (objc_getAssociatedObject(ucc, kSym605Attached)) return;
         NSString *js = ADThreeSymbolsWebJS605();
         if (!js.length) return;
         for (WKUserScript *u in ucc.userScripts){
-            if ([u.source containsString:@"__AD_SYM605_LOADED__"]) return;
+            if ([u.source containsString:@"__AD_SYM605_LOADED__"]){
+                objc_setAssociatedObject(ucc, kSym605Attached, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                return;
+            }
         }
+        objc_setAssociatedObject(ucc, kSym605Attached, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         WKUserScript *us = [[WKUserScript alloc] initWithSource:js
             injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:NO];
         [ucc addUserScript:us];
@@ -3765,6 +3788,13 @@ static void ADPersonRasterLayout6150(id obj){
             return;
         }
 
+        // Cheap arithmetic reject first: a view outside every candidate window can
+        // neither hold nor acquire a claim, so no association or semantic query is
+        // needed. Views that already carry a claim still fall through, so stale
+        // claims are retired exactly as before.
+        if(!ADPersonRasterCandidateGeometry6151(v) &&
+           !objc_getAssociatedObject(v,kADPersonRasterCard6150)) return;
+
         int stored=[objc_getAssociatedObject(v,kADPersonRasterCard6150) intValue];
         int live=ADPersonRasterKindForView6151(v);
         BOOL hasSemantic=ADPersonRasterHasSemantic6156(v);
@@ -4130,12 +4160,24 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
             }
 
             if(!stored && contents && live){
+                ADPerfBumpClaim164();
                 ADMarkPersonRaster6151(rv,live);
                 stored=live;
             }
 
+            // v6.0.164: this used to suppress on (!hasSemantic || live==stored).
+            // The !hasSemantic arm is what blanks the Reviews tab. A recycled RCT
+            // view whose text has not been bound yet reports hasSemantic=NO, so it
+            // satisfied the suppression AND failed the retirement test above (which
+            // requires hasSemantic && live!=stored). Its contents were set to nil and
+            // the claim was never released; if RN never issues another setContents:
+            // on that layer, it stays blank permanently. Review cards land inside the
+            // kind-2 window (105-300 x 42-88), which is why that tab voids out.
+            // Require positive confirmation instead: blank only a view that is
+            // currently carrying a Person-matching label.
             if(stored && rv && ADPersonRasterGeometry6150(rv,stored) &&
-               (!hasSemantic || live==stored)){
+               hasSemantic && live==stored){
+                ADPerfBumpSuppress164();
                 %orig(nil);
                 ADInstallPersonRasterOutline6151(rv,stored);
                 return;
