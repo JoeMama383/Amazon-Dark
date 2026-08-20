@@ -16,7 +16,7 @@
 #import <unistd.h>
 #import <stdint.h>
 
-#define AD_VERSION "v6.0.156"
+#define AD_VERSION "v6.0.157"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -683,7 +683,7 @@ static NSString *ADDarkReaderBootstrap(void){
          "try{if(!document.getElementById('adseasonal6036')){var c36=document.createElement('style');c36.id='adseasonal6036';"
            "c36.textContent='[data-ad-seasonal6036],[data-ad-seasonal-card6036]{background-color:var(--ad-seasonal6036-bg,#181a1b)!important;filter:none!important;mix-blend-mode:normal!important;opacity:1!important;box-shadow:none!important;border-color:#3b4043!important;}[data-ad-seasonal6036],[data-ad-seasonal6036] h1,[data-ad-seasonal6036] h2,[data-ad-seasonal6036] h3,[data-ad-seasonal6036] h4,[data-ad-seasonal6036] h5,[data-ad-seasonal6036] h6,[data-ad-seasonal6036] p,[data-ad-seasonal6036] a,[data-ad-seasonal6036] span,[data-ad-seasonal6036] strong,[data-ad-seasonal6036] small{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}[data-ad-seasonal6036] .a-icon-next-rounded,[data-ad-seasonal6036] .a-icon-previous-rounded,[data-ad-seasonal6036] [class*=chevron],[data-ad-seasonal6036] [class*=arrow]{color:#e8e6e3!important;filter:brightness(0) invert(1)!important;opacity:1!important;}[data-ad-seasonal6036] svg,[data-ad-seasonal6036] path{fill:#e8e6e3!important;stroke:#e8e6e3!important;}';"
            "(document.head||document.documentElement).appendChild(c36);}}catch(e){}"
-         "window.__AD_SEASONAL6036__=function(root){try{if(window.top!==window||!document.body)return 0;"
+         "window.__AD_SEASONAL6036__=function(root){try{if(window.top!==window||!document.body)return 0;var _u6157=String(location.href||'').toLowerCase();if(!(/\/gp\/gw\/ajax\/mshop/.test(_u6157)||/ishome(?:pageredesign)?=true/.test(_u6157)||/istransparentnav=true/.test(_u6157)))return 0;"
            "function appbg(){var A=[document.body,document.documentElement];for(var z=0;z<A.length;z++){if(!A[z])continue;var c=String(getComputedStyle(A[z]).backgroundColor||'').replace(/\\s+/g,'');if(c&&c!=='transparent'&&c!=='rgba(0,0,0,0)')return c;}return 'rgb(24,26,27)';}"
            "function cn(e){var c=e&&e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;return String(c||'').toLowerCase();}"
            "var SEL='[class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer]';"
@@ -923,7 +923,7 @@ static NSString *ADWhiteTameWebJS6027(void){
     CGFloat b=1.0-(0.50*(s/100.0));
     CGFloat a=0.50*(s/100.0);
     gADTameWeb613 = [NSString stringWithFormat:
-        @"(function(){try{"
+        @"(function(){try{if(window.__AD_TWB6027_INSTALLING__||window.__AD_TWB6027_INSTALLED__)return;window.__AD_TWB6027_INSTALLING__=1;"
 
          "var BB='brightness(%.3f) saturate(1.08)',AA='rgba(0,0,0,%.3f)';"
          "var U=String(location.href||'').toLowerCase(),HOME=(window.top===window&&(/\\/gp\\/gw\\/ajax\\/mshop/.test(U)||/ishome(?:pageredesign)?=true/.test(U)||/istransparentnav=true/.test(U)));if(HOME&&document.documentElement)document.documentElement.setAttribute('data-ad-twb-home6033','1');"
@@ -993,8 +993,8 @@ static NSString *ADWhiteTameWebJS6027(void){
          "function once(){try{var tags=['img','video','canvas'],budget=420;for(var ti=0;ti<tags.length&&budget>0;ti++){var Q=document.getElementsByTagName(tags[ti]);for(var i=0;i<Q.length&&budget-- >0;i++)tame(Q[i]);}}catch(e){}}"
          "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',once,{once:true});else once();"
          "window.addEventListener('pageshow',once,{passive:true});"
-         "window.__AD_TWB6027_INSTALLED__=1;"
-         "}catch(e){}})();", b, a];
+         "window.__AD_TWB6027_INSTALLED__=1;window.__AD_TWB6027_INSTALLING__=0;"
+         "}catch(e){try{window.__AD_TWB6027_INSTALLING__=0;}catch(x){}}})();", b, a];
     return gADTameWeb613;
 }
 static NSString *ADWhiteTameWebJS(void){ return ADWhiteTameWebJS6027(); }
@@ -1193,7 +1193,11 @@ static void ADEnableDarkReaderIn(WKWebView *wv){
                  NSString *full=ADThreeSymbolsWebJS605(); if(full.length)[wv evaluateJavaScript:full completionHandler:nil];
              }];
         if(gP.whiteTame){
-            [wv evaluateJavaScript:@"(function(){try{if(window._adTameFast362){window._adTameFast362(document.documentElement);return 1;}return 0;}catch(e){return 0;}})();"
+            // The direct TWB owner no longer exposes the obsolete fast-recovery entry point.
+            // Probing that dead symbol made every reapply evaluate the entire TWB payload again,
+            // stacking load/pageshow handlers and rewalking up to 420 media nodes. Only heal a
+            // document that truly missed the current document-start owner.
+            [wv evaluateJavaScript:@"(function(){try{return window.__AD_TWB6027_INSTALLED__?1:0;}catch(e){return 0;}})();"
                  completionHandler:^(id r, NSError *e){
                      if (!e && [r respondsToSelector:@selector(boolValue)] && [r boolValue]) return;
                      NSString *full=ADWhiteTameWebJS(); if(full.length)[wv evaluateJavaScript:full completionHandler:nil];
@@ -1286,7 +1290,9 @@ static void ADInjectAllWebViews(void){
             return;
         }
         for (WKWebView *wv in gADWebViews613.allObjects){
-            if (!wv) continue;
+            // Off-window PDP/tab web views will bootstrap from didMoveToWindow when reused.
+            // Do not spend JavaScript/retheme work on retained controllers the user cannot see.
+            if (!wv || !wv.window) continue;
             ADPrimeWebBacking611(wv);
             ADEnableDarkReaderIn(wv);
         }
@@ -2605,8 +2611,13 @@ static void ADPersonRasterLayout6150(id obj){
         }
 
         int stored=[objc_getAssociatedObject(v,kADPersonRasterCard6150) intValue];
+        // Nearly every React/Fabric view is unrelated to the compact Person cards. Avoid
+        // semantic/text work on their layout hot path unless geometry can actually qualify
+        // or this view is carrying a claim that must be revalidated.
+        if(!stored && !ADPersonRasterCandidateGeometry6151(v)) return;
+
         int live=ADPersonRasterKindForView6151(v);
-        BOOL hasSemantic=ADPersonRasterHasSemantic6156(v);
+        BOOL hasSemantic=stored ? ADPersonRasterHasSemantic6156(v) : NO;
 
         // Geometry changes are definitive reuse. When semantic text has hydrated, a
         // missing/different kind is also definitive reuse. Unknown/empty semantics are
@@ -2916,9 +2927,14 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
 
             int live=0;
             BOOL hasSemantic=NO;
-            if(rv && ADIsRCTBorderHost6147(rv) && ADPersonRasterCandidateGeometry6151(rv)){
+            BOOL candidate=(rv && ADIsRCTBorderHost6147(rv) && ADPersonRasterCandidateGeometry6151(rv));
+            if(stored && candidate){
                 live=ADPersonRasterKindForView6151(rv);
                 hasSemantic=ADPersonRasterHasSemantic6156(rv);
+            } else if(!stored && contents && candidate){
+                // New claims only need the semantic classifier; the extra "has text"
+                // validation exists solely for stale-claim retirement.
+                live=ADPersonRasterKindForView6151(rv);
             }
 
             // v6.0.151's claim used to live forever. A recycled Fabric/RCT layer could
@@ -4667,7 +4683,10 @@ static void ADReapplyBurst(UIView *root){
             dispatch_get_main_queue(), ^{ @try {
                 if (gen != gADBurstGeneration) return;
                 ADForceWindowsDarkTrait();
-                ADInjectAllWebViews();
+                // Web documents already own lazy hydration through document-start scripts and
+                // their filtered observers/events. Re-submitting the full web recovery on all
+                // three stabilization passes is redundant and particularly costly on PDP.
+                if (pass == 0) ADInjectAllWebViews();
 
                 if (pass != 1){
                     UIView *r = weakRoot;

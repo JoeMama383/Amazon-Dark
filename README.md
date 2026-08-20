@@ -1,4 +1,12 @@
-# AmazonDark v6.0.156
+# AmazonDark v6.0.157
+
+## PDP render-path cleanup
+- Fixes an obsolete TWB reapply probe that was causing the full White-Tame payload to be evaluated repeatedly on already-themed WKWebViews.
+- Makes TWB installation idempotent so media/load handlers cannot stack during navigation recovery.
+- Runs heavy tracked-WKWebView recovery once per three-stage native appearance burst instead of three times, and skips tracked WKWebViews that are not currently attached to a window.
+- Skips the Home seasonal/mosaic runtime owner entirely on PDP, Search, Cart, and auth documents.
+- Keeps the v6.0.156 recycled React/Fabric safety fix while gating its semantic work to actual compact Person-card candidates.
+- Preserves current dark theming, TWB, Sponsored styling, checkbox/glyph ownership, JIT, 120 Hz, splash, and Person border treatment.
 
 ## Recycled React/Fabric render ownership
 
