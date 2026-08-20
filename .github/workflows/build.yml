@@ -1,8 +1,8 @@
-name: Build AmazonDark (rootless .deb)
+name: PERFORMANCE TEST build
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, performance-test ]
     paths-ignore: [ '**.md', 'LICENSE' ]
   workflow_dispatch:
   release:
@@ -50,7 +50,7 @@ jobs:
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AmazonDark-rootless-deb
+          name: AmazonDark-PERFORMANCE-TEST-deb
           path: packages/*.deb
           if-no-files-found: error
 
