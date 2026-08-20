@@ -16,7 +16,7 @@
 #import <unistd.h>
 #import <stdint.h>
 
-#define AD_VERSION "v6.0.161"
+#define AD_VERSION "v6.0.162"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -591,13 +591,18 @@ static NSString *ADDarkReaderBootstrap(void){
     if (gADBootstrap613) return gADBootstrap613;
     NSString *dr = ADBundledDarkReaderJS();
     if (!dr.length) return nil;
-    NSString *floorBG = [NSString stringWithUTF8String:gP.bgHex] ?: @"#181a1b";
+    NSString *floorBG = @"#000000";
     gADBootstrap613 = [NSString stringWithFormat:
         @"(function(){try{"
          "if(window.__AMZDARK_INSTALLING__)return;if(window.__AMZDARK_LOADED__&&window.__AMZDARK_FIXCONTRAST__){try{window.__AMZDARK_APPLY__&&window.__AMZDARK_APPLY__();}catch(_e){}return;}window.__AMZDARK_INSTALLING__=1;window.__AMZDARK_LOADED__=1;"
 
          "try{if(!document.getElementById('adfloor612')){var f=document.createElement('style');"
-           "f.id='adfloor612';f.textContent='html,body,#a-page,#gwm-PageContent,main{background-color:%@ !important;}"
+           "f.id='adfloor612';f.textContent='html,body,#a-page,#gwm-PageContent,main,[role=main],#search,"
+           "[class*=s-main-slot],[class*=s-result-list],[class*=s-result-item],[class*=s-card-container],"
+           "[class*=puis-card-container],[class*=a-cardui],[class*=gwm-widget],[class*=gwm-widget-row],"
+           "[class*=gwm-widget-content],[class*=sc-list-body],[class*=sc-list-item],[class*=sc-item-content-group],"
+           "[class*=sc-item-content],[class*=search-suggestion],[class*=recentSearch],[class*=s-suggestion],"
+           "[class*=s-suggestion-container]{background-color:%@ !important;}"
 
            "#auth-footer,.auth-footer,[id*=auth-footer],"
            "#auth-footer .a-divider,#auth-footer .a-divider-inner,#auth-footer .a-divider-section,"
@@ -718,8 +723,7 @@ static NSString *ADDarkReaderBootstrap(void){
              "}catch(e){}return out;}"
            "var els=[base];collect(base,els,0);var n=0,bfix=0,lfix=0,gfix=0;"
 
-           "var BG='rgb(24,26,27)';try{var hb=getComputedStyle(document.documentElement).backgroundColor;"
-             "var hl=lum(hb);if(hl!==null&&hl<0.25)BG=hb;}catch(e){}"
+           "var BG='rgb(0,0,0)';"
 
            "function adCbx439(e9){try{return !!(e9&&e9.closest&&e9.closest('[class*=a-checkbox],[class*=a-icon-checkbox],input[type=checkbox],[role=checkbox],[class*=copilot-compare],button[aria-label*=ompare],[data-csa-c-content-id*=ompare]'));}catch(err){return true;}}"
 
@@ -799,10 +803,10 @@ static NSString *ADDarkReaderBootstrap(void){
              "try{if(el.__adGlyph&&/^gfix/.test(String(el.__adBy||''))&&String(el.tagName||'').toLowerCase()==='img'){"
                "var hr6090=el.getBoundingClientRect();if(contentImg616(el,hr6090,cs)){el.style.removeProperty('filter');el.__adGlyph=0;el.__adBy='productBadge6094';}}}catch(h6090){}"
 
-             "if(lfix<300){var pl=lum(cs.backgroundColor);"
+             "if(lfix<cap){var pl=lum(cs.backgroundColor);"
                "if(pl!==null&&pl>0.55){el.style.setProperty('background-color',BG,'important');lfix++;}}"
 
-             "if(lfix<300){var gbi=cs.backgroundImage||'';"
+             "if(lfix<cap){var gbi=cs.backgroundImage||'';"
                "if(gbi.indexOf('gradient')>=0){var g2=el.getBoundingClientRect();"
                  "if(g2.width>120&&g2.height>60){var gmx=0,gm,gre=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/g;"
                    "while((gm=gre.exec(gbi))){var gl2=0.2126*ch(+gm[1])+0.7152*ch(+gm[2])+0.0722*ch(+gm[3]);"
@@ -1325,7 +1329,7 @@ static void ADInjectAllWebViews(void){
 static void ADPrimeWebBacking611(WKWebView *wv){
     if (!wv || !gP.enabled || !gP.webDarkReader) return;
     @try {
-        UIColor *dark = ADColorFromHex(gP.bgHex);
+        UIColor *dark = [UIColor blackColor];
         wv.opaque = NO;
         wv.backgroundColor = dark;
         UIScrollView *sv = wv.scrollView;
@@ -4843,7 +4847,7 @@ static void ADPreDarken(WKWebView *wv){
         if (![NSThread isMainThread]) return;
         [wv evaluateJavaScript:
             @"try{if(!document.getElementById('adpre')){var s=document.createElement('style');"
-             "s.id='adpre';s.textContent='html,body{background:#181a1b !important}';"
+             "s.id='adpre';s.textContent='html,body,#a-page,#gwm-PageContent,main,[role=main]{background:#000 !important}';"
              "(document.documentElement||document).appendChild(s);}}catch(e){}"
              completionHandler:nil];
     } @catch(...) {}

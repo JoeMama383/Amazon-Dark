@@ -1,3 +1,14 @@
+# Amazon Dark
+
+## v6.0.162 — OLED structural floor ownership
+
+- Preserves the compact v6.0.161 recovery/runtime architecture.
+- Makes the web structural floor true OLED black (`#000000`) instead of inheriting Dark Reader or the previous dark-gray page floor.
+- Extends document-start CSS ownership to the major Search, Home, Cart, result-card and suggestion surface families that were still painting white.
+- Removes the old 300-background repair ceiling while retaining the existing bounded document/subtree scan caps, so already-scanned bright wrappers are no longer left white simply because earlier wrappers consumed the repair budget.
+- Keeps Dark Reader optional: AmazonDark's direct background/contrast owner remains authoritative when the engine is missing, late or fails.
+- Adds no MutationObserver, querySelectorAll call site, scroll listener, recurring timer, RAF loop, timeout or native dispatch-after site.
+
 # AmazonDark
 
 AmazonDark is a rootless iOS tweak that applies a dark theme to the Amazon Shopping app while preserving Amazon-owned imagery, layout, interaction, and native component geometry.
