@@ -1,3 +1,12 @@
+## v6.0.177 — PDP white-card + Interests gradient cleanup
+
+- Keeps v6.0.176 warm PDP detach/reattach retention and v6.0.175 WebKit lifecycle cleanup.
+- Owns the exact PDP sponsored carousel card family captured by the 6170/6172 probe (`LI.a-carousel-card.sp_mobile_carousel_element`) so Amazon's stock white structural card floor cannot escape native-ad isolation.
+- Adds documentStart + post-DarkReader structural shell CSS and a bounded runtime fallback for hydrated/recycled card shells. The runtime fallback only clears bright neutral structural backgrounds; saturated Amazon controls/accents and media artwork remain untouched.
+- Removes the wide white/gray React Native gradient artifact shown beside `You're all caught up!` in Person > Interests. The gradient owner is gated by that exact phrase plus the observed wide/shallow same-row geometry, so normal brand/decorative gradients keep their existing color transform.
+- The Interests repair catches both `CAGradientLayer` and `BVLinearGradientLayer` and has a one-shot text-hydration recovery for the case where the gradient was assigned before its label existed.
+- No new observer, scroll listener, interval, RAF loop, timeout, dispatch_after, cache reset, reload, or WebKit lifecycle hook. One `dispatch_async` is submitted only when the exact `You're all caught up!` text hydrates.
+
 ## v6.0.176 — warm PDP detach/reattach retention
 
 - Keeps v6.0.175 WebKit cleanup and the v6.0.174/171 PDP performance fixes.
