@@ -11,23 +11,25 @@ AmazonDark_CFLAGS += -Wno-unused-variable -Wno-unused-function
 AmazonDark_CFLAGS += -Wno-deprecated-declarations -Wno-error
 AmazonDark_FRAMEWORKS = UIKit Foundation WebKit CoreGraphics QuartzCore CoreFoundation
 
-# SpringBoard companion: dark launch cover + optional JIT broker.
+# SpringBoard-side dark launch cover (injects ONLY into com.apple.springboard
+# via AmazonDarkSB.plist). Defensive: every hook guarded, cover auto-removes.
 AmazonDarkSB_FILES      = src/AmazonDarkSB.xm
 AmazonDarkSB_CFLAGS     = -fobjc-arc -fexceptions -Wno-unused-variable -Wno-error
 AmazonDarkSB_FRAMEWORKS = UIKit Foundation CoreGraphics QuartzCore
 
-# Dark Reader is staged explicitly under Application Support via layout/.
-# This is the runtime path used on rootless devices and avoids duplicate payloads.
+# Bundle the official Dark Reader UMD (resources/) alongside the dylib as
+# AmazonDark.bundle so the tweak can read darkreader.js at runtime.
+AmazonDark_BUNDLE_RESOURCE_DIRS = Resources
+
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 
-# Settings preference bundle.
+# v6.0.0 backport: exact v5.446 preference-bundle build wiring.
 BUNDLE_NAME = ADPrefs
 ADPrefs_FILES         = prefs/ADPrefsController.xm
 ADPrefs_INSTALL_PATH  = /Library/PreferenceBundles
 ADPrefs_FRAMEWORKS    = UIKit Foundation CoreFoundation
 ADPrefs_CFLAGS        = -fobjc-arc -Wno-error -Wno-unused-variable -Wno-unused-function
-ADPrefs_LOGOS_DEFAULT_GENERATOR = internal
 ADPrefs_RESOURCE_DIRS = prefs/Resources
 include $(THEOS_MAKE_PATH)/bundle.mk
 

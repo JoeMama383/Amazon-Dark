@@ -1,4 +1,8 @@
-// Native color transformation engine and bounded caches.
+/*
+ * ADColor.m — Dark Reader's dynamic-theme colour algorithm, ported to C/Obj-C.
+ * Ported from Dark Reader (MIT, Copyright (c) Dark Reader Ltd.) — see ADColor.h
+ * and Resources/DARKREADER-LICENSE.
+ */
 
 #import "ADColor.h"
 #import <objc/runtime.h>
@@ -9,10 +13,11 @@
 
 ADThemeConfig ADTheme = {
     .brightness = 100, .contrast = 100, .grayscale = 0, .sepia = 0,
-    .bgR = 24,  .bgG = 26,  .bgB = 27,
-    .fgR = 232, .fgG = 230, .fgB = 227,
+    .bgR = 24,  .bgG = 26,  .bgB = 27,     // #181a1b — Dark Reader's default background
+    .fgR = 232, .fgG = 230, .fgB = 227,    // #e8e6e3 — Dark Reader's default text
 };
 
+// ─── small helpers ────────────────────────────────────────────────────────────────
 static inline double ADScale(double x, double inLow, double inHigh, double outLow, double outHigh) {
     if (inHigh == inLow) return outLow;
     return (x - inLow) * (outHigh - outLow) / (inHigh - inLow) + outLow;
@@ -23,7 +28,7 @@ static inline double ADClamp(double x, double lo, double hi) {
 
 typedef struct { double h, s, l; } ADHSL;
 
-static ADHSL ADRGBToHSL(double r, double g, double b) {
+static ADHSL ADRGBToHSL(double r, double g, double b) {   // inputs 0..1
     double max = fmax(r, fmax(g, b));
     double min = fmin(r, fmin(g, b));
     double c   = max - min;
@@ -56,6 +61,9 @@ static void ADHSLToRGB(ADHSL hsl, double *r, double *g, double *b) {
     *r = rr + m; *g = gg + m; *b = bb + m;
 }
 
+// ─── Dark Reader's HSL curves ─────────────────────────────────────────────────────
+// Faithful ports of modifyBgHSL / modifyFgHSL / modifyBorderHSL.
+
 static const double AD_MAX_BG_LIGHTNESS = 0.4;
 static const double AD_MIN_FG_LIGHTNESS = 0.55;
 
@@ -76,10 +84,10 @@ static ADHSL ADModifyBgHSL(ADHSL in, ADHSL pole) {
     double hx = in.h;
     BOOL isYellow = in.h > 60 && in.h < 180;
     if (isYellow) {
-        if (in.h > 120) hx = ADScale(in.h, 120, 180, 135, 180);
+        if (in.h > 120) hx = ADScale(in.h, 120, 180, 135, 180);   // closer to green
         else            hx = ADScale(in.h, 60, 120, 60, 105);
     }
-
+    // Pull down lightness in the muddy low-yellow band.
     if (hx > 40 && hx < 80) lx *= 0.75;
 
     ADHSL o = { hx, in.s, lx }; return o;
@@ -125,6 +133,12 @@ static ADHSL ADModifyBorderHSL(ADHSL in, ADHSL poleFg, ADHSL poleBg) {
     double lx = ADScale(in.l, 0, 1, 0.5, 0.2);
     ADHSL o = { hx, sx, lx }; return o;
 }
+
+// ─── brightness / contrast / grayscale / sepia (5×5 colour matrix) ────────────────
+// Dark Reader builds this with mode forced to 0, i.e. WITHOUT the invert term — the
+// darkening has already happened in HSL space. This stage is purely the user's
+// aesthetic sliders. Keeping the invert out is what stops this from becoming an
+// inversion tweak again.
 
 typedef double ADMat[5][5];
 
@@ -179,12 +193,13 @@ static void ADBuildFilterMatrix(ADMat out) {
     memcpy(out, m, sizeof(ADMat));
 }
 
+// Cached matrix; rebuilt only when the theme changes.
 static ADMat gFilter;
 static BOOL  gFilterBuilt = NO;
 
 static void ADApplyMatrix(double *r, double *g, double *b) {
     if (ADTheme.brightness == 100 && ADTheme.contrast == 100 &&
-        ADTheme.grayscale  == 0   && ADTheme.sepia    == 0) return;
+        ADTheme.grayscale  == 0   && ADTheme.sepia    == 0) return;   // fast path
     if (!gFilterBuilt) { ADBuildFilterMatrix(gFilter); gFilterBuilt = YES; }
     double in[5] = { *r, *g, *b, 1.0, 1.0 };
     double o[3];
@@ -198,6 +213,7 @@ static void ADApplyMatrix(double *r, double *g, double *b) {
     *b = ADClamp(o[2], 0.0, 1.0);
 }
 
+// ─── the transform ────────────────────────────────────────────────────────────────
 void ADModifyRGB(ADColorRole role,
                  CGFloat r, CGFloat g, CGFloat b,
                  CGFloat *outR, CGFloat *outG, CGFloat *outB) {
@@ -205,6 +221,20 @@ void ADModifyRGB(ADColorRole role,
     ADHSL poleBg = ADRGBToHSL(ADTheme.bgR / 255.0, ADTheme.bgG / 255.0, ADTheme.bgB / 255.0);
     ADHSL poleFg = ADRGBToHSL(ADTheme.fgR / 255.0, ADTheme.fgG / 255.0, ADTheme.fgB / 255.0);
 
+    // Auto: decide by lightness before dispatching.
+    //
+    // ONE-WAY BY DESIGN. Auto is used for drawRect: painting, where [UIColor set]
+    // gives us a colour with no clue whether it is about to fill a panel or draw
+    // text. v5.2.1 resolved that by lightening dark fills (so custom-drawn text
+    // stayed readable) — but a dark fill is just as often an already-dark
+    // BACKGROUND, and lightening those turned the cart tab, the one perfectly
+    // themed surface, back to white.
+    //
+    // Since the ambiguity cannot be resolved from a colour alone, we prefer no
+    // change over the wrong change: light fills darken, dark fills are left
+    // untouched. Nothing this hook does can ever make the UI lighter. Text colour
+    // is handled properly elsewhere (RCTTextAttributes, attributed strings,
+    // UILabel/UIButton), so it no longer needs to lean on this path.
     if (role == ADColorRoleAuto) {
         ADHSL probe = ADRGBToHSL(r, g, b);
         if (probe.l < 0.5) { *outR = r; *outG = g; *outB = b; return; }
@@ -223,6 +253,15 @@ void ADModifyRGB(ADColorRole role,
     ADHSLToRGB(mod, &rr, &gg, &bb);
     ADApplyMatrix(&rr, &gg, &bb);
 
+    // CONTRAST FLOOR (foreground only).
+    // The HSL curves preserve hue and saturation, which is what keeps brand colours
+    // recognisable — but a very dark or heavily saturated source can still land close
+    // to the background pole, and text that cannot be read is a worse failure than a
+    // slightly shifted hue. If a foreground colour ends up under a minimum separation
+    // from the background, lift its lightness until it clears, keeping hue/saturation.
+    //
+    // This also backstops the drawRect: paint path being deliberately one-way: any
+    // text colour that reaches the engine is guaranteed readable on the theme.
     if (role == ADColorRoleForeground) {
         double bgLum = (0.2126*ADTheme.bgR + 0.7152*ADTheme.bgG + 0.0722*ADTheme.bgB) / 255.0;
         double fgLum = 0.2126*rr + 0.7152*gg + 0.0722*bb;
@@ -237,13 +276,20 @@ void ADModifyRGB(ADColorRole role,
     *outR = (CGFloat)rr; *outG = (CGFloat)gg; *outB = (CGFloat)bb;
 }
 
+// ─── memoisation + idempotency ────────────────────────────────────────────────────
+// Open-addressed, fixed-size, allocation-free. setBackgroundColor: is called on
+// every cell reuse during a fast scroll, so this path must not allocate or lock.
+
 #define AD_CACHE_BITS 13
-#define AD_CACHE_SIZE (1u << AD_CACHE_BITS)
+#define AD_CACHE_SIZE (1u << AD_CACHE_BITS)      // 8192 slots
 #define AD_CACHE_MASK (AD_CACHE_SIZE - 1u)
 
 typedef struct { uint32_t key; uint32_t val; uint8_t used; } ADCacheSlot;
 static ADCacheSlot gCache[AD_CACHE_SIZE];
 
+// Colours we produced. Recognising our own output is what makes the hooks safe to
+// re-enter: a view that reads its backgroundColor and writes it back unchanged
+// must not be darkened a second time.
 static ADCacheSlot gOutSet[AD_CACHE_SIZE];
 
 static inline uint32_t ADPack(CGFloat r, CGFloat g, CGFloat b, ADColorRole role) {
@@ -252,7 +298,7 @@ static inline uint32_t ADPack(CGFloat r, CGFloat g, CGFloat b, ADColorRole role)
     uint32_t bi = (uint32_t)ADClamp(round(b * 255.0), 0, 255);
     return (ri << 24) | (gi << 16) | (bi << 8) | ((uint32_t)role & 0xFF);
 }
-static inline uint32_t ADHash(uint32_t k) {
+static inline uint32_t ADHash(uint32_t k) {          // Knuth multiplicative
     return (k * 2654435761u) >> (32 - AD_CACHE_BITS);
 }
 static BOOL ADCacheGet(ADCacheSlot *tbl, uint32_t key, uint32_t *out) {
@@ -270,7 +316,7 @@ static void ADCachePut(ADCacheSlot *tbl, uint32_t key, uint32_t val) {
         ADCacheSlot *s = &tbl[(i + p) & AD_CACHE_MASK];
         if (!s->used || s->key == key) { s->key = key; s->val = val; s->used = 1; return; }
     }
-    ADCacheSlot *s = &tbl[i & AD_CACHE_MASK];
+    ADCacheSlot *s = &tbl[i & AD_CACHE_MASK];        // evict on full probe run
     s->key = key; s->val = val; s->used = 1;
 }
 
@@ -296,23 +342,37 @@ BOOL ADIsModifiedUIColorForRole(UIColor *c, ADColorRole role) {
     if (objc_getAssociatedObject(c, kADModifiedKey)) return YES;
     CGFloat r, g, b, a;
     if (!ADRGBAOf(c, &r, &g, &b, &a)) return NO;
-
+    // Role-aware. Re-entry safety only needs to recognise output within the SAME
+    // role (UIView.setBackgroundColor -> CALayer.setBackgroundColor is background ->
+    // background). Matching across roles instead made every dark background we emit
+    // shadow Amazon's dark TEXT, so the text was never transformed at all.
     return ADCacheGet(gOutSet, ADPack(r, g, b, role), NULL);
 }
 
 UIColor *ADModifyUIColor(UIColor *c, ADColorRole role) {
     if (!c) return nil;
     CGFloat r, g, b, a;
-    if (!ADRGBAOf(c, &r, &g, &b, &a)) return nil;
-    if (a <= 0.001) return nil;
-    if (ADIsModifiedUIColorForRole(c, role)) return nil;
+    if (!ADRGBAOf(c, &r, &g, &b, &a)) return nil;      // pattern / unsupported space
+    if (a <= 0.001) return nil;                        // fully transparent: nothing to do
+    if (ADIsModifiedUIColorForRole(c, role)) return nil;   // already ours, same role
 
+    // Resolve Auto up-front so the memo key matches the curve actually used.
+    // One-way: a dark fill is returned untouched (see ADModifyRGB for why).
     if (role == ADColorRoleAuto) {
         ADHSL probe = ADRGBToHSL(r, g, b);
         if (probe.l < 0.5) return nil;
         role = ADColorRoleBackground;
     }
 
+    // SCRIM GUARD. A partially transparent LIGHT fill can be an overlay sitting on
+    // top of imagery — a gradient scrim over a hero shot, a press-state highlight,
+    // a fade at the edge of a carousel. Flipping those to a dark fill does not
+    // "darken the background", it drops a black veil over the picture.
+    //
+    // But translucent CHROME (nav bars, search fields, sheet backdrops) lives in the
+    // same alpha range and absolutely must darken, so the first version of this guard
+    // was far too broad and left the top bar light. Narrowed to the case that
+    // actually indicates an image overlay: quite transparent AND near-white.
     if (role == ADColorRoleBackground && a < 0.35){
         CGFloat lum = 0.2126*r + 0.7152*g + 0.0722*b;
         if (lum > 0.80) return nil;
@@ -364,12 +424,13 @@ CGColorRef ADModifyCGColor(CGColorRef c, ADColorRole role) {
         ADCachePut(gCache,  key, outKey);
         ADCachePut(gOutSet, outKey, 1);
     }
-
+    // Autoreleased via UIColor so callers need not manage lifetime.
     return [UIColor colorWithRed:nr green:ng blue:nb alpha:a].CGColor;
 }
 
 BOOL ADIsModifiedUIColor(UIColor *c) {
-
+    // Object-identity only. The value-based test needs a role to be meaningful, so
+    // callers that care about a specific role must use ADIsModifiedUIColorForRole.
     return (c && objc_getAssociatedObject(c, kADModifiedKey) != nil);
 }
 

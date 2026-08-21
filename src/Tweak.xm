@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.169"
+#define AD_VERSION "v6.0.170-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -89,283 +89,6 @@ extern char *__progname;
 
 // ════════════════════════════════════════════════════════════════════════════════
 // Class forward-decls. We declare unknown Amazon classes as UIView/NSObject so the
-
-// ── native hook instrumentation (v6.0.163) ───────────────────────────────────
-// The web side has been optimized down to 3 observers, 0 intervals, 0 RAF loops and
-// 0 scroll listeners, and the stock app is still markedly faster. That points at this
-// layer: 94 hooked methods, 57 of them on UIKit/Core Animation hot paths, several on
-// -[CALayer setContents:] and -setBackgroundColor: which run on every commit, every
-// scroll frame and every image decode.
-//
-// Rather than guess which of them cost anything -- Dark Reader throttling and the
-// iframe payload split were both plausible and both wrong -- count them. Each
-// instrumented hook accumulates a call count and inclusive wall time via a
-// cleanup-attribute scope guard, so every early return is covered without touching
-// the return paths themselves.
-//
-// Cost per call is two relaxed atomic adds and two mach_absolute_time reads, which is
-// far below the association lookups and class walks these hooks already perform.
-//
-// CAVEAT for reading the dump: the time is INCLUSIVE of %orig, so it contains the
-// real UIKit work as well as ours. Rank primarily by count, and compare inclusive
-// time only between hooks that wrap the same underlying method.
-#import <mach/mach_time.h>
-#import <stdatomic.h>
-
-typedef enum {
-    ADP_WKWebView_didMoveToWindow,
-    ADP_UIView_setBackgroundColor,
-    ADP_UIView_setTintColor,
-    ADP_RNSVGSvgView_didMoveToWindow,
-    ADP_RNSVGSvgView_layoutSubviews,
-    ADP_UILabel_didMoveToWindow,
-    ADP_UILabel_layoutSubviews,
-    ADP_UILabel_setTextColor,
-    ADP_UITextView_setTextColor,
-    ADP_UITextField_setTextColor,
-    ADP_UIButton_setTitleColor,
-    ADP_UIButton_layoutSubviews,
-    ADP_SBSearchBar_layoutSubviews,
-    ADP_SBSearchField_layoutSubviews,
-    ADP_RCTParagraphComponentView_setAttributedText,
-    ADP_RCTParagraphComponentView_setAttributedString,
-    ADP_RCTParagraphComponentView_layoutSubviews,
-    ADP_RCTTextView_setTextStorage,
-    ADP_RCTTextView_layoutSubviews,
-    ADP_UILabel_setAttributedText,
-    ADP_CALayer_setBackgroundColor,
-    ADP_CALayer_setContents,
-    ADP_CALayer_setBorderWidth,
-    ADP_CALayer_setBorderColor,
-    ADP_CALayer_setFilters,
-    ADP_CAGradientLayer_setColors,
-    ADP_BVLinearGradientLayer_setColors,
-    ADP_ANXTopNavBackgroundView_setBackgroundColor,
-    ADP_ANXTopNavBackgroundView_didMoveToWindow,
-    ADP_ANXTopNavBackgroundView_layoutSubviews,
-    ADP_UIVisualEffectView_setEffect,
-    ADP_UIVisualEffectView_layoutSubviews,
-    ADP_UIVisualEffectView_didMoveToWindow,
-    ADP__UIBarBackground_layoutSubviews,
-    ADP_WKScrollView_setBackgroundColor,
-    ADP_WKScrollView_didMoveToWindow,
-    ADP_WKContentView_setBackgroundColor,
-    ADP_WKContentView_setOpaque,
-    ADP_WKContentView_didMoveToWindow,
-    ADP_WKContentView_layoutSubviews,
-    ADP_UIScrollView_didMoveToWindow,
-    ADP_UIScrollView_setIndicatorStyle,
-    ADP_CXIStoreModesBottomNavToolbar_layoutSubviews,
-    ADP_CXIStoreModesTabBarView_layoutSubviews,
-    ADP_ANPRetailTabBar_layoutSubviews,
-    ADP_RCTView_didMoveToWindow,
-    ADP_RCTView_setBackgroundColor,
-    ADP_RCTView_layoutSubviews,
-    ADP_RCTScrollView_setBackgroundColor,
-    ADP_RCTViewComponentView_didMoveToWindow,
-    ADP_RCTViewComponentView_setBackgroundColor,
-    ADP_RCTViewComponentView_layoutSubviews,
-    ADP_UIImageView_didMoveToWindow,
-    ADP_RCTUIImageViewAnimated_didMoveToWindow,
-    ADP_RCTUIImageViewAnimated_layoutSubviews,
-    ADP_UICollectionViewCell_layoutSubviews,
-    ADP_UITableViewCell_layoutSubviews,
-    ADP_sub_TrackWebView,
-    ADP_sub_PrimeWebBacking,
-    ADP_sub_PreDarken,
-    ADP_sub_AttachSymbols,
-    ADP_sub_BuildBootScript,
-    ADP_sub_AddBootScript,
-    ADP_sub_AttachTWB,
-    ADP__COUNT
-} ADPerfSlot;
-
-static const char *gADPerfName[ADP__COUNT] = {
-    [ADP_sub_TrackWebView]     = "  \u2514 ADTrackWebView613",
-    [ADP_sub_PrimeWebBacking]  = "  \u2514 ADPrimeWebBacking611",
-    [ADP_sub_PreDarken]        = "  \u2514 ADPreDarken",
-    [ADP_sub_AttachSymbols]    = "  \u2514 attach symbols script",
-    [ADP_sub_BuildBootScript]  = "  \u2514 build boot WKUserScript",
-    [ADP_sub_AddBootScript]    = "  \u2514 addUserScript(boot 346KB)",
-    [ADP_sub_AttachTWB]        = "  \u2514 attach TWB script",
-    [ADP_WKWebView_didMoveToWindow] = "WKWebView didMoveToWindow",
-    [ADP_UIView_setBackgroundColor] = "UIView setBackgroundColor",
-    [ADP_UIView_setTintColor] = "UIView setTintColor",
-    [ADP_RNSVGSvgView_didMoveToWindow] = "RNSVGSvgView didMoveToWindow",
-    [ADP_RNSVGSvgView_layoutSubviews] = "RNSVGSvgView layoutSubviews",
-    [ADP_UILabel_didMoveToWindow] = "UILabel didMoveToWindow",
-    [ADP_UILabel_layoutSubviews] = "UILabel layoutSubviews",
-    [ADP_UILabel_setTextColor] = "UILabel setTextColor",
-    [ADP_UITextView_setTextColor] = "UITextView setTextColor",
-    [ADP_UITextField_setTextColor] = "UITextField setTextColor",
-    [ADP_UIButton_setTitleColor] = "UIButton setTitleColor",
-    [ADP_UIButton_layoutSubviews] = "UIButton layoutSubviews",
-    [ADP_SBSearchBar_layoutSubviews] = "SBSearchBar layoutSubviews",
-    [ADP_SBSearchField_layoutSubviews] = "SBSearchField layoutSubviews",
-    [ADP_RCTParagraphComponentView_setAttributedText] = "RCTParagraphComponentView setAttributedText",
-    [ADP_RCTParagraphComponentView_setAttributedString] = "RCTParagraphComponentView _setAttributedString",
-    [ADP_RCTParagraphComponentView_layoutSubviews] = "RCTParagraphComponentView layoutSubviews",
-    [ADP_RCTTextView_setTextStorage] = "RCTTextView setTextStorage",
-    [ADP_RCTTextView_layoutSubviews] = "RCTTextView layoutSubviews",
-    [ADP_UILabel_setAttributedText] = "UILabel setAttributedText",
-    [ADP_CALayer_setBackgroundColor] = "CALayer setBackgroundColor",
-    [ADP_CALayer_setContents] = "CALayer setContents",
-    [ADP_CALayer_setBorderWidth] = "CALayer setBorderWidth",
-    [ADP_CALayer_setBorderColor] = "CALayer setBorderColor",
-    [ADP_CALayer_setFilters] = "CALayer setFilters",
-    [ADP_CAGradientLayer_setColors] = "CAGradientLayer setColors",
-    [ADP_BVLinearGradientLayer_setColors] = "BVLinearGradientLayer setColors",
-    [ADP_ANXTopNavBackgroundView_setBackgroundColor] = "ANXTopNavBackgroundView setBackgroundColor",
-    [ADP_ANXTopNavBackgroundView_didMoveToWindow] = "ANXTopNavBackgroundView didMoveToWindow",
-    [ADP_ANXTopNavBackgroundView_layoutSubviews] = "ANXTopNavBackgroundView layoutSubviews",
-    [ADP_UIVisualEffectView_setEffect] = "UIVisualEffectView setEffect",
-    [ADP_UIVisualEffectView_layoutSubviews] = "UIVisualEffectView layoutSubviews",
-    [ADP_UIVisualEffectView_didMoveToWindow] = "UIVisualEffectView didMoveToWindow",
-    [ADP__UIBarBackground_layoutSubviews] = "_UIBarBackground layoutSubviews",
-    [ADP_WKScrollView_setBackgroundColor] = "WKScrollView setBackgroundColor",
-    [ADP_WKScrollView_didMoveToWindow] = "WKScrollView didMoveToWindow",
-    [ADP_WKContentView_setBackgroundColor] = "WKContentView setBackgroundColor",
-    [ADP_WKContentView_setOpaque] = "WKContentView setOpaque",
-    [ADP_WKContentView_didMoveToWindow] = "WKContentView didMoveToWindow",
-    [ADP_WKContentView_layoutSubviews] = "WKContentView layoutSubviews",
-    [ADP_UIScrollView_didMoveToWindow] = "UIScrollView didMoveToWindow",
-    [ADP_UIScrollView_setIndicatorStyle] = "UIScrollView setIndicatorStyle",
-    [ADP_CXIStoreModesBottomNavToolbar_layoutSubviews] = "CXIStoreModesBottomNavToolbar layoutSubviews",
-    [ADP_CXIStoreModesTabBarView_layoutSubviews] = "CXIStoreModesTabBarView layoutSubviews",
-    [ADP_ANPRetailTabBar_layoutSubviews] = "ANPRetailTabBar layoutSubviews",
-    [ADP_RCTView_didMoveToWindow] = "RCTView didMoveToWindow",
-    [ADP_RCTView_setBackgroundColor] = "RCTView setBackgroundColor",
-    [ADP_RCTView_layoutSubviews] = "RCTView layoutSubviews",
-    [ADP_RCTScrollView_setBackgroundColor] = "RCTScrollView setBackgroundColor",
-    [ADP_RCTViewComponentView_didMoveToWindow] = "RCTViewComponentView didMoveToWindow",
-    [ADP_RCTViewComponentView_setBackgroundColor] = "RCTViewComponentView setBackgroundColor",
-    [ADP_RCTViewComponentView_layoutSubviews] = "RCTViewComponentView layoutSubviews",
-    [ADP_UIImageView_didMoveToWindow] = "UIImageView didMoveToWindow",
-    [ADP_RCTUIImageViewAnimated_didMoveToWindow] = "RCTUIImageViewAnimated didMoveToWindow",
-    [ADP_RCTUIImageViewAnimated_layoutSubviews] = "RCTUIImageViewAnimated layoutSubviews",
-    [ADP_UICollectionViewCell_layoutSubviews] = "UICollectionViewCell layoutSubviews",
-    [ADP_UITableViewCell_layoutSubviews] = "UITableViewCell layoutSubviews",
-};
-
-static atomic_ullong gADPerfRasterClaim164;
-static atomic_ullong gADPerfRasterSuppress164;
-static inline void ADPerfBumpClaim164(void){
-    atomic_fetch_add_explicit(&gADPerfRasterClaim164, 1ULL, memory_order_relaxed);
-}
-static inline void ADPerfBumpSuppress164(void){
-    atomic_fetch_add_explicit(&gADPerfRasterSuppress164, 1ULL, memory_order_relaxed);
-}
-static atomic_ullong gADPerfCount[ADP__COUNT];
-static atomic_ullong gADPerfTicks[ADP__COUNT];
-static mach_timebase_info_data_t gADPerfTB;
-static BOOL gADPerfOn = YES;
-
-typedef struct { int slot; uint64_t t0; } ADPerfScope;
-
-static inline void ADPerfEnd(ADPerfScope *s){
-    if (!gADPerfOn || !s->t0) return;
-    uint64_t d = mach_absolute_time() - s->t0;
-    atomic_fetch_add_explicit(&gADPerfCount[s->slot], 1ULL, memory_order_relaxed);
-    atomic_fetch_add_explicit(&gADPerfTicks[s->slot], d,    memory_order_relaxed);
-}
-
-#define AD_PERF(SLOT) \
-    __attribute__((cleanup(ADPerfEnd))) ADPerfScope _adperf = \
-        { (SLOT), gADPerfOn ? mach_absolute_time() : 0ULL }
-
-// Resolve a writable destination by actually writing to each candidate. Amazon's
-// sandbox has no access to another app's App Group container, and these writes are
-// wrapped in @try with error:nil, so an unwritable path fails completely silently.
-static NSString *ADPerfDir163(void){
-    static NSString *cached = nil;
-    static dispatch_once_t once;
-    dispatch_once(&once, ^{
-        NSArray *candidates = @[
-            @"/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents",
-            [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"],
-            NSTemporaryDirectory() ?: @"/tmp"
-        ];
-        NSFileManager *fm = [NSFileManager defaultManager];
-        for (NSString *dir in candidates){
-            if (!dir.length) continue;
-            @try {
-                [fm createDirectoryAtPath:dir withIntermediateDirectories:YES attributes:nil error:nil];
-                NSString *t = [dir stringByAppendingPathComponent:@".amazondark-perf-test"];
-                if (![@"1" writeToFile:t atomically:YES encoding:NSUTF8StringEncoding error:nil]) continue;
-                [fm removeItemAtPath:t error:nil];
-                cached = [dir copy];
-                break;
-            } @catch(...) {}
-        }
-        if (!cached) cached = NSTemporaryDirectory() ?: @"/tmp";
-    });
-    return cached;
-}
-
-static NSString *ADPerfPath163(void){
-    return [ADPerfDir163() stringByAppendingPathComponent:@"AmazonDark-hook-perf-169.txt"];
-}
-
-static void ADPerfDump163(NSString *label){
-    if (![NSThread isMainThread]){
-        dispatch_async(dispatch_get_main_queue(), ^{ ADPerfDump163(label); });
-        return;
-    }
-    @try {
-        if (gADPerfTB.denom == 0) mach_timebase_info(&gADPerfTB);
-        double nsPerTick = (double)gADPerfTB.numer / (double)gADPerfTB.denom;
-
-        unsigned long long n[ADP__COUNT], t[ADP__COUNT];
-        int order[ADP__COUNT];
-        unsigned long long totalN = 0; double totalMs = 0.0;
-        for (int i = 0; i < ADP__COUNT; i++){
-            n[i] = atomic_load_explicit(&gADPerfCount[i], memory_order_relaxed);
-            t[i] = atomic_load_explicit(&gADPerfTicks[i], memory_order_relaxed);
-            order[i] = i; totalN += n[i]; totalMs += (double)t[i] * nsPerTick / 1e6;
-        }
-        for (int a = 0; a < ADP__COUNT - 1; a++)
-            for (int b = a + 1; b < ADP__COUNT; b++)
-                if (n[order[b]] > n[order[a]]){ int tmp = order[a]; order[a] = order[b]; order[b] = tmp; }
-
-        NSMutableString *s = [NSMutableString string];
-        [s appendFormat:@"\nPERF %@ version=%s pid=%d\n", label, AD_VERSION, getpid()];
-        [s appendFormat:@"total calls=%llu  total inclusive ms=%.1f  (time INCLUDES %%orig)\n",
-            totalN, totalMs];
-        [s appendString:@"                                        calls        incl_ms     us/call\n"];
-        int dead = 0;
-        for (int k = 0; k < ADP__COUNT; k++){
-            int i = order[k];
-            if (n[i] == 0){ dead++; continue; }
-            double ms = (double)t[i] * nsPerTick / 1e6;
-            [s appendFormat:@"%-38s %10llu %12.1f %11.3f\n",
-                gADPerfName[i], n[i], ms, (ms * 1000.0) / (double)n[i]];
-        }
-        [s appendFormat:@"\nPerson-raster claims taken=%llu  contents suppressed=%llu\n",
-            atomic_load_explicit(&gADPerfRasterClaim164, memory_order_relaxed),
-            atomic_load_explicit(&gADPerfRasterSuppress164, memory_order_relaxed)];
-        [s appendFormat:@"\nnever fired (%d of %d):\n", dead, (int)ADP__COUNT];
-        for (int i = 0; i < ADP__COUNT; i++)
-            if (atomic_load_explicit(&gADPerfCount[i], memory_order_relaxed) == 0)
-                [s appendFormat:@"  %s\n", gADPerfName[i]];
-
-        NSString *path = ADPerfPath163();
-        NSString *prev = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
-        NSString *out = prev.length ? [prev stringByAppendingString:s] : s;
-        [out writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
-        [[NSFileManager defaultManager] setAttributes:@{NSFilePosixPermissions:@(0666)}
-                                         ofItemAtPath:path error:nil];
-    } @catch(...) {}
-}
-
-static void ADPerfWillResign163(CFNotificationCenterRef center, void *observer,
-                                CFStringRef name, const void *object,
-                                CFDictionaryRef info){
-    dispatch_async(dispatch_get_main_queue(), ^{
-        @try { ADPerfDump163(@"WILL_RESIGN_ACTIVE"); } @catch(...) {}
-    });
-}
-// ── end instrumentation ──────────────────────────────────────────────────────
-
 // compiler resolves selectors; Logos/%hook only installs on classes that exist at
 // runtime, so declaring one that is absent in some build is harmless.
 // ════════════════════════════════════════════════════════════════════════════════
@@ -731,36 +454,6 @@ static void ADInvalidateWebCaches613(void){
     gADBootstrap613 = nil;
     gADReapply613 = nil;
     gADTameWeb613 = nil;
-}
-
-// ── Dark Reader stylesheet proxy (v6.0.167) ──────────────────────────────────
-// Established by elimination, not by argument: 5.43.0 and 6.0.165 both fail to render
-// the heavy PDP section, and the only things they share are darkreader.js, an
-// equivalent theme object and the documentStart floor sheet. With the tweak fully off
-// the section renders. And when Dark Reader silently failed to apply while the rest of
-// the tweak ran, performance jumped roughly tenfold. The cost is Dark Reader's dynamic
-// theme, not the code around it.
-//
-// disableStyleSheetsProxy has been false, which leaves Dark Reader's CSSOM proxy
-// installed: it wraps insertRule/deleteRule and the sheet collections so that
-// stylesheets created after enable() are re-themed. Amazon's PDP builds a large number
-// of sheets during hydration, and each one re-enters Dark Reader through that proxy.
-// Turning the proxy off keeps the initial theming pass and drops the re-entry.
-//
-// The trade: stylesheets injected AFTER the first pass are no longer auto-themed, so a
-// late-hydrating widget can stay light until something else triggers a re-apply. That
-// is a visible-but-usable failure; the current one is unusable content.
-//
-// Left switchable so both sides can be compared in one install:
-//   touch /var/mobile/.ad_dr_proxy    restore the proxy (old 6.0.165 behaviour)
-static BOOL ADDRProxyWanted166(void){
-    static BOOL wanted = NO;
-    static dispatch_once_t once;
-    dispatch_once(&once, ^{
-        wanted = [[NSFileManager defaultManager]
-                  fileExistsAtPath:@"/var/mobile/.ad_dr_proxy"];
-    });
-    return wanted;
 }
 
 static NSString *ADFixesLiteral(void){
@@ -1170,11 +863,10 @@ static NSString *ADFixesLiteral(void){
              "'ul.a-pagination.a-dots li.a-selected','ul.a-pagination.a-dots li.dot-selected-t2','[data-ad-dotselected374]',"
              "'[class*=ape-wrapper]','[class*=ape-placement]','[class*=ape-feedback]','[class*=ape-feedback] *',"
              "'html body .puis-mab-overlay .puis-mab-overlay-row-share .puis-mab-overlay-icon-share'],"
-             "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:%@}",
-            imgBackdrop, ADDRProxyWanted166() ? @"false" : @"true"];
+             "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
+            imgBackdrop];
     return gADFixesLiteral613;
 }
-
 
 static NSString *ADThemeLiteral(void){
     if (gADThemeLiteral613) return gADThemeLiteral613;
@@ -1483,23 +1175,6 @@ static NSString *ADDarkReaderBootstrap(void){
          "window.__AD_COLLEGE6034__=window.__AD_SEASONAL6036__;"
          "%@\n" // DarkReader UMD
          "if(window.DarkReader&&DarkReader.enable){"
-         // v6.0.168: record how long the initial Dark Reader pass actually costs, and
-         // how much CSS it produces. 6.0.167 turned the page from never-renders into
-         // renders-slowly, which is the same shape as 5.43.0 -- so what remains is the
-         // one pass Dark Reader cannot skip: parse every stylesheet, walk every
-         // element, emit a theme. Numbers first, architecture second.
-         "try{var _now169=function(){try{return (performance&&performance.now)?performance.now():0;}catch(e){return 0;}};"
-         "var _cnt169=function(){try{return document.getElementsByTagName?document.getElementsByTagName('*').length:-1;}catch(e){return -1;}};"
-         "var _sh169=function(){try{return document.styleSheets?document.styleSheets.length:-1;}catch(e){return -1;}};"
-         "if(!DarkReader.__adWrapped169){var _en169=DarkReader.enable;DarkReader.__adWrapped169=1;"
-         "DarkReader.enable=function(){var r=window.__ADDRT168__={t0:_now169(),sheets:_sh169(),nodes:_cnt169()};"
-         "var out;try{out=_en169.apply(DarkReader,arguments);}finally{"
-         "r.ms=_now169()-r.t0;r.sheetsAfter=_sh169();r.nodesAfter=_cnt169();"
-         "r.url=String(location.href||'').slice(0,160);r.cssLen=-1;"
-         "try{var pr=DarkReader.exportGeneratedCSS&&DarkReader.exportGeneratedCSS();"
-         "if(pr&&pr.then){pr.then(function(c){r.css=c||'';r.cssLen=r.css.length;},function(){r.cssLen=-2;});}"
-         "else if(typeof pr==='string'){r.css=pr;r.cssLen=pr.length;}}catch(e){r.cssLen=-3;}}"
-         "return out;};}}catch(e){}"
          "try{DarkReader.setFetchMethod(window.fetch);}catch(e){}"
          // WCAG contrast repair. Dark Reader recolours from the page's own palette,
          // which can leave text only marginally separated from its background - the
@@ -1803,16 +1478,39 @@ static NSString *ADDarkReaderBootstrap(void){
              "}}catch(e){}"
            "var pr=\'\';"
            "return n+'/'+bfix+'/'+lfix+'/'+gfix+pr;}catch(e){return -1;}};"
+         // v6.0.170 probe: passive timing wrappers around the two expensive web
+         // owners. They only record performance.now() deltas in memory; no file I/O,
+         // DOM scan, timer, observer, or scroll listener is added to the live path.
+         "window.__AD_PDP6170__=window.__AD_PDP6170__||{fix:[],dr:[],idle:[],reapply:0};"
+         "try{var P6170=window.__AD_PDP6170__;if(!P6170.fixWrapped&&window.__AMZDARK_FIXCONTRAST__){var F6170=window.__AMZDARK_FIXCONTRAST__;window.__AMZDARK_FIXCONTRAST__=function(root){var t=performance.now(),kind='local';try{if(!root||root===document||root===document.body||root===document.documentElement)kind='full';else kind=String(root.tagName||'')+'.'+String(root.className&&root.className.baseVal!==undefined?root.className.baseVal:(root.className||'')).slice(0,72);}catch(x){}var r=F6170(root),dt=performance.now()-t;P6170.fix.push([Math.round(performance.now()),Math.round(dt*10)/10,kind,String(r)]);if(P6170.fix.length>120)P6170.fix.shift();return r;};P6170.fixWrapped=1;}}catch(e){}"
+         "try{var P6170b=window.__AD_PDP6170__;if(!P6170b.drWrapped&&window.DarkReader&&DarkReader.enable){var D6170=DarkReader.enable;var W6170=function(){var t=performance.now();try{return D6170.apply(this,arguments);}finally{var dt=performance.now()-t;P6170b.dr.push([Math.round(performance.now()),Math.round(dt*10)/10]);if(P6170b.dr.length>40)P6170b.dr.shift();}};W6170.__adp6170=1;DarkReader.enable=W6170;P6170b.drWrapped=1;}}catch(e){}"
          // v6.0.56: keep Dark Reader + document-start CSS on the critical path, but
          // move fallback contrast/seasonal repair to browser idle time.  This protects
          // Amazon's hydration/network completion and the 8.3 ms ProMotion frame budget.
          "window.__AD_IDLE6056__=function(fn,to){try{if(window.requestIdleCallback)return requestIdleCallback(function(){try{fn();}catch(e){}},{timeout:to||240});return setTimeout(function(){try{fn();}catch(e){}},60);}catch(e){return setTimeout(fn,60);}};"
+         "try{var P6170c=window.__AD_PDP6170__;if(P6170c&&!P6170c.idleWrapped&&window.__AD_IDLE6056__){var I6170=window.__AD_IDLE6056__;window.__AD_IDLE6056__=function(fn,to){var st=performance.now();return I6170(function(){var w=performance.now()-st;P6170c.idle.push([Math.round(performance.now()),Math.round(w*10)/10,to||0]);if(P6170c.idle.length>120)P6170c.idle.shift();return fn();},to);};P6170c.idleWrapped=1;}}catch(e){}"
          "window.__AMZDARK_APPLY__=function(){try{"
            "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
-
            "if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);"
            "window.__AD_IDLE6056__(function(){window.__AMZDARK_FIXCONTRAST__();if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);},260);"
          "}catch(e){}};"
+         // v6.0.131 PROBE: v6.0.128 did not change either standalone-ad symptom,
+         // so stop guessing at the shell/path.  Dump exact live Sponsored label,
+         // info-glyph, ad-root, media, iframe and TWB ownership only when the app is
+         // backgrounded.  The existing MutationObserver hook remains a no-op here:
+         // no new observer, timer, scroll hook, RAF, interval or steady-state scan.
+         "window.__AD_STANDAD6129__=[];"
+         "function sapS6129(v,n){v=String(v==null?'':v);return v.length>(n||180)?v.slice(0,n||180):v;}"
+         "function sapCls6129(e){try{var c=e&&e.className;return sapS6129(c&&c.baseVal!==undefined?c.baseVal:(c||''),240);}catch(x){return'';}}"
+         "function sapN6129(e){try{if(!e||e.nodeType!==1)return null;var c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after'),r=e.getBoundingClientRect();return{tag:String(e.tagName||''),cl:sapCls6129(e),id:sapS6129(e.id||'',100),r:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],txt:sapS6129(String(e.textContent||'').replace(/\\s+/g,' ').trim(),150),role:sapS6129(e.getAttribute&&e.getAttribute('role'),80),aria:sapS6129(e.getAttribute&&e.getAttribute('aria-label'),120),title:sapS6129(e.getAttribute&&e.getAttribute('title'),120),src:sapS6129(e.currentSrc||e.src||(e.getAttribute&&e.getAttribute('data-src'))||'',220),by:sapS6129(e.__adBy||'',90),twb:String((e.getAttribute&&e.getAttribute('data-ad-twb6033'))||''),twbbg:String((e.getAttribute&&e.getAttribute('data-ad-twb-bg6033'))||''),native:String((e.getAttribute&&e.getAttribute('data-ad-native615'))||''),style:sapS6129(e.getAttribute&&e.getAttribute('style'),260),css:{d:sapS6129(c.display,40),v:sapS6129(c.visibility,40),op:sapS6129(c.opacity,40),f:sapS6129(c.filter,120),col:sapS6129(c.color,80),fill:sapS6129(c.fill,80),stroke:sapS6129(c.stroke,80),bg:sapS6129(c.backgroundColor,90),bgi:sapS6129(c.backgroundImage,240),mask:sapS6129(c.webkitMaskImage||c.maskImage,240),bs:sapS6129(c.boxShadow,180),bd:sapS6129(c.border,140),blend:sapS6129(c.mixBlendMode,60)},bef:{ct:sapS6129(b.content,90),bg:sapS6129(b.backgroundColor,90),bgi:sapS6129(b.backgroundImage,220),mask:sapS6129(b.webkitMaskImage||b.maskImage,220),f:sapS6129(b.filter,120),col:sapS6129(b.color,80),bs:sapS6129(b.boxShadow,140)},aft:{ct:sapS6129(a.content,90),bg:sapS6129(a.backgroundColor,90),bgi:sapS6129(a.backgroundImage,220),mask:sapS6129(a.webkitMaskImage||a.maskImage,220),f:sapS6129(a.filter,120),col:sapS6129(a.color,80),bs:sapS6129(a.boxShadow,140)}};}catch(x){return{err:String(x)}}}"
+         "function sapChain6129(e,lim){var A=[];try{var p=e,d=0;while(p&&d++<(lim||9)){A.push(sapN6129(p));p=p.parentElement;}}catch(x){}return A;}"
+         "function sapNear6129(label){var A=[];try{var lr=label.getBoundingClientRect(),root=label.parentElement||label,Q=root.querySelectorAll?root.querySelectorAll('i,svg,path,img,span,div,button,[role=button]'):[];for(var i=0;i<Q.length&&i<90&&A.length<20;i++){var e=Q[i];if(e===label)continue;var r=e.getBoundingClientRect();if(r.width<5||r.height<5||r.width>46||r.height>46)continue;var cx=r.left+r.width/2,cy=r.top+r.height/2,lcy=lr.top+lr.height/2;if(Math.abs(cy-lcy)>34||cx<lr.left-50||cx>lr.right+90)continue;var cs=getComputedStyle(e),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),bi=String(cs.backgroundImage||'none'),cl=sapCls6129(e);if(/info|feedback|sponsor|icon|sprite/i.test(cl)||mi!=='none'||bi!=='none'||/^(I|SVG|PATH|IMG)$/.test(String(e.tagName||'')))A.push(sapN6129(e));}}catch(x){}return A;}"
+         "function sapRoot6129(label){try{var p=label,d=0,best=null;while(p&&d++<11){var r=p.getBoundingClientRect();if(r.width>=220&&r.height>=42&&r.height<=420)best=p;if(r.width>=(innerWidth||390)*.88&&r.height>=48){best=p;break;}p=p.parentElement;}return best;}catch(x){return null;}}"
+         "function sapMedia6129(root){var A=[];try{if(!root)return A;var Q=root.querySelectorAll?root.querySelectorAll('img,video,canvas,iframe,[data-ad-twb6033],[data-ad-twb-bg6033]'):[];for(var i=0;i<Q.length&&i<120&&A.length<36;i++){var e=Q[i],r=e.getBoundingClientRect();if(r.width<10||r.height<10)continue;A.push(sapN6129(e));}}catch(x){}return A;}"
+         "function sapDump6129(){try{var out={url:String(location.href),top:(window.top===window),wh:[innerWidth||0,innerHeight||0],home:!!(document.documentElement&&document.documentElement.hasAttribute('data-ad-twb-home6033')),labels:[],frames:[],twb:[]};var W=document.createTreeWalker(document.body||document.documentElement,NodeFilter.SHOW_TEXT),nd,seen=0;while((nd=W.nextNode())&&seen++<9000&&out.labels.length<24){var t=String(nd.nodeValue||'').replace(/\\s+/g,' ').trim();if(!/^sponsored(?: ad)?$/i.test(t))continue;var e=nd.parentElement;if(!e)continue;var r=e.getBoundingClientRect();if(r.width<18||r.height<5||r.bottom<-80||r.top>(innerHeight||900)+120)continue;var root=sapRoot6129(e);out.labels.push({text:t,label:sapN6129(e),chain:sapChain6129(e,10),near:sapNear6129(e),root:root?sapN6129(root):null,media:sapMedia6129(root)});}var F=document.getElementsByTagName('iframe');for(var i=0;i<F.length&&out.frames.length<18;i++){var f=F[i],fr=f.getBoundingClientRect();if(fr.width<80||fr.height<24)continue;out.frames.push({frame:sapN6129(f),chain:sapChain6129(f,8)});}var T=document.getElementsByTagName?document.getElementsByTagName('*'):[];for(var j=0;j<T.length&&out.twb.length<50;j++){var z=T[j];if(!(z.hasAttribute&&((z.hasAttribute('data-ad-twb6033'))||(z.hasAttribute('data-ad-twb-bg6033')))))continue;var zr=z.getBoundingClientRect();if(zr.width<20||zr.height<20||zr.bottom<-100||zr.top>(innerHeight||900)+160)continue;out.twb.push(sapN6129(z));}window.__AD_STANDAD6129__.push(out);if(window.__AD_STANDAD6129__.length>8)window.__AD_STANDAD6129__.shift();return JSON.stringify(out);}catch(e){return 'ERR '+String(e);}}"
+         "window.__AD_STANDAD6129_DUMP__=sapDump6129;"
+         "window.__AD_PDP6170_DUMP__=function(){try{var P=window.__AD_PDP6170__||{},nav=(performance.getEntriesByType&&performance.getEntriesByType('navigation')[0])||null,res=(performance.getEntriesByType&&performance.getEntriesByType('resource'))||[],slow=[];for(var i=0;i<res.length;i++){var x=res[i];slow.push({n:String(x.name||'').slice(-180),d:Math.round((x.duration||0)*10)/10,t:String(x.initiatorType||''),ts:x.transferSize||0});}slow.sort(function(a,b){return b.d-a.d;});if(slow.length>24)slow.length=24;var I=document.images||[],done=0;for(var j=0;j<I.length;j++)if(I[j].complete)done++;var review=0;try{review=document.querySelectorAll('[id*=review],[class*=review],[data-hook*=review]').length;}catch(x){}return JSON.stringify({url:String(location.href),title:String(document.title||'').slice(0,160),ready:document.readyState,hidden:document.hidden,y:Math.round(scrollY||0),h:Math.round((document.documentElement&&document.documentElement.scrollHeight)||0),dom:(document.getElementsByTagName?document.getElementsByTagName('*').length:0),img:[I.length,done],review:review,loaded:!!window.__AMZDARK_LOADED__,healed:!!window.__AMZDARK_HEALED__,dr:!!(window.DarkReader&&DarkReader.enable),twb:!!window.__AD_TWB6027_INSTALLED__,sym:!!window.__AD_SYM605_LOADED__,drStyle:(document.querySelectorAll?document.querySelectorAll('style.darkreader').length:0),p:P,nav:nav?{type:nav.type,domInteractive:Math.round(nav.domInteractive||0),dcl:Math.round(nav.domContentLoadedEventEnd||0),load:Math.round(nav.loadEventEnd||0),duration:Math.round(nav.duration||0),transferSize:nav.transferSize||0}:null,resCount:res.length,slow:slow});}catch(e){return 'ERR '+String(e);}};"
+         "window.__AD_FLASH6101_DUMP__=window.__AD_PDP6170_DUMP__;"
          // Re-run fallback repair as lazy content arrives, but never synchronously in
          // the MutationObserver. v6.0.82 no longer discards native-ad descendants here:
          // __AMZDARK_FIXCONTRAST__ routes every such element through prodInk6078 and
@@ -1983,6 +1681,7 @@ static NSString *ADDarkReaderReapply(void){
     if (gADReapply613) return gADReapply613;
     gADReapply613 = [NSString stringWithFormat:
         @"(function(){try{"
+         "var __p6170=window.__AD_PDP6170__;if(__p6170){__p6170.reapply=(__p6170.reapply||0)+1;__p6170.lastReapply=performance.now();}"
          "if(!(window.DarkReader&&DarkReader.enable))return 'noDR';"
          "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
          "if(window.__AMZDARK_FIXCONTRAST__){if(window.__AD_IDLE6056__){window.__AD_IDLE6056__(function(){window.__AMZDARK_FIXCONTRAST__();if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);},260);return 'queued';}return ''+window.__AMZDARK_FIXCONTRAST__();}"
@@ -2254,6 +1953,21 @@ static void ADBootstrapDarkReaderIn(WKWebView *wv){
 // just to rediscover the same handful of web views.
 static NSHashTable *gADWebViews613 = nil;
 static BOOL gADWebDiscoveryDone613 = NO;
+// Treat only a mounted, actually visible branch as eligible for runtime re-theme.
+// Retained/prewarmed controllers are deliberately left cold until Amazon presents them.
+static BOOL ADWebViewLive6169(WKWebView *wv){
+    if (!wv || !wv.window || wv.hidden || wv.alpha < 0.01) return NO;
+    @try {
+        UIView *p=wv.superview;
+        int depth=0;
+        while (p && depth++ < 32){
+            if (p.hidden || p.alpha < 0.01) return NO;
+            if (p == wv.window) return YES;
+            p=p.superview;
+        }
+    } @catch(...) { return wv.window != nil; }
+    return NO;
+}
 static void ADTrackWebView613(WKWebView *wv){
     if (!wv) return;
     @try {
@@ -2263,13 +1977,15 @@ static void ADTrackWebView613(WKWebView *wv){
 }
 
 static void ADWalkWebViews613(UIView *v){
-    if (!v) return;
+    if (!v || v.hidden || v.alpha < 0.01) return;
     @try {
         if ([v isKindOfClass:[WKWebView class]]){
             WKWebView *wv=(WKWebView *)v;
             ADTrackWebView613(wv);
-            ADPrimeWebBacking611(wv);
-            ADEnableDarkReaderIn(wv);
+            if (ADWebViewLive6169(wv)){
+                ADPrimeWebBacking611(wv);
+                ADEnableDarkReaderIn(wv);
+            }
             return; // WKWebView internals cannot contain another app WKWebView.
         }
         for (UIView *s in v.subviews) ADWalkWebViews613(s);
@@ -2286,41 +2002,93 @@ static void ADInjectAllWebViews(void){
             return;
         }
         for (WKWebView *wv in gADWebViews613.allObjects){
-            if (!wv) continue;
+            // v6.0.169: an off-window WebView is Amazon's retained/prewarmed state.
+            // Do not evaluate JavaScript, restyle it, or otherwise wake it while it is
+            // serving as a warm navigation/cache candidate. didMoveToWindow heals it
+            // when Amazon actually presents it again.
+            if (!ADWebViewLive6169(wv)) continue;
             ADPrimeWebBacking611(wv);
             ADEnableDarkReaderIn(wv);
         }
     } @catch(...) {}
 }
 
-// ════════════════════════════════════════════════════════════════════════════════
-// WKUserContentController — restore our script the moment Amazon strips it.
-// ────────────────────────────────────────────────────────────────────────────────
-// The binary exports removeAllUserScripts and AMIPrewarmWebviewTask: Amazon prewarms
-// web views and clears their user scripts on reuse. That is why 'noflag' recurred on
-// every navigation no matter how many times we healed the current document — the
-// documentStart hook was being removed behind us, so each new page painted white
-// before the repair could land. Re-adding immediately after the strip means the next
-// document is themed at documentStart, before first paint, so there is no white gap
-// at all rather than a gap we race to patch.
-// ════════════════════════════════════════════════════════════════════════════════
-%hook WKUserContentController
-- (void)removeAllUserScripts {
-    %orig;
+// v6.0.98 diagnostic exporter.  The JS ring buffer above reuses an existing DOM
+// observer; backgrounding once after reproducing the flash simply dumps that buffer.
+static NSString *gADFlashProbePath6131 = nil;
+static NSString *ADFlashProbeRequestedPath6131(void){
+    return @"/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/AmazonDark-pdp-performance-probe-6170.txt";
+}
+static NSString *ADFlashProbeFallbackPath6131(void){
+    return [[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:@"AmazonDark-pdp-performance-probe-6170.txt"];
+}
+static NSString *ADFlashProbePath6101(void){
+    return gADFlashProbePath6131 ?: ADFlashProbeFallbackPath6131();
+}
+static void ADAppendFlashProbe6101(NSString *line){
+    if (!line.length) return;
     @try {
-        if (!gP.enabled || !gP.webDarkReader) return;
-        NSString *boot = ADDarkReaderBootstrap();
-        Class WKUS = NSClassFromString(@"WKUserScript");
-        if (!boot.length || !WKUS) return;
-        WKUserScript *us = [[WKUS alloc] initWithSource:boot
-                                          injectionTime:WKUserScriptInjectionTimeAtDocumentStart
-                                       forMainFrameOnly:NO];
-        [self addUserScript:us];
-        ADAttachWhiteTameUserScript446(self);
-        ADAttachThreeSymbolsUserScript605(self);
+        NSString *path=ADFlashProbePath6101();
+        NSFileHandle *fh=[NSFileHandle fileHandleForWritingAtPath:path];
+        if (!fh){
+            NSError *e=nil;
+            [line writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:&e];
+            return;
+        }
+        [fh seekToEndOfFile]; [fh writeData:[line dataUsingEncoding:NSUTF8StringEncoding]]; [fh closeFile];
     } @catch(...) {}
 }
-%end
+static void ADResetFlashProbe6101(void){
+    @try {
+        NSString *requested=ADFlashProbeRequestedPath6131();
+        NSString *fallback=ADFlashProbeFallbackPath6131();
+        NSString *base=[NSString stringWithFormat:@"AmazonDark PDP performance probe 6170\nversion=%s\npid=%d\nrequested=%@\n",AD_VERSION,getpid(),requested];
+        NSError *e=nil;
+        BOOL ok=[base writeToFile:requested atomically:YES encoding:NSUTF8StringEncoding error:&e];
+        if (ok){
+            gADFlashProbePath6131=requested;
+            ADAppendFlashProbe6101(@"output=requested-shared-documents\n\n");
+            return;
+        }
+        gADFlashProbePath6131=fallback;
+        NSString *h=[base stringByAppendingFormat:@"output=fallback-amazon-documents\nprimaryWriteError=%@ (%ld) %@\nfallback=%@\n\n",e.domain?:@"?",(long)e.code,e.localizedDescription?:@"?",fallback];
+        NSError *fe=nil;
+        [h writeToFile:fallback atomically:YES encoding:NSUTF8StringEncoding error:&fe];
+        if (fe) NSLog(@"[AmazonDark] v6.0.131 probe fallback write failed: %@",fe);
+    } @catch(...) {}
+}
+static void ADDumpFlashProbe6101(NSString *label){
+    if (![NSThread isMainThread]){ dispatch_async(dispatch_get_main_queue(), ^{ ADDumpFlashProbe6101(label); }); return; }
+    @try {
+        NSArray *views=gADWebViews613.allObjects; NSUInteger idx=0;
+        ADAppendFlashProbe6101([NSString stringWithFormat:@"DUMP %@ uptime=%.3f webviews=%lu\n",label?:@"?",ADUptime(),(unsigned long)views.count]);
+        for (WKWebView *wv in views){
+            if (!wv || !wv.window) continue;
+            NSString *url=wv.URL.absoluteString?:@""; NSUInteger my=idx++;
+            [wv evaluateJavaScript:@"(function(){try{return window.__AD_FLASH6101_DUMP__?window.__AD_FLASH6101_DUMP__():'NO_PROBE';}catch(e){return 'ERR '+String(e);}})();" completionHandler:^(id result,NSError *error){
+                NSString *body=error?[NSString stringWithFormat:@"ERROR %@",error]:([result isKindOfClass:[NSString class]]?result:[result description]);
+                ADAppendFlashProbe6101([NSString stringWithFormat:@"WEBVIEW %lu %@\n%@\n\n",(unsigned long)my,url,body?:@"(nil)"]);
+            }];
+        }
+        if (!idx) ADAppendFlashProbe6101(@"NO MOUNTED WEBVIEWS\n\n");
+    } @catch(...) {}
+}
+static void ADFlashWillResign6101(CFNotificationCenterRef center, void *observer,
+                                  CFStringRef name, const void *object,
+                                  CFDictionaryRef userInfo){
+    dispatch_async(dispatch_get_main_queue(), ^{
+        @try { ADDumpFlashProbe6101(@"WILL_RESIGN_ACTIVE"); } @catch(...) {}
+    });
+}
+
+
+// v6.0.169 — preserve Amazon's native prewarm/reuse lifecycle.
+// Amazon intentionally clears WKUserContentController scripts while recycling a
+// prewarmed WebView. Older AmazonDark builds synchronously re-added our scripts from
+// inside removeAllUserScripts, changing the state Amazon expected at the end of that
+// cleanup transaction. Leave that API completely stock. A mounted WebView is healed
+// by didMoveToWindow / viewDidAppear, and the current document can still receive the
+// idempotent runtime bootstrap without forcing a reload or touching WebKit caches.
 
 // v6.0.11: keep WebKit's backing surfaces dark, not just the DOM. At 120 Hz a
 // very fast fling can expose an unpainted/recycled WebKit tile for a frame or two;
@@ -2338,78 +2106,6 @@ static void ADPrimeWebBacking611(WKWebView *wv){
         @try { [wv setValue:dark forKey:@"underPageBackgroundColor"]; } @catch(...) {}
     } @catch(...) {}
 }
-
-
-// ── Dark Reader cost capture + CSS cache write (v6.0.168) ────────────────────
-// Read back what the page recorded, append the numbers to the perf dump, and write
-// the generated CSS to disk keyed by page shape. Nothing consumes the cache yet: the
-// open question is whether one PDP's generated CSS is reusable on a different PDP.
-// Sizes and a stored sample answer that; applying a cache before knowing would theme
-// pages wrong on the device rather than in a file.
-static NSString *ADPageShape168(NSString *url){
-    NSString *u = url ?: @"";
-    if ([u containsString:@"/dp/"] || [u containsString:@"/gp/product/"] ||
-        [u containsString:@"/gp/aw/d/"])                       return @"pdp";
-    if ([u containsString:@"/s?"] || [u containsString:@"field-keywords="]) return @"search";
-    if ([u containsString:@"/gp/gw/"] || [u containsString:@"mshop.html"])  return @"home";
-    if ([u containsString:@"/cart"] || [u containsString:@"/gp/cart"])      return @"cart";
-    return @"other";
-}
-
-static void ADCaptureDRCost168(WKWebView *wv){
-    if (!wv) return;
-    @try {
-        [wv evaluateJavaScript:
-            @"(function(){try{var r=window.__ADDRT168__;"
-             "if(!r)return JSON.stringify({noRecord:1,hasDR:(window.DarkReader?1:0),"
-             "wrapped:(window.DarkReader&&window.DarkReader.__adWrapped169)?1:0,"
-             "themed:(document.querySelector('style.darkreader')?1:0),"
-             "url:String(location.href||'').slice(0,160)});"
-             "return JSON.stringify({ms:Math.round(r.ms||-1),sheets:r.sheets,sheetsAfter:r.sheetsAfter,"
-             "nodes:r.nodes,nodesAfter:r.nodesAfter,cssLen:(r.cssLen===undefined?-9:r.cssLen),"
-             "wrapped:(window.DarkReader&&window.DarkReader.__adWrapped169)?1:0,url:r.url});}catch(e){return '';}})()"
-         completionHandler:^(id res, NSError *err){
-            NSString *j = [res isKindOfClass:NSString.class] ? (NSString *)res : nil;
-            if (!j.length) return;
-            @try {
-                NSString *path = ADPerfPath163();
-                NSString *line = [NSString stringWithFormat:@"DRCOST %@\n", j];
-                NSString *prev = [NSString stringWithContentsOfFile:path
-                                    encoding:NSUTF8StringEncoding error:nil];
-                [(prev.length ? [prev stringByAppendingString:line] : line)
-                    writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
-                [[NSFileManager defaultManager] setAttributes:@{NSFilePosixPermissions:@(0666)}
-                                                 ofItemAtPath:path error:nil];
-            } @catch(...) {}
-         }];
-
-        // Store the generated CSS itself, one file per page shape, so a later build can
-        // diff two PDP captures and settle whether the cache generalises.
-        [wv evaluateJavaScript:
-            @"(function(){try{var r=window.__ADDRT168__;return (r&&r.css)?r.css:'';}catch(e){return '';}})()"
-         completionHandler:^(id res, NSError *err){
-            NSString *css = [res isKindOfClass:NSString.class] ? (NSString *)res : nil;
-            if (css.length < 64) return;
-            @try {
-                NSString *shape = ADPageShape168(wv.URL.absoluteString);
-                NSString *dir = [ADPerfDir163() stringByAppendingPathComponent:@"ad-drcache"];
-                [[NSFileManager defaultManager] createDirectoryAtPath:dir
-                    withIntermediateDirectories:YES attributes:nil error:nil];
-                // Keep two samples per shape so they can be compared against each other.
-                NSString *a = [dir stringByAppendingPathComponent:
-                               [NSString stringWithFormat:@"%@-1.css", shape]];
-                NSString *b = [dir stringByAppendingPathComponent:
-                               [NSString stringWithFormat:@"%@-2.css", shape]];
-                NSFileManager *fm = [NSFileManager defaultManager];
-                NSString *dest = [fm fileExistsAtPath:a] ? b : a;
-                if ([fm fileExistsAtPath:a] && [fm fileExistsAtPath:b]) return;
-                [css writeToFile:dest atomically:YES encoding:NSUTF8StringEncoding error:nil];
-                [fm setAttributes:@{NSFilePosixPermissions:@(0666)} ofItemAtPath:dest error:nil];
-            } @catch(...) {}
-         }];
-    } @catch(...) {}
-}
-// ── end capture ──────────────────────────────────────────────────────────────
 
 %hook WKWebView
 - (id)initWithFrame:(CGRect)frame configuration:(WKWebViewConfiguration *)cfg {
@@ -2433,16 +2129,13 @@ static void ADCaptureDRCost168(WKWebView *wv){
     return wv;
 }
 - (void)didMoveToWindow {
-    AD_PERF(ADP_WKWebView_didMoveToWindow);
     %orig;
     @try {
-        { AD_PERF(ADP_sub_TrackWebView); ADTrackWebView613(self); }
+        ADTrackWebView613(self);
         if (!self.window || !gP.enabled || !gP.webDarkReader) return;
-        { AD_PERF(ADP_sub_PrimeWebBacking); ADPrimeWebBacking611(self); }
-        // exact v5.446 instant dark floor for a page that is mid-load
-        { AD_PERF(ADP_sub_PreDarken); ADPreDarken(self); }
-        { AD_PERF(ADP_sub_AttachSymbols);
-          ADAttachThreeSymbolsUserScript605(self.configuration.userContentController); }
+        ADPrimeWebBacking611(self);
+        ADPreDarken(self);   // exact v5.446 instant dark floor for a page that is mid-load
+        ADAttachThreeSymbolsUserScript605(self.configuration.userContentController);
         // Attach a documentStart user-script even to pre-initialised web views (e.g. the
         // warmed gateway) so a pull-to-refresh re-applies Dark Reader on the next load.
         static const void *kUS = &kUS;
@@ -2451,13 +2144,11 @@ static void ADCaptureDRCost168(WKWebView *wv){
             Class WKUS = NSClassFromString(@"WKUserScript");
             WKUserContentController *ucc = self.configuration.userContentController;
             if (js.length && WKUS && ucc){
-                WKUserScript *us;
-                { AD_PERF(ADP_sub_BuildBootScript);
-                  us = [[WKUS alloc] initWithSource:js
-                                      injectionTime:WKUserScriptInjectionTimeAtDocumentStart
-                                   forMainFrameOnly:NO]; }
-                { AD_PERF(ADP_sub_AddBootScript); [ucc addUserScript:us]; }
-                { AD_PERF(ADP_sub_AttachTWB); ADAttachWhiteTameUserScript446(ucc); }
+                WKUserScript *us = [[WKUS alloc] initWithSource:js
+                                                  injectionTime:WKUserScriptInjectionTimeAtDocumentStart
+                                               forMainFrameOnly:NO];
+                [ucc addUserScript:us];
+                ADAttachWhiteTameUserScript446(ucc);
             }
             objc_setAssociatedObject(self, kUS, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
@@ -2467,10 +2158,9 @@ static void ADCaptureDRCost168(WKWebView *wv){
 - (void)webView:(WKWebView *)wv didFinishNavigation:(id)nav {
     %orig;
     ADTrackWebView613(self);
-    ADEnableDarkReaderIn(self);
-    // Dark Reader finishes asynchronously after enable(); sample once it has settled.
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)),
-                   dispatch_get_main_queue(), ^{ ADCaptureDRCost168(wv); });
+    // Hidden/prewarmed navigation is Amazon-owned. Do not wake or mutate a retained
+    // WebView merely because it finished loading in the background.
+    if (ADWebViewLive6169(self)) ADEnableDarkReaderIn(self);
     // v5.446 direct-port cover release: only a real Amazon page counts.
     @try {
         NSString *nu = wv.URL.absoluteString ?: @"";
@@ -2801,6 +2491,84 @@ static void ADRefreshPromotionState611(void){
     }
 }
 
+// ── one-shot 120 Hz verification ──────────────────────────────────────────────
+@interface ADHzProbeTarget : NSObject
+@property(nonatomic,assign) NSUInteger frames;
+@property(nonatomic,assign) CFTimeInterval firstTS;
+@property(nonatomic,assign) double timingHzSum;
+@property(nonatomic,assign) NSUInteger timingSamples;
+@property(nonatomic,assign) BOOL forceAtStart;
+@end
+static ADHzProbeTarget *gADHzProbeTarget = nil;
+static CADisplayLink *gADHzProbeLink611 = nil;
+static BOOL gADHzProbeDone = NO;
+@implementation ADHzProbeTarget
+- (void)tick:(CADisplayLink *)link {
+    @try {
+        if (self.firstTS <= 0) self.firstTS = link.timestamp;
+        self.frames++;
+        CFTimeInterval dt = link.targetTimestamp - link.timestamp;
+        if (dt > 0.001 && dt < 0.1){ self.timingHzSum += 1.0/dt; self.timingSamples++; }
+        CFTimeInterval elapsed = link.timestamp - self.firstTS;
+        if (elapsed < 1.0) return;
+        double callbackHz = elapsed > 0 ? ((double)(self.frames - 1) / elapsed) : 0;
+        double timingHz = self.timingSamples ? self.timingHzSum / (double)self.timingSamples : 0;
+        NSInteger maxHz = UIScreen.mainScreen.maximumFramesPerSecond;
+        BOOL unlocked = [[[NSBundle mainBundle] objectForInfoDictionaryKey:ADPromotionInfoKey607] boolValue];
+        BOOL legacyUnlocked = [[[NSBundle mainBundle] objectForInfoDictionaryKey:ADPromotionLegacyInfoKey609] boolValue];
+        BOOL lowPower = [NSProcessInfo processInfo].lowPowerModeEnabled;
+        NSInteger thermal = 0;
+        if (@available(iOS 11.0, *)) thermal = [NSProcessInfo processInfo].thermalState;
+        double durationHz = link.duration > 0.0001 ? 1.0/link.duration : 0;
+        NSInteger preferredFPS = link.preferredFramesPerSecond;
+        CAFrameRateRange requested = CAFrameRateRangeMake(0,0,0);
+        if (@available(iOS 15.0,*)) requested = link.preferredFrameRateRange;
+
+        id display = ADDisplayForLink610(link);
+        BOOL forceAPI = display && [display respondsToSelector:NSSelectorFromString(@"overrideMinimumFrameDuration:")];
+        BOOL reasonAPI = [link respondsToSelector:NSSelectorFromString(@"setHighFrameRateReason:")];
+        double displayHz = 0, linkMaxHz = 0;
+        NSInteger actualFPS = 0, minFrameDuration = 0;
+        SEL refreshSel = NSSelectorFromString(@"refreshRate");
+        if (display && [display respondsToSelector:refreshSel]) displayHz = ((double(*)(id,SEL))objc_msgSend)(display,refreshSel);
+        SEL maxSel = NSSelectorFromString(@"maximumRefreshRate");
+        if ([link respondsToSelector:maxSel]) linkMaxHz = ((double(*)(id,SEL))objc_msgSend)(link,maxSel);
+        SEL actualSel = NSSelectorFromString(@"actualFramesPerSecond");
+        if ([link respondsToSelector:actualSel]) actualFPS = ((NSInteger(*)(id,SEL))objc_msgSend)(link,actualSel);
+        SEL minSel = NSSelectorFromString(@"minimumFrameDuration");
+        if ([link respondsToSelector:minSel]) minFrameDuration = ((NSInteger(*)(id,SEL))objc_msgSend)(link,minSel);
+
+        NSString *report = [NSString stringWithFormat:
+            @"AmazonDark %@\nforce120Hz=%d\nscreenMax=%ld\nbundleHighRefreshUnlocked=%d\nbundleLegacyUnlocked=%d\nlowPowerMode=%d\nthermalState=%ld\nprivateDisplayForceAPI=%d\nprivateDisplayForceHook=%d\nprivateDisplayForceActive=%d\nhighFrameRateReasonAPI=%d\ndisplayRefreshRate=%.1f\nlinkMaximumRefreshRate=%.1f\nrequestedRange=%.1f-%.1f preferred=%.1f\npreferredFPS=%ld\nactualFPS=%ld\nminimumFrameDuration=%ld\ndurationHz=%.1f\ncallbackHz=%.1f\ntargetTimingHz=%.1f\n",
+            @AD_VERSION, self.forceAtStart ? 1 : 0, (long)maxHz, unlocked ? 1 : 0, legacyUnlocked ? 1 : 0,
+            lowPower ? 1 : 0, (long)thermal, forceAPI ? 1 : 0,
+            gADCADisplayOverrideInstalled610 ? 1 : 0, self.forceAtStart ? 1 : 0, reasonAPI ? 1 : 0,
+            displayHz, linkMaxHz, requested.minimum, requested.maximum, requested.preferred,
+            (long)preferredFPS, (long)actualFPS, (long)minFrameDuration,
+            durationHz, callbackHz, timingHz];
+        NSString *path = [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-hz.txt"];
+        [report writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        [link invalidate]; gADHzProbeTarget = nil; gADHzProbeLink611 = nil;
+    } @catch(...) { [link invalidate]; gADHzProbeTarget=nil; gADHzProbeLink611=nil; }
+}
+@end
+static void ADStopHzVerification611(void){
+    @try { if (gADHzProbeLink611) [gADHzProbeLink611 invalidate]; } @catch(...) {}
+    gADHzProbeLink611 = nil; gADHzProbeTarget = nil; gADHzProbeDone = NO;
+}
+static void ADStartHzVerification(void){
+    @try {
+        if (!gP.enabled || gADHzProbeDone || gADHzProbeTarget) return;
+        gADHzProbeDone = YES;
+        ADHzProbeTarget *p = [ADHzProbeTarget new];
+        p.forceAtStart = ADPromotionPreferenceOn611();
+        CADisplayLink *d = [CADisplayLink displayLinkWithTarget:p selector:@selector(tick:)];
+        gADHzProbeTarget=p; gADHzProbeLink611=d;
+        [d addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+    } @catch(...) { gADHzProbeTarget=nil; gADHzProbeLink611=nil; }
+}
+
+
 // ════════════════════════════════════════════════════════════════════════════════
 // SURFACE 2 — NATIVE CHROME via Amazon's own dark theme (flip the Weblab gate)
 // ════════════════════════════════════════════════════════════════════════════════
@@ -3013,6 +2781,12 @@ static UIColor *ADBarBlue(void){
 }
 static UIColor *ADBarWhite(void){ return ADColorFromHex(gP.fgHex); }   // marked-own ~white
 static const void *kADBarSelKey = &kADBarSelKey;
+// v6.0.153: transient finger-down state is separate from Amazon's committed
+// selected state. Reusing kADBarSelKey for both let the next correction pass read
+// Amazon's still-old `selected` bit and repaint the just-tapped glyph blue for a
+// frame (or longer on a busy transition). The press key wins only while the touch
+// is being committed; setSelected:YES clears it once Amazon catches up.
+static const void *kADBarPressKey = &kADBarPressKey;
 static const void *kADIndicatorKey = &kADIndicatorKey;
 // React-Native glyph invert bookkeeping (used by the CALayer setFilters guard
 // below and the ADInvertRNSVG helper further down).
@@ -3038,18 +2812,41 @@ static void ADRememberBarSelection(UIView *root, BOOL selected){
         for (UIView *s in root.subviews) ADRememberBarSelection(s, selected);
     } @catch(...) {}
 }
+static void ADRememberBarPress(UIView *root, BOOL selected){
+    if (!root) return;
+    @try {
+        objc_setAssociatedObject(root, kADBarPressKey, @(selected), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        for (UIView *s in root.subviews) ADRememberBarPress(s, selected);
+    } @catch(...) {}
+}
+static void ADClearBarPress(UIView *root){
+    if (!root) return;
+    @try {
+        objc_setAssociatedObject(root, kADBarPressKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        for (UIView *s in root.subviews) ADClearBarPress(s);
+    } @catch(...) {}
+}
 // Recorded state beats a live ancestor walk: during a tap the walk can observe the
-// pre-tap value and repaint blue over the white we just set.
+// pre-tap value and repaint blue over the white we just set. v6.0.153 gives the
+// transient finger-down claim first priority, then the committed Amazon selection.
 static BOOL ADBarSelectionKnown(UIView *v, BOOL *out){
-    int d = 0;
-    while (v && d++ < 12){
-        NSNumber *n = objc_getAssociatedObject(v, kADBarSelKey);
+    int d = 0; UIView *p = v;
+    while (p && d++ < 12){
+        NSNumber *n = objc_getAssociatedObject(p, kADBarPressKey);
         if (n){ *out = n.boolValue; return YES; }
-        v = v.superview;
+        p = p.superview;
+    }
+    d = 0; p = v;
+    while (p && d++ < 12){
+        NSNumber *n = objc_getAssociatedObject(p, kADBarSelKey);
+        if (n){ *out = n.boolValue; return YES; }
+        p = p.superview;
     }
     return NO;
 }
 static BOOL ADViewIsSelectedInBar(UIView *v){
+    BOOL known = NO;
+    if (ADBarSelectionKnown(v, &known)) return known;
     int d = 0;
     while (v && d++ < 12){
         if ([v isKindOfClass:[UIControl class]] && ((UIControl *)v).selected) return YES;
@@ -3101,8 +2898,11 @@ static void ADApplyBarTint(UIView *container, BOOL selected);
 static void ADCorrectBarTintsIn(UIView *v){
     if (!v) return;
     @try {
-        if ([v isKindOfClass:[UIControl class]] && ADInTabBarChain(v))
-            ADApplyBarTint(v, ((UIControl *)v).selected);
+        if ([v isKindOfClass:[UIControl class]] && ADInTabBarChain(v)){
+            BOOL sel = NO;
+            if (!ADBarSelectionKnown(v, &sel)) sel = ((UIControl *)v).selected;
+            ADApplyBarTint(v, sel);
+        }
         for (UIView *sv in v.subviews) ADCorrectBarTintsIn(sv);
     } @catch(...) {}
 }
@@ -3129,6 +2929,63 @@ static void ADApplyBarTint(UIView *container, BOOL selected){
     } @catch(...) {}
 }
 
+// v6.0.153: resolve the nearest Amazon bottom-nav host so finger-down can perform
+// one exclusive color swap: tapped branch -> white, every sibling tab branch ->
+// Amazon blue. This avoids waiting for Amazon's delayed selected-state transition.
+static UIView *ADBarHostForView6153(UIView *v){
+    UIView *fallback = nil; int d = 0;
+    while (v && d++ < 14){
+        const char *cn = object_getClassName(v);
+        if (cn){
+            if (strstr(cn, "CXIStoreModesBottomNavToolbar") ||
+                strstr(cn, "CXIStoreModesTabBarView") || strstr(cn, "ANPRetailTabBar")) return v;
+            if (strstr(cn, "BottomNav") || strstr(cn, "TabBar") || strstr(cn, "NavToolbar")) fallback = v;
+        }
+        v = v.superview;
+    }
+    return fallback;
+}
+static BOOL ADSameBarBranch6153(UIView *candidate, UIView *pressed){
+    if (!candidate || !pressed) return NO;
+    if (candidate == pressed) return YES;
+    @try {
+        if ([pressed isDescendantOfView:candidate]) return YES;
+        if ([candidate isDescendantOfView:pressed]) return YES;
+    } @catch(...) {}
+    return NO;
+}
+static void ADClaimBarPressWalk6153(UIView *v, UIView *pressed){
+    if (!v) return;
+    @try {
+        if ([v isKindOfClass:[UIControl class]] && ADInTabBarChain(v)){
+            BOOL hit = ADSameBarBranch6153(v, pressed);
+            ADRememberBarPress(v, hit);
+            ADApplyBarTint(v, hit);
+        }
+        for (UIView *s in v.subviews) ADClaimBarPressWalk6153(s, pressed);
+    } @catch(...) {}
+}
+static void ADClaimBarPress6153(UIView *pressed){
+    if (!pressed) return;
+    @try {
+        UIView *host = ADBarHostForView6153(pressed);
+        if (host){
+            ADClearBarPress(host);
+            ADClaimBarPressWalk6153(host, pressed);
+        } else {
+            ADRememberBarPress(pressed, YES);
+            ADApplyBarTint(pressed, YES);
+        }
+    } @catch(...) {}
+}
+static void ADReleaseBarPress6153(UIView *v){
+    if (!v) return;
+    @try {
+        UIView *host = ADBarHostForView6153(v);
+        ADClearBarPress(host ?: v);
+    } @catch(...) {}
+}
+
 // ─── UIView / UILabel / controls ──────────────────────────────────────────────────
 static void ADInvertRNSVG(UIView *v);
 
@@ -3152,7 +3009,6 @@ static BOOL ADIsAdaptiveTopNavBackgroundView(id obj){
 
 %hook UIView
 - (void)setBackgroundColor:(UIColor *)color {
-    AD_PERF(ADP_UIView_setBackgroundColor);
     // Authoritative Home top-chrome lock.  This intentionally precedes the nil/own
     // guards because Amazon's adaptive-nav implementation frequently clears the fill
     // to reveal/sample the carousel underneath.
@@ -3214,7 +3070,6 @@ static BOOL ADIsAdaptiveTopNavBackgroundView(id obj){
     %orig;
 }
 - (void)setTintColor:(UIColor *)color {
-    AD_PERF(ADP_UIView_setTintColor);
     // Tab bar FIRST, before the generic guard below. The blue/white flash was a fight:
     // we set a tab icon blue, Amazon reset its tint (often to nil -> reverts to the
     // bar's inherited near-white), our next sweep re-blued it. Overriding every
@@ -3273,12 +3128,10 @@ static BOOL ADIsAdaptiveTopNavBackgroundView(id obj){
 // owners instead so ordinary views pay zero SVG-probe cost.
 %hook RNSVGSvgView
 - (void)didMoveToWindow {
-    AD_PERF(ADP_RNSVGSvgView_didMoveToWindow);
     %orig;
     @try { if (gP.enabled && self.window) ADInvertRNSVG(self); } @catch(...) {}
 }
 - (void)layoutSubviews {
-    AD_PERF(ADP_RNSVGSvgView_layoutSubviews);
     %orig;
     @try { if (gP.enabled && self.window) ADInvertRNSVG(self); } @catch(...) {}
 }
@@ -3524,17 +3377,14 @@ static void ADPaintSignOutDialogButton6141(UIButton *b){
 
 %hook UILabel
 - (void)didMoveToWindow {
-    AD_PERF(ADP_UILabel_didMoveToWindow);
     %orig;
     @try { if (ADRecolorOn() && self.window) ADInvertRNSVG(self); } @catch(...) {}
 }
 - (void)layoutSubviews {
-    AD_PERF(ADP_UILabel_layoutSubviews);
     %orig;
     @try { if (ADRecolorOn() && self.window) ADInvertRNSVG(self); } @catch(...) {}
 }
 - (void)setTextColor:(UIColor *)color {
-    AD_PERF(ADP_UILabel_setTextColor);
     // Cancel remains explicitly white in this exact dialog.  Sign Out has no
     // special text owner; it falls through to the normal foreground pipeline.
     @try {
@@ -3563,7 +3413,6 @@ static void ADPaintSignOutDialogButton6141(UIButton *b){
 
 %hook UITextView
 - (void)setTextColor:(UIColor *)color {
-    AD_PERF(ADP_UITextView_setTextColor);
     if (!ADRecolorOn() || !color || ADIsOwnColor(color)) {
         %orig;
         return;
@@ -3580,7 +3429,6 @@ static void ADPaintSignOutDialogButton6141(UIButton *b){
 
 %hook UITextField
 - (void)setTextColor:(UIColor *)color {
-    AD_PERF(ADP_UITextField_setTextColor);
     if (!ADRecolorOn() || !color || ADIsOwnColor(color)) {
         %orig;
         return;
@@ -3597,7 +3445,6 @@ static void ADPaintSignOutDialogButton6141(UIButton *b){
 
 %hook UIButton
 - (void)setTitleColor:(UIColor *)color forState:(UIControlState)state {
-    AD_PERF(ADP_UIButton_setTitleColor);
     @try {
         BOOL so=NO,ca=NO;
         if(ADSignOutDialogButton6141(self,&so,&ca) && ca){
@@ -3619,7 +3466,6 @@ static void ADPaintSignOutDialogButton6141(UIButton *b){
     %orig;
 }
 - (void)layoutSubviews {
-    AD_PERF(ADP_UIButton_layoutSubviews);
     %orig;
     @try { ADPaintSignOutDialogButton6141(self); } @catch(...) {}
 }
@@ -3791,56 +3637,6 @@ static void ADMarkPersonRaster6151(UIView *v, int kind){
         objc_setAssociatedObject(v.layer,kADPersonRasterCard6150,@(kind),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     } @catch(...) {}
 }
-static BOOL ADPersonRasterHasSemantic6156(UIView *v){
-    if(!v) return NO;
-    @try {
-        if(v.accessibilityLabel.length) return YES;
-        return ADWTViewText362(v).length>0;
-    } @catch(...) {}
-    return NO;
-}
-static void ADRemovePersonOutline6156(UIView *v){
-    if(!v) return;
-    @try {
-        CAShapeLayer *ov=objc_getAssociatedObject(v,kADPersonBorderOverlay6147);
-        if(ov) [ov removeFromSuperlayer];
-        objc_setAssociatedObject(v,kADPersonBorderOverlay6147,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    } @catch(...) {}
-}
-static void ADClearPersonRasterClaim6156(UIView *v, BOOL redraw){
-    if(!v) return;
-    @try {
-        objc_setAssociatedObject(v,kADPersonRasterCard6150,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(v.layer,kADPersonRasterCard6150,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        if(!objc_getAssociatedObject(v,kADPersonBorderTarget6147)) ADRemovePersonOutline6156(v);
-        if(redraw && v.window){
-            [v setNeedsLayout];
-            [v setNeedsDisplay];
-            [v.layer setNeedsDisplay];
-        }
-    } @catch(...) {}
-}
-static void ADClearPersonBorderClaim6156(UIView *v, BOOL redraw){
-    if(!v) return;
-    @try {
-        objc_setAssociatedObject(v,kADPersonBorderTarget6147,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        if(!objc_getAssociatedObject(v,kADPersonRasterCard6150)) ADRemovePersonOutline6156(v);
-        if(redraw && v.window){
-            [v setNeedsLayout];
-            [v setNeedsDisplay];
-            [v.layer setNeedsDisplay];
-        }
-    } @catch(...) {}
-}
-static void ADClearPersonReuseClaims6156(UIView *v){
-    if(!v) return;
-    @try {
-        objc_setAssociatedObject(v,kADPersonRasterCard6150,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(v.layer,kADPersonRasterCard6150,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(v,kADPersonBorderTarget6147,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        ADRemovePersonOutline6156(v);
-    } @catch(...) {}
-}
 static void ADClearNestedPersonShapeStrokes6151(CALayer *root, CAShapeLayer *keep, int depth){
     if(!root || depth>4) return;
     @try {
@@ -3911,34 +3707,13 @@ static void ADPaintPersonRasterCard6150(id obj, int kind){
 }
 static void ADPersonRasterLayout6150(id obj){
     UIView *v=(UIView *)obj;
-    if(!ADRecolorOn() || !v) return;
+    if(!ADRecolorOn() || !v || !v.window) return;
     @try {
-        if(!v.window){
-            ADClearPersonReuseClaims6156(v);
-            return;
-        }
-
-        // Cheap arithmetic reject first: a view outside every candidate window can
-        // neither hold nor acquire a claim, so no association or semantic query is
-        // needed. Views that already carry a claim still fall through, so stale
-        // claims are retired exactly as before.
-        if(!ADPersonRasterCandidateGeometry6151(v) &&
-           !objc_getAssociatedObject(v,kADPersonRasterCard6150)) return;
-
-        int stored=[objc_getAssociatedObject(v,kADPersonRasterCard6150) intValue];
-        int live=ADPersonRasterKindForView6151(v);
-        BOOL hasSemantic=ADPersonRasterHasSemantic6156(v);
-
-        if(stored && (!ADPersonRasterGeometry6150(v,stored) ||
-           (hasSemantic && live!=stored))){
-            ADClearPersonRasterClaim6156(v,YES);
-            stored=0;
-        }
-
-        if(!stored && live) stored=live;
-        if(stored && ADPersonRasterGeometry6150(v,stored) &&
+        int kind=[objc_getAssociatedObject(v,kADPersonRasterCard6150) intValue];
+        if(!kind) kind=ADPersonRasterKindForView6151(v);
+        if(kind && ADPersonRasterGeometry6150(v,kind) &&
            (v.layer.contents || objc_getAssociatedObject(v,kADPersonRasterCard6150)))
-            ADPaintPersonRasterCard6150(v,stored);
+            ADPaintPersonRasterCard6150(v,kind);
     } @catch(...) {}
 }
 
@@ -4094,11 +3869,8 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     @try {
         NSString *t=ADWTViewText362(v);
         BOOL dummy=NO;
-        BOOL live=ADPersonBorderPhrase6147(t,&dummy);
-        if(live) ADClaimPersonBorder6147(v,t);
-        else if(t.length && objc_getAssociatedObject(v,kADPersonBorderTarget6147))
-            ADClearPersonBorderClaim6156(v,YES);
-
+        if(ADPersonBorderPhrase6147(t,&dummy))
+            ADClaimPersonBorder6147(v,t);
         if(objc_getAssociatedObject(v,kADPersonBorderTarget6147)){
             ADNeutralizeClaimedLayerTree6149(v.layer,0);
             ADPaintPersonBorder6147(v);
@@ -4110,7 +3882,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
 // probe 6140; it avoids waiting for a later Amazon border-color assignment.
 %hook SBSearchBar
 - (void)layoutSubviews {
-    AD_PERF(ADP_SBSearchBar_layoutSubviews);
     %orig;
     ADPaintAmazonSearchBorder6147(self);
 }
@@ -4118,7 +3889,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
 
 %hook SBSearchField
 - (void)layoutSubviews {
-    AD_PERF(ADP_SBSearchField_layoutSubviews);
     %orig;
     ADPaintAmazonSearchBorder6147(self);
 }
@@ -4127,7 +3897,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
 // Fabric text (new architecture). Setter lives on RCTParagraphComponentView.
 %hook RCTParagraphComponentView
 - (void)setAttributedText:(NSAttributedString *)attributedText {
-    AD_PERF(ADP_RCTParagraphComponentView_setAttributedText);
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         %orig(r);
@@ -4137,7 +3906,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     %orig;
 }
 - (void)_setAttributedString:(NSAttributedString *)attributedString {
-    AD_PERF(ADP_RCTParagraphComponentView_setAttributedString);
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedString);
         %orig(r);
@@ -4147,7 +3915,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     %orig;
 }
 - (void)layoutSubviews {
-    AD_PERF(ADP_RCTParagraphComponentView_layoutSubviews);
     %orig;
     @try { ADPersonBorderLayoutRecovery6149(self); } @catch(...) {}
 }
@@ -4156,7 +3923,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
 // Paper text (old architecture) — still present in this binary.
 %hook RCTTextView
 - (void)setTextStorage:(NSTextStorage *)textStorage {
-    AD_PERF(ADP_RCTTextView_setTextStorage);
     NSString *adBorderText6147=nil;
     @try {
         adBorderText6147=[textStorage.string copy];
@@ -4179,7 +3945,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     @try { ADClaimPersonBorderDeferred6147(self,adBorderText6147); } @catch(...) {}
 }
 - (void)layoutSubviews {
-    AD_PERF(ADP_RCTTextView_layoutSubviews);
     %orig;
     @try { ADPersonBorderLayoutRecovery6149(self); } @catch(...) {}
 }
@@ -4188,7 +3953,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
 // Some Amazon custom labels vend an attributed string through UILabel directly.
 %hook UILabel
 - (void)setAttributedText:(NSAttributedString *)attributedText {
-    AD_PERF(ADP_UILabel_setAttributedText);
     if (!ADRecolorOn() || !attributedText.length) {
         %orig;
         return;
@@ -4205,7 +3969,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
 // ─── CALayer: catches React Native (Fabric sets layer colours directly) ───────────
 %hook CALayer
 - (void)setBackgroundColor:(CGColorRef)color {
-    AD_PERF(ADP_CALayer_setBackgroundColor);
     // Amazon can bypass UIView and drive the adaptive Home nav's backing layer
     // directly.  Mirror the view-level lock so neither direct-layer updates nor a
     // transparent clear can hand the chrome back to carousel colour sampling.
@@ -4267,49 +4030,25 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     %orig;
 }
 - (void)setContents:(id)contents {
-    AD_PERF(ADP_CALayer_setContents);
+    // v6.0.151: intercept the raster plate at its first assignment, not one layout
+    // later.  This is what removes the brief white Explore border flash.
     @try {
         if(ADRecolorOn()){
-            int stored=[objc_getAssociatedObject(self,kADPersonRasterCard6150) intValue];
+            int kind=[objc_getAssociatedObject(self,kADPersonRasterCard6150) intValue];
             UIView *rv=nil;
             id d=self.delegate;
             if(d && [d isKindOfClass:[UIView class]]) rv=(UIView *)d;
 
-            int live=0;
-            BOOL hasSemantic=NO;
-            if(rv && ADIsRCTBorderHost6147(rv) && ADPersonRasterCandidateGeometry6151(rv)){
-                live=ADPersonRasterKindForView6151(rv);
-                hasSemantic=ADPersonRasterHasSemantic6156(rv);
+            if(!kind && contents && rv && ADIsRCTBorderHost6147(rv) &&
+               ADPersonRasterCandidateGeometry6151(rv)){
+                kind=ADPersonRasterKindForView6151(rv);
+                if(kind) ADMarkPersonRaster6151(rv,kind);
             }
 
-            if(stored && (!rv || !ADIsRCTBorderHost6147(rv) ||
-               !ADPersonRasterGeometry6150(rv,stored) || (hasSemantic && live!=stored))){
-                if(rv) ADClearPersonRasterClaim6156(rv,YES);
-                else objc_setAssociatedObject(self,kADPersonRasterCard6150,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                stored=0;
-            }
-
-            if(!stored && contents && live){
-                ADPerfBumpClaim164();
-                ADMarkPersonRaster6151(rv,live);
-                stored=live;
-            }
-
-            // v6.0.164: this used to suppress on (!hasSemantic || live==stored).
-            // The !hasSemantic arm is what blanks the Reviews tab. A recycled RCT
-            // view whose text has not been bound yet reports hasSemantic=NO, so it
-            // satisfied the suppression AND failed the retirement test above (which
-            // requires hasSemantic && live!=stored). Its contents were set to nil and
-            // the claim was never released; if RN never issues another setContents:
-            // on that layer, it stays blank permanently. Review cards land inside the
-            // kind-2 window (105-300 x 42-88), which is why that tab voids out.
-            // Require positive confirmation instead: blank only a view that is
-            // currently carrying a Person-matching label.
-            if(stored && rv && ADPersonRasterGeometry6150(rv,stored) &&
-               hasSemantic && live==stored){
-                ADPerfBumpSuppress164();
+            if(kind){
                 %orig(nil);
-                ADInstallPersonRasterOutline6151(rv,stored);
+                if(rv && ADPersonRasterGeometry6150(rv,kind))
+                    ADInstallPersonRasterOutline6151(rv,kind);
                 return;
             }
         }
@@ -4325,7 +4064,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     } @catch(...) {}
 }
 - (void)setBorderWidth:(CGFloat)width {
-    AD_PERF(ADP_CALayer_setBorderWidth);
     // Raster-backed Person cards use one CAShapeLayer outline only. Prevent RN from
     // restoring a second direct layer border around that authoritative outline.
     @try {
@@ -4337,7 +4075,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     %orig;
 }
 - (void)setBorderColor:(CGColorRef)color {
-    AD_PERF(ADP_CALayer_setBorderColor);
     if (!ADRecolorOn() || !color) {
         %orig;
         return;
@@ -4364,7 +4101,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     %orig;
 }
 - (void)setFilters:(NSArray *)filters {
-    AD_PERF(ADP_CALayer_setFilters);
     @try {
         id d = self.delegate;
         if (d && [d isKindOfClass:[UIView class]] &&
@@ -4388,7 +4124,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
 
 %hook CAGradientLayer
 - (void)setColors:(NSArray *)colors {
-    AD_PERF(ADP_CAGradientLayer_setColors);
     if (!ADRecolorOn() || colors.count == 0) {
         %orig;
         return;
@@ -4422,7 +4157,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
 // ════════════════════════════════════════════════════════════════════════════════
 %hook BVLinearGradientLayer
 - (void)setColors:(NSArray *)colors {
-    AD_PERF(ADP_BVLinearGradientLayer_setColors);
     if (!ADRecolorOn() || colors.count == 0) {
         %orig;
         return;
@@ -4453,7 +4187,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
 // the old accidental dependency on broad scroll-time hierarchy recovery.
 %hook ANXTopNavBackgroundView
 - (void)setBackgroundColor:(UIColor *)color {
-    AD_PERF(ADP_ANXTopNavBackgroundView_setBackgroundColor);
     if (!ADRecolorOn()) {
         %orig;
         return;
@@ -4462,7 +4195,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     %orig(locked);
 }
 - (void)didMoveToWindow {
-    AD_PERF(ADP_ANXTopNavBackgroundView_didMoveToWindow);
     %orig;
     @try {
         if (ADRecolorOn() && self.window) {
@@ -4473,7 +4205,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     } @catch(...) {}
 }
 - (void)layoutSubviews {
-    AD_PERF(ADP_ANXTopNavBackgroundView_layoutSubviews);
     %orig;
     @try {
         if (ADRecolorOn() && self.window) {
@@ -4487,7 +4218,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
 
 %hook UIVisualEffectView
 - (void)setEffect:(UIVisualEffect *)effect {
-    AD_PERF(ADP_UIVisualEffectView_setEffect);
     if (!ADRecolorOn()) {
         %orig;
         return;
@@ -4513,7 +4243,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     %orig;
 }
 - (void)layoutSubviews {
-    AD_PERF(ADP_UIVisualEffectView_layoutSubviews);
     %orig;
     // BOUNDS ARE ONLY AUTHORITATIVE HERE. setEffect: requires h > 0 to decide a view
     // is bar-sized, but Amazon sets the effect before layout, when bounds are still
@@ -4534,7 +4263,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     } @catch(...) {}
 }
 - (void)didMoveToWindow {
-    AD_PERF(ADP_UIVisualEffectView_didMoveToWindow);
     %orig;
     @try {
         // The light band behind the status bar and search field is a bar-background
@@ -4571,7 +4299,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
 // top band matches the themed content below it.
 %hook _UIBarBackground
 - (void)layoutSubviews {
-    AD_PERF(ADP__UIBarBackground_layoutSubviews);
     %orig;
     @try {
         if (gP.enabled) ((UIView *)self).backgroundColor = ADColorFromHex(gP.bgHex);
@@ -4584,7 +4311,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
 // Reader owns page content; this hook owns only the scroll view's empty backing.
 %hook WKScrollView
 - (void)setBackgroundColor:(UIColor *)color {
-    AD_PERF(ADP_WKScrollView_setBackgroundColor);
     if (gP.enabled && gP.webDarkReader){
         UIColor *dark611 = ADColorFromHex(gP.bgHex);
         %orig(dark611);
@@ -4593,7 +4319,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     %orig;
 }
 - (void)didMoveToWindow {
-    AD_PERF(ADP_WKScrollView_didMoveToWindow);
     %orig;
     @try { if (self.window && gP.enabled && gP.webDarkReader) self.backgroundColor = ADColorFromHex(gP.bgHex); } @catch(...) {}
 }
@@ -4606,7 +4331,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
 // and Dark Reader compositing stay untouched while an unpainted hole has a dark floor.
 %hook WKContentView
 - (void)setBackgroundColor:(UIColor *)color {
-    AD_PERF(ADP_WKContentView_setBackgroundColor);
     if (gP.enabled && gP.webDarkReader){
         UIColor *dark612 = ADColorFromHex(gP.bgHex);
         %orig(dark612);
@@ -4615,7 +4339,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     %orig;
 }
 - (void)setOpaque:(BOOL)opaque {
-    AD_PERF(ADP_WKContentView_setOpaque);
     if (gP.enabled && gP.webDarkReader){
         %orig(YES);
         return;
@@ -4623,7 +4346,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     %orig;
 }
 - (void)didMoveToWindow {
-    AD_PERF(ADP_WKContentView_didMoveToWindow);
     %orig;
     @try {
         if (!self.window || !gP.enabled || !gP.webDarkReader) return;
@@ -4634,7 +4356,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     } @catch(...) {}
 }
 - (void)layoutSubviews {
-    AD_PERF(ADP_WKContentView_layoutSubviews);
     %orig;
     @try {
         if (!self.window || !gP.enabled || !gP.webDarkReader) return;
@@ -4648,7 +4369,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
 
 %hook UIScrollView
 - (void)didMoveToWindow {
-    AD_PERF(ADP_UIScrollView_didMoveToWindow);
     %orig;
     @try { if (ADRecolorOn() && self.window) self.indicatorStyle = UIScrollViewIndicatorStyleWhite; } @catch(...) {}
 }
@@ -4657,7 +4377,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
 // Own the public UIScrollView style setter instead of painting private indicator
 // views, so native geometry, alpha, fade timing, and both axes remain untouched.
 - (void)setIndicatorStyle:(UIScrollViewIndicatorStyle)style {
-    AD_PERF(ADP_UIScrollView_setIndicatorStyle);
     if (ADRecolorOn()) {
         %orig(UIScrollViewIndicatorStyleWhite);
         return;
@@ -4693,21 +4412,18 @@ static void ADForceBarDark(UIView *bar){
 }
 %hook CXIStoreModesBottomNavToolbar
 - (void)layoutSubviews {
-    AD_PERF(ADP_CXIStoreModesBottomNavToolbar_layoutSubviews);
     %orig;
     ADForceBarDark((UIView *)self);
 }
 %end
 %hook CXIStoreModesTabBarView
 - (void)layoutSubviews {
-    AD_PERF(ADP_CXIStoreModesTabBarView_layoutSubviews);
     %orig;
     ADForceBarDark((UIView *)self);
 }
 %end
 %hook ANPRetailTabBar
 - (void)layoutSubviews {
-    AD_PERF(ADP_ANPRetailTabBar_layoutSubviews);
     %orig;
     ADForceBarDark((UIView *)self);
 }
@@ -4791,15 +4507,10 @@ static void ADForceBarDark(UIView *bar){
 // ════════════════════════════════════════════════════════════════════════════════
 %hook RCTView
 - (void)didMoveToWindow {
-    AD_PERF(ADP_RCTView_didMoveToWindow);
     %orig;
-    @try {
-        ADPersonRasterLayout6150(self);
-        if(((UIView *)self).window) ADPersonBorderLayoutRecovery6149(self);
-    } @catch(...) {}
+    @try { ADPersonRasterLayout6150(self); } @catch(...) {}
 }
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
-    AD_PERF(ADP_RCTView_setBackgroundColor);
     if (!ADRecolorOn() || !backgroundColor) {
         %orig;
         return;
@@ -4813,19 +4524,21 @@ static void ADForceBarDark(UIView *bar){
     %orig;
 }
 - (void)layoutSubviews {
-    AD_PERF(ADP_RCTView_layoutSubviews);
     %orig;
+    // v6.0.151: only compact raster-sized RCT hosts perform the semantic check.
+    // The normal RCTView path remains a cheap geometry/label fast path.
     @try { ADPersonRasterLayout6150(self); } @catch(...) {}
     @try {
-        if(objc_getAssociatedObject(self,kADPersonBorderTarget6147))
-            ADPersonBorderLayoutRecovery6149(self);
+        if(objc_getAssociatedObject(self,kADPersonBorderTarget6147)){
+            ADNeutralizeClaimedLayerTree6149(((UIView *)self).layer,0);
+            ADPaintPersonBorder6147(self);
+        }
     } @catch(...) {}
 }
 %end
 
 %hook RCTScrollView
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
-    AD_PERF(ADP_RCTScrollView_setBackgroundColor);
     if (!ADRecolorOn() || !backgroundColor) {
         %orig;
         return;
@@ -4842,15 +4555,10 @@ static void ADForceBarDark(UIView *bar){
 
 %hook RCTViewComponentView
 - (void)didMoveToWindow {
-    AD_PERF(ADP_RCTViewComponentView_didMoveToWindow);
     %orig;
-    @try {
-        ADPersonRasterLayout6150(self);
-        if(((UIView *)self).window) ADPersonBorderLayoutRecovery6149(self);
-    } @catch(...) {}
+    @try { ADPersonRasterLayout6150(self); } @catch(...) {}
 }
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
-    AD_PERF(ADP_RCTViewComponentView_setBackgroundColor);
     if (!ADRecolorOn() || !backgroundColor) {
         %orig;
         return;
@@ -4864,12 +4572,13 @@ static void ADForceBarDark(UIView *bar){
     %orig;
 }
 - (void)layoutSubviews {
-    AD_PERF(ADP_RCTViewComponentView_layoutSubviews);
     %orig;
     @try { ADPersonRasterLayout6150(self); } @catch(...) {}
     @try {
-        if(objc_getAssociatedObject(self,kADPersonBorderTarget6147))
-            ADPersonBorderLayoutRecovery6149(self);
+        if(objc_getAssociatedObject(self,kADPersonBorderTarget6147)){
+            ADNeutralizeClaimedLayerTree6149(((UIView *)self).layer,0);
+            ADPaintPersonBorder6147(self);
+        }
     } @catch(...) {}
 }
 %end
@@ -5555,7 +5264,6 @@ static void ADApplyNativeWhiteTame(UIImageView *iv){ ADApplyNativeWhiteTameView(
 // ════════════════════════════════════════════════════════════════════════════════
 %hook UIImageView
 - (void)didMoveToWindow {
-    AD_PERF(ADP_UIImageView_didMoveToWindow);
     %orig;
     @try {
         if (!gP.enabled || !self.window || ADIsWebKitOwned(self)) return;
@@ -5916,7 +5624,6 @@ static void ADScheduleGlyphLift624(UIImageView *iv){
 // settled-cache fast path during layout.
 %hook RCTUIImageViewAnimated
 - (void)didMoveToWindow {
-    AD_PERF(ADP_RCTUIImageViewAnimated_didMoveToWindow);
     %orig;
     @try {
         UIImageView *iv=(UIImageView *)(id)self;
@@ -5939,7 +5646,6 @@ static void ADScheduleGlyphLift624(UIImageView *iv){
     } @catch(...) {}
 }
 - (void)layoutSubviews {
-    AD_PERF(ADP_RCTUIImageViewAnimated_layoutSubviews);
     %orig;
     @try {
         UIView *vv=(UIView *)(id)self;
@@ -5986,35 +5692,50 @@ static void ADScheduleGlyphLift624(UIImageView *iv){
 %end
 
 // Selection changes after the launch timer stops, so a tap must re-colour the tab
-// itself. setSelected: is the exact event; ADApplyBarTint reads the NEW value.
+// itself. setSelected: remains the committed source of truth. v6.0.153 keeps the
+// finger-down claim separate so correction work cannot race it back to blue.
 %hook UIControl
 - (void)setSelected:(BOOL)selected {
     %orig;
     @try {
         if (ADRecolorOn() && ADInTabBarChain(self)){
-            // Record first so any tint assignment triggered by this change reads the
-            // NEW value rather than re-deriving a stale one.
             ADRememberBarSelection(self, selected);
             ADApplyBarTint(self, selected);
+            // Once Amazon commits the newly-selected item, transient press ownership
+            // is no longer needed. Clear the whole bar only on YES: the old item often
+            // receives setSelected:NO first, and clearing there would reopen the race.
+            if (selected) ADReleaseBarPress6153(self);
             ADScheduleBarCorrection();
         }
     } @catch(...) {}
 }
-// The residual lag is upstream of us: Amazon flips `selected` only partway
-// through its own transition, and no amount of snap-on-assignment can beat the
-// moment the assignment happens. Finger-down is the earliest truthful signal --
-// paint the tapped tab white immediately and let the deferred correction pass
-// re-read real state afterwards, which also cleans up a cancelled touch.
+// Finger-down is earlier than Amazon's selected-state transition. Claim the entire
+// bar atomically here: the touched branch snaps white and its sibling tabs snap blue.
+// Do NOT queue a correction from this path; that was the v6.0.152 race, because the
+// next run-loop could still observe Amazon's pre-tap selected bit.
 - (BOOL)beginTrackingWithTouch:(UITouch *)touch withEvent:(UIEvent *)event {
     BOOL r = %orig;
     @try {
+        if (ADRecolorOn() && ADInTabBarChain(self)) ADClaimBarPress6153(self);
+    } @catch(...) {}
+    return r;
+}
+// Some Amazon tab controls assert highlighted state before/without a conventional
+// beginTracking callback. Treat highlighted=YES as the same touch-down signal.
+- (void)setHighlighted:(BOOL)highlighted {
+    %orig;
+    @try {
+        if (highlighted && ADRecolorOn() && ADInTabBarChain(self)) ADClaimBarPress6153(self);
+    } @catch(...) {}
+}
+- (void)cancelTrackingWithEvent:(UIEvent *)event {
+    %orig;
+    @try {
         if (ADRecolorOn() && ADInTabBarChain(self)){
-            ADRememberBarSelection(self, YES);
-            ADApplyBarTint(self, YES);
+            ADReleaseBarPress6153(self);
             ADScheduleBarCorrection();
         }
     } @catch(...) {}
-    return r;
 }
 %end
 
@@ -6295,7 +6016,6 @@ static const void *kADCellSwept = &kADCellSwept;
     objc_setAssociatedObject(self, kADCellSwept, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 - (void)layoutSubviews {
-    AD_PERF(ADP_UICollectionViewCell_layoutSubviews);
     %orig;
     @try {
         if (!ADRecolorOn() || !self.window) return;
@@ -6316,7 +6036,6 @@ static const void *kADCellSwept = &kADCellSwept;
     objc_setAssociatedObject(self, kADCellSwept, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 - (void)layoutSubviews {
-    AD_PERF(ADP_UITableViewCell_layoutSubviews);
     %orig;
     @try {
         if (!ADRecolorOn() || !self.window) return;
@@ -6411,13 +6130,13 @@ static void ADReapplyBurst(UIView *root){
             dispatch_get_main_queue(), ^{ @try {
                 if (gen != gADBurstGeneration) return;
                 ADForceWindowsDarkTrait();
-                ADInjectAllWebViews();
-                // v6.0.19: a viewDidAppear transition only needs the newly shown
-                // controller tree. Dedicated header/tab hooks own global chrome, and
-                // reusable-cell hooks own later content. Avoid two whole-window walks
-                // whenever PDP Details/Explore/Reviews swaps child controllers.
+                // v6.0.169: viewDidAppear belongs to the newly presented controller,
+                // not every retained WKWebView in the process. Restrict web recovery to
+                // that controller tree so PDP child sections cannot repeatedly wake the
+                // warm parent/search/home WebView sitting underneath the pushed page.
+                UIView *r = weakRoot;
+                if (r && r.window) ADWalkWebViews613(r);
                 if (pass != 1){
-                    UIView *r = weakRoot;
                     if (r && r.window) ADSweepViewTree(r, 0, ADInTabBarChain(r));
                 }
             } @catch(...) {} });
@@ -6604,8 +6323,11 @@ static void ADPrefsChanged(CFNotificationCenterRef center, void *observer,
             BOOL oldPromotion = ADPromotionPreferenceOn611();
             ADLoadPrefs();              // also re-syncs + clears the colour/script caches
             BOOL newPromotion = ADPromotionPreferenceOn611();
-            if (oldPromotion != newPromotion)
+            if (oldPromotion != newPromotion){
+                ADStopHzVerification611();
                 ADRefreshPromotionState611();
+                ADStartHzVerification();
+            }
             ADForceWindowsDarkTrait();
             ADInjectAllWebViews();      // exact re-theme on web
             ADSweepAllWindows();        // best-effort re-theme on native
@@ -6624,6 +6346,7 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
 // ─── %ctor : process guard + hook registration + bounded startup recovery ────
 %ctor {
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
+    ADResetFlashProbe6101();
     // v5.446 direct-port: drop cached light launch snapshots.
     @try {
         NSString *lib = [NSSearchPathForDirectoriesInDomains(
@@ -6682,14 +6405,8 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
         NULL, ADAppForegrounded,
         (__bridge CFStringRef)UIApplicationWillEnterForegroundNotification,
         NULL, CFNotificationSuspensionBehaviorCoalesce);
-
-    // Instrumentation: truncate at launch so each session's table stands alone, then
-    // dump on every background. Backgrounding twice in one launch appends two tables.
-    @try {
-        [[NSFileManager defaultManager] removeItemAtPath:ADPerfPath163() error:nil];
-    } @catch(...) {}
     CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(),
-        NULL, ADPerfWillResign163,
+        NULL, ADFlashWillResign6101,
         (__bridge CFStringRef)UIApplicationWillResignActiveNotification,
         NULL, CFNotificationSuspensionBehaviorCoalesce);
 

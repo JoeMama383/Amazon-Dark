@@ -1,0 +1,8 @@
+{
+    CFBundleDevelopmentRegion = English;
+    CFBundleIdentifier = "com.colindavidr.amazondark.prefs";
+    CFBundleInfoDictionaryVersion = "6.0";
+    CFBundleName = AmazonDark;
+    CFBundlePackageType = BNDL;
+    CFBundleVersion = "5.56.0";
+}
