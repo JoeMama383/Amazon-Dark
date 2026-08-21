@@ -1,3 +1,11 @@
+## v6.0.176 — warm PDP detach/reattach retention
+
+- Keeps v6.0.175 WebKit cleanup and the v6.0.174/171 PDP performance fixes.
+- Recognizes unchanged PDP DOM nodes that Amazon detaches and reattaches during scroll virtualization and leaves them warm instead of re-running fallback contrast/seasonal/native-ad repair.
+- Uses a WeakMap shallow identity signature, so changed, reparented, or recycled content still follows the normal repair path and dead DOM is not retained.
+- Makes TWB media/background ownership idempotent for the same element + parent + source + viewport + strength, avoiding redundant filter/background writes that can invalidate already-decoded raster layers.
+- Adds no observer, scroll listener, recurring timer, RAF loop, reload, cache clear, or WebKit process change.
+
 ## v6.0.175 — WebKit/user-script cleanup
 
 Built directly from v6.0.174. This is a cleanup-only release: the corrected v6.0.174 PDP local-repair optimization and all theming decisions remain in place.
