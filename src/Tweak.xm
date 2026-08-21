@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.178"
+#define AD_VERSION "v6.0.179"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -795,12 +795,18 @@ static NSString *ADFixesLiteral(void){
              "html body li.a-carousel-card.sp_mobile_carousel_element>.a-box,"
              "html body li.a-carousel-card.sp_mobile_carousel_element>.a-box-inner,"
              "html body li.a-carousel-card.sp_mobile_carousel_element>div,"
+             "html body li.a-carousel-card.sp_mobile_carousel_element .a-section,"
+             "html body li.a-carousel-card.sp_mobile_carousel_element .a-row,"
+             "html body li.a-carousel-card.sp_mobile_carousel_element .a-box,"
              "html body li.a-carousel-card.sp_mobile_carousel_element .a-box-inner,"
              "html body [class*=sponsored-products] li.a-carousel-card>.a-section,"
              "html body [class*=sponsored-products] li.a-carousel-card>.a-row,"
              "html body [class*=sponsored-products] li.a-carousel-card>.a-box,"
              "html body [class*=sponsored-products] li.a-carousel-card>.a-box-inner,"
              "html body [class*=sponsored-products] li.a-carousel-card>div,"
+             "html body [class*=sponsored-products] li.a-carousel-card .a-section,"
+             "html body [class*=sponsored-products] li.a-carousel-card .a-row,"
+             "html body [class*=sponsored-products] li.a-carousel-card .a-box,"
              "html body [class*=sponsored-products] li.a-carousel-card .a-box-inner"
              "{background-color:var(--darkreader-neutral-background,#181a1b) !important;border-color:#3b4043 !important;box-shadow:none !important;}"
              "[class*=deal],[class*=badge],[class*=prime],[class*=error],[class*=alert],"
@@ -1121,7 +1127,7 @@ static NSString *ADDarkReaderBootstrap(void){
            // shell owner above. Keep this in the authoritative override sheet so
            // Amazon hydration cannot repaint the structural card white afterward.
            "html body li.a-carousel-card.sp_mobile_carousel_element,html body [class*=sponsored-products] li.a-carousel-card,html body [class*=sponsored-products] [class*=sp_mobile_carousel_element]{background-color:var(--darkreader-neutral-background,#181a1b) !important;border-color:#3b4043 !important;box-shadow:none !important;}"
-           "html body li.a-carousel-card.sp_mobile_carousel_element>.a-section,html body li.a-carousel-card.sp_mobile_carousel_element>.a-row,html body li.a-carousel-card.sp_mobile_carousel_element>.a-box,html body li.a-carousel-card.sp_mobile_carousel_element>.a-box-inner,html body li.a-carousel-card.sp_mobile_carousel_element>div,html body li.a-carousel-card.sp_mobile_carousel_element .a-box-inner,html body [class*=sponsored-products] li.a-carousel-card>.a-section,html body [class*=sponsored-products] li.a-carousel-card>.a-row,html body [class*=sponsored-products] li.a-carousel-card>.a-box,html body [class*=sponsored-products] li.a-carousel-card>.a-box-inner,html body [class*=sponsored-products] li.a-carousel-card>div,html body [class*=sponsored-products] li.a-carousel-card .a-box-inner{background-color:var(--darkreader-neutral-background,#181a1b) !important;border-color:#3b4043 !important;box-shadow:none !important;}"
+           "html body li.a-carousel-card.sp_mobile_carousel_element>.a-section,html body li.a-carousel-card.sp_mobile_carousel_element>.a-row,html body li.a-carousel-card.sp_mobile_carousel_element>.a-box,html body li.a-carousel-card.sp_mobile_carousel_element>.a-box-inner,html body li.a-carousel-card.sp_mobile_carousel_element>div,html body li.a-carousel-card.sp_mobile_carousel_element .a-section,html body li.a-carousel-card.sp_mobile_carousel_element .a-row,html body li.a-carousel-card.sp_mobile_carousel_element .a-box,html body li.a-carousel-card.sp_mobile_carousel_element .a-box-inner,html body [class*=sponsored-products] li.a-carousel-card>.a-section,html body [class*=sponsored-products] li.a-carousel-card>.a-row,html body [class*=sponsored-products] li.a-carousel-card>.a-box,html body [class*=sponsored-products] li.a-carousel-card>.a-box-inner,html body [class*=sponsored-products] li.a-carousel-card>div,html body [class*=sponsored-products] li.a-carousel-card .a-section,html body [class*=sponsored-products] li.a-carousel-card .a-row,html body [class*=sponsored-products] li.a-carousel-card .a-box,html body [class*=sponsored-products] li.a-carousel-card .a-box-inner{background-color:var(--darkreader-neutral-background,#181a1b) !important;border-color:#3b4043 !important;box-shadow:none !important;}"
            "[class*=deal],[class*=badge],[class*=prime],[class*=error],[class*=alert],"
            "[class*=warning],[aria-invalid=true]{border-color:initial !important;}"
            "[class*=a-button-primary],[class*=a-button-search],[class*=a-button-oneclick],"
@@ -1312,12 +1318,19 @@ static NSString *ADDarkReaderBootstrap(void){
                  "if(bmx>0.4){be.style.setProperty('background-image','none','important');"
                    "be.style.setProperty('background-color',BG,'important');lfix++;}}}"
            "}catch(e){}"
-           // v6.0.177: native PDP product-carousel shell repair. Native-ad isolation
-           // is correct for creative pixels, but it also skips generic light-panel repair.
-           // Repair only the exact recycled PDP product-card family already observed by
-           // the performance probe. One bounded pass per card; media/background artwork
-           // is never modified.
-           "function adPDPCardShell6177(e){try{if(!e||!e.closest)return 0;var card=e.closest('li.a-carousel-card.sp_mobile_carousel_element,[class*=sponsored-products] li.a-carousel-card,[class*=sponsored-products] [class*=sp_mobile_carousel_element]');if(!card)return 0;var now=Date.now();if(card.__adPDPCard6177&&now-card.__adPDPCard6177<220)return 0;card.__adPDPCard6177=now;card.style.setProperty('background-color',BG,'important');card.style.setProperty('border-color','#3b4043','important');card.style.setProperty('box-shadow','none','important');var Q=card.querySelectorAll?card.querySelectorAll('div,section,article,ul,ol,li,a,span'):[],n=1;for(var qi=0;qi<Q.length&&qi<96;qi++){var q=Q[qi],tg=String(q.tagName||'').toUpperCase();if(/^(?:IMG|PICTURE|VIDEO|CANVAS|SVG)$/.test(tg))continue;var cs=getComputedStyle(q),bi=String(cs.backgroundImage||'none'),bl=lum(cs.backgroundColor);if(bi.indexOf('url(')>=0)continue;if(bl!==null&&bl>.55&&neutral6078(cs.backgroundColor)){q.style.setProperty('background-color','transparent','important');q.style.setProperty('box-shadow','none','important');q.style.setProperty('border-color','#3b4043','important');n++;}}return n;}catch(x){return 0;}}"
+           // v6.0.179: shared neutral-colour classifier. v6.0.177 accidentally
+           // called prodInk6078's function-local neutral6078() from adPDPCardShell6177().
+           // That identifier does not exist in the outer bootstrap scope, so the PDP
+           // card repair threw as soon as it reached its first bright descendant. The
+           // outer card could darken while the inner white plate kept covering it.
+           "function adNeutral6179(v){try{var z=String(v||'').toLowerCase(),a=z.indexOf('('),b=z.indexOf(')');if(a<0||b<=a)return false;var p=z.slice(a+1,b).split(',');if(p.length<3)return false;var r=parseFloat(p[0]),g=parseFloat(p[1]),bb=parseFloat(p[2]);if(!isFinite(r)||!isFinite(g)||!isFinite(bb))return false;return Math.max(r,g,bb)-Math.min(r,g,bb)<48;}catch(x){return false;}}"
+           // v6.0.177/179: native PDP product-carousel shell repair. Native-ad
+           // isolation remains correct for creative pixels; only the structural
+           // neutral card floor is owned. v179 fixes the scope error above and also
+           // accepts ordinary a-carousel-card roots inside the already-native
+           // sponsored island, so minor Amazon class churn cannot expose the white
+           // inner plate again.
+           "function adPDPCardShell6177(e){try{if(!e||!e.closest)return 0;var card=e.closest('li.a-carousel-card.sp_mobile_carousel_element,[class*=sponsored-products] li.a-carousel-card,[class*=sponsored-products] [class*=sp_mobile_carousel_element],li.a-carousel-card');if(!card)return 0;var tx=String(card.textContent||'').toLowerCase();if(!/explore more from|shop by brand/.test(tx)&&!card.closest('[class*=sponsored-products],[data-ad-native615]'))return 0;var now=Date.now();if(card.__adPDPCard6177&&now-card.__adPDPCard6177<220)return 0;card.__adPDPCard6177=now;card.style.setProperty('background-color',BG,'important');card.style.setProperty('border-color','#3b4043','important');card.style.setProperty('box-shadow','none','important');var Q=card.querySelectorAll?card.querySelectorAll('div,section,article,ul,ol,li,a,span'):[],n=1;for(var qi=0;qi<Q.length&&qi<120;qi++){var q=Q[qi],tg=String(q.tagName||'').toUpperCase();if(/^(?:IMG|PICTURE|VIDEO|CANVAS|SVG|BUTTON|INPUT)$/.test(tg))continue;var cs=getComputedStyle(q),bi=String(cs.backgroundImage||'none'),bl=lum(cs.backgroundColor);if(bi.indexOf('url(')>=0)continue;if(bl!==null&&bl>.55&&adNeutral6179(cs.backgroundColor)){q.style.setProperty('background-color','transparent','important');q.style.setProperty('box-shadow','none','important');q.style.setProperty('border-color','#3b4043','important');q.setAttribute('data-ad-pdpbg6179','1');n++;}}return n;}catch(x){return 0;}}"
            // v6.0.82: Home product-copy bridge for Amazon-owned/native ad islands.
            // v6.0.15 intentionally keeps these islands out of broad Dark Reader/contrast
            // ownership, but some current recommendation widgets use the same family for
@@ -1329,9 +1342,9 @@ static NSString *ADDarkReaderBootstrap(void){
              "var tg=String(e.tagName||'').toUpperCase();if(!/^(?:A|SPAN|DIV|P|H1|H2|H3|H4|H5|STRONG|SMALL|SUP|B|EM)$/.test(tg))return 0;"
              "var own='';for(var q=0;q<e.childNodes.length&&q<10;q++){var nd=e.childNodes[q];if(nd.nodeType===3)own+=String(nd.nodeValue||'');}"
              "own=own.replace(/\s+/g,' ').trim();if(!own||own.length>320)return 0;"
-             "function neutral6078(v){var m=/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/.exec(String(v||''));if(!m)return false;var mx=Math.max(+m[1],+m[2],+m[3]),mn=Math.min(+m[1],+m[2],+m[3]);return (mx-mn)<48;}"
+
              "var cs=getComputedStyle(e),cl=lum(cs.color),fc=String(cs.webkitTextFillColor||''),fl=lum(fc);"
-             "if(!((cl!==null&&cl<0.48&&neutral6078(cs.color))||(fl!==null&&fl<0.48&&neutral6078(fc))))return 0;"
+             "if(!((cl!==null&&cl<0.48&&adNeutral6179(cs.color))||(fl!==null&&fl<0.48&&adNeutral6179(fc))))return 0;"
              "var bl=bgOf(e,cs);if(bl===null||bl>0.35)return 0;"
              "var p=e,card=null,d=0;while(p&&d++<7){var r=rect6173(p);if(r.width>=120&&r.width<=540&&r.height>=120&&r.height<=760&&p.querySelector){"
                "var ph=null,im=null;try{ph=p.querySelector('a[href*=\"/dp/\"],a[href*=\"/gp/product/\"],[data-asin]');im=p.querySelector('img,picture');}catch(z){}"
@@ -1356,6 +1369,11 @@ static NSString *ADDarkReaderBootstrap(void){
            // Link ink, copyright text, form controls, and the rest of sign-in are untouched.
            "function adSigninFooterText6144(e){try{if(!e||e.nodeType!==1)return false;var p=String(location.pathname||'').toLowerCase();if(p.indexOf('/ap/signin')!==0)return false;var t=String(e.textContent||'').replace(/\\s+/g,' ').trim();if(t.length<24||t.length>180)return false;if(/welcome to amazon|enter mobile number or email/i.test(t))return false;return /conditions of use/i.test(t)&&/privacy notice/i.test(t)&&/(?:^|\\s)help(?:\\s|$)/i.test(t);}catch(x){return false;}}"
            "function adSigninFooter6144(e){try{if(!adSigninFooterText6144(e))return 0;var vw=innerWidth||390,p=e,best=null,d=0;while(p&&d++<6){var r=rect6173(p);if(r.width>=vw*.72&&r.height>=18&&r.height<=170)best=p;else if(best&&r.height>170)break;p=p.parentElement;}if(!best)return 0;if(best.getAttribute('data-ad-signinfooter6144')==='1')return 1;best.setAttribute('data-ad-signinfooter6144','1');var sid='ad-signinfooter6144-style',st=document.getElementById(sid);if(!st){st=document.createElement('style');st.id=sid;st.textContent='[data-ad-signinfooter6144],[data-ad-signinfooter6144]::before,[data-ad-signinfooter6144]::after{background-color:'+BG+'!important;background-image:none!important;box-shadow:none!important;}[data-ad-signinfooter6144] div,[data-ad-signinfooter6144] section,[data-ad-signinfooter6144] footer,[data-ad-signinfooter6144] aside,[data-ad-signinfooter6144] nav,[data-ad-signinfooter6144] ul,[data-ad-signinfooter6144] li,[data-ad-signinfooter6144] table,[data-ad-signinfooter6144] tbody,[data-ad-signinfooter6144] tr,[data-ad-signinfooter6144] td{background-color:transparent!important;background-image:none!important;box-shadow:none!important;}[data-ad-signinfooter6144] div::before,[data-ad-signinfooter6144] div::after,[data-ad-signinfooter6144] section::before,[data-ad-signinfooter6144] section::after,[data-ad-signinfooter6144] footer::before,[data-ad-signinfooter6144] footer::after,[data-ad-signinfooter6144] aside::before,[data-ad-signinfooter6144] aside::after,[data-ad-signinfooter6144] nav::before,[data-ad-signinfooter6144] nav::after,[data-ad-signinfooter6144] li::before,[data-ad-signinfooter6144] li::after{background-color:transparent!important;background-image:none!important;box-shadow:none!important;}';(document.head||document.documentElement).appendChild(st);}best.style.setProperty('background-color',BG,'important');best.style.setProperty('background-image','none','important');best.style.setProperty('box-shadow','none','important');var Q=best.querySelectorAll?best.querySelectorAll('div,section,footer,aside,nav,ul,li,table,tbody,tr,td'):[];for(var fi=0;fi<Q.length&&fi<80;fi++){Q[fi].style.setProperty('background-color','transparent','important');Q[fi].style.setProperty('background-image','none','important');Q[fi].style.setProperty('box-shadow','none','important');}return 1;}catch(x){return 0;}}"
+           // v6.0.179: Person > Interests "Related Interests to explore" card
+           // floors. This is semantic and piggybacks on the existing bounded contrast
+           // traversal; no new observer or document scan. It only claims bright neutral
+           // structural backgrounds inside the local related-interests panel.
+           "function adRelatedInterests6179(e){try{if(!e||!e.childNodes)return 0;var own='';for(var ri=0;ri<e.childNodes.length&&ri<12;ri++){var rn=e.childNodes[ri];if(rn.nodeType===3)own+=' '+String(rn.nodeValue||'');}own=own.replace(/\\s+/g,' ').trim();if(!/related interests to explore/i.test(own))return 0;var vw=innerWidth||390,p=e,best=null,d=0;while(p&&d++<7){var r=rect6173(p);if(r.width>=vw*.70&&r.height>=110&&r.height<=520)best=p;if(best&&r.width>=vw*.90)break;p=p.parentElement;}if(!best)return 0;best.setAttribute('data-ad-related6179','1');best.style.setProperty('background-color',BG,'important');var Q=best.querySelectorAll?best.querySelectorAll('div,section,article,ul,ol,li,a,span'):[],n=1;for(var qi=0;qi<Q.length&&qi<120;qi++){var q=Q[qi],tg=String(q.tagName||'').toUpperCase();if(/^(?:IMG|PICTURE|VIDEO|CANVAS|SVG|BUTTON|INPUT)$/.test(tg))continue;var cs=getComputedStyle(q),bi=String(cs.backgroundImage||'none'),bl=lum(cs.backgroundColor);if(bi.indexOf('url(')>=0)continue;if(bl!==null&&bl>.55&&adNeutral6179(cs.backgroundColor)){q.style.setProperty('background-color',BG,'important');q.style.setProperty('border-color','#494d4d','important');q.style.setProperty('box-shadow','none','important');q.setAttribute('data-ad-relatedbg6179','1');n++;}}return n;}catch(x){return 0;}}"
            // v6.0.138: semantic Sponsored bridge. This reuses the existing bounded
            // contrast traversal instead of adding another document scan. It also
            // identifies Sponsor ancestry so generic glyph whitening cannot repaint
@@ -1370,6 +1388,7 @@ static NSString *ADDarkReaderBootstrap(void){
            "for(var i=0;i<els.length;i++){var el=els[i];"
              "if(adSigninFooterText6144(el)){adSigninFooter6144(el);}"
              "if(adCartCreditText6143(el)){adCartCredit6143(el);}"
+             "n+=adRelatedInterests6179(el);"
              "if(adSponsorText6138(el)){el.setAttribute('data-ad-sponsorgray6138','1');el.style.setProperty('color','#b1aaa0','important');el.style.setProperty('-webkit-text-fill-color','#b1aaa0','important');el.style.setProperty('opacity','1','important');el.style.setProperty('visibility','visible','important');continue;}"
              "if(adSponsorGlyph6138(el))continue;"
              "if(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(el)){n+=adPDPCardShell6177(el);n+=prodInk6078(el);continue;}"
@@ -3956,6 +3975,83 @@ static void ADNeutralizeInterestsGradientNearText6177(UIView *anchor, NSString *
     });
 }
 
+
+// v6.0.179: the text-only cards under "Related Interests to explore" are a
+// separate native/Fabric surface from the gradient artifact fixed in 177.
+// Key the repair to that exact heading, then darken only bright neutral local
+// background/fill painters. Product imagery and unrelated Person cards are not touched.
+static BOOL ADRelatedInterestsPhrase6179(NSString *text){
+    @try {
+        NSString *lo=[[text ?: @"" lowercaseString] stringByReplacingOccurrencesOfString:@"\n" withString:@" "];
+        lo=[lo stringByReplacingOccurrencesOfString:@"\r" withString:@" "];
+        while([lo containsString:@"  "]) lo=[lo stringByReplacingOccurrencesOfString:@"  " withString:@" "];
+        return [lo containsString:@"related interests to explore"];
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADBrightNeutralUIColor6179(UIColor *c){
+    if(!c) return NO;
+    @try {
+        CGFloat r=0,g=0,b=0,a=0;
+        if(![c getRed:&r green:&g blue:&b alpha:&a]) return NO;
+        CGFloat mx=MAX(r,MAX(g,b)),mn=MIN(r,MIN(g,b));
+        return a>0.08 && mx>0.70 && (mx-mn)<0.12;
+    } @catch(...) {}
+    return NO;
+}
+static void ADDarkenRelatedLayer6179(CALayer *layer, int depth){
+    if(!layer || depth>2) return;
+    @try {
+        CGColorRef dark=ADColorFromHex(gP.bgHex).CGColor;
+        if(ADBrightNeutralCG6149(layer.backgroundColor)) layer.backgroundColor=dark;
+        if([layer isKindOfClass:[CAShapeLayer class]]){
+            CAShapeLayer *sh=(CAShapeLayer *)layer;
+            if(ADBrightNeutralCG6149(sh.fillColor)) sh.fillColor=dark;
+            if(sh.lineWidth>0.1 && ADBrightNeutralCG6149(sh.strokeColor))
+                sh.strokeColor=ADNeutralBorderGray6147().CGColor;
+        }
+        for(CALayer *sl in layer.sublayers) ADDarkenRelatedLayer6179(sl,depth+1);
+    } @catch(...) {}
+}
+static void ADDarkenRelatedInterestsNearText6179(UIView *anchor, NSString *text){
+    if(!ADRecolorOn() || !anchor || !ADRelatedInterestsPhrase6179(text)) return;
+    __weak UIView *weakAnchor=anchor;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        UIView *live=weakAnchor;
+        if(!live || !live.window) return;
+        @try {
+            UIWindow *w=live.window;
+            UIView *p=live,*best=nil; int up=0;
+            while(p && up++<7){
+                CGFloat ww=fabs(p.bounds.size.width),hh=fabs(p.bounds.size.height);
+                if(ww>=w.bounds.size.width*0.70 && hh>=110.0 && hh<=520.0) best=p;
+                if(best && ww>=w.bounds.size.width*0.90) break;
+                p=p.superview;
+            }
+            if(!best) return;
+            UIColor *dark=ADColorFromHex(gP.bgHex);
+            NSMutableArray *q=[NSMutableArray arrayWithObject:best]; int seen=0;
+            for(NSUInteger i=0;i<q.count && seen++<120;i++){
+                UIView *v=q[i];
+                if(![v isKindOfClass:[UIImageView class]] && ![v isKindOfClass:[UIButton class]] &&
+                   ![v isKindOfClass:[UIControl class]]){
+                    UIColor *bg=v.backgroundColor;
+                    if(ADBrightNeutralUIColor6179(bg)){
+                        v.backgroundColor=dark;
+                        if(v.layer.borderWidth>0.1) v.layer.borderColor=ADNeutralBorderGray6147().CGColor;
+                    }
+                    ADDarkenRelatedLayer6179(v.layer,0);
+                }
+                if(i<48){
+                    for(UIView *sv in v.subviews){
+                        if(q.count<120) [q addObject:sv]; else break;
+                    }
+                }
+            }
+        } @catch(...) {}
+    });
+}
+
 // Fabric text (new architecture). Setter lives on RCTParagraphComponentView.
 %hook RCTParagraphComponentView
 - (void)setAttributedText:(NSAttributedString *)attributedText {
@@ -3963,7 +4059,7 @@ static void ADNeutralizeInterestsGradientNearText6177(UIView *anchor, NSString *
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         %orig(r);
         ADClaimPersonBorderDeferred6147(self,attributedText.string);
-        ADNeutralizeInterestsGradientNearText6177((UIView *)self,attributedText.string);
+        ADNeutralizeInterestsGradientNearText6177((UIView *)self,attributedText.string); ADDarkenRelatedInterestsNearText6179((UIView *)self,attributedText.string);
         return;
     } @catch(...) {}
     %orig;
@@ -3973,7 +4069,7 @@ static void ADNeutralizeInterestsGradientNearText6177(UIView *anchor, NSString *
         NSAttributedString *r = ADRecolorAttributedString(attributedString);
         %orig(r);
         ADClaimPersonBorderDeferred6147(self,attributedString.string);
-        ADNeutralizeInterestsGradientNearText6177((UIView *)self,attributedString.string);
+        ADNeutralizeInterestsGradientNearText6177((UIView *)self,attributedString.string); ADDarkenRelatedInterestsNearText6179((UIView *)self,attributedString.string);
         return;
     } @catch(...) {}
     %orig;
@@ -4006,7 +4102,7 @@ static void ADNeutralizeInterestsGradientNearText6177(UIView *anchor, NSString *
         }
     } @catch(...) {}
     %orig;
-    @try { ADClaimPersonBorderDeferred6147(self,adBorderText6147); ADNeutralizeInterestsGradientNearText6177((UIView *)self,adBorderText6147); } @catch(...) {}
+    @try { ADClaimPersonBorderDeferred6147(self,adBorderText6147); ADNeutralizeInterestsGradientNearText6177((UIView *)self,adBorderText6147); ADDarkenRelatedInterestsNearText6179((UIView *)self,adBorderText6147); } @catch(...) {}
 }
 - (void)layoutSubviews {
     %orig;
@@ -4024,6 +4120,7 @@ static void ADNeutralizeInterestsGradientNearText6177(UIView *anchor, NSString *
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         %orig(r);
+        ADDarkenRelatedInterestsNearText6179((UIView *)self,attributedText.string);
         return;
     } @catch(...) {}
     %orig;

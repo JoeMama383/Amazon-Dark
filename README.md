@@ -1,3 +1,12 @@
+## v6.0.179 — finish PDP card floors + Related Interests cards
+
+- Built directly from v6.0.178; keeps the v6.0.176 warm-PDP retention, v6.0.175 WebKit cleanup, and the v6.0.177/178 Interests gradient repair.
+- Fixes the concrete v6.0.177 PDP shell bug: `adPDPCardShell6177()` was calling `neutral6078()`, but that helper existed only inside `prodInk6078()`. The runtime card repair therefore threw on its first bright descendant, leaving the inner white plate visible. v6.0.179 promotes one shared neutral-color classifier and uses it in both paths.
+- Expands the existing first-paint PDP sponsored-carousel CSS to nested `.a-section`, `.a-row`, and `.a-box` shells while still leaving IMG/PICTURE/VIDEO/CANVAS/SVG pixels untouched.
+- Adds a semantic `Related Interests to explore` repair for both WebKit and native/Fabric rendering. Only bright neutral structural backgrounds/fills inside the local section are darkened; product media, controls, and unrelated Person content are excluded.
+- Native Related Interests recovery is one-shot from the exact heading hydration and capped to 120 local views / two layer levels. The WebKit path reuses the existing bounded contrast traversal and adds no observer or recurring scheduler.
+- No cache clearing, reload, WKProcessPool/website-data manipulation, scroll listener, interval, RAF loop, or new MutationObserver.
+
 ## v6.0.178 — compile-safe Interests gradient fix
 
 - Built directly from v6.0.177; no functional rollback.
