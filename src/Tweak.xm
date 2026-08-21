@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.181-probe"
+#define AD_VERSION "v6.0.182-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3873,7 +3873,7 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         %orig(r);
         ADClaimPersonBorderDeferred6147(self,attributedText.string);
-        ADBuyAgainSemanticRepair6181(self,attributedText.string);
+        ADBuyAgainSemanticRepair6181((UIView *)self,attributedText.string);
         return;
     } @catch(...) {}
     %orig;
@@ -3883,7 +3883,7 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
         NSAttributedString *r = ADRecolorAttributedString(attributedString);
         %orig(r);
         ADClaimPersonBorderDeferred6147(self,attributedString.string);
-        ADBuyAgainSemanticRepair6181(self,attributedString.string);
+        ADBuyAgainSemanticRepair6181((UIView *)self,attributedString.string);
         return;
     } @catch(...) {}
     %orig;
@@ -3918,7 +3918,7 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     %orig;
     @try {
         ADClaimPersonBorderDeferred6147(self,adBorderText6147);
-        ADBuyAgainSemanticRepair6181(self,adBorderText6147);
+        ADBuyAgainSemanticRepair6181((UIView *)self,adBorderText6147);
     } @catch(...) {}
 }
 - (void)layoutSubviews {

@@ -1,4 +1,11 @@
-# AmazonDark v6.0.181~probe — Buy Again raster-border hydration recovery
+# AmazonDark v6.0.182~probe — compile correction for Buy Again raster-border hydration
+
+## v6.0.182 compile correction
+
+- Fixes the three Objective-C++ compile errors in the new v6.0.181 semantic repair calls.
+- Logos declares `RCTParagraphComponentView` and `RCTTextView` as runtime classes without compile-time UIView inheritance, so Clang rejected passing `self` to a helper typed as `UIView *`.
+- The three affected call sites now use an explicit `(UIView *)self` cast. These objects are already treated throughout AmazonDark as UIView-backed React Native views; no runtime behavior, geometry gate, probe logic, TWB behavior, or border ownership logic is changed.
+- The existing UILabel call is unchanged because UILabel's UIView inheritance is known to Clang.
 
 Built from v6.0.179. Retains the confirmed Cart foreground, PDP Shop-by-brand, and Related Interests fixes.
 
