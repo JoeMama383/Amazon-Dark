@@ -1,4 +1,18 @@
-# AmazonDark v6.0.179 — probe-driven surface fixes
+# AmazonDark v6.0.180~probe — Buy Again regression recovery
+
+Built from v6.0.179. Retains the confirmed Cart foreground, PDP Shop-by-brand, and Related Interests fixes.
+
+## Changes
+
+- Restores the historical v6.0.163 Person product-card CAShapeLayer border owner for the exact Buy Again/Reorder-soon family.
+- Fixes the current 416.7pt Buy Again carousel gap that made v6.0.179's 51x51 raster-border owner unreachable; the card is identified locally by the unique `Reorder soon` carousel content and the stretchable raster is suppressed at assignment time.
+- Extends the proven v6.0.51/v6.0.52 rendered-peer TWB recovery from `RCTUIImageViewAnimated` to the current `ANXFastImageView` product leaves. All original same-window/same-row/same-size/two-positive-peer safety gates remain.
+- Adds a background-triggered native Buy Again probe (`AmazonDark-buyagain-probe-6180.txt`) and SpringBoard relay to the shared Documents folder in case either visual fix still misses.
+
+## Runtime discipline
+
+No new MutationObserver, scroll listener, interval, requestAnimationFrame loop, WebKit reload, cache/data-store/process-pool/history manipulation, or removeAllUserScripts interception. The probe runs only when Amazon resigns active.
+
 
 Built from the exact v6.0.176 production tree. This release retains only the on-device-confirmed Cart foreground recovery from the prior v6.0.177 experiment, then fixes the three remaining surfaces from probe 6178:
 

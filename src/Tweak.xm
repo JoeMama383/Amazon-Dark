@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.179"
+#define AD_VERSION "v6.0.180-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3119,7 +3119,11 @@ static void ADNativeResetRCTRegistration6055(UIImageView *iv){
 static BOOL ADNativeRCTCandidate6053(UIImageView *iv){
     if(!iv||!iv.window||!iv.image||iv.hidden||iv.alpha<.01) return NO;
     const char *cn=object_getClassName(iv);
-    if(!cn||!strstr(cn,"RCTUIImageView")) return NO;
+    // v6.0.51/v6.0.52's rendered-peer recovery is still the proven sparse-image
+    // solution. Current Buy Again product leaves are ANXFastImageView rather than
+    // RCTUIImageViewAnimated, so the old class gate silently excluded them even
+    // though neighboring ANXFastImageView peers already carry the real TWB overlay.
+    if(!cn || (!strstr(cn,"RCTUIImageView") && !strstr(cn,"ANXFastImageView"))) return NO;
     CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
     if(w<60||h<60||w>220||h>220) return NO;
     CGFloat ratio=(h>0)?w/h:99; if(ratio<1) ratio=1/ratio;
@@ -3471,14 +3475,25 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
 static const void *kADPersonBorderTarget6147 = &kADPersonBorderTarget6147;
 static const void *kADPersonBorderOverlay6147 = &kADPersonBorderOverlay6147;
 static const void *kADPersonRasterCard6150 = &kADPersonRasterCard6150;
-// v6.0.179: separate ownership for the probe-proven large Buy Again product-card
-// border plate. Keep it distinct from the compact v6.0.151 raster-card family so
-// nested product controls are never swept/neutralized as part of the border fix.
-static const void *kADPersonProductRaster6179 = &kADPersonProductRaster6179;
-static const void *kADPersonProductOutline6179 = &kADPersonProductOutline6179;
+
+// v6.0.180: current Buy Again cards use the same small stretchable React raster
+// family seen in probe 6178, but the card is now inside a 416.7pt horizontal
+// carousel. The general Person carousel resolver intentionally caps at 380pt, so
+// the v6.0.179 owner never reached this renderer. Keep the repair local to the
+// probe-proven card geometry and the unique Reorder soon Buy Again carousel.
+static const void *kADBuyAgainRaster6180 = &kADBuyAgainRaster6180;
+static const void *kADBuyAgainOutline6180 = &kADBuyAgainOutline6180;
+static const void *kADBuyAgainCarouselCtx6180 = &kADBuyAgainCarouselCtx6180;
+static const void *kADBuyAgainCarouselTime6180 = &kADBuyAgainCarouselTime6180;
 
 static NSString *ADWTViewText362(UIView *v); // forward: retained Person/TWB helper below
-static void ADPersonProductRasterLayout6179(id obj); // defined after Person section resolvers
+static BOOL ADBuyAgainSmallPlate6180(id contents);
+static BOOL ADBuyAgainCardGeometry6180(UIView *v);
+static BOOL ADBuyAgainContext6180(UIView *v);
+static BOOL ADLayerInsideBuyAgain6180(CALayer *layer);
+static void ADInstallBuyAgainRaster6180(UIView *v);
+static void ADBuyAgainBorderLayout6180(id obj);
+static void ADPersonProductBorderLayout6163(id obj); // historical v6.0.163 fallback
 
 static UIColor *ADNeutralBorderGray6147(void){
     static UIColor *c=nil; static dispatch_once_t once;
@@ -3985,6 +4000,24 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     %orig;
 }
 - (void)setContents:(id)contents {
+    // v6.0.180: current Buy Again's 286x416 card border is a 51x51 stretchable
+    // React raster. Suppress the exact plate at assignment time once the local
+    // carousel is positively identified, so RN cannot repaint it after layout.
+    @try {
+        if(ADRecolorOn() && contents){
+            id d=self.delegate;
+            UIView *rv=(d && [d isKindOfClass:[UIView class]]) ? (UIView *)d : nil;
+            if(rv && ADBuyAgainCardGeometry6180(rv) && ADBuyAgainSmallPlate6180(contents) &&
+               ADBuyAgainContext6180(rv)){
+                objc_setAssociatedObject(rv,kADBuyAgainRaster6180,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                objc_setAssociatedObject(self,kADBuyAgainRaster6180,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                %orig(nil);
+                ADInstallBuyAgainRaster6180(rv);
+                return;
+            }
+        }
+    } @catch(...) {}
+
     // v6.0.151: intercept the raster plate at its first assignment, not one layout
     // later.  This is what removes the brief white Explore border flash.
     @try {
@@ -4022,7 +4055,7 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     // Raster-backed Person cards use one CAShapeLayer outline only. Prevent RN from
     // restoring a second direct layer border around that authoritative outline.
     @try {
-        if(ADRecolorOn() && ADLayerInsidePersonRaster6151(self)){
+        if(ADRecolorOn() && (ADLayerInsidePersonRaster6151(self) || ADLayerInsideBuyAgain6180(self))){
             %orig(0.0);
             return;
         }
@@ -4039,7 +4072,7 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
         // border owner.  The earlier probe named these exact classes and showed
         // rgba(0.404,0.373,0.329,.60). Neutralize the hue without touching fill.
         if (ADIsAmazonSearchBorderLayer6147(self) || ADIsPersonBorderLayer6147(self) ||
-            ADLayerInsidePersonRaster6151(self)) {
+            ADLayerInsidePersonRaster6151(self) || ADLayerInsideBuyAgain6180(self)) {
             CGColorRef gray=ADNeutralBorderGray6147().CGColor;
             %orig(gray);
             return;
@@ -4463,7 +4496,7 @@ static void ADForceBarDark(UIView *bar){
 %hook RCTView
 - (void)didMoveToWindow {
     %orig;
-    @try { ADPersonRasterLayout6150(self); ADPersonProductRasterLayout6179(self); } @catch(...) {}
+    @try { ADPersonRasterLayout6150(self); ADBuyAgainBorderLayout6180(self); ADPersonProductBorderLayout6163(self); } @catch(...) {}
 }
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
     if (!ADRecolorOn() || !backgroundColor) {
@@ -4482,7 +4515,7 @@ static void ADForceBarDark(UIView *bar){
     %orig;
     // v6.0.151: only compact raster-sized RCT hosts perform the semantic check.
     // The normal RCTView path remains a cheap geometry/label fast path.
-    @try { ADPersonRasterLayout6150(self); ADPersonProductRasterLayout6179(self); } @catch(...) {}
+    @try { ADPersonRasterLayout6150(self); ADBuyAgainBorderLayout6180(self); ADPersonProductBorderLayout6163(self); } @catch(...) {}
     @try {
         if(objc_getAssociatedObject(self,kADPersonBorderTarget6147)){
             ADNeutralizeClaimedLayerTree6149(((UIView *)self).layer,0);
@@ -4511,7 +4544,7 @@ static void ADForceBarDark(UIView *bar){
 %hook RCTViewComponentView
 - (void)didMoveToWindow {
     %orig;
-    @try { ADPersonRasterLayout6150(self); ADPersonProductRasterLayout6179(self); } @catch(...) {}
+    @try { ADPersonRasterLayout6150(self); ADBuyAgainBorderLayout6180(self); ADPersonProductBorderLayout6163(self); } @catch(...) {}
 }
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
     if (!ADRecolorOn() || !backgroundColor) {
@@ -4528,7 +4561,7 @@ static void ADForceBarDark(UIView *bar){
 }
 - (void)layoutSubviews {
     %orig;
-    @try { ADPersonRasterLayout6150(self); ADPersonProductRasterLayout6179(self); } @catch(...) {}
+    @try { ADPersonRasterLayout6150(self); ADBuyAgainBorderLayout6180(self); ADPersonProductBorderLayout6163(self); } @catch(...) {}
     @try {
         if(objc_getAssociatedObject(self,kADPersonBorderTarget6147)){
             ADNeutralizeClaimedLayerTree6149(((UIView *)self).layer,0);
@@ -4780,112 +4813,208 @@ static int ADWTCarouselSection384(UIView *v){
     return 0;
 }
 
-// v6.0.179 — probe-6178 large Person product-card raster border.
-// The live capture identifies the visible card shell exactly:
-//   RCTView ~286x416.7, logical bg #181a1b, CALayer.contents = CGImage 51x51.
-// The 51x51 bitmap is a stretchable RN border/fill plate; all actual product
-// content lives in child views. Do not use the old generic large-card/stroke guess:
-// require the exact small-raster + card geometry + established Person product context.
-static BOOL ADPersonProductRasterGeometry6179(UIView *v){
-    if(!v || !v.window || !ADIsRCTBorderHost6147(v)) return NO;
-    CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
-    return w>=250.0 && w<=320.0 && h>=360.0 && h<=470.0;
-}
-static BOOL ADPersonProductSmallPlate6179(id contents){
+// v6.0.180 — Buy Again border recovery, based on the historical v6.0.163 owner
+// plus probe 6178's current 51x51 React raster painter.
+//
+// v6.0.163 fixed the exact Reorder soon bright outline when React exposed it as a
+// nested CAShapeLayer stroke. In the current hierarchy probe 6178 also shows a
+// stretchable 51x51 CGImage plate on the 286x416 card. The failed v6.0.179 owner
+// depended on ADWTCarouselSection384(), whose intentional bh<=380 gate rejects
+// this current 416.7pt Buy Again carousel. Identify this one carousel from its own
+// unique Reorder soon content instead; no window-wide scan or recurring work.
+static BOOL ADBuyAgainSmallPlate6180(id contents){
     if(!contents) return NO;
     @try {
         CFTypeRef obj=(__bridge CFTypeRef)contents;
         if(!obj || CFGetTypeID(obj)!=CGImageGetTypeID()) return NO;
         CGImageRef im=(CGImageRef)obj;
-        size_t iw=CGImageGetWidth(im), ih=CGImageGetHeight(im);
+        size_t iw=CGImageGetWidth(im),ih=CGImageGetHeight(im);
         return iw>=24 && iw<=96 && ih>=24 && ih<=96;
     } @catch(...) {}
     return NO;
 }
-static BOOL ADPersonProductContext6179(UIView *v){
-    if(!ADPersonProductRasterGeometry6179(v)) return NO;
+static BOOL ADBuyAgainCardGeometry6180(UIView *v){
+    if(!v || !v.window || !ADIsRCTBorderHost6147(v)) return NO;
+    CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+    return w>=250.0 && w<=320.0 && h>=360.0 && h<=470.0;
+}
+static BOOL ADBuyAgainCarouselMatch6180(UIScrollView *sv){
+    if(!sv || !sv.window) return NO;
+    @try {
+        CGFloat bw=sv.bounds.size.width,bh=sv.bounds.size.height;
+        if(bw<300.0 || bw>520.0 || bh<350.0 || bh>480.0) return NO;
+        CGFloat cw=sv.contentSize.width;
+        if(cw>1.0 && cw<=bw*1.15) return NO;
+        CFAbsoluteTime now=CFAbsoluteTimeGetCurrent();
+        NSNumber *ct=objc_getAssociatedObject(sv,kADBuyAgainCarouselTime6180);
+        NSNumber *cc=objc_getAssociatedObject(sv,kADBuyAgainCarouselCtx6180);
+        if(ct&&cc){
+            CFAbsoluteTime age=now-ct.doubleValue;
+            if((cc.boolValue&&age<8.0)||(!cc.boolValue&&age<0.18)) return cc.boolValue;
+        }
+        BOOL hit=NO;
+        NSMutableArray *q=[NSMutableArray arrayWithObject:sv];
+        NSUInteger qi=0,seen=0;
+        while(qi<q.count && seen++<220){
+            UIView *x=q[qi++];
+            NSString *lo=[[ADWTViewText362(x) lowercaseString]
+                          stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+            if([lo containsString:@"reorder soon"] || [lo isEqualToString:@"buy again"]){ hit=YES; break; }
+            if(qi<70){
+                for(UIView *ch in x.subviews){ if(q.count<240)[q addObject:ch]; else break; }
+            }
+        }
+        objc_setAssociatedObject(sv,kADBuyAgainCarouselCtx6180,@(hit),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(sv,kADBuyAgainCarouselTime6180,@(now),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        return hit;
+    } @catch(...) {}
+    return NO;
+}
+static UIScrollView *ADBuyAgainCarouselForView6180(UIView *v){
+    if(!v || !v.window) return nil;
+    @try {
+        UIView *p=v; int up=0;
+        while(p && up++<14){
+            if([p isKindOfClass:[UIScrollView class]] && ADBuyAgainCarouselMatch6180((UIScrollView *)p))
+                return (UIScrollView *)p;
+            p=p.superview;
+        }
+    } @catch(...) {}
+    return nil;
+}
+static BOOL ADBuyAgainContext6180(UIView *v){
+    return ADBuyAgainCardGeometry6180(v) && ADBuyAgainCarouselForView6180(v)!=nil;
+}
+static BOOL ADLayerInsideBuyAgain6180(CALayer *layer){
+    @try {
+        CALayer *p=layer; int up=0;
+        while(p && up++<8){
+            if(objc_getAssociatedObject(p,kADBuyAgainRaster6180)) return YES;
+            id d=p.delegate;
+            if(d && [d isKindOfClass:[UIView class]] && objc_getAssociatedObject(d,kADBuyAgainRaster6180)) return YES;
+            p=p.superlayer;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static void ADClearBuyAgainRaster6180(UIView *v){
+    if(!v) return;
+    @try {
+        CAShapeLayer *ov=objc_getAssociatedObject(v,kADBuyAgainOutline6180);
+        if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(v,kADBuyAgainOutline6180,nil,OBJC_ASSOCIATION_ASSIGN); }
+        objc_setAssociatedObject(v,kADBuyAgainRaster6180,nil,OBJC_ASSOCIATION_ASSIGN);
+        objc_setAssociatedObject(v.layer,kADBuyAgainRaster6180,nil,OBJC_ASSOCIATION_ASSIGN);
+    } @catch(...) {}
+}
+static void ADInstallBuyAgainRaster6180(UIView *v){
+    if(!v || !ADBuyAgainCardGeometry6180(v)) return;
+    @try {
+        [CATransaction begin]; [CATransaction setDisableActions:YES];
+        v.layer.contents=nil;
+        v.layer.borderWidth=0.0;
+        objc_setAssociatedObject(v,kADBuyAgainRaster6180,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(v.layer,kADBuyAgainRaster6180,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        CAShapeLayer *ov=objc_getAssociatedObject(v,kADBuyAgainOutline6180);
+        if(!ov){
+            ov=[CAShapeLayer layer]; ov.name=@"AmazonDarkBuyAgainBorder6180";
+            ov.fillColor=[UIColor clearColor].CGColor;
+            ov.lineWidth=1.0; ov.contentsScale=UIScreen.mainScreen.scale; ov.zPosition=9998;
+            [v.layer addSublayer:ov];
+            objc_setAssociatedObject(v,kADBuyAgainOutline6180,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        ov.frame=v.bounds;
+        CGRect rr=CGRectInset(v.bounds,0.5,0.5);
+        CGFloat radius=MAX((CGFloat)7.5,v.layer.cornerRadius);
+        ov.path=[UIBezierPath bezierPathWithRoundedRect:rr cornerRadius:radius].CGPath;
+        ov.strokeColor=ADNeutralBorderGray6147().CGColor;
+        ov.hidden=(v.hidden||v.alpha<0.01||CGRectIsEmpty(v.bounds));
+        [CATransaction commit];
+    } @catch(...) {}
+}
+static void ADBuyAgainBorderLayout6180(id obj){
+    UIView *v=(UIView *)obj;
+    if(!ADRecolorOn() || !v) return;
+    @try {
+        BOOL owned=objc_getAssociatedObject(v,kADBuyAgainRaster6180)!=nil;
+        if(!ADBuyAgainCardGeometry6180(v)){
+            if(owned) ADClearBuyAgainRaster6180(v);
+            return;
+        }
+        BOOL inBuyAgain=(ADBuyAgainCarouselForView6180(v)!=nil);
+        if(!inBuyAgain){ if(owned) ADClearBuyAgainRaster6180(v); return; }
+        if(owned){ ADInstallBuyAgainRaster6180(v); return; }
+        if(ADBuyAgainSmallPlate6180(v.layer.contents)) ADInstallBuyAgainRaster6180(v);
+    } @catch(...) {}
+}
+
+// Historical v6.0.163 fallback: the same Buy Again / Person product panels have
+// also been rendered as bright nested CAShapeLayer strokes. Restore that exact
+// assignment-time owner and bounded layout recovery alongside the current raster
+// path so either Amazon renderer lands on #494D4D.
+static BOOL ADPersonProductBrightLayer6163(CALayer *layer,int depth){
+    if(!layer || depth>2) return NO;
+    @try {
+        if(layer.borderWidth>0.1 && layer.borderWidth<=5.0 && ADBrightNeutralCG6149(layer.borderColor)) return YES;
+        if([layer isKindOfClass:[CAShapeLayer class]]){
+            CAShapeLayer *sh=(CAShapeLayer *)layer;
+            if(sh.lineWidth>0.1 && sh.lineWidth<=5.0 && ADBrightNeutralCG6149(sh.strokeColor)) return YES;
+        }
+        for(CALayer *sl in (layer.sublayers?:@[])) if(ADPersonProductBrightLayer6163(sl,depth+1)) return YES;
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADPersonProductCardGeometry6163(UIView *v){
+    if(!v || !v.window || !ADIsRCTBorderHost6147(v)) return NO;
+    CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+    return w>=150.0 && w<=390.0 && h>=120.0 && h<=540.0;
+}
+static BOOL ADPersonProductContext6163(UIView *v){
+    if(!ADPersonProductCardGeometry6163(v)) return NO;
+    if(ADBuyAgainCarouselForView6180(v)) return YES;
     int local=ADWTLocalSection365(v);
     if(local==2) return YES;
     return local==0 && ADWTCarouselSection384(v)==2;
 }
-static void ADClearPersonProductRaster6179(UIView *v){
-    if(!v) return;
-    @try {
-        CAShapeLayer *ov=objc_getAssociatedObject(v,kADPersonProductOutline6179);
-        if(ov){
-            [ov removeFromSuperlayer];
-            objc_setAssociatedObject(v,kADPersonProductOutline6179,nil,OBJC_ASSOCIATION_ASSIGN);
-        }
-        objc_setAssociatedObject(v,kADPersonProductRaster6179,nil,OBJC_ASSOCIATION_ASSIGN);
-        objc_setAssociatedObject(v.layer,kADPersonProductRaster6179,nil,OBJC_ASSOCIATION_ASSIGN);
-    } @catch(...) {}
-}
-static void ADInstallPersonProductRaster6179(UIView *v){
-    if(!v || !ADPersonProductRasterGeometry6179(v)) return;
-    @try {
-        [CATransaction begin];
-        [CATransaction setDisableActions:YES];
-
-        // Probe proves the stock visible white line/fill is the host's tiny stretchable
-        // contents raster. Clearing only this exact host preserves every child image,
-        // label, chevron and button.
-        v.layer.contents=nil;
-        v.layer.borderWidth=0.0;
-
-        CAShapeLayer *ov=objc_getAssociatedObject(v,kADPersonProductOutline6179);
-        if(!ov){
-            ov=[CAShapeLayer layer];
-            ov.fillColor=[UIColor clearColor].CGColor;
-            ov.lineWidth=1.0;
-            ov.contentsScale=UIScreen.mainScreen.scale;
-            ov.zPosition=CGFLOAT_MAX;
-            [v.layer addSublayer:ov];
-            objc_setAssociatedObject(v,kADPersonProductOutline6179,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
-        objc_setAssociatedObject(v,kADPersonProductRaster6179,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(v.layer,kADPersonProductRaster6179,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-
-        ov.frame=v.bounds;
-        CGFloat inset=0.5;
-        CGRect rr=CGRectInset(v.bounds,inset,inset);
-        ov.path=[UIBezierPath bezierPathWithRoundedRect:rr cornerRadius:7.5].CGPath;
-        ov.strokeColor=ADNeutralBorderGray6147().CGColor;
-        ov.hidden=(v.hidden || v.alpha<0.01 || CGRectIsEmpty(v.bounds));
-
-        [CATransaction commit];
-    } @catch(...) {}
-}
-static void ADPersonProductRasterLayout6179(id obj){
+static void ADPersonProductBorderLayout6163(id obj){
     UIView *v=(UIView *)obj;
-    if(!ADRecolorOn() || !v) return;
+    if(!ADRecolorOn() || !ADPersonProductCardGeometry6163(v)) return;
     @try {
-        BOOL owned=objc_getAssociatedObject(v,kADPersonProductRaster6179)!=nil;
-        if(!ADPersonProductRasterGeometry6179(v)){
-            if(owned) ADClearPersonProductRaster6179(v);
-            return;
-        }
-
-        // Once owned, keep it only while the recycled Fabric host still resolves to a
-        // known Person product section. This prevents stale ownership leaking when
-        // React reuses the same RCTView elsewhere.
-        if(owned){
-            if(!ADPersonProductContext6179(v)){
-                ADClearPersonProductRaster6179(v);
-                return;
-            }
-            if(v.layer.contents && !ADPersonProductSmallPlate6179(v.layer.contents)){
-                ADClearPersonProductRaster6179(v);
-                return;
-            }
-            ADInstallPersonProductRaster6179(v);
-            return;
-        }
-
-        if(!ADPersonProductSmallPlate6179(v.layer.contents)) return;
-        if(!ADPersonProductContext6179(v)) return;
-        ADInstallPersonProductRaster6179(v);
+        if(!ADPersonProductBrightLayer6163(v.layer,0)) return;
+        if(!ADPersonProductContext6163(v)) return;
+        ADNeutralizeClaimedLayerTree6149(v.layer,0);
     } @catch(...) {}
 }
+static UIView *ADPersonProductStrokeHost6163(CALayer *layer){
+    if(!layer || !ADRecolorOn()) return nil;
+    @try {
+        CALayer *p=layer; int up=0;
+        while(p && up++<5){
+            id d=p.delegate;
+            if(d && [d isKindOfClass:[UIView class]]){
+                UIView *v=(UIView *)d;
+                if(ADPersonProductContext6163(v)) return v;
+            }
+            p=p.superlayer;
+        }
+    } @catch(...) {}
+    return nil;
+}
+%hook CAShapeLayer
+- (void)setStrokeColor:(CGColorRef)color {
+    if(!ADRecolorOn() || !color || !ADBrightNeutralCG6149(color)){
+        %orig;
+        return;
+    }
+    @try {
+        if(ADPersonProductStrokeHost6163(self)){
+            CGColorRef gray=ADNeutralBorderGray6147().CGColor;
+            %orig(gray);
+            return;
+        }
+    } @catch(...) {}
+    %orig;
+}
+%end
 
 // v5.382 crashfix: Menu ownership is queried from several hot UIImage/Fabric paths.
 // The first v5.382 implementation cached only positive Menu roots, so every image on a
@@ -6405,9 +6534,184 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
     dispatch_async(dispatch_get_main_queue(), ^{ @try { ADSweep(); } @catch(...) {} });
 }
 
+// ════════════════════════════════════════════════════════════════════════════════
+// v6.0.180~probe — Buy Again border + sparse TWB capture
+// Diagnostic-only. Runs once per UIApplicationWillResignActive and appends snapshots.
+// No timers, scroll callbacks, observers over the DOM, or paint changes live here.
+// ════════════════════════════════════════════════════════════════════════════════
+#define AD_BUYAGAIN_PROBE_READY_6180 "com.colindavidr.amazondark/buyagain-probe-6180-ready"
+static NSString *ADBuyAgainProbeName6180(void){ return @"AmazonDark-buyagain-probe-6180.txt"; }
+static NSString *ADBuyAgainProbePath6180(void){
+    @try {
+        NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
+        if(docs.length) return [docs stringByAppendingPathComponent:ADBuyAgainProbeName6180()];
+    } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:ADBuyAgainProbeName6180()];
+}
+static void ADBuyAgainProbeAppend6180(NSString *line){
+    if(!line.length) return;
+    @try {
+        NSString *path=ADBuyAgainProbePath6180();
+        NSData *data=[[line stringByAppendingString:@"\n"] dataUsingEncoding:NSUTF8StringEncoding];
+        @synchronized([NSFileHandle class]){
+            NSFileManager *fm=[NSFileManager defaultManager];
+            if(![fm fileExistsAtPath:path]) [fm createFileAtPath:path contents:nil attributes:nil];
+            NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:path];
+            [h seekToEndOfFile]; [h writeData:data]; [h closeFile];
+        }
+    } @catch(...) {}
+}
+static void ADBuyAgainProbeReset6180(void){
+    @try {
+        NSString *head=[NSString stringWithFormat:
+            @"AmazonDark Buy Again probe 6180\nversion=%s\npid=%d\nsource=%@\n"
+             "relay=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/%@\n"
+             "trigger=leave Buy Again visible and background Amazon; each background appends a snapshot\n"
+             "targets=Reorder-soon border painter + RCTUIImageView/ANXFastImageView TWB peer state\n",
+            AD_VERSION,getpid(),ADBuyAgainProbePath6180(),ADBuyAgainProbeName6180()];
+        [head writeToFile:ADBuyAgainProbePath6180() atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    } @catch(...) {}
+}
+static NSString *ADBuyAgainProbeColor6180(CGColorRef cg){
+    if(!cg) return @"nil";
+    @try {
+        UIColor *c=[UIColor colorWithCGColor:cg]; CGFloat r=0,g=0,b=0,a=0,w=0;
+        if([c getRed:&r green:&g blue:&b alpha:&a])
+            return [NSString stringWithFormat:@"rgba(%.3f,%.3f,%.3f,%.3f)",r,g,b,a];
+        if([c getWhite:&w alpha:&a]) return [NSString stringWithFormat:@"white(%.3f,%.3f)",w,a];
+    } @catch(...) {}
+    return @"?";
+}
+static NSString *ADBuyAgainProbeContents6180(id contents){
+    if(!contents) return @"none";
+    @try {
+        CFTypeRef obj=(__bridge CFTypeRef)contents;
+        if(obj && CFGetTypeID(obj)==CGImageGetTypeID()){
+            CGImageRef im=(CGImageRef)obj;
+            return [NSString stringWithFormat:@"CGImage:%zux%zu",(size_t)CGImageGetWidth(im),(size_t)CGImageGetHeight(im)];
+        }
+    } @catch(...) {}
+    return @"other";
+}
+static NSString *ADBuyAgainProbeText6180(UIView *v){
+    if(!v) return @"";
+    @try {
+        NSMutableArray *bits=[NSMutableArray array]; NSMutableArray *q=[NSMutableArray arrayWithObject:v];
+        NSUInteger qi=0,seen=0;
+        while(qi<q.count && seen++<90 && bits.count<12){
+            UIView *x=q[qi++]; NSString *t=ADWTViewText362(x);
+            t=[[t?:@"" stringByReplacingOccurrencesOfString:@"\n" withString:@" "] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+            if(t.length){ if(t.length>150)t=[[t substringToIndex:150]stringByAppendingString:@"…"]; if(![bits containsObject:t])[bits addObject:t]; }
+            if(qi<35){ for(UIView *ch in x.subviews){ if(q.count<100)[q addObject:ch]; else break; } }
+        }
+        NSString *r=[bits componentsJoinedByString:@" | "]; if(r.length>620)r=[[r substringToIndex:620]stringByAppendingString:@"…"];
+        return r?:@"";
+    } @catch(...) { return @""; }
+}
+static CGRect ADBuyAgainProbeRect6180(UIView *v){ @try{return [v convertRect:v.bounds toView:nil];}@catch(...){return v.frame;} }
+static void ADBuyAgainProbeLayer6180(CALayer *l,int depth,NSMutableString *out){
+    if(!l || depth>3 || !out) return;
+    @try {
+        [out appendFormat:@"  LAYER d=%d cls=%@ ptr=%p frame=(%.1f,%.1f %.1fx%.1f) border=%.2f/%@ bg=%@ radius=%.2f contents=%@ z=%.1f marked6180=%d",
+            depth,NSStringFromClass([l class]),l,l.frame.origin.x,l.frame.origin.y,l.frame.size.width,l.frame.size.height,
+            l.borderWidth,ADBuyAgainProbeColor6180(l.borderColor),ADBuyAgainProbeColor6180(l.backgroundColor),l.cornerRadius,
+            ADBuyAgainProbeContents6180(l.contents),l.zPosition,objc_getAssociatedObject(l,kADBuyAgainRaster6180)!=nil];
+        if([l isKindOfClass:[CAShapeLayer class]]){
+            CAShapeLayer *sh=(CAShapeLayer *)l;
+            [out appendFormat:@" SHAPE line=%.2f stroke=%@ fill=%@",sh.lineWidth,ADBuyAgainProbeColor6180(sh.strokeColor),ADBuyAgainProbeColor6180(sh.fillColor)];
+        }
+        [out appendString:@"\n"];
+        for(CALayer *sl in (l.sublayers?:@[])) ADBuyAgainProbeLayer6180(sl,depth+1,out);
+    } @catch(...) {}
+}
+static void ADBuyAgainProbePeerCounts6180(UIImageView *iv,int *matches,int *positive){
+    if(matches)*matches=0; if(positive)*positive=0; if(!iv||!iv.window)return;
+    @try {
+        CGRect r=[iv convertRect:iv.bounds toView:iv.window]; int m=0,p=0;
+        for(UIImageView *peer in ADNativeRCTViews6053()){
+            if(!ADNativePeerMatch6053(iv,r,peer)) continue;
+            m++;
+            CALayer *ov=objc_getAssociatedObject(peer,kADWhiteTameOverlayKey);
+            if(ov&&ov.superlayer==peer.layer)p++;
+        }
+        if(matches)*matches=m;if(positive)*positive=p;
+    } @catch(...) {}
+}
+static BOOL ADBuyAgainProbeVisible6180(UIView *v){
+    if(!v||v.hidden||v.alpha<0.04||!v.window)return NO;
+    @try { CGRect r=ADBuyAgainProbeRect6180(v); return r.size.width>1&&r.size.height>1&&CGRectIntersectsRect(r,[UIScreen mainScreen].bounds); } @catch(...) {}
+    return NO;
+}
+static void ADBuyAgainProbeCapture6180(void){
+    static NSUInteger cap=0; NSUInteger n=++cap;
+    @try {
+        NSMutableString *out=[NSMutableString stringWithFormat:@"\n\n===== BUY AGAIN CAPTURE %lu t=%.3f =====\n",(unsigned long)n,CFAbsoluteTimeGetCurrent()];
+        NSMutableArray *q=[NSMutableArray array];
+        for(UIWindow *w in [UIApplication sharedApplication].windows) if(w&&!w.hidden&&w.alpha>.03)[q addObject:w];
+        NSUInteger qi=0,seen=0; int cards=0,images=0,carousels=0;
+        while(qi<q.count && seen++<2200){
+            UIView *v=q[qi++];
+            for(UIView *ch in v.subviews){ if(q.count<2600)[q addObject:ch]; else break; }
+            if(!ADBuyAgainProbeVisible6180(v)) continue;
+            const char *cn=object_getClassName(v); NSString *cls=cn?[NSString stringWithUTF8String:cn]:@"?";
+            CGRect r=ADBuyAgainProbeRect6180(v);
+
+            if([v isKindOfClass:[UIScrollView class]] && ADBuyAgainCarouselMatch6180((UIScrollView *)v)){
+                UIScrollView *sv=(UIScrollView *)v; carousels++;
+                [out appendFormat:@"CAROUSEL #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) content=(%.1fx%.1f) text=\"%@\"\n",
+                    carousels,cls,v,r.origin.x,r.origin.y,r.size.width,r.size.height,sv.contentSize.width,sv.contentSize.height,ADBuyAgainProbeText6180(v)];
+            }
+
+            if(ADBuyAgainCardGeometry6180(v)){
+                BOOL ba=ADBuyAgainCarouselForView6180(v)!=nil; int lc=ADWTLocalSection365(v),cc=ADWTCarouselSection384(v);
+                if(ba || ADBuyAgainSmallPlate6180(v.layer.contents) || objc_getAssociatedObject(v,kADBuyAgainRaster6180)){
+                    cards++;
+                    [out appendFormat:@"\nCARD #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) ba=%d local=%d oldCarousel=%d contents=%@ marked=%d outline=%d text=\"%@\"\n",
+                        cards,cls,v,r.origin.x,r.origin.y,r.size.width,r.size.height,ba,lc,cc,ADBuyAgainProbeContents6180(v.layer.contents),
+                        objc_getAssociatedObject(v,kADBuyAgainRaster6180)!=nil,objc_getAssociatedObject(v,kADBuyAgainOutline6180)!=nil,ADBuyAgainProbeText6180(v)];
+                    ADBuyAgainProbeLayer6180(v.layer,0,out);
+                }
+            }
+
+            if([v isKindOfClass:[UIImageView class]] &&
+               ([cls containsString:@"ANXFastImageView"] || [cls containsString:@"RCTUIImageView"])){
+                UIImageView *iv=(UIImageView *)v; CGFloat iw=iv.bounds.size.width,ih=iv.bounds.size.height;
+                if(iw>=60&&ih>=60&&iw<=220&&ih<=220 && ADBuyAgainCarouselForView6180(iv)){
+                    images++;
+                    UIImage *im=iv.image; size_t px=0,py=0; if(im.CGImage){px=CGImageGetWidth(im.CGImage);py=CGImageGetHeight(im.CGImage);}
+                    CALayer *ov=objc_getAssociatedObject(iv,kADWhiteTameOverlayKey);
+                    NSNumber *dec=objc_getAssociatedObject(iv,kADTWBDecision6027);
+                    NSNumber *ctx=objc_getAssociatedObject(iv,kADTWBDirectCtx6031);
+                    int pm=0,pp=0; ADBuyAgainProbePeerCounts6180(iv,&pm,&pp);
+                    int lc=ADWTLocalSection365(iv),cc=ADWTCarouselSection384(iv);
+                    [out appendFormat:@"IMAGE #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) pixels=%zux%zu overlay=%d candidate=%d registered=%d peerMatches=%d peerPositive=%d cachedDecision=%@ cachedCtx=%@ local=%d oldCarousel=%d layerContents=%@ aid=\"%@\" label=\"%@\"\n",
+                        images,cls,iv,r.origin.x,r.origin.y,r.size.width,r.size.height,px,py,
+                        (ov&&ov.superlayer==iv.layer),ADNativeRCTCandidate6053(iv),objc_getAssociatedObject(iv,kADPeerRegistered6053)!=nil,
+                        pm,pp,dec?:@"nil",ctx?:@"nil",lc,cc,ADBuyAgainProbeContents6180(iv.layer.contents),
+                        iv.accessibilityIdentifier?:@"",iv.accessibilityLabel?:@""];
+                }
+            }
+        }
+        [out appendFormat:@"SUMMARY scanned=%lu carousels=%d cards=%d images=%d\n===== BUY AGAIN CAPTURE %lu COMPLETE =====\n",
+            (unsigned long)seen,carousels,cards,images,(unsigned long)n];
+        ADBuyAgainProbeAppend6180(out);
+        notify_post(AD_BUYAGAIN_PROBE_READY_6180);
+    } @catch(...) {
+        ADBuyAgainProbeAppend6180([NSString stringWithFormat:@"CAPTURE %lu EXCEPTION",(unsigned long)n]);
+        @try{notify_post(AD_BUYAGAIN_PROBE_READY_6180);}@catch(...){}
+    }
+}
+
 // ─── %ctor : process guard + hook registration + bounded startup recovery ────
 %ctor {
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
+    ADBuyAgainProbeReset6180();
+    @try {
+        [[NSNotificationCenter defaultCenter]
+            addObserverForName:UIApplicationWillResignActiveNotification
+                        object:nil queue:[NSOperationQueue mainQueue]
+                    usingBlock:^(__unused NSNotification *n){ ADBuyAgainProbeCapture6180(); }];
+    } @catch(...) {}
     // v5.446 direct-port: drop cached light launch snapshots.
     @try {
         NSString *lib = [NSSearchPathForDirectoriesInDomains(
