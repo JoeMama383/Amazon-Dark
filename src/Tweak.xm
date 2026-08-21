@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.178-probe"
+#define AD_VERSION "v6.0.179"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -695,6 +695,17 @@ static NSString *ADFixesLiteral(void){
              "picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],"
              "[class*=s-image],[class*=unfill],[class*=placehold]"
              "{background-color:transparent !important;}"
+             // v6.0.179: probe 6178 identifies the remaining PDP "Shop by brand"
+             // white plate as a CSS-module brandCard whose *background-image* is a
+             // stock white gradient. Its border is already dark/neutral; own only
+             // the card floor and leave product media/controls untouched.
+             "[class*=_c2Itb_brandCard_]"
+             "{background-image:none !important;background-color:#181a1b !important;}"
+             // v6.0.179: probe 6178 identifies Related Interests suggestion cards
+             // the same way: the computed background is already #181a1b, but Amazon
+             // layers an opaque white gradient on top. Remove only that gradient.
+             "[class*=_bW9ia_suggestion_]"
+             "{background-image:none !important;}"
              // v6.0.98: keep the v6.0.94/97 transparent shells and also neutralise
              // their structural pseudo-elements. Recycled
              // result rows can briefly instantiate these wrappers/pseudos with Amazon's
@@ -925,6 +936,12 @@ static NSString *ADDarkReaderBootstrap(void){
            "picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],"
            "[class*=s-image],[class*=unfill],[class*=placehold]"
            "{background-color:transparent !important;}"
+           // v6.0.179: exact probe-6178 first-paint owners. Both failures are
+           // background-image gradients, not bright background-color surfaces.
+           "[class*=_c2Itb_brandCard_]"
+           "{background-image:none !important;background-color:#181a1b !important;}"
+           "[class*=_bW9ia_suggestion_]"
+           "{background-image:none !important;}"
            // v6.0.94: own variation + colour-swatch structural shells as transparent
            // at documentStart.  This prevents both the stock white first frame and the
            // darker replacement rectangle left by v6.0.89; the dark card underneath
@@ -3454,8 +3471,14 @@ static NSAttributedString *ADRecolorAttributedString(NSAttributedString *in){
 static const void *kADPersonBorderTarget6147 = &kADPersonBorderTarget6147;
 static const void *kADPersonBorderOverlay6147 = &kADPersonBorderOverlay6147;
 static const void *kADPersonRasterCard6150 = &kADPersonRasterCard6150;
+// v6.0.179: separate ownership for the probe-proven large Buy Again product-card
+// border plate. Keep it distinct from the compact v6.0.151 raster-card family so
+// nested product controls are never swept/neutralized as part of the border fix.
+static const void *kADPersonProductRaster6179 = &kADPersonProductRaster6179;
+static const void *kADPersonProductOutline6179 = &kADPersonProductOutline6179;
 
 static NSString *ADWTViewText362(UIView *v); // forward: retained Person/TWB helper below
+static void ADPersonProductRasterLayout6179(id obj); // defined after Person section resolvers
 
 static UIColor *ADNeutralBorderGray6147(void){
     static UIColor *c=nil; static dispatch_once_t once;
@@ -4440,7 +4463,7 @@ static void ADForceBarDark(UIView *bar){
 %hook RCTView
 - (void)didMoveToWindow {
     %orig;
-    @try { ADPersonRasterLayout6150(self); } @catch(...) {}
+    @try { ADPersonRasterLayout6150(self); ADPersonProductRasterLayout6179(self); } @catch(...) {}
 }
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
     if (!ADRecolorOn() || !backgroundColor) {
@@ -4459,7 +4482,7 @@ static void ADForceBarDark(UIView *bar){
     %orig;
     // v6.0.151: only compact raster-sized RCT hosts perform the semantic check.
     // The normal RCTView path remains a cheap geometry/label fast path.
-    @try { ADPersonRasterLayout6150(self); } @catch(...) {}
+    @try { ADPersonRasterLayout6150(self); ADPersonProductRasterLayout6179(self); } @catch(...) {}
     @try {
         if(objc_getAssociatedObject(self,kADPersonBorderTarget6147)){
             ADNeutralizeClaimedLayerTree6149(((UIView *)self).layer,0);
@@ -4488,7 +4511,7 @@ static void ADForceBarDark(UIView *bar){
 %hook RCTViewComponentView
 - (void)didMoveToWindow {
     %orig;
-    @try { ADPersonRasterLayout6150(self); } @catch(...) {}
+    @try { ADPersonRasterLayout6150(self); ADPersonProductRasterLayout6179(self); } @catch(...) {}
 }
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
     if (!ADRecolorOn() || !backgroundColor) {
@@ -4505,7 +4528,7 @@ static void ADForceBarDark(UIView *bar){
 }
 - (void)layoutSubviews {
     %orig;
-    @try { ADPersonRasterLayout6150(self); } @catch(...) {}
+    @try { ADPersonRasterLayout6150(self); ADPersonProductRasterLayout6179(self); } @catch(...) {}
     @try {
         if(objc_getAssociatedObject(self,kADPersonBorderTarget6147)){
             ADNeutralizeClaimedLayerTree6149(((UIView *)self).layer,0);
@@ -4755,6 +4778,113 @@ static int ADWTCarouselSection384(UIView *v){
         }
     } @catch(...) {}
     return 0;
+}
+
+// v6.0.179 — probe-6178 large Person product-card raster border.
+// The live capture identifies the visible card shell exactly:
+//   RCTView ~286x416.7, logical bg #181a1b, CALayer.contents = CGImage 51x51.
+// The 51x51 bitmap is a stretchable RN border/fill plate; all actual product
+// content lives in child views. Do not use the old generic large-card/stroke guess:
+// require the exact small-raster + card geometry + established Person product context.
+static BOOL ADPersonProductRasterGeometry6179(UIView *v){
+    if(!v || !v.window || !ADIsRCTBorderHost6147(v)) return NO;
+    CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+    return w>=250.0 && w<=320.0 && h>=360.0 && h<=470.0;
+}
+static BOOL ADPersonProductSmallPlate6179(id contents){
+    if(!contents) return NO;
+    @try {
+        CFTypeRef obj=(__bridge CFTypeRef)contents;
+        if(!obj || CFGetTypeID(obj)!=CGImageGetTypeID()) return NO;
+        CGImageRef im=(CGImageRef)obj;
+        size_t iw=CGImageGetWidth(im), ih=CGImageGetHeight(im);
+        return iw>=24 && iw<=96 && ih>=24 && ih<=96;
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADPersonProductContext6179(UIView *v){
+    if(!ADPersonProductRasterGeometry6179(v)) return NO;
+    int local=ADWTLocalSection365(v);
+    if(local==2) return YES;
+    return local==0 && ADWTCarouselSection384(v)==2;
+}
+static void ADClearPersonProductRaster6179(UIView *v){
+    if(!v) return;
+    @try {
+        CAShapeLayer *ov=objc_getAssociatedObject(v,kADPersonProductOutline6179);
+        if(ov){
+            [ov removeFromSuperlayer];
+            objc_setAssociatedObject(v,kADPersonProductOutline6179,nil,OBJC_ASSOCIATION_ASSIGN);
+        }
+        objc_setAssociatedObject(v,kADPersonProductRaster6179,nil,OBJC_ASSOCIATION_ASSIGN);
+        objc_setAssociatedObject(v.layer,kADPersonProductRaster6179,nil,OBJC_ASSOCIATION_ASSIGN);
+    } @catch(...) {}
+}
+static void ADInstallPersonProductRaster6179(UIView *v){
+    if(!v || !ADPersonProductRasterGeometry6179(v)) return;
+    @try {
+        [CATransaction begin];
+        [CATransaction setDisableActions:YES];
+
+        // Probe proves the stock visible white line/fill is the host's tiny stretchable
+        // contents raster. Clearing only this exact host preserves every child image,
+        // label, chevron and button.
+        v.layer.contents=nil;
+        v.layer.borderWidth=0.0;
+
+        CAShapeLayer *ov=objc_getAssociatedObject(v,kADPersonProductOutline6179);
+        if(!ov){
+            ov=[CAShapeLayer layer];
+            ov.fillColor=[UIColor clearColor].CGColor;
+            ov.lineWidth=1.0;
+            ov.contentsScale=UIScreen.mainScreen.scale;
+            ov.zPosition=CGFLOAT_MAX;
+            [v.layer addSublayer:ov];
+            objc_setAssociatedObject(v,kADPersonProductOutline6179,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        objc_setAssociatedObject(v,kADPersonProductRaster6179,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(v.layer,kADPersonProductRaster6179,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+
+        ov.frame=v.bounds;
+        CGFloat inset=0.5;
+        CGRect rr=CGRectInset(v.bounds,inset,inset);
+        ov.path=[UIBezierPath bezierPathWithRoundedRect:rr cornerRadius:7.5].CGPath;
+        ov.strokeColor=ADNeutralBorderGray6147().CGColor;
+        ov.hidden=(v.hidden || v.alpha<0.01 || CGRectIsEmpty(v.bounds));
+
+        [CATransaction commit];
+    } @catch(...) {}
+}
+static void ADPersonProductRasterLayout6179(id obj){
+    UIView *v=(UIView *)obj;
+    if(!ADRecolorOn() || !v) return;
+    @try {
+        BOOL owned=objc_getAssociatedObject(v,kADPersonProductRaster6179)!=nil;
+        if(!ADPersonProductRasterGeometry6179(v)){
+            if(owned) ADClearPersonProductRaster6179(v);
+            return;
+        }
+
+        // Once owned, keep it only while the recycled Fabric host still resolves to a
+        // known Person product section. This prevents stale ownership leaking when
+        // React reuses the same RCTView elsewhere.
+        if(owned){
+            if(!ADPersonProductContext6179(v)){
+                ADClearPersonProductRaster6179(v);
+                return;
+            }
+            if(v.layer.contents && !ADPersonProductSmallPlate6179(v.layer.contents)){
+                ADClearPersonProductRaster6179(v);
+                return;
+            }
+            ADInstallPersonProductRaster6179(v);
+            return;
+        }
+
+        if(!ADPersonProductSmallPlate6179(v.layer.contents)) return;
+        if(!ADPersonProductContext6179(v)) return;
+        ADInstallPersonProductRaster6179(v);
+    } @catch(...) {}
 }
 
 // v5.382 crashfix: Menu ownership is queried from several hot UIImage/Fabric paths.
@@ -6275,336 +6405,9 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
     dispatch_async(dispatch_get_main_queue(), ^{ @try { ADSweep(); } @catch(...) {} });
 }
 
-
-// ════════════════════════════════════════════════════════════════════════════════
-// v6.0.178~probe — frame-current white-surface / border capture
-//
-// Functional paint remains exact v6.0.176 plus ONLY the proven v6.0.177 Cart
-// foreground recovery above.  This block is diagnostic-only and runs only when
-// Amazon is backgrounded.  Every background appends another numbered capture so
-// the same menu can be sampled repeatedly without restarting Amazon.
-// ════════════════════════════════════════════════════════════════════════════════
-#define AD_VISUAL_PROBE_READY_6178 "com.colindavidr.amazondark/visual-probe-6178-ready"
-
-static NSString *ADVisualProbeName6178(void){
-    return @"AmazonDark-visual-surfaces-probe-6178.txt";
-}
-static NSString *ADVisualProbePath6178(void){
-    @try {
-        NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length) return [docs stringByAppendingPathComponent:ADVisualProbeName6178()];
-    } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:ADVisualProbeName6178()];
-}
-static void ADVisualProbeAppend6178(NSString *line){
-    if(!line.length)return;
-    @try {
-        NSString *p=ADVisualProbePath6178();
-        NSData *d=[[line stringByAppendingString:@"\n"] dataUsingEncoding:NSUTF8StringEncoding];
-        @synchronized([NSFileHandle class]){
-            NSFileManager *fm=[NSFileManager defaultManager];
-            if(![fm fileExistsAtPath:p])[fm createFileAtPath:p contents:nil attributes:nil];
-            NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p];
-            [h seekToEndOfFile]; [h writeData:d]; [h closeFile];
-        }
-    } @catch(...) {}
-}
-static void ADVisualProbeReset6178(void){
-    @try {
-        NSString *head=[NSString stringWithFormat:
-            @"AmazonDark visual surfaces probe 6178\nversion=%s\npid=%d\nsource=%@\nrelay=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/%@\n"
-             "behavior=exact v6.0.176 + proven Cart foreground recovery; no failed v177 visual fixes\n"
-             "trigger=background Amazon once per snapshot; snapshots append until Amazon is force-closed\n",
-            AD_VERSION,getpid(),ADVisualProbePath6178(),ADVisualProbeName6178()];
-        [head writeToFile:ADVisualProbePath6178() atomically:YES encoding:NSUTF8StringEncoding error:nil];
-    } @catch(...) {}
-}
-static NSString *ADProbeColor6178(UIColor *c){
-    if(!c)return @"nil";
-    @try {
-        CGFloat r=0,g=0,b=0,a=0,w=0;
-        if([c getRed:&r green:&g blue:&b alpha:&a])
-            return [NSString stringWithFormat:@"rgba(%.3f,%.3f,%.3f,%.3f)",r,g,b,a];
-        if([c getWhite:&w alpha:&a])
-            return [NSString stringWithFormat:@"white(%.3f,%.3f)",w,a];
-        return c.description?:@"?";
-    } @catch(...) { return @"?"; }
-}
-static BOOL ADProbeBrightNeutral6178(UIColor *c){
-    if(!c)return NO;
-    @try {
-        CGFloat r=0,g=0,b=0,a=0,w=0;
-        if([c getRed:&r green:&g blue:&b alpha:&a]){
-            CGFloat mx=MAX(r,MAX(g,b)),mn=MIN(r,MIN(g,b));
-            CGFloat lum=.2126*r+.7152*g+.0722*b;
-            return a>.08 && lum>.56 && (mx-mn)<.20;
-        }
-        if([c getWhite:&w alpha:&a])return a>.08&&w>.56;
-    } @catch(...) {}
-    return NO;
-}
-static NSString *ADProbeViewText6178(UIView *v){
-    if(!v)return @"";
-    @try {
-        NSMutableArray *bits=[NSMutableArray array];
-        NSMutableArray *q=[NSMutableArray arrayWithObject:v]; NSUInteger qi=0,seen=0;
-        while(qi<q.count&&seen++<70&&bits.count<14){
-            UIView *x=q[qi++]; NSString *t=nil;
-            if([x isKindOfClass:[UILabel class]])t=((UILabel *)x).text;
-            else if([x isKindOfClass:[UIButton class]])t=((UIButton *)x).currentTitle;
-            else if([x isKindOfClass:[UITextView class]])t=((UITextView *)x).text;
-            else if([x isKindOfClass:[UITextField class]])t=((UITextField *)x).text;
-            if(!t.length)t=x.accessibilityLabel;
-            if(!t.length){ @try { id a=[x valueForKey:@"attributedText"]; if([a isKindOfClass:[NSAttributedString class]])t=[a string]; } @catch(...) {} }
-            t=[[t?:@"" stringByReplacingOccurrencesOfString:@"\n" withString:@" "] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-            if(t.length){if(t.length>120)t=[[t substringToIndex:120]stringByAppendingString:@"…"];if(![bits containsObject:t])[bits addObject:t];}
-            if(qi<28){for(UIView *s in x.subviews){if(q.count<80)[q addObject:s];else break;}}
-        }
-        NSString *joined=[bits componentsJoinedByString:@" | "];
-        if(joined.length>520)joined=[[joined substringToIndex:520]stringByAppendingString:@"…"];
-        return joined?:@"";
-    } @catch(...) { return @""; }
-}
-static CGRect ADProbeRect6178(UIView *v){
-    @try{return [v convertRect:v.bounds toView:nil];}@catch(...){return v.frame;}
-}
-static BOOL ADProbeVisible6178(UIView *v,CGRect *out){
-    if(!v||v.hidden||v.alpha<.04)return NO;
-    @try {
-        if(!v.window && ![v isKindOfClass:[UIWindow class]])return NO;
-        CGRect r=ADProbeRect6178(v); if(out)*out=r;
-        CGRect screen=[UIScreen mainScreen].bounds;
-        return r.size.width>1&&r.size.height>1&&CGRectIntersectsRect(r,screen);
-    } @catch(...) { return NO; }
-}
-static NSString *ADProbeContents6178(CALayer *l){
-    if(!l||!l.contents)return @"none";
-    @try {
-        CFTypeRef obj=(__bridge CFTypeRef)l.contents;
-        if(obj&&CFGetTypeID(obj)==CGImageGetTypeID()){
-            CGImageRef im=(CGImageRef)obj;
-            return [NSString stringWithFormat:@"CGImage:%zux%zu",(size_t)CGImageGetWidth(im),(size_t)CGImageGetHeight(im)];
-        }
-        CFTypeID tid=CFGetTypeID(obj);
-        return [NSString stringWithFormat:@"CFType:%lu",(unsigned long)tid];
-    } @catch(...) { return @"yes"; }
-}
-static NSString *ADProbeLayer6178(CALayer *l,NSInteger d){
-    if(!l)return @"";
-    @try {
-        UIColor *bg=l.backgroundColor?[UIColor colorWithCGColor:l.backgroundColor]:nil;
-        UIColor *bd=l.borderColor?[UIColor colorWithCGColor:l.borderColor]:nil;
-        NSMutableString *m=[NSMutableString stringWithFormat:
-            @"LAYER d=%ld cls=%@ ptr=%p frame=(%.1f,%.1f %.1fx%.1f) bg=%@ border=%.2f/%@ radius=%.2f opacity=%.2f hidden=%d masks=%d contents=%@ z=%.1f",
-            (long)d,NSStringFromClass([l class]),l,l.frame.origin.x,l.frame.origin.y,l.frame.size.width,l.frame.size.height,
-            ADProbeColor6178(bg),l.borderWidth,ADProbeColor6178(bd),l.cornerRadius,l.opacity,l.hidden,l.masksToBounds,ADProbeContents6178(l),l.zPosition];
-        if([l isKindOfClass:[CAShapeLayer class]]){
-            CAShapeLayer *s=(CAShapeLayer *)l;
-            UIColor *st=s.strokeColor?[UIColor colorWithCGColor:s.strokeColor]:nil;
-            UIColor *fi=s.fillColor?[UIColor colorWithCGColor:s.fillColor]:nil;
-            CGRect pb=s.path?CGPathGetBoundingBox(s.path):CGRectZero;
-            [m appendFormat:@" SHAPE line=%.2f stroke=%@ fill=%@ path=(%.1f,%.1f %.1fx%.1f)",s.lineWidth,ADProbeColor6178(st),ADProbeColor6178(fi),pb.origin.x,pb.origin.y,pb.size.width,pb.size.height];
-        }
-        @try {
-            id colors=[l valueForKey:@"colors"];
-            if([colors isKindOfClass:[NSArray class]]&&[colors count]){
-                [m appendString:@" GRAD=["];NSUInteger cap=MIN((NSUInteger)8,[colors count]);
-                for(NSUInteger i=0;i<cap;i++){id o=colors[i];NSString *cs=@"?";
-                    @try {
-                        if(o&&CFGetTypeID((__bridge CFTypeRef)o)==CGColorGetTypeID())cs=ADProbeColor6178([UIColor colorWithCGColor:(__bridge CGColorRef)o]);
-                        else if([o isKindOfClass:[UIColor class]])cs=ADProbeColor6178(o);
-                    } @catch(...) {}
-                    if(i)[m appendString:@","];[m appendString:cs];
-                }[m appendString:@"]"];
-            }
-        } @catch(...) {}
-        return m;
-    } @catch(...) { return @"LAYER <error>"; }
-}
-static NSString *ADProbeView6178(UIView *v,NSInteger d){
-    if(!v)return @"";
-    @try {
-        CGRect r=ADProbeRect6178(v);
-        UIColor *lbg=v.layer.backgroundColor?[UIColor colorWithCGColor:v.layer.backgroundColor]:nil;
-        UIColor *bd=v.layer.borderColor?[UIColor colorWithCGColor:v.layer.borderColor]:nil;
-        return [NSString stringWithFormat:
-            @"VIEW d=%ld cls=%@ ptr=%p win=(%.1f,%.1f %.1fx%.1f) alpha=%.2f hidden=%d clips=%d bg=%@ layerBg=%@ border=%.2f/%@ radius=%.2f contents=%@ subviews=%lu sublayers=%lu text=\"%@\"",
-            (long)d,NSStringFromClass([v class]),v,r.origin.x,r.origin.y,r.size.width,r.size.height,v.alpha,v.hidden,v.clipsToBounds,
-            ADProbeColor6178(v.backgroundColor),ADProbeColor6178(lbg),v.layer.borderWidth,ADProbeColor6178(bd),v.layer.cornerRadius,ADProbeContents6178(v.layer),
-            (unsigned long)v.subviews.count,(unsigned long)v.layer.sublayers.count,ADProbeViewText6178(v)];
-    } @catch(...) { return @"VIEW <error>"; }
-}
-static BOOL ADProbeInterestingLayer6178(CALayer *l){
-    if(!l)return NO;
-    @try {
-        UIColor *bg=l.backgroundColor?[UIColor colorWithCGColor:l.backgroundColor]:nil;
-        UIColor *bd=l.borderColor?[UIColor colorWithCGColor:l.borderColor]:nil;
-        if(ADProbeBrightNeutral6178(bg)||ADProbeBrightNeutral6178(bd))return YES;
-        if(l.contents)return YES;
-        if([l isKindOfClass:[CAShapeLayer class]]){
-            CAShapeLayer *s=(CAShapeLayer *)l;
-            UIColor *st=s.strokeColor?[UIColor colorWithCGColor:s.strokeColor]:nil;
-            UIColor *fi=s.fillColor?[UIColor colorWithCGColor:s.fillColor]:nil;
-            if(s.lineWidth>.1||ADProbeBrightNeutral6178(st)||ADProbeBrightNeutral6178(fi))return YES;
-        }
-        NSString *cn=NSStringFromClass([l class]);
-        if([cn rangeOfString:@"Gradient" options:NSCaseInsensitiveSearch].location!=NSNotFound)return YES;
-    } @catch(...) {}
-    return NO;
-}
-static BOOL ADProbeHasInterestingLayer6178(CALayer *l,int depth){
-    if(!l||depth>4)return NO;
-    @try {
-        if(ADProbeInterestingLayer6178(l))return YES;
-        for(CALayer *sl in l.sublayers)if(ADProbeHasInterestingLayer6178(sl,depth+1))return YES;
-    } @catch(...) {}
-    return NO;
-}
-static BOOL ADProbeInterestingView6178(UIView *v,CGRect r){
-    if(!v)return NO;
-    @try {
-        UIColor *lbg=v.layer.backgroundColor?[UIColor colorWithCGColor:v.layer.backgroundColor]:nil;
-        UIColor *bd=v.layer.borderColor?[UIColor colorWithCGColor:v.layer.borderColor]:nil;
-        BOOL bright=ADProbeBrightNeutral6178(v.backgroundColor)||ADProbeBrightNeutral6178(lbg)||ADProbeBrightNeutral6178(bd);
-        BOOL card=r.size.width>=70&&r.size.height>=28&&r.size.width<=500&&r.size.height<=700;
-        BOOL border=v.layer.borderWidth>.1;
-        BOOL contents=v.layer.contents!=nil;
-        BOOL nested=ADProbeHasInterestingLayer6178(v.layer,0);
-        NSString *cn=NSStringFromClass([v class]);
-        BOOL web=[cn hasPrefix:@"WK"];
-        return card&&(bright||border||contents||nested||web);
-    } @catch(...) { return NO; }
-}
-static void ADProbeDumpLayerTree6178(NSMutableString *out,CALayer *root,int depth,int *seen){
-    if(!out||!root||depth>4||!seen||*seen>=80)return;
-    @try {
-        (*seen)++;
-        [out appendFormat:@"%@\n",ADProbeLayer6178(root,depth)];
-        for(CALayer *l in root.sublayers){if(*seen>=80)break;if(ADProbeInterestingLayer6178(l)||depth<2)ADProbeDumpLayerTree6178(out,l,depth+1,seen);}
-    } @catch(...) {}
-}
-static void ADProbeCandidate6178(NSMutableString *out,UIView *v,NSUInteger idx){
-    if(!out||!v)return;
-    @try {
-        [out appendFormat:@"\n--- NATIVE CANDIDATE %lu ---\n%@\n",(unsigned long)idx,ADProbeView6178(v,0)];
-        UIView *p=v.superview;for(int d=1;p&&d<=8;d++,p=p.superview)[out appendFormat:@"ANC %@\n",ADProbeView6178(p,d)];
-        int ls=0;ADProbeDumpLayerTree6178(out,v.layer,0,&ls);
-        NSUInteger c=0;for(UIView *ch in v.subviews){if(c++>=14)break;[out appendFormat:@"CHILD %@\n",ADProbeView6178(ch,1)];}
-    } @catch(...) {}
-}
-static NSArray *ADProbeWindows6178(void){
-    @try {
-        NSMutableArray *out=[NSMutableArray array];NSHashTable *seen=[NSHashTable weakObjectsHashTable];
-        for(UIScene *sc in [UIApplication sharedApplication].connectedScenes){
-            if(![sc isKindOfClass:[UIWindowScene class]])continue;
-            for(UIWindow *w in ((UIWindowScene *)sc).windows)if(w&&!w.hidden&&![seen containsObject:w]){[seen addObject:w];[out addObject:w];}
-        }
-        for(UIWindow *w in [UIApplication sharedApplication].windows)if(w&&!w.hidden&&![seen containsObject:w]){[seen addObject:w];[out addObject:w];}
-        return out;
-    } @catch(...) { return [UIApplication sharedApplication].windows?:@[]; }
-}
-static void ADProbeNative6178(NSUInteger capture){
-    @try {
-        NSMutableString *out=[NSMutableString stringWithFormat:@"\n===== CAPTURE %lu NATIVE t=%.3f =====\n",(unsigned long)capture,CFAbsoluteTimeGetCurrent()];
-        NSUInteger scanned=0,cands=0;
-        for(UIWindow *w in ADProbeWindows6178()){
-            [out appendFormat:@"\nWINDOW %@\n",ADProbeView6178(w,0)];
-            NSMutableArray *q=[NSMutableArray arrayWithObject:w];NSUInteger qi=0;
-            while(qi<q.count&&scanned<2600){
-                UIView *v=q[qi++];scanned++;
-                for(UIView *ch in v.subviews)if(q.count<3200)[q addObject:ch];
-                CGRect r=CGRectZero;BOOL vis=[v isKindOfClass:[UIWindow class]]?YES:ADProbeVisible6178(v,&r);
-                if(!vis)continue;if([v isKindOfClass:[UIWindow class]])r=ADProbeRect6178(v);
-                if(cands<220&&ADProbeInterestingView6178(v,r))ADProbeCandidate6178(out,v,++cands);
-            }
-        }
-        [out appendFormat:@"NATIVE TOTAL scanned=%lu candidates=%lu\n",(unsigned long)scanned,(unsigned long)cands];
-        ADVisualProbeAppend6178(out);
-    } @catch(...) {}
-}
-static NSString *ADVisualProbeJS6178(void){
-    return @"(function(){\ntry{\n  function s(v){return String(v==null?'':v);}\n  function n(v){return s(v).replace(/\\s+/g,' ').trim();}\n  function clip(v,m){v=s(v);m=m||260;return v.length>m?v.slice(0,m)+'…':v;}\n  function cls(e){try{var c=e.className;return clip(c&&c.baseVal!==undefined?c.baseVal:(c||''),260);}catch(x){return'';}}\n  function rgb(v){var m=s(v).match(/rgba?\\(\\s*([\\d.]+)\\s*,\\s*([\\d.]+)\\s*,\\s*([\\d.]+)(?:\\s*,\\s*([\\d.]+))?\\s*\\)/i);if(!m)return null;return [+m[1],+m[2],+m[3],m[4]===undefined?1:+m[4]];}\n  function brightNeutral(v){var q=rgb(v);if(!q||q[3]<.08)return false;var mx=Math.max(q[0],q[1],q[2]),mn=Math.min(q[0],q[1],q[2]),lum=.2126*q[0]+.7152*q[1]+.0722*q[2];return lum>145&&(mx-mn)<58;}\n  function paint(c){return !!c&&(brightNeutral(c.backgroundColor)||brightNeutral(c.borderTopColor)||brightNeutral(c.borderRightColor)||brightNeutral(c.borderBottomColor)||brightNeutral(c.borderLeftColor)||s(c.backgroundImage)!=='none'||s(c.boxShadow)!=='none'||s(c.outlineStyle)!=='none');}\n  function pseudo(e,w){try{var c=getComputedStyle(e,w);return{content:clip(c.content,120),color:c.color,bg:c.backgroundColor,bgi:clip(c.backgroundImage,420),border:[c.borderTopWidth,c.borderTopStyle,c.borderTopColor,c.borderRightWidth,c.borderRightStyle,c.borderRightColor,c.borderBottomWidth,c.borderBottomStyle,c.borderBottomColor,c.borderLeftWidth,c.borderLeftStyle,c.borderLeftColor],rad:c.borderRadius,shadow:clip(c.boxShadow,360),outline:clip(c.outline,220),filter:clip(c.filter,220),mask:clip(c.webkitMaskImage||c.maskImage,260),opacity:c.opacity,display:c.display};}catch(x){return{err:s(x)}}}\n  function rec(e,full){\n    var r=e.getBoundingClientRect(),c=getComputedStyle(e),t=n(e.innerText||e.textContent),st=e.getAttribute('style')||'';\n    var h='';if(full){try{h=clip(e.outerHTML,760);}catch(x){}}\n    return {\n      tag:e.tagName,id:e.id||'',cls:cls(e),role:e.getAttribute('role')||'',\n      testid:e.getAttribute('data-testid')||'',cel:e.getAttribute('data-cel-widget')||'',\n      csaid:e.getAttribute('data-csa-c-content-id')||'',asin:e.getAttribute('data-asin')||'',\n      rect:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],\n      display:c.display,visibility:c.visibility,opacity:c.opacity,position:c.position,z:c.zIndex,\n      color:c.color,fill:c.webkitTextFillColor,\n      bg:c.backgroundColor,bgi:clip(c.backgroundImage,440),bgclip:c.backgroundClip,bgblend:c.backgroundBlendMode,\n      border:[c.borderTopWidth,c.borderTopStyle,c.borderTopColor,c.borderRightWidth,c.borderRightStyle,c.borderRightColor,c.borderBottomWidth,c.borderBottomStyle,c.borderBottomColor,c.borderLeftWidth,c.borderLeftStyle,c.borderLeftColor],\n      radius:c.borderRadius,shadow:clip(c.boxShadow,360),outline:clip(c.outline,220),\n      filter:clip(c.filter,220),transform:clip(c.transform,220),mask:clip(c.webkitMaskImage||c.maskImage,300),\n      inline:clip(st,520),drbg:e.getAttribute('data-darkreader-inline-bgcolor')||'',drbd:e.getAttribute('data-darkreader-inline-border')||'',\n      text:clip(t,260),before:pseudo(e,'::before'),after:pseudo(e,'::after'),html:h\n    };\n  }\n  var all=document.querySelectorAll('body *'),rows=[],tested=0,bright=0,painted=0,cardlike=0;\n  for(var i=0;i<all.length&&i<7500&&rows.length<280;i++){\n    var e=all[i],r=e.getBoundingClientRect();\n    if(r.bottom<0||r.top>innerHeight||r.right<0||r.left>innerWidth||r.width<24||r.height<12||r.width>520||r.height>620)continue;\n    tested++;\n    var c=getComputedStyle(e),b=brightNeutral(c.backgroundColor),bd=brightNeutral(c.borderTopColor)||brightNeutral(c.borderRightColor)||brightNeutral(c.borderBottomColor)||brightNeutral(c.borderLeftColor);\n    var be=pseudo(e,'::before'),af=pseudo(e,'::after');\n    var extra=(s(c.backgroundImage)!=='none'||s(c.boxShadow)!=='none'||s(c.outlineStyle)!=='none'||paint(be)||paint(af));\n    var rad=parseFloat(c.borderRadius)||0,bw=Math.max(parseFloat(c.borderTopWidth)||0,parseFloat(c.borderRightWidth)||0,parseFloat(c.borderBottomWidth)||0,parseFloat(c.borderLeftWidth)||0);\n    var txt=n(e.innerText||e.textContent),media=/^(IMG|PICTURE|VIDEO|CANVAS|SVG)$/i.test(e.tagName);\n    var card=(r.width>=90&&r.height>=36&&(rad>=4||bw>=.5||txt.length>=4));\n    var iframe=(e.tagName==='IFRAME');\n    if(b||bd){bright++;}\n    if(extra){painted++;}\n    if(card){cardlike++;}\n    if(!(b||bd||extra||card||iframe))continue;\n    var o={flags:{brightBg:b,brightBorder:bd,extraPaint:extra,card:card,media:media,iframe:iframe},self:rec(e,true),anc:[],children:[]},p=e.parentElement;\n    for(var z=0;p&&z<6;z++,p=p.parentElement)o.anc.push(rec(p,false));\n    var ch=e.children||[];for(var k=0;k<ch.length&&k<10;k++){var cr=ch[k].getBoundingClientRect();if(cr.bottom>=0&&cr.top<=innerHeight)o.children.push(rec(ch[k],false));}\n    rows.push(o);\n  }\n  var frames=[];try{var fs=document.querySelectorAll('iframe');for(var f=0;f<fs.length&&f<30;f++){var q=fs[f],rr=q.getBoundingClientRect();if(rr.bottom<0||rr.top>innerHeight)continue;frames.push({src:q.src||'',name:q.name||'',rect:[Math.round(rr.x),Math.round(rr.y),Math.round(rr.width),Math.round(rr.height)],cls:cls(q),id:q.id||''});}}catch(x){}\n  return JSON.stringify({\n    url:location.href,title:document.title,ready:document.readyState,hidden:document.hidden,\n    viewport:[innerWidth,innerHeight],scrollY:Math.round(scrollY),docH:Math.round(document.documentElement.scrollHeight||0),\n    tested:tested,bright:bright,painted:painted,cardlike:cardlike,rows:rows,frames:frames\n  });\n}catch(e){return 'ERR '+String(e&&e.stack||e);}\n})()";
-}
-
-static void ADProbeWebOne6178(WKWebView *wv,NSUInteger capture,dispatch_group_t group){
-    if(!wv||!ADWebViewLive6169(wv))return;
-    dispatch_group_enter(group);
-    @try {
-        NSString *u=wv.URL.absoluteString?:@"";
-        [wv evaluateJavaScript:ADVisualProbeJS6178() completionHandler:^(id value,NSError *error){
-            @try {
-                NSString *v=[value isKindOfClass:[NSString class]]?(NSString *)value:[value description];
-                if(error)v=[NSString stringWithFormat:@"ERR %@",error];
-                ADVisualProbeAppend6178([NSString stringWithFormat:
-                    @"\n===== CAPTURE %lu WEB t=%.3f url=%@ =====\n%@\n",
-                    (unsigned long)capture,CFAbsoluteTimeGetCurrent(),u,v?:@"nil"]);
-            } @catch(...) {}
-            dispatch_group_leave(group);
-        }];
-    } @catch(...) { dispatch_group_leave(group); }
-}
-static void ADProbeWebWalk6178(UIView *root,NSUInteger capture,dispatch_group_t g){
-    if(!root)return;
-    @try {
-        NSMutableArray *q=[NSMutableArray arrayWithObject:root];NSUInteger qi=0,seen=0;
-        while(qi<q.count&&seen++<1800){
-            UIView *v=q[qi++];
-            if([v isKindOfClass:[WKWebView class]]){ADProbeWebOne6178((WKWebView *)v,capture,g);continue;}
-            for(UIView *ch in v.subviews)if(q.count<2200)[q addObject:ch];
-        }
-    } @catch(...) {}
-}
-static void ADVisualProbeSignal6178(void){
-    @try { notify_post(AD_VISUAL_PROBE_READY_6178); } @catch(...) {}
-}
-static void ADVisualProbeCapture6178(void){
-    static BOOL busy=NO;static NSUInteger capture=0;
-    if(busy)return;busy=YES;NSUInteger n=++capture;
-    @try {
-        UIApplication *app=[UIApplication sharedApplication];
-        ADVisualProbeAppend6178([NSString stringWithFormat:
-            @"\n\n================ CAPTURE %lu START t=%.3f state=%ld ================\n",
-            (unsigned long)n,CFAbsoluteTimeGetCurrent(),(long)app.applicationState]);
-        ADProbeNative6178(n);
-
-        __block UIBackgroundTaskIdentifier bg=UIBackgroundTaskInvalid;
-        @try {
-            bg=[app beginBackgroundTaskWithName:@"AmazonDarkVisualProbe6178" expirationHandler:^{
-                @try {if(bg!=UIBackgroundTaskInvalid){[app endBackgroundTask:bg];bg=UIBackgroundTaskInvalid;}}@catch(...){}
-            }];
-        } @catch(...) {}
-
-        dispatch_group_t g=dispatch_group_create();
-        for(UIWindow *w in ADProbeWindows6178())ADProbeWebWalk6178(w,n,g);
-        __block BOOL done=NO;
-        void (^finish)(NSString *)=^(NSString *why){
-            if(done)return;done=YES;
-            ADVisualProbeAppend6178([NSString stringWithFormat:
-                @"================ CAPTURE %lu COMPLETE t=%.3f (%@) ================\n",
-                (unsigned long)n,CFAbsoluteTimeGetCurrent(),why?:@"done"]);
-            ADVisualProbeSignal6178();
-            if(bg!=UIBackgroundTaskInvalid){@try{[app endBackgroundTask:bg];}@catch(...){}bg=UIBackgroundTaskInvalid;}
-            busy=NO;
-        };
-        dispatch_group_notify(g,dispatch_get_main_queue(),^{finish(@"all WebKit callbacks");});
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(3.0*NSEC_PER_SEC)),dispatch_get_main_queue(),^{finish(@"timeout; partial WebKit results retained");});
-    } @catch(...) {
-        ADVisualProbeAppend6178([NSString stringWithFormat:@"CAPTURE %lu EXCEPTION",(unsigned long)n]);
-        ADVisualProbeSignal6178();busy=NO;
-    }
-}
-
-
 // ─── %ctor : process guard + hook registration + bounded startup recovery ────
 %ctor {
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
-    ADVisualProbeReset6178();
-    @try {
-        [[NSNotificationCenter defaultCenter]
-            addObserverForName:UIApplicationWillResignActiveNotification
-                        object:nil queue:[NSOperationQueue mainQueue]
-                    usingBlock:^(NSNotification *n){ ADVisualProbeCapture6178(); }];
-    } @catch(...) {}
     // v5.446 direct-port: drop cached light launch snapshots.
     @try {
         NSString *lib = [NSSearchPathForDirectoriesInDomains(
@@ -6625,8 +6428,9 @@ static void ADVisualProbeCapture6178(void){
                         object:nil queue:[NSOperationQueue mainQueue]
                     usingBlock:^(NSNotification *n){
             @try {
-                // v6.0.177 proven Cart/background recovery. Keep this and only this
-                // production behavior from the previous multi-fix build.
+                // v6.0.179: retain the v6.0.177 Cart foreground recovery confirmed
+                // on-device. Reapply only to live mounted WebViews; no reload/cache/
+                // cookie/history/process-pool mutation is performed.
                 ADForceWindowsDarkTrait();
                 ADInjectAllWebViews();
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.28*NSEC_PER_SEC)),

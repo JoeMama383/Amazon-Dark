@@ -1,27 +1,11 @@
-## v6.0.178~probe — frame-current visual surface diagnostics
+# AmazonDark v6.0.179 — probe-driven surface fixes
 
-- Exact functional base: v6.0.176.
-- Keeps only the proven v6.0.177 Shopping Cart foreground recovery:
-  - live mounted WebViews are re-applied when Amazon becomes active;
-  - one 280 ms WebKit-only catch-up handles the recycled Cart document.
-- Removes the unsuccessful v6.0.177 production attempts for:
-  - Person product-card borders;
-  - Person > Interests white cards/gradient;
-  - PDP Shop by brand white cards.
-- Adds a diagnostic-only snapshot on every `UIApplicationWillResignActiveNotification`.
-- Each background action appends a numbered capture rather than overwriting the previous one.
-- Native snapshot records visible UIKit/React/Fabric card-like views, bright backgrounds/borders,
-  raster `CALayer.contents`, nested `CAShapeLayer` strokes/fills, gradients, ancestry, child views,
-  and local descendant text.
-- WebKit snapshot records visible card/box candidates with URL/title, geometry, computed background,
-  background-image, all border sides, radius, shadow, outline, filter/mask, pseudo-element paint,
-  Dark Reader inline markers, ancestry, child context, iframe geometry, and truncated outerHTML.
-- When each capture completes, Amazon posts a Darwin notification; AmazonDarkSB automatically copies
-  the cumulative report to:
-  `/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/AmazonDark-visual-surfaces-probe-6178.txt`
-- Probe state resets only on a fresh Amazon process launch. Background the same menu three times,
-  then move to the next menu and repeat; one final report contains every numbered snapshot.
-- No probe MutationObserver, scroll listener, interval, or requestAnimationFrame loop is added.
+Built from the exact v6.0.176 production tree. This release retains only the on-device-confirmed Cart foreground recovery from the prior v6.0.177 experiment, then fixes the three remaining surfaces from probe 6178:
+
+- Person / Buy Again large product-card white outline: probe identified a 286x416.7 RCTView whose border/fill is a 51x51 stretchable CALayer.contents raster. The fix clears only that exact small raster plate inside established Person product context and draws one #494D4D CAShapeLayer outline; child product content is untouched.
+- PDP / Shop by brand: probe identified `_c2Itb_brandCard_*` with a stock white `linear-gradient(...)` background-image while the border was already dark. The fix removes that exact gradient and owns the card floor as #181a1b.
+- Person / Related Interests: probe identified `_bW9ia_suggestion_*` with an opaque white gradient over an already-dark #181a1b background and already-gray border. The fix removes only that gradient.
+- The v6.0.178 diagnostic probe and SpringBoard relay are not shipped in production.
 
 ## v6.0.176 — warm PDP detach/reattach retention
 
