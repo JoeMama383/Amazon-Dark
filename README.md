@@ -1,3 +1,15 @@
+# AmazonDark v6.0.183~probe — finish Buy Again carousel border ownership
+
+## v6.0.183 correction
+
+- Built directly from v6.0.182~probe after on-device testing proved the new Buy Again raster-border repair works on the first `Reorder soon` card but not its sibling cards in the same horizontal carousel.
+- Root cause: v6.0.181/182 used the semantic text event to repair only the triggering text leaf's ancestor chain. That reaches the first card, while neighboring carousel cards are siblings and may already have completed layout before the carousel was identified.
+- When `Reorder soon` positively identifies the mounted 350..480pt horizontal Buy Again carousel, AmazonDark now performs one bounded, carousel-local descendant pass and claims every exact RCT card host with the probe-proven 24..96px stretch raster. Each receives the existing single 1pt `#494D4D` outline and its stale white raster plate is suppressed.
+- The positively identified mounted carousel keeps a 120-second direct-semantic marker so later/recycled card hosts can use the existing layout/setContents owner without depending on the first card remaining visible; after that it falls back to normal semantic revalidation.
+- The working v6.0.180 Buy Again TWB extension remains unchanged.
+- Probe filename/relay remains `AmazonDark-buyagain-probe-6180.txt`; its carousel line now reports `semantic6183=1` after direct semantic ownership.
+- No new MutationObserver, scroll listener, interval, RAF loop, window-wide scan, WebKit reload, cache manipulation, or new Logos hook class is added.
+
 # AmazonDark v6.0.182~probe — compile correction for Buy Again raster-border hydration
 
 ## v6.0.182 compile correction

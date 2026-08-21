@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.182-probe"
+#define AD_VERSION "v6.0.183-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3485,6 +3485,7 @@ static const void *kADBuyAgainRaster6180 = &kADBuyAgainRaster6180;
 static const void *kADBuyAgainOutline6180 = &kADBuyAgainOutline6180;
 static const void *kADBuyAgainCarouselCtx6180 = &kADBuyAgainCarouselCtx6180;
 static const void *kADBuyAgainCarouselTime6180 = &kADBuyAgainCarouselTime6180;
+static const void *kADBuyAgainSemanticCarousel6183 = &kADBuyAgainSemanticCarousel6183;
 
 static NSString *ADWTViewText362(UIView *v); // forward: retained Person/TWB helper below
 static BOOL ADBuyAgainSmallPlate6180(id contents);
@@ -3494,6 +3495,7 @@ static BOOL ADLayerInsideBuyAgain6180(CALayer *layer);
 static void ADInstallBuyAgainRaster6180(UIView *v);
 static void ADBuyAgainBorderLayout6180(id obj);
 static void ADBuyAgainSemanticRepair6181(UIView *anchor, NSString *text);
+static void ADBuyAgainRepairCarousel6183(UIScrollView *sv);
 static void ADPersonProductBorderLayout6163(id obj); // historical v6.0.163 fallback
 
 static UIColor *ADNeutralBorderGray6147(void){
@@ -4867,6 +4869,16 @@ static BOOL ADBuyAgainCarouselMatch6180(UIScrollView *sv){
         CGFloat cw=sv.contentSize.width;
         if(cw>1.0 && cw<=bw*1.15) return NO;
         CFAbsoluteTime now=CFAbsoluteTimeGetCurrent();
+        // v6.0.183: a Reorder-soon text leaf can positively identify this exact
+        // horizontal carousel. Keep that direct semantic decision warm long enough
+        // for horizontal recycling, then require normal revalidation so a reused
+        // scroll view cannot carry stale Buy Again ownership indefinitely.
+        NSNumber *sem=objc_getAssociatedObject(sv,kADBuyAgainSemanticCarousel6183);
+        if(sem){
+            CFAbsoluteTime sage=now-sem.doubleValue;
+            if(sage>=0.0 && sage<120.0) return YES;
+            objc_setAssociatedObject(sv,kADBuyAgainSemanticCarousel6183,nil,OBJC_ASSOCIATION_ASSIGN);
+        }
         NSNumber *ct=objc_getAssociatedObject(sv,kADBuyAgainCarouselTime6180);
         NSNumber *cc=objc_getAssociatedObject(sv,kADBuyAgainCarouselCtx6180);
         if(ct&&cc){
@@ -4996,17 +5008,80 @@ static UIView *ADBuyAgainRasterAncestor6181(UIView *anchor){
     } @catch(...) {}
     return nil;
 }
+// v6.0.183 — v6.0.182 proved the semantic repair was correct but too local:
+// only the first "Reorder soon" card sits on the triggering text's ancestor
+// chain. The neighboring category cards are siblings in the same horizontal
+// RCTCustomScrollView, so their already-created 51x51 raster hosts never receive
+// another lifecycle callback after the first card establishes Buy Again.
+//
+// Once the semantic text positively identifies that carousel, perform one
+// bounded pass over that carousel only and claim every exact 250..320 x
+// 360..470 RCT raster host carrying the same 24..96px stretch plate. This is
+// event-driven by the existing text setter; it is not a window scan, scroll
+// listener, timer, observer, or recurring repair lane. Later/recycled hosts still
+// use the normal RCT layout/setContents path.
+static UIScrollView *ADBuyAgainSemanticCarouselForAnchor6183(UIView *anchor){
+    if(!anchor || !anchor.window) return nil;
+    @try {
+        UIView *p=anchor; int up=0;
+        while(p && up++<20){
+            if([p isKindOfClass:[UIScrollView class]]){
+                UIScrollView *sv=(UIScrollView *)p;
+                CGFloat bw=sv.bounds.size.width,bh=sv.bounds.size.height,cw=sv.contentSize.width;
+                if(bw>=300.0 && bw<=520.0 && bh>=350.0 && bh<=480.0 &&
+                   (cw<=1.0 || cw>bw*1.15)) return sv;
+            }
+            p=p.superview;
+        }
+    } @catch(...) {}
+    return nil;
+}
+static void ADBuyAgainRepairCarousel6183(UIScrollView *sv){
+    if(!ADRecolorOn() || !sv || !sv.window) return;
+    @try {
+        objc_setAssociatedObject(sv,kADBuyAgainSemanticCarousel6183,@(CFAbsoluteTimeGetCurrent()),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(sv,kADBuyAgainCarouselCtx6180,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(sv,kADBuyAgainCarouselTime6180,@(CFAbsoluteTimeGetCurrent()),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        NSMutableArray *q=[NSMutableArray arrayWithObject:sv];
+        NSUInteger qi=0,seen=0;
+        while(qi<q.count && seen++<320){
+            UIView *v=q[qi++];
+            if(v!=sv && ADBuyAgainCardGeometry6180(v)){
+                if(objc_getAssociatedObject(v,kADBuyAgainRaster6180) ||
+                   ADBuyAgainSmallPlate6180(v.layer.contents))
+                    ADInstallBuyAgainRaster6180(v);
+            }
+            for(UIView *ch in v.subviews){
+                if(q.count>=340) break;
+                [q addObject:ch];
+            }
+        }
+    } @catch(...) {}
+}
 static void ADBuyAgainSemanticRepair6181(UIView *anchor, NSString *text){
     if(!ADRecolorOn() || !anchor || !ADBuyAgainSemanticText6181(text)) return;
     @try {
+        UIScrollView *sv=ADBuyAgainSemanticCarouselForAnchor6183(anchor);
+        if(sv){ ADBuyAgainRepairCarousel6183(sv); return; }
         UIView *host=ADBuyAgainRasterAncestor6181(anchor);
-        if(host){ ADInstallBuyAgainRaster6180(host); return; }
+        if(host){
+            ADInstallBuyAgainRaster6180(host);
+            UIScrollView *owner=ADBuyAgainCarouselForView6180(host);
+            if(owner) ADBuyAgainRepairCarousel6183(owner);
+            return;
+        }
         __weak UIView *weakAnchor=anchor;
         dispatch_async(dispatch_get_main_queue(), ^{
             UIView *a=weakAnchor;
             if(!a || !ADRecolorOn()) return;
+            UIScrollView *car=ADBuyAgainSemanticCarouselForAnchor6183(a);
+            if(car){ ADBuyAgainRepairCarousel6183(car); return; }
             UIView *h=ADBuyAgainRasterAncestor6181(a);
-            if(h) ADInstallBuyAgainRaster6180(h);
+            if(h){
+                ADInstallBuyAgainRaster6180(h);
+                UIScrollView *owner=ADBuyAgainCarouselForView6180(h);
+                if(owner) ADBuyAgainRepairCarousel6183(owner);
+            }
         });
     } @catch(...) {}
 }
@@ -6722,8 +6797,9 @@ static void ADBuyAgainProbeCapture6180(void){
 
             if([v isKindOfClass:[UIScrollView class]] && ADBuyAgainCarouselMatch6180((UIScrollView *)v)){
                 UIScrollView *sv=(UIScrollView *)v; carousels++;
-                [out appendFormat:@"CAROUSEL #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) content=(%.1fx%.1f) text=\"%@\"\n",
-                    carousels,cls,v,r.origin.x,r.origin.y,r.size.width,r.size.height,sv.contentSize.width,sv.contentSize.height,ADBuyAgainProbeText6180(v)];
+                [out appendFormat:@"CAROUSEL #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) content=(%.1fx%.1f) semantic6183=%d text=\"%@\"\n",
+                    carousels,cls,v,r.origin.x,r.origin.y,r.size.width,r.size.height,sv.contentSize.width,sv.contentSize.height,
+                    objc_getAssociatedObject(sv,kADBuyAgainSemanticCarousel6183)!=nil,ADBuyAgainProbeText6180(v)];
             }
 
             if(ADBuyAgainCardGeometry6180(v)){
