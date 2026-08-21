@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.184-probe"
+#define AD_VERSION "v6.0.185-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -4115,9 +4115,16 @@ static void ADNeutralizeInterestsGradientNearText6177(UIView *anchor, NSString *
         if(ADRecolorOn() && objc_getAssociatedObject(self,kADBuyAgainRaster6180)){
             id d=self.delegate;
             UIView *rv=(d && [d isKindOfClass:[UIView class]]) ? (UIView *)d : nil;
-            %orig(nil);
-            if(rv && ADBuyAgainCardGeometry6180(rv)) ADInstallBuyAgainRaster6180(rv);
-            return;
+            // v6.0.185: only suppress the raster while the claimed host is actually
+            // mounted in Buy Again. During a nav-tab detach, let React assign its
+            // contents normally; re-entry will clear the 51x51 plate and restore our
+            // outline. This also prevents a detached/recycled host from losing real
+            // unrelated contents because of a stale claim.
+            if(rv && rv.window && ADBuyAgainCardGeometry6180(rv) && ADBuyAgainContext6180(rv)){
+                %orig(nil);
+                ADInstallBuyAgainRaster6180(rv);
+                return;
+            }
         }
     } @catch(...) {}
 
@@ -5088,6 +5095,13 @@ static void ADBuyAgainBorderLayout6180(id obj){
     if(!ADRecolorOn() || !v) return;
     @try {
         BOOL owned=objc_getAssociatedObject(v,kADBuyAgainRaster6180)!=nil;
+        // v6.0.185: a bottom-nav switch can temporarily detach the Person RCT tree.
+        // v184 treated window==nil as a geometry failure and destroyed the Buy Again
+        // ownership + outline. Amazon's raster had already been suppressed, so the
+        // same view returned borderless. Preserve the claim while detached; once the
+        // view is mounted again the normal context check below either reasserts the
+        // gray outline or retires the claim if React actually recycled the host.
+        if(owned && !v.window) return;
         if(!ADBuyAgainCardGeometry6180(v)){
             if(owned) ADClearBuyAgainRaster6180(v);
             return;
@@ -6304,6 +6318,14 @@ static void ADSweepViewTree(UIView *v, int depth, BOOL inTabBar){
         if (ADInNativeScrollIndicator6077(v)) return;  // UIKit owns native scroll-thumb paint
         ADVoiceRepairView6072(v);                     // hydrated native voice-sheet ink
         ADInvertRNSVG(v);                               // Alexa panel vector icons
+        // v6.0.185: tab re-entry already runs this bounded current-controller sweep.
+        // Reuse it to reassert only exact Buy Again raster candidates/owned hosts,
+        // instead of adding a new observer, tab hook, timer, or window-wide pass.
+        // This covers Amazon keeping the Person tree mounted but replacing/detaching
+        // the card sublayers while another bottom-nav pane is selected.
+        if (objc_getAssociatedObject(v,kADBuyAgainRaster6180) ||
+            (ADBuyAgainCardGeometry6180(v) && ADBuyAgainSmallPlate6180(v.layer.contents)))
+            ADBuyAgainBorderLayout6180(v);
         if ([v isKindOfClass:[UIImageView class]]) ADApplyNativeWhiteTameView(v); // direct TWB media only
         // Was `return`, which skipped this view AND everything under it -- including
         // the background fill. That is where the grey boxes behind the nav tabs came
@@ -6926,9 +6948,9 @@ static void ADBuyAgainProbeCapture6180(void){
                 if(ba || ADBuyAgainSmallPlate6180(v.layer.contents) || objc_getAssociatedObject(v,kADBuyAgainRaster6180)){
                     cards++;
                     CAShapeLayer *baov=objc_getAssociatedObject(v,kADBuyAgainOutline6180);
-                    [out appendFormat:@"\nCARD #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) ba=%d local=%d oldCarousel=%d contents=%@ marked=%d outline=%d attached=%d text=\"%@\"\n",
+                    [out appendFormat:@"\nCARD #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) ba=%d local=%d oldCarousel=%d contents=%@ marked=%d outline=%d attached=%d window=%d hidden=%d text=\"%@\"\n",
                         cards,cls,v,r.origin.x,r.origin.y,r.size.width,r.size.height,ba,lc,cc,ADBuyAgainProbeContents6180(v.layer.contents),
-                        objc_getAssociatedObject(v,kADBuyAgainRaster6180)!=nil,baov!=nil,(baov && baov.superlayer==v.layer),ADBuyAgainProbeText6180(v)];
+                        objc_getAssociatedObject(v,kADBuyAgainRaster6180)!=nil,baov!=nil,(baov && baov.superlayer==v.layer),v.window!=nil,v.hidden,ADBuyAgainProbeText6180(v)];
                     ADBuyAgainProbeLayer6180(v.layer,0,out);
                 }
             }
