@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.177-interests-probe2"
+#define AD_VERSION "v6.0.177-probe3"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3456,6 +3456,9 @@ static const void *kADPersonBorderOverlay6147 = &kADPersonBorderOverlay6147;
 static const void *kADPersonRasterCard6150 = &kADPersonRasterCard6150;
 
 static NSString *ADWTViewText362(UIView *v); // forward: retained Person/TWB helper below
+static int ADWTLocalSection365(UIView *v);
+static int ADWTCarouselSection384(UIView *v);
+static void ADPersonProductBorderLayout6163(id obj);
 
 static UIColor *ADNeutralBorderGray6147(void){
     static UIColor *c=nil; static dispatch_once_t once;
@@ -4460,6 +4463,7 @@ static void ADForceBarDark(UIView *bar){
     // v6.0.151: only compact raster-sized RCT hosts perform the semantic check.
     // The normal RCTView path remains a cheap geometry/label fast path.
     @try { ADPersonRasterLayout6150(self); } @catch(...) {}
+    @try { ADPersonProductBorderLayout6163(self); } @catch(...) {}
     @try {
         if(objc_getAssociatedObject(self,kADPersonBorderTarget6147)){
             ADNeutralizeClaimedLayerTree6149(((UIView *)self).layer,0);
@@ -4506,6 +4510,7 @@ static void ADForceBarDark(UIView *bar){
 - (void)layoutSubviews {
     %orig;
     @try { ADPersonRasterLayout6150(self); } @catch(...) {}
+    @try { ADPersonProductBorderLayout6163(self); } @catch(...) {}
     @try {
         if(objc_getAssociatedObject(self,kADPersonBorderTarget6147)){
             ADNeutralizeClaimedLayerTree6149(((UIView *)self).layer,0);
@@ -4762,6 +4767,77 @@ static int ADWTCarouselSection384(UIView *v){
 // NON-Menu screen (especially Person) re-walked up to 1,100 views.  Cache BOTH answers
 // briefly per screen root and bound the occasional scan.  Do not persist ownership on
 // reusable UIKit roots across tab transitions.
+// Person product carousel cards can use a nested CAShapeLayer for their outline rather than
+// CALayer.borderColor. Keep those structural outlines on the same neutral gray used by the
+// other Person borders, without scanning the page or repainting product artwork.
+static BOOL ADPersonProductBrightLayer6163(CALayer *layer, int depth){
+    if(!layer || depth>2) return NO;
+    @try {
+        if(layer.borderWidth>0.1 && layer.borderWidth<=5.0 && ADBrightNeutralCG6149(layer.borderColor)) return YES;
+        if([layer isKindOfClass:[CAShapeLayer class]]){
+            CAShapeLayer *s=(CAShapeLayer *)layer;
+            if(s.lineWidth>0.1 && s.lineWidth<=5.0 && ADBrightNeutralCG6149(s.strokeColor)) return YES;
+        }
+        for(CALayer *sl in (layer.sublayers ?: @[]))
+            if(ADPersonProductBrightLayer6163(sl,depth+1)) return YES;
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADPersonProductCardGeometry6163(UIView *v){
+    if(!v || !v.window || !ADIsRCTBorderHost6147(v)) return NO;
+    CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+    return w>=150.0 && w<=390.0 && h>=120.0 && h<=540.0;
+}
+static BOOL ADPersonProductContext6163(UIView *v){
+    if(!ADPersonProductCardGeometry6163(v)) return NO;
+    int local=ADWTLocalSection365(v);
+    if(local==2) return YES;
+    return local==0 && ADWTCarouselSection384(v)==2;
+}
+static void ADPersonProductBorderLayout6163(id obj){
+    UIView *v=(UIView *)obj;
+    if(!ADRecolorOn() || !ADPersonProductCardGeometry6163(v)) return;
+    @try {
+        // After the first correction the bright-stroke gate becomes false, so repeated
+        // React/Fabric layout passes do not re-enter the semantic section classifier.
+        if(!ADPersonProductBrightLayer6163(v.layer,0)) return;
+        if(!ADPersonProductContext6163(v)) return;
+        ADNeutralizeClaimedLayerTree6149(v.layer,0);
+    } @catch(...) {}
+}
+static UIView *ADPersonProductStrokeHost6163(CALayer *layer){
+    if(!layer || !ADRecolorOn()) return nil;
+    @try {
+        CALayer *p=layer;
+        for(int d=0;p && d<5;d++,p=p.superlayer){
+            id del=p.delegate;
+            if(!del || ![del isKindOfClass:[UIView class]]) continue;
+            UIView *v=(UIView *)del;
+            // Reorder/Buy Again/Interests carousel cards are substantial rounded panels;
+            // this rejects text pills, glyph rings, buttons and image-local decoration.
+            if(ADPersonProductContext6163(v)) return v;
+        }
+    } @catch(...) {}
+    return nil;
+}
+
+%hook CAShapeLayer
+- (void)setStrokeColor:(CGColorRef)color {
+    if(!ADRecolorOn() || !color || !ADBrightNeutralCG6149(color)){
+        %orig;
+        return;
+    }
+    @try {
+        if(ADPersonProductStrokeHost6163(self)){
+            CGColorRef gray=ADNeutralBorderGray6147().CGColor;
+            %orig(gray);
+            return;
+        }
+    } @catch(...) {}
+    %orig;
+}
+%end
+
 static UIView *ADMenuRoot382(UIView *v){
     @try {
         UIWindow *w=v.window; if(!w||!v) return nil;
@@ -6275,13 +6351,12 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
     dispatch_async(dispatch_get_main_queue(), ^{ @try { ADSweep(); } @catch(...) {} });
 }
 
-
 // ════════════════════════════════════════════════════════════════════════════════
-// v6.0.177~probe2 — Person > Interests visible light-surface snapshot
+// v6.0.177~probe3 — Person > Interests visible light-surface snapshot
 // Diagnostic only, based exactly on v6.0.176. Unlike the first 6177 probe this
 // does NOT depend on a specific React/UILabel text setter firing. Backgrounding
-// Amazon once snapshots every visible bright-neutral native surface and every
-// visible bright-neutral WebKit element, with local ancestry, so the actual white
+// Amazon once snapshots every visible native surface and every
+// visible WebKit box-like element, with local ancestry, so the actual white
 // Related Interests cards can be identified by class/layer/DOM geometry.
 // ════════════════════════════════════════════════════════════════════════════════
 static NSString *ADInterestsProbePath6177(void){
@@ -6309,7 +6384,7 @@ static void ADInterestsProbeAppend6177(NSString *line){
 static void ADInterestsProbeReset6177(void){
     @try {
         NSString *head=[NSString stringWithFormat:
-            @"AmazonDark Interests box probe 6177 probe2\nversion=%s\npid=%d\noutput=%@\ntrigger=background Amazon once while white Related Interests boxes are visible\n",
+            @"AmazonDark Interests box probe 6177 probe3\nversion=%s\npid=%d\noutput=%@\ntrigger=background Amazon once while white Related Interests boxes are visible\n",
             AD_VERSION,getpid(),ADInterestsProbePath6177()];
         [head writeToFile:ADInterestsProbePath6177() atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } @catch(...) {}
@@ -6438,13 +6513,18 @@ static void ADProbeNativeVisible6177(void){
             NSMutableArray *q=[NSMutableArray arrayWithObject:w]; NSUInteger qi=0;
             while(qi<q.count && scanned<1800){
                 UIView *v=q[qi++]; scanned++;
-                CGRect r=CGRectZero; if(!ADProbeVisibleRect6177(v,&r)) continue;
+                // Always enqueue descendants first. UIWindow.window can be nil for the
+                // root itself; probe2 skipped its children and therefore scanned only windows.
+                for(UIView *ch in v.subviews) if(q.count<2200) [q addObject:ch];
+                CGRect r=CGRectZero;
+                BOOL vis=[v isKindOfClass:[UIWindow class]] ? YES : ADProbeVisibleRect6177(v,&r);
+                if(!vis) continue;
+                if([v isKindOfClass:[UIWindow class]]) r=ADProbeWindowRect6177(v);
                 UIColor *bg=v.backgroundColor;
                 UIColor *lbg=v.layer.backgroundColor?[UIColor colorWithCGColor:v.layer.backgroundColor]:nil;
                 BOOL bright=ADProbeBrightNeutral6177(bg)||ADProbeBrightNeutral6177(lbg);
                 BOOL box=r.size.width>=55 && r.size.height>=24 && r.size.width<=470 && r.size.height<=360;
                 if(bright && box && cands<160) ADProbeAppendCandidate6177(out,v,++cands);
-                for(UIView *ch in v.subviews) if(q.count<2200) [q addObject:ch];
             }
         }
         [out appendFormat:@"\nNATIVE TOTAL scanned=%lu brightCandidates=%lu\n",(unsigned long)scanned,(unsigned long)cands];
@@ -6453,13 +6533,10 @@ static void ADProbeNativeVisible6177(void){
 }
 
 static NSString *ADInterestsDOMProbeJS6177(void){
-    return @"(function(){try{"
-    "function n(s){return String(s||'').replace(/\\s+/g,' ').trim();}"
-    "function rgb(s){var m=String(s||'').match(/rgba?\\(\\s*([0-9.]+)[, ]+\\s*([0-9.]+)[, ]+\\s*([0-9.]+)(?:[, /]+\\s*([0-9.]+))?/i);return m?[+m[1],+m[2],+m[3],m[4]===undefined?1:+m[4]]:null;}"
-    "function bright(s){var c=rgb(s);if(!c||c[3]<.1)return false;var mx=Math.max(c[0],c[1],c[2]),mn=Math.min(c[0],c[1],c[2]),L=(.2126*c[0]+.7152*c[1]+.0722*c[2])/255;return L>.58&&(mx-mn)<46;}"
-    "function d(e){var r=e.getBoundingClientRect(),c=getComputedStyle(e),t=n(e.innerText||e.textContent);if(t.length>140)t=t.slice(0,140)+'…';return {tag:e.tagName,id:e.id||'',cls:typeof e.className==='string'?e.className:'',role:e.getAttribute('role')||'',rect:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],bg:c.backgroundColor,bgi:c.backgroundImage,border:c.borderColor,bw:c.borderWidth,rad:c.borderRadius,shadow:c.boxShadow,text:t};}"
-    "var a=document.querySelectorAll('body *'),rows=[],sc=0;for(var i=0;i<a.length&&i<5000&&rows.length<160;i++){var e=a[i],r=e.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight||r.right<0||r.left>innerWidth||r.width<55||r.height<24||r.width>470||r.height>360)continue;sc++;var cs=getComputedStyle(e);if(!bright(cs.backgroundColor))continue;var o={self:d(e),anc:[]},p=e.parentElement;for(var z=0;p&&z<6;z++,p=p.parentElement)o.anc.push(d(p));rows.push(o);}return JSON.stringify({url:location.href,title:document.title,viewport:[innerWidth,innerHeight],tested:sc,bright:rows});"
-    "}catch(e){return 'ERR '+String(e&&e.stack||e);}})();";
+    // Probe2 proved the visible white cards are inside this WKWebView, but none expose
+    // a bright computed backgroundColor. Capture every visible box-like element and
+    // include background-image, borders, shadows, masks, pseudo paint and ancestry.
+    return @"(function(){try{function n(s){return String(s||'').replace(/\\s+/g,' ').trim();}function clip(s,m){s=String(s==null?'':s);return s.length>(m||260)?s.slice(0,m||260)+'…':s;}function cls(e){try{var c=e.className;return clip(c&&c.baseVal!==undefined?c.baseVal:(c||''),220);}catch(x){return'';}}function pseudo(e,w){try{var c=getComputedStyle(e,w);return{content:clip(c.content,100),bg:c.backgroundColor,bgi:clip(c.backgroundImage,320),border:c.borderColor,bw:c.borderWidth,rad:c.borderRadius,shadow:clip(c.boxShadow,260),outline:clip(c.outline,160),filter:clip(c.filter,160),opacity:c.opacity};}catch(x){return{err:String(x)}}}function d(e){var r=e.getBoundingClientRect(),c=getComputedStyle(e),t=n(e.innerText||e.textContent);if(t.length>180)t=t.slice(0,180)+'…';var h='';try{h=clip(e.outerHTML,520);}catch(x){}return{tag:e.tagName,id:e.id||'',cls:cls(e),role:e.getAttribute('role')||'',rect:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],display:c.display,vis:c.visibility,op:c.opacity,bg:c.backgroundColor,bgi:clip(c.backgroundImage,360),bgclip:c.backgroundClip,bgblend:c.backgroundBlendMode,border:c.borderColor,bw:c.borderWidth,bt:c.borderTopColor,br:c.borderRightColor,bb:c.borderBottomColor,bl:c.borderLeftColor,rad:c.borderRadius,shadow:clip(c.boxShadow,300),outline:clip(c.outline,180),filter:clip(c.filter,180),mask:clip(c.webkitMaskImage||c.maskImage,260),text:t,before:pseudo(e,'::before'),after:pseudo(e,'::after'),html:h};}var A=document.querySelectorAll('body *'),rows=[],tested=0;for(var i=0;i<A.length&&i<6000&&rows.length<220;i++){var e=A[i],r=e.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight||r.right<0||r.left>innerWidth||r.width<45||r.height<18||r.width>480||r.height>420)continue;tested++;var o={self:d(e),anc:[]},p=e.parentElement;for(var z=0;p&&z<5;z++,p=p.parentElement)o.anc.push(d(p));rows.push(o);}return JSON.stringify({url:location.href,title:document.title,viewport:[innerWidth,innerHeight],tested:tested,boxes:rows});}catch(e){return 'ERR '+String(e&&e.stack||e);}})();";
 }
 
 static void ADProbeWebVisible6177(WKWebView *wv, dispatch_group_t group){
@@ -6508,6 +6585,7 @@ static void ADInterestsProbeCapture6177(void){
         });
     } @catch(...) { busy=NO; }
 }
+
 
 // ─── %ctor : process guard + hook registration + bounded startup recovery ────
 %ctor {

@@ -1,10 +1,12 @@
-## v6.0.177~probe2 — Interests visible light-surface probe
+## v6.0.177~probe3 — restore v6.0.163 gray Person borders + identify Interests painter
 
-- Diagnostic-only build from the exact v6.0.176 production source.
-- Replaces the failed text-setter-triggered 6177 probe with a guaranteed one-shot capture when Amazon is backgrounded.
-- While the Interests white boxes are visible, background Amazon once. The probe snapshots all visible bright-neutral UIKit/React/Fabric surfaces and all visible bright-neutral WebKit elements, including geometry, class/layer/DOM ancestry, borders, radius, text, and immediate children/sublayers.
-- Does not recolor or hide anything and adds no recurring timer, scroll listener, MutationObserver, or RAF loop.
-- Output remains AmazonDark-interests-box-probe-6177.txt in Amazon's Documents sandbox; copy it with the provided one-line command.
+Built directly from the exact v6.0.176 production tree. None of the failed v6.0.177/178/179 visual patches are carried forward.
+
+- Pinpoints the border regression to v6.0.169: that performance branch intentionally restarted from v6.0.153, so the later v6.0.163 Person product-card CAShapeLayer border owner was lost.
+- Restores only the exact v6.0.163 border mechanism: card-sized React/Fabric panels in known Person product sections (Buy Again / Your Interests / Keep Shopping and related section semantics) convert bright neutral CALayer/CAShapeLayer outlines to the established #494D4D gray. No global border recolor is added.
+- Keeps v6.0.176 warm PDP detach/reattach behavior and all v6.0.175 cleanup unchanged.
+- Probe3 fixes probe2's native traversal bug and, for WebKit, no longer assumes the white Interests cards have a bright computed backgroundColor. It records every visible box-like DOM element with background-image, border, radius, shadow, mask, ::before/::after paint, ancestry, and truncated outerHTML.
+- Background Amazon once while the white Related Interests cards are visible. The report remains `AmazonDark-interests-box-probe-6177.txt` in Amazon's Documents folder; use the same one-line copy command to place it in the shared ChatGPT Documents folder.
 
 ## v6.0.176 — warm PDP detach/reattach retention
 
