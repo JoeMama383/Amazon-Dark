@@ -1,10 +1,12 @@
-## v6.0.170~probe — PDP performance / cache-lifecycle timing probe
+## v6.0.171 — eliminate redundant PDP full-page repair
 
-- Exact functional base: v6.0.169, itself built from v6.0.153.
-- No production theming/cache behavior change.
-- Records DarkReader.enable duration, fallback FIXCONTRAST duration, idle-queue wait, reapply count, navigation/resource timing, DOM/image/review state.
-- Reuses the existing app-background exporter; no new observer, scroll listener, interval, RAF, or steady-state file I/O.
-- Output: AmazonDark-pdp-performance-probe-6170.txt after reproducing and backgrounding Amazon once.
+- Built from the v6.0.169 production tree, whose functional baseline is the exact v6.0.153 source plus the warm-WebView/cache-lifecycle correction.
+- Probe 6170 showed Dark Reader itself is not the PDP bottleneck: `DarkReader.enable()` took about 1 ms, while AmazonDark fallback contrast repair reached ~806 ms on a HEAD mutation and ~1.59 s on a warm full-document pass.
+- Full fallback contrast repair is now single-flight and primes once per themed document. The 0/120/420 ms appearance burst can no longer enqueue duplicate 1400-element full scans after the page is already healthy.
+- BFCache `pageshow` and visibility regain keep a warm themed document warm; a full repair is requested only if Dark Reader disappeared or the initial fallback pass never completed.
+- The existing lazy-content MutationObserver still owns new Details/Reviews DOM, but ignores non-rendering HEAD/SCRIPT/STYLE/LINK/META/NOSCRIPT/TEMPLATE insertions, including Dark Reader's many `STYLE.darkreader--sync` nodes.
+- The fallback collector now uses the previously validated capped `TreeWalker` enumeration so its existing 1400/360/120 element budgets stop enumeration at the cap instead of first materializing every descendant with `querySelectorAll('*')`.
+- No cache clearing, reload, new observer, scroll listener, interval, RAF loop, timeout, or native scheduler is added. Theme rules, TWB, symbols, Person borders, JIT, 120 Hz, splash, and v6.0.169 warm-WebView handling remain otherwise unchanged.
 
 ## v6.0.169 — preserve Amazon warm WebViews / navigation state
 

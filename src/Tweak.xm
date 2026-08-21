@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.170-probe"
+#define AD_VERSION "v6.0.171"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1203,10 +1203,12 @@ static NSString *ADDarkReaderBootstrap(void){
            // v6.0.56: contrast repair is fallback work, not the primary painter.  Bound
            // mutation-local passes so one huge hydrated subtree cannot monopolize WebKit.
            "var cap=(base===document.body||base===document.documentElement)?1400:((window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(base))?120:360);"
+           // v6.0.171: preserve the exact 1400/360/120 visit caps, but stop asking
+           // WebKit to materialize an all-descendant NodeList before the cap is applied.
+           // TreeWalker stops enumeration as soon as the existing budget is exhausted.
            "function collect(root,out,depth){try{if(out.length>=cap)return out;"
-             "var list=root.querySelectorAll('*');"
-             "for(var a=0;a<list.length&&out.length<cap;a++){var e=list[a];out.push(e);"
-               // Shadow roots are separate trees: querySelectorAll stops at the host.
+             "var w=document.createTreeWalker(root,NodeFilter.SHOW_ELEMENT),e;"
+             "while(out.length<cap&&(e=w.nextNode())){out.push(e);"
                "if(e.shadowRoot&&depth<4&&out.length<cap)collect(e.shadowRoot,out,depth+1);}"
              "}catch(e){}return out;}"
            "var els=[base];collect(base,els,0);var n=0,bfix=0,lfix=0,gfix=0;"           // Read the themed background off <html> rather than plumbing another
@@ -1478,22 +1480,20 @@ static NSString *ADDarkReaderBootstrap(void){
              "}}catch(e){}"
            "var pr=\'\';"
            "return n+'/'+bfix+'/'+lfix+'/'+gfix+pr;}catch(e){return -1;}};"
-         // v6.0.170 probe: passive timing wrappers around the two expensive web
-         // owners. They only record performance.now() deltas in memory; no file I/O,
-         // DOM scan, timer, observer, or scroll listener is added to the live path.
-         "window.__AD_PDP6170__=window.__AD_PDP6170__||{fix:[],dr:[],idle:[],reapply:0};"
-         "try{var P6170=window.__AD_PDP6170__;if(!P6170.fixWrapped&&window.__AMZDARK_FIXCONTRAST__){var F6170=window.__AMZDARK_FIXCONTRAST__;window.__AMZDARK_FIXCONTRAST__=function(root){var t=performance.now(),kind='local';try{if(!root||root===document||root===document.body||root===document.documentElement)kind='full';else kind=String(root.tagName||'')+'.'+String(root.className&&root.className.baseVal!==undefined?root.className.baseVal:(root.className||'')).slice(0,72);}catch(x){}var r=F6170(root),dt=performance.now()-t;P6170.fix.push([Math.round(performance.now()),Math.round(dt*10)/10,kind,String(r)]);if(P6170.fix.length>120)P6170.fix.shift();return r;};P6170.fixWrapped=1;}}catch(e){}"
-         "try{var P6170b=window.__AD_PDP6170__;if(!P6170b.drWrapped&&window.DarkReader&&DarkReader.enable){var D6170=DarkReader.enable;var W6170=function(){var t=performance.now();try{return D6170.apply(this,arguments);}finally{var dt=performance.now()-t;P6170b.dr.push([Math.round(performance.now()),Math.round(dt*10)/10]);if(P6170b.dr.length>40)P6170b.dr.shift();}};W6170.__adp6170=1;DarkReader.enable=W6170;P6170b.drWrapped=1;}}catch(e){}"
          // v6.0.56: keep Dark Reader + document-start CSS on the critical path, but
          // move fallback contrast/seasonal repair to browser idle time.  This protects
          // Amazon's hydration/network completion and the 8.3 ms ProMotion frame budget.
          "window.__AD_IDLE6056__=function(fn,to){try{if(window.requestIdleCallback)return requestIdleCallback(function(){try{fn();}catch(e){}},{timeout:to||240});return setTimeout(function(){try{fn();}catch(e){}},60);}catch(e){return setTimeout(fn,60);}};"
-         "try{var P6170c=window.__AD_PDP6170__;if(P6170c&&!P6170c.idleWrapped&&window.__AD_IDLE6056__){var I6170=window.__AD_IDLE6056__;window.__AD_IDLE6056__=function(fn,to){var st=performance.now();return I6170(function(){var w=performance.now()-st;P6170c.idle.push([Math.round(performance.now()),Math.round(w*10)/10,to||0]);if(P6170c.idle.length>120)P6170c.idle.shift();return fn();},to);};P6170c.idleWrapped=1;}}catch(e){}"
-         "window.__AMZDARK_APPLY__=function(){try{"
-           "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
-           "if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);"
-           "window.__AD_IDLE6056__(function(){window.__AMZDARK_FIXCONTRAST__();if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);},260);"
-         "}catch(e){}};"
+         // v6.0.171: one full fallback repair is enough for an already-themed document.
+         // Lazy DOM additions are handled by the existing local observer below.  Keep a
+         // single-flight state so the 0/120/420 ms native appearance burst cannot queue
+         // duplicate 1400-element full scans while the first one is still pending.
+         "window.__AD_FULLREPAIR6171__=function(force){try{if(!window.__AMZDARK_FIXCONTRAST__)return 'nofix';if(window.__AD_FIXFULL_PENDING6171__)return 'pending';if(!force&&window.__AD_FIX_PRIMED6171__)return 'warm';window.__AD_FIXFULL_PENDING6171__=1;var run=function(){try{window.__AMZDARK_FIXCONTRAST__();if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);window.__AD_FIX_PRIMED6171__=1;}catch(e){}finally{window.__AD_FIXFULL_PENDING6171__=0;}};if(window.__AD_IDLE6056__){window.__AD_IDLE6056__(run,260);return 'queued';}run();return 'ran';}catch(e){window.__AD_FIXFULL_PENDING6171__=0;return 'err';}};"
+         "window.__AMZDARK_APPLY__=function(){try{var had=!!document.querySelector('style.darkreader');if(!had){DarkReader.enable(%@,%@);window.__AD_FIX_PRIMED6171__=0;}if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);return window.__AD_FULLREPAIR6171__(!had);}catch(e){return 'err';}};"
+         // Warm BFCache/visibility restoration only verifies the engine.  If the
+         // Dark Reader sheet survived, the existing document stays untouched; if it
+         // disappeared, APPLY performs the full recovery exactly as before.
+         "window.__AMZDARK_WAKE6171__=function(){try{if(!document.querySelector('style.darkreader'))return window.__AMZDARK_APPLY__();return window.__AD_FIX_PRIMED6171__?'warm':window.__AD_FULLREPAIR6171__(false);}catch(e){return 'err';}};"
          // v6.0.131 PROBE: v6.0.128 did not change either standalone-ad symptom,
          // so stop guessing at the shell/path.  Dump exact live Sponsored label,
          // info-glyph, ad-root, media, iframe and TWB ownership only when the app is
@@ -1509,8 +1509,7 @@ static NSString *ADDarkReaderBootstrap(void){
          "function sapMedia6129(root){var A=[];try{if(!root)return A;var Q=root.querySelectorAll?root.querySelectorAll('img,video,canvas,iframe,[data-ad-twb6033],[data-ad-twb-bg6033]'):[];for(var i=0;i<Q.length&&i<120&&A.length<36;i++){var e=Q[i],r=e.getBoundingClientRect();if(r.width<10||r.height<10)continue;A.push(sapN6129(e));}}catch(x){}return A;}"
          "function sapDump6129(){try{var out={url:String(location.href),top:(window.top===window),wh:[innerWidth||0,innerHeight||0],home:!!(document.documentElement&&document.documentElement.hasAttribute('data-ad-twb-home6033')),labels:[],frames:[],twb:[]};var W=document.createTreeWalker(document.body||document.documentElement,NodeFilter.SHOW_TEXT),nd,seen=0;while((nd=W.nextNode())&&seen++<9000&&out.labels.length<24){var t=String(nd.nodeValue||'').replace(/\\s+/g,' ').trim();if(!/^sponsored(?: ad)?$/i.test(t))continue;var e=nd.parentElement;if(!e)continue;var r=e.getBoundingClientRect();if(r.width<18||r.height<5||r.bottom<-80||r.top>(innerHeight||900)+120)continue;var root=sapRoot6129(e);out.labels.push({text:t,label:sapN6129(e),chain:sapChain6129(e,10),near:sapNear6129(e),root:root?sapN6129(root):null,media:sapMedia6129(root)});}var F=document.getElementsByTagName('iframe');for(var i=0;i<F.length&&out.frames.length<18;i++){var f=F[i],fr=f.getBoundingClientRect();if(fr.width<80||fr.height<24)continue;out.frames.push({frame:sapN6129(f),chain:sapChain6129(f,8)});}var T=document.getElementsByTagName?document.getElementsByTagName('*'):[];for(var j=0;j<T.length&&out.twb.length<50;j++){var z=T[j];if(!(z.hasAttribute&&((z.hasAttribute('data-ad-twb6033'))||(z.hasAttribute('data-ad-twb-bg6033')))))continue;var zr=z.getBoundingClientRect();if(zr.width<20||zr.height<20||zr.bottom<-100||zr.top>(innerHeight||900)+160)continue;out.twb.push(sapN6129(z));}window.__AD_STANDAD6129__.push(out);if(window.__AD_STANDAD6129__.length>8)window.__AD_STANDAD6129__.shift();return JSON.stringify(out);}catch(e){return 'ERR '+String(e);}}"
          "window.__AD_STANDAD6129_DUMP__=sapDump6129;"
-         "window.__AD_PDP6170_DUMP__=function(){try{var P=window.__AD_PDP6170__||{},nav=(performance.getEntriesByType&&performance.getEntriesByType('navigation')[0])||null,res=(performance.getEntriesByType&&performance.getEntriesByType('resource'))||[],slow=[];for(var i=0;i<res.length;i++){var x=res[i];slow.push({n:String(x.name||'').slice(-180),d:Math.round((x.duration||0)*10)/10,t:String(x.initiatorType||''),ts:x.transferSize||0});}slow.sort(function(a,b){return b.d-a.d;});if(slow.length>24)slow.length=24;var I=document.images||[],done=0;for(var j=0;j<I.length;j++)if(I[j].complete)done++;var review=0;try{review=document.querySelectorAll('[id*=review],[class*=review],[data-hook*=review]').length;}catch(x){}return JSON.stringify({url:String(location.href),title:String(document.title||'').slice(0,160),ready:document.readyState,hidden:document.hidden,y:Math.round(scrollY||0),h:Math.round((document.documentElement&&document.documentElement.scrollHeight)||0),dom:(document.getElementsByTagName?document.getElementsByTagName('*').length:0),img:[I.length,done],review:review,loaded:!!window.__AMZDARK_LOADED__,healed:!!window.__AMZDARK_HEALED__,dr:!!(window.DarkReader&&DarkReader.enable),twb:!!window.__AD_TWB6027_INSTALLED__,sym:!!window.__AD_SYM605_LOADED__,drStyle:(document.querySelectorAll?document.querySelectorAll('style.darkreader').length:0),p:P,nav:nav?{type:nav.type,domInteractive:Math.round(nav.domInteractive||0),dcl:Math.round(nav.domContentLoadedEventEnd||0),load:Math.round(nav.loadEventEnd||0),duration:Math.round(nav.duration||0),transferSize:nav.transferSize||0}:null,resCount:res.length,slow:slow});}catch(e){return 'ERR '+String(e);}};"
-         "window.__AD_FLASH6101_DUMP__=window.__AD_PDP6170_DUMP__;"
+         "window.__AD_FLASH6101_DUMP__=sapDump6129;"
          // Re-run fallback repair as lazy content arrives, but never synchronously in
          // the MutationObserver. v6.0.82 no longer discards native-ad descendants here:
          // __AMZDARK_FIXCONTRAST__ routes every such element through prodInk6078 and
@@ -1527,15 +1526,21 @@ static NSString *ADDarkReaderBootstrap(void){
          // No new observer, timer, interval, RAF, scroll listener or recurring scan.
          "try{var _t=null,_roots=[],_idle=0,_searchFull6118=0;"
          "function search6118(n){try{if(!n||n.nodeType!==1)return false;var S='.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]';return !!((n.matches&&n.matches(S))||(n.closest&&n.closest(S))||(n.querySelector&&n.querySelector(S)));}catch(e){return false;}}"
-         "function run6056(){_idle=0;try{var R=_roots,full=_searchFull6118;_roots=[];_searchFull6118=0;if(full){var d=document.body||document.documentElement;window.__AMZDARK_FIXCONTRAST__(d);if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);return;}for(var i=0;i<R.length;i++){var r=R[i];if(!r||!r.isConnected)continue;var nested=false;for(var j=0;j<R.length;j++){if(i!==j&&R[j]&&R[j].contains&&R[j].contains(r)){nested=true;break;}}if(!nested){window.__AMZDARK_FIXCONTRAST__(r);if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(r);}}}catch(e){}}new MutationObserver(function(ms){try{for(var mi=0;mi<ms.length&&_roots.length<12;mi++){var A=ms[mi].addedNodes||[];for(var ai=0;ai<A.length&&_roots.length<12;ai++){var n=A[ai];if(n&&n.nodeType===3)n=n.parentElement;if(!n||n.nodeType!==1)continue;if(!_searchFull6118&&search6118(n))_searchFull6118=1;if(_roots.indexOf(n)<0)_roots.push(n);}}if(!_roots.length)return;clearTimeout(_t);_t=setTimeout(function(){if(_idle)return;_idle=1;window.__AD_IDLE6056__(run6056,320);},120);}catch(e){}})"
+         // Dark Reader creates many STYLE.darkreader--sync nodes on a large PDP.
+         // They are stylesheet plumbing, not visible lazy content.  The 6170 probe
+         // showed those head mutations repeatedly waking contrast repair, including
+         // one HEAD-root pass that consumed ~806 ms.  Ignore non-rendering head/script
+         // churn before it enters the existing debounce/idle queue.
+         "function visual6056(n){try{if(!n||n.nodeType!==1)return false;var t=String(n.tagName||'').toUpperCase();if(/^(?:HEAD|SCRIPT|STYLE|LINK|META|NOSCRIPT|TEMPLATE)$/.test(t))return false;if(n.closest&&n.closest('head'))return false;return true;}catch(e){return true;}}"
+         "function run6056(){_idle=0;try{var R=_roots,full=_searchFull6118;_roots=[];_searchFull6118=0;if(full){var d=document.body||document.documentElement;window.__AMZDARK_FIXCONTRAST__(d);if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);return;}for(var i=0;i<R.length;i++){var r=R[i];if(!r||!r.isConnected)continue;var nested=false;for(var j=0;j<R.length;j++){if(i!==j&&R[j]&&R[j].contains&&R[j].contains(r)){nested=true;break;}}if(!nested){window.__AMZDARK_FIXCONTRAST__(r);if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(r);}}}catch(e){}}new MutationObserver(function(ms){try{for(var mi=0;mi<ms.length&&_roots.length<12;mi++){var A=ms[mi].addedNodes||[];for(var ai=0;ai<A.length&&_roots.length<12;ai++){var n=A[ai];if(n&&n.nodeType===3)n=n.parentElement;if(!visual6056(n))continue;if(!_searchFull6118&&search6118(n))_searchFull6118=1;if(_roots.indexOf(n)<0)_roots.push(n);}}if(!_roots.length)return;clearTimeout(_t);_t=setTimeout(function(){if(_idle)return;_idle=1;window.__AD_IDLE6056__(run6056,320);},120);}catch(e){}})"
            ".observe(document.documentElement,{childList:true,subtree:true});}catch(e){}"
          "window.__AMZDARK_APPLY__();"
          // Re-apply when the page is restored from the back-forward cache (returning
          // to a tab). pageshow.persisted is true exactly in that case, and it is the
          // event that fires when no navigation happens — the cart's "went white on
          // return" path. Also re-assert on visibility regain.
-         "try{window.addEventListener('pageshow',function(e){if(e.persisted)window.__AMZDARK_APPLY__();});}catch(e){}"
-         "try{document.addEventListener('visibilitychange',function(){if(!document.hidden)window.__AMZDARK_APPLY__();});}catch(e){}"
+         "try{window.addEventListener('pageshow',function(e){if(e.persisted)(window.__AMZDARK_WAKE6171__||window.__AMZDARK_APPLY__)();});}catch(e){}"
+         "try{document.addEventListener('visibilitychange',function(){if(!document.hidden)(window.__AMZDARK_WAKE6171__||window.__AMZDARK_APPLY__)();});}catch(e){}"
          "}}catch(e){}})();",
         floorBG, floorBG, floorBG, floorBG, dr, [NSString stringWithUTF8String:gP.fgHex], ADThemeLiteral(), ADFixesLiteral()];
     return gADBootstrap613;
@@ -1675,15 +1680,20 @@ static void ADAttachWhiteTameUserScript446(WKUserContentController *ucc){
 // recent-search text being correctly light — the native burst therefore did nothing
 // at all, which is exactly why those icons and labels never changed.
 //
-// So: enable() stays conditional, the repair runs every time. It is idempotent
-// (it only rewrites values that currently fail) and cheap on a settled page.
+// v6.0.171: the 6170 trace disproved the old "cheap on a settled page" assumption.
+// A warm PDP full-root repair reached ~1.59 s, while DarkReader.enable itself was ~1 ms.
+// The bootstrap now owns one single-flight full fallback pass and the lazy observer owns
+// later subtree hydration. Appearance recovery therefore only asks for a full pass when
+// the Dark Reader stylesheet genuinely disappeared or the initial fallback never primed.
 static NSString *ADDarkReaderReapply(void){
     if (gADReapply613) return gADReapply613;
     gADReapply613 = [NSString stringWithFormat:
         @"(function(){try{"
-         "var __p6170=window.__AD_PDP6170__;if(__p6170){__p6170.reapply=(__p6170.reapply||0)+1;__p6170.lastReapply=performance.now();}"
          "if(!(window.DarkReader&&DarkReader.enable))return 'noDR';"
-         "if(!document.querySelector('style.darkreader'))DarkReader.enable(%@,%@);"
+         "var had=!!document.querySelector('style.darkreader');"
+         "if(!had){DarkReader.enable(%@,%@);window.__AD_FIX_PRIMED6171__=0;if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);if(window.__AD_FULLREPAIR6171__)return window.__AD_FULLREPAIR6171__(true);}"
+         "if(window.__AD_FIX_PRIMED6171__)return 'warm';"
+         "if(window.__AD_FULLREPAIR6171__)return window.__AD_FULLREPAIR6171__(false);"
          "if(window.__AMZDARK_FIXCONTRAST__){if(window.__AD_IDLE6056__){window.__AD_IDLE6056__(function(){window.__AMZDARK_FIXCONTRAST__();if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);},260);return 'queued';}return ''+window.__AMZDARK_FIXCONTRAST__();}"
          "return 'nofix';"
          "}catch(e){return 'err';}})();",
@@ -2017,10 +2027,10 @@ static void ADInjectAllWebViews(void){
 // observer; backgrounding once after reproducing the flash simply dumps that buffer.
 static NSString *gADFlashProbePath6131 = nil;
 static NSString *ADFlashProbeRequestedPath6131(void){
-    return @"/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/AmazonDark-pdp-performance-probe-6170.txt";
+    return @"/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/AmazonDark-standalone-ad-probe-6131.txt";
 }
 static NSString *ADFlashProbeFallbackPath6131(void){
-    return [[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:@"AmazonDark-pdp-performance-probe-6170.txt"];
+    return [[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:@"AmazonDark-standalone-ad-probe-6131.txt"];
 }
 static NSString *ADFlashProbePath6101(void){
     return gADFlashProbePath6131 ?: ADFlashProbeFallbackPath6131();
@@ -2042,7 +2052,7 @@ static void ADResetFlashProbe6101(void){
     @try {
         NSString *requested=ADFlashProbeRequestedPath6131();
         NSString *fallback=ADFlashProbeFallbackPath6131();
-        NSString *base=[NSString stringWithFormat:@"AmazonDark PDP performance probe 6170\nversion=%s\npid=%d\nrequested=%@\n",AD_VERSION,getpid(),requested];
+        NSString *base=[NSString stringWithFormat:@"AmazonDark standalone-ad DOM/TWB probe 6131\nversion=%s\npid=%d\nrequested=%@\n",AD_VERSION,getpid(),requested];
         NSError *e=nil;
         BOOL ok=[base writeToFile:requested atomically:YES encoding:NSUTF8StringEncoding error:&e];
         if (ok){
