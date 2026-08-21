@@ -1,3 +1,7 @@
+## v6.0.172~probe — verify optimized PDP repair
+
+Diagnostic-only build on v6.0.171. Records Dark Reader, fallback contrast, idle queue, full-repair gate, wake/reapply timing, navigation and slow resources. No production theming behavior is intentionally changed.
+
 ## v6.0.171 — eliminate redundant PDP full-page repair
 
 - Built from the v6.0.169 production tree, whose functional baseline is the exact v6.0.153 source plus the warm-WebView/cache-lifecycle correction.
