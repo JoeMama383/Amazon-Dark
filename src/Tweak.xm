@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.183-probe"
+#define AD_VERSION "v6.0.184-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1337,6 +1337,14 @@ static NSString *ADDarkReaderBootstrap(void){
            // Link ink, copyright text, form controls, and the rest of sign-in are untouched.
            "function adSigninFooterText6144(e){try{if(!e||e.nodeType!==1)return false;var p=String(location.pathname||'').toLowerCase();if(p.indexOf('/ap/signin')!==0)return false;var t=String(e.textContent||'').replace(/\\s+/g,' ').trim();if(t.length<24||t.length>180)return false;if(/welcome to amazon|enter mobile number or email/i.test(t))return false;return /conditions of use/i.test(t)&&/privacy notice/i.test(t)&&/(?:^|\\s)help(?:\\s|$)/i.test(t);}catch(x){return false;}}"
            "function adSigninFooter6144(e){try{if(!adSigninFooterText6144(e))return 0;var vw=innerWidth||390,p=e,best=null,d=0;while(p&&d++<6){var r=rect6173(p);if(r.width>=vw*.72&&r.height>=18&&r.height<=170)best=p;else if(best&&r.height>170)break;p=p.parentElement;}if(!best)return 0;if(best.getAttribute('data-ad-signinfooter6144')==='1')return 1;best.setAttribute('data-ad-signinfooter6144','1');var sid='ad-signinfooter6144-style',st=document.getElementById(sid);if(!st){st=document.createElement('style');st.id=sid;st.textContent='[data-ad-signinfooter6144],[data-ad-signinfooter6144]::before,[data-ad-signinfooter6144]::after{background-color:'+BG+'!important;background-image:none!important;box-shadow:none!important;}[data-ad-signinfooter6144] div,[data-ad-signinfooter6144] section,[data-ad-signinfooter6144] footer,[data-ad-signinfooter6144] aside,[data-ad-signinfooter6144] nav,[data-ad-signinfooter6144] ul,[data-ad-signinfooter6144] li,[data-ad-signinfooter6144] table,[data-ad-signinfooter6144] tbody,[data-ad-signinfooter6144] tr,[data-ad-signinfooter6144] td{background-color:transparent!important;background-image:none!important;box-shadow:none!important;}[data-ad-signinfooter6144] div::before,[data-ad-signinfooter6144] div::after,[data-ad-signinfooter6144] section::before,[data-ad-signinfooter6144] section::after,[data-ad-signinfooter6144] footer::before,[data-ad-signinfooter6144] footer::after,[data-ad-signinfooter6144] aside::before,[data-ad-signinfooter6144] aside::after,[data-ad-signinfooter6144] nav::before,[data-ad-signinfooter6144] nav::after,[data-ad-signinfooter6144] li::before,[data-ad-signinfooter6144] li::after{background-color:transparent!important;background-image:none!important;box-shadow:none!important;}';(document.head||document.documentElement).appendChild(st);}best.style.setProperty('background-color',BG,'important');best.style.setProperty('background-image','none','important');best.style.setProperty('box-shadow','none','important');var Q=best.querySelectorAll?best.querySelectorAll('div,section,footer,aside,nav,ul,li,table,tbody,tr,td'):[];for(var fi=0;fi<Q.length&&fi<80;fi++){Q[fi].style.setProperty('background-color','transparent','important');Q[fi].style.setProperty('background-image','none','important');Q[fi].style.setProperty('box-shadow','none','important');}return 1;}catch(x){return 0;}}"
+           // v6.0.184: restore the exact v6.0.177 Interests caught-up gradient
+           // owner inside the existing bounded contrast traversal. This is the wide,
+           // shallow gradient beside "You're all caught up!", not the separate
+           // Related Interests suggestion-card background-image fixed in v6.0.179.
+           "function adInterestText6177(e,re,max){try{if(!e||e.nodeType!==1)return false;var t=String(e.textContent||'').replace(/\\s+/g,' ').trim();return t.length>0&&t.length<=(max||180)&&re.test(t);}catch(x){return false;}}"
+           "function adCaughtUp6177(e){return adInterestText6177(e,/^you(?:'|’)?re all caught up!?$/i,90);}"
+           "function adEnsureInterestGradientStyle6177(){try{var id='ad-interestgradient6177-style',st=document.getElementById(id);if(st)return;st=document.createElement('style');st.id=id;st.textContent='[data-ad-interestgradient6177],[data-ad-interestgradient6177]::before,[data-ad-interestgradient6177]::after{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}';(document.head||document.documentElement).appendChild(st);}catch(x){}}"
+           "function adInterestGradient6177(anchor){try{if(!adCaughtUp6177(anchor))return 0;adEnsureInterestGradientStyle6177();var vw=innerWidth||390,p=anchor,root=null,d=0;while(p&&d++<5){var r=rect6173(p);if(r.width>=vw*.78&&r.height>=60&&r.height<=380)root=p;p=p.parentElement;}if(!root||!root.querySelectorAll)return 0;var Q=root.querySelectorAll('div,section,span'),n=0,ar=rect6173(anchor);for(var i=0;i<Q.length&&i<120;i++){var q=Q[i],r=rect6173(q);if(r.width<110||r.height<10||r.height>100||r.width<r.height*2)continue;if(Math.abs((r.top+r.bottom-ar.top-ar.bottom)/2)>95)continue;var cs=getComputedStyle(q),bi=String(cs.backgroundImage||'none');if(bi.indexOf('gradient')<0)continue;q.setAttribute('data-ad-interestgradient6177','1');q.style.setProperty('background','transparent','important');q.style.setProperty('background-image','none','important');q.style.setProperty('box-shadow','none','important');n++;}return n;}catch(x){return 0;}}"
            // v6.0.138: semantic Sponsored bridge. This reuses the existing bounded
            // contrast traversal instead of adding another document scan. It also
            // identifies Sponsor ancestry so generic glyph whitening cannot repaint
@@ -1351,6 +1359,7 @@ static NSString *ADDarkReaderBootstrap(void){
            "for(var i=0;i<els.length;i++){var el=els[i];"
              "if(adSigninFooterText6144(el)){adSigninFooter6144(el);}"
              "if(adCartCreditText6143(el)){adCartCredit6143(el);}"
+             "if(adCaughtUp6177(el)){n+=adInterestGradient6177(el);}"
              "if(adSponsorText6138(el)){el.setAttribute('data-ad-sponsorgray6138','1');el.style.setProperty('color','#b1aaa0','important');el.style.setProperty('-webkit-text-fill-color','#b1aaa0','important');el.style.setProperty('opacity','1','important');el.style.setProperty('visibility','visible','important');continue;}"
              "if(adSponsorGlyph6138(el))continue;"
              "if(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(el)){n+=prodInk6078(el);continue;}"
@@ -3868,6 +3877,91 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
 }
 %end
 
+// v6.0.184 — restore the proven v6.0.177 Person > Interests caught-up
+// gradient owner. The current screenshot is the exact historical artifact: a
+// wide/shallow white-gray-black strip on the same row as "You're all caught up!".
+// Keep this semantic + geometry gated so genuine product/brand gradients remain
+// on the normal background-color transform path.
+static BOOL ADInterestsArtifactPhrase6177(NSString *text){
+    @try {
+        NSString *lo=[[text ?: @"" lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        return [lo containsString:@"you're all caught up"] || [lo containsString:@"you’re all caught up"];
+    } @catch(...) {}
+    return NO;
+}
+static NSArray *ADTransparentGradientColors6177(CALayer *layer, NSArray *colors){
+    if(!colors.count)return colors;
+    @try {
+        BOOL ca=[layer isKindOfClass:[CAGradientLayer class]];
+        NSMutableArray *out=[NSMutableArray arrayWithCapacity:colors.count];
+        for(id c in colors){
+            if(ca || (c && CFGetTypeID((__bridge CFTypeRef)c)==CGColorGetTypeID())) [out addObject:(__bridge id)[UIColor clearColor].CGColor];
+            else [out addObject:[UIColor clearColor]];
+        }
+        return out;
+    } @catch(...) {}
+    return colors;
+}
+static BOOL ADInterestsGradientGeometry6177(CALayer *layer, UIView *anchor){
+    if(!layer || !anchor || !anchor.window)return NO;
+    @try {
+        UIWindow *w=anchor.window; CGRect gr=[layer convertRect:layer.bounds toLayer:w.layer]; CGRect ar=[anchor convertRect:anchor.bounds toView:w];
+        CGFloat gw=fabs(gr.size.width),gh=fabs(gr.size.height),ww=w.bounds.size.width;
+        if(gw<MAX(110.0,ww*.28)||gh<10.0||gh>100.0||gw<gh*2.0)return NO;
+        if(fabs(CGRectGetMidY(gr)-CGRectGetMidY(ar))>90.0)return NO;
+        if(CGRectGetMaxY(gr)<CGRectGetMinY(ar)-50.0||CGRectGetMinY(gr)>CGRectGetMaxY(ar)+75.0)return NO;
+        return YES;
+    } @catch(...) {}
+    return NO;
+}
+static UIView *ADInterestsCatchupAnchor6177(UIView *v){
+    if(!v || !v.window)return nil;
+    @try {
+        UIView *p=v; int up=0;
+        while(p && up++<6){
+            NSMutableArray *q=[NSMutableArray arrayWithObject:p]; int seen=0;
+            for(NSUInteger qi=0;qi<q.count && seen++<90;qi++){
+                UIView *x=q[qi]; if(ADInterestsArtifactPhrase6177(ADWTViewText362(x)))return x;
+                if(qi<32){for(UIView *sv in x.subviews){if(q.count<90)[q addObject:sv];else break;}}
+            }
+            p=p.superview;
+        }
+    } @catch(...) {}
+    return nil;
+}
+static BOOL ADIsInterestsGradient6177(CALayer *layer){
+    if(!ADRecolorOn()||!layer)return NO;
+    @try {
+        NSString *cn=NSStringFromClass([layer class]);
+        if(![cn isEqualToString:@"CAGradientLayer"] && [cn rangeOfString:@"LinearGradient" options:NSCaseInsensitiveSearch].location==NSNotFound)return NO;
+        id d=layer.delegate; if(![d isKindOfClass:[UIView class]])return NO;
+        UIView *a=ADInterestsCatchupAnchor6177((UIView *)d); return a&&ADInterestsGradientGeometry6177(layer,a);
+    } @catch(...) {}
+    return NO;
+}
+static void ADNeutralizeInterestsGradientNearText6177(UIView *anchor, NSString *text){
+    if(!ADRecolorOn()||!anchor||!ADInterestsArtifactPhrase6177(text))return;
+    __weak UIView *weakAnchor=anchor;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        UIView *live=weakAnchor; if(!live||!live.window)return;
+        @try {
+            UIView *root=live; int up=0;
+            while(root.superview&&up++<4){UIView *next=root.superview;if(next.window!=live.window)break;root=next;if(root.bounds.size.width>=live.window.bounds.size.width*.90&&root.bounds.size.height>=180.0)break;}
+            NSMutableArray *layers=[NSMutableArray arrayWithObject:root.layer]; int seen=0;
+            for(NSUInteger i=0;i<layers.count&&seen++<130;i++){
+                CALayer *l=layers[i]; NSString *cn=NSStringFromClass([l class]);
+                BOOL isg=[cn isEqualToString:@"CAGradientLayer"]||[cn rangeOfString:@"LinearGradient" options:NSCaseInsensitiveSearch].location!=NSNotFound;
+                if(isg&&ADInterestsGradientGeometry6177(l,live)){
+                    NSArray *colors=nil; @try{colors=[l valueForKey:@"colors"];}@catch(...){}
+                    if(colors.count){@try{[l setValue:ADTransparentGradientColors6177(l,colors) forKey:@"colors"];}@catch(...) {}}
+                    l.backgroundColor=[UIColor clearColor].CGColor;
+                }
+                if(i<52){for(CALayer *sl in l.sublayers){if(layers.count<130)[layers addObject:sl];else break;}}
+            }
+        } @catch(...) {}
+    });
+}
+
 // Fabric text (new architecture). Setter lives on RCTParagraphComponentView.
 %hook RCTParagraphComponentView
 - (void)setAttributedText:(NSAttributedString *)attributedText {
@@ -3876,6 +3970,7 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
         %orig(r);
         ADClaimPersonBorderDeferred6147(self,attributedText.string);
         ADBuyAgainSemanticRepair6181((UIView *)self,attributedText.string);
+        ADNeutralizeInterestsGradientNearText6177((UIView *)self,attributedText.string);
         return;
     } @catch(...) {}
     %orig;
@@ -3886,6 +3981,7 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
         %orig(r);
         ADClaimPersonBorderDeferred6147(self,attributedString.string);
         ADBuyAgainSemanticRepair6181((UIView *)self,attributedString.string);
+        ADNeutralizeInterestsGradientNearText6177((UIView *)self,attributedString.string);
         return;
     } @catch(...) {}
     %orig;
@@ -3921,6 +4017,7 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     @try {
         ADClaimPersonBorderDeferred6147(self,adBorderText6147);
         ADBuyAgainSemanticRepair6181((UIView *)self,adBorderText6147);
+        ADNeutralizeInterestsGradientNearText6177((UIView *)self,adBorderText6147);
     } @catch(...) {}
 }
 - (void)layoutSubviews {
@@ -3940,6 +4037,7 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         %orig(r);
         ADBuyAgainSemanticRepair6181(self,attributedText.string);
+        ADNeutralizeInterestsGradientNearText6177(self,attributedText.string);
         return;
     } @catch(...) {}
     %orig;
@@ -4140,6 +4238,12 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
         return;
     }
     @try {
+        if (ADIsInterestsGradient6177(self)) {
+            self.backgroundColor=[UIColor clearColor].CGColor;
+            NSArray *clear6177=ADTransparentGradientColors6177(self,colors);
+            %orig(clear6177);
+            return;
+        }
         NSMutableArray *out = [NSMutableArray arrayWithCapacity:colors.count];
         for (id c in colors){
             CGColorRef cg = (__bridge CGColorRef)c;
@@ -4173,6 +4277,13 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
         return;
     }
     @try {
+        CALayer *layer6177=(CALayer *)(id)self;
+        if (ADIsInterestsGradient6177(layer6177)) {
+            layer6177.backgroundColor=[UIColor clearColor].CGColor;
+            NSArray *clear6177=ADTransparentGradientColors6177(layer6177,colors);
+            %orig(clear6177);
+            return;
+        }
         NSMutableArray *out = [NSMutableArray arrayWithCapacity:colors.count];
         for (id c in colors){
             if ([c isKindOfClass:[UIColor class]]){
@@ -4952,8 +5063,16 @@ static void ADInstallBuyAgainRaster6180(UIView *v){
             ov=[CAShapeLayer layer]; ov.name=@"AmazonDarkBuyAgainBorder6180";
             ov.fillColor=[UIColor clearColor].CGColor;
             ov.lineWidth=1.0; ov.contentsScale=UIScreen.mainScreen.scale; ov.zPosition=9998;
-            [v.layer addSublayer:ov];
             objc_setAssociatedObject(v,kADBuyAgainOutline6180,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        // v6.0.184: React refresh/reconciliation can replace the host's sublayer
+        // array without destroying the RCTView. The association then still points
+        // at our outline, but that outline has no superlayer; v183 treated the
+        // non-nil association as proof it was installed and the card became
+        // borderless. Reattach the SAME owned layer whenever RN detached it.
+        if(ov.superlayer != v.layer){
+            [ov removeFromSuperlayer];
+            [v.layer addSublayer:ov];
         }
         ov.frame=v.bounds;
         CGRect rr=CGRectInset(v.bounds,0.5,0.5);
@@ -6806,9 +6925,10 @@ static void ADBuyAgainProbeCapture6180(void){
                 BOOL ba=ADBuyAgainCarouselForView6180(v)!=nil; int lc=ADWTLocalSection365(v),cc=ADWTCarouselSection384(v);
                 if(ba || ADBuyAgainSmallPlate6180(v.layer.contents) || objc_getAssociatedObject(v,kADBuyAgainRaster6180)){
                     cards++;
-                    [out appendFormat:@"\nCARD #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) ba=%d local=%d oldCarousel=%d contents=%@ marked=%d outline=%d text=\"%@\"\n",
+                    CAShapeLayer *baov=objc_getAssociatedObject(v,kADBuyAgainOutline6180);
+                    [out appendFormat:@"\nCARD #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) ba=%d local=%d oldCarousel=%d contents=%@ marked=%d outline=%d attached=%d text=\"%@\"\n",
                         cards,cls,v,r.origin.x,r.origin.y,r.size.width,r.size.height,ba,lc,cc,ADBuyAgainProbeContents6180(v.layer.contents),
-                        objc_getAssociatedObject(v,kADBuyAgainRaster6180)!=nil,objc_getAssociatedObject(v,kADBuyAgainOutline6180)!=nil,ADBuyAgainProbeText6180(v)];
+                        objc_getAssociatedObject(v,kADBuyAgainRaster6180)!=nil,baov!=nil,(baov && baov.superlayer==v.layer),ADBuyAgainProbeText6180(v)];
                     ADBuyAgainProbeLayer6180(v.layer,0,out);
                 }
             }
