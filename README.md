@@ -1,10 +1,10 @@
-## v6.0.177~probe — identify Person > Interests light-box painter
+## v6.0.177~probe2 — Interests visible light-surface probe
 
-- Exact functional base: v6.0.176. None of the failed v6.0.177-v6.0.179 visual fixes are present.
-- Diagnostic only: prints the native UIView/CALayer ancestry and bounded section subtree around `Related Interests to explore` / `You're all caught up!`.
-- Also asks any mounted WKWebView for the matching DOM subtree and records tag/class/id/geometry/computed backgrounds/borders/radii.
-- Does not recolor, hide, filter, clear, or otherwise patch the white boxes.
-- Output: `AmazonDark-interests-box-probe-6177.txt` in Amazon's own Documents directory.
+- Diagnostic-only build from the exact v6.0.176 production source.
+- Replaces the failed text-setter-triggered 6177 probe with a guaranteed one-shot capture when Amazon is backgrounded.
+- While the Interests white boxes are visible, background Amazon once. The probe snapshots all visible bright-neutral UIKit/React/Fabric surfaces and all visible bright-neutral WebKit elements, including geometry, class/layer/DOM ancestry, borders, radius, text, and immediate children/sublayers.
+- Does not recolor or hide anything and adds no recurring timer, scroll listener, MutationObserver, or RAF loop.
+- Output remains AmazonDark-interests-box-probe-6177.txt in Amazon's Documents sandbox; copy it with the provided one-line command.
 
 ## v6.0.176 — warm PDP detach/reattach retention
 

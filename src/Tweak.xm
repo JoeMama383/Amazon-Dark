@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.177-interests-probe"
+#define AD_VERSION "v6.0.177-interests-probe2"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3403,265 +3403,6 @@ static void ADPaintSignOutDialogButton6141(UIButton *b){
 }
 %end
 
-
-// ════════════════════════════════════════════════════════════════════════════════
-// v6.0.177~probe — Person > Interests light-box painter identification
-// Diagnostic only.  The implementation base is exactly v6.0.176; this block does
-// not recolor, hide, filter, or otherwise modify the target surfaces.  It prints
-// the native view/layer ancestry around "Related Interests to explore" and also
-// asks any mounted WKWebView for the matching DOM subtree.  The file is written to
-// Amazon's own Documents directory so the app sandbox can always create it.
-// ════════════════════════════════════════════════════════════════════════════════
-static NSString *ADInterestsProbePath6177(void){
-    @try {
-        NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length) return [docs stringByAppendingPathComponent:@"AmazonDark-interests-box-probe-6177.txt"];
-    } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-interests-box-probe-6177.txt"];
-}
-
-static void ADInterestsProbeAppend6177(NSString *line){
-    if(!line.length) return;
-    @try {
-        NSString *p=ADInterestsProbePath6177();
-        NSData *d=[[line stringByAppendingString:@"\n"] dataUsingEncoding:NSUTF8StringEncoding];
-        @synchronized([NSFileHandle class]) {
-            NSFileManager *fm=[NSFileManager defaultManager];
-            if(![fm fileExistsAtPath:p]) [fm createFileAtPath:p contents:nil attributes:nil];
-            NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p];
-            [h seekToEndOfFile]; [h writeData:d]; [h closeFile];
-        }
-    } @catch(...) {}
-}
-
-static void ADInterestsProbeReset6177(void){
-    @try {
-        NSString *head=[NSString stringWithFormat:
-            @"AmazonDark Interests box probe 6177\nversion=%s\npid=%d\noutput=%@\n",
-            AD_VERSION,getpid(),ADInterestsProbePath6177()];
-        [head writeToFile:ADInterestsProbePath6177() atomically:YES encoding:NSUTF8StringEncoding error:nil];
-    } @catch(...) {}
-}
-
-static NSString *ADProbeNormText6177(NSString *in){
-    if(!in.length) return @"";
-    @try {
-        NSArray *parts=[in componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-        NSMutableArray *clean=[NSMutableArray array];
-        for(NSString *x in parts) if(x.length) [clean addObject:x];
-        return [[clean componentsJoinedByString:@" "] lowercaseString];
-    } @catch(...) { return [in lowercaseString] ?: @""; }
-}
-
-static BOOL ADProbeInterestText6177(NSString *text){
-    NSString *n=ADProbeNormText6177(text);
-    return [n containsString:@"related interests to explore"] || [n containsString:@"you're all caught up"];
-}
-
-static NSString *ADProbeColor6177(UIColor *c){
-    if(!c) return @"nil";
-    @try {
-        CGFloat r=0,g=0,b=0,a=0,w=0;
-        if([c getRed:&r green:&g blue:&b alpha:&a])
-            return [NSString stringWithFormat:@"rgba(%.3f,%.3f,%.3f,%.3f)",r,g,b,a];
-        if([c getWhite:&w alpha:&a])
-            return [NSString stringWithFormat:@"white(%.3f,%.3f)",w,a];
-        return c.description ?: @"?";
-    } @catch(...) { return @"?"; }
-}
-
-static BOOL ADProbeBrightNeutral6177(UIColor *c){
-    if(!c) return NO;
-    @try {
-        CGFloat r=0,g=0,b=0,a=0,w=0;
-        if([c getRed:&r green:&g blue:&b alpha:&a]){
-            CGFloat mx=MAX(r,MAX(g,b)), mn=MIN(r,MIN(g,b));
-            CGFloat lum=0.2126*r+0.7152*g+0.0722*b;
-            return a>0.10 && lum>0.62 && (mx-mn)<0.16;
-        }
-        if([c getWhite:&w alpha:&a]) return a>0.10 && w>0.62;
-    } @catch(...) {}
-    return NO;
-}
-
-static NSString *ADProbeTextForView6177(UIView *v){
-    if(!v) return @"";
-    @try {
-        NSString *t=nil;
-        if([v isKindOfClass:[UILabel class]]) t=((UILabel *)v).text;
-        else if([v isKindOfClass:[UIButton class]]) t=((UIButton *)v).currentTitle;
-        else if([v isKindOfClass:[UITextView class]]) t=((UITextView *)v).text;
-        else if([v isKindOfClass:[UITextField class]]) t=((UITextField *)v).text;
-        if(!t.length) t=v.accessibilityLabel;
-        if(!t.length){
-            @try {
-                id a=[v valueForKey:@"attributedText"];
-                if([a isKindOfClass:[NSAttributedString class]]) t=[a string];
-            } @catch(...) {}
-        }
-        t=[t stringByReplacingOccurrencesOfString:@"\n" withString:@" "];
-        if(t.length>180) t=[[t substringToIndex:180] stringByAppendingString:@"…"];
-        return t ?: @"";
-    } @catch(...) { return @""; }
-}
-
-static NSString *ADProbeLayerLine6177(CALayer *l, NSInteger depth){
-    if(!l) return @"";
-    @try {
-        UIColor *bg=l.backgroundColor?[UIColor colorWithCGColor:l.backgroundColor]:nil;
-        UIColor *bc=l.borderColor?[UIColor colorWithCGColor:l.borderColor]:nil;
-        NSMutableString *m=[NSMutableString stringWithFormat:
-            @"LAYER d=%ld cls=%@ ptr=%p frame=(%.1f,%.1f %.1fx%.1f) bg=%@ border=%.2f/%@ radius=%.2f opacity=%.2f hidden=%d contents=%d",
-            (long)depth,NSStringFromClass([l class]),l,l.frame.origin.x,l.frame.origin.y,l.frame.size.width,l.frame.size.height,
-            ADProbeColor6177(bg),l.borderWidth,ADProbeColor6177(bc),l.cornerRadius,l.opacity,l.hidden,l.contents!=nil];
-        @try {
-            id colors=[l valueForKey:@"colors"];
-            if([colors isKindOfClass:[NSArray class]] && [colors count]){
-                [m appendString:@" gradient=["];
-                NSUInteger cap=MIN((NSUInteger)6,[colors count]);
-                for(NSUInteger i=0;i<cap;i++){
-                    id obj=[colors objectAtIndex:i];
-                    NSString *cs=@"?";
-                    @try { cs=ADProbeColor6177([UIColor colorWithCGColor:(__bridge CGColorRef)obj]); } @catch(...) {}
-                    if(i) [m appendString:@","];
-                    [m appendString:cs];
-                }
-                [m appendString:@"]"];
-            }
-        } @catch(...) {}
-        return m;
-    } @catch(...) { return @"LAYER <error>"; }
-}
-
-static NSString *ADProbeViewLine6177(UIView *v, NSInteger depth){
-    if(!v) return @"";
-    @try {
-        CGRect wr=CGRectZero;
-        @try { wr=[v convertRect:v.bounds toView:nil]; } @catch(...) { wr=v.frame; }
-        UIColor *bg=v.backgroundColor;
-        UIColor *lbg=v.layer.backgroundColor?[UIColor colorWithCGColor:v.layer.backgroundColor]:nil;
-        UIColor *bc=v.layer.borderColor?[UIColor colorWithCGColor:v.layer.borderColor]:nil;
-        NSString *txt=ADProbeTextForView6177(v);
-        BOOL bright=ADProbeBrightNeutral6177(bg)||ADProbeBrightNeutral6177(lbg);
-        return [NSString stringWithFormat:
-            @"VIEW d=%ld cls=%@ ptr=%p win=(%.1f,%.1f %.1fx%.1f) bounds=(%.1fx%.1f) alpha=%.2f hidden=%d bg=%@ layerBg=%@ border=%.2f/%@ radius=%.2f BRIGHT=%d subviews=%lu layers=%lu text=\"%@\"",
-            (long)depth,NSStringFromClass([v class]),v,wr.origin.x,wr.origin.y,wr.size.width,wr.size.height,
-            v.bounds.size.width,v.bounds.size.height,v.alpha,v.hidden,ADProbeColor6177(bg),ADProbeColor6177(lbg),
-            v.layer.borderWidth,ADProbeColor6177(bc),v.layer.cornerRadius,bright,(unsigned long)v.subviews.count,
-            (unsigned long)v.layer.sublayers.count,txt];
-    } @catch(...) { return @"VIEW <error>"; }
-}
-
-static UIView *ADProbeInterestsRoot6177(UIView *target){
-    if(!target) return nil;
-    @try {
-        CGFloat sw=[UIScreen mainScreen].bounds.size.width;
-        if(sw<250) sw=390;
-        UIView *best=target,*p=target;
-        for(int d=0;p&&d<10;d++,p=p.superview){
-            CGRect r=[p convertRect:p.bounds toView:nil];
-            if(r.size.width>=sw*0.74 && r.size.height>=110 && r.size.height<=760) best=p;
-            if(r.size.height>900 && best!=target) break;
-        }
-        return best;
-    } @catch(...) { return target; }
-}
-
-static void ADProbeSnapshotViews6177(UIView *target, NSString *reason){
-    if(!target) return;
-    @try {
-        NSMutableString *out=[NSMutableString stringWithFormat:@"\n===== NATIVE SNAPSHOT reason=%@ uptime=%.3f =====\n",reason ?: @"?",ADUptime()];
-        [out appendString:@"-- target/ancestor chain --\n"];
-        UIView *p=target;
-        for(int d=0;p&&d<11;d++,p=p.superview){
-            [out appendFormat:@"%@\n",ADProbeViewLine6177(p,d)];
-            [out appendFormat:@"%@\n",ADProbeLayerLine6177(p.layer,d)];
-        }
-        UIView *root=ADProbeInterestsRoot6177(target);
-        [out appendFormat:@"-- selected root: %@ --\n",ADProbeViewLine6177(root,0)];
-        NSMutableArray *q=[NSMutableArray arrayWithObject:@{ @"v":root, @"d":@0 }];
-        NSUInteger qi=0,seen=0,layerSeen=0;
-        while(qi<q.count && seen<240){
-            NSDictionary *it=q[qi++]; UIView *v=it[@"v"]; NSInteger d=[it[@"d"] integerValue];
-            if(!v||d>8) continue; seen++;
-            NSString *line=ADProbeViewLine6177(v,d);
-            [out appendFormat:@"%@\n",line];
-            BOOL interesting=ADProbeBrightNeutral6177(v.backgroundColor)||
-                (v.layer.backgroundColor&&ADProbeBrightNeutral6177([UIColor colorWithCGColor:v.layer.backgroundColor]))||
-                v.layer.cornerRadius>=6.0||ADProbeTextForView6177(v).length>0;
-            if(interesting && layerSeen<140){
-                [out appendFormat:@"%@\n",ADProbeLayerLine6177(v.layer,d)]; layerSeen++;
-                for(CALayer *sl in v.layer.sublayers){
-                    if(layerSeen>=140) break;
-                    BOOL spl=NO; @try { spl=sl.backgroundColor&&ADProbeBrightNeutral6177([UIColor colorWithCGColor:sl.backgroundColor]); } @catch(...) {}
-                    if(spl || sl.cornerRadius>=6.0 || [NSStringFromClass([sl class]) rangeOfString:@"Gradient" options:NSCaseInsensitiveSearch].location!=NSNotFound){
-                        [out appendFormat:@"%@\n",ADProbeLayerLine6177(sl,d+1)]; layerSeen++;
-                    }
-                }
-            }
-            for(UIView *ch in v.subviews) if(q.count<320) [q addObject:@{ @"v":ch,@"d":@(d+1) }];
-        }
-        [out appendFormat:@"-- native totals views=%lu layersPrinted=%lu --\n",(unsigned long)seen,(unsigned long)layerSeen];
-        ADInterestsProbeAppend6177(out);
-    } @catch(...) {}
-}
-
-static NSString *ADInterestsDOMProbeJS6177(void){
-    return @"(function(){try{"
-    "function norm(s){return String(s||'').replace(/\\s+/g,' ').trim();}"
-    "function rgb(s){var m=String(s||'').match(/rgba?\\(\\s*([0-9.]+)[, ]+\\s*([0-9.]+)[, ]+\\s*([0-9.]+)(?:[, /]+\\s*([0-9.]+))?/i);return m?[+m[1],+m[2],+m[3],m[4]===undefined?1:+m[4]]:null;}"
-    "function bright(s){var c=rgb(s);if(!c||c[3]<.1)return false;var mx=Math.max(c[0],c[1],c[2]),mn=Math.min(c[0],c[1],c[2]),L=(.2126*c[0]+.7152*c[1]+.0722*c[2])/255;return L>.62&&(mx-mn)<42;}"
-    "function desc(e){var r=e.getBoundingClientRect(),cs=getComputedStyle(e),t=norm(e.innerText||e.textContent);if(t.length>180)t=t.slice(0,180)+'…';return {tag:e.tagName,id:e.id||'',cls:(typeof e.className==='string'?e.className:''),role:e.getAttribute('role')||'',test:e.getAttribute('data-testid')||e.getAttribute('data-component-type')||'',rect:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],bg:cs.backgroundColor,bgi:cs.backgroundImage,border:cs.borderColor,bw:cs.borderWidth,rad:cs.borderRadius,shadow:cs.boxShadow,color:cs.color,bright:bright(cs.backgroundColor),text:t};}"
-    "var cand=document.querySelectorAll('h1,h2,h3,h4,h5,div,section,article,span,p');var hit=null,best=99999;for(var i=0;i<cand.length&&i<4000;i++){var t=norm(cand[i].innerText||cand[i].textContent).toLowerCase();if(t.indexOf('related interests to explore')>=0&&t.length<best){hit=cand[i];best=t.length;}}"
-    "if(!hit)return 'MISS';var anc=[],p=hit;for(var d=0;p&&d<9;d++,p=p.parentElement)anc.push(desc(p));"
-    "var root=hit,cur=hit;for(var d2=0;cur&&d2<8;d2++,cur=cur.parentElement){var rr=cur.getBoundingClientRect();if(rr.width>=innerWidth*.72&&rr.height>=110&&rr.height<=760)root=cur;if(rr.height>900&&root!==hit)break;}"
-    "var all=[root],q=root.querySelectorAll?root.querySelectorAll('*'):[];for(var j=0;j<q.length&&j<220;j++)all.push(q[j]);var rows=[];for(var k=0;k<all.length;k++){var e=all[k],o=desc(e),cs=getComputedStyle(e);if(o.bright||parseFloat(cs.borderRadius)>=6||o.text||String(cs.backgroundImage).indexOf('gradient')>=0)rows.push(o);if(rows.length>=180)break;}"
-    "return JSON.stringify({url:location.href,title:document.title,hit:desc(hit),anc:anc,root:desc(root),rows:rows});"
-    "}catch(e){return 'ERR '+String(e&&e.stack||e);}})();";
-}
-
-static void ADProbeWebInterests6177(WKWebView *wv, NSString *reason){
-    if(!wv||!wv.window) return;
-    @try {
-        [wv evaluateJavaScript:ADInterestsDOMProbeJS6177() completionHandler:^(id value,NSError *error){
-            @try {
-                NSString *v=[value isKindOfClass:[NSString class]]?(NSString *)value:[value description];
-                if(error) v=[NSString stringWithFormat:@"ERR %@",error];
-                if(!v.length || [v isEqualToString:@"MISS"]) return;
-                ADInterestsProbeAppend6177([NSString stringWithFormat:@"\n===== WEB SNAPSHOT reason=%@ uptime=%.3f url=%@ =====\n%@\n",reason ?: @"?",ADUptime(),wv.URL.absoluteString ?: @"",v]);
-            } @catch(...) {}
-        }];
-    } @catch(...) {}
-}
-
-static void ADProbeWebTree6177(UIView *root, NSString *reason){
-    if(!root) return;
-    @try {
-        NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger i=0,seen=0;
-        while(i<q.count&&seen<900){ UIView *v=q[i++]; seen++;
-            if([v isKindOfClass:[WKWebView class]]){ ADProbeWebInterests6177((WKWebView *)v,reason); continue; }
-            for(UIView *ch in v.subviews) if(q.count<1000) [q addObject:ch];
-        }
-    } @catch(...) {}
-}
-
-static const void *kADInterestsProbe6177=&kADInterestsProbe6177;
-static void ADProbeInterestTarget6177(id obj, NSString *text){
-    if(!ADProbeInterestText6177(text)) return;
-    @try {
-        UIView *v=(UIView *)obj;
-        if(![v isKindOfClass:[UIView class]]) return;
-        if(objc_getAssociatedObject(v,kADInterestsProbe6177)) return;
-        objc_setAssociatedObject(v,kADInterestsProbe6177,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        ADInterestsProbeAppend6177([NSString stringWithFormat:@"\nTRIGGER text=\"%@\" cls=%@ ptr=%p uptime=%.3f",text ?: @"",NSStringFromClass([v class]),v,ADUptime()]);
-        __weak UIView *wv=v;
-        static const int64_t ms[]={0,140,700};
-        for(int i=0;i<3;i++) dispatch_after(dispatch_time(DISPATCH_TIME_NOW,ms[i]*1000000LL),dispatch_get_main_queue(),^{
-            @try { UIView *x=wv; if(x&&x.window){ ADProbeSnapshotViews6177(x,[NSString stringWithFormat:@"text+%lldms",ms[i]]); ADProbeWebTree6177(x.window,[NSString stringWithFormat:@"text+%lldms",ms[i]]); } } @catch(...) {}
-        });
-    } @catch(...) {}
-}
-
 // ════════════════════════════════════════════════════════════════════════════════
 // SURFACE 3b — REACT NATIVE TEXT (the "text is almost as dark as the background")
 // ────────────────────────────────────────────────────────────────────────────────
@@ -4092,7 +3833,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         %orig(r);
         ADClaimPersonBorderDeferred6147(self,attributedText.string);
-        ADProbeInterestTarget6177(self,attributedText.string);
         return;
     } @catch(...) {}
     %orig;
@@ -4102,7 +3842,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
         NSAttributedString *r = ADRecolorAttributedString(attributedString);
         %orig(r);
         ADClaimPersonBorderDeferred6147(self,attributedString.string);
-        ADProbeInterestTarget6177(self,attributedString.string);
         return;
     } @catch(...) {}
     %orig;
@@ -4135,7 +3874,7 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
         }
     } @catch(...) {}
     %orig;
-    @try { ADClaimPersonBorderDeferred6147(self,adBorderText6147); ADProbeInterestTarget6177(self,adBorderText6147); } @catch(...) {}
+    @try { ADClaimPersonBorderDeferred6147(self,adBorderText6147); } @catch(...) {}
 }
 - (void)layoutSubviews {
     %orig;
@@ -4148,21 +3887,14 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
 - (void)setAttributedText:(NSAttributedString *)attributedText {
     if (!ADRecolorOn() || !attributedText.length) {
         %orig;
-        @try { ADProbeInterestTarget6177(self,attributedText.string); } @catch(...) {}
         return;
     }
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         %orig(r);
-        ADProbeInterestTarget6177(self,attributedText.string);
         return;
     } @catch(...) {}
     %orig;
-    @try { ADProbeInterestTarget6177(self,attributedText.string); } @catch(...) {}
-}
-- (void)setText:(NSString *)text {
-    %orig;
-    @try { ADProbeInterestTarget6177(self,text); } @catch(...) {}
 }
 %end
 
@@ -6410,11 +6142,6 @@ static void ADClaimStatusBarFor(Class c){
             for (UIViewController *ch in self.childViewControllers)
                 ADClaimStatusBarFor(object_getClass(ch));
             ADReapplyBurst(self.view);
-            // Probe-only: passive DOM identification. No styles or page state are changed.
-            __weak UIView *adProbeRoot6177=self.view;
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,450*1000000LL),dispatch_get_main_queue(),^{
-                @try { UIView *r=adProbeRoot6177; if(r&&r.window) ADProbeWebTree6177(r,@"viewDidAppear+450ms"); } @catch(...) {}
-            });
         }
     } @catch(...) {}
 }
@@ -6548,10 +6275,245 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
     dispatch_async(dispatch_get_main_queue(), ^{ @try { ADSweep(); } @catch(...) {} });
 }
 
+
+// ════════════════════════════════════════════════════════════════════════════════
+// v6.0.177~probe2 — Person > Interests visible light-surface snapshot
+// Diagnostic only, based exactly on v6.0.176. Unlike the first 6177 probe this
+// does NOT depend on a specific React/UILabel text setter firing. Backgrounding
+// Amazon once snapshots every visible bright-neutral native surface and every
+// visible bright-neutral WebKit element, with local ancestry, so the actual white
+// Related Interests cards can be identified by class/layer/DOM geometry.
+// ════════════════════════════════════════════════════════════════════════════════
+static NSString *ADInterestsProbePath6177(void){
+    @try {
+        NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
+        if(docs.length) return [docs stringByAppendingPathComponent:@"AmazonDark-interests-box-probe-6177.txt"];
+    } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-interests-box-probe-6177.txt"];
+}
+
+static void ADInterestsProbeAppend6177(NSString *line){
+    if(!line.length) return;
+    @try {
+        NSString *p=ADInterestsProbePath6177();
+        NSData *d=[[line stringByAppendingString:@"\n"] dataUsingEncoding:NSUTF8StringEncoding];
+        @synchronized([NSFileHandle class]) {
+            NSFileManager *fm=[NSFileManager defaultManager];
+            if(![fm fileExistsAtPath:p]) [fm createFileAtPath:p contents:nil attributes:nil];
+            NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p];
+            [h seekToEndOfFile]; [h writeData:d]; [h closeFile];
+        }
+    } @catch(...) {}
+}
+
+static void ADInterestsProbeReset6177(void){
+    @try {
+        NSString *head=[NSString stringWithFormat:
+            @"AmazonDark Interests box probe 6177 probe2\nversion=%s\npid=%d\noutput=%@\ntrigger=background Amazon once while white Related Interests boxes are visible\n",
+            AD_VERSION,getpid(),ADInterestsProbePath6177()];
+        [head writeToFile:ADInterestsProbePath6177() atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    } @catch(...) {}
+}
+
+static NSString *ADProbeColor6177(UIColor *c){
+    if(!c) return @"nil";
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0;
+        if([c getRed:&r green:&g blue:&b alpha:&a])
+            return [NSString stringWithFormat:@"rgba(%.3f,%.3f,%.3f,%.3f)",r,g,b,a];
+        if([c getWhite:&w alpha:&a])
+            return [NSString stringWithFormat:@"white(%.3f,%.3f)",w,a];
+        return c.description ?: @"?";
+    } @catch(...) { return @"?"; }
+}
+
+static BOOL ADProbeBrightNeutral6177(UIColor *c){
+    if(!c) return NO;
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0;
+        if([c getRed:&r green:&g blue:&b alpha:&a]){
+            CGFloat mx=MAX(r,MAX(g,b)), mn=MIN(r,MIN(g,b));
+            CGFloat lum=0.2126*r+0.7152*g+0.0722*b;
+            return a>0.10 && lum>0.58 && (mx-mn)<0.18;
+        }
+        if([c getWhite:&w alpha:&a]) return a>0.10 && w>0.58;
+    } @catch(...) {}
+    return NO;
+}
+
+static NSString *ADProbeTextForView6177(UIView *v){
+    if(!v) return @"";
+    @try {
+        NSString *t=nil;
+        if([v isKindOfClass:[UILabel class]]) t=((UILabel *)v).text;
+        else if([v isKindOfClass:[UIButton class]]) t=((UIButton *)v).currentTitle;
+        else if([v isKindOfClass:[UITextView class]]) t=((UITextView *)v).text;
+        else if([v isKindOfClass:[UITextField class]]) t=((UITextField *)v).text;
+        if(!t.length) t=v.accessibilityLabel;
+        if(!t.length){
+            @try { id a=[v valueForKey:@"attributedText"]; if([a isKindOfClass:[NSAttributedString class]]) t=[a string]; } @catch(...) {}
+        }
+        t=[t stringByReplacingOccurrencesOfString:@"\n" withString:@" "];
+        if(t.length>160) t=[[t substringToIndex:160] stringByAppendingString:@"…"];
+        return t ?: @"";
+    } @catch(...) { return @""; }
+}
+
+static CGRect ADProbeWindowRect6177(UIView *v){
+    if(!v) return CGRectZero;
+    @try { return [v convertRect:v.bounds toView:nil]; } @catch(...) { return v.frame; }
+}
+
+static BOOL ADProbeVisibleRect6177(UIView *v, CGRect *out){
+    if(!v || v.hidden || v.alpha<0.05 || !v.window) return NO;
+    @try {
+        CGRect r=ADProbeWindowRect6177(v);
+        if(out) *out=r;
+        CGRect screen=[UIScreen mainScreen].bounds;
+        return r.size.width>1 && r.size.height>1 && CGRectIntersectsRect(r,screen);
+    } @catch(...) { return NO; }
+}
+
+static NSString *ADProbeLayerLine6177(CALayer *l, NSInteger depth){
+    if(!l) return @"";
+    @try {
+        UIColor *bg=l.backgroundColor?[UIColor colorWithCGColor:l.backgroundColor]:nil;
+        UIColor *bc=l.borderColor?[UIColor colorWithCGColor:l.borderColor]:nil;
+        NSMutableString *m=[NSMutableString stringWithFormat:
+            @"LAYER d=%ld cls=%@ ptr=%p frame=(%.1f,%.1f %.1fx%.1f) bg=%@ border=%.2f/%@ radius=%.2f opacity=%.2f hidden=%d contents=%d",
+            (long)depth,NSStringFromClass([l class]),l,l.frame.origin.x,l.frame.origin.y,l.frame.size.width,l.frame.size.height,
+            ADProbeColor6177(bg),l.borderWidth,ADProbeColor6177(bc),l.cornerRadius,l.opacity,l.hidden,l.contents!=nil];
+        @try {
+            id colors=[l valueForKey:@"colors"];
+            if([colors isKindOfClass:[NSArray class]] && [colors count]){
+                [m appendString:@" gradient=["];
+                NSUInteger cap=MIN((NSUInteger)6,[colors count]);
+                for(NSUInteger i=0;i<cap;i++){
+                    id obj=[colors objectAtIndex:i]; NSString *cs=@"?";
+                    @try { cs=ADProbeColor6177([UIColor colorWithCGColor:(__bridge CGColorRef)obj]); } @catch(...) {}
+                    if(i) [m appendString:@","]; [m appendString:cs];
+                }
+                [m appendString:@"]"];
+            }
+        } @catch(...) {}
+        return m;
+    } @catch(...) { return @"LAYER <error>"; }
+}
+
+static NSString *ADProbeViewLine6177(UIView *v, NSInteger depth){
+    if(!v) return @"";
+    @try {
+        CGRect r=ADProbeWindowRect6177(v);
+        UIColor *bg=v.backgroundColor;
+        UIColor *lbg=v.layer.backgroundColor?[UIColor colorWithCGColor:v.layer.backgroundColor]:nil;
+        UIColor *bc=v.layer.borderColor?[UIColor colorWithCGColor:v.layer.borderColor]:nil;
+        return [NSString stringWithFormat:
+            @"VIEW d=%ld cls=%@ ptr=%p win=(%.1f,%.1f %.1fx%.1f) alpha=%.2f hidden=%d bg=%@ layerBg=%@ border=%.2f/%@ radius=%.2f subviews=%lu layers=%lu text=\"%@\"",
+            (long)depth,NSStringFromClass([v class]),v,r.origin.x,r.origin.y,r.size.width,r.size.height,v.alpha,v.hidden,
+            ADProbeColor6177(bg),ADProbeColor6177(lbg),v.layer.borderWidth,ADProbeColor6177(bc),v.layer.cornerRadius,
+            (unsigned long)v.subviews.count,(unsigned long)v.layer.sublayers.count,ADProbeTextForView6177(v)];
+    } @catch(...) { return @"VIEW <error>"; }
+}
+
+static void ADProbeAppendCandidate6177(NSMutableString *out, UIView *v, NSUInteger idx){
+    if(!out||!v) return;
+    @try {
+        [out appendFormat:@"\n--- BRIGHT CANDIDATE %lu ---\n%@\n%@\n",(unsigned long)idx,ADProbeViewLine6177(v,0),ADProbeLayerLine6177(v.layer,0)];
+        UIView *p=v.superview;
+        for(int d=1;p&&d<=7;d++,p=p.superview) [out appendFormat:@"ANC %@\n",ADProbeViewLine6177(p,d)];
+        NSUInteger sl=0;
+        for(CALayer *l in v.layer.sublayers){ if(sl++>=10) break; [out appendFormat:@"SUB %@\n",ADProbeLayerLine6177(l,1)]; }
+        NSUInteger sv=0;
+        for(UIView *ch in v.subviews){ if(sv++>=12) break; [out appendFormat:@"CHILD %@\n",ADProbeViewLine6177(ch,1)]; }
+    } @catch(...) {}
+}
+
+static void ADProbeNativeVisible6177(void){
+    @try {
+        NSMutableString *out=[NSMutableString stringWithFormat:@"\n===== NATIVE VISIBLE SNAPSHOT t=%.3f =====\n",CFAbsoluteTimeGetCurrent()];
+        NSUInteger scanned=0,cands=0;
+        for(UIWindow *w in [UIApplication sharedApplication].windows){
+            if(!w || w.hidden || w.alpha<0.05) continue;
+            [out appendFormat:@"\nWINDOW %@\n",ADProbeViewLine6177(w,0)];
+            NSMutableArray *q=[NSMutableArray arrayWithObject:w]; NSUInteger qi=0;
+            while(qi<q.count && scanned<1800){
+                UIView *v=q[qi++]; scanned++;
+                CGRect r=CGRectZero; if(!ADProbeVisibleRect6177(v,&r)) continue;
+                UIColor *bg=v.backgroundColor;
+                UIColor *lbg=v.layer.backgroundColor?[UIColor colorWithCGColor:v.layer.backgroundColor]:nil;
+                BOOL bright=ADProbeBrightNeutral6177(bg)||ADProbeBrightNeutral6177(lbg);
+                BOOL box=r.size.width>=55 && r.size.height>=24 && r.size.width<=470 && r.size.height<=360;
+                if(bright && box && cands<160) ADProbeAppendCandidate6177(out,v,++cands);
+                for(UIView *ch in v.subviews) if(q.count<2200) [q addObject:ch];
+            }
+        }
+        [out appendFormat:@"\nNATIVE TOTAL scanned=%lu brightCandidates=%lu\n",(unsigned long)scanned,(unsigned long)cands];
+        ADInterestsProbeAppend6177(out);
+    } @catch(...) {}
+}
+
+static NSString *ADInterestsDOMProbeJS6177(void){
+    return @"(function(){try{"
+    "function n(s){return String(s||'').replace(/\\s+/g,' ').trim();}"
+    "function rgb(s){var m=String(s||'').match(/rgba?\\(\\s*([0-9.]+)[, ]+\\s*([0-9.]+)[, ]+\\s*([0-9.]+)(?:[, /]+\\s*([0-9.]+))?/i);return m?[+m[1],+m[2],+m[3],m[4]===undefined?1:+m[4]]:null;}"
+    "function bright(s){var c=rgb(s);if(!c||c[3]<.1)return false;var mx=Math.max(c[0],c[1],c[2]),mn=Math.min(c[0],c[1],c[2]),L=(.2126*c[0]+.7152*c[1]+.0722*c[2])/255;return L>.58&&(mx-mn)<46;}"
+    "function d(e){var r=e.getBoundingClientRect(),c=getComputedStyle(e),t=n(e.innerText||e.textContent);if(t.length>140)t=t.slice(0,140)+'…';return {tag:e.tagName,id:e.id||'',cls:typeof e.className==='string'?e.className:'',role:e.getAttribute('role')||'',rect:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],bg:c.backgroundColor,bgi:c.backgroundImage,border:c.borderColor,bw:c.borderWidth,rad:c.borderRadius,shadow:c.boxShadow,text:t};}"
+    "var a=document.querySelectorAll('body *'),rows=[],sc=0;for(var i=0;i<a.length&&i<5000&&rows.length<160;i++){var e=a[i],r=e.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight||r.right<0||r.left>innerWidth||r.width<55||r.height<24||r.width>470||r.height>360)continue;sc++;var cs=getComputedStyle(e);if(!bright(cs.backgroundColor))continue;var o={self:d(e),anc:[]},p=e.parentElement;for(var z=0;p&&z<6;z++,p=p.parentElement)o.anc.push(d(p));rows.push(o);}return JSON.stringify({url:location.href,title:document.title,viewport:[innerWidth,innerHeight],tested:sc,bright:rows});"
+    "}catch(e){return 'ERR '+String(e&&e.stack||e);}})();";
+}
+
+static void ADProbeWebVisible6177(WKWebView *wv, dispatch_group_t group){
+    if(!wv || !wv.window) return;
+    dispatch_group_enter(group);
+    @try {
+        [wv evaluateJavaScript:ADInterestsDOMProbeJS6177() completionHandler:^(id value,NSError *error){
+            @try {
+                NSString *v=[value isKindOfClass:[NSString class]]?(NSString *)value:[value description];
+                if(error) v=[NSString stringWithFormat:@"ERR %@",error];
+                ADInterestsProbeAppend6177([NSString stringWithFormat:@"\n===== WEB VISIBLE SNAPSHOT t=%.3f url=%@ =====\n%@\n",CFAbsoluteTimeGetCurrent(),wv.URL.absoluteString ?: @"",v ?: @"nil"]);
+            } @catch(...) {}
+            dispatch_group_leave(group);
+        }];
+    } @catch(...) { dispatch_group_leave(group); }
+}
+
+static void ADProbeWebTree6177(UIView *root, dispatch_group_t group){
+    if(!root) return;
+    @try {
+        NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger i=0,seen=0;
+        while(i<q.count&&seen<1200){ UIView *v=q[i++]; seen++;
+            if([v isKindOfClass:[WKWebView class]]){ ADProbeWebVisible6177((WKWebView *)v,group); continue; }
+            for(UIView *ch in v.subviews) if(q.count<1400) [q addObject:ch];
+        }
+    } @catch(...) {}
+}
+
+static void ADInterestsProbeCapture6177(void){
+    static BOOL busy=NO; if(busy) return; busy=YES;
+    @try {
+        ADInterestsProbeAppend6177([NSString stringWithFormat:@"\n===== CAPTURE START t=%.3f =====",CFAbsoluteTimeGetCurrent()]);
+        ADProbeNativeVisible6177();
+        UIApplication *app=[UIApplication sharedApplication];
+        __block UIBackgroundTaskIdentifier bg=UIBackgroundTaskInvalid;
+        @try { bg=[app beginBackgroundTaskWithName:@"AmazonDarkInterestsProbe6177" expirationHandler:^{ if(bg!=UIBackgroundTaskInvalid){ [app endBackgroundTask:bg]; bg=UIBackgroundTaskInvalid; } }]; } @catch(...) {}
+        dispatch_group_t g=dispatch_group_create();
+        for(UIWindow *w in app.windows) if(w && !w.hidden) ADProbeWebTree6177(w,g);
+        dispatch_group_notify(g,dispatch_get_main_queue(),^{
+            ADInterestsProbeAppend6177([NSString stringWithFormat:@"===== CAPTURE COMPLETE t=%.3f =====\n",CFAbsoluteTimeGetCurrent()]);
+            if(bg!=UIBackgroundTaskInvalid){ @try { [app endBackgroundTask:bg]; } @catch(...) {} bg=UIBackgroundTaskInvalid; }
+            busy=NO;
+        });
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(2.5*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+            if(busy){ ADInterestsProbeAppend6177(@"===== CAPTURE TIMEOUT / partial WebKit results retained ====="); busy=NO; if(bg!=UIBackgroundTaskInvalid){ @try{[app endBackgroundTask:bg];}@catch(...){} bg=UIBackgroundTaskInvalid; } }
+        });
+    } @catch(...) { busy=NO; }
+}
+
 // ─── %ctor : process guard + hook registration + bounded startup recovery ────
 %ctor {
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
     ADInterestsProbeReset6177();
+    @try { [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillResignActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *n){ ADInterestsProbeCapture6177(); }]; } @catch(...) {}
     // v5.446 direct-port: drop cached light launch snapshots.
     @try {
         NSString *lib = [NSSearchPathForDirectoriesInDomains(
