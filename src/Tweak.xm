@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.174"
+#define AD_VERSION "v6.0.175"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1498,22 +1498,6 @@ static NSString *ADDarkReaderBootstrap(void){
          // Dark Reader sheet survived, the existing document stays untouched; if it
          // disappeared, APPLY performs the full recovery exactly as before.
          "window.__AMZDARK_WAKE6171__=function(){try{if(!document.querySelector('style.darkreader'))return window.__AMZDARK_APPLY__();return window.__AD_FIX_PRIMED6171__?'warm':window.__AD_FULLREPAIR6171__(false);}catch(e){return 'err';}};"
-         // v6.0.131 PROBE: v6.0.128 did not change either standalone-ad symptom,
-         // so stop guessing at the shell/path.  Dump exact live Sponsored label,
-         // info-glyph, ad-root, media, iframe and TWB ownership only when the app is
-         // backgrounded.  The existing MutationObserver hook remains a no-op here:
-         // no new observer, timer, scroll hook, RAF, interval or steady-state scan.
-         "window.__AD_STANDAD6129__=[];"
-         "function sapS6129(v,n){v=String(v==null?'':v);return v.length>(n||180)?v.slice(0,n||180):v;}"
-         "function sapCls6129(e){try{var c=e&&e.className;return sapS6129(c&&c.baseVal!==undefined?c.baseVal:(c||''),240);}catch(x){return'';}}"
-         "function sapN6129(e){try{if(!e||e.nodeType!==1)return null;var c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after'),r=e.getBoundingClientRect();return{tag:String(e.tagName||''),cl:sapCls6129(e),id:sapS6129(e.id||'',100),r:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],txt:sapS6129(String(e.textContent||'').replace(/\\s+/g,' ').trim(),150),role:sapS6129(e.getAttribute&&e.getAttribute('role'),80),aria:sapS6129(e.getAttribute&&e.getAttribute('aria-label'),120),title:sapS6129(e.getAttribute&&e.getAttribute('title'),120),src:sapS6129(e.currentSrc||e.src||(e.getAttribute&&e.getAttribute('data-src'))||'',220),by:sapS6129(e.__adBy||'',90),twb:String((e.getAttribute&&e.getAttribute('data-ad-twb6033'))||''),twbbg:String((e.getAttribute&&e.getAttribute('data-ad-twb-bg6033'))||''),native:String((e.getAttribute&&e.getAttribute('data-ad-native615'))||''),style:sapS6129(e.getAttribute&&e.getAttribute('style'),260),css:{d:sapS6129(c.display,40),v:sapS6129(c.visibility,40),op:sapS6129(c.opacity,40),f:sapS6129(c.filter,120),col:sapS6129(c.color,80),fill:sapS6129(c.fill,80),stroke:sapS6129(c.stroke,80),bg:sapS6129(c.backgroundColor,90),bgi:sapS6129(c.backgroundImage,240),mask:sapS6129(c.webkitMaskImage||c.maskImage,240),bs:sapS6129(c.boxShadow,180),bd:sapS6129(c.border,140),blend:sapS6129(c.mixBlendMode,60)},bef:{ct:sapS6129(b.content,90),bg:sapS6129(b.backgroundColor,90),bgi:sapS6129(b.backgroundImage,220),mask:sapS6129(b.webkitMaskImage||b.maskImage,220),f:sapS6129(b.filter,120),col:sapS6129(b.color,80),bs:sapS6129(b.boxShadow,140)},aft:{ct:sapS6129(a.content,90),bg:sapS6129(a.backgroundColor,90),bgi:sapS6129(a.backgroundImage,220),mask:sapS6129(a.webkitMaskImage||a.maskImage,220),f:sapS6129(a.filter,120),col:sapS6129(a.color,80),bs:sapS6129(a.boxShadow,140)}};}catch(x){return{err:String(x)}}}"
-         "function sapChain6129(e,lim){var A=[];try{var p=e,d=0;while(p&&d++<(lim||9)){A.push(sapN6129(p));p=p.parentElement;}}catch(x){}return A;}"
-         "function sapNear6129(label){var A=[];try{var lr=label.getBoundingClientRect(),root=label.parentElement||label,Q=root.querySelectorAll?root.querySelectorAll('i,svg,path,img,span,div,button,[role=button]'):[];for(var i=0;i<Q.length&&i<90&&A.length<20;i++){var e=Q[i];if(e===label)continue;var r=e.getBoundingClientRect();if(r.width<5||r.height<5||r.width>46||r.height>46)continue;var cx=r.left+r.width/2,cy=r.top+r.height/2,lcy=lr.top+lr.height/2;if(Math.abs(cy-lcy)>34||cx<lr.left-50||cx>lr.right+90)continue;var cs=getComputedStyle(e),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),bi=String(cs.backgroundImage||'none'),cl=sapCls6129(e);if(/info|feedback|sponsor|icon|sprite/i.test(cl)||mi!=='none'||bi!=='none'||/^(I|SVG|PATH|IMG)$/.test(String(e.tagName||'')))A.push(sapN6129(e));}}catch(x){}return A;}"
-         "function sapRoot6129(label){try{var p=label,d=0,best=null;while(p&&d++<11){var r=p.getBoundingClientRect();if(r.width>=220&&r.height>=42&&r.height<=420)best=p;if(r.width>=(innerWidth||390)*.88&&r.height>=48){best=p;break;}p=p.parentElement;}return best;}catch(x){return null;}}"
-         "function sapMedia6129(root){var A=[];try{if(!root)return A;var Q=root.querySelectorAll?root.querySelectorAll('img,video,canvas,iframe,[data-ad-twb6033],[data-ad-twb-bg6033]'):[];for(var i=0;i<Q.length&&i<120&&A.length<36;i++){var e=Q[i],r=e.getBoundingClientRect();if(r.width<10||r.height<10)continue;A.push(sapN6129(e));}}catch(x){}return A;}"
-         "function sapDump6129(){try{var out={url:String(location.href),top:(window.top===window),wh:[innerWidth||0,innerHeight||0],home:!!(document.documentElement&&document.documentElement.hasAttribute('data-ad-twb-home6033')),labels:[],frames:[],twb:[]};var W=document.createTreeWalker(document.body||document.documentElement,NodeFilter.SHOW_TEXT),nd,seen=0;while((nd=W.nextNode())&&seen++<9000&&out.labels.length<24){var t=String(nd.nodeValue||'').replace(/\\s+/g,' ').trim();if(!/^sponsored(?: ad)?$/i.test(t))continue;var e=nd.parentElement;if(!e)continue;var r=e.getBoundingClientRect();if(r.width<18||r.height<5||r.bottom<-80||r.top>(innerHeight||900)+120)continue;var root=sapRoot6129(e);out.labels.push({text:t,label:sapN6129(e),chain:sapChain6129(e,10),near:sapNear6129(e),root:root?sapN6129(root):null,media:sapMedia6129(root)});}var F=document.getElementsByTagName('iframe');for(var i=0;i<F.length&&out.frames.length<18;i++){var f=F[i],fr=f.getBoundingClientRect();if(fr.width<80||fr.height<24)continue;out.frames.push({frame:sapN6129(f),chain:sapChain6129(f,8)});}var T=document.getElementsByTagName?document.getElementsByTagName('*'):[];for(var j=0;j<T.length&&out.twb.length<50;j++){var z=T[j];if(!(z.hasAttribute&&((z.hasAttribute('data-ad-twb6033'))||(z.hasAttribute('data-ad-twb-bg6033')))))continue;var zr=z.getBoundingClientRect();if(zr.width<20||zr.height<20||zr.bottom<-100||zr.top>(innerHeight||900)+160)continue;out.twb.push(sapN6129(z));}window.__AD_STANDAD6129__.push(out);if(window.__AD_STANDAD6129__.length>8)window.__AD_STANDAD6129__.shift();return JSON.stringify(out);}catch(e){return 'ERR '+String(e);}}"
-         "window.__AD_STANDAD6129_DUMP__=sapDump6129;"
-         "window.__AD_FLASH6101_DUMP__=sapDump6129;"
          // Re-run fallback repair as lazy content arrives, but never synchronously in
          // the MutationObserver. v6.0.82 no longer discards native-ad descendants here:
          // __AMZDARK_FIXCONTRAST__ routes every such element through prodInk6078 and
@@ -1648,16 +1632,58 @@ static NSString *ADWhiteTameWebJS6027(void){
 }
 static NSString *ADWhiteTameWebJS(void){ return ADWhiteTameWebJS6027(); }
 
+// v6.0.175: user-script dedupe by object identity, not source scanning.
+// Keep the exact WKUserScript instance we added on the WKUserContentController.  A
+// cheap identity walk tells us whether Amazon still has that script installed.  If
+// Amazon called removeAllUserScripts while recycling the controller, the retained
+// pointer is no longer present and the normal mounted-view heal path may add a fresh
+// copy.  This preserves Amazon's clean-up transaction while avoiding repeated scans
+// across the ~346 KB Dark Reader bootstrap and smaller TWB/symbol payloads.
+static const void *kADBootUS6175 = &kADBootUS6175;
+static const void *kADTWBUS6175  = &kADTWBUS6175;
+static const void *kADSymUS6175  = &kADSymUS6175;
+static BOOL ADUserScriptPresent6175(WKUserContentController *ucc, const void *key){
+    if (!ucc || !key) return NO;
+    @try {
+        WKUserScript *owned=objc_getAssociatedObject(ucc,key);
+        if (!owned) return NO;
+        for (WKUserScript *u in ucc.userScripts){
+            if (u == owned) return YES;
+        }
+        // Amazon removed/rebuilt the controller script list.  Forget only our stale
+        // identity marker; do not interfere with the removal itself.
+        objc_setAssociatedObject(ucc,key,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    } @catch(...) {}
+    return NO;
+}
+static void ADRememberUserScript6175(WKUserContentController *ucc, const void *key, WKUserScript *us){
+    if (!ucc || !key || !us) return;
+    @try { objc_setAssociatedObject(ucc,key,us,OBJC_ASSOCIATION_RETAIN_NONATOMIC); } @catch(...) {}
+}
+static void ADAttachDarkReaderUserScript6175(WKUserContentController *ucc){
+    if (!ucc || !gP.enabled || !gP.webDarkReader) return;
+    @try {
+        if (ADUserScriptPresent6175(ucc,kADBootUS6175)) return;
+        NSString *js=ADDarkReaderBootstrap();
+        Class WKUS=NSClassFromString(@"WKUserScript");
+        if (!js.length || !WKUS) return;
+        WKUserScript *us=[[WKUS alloc] initWithSource:js
+                                       injectionTime:WKUserScriptInjectionTimeAtDocumentStart
+                                    forMainFrameOnly:NO];
+        [ucc addUserScript:us];
+        ADRememberUserScript6175(ucc,kADBootUS6175,us);
+    } @catch(...) {}
+}
+
 static void ADAttachWhiteTameUserScript446(WKUserContentController *ucc){
     if (!ucc || !gP.enabled || !gP.whiteTame) return;
     @try {
-        for (WKUserScript *existing in ucc.userScripts){
-            if ([existing.source containsString:@"__AD_TWB6027_INSTALLED__"] || [existing.source containsString:@"__AD_TWB446_INSTALLED__"]) return;
-        }
+        if (ADUserScriptPresent6175(ucc,kADTWBUS6175)) return;
         NSString *js=ADWhiteTameWebJS();
         if(!js.length)return;
         WKUserScript *us=[[WKUserScript alloc] initWithSource:js injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
         [ucc addUserScript:us];
+        ADRememberUserScript6175(ucc,kADTWBUS6175,us);
     } @catch(...) {}
 }
 
@@ -1876,14 +1902,13 @@ static NSString *ADThreeSymbolsWebJS605(void){
 static void ADAttachThreeSymbolsUserScript605(WKUserContentController *ucc){
     if (!ucc) return;
     @try {
+        if (ADUserScriptPresent6175(ucc,kADSymUS6175)) return;
         NSString *js = ADThreeSymbolsWebJS605();
         if (!js.length) return;
-        for (WKUserScript *u in ucc.userScripts){
-            if ([u.source containsString:@"__AD_SYM605_LOADED__"]) return;
-        }
         WKUserScript *us = [[WKUserScript alloc] initWithSource:js
             injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:NO];
         [ucc addUserScript:us];
+        ADRememberUserScript6175(ucc,kADSymUS6175,us);
     } @catch(...) {}
 }
 
@@ -1915,20 +1940,10 @@ static void ADEnableDarkReaderIn(WKWebView *wv){
             @try {
                 if (err || ![result respondsToSelector:@selector(boolValue)] || ![result boolValue]) return;
                 WKUserContentController *ucc = wv.configuration.userContentController;
-                Class WKUS = NSClassFromString(@"WKUserScript");
-                NSString *boot = ADDarkReaderBootstrap();
-                if (ucc && WKUS && boot.length){
-                    BOOL present = NO;
-                    for (WKUserScript *existing in ucc.userScripts){
-                        if ([existing.source containsString:@"__AMZDARK_LOADED__"]){ present = YES; break; }
-                    }
-                    if (!present){
-                        WKUserScript *us = [[WKUS alloc] initWithSource:boot
-                                                           injectionTime:WKUserScriptInjectionTimeAtDocumentStart
-                                                        forMainFrameOnly:NO];
-                        [ucc addUserScript:us];
-                        ADAttachWhiteTameUserScript446(ucc);
-                    }
+                if (ucc){
+                    ADAttachDarkReaderUserScript6175(ucc);
+                    ADAttachWhiteTameUserScript446(ucc);
+                    ADAttachThreeSymbolsUserScript605(ucc);
                 }
                 [wv evaluateJavaScript:
                     @"(function(){try{if(window.__AMZDARK_HEALED__)return 0;window.__AMZDARK_HEALED__=1;return 1;}catch(e){return 1;}})()"
@@ -2027,75 +2042,6 @@ static void ADInjectAllWebViews(void){
     } @catch(...) {}
 }
 
-// v6.0.98 diagnostic exporter.  The JS ring buffer above reuses an existing DOM
-// observer; backgrounding once after reproducing the flash simply dumps that buffer.
-static NSString *gADFlashProbePath6131 = nil;
-static NSString *ADFlashProbeRequestedPath6131(void){
-    return @"/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/AmazonDark-standalone-ad-probe-6131.txt";
-}
-static NSString *ADFlashProbeFallbackPath6131(void){
-    return [[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:@"AmazonDark-standalone-ad-probe-6131.txt"];
-}
-static NSString *ADFlashProbePath6101(void){
-    return gADFlashProbePath6131 ?: ADFlashProbeFallbackPath6131();
-}
-static void ADAppendFlashProbe6101(NSString *line){
-    if (!line.length) return;
-    @try {
-        NSString *path=ADFlashProbePath6101();
-        NSFileHandle *fh=[NSFileHandle fileHandleForWritingAtPath:path];
-        if (!fh){
-            NSError *e=nil;
-            [line writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:&e];
-            return;
-        }
-        [fh seekToEndOfFile]; [fh writeData:[line dataUsingEncoding:NSUTF8StringEncoding]]; [fh closeFile];
-    } @catch(...) {}
-}
-static void ADResetFlashProbe6101(void){
-    @try {
-        NSString *requested=ADFlashProbeRequestedPath6131();
-        NSString *fallback=ADFlashProbeFallbackPath6131();
-        NSString *base=[NSString stringWithFormat:@"AmazonDark standalone-ad DOM/TWB probe 6131\nversion=%s\npid=%d\nrequested=%@\n",AD_VERSION,getpid(),requested];
-        NSError *e=nil;
-        BOOL ok=[base writeToFile:requested atomically:YES encoding:NSUTF8StringEncoding error:&e];
-        if (ok){
-            gADFlashProbePath6131=requested;
-            ADAppendFlashProbe6101(@"output=requested-shared-documents\n\n");
-            return;
-        }
-        gADFlashProbePath6131=fallback;
-        NSString *h=[base stringByAppendingFormat:@"output=fallback-amazon-documents\nprimaryWriteError=%@ (%ld) %@\nfallback=%@\n\n",e.domain?:@"?",(long)e.code,e.localizedDescription?:@"?",fallback];
-        NSError *fe=nil;
-        [h writeToFile:fallback atomically:YES encoding:NSUTF8StringEncoding error:&fe];
-        if (fe) NSLog(@"[AmazonDark] v6.0.131 probe fallback write failed: %@",fe);
-    } @catch(...) {}
-}
-static void ADDumpFlashProbe6101(NSString *label){
-    if (![NSThread isMainThread]){ dispatch_async(dispatch_get_main_queue(), ^{ ADDumpFlashProbe6101(label); }); return; }
-    @try {
-        NSArray *views=gADWebViews613.allObjects; NSUInteger idx=0;
-        ADAppendFlashProbe6101([NSString stringWithFormat:@"DUMP %@ uptime=%.3f webviews=%lu\n",label?:@"?",ADUptime(),(unsigned long)views.count]);
-        for (WKWebView *wv in views){
-            if (!wv || !wv.window) continue;
-            NSString *url=wv.URL.absoluteString?:@""; NSUInteger my=idx++;
-            [wv evaluateJavaScript:@"(function(){try{return window.__AD_FLASH6101_DUMP__?window.__AD_FLASH6101_DUMP__():'NO_PROBE';}catch(e){return 'ERR '+String(e);}})();" completionHandler:^(id result,NSError *error){
-                NSString *body=error?[NSString stringWithFormat:@"ERROR %@",error]:([result isKindOfClass:[NSString class]]?result:[result description]);
-                ADAppendFlashProbe6101([NSString stringWithFormat:@"WEBVIEW %lu %@\n%@\n\n",(unsigned long)my,url,body?:@"(nil)"]);
-            }];
-        }
-        if (!idx) ADAppendFlashProbe6101(@"NO MOUNTED WEBVIEWS\n\n");
-    } @catch(...) {}
-}
-static void ADFlashWillResign6101(CFNotificationCenterRef center, void *observer,
-                                  CFStringRef name, const void *object,
-                                  CFDictionaryRef userInfo){
-    dispatch_async(dispatch_get_main_queue(), ^{
-        @try { ADDumpFlashProbe6101(@"WILL_RESIGN_ACTIVE"); } @catch(...) {}
-    });
-}
-
-
 // v6.0.169 — preserve Amazon's native prewarm/reuse lifecycle.
 // Amazon intentionally clears WKUserContentController scripts while recycling a
 // prewarmed WebView. Older AmazonDark builds synchronously re-added our scripts from
@@ -2125,16 +2071,9 @@ static void ADPrimeWebBacking611(WKWebView *wv){
 - (id)initWithFrame:(CGRect)frame configuration:(WKWebViewConfiguration *)cfg {
     @try {
         if (gP.enabled && gP.webDarkReader && cfg && cfg.userContentController){
-            NSString *js = ADDarkReaderBootstrap();
-            Class WKUS = NSClassFromString(@"WKUserScript");
-            if (js.length && WKUS){
-                WKUserScript *us = [[WKUS alloc] initWithSource:js
-                                                  injectionTime:WKUserScriptInjectionTimeAtDocumentStart
-                                               forMainFrameOnly:NO];
-                [cfg.userContentController addUserScript:us];
-                ADAttachWhiteTameUserScript446(cfg.userContentController);
-                ADAttachThreeSymbolsUserScript605(cfg.userContentController);
-            }
+            ADAttachDarkReaderUserScript6175(cfg.userContentController);
+            ADAttachWhiteTameUserScript446(cfg.userContentController);
+            ADAttachThreeSymbolsUserScript605(cfg.userContentController);
         }
     } @catch(...) {}
     WKWebView *wv = %orig;
@@ -2149,43 +2088,15 @@ static void ADPrimeWebBacking611(WKWebView *wv){
         if (!self.window || !gP.enabled || !gP.webDarkReader) return;
         ADPrimeWebBacking611(self);
         ADPreDarken(self);   // exact v5.446 instant dark floor for a page that is mid-load
-        ADAttachThreeSymbolsUserScript605(self.configuration.userContentController);
-        // Attach a documentStart user-script even to pre-initialised web views (e.g. the
-        // warmed gateway) so a pull-to-refresh re-applies Dark Reader on the next load.
-        static const void *kUS = &kUS;
-        if (!objc_getAssociatedObject(self, kUS)){
-            NSString *js = ADDarkReaderBootstrap();
-            Class WKUS = NSClassFromString(@"WKUserScript");
-            WKUserContentController *ucc = self.configuration.userContentController;
-            if (js.length && WKUS && ucc){
-                WKUserScript *us = [[WKUS alloc] initWithSource:js
-                                                  injectionTime:WKUserScriptInjectionTimeAtDocumentStart
-                                               forMainFrameOnly:NO];
-                [ucc addUserScript:us];
-                ADAttachWhiteTameUserScript446(ucc);
-            }
-            objc_setAssociatedObject(self, kUS, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
+        WKUserContentController *ucc=self.configuration.userContentController;
+        // Re-check the controller's actual script list by identity.  If Amazon recycled
+        // it with removeAllUserScripts, these helpers add exactly one fresh copy now
+        // that the WebView is mounted again; otherwise they only walk the small script array
+        // by object identity and never inspect the large script source strings.
+        ADAttachDarkReaderUserScript6175(ucc);
+        ADAttachWhiteTameUserScript446(ucc);
+        ADAttachThreeSymbolsUserScript605(ucc);
         ADBootstrapDarkReaderIn(self); // engine into the already-rendered document (idempotent)
-    } @catch(...) {}
-}
-- (void)webView:(WKWebView *)wv didFinishNavigation:(id)nav {
-    %orig;
-    ADTrackWebView613(self);
-    // Hidden/prewarmed navigation is Amazon-owned. Do not wake or mutate a retained
-    // WebView merely because it finished loading in the background.
-    if (ADWebViewLive6169(self)) ADEnableDarkReaderIn(self);
-    // v5.446 direct-port cover release: only a real Amazon page counts.
-    @try {
-        NSString *nu = wv.URL.absoluteString ?: @"";
-        BOOL realPage = ([nu containsString:@"amazon.com"] &&
-                         ![nu containsString:@"about:blank"] &&
-                         ![nu containsString:@"autocomplete"] &&
-                         ![nu containsString:@"/ap/"]);
-        if (realPage){
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)),
-                           dispatch_get_main_queue(), ^{ ADPostAppReady(); });
-        }
     } @catch(...) {}
 }
 %end
@@ -6360,7 +6271,6 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
 // ─── %ctor : process guard + hook registration + bounded startup recovery ────
 %ctor {
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
-    ADResetFlashProbe6101();
     // v5.446 direct-port: drop cached light launch snapshots.
     @try {
         NSString *lib = [NSSearchPathForDirectoriesInDomains(
@@ -6418,10 +6328,6 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
     CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(),
         NULL, ADAppForegrounded,
         (__bridge CFStringRef)UIApplicationWillEnterForegroundNotification,
-        NULL, CFNotificationSuspensionBehaviorCoalesce);
-    CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(),
-        NULL, ADFlashWillResign6101,
-        (__bridge CFStringRef)UIApplicationWillResignActiveNotification,
         NULL, CFNotificationSuspensionBehaviorCoalesce);
 
 }

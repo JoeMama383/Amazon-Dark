@@ -1,3 +1,13 @@
+## v6.0.175 — WebKit/user-script cleanup
+
+Built directly from v6.0.174. This is a cleanup-only release: the corrected v6.0.174 PDP local-repair optimization and all theming decisions remain in place.
+
+- Removes the dead `webView:didFinishNavigation:` method from the `WKWebView` Logos hook. That selector belongs to `WKNavigationDelegate`, so the hook could not receive normal navigation-completion callbacks. Existing mounted-view/viewDidAppear recovery remains authoritative.
+- Replaces source-string dedupe over `WKUserContentController.userScripts` with identity ownership of the exact `WKUserScript` objects AmazonDark installs. If Amazon calls `removeAllUserScripts`, the stored identity is no longer present and the next mounted-view heal safely installs one fresh copy; Amazon's cleanup transaction itself remains untouched.
+- Centralizes Dark Reader bootstrap attachment so `initWithFrame:configuration:` and `didMoveToWindow` no longer install duplicate bootstrap copies for the same controller.
+- Removes the stale v6.0.131 standalone-ad probe payload/exporter and its resign-active dump hook from production. It no longer writes a probe file or carries the large background-only DOM snapshot machinery.
+- No cache clearing, reload, website-data manipulation, new observer, scroll listener, interval, RAF loop, timeout, or dispatch scheduler is added.
+
 ## v6.0.174 — corrected PDP local-repair cache optimization
 
 This is a version-bump repackage of the corrected v6.0.173 optimization because an earlier v6.0.173 build was already pushed. Runtime behavior is unchanged from the corrected v6.0.173 source: it retains the v6.0.171 warm-WebView/full-repair improvements plus pass-local geometry/background/Sponsor caching, with the rect6173 recursion defect and Heart helper typo fixed. The 1400/360/120 repair budgets and theming decisions remain unchanged. No persistent cache, observer, timer, scroll listener, RAF, reload, or WebKit cache manipulation is added.
