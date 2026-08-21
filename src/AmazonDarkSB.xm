@@ -472,7 +472,68 @@ static void ADSBHandleJITRequest622(int token){
 %end
 
 
+
+// ── v6.0.178~probe automatic visual-probe relay ─────────────────────────────
+// Amazon itself writes inside its own sandbox. SpringBoard can read that file
+// and copy the cumulative probe to the exact shared ChatGPT Documents folder.
+#define AD_VISUAL_PROBE_READY_6178 "com.colindavidr.amazondark/visual-probe-6178-ready"
+
+static NSString *ADSBVisualProbeSource6178(void){
+    @try {
+        NSFileManager *fm=[NSFileManager defaultManager];
+        NSString *root=@"/var/mobile/Containers/Data/Application";
+        NSArray *kids=[fm contentsOfDirectoryAtPath:root error:nil];
+        NSString *best=nil; NSDate *bestDate=nil;
+        for(NSString *kid in kids){
+            NSString *p=[[[root stringByAppendingPathComponent:kid] stringByAppendingPathComponent:@"Documents"]
+                         stringByAppendingPathComponent:@"AmazonDark-visual-surfaces-probe-6178.txt"];
+            NSDictionary *a=[fm attributesOfItemAtPath:p error:nil];
+            if(!a)continue;
+            NSDate *d=a[NSFileModificationDate]?:[NSDate distantPast];
+            if(!bestDate||[d compare:bestDate]==NSOrderedDescending){best=p;bestDate=d;}
+        }
+        return best;
+    } @catch(__unused NSException *e){return nil;}
+}
+static void ADSBRelayVisualProbe6178(void){
+    @autoreleasepool {
+        @try {
+            NSString *src=ADSBVisualProbeSource6178();
+            NSString *dir=@"/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents";
+            NSString *dst=[dir stringByAppendingPathComponent:@"AmazonDark-visual-surfaces-probe-6178.txt"];
+            NSFileManager *fm=[NSFileManager defaultManager];
+            if(!src.length||![fm fileExistsAtPath:src]){
+                ADSBLog(@"VISPROBE6178 relay source not found");
+                return;
+            }
+            [fm createDirectoryAtPath:dir withIntermediateDirectories:YES attributes:nil error:nil];
+            if([fm fileExistsAtPath:dst])[fm removeItemAtPath:dst error:nil];
+            NSError *err=nil;
+            BOOL ok=[fm copyItemAtPath:src toPath:dst error:&err];
+            if(ok){
+                [fm setAttributes:@{NSFilePosixPermissions:@0666} ofItemAtPath:dst error:nil];
+                ADSBLog([NSString stringWithFormat:@"VISPROBE6178 relay OK %@ -> %@",src,dst]);
+            }else{
+                ADSBLog([NSString stringWithFormat:@"VISPROBE6178 relay FAIL %@",err]);
+            }
+        } @catch(__unused NSException *e){
+            ADSBLog(@"VISPROBE6178 relay exception");
+        }
+    }
+}
+
+
 %ctor {
+    // v6.0.178~probe: copy each completed cumulative snapshot into the user's
+    // shared ChatGPT Documents folder automatically.
+    @try {
+        static int adVisualProbeToken6178=0;
+        notify_register_dispatch(AD_VISUAL_PROBE_READY_6178,&adVisualProbeToken6178,
+                                 dispatch_get_global_queue(QOS_CLASS_UTILITY,0),^(int t){
+            ADSBRelayVisualProbe6178();
+        });
+    } @catch(__unused NSException *e) {}
+
     // Dopamine JIT broker: one event-driven enable request channel. SpringBoard is
     // the platform-authorized caller; the handler itself validates Amazon's PID.
     @try {

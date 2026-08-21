@@ -1,12 +1,27 @@
-## v6.0.177 — restore gray Person borders and close remaining light-surface lifecycle gaps
+## v6.0.178~probe — frame-current visual surface diagnostics
 
-Built directly from the exact v6.0.176 production tree. No probe/export code and none of the failed v6.0.177–v6.0.179 broad visual experiments are carried forward.
-
-- **Person > Buy Again / Your Interests / Keep Shopping borders:** restores and hardens the v6.0.163 product-card border owner. Bright nested Fabric/CAShapeLayer outlines are neutralized only on card-sized RCT hosts in known Person product sections, with a bounded nearby-heading fallback for the current deeper Buy Again hierarchy. One authoritative 1 pt `#494D4D` CAShapeLayer outline is used so the generic border transform cannot turn the replacement brown/tan.
-- **Person > Interests:** keeps the proven caught-up shimmer fix for native `CAGradientLayer` and `BVLinearGradientLayer`, and adds a WebKit owner scoped to `/interest-prompts`. The `Related Interests to explore` text-only rounded cards are identified semantically/ geometrically and forced onto the dark floor even when their computed `background-color` is transparent because the visible white paint comes from a background-image/pseudo painter.
-- **PDP Reviews / Shop by brand:** the probe-proven `li.a-carousel-card.sp_mobile_carousel_element` owns one dark card floor at documentStart and after Dark Reader. Ordinary structural descendants are transparent, while images, video, SVG and controls keep their existing artwork/background ownership.
-- **Cart resume:** the existing `WillEnterForeground` sweep remains, and `UIApplicationDidBecomeActiveNotification` now adds a live-WebView reapply plus one 280 ms WebKit-only catch-up after visible WKWebViews are attached. A remounted WebView whose bootstrap marker survived but whose live Dark Reader style did not now runs the cached reapply payload instead of returning early. No reload or WebKit/cache clearing is used.
-- Preserves v6.0.176 warm PDP detach/reattach handling, v6.0.175 script-identity cleanup, v6.0.171 single-flight fallback repair, TWB, symbols, JIT/120 Hz, splash, video/voice, and existing compact Person/search border owners.
+- Exact functional base: v6.0.176.
+- Keeps only the proven v6.0.177 Shopping Cart foreground recovery:
+  - live mounted WebViews are re-applied when Amazon becomes active;
+  - one 280 ms WebKit-only catch-up handles the recycled Cart document.
+- Removes the unsuccessful v6.0.177 production attempts for:
+  - Person product-card borders;
+  - Person > Interests white cards/gradient;
+  - PDP Shop by brand white cards.
+- Adds a diagnostic-only snapshot on every `UIApplicationWillResignActiveNotification`.
+- Each background action appends a numbered capture rather than overwriting the previous one.
+- Native snapshot records visible UIKit/React/Fabric card-like views, bright backgrounds/borders,
+  raster `CALayer.contents`, nested `CAShapeLayer` strokes/fills, gradients, ancestry, child views,
+  and local descendant text.
+- WebKit snapshot records visible card/box candidates with URL/title, geometry, computed background,
+  background-image, all border sides, radius, shadow, outline, filter/mask, pseudo-element paint,
+  Dark Reader inline markers, ancestry, child context, iframe geometry, and truncated outerHTML.
+- When each capture completes, Amazon posts a Darwin notification; AmazonDarkSB automatically copies
+  the cumulative report to:
+  `/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/AmazonDark-visual-surfaces-probe-6178.txt`
+- Probe state resets only on a fresh Amazon process launch. Background the same menu three times,
+  then move to the next menu and repeat; one final report contains every numbered snapshot.
+- No probe MutationObserver, scroll listener, interval, or requestAnimationFrame loop is added.
 
 ## v6.0.176 — warm PDP detach/reattach retention
 
