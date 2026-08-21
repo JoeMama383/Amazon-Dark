@@ -1,6 +1,6 @@
-## v6.0.173 — reduce remaining PDP local-repair layout churn
+## v6.0.174 — corrected PDP local-repair cache optimization
 
-Built directly from v6.0.171 production after the v6.0.172 probe confirmed that the full-page/warm-wake fix worked. The remaining AmazonDark-side stall was one mutation-local PDP repair taking ~634 ms. This release preserves the 1400/360/120 repair budgets and all theming decisions, but removes redundant work inside each pass: geometry is cached for the duration of one repair, ancestor background luminance is cached and reuses the already-read current computed style, Sponsor ancestry is cached per candidate, and the Sponsor glyph path rejects non-glyph geometry before doing semantic ancestor/text walks. No persistent cache, observer, timer, scroll listener, RAF, reload or WebKit cache manipulation is added.
+This is a version-bump repackage of the corrected v6.0.173 optimization because an earlier v6.0.173 build was already pushed. Runtime behavior is unchanged from the corrected v6.0.173 source: it retains the v6.0.171 warm-WebView/full-repair improvements plus pass-local geometry/background/Sponsor caching, with the rect6173 recursion defect and Heart helper typo fixed. The 1400/360/120 repair budgets and theming decisions remain unchanged. No persistent cache, observer, timer, scroll listener, RAF, reload, or WebKit cache manipulation is added.
 
 ## v6.0.171 — eliminate redundant PDP full-page repair
 

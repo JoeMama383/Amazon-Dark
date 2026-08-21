@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.173"
+#define AD_VERSION "v6.0.174"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1192,7 +1192,7 @@ static NSString *ADDarkReaderBootstrap(void){
            // same nodes repeatedly through glyph, gradient, border and text gates; cache only
            // values that cannot change meaningfully during this pass. No persistent DOM state.
            "var rectCache6173=new WeakMap(),bgCache6173=new WeakMap(),spCache6173=new WeakMap();"
-           "function rect6173(e){try{var r=rectCache6173.get(e);if(r)return r;r=rect6173(e);rectCache6173.set(e,r);return r;}catch(x){return rect6173(e);}}"
+           "function rect6173(e){try{var r=rectCache6173.get(e);if(r)return r;if(!e||!e.getBoundingClientRect)return {left:0,top:0,right:0,bottom:0,width:0,height:0};r=e.getBoundingClientRect();rectCache6173.set(e,r);return r;}catch(x){return {left:0,top:0,right:0,bottom:0,width:0,height:0};}}"
            "function bgOf(e,first){while(e){if(bgCache6173.has(e)){var c=bgCache6173.get(e);if(c!==null)return c;e=e.parentElement;first=null;continue;}var l=lum(first?first.backgroundColor:getComputedStyle(e).backgroundColor);bgCache6173.set(e,l);if(l!==null)return l;e=e.parentElement;first=null;}return 0.02;}"
            // Darkening blend modes are destructive on a dark theme: multiply/darken/
            // color-burn all SUBTRACT light, so against a dark backdrop they crush the
@@ -1474,7 +1474,7 @@ static NSString *ADDarkReaderBootstrap(void){
                // rule (the v5.27.0 approach that demonstrably worked) -- CSS survives
                // Amazon re-rendering the node, inline styles do not, which is where
                // every JS-era attempt actually died. Here: masks, then fill/color.
-               "var hrc=hrect6173(e);"
+               "var hrc=rect6173(he);"
                "var isGlyph=(hrc.width>0&&hrc.width<=28&&hrc.height>0&&hrc.height<=28);"
                "var hmi=hcs.webkitMaskImage||hcs.maskImage;"
                "if(hmi&&hmi!=='none'&&isGlyph){he.style.setProperty('background-color',FG,'important');}"
