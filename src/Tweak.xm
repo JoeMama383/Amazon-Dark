@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.185-probe"
+#define AD_VERSION "v6.0.187-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3962,6 +3962,150 @@ static void ADNeutralizeInterestsGradientNearText6177(UIView *anchor, NSString *
     });
 }
 
+
+// v6.0.186 — Screenshot Share-panel product preview TWB owner.
+//
+// Amazon's post-screenshot "Share this product with friends" sheet is native/RN.
+// Its large product preview can be rejected by the ordinary TWB path because it is
+// bigger than the <=240pt semantic lane and can carry Share-ish accessibility UI.
+// Identify only the large preview inside this exact semantic sheet; app icons and
+// share-action glyphs remain too small to qualify.
+static BOOL ADShareScreenshotPhrase6186(NSString *text){
+    if(!text.length)return NO;
+    @try {
+        NSString *lo=[[[text lowercaseString] stringByReplacingOccurrencesOfString:@"\n" withString:@" "]
+                      stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        while([lo containsString:@"  "]) lo=[lo stringByReplacingOccurrencesOfString:@"  " withString:@" "];
+        return [lo containsString:@"share this product with friends"];
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADShareScreenshotImageGeometry6186(UIImageView *iv){
+    if(!iv)return NO;
+    CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
+    if(w<220||h<110||w>520||h>430)return NO;
+    CGFloat ar=w/MAX((CGFloat)1.0,h);
+    return ar>=0.85&&ar<=3.8&&(w*h)>=32000.0;
+}
+static BOOL ADShareScreenshotPhraseNear6186(UIView *v){
+    if(!v||!v.window)return NO;
+    @try {
+        UIView *p=v; int up=0;
+        while(p&&up++<8){
+            if(ADShareScreenshotPhrase6186(ADWTViewText362(p)))return YES;
+            NSMutableArray *q=[NSMutableArray arrayWithObject:p]; NSUInteger qi=0; int seen=0;
+            while(qi<q.count&&seen++<72){
+                UIView *x=q[qi++];
+                if(x!=v&&ADShareScreenshotPhrase6186(ADWTViewText362(x)))return YES;
+                if(qi<28){for(UIView *ch in x.subviews){if(q.count<80)[q addObject:ch];else break;}}
+            }
+            p=p.superview;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADShareScreenshotProductImage6186(UIImageView *iv){
+    return ADShareScreenshotImageGeometry6186(iv)&&ADShareScreenshotPhraseNear6186(iv);
+}
+static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
+    if(!ADRecolorOn()||!gP.whiteTame||!anchor||!ADShareScreenshotPhrase6186(text))return;
+    __weak UIView *weakAnchor=anchor;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        UIView *live=weakAnchor; if(!live||!live.window)return;
+        @try {
+            UIView *root=live; int up=0;
+            while(root.superview&&up++<7){
+                UIView *next=root.superview;
+                if(next.window!=live.window)break;
+                root=next;
+                if(root.bounds.size.width>=live.window.bounds.size.width*.88&&root.bounds.size.height>=360)break;
+            }
+            NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger qi=0; int seen=0;
+            while(qi<q.count&&seen++<140){
+                UIView *x=q[qi++];
+                if([x isKindOfClass:[UIImageView class]]){
+                    UIImageView *iv=(UIImageView *)x;
+                    if(ADShareScreenshotImageGeometry6186(iv)) ADApplyNativeWhiteTameView(iv);
+                }
+                if(qi<52){for(UIView *ch in x.subviews){if(q.count<150)[q addObject:ch];else break;}}
+            }
+        } @catch(...) {}
+    });
+}
+
+// v6.0.187 — Full-screen PDP "Product images" viewer TWB owner.
+//
+// The gallery reuses one large native image view as the user moves through product
+// photos. Generic TWB currently decides those large bitmaps from whole-image average
+// lightness, so a studio image with a bright/white backdrop can miss merely because
+// the product/person itself is dark enough to pull the average below the threshold.
+// In this exact viewer the semantics are already certain: the large leaf is product
+// media. Force only that large leaf through the existing TWB overlay owner; the
+// thumbnail rail, Cancel/title chrome and other small UI remain outside the gate.
+static BOOL ADProductGalleryPhrase6187(NSString *text){
+    if(!text.length)return NO;
+    @try {
+        NSString *lo=[[[text lowercaseString] stringByReplacingOccurrencesOfString:@"\n" withString:@" "]
+                      stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        while([lo containsString:@"  "]) lo=[lo stringByReplacingOccurrencesOfString:@"  " withString:@" "];
+        return [lo isEqualToString:@"product images"];
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADProductGalleryMainGeometry6187(UIImageView *iv){
+    if(!iv)return NO;
+    CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
+    if(w<250||h<180||w>620||h>760)return NO;
+    CGFloat ar=w/MAX((CGFloat)1.0,h);
+    return ar>=0.38&&ar<=3.2&&(w*h)>=65000.0;
+}
+static BOOL ADProductGalleryPhraseNear6187(UIView *v){
+    if(!v||!v.window)return NO;
+    @try {
+        UIView *p=v; int up=0;
+        while(p&&up++<10){
+            if(ADProductGalleryPhrase6187(ADWTViewText362(p)))return YES;
+            NSMutableArray *q=[NSMutableArray arrayWithObject:p]; NSUInteger qi=0; int seen=0;
+            while(qi<q.count&&seen++<96){
+                UIView *x=q[qi++];
+                if(x!=v&&ADProductGalleryPhrase6187(ADWTViewText362(x)))return YES;
+                if(qi<36){for(UIView *ch in x.subviews){if(q.count<108)[q addObject:ch];else break;}}
+            }
+            p=p.superview;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADProductGalleryMainImage6187(UIImageView *iv){
+    return ADProductGalleryMainGeometry6187(iv)&&ADProductGalleryPhraseNear6187(iv);
+}
+static void ADProductGalleryRepair6187(UIView *anchor, NSString *text){
+    if(!ADRecolorOn()||!gP.whiteTame||!anchor||!ADProductGalleryPhrase6187(text))return;
+    __weak UIView *weakAnchor=anchor;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        UIView *live=weakAnchor; if(!live||!live.window)return;
+        @try {
+            UIView *root=live; int up=0;
+            while(root.superview&&up++<9){
+                UIView *next=root.superview;
+                if(next.window!=live.window)break;
+                root=next;
+                if(root.bounds.size.width>=live.window.bounds.size.width*.94&&
+                   root.bounds.size.height>=live.window.bounds.size.height*.72) break;
+            }
+            NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger qi=0; int seen=0;
+            while(qi<q.count&&seen++<190){
+                UIView *x=q[qi++];
+                if([x isKindOfClass:[UIImageView class]]){
+                    UIImageView *iv=(UIImageView *)x;
+                    if(ADProductGalleryMainGeometry6187(iv)) ADApplyNativeWhiteTameView(iv);
+                }
+                if(qi<72){for(UIView *ch in x.subviews){if(q.count<205)[q addObject:ch];else break;}}
+            }
+        } @catch(...) {}
+    });
+}
+
 // Fabric text (new architecture). Setter lives on RCTParagraphComponentView.
 %hook RCTParagraphComponentView
 - (void)setAttributedText:(NSAttributedString *)attributedText {
@@ -3971,6 +4115,8 @@ static void ADNeutralizeInterestsGradientNearText6177(UIView *anchor, NSString *
         ADClaimPersonBorderDeferred6147(self,attributedText.string);
         ADBuyAgainSemanticRepair6181((UIView *)self,attributedText.string);
         ADNeutralizeInterestsGradientNearText6177((UIView *)self,attributedText.string);
+        ADShareScreenshotRepair6186((UIView *)self,attributedText.string);
+        ADProductGalleryRepair6187((UIView *)self,attributedText.string);
         return;
     } @catch(...) {}
     %orig;
@@ -3982,6 +4128,8 @@ static void ADNeutralizeInterestsGradientNearText6177(UIView *anchor, NSString *
         ADClaimPersonBorderDeferred6147(self,attributedString.string);
         ADBuyAgainSemanticRepair6181((UIView *)self,attributedString.string);
         ADNeutralizeInterestsGradientNearText6177((UIView *)self,attributedString.string);
+        ADShareScreenshotRepair6186((UIView *)self,attributedString.string);
+        ADProductGalleryRepair6187((UIView *)self,attributedString.string);
         return;
     } @catch(...) {}
     %orig;
@@ -4018,6 +4166,8 @@ static void ADNeutralizeInterestsGradientNearText6177(UIView *anchor, NSString *
         ADClaimPersonBorderDeferred6147(self,adBorderText6147);
         ADBuyAgainSemanticRepair6181((UIView *)self,adBorderText6147);
         ADNeutralizeInterestsGradientNearText6177((UIView *)self,adBorderText6147);
+        ADShareScreenshotRepair6186((UIView *)self,adBorderText6147);
+        ADProductGalleryRepair6187((UIView *)self,adBorderText6147);
     } @catch(...) {}
 }
 - (void)layoutSubviews {
@@ -4038,9 +4188,15 @@ static void ADNeutralizeInterestsGradientNearText6177(UIView *anchor, NSString *
         %orig(r);
         ADBuyAgainSemanticRepair6181(self,attributedText.string);
         ADNeutralizeInterestsGradientNearText6177(self,attributedText.string);
+        ADShareScreenshotRepair6186(self,attributedText.string);
+        ADProductGalleryRepair6187(self,attributedText.string);
         return;
     } @catch(...) {}
     %orig;
+}
+- (void)setText:(NSString *)text {
+    %orig;
+    @try { ADProductGalleryRepair6187(self,text); } @catch(...) {}
 }
 %end
 
@@ -5663,7 +5819,10 @@ static void ADApplyNativeWhiteTameView(UIView *v){
         }
 
         ADNativeRegisterRCT6053(iv);
-        int ctx=(w<=240&&h<=240)?ADTWBDirectCtx6031(iv,im):0;
+        BOOL shareShot=ADShareScreenshotProductImage6186(iv);
+        BOOL galleryMain=ADProductGalleryMainImage6187(iv);
+        BOOL exactProductSurface=(shareShot||galleryMain);
+        int ctx=exactProductSurface?2:((w<=240&&h<=240)?ADTWBDirectCtx6031(iv,im):0);
         BOOL forced=(ctx==2), review=(ctx==3);
         BOOL own=NO, lightReady=YES;
 
@@ -5671,6 +5830,7 @@ static void ADApplyNativeWhiteTameView(UIView *v){
             own=YES;
             objc_setAssociatedObject(iv,kADTWBCachedImage6027,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             objc_setAssociatedObject(iv,kADTWBDecision6027,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            if(exactProductSurface) ADTWBPromoteProduct6053(iv,im);
         } else if(ctx!=1 && cached==im && decision){
             own=decision.boolValue;
         } else if(ctx!=1){
@@ -6847,7 +7007,7 @@ static void ADBuyAgainProbeReset6180(void){
             @"AmazonDark Buy Again probe 6180\nversion=%s\npid=%d\nsource=%@\n"
              "relay=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/%@\n"
              "trigger=leave Buy Again visible and background Amazon; each background appends a snapshot\n"
-             "targets=Reorder-soon border painter + RCTUIImageView/ANXFastImageView TWB peer state\n",
+             "targets=Reorder-soon border painter + RCTUIImageView/ANXFastImageView TWB peer state + screenshot Share preview TWB + full-screen Product images gallery TWB\n",
             AD_VERSION,getpid(),ADBuyAgainProbePath6180(),ADBuyAgainProbeName6180()];
         [head writeToFile:ADBuyAgainProbePath6180() atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } @catch(...) {}
@@ -6928,7 +7088,7 @@ static void ADBuyAgainProbeCapture6180(void){
         NSMutableString *out=[NSMutableString stringWithFormat:@"\n\n===== BUY AGAIN CAPTURE %lu t=%.3f =====\n",(unsigned long)n,CFAbsoluteTimeGetCurrent()];
         NSMutableArray *q=[NSMutableArray array];
         for(UIWindow *w in [UIApplication sharedApplication].windows) if(w&&!w.hidden&&w.alpha>.03)[q addObject:w];
-        NSUInteger qi=0,seen=0; int cards=0,images=0,carousels=0;
+        NSUInteger qi=0,seen=0; int cards=0,images=0,carousels=0,shareImages=0,galleryImages=0;
         while(qi<q.count && seen++<2200){
             UIView *v=q[qi++];
             for(UIView *ch in v.subviews){ if(q.count<2600)[q addObject:ch]; else break; }
@@ -6955,6 +7115,39 @@ static void ADBuyAgainProbeCapture6180(void){
                 }
             }
 
+            if([v isKindOfClass:[UIImageView class]]){
+                UIImageView *siv=(UIImageView *)v;
+                if(ADShareScreenshotProductImage6186(siv)){
+                    shareImages++;
+                    UIImage *sim=siv.image; size_t spx=0,spy=0;
+                    if(sim.CGImage){spx=CGImageGetWidth(sim.CGImage);spy=CGImageGetHeight(sim.CGImage);}
+                    CALayer *sov=objc_getAssociatedObject(siv,kADWhiteTameOverlayKey);
+                    NSNumber *sdec=objc_getAssociatedObject(siv,kADTWBDecision6027);
+                    NSNumber *sctx=objc_getAssociatedObject(siv,kADTWBDirectCtx6031);
+                    [out appendFormat:@"SHARESHOT #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) pixels=%zux%zu overlay=%d decision=%@ ctx=%@ aid=\"%@\" label=\"%@\"\n",
+                        shareImages,cls,siv,r.origin.x,r.origin.y,r.size.width,r.size.height,spx,spy,
+                        (sov&&sov.superlayer==siv.layer),sdec?:@"nil",sctx?:@"nil",
+                        siv.accessibilityIdentifier?:@"",siv.accessibilityLabel?:@""];
+                }
+            }
+
+            if([v isKindOfClass:[UIImageView class]]){
+                UIImageView *giv=(UIImageView *)v;
+                if(ADProductGalleryMainImage6187(giv)){
+                    galleryImages++;
+                    UIImage *gim=giv.image; size_t gpx=0,gpy=0;
+                    if(gim.CGImage){gpx=CGImageGetWidth(gim.CGImage);gpy=CGImageGetHeight(gim.CGImage);}
+                    CALayer *gov=objc_getAssociatedObject(giv,kADWhiteTameOverlayKey);
+                    NSNumber *gdec=objc_getAssociatedObject(giv,kADTWBDecision6027);
+                    NSNumber *gctx=objc_getAssociatedObject(giv,kADTWBDirectCtx6031);
+                    [out appendFormat:@"GALLERY6187 #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) pixels=%zux%zu overlay=%d decision=%@ ctx=%@ mainGeom=%d phraseNear=%d aid=\"%@\" label=\"%@\"\n",
+                        galleryImages,cls,giv,r.origin.x,r.origin.y,r.size.width,r.size.height,gpx,gpy,
+                        (gov&&gov.superlayer==giv.layer),gdec?:@"nil",gctx?:@"nil",
+                        ADProductGalleryMainGeometry6187(giv),ADProductGalleryPhraseNear6187(giv),
+                        giv.accessibilityIdentifier?:@"",giv.accessibilityLabel?:@""];
+                }
+            }
+
             if([v isKindOfClass:[UIImageView class]] &&
                ([cls containsString:@"ANXFastImageView"] || [cls containsString:@"RCTUIImageView"])){
                 UIImageView *iv=(UIImageView *)v; CGFloat iw=iv.bounds.size.width,ih=iv.bounds.size.height;
@@ -6974,8 +7167,8 @@ static void ADBuyAgainProbeCapture6180(void){
                 }
             }
         }
-        [out appendFormat:@"SUMMARY scanned=%lu carousels=%d cards=%d images=%d\n===== BUY AGAIN CAPTURE %lu COMPLETE =====\n",
-            (unsigned long)seen,carousels,cards,images,(unsigned long)n];
+        [out appendFormat:@"SUMMARY scanned=%lu carousels=%d cards=%d images=%d shareImages=%d galleryImages=%d\n===== BUY AGAIN CAPTURE %lu COMPLETE =====\n",
+            (unsigned long)seen,carousels,cards,images,shareImages,galleryImages,(unsigned long)n];
         ADBuyAgainProbeAppend6180(out);
         notify_post(AD_BUYAGAIN_PROBE_READY_6180);
     } @catch(...) {
