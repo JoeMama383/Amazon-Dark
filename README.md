@@ -1,27 +1,10 @@
-## v6.0.179 — finish PDP card floors + Related Interests cards
+## v6.0.177~probe — identify Person > Interests light-box painter
 
-- Built directly from v6.0.178; keeps the v6.0.176 warm-PDP retention, v6.0.175 WebKit cleanup, and the v6.0.177/178 Interests gradient repair.
-- Fixes the concrete v6.0.177 PDP shell bug: `adPDPCardShell6177()` was calling `neutral6078()`, but that helper existed only inside `prodInk6078()`. The runtime card repair therefore threw on its first bright descendant, leaving the inner white plate visible. v6.0.179 promotes one shared neutral-color classifier and uses it in both paths.
-- Expands the existing first-paint PDP sponsored-carousel CSS to nested `.a-section`, `.a-row`, and `.a-box` shells while still leaving IMG/PICTURE/VIDEO/CANVAS/SVG pixels untouched.
-- Adds a semantic `Related Interests to explore` repair for both WebKit and native/Fabric rendering. Only bright neutral structural backgrounds/fills inside the local section are darkened; product media, controls, and unrelated Person content are excluded.
-- Native Related Interests recovery is one-shot from the exact heading hydration and capped to 120 local views / two layer levels. The WebKit path reuses the existing bounded contrast traversal and adds no observer or recurring scheduler.
-- No cache clearing, reload, WKProcessPool/website-data manipulation, scroll listener, interval, RAF loop, or new MutationObserver.
-
-## v6.0.178 — compile-safe Interests gradient fix
-
-- Built directly from v6.0.177; no functional rollback.
-- Keeps the PDP white-card and Person > Interests gradient fixes from v6.0.177.
-- Fixes the Objective-C++/Logos compile boundary for the forward-declared `BVLinearGradientLayer` by casting `self` once to its known `CALayer` runtime base before calling the shared v6.0.177 helpers or assigning `backgroundColor`.
-- No matching criteria, geometry gates, gradient colors, PDP selectors, TWB behavior, observers, timers, or performance paths were changed.
-
-## v6.0.177 — PDP white-card + Interests gradient cleanup
-
-- Keeps v6.0.176 warm PDP detach/reattach retention and v6.0.175 WebKit lifecycle cleanup.
-- Owns the exact PDP sponsored carousel card family captured by the 6170/6172 probe (`LI.a-carousel-card.sp_mobile_carousel_element`) so Amazon's stock white structural card floor cannot escape native-ad isolation.
-- Adds documentStart + post-DarkReader structural shell CSS and a bounded runtime fallback for hydrated/recycled card shells. The runtime fallback only clears bright neutral structural backgrounds; saturated Amazon controls/accents and media artwork remain untouched.
-- Removes the wide white/gray React Native gradient artifact shown beside `You're all caught up!` in Person > Interests. The gradient owner is gated by that exact phrase plus the observed wide/shallow same-row geometry, so normal brand/decorative gradients keep their existing color transform.
-- The Interests repair catches both `CAGradientLayer` and `BVLinearGradientLayer` and has a one-shot text-hydration recovery for the case where the gradient was assigned before its label existed.
-- No new observer, scroll listener, interval, RAF loop, timeout, dispatch_after, cache reset, reload, or WebKit lifecycle hook. One `dispatch_async` is submitted only when the exact `You're all caught up!` text hydrates.
+- Exact functional base: v6.0.176. None of the failed v6.0.177-v6.0.179 visual fixes are present.
+- Diagnostic only: prints the native UIView/CALayer ancestry and bounded section subtree around `Related Interests to explore` / `You're all caught up!`.
+- Also asks any mounted WKWebView for the matching DOM subtree and records tag/class/id/geometry/computed backgrounds/borders/radii.
+- Does not recolor, hide, filter, clear, or otherwise patch the white boxes.
+- Output: `AmazonDark-interests-box-probe-6177.txt` in Amazon's own Documents directory.
 
 ## v6.0.176 — warm PDP detach/reattach retention
 

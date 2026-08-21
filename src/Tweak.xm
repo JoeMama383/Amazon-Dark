@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.179"
+#define AD_VERSION "v6.0.177-interests-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -778,37 +778,6 @@ static NSString *ADFixesLiteral(void){
              "[class*=wd-backdrop],[class*=theming-card],[class*=a-unordered-list],"
              "[class*=mosaic-container],[class*=puis-card],[class*=gwm-tile],[class*=_container_]"
              "{border-color:#3b4043 !important;}"
-             // v6.0.177: PDP sponsored/product carousel shell owner. The 6170/6172
-             // PDP probes named Amazon's recycled card root as
-             // LI.a-carousel-card.sp_mobile_carousel_element.  Native-ad protection
-             // intentionally keeps these widgets out of generic Dark Reader/contrast
-             // background ownership, which can leave Amazon's stock white card floor
-             // visible while the product imagery itself is correctly TWB-tamed.  Own
-             // structural shell backgrounds only; never touch IMG/PICTURE/VIDEO/CANVAS
-             // pixels or any background-image artwork.
-             "html body li.a-carousel-card.sp_mobile_carousel_element,"
-             "html body [class*=sponsored-products] li.a-carousel-card,"
-             "html body [class*=sponsored-products] [class*=sp_mobile_carousel_element]"
-             "{background-color:var(--darkreader-neutral-background,#181a1b) !important;border-color:#3b4043 !important;box-shadow:none !important;}"
-             "html body li.a-carousel-card.sp_mobile_carousel_element>.a-section,"
-             "html body li.a-carousel-card.sp_mobile_carousel_element>.a-row,"
-             "html body li.a-carousel-card.sp_mobile_carousel_element>.a-box,"
-             "html body li.a-carousel-card.sp_mobile_carousel_element>.a-box-inner,"
-             "html body li.a-carousel-card.sp_mobile_carousel_element>div,"
-             "html body li.a-carousel-card.sp_mobile_carousel_element .a-section,"
-             "html body li.a-carousel-card.sp_mobile_carousel_element .a-row,"
-             "html body li.a-carousel-card.sp_mobile_carousel_element .a-box,"
-             "html body li.a-carousel-card.sp_mobile_carousel_element .a-box-inner,"
-             "html body [class*=sponsored-products] li.a-carousel-card>.a-section,"
-             "html body [class*=sponsored-products] li.a-carousel-card>.a-row,"
-             "html body [class*=sponsored-products] li.a-carousel-card>.a-box,"
-             "html body [class*=sponsored-products] li.a-carousel-card>.a-box-inner,"
-             "html body [class*=sponsored-products] li.a-carousel-card>div,"
-             "html body [class*=sponsored-products] li.a-carousel-card .a-section,"
-             "html body [class*=sponsored-products] li.a-carousel-card .a-row,"
-             "html body [class*=sponsored-products] li.a-carousel-card .a-box,"
-             "html body [class*=sponsored-products] li.a-carousel-card .a-box-inner"
-             "{background-color:var(--darkreader-neutral-background,#181a1b) !important;border-color:#3b4043 !important;box-shadow:none !important;}"
              "[class*=deal],[class*=badge],[class*=prime],[class*=error],[class*=alert],"
              "[class*=warning],[aria-invalid=true]{border-color:initial !important;}"
              "[class*=a-button-primary],[class*=a-button-search],[class*=a-button-oneclick],"
@@ -1123,11 +1092,6 @@ static NSString *ADDarkReaderBootstrap(void){
            "[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],"
            "[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],"
            "[class*=puis-card],[class*=gwm-tile],[class*=_container_]{border-color:#3b4043 !important;}"
-           // v6.0.177: post-DarkReader mirror of the exact PDP sponsored-carousel
-           // shell owner above. Keep this in the authoritative override sheet so
-           // Amazon hydration cannot repaint the structural card white afterward.
-           "html body li.a-carousel-card.sp_mobile_carousel_element,html body [class*=sponsored-products] li.a-carousel-card,html body [class*=sponsored-products] [class*=sp_mobile_carousel_element]{background-color:var(--darkreader-neutral-background,#181a1b) !important;border-color:#3b4043 !important;box-shadow:none !important;}"
-           "html body li.a-carousel-card.sp_mobile_carousel_element>.a-section,html body li.a-carousel-card.sp_mobile_carousel_element>.a-row,html body li.a-carousel-card.sp_mobile_carousel_element>.a-box,html body li.a-carousel-card.sp_mobile_carousel_element>.a-box-inner,html body li.a-carousel-card.sp_mobile_carousel_element>div,html body li.a-carousel-card.sp_mobile_carousel_element .a-section,html body li.a-carousel-card.sp_mobile_carousel_element .a-row,html body li.a-carousel-card.sp_mobile_carousel_element .a-box,html body li.a-carousel-card.sp_mobile_carousel_element .a-box-inner,html body [class*=sponsored-products] li.a-carousel-card>.a-section,html body [class*=sponsored-products] li.a-carousel-card>.a-row,html body [class*=sponsored-products] li.a-carousel-card>.a-box,html body [class*=sponsored-products] li.a-carousel-card>.a-box-inner,html body [class*=sponsored-products] li.a-carousel-card>div,html body [class*=sponsored-products] li.a-carousel-card .a-section,html body [class*=sponsored-products] li.a-carousel-card .a-row,html body [class*=sponsored-products] li.a-carousel-card .a-box,html body [class*=sponsored-products] li.a-carousel-card .a-box-inner{background-color:var(--darkreader-neutral-background,#181a1b) !important;border-color:#3b4043 !important;box-shadow:none !important;}"
            "[class*=deal],[class*=badge],[class*=prime],[class*=error],[class*=alert],"
            "[class*=warning],[aria-invalid=true]{border-color:initial !important;}"
            "[class*=a-button-primary],[class*=a-button-search],[class*=a-button-oneclick],"
@@ -1318,19 +1282,6 @@ static NSString *ADDarkReaderBootstrap(void){
                  "if(bmx>0.4){be.style.setProperty('background-image','none','important');"
                    "be.style.setProperty('background-color',BG,'important');lfix++;}}}"
            "}catch(e){}"
-           // v6.0.179: shared neutral-colour classifier. v6.0.177 accidentally
-           // called prodInk6078's function-local neutral6078() from adPDPCardShell6177().
-           // That identifier does not exist in the outer bootstrap scope, so the PDP
-           // card repair threw as soon as it reached its first bright descendant. The
-           // outer card could darken while the inner white plate kept covering it.
-           "function adNeutral6179(v){try{var z=String(v||'').toLowerCase(),a=z.indexOf('('),b=z.indexOf(')');if(a<0||b<=a)return false;var p=z.slice(a+1,b).split(',');if(p.length<3)return false;var r=parseFloat(p[0]),g=parseFloat(p[1]),bb=parseFloat(p[2]);if(!isFinite(r)||!isFinite(g)||!isFinite(bb))return false;return Math.max(r,g,bb)-Math.min(r,g,bb)<48;}catch(x){return false;}}"
-           // v6.0.177/179: native PDP product-carousel shell repair. Native-ad
-           // isolation remains correct for creative pixels; only the structural
-           // neutral card floor is owned. v179 fixes the scope error above and also
-           // accepts ordinary a-carousel-card roots inside the already-native
-           // sponsored island, so minor Amazon class churn cannot expose the white
-           // inner plate again.
-           "function adPDPCardShell6177(e){try{if(!e||!e.closest)return 0;var card=e.closest('li.a-carousel-card.sp_mobile_carousel_element,[class*=sponsored-products] li.a-carousel-card,[class*=sponsored-products] [class*=sp_mobile_carousel_element],li.a-carousel-card');if(!card)return 0;var tx=String(card.textContent||'').toLowerCase();if(!/explore more from|shop by brand/.test(tx)&&!card.closest('[class*=sponsored-products],[data-ad-native615]'))return 0;var now=Date.now();if(card.__adPDPCard6177&&now-card.__adPDPCard6177<220)return 0;card.__adPDPCard6177=now;card.style.setProperty('background-color',BG,'important');card.style.setProperty('border-color','#3b4043','important');card.style.setProperty('box-shadow','none','important');var Q=card.querySelectorAll?card.querySelectorAll('div,section,article,ul,ol,li,a,span'):[],n=1;for(var qi=0;qi<Q.length&&qi<120;qi++){var q=Q[qi],tg=String(q.tagName||'').toUpperCase();if(/^(?:IMG|PICTURE|VIDEO|CANVAS|SVG|BUTTON|INPUT)$/.test(tg))continue;var cs=getComputedStyle(q),bi=String(cs.backgroundImage||'none'),bl=lum(cs.backgroundColor);if(bi.indexOf('url(')>=0)continue;if(bl!==null&&bl>.55&&adNeutral6179(cs.backgroundColor)){q.style.setProperty('background-color','transparent','important');q.style.setProperty('box-shadow','none','important');q.style.setProperty('border-color','#3b4043','important');q.setAttribute('data-ad-pdpbg6179','1');n++;}}return n;}catch(x){return 0;}}"
            // v6.0.82: Home product-copy bridge for Amazon-owned/native ad islands.
            // v6.0.15 intentionally keeps these islands out of broad Dark Reader/contrast
            // ownership, but some current recommendation widgets use the same family for
@@ -1342,9 +1293,9 @@ static NSString *ADDarkReaderBootstrap(void){
              "var tg=String(e.tagName||'').toUpperCase();if(!/^(?:A|SPAN|DIV|P|H1|H2|H3|H4|H5|STRONG|SMALL|SUP|B|EM)$/.test(tg))return 0;"
              "var own='';for(var q=0;q<e.childNodes.length&&q<10;q++){var nd=e.childNodes[q];if(nd.nodeType===3)own+=String(nd.nodeValue||'');}"
              "own=own.replace(/\s+/g,' ').trim();if(!own||own.length>320)return 0;"
-
+             "function neutral6078(v){var m=/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/.exec(String(v||''));if(!m)return false;var mx=Math.max(+m[1],+m[2],+m[3]),mn=Math.min(+m[1],+m[2],+m[3]);return (mx-mn)<48;}"
              "var cs=getComputedStyle(e),cl=lum(cs.color),fc=String(cs.webkitTextFillColor||''),fl=lum(fc);"
-             "if(!((cl!==null&&cl<0.48&&adNeutral6179(cs.color))||(fl!==null&&fl<0.48&&adNeutral6179(fc))))return 0;"
+             "if(!((cl!==null&&cl<0.48&&neutral6078(cs.color))||(fl!==null&&fl<0.48&&neutral6078(fc))))return 0;"
              "var bl=bgOf(e,cs);if(bl===null||bl>0.35)return 0;"
              "var p=e,card=null,d=0;while(p&&d++<7){var r=rect6173(p);if(r.width>=120&&r.width<=540&&r.height>=120&&r.height<=760&&p.querySelector){"
                "var ph=null,im=null;try{ph=p.querySelector('a[href*=\"/dp/\"],a[href*=\"/gp/product/\"],[data-asin]');im=p.querySelector('img,picture');}catch(z){}"
@@ -1369,11 +1320,6 @@ static NSString *ADDarkReaderBootstrap(void){
            // Link ink, copyright text, form controls, and the rest of sign-in are untouched.
            "function adSigninFooterText6144(e){try{if(!e||e.nodeType!==1)return false;var p=String(location.pathname||'').toLowerCase();if(p.indexOf('/ap/signin')!==0)return false;var t=String(e.textContent||'').replace(/\\s+/g,' ').trim();if(t.length<24||t.length>180)return false;if(/welcome to amazon|enter mobile number or email/i.test(t))return false;return /conditions of use/i.test(t)&&/privacy notice/i.test(t)&&/(?:^|\\s)help(?:\\s|$)/i.test(t);}catch(x){return false;}}"
            "function adSigninFooter6144(e){try{if(!adSigninFooterText6144(e))return 0;var vw=innerWidth||390,p=e,best=null,d=0;while(p&&d++<6){var r=rect6173(p);if(r.width>=vw*.72&&r.height>=18&&r.height<=170)best=p;else if(best&&r.height>170)break;p=p.parentElement;}if(!best)return 0;if(best.getAttribute('data-ad-signinfooter6144')==='1')return 1;best.setAttribute('data-ad-signinfooter6144','1');var sid='ad-signinfooter6144-style',st=document.getElementById(sid);if(!st){st=document.createElement('style');st.id=sid;st.textContent='[data-ad-signinfooter6144],[data-ad-signinfooter6144]::before,[data-ad-signinfooter6144]::after{background-color:'+BG+'!important;background-image:none!important;box-shadow:none!important;}[data-ad-signinfooter6144] div,[data-ad-signinfooter6144] section,[data-ad-signinfooter6144] footer,[data-ad-signinfooter6144] aside,[data-ad-signinfooter6144] nav,[data-ad-signinfooter6144] ul,[data-ad-signinfooter6144] li,[data-ad-signinfooter6144] table,[data-ad-signinfooter6144] tbody,[data-ad-signinfooter6144] tr,[data-ad-signinfooter6144] td{background-color:transparent!important;background-image:none!important;box-shadow:none!important;}[data-ad-signinfooter6144] div::before,[data-ad-signinfooter6144] div::after,[data-ad-signinfooter6144] section::before,[data-ad-signinfooter6144] section::after,[data-ad-signinfooter6144] footer::before,[data-ad-signinfooter6144] footer::after,[data-ad-signinfooter6144] aside::before,[data-ad-signinfooter6144] aside::after,[data-ad-signinfooter6144] nav::before,[data-ad-signinfooter6144] nav::after,[data-ad-signinfooter6144] li::before,[data-ad-signinfooter6144] li::after{background-color:transparent!important;background-image:none!important;box-shadow:none!important;}';(document.head||document.documentElement).appendChild(st);}best.style.setProperty('background-color',BG,'important');best.style.setProperty('background-image','none','important');best.style.setProperty('box-shadow','none','important');var Q=best.querySelectorAll?best.querySelectorAll('div,section,footer,aside,nav,ul,li,table,tbody,tr,td'):[];for(var fi=0;fi<Q.length&&fi<80;fi++){Q[fi].style.setProperty('background-color','transparent','important');Q[fi].style.setProperty('background-image','none','important');Q[fi].style.setProperty('box-shadow','none','important');}return 1;}catch(x){return 0;}}"
-           // v6.0.179: Person > Interests "Related Interests to explore" card
-           // floors. This is semantic and piggybacks on the existing bounded contrast
-           // traversal; no new observer or document scan. It only claims bright neutral
-           // structural backgrounds inside the local related-interests panel.
-           "function adRelatedInterests6179(e){try{if(!e||!e.childNodes)return 0;var own='';for(var ri=0;ri<e.childNodes.length&&ri<12;ri++){var rn=e.childNodes[ri];if(rn.nodeType===3)own+=' '+String(rn.nodeValue||'');}own=own.replace(/\\s+/g,' ').trim();if(!/related interests to explore/i.test(own))return 0;var vw=innerWidth||390,p=e,best=null,d=0;while(p&&d++<7){var r=rect6173(p);if(r.width>=vw*.70&&r.height>=110&&r.height<=520)best=p;if(best&&r.width>=vw*.90)break;p=p.parentElement;}if(!best)return 0;best.setAttribute('data-ad-related6179','1');best.style.setProperty('background-color',BG,'important');var Q=best.querySelectorAll?best.querySelectorAll('div,section,article,ul,ol,li,a,span'):[],n=1;for(var qi=0;qi<Q.length&&qi<120;qi++){var q=Q[qi],tg=String(q.tagName||'').toUpperCase();if(/^(?:IMG|PICTURE|VIDEO|CANVAS|SVG|BUTTON|INPUT)$/.test(tg))continue;var cs=getComputedStyle(q),bi=String(cs.backgroundImage||'none'),bl=lum(cs.backgroundColor);if(bi.indexOf('url(')>=0)continue;if(bl!==null&&bl>.55&&adNeutral6179(cs.backgroundColor)){q.style.setProperty('background-color',BG,'important');q.style.setProperty('border-color','#494d4d','important');q.style.setProperty('box-shadow','none','important');q.setAttribute('data-ad-relatedbg6179','1');n++;}}return n;}catch(x){return 0;}}"
            // v6.0.138: semantic Sponsored bridge. This reuses the existing bounded
            // contrast traversal instead of adding another document scan. It also
            // identifies Sponsor ancestry so generic glyph whitening cannot repaint
@@ -1388,10 +1334,9 @@ static NSString *ADDarkReaderBootstrap(void){
            "for(var i=0;i<els.length;i++){var el=els[i];"
              "if(adSigninFooterText6144(el)){adSigninFooter6144(el);}"
              "if(adCartCreditText6143(el)){adCartCredit6143(el);}"
-             "n+=adRelatedInterests6179(el);"
              "if(adSponsorText6138(el)){el.setAttribute('data-ad-sponsorgray6138','1');el.style.setProperty('color','#b1aaa0','important');el.style.setProperty('-webkit-text-fill-color','#b1aaa0','important');el.style.setProperty('opacity','1','important');el.style.setProperty('visibility','visible','important');continue;}"
              "if(adSponsorGlyph6138(el))continue;"
-             "if(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(el)){n+=adPDPCardShell6177(el);n+=prodInk6078(el);continue;}"
+             "if(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(el)){n+=prodInk6078(el);continue;}"
              "var cs=getComputedStyle(el);"
              // v6.0.94: if a recycled product-badge IMG was previously claimed by
              // gfix1 earlier in this same WebView, release that stale inline filter
@@ -3458,6 +3403,265 @@ static void ADPaintSignOutDialogButton6141(UIButton *b){
 }
 %end
 
+
+// ════════════════════════════════════════════════════════════════════════════════
+// v6.0.177~probe — Person > Interests light-box painter identification
+// Diagnostic only.  The implementation base is exactly v6.0.176; this block does
+// not recolor, hide, filter, or otherwise modify the target surfaces.  It prints
+// the native view/layer ancestry around "Related Interests to explore" and also
+// asks any mounted WKWebView for the matching DOM subtree.  The file is written to
+// Amazon's own Documents directory so the app sandbox can always create it.
+// ════════════════════════════════════════════════════════════════════════════════
+static NSString *ADInterestsProbePath6177(void){
+    @try {
+        NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
+        if(docs.length) return [docs stringByAppendingPathComponent:@"AmazonDark-interests-box-probe-6177.txt"];
+    } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-interests-box-probe-6177.txt"];
+}
+
+static void ADInterestsProbeAppend6177(NSString *line){
+    if(!line.length) return;
+    @try {
+        NSString *p=ADInterestsProbePath6177();
+        NSData *d=[[line stringByAppendingString:@"\n"] dataUsingEncoding:NSUTF8StringEncoding];
+        @synchronized([NSFileHandle class]) {
+            NSFileManager *fm=[NSFileManager defaultManager];
+            if(![fm fileExistsAtPath:p]) [fm createFileAtPath:p contents:nil attributes:nil];
+            NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p];
+            [h seekToEndOfFile]; [h writeData:d]; [h closeFile];
+        }
+    } @catch(...) {}
+}
+
+static void ADInterestsProbeReset6177(void){
+    @try {
+        NSString *head=[NSString stringWithFormat:
+            @"AmazonDark Interests box probe 6177\nversion=%s\npid=%d\noutput=%@\n",
+            AD_VERSION,getpid(),ADInterestsProbePath6177()];
+        [head writeToFile:ADInterestsProbePath6177() atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    } @catch(...) {}
+}
+
+static NSString *ADProbeNormText6177(NSString *in){
+    if(!in.length) return @"";
+    @try {
+        NSArray *parts=[in componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        NSMutableArray *clean=[NSMutableArray array];
+        for(NSString *x in parts) if(x.length) [clean addObject:x];
+        return [[clean componentsJoinedByString:@" "] lowercaseString];
+    } @catch(...) { return [in lowercaseString] ?: @""; }
+}
+
+static BOOL ADProbeInterestText6177(NSString *text){
+    NSString *n=ADProbeNormText6177(text);
+    return [n containsString:@"related interests to explore"] || [n containsString:@"you're all caught up"];
+}
+
+static NSString *ADProbeColor6177(UIColor *c){
+    if(!c) return @"nil";
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0;
+        if([c getRed:&r green:&g blue:&b alpha:&a])
+            return [NSString stringWithFormat:@"rgba(%.3f,%.3f,%.3f,%.3f)",r,g,b,a];
+        if([c getWhite:&w alpha:&a])
+            return [NSString stringWithFormat:@"white(%.3f,%.3f)",w,a];
+        return c.description ?: @"?";
+    } @catch(...) { return @"?"; }
+}
+
+static BOOL ADProbeBrightNeutral6177(UIColor *c){
+    if(!c) return NO;
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0;
+        if([c getRed:&r green:&g blue:&b alpha:&a]){
+            CGFloat mx=MAX(r,MAX(g,b)), mn=MIN(r,MIN(g,b));
+            CGFloat lum=0.2126*r+0.7152*g+0.0722*b;
+            return a>0.10 && lum>0.62 && (mx-mn)<0.16;
+        }
+        if([c getWhite:&w alpha:&a]) return a>0.10 && w>0.62;
+    } @catch(...) {}
+    return NO;
+}
+
+static NSString *ADProbeTextForView6177(UIView *v){
+    if(!v) return @"";
+    @try {
+        NSString *t=nil;
+        if([v isKindOfClass:[UILabel class]]) t=((UILabel *)v).text;
+        else if([v isKindOfClass:[UIButton class]]) t=((UIButton *)v).currentTitle;
+        else if([v isKindOfClass:[UITextView class]]) t=((UITextView *)v).text;
+        else if([v isKindOfClass:[UITextField class]]) t=((UITextField *)v).text;
+        if(!t.length) t=v.accessibilityLabel;
+        if(!t.length){
+            @try {
+                id a=[v valueForKey:@"attributedText"];
+                if([a isKindOfClass:[NSAttributedString class]]) t=[a string];
+            } @catch(...) {}
+        }
+        t=[t stringByReplacingOccurrencesOfString:@"\n" withString:@" "];
+        if(t.length>180) t=[[t substringToIndex:180] stringByAppendingString:@"…"];
+        return t ?: @"";
+    } @catch(...) { return @""; }
+}
+
+static NSString *ADProbeLayerLine6177(CALayer *l, NSInteger depth){
+    if(!l) return @"";
+    @try {
+        UIColor *bg=l.backgroundColor?[UIColor colorWithCGColor:l.backgroundColor]:nil;
+        UIColor *bc=l.borderColor?[UIColor colorWithCGColor:l.borderColor]:nil;
+        NSMutableString *m=[NSMutableString stringWithFormat:
+            @"LAYER d=%ld cls=%@ ptr=%p frame=(%.1f,%.1f %.1fx%.1f) bg=%@ border=%.2f/%@ radius=%.2f opacity=%.2f hidden=%d contents=%d",
+            (long)depth,NSStringFromClass([l class]),l,l.frame.origin.x,l.frame.origin.y,l.frame.size.width,l.frame.size.height,
+            ADProbeColor6177(bg),l.borderWidth,ADProbeColor6177(bc),l.cornerRadius,l.opacity,l.hidden,l.contents!=nil];
+        @try {
+            id colors=[l valueForKey:@"colors"];
+            if([colors isKindOfClass:[NSArray class]] && [colors count]){
+                [m appendString:@" gradient=["];
+                NSUInteger cap=MIN((NSUInteger)6,[colors count]);
+                for(NSUInteger i=0;i<cap;i++){
+                    id obj=[colors objectAtIndex:i];
+                    NSString *cs=@"?";
+                    @try { cs=ADProbeColor6177([UIColor colorWithCGColor:(__bridge CGColorRef)obj]); } @catch(...) {}
+                    if(i) [m appendString:@","];
+                    [m appendString:cs];
+                }
+                [m appendString:@"]"];
+            }
+        } @catch(...) {}
+        return m;
+    } @catch(...) { return @"LAYER <error>"; }
+}
+
+static NSString *ADProbeViewLine6177(UIView *v, NSInteger depth){
+    if(!v) return @"";
+    @try {
+        CGRect wr=CGRectZero;
+        @try { wr=[v convertRect:v.bounds toView:nil]; } @catch(...) { wr=v.frame; }
+        UIColor *bg=v.backgroundColor;
+        UIColor *lbg=v.layer.backgroundColor?[UIColor colorWithCGColor:v.layer.backgroundColor]:nil;
+        UIColor *bc=v.layer.borderColor?[UIColor colorWithCGColor:v.layer.borderColor]:nil;
+        NSString *txt=ADProbeTextForView6177(v);
+        BOOL bright=ADProbeBrightNeutral6177(bg)||ADProbeBrightNeutral6177(lbg);
+        return [NSString stringWithFormat:
+            @"VIEW d=%ld cls=%@ ptr=%p win=(%.1f,%.1f %.1fx%.1f) bounds=(%.1fx%.1f) alpha=%.2f hidden=%d bg=%@ layerBg=%@ border=%.2f/%@ radius=%.2f BRIGHT=%d subviews=%lu layers=%lu text=\"%@\"",
+            (long)depth,NSStringFromClass([v class]),v,wr.origin.x,wr.origin.y,wr.size.width,wr.size.height,
+            v.bounds.size.width,v.bounds.size.height,v.alpha,v.hidden,ADProbeColor6177(bg),ADProbeColor6177(lbg),
+            v.layer.borderWidth,ADProbeColor6177(bc),v.layer.cornerRadius,bright,(unsigned long)v.subviews.count,
+            (unsigned long)v.layer.sublayers.count,txt];
+    } @catch(...) { return @"VIEW <error>"; }
+}
+
+static UIView *ADProbeInterestsRoot6177(UIView *target){
+    if(!target) return nil;
+    @try {
+        CGFloat sw=[UIScreen mainScreen].bounds.size.width;
+        if(sw<250) sw=390;
+        UIView *best=target,*p=target;
+        for(int d=0;p&&d<10;d++,p=p.superview){
+            CGRect r=[p convertRect:p.bounds toView:nil];
+            if(r.size.width>=sw*0.74 && r.size.height>=110 && r.size.height<=760) best=p;
+            if(r.size.height>900 && best!=target) break;
+        }
+        return best;
+    } @catch(...) { return target; }
+}
+
+static void ADProbeSnapshotViews6177(UIView *target, NSString *reason){
+    if(!target) return;
+    @try {
+        NSMutableString *out=[NSMutableString stringWithFormat:@"\n===== NATIVE SNAPSHOT reason=%@ uptime=%.3f =====\n",reason ?: @"?",ADUptime()];
+        [out appendString:@"-- target/ancestor chain --\n"];
+        UIView *p=target;
+        for(int d=0;p&&d<11;d++,p=p.superview){
+            [out appendFormat:@"%@\n",ADProbeViewLine6177(p,d)];
+            [out appendFormat:@"%@\n",ADProbeLayerLine6177(p.layer,d)];
+        }
+        UIView *root=ADProbeInterestsRoot6177(target);
+        [out appendFormat:@"-- selected root: %@ --\n",ADProbeViewLine6177(root,0)];
+        NSMutableArray *q=[NSMutableArray arrayWithObject:@{ @"v":root, @"d":@0 }];
+        NSUInteger qi=0,seen=0,layerSeen=0;
+        while(qi<q.count && seen<240){
+            NSDictionary *it=q[qi++]; UIView *v=it[@"v"]; NSInteger d=[it[@"d"] integerValue];
+            if(!v||d>8) continue; seen++;
+            NSString *line=ADProbeViewLine6177(v,d);
+            [out appendFormat:@"%@\n",line];
+            BOOL interesting=ADProbeBrightNeutral6177(v.backgroundColor)||
+                (v.layer.backgroundColor&&ADProbeBrightNeutral6177([UIColor colorWithCGColor:v.layer.backgroundColor]))||
+                v.layer.cornerRadius>=6.0||ADProbeTextForView6177(v).length>0;
+            if(interesting && layerSeen<140){
+                [out appendFormat:@"%@\n",ADProbeLayerLine6177(v.layer,d)]; layerSeen++;
+                for(CALayer *sl in v.layer.sublayers){
+                    if(layerSeen>=140) break;
+                    BOOL spl=NO; @try { spl=sl.backgroundColor&&ADProbeBrightNeutral6177([UIColor colorWithCGColor:sl.backgroundColor]); } @catch(...) {}
+                    if(spl || sl.cornerRadius>=6.0 || [NSStringFromClass([sl class]) rangeOfString:@"Gradient" options:NSCaseInsensitiveSearch].location!=NSNotFound){
+                        [out appendFormat:@"%@\n",ADProbeLayerLine6177(sl,d+1)]; layerSeen++;
+                    }
+                }
+            }
+            for(UIView *ch in v.subviews) if(q.count<320) [q addObject:@{ @"v":ch,@"d":@(d+1) }];
+        }
+        [out appendFormat:@"-- native totals views=%lu layersPrinted=%lu --\n",(unsigned long)seen,(unsigned long)layerSeen];
+        ADInterestsProbeAppend6177(out);
+    } @catch(...) {}
+}
+
+static NSString *ADInterestsDOMProbeJS6177(void){
+    return @"(function(){try{"
+    "function norm(s){return String(s||'').replace(/\\s+/g,' ').trim();}"
+    "function rgb(s){var m=String(s||'').match(/rgba?\\(\\s*([0-9.]+)[, ]+\\s*([0-9.]+)[, ]+\\s*([0-9.]+)(?:[, /]+\\s*([0-9.]+))?/i);return m?[+m[1],+m[2],+m[3],m[4]===undefined?1:+m[4]]:null;}"
+    "function bright(s){var c=rgb(s);if(!c||c[3]<.1)return false;var mx=Math.max(c[0],c[1],c[2]),mn=Math.min(c[0],c[1],c[2]),L=(.2126*c[0]+.7152*c[1]+.0722*c[2])/255;return L>.62&&(mx-mn)<42;}"
+    "function desc(e){var r=e.getBoundingClientRect(),cs=getComputedStyle(e),t=norm(e.innerText||e.textContent);if(t.length>180)t=t.slice(0,180)+'…';return {tag:e.tagName,id:e.id||'',cls:(typeof e.className==='string'?e.className:''),role:e.getAttribute('role')||'',test:e.getAttribute('data-testid')||e.getAttribute('data-component-type')||'',rect:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],bg:cs.backgroundColor,bgi:cs.backgroundImage,border:cs.borderColor,bw:cs.borderWidth,rad:cs.borderRadius,shadow:cs.boxShadow,color:cs.color,bright:bright(cs.backgroundColor),text:t};}"
+    "var cand=document.querySelectorAll('h1,h2,h3,h4,h5,div,section,article,span,p');var hit=null,best=99999;for(var i=0;i<cand.length&&i<4000;i++){var t=norm(cand[i].innerText||cand[i].textContent).toLowerCase();if(t.indexOf('related interests to explore')>=0&&t.length<best){hit=cand[i];best=t.length;}}"
+    "if(!hit)return 'MISS';var anc=[],p=hit;for(var d=0;p&&d<9;d++,p=p.parentElement)anc.push(desc(p));"
+    "var root=hit,cur=hit;for(var d2=0;cur&&d2<8;d2++,cur=cur.parentElement){var rr=cur.getBoundingClientRect();if(rr.width>=innerWidth*.72&&rr.height>=110&&rr.height<=760)root=cur;if(rr.height>900&&root!==hit)break;}"
+    "var all=[root],q=root.querySelectorAll?root.querySelectorAll('*'):[];for(var j=0;j<q.length&&j<220;j++)all.push(q[j]);var rows=[];for(var k=0;k<all.length;k++){var e=all[k],o=desc(e),cs=getComputedStyle(e);if(o.bright||parseFloat(cs.borderRadius)>=6||o.text||String(cs.backgroundImage).indexOf('gradient')>=0)rows.push(o);if(rows.length>=180)break;}"
+    "return JSON.stringify({url:location.href,title:document.title,hit:desc(hit),anc:anc,root:desc(root),rows:rows});"
+    "}catch(e){return 'ERR '+String(e&&e.stack||e);}})();";
+}
+
+static void ADProbeWebInterests6177(WKWebView *wv, NSString *reason){
+    if(!wv||!wv.window) return;
+    @try {
+        [wv evaluateJavaScript:ADInterestsDOMProbeJS6177() completionHandler:^(id value,NSError *error){
+            @try {
+                NSString *v=[value isKindOfClass:[NSString class]]?(NSString *)value:[value description];
+                if(error) v=[NSString stringWithFormat:@"ERR %@",error];
+                if(!v.length || [v isEqualToString:@"MISS"]) return;
+                ADInterestsProbeAppend6177([NSString stringWithFormat:@"\n===== WEB SNAPSHOT reason=%@ uptime=%.3f url=%@ =====\n%@\n",reason ?: @"?",ADUptime(),wv.URL.absoluteString ?: @"",v]);
+            } @catch(...) {}
+        }];
+    } @catch(...) {}
+}
+
+static void ADProbeWebTree6177(UIView *root, NSString *reason){
+    if(!root) return;
+    @try {
+        NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger i=0,seen=0;
+        while(i<q.count&&seen<900){ UIView *v=q[i++]; seen++;
+            if([v isKindOfClass:[WKWebView class]]){ ADProbeWebInterests6177((WKWebView *)v,reason); continue; }
+            for(UIView *ch in v.subviews) if(q.count<1000) [q addObject:ch];
+        }
+    } @catch(...) {}
+}
+
+static const void *kADInterestsProbe6177=&kADInterestsProbe6177;
+static void ADProbeInterestTarget6177(id obj, NSString *text){
+    if(!ADProbeInterestText6177(text)) return;
+    @try {
+        UIView *v=(UIView *)obj;
+        if(![v isKindOfClass:[UIView class]]) return;
+        if(objc_getAssociatedObject(v,kADInterestsProbe6177)) return;
+        objc_setAssociatedObject(v,kADInterestsProbe6177,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        ADInterestsProbeAppend6177([NSString stringWithFormat:@"\nTRIGGER text=\"%@\" cls=%@ ptr=%p uptime=%.3f",text ?: @"",NSStringFromClass([v class]),v,ADUptime()]);
+        __weak UIView *wv=v;
+        static const int64_t ms[]={0,140,700};
+        for(int i=0;i<3;i++) dispatch_after(dispatch_time(DISPATCH_TIME_NOW,ms[i]*1000000LL),dispatch_get_main_queue(),^{
+            @try { UIView *x=wv; if(x&&x.window){ ADProbeSnapshotViews6177(x,[NSString stringWithFormat:@"text+%lldms",ms[i]]); ADProbeWebTree6177(x.window,[NSString stringWithFormat:@"text+%lldms",ms[i]]); } } @catch(...) {}
+        });
+    } @catch(...) {}
+}
+
 // ════════════════════════════════════════════════════════════════════════════════
 // SURFACE 3b — REACT NATIVE TEXT (the "text is almost as dark as the background")
 // ────────────────────────────────────────────────────────────────────────────────
@@ -3881,177 +4085,6 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
 }
 %end
 
-// v6.0.177: Person > Interests can expose a wide white/gray shimmer gradient next
-// to the unique "You're all caught up!" marker.  This is not product artwork: it is
-// a transient RN gradient painter.  Keep the owner semantic + geometry gated so
-// genuine brand gradients elsewhere remain on the normal color-transform path.
-static BOOL ADInterestsArtifactPhrase6177(NSString *text){
-    @try {
-        NSString *lo=[[text ?: @"" lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-        return [lo containsString:@"you're all caught up"] || [lo containsString:@"you’re all caught up"];
-    } @catch(...) {}
-    return NO;
-}
-static NSArray *ADTransparentGradientColors6177(CALayer *layer, NSArray *colors){
-    if(!colors.count) return colors;
-    @try {
-        BOOL ca=[layer isKindOfClass:[CAGradientLayer class]];
-        NSMutableArray *out=[NSMutableArray arrayWithCapacity:colors.count];
-        for(id c in colors){
-            if(ca || (c && CFGetTypeID((__bridge CFTypeRef)c)==CGColorGetTypeID()))
-                [out addObject:(__bridge id)[UIColor clearColor].CGColor];
-            else if([c isKindOfClass:[UIColor class]])
-                [out addObject:[UIColor clearColor]];
-            else
-                [out addObject:[UIColor clearColor]];
-        }
-        return out;
-    } @catch(...) {}
-    return colors;
-}
-static BOOL ADInterestsGradientGeometry6177(CALayer *layer, UIView *anchor){
-    if(!layer || !anchor || !anchor.window) return NO;
-    @try {
-        UIWindow *w=anchor.window;
-        CGRect gr=[layer convertRect:layer.bounds toLayer:w.layer];
-        CGRect ar=[anchor convertRect:anchor.bounds toView:w];
-        CGFloat gw=fabs(gr.size.width), gh=fabs(gr.size.height), ww=w.bounds.size.width;
-        if(gw<MAX(110.0,ww*0.28) || gh<12.0 || gh>95.0 || gw<gh*2.0) return NO;
-        if(fabs(CGRectGetMidY(gr)-CGRectGetMidY(ar))>85.0) return NO;
-        if(CGRectGetMaxY(gr)<CGRectGetMinY(ar)-45.0 || CGRectGetMinY(gr)>CGRectGetMaxY(ar)+70.0) return NO;
-        return YES;
-    } @catch(...) {}
-    return NO;
-}
-static UIView *ADInterestsCatchupAnchor6177(UIView *v){
-    if(!v || !v.window) return nil;
-    @try {
-        UIView *p=v; int up=0;
-        while(p && up++<6){
-            NSMutableArray *q=[NSMutableArray arrayWithObject:p]; int seen=0;
-            for(NSUInteger qi=0; qi<q.count && seen++<84; qi++){
-                UIView *x=q[qi];
-                if(ADInterestsArtifactPhrase6177(ADWTViewText362(x))) return x;
-                if(qi<32){ for(UIView *sv in x.subviews){ if(q.count<84)[q addObject:sv]; else break; } }
-            }
-            p=p.superview;
-        }
-    } @catch(...) {}
-    return nil;
-}
-static BOOL ADIsInterestsGradient6177(CALayer *layer){
-    if(!ADRecolorOn() || !layer) return NO;
-    @try {
-        NSString *cn=NSStringFromClass([layer class]);
-        if(![cn isEqualToString:@"CAGradientLayer"] && [cn rangeOfString:@"LinearGradient" options:NSCaseInsensitiveSearch].location==NSNotFound) return NO;
-        id d=layer.delegate;
-        if(![d isKindOfClass:[UIView class]]) return NO;
-        UIView *a=ADInterestsCatchupAnchor6177((UIView *)d);
-        return a && ADInterestsGradientGeometry6177(layer,a);
-    } @catch(...) {}
-    return NO;
-}
-static void ADNeutralizeInterestsGradientNearText6177(UIView *anchor, NSString *text){
-    if(!ADRecolorOn() || !anchor || !ADInterestsArtifactPhrase6177(text)) return;
-    __weak UIView *weakAnchor=anchor;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        UIView *live=weakAnchor;
-        if(!live || !live.window) return;
-        @try {
-            UIView *root=live; int up=0;
-            while(root.superview && up++<4){UIView *next=root.superview;if(next.window!=live.window)break;root=next;if(root.bounds.size.width>=live.window.bounds.size.width*0.90&&root.bounds.size.height>=180.0)break;}
-            NSMutableArray *layers=[NSMutableArray arrayWithObject:root.layer]; int seen=0;
-            for(NSUInteger i=0;i<layers.count && seen++<120;i++){
-                CALayer *l=layers[i]; NSString *cn=NSStringFromClass([l class]);
-                BOOL grad=[cn isEqualToString:@"CAGradientLayer"] || [cn rangeOfString:@"LinearGradient" options:NSCaseInsensitiveSearch].location!=NSNotFound;
-                if(grad && ADInterestsGradientGeometry6177(l,live)){
-                    NSArray *colors=nil; @try { colors=[l valueForKey:@"colors"]; } @catch(...) {}
-                    if(colors.count){ @try { [l setValue:ADTransparentGradientColors6177(l,colors) forKey:@"colors"]; } @catch(...) {} }
-                    l.backgroundColor=[UIColor clearColor].CGColor;
-                }
-                if(i<48){ for(CALayer *sl in l.sublayers){ if(layers.count<120)[layers addObject:sl]; else break; } }
-            }
-        } @catch(...) {}
-    });
-}
-
-
-// v6.0.179: the text-only cards under "Related Interests to explore" are a
-// separate native/Fabric surface from the gradient artifact fixed in 177.
-// Key the repair to that exact heading, then darken only bright neutral local
-// background/fill painters. Product imagery and unrelated Person cards are not touched.
-static BOOL ADRelatedInterestsPhrase6179(NSString *text){
-    @try {
-        NSString *lo=[[text ?: @"" lowercaseString] stringByReplacingOccurrencesOfString:@"\n" withString:@" "];
-        lo=[lo stringByReplacingOccurrencesOfString:@"\r" withString:@" "];
-        while([lo containsString:@"  "]) lo=[lo stringByReplacingOccurrencesOfString:@"  " withString:@" "];
-        return [lo containsString:@"related interests to explore"];
-    } @catch(...) {}
-    return NO;
-}
-static BOOL ADBrightNeutralUIColor6179(UIColor *c){
-    if(!c) return NO;
-    @try {
-        CGFloat r=0,g=0,b=0,a=0;
-        if(![c getRed:&r green:&g blue:&b alpha:&a]) return NO;
-        CGFloat mx=MAX(r,MAX(g,b)),mn=MIN(r,MIN(g,b));
-        return a>0.08 && mx>0.70 && (mx-mn)<0.12;
-    } @catch(...) {}
-    return NO;
-}
-static void ADDarkenRelatedLayer6179(CALayer *layer, int depth){
-    if(!layer || depth>2) return;
-    @try {
-        CGColorRef dark=ADColorFromHex(gP.bgHex).CGColor;
-        if(ADBrightNeutralCG6149(layer.backgroundColor)) layer.backgroundColor=dark;
-        if([layer isKindOfClass:[CAShapeLayer class]]){
-            CAShapeLayer *sh=(CAShapeLayer *)layer;
-            if(ADBrightNeutralCG6149(sh.fillColor)) sh.fillColor=dark;
-            if(sh.lineWidth>0.1 && ADBrightNeutralCG6149(sh.strokeColor))
-                sh.strokeColor=ADNeutralBorderGray6147().CGColor;
-        }
-        for(CALayer *sl in layer.sublayers) ADDarkenRelatedLayer6179(sl,depth+1);
-    } @catch(...) {}
-}
-static void ADDarkenRelatedInterestsNearText6179(UIView *anchor, NSString *text){
-    if(!ADRecolorOn() || !anchor || !ADRelatedInterestsPhrase6179(text)) return;
-    __weak UIView *weakAnchor=anchor;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        UIView *live=weakAnchor;
-        if(!live || !live.window) return;
-        @try {
-            UIWindow *w=live.window;
-            UIView *p=live,*best=nil; int up=0;
-            while(p && up++<7){
-                CGFloat ww=fabs(p.bounds.size.width),hh=fabs(p.bounds.size.height);
-                if(ww>=w.bounds.size.width*0.70 && hh>=110.0 && hh<=520.0) best=p;
-                if(best && ww>=w.bounds.size.width*0.90) break;
-                p=p.superview;
-            }
-            if(!best) return;
-            UIColor *dark=ADColorFromHex(gP.bgHex);
-            NSMutableArray *q=[NSMutableArray arrayWithObject:best]; int seen=0;
-            for(NSUInteger i=0;i<q.count && seen++<120;i++){
-                UIView *v=q[i];
-                if(![v isKindOfClass:[UIImageView class]] && ![v isKindOfClass:[UIButton class]] &&
-                   ![v isKindOfClass:[UIControl class]]){
-                    UIColor *bg=v.backgroundColor;
-                    if(ADBrightNeutralUIColor6179(bg)){
-                        v.backgroundColor=dark;
-                        if(v.layer.borderWidth>0.1) v.layer.borderColor=ADNeutralBorderGray6147().CGColor;
-                    }
-                    ADDarkenRelatedLayer6179(v.layer,0);
-                }
-                if(i<48){
-                    for(UIView *sv in v.subviews){
-                        if(q.count<120) [q addObject:sv]; else break;
-                    }
-                }
-            }
-        } @catch(...) {}
-    });
-}
-
 // Fabric text (new architecture). Setter lives on RCTParagraphComponentView.
 %hook RCTParagraphComponentView
 - (void)setAttributedText:(NSAttributedString *)attributedText {
@@ -4059,7 +4092,7 @@ static void ADDarkenRelatedInterestsNearText6179(UIView *anchor, NSString *text)
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         %orig(r);
         ADClaimPersonBorderDeferred6147(self,attributedText.string);
-        ADNeutralizeInterestsGradientNearText6177((UIView *)self,attributedText.string); ADDarkenRelatedInterestsNearText6179((UIView *)self,attributedText.string);
+        ADProbeInterestTarget6177(self,attributedText.string);
         return;
     } @catch(...) {}
     %orig;
@@ -4069,7 +4102,7 @@ static void ADDarkenRelatedInterestsNearText6179(UIView *anchor, NSString *text)
         NSAttributedString *r = ADRecolorAttributedString(attributedString);
         %orig(r);
         ADClaimPersonBorderDeferred6147(self,attributedString.string);
-        ADNeutralizeInterestsGradientNearText6177((UIView *)self,attributedString.string); ADDarkenRelatedInterestsNearText6179((UIView *)self,attributedString.string);
+        ADProbeInterestTarget6177(self,attributedString.string);
         return;
     } @catch(...) {}
     %orig;
@@ -4102,7 +4135,7 @@ static void ADDarkenRelatedInterestsNearText6179(UIView *anchor, NSString *text)
         }
     } @catch(...) {}
     %orig;
-    @try { ADClaimPersonBorderDeferred6147(self,adBorderText6147); ADNeutralizeInterestsGradientNearText6177((UIView *)self,adBorderText6147); ADDarkenRelatedInterestsNearText6179((UIView *)self,adBorderText6147); } @catch(...) {}
+    @try { ADClaimPersonBorderDeferred6147(self,adBorderText6147); ADProbeInterestTarget6177(self,adBorderText6147); } @catch(...) {}
 }
 - (void)layoutSubviews {
     %orig;
@@ -4115,15 +4148,21 @@ static void ADDarkenRelatedInterestsNearText6179(UIView *anchor, NSString *text)
 - (void)setAttributedText:(NSAttributedString *)attributedText {
     if (!ADRecolorOn() || !attributedText.length) {
         %orig;
+        @try { ADProbeInterestTarget6177(self,attributedText.string); } @catch(...) {}
         return;
     }
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         %orig(r);
-        ADDarkenRelatedInterestsNearText6179((UIView *)self,attributedText.string);
+        ADProbeInterestTarget6177(self,attributedText.string);
         return;
     } @catch(...) {}
     %orig;
+    @try { ADProbeInterestTarget6177(self,attributedText.string); } @catch(...) {}
+}
+- (void)setText:(NSString *)text {
+    %orig;
+    @try { ADProbeInterestTarget6177(self,text); } @catch(...) {}
 }
 %end
 
@@ -4290,12 +4329,6 @@ static void ADDarkenRelatedInterestsNearText6179(UIView *anchor, NSString *text)
         return;
     }
     @try {
-        if (ADIsInterestsGradient6177(self)) {
-            self.backgroundColor=[UIColor clearColor].CGColor;
-            NSArray *clear6177=ADTransparentGradientColors6177(self,colors);
-            %orig(clear6177);
-            return;
-        }
         NSMutableArray *out = [NSMutableArray arrayWithCapacity:colors.count];
         for (id c in colors){
             CGColorRef cg = (__bridge CGColorRef)c;
@@ -4329,13 +4362,6 @@ static void ADDarkenRelatedInterestsNearText6179(UIView *anchor, NSString *text)
         return;
     }
     @try {
-        CALayer *layer6177 = (CALayer *)(id)self;
-        if (ADIsInterestsGradient6177(layer6177)) {
-            layer6177.backgroundColor=[UIColor clearColor].CGColor;
-            NSArray *clear6177=ADTransparentGradientColors6177(layer6177,colors);
-            %orig(clear6177);
-            return;
-        }
         NSMutableArray *out = [NSMutableArray arrayWithCapacity:colors.count];
         for (id c in colors){
             if ([c isKindOfClass:[UIColor class]]){
@@ -6384,6 +6410,11 @@ static void ADClaimStatusBarFor(Class c){
             for (UIViewController *ch in self.childViewControllers)
                 ADClaimStatusBarFor(object_getClass(ch));
             ADReapplyBurst(self.view);
+            // Probe-only: passive DOM identification. No styles or page state are changed.
+            __weak UIView *adProbeRoot6177=self.view;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,450*1000000LL),dispatch_get_main_queue(),^{
+                @try { UIView *r=adProbeRoot6177; if(r&&r.window) ADProbeWebTree6177(r,@"viewDidAppear+450ms"); } @catch(...) {}
+            });
         }
     } @catch(...) {}
 }
@@ -6520,6 +6551,7 @@ static void ADAppForegrounded(CFNotificationCenterRef center, void *observer,
 // ─── %ctor : process guard + hook registration + bounded startup recovery ────
 %ctor {
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
+    ADInterestsProbeReset6177();
     // v5.446 direct-port: drop cached light launch snapshots.
     @try {
         NSString *lib = [NSSearchPathForDirectoriesInDomains(
