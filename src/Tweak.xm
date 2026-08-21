@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.180-probe"
+#define AD_VERSION "v6.0.181-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -3493,6 +3493,7 @@ static BOOL ADBuyAgainContext6180(UIView *v);
 static BOOL ADLayerInsideBuyAgain6180(CALayer *layer);
 static void ADInstallBuyAgainRaster6180(UIView *v);
 static void ADBuyAgainBorderLayout6180(id obj);
+static void ADBuyAgainSemanticRepair6181(UIView *anchor, NSString *text);
 static void ADPersonProductBorderLayout6163(id obj); // historical v6.0.163 fallback
 
 static UIColor *ADNeutralBorderGray6147(void){
@@ -3838,6 +3839,7 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     if(!ADRecolorOn() || !v || !v.window) return;
     @try {
         NSString *t=ADWTViewText362(v);
+        ADBuyAgainSemanticRepair6181(v,t);
         BOOL dummy=NO;
         if(ADPersonBorderPhrase6147(t,&dummy))
             ADClaimPersonBorder6147(v,t);
@@ -3871,6 +3873,7 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         %orig(r);
         ADClaimPersonBorderDeferred6147(self,attributedText.string);
+        ADBuyAgainSemanticRepair6181(self,attributedText.string);
         return;
     } @catch(...) {}
     %orig;
@@ -3880,6 +3883,7 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
         NSAttributedString *r = ADRecolorAttributedString(attributedString);
         %orig(r);
         ADClaimPersonBorderDeferred6147(self,attributedString.string);
+        ADBuyAgainSemanticRepair6181(self,attributedString.string);
         return;
     } @catch(...) {}
     %orig;
@@ -3912,7 +3916,10 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
         }
     } @catch(...) {}
     %orig;
-    @try { ADClaimPersonBorderDeferred6147(self,adBorderText6147); } @catch(...) {}
+    @try {
+        ADClaimPersonBorderDeferred6147(self,adBorderText6147);
+        ADBuyAgainSemanticRepair6181(self,adBorderText6147);
+    } @catch(...) {}
 }
 - (void)layoutSubviews {
     %orig;
@@ -3930,6 +3937,7 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     @try {
         NSAttributedString *r = ADRecolorAttributedString(attributedText);
         %orig(r);
+        ADBuyAgainSemanticRepair6181(self,attributedText.string);
         return;
     } @catch(...) {}
     %orig;
@@ -4000,6 +4008,19 @@ static void ADPersonBorderLayoutRecovery6149(id obj){
     %orig;
 }
 - (void)setContents:(id)contents {
+    // v6.0.181: once the probe-proven Buy Again raster host is claimed, never
+    // allow React to restore its original 51x51 white border plate. The semantic
+    // hydration repair below owns the claim; this is only the steady-state guard.
+    @try {
+        if(ADRecolorOn() && objc_getAssociatedObject(self,kADBuyAgainRaster6180)){
+            id d=self.delegate;
+            UIView *rv=(d && [d isKindOfClass:[UIView class]]) ? (UIView *)d : nil;
+            %orig(nil);
+            if(rv && ADBuyAgainCardGeometry6180(rv)) ADInstallBuyAgainRaster6180(rv);
+            return;
+        }
+    } @catch(...) {}
+
     // v6.0.180: current Buy Again's 286x416 card border is a 51x51 stretchable
     // React raster. Suppress the exact plate at assignment time once the local
     // carousel is positively identified, so RN cannot repaint it after layout.
@@ -4910,7 +4931,7 @@ static void ADInstallBuyAgainRaster6180(UIView *v){
     if(!v || !ADBuyAgainCardGeometry6180(v)) return;
     @try {
         [CATransaction begin]; [CATransaction setDisableActions:YES];
-        v.layer.contents=nil;
+        if(v.layer.contents) v.layer.contents=nil;
         v.layer.borderWidth=0.0;
         objc_setAssociatedObject(v,kADBuyAgainRaster6180,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(v.layer,kADBuyAgainRaster6180,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -4944,6 +4965,49 @@ static void ADBuyAgainBorderLayout6180(id obj){
         if(!inBuyAgain){ if(owned) ADClearBuyAgainRaster6180(v); return; }
         if(owned){ ADInstallBuyAgainRaster6180(v); return; }
         if(ADBuyAgainSmallPlate6180(v.layer.contents)) ADInstallBuyAgainRaster6180(v);
+    } @catch(...) {}
+}
+
+// v6.0.181 — the 6.0.180 probe proved the remaining white outline is the
+// 51x51 stretchable CGImage on the 286x416 RCTView itself. Capture showed
+// ba=1 + contents=CGImage:51x51 while marked/outline were both still zero. That
+// means the renderer was identified correctly, but layout/setContents ran before
+// the Buy Again semantic text had hydrated and there was no later ownership event.
+// Reuse the already-existing React text setters as that event: when "Reorder soon"
+// or "Buy Again" arrives, walk only its ancestor chain and claim the exact raster
+// host. One main-queue retry covers the setter-before-parenting ordering without a
+// timer, observer, hierarchy scan, or recurring recovery lane.
+static BOOL ADBuyAgainSemanticText6181(NSString *text){
+    if(!text.length) return NO;
+    NSString *lo=text.lowercaseString;
+    return [lo containsString:@"reorder soon"] || [lo isEqualToString:@"buy again"] ||
+           [lo hasPrefix:@"buy again "];
+}
+static UIView *ADBuyAgainRasterAncestor6181(UIView *anchor){
+    if(!anchor) return nil;
+    @try {
+        UIView *p=anchor; int up=0;
+        while(p && up++<18){
+            if(ADBuyAgainCardGeometry6180(p) &&
+               (objc_getAssociatedObject(p,kADBuyAgainRaster6180) || ADBuyAgainSmallPlate6180(p.layer.contents)) &&
+               ADBuyAgainContext6180(p)) return p;
+            p=p.superview;
+        }
+    } @catch(...) {}
+    return nil;
+}
+static void ADBuyAgainSemanticRepair6181(UIView *anchor, NSString *text){
+    if(!ADRecolorOn() || !anchor || !ADBuyAgainSemanticText6181(text)) return;
+    @try {
+        UIView *host=ADBuyAgainRasterAncestor6181(anchor);
+        if(host){ ADInstallBuyAgainRaster6180(host); return; }
+        __weak UIView *weakAnchor=anchor;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            UIView *a=weakAnchor;
+            if(!a || !ADRecolorOn()) return;
+            UIView *h=ADBuyAgainRasterAncestor6181(a);
+            if(h) ADInstallBuyAgainRaster6180(h);
+        });
     } @catch(...) {}
 }
 

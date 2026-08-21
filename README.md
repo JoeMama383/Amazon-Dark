@@ -1,4 +1,4 @@
-# AmazonDark v6.0.180~probe — Buy Again regression recovery
+# AmazonDark v6.0.181~probe — Buy Again raster-border hydration recovery
 
 Built from v6.0.179. Retains the confirmed Cart foreground, PDP Shop-by-brand, and Related Interests fixes.
 
@@ -175,3 +175,11 @@ No new MutationObserver, scroll listener, interval, requestAnimationFrame loop, 
 3. Return to Amazon and open a product/search submenu containing the standalone sponsored ad whose photo-only taming is correct.
 4. Background Amazon again.
 5. On launch the probe first attempts the requested shared Documents path. If iOS rejects that cross-container write, it automatically falls back to Amazon's own Documents directory and records the primary-write error in the file header. Use the one-line NewTerm copy command from ChatGPT to copy the fallback file into the requested shared Documents folder.
+
+## v6.0.181 probe-proven border correction
+
+- The 6.0.180 capture proved the visible white Buy Again / Reorder-soon outline is the 51x51 stretchable CGImage on the 286x416 RCTView.
+- 6.0.180 had the correct painter but missed its timing: capture showed `ba=1`, `contents=CGImage:51x51`, `marked=0`, `outline=0`.
+- 6.0.181 claims that exact host when the existing React text lifecycle hydrates `Reorder soon` / `Buy Again`, clears the white plate, and installs the established #494D4D outline.
+- A claimed host now rejects later `setContents:` attempts that would restore the white plate.
+- The Buy Again probe remains present so a background capture can verify `marked=1` and `outline=1` if the border still misbehaves.
