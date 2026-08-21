@@ -1,6 +1,6 @@
-## v6.0.172~probe — verify optimized PDP repair
+## v6.0.173 — reduce remaining PDP local-repair layout churn
 
-Diagnostic-only build on v6.0.171. Records Dark Reader, fallback contrast, idle queue, full-repair gate, wake/reapply timing, navigation and slow resources. No production theming behavior is intentionally changed.
+Built directly from v6.0.171 production after the v6.0.172 probe confirmed that the full-page/warm-wake fix worked. The remaining AmazonDark-side stall was one mutation-local PDP repair taking ~634 ms. This release preserves the 1400/360/120 repair budgets and all theming decisions, but removes redundant work inside each pass: geometry is cached for the duration of one repair, ancestor background luminance is cached and reuses the already-read current computed style, Sponsor ancestry is cached per candidate, and the Sponsor glyph path rejects non-glyph geometry before doing semantic ancestor/text walks. No persistent cache, observer, timer, scroll listener, RAF, reload or WebKit cache manipulation is added.
 
 ## v6.0.171 — eliminate redundant PDP full-page repair
 

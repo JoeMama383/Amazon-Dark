@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.172-probe"
+#define AD_VERSION "v6.0.173"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1188,8 +1188,12 @@ static NSString *ADDarkReaderBootstrap(void){
            "function lum(c){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\)/.exec(c);"
              "if(!m)return null;var a=m[4]===undefined?1:parseFloat(m[4]);if(a<0.1)return null;"
              "return 0.2126*ch(+m[1])+0.7152*ch(+m[2])+0.0722*ch(+m[3]);}"
-           "function bgOf(e){while(e){var l=lum(getComputedStyle(e).backgroundColor);"
-             "if(l!==null)return l;e=e.parentElement;}return 0.02;}"
+           // v6.0.173: pass-local geometry/background caches. FIXCONTRAST revisits the
+           // same nodes repeatedly through glyph, gradient, border and text gates; cache only
+           // values that cannot change meaningfully during this pass. No persistent DOM state.
+           "var rectCache6173=new WeakMap(),bgCache6173=new WeakMap(),spCache6173=new WeakMap();"
+           "function rect6173(e){try{var r=rectCache6173.get(e);if(r)return r;r=rect6173(e);rectCache6173.set(e,r);return r;}catch(x){return rect6173(e);}}"
+           "function bgOf(e,first){while(e){if(bgCache6173.has(e)){var c=bgCache6173.get(e);if(c!==null)return c;e=e.parentElement;first=null;continue;}var l=lum(first?first.backgroundColor:getComputedStyle(e).backgroundColor);bgCache6173.set(e,l);if(l!==null)return l;e=e.parentElement;first=null;}return 0.02;}"
            // Darkening blend modes are destructive on a dark theme: multiply/darken/
            // color-burn all SUBTRACT light, so against a dark backdrop they crush the
            // element toward black. That is what veiled the home tiles (fixed in v5.8.0
@@ -1246,7 +1250,7 @@ static NSString *ADDarkReaderBootstrap(void){
              "if(e.closest('.s-pc-certification-faceout,.s-pc-faceout-container,[data-cy=s-pc-faceout-badge]'))return true;"
              "if(e.closest('button,[role=button],input,[class*=a-checkbox],[class*=a-icon-checkbox],[class*=puis-heart-position],[class*=lists-framework-action-button],[class*=mlt-icon-container],[data-action]'))return false;"
              "if(!r||r.width<8||r.height<8||r.width>48||r.height>48)return false;"
-             "var p=e.parentElement,d=0;while(p&&d++<4){var pr=p.getBoundingClientRect();"
+             "var p=e.parentElement,d=0;while(p&&d++<4){var pr=rect6173(p);"
                "var tx=String(p.textContent||'').replace(/\\s+/g,' ').trim();"
                "if(tx.length>=3&&tx.length<=180&&pr.height>0&&pr.height<=64&&pr.width>=r.width*1.8)return true;"
                "if(p.matches&&p.matches(PRODUCTCTX6090))break;p=p.parentElement;}"
@@ -1292,12 +1296,12 @@ static NSString *ADDarkReaderBootstrap(void){
              "function neutral6078(v){var m=/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/.exec(String(v||''));if(!m)return false;var mx=Math.max(+m[1],+m[2],+m[3]),mn=Math.min(+m[1],+m[2],+m[3]);return (mx-mn)<48;}"
              "var cs=getComputedStyle(e),cl=lum(cs.color),fc=String(cs.webkitTextFillColor||''),fl=lum(fc);"
              "if(!((cl!==null&&cl<0.48&&neutral6078(cs.color))||(fl!==null&&fl<0.48&&neutral6078(fc))))return 0;"
-             "var bl=bgOf(e);if(bl===null||bl>0.35)return 0;"
-             "var p=e,card=null,d=0;while(p&&d++<7){var r=p.getBoundingClientRect();if(r.width>=120&&r.width<=540&&r.height>=120&&r.height<=760&&p.querySelector){"
+             "var bl=bgOf(e,cs);if(bl===null||bl>0.35)return 0;"
+             "var p=e,card=null,d=0;while(p&&d++<7){var r=rect6173(p);if(r.width>=120&&r.width<=540&&r.height>=120&&r.height<=760&&p.querySelector){"
                "var ph=null,im=null;try{ph=p.querySelector('a[href*=\"/dp/\"],a[href*=\"/gp/product/\"],[data-asin]');im=p.querySelector('img,picture');}catch(z){}"
                "if(ph&&im){card=p;break;}}p=p.parentElement;}if(!card)return 0;"
-             "var er=e.getBoundingClientRect(),imgs=card.getElementsByTagName?card.getElementsByTagName('img'):[],saw=0;"
-             "for(var j=0;j<imgs.length&&j<10;j++){var ir=imgs[j].getBoundingClientRect();if(ir.width<70||ir.height<70)continue;saw++;var ow=Math.min(er.right,ir.right)-Math.max(er.left,ir.left),oh=Math.min(er.bottom,ir.bottom)-Math.max(er.top,ir.top);if(ow>0&&oh>0&&((ow*oh)/Math.max(1,er.width*er.height))>0.18)return 0;}"
+             "var er=rect6173(e),imgs=card.getElementsByTagName?card.getElementsByTagName('img'):[],saw=0;"
+             "for(var j=0;j<imgs.length&&j<10;j++){var ir=rect6173(imgs[j]);if(ir.width<70||ir.height<70)continue;saw++;var ow=Math.min(er.right,ir.right)-Math.max(er.left,ir.left),oh=Math.min(er.bottom,ir.bottom)-Math.max(er.top,ir.top);if(ow>0&&oh>0&&((ow*oh)/Math.max(1,er.width*er.height))>0.18)return 0;}"
              "if(!saw)return 0;var a=e,ad=0;while(a&&a!==card.parentElement&&ad++<6){var bi=String(getComputedStyle(a).backgroundImage||'none');if(bi.indexOf('url(')>=0)return 0;a=a.parentElement;}"
              "e.style.setProperty('color',FG,'important');e.style.setProperty('-webkit-text-fill-color',FG,'important');e.setAttribute('data-ad-productink6078','1');return 1;"
            "}catch(x){return 0;}}"
@@ -1307,7 +1311,7 @@ static NSString *ADDarkReaderBootstrap(void){
            // no new observer or document scan. This also works inside child frames because
            // the bootstrap is injected forMainFrameOnly:NO.
            "function adCartCreditText6143(e){try{if(!e||e.nodeType!==1)return false;var t=String(e.textContent||'').replace(/\\s+/g,' ').trim();if(t.length<18||t.length>420)return false;return /pay for this order/i.test(t)&&(/[$]?50\\s*off/i.test(t)||/upon approval/i.test(t)||/amazon visa/i.test(t));}catch(x){return false;}}"
-           "function adCartCredit6143(e){try{if(!adCartCreditText6143(e))return 0;var vw=innerWidth||390,p=e,best=null,d=0;while(p&&d++<7){var r=p.getBoundingClientRect();if(r.width>=vw*.72&&r.height>=44&&r.height<=190){best=p;if(r.width>=vw*.90)break;}p=p.parentElement;}if(!best)return 0;if(best.getAttribute('data-ad-cartcredit6143')==='1')return 1;best.setAttribute('data-ad-cartcredit6143','1');best.style.setProperty('background-color',BG,'important');best.style.setProperty('background-image','none','important');best.style.setProperty('box-shadow','none','important');best.style.setProperty('border-color','transparent','important');var Q=best.querySelectorAll?best.querySelectorAll('div,section,article,span,p,a,strong,b,em,small,h1,h2,h3,h4,h5,h6'):[];for(var ci=0;ci<Q.length&&ci<96;ci++){var q=Q[ci],tg=String(q.tagName||'').toUpperCase(),qr=q.getBoundingClientRect(),qs=getComputedStyle(q);if(/^(?:DIV|SECTION|ARTICLE)$/.test(tg)){var ql=lum(qs.backgroundColor);if((ql!==null&&ql>.50)||(qr.width>=best.getBoundingClientRect().width*.55&&qr.height>=18)){q.style.setProperty('background-color','transparent','important');if(String(qs.backgroundImage||'none').indexOf('url(')<0)q.style.setProperty('background-image','none','important');q.style.setProperty('box-shadow','none','important');}}var own='';for(var cj=0;cj<q.childNodes.length&&cj<12;cj++){var cn=q.childNodes[cj];if(cn.nodeType===3)own+=String(cn.nodeValue||'');}if(own.replace(/\\s+/g,' ').trim()){q.style.setProperty('color',FG,'important');q.style.setProperty('-webkit-text-fill-color',FG,'important');q.style.setProperty('opacity','1','important');}}return 1;}catch(x){return 0;}}"
+           "function adCartCredit6143(e){try{if(!adCartCreditText6143(e))return 0;var vw=innerWidth||390,p=e,best=null,d=0;while(p&&d++<7){var r=rect6173(p);if(r.width>=vw*.72&&r.height>=44&&r.height<=190){best=p;if(r.width>=vw*.90)break;}p=p.parentElement;}if(!best)return 0;if(best.getAttribute('data-ad-cartcredit6143')==='1')return 1;best.setAttribute('data-ad-cartcredit6143','1');best.style.setProperty('background-color',BG,'important');best.style.setProperty('background-image','none','important');best.style.setProperty('box-shadow','none','important');best.style.setProperty('border-color','transparent','important');var Q=best.querySelectorAll?best.querySelectorAll('div,section,article,span,p,a,strong,b,em,small,h1,h2,h3,h4,h5,h6'):[];for(var ci=0;ci<Q.length&&ci<96;ci++){var q=Q[ci],tg=String(q.tagName||'').toUpperCase(),qr=rect6173(q),qs=getComputedStyle(q);if(/^(?:DIV|SECTION|ARTICLE)$/.test(tg)){var ql=lum(qs.backgroundColor);if((ql!==null&&ql>.50)||(qr.width>=rect6173(best).width*.55&&qr.height>=18)){q.style.setProperty('background-color','transparent','important');if(String(qs.backgroundImage||'none').indexOf('url(')<0)q.style.setProperty('background-image','none','important');q.style.setProperty('box-shadow','none','important');}}var own='';for(var cj=0;cj<q.childNodes.length&&cj<12;cj++){var cn=q.childNodes[cj];if(cn.nodeType===3)own+=String(cn.nodeValue||'');}if(own.replace(/\\s+/g,' ').trim()){q.style.setProperty('color',FG,'important');q.style.setProperty('-webkit-text-fill-color',FG,'important');q.style.setProperty('opacity','1','important');}}return 1;}catch(x){return 0;}}"
            // v6.0.144: /ap/signin footer-strip repair. The 6143 capture showed this
            // screen is a single top-level WKWebView; the odd light/gray gradient sits
            // behind the footer link group ("Conditions of Use", "Privacy Notice",
@@ -1315,18 +1319,18 @@ static NSString *ADDarkReaderBootstrap(void){
            // and collapse its structural/pseudo backgrounds to the configured page BG.
            // Link ink, copyright text, form controls, and the rest of sign-in are untouched.
            "function adSigninFooterText6144(e){try{if(!e||e.nodeType!==1)return false;var p=String(location.pathname||'').toLowerCase();if(p.indexOf('/ap/signin')!==0)return false;var t=String(e.textContent||'').replace(/\\s+/g,' ').trim();if(t.length<24||t.length>180)return false;if(/welcome to amazon|enter mobile number or email/i.test(t))return false;return /conditions of use/i.test(t)&&/privacy notice/i.test(t)&&/(?:^|\\s)help(?:\\s|$)/i.test(t);}catch(x){return false;}}"
-           "function adSigninFooter6144(e){try{if(!adSigninFooterText6144(e))return 0;var vw=innerWidth||390,p=e,best=null,d=0;while(p&&d++<6){var r=p.getBoundingClientRect();if(r.width>=vw*.72&&r.height>=18&&r.height<=170)best=p;else if(best&&r.height>170)break;p=p.parentElement;}if(!best)return 0;if(best.getAttribute('data-ad-signinfooter6144')==='1')return 1;best.setAttribute('data-ad-signinfooter6144','1');var sid='ad-signinfooter6144-style',st=document.getElementById(sid);if(!st){st=document.createElement('style');st.id=sid;st.textContent='[data-ad-signinfooter6144],[data-ad-signinfooter6144]::before,[data-ad-signinfooter6144]::after{background-color:'+BG+'!important;background-image:none!important;box-shadow:none!important;}[data-ad-signinfooter6144] div,[data-ad-signinfooter6144] section,[data-ad-signinfooter6144] footer,[data-ad-signinfooter6144] aside,[data-ad-signinfooter6144] nav,[data-ad-signinfooter6144] ul,[data-ad-signinfooter6144] li,[data-ad-signinfooter6144] table,[data-ad-signinfooter6144] tbody,[data-ad-signinfooter6144] tr,[data-ad-signinfooter6144] td{background-color:transparent!important;background-image:none!important;box-shadow:none!important;}[data-ad-signinfooter6144] div::before,[data-ad-signinfooter6144] div::after,[data-ad-signinfooter6144] section::before,[data-ad-signinfooter6144] section::after,[data-ad-signinfooter6144] footer::before,[data-ad-signinfooter6144] footer::after,[data-ad-signinfooter6144] aside::before,[data-ad-signinfooter6144] aside::after,[data-ad-signinfooter6144] nav::before,[data-ad-signinfooter6144] nav::after,[data-ad-signinfooter6144] li::before,[data-ad-signinfooter6144] li::after{background-color:transparent!important;background-image:none!important;box-shadow:none!important;}';(document.head||document.documentElement).appendChild(st);}best.style.setProperty('background-color',BG,'important');best.style.setProperty('background-image','none','important');best.style.setProperty('box-shadow','none','important');var Q=best.querySelectorAll?best.querySelectorAll('div,section,footer,aside,nav,ul,li,table,tbody,tr,td'):[];for(var fi=0;fi<Q.length&&fi<80;fi++){Q[fi].style.setProperty('background-color','transparent','important');Q[fi].style.setProperty('background-image','none','important');Q[fi].style.setProperty('box-shadow','none','important');}return 1;}catch(x){return 0;}}"
+           "function adSigninFooter6144(e){try{if(!adSigninFooterText6144(e))return 0;var vw=innerWidth||390,p=e,best=null,d=0;while(p&&d++<6){var r=rect6173(p);if(r.width>=vw*.72&&r.height>=18&&r.height<=170)best=p;else if(best&&r.height>170)break;p=p.parentElement;}if(!best)return 0;if(best.getAttribute('data-ad-signinfooter6144')==='1')return 1;best.setAttribute('data-ad-signinfooter6144','1');var sid='ad-signinfooter6144-style',st=document.getElementById(sid);if(!st){st=document.createElement('style');st.id=sid;st.textContent='[data-ad-signinfooter6144],[data-ad-signinfooter6144]::before,[data-ad-signinfooter6144]::after{background-color:'+BG+'!important;background-image:none!important;box-shadow:none!important;}[data-ad-signinfooter6144] div,[data-ad-signinfooter6144] section,[data-ad-signinfooter6144] footer,[data-ad-signinfooter6144] aside,[data-ad-signinfooter6144] nav,[data-ad-signinfooter6144] ul,[data-ad-signinfooter6144] li,[data-ad-signinfooter6144] table,[data-ad-signinfooter6144] tbody,[data-ad-signinfooter6144] tr,[data-ad-signinfooter6144] td{background-color:transparent!important;background-image:none!important;box-shadow:none!important;}[data-ad-signinfooter6144] div::before,[data-ad-signinfooter6144] div::after,[data-ad-signinfooter6144] section::before,[data-ad-signinfooter6144] section::after,[data-ad-signinfooter6144] footer::before,[data-ad-signinfooter6144] footer::after,[data-ad-signinfooter6144] aside::before,[data-ad-signinfooter6144] aside::after,[data-ad-signinfooter6144] nav::before,[data-ad-signinfooter6144] nav::after,[data-ad-signinfooter6144] li::before,[data-ad-signinfooter6144] li::after{background-color:transparent!important;background-image:none!important;box-shadow:none!important;}';(document.head||document.documentElement).appendChild(st);}best.style.setProperty('background-color',BG,'important');best.style.setProperty('background-image','none','important');best.style.setProperty('box-shadow','none','important');var Q=best.querySelectorAll?best.querySelectorAll('div,section,footer,aside,nav,ul,li,table,tbody,tr,td'):[];for(var fi=0;fi<Q.length&&fi<80;fi++){Q[fi].style.setProperty('background-color','transparent','important');Q[fi].style.setProperty('background-image','none','important');Q[fi].style.setProperty('box-shadow','none','important');}return 1;}catch(x){return 0;}}"
            // v6.0.138: semantic Sponsored bridge. This reuses the existing bounded
            // contrast traversal instead of adding another document scan. It also
            // identifies Sponsor ancestry so generic glyph whitening cannot repaint
            // Amazon's stock info artwork.
            "function adSponsorText6138(e){try{if(!e||!e.childNodes)return false;var t='';for(var si=0;si<e.childNodes.length&&si<12;si++){var sn=e.childNodes[si];if(sn.nodeType===3)t+=' '+String(sn.nodeValue||'');}t=t.replace(/\s+/g,' ').trim();return /^sponsored(?: ad)?$/i.test(t);}catch(x){return false;}}"
-           "function adSponsorCtx6138(e){try{var p=e,d=0;while(p&&d++<4){var c=p.className;if(c&&c.baseVal!==undefined)c=c.baseVal;var z=(String(c||'')+' '+String(p.id||'')).toLowerCase();if(/sponsor|ad-feedback|adfeedback|ape-feedback/.test(z)||adSponsorText6138(p))return true;var tx=String(p.textContent||'').replace(/\s+/g,' ').trim();if(tx.length<=120&&/\bsponsored(?: ad)?\b/i.test(tx))return true;p=p.parentElement;}return false;}catch(x){return false;}}"
+           "function adSponsorCtx6138(e){try{if(!e)return false;if(spCache6173.has(e))return spCache6173.get(e);var p=e,d=0,hit=false;while(p&&d++<4){var c=p.className;if(c&&c.baseVal!==undefined)c=c.baseVal;var z=(String(c||'')+' '+String(p.id||'')).toLowerCase();if(/sponsor|ad-feedback|adfeedback|ape-feedback/.test(z)||adSponsorText6138(p)){hit=true;break;}var tx=String(p.textContent||'').replace(/\s+/g,' ').trim();if(tx.length<=120&&/\bsponsored(?: ad)?\b/i.test(tx)){hit=true;break;}p=p.parentElement;}spCache6173.set(e,hit);return hit;}catch(x){return false;}}"
            // v6.0.152: the semantic bridge now owns bitmap-backed info badges too.
            // Several Home ad-card templates expose the 11/12px info icon only as an
            // anonymous background-image/IMG sprite; preserving that stock bitmap is why
            // those badges stayed dark while the adjacent Sponsored label was #b1aaa0.
-           "function adSponsorGlyph6138(e){try{if(!e||e.nodeType!==1||adSponsorText6138(e)||!adSponsorCtx6138(e))return false;var r=e.getBoundingClientRect();if(r.width<5||r.height<5||r.width>30||r.height>30)return false;var cs=getComputedStyle(e),c=e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;var z=(String(c||'')+' '+String(e.id||'')+' '+String((e.getAttribute&&e.getAttribute('aria-label'))||'')+' '+String((e.getAttribute&&e.getAttribute('title'))||'')).toLowerCase(),tg=String(e.tagName||'').toUpperCase(),bi=String(cs.backgroundImage||'none'),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),pb=null,pa=null,pc=false;try{pb=getComputedStyle(e,'::before');pa=getComputedStyle(e,'::after');pc=(pb&&pb.content&&pb.content!=='none'&&pb.content!=='normal')||(pa&&pa.content&&pa.content!=='none'&&pa.content!=='normal');}catch(q){}var known=/ad-feedback-spr|feedback.*(?:spr|icon)|(?:sponsor|info).*icon|icon.*info/.test(z),vector=(tg==='SVG'||tg==='PATH'||(e.namespaceURI==='http://www.w3.org/2000/svg'));if(!known&&!vector&&mi==='none'&&bi==='none'&&!pc)return false;e.setAttribute('data-ad-sponsorglyph6138','1');e.style.setProperty('opacity','1','important');e.style.setProperty('visibility','visible','important');e.style.setProperty('mix-blend-mode','normal','important');e.style.setProperty('filter','none','important');if(tg==='IMG'){try{e.setAttribute('src','data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjUuMjUiIGZpbGw9IiNiMWFhYTAiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy41NSIgcj0iLjcyIiBmaWxsPSIjMTMxNTE2Ii8+PHJlY3QgeD0iNS40MiIgeT0iNS4wNSIgd2lkdGg9IjEuMTYiIGhlaWdodD0iMy42NSIgcng9Ii41OCIgZmlsbD0iIzEzMTUxNiIvPjwvc3ZnPg==');}catch(q){}e.style.setProperty('background-color','transparent','important');e.style.setProperty('object-fit','contain','important');}else if(mi!=='none'){e.style.setProperty('background-color','#b1aaa0','important');}else if(vector){e.style.setProperty('color','#b1aaa0','important');e.style.setProperty('fill','#b1aaa0','important');e.style.setProperty('stroke','#b1aaa0','important');}else if(bi!=='none'||pc||known){e.style.setProperty('color','#b1aaa0','important');e.style.setProperty('background-color','transparent','important');e.style.setProperty('background-image','url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjUuMjUiIGZpbGw9IiNiMWFhYTAiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy41NSIgcj0iLjcyIiBmaWxsPSIjMTMxNTE2Ii8+PHJlY3QgeD0iNS40MiIgeT0iNS4wNSIgd2lkdGg9IjEuMTYiIGhlaWdodD0iMy42NSIgcng9Ii41OCIgZmlsbD0iIzEzMTUxNiIvPjwvc3ZnPg==)','important');e.style.setProperty('background-repeat','no-repeat','important');e.style.setProperty('background-position','center','important');e.style.setProperty('background-size','contain','important');}else{e.style.setProperty('color','#b1aaa0','important');e.style.setProperty('-webkit-text-fill-color','#b1aaa0','important');}return true;}catch(x){return false;}}"
+           "function adSponsorGlyph6138(e){try{if(!e||e.nodeType!==1||adSponsorText6138(e))return false;var r=rect6173(e);if(r.width<5||r.height<5||r.width>30||r.height>30)return false;if(!adSponsorCtx6138(e))return false;var cs=getComputedStyle(e),c=e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;var z=(String(c||'')+' '+String(e.id||'')+' '+String((e.getAttribute&&e.getAttribute('aria-label'))||'')+' '+String((e.getAttribute&&e.getAttribute('title'))||'')).toLowerCase(),tg=String(e.tagName||'').toUpperCase(),bi=String(cs.backgroundImage||'none'),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),pb=null,pa=null,pc=false;try{pb=getComputedStyle(e,'::before');pa=getComputedStyle(e,'::after');pc=(pb&&pb.content&&pb.content!=='none'&&pb.content!=='normal')||(pa&&pa.content&&pa.content!=='none'&&pa.content!=='normal');}catch(q){}var known=/ad-feedback-spr|feedback.*(?:spr|icon)|(?:sponsor|info).*icon|icon.*info/.test(z),vector=(tg==='SVG'||tg==='PATH'||(e.namespaceURI==='http://www.w3.org/2000/svg'));if(!known&&!vector&&mi==='none'&&bi==='none'&&!pc)return false;e.setAttribute('data-ad-sponsorglyph6138','1');e.style.setProperty('opacity','1','important');e.style.setProperty('visibility','visible','important');e.style.setProperty('mix-blend-mode','normal','important');e.style.setProperty('filter','none','important');if(tg==='IMG'){try{e.setAttribute('src','data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjUuMjUiIGZpbGw9IiNiMWFhYTAiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy41NSIgcj0iLjcyIiBmaWxsPSIjMTMxNTE2Ii8+PHJlY3QgeD0iNS40MiIgeT0iNS4wNSIgd2lkdGg9IjEuMTYiIGhlaWdodD0iMy42NSIgcng9Ii41OCIgZmlsbD0iIzEzMTUxNiIvPjwvc3ZnPg==');}catch(q){}e.style.setProperty('background-color','transparent','important');e.style.setProperty('object-fit','contain','important');}else if(mi!=='none'){e.style.setProperty('background-color','#b1aaa0','important');}else if(vector){e.style.setProperty('color','#b1aaa0','important');e.style.setProperty('fill','#b1aaa0','important');e.style.setProperty('stroke','#b1aaa0','important');}else if(bi!=='none'||pc||known){e.style.setProperty('color','#b1aaa0','important');e.style.setProperty('background-color','transparent','important');e.style.setProperty('background-image','url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjUuMjUiIGZpbGw9IiNiMWFhYTAiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy41NSIgcj0iLjcyIiBmaWxsPSIjMTMxNTE2Ii8+PHJlY3QgeD0iNS40MiIgeT0iNS4wNSIgd2lkdGg9IjEuMTYiIGhlaWdodD0iMy42NSIgcng9Ii41OCIgZmlsbD0iIzEzMTUxNiIvPjwvc3ZnPg==)','important');e.style.setProperty('background-repeat','no-repeat','important');e.style.setProperty('background-position','center','important');e.style.setProperty('background-size','contain','important');}else{e.style.setProperty('color','#b1aaa0','important');e.style.setProperty('-webkit-text-fill-color','#b1aaa0','important');}return true;}catch(x){return false;}}"
            "for(var i=0;i<els.length;i++){var el=els[i];"
              "if(adSigninFooterText6144(el)){adSigninFooter6144(el);}"
              "if(adCartCreditText6143(el)){adCartCredit6143(el);}"
@@ -1339,7 +1343,7 @@ static NSString *ADDarkReaderBootstrap(void){
              // before the normal glyph gate runs again. This is O(1) and only does
              // geometry/ancestry work on elements already marked as a generic glyph.
              "try{if(el.__adGlyph&&/^gfix/.test(String(el.__adBy||''))&&String(el.tagName||'').toLowerCase()==='img'){"
-               "var hr6090=el.getBoundingClientRect();if(contentImg616(el,hr6090,cs)){el.style.removeProperty('filter');el.__adGlyph=0;el.__adBy='productBadge6094';}}}catch(h6090){}"
+               "var hr6090=rect6173(el);if(contentImg616(el,hr6090,cs)){el.style.removeProperty('filter');el.__adGlyph=0;el.__adBy='productBadge6094';}}}catch(h6090){}"
              // NO LIGHT PANELS. Anything still measuring light after Dark Reader has
              // run is a miss -- a gradient it could not parse, a shadow subtree, an
              // inline style it skipped. Correct by COMPUTED value so the mechanism
@@ -1354,7 +1358,7 @@ static NSString *ADDarkReaderBootstrap(void){
              // stops and only neutralise gradients that actually resolve light, so
              // decorative dark gradients are left alone.
              "if(lfix<300){var gbi=cs.backgroundImage||'';"
-               "if(gbi.indexOf('gradient')>=0){var g2=el.getBoundingClientRect();"
+               "if(gbi.indexOf('gradient')>=0){var g2=rect6173(el);"
                  "if(g2.width>120&&g2.height>60){var gmx=0,gm,gre=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/g;"
                    "while((gm=gre.exec(gbi))){var gl2=0.2126*ch(+gm[1])+0.7152*ch(+gm[2])+0.0722*ch(+gm[3]);"
                      "if(gl2>gmx)gmx=gl2;}"
@@ -1369,7 +1373,7 @@ static NSString *ADDarkReaderBootstrap(void){
              // which cannot work here: these come from m.media-amazon.com and would
              // taint a canvas. Inline !important outranks stylesheet !important, so
              // this wins over our own img{filter:none}.
-             "if(gfix<160&&!el.__adGlyph){try{var gr=el.getBoundingClientRect();"
+             "if(gfix<160&&!el.__adGlyph){try{var gr=rect6173(el);"
                "var cn2=el.className;if(cn2&&cn2.baseVal!==undefined)cn2=cn2.baseVal;"
                "cn2=(cn2||'').toString();"
                // textContent was the wrong test. Amazon's standard icon markup nests a
@@ -1403,7 +1407,7 @@ static NSString *ADDarkReaderBootstrap(void){
              // brand marks keep their palette.
              "if(el.namespaceURI==='http://www.w3.org/2000/svg'){"
                "if(el.tagName.toLowerCase()==='svg'&&gfix<160&&!el.__adGlyph){"
-                 "try{var sr3=el.getBoundingClientRect();"
+                 "try{var sr3=rect6173(el);"
                    "var sc3=el.className;if(sc3&&sc3.baseVal!==undefined)sc3=sc3.baseVal;sc3=(sc3||'').toString();"
                    "var slim=ICON.test(sc3)?44:40;"
                    "var SK2=/star|prime|logo|flag|swatch|thumb|sponsor|pill-image|product-image|photo|avatar|profile|author|reviewer|byline|merchant|seller|brand|store|headshot|user-image|customer/i;"
@@ -1435,7 +1439,7 @@ static NSString *ADDarkReaderBootstrap(void){
                "if(mi&&mi!=='none'&&n<400&&!adSponsorCtx6138(el)){var mbl=lum(cs.backgroundColor);"
                  "if(mbl!==null&&mbl<0.55){el.style.setProperty('background-color',FG,'important');n++;}}"
              "}catch(e){}"
-             "try{if(n<400&&!adSponsorCtx6138(el)){var g3=el.getBoundingClientRect();"
+             "try{if(n<400&&!adSponsorCtx6138(el)){var g3=rect6173(el);"
                "if(g3.width>5&&g3.width<=40&&g3.height>5&&g3.height<=40){"
                  "var bw2=parseFloat(cs.borderTopWidth)||parseFloat(cs.borderLeftWidth)||0;"
                  "if(bw2>=1.5){var bcl=lum(cs.borderTopColor||cs.borderLeftColor);"
@@ -1450,7 +1454,7 @@ static NSString *ADDarkReaderBootstrap(void){
                "if(nd.nodeType===3&&nd.nodeValue&&nd.nodeValue.trim()){t=true;break;}}"
              "if(!t)continue;"
              "var fl=lum(cs.color);if(fl===null)continue;"
-             "var bl=bgOf(el);var hi=Math.max(fl,bl)+0.05,lo=Math.min(fl,bl)+0.05;"
+             "var bl=bgOf(el,cs);var hi=Math.max(fl,bl)+0.05,lo=Math.min(fl,bl)+0.05;"
              "if(hi/lo<3.0){el.style.setProperty('color',FG,'important');n++;}}"
            // HEARTS. Two parts, kept separate so they cannot fight: darken the circle
            // (a light background on the element or a near ancestor) and lighten the
@@ -1470,7 +1474,7 @@ static NSString *ADDarkReaderBootstrap(void){
                // rule (the v5.27.0 approach that demonstrably worked) -- CSS survives
                // Amazon re-rendering the node, inline styles do not, which is where
                // every JS-era attempt actually died. Here: masks, then fill/color.
-               "var hrc=he.getBoundingClientRect();"
+               "var hrc=hrect6173(e);"
                "var isGlyph=(hrc.width>0&&hrc.width<=28&&hrc.height>0&&hrc.height<=28);"
                "var hmi=hcs.webkitMaskImage||hcs.maskImage;"
                "if(hmi&&hmi!=='none'&&isGlyph){he.style.setProperty('background-color',FG,'important');}"
@@ -1480,15 +1484,10 @@ static NSString *ADDarkReaderBootstrap(void){
              "}}catch(e){}"
            "var pr=\'\';"
            "return n+'/'+bfix+'/'+lfix+'/'+gfix+pr;}catch(e){return -1;}};"
-         // v6.0.172 probe: measure the optimized v6.0.171 PDP path without changing paint.
-         "window.__AD_PDP6172__=window.__AD_PDP6172__||{fix:[],dr:[],idle:[],reapply:0,full:[],wake:[]};"
-         "try{var P6172=window.__AD_PDP6172__;if(!P6172.fixWrapped&&window.__AMZDARK_FIXCONTRAST__){var F6172=window.__AMZDARK_FIXCONTRAST__;window.__AMZDARK_FIXCONTRAST__=function(root){var t=performance.now(),kind='local';try{if(!root||root===document||root===document.body||root===document.documentElement)kind='full';else kind=String(root.tagName||'')+'.'+String(root.className&&root.className.baseVal!==undefined?root.className.baseVal:(root.className||'')).slice(0,72);}catch(x){}var r=F6172(root),dt=performance.now()-t;P6172.fix.push([Math.round(performance.now()),Math.round(dt*10)/10,kind,String(r)]);if(P6172.fix.length>120)P6172.fix.shift();return r;};P6172.fixWrapped=1;}}catch(e){}"
-         "try{var P6172b=window.__AD_PDP6172__;if(!P6172b.drWrapped&&window.DarkReader&&DarkReader.enable){var D6172=DarkReader.enable;var W6172=function(){var t=performance.now();try{return D6172.apply(this,arguments);}finally{var dt=performance.now()-t;P6172b.dr.push([Math.round(performance.now()),Math.round(dt*10)/10]);if(P6172b.dr.length>40)P6172b.dr.shift();}};DarkReader.enable=W6172;P6172b.drWrapped=1;}}catch(e){}"
          // v6.0.56: keep Dark Reader + document-start CSS on the critical path, but
          // move fallback contrast/seasonal repair to browser idle time.  This protects
          // Amazon's hydration/network completion and the 8.3 ms ProMotion frame budget.
          "window.__AD_IDLE6056__=function(fn,to){try{if(window.requestIdleCallback)return requestIdleCallback(function(){try{fn();}catch(e){}},{timeout:to||240});return setTimeout(function(){try{fn();}catch(e){}},60);}catch(e){return setTimeout(fn,60);}};"
-         "try{var P6172c=window.__AD_PDP6172__;if(P6172c&&!P6172c.idleWrapped&&window.__AD_IDLE6056__){var I6172=window.__AD_IDLE6056__;window.__AD_IDLE6056__=function(fn,to){var st=performance.now();return I6172(function(){var w=performance.now()-st;P6172c.idle.push([Math.round(performance.now()),Math.round(w*10)/10,to||0]);if(P6172c.idle.length>120)P6172c.idle.shift();return fn();},to);};P6172c.idleWrapped=1;}}catch(e){}"
          // v6.0.171: one full fallback repair is enough for an already-themed document.
          // Lazy DOM additions are handled by the existing local observer below.  Keep a
          // single-flight state so the 0/120/420 ms native appearance burst cannot queue
@@ -1499,8 +1498,6 @@ static NSString *ADDarkReaderBootstrap(void){
          // Dark Reader sheet survived, the existing document stays untouched; if it
          // disappeared, APPLY performs the full recovery exactly as before.
          "window.__AMZDARK_WAKE6171__=function(){try{if(!document.querySelector('style.darkreader'))return window.__AMZDARK_APPLY__();return window.__AD_FIX_PRIMED6171__?'warm':window.__AD_FULLREPAIR6171__(false);}catch(e){return 'err';}};"
-         "try{var P6172d=window.__AD_PDP6172__;if(P6172d&&!P6172d.fullWrapped&&window.__AD_FULLREPAIR6171__){var FR6172=window.__AD_FULLREPAIR6171__;window.__AD_FULLREPAIR6171__=function(force){var t=performance.now(),r=FR6172(force),dt=performance.now()-t;P6172d.full.push([Math.round(performance.now()),Math.round(dt*10)/10,!!force,String(r)]);if(P6172d.full.length>60)P6172d.full.shift();return r;};P6172d.fullWrapped=1;}}catch(e){}"
-         "try{var P6172e=window.__AD_PDP6172__;if(P6172e&&!P6172e.wakeWrapped&&window.__AMZDARK_WAKE6171__){var WK6172=window.__AMZDARK_WAKE6171__;window.__AMZDARK_WAKE6171__=function(){var t=performance.now(),r=WK6172(),dt=performance.now()-t;P6172e.wake.push([Math.round(performance.now()),Math.round(dt*10)/10,String(r)]);if(P6172e.wake.length>60)P6172e.wake.shift();return r;};P6172e.wakeWrapped=1;}}catch(e){}"
          // v6.0.131 PROBE: v6.0.128 did not change either standalone-ad symptom,
          // so stop guessing at the shell/path.  Dump exact live Sponsored label,
          // info-glyph, ad-root, media, iframe and TWB ownership only when the app is
@@ -1516,8 +1513,7 @@ static NSString *ADDarkReaderBootstrap(void){
          "function sapMedia6129(root){var A=[];try{if(!root)return A;var Q=root.querySelectorAll?root.querySelectorAll('img,video,canvas,iframe,[data-ad-twb6033],[data-ad-twb-bg6033]'):[];for(var i=0;i<Q.length&&i<120&&A.length<36;i++){var e=Q[i],r=e.getBoundingClientRect();if(r.width<10||r.height<10)continue;A.push(sapN6129(e));}}catch(x){}return A;}"
          "function sapDump6129(){try{var out={url:String(location.href),top:(window.top===window),wh:[innerWidth||0,innerHeight||0],home:!!(document.documentElement&&document.documentElement.hasAttribute('data-ad-twb-home6033')),labels:[],frames:[],twb:[]};var W=document.createTreeWalker(document.body||document.documentElement,NodeFilter.SHOW_TEXT),nd,seen=0;while((nd=W.nextNode())&&seen++<9000&&out.labels.length<24){var t=String(nd.nodeValue||'').replace(/\\s+/g,' ').trim();if(!/^sponsored(?: ad)?$/i.test(t))continue;var e=nd.parentElement;if(!e)continue;var r=e.getBoundingClientRect();if(r.width<18||r.height<5||r.bottom<-80||r.top>(innerHeight||900)+120)continue;var root=sapRoot6129(e);out.labels.push({text:t,label:sapN6129(e),chain:sapChain6129(e,10),near:sapNear6129(e),root:root?sapN6129(root):null,media:sapMedia6129(root)});}var F=document.getElementsByTagName('iframe');for(var i=0;i<F.length&&out.frames.length<18;i++){var f=F[i],fr=f.getBoundingClientRect();if(fr.width<80||fr.height<24)continue;out.frames.push({frame:sapN6129(f),chain:sapChain6129(f,8)});}var T=document.getElementsByTagName?document.getElementsByTagName('*'):[];for(var j=0;j<T.length&&out.twb.length<50;j++){var z=T[j];if(!(z.hasAttribute&&((z.hasAttribute('data-ad-twb6033'))||(z.hasAttribute('data-ad-twb-bg6033')))))continue;var zr=z.getBoundingClientRect();if(zr.width<20||zr.height<20||zr.bottom<-100||zr.top>(innerHeight||900)+160)continue;out.twb.push(sapN6129(z));}window.__AD_STANDAD6129__.push(out);if(window.__AD_STANDAD6129__.length>8)window.__AD_STANDAD6129__.shift();return JSON.stringify(out);}catch(e){return 'ERR '+String(e);}}"
          "window.__AD_STANDAD6129_DUMP__=sapDump6129;"
-         "window.__AD_PDP6172_DUMP__=function(){try{var P=window.__AD_PDP6172__||{},nav=(performance.getEntriesByType&&performance.getEntriesByType('navigation')[0])||null,res=(performance.getEntriesByType&&performance.getEntriesByType('resource'))||[],slow=[];for(var i=0;i<res.length;i++){var x=res[i];slow.push({n:String(x.name||'').slice(-180),d:Math.round((x.duration||0)*10)/10,t:String(x.initiatorType||''),ts:x.transferSize||0});}slow.sort(function(a,b){return b.d-a.d;});if(slow.length>24)slow.length=24;var I=document.images||[],done=0;for(var j=0;j<I.length;j++)if(I[j].complete)done++;var review=0;try{review=document.querySelectorAll('[id*=review],[class*=review],[data-hook*=review]').length;}catch(x){}return JSON.stringify({url:String(location.href),title:String(document.title||'').slice(0,160),ready:document.readyState,hidden:document.hidden,y:Math.round(scrollY||0),h:Math.round((document.documentElement&&document.documentElement.scrollHeight)||0),dom:(document.getElementsByTagName?document.getElementsByTagName('*').length:0),img:[I.length,done],review:review,loaded:!!window.__AMZDARK_LOADED__,healed:!!window.__AMZDARK_HEALED__,dr:!!(window.DarkReader&&DarkReader.enable),twb:!!window.__AD_TWB6027_INSTALLED__,sym:!!window.__AD_SYM605_LOADED__,drStyle:(document.querySelectorAll?document.querySelectorAll('style.darkreader').length:0),primed:!!window.__AD_FIX_PRIMED6171__,pending:!!window.__AD_FIXFULL_PENDING6171__,p:P,nav:nav?{type:nav.type,domInteractive:Math.round(nav.domInteractive||0),dcl:Math.round(nav.domContentLoadedEventEnd||0),load:Math.round(nav.loadEventEnd||0),duration:Math.round(nav.duration||0),transferSize:nav.transferSize||0}:null,resCount:res.length,slow:slow});}catch(e){return 'ERR '+String(e);}};"
-         "window.__AD_FLASH6101_DUMP__=window.__AD_PDP6172_DUMP__;"
+         "window.__AD_FLASH6101_DUMP__=sapDump6129;"
          // Re-run fallback repair as lazy content arrives, but never synchronously in
          // the MutationObserver. v6.0.82 no longer discards native-ad descendants here:
          // __AMZDARK_FIXCONTRAST__ routes every such element through prodInk6078 and
@@ -1697,7 +1693,6 @@ static NSString *ADDarkReaderReapply(void){
     if (gADReapply613) return gADReapply613;
     gADReapply613 = [NSString stringWithFormat:
         @"(function(){try{"
-         "var __p6172=window.__AD_PDP6172__;if(__p6172){__p6172.reapply=(__p6172.reapply||0)+1;__p6172.lastReapply=performance.now();}"
          "if(!(window.DarkReader&&DarkReader.enable))return 'noDR';"
          "var had=!!document.querySelector('style.darkreader');"
          "if(!had){DarkReader.enable(%@,%@);window.__AD_FIX_PRIMED6171__=0;if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);if(window.__AD_FULLREPAIR6171__)return window.__AD_FULLREPAIR6171__(true);}"
@@ -2036,10 +2031,10 @@ static void ADInjectAllWebViews(void){
 // observer; backgrounding once after reproducing the flash simply dumps that buffer.
 static NSString *gADFlashProbePath6131 = nil;
 static NSString *ADFlashProbeRequestedPath6131(void){
-    return @"/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/AmazonDark-pdp-performance-probe-6172.txt";
+    return @"/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/AmazonDark-standalone-ad-probe-6131.txt";
 }
 static NSString *ADFlashProbeFallbackPath6131(void){
-    return [[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:@"AmazonDark-pdp-performance-probe-6172.txt"];
+    return [[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:@"AmazonDark-standalone-ad-probe-6131.txt"];
 }
 static NSString *ADFlashProbePath6101(void){
     return gADFlashProbePath6131 ?: ADFlashProbeFallbackPath6131();
@@ -2061,7 +2056,7 @@ static void ADResetFlashProbe6101(void){
     @try {
         NSString *requested=ADFlashProbeRequestedPath6131();
         NSString *fallback=ADFlashProbeFallbackPath6131();
-        NSString *base=[NSString stringWithFormat:@"AmazonDark PDP performance probe 6172\nversion=%s\npid=%d\nrequested=%@\n",AD_VERSION,getpid(),requested];
+        NSString *base=[NSString stringWithFormat:@"AmazonDark standalone-ad DOM/TWB probe 6131\nversion=%s\npid=%d\nrequested=%@\n",AD_VERSION,getpid(),requested];
         NSError *e=nil;
         BOOL ok=[base writeToFile:requested atomically:YES encoding:NSUTF8StringEncoding error:&e];
         if (ok){
