@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.177"
+#define AD_VERSION "v6.0.178"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -4232,9 +4232,10 @@ static void ADNeutralizeInterestsGradientNearText6177(UIView *anchor, NSString *
         return;
     }
     @try {
-        if (ADIsInterestsGradient6177(self)) {
-            self.backgroundColor=[UIColor clearColor].CGColor;
-            NSArray *clear6177=ADTransparentGradientColors6177(self,colors);
+        CALayer *layer6177 = (CALayer *)(id)self;
+        if (ADIsInterestsGradient6177(layer6177)) {
+            layer6177.backgroundColor=[UIColor clearColor].CGColor;
+            NSArray *clear6177=ADTransparentGradientColors6177(layer6177,colors);
             %orig(clear6177);
             return;
         }

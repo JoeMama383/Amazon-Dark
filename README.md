@@ -1,3 +1,10 @@
+## v6.0.178 — compile-safe Interests gradient fix
+
+- Built directly from v6.0.177; no functional rollback.
+- Keeps the PDP white-card and Person > Interests gradient fixes from v6.0.177.
+- Fixes the Objective-C++/Logos compile boundary for the forward-declared `BVLinearGradientLayer` by casting `self` once to its known `CALayer` runtime base before calling the shared v6.0.177 helpers or assigning `backgroundColor`.
+- No matching criteria, geometry gates, gradient colors, PDP selectors, TWB behavior, observers, timers, or performance paths were changed.
+
 ## v6.0.177 — PDP white-card + Interests gradient cleanup
 
 - Keeps v6.0.176 warm PDP detach/reattach retention and v6.0.175 WebKit lifecycle cleanup.
