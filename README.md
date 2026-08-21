@@ -1,12 +1,12 @@
-## v6.0.177~probe3 — restore v6.0.163 gray Person borders + identify Interests painter
+## v6.0.177 — restore gray Person borders and close remaining light-surface lifecycle gaps
 
-Built directly from the exact v6.0.176 production tree. None of the failed v6.0.177/178/179 visual patches are carried forward.
+Built directly from the exact v6.0.176 production tree. No probe/export code and none of the failed v6.0.177–v6.0.179 broad visual experiments are carried forward.
 
-- Pinpoints the border regression to v6.0.169: that performance branch intentionally restarted from v6.0.153, so the later v6.0.163 Person product-card CAShapeLayer border owner was lost.
-- Restores only the exact v6.0.163 border mechanism: card-sized React/Fabric panels in known Person product sections (Buy Again / Your Interests / Keep Shopping and related section semantics) convert bright neutral CALayer/CAShapeLayer outlines to the established #494D4D gray. No global border recolor is added.
-- Keeps v6.0.176 warm PDP detach/reattach behavior and all v6.0.175 cleanup unchanged.
-- Probe3 fixes probe2's native traversal bug and, for WebKit, no longer assumes the white Interests cards have a bright computed backgroundColor. It records every visible box-like DOM element with background-image, border, radius, shadow, mask, ::before/::after paint, ancestry, and truncated outerHTML.
-- Background Amazon once while the white Related Interests cards are visible. The report remains `AmazonDark-interests-box-probe-6177.txt` in Amazon's Documents folder; use the same one-line copy command to place it in the shared ChatGPT Documents folder.
+- **Person > Buy Again / Your Interests / Keep Shopping borders:** restores and hardens the v6.0.163 product-card border owner. Bright nested Fabric/CAShapeLayer outlines are neutralized only on card-sized RCT hosts in known Person product sections, with a bounded nearby-heading fallback for the current deeper Buy Again hierarchy. One authoritative 1 pt `#494D4D` CAShapeLayer outline is used so the generic border transform cannot turn the replacement brown/tan.
+- **Person > Interests:** keeps the proven caught-up shimmer fix for native `CAGradientLayer` and `BVLinearGradientLayer`, and adds a WebKit owner scoped to `/interest-prompts`. The `Related Interests to explore` text-only rounded cards are identified semantically/ geometrically and forced onto the dark floor even when their computed `background-color` is transparent because the visible white paint comes from a background-image/pseudo painter.
+- **PDP Reviews / Shop by brand:** the probe-proven `li.a-carousel-card.sp_mobile_carousel_element` owns one dark card floor at documentStart and after Dark Reader. Ordinary structural descendants are transparent, while images, video, SVG and controls keep their existing artwork/background ownership.
+- **Cart resume:** the existing `WillEnterForeground` sweep remains, and `UIApplicationDidBecomeActiveNotification` now adds a live-WebView reapply plus one 280 ms WebKit-only catch-up after visible WKWebViews are attached. A remounted WebView whose bootstrap marker survived but whose live Dark Reader style did not now runs the cached reapply payload instead of returning early. No reload or WebKit/cache clearing is used.
+- Preserves v6.0.176 warm PDP detach/reattach handling, v6.0.175 script-identity cleanup, v6.0.171 single-flight fallback repair, TWB, symbols, JIT/120 Hz, splash, video/voice, and existing compact Person/search border owners.
 
 ## v6.0.176 — warm PDP detach/reattach retention
 
