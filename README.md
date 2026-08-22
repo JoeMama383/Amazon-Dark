@@ -1,45 +1,54 @@
-# AmazonDark v6.0.212 — fast path with coverage restored
+# AmazonDark v6.0.213 — full coverage, observer still inert
 
-## Confirmed cause
+## What v6.0.211 proved
 
-v6.0.211 neutralised Dark Reader's MutationObserver and the app became fast everywhere:
-products open instantly, scrolling is seamless. That observer re-themes every node as it
-arrives, and on Search and PDP — which hydrate continuously — it runs on the main thread
-through exactly the window where input queues.
+Neutralising Dark Reader's MutationObserver made the app fast everywhere: products open
+instantly, scrolling is seamless. That observer re-themes every node as it arrives, and
+Search and PDP hydrate continuously, so it runs on the main thread through exactly the
+window where input queues. That is the core performance problem, confirmed on device.
 
-Everything else inside Dark Reader had already been eliminated: the stylesheet proxy
-(v6.0.210, no change), image analysis (`ignoreImageAnalysis:['*']`), and the theme
-object (identical to the fast v5.43.0 build).
+## Why v6.0.212's theming was still broken
 
-## The fix
+Dark Reader has **two** coverage mechanisms and v6.0.210/211 disabled both:
 
-Keep the observer inert, and replace what it did with something that costs nothing per
-mutation.
+- the **stylesheet proxy** covers sheets that arrive after `enable()`
+- the **MutationObserver** covers nodes that arrive after `enable()`
 
-Dark Reader's generated CSS is **selector-based**. Published as an ordinary stylesheet,
-every node that arrives later is themed by the engine during normal layout — no
-JavaScript on the mutation path at all. That is the whole difference: same rules,
-applied by the style system instead of by an observer.
+Only the observer was expensive. v6.0.210 measured the proxy as free — no speed change,
+no light regressions — and it was left off anyway.
 
-`exportGeneratedCSS()` is called once, after the first `enable()` settles, on idle so it
-never competes with hydration. The result is published as `#ad-drstatic212`, marked
-`data-ad-drstatic212`, and deliberately **not** `class="darkreader"` so the existing
-`style.darkreader` checks keep behaving exactly as before.
+v6.0.212 then exported the generated CSS once, immediately after the first `enable()`,
+which is the moment the fewest stylesheets have loaded. Amazon loads most of its CSS
+after initial parse, so the published sheet was the thinnest possible snapshot.
 
-## What may still be light
+## This build
 
-Anything Dark Reader themed through inline styles rather than a rule has no selector to
-publish, so it will not be covered. v6.0.211 showed "a ton of missing and improperly
-themed objects" with no CSS published at all; this build should recover most of it. What
-remains after this is the real gap, and it is worth listing specifically — a targeted
-rule per case is cheap, and unlike the observer it costs nothing per mutation.
+1. **Stylesheet proxy restored.** Measured free; restores sheet coverage.
+2. **Export happens as the page settles** — on idle after `enable()`, again after
+   `load`, and again on a bounded poll when the element count has grown by half. One
+   export per settle, never one per node.
+3. **Observer stays inert.** That is the part that cost input latency.
+
+The published sheet is `#ad-drstatic212`, reused rather than duplicated, and
+deliberately not `class="darkreader"` so existing `style.darkreader` checks are
+unaffected.
+
+## If theming is still wrong
+
+The remaining gap is anything Dark Reader applied as an inline style rather than a rule
+— there is no selector to publish for those. That is a finite, enumerable list rather
+than a mystery. Name what is still wrong specifically (a card family, a control, a
+badge) and each becomes a targeted rule, which costs nothing per mutation.
+
+A rebuild is not warranted. The expensive component is identified and the remaining work
+is additive.
 
 ## Verification
 
-- Publisher tested in jsdom: stylesheet published, `exportGeneratedCSS()` called exactly
-  once despite three invocations, not `class=darkreader`, `style.darkreader` still
-  matches nothing, element marked for identification. 5/5.
-- Observer stub retested: `enable()` runs and returns, its observer is inert, the real
-  constructor is restored afterwards and even when `enable()` throws, AmazonDark's own
-  observers keep working. 5/5.
+- Export cadence tested in jsdom against a page growing 50x: published, re-exported as
+  it grew, bounded at 2 exports (cap 9), single style element reused, latest CSS live,
+  `style.darkreader` still matches nothing. 6/6.
+- Observer stub retested: `enable()` runs, its observer is inert, the real constructor
+  is restored afterwards and even when `enable()` throws, AmazonDark's observers keep
+  working. 5/5.
 - Format specifiers unchanged at 9 and 2; payloads parse; balance 0/0/0; lint-logos.

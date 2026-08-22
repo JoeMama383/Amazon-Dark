@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.212"
+#define AD_VERSION "v6.0.213"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -892,7 +892,7 @@ static NSString *ADFixesLiteral(void){
              "'ul.a-pagination.a-dots li.a-selected','ul.a-pagination.a-dots li.dot-selected-t2','[data-ad-dotselected374]',"
              "'[class*=ape-wrapper]','[class*=ape-placement]','[class*=ape-feedback]','[class*=ape-feedback] *',"
              "'html body .puis-mab-overlay .puis-mab-overlay-row-share .puis-mab-overlay-icon-share'],"
-             "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:true}",
+             "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
             imgBackdrop];
     return gADFixesLiteral613;
 }
@@ -1619,18 +1619,46 @@ static NSString *ADDarkReaderBootstrap(void){
          // exportGeneratedCSS() returns a Promise. It is called once, after the first
          // enable() settles, on idle so it never competes with hydration. Re-entry is
          // guarded, and a page that navigates before it resolves simply gets nothing.
+         // v6.0.213: Dark Reader has TWO coverage mechanisms and v6.0.210/211 disabled
+         // both. The stylesheet proxy covers sheets that arrive after enable(); the
+         // MutationObserver covers nodes that arrive after enable(). Only the observer
+         // was expensive -- v6.0.210 measured the proxy as free (no speed change, no
+         // light regressions) and it is now restored. The observer stays inert.
+         //
+         // v6.0.212 also exported once, immediately after the first enable(), which is
+         // the moment the fewest stylesheets have loaded -- the thinnest possible
+         // snapshot. Amazon loads most of its CSS after initial parse, so the published
+         // sheet was near-empty of the rules that matter.
+         //
+         // Export now happens as the page settles: on idle after enable, again after
+         // 'load', and again on a coalesced idle pass when the element count has grown
+         // by half. That is one export per settle, never one per node -- the cheap
+         // analogue of what the observer was doing per mutation.
          "window.__AD_DRSTATIC212__=function(){try{"
-         "if(window.__AD_DRSTATIC212_DONE__)return;window.__AD_DRSTATIC212_DONE__=1;"
          "if(!(window.DarkReader&&DarkReader.exportGeneratedCSS))return;"
-         "var run=function(){try{var pr=DarkReader.exportGeneratedCSS();"
-         "if(!pr||!pr.then)return;"
-         "pr.then(function(css){try{if(!css||css.length<64)return;"
+         "if(window.__AD_DRSTATIC213_ARMED__)return;window.__AD_DRSTATIC213_ARMED__=1;"
+         "var busy=0,lastN=0;"
+         "var pub=function(){try{if(busy)return;busy=1;"
+         "var pr=DarkReader.exportGeneratedCSS();"
+         "if(!pr||!pr.then){busy=0;return;}"
+         "pr.then(function(css){busy=0;try{if(!css||css.length<64)return;"
          "var st=document.getElementById('ad-drstatic212');"
          "if(!st){st=document.createElement('style');st.id='ad-drstatic212';"
          "st.setAttribute('data-ad-drstatic212','1');"
          "(document.head||document.documentElement).appendChild(st);}"
-         "st.textContent=css;}catch(e){}},function(){});}catch(e){}};"
-         "if(window.requestIdleCallback)requestIdleCallback(run);else setTimeout(run,400);"
+         "if(st.textContent!==css)st.textContent=css;"
+         "try{lastN=document.getElementsByTagName('*').length;}catch(e){}"
+         "}catch(e){}},function(){busy=0;});}catch(e){busy=0;}};"
+         "var idle=function(fn){try{if(window.requestIdleCallback)return requestIdleCallback(fn);}catch(e){}return setTimeout(fn,400);};"
+         "idle(pub);"
+         "try{if(document.readyState==='complete')idle(pub);"
+         "else window.addEventListener('load',function(){idle(pub);},{once:true});}catch(e){}"
+         // One coalesced settle check. Not an observer: a single bounded poll that
+         // re-exports only when the document has grown materially, then stops.
+         "try{var tries=0,tick=function(){if(tries++>6)return;"
+         "var n=0;try{n=document.getElementsByTagName('*').length;}catch(e){}"
+         "if(lastN&&n>lastN*1.5)idle(pub);"
+         "setTimeout(tick,900);};setTimeout(tick,900);}catch(e){}"
          "}catch(e){}};"
          "window.__AMZDARK_APPLY__=function(){try{var had=!!document.querySelector('style.darkreader');if(!had){window.__AD_NOMO211__(function(){var _r=DarkReader.enable(%@,%@);if(window.__AD_DRSTATIC212__)window.__AD_DRSTATIC212__();return _r;});window.__AD_FIX_PRIMED6171__=0;}if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);return window.__AD_FULLREPAIR6171__(!had);}catch(e){return 'err';}};"
          // Warm BFCache/visibility restoration only verifies the engine.  If the
