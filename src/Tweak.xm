@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.207"
+#define AD_VERSION "v6.0.208"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -893,7 +893,50 @@ static NSString *ADThemeLiteral(void){
 
 // HEAVY: full Dark Reader UMD + first enable(). Injected ONCE per document at
 // documentStart via a WKUserScript. The 346KB engine is parsed a single time per page.
+
+// ── web-owner bisect switches (v6.0.208) ─────────────────────────────────────
+// Tapping a search result is delayed for seconds while the page is already loaded and
+// visible. That is the web process main thread being busy, which no native counter can
+// see -- three instrumentation attempts produced nothing usable. Two candidate fixes
+// have since been shipped and neither moved it: scoping the unconstrained :has() rules
+// (v6.0.206) and stopping the contrast lane being promoted to a deadline task
+// (v6.0.207).
+//
+// So stop proposing causes. Each web owner can now be switched off independently.
+// Set ONE, relaunch Amazon, search, and try tapping a result.
+//
+//   touch /var/mobile/.ad_off_symbols   skip the symbols/checkbox script (32KB, 26 qSA, 1 observer)
+//   touch /var/mobile/.ad_off_twb       skip White Background Taming
+//   touch /var/mobile/.ad_off_contrast  make __AMZDARK_FIXCONTRAST__ a no-op
+//   touch /var/mobile/.ad_off_boot      inject nothing at all (no Dark Reader, no CSS)
+//
+// Start with .ad_off_boot: it halves the search space in one test. If the delay
+// survives it, nothing we inject into the page is responsible. Remove with rm -f.
+// Each flag costs theming while set -- they are diagnostics, not modes.
+static BOOL ADWebFlag208(const char *name){
+    return [[NSFileManager defaultManager] fileExistsAtPath:
+            [@"/var/mobile/" stringByAppendingString:[NSString stringWithUTF8String:name]]];
+}
+static BOOL ADOffBoot208(void){
+    static BOOL v; static dispatch_once_t o;
+    dispatch_once(&o, ^{ v = ADWebFlag208(".ad_off_boot"); }); return v;
+}
+static BOOL ADOffSymbols208(void){
+    static BOOL v; static dispatch_once_t o;
+    dispatch_once(&o, ^{ v = ADWebFlag208(".ad_off_symbols"); }); return v;
+}
+static BOOL ADOffTWB208(void){
+    static BOOL v; static dispatch_once_t o;
+    dispatch_once(&o, ^{ v = ADWebFlag208(".ad_off_twb"); }); return v;
+}
+static BOOL ADOffContrast208(void){
+    static BOOL v; static dispatch_once_t o;
+    dispatch_once(&o, ^{ v = ADWebFlag208(".ad_off_contrast"); }); return v;
+}
+// ── end bisect switches ──────────────────────────────────────────────────────
+
 static NSString *ADDarkReaderBootstrap(void){
+    if (ADOffBoot208()) return @"";
     if (gADBootstrap613) return gADBootstrap613;
     NSString *dr = ADBundledDarkReaderJS();
     if (!dr.length) return nil;
@@ -1199,7 +1242,7 @@ static NSString *ADDarkReaderBootstrap(void){
          // reported cases. This measures the real computed contrast of every element
          // that owns visible text and lifts ONLY the ones that actually fail, so
          // brand colours that already read fine are untouched.
-         "window.__AMZDARK_FIXCONTRAST__=function(root){try{var base=(root&&root.nodeType===1)?root:(document.body||document.documentElement);"
+         "window.__AMZDARK_FIXCONTRAST__=function(root){if(window.__ADOFFCONTRAST208__)return 0;try{var base=(root&&root.nodeType===1)?root:(document.body||document.documentElement);"
            "var FG='%@';"
            "function ch(v){v=v/255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);}"
            "function lum(c){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\)/.exec(c);"
@@ -1524,6 +1567,7 @@ static NSString *ADDarkReaderBootstrap(void){
          // waits for a genuinely free frame. Only the two input-hot page types use it;
          // everywhere else keeps the historical bounded fallback so theming still lands
          // promptly on pages that are not fighting for input.
+         "window.__ADOFFCONTRAST208__=%@;"
          "window.__AD_INPUTHOT6207__=function(){try{var u=String(location.href||'').toLowerCase();"
          "if(u.indexOf('/dp/')>=0||u.indexOf('/gp/product/')>=0||u.indexOf('/gp/aw/d/')>=0)return true;"
          "return /\\/s(?:[\\/?]|$)/.test(u)||u.indexOf('field-keywords=')>=0||u.indexOf('?k=')>=0||u.indexOf('&k=')>=0;}catch(e){return false;}};"
@@ -1581,7 +1625,8 @@ static NSString *ADDarkReaderBootstrap(void){
          "try{window.addEventListener('pageshow',function(e){if(e.persisted)(window.__AMZDARK_WAKE6171__||window.__AMZDARK_APPLY__)();});}catch(e){}"
          "try{document.addEventListener('visibilitychange',function(){if(!document.hidden)(window.__AMZDARK_WAKE6171__||window.__AMZDARK_APPLY__)();});}catch(e){}"
          "}}catch(e){}})();",
-        floorBG, floorBG, floorBG, floorBG, dr, [NSString stringWithUTF8String:gP.fgHex], ADThemeLiteral(), ADFixesLiteral()];
+        floorBG, floorBG, floorBG, floorBG,
+        dr, [NSString stringWithUTF8String:gP.fgHex], ADOffContrast208() ? @"1" : @"0", ADThemeLiteral(), ADFixesLiteral()];
     return gADBootstrap613;
 }
 
@@ -1727,6 +1772,7 @@ static void ADAttachDarkReaderUserScript6175(WKUserContentController *ucc){
 }
 
 static void ADAttachWhiteTameUserScript446(WKUserContentController *ucc){
+    if (ADOffTWB208() || ADOffBoot208()) return;
     if (!ucc || !gP.enabled || !gP.whiteTame) return;
     @try {
         if (ADUserScriptPresent6175(ucc,kADTWBUS6175)) return;
@@ -1951,6 +1997,7 @@ static NSString *ADThreeSymbolsWebJS605(void){
 }
 
 static void ADAttachThreeSymbolsUserScript605(WKUserContentController *ucc){
+    if (ADOffSymbols208() || ADOffBoot208()) return;
     if (!ucc) return;
     @try {
         if (ADUserScriptPresent6175(ucc,kADSymUS6175)) return;

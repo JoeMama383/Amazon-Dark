@@ -1,55 +1,50 @@
-# AmazonDark v6.0.207
+# AmazonDark v6.0.208 — web-owner bisect switches
 
-Base: **v6.0.185~probe** (`2d9a9c4`). None of 186–205 carried forward wholesale, on
-report that v6.0.205 is slower than 185. One idea is taken from it, isolated.
+Base: v6.0.185~probe, carrying v6.0.206 and v6.0.207.
 
-## The input delay
+## Why switches instead of another fix
 
-`requestIdleCallback`'s `timeout` does not mean "run within N ms if convenient". When
-it expires the callback is promoted to a **deadline task** and forced through even
-though the main thread is busy.
+Tapping a search result is delayed for seconds while the page is already loaded and
+visible. That is the web process main thread being busy, which no native counter can
+see — three separate instrumentation attempts produced nothing usable.
 
-Both contrast lanes scheduled through `__AD_IDLE6056__` with a timeout — 260ms and
-320ms. During Search-results and PDP hydration the main thread is always busy, so those
-timeouts always expire, and the 360/1400-node contrast walk executes exactly while the
-page is trying to accept its first tap or swipe.
+Two candidate fixes have since shipped and neither moved it: scoping the unconstrained
+`:has()` rules (v6.0.206) and stopping the contrast lane being promoted to a deadline
+task (v6.0.207). Both were sound reasoning about real inefficiencies. Neither was the
+block.
 
-That matches the reported symptoms precisely: the screen is already loaded, the content
-is visible, and taps still do not register.
+So this build stops proposing causes and lets the device identify it.
 
-On PDP and Search the lanes now pass `to === 0`, which is true idle-only: no timeout, so
-the callback can never be promoted and waits for a genuinely free frame. Every other
-page keeps the historical bounded fallback, so theming still lands promptly where input
-is not being contended.
+## Using it
 
-This idea comes from the v6.0.205 experiment. Only this is taken; the other ~700 lines
-of that build are left out.
+Set **one** flag, relaunch Amazon, search, try tapping a result.
 
-## A note on the first attempt
+    touch /var/mobile/.ad_off_boot      inject nothing at all (no Dark Reader, no CSS)
+    touch /var/mobile/.ad_off_symbols   skip the symbols/checkbox script (32KB, 26 qSA, 1 observer)
+    touch /var/mobile/.ad_off_twb       skip White Background Taming
+    touch /var/mobile/.ad_off_contrast  make __AMZDARK_FIXCONTRAST__ a no-op
 
-The initial patch added the hot-page default as `to === undefined`. Both call sites pass
-an explicit timeout, so it would never have fired and the build would have shipped as a
-no-op. The call sites are now hot-aware individually, verified below.
+Remove with `rm -f` and relaunch. Read once per launch.
 
-## Also in this build (from v6.0.206)
+Start with `.ad_off_boot` — it halves the search space in one test. If the delay
+survives it, nothing injected into the page is responsible and the cause is native or
+Amazon's own. If the delay goes, the other three identify which owner.
 
-Eight `:where(div,span,section):has(> …)` rules, duplicated across both sheets, were
-evaluated against every div, span and section in the document and re-run on every
-mutation, despite targeting search-result-only components. All 16 are scoped to
-`[data-component-type=s-search-result]`. Zero unconstrained `:has()` remain.
+Each flag costs theming while set. They are diagnostics, not modes.
+
+## Kept from the last two builds
+
+- **v6.0.206** — 16 `:where(div,span,section):has(> …)` instances scoped to
+  `[data-component-type=s-search-result]`. Zero unconstrained `:has()` remain.
+- **v6.0.207** — PDP and Search schedule the contrast lanes idle-only, so they can no
+  longer be promoted to deadline tasks mid-hydration.
+
+Both are real reductions and worth keeping regardless of what the bisect finds.
 
 ## Verification
 
-- Idle lane tested per page type: PDP idle-only, Search idle-only, Home keeps the
-  bounded fallback, an explicit timeout off-hot is still honoured, an explicit 0 stays
-  idle-only. 5/5.
-- Both call sites confirmed hot-aware after patching.
-- Selector rewrite tested in jsdom: search-result hosts still themed, Home node no
-  longer matched. 4/4.
-- All payloads parse; balance 0/0/0; `scripts/lint-logos.sh`.
-
-## If this does not fix it
-
-Then the block is not the contrast lane, and the next suspects are the symbols script's
-26 `querySelectorAll` calls and its observer, both of which run during the same
-hydration window. Those can be switched off independently rather than guessed at.
+- Bootstrap format specifiers and arguments: 9 and 9, **each verified in position**.
+  The first cut placed the new argument at slot 5 when its literal sits at slot 7,
+  which would have fed the Dark Reader payload into the wrong slot and corrupted the
+  entire bootstrap. Caught and corrected before packaging.
+- Declared-before-use audit clean; balance 0/0/0; all payloads parse; lint-logos.
