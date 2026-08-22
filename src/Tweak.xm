@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.209"
+#define AD_VERSION "v6.0.210"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -892,7 +892,7 @@ static NSString *ADFixesLiteral(void){
              "'ul.a-pagination.a-dots li.a-selected','ul.a-pagination.a-dots li.dot-selected-t2','[data-ad-dotselected374]',"
              "'[class*=ape-wrapper]','[class*=ape-placement]','[class*=ape-feedback]','[class*=ape-feedback] *',"
              "'html body .puis-mab-overlay .puis-mab-overlay-row-share .puis-mab-overlay-icon-share'],"
-             "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
+             "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:true}",
             imgBackdrop];
     return gADFixesLiteral613;
 }

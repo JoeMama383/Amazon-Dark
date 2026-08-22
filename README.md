@@ -1,36 +1,37 @@
-# AmazonDark v6.0.209 — switches that actually fire
+# AmazonDark v6.0.210
 
-## What went wrong in v6.0.208
+Base: v6.0.185~probe, carrying v6.0.206, v6.0.207 and v6.0.209.
 
-The four bisect switches read `fileExistsAtPath:@"/var/mobile/.ad_off_*"`. That runs
-inside Amazon, which is sandboxed and cannot stat paths outside its own container. Every
-flag read `NO`, so all four were inert — which is why the app stayed fully dark with
-`.ad_off_twb` set, when it should have left product images visibly untamed.
+## The change
 
-The same sandbox silently blocked the probe writes for three earlier builds. The lesson
-was available and I did not apply it. `.ad_dr_proxy` and `.ad_no_defer` from v6.0.166
-and v6.0.171 have the identical defect, so any conclusion drawn from those toggles is
-void as well.
+`disableStyleSheetsProxy` goes from `false` to `true`.
 
-## The fix
+That proxy wraps `insertRule` / `deleteRule` and the stylesheet collections so any sheet
+created after `enable()` re-enters Dark Reader and is re-themed. Search results and PDP
+build sheets continuously during hydration, and every one of them re-enters — on the
+main thread, in exactly the window where taps are not registering.
 
-All four switches move onto `NSUserDefaults(suiteName: com.colindavidr.amazondark)` —
-the same path every other preference already uses, which reaches Amazon through
-`cfprefsd` and is permitted inside the sandbox. That mechanism is proven: it is how the
-theming toggles work today.
+This is confirmed by the only toggle in this session that provably works: with **Web
+Dark Reader disabled, pages load instantly**. The cost is Dark Reader's, and the proxy
+is its largest per-mutation component.
 
-Set with `defaults write`, force-quit Amazon, relaunch.
+This fix was applied once before, in v6.0.166/167, but that was on a different branch.
+v6.0.206–209 are all built on v6.0.185, where the setting was still `false`.
 
-    defaults write com.colindavidr.amazondark offSymbols  -bool YES
-    defaults write com.colindavidr.amazondark offTWB      -bool YES
-    defaults write com.colindavidr.amazondark offContrast -bool YES
-    defaults write com.colindavidr.amazondark offBoot     -bool YES
+**The trade:** stylesheets injected after the first pass are no longer auto-themed, so a
+late-hydrating widget can stay light until something else triggers a re-apply. Watch
+Home and Search for anything that renders light and stays light.
 
-Clear one with `-bool NO`.
+## Why the v6.0.208/209 switches are not in play
 
-**Confirm a switch is live before spending a test on it.** `offTWB YES` must leave
-product images with pale studio backdrops. If theming looks unchanged, the switch did
-not take and the test is meaningless — that is exactly the trap v6.0.208 fell into.
+v6.0.208's switches read `fileExistsAtPath:@"/var/mobile/.ad_off_*"` from inside
+Amazon, which is sandboxed and cannot stat outside its own container — all four were
+inert. v6.0.209 moved them onto the prefs domain, and `offTWB = 1` still did not take
+effect on device, so that mechanism is unproven too. They remain in the source but
+should not be trusted until one is shown to change something visible.
+
+The existing **Web Dark Reader** preference does work, and it is what identified the
+cause.
 
 ## Kept
 
@@ -39,10 +40,14 @@ not take and the test is meaningless — that is exactly the trap v6.0.208 fell 
 - **v6.0.207** — PDP and Search schedule the contrast lanes idle-only, so they cannot be
   promoted to deadline tasks mid-hydration.
 
-Both are real reductions. Neither fixed the tap delay.
-
 ## Verification
 
-- Each switch: one struct field, one prefs read, four use sites.
-- The sandboxed `ADWebFlag208` reader is gone from the source.
-- Declared-before-use audit clean; balance 0/0/0; payloads parse; lint-logos.
+- `disableStyleSheetsProxy:true` confirmed in the emitted fixes payload.
+- All payloads parse; balance 0/0/0; `scripts/lint-logos.sh`.
+
+## If this is not enough
+
+The next step is not another setting. It is to stop calling `enable()` on repeat visits:
+run Dark Reader once, capture `exportGeneratedCSS()`, and inject that as a plain
+stylesheet on later loads — no sheet parsing, no DOM walk, no observer. That is a real
+build, and worth doing only if this one moves the needle in the right direction first.
