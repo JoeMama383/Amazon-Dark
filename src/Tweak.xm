@@ -1,20 +1,22 @@
 /*
- * AmazonDark v7.0.3 — clean whole-app inversion baseline
+ * AmazonDark v7.0.4 — stock UI / OLED-floor architecture
  *
- * Retained from v7.0.0 / the v6.0.185 feature base:
+ * Retained from v6.0.185:
  *   - Settings bundle/preferences and preference domain
  *   - Force 120 Hz preference path
  *   - Dopamine per-app JIT request path
- *   - Tame Light Backgrounds preference
+ *   - Tame Light Backgrounds preference (rewritten as a small generic media owner)
  *   - SpringBoard launch cover / transition / custom artwork (AmazonDarkSB)
  *   - Sileo/package metadata and artwork
  *
- * Visual architecture:
- *   - One UIWindow-level Core Animation colorInvert filter owns the entire app.
- *   - Product-photo media receives exactly one local counter-invert so its pixels
- *     remain photographic/stock while every other UI pixel stays inverted.
- *   - No Dark Reader, color engine, broad recolor pass, DOM MutationObserver,
- *     scroll recovery, recurring timer, nav/search special-case painter, or probe.
+ * Removed:
+ *   - Dark Reader and its runtime bundle
+ *   - Amazon native-dark weblab forcing
+ *   - nav/search/symbol/border/card/Person/PDP/Home special-case theming
+ *   - contrast scanners, repair queues, probes and theme MutationObservers
+ *
+ * The only always-on visual owner is an OLED-black FLOOR. It targets root/backing
+ * surfaces, not text, glyphs, cards, borders, buttons or images.
  */
 
 #import <UIKit/UIKit.h>
@@ -32,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.3"
+#define AD_VERSION "v7.0.4-oled-floor"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -44,11 +46,13 @@ extern char *__progname;
 #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
 #pragma clang diagnostic ignored "-Wobjc-method-access"
 
-@interface CAFilter : NSObject
-+ (id)filterWithType:(NSString *)type;
-@end
-@interface ANXFastImageView : UIImageView @end
-@interface RCTUIImageViewAnimated : UIImageView @end
+@interface AXUSplashScreenViewController : UIViewController @end
+@interface TezBaseSplashScreenViewController : UIViewController @end
+@interface WKScrollView : UIScrollView @end
+@interface WKContentView : UIView @end
+@interface RCTRootView : UIView @end
+@interface RCTRootContentView : UIView @end
+@interface RCTScrollView : UIScrollView @end
 
 // -----------------------------------------------------------------------------
 // Preferences — same public keys/domain as v6.0.185.
@@ -104,6 +108,8 @@ static void ADLoadPrefs(void){
         gP.whiteTameStrength=ADPrefLong(d,@"whiteTameStrength",gP.whiteTameStrength);
     } @catch(...) {}
 }
+
+static inline UIColor *ADOLED(void){ return [UIColor blackColor]; }
 
 // -----------------------------------------------------------------------------
 // Retained v6.0.185 Dopamine per-app JIT client.
@@ -578,229 +584,322 @@ static void ADRefreshPromotionState611(void){
 
 
 // -----------------------------------------------------------------------------
-// Whole-app inversion + product-photo exception.
-//
-// The root UIWindow filter is the single generic theme owner.  We do not repaint
-// native backgrounds, nav bars, text, glyphs, borders, cards, or WebKit floors.
-// Product-photo media is the only exception and receives one local colorInvert,
-// cancelling the root inversion for that layer/element only.
+// OLED floor — no Dark Reader, no DOM observer, no visual-component classifier.
 // -----------------------------------------------------------------------------
 static void ADPostReadyOnce(void);
-static const void *kADRootInvert701=&kADRootInvert701;
-static const void *kADMediaInvert701=&kADMediaInvert701;
-static const void *kADTWBOverlay701=&kADTWBOverlay701;
-static const void *kADWebScript701=&kADWebScript701;
-static NSHashTable *gADWebViews701=nil;
+static const void *kADFloorUS=&kADFloorUS;
+static const void *kADTWBUS=&kADTWBUS;
+static NSHashTable *gADWebViews=nil;
 
-static id ADInvertFilter701(void){
-    static id f=nil; static dispatch_once_t once;
-    dispatch_once(&once,^{ @try { f=[NSClassFromString(@"CAFilter") filterWithType:@"colorInvert"]; } @catch(...) { f=nil; } });
-    return f;
-}
-static BOOL ADHasInvert701(NSArray *filters){
-    id inv=ADInvertFilter701(); if(!inv)return NO;
-    for(id f in filters) if(f==inv)return YES;
-    return NO;
-}
-static void ADSetInvert701(CALayer *layer,const void *ownedKey,BOOL on){
-    if(!layer)return;
-    @try {
-        id inv=ADInvertFilter701(); if(!inv)return;
-        NSNumber *owned=objc_getAssociatedObject(layer,ownedKey);
-        NSMutableArray *cur=[layer.filters mutableCopy]?:[NSMutableArray array];
-        if(on){
-            if(!ADHasInvert701(cur))[cur addObject:inv];
-            layer.filters=cur;
-            if(!owned)objc_setAssociatedObject(layer,ownedKey,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        } else if(owned){
-            [cur removeObjectIdenticalTo:inv];
-            layer.filters=cur;
-            objc_setAssociatedObject(layer,ownedKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
-    } @catch(...) {}
-}
-static void ADApplyWindowInvert701(UIWindow *w){
-    if(!w)return;
-    ADSetInvert701(w.layer,kADRootInvert701,gP.enabled);
+static NSString *ADFloorJS(void){
+    // Floor-only contract: black structural/composited surfaces, never foreground/media/control paint.
+    // CSS is declarative at documentStart so lazy/recycled Home/Search/Cart/PDP shells inherit the
+    // same OLED floor without an observer or traversal.
+    return @"(function(){try{var id='ad7-oled-floor',s=document.getElementById(id);"
+            "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
+            "s.textContent='"
+            "html,body,#a-page,#gwm-PageContent,main,[role=main],"
+            "section,article,aside,header,footer,nav,"
+            "div.a-section,div.a-container,div.a-row,"
+            "[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-tile],[class*=puis-card],[class*=cXVhZ],"
+            "[class*=sc-][class*=content],[class*=sc-][class*=container],[class*=sc-][class*=list],[class*=sc-][class*=page],"
+            "[class*=search][class*=container],[class*=search][class*=content],[class*=suggest][class*=container],"
+            "[class*=page-container],[class*=pageContent],[class*=page-content],[class*=content-container],[class*=contentContainer],"
+            "[class*=screen-container],[class*=screenContainer],[class*=root-container],[class*=rootContainer],"
+            "[class*=background-container],[class*=backgroundContainer],[class*=surface-container],[class*=surfaceContainer]"
+            "{background-color:#000!important;}"
+            "html::before,html::after,body::before,body::after,#a-page::before,#a-page::after,#gwm-PageContent::before,#gwm-PageContent::after,main::before,main::after,[role=main]::before,[role=main]::after{background-color:#000!important;}"
+            "';"
+            "document.documentElement.style.backgroundColor='#000';if(document.body)document.body.style.backgroundColor='#000';"
+            "}catch(e){}})();";
 }
 
-// Native product-photo classification.  This is deliberately photo-oriented,
-// not "all UIImageViews": small/template artwork, chrome, controls, logos,
-// avatars, glyphs, badges and navigation imagery remain in the root inversion.
-static BOOL ADTemplateImage701(UIImage *im){
-    if(!im)return YES;
-    if(im.renderingMode==UIImageRenderingModeAlwaysTemplate)return YES;
-    CGImageRef cg=im.CGImage;
-    if(cg && (CGImageIsMask(cg)||CGImageGetAlphaInfo(cg)==kCGImageAlphaOnly))return YES;
-    if(im.symbolConfiguration)return YES;
-    return NO;
-}
-static BOOL ADPhotoBlockWord701(NSString *s){
-    if(!s.length)return NO; NSString *q=s.lowercaseString;
-    static NSArray *bad=nil; static dispatch_once_t once;
-    dispatch_once(&once,^{ bad=@[@"icon",@"glyph",@"logo",@"avatar",@"profile",@"badge",@"rating",@"star",@"checkbox",@"heart",@"arrow",@"chevron",@"button",@"search",@"camera",@"microphone",@"menu",@"hamburger",@"sprite",@"nav",@"tabbar",@"brand",@"seller",@"store-logo",@"flag",@"swatch"]; });
-    for(NSString *x in bad)if([q containsString:x])return YES;
-    return NO;
-}
-static BOOL ADProductWord701(NSString *s){
-    if(!s.length)return NO; NSString *q=s.lowercaseString;
-    static NSArray *good=nil; static dispatch_once_t once;
-    dispatch_once(&once,^{ good=@[@"product",@"asin",@"buyagain",@"buy-again",@"recommend",@"item-image",@"itemimage",@"offer-image",@"offerimage",@"pdp",@"detail-image",@"detailimage"]; });
-    for(NSString *x in good)if([q containsString:x])return YES;
-    return NO;
-}
-static BOOL ADNativeProductPhoto701(UIImageView *iv){
-    if(!iv||!iv.image||!iv.window||ADTemplateImage701(iv.image))return NO;
-    @try {
-        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
-        if(w<1)w=iv.image.size.width; if(h<1)h=iv.image.size.height;
-        CGImageRef cg=iv.image.CGImage; if(!cg)return NO;
-        size_t pw=CGImageGetWidth(cg),ph=CGImageGetHeight(cg);
-        if(w<52||h<52||pw<80||ph<80)return NO;
-
-        NSMutableString *meta=[NSMutableString stringWithFormat:@"%@ %@ %@ ",NSStringFromClass(iv.class),iv.accessibilityIdentifier?:@"",iv.accessibilityLabel?:@""];
-        BOOL productContext=ADProductWord701(meta);
-        UIView *n=iv;
-        for(int i=0;i<7&&n;i++,n=n.superview){
-            if([n isKindOfClass:[UIButton class]]||[n isKindOfClass:[UITabBar class]]||[n isKindOfClass:[UINavigationBar class]])return NO;
-            NSString *piece=[NSString stringWithFormat:@"%@ %@ %@ ",NSStringFromClass(n.class),n.accessibilityIdentifier?:@"",n.accessibilityLabel?:@""];
-            if(ADPhotoBlockWord701(piece))return NO;
-            if(ADProductWord701(piece))productContext=YES;
-            [meta appendString:piece];
-        }
-        if(ADPhotoBlockWord701(meta))return NO;
-
-        // Amazon's native product grids/galleries frequently use these raster
-        // containers without useful accessibility metadata.  Large images in
-        // those classes are treated as photographic product media; icons were
-        // already rejected above by size/template/semantic gates.
-        BOOL knownPhotoClass=[iv isKindOfClass:NSClassFromString(@"ANXFastImageView")]||
-                             [iv isKindOfClass:NSClassFromString(@"RCTUIImageViewAnimated")];
-        return productContext||knownPhotoClass;
-    } @catch(...) { return NO; }
-}
-static void ADRemoveTWB701(UIImageView *iv){
-    CALayer *ov=objc_getAssociatedObject(iv,kADTWBOverlay701);
-    if(ov){[ov removeFromSuperlayer];objc_setAssociatedObject(iv,kADTWBOverlay701,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
-}
-static void ADApplyNativeMedia701(UIImageView *iv){
-    if(!iv)return;
-    @try {
-        BOOL product=gP.enabled&&ADNativeProductPhoto701(iv);
-        ADSetInvert701(iv.layer,kADMediaInvert701,product);
-        if(!product||!gP.whiteTame){ADRemoveTWB701(iv);return;}
-        CALayer *ov=objc_getAssociatedObject(iv,kADTWBOverlay701);
-        if(!ov){
-            ov=[CALayer layer]; ov.name=@"AmazonDarkTWB701";
-            ov.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"backgroundColor":[NSNull null],@"cornerRadius":[NSNull null]};
-            [iv.layer addSublayer:ov]; objc_setAssociatedObject(iv,kADTWBOverlay701,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
-        CGFloat alpha=MAX(0,MIN(100,gP.whiteTameStrength))/100.0;
-        ov.frame=iv.bounds; ov.backgroundColor=[UIColor colorWithWhite:0 alpha:alpha].CGColor;
-        ov.cornerRadius=iv.layer.cornerRadius; ov.masksToBounds=YES; ov.zPosition=FLT_MAX;
-    } @catch(...) {}
-}
-
-// Web first-paint protection is declarative and product-specific.  The selectors
-// cover Amazon's stable product identities/links instead of v6.0.208's blanket
-// `img,video,canvas` rule, which unintentionally preserved every Web image.
-static NSString *ADWebMediaJS701(void){
+static NSString *ADTWBJS(void){
     CGFloat strength=MAX(0,MIN(100,gP.whiteTameStrength));
-    CGFloat bright=MAX(0.05,1.0-strength/100.0);
+    CGFloat factor=MAX(0.05,1.0-strength/100.0);
     return [NSString stringWithFormat:
-        @"(function(){try{var ID='ad701-product-media',s=document.getElementById(ID);if(!s){s=document.createElement('style');s.id=ID;(document.head||document.documentElement||document).appendChild(s);}"
-         "var P='img[data-a-dynamic-image],img.a-dynamic-image,img[data-old-hires],#landingImage,#imgTagWrapperId img,[data-asin] img,[data-csa-c-asin] img,a[href*=\\\"/dp/\\\"] img,a[href*=\\\"/gp/product/\\\"] img,[class*=\\\"product-image\\\"] img,[class*=\\\"productImage\\\"] img,[id*=\\\"product-image\\\"] img,[data-ad701-product=\\\"1\\\"]';"
-         "s.textContent=P+'{filter:invert(1)!important;}'+(%.0f?P+'{filter:brightness(%.3f) invert(1)!important;}':'');"
-         "var bad=/icon|glyph|logo|avatar|profile|badge|rating|star|checkbox|heart|arrow|chevron|button|search|camera|microphone|menu|hamburger|sprite|nav|tabbar|brand|seller|store-logo|flag|swatch/i;"
-         "var good=/product|asin|buy.?again|recommend|item.?image|offer.?image|pdp|detail.?image/i;"
-         "function mark(e){try{if(!e||e.tagName!=='IMG')return;var n=e,ok=good.test((e.className||'')+' '+(e.id||'')+' '+(e.alt||''));for(var i=0;i<6&&n;i++,n=n.parentElement){var z=((n.className&&n.className.baseVal)||n.className||'')+' '+(n.id||'')+' '+(n.getAttribute&&((n.getAttribute('data-asin')||'')+' '+(n.getAttribute('data-csa-c-asin')||'')+' '+(n.getAttribute('aria-label')||''))||'');if(bad.test(String(z)))return;if(good.test(String(z)))ok=true;if(n.tagName==='A'){var h=n.getAttribute('href')||'';if(h.indexOf('/dp/')>=0||h.indexOf('/gp/product/')>=0)ok=true;}}var r=e.getBoundingClientRect(),w=r.width||e.width||0,h=r.height||e.height||0,nw=e.naturalWidth||0,nh=e.naturalHeight||0;if(ok&&w>=48&&h>=48&&nw>=64&&nh>=64)e.setAttribute('data-ad701-product','1');}catch(x){}}"
-         "document.addEventListener('load',function(ev){mark(ev.target);},true);function once(){try{document.querySelectorAll('img').forEach(mark);}catch(x){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',once,{once:true});else once();window.addEventListener('pageshow',once,{passive:true});"
-         "}catch(e){}})();",(gP.whiteTame?1.0:0.0),bright];
+        @"(function(){try{if(window.__AD7TWB)return;window.__AD7TWB=1;var f='brightness(%.3f)';"
+         "var bad=/icon|glyph|logo|avatar|profile|badge|star|rating|checkbox|heart|arrow|chevron|button|search|menu|microphone|camera|cart|location|nav|tab|sprite|brand|seller|store/i;"
+         "function blocked(e){try{var n=e;for(var i=0;i<4&&n;i++,n=n.parentElement){var s=((n.className&&n.className.baseVal)||n.className||'')+' '+(n.id||'')+' '+(n.getAttribute&&((n.getAttribute('aria-label')||'')+' '+(n.getAttribute('alt')||'')+' '+(n.getAttribute('role')||''))||'');if(bad.test(String(s)))return true;if(n.tagName==='BUTTON'||n.getAttribute&&n.getAttribute('role')==='button')return true;}}catch(x){}return false;}"
+         "function tame(e){try{if(!e||!/^(IMG|VIDEO|CANVAS)$/.test(e.tagName)||blocked(e))return;var r=e.getBoundingClientRect();var w=r.width||e.width||0,h=r.height||e.height||0;if(w<52||h<52)return;e.style.setProperty('filter',f,'important');e.setAttribute('data-ad7twb','1');}catch(x){}}"
+         "document.addEventListener('load',function(ev){tame(ev.target);},true);document.addEventListener('loadedmetadata',function(ev){tame(ev.target);},true);"
+         "function once(){try{document.querySelectorAll('img,video,canvas').forEach(tame);}catch(x){}}"
+         "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',once,{once:true});else once();window.addEventListener('pageshow',once,{passive:true});"
+         "}catch(e){}})();",factor];
 }
-static void ADTrackWebView701(WKWebView *wv){
-    if(!wv)return; @try { @synchronized([WKWebView class]) { if(!gADWebViews701)gADWebViews701=[NSHashTable weakObjectsHashTable]; [gADWebViews701 addObject:wv]; } } @catch(...) {}
+
+static void ADTrackWebView(WKWebView *wv){
+    if(!wv)return; @try { @synchronized([WKWebView class]) { if(!gADWebViews)gADWebViews=[NSHashTable weakObjectsHashTable]; [gADWebViews addObject:wv]; } } @catch(...) {}
 }
-static NSArray *ADTrackedWebViews701(void){
-    @try { @synchronized([WKWebView class]) { return gADWebViews701?gADWebViews701.allObjects:@[]; } } @catch(...) {}
+static NSArray *ADTrackedWebViews(void){
+    @try { @synchronized([WKWebView class]) { return gADWebViews?gADWebViews.allObjects:@[]; } } @catch(...) {}
     return @[];
 }
-static void ADInstallWeb701(WKUserContentController *ucc){
-    if(!ucc||objc_getAssociatedObject(ucc,kADWebScript701))return;
+static void ADAttachWebScripts(WKWebView *wv){
+    if(!wv || !gP.enabled)return; ADTrackWebView(wv);
     @try {
-        WKUserScript *us=[[WKUserScript alloc] initWithSource:ADWebMediaJS701() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
-        [ucc addUserScript:us]; objc_setAssociatedObject(ucc,kADWebScript701,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        WKUserContentController *ucc=wv.configuration.userContentController;
+        if(ucc && !objc_getAssociatedObject(ucc,kADFloorUS)){
+            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADFloorJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+            [ucc addUserScript:us]; objc_setAssociatedObject(ucc,kADFloorUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        if(gP.whiteTame && ucc && !objc_getAssociatedObject(ucc,kADTWBUS)){
+            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADTWBJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+            [ucc addUserScript:us]; objc_setAssociatedObject(ucc,kADTWBUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
     } @catch(...) {}
 }
-static void ADRefreshWeb701(WKWebView *wv){
-    if(!wv)return; ADTrackWebView701(wv);
-    @try { [wv evaluateJavaScript:ADWebMediaJS701() completionHandler:nil]; } @catch(...) {}
+static void ADApplyWebFloor(WKWebView *wv){
+    if(!wv || !gP.enabled)return; ADTrackWebView(wv);
+    @try {
+        wv.opaque=YES; wv.backgroundColor=ADOLED(); wv.scrollView.backgroundColor=ADOLED();
+        if(@available(iOS 15.0,*)) wv.underPageBackgroundColor=ADOLED();
+        [wv evaluateJavaScript:ADFloorJS() completionHandler:nil];
+        if(gP.whiteTame)[wv evaluateJavaScript:ADTWBJS() completionHandler:nil];
+    } @catch(...) {}
 }
-static void ADApplyAllVisualState701(void){
-    dispatch_async(dispatch_get_main_queue(),^{
+static void ADApplyAllFloors(void){
+    if(!gP.enabled)return;
+    dispatch_async(dispatch_get_main_queue(), ^{
         @try {
-            for(UIWindow *w in UIApplication.sharedApplication.windows)ADApplyWindowInvert701(w);
-            for(WKWebView *wv in ADTrackedWebViews701())if(wv.window)ADRefreshWeb701(wv);
+            for(UIWindow *w in UIApplication.sharedApplication.windows){ if(w){ w.backgroundColor=ADOLED(); UIViewController *vc=w.rootViewController; if(vc && vc.isViewLoaded)vc.view.backgroundColor=ADOLED(); } }
+            for(WKWebView *wv in ADTrackedWebViews()) if(wv.window)ADApplyWebFloor(wv);
         } @catch(...) {}
     });
 }
 
-%hook UIWindow
+%hook WKWebView
+- (instancetype)initWithFrame:(CGRect)frame configuration:(WKWebViewConfiguration *)configuration {
+    id wv = %orig;
+    if (gP.enabled) { ADAttachWebScripts(wv); ADApplyWebFloor(wv); }
+    return wv;
+}
+- (instancetype)initWithCoder:(NSCoder *)coder {
+    id wv = %orig;
+    if (gP.enabled) { ADAttachWebScripts(wv); ADApplyWebFloor(wv); }
+    return wv;
+}
 - (void)didMoveToWindow {
     %orig;
-    ADApplyWindowInvert701(self);
+    if (gP.enabled && self.window) { ADAttachWebScripts(self); ADApplyWebFloor(self); }
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if (gP.enabled) {
+        UIColor *black = ADOLED();
+        %orig(black);
+        return;
+    }
+    %orig;
+}
+%end
+
+%hook WKScrollView
+- (void)didMoveToWindow {
+    %orig;
+    if (gP.enabled && self.window) self.backgroundColor=ADOLED();
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if (gP.enabled) {
+        UIColor *black = ADOLED();
+        %orig(black);
+        return;
+    }
+    %orig;
+}
+%end
+
+%hook WKContentView
+- (void)didMoveToWindow {
+    %orig;
+    if (gP.enabled && self.window) { self.backgroundColor=ADOLED(); self.layer.backgroundColor=ADOLED().CGColor; }
 }
 - (void)layoutSubviews {
     %orig;
-    ADApplyWindowInvert701(self);
+    if (gP.enabled) { self.backgroundColor=ADOLED(); self.layer.backgroundColor=ADOLED().CGColor; }
 }
-- (void)makeKeyAndVisible {
-    ADApplyWindowInvert701(self);
+- (void)setBackgroundColor:(UIColor *)color {
+    if (gP.enabled) {
+        UIColor *black = ADOLED();
+        %orig(black);
+        return;
+    }
     %orig;
-    ADApplyWindowInvert701(self);
-}
-- (void)setRootViewController:(UIViewController *)vc {
-    %orig;
-    ADApplyWindowInvert701(self);
 }
 %end
+
+static BOOL ADNativeFloorCandidate(UIView *v){
+    if(!v)return NO;
+    @try {
+        if([v isKindOfClass:[UIImageView class]] || [v isKindOfClass:[UILabel class]] ||
+           [v isKindOfClass:[UIControl class]] || [v isKindOfClass:[UITextView class]] ||
+           [v isKindOfClass:[UITextField class]] || [v isKindOfClass:[UIVisualEffectView class]]) return NO;
+        NSString *n=NSStringFromClass(v.class).lowercaseString ?: @"";
+        NSArray *reject=@[@"image",@"icon",@"glyph",@"label",@"text",@"button",@"control",@"badge",@"avatar",@"logo",@"star",@"rating",@"switch",@"slider",@"cell"];
+        for(NSString *x in reject) if([n containsString:x]) return NO;
+        NSArray *floor=@[@"root",@"content",@"container",@"background",@"surface",@"screen",@"page",@"scroll",@"collection",@"table",@"host",@"wrapper"];
+        for(NSString *x in floor) if([n containsString:x]) return YES;
+    } @catch(...) {}
+    return NO;
+}
+static void ADOwnNativeFloor(UIView *v){
+    if(!gP.enabled || !v)return; @try { v.backgroundColor=ADOLED(); v.layer.backgroundColor=ADOLED().CGColor; } @catch(...) {}
+}
+
+%hook UIView
+- (void)didMoveToWindow {
+    %orig;
+    if(gP.enabled && self.window && ADNativeFloorCandidate(self)) ADOwnNativeFloor(self);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(gP.enabled && self.window && ADNativeFloorCandidate(self)){
+        UIColor *black = ADOLED();
+        %orig(black);
+        return;
+    }
+    %orig;
+}
+%end
+
+%hook UIViewController
+- (void)viewDidLoad {
+    %orig;
+    ADOwnNativeFloor(self.view);
+}
+- (void)viewWillAppear:(BOOL)animated {
+    %orig;
+    ADOwnNativeFloor(self.view);
+}
+- (void)viewDidAppear:(BOOL)animated {
+    %orig;
+    ADOwnNativeFloor(self.view);
+    if (gP.enabled) ADPostReadyOnce();
+}
+%end
+
+%hook UIWindow
+- (void)setRootViewController:(UIViewController *)vc {
+    %orig;
+    if (gP.enabled) { self.backgroundColor=ADOLED(); if (vc && vc.isViewLoaded) vc.view.backgroundColor=ADOLED(); }
+}
+- (void)makeKeyAndVisible {
+    if (gP.enabled) self.backgroundColor=ADOLED();
+    %orig;
+}
+%end
+
+%hook UITableView
+- (void)didMoveToWindow {
+    %orig;
+    if (gP.enabled && self.window) self.backgroundColor=ADOLED();
+}
+%end
+
+%hook UICollectionView
+- (void)didMoveToWindow {
+    %orig;
+    if (gP.enabled && self.window) self.backgroundColor=ADOLED();
+}
+%end
+
+%hook RCTRootView
+- (void)didMoveToWindow {
+    %orig;
+    if (gP.enabled && self.window) self.backgroundColor=ADOLED();
+}
+%end
+
+%hook RCTRootContentView
+- (void)didMoveToWindow {
+    %orig;
+    if (gP.enabled && self.window) self.backgroundColor=ADOLED();
+}
+%end
+
+%hook RCTScrollView
+- (void)didMoveToWindow {
+    %orig;
+    if (gP.enabled && self.window) self.backgroundColor=ADOLED();
+}
+%end
+
+static void ADDarkenSplash(UIViewController *vc){ if(gP.enabled) @try { if(vc.view)vc.view.backgroundColor=ADOLED(); } @catch(...) {} }
+%hook AXUSplashScreenViewController
+- (void)viewDidLayoutSubviews {
+    %orig;
+    ADDarkenSplash(self);
+}
+- (void)viewDidAppear:(BOOL)animated {
+    %orig;
+    ADDarkenSplash(self);
+}
+%end
+%hook TezBaseSplashScreenViewController
+- (void)viewDidLayoutSubviews {
+    %orig;
+    ADDarkenSplash(self);
+}
+- (void)viewDidAppear:(BOOL)animated {
+    %orig;
+    ADDarkenSplash(self);
+}
+%end
+
+// -----------------------------------------------------------------------------
+// Lightweight native TWB owner retained because the v6.0.185 Settings pane keeps
+// the Tame Light Backgrounds preference. No hierarchy scan or observer is used.
+// -----------------------------------------------------------------------------
+static const void *kADTWBOverlay=&kADTWBOverlay;
+static BOOL ADNativeMediaBlocked(UIImageView *iv){
+    if(!iv)return YES;
+    @try {
+        UIImage *im=iv.image; if(!im)return YES;
+        if(im.renderingMode==UIImageRenderingModeAlwaysTemplate)return YES;
+        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height; if(w<52||h<52)return YES;
+        if(im.CGImage && CGImageGetWidth(im.CGImage)<=80 && CGImageGetHeight(im.CGImage)<=80)return YES;
+        NSMutableString *s=[NSMutableString string];
+        UIView *n=iv;
+        for(int i=0;i<4&&n;i++,n=n.superview){
+            [s appendFormat:@" %@ %@",NSStringFromClass(n.class),n.accessibilityIdentifier?:@""];
+            if([n isKindOfClass:[UIButton class]] || [n isKindOfClass:[UITabBar class]] || [n isKindOfClass:[UINavigationBar class]])return YES;
+        }
+        [s appendFormat:@" %@",iv.accessibilityLabel?:@""];
+        NSString *q=s.lowercaseString;
+        for(NSString *tok in @[@"icon",@"glyph",@"logo",@"avatar",@"profile",@"badge",@"star",@"rating",@"checkbox",@"heart",@"arrow",@"chevron",@"button",@"search",@"menu",@"microphone",@"camera",@"cart",@"location",@"nav",@"tab",@"sprite",@"brand",@"seller",@"store"])
+            if([q containsString:tok])return YES;
+    } @catch(...) { return YES; }
+    return NO;
+}
+static void ADApplyNativeTWB(UIImageView *iv){
+    if(!iv)return;
+    @try {
+        CALayer *ov=objc_getAssociatedObject(iv,kADTWBOverlay);
+        if(!gP.enabled || !gP.whiteTame || !iv.window || ADNativeMediaBlocked(iv)){
+            if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(iv,kADTWBOverlay,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
+            return;
+        }
+        if(!ov){ ov=[CALayer layer]; ov.name=@"AmazonDarkTWB7"; ov.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"backgroundColor":[NSNull null]}; [iv.layer addSublayer:ov]; objc_setAssociatedObject(iv,kADTWBOverlay,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
+        ov.frame=iv.bounds; ov.backgroundColor=[UIColor colorWithWhite:0 alpha:MAX(0,MIN(100,gP.whiteTameStrength))/100.0].CGColor; ov.zPosition=FLT_MAX;
+    } @catch(...) {}
+}
 
 %hook UIImageView
 - (void)setImage:(UIImage *)image {
     %orig;
-    ADApplyNativeMedia701(self);
+    if (gP.whiteTame) ADApplyNativeTWB(self);
 }
 - (void)didMoveToWindow {
     %orig;
-    ADApplyNativeMedia701(self);
+    ADApplyNativeTWB(self);
 }
 - (void)layoutSubviews {
     %orig;
-    if(objc_getAssociatedObject(self,kADMediaInvert701)||objc_getAssociatedObject(self,kADTWBOverlay701)||gP.enabled)ADApplyNativeMedia701(self);
-}
-%end
-
-%hook WKWebView
-- (instancetype)initWithFrame:(CGRect)frame configuration:(WKWebViewConfiguration *)configuration {
-    if(gP.enabled&&configuration.userContentController)ADInstallWeb701(configuration.userContentController);
-    id wv=%orig;
-    ADTrackWebView701(wv);
-    return wv;
-}
-- (instancetype)initWithCoder:(NSCoder *)coder {
-    id wv=%orig;
-    if(gP.enabled)ADInstallWeb701(((WKWebView*)wv).configuration.userContentController);
-    ADTrackWebView701(wv);
-    return wv;
-}
-- (void)didMoveToWindow {
-    %orig;
-    if(self.window){ADInstallWeb701(self.configuration.userContentController);ADRefreshWeb701(self);}
+    if (objc_getAssociatedObject(self,kADTWBOverlay) || gP.whiteTame) ADApplyNativeTWB(self);
 }
 %end
 
 // -----------------------------------------------------------------------------
 // Launch transition handoff. The SpringBoard side retains v6.0.185's 1.40 s
-// minimum presentation and 0.55 s fade; Amazon only tells it that the inverted root
+// minimum presentation and 0.55 s fade; Amazon only tells it that the black root
 // is mounted. Cached light launch snapshots are cleared exactly as in v6.0.185.
 // -----------------------------------------------------------------------------
 static void ADPostReadyOnce(void){
@@ -808,7 +907,7 @@ static void ADPostReadyOnce(void){
 }
 
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
-    ADLoadPrefs(); ADRefreshPromotionState611(); ADApplyAllVisualState701();
+    ADLoadPrefs(); ADRefreshPromotionState611(); ADApplyAllFloors();
 }
 
 %ctor {
@@ -832,7 +931,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
         CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);
 
     dispatch_async(dispatch_get_main_queue(), ^{
-        ADApplyAllVisualState701();
+        ADApplyAllFloors();
         ADRefreshPromotionState611();
         ADApplyJIT622();
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(1.20*NSEC_PER_SEC)),dispatch_get_main_queue(),^{ ADPostReadyOnce(); });
