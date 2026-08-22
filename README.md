@@ -1,3 +1,11 @@
+# v6.0.207 experimental — direct v185 nav + image preservation
+
+- Direct-ports the v185 bottom-nav state/tint behavior and isolates the bar from the global inversion.
+- Preserves every ordinary Web IMG/VIDEO/CANVAS from inversion declaratively.
+- Preserves native raster UIImageView content from inversion while keeping template/chrome glyphs in the inverted UI.
+- Generalizes TWB to all large non-glyph photo/media leaves without section-specific rules.
+- Keeps the v206 minimal inversion architecture, SpringBoard cover, current preferences, search/top chrome, JIT and 120 Hz.
+
 # AmazonDark v6.0.206 experimental
 
 Minimal inversion experiment based on the v6.0.185 baseline.

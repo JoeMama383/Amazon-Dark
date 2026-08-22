@@ -1,4 +1,4 @@
-// AmazonDark v6.0.206~experimental
+// AmazonDark v6.0.207~experimental
 // Minimal whole-app inversion experiment.
 // Retained: SpringBoard cover/JIT broker, current prefs, 120 Hz, current top/search/bottom chrome, TWB.
 // Removed: Dark Reader, native color engine, semantic surface repair, probes, glyph painters, card/border owners.
@@ -17,8 +17,9 @@
 #import <errno.h>
 #import <string.h>
 #import <math.h>
+#import <stdio.h>
 
-#define AD_VERSION "v6.0.206-experimental"
+#define AD_VERSION "v6.0.207-experimental"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -213,13 +214,25 @@ static BOOL ADGlyphWord206(NSString *s){
     static NSArray *q=nil; static dispatch_once_t once; dispatch_once(&once,^{q=@[@"icon",@"glyph",@"logo",@"avatar",@"profile",@"badge",@"rating",@"star",@"chevron",@"checkbox",@"heart",@"share",@"search",@"camera",@"microphone",@"menu",@"hamburger",@"sprite",@"button",@"nav",@"tabbar"];});
     for(NSString *x in q)if([s containsString:x])return YES; return NO;
 }
-static BOOL ADNativeProductMedia206(UIImageView *iv){
+static BOOL ADNativeRasterPreserve207(UIImageView *iv){
     if(!iv||!iv.image||!iv.window||ADInTabBarChain(iv)||ADChromeChain206(iv)||ADImageTemplateish206(iv.image))return NO;
-    CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height; if(w<1)w=iv.image.size.width;if(h<1)h=iv.image.size.height;
-    if(w<48||h<48||w>1600||h>1600)return NO;
     NSString *meta=[NSString stringWithFormat:@"%@ %@ %@",NSStringFromClass(iv.class),iv.accessibilityIdentifier?:@"",iv.accessibilityLabel?:@""];
     if(ADGlyphWord206(meta))return NO;
-    CGImageRef cg=iv.image.CGImage; if(cg){size_t pw=CGImageGetWidth(cg),ph=CGImageGetHeight(cg);if(pw<48||ph<48)return NO;}
+    CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;if(w<1)w=iv.image.size.width;if(h<1)h=iv.image.size.height;
+    CGImageRef cg=iv.image.CGImage;if(!cg)return NO;size_t pw=CGImageGetWidth(cg),ph=CGImageGetHeight(cg);
+    // Preserve ordinary raster artwork/photos, but leave tiny icon bitmaps in the
+    // globally inverted glyph lane so they become light with the rest of the UI.
+    return (w>=40&&h>=40&&pw>=48&&ph>=48);
+}
+static BOOL ADNativeTWBEligible207(UIImageView *iv){
+    if(!ADNativeRasterPreserve207(iv))return NO;
+    CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
+    if(w<1)w=iv.image.size.width;if(h<1)h=iv.image.size.height;
+    if(w<44||h<44||w>1800||h>1800)return NO;
+    NSString *meta=[NSString stringWithFormat:@"%@ %@ %@",NSStringFromClass(iv.class),iv.accessibilityIdentifier?:@"",iv.accessibilityLabel?:@""];
+    if(ADGlyphWord206(meta))return NO;
+    CGImageRef cg=iv.image.CGImage;
+    if(cg){size_t pw=CGImageGetWidth(cg),ph=CGImageGetHeight(cg);if(pw<64||ph<64)return NO;}
     return YES;
 }
 static void ADRemoveTWB206(UIImageView *iv){
@@ -228,12 +241,14 @@ static void ADRemoveTWB206(UIImageView *iv){
 static void ADUpdateNativeMedia206(UIImageView *iv){
     if(!iv)return;
     @try {
-        BOOL product=gP.enabled&&ADNativeProductMedia206(iv);
-        if(!product){ADRemoveMediaInvert206(iv.layer);ADRemoveTWB206(iv);return;}
-        ADAddInvert206(iv.layer,kADMediaInvert206); // counter-invert: final product pixels remain original
-        if(!gP.whiteTame){ADRemoveTWB206(iv);return;}
+        BOOL preserve=gP.enabled&&ADNativeRasterPreserve207(iv);
+        if(!preserve){ADRemoveMediaInvert206(iv.layer);ADRemoveTWB206(iv);return;}
+        // Root inversion owns the app. Every ordinary raster image gets the same
+        // local invert, cancelling the root filter so image pixels remain stock.
+        ADAddInvert206(iv.layer,kADMediaInvert206);
+        if(!gP.whiteTame||!ADNativeTWBEligible207(iv)){ADRemoveTWB206(iv);return;}
         CALayer *ov=objc_getAssociatedObject(iv,kADTWBOverlay206);
-        if(!ov){ov=[CALayer layer];ov.name=@"AmazonDarkTWB206";[iv.layer addSublayer:ov];objc_setAssociatedObject(iv,kADTWBOverlay206,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
+        if(!ov){ov=[CALayer layer];ov.name=@"AmazonDarkTWB207";[iv.layer addSublayer:ov];objc_setAssociatedObject(iv,kADTWBOverlay206,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
         CGFloat a=0.50*(MAX(0,MIN(100,gP.whiteTameStrength))/100.0);
         [CATransaction begin];[CATransaction setDisableActions:YES];ov.frame=iv.bounds;ov.backgroundColor=[UIColor colorWithWhite:0 alpha:a].CGColor;ov.cornerRadius=iv.layer.cornerRadius;ov.masksToBounds=YES;ov.zPosition=CGFLOAT_MAX;[CATransaction commit];
         objc_setAssociatedObject(iv,kADTWBImage206,iv.image,OBJC_ASSOCIATION_ASSIGN);
@@ -250,18 +265,18 @@ static void ADUpdateNativeMedia206(UIImageView *iv){
 static NSString *ADWebMediaJS206(void){
     CGFloat q=1.0-(0.50*(MAX(0,MIN(100,gP.whiteTameStrength))/100.0)); if(!gP.whiteTame)q=1.0;
     return [NSString stringWithFormat:
-    @"(function(){try{if(window.__AD_MIN206__)return;window.__AD_MIN206__=1;"
-     "var Q=%.3f;var S=document.createElement('style');S.id='ad-min206';"
-     "S.textContent='[data-ad-product-media206=\\\"1\\\"]{filter:invert(1)!important;opacity:'+Q+'!important;}'+"
-     "'[class*=product-image][style*=background-image],[class*=asin-image][style*=background-image],[class*=image-wrapper][style*=background-image]{filter:invert(1)!important;opacity:'+Q+'!important;}';"
+    @"(function(){try{if(window.__AD_MIN207__)return;window.__AD_MIN207__=1;"
+     "var Q=%.3f;var S=document.createElement('style');S.id='ad-min207';"
+     "S.textContent='[data-ad-media207=\"1\"],#gwm-PageContent img,[class*=gwm] img,[class*=single-creative-card] img,[class*=single-video-card] img,[class*=theming-card] img{filter:invert(1)!important;}'+"
+     "'[data-ad-twb207=\"1\"]{opacity:'+Q+'!important;}'+"
+     "'[class*=theming-card-background],[class*=vjs-poster],[style*=background-image][class*=image],[style*=background-image][class*=poster],[style*=background-image][class*=creative]{filter:invert(1)!important;}';"
      "(document.head||document.documentElement).appendChild(S);"
      "function bad(e){try{var z=((e.className&&e.className.baseVal!==undefined)?e.className.baseVal:e.className)||'';z+=' '+(e.id||'')+' '+(e.getAttribute('alt')||'')+' '+(e.getAttribute('aria-label')||'')+' '+(e.getAttribute('src')||'');return /icon|glyph|logo|avatar|profile|badge|rating|star|chevron|checkbox|heart|share|search|camera|microphone|menu|hamburger|sprite|button|nav-|store-logo/i.test(z)||!!(e.closest&&e.closest('.puis-mab-overlay,[role=menu],[class*=searchbar],[class*=search-bar],[class*=nav-search]'));}catch(x){return true;}}"
-     "function strong(e){try{return !!(e.closest&&e.closest('[data-asin],[data-component-type=s-search-result],[data-component-type*=product],[class*=product-image],[class*=asin-image],[class*=npack],[class*=gwm-asin],[class*=p13n]'))||!!(e.closest&&e.closest('a[href*=\\\"/dp/\\\"],a[href*=\\\"/gp/product/\\\"]'));}catch(x){return false;}}"
-     "function own(e){try{if(!e||e.nodeType!==1||bad(e))return;var t=String(e.tagName||'').toUpperCase();if(!/^(IMG|VIDEO|CANVAS)$/.test(t))return;var r=e.getBoundingClientRect?e.getBoundingClientRect():{width:0,height:0};var w=r.width||e.width||e.naturalWidth||0,h=r.height||e.height||e.naturalHeight||0;var ok=strong(e);if(!ok&&window.top!==window&&w>=56&&h>=56)ok=true;if(!ok&&w>=72&&h>=72){var a=e.closest&&e.closest('[class*=carousel],[class*=card],[class*=tile]');if(a)ok=true;}if(ok&&w>=32&&h>=32)e.setAttribute('data-ad-product-media206','1');}catch(x){}}"
+     "function own(e){try{if(!e||e.nodeType!==1||bad(e))return;var t=String(e.tagName||'').toUpperCase();if(!/^(IMG|VIDEO|CANVAS)$/.test(t))return;var r=e.getBoundingClientRect?e.getBoundingClientRect():{width:0,height:0};var w=r.width||e.width||e.naturalWidth||e.videoWidth||0,h=r.height||e.height||e.naturalHeight||e.videoHeight||0;if(w<32||h<32)return;e.setAttribute('data-ad-media207','1');if(w>=44&&h>=44)e.setAttribute('data-ad-twb207','1');}catch(x){}}"
      "document.addEventListener('load',function(ev){own(ev.target);},true);document.addEventListener('loadedmetadata',function(ev){own(ev.target);},true);"
      "function init(){try{var a=document.querySelectorAll('img,video,canvas');for(var i=0;i<a.length;i++)own(a[i]);}catch(x){}}"
      "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();"
-     "window.__AD_TWB206__=function(v){Q=v;S.textContent=S.textContent.replace(/opacity:[0-9.]+!important/g,'opacity:'+Q+'!important');};"
+     "window.__AD_TWB207__=function(v){Q=v;S.textContent=S.textContent.replace(/opacity:[0-9.]+!important/g,'opacity:'+Q+'!important');};"
      "}catch(e){}})();",q];
 }
 static void ADInstallWeb206(WKUserContentController *ucc){
@@ -270,36 +285,60 @@ static void ADInstallWeb206(WKUserContentController *ucc){
 }
 
 // -----------------------------------------------------------------------------
-// Current bottom-nav visual behavior, preserved. Tints are pre-inverted so their
-// on-screen colors after the root filter remain the same as v185.
+// v185 bottom navigation — direct behavioral port.
+// The only experiment-specific addition is one counter-invert on the topmost bar
+// host so the UIWindow inversion does not alter v185's own dark/white/blue output.
 // -----------------------------------------------------------------------------
-static BOOL ADIsTabBarItemish(UIView *v){const char *n=object_getClassName(v);return n&&(strstr(n,"BottomNav")||strstr(n,"TabBarItem")||strstr(n,"TabBar")||strstr(n,"NavToolbar"));}
-static UIColor *ADBarBlue(void){return ADPreBlue206();}
-static UIColor *ADBarWhite(void){return [UIColor blackColor];} // root invert -> white
-static const void *kADBarSelKey=&kADBarSelKey,*kADBarPressKey=&kADBarPressKey;
-static BOOL gADBarImageWriting6069=NO,gBarFixPending=NO,gBarCorrecting=NO;
-static void ADRememberBarSelection(UIView *r,BOOL s){if(!r)return;objc_setAssociatedObject(r,kADBarSelKey,@(s),OBJC_ASSOCIATION_RETAIN_NONATOMIC);for(UIView *x in r.subviews)ADRememberBarSelection(x,s);}
-static void ADRememberBarPress(UIView *r,BOOL s){if(!r)return;objc_setAssociatedObject(r,kADBarPressKey,@(s),OBJC_ASSOCIATION_RETAIN_NONATOMIC);for(UIView *x in r.subviews)ADRememberBarPress(x,s);}
-static void ADClearBarPress(UIView *r){if(!r)return;objc_setAssociatedObject(r,kADBarPressKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);for(UIView *x in r.subviews)ADClearBarPress(x);}
-static BOOL ADBarSelectionKnown(UIView *v,BOOL *out){int d=0;UIView *p=v;while(p&&d++<12){NSNumber *n=objc_getAssociatedObject(p,kADBarPressKey);if(n){*out=n.boolValue;return YES;}p=p.superview;}d=0;p=v;while(p&&d++<12){NSNumber *n=objc_getAssociatedObject(p,kADBarSelKey);if(n){*out=n.boolValue;return YES;}p=p.superview;}return NO;}
-static BOOL ADViewIsSelectedInBar(UIView *v){BOOL k=NO;if(ADBarSelectionKnown(v,&k))return k;int d=0;while(v&&d++<12){if([v isKindOfClass:[UIControl class]]&&((UIControl*)v).selected)return YES;v=v.superview;}return NO;}
-static void ADTintBarIcon(UIImageView *iv,BOOL sel){
-    @try {UIImage *im=iv.image;if(!im)return;if(im.renderingMode!=UIImageRenderingModeAlwaysTemplate){UIImage *t=[im imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];if(t){gADBarImageWriting6069=YES;iv.image=t;gADBarImageWriting6069=NO;}}UIColor *want=sel?ADBarWhite():ADBarBlue();[CATransaction begin];[CATransaction setDisableActions:YES];[UIView performWithoutAnimation:^{iv.tintColor=want;}];[CATransaction commit];} @catch(...) {gADBarImageWriting6069=NO;}
+static UIColor *ADThemeColor207(NSString *hex){
+    unsigned v=0; if(hex.length==7)sscanf(hex.UTF8String,"#%06x",&v);
+    return [UIColor colorWithRed:((v>>16)&255)/255.0 green:((v>>8)&255)/255.0 blue:(v&255)/255.0 alpha:1.0];
 }
-static void ADApplyBarTint(UIView *v,BOOL s){if(!v)return;if([v isKindOfClass:[UIImageView class]])ADTintBarIcon((UIImageView*)v,s);for(UIView *x in v.subviews)ADApplyBarTint(x,s);}
-static void ADCorrectBarTintsIn(UIView *v){if(!v)return;if([v isKindOfClass:[UIControl class]]&&ADInTabBarChain(v)){BOOL s=NO;if(!ADBarSelectionKnown(v,&s))s=((UIControl*)v).selected;ADApplyBarTint(v,s);}for(UIView *x in v.subviews)ADCorrectBarTintsIn(x);}
+static BOOL ADIsTabBarItemish(UIView *v){const char *n=object_getClassName(v);if(!n)return NO;return strstr(n,"BottomNav")||strstr(n,"TabBarItem")||strstr(n,"TabBar")||strstr(n,"NavToolbar");}
+static UIColor *gAmazonBlue=nil;
+static UIColor *ADBarBlue(void){if(gAmazonBlue)return gAmazonBlue;return ADThemeColor207(@"#00A8E1");}
+static UIColor *ADBarWhite(void){return ADThemeColor207(@"#e8e6e3");}
+static const void *kADBarSelKey=&kADBarSelKey,*kADBarPressKey=&kADBarPressKey;
+static const void *kADBarNeutralize207=&kADBarNeutralize207,*kADBarNeutralizeOrig207=&kADBarNeutralizeOrig207;
+static BOOL gADBarImageWriting6069=NO,gBarFixPending=NO,gBarCorrecting=NO;
+static void ADSetBarNeutralize207(UIView *v,BOOL on){
+    if(!v)return;@try{
+        CALayer *l=v.layer;id inv=ADInvertFilter206();if(!inv)return;
+        if(on){
+            if(!objc_getAssociatedObject(l,kADBarNeutralize207))objc_setAssociatedObject(l,kADBarNeutralizeOrig207,l.filters?:@[],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            NSArray *a=l.filters?:@[];if(!ADArrayHasInvert206(a))l.filters=[a arrayByAddingObject:inv];
+            objc_setAssociatedObject(l,kADBarNeutralize207,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }else if(objc_getAssociatedObject(l,kADBarNeutralize207)){
+            l.filters=objc_getAssociatedObject(l,kADBarNeutralizeOrig207)?:@[];
+            objc_setAssociatedObject(l,kADBarNeutralize207,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(l,kADBarNeutralizeOrig207,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+    }@catch(...){}
+}
+static BOOL ADExactBarHost207(UIView *v){const char *c=object_getClassName(v);return c&&(strstr(c,"CXIStoreModesBottomNavToolbar")||strstr(c,"CXIStoreModesTabBarView")||strstr(c,"ANPRetailTabBar"));}
+static UIView *ADTopBarHost207(UIView *v){UIView *top=nil;int d=0;for(UIView *p=v;p&&d++<14;p=p.superview)if(ADExactBarHost207(p))top=p;return top?:v;}
+static void ADEnsureBarNeutralize207(UIView *v){if(!v)return;UIView *top=ADTopBarHost207(v);if(top!=v)ADSetBarNeutralize207(v,NO);ADSetBarNeutralize207(top,gP.enabled);}
+static void ADRememberBarSelection(UIView *root,BOOL selected){if(!root)return;@try{objc_setAssociatedObject(root,kADBarSelKey,@(selected),OBJC_ASSOCIATION_RETAIN_NONATOMIC);for(UIView *s in root.subviews)ADRememberBarSelection(s,selected);}@catch(...) {}}
+static void ADRememberBarPress(UIView *root,BOOL selected){if(!root)return;@try{objc_setAssociatedObject(root,kADBarPressKey,@(selected),OBJC_ASSOCIATION_RETAIN_NONATOMIC);for(UIView *s in root.subviews)ADRememberBarPress(s,selected);}@catch(...) {}}
+static void ADClearBarPress(UIView *root){if(!root)return;@try{objc_setAssociatedObject(root,kADBarPressKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);for(UIView *s in root.subviews)ADClearBarPress(s);}@catch(...) {}}
+static BOOL ADBarSelectionKnown(UIView *v,BOOL *out){int d=0;UIView *p=v;while(p&&d++<12){NSNumber *n=objc_getAssociatedObject(p,kADBarPressKey);if(n){*out=n.boolValue;return YES;}p=p.superview;}d=0;p=v;while(p&&d++<12){NSNumber *n=objc_getAssociatedObject(p,kADBarSelKey);if(n){*out=n.boolValue;return YES;}p=p.superview;}return NO;}
+static BOOL ADViewIsSelectedInBar(UIView *v){BOOL known=NO;if(ADBarSelectionKnown(v,&known))return known;int d=0;while(v&&d++<12){if([v isKindOfClass:[UIControl class]]&&((UIControl*)v).selected)return YES;v=v.superview;}return NO;}
+static void ADTintBarIcon(UIImageView *iv,BOOL selected){
+    @try{UIImage *img=iv.image;if(!img)return;if(!ADImageTemplateish206(img)){UIImage *tpl=[img imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];if(tpl){gADBarImageWriting6069=YES;@try{iv.image=tpl;}@catch(...){}gADBarImageWriting6069=NO;}}
+        UIColor *want=selected?ADBarWhite():ADBarBlue(),*cur=iv.tintColor;CGFloat cr,cg,cb,ca,wr,wg,wb,wa;BOOL same=cur&&[cur getRed:&cr green:&cg blue:&cb alpha:&ca]&&[want getRed:&wr green:&wg blue:&wb alpha:&wa]&&fabs(cr-wr)<.01&&fabs(cg-wg)<.01&&fabs(cb-wb)<.01;if(!same){[CATransaction begin];[CATransaction setDisableActions:YES];[UIView performWithoutAnimation:^{iv.tintColor=want;}];[CATransaction commit];}}
+    @catch(...){gADBarImageWriting6069=NO;}
+}
+static void ADApplyBarTint(UIView *v,BOOL s){if(!v)return;@try{if([v isKindOfClass:[UIImageView class]])ADTintBarIcon((UIImageView*)v,s);for(UIView *x in v.subviews)ADApplyBarTint(x,s);}@catch(...) {}}
+static void ADCorrectBarTintsIn(UIView *v){if(!v)return;@try{if([v isKindOfClass:[UIControl class]]&&ADInTabBarChain(v)){BOOL s=NO;if(!ADBarSelectionKnown(v,&s))s=((UIControl*)v).selected;ADApplyBarTint(v,s);}for(UIView *x in v.subviews)ADCorrectBarTintsIn(x);}@catch(...) {}}
 static void ADScheduleBarCorrection(void){if(gBarFixPending||gBarCorrecting)return;gBarFixPending=YES;dispatch_async(dispatch_get_main_queue(),^{gBarFixPending=NO;gBarCorrecting=YES;@try{for(UIScene *sc in UIApplication.sharedApplication.connectedScenes)if([sc isKindOfClass:[UIWindowScene class]])for(UIWindow *w in ((UIWindowScene*)sc).windows)ADCorrectBarTintsIn(w);}@catch(...){}gBarCorrecting=NO;});}
-static UIView *ADBarHostForView6153(UIView *v){UIView *f=nil;int d=0;while(v&&d++<14){const char *c=object_getClassName(v);if(c){if(strstr(c,"CXIStoreModesBottomNavToolbar")||strstr(c,"CXIStoreModesTabBarView")||strstr(c,"ANPRetailTabBar"))return v;if(strstr(c,"BottomNav")||strstr(c,"TabBar")||strstr(c,"NavToolbar"))f=v;}v=v.superview;}return f;}
-static BOOL ADSameBarBranch6153(UIView *c,UIView *p){if(!c||!p)return NO;if(c==p)return YES;return [p isDescendantOfView:c]||[c isDescendantOfView:p];}
-static void ADClaimBarPressWalk6153(UIView *v,UIView *p){if(!v)return;if([v isKindOfClass:[UIControl class]]&&ADInTabBarChain(v)){BOOL hit=ADSameBarBranch6153(v,p);ADRememberBarPress(v,hit);ADApplyBarTint(v,hit);}for(UIView *x in v.subviews)ADClaimBarPressWalk6153(x,p);}
-static void ADClaimBarPress6153(UIView *p){UIView *h=ADBarHostForView6153(p);if(h){ADClearBarPress(h);ADClaimBarPressWalk6153(h,p);}else{ADRememberBarPress(p,YES);ADApplyBarTint(p,YES);}}
-static void ADReleaseBarPress6153(UIView *v){UIView *h=ADBarHostForView6153(v);ADClearBarPress(h?:v);}
-static void ADForceBarDark(UIView *bar){if(gP.enabled&&bar)bar.backgroundColor=ADPreBG206();}
+static UIView *ADBarHostForView6153(UIView *v){UIView *fallback=nil;int d=0;while(v&&d++<14){const char *c=object_getClassName(v);if(c){if(strstr(c,"CXIStoreModesBottomNavToolbar")||strstr(c,"CXIStoreModesTabBarView")||strstr(c,"ANPRetailTabBar"))return v;if(strstr(c,"BottomNav")||strstr(c,"TabBar")||strstr(c,"NavToolbar"))fallback=v;}v=v.superview;}return fallback;}
+static BOOL ADSameBarBranch6153(UIView *candidate,UIView *pressed){if(!candidate||!pressed)return NO;if(candidate==pressed)return YES;@try{if([pressed isDescendantOfView:candidate])return YES;if([candidate isDescendantOfView:pressed])return YES;}@catch(...){}return NO;}
+static void ADClaimBarPressWalk6153(UIView *v,UIView *pressed){if(!v)return;@try{if([v isKindOfClass:[UIControl class]]&&ADInTabBarChain(v)){BOOL hit=ADSameBarBranch6153(v,pressed);ADRememberBarPress(v,hit);ADApplyBarTint(v,hit);}for(UIView *x in v.subviews)ADClaimBarPressWalk6153(x,pressed);}@catch(...) {}}
+static void ADClaimBarPress6153(UIView *pressed){if(!pressed)return;@try{UIView *host=ADBarHostForView6153(pressed);if(host){ADClearBarPress(host);ADClaimBarPressWalk6153(host,pressed);}else{ADRememberBarPress(pressed,YES);ADApplyBarTint(pressed,YES);}}@catch(...) {}}
+static void ADReleaseBarPress6153(UIView *v){if(!v)return;@try{UIView *host=ADBarHostForView6153(v);ADClearBarPress(host?:v);}@catch(...) {}}
+static void ADForceBarDark(UIView *bar){if(!gP.enabled||!bar)return;@try{UIColor *want=ADThemeColor207(@"#181a1b"),*have=bar.backgroundColor;CGFloat r1,g1,b1,a1,r2,g2,b2,a2;BOOL same=have&&[have getRed:&r1 green:&g1 blue:&b1 alpha:&a1]&&[want getRed:&r2 green:&g2 blue:&b2 alpha:&a2]&&fabs(r1-r2)<.01&&fabs(g1-g2)<.01&&fabs(b1-b2)<.01&&fabs(a1-a2)<.01;if(!same)bar.backgroundColor=want;}@catch(...) {}}
 
-// -----------------------------------------------------------------------------
-// Current top/search chrome: flat dark final top bar, no feed-sampling blur, gray
-// search border. Values are pre-inverted so the screen output matches v185.
-// -----------------------------------------------------------------------------
+// Search/top chrome remains the v185 visual contract. Because those surfaces stay
+// under the root inversion, write the inverse RGB only at these exact owners.
 static void ADPaintSearchBorder206(UIView *v){if(gP.enabled&&v)v.layer.borderColor=ADPreBorder206().CGColor;}
 
 %hook UIWindow
@@ -310,6 +349,26 @@ static void ADPaintSearchBorder206(UIView *v){if(gP.enabled&&v)v.layer.borderCol
 - (void)layoutSubviews {
     %orig;
     ADApplyRootInvert206(self);
+}
+%end
+
+%hook UIView
+- (void)setTintColor:(UIColor *)color {
+    @try {
+        if(gP.enabled&&ADInTabBarChain(self)){
+            if(color&&!gAmazonBlue){CGFloat r,g,b,a;if([color getRed:&r green:&g blue:&b alpha:&a]){CGFloat mx=MAX(r,MAX(g,b)),mn=MIN(r,MIN(g,b));if((mx-mn)>.15&&b>=r*.9)gAmazonBlue=[UIColor colorWithRed:r green:g blue:b alpha:1.0];}}
+            BOOL sel=NO;if(!ADBarSelectionKnown(self,&sel))sel=ADViewIsSelectedInBar(self);UIColor *want=sel?ADBarWhite():ADBarBlue();
+            CGFloat ir,ig,ib,ia,tr,tg,tb,ta;BOOL same=color&&[color getRed:&ir green:&ig blue:&ib alpha:&ia]&&[want getRed:&tr green:&tg blue:&tb alpha:&ta]&&fabs(ir-tr)<.01&&fabs(ig-tg)<.01&&fabs(ib-tb)<.01;
+            if(same){
+                %orig;
+                return;
+            }
+            ADScheduleBarCorrection();
+            %orig(want);
+            return;
+        }
+    }@catch(...){}
+    %orig;
 }
 %end
 
@@ -372,19 +431,34 @@ static void ADPaintSearchBorder206(UIView *v){if(gP.enabled&&v)v.layer.borderCol
 %hook CXIStoreModesBottomNavToolbar
 - (void)layoutSubviews {
     %orig;
-    ADForceBarDark(self);
+    ADEnsureBarNeutralize207((UIView*)self);
+    ADForceBarDark((UIView*)self);
+}
+- (void)didMoveToWindow {
+    %orig;
+    if(self.window){ADEnsureBarNeutralize207((UIView*)self);ADForceBarDark((UIView*)self);ADScheduleBarCorrection();}
 }
 %end
 %hook CXIStoreModesTabBarView
 - (void)layoutSubviews {
     %orig;
-    ADForceBarDark(self);
+    ADEnsureBarNeutralize207((UIView*)self);
+    ADForceBarDark((UIView*)self);
+}
+- (void)didMoveToWindow {
+    %orig;
+    if(self.window){ADEnsureBarNeutralize207((UIView*)self);ADForceBarDark((UIView*)self);ADScheduleBarCorrection();}
 }
 %end
 %hook ANPRetailTabBar
 - (void)layoutSubviews {
     %orig;
-    ADForceBarDark(self);
+    ADEnsureBarNeutralize207((UIView*)self);
+    ADForceBarDark((UIView*)self);
+}
+- (void)didMoveToWindow {
+    %orig;
+    if(self.window){ADEnsureBarNeutralize207((UIView*)self);ADForceBarDark((UIView*)self);ADScheduleBarCorrection();}
 }
 %end
 
@@ -821,6 +895,7 @@ static void ADPrefsChanged206(CFNotificationCenterRef c,void *o,CFStringRef n,co
         BOOL old120=gP.enabled&&gP.force120Hz; ADLoadPrefs(); BOOL new120=gP.enabled&&gP.force120Hz;
         if(old120!=new120)ADRefreshPromotionState611();
         @try { for(UIScene *sc in UIApplication.sharedApplication.connectedScenes)if([sc isKindOfClass:[UIWindowScene class]])for(UIWindow *w in ((UIWindowScene*)sc).windows)ADApplyRootInvert206(w); } @catch(...) {}
+        ADScheduleBarCorrection();
     });
 }
 
