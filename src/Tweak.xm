@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.210-dr-balanced-experimental"
+#define AD_VERSION "v6.0.211-dr-firstpaint-experimental"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -906,17 +906,20 @@ static NSString *ADDarkReaderBootstrap(void){
          // but it means lazy/virtualised holes reveal the theme floor, not Amazon white.
          "try{if(!document.getElementById('adfloor612')){var f=document.createElement('style');"
            "f.id='adfloor612';f.textContent='html,body,#a-page,#gwm-PageContent,main{background-color:%@ !important;}"
-           // v6.0.210: Home product-card shell prepaint. v6.0.209 deliberately
-           // defers Dark Reader mutation reconciliation, which exposed Amazon's stock
-           // white card shell during aggressive infinite-scroll hydration. These are
-           // stable Home product-card shell families already owned by the v185 theme;
-           // paint only their structural background at documentStart so Dark Reader
-           // can finish detail theming later without a white intermediate frame.
-           "#gwm-PageContent [class*=a-cardui],#gwm-PageContent [class*=npack-asin-card],"
-           "#gwm-PageContent [class*=gwm-asin-tile],#gwm-PageContent [class*=gwm-tile],"
-           "#gwm-PageContent [class*=puis-card],"
-           "#gwm-PageContent [class*=cXVhZ][class*=asin-container],"
-           "#gwm-PageContent [class*=cXVhZ][class*=container_]{background-color:#181a1b !important;}"
+           // v6.0.211: first-frame card prepaint follows the actual nested Home card
+           // structure. v6.0.210 only colored the outer card shell; the screenshot
+           // showed Amazon's inner DIV/SECTION/LI surfaces still painting white while
+           // Dark Reader's deferred mutation pass caught up. Keep this declarative and
+           // cheap: darken structural block surfaces in proven product-card families,
+           // while explicitly leaving image/media, badges, deals, buttons, swatches and
+           // creative/poster leaves alone. No mutation callback or DOM walk is needed.
+           "html body :is([class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-tile],[class*=puis-card],[class*=cXVhZ])"
+           "{background-color:#181a1b !important;}"
+           "html body :is([class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-tile],[class*=puis-card],[class*=cXVhZ]) "
+           ":is(div,section,article,li,ul,ol,a,p,span):not([class*=image]):not([class*=img]):not([class*=picture]):not([class*=video])"
+           ":not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=button]):not([class*=swatch])"
+           ":not([class*=creative]):not([class*=theming]):not([class*=poster])"
+           "{background-color:#181a1b !important;}"
            // v6.0.145: first-paint /ap/signin footer ownership.  v6.0.144 proved
            // the footer can be normalized correctly once its text is hydrated, but
            // that semantic pass necessarily happens after Amazon has had a chance to

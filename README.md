@@ -1,4 +1,13 @@
-# AmazonDark v6.0.210~experimental — fast Dark Reader input + immediate Home card prepaint
+# AmazonDark v6.0.211~experimental — nested Home first-paint + one-frame DR inline catch-up
+
+## v6.0.211 experiment
+
+- Keeps the v6.0.209/210 delayed heavy Dark Reader tree-reconciliation path for input responsiveness.
+- Fixes the remaining visible Home white-card flash by prepainting nested structural block surfaces inside proven Amazon product-card families, not only the outer shell.
+- Leaves product/media, glyph/badge/deal/button/swatch/creative/poster leaves out of that prepaint.
+- Shortens Dark Reader inline-style coalescing from 36 ms to 8 ms (roughly one 120 Hz frame) without restoring synchronous mutation processing.
+- Everything else remains the v6.0.185 functional baseline.
+
 
 - Exact functional baseline remains v6.0.185; v6.0.209 Dark Reader subtree scheduling is retained.
 - Fixes the visible v6.0.209 tradeoff where aggressive Home scrolling could show stock-white product-card shells until Dark Reader's 180 ms quiet/idle reconciliation finally ran.

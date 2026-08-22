@@ -1885,7 +1885,7 @@
         duplicateDeletions.forEach((node) => deletions.delete(node));
         return {additions, moves, deletions};
     }
-    // AmazonDark v6.0.210: expensive subtree reconciliation remains behind the
+    // AmazonDark v6.0.211: expensive subtree reconciliation remains behind the
     // v6.0.209 quiet/idle gate so Amazon input wins during hydration. Inline-style
     // reconciliation uses a separate short coalescer below because those mutations
     // are what repaint newly inserted card surfaces and cannot tolerate a long visual lag.
@@ -1940,7 +1940,7 @@
         };
         return schedule;
     }
-    function coalesceVisualMutations(callback, delay = 36) {
+    function coalesceVisualMutations(callback, delay = 8) {
         let timerId = null;
         let queue = [];
         const schedule = (mutations) => {
@@ -5961,7 +5961,7 @@
                 }
             });
             variablesStore.matchVariablesAndDependents();
-        }, 36);
+        }, 8);
         const attrObserver = new MutationObserver((mutations) => {
             if (timeoutId) {
                 cache.push(...mutations);
