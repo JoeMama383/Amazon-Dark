@@ -1,13 +1,19 @@
-# AmazonDark v6.0.187~probe — full-screen Product images TWB
+# AmazonDark v6.0.188~probe — exhaustive screenshot Share renderer capture
 
-## v6.0.187 correction
-- Keeps every confirmed v6.0.186 behavior, including Buy Again border persistence, Interests gradient removal, Cart foreground recovery, and screenshot Share-preview TWB.
-- Fixes the native full-screen `Product images` viewer so its large selected product image is forced through the existing TWB overlay owner instead of depending on whole-image average lightness.
-- The exact viewer title `Product images` plus large-image geometry is required; thumbnail rail and navigation chrome are not promoted.
-- Reuses assignment/didMoveToWindow ownership and adds only a one-shot semantic recovery when the exact title hydrates. No new observer, scroll callback, interval, RAF loop, or recurring scan.
-- The retained 6180 probe now emits `GALLERY6187` records if a gallery image still misses.
+## Probe-only change
 
-## Retained v6.0.186 lineage
+- Built directly from v6.0.186~probe. No new Share/TWB production fix is added in this version.
+- Retains v6.0.186 behavior exactly while expanding the existing background-triggered diagnostic so missed screenshot-share photos are logged even when they fail the v6.0.186 selector/gate.
+- When **Share this product with friends** is visible and Amazon is backgrounded, the existing `AmazonDark-buyagain-probe-6180.txt` output now adds a `SHAREPANEL6187` section.
+- The probe records every visible `UIImageView` under the Share sheet, not only views that already qualify as v6.0.186 Share previews.
+- For each image it records class, screen/bounds geometry, source pixel dimensions, content mode, current TWB overlay, cached TWB decision/context/lightness, each v6.0.186 Share gate (`geom6186`, `near6186`, `product6186`), template/UI-chain/WebKit/tab exclusions, backing-layer contents/backgrounds, accessibility metadata, and a bounded ancestor chain.
+- It also records non-UIImageView CGImage-backed raster views and CGImage/gradient sublayers so a flattened/Fabric painter cannot disappear from the diagnostic just because it is not a normal UIImageView.
+- Diagnostic traversal runs only on `UIApplicationWillResignActiveNotification`; no new timer, scroll callback, RAF loop, DOM observer, or paint mutation is introduced.
+
+## Previous v6.0.186 notes
+
+# AmazonDark v6.0.186~probe — screenshot Share preview TWB
+
 ## v6.0.186 correction
 
 - Built directly from the v6.0.185~probe source; the working Buy Again nav re-entry border fix and Interests gradient fix are retained unchanged.

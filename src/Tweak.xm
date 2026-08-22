@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.187-probe"
+#define AD_VERSION "v6.0.188-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -4033,79 +4033,6 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
     });
 }
 
-// v6.0.187 — Full-screen PDP "Product images" viewer TWB owner.
-//
-// The gallery reuses one large native image view as the user moves through product
-// photos. Generic TWB currently decides those large bitmaps from whole-image average
-// lightness, so a studio image with a bright/white backdrop can miss merely because
-// the product/person itself is dark enough to pull the average below the threshold.
-// In this exact viewer the semantics are already certain: the large leaf is product
-// media. Force only that large leaf through the existing TWB overlay owner; the
-// thumbnail rail, Cancel/title chrome and other small UI remain outside the gate.
-static BOOL ADProductGalleryPhrase6187(NSString *text){
-    if(!text.length)return NO;
-    @try {
-        NSString *lo=[[[text lowercaseString] stringByReplacingOccurrencesOfString:@"\n" withString:@" "]
-                      stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-        while([lo containsString:@"  "]) lo=[lo stringByReplacingOccurrencesOfString:@"  " withString:@" "];
-        return [lo isEqualToString:@"product images"];
-    } @catch(...) {}
-    return NO;
-}
-static BOOL ADProductGalleryMainGeometry6187(UIImageView *iv){
-    if(!iv)return NO;
-    CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
-    if(w<250||h<180||w>620||h>760)return NO;
-    CGFloat ar=w/MAX((CGFloat)1.0,h);
-    return ar>=0.38&&ar<=3.2&&(w*h)>=65000.0;
-}
-static BOOL ADProductGalleryPhraseNear6187(UIView *v){
-    if(!v||!v.window)return NO;
-    @try {
-        UIView *p=v; int up=0;
-        while(p&&up++<10){
-            if(ADProductGalleryPhrase6187(ADWTViewText362(p)))return YES;
-            NSMutableArray *q=[NSMutableArray arrayWithObject:p]; NSUInteger qi=0; int seen=0;
-            while(qi<q.count&&seen++<96){
-                UIView *x=q[qi++];
-                if(x!=v&&ADProductGalleryPhrase6187(ADWTViewText362(x)))return YES;
-                if(qi<36){for(UIView *ch in x.subviews){if(q.count<108)[q addObject:ch];else break;}}
-            }
-            p=p.superview;
-        }
-    } @catch(...) {}
-    return NO;
-}
-static BOOL ADProductGalleryMainImage6187(UIImageView *iv){
-    return ADProductGalleryMainGeometry6187(iv)&&ADProductGalleryPhraseNear6187(iv);
-}
-static void ADProductGalleryRepair6187(UIView *anchor, NSString *text){
-    if(!ADRecolorOn()||!gP.whiteTame||!anchor||!ADProductGalleryPhrase6187(text))return;
-    __weak UIView *weakAnchor=anchor;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        UIView *live=weakAnchor; if(!live||!live.window)return;
-        @try {
-            UIView *root=live; int up=0;
-            while(root.superview&&up++<9){
-                UIView *next=root.superview;
-                if(next.window!=live.window)break;
-                root=next;
-                if(root.bounds.size.width>=live.window.bounds.size.width*.94&&
-                   root.bounds.size.height>=live.window.bounds.size.height*.72) break;
-            }
-            NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger qi=0; int seen=0;
-            while(qi<q.count&&seen++<190){
-                UIView *x=q[qi++];
-                if([x isKindOfClass:[UIImageView class]]){
-                    UIImageView *iv=(UIImageView *)x;
-                    if(ADProductGalleryMainGeometry6187(iv)) ADApplyNativeWhiteTameView(iv);
-                }
-                if(qi<72){for(UIView *ch in x.subviews){if(q.count<205)[q addObject:ch];else break;}}
-            }
-        } @catch(...) {}
-    });
-}
-
 // Fabric text (new architecture). Setter lives on RCTParagraphComponentView.
 %hook RCTParagraphComponentView
 - (void)setAttributedText:(NSAttributedString *)attributedText {
@@ -4116,7 +4043,6 @@ static void ADProductGalleryRepair6187(UIView *anchor, NSString *text){
         ADBuyAgainSemanticRepair6181((UIView *)self,attributedText.string);
         ADNeutralizeInterestsGradientNearText6177((UIView *)self,attributedText.string);
         ADShareScreenshotRepair6186((UIView *)self,attributedText.string);
-        ADProductGalleryRepair6187((UIView *)self,attributedText.string);
         return;
     } @catch(...) {}
     %orig;
@@ -4129,7 +4055,6 @@ static void ADProductGalleryRepair6187(UIView *anchor, NSString *text){
         ADBuyAgainSemanticRepair6181((UIView *)self,attributedString.string);
         ADNeutralizeInterestsGradientNearText6177((UIView *)self,attributedString.string);
         ADShareScreenshotRepair6186((UIView *)self,attributedString.string);
-        ADProductGalleryRepair6187((UIView *)self,attributedString.string);
         return;
     } @catch(...) {}
     %orig;
@@ -4167,7 +4092,6 @@ static void ADProductGalleryRepair6187(UIView *anchor, NSString *text){
         ADBuyAgainSemanticRepair6181((UIView *)self,adBorderText6147);
         ADNeutralizeInterestsGradientNearText6177((UIView *)self,adBorderText6147);
         ADShareScreenshotRepair6186((UIView *)self,adBorderText6147);
-        ADProductGalleryRepair6187((UIView *)self,adBorderText6147);
     } @catch(...) {}
 }
 - (void)layoutSubviews {
@@ -4189,14 +4113,9 @@ static void ADProductGalleryRepair6187(UIView *anchor, NSString *text){
         ADBuyAgainSemanticRepair6181(self,attributedText.string);
         ADNeutralizeInterestsGradientNearText6177(self,attributedText.string);
         ADShareScreenshotRepair6186(self,attributedText.string);
-        ADProductGalleryRepair6187(self,attributedText.string);
         return;
     } @catch(...) {}
     %orig;
-}
-- (void)setText:(NSString *)text {
-    %orig;
-    @try { ADProductGalleryRepair6187(self,text); } @catch(...) {}
 }
 %end
 
@@ -5820,9 +5739,7 @@ static void ADApplyNativeWhiteTameView(UIView *v){
 
         ADNativeRegisterRCT6053(iv);
         BOOL shareShot=ADShareScreenshotProductImage6186(iv);
-        BOOL galleryMain=ADProductGalleryMainImage6187(iv);
-        BOOL exactProductSurface=(shareShot||galleryMain);
-        int ctx=exactProductSurface?2:((w<=240&&h<=240)?ADTWBDirectCtx6031(iv,im):0);
+        int ctx=shareShot?2:((w<=240&&h<=240)?ADTWBDirectCtx6031(iv,im):0);
         BOOL forced=(ctx==2), review=(ctx==3);
         BOOL own=NO, lightReady=YES;
 
@@ -5830,7 +5747,7 @@ static void ADApplyNativeWhiteTameView(UIView *v){
             own=YES;
             objc_setAssociatedObject(iv,kADTWBCachedImage6027,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             objc_setAssociatedObject(iv,kADTWBDecision6027,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            if(exactProductSurface) ADTWBPromoteProduct6053(iv,im);
+            if(shareShot) ADTWBPromoteProduct6053(iv,im);
         } else if(ctx!=1 && cached==im && decision){
             own=decision.boolValue;
         } else if(ctx!=1){
@@ -7004,10 +6921,10 @@ static void ADBuyAgainProbeAppend6180(NSString *line){
 static void ADBuyAgainProbeReset6180(void){
     @try {
         NSString *head=[NSString stringWithFormat:
-            @"AmazonDark Buy Again probe 6180\nversion=%s\npid=%d\nsource=%@\n"
+            @"AmazonDark Buy Again + screenshot Share probe 6187\nversion=%s\npid=%d\nsource=%@\n"
              "relay=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/%@\n"
-             "trigger=leave Buy Again visible and background Amazon; each background appends a snapshot\n"
-             "targets=Reorder-soon border painter + RCTUIImageView/ANXFastImageView TWB peer state + screenshot Share preview TWB + full-screen Product images gallery TWB\n",
+             "trigger=leave the untamed screenshot Share panel visible and background Amazon; each background appends a snapshot\n"
+             "targets=all visible UIImageView/raster/gradient painters inside Share this product with friends; Buy Again diagnostics retained\n",
             AD_VERSION,getpid(),ADBuyAgainProbePath6180(),ADBuyAgainProbeName6180()];
         [head writeToFile:ADBuyAgainProbePath6180() atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } @catch(...) {}
@@ -7082,13 +6999,119 @@ static BOOL ADBuyAgainProbeVisible6180(UIView *v){
     @try { CGRect r=ADBuyAgainProbeRect6180(v); return r.size.width>1&&r.size.height>1&&CGRectIntersectsRect(r,[UIScreen mainScreen].bounds); } @catch(...) {}
     return NO;
 }
+
+// v6.0.188~probe — exhaustive screenshot Share-panel renderer capture.
+// Diagnostic only: deliberately does NOT call ADApplyNativeWhiteTameView(), recolor,
+// add/remove overlays, or mutate image/lightness caches. The v6.0.186 behavior is
+// therefore preserved while we record every plausible image/layer painter in the sheet.
+static UIView *ADShareProbeRoot6187(void){
+    @try {
+        NSMutableArray *q=[NSMutableArray array];
+        for(UIWindow *w in [UIApplication sharedApplication].windows)
+            if(w&&!w.hidden&&w.alpha>.03)[q addObject:w];
+        NSUInteger qi=0,seen=0;
+        while(qi<q.count&&seen++<2400){
+            UIView *v=q[qi++];
+            for(UIView *ch in v.subviews){ if(q.count<2800)[q addObject:ch]; else break; }
+            if(!ADBuyAgainProbeVisible6180(v))continue;
+            if(!ADShareScreenshotPhrase6186(ADWTViewText362(v)))continue;
+            UIView *root=v; int up=0;
+            CGFloat sw=[UIScreen mainScreen].bounds.size.width;
+            while(root.superview&&up++<10){
+                UIView *next=root.superview;
+                if(next.window!=v.window)break;
+                root=next;
+                CGRect rr=ADBuyAgainProbeRect6180(root);
+                if(rr.size.width>=sw*.86&&rr.size.height>=360.0)break;
+            }
+            return root;
+        }
+    } @catch(...) {}
+    return nil;
+}
+static NSString *ADShareProbeAncestors6187(UIView *v,UIView *root){
+    if(!v)return @"";
+    @try {
+        NSMutableArray *bits=[NSMutableArray array]; UIView *p=v.superview; int n=0;
+        while(p&&n++<7){
+            const char *cn=object_getClassName(p); NSString *cl=cn?[NSString stringWithUTF8String:cn]:@"?";
+            CGRect r=ADBuyAgainProbeRect6180(p); NSString *tx=ADWTViewText362(p)?:@"";
+            tx=[[tx stringByReplacingOccurrencesOfString:@"\n" withString:@" "] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+            if(tx.length>72)tx=[[tx substringToIndex:72]stringByAppendingString:@"…"];
+            [bits addObject:[NSString stringWithFormat:@"%@ %.0fx%.0f '%@'",cl,r.size.width,r.size.height,tx]];
+            if(p==root)break; p=p.superview;
+        }
+        return [bits componentsJoinedByString:@" <- "];
+    } @catch(...) { return @""; }
+}
+static void ADShareProbeLayer6187(CALayer *l,int depth,NSMutableString *out,int *count){
+    if(!l||!out||!count||depth>7||*count>=180)return;
+    @try {
+        id c=l.contents; BOOL hasCG=NO; size_t px=0,py=0;
+        if(c){ CFTypeRef obj=(__bridge CFTypeRef)c; if(obj&&CFGetTypeID(obj)==CGImageGetTypeID()){hasCG=YES;CGImageRef im=(CGImageRef)obj;px=CGImageGetWidth(im);py=CGImageGetHeight(im);} }
+        NSString *cl=NSStringFromClass([l class]);
+        BOOL interesting=hasCG||[cl rangeOfString:@"Gradient" options:NSCaseInsensitiveSearch].location!=NSNotFound;
+        if(interesting){
+            (*count)++;
+            id del=l.delegate; NSString *dc=del?NSStringFromClass([del class]):@"nil";
+            [out appendFormat:@"SHARELAYER #%d d=%d cls=%@ delegate=%@ frame=(%.1f,%.1f %.1fx%.1f) contents=%@ pixels=%zux%zu bg=%@ opacity=%.2f hidden=%d sub=%lu\n",
+                *count,depth,cl,dc,l.frame.origin.x,l.frame.origin.y,l.frame.size.width,l.frame.size.height,
+                ADBuyAgainProbeContents6180(c),px,py,ADBuyAgainProbeColor6180(l.backgroundColor),l.opacity,l.hidden,(unsigned long)l.sublayers.count];
+        }
+        for(CALayer *sl in (l.sublayers?:@[]))ADShareProbeLayer6187(sl,depth+1,out,count);
+    } @catch(...) {}
+}
+static void ADShareProbeDump6187(NSMutableString *out){
+    if(!out)return;
+    @try {
+        UIView *root=ADShareProbeRoot6187();
+        if(!root){ [out appendString:@"\nSHAREPANEL6187 root=none phraseVisible=0\n"]; return; }
+        CGRect rr=ADBuyAgainProbeRect6180(root);
+        [out appendFormat:@"\n===== SHAREPANEL6187 root=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) text=\"%@\" =====\n",
+            NSStringFromClass([root class]),root,rr.origin.x,rr.origin.y,rr.size.width,rr.size.height,ADBuyAgainProbeText6180(root)];
+        NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger qi=0,seen=0; int imgs=0,rasterViews=0;
+        while(qi<q.count&&seen++<900){
+            UIView *v=q[qi++];
+            for(UIView *ch in v.subviews){if(q.count<980)[q addObject:ch];else break;}
+            if(!ADBuyAgainProbeVisible6180(v))continue;
+            const char *cn=object_getClassName(v); NSString *cl=cn?[NSString stringWithUTF8String:cn]:@"?";
+            CGRect r=ADBuyAgainProbeRect6180(v);
+            if([v isKindOfClass:[UIImageView class]]){
+                UIImageView *iv=(UIImageView *)v; UIImage *im=iv.image; if(!im)continue;
+                imgs++; size_t px=0,py=0; if(im.CGImage){px=CGImageGetWidth(im.CGImage);py=CGImageGetHeight(im.CGImage);}
+                CALayer *ov=objc_getAssociatedObject(iv,kADWhiteTameOverlayKey);
+                NSNumber *dec=objc_getAssociatedObject(iv,kADTWBDecision6027);
+                NSNumber *ctx=objc_getAssociatedObject(iv,kADTWBDirectCtx6031);
+                NSNumber *light=objc_getAssociatedObject(im,kADWhiteTameLightKey363);
+                BOOL geom=ADShareScreenshotImageGeometry6186(iv);
+                BOOL near=ADShareScreenshotPhraseNear6186(iv);
+                BOOL prod=geom&&near;
+                [out appendFormat:@"SHAREIMG #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) bounds=(%.1fx%.1f) pixels=%zux%zu mode=%ld alpha=%.2f hidden=%d opaque=%d overlay=%d geom6186=%d near6186=%d product6186=%d decision=%@ ctx=%@ lightCache=%@ template=%d uiChain=%d webOwned=%d tabChain=%d layerContents=%@ bg=%@ layerBg=%@ aid=\"%@\" label=\"%@\" anc=\"%@\"\n",
+                    imgs,cl,iv,r.origin.x,r.origin.y,r.size.width,r.size.height,iv.bounds.size.width,iv.bounds.size.height,px,py,(long)iv.contentMode,iv.alpha,iv.hidden,iv.opaque,
+                    (ov&&ov.superlayer==iv.layer),geom,near,prod,dec?:@"nil",ctx?:@"nil",light?:@"nil",ADImageIsTemplateish(im),ADNativeTWBUIChain6027(iv),ADIsWebKitOwned(iv),ADInTabBarChain(iv),
+                    ADBuyAgainProbeContents6180(iv.layer.contents),ADBuyAgainProbeColor6180(iv.backgroundColor.CGColor),ADBuyAgainProbeColor6180(iv.layer.backgroundColor),iv.accessibilityIdentifier?:@"",iv.accessibilityLabel?:@"",ADShareProbeAncestors6187(iv,root)];
+            } else {
+                id c=v.layer.contents; BOOL hasCG=NO; size_t px=0,py=0;
+                if(c){CFTypeRef obj=(__bridge CFTypeRef)c;if(obj&&CFGetTypeID(obj)==CGImageGetTypeID()){hasCG=YES;CGImageRef im=(CGImageRef)obj;px=CGImageGetWidth(im);py=CGImageGetHeight(im);}}
+                if(hasCG){
+                    rasterViews++;
+                    [out appendFormat:@"SHARERASTER #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) pixels=%zux%zu contents=%@ bg=%@ layerBg=%@ aid=\"%@\" label=\"%@\" anc=\"%@\"\n",
+                        rasterViews,cl,v,r.origin.x,r.origin.y,r.size.width,r.size.height,px,py,ADBuyAgainProbeContents6180(c),ADBuyAgainProbeColor6180(v.backgroundColor.CGColor),ADBuyAgainProbeColor6180(v.layer.backgroundColor),v.accessibilityIdentifier?:@"",v.accessibilityLabel?:@"",ADShareProbeAncestors6187(v,root)];
+                }
+            }
+        }
+        int layers=0; ADShareProbeLayer6187(root.layer,0,out,&layers);
+        [out appendFormat:@"SHARESUMMARY6187 scanned=%lu imageViews=%d rasterViews=%d imageOrGradientLayers=%d\n===== SHAREPANEL6187 COMPLETE =====\n",
+            (unsigned long)seen,imgs,rasterViews,layers];
+    } @catch(...) { [out appendString:@"SHAREPANEL6187 EXCEPTION\n"]; }
+}
 static void ADBuyAgainProbeCapture6180(void){
     static NSUInteger cap=0; NSUInteger n=++cap;
     @try {
         NSMutableString *out=[NSMutableString stringWithFormat:@"\n\n===== BUY AGAIN CAPTURE %lu t=%.3f =====\n",(unsigned long)n,CFAbsoluteTimeGetCurrent()];
         NSMutableArray *q=[NSMutableArray array];
         for(UIWindow *w in [UIApplication sharedApplication].windows) if(w&&!w.hidden&&w.alpha>.03)[q addObject:w];
-        NSUInteger qi=0,seen=0; int cards=0,images=0,carousels=0,shareImages=0,galleryImages=0;
+        NSUInteger qi=0,seen=0; int cards=0,images=0,carousels=0,shareImages=0;
         while(qi<q.count && seen++<2200){
             UIView *v=q[qi++];
             for(UIView *ch in v.subviews){ if(q.count<2600)[q addObject:ch]; else break; }
@@ -7131,23 +7154,6 @@ static void ADBuyAgainProbeCapture6180(void){
                 }
             }
 
-            if([v isKindOfClass:[UIImageView class]]){
-                UIImageView *giv=(UIImageView *)v;
-                if(ADProductGalleryMainImage6187(giv)){
-                    galleryImages++;
-                    UIImage *gim=giv.image; size_t gpx=0,gpy=0;
-                    if(gim.CGImage){gpx=CGImageGetWidth(gim.CGImage);gpy=CGImageGetHeight(gim.CGImage);}
-                    CALayer *gov=objc_getAssociatedObject(giv,kADWhiteTameOverlayKey);
-                    NSNumber *gdec=objc_getAssociatedObject(giv,kADTWBDecision6027);
-                    NSNumber *gctx=objc_getAssociatedObject(giv,kADTWBDirectCtx6031);
-                    [out appendFormat:@"GALLERY6187 #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) pixels=%zux%zu overlay=%d decision=%@ ctx=%@ mainGeom=%d phraseNear=%d aid=\"%@\" label=\"%@\"\n",
-                        galleryImages,cls,giv,r.origin.x,r.origin.y,r.size.width,r.size.height,gpx,gpy,
-                        (gov&&gov.superlayer==giv.layer),gdec?:@"nil",gctx?:@"nil",
-                        ADProductGalleryMainGeometry6187(giv),ADProductGalleryPhraseNear6187(giv),
-                        giv.accessibilityIdentifier?:@"",giv.accessibilityLabel?:@""];
-                }
-            }
-
             if([v isKindOfClass:[UIImageView class]] &&
                ([cls containsString:@"ANXFastImageView"] || [cls containsString:@"RCTUIImageView"])){
                 UIImageView *iv=(UIImageView *)v; CGFloat iw=iv.bounds.size.width,ih=iv.bounds.size.height;
@@ -7167,8 +7173,9 @@ static void ADBuyAgainProbeCapture6180(void){
                 }
             }
         }
-        [out appendFormat:@"SUMMARY scanned=%lu carousels=%d cards=%d images=%d shareImages=%d galleryImages=%d\n===== BUY AGAIN CAPTURE %lu COMPLETE =====\n",
-            (unsigned long)seen,carousels,cards,images,shareImages,galleryImages,(unsigned long)n];
+        ADShareProbeDump6187(out);
+        [out appendFormat:@"SUMMARY scanned=%lu carousels=%d cards=%d images=%d shareImages=%d\n===== BUY AGAIN CAPTURE %lu COMPLETE =====\n",
+            (unsigned long)seen,carousels,cards,images,shareImages,(unsigned long)n];
         ADBuyAgainProbeAppend6180(out);
         notify_post(AD_BUYAGAIN_PROBE_READY_6180);
     } @catch(...) {
