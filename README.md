@@ -1,3 +1,12 @@
+# AmazonDark v6.0.210~experimental — fast Dark Reader input + immediate Home card prepaint
+
+- Exact functional baseline remains v6.0.185; v6.0.209 Dark Reader subtree scheduling is retained.
+- Fixes the visible v6.0.209 tradeoff where aggressive Home scrolling could show stock-white product-card shells until Dark Reader's 180 ms quiet/idle reconciliation finally ran.
+- Adds a documentStart-only structural prepaint for proven Home product-card shell families (a-cardui / NPACK / GWM / PUIS / cXVhZ containers). It changes only the shell background to #181a1b; product images, badges, controls and creative artwork are not selected.
+- Keeps expensive Dark Reader childList/subtree reconciliation behind the 180 ms quiet + idle gate for input responsiveness.
+- Separates Dark Reader's inline-style mutation lane: it now coalesces for 36 ms from the first mutation without repeatedly resetting the timer, so newly inserted card/background inline styles are corrected quickly instead of waiting until scrolling stops.
+- No new MutationObserver, scroll listener, RAF loop, interval, document scan or native hierarchy traversal.
+
 # AmazonDark v6.0.209~experimental — Dark Reader mutation reconciliation off the input-critical path
 
 - Exact functional/theming baseline: v6.0.185~probe.

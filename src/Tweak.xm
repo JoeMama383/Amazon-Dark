@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.209-dr-idle-experimental"
+#define AD_VERSION "v6.0.210-dr-balanced-experimental"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -906,6 +906,17 @@ static NSString *ADDarkReaderBootstrap(void){
          // but it means lazy/virtualised holes reveal the theme floor, not Amazon white.
          "try{if(!document.getElementById('adfloor612')){var f=document.createElement('style');"
            "f.id='adfloor612';f.textContent='html,body,#a-page,#gwm-PageContent,main{background-color:%@ !important;}"
+           // v6.0.210: Home product-card shell prepaint. v6.0.209 deliberately
+           // defers Dark Reader mutation reconciliation, which exposed Amazon's stock
+           // white card shell during aggressive infinite-scroll hydration. These are
+           // stable Home product-card shell families already owned by the v185 theme;
+           // paint only their structural background at documentStart so Dark Reader
+           // can finish detail theming later without a white intermediate frame.
+           "#gwm-PageContent [class*=a-cardui],#gwm-PageContent [class*=npack-asin-card],"
+           "#gwm-PageContent [class*=gwm-asin-tile],#gwm-PageContent [class*=gwm-tile],"
+           "#gwm-PageContent [class*=puis-card],"
+           "#gwm-PageContent [class*=cXVhZ][class*=asin-container],"
+           "#gwm-PageContent [class*=cXVhZ][class*=container_]{background-color:#181a1b !important;}"
            // v6.0.145: first-paint /ap/signin footer ownership.  v6.0.144 proved
            // the footer can be normalized correctly once its text is hydrated, but
            // that semantic pass necessarily happens after Amazon has had a chance to

@@ -1885,10 +1885,10 @@
         duplicateDeletions.forEach((node) => deletions.delete(node));
         return {additions, moves, deletions};
     }
-    // AmazonDark v6.0.209: Dark Reader remains fully dynamic, but mutation
-    // reconciliation is moved behind a short quiet window and browser idle time.
-    // This keeps Amazon's touch/click/scroll work ahead of Dark Reader's DOM
-    // bookkeeping during Search/PDP/Home hydration bursts.
+    // AmazonDark v6.0.210: expensive subtree reconciliation remains behind the
+    // v6.0.209 quiet/idle gate so Amazon input wins during hydration. Inline-style
+    // reconciliation uses a separate short coalescer below because those mutations
+    // are what repaint newly inserted card surfaces and cannot tolerate a long visual lag.
     function debounceIdleMutations(callback, delay = 180) {
         let timerId = null;
         let idleId = null;
@@ -1936,6 +1936,32 @@
                 timerId = null;
             }
             cancelIdle();
+            queue = [];
+        };
+        return schedule;
+    }
+    function coalesceVisualMutations(callback, delay = 36) {
+        let timerId = null;
+        let queue = [];
+        const schedule = (mutations) => {
+            queue.push(...mutations);
+            if (timerId != null) {
+                return;
+            }
+            timerId = setTimeout(() => {
+                timerId = null;
+                const pending = queue;
+                queue = [];
+                if (pending.length > 0) {
+                    callback(pending);
+                }
+            }, delay);
+        };
+        schedule.cancel = () => {
+            if (timerId != null) {
+                clearTimeout(timerId);
+                timerId = null;
+            }
             queue = [];
         };
         return schedule;
@@ -5922,7 +5948,7 @@
         const MAX_ATTEMPTS_COUNT = 50;
         let cache = [];
         let timeoutId = null;
-        const handleAttributeMutations = debounceIdleMutations((mutations) => {
+        const handleAttributeMutations = coalesceVisualMutations((mutations) => {
             const handledTargets = new Set();
             mutations.forEach((m) => {
                 const target = m.target;
@@ -5935,7 +5961,7 @@
                 }
             });
             variablesStore.matchVariablesAndDependents();
-        }, 180);
+        }, 36);
         const attrObserver = new MutationObserver((mutations) => {
             if (timeoutId) {
                 cache.push(...mutations);
