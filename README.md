@@ -1,50 +1,48 @@
-# AmazonDark v6.0.208 — web-owner bisect switches
+# AmazonDark v6.0.209 — switches that actually fire
 
-Base: v6.0.185~probe, carrying v6.0.206 and v6.0.207.
+## What went wrong in v6.0.208
 
-## Why switches instead of another fix
+The four bisect switches read `fileExistsAtPath:@"/var/mobile/.ad_off_*"`. That runs
+inside Amazon, which is sandboxed and cannot stat paths outside its own container. Every
+flag read `NO`, so all four were inert — which is why the app stayed fully dark with
+`.ad_off_twb` set, when it should have left product images visibly untamed.
 
-Tapping a search result is delayed for seconds while the page is already loaded and
-visible. That is the web process main thread being busy, which no native counter can
-see — three separate instrumentation attempts produced nothing usable.
+The same sandbox silently blocked the probe writes for three earlier builds. The lesson
+was available and I did not apply it. `.ad_dr_proxy` and `.ad_no_defer` from v6.0.166
+and v6.0.171 have the identical defect, so any conclusion drawn from those toggles is
+void as well.
 
-Two candidate fixes have since shipped and neither moved it: scoping the unconstrained
-`:has()` rules (v6.0.206) and stopping the contrast lane being promoted to a deadline
-task (v6.0.207). Both were sound reasoning about real inefficiencies. Neither was the
-block.
+## The fix
 
-So this build stops proposing causes and lets the device identify it.
+All four switches move onto `NSUserDefaults(suiteName: com.colindavidr.amazondark)` —
+the same path every other preference already uses, which reaches Amazon through
+`cfprefsd` and is permitted inside the sandbox. That mechanism is proven: it is how the
+theming toggles work today.
 
-## Using it
+Set with `defaults write`, force-quit Amazon, relaunch.
 
-Set **one** flag, relaunch Amazon, search, try tapping a result.
+    defaults write com.colindavidr.amazondark offSymbols  -bool YES
+    defaults write com.colindavidr.amazondark offTWB      -bool YES
+    defaults write com.colindavidr.amazondark offContrast -bool YES
+    defaults write com.colindavidr.amazondark offBoot     -bool YES
 
-    touch /var/mobile/.ad_off_boot      inject nothing at all (no Dark Reader, no CSS)
-    touch /var/mobile/.ad_off_symbols   skip the symbols/checkbox script (32KB, 26 qSA, 1 observer)
-    touch /var/mobile/.ad_off_twb       skip White Background Taming
-    touch /var/mobile/.ad_off_contrast  make __AMZDARK_FIXCONTRAST__ a no-op
+Clear one with `-bool NO`.
 
-Remove with `rm -f` and relaunch. Read once per launch.
+**Confirm a switch is live before spending a test on it.** `offTWB YES` must leave
+product images with pale studio backdrops. If theming looks unchanged, the switch did
+not take and the test is meaningless — that is exactly the trap v6.0.208 fell into.
 
-Start with `.ad_off_boot` — it halves the search space in one test. If the delay
-survives it, nothing injected into the page is responsible and the cause is native or
-Amazon's own. If the delay goes, the other three identify which owner.
-
-Each flag costs theming while set. They are diagnostics, not modes.
-
-## Kept from the last two builds
+## Kept
 
 - **v6.0.206** — 16 `:where(div,span,section):has(> …)` instances scoped to
-  `[data-component-type=s-search-result]`. Zero unconstrained `:has()` remain.
-- **v6.0.207** — PDP and Search schedule the contrast lanes idle-only, so they can no
-  longer be promoted to deadline tasks mid-hydration.
+  `[data-component-type=s-search-result]`; zero unconstrained `:has()` remain.
+- **v6.0.207** — PDP and Search schedule the contrast lanes idle-only, so they cannot be
+  promoted to deadline tasks mid-hydration.
 
-Both are real reductions and worth keeping regardless of what the bisect finds.
+Both are real reductions. Neither fixed the tap delay.
 
 ## Verification
 
-- Bootstrap format specifiers and arguments: 9 and 9, **each verified in position**.
-  The first cut placed the new argument at slot 5 when its literal sits at slot 7,
-  which would have fed the Dark Reader payload into the wrong slot and corrupted the
-  entire bootstrap. Caught and corrected before packaging.
-- Declared-before-use audit clean; balance 0/0/0; all payloads parse; lint-logos.
+- Each switch: one struct field, one prefs read, four use sites.
+- The sandboxed `ADWebFlag208` reader is gone from the source.
+- Declared-before-use audit clean; balance 0/0/0; payloads parse; lint-logos.

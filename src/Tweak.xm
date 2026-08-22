@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.208"
+#define AD_VERSION "v6.0.209"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -122,6 +122,12 @@ typedef struct {
     BOOL  whiteTame;          // v5.446: tame blown-out studio backgrounds
     BOOL  force120Hz;         // v5.446: request ProMotion maximum
     BOOL  enableJIT;          // Dopamine per-app JIT
+    // v6.0.209 bisect switches. Read from the same prefs domain as everything else,
+    // because a sandboxed Amazon cannot stat files outside its own container.
+    BOOL  offSymbols;         // skip the symbols/checkbox web script
+    BOOL  offTWB;             // skip White Background Taming
+    BOOL  offContrast;        // make __AMZDARK_FIXCONTRAST__ a no-op
+    BOOL  offBoot;            // inject nothing at all
     long  whiteTameStrength;  // v5.446: 0-100 tame strength
     long  brightness;         // Dark Reader 0..100+ (default 100)
     long  contrast;           // Dark Reader 0..100+ (default 100)
@@ -180,6 +186,7 @@ static void ADLoadPrefs(void){
     gP.enableJIT = NO;
     gP.whiteTameStrength = 45;
     gP.imageKeyBackground = NO;
+    gP.offSymbols = NO; gP.offTWB = NO; gP.offContrast = NO; gP.offBoot = NO;
     gP.nativeRecolor = YES;
     gP.brightness = 100; gP.contrast = 100; gP.sepia = 0; gP.grayscale = 0;
     strcpy(gP.bgHex, "#181a1b"); strcpy(gP.fgHex, "#e8e6e3");
@@ -207,6 +214,17 @@ static void ADLoadPrefs(void){
             if(fromFile.count){NSMutableDictionary *m=[d mutableCopy];[m addEntriesFromDictionary:fromFile];d=m;}
         }
 
+        // v6.0.209: the bisect switches move onto the same NSUserDefaults(suiteName:)
+        // path every other preference already uses. v6.0.208 read them with
+        // fileExistsAtPath:@"/var/mobile/.ad_off_*", which runs inside Amazon -- a
+        // sandboxed process that cannot stat paths outside its own container. Every
+        // flag therefore read NO and all four switches were inert, which is why the app
+        // stayed dark with .ad_off_twb set. The same sandbox silently blocked the probe
+        // writes for three builds; I did not carry the lesson across.
+        gP.offSymbols         = ADPrefBool(d, @"offSymbols",         gP.offSymbols);
+        gP.offTWB             = ADPrefBool(d, @"offTWB",             gP.offTWB);
+        gP.offContrast        = ADPrefBool(d, @"offContrast",        gP.offContrast);
+        gP.offBoot            = ADPrefBool(d, @"offBoot",            gP.offBoot);
         gP.enabled            = ADPrefBool(d, @"enabled",            gP.enabled);
         gP.webDarkReader      = ADPrefBool(d, @"webDarkReader",      gP.webDarkReader);
         gP.nativeTheme        = ADPrefBool(d, @"nativeTheme",        gP.nativeTheme);
@@ -913,26 +931,10 @@ static NSString *ADThemeLiteral(void){
 // Start with .ad_off_boot: it halves the search space in one test. If the delay
 // survives it, nothing we inject into the page is responsible. Remove with rm -f.
 // Each flag costs theming while set -- they are diagnostics, not modes.
-static BOOL ADWebFlag208(const char *name){
-    return [[NSFileManager defaultManager] fileExistsAtPath:
-            [@"/var/mobile/" stringByAppendingString:[NSString stringWithUTF8String:name]]];
-}
-static BOOL ADOffBoot208(void){
-    static BOOL v; static dispatch_once_t o;
-    dispatch_once(&o, ^{ v = ADWebFlag208(".ad_off_boot"); }); return v;
-}
-static BOOL ADOffSymbols208(void){
-    static BOOL v; static dispatch_once_t o;
-    dispatch_once(&o, ^{ v = ADWebFlag208(".ad_off_symbols"); }); return v;
-}
-static BOOL ADOffTWB208(void){
-    static BOOL v; static dispatch_once_t o;
-    dispatch_once(&o, ^{ v = ADWebFlag208(".ad_off_twb"); }); return v;
-}
-static BOOL ADOffContrast208(void){
-    static BOOL v; static dispatch_once_t o;
-    dispatch_once(&o, ^{ v = ADWebFlag208(".ad_off_contrast"); }); return v;
-}
+static BOOL ADOffBoot208(void){ return gP.offBoot; }
+static BOOL ADOffSymbols208(void){ return gP.offSymbols; }
+static BOOL ADOffTWB208(void){ return gP.offTWB; }
+static BOOL ADOffContrast208(void){ return gP.offContrast; }
 // ── end bisect switches ──────────────────────────────────────────────────────
 
 static NSString *ADDarkReaderBootstrap(void){
