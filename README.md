@@ -1,54 +1,63 @@
-# AmazonDark v6.0.213 — full coverage, observer still inert
+# AmazonDark v7.0.0-invert — experimental
 
-## What v6.0.211 proved
+**A deliberate reset. This is not v6.x with fixes; it is a different approach entirely.**
 
-Neutralising Dark Reader's MutationObserver made the app fast everywhere: products open
-instantly, scrolling is seamless. That observer re-themes every node as it arrives, and
-Search and PDP hydrate continuously, so it runs on the main thread through exactly the
-window where input queues. That is the core performance problem, confirmed on device.
+## What was deleted
 
-## Why v6.0.212's theming was still broken
+Everything. Dark Reader and its 346KB payload, White Background Taming, the
+symbols/checkbox owners, the contrast walk, the Person raster machinery, the SpringBoard
+splash tweak, every probe and every bisect switch.
 
-Dark Reader has **two** coverage mechanisms and v6.0.210/211 disabled both:
+    src/Tweak.xm     464,383 -> 7,670 bytes
+    darkreader.js    346,017 -> removed
+    source files     6 -> 1
+    native hooks     48 classes / 99 methods -> 3 classes / 4 methods
 
-- the **stylesheet proxy** covers sheets that arrive after `enable()`
-- the **MutationObserver** covers nodes that arrive after `enable()`
+## Why
 
-Only the observer was expensive. v6.0.210 measured the proxy as free — no speed change,
-no light regressions — and it was left off anyway.
+v6.0.211 established on device that Dark Reader's MutationObserver was the input
+latency: it re-themes every node as it arrives, and Search and PDP hydrate continuously,
+so it ran on the main thread through exactly the window where taps queued. Most of the
+6.x apparatus existed to correct what that engine got wrong.
 
-v6.0.212 then exported the generated CSS once, immediately after the first `enable()`,
-which is the moment the fewest stylesheets have loaded. Amazon loads most of its CSS
-after initial parse, so the published sheet was the thinnest possible snapshot.
+This build asks the opposite question: what if nothing analyses anything?
 
-## This build
+## How it works
 
-1. **Stylesheet proxy restored.** Measured free; restores sheet coverage.
-2. **Export happens as the page settles** — on idle after `enable()`, again after
-   `load`, and again on a bounded poll when the element count has grown by half. One
-   export per settle, never one per node.
-3. **Observer stays inert.** That is the part that cost input latency.
+One inversion, applied once, by the compositor.
 
-The published sheet is `#ad-drstatic212`, reused rather than duplicated, and
-deliberately not `class="darkreader"` so existing `style.darkreader` checks are
-unaffected.
+**Web** — a single document-start stylesheet. `html` gets
+`filter: invert(1) hue-rotate(180deg)`; `img`, `video`, `canvas`, `picture`, `svg`,
+`iframe`, `embed`, `object` and inline `background-image` elements get the same filter
+again. A filter on an ancestor composites with one on a descendant, so media returns to
+its original colours. `hue-rotate` keeps hues near where they started — a bare invert
+turns Amazon's orange blue.
 
-## If theming is still wrong
+**Native** — one `colorInvert` CAFilter on the window layer, cancelled on
+`UIImageView` layers by the same double-inversion. WebKit layers have the filter removed
+entirely, since the page already inverts itself.
 
-The remaining gap is anything Dark Reader applied as an inline style rather than a rule
-— there is no selector to publish for those. That is a finite, enumerable list rather
-than a mystery. Name what is still wrong specifically (a card family, a control, a
-badge) and each becomes a targeted rule, which costs nothing per mutation.
+Cost per node: nothing. No observer, no scan, no timer, no `querySelectorAll`, no
+`getComputedStyle`, no `getBoundingClientRect`. Four hooks, each firing once per object.
 
-A rebuild is not warranted. The expensive component is identified and the remaining work
-is additive.
+## Known limits, stated up front
+
+- **CSS-painted imagery** — art painted from a stylesheet class rather than an inline
+  `style` attribute has no element a tag selector can reach, and will appear inverted.
+  The inline `background-image` case is covered; the stylesheet case is not.
+- **Non-UIImageView native drawing** — a custom `-drawRect:`, a `CAGradientLayer`, a
+  video layer. Not cancelled, so it will appear inverted.
+- **Native hue** — `CAFilter` has no hue-rotate, so native accent colours shift where
+  web ones do not.
+- **Inverted, not designed.** Colours are the mathematical complement. Photographs are
+  correct; everything else is a flip, not a theme.
+
+This is an experiment in cost. Expect it to be fast and visually rough, and judge it on
+whether the responsiveness is worth the roughness.
 
 ## Verification
 
-- Export cadence tested in jsdom against a page growing 50x: published, re-exported as
-  it grew, bounded at 2 exports (cap 9), single style element reused, latest CSS live,
-  `style.darkreader` still matches nothing. 6/6.
-- Observer stub retested: `enable()` runs, its observer is inert, the real constructor
-  is restored afterwards and even when `enable()` throws, AmazonDark's observers keep
-  working. 5/5.
-- Format specifiers unchanged at 9 and 2; payloads parse; balance 0/0/0; lint-logos.
+- Injected stylesheet tested in jsdom: element injected, root rule first, escaped quotes
+  survived, parsed as 4 real CSS rules by the engine, img re-inverted, inline
+  background-image re-inverted, nested media neutralised. 7/7.
+- Injected JS parses; `scripts/lint-logos.sh`.
