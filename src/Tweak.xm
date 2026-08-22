@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.198-probe"
+#define AD_VERSION "v6.0.199"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -390,26 +390,49 @@ static void ADApplyJIT622(void){
 // find our own install dir, then read the sibling resource).
 static NSString *ADBundledDarkReaderJS(void){
     static NSString *cached = nil;
-    static BOOL tried = NO;
-    if (tried) return cached;
-    tried = YES;
+    static CFTimeInterval retryAfter = 0;
+    if (cached.length) return cached;
+
+    // v6.0.199: do not permanently poison Dark Reader when one early resource lookup
+    // misses.  The v6.0.198 device probe showed the WebKit preference enabled while
+    // __AMZDARK_LOADED__, DarkReader, APPLY and all darkreader styles were absent.
+    // TWB still had its independent embedded payload, so the missing piece is the
+    // external Dark Reader bootstrap/resource lane.  Resolve against both Theos bundle
+    // layouts and the actual rootless prefix derived from our dylib, then allow a
+    // bounded later retry if the file was temporarily unavailable.
+    CFTimeInterval now = CACurrentMediaTime();
+    if (retryAfter > 0 && now < retryAfter) return nil;
+    retryAfter = now + 1.0;
+
     @try {
+        NSMutableArray<NSString *> *cands = [NSMutableArray array];
         Dl_info info; static int anchor;
         if (dladdr((const void *)&anchor, &info) && info.dli_fname){
             NSString *dylib = @(info.dli_fname);
             NSString *dir = [dylib stringByDeletingLastPathComponent];
-            // Theos installs BUNDLE resources to .../AmazonDark.bundle next to the dylib.
-            NSArray *cands = @[
-                [dir stringByAppendingPathComponent:@"AmazonDark.bundle/darkreader.js"],
-                [dir stringByAppendingPathComponent:@"darkreader.js"],
-                @"/var/jb/Library/Application Support/AmazonDark/darkreader.js",
-            ];
-            for (NSString *c in cands){
-                NSString *s = [NSString stringWithContentsOfFile:c encoding:NSUTF8StringEncoding error:nil];
-                if (s.length){
-                    cached = s;
-                    break;
-                }
+            [cands addObject:[dir stringByAppendingPathComponent:@"AmazonDark.bundle/darkreader.js"]];
+            [cands addObject:[dir stringByAppendingPathComponent:@"AmazonDark.bundle/Resources/darkreader.js"]];
+            [cands addObject:[dir stringByAppendingPathComponent:@"darkreader.js"]];
+
+            // Dopamine/rootless installs live under a randomized preboot .../jb root.
+            // Derive that exact prefix from the loaded dylib instead of relying only on
+            // /var/jb being present as a compatibility symlink.
+            NSRange lib = [dylib rangeOfString:@"/Library/" options:NSBackwardsSearch];
+            if (lib.location != NSNotFound){
+                NSString *jbRoot = [dylib substringToIndex:lib.location];
+                [cands addObject:[jbRoot stringByAppendingPathComponent:@"/Library/Application Support/AmazonDark/darkreader.js"]];
+            }
+        }
+        [cands addObject:@"/var/jb/Library/Application Support/AmazonDark/darkreader.js"];
+        [cands addObject:@"/private/var/jb/Library/Application Support/AmazonDark/darkreader.js"];
+        [cands addObject:@"/Library/Application Support/AmazonDark/darkreader.js"];
+
+        for (NSString *c in cands){
+            NSString *body = [NSString stringWithContentsOfFile:c encoding:NSUTF8StringEncoding error:nil];
+            if (body.length){
+                cached = body;
+                retryAfter = 0;
+                break;
             }
         }
     } @catch(...) {}
@@ -910,7 +933,7 @@ static NSString *ADDarkReaderBootstrap(void){
     NSString *floorBG = [NSString stringWithUTF8String:gP.bgHex] ?: @"#181a1b";
     gADBootstrap613 = [NSString stringWithFormat:
         @"(function(){try{"
-         "if(window.__AMZDARK_LOADED__)return;window.__AMZDARK_LOADED__=1;"
+         "if(window.__AMZDARK_LOADED__&&window.DarkReader&&DarkReader.enable)return;window.__AMZDARK_LOADED__=1;"
          // v6.0.12: establish the page canvas before the Dark Reader UMD is parsed.
          // This is intentionally root-only: it cannot touch product/photo pixels,
          // but it means lazy/virtualised holes reveal the theme floor, not Amazon white.
@@ -1990,6 +2013,8 @@ static void ADAttachThreeSymbolsUserScript605(WKUserContentController *ucc){
     } @catch(...) {}
 }
 
+static const void *kADBootHealInFlight6199 = &kADBootHealInFlight6199;
+
 static void ADEnableDarkReaderIn(WKWebView *wv){
     if (!gP.enabled || !gP.webDarkReader || !wv) return;
     @try {
@@ -2023,12 +2048,19 @@ static void ADEnableDarkReaderIn(WKWebView *wv){
                     ADAttachWhiteTameUserScript446(ucc);
                     ADAttachThreeSymbolsUserScript605(ucc);
                 }
-                [wv evaluateJavaScript:
-                    @"(function(){try{if(window.__AMZDARK_HEALED__)return 0;window.__AMZDARK_HEALED__=1;return 1;}catch(e){return 1;}})()"
-                     completionHandler:^(id heal, NSError *healErr){
-                    if (healErr || ![heal respondsToSelector:@selector(boolValue)] || ![heal boolValue]) return;
-                    NSString *full = ADDarkReaderBootstrap();
-                    if (full.length) [wv evaluateJavaScript:full completionHandler:nil];
+
+                // v6.0.199: the old __AMZDARK_HEALED__ one-shot could suppress every
+                // later recovery if its first evaluateJavaScript raced a navigation or
+                // the external Dark Reader file missed once.  Retry only while the engine
+                // is actually absent, and serialize the heavy bootstrap per WKWebView.
+                // Normal themed pages take the cheap missing-state test and never enter
+                // this lane; no timer/scroll/RAF/recurring scanner is added.
+                if (objc_getAssociatedObject(wv,kADBootHealInFlight6199)) return;
+                NSString *full = ADDarkReaderBootstrap();
+                if (!full.length) return;
+                objc_setAssociatedObject(wv,kADBootHealInFlight6199,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                [wv evaluateJavaScript:full completionHandler:^(__unused id value, __unused NSError *bootErr){
+                    @try { objc_setAssociatedObject(wv,kADBootHealInFlight6199,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); } @catch(...) {}
                 }];
             } @catch(...) {}
         }];
@@ -7681,28 +7713,9 @@ static void ADBuyAgainProbeCapture6180(void){
 // ─── %ctor : process guard + hook registration + bounded startup recovery ────
 %ctor {
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
-    ADBuyAgainProbeReset6180();
-    @try {
-        [[NSNotificationCenter defaultCenter]
-            addObserverForName:UIApplicationUserDidTakeScreenshotNotification
-                        object:nil queue:[NSOperationQueue mainQueue]
-                    usingBlock:^(__unused NSNotification *n){
-            // Amazon mounts its custom screenshot Share surface after the system
-            // screenshot notification. Three one-shot diagnostic samples cover
-            // first paint and hydration without any recurring timer/observer loop.
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(250*NSEC_PER_MSEC)),
-                           dispatch_get_main_queue(), ^{ ADShareScreenshotMomentCapture6192(@"+250ms"); });
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(800*NSEC_PER_MSEC)),
-                           dispatch_get_main_queue(), ^{ ADShareScreenshotMomentCapture6192(@"+800ms"); });
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(1600*NSEC_PER_MSEC)),
-                           dispatch_get_main_queue(), ^{ ADShareScreenshotMomentCapture6192(@"+1600ms"); });
-        }];
-        [[NSNotificationCenter defaultCenter]
-            addObserverForName:UIApplicationWillResignActiveNotification
-                        object:nil queue:[NSOperationQueue mainQueue]
-                    usingBlock:^(__unused NSNotification *n){ ADCaptureCarouselBackgroundProbe6197();
-        ADCaptureDarkStateProbe6198(); ADBuyAgainProbeCapture6180(); }];
-    } @catch(...) {}
+    // v6.0.199 production: diagnostic 6180-6198 capture hooks are intentionally not
+    // registered. Screenshot Share/Product images/Buy Again production owners remain;
+    // only background/screenshot probe logging and its delayed diagnostic samples are off.
     // v5.446 direct-port: drop cached light launch snapshots.
     @try {
         NSString *lib = [NSSearchPathForDirectoriesInDomains(
