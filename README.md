@@ -1,3 +1,12 @@
+# v6.0.204 — PDP input-latency + TWB boundary pass
+
+- Base: v6.0.200 performance architecture, itself built on v6.0.185.
+- Restores standalone/product-ad IMG TWB with a child-frame-only event path.
+- Excludes TWB completely from `.puis-mab-overlay` while preserving normal menu/symbol theming.
+- Adds a narrow PDP media-carousel fast lane so native-ad and symbol discovery do not deep-query photo/video hydration subtrees.
+- Ports the proven v6.0.195 video-control pair cache/local click repair/idle initial scan.
+- Keeps Dark Reader authoritative for generic web theming; no broad contrast/background walker is restored.
+
 # AmazonDark v6.0.200~probe — Dark Reader cooperation / input-latency pass
 
 ## Goal
