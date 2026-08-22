@@ -1,3 +1,7 @@
+# v6.0.198 probe — Web Dark Reader state capture
+
+Diagnostic-only follow-up to v6.0.197. On background, logs native theme preferences plus Dark Reader bootstrap/style state before and immediately after one existing `__AMZDARK_APPLY__()` self-heal call. No production styling path or recurring runtime mechanism is changed.
+
 # AmazonDark v6.0.197~probe — preserve carousel speed + restore PDP dark surfaces
 
 Base: v6.0.196~probe.

@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.197-probe"
+#define AD_VERSION "v6.0.198-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -7139,10 +7139,10 @@ static void ADBuyAgainProbeAppend6180(NSString *line){
 static void ADBuyAgainProbeReset6180(void){
     @try {
         NSString *head=[NSString stringWithFormat:
-            @"AmazonDark Buy Again + screenshot Share/WebKit probe 6192\nversion=%s\npid=%d\nsource=%@\n"
+            @"AmazonDark Buy Again + screenshot Share/WebKit + Dark Reader state probe 6198\nversion=%s\npid=%d\nsource=%@\n"
              "relay=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/%@\n"
-             "trigger=take a screenshot on the failing product; screenshot-time captures run automatically, then background Amazon once to append/relay\n"
-             "targets=native + WKWebView DOM/renderers for Share this product with friends; Product images fix + Buy Again diagnostics retained\n",
+             "trigger=leave any still-light WebKit page visible and background Amazon once; Dark Reader state capture/apply test appends automatically\n"
+             "targets=Dark Reader preference/bootstrap/style state + visible WebKit floors; Share/Product images/Buy Again diagnostics retained\n",
             AD_VERSION,getpid(),ADBuyAgainProbePath6180(),ADBuyAgainProbeName6180()];
         [head writeToFile:ADBuyAgainProbePath6180() atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } @catch(...) {}
@@ -7419,6 +7419,32 @@ static NSString *ADShareWebProbeJS6192(void){
 static NSString *ADCarouselBackgroundProbeJS6197(void){
     return @"(()=>{const L=s=>{const m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/.exec(String(s||''));if(!m)return -1;const f=v=>{v=(+v)/255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)};return .2126*f(m[1])+.7152*f(m[2])+.0722*f(m[3])};const I=e=>{try{const c=getComputedStyle(e),r=e.getBoundingClientRect();return {tag:e.tagName||'',id:e.id||'',cl:typeof e.className==='string'?e.className.slice(0,180):'',r:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],bg:c.backgroundColor||'',bi:(c.backgroundImage||'').slice(0,180),media:!!(window.__AD_MEDIA_CAROUSEL6196__&&window.__AD_MEDIA_CAROUSEL6196__(e))}}catch(_){return {tag:'ERR'}}};const roots=['html','body','#a-page','#ppd','#productTitleGroupAnchor','#imageBlock_feature_div','#horizontalMediaCarousel'].map(s=>{const e=document.querySelector(s);return e?I(e):{sel:s,missing:1}});const light=[];const b=document.body||document.documentElement;if(b){const w=document.createTreeWalker(b,NodeFilter.SHOW_ELEMENT);let e,n=0;while((e=w.nextNode())&&n++<900&&light.length<24){try{const r=e.getBoundingClientRect();if(r.width<120||r.height<24||r.bottom<0||r.top>innerHeight)continue;const c=getComputedStyle(e),l=L(c.backgroundColor);if(l>.55)light.push(I(e));}catch(_){}}}return JSON.stringify({probe:6197,url:location.href,ready:document.readyState,viewport:[innerWidth,innerHeight],roots,light});})()";
 }
+static NSString *ADDarkStateProbeJS6198(BOOL reapply){
+    NSString *flag=reapply?@"true":@"false";
+    return [NSString stringWithFormat:
+        @"(()=>{const snap=()=>{try{const C=e=>{if(!e)return null;const c=getComputedStyle(e);return {bg:c.backgroundColor||'',fg:c.color||'',bi:(c.backgroundImage||'').slice(0,160)}};const de=document.documentElement,b=document.body,ap=document.querySelector('#a-page'),dp=document.querySelector('#dp');const styles=[...document.querySelectorAll('style[class*=darkreader]')].slice(0,20).map(x=>({cl:String(x.className||''),len:(x.textContent||'').length,media:x.media||''}));let en=null;try{en=(window.DarkReader&&DarkReader.isEnabled)?DarkReader.isEnabled():null}catch(_){}return {loaded:!!window.__AMZDARK_LOADED__,dr:!!(window.DarkReader&&DarkReader.enable),isEnabled:en,applyFn:typeof window.__AMZDARK_APPLY__,wakeFn:typeof window.__AMZDARK_WAKE6171__,primed:!!window.__AD_FIX_PRIMED6171__,pending:!!window.__AD_FIXFULL_PENDING6171__,darkStyles:styles.length,styles,htmlAttrs:{mode:de&&de.getAttribute('data-darkreader-mode'),scheme:de&&de.getAttribute('data-darkreader-scheme')},html:C(de),body:C(b),aPage:C(ap),dp:C(dp),url:location.href,ready:document.readyState};}catch(e){return {snapErr:String(e&&e.message||e)}}};const before=snap();let apply='skipped';if(%@){try{apply=(typeof window.__AMZDARK_APPLY__==='function')?window.__AMZDARK_APPLY__():'missing'}catch(e){apply='err:'+String(e&&e.message||e)}}const after=snap();return JSON.stringify({probe:6198,before,apply,after});})()",flag];
+}
+
+static void ADCaptureDarkStateProbe6198(void){
+    @try {
+        int idx=0;
+        ADBuyAgainProbeAppend6180([NSString stringWithFormat:@"\nDARKPREF6198 enabled=%d webDarkReader=%d nativeTheme=%d whiteTame=%d\n",gP.enabled,gP.webDarkReader,gP.nativeTheme,gP.whiteTame]);
+        for(WKWebView *wv in (gADWebViews613.allObjects?:@[])){
+            if(!wv||!wv.window||wv.hidden||wv.alpha<.02)continue;
+            int my=++idx;
+            [wv evaluateJavaScript:ADDarkStateProbeJS6198(YES) completionHandler:^(id result,NSError *error){
+                @try {
+                    NSString *payload=[result isKindOfClass:[NSString class]]?result:[result description];
+                    if(payload.length>32000)payload=[[payload substringToIndex:32000]stringByAppendingString:@"…TRUNCATED"];
+                    ADBuyAgainProbeAppend6180([NSString stringWithFormat:@"DARKSTATE6198 index=%d web=%p error=\"%@\"\n%@\nDARKSTATE6198 END\n",my,wv,error.localizedDescription?:@"",payload?:@"<nil>"]);
+                    notify_post(AD_BUYAGAIN_PROBE_READY_6180);
+                } @catch(...) {}
+            }];
+        }
+        ADBuyAgainProbeAppend6180([NSString stringWithFormat:@"DARKSTATE6198 START webviews=%d\n",idx]);
+    } @catch(...) {}
+}
+
 static void ADCaptureCarouselBackgroundProbe6197(void){
     @try {
         int idx=0;
@@ -7674,7 +7700,8 @@ static void ADBuyAgainProbeCapture6180(void){
         [[NSNotificationCenter defaultCenter]
             addObserverForName:UIApplicationWillResignActiveNotification
                         object:nil queue:[NSOperationQueue mainQueue]
-                    usingBlock:^(__unused NSNotification *n){ ADCaptureCarouselBackgroundProbe6197(); ADBuyAgainProbeCapture6180(); }];
+                    usingBlock:^(__unused NSNotification *n){ ADCaptureCarouselBackgroundProbe6197();
+        ADCaptureDarkStateProbe6198(); ADBuyAgainProbeCapture6180(); }];
     } @catch(...) {}
     // v5.446 direct-port: drop cached light launch snapshots.
     @try {
