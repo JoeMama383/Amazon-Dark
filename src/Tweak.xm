@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.188-probe"
+#define AD_VERSION "v6.0.189-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -4007,6 +4007,7 @@ static BOOL ADShareScreenshotPhraseNear6186(UIView *v){
 static BOOL ADShareScreenshotProductImage6186(UIImageView *iv){
     return ADShareScreenshotImageGeometry6186(iv)&&ADShareScreenshotPhraseNear6186(iv);
 }
+static void ADShareProbeTextEvent6189(UIView *anchor, NSString *text, NSString *source);
 static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
     if(!ADRecolorOn()||!gP.whiteTame||!anchor||!ADShareScreenshotPhrase6186(text))return;
     __weak UIView *weakAnchor=anchor;
@@ -4043,6 +4044,7 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
         ADBuyAgainSemanticRepair6181((UIView *)self,attributedText.string);
         ADNeutralizeInterestsGradientNearText6177((UIView *)self,attributedText.string);
         ADShareScreenshotRepair6186((UIView *)self,attributedText.string);
+        ADShareProbeTextEvent6189((UIView *)self,attributedText.string,@"RCTParagraph.setAttributedText");
         return;
     } @catch(...) {}
     %orig;
@@ -4055,6 +4057,7 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
         ADBuyAgainSemanticRepair6181((UIView *)self,attributedString.string);
         ADNeutralizeInterestsGradientNearText6177((UIView *)self,attributedString.string);
         ADShareScreenshotRepair6186((UIView *)self,attributedString.string);
+        ADShareProbeTextEvent6189((UIView *)self,attributedString.string,@"RCTParagraph._setAttributedString");
         return;
     } @catch(...) {}
     %orig;
@@ -4092,6 +4095,7 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
         ADBuyAgainSemanticRepair6181((UIView *)self,adBorderText6147);
         ADNeutralizeInterestsGradientNearText6177((UIView *)self,adBorderText6147);
         ADShareScreenshotRepair6186((UIView *)self,adBorderText6147);
+        ADShareProbeTextEvent6189((UIView *)self,adBorderText6147,@"RCTTextView.setTextStorage");
     } @catch(...) {}
 }
 - (void)layoutSubviews {
@@ -4113,9 +4117,14 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
         ADBuyAgainSemanticRepair6181(self,attributedText.string);
         ADNeutralizeInterestsGradientNearText6177(self,attributedText.string);
         ADShareScreenshotRepair6186(self,attributedText.string);
+        ADShareProbeTextEvent6189(self,attributedText.string,@"UILabel.setAttributedText");
         return;
     } @catch(...) {}
     %orig;
+}
+- (void)setText:(NSString *)text {
+    %orig;
+    @try { ADShareProbeTextEvent6189(self,text,@"UILabel.setText"); } @catch(...) {}
 }
 %end
 
@@ -7000,7 +7009,7 @@ static BOOL ADBuyAgainProbeVisible6180(UIView *v){
     return NO;
 }
 
-// v6.0.188~probe — exhaustive screenshot Share-panel renderer capture.
+// v6.0.189~probe — render-time + background fallback screenshot Share-panel capture.
 // Diagnostic only: deliberately does NOT call ADApplyNativeWhiteTameView(), recolor,
 // add/remove overlays, or mutate image/lightness caches. The v6.0.186 behavior is
 // therefore preserved while we record every plausible image/layer painter in the sheet.
@@ -7061,11 +7070,132 @@ static void ADShareProbeLayer6187(CALayer *l,int depth,NSMutableString *out,int 
         for(CALayer *sl in (l.sublayers?:@[]))ADShareProbeLayer6187(sl,depth+1,out,count);
     } @catch(...) {}
 }
+
+// v6.0.189~probe: capture while the header text is actually being assigned.
+// v6.0.188 proved that UIApplicationWillResignActiveNotification can arrive after
+// the rendered header is no longer discoverable through UIView text/accessibility.
+static UIView *ADShareProbeRootFromAnchor6189(UIView *anchor){
+    if(!anchor)return nil;
+    @try {
+        UIView *root=anchor; CGFloat sw=[UIScreen mainScreen].bounds.size.width; int up=0;
+        while(root.superview&&up++<12){
+            UIView *next=root.superview;
+            if(next.window!=anchor.window)break;
+            root=next;
+            CGRect rr=ADBuyAgainProbeRect6180(root);
+            if(rr.size.width>=sw*.86&&rr.size.height>=300.0)break;
+        }
+        return root;
+    } @catch(...) {}
+    return nil;
+}
+static void ADShareProbeDumpRoot6189(NSMutableString *out,UIView *root,NSString *tag){
+    if(!out||!root)return;
+    @try {
+        CGRect rr=ADBuyAgainProbeRect6180(root);
+        [out appendFormat:@"\n===== SHAREEVENT6189 tag=%@ root=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) rootText=\"%@\" =====\n",
+            tag?:@"?",NSStringFromClass([root class]),root,rr.origin.x,rr.origin.y,rr.size.width,rr.size.height,ADBuyAgainProbeText6180(root)];
+        NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger qi=0,seen=0; int imgs=0,rasterViews=0,largeViews=0;
+        while(qi<q.count&&seen++<1100){
+            UIView *v=q[qi++];
+            for(UIView *ch in v.subviews){if(q.count<1200)[q addObject:ch];else break;}
+            if(!ADBuyAgainProbeVisible6180(v))continue;
+            const char *cn=object_getClassName(v); NSString *cl=cn?[NSString stringWithUTF8String:cn]:@"?";
+            CGRect r=ADBuyAgainProbeRect6180(v);
+            NSString *tx=ADWTViewText362(v)?:@"";
+            if((r.size.width>=220&&r.size.height>=100)||(r.size.width>=360&&r.size.height>=44)){
+                if(largeViews++<80){
+                    tx=[[tx stringByReplacingOccurrencesOfString:@"\n" withString:@" "] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+                    if(tx.length>100)tx=[[tx substringToIndex:100]stringByAppendingString:@"…"];
+                    [out appendFormat:@"SHAREVIEW6189 #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) bg=%@ layerBg=%@ text=\"%@\" aid=\"%@\" label=\"%@\"\n",
+                        largeViews,cl,v,r.origin.x,r.origin.y,r.size.width,r.size.height,ADBuyAgainProbeColor6180(v.backgroundColor.CGColor),ADBuyAgainProbeColor6180(v.layer.backgroundColor),tx,v.accessibilityIdentifier?:@"",v.accessibilityLabel?:@""];
+                }
+            }
+            if([v isKindOfClass:[UIImageView class]]){
+                UIImageView *iv=(UIImageView *)v; UIImage *im=iv.image; if(!im)continue;
+                imgs++; size_t px=0,py=0; if(im.CGImage){px=CGImageGetWidth(im.CGImage);py=CGImageGetHeight(im.CGImage);}
+                CALayer *ov=objc_getAssociatedObject(iv,kADWhiteTameOverlayKey);
+                NSNumber *dec=objc_getAssociatedObject(iv,kADTWBDecision6027);
+                NSNumber *ctx=objc_getAssociatedObject(iv,kADTWBDirectCtx6031);
+                NSNumber *light=objc_getAssociatedObject(im,kADWhiteTameLightKey363);
+                [out appendFormat:@"SHAREEVENTIMG6189 #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) pixels=%zux%zu mode=%ld overlay=%d geom6186=%d near6186=%d product6186=%d decision=%@ ctx=%@ lightCache=%@ contents=%@ aid=\"%@\" label=\"%@\" anc=\"%@\"\n",
+                    imgs,cl,iv,r.origin.x,r.origin.y,r.size.width,r.size.height,px,py,(long)iv.contentMode,(ov&&ov.superlayer==iv.layer),
+                    ADShareScreenshotImageGeometry6186(iv),ADShareScreenshotPhraseNear6186(iv),ADShareScreenshotProductImage6186(iv),dec?:@"nil",ctx?:@"nil",light?:@"nil",
+                    ADBuyAgainProbeContents6180(iv.layer.contents),iv.accessibilityIdentifier?:@"",iv.accessibilityLabel?:@"",ADShareProbeAncestors6187(iv,root)];
+            } else {
+                id c=v.layer.contents; BOOL hasCG=NO; size_t px=0,py=0;
+                if(c){CFTypeRef obj=(__bridge CFTypeRef)c;if(obj&&CFGetTypeID(obj)==CGImageGetTypeID()){hasCG=YES;CGImageRef im=(CGImageRef)obj;px=CGImageGetWidth(im);py=CGImageGetHeight(im);}}
+                if(hasCG){
+                    rasterViews++;
+                    [out appendFormat:@"SHAREEVENTRASTER6189 #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) pixels=%zux%zu contents=%@ bg=%@ layerBg=%@ aid=\"%@\" label=\"%@\" anc=\"%@\"\n",
+                        rasterViews,cl,v,r.origin.x,r.origin.y,r.size.width,r.size.height,px,py,ADBuyAgainProbeContents6180(c),ADBuyAgainProbeColor6180(v.backgroundColor.CGColor),ADBuyAgainProbeColor6180(v.layer.backgroundColor),v.accessibilityIdentifier?:@"",v.accessibilityLabel?:@"",ADShareProbeAncestors6187(v,root)];
+                }
+            }
+        }
+        int layers=0; ADShareProbeLayer6187(root.layer,0,out,&layers);
+        [out appendFormat:@"SHAREEVENTSUMMARY6189 tag=%@ scanned=%lu imageViews=%d rasterViews=%d imageOrGradientLayers=%d\n===== SHAREEVENT6189 COMPLETE =====\n",
+            tag?:@"?",(unsigned long)seen,imgs,rasterViews,layers];
+    } @catch(...) { [out appendString:@"SHAREEVENT6189 EXCEPTION\n"]; }
+}
+static void ADShareProbeCaptureAnchor6189(UIView *anchor,NSString *source,NSString *stage){
+    if(!anchor)return;
+    @try {
+        UIView *root=ADShareProbeRootFromAnchor6189(anchor);
+        NSMutableString *out=[NSMutableString stringWithFormat:@"\n\nSHARETEXT6189 source=%@ stage=%@ anchor=%@ ptr=%p anchorRect=(%.1f,%.1f %.1fx%.1f)\n",
+            source?:@"?",stage?:@"?",NSStringFromClass([anchor class]),anchor,
+            ADBuyAgainProbeRect6180(anchor).origin.x,ADBuyAgainProbeRect6180(anchor).origin.y,ADBuyAgainProbeRect6180(anchor).size.width,ADBuyAgainProbeRect6180(anchor).size.height];
+        if(root)ADShareProbeDumpRoot6189(out,root,[NSString stringWithFormat:@"%@/%@",source?:@"?",stage?:@"?"]);
+        else [out appendString:@"SHAREEVENT6189 root=none-from-anchor\n"];
+        ADBuyAgainProbeAppend6180(out); notify_post(AD_BUYAGAIN_PROBE_READY_6180);
+    } @catch(...) {}
+}
+static void ADShareProbeTextEvent6189(UIView *anchor, NSString *text, NSString *source){
+    if(!anchor||!ADShareScreenshotPhrase6186(text))return;
+    __weak UIView *weakAnchor=anchor;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        UIView *live=weakAnchor; if(!live||!live.window)return;
+        ADShareProbeCaptureAnchor6189(live,source,@"next-main");
+        __weak UIView *weakHydrated=live;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(350*NSEC_PER_MSEC)),dispatch_get_main_queue(), ^{
+            UIView *hydrated=weakHydrated; if(hydrated&&hydrated.window)ADShareProbeCaptureAnchor6189(hydrated,source,@"+350ms");
+        });
+    });
+}
+static void ADShareProbeFallback6189(NSMutableString *out){
+    if(!out)return;
+    @try {
+        CGRect screen=[UIScreen mainScreen].bounds; int wins=0,views=0,imgs=0,rasters=0;
+        NSMutableArray *q=[NSMutableArray array];
+        for(UIWindow *w in [UIApplication sharedApplication].windows){
+            if(!w||w.hidden||w.alpha<=.03)continue; wins++; CGRect wr=ADBuyAgainProbeRect6180(w);
+            [out appendFormat:@"SHAREWINDOW6189 #%d cls=%@ ptr=%p level=%.1f rect=(%.1f,%.1f %.1fx%.1f) rootVC=%@\n",wins,NSStringFromClass([w class]),w,w.windowLevel,wr.origin.x,wr.origin.y,wr.size.width,wr.size.height,NSStringFromClass([w.rootViewController class])];
+            [q addObject:w];
+        }
+        NSUInteger qi=0,seen=0;
+        while(qi<q.count&&seen++<2600){
+            UIView *v=q[qi++]; for(UIView *ch in v.subviews){if(q.count<3000)[q addObject:ch];else break;}
+            if(!ADBuyAgainProbeVisible6180(v))continue; CGRect r=ADBuyAgainProbeRect6180(v);
+            const char *cn=object_getClassName(v); NSString *cl=cn?[NSString stringWithUTF8String:cn]:@"?";
+            BOOL sheetGeom=(r.size.width>=screen.size.width*.88&&CGRectGetMaxY(r)>=screen.size.height-16&&r.size.height>=250&&r.size.height<=screen.size.height*.85);
+            if(sheetGeom&&views++<80){ NSString *tx=ADWTViewText362(v)?:@""; if(tx.length>100)tx=[[tx substringToIndex:100]stringByAppendingString:@"…"];
+                [out appendFormat:@"SHAREFALLBACKVIEW6189 #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) bg=%@ text=\"%@\" aid=\"%@\" label=\"%@\"\n",views,cl,v,r.origin.x,r.origin.y,r.size.width,r.size.height,ADBuyAgainProbeColor6180(v.backgroundColor.CGColor),tx,v.accessibilityIdentifier?:@"",v.accessibilityLabel?:@""]; }
+            if([v isKindOfClass:[UIImageView class]]){
+                UIImageView *iv=(UIImageView *)v; UIImage *im=iv.image; if(!im)continue;
+                if(r.size.width<120||r.size.height<80)continue; imgs++; size_t px=0,py=0;if(im.CGImage){px=CGImageGetWidth(im.CGImage);py=CGImageGetHeight(im.CGImage);} CALayer *ov=objc_getAssociatedObject(iv,kADWhiteTameOverlayKey);
+                [out appendFormat:@"SHAREFALLBACKIMG6189 #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) pixels=%zux%zu overlay=%d geom6186=%d contents=%@ aid=\"%@\" label=\"%@\"\n",imgs,cl,iv,r.origin.x,r.origin.y,r.size.width,r.size.height,px,py,(ov&&ov.superlayer==iv.layer),ADShareScreenshotImageGeometry6186(iv),ADBuyAgainProbeContents6180(iv.layer.contents),iv.accessibilityIdentifier?:@"",iv.accessibilityLabel?:@""];
+            } else {
+                id c=v.layer.contents; if(c){CFTypeRef obj=(__bridge CFTypeRef)c;if(obj&&CFGetTypeID(obj)==CGImageGetTypeID()&&r.size.width>=120&&r.size.height>=80){CGImageRef im=(CGImageRef)obj;rasters++;[out appendFormat:@"SHAREFALLBACKRASTER6189 #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) pixels=%zux%zu contents=%@\n",rasters,cl,v,r.origin.x,r.origin.y,r.size.width,r.size.height,CGImageGetWidth(im),CGImageGetHeight(im),ADBuyAgainProbeContents6180(c)];}}
+            }
+        }
+        [out appendFormat:@"SHAREFALLBACKSUMMARY6189 scanned=%lu windows=%d sheetViews=%d largeImages=%d largeRasters=%d\n",(unsigned long)seen,wins,views,imgs,rasters];
+    } @catch(...) { [out appendString:@"SHAREFALLBACK6189 EXCEPTION\n"]; }
+}
+
 static void ADShareProbeDump6187(NSMutableString *out){
     if(!out)return;
     @try {
         UIView *root=ADShareProbeRoot6187();
-        if(!root){ [out appendString:@"\nSHAREPANEL6187 root=none phraseVisible=0\n"]; return; }
+        if(!root){ [out appendString:@"\nSHAREPANEL6187 root=none phraseVisible=0\n"]; ADShareProbeFallback6189(out); return; }
         CGRect rr=ADBuyAgainProbeRect6180(root);
         [out appendFormat:@"\n===== SHAREPANEL6187 root=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) text=\"%@\" =====\n",
             NSStringFromClass([root class]),root,rr.origin.x,rr.origin.y,rr.size.width,rr.size.height,ADBuyAgainProbeText6180(root)];

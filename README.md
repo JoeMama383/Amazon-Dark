@@ -1,10 +1,10 @@
-# AmazonDark v6.0.188~probe — exhaustive screenshot Share renderer capture
+# AmazonDark v6.0.189~probe — render-time screenshot Share renderer capture
 
 ## Probe-only change
 
 - Built directly from v6.0.186~probe. No new Share/TWB production fix is added in this version.
 - Retains v6.0.186 behavior exactly while expanding the existing background-triggered diagnostic so missed screenshot-share photos are logged even when they fail the v6.0.186 selector/gate.
-- When **Share this product with friends** is visible and Amazon is backgrounded, the existing `AmazonDark-buyagain-probe-6180.txt` output now adds a `SHAREPANEL6187` section.
+- When **Share this product with friends** renders, the probe now captures from the exact text anchor immediately and again after hydration; backgrounding still adds a fallback snapshot.
 - The probe records every visible `UIImageView` under the Share sheet, not only views that already qualify as v6.0.186 Share previews.
 - For each image it records class, screen/bounds geometry, source pixel dimensions, content mode, current TWB overlay, cached TWB decision/context/lightness, each v6.0.186 Share gate (`geom6186`, `near6186`, `product6186`), template/UI-chain/WebKit/tab exclusions, backing-layer contents/backgrounds, accessibility metadata, and a bounded ancestor chain.
 - It also records non-UIImageView CGImage-backed raster views and CGImage/gradient sublayers so a flattened/Fabric painter cannot disappear from the diagnostic just because it is not a normal UIImageView.
