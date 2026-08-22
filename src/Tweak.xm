@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.211"
+#define AD_VERSION "v6.0.212"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1607,7 +1607,32 @@ static NSString *ADDarkReaderBootstrap(void){
          "window.__AD_NOMO211__=function(fn){var MO=window.MutationObserver;try{"
          "window.MutationObserver=function(){return {observe:function(){},disconnect:function(){},takeRecords:function(){return [];}};};"
          "return fn();}finally{try{window.MutationObserver=MO;}catch(e){}}};"
-         "window.__AMZDARK_APPLY__=function(){try{var had=!!document.querySelector('style.darkreader');if(!had){window.__AD_NOMO211__(function(){return DarkReader.enable(%@,%@);});window.__AD_FIX_PRIMED6171__=0;}if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);return window.__AD_FULLREPAIR6171__(!had);}catch(e){return 'err';}};"
+         // v6.0.212: close the coverage gap the inert observer leaves, without
+         // reinstating it. Dark Reader's generated CSS is selector-based, so publishing
+         // it as an ordinary stylesheet themes every node that arrives later for free --
+         // the engine applies it during normal layout, with no JS on the mutation path.
+         //
+         // The style element is marked data-ad-drstatic212 and is deliberately NOT
+         // class="darkreader", so the existing had/style.darkreader checks still behave
+         // as before and cannot mistake it for Dark Reader's own live output.
+         //
+         // exportGeneratedCSS() returns a Promise. It is called once, after the first
+         // enable() settles, on idle so it never competes with hydration. Re-entry is
+         // guarded, and a page that navigates before it resolves simply gets nothing.
+         "window.__AD_DRSTATIC212__=function(){try{"
+         "if(window.__AD_DRSTATIC212_DONE__)return;window.__AD_DRSTATIC212_DONE__=1;"
+         "if(!(window.DarkReader&&DarkReader.exportGeneratedCSS))return;"
+         "var run=function(){try{var pr=DarkReader.exportGeneratedCSS();"
+         "if(!pr||!pr.then)return;"
+         "pr.then(function(css){try{if(!css||css.length<64)return;"
+         "var st=document.getElementById('ad-drstatic212');"
+         "if(!st){st=document.createElement('style');st.id='ad-drstatic212';"
+         "st.setAttribute('data-ad-drstatic212','1');"
+         "(document.head||document.documentElement).appendChild(st);}"
+         "st.textContent=css;}catch(e){}},function(){});}catch(e){}};"
+         "if(window.requestIdleCallback)requestIdleCallback(run);else setTimeout(run,400);"
+         "}catch(e){}};"
+         "window.__AMZDARK_APPLY__=function(){try{var had=!!document.querySelector('style.darkreader');if(!had){window.__AD_NOMO211__(function(){var _r=DarkReader.enable(%@,%@);if(window.__AD_DRSTATIC212__)window.__AD_DRSTATIC212__();return _r;});window.__AD_FIX_PRIMED6171__=0;}if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);return window.__AD_FULLREPAIR6171__(!had);}catch(e){return 'err';}};"
          // Warm BFCache/visibility restoration only verifies the engine.  If the
          // Dark Reader sheet survived, the existing document stays untouched; if it
          // disappeared, APPLY performs the full recovery exactly as before.
@@ -1844,7 +1869,7 @@ static NSString *ADDarkReaderReapply(void){
         @"(function(){try{"
          "if(!(window.DarkReader&&DarkReader.enable))return 'noDR';"
          "var had=!!document.querySelector('style.darkreader');"
-         "if(!had){window.__AD_NOMO211__(function(){return DarkReader.enable(%@,%@);});window.__AD_FIX_PRIMED6171__=0;if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);if(window.__AD_FULLREPAIR6171__)return window.__AD_FULLREPAIR6171__(true);}"
+         "if(!had){window.__AD_NOMO211__(function(){var _r=DarkReader.enable(%@,%@);if(window.__AD_DRSTATIC212__)window.__AD_DRSTATIC212__();return _r;});window.__AD_FIX_PRIMED6171__=0;if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);if(window.__AD_FULLREPAIR6171__)return window.__AD_FULLREPAIR6171__(true);}"
          "if(window.__AD_FIX_PRIMED6171__)return 'warm';"
          "if(window.__AD_FULLREPAIR6171__)return window.__AD_FULLREPAIR6171__(false);"
          "if(window.__AMZDARK_FIXCONTRAST__){if(window.__AD_IDLE6056__){window.__AD_IDLE6056__(function(){window.__AMZDARK_FIXCONTRAST__();if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);},260);return 'queued';}return ''+window.__AMZDARK_FIXCONTRAST__();}"
