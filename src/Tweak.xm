@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.196-probe"
+#define AD_VERSION "v6.0.197-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1154,7 +1154,7 @@ static NSString *ADDarkReaderBootstrap(void){
          // Dark Reader + declarative TWB media selectors.  Treat their hydration as a
          // fast lane so AmazonDark's auxiliary observers never walk the carousel tree
          // while WebKit is trying to deliver horizontal touch gestures.
-         "window.__AD_MEDIA_CAROUSEL6196__=function(n){try{if(!n||n.nodeType!==1)return false;var u=String(location.pathname||'').toLowerCase();if(!(/\/(?:dp|gp\/product|gp\/aw\/d)\//.test(u)))return false;var S='#horizontalMediaCarousel,#imageBlock_feature_div,#imgTagWrapperId,.a-carousel-container,.a-carousel-viewport,.a-carousel-row,.a-carousel-card,[class*=video-carousel],[class*=videoCarousel],[class*=video-card],[class*=videoCard],[class*=sbv-video],[class*=vjs-],[data-component-type*=video]';if((n.matches&&n.matches(S))||(n.closest&&n.closest(S)))return true;if(n.querySelector&&n.querySelector('#horizontalMediaCarousel,#imageBlock_feature_div,#imgTagWrapperId,.a-carousel-card,video.vjs-tech,[class*=video-card] video,[data-component-type*=video] video'))return true;return false;}catch(e){return false;}};"
+         "window.__AD_MEDIA_CAROUSEL6196__=function(n){try{if(!n||n.nodeType!==1)return false;var u=String(location.pathname||'').toLowerCase();if(!(/\/(?:dp|gp\/product|gp\/aw\/d)\//.test(u)))return false;var S='#horizontalMediaCarousel,#imageBlock_feature_div,#imgTagWrapperId,[class*=video-carousel],[class*=videoCarousel],[class*=video-card],[class*=videoCard],[class*=sbv-video],[class*=vjs-],[data-component-type*=video]';if((n.matches&&n.matches(S))||(n.closest&&n.closest(S)))return true;var car=n.closest&&n.closest('.a-carousel-card,.a-carousel-row,.a-carousel-viewport,.a-carousel-container');if(!car)return false;if(car.closest&&car.closest('#horizontalMediaCarousel,#imageBlock_feature_div'))return true;if(car.matches&&car.matches('[class*=video-carousel],[class*=videoCarousel],[class*=video-card],[class*=videoCard],[class*=sbv-video],[class*=vjs-],[data-component-type*=video]'))return true;if(car.querySelector&&car.querySelector('video.vjs-tech,[class*=video-card] video,[data-component-type*=video] video'))return true;return false;}catch(e){return false;}};"
            "window.__AD_IS_NATIVE615__=function(e){try{return !!(e&&e.closest&&(e.closest('[data-ad-native615]')||e.closest(window.__AD_NATIVE_SEL615__)));}catch(x){return false;}};"
            // v6.0.56: the old cleanup walked every descendant (up to 700) and every
            // attribute/style property twice.  Dark Reader already exposes exactly which
@@ -1162,7 +1162,7 @@ static NSString *ADDarkReaderBootstrap(void){
            "window.__AD_DR_ATTRS6056__=['data-darkreader-inline-bg','data-darkreader-inline-bgcolor','data-darkreader-inline-bgimage','data-darkreader-inline-border','data-darkreader-inline-border-bottom','data-darkreader-inline-border-bottom-short','data-darkreader-inline-border-left','data-darkreader-inline-border-left-short','data-darkreader-inline-border-right','data-darkreader-inline-border-right-short','data-darkreader-inline-border-top','data-darkreader-inline-border-top-short','data-darkreader-inline-border-short','data-darkreader-inline-boxshadow','data-darkreader-inline-color','data-darkreader-inline-fill','data-darkreader-inline-invert','data-darkreader-inline-outline','data-darkreader-inline-stopcolor','data-darkreader-inline-stroke'];"
            "window.__AD_DR_SEL6056__='[data-darkreader-inline-bg],[data-darkreader-inline-bgcolor],[data-darkreader-inline-bgimage],[data-darkreader-inline-border],[data-darkreader-inline-border-bottom],[data-darkreader-inline-border-bottom-short],[data-darkreader-inline-border-left],[data-darkreader-inline-border-left-short],[data-darkreader-inline-border-right],[data-darkreader-inline-border-right-short],[data-darkreader-inline-border-top],[data-darkreader-inline-border-top-short],[data-darkreader-inline-border-short],[data-darkreader-inline-boxshadow],[data-darkreader-inline-color],[data-darkreader-inline-fill],[data-darkreader-inline-invert],[data-darkreader-inline-outline],[data-darkreader-inline-stopcolor],[data-darkreader-inline-stroke],[style*=\"--darkreader-inline-\"]';"
            "window.__AD_STRIP_DR615__=function(root){try{if(!root||root.nodeType!==1)return 0;root.setAttribute('data-ad-native615','1');var E=[root],q=root.querySelectorAll?root.querySelectorAll(window.__AD_DR_SEL6056__):[];for(var i=0;i<q.length&&i<220;i++)E.push(q[i]);for(var z=0;z<E.length;z++){var el=E[z],A=window.__AD_DR_ATTRS6056__;for(var x=0;x<A.length;x++)if(el.hasAttribute&&el.hasAttribute(A[x]))el.removeAttribute(A[x]);var st=el.style;if(st){var rm=[];for(var y=0;y<st.length;y++){var pn=st[y];if(String(pn).indexOf('--darkreader-inline-')===0)rm.push(pn);}for(var y2=0;y2<rm.length;y2++)st.removeProperty(rm[y2]);}}return E.length;}catch(e){return 0;}};"
-           "window.__AD_MARK_NATIVE615__=function(root){try{if(!root)return 0;if(window.__AD_MEDIA_CAROUSEL6196__&&window.__AD_MEDIA_CAROUSEL6196__(root))return 0;var n=0,Q=[];if(root.nodeType===1&&root.matches&&root.matches(window.__AD_NATIVE_SEL615__))Q.push(root);if(root.querySelectorAll){var q=root.querySelectorAll(window.__AD_NATIVE_SEL615__),lim=(root===document)?80:16;for(var i=0;i<q.length&&i<lim;i++)Q.push(q[i]);}for(var j=0;j<Q.length;j++){var fresh=!Q[j].hasAttribute('data-ad-native615');if(fresh){Q[j].setAttribute('data-ad-native615','1');n++;}if(fresh||Q[j]===root)window.__AD_STRIP_DR615__(Q[j]);}try{if(window.__AD_TWB6033_ADROOT__){var h=(root.nodeType===1&&root.closest)?root.closest('[data-ad-native615],'+window.__AD_NATIVE_SEL615__):null;if(h)window.__AD_TWB6033_ADROOT__(root);for(var t=0;t<Q.length&&t<4;t++)if(Q[t]!==h)window.__AD_TWB6033_ADROOT__(Q[t]);}}catch(tx){}return n;}catch(e){return 0;}};"
+           "window.__AD_MARK_NATIVE615__=function(root){try{if(!root)return 0;if(window.__AD_MEDIA_CAROUSEL6196__&&window.__AD_MEDIA_CAROUSEL6196__(root))return 0;var n=0,Q=[];if(root.nodeType===1&&root.matches&&root.matches(window.__AD_NATIVE_SEL615__))Q.push(root);if(root.querySelectorAll){var q=root.querySelectorAll(window.__AD_NATIVE_SEL615__),lim=(root===document)?80:16;for(var i=0;i<q.length&&i<lim;i++){if(window.__AD_MEDIA_CAROUSEL6196__&&window.__AD_MEDIA_CAROUSEL6196__(q[i]))continue;Q.push(q[i]);}}for(var j=0;j<Q.length;j++){var fresh=!Q[j].hasAttribute('data-ad-native615');if(fresh){Q[j].setAttribute('data-ad-native615','1');n++;}if(fresh||Q[j]===root)window.__AD_STRIP_DR615__(Q[j]);}try{if(window.__AD_TWB6033_ADROOT__){var h=(root.nodeType===1&&root.closest)?root.closest('[data-ad-native615],'+window.__AD_NATIVE_SEL615__):null;if(h)window.__AD_TWB6033_ADROOT__(root);for(var t=0;t<Q.length&&t<4;t++)if(Q[t]!==h)window.__AD_TWB6033_ADROOT__(Q[t]);}}catch(tx){}return n;}catch(e){return 0;}};"
            // v6.0.195: video-control recovery used to run for EVERY added node in an
            // Amazon-native island, then climb ancestors looking for a video.  A PDP
            // video carousel hydrates many sibling nodes, so wake that owner only when
@@ -1252,7 +1252,7 @@ static NSString *ADDarkReaderBootstrap(void){
            // WebKit to materialize an all-descendant NodeList before the cap is applied.
            // TreeWalker stops enumeration as soon as the existing budget is exhausted.
            "function collect(root,out,depth){try{if(out.length>=cap)return out;"
-             "var w=document.createTreeWalker(root,NodeFilter.SHOW_ELEMENT),e;"
+             "var filt6197={acceptNode:function(n){try{return (window.__AD_MEDIA_CAROUSEL6196__&&window.__AD_MEDIA_CAROUSEL6196__(n))?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT;}catch(x){return NodeFilter.FILTER_ACCEPT;}}};var w=document.createTreeWalker(root,NodeFilter.SHOW_ELEMENT,filt6197),e;"
              "while(out.length<cap&&(e=w.nextNode())){out.push(e);"
                "if(e.shadowRoot&&depth<4&&out.length<cap)collect(e.shadowRoot,out,depth+1);}"
              "}catch(e){}return out;}"
@@ -7416,6 +7416,28 @@ static NSString *ADShareWebProbeJS6192(void){
            @"4],[.5,.40],[.5,.56],[.5,.72],[.5,.88]];const hits=pts.map(([x,y])=>{try{const e=document.elementFromPoint(innerWidth*x,innerHeight*y);const chain=[];let p=e,n=0;while(p&&n++<7){chain.push(info(p));p=p.parentElement}return {p:[x,y],chain}}catch(_){return {p:[x,y],chain:[]}}});const frames=[...document.querySelectorAll('iframe')].slice(0,20).map(info);return JSON.stringify({probe:6192,url:location.href,title:document.title,ready:document.readyState,viewport:[innerWidth,innerHeight],bodyHasPhrase:bodyHas,bodyTail:bodyText.slice(-900),phraseCount:phrases.length,phrases:phrases.map(info),root:root?info(root):null,media,overlays,hits,frames});})()";
 }
 
+static NSString *ADCarouselBackgroundProbeJS6197(void){
+    return @"(()=>{const L=s=>{const m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/.exec(String(s||''));if(!m)return -1;const f=v=>{v=(+v)/255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)};return .2126*f(m[1])+.7152*f(m[2])+.0722*f(m[3])};const I=e=>{try{const c=getComputedStyle(e),r=e.getBoundingClientRect();return {tag:e.tagName||'',id:e.id||'',cl:typeof e.className==='string'?e.className.slice(0,180):'',r:[Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height)],bg:c.backgroundColor||'',bi:(c.backgroundImage||'').slice(0,180),media:!!(window.__AD_MEDIA_CAROUSEL6196__&&window.__AD_MEDIA_CAROUSEL6196__(e))}}catch(_){return {tag:'ERR'}}};const roots=['html','body','#a-page','#ppd','#productTitleGroupAnchor','#imageBlock_feature_div','#horizontalMediaCarousel'].map(s=>{const e=document.querySelector(s);return e?I(e):{sel:s,missing:1}});const light=[];const b=document.body||document.documentElement;if(b){const w=document.createTreeWalker(b,NodeFilter.SHOW_ELEMENT);let e,n=0;while((e=w.nextNode())&&n++<900&&light.length<24){try{const r=e.getBoundingClientRect();if(r.width<120||r.height<24||r.bottom<0||r.top>innerHeight)continue;const c=getComputedStyle(e),l=L(c.backgroundColor);if(l>.55)light.push(I(e));}catch(_){}}}return JSON.stringify({probe:6197,url:location.href,ready:document.readyState,viewport:[innerWidth,innerHeight],roots,light});})()";
+}
+static void ADCaptureCarouselBackgroundProbe6197(void){
+    @try {
+        int idx=0;
+        for(WKWebView *wv in (gADWebViews613.allObjects?:@[])){
+            if(!wv||!wv.window||wv.hidden||wv.alpha<.02)continue;
+            int my=++idx;
+            [wv evaluateJavaScript:ADCarouselBackgroundProbeJS6197() completionHandler:^(id result,NSError *error){
+                @try {
+                    NSString *payload=[result isKindOfClass:[NSString class]]?result:[result description];
+                    if(payload.length>24000)payload=[[payload substringToIndex:24000]stringByAppendingString:@"…TRUNCATED"];
+                    ADBuyAgainProbeAppend6180([NSString stringWithFormat:@"\\nCAROUSELBG6197 index=%d web=%p error=\\\"%@\\\"\\n%@\\nCAROUSELBG6197 END\\n",my,wv,error.localizedDescription?:@"",payload?:@"<nil>"]);
+                    notify_post(AD_BUYAGAIN_PROBE_READY_6180);
+                } @catch(...) {}
+            }];
+        }
+        ADBuyAgainProbeAppend6180([NSString stringWithFormat:@"\\nCAROUSELBG6197 START webviews=%d\\n",idx]);
+    } @catch(...) {}
+}
+
 static void ADShareScreenshotMomentCapture6192(NSString *stage){
     @try {
         NSMutableString *native=[NSMutableString stringWithFormat:
@@ -7652,7 +7674,7 @@ static void ADBuyAgainProbeCapture6180(void){
         [[NSNotificationCenter defaultCenter]
             addObserverForName:UIApplicationWillResignActiveNotification
                         object:nil queue:[NSOperationQueue mainQueue]
-                    usingBlock:^(__unused NSNotification *n){ ADBuyAgainProbeCapture6180(); }];
+                    usingBlock:^(__unused NSNotification *n){ ADCaptureCarouselBackgroundProbe6197(); ADBuyAgainProbeCapture6180(); }];
     } @catch(...) {}
     // v5.446 direct-port: drop cached light launch snapshots.
     @try {
