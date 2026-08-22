@@ -1,15 +1,37 @@
-# AmazonDark v6.0.194~probe — carousel hot-path + Share focus correction
+# AmazonDark v6.0.195~probe — PDP video-carousel hydration + Share rehydration
 
-Base: v6.0.193~probe.
+Base: v6.0.194~probe.
 
-## v6.0.194 corrections
+## v6.0.195 corrections
 
-- Removes the old screenshot-Share phrase/subtree discovery from ordinary native UIImageView layout. Probe 6192 proved the current Share preview is WebKit/CSS, so native fallback ownership is now entered only from the exact Share text event.
-- Adds a mounted-image positive fast path: an already-owned RCT UIImage on the same image/superview/window/bounds only resizes the existing TWB overlay during layout. It does not rerun semantic discovery, image classification, or peer consensus on scroll frames.
-- Primary web product/photo/video carousel leaves already owned by declarative TWB CSS now settle on the first media event without ancestor-chain/local-text classification. Generic media still uses the full classifier.
-- Fixes the PDP Share button's stuck post-click white focus ring. The normal :active press state remains untouched; only the lingering focused state has its background/border/shadow/outline cleared.
-- v6.0.193 screenshot Share preview background ownership and v6.0.191 Product images gallery ownership are retained.
+### PDP / product video-carousel startup and scrolling
 
-## Probe
+- Narrows the existing Amazon-native island MutationObserver so the video-control repair no longer runs for every added DOM node. It wakes only when the mutation actually contains a VIDEO element or nearby play/pause/mute/volume semantics.
+- Caches a successfully resolved VIDEO + play/mute control pair. Repeated `loadedmetadata` / `canplay` / `playing` lifecycle events fast-return while the same video source, parent and controls remain mounted.
+- Removes redundant video-control `loadeddata`, `play` and `pause` recovery events. A delayed retry is scheduled only when the first exact repair misses.
+- Video-control clicks now repair only the local video instead of rescanning every VIDEO in the document twice.
+- The initial video-control reconciliation is deferred to idle / a short fallback timeout instead of running synchronously as soon as the page bootstrap settles.
+- The contrast MutationObserver rejects pure VIDEO/SOURCE/TRACK/IMG/PICTURE/CANVAS hydration leaves and empty video-only shells so direct media owners do not also trigger the 360-node fallback contrast walk.
+- Direct TWB removes its redundant `loadeddata` listener. VIDEO taming itself is unchanged: no per-frame/timeupdate handler is introduced.
 
-The existing 6192/6180 diagnostics remain available; no new recurring probe mechanism is added.
+### PDP Share glyph after dismissing Share
+
+- Keeps v6.0.194's focus-ring cleanup.
+- Restores runtime ownership for `.ssf-share-trigger`, following the old v5.446/v6.0.26 principle: inspect only the bounded Share subtree, find its actual IMG/I/SVG/background/mask painter and pin that leaf white.
+- Reuses the existing symbol/product-control lifecycle; no new MutationObserver is created.
+- When Amazon removes the Share sheet, the existing filtered observer immediately reasserts the Share painter and performs one bounded +80 ms convergence pass. The temporary pressed state is not replaced with a permanent circle.
+
+## Preservation
+
+- v6.0.193 screenshot Share preview background ownership retained.
+- v6.0.191 Product images gallery ownership retained.
+- Buy Again / Interests fixes retained.
+- JIT, 120 Hz, Dark Reader, carousel-dot, checkbox/Heart/cards and current TWB strength behavior are not intentionally changed.
+
+## Device test
+
+1. Force-close/reopen Amazon.
+2. Open a PDP with the video carousel near the bottom.
+3. Scroll into that carousel before it has fully settled and immediately swipe through the video cards; compare initial responsiveness and frame hitching with v6.0.194.
+4. Tap the main PDP Share glyph, allow the Share sheet to appear, dismiss it, and verify the glyph returns/remains white with no persistent white ring.
+5. Verify Product images and the screenshot Share preview remain tamed.
