@@ -1,49 +1,6 @@
-# v6.0.204 — PDP input-latency + TWB boundary pass
+# v6.0.205 — v6.0.185 input-latency correction
 
-- Base: v6.0.200 performance architecture, itself built on v6.0.185.
-- Restores standalone/product-ad IMG TWB with a child-frame-only event path.
-- Excludes TWB completely from `.puis-mab-overlay` while preserving normal menu/symbol theming.
-- Adds a narrow PDP media-carousel fast lane so native-ad and symbol discovery do not deep-query photo/video hydration subtrees.
-- Ports the proven v6.0.195 video-control pair cache/local click repair/idle initial scan.
-- Keeps Dark Reader authoritative for generic web theming; no broad contrast/background walker is restored.
-
-# AmazonDark v6.0.200~probe — Dark Reader cooperation / input-latency pass
-
-## Goal
-
-Start from the exact v6.0.185~probe visual baseline, stop competing with Dark Reader for generic web theming, and remove avoidable main-thread repair work without replacing the established look.
-
-## v6.0.200 changes
-
-- **Dark Reader owns the normal WebKit page floor again.** The old `ADPreDarken()` html/body painter is removed and `adfloor612` no longer forces `html`, `body`, `#a-page`, `#gwm-PageContent`, or `main` dark. The native WKWebView/WKContentView backing remains dark only to prevent literal unpainted tile flashes during fast scrolls.
-- **The broad AmazonDark fallback contrast/background engine is removed.** No 1400/360/120-node TreeWalker, no full-root computed-style repair, no search escalation, no detach/reattach WeakMap cache, no idle repair queue, and no dedicated fallback MutationObserver remain.
-- **Dark Reader stays fully dynamic.** `disableStyleSheetsProxy` remains `false`, so late Amazon styles/components can still be themed by Dark Reader rather than being frozen or replaced by an AmazonDark floor engine.
-- **Dark Reader work that AmazonDark does not need is reduced.** Image analysis remains globally ignored, the custom-element registry proxy is disabled for this probe, and the existing inline-style exclusions are consolidated into fewer selector matches. Known AmazonDark-owned symbol controls are also excluded from Dark Reader inline-style churn.
-- **Known visuals stay declarative.** The existing v185 direct CSS for light text/glyphs, neutral gray borders, product/card first-paint fixes, auth/variation/coupon surfaces, custom symbols, ad protection, and TWB is retained.
-- **TWB now treats ordinary images as a universal leaf policy instead of a page-by-page policy.** Every normal WebKit `IMG` is tamed by one cheap CSS rule immediately, with explicit logo/icon/avatar/sprite exclusions; the old product/search/PDP/Home IMG selector list, IMG load callback, and initial IMG scan are gone. Native `UIImageView` photos use a cheap raster-metadata fast path before any semantic section walk or 12x12 luminance sampling. Small/ambiguous image assets still fall through to the existing v185 semantic rules, so special glyph/ad-card behavior is preserved rather than flattened.
-- **Seasonal Home theming is declarative-only.** The duplicate runtime seasonal geometry/computed-style scanner is removed because the same exact `hp-mosaic`/widget selectors are already present in document-start and Dark Reader override CSS.
-- **The v6.0.184 Interests caught-up gradient exception is retained as a tiny semantic bridge.** It only does local geometry/computed-style work after a small newly-added subtree contains the exact “You're all caught up!” phrase.
-- **Warm lifecycle reapply is constant-time.** If `style.darkreader` still exists, appearance/BFCache/visibility recovery returns `warm`; it does not launch a document repair pass.
-
-## Performance mechanism delta vs v6.0.185
-
-- `new MutationObserver(`: **3 → 2**
-- `createTreeWalker(`: **1 → 0**
-- `getComputedStyle(` textual call sites: **31 → 15**
-- `new WeakMap(`: **4 → 0**
-- `querySelectorAll(` textual call sites: **33 → 30**
-- `setTimeout(` textual call sites: **17 → 14**
-- `requestIdleCallback` textual references: **4 → 2**
-- web scroll listeners: **0 → 0**
-- `setInterval(`: **0 → 0**
-- `requestAnimationFrame(`: **0 → 0**
-- `src/Tweak.xm`: about **464 KB → 415 KB**
-
-## What this probe is testing
-
-The intended A/B is simple: preserve v185's appearance as closely as possible while reducing touch/scroll latency during Amazon hydration. If a visual regression appears, it should identify a specific element that truly depended on the removed generic fallback; that element can then receive a cheap direct CSS owner instead of restoring the broad scanner.
-
----
+Built directly from the v6.0.185~probe baseline. Fixes a stale `_adTameFast362` lifecycle check that caused the complete TWB payload to be re-evaluated on every appearance/reapply burst, multiplying IMG/VIDEO event listeners in the live document. Removes multi-second unconditional web symbol/checkbox rescan bursts, stops carousel-dot changes from waking the whole-document checkbox scanner, removes Search-suggestion full-root fallback escalation, moves fallback media/contrast recovery off the immediate input path, and keeps AmazonDark auxiliary repair observers out of the exact PDP photo/video media subtree. Dark Reader, v6.0.185 visual rules, Buy Again/Interests fixes, native theming, JIT/120Hz, and existing first-paint CSS remain the baseline.
 
 # AmazonDark v6.0.185~probe — Buy Again nav re-entry border persistence
 
