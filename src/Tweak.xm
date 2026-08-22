@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.0.4 — stock UI / OLED-floor architecture
+ * AmazonDark v7.0.5 — static OLED theme / cheap CSS architecture
  *
  * Retained from v6.0.185:
  *   - Settings bundle/preferences and preference domain
@@ -12,11 +12,14 @@
  * Removed:
  *   - Dark Reader and its runtime bundle
  *   - Amazon native-dark weblab forcing
- *   - nav/search/symbol/border/card/Person/PDP/Home special-case theming
  *   - contrast scanners, repair queues, probes and theme MutationObservers
  *
- * The only always-on visual owner is an OLED-black FLOOR. It targets root/backing
- * surfaces, not text, glyphs, cards, borders, buttons or images.
+ * Always-on visual ownership is deliberately static and assignment-driven:
+ *   - OLED-black structural/control surfaces
+ *   - light text for contrast on the black surfaces
+ *   - neutral #494D4D borders/dividers
+ *   - cheap documentStart CSS/compositing fixes from the proven pre-Dark-Reader rules
+ * Images, video, canvas and glyph/icon artwork remain outside the broad paint path.
  */
 
 #import <UIKit/UIKit.h>
@@ -34,7 +37,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.4-oled-floor"
+#define AD_VERSION "v7.0.5-static-oled"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -587,28 +590,70 @@ static void ADRefreshPromotionState611(void){
 // OLED floor — no Dark Reader, no DOM observer, no visual-component classifier.
 // -----------------------------------------------------------------------------
 static void ADPostReadyOnce(void);
+static void ADScheduleLaunchReadyCheck(void);
 static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
 static NSHashTable *gADWebViews=nil;
 
 static NSString *ADFloorJS(void){
-    // Floor-only contract: black structural/composited surfaces, never foreground/media/control paint.
-    // CSS is declarative at documentStart so lazy/recycled Home/Search/Cart/PDP shells inherit the
-    // same OLED floor without an observer or traversal.
-    return @"(function(){try{var id='ad7-oled-floor',s=document.getElementById(id);"
+    // v7.0.5: direct static OLED theme. This is intentionally declarative and installed
+    // at documentStart: no Dark Reader, no TreeWalker, no MutationObserver and no
+    // computed-style census. Media/artwork is kept transparent so product/creative pixels
+    // remain Amazon-owned; structural surfaces, text contrast and neutral borders are ours.
+    return @"(function(){try{var id='ad7-static-theme',s=document.getElementById(id);"
             "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
             "s.textContent='"
-            "html,body,#a-page,#gwm-PageContent,main,[role=main],"
-            "section,article,aside,header,footer,nav,"
-            "div.a-section,div.a-container,div.a-row,"
-            "[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-tile],[class*=puis-card],[class*=cXVhZ],"
-            "[class*=sc-][class*=content],[class*=sc-][class*=container],[class*=sc-][class*=list],[class*=sc-][class*=page],"
-            "[class*=search][class*=container],[class*=search][class*=content],[class*=suggest][class*=container],"
+            ":root{color-scheme:dark!important;}"
+            "html,body,#a-page,#gwm-PageContent,main,#dp,#ppd,#dp-container,#search,#search-main-wrapper,[role=main],"
+            "section,article,aside,header,footer,nav,div,ul,ol,li,table,thead,tbody,tfoot,tr,td,th,form,fieldset,details,summary,dialog,"
+            "[class*=a-section],[class*=a-container],[class*=a-row],[class*=a-box],[class*=a-box-inner],[class*=a-cardui],"
+            "[class*=card-container],[class*=cardContainer],[class*=recommendation-container],[class*=recommendations-container],"
+            "[class*=widget-container],[class*=widgetContainer],[class*=panel],[class*=sheet],[class*=modal],[class*=popover],[class*=drawer],"
+            "[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-tile],[class*=puis-card],[class*=cXVhZ],"
+            "[class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer],"
+            "[class*=asin-container-white],[class*=gwmWindowPaneTile],[class*=gwm-window-layout],[class*=window-container],[class*=gwm-dashboard-container],"
+            "[data-component-type=s-search-result],[class*=s-result-item],[class*=s-card-container],"
+            "#sc-active-cart,#sc-saved-cart,#sc-buy-box,.sc-list-body,.sc-list-item,.sc-list-item-content,.sc-item-content-group,.sc-item-product-content,"
+            "[class*=sc-list-item],[class*=sc-card],[class*=sc-buy-box],"
+            ".a-sheet-web-container,.a-sheet-web[role=dialog],.a-sheet-content-container,.a-sheet-heading-container,"
+            "[class*=ssf-customize-container],[class*=ssf-two-row-custom-channels-container],"
+            ".s-suggestion-container,.s-suggestion-container .s-suggestion,[class*=suggestion-container],[class*=autocomplete],[class*=recentSearch],"
             "[class*=page-container],[class*=pageContent],[class*=page-content],[class*=content-container],[class*=contentContainer],"
             "[class*=screen-container],[class*=screenContainer],[class*=root-container],[class*=rootContainer],"
             "[class*=background-container],[class*=backgroundContainer],[class*=surface-container],[class*=surfaceContainer]"
             "{background-color:#000!important;}"
             "html::before,html::after,body::before,body::after,#a-page::before,#a-page::after,#gwm-PageContent::before,#gwm-PageContent::after,main::before,main::after,[role=main]::before,[role=main]::after{background-color:#000!important;}"
+            "input:not([type=image]),textarea,select,option,button,[role=button],[role=dialog],[role=list],[role=listitem],[role=menu],[role=menuitem]{background-color:#000!important;}"
+            "picture,img,video,canvas,svg,#imgTagWrapperId,.s-product-image-container,[data-component-type=s-product-image],"
+            "[class*=image-wrapper],[class*=img-wrapper],[class*=image-container],[class*=product-image],[class*=asin-image],[class*=thumbnail-conta],"
+            "[class*=single-creative],[class*=single-video],[class*=theming-card-background],[class*=vjs-poster],[class*=media-wrapper]"
+            "{background-color:transparent!important;mix-blend-mode:normal!important;isolation:auto!important;}"
+            "[class*=single-creative-card] :is(.a-box,.a-box-inner,.a-section,.a-row),[class*=single-video-card] :is(.a-box,.a-box-inner,.a-section,.a-row),"
+            "[class*=theming-card] :is(.a-box,.a-box-inner,.a-section,.a-row),[class*=canvas-card] :is(.a-box,.a-box-inner,.a-section,.a-row)"
+            "{background-color:transparent!important;box-shadow:none!important;}"
+            "body,#a-page,main,p,span,a,label,h1,h2,h3,h4,h5,h6,strong,b,em,i,small,sup,sub,blockquote,legend,dt,dd,caption,time,"
+            ".a-color-base,.a-text-normal,.a-size-base,.a-size-base-plus,.a-size-medium,.a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen,"
+            "[class*=title],[class*=price],[class*=text],[class*=heading],[class*=label],[class*=description],[class*=truncate]"
+            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            ".a-color-secondary,.a-size-small,[class*=secondary],[class*=sponsored-label],[class*=ad-feedback-text]"
+            "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
+            "input,textarea,select,option,button,[role=button]{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            "::placeholder{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}"
+            "*{border-color:#494d4d!important;outline-color:#494d4d!important;}"
+            "hr,.a-divider-inner:after,.a-divider-inner:before,[class*=divider],[class*=separator]{border-color:#494d4d!important;}"
+            "hr,[class*=divider][class*=line],[class*=separator][class*=line]{background-color:#494d4d!important;color:#494d4d!important;}"
+            "[class*=npack],[class*=npack] *,[class*=gwm-asin],[class*=gwm-asin] *,[class*=gwm-tile],[class*=gwm-tile] *,[class*=cXVhZ],[class*=cXVhZ] *"
+            "{mix-blend-mode:normal!important;isolation:auto!important;}"
+            "#wd-backdrop-gradient,.wd-backdrop-gradient,[class*=wd-backdrop-gradient]{background:#000!important;background-image:none!important;box-shadow:none!important;}"
+            "[class*=wd-backdrop]:not([style*=background-image]){background-color:#000!important;}"
+            "[class*=a-reactive-container],[class*=reactive-contain]{background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+            "#auth-footer,.auth-footer,[id*=auth-footer],#auth-footer .a-divider,#auth-footer .a-divider-inner,.auth-footer .a-divider,.auth-footer .a-divider-inner"
+            "{background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+            "[class*=_c2Itb_brandCard_],[class*=_bW9ia_suggestion_]{background-image:none!important;background-color:#000!important;}"
+            "[data-csa-c-content-id=variation-options-link],[class*=s-variations-options-justify-content],[class*=s-variation-options-text],"
+            "[class*=s-variation-options-link],[class*=s-color-swatch-container-list-view],[class*=puis-csi-with-label-container],"
+            "[data-component-type=s-status-badge-component]>.a-row.a-badge-region{background:#000!important;background-image:none!important;box-shadow:none!important;}"
+            "[class*=badgeMessage],[class*=badgeMessage] *{background:#000!important;background-image:none!important;box-shadow:none!important;}"
             "';"
             "document.documentElement.style.backgroundColor='#000';if(document.body)document.body.style.backgroundColor='#000';"
             "}catch(e){}})();";
@@ -681,7 +726,7 @@ static void ADApplyAllFloors(void){
 }
 - (void)didMoveToWindow {
     %orig;
-    if (gP.enabled && self.window) { ADAttachWebScripts(self); ADApplyWebFloor(self); }
+    if (gP.enabled && self.window) { ADAttachWebScripts(self); ADApplyWebFloor(self); ADScheduleLaunchReadyCheck(); }
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if (gP.enabled) {
@@ -727,31 +772,48 @@ static void ADApplyAllFloors(void){
 }
 %end
 
-static BOOL ADNativeFloorCandidate(UIView *v){
-    if(!v)return NO;
+static BOOL ADNativeArtworkView(UIView *v){
+    if(!v)return YES;
     @try {
-        if([v isKindOfClass:[UIImageView class]] || [v isKindOfClass:[UILabel class]] ||
-           [v isKindOfClass:[UIControl class]] || [v isKindOfClass:[UITextView class]] ||
-           [v isKindOfClass:[UITextField class]] || [v isKindOfClass:[UIVisualEffectView class]]) return NO;
+        if([v isKindOfClass:[UIImageView class]] || [v isKindOfClass:[UILabel class]]) return YES;
         NSString *n=NSStringFromClass(v.class).lowercaseString ?: @"";
-        NSArray *reject=@[@"image",@"icon",@"glyph",@"label",@"text",@"button",@"control",@"badge",@"avatar",@"logo",@"star",@"rating",@"switch",@"slider",@"cell"];
-        for(NSString *x in reject) if([n containsString:x]) return NO;
-        NSArray *floor=@[@"root",@"content",@"container",@"background",@"surface",@"screen",@"page",@"scroll",@"collection",@"table",@"host",@"wrapper"];
-        for(NSString *x in floor) if([n containsString:x]) return YES;
+        for(NSString *x in @[@"image",@"icon",@"glyph",@"avatar",@"logo",@"star",@"rating",@"badge",@"symbol",@"artwork"])
+            if([n containsString:x]) return YES;
+    } @catch(...) { return YES; }
+    return NO;
+}
+static BOOL ADNativeSurfaceCandidate(UIView *v){
+    if(!v || ADNativeArtworkView(v))return NO;
+    @try {
+        if([v isKindOfClass:[UIVisualEffectView class]]) return YES;
+        // Text renderers keep transparent/stock backing; their foreground is owned separately.
+        if([v isKindOfClass:[UITextView class]] || [v isKindOfClass:[UITextField class]]) return YES;
+        return YES;
     } @catch(...) {}
     return NO;
 }
-static void ADOwnNativeFloor(UIView *v){
-    if(!gP.enabled || !v)return; @try { v.backgroundColor=ADOLED(); v.layer.backgroundColor=ADOLED().CGColor; } @catch(...) {}
+static void ADOwnNativeSurface(UIView *v){
+    if(!gP.enabled || !v || !ADNativeSurfaceCandidate(v))return;
+    @try { v.backgroundColor=ADOLED(); v.layer.backgroundColor=ADOLED().CGColor; } @catch(...) {}
 }
-
+static UIColor *ADLightText(void){ return [UIColor colorWithRed:232.0/255.0 green:230.0/255.0 blue:227.0/255.0 alpha:1.0]; }
+static UIColor *ADBorderGray(void){ return [UIColor colorWithRed:73.0/255.0 green:77.0/255.0 blue:77.0/255.0 alpha:1.0]; }
+static BOOL ADNeutralCGColor(CGColorRef c){
+    if(!c)return NO;
+    @try {
+        UIColor *u=[UIColor colorWithCGColor:c]; CGFloat r=0,g=0,b=0,a=0,w=0;
+        if([u getRed:&r green:&g blue:&b alpha:&a]) return a>0.05 && (MAX(r,MAX(g,b))-MIN(r,MIN(g,b)))<0.16;
+        if([u getWhite:&w alpha:&a]) return a>0.05;
+    } @catch(...) {}
+    return NO;
+}
 %hook UIView
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled && self.window && ADNativeFloorCandidate(self)) ADOwnNativeFloor(self);
+    if(gP.enabled && self.window && ADNativeSurfaceCandidate(self)) ADOwnNativeSurface(self);
 }
 - (void)setBackgroundColor:(UIColor *)color {
-    if(gP.enabled && self.window && ADNativeFloorCandidate(self)){
+    if(gP.enabled && self.window && ADNativeSurfaceCandidate(self)){
         UIColor *black = ADOLED();
         %orig(black);
         return;
@@ -760,19 +822,106 @@ static void ADOwnNativeFloor(UIView *v){
 }
 %end
 
+%hook UILabel
+- (void)setTextColor:(UIColor *)color {
+    if(gP.enabled){
+        UIColor *light=ADLightText();
+        %orig(light);
+        return;
+    }
+    %orig;
+}
+- (void)didMoveToWindow {
+    %orig;
+    if(gP.enabled && self.window) self.textColor=ADLightText();
+}
+%end
+
+%hook UITextView
+- (void)setTextColor:(UIColor *)color {
+    if(gP.enabled){
+        UIColor *light=ADLightText();
+        %orig(light);
+        return;
+    }
+    %orig;
+}
+- (void)didMoveToWindow {
+    %orig;
+    if(gP.enabled && self.window){ self.backgroundColor=ADOLED(); self.textColor=ADLightText(); }
+}
+%end
+
+%hook UITextField
+- (void)setTextColor:(UIColor *)color {
+    if(gP.enabled){
+        UIColor *light=ADLightText();
+        %orig(light);
+        return;
+    }
+    %orig;
+}
+- (void)didMoveToWindow {
+    %orig;
+    if(gP.enabled && self.window){ self.backgroundColor=ADOLED(); self.textColor=ADLightText(); }
+}
+%end
+
+%hook UIButton
+- (void)setTitleColor:(UIColor *)color forState:(UIControlState)state {
+    if(gP.enabled){
+        UIColor *light=ADLightText();
+        %orig(light,state);
+        return;
+    }
+    %orig;
+}
+- (void)didMoveToWindow {
+    %orig;
+    if(gP.enabled && self.window){ self.backgroundColor=ADOLED(); [self setTitleColor:ADLightText() forState:UIControlStateNormal]; }
+}
+%end
+
+%hook CALayer
+- (void)setBorderColor:(CGColorRef)color {
+    if(gP.enabled && color && ADNeutralCGColor(color)){
+        UIColor *grayColor=ADBorderGray();
+        CGColorRef gray=grayColor.CGColor;
+        %orig(gray);
+        return;
+    }
+    %orig;
+}
+%end
+
+%hook CAShapeLayer
+- (void)setStrokeColor:(CGColorRef)color {
+    if(gP.enabled && color && ADNeutralCGColor(color)){
+        CGRect b=self.bounds;
+        if(b.size.width>24.0 || b.size.height>24.0){
+            UIColor *grayColor=ADBorderGray();
+            CGColorRef gray=grayColor.CGColor;
+            %orig(gray);
+            return;
+        }
+    }
+    %orig;
+}
+%end
+
 %hook UIViewController
 - (void)viewDidLoad {
     %orig;
-    ADOwnNativeFloor(self.view);
+    ADOwnNativeSurface(self.view);
 }
 - (void)viewWillAppear:(BOOL)animated {
     %orig;
-    ADOwnNativeFloor(self.view);
+    ADOwnNativeSurface(self.view);
 }
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
-    ADOwnNativeFloor(self.view);
-    if (gP.enabled) ADPostReadyOnce();
+    ADOwnNativeSurface(self.view);
+    if (gP.enabled) ADScheduleLaunchReadyCheck();
 }
 %end
 
@@ -902,8 +1051,39 @@ static void ADApplyNativeTWB(UIImageView *iv){
 // minimum presentation and 0.55 s fade; Amazon only tells it that the black root
 // is mounted. Cached light launch snapshots are cleared exactly as in v6.0.185.
 // -----------------------------------------------------------------------------
+static BOOL gADLaunchReadyPosted=NO;
+static BOOL gADLaunchReadyCheckScheduled=NO;
+static NSInteger gADLaunchReadyAttempts=0;
 static void ADPostReadyOnce(void){
-    static BOOL posted=NO; if(posted)return; posted=YES; @try { notify_post("com.colindavidr.amazondark.ready"); } @catch(...) {}
+    if(gADLaunchReadyPosted)return;
+    gADLaunchReadyPosted=YES;
+    @try { notify_post("com.colindavidr.amazondark.ready"); } @catch(...) {}
+}
+static void ADRunLaunchReadyCheck(void){
+    if(gADLaunchReadyPosted || !gP.enabled){ gADLaunchReadyCheckScheduled=NO; return; }
+    gADLaunchReadyAttempts++;
+    __block BOOL submitted=NO;
+    for(WKWebView *wv in ADTrackedWebViews()){
+        if(!wv.window)continue;
+        submitted=YES;
+        NSString *js=@"(function(){try{var d=document,r=d.readyState,b=d.body,x=d.querySelector('#a-page,#gwm-PageContent,main,[role=main]');if(!b||!(r==='interactive'||r==='complete'))return 0;var e=x||b,c=getComputedStyle(e),bg=c&&c.backgroundColor||'';return (bg==='rgb(0, 0, 0)'||bg==='rgba(0, 0, 0, 1)')?1:0;}catch(e){return 0;}})();";
+        [wv evaluateJavaScript:js completionHandler:^(id value,NSError *error){
+            if(!error && [value respondsToSelector:@selector(boolValue)] && [value boolValue]) ADPostReadyOnce();
+        }];
+    }
+    if(gADLaunchReadyPosted){ gADLaunchReadyCheckScheduled=NO; return; }
+    // Keep this launch-only and bounded. SpringBoard still owns the 8.5 s / 10 s safety caps.
+    if(gADLaunchReadyAttempts<24){
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.125*NSEC_PER_SEC)),dispatch_get_main_queue(),^{ ADRunLaunchReadyCheck(); });
+    } else {
+        gADLaunchReadyCheckScheduled=NO;
+        (void)submitted;
+    }
+}
+static void ADScheduleLaunchReadyCheck(void){
+    if(gADLaunchReadyPosted || gADLaunchReadyCheckScheduled || !gP.enabled)return;
+    gADLaunchReadyCheckScheduled=YES;
+    dispatch_async(dispatch_get_main_queue(),^{ ADRunLaunchReadyCheck(); });
 }
 
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
@@ -934,7 +1114,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
         ADApplyAllFloors();
         ADRefreshPromotionState611();
         ADApplyJIT622();
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(1.20*NSEC_PER_SEC)),dispatch_get_main_queue(),^{ ADPostReadyOnce(); });
+        ADScheduleLaunchReadyCheck();
     });
 }
 
