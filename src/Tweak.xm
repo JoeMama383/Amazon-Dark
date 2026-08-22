@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.210"
+#define AD_VERSION "v6.0.211"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1583,7 +1583,31 @@ static NSString *ADDarkReaderBootstrap(void){
          // single-flight state so the 0/120/420 ms native appearance burst cannot queue
          // duplicate 1400-element full scans while the first one is still pending.
          "window.__AD_FULLREPAIR6171__=function(force){try{if(!window.__AMZDARK_FIXCONTRAST__)return 'nofix';if(window.__AD_FIXFULL_PENDING6171__)return 'pending';if(!force&&window.__AD_FIX_PRIMED6171__)return 'warm';window.__AD_FIXFULL_PENDING6171__=1;var run=function(){try{window.__AMZDARK_FIXCONTRAST__();if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);window.__AD_FIX_PRIMED6171__=1;}catch(e){}finally{window.__AD_FIXFULL_PENDING6171__=0;}};if(window.__AD_IDLE6056__){window.__AD_IDLE6056__(run,(window.__AD_INPUTHOT6207__&&window.__AD_INPUTHOT6207__())?0:260);return 'queued';}run();return 'ran';}catch(e){window.__AD_FIXFULL_PENDING6171__=0;return 'err';}};"
-         "window.__AMZDARK_APPLY__=function(){try{var had=!!document.querySelector('style.darkreader');if(!had){DarkReader.enable(%@,%@);window.__AD_FIX_PRIMED6171__=0;}if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);return window.__AD_FULLREPAIR6171__(!had);}catch(e){return 'err';}};"
+         // v6.0.211: run Dark Reader with its MutationObserver neutralised.
+         //
+         // Established by elimination. Web Dark Reader off makes pages instant, so the
+         // cost is Dark Reader's. Inside Dark Reader the stylesheet proxy is ruled out
+         // (v6.0.210 disabled it with no change and no light regressions), image
+         // analysis is already off via ignoreImageAnalysis:['*'], and the theme object
+         // is identical to the fast v5.43.0 build. What remains has no setting: Dark
+         // Reader's own MutationObserver, which re-themes every node as it arrives.
+         // Search hydrates hundreds of cards and a PDP hydrates continuously, so that
+         // observer runs on the main thread through exactly the window where taps queue.
+         //
+         // Dark Reader reads the global MutationObserver constructor when enable() runs,
+         // so it is handed an inert one for the duration of that call only. The real
+         // constructor is restored in a finally block, so AmazonDark's own observers --
+         // created elsewhere -- are untouched.
+         //
+         // THE TRADE, and it is a real one: nodes added after the initial pass are no
+         // longer themed by Dark Reader. Its generated CSS is selector-based, so most
+         // new cards still theme for free, but anything Dark Reader handled with inline
+         // styles will render light. Expect light patches while scrolling Home and
+         // Search. This is a measurement build, not a shippable state.
+         "window.__AD_NOMO211__=function(fn){var MO=window.MutationObserver;try{"
+         "window.MutationObserver=function(){return {observe:function(){},disconnect:function(){},takeRecords:function(){return [];}};};"
+         "return fn();}finally{try{window.MutationObserver=MO;}catch(e){}}};"
+         "window.__AMZDARK_APPLY__=function(){try{var had=!!document.querySelector('style.darkreader');if(!had){window.__AD_NOMO211__(function(){return DarkReader.enable(%@,%@);});window.__AD_FIX_PRIMED6171__=0;}if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);return window.__AD_FULLREPAIR6171__(!had);}catch(e){return 'err';}};"
          // Warm BFCache/visibility restoration only verifies the engine.  If the
          // Dark Reader sheet survived, the existing document stays untouched; if it
          // disappeared, APPLY performs the full recovery exactly as before.
@@ -1820,7 +1844,7 @@ static NSString *ADDarkReaderReapply(void){
         @"(function(){try{"
          "if(!(window.DarkReader&&DarkReader.enable))return 'noDR';"
          "var had=!!document.querySelector('style.darkreader');"
-         "if(!had){DarkReader.enable(%@,%@);window.__AD_FIX_PRIMED6171__=0;if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);if(window.__AD_FULLREPAIR6171__)return window.__AD_FULLREPAIR6171__(true);}"
+         "if(!had){window.__AD_NOMO211__(function(){return DarkReader.enable(%@,%@);});window.__AD_FIX_PRIMED6171__=0;if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);if(window.__AD_FULLREPAIR6171__)return window.__AD_FULLREPAIR6171__(true);}"
          "if(window.__AD_FIX_PRIMED6171__)return 'warm';"
          "if(window.__AD_FULLREPAIR6171__)return window.__AD_FULLREPAIR6171__(false);"
          "if(window.__AMZDARK_FIXCONTRAST__){if(window.__AD_IDLE6056__){window.__AD_IDLE6056__(function(){window.__AMZDARK_FIXCONTRAST__();if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);},260);return 'queued';}return ''+window.__AMZDARK_FIXCONTRAST__();}"
