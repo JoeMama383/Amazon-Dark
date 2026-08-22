@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.193-probe"
+#define AD_VERSION "v6.0.194-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -147,6 +147,8 @@ static UIImage *ADGlyphify(UIImage *img);
 static UIImage *ADGlyphifyForView(UIImage *img, UIView *v);
 static void ADScheduleGlyphLift624(UIImageView *iv);
 static void ADApplyNativeWhiteTameView(UIView *v);
+static void ADTWBClearSettledMount6194(UIImageView *iv);
+static void ADMarkShareScreenshotForce6194(UIImageView *iv);
 static BOOL ADImageMostlyLight(UIImage *img);
 static BOOL ADIsCategoryArtwork379(UIView *v);
 static void ADRestoreCategoryArtwork379(UIImageView *iv);
@@ -857,6 +859,14 @@ static NSString *ADFixesLiteral(void){
              ".ssf-share-trigger::before,.ssf-share-trigger::after,"
              ".ssf-share-trigger *::before,.ssf-share-trigger *::after"
              "{color:#ffffff !important;filter:brightness(0) invert(1) !important;opacity:1 !important;}"
+             // v6.0.194: Amazon keeps keyboard/focus chrome on the PDP Share trigger
+             // after the sheet is dismissed.  Preserve the real :active press frame,
+             // but clear only the post-click focused state so the white ring cannot stick.
+             ".ssf-share-trigger:focus:not(:active),.ssf-share-trigger:focus-visible:not(:active),"
+             ".ssf-share-trigger:focus-within:not(:active),.ssf-share-trigger.a-button-focus:not(:active),"
+             ".ssf-share-trigger:focus:not(:active) .a-button-inner,.ssf-share-trigger:focus-within:not(:active) .a-button-inner"
+             "{background-color:transparent !important;background-image:none !important;"
+             "border-color:transparent !important;box-shadow:none !important;outline:none !important;}"
              // v6.0.20 direct v5.446 carousel-dot port. Static selectors own
              // first paint; dotFix374 below follows Amazon's live selected state.
              "ul.a-pagination.a-dots li.a-selected,"
@@ -1655,7 +1665,12 @@ static NSString *ADWhiteTameWebJS6027(void){
          "function adRoot(root){try{if(!root||root.nodeType!==1)return 0;var now=Date.now();if(root.__adTWB6055Stamp&&now-root.__adTWB6055Stamp<220)return 0;root.__adTWB6055Stamp=now;var A=[root],n=0,Q=root.querySelectorAll?root.querySelectorAll('img,video,canvas,[class*=theming-card-background],[class*=vjs-poster],[class*=canvas-container],[style*=background-image]'):[];for(var i=0;i<Q.length&&A.length<36;i++)A.push(Q[i]);for(var j=0;j<A.length;j++){var e=A[j],tg=String(e.tagName||'').toUpperCase();if(tg==='IMG'||tg==='VIDEO'||tg==='CANVAS')n+=creativeMedia(e);else n+=paintBg(e);}return n;}catch(x){return 0;}}"
          "function tameBgChain(e,c){try{if(!e)return;var p=e,d=0,ctx=c||'';while(p&&d++<6){var pc=S(p.className)+' '+String(p.id||''),fam=(mode==='hero')||carouselFamily(ctx+' '+pc);if(fam)paintBg(p);ctx+=' '+pc;p=p.parentElement;}}catch(x){}}"
          "var mode=(function(){try{if(window.top===window)return 'main';var u=String(document.referrer||'').toLowerCase();if(u.indexOf('/dp/')>=0||u.indexOf('/gp/aw/d/')>=0||u.indexOf('/gp/product/')>=0||u.indexOf('/s?')>=0||u.indexOf('/search')>=0||u.indexOf('?k=')>=0||u.indexOf('&k=')>=0||u.indexOf('field-keywords=')>=0)return 'productad';return ((innerHeight||0)<180||((innerWidth||1)/(innerHeight||1))>2.25)?'standalone':'hero';}catch(e){return 'main';}})();"
-         "function tame(e){try{if(!e||e.nodeType!==1)return;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return;var src=String(e.currentSrc||e.src||e.poster||'').toLowerCase(),sig=mode+'|'+BB+'|'+String(innerWidth||0)+'x'+String(innerHeight||0)+'|'+src;if(e.__adTWBMedia6176===sig&&e.__adTWBMedia6176Parent===e.parentElement&&e.getAttribute('data-ad-twb6033')==='1')return;var r=e.getBoundingClientRect();if(r.width<2||r.height<2)return;var c=chain(e),t=localText(e),fo=forced(t),rv=reviewCtx(t,c),pr=product(e,c),hf=carouselFamily(c);if(mode==='hero')tameBgChain(e,c);if((hf?creativeBlocked(e,src):blocked(e,c,t,fo,rv))||/pixel|placeholder|spacer|blank|transparent/.test(src))return;var W=innerWidth||390,H=innerHeight||700,nw=(tg==='VIDEO'?(e.videoWidth||0):(e.naturalWidth||0)),nh=(tg==='VIDEO'?(e.videoHeight||0):(e.naturalHeight||0)),ok=false;if(mode==='productad'||mode==='standalone'){var full=(r.width>W*.64&&r.height>H*.55)||(r.width*r.height>W*H*.58);if(full&&tg!=='VIDEO'){e.style.removeProperty('filter');e.removeAttribute('data-ad-twb6033');return;}ok=(r.width>=26&&r.height>=26)||(nw>=26&&nh>=26);}else if(mode==='hero'||hf){ok=(r.width>=32&&r.height>=32)||(nw>=32&&nh>=32);}else{if(rv&&tg!=='IMG')return;var mn=(pr||fo||rv)?24:56;ok=(r.width>=mn&&r.height>=mn)||(nw>=mn&&nh>=mn);}if(!ok)return;e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6033','1');e.__adTWBMedia6176=sig;e.__adTWBMedia6176Parent=e.parentElement;}catch(x){}}"
+         // v6.0.194: the primary product/photo/video carousel leaves already have
+         // authoritative declarative CSS above.  Mark those leaves settled on their
+         // first media event without doing ancestor-chain + text walks on the main JS
+         // thread.  Generic/ambiguous media still uses the full classifier below.
+         "function directKnown6194(e){try{return !!(e&&e.matches&&e.matches('img.s-image,.s-product-image-container img,[data-component-type=s-product-image] img,[data-component-type=s-search-result] img,#dp-container img.a-dynamic-image,#ppd img.a-dynamic-image,#landingImage,#imgTagWrapperId img,.a-carousel-card img.a-dynamic-image,img.a-amazon-image,[class*=_gwm-asin-tile] img,img[class*=_np],[class*=product-image] img,img[class*=_single-creative-card],img[class*=_single-video-card],[class*=single-creative-card] img,[class*=single-video-card] img,video.vjs-tech,[class*=single-video-card] video,[class*=video-card] video,[class*=sbv-video] video,[data-component-type*=video] video')&&!/icon|logo|avatar|profile|merchant|seller|brand|store|sprite/.test(ownClass(e)));}catch(x){return false;}}"
+         "function tame(e){try{if(!e||e.nodeType!==1)return;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return;var src=String(e.currentSrc||e.src||e.poster||'').toLowerCase(),sig=mode+'|'+BB+'|'+String(innerWidth||0)+'x'+String(innerHeight||0)+'|'+src;if(e.__adTWBMedia6176===sig&&e.__adTWBMedia6176Parent===e.parentElement&&e.getAttribute('data-ad-twb6033')==='1')return;var r=e.getBoundingClientRect();if(r.width<2||r.height<2)return;if(directKnown6194(e)){e.setAttribute('data-ad-twb6033','1');e.__adTWBMedia6176=sig;e.__adTWBMedia6176Parent=e.parentElement;return;}var c=chain(e),t=localText(e),fo=forced(t),rv=reviewCtx(t,c),pr=product(e,c),hf=carouselFamily(c);if(mode==='hero')tameBgChain(e,c);if((hf?creativeBlocked(e,src):blocked(e,c,t,fo,rv))||/pixel|placeholder|spacer|blank|transparent/.test(src))return;var W=innerWidth||390,H=innerHeight||700,nw=(tg==='VIDEO'?(e.videoWidth||0):(e.naturalWidth||0)),nh=(tg==='VIDEO'?(e.videoHeight||0):(e.naturalHeight||0)),ok=false;if(mode==='productad'||mode==='standalone'){var full=(r.width>W*.64&&r.height>H*.55)||(r.width*r.height>W*H*.58);if(full&&tg!=='VIDEO'){e.style.removeProperty('filter');e.removeAttribute('data-ad-twb6033');return;}ok=(r.width>=26&&r.height>=26)||(nw>=26&&nh>=26);}else if(mode==='hero'||hf){ok=(r.width>=32&&r.height>=32)||(nw>=32&&nh>=32);}else{if(rv&&tg!=='IMG')return;var mn=(pr||fo||rv)?24:56;ok=(r.width>=mn&&r.height>=mn)||(nw>=mn&&nh>=mn);}if(!ok)return;e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6033','1');e.__adTWBMedia6176=sig;e.__adTWBMedia6176Parent=e.parentElement;}catch(x){}}"
          // Piggyback target for the already-existing v6.0.15 ad-island observer.
          "window.__AD_TWB6033_ADROOT__=adRoot;"
          "function ev(x){try{tame(x.target);}catch(e){}}"
@@ -4124,7 +4139,11 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
                 UIView *x=q[qi++];
                 if([x isKindOfClass:[UIImageView class]]){
                     UIImageView *iv=(UIImageView *)x;
-                    if(ADShareScreenshotImageGeometry6186(iv)) ADApplyNativeWhiteTameView(iv);
+                    if(ADShareScreenshotImageGeometry6186(iv)){
+                        ADMarkShareScreenshotForce6194(iv);
+                        ADTWBClearSettledMount6194(iv);
+                        ADApplyNativeWhiteTameView(iv);
+                    }
                 }
                 if(qi<52){for(UIView *ch in x.subviews){if(q.count<150)[q addObject:ch];else break;}}
             }
@@ -5756,6 +5775,44 @@ static int ADTWBDirectCtx6031(UIImageView *iv, UIImage *im){
 // maintains the existing CALayer; it does not rediscover the section.
 static const void *kADTWBCachedImage6027 = &kADTWBCachedImage6027;
 static const void *kADTWBDecision6027 = &kADTWBDecision6027;
+// v6.0.194 — settled-mount cache for scroll-hot RCT image layouts.  The cache stores
+// raw pointer values, not retained view objects, so it cannot create a view/superview cycle.
+static const void *kADTWBSettledSuperview6194 = &kADTWBSettledSuperview6194;
+static const void *kADTWBSettledWindow6194 = &kADTWBSettledWindow6194;
+static const void *kADTWBSettledBounds6194 = &kADTWBSettledBounds6194;
+// Native screenshot-Share fallback is now event-owned.  Probe 6192 proved the real
+// current Share preview is WebKit/CSS, so ordinary image layouts must never perform
+// the old phrase/subtree discovery walk.  Retain support for a native template only
+// when the exact Share text event explicitly marks that UIImage.
+static const void *kADShareScreenshotForceImage6194 = &kADShareScreenshotForceImage6194;
+
+static void ADMarkShareScreenshotForce6194(UIImageView *iv){
+    if(!iv)return;
+    UIImage *im=iv.image;
+    objc_setAssociatedObject(iv,kADShareScreenshotForceImage6194,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+static void ADTWBClearSettledMount6194(UIImageView *iv){
+    if(!iv)return;
+    objc_setAssociatedObject(iv,kADTWBSettledSuperview6194,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(iv,kADTWBSettledWindow6194,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(iv,kADTWBSettledBounds6194,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+static void ADTWBRememberSettledMount6194(UIImageView *iv){
+    if(!iv)return;
+    objc_setAssociatedObject(iv,kADTWBSettledSuperview6194,[NSValue valueWithNonretainedObject:iv.superview],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(iv,kADTWBSettledWindow6194,[NSValue valueWithNonretainedObject:iv.window],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(iv,kADTWBSettledBounds6194,[NSValue valueWithCGRect:iv.bounds],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+static BOOL ADTWBSameSettledMount6194(UIImageView *iv){
+    if(!iv||!iv.window)return NO;
+    NSValue *sp=objc_getAssociatedObject(iv,kADTWBSettledSuperview6194);
+    NSValue *wp=objc_getAssociatedObject(iv,kADTWBSettledWindow6194);
+    NSValue *bp=objc_getAssociatedObject(iv,kADTWBSettledBounds6194);
+    if(!sp||!wp||!bp)return NO;
+    return sp.nonretainedObjectValue==iv.superview &&
+           wp.nonretainedObjectValue==iv.window && CGRectEqualToRect(bp.CGRectValue,iv.bounds);
+}
 
 static UIColor *ADWhiteTameShade6053(void){
     static NSInteger last=-1000; static UIColor *shade=nil;
@@ -5776,6 +5833,7 @@ static void ADNativeTWBRelease6027(UIImageView *iv){
     @try {
         CALayer *ov=objc_getAssociatedObject(iv,kADWhiteTameOverlayKey);
         if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(iv,kADWhiteTameOverlayKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
+        ADTWBClearSettledMount6194(iv);
     } @catch(...) {}
 }
 static void ADTWBResetSemantic6031(UIImageView *iv){
@@ -5846,13 +5904,20 @@ static void ADApplyNativeWhiteTameView(UIView *v){
         NSNumber *ctxAttempts=objc_getAssociatedObject(iv,kADTWBDirectCtxAttempts6031);
         CALayer *ov=objc_getAssociatedObject(iv,kADWhiteTameOverlayKey);
         BOOL semanticSettled=(ctxImage==im&&ctxValue&&(ctxValue.intValue!=0||ctxAttempts.integerValue>=1));
-        if(ov&&ov.superlayer==iv.layer&&cached==im&&decision.boolValue&&semanticSettled){
+        // v6.0.194: carousel/layout hot path.  Once the exact UIImage is positively
+        // owned on the same mounted view geometry, layout only resizes/recolors its
+        // existing overlay.  No semantic walk, pixel classifier, peer enumeration or
+        // Share-sheet discovery can run again until image/parent/window/geometry changes.
+        if(ov&&ov.superlayer==iv.layer&&cached==im&&decision.boolValue&&
+           (semanticSettled||ADTWBSameSettledMount6194(iv))){
             ADNativeTWBStyleOverlay6053(iv,ov);
+            ADTWBRememberSettledMount6194(iv);
             return;
         }
 
         ADNativeRegisterRCT6053(iv);
-        BOOL shareShot=ADShareScreenshotProductImage6186(iv);
+        UIImage *shareForceImage=objc_getAssociatedObject(iv,kADShareScreenshotForceImage6194);
+        BOOL shareShot=(shareForceImage==im);
         BOOL galleryShot=ADProductImagesGalleryImage6190(iv);
         int ctx=(shareShot||galleryShot)?2:((w<=240&&h<=240)?ADTWBDirectCtx6031(iv,im):0);
         BOOL forced=(ctx==2), review=(ctx==3);
@@ -5898,6 +5963,7 @@ static void ADApplyNativeWhiteTameView(UIView *v){
             newPeerPositive=(objc_getAssociatedObject(iv,kADPeerRegistered6053)!=nil);
         } else if(ov.superlayer!=iv.layer) [iv.layer addSublayer:ov];
         ADNativeTWBStyleOverlay6053(iv,ov);
+        ADTWBRememberSettledMount6194(iv);
         if(newPeerPositive){ if(++gADPeerGeneration6055==0) gADPeerGeneration6055=1; }
         ADNativeWakePeers6053(iv);
     } @catch(...) {}
@@ -6284,6 +6350,8 @@ static void ADScheduleGlyphLift624(UIImageView *iv){
         UIImageView *iv=(UIImageView *)(id)self;
         ADNativeClearPeerNegative6055(iv);
         ADNativeResetRCTRegistration6055(iv);
+        ADTWBClearSettledMount6194(iv);
+        objc_setAssociatedObject(iv,kADShareScreenshotForceImage6194,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         UIView *vv=(UIView *)iv;
         if(gP.enabled&&gP.whiteTame&&vv.window) ADApplyNativeWhiteTameView(vv);
     } @catch(...) {}
@@ -6296,6 +6364,8 @@ static void ADScheduleGlyphLift624(UIImageView *iv){
         ADTWBResetSemantic6031(iv);
         ADNativeClearPeerNegative6055(iv);
         ADNativeResetRCTRegistration6055(iv);
+        ADTWBClearSettledMount6194(iv);
+        objc_setAssociatedObject(iv,kADShareScreenshotForceImage6194,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(iv,kADPeerWakeImage6053,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADApplyNativeWhiteTameView((UIView *)iv);
     } @catch(...) {}

@@ -1,48 +1,15 @@
-# AmazonDark v6.0.193~probe — screenshot Share preview exact TWB owner
+# AmazonDark v6.0.194~probe — carousel hot-path + Share focus correction
 
-## Base / confirmed state
+Base: v6.0.193~probe.
 
-- Exact source base: v6.0.191~probe.
-- The v6.0.191 full-screen **Product images** fix is retained unchanged; the user confirmed the gallery photos are now fixed.
-- The remaining issue is the screenshot-triggered **Share this product with friends** panel, where some product photos still escape TWB.
+## v6.0.194 corrections
 
-## What v6.0.191 proved
+- Removes the old screenshot-Share phrase/subtree discovery from ordinary native UIImageView layout. Probe 6192 proved the current Share preview is WebKit/CSS, so native fallback ownership is now entered only from the exact Share text event.
+- Adds a mounted-image positive fast path: an already-owned RCT UIImage on the same image/superview/window/bounds only resizes the existing TWB overlay during layout. It does not rerun semantic discovery, image classification, or peer consensus on scroll frames.
+- Primary web product/photo/video carousel leaves already owned by declarative TWB CSS now settle on the first media event without ancestor-chain/local-text classification. Generic media still uses the full classifier.
+- Fixes the PDP Share button's stuck post-click white focus ring. The normal :active press state remains untouched; only the lingering focused state has its background/border/shadow/outline cleared.
+- v6.0.193 screenshot Share preview background ownership and v6.0.191 Product images gallery ownership are retained.
 
-- Background-time native lookup repeatedly returns `SHAREPANEL6187 root=none phraseVisible=0`.
-- The only plausible surviving renderer is `WKCompositingView`; no matching native UIImageView/raster is visible by the time Amazon backgrounds.
-- The existing UILabel / RCTParagraph render-time text hooks also never emit `SHARETEXT6189`, so the Share header is not travelling through those native text setters.
-- Therefore the next diagnostic target is the mounted WKWebView DOM/compositor while the Share surface is actually on screen.
+## Probe
 
-## v6.0.193 exact Share-preview correction
-
-Probe 6192 identified the failing screenshot Share preview exactly: it is a WebKit `DIV#ssf-preview-container.ssf-preview-container` whose product creative is a CSS `background-image`, inside `.a-sheet-web[role=dialog]`. It is not a native `UIImageView` and not an HTML `IMG`.
-
-v6.0.193 adds one declarative TWB rule for that exact preview plane using the existing user-configured TWB brightness filter. Because the stylesheet already exists before the sheet is created, late Share-sheet hydration is covered without a new observer, timer, scroll callback, or hierarchy scan. Full-screen Product images behavior from v6.0.191 remains unchanged.
-
-The Reviews Share glyph and the blank overlapping comparison circles are intentionally not changed in this build because probe 6192 did not capture their exact painter/DOM leaves.
-
-- Registers one `UIApplicationUserDidTakeScreenshotNotification` observer.
-- At +250 ms, +800 ms and +1600 ms after the screenshot, performs one-shot diagnostic captures only.
-- Each stage:
-  - runs the existing native Share hierarchy dump;
-  - discovers mounted WKWebViews with one bounded view traversal;
-  - evaluates read-only JavaScript in each mounted WKWebView;
-  - records whether the page contains `Share this product with friends`;
-  - records phrase/root candidates, visible image/video/canvas/background-image media, large overlay/fixed-position elements, hit-test ancestor chains, iframe metadata, URL/title/readyState, and viewport geometry.
-- Output records use `SHARESCREENSHOT6192`, `SHAREWEBSTART6192`, and `SHAREWEB6192` in the existing `AmazonDark-buyagain-probe-6180.txt` file.
-- Each completed web result notifies the existing SpringBoard relay, so `/var/mobile/AmazonDark-buyagain-probe-6180.txt` is refreshed without relying on NewTerm access to the AppGroup path.
-
-## Production behavior
-
-- No Share TWB production rule is changed in this build.
-- No Product images behavior is changed from the confirmed-good v6.0.191 implementation.
-- No DOM node, style, filter, image cache, Dark Reader state, WebView navigation state, or native view/layer is mutated by the new probe.
-
-## Runtime discipline
-
-- No new MutationObserver.
-- No scroll listener.
-- No setInterval.
-- No requestAnimationFrame loop.
-- No recurring scanner.
-- The +3 `dispatch_after` sites are diagnostic one-shots triggered only by an actual system screenshot notification.
+The existing 6192/6180 diagnostics remain available; no new recurring probe mechanism is added.
