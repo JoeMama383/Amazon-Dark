@@ -1,7 +1,7 @@
-## v7.0.6
+## v7.0.7
 - Restores structural-only OLED ownership after v7.0.5 overpaint; restores light text, gray borders, bottom-nav tint, and stricter splash handoff.
 
-# AmazonDark v7.0.6 — Stock UI / OLED Floors
+# AmazonDark v7.0.7 — Stock UI / OLED Floors
 
 No inversion and no generic recoloring. Amazon remains stock except structural interface floors are owned as OLED black across native UIKit/React, WKWebView backing surfaces, and Web DOM/composited page shells.
 

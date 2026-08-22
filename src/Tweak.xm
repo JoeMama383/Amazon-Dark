@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.0.6 — stock UI / OLED-floor architecture
+ * AmazonDark v7.0.7 — stock UI / OLED-floor architecture
  *
  * Retained from v6.0.185:
  *   - Settings bundle/preferences and preference domain
@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.6-oled-floor"
+#define AD_VERSION "v7.0.7-oled-floor"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -932,14 +932,24 @@ static void ADTintSearchGlyph706(UIImageView *iv){
 %hook SBSearchBar
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled&&self.window){ self.backgroundColor=ADOLED(); self.layer.backgroundColor=ADOLED().CGColor; self.layer.borderColor=ADBorderGray706().CGColor; }
+    UIView *v = (UIView *)self;
+    if (gP.enabled && v.window) {
+        v.backgroundColor = ADOLED();
+        v.layer.backgroundColor = ADOLED().CGColor;
+        v.layer.borderColor = ADBorderGray706().CGColor;
+    }
 }
 %end
 
 %hook SBSearchField
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled&&self.window){ self.backgroundColor=ADOLED(); self.layer.backgroundColor=ADOLED().CGColor; self.layer.borderColor=ADBorderGray706().CGColor; }
+    UIView *v = (UIView *)self;
+    if (gP.enabled && v.window) {
+        v.backgroundColor = ADOLED();
+        v.layer.backgroundColor = ADOLED().CGColor;
+        v.layer.borderColor = ADBorderGray706().CGColor;
+    }
 }
 %end
 
