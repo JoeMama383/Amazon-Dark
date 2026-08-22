@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.0.2 — clean whole-app inversion baseline
+ * AmazonDark v7.0.1 — clean whole-app inversion baseline
  *
  * Retained from v7.0.0 / the v6.0.185 feature base:
  *   - Settings bundle/preferences and preference domain
@@ -32,7 +32,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.2"
+#define AD_VERSION "v7.0.1"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -708,12 +708,12 @@ static NSString *ADWebMediaJS701(void){
     CGFloat strength=MAX(0,MIN(100,gP.whiteTameStrength));
     CGFloat bright=MAX(0.05,1.0-strength/100.0);
     return [NSString stringWithFormat:
-        @"(function(){try{var ID='ad702-product-media',s=document.getElementById(ID);if(!s){s=document.createElement('style');s.id=ID;(document.head||document.documentElement||document).appendChild(s);}"
-         "var P='img[data-a-dynamic-image],img.a-dynamic-image,img[data-old-hires],img.s-image,img[class*=\"s-product-image\"],#landingImage,#imgTagWrapperId img,[data-asin] img,[data-csa-c-asin] img,[data-component-type=\"s-search-result\"] img,a[href*=\\\"/dp/\\\"] img,a[href*=\\\"/gp/product/\\\"] img,[class*=\\\"product-image\\\"] img,[class*=\\\"productImage\\\"] img,[id*=\\\"product-image\\\"] img,[class*=\\\"npack-asin-card\\\"] img,[class*=\\\"gwm-asin-tile\\\"] img,[class*=\\\"cXVhZ\\\"][class*=\\\"asin-image-wrapper\\\"] img,[class*=\\\"cXVhZ\\\"][class*=\\\"asin-container\\\"] img,[class*=\\\"cXVhZ\\\"][class*=\\\"p13n-anchor-wrapper\\\"] img,[class*=\\\"p13n\\\"] a[href*=\\\"/dp/\\\"] img,[class*=\\\"carousel-image\\\"] img,[data-ad702-product=\\\"1\\\"]';"
+        @"(function(){try{var ID='ad701-product-media',s=document.getElementById(ID);if(!s){s=document.createElement('style');s.id=ID;(document.head||document.documentElement||document).appendChild(s);}"
+         "var P='img[data-a-dynamic-image],img.a-dynamic-image,img[data-old-hires],#landingImage,#imgTagWrapperId img,[data-asin] img,[data-csa-c-asin] img,a[href*=\\\"/dp/\\\"] img,a[href*=\\\"/gp/product/\\\"] img,[class*=\\\"product-image\\\"] img,[class*=\\\"productImage\\\"] img,[id*=\\\"product-image\\\"] img,[data-ad701-product=\\\"1\\\"]';"
          "s.textContent=P+'{filter:invert(1)!important;}'+(%.0f?P+'{filter:brightness(%.3f) invert(1)!important;}':'');"
          "var bad=/icon|glyph|logo|avatar|profile|badge|rating|star|checkbox|heart|arrow|chevron|button|search|camera|microphone|menu|hamburger|sprite|nav|tabbar|brand|seller|store-logo|flag|swatch/i;"
-         "var good=/product|asin|buy.?again|recommend|item.?image|offer.?image|pdp|detail.?image|p13n|npack|gwm.?asin|cxvhz|carousel.?image|s-product-image/i;"
-         "function mark(e){try{if(!e||e.tagName!=='IMG')return;var n=e,ok=good.test((e.className||'')+' '+(e.id||'')+' '+(e.alt||''));for(var i=0;i<6&&n;i++,n=n.parentElement){var z=((n.className&&n.className.baseVal)||n.className||'')+' '+(n.id||'')+' '+(n.getAttribute&&((n.getAttribute('data-asin')||'')+' '+(n.getAttribute('data-csa-c-asin')||'')+' '+(n.getAttribute('aria-label')||''))||'');if(bad.test(String(z)))return;if(good.test(String(z)))ok=true;if(n.tagName==='A'){var h=n.getAttribute('href')||'';if(h.indexOf('/dp/')>=0||h.indexOf('/gp/product/')>=0)ok=true;}}var r=e.getBoundingClientRect(),w=r.width||e.width||0,h=r.height||e.height||0,nw=e.naturalWidth||0,nh=e.naturalHeight||0;if(ok&&w>=48&&h>=48&&nw>=64&&nh>=64)e.setAttribute('data-ad702-product','1');}catch(x){}}"
+         "var good=/product|asin|buy.?again|recommend|item.?image|offer.?image|pdp|detail.?image/i;"
+         "function mark(e){try{if(!e||e.tagName!=='IMG')return;var n=e,ok=good.test((e.className||'')+' '+(e.id||'')+' '+(e.alt||''));for(var i=0;i<6&&n;i++,n=n.parentElement){var z=((n.className&&n.className.baseVal)||n.className||'')+' '+(n.id||'')+' '+(n.getAttribute&&((n.getAttribute('data-asin')||'')+' '+(n.getAttribute('data-csa-c-asin')||'')+' '+(n.getAttribute('aria-label')||''))||'');if(bad.test(String(z)))return;if(good.test(String(z)))ok=true;if(n.tagName==='A'){var h=n.getAttribute('href')||'';if(h.indexOf('/dp/')>=0||h.indexOf('/gp/product/')>=0)ok=true;}}var r=e.getBoundingClientRect(),w=r.width||e.width||0,h=r.height||e.height||0,nw=e.naturalWidth||0,nh=e.naturalHeight||0;if(ok&&w>=48&&h>=48&&nw>=64&&nh>=64)e.setAttribute('data-ad701-product','1');}catch(x){}}"
          "document.addEventListener('load',function(ev){mark(ev.target);},true);function once(){try{document.querySelectorAll('img').forEach(mark);}catch(x){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',once,{once:true});else once();window.addEventListener('pageshow',once,{passive:true});"
          "}catch(e){}})();",(gP.whiteTame?1.0:0.0),bright];
 }

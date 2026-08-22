@@ -1,9 +1,3 @@
-# AmazonDark v7.0.2
-
-- Restores proven Home product-photo families omitted by the 7.0.1 cleanup: `s-image`, `s-product-image`, NPACK, GWM ASIN, P13N, carousel-image, and hashed cXVhZ ASIN image/card structures.
-- Keeps one app-wide compositor inversion and counter-inverts only product-photo media.
-- No Dark Reader, MutationObserver, scroll repair, timer, RAF loop, or blanket Web `img` exception.
-
 # AmazonDark v7.0.1
 
 This branch is a clean reset built from the v6.0.185 source baseline.
