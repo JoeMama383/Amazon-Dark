@@ -1,1 +1,1 @@
-AmazonDark minimal inversion experiment for rootless jailbreaks, iOS 15+.
+Amazon Dark Mode for rootless jailbreaks, iOS 15+
