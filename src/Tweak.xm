@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.192-probe"
+#define AD_VERSION "v6.0.193-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1612,6 +1612,12 @@ static NSString *ADWhiteTameWebJS6027(void){
            "'[class*=sbv-video] video,'+"
            "'[data-component-type*=video] video' +"
          "'):not([class*=icon]):not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store]):not([class*=sprite]){filter:'+BB+'!important;}'+"
+         // v6.0.193~probe — exact screenshot Share preview owner. Probe 6192 proved
+         // the visible preview is NOT an IMG/native UIImageView: Amazon paints it as
+         // background-image:url(...) on #ssf-preview-container inside the web Share dialog.
+         // A declarative selector owns that one media plane, so late sheet hydration needs
+         // no observer/scan and the label/channel controls remain untouched.
+         "'html body .a-sheet-web[role=dialog] #ssf-preview-container.ssf-preview-container{filter:'+BB+'!important;}'+"
          // v5.446 _adHomeBgLeaf395 owns the actual leaf itself. v6.0.31 accidentally
          // required a second matching ancestor, so NPACK/vjs variants could escape.
          "'html[data-ad-twb-home6033] body [class*=theming-card-background],html[data-ad-twb-home6033] body .vjs-poster,html[data-ad-twb-home6033] body [class*=vjs-poster]{filter:none!important;background-blend-mode:normal!important;box-shadow:inset 0 0 0 9999px '+AA+'!important;}'+"

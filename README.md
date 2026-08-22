@@ -1,4 +1,4 @@
-# AmazonDark v6.0.192~probe — screenshot Share WebKit renderer probe
+# AmazonDark v6.0.193~probe — screenshot Share preview exact TWB owner
 
 ## Base / confirmed state
 
@@ -13,7 +13,13 @@
 - The existing UILabel / RCTParagraph render-time text hooks also never emit `SHARETEXT6189`, so the Share header is not travelling through those native text setters.
 - Therefore the next diagnostic target is the mounted WKWebView DOM/compositor while the Share surface is actually on screen.
 
-## v6.0.192 diagnostic change
+## v6.0.193 exact Share-preview correction
+
+Probe 6192 identified the failing screenshot Share preview exactly: it is a WebKit `DIV#ssf-preview-container.ssf-preview-container` whose product creative is a CSS `background-image`, inside `.a-sheet-web[role=dialog]`. It is not a native `UIImageView` and not an HTML `IMG`.
+
+v6.0.193 adds one declarative TWB rule for that exact preview plane using the existing user-configured TWB brightness filter. Because the stylesheet already exists before the sheet is created, late Share-sheet hydration is covered without a new observer, timer, scroll callback, or hierarchy scan. Full-screen Product images behavior from v6.0.191 remains unchanged.
+
+The Reviews Share glyph and the blank overlapping comparison circles are intentionally not changed in this build because probe 6192 did not capture their exact painter/DOM leaves.
 
 - Registers one `UIApplicationUserDidTakeScreenshotNotification` observer.
 - At +250 ms, +800 ms and +1600 ms after the screenshot, performs one-shot diagnostic captures only.
