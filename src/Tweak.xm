@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.201-experimental"
+#define AD_VERSION "v6.0.202-experimental"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1738,54 +1738,159 @@ static NSString *ADWhiteTameWebJS(void){ return ADWhiteTameWebJS6027(); }
 static NSString *ADOLEDFloorWebJS6201(void){
     if (gADOLEDFloor6201) return gADOLEDFloor6201;
     NSString *fg = [NSString stringWithUTF8String:gP.fgHex] ?: @"#e8e6e3";
+    NSString *fixes = ADFixesLiteral();
     gADOLEDFloor6201 = [NSString stringWithFormat:
         @"(function(){try{"
-         "window.__AMZDARK_OLEDFLOOR6201__=1;"
+         "window.__AMZDARK_OLEDFLOOR6201__=1;window.__AMZDARK_STATICTHEME6202__=1;"
+         // v6.0.202: Dark Reader's accumulated fixes.css was always a lightweight,
+         // declarative ownership sheet. Inject that sheet directly, without parsing or
+         // running Dark Reader. This restores years of screenshot-driven symbol/card/
+         // flash fixes while preserving the v6.0.201 fast architecture.
+         "var FX=%@,fid='ad-staticfixes6202',fs=document.getElementById(fid);"
+         "if(!fs){fs=document.createElement('style');fs.id=fid;(document.head||document.documentElement||document).appendChild(fs);}"
+         "if(FX&&FX.css&&fs.textContent!==FX.css)fs.textContent=FX.css;"
          "var id='ad-oledfloor6201',s=document.getElementById(id);"
          "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
          "var FG='%@';"
          "var css='"
+           // OLED is the page floor. Panels/cards retain the charcoal hierarchy seen in
+           // the confirmed-good v5.446/6.x screenshots instead of flattening everything.
            "html{color-scheme:dark!important;background:#000!important;}"
-           "html,body,#a-page,#gwm-PageContent,main,#dp,#ppd,#dp-container{background-color:#000!important;color:'+FG+'!important;}"
+           "html,body,#a-page,#gwm-PageContent,main,#dp,#ppd,#dp-container,#search,#search-main-wrapper"
+           "{background-color:#000!important;color:'+FG+'!important;}"
+           "body.a-color-base-background,.a-color-base-background{background-color:#000!important;}"
 
-           // High-value Amazon structural surfaces.  These selectors are declarative
-           // rather than computed-colour scans; WebKit applies them to late content for free.
-           ".a-container,.a-section,.a-cardui,.a-box,.a-box-inner,.a-row,.gwm-tile,"
-           "[class*=asin-container-white],[class*=gwmWindowPaneTile],"
-           "[class*=card-container],[class*=cardContainer],"
+           // General Amazon structural chrome. Media wrappers are separately forced
+           // transparent below, so these rules do not paint boxes behind product art.
+           ".a-container,.a-section,.a-row{background-color:transparent!important;}"
+           ".a-cardui,.a-box,.a-box-inner,[class*=card-container],[class*=cardContainer],"
            "[class*=recommendation-container],[class*=recommendations-container],"
-           "[class*=widget-container],[class*=widgetContainer],"
-           "[class*=desktop-grid], [class*=mobile-grid]"
-           "{background-color:#000!important;}"
+           "[class*=widget-container],[class*=widgetContainer],[class*=puis-card]"
+           "{background-color:#181a1b!important;border-color:#3b4043!important;}"
+           "[class*=asin-container-white],[class*=gwmWindowPaneTile],[class*=gwm-window-layout],"
+           "[class*=window-container],[class*=gwm-dashboard-container],li.gwm-tile,[class*=gwm-tile]"
+           "{background-color:#181a1b!important;border-color:#3b4043!important;}"
 
-           // Common Amazon text tokens.  Do not blanket-color every element: prices,
-           // ratings, badges and branded controls keep their intentional accent colours.
-           "body,#a-page,main,.a-color-base,.a-color-secondary,.a-text-normal,"
-           ".a-size-base,.a-size-small,.a-size-medium,.a-size-large,.a-size-extra-large,"
-           "h1,h2,h3,h4,h5,h6,p,label,legend"
-           "{color:'+FG+'!important;}"
-           ".a-divider-inner:after,.a-divider-inner:before{border-color:#3a3a3d!important;}"
-           "hr{border-color:#3a3a3d!important;background-color:#3a3a3d!important;}"
+           // Creative ad interiors are artwork, not structural cards. Neutralize the
+           // generic panel fill inside known creative families so logos/text overlays do
+           // not regain the black rectangular boxes fixed in the v6.0.15 lineage.
+           "[class*=single-creative-card] :is(.a-box,.a-box-inner,.a-section,.a-row),"
+           "[class*=single-video-card] :is(.a-box,.a-box-inner,.a-section,.a-row),"
+           "[class*=theming-card] :is(.a-box,.a-box-inner,.a-section,.a-row),"
+           "[class*=canvas-card] :is(.a-box,.a-box-inner,.a-section,.a-row)"
+           "{background-color:transparent!important;box-shadow:none!important;}"
 
-           // Inputs/selectors that otherwise expose stock-white islands.  Primary Amazon
-           // purchase buttons are intentionally not targeted.
-           "input:not([type=image]):not([type=submit]):not([type=button]),textarea,select,"
-           ".a-input-text,.a-dropdown-container"
-           "{background-color:#151515!important;color:'+FG+'!important;border-color:#4a4a4d!important;}"
+           // The white Home backdrop gradient was captured directly by probe 6192.
+           // It is structural fade paint, not creative artwork.
+           "#wd-backdrop-gradient,.wd-backdrop-gradient,[class*=wd-backdrop-gradient]"
+           "{background:transparent!important;background-image:none!important;box-shadow:none!important;}"
+           "[class*=wd-backdrop]:not([style*=background-image])"
+           "{background-color:transparent!important;border-color:#3b4043!important;}"
 
-           // Keep media/photo wrappers transparent so the existing TWB owner remains the
-           // only system altering bright product imagery.
-           "picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],"
-           "[class*=s-image],[class*=unfill],[class*=placehold],#imgTagWrapperId,"
-           ".s-product-image-container,[data-component-type=s-product-image]"
+           // Home mosaic / recommendation cards: copy the confirmed donor palette and
+           // text ownership declaratively. Do not target real creative background images.
+           "[class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer]"
+           "{background-color:#181a1b!important;color:'+FG+'!important;border-color:#3b4043!important;mix-blend-mode:normal!important;isolation:auto!important;}"
+           "[class*=hp-mosaic-container] :is(div,section,article,ul,ol,li),"
+           "[class*=_mosaic-container_style_widgetContainer] :is(div,section,article,ul,ol,li)"
+           "{background-color:#181a1b!important;color:'+FG+'!important;border-color:#3b4043!important;mix-blend-mode:normal!important;isolation:auto!important;}"
+           "[class*=hp-mosaic-container] :is(h1,h2,h3,h4,h5,h6,p,span,strong,small),"
+           "[class*=_mosaic-container_style_widgetContainer] :is(h1,h2,h3,h4,h5,h6,p,span,strong,small)"
+           "{color:'+FG+'!important;-webkit-text-fill-color:'+FG+'!important;}"
+           "[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=cXVhZ]"
+           "{background-color:#181a1b!important;border-color:#3b4043!important;mix-blend-mode:normal!important;isolation:auto!important;}"
+           "[class*=npack-asin-card] :is(.a-truncate,.a-price-whole,.a-price-symbol,.a-price-decimal,.a-price-fraction,.a-color-base,.a-text-normal),"
+           "[class*=gwm-asin-tile] :is(.a-truncate,.a-price-whole,.a-price-symbol,.a-price-decimal,.a-price-fraction,.a-color-base,.a-text-normal),"
+           "[class*=gwm-tile] :is(.a-cardui-header,.a-truncate,.a-price-whole,.a-price-symbol,.a-price-decimal,.a-price-fraction)"
+           "{color:'+FG+'!important;-webkit-text-fill-color:'+FG+'!important;}"
+           "[class*=npack-asin-card] [class*=badgeMessage],[class*=npack-asin-card] [class*=badgeMessage] *,"
+           "[class*=cXVhZ] [class*=badgeMessage],[class*=cXVhZ] [class*=badgeMessage] *"
+           "{background:transparent!important;background-image:none!important;color:'+FG+'!important;-webkit-text-fill-color:'+FG+'!important;box-shadow:none!important;}"
+
+           // Search result cards. Amazon applies explicit black text to several nested
+           // title/price leaves, so inheritance alone is not sufficient without DR.
+           "[data-component-type=s-search-result],[class*=s-result-item],[class*=s-card-container]"
+           "{background-color:#000!important;border-color:#3b4043!important;}"
+           "[data-component-type=s-search-result] :is(.a-color-base,.a-text-normal,.a-size-base,.a-size-base-plus,.a-size-medium,.a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen),"
+           "[class*=s-result-item] :is(.a-color-base,.a-text-normal,.a-size-base,.a-size-base-plus,.a-size-medium,.a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen)"
+           "{color:'+FG+'!important;-webkit-text-fill-color:'+FG+'!important;}"
+           "[data-component-type=s-search-result] :is(.a-color-secondary,.a-size-small),"
+           "[class*=s-result-item] :is(.a-color-secondary,.a-size-small)"
+           "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
+           "[data-component-type=s-search-result] .a-link-normal:not([class*=prime]),"
+           "[class*=s-result-item] .a-link-normal:not([class*=prime]){text-decoration-color:currentColor;}"
+
+           // Cart structural ownership. Keep Amazon's yellow checkout/add buttons and
+           // blue links/Prime artwork out of the palette rules.
+           "#sc-active-cart,#sc-saved-cart,#sc-buy-box,#sc-subtotal-amount-activecart,"
+           ".sc-list-body,.sc-list-item,.sc-list-item-content,.sc-item-content-group,.sc-item-product-content,"
+           "[class*=sc-list-item],[class*=sc-card],[class*=sc-buy-box]"
+           "{background-color:#000!important;border-color:#3b4043!important;}"
+           "#sc-active-cart :is(.a-color-base,.a-text-normal,.a-size-base,.a-size-medium,.a-price,.a-price-whole,.a-price-symbol,.a-price-fraction),"
+           "#sc-saved-cart :is(.a-color-base,.a-text-normal,.a-size-base,.a-size-medium,.a-price,.a-price-whole,.a-price-symbol,.a-price-fraction)"
+           "{color:'+FG+'!important;-webkit-text-fill-color:'+FG+'!important;}"
+           "#sc-active-cart :is(.a-color-secondary,.a-size-small),#sc-saved-cart :is(.a-color-secondary,.a-size-small)"
+           "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
+
+           // PDP / carousel chrome. Product images remain media-owned; structural cards,
+           // titles and price text take the confirmed dark palette.
+           "#ppd :is(.a-box,.a-box-inner,.a-cardui),#dp-container :is(.a-box,.a-box-inner,.a-cardui),"
+           "#ppd .a-carousel-card,#dp-container .a-carousel-card"
+           "{background-color:#181a1b!important;border-color:#3b4043!important;}"
+           "#ppd :is(.a-color-base,.a-text-normal,.a-size-base,.a-size-medium,.a-price,.a-price-whole,.a-price-symbol,.a-price-fraction),"
+           "#dp-container :is(.a-color-base,.a-text-normal,.a-size-base,.a-size-medium,.a-price,.a-price-whole,.a-price-symbol,.a-price-fraction)"
+           "{color:'+FG+'!important;-webkit-text-fill-color:'+FG+'!important;}"
+           "#ppd :is(.a-color-secondary,.a-size-small),#dp-container :is(.a-color-secondary,.a-size-small)"
+           "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
+
+           // Screenshot Share is WebKit. Darken only sheet chrome and text; the exact
+           // preview background-image is still owned by TWB and social-app artwork is preserved.
+           ".a-sheet-web-container,.a-sheet-web[role=dialog],.a-sheet-content-container,"
+           "[class*=ssf-customize-container],[class*=ssf-two-row-custom-channels-container],"
+           ".a-sheet-heading-container{background-color:#000!important;border-color:#3b4043!important;}"
+           ".a-sheet-web[role=dialog] :is(.a-sheet-heading,.a-color-base,.a-text-normal,.a-size-base),"
+           ".a-sheet-web[role=dialog] [class*=ssf-] :is(span,p,h1,h2,h3,h4,label)"
+           "{color:'+FG+'!important;-webkit-text-fill-color:'+FG+'!important;}"
+           ".a-sheet-web[role=dialog] .ssf-preview-box{background-color:#181a1b!important;border-color:#3b4043!important;}"
+           ".a-sheet-web[role=dialog] [id^=ssf-share-channel-]"
            "{background-color:transparent!important;}"
 
-           // Preserve the current exact first-paint fixes that used to live inside the
-           // Dark Reader bootstrap's adfloor sheet.
+           // Search suggestions / history masks. The accumulated fixes sheet owns the
+           // exact mask glyphs; this supplies the surrounding dark surface and copy.
+           ".s-suggestion-container,.s-suggestion-container .s-suggestion,"
+           "[class*=suggestion-container],[class*=autocomplete]"
+           "{background-color:#000!important;border-color:#3b4043!important;}"
+           ".s-suggestion-container :is(.a-color-base,.a-text-normal,span)"
+           "{color:'+FG+'!important;-webkit-text-fill-color:'+FG+'!important;}"
+
+           // Common typography. Links/Prime/stars/deal pills retain Amazon accents.
+           "body,#a-page,main,.a-color-base,.a-text-normal,h1,h2,h3,h4,h5,h6,p,label,legend"
+           "{color:'+FG+'!important;}"
+           ".a-color-secondary{color:#b1aaa0!important;}"
+           ".a-price:not([class*=savings]) :is(.a-price-whole,.a-price-symbol,.a-price-fraction),"
+           ".a-price-whole,.a-price-symbol,.a-price-fraction{color:'+FG+'!important;}"
+           ".a-divider-inner:after,.a-divider-inner:before{border-color:#3b4043!important;}"
+           "hr{border-color:#3b4043!important;background-color:#3b4043!important;}"
+
+           // Inputs/selectors that otherwise expose stock-white islands. Purchase buttons
+           // are deliberately excluded.
+           "input:not([type=image]):not([type=submit]):not([type=button]):not([type=checkbox]):not([type=radio]),textarea,select,.a-input-text,.a-dropdown-container"
+           "{background-color:#151515!important;color:'+FG+'!important;border-color:#4a4a4d!important;}"
+
+           // Media artwork is never assigned a structural floor. This preserves the
+           // v6.0.15 no-black-box rule while TWB independently handles bright pixels.
+           "picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],"
+           "[class*=s-image],[class*=unfill],[class*=placehold],#imgTagWrapperId,"
+           ".s-product-image-container,[data-component-type=s-product-image],"
+           "[class*=theming-card-background],[class*=vjs-poster]"
+           "{background-color:transparent!important;mix-blend-mode:normal!important;}"
+
+           // Known structural gradients only. Do not globally remove background-image:
+           // Home hero/brand creatives frequently use it as the actual artwork.
            "#auth-footer,.auth-footer,[id*=auth-footer],"
            "#auth-footer .a-divider,#auth-footer .a-divider-inner,.auth-footer .a-divider,.auth-footer .a-divider-inner"
            "{background-color:transparent!important;background-image:none!important;box-shadow:none!important;}"
-           "[class*=_c2Itb_brandCard_]{background-image:none!important;background-color:#000!important;}"
+           "[class*=_c2Itb_brandCard_]{background-image:none!important;background-color:#181a1b!important;}"
            "[class*=_bW9ia_suggestion_]{background-image:none!important;}"
            "[data-csa-c-content-id=variation-options-link],[class*=s-variations-options-justify-content],"
            "[class*=s-variation-options-text],[class*=s-variation-options-link],"
@@ -1794,8 +1899,8 @@ static NSString *ADOLEDFloorWebJS6201(void){
            "{background:transparent!important;background-image:none!important;box-shadow:none!important;}"
          "';"
          "if(s.textContent!==css)s.textContent=css;"
-         "return 'oled6201';"
-         "}catch(e){return 'oled6201err '+String(e&&e.message||e);}})();", fg];
+         "return 'static6202';"
+         "}catch(e){return 'static6202err '+String(e&&e.message||e);}})();", fixes, fg];
     return gADOLEDFloor6201;
 }
 
