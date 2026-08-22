@@ -1,4 +1,4 @@
-# AmazonDark v7.0.1
+# AmazonDark v7.0.3
 
 This branch is a clean reset built from the v6.0.185 source baseline.
 
@@ -16,6 +16,11 @@ Removed:
 - Home/Search/PDP/Person/Cart special-case theming, symbol painters, borders, repair passes and probes.
 
 Always-on visual behavior when Enabled is one app-wide compositor inversion. Product-photo media is counter-inverted once to preserve stock photographic colors; all other UI pixels remain in the global inversion lane.
+
+## v7.0.3
+
+- Repackage of the exact v7.0.1 architecture with version metadata only.
+- No v7.0.2 Home product-photo classifier changes are included.
 
 ## v7.0.1
 

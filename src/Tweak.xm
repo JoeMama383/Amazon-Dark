@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.0.1 — clean whole-app inversion baseline
+ * AmazonDark v7.0.3 — clean whole-app inversion baseline
  *
  * Retained from v7.0.0 / the v6.0.185 feature base:
  *   - Settings bundle/preferences and preference domain
@@ -32,7 +32,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.1"
+#define AD_VERSION "v7.0.3"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
