@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.190-probe"
+#define AD_VERSION "v6.0.191-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -4008,13 +4008,17 @@ static BOOL ADShareScreenshotProductImage6186(UIImageView *iv){
     return ADShareScreenshotImageGeometry6186(iv)&&ADShareScreenshotPhraseNear6186(iv);
 }
 
-// v6.0.190~probe — dedicated full-screen Product images gallery owner.
-// The v6.0.189 capture proved an untamed main gallery renderer is a
-// RCTUIImageViewAnimated at 430x434.3 pt / 1291x1304 px. That image is a real
-// product photo, but it falls just outside the screenshot-Share gate's h<=430
-// ceiling. Keep the two surfaces separate: mark only the screen whose native/RN
-// title is exactly "Product images", then force TWB only on its large main image.
+// v6.0.191~probe — persistent full-screen Product images gallery owner.
+// v6.0.190 proved the dedicated owner is correct, but the title-derived root can be
+// narrower than Amazon's recycled page host on some gallery pages. That explains
+// why most photos gain the TWB overlay while a minority of swiped-in pages escape.
+// Keep an ARC-weak reference to the exact visible "Product images" title + window.
+// While that title remains mounted, any large UIImageView in that SAME window is a
+// gallery-photo candidate. This is still screen-scoped: thumbnails/chrome are too
+// small, and the weak title/window state dies automatically when the gallery leaves.
 static const void *kADProductImagesGalleryRoot6190=&kADProductImagesGalleryRoot6190;
+static __weak UIView *gADProductImagesGalleryTitle6191=nil;
+static __weak UIWindow *gADProductImagesGalleryWindow6191=nil;
 static BOOL ADProductImagesGalleryPhrase6190(NSString *text){
     if(!text.length)return NO;
     @try {
@@ -4040,13 +4044,26 @@ static UIView *ADProductImagesGalleryRoot6190(UIView *anchor){
     } @catch(...) {}
     return nil;
 }
+static BOOL ADProductImagesGalleryWindowActive6191(UIWindow *w){
+    if(!w)return NO;
+    @try {
+        UIView *title=gADProductImagesGalleryTitle6191; UIWindow *gw=gADProductImagesGalleryWindow6191;
+        if(!title||!gw||gw!=w||title.window!=w)return NO;
+        return ADProductImagesGalleryPhrase6190(ADWTViewText362(title));
+    } @catch(...) {}
+    return NO;
+}
 static BOOL ADProductImagesGalleryImage6190(UIImageView *iv){
     if(!iv||!iv.window||!iv.image)return NO;
     @try {
         CGFloat ww=iv.window.bounds.size.width,wh=iv.window.bounds.size.height;
         CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
-        // Excludes the bottom thumbnail strip and all navigation/icon artwork.
-        if(w<MAX((CGFloat)220.0,ww*.52)||h<110.0||h>wh*.86)return NO;
+        // Excludes the bottom thumbnail strip, status/header artwork, and nav icons.
+        if(w<MAX((CGFloat)220.0,ww*.52)||h<110.0||h>wh*.90)return NO;
+        // v6.0.191: the exact live title makes the whole window authoritative. This
+        // catches recycled/sibling carousel pages that are not descendants of the
+        // first title-derived root used by v6.0.190.
+        if(ADProductImagesGalleryWindowActive6191(iv.window))return YES;
         UIView *p=iv; int up=0;
         while(p&&up++<14){
             if(objc_getAssociatedObject(p,kADProductImagesGalleryRoot6190))return YES;
@@ -4057,19 +4074,27 @@ static BOOL ADProductImagesGalleryImage6190(UIImageView *iv){
 }
 static void ADProductImagesGalleryTextEvent6190(UIView *anchor,NSString *text){
     if(!ADRecolorOn()||!gP.whiteTame||!anchor||!ADProductImagesGalleryPhrase6190(text))return;
+    // Set weak state immediately so an image assignment in the same run-loop turn
+    // can already resolve the active gallery before the bounded catch-up executes.
+    gADProductImagesGalleryTitle6191=anchor;
+    gADProductImagesGalleryWindow6191=anchor.window;
     __weak UIView *weakAnchor=anchor;
     dispatch_async(dispatch_get_main_queue(), ^{
         UIView *live=weakAnchor; if(!live||!live.window)return;
         @try {
-            UIView *root=ADProductImagesGalleryRoot6190(live); if(!root)return;
-            objc_setAssociatedObject(root,kADProductImagesGalleryRoot6190,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            // One bounded catch-up for images that were already hydrated before the title.
-            NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger qi=0; int seen=0;
-            while(qi<q.count&&seen++<220){
+            gADProductImagesGalleryTitle6191=live;
+            gADProductImagesGalleryWindow6191=live.window;
+            UIView *root=ADProductImagesGalleryRoot6190(live);
+            if(root)objc_setAssociatedObject(root,kADProductImagesGalleryRoot6190,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            // One bounded WINDOW catch-up. The v6.0.190 root-only catch-up could miss
+            // sibling/recycled pages; window scope is safe here because the exact
+            // Product images title is live and the geometry gate excludes thumbnails.
+            NSMutableArray *q=[NSMutableArray arrayWithObject:live.window]; NSUInteger qi=0; int seen=0;
+            while(qi<q.count&&seen++<900){
                 UIView *v=q[qi++];
                 if([v isKindOfClass:[UIImageView class]]&&ADProductImagesGalleryImage6190((UIImageView *)v))
                     ADApplyNativeWhiteTameView(v);
-                if(qi<80){for(UIView *ch in v.subviews){if(q.count<240)[q addObject:ch];else break;}}
+                if(qi<360){for(UIView *ch in v.subviews){if(q.count<980)[q addObject:ch];else break;}}
             }
         } @catch(...) {}
     });
@@ -7266,6 +7291,45 @@ static void ADShareProbeFallback6189(NSMutableString *out){
     } @catch(...) { [out appendString:@"SHAREFALLBACK6189 EXCEPTION\n"]; }
 }
 
+// v6.0.191~probe — full-screen Product images diagnostics. This is background-only
+// and exists to distinguish a remaining UIImageView miss from a flattened raster host.
+static void ADProductImagesGalleryProbe6191(NSMutableString *out){
+    if(!out)return;
+    @try {
+        UIView *title=gADProductImagesGalleryTitle6191;
+        UIWindow *gw=gADProductImagesGalleryWindow6191;
+        BOOL active=(gw&&ADProductImagesGalleryWindowActive6191(gw));
+        [out appendFormat:@"\nGALLERYPANEL6191 active=%d window=%@ ptr=%p title=%@ ptr=%p titleText=\"%@\"\n",
+            active,gw?NSStringFromClass([gw class]):@"nil",gw,title?NSStringFromClass([title class]):@"nil",title,
+            title?ADWTViewText362(title):@""];
+        NSMutableArray *q=[NSMutableArray array];
+        if(gw)[q addObject:gw]; else for(UIWindow *w in [UIApplication sharedApplication].windows) if(w&&!w.hidden&&w.alpha>.03)[q addObject:w];
+        NSUInteger qi=0,seen=0; int imgs=0,rasters=0;
+        while(qi<q.count&&seen++<1800){
+            UIView *v=q[qi++]; for(UIView *ch in v.subviews){if(q.count<2100)[q addObject:ch];else break;}
+            if(!ADBuyAgainProbeVisible6180(v))continue; CGRect r=ADBuyAgainProbeRect6180(v);
+            if(r.size.width<120||r.size.height<80)continue;
+            const char *cn=object_getClassName(v); NSString *cl=cn?[NSString stringWithUTF8String:cn]:@"?";
+            if([v isKindOfClass:[UIImageView class]]){
+                UIImageView *iv=(UIImageView *)v; UIImage *im=iv.image; if(!im)continue; imgs++;
+                size_t px=0,py=0;if(im.CGImage){px=CGImageGetWidth(im.CGImage);py=CGImageGetHeight(im.CGImage);} CALayer *ov=objc_getAssociatedObject(iv,kADWhiteTameOverlayKey);
+                BOOL rootHit=NO; UIView *ap=iv; int aup=0; while(ap&&aup++<14){if(objc_getAssociatedObject(ap,kADProductImagesGalleryRoot6190)){rootHit=YES;break;}ap=ap.superview;}
+                [out appendFormat:@"GALLERYIMG6191 #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) pixels=%zux%zu overlay=%d gallery=%d rootChain=%d contents=%@ aid=\"%@\" label=\"%@\"\n",
+                    imgs,cl,iv,r.origin.x,r.origin.y,r.size.width,r.size.height,px,py,(ov&&ov.superlayer==iv.layer),ADProductImagesGalleryImage6190(iv),rootHit,
+                    ADBuyAgainProbeContents6180(iv.layer.contents),iv.accessibilityIdentifier?:@"",iv.accessibilityLabel?:@""];
+            } else {
+                id c=v.layer.contents; if(!c)continue; CFTypeRef obj=(__bridge CFTypeRef)c;
+                if(obj&&CFGetTypeID(obj)==CGImageGetTypeID()){
+                    CGImageRef im=(CGImageRef)obj; rasters++;
+                    [out appendFormat:@"GALLERYRASTER6191 #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) pixels=%zux%zu contents=%@\n",
+                        rasters,cl,v,r.origin.x,r.origin.y,r.size.width,r.size.height,CGImageGetWidth(im),CGImageGetHeight(im),ADBuyAgainProbeContents6180(c)];
+                }
+            }
+        }
+        [out appendFormat:@"GALLERYSUMMARY6191 scanned=%lu active=%d largeImages=%d largeRasters=%d\n",(unsigned long)seen,active,imgs,rasters];
+    } @catch(...) { [out appendString:@"GALLERYPROBE6191 EXCEPTION\n"]; }
+}
+
 static void ADShareProbeDump6187(NSMutableString *out){
     if(!out)return;
     @try {
@@ -7378,6 +7442,7 @@ static void ADBuyAgainProbeCapture6180(void){
                 }
             }
         }
+        ADProductImagesGalleryProbe6191(out);
         ADShareProbeDump6187(out);
         [out appendFormat:@"SUMMARY scanned=%lu carousels=%d cards=%d images=%d shareImages=%d\n===== BUY AGAIN CAPTURE %lu COMPLETE =====\n",
             (unsigned long)seen,carousels,cards,images,shareImages,(unsigned long)n];
