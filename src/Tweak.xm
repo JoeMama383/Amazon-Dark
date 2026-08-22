@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.189-probe"
+#define AD_VERSION "v6.0.190-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -4007,6 +4007,73 @@ static BOOL ADShareScreenshotPhraseNear6186(UIView *v){
 static BOOL ADShareScreenshotProductImage6186(UIImageView *iv){
     return ADShareScreenshotImageGeometry6186(iv)&&ADShareScreenshotPhraseNear6186(iv);
 }
+
+// v6.0.190~probe — dedicated full-screen Product images gallery owner.
+// The v6.0.189 capture proved an untamed main gallery renderer is a
+// RCTUIImageViewAnimated at 430x434.3 pt / 1291x1304 px. That image is a real
+// product photo, but it falls just outside the screenshot-Share gate's h<=430
+// ceiling. Keep the two surfaces separate: mark only the screen whose native/RN
+// title is exactly "Product images", then force TWB only on its large main image.
+static const void *kADProductImagesGalleryRoot6190=&kADProductImagesGalleryRoot6190;
+static BOOL ADProductImagesGalleryPhrase6190(NSString *text){
+    if(!text.length)return NO;
+    @try {
+        NSString *lo=[[[text lowercaseString] stringByReplacingOccurrencesOfString:@"\n" withString:@" "]
+                      stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        while([lo containsString:@"  "])lo=[lo stringByReplacingOccurrencesOfString:@"  " withString:@" "];
+        return [lo isEqualToString:@"product images"];
+    } @catch(...) {}
+    return NO;
+}
+static UIView *ADProductImagesGalleryRoot6190(UIView *anchor){
+    if(!anchor||!anchor.window)return nil;
+    @try {
+        UIWindow *w=anchor.window; UIView *p=anchor,*best=anchor; int up=0;
+        CGFloat ww=w.bounds.size.width,wh=w.bounds.size.height;
+        while(p.superview&&up++<12){
+            UIView *n=p.superview; if(n.window!=w)break; p=n;
+            CGFloat pw=p.bounds.size.width,ph=p.bounds.size.height;
+            if(pw>=ww*.88&&ph>=wh*.50)best=p;
+            if(pw>=ww*.95&&ph>=wh*.82)break;
+        }
+        return best;
+    } @catch(...) {}
+    return nil;
+}
+static BOOL ADProductImagesGalleryImage6190(UIImageView *iv){
+    if(!iv||!iv.window||!iv.image)return NO;
+    @try {
+        CGFloat ww=iv.window.bounds.size.width,wh=iv.window.bounds.size.height;
+        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
+        // Excludes the bottom thumbnail strip and all navigation/icon artwork.
+        if(w<MAX((CGFloat)220.0,ww*.52)||h<110.0||h>wh*.86)return NO;
+        UIView *p=iv; int up=0;
+        while(p&&up++<14){
+            if(objc_getAssociatedObject(p,kADProductImagesGalleryRoot6190))return YES;
+            p=p.superview;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static void ADProductImagesGalleryTextEvent6190(UIView *anchor,NSString *text){
+    if(!ADRecolorOn()||!gP.whiteTame||!anchor||!ADProductImagesGalleryPhrase6190(text))return;
+    __weak UIView *weakAnchor=anchor;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        UIView *live=weakAnchor; if(!live||!live.window)return;
+        @try {
+            UIView *root=ADProductImagesGalleryRoot6190(live); if(!root)return;
+            objc_setAssociatedObject(root,kADProductImagesGalleryRoot6190,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            // One bounded catch-up for images that were already hydrated before the title.
+            NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger qi=0; int seen=0;
+            while(qi<q.count&&seen++<220){
+                UIView *v=q[qi++];
+                if([v isKindOfClass:[UIImageView class]]&&ADProductImagesGalleryImage6190((UIImageView *)v))
+                    ADApplyNativeWhiteTameView(v);
+                if(qi<80){for(UIView *ch in v.subviews){if(q.count<240)[q addObject:ch];else break;}}
+            }
+        } @catch(...) {}
+    });
+}
 static void ADShareProbeTextEvent6189(UIView *anchor, NSString *text, NSString *source);
 static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
     if(!ADRecolorOn()||!gP.whiteTame||!anchor||!ADShareScreenshotPhrase6186(text))return;
@@ -4044,6 +4111,7 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
         ADBuyAgainSemanticRepair6181((UIView *)self,attributedText.string);
         ADNeutralizeInterestsGradientNearText6177((UIView *)self,attributedText.string);
         ADShareScreenshotRepair6186((UIView *)self,attributedText.string);
+        ADProductImagesGalleryTextEvent6190((UIView *)self,attributedText.string);
         ADShareProbeTextEvent6189((UIView *)self,attributedText.string,@"RCTParagraph.setAttributedText");
         return;
     } @catch(...) {}
@@ -4057,6 +4125,7 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
         ADBuyAgainSemanticRepair6181((UIView *)self,attributedString.string);
         ADNeutralizeInterestsGradientNearText6177((UIView *)self,attributedString.string);
         ADShareScreenshotRepair6186((UIView *)self,attributedString.string);
+        ADProductImagesGalleryTextEvent6190((UIView *)self,attributedString.string);
         ADShareProbeTextEvent6189((UIView *)self,attributedString.string,@"RCTParagraph._setAttributedString");
         return;
     } @catch(...) {}
@@ -4095,6 +4164,7 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
         ADBuyAgainSemanticRepair6181((UIView *)self,adBorderText6147);
         ADNeutralizeInterestsGradientNearText6177((UIView *)self,adBorderText6147);
         ADShareScreenshotRepair6186((UIView *)self,adBorderText6147);
+        ADProductImagesGalleryTextEvent6190((UIView *)self,adBorderText6147);
         ADShareProbeTextEvent6189((UIView *)self,adBorderText6147,@"RCTTextView.setTextStorage");
     } @catch(...) {}
 }
@@ -4117,6 +4187,7 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
         ADBuyAgainSemanticRepair6181(self,attributedText.string);
         ADNeutralizeInterestsGradientNearText6177(self,attributedText.string);
         ADShareScreenshotRepair6186(self,attributedText.string);
+        ADProductImagesGalleryTextEvent6190(self,attributedText.string);
         ADShareProbeTextEvent6189(self,attributedText.string,@"UILabel.setAttributedText");
         return;
     } @catch(...) {}
@@ -4124,7 +4195,10 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
 }
 - (void)setText:(NSString *)text {
     %orig;
-    @try { ADShareProbeTextEvent6189(self,text,@"UILabel.setText"); } @catch(...) {}
+    @try {
+        ADProductImagesGalleryTextEvent6190(self,text);
+        ADShareProbeTextEvent6189(self,text,@"UILabel.setText");
+    } @catch(...) {}
 }
 %end
 
@@ -5748,7 +5822,8 @@ static void ADApplyNativeWhiteTameView(UIView *v){
 
         ADNativeRegisterRCT6053(iv);
         BOOL shareShot=ADShareScreenshotProductImage6186(iv);
-        int ctx=shareShot?2:((w<=240&&h<=240)?ADTWBDirectCtx6031(iv,im):0);
+        BOOL galleryShot=ADProductImagesGalleryImage6190(iv);
+        int ctx=(shareShot||galleryShot)?2:((w<=240&&h<=240)?ADTWBDirectCtx6031(iv,im):0);
         BOOL forced=(ctx==2), review=(ctx==3);
         BOOL own=NO, lightReady=YES;
 
@@ -5756,7 +5831,7 @@ static void ADApplyNativeWhiteTameView(UIView *v){
             own=YES;
             objc_setAssociatedObject(iv,kADTWBCachedImage6027,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             objc_setAssociatedObject(iv,kADTWBDecision6027,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            if(shareShot) ADTWBPromoteProduct6053(iv,im);
+            if(shareShot||galleryShot) ADTWBPromoteProduct6053(iv,im);
         } else if(ctx!=1 && cached==im && decision){
             own=decision.boolValue;
         } else if(ctx!=1){

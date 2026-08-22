@@ -504,6 +504,15 @@ static void ADSBRelayBuyAgainProbe6180(void){
             NSError *err=nil; BOOL ok=[fm copyItemAtPath:src toPath:dst error:&err];
             if(ok){
                 [fm setAttributes:@{NSFilePosixPermissions:@0666} ofItemAtPath:dst error:nil];
+                // v6.0.190~probe: also maintain a simple /var/mobile mirror. NewTerm
+                // can read this directly even if the shared AppGroup path is subject
+                // to a transient sandbox/ACL denial while Amazon's screenshot Share
+                // surface is being dismissed/backgrounded.
+                NSString *mobileDst=@"/var/mobile/AmazonDark-buyagain-probe-6180.txt";
+                if([fm fileExistsAtPath:mobileDst])[fm removeItemAtPath:mobileDst error:nil];
+                NSError *merr=nil; BOOL mok=[fm copyItemAtPath:src toPath:mobileDst error:&merr];
+                if(mok)[fm setAttributes:@{NSFilePosixPermissions:@0666} ofItemAtPath:mobileDst error:nil];
+                else ADSBLog([NSString stringWithFormat:@"BUYPROBE6180 mobile mirror FAIL %@",merr]);
                 ADSBLog([NSString stringWithFormat:@"BUYPROBE6180 relay OK %@ -> %@",src,dst]);
             } else ADSBLog([NSString stringWithFormat:@"BUYPROBE6180 relay FAIL %@",err]);
         } @catch(__unused NSException *e){ ADSBLog(@"BUYPROBE6180 relay exception"); }

@@ -1,4 +1,4 @@
-# AmazonDark v6.0.189~probe — render-time screenshot Share renderer capture
+# AmazonDark v6.0.190~probe — Product images gallery TWB fix + Share probe relay hardening
 
 ## Probe-only change
 
