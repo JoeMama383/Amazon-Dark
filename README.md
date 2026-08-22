@@ -1,17 +1,60 @@
-# v6.0.205 — v6.0.185 input-latency correction
+# AmazonDark v6.0.206
 
-Built directly from the v6.0.185~probe baseline. Fixes a stale `_adTameFast362` lifecycle check that caused the complete TWB payload to be re-evaluated on every appearance/reapply burst, multiplying IMG/VIDEO event listeners in the live document. Removes multi-second unconditional web symbol/checkbox rescan bursts, stops carousel-dot changes from waking the whole-document checkbox scanner, removes Search-suggestion full-root fallback escalation, moves fallback media/contrast recovery off the immediate input path, and keeps AmazonDark auxiliary repair observers out of the exact PDP photo/video media subtree. Dark Reader, v6.0.185 visual rules, Buy Again/Interests fixes, native theming, JIT/120Hz, and existing first-paint CSS remain the baseline.
+Base: **v6.0.185~probe** (`2d9a9c4`), on report that v6.0.205 is slower than 185.
+No 186–205 work is carried forward.
 
-# AmazonDark v6.0.185~probe — Buy Again nav re-entry border persistence
+## What the 196–205 experiments established
 
-## v6.0.185 correction
+- **v6.0.201 / 202** replaced Dark Reader with direct OLED floors. Fast, but theming
+  parity was lost. Direction abandoned.
+- **v6.0.203** kept Dark Reader owning detailed theming and had AmazonDark own only the
+  page/root canvas and WebKit backing floor, through one tiny document-start sheet plus
+  constant-time backing hooks. That is the right principle: own a small, constant-time
+  surface; leave detail to Dark Reader.
+- **v6.0.195** showed the pattern that works on hot paths: narrow observers to the
+  mutations that actually matter, cache resolved pairs, defer reconciliation to idle.
 
-- Keeps the v6.0.184 Interests caught-up gradient fix unchanged.
-- Keeps the working v6.0.180 Buy Again TWB correction unchanged.
-- Keeps the v6.0.183 whole-carousel gray border ownership and v6.0.184 detached-outline reattachment.
-- Fixes the remaining bottom-nav re-entry case: v6.0.184 cleared Buy Again ownership when the Person React tree temporarily moved off-window. Because AmazonDark had already suppressed the original 51x51 white raster plate, returning to Person could leave the cards borderless.
-- A claimed Buy Again card now preserves its association while temporarily detached.
-- CALayer setContents suppression is active only while the claimed card is mounted and still resolves inside Buy Again; detached/recycled hosts may receive Amazon content normally.
-- The existing current-controller viewDidAppear sweep now reasserts only already-owned or exact 51x51-style Buy Again card candidates, so a Person tree that remained mounted but had its sublayers rebuilt also recovers on tab return.
-- No new observer, scroll listener, interval, RAF loop, nav-bar hook, or recurring recovery lane.
-- Existing `AmazonDark-buyagain-probe-6180.txt` remains available; CARD records now include `window=` and `hidden=` alongside `marked`, `outline`, and `attached`.
+This build applies that principle to the one layer none of them touched — the selector
+layer — and changes nothing else.
+
+## The change
+
+Eight stylesheet rules had the form:
+
+    :where(div,span,section):has(> [class*=s-color-swatch-container-list-view])
+
+They are duplicated across the document-start sheet and the Dark Reader fixes sheet, so
+16 in total. `:where(div,span,section)` places no constraint WebKit can filter on, so
+every one is evaluated against **every div, span and section in the document**, and
+`:has()` invalidation re-runs them on DOM mutation.
+
+Every component they target — `s-variation-options-link`,
+`s-color-swatch-container-list-view`, `s-status-badge-component`,
+`puis-csi-with-label-container` — is a search-result component. On Home they can never
+match, yet they were still evaluated on every scroll mutation.
+
+All 16 are now scoped to `[data-component-type=s-search-result]`. Zero unconstrained
+`:has()` rules remain in either sheet.
+
+Why this maps to the three reported symptoms, all one mechanism — style recalc blocking
+the main thread:
+
+- **Home scroll** — cards mutate in continuously; those rules can never match on Home
+  and are now skipped on the left-hand selector instead of searching the tree.
+- **Search → 3s tap delay** — results hydrate in bulk; evaluation is now confined to
+  result cards rather than the whole document.
+- **PDP carousels** — same mechanism on the heaviest DOM in the app.
+
+## Theming
+
+Unchanged inside search results, which is the only place these rules could ever match.
+Verified rather than asserted: the old rule matched a Home node (the waste being
+removed) and the new rule matches the search-result hosts and not the Home node.
+
+## Verification
+
+- Selector behaviour tested in jsdom: search-result swatch host still themed,
+  search-result badge host still themed, old rule matched a Home node, new rule does
+  not. 4/4.
+- 0 unconstrained `:where(div,span,section):has(` in either sheet; all 16 constrained.
+- All payloads parse; balance 0/0/0; `scripts/lint-logos.sh`.
