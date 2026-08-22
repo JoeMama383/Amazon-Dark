@@ -3,20 +3,18 @@ export ARCHS  = arm64 arm64e
 
 include $(THEOS)/makefiles/common.mk
 
-TWEAK_NAME = AmazonDark
+TWEAK_NAME = AmazonDark AmazonDarkSB
 
-AmazonDark_FILES   = src/Tweak.xm
-AmazonDark_CFLAGS  = -fobjc-arc -fexceptions
-AmazonDark_CFLAGS += -Wno-unused-variable -Wno-unused-function
-AmazonDark_CFLAGS += -Wno-deprecated-declarations -Wno-error
+AmazonDark_FILES      = src/Tweak.xm
+AmazonDark_CFLAGS     = -fobjc-arc -fexceptions -Wno-unused-variable -Wno-unused-function -Wno-deprecated-declarations -Wno-error
 AmazonDark_FRAMEWORKS = UIKit Foundation WebKit CoreGraphics QuartzCore CoreFoundation
 
-
-
+AmazonDarkSB_FILES      = src/AmazonDarkSB.xm
+AmazonDarkSB_CFLAGS     = -fobjc-arc -fexceptions -Wno-unused-variable -Wno-error
+AmazonDarkSB_FRAMEWORKS = UIKit Foundation CoreGraphics QuartzCore
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 
-# v6.0.0 backport: exact v5.446 preference-bundle build wiring.
 BUNDLE_NAME = ADPrefs
 ADPrefs_FILES         = prefs/ADPrefsController.xm
 ADPrefs_INSTALL_PATH  = /Library/PreferenceBundles
