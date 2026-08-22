@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.191-probe"
+#define AD_VERSION "v6.0.192-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -7030,10 +7030,10 @@ static void ADBuyAgainProbeAppend6180(NSString *line){
 static void ADBuyAgainProbeReset6180(void){
     @try {
         NSString *head=[NSString stringWithFormat:
-            @"AmazonDark Buy Again + screenshot Share probe 6187\nversion=%s\npid=%d\nsource=%@\n"
+            @"AmazonDark Buy Again + screenshot Share/WebKit probe 6192\nversion=%s\npid=%d\nsource=%@\n"
              "relay=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/%@\n"
-             "trigger=leave the untamed screenshot Share panel visible and background Amazon; each background appends a snapshot\n"
-             "targets=all visible UIImageView/raster/gradient painters inside Share this product with friends; Buy Again diagnostics retained\n",
+             "trigger=take a screenshot on the failing product; screenshot-time captures run automatically, then background Amazon once to append/relay\n"
+             "targets=native + WKWebView DOM/renderers for Share this product with friends; Product images fix + Buy Again diagnostics retained\n",
             AD_VERSION,getpid(),ADBuyAgainProbePath6180(),ADBuyAgainProbeName6180()];
         [head writeToFile:ADBuyAgainProbePath6180() atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } @catch(...) {}
@@ -7291,6 +7291,73 @@ static void ADShareProbeFallback6189(NSMutableString *out){
     } @catch(...) { [out appendString:@"SHAREFALLBACK6189 EXCEPTION\n"]; }
 }
 
+
+static void ADShareProbeDump6187(NSMutableString *out);
+
+// v6.0.192~probe — screenshot-time WebKit + native Share-panel capture.
+// v6.0.191 proved the screenshot Share UI is not discoverable through the native
+// React/UIImage tree by UIApplicationWillResignActive time; the only surviving
+// renderer is WKCompositingView. Capture both the native hierarchy and each mounted
+// WKWebView shortly AFTER iOS reports the screenshot, while Amazon's custom Share
+// surface is still actually on screen. Diagnostic-only: no DOM or paint mutation.
+static NSString *ADShareWebProbeJS6192(void){
+    return @"(()=>{const PHRASE='share this product with friends';const norm=s=>(s||'').replace(/\\s+/g,' ').trim();const rect=e=>{try{const r=e.getBoundingClientRect();return [Math.round(r.x*10)/10,Math.round(r.y*10)/10,Math.round(r.width*10)/10,Math.round(r.height*10)/10]}catch(_){return [0,0,0,0]}};const vis=e=>{try{const r=e.getBoundingClientRect(),c=getComputedStyle(e);return r.width>1&&r.height>1&&c.display!=='none'&&c.visibility!=='hidden'&&parseFloat(c.opacity||'1')>.02&&r.bottom>-8&&r.right>-8&&r.top<innerHeight+8&&r.left<innerWidth+8}catch(_){return false}};const txt=e=>{try{let s=norm(e.innerText||e.textContent||e.getAttribute('aria-label')||'');return s.length>240?s.slice(0,240)+'…':s}catch(_){return ''}};const info=e=>{try{const c=getComputedStyle(e),r=rect(e);return {tag:e.tagName||'',cl:typeof e.className==='string'?e.className.slice(0,220):'',id:(e.id||'').slice(0,160),r,txt:txt(e),ro"
+           @"le:e.getAttribute('role')||'',aria:e.getAttribute('aria-label')||'',src:(e.currentSrc||e.src||'').slice(0,500),bg:(c.backgroundImage||'').slice(0,500),f:c.filter||'',op:c.opacity||'',pos:c.position||'',z:c.zIndex||'',disp:c.display||'',vis:c.visibility||'',pe:c.pointerEvents||''}}catch(_){return {tag:'ERR'}}};const all=[...document.querySelectorAll('body *')].slice(0,2600);const bodyText=norm(document.body?document.body.innerText:'');const bodyHas=bodyText.toLowerCase().includes(PHRASE);const phrases=[];for(const e of all){if(phrases.length>=10)break;let t='';try{t=norm(e.innerText||e.textContent||e.getAttribute('aria-label')||'')}catch(_){}if(t&&t.length<900&&t.toLowerCase().includes(PHRASE))phrases.push(e);}let root=null;if(phrases.length){let p=phrases[0],best=p;for(let n=0;p&&p!==document.body&&n<12;n++,p=p.parentElement){const r=p.getBoundingClientRect();best=p;if(r.width>=innerWidt"
+           @"h*.82&&r.height>=240)break;}root=best;}const scope=root?[root,...root.querySelectorAll('*')].slice(0,1800):all;const media=[];for(const e of scope){if(media.length>=70)break;let r;try{r=e.getBoundingClientRect()}catch(_){continue}if(r.width<70||r.height<45||!vis(e))continue;let c;try{c=getComputedStyle(e)}catch(_){continue}const tag=(e.tagName||'').toUpperCase();const bg=c.backgroundImage&&c.backgroundImage!=='none';const src=e.currentSrc||e.src||'';if(tag==='IMG'||tag==='VIDEO'||tag==='CANVAS'||bg||src)media.push(info(e));}const overlays=[];for(const e of all){if(overlays.length>=40)break;let r,c;try{r=e.getBoundingClientRect();c=getComputedStyle(e)}catch(_){continue}if(r.width<innerWidth*.68||r.height<180||!vis(e))continue;const z=parseInt(c.zIndex||'0',10)||0;if(c.position==='fixed'||c.position==='sticky'||(c.position==='absolute'&&z>0)||z>=10)overlays.push(info(e));}const pts=[[.5,.2"
+           @"4],[.5,.40],[.5,.56],[.5,.72],[.5,.88]];const hits=pts.map(([x,y])=>{try{const e=document.elementFromPoint(innerWidth*x,innerHeight*y);const chain=[];let p=e,n=0;while(p&&n++<7){chain.push(info(p));p=p.parentElement}return {p:[x,y],chain}}catch(_){return {p:[x,y],chain:[]}}});const frames=[...document.querySelectorAll('iframe')].slice(0,20).map(info);return JSON.stringify({probe:6192,url:location.href,title:document.title,ready:document.readyState,viewport:[innerWidth,innerHeight],bodyHasPhrase:bodyHas,bodyTail:bodyText.slice(-900),phraseCount:phrases.length,phrases:phrases.map(info),root:root?info(root):null,media,overlays,hits,frames});})()";
+}
+
+static void ADShareScreenshotMomentCapture6192(NSString *stage){
+    @try {
+        NSMutableString *native=[NSMutableString stringWithFormat:
+            @"\n\n===== SHARESCREENSHOT6192 stage=%@ t=%.3f =====\n",
+            stage?:@"?",CFAbsoluteTimeGetCurrent()];
+        ADShareProbeDump6187(native);
+        [native appendString:@"===== SHARESCREENSHOT6192 NATIVE COMPLETE =====\n"];
+        ADBuyAgainProbeAppend6180(native);
+
+        // One bounded hierarchy discovery per diagnostic stage. Include tracked
+        // WebViews plus any visible one not yet in the weak table, de-duplicated.
+        NSHashTable *uniq=[NSHashTable weakObjectsHashTable];
+        for(WKWebView *wv in (gADWebViews613.allObjects?:@[])) if(wv)[uniq addObject:wv];
+        NSMutableArray *q=[NSMutableArray array];
+        for(UIWindow *w in [UIApplication sharedApplication].windows)
+            if(w&&!w.hidden&&w.alpha>.03)[q addObject:w];
+        NSUInteger qi=0,seen=0;
+        while(qi<q.count&&seen++<2600){
+            UIView *v=q[qi++];
+            if([v isKindOfClass:[WKWebView class]]){ [uniq addObject:(WKWebView *)v]; continue; }
+            for(UIView *ch in v.subviews){ if(q.count<3000)[q addObject:ch]; else break; }
+        }
+
+        __block int idx=0;
+        for(WKWebView *wv in uniq.allObjects){
+            if(!wv||!wv.window||wv.hidden||wv.alpha<.02)continue;
+            int my=++idx;
+            NSString *url=wv.URL.absoluteString?:@"";
+            [wv evaluateJavaScript:ADShareWebProbeJS6192() completionHandler:^(id result,NSError *error){
+                @try {
+                    NSString *payload=nil;
+                    if([result isKindOfClass:[NSString class]])payload=result;
+                    else if(result)payload=[result description];
+                    if(payload.length>50000)payload=[[payload substringToIndex:50000]stringByAppendingString:@"…TRUNCATED"];
+                    NSString *line=[NSString stringWithFormat:
+                        @"\nSHAREWEB6192 stage=%@ index=%d web=%p url=\"%@\" error=\"%@\"\n%@\nSHAREWEB6192 END index=%d\n",
+                        stage?:@"?",my,wv,url,error.localizedDescription?:@"",payload?:@"<nil>",my];
+                    ADBuyAgainProbeAppend6180(line);
+                    notify_post(AD_BUYAGAIN_PROBE_READY_6180);
+                } @catch(...) {}
+            }];
+        }
+        ADBuyAgainProbeAppend6180([NSString stringWithFormat:
+            @"SHAREWEBSTART6192 stage=%@ webviews=%d\n",stage?:@"?",idx]);
+        notify_post(AD_BUYAGAIN_PROBE_READY_6180);
+    } @catch(...) {
+        ADBuyAgainProbeAppend6180([NSString stringWithFormat:@"SHARESCREENSHOT6192 stage=%@ EXCEPTION",stage?:@"?"]);
+        @try{notify_post(AD_BUYAGAIN_PROBE_READY_6180);}@catch(...){}
+    }
+}
+
 // v6.0.191~probe — full-screen Product images diagnostics. This is background-only
 // and exists to distinguish a remaining UIImageView miss from a flattened raster host.
 static void ADProductImagesGalleryProbe6191(NSMutableString *out){
@@ -7459,6 +7526,20 @@ static void ADBuyAgainProbeCapture6180(void){
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
     ADBuyAgainProbeReset6180();
     @try {
+        [[NSNotificationCenter defaultCenter]
+            addObserverForName:UIApplicationUserDidTakeScreenshotNotification
+                        object:nil queue:[NSOperationQueue mainQueue]
+                    usingBlock:^(__unused NSNotification *n){
+            // Amazon mounts its custom screenshot Share surface after the system
+            // screenshot notification. Three one-shot diagnostic samples cover
+            // first paint and hydration without any recurring timer/observer loop.
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(250*NSEC_PER_MSEC)),
+                           dispatch_get_main_queue(), ^{ ADShareScreenshotMomentCapture6192(@"+250ms"); });
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(800*NSEC_PER_MSEC)),
+                           dispatch_get_main_queue(), ^{ ADShareScreenshotMomentCapture6192(@"+800ms"); });
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(1600*NSEC_PER_MSEC)),
+                           dispatch_get_main_queue(), ^{ ADShareScreenshotMomentCapture6192(@"+1600ms"); });
+        }];
         [[NSNotificationCenter defaultCenter]
             addObserverForName:UIApplicationWillResignActiveNotification
                         object:nil queue:[NSOperationQueue mainQueue]

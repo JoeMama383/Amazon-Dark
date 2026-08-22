@@ -1,22 +1,36 @@
-# AmazonDark v6.0.191~probe — persistent Product images gallery TWB + Share probe
+# AmazonDark v6.0.192~probe — screenshot Share WebKit renderer probe
 
-## v6.0.191 correction
+## Base / confirmed state
 
-- Exact base: v6.0.190~probe.
-- v6.0.190 proved the dedicated full-screen **Product images** TWB owner works: the sampled 430x410.7 / 1290x1232 main image had `overlay=1`.
-- User still reports a minority of swiped gallery images escape TWB.
-- Root cause addressed here: v6.0.190 tied ownership to the first large ancestor reached from the `Product images` title. Amazon can recycle/swipe image pages in sibling hosts outside that first root.
-- v6.0.191 keeps an ARC-weak reference to the exact live `Product images` title and its UIWindow. While that title remains mounted, large UIImageViews in that same window are direct gallery owners regardless of which recycled/sibling page host they occupy.
-- The geometry remains gallery-specific and excludes the bottom thumbnail strip and header/nav artwork.
-- The title event now performs one bounded window catch-up instead of a root-only catch-up. New/recycled images remain event-driven through the existing UIImageView / RCTUIImageViewAnimated hooks.
-- The weak title/window state automatically becomes inactive when the gallery title leaves the window; there is no persistent global gallery mode.
+- Exact source base: v6.0.191~probe.
+- The v6.0.191 full-screen **Product images** fix is retained unchanged; the user confirmed the gallery photos are now fixed.
+- The remaining issue is the screenshot-triggered **Share this product with friends** panel, where some product photos still escape TWB.
 
-## Diagnostic additions
+## What v6.0.191 proved
 
-- Backgrounding while **Product images** is visible now writes `GALLERYPANEL6191`, `GALLERYIMG6191`, `GALLERYRASTER6191`, and `GALLERYSUMMARY6191` to the existing `AmazonDark-buyagain-probe-6180.txt` file.
-- This tells us whether any remaining untamed page is a normal UIImageView (`overlay=0`) or a flattened CGImage-backed UIView/CALayer.
-- The screenshot-Share 6189 diagnostics remain intact.
-- The `/var/mobile/AmazonDark-buyagain-probe-6180.txt` SpringBoard mirror from v6.0.190 remains intact, avoiding the NewTerm/AppGroup permission problem.
+- Background-time native lookup repeatedly returns `SHAREPANEL6187 root=none phraseVisible=0`.
+- The only plausible surviving renderer is `WKCompositingView`; no matching native UIImageView/raster is visible by the time Amazon backgrounds.
+- The existing UILabel / RCTParagraph render-time text hooks also never emit `SHARETEXT6189`, so the Share header is not travelling through those native text setters.
+- Therefore the next diagnostic target is the mounted WKWebView DOM/compositor while the Share surface is actually on screen.
+
+## v6.0.192 diagnostic change
+
+- Registers one `UIApplicationUserDidTakeScreenshotNotification` observer.
+- At +250 ms, +800 ms and +1600 ms after the screenshot, performs one-shot diagnostic captures only.
+- Each stage:
+  - runs the existing native Share hierarchy dump;
+  - discovers mounted WKWebViews with one bounded view traversal;
+  - evaluates read-only JavaScript in each mounted WKWebView;
+  - records whether the page contains `Share this product with friends`;
+  - records phrase/root candidates, visible image/video/canvas/background-image media, large overlay/fixed-position elements, hit-test ancestor chains, iframe metadata, URL/title/readyState, and viewport geometry.
+- Output records use `SHARESCREENSHOT6192`, `SHAREWEBSTART6192`, and `SHAREWEB6192` in the existing `AmazonDark-buyagain-probe-6180.txt` file.
+- Each completed web result notifies the existing SpringBoard relay, so `/var/mobile/AmazonDark-buyagain-probe-6180.txt` is refreshed without relying on NewTerm access to the AppGroup path.
+
+## Production behavior
+
+- No Share TWB production rule is changed in this build.
+- No Product images behavior is changed from the confirmed-good v6.0.191 implementation.
+- No DOM node, style, filter, image cache, Dark Reader state, WebView navigation state, or native view/layer is mutated by the new probe.
 
 ## Runtime discipline
 
@@ -24,6 +38,5 @@
 - No scroll listener.
 - No setInterval.
 - No requestAnimationFrame loop.
-- No recurring window scan.
-- One bounded window traversal occurs only when the exact `Product images` title hydrates.
-- Gallery diagnostics run only on the existing app-background probe capture.
+- No recurring scanner.
+- The +3 `dispatch_after` sites are diagnostic one-shots triggered only by an actual system screenshot notification.
