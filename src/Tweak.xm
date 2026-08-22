@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.199"
+#define AD_VERSION "v6.0.201-experimental"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -473,12 +473,14 @@ static NSString *gADThemeLiteral613 = nil;
 static NSString *gADBootstrap613 = nil;
 static NSString *gADReapply613 = nil;
 static NSString *gADTameWeb613 = nil;
+static NSString *gADOLEDFloor6201 = nil;
 static void ADInvalidateWebCaches613(void){
     gADFixesLiteral613 = nil;
     gADThemeLiteral613 = nil;
     gADBootstrap613 = nil;
     gADReapply613 = nil;
     gADTameWeb613 = nil;
+    gADOLEDFloor6201 = nil;
 }
 
 static NSString *ADFixesLiteral(void){
@@ -1728,6 +1730,75 @@ static NSString *ADWhiteTameWebJS6027(void){
 }
 static NSString *ADWhiteTameWebJS(void){ return ADWhiteTameWebJS6027(); }
 
+// ── v6.0.201 experimental: direct OLED WebKit theme ────────────────────────
+// Dark Reader is deliberately kept packaged for rollback, but is not evaluated or
+// attached in this build.  AmazonDark owns the WebKit canvas directly with a small
+// document-start stylesheet.  CSS remains declarative, so later DOM hydration picks
+// up the same rules without a page-wide scanner, scroll listener, RAF loop or timer.
+static NSString *ADOLEDFloorWebJS6201(void){
+    if (gADOLEDFloor6201) return gADOLEDFloor6201;
+    NSString *fg = [NSString stringWithUTF8String:gP.fgHex] ?: @"#e8e6e3";
+    gADOLEDFloor6201 = [NSString stringWithFormat:
+        @"(function(){try{"
+         "window.__AMZDARK_OLEDFLOOR6201__=1;"
+         "var id='ad-oledfloor6201',s=document.getElementById(id);"
+         "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
+         "var FG='%@';"
+         "var css='"
+           "html{color-scheme:dark!important;background:#000!important;}"
+           "html,body,#a-page,#gwm-PageContent,main,#dp,#ppd,#dp-container{background-color:#000!important;color:'+FG+'!important;}"
+
+           // High-value Amazon structural surfaces.  These selectors are declarative
+           // rather than computed-colour scans; WebKit applies them to late content for free.
+           ".a-container,.a-section,.a-cardui,.a-box,.a-box-inner,.a-row,.gwm-tile,"
+           "[class*=asin-container-white],[class*=gwmWindowPaneTile],"
+           "[class*=card-container],[class*=cardContainer],"
+           "[class*=recommendation-container],[class*=recommendations-container],"
+           "[class*=widget-container],[class*=widgetContainer],"
+           "[class*=desktop-grid], [class*=mobile-grid]"
+           "{background-color:#000!important;}"
+
+           // Common Amazon text tokens.  Do not blanket-color every element: prices,
+           // ratings, badges and branded controls keep their intentional accent colours.
+           "body,#a-page,main,.a-color-base,.a-color-secondary,.a-text-normal,"
+           ".a-size-base,.a-size-small,.a-size-medium,.a-size-large,.a-size-extra-large,"
+           "h1,h2,h3,h4,h5,h6,p,label,legend"
+           "{color:'+FG+'!important;}"
+           ".a-divider-inner:after,.a-divider-inner:before{border-color:#3a3a3d!important;}"
+           "hr{border-color:#3a3a3d!important;background-color:#3a3a3d!important;}"
+
+           // Inputs/selectors that otherwise expose stock-white islands.  Primary Amazon
+           // purchase buttons are intentionally not targeted.
+           "input:not([type=image]):not([type=submit]):not([type=button]),textarea,select,"
+           ".a-input-text,.a-dropdown-container"
+           "{background-color:#151515!important;color:'+FG+'!important;border-color:#4a4a4d!important;}"
+
+           // Keep media/photo wrappers transparent so the existing TWB owner remains the
+           // only system altering bright product imagery.
+           "picture,[class*=image-container],[class*=thumbnail-conta],[class*=single-creative],"
+           "[class*=s-image],[class*=unfill],[class*=placehold],#imgTagWrapperId,"
+           ".s-product-image-container,[data-component-type=s-product-image]"
+           "{background-color:transparent!important;}"
+
+           // Preserve the current exact first-paint fixes that used to live inside the
+           // Dark Reader bootstrap's adfloor sheet.
+           "#auth-footer,.auth-footer,[id*=auth-footer],"
+           "#auth-footer .a-divider,#auth-footer .a-divider-inner,.auth-footer .a-divider,.auth-footer .a-divider-inner"
+           "{background-color:transparent!important;background-image:none!important;box-shadow:none!important;}"
+           "[class*=_c2Itb_brandCard_]{background-image:none!important;background-color:#000!important;}"
+           "[class*=_bW9ia_suggestion_]{background-image:none!important;}"
+           "[data-csa-c-content-id=variation-options-link],[class*=s-variations-options-justify-content],"
+           "[class*=s-variation-options-text],[class*=s-variation-options-link],"
+           "[class*=s-color-swatch-container-list-view],[class*=puis-csi-with-label-container],"
+           "[data-component-type=s-status-badge-component]>.a-row.a-badge-region"
+           "{background:transparent!important;background-image:none!important;box-shadow:none!important;}"
+         "';"
+         "if(s.textContent!==css)s.textContent=css;"
+         "return 'oled6201';"
+         "}catch(e){return 'oled6201err '+String(e&&e.message||e);}})();", fg];
+    return gADOLEDFloor6201;
+}
+
 // v6.0.175: user-script dedupe by object identity, not source scanning.
 // Keep the exact WKUserScript instance we added on the WKUserContentController.  A
 // cheap identity walk tells us whether Amazon still has that script installed.  If
@@ -1736,6 +1807,7 @@ static NSString *ADWhiteTameWebJS(void){ return ADWhiteTameWebJS6027(); }
 // copy.  This preserves Amazon's clean-up transaction while avoiding repeated scans
 // across the ~346 KB Dark Reader bootstrap and smaller TWB/symbol payloads.
 static const void *kADBootUS6175 = &kADBootUS6175;
+static const void *kADFloorUS6201 = &kADFloorUS6201;
 static const void *kADTWBUS6175  = &kADTWBUS6175;
 static const void *kADSymUS6175  = &kADSymUS6175;
 static BOOL ADUserScriptPresent6175(WKUserContentController *ucc, const void *key){
@@ -1756,6 +1828,21 @@ static void ADRememberUserScript6175(WKUserContentController *ucc, const void *k
     if (!ucc || !key || !us) return;
     @try { objc_setAssociatedObject(ucc,key,us,OBJC_ASSOCIATION_RETAIN_NONATOMIC); } @catch(...) {}
 }
+static void ADAttachOLEDFloorUserScript6201(WKUserContentController *ucc){
+    if (!ucc || !gP.enabled || !gP.webDarkReader) return;
+    @try {
+        if (ADUserScriptPresent6175(ucc,kADFloorUS6201)) return;
+        NSString *js=ADOLEDFloorWebJS6201();
+        Class WKUS=NSClassFromString(@"WKUserScript");
+        if (!js.length || !WKUS) return;
+        WKUserScript *us=[[WKUS alloc] initWithSource:js
+                                       injectionTime:WKUserScriptInjectionTimeAtDocumentStart
+                                    forMainFrameOnly:NO];
+        [ucc addUserScript:us];
+        ADRememberUserScript6175(ucc,kADFloorUS6201,us);
+    } @catch(...) {}
+}
+
 static void ADAttachDarkReaderUserScript6175(WKUserContentController *ucc){
     if (!ucc || !gP.enabled || !gP.webDarkReader) return;
     @try {
@@ -2013,13 +2100,19 @@ static void ADAttachThreeSymbolsUserScript605(WKUserContentController *ucc){
     } @catch(...) {}
 }
 
-static const void *kADBootHealInFlight6199 = &kADBootHealInFlight6199;
-
+// v6.0.201: legacy function name retained to minimize call-site churn.  The runtime
+// path is now direct OLED CSS + existing TWB/symbol ownership; Dark Reader is not run.
 static void ADEnableDarkReaderIn(WKWebView *wv){
     if (!gP.enabled || !gP.webDarkReader || !wv) return;
     @try {
-        ADAttachWhiteTameUserScript446(wv.configuration.userContentController);
-        ADAttachThreeSymbolsUserScript605(wv.configuration.userContentController);
+        WKUserContentController *ucc=wv.configuration.userContentController;
+        ADAttachOLEDFloorUserScript6201(ucc);
+        ADAttachWhiteTameUserScript446(ucc);
+        ADAttachThreeSymbolsUserScript605(ucc);
+
+        NSString *floor=ADOLEDFloorWebJS6201();
+        if (floor.length) [wv evaluateJavaScript:floor completionHandler:nil];
+
         [wv evaluateJavaScript:@"(function(){try{if(window.__AD_SYM605_QUEUE__){window.__AD_SYM605_QUEUE__();return 1;}return 0;}catch(e){return 0;}})();"
              completionHandler:^(id r, NSError *e){
                  if (!e && [r respondsToSelector:@selector(boolValue)] && [r boolValue]) return;
@@ -2032,58 +2125,21 @@ static void ADEnableDarkReaderIn(WKWebView *wv){
                      NSString *full=ADWhiteTameWebJS(); if(full.length)[wv evaluateJavaScript:full completionHandler:nil];
                  }];
         }
-        NSString *js = ADDarkReaderReapply();
-        if (js.length) [wv evaluateJavaScript:js completionHandler:nil];
-
-        // Functional self-heal only: diagnostics used to retain URL/state sets here
-        // even though logging was compiled out. Ask just the two facts repair needs.
-        [wv evaluateJavaScript:
-            @"(function(){try{return (!window.__AMZDARK_LOADED__||!(window.DarkReader&&DarkReader.enable))?1:0;}catch(e){return 1;}})()"
-             completionHandler:^(id result, NSError *err){
-            @try {
-                if (err || ![result respondsToSelector:@selector(boolValue)] || ![result boolValue]) return;
-                WKUserContentController *ucc = wv.configuration.userContentController;
-                if (ucc){
-                    ADAttachDarkReaderUserScript6175(ucc);
-                    ADAttachWhiteTameUserScript446(ucc);
-                    ADAttachThreeSymbolsUserScript605(ucc);
-                }
-
-                // v6.0.199: the old __AMZDARK_HEALED__ one-shot could suppress every
-                // later recovery if its first evaluateJavaScript raced a navigation or
-                // the external Dark Reader file missed once.  Retry only while the engine
-                // is actually absent, and serialize the heavy bootstrap per WKWebView.
-                // Normal themed pages take the cheap missing-state test and never enter
-                // this lane; no timer/scroll/RAF/recurring scanner is added.
-                if (objc_getAssociatedObject(wv,kADBootHealInFlight6199)) return;
-                NSString *full = ADDarkReaderBootstrap();
-                if (!full.length) return;
-                objc_setAssociatedObject(wv,kADBootHealInFlight6199,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                [wv evaluateJavaScript:full completionHandler:^(__unused id value, __unused NSError *bootErr){
-                    @try { objc_setAssociatedObject(wv,kADBootHealInFlight6199,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); } @catch(...) {}
-                }];
-            } @catch(...) {}
-        }];
     } @catch(...) {}
 }
 
-// Inject the FULL engine into whatever is already rendered (used once for web views
-// that existed before our hook — e.g. the warmed gateway — where the documentStart
-// userscript won't fire until the next load). Idempotent: the bootstrap self-guards
-// on window.__AMZDARK_LOADED__, so calling it repeatedly is safe.
+// Mounted WebViews that pre-date our init hook need the same tiny stylesheet in the
+// current document.  No UMD parse, DarkReader.enable(), bootstrap recovery or engine
+// state probe is performed.
 static void ADBootstrapDarkReaderIn(WKWebView *wv){
     if (!gP.enabled || !gP.webDarkReader || !wv) return;
     @try {
-        [wv evaluateJavaScript:@"(function(){try{return window.__AMZDARK_LOADED__?1:0;}catch(e){return 0;}})()"
-             completionHandler:^(id loaded, NSError *err){
-            if (!err && [loaded respondsToSelector:@selector(boolValue)] && [loaded boolValue]) return;
-            NSString *js = ADDarkReaderBootstrap();
-            if (js.length) [wv evaluateJavaScript:js completionHandler:nil];
-            NSString *twb446 = ADWhiteTameWebJS();
-            if (twb446.length) [wv evaluateJavaScript:twb446 completionHandler:nil];
-            NSString *sym446 = ADThreeSymbolsWebJS605();
-            if (sym446.length) [wv evaluateJavaScript:sym446 completionHandler:nil];
-        }];
+        NSString *floor=ADOLEDFloorWebJS6201();
+        if (floor.length) [wv evaluateJavaScript:floor completionHandler:nil];
+        NSString *twb446=ADWhiteTameWebJS();
+        if (twb446.length) [wv evaluateJavaScript:twb446 completionHandler:nil];
+        NSString *sym446=ADThreeSymbolsWebJS605();
+        if (sym446.length) [wv evaluateJavaScript:sym446 completionHandler:nil];
     } @catch(...) {}
 }
 
@@ -2164,11 +2220,11 @@ static void ADInjectAllWebViews(void){
 // very fast fling can expose an unpainted/recycled WebKit tile for a frame or two;
 // the screenshot's hard white tail is the backing surface showing through. This is
 // constant-time state, not a scroll-time repaint: once the web view/scroll view are
-// dark, missing tiles reveal #181a1b instead of UIKit/WebKit white.
+// dark, missing tiles reveal OLED black instead of UIKit/WebKit white.
 static void ADPrimeWebBacking611(WKWebView *wv){
     if (!wv || !gP.enabled || !gP.webDarkReader) return;
     @try {
-        UIColor *dark = ADColorFromHex(gP.bgHex);
+        UIColor *dark = [UIColor blackColor];
         wv.opaque = NO;
         wv.backgroundColor = dark;
         UIScrollView *sv = wv.scrollView;
@@ -2181,7 +2237,7 @@ static void ADPrimeWebBacking611(WKWebView *wv){
 - (id)initWithFrame:(CGRect)frame configuration:(WKWebViewConfiguration *)cfg {
     @try {
         if (gP.enabled && gP.webDarkReader && cfg && cfg.userContentController){
-            ADAttachDarkReaderUserScript6175(cfg.userContentController);
+            ADAttachOLEDFloorUserScript6201(cfg.userContentController);
             ADAttachWhiteTameUserScript446(cfg.userContentController);
             ADAttachThreeSymbolsUserScript605(cfg.userContentController);
         }
@@ -2203,7 +2259,7 @@ static void ADPrimeWebBacking611(WKWebView *wv){
         // it with removeAllUserScripts, these helpers add exactly one fresh copy now
         // that the WebView is mounted again; otherwise they only walk the small script array
         // by object identity and never inspect the large script source strings.
-        ADAttachDarkReaderUserScript6175(ucc);
+        ADAttachOLEDFloorUserScript6201(ucc);
         ADAttachWhiteTameUserScript446(ucc);
         ADAttachThreeSymbolsUserScript605(ucc);
         ADBootstrapDarkReaderIn(self); // engine into the already-rendered document (idempotent)
@@ -4705,7 +4761,7 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
 %hook WKScrollView
 - (void)setBackgroundColor:(UIColor *)color {
     if (gP.enabled && gP.webDarkReader){
-        UIColor *dark611 = ADColorFromHex(gP.bgHex);
+        UIColor *dark611 = [UIColor blackColor];
         %orig(dark611);
         return;
     }
@@ -4713,7 +4769,7 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
 }
 - (void)didMoveToWindow {
     %orig;
-    @try { if (self.window && gP.enabled && gP.webDarkReader) self.backgroundColor = ADColorFromHex(gP.bgHex); } @catch(...) {}
+    @try { if (self.window && gP.enabled && gP.webDarkReader) self.backgroundColor = [UIColor blackColor]; } @catch(...) {}
 }
 %end
 
@@ -4721,11 +4777,11 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
 // v6.0.11 only owned WKWebView/WKScrollView; when WebKit outran lazy tile painting,
 // this inner canvas could still paint its stock white background over both of them.
 // Own ONLY the root content canvas -- never WKCompositingView/tile layers -- so media
-// and Dark Reader compositing stay untouched while an unpainted hole has a dark floor.
+// and media compositing stay untouched while an unpainted hole has a dark floor.
 %hook WKContentView
 - (void)setBackgroundColor:(UIColor *)color {
     if (gP.enabled && gP.webDarkReader){
-        UIColor *dark612 = ADColorFromHex(gP.bgHex);
+        UIColor *dark612 = [UIColor blackColor];
         %orig(dark612);
         return;
     }
@@ -4742,7 +4798,7 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
     %orig;
     @try {
         if (!self.window || !gP.enabled || !gP.webDarkReader) return;
-        UIColor *dark612 = ADColorFromHex(gP.bgHex);
+        UIColor *dark612 = [UIColor blackColor];
         self.opaque = YES;
         self.backgroundColor = dark612;
         self.layer.backgroundColor = dark612.CGColor;
@@ -4752,7 +4808,7 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
     %orig;
     @try {
         if (!self.window || !gP.enabled || !gP.webDarkReader) return;
-        UIColor *dark612 = ADColorFromHex(gP.bgHex);
+        UIColor *dark612 = [UIColor blackColor];
         // Layer assignment closes the path where WebKit updates the backing layer
         // directly rather than going through UIView setBackgroundColor:.
         self.layer.backgroundColor = dark612.CGColor;
@@ -7098,7 +7154,7 @@ static void ADPreDarken(WKWebView *wv){
         if (![NSThread isMainThread]) return;
         [wv evaluateJavaScript:
             @"try{if(!document.getElementById('adpre')){var s=document.createElement('style');"
-             "s.id='adpre';s.textContent='html,body{background:#181a1b !important}';"
+             "s.id='adpre';s.textContent='html,body{background:#000 !important}';"
              "(document.documentElement||document).appendChild(s);}}catch(e){}"
              completionHandler:nil];
     } @catch(...) {}
@@ -7109,8 +7165,8 @@ static void ADPreDarken(WKWebView *wv){
 // and 120 Hz can reapply in-process; JIT is intentionally launch-time because the
 // preference workflow resprings before the next Amazon launch.
 //
-// Caveat worth knowing: web surfaces re-theme exactly, because DarkReader.enable()
-// recomputes from the untouched DOM. Native views cannot — the original colour is
+// Caveat worth knowing: web surfaces re-theme by reasserting the declarative OLED stylesheet
+// over the untouched DOM. Native views cannot — the original colour is
 // gone once replaced, so re-running the transform over already-themed views drifts
 // slightly (it converges, it does not blow up). A relaunch gives an exact result.
 static void ADPrefsChanged(CFNotificationCenterRef center, void *observer,
