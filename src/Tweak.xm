@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.203-floor-probe"
+#define AD_VERSION "v6.0.200-probe"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -147,8 +147,6 @@ static UIImage *ADGlyphify(UIImage *img);
 static UIImage *ADGlyphifyForView(UIImage *img, UIView *v);
 static void ADScheduleGlyphLift624(UIImageView *iv);
 static void ADApplyNativeWhiteTameView(UIView *v);
-static void ADTWBClearSettledMount6194(UIImageView *iv);
-static void ADMarkShareScreenshotForce6194(UIImageView *iv);
 static BOOL ADImageMostlyLight(UIImage *img);
 static BOOL ADIsCategoryArtwork379(UIView *v);
 static void ADRestoreCategoryArtwork379(UIImageView *iv);
@@ -157,7 +155,6 @@ static int ADMenuRole382(UIView *v);
 static BOOL ADWTInWatchedCarousel380(UIView *v);
 static inline double ADUptime(void);
 static void ADPostAppReady(void);
-static void ADPreDarken(WKWebView *wv);
 static void ADPrimeWebBacking611(WKWebView *wv);
 static void ADInvalidateWebCaches613(void);
 
@@ -859,14 +856,6 @@ static NSString *ADFixesLiteral(void){
              ".ssf-share-trigger::before,.ssf-share-trigger::after,"
              ".ssf-share-trigger *::before,.ssf-share-trigger *::after"
              "{color:#ffffff !important;filter:brightness(0) invert(1) !important;opacity:1 !important;}"
-             // v6.0.194: Amazon keeps keyboard/focus chrome on the PDP Share trigger
-             // after the sheet is dismissed.  Preserve the real :active press frame,
-             // but clear only the post-click focused state so the white ring cannot stick.
-             ".ssf-share-trigger:focus:not(:active),.ssf-share-trigger:focus-visible:not(:active),"
-             ".ssf-share-trigger:focus-within:not(:active),.ssf-share-trigger.a-button-focus:not(:active),"
-             ".ssf-share-trigger:focus:not(:active) .a-button-inner,.ssf-share-trigger:focus-within:not(:active) .a-button-inner"
-             "{background-color:transparent !important;background-image:none !important;"
-             "border-color:transparent !important;box-shadow:none !important;outline:none !important;}"
              // v6.0.20 direct v5.446 carousel-dot port. Static selectors own
              // first paint; dotFix374 below follows Amazon's live selected state.
              "ul.a-pagination.a-dots li.a-selected,"
@@ -880,11 +869,15 @@ static NSString *ADFixesLiteral(void){
              "[data-ad-dotselected374] [class*=dot],[data-ad-dotselected374] span"
              "{background-color:#ffffff !important;border-color:#ffffff !important;"
              "color:#ffffff !important;fill:#ffffff !important;}"
-             "',invert:[],ignoreInlineStyle:['[data-ad-native615]','[data-ad-native615] *',"
-             "'ul.a-pagination.a-dots li.a-selected','ul.a-pagination.a-dots li.dot-selected-t2','[data-ad-dotselected374]',"
-             "'[class*=ape-wrapper]','[class*=ape-placement]','[class*=ape-feedback]','[class*=ape-feedback] *',"
-             "'html body .puis-mab-overlay .puis-mab-overlay-row-share .puis-mab-overlay-icon-share'],"
-             "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false}",
+             "',invert:[],ignoreInlineStyle:["
+             "'[data-ad-native615],[data-ad-native615] *',"
+             "'ul.a-pagination.a-dots li.a-selected,ul.a-pagination.a-dots li.dot-selected-t2,[data-ad-dotselected374]',"
+             // v6.0.200: these tiny controls are already fully owned by cheap
+             // declarative/runtime symbol rules. Keep Dark Reader out of their inline
+             // churn instead of letting both systems style the same painter.
+             "'[class*=mlt-icon-container],[class*=puis-heart-position],[class*=lists-treatment-hear],.ssf-share-trigger,.ssf-share-trigger *,[class*=a-checkbox],[class*=a-icon-checkbox]',"
+             "'[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback],[class*=ape-feedback] *,html body .puis-mab-overlay .puis-mab-overlay-row-share .puis-mab-overlay-icon-share'],"
+             "ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false,disableCustomElementRegistryProxy:true}",
             imgBackdrop];
     return gADFixesLiteral613;
 }
@@ -911,11 +904,11 @@ static NSString *ADDarkReaderBootstrap(void){
     gADBootstrap613 = [NSString stringWithFormat:
         @"(function(){try{"
          "if(window.__AMZDARK_LOADED__)return;window.__AMZDARK_LOADED__=1;"
-         // v6.0.12: establish the page canvas before the Dark Reader UMD is parsed.
-         // This is intentionally root-only: it cannot touch product/photo pixels,
-         // but it means lazy/virtualised holes reveal the theme floor, not Amazon white.
+         // v6.0.200: Dark Reader is authoritative for the document/page floor.
+         // adfloor612 now contains only proven component-level first-paint rules; it no
+         // longer paints html/body/#a-page/main ahead of the engine.
          "try{if(!document.getElementById('adfloor612')){var f=document.createElement('style');"
-           "f.id='adfloor612';f.textContent='html,body,#a-page,#gwm-PageContent,main{background-color:#000000 !important;}"
+           "f.id='adfloor612';f.textContent='"
            // v6.0.145: first-paint /ap/signin footer ownership.  v6.0.144 proved
            // the footer can be normalized correctly once its text is hydrated, but
            // that semantic pass necessarily happens after Amazon has had a chance to
@@ -1158,12 +1151,7 @@ static NSString *ADDarkReaderBootstrap(void){
            "window.__AD_DR_SEL6056__='[data-darkreader-inline-bg],[data-darkreader-inline-bgcolor],[data-darkreader-inline-bgimage],[data-darkreader-inline-border],[data-darkreader-inline-border-bottom],[data-darkreader-inline-border-bottom-short],[data-darkreader-inline-border-left],[data-darkreader-inline-border-left-short],[data-darkreader-inline-border-right],[data-darkreader-inline-border-right-short],[data-darkreader-inline-border-top],[data-darkreader-inline-border-top-short],[data-darkreader-inline-border-short],[data-darkreader-inline-boxshadow],[data-darkreader-inline-color],[data-darkreader-inline-fill],[data-darkreader-inline-invert],[data-darkreader-inline-outline],[data-darkreader-inline-stopcolor],[data-darkreader-inline-stroke],[style*=\"--darkreader-inline-\"]';"
            "window.__AD_STRIP_DR615__=function(root){try{if(!root||root.nodeType!==1)return 0;root.setAttribute('data-ad-native615','1');var E=[root],q=root.querySelectorAll?root.querySelectorAll(window.__AD_DR_SEL6056__):[];for(var i=0;i<q.length&&i<220;i++)E.push(q[i]);for(var z=0;z<E.length;z++){var el=E[z],A=window.__AD_DR_ATTRS6056__;for(var x=0;x<A.length;x++)if(el.hasAttribute&&el.hasAttribute(A[x]))el.removeAttribute(A[x]);var st=el.style;if(st){var rm=[];for(var y=0;y<st.length;y++){var pn=st[y];if(String(pn).indexOf('--darkreader-inline-')===0)rm.push(pn);}for(var y2=0;y2<rm.length;y2++)st.removeProperty(rm[y2]);}}return E.length;}catch(e){return 0;}};"
            "window.__AD_MARK_NATIVE615__=function(root){try{if(!root)return 0;var n=0,Q=[];if(root.nodeType===1&&root.matches&&root.matches(window.__AD_NATIVE_SEL615__))Q.push(root);if(root.querySelectorAll){var q=root.querySelectorAll(window.__AD_NATIVE_SEL615__),lim=(root===document)?80:16;for(var i=0;i<q.length&&i<lim;i++)Q.push(q[i]);}for(var j=0;j<Q.length;j++){var fresh=!Q[j].hasAttribute('data-ad-native615');if(fresh){Q[j].setAttribute('data-ad-native615','1');n++;}if(fresh||Q[j]===root)window.__AD_STRIP_DR615__(Q[j]);}try{if(window.__AD_TWB6033_ADROOT__){var h=(root.nodeType===1&&root.closest)?root.closest('[data-ad-native615],'+window.__AD_NATIVE_SEL615__):null;if(h)window.__AD_TWB6033_ADROOT__(root);for(var t=0;t<Q.length&&t<4;t++)if(Q[t]!==h)window.__AD_TWB6033_ADROOT__(Q[t]);}}catch(tx){}return n;}catch(e){return 0;}};"
-           // v6.0.195: video-control recovery used to run for EVERY added node in an
-           // Amazon-native island, then climb ancestors looking for a video.  A PDP
-           // video carousel hydrates many sibling nodes, so wake that owner only when
-           // the mutation actually contains video/control semantics.
-           "window.__AD_VIDEO_REL6195__=function(n){try{if(!n||n.nodeType!==1)return false;var tg=String(n.tagName||'').toUpperCase();if(tg==='VIDEO'||(n.querySelector&&n.querySelector('video')))return true;var c=n.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));var sem=(c+' '+String(n.id||'')+' '+String((n.getAttribute&&n.getAttribute('aria-label'))||(n.getAttribute&&n.getAttribute('title'))||'')).toLowerCase();if(!/play|pause|mute|unmute|volume|sound|video/.test(sem))return false;var p=n.parentElement,d=0;while(p&&d++<3){if(p.querySelector&&p.querySelector('video'))return true;p=p.parentElement;}return false;}catch(x){return false;}};"
-           "window.__AD_MARK_NATIVE615__(document);if(!window.__AD_NATIVE_OBS615__&&document.documentElement){window.__AD_NATIVE_OBS615__=1;new MutationObserver(function(ms){try{for(var i=0;i<ms.length&&i<48;i++){var P=ms[i].removedNodes||[];for(var p=0;p<P.length&&p<24;p++)if(P[p]&&P[p].nodeType===1&&window.__AD_PARK6176__&&(window.__AD_FIX_PRIMED6171__||P[p].hasAttribute('data-ad-native615')||P[p].hasAttribute('data-ad-twb6033')))window.__AD_PARK6176__(P[p],ms[i].target);var A=ms[i].addedNodes||[];for(var j=0;j<A.length&&j<24;j++)if(A[j]&&A[j].nodeType===1){if(window.__AD_WARM6176__&&window.__AD_WARM6176__(A[j],ms[i].target))continue;window.__AD_MARK_NATIVE615__(A[j]);if(window.__AD_VIDEOSTOCK6067__&&window.__AD_VIDEO_REL6195__&&window.__AD_VIDEO_REL6195__(A[j]))window.__AD_VIDEOSTOCK6067__(A[j]);}}}catch(e){}}).observe(document.documentElement,{childList:true,subtree:true});}}catch(e){}"
+           "window.__AD_MARK_NATIVE615__(document);if(!window.__AD_NATIVE_OBS615__&&document.documentElement){window.__AD_NATIVE_OBS615__=1;new MutationObserver(function(ms){try{for(var i=0;i<ms.length&&i<48;i++){var A=ms[i].addedNodes||[];for(var j=0;j<A.length&&j<24;j++)if(A[j]&&A[j].nodeType===1){window.__AD_MARK_NATIVE615__(A[j]);if(window.__AD_VIDEOSTOCK6066__)window.__AD_VIDEOSTOCK6066__(A[j]);if(window.__AD_LEAN6200__)window.__AD_LEAN6200__(A[j]);}}}catch(e){}}).observe(document.documentElement,{childList:true,subtree:true});}}catch(e){}"
          // v6.0.67: preserve the matched compact-control tint and Amazon's native
          // glyphs. Clip only each compact control host + selected shell to a circle
          // so rectangular child/pseudo backing paint cannot remain visible in the
@@ -1177,406 +1165,32 @@ static NSString *ADDarkReaderBootstrap(void){
            "function adVScrub6067(q){try{if(!q)return; q.setAttribute('data-ad-native615','1');if(window.__AD_STRIP_DR615__)window.__AD_STRIP_DR615__(q);var E=[q],D=q.querySelectorAll?q.querySelectorAll('*'):[];for(var i=0;i<D.length&&i<36;i++)E.push(D[i]);for(var j=0;j<E.length;j++){var e=E[j],st=e.style;if(!st)continue;var f=String(st.getPropertyValue('filter')||'').replace(/\s+/g,'').toLowerCase();if(st.getPropertyPriority('filter')==='important'&&f==='brightness(0)invert(1)')st.removeProperty('filter');if(e.__adGlyph){delete e.__adGlyph;}var by=String(e.__adBy||'');if(/^gfix/.test(by)||by==='videoCtl6062')delete e.__adBy;if(e.removeAttribute){e.removeAttribute('data-ad-videoctl6062');e.removeAttribute('data-ad-videowrap6064');e.removeAttribute('data-ad-videostock6064');e.removeAttribute('data-ad-videoshell6065');e.removeAttribute('data-ad-videostock6065');e.removeAttribute('data-ad-videowrap6065');e.removeAttribute('data-ad-videowrap6066');e.removeAttribute('data-ad-videoshell6066');e.removeAttribute('data-ad-videoclip6066');}}}catch(x){}}"
            "function adVClearHost6067(q,shell){try{if(!q)return;var e=shell&&shell!==q?shell.parentElement:null,n=0;function clr(x){if(!x||x===shell)return;x.setAttribute('data-ad-videowrap6067','1');var st=x.style;if(!st)return;st.setProperty('background-color','transparent','important');st.setProperty('background-image','none','important');st.setProperty('box-shadow','none','important');st.setProperty('outline','none','important');st.setProperty('border-color','transparent','important');}clr(q);try{var qr=q.getBoundingClientRect();if(Math.abs(qr.width-qr.height)<=14)q.setAttribute('data-ad-videoclip6067','1');else q.removeAttribute('data-ad-videoclip6067');}catch(_q){}while(e&&e!==q&&n++<5){clr(e);e=e.parentElement;}if(e===q)clr(e);}catch(x){}}"
            "function adVMatchShells6067(play,mute){try{var ps=adVShell6067(play),ms=adVShell6067(mute);if(!ps||!ms)return 0;adVClearHost6067(play,ps);adVClearHost6067(mute,ms);var bg='rgba(255,255,255,0.38)';ps.style.setProperty('background-color',bg,'important');ms.style.setProperty('background-color',bg,'important');ps.style.setProperty('background-image','none','important');ms.style.setProperty('background-image','none','important');ps.style.setProperty('border-radius','50%%','important');ms.style.setProperty('border-radius','50%%','important');ps.style.setProperty('box-shadow','none','important');ms.style.setProperty('box-shadow','none','important');ps.setAttribute('data-ad-videoshell6067','1');ms.setAttribute('data-ad-videoshell6067','1');return 1;}catch(x){return 0;}}"
-           // v6.0.195: cache the exact repaired VIDEO/control pair. Media lifecycle
-           // events can now fast-return instead of repeating the control/geometry walk.
-           "window.__AD_VIDEOSTOCK_ONE6067__=function(v){try{if(!v||String(v.tagName||'').toUpperCase()!=='VIDEO')return 0;var src=String(v.currentSrc||v.src||v.poster||''),par=v.parentElement,cp=v.__adVSPlay6195,cm=v.__adVSMute6195;if(v.__adVSDone6195&&v.__adVSSrc6195===src&&v.__adVSParent6195===par&&cp&&cm&&cp.isConnected&&cm.isConnected&&cp.getAttribute('data-ad-videostock6067')==='1'&&cm.getAttribute('data-ad-videostock6067')==='1')return 1;var vr=v.getBoundingClientRect();if(vr.width<100||vr.height<70)return 0;var host=v,pd=0;while(host.parentElement&&pd++<4){var hp=host.parentElement,hr=hp.getBoundingClientRect();if(hr.width>=vr.width*.70&&hr.width<=vr.width*1.70&&hr.height>=vr.height*.70&&hr.height<=vr.height*1.75)host=hp;else break;}var pair=adVPair6067(host,vr);if(!pair)return 0;adVScrub6067(pair.play);adVScrub6067(pair.mute);pair.play.setAttribute('data-ad-videostock6067','1');pair.mute.setAttribute('data-ad-videostock6067','1');var ok=adVMatchShells6067(pair.play,pair.mute);if(ok){v.__adVSDone6195=1;v.__adVSSrc6195=src;v.__adVSParent6195=par;v.__adVSPlay6195=pair.play;v.__adVSMute6195=pair.mute;}return ok;}catch(e){return 0;}};"
-           "window.__AD_VIDEOSTOCK6067__=function(root){try{var V=[],n=0;function addFrom(b){if(!b)return;try{if(String(b.tagName||'').toUpperCase()==='VIDEO'&&V.indexOf(b)<0)V.push(b);var q=b.querySelectorAll?b.querySelectorAll('video'):[];for(var i=0;i<q.length&&V.length<24;i++)if(V.indexOf(q[i])<0)V.push(q[i]);}catch(x){}}addFrom(root);if(!V.length&&root&&root.nodeType===1){var p=root.parentElement,d=0;while(p&&d++<3&&!V.length){addFrom(p);p=p.parentElement;}}if(!V.length&&root===document)addFrom(document);for(var j=0;j<V.length&&j<24;j++)n+=window.__AD_VIDEOSTOCK_ONE6067__(V[j]);return n;}catch(e){return 0;}};"
-           "var vcs67=function(ev){try{var t=ev&&ev.target;if(t&&String(t.tagName||'').toUpperCase()==='VIDEO'){var ok=window.__AD_VIDEOSTOCK_ONE6067__(t);if(!ok)setTimeout(function(){window.__AD_VIDEOSTOCK_ONE6067__(t);},110);}}catch(e){}};document.addEventListener('loadedmetadata',vcs67,true);document.addEventListener('canplay',vcs67,true);document.addEventListener('playing',vcs67,true);"
-           // Repair only the video local to the clicked control; the old path rescanned
-           // every video in the document twice after each play/mute click.
-           "document.addEventListener('click',function(ev){try{var seed=ev&&ev.target,p=seed,d=0,sem='';while(p&&d++<4){var c=p.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));sem+=' '+c+' '+String((p.getAttribute&&p.getAttribute('aria-label'))||(p.getAttribute&&p.getAttribute('title'))||'');p=p.parentElement;}if(!/play|pause|mute|unmute|volume|sound/i.test(sem)||/caption|fullscreen/i.test(sem))return;var h=seed,u=0,v=null;while(h&&u++<5&&!v){if(String(h.tagName||'').toUpperCase()==='VIDEO')v=h;else if(h.querySelector)v=h.querySelector('video');h=h.parentElement;}if(!v)return;v.__adVSDone6195=0;window.__AD_VIDEOSTOCK_ONE6067__(v);setTimeout(function(){window.__AD_VIDEOSTOCK_ONE6067__(v);},120);}catch(e){}},true);"
-           "var vis67=function(){try{var f=function(){try{window.__AD_VIDEOSTOCK6067__(document);}catch(x){}};if(window.requestIdleCallback)requestIdleCallback(f,{timeout:700});else setTimeout(f,180);}catch(e){}};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',vis67,{once:true});else vis67();window.addEventListener('pageshow',vis67,{passive:true});}catch(e){}"
-         // v6.0.36: seasonal Home mosaic cards are normal dark-theme chrome, not TWB.
-         // v5.446 proved the stable owner is the hp-mosaic/widget family; the visible
-         // campaign heading ("Off to College", holiday, etc.) is content and must not
-         // be the selector. Reuse the existing contrast lifecycle with bounded local
-         // card passes -- no observer, scroll callback or recurring timer is added.
-         "try{if(!document.getElementById('adseasonal6036')){var c36=document.createElement('style');c36.id='adseasonal6036';"
-           "c36.textContent='[data-ad-seasonal6036],[data-ad-seasonal-card6036]{background-color:var(--ad-seasonal6036-bg,#181a1b)!important;filter:none!important;mix-blend-mode:normal!important;opacity:1!important;box-shadow:none!important;border-color:#3b4043!important;}[data-ad-seasonal6036],[data-ad-seasonal6036] h1,[data-ad-seasonal6036] h2,[data-ad-seasonal6036] h3,[data-ad-seasonal6036] h4,[data-ad-seasonal6036] h5,[data-ad-seasonal6036] h6,[data-ad-seasonal6036] p,[data-ad-seasonal6036] a,[data-ad-seasonal6036] span,[data-ad-seasonal6036] strong,[data-ad-seasonal6036] small{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}[data-ad-seasonal6036] .a-icon-next-rounded,[data-ad-seasonal6036] .a-icon-previous-rounded,[data-ad-seasonal6036] [class*=chevron],[data-ad-seasonal6036] [class*=arrow]{color:#e8e6e3!important;filter:brightness(0) invert(1)!important;opacity:1!important;}[data-ad-seasonal6036] svg,[data-ad-seasonal6036] path{fill:#e8e6e3!important;stroke:#e8e6e3!important;}';"
-           "(document.head||document.documentElement).appendChild(c36);}}catch(e){}"
-         "window.__AD_SEASONAL6036__=function(root){try{if(window.top!==window||!document.body)return 0;"
-           "function appbg(){var A=[document.body,document.documentElement];for(var z=0;z<A.length;z++){if(!A[z])continue;var c=String(getComputedStyle(A[z]).backgroundColor||'').replace(/\\s+/g,'');if(c&&c!=='transparent'&&c!=='rgba(0,0,0,0)')return c;}return 'rgb(24,26,27)';}"
-           "function cn(e){var c=e&&e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;return String(c||'').toLowerCase();}"
-           "var SEL='[class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer]';"
-           "function pin(pane,scope){try{if(!pane||!pane.isConnected)return 0;var bg=appbg(),R=pane.getBoundingClientRect(),n=1;pane.setAttribute('data-ad-seasonal6036','1');pane.setAttribute('data-ad-college6034','1');pane.style.setProperty('--ad-seasonal6036-bg',bg);pane.style.setProperty('background-color',bg,'important');pane.style.setProperty('filter','none','important');pane.style.setProperty('mix-blend-mode','normal','important');pane.style.setProperty('box-shadow','none','important');pane.style.setProperty('border-color','#3b4043','important');var K=[],src=(scope&&scope.nodeType===1&&pane.contains(scope))?scope:null,L=null,lim=360;if(src&&src!==pane){K.push(src);L=src.getElementsByTagName?src.getElementsByTagName('*'):[];lim=64;}else{L=pane.getElementsByTagName?pane.getElementsByTagName('*'):[];}for(var z=0;z<L.length&&K.length<lim;z++)K.push(L[z]);for(var i=0;i<K.length;i++){var e=K[i],tg=String(e.tagName||'').toUpperCase();if(!/^(DIV|SECTION|ARTICLE|UL|OL|LI|A)$/.test(tg))continue;var r=e.getBoundingClientRect();if(r.width<72||r.height<42||r.width>Math.max((innerWidth||390)*1.08,R.width*1.08))continue;var cs=getComputedStyle(e),bc=String(cs.backgroundColor||'').replace(/\\s+/g,''),bi=String(cs.backgroundImage||'none'),cl=cn(e),hasColor=!!(bc&&bc!=='transparent'&&bc!=='rgba(0,0,0,0)'),hasGrad=bi.indexOf('gradient(')>=0&&bi.indexOf('url(')<0;if(!hasColor&&!hasGrad)continue;var cardish=/mosaic|card|pane|tile|container|widget|asin|grid|product/.test(cl)||(r.width>=R.width*.36&&r.height>=80);if(!cardish)continue;e.setAttribute('data-ad-seasonal-card6036','1');e.setAttribute('data-ad-college-card6034','1');e.style.setProperty('--ad-seasonal6036-bg',bg);e.style.setProperty('background-color',bg,'important');if(hasGrad)e.style.setProperty('background-image','none','important');e.style.setProperty('filter','none','important');e.style.setProperty('mix-blend-mode','normal','important');e.style.setProperty('box-shadow','none','important');e.style.setProperty('border-color','#3b4043','important');n++;}return n;}catch(x){return 0;}}"
-           "var B=(root&&root.nodeType===1)?root:document,R=[],q=null;function add(e){if(e&&R.indexOf(e)<0&&R.length<24)R.push(e);}"
-           "if(B!==document){try{if(B.matches&&B.matches(SEL))add(B);if(B.closest)add(B.closest(SEL));}catch(x){}}"
-           "try{q=B.querySelectorAll?B.querySelectorAll(SEL):[];for(var i=0;i<q.length&&i<24;i++)add(q[i]);}catch(x){}"
-           // Heading fallback is retained only for an Amazon class rename; normal
-           // ownership never depends on campaign copy.
-           "if(!R.length&&B===document){var Q=document.getElementsByTagName('h2'),H=null;for(var h=0;h<Q.length&&h<120;h++){var t=String(Q[h].textContent||'').replace(/\\s+/g,' ').trim().toLowerCase();if(t==='off to college'){H=Q[h];break;}}if(H){var P=H.parentElement,d=0,vw=innerWidth||390;while(P&&d++<10){var rr=P.getBoundingClientRect();if(rr.width>=vw*.82&&rr.height>=150&&rr.height<=1000){add(P);break;}P=P.parentElement;}}}"
-           "var total=0;for(var j=0;j<R.length;j++){var local=(B!==document&&R[j]!==B&&R[j].contains&&R[j].contains(B))?B:null;total+=pin(R[j],local);}window.__AD_SEASONAL6036_STATE__='roots='+R.length+' paint='+total;return total;}catch(e){window.__AD_SEASONAL6036_STATE__='err '+(e&&e.message||e);return 0;}};"
-         // Existing call sites and the direct-TWB structural skip use the old symbol/
-         // marker names; aliasing them keeps those proven paths intact.
-         "window.__AD_COLLEGE6034__=window.__AD_SEASONAL6036__;"
+           "window.__AD_VIDEOSTOCK_ONE6067__=function(v){try{if(!v||String(v.tagName||'').toUpperCase()!=='VIDEO')return 0;var vr=v.getBoundingClientRect();if(vr.width<100||vr.height<70)return 0;var host=v,pd=0;while(host.parentElement&&pd++<4){var hp=host.parentElement,hr=hp.getBoundingClientRect();if(hr.width>=vr.width*.70&&hr.width<=vr.width*1.70&&hr.height>=vr.height*.70&&hr.height<=vr.height*1.75)host=hp;else break;}var pair=adVPair6067(host,vr);if(!pair)return 0;adVScrub6067(pair.play);adVScrub6067(pair.mute);pair.play.setAttribute('data-ad-videostock6067','1');pair.mute.setAttribute('data-ad-videostock6067','1');return adVMatchShells6067(pair.play,pair.mute);}catch(e){return 0;}};"
+           "window.__AD_VIDEOSTOCK6067__=function(root){try{var V=[],n=0;function addFrom(b){if(!b)return;try{if(String(b.tagName||'').toUpperCase()==='VIDEO'&&V.indexOf(b)<0)V.push(b);var q=b.querySelectorAll?b.querySelectorAll('video'):[];for(var i=0;i<q.length&&V.length<36;i++)if(V.indexOf(q[i])<0)V.push(q[i]);}catch(x){}}addFrom(root);if(!V.length&&root&&root.nodeType===1){var p=root.parentElement,d=0;while(p&&d++<4&&!V.length){addFrom(p);p=p.parentElement;}}if(!V.length&&root===document)addFrom(document);for(var j=0;j<V.length&&j<36;j++)n+=window.__AD_VIDEOSTOCK_ONE6067__(V[j]);return n;}catch(e){return 0;}};"
+           "var vcs67=function(ev){try{var t=ev&&ev.target;if(t&&String(t.tagName||'').toUpperCase()==='VIDEO'){window.__AD_VIDEOSTOCK_ONE6067__(t);setTimeout(function(){window.__AD_VIDEOSTOCK_ONE6067__(t);},90);}}catch(e){}};document.addEventListener('loadedmetadata',vcs67,true);document.addEventListener('loadeddata',vcs67,true);document.addEventListener('canplay',vcs67,true);document.addEventListener('play',vcs67,true);document.addEventListener('playing',vcs67,true);document.addEventListener('pause',vcs67,true);"
+           "document.addEventListener('click',function(ev){try{var p=ev&&ev.target,d=0,sem='';while(p&&d++<4){var c=p.className;c=String(c&&c.baseVal!==undefined?c.baseVal:(c||''));sem+=' '+c+' '+String((p.getAttribute&&p.getAttribute('aria-label'))||(p.getAttribute&&p.getAttribute('title'))||'');p=p.parentElement;}if(!/play|pause|mute|unmute|volume|sound/i.test(sem)||/caption|fullscreen/i.test(sem))return;setTimeout(function(){window.__AD_VIDEOSTOCK6067__(document);},0);setTimeout(function(){window.__AD_VIDEOSTOCK6067__(document);},120);}catch(e){}},true);"
+           "var vis67=function(){try{window.__AD_VIDEOSTOCK6067__(document);}catch(e){}};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',vis67,{once:true});else vis67();window.addEventListener('pageshow',vis67,{passive:true});}catch(e){}"
+         // v6.0.200: seasonal Home mosaic ownership is now declarative only.
+         // The exact hp-mosaic/widget selectors already exist in both documentStart
+         // and Dark Reader override CSS, so the old geometry/computed-style scanner
+         // and campaign-heading fallback are redundant runtime work.
          "%@\n" // DarkReader UMD
          "if(window.DarkReader&&DarkReader.enable){"
          "try{DarkReader.setFetchMethod(window.fetch);}catch(e){}"
-         // WCAG contrast repair. Dark Reader recolours from the page's own palette,
-         // which can leave text only marginally separated from its background - the
-         // '% off' badges and the descriptions under product photos being the
-         // reported cases. This measures the real computed contrast of every element
-         // that owns visible text and lifts ONLY the ones that actually fail, so
-         // brand colours that already read fine are untouched.
-         "window.__AMZDARK_FIXCONTRAST__=function(root){try{var base=(root&&root.nodeType===1)?root:(document.body||document.documentElement);"
-           "var FG='%@';"
-           "function ch(v){v=v/255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);}"
-           "function lum(c){var m=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\)/.exec(c);"
-             "if(!m)return null;var a=m[4]===undefined?1:parseFloat(m[4]);if(a<0.1)return null;"
-             "return 0.2126*ch(+m[1])+0.7152*ch(+m[2])+0.0722*ch(+m[3]);}"
-           // v6.0.173: pass-local geometry/background caches. FIXCONTRAST revisits the
-           // same nodes repeatedly through glyph, gradient, border and text gates; cache only
-           // values that cannot change meaningfully during this pass. No persistent DOM state.
-           "var rectCache6173=new WeakMap(),bgCache6173=new WeakMap(),spCache6173=new WeakMap();"
-           "function rect6173(e){try{var r=rectCache6173.get(e);if(r)return r;if(!e||!e.getBoundingClientRect)return {left:0,top:0,right:0,bottom:0,width:0,height:0};r=e.getBoundingClientRect();rectCache6173.set(e,r);return r;}catch(x){return {left:0,top:0,right:0,bottom:0,width:0,height:0};}}"
-           "function bgOf(e,first){while(e){if(bgCache6173.has(e)){var c=bgCache6173.get(e);if(c!==null)return c;e=e.parentElement;first=null;continue;}var l=lum(first?first.backgroundColor:getComputedStyle(e).backgroundColor);bgCache6173.set(e,l);if(l!==null)return l;e=e.parentElement;first=null;}return 0.02;}"
-           // Darkening blend modes are destructive on a dark theme: multiply/darken/
-           // color-burn all SUBTRACT light, so against a dark backdrop they crush the
-           // element toward black. That is what veiled the home tiles (fixed in v5.8.0
-           // via CSS on media elements) and it is back on the explore pane because
-           // there the blend mode sits on a CONTAINER, not the <img> - resetting the
-           // child cannot undo a parent's blending of the whole composited subtree.
-           // Neutralising by COMPUTED value catches it wherever it lives: img, div,
-           // background-image element or wrapper. Lighten/screen/overlay are left
-           // alone - they add light, which is harmless here.
-           "var BAD={'multiply':1,'darken':1,'color-burn':1};"
-           // v6.0.56: contrast repair is fallback work, not the primary painter.  Bound
-           // mutation-local passes so one huge hydrated subtree cannot monopolize WebKit.
-           "var cap=(base===document.body||base===document.documentElement)?1400:((window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(base))?120:360);"
-           // v6.0.171: preserve the exact 1400/360/120 visit caps, but stop asking
-           // WebKit to materialize an all-descendant NodeList before the cap is applied.
-           // TreeWalker stops enumeration as soon as the existing budget is exhausted.
-           "function collect(root,out,depth){try{if(out.length>=cap)return out;"
-             "var w=document.createTreeWalker(root,NodeFilter.SHOW_ELEMENT),e;"
-             "while(out.length<cap&&(e=w.nextNode())){out.push(e);"
-               "if(e.shadowRoot&&depth<4&&out.length<cap)collect(e.shadowRoot,out,depth+1);}"
-             "}catch(e){}return out;}"
-           "var els=[base];collect(base,els,0);var n=0,bfix=0,lfix=0,gfix=0;"           // Read the themed background off <html> rather than plumbing another
-           // format argument through two call sites.
-           "var BG='rgb(24,26,27)';try{var hb=getComputedStyle(document.documentElement).backgroundColor;"
-             "var hl=lum(hb);if(hl!==null&&hl<0.25)BG=hb;}catch(e){}"
-           // v6.0.10: v5.446/v5.439 dependency restoration. The exact 23px
-           // a-icon-checkbox was being claimed by the generic glyph repair before
-           // stockCheckbox434 could own it. Protect the native checkbox/Compare
-           // subtree from every broad glyph writer; stockCheckbox434 remains sole owner.
-           "function adCbx439(e9){try{return !!(e9&&e9.closest&&e9.closest('[class*=a-checkbox],[class*=a-icon-checkbox],input[type=checkbox],[role=checkbox],[class*=copilot-compare],button[aria-label*=ompare],[data-csa-c-content-id*=ompare]'));}catch(err){return true;}}"
-           // v6.0.16 / v5.446: small round content bitmaps are not monochrome UI glyphs.
-           // Keep the class reject broad and do ancestry/bitmap checks only on tiny <img>
-           // candidates immediately before a glyph write.
-           "var SKIP=/star|prime|logo|flag|swatch|thumb|sponsor|pill-image|product-image|photo|heart|wish|lists-framework|mlt-icon-container|avatar|profile|author|reviewer|byline|merchant|seller|brand|store|logo-|-logo|headshot|user-image|customer/i;"
-           "var CONTENTIMG616='[data-hook*=review],[class*=review],[class*=profile],[class*=avatar],[class*=author],[class*=byline],[class*=merchant],[class*=seller],[class*=brand],[class*=store],[id*=review]';"
-           // v6.0.90: Amazon's search-result feature badges (Works with Alexa,
-           // recycled-material / carbon-impact marks, etc.) are tiny full-colour IMG
-           // assets next to short product metadata text. Some recycled rows omit alt
-           // text, so v6.0.16's narrow contentImg616 guard let the generic gfix1 lane
-           // treat the same opaque bitmap as a monochrome UI glyph. brightness(0)+
-           // invert(1) then turns every opaque pixel white, producing the exact blank
-           // white square seen on-device. Restore the v5.446 product-art principle at
-           // this leaf only: a tiny IMG in a non-interactive product metadata row is
-           // authored content, not chrome. No new traversal is introduced; this runs
-           // only for the already-visited tiny IMG candidate.
-           "var PRODUCTCTX6090='[data-component-type=s-search-result],[class*=s-result-item],[class*=puis-card],[data-asin],[class*=s-product-image],[class*=product-image],[class*=faceout],[class*=gwm],[class*=cardui]';"
-           "function productBadgeImg6094(e,r){try{if(!e||!e.closest||!e.closest(PRODUCTCTX6090))return false;"
-             // v6.0.93 lifecycle probe named the failing renderer exactly:
-             // IMG.s-image inside .s-pc-certification-faceout, usually wrapped by an
-             // A role=button.  v6.0.90 rejected that wrapper as interactive before it
-             // could classify the bitmap as content, then gfix1 whitened the entire
-             // opaque PNG.  Exact certification/faceout ancestry wins before the UI
-             // control reject; the surrounding chevron/control remains untouched.
-             "if(e.closest('.s-pc-certification-faceout,.s-pc-faceout-container,[data-cy=s-pc-faceout-badge]'))return true;"
-             "if(e.closest('button,[role=button],input,[class*=a-checkbox],[class*=a-icon-checkbox],[class*=puis-heart-position],[class*=lists-framework-action-button],[class*=mlt-icon-container],[data-action]'))return false;"
-             "if(!r||r.width<8||r.height<8||r.width>48||r.height>48)return false;"
-             "var p=e.parentElement,d=0;while(p&&d++<4){var pr=rect6173(p);"
-               "var tx=String(p.textContent||'').replace(/\\s+/g,' ').trim();"
-               "if(tx.length>=3&&tx.length<=180&&pr.height>0&&pr.height<=64&&pr.width>=r.width*1.8)return true;"
-               "if(p.matches&&p.matches(PRODUCTCTX6090))break;p=p.parentElement;}"
-             "return false;}catch(x){return false;}}"
-           "function contentImg616(e,r,cs){try{if(!e||String(e.tagName||'').toLowerCase()!=='img')return false;"
-             "var al=(e.getAttribute&&e.getAttribute('alt')||'').trim();if(al.length>1)return true;"
-             "if(e.closest&&e.closest(CONTENTIMG616))return true;"
-             "if(productBadgeImg6094(e,r))return true;"
-             "var brs=String((cs&&cs.borderRadius)||''),br=parseFloat(brs)||0,pct=brs.indexOf('%%')>=0;"
-             "var circ=pct?br>=40:br>=Math.min(r.width,r.height)*0.4;"
-             "if(circ&&((e.naturalWidth||0)>64||(e.naturalHeight||0)>64))return true;"
-           "}catch(x){}return false;}"           // Classes the probe confirmed are monochrome UI glyphs. These get a
-           // looser size cap, because the heart measures 33x33 against a 32 limit and
-           // was failing by a single pixel, while sbs-pill-image at 34x34 is a product
-           // thumbnail that must keep its colour.
-           "var ICON=/heart|wish|favor|lists-framework|a-icon|icon-|-icon|^_[a-z0-9]{4,8}_/i;"           // collect() walks document.body's DESCENDANTS, so <html> and <body>
-           // themselves are never in els. A page that paints its own light background
-           // on body -- Amazon Pharmacy's pink -- is invisible to every per-element
-           // rule, and its inline/high-specificity value also overrides Dark Reader's
-           // sheet. Darken them explicitly. Both solid and gradient forms.
-           "try{var roots=[document.documentElement,document.body];"
-             "for(var ri=0;ri<roots.length;ri++){var be=roots[ri];if(!be)continue;"
-               "var bcs=getComputedStyle(be),bbl=lum(bcs.backgroundColor);"
-               "if(bbl!==null&&bbl>0.4){be.style.setProperty('background-color',BG,'important');lfix++;}"
-               "var bbi=bcs.backgroundImage||'';"
-               "if(bbi.indexOf('gradient')>=0){var bmx=0,bm,bre=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/g;"
-                 "while((bm=bre.exec(bbi))){var bl2=0.2126*ch(+bm[1])+0.7152*ch(+bm[2])+0.0722*ch(+bm[3]);"
-                   "if(bl2>bmx)bmx=bl2;}"
-                 "if(bmx>0.4){be.style.setProperty('background-image','none','important');"
-                   "be.style.setProperty('background-color',BG,'important');lfix++;}}}"
-           "}catch(e){}"
-           // v6.0.82: Home product-copy bridge for Amazon-owned/native ad islands.
-           // v6.0.15 intentionally keeps these islands out of broad Dark Reader/contrast
-           // ownership, but some current recommendation widgets use the same family for
-           // ordinary product cards. Their black title/price leaves therefore never reach
-           // the generic contrast writer. Reuse this already-bounded traversal and lift
-           // only dark-neutral DIRECT text that belongs to a real product card and does
-           // not overlap product artwork. No extra DOM scan/observer is introduced.
-           "function prodInk6078(e){try{if(!e||!e.childNodes)return 0;"
-             "var tg=String(e.tagName||'').toUpperCase();if(!/^(?:A|SPAN|DIV|P|H1|H2|H3|H4|H5|STRONG|SMALL|SUP|B|EM)$/.test(tg))return 0;"
-             "var own='';for(var q=0;q<e.childNodes.length&&q<10;q++){var nd=e.childNodes[q];if(nd.nodeType===3)own+=String(nd.nodeValue||'');}"
-             "own=own.replace(/\s+/g,' ').trim();if(!own||own.length>320)return 0;"
-             "function neutral6078(v){var m=/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/.exec(String(v||''));if(!m)return false;var mx=Math.max(+m[1],+m[2],+m[3]),mn=Math.min(+m[1],+m[2],+m[3]);return (mx-mn)<48;}"
-             "var cs=getComputedStyle(e),cl=lum(cs.color),fc=String(cs.webkitTextFillColor||''),fl=lum(fc);"
-             "if(!((cl!==null&&cl<0.48&&neutral6078(cs.color))||(fl!==null&&fl<0.48&&neutral6078(fc))))return 0;"
-             "var bl=bgOf(e,cs);if(bl===null||bl>0.35)return 0;"
-             "var p=e,card=null,d=0;while(p&&d++<7){var r=rect6173(p);if(r.width>=120&&r.width<=540&&r.height>=120&&r.height<=760&&p.querySelector){"
-               "var ph=null,im=null;try{ph=p.querySelector('a[href*=\"/dp/\"],a[href*=\"/gp/product/\"],[data-asin]');im=p.querySelector('img,picture');}catch(z){}"
-               "if(ph&&im){card=p;break;}}p=p.parentElement;}if(!card)return 0;"
-             "var er=rect6173(e),imgs=card.getElementsByTagName?card.getElementsByTagName('img'):[],saw=0;"
-             "for(var j=0;j<imgs.length&&j<10;j++){var ir=rect6173(imgs[j]);if(ir.width<70||ir.height<70)continue;saw++;var ow=Math.min(er.right,ir.right)-Math.max(er.left,ir.left),oh=Math.min(er.bottom,ir.bottom)-Math.max(er.top,ir.top);if(ow>0&&oh>0&&((ow*oh)/Math.max(1,er.width*er.height))>0.18)return 0;}"
-             "if(!saw)return 0;var a=e,ad=0;while(a&&a!==card.parentElement&&ad++<6){var bi=String(getComputedStyle(a).backgroundImage||'none');if(bi.indexOf('url(')>=0)return 0;a=a.parentElement;}"
-             "e.style.setProperty('color',FG,'important');e.style.setProperty('-webkit-text-fill-color',FG,'important');e.setAttribute('data-ad-productink6078','1');return 1;"
-           "}catch(x){return 0;}}"
-           // v6.0.143: unsigned-cart Amazon Visa credit banner. The screenshot shows
-           // a short full-width promo whose white structural floor escaped Dark Reader.
-           // Identify it semantically inside the EXISTING contrast traversal so there is
-           // no new observer or document scan. This also works inside child frames because
-           // the bootstrap is injected forMainFrameOnly:NO.
-           "function adCartCreditText6143(e){try{if(!e||e.nodeType!==1)return false;var t=String(e.textContent||'').replace(/\\s+/g,' ').trim();if(t.length<18||t.length>420)return false;return /pay for this order/i.test(t)&&(/[$]?50\\s*off/i.test(t)||/upon approval/i.test(t)||/amazon visa/i.test(t));}catch(x){return false;}}"
-           "function adCartCredit6143(e){try{if(!adCartCreditText6143(e))return 0;var vw=innerWidth||390,p=e,best=null,d=0;while(p&&d++<7){var r=rect6173(p);if(r.width>=vw*.72&&r.height>=44&&r.height<=190){best=p;if(r.width>=vw*.90)break;}p=p.parentElement;}if(!best)return 0;if(best.getAttribute('data-ad-cartcredit6143')==='1')return 1;best.setAttribute('data-ad-cartcredit6143','1');best.style.setProperty('background-color',BG,'important');best.style.setProperty('background-image','none','important');best.style.setProperty('box-shadow','none','important');best.style.setProperty('border-color','transparent','important');var Q=best.querySelectorAll?best.querySelectorAll('div,section,article,span,p,a,strong,b,em,small,h1,h2,h3,h4,h5,h6'):[];for(var ci=0;ci<Q.length&&ci<96;ci++){var q=Q[ci],tg=String(q.tagName||'').toUpperCase(),qr=rect6173(q),qs=getComputedStyle(q);if(/^(?:DIV|SECTION|ARTICLE)$/.test(tg)){var ql=lum(qs.backgroundColor);if((ql!==null&&ql>.50)||(qr.width>=rect6173(best).width*.55&&qr.height>=18)){q.style.setProperty('background-color','transparent','important');if(String(qs.backgroundImage||'none').indexOf('url(')<0)q.style.setProperty('background-image','none','important');q.style.setProperty('box-shadow','none','important');}}var own='';for(var cj=0;cj<q.childNodes.length&&cj<12;cj++){var cn=q.childNodes[cj];if(cn.nodeType===3)own+=String(cn.nodeValue||'');}if(own.replace(/\\s+/g,' ').trim()){q.style.setProperty('color',FG,'important');q.style.setProperty('-webkit-text-fill-color',FG,'important');q.style.setProperty('opacity','1','important');}}return 1;}catch(x){return 0;}}"
-           // v6.0.144: /ap/signin footer-strip repair. The 6143 capture showed this
-           // screen is a single top-level WKWebView; the odd light/gray gradient sits
-           // behind the footer link group ("Conditions of Use", "Privacy Notice",
-           // "Help"). Identify only that semantic group inside the EXISTING traversal
-           // and collapse its structural/pseudo backgrounds to the configured page BG.
-           // Link ink, copyright text, form controls, and the rest of sign-in are untouched.
-           "function adSigninFooterText6144(e){try{if(!e||e.nodeType!==1)return false;var p=String(location.pathname||'').toLowerCase();if(p.indexOf('/ap/signin')!==0)return false;var t=String(e.textContent||'').replace(/\\s+/g,' ').trim();if(t.length<24||t.length>180)return false;if(/welcome to amazon|enter mobile number or email/i.test(t))return false;return /conditions of use/i.test(t)&&/privacy notice/i.test(t)&&/(?:^|\\s)help(?:\\s|$)/i.test(t);}catch(x){return false;}}"
-           "function adSigninFooter6144(e){try{if(!adSigninFooterText6144(e))return 0;var vw=innerWidth||390,p=e,best=null,d=0;while(p&&d++<6){var r=rect6173(p);if(r.width>=vw*.72&&r.height>=18&&r.height<=170)best=p;else if(best&&r.height>170)break;p=p.parentElement;}if(!best)return 0;if(best.getAttribute('data-ad-signinfooter6144')==='1')return 1;best.setAttribute('data-ad-signinfooter6144','1');var sid='ad-signinfooter6144-style',st=document.getElementById(sid);if(!st){st=document.createElement('style');st.id=sid;st.textContent='[data-ad-signinfooter6144],[data-ad-signinfooter6144]::before,[data-ad-signinfooter6144]::after{background-color:'+BG+'!important;background-image:none!important;box-shadow:none!important;}[data-ad-signinfooter6144] div,[data-ad-signinfooter6144] section,[data-ad-signinfooter6144] footer,[data-ad-signinfooter6144] aside,[data-ad-signinfooter6144] nav,[data-ad-signinfooter6144] ul,[data-ad-signinfooter6144] li,[data-ad-signinfooter6144] table,[data-ad-signinfooter6144] tbody,[data-ad-signinfooter6144] tr,[data-ad-signinfooter6144] td{background-color:transparent!important;background-image:none!important;box-shadow:none!important;}[data-ad-signinfooter6144] div::before,[data-ad-signinfooter6144] div::after,[data-ad-signinfooter6144] section::before,[data-ad-signinfooter6144] section::after,[data-ad-signinfooter6144] footer::before,[data-ad-signinfooter6144] footer::after,[data-ad-signinfooter6144] aside::before,[data-ad-signinfooter6144] aside::after,[data-ad-signinfooter6144] nav::before,[data-ad-signinfooter6144] nav::after,[data-ad-signinfooter6144] li::before,[data-ad-signinfooter6144] li::after{background-color:transparent!important;background-image:none!important;box-shadow:none!important;}';(document.head||document.documentElement).appendChild(st);}best.style.setProperty('background-color',BG,'important');best.style.setProperty('background-image','none','important');best.style.setProperty('box-shadow','none','important');var Q=best.querySelectorAll?best.querySelectorAll('div,section,footer,aside,nav,ul,li,table,tbody,tr,td'):[];for(var fi=0;fi<Q.length&&fi<80;fi++){Q[fi].style.setProperty('background-color','transparent','important');Q[fi].style.setProperty('background-image','none','important');Q[fi].style.setProperty('box-shadow','none','important');}return 1;}catch(x){return 0;}}"
-           // v6.0.184: restore the exact v6.0.177 Interests caught-up gradient
-           // owner inside the existing bounded contrast traversal. This is the wide,
-           // shallow gradient beside "You're all caught up!", not the separate
-           // Related Interests suggestion-card background-image fixed in v6.0.179.
-           "function adInterestText6177(e,re,max){try{if(!e||e.nodeType!==1)return false;var t=String(e.textContent||'').replace(/\\s+/g,' ').trim();return t.length>0&&t.length<=(max||180)&&re.test(t);}catch(x){return false;}}"
-           "function adCaughtUp6177(e){return adInterestText6177(e,/^you(?:'|’)?re all caught up!?$/i,90);}"
-           "function adEnsureInterestGradientStyle6177(){try{var id='ad-interestgradient6177-style',st=document.getElementById(id);if(st)return;st=document.createElement('style');st.id=id;st.textContent='[data-ad-interestgradient6177],[data-ad-interestgradient6177]::before,[data-ad-interestgradient6177]::after{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}';(document.head||document.documentElement).appendChild(st);}catch(x){}}"
-           "function adInterestGradient6177(anchor){try{if(!adCaughtUp6177(anchor))return 0;adEnsureInterestGradientStyle6177();var vw=innerWidth||390,p=anchor,root=null,d=0;while(p&&d++<5){var r=rect6173(p);if(r.width>=vw*.78&&r.height>=60&&r.height<=380)root=p;p=p.parentElement;}if(!root||!root.querySelectorAll)return 0;var Q=root.querySelectorAll('div,section,span'),n=0,ar=rect6173(anchor);for(var i=0;i<Q.length&&i<120;i++){var q=Q[i],r=rect6173(q);if(r.width<110||r.height<10||r.height>100||r.width<r.height*2)continue;if(Math.abs((r.top+r.bottom-ar.top-ar.bottom)/2)>95)continue;var cs=getComputedStyle(q),bi=String(cs.backgroundImage||'none');if(bi.indexOf('gradient')<0)continue;q.setAttribute('data-ad-interestgradient6177','1');q.style.setProperty('background','transparent','important');q.style.setProperty('background-image','none','important');q.style.setProperty('box-shadow','none','important');n++;}return n;}catch(x){return 0;}}"
-           // v6.0.138: semantic Sponsored bridge. This reuses the existing bounded
-           // contrast traversal instead of adding another document scan. It also
-           // identifies Sponsor ancestry so generic glyph whitening cannot repaint
-           // Amazon's stock info artwork.
-           "function adSponsorText6138(e){try{if(!e||!e.childNodes)return false;var t='';for(var si=0;si<e.childNodes.length&&si<12;si++){var sn=e.childNodes[si];if(sn.nodeType===3)t+=' '+String(sn.nodeValue||'');}t=t.replace(/\s+/g,' ').trim();return /^sponsored(?: ad)?$/i.test(t);}catch(x){return false;}}"
-           "function adSponsorCtx6138(e){try{if(!e)return false;if(spCache6173.has(e))return spCache6173.get(e);var p=e,d=0,hit=false;while(p&&d++<4){var c=p.className;if(c&&c.baseVal!==undefined)c=c.baseVal;var z=(String(c||'')+' '+String(p.id||'')).toLowerCase();if(/sponsor|ad-feedback|adfeedback|ape-feedback/.test(z)||adSponsorText6138(p)){hit=true;break;}var tx=String(p.textContent||'').replace(/\s+/g,' ').trim();if(tx.length<=120&&/\bsponsored(?: ad)?\b/i.test(tx)){hit=true;break;}p=p.parentElement;}spCache6173.set(e,hit);return hit;}catch(x){return false;}}"
-           // v6.0.152: the semantic bridge now owns bitmap-backed info badges too.
-           // Several Home ad-card templates expose the 11/12px info icon only as an
-           // anonymous background-image/IMG sprite; preserving that stock bitmap is why
-           // those badges stayed dark while the adjacent Sponsored label was #b1aaa0.
-           "function adSponsorGlyph6138(e){try{if(!e||e.nodeType!==1||adSponsorText6138(e))return false;var r=rect6173(e);if(r.width<5||r.height<5||r.width>30||r.height>30)return false;if(!adSponsorCtx6138(e))return false;var cs=getComputedStyle(e),c=e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;var z=(String(c||'')+' '+String(e.id||'')+' '+String((e.getAttribute&&e.getAttribute('aria-label'))||'')+' '+String((e.getAttribute&&e.getAttribute('title'))||'')).toLowerCase(),tg=String(e.tagName||'').toUpperCase(),bi=String(cs.backgroundImage||'none'),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),pb=null,pa=null,pc=false;try{pb=getComputedStyle(e,'::before');pa=getComputedStyle(e,'::after');pc=(pb&&pb.content&&pb.content!=='none'&&pb.content!=='normal')||(pa&&pa.content&&pa.content!=='none'&&pa.content!=='normal');}catch(q){}var known=/ad-feedback-spr|feedback.*(?:spr|icon)|(?:sponsor|info).*icon|icon.*info/.test(z),vector=(tg==='SVG'||tg==='PATH'||(e.namespaceURI==='http://www.w3.org/2000/svg'));if(!known&&!vector&&mi==='none'&&bi==='none'&&!pc)return false;e.setAttribute('data-ad-sponsorglyph6138','1');e.style.setProperty('opacity','1','important');e.style.setProperty('visibility','visible','important');e.style.setProperty('mix-blend-mode','normal','important');e.style.setProperty('filter','none','important');if(tg==='IMG'){try{e.setAttribute('src','data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjUuMjUiIGZpbGw9IiNiMWFhYTAiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy41NSIgcj0iLjcyIiBmaWxsPSIjMTMxNTE2Ii8+PHJlY3QgeD0iNS40MiIgeT0iNS4wNSIgd2lkdGg9IjEuMTYiIGhlaWdodD0iMy42NSIgcng9Ii41OCIgZmlsbD0iIzEzMTUxNiIvPjwvc3ZnPg==');}catch(q){}e.style.setProperty('background-color','transparent','important');e.style.setProperty('object-fit','contain','important');}else if(mi!=='none'){e.style.setProperty('background-color','#b1aaa0','important');}else if(vector){e.style.setProperty('color','#b1aaa0','important');e.style.setProperty('fill','#b1aaa0','important');e.style.setProperty('stroke','#b1aaa0','important');}else if(bi!=='none'||pc||known){e.style.setProperty('color','#b1aaa0','important');e.style.setProperty('background-color','transparent','important');e.style.setProperty('background-image','url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMiAxMiI+PGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjUuMjUiIGZpbGw9IiNiMWFhYTAiLz48Y2lyY2xlIGN4PSI2IiBjeT0iMy41NSIgcj0iLjcyIiBmaWxsPSIjMTMxNTE2Ii8+PHJlY3QgeD0iNS40MiIgeT0iNS4wNSIgd2lkdGg9IjEuMTYiIGhlaWdodD0iMy42NSIgcng9Ii41OCIgZmlsbD0iIzEzMTUxNiIvPjwvc3ZnPg==)','important');e.style.setProperty('background-repeat','no-repeat','important');e.style.setProperty('background-position','center','important');e.style.setProperty('background-size','contain','important');}else{e.style.setProperty('color','#b1aaa0','important');e.style.setProperty('-webkit-text-fill-color','#b1aaa0','important');}return true;}catch(x){return false;}}"
-           "for(var i=0;i<els.length;i++){var el=els[i];"
-             "if(adSigninFooterText6144(el)){adSigninFooter6144(el);}"
-             "if(adCartCreditText6143(el)){adCartCredit6143(el);}"
-             "if(adCaughtUp6177(el)){n+=adInterestGradient6177(el);}"
-             "if(adSponsorText6138(el)){el.setAttribute('data-ad-sponsorgray6138','1');el.style.setProperty('color','#b1aaa0','important');el.style.setProperty('-webkit-text-fill-color','#b1aaa0','important');el.style.setProperty('opacity','1','important');el.style.setProperty('visibility','visible','important');continue;}"
-             "if(adSponsorGlyph6138(el))continue;"
-             "if(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(el)){n+=prodInk6078(el);continue;}"
-             "var cs=getComputedStyle(el);"
-             // v6.0.94: if a recycled product-badge IMG was previously claimed by
-             // gfix1 earlier in this same WebView, release that stale inline filter
-             // before the normal glyph gate runs again. This is O(1) and only does
-             // geometry/ancestry work on elements already marked as a generic glyph.
-             "try{if(el.__adGlyph&&/^gfix/.test(String(el.__adBy||''))&&String(el.tagName||'').toLowerCase()==='img'){"
-               "var hr6090=rect6173(el);if(contentImg616(el,hr6090,cs)){el.style.removeProperty('filter');el.__adGlyph=0;el.__adBy='productBadge6094';}}}catch(h6090){}"
-             // NO LIGHT PANELS. Anything still measuring light after Dark Reader has
-             // run is a miss -- a gradient it could not parse, a shadow subtree, an
-             // inline style it skipped. Correct by COMPUTED value so the mechanism
-             // does not matter. els is in document order, so an ancestor is darkened
-             // before its children are contrast-checked against it.
-             "if(lfix<300){var pl=lum(cs.backgroundColor);"
-               "if(pl!==null&&pl>0.55){el.style.setProperty('background-color',BG,'important');lfix++;}}"
-             // LIGHT GRADIENTS. lfix read 0 on every line while a 430x627 light panel
-             // sat on screen, because a gradient lives in background-IMAGE and is
-             // invisible to a backgroundColor check. The probe named it:
-             // div.wd-backdrop-gradient, the 'Researched by Alexa' card. Parse the
-             // stops and only neutralise gradients that actually resolve light, so
-             // decorative dark gradients are left alone.
-             "if(lfix<300){var gbi=cs.backgroundImage||'';"
-               "if(gbi.indexOf('gradient')>=0){var g2=rect6173(el);"
-                 "if(g2.width>120&&g2.height>60){var gmx=0,gm,gre=/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/g;"
-                   "while((gm=gre.exec(gbi))){var gl2=0.2126*ch(+gm[1])+0.7152*ch(+gm[2])+0.0722*ch(+gm[3]);"
-                     "if(gl2>gmx)gmx=gl2;}"
-                   "if(gmx>0.55){el.style.setProperty('background-image','none','important');"
-                     "el.style.setProperty('background-color',BG,'important');lfix++;}}}}"
-             // SPRITE AND <img> GLYPHS -- the heart and the filter control.
-             // ignoreImageAnalysis:['*'] switches off Dark Reader's dark-image
-             // inversion (added in v5.4.0 to protect product photos) and the injected
-             // img{filter:none} rule blocks it a second time, so a monochrome icon
-             // shipped as an <img> or CSS sprite has nothing acting on it at all.
-             // Forcing it white is safe at glyph size and beats measuring pixels,
-             // which cannot work here: these come from m.media-amazon.com and would
-             // taint a canvas. Inline !important outranks stylesheet !important, so
-             // this wins over our own img{filter:none}.
-             "if(gfix<160&&!el.__adGlyph){try{var gr=rect6173(el);"
-               "var cn2=el.className;if(cn2&&cn2.baseVal!==undefined)cn2=cn2.baseVal;"
-               "cn2=(cn2||'').toString();"
-               // textContent was the wrong test. Amazon's standard icon markup nests a
-               // visually-hidden label -- <span class=a-icon><span class=a-icon-alt>Add
-               // to list</span></span> -- so textContent is non-empty and the guard
-               // rejected precisely the markup being targeted. That is why the filter
-               // control (no nested label) went white and the heart did not. Only the
-               // element's OWN direct text nodes should disqualify it.
-               "var ot=false;for(var z=0;z<el.childNodes.length;z++){var nz=el.childNodes[z];"
-                 "if(nz.nodeType===3&&nz.nodeValue&&nz.nodeValue.trim()){ot=true;break;}}"
-               "var lim=ICON.test(cn2)?40:36;"
-               "if(gr.width>5&&gr.width<=lim&&gr.height>5&&gr.height<=lim&&!SKIP.test(cn2)&&!ot&&!adSponsorCtx6138(el)){"
-                 "var isI=el.tagName.toLowerCase()==='img';"
-                 // v5.446 device-proven case: a 32pt circular shop/avatar bitmap backed
-                 // by a larger source was being silhouetted into a solid white disc.
-                 // Run this only after the existing size/class/text gates.
-                 "if(isI&&contentImg616(el,gr,cs))continue;"
-                 "var hasB=cs.backgroundImage&&cs.backgroundImage!=='none';"
-                 "if(isI||hasB){if(adCbx439(el))continue;el.style.setProperty('filter','brightness(0) invert(1)','important');"
-                   "el.__adGlyph=1;el.__adBy='gfix1';gfix++;}}"
-             "}catch(e){}}"
-             "if(BAD[cs.mixBlendMode]&&bfix<800){"
-               "el.style.setProperty('mix-blend-mode','normal','important');"
-               "el.style.setProperty('isolation','auto','important');bfix++;}"
-             // SVG icons. Dark Reader recolours CSS 'color'; it does not touch the
-             // fill/stroke PRESENTATION ATTRIBUTES that line-art icons use, so an
-             // <svg fill="#000"> stays black on a themed page. Measured on device:
-             // the X and recent-search glyphs sit at rgb(12,13,14) - actually darker
-             // than the rgb(24,26,27) background - while text on the same page themed
-             // correctly. Only dark fills are redirected, so multi-colour artwork and
-             // brand marks keep their palette.
-             "if(el.namespaceURI==='http://www.w3.org/2000/svg'){"
-               "if(el.tagName.toLowerCase()==='svg'&&gfix<160&&!el.__adGlyph){"
-                 "try{var sr3=rect6173(el);"
-                   "var sc3=el.className;if(sc3&&sc3.baseVal!==undefined)sc3=sc3.baseVal;sc3=(sc3||'').toString();"
-                   "var slim=ICON.test(sc3)?44:40;"
-                   "var SK2=/star|prime|logo|flag|swatch|thumb|sponsor|pill-image|product-image|photo|avatar|profile|author|reviewer|byline|merchant|seller|brand|store|headshot|user-image|customer/i;"
-                   "if(sr3.width>5&&sr3.width<=slim&&sr3.height>5&&sr3.height<=slim&&!SK2.test(sc3)&&!adSponsorCtx6138(el)){"
-                     "if(adCbx439(el))continue;"
-                     "el.style.setProperty('filter','brightness(0) invert(1)','important');el.__adGlyph=1;el.__adBy='gfix2';gfix++;}"
-                 "}catch(e){}}"
-               "if(!adSponsorCtx6138(el)){var fl2=lum(cs.fill),sl=lum(cs.stroke);"
-               "if(fl2!==null&&fl2<0.22){el.style.setProperty('fill',FG,'important');n++;}"
-               "if(sl!==null&&sl<0.22){el.style.setProperty('stroke',FG,'important');n++;}}"
-             "}"
-             // ICON FONTS / PSEUDO-ELEMENT GLYPHS. The text pass below requires a
-             // literal child text node, and a ::before glyph has none - the character
-             // lives in generated content. So an icon font renders in the element's
-             // own dark `color` and nothing above ever looks at it. This is the single
-             // most likely reason autocomplete reports 0/0 while its clock and X
-             // glyphs sit there black.
-             "function hasC(p){if(!p)return false;var c=p.content;"
-               "if(!c||c==='none'||c==='normal')return false;return c.length>2;}"
-             "try{var pb=getComputedStyle(el,'::before'),pa=getComputedStyle(el,'::after');"
-               "if((hasC(pb)||hasC(pa))&&n<400&&!adSponsorCtx6138(el)){var pcl=lum(cs.color);"
-                 "if(pcl!==null&&pcl<0.50){el.style.setProperty('color',FG,'important');n++;}}"
-             "}catch(e){}"
-             // MASK-IMAGE ICONS. The mask is the shape; the visible colour is the
-             // element's background-color. Dark Reader treats that as a background and
-             // darkens it, which paints the glyph in the page background colour - i.e.
-             // makes it vanish rather than merely stay dark.
-             "try{var mi=cs.webkitMaskImage||cs.maskImage;"
-               "if(mi&&mi!=='none'&&n<400&&!adSponsorCtx6138(el)){var mbl=lum(cs.backgroundColor);"
-                 "if(mbl!==null&&mbl<0.55){el.style.setProperty('background-color',FG,'important');n++;}}"
-             "}catch(e){}"
-             "try{if(n<400&&!adSponsorCtx6138(el)){var g3=rect6173(el);"
-               "if(g3.width>5&&g3.width<=40&&g3.height>5&&g3.height<=40){"
-                 "var bw2=parseFloat(cs.borderTopWidth)||parseFloat(cs.borderLeftWidth)||0;"
-                 "if(bw2>=1.5){var bcl=lum(cs.borderTopColor||cs.borderLeftColor);"
-                   "if(bcl!==null&&bcl<0.35){var ot2=false;"
-                     "for(var z2=0;z2<el.childNodes.length;z2++){var nz2=el.childNodes[z2];"
-                       "if(nz2.nodeType===3&&nz2.nodeValue&&nz2.nodeValue.trim()){ot2=true;break;}}"
-                     "if(!ot2){el.style.setProperty('border-color',FG,'important');n++;}}}}}"
-             "}catch(e){}"
-             "if(n>=400)continue;"
-             "var t=false;"
-             "for(var k=0;k<el.childNodes.length;k++){var nd=el.childNodes[k];"
-               "if(nd.nodeType===3&&nd.nodeValue&&nd.nodeValue.trim()){t=true;break;}}"
-             "if(!t)continue;"
-             "var fl=lum(cs.color);if(fl===null)continue;"
-             "var bl=bgOf(el,cs);var hi=Math.max(fl,bl)+0.05,lo=Math.min(fl,bl)+0.05;"
-             "if(hi/lo<3.0){el.style.setProperty('color',FG,'important');n++;}}"
-           // HEARTS. Two parts, kept separate so they cannot fight: darken the circle
-           // (a light background on the element or a near ancestor) and lighten the
-           // glyph by whatever actually draws it. Doing this by mechanism avoids the
-           // whole-box whitening that hid the heart behind a white disc.
-           "try{var HRT=[],HS='[class*=heart],[class*=wish],[class*=lists-framework]';if(base.matches&&base.matches(HS))HRT.push(base);var HQ=base.querySelectorAll?base.querySelectorAll(HS):[];for(var hq=0;hq<HQ.length&&hq<240;hq++)HRT.push(HQ[hq]);"
-             "for(var hz=0;hz<HRT.length;hz++){var he=HRT[hz];if(window.__AD_IS_NATIVE615__&&window.__AD_IS_NATIVE615__(he))continue;var hcs=getComputedStyle(he);"
-               // circle: darken this element's light bg, and the first light ancestor bg
-               "var hcl2=he.className;if(hcl2&&hcl2.baseVal!==undefined)hcl2=hcl2.baseVal;hcl2=String(hcl2||'');"
-               "if(/unfill|placehold|a-icon/i.test(hcl2)){he.style.setProperty('background-color','transparent','important');}"
-               "else if(lum(hcs.backgroundColor)>0.5){he.style.setProperty('background-color',BG,'important');}"
-               "var pe=he.parentElement,pd=0;"
-               "while(pe&&pd++<3){var pl=lum(getComputedStyle(pe).backgroundColor);"
-                 "if(pl!==null&&pl>0.5){pe.style.setProperty('background-color',BG,'important');break;}"
-                 "pe=pe.parentElement;}"
-               // glyph: img/bgimg is handled by the documentStart CSS silhouette
-               // rule (the v5.27.0 approach that demonstrably worked) -- CSS survives
-               // Amazon re-rendering the node, inline styles do not, which is where
-               // every JS-era attempt actually died. Here: masks, then fill/color.
-               "var hrc=rect6173(he);"
-               "var isGlyph=(hrc.width>0&&hrc.width<=28&&hrc.height>0&&hrc.height<=28);"
-               "var hmi=hcs.webkitMaskImage||hcs.maskImage;"
-               "if(hmi&&hmi!=='none'&&isGlyph){he.style.setProperty('background-color',FG,'important');}"
-               "else if(hmi&&hmi!=='none'){he.style.setProperty('background-color',BG,'important');}"
-               "else{var hf=lum(hcs.fill);if(hf!==null&&hf<0.35)he.style.setProperty('fill',FG,'important');"
-                 "var hc2=lum(hcs.color);if(hc2!==null&&hc2<0.35)he.style.setProperty('color',FG,'important');}"
-             "}}catch(e){}"
-           "var pr=\'\';"
-           "return n+'/'+bfix+'/'+lfix+'/'+gfix+pr;}catch(e){return -1;}};"
-         // v6.0.56: keep Dark Reader + document-start CSS on the critical path, but
-         // move fallback contrast/seasonal repair to browser idle time.  This protects
-         // Amazon's hydration/network completion and the 8.3 ms ProMotion frame budget.
-         "window.__AD_IDLE6056__=function(fn,to){try{if(window.requestIdleCallback)return requestIdleCallback(function(){try{fn();}catch(e){}},{timeout:to||240});return setTimeout(function(){try{fn();}catch(e){}},60);}catch(e){return setTimeout(fn,60);}};"
-         // v6.0.171: one full fallback repair is enough for an already-themed document.
-         // Lazy DOM additions are handled by the existing local observer below.  Keep a
-         // single-flight state so the 0/120/420 ms native appearance burst cannot queue
-         // duplicate 1400-element full scans while the first one is still pending.
-         "window.__AD_FULLREPAIR6171__=function(force){try{if(!window.__AMZDARK_FIXCONTRAST__)return 'nofix';if(window.__AD_FIXFULL_PENDING6171__)return 'pending';if(!force&&window.__AD_FIX_PRIMED6171__)return 'warm';window.__AD_FIXFULL_PENDING6171__=1;var run=function(){try{window.__AMZDARK_FIXCONTRAST__();if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);window.__AD_FIX_PRIMED6171__=1;}catch(e){}finally{window.__AD_FIXFULL_PENDING6171__=0;}};if(window.__AD_IDLE6056__){window.__AD_IDLE6056__(run,260);return 'queued';}run();return 'ran';}catch(e){window.__AD_FIXFULL_PENDING6171__=0;return 'err';}};"
-         "window.__AMZDARK_APPLY__=function(){try{var had=!!document.querySelector('style.darkreader');if(!had){DarkReader.enable(%@,%@);window.__AD_FIX_PRIMED6171__=0;}if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);return window.__AD_FULLREPAIR6171__(!had);}catch(e){return 'err';}};"
-         // Warm BFCache/visibility restoration only verifies the engine.  If the
-         // Dark Reader sheet survived, the existing document stays untouched; if it
-         // disappeared, APPLY performs the full recovery exactly as before.
-         "window.__AMZDARK_WAKE6171__=function(){try{if(!document.querySelector('style.darkreader'))return window.__AMZDARK_APPLY__();return window.__AD_FIX_PRIMED6171__?'warm':window.__AD_FULLREPAIR6171__(false);}catch(e){return 'err';}};"
-         // Re-run fallback repair as lazy content arrives, but never synchronously in
-         // the MutationObserver. v6.0.82 no longer discards native-ad descendants here:
-         // __AMZDARK_FIXCONTRAST__ routes every such element through prodInk6078 and
-         // continues before generic paint. Native-local roots are capped at 120.
-         // Coalesce nested roots and let WebKit finish rendering.
-         // v6.0.118: Search first-open path parity. Background/foreground already
-         // proves the settled generic glyph repair is correct because visibility regain
-         // calls __AMZDARK_APPLY__(), which runs a FULL-root FIXCONTRAST pass. The
-         // initial lazy-content path only repaired each added subtree, so Amazon could
-         // finish a clock/X/magnifier painter on an existing node after that local pass
-         // and leave it dark until the lifecycle repair. Reuse this SAME observer,
-         // debounce and idle callback: when a real Search-suggestion family enters the
-         // DOM, promote that one coalesced batch to the exact full-root repair path.
-         // No new observer, timer, interval, RAF, scroll listener or recurring scan.
-         "try{var _t=null,_roots=[],_idle=0,_searchFull6118=0;"
-         // v6.0.176: Amazon virtualizes PDP sections by detaching already-rendered DOM
-         // and later inserting the SAME nodes again when the user scrolls back. Treat
-         // an unchanged detach/reattach as warm state instead of re-running fallback
-         // contrast/seasonal repair over it. WeakMap entries do not retain dead DOM.
-         "window.__AD_WARMPARK6176__=window.__AD_WARMPARK6176__||new WeakMap();"
-         "window.__AD_PARK6176__=window.__AD_PARK6176__||function(n,p){try{if(!n||n.nodeType!==1)return;var c=n.className;if(c&&c.baseVal!==undefined)c=c.baseVal;var tg=String(n.tagName||'').toUpperCase(),src=/^(?:IMG|VIDEO|SOURCE)$/.test(tg)?String(n.currentSrc||n.src||n.poster||''):'';window.__AD_WARMPARK6176__.set(n,[p||null,n.firstChild,n.lastChild,n.childNodes?n.childNodes.length:0,String(c||''),String(n.id||''),String((n.getAttribute&&n.getAttribute('data-asin'))||''),src]);}catch(e){}};"
-         "window.__AD_WARM6176__=window.__AD_WARM6176__||function(n,p){try{var s=window.__AD_WARMPARK6176__.get(n);if(!s||!n||n.nodeType!==1)return false;var c=n.className;if(c&&c.baseVal!==undefined)c=c.baseVal;var tg=String(n.tagName||'').toUpperCase(),src=/^(?:IMG|VIDEO|SOURCE)$/.test(tg)?String(n.currentSrc||n.src||n.poster||''):'';return s[0]===(p||null)&&s[1]===n.firstChild&&s[2]===n.lastChild&&s[3]===(n.childNodes?n.childNodes.length:0)&&s[4]===String(c||'')&&s[5]===String(n.id||'')&&s[6]===String((n.getAttribute&&n.getAttribute('data-asin'))||'')&&s[7]===src;}catch(e){return false;}};"
-         "function search6118(n){try{if(!n||n.nodeType!==1)return false;var S='.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]';return !!((n.matches&&n.matches(S))||(n.closest&&n.closest(S))||(n.querySelector&&n.querySelector(S)));}catch(e){return false;}}"
-         // Dark Reader creates many STYLE.darkreader--sync nodes on a large PDP.
-         // They are stylesheet plumbing, not visible lazy content.  The 6170 probe
-         // showed those head mutations repeatedly waking contrast repair, including
-         // one HEAD-root pass that consumed ~806 ms.  Ignore non-rendering head/script
-         // churn before it enters the existing debounce/idle queue.
-         // v6.0.195: media hydration is already owned by direct TWB/video rules.
-         // Do not feed pure media leaves or empty video-only shells into the
-         // 360-node fallback contrast walker during carousel startup.
-         "function visual6056(n){try{if(!n||n.nodeType!==1)return false;var t=String(n.tagName||'').toUpperCase();if(/^(?:HEAD|SCRIPT|STYLE|LINK|META|NOSCRIPT|TEMPLATE|VIDEO|SOURCE|TRACK|IMG|PICTURE|CANVAS)$/.test(t))return false;if(n.closest&&n.closest('head'))return false;var tx=String(n.textContent||'').replace(/\s+/g,' ').trim();if(!tx&&n.querySelector&&n.querySelector('video')&&!n.querySelector('a,button,input,[role=button],[role=link]'))return false;return true;}catch(e){return true;}}"
-         "function run6056(){_idle=0;try{var R=_roots,full=_searchFull6118;_roots=[];_searchFull6118=0;if(full){var d=document.body||document.documentElement;window.__AMZDARK_FIXCONTRAST__(d);if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);return;}for(var i=0;i<R.length;i++){var r=R[i];if(!r||!r.isConnected)continue;var nested=false;for(var j=0;j<R.length;j++){if(i!==j&&R[j]&&R[j].contains&&R[j].contains(r)){nested=true;break;}}if(!nested){window.__AMZDARK_FIXCONTRAST__(r);if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(r);}}}catch(e){}}new MutationObserver(function(ms){try{for(var mi=0;mi<ms.length;mi++){var P=ms[mi].removedNodes||[];for(var pi=0;pi<P.length&&pi<24;pi++){var pn=P[pi];if(pn&&pn.nodeType===1&&(window.__AD_FIX_PRIMED6171__||pn.hasAttribute('data-ad-native615')||pn.hasAttribute('data-ad-twb6033')))window.__AD_PARK6176__(pn,ms[mi].target);}}for(var mi=0;mi<ms.length&&_roots.length<12;mi++){var A=ms[mi].addedNodes||[];for(var ai=0;ai<A.length&&_roots.length<12;ai++){var n=A[ai];if(n&&n.nodeType===3)n=n.parentElement;if(!visual6056(n))continue;if(window.__AD_WARM6176__&&window.__AD_WARM6176__(n,ms[mi].target))continue;if(!_searchFull6118&&search6118(n))_searchFull6118=1;if(_roots.indexOf(n)<0)_roots.push(n);}}if(!_roots.length)return;clearTimeout(_t);_t=setTimeout(function(){if(_idle)return;_idle=1;window.__AD_IDLE6056__(run6056,320);},120);}catch(e){}})"
-           ".observe(document.documentElement,{childList:true,subtree:true});}catch(e){}"
+         // v6.0.200: cooperate with Dark Reader instead of repainting its result.
+         // The old fallback walked up to 1400 computed-style nodes and owned a third
+         // MutationObserver.  Keep only exact semantic exceptions that static CSS cannot
+         // safely express; the existing native-island observer calls this on new roots.
+         "window.__AD_LEAN6200__=function(root){try{var e=(root&&root.nodeType===3)?root.parentElement:root;if(!e||e.nodeType!==1)return 0;var n=0;"
+           // Interests: preserve v6.0.184's unique caught-up gradient repair without
+           // traversing the page. Only small newly-hydrated text roots are eligible.
+           "try{if((e.childElementCount||0)<=16){var tx=String(e.textContent||'').replace(/\\s+/g,' ').trim();if(tx.length>0&&tx.length<=180&&/^(?:you(?:'|’)?re all caught up!?|.*\\byou(?:'|’)?re all caught up!?)$/i.test(tx)){var anchor=e;if(!/^you(?:'|’)?re all caught up!?$/i.test(tx)&&e.querySelectorAll){var q=e.querySelectorAll('span,p,h1,h2,h3,h4,h5,h6,div'),hit=null;for(var qi=0;qi<q.length&&qi<32;qi++){var qt=String(q[qi].textContent||'').replace(/\\s+/g,' ').trim();if(/^you(?:'|’)?re all caught up!?$/i.test(qt)){hit=q[qi];break;}}if(hit)anchor=hit;}var at=String(anchor.textContent||'').replace(/\\s+/g,' ').trim();if(/^you(?:'|’)?re all caught up!?$/i.test(at)){var vw=innerWidth||390,p=anchor,box=null,d=0;while(p&&d++<5){var pr=p.getBoundingClientRect();if(pr.width>=vw*.78&&pr.height>=60&&pr.height<=380)box=p;p=p.parentElement;}if(box&&box.querySelectorAll){var ar=anchor.getBoundingClientRect(),G=box.querySelectorAll('div,section,span');for(var gi=0;gi<G.length&&gi<96;gi++){var g=G[gi],r=g.getBoundingClientRect();if(r.width<110||r.height<10||r.height>100||r.width<r.height*2)continue;if(Math.abs((r.top+r.bottom-ar.top-ar.bottom)/2)>95)continue;var bi=String(getComputedStyle(g).backgroundImage||'none');if(bi.indexOf('gradient')<0)continue;g.setAttribute('data-ad-interestgradient6177','1');g.style.setProperty('background','transparent','important');g.style.setProperty('background-image','none','important');g.style.setProperty('box-shadow','none','important');n++;}}}}}}catch(x){}"
+           "return n;}catch(e){return 0;}};"
+         // Dark Reader is enabled once and left in charge of normal dynamic styling.
+         // Warm lifecycle calls only verify that its stylesheet still exists; no full
+         // document walk, contrast pass, debounce queue or repair observer remains.
+         "window.__AMZDARK_APPLY__=function(){try{var had=!!document.querySelector('style.darkreader');if(!had)DarkReader.enable(%@,%@);if(!had&&window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);return had?'warm':'enabled';}catch(e){return 'err';}};"
+         "window.__AMZDARK_WAKE6171__=function(){try{return document.querySelector('style.darkreader')?'warm':window.__AMZDARK_APPLY__();}catch(e){return 'err';}};"
          "window.__AMZDARK_APPLY__();"
          // Re-apply when the page is restored from the back-forward cache (returning
          // to a tab). pageshow.persisted is true exactly in that case, and it is the
@@ -1585,7 +1199,7 @@ static NSString *ADDarkReaderBootstrap(void){
          "try{window.addEventListener('pageshow',function(e){if(e.persisted)(window.__AMZDARK_WAKE6171__||window.__AMZDARK_APPLY__)();});}catch(e){}"
          "try{document.addEventListener('visibilitychange',function(){if(!document.hidden)(window.__AMZDARK_WAKE6171__||window.__AMZDARK_APPLY__)();});}catch(e){}"
          "}}catch(e){}})();",
-        floorBG, floorBG, floorBG, dr, [NSString stringWithUTF8String:gP.fgHex], ADThemeLiteral(), ADFixesLiteral()];
+        floorBG, floorBG, floorBG, dr, ADThemeLiteral(), ADFixesLiteral()];
     return gADBootstrap613;
 }
 
@@ -1610,36 +1224,13 @@ static NSString *ADWhiteTameWebJS6027(void){
          "var old=document.getElementById('ad-twb6027'),old2=document.getElementById('ad-twb6029'),old3=document.getElementById('ad-twb6031'),old4=document.getElementById('ad-twb6033'),id='ad-twb6034',st=document.getElementById(id);"
          "if(old&&old!==st&&old.parentNode)old.parentNode.removeChild(old);if(old2&&old2!==st&&old2.parentNode)old2.parentNode.removeChild(old2);if(old3&&old3!==st&&old3.parentNode)old3.parentNode.removeChild(old3);if(old4&&old4!==st&&old4.parentNode)old4.parentNode.removeChild(old4);"
          "if(!st){st=document.createElement('style');st.id=id;(document.head||document.documentElement).appendChild(st);}"
-         "var css='html body :is(' +"
-           "'img.s-image,'+"
-           "'.s-product-image-container img,'+"
-           "'[data-component-type=s-product-image] img,'+"
-           "'[data-component-type=s-search-result] img,'+"
-           "'#dp-container img.a-dynamic-image,'+"
-           "'#ppd img.a-dynamic-image,'+"
-           "'#landingImage,'+"
-           "'#imgTagWrapperId img,'+"
-           "'.a-carousel-card img.a-dynamic-image,'+"
-           "'img.a-amazon-image,'+"
-           "'[class*=_gwm-asin-tile] img,'+"
-           "'img[class*=_np],'+"
-           "'[class*=product-image] img,'+"
-           "'img[class*=_single-creative-card],'+"
-           "'img[class*=_single-video-card],'+"
-           "'[class*=single-creative-card] img,'+"
-           "'[class*=single-video-card] img,'+"
-           "'video.vjs-tech,'+"
-           "'[class*=single-video-card] video,'+"
-           "'[class*=video-card] video,'+"
-           "'[class*=sbv-video] video,'+"
-           "'[data-component-type*=video] video' +"
-         "'):not([class*=icon]):not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store]):not([class*=sprite]){filter:'+BB+'!important;}'+"
-         // v6.0.193~probe — exact screenshot Share preview owner. Probe 6192 proved
-         // the visible preview is NOT an IMG/native UIImageView: Amazon paints it as
-         // background-image:url(...) on #ssf-preview-container inside the web Share dialog.
-         // A declarative selector owns that one media plane, so late sheet hydration needs
-         // no observer/scan and the label/channel controls remain untouched.
-         "'html body .a-sheet-web[role=dialog] #ssf-preview-container.ssf-preview-container{filter:'+BB+'!important;}'+"
+         // v6.0.200: IMG is a universal leaf policy, not a page/section policy.
+         // Every ordinary raster photo is tamed declaratively as soon as it exists;
+         // known glyph/logo/avatar families remain explicit exclusions and all special
+         // ad-card/background/video rules below stay in place.  :where() deliberately
+         // gives the exclusion list zero specificity so our exact symbol owners can win.
+         "var css='html body img:where(:not([class*=icon]):not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store]):not([class*=sprite]):not([src*=svg]):not([src*=sprite]):not([src*=logo]):not([src*=avatar])){filter:'+BB+'!important;}'+"
+         "'html body :is(video.vjs-tech,[class*=single-video-card] video,[class*=video-card] video,[class*=sbv-video] video,[data-component-type*=video] video){filter:'+BB+'!important;}'+"
          // v5.446 _adHomeBgLeaf395 owns the actual leaf itself. v6.0.31 accidentally
          // required a second matching ancestor, so NPACK/vjs variants could escape.
          "'html[data-ad-twb-home6033] body [class*=theming-card-background],html[data-ad-twb-home6033] body .vjs-poster,html[data-ad-twb-home6033] body [class*=vjs-poster]{filter:none!important;background-blend-mode:normal!important;box-shadow:inset 0 0 0 9999px '+AA+'!important;}'+"
@@ -1670,28 +1261,22 @@ static NSString *ADWhiteTameWebJS6027(void){
          // v6.0.128: exact v5.446 _adBgPlacement365 policy. The four-parent check is
          // bounded and only prevents TWB from claiming structural ad backgrounds.
          "function adPlacement(e){try{var p=e,d=0;while(p&&d++<4){var c=S(p.className),id=String(p.id||''),cw=String((p.getAttribute&&p.getAttribute('data-cel-widget'))||'');if(/ape-placement|ape-wrapper|adfeedbackmaincomponent|ad-slot|adslot/i.test(c+' '+id+' '+cw))return true;if(p.getElementsByTagName&&p.getElementsByTagName('iframe').length&&p.getBoundingClientRect().width>240)return true;p=p.parentElement;}return false;}catch(x){return false;}}"
-         "function paintBg(e){try{if(!e||e.nodeType!==1)return 0;if(e.__adTWBBg6176Parent===e.parentElement&&(e.hasAttribute('data-ad-twb-bg6033')||e.hasAttribute('data-ad-twb-before6033')||e.hasAttribute('data-ad-twb-after6033')))return 0;if(e.closest&&e.closest('[data-ad-college6034]'))return 0;if(adPlacement(e))return 0;var r=e.getBoundingClientRect();if(r.width<32||r.height<32)return 0;var c=ownClass(e);if(/sprite|icon|logo|pixel|avatar|profile/.test(c))return 0;var cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none'),known=/theming-card-background|vjs-poster/.test(c),solidCanvas=HOME&&/canvas-container/.test(c)&&e.closest&&e.closest('[class*=canvas-card]'),n=0;if(known||solidCanvas||bi.indexOf('url(')>=0){e.style.setProperty('filter','none','important');e.style.setProperty('background-blend-mode','normal','important');e.style.setProperty('box-shadow','inset 0 0 0 9999px '+AA,'important');e.setAttribute('data-ad-twb-bg6033','1');n++;}try{var bf=getComputedStyle(e,'::before'),af=getComputedStyle(e,'::after');if(String(bf.backgroundImage||'none').indexOf('url(')>=0){e.setAttribute('data-ad-twb-before6033','1');n++;}if(String(af.backgroundImage||'none').indexOf('url(')>=0){e.setAttribute('data-ad-twb-after6033','1');n++;}}catch(px){}if(n)e.__adTWBBg6176Parent=e.parentElement;return n;}catch(x){return 0;}}"
-         "function creativeMedia(e){try{if(!e||e.nodeType!==1)return 0;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return 0;var src=String(e.currentSrc||e.src||e.poster||'').toLowerCase(),sig=mode+'|'+BB+'|'+String(innerWidth||0)+'x'+String(innerHeight||0)+'|'+src;if(e.__adTWBMedia6176===sig&&e.__adTWBMedia6176Parent===e.parentElement&&e.getAttribute('data-ad-twb6033')==='1')return 0;var r=e.getBoundingClientRect(),nw=(tg==='VIDEO'?(e.videoWidth||0):(e.naturalWidth||0)),nh=(tg==='VIDEO'?(e.videoHeight||0):(e.naturalHeight||0));if(creativeBlocked(e,src)||!((r.width>=32&&r.height>=32)||(nw>=32&&nh>=32)))return 0;if(mode==='productad'||mode==='standalone'){var W=innerWidth||390,H=innerHeight||700,full=(r.width>W*.64&&r.height>H*.55)||(r.width*r.height>W*H*.58);if(full&&tg!=='VIDEO'){e.style.removeProperty('filter');e.removeAttribute('data-ad-twb6033');return 0;}}e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6033','1');e.__adTWBMedia6176=sig;e.__adTWBMedia6176Parent=e.parentElement;return 1;}catch(x){return 0;}}"
+         "function paintBg(e){try{if(!e||e.nodeType!==1)return 0;if(e.__adTWBBg6176Parent===e.parentElement&&(e.hasAttribute('data-ad-twb-bg6033')||e.hasAttribute('data-ad-twb-before6033')||e.hasAttribute('data-ad-twb-after6033')))return 0;if(e.closest&&e.closest('[class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer]'))return 0;if(adPlacement(e))return 0;var r=e.getBoundingClientRect();if(r.width<32||r.height<32)return 0;var c=ownClass(e);if(/sprite|icon|logo|pixel|avatar|profile/.test(c))return 0;var cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none'),known=/theming-card-background|vjs-poster/.test(c),solidCanvas=HOME&&/canvas-container/.test(c)&&e.closest&&e.closest('[class*=canvas-card]'),n=0;if(known||solidCanvas||bi.indexOf('url(')>=0){e.style.setProperty('filter','none','important');e.style.setProperty('background-blend-mode','normal','important');e.style.setProperty('box-shadow','inset 0 0 0 9999px '+AA,'important');e.setAttribute('data-ad-twb-bg6033','1');n++;}try{var bf=getComputedStyle(e,'::before'),af=getComputedStyle(e,'::after');if(String(bf.backgroundImage||'none').indexOf('url(')>=0){e.setAttribute('data-ad-twb-before6033','1');n++;}if(String(af.backgroundImage||'none').indexOf('url(')>=0){e.setAttribute('data-ad-twb-after6033','1');n++;}}catch(px){}if(n)e.__adTWBBg6176Parent=e.parentElement;return n;}catch(x){return 0;}}"
+         "function creativeMedia(e){try{if(!e||e.nodeType!==1)return 0;var tg=String(e.tagName||'').toUpperCase();if(tg!=='VIDEO'&&tg!=='CANVAS')return 0;var src=String(e.currentSrc||e.src||e.poster||'').toLowerCase(),sig=mode+'|'+BB+'|'+String(innerWidth||0)+'x'+String(innerHeight||0)+'|'+src;if(e.__adTWBMedia6176===sig&&e.__adTWBMedia6176Parent===e.parentElement&&e.getAttribute('data-ad-twb6033')==='1')return 0;var r=e.getBoundingClientRect(),nw=(tg==='VIDEO'?(e.videoWidth||0):0),nh=(tg==='VIDEO'?(e.videoHeight||0):0);if(creativeBlocked(e,src)||!((r.width>=32&&r.height>=32)||(nw>=32&&nh>=32)))return 0;e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6033','1');e.__adTWBMedia6176=sig;e.__adTWBMedia6176Parent=e.parentElement;return 1;}catch(x){return 0;}}"
          // Card-local equivalent of the donor hero/Home scans. It is bounded and runs
          // only when that card itself loads/changes; no page-wide or scroll-time recovery.
-         "function adRoot(root){try{if(!root||root.nodeType!==1)return 0;var now=Date.now();if(root.__adTWB6055Stamp&&now-root.__adTWB6055Stamp<220)return 0;root.__adTWB6055Stamp=now;var A=[root],n=0,Q=root.querySelectorAll?root.querySelectorAll('img,video,canvas,[class*=theming-card-background],[class*=vjs-poster],[class*=canvas-container],[style*=background-image]'):[];for(var i=0;i<Q.length&&A.length<36;i++)A.push(Q[i]);for(var j=0;j<A.length;j++){var e=A[j],tg=String(e.tagName||'').toUpperCase();if(tg==='IMG'||tg==='VIDEO'||tg==='CANVAS')n+=creativeMedia(e);else n+=paintBg(e);}return n;}catch(x){return 0;}}"
+         "function adRoot(root){try{if(!root||root.nodeType!==1)return 0;if(String(root.tagName||'').toUpperCase()==='IMG')return 0;var now=Date.now();if(root.__adTWB6055Stamp&&now-root.__adTWB6055Stamp<220)return 0;root.__adTWB6055Stamp=now;var A=[root],n=0,Q=root.querySelectorAll?root.querySelectorAll('video,canvas,[class*=theming-card-background],[class*=vjs-poster],[class*=canvas-container],[style*=background-image]'):[];for(var i=0;i<Q.length&&A.length<30;i++)A.push(Q[i]);for(var j=0;j<A.length;j++){var e=A[j],tg=String(e.tagName||'').toUpperCase();if(tg==='IMG')continue;if(tg==='VIDEO'||tg==='CANVAS')n+=creativeMedia(e);else n+=paintBg(e);}return n;}catch(x){return 0;}}"
          "function tameBgChain(e,c){try{if(!e)return;var p=e,d=0,ctx=c||'';while(p&&d++<6){var pc=S(p.className)+' '+String(p.id||''),fam=(mode==='hero')||carouselFamily(ctx+' '+pc);if(fam)paintBg(p);ctx+=' '+pc;p=p.parentElement;}}catch(x){}}"
          "var mode=(function(){try{if(window.top===window)return 'main';var u=String(document.referrer||'').toLowerCase();if(u.indexOf('/dp/')>=0||u.indexOf('/gp/aw/d/')>=0||u.indexOf('/gp/product/')>=0||u.indexOf('/s?')>=0||u.indexOf('/search')>=0||u.indexOf('?k=')>=0||u.indexOf('&k=')>=0||u.indexOf('field-keywords=')>=0)return 'productad';return ((innerHeight||0)<180||((innerWidth||1)/(innerHeight||1))>2.25)?'standalone':'hero';}catch(e){return 'main';}})();"
-         // v6.0.194: the primary product/photo/video carousel leaves already have
-         // authoritative declarative CSS above.  Mark those leaves settled on their
-         // first media event without doing ancestor-chain + text walks on the main JS
-         // thread.  Generic/ambiguous media still uses the full classifier below.
-         "function directKnown6194(e){try{return !!(e&&e.matches&&e.matches('img.s-image,.s-product-image-container img,[data-component-type=s-product-image] img,[data-component-type=s-search-result] img,#dp-container img.a-dynamic-image,#ppd img.a-dynamic-image,#landingImage,#imgTagWrapperId img,.a-carousel-card img.a-dynamic-image,img.a-amazon-image,[class*=_gwm-asin-tile] img,img[class*=_np],[class*=product-image] img,img[class*=_single-creative-card],img[class*=_single-video-card],[class*=single-creative-card] img,[class*=single-video-card] img,video.vjs-tech,[class*=single-video-card] video,[class*=video-card] video,[class*=sbv-video] video,[data-component-type*=video] video')&&!/icon|logo|avatar|profile|merchant|seller|brand|store|sprite/.test(ownClass(e)));}catch(x){return false;}}"
-         "function tame(e){try{if(!e||e.nodeType!==1)return;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return;var src=String(e.currentSrc||e.src||e.poster||'').toLowerCase(),sig=mode+'|'+BB+'|'+String(innerWidth||0)+'x'+String(innerHeight||0)+'|'+src;if(e.__adTWBMedia6176===sig&&e.__adTWBMedia6176Parent===e.parentElement&&e.getAttribute('data-ad-twb6033')==='1')return;var r=e.getBoundingClientRect();if(r.width<2||r.height<2)return;if(directKnown6194(e)){e.setAttribute('data-ad-twb6033','1');e.__adTWBMedia6176=sig;e.__adTWBMedia6176Parent=e.parentElement;return;}var c=chain(e),t=localText(e),fo=forced(t),rv=reviewCtx(t,c),pr=product(e,c),hf=carouselFamily(c);if(mode==='hero')tameBgChain(e,c);if((hf?creativeBlocked(e,src):blocked(e,c,t,fo,rv))||/pixel|placeholder|spacer|blank|transparent/.test(src))return;var W=innerWidth||390,H=innerHeight||700,nw=(tg==='VIDEO'?(e.videoWidth||0):(e.naturalWidth||0)),nh=(tg==='VIDEO'?(e.videoHeight||0):(e.naturalHeight||0)),ok=false;if(mode==='productad'||mode==='standalone'){var full=(r.width>W*.64&&r.height>H*.55)||(r.width*r.height>W*H*.58);if(full&&tg!=='VIDEO'){e.style.removeProperty('filter');e.removeAttribute('data-ad-twb6033');return;}ok=(r.width>=26&&r.height>=26)||(nw>=26&&nh>=26);}else if(mode==='hero'||hf){ok=(r.width>=32&&r.height>=32)||(nw>=32&&nh>=32);}else{if(rv&&tg!=='IMG')return;var mn=(pr||fo||rv)?24:56;ok=(r.width>=mn&&r.height>=mn)||(nw>=mn&&nh>=mn);}if(!ok)return;e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6033','1');e.__adTWBMedia6176=sig;e.__adTWBMedia6176Parent=e.parentElement;}catch(x){}}"
+         "function tame(e){try{if(!e||e.nodeType!==1)return;var tg=String(e.tagName||'').toUpperCase();if(tg==='IMG')return;if(tg!=='VIDEO'&&tg!=='CANVAS')return;var src=String(e.currentSrc||e.src||e.poster||'').toLowerCase(),sig=mode+'|'+BB+'|'+String(innerWidth||0)+'x'+String(innerHeight||0)+'|'+src;if(e.__adTWBMedia6176===sig&&e.__adTWBMedia6176Parent===e.parentElement&&e.getAttribute('data-ad-twb6033')==='1')return;var r=e.getBoundingClientRect();if(r.width<2||r.height<2)return;var c=chain(e),t=localText(e),fo=forced(t),rv=reviewCtx(t,c),pr=product(e,c),hf=carouselFamily(c);if(mode==='hero')tameBgChain(e,c);if((hf?creativeBlocked(e,src):blocked(e,c,t,fo,rv))||/pixel|placeholder|spacer|blank|transparent/.test(src))return;var nw=(tg==='VIDEO'?(e.videoWidth||0):0),nh=(tg==='VIDEO'?(e.videoHeight||0):0),mn=(pr||fo)?24:32;if(rv&&tg!=='IMG')return;if(!((r.width>=mn&&r.height>=mn)||(nw>=mn&&nh>=mn)))return;e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6033','1');e.__adTWBMedia6176=sig;e.__adTWBMedia6176Parent=e.parentElement;}catch(x){}}"
          // Piggyback target for the already-existing v6.0.15 ad-island observer.
          "window.__AD_TWB6033_ADROOT__=adRoot;"
          "function ev(x){try{tame(x.target);}catch(e){}}"
-         // v6.0.195: loadeddata was redundant with metadata/canplay and commonly
-         // arrives in a burst across PDP video carousels.
-         "document.addEventListener('load',ev,true);document.addEventListener('loadedmetadata',ev,true);document.addEventListener('canplay',ev,true);document.addEventListener('playing',ev,true);"
-         // One bounded initial/BFCache pass catches already-complete media. The only
-         // pass remains media-only; the existing v6.0.15 ad observer invokes adRoot for lazy cards.
-         "function once(){try{var tags=['img','video','canvas'],budget=420;for(var ti=0;ti<tags.length&&budget>0;ti++){var Q=document.getElementsByTagName(tags[ti]);for(var i=0;i<Q.length&&budget-- >0;i++)tame(Q[i]);}}catch(e){}}"
+         // IMG needs no load callback or DOM walk: the stylesheet above owns every
+         // ordinary raster leaf automatically. Keep lifecycle JS only for live media.
+         "document.addEventListener('loadedmetadata',ev,true);document.addEventListener('canplay',ev,true);document.addEventListener('playing',ev,true);"
+         // One small initial/BFCache pass is now VIDEO/CANVAS only.
+         "function once(){try{var tags=['video','canvas'],budget=180;for(var ti=0;ti<tags.length&&budget>0;ti++){var Q=document.getElementsByTagName(tags[ti]);for(var i=0;i<Q.length&&budget-- >0;i++)tame(Q[i]);}}catch(e){}}"
          "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',once,{once:true});else once();"
          "window.addEventListener('pageshow',once,{passive:true});"
          "window.__AD_TWB6027_INSTALLED__=1;window.__AD_TWB6029_INSTALLED__=1;window.__AD_TWB6030_INSTALLED__=1;window.__AD_TWB6031_INSTALLED__=1;window.__AD_TWB6033_INSTALLED__=1;window.__AD_TWB6034_INSTALLED__=1;window.__AD_TWB6033_MODE__=mode;"
@@ -1700,20 +1285,6 @@ static NSString *ADWhiteTameWebJS6027(void){
 }
 static NSString *ADWhiteTameWebJS(void){ return ADWhiteTameWebJS6027(); }
 
-// v6.0.203: own ONLY the WebKit page floor directly. Dark Reader still runs
-// unchanged for cards, text, controls, gradients, accents, and all detailed theming.
-// This tiny document-start sheet exists independently of the 346 KB Dark Reader
-// bootstrap so a late/missing engine can never expose a stock-white root canvas.
-static NSString *ADDirectFloorWebJS6203(void){
-    return @"(function(){try{"
-            "var id='ad-directfloor6203',s=document.getElementById(id);"
-            "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
-            "var css='html,body,#a-page,#gwm-PageContent,main{background-color:#000000!important;}';"
-            "if(s.textContent!==css)s.textContent=css;"
-            "window.__AMZDARK_FLOOR6203__=1;return 1;"
-            "}catch(e){return 0;}})();";
-}
-
 // v6.0.175: user-script dedupe by object identity, not source scanning.
 // Keep the exact WKUserScript instance we added on the WKUserContentController.  A
 // cheap identity walk tells us whether Amazon still has that script installed.  If
@@ -1721,9 +1292,8 @@ static NSString *ADDirectFloorWebJS6203(void){
 // pointer is no longer present and the normal mounted-view heal path may add a fresh
 // copy.  This preserves Amazon's clean-up transaction while avoiding repeated scans
 // across the ~346 KB Dark Reader bootstrap and smaller TWB/symbol payloads.
-static const void *kADBootUS6175  = &kADBootUS6175;
-static const void *kADFloorUS6203 = &kADFloorUS6203;
-static const void *kADTWBUS6175   = &kADTWBUS6175;
+static const void *kADBootUS6175 = &kADBootUS6175;
+static const void *kADTWBUS6175  = &kADTWBUS6175;
 static const void *kADSymUS6175  = &kADSymUS6175;
 static BOOL ADUserScriptPresent6175(WKUserContentController *ucc, const void *key){
     if (!ucc || !key) return NO;
@@ -1743,21 +1313,6 @@ static void ADRememberUserScript6175(WKUserContentController *ucc, const void *k
     if (!ucc || !key || !us) return;
     @try { objc_setAssociatedObject(ucc,key,us,OBJC_ASSOCIATION_RETAIN_NONATOMIC); } @catch(...) {}
 }
-static void ADAttachDirectFloorUserScript6203(WKUserContentController *ucc){
-    if (!ucc || !gP.enabled || !gP.webDarkReader) return;
-    @try {
-        if (ADUserScriptPresent6175(ucc,kADFloorUS6203)) return;
-        NSString *js=ADDirectFloorWebJS6203();
-        Class WKUS=NSClassFromString(@"WKUserScript");
-        if (!js.length || !WKUS) return;
-        WKUserScript *us=[[WKUS alloc] initWithSource:js
-                                       injectionTime:WKUserScriptInjectionTimeAtDocumentStart
-                                    forMainFrameOnly:YES];
-        [ucc addUserScript:us];
-        ADRememberUserScript6175(ucc,kADFloorUS6203,us);
-    } @catch(...) {}
-}
-
 static void ADAttachDarkReaderUserScript6175(WKUserContentController *ucc){
     if (!ucc || !gP.enabled || !gP.webDarkReader) return;
     @try {
@@ -1787,43 +1342,22 @@ static void ADAttachWhiteTameUserScript446(WKUserContentController *ucc){
 
 // LIGHT: re-apply the theme. MUST be a no-op when the page is already themed.
 //
-// This previously ran DarkReader.disable() whenever style.darkreader was missing,
-// then re-enabled. That call strips Dark Reader's stylesheet, so the page snaps to
-// stock white before going dark again — and because the burst fires it repeatedly
-// (0/60/200/500ms on every viewDidAppear, plus each sweep), the home tab visibly
-// flashed white/dark/white. It was added to fix the cart, but the cart's real cause
-// was 'noflag' (the user script never ran in that document), which the self-heal
-// below handles. So the disable() was solving a problem that did not exist while
-// creating one that did. Removed.
-//
-// Now: if the stylesheet is present the page is themed and we touch nothing.
-// LIGHT: re-apply. Skipping DarkReader.enable() when the page is already themed is
-// what stopped the white flashing in v5.5.1 and must stay — but the REPAIR passes
-// must not inherit that early return.
-//
-// They did, and it made three builds' worth of work inert. The SVG fill fix, the
-// contrast lifting and the shadow-DOM traversal all live inside
-// __AMZDARK_FIXCONTRAST__, and this function returned before reaching it whenever
-// style.darkreader was present. On the search pane — which IS themed, its
-// recent-search text being correctly light — the native burst therefore did nothing
-// at all, which is exactly why those icons and labels never changed.
-//
-// v6.0.171: the 6170 trace disproved the old "cheap on a settled page" assumption.
-// A warm PDP full-root repair reached ~1.59 s, while DarkReader.enable itself was ~1 ms.
-// The bootstrap now owns one single-flight full fallback pass and the lazy observer owns
-// later subtree hydration. Appearance recovery therefore only asks for a full pass when
-// the Dark Reader stylesheet genuinely disappeared or the initial fallback never primed.
+// v6.0.200 deliberately makes Dark Reader the generic web-theme owner. The 6170
+// trace showed DarkReader.enable itself at about 1 ms while AmazonDark's fallback
+// full-root contrast walk could consume hundreds of milliseconds to ~1.59 s.
+// Reapply therefore only verifies/restores style.darkreader. It never launches a
+// computed-style TreeWalker, full-root repair, search escalation, or repair queue.
+// Proven component CSS, TWB, native-ad isolation and the four symbol owners remain
+// separate and continue to converge through their existing event-driven paths.
 static NSString *ADDarkReaderReapply(void){
     if (gADReapply613) return gADReapply613;
     gADReapply613 = [NSString stringWithFormat:
         @"(function(){try{"
          "if(!(window.DarkReader&&DarkReader.enable))return 'noDR';"
-         "var had=!!document.querySelector('style.darkreader');"
-         "if(!had){DarkReader.enable(%@,%@);window.__AD_FIX_PRIMED6171__=0;if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);if(window.__AD_FULLREPAIR6171__)return window.__AD_FULLREPAIR6171__(true);}"
-         "if(window.__AD_FIX_PRIMED6171__)return 'warm';"
-         "if(window.__AD_FULLREPAIR6171__)return window.__AD_FULLREPAIR6171__(false);"
-         "if(window.__AMZDARK_FIXCONTRAST__){if(window.__AD_IDLE6056__){window.__AD_IDLE6056__(function(){window.__AMZDARK_FIXCONTRAST__();if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);},260);return 'queued';}return ''+window.__AMZDARK_FIXCONTRAST__();}"
-         "return 'nofix';"
+         "if(document.querySelector('style.darkreader'))return 'warm';"
+         "DarkReader.enable(%@,%@);"
+         "if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);"
+         "return 'enabled';"
          "}catch(e){return 'err';}})();",
         ADThemeLiteral(), ADFixesLiteral()];
     return gADReapply613;
@@ -1917,15 +1451,11 @@ static NSString *ADThreeSymbolsWebJS605(void){
          "}catch(e){window.__AD_SYM413__='err '+e;}}"
          "try{window.__AD_SYM413_PRE__=window.__AD_PRODUCTCTRL391RUN__;"
            "window.__AD_PRODUCTCTRL391RUN__=function(){"
-             "var r=window.__AD_SYM413_PRE__?window.__AD_SYM413_PRE__():0;try{sym413();}catch(x){}try{window.__AD_SHAREFIX6195__&&window.__AD_SHAREFIX6195__();}catch(x){}return r;};"
+             "var r=window.__AD_SYM413_PRE__?window.__AD_SYM413_PRE__():0;try{sym413();}catch(x){}return r;};"
          "}catch(e){}"
          "try{sym413();setTimeout(sym413,30);setTimeout(sym413,160);setTimeout(sym413,560);"
            "setTimeout(sym413,1560);setTimeout(sym413,2600);"
          "}catch(e){}"
-         // v6.0.195: Amazon rehydrates the PDP Share painter after its sheet closes.
-         // Static CSS then loses to the new inline dark painter. Reassert only the
-         // actual bounded Share trigger/leaves, reusing the existing symbol lifecycle.
-         "function shareFix6195(){try{var T=document.querySelectorAll('.ssf-share-trigger'),n=0;for(var i=0;i<T.length&&i<8;i++){var h=T[i];h.style.setProperty('color','#ffffff','important');h.style.setProperty('-webkit-text-fill-color','#ffffff','important');h.style.setProperty('fill','#ffffff','important');h.style.setProperty('stroke','#ffffff','important');var A=[h],D=h.querySelectorAll?h.querySelectorAll('*'):[];for(var j=0;j<D.length&&A.length<32;j++)A.push(D[j]);for(var k=0;k<A.length;k++){var e=A[k],tg=String(e.tagName||'').toUpperCase(),cs=null,paint=0;try{cs=getComputedStyle(e);}catch(_e){}var bg=String(cs&&cs.backgroundImage||''),mk=String((cs&&(cs.maskImage||cs.webkitMaskImage))||'');if(tg==='SVG'||tg==='PATH'||tg==='USE'){e.style.setProperty('fill','#ffffff','important');e.style.setProperty('stroke','#ffffff','important');e.style.setProperty('color','#ffffff','important');paint=1;}if(tg==='IMG'||tg==='I'||/url\\(/i.test(bg)){e.style.setProperty('filter','brightness(0) invert(1)','important');e.style.setProperty('color','#ffffff','important');paint=1;}if(mk&&mk!=='none'){e.style.setProperty('background-color','#ffffff','important');e.style.setProperty('color','#ffffff','important');e.style.setProperty('filter','none','important');paint=1;}if(paint)e.style.setProperty('opacity','1','important');}h.setAttribute('data-ad-share6195','1');n++;}return n;}catch(e){return 0;}}window.__AD_SHAREFIX6195__=shareFix6195;try{shareFix6195();}catch(e){}"
          // v6.0.20: exact v5.446 PDP carousel selected-dot owner. The only
          // adaptation is scheduling: v6.0.19 already owns mutation/scroll recovery.
          "function dotFix374(){try{var U=document.querySelectorAll('ul.a-pagination.a-dots,[class*=a-pagination][class*=dots]'),n=0,total=0;for(var u=0;u<U.length&&u<8;u++){var D=U[u].querySelectorAll('li');for(var i=0;i<D.length&&i<30;i++){var d=D[i];total++;var cl=String(d.className||''),ac=String(d.getAttribute&&d.getAttribute('aria-current')||'').toLowerCase(),as=String(d.getAttribute&&d.getAttribute('aria-selected')||'').toLowerCase(),ds=String(d.getAttribute&&d.getAttribute('data-selected')||'').toLowerCase(),kid=null;try{kid=d.querySelector('.a-selected,.dot-selected-t2,[aria-current=true],[aria-current=page],[aria-selected=true],[data-selected=true]');}catch(ex){}var sel=/(^|\\s)(a-selected|dot-selected-t2)(\\s|$)/.test(cl)||ac==='true'||ac==='page'||as==='true'||ds==='true'||!!kid;if(sel){if(d.hasAttribute&&d.hasAttribute('data-darkreader-inline-bgcolor'))d.removeAttribute('data-darkreader-inline-bgcolor');d.style.setProperty('--darkreader-inline-bgcolor','#ffffff','important');d.style.setProperty('background-color','#ffffff','important');d.style.setProperty('border-color','#ffffff','important');d.setAttribute('data-ad-dotselected374','1');d.setAttribute('data-ad-dotfix','1');n++;}else{if(d.getAttribute&&d.getAttribute('data-ad-dotfix')==='1'){d.style.removeProperty('--darkreader-inline-bgcolor');d.style.removeProperty('background-color');d.style.removeProperty('border-color');d.removeAttribute('data-ad-dotfix');}d.removeAttribute&&d.removeAttribute('data-ad-dotselected374');}}}window.__AD_DOTFIX__=n;window.__AD_DOTTOTAL374__=total;}catch(e){}}"
@@ -1985,16 +1515,15 @@ static NSString *ADThreeSymbolsWebJS605(void){
            // Reuse this already-existing filtered observer for the few Heart/cards
            // structures that used to depend on scroll-stop recovery.  No new observer
            // is created; symbol work now wakes only when a relevant node/state changes.
-           "var RELSYM6094='[class*=puis-heart-position],[class*=lists-framework-action-button],[class*=lists-framework-heart],[class*=mlt-icon-container],.ssf-share-trigger';"
+           "var RELSYM6094='[class*=puis-heart-position],[class*=lists-framework-action-button],[class*=lists-framework-heart],[class*=mlt-icon-container]';"
            "function relsym6094(n){try{if(!n||n.nodeType!==1)return false;if(n.matches&&n.matches(RELSYM6094))return true;if(n.closest&&n.closest(RELSYM6094))return true;return !!(n.querySelector&&n.querySelector(RELSYM6094));}catch(x){return false;}}"
            "function qsym6094(){try{if(window.__AD_SYM605_QUEUE__)window.__AD_SYM605_QUEUE__();}catch(x){}}"
-           "function removedShare6195(n){try{return !!(n&&n.nodeType===1&&((n.matches&&n.matches('.a-sheet-web[role=dialog],[class*=ssf-customize-container]'))||(n.querySelector&&n.querySelector('.a-sheet-web[role=dialog],[class*=ssf-customize-container]'))));}catch(x){return false;}}"
-           "new MutationObserver(function(ms){try{var qc=0,qs=0,qshare=0;for(var i=0;i<ms.length;i++){var m=ms[i];if(m.type==='attributes'){if(!qc&&rel434(m.target))qc=1;if(!qs&&relsym6094(m.target))qs=1;}var A=m.addedNodes||[];for(var j=0;j<A.length&&(!qc||!qs);j++){var an=A[j];if(!qc&&rel434(an))qc=1;if(!qs&&relsym6094(an))qs=1;}if(!qshare){var R=m.removedNodes||[];for(var r=0;r<R.length&&r<12;r++)if(removedShare6195(R[r])){qshare=1;break;}}if(qc&&qs&&qshare)break;}if(qc)queue434(90);if(qs)qsym6094();if(qshare){try{window.__AD_SHAREFIX6195__&&window.__AD_SHAREFIX6195__();}catch(_s){}setTimeout(function(){try{window.__AD_SHAREFIX6195__&&window.__AD_SHAREFIX6195__();}catch(_s){}},80);}}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','aria-current','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});}"
+           "new MutationObserver(function(ms){try{var qc=0,qs=0;for(var i=0;i<ms.length;i++){var m=ms[i];if(m.type==='attributes'){if(!qc&&rel434(m.target))qc=1;if(!qs&&relsym6094(m.target))qs=1;}var A=m.addedNodes||[];for(var j=0;j<A.length&&(!qc||!qs);j++){var an=A[j];if(!qc&&rel434(an))qc=1;if(!qs&&relsym6094(an))qs=1;}if(qc&&qs)break;}if(qc)queue434(90);if(qs)qsym6094();}catch(x){}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','aria-current','aria-checked','aria-pressed','aria-selected','data-checked','data-selected','data-state','checked','src','data-src']});}"
            "stockCheckbox434();setTimeout(stockCheckbox434,40);setTimeout(stockCheckbox434,180);setTimeout(stockCheckbox434,700);setTimeout(stockCheckbox434,1800);"
          "}catch(e){}"
          // Tiny 6.x reapply entry point only. It does not alter either donor owner.
          "window.__AD_SYM605_RUN__=sym413;"
-         "window.__AD_SYM605_QUEUE__=function(){try{if(window.__AD_SYM605_Q__)return;window.__AD_SYM605_Q__=1;var f=function(){window.__AD_SYM605_Q__=0;try{window.__AD_HEARTSHELL427__();}catch(x){}try{sym413();}catch(x){}try{window.__AD_CHECKBOX434__&&window.__AD_CHECKBOX434__();}catch(x){}try{window.__AD_DOTFIX374__&&window.__AD_DOTFIX374__();}catch(x){}try{window.__AD_SHAREFIX6195__&&window.__AD_SHAREFIX6195__();}catch(x){}};if(window.requestIdleCallback)requestIdleCallback(f,{timeout:220});else setTimeout(f,40);}catch(e){}};"
+         "window.__AD_SYM605_QUEUE__=function(){try{if(window.__AD_SYM605_Q__)return;window.__AD_SYM605_Q__=1;var f=function(){window.__AD_SYM605_Q__=0;try{window.__AD_HEARTSHELL427__();}catch(x){}try{sym413();}catch(x){}try{window.__AD_CHECKBOX434__&&window.__AD_CHECKBOX434__();}catch(x){}try{window.__AD_DOTFIX374__&&window.__AD_DOTFIX374__();}catch(x){}};if(window.requestIdleCallback)requestIdleCallback(f,{timeout:220});else setTimeout(f,40);}catch(e){}};"
          // v6.0.94: no web scroll listener. Heart/cards recovery is mutation/state
          // driven through the existing filtered checkbox/dot observer above.
          "try{window.__AD_SYM605_QUEUE__();}catch(e){}"
@@ -2018,12 +1547,8 @@ static void ADAttachThreeSymbolsUserScript605(WKUserContentController *ucc){
 static void ADEnableDarkReaderIn(WKWebView *wv){
     if (!gP.enabled || !gP.webDarkReader || !wv) return;
     @try {
-        WKUserContentController *ucc=wv.configuration.userContentController;
-        ADAttachDirectFloorUserScript6203(ucc);
-        ADAttachWhiteTameUserScript446(ucc);
-        ADAttachThreeSymbolsUserScript605(ucc);
-        NSString *floor6203=ADDirectFloorWebJS6203();
-        if (floor6203.length) [wv evaluateJavaScript:floor6203 completionHandler:nil];
+        ADAttachWhiteTameUserScript446(wv.configuration.userContentController);
+        ADAttachThreeSymbolsUserScript605(wv.configuration.userContentController);
         [wv evaluateJavaScript:@"(function(){try{if(window.__AD_SYM605_QUEUE__){window.__AD_SYM605_QUEUE__();return 1;}return 0;}catch(e){return 0;}})();"
              completionHandler:^(id r, NSError *e){
                  if (!e && [r respondsToSelector:@selector(boolValue)] && [r boolValue]) return;
@@ -2048,7 +1573,6 @@ static void ADEnableDarkReaderIn(WKWebView *wv){
                 if (err || ![result respondsToSelector:@selector(boolValue)] || ![result boolValue]) return;
                 WKUserContentController *ucc = wv.configuration.userContentController;
                 if (ucc){
-                    ADAttachDirectFloorUserScript6203(ucc);
                     ADAttachDarkReaderUserScript6175(ucc);
                     ADAttachWhiteTameUserScript446(ucc);
                     ADAttachThreeSymbolsUserScript605(ucc);
@@ -2072,8 +1596,6 @@ static void ADEnableDarkReaderIn(WKWebView *wv){
 static void ADBootstrapDarkReaderIn(WKWebView *wv){
     if (!gP.enabled || !gP.webDarkReader || !wv) return;
     @try {
-        NSString *floor6203=ADDirectFloorWebJS6203();
-        if (floor6203.length) [wv evaluateJavaScript:floor6203 completionHandler:nil];
         [wv evaluateJavaScript:@"(function(){try{return window.__AMZDARK_LOADED__?1:0;}catch(e){return 0;}})()"
              completionHandler:^(id loaded, NSError *err){
             if (!err && [loaded respondsToSelector:@selector(boolValue)] && [loaded boolValue]) return;
@@ -2168,7 +1690,7 @@ static void ADInjectAllWebViews(void){
 static void ADPrimeWebBacking611(WKWebView *wv){
     if (!wv || !gP.enabled || !gP.webDarkReader) return;
     @try {
-        UIColor *dark = [UIColor blackColor];
+        UIColor *dark = ADColorFromHex(gP.bgHex);
         wv.opaque = NO;
         wv.backgroundColor = dark;
         UIScrollView *sv = wv.scrollView;
@@ -2181,7 +1703,6 @@ static void ADPrimeWebBacking611(WKWebView *wv){
 - (id)initWithFrame:(CGRect)frame configuration:(WKWebViewConfiguration *)cfg {
     @try {
         if (gP.enabled && gP.webDarkReader && cfg && cfg.userContentController){
-            ADAttachDirectFloorUserScript6203(cfg.userContentController);
             ADAttachDarkReaderUserScript6175(cfg.userContentController);
             ADAttachWhiteTameUserScript446(cfg.userContentController);
             ADAttachThreeSymbolsUserScript605(cfg.userContentController);
@@ -2198,13 +1719,11 @@ static void ADPrimeWebBacking611(WKWebView *wv){
         ADTrackWebView613(self);
         if (!self.window || !gP.enabled || !gP.webDarkReader) return;
         ADPrimeWebBacking611(self);
-        ADPreDarken(self);   // exact v5.446 instant dark floor for a page that is mid-load
         WKUserContentController *ucc=self.configuration.userContentController;
         // Re-check the controller's actual script list by identity.  If Amazon recycled
         // it with removeAllUserScripts, these helpers add exactly one fresh copy now
         // that the WebView is mounted again; otherwise they only walk the small script array
         // by object identity and never inspect the large script source strings.
-        ADAttachDirectFloorUserScript6203(ucc);
         ADAttachDarkReaderUserScript6175(ucc);
         ADAttachWhiteTameUserScript446(ucc);
         ADAttachThreeSymbolsUserScript605(ucc);
@@ -4041,174 +3560,6 @@ static void ADNeutralizeInterestsGradientNearText6177(UIView *anchor, NSString *
     });
 }
 
-
-// v6.0.186 — Screenshot Share-panel product preview TWB owner.
-//
-// Amazon's post-screenshot "Share this product with friends" sheet is native/RN.
-// Its large product preview can be rejected by the ordinary TWB path because it is
-// bigger than the <=240pt semantic lane and can carry Share-ish accessibility UI.
-// Identify only the large preview inside this exact semantic sheet; app icons and
-// share-action glyphs remain too small to qualify.
-static BOOL ADShareScreenshotPhrase6186(NSString *text){
-    if(!text.length)return NO;
-    @try {
-        NSString *lo=[[[text lowercaseString] stringByReplacingOccurrencesOfString:@"\n" withString:@" "]
-                      stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-        while([lo containsString:@"  "]) lo=[lo stringByReplacingOccurrencesOfString:@"  " withString:@" "];
-        return [lo containsString:@"share this product with friends"];
-    } @catch(...) {}
-    return NO;
-}
-static BOOL ADShareScreenshotImageGeometry6186(UIImageView *iv){
-    if(!iv)return NO;
-    CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
-    if(w<220||h<110||w>520||h>430)return NO;
-    CGFloat ar=w/MAX((CGFloat)1.0,h);
-    return ar>=0.85&&ar<=3.8&&(w*h)>=32000.0;
-}
-static BOOL ADShareScreenshotPhraseNear6186(UIView *v){
-    if(!v||!v.window)return NO;
-    @try {
-        UIView *p=v; int up=0;
-        while(p&&up++<8){
-            if(ADShareScreenshotPhrase6186(ADWTViewText362(p)))return YES;
-            NSMutableArray *q=[NSMutableArray arrayWithObject:p]; NSUInteger qi=0; int seen=0;
-            while(qi<q.count&&seen++<72){
-                UIView *x=q[qi++];
-                if(x!=v&&ADShareScreenshotPhrase6186(ADWTViewText362(x)))return YES;
-                if(qi<28){for(UIView *ch in x.subviews){if(q.count<80)[q addObject:ch];else break;}}
-            }
-            p=p.superview;
-        }
-    } @catch(...) {}
-    return NO;
-}
-static BOOL ADShareScreenshotProductImage6186(UIImageView *iv){
-    return ADShareScreenshotImageGeometry6186(iv)&&ADShareScreenshotPhraseNear6186(iv);
-}
-
-// v6.0.191~probe — persistent full-screen Product images gallery owner.
-// v6.0.190 proved the dedicated owner is correct, but the title-derived root can be
-// narrower than Amazon's recycled page host on some gallery pages. That explains
-// why most photos gain the TWB overlay while a minority of swiped-in pages escape.
-// Keep an ARC-weak reference to the exact visible "Product images" title + window.
-// While that title remains mounted, any large UIImageView in that SAME window is a
-// gallery-photo candidate. This is still screen-scoped: thumbnails/chrome are too
-// small, and the weak title/window state dies automatically when the gallery leaves.
-static const void *kADProductImagesGalleryRoot6190=&kADProductImagesGalleryRoot6190;
-static __weak UIView *gADProductImagesGalleryTitle6191=nil;
-static __weak UIWindow *gADProductImagesGalleryWindow6191=nil;
-static BOOL ADProductImagesGalleryPhrase6190(NSString *text){
-    if(!text.length)return NO;
-    @try {
-        NSString *lo=[[[text lowercaseString] stringByReplacingOccurrencesOfString:@"\n" withString:@" "]
-                      stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-        while([lo containsString:@"  "])lo=[lo stringByReplacingOccurrencesOfString:@"  " withString:@" "];
-        return [lo isEqualToString:@"product images"];
-    } @catch(...) {}
-    return NO;
-}
-static UIView *ADProductImagesGalleryRoot6190(UIView *anchor){
-    if(!anchor||!anchor.window)return nil;
-    @try {
-        UIWindow *w=anchor.window; UIView *p=anchor,*best=anchor; int up=0;
-        CGFloat ww=w.bounds.size.width,wh=w.bounds.size.height;
-        while(p.superview&&up++<12){
-            UIView *n=p.superview; if(n.window!=w)break; p=n;
-            CGFloat pw=p.bounds.size.width,ph=p.bounds.size.height;
-            if(pw>=ww*.88&&ph>=wh*.50)best=p;
-            if(pw>=ww*.95&&ph>=wh*.82)break;
-        }
-        return best;
-    } @catch(...) {}
-    return nil;
-}
-static BOOL ADProductImagesGalleryWindowActive6191(UIWindow *w){
-    if(!w)return NO;
-    @try {
-        UIView *title=gADProductImagesGalleryTitle6191; UIWindow *gw=gADProductImagesGalleryWindow6191;
-        if(!title||!gw||gw!=w||title.window!=w)return NO;
-        return ADProductImagesGalleryPhrase6190(ADWTViewText362(title));
-    } @catch(...) {}
-    return NO;
-}
-static BOOL ADProductImagesGalleryImage6190(UIImageView *iv){
-    if(!iv||!iv.window||!iv.image)return NO;
-    @try {
-        CGFloat ww=iv.window.bounds.size.width,wh=iv.window.bounds.size.height;
-        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
-        // Excludes the bottom thumbnail strip, status/header artwork, and nav icons.
-        if(w<MAX((CGFloat)220.0,ww*.52)||h<110.0||h>wh*.90)return NO;
-        // v6.0.191: the exact live title makes the whole window authoritative. This
-        // catches recycled/sibling carousel pages that are not descendants of the
-        // first title-derived root used by v6.0.190.
-        if(ADProductImagesGalleryWindowActive6191(iv.window))return YES;
-        UIView *p=iv; int up=0;
-        while(p&&up++<14){
-            if(objc_getAssociatedObject(p,kADProductImagesGalleryRoot6190))return YES;
-            p=p.superview;
-        }
-    } @catch(...) {}
-    return NO;
-}
-static void ADProductImagesGalleryTextEvent6190(UIView *anchor,NSString *text){
-    if(!ADRecolorOn()||!gP.whiteTame||!anchor||!ADProductImagesGalleryPhrase6190(text))return;
-    // Set weak state immediately so an image assignment in the same run-loop turn
-    // can already resolve the active gallery before the bounded catch-up executes.
-    gADProductImagesGalleryTitle6191=anchor;
-    gADProductImagesGalleryWindow6191=anchor.window;
-    __weak UIView *weakAnchor=anchor;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        UIView *live=weakAnchor; if(!live||!live.window)return;
-        @try {
-            gADProductImagesGalleryTitle6191=live;
-            gADProductImagesGalleryWindow6191=live.window;
-            UIView *root=ADProductImagesGalleryRoot6190(live);
-            if(root)objc_setAssociatedObject(root,kADProductImagesGalleryRoot6190,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            // One bounded WINDOW catch-up. The v6.0.190 root-only catch-up could miss
-            // sibling/recycled pages; window scope is safe here because the exact
-            // Product images title is live and the geometry gate excludes thumbnails.
-            NSMutableArray *q=[NSMutableArray arrayWithObject:live.window]; NSUInteger qi=0; int seen=0;
-            while(qi<q.count&&seen++<900){
-                UIView *v=q[qi++];
-                if([v isKindOfClass:[UIImageView class]]&&ADProductImagesGalleryImage6190((UIImageView *)v))
-                    ADApplyNativeWhiteTameView(v);
-                if(qi<360){for(UIView *ch in v.subviews){if(q.count<980)[q addObject:ch];else break;}}
-            }
-        } @catch(...) {}
-    });
-}
-static void ADShareProbeTextEvent6189(UIView *anchor, NSString *text, NSString *source);
-static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
-    if(!ADRecolorOn()||!gP.whiteTame||!anchor||!ADShareScreenshotPhrase6186(text))return;
-    __weak UIView *weakAnchor=anchor;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        UIView *live=weakAnchor; if(!live||!live.window)return;
-        @try {
-            UIView *root=live; int up=0;
-            while(root.superview&&up++<7){
-                UIView *next=root.superview;
-                if(next.window!=live.window)break;
-                root=next;
-                if(root.bounds.size.width>=live.window.bounds.size.width*.88&&root.bounds.size.height>=360)break;
-            }
-            NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger qi=0; int seen=0;
-            while(qi<q.count&&seen++<140){
-                UIView *x=q[qi++];
-                if([x isKindOfClass:[UIImageView class]]){
-                    UIImageView *iv=(UIImageView *)x;
-                    if(ADShareScreenshotImageGeometry6186(iv)){
-                        ADMarkShareScreenshotForce6194(iv);
-                        ADTWBClearSettledMount6194(iv);
-                        ADApplyNativeWhiteTameView(iv);
-                    }
-                }
-                if(qi<52){for(UIView *ch in x.subviews){if(q.count<150)[q addObject:ch];else break;}}
-            }
-        } @catch(...) {}
-    });
-}
-
 // Fabric text (new architecture). Setter lives on RCTParagraphComponentView.
 %hook RCTParagraphComponentView
 - (void)setAttributedText:(NSAttributedString *)attributedText {
@@ -4218,9 +3569,6 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
         ADClaimPersonBorderDeferred6147(self,attributedText.string);
         ADBuyAgainSemanticRepair6181((UIView *)self,attributedText.string);
         ADNeutralizeInterestsGradientNearText6177((UIView *)self,attributedText.string);
-        ADShareScreenshotRepair6186((UIView *)self,attributedText.string);
-        ADProductImagesGalleryTextEvent6190((UIView *)self,attributedText.string);
-        ADShareProbeTextEvent6189((UIView *)self,attributedText.string,@"RCTParagraph.setAttributedText");
         return;
     } @catch(...) {}
     %orig;
@@ -4232,9 +3580,6 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
         ADClaimPersonBorderDeferred6147(self,attributedString.string);
         ADBuyAgainSemanticRepair6181((UIView *)self,attributedString.string);
         ADNeutralizeInterestsGradientNearText6177((UIView *)self,attributedString.string);
-        ADShareScreenshotRepair6186((UIView *)self,attributedString.string);
-        ADProductImagesGalleryTextEvent6190((UIView *)self,attributedString.string);
-        ADShareProbeTextEvent6189((UIView *)self,attributedString.string,@"RCTParagraph._setAttributedString");
         return;
     } @catch(...) {}
     %orig;
@@ -4271,9 +3616,6 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
         ADClaimPersonBorderDeferred6147(self,adBorderText6147);
         ADBuyAgainSemanticRepair6181((UIView *)self,adBorderText6147);
         ADNeutralizeInterestsGradientNearText6177((UIView *)self,adBorderText6147);
-        ADShareScreenshotRepair6186((UIView *)self,adBorderText6147);
-        ADProductImagesGalleryTextEvent6190((UIView *)self,adBorderText6147);
-        ADShareProbeTextEvent6189((UIView *)self,adBorderText6147,@"RCTTextView.setTextStorage");
     } @catch(...) {}
 }
 - (void)layoutSubviews {
@@ -4294,19 +3636,9 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
         %orig(r);
         ADBuyAgainSemanticRepair6181(self,attributedText.string);
         ADNeutralizeInterestsGradientNearText6177(self,attributedText.string);
-        ADShareScreenshotRepair6186(self,attributedText.string);
-        ADProductImagesGalleryTextEvent6190(self,attributedText.string);
-        ADShareProbeTextEvent6189(self,attributedText.string,@"UILabel.setAttributedText");
         return;
     } @catch(...) {}
     %orig;
-}
-- (void)setText:(NSString *)text {
-    %orig;
-    @try {
-        ADProductImagesGalleryTextEvent6190(self,text);
-        ADShareProbeTextEvent6189(self,text,@"UILabel.setText");
-    } @catch(...) {}
 }
 %end
 
@@ -4707,7 +4039,7 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
 %hook WKScrollView
 - (void)setBackgroundColor:(UIColor *)color {
     if (gP.enabled && gP.webDarkReader){
-        UIColor *dark611 = [UIColor blackColor];
+        UIColor *dark611 = ADColorFromHex(gP.bgHex);
         %orig(dark611);
         return;
     }
@@ -4715,7 +4047,7 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
 }
 - (void)didMoveToWindow {
     %orig;
-    @try { if (self.window && gP.enabled && gP.webDarkReader) self.backgroundColor = [UIColor blackColor]; } @catch(...) {}
+    @try { if (self.window && gP.enabled && gP.webDarkReader) self.backgroundColor = ADColorFromHex(gP.bgHex); } @catch(...) {}
 }
 %end
 
@@ -4727,7 +4059,7 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
 %hook WKContentView
 - (void)setBackgroundColor:(UIColor *)color {
     if (gP.enabled && gP.webDarkReader){
-        UIColor *dark612 = [UIColor blackColor];
+        UIColor *dark612 = ADColorFromHex(gP.bgHex);
         %orig(dark612);
         return;
     }
@@ -4744,7 +4076,7 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
     %orig;
     @try {
         if (!self.window || !gP.enabled || !gP.webDarkReader) return;
-        UIColor *dark612 = [UIColor blackColor];
+        UIColor *dark612 = ADColorFromHex(gP.bgHex);
         self.opaque = YES;
         self.backgroundColor = dark612;
         self.layer.backgroundColor = dark612.CGColor;
@@ -4754,7 +4086,7 @@ static void ADShareScreenshotRepair6186(UIView *anchor, NSString *text){
     %orig;
     @try {
         if (!self.window || !gP.enabled || !gP.webDarkReader) return;
-        UIColor *dark612 = [UIColor blackColor];
+        UIColor *dark612 = ADColorFromHex(gP.bgHex);
         // Layer assignment closes the path where WebKit updates the backing layer
         // directly rather than going through UIView setBackgroundColor:.
         self.layer.backgroundColor = dark612.CGColor;
@@ -5833,44 +5165,6 @@ static int ADTWBDirectCtx6031(UIImageView *iv, UIImage *im){
 // maintains the existing CALayer; it does not rediscover the section.
 static const void *kADTWBCachedImage6027 = &kADTWBCachedImage6027;
 static const void *kADTWBDecision6027 = &kADTWBDecision6027;
-// v6.0.194 — settled-mount cache for scroll-hot RCT image layouts.  The cache stores
-// raw pointer values, not retained view objects, so it cannot create a view/superview cycle.
-static const void *kADTWBSettledSuperview6194 = &kADTWBSettledSuperview6194;
-static const void *kADTWBSettledWindow6194 = &kADTWBSettledWindow6194;
-static const void *kADTWBSettledBounds6194 = &kADTWBSettledBounds6194;
-// Native screenshot-Share fallback is now event-owned.  Probe 6192 proved the real
-// current Share preview is WebKit/CSS, so ordinary image layouts must never perform
-// the old phrase/subtree discovery walk.  Retain support for a native template only
-// when the exact Share text event explicitly marks that UIImage.
-static const void *kADShareScreenshotForceImage6194 = &kADShareScreenshotForceImage6194;
-
-static void ADMarkShareScreenshotForce6194(UIImageView *iv){
-    if(!iv)return;
-    UIImage *im=iv.image;
-    objc_setAssociatedObject(iv,kADShareScreenshotForceImage6194,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-}
-
-static void ADTWBClearSettledMount6194(UIImageView *iv){
-    if(!iv)return;
-    objc_setAssociatedObject(iv,kADTWBSettledSuperview6194,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    objc_setAssociatedObject(iv,kADTWBSettledWindow6194,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    objc_setAssociatedObject(iv,kADTWBSettledBounds6194,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-}
-static void ADTWBRememberSettledMount6194(UIImageView *iv){
-    if(!iv)return;
-    objc_setAssociatedObject(iv,kADTWBSettledSuperview6194,[NSValue valueWithNonretainedObject:iv.superview],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    objc_setAssociatedObject(iv,kADTWBSettledWindow6194,[NSValue valueWithNonretainedObject:iv.window],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    objc_setAssociatedObject(iv,kADTWBSettledBounds6194,[NSValue valueWithCGRect:iv.bounds],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-}
-static BOOL ADTWBSameSettledMount6194(UIImageView *iv){
-    if(!iv||!iv.window)return NO;
-    NSValue *sp=objc_getAssociatedObject(iv,kADTWBSettledSuperview6194);
-    NSValue *wp=objc_getAssociatedObject(iv,kADTWBSettledWindow6194);
-    NSValue *bp=objc_getAssociatedObject(iv,kADTWBSettledBounds6194);
-    if(!sp||!wp||!bp)return NO;
-    return sp.nonretainedObjectValue==iv.superview &&
-           wp.nonretainedObjectValue==iv.window && CGRectEqualToRect(bp.CGRectValue,iv.bounds);
-}
 
 static UIColor *ADWhiteTameShade6053(void){
     static NSInteger last=-1000; static UIColor *shade=nil;
@@ -5891,7 +5185,6 @@ static void ADNativeTWBRelease6027(UIImageView *iv){
     @try {
         CALayer *ov=objc_getAssociatedObject(iv,kADWhiteTameOverlayKey);
         if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(iv,kADWhiteTameOverlayKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
-        ADTWBClearSettledMount6194(iv);
     } @catch(...) {}
 }
 static void ADTWBResetSemantic6031(UIImageView *iv){
@@ -5934,6 +5227,47 @@ static BOOL ADNativeTWBUIChain6027(UIImageView *iv){
     return NO;
 }
 
+// v6.0.200: ordinary raster photos are a universal TWB leaf policy, matching the
+// WebKit `img` rule.  Use only cheap metadata + existing glyph/chrome rejection;
+// do not sample pixels or resolve section text for a normal photo.  The old
+// semantic/lightness path remains below as a fallback for small/ambiguous assets.
+// Context value 4 means generic raster-photo ownership.
+static BOOL ADNativeTWBPhotoLeaf6200(UIImageView *iv, UIImage *im){
+    if(!iv||!im||ADImageIsTemplateish(im)||ADNativeTWBUIChain6027(iv)) return NO;
+    @try {
+        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
+        if(w<28||h<28||w>1200||h>1200) return NO;
+        size_t pw=0,ph=0;
+        CGImageRef cg=im.CGImage;
+        if(cg){ pw=CGImageGetWidth(cg); ph=CGImageGetHeight(cg); }
+        else {
+            CGFloat sc=MAX((CGFloat)1.0,im.scale);
+            pw=(size_t)lrint(im.size.width*sc);
+            ph=(size_t)lrint(im.size.height*sc);
+        }
+        // Tiny raster assets are overwhelmingly glyphs/badges. Product/review/ad
+        // photography is sourced much larger even when rendered as a small card.
+        return pw>=72 && ph>=72;
+    } @catch(...) {}
+    return NO;
+}
+static void ADNativeTWBClaimPhoto6200(UIImageView *iv, UIImage *im){
+    if(!iv||!im) return;
+    objc_setAssociatedObject(iv,kADTWBCachedImage6027,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(iv,kADTWBDecision6027,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(iv,kADTWBDirectCtxImage6031,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(iv,kADTWBDirectCtx6031,@4,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(iv,kADTWBDirectCtxTime6031,@(CFAbsoluteTimeGetCurrent()),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(iv,kADTWBDirectCtxAttempts6031,@0,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    CALayer *ov=objc_getAssociatedObject(iv,kADWhiteTameOverlayKey);
+    if(!ov){
+        ov=[CALayer layer]; ov.name=@"AmazonDarkWhiteTame6027";
+        [iv.layer addSublayer:ov];
+        objc_setAssociatedObject(iv,kADWhiteTameOverlayKey,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    } else if(ov.superlayer!=iv.layer) [iv.layer addSublayer:ov];
+    ADNativeTWBStyleOverlay6053(iv,ov);
+}
+
 static void ADApplyNativeWhiteTameView(UIView *v){
     if(![v isKindOfClass:[UIImageView class]]) return;
     UIImageView *iv=(UIImageView *)v;
@@ -5962,21 +5296,20 @@ static void ADApplyNativeWhiteTameView(UIView *v){
         NSNumber *ctxAttempts=objc_getAssociatedObject(iv,kADTWBDirectCtxAttempts6031);
         CALayer *ov=objc_getAssociatedObject(iv,kADWhiteTameOverlayKey);
         BOOL semanticSettled=(ctxImage==im&&ctxValue&&(ctxValue.intValue!=0||ctxAttempts.integerValue>=1));
-        // v6.0.194: carousel/layout hot path.  Once the exact UIImage is positively
-        // owned on the same mounted view geometry, layout only resizes/recolors its
-        // existing overlay.  No semantic walk, pixel classifier, peer enumeration or
-        // Share-sheet discovery can run again until image/parent/window/geometry changes.
-        if(ov&&ov.superlayer==iv.layer&&cached==im&&decision.boolValue&&
-           (semanticSettled||ADTWBSameSettledMount6194(iv))){
+        if(ov&&ov.superlayer==iv.layer&&cached==im&&decision.boolValue&&semanticSettled){
             ADNativeTWBStyleOverlay6053(iv,ov);
-            ADTWBRememberSettledMount6194(iv);
             return;
         }
+
+        // Fast path for actual photos: this is intentionally before section-text
+        // discovery, peer consensus, and 12x12 luminance sampling.
+        if(ADNativeTWBPhotoLeaf6200(iv,im)){
+            ADNativeTWBClaimPhoto6200(iv,im);
+            return;
+        }
+
         ADNativeRegisterRCT6053(iv);
-        UIImage *shareForceImage=objc_getAssociatedObject(iv,kADShareScreenshotForceImage6194);
-        BOOL shareShot=(shareForceImage==im);
-        BOOL galleryShot=ADProductImagesGalleryImage6190(iv);
-        int ctx=(shareShot||galleryShot)?2:((w<=240&&h<=240)?ADTWBDirectCtx6031(iv,im):0);
+        int ctx=(w<=240&&h<=240)?ADTWBDirectCtx6031(iv,im):0;
         BOOL forced=(ctx==2), review=(ctx==3);
         BOOL own=NO, lightReady=YES;
 
@@ -5984,7 +5317,6 @@ static void ADApplyNativeWhiteTameView(UIView *v){
             own=YES;
             objc_setAssociatedObject(iv,kADTWBCachedImage6027,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             objc_setAssociatedObject(iv,kADTWBDecision6027,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            if(shareShot||galleryShot) ADTWBPromoteProduct6053(iv,im);
         } else if(ctx!=1 && cached==im && decision){
             own=decision.boolValue;
         } else if(ctx!=1){
@@ -6020,7 +5352,6 @@ static void ADApplyNativeWhiteTameView(UIView *v){
             newPeerPositive=(objc_getAssociatedObject(iv,kADPeerRegistered6053)!=nil);
         } else if(ov.superlayer!=iv.layer) [iv.layer addSublayer:ov];
         ADNativeTWBStyleOverlay6053(iv,ov);
-        ADTWBRememberSettledMount6194(iv);
         if(newPeerPositive){ if(++gADPeerGeneration6055==0) gADPeerGeneration6055=1; }
         ADNativeWakePeers6053(iv);
     } @catch(...) {}
@@ -6407,8 +5738,6 @@ static void ADScheduleGlyphLift624(UIImageView *iv){
         UIImageView *iv=(UIImageView *)(id)self;
         ADNativeClearPeerNegative6055(iv);
         ADNativeResetRCTRegistration6055(iv);
-        ADTWBClearSettledMount6194(iv);
-        objc_setAssociatedObject(iv,kADShareScreenshotForceImage6194,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         UIView *vv=(UIView *)iv;
         if(gP.enabled&&gP.whiteTame&&vv.window) ADApplyNativeWhiteTameView(vv);
     } @catch(...) {}
@@ -6421,8 +5750,6 @@ static void ADScheduleGlyphLift624(UIImageView *iv){
         ADTWBResetSemantic6031(iv);
         ADNativeClearPeerNegative6055(iv);
         ADNativeResetRCTRegistration6055(iv);
-        ADTWBClearSettledMount6194(iv);
-        objc_setAssociatedObject(iv,kADShareScreenshotForceImage6194,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(iv,kADPeerWakeImage6053,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADApplyNativeWhiteTameView((UIView *)iv);
     } @catch(...) {}
@@ -7085,17 +6412,6 @@ static void ADPostAppReady(void){
     notify_post("com.colindavidr.amazondark.ready");
 }
 
-static void ADPreDarken(WKWebView *wv){
-    @try {
-        if (![NSThread isMainThread]) return;
-        [wv evaluateJavaScript:
-            @"try{if(!document.getElementById('adpre')){var s=document.createElement('style');"
-             "s.id='adpre';s.textContent='html,body{background:#000000 !important}';"
-             "(document.documentElement||document).appendChild(s);}}catch(e){}"
-             completionHandler:nil];
-    } @catch(...) {}
-}
-
 // ─── live visual/performance settings reload ───────────────────────────────────────
 // ADRootListController posts this Darwin notification on every toggle. Visual settings
 // and 120 Hz can reapply in-process; JIT is intentionally launch-time because the
@@ -7163,10 +6479,10 @@ static void ADBuyAgainProbeAppend6180(NSString *line){
 static void ADBuyAgainProbeReset6180(void){
     @try {
         NSString *head=[NSString stringWithFormat:
-            @"AmazonDark Buy Again + screenshot Share/WebKit probe 6192\nversion=%s\npid=%d\nsource=%@\n"
+            @"AmazonDark Buy Again probe 6180\nversion=%s\npid=%d\nsource=%@\n"
              "relay=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/%@\n"
-             "trigger=take a screenshot on the failing product; screenshot-time captures run automatically, then background Amazon once to append/relay\n"
-             "targets=native + WKWebView DOM/renderers for Share this product with friends; Product images fix + Buy Again diagnostics retained\n",
+             "trigger=leave Buy Again visible and background Amazon; each background appends a snapshot\n"
+             "targets=Reorder-soon border painter + RCTUIImageView/ANXFastImageView TWB peer state\n",
             AD_VERSION,getpid(),ADBuyAgainProbePath6180(),ADBuyAgainProbeName6180()];
         [head writeToFile:ADBuyAgainProbePath6180() atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } @catch(...) {}
@@ -7241,346 +6557,13 @@ static BOOL ADBuyAgainProbeVisible6180(UIView *v){
     @try { CGRect r=ADBuyAgainProbeRect6180(v); return r.size.width>1&&r.size.height>1&&CGRectIntersectsRect(r,[UIScreen mainScreen].bounds); } @catch(...) {}
     return NO;
 }
-
-// v6.0.189~probe — render-time + background fallback screenshot Share-panel capture.
-// Diagnostic only: deliberately does NOT call ADApplyNativeWhiteTameView(), recolor,
-// add/remove overlays, or mutate image/lightness caches. The v6.0.186 behavior is
-// therefore preserved while we record every plausible image/layer painter in the sheet.
-static UIView *ADShareProbeRoot6187(void){
-    @try {
-        NSMutableArray *q=[NSMutableArray array];
-        for(UIWindow *w in [UIApplication sharedApplication].windows)
-            if(w&&!w.hidden&&w.alpha>.03)[q addObject:w];
-        NSUInteger qi=0,seen=0;
-        while(qi<q.count&&seen++<2400){
-            UIView *v=q[qi++];
-            for(UIView *ch in v.subviews){ if(q.count<2800)[q addObject:ch]; else break; }
-            if(!ADBuyAgainProbeVisible6180(v))continue;
-            if(!ADShareScreenshotPhrase6186(ADWTViewText362(v)))continue;
-            UIView *root=v; int up=0;
-            CGFloat sw=[UIScreen mainScreen].bounds.size.width;
-            while(root.superview&&up++<10){
-                UIView *next=root.superview;
-                if(next.window!=v.window)break;
-                root=next;
-                CGRect rr=ADBuyAgainProbeRect6180(root);
-                if(rr.size.width>=sw*.86&&rr.size.height>=360.0)break;
-            }
-            return root;
-        }
-    } @catch(...) {}
-    return nil;
-}
-static NSString *ADShareProbeAncestors6187(UIView *v,UIView *root){
-    if(!v)return @"";
-    @try {
-        NSMutableArray *bits=[NSMutableArray array]; UIView *p=v.superview; int n=0;
-        while(p&&n++<7){
-            const char *cn=object_getClassName(p); NSString *cl=cn?[NSString stringWithUTF8String:cn]:@"?";
-            CGRect r=ADBuyAgainProbeRect6180(p); NSString *tx=ADWTViewText362(p)?:@"";
-            tx=[[tx stringByReplacingOccurrencesOfString:@"\n" withString:@" "] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-            if(tx.length>72)tx=[[tx substringToIndex:72]stringByAppendingString:@"…"];
-            [bits addObject:[NSString stringWithFormat:@"%@ %.0fx%.0f '%@'",cl,r.size.width,r.size.height,tx]];
-            if(p==root)break; p=p.superview;
-        }
-        return [bits componentsJoinedByString:@" <- "];
-    } @catch(...) { return @""; }
-}
-static void ADShareProbeLayer6187(CALayer *l,int depth,NSMutableString *out,int *count){
-    if(!l||!out||!count||depth>7||*count>=180)return;
-    @try {
-        id c=l.contents; BOOL hasCG=NO; size_t px=0,py=0;
-        if(c){ CFTypeRef obj=(__bridge CFTypeRef)c; if(obj&&CFGetTypeID(obj)==CGImageGetTypeID()){hasCG=YES;CGImageRef im=(CGImageRef)obj;px=CGImageGetWidth(im);py=CGImageGetHeight(im);} }
-        NSString *cl=NSStringFromClass([l class]);
-        BOOL interesting=hasCG||[cl rangeOfString:@"Gradient" options:NSCaseInsensitiveSearch].location!=NSNotFound;
-        if(interesting){
-            (*count)++;
-            id del=l.delegate; NSString *dc=del?NSStringFromClass([del class]):@"nil";
-            [out appendFormat:@"SHARELAYER #%d d=%d cls=%@ delegate=%@ frame=(%.1f,%.1f %.1fx%.1f) contents=%@ pixels=%zux%zu bg=%@ opacity=%.2f hidden=%d sub=%lu\n",
-                *count,depth,cl,dc,l.frame.origin.x,l.frame.origin.y,l.frame.size.width,l.frame.size.height,
-                ADBuyAgainProbeContents6180(c),px,py,ADBuyAgainProbeColor6180(l.backgroundColor),l.opacity,l.hidden,(unsigned long)l.sublayers.count];
-        }
-        for(CALayer *sl in (l.sublayers?:@[]))ADShareProbeLayer6187(sl,depth+1,out,count);
-    } @catch(...) {}
-}
-
-// v6.0.189~probe: capture while the header text is actually being assigned.
-// v6.0.188 proved that UIApplicationWillResignActiveNotification can arrive after
-// the rendered header is no longer discoverable through UIView text/accessibility.
-static UIView *ADShareProbeRootFromAnchor6189(UIView *anchor){
-    if(!anchor)return nil;
-    @try {
-        UIView *root=anchor; CGFloat sw=[UIScreen mainScreen].bounds.size.width; int up=0;
-        while(root.superview&&up++<12){
-            UIView *next=root.superview;
-            if(next.window!=anchor.window)break;
-            root=next;
-            CGRect rr=ADBuyAgainProbeRect6180(root);
-            if(rr.size.width>=sw*.86&&rr.size.height>=300.0)break;
-        }
-        return root;
-    } @catch(...) {}
-    return nil;
-}
-static void ADShareProbeDumpRoot6189(NSMutableString *out,UIView *root,NSString *tag){
-    if(!out||!root)return;
-    @try {
-        CGRect rr=ADBuyAgainProbeRect6180(root);
-        [out appendFormat:@"\n===== SHAREEVENT6189 tag=%@ root=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) rootText=\"%@\" =====\n",
-            tag?:@"?",NSStringFromClass([root class]),root,rr.origin.x,rr.origin.y,rr.size.width,rr.size.height,ADBuyAgainProbeText6180(root)];
-        NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger qi=0,seen=0; int imgs=0,rasterViews=0,largeViews=0;
-        while(qi<q.count&&seen++<1100){
-            UIView *v=q[qi++];
-            for(UIView *ch in v.subviews){if(q.count<1200)[q addObject:ch];else break;}
-            if(!ADBuyAgainProbeVisible6180(v))continue;
-            const char *cn=object_getClassName(v); NSString *cl=cn?[NSString stringWithUTF8String:cn]:@"?";
-            CGRect r=ADBuyAgainProbeRect6180(v);
-            NSString *tx=ADWTViewText362(v)?:@"";
-            if((r.size.width>=220&&r.size.height>=100)||(r.size.width>=360&&r.size.height>=44)){
-                if(largeViews++<80){
-                    tx=[[tx stringByReplacingOccurrencesOfString:@"\n" withString:@" "] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-                    if(tx.length>100)tx=[[tx substringToIndex:100]stringByAppendingString:@"…"];
-                    [out appendFormat:@"SHAREVIEW6189 #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) bg=%@ layerBg=%@ text=\"%@\" aid=\"%@\" label=\"%@\"\n",
-                        largeViews,cl,v,r.origin.x,r.origin.y,r.size.width,r.size.height,ADBuyAgainProbeColor6180(v.backgroundColor.CGColor),ADBuyAgainProbeColor6180(v.layer.backgroundColor),tx,v.accessibilityIdentifier?:@"",v.accessibilityLabel?:@""];
-                }
-            }
-            if([v isKindOfClass:[UIImageView class]]){
-                UIImageView *iv=(UIImageView *)v; UIImage *im=iv.image; if(!im)continue;
-                imgs++; size_t px=0,py=0; if(im.CGImage){px=CGImageGetWidth(im.CGImage);py=CGImageGetHeight(im.CGImage);}
-                CALayer *ov=objc_getAssociatedObject(iv,kADWhiteTameOverlayKey);
-                NSNumber *dec=objc_getAssociatedObject(iv,kADTWBDecision6027);
-                NSNumber *ctx=objc_getAssociatedObject(iv,kADTWBDirectCtx6031);
-                NSNumber *light=objc_getAssociatedObject(im,kADWhiteTameLightKey363);
-                [out appendFormat:@"SHAREEVENTIMG6189 #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) pixels=%zux%zu mode=%ld overlay=%d geom6186=%d near6186=%d product6186=%d decision=%@ ctx=%@ lightCache=%@ contents=%@ aid=\"%@\" label=\"%@\" anc=\"%@\"\n",
-                    imgs,cl,iv,r.origin.x,r.origin.y,r.size.width,r.size.height,px,py,(long)iv.contentMode,(ov&&ov.superlayer==iv.layer),
-                    ADShareScreenshotImageGeometry6186(iv),ADShareScreenshotPhraseNear6186(iv),ADShareScreenshotProductImage6186(iv),dec?:@"nil",ctx?:@"nil",light?:@"nil",
-                    ADBuyAgainProbeContents6180(iv.layer.contents),iv.accessibilityIdentifier?:@"",iv.accessibilityLabel?:@"",ADShareProbeAncestors6187(iv,root)];
-            } else {
-                id c=v.layer.contents; BOOL hasCG=NO; size_t px=0,py=0;
-                if(c){CFTypeRef obj=(__bridge CFTypeRef)c;if(obj&&CFGetTypeID(obj)==CGImageGetTypeID()){hasCG=YES;CGImageRef im=(CGImageRef)obj;px=CGImageGetWidth(im);py=CGImageGetHeight(im);}}
-                if(hasCG){
-                    rasterViews++;
-                    [out appendFormat:@"SHAREEVENTRASTER6189 #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) pixels=%zux%zu contents=%@ bg=%@ layerBg=%@ aid=\"%@\" label=\"%@\" anc=\"%@\"\n",
-                        rasterViews,cl,v,r.origin.x,r.origin.y,r.size.width,r.size.height,px,py,ADBuyAgainProbeContents6180(c),ADBuyAgainProbeColor6180(v.backgroundColor.CGColor),ADBuyAgainProbeColor6180(v.layer.backgroundColor),v.accessibilityIdentifier?:@"",v.accessibilityLabel?:@"",ADShareProbeAncestors6187(v,root)];
-                }
-            }
-        }
-        int layers=0; ADShareProbeLayer6187(root.layer,0,out,&layers);
-        [out appendFormat:@"SHAREEVENTSUMMARY6189 tag=%@ scanned=%lu imageViews=%d rasterViews=%d imageOrGradientLayers=%d\n===== SHAREEVENT6189 COMPLETE =====\n",
-            tag?:@"?",(unsigned long)seen,imgs,rasterViews,layers];
-    } @catch(...) { [out appendString:@"SHAREEVENT6189 EXCEPTION\n"]; }
-}
-static void ADShareProbeCaptureAnchor6189(UIView *anchor,NSString *source,NSString *stage){
-    if(!anchor)return;
-    @try {
-        UIView *root=ADShareProbeRootFromAnchor6189(anchor);
-        NSMutableString *out=[NSMutableString stringWithFormat:@"\n\nSHARETEXT6189 source=%@ stage=%@ anchor=%@ ptr=%p anchorRect=(%.1f,%.1f %.1fx%.1f)\n",
-            source?:@"?",stage?:@"?",NSStringFromClass([anchor class]),anchor,
-            ADBuyAgainProbeRect6180(anchor).origin.x,ADBuyAgainProbeRect6180(anchor).origin.y,ADBuyAgainProbeRect6180(anchor).size.width,ADBuyAgainProbeRect6180(anchor).size.height];
-        if(root)ADShareProbeDumpRoot6189(out,root,[NSString stringWithFormat:@"%@/%@",source?:@"?",stage?:@"?"]);
-        else [out appendString:@"SHAREEVENT6189 root=none-from-anchor\n"];
-        ADBuyAgainProbeAppend6180(out); notify_post(AD_BUYAGAIN_PROBE_READY_6180);
-    } @catch(...) {}
-}
-static void ADShareProbeTextEvent6189(UIView *anchor, NSString *text, NSString *source){
-    if(!anchor||!ADShareScreenshotPhrase6186(text))return;
-    __weak UIView *weakAnchor=anchor;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        UIView *live=weakAnchor; if(!live||!live.window)return;
-        ADShareProbeCaptureAnchor6189(live,source,@"next-main");
-        __weak UIView *weakHydrated=live;
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(350*NSEC_PER_MSEC)),dispatch_get_main_queue(), ^{
-            UIView *hydrated=weakHydrated; if(hydrated&&hydrated.window)ADShareProbeCaptureAnchor6189(hydrated,source,@"+350ms");
-        });
-    });
-}
-static void ADShareProbeFallback6189(NSMutableString *out){
-    if(!out)return;
-    @try {
-        CGRect screen=[UIScreen mainScreen].bounds; int wins=0,views=0,imgs=0,rasters=0;
-        NSMutableArray *q=[NSMutableArray array];
-        for(UIWindow *w in [UIApplication sharedApplication].windows){
-            if(!w||w.hidden||w.alpha<=.03)continue; wins++; CGRect wr=ADBuyAgainProbeRect6180(w);
-            [out appendFormat:@"SHAREWINDOW6189 #%d cls=%@ ptr=%p level=%.1f rect=(%.1f,%.1f %.1fx%.1f) rootVC=%@\n",wins,NSStringFromClass([w class]),w,w.windowLevel,wr.origin.x,wr.origin.y,wr.size.width,wr.size.height,NSStringFromClass([w.rootViewController class])];
-            [q addObject:w];
-        }
-        NSUInteger qi=0,seen=0;
-        while(qi<q.count&&seen++<2600){
-            UIView *v=q[qi++]; for(UIView *ch in v.subviews){if(q.count<3000)[q addObject:ch];else break;}
-            if(!ADBuyAgainProbeVisible6180(v))continue; CGRect r=ADBuyAgainProbeRect6180(v);
-            const char *cn=object_getClassName(v); NSString *cl=cn?[NSString stringWithUTF8String:cn]:@"?";
-            BOOL sheetGeom=(r.size.width>=screen.size.width*.88&&CGRectGetMaxY(r)>=screen.size.height-16&&r.size.height>=250&&r.size.height<=screen.size.height*.85);
-            if(sheetGeom&&views++<80){ NSString *tx=ADWTViewText362(v)?:@""; if(tx.length>100)tx=[[tx substringToIndex:100]stringByAppendingString:@"…"];
-                [out appendFormat:@"SHAREFALLBACKVIEW6189 #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) bg=%@ text=\"%@\" aid=\"%@\" label=\"%@\"\n",views,cl,v,r.origin.x,r.origin.y,r.size.width,r.size.height,ADBuyAgainProbeColor6180(v.backgroundColor.CGColor),tx,v.accessibilityIdentifier?:@"",v.accessibilityLabel?:@""]; }
-            if([v isKindOfClass:[UIImageView class]]){
-                UIImageView *iv=(UIImageView *)v; UIImage *im=iv.image; if(!im)continue;
-                if(r.size.width<120||r.size.height<80)continue; imgs++; size_t px=0,py=0;if(im.CGImage){px=CGImageGetWidth(im.CGImage);py=CGImageGetHeight(im.CGImage);} CALayer *ov=objc_getAssociatedObject(iv,kADWhiteTameOverlayKey);
-                [out appendFormat:@"SHAREFALLBACKIMG6189 #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) pixels=%zux%zu overlay=%d geom6186=%d contents=%@ aid=\"%@\" label=\"%@\"\n",imgs,cl,iv,r.origin.x,r.origin.y,r.size.width,r.size.height,px,py,(ov&&ov.superlayer==iv.layer),ADShareScreenshotImageGeometry6186(iv),ADBuyAgainProbeContents6180(iv.layer.contents),iv.accessibilityIdentifier?:@"",iv.accessibilityLabel?:@""];
-            } else {
-                id c=v.layer.contents; if(c){CFTypeRef obj=(__bridge CFTypeRef)c;if(obj&&CFGetTypeID(obj)==CGImageGetTypeID()&&r.size.width>=120&&r.size.height>=80){CGImageRef im=(CGImageRef)obj;rasters++;[out appendFormat:@"SHAREFALLBACKRASTER6189 #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) pixels=%zux%zu contents=%@\n",rasters,cl,v,r.origin.x,r.origin.y,r.size.width,r.size.height,CGImageGetWidth(im),CGImageGetHeight(im),ADBuyAgainProbeContents6180(c)];}}
-            }
-        }
-        [out appendFormat:@"SHAREFALLBACKSUMMARY6189 scanned=%lu windows=%d sheetViews=%d largeImages=%d largeRasters=%d\n",(unsigned long)seen,wins,views,imgs,rasters];
-    } @catch(...) { [out appendString:@"SHAREFALLBACK6189 EXCEPTION\n"]; }
-}
-
-
-static void ADShareProbeDump6187(NSMutableString *out);
-
-// v6.0.192~probe — screenshot-time WebKit + native Share-panel capture.
-// v6.0.191 proved the screenshot Share UI is not discoverable through the native
-// React/UIImage tree by UIApplicationWillResignActive time; the only surviving
-// renderer is WKCompositingView. Capture both the native hierarchy and each mounted
-// WKWebView shortly AFTER iOS reports the screenshot, while Amazon's custom Share
-// surface is still actually on screen. Diagnostic-only: no DOM or paint mutation.
-static NSString *ADShareWebProbeJS6192(void){
-    return @"(()=>{const PHRASE='share this product with friends';const norm=s=>(s||'').replace(/\\s+/g,' ').trim();const rect=e=>{try{const r=e.getBoundingClientRect();return [Math.round(r.x*10)/10,Math.round(r.y*10)/10,Math.round(r.width*10)/10,Math.round(r.height*10)/10]}catch(_){return [0,0,0,0]}};const vis=e=>{try{const r=e.getBoundingClientRect(),c=getComputedStyle(e);return r.width>1&&r.height>1&&c.display!=='none'&&c.visibility!=='hidden'&&parseFloat(c.opacity||'1')>.02&&r.bottom>-8&&r.right>-8&&r.top<innerHeight+8&&r.left<innerWidth+8}catch(_){return false}};const txt=e=>{try{let s=norm(e.innerText||e.textContent||e.getAttribute('aria-label')||'');return s.length>240?s.slice(0,240)+'…':s}catch(_){return ''}};const info=e=>{try{const c=getComputedStyle(e),r=rect(e);return {tag:e.tagName||'',cl:typeof e.className==='string'?e.className.slice(0,220):'',id:(e.id||'').slice(0,160),r,txt:txt(e),ro"
-           @"le:e.getAttribute('role')||'',aria:e.getAttribute('aria-label')||'',src:(e.currentSrc||e.src||'').slice(0,500),bg:(c.backgroundImage||'').slice(0,500),f:c.filter||'',op:c.opacity||'',pos:c.position||'',z:c.zIndex||'',disp:c.display||'',vis:c.visibility||'',pe:c.pointerEvents||''}}catch(_){return {tag:'ERR'}}};const all=[...document.querySelectorAll('body *')].slice(0,2600);const bodyText=norm(document.body?document.body.innerText:'');const bodyHas=bodyText.toLowerCase().includes(PHRASE);const phrases=[];for(const e of all){if(phrases.length>=10)break;let t='';try{t=norm(e.innerText||e.textContent||e.getAttribute('aria-label')||'')}catch(_){}if(t&&t.length<900&&t.toLowerCase().includes(PHRASE))phrases.push(e);}let root=null;if(phrases.length){let p=phrases[0],best=p;for(let n=0;p&&p!==document.body&&n<12;n++,p=p.parentElement){const r=p.getBoundingClientRect();best=p;if(r.width>=innerWidt"
-           @"h*.82&&r.height>=240)break;}root=best;}const scope=root?[root,...root.querySelectorAll('*')].slice(0,1800):all;const media=[];for(const e of scope){if(media.length>=70)break;let r;try{r=e.getBoundingClientRect()}catch(_){continue}if(r.width<70||r.height<45||!vis(e))continue;let c;try{c=getComputedStyle(e)}catch(_){continue}const tag=(e.tagName||'').toUpperCase();const bg=c.backgroundImage&&c.backgroundImage!=='none';const src=e.currentSrc||e.src||'';if(tag==='IMG'||tag==='VIDEO'||tag==='CANVAS'||bg||src)media.push(info(e));}const overlays=[];for(const e of all){if(overlays.length>=40)break;let r,c;try{r=e.getBoundingClientRect();c=getComputedStyle(e)}catch(_){continue}if(r.width<innerWidth*.68||r.height<180||!vis(e))continue;const z=parseInt(c.zIndex||'0',10)||0;if(c.position==='fixed'||c.position==='sticky'||(c.position==='absolute'&&z>0)||z>=10)overlays.push(info(e));}const pts=[[.5,.2"
-           @"4],[.5,.40],[.5,.56],[.5,.72],[.5,.88]];const hits=pts.map(([x,y])=>{try{const e=document.elementFromPoint(innerWidth*x,innerHeight*y);const chain=[];let p=e,n=0;while(p&&n++<7){chain.push(info(p));p=p.parentElement}return {p:[x,y],chain}}catch(_){return {p:[x,y],chain:[]}}});const frames=[...document.querySelectorAll('iframe')].slice(0,20).map(info);return JSON.stringify({probe:6192,url:location.href,title:document.title,ready:document.readyState,viewport:[innerWidth,innerHeight],bodyHasPhrase:bodyHas,bodyTail:bodyText.slice(-900),phraseCount:phrases.length,phrases:phrases.map(info),root:root?info(root):null,media,overlays,hits,frames});})()";
-}
-
-static void ADShareScreenshotMomentCapture6192(NSString *stage){
-    @try {
-        NSMutableString *native=[NSMutableString stringWithFormat:
-            @"\n\n===== SHARESCREENSHOT6192 stage=%@ t=%.3f =====\n",
-            stage?:@"?",CFAbsoluteTimeGetCurrent()];
-        ADShareProbeDump6187(native);
-        [native appendString:@"===== SHARESCREENSHOT6192 NATIVE COMPLETE =====\n"];
-        ADBuyAgainProbeAppend6180(native);
-
-        // One bounded hierarchy discovery per diagnostic stage. Include tracked
-        // WebViews plus any visible one not yet in the weak table, de-duplicated.
-        NSHashTable *uniq=[NSHashTable weakObjectsHashTable];
-        for(WKWebView *wv in (gADWebViews613.allObjects?:@[])) if(wv)[uniq addObject:wv];
-        NSMutableArray *q=[NSMutableArray array];
-        for(UIWindow *w in [UIApplication sharedApplication].windows)
-            if(w&&!w.hidden&&w.alpha>.03)[q addObject:w];
-        NSUInteger qi=0,seen=0;
-        while(qi<q.count&&seen++<2600){
-            UIView *v=q[qi++];
-            if([v isKindOfClass:[WKWebView class]]){ [uniq addObject:(WKWebView *)v]; continue; }
-            for(UIView *ch in v.subviews){ if(q.count<3000)[q addObject:ch]; else break; }
-        }
-
-        __block int idx=0;
-        for(WKWebView *wv in uniq.allObjects){
-            if(!wv||!wv.window||wv.hidden||wv.alpha<.02)continue;
-            int my=++idx;
-            NSString *url=wv.URL.absoluteString?:@"";
-            [wv evaluateJavaScript:ADShareWebProbeJS6192() completionHandler:^(id result,NSError *error){
-                @try {
-                    NSString *payload=nil;
-                    if([result isKindOfClass:[NSString class]])payload=result;
-                    else if(result)payload=[result description];
-                    if(payload.length>50000)payload=[[payload substringToIndex:50000]stringByAppendingString:@"…TRUNCATED"];
-                    NSString *line=[NSString stringWithFormat:
-                        @"\nSHAREWEB6192 stage=%@ index=%d web=%p url=\"%@\" error=\"%@\"\n%@\nSHAREWEB6192 END index=%d\n",
-                        stage?:@"?",my,wv,url,error.localizedDescription?:@"",payload?:@"<nil>",my];
-                    ADBuyAgainProbeAppend6180(line);
-                    notify_post(AD_BUYAGAIN_PROBE_READY_6180);
-                } @catch(...) {}
-            }];
-        }
-        ADBuyAgainProbeAppend6180([NSString stringWithFormat:
-            @"SHAREWEBSTART6192 stage=%@ webviews=%d\n",stage?:@"?",idx]);
-        notify_post(AD_BUYAGAIN_PROBE_READY_6180);
-    } @catch(...) {
-        ADBuyAgainProbeAppend6180([NSString stringWithFormat:@"SHARESCREENSHOT6192 stage=%@ EXCEPTION",stage?:@"?"]);
-        @try{notify_post(AD_BUYAGAIN_PROBE_READY_6180);}@catch(...){}
-    }
-}
-
-// v6.0.191~probe — full-screen Product images diagnostics. This is background-only
-// and exists to distinguish a remaining UIImageView miss from a flattened raster host.
-static void ADProductImagesGalleryProbe6191(NSMutableString *out){
-    if(!out)return;
-    @try {
-        UIView *title=gADProductImagesGalleryTitle6191;
-        UIWindow *gw=gADProductImagesGalleryWindow6191;
-        BOOL active=(gw&&ADProductImagesGalleryWindowActive6191(gw));
-        [out appendFormat:@"\nGALLERYPANEL6191 active=%d window=%@ ptr=%p title=%@ ptr=%p titleText=\"%@\"\n",
-            active,gw?NSStringFromClass([gw class]):@"nil",gw,title?NSStringFromClass([title class]):@"nil",title,
-            title?ADWTViewText362(title):@""];
-        NSMutableArray *q=[NSMutableArray array];
-        if(gw)[q addObject:gw]; else for(UIWindow *w in [UIApplication sharedApplication].windows) if(w&&!w.hidden&&w.alpha>.03)[q addObject:w];
-        NSUInteger qi=0,seen=0; int imgs=0,rasters=0;
-        while(qi<q.count&&seen++<1800){
-            UIView *v=q[qi++]; for(UIView *ch in v.subviews){if(q.count<2100)[q addObject:ch];else break;}
-            if(!ADBuyAgainProbeVisible6180(v))continue; CGRect r=ADBuyAgainProbeRect6180(v);
-            if(r.size.width<120||r.size.height<80)continue;
-            const char *cn=object_getClassName(v); NSString *cl=cn?[NSString stringWithUTF8String:cn]:@"?";
-            if([v isKindOfClass:[UIImageView class]]){
-                UIImageView *iv=(UIImageView *)v; UIImage *im=iv.image; if(!im)continue; imgs++;
-                size_t px=0,py=0;if(im.CGImage){px=CGImageGetWidth(im.CGImage);py=CGImageGetHeight(im.CGImage);} CALayer *ov=objc_getAssociatedObject(iv,kADWhiteTameOverlayKey);
-                BOOL rootHit=NO; UIView *ap=iv; int aup=0; while(ap&&aup++<14){if(objc_getAssociatedObject(ap,kADProductImagesGalleryRoot6190)){rootHit=YES;break;}ap=ap.superview;}
-                [out appendFormat:@"GALLERYIMG6191 #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) pixels=%zux%zu overlay=%d gallery=%d rootChain=%d contents=%@ aid=\"%@\" label=\"%@\"\n",
-                    imgs,cl,iv,r.origin.x,r.origin.y,r.size.width,r.size.height,px,py,(ov&&ov.superlayer==iv.layer),ADProductImagesGalleryImage6190(iv),rootHit,
-                    ADBuyAgainProbeContents6180(iv.layer.contents),iv.accessibilityIdentifier?:@"",iv.accessibilityLabel?:@""];
-            } else {
-                id c=v.layer.contents; if(!c)continue; CFTypeRef obj=(__bridge CFTypeRef)c;
-                if(obj&&CFGetTypeID(obj)==CGImageGetTypeID()){
-                    CGImageRef im=(CGImageRef)obj; rasters++;
-                    [out appendFormat:@"GALLERYRASTER6191 #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) pixels=%zux%zu contents=%@\n",
-                        rasters,cl,v,r.origin.x,r.origin.y,r.size.width,r.size.height,CGImageGetWidth(im),CGImageGetHeight(im),ADBuyAgainProbeContents6180(c)];
-                }
-            }
-        }
-        [out appendFormat:@"GALLERYSUMMARY6191 scanned=%lu active=%d largeImages=%d largeRasters=%d\n",(unsigned long)seen,active,imgs,rasters];
-    } @catch(...) { [out appendString:@"GALLERYPROBE6191 EXCEPTION\n"]; }
-}
-
-static void ADShareProbeDump6187(NSMutableString *out){
-    if(!out)return;
-    @try {
-        UIView *root=ADShareProbeRoot6187();
-        if(!root){ [out appendString:@"\nSHAREPANEL6187 root=none phraseVisible=0\n"]; ADShareProbeFallback6189(out); return; }
-        CGRect rr=ADBuyAgainProbeRect6180(root);
-        [out appendFormat:@"\n===== SHAREPANEL6187 root=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) text=\"%@\" =====\n",
-            NSStringFromClass([root class]),root,rr.origin.x,rr.origin.y,rr.size.width,rr.size.height,ADBuyAgainProbeText6180(root)];
-        NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger qi=0,seen=0; int imgs=0,rasterViews=0;
-        while(qi<q.count&&seen++<900){
-            UIView *v=q[qi++];
-            for(UIView *ch in v.subviews){if(q.count<980)[q addObject:ch];else break;}
-            if(!ADBuyAgainProbeVisible6180(v))continue;
-            const char *cn=object_getClassName(v); NSString *cl=cn?[NSString stringWithUTF8String:cn]:@"?";
-            CGRect r=ADBuyAgainProbeRect6180(v);
-            if([v isKindOfClass:[UIImageView class]]){
-                UIImageView *iv=(UIImageView *)v; UIImage *im=iv.image; if(!im)continue;
-                imgs++; size_t px=0,py=0; if(im.CGImage){px=CGImageGetWidth(im.CGImage);py=CGImageGetHeight(im.CGImage);}
-                CALayer *ov=objc_getAssociatedObject(iv,kADWhiteTameOverlayKey);
-                NSNumber *dec=objc_getAssociatedObject(iv,kADTWBDecision6027);
-                NSNumber *ctx=objc_getAssociatedObject(iv,kADTWBDirectCtx6031);
-                NSNumber *light=objc_getAssociatedObject(im,kADWhiteTameLightKey363);
-                BOOL geom=ADShareScreenshotImageGeometry6186(iv);
-                BOOL near=ADShareScreenshotPhraseNear6186(iv);
-                BOOL prod=geom&&near;
-                [out appendFormat:@"SHAREIMG #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) bounds=(%.1fx%.1f) pixels=%zux%zu mode=%ld alpha=%.2f hidden=%d opaque=%d overlay=%d geom6186=%d near6186=%d product6186=%d decision=%@ ctx=%@ lightCache=%@ template=%d uiChain=%d webOwned=%d tabChain=%d layerContents=%@ bg=%@ layerBg=%@ aid=\"%@\" label=\"%@\" anc=\"%@\"\n",
-                    imgs,cl,iv,r.origin.x,r.origin.y,r.size.width,r.size.height,iv.bounds.size.width,iv.bounds.size.height,px,py,(long)iv.contentMode,iv.alpha,iv.hidden,iv.opaque,
-                    (ov&&ov.superlayer==iv.layer),geom,near,prod,dec?:@"nil",ctx?:@"nil",light?:@"nil",ADImageIsTemplateish(im),ADNativeTWBUIChain6027(iv),ADIsWebKitOwned(iv),ADInTabBarChain(iv),
-                    ADBuyAgainProbeContents6180(iv.layer.contents),ADBuyAgainProbeColor6180(iv.backgroundColor.CGColor),ADBuyAgainProbeColor6180(iv.layer.backgroundColor),iv.accessibilityIdentifier?:@"",iv.accessibilityLabel?:@"",ADShareProbeAncestors6187(iv,root)];
-            } else {
-                id c=v.layer.contents; BOOL hasCG=NO; size_t px=0,py=0;
-                if(c){CFTypeRef obj=(__bridge CFTypeRef)c;if(obj&&CFGetTypeID(obj)==CGImageGetTypeID()){hasCG=YES;CGImageRef im=(CGImageRef)obj;px=CGImageGetWidth(im);py=CGImageGetHeight(im);}}
-                if(hasCG){
-                    rasterViews++;
-                    [out appendFormat:@"SHARERASTER #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) pixels=%zux%zu contents=%@ bg=%@ layerBg=%@ aid=\"%@\" label=\"%@\" anc=\"%@\"\n",
-                        rasterViews,cl,v,r.origin.x,r.origin.y,r.size.width,r.size.height,px,py,ADBuyAgainProbeContents6180(c),ADBuyAgainProbeColor6180(v.backgroundColor.CGColor),ADBuyAgainProbeColor6180(v.layer.backgroundColor),v.accessibilityIdentifier?:@"",v.accessibilityLabel?:@"",ADShareProbeAncestors6187(v,root)];
-                }
-            }
-        }
-        int layers=0; ADShareProbeLayer6187(root.layer,0,out,&layers);
-        [out appendFormat:@"SHARESUMMARY6187 scanned=%lu imageViews=%d rasterViews=%d imageOrGradientLayers=%d\n===== SHAREPANEL6187 COMPLETE =====\n",
-            (unsigned long)seen,imgs,rasterViews,layers];
-    } @catch(...) { [out appendString:@"SHAREPANEL6187 EXCEPTION\n"]; }
-}
 static void ADBuyAgainProbeCapture6180(void){
     static NSUInteger cap=0; NSUInteger n=++cap;
     @try {
         NSMutableString *out=[NSMutableString stringWithFormat:@"\n\n===== BUY AGAIN CAPTURE %lu t=%.3f =====\n",(unsigned long)n,CFAbsoluteTimeGetCurrent()];
         NSMutableArray *q=[NSMutableArray array];
         for(UIWindow *w in [UIApplication sharedApplication].windows) if(w&&!w.hidden&&w.alpha>.03)[q addObject:w];
-        NSUInteger qi=0,seen=0; int cards=0,images=0,carousels=0,shareImages=0;
+        NSUInteger qi=0,seen=0; int cards=0,images=0,carousels=0;
         while(qi<q.count && seen++<2200){
             UIView *v=q[qi++];
             for(UIView *ch in v.subviews){ if(q.count<2600)[q addObject:ch]; else break; }
@@ -7607,22 +6590,6 @@ static void ADBuyAgainProbeCapture6180(void){
                 }
             }
 
-            if([v isKindOfClass:[UIImageView class]]){
-                UIImageView *siv=(UIImageView *)v;
-                if(ADShareScreenshotProductImage6186(siv)){
-                    shareImages++;
-                    UIImage *sim=siv.image; size_t spx=0,spy=0;
-                    if(sim.CGImage){spx=CGImageGetWidth(sim.CGImage);spy=CGImageGetHeight(sim.CGImage);}
-                    CALayer *sov=objc_getAssociatedObject(siv,kADWhiteTameOverlayKey);
-                    NSNumber *sdec=objc_getAssociatedObject(siv,kADTWBDecision6027);
-                    NSNumber *sctx=objc_getAssociatedObject(siv,kADTWBDirectCtx6031);
-                    [out appendFormat:@"SHARESHOT #%d cls=%@ ptr=%p rect=(%.1f,%.1f %.1fx%.1f) pixels=%zux%zu overlay=%d decision=%@ ctx=%@ aid=\"%@\" label=\"%@\"\n",
-                        shareImages,cls,siv,r.origin.x,r.origin.y,r.size.width,r.size.height,spx,spy,
-                        (sov&&sov.superlayer==siv.layer),sdec?:@"nil",sctx?:@"nil",
-                        siv.accessibilityIdentifier?:@"",siv.accessibilityLabel?:@""];
-                }
-            }
-
             if([v isKindOfClass:[UIImageView class]] &&
                ([cls containsString:@"ANXFastImageView"] || [cls containsString:@"RCTUIImageView"])){
                 UIImageView *iv=(UIImageView *)v; CGFloat iw=iv.bounds.size.width,ih=iv.bounds.size.height;
@@ -7642,10 +6609,8 @@ static void ADBuyAgainProbeCapture6180(void){
                 }
             }
         }
-        ADProductImagesGalleryProbe6191(out);
-        ADShareProbeDump6187(out);
-        [out appendFormat:@"SUMMARY scanned=%lu carousels=%d cards=%d images=%d shareImages=%d\n===== BUY AGAIN CAPTURE %lu COMPLETE =====\n",
-            (unsigned long)seen,carousels,cards,images,shareImages,(unsigned long)n];
+        [out appendFormat:@"SUMMARY scanned=%lu carousels=%d cards=%d images=%d\n===== BUY AGAIN CAPTURE %lu COMPLETE =====\n",
+            (unsigned long)seen,carousels,cards,images,(unsigned long)n];
         ADBuyAgainProbeAppend6180(out);
         notify_post(AD_BUYAGAIN_PROBE_READY_6180);
     } @catch(...) {
@@ -7659,20 +6624,6 @@ static void ADBuyAgainProbeCapture6180(void){
     if (strcmp(__progname, "Amazon") != 0) return;   // belt (plist filter is the braces)
     ADBuyAgainProbeReset6180();
     @try {
-        [[NSNotificationCenter defaultCenter]
-            addObserverForName:UIApplicationUserDidTakeScreenshotNotification
-                        object:nil queue:[NSOperationQueue mainQueue]
-                    usingBlock:^(__unused NSNotification *n){
-            // Amazon mounts its custom screenshot Share surface after the system
-            // screenshot notification. Three one-shot diagnostic samples cover
-            // first paint and hydration without any recurring timer/observer loop.
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(250*NSEC_PER_MSEC)),
-                           dispatch_get_main_queue(), ^{ ADShareScreenshotMomentCapture6192(@"+250ms"); });
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(800*NSEC_PER_MSEC)),
-                           dispatch_get_main_queue(), ^{ ADShareScreenshotMomentCapture6192(@"+800ms"); });
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(1600*NSEC_PER_MSEC)),
-                           dispatch_get_main_queue(), ^{ ADShareScreenshotMomentCapture6192(@"+1600ms"); });
-        }];
         [[NSNotificationCenter defaultCenter]
             addObserverForName:UIApplicationWillResignActiveNotification
                         object:nil queue:[NSOperationQueue mainQueue]

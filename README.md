@@ -1,43 +1,51 @@
-# AmazonDark v6.0.203~probe — direct OLED floor + intact Dark Reader
+# AmazonDark v6.0.200~probe — Dark Reader cooperation / input-latency pass
 
-Base: exact v6.0.195~probe source, the last source before v6.0.196 introduced the broad light-surface regression.
+## Goal
 
-This build drops the v6.0.201/202 direct-theme experiment. Dark Reader remains fully attached/enabled and continues to own detailed WebKit theming. AmazonDark directly owns only the page/root canvas and WebKit backing floor as OLED black, using one tiny document-start stylesheet plus the existing constant-time WKWebView/WKScrollView/WKContentView backing hooks. No cards, text, controls, badges, gradients, or general structural surfaces are newly rethemed.
+Start from the exact v6.0.185~probe visual baseline, stop competing with Dark Reader for generic web theming, and remove avoidable main-thread repair work without replacing the established look.
 
-# AmazonDark v6.0.195~probe — PDP video-carousel hydration + Share rehydration
+## v6.0.200 changes
 
-Base: v6.0.194~probe.
+- **Dark Reader owns the normal WebKit page floor again.** The old `ADPreDarken()` html/body painter is removed and `adfloor612` no longer forces `html`, `body`, `#a-page`, `#gwm-PageContent`, or `main` dark. The native WKWebView/WKContentView backing remains dark only to prevent literal unpainted tile flashes during fast scrolls.
+- **The broad AmazonDark fallback contrast/background engine is removed.** No 1400/360/120-node TreeWalker, no full-root computed-style repair, no search escalation, no detach/reattach WeakMap cache, no idle repair queue, and no dedicated fallback MutationObserver remain.
+- **Dark Reader stays fully dynamic.** `disableStyleSheetsProxy` remains `false`, so late Amazon styles/components can still be themed by Dark Reader rather than being frozen or replaced by an AmazonDark floor engine.
+- **Dark Reader work that AmazonDark does not need is reduced.** Image analysis remains globally ignored, the custom-element registry proxy is disabled for this probe, and the existing inline-style exclusions are consolidated into fewer selector matches. Known AmazonDark-owned symbol controls are also excluded from Dark Reader inline-style churn.
+- **Known visuals stay declarative.** The existing v185 direct CSS for light text/glyphs, neutral gray borders, product/card first-paint fixes, auth/variation/coupon surfaces, custom symbols, ad protection, and TWB is retained.
+- **TWB now treats ordinary images as a universal leaf policy instead of a page-by-page policy.** Every normal WebKit `IMG` is tamed by one cheap CSS rule immediately, with explicit logo/icon/avatar/sprite exclusions; the old product/search/PDP/Home IMG selector list, IMG load callback, and initial IMG scan are gone. Native `UIImageView` photos use a cheap raster-metadata fast path before any semantic section walk or 12x12 luminance sampling. Small/ambiguous image assets still fall through to the existing v185 semantic rules, so special glyph/ad-card behavior is preserved rather than flattened.
+- **Seasonal Home theming is declarative-only.** The duplicate runtime seasonal geometry/computed-style scanner is removed because the same exact `hp-mosaic`/widget selectors are already present in document-start and Dark Reader override CSS.
+- **The v6.0.184 Interests caught-up gradient exception is retained as a tiny semantic bridge.** It only does local geometry/computed-style work after a small newly-added subtree contains the exact “You're all caught up!” phrase.
+- **Warm lifecycle reapply is constant-time.** If `style.darkreader` still exists, appearance/BFCache/visibility recovery returns `warm`; it does not launch a document repair pass.
 
-## v6.0.195 corrections
+## Performance mechanism delta vs v6.0.185
 
-### PDP / product video-carousel startup and scrolling
+- `new MutationObserver(`: **3 → 2**
+- `createTreeWalker(`: **1 → 0**
+- `getComputedStyle(` textual call sites: **31 → 15**
+- `new WeakMap(`: **4 → 0**
+- `querySelectorAll(` textual call sites: **33 → 30**
+- `setTimeout(` textual call sites: **17 → 14**
+- `requestIdleCallback` textual references: **4 → 2**
+- web scroll listeners: **0 → 0**
+- `setInterval(`: **0 → 0**
+- `requestAnimationFrame(`: **0 → 0**
+- `src/Tweak.xm`: about **464 KB → 415 KB**
 
-- Narrows the existing Amazon-native island MutationObserver so the video-control repair no longer runs for every added DOM node. It wakes only when the mutation actually contains a VIDEO element or nearby play/pause/mute/volume semantics.
-- Caches a successfully resolved VIDEO + play/mute control pair. Repeated `loadedmetadata` / `canplay` / `playing` lifecycle events fast-return while the same video source, parent and controls remain mounted.
-- Removes redundant video-control `loadeddata`, `play` and `pause` recovery events. A delayed retry is scheduled only when the first exact repair misses.
-- Video-control clicks now repair only the local video instead of rescanning every VIDEO in the document twice.
-- The initial video-control reconciliation is deferred to idle / a short fallback timeout instead of running synchronously as soon as the page bootstrap settles.
-- The contrast MutationObserver rejects pure VIDEO/SOURCE/TRACK/IMG/PICTURE/CANVAS hydration leaves and empty video-only shells so direct media owners do not also trigger the 360-node fallback contrast walk.
-- Direct TWB removes its redundant `loadeddata` listener. VIDEO taming itself is unchanged: no per-frame/timeupdate handler is introduced.
+## What this probe is testing
 
-### PDP Share glyph after dismissing Share
+The intended A/B is simple: preserve v185's appearance as closely as possible while reducing touch/scroll latency during Amazon hydration. If a visual regression appears, it should identify a specific element that truly depended on the removed generic fallback; that element can then receive a cheap direct CSS owner instead of restoring the broad scanner.
 
-- Keeps v6.0.194's focus-ring cleanup.
-- Restores runtime ownership for `.ssf-share-trigger`, following the old v5.446/v6.0.26 principle: inspect only the bounded Share subtree, find its actual IMG/I/SVG/background/mask painter and pin that leaf white.
-- Reuses the existing symbol/product-control lifecycle; no new MutationObserver is created.
-- When Amazon removes the Share sheet, the existing filtered observer immediately reasserts the Share painter and performs one bounded +80 ms convergence pass. The temporary pressed state is not replaced with a permanent circle.
+---
 
-## Preservation
+# AmazonDark v6.0.185~probe — Buy Again nav re-entry border persistence
 
-- v6.0.193 screenshot Share preview background ownership retained.
-- v6.0.191 Product images gallery ownership retained.
-- Buy Again / Interests fixes retained.
-- JIT, 120 Hz, Dark Reader, carousel-dot, checkbox/Heart/cards and current TWB strength behavior are not intentionally changed.
+## v6.0.185 correction
 
-## Device test
-
-1. Force-close/reopen Amazon.
-2. Open a PDP with the video carousel near the bottom.
-3. Scroll into that carousel before it has fully settled and immediately swipe through the video cards; compare initial responsiveness and frame hitching with v6.0.194.
-4. Tap the main PDP Share glyph, allow the Share sheet to appear, dismiss it, and verify the glyph returns/remains white with no persistent white ring.
-5. Verify Product images and the screenshot Share preview remain tamed.
+- Keeps the v6.0.184 Interests caught-up gradient fix unchanged.
+- Keeps the working v6.0.180 Buy Again TWB correction unchanged.
+- Keeps the v6.0.183 whole-carousel gray border ownership and v6.0.184 detached-outline reattachment.
+- Fixes the remaining bottom-nav re-entry case: v6.0.184 cleared Buy Again ownership when the Person React tree temporarily moved off-window. Because AmazonDark had already suppressed the original 51x51 white raster plate, returning to Person could leave the cards borderless.
+- A claimed Buy Again card now preserves its association while temporarily detached.
+- CALayer setContents suppression is active only while the claimed card is mounted and still resolves inside Buy Again; detached/recycled hosts may receive Amazon content normally.
+- The existing current-controller viewDidAppear sweep now reasserts only already-owned or exact 51x51-style Buy Again card candidates, so a Person tree that remained mounted but had its sublayers rebuilt also recovers on tab return.
+- No new observer, scroll listener, interval, RAF loop, nav-bar hook, or recurring recovery lane.
+- Existing `AmazonDark-buyagain-probe-6180.txt` remains available; CARD records now include `window=` and `hidden=` alongside `marked`, `outline`, and `attached`.
