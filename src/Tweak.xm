@@ -66,7 +66,7 @@
 #import <stdint.h>
 #import <errno.h>
 // Keep in lockstep with layout/DEBIAN/control.
-#define AD_VERSION "v6.0.206"
+#define AD_VERSION "v6.0.207"
 
 #import "ADColor.h"
 #import "ADImageKey.h"
@@ -1513,12 +1513,30 @@ static NSString *ADDarkReaderBootstrap(void){
          // v6.0.56: keep Dark Reader + document-start CSS on the critical path, but
          // move fallback contrast/seasonal repair to browser idle time.  This protects
          // Amazon's hydration/network completion and the 8.3 ms ProMotion frame budget.
-         "window.__AD_IDLE6056__=function(fn,to){try{if(window.requestIdleCallback)return requestIdleCallback(function(){try{fn();}catch(e){}},{timeout:to||240});return setTimeout(function(){try{fn();}catch(e){}},60);}catch(e){return setTimeout(fn,60);}};"
+         // v6.0.207, taken from the v6.0.205 experiment. requestIdleCallback's timeout does
+         // not mean "run within N ms if convenient" -- when it expires the callback is
+         // promoted to a DEADLINE TASK and forced through even though the main thread is
+         // busy. During Search-results and PDP hydration the main thread is always busy, so
+         // the timeout always expires, and the 360/1400-node contrast walk runs exactly
+         // while the page is trying to accept its first tap.
+         //
+         // to===0 means true idle-only: no timeout, so it can never be promoted and simply
+         // waits for a genuinely free frame. Only the two input-hot page types use it;
+         // everywhere else keeps the historical bounded fallback so theming still lands
+         // promptly on pages that are not fighting for input.
+         "window.__AD_INPUTHOT6207__=function(){try{var u=String(location.href||'').toLowerCase();"
+         "if(u.indexOf('/dp/')>=0||u.indexOf('/gp/product/')>=0||u.indexOf('/gp/aw/d/')>=0)return true;"
+         "return /\\/s(?:[\\/?]|$)/.test(u)||u.indexOf('field-keywords=')>=0||u.indexOf('?k=')>=0||u.indexOf('&k=')>=0;}catch(e){return false;}};"
+         "window.__AD_IDLE6056__=function(fn,to){try{var cb=function(){try{fn();}catch(e){}};"
+         "if(to===undefined&&window.__AD_INPUTHOT6207__&&window.__AD_INPUTHOT6207__())to=0;"
+         "if(window.requestIdleCallback){if(to===0)return requestIdleCallback(cb);"
+         "return requestIdleCallback(cb,{timeout:to||240});}"
+         "return setTimeout(cb,to===0?600:60);}catch(e){return setTimeout(fn,to===0?600:60);}};"
          // v6.0.171: one full fallback repair is enough for an already-themed document.
          // Lazy DOM additions are handled by the existing local observer below.  Keep a
          // single-flight state so the 0/120/420 ms native appearance burst cannot queue
          // duplicate 1400-element full scans while the first one is still pending.
-         "window.__AD_FULLREPAIR6171__=function(force){try{if(!window.__AMZDARK_FIXCONTRAST__)return 'nofix';if(window.__AD_FIXFULL_PENDING6171__)return 'pending';if(!force&&window.__AD_FIX_PRIMED6171__)return 'warm';window.__AD_FIXFULL_PENDING6171__=1;var run=function(){try{window.__AMZDARK_FIXCONTRAST__();if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);window.__AD_FIX_PRIMED6171__=1;}catch(e){}finally{window.__AD_FIXFULL_PENDING6171__=0;}};if(window.__AD_IDLE6056__){window.__AD_IDLE6056__(run,260);return 'queued';}run();return 'ran';}catch(e){window.__AD_FIXFULL_PENDING6171__=0;return 'err';}};"
+         "window.__AD_FULLREPAIR6171__=function(force){try{if(!window.__AMZDARK_FIXCONTRAST__)return 'nofix';if(window.__AD_FIXFULL_PENDING6171__)return 'pending';if(!force&&window.__AD_FIX_PRIMED6171__)return 'warm';window.__AD_FIXFULL_PENDING6171__=1;var run=function(){try{window.__AMZDARK_FIXCONTRAST__();if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);window.__AD_FIX_PRIMED6171__=1;}catch(e){}finally{window.__AD_FIXFULL_PENDING6171__=0;}};if(window.__AD_IDLE6056__){window.__AD_IDLE6056__(run,(window.__AD_INPUTHOT6207__&&window.__AD_INPUTHOT6207__())?0:260);return 'queued';}run();return 'ran';}catch(e){window.__AD_FIXFULL_PENDING6171__=0;return 'err';}};"
          "window.__AMZDARK_APPLY__=function(){try{var had=!!document.querySelector('style.darkreader');if(!had){DarkReader.enable(%@,%@);window.__AD_FIX_PRIMED6171__=0;}if(window.__AD_MARK_NATIVE615__)window.__AD_MARK_NATIVE615__(document);return window.__AD_FULLREPAIR6171__(!had);}catch(e){return 'err';}};"
          // Warm BFCache/visibility restoration only verifies the engine.  If the
          // Dark Reader sheet survived, the existing document stays untouched; if it
@@ -1553,7 +1571,7 @@ static NSString *ADDarkReaderBootstrap(void){
          // one HEAD-root pass that consumed ~806 ms.  Ignore non-rendering head/script
          // churn before it enters the existing debounce/idle queue.
          "function visual6056(n){try{if(!n||n.nodeType!==1)return false;var t=String(n.tagName||'').toUpperCase();if(/^(?:HEAD|SCRIPT|STYLE|LINK|META|NOSCRIPT|TEMPLATE)$/.test(t))return false;if(n.closest&&n.closest('head'))return false;return true;}catch(e){return true;}}"
-         "function run6056(){_idle=0;try{var R=_roots,full=_searchFull6118;_roots=[];_searchFull6118=0;if(full){var d=document.body||document.documentElement;window.__AMZDARK_FIXCONTRAST__(d);if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);return;}for(var i=0;i<R.length;i++){var r=R[i];if(!r||!r.isConnected)continue;var nested=false;for(var j=0;j<R.length;j++){if(i!==j&&R[j]&&R[j].contains&&R[j].contains(r)){nested=true;break;}}if(!nested){window.__AMZDARK_FIXCONTRAST__(r);if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(r);}}}catch(e){}}new MutationObserver(function(ms){try{for(var mi=0;mi<ms.length;mi++){var P=ms[mi].removedNodes||[];for(var pi=0;pi<P.length&&pi<24;pi++){var pn=P[pi];if(pn&&pn.nodeType===1&&(window.__AD_FIX_PRIMED6171__||pn.hasAttribute('data-ad-native615')||pn.hasAttribute('data-ad-twb6033')))window.__AD_PARK6176__(pn,ms[mi].target);}}for(var mi=0;mi<ms.length&&_roots.length<12;mi++){var A=ms[mi].addedNodes||[];for(var ai=0;ai<A.length&&_roots.length<12;ai++){var n=A[ai];if(n&&n.nodeType===3)n=n.parentElement;if(!visual6056(n))continue;if(window.__AD_WARM6176__&&window.__AD_WARM6176__(n,ms[mi].target))continue;if(!_searchFull6118&&search6118(n))_searchFull6118=1;if(_roots.indexOf(n)<0)_roots.push(n);}}if(!_roots.length)return;clearTimeout(_t);_t=setTimeout(function(){if(_idle)return;_idle=1;window.__AD_IDLE6056__(run6056,320);},120);}catch(e){}})"
+         "function run6056(){_idle=0;try{var R=_roots,full=_searchFull6118;_roots=[];_searchFull6118=0;if(full){var d=document.body||document.documentElement;window.__AMZDARK_FIXCONTRAST__(d);if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(document);return;}for(var i=0;i<R.length;i++){var r=R[i];if(!r||!r.isConnected)continue;var nested=false;for(var j=0;j<R.length;j++){if(i!==j&&R[j]&&R[j].contains&&R[j].contains(r)){nested=true;break;}}if(!nested){window.__AMZDARK_FIXCONTRAST__(r);if(window.__AD_COLLEGE6034__)window.__AD_COLLEGE6034__(r);}}}catch(e){}}new MutationObserver(function(ms){try{for(var mi=0;mi<ms.length;mi++){var P=ms[mi].removedNodes||[];for(var pi=0;pi<P.length&&pi<24;pi++){var pn=P[pi];if(pn&&pn.nodeType===1&&(window.__AD_FIX_PRIMED6171__||pn.hasAttribute('data-ad-native615')||pn.hasAttribute('data-ad-twb6033')))window.__AD_PARK6176__(pn,ms[mi].target);}}for(var mi=0;mi<ms.length&&_roots.length<12;mi++){var A=ms[mi].addedNodes||[];for(var ai=0;ai<A.length&&_roots.length<12;ai++){var n=A[ai];if(n&&n.nodeType===3)n=n.parentElement;if(!visual6056(n))continue;if(window.__AD_WARM6176__&&window.__AD_WARM6176__(n,ms[mi].target))continue;if(!_searchFull6118&&search6118(n))_searchFull6118=1;if(_roots.indexOf(n)<0)_roots.push(n);}}if(!_roots.length)return;clearTimeout(_t);_t=setTimeout(function(){if(_idle)return;_idle=1;window.__AD_IDLE6056__(run6056,(window.__AD_INPUTHOT6207__&&window.__AD_INPUTHOT6207__())?0:320);},120);}catch(e){}})"
            ".observe(document.documentElement,{childList:true,subtree:true});}catch(e){}"
          "window.__AMZDARK_APPLY__();"
          // Re-apply when the page is restored from the back-forward cache (returning

@@ -1,60 +1,55 @@
-# AmazonDark v6.0.206
+# AmazonDark v6.0.207
 
-Base: **v6.0.185~probe** (`2d9a9c4`), on report that v6.0.205 is slower than 185.
-No 186–205 work is carried forward.
+Base: **v6.0.185~probe** (`2d9a9c4`). None of 186–205 carried forward wholesale, on
+report that v6.0.205 is slower than 185. One idea is taken from it, isolated.
 
-## What the 196–205 experiments established
+## The input delay
 
-- **v6.0.201 / 202** replaced Dark Reader with direct OLED floors. Fast, but theming
-  parity was lost. Direction abandoned.
-- **v6.0.203** kept Dark Reader owning detailed theming and had AmazonDark own only the
-  page/root canvas and WebKit backing floor, through one tiny document-start sheet plus
-  constant-time backing hooks. That is the right principle: own a small, constant-time
-  surface; leave detail to Dark Reader.
-- **v6.0.195** showed the pattern that works on hot paths: narrow observers to the
-  mutations that actually matter, cache resolved pairs, defer reconciliation to idle.
+`requestIdleCallback`'s `timeout` does not mean "run within N ms if convenient". When
+it expires the callback is promoted to a **deadline task** and forced through even
+though the main thread is busy.
 
-This build applies that principle to the one layer none of them touched — the selector
-layer — and changes nothing else.
+Both contrast lanes scheduled through `__AD_IDLE6056__` with a timeout — 260ms and
+320ms. During Search-results and PDP hydration the main thread is always busy, so those
+timeouts always expire, and the 360/1400-node contrast walk executes exactly while the
+page is trying to accept its first tap or swipe.
 
-## The change
+That matches the reported symptoms precisely: the screen is already loaded, the content
+is visible, and taps still do not register.
 
-Eight stylesheet rules had the form:
+On PDP and Search the lanes now pass `to === 0`, which is true idle-only: no timeout, so
+the callback can never be promoted and waits for a genuinely free frame. Every other
+page keeps the historical bounded fallback, so theming still lands promptly where input
+is not being contended.
 
-    :where(div,span,section):has(> [class*=s-color-swatch-container-list-view])
+This idea comes from the v6.0.205 experiment. Only this is taken; the other ~700 lines
+of that build are left out.
 
-They are duplicated across the document-start sheet and the Dark Reader fixes sheet, so
-16 in total. `:where(div,span,section)` places no constraint WebKit can filter on, so
-every one is evaluated against **every div, span and section in the document**, and
-`:has()` invalidation re-runs them on DOM mutation.
+## A note on the first attempt
 
-Every component they target — `s-variation-options-link`,
-`s-color-swatch-container-list-view`, `s-status-badge-component`,
-`puis-csi-with-label-container` — is a search-result component. On Home they can never
-match, yet they were still evaluated on every scroll mutation.
+The initial patch added the hot-page default as `to === undefined`. Both call sites pass
+an explicit timeout, so it would never have fired and the build would have shipped as a
+no-op. The call sites are now hot-aware individually, verified below.
 
-All 16 are now scoped to `[data-component-type=s-search-result]`. Zero unconstrained
-`:has()` rules remain in either sheet.
+## Also in this build (from v6.0.206)
 
-Why this maps to the three reported symptoms, all one mechanism — style recalc blocking
-the main thread:
-
-- **Home scroll** — cards mutate in continuously; those rules can never match on Home
-  and are now skipped on the left-hand selector instead of searching the tree.
-- **Search → 3s tap delay** — results hydrate in bulk; evaluation is now confined to
-  result cards rather than the whole document.
-- **PDP carousels** — same mechanism on the heaviest DOM in the app.
-
-## Theming
-
-Unchanged inside search results, which is the only place these rules could ever match.
-Verified rather than asserted: the old rule matched a Home node (the waste being
-removed) and the new rule matches the search-result hosts and not the Home node.
+Eight `:where(div,span,section):has(> …)` rules, duplicated across both sheets, were
+evaluated against every div, span and section in the document and re-run on every
+mutation, despite targeting search-result-only components. All 16 are scoped to
+`[data-component-type=s-search-result]`. Zero unconstrained `:has()` remain.
 
 ## Verification
 
-- Selector behaviour tested in jsdom: search-result swatch host still themed,
-  search-result badge host still themed, old rule matched a Home node, new rule does
-  not. 4/4.
-- 0 unconstrained `:where(div,span,section):has(` in either sheet; all 16 constrained.
+- Idle lane tested per page type: PDP idle-only, Search idle-only, Home keeps the
+  bounded fallback, an explicit timeout off-hot is still honoured, an explicit 0 stays
+  idle-only. 5/5.
+- Both call sites confirmed hot-aware after patching.
+- Selector rewrite tested in jsdom: search-result hosts still themed, Home node no
+  longer matched. 4/4.
 - All payloads parse; balance 0/0/0; `scripts/lint-logos.sh`.
+
+## If this does not fix it
+
+Then the block is not the contrast lane, and the next suspects are the symbols script's
+26 `querySelectorAll` calls and its observer, both of which run during the same
+hydration window. Those can be switched off independently rather than guessed at.
