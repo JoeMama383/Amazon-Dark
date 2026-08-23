@@ -1,17 +1,24 @@
-# AmazonDark v7.0.33
+# AmazonDark v7.0.34~probe
 
-Direct production rebase on **v7.0.29**.
+Diagnostic build based **directly on v7.0.33**. No production styling/TWB changes.
 
-## Scope
-This release intentionally keeps the v7.0.29 hero isolation, Sponsored isolation, OLED floors, TWB behavior, native hooks, 120 Hz/JIT, bottom navigation, and SpringBoard launch code unchanged.
+## Purpose
+Pinpoint the four missing visual leaves in the Home category/ad card (e.g. Disney apparel / mugs / phone cases / keychains) without a document-wide scan.
 
-The only functional correction is **Home ad/card text ink**:
+## Trigger workflow
+1. Open Amazon and leave the affected card visible.
+2. Background Amazon.
+3. Run: `notifyutil -p com.colindavidr.amazondark/probe-disney-media-7034`
+4. SpringBoard automatically relays the completed report to:
+   `/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/AmazonDark-disney-media-probe-7034.txt`
 
-- ordinary below-fold card and mosaic headers/captions are light again;
-- bare Home section H1-H6 headings are light again;
-- seasonal/widget headline, header-link, and caption families are light again.
+## Probe scope
+- manual only; never runs automatically;
+- current main WebUI frame only;
+- fixed 8 x 10 viewport point grid using `elementsFromPoint()`;
+- at most 5 hit-stack elements, 5 ancestors, and 6 immediate visible children per sampled branch;
+- hard cap: 180 unique records;
+- records IMG/SVG/source state, background image/color, WebKit mask image, blend/isolation/filter/opacity, fill/stroke, pseudo-element paint, and geometry;
+- no `querySelectorAll`, TreeWalker, MutationObserver, scroll listener, interval, RAF, or recurring timer.
 
-Sponsored/ad-feedback text and glyphs remain Amazon-owned. Deal/badge/coupon content remains excluded. Hero/single-creative/single-video/theming/creative/ad/canvas card descendants remain excluded from the bare-heading rule, preserving v7.0.29 campaign contrast.
-
-## Performance
-The correction is document-start CSS only. It adds no MutationObserver, querySelectorAll, TreeWalker, scroll listener, interval, requestAnimationFrame, timer, DOM scanner, or media census.
+The probe intentionally changes **no** Home styling.

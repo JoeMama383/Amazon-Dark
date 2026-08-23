@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.33-v729-home-ink"
+#define AD_VERSION "v7.0.34-disney-media-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1804,6 +1804,92 @@ static void ADScheduleLaunchReadyCheck706(void){
     gADReadyScheduled706=YES; dispatch_async(dispatch_get_main_queue(),^{ ADRunLaunchReadyCheck706(); });
 }
 
+
+// -----------------------------------------------------------------------------
+// v7.0.34 manual current-frame Disney/category-media probe.
+// Diagnostic only: no styling changes, no DOM census, no automatic trigger.
+// A fixed point grid samples only the currently visible main WebUI frame.
+// -----------------------------------------------------------------------------
+static BOOL gADProbe7034Busy=NO;
+
+static NSString *ADProbePath7034(void){
+    @try {
+        NSArray *dirs=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
+        NSString *base=dirs.firstObject;
+        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-disney-media-probe-7034.txt"];
+    } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-disney-media-probe-7034.txt"];
+}
+static void ADWriteProbe7034(NSString *body){
+    @try {
+        NSMutableString *out=[NSMutableString string];
+        [out appendFormat:@"AmazonDark %@ current-frame missing-media probe\n",[NSString stringWithUTF8String:AD_VERSION]];
+        [out appendFormat:@"timestamp=%@\n\n",[NSDate date]];
+        [out appendString:body?:@"NO_BODY"];
+        NSError *err=nil;
+        BOOL ok=[out writeToFile:ADProbePath7034() atomically:YES encoding:NSUTF8StringEncoding error:&err];
+        if(ok){
+            CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(),
+                CFSTR("com.colindavidr.amazondark/disney-media-probe-7034-ready"),NULL,NULL,true);
+        }
+    } @catch(...) {}
+}
+static WKWebView *ADVisibleWebView7034(void){
+    WKWebView *best=nil; CGFloat bestArea=0;
+    @try {
+        for(WKWebView *wv in ADTrackedWebViews()){
+            if(!wv||wv.hidden||wv.alpha<0.01)continue;
+            CGRect b=wv.bounds;
+            CGFloat area=MAX(0,b.size.width)*MAX(0,b.size.height);
+            if(wv.window)area*=2.0; // prefer the currently attached Home WebView
+            if(area>bestArea){bestArea=area;best=wv;}
+        }
+    } @catch(...) {}
+    return best;
+}
+static NSString *ADDisneyMediaProbeJS7034(void){
+    return @"(function(){try{"
+    "var D=document,W=innerWidth||D.documentElement.clientWidth,H=innerHeight||D.documentElement.clientHeight;"
+    "var xs=[.04,.12,.24,.38,.52,.68,.84,.96],ys=[.20,.27,.34,.42,.50,.58,.66,.74,.82,.90],seen=new Set(),rows=[];"
+    "function clean(v,n){v=String(v==null?'':v).replace(/\\s+/g,' ').trim();return v.slice(0,n||260)}"
+    "function cls(e){try{var c=e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;return typeof c==='string'?c:''}catch(x){return ''}}"
+    "function attr(e,n){try{return e.getAttribute&&e.getAttribute(n)||''}catch(x){return ''}}"
+    "function sem(e){return clean((e.id||'')+' '+cls(e)+' '+attr(e,'data-component-type')+' '+attr(e,'data-csa-c-type')+' '+attr(e,'data-cel-widget')+' '+attr(e,'role')+' '+attr(e,'aria-label'),300)}"
+    "function rect(e){try{return e.getBoundingClientRect()}catch(x){return {left:0,top:0,width:0,height:0,right:0,bottom:0}}}"
+    "function ps(c){if(!c)return '{}';return '{bg:'+clean(c.backgroundColor,80)+',bgi:'+clean(c.backgroundImage,150)+',mask:'+clean(c.webkitMaskImage||c.maskImage,150)+',blend:'+clean(c.mixBlendMode,40)+',filter:'+clean(c.filter,90)+',op:'+clean(c.opacity,30)+',content:'+clean(c.content,100)+',color:'+clean(c.color,80)+'}'}"
+    "function media(e){var t=(e.tagName||'').toUpperCase(),a=[];if(t==='IMG'){a.push('src='+clean(e.src,180));a.push('currentSrc='+clean(e.currentSrc,180));a.push('natural='+e.naturalWidth+'x'+e.naturalHeight);a.push('complete='+!!e.complete)}else if(t==='SOURCE'){a.push('src='+clean(e.src,180));a.push('srcset='+clean(e.srcset,180))}else if(t==='VIDEO'){a.push('poster='+clean(e.poster,180));a.push('video='+e.videoWidth+'x'+e.videoHeight);a.push('ready='+e.readyState)}else if(t==='SVG'||t==='USE'||t==='IMAGE'){a.push('href='+clean(attr(e,'href')||attr(e,'xlink:href'),180));a.push('viewBox='+clean(attr(e,'viewBox'),100))}return a.join(' ')}"
+    "function one(e,why,d,x,y){if(!e||seen.has(e)||rows.length>=180)return;seen.add(e);var r=rect(e);if(r.bottom<0||r.top>H||r.right<0||r.left>W)return;var c=getComputedStyle(e),b=null,a=null;try{b=getComputedStyle(e,'::before');a=getComputedStyle(e,'::after')}catch(z){};rows.push('E['+rows.length+'] why='+why+' d='+d+' pt='+Math.round(x)+','+Math.round(y)+' tag='+e.tagName+' rect=('+r.left.toFixed(1)+','+r.top.toFixed(1)+' '+r.width.toFixed(1)+'x'+r.height.toFixed(1)+') sem='+sem(e)+' bg='+clean(c.backgroundColor,80)+' bgi='+clean(c.backgroundImage,180)+' mask='+clean(c.webkitMaskImage||c.maskImage,180)+' maskSize='+clean(c.webkitMaskSize||c.maskSize,90)+' blend='+clean(c.mixBlendMode,50)+' bgBlend='+clean(c.backgroundBlendMode,50)+' iso='+clean(c.isolation,40)+' filter='+clean(c.filter,100)+' op='+clean(c.opacity,30)+' vis='+clean(c.visibility,30)+' display='+clean(c.display,40)+' color='+clean(c.color,80)+' textFill='+clean(c.webkitTextFillColor,80)+' fill='+clean(c.fill,80)+' stroke='+clean(c.stroke,80)+' objectFit='+clean(c.objectFit,40)+' '+media(e)+' before='+ps(b)+' after='+ps(a)+' text='+clean(e.innerText||e.textContent,180));}"
+    "function nearby(e,x,y){var n=e;for(var d=0;d<5&&n&&rows.length<180;d++,n=n.parentElement){one(n,d?'ancestor':'hit',d,x,y);var ch=n.children||[];for(var j=0;j<Math.min(ch.length,6)&&rows.length<180;j++){var q=ch[j],r=rect(q);if(r.width>=8&&r.height>=8&&r.bottom>=0&&r.top<=H&&r.right>=0&&r.left<=W)one(q,'child',d+1,x,y)}}}"
+    "for(var yi=0;yi<ys.length&&rows.length<180;yi++){for(var xi=0;xi<xs.length&&rows.length<180;xi++){var x=W*xs[xi],y=H*ys[yi],st=D.elementsFromPoint(x,y);for(var k=0;k<Math.min(st.length,5)&&rows.length<180;k++)nearby(st[k],x,y)}}"
+    "return 'FRAME href='+location.href+'\\nTITLE='+clean(D.title,180)+'\\nVIEWPORT='+W+'x'+H+'\\n'+rows.join('\\n')+'\\nFRAME_SUMMARY elements='+rows.length;"
+    "}catch(e){return 'PROBE_EXCEPTION '+(e&&e.stack||e);}})();";
+}
+static void ADEndProbeBG7034(UIBackgroundTaskIdentifier bg){
+    if(bg==UIBackgroundTaskInvalid)return;
+    @try { [[UIApplication sharedApplication] endBackgroundTask:bg]; } @catch(...) {}
+}
+static void ADRunProbe7034(void){
+    if(gADProbe7034Busy)return;
+    gADProbe7034Busy=YES;
+    WKWebView *wv=ADVisibleWebView7034();
+    if(!wv){ADWriteProbe7034(@"NO_TRACKED_WKWEBVIEW");gADProbe7034Busy=NO;return;}
+    __block UIBackgroundTaskIdentifier bg=UIBackgroundTaskInvalid;
+    @try {
+        bg=[[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
+            UIBackgroundTaskIdentifier x=bg;bg=UIBackgroundTaskInvalid;ADEndProbeBG7034(x);
+        }];
+    } @catch(...) {}
+    [wv evaluateJavaScript:ADDisneyMediaProbeJS7034() completionHandler:^(id value,NSError *error){
+        NSString *body=error?[NSString stringWithFormat:@"WEB_ERROR %@",error]:([value isKindOfClass:[NSString class]]?value:[value description]);
+        ADWriteProbe7034(body);
+        gADProbe7034Busy=NO;
+        UIBackgroundTaskIdentifier x=bg;bg=UIBackgroundTaskInvalid;ADEndProbeBG7034(x);
+    }];
+}
+static void ADProbeNotify7034(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
+    dispatch_async(dispatch_get_main_queue(),^{ @try { ADRunProbe7034(); } @catch(...) {} });
+}
+
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
     ADLoadPrefs(); ADRefreshPromotionState611(); ADApplyAllFloors();
 }
@@ -1827,6 +1913,8 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);
+    CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADProbeNotify7034,
+        CFSTR("com.colindavidr.amazondark/probe-disney-media-7034"),NULL,CFNotificationSuspensionBehaviorDeliverImmediately);
     dispatch_async(dispatch_get_main_queue(), ^{
         ADApplyAllFloors();
         ADRefreshPromotionState611();
