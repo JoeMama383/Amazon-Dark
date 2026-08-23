@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.45-seasonal-shell-chevron-search"
+#define AD_VERSION "v7.0.46-border-ad-palette-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -598,12 +598,13 @@ static void ADPostReadyOnce(void);
 static void ADScheduleLaunchReadyCheck706(void);
 static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
+static const void *kADPaletteProbeUS7046=&kADPaletteProbeUS7046;
 static NSHashTable *gADWebViews=nil;
 
 static NSString *ADFloorJS(void){
     // v7.0.14: static v185-style palette. CSS only: no Dark Reader, no observer,
     // no computed-style repair walker. Own known structural shells; preserve media/art.
-    return @"(function(){try{var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement)document.documentElement.setAttribute('data-ad7-child-frame','1');var id='ad7-static-theme',s=document.getElementById(id);"
+    return @"(function(){try{var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement){document.documentElement.setAttribute('data-ad7-child-frame','1');try{var ref=String(document.referrer||'').toLowerCase();var productish=/\\/dp\\/|\\/gp\\/product\\/|\\/gp\\/aw\\/d\\/|\\/s(?:[\\/?]|$)|[?&]k=/.test(ref);if(!productish)document.documentElement.setAttribute('data-ad7-standalone-candidate','1');}catch(__){}}var id='ad7-static-theme',s=document.getElementById(id);"
             "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
             "s.textContent='"
             /* Root/page floors: immediate OLED canvas. */
@@ -810,6 +811,38 @@ static NSString *ADFloorJS(void){
             ":is([class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer],[class*=_npack-asin-card_style_theming-background-override__]) "
             ":is(i.a-icon-dropdown,i[class*=chevron],i[class*=arrow])"
             "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+            /* v7.0.46: cheap v6.0.185 Web border parity. v185's final visible
+             * card/section outline was #3b4043 after its palette path. Own color only:
+             * no width, radius, layout, shadow, or hit-target changes. */
+            ":is([class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],"
+            "[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],"
+            "[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],"
+            "[class*=puis-card],[class*=gwm-tile],[class*=_container_])"
+            ":not([class*=deal]):not([class*=badge]):not([class*=prime]):not([class*=error])"
+            ":not([class*=alert]):not([class*=warning])"
+            "{border-color:#3b4043!important;outline-color:#3b4043!important;}"
+            /* v185 also owned the actual nested seasonal/mosaic border-bearing shells,
+             * not just the outer mosaic root. This is what keeps those visible card
+             * outlines from falling back to Amazon white. */
+            ":is([class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer]) "
+            ":is(div,section,article,ul,ol,li)"
+            "{border-color:#3b4043!important;outline-color:#3b4043!important;}"
+            /* v7.0.46: standalone ad dark surface. Classification is O(1) at
+             * documentStart from child-frame/referrer state; viewport geometry is
+             * handled declaratively by the media query, so there is no DOM scan,
+             * observer, timer, or per-node classifier. Product/Search child frames
+             * are excluded by the referrer gate. */
+            "@media (max-height:260px) and (min-aspect-ratio:5/3){"
+            "html[data-ad7-standalone-candidate],html[data-ad7-standalone-candidate] body"
+            "{background:#000!important;background-color:#000!important;color:#e8e6e3!important;}"
+            "html[data-ad7-standalone-candidate] :is(div,section,article,main,header,footer,ul,ol,li)"
+            "{background-color:transparent!important;border-color:#3b4043!important;}"
+            "html[data-ad7-standalone-candidate] :is(h1,h2,h3,h4,h5,h6,p,span,a,strong,small,b,em,label)"
+            ":not([class*=badge]):not([class*=deal]):not([class*=coupon])"
+            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            "html[data-ad7-standalone-candidate] :is(img,picture,video,canvas,svg)"
+            "{background-color:transparent!important;}"
+            "}"
             /* Sponsored/ad-feedback text and glyphs have no AmazonDark paint rule.
              * Amazon retains their stock color, sprite/mask/SVG and geometry. */
             /* Creative/media protection: only true media/product-image wrappers are
@@ -943,6 +976,24 @@ static NSString *ADTWBJS(void){
          "';}catch(e){}})();",factor,shade];
 }
 
+
+static NSString *ADPaletteProbeJS7046(void){
+    // Diagnostic only. Dormant until native SIGUSR2 asks the visible WKWebView for
+    // one snapshot. No MutationObserver, timer, RAF, scroll listener, or live scan.
+    return @"(function(){try{"
+    "if(window.__ADP7046_INSTALLED__)return;window.__ADP7046_INSTALLED__=1;"
+    "function norm(v){return String(v==null?'':v).replace(/\\s+/g,'').toLowerCase()}"
+    "function keep(v){v=norm(v);return !!v&&v!=='transparent'&&v!=='rgba(0,0,0,0)'&&v!=='rgba(0,0,0,0.0)'}"
+    "function cls(e){try{var x=e.className;if(x&&x.baseVal!==undefined)x=x.baseVal;return typeof x==='string'?x:''}catch(z){return ''}}"
+    "function ex(e){try{var s=String(e.tagName||'?').toLowerCase();if(e.id)s+='#'+String(e.id).slice(0,90);var a=cls(e).trim().split(/\\s+/).filter(Boolean).slice(0,3);if(a.length)s+='.'+a.join('.');var d=e.getAttribute&&e.getAttribute('data-component-type');if(d)s+='[data-component-type='+String(d).slice(0,80)+']';return s.slice(0,260)}catch(z){return '?'}}"
+    "function add(m,v,e,area){v=norm(v);if(!keep(v))return;var x=m[v];if(!x)x=m[v]={n:0,area:0,ex:ex(e)};x.n++;if(area>0)x.area+=area}"
+    "function lines(name,m,areaFirst){var a=Object.keys(m).map(function(k){var x=m[k];return {k:k,n:x.n,area:x.area,ex:x.ex}});a.sort(function(x,y){return areaFirst?(y.area-x.area||y.n-x.n):(y.n-x.n||y.area-x.area)});var o=['=== '+name+' distinct='+a.length+' ==='];for(var i=0;i<a.length&&i<120;i++){var x=a[i];o.push(name+' '+x.k+' count='+x.n+' viewportArea='+Math.round(x.area)+' ex='+x.ex)}return o.join('\\n')}"
+    "window.__ADP7046_SNAP=function(){try{var D=document,E=D.getElementsByTagName('*'),lim=Math.min(E.length,6500),bg=Object.create(null),fg=Object.create(null),bd=Object.create(null),rendered=0,W=innerWidth||D.documentElement.clientWidth||0,H=innerHeight||D.documentElement.clientHeight||0;"
+    "for(var i=0;i<lim;i++){var e=E[i],cs;try{cs=getComputedStyle(e)}catch(z){continue}if(!cs||cs.display==='none')continue;rendered++;var r;try{r=e.getBoundingClientRect()}catch(z){r={left:0,top:0,right:0,bottom:0,width:0,height:0}}var iw=Math.max(0,Math.min(W,r.right)-Math.max(0,r.left)),ih=Math.max(0,Math.min(H,r.bottom)-Math.max(0,r.top)),ar=iw*ih;add(bg,cs.backgroundColor,e,ar);add(fg,cs.color,e,0);var seen=Object.create(null),bc=[cs.borderTopColor,cs.borderRightColor,cs.borderBottomColor,cs.borderLeftColor,cs.outlineColor];for(var j=0;j<bc.length;j++){var q=norm(bc[j]);if(keep(q)&&!seen[q]){seen[q]=1;add(bd,q,e,0)}}}"
+    "return 'PALETTE href='+String(location.href||'').slice(0,500)+' title='+String(D.title||'').replace(/\\s+/g,' ').slice(0,220)+' ready='+D.readyState+' viewport='+W+'x'+H+' dom='+E.length+' scanned='+lim+' rendered='+rendered+'\\n'+lines('BACKGROUND',bg,true)+'\\n'+lines('TEXT',fg,false)+'\\n'+lines('BORDER',bd,false)}catch(e){return 'SNAP_EXCEPTION '+e}};"
+    "}catch(e){}})();";
+}
+
 static void ADTrackWebView(WKWebView *wv){
     if(!wv)return; @try { @synchronized([WKWebView class]) { if(!gADWebViews)gADWebViews=[NSHashTable weakObjectsHashTable]; [gADWebViews addObject:wv]; } } @catch(...) {}
 }
@@ -962,6 +1013,11 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADTWBJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADTWBUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        if(!objc_getAssociatedObject(ucc,kADPaletteProbeUS7046)){
+            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADPaletteProbeJS7046() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:YES];
+            [ucc addUserScript:us];
+            objc_setAssociatedObject(ucc,kADPaletteProbeUS7046,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
     } @catch(...) {}
 }
@@ -1015,6 +1071,7 @@ static void ADApplyAllFloors(void){
     if(gP.enabled){
         objc_setAssociatedObject(self,kADFloorUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADTWBUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(self,kADPaletteProbeUS7046,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADAttachScriptsToUCC710(self);
     }
 }
@@ -1987,6 +2044,79 @@ static void ADScheduleLaunchReadyCheck706(void){
     gADReadyScheduled706=YES; dispatch_async(dispatch_get_main_queue(),^{ ADRunLaunchReadyCheck706(); });
 }
 
+
+// -----------------------------------------------------------------------------
+// v7.0.46 manual palette-frequency probe.
+// Trigger: SIGUSR2. Appends one current-page snapshot per trigger so Home, Search,
+// PDP and Cart can be captured in a single file without any normal-runtime scan.
+// -----------------------------------------------------------------------------
+static BOOL gADPaletteProbe7046Busy=NO;
+static NSString *ADPaletteProbePath7046(void){
+    @try {
+        NSArray *dirs=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
+        NSString *base=dirs.firstObject;
+        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-palette-probe-7046.txt"];
+    } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-palette-probe-7046.txt"];
+}
+static void ADPaletteProbeReset7046(void){
+    @try {
+        NSString *h=[NSString stringWithFormat:@"AmazonDark %@ palette probe\nstarted=%@\n\n",
+                     [NSString stringWithUTF8String:AD_VERSION],[NSDate date]];
+        [h writeToFile:ADPaletteProbePath7046() atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    } @catch(...) {}
+}
+static void ADPaletteProbeAppend7046(NSString *body){
+    @try {
+        NSString *path=ADPaletteProbePath7046();
+        NSFileHandle *fh=[NSFileHandle fileHandleForWritingAtPath:path];
+        if(!fh){ ADPaletteProbeReset7046(); fh=[NSFileHandle fileHandleForWritingAtPath:path]; }
+        [fh seekToEndOfFile];
+        NSString *s=[NSString stringWithFormat:@"===== CAPTURE %@ =====\n%@\n===== END CAPTURE =====\n\n",[NSDate date],body?:@"NO_BODY"];
+        [fh writeData:[s dataUsingEncoding:NSUTF8StringEncoding]];
+        [fh closeFile];
+    } @catch(...) {}
+}
+static WKWebView *ADPaletteVisibleWebView7046(void){
+    WKWebView *best=nil; CGFloat bestArea=0;
+    @try {
+        for(WKWebView *wv in ADTrackedWebViews()){
+            if(!wv||wv.hidden||wv.alpha<0.01||!wv.window)continue;
+            CGRect r=[wv convertRect:wv.bounds toView:nil];
+            CGFloat area=MAX(0,r.size.width)*MAX(0,r.size.height);
+            if(area>bestArea){bestArea=area;best=wv;}
+        }
+    } @catch(...) {}
+    return best;
+}
+static void ADEndPaletteBG7046(UIBackgroundTaskIdentifier bg){
+    if(bg==UIBackgroundTaskInvalid)return;
+    @try { [[UIApplication sharedApplication] endBackgroundTask:bg]; } @catch(...) {}
+}
+static void ADRunPaletteProbe7046(void){
+    if(gADPaletteProbe7046Busy)return;
+    gADPaletteProbe7046Busy=YES;
+    WKWebView *wv=ADPaletteVisibleWebView7046();
+    if(!wv){ ADPaletteProbeAppend7046(@"NO_VISIBLE_WKWEBVIEW"); gADPaletteProbe7046Busy=NO; return; }
+    __block UIBackgroundTaskIdentifier bg=UIBackgroundTaskInvalid;
+    @try {
+        bg=[[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
+            UIBackgroundTaskIdentifier x=bg; bg=UIBackgroundTaskInvalid; ADEndPaletteBG7046(x);
+        }];
+    } @catch(...) {}
+    [wv evaluateJavaScript:@"window.__ADP7046_SNAP?window.__ADP7046_SNAP():'NO_PALETTE_BOOTSTRAP'" completionHandler:^(id value,NSError *error){
+        NSString *body=error?[NSString stringWithFormat:@"PALETTE_ERROR %@",error]:
+            ([value isKindOfClass:[NSString class]]?value:[value description]);
+        ADPaletteProbeAppend7046(body);
+        gADPaletteProbe7046Busy=NO;
+        UIBackgroundTaskIdentifier x=bg; bg=UIBackgroundTaskInvalid; ADEndPaletteBG7046(x);
+    }];
+}
+static void ADPaletteProbeSignal7046(int sig){
+    if(sig!=SIGUSR2)return;
+    dispatch_async(dispatch_get_main_queue(),^{ @try { ADRunPaletteProbe7046(); } @catch(...) {} });
+}
+
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
     ADLoadPrefs(); ADRefreshPromotionState611(); ADApplyAllFloors();
 }
@@ -2007,6 +2137,9 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
     } @catch(...) {}
 
     %init;
+
+    ADPaletteProbeReset7046();
+    signal(SIGUSR2, ADPaletteProbeSignal7046);
 
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);
