@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.7-oled-floor"
+#define AD_VERSION "v7.0.8-oled-floor"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -53,6 +53,12 @@ extern char *__progname;
 @interface RCTRootView : UIView @end
 @interface RCTRootContentView : UIView @end
 @interface RCTScrollView : UIScrollView @end
+@interface RCTParagraphComponentView : UIView @end
+@interface RCTTextView : UIView @end
+@interface _UIBarBackground : UIView @end
+@interface CXIStoreModesBottomNavToolbar : UIView @end
+@interface CXIStoreModesTabBarView : UIView @end
+@interface ANPRetailTabBar : UIView @end
 
 // -----------------------------------------------------------------------------
 // Preferences — same public keys/domain as v6.0.185.
@@ -641,7 +647,7 @@ static NSString *ADFloorJS(void){
 
 static NSString *ADTWBJS(void){
     CGFloat strength=MAX(0,MIN(100,gP.whiteTameStrength));
-    CGFloat factor=MAX(0.05,1.0-strength/100.0);
+    CGFloat factor=MAX(0.50,1.0-0.50*strength/100.0);
     return [NSString stringWithFormat:
         @"(function(){try{if(window.__AD7TWB)return;window.__AD7TWB=1;var f='brightness(%.3f)';"
          "var bad=/icon|glyph|logo|avatar|profile|badge|star|rating|checkbox|heart|arrow|chevron|button|search|menu|microphone|camera|cart|location|nav|tab|sprite|brand|seller|store/i;"
@@ -752,16 +758,18 @@ static void ADApplyAllFloors(void){
 }
 %end
 
+static const void *kADReactCard708=&kADReactCard708;
 static BOOL ADNativeFloorCandidate(UIView *v){
     if(!v)return NO;
     @try {
+        if(objc_getAssociatedObject(v,kADReactCard708)) return YES;
         if([v isKindOfClass:[UIImageView class]] || [v isKindOfClass:[UILabel class]] ||
            [v isKindOfClass:[UIControl class]] || [v isKindOfClass:[UITextView class]] ||
            [v isKindOfClass:[UITextField class]] || [v isKindOfClass:[UIVisualEffectView class]]) return NO;
         NSString *n=NSStringFromClass(v.class).lowercaseString ?: @"";
         NSArray *reject=@[@"image",@"icon",@"glyph",@"label",@"text",@"button",@"control",@"badge",@"avatar",@"logo",@"star",@"rating",@"switch",@"slider",@"cell"];
         for(NSString *x in reject) if([n containsString:x]) return NO;
-        NSArray *floor=@[@"root",@"content",@"container",@"background",@"surface",@"screen",@"page",@"scroll",@"collection",@"table",@"host",@"wrapper"];
+        NSArray *floor=@[@"root",@"content",@"container",@"background",@"surface",@"screen",@"page",@"scroll",@"collection",@"table",@"host",@"wrapper",@"bottomnav",@"tabbar",@"navtoolbar",@"storemodes"];
         for(NSString *x in floor) if([n containsString:x]) return YES;
     } @catch(...) {}
     return NO;
@@ -842,7 +850,81 @@ static void ADTintSearchGlyph706(UIImageView *iv){
     } @catch(...) { gADNavImageWrite706=NO; }
 }
 
+static NSAttributedString *ADLightAttributedText708(NSAttributedString *in){
+    if(!gP.enabled || !in || in.length==0) return in;
+    @try {
+        NSMutableAttributedString *m=[in mutableCopy];
+        NSRange full=NSMakeRange(0,m.length);
+        UIColor *light=ADLightText706();
+        [m enumerateAttribute:NSForegroundColorAttributeName inRange:full options:0 usingBlock:^(id value,NSRange range,BOOL *stop){
+            [m addAttribute:NSForegroundColorAttributeName value:light range:range];
+        }];
+        return m;
+    } @catch(...) { return in; }
+}
+static BOOL ADBrightNeutralUIView708(UIView *v){
+    if(!v)return NO;
+    @try {
+        UIColor *u=v.backgroundColor; if(!u)return NO;
+        CGFloat r=0,g=0,b=0,a=0,w=0;
+        if([u getRed:&r green:&g blue:&b alpha:&a]){
+            CGFloat mx=MAX(r,MAX(g,b)),mn=MIN(r,MIN(g,b));
+            return a>0.15 && mx>0.72 && (mx-mn)<0.18;
+        }
+        if([u getWhite:&w alpha:&a]) return a>0.15 && w>0.72;
+    } @catch(...) {}
+    return NO;
+}
+static void ADDarkenReactCardNearText708(UIView *textView){
+    if(!gP.enabled||!textView||!textView.window)return;
+    @try {
+        UIView *n=textView.superview;
+        for(int d=0;n&&d<7;d++,n=n.superview){
+            CGFloat w=n.bounds.size.width,h=n.bounds.size.height;
+            if(w>=150&&w<=430&&h>=170&&h<=700&&ADBrightNeutralUIView708(n)){
+                objc_setAssociatedObject(n,kADReactCard708,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                n.backgroundColor=ADOLED();
+                n.layer.backgroundColor=ADOLED().CGColor;
+                n.layer.borderColor=ADBorderGray706().CGColor;
+                if(n.layer.borderWidth<0.5)n.layer.borderWidth=1.0;
+                break;
+            }
+        }
+    } @catch(...) {}
+}
+
+%hook RCTParagraphComponentView
+- (void)setAttributedText:(NSAttributedString *)attributedText {
+    NSAttributedString *r=ADLightAttributedText708(attributedText);
+    %orig(r);
+    ADDarkenReactCardNearText708((UIView *)self);
+}
+- (void)_setAttributedString:(NSAttributedString *)attributedString {
+    NSAttributedString *r=ADLightAttributedText708(attributedString);
+    %orig(r);
+    ADDarkenReactCardNearText708((UIView *)self);
+}
+- (void)didMoveToWindow {
+    %orig;
+    if(gP.enabled && ((UIView *)self).window) ADDarkenReactCardNearText708((UIView *)self);
+}
+%end
+
+%hook RCTTextView
+- (void)setTextStorage:(NSTextStorage *)textStorage {
+    if(gP.enabled && textStorage.length){
+        @try { [textStorage addAttribute:NSForegroundColorAttributeName value:ADLightText706() range:NSMakeRange(0,textStorage.length)]; } @catch(...) {}
+    }
+    %orig;
+    ADDarkenReactCardNearText708((UIView *)self);
+}
+%end
+
 %hook UILabel
+- (void)setAttributedText:(NSAttributedString *)attributedText {
+    NSAttributedString *r=ADLightAttributedText708(attributedText);
+    %orig(r);
+}
 - (void)setTextColor:(UIColor *)color {
     if(gP.enabled){
         UIColor *light=ADLightText706();
@@ -937,6 +1019,7 @@ static void ADTintSearchGlyph706(UIImageView *iv){
         v.backgroundColor = ADOLED();
         v.layer.backgroundColor = ADOLED().CGColor;
         v.layer.borderColor = ADBorderGray706().CGColor;
+        if (v.layer.borderWidth < 0.5) v.layer.borderWidth = 1.0;
     }
 }
 %end
@@ -949,7 +1032,108 @@ static void ADTintSearchGlyph706(UIImageView *iv){
         v.backgroundColor = ADOLED();
         v.layer.backgroundColor = ADOLED().CGColor;
         v.layer.borderColor = ADBorderGray706().CGColor;
+        if (v.layer.borderWidth < 0.5) v.layer.borderWidth = 1.0;
     }
+}
+%end
+
+
+static void ADOwnBottomBar708(UIView *v){
+    if(!gP.enabled||!v||!v.window)return;
+    @try { v.backgroundColor=ADOLED(); v.layer.backgroundColor=ADOLED().CGColor; ADTintBottomNavTree706(v); } @catch(...) {}
+}
+%hook UITabBar
+- (void)didMoveToWindow {
+    %orig;
+    ADOwnBottomBar708((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADOwnBottomBar708((UIView *)self);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(gP.enabled){
+        UIColor *black=ADOLED();
+        %orig(black);
+        return;
+    }
+    %orig;
+}
+%end
+
+%hook _UIBarBackground
+- (void)didMoveToWindow {
+    %orig;
+    ADOwnBottomBar708((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADOwnBottomBar708((UIView *)self);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(gP.enabled){
+        UIColor *black=ADOLED();
+        %orig(black);
+        return;
+    }
+    %orig;
+}
+%end
+
+%hook CXIStoreModesBottomNavToolbar
+- (void)didMoveToWindow {
+    %orig;
+    ADOwnBottomBar708((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADOwnBottomBar708((UIView *)self);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(gP.enabled){
+        UIColor *black=ADOLED();
+        %orig(black);
+        return;
+    }
+    %orig;
+}
+%end
+
+%hook CXIStoreModesTabBarView
+- (void)didMoveToWindow {
+    %orig;
+    ADOwnBottomBar708((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADOwnBottomBar708((UIView *)self);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(gP.enabled){
+        UIColor *black=ADOLED();
+        %orig(black);
+        return;
+    }
+    %orig;
+}
+%end
+
+%hook ANPRetailTabBar
+- (void)didMoveToWindow {
+    %orig;
+    ADOwnBottomBar708((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADOwnBottomBar708((UIView *)self);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(gP.enabled){
+        UIColor *black=ADOLED();
+        %orig(black);
+        return;
+    }
+    %orig;
 }
 %end
 
@@ -1070,7 +1254,7 @@ static void ADApplyNativeTWB(UIImageView *iv){
             return;
         }
         if(!ov){ ov=[CALayer layer]; ov.name=@"AmazonDarkTWB7"; ov.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"backgroundColor":[NSNull null]}; [iv.layer addSublayer:ov]; objc_setAssociatedObject(iv,kADTWBOverlay,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
-        ov.frame=iv.bounds; ov.backgroundColor=[UIColor colorWithWhite:0 alpha:MAX(0,MIN(100,gP.whiteTameStrength))/100.0].CGColor; ov.zPosition=FLT_MAX;
+        ov.frame=iv.bounds; ov.backgroundColor=[UIColor colorWithWhite:0 alpha:0.50*MAX(0,MIN(100,gP.whiteTameStrength))/100.0].CGColor; ov.zPosition=FLT_MAX;
     } @catch(...) {}
 }
 
