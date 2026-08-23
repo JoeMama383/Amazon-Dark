@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.0.36-home-media-twb-probe"
+#define AD_VERSION "v7.0.37-home-media-twb-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -599,7 +599,7 @@ static void ADPostReadyOnce(void);
 static void ADScheduleLaunchReadyCheck706(void);
 static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
-static const void *kADProbeUS7036=&kADProbeUS7036;
+static const void *kADProbeUS7037=&kADProbeUS7037;
 static NSHashTable *gADWebViews=nil;
 
 static NSString *ADFloorJS(void){
@@ -804,9 +804,9 @@ static NSString *ADTWBJS(void){
 }
 
 
-static NSString *ADProbeBootstrap7036(void){
+static NSString *ADProbeBootstrap7037(void){
     return @"(function(){try{"
-    "if(window.__ADP7036_INSTALLED__)return;window.__ADP7036_INSTALLED__=1;"
+    "if(window.__ADP7037_INSTALLED__)return;window.__ADP7037_INSTALLED__=1;"
     "function c(v,n){return String(v==null?'':v).replace(/\\s+/g,' ').trim().slice(0,n||260)}"
     "function cls(e){try{var x=e.className;if(x&&x.baseVal!==undefined)x=x.baseVal;return typeof x==='string'?x:''}catch(z){return ''}}"
     "function at(e,n){try{return e.getAttribute&&e.getAttribute(n)||''}catch(z){return ''}}"
@@ -828,16 +828,16 @@ static NSString *ADProbeBootstrap7036(void){
       "function near(e,x,y){var n=e;for(var d=0;d<6&&n&&rows.length<190;d++,n=n.parentElement){add(n,d?'ancestor':'hit',d,x,y);var ch=n.children||[];for(var j=0;j<Math.min(ch.length,8)&&rows.length<190;j++){var q=ch[j],r=rr(q);if(r.width>=8&&r.height>=8&&r.bottom>=0&&r.top<=H&&r.right>=0&&r.left<=W)add(q,'child',d+1,x,y)}}}"
       "for(var yi=0;yi<ys.length&&rows.length<190;yi++){for(var xi=0;xi<xs.length&&rows.length<190;xi++){var x=W*xs[xi],y=H*ys[yi],st=D.elementsFromPoint(x,y);for(var k=0;k<Math.min(st.length,6)&&rows.length<190;k++)near(st[k],x,y)}}"
       "var fs=D.getElementsByTagName('iframe');for(var fi=0;fi<fs.length&&fi<12;fi++){var fr=fs[fi],r=rr(fr);if(r.width>1&&r.height>1&&r.bottom>0&&r.top<H&&r.right>0&&r.left<W){frames.push(fr);add(fr,'visible-iframe',0,r.left+r.width/2,r.top+r.height/2)}}"
-      "window.__ADP7036_FRAMES=frames;"
+      "window.__ADP7037_FRAMES=frames;"
       "return 'FRAME href='+c(location.href,380)+' top='+(window.top===window?1:0)+' viewport='+W+'x'+H+' visibleFrames='+frames.length+'\\n'+rows.join('\\n')+'\\nFRAME_SUMMARY elements='+rows.length;"
     "}catch(e){return 'SNAP_EXCEPTION '+e}}"
-    "window.__ADP7036_SNAP=snap;window.__ADP7036_CHILD=[];"
+    "window.__ADP7037_SNAP=snap;window.__ADP7037_CHILD=[];"
     "window.addEventListener('message',function(ev){try{var d=ev.data;if(!d)return;"
-      "if(d.__adp7036_req){var z=snap();try{ev.source.postMessage({__adp7036_resp:d.__adp7036_req,dump:z},'*')}catch(x){}}"
-      "else if(d.__adp7036_resp&&window.top===window){window.__ADP7036_CHILD.push(d.dump||'EMPTY_CHILD')}}catch(x){}});"
+      "if(d.__adp7037_req){var z=snap();try{ev.source.postMessage({__adp7037_resp:d.__adp7037_req,dump:z},'*')}catch(x){}}"
+      "else if(d.__adp7037_resp&&window.top===window){window.__ADP7037_CHILD.push(d.dump||'EMPTY_CHILD')}}catch(x){}});"
     "if(window.top===window){"
-      "window.__ADP7036_TRIGGER=function(){try{window.__ADP7036_CHILD=[];window.__ADP7036_MAIN=snap();var fs=window.__ADP7036_FRAMES||[];for(var i=0;i<fs.length;i++){try{fs[i].contentWindow.postMessage({__adp7036_req:'go'},'*')}catch(x){}}return 'TRIGGERED childFrames='+fs.length}catch(e){return 'TRIGGER_EXCEPTION '+e}};"
-      "window.__ADP7036_DUMP=function(){try{return (window.__ADP7036_MAIN||snap())+'\\n\\n=== CHILD FRAME SNAPSHOTS ===\\n'+(window.__ADP7036_CHILD.length?window.__ADP7036_CHILD.join('\\n\\n--- CHILD ---\\n'):'NO_CHILD_RESPONSES')}catch(e){return 'DUMP_EXCEPTION '+e}};"
+      "window.__ADP7037_TRIGGER=function(){try{window.__ADP7037_CHILD=[];window.__ADP7037_MAIN=snap();var fs=window.__ADP7037_FRAMES||[];for(var i=0;i<fs.length;i++){try{fs[i].contentWindow.postMessage({__adp7037_req:'go'},'*')}catch(x){}}return 'TRIGGERED childFrames='+fs.length}catch(e){return 'TRIGGER_EXCEPTION '+e}};"
+      "window.__ADP7037_DUMP=function(){try{return (window.__ADP7037_MAIN||snap())+'\\n\\n=== CHILD FRAME SNAPSHOTS ===\\n'+(window.__ADP7037_CHILD.length?window.__ADP7037_CHILD.join('\\n\\n--- CHILD ---\\n'):'NO_CHILD_RESPONSES')}catch(e){return 'DUMP_EXCEPTION '+e}};"
     "}"
     "}catch(e){}})();";
 }
@@ -862,10 +862,10 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADTWBUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
-        if(!objc_getAssociatedObject(ucc,kADProbeUS7036)){
-            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADProbeBootstrap7036() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+        if(!objc_getAssociatedObject(ucc,kADProbeUS7037)){
+            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADProbeBootstrap7037() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
-            objc_setAssociatedObject(ucc,kADProbeUS7036,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(ucc,kADProbeUS7037,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
     } @catch(...) {}
 }
@@ -919,7 +919,7 @@ static void ADApplyAllFloors(void){
     if(gP.enabled){
         objc_setAssociatedObject(self,kADFloorUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADTWBUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(self,kADProbeUS7036,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(self,kADProbeUS7037,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADAttachScriptsToUCC710(self);
     }
 }
@@ -1853,31 +1853,31 @@ static void ADScheduleLaunchReadyCheck706(void){
 
 
 // -----------------------------------------------------------------------------
-// v7.0.36 manual SIGUSR1 current-frame Home media/TWB probe.
+// v7.0.37 manual SIGUSR2 current-frame Home media/TWB probe.
 // Diagnostic only: no theming changes, no background-triggered capture.
 // User workflow: leave target viewport visible -> background Amazon -> run the known-good NewTerm
-// block that sends SIGUSR1 and copies the report into the shared Documents folder.
+// block that sends SIGUSR2 and copies the report into the shared Documents folder.
 // -----------------------------------------------------------------------------
-static BOOL gADProbe7036Busy=NO;
+static BOOL gADProbe7037Busy=NO;
 
-static NSString *ADProbePath7036(void){
+static NSString *ADProbePath7037(void){
     @try {
         NSArray *dirs=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
         NSString *base=dirs.firstObject;
-        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-home-media-twb-probe-7036.txt"];
+        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-home-media-twb-probe-7037.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-home-media-twb-probe-7036.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-home-media-twb-probe-7037.txt"];
 }
-static void ADWriteProbe7036(NSString *body){
+static void ADWriteProbe7037(NSString *body){
     @try {
         NSMutableString *out=[NSMutableString string];
         [out appendFormat:@"AmazonDark %@ current-frame Home media/TWB probe\n",[NSString stringWithUTF8String:AD_VERSION]];
         [out appendFormat:@"timestamp=%@\n\n",[NSDate date]];
         [out appendString:body?:@"NO_BODY"];
-        [out writeToFile:ADProbePath7036() atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        [out writeToFile:ADProbePath7037() atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } @catch(...) {}
 }
-static WKWebView *ADVisibleWebView7036(void){
+static WKWebView *ADVisibleWebView7037(void){
     WKWebView *best=nil; CGFloat bestArea=0;
     @try {
         for(WKWebView *wv in ADTrackedWebViews()){
@@ -1890,43 +1890,43 @@ static WKWebView *ADVisibleWebView7036(void){
     } @catch(...) {}
     return best;
 }
-static void ADEndProbeBG7036(UIBackgroundTaskIdentifier bg){
+static void ADEndProbeBG7037(UIBackgroundTaskIdentifier bg){
     if(bg==UIBackgroundTaskInvalid)return;
     @try { [[UIApplication sharedApplication] endBackgroundTask:bg]; } @catch(...) {}
 }
-static void ADRunProbe7036(void){
-    if(gADProbe7036Busy)return;
-    gADProbe7036Busy=YES;
-    ADWriteProbe7036(@"PROBE_TRIGGERED");
-    WKWebView *wv=ADVisibleWebView7036();
-    if(!wv){ADWriteProbe7036(@"NO_TRACKED_WKWEBVIEW");gADProbe7036Busy=NO;return;}
+static void ADRunProbe7037(void){
+    if(gADProbe7037Busy)return;
+    gADProbe7037Busy=YES;
+    ADWriteProbe7037(@"PROBE_TRIGGERED");
+    WKWebView *wv=ADVisibleWebView7037();
+    if(!wv){ADWriteProbe7037(@"NO_TRACKED_WKWEBVIEW");gADProbe7037Busy=NO;return;}
 
     __block UIBackgroundTaskIdentifier bg=UIBackgroundTaskInvalid;
     @try {
         bg=[[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
-            UIBackgroundTaskIdentifier x=bg;bg=UIBackgroundTaskInvalid;ADEndProbeBG7036(x);
+            UIBackgroundTaskIdentifier x=bg;bg=UIBackgroundTaskInvalid;ADEndProbeBG7037(x);
         }];
     } @catch(...) {}
 
-    [wv evaluateJavaScript:@"window.__ADP7036_TRIGGER?window.__ADP7036_TRIGGER():'NO_PROBE_BOOTSTRAP'"
+    [wv evaluateJavaScript:@"window.__ADP7037_TRIGGER?window.__ADP7037_TRIGGER():'NO_PROBE_BOOTSTRAP'"
          completionHandler:^(id value,NSError *error){
         NSString *head=error?[NSString stringWithFormat:@"TRIGGER_ERROR %@",error]:[value description];
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.35*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-            [wv evaluateJavaScript:@"window.__ADP7036_DUMP?window.__ADP7036_DUMP():'NO_PROBE_DUMP'"
+            [wv evaluateJavaScript:@"window.__ADP7037_DUMP?window.__ADP7037_DUMP():'NO_PROBE_DUMP'"
                  completionHandler:^(id dump,NSError *dumpError){
                 NSString *body=dumpError
                     ? [NSString stringWithFormat:@"%@\nDUMP_ERROR %@",head,dumpError]
                     : [NSString stringWithFormat:@"%@\n\n%@",head,([dump isKindOfClass:[NSString class]]?dump:[dump description])];
-                ADWriteProbe7036(body);
-                gADProbe7036Busy=NO;
-                UIBackgroundTaskIdentifier x=bg;bg=UIBackgroundTaskInvalid;ADEndProbeBG7036(x);
+                ADWriteProbe7037(body);
+                gADProbe7037Busy=NO;
+                UIBackgroundTaskIdentifier x=bg;bg=UIBackgroundTaskInvalid;ADEndProbeBG7037(x);
             }];
         });
     }];
 }
-static void ADProbeSignal7036(int sig){
-    if(sig!=SIGUSR1)return;
-    dispatch_async(dispatch_get_main_queue(),^{ @try { ADRunProbe7036(); } @catch(...) {} });
+static void ADProbeSignal7037(int sig){
+    if(sig!=SIGUSR2)return;
+    dispatch_async(dispatch_get_main_queue(),^{ @try { ADRunProbe7037(); } @catch(...) {} });
 }
 
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
@@ -1950,7 +1950,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 
     %init;
 
-    signal(SIGUSR1, ADProbeSignal7036);
+    signal(SIGUSR2, ADProbeSignal7037);
 
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);

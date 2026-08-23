@@ -1,39 +1,45 @@
-# AmazonDark v7.0.36~probe
+# AmazonDark v7.0.37~probe
 
-Direct continuation of v7.0.35's diagnostic coverage, with the probe trigger
-restored to the exact older known-good workflow.
+Probe workflow correction only. Diagnostic capture scope remains the same as v7.0.36.
 
-## Probe trigger
-The probe listens for SIGUSR1.
+## Historically working trigger restored
 
-Known-good NewTerm sequence:
-1. Leave the target Home frame visible in Amazon.
-2. Background Amazon.
-3. Run `kill -USR1 "$(pgrep -x Amazon -n)"`.
-4. Wait one second.
-5. Find the generated probe file in Amazon's sandbox and copy it to the shared
-   Documents folder.
+The older working AmazonDark probe used SIGUSR2.
 
-No notifyutil.
-No Darwin-notification relay.
-No SpringBoard relay.
-No auto-trigger-on-background.
+When PID discovery was needed, Amazon appeared in `ps` using its full executable path
+ending in `/Amazon.app/Amazon`, so matching only the bare process name was unreliable.
 
-## Probe targets
-The current visible Home frame is sampled for:
-- missing category-card visuals that may be IMG/SVG/background/mask/glyph;
-- large Home photo ads that are not currently receiving TWB;
-- large seasonal/category glyph/media leaves that are not receiving TWB;
-- visible standalone iframe elements and child-frame contents when responsive.
+This build therefore listens for SIGUSR2.
 
-The actual capture logic is unchanged from v7.0.35.
+The supplied NewTerm block uses:
+- `ps`
+- `grep`
+- `head`
+- zsh's own whitespace splitting to extract the PID
+
+It does NOT use:
+- notifyutil
+- pgrep
+- awk
+- pidof
+
+## Probe coverage
+
+Current visible Home frame only:
+- missing category-card visual leaves;
+- large Home photo ads not receiving TWB;
+- large seasonal/category glyph/media not receiving TWB;
+- visible iframe and child-frame media where the all-frame bootstrap can respond.
+
+No production styling changes.
 
 ## Performance
-Diagnostic only, bounded current-frame snapshot:
-- no querySelectorAll;
-- no MutationObserver;
-- no TreeWalker;
-- no scroll listener;
-- no setInterval;
-- no requestAnimationFrame;
-- no recurring scanner/timer.
+
+Diagnostic only:
+- 0 querySelectorAll
+- 0 MutationObserver
+- 0 TreeWalker
+- 0 scroll listeners
+- 0 setInterval
+- 0 requestAnimationFrame
+- 0 recurring scanners/timers
