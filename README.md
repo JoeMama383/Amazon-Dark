@@ -1,38 +1,14 @@
-# AmazonDark v7.0.44
+# AmazonDark v7.0.45
 
-- Production base: v7.0.43~probe, with all probe/debug runtime removed.
-- Fixes the one-second seasonal hero TWB reversion by statically owning the hydrated NPACK background VIDEO leaf that replaces the already-shaded JPEG backdrop.
-- Broadens seasonal chevron whitening only at the icon/sprite leaf inside proven seasonal/NPACK themed-card control families.
-- Tames the exact NPACK `asin-container-white` product-photo shells identified by the probe using the existing TWB shade strength.
-- No MutationObserver, querySelectorAll, TreeWalker, scroll repair, interval, RAF loop, recurring timer, or production probe runtime.
+Production build on the v7.0.44 static-CSS architecture.
 
-# AmazonDark v7.0.42
+## Changes
 
-Production build based on the corrected v7.0.40 source. The v7.0.41 hero probe is removed; its findings are converted to static CSS only.
-
-## Fixes
-
-### Universal hero TWB for CSS-backed art
-The v7.0.41 probe showed the missing hero class directly: some NPACK heroes expose the visible artwork on the `theming-card-background` leaf itself, with a `background-image`, but no `single-creative-card` / `single-video-card` ancestor. The previous selector therefore skipped those cards.
-
-v7.0.42 shades the actual `theming-card-background` / `vjs-poster` leaf directly with an inset background shade. This is background-only paint: it does not apply a brightness filter to the hero wrapper, text, headers, buttons, or controls. IMG/VIDEO media keeps the existing leaf-local TWB filter.
-
-### College / MAB chevron
-Historical v5.440/v5.449 probes prove the visible arrow is the background-image sprite on `I.a-icon.a-icon-dropdown` below `.puis-mab-chevron`. That leaf is not reliably inside the newer seasonal mosaic wrapper.
-
-v7.0.42 restores the exact sprite-leaf treatment directly:
-`filter: brightness(0) invert(1)`.
-
-### Isolated dashboard title
-The current probe also showed the APE-backed "You might like" card uses `windowPaneHeaderContainer` rather than `wpTitle`. v7.0.42 owns that title leaf too while leaving the separate Sponsored row/glyph Amazon-controlled.
+- Completes the College/seasonal Home chevron owner by whitening the exact `i.a-icon.a-icon-dropdown` sprite leaf anywhere inside the Home deck, while retaining the narrower seasonal/MAB fallbacks.
+- Converts the probe-confirmed NPACK `_asin-container-white__` product-photo shell from white/gray to OLED black. The product raster remains independently TWB-filtered, producing the same black contain/padding plate seen in the v6.0.185 reference instead of shading the white shell to gray.
+- Makes `SBSearchField` and `ANPSearchBarRightButton` use the same dark neutral fill (`#303335`) and light foreground ink. Both surfaces are reasserted only through their exact lifecycle/setter hooks so Amazon cannot restore the lighter fill later.
+- Keeps the v7.0.44 seasonal background-video TWB persistence fix unchanged.
 
 ## Performance
-All three fixes are documentStart CSS only:
-- MutationObserver: 0
-- querySelectorAll: 0
-- TreeWalker: 0
-- scroll listener: 0
-- setInterval: 0
-- requestAnimationFrame: 0
-- recurring scanner/timer: 0
-- probe/debug runtime: 0
+
+Home/hero changes remain document-start CSS only: no MutationObserver, querySelectorAll, TreeWalker, scroll listener, interval, requestAnimationFrame, or recurring repair loop. Search/location are native UIKit surfaces, so they use direct class hooks already in the tweak rather than DOM work or hierarchy scanning.

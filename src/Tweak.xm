@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.44-hero-video-lock-chevron"
+#define AD_VERSION "v7.0.45-seasonal-shell-chevron-search"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -796,19 +796,20 @@ static NSString *ADFloorJS(void){
             ".puis-mab-chevron :is(i.a-icon-dropdown,.a-icon.a-icon-dropdown),"
             ".puis-mab-chevron-glyph :is(i.a-icon-dropdown,.a-icon.a-icon-dropdown)"
             "{filter:brightness(0) invert(1)!important;opacity:1!important;}"
-            /* v7.0.44: the current seasonal control is not always the historical
-             * puis-mab host (the v7.0.43 probe found no MAB node on this layout).
-             * Keep the correction sprite-leaf-only: inside proven seasonal or
-             * NPACK-themed hero roots, whiten only an a-icon/glyph that belongs
-             * to a next/prev/chevron/arrow control. This also covers pseudo/sprite
-             * paint because filter applies to the icon element as composited. */
+            /* v7.0.45: College/seasonal chevron completion. The v7.0.43 native
+             * probe found no UIKit seasonal/college control, so this glyph is web
+             * chrome. Current Amazon layouts can detach the historical MAB wrapper
+             * from the newer seasonal/NPACK family names, leaving the exact
+             * i.a-icon.a-icon-dropdown sprite dark. Own that sprite leaf anywhere
+             * inside the Home deck; keep the narrower semantic fallbacks too. */
+            ":is(#gwm-PageContent,#gwm-Deck,#gwm-Deck-btf,.gwm-dashboard-container) i.a-icon.a-icon-dropdown,"
             ":is(#gwm-PageContent,#gwm-Deck-btf,.gwm-dashboard-container) "
             ":is([class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer],[class*=_npack-asin-card_style_theming-background-override__]) "
             ":is([class*=next],[class*=prev],[class*=chevron],[class*=arrow]) :is(i.a-icon,.a-icon,[class*=glyph]),"
             ":is(#gwm-PageContent,#gwm-Deck-btf,.gwm-dashboard-container) "
             ":is([class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer],[class*=_npack-asin-card_style_theming-background-override__]) "
             ":is(i.a-icon-dropdown,i[class*=chevron],i[class*=arrow])"
-            "{filter:brightness(0) invert(1)!important;opacity:1!important;}"
+            "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
             /* Sponsored/ad-feedback text and glyphs have no AmazonDark paint rule.
              * Amazon retains their stock color, sprite/mask/SVG and geometry. */
             /* Creative/media protection: only true media/product-image wrappers are
@@ -910,13 +911,16 @@ static NSString *ADTWBJS(void){
          "video[class*=_npack-asin-card_style_background-video__],"
          "[class*=_npack-asin-card_style_background-video-container__] > video[class*=_npack-asin-card_style_motion-content__]"
          "{filter:brightness(%.3f)!important;}"
-         /* v7.0.44: exact bright NPACK photo shells exposed by the probe.
-          * The product IMG is already leaf-tamed; the surrounding
-          * asin-container-white surface was the remaining white plate. Shade that
-          * exact shell instead of painting the whole hero/card. */
+         /* v7.0.45: exact v185-style NPACK product-photo plate. The probe shows
+          * each product IMG is already TWB-filtered, but its 133x117
+          * _asin-container-white__ shell still owns rgb(255,255,255). v185's
+          * appearance comes from that leftover contain/padding space being OLED
+          * black while the product raster itself remains intact. Own the shell
+          * directly rather than merely shading white to gray. */
          ":is([class*=theming-card-background],[class*=_npack-asin-card_style_theming-background-override__]) "
          "[class*=_npack-asin-card_style_asin-container-white__]"
-         "{box-shadow:inset 0 0 0 9999px rgba(0,0,0,%.3f)!important;transition-property:none!important;}"
+         "{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;"
+         "box-shadow:none!important;transition-property:none!important;}"
          /* v7.0.44 persistence lock for CSS-background hero artwork.
           * The v185-derived inventory names four direct empty background leaves.
           * Also match a late inline background-image inside only proven creative
@@ -936,7 +940,7 @@ static NSString *ADTWBJS(void){
          ":not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=badge]):not([class*=chevron]),"
          "html[data-ad7-twb-child=\"1\"] :is([class*=theming-card-background],[class*=vjs-poster],[class*=single-creative-card-background],[class*=single-video-card-background])"
          "{box-shadow:inset 0 0 0 9999px rgba(0,0,0,%.3f)!important;transition-property:none!important;}"
-         "';}catch(e){}})();",factor,shade,shade];
+         "';}catch(e){}})();",factor,shade];
 }
 
 static void ADTrackWebView(WKWebView *wv){
@@ -1280,6 +1284,10 @@ static BOOL ADInSearchChrome706(UIView *v){
     return NO;
 }
 static BOOL gADSearchImageWrite706=NO;
+static UIColor *ADSearchChromeFill7045(void){
+    // One dark neutral for both the search pill and location circle.
+    return [UIColor colorWithRed:48.0/255.0 green:51.0/255.0 blue:53.0/255.0 alpha:1.0];
+}
 static BOOL ADIsLocationGlyph709(UIImageView *iv){
     if(!iv)return NO;
     @try {
@@ -1306,7 +1314,7 @@ static void ADTintSearchGlyph706(UIImageView *iv){
             UIImage *tpl=[im imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
             if(tpl){ gADSearchImageWrite706=YES; iv.image=tpl; gADSearchImageWrite706=NO; }
         }
-        iv.tintColor=[UIColor blackColor];
+        iv.tintColor=ADLightText706();
     } @catch(...) { gADSearchImageWrite706=NO; }
 }
 
@@ -1384,7 +1392,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 - (void)setAttributedText:(NSAttributedString *)attributedText {
     if(gP.enabled && ADInSearchChrome706((UIView *)self) && attributedText.length){
         NSMutableAttributedString *m=[attributedText mutableCopy];
-        [m addAttribute:NSForegroundColorAttributeName value:[UIColor blackColor] range:NSMakeRange(0,m.length)];
+        [m addAttribute:NSForegroundColorAttributeName value:ADLightText706() range:NSMakeRange(0,m.length)];
         %orig(m);
         return;
     }
@@ -1393,7 +1401,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 }
 - (void)setTextColor:(UIColor *)color {
     if(gP.enabled){
-        UIColor *want=ADInSearchChrome706((UIView *)self)?[UIColor blackColor]:ADLightText706();
+        UIColor *want=ADLightText706();
         %orig(want);
         return;
     }
@@ -1401,14 +1409,14 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 }
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled&&self.window) self.textColor=ADInSearchChrome706((UIView *)self)?[UIColor blackColor]:ADLightText706();
+    if(gP.enabled&&self.window) self.textColor=ADLightText706();
 }
 %end
 
 %hook UITextView
 - (void)setTextColor:(UIColor *)color {
     if(gP.enabled){
-        UIColor *want=ADInSearchChrome706((UIView *)self)?[UIColor blackColor]:ADLightText706();
+        UIColor *want=ADLightText706();
         %orig(want);
         return;
     }
@@ -1416,14 +1424,14 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 }
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled&&self.window) self.textColor=ADInSearchChrome706((UIView *)self)?[UIColor blackColor]:ADLightText706();
+    if(gP.enabled&&self.window) self.textColor=ADLightText706();
 }
 %end
 
 %hook UITextField
 - (void)setTextColor:(UIColor *)color {
     if(gP.enabled){
-        UIColor *want=ADInSearchChrome706((UIView *)self)?[UIColor blackColor]:ADLightText706();
+        UIColor *want=ADLightText706();
         %orig(want);
         return;
     }
@@ -1433,9 +1441,9 @@ static void ADDarkenReactCardNearText708(UIView *textView){
     %orig;
     if(gP.enabled&&self.window){
         BOOL search=ADInSearchChrome706((UIView *)self);
-        self.textColor=search?[UIColor blackColor]:ADLightText706();
+        self.textColor=ADLightText706();
         if(search && self.placeholder.length){
-            self.attributedPlaceholder=[[NSAttributedString alloc] initWithString:self.placeholder attributes:@{NSForegroundColorAttributeName:[UIColor blackColor]}];
+            self.attributedPlaceholder=[[NSAttributedString alloc] initWithString:self.placeholder attributes:@{NSForegroundColorAttributeName:ADLightText706()}];
         }
     }
 }
@@ -1500,18 +1508,55 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 }
 %end
 
+static void ADOwnSearchSurface7045(UIView *v, BOOL ownBorder){
+    if(!gP.enabled||!v||!v.window)return;
+    @try {
+        UIColor *fill=ADSearchChromeFill7045();
+        v.backgroundColor=fill;
+        v.layer.backgroundColor=fill.CGColor;
+        if(ownBorder){
+            v.layer.borderColor=ADBorderGray706().CGColor;
+            if(v.layer.borderWidth<0.5)v.layer.borderWidth=1.0;
+        }
+        v.tintColor=ADLightText706();
+    } @catch(...) {}
+}
+
 %hook SBSearchField
 - (void)didMoveToWindow {
     %orig;
-    UIView *v=(UIView *)self;
-    if(gP.enabled&&v.window){
-        UIColor *fill=[UIColor colorWithWhite:0.78 alpha:1.0];
-        v.backgroundColor=fill;
-        v.layer.backgroundColor=fill.CGColor;
-        v.layer.borderColor=ADBorderGray706().CGColor;
-        if(v.layer.borderWidth<0.5)v.layer.borderWidth=1.0;
-        v.tintColor=[UIColor blackColor];
+    ADOwnSearchSurface7045((UIView *)self,YES);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADOwnSearchSurface7045((UIView *)self,YES);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(gP.enabled&&((UIView *)self).window){
+        UIColor *fill=ADSearchChromeFill7045();
+        %orig(fill);
+        return;
     }
+    %orig;
+}
+%end
+
+%hook ANPSearchBarRightButton
+- (void)didMoveToWindow {
+    %orig;
+    ADOwnSearchSurface7045((UIView *)self,NO);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADOwnSearchSurface7045((UIView *)self,NO);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(gP.enabled&&((UIView *)self).window){
+        UIColor *fill=ADSearchChromeFill7045();
+        %orig(fill);
+        return;
+    }
+    %orig;
 }
 %end
 
@@ -1868,8 +1913,8 @@ static void ADApplyNativeTWB(UIImageView *iv){
             return;
         }
         if(ADInSearchChrome706(self)||ADIsLocationGlyph709(self)){
-            UIColor *dark=[UIColor blackColor];
-            %orig(dark);
+            UIColor *light=ADLightText706();
+            %orig(light);
             return;
         }
     }
