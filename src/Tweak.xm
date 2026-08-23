@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.25-home-media-badges-v185-nav"
+#define AD_VERSION "v7.0.26-home-floor-chrome-exclusions"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -626,7 +626,7 @@ static NSString *ADFloorJS(void){
             ".a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen,"
             ".s-title-instructions-style,.a-link-normal h2,[class*=product-title],[class*=heading],[class*=title]:not([class*=badge])"
             "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            ".a-color-secondary,.a-size-small,[class*=secondary],[class*=sponsored-label],[id^=ad-feedback-text-],.ape-feedback"
+            ".a-color-secondary,.a-size-small,[class*=secondary]"
             "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
             /* Neutral borders/dividers. Exact structural families only; no global * border rewrite. */
             ".s-result-item,.s-card-container,[data-component-type=s-search-result],"
@@ -652,85 +652,56 @@ static NSString *ADFloorJS(void){
             /* Share/overflow exact leaves from probe history. */
             ".puis-mab-overlay-row-share .puis-mab-overlay-icon-share"
             "{background-color:#e8e6e3!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;filter:none!important;}"
-            /* v7.0.24 Home below-fold ownership.
-             * IMPORTANT: #gwm-Deck itself is intentionally NOT a floor scope. The
-             * top hero/carousel lives there. Real below-fold cards are under
-             * #gwm-Deck-btf; #gwm-PageContent remains as the legacy fallback. */
-            ":is(#gwm-PageContent,#gwm-Deck-btf) [class*=hp-mosaic-container],"
-            ":is(#gwm-PageContent,#gwm-Deck-btf) [class*=_mosaic-container_style_widgetContainer]"
-            "{background-color:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;border-color:#494d4d!important;mix-blend-mode:normal!important;isolation:isolate!important;}"
-            /* Structural descendants only. Do not attach floor paint to text leaves,
-             * media, or deal/badge/coupon families. */
-            ":is(#gwm-PageContent,#gwm-Deck-btf) [class*=hp-mosaic-container] :is(div,section,article,ul,ol,li)"
-            ":not([class*=image]):not([class*=img]):not([class*=picture]):not([class*=video]):not([class*=media])"
-            ":not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=discount]):not([class*=saving]):not([class*=percent])"
-            ":not([class*=button]):not([class*=swatch]):not([class*=creative]):not([class*=theming]):not([class*=poster]),"
-            ":is(#gwm-PageContent,#gwm-Deck-btf) [class*=_mosaic-container_style_widgetContainer] :is(div,section,article,ul,ol,li)"
-            ":not([class*=image]):not([class*=img]):not([class*=picture]):not([class*=video]):not([class*=media])"
-            ":not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=discount]):not([class*=saving]):not([class*=percent])"
-            ":not([class*=button]):not([class*=swatch]):not([class*=creative]):not([class*=theming]):not([class*=poster])"
-            "{background-color:#000!important;border-color:#494d4d!important;mix-blend-mode:normal!important;}"
-            /* Probe-proven below-fold shell owners use semantic/hash-agnostic class fragments. */
+            /* v7.0.26 Home floor ownership.
+             *
+             * The complex hero and the first ordinary card row can both live in
+             * #gwm-Deck. Do not own the whole deck. Own only known product/card
+             * shell roots, and reject roots carrying the historical complex creative
+             * leaf families. */
             ":is(#gwm-PageContent,#gwm-Deck-btf) :is("
-            ".a-cardui:not([class*=creative]):not([class*=ad-card]),"
-            "[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=puis-card],"
-            "[class*=asin-container],[class*=mosaic-card],[class*=asin-data-attribute-wrapper],"
-            "[class*=p13n-uf],[class*=hp-mosaic-container_style_container])"
-            "{background-color:#000!important;border-color:#494d4d!important;mix-blend-mode:normal!important;isolation:auto!important;}"
-            ":is(#gwm-PageContent,#gwm-Deck-btf) :is("
-            ".a-cardui:not([class*=creative]):not([class*=ad-card]),"
-            "[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=puis-card],"
-            "[class*=asin-container],[class*=mosaic-card],[class*=asin-data-attribute-wrapper],"
-            "[class*=p13n-uf],[class*=hp-mosaic-container_style_container]) "
-            ":is(div,section,article,ul,ol,li)"
-            ":not([class*=image]):not([class*=img]):not([class*=picture]):not([class*=video]):not([class*=media])"
-            ":not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=discount]):not([class*=saving]):not([class*=percent])"
-            ":not([class*=button]):not([class*=swatch]):not([class*=creative]):not([class*=theming]):not([class*=poster])"
-            "{background-color:#000!important;border-color:#494d4d!important;mix-blend-mode:normal!important;}"
-            /* Card copy: white ink only. Text leaves stay transparent so the floor
-             * cannot create black rectangles behind percent-off/deal copy. */
-            ":is(#gwm-PageContent,#gwm-Deck-btf) :is("
-            ".a-cardui,[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=puis-card],"
-            "[class*=asin-container],[class*=mosaic-card],[class*=asin-data-attribute-wrapper],"
-            "[class*=p13n-uf],[class*=hp-mosaic-container_style_container]) "
-            ":is(h1,h2,h3,h4,h5,h6,p,span,a,small,strong,em,b,sup)"
-            "{background-color:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* Product-media compositing fix from the probe. The IMG leaves and
-             * asin-metadata/wrapper nodes were multiply-blended; multiply over an
-             * OLED floor is what produced the black boxes. Do NOT clear filter:
-             * TWB's brightness filter remains authoritative when enabled. */
-            ":is(#gwm-PageContent,#gwm-Deck-btf) :is("
-            ".a-cardui,[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=puis-card],"
-            "[class*=asin-container],[class*=mosaic-card],[class*=asin-data-attribute-wrapper],"
-            "[class*=p13n-uf],[class*=hp-mosaic-container_style_container]) "
+            ".a-cardui,[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-tile],"
+            "[class*=puis-card],[class*=asin-container],[class*=mosaic-card],"
+            "[class*=asin-data-attribute-wrapper],[class*=p13n-uf],"
+            "[class*=hp-mosaic-container_style_container],[class*=_mosaic-container_style_widgetContainer])"
+            "{background-color:#000!important;border-color:#494d4d!important;"
+            "color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;"
+            "mix-blend-mode:normal!important;isolation:auto!important;}"
+            /* Ordinary card roots immediately below the hero, still inside #gwm-Deck. */
+            "#gwm-Deck :is("
+            ".a-cardui,[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-tile],"
+            "[class*=puis-card],[class*=asin-container],[class*=mosaic-card],"
+            "[class*=asin-data-attribute-wrapper],[class*=p13n-uf],"
+            "[class*=hp-mosaic-container_style_container],[class*=_mosaic-container_style_widgetContainer])"
+            ":not([class*=single-creative]):not([class*=single-video]):not([class*=theming-card])"
+            ":not([class*=canvas-card]):not([class*=creative-card]):not([class*=ad-card]):not([class*=hero])"
+            ":not(:has([class*=single-creative-card-background],[class*=single-video-card-background],"
+            "[class*=theming-card-background],[class*=vjs-poster],video.vjs-tech,"
+            "[class*=canvas-card],[class*=sbv-video]))"
+            "{background-color:#000!important;border-color:#494d4d!important;"
+            "color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;"
+            "mix-blend-mode:normal!important;isolation:auto!important;}"
+            /* Deliberately NO generic DIV/LI/SPAN descendant floor rule.
+             * The probe identified the card shell planes themselves. Descendants stay
+             * Amazon-owned, which preserves stock percent-off/deal/Sponsored chrome. */
+            /* Product-media compositing fix remains leaf-only. */
+            ":is(#gwm-PageContent,#gwm-Deck-btf,#gwm-Deck) :is("
+            ".a-cardui,[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-tile],"
+            "[class*=puis-card],[class*=asin-container],[class*=mosaic-card],"
+            "[class*=asin-data-attribute-wrapper],[class*=p13n-uf],"
+            "[class*=hp-mosaic-container_style_container],[class*=_mosaic-container_style_widgetContainer]) "
             ":is(img,picture,video,canvas,svg,[class*=asin-image],[class*=image-wrapper],"
             "[class*=img-wrapper],[class*=image-container],[class*=product-image],[class*=asin-metadata])"
             "{mix-blend-mode:normal!important;isolation:auto!important;background-color:transparent!important;}"
-            /* Deal / discount / coupon exclusion. These semantic subtrees never get
-             * an OLED text-leaf background. Keep their own Amazon surface visible. */
-            ":is(#gwm-PageContent,#gwm-Deck-btf) :is("
-            "[class*=badge],[class*=deal],[class*=coupon],[class*=discount],[class*=saving],[class*=percent]) *"
-            "{background-color:transparent!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
-            /* Authoritative v185/v6.0.101 percent-off badge contract. */
-            ":is(#gwm-PageContent,#gwm-Deck-btf) [class*=badgeLabel]"
-            "{background-color:#cc0c39!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
-            ":is(#gwm-PageContent,#gwm-Deck-btf) [class*=badgeLabel] *"
-            "{background-color:transparent!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
-            ":is(#gwm-PageContent,#gwm-Deck-btf) [class*=badgeMessage],"
-            ":is(#gwm-PageContent,#gwm-Deck-btf) [class*=badgeMessage] *"
-            "{background-color:transparent!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* Mosaic navigation ink only. */
-            ":is(#gwm-PageContent,#gwm-Deck-btf) [class*=hp-mosaic-container] :is([class*=next],[class*=prev],[class*=chevron],[class*=arrow]),"
-            ":is(#gwm-PageContent,#gwm-Deck-btf) [class*=_mosaic-container_style_widgetContainer] :is([class*=next],[class*=prev],[class*=chevron],[class*=arrow])"
-            "{color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;}"
-                        /* Creative/media protection: preserve actual art/media independently of structural floors. */
+            /* No badge/deal/coupon/Sponsored replacement paint lives here.
+             * These are exclusions, not redrawn components. */
+            /* Creative/media protection: preserve actual art/media independently of structural floors. */
             "picture,img,video,canvas,svg,#imgTagWrapperId,.s-product-image-container,[data-component-type=s-product-image],"
             "[class*=image-wrapper],[class*=img-wrapper],[class*=image-container],[class*=product-image],[class*=asin-image],"
             "[class*=single-creative],[class*=single-video],[class*=theming-card-background],[class*=vjs-poster],[class*=media-wrapper],"
             "[class*=hero],[class*=creative-card],[class*=ad-card],"
-            "[class*=ape-wrapper],[class*=ape-placement],[class*=adFeedbackMainComponent],[class*=hybrid-widget-sponsored]"
+            "[class*=ape-wrapper],[class*=ape-placement],[class*=hybrid-widget-sponsored]"
             "{background-color:transparent!important;}"
-            "[class*=ape-wrapper],[class*=ape-placement],[class*=adFeedbackMainComponent],[class*=hybrid-widget-sponsored]"
+            "[class*=ape-wrapper],[class*=ape-placement],[class*=hybrid-widget-sponsored]"
             "{box-shadow:none!important;}"
             /* Keep actual form controls readable without overriding Amazon yellow/accent buttons. */
             "input:not([type=button]):not([type=submit]),textarea,select"
