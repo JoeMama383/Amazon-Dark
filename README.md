@@ -1,26 +1,25 @@
-# AmazonDark v7.0.21
+# AmazonDark v7.0.21~probe
 
-Probe-driven production fix.
+Compile-fix rebuild of v7.0.20~probe.
 
-## Bottom navigation
-The v7.0.20 snapshot identified the actual visible white fill as `ANXTabBarView` (430x82).
-v7.0.21 owns only that class's background as OLED black through setBackgroundColor,
-didMoveToWindow, and layoutSubviews. It does not change tab icons, rendering mode,
-selected/unselected tints, labels, or symbology.
+Probe workflow:
+1. Open Amazon.
+2. Position the below-carousel Home cards/floors to inspect.
+3. Background Amazon once.
+4. Wait 2–3 seconds.
+5. Run the supplied NewTerm probe/export block.
+6. The block copies the completed sandbox report into the normal shared Documents/push folder.
 
-## Home below-carousel floors
-The probe showed the Home document root is already black. The remaining light planes are
-hydrated card shells under `#gwm-Deck` / `#gwm-Deck-btf`, including:
-- `.a-cardui`
-- `_cXVhZ_asin-container_*`
-- `_cXVhZ_mosaic-card_*`
-- `_hp-mosaic-container_style_container_*`
+Probe trigger:
+- UIApplicationWillResignActiveNotification.
 
-The existing Home CSS is expanded from the stale `#gwm-PageContent` scope to the actual
-current Home deck roots and these known shells are OLED black.
+Probe scope:
+- current visible Home viewport only, excluding hero/carousel ancestry;
+- visible bottom-navigation/background stack only;
+- no document-wide walk;
+- no MutationObserver;
+- no recurring timer;
+- no requestAnimationFrame loop;
+- no scroll listener.
 
-Probe-captured cXVhZ product images use `mix-blend-mode:multiply`; v7.0.21 normalizes
-only those product-image leaves to `normal` so their artwork is preserved against the
-new black shell.
-
-The temporary v7.0.20 probe and background observer are removed.
+Bottom-nav production behavior remains background-only. No icon/symbology/tint changes are added.
