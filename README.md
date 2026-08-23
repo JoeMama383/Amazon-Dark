@@ -1,25 +1,15 @@
-# AmazonDark v7.0.27~probe
+# AmazonDark v7.0.28
 
-Diagnostic build based directly on v7.0.26.
+Probe-driven Home ownership correction.
 
-Certain corrections:
-- Removes the unsafe `#gwm-Deck` card-floor owner that blackened color/composited top hero cards.
-- Keeps proven below-fold `#gwm-Deck-btf` / legacy floor ownership.
-- Restores only `[class*=badgeMessage] { background-color:transparent; box-shadow:none; }` to remove the new white plate behind `Limited time deal`. No `% off` badge repaint and no text-color rule.
-
-Probe target:
-- exact hero vs ordinary-row ancestry;
-- standalone APE / mobile-mshop-ad frame surfaces;
-- Sponsored text and info-glyph hosts;
-- pseudo-element/background-image/mask implementations;
-- deal/badge message hosts.
-
-Probe shape:
-- all WebKit frames receive a tiny documentStart probe bootstrap;
-- one fixed current-viewport `elementsFromPoint()` snapshot;
-- only bounded local neighborhoods around visible semantic hits;
-- child frames reply through probe-only `postMessage`;
-- no querySelectorAll, TreeWalker, MutationObserver, scroll listener, interval, RAF loop or recurring probe timer.
-
-Workflow:
-Open Amazon on the target Home viewport -> background once -> wait about 2 seconds -> run the supplied single NewTerm export block.
+- Stops using NPACK/GWM generated bundle-family prefixes as floor selectors. Those prefixes also occur on `badgeLabel`, `ad-feedback-text`, metadata and image descendants.
+- Below-fold Home floors are owned only through actual shell semantics.
+- The ordinary carousel immediately below the hero is isolated through `.gwm-dashboard-container`; the hero remains Amazon-owned and retains original creative colors.
+- `% off` badgeLabel is not styled or repainted by AmazonDark.
+- `badgeMessage` alone has a transparent background/no shadow, removing the white plate behind `Limited time deal`.
+- Sponsored/ad-feedback text and info glyphs are isolated from AmazonDark-specific presentation app-wide. Amazon controls their stock color, sprite/mask/SVG, geometry and spacing.
+- Generic SVG background clearing is removed so tiny stock feedback glyphs cannot be erased by media-protection CSS.
+- Product-image `mix-blend-mode:normal` correction remains, but is narrowed to actual product-image semantics.
+- Ports the narrow later-6.x/v185 APE structural shell rule: wrapper/placement/feedback backgrounds, borders, outlines and shadows are cleared so the OLED page floor shows through. Sponsored ink/artwork is untouched.
+- No v7.0.27 probe runtime ships.
+- No MutationObserver, Home runtime scanner, TreeWalker, scroll listener, interval, RAF loop or recurring timer.
