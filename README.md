@@ -1,57 +1,27 @@
-# AmazonDark v7.0.31
+# AmazonDark v7.0.32
 
-Single-owner TWB correction built directly on v7.0.30.
+Targeted Home heading correction built directly on v7.0.31.
 
-## Hero correction
-v7.0.30 could tame one hero through several independent owners at once:
-- the actual IMG/VIDEO/CANVAS;
-- a known background leaf;
-- the entire `single-creative` / `single-video` / `theming-card` root;
-- a nearby-background ancestor marker;
-- the bounded hero background pass.
+## Home heading gap
+v7.0.31 fixed many Home card/mosaic text families, but some section headers are plain
+`H1`-`H6` nodes directly under below-fold Home widget wrappers. They have no matching
+Amazon heading/title class, so they can keep the stock dark ink even though their floor
+is OLED black.
 
-That stacked darkening is removed.
+v7.0.32 adds one document-start CSS rule for heading tags inside `#gwm-Deck-btf` and
+`.gwm-dashboard-container`. This covers section/card headers such as the remaining dark
+Home headings without adding a scan or runtime classifier.
 
-v7.0.31 follows the donor boundary:
-- IMG is tamed as IMG;
-- VIDEO/CANVAS is tamed as media;
-- `single-creative-card-background`, `single-video-card-background`,
-  `theming-card-background`, and `vjs-poster` are background-only owners;
-- classless hero background URL/pseudo-image recovery remains bounded to 140 visible
-  child-frame candidates;
-- no whole hero/card root receives a TWB shadow;
-- no luminance-based pure-color hero container is dynamically darkened;
-- no media event walks ancestors and adds additional background tame layers.
+The rule explicitly excludes:
+- Sponsored/ad-feedback ancestry;
+- deal/badge/coupon ancestry;
+- hero/single-creative/single-video/theming/creative/ad/canvas-card ancestry.
 
-This keeps the hero coverage without stacking TWB over Amazon's live text/chrome.
+Amazon therefore continues to own hero campaign text and all Sponsored text/glyphs.
 
-## Home text correction
-OLED Home cards/mosaics now get scoped light text ownership for normal card copy,
-headings, header links and captions.
+## Preserved architecture
+TWB remains the v7.0.31 single-owner design. No MutationObserver, querySelectorAll,
+TreeWalker, scroll listener, interval, RAF loop, or recurring scanner is added.
 
-Excluded from that light-text owner:
-- Sponsored/ad-feedback text/glyph ancestry;
-- badge/deal/coupon chrome;
-- hero/creative trees.
-
-## Sponsored isolation
-Sponsored/ad-feedback ancestry is excluded from:
-- universal IMG TWB;
-- seasonal SVG TWB;
-- child media classification;
-- hero background/pseudo-image recovery.
-
-Amazon still owns Sponsored text and glyph color/artwork. No replacement Sponsor color
-or glyph is added.
-
-## TWB coverage
-v6.0.200's cheap universal ordinary-IMG coverage model is used: all normal IMG media is
-tamed declaratively, with identity/UI/Sponsored exclusions.
-
-The bounded runtime is retained only where CSS cannot express the donor behavior:
-- standalone child-frame full-raster IMG skip;
-- VIDEO/CANVAS classification;
-- hero CSS-background / pseudo-image recovery.
-
-No MutationObserver, querySelectorAll, TreeWalker, scroll listener, interval, RAF loop,
-or recurring scanner is present.
+The standalone APE shell remains on the existing narrow transparent placement-chrome
+rule. No unproven inner-frame standalone-ad painter is added in this build.

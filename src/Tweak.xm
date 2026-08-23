@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.31-single-owner-twb"
+#define AD_VERSION "v7.0.32-home-heading-ink"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -719,6 +719,21 @@ static NSString *ADFloorJS(void){
             ":not(:where([id^=af-label-] *))"
             ":not([class*=badge]):not([class*=deal]):not([class*=coupon])"
             ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *))"
+            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            /* v7.0.32: Home section headings can be bare H1-H6 nodes directly under
+             * BTF/widget wrappers, so they miss both the generic class-based ink and
+             * the inner card/mosaic selector above. Own only heading tags in the
+             * ordinary below-fold Home region. Hero/creative, Sponsored and deal
+             * ancestry stay isolated. */
+            ":is(#gwm-Deck-btf,.gwm-dashboard-container) :is(h1,h2,h3,h4,h5,h6)"
+            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
+            ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
+            ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
+            ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *))"
+            ":not([class*=badge]):not([class*=deal]):not([class*=coupon])"
+            ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *))"
+            ":not(:where([class*=hero] *)):not(:where([class*=single-creative] *)):not(:where([class*=single-video] *))"
+            ":not(:where([class*=theming-card] *)):not(:where([class*=creative-card] *)):not(:where([class*=ad-card] *)):not(:where([class*=canvas-card] *))"
             "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
             /* Seasonal/widget section headings and captions can sit outside the
              * inner a-cardui shell. Keep only those semantic text families light. */
