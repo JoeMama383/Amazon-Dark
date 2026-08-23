@@ -1,40 +1,55 @@
-# AmazonDark v6.0.214
+# AmazonDark v6.0.215 — zero per-mutation JavaScript
 
-Back on the 6.x line. The v7 inversion experiment is abandoned.
+## What changed
 
-## State of the performance work
+AmazonDark's own three MutationObservers are retired. Every one of them observed
+`document.documentElement` with `childList` + `subtree`, so **every DOM mutation on the
+page ran a callback** — and Search and PDP hydrate continuously. That is the same shape
+as Dark Reader's observer, which v6.0.211 proved on device was the input latency. Ours
+were smaller but identical in kind.
 
-The cause is confirmed on device: **Dark Reader's own MutationObserver**. It re-themes
-every node as it arrives, and Search and PDP hydrate continuously, so it ran on the web
-process main thread through exactly the window where taps queued. v6.0.211 neutralised
-it and the app became fast everywhere — instant product taps, seamless scrolling.
+Combined with the Dark Reader observer already being inert since v6.0.211, the page now
+runs **no JavaScript on the mutation path at all**:
 
-Everything else inside Dark Reader was eliminated first: the stylesheet proxy (v6.0.210,
-no speed change), image analysis (already `ignoreImageAnalysis:['*']`), and the theme
-object (identical to the fast v5.43.0 build). The native side was never the problem —
-instrumented counters measured 285ms across 29,541 calls for a whole session.
+    payload                        live observers   scroll   interval   rAF
+    ADDarkReaderBootstrap                0            0         0        0
+    ADThreeSymbolsWebJS605               0            0         0        0
+    ADWhiteTameWebJS6027                 0            0         0        0
 
-Carried forward from v6.0.213:
+They are replaced by an inert constructor rather than deleted line by line: every call
+site keeps its shape, the one-shot initial passes still run, and nothing observes. `new F()`
+where `F` returns an object yields that object, so it substitutes cleanly for
+`new MutationObserver(...)`, with a fallback to the real constructor if the bootstrap
+has not defined it.
 
-- observer inert during `enable()`, restored in a `finally`
-- stylesheet proxy on — it covers late-arriving sheets and costs nothing
-- generated CSS published as a plain stylesheet on settle, so late-arriving nodes are
-  themed by the style engine rather than by an observer
+## Coverage is now CSS
 
-## Simplification in this build
+Late-arriving nodes are themed by the style engine during normal layout, from three
+static sheets:
 
-The v6.0.208/209 bisect switches are removed entirely — helpers, gates, prefs fields,
-prefs reads, the injected page flag and its format argument. They never worked:
-v6.0.208 read them from `/var/mobile/.ad_off_*`, which a sandboxed Amazon cannot stat,
-and v6.0.209's prefs version still produced no visible change on device. Two mechanisms,
-neither demonstrated, both dead weight.
+- the document-start floor sheet
+- the Dark Reader fixes sheet
+- Dark Reader's generated CSS, published on settle (v6.0.213)
 
-    src/Tweak.xm    466,986 -> 465,674 bytes
-    residual references to the switches: 0
+Selectors are matched by the engine as it lays out. That is the cheapest mechanism
+available and it has no per-node cost.
+
+## What this costs, stated plainly
+
+Anything that only worked because an observer re-ran on later mutations no longer
+updates. Specifically at risk: ad-island marking, the checkbox and symbol re-fixes, and
+the contrast repair on nodes that appear after the initial pass. Expect some elements to
+render unthemed where they previously corrected themselves a moment later.
+
+That is the trade being made deliberately: performance first, then close the visible
+gaps with targeted CSS rules, which cost nothing per mutation.
 
 ## Verification
 
-- Format specifiers re-checked **in position** after removing an argument: 8 and 8, each
-  landing on the literal it belongs to. Removing a middle argument without re-verifying
-  order is precisely how the Dark Reader payload would end up in the wrong slot.
-- Declared-before-use audit clean; balance 0/0/0; all payloads parse; lint-logos.
+- Inert constructor tested: substitution yields an object, the real `MutationObserver`
+  is never constructed, `observe()` is a safe no-op, `disconnect()` and `takeRecords()`
+  are present, and it falls back to the real constructor when undefined. 6/6.
+- Live observer count is 0 in every injected payload; 0 scroll listeners, 0 intervals,
+  0 rAF loops.
+- Format specifiers 8 and 2; declared-before-use audit clean; balance 0/0/0; payloads
+  parse; lint-logos.
