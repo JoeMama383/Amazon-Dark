@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.0.13 — static v185-style theme / persistent OLED floors
+ * AmazonDark v7.0.14 — static v185-style theme / persistent OLED floors
  *
  * Retained from v6.0.185:
  *   - Settings bundle/preferences and preference domain
@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.13-static-v185"
+#define AD_VERSION "v7.0.14-static-v185"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -600,7 +600,7 @@ static const void *kADTWBUS=&kADTWBUS;
 static NSHashTable *gADWebViews=nil;
 
 static NSString *ADFloorJS(void){
-    // v7.0.13: static v185-style palette. CSS only: no Dark Reader, no observer,
+    // v7.0.14: static v185-style palette. CSS only: no Dark Reader, no observer,
     // no computed-style repair walker. Own known structural shells; preserve media/art.
     return @"(function(){try{var id='ad7-static-theme',s=document.getElementById(id);"
             "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
@@ -900,7 +900,8 @@ static UIStatusBarStyle ADStatusLightIMP713(id self, SEL _cmd){
     if(gP.enabled)return UIStatusBarStyleLightContent;
     @try {
         NSValue *v=gADStatusOrig713[NSStringFromClass([self class])];
-        IMP imp=(IMP)v.pointerValue;
+        IMP imp=NULL;
+        if(v) [v getValue:&imp];
         if(imp)return ((UIStatusBarStyle(*)(id,SEL))imp)(self,_cmd);
     } @catch(...) {}
     return UIStatusBarStyleDefault;
@@ -916,7 +917,7 @@ static void ADClaimStatusController713(UIViewController *vc){
                 IMP orig=m?method_getImplementation(m):NULL;
                 if(orig==(IMP)ADStatusLightIMP713)return;
                 const char *types=m?method_getTypeEncoding(m):"q@:";
-                gADStatusOrig713[key]=[NSValue valueWithPointer:orig];
+                gADStatusOrig713[key]=[NSValue value:&orig withObjCType:@encode(IMP)];
                 if(!class_addMethod(cls,sel,(IMP)ADStatusLightIMP713,types)) class_replaceMethod(cls,sel,(IMP)ADStatusLightIMP713,types);
             }
         }
@@ -1349,7 +1350,7 @@ static void ADOwnBottomBar708(UIView *v){
 }
 %end
 
-// v7.0.13: exact v6.0.28-style adaptive top-nav owner.
+// v7.0.14: exact v6.0.28-style adaptive top-nav owner.
 %hook ANXTopNavBackgroundView
 - (void)setBackgroundColor:(UIColor *)color {
     if(gP.enabled){
