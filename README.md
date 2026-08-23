@@ -1,55 +1,18 @@
-# AmazonDark v6.0.215 — zero per-mutation JavaScript
+# AmazonDark v7.0.13
 
-## What changed
+Dark-Reader-free static theme rebuilt around the proven v5.446/v6.0.185 visual contract.
 
-AmazonDark's own three MutationObservers are retired. Every one of them observed
-`document.documentElement` with `childList` + `subtree`, so **every DOM mutation on the
-page ran a callback** — and Search and PDP hydrate continuously. That is the same shape
-as Dark Reader's observer, which v6.0.211 proved on device was the input latency. Ours
-were smaller but identical in kind.
+## v7.0.13 corrections
 
-Combined with the Dark Reader observer already being inert since v6.0.211, the page now
-runs **no JavaScript on the mutation path at all**:
+- Restores persistent OLED WebKit canvas ownership on `WKContentView`, following the v6.0.12 fix for white first-composition/recycled frames.
+- Restores the proven Home product-card shell prepaint families from v6.0.36 and v6.0.210/211 while keeping actual hero/ad/creative/media planes Amazon-owned.
+- Restores the v5.446/v6.0.5 status-bar light-content ownership model with cached per-controller-class claims.
+- Restores the v6.0.28 `ANXTopNavBackgroundView` dark lock so Amazon's adaptive transparent-nav hydration cannot turn the top chrome light.
+- Strengthens bar-sized native chrome ownership so top and bottom material/blur surfaces resolve against OLED black.
+- Restricts `UIWindow` black backing to Amazon's primary normal-level navigation window; transient screenshot/share/input windows are no longer globally painted black.
+- Reasserts OLED black only on known Amazon navigation/root controllers during appearance, rather than painting every `UIViewController`.
+- Bottom navigation retains OLED background plus selected-light / unselected-Amazon-blue glyph behavior.
+- Search field remains gray with black text and black search/camera/mic/location glyphs.
+- No Dark Reader runtime, MutationObserver, scroll repair, RAF loop, interval, or generic live DOM walker is used.
 
-    payload                        live observers   scroll   interval   rAF
-    ADDarkReaderBootstrap                0            0         0        0
-    ADThreeSymbolsWebJS605               0            0         0        0
-    ADWhiteTameWebJS6027                 0            0         0        0
-
-They are replaced by an inert constructor rather than deleted line by line: every call
-site keeps its shape, the one-shot initial passes still run, and nothing observes. `new F()`
-where `F` returns an object yields that object, so it substitutes cleanly for
-`new MutationObserver(...)`, with a fallback to the real constructor if the bootstrap
-has not defined it.
-
-## Coverage is now CSS
-
-Late-arriving nodes are themed by the style engine during normal layout, from three
-static sheets:
-
-- the document-start floor sheet
-- the Dark Reader fixes sheet
-- Dark Reader's generated CSS, published on settle (v6.0.213)
-
-Selectors are matched by the engine as it lays out. That is the cheapest mechanism
-available and it has no per-node cost.
-
-## What this costs, stated plainly
-
-Anything that only worked because an observer re-ran on later mutations no longer
-updates. Specifically at risk: ad-island marking, the checkbox and symbol re-fixes, and
-the contrast repair on nodes that appear after the initial pass. Expect some elements to
-render unthemed where they previously corrected themselves a moment later.
-
-That is the trade being made deliberately: performance first, then close the visible
-gaps with targeted CSS rules, which cost nothing per mutation.
-
-## Verification
-
-- Inert constructor tested: substitution yields an object, the real `MutationObserver`
-  is never constructed, `observe()` is a safe no-op, `disconnect()` and `takeRecords()`
-  are present, and it falls back to the real constructor when undefined. 6/6.
-- Live observer count is 0 in every injected payload; 0 scroll listeners, 0 intervals,
-  0 rAF loops.
-- Format specifiers 8 and 2; declared-before-use audit clean; balance 0/0/0; payloads
-  parse; lint-logos.
+The SpringBoard launch cover and JIT/120 Hz infrastructure remain retained from the v6.0.185 lineage.
