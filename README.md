@@ -1,3 +1,9 @@
+# AmazonDark v7.0.41~probe
+
+Based on v7.0.40. Restores the historical seasonal mosaic chevron sprite treatment (`a-icon-dropdown` -> `brightness(0) invert(1)`) and adds a manual SIGUSR2 current-frame hero TWB differential probe. The hero probe makes no production hero/TWB changes.
+
+Probe output: `AmazonDark-home-hero-twb-probe-7041.txt`.
+
 # AmazonDark v7.0.40
 
 Production build based directly on v7.0.39.
