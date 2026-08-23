@@ -1,8 +1,8 @@
-# AmazonDark v7.0.16~probe
+# AmazonDark v7.0.17~probe
 
 Dark-Reader-free static theme rebuilt around the proven v5.446/v6.0.185 visual contract.
 
-## v7.0.16~probe corrections
+## v7.0.17~probe corrections
 
 - Restores persistent OLED WebKit canvas ownership on `WKContentView`, following the v6.0.12 fix for white first-composition/recycled frames.
 - Restores the proven Home product-card shell prepaint families from v6.0.36 and v6.0.210/211 while keeping actual hero/ad/creative/media planes Amazon-owned.

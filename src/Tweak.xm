@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.16-home-status-probe"
+#define AD_VERSION "v7.0.17-home-floor-bottomnav-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -763,18 +763,18 @@ static void ADApplyWebFloor(WKWebView *wv){
 static BOOL ADPrimaryAmazonWindow713(UIWindow *w, UIViewController *candidate);
 
 // -----------------------------------------------------------------------------
-// v7.0.16 one-shot visible-screen probe.
-// Scope is intentionally tiny: current Home viewport below the hero/carousel and
-// the native status/top-chrome strip. No MutationObserver, no document traversal,
-// no recurring timer, no scroll listener, and no full-window hierarchy dump.
+// v7.0.17 manual one-shot visible-frame probe.
+// - Native: bottom ~140 pt only (bottom navigation/material stack).
+// - Web: elementsFromPoint() only across the CURRENT visible frame; no DOM walk.
+// - Hero/carousel ancestry is explicitly excluded.
+// - Dormant until Darwin notification; no timer/observer/scroll callback.
 // -----------------------------------------------------------------------------
-static BOOL gADProbe7016Scheduled=NO;
-static BOOL gADProbe7016Done=NO;
+static BOOL gADProbe7017Busy=NO;
 
-static NSString *ADProbe7016Path(void){
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-home-ad-status-probe-7016.txt"];
+static NSString *ADProbe7017Path(void){
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-home-floor-bottomnav-probe-7017.txt"];
 }
-static NSString *ADColor7016(UIColor *c){
+static NSString *ADColor7017(UIColor *c){
     if(!c)return @"nil";
     @try {
         CGFloat r=0,g=0,b=0,a=0,w=0;
@@ -783,23 +783,24 @@ static NSString *ADColor7016(UIColor *c){
     } @catch(...) {}
     return c.description?:@"?";
 }
-static NSString *ADCGColor7016(CGColorRef cg){
+static NSString *ADCGColor7017(CGColorRef cg){
     if(!cg)return @"nil";
-    @try { return ADColor7016([UIColor colorWithCGColor:cg]); } @catch(...) { return @"?"; }
+    @try { return ADColor7017([UIColor colorWithCGColor:cg]); } @catch(...) { return @"?"; }
 }
-static BOOL ADRectHitsTop7016(CGRect r){
+static BOOL ADRectHitsBottom7017(CGRect r){
     if(CGRectIsNull(r)||CGRectIsEmpty(r))return NO;
-    CGRect top=CGRectMake(0,0,UIScreen.mainScreen.bounds.size.width,220.0);
-    return CGRectIntersectsRect(r,top);
+    CGRect screen=UIScreen.mainScreen.bounds;
+    CGRect strip=CGRectMake(0,MAX(0,screen.size.height-140.0),screen.size.width,140.0);
+    return CGRectIntersectsRect(r,strip);
 }
-static NSString *ADAncestors7016(UIView *v){
+static NSString *ADAncestors7017(UIView *v){
     NSMutableArray *a=[NSMutableArray array];
     UIView *n=v.superview;
-    for(int i=0;i<4&&n;i++,n=n.superview) [a addObject:NSStringFromClass(n.class)?:@"?"];
+    for(int i=0;i<5&&n;i++,n=n.superview) [a addObject:NSStringFromClass(n.class)?:@"?"];
     return [a componentsJoinedByString:@" > "];
 }
-static NSString *ADNativeTopSnapshot7016(void){
-    NSMutableString *out=[NSMutableString stringWithString:@"=== NATIVE STATUS/TOP-CHROME VISIBLE SNAPSHOT ===\n"];
+static NSString *ADNativeBottomSnapshot7017(void){
+    NSMutableString *out=[NSMutableString stringWithString:@"=== NATIVE BOTTOM-NAV VISIBLE SNAPSHOT ===\n"];
     @try {
         UIWindow *target=nil;
         for(UIWindow *w in UIApplication.sharedApplication.windows){
@@ -809,26 +810,27 @@ static NSString *ADNativeTopSnapshot7016(void){
         if(!target){ [out appendString:@"NO_PRIMARY_WINDOW\n"]; return out; }
         NSMutableArray *q=[NSMutableArray arrayWithObject:target];
         NSUInteger seen=0,logged=0;
-        for(NSUInteger i=0;i<q.count && seen<180;i++){
+        for(NSUInteger i=0;i<q.count && seen<220;i++){
             UIView *v=q[i]; seen++;
             if(!v||v.hidden||v.alpha<0.01)continue;
             CGRect rr=CGRectZero; @try { rr=[v convertRect:v.bounds toView:nil]; } @catch(...) { continue; }
-            if(!ADRectHitsTop7016(rr))continue;
+            if(!ADRectHitsBottom7017(rr))continue;
             NSString *cn=NSStringFromClass(v.class)?:@"?";
             NSString *low=cn.lowercaseString;
-            BOOL interesting=([low containsString:@"status"]||[low containsString:@"topnav"]||[low containsString:@"search"]||[low containsString:@"barbackground"]||[low containsString:@"visualeffect"]||[low containsString:@"navigation"]||[low containsString:@"header"]||rr.size.width>UIScreen.mainScreen.bounds.size.width*0.75);
-            if(interesting && logged<100){
-                [out appendFormat:@"N[%lu] cls=%@ rect=(%.1f,%.1f %.1fx%.1f) bg=%@ layer=%@ alpha=%.2f opaque=%d hidden=%d aid=\"%@\" label=\"%@\" parent=%@\n",
+            BOOL interesting=([low containsString:@"tabbar"]||[low containsString:@"bottomnav"]||[low containsString:@"navtoolbar"]||[low containsString:@"storemodes"]||[low containsString:@"barbackground"]||[low containsString:@"visualeffect"]||[low containsString:@"blur"]||[low containsString:@"imageview"]||[low containsString:@"button"]||rr.size.width>UIScreen.mainScreen.bounds.size.width*0.75);
+            if(interesting && logged<120){
+                NSString *effect=@"";
+                if([v isKindOfClass:[UIVisualEffectView class]]) effect=[NSString stringWithFormat:@" effect=%@",((UIVisualEffectView*)v).effect?:@"nil"];
+                [out appendFormat:@"N[%lu] cls=%@ rect=(%.1f,%.1f %.1fx%.1f) bg=%@ layer=%@ alpha=%.2f opaque=%d hidden=%d%@ aid=\"%@\" label=\"%@\" parent=%@\n",
                     (unsigned long)logged,cn,rr.origin.x,rr.origin.y,rr.size.width,rr.size.height,
-                    ADColor7016(v.backgroundColor),ADCGColor7016(v.layer.backgroundColor),v.alpha,v.opaque?1:0,v.hidden?1:0,
-                    v.accessibilityIdentifier?:@"",v.accessibilityLabel?:@"",ADAncestors7016(v)];
+                    ADColor7017(v.backgroundColor),ADCGColor7017(v.layer.backgroundColor),v.alpha,v.opaque?1:0,v.hidden?1:0,effect,
+                    v.accessibilityIdentifier?:@"",v.accessibilityLabel?:@"",ADAncestors7017(v)];
                 logged++;
             }
-            // Descend only through branches that intersect the top 220pt strip.
             for(UIView *sv in v.subviews){
                 if(!sv||sv.hidden||sv.alpha<0.01)continue;
                 CGRect sr=CGRectZero; @try { sr=[sv convertRect:sv.bounds toView:nil]; } @catch(...) { continue; }
-                if(ADRectHitsTop7016(sr)) [q addObject:sv];
+                if(ADRectHitsBottom7017(sr)) [q addObject:sv];
             }
         }
         [out appendFormat:@"NATIVE_SUMMARY visited=%lu logged=%lu\n",(unsigned long)seen,(unsigned long)logged];
@@ -836,53 +838,54 @@ static NSString *ADNativeTopSnapshot7016(void){
     return out;
 }
 
-static NSString *ADWebViewportProbeJS7016(void){
+static NSString *ADWebViewportProbeJS7017(void){
     return @"(function(){try{"
-    "if(window.__AD_PROBE7016_DONE__)return 'WEB_ALREADY_CAPTURED';window.__AD_PROBE7016_DONE__=1;"
-    "var root=document.getElementById('gwm-PageContent');if(!root)return 'NOT_HOME';"
     "var W=innerWidth||document.documentElement.clientWidth,H=innerHeight||document.documentElement.clientHeight;"
-    "var xs=[.08,.25,.5,.75,.92],ys=[.40,.50,.60,.70,.80,.90,.96],seen=new Set(),rows=[];"
-    "function clean(x){return String(x||'').replace(/\\s+/g,' ').slice(0,180)}"
-    "function sem(e){return clean((e.id||'')+' '+(typeof e.className==='string'?e.className:'')+' '+(e.getAttribute&&e.getAttribute('data-component-type')||''));}"
-    "function carousel(e){var n=e;for(var i=0;i<6&&n;i++,n=n.parentElement){var s=sem(n).toLowerCase();if(/hero|carousel|slideshow|swiper|rotator|billboard|gateway-hero/.test(s))return true;}return false;}"
-    "function one(e,depth){if(!e||seen.has(e)||rows.length>=100)return;seen.add(e);if(carousel(e))return;var r=e.getBoundingClientRect();if(r.bottom<0||r.top>H||r.right<0||r.left>W)return;var c=getComputedStyle(e),p=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');rows.push('W['+rows.length+'] d='+depth+' tag='+e.tagName+' id='+clean(e.id)+' cls='+clean(typeof e.className==='string'?e.className:'')+' rect=('+r.left.toFixed(1)+','+r.top.toFixed(1)+' '+r.width.toFixed(1)+'x'+r.height.toFixed(1)+') bg='+c.backgroundColor+' bgi='+clean(c.backgroundImage)+' border='+clean(c.border)+' shadow='+clean(c.boxShadow)+' op='+c.opacity+' pos='+c.position+' z='+c.zIndex+' before='+clean(p.backgroundColor)+'/'+clean(p.backgroundImage)+' after='+clean(a.backgroundColor)+'/'+clean(a.backgroundImage)+' text=\"'+clean(e.innerText||e.textContent)+'\"');}"
-    "for(var yi=0;yi<ys.length&&rows.length<100;yi++)for(var xi=0;xi<xs.length&&rows.length<100;xi++){var stack=document.elementsFromPoint(W*xs[xi],H*ys[yi]);for(var k=0;k<Math.min(stack.length,7);k++){var e=stack[k];one(e,k);var n=e.parentElement;for(var d=1;d<=4&&n;d++,n=n.parentElement)one(n,10+d);}}"
-    "return '=== WEB HOME BELOW-CAROUSEL VISIBLE SNAPSHOT ===\\nURL='+location.href+'\\nVIEWPORT='+W+'x'+H+'\\n'+rows.join('\\n')+'\\nWEB_SUMMARY sampled='+rows.length;"
+    "var xs=[.05,.16,.30,.50,.70,.84,.95],ys=[.18,.28,.38,.48,.58,.68,.78,.86],seen=new Set(),rows=[];"
+    "function clean(x){return String(x||'').replace(/\\s+/g,' ').slice(0,220)}"
+    "function sem(e){return clean((e.id||'')+' '+(typeof e.className==='string'?e.className:'')+' '+(e.getAttribute&&e.getAttribute('data-component-type')||'')+' '+(e.getAttribute&&e.getAttribute('data-cel-widget')||''));}"
+    "function carousel(e){var n=e;for(var i=0;i<7&&n;i++,n=n.parentElement){var s=sem(n).toLowerCase();if(/hero|carousel|slideshow|swiper|rotator|billboard|gateway-hero|desktop-hero/.test(s))return true;}return false;}"
+    "function colorLum(x){var m=String(x).match(/[\\d.]+/g);if(!m||m.length<3)return -1;var r=+m[0],g=+m[1],b=+m[2];return (.2126*r+.7152*g+.0722*b)/255;}"
+    "function one(e,depth,x,y){if(!e||seen.has(e)||rows.length>=140)return;seen.add(e);if(carousel(e))return;var r=e.getBoundingClientRect();if(r.bottom<0||r.top>H||r.right<0||r.left>W)return;var c=getComputedStyle(e),p=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');var parent=e.parentElement?sem(e.parentElement):'';rows.push('W['+rows.length+'] pt='+x.toFixed(0)+','+y.toFixed(0)+' d='+depth+' tag='+e.tagName+' id='+clean(e.id)+' cls='+clean(typeof e.className==='string'?e.className:'')+' sem='+sem(e)+' rect=('+r.left.toFixed(1)+','+r.top.toFixed(1)+' '+r.width.toFixed(1)+'x'+r.height.toFixed(1)+') bg='+c.backgroundColor+' lum='+colorLum(c.backgroundColor).toFixed(3)+' bgi='+clean(c.backgroundImage)+' border='+clean(c.border)+' shadow='+clean(c.boxShadow)+' blend='+c.mixBlendMode+' iso='+c.isolation+' op='+c.opacity+' pos='+c.position+' z='+c.zIndex+' before='+clean(p.backgroundColor)+'/'+clean(p.backgroundImage)+' after='+clean(a.backgroundColor)+'/'+clean(a.backgroundImage)+' parent='+parent+' text=\"'+clean(e.innerText||e.textContent)+'\"');}"
+    "for(var yi=0;yi<ys.length&&rows.length<140;yi++)for(var xi=0;xi<xs.length&&rows.length<140;xi++){var x=W*xs[xi],y=H*ys[yi],stack=document.elementsFromPoint(x,y);for(var k=0;k<Math.min(stack.length,9);k++){var e=stack[k];one(e,k,x,y);var n=e.parentElement;for(var d=1;d<=5&&n;d++,n=n.parentElement)one(n,10+d,x,y);}}"
+    "return '=== WEB CURRENT-VIEW HOME FLOOR/AD-LAYER SNAPSHOT ===\\nURL='+location.href+'\\nVIEWPORT='+W+'x'+H+'\\n'+rows.join('\\n')+'\\nWEB_SUMMARY sampled='+rows.length;"
     "}catch(e){return 'WEB_EXCEPTION '+e;}})();";
 }
-static void ADWriteProbe7016(NSString *nativePart,NSString *webPart){
+static void ADWriteProbe7017(NSString *nativePart,NSString *webPart){
     @try {
         NSMutableString *s=[NSMutableString string];
-        [s appendFormat:@"AmazonDark %@ one-shot Home below-carousel + status-bar probe\n",[NSString stringWithUTF8String:AD_VERSION]];
+        [s appendFormat:@"AmazonDark %@ manual one-frame Home floors + bottom-nav probe\n",[NSString stringWithUTF8String:AD_VERSION]];
         [s appendFormat:@"timestamp=%@\n\n",[NSDate date]];
         [s appendString:nativePart?:@"NO_NATIVE\n"];
         [s appendString:@"\n"];
         [s appendString:webPart?:@"NO_WEB\n"];
-        [s writeToFile:ADProbe7016Path() atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        [s writeToFile:ADProbe7017Path() atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } @catch(...) {}
 }
-static void ADRunProbe7016(WKWebView *wv){
-    if(gADProbe7016Done||!gP.enabled||!wv||!wv.window)return;
-    NSString *u=wv.URL.absoluteString.lowercaseString?:@"";
-    if(!([u containsString:@"/gp/gw/"]||[u containsString:@"mshop"]||[u containsString:@"ishomepageredesign"]))return;
-    gADProbe7016Done=YES;
-    NSString *nativePart=ADNativeTopSnapshot7016();
-    [wv evaluateJavaScript:ADWebViewportProbeJS7016() completionHandler:^(id value,NSError *error){
+static WKWebView *ADVisibleWebView7017(void){
+    @try {
+        for(WKWebView *wv in ADTrackedWebViews()){
+            if(!wv||!wv.window||wv.hidden||wv.alpha<0.01)continue;
+            CGRect r=[wv convertRect:wv.bounds toView:nil];
+            if(r.size.width>200&&r.size.height>200&&CGRectIntersectsRect(r,UIScreen.mainScreen.bounds))return wv;
+        }
+    } @catch(...) {}
+    return nil;
+}
+static void ADRunProbe7017(void){
+    if(gADProbe7017Busy)return;
+    gADProbe7017Busy=YES;
+    NSString *nativePart=ADNativeBottomSnapshot7017();
+    WKWebView *wv=ADVisibleWebView7017();
+    if(!wv){ ADWriteProbe7017(nativePart,@"NO_VISIBLE_WKWEBVIEW"); gADProbe7017Busy=NO; return; }
+    [wv evaluateJavaScript:ADWebViewportProbeJS7017() completionHandler:^(id value,NSError *error){
         NSString *webPart=error?[NSString stringWithFormat:@"WEB_ERROR %@",error] : ([value isKindOfClass:[NSString class]]?value:[value description]);
-        ADWriteProbe7016(nativePart,webPart);
+        ADWriteProbe7017(nativePart,webPart);
+        gADProbe7017Busy=NO;
     }];
 }
-static void ADScheduleProbe7016(WKWebView *wv){
-    if(gADProbe7016Done||gADProbe7016Scheduled||!gP.enabled||!wv)return;
-    NSString *u=wv.URL.absoluteString.lowercaseString?:@"";
-    if(!([u containsString:@"/gp/gw/"]||[u containsString:@"mshop"]||[u containsString:@"ishomepageredesign"]))return;
-    gADProbe7016Scheduled=YES;
-    __weak WKWebView *weak=wv;
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(3.0*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-        gADProbe7016Scheduled=NO;
-        WKWebView *strong=weak;
-        if(strong) ADRunProbe7016(strong);
-    });
+static void ADProbeNotification7017(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
+    dispatch_async(dispatch_get_main_queue(),^{ ADRunProbe7017(); });
 }
 
 static void ADApplyAllFloors(void){
@@ -934,7 +937,7 @@ static void ADApplyAllFloors(void){
 }
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled && self.window){ ADAttachWebScripts(self); ADApplyWebFloor(self); ADScheduleLaunchReadyCheck706(); ADScheduleProbe7016(self); }
+    if(gP.enabled && self.window){ ADAttachWebScripts(self); ADApplyWebFloor(self); ADScheduleLaunchReadyCheck706(); }
 }
 %end
 
@@ -1073,7 +1076,6 @@ static void ADClaimStatusController713(UIViewController *vc){
 
 static UIColor *ADLightText706(void){ return [UIColor colorWithRed:232.0/255.0 green:230.0/255.0 blue:227.0/255.0 alpha:1.0]; }
 static UIColor *ADBorderGray706(void){ return [UIColor colorWithRed:73.0/255.0 green:77.0/255.0 blue:77.0/255.0 alpha:1.0]; }
-static UIColor *ADAmazonBlue706(void){ return [UIColor colorWithRed:0.0 green:168.0/255.0 blue:225.0/255.0 alpha:1.0]; }
 static BOOL ADNeutralCGColor706(CGColorRef c){
     if(!c)return NO;
     @try { UIColor *u=[UIColor colorWithCGColor:c]; CGFloat r=0,g=0,b=0,a=0,w=0;
@@ -1089,10 +1091,6 @@ static BOOL ADInBottomNav706(UIView *v){
     }} @catch(...) {}
     return NO;
 }
-static BOOL ADSelectedInBottomNav706(UIView *v){
-    @try { UIView *n=v; for(int d=0;n&&d<12;d++,n=n.superview) if([n isKindOfClass:[UIControl class]] && ((UIControl*)n).selected) return YES; } @catch(...) {}
-    return NO;
-}
 static BOOL ADInSearchChrome706(UIView *v){
     @try { UIView *n=v; for(int d=0;n&&d<10;d++,n=n.superview){
         NSString *c=NSStringFromClass(n.class).lowercaseString ?: @"";
@@ -1100,21 +1098,7 @@ static BOOL ADInSearchChrome706(UIView *v){
     }} @catch(...) {}
     return NO;
 }
-static BOOL gADNavImageWrite706=NO;
-static void ADTintBottomNavImage706(UIImageView *iv){
-    if(!gP.enabled||!iv||!iv.image||!ADInBottomNav706(iv))return;
-    @try {
-        UIImage *im=iv.image;
-        if(im.renderingMode!=UIImageRenderingModeAlwaysTemplate && !gADNavImageWrite706){
-            UIImage *tpl=[im imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-            if(tpl){ gADNavImageWrite706=YES; iv.image=tpl; gADNavImageWrite706=NO; }
-        }
-        iv.tintColor=ADSelectedInBottomNav706(iv)?ADLightText706():ADAmazonBlue706();
-    } @catch(...) { gADNavImageWrite706=NO; }
-}
-static void ADTintBottomNavTree706(UIView *v){
-    if(!v)return; @try { if([v isKindOfClass:[UIImageView class]])ADTintBottomNavImage706((UIImageView*)v); for(UIView *s in v.subviews)ADTintBottomNavTree706(s); } @catch(...) {}
-}
+static BOOL gADSearchImageWrite706=NO;
 static BOOL ADIsLocationGlyph709(UIImageView *iv){
     if(!iv)return NO;
     @try {
@@ -1137,12 +1121,12 @@ static void ADTintSearchGlyph706(UIImageView *iv){
     @try {
         CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height; if(w<3||h<3||w>64||h>64)return;
         UIImage *im=iv.image;
-        if(im.renderingMode!=UIImageRenderingModeAlwaysTemplate && !gADNavImageWrite706){
+        if(im.renderingMode!=UIImageRenderingModeAlwaysTemplate && !gADSearchImageWrite706){
             UIImage *tpl=[im imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-            if(tpl){ gADNavImageWrite706=YES; iv.image=tpl; gADNavImageWrite706=NO; }
+            if(tpl){ gADSearchImageWrite706=YES; iv.image=tpl; gADSearchImageWrite706=NO; }
         }
         iv.tintColor=[UIColor blackColor];
-    } @catch(...) { gADNavImageWrite706=NO; }
+    } @catch(...) { gADSearchImageWrite706=NO; }
 }
 
 static NSAttributedString *ADLightAttributedText708(NSAttributedString *in){
@@ -1314,7 +1298,6 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 %hook UIControl
 - (void)setSelected:(BOOL)selected {
     %orig;
-    if(gP.enabled&&ADInBottomNav706(self)) ADTintBottomNavTree706(self.superview?:self);
 }
 %end
 
@@ -1346,37 +1329,14 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 %end
 
 
-static BOOL gADTabItemWrite709=NO;
 static void ADOwnBottomBar708(UIView *v){
     if(!gP.enabled||!v||!v.window)return;
     @try {
+        // Background-only ownership. Do not touch tab item images, renderingMode,
+        // selected/unselected tint colors, labels, or selection state.
         v.backgroundColor=ADOLED();
         v.layer.backgroundColor=ADOLED().CGColor;
-        if([v isKindOfClass:[UITabBar class]]){
-            UITabBar *bar=(UITabBar *)v;
-            bar.tintColor=ADLightText706();
-            if([bar respondsToSelector:@selector(setUnselectedItemTintColor:)]) bar.unselectedItemTintColor=ADAmazonBlue706();
-            if(@available(iOS 13.0,*)){
-                UITabBarAppearance *ap=[[UITabBarAppearance alloc] init];
-                [ap configureWithOpaqueBackground];
-                ap.backgroundColor=ADOLED();
-                ap.shadowColor=ADBorderGray706();
-                bar.standardAppearance=ap;
-                if(@available(iOS 15.0,*)) bar.scrollEdgeAppearance=ap;
-            }
-            if(!gADTabItemWrite709){
-                gADTabItemWrite709=YES;
-                for(UITabBarItem *it in bar.items){
-                    UIImage *im=it.image;
-                    if(im && im.renderingMode!=UIImageRenderingModeAlwaysTemplate) it.image=[im imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-                    UIImage *sel=it.selectedImage;
-                    if(sel && sel.renderingMode!=UIImageRenderingModeAlwaysTemplate) it.selectedImage=[sel imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-                }
-                gADTabItemWrite709=NO;
-            }
-        }
-        ADTintBottomNavTree706(v);
-    } @catch(...) { gADTabItemWrite709=NO; }
+    } @catch(...) {}
 }
 %hook UIVisualEffectView
 - (void)didMoveToWindow {
@@ -1386,7 +1346,6 @@ static void ADOwnBottomBar708(UIView *v){
         self.effect=nil;
         self.backgroundColor=ADOLED();
         self.layer.backgroundColor=ADOLED().CGColor;
-        if(bottom) ADTintBottomNavTree706(self);
     }
 }
 - (void)layoutSubviews {
@@ -1396,7 +1355,6 @@ static void ADOwnBottomBar708(UIView *v){
         self.effect=nil;
         self.backgroundColor=ADOLED();
         self.layer.backgroundColor=ADOLED().CGColor;
-        if(bottom) ADTintBottomNavTree706(self);
     }
 }
 %end
@@ -1679,21 +1637,16 @@ static void ADApplyNativeTWB(UIImageView *iv){
 %hook UIImageView
 - (void)setImage:(UIImage *)image {
     %orig;
-    if (!gADNavImageWrite706 && gP.enabled && self.window) { ADTintBottomNavImage706(self); ADTintSearchGlyph706(self); }
+    if (gP.enabled && self.window) ADTintSearchGlyph706(self);
     if (gP.whiteTame) ADApplyNativeTWB(self);
 }
 - (void)didMoveToWindow {
     %orig;
-    if (gP.enabled && self.window) { ADTintBottomNavImage706(self); ADTintSearchGlyph706(self); }
+    if (gP.enabled && self.window) ADTintSearchGlyph706(self);
     ADApplyNativeTWB(self);
 }
 - (void)setTintColor:(UIColor *)color {
     if(gP.enabled && self.window){
-        if(ADInBottomNav706(self)){
-            UIColor *want=ADSelectedInBottomNav706(self)?ADLightText706():ADAmazonBlue706();
-            %orig(want);
-            return;
-        }
         if(ADInSearchChrome706(self) || ADIsLocationGlyph709(self)){
             UIColor *dark=[UIColor blackColor];
             %orig(dark);
@@ -1704,8 +1657,7 @@ static void ADApplyNativeTWB(UIImageView *iv){
 }
 - (void)layoutSubviews {
     %orig;
-    if(gP.enabled && self.window && (ADInBottomNav706(self) || ADInSearchChrome706(self) || ADIsLocationGlyph709(self))){
-        ADTintBottomNavImage706(self);
+    if(gP.enabled && self.window && (ADInSearchChrome706(self) || ADIsLocationGlyph709(self))){
         ADTintSearchGlyph706(self);
     }
     if (objc_getAssociatedObject(self,kADTWBOverlay) || gP.whiteTame) ADApplyNativeTWB(self);
@@ -1794,6 +1746,8 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);
+    CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADProbeNotification7017,
+        CFSTR("com.colindavidr.amazondark/probe-home-bottomnav-7017"),NULL,CFNotificationSuspensionBehaviorDeliverImmediately);
 
 
     dispatch_async(dispatch_get_main_queue(), ^{
