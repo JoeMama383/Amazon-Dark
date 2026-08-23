@@ -1,30 +1,22 @@
-# AmazonDark v7.0.42
+# AmazonDark v7.0.1
 
-Production build based on the corrected v7.0.40 source. The v7.0.41 hero probe is removed; its findings are converted to static CSS only.
+This branch is a clean reset built from the v6.0.185 source baseline.
 
-## Fixes
+Retained:
+- v6.0.185 Settings bundle/preferences and preference domain.
+- Tame Light Backgrounds preference, reimplemented as a compact event-driven media owner with glyph/icon exclusions.
+- Force 120 Hz preference.
+- Dopamine per-app JIT preference and SpringBoard broker.
+- SpringBoard launch cover/transition/custom splash artwork.
+- Sileo/package identity, icons, PreferenceLoader wiring and metadata.
 
-### Universal hero TWB for CSS-backed art
-The v7.0.41 probe showed the missing hero class directly: some NPACK heroes expose the visible artwork on the `theming-card-background` leaf itself, with a `background-image`, but no `single-creative-card` / `single-video-card` ancestor. The previous selector therefore skipped those cards.
+Removed:
+- Dark Reader and all Dark Reader resources/runtime injection.
+- Native dark-theme weblab forcing.
+- Home/Search/PDP/Person/Cart special-case theming, symbol painters, borders, repair passes and probes.
 
-v7.0.42 shades the actual `theming-card-background` / `vjs-poster` leaf directly with an inset background shade. This is background-only paint: it does not apply a brightness filter to the hero wrapper, text, headers, buttons, or controls. IMG/VIDEO media keeps the existing leaf-local TWB filter.
+Always-on visual behavior when Enabled is one app-wide compositor inversion. Product-photo media is counter-inverted once to preserve stock photographic colors; all other UI pixels remain in the global inversion lane.
 
-### College / MAB chevron
-Historical v5.440/v5.449 probes prove the visible arrow is the background-image sprite on `I.a-icon.a-icon-dropdown` below `.puis-mab-chevron`. That leaf is not reliably inside the newer seasonal mosaic wrapper.
+## v7.0.1
 
-v7.0.42 restores the exact sprite-leaf treatment directly:
-`filter: brightness(0) invert(1)`.
-
-### Isolated dashboard title
-The current probe also showed the APE-backed "You might like" card uses `windowPaneHeaderContainer` rather than `wpTitle`. v7.0.42 owns that title leaf too while leaving the separate Sponsored row/glyph Amazon-controlled.
-
-## Performance
-All three fixes are documentStart CSS only:
-- MutationObserver: 0
-- querySelectorAll: 0
-- TreeWalker: 0
-- scroll listener: 0
-- setInterval: 0
-- requestAnimationFrame: 0
-- recurring scanner/timer: 0
-- probe/debug runtime: 0
+Clean whole-app inversion baseline. A single UIWindow compositor `colorInvert` filter now owns the app-wide visual transform. Product-photo media is the only default exception and is counter-inverted locally so photos retain stock colors. This replaces the v7.0.0 OLED-floor-only owner and does not restore Dark Reader, native recolor engines, navigation painters, DOM MutationObservers, scroll recovery, or recurring theme passes. Tame Light Backgrounds, Force 120 Hz, JIT, settings, and the SpringBoard launch transition remain.

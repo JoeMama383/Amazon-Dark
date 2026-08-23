@@ -1,22 +1,20 @@
 /*
- * AmazonDark v7.0.14 — static v185-style theme / persistent OLED floors
+ * AmazonDark v7.0.1 — clean whole-app inversion baseline
  *
- * Retained from v6.0.185:
+ * Retained from v7.0.0 / the v6.0.185 feature base:
  *   - Settings bundle/preferences and preference domain
  *   - Force 120 Hz preference path
  *   - Dopamine per-app JIT request path
- *   - Tame Light Backgrounds preference (rewritten as a small generic media owner)
+ *   - Tame Light Backgrounds preference
  *   - SpringBoard launch cover / transition / custom artwork (AmazonDarkSB)
  *   - Sileo/package metadata and artwork
  *
- * Removed:
- *   - Dark Reader and its runtime bundle
- *   - Amazon native-dark weblab forcing
- *   - nav/search/symbol/border/card/Person/PDP/Home special-case theming
- *   - contrast scanners, repair queues, probes and theme MutationObservers
- *
- * The only always-on visual owner is an OLED-black FLOOR. It targets root/backing
- * surfaces, not text, glyphs, cards, borders, buttons or images.
+ * Visual architecture:
+ *   - One UIWindow-level Core Animation colorInvert filter owns the entire app.
+ *   - Product-photo media receives exactly one local counter-invert so its pixels
+ *     remain photographic/stock while every other UI pixel stays inverted.
+ *   - No Dark Reader, color engine, broad recolor pass, DOM MutationObserver,
+ *     scroll recovery, recurring timer, nav/search special-case painter, or probe.
  */
 
 #import <UIKit/UIKit.h>
@@ -34,7 +32,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.42-hero-background-twb-chevron"
+#define AD_VERSION "v7.0.1"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -46,21 +44,11 @@ extern char *__progname;
 #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
 #pragma clang diagnostic ignored "-Wobjc-method-access"
 
-@interface AXUSplashScreenViewController : UIViewController @end
-@interface TezBaseSplashScreenViewController : UIViewController @end
-@interface WKScrollView : UIScrollView @end
-@interface WKContentView : UIView @end
-@interface RCTRootView : UIView @end
-@interface RCTRootContentView : UIView @end
-@interface RCTScrollView : UIScrollView @end
-@interface RCTParagraphComponentView : UIView @end
-@interface RCTTextView : UIView @end
-@interface _UIBarBackground : UIView @end
-@interface CXIStoreModesBottomNavToolbar : UIView @end
-@interface CXIStoreModesTabBarView : UIView @end
-@interface ANPRetailTabBar : UIView @end
-@interface ANXTabBarView : UIView @end
-@interface ANXTopNavBackgroundView : UIView @end
+@interface CAFilter : NSObject
++ (id)filterWithType:(NSString *)type;
+@end
+@interface ANXFastImageView : UIImageView @end
+@interface RCTUIImageViewAnimated : UIImageView @end
 
 // -----------------------------------------------------------------------------
 // Preferences — same public keys/domain as v6.0.185.
@@ -116,8 +104,6 @@ static void ADLoadPrefs(void){
         gP.whiteTameStrength=ADPrefLong(d,@"whiteTameStrength",gP.whiteTameStrength);
     } @catch(...) {}
 }
-
-static inline UIColor *ADOLED(void){ return [UIColor blackColor]; }
 
 // -----------------------------------------------------------------------------
 // Retained v6.0.185 Dopamine per-app JIT client.
@@ -592,1319 +578,237 @@ static void ADRefreshPromotionState611(void){
 
 
 // -----------------------------------------------------------------------------
-// OLED floor — no Dark Reader, no DOM observer, no visual-component classifier.
+// Whole-app inversion + product-photo exception.
+//
+// The root UIWindow filter is the single generic theme owner.  We do not repaint
+// native backgrounds, nav bars, text, glyphs, borders, cards, or WebKit floors.
+// Product-photo media is the only exception and receives one local colorInvert,
+// cancelling the root inversion for that layer/element only.
 // -----------------------------------------------------------------------------
 static void ADPostReadyOnce(void);
-static void ADScheduleLaunchReadyCheck706(void);
-static const void *kADFloorUS=&kADFloorUS;
-static const void *kADTWBUS=&kADTWBUS;
-static NSHashTable *gADWebViews=nil;
+static const void *kADRootInvert701=&kADRootInvert701;
+static const void *kADMediaInvert701=&kADMediaInvert701;
+static const void *kADTWBOverlay701=&kADTWBOverlay701;
+static const void *kADWebScript701=&kADWebScript701;
+static NSHashTable *gADWebViews701=nil;
 
-static NSString *ADFloorJS(void){
-    // v7.0.14: static v185-style palette. CSS only: no Dark Reader, no observer,
-    // no computed-style repair walker. Own known structural shells; preserve media/art.
-    return @"(function(){try{var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement)document.documentElement.setAttribute('data-ad7-child-frame','1');var id='ad7-static-theme',s=document.getElementById(id);"
-            "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
-            "s.textContent='"
-            /* Root/page floors: immediate OLED canvas. */
-            "html,body,#a-page,#gwm-PageContent,#dp,main,[role=main],#search,#cart-page,#sc-active-cart,#sc-saved-cart"
-            "{background:#000!important;background-color:#000!important;}"
-            /* Known structural panels/cards. Deliberately excludes generic section/div/a-cardui on Home creative trees. */
-            ".s-result-item,[data-component-type=s-search-result],.s-card-container,.s-main-slot,"
-            "#sc-active-cart .sc-list-item,#sc-saved-cart .sc-list-item,[class*=sc-][class*=content],[class*=sc-][class*=container],"
-            "#dp [class*=a-box],#dp [class*=a-expander],#dp [class*=celwidget]:not([class*=image]):not([class*=media]),"
-            ".s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion],"
-            "#authportal-main-section,#auth-footer,.auth-footer,[id*=auth-footer],"
-            "[class*=variation],[class*=swatch-container],[class*=status-shell],[class*=badge-message],"
-            "[class*=puis-card]:not([class*=creative]):not([class*=image]),[class*=product-card]:not([class*=image])"
-            "{background-color:#181a1b!important;}"
-            /* First-paint Search surface. Search overlay content must remain visible. */
-            ".s-suggestion-container,.s-suggestion,.autocomplete-results-container,[class*=autocomplete],[class*=suggestion]"
-            "{background:#181a1b!important;color:#e8e6e3!important;}"
-            /* Primary/secondary v185-style text.
-             * Do not let generic ink leak into Amazon-owned Sponsored feedback or
-             * top-Home hero/creative trees. */
-            ":is(.a-color-base,.a-text-normal,.a-size-base,.a-size-base-plus,.a-size-medium,"
-            ".a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen,"
-            ".s-title-instructions-style,.a-link-normal h2,[class*=product-title],"
-            "[class*=heading],[class*=title]:not([class*=badge]))"
-            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
-            ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
-            ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *))"
-            ":not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *))"
-            ":not(:where([id^=af-label-] *))"
-            ":not(:where(html[data-ad7-child-frame] *))"
-            ":not(:where(#gwm-Deck *)):not(:where([class*=hero] *))"
-            ":not(:where([class*=single-creative] *)):not(:where([class*=single-video] *))"
-            ":not(:where([class*=theming-card] *))"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            ":is(.a-color-secondary,.a-size-small,[class*=secondary])"
-            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
-            ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
-            ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *))"
-            ":not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *))"
-            ":not(:where([id^=af-label-] *))"
-            ":not(:where(html[data-ad7-child-frame] *))"
-            ":not(:where(#gwm-Deck *)):not(:where([class*=hero] *))"
-            ":not(:where([class*=single-creative] *)):not(:where([class*=single-video] *))"
-            ":not(:where([class*=theming-card] *))"
-            "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
-            /* Neutral borders/dividers. Exact structural families only; no global * border rewrite. */
-            ".s-result-item,.s-card-container,[data-component-type=s-search-result],"
-            "#sc-active-cart .sc-list-item,#sc-saved-cart .sc-list-item,"
-            "#dp .a-box,#dp .a-divider,#dp [class*=card],"
-            ".s-suggestion-container,#auth-footer .a-divider,.auth-footer .a-divider,"
-            "[class*=swatch-outer-circle],[class*=puis-card]"
-            "{border-color:#494d4d!important;outline-color:#494d4d!important;}"
-            ".a-divider-inner:after,.a-divider-inner:before,hr,[class*=separator]"
-            "{border-color:#494d4d!important;background-color:#494d4d!important;}"
-            /* Established cheap fixes / gradients. */
-            "#wd-backdrop-gradient,.wd-backdrop-gradient,[class*=wd-backdrop-gradient],"
-            "[class*=a-reactive-container],[class*=reactive-contain],"
-            "#auth-footer,.auth-footer,[id*=auth-footer]"
-            "{background-image:none!important;box-shadow:none!important;}"
-            "#auth-footer .a-divider-inner,.auth-footer .a-divider-inner{background-image:none!important;box-shadow:none!important;}"
-            ".s-color-swatch-container,.s-color-swatch-outer-circle{background-color:transparent!important;}"
-            ".s-color-swatch-outer-circle{border-color:#494d4d!important;outline-color:#494d4d!important;}"
-            /* Known mask glyphs from v5/v6 Search history; preserve the mask, own only its ink. */
-            ".s-suggestion-container [class*=icon-past-search-sugge],"
-            ".s-suggestion-container .icon-close.s-suggestion-icon-left"
-            "{background-color:#e8e6e3!important;filter:none!important;opacity:1!important;}"
-            /* Share/overflow exact leaves from probe history. */
-            ".puis-mab-overlay-row-share .puis-mab-overlay-icon-share"
-            "{background-color:#e8e6e3!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;filter:none!important;}"
-            /* v7.0.28 Home floor ownership.
-             *
-             * Probe correction: generated NPACK/GWM bundle-family prefixes occur
-             * on descendants such as badgeLabel and ad-feedback-text, so those
-             * prefixes are never used as floor selectors. */
-            ":is(#gwm-PageContent,#gwm-Deck-btf) :is("
-            ".a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf],"
-            "[class*=hp-mosaic-container_style_container],[class*=_mosaic-container_style_widgetContainer])"
-            "{background-color:#000!important;border-color:#494d4d!important;"
-            "mix-blend-mode:normal!important;isolation:auto!important;}"
-            /* Exact ordinary carousel below the hero. Historical/current probes
-             * expose gwm-dashboard-container here; hero theming/creative cards are
-             * outside this parent and retain Amazon's original color/media paint. */
-            ".gwm-dashboard-container :is("
-            ".a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf])"
-            "{background-color:#000!important;border-color:#494d4d!important;"
-            "mix-blend-mode:normal!important;isolation:auto!important;}"
-            /* Product-media blend correction.
-             * v7.0.39 completes the old generic-Home-media coverage without a
-             * classifier: any real IMG inside a proven ordinary Home card gets
-             * leaf-local blend normalization. UI/identity/ad-chrome leaves are
-             * explicitly rejected. */
-            ":is(#gwm-PageContent,#gwm-Deck-btf,#gwm-Deck,.gwm-dashboard-container) "
-            ":is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
-            "img"
-            ":not([class*=logo]):not([class*=avatar]):not([class*=profile])"
-            ":not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store])"
-            ":not([class*=rating]):not([class*=star]):not([class*=sprite]):not([class*=pixel])"
-            ":not([class*=icon]):not([class*=glyph]):not([class*=badge])"
-            ":not([class*=checkbox]):not([class*=heart]):not([class*=wishlist])"
-            ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
-            ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *))"
-            "{mix-blend-mode:normal!important;isolation:auto!important;background-color:transparent!important;}"
-            /* Some Home cards put the destructive blend on PICTURE/image
-             * wrappers instead of the IMG. Normalize those media-only wrappers
-             * too, but never apply TWB brightness to the wrapper itself. */
-            ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
-            ":is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
-            ":is(picture,[class*=image-wrapper],[class*=img-wrapper],[class*=image-container])"
-            "{mix-blend-mode:normal!important;isolation:auto!important;background-color:transparent!important;}"
-            ":is(#gwm-PageContent,#gwm-Deck-btf,#gwm-Deck,.gwm-dashboard-container) "
-            ":is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
-            "[class*=asin-metadata]"
-            "{mix-blend-mode:normal!important;isolation:auto!important;}"
-            /* v7.0.38 probe-confirmed multi-category media.
-             * Disney/Pet wellness/Jewelry/Smart Home cards use direct IMG leaves
-             * named _multi-category-card_image_* rather than asin/product-image.
-             * Normalize the IMG leaf only; never the card or its live text. */
-            ":is(#gwm-Deck-btf,.gwm-dashboard-container) [class*=multi-category-card] img"
-            "{mix-blend-mode:normal!important;isolation:auto!important;"
-            "background-color:transparent!important;}"
-            /* Exact deal-message host only: remove the white plate, but never
-             * repaint %off badgeLabel or Limited time deal text. */
-            ":is(#gwm-PageContent,#gwm-Deck-btf,#gwm-Deck,.gwm-dashboard-container) [class*=badgeMessage]"
-            "{background-color:transparent!important;box-shadow:none!important;}"
-            /* v7.0.33: text-only Home correction on the v7.0.29 baseline.
-             * Keep v7.0.29 hero/TWB isolation intact and only light ordinary
-             * below-fold card/mosaic captions and headers. Sponsored/ad-feedback
-             * plus badge/deal/coupon chrome remain Amazon-owned. */
-            ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
-            ":is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
-            ":is(h1,h2,h3,h4,h5,h6,p,span,a)"
-            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
-            ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
-            ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *))"
-            ":not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *))"
-            ":not(:where([id^=af-label-] *))"
-            ":not([class*=badge]):not([class*=deal]):not([class*=coupon])"
-            ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *))"
-            ":not(:where([class*=hero] *)):not(:where([class*=single-creative] *)):not(:where([class*=single-video] *))"
-            ":not(:where([class*=theming-card] *)):not(:where([class*=creative-card] *)):not(:where([class*=ad-card] *)):not(:where([class*=canvas-card] *))"
-            ":not(:where([class*=mobile-mshop-ad] *)):not(:where([class*=mobile-ad-container] *))"
-            ":not(:where([class*=ape-wrapper] *)):not(:where([class*=ape-placement] *))"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* v7.0.39 exact card-header ink.
-             * The dashboard carousel can hydrate one header with Amazon's dark
-             * inline foreground even while sibling cards are already light.
-             * Own only the a-cardui header text lane; Sponsored lives outside it. */
-            ":is(#gwm-Deck-btf,.gwm-dashboard-container) .a-cardui-header "
-            ":is(h1,h2,h3,h4,h5,h6,a,span,p)"
-            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
-            ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* v7.0.42: exact dashboard title leaves seen by the current probe.
-             * Some APE-backed cards use windowPaneHeaderContainer instead of wpTitle.
-             * Own only the title link/leaf; Sponsored remains in a separate badge row. */
-            ":is(#gwm-Deck-btf,.gwm-dashboard-container) .a-cardui :is([class*=wpTitle],[class*=windowPaneHeaderContainer])"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* Bare Home section headers can live outside the inner card shell. */
-            ":is(#gwm-Deck-btf,.gwm-dashboard-container) :is(h1,h2,h3,h4,h5,h6)"
-            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
-            ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
-            ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
-            ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *))"
-            ":not([class*=badge]):not([class*=deal]):not([class*=coupon])"
-            ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *))"
-            ":not(:where([class*=hero] *)):not(:where([class*=single-creative] *)):not(:where([class*=single-video] *))"
-            ":not(:where([class*=theming-card] *)):not(:where([class*=creative-card] *)):not(:where([class*=ad-card] *)):not(:where([class*=canvas-card] *))"
-            ":not(:where([class*=mobile-mshop-ad] *)):not(:where([class*=mobile-ad-container] *))"
-            ":not(:where([class*=ape-wrapper] *)):not(:where([class*=ape-placement] *))"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* v7.0.40: restore the cheap v185/v7.0.16 seasonal mosaic ink contract.
-             * v7.0.39 had accidentally narrowed this to headings/captions only, so
-             * category labels such as Laundry / Beauty / Water bottles inherited
-             * Amazon's dark foreground on our OLED seasonal shell. */
-            ":is(#gwm-PageContent,#gwm-Deck-btf,.gwm-dashboard-container) "
-            ":is([class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer]) "
-            ":is(div,section,article,ul,ol,li,a,p,span,h1,h2,h3,h4,h5,h6)"
-            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
-            ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* Seasonal navigation host ink. */
-            ":is(#gwm-PageContent,#gwm-Deck-btf,.gwm-dashboard-container) "
-            ":is([class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer]) "
-            ":is([class*=next],[class*=prev],[class*=chevron],[class*=arrow])"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;"
-            "fill:#e8e6e3!important;stroke:#e8e6e3!important;}"
-            /* v7.0.42 restores the proven v5.440/v5.449 MAB sprite leaf directly.
-             * The visible chevron is an I.a-icon.a-icon-dropdown background sprite;
-             * it is not reliably nested under the seasonal family wrapper. */
-            ".puis-mab-chevron :is(i.a-icon-dropdown,.a-icon.a-icon-dropdown),"
-            ".puis-mab-chevron-glyph :is(i.a-icon-dropdown,.a-icon.a-icon-dropdown)"
-            "{filter:brightness(0) invert(1)!important;opacity:1!important;}"
-            /* Sponsored/ad-feedback text and glyphs have no AmazonDark paint rule.
-             * Amazon retains their stock color, sprite/mask/SVG and geometry. */
-            /* Creative/media protection: only true media/product-image wrappers are
-             * normalized. Hero/single-creative/theming/ad-card containers are excluded so
-             * Amazon keeps their own campaign floor and text contrast. */
-            "picture,img,video,canvas,#imgTagWrapperId,.s-product-image-container,[data-component-type=s-product-image],"
-            "[class*=image-wrapper],[class*=img-wrapper],[class*=image-container],[class*=product-image],[class*=asin-image]"
-            "{background-color:transparent!important;}"
-            /* Narrow standalone APE structural owner retained by the later 6.x/v185 lineage.
-             * Placement chrome only; no Sponsored text/glyph/media ownership. */
-            "[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback]"
-            "{background-color:transparent!important;border-color:transparent!important;"
-            "outline-color:transparent!important;box-shadow:none!important;}"
-            "iframe[id*=ape_],iframe[class*=ape_]"
-            "{background-color:transparent!important;border-color:transparent!important;"
-            "outline-color:transparent!important;}"
-            /* Keep actual form controls readable without overriding Amazon yellow/accent buttons. */
-            "input:not([type=button]):not([type=submit]),textarea,select"
-            "{background-color:#181a1b!important;color:#e8e6e3!important;border-color:#494d4d!important;}"
-            "::placeholder{color:#b1aaa0!important;opacity:1!important;}"
-            "';"
-            "document.documentElement.style.setProperty('background-color','#000','important');"
-            "document.documentElement.style.setProperty('color-scheme','dark','important');"
-            "if(document.body){document.body.style.setProperty('background-color','#000','important');document.body.style.setProperty('color-scheme','dark','important');}"
-            "}catch(e){}})();";
+static id ADInvertFilter701(void){
+    static id f=nil; static dispatch_once_t once;
+    dispatch_once(&once,^{ @try { f=[NSClassFromString(@"CAFilter") filterWithType:@"colorInvert"]; } @catch(...) { f=nil; } });
+    return f;
+}
+static BOOL ADHasInvert701(NSArray *filters){
+    id inv=ADInvertFilter701(); if(!inv)return NO;
+    for(id f in filters) if(f==inv)return YES;
+    return NO;
+}
+static void ADSetInvert701(CALayer *layer,const void *ownedKey,BOOL on){
+    if(!layer)return;
+    @try {
+        id inv=ADInvertFilter701(); if(!inv)return;
+        NSNumber *owned=objc_getAssociatedObject(layer,ownedKey);
+        NSMutableArray *cur=[layer.filters mutableCopy]?:[NSMutableArray array];
+        if(on){
+            if(!ADHasInvert701(cur))[cur addObject:inv];
+            layer.filters=cur;
+            if(!owned)objc_setAssociatedObject(layer,ownedKey,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        } else if(owned){
+            [cur removeObjectIdenticalTo:inv];
+            layer.filters=cur;
+            objc_setAssociatedObject(layer,ownedKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+    } @catch(...) {}
+}
+static void ADApplyWindowInvert701(UIWindow *w){
+    if(!w)return;
+    ADSetInvert701(w.layer,kADRootInvert701,gP.enabled);
 }
 
-static NSString *ADTWBJS(void){
-    // Pure CSS TWB owner: no load listener, no querySelectorAll, no observer.
-    // v7.0.29 restores the proven Home media families from the streamlined 6.x
-    // owner without reviving its runtime scanner/classifier.
+// Native product-photo classification.  This is deliberately photo-oriented,
+// not "all UIImageViews": small/template artwork, chrome, controls, logos,
+// avatars, glyphs, badges and navigation imagery remain in the root inversion.
+static BOOL ADTemplateImage701(UIImage *im){
+    if(!im)return YES;
+    if(im.renderingMode==UIImageRenderingModeAlwaysTemplate)return YES;
+    CGImageRef cg=im.CGImage;
+    if(cg && (CGImageIsMask(cg)||CGImageGetAlphaInfo(cg)==kCGImageAlphaOnly))return YES;
+    if(im.symbolConfiguration)return YES;
+    return NO;
+}
+static BOOL ADPhotoBlockWord701(NSString *s){
+    if(!s.length)return NO; NSString *q=s.lowercaseString;
+    static NSArray *bad=nil; static dispatch_once_t once;
+    dispatch_once(&once,^{ bad=@[@"icon",@"glyph",@"logo",@"avatar",@"profile",@"badge",@"rating",@"star",@"checkbox",@"heart",@"arrow",@"chevron",@"button",@"search",@"camera",@"microphone",@"menu",@"hamburger",@"sprite",@"nav",@"tabbar",@"brand",@"seller",@"store-logo",@"flag",@"swatch"]; });
+    for(NSString *x in bad)if([q containsString:x])return YES;
+    return NO;
+}
+static BOOL ADProductWord701(NSString *s){
+    if(!s.length)return NO; NSString *q=s.lowercaseString;
+    static NSArray *good=nil; static dispatch_once_t once;
+    dispatch_once(&once,^{ good=@[@"product",@"asin",@"buyagain",@"buy-again",@"recommend",@"item-image",@"itemimage",@"offer-image",@"offerimage",@"pdp",@"detail-image",@"detailimage"]; });
+    for(NSString *x in good)if([q containsString:x])return YES;
+    return NO;
+}
+static BOOL ADNativeProductPhoto701(UIImageView *iv){
+    if(!iv||!iv.image||!iv.window||ADTemplateImage701(iv.image))return NO;
+    @try {
+        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
+        if(w<1)w=iv.image.size.width; if(h<1)h=iv.image.size.height;
+        CGImageRef cg=iv.image.CGImage; if(!cg)return NO;
+        size_t pw=CGImageGetWidth(cg),ph=CGImageGetHeight(cg);
+        if(w<52||h<52||pw<80||ph<80)return NO;
+
+        NSMutableString *meta=[NSMutableString stringWithFormat:@"%@ %@ %@ ",NSStringFromClass(iv.class),iv.accessibilityIdentifier?:@"",iv.accessibilityLabel?:@""];
+        BOOL productContext=ADProductWord701(meta);
+        UIView *n=iv;
+        for(int i=0;i<7&&n;i++,n=n.superview){
+            if([n isKindOfClass:[UIButton class]]||[n isKindOfClass:[UITabBar class]]||[n isKindOfClass:[UINavigationBar class]])return NO;
+            NSString *piece=[NSString stringWithFormat:@"%@ %@ %@ ",NSStringFromClass(n.class),n.accessibilityIdentifier?:@"",n.accessibilityLabel?:@""];
+            if(ADPhotoBlockWord701(piece))return NO;
+            if(ADProductWord701(piece))productContext=YES;
+            [meta appendString:piece];
+        }
+        if(ADPhotoBlockWord701(meta))return NO;
+
+        // Amazon's native product grids/galleries frequently use these raster
+        // containers without useful accessibility metadata.  Large images in
+        // those classes are treated as photographic product media; icons were
+        // already rejected above by size/template/semantic gates.
+        BOOL knownPhotoClass=[iv isKindOfClass:NSClassFromString(@"ANXFastImageView")]||
+                             [iv isKindOfClass:NSClassFromString(@"RCTUIImageViewAnimated")];
+        return productContext||knownPhotoClass;
+    } @catch(...) { return NO; }
+}
+static void ADRemoveTWB701(UIImageView *iv){
+    CALayer *ov=objc_getAssociatedObject(iv,kADTWBOverlay701);
+    if(ov){[ov removeFromSuperlayer];objc_setAssociatedObject(iv,kADTWBOverlay701,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
+}
+static void ADApplyNativeMedia701(UIImageView *iv){
+    if(!iv)return;
+    @try {
+        BOOL product=gP.enabled&&ADNativeProductPhoto701(iv);
+        ADSetInvert701(iv.layer,kADMediaInvert701,product);
+        if(!product||!gP.whiteTame){ADRemoveTWB701(iv);return;}
+        CALayer *ov=objc_getAssociatedObject(iv,kADTWBOverlay701);
+        if(!ov){
+            ov=[CALayer layer]; ov.name=@"AmazonDarkTWB701";
+            ov.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"backgroundColor":[NSNull null],@"cornerRadius":[NSNull null]};
+            [iv.layer addSublayer:ov]; objc_setAssociatedObject(iv,kADTWBOverlay701,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        CGFloat alpha=MAX(0,MIN(100,gP.whiteTameStrength))/100.0;
+        ov.frame=iv.bounds; ov.backgroundColor=[UIColor colorWithWhite:0 alpha:alpha].CGColor;
+        ov.cornerRadius=iv.layer.cornerRadius; ov.masksToBounds=YES; ov.zPosition=FLT_MAX;
+    } @catch(...) {}
+}
+
+// Web first-paint protection is declarative and product-specific.  The selectors
+// cover Amazon's stable product identities/links instead of v6.0.208's blanket
+// `img,video,canvas` rule, which unintentionally preserved every Web image.
+static NSString *ADWebMediaJS701(void){
     CGFloat strength=MAX(0,MIN(100,gP.whiteTameStrength));
-    CGFloat factor=MAX(0.50,1.0-0.50*strength/100.0);
-    CGFloat shade=0.50*strength/100.0;
+    CGFloat bright=MAX(0.05,1.0-strength/100.0);
     return [NSString stringWithFormat:
-        @"(function(){try{var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement)document.documentElement.setAttribute('data-ad7-twb-child','1');var id='ad7-twb-static',s=document.getElementById(id);"
-         "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
-         "s.textContent='"
-         /* Ordinary/product imagery. */
-         "img.s-image,img.s-product-image,#landingImage,#imgBlkFront,#imgTagWrapperId img,"
-         "img[data-a-dynamic-image],img.a-dynamic-image,[data-component-type=s-product-image] img,"
-         "[class*=product-image] img,[class*=asin-image] img,.p13n-sc-uncoverable-faceout img,"
-         "[data-asin] img.s-image,[data-csa-c-asin] img.s-image,"
-         /* v7.0.39 generic ordinary Home-card media.
-          * v6.0.29's old coverage showed that large Home/category media often
-          * has no product-image semantic class. Restrict the broad IMG rule to
-          * proven ordinary card roots, then reject UI/identity/chrome leaves.
-          * This covers dashboard cards, Trending, Smart Home, Keep Shopping,
-          * multi-category cards, and similar ordinary Home panes without a scan. */
-         ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
-         ":is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
-         "img"
-         ":not([class*=logo]):not([class*=avatar]):not([class*=profile])"
-         ":not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store])"
-         ":not([class*=rating]):not([class*=star]):not([class*=sprite]):not([class*=pixel])"
-         ":not([class*=icon]):not([class*=glyph]):not([class*=badge])"
-         ":not([class*=checkbox]):not([class*=heart]):not([class*=wishlist])"
-         ":not([class*=search-icon]):not([class*=microphone]):not([class*=camera]):not([class*=location])"
-         ":not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon])"
-         ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
-         ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),"
-         /* Cheap v185-coverage equivalent for Home ad child frames: raster media only.
-          * Text, backgrounds and Sponsored feedback remain Amazon-owned. */
-         "html[data-ad7-twb-child=\"1\"] img"
-         ":not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller])"
-         ":not([class*=rating]):not([class*=star]):not([class*=checkbox]):not([class*=heart]):not([class*=wishlist])"
-         ":not([class*=search-icon]):not([class*=microphone]):not([class*=camera]):not([class*=location])"
-         ":not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon]):not([class*=sprite]):not([class*=pixel])"
-         ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
-         ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),"
-         /* Main-document standalone ad media if Amazon renders it outside the iframe. */
-         "#gwm-Deck-btf :is([class*=mobile-mshop-ad],[class*=mobile-ad-container],[class*=ape-wrapper],[class*=ape-placement]) "
-         ":is(img,video,canvas)"
-         ":not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge])"
-         ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
-         ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),"
-         /* Seasonal mosaic media + image/SVG artwork.
-          * Navigation chevrons/arrows are control ink, not TWB media. */
-         "[class*=hp-mosaic-container] :is(img,svg)"
-         ":not([class*=next]):not([class*=prev]):not([class*=chevron]):not([class*=arrow])"
-         ":not(:where([class*=next] *)):not(:where([class*=prev] *))"
-         ":not(:where([class*=chevron] *)):not(:where([class*=arrow] *)),"
-         "[class*=_mosaic-container_style_widgetContainer] :is(img,svg)"
-         ":not([class*=next]):not([class*=prev]):not([class*=chevron]):not([class*=arrow])"
-         ":not(:where([class*=next] *)):not(:where([class*=prev] *))"
-         ":not(:where([class*=chevron] *)):not(:where([class*=arrow] *)),"
-         /* Historical single-creative / single-video / canvas Home media. */
-         "img[class*=_single-creative-card],img[class*=_single-video-card],"
-         "[class*=single-creative-card] img,[class*=single-video-card] img,"
-         "[class*=single-video-card] video,[class*=canvas-card] canvas,video.vjs-tech"
-         "{filter:brightness(%.3f)!important;}"
-         /* CSS-background creative imagery: background-only shade, not text/control filter.
-          * Current probe + v6.0.33 history prove NPACK can expose the actual
-          * theming-card-background leaf directly, without a single-creative/video
-          * ancestor. Match the leaf itself so every hero background gets TWB. */
-         "[class*=theming-card-background],"
-         "[class*=vjs-poster],"
-         "[class*=single-creative-card] [class*=theming-card-background],"
-         "[class*=single-video-card] [class*=theming-card-background],"
-         "[class*=single-video-card] [class*=vjs-poster]"
-         "{box-shadow:inset 0 0 0 9999px rgba(0,0,0,%.3f)!important;}"
-         "';}catch(e){}})();",factor,shade];
+        @"(function(){try{var ID='ad701-product-media',s=document.getElementById(ID);if(!s){s=document.createElement('style');s.id=ID;(document.head||document.documentElement||document).appendChild(s);}"
+         "var P='img[data-a-dynamic-image],img.a-dynamic-image,img[data-old-hires],#landingImage,#imgTagWrapperId img,[data-asin] img,[data-csa-c-asin] img,a[href*=\\\"/dp/\\\"] img,a[href*=\\\"/gp/product/\\\"] img,[class*=\\\"product-image\\\"] img,[class*=\\\"productImage\\\"] img,[id*=\\\"product-image\\\"] img,[data-ad701-product=\\\"1\\\"]';"
+         "s.textContent=P+'{filter:invert(1)!important;}'+(%.0f?P+'{filter:brightness(%.3f) invert(1)!important;}':'');"
+         "var bad=/icon|glyph|logo|avatar|profile|badge|rating|star|checkbox|heart|arrow|chevron|button|search|camera|microphone|menu|hamburger|sprite|nav|tabbar|brand|seller|store-logo|flag|swatch/i;"
+         "var good=/product|asin|buy.?again|recommend|item.?image|offer.?image|pdp|detail.?image/i;"
+         "function mark(e){try{if(!e||e.tagName!=='IMG')return;var n=e,ok=good.test((e.className||'')+' '+(e.id||'')+' '+(e.alt||''));for(var i=0;i<6&&n;i++,n=n.parentElement){var z=((n.className&&n.className.baseVal)||n.className||'')+' '+(n.id||'')+' '+(n.getAttribute&&((n.getAttribute('data-asin')||'')+' '+(n.getAttribute('data-csa-c-asin')||'')+' '+(n.getAttribute('aria-label')||''))||'');if(bad.test(String(z)))return;if(good.test(String(z)))ok=true;if(n.tagName==='A'){var h=n.getAttribute('href')||'';if(h.indexOf('/dp/')>=0||h.indexOf('/gp/product/')>=0)ok=true;}}var r=e.getBoundingClientRect(),w=r.width||e.width||0,h=r.height||e.height||0,nw=e.naturalWidth||0,nh=e.naturalHeight||0;if(ok&&w>=48&&h>=48&&nw>=64&&nh>=64)e.setAttribute('data-ad701-product','1');}catch(x){}}"
+         "document.addEventListener('load',function(ev){mark(ev.target);},true);function once(){try{document.querySelectorAll('img').forEach(mark);}catch(x){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',once,{once:true});else once();window.addEventListener('pageshow',once,{passive:true});"
+         "}catch(e){}})();",(gP.whiteTame?1.0:0.0),bright];
 }
-
-static void ADTrackWebView(WKWebView *wv){
-    if(!wv)return; @try { @synchronized([WKWebView class]) { if(!gADWebViews)gADWebViews=[NSHashTable weakObjectsHashTable]; [gADWebViews addObject:wv]; } } @catch(...) {}
+static void ADTrackWebView701(WKWebView *wv){
+    if(!wv)return; @try { @synchronized([WKWebView class]) { if(!gADWebViews701)gADWebViews701=[NSHashTable weakObjectsHashTable]; [gADWebViews701 addObject:wv]; } } @catch(...) {}
 }
-static NSArray *ADTrackedWebViews(void){
-    @try { @synchronized([WKWebView class]) { return gADWebViews?gADWebViews.allObjects:@[]; } } @catch(...) {}
+static NSArray *ADTrackedWebViews701(void){
+    @try { @synchronized([WKWebView class]) { return gADWebViews701?gADWebViews701.allObjects:@[]; } } @catch(...) {}
     return @[];
 }
-static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
-    if(!ucc || !gP.enabled)return;
+static void ADInstallWeb701(WKUserContentController *ucc){
+    if(!ucc||objc_getAssociatedObject(ucc,kADWebScript701))return;
     @try {
-        if(!objc_getAssociatedObject(ucc,kADFloorUS)){
-            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADFloorJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
-            [ucc addUserScript:us];
-            objc_setAssociatedObject(ucc,kADFloorUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
-        if(gP.whiteTame && !objc_getAssociatedObject(ucc,kADTWBUS)){
-            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADTWBJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
-            [ucc addUserScript:us];
-            objc_setAssociatedObject(ucc,kADTWBUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
+        WKUserScript *us=[[WKUserScript alloc] initWithSource:ADWebMediaJS701() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+        [ucc addUserScript:us]; objc_setAssociatedObject(ucc,kADWebScript701,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     } @catch(...) {}
 }
-static void ADAttachWebScripts(WKWebView *wv){
-    if(!wv || !gP.enabled)return; ADTrackWebView(wv);
-    @try { ADAttachScriptsToUCC710(wv.configuration.userContentController); } @catch(...) {}
+static void ADRefreshWeb701(WKWebView *wv){
+    if(!wv)return; ADTrackWebView701(wv);
+    @try { [wv evaluateJavaScript:ADWebMediaJS701() completionHandler:nil]; } @catch(...) {}
 }
-static void ADApplyWebFloor(WKWebView *wv){
-    if(!wv || !gP.enabled)return;
-    ADTrackWebView(wv);
-    @try {
-        // Prime only the outer WebKit backing. Do not intercept WebKit's later background
-        // assignments and do not repeatedly evaluate theme JS during view recycling/snapshots.
-        wv.opaque=NO;
-        wv.backgroundColor=ADOLED();
-        wv.scrollView.opaque=NO;
-        wv.scrollView.backgroundColor=ADOLED();
-        if(@available(iOS 15.0,*)) wv.underPageBackgroundColor=ADOLED();
-    } @catch(...) {}
-}
-
-
-static BOOL ADPrimaryAmazonWindow713(UIWindow *w, UIViewController *candidate);
-
-// -----------------------------------------------------------------------------
-static void ADApplyAllFloors(void){
-    if(!gP.enabled)return;
-    dispatch_async(dispatch_get_main_queue(), ^{
+static void ADApplyAllVisualState701(void){
+    dispatch_async(dispatch_get_main_queue(),^{
         @try {
-            for(WKWebView *wv in ADTrackedWebViews()) if(wv.window) ADApplyWebFloor(wv);
+            for(UIWindow *w in UIApplication.sharedApplication.windows)ADApplyWindowInvert701(w);
+            for(WKWebView *wv in ADTrackedWebViews701())if(wv.window)ADRefreshWeb701(wv);
         } @catch(...) {}
     });
 }
 
-%hook WKWebViewConfiguration
-- (instancetype)init {
-    id cfg=%orig;
-    if(gP.enabled && cfg){
-        @try { ADAttachScriptsToUCC710(((WKWebViewConfiguration *)cfg).userContentController); } @catch(...) {}
-    }
-    return cfg;
+%hook UIWindow
+- (void)didMoveToWindow {
+    %orig;
+    ADApplyWindowInvert701(self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADApplyWindowInvert701(self);
+}
+- (void)makeKeyAndVisible {
+    ADApplyWindowInvert701(self);
+    %orig;
+    ADApplyWindowInvert701(self);
+}
+- (void)setRootViewController:(UIViewController *)vc {
+    %orig;
+    ADApplyWindowInvert701(self);
 }
 %end
 
-// Amazon replaces/clears its WKUserContentController during cold navigation.
-// v5/v6 explicitly restored AmazonDark's documentStart scripts after removeAllUserScripts;
-// without this, cold Home/Search can miss the OLED sheet until a warm lifecycle reapply.
-%hook WKUserContentController
-- (void)removeAllUserScripts {
+%hook UIImageView
+- (void)setImage:(UIImage *)image {
     %orig;
-    if(gP.enabled){
-        objc_setAssociatedObject(self,kADFloorUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(self,kADTWBUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        ADAttachScriptsToUCC710(self);
-    }
+    ADApplyNativeMedia701(self);
+}
+- (void)didMoveToWindow {
+    %orig;
+    ADApplyNativeMedia701(self);
+}
+- (void)layoutSubviews {
+    %orig;
+    if(objc_getAssociatedObject(self,kADMediaInvert701)||objc_getAssociatedObject(self,kADTWBOverlay701)||gP.enabled)ADApplyNativeMedia701(self);
 }
 %end
 
 %hook WKWebView
 - (instancetype)initWithFrame:(CGRect)frame configuration:(WKWebViewConfiguration *)configuration {
-    if(gP.enabled && configuration){
-        @try { ADAttachScriptsToUCC710(configuration.userContentController); } @catch(...) {}
-    }
+    if(gP.enabled&&configuration.userContentController)ADInstallWeb701(configuration.userContentController);
     id wv=%orig;
-    if(gP.enabled){ ADAttachWebScripts(wv); ADApplyWebFloor(wv); }
+    ADTrackWebView701(wv);
     return wv;
 }
 - (instancetype)initWithCoder:(NSCoder *)coder {
     id wv=%orig;
-    if(gP.enabled){ ADAttachWebScripts(wv); ADApplyWebFloor(wv); }
+    if(gP.enabled)ADInstallWeb701(((WKWebView*)wv).configuration.userContentController);
+    ADTrackWebView701(wv);
     return wv;
 }
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled && self.window){ ADAttachWebScripts(self); ADApplyWebFloor(self); ADScheduleLaunchReadyCheck706(); }
-}
-%end
-
-%hook WKScrollView
-- (void)didMoveToWindow {
-    %orig;
-    if(gP.enabled && self.window){ self.opaque=NO; self.backgroundColor=ADOLED(); }
-}
-%end
-
-%hook WKContentView
-- (void)setBackgroundColor:(UIColor *)color {
-    if(gP.enabled){
-        UIColor *black=ADOLED();
-        %orig(black);
-        return;
-    }
-    %orig;
-}
-- (void)didMoveToWindow {
-    %orig;
-    if(gP.enabled && self.window){
-        self.opaque=YES;
-        self.backgroundColor=ADOLED();
-        self.layer.backgroundColor=ADOLED().CGColor;
-    }
-}
-- (void)layoutSubviews {
-    %orig;
-    if(gP.enabled && self.window){
-        self.opaque=YES;
-        self.backgroundColor=ADOLED();
-        self.layer.backgroundColor=ADOLED().CGColor;
-    }
-}
-%end
-
-static const void *kADReactCard708=&kADReactCard708;
-static BOOL ADNativeFloorCandidate(UIView *v){
-    if(!v)return NO;
-    @try { return objc_getAssociatedObject(v,kADReactCard708)!=nil; } @catch(...) {}
-    return NO;
-}
-static void ADOwnNativeFloor(UIView *v){
-    if(!gP.enabled || !v)return; @try { v.backgroundColor=ADOLED(); v.layer.backgroundColor=ADOLED().CGColor; } @catch(...) {}
-}
-
-
-static UIColor *ADLightText706(void);
-
-// v7.0.24 — v6.0.185 tab-rendering mechanism, narrowed to the current ANX tab bar.
-// Current requested palette: all tab glyphs white + selected indicator white.
-static const void *kADTabIndicator724=&kADTabIndicator724;
-static BOOL gADTabImageWriting724=NO;
-
-static UIView *ADANXTabRoot724(UIView *v){
-    if(!v)return nil;
-    @try {
-        UIView *n=v;
-        for(int d=0;n&&d<12;d++,n=n.superview){
-            NSString *c=NSStringFromClass(n.class);
-            if([c containsString:@"ANXTabBarView"])return n;
-        }
-    } @catch(...) {}
-    return nil;
-}
-static BOOL ADTabImageTemplateish724(UIImage *im){
-    if(!im)return NO;
-    if(im.renderingMode==UIImageRenderingModeAlwaysTemplate)return YES;
-    @try {
-        CGImageRef cg=im.CGImage;
-        if(cg && (CGImageIsMask(cg)||CGImageGetAlphaInfo(cg)==kCGImageAlphaOnly))return YES;
-        if(im.symbolConfiguration!=nil)return YES;
-    } @catch(...) {}
-    return NO;
-}
-static void ADTabImageWhite724(UIImageView *iv){
-    if(!gP.enabled||!iv||!iv.window||!ADANXTabRoot724(iv))return;
-    @try {
-        UIImage *im=iv.image;
-        if(im && !ADTabImageTemplateish724(im) && !gADTabImageWriting724){
-            UIImage *tpl=[im imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-            if(tpl){
-                gADTabImageWriting724=YES;
-                iv.image=tpl;
-                gADTabImageWriting724=NO;
-            }
-        }
-        UIColor *white=ADLightText706();
-        [UIView performWithoutAnimation:^{ iv.tintColor=white; }];
-    } @catch(...) { gADTabImageWriting724=NO; }
-}
-static void ADPaintANXTabTree724(UIView *v,int depth){
-    if(!gP.enabled||!v||depth>10||v.hidden||v.alpha<0.02)return;
-    @try {
-        if([v isKindOfClass:[UIImageView class]]){
-            ADTabImageWhite724((UIImageView *)v);
-        } else {
-            CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
-            if(h>0.0&&h<8.0&&w>12.0&&w<160.0&&
-               ![v isKindOfClass:[UIControl class]]&&
-               ![v isKindOfClass:[UILabel class]]){
-                objc_setAssociatedObject(v,kADTabIndicator724,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                UIColor *white=ADLightText706();
-                v.backgroundColor=white;
-                v.layer.backgroundColor=white.CGColor;
-            }
-            if(w>2&&h>2&&w<100&&h<100){
-                UIColor *white=ADLightText706();
-                v.tintColor=white;
-            }
-        }
-        for(UIView *child in v.subviews)ADPaintANXTabTree724(child,depth+1);
-    } @catch(...) {}
-}
-static void ADPaintANXTabBar724(UIView *root){
-    if(!gP.enabled||!root||!root.window)return;
-    @try {
-        root.backgroundColor=ADOLED();
-        root.layer.backgroundColor=ADOLED().CGColor;
-        ADPaintANXTabTree724(root,0);
-    } @catch(...) {}
-}
-static void ADRepaintNearestANXTab724(UIView *v){
-    UIView *root=ADANXTabRoot724(v);
-    if(root)ADPaintANXTabBar724(root);
-}
-
-%hook UIView
-- (void)didMoveToWindow {
-    %orig;
-    if(gP.enabled && self.window && ADNativeFloorCandidate(self)) ADOwnNativeFloor(self);
-}
-- (void)setBackgroundColor:(UIColor *)color {
-    if(gP.enabled && objc_getAssociatedObject(self,kADTabIndicator724)){
-        UIColor *white=ADLightText706();
-        %orig(white);
-        return;
-    }
-    if(gP.enabled && self.window && ADNativeFloorCandidate(self)){
-        UIColor *black=ADOLED();
-        %orig(black);
-        return;
-    }
-    %orig;
-}
-%end
-
-static BOOL ADTopChromeClass713(UIView *v){
-    if(!v)return NO;
-    @try {
-        UIView *n=v;
-        for(int d=0;n&&d<10;d++,n=n.superview){
-            NSString *c=NSStringFromClass(n.class).lowercaseString?:@"";
-            if([c containsString:@"anxtopnav"]||[c containsString:@"topmainbar"]||[c containsString:@"statusbarinset"]||[c containsString:@"topnav"]) return YES;
-        }
-    } @catch(...) {}
-    return NO;
-}
-static BOOL ADBarGeometry713(UIView *v, BOOL *isBottom){
-    if(isBottom)*isBottom=NO; if(!v||!v.window)return NO;
-    @try {
-        CGRect r=[v convertRect:v.bounds toView:v.window]; CGRect b=v.window.bounds;
-        if(b.size.width<1||r.size.width<b.size.width*0.82||r.size.height<1||r.size.height>190)return NO;
-        if(CGRectGetMinY(r)<190)return YES;
-        if(CGRectGetMaxY(r)>b.size.height-150){ if(isBottom)*isBottom=YES; return YES; }
-    } @catch(...) {}
-    return NO;
-}
-static BOOL ADPrimaryAmazonController713(UIViewController *vc){
-    if(!vc)return NO;
-    @try {
-        NSString *n=NSStringFromClass(vc.class).lowercaseString?:@"";
-        return [n containsString:@"anpdockedtabbar"]||[n containsString:@"anxtabroot"]||
-               [n containsString:@"anxtopmainbar"]||[n containsString:@"anxsubnav"]||
-               [n containsString:@"anxvisualsubnav"]||[n containsString:@"sxwebresults"]||
-               [n containsString:@"anptopnav"]||[n containsString:@"cxistatusbarinset"];
-    } @catch(...) {}
-    return NO;
-}
-static BOOL ADPrimaryAmazonWindow713(UIWindow *w, UIViewController *candidate){
-    if(!w)return NO;
-    @try {
-        if(fabs(w.windowLevel-UIWindowLevelNormal)>0.1)return NO;
-        UIViewController *vc=candidate?:w.rootViewController;
-        if(ADPrimaryAmazonController713(vc))return YES;
-        NSString *n=NSStringFromClass(vc.class).lowercaseString?:@"";
-        return [n containsString:@"splash"]||[n containsString:@"launchscreen"];
-    } @catch(...) {}
-    return NO;
-}
-
-static NSMutableDictionary *gADStatusOrig713;
-static UIStatusBarStyle ADStatusLightIMP713(id self, SEL _cmd){
-    if(gP.enabled)return UIStatusBarStyleLightContent;
-    @try {
-        NSValue *v=gADStatusOrig713[NSStringFromClass([self class])];
-        IMP imp=NULL;
-        if(v) [v getValue:&imp];
-        if(imp)return ((UIStatusBarStyle(*)(id,SEL))imp)(self,_cmd);
-    } @catch(...) {}
-    return UIStatusBarStyleDefault;
-}
-static void ADClaimStatusController713(UIViewController *vc){
-    if(!vc)return;
-    @try {
-        Class cls=vc.class; NSString *key=NSStringFromClass(cls);
-        if(!gADStatusOrig713)gADStatusOrig713=[NSMutableDictionary dictionary];
-        @synchronized(gADStatusOrig713){
-            if(!gADStatusOrig713[key]){
-                SEL sel=@selector(preferredStatusBarStyle); Method m=class_getInstanceMethod(cls,sel);
-                IMP orig=m?method_getImplementation(m):NULL;
-                if(orig==(IMP)ADStatusLightIMP713)return;
-                const char *types=m?method_getTypeEncoding(m):"q@:";
-                gADStatusOrig713[key]=[NSValue value:&orig withObjCType:@encode(IMP)];
-                if(!class_addMethod(cls,sel,(IMP)ADStatusLightIMP713,types)) class_replaceMethod(cls,sel,(IMP)ADStatusLightIMP713,types);
-            }
-        }
-        [vc setNeedsStatusBarAppearanceUpdate];
-    } @catch(...) {}
-}
-
-static UIColor *ADLightText706(void){ return [UIColor colorWithRed:232.0/255.0 green:230.0/255.0 blue:227.0/255.0 alpha:1.0]; }
-static UIColor *ADBorderGray706(void){ return [UIColor colorWithRed:73.0/255.0 green:77.0/255.0 blue:77.0/255.0 alpha:1.0]; }
-static BOOL ADNeutralCGColor706(CGColorRef c){
-    if(!c)return NO;
-    @try { UIColor *u=[UIColor colorWithCGColor:c]; CGFloat r=0,g=0,b=0,a=0,w=0;
-        if([u getRed:&r green:&g blue:&b alpha:&a]) return a>0.05 && (MAX(r,MAX(g,b))-MIN(r,MIN(g,b)))<0.16;
-        if([u getWhite:&w alpha:&a]) return a>0.05;
-    } @catch(...) {}
-    return NO;
-}
-static BOOL ADInBottomNav706(UIView *v){
-    @try { UIView *n=v; for(int d=0;n&&d<12;d++,n=n.superview){
-        NSString *c=NSStringFromClass(n.class).lowercaseString ?: @"";
-        if([c containsString:@"bottomnav"]||[c containsString:@"tabbar"]||[c containsString:@"navtoolbar"]||[c containsString:@"storemodestab"]) return YES;
-    }} @catch(...) {}
-    return NO;
-}
-static BOOL ADInSearchChrome706(UIView *v){
-    @try { UIView *n=v; for(int d=0;n&&d<10;d++,n=n.superview){
-        NSString *c=NSStringFromClass(n.class).lowercaseString ?: @"";
-        if([c containsString:@"sbsearchbar"]||[c containsString:@"sbsearchfield"]||[c containsString:@"searchbar"]||[c containsString:@"searchfield"]) return YES;
-    }} @catch(...) {}
-    return NO;
-}
-static BOOL gADSearchImageWrite706=NO;
-static BOOL ADIsLocationGlyph709(UIImageView *iv){
-    if(!iv)return NO;
-    @try {
-        NSMutableString *q=[NSMutableString string];
-        if(iv.accessibilityLabel)[q appendFormat:@" %@",iv.accessibilityLabel];
-        if(iv.accessibilityIdentifier)[q appendFormat:@" %@",iv.accessibilityIdentifier];
-        UIView *n=iv;
-        for(int d=0;n&&d<5;d++,n=n.superview){
-            [q appendFormat:@" %@ %@ %@",NSStringFromClass(n.class),n.accessibilityLabel?:@"",n.accessibilityIdentifier?:@""];
-        }
-        NSString *l=q.lowercaseString;
-        return [l containsString:@"location"] || [l containsString:@"delivery"] || [l containsString:@"address"] || [l containsString:@"map pin"] || [l containsString:@"pin icon"];
-    } @catch(...) {}
-    return NO;
-}
-static void ADTintSearchGlyph706(UIImageView *iv){
-    if(!gP.enabled||!iv||!iv.image)return;
-    BOOL search=ADInSearchChrome706(iv), location=ADIsLocationGlyph709(iv);
-    if(!search&&!location)return;
-    @try {
-        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height; if(w<3||h<3||w>64||h>64)return;
-        UIImage *im=iv.image;
-        if(im.renderingMode!=UIImageRenderingModeAlwaysTemplate && !gADSearchImageWrite706){
-            UIImage *tpl=[im imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-            if(tpl){ gADSearchImageWrite706=YES; iv.image=tpl; gADSearchImageWrite706=NO; }
-        }
-        iv.tintColor=[UIColor blackColor];
-    } @catch(...) { gADSearchImageWrite706=NO; }
-}
-
-static NSAttributedString *ADLightAttributedText708(NSAttributedString *in){
-    if(!gP.enabled || !in || in.length==0) return in;
-    @try {
-        NSMutableAttributedString *m=[in mutableCopy];
-        NSRange full=NSMakeRange(0,m.length);
-        UIColor *light=ADLightText706();
-        [m enumerateAttribute:NSForegroundColorAttributeName inRange:full options:0 usingBlock:^(id value,NSRange range,BOOL *stop){
-            [m addAttribute:NSForegroundColorAttributeName value:light range:range];
-        }];
-        return m;
-    } @catch(...) { return in; }
-}
-static BOOL ADBrightNeutralUIView708(UIView *v){
-    if(!v)return NO;
-    @try {
-        UIColor *u=v.backgroundColor; if(!u)return NO;
-        CGFloat r=0,g=0,b=0,a=0,w=0;
-        if([u getRed:&r green:&g blue:&b alpha:&a]){
-            CGFloat mx=MAX(r,MAX(g,b)),mn=MIN(r,MIN(g,b));
-            return a>0.15 && mx>0.72 && (mx-mn)<0.18;
-        }
-        if([u getWhite:&w alpha:&a]) return a>0.15 && w>0.72;
-    } @catch(...) {}
-    return NO;
-}
-static void ADDarkenReactCardNearText708(UIView *textView){
-    if(!gP.enabled||!textView||!textView.window)return;
-    @try {
-        UIView *n=textView.superview;
-        for(int d=0;n&&d<7;d++,n=n.superview){
-            CGFloat w=n.bounds.size.width,h=n.bounds.size.height;
-            if(w>=150&&w<=430&&h>=170&&h<=700&&ADBrightNeutralUIView708(n)){
-                objc_setAssociatedObject(n,kADReactCard708,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                n.backgroundColor=ADOLED();
-                n.layer.backgroundColor=ADOLED().CGColor;
-                n.layer.borderColor=ADBorderGray706().CGColor;
-                if(n.layer.borderWidth<0.5)n.layer.borderWidth=1.0;
-                break;
-            }
-        }
-    } @catch(...) {}
-}
-
-%hook RCTParagraphComponentView
-- (void)setAttributedText:(NSAttributedString *)attributedText {
-    NSAttributedString *r=ADLightAttributedText708(attributedText);
-    %orig(r);
-    ADDarkenReactCardNearText708((UIView *)self);
-}
-- (void)_setAttributedString:(NSAttributedString *)attributedString {
-    NSAttributedString *r=ADLightAttributedText708(attributedString);
-    %orig(r);
-    ADDarkenReactCardNearText708((UIView *)self);
-}
-- (void)didMoveToWindow {
-    %orig;
-    if(gP.enabled && ((UIView *)self).window) ADDarkenReactCardNearText708((UIView *)self);
-}
-%end
-
-%hook RCTTextView
-- (void)setTextStorage:(NSTextStorage *)textStorage {
-    if(gP.enabled && textStorage.length){
-        @try { [textStorage addAttribute:NSForegroundColorAttributeName value:ADLightText706() range:NSMakeRange(0,textStorage.length)]; } @catch(...) {}
-    }
-    %orig;
-    ADDarkenReactCardNearText708((UIView *)self);
-}
-%end
-
-%hook UILabel
-- (void)setAttributedText:(NSAttributedString *)attributedText {
-    if(gP.enabled && ADInSearchChrome706((UIView *)self) && attributedText.length){
-        NSMutableAttributedString *m=[attributedText mutableCopy];
-        [m addAttribute:NSForegroundColorAttributeName value:[UIColor blackColor] range:NSMakeRange(0,m.length)];
-        %orig(m);
-        return;
-    }
-    NSAttributedString *r=ADLightAttributedText708(attributedText);
-    %orig(r);
-}
-- (void)setTextColor:(UIColor *)color {
-    if(gP.enabled){
-        UIColor *want=ADInSearchChrome706((UIView *)self)?[UIColor blackColor]:ADLightText706();
-        %orig(want);
-        return;
-    }
-    %orig;
-}
-- (void)didMoveToWindow {
-    %orig;
-    if(gP.enabled&&self.window) self.textColor=ADInSearchChrome706((UIView *)self)?[UIColor blackColor]:ADLightText706();
-}
-%end
-
-%hook UITextView
-- (void)setTextColor:(UIColor *)color {
-    if(gP.enabled){
-        UIColor *want=ADInSearchChrome706((UIView *)self)?[UIColor blackColor]:ADLightText706();
-        %orig(want);
-        return;
-    }
-    %orig;
-}
-- (void)didMoveToWindow {
-    %orig;
-    if(gP.enabled&&self.window) self.textColor=ADInSearchChrome706((UIView *)self)?[UIColor blackColor]:ADLightText706();
-}
-%end
-
-%hook UITextField
-- (void)setTextColor:(UIColor *)color {
-    if(gP.enabled){
-        UIColor *want=ADInSearchChrome706((UIView *)self)?[UIColor blackColor]:ADLightText706();
-        %orig(want);
-        return;
-    }
-    %orig;
-}
-- (void)didMoveToWindow {
-    %orig;
-    if(gP.enabled&&self.window){
-        BOOL search=ADInSearchChrome706((UIView *)self);
-        self.textColor=search?[UIColor blackColor]:ADLightText706();
-        if(search && self.placeholder.length){
-            self.attributedPlaceholder=[[NSAttributedString alloc] initWithString:self.placeholder attributes:@{NSForegroundColorAttributeName:[UIColor blackColor]}];
-        }
-    }
-}
-%end
-
-%hook UIButton
-- (void)setTitleColor:(UIColor *)color forState:(UIControlState)state {
-    if(gP.enabled){
-        UIColor *light=ADLightText706();
-        %orig(light,state);
-        return;
-    }
-    %orig;
-}
-%end
-
-%hook CALayer
-- (void)setBorderColor:(CGColorRef)color {
-    if(gP.enabled&&color&&ADNeutralCGColor706(color)){
-        UIColor *g=ADBorderGray706();
-        CGColorRef cg=g.CGColor;
-        %orig(cg);
-        return;
-    }
-    %orig;
-}
-%end
-
-%hook CAShapeLayer
-- (void)setStrokeColor:(CGColorRef)color {
-    if(gP.enabled&&color&&ADNeutralCGColor706(color)&&(self.bounds.size.width>24||self.bounds.size.height>24)){
-        UIColor *g=ADBorderGray706();
-        CGColorRef cg=g.CGColor;
-        %orig(cg);
-        return;
-    }
-    %orig;
-}
-%end
-
-%hook UIControl
-- (void)setSelected:(BOOL)selected {
-    %orig;
-    if(gP.enabled&&self.window)ADRepaintNearestANXTab724((UIView *)self);
-}
-- (BOOL)beginTrackingWithTouch:(UITouch *)touch withEvent:(UIEvent *)event {
-    BOOL r=%orig;
-    if(gP.enabled&&self.window)ADRepaintNearestANXTab724((UIView *)self);
-    return r;
-}
-%end
-
-%hook SBSearchBar
-- (void)didMoveToWindow {
-    %orig;
-    UIView *v=(UIView *)self;
-    if(gP.enabled&&v.window){
-        v.backgroundColor=[UIColor clearColor];
-        v.layer.backgroundColor=[UIColor clearColor].CGColor;
-        v.layer.borderWidth=0;
-    }
-}
-%end
-
-%hook SBSearchField
-- (void)didMoveToWindow {
-    %orig;
-    UIView *v=(UIView *)self;
-    if(gP.enabled&&v.window){
-        UIColor *fill=[UIColor colorWithWhite:0.78 alpha:1.0];
-        v.backgroundColor=fill;
-        v.layer.backgroundColor=fill.CGColor;
-        v.layer.borderColor=ADBorderGray706().CGColor;
-        if(v.layer.borderWidth<0.5)v.layer.borderWidth=1.0;
-        v.tintColor=[UIColor blackColor];
-    }
-}
-%end
-
-
-static void ADOwnBottomBar708(UIView *v){
-    if(!gP.enabled||!v||!v.window)return;
-    @try {
-        // Background-only ownership. Do not touch tab item images, renderingMode,
-        // selected/unselected tint colors, labels, or selection state.
-        v.backgroundColor=ADOLED();
-        v.layer.backgroundColor=ADOLED().CGColor;
-    } @catch(...) {}
-}
-%hook UIVisualEffectView
-- (void)didMoveToWindow {
-    %orig;
-    BOOL bottom=NO; BOOL bar=ADBarGeometry713(self,&bottom);
-    if(gP.enabled && self.window && (ADInBottomNav706(self)||ADTopChromeClass713(self)||bar)){
-        self.effect=nil;
-        self.backgroundColor=ADOLED();
-        self.layer.backgroundColor=ADOLED().CGColor;
-    }
-}
-- (void)layoutSubviews {
-    %orig;
-    BOOL bottom=NO; BOOL bar=ADBarGeometry713(self,&bottom);
-    if(gP.enabled && self.window && (ADInBottomNav706(self)||ADTopChromeClass713(self)||bar)){
-        self.effect=nil;
-        self.backgroundColor=ADOLED();
-        self.layer.backgroundColor=ADOLED().CGColor;
-    }
-}
-%end
-
-%hook UITabBar
-- (void)didMoveToWindow {
-    %orig;
-    ADOwnBottomBar708((UIView *)self);
-}
-- (void)layoutSubviews {
-    %orig;
-    ADOwnBottomBar708((UIView *)self);
-}
-- (void)setBackgroundColor:(UIColor *)color {
-    if(gP.enabled){
-        UIColor *black=ADOLED();
-        %orig(black);
-        return;
-    }
-    %orig;
-}
-%end
-
-%hook _UIBarBackground
-- (void)didMoveToWindow {
-    %orig;
-    ADOwnBottomBar708((UIView *)self);
-}
-- (void)layoutSubviews {
-    %orig;
-    ADOwnBottomBar708((UIView *)self);
-}
-- (void)setBackgroundColor:(UIColor *)color {
-    if(gP.enabled){
-        UIColor *black=ADOLED();
-        %orig(black);
-        return;
-    }
-    %orig;
-}
-%end
-
-%hook CXIStoreModesBottomNavToolbar
-- (void)didMoveToWindow {
-    %orig;
-    ADOwnBottomBar708((UIView *)self);
-}
-- (void)layoutSubviews {
-    %orig;
-    ADOwnBottomBar708((UIView *)self);
-}
-- (void)setBackgroundColor:(UIColor *)color {
-    if(gP.enabled){
-        UIColor *black=ADOLED();
-        %orig(black);
-        return;
-    }
-    %orig;
-}
-%end
-
-%hook CXIStoreModesTabBarView
-- (void)didMoveToWindow {
-    %orig;
-    ADOwnBottomBar708((UIView *)self);
-}
-- (void)layoutSubviews {
-    %orig;
-    ADOwnBottomBar708((UIView *)self);
-}
-- (void)setBackgroundColor:(UIColor *)color {
-    if(gP.enabled){
-        UIColor *black=ADOLED();
-        %orig(black);
-        return;
-    }
-    %orig;
-}
-%end
-
-%hook ANPRetailTabBar
-- (void)didMoveToWindow {
-    %orig;
-    ADOwnBottomBar708((UIView *)self);
-}
-- (void)layoutSubviews {
-    %orig;
-    ADOwnBottomBar708((UIView *)self);
-}
-- (void)setBackgroundColor:(UIColor *)color {
-    if(gP.enabled){
-        UIColor *black=ADOLED();
-        %orig(black);
-        return;
-    }
-    %orig;
-}
-%end
-
-// v7.0.24: probe-proven ANXTabBarView fill + v185 tab rendering mechanics.
-%hook ANXTabBarView
-- (void)didMoveToWindow {
-    %orig;
-    ADOwnBottomBar708((UIView *)self);
-    ADPaintANXTabBar724((UIView *)self);
-}
-- (void)layoutSubviews {
-    %orig;
-    ADOwnBottomBar708((UIView *)self);
-    ADPaintANXTabBar724((UIView *)self);
-}
-- (void)setBackgroundColor:(UIColor *)color {
-    if(gP.enabled){
-        UIColor *black=ADOLED();
-        %orig(black);
-        return;
-    }
-    %orig;
-}
-%end
-
-// v7.0.14: exact v6.0.28-style adaptive top-nav owner.
-%hook ANXTopNavBackgroundView
-- (void)setBackgroundColor:(UIColor *)color {
-    if(gP.enabled){
-        UIColor *black=ADOLED();
-        %orig(black);
-        return;
-    }
-    %orig;
-}
-- (void)didMoveToWindow {
-    %orig;
-    if(gP.enabled&&self.window){ self.backgroundColor=ADOLED(); self.layer.backgroundColor=ADOLED().CGColor; }
-}
-- (void)layoutSubviews {
-    %orig;
-    if(gP.enabled&&self.window){ self.backgroundColor=ADOLED(); self.layer.backgroundColor=ADOLED().CGColor; }
-}
-%end
-
-// Status-bar ownership from the v5.446/v6.0.5 lineage. This generic lifecycle hook
-// does NOT paint controller views; it only installs a cached per-class light-content claim.
-%hook UIViewController
-- (void)viewWillAppear:(BOOL)animated {
-    %orig;
-    if(gP.enabled){
-        ADClaimStatusController713(self);
-        if(ADPrimaryAmazonController713(self) && self.isViewLoaded){
-            self.view.backgroundColor=ADOLED();
-            self.view.layer.backgroundColor=ADOLED().CGColor;
-        }
-    }
-}
-- (void)viewDidAppear:(BOOL)animated {
-    %orig;
-    if(gP.enabled){
-        ADClaimStatusController713(self);
-        if(ADPrimaryAmazonController713(self) && self.isViewLoaded){
-            self.view.backgroundColor=ADOLED();
-            self.view.layer.backgroundColor=ADOLED().CGColor;
-        }
-    }
-}
-%end
-
-%hook UIApplication
-- (void)setStatusBarStyle:(UIStatusBarStyle)style {
-    if(gP.enabled){
-        UIStatusBarStyle want=UIStatusBarStyleLightContent;
-        %orig(want);
-        return;
-    }
-    %orig;
-}
-- (void)setStatusBarStyle:(UIStatusBarStyle)style animated:(BOOL)animated {
-    if(gP.enabled){
-        UIStatusBarStyle want=UIStatusBarStyleLightContent;
-        %orig(want,animated);
-        return;
-    }
-    %orig;
-}
-%end
-
-// Do not black every UIWindow. Screenshot/share/input windows are intentionally excluded;
-// only Amazon's primary navigation window receives the OLED backing.
-%hook UIWindow
-- (void)setRootViewController:(UIViewController *)vc {
-    %orig;
-    if(gP.enabled && ADPrimaryAmazonWindow713(self,vc)) self.backgroundColor=ADOLED();
-}
-- (void)makeKeyAndVisible {
-    if(gP.enabled && ADPrimaryAmazonWindow713(self,nil)) self.backgroundColor=ADOLED();
-    %orig;
-}
-%end
-
-%hook UITableView
-- (void)didMoveToWindow {
-    %orig;
-    if (gP.enabled && self.window) self.backgroundColor=ADOLED();
-}
-%end
-
-%hook UICollectionView
-- (void)didMoveToWindow {
-    %orig;
-    if (gP.enabled && self.window) self.backgroundColor=ADOLED();
-}
-%end
-
-%hook RCTRootView
-- (void)didMoveToWindow {
-    %orig;
-    if (gP.enabled && self.window) self.backgroundColor=ADOLED();
-}
-%end
-
-%hook RCTRootContentView
-- (void)didMoveToWindow {
-    %orig;
-    if (gP.enabled && self.window) self.backgroundColor=ADOLED();
-}
-%end
-
-%hook RCTScrollView
-- (void)didMoveToWindow {
-    %orig;
-    if (gP.enabled && self.window) self.backgroundColor=ADOLED();
-}
-%end
-
-static void ADDarkenSplash(UIViewController *vc){ if(gP.enabled) @try { if(vc.view)vc.view.backgroundColor=ADOLED(); } @catch(...) {} }
-%hook AXUSplashScreenViewController
-- (void)viewDidLayoutSubviews {
-    %orig;
-    ADDarkenSplash(self);
-}
-- (void)viewDidAppear:(BOOL)animated {
-    %orig;
-    ADDarkenSplash(self);
-}
-%end
-%hook TezBaseSplashScreenViewController
-- (void)viewDidLayoutSubviews {
-    %orig;
-    ADDarkenSplash(self);
-}
-- (void)viewDidAppear:(BOOL)animated {
-    %orig;
-    ADDarkenSplash(self);
-}
-%end
-
-// -----------------------------------------------------------------------------
-// Lightweight native TWB owner retained because the v6.0.185 Settings pane keeps
-// the Tame Light Backgrounds preference. No hierarchy scan or observer is used.
-// -----------------------------------------------------------------------------
-static const void *kADTWBOverlay=&kADTWBOverlay;
-static BOOL ADNativeMediaBlocked(UIImageView *iv){
-    if(!iv)return YES;
-    @try {
-        UIImage *im=iv.image; if(!im)return YES;
-        if(im.renderingMode==UIImageRenderingModeAlwaysTemplate)return YES;
-        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height; if(w<52||h<52)return YES;
-        if(im.CGImage && CGImageGetWidth(im.CGImage)<=80 && CGImageGetHeight(im.CGImage)<=80)return YES;
-        NSMutableString *s=[NSMutableString string];
-        UIView *n=iv;
-        for(int i=0;i<4&&n;i++,n=n.superview){
-            [s appendFormat:@" %@ %@",NSStringFromClass(n.class),n.accessibilityIdentifier?:@""];
-            if([n isKindOfClass:[UIButton class]] || [n isKindOfClass:[UITabBar class]] || [n isKindOfClass:[UINavigationBar class]])return YES;
-        }
-        [s appendFormat:@" %@",iv.accessibilityLabel?:@""];
-        NSString *q=s.lowercaseString;
-        for(NSString *tok in @[@"icon",@"glyph",@"logo",@"avatar",@"profile",@"badge",@"star",@"rating",@"checkbox",@"heart",@"arrow",@"chevron",@"button",@"search",@"menu",@"microphone",@"camera",@"cart",@"location",@"nav",@"tab",@"sprite",@"brand",@"seller",@"store",@"screenshot",@"snapshot",@"screen shot",@"share preview",@"preview"])
-            if([q containsString:tok])return YES;
-        CGSize screen=UIScreen.mainScreen.bounds.size;
-        if(screen.width>0 && screen.height>0 && w>=screen.width*0.72&&h>=screen.height*0.48)return YES;
-        BOOL semanticProduct=NO;
-        for(NSString *tok in @[@"product",@"asin",@"item",@"offer",@"recommend",@"reorder",@"buy again",@"keep shopping",@"shopping for",@"retail image"])
-            if([q containsString:tok]){ semanticProduct=YES; break; }
-        NSString *cn=NSStringFromClass(iv.class).lowercaseString?:@"";
-        BOOL knownAmazonRaster=([cn containsString:@"rctuiimageviewanimated"]||[cn containsString:@"anxfastimageview"]);
-        if(!semanticProduct && !knownAmazonRaster)return YES;
-    } @catch(...) { return YES; }
-    return NO;
-}
-static void ADApplyNativeTWB(UIImageView *iv){
-    if(!iv)return;
-    @try {
-        CALayer *ov=objc_getAssociatedObject(iv,kADTWBOverlay);
-        if(!gP.enabled || !gP.whiteTame || !iv.window || ADNativeMediaBlocked(iv)){
-            if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(iv,kADTWBOverlay,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
-            return;
-        }
-        if(!ov){ ov=[CALayer layer]; ov.name=@"AmazonDarkTWB7"; ov.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"backgroundColor":[NSNull null]}; [iv.layer addSublayer:ov]; objc_setAssociatedObject(iv,kADTWBOverlay,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
-        ov.frame=iv.bounds; ov.backgroundColor=[UIColor colorWithWhite:0 alpha:0.50*MAX(0,MIN(100,gP.whiteTameStrength))/100.0].CGColor; ov.zPosition=FLT_MAX;
-    } @catch(...) {}
-}
-
-%hook UIImageView
-- (void)setImage:(UIImage *)image {
-    if(gADTabImageWriting724){
-        %orig;
-        return;
-    }
-    %orig;
-    if(gP.enabled&&self.window&&ADANXTabRoot724(self))ADTabImageWhite724(self);
-    if(gP.enabled&&self.window)ADTintSearchGlyph706(self);
-    if(gP.whiteTame)ADApplyNativeTWB(self);
-}
-- (void)didMoveToWindow {
-    %orig;
-    if(gP.enabled&&self.window&&ADANXTabRoot724(self))ADTabImageWhite724(self);
-    if(gP.enabled&&self.window)ADTintSearchGlyph706(self);
-    ADApplyNativeTWB(self);
-}
-- (void)setTintColor:(UIColor *)color {
-    if(gP.enabled&&self.window){
-        if(ADANXTabRoot724(self)){
-            UIColor *white=ADLightText706();
-            %orig(white);
-            return;
-        }
-        if(ADInSearchChrome706(self)||ADIsLocationGlyph709(self)){
-            UIColor *dark=[UIColor blackColor];
-            %orig(dark);
-            return;
-        }
-    }
-    %orig;
-}
-- (void)layoutSubviews {
-    %orig;
-    if(gP.enabled&&self.window&&ADANXTabRoot724(self))ADTabImageWhite724(self);
-    if(gP.enabled&&self.window&&(ADInSearchChrome706(self)||ADIsLocationGlyph709(self)))ADTintSearchGlyph706(self);
-    if(objc_getAssociatedObject(self,kADTWBOverlay)||gP.whiteTame)ADApplyNativeTWB(self);
+    if(self.window){ADInstallWeb701(self.configuration.userContentController);ADRefreshWeb701(self);}
 }
 %end
 
 // -----------------------------------------------------------------------------
 // Launch transition handoff. The SpringBoard side retains v6.0.185's 1.40 s
-// minimum presentation and 0.55 s fade; Amazon only tells it that the black root
+// minimum presentation and 0.55 s fade; Amazon only tells it that the inverted root
 // is mounted. Cached light launch snapshots are cleared exactly as in v6.0.185.
 // -----------------------------------------------------------------------------
-static BOOL gADReadyPosted706=NO;
-static BOOL gADReadyScheduled706=NO;
-static NSInteger gADReadyAttempts706=0;
-static NSInteger gADReadyStable706=0;
-static BOOL ADVisibleSplashController706(void){
-    @try {
-        for(UIWindow *w in UIApplication.sharedApplication.windows){
-            if(!w || w.hidden || w.alpha<0.01)continue;
-            UIViewController *vc=w.rootViewController;
-            NSMutableArray *q=[NSMutableArray array]; if(vc)[q addObject:vc];
-            for(NSUInteger i=0;i<q.count&&i<24;i++){
-                UIViewController *x=q[i]; NSString *n=NSStringFromClass(x.class).lowercaseString?:@"";
-                if(([n containsString:@"splash"]||[n containsString:@"launchscreen"]||[n containsString:@"loading"]) && x.isViewLoaded && x.view.window && !x.view.hidden && x.view.alpha>0.01) return YES;
-                if(x.presentedViewController)[q addObject:x.presentedViewController];
-                for(UIViewController *c in x.childViewControllers) if(c)[q addObject:c];
-            }
-        }
-    } @catch(...) {}
-    return NO;
-}
 static void ADPostReadyOnce(void){
-    if(gADReadyPosted706)return; gADReadyPosted706=YES;
-    @try { notify_post("com.colindavidr.amazondark.ready"); } @catch(...) {}
-}
-static void ADRunLaunchReadyCheck706(void){
-    if(gADReadyPosted706||!gP.enabled){gADReadyScheduled706=NO;return;}
-    gADReadyAttempts706++;
-    if(ADVisibleSplashController706()){ gADReadyStable706=0; }
-    else {
-        __block BOOL anyReady=NO;
-        NSArray *webs=ADTrackedWebViews();
-        for(WKWebView *wv in webs){
-            if(!wv.window)continue;
-            NSString *js=@"(function(){try{var d=document;if(!(d.readyState==='interactive'||d.readyState==='complete'))return 0;var x=d.querySelector('#gwm-PageContent,#a-page main,main,[role=main]');if(!x)return 0;var r=x.getBoundingClientRect(),c=getComputedStyle(x),bg=c&&c.backgroundColor||'',txt=(x.innerText||x.textContent||'').trim();var media=!!x.querySelector('img,video,canvas');return ((bg==='rgb(0, 0, 0)'||bg==='rgba(0, 0, 0, 1)')&&r.height>260&&(txt.length>80||media))?1:0;}catch(e){return 0;}})();";
-            [wv evaluateJavaScript:js completionHandler:^(id value,NSError *error){
-                if(!error&&[value respondsToSelector:@selector(boolValue)]&&[value boolValue]){
-                    anyReady=YES; gADReadyStable706++;
-                    if(gADReadyStable706>=3 && !ADVisibleSplashController706()){
-                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.25*NSEC_PER_SEC)),dispatch_get_main_queue(),^{ if(!ADVisibleSplashController706())ADPostReadyOnce(); });
-                    }
-                }
-            }];
-        }
-        (void)anyReady;
-    }
-    if(!gADReadyPosted706 && gADReadyAttempts706<64){
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.125*NSEC_PER_SEC)),dispatch_get_main_queue(),^{ ADRunLaunchReadyCheck706(); });
-    } else gADReadyScheduled706=NO;
-}
-static void ADScheduleLaunchReadyCheck706(void){
-    if(gADReadyPosted706||gADReadyScheduled706||!gP.enabled)return;
-    gADReadyScheduled706=YES; dispatch_async(dispatch_get_main_queue(),^{ ADRunLaunchReadyCheck706(); });
+    static BOOL posted=NO; if(posted)return; posted=YES; @try { notify_post("com.colindavidr.amazondark.ready"); } @catch(...) {}
 }
 
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
-    ADLoadPrefs(); ADRefreshPromotionState611(); ADApplyAllFloors();
+    ADLoadPrefs(); ADRefreshPromotionState611(); ADApplyAllVisualState701();
 }
 
 %ctor {
@@ -1926,11 +830,12 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);
+
     dispatch_async(dispatch_get_main_queue(), ^{
-        ADApplyAllFloors();
+        ADApplyAllVisualState701();
         ADRefreshPromotionState611();
         ADApplyJIT622();
-        ADScheduleLaunchReadyCheck706();
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(1.20*NSEC_PER_SEC)),dispatch_get_main_queue(),^{ ADPostReadyOnce(); });
     });
 }
 
