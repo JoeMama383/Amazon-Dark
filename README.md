@@ -1,37 +1,25 @@
-# AmazonDark v7.0.41~probe
+# AmazonDark v7.0.42
 
-Based on v7.0.40. Restores the historical seasonal mosaic chevron sprite treatment (`a-icon-dropdown` -> `brightness(0) invert(1)`) and adds a manual SIGUSR2 current-frame hero TWB differential probe. The hero probe makes no production hero/TWB changes.
-
-Probe output: `AmazonDark-home-hero-twb-probe-7041.txt`.
-
-# AmazonDark v7.0.40
-
-Production build based directly on v7.0.39.
+Production build based on the corrected v7.0.40 source. The v7.0.41 hero probe is removed; its findings are converted to static CSS only.
 
 ## Fixes
 
-### Seasonal mosaic labels + chevrons
-v7.0.39 accidentally retained only the seasonal heading/caption foreground rule.
-The earlier cheap v185/v7.0.16 port covered structural seasonal label hosts as
-well as next/prev/chevron/arrow ink.
+### Universal hero TWB for CSS-backed art
+The v7.0.41 probe showed the missing hero class directly: some NPACK heroes expose the visible artwork on the `theming-card-background` leaf itself, with a `background-image`, but no `single-creative-card` / `single-video-card` ancestor. The previous selector therefore skipped those cards.
 
-v7.0.40 restores that coverage with documentStart CSS only:
-- seasonal structural label hosts use light text / text-fill;
-- next / prev / chevron / arrow ink uses light color/fill/stroke;
-- seasonal TWB still tames product/art IMG/SVG media;
-- SVG/IMG navigation controls are excluded from TWB so the white chevron is not
-  darkened by the media filter.
+v7.0.42 shades the actual `theming-card-background` / `vjs-poster` leaf directly with an inset background shade. This is background-only paint: it does not apply a brightness filter to the hero wrapper, text, headers, buttons, or controls. IMG/VIDEO media keeps the existing leaf-local TWB filter.
 
-### One dark dashboard carousel title
-Historical Home probes identify `wpTitle` as the exact leaf used for the small
-"For you" / "You might like" / "Keep shopping for" dashboard titles.
-v7.0.40 gives only that title leaf authoritative light ink.
+### College / MAB chevron
+Historical v5.440/v5.449 probes prove the visible arrow is the background-image sprite on `I.a-icon.a-icon-dropdown` below `.puis-mab-chevron`. That leaf is not reliably inside the newer seasonal mosaic wrapper.
 
-The Sponsored row below it is not selected and remains Amazon-controlled.
+v7.0.42 restores the exact sprite-leaf treatment directly:
+`filter: brightness(0) invert(1)`.
+
+### Isolated dashboard title
+The current probe also showed the APE-backed "You might like" card uses `windowPaneHeaderContainer` rather than `wpTitle`. v7.0.42 owns that title leaf too while leaving the separate Sponsored row/glyph Amazon-controlled.
 
 ## Performance
-
-These fixes are static CSS only:
+All three fixes are documentStart CSS only:
 - MutationObserver: 0
 - querySelectorAll: 0
 - TreeWalker: 0
@@ -39,5 +27,4 @@ These fixes are static CSS only:
 - setInterval: 0
 - requestAnimationFrame: 0
 - recurring scanner/timer: 0
-
-No probe code is included.
+- probe/debug runtime: 0
