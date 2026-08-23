@@ -1,9 +1,10 @@
-# AmazonDark v7.0.43~probe
+# AmazonDark v7.0.44
 
-- Base: v7.0.42 production.
-- Hero TWB persistence hardening is document-start CSS only: direct v185 background-leaf families, late inline background-image ownership inside proven creative families, and IMG/VIDEO/CANVAS coverage in hero child frames.
-- Adds a dormant SIGUSR2 current-frame probe for hero persistence, white inner photo shells, and seasonal chevrons. The probe includes bounded native visible-view logging and Web elementsFromPoint snapshots in visible child frames.
-- No MutationObserver, scroll repair, interval, RAF loop, or recurring scanner is added.
+- Production base: v7.0.43~probe, with all probe/debug runtime removed.
+- Fixes the one-second seasonal hero TWB reversion by statically owning the hydrated NPACK background VIDEO leaf that replaces the already-shaded JPEG backdrop.
+- Broadens seasonal chevron whitening only at the icon/sprite leaf inside proven seasonal/NPACK themed-card control families.
+- Tames the exact NPACK `asin-container-white` product-photo shells identified by the probe using the existing TWB shade strength.
+- No MutationObserver, querySelectorAll, TreeWalker, scroll repair, interval, RAF loop, recurring timer, or production probe runtime.
 
 # AmazonDark v7.0.42
 
