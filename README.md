@@ -1,35 +1,57 @@
-# AmazonDark v7.0.30
+# AmazonDark v7.0.31
 
-Production build based directly on v7.0.29.
+Single-owner TWB correction built directly on v7.0.30.
 
-## TWB strategy
-This build stops trying to enumerate only the currently-visible v7 selectors. Instead it ports the *coverage contract* of the v6.0.185 lineage onto the lightweight v7 runtime. The scan-heavy v185 scheduling is not ported.
+## Hero correction
+v7.0.30 could tame one hero through several independent owners at once:
+- the actual IMG/VIDEO/CANVAS;
+- a known background leaf;
+- the entire `single-creative` / `single-video` / `theming-card` root;
+- a nearby-background ancestor marker;
+- the bounded hero background pass.
 
-Coverage retained semantically:
-- ordinary product/search/PDP media;
-- generic large Home/category imagery;
-- Home single-creative, single-video, video-card, theming-card, canvas, VJS, APE, hybrid-sponsored, NPACK/GWM/mosaic/p13n creative families;
-- hero/ad-frame IMG/VIDEO/CANVAS, CSS-background and pseudo-image leaves;
-- standalone/compact sponsored product media with the v185 full-raster guard for static images;
-- forced product sections such as Subscribe & Save, Keep Shopping, Shop previously watched, Returns, gift cards, Alexa for Shopping, Lists & Registries, Buy Again and Your Interests;
-- review/customer-photo media;
-- seasonal mosaic IMG/SVG artwork. Sponsored/ad-feedback descendants remain excluded.
+That stacked darkening is removed.
 
-Performance architecture:
-- no MutationObserver;
-- no querySelectorAll;
-- no TreeWalker;
-- no scroll listener/recovery;
-- no interval or RAF;
-- one bounded initial media-only pass (max 420 IMG/VIDEO/CANVAS nodes);
-- dynamic media is handled only by media lifecycle events;
-- hero CSS-background recovery is bounded to 140 visible nodes and only inside hero-sized child frames.
+v7.0.31 follows the donor boundary:
+- IMG is tamed as IMG;
+- VIDEO/CANVAS is tamed as media;
+- `single-creative-card-background`, `single-video-card-background`,
+  `theming-card-background`, and `vjs-poster` are background-only owners;
+- classless hero background URL/pseudo-image recovery remains bounded to 140 visible
+  child-frame candidates;
+- no whole hero/card root receives a TWB shadow;
+- no luminance-based pure-color hero container is dynamically darkened;
+- no media event walks ancestors and adds additional background tame layers.
 
-## Text regression correction
-The v7.0.29 `#gwm-Deck *` foreground exclusion was too broad and covered ordinary Home content beneath the hero. It is removed. Only actual hero/creative/theming/video/canvas/ad-card ancestry is excluded from the generic light-text owner.
+This keeps the hero coverage without stacking TWB over Amazon's live text/chrome.
+
+## Home text correction
+OLED Home cards/mosaics now get scoped light text ownership for normal card copy,
+headings, header links and captions.
+
+Excluded from that light-text owner:
+- Sponsored/ad-feedback text/glyph ancestry;
+- badge/deal/coupon chrome;
+- hero/creative trees.
 
 ## Sponsored isolation
-Sponsored/ad-feedback text and info glyphs remain Amazon-owned. Seasonal SVG TWB now explicitly excludes Sponsored/ad-feedback descendants so TWB cannot create a text-vs-glyph brightness mismatch.
+Sponsored/ad-feedback ancestry is excluded from:
+- universal IMG TWB;
+- seasonal SVG TWB;
+- child media classification;
+- hero background/pseudo-image recovery.
 
-## Native TWB
-Native UIImageView ownership remains assignment/mount/layout-only. The v185 Person/Alexa section coverage is represented with bounded local semantic checks instead of historical scroll/window scans. The black overlay is inserted beneath child sublayers so labels/glyphs hosted inside an image view remain visible.
+Amazon still owns Sponsored text and glyph color/artwork. No replacement Sponsor color
+or glyph is added.
+
+## TWB coverage
+v6.0.200's cheap universal ordinary-IMG coverage model is used: all normal IMG media is
+tamed declaratively, with identity/UI/Sponsored exclusions.
+
+The bounded runtime is retained only where CSS cannot express the donor behavior:
+- standalone child-frame full-raster IMG skip;
+- VIDEO/CANVAS classification;
+- hero CSS-background / pseudo-image recovery.
+
+No MutationObserver, querySelectorAll, TreeWalker, scroll listener, interval, RAF loop,
+or recurring scanner is present.
