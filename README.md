@@ -1,45 +1,47 @@
-# AmazonDark v7.0.37~probe
+# AmazonDark v7.0.38
 
-Probe workflow correction only. Diagnostic capture scope remains the same as v7.0.36.
+Production build rebased directly on v7.0.33 (the v7.0.29 baseline plus the proven Home ink correction).
 
-## Historically working trigger restored
+## Probe-driven fixes
 
-The older working AmazonDark probe used SIGUSR2.
+### Home multi-category cards
+The v7.0.37 current-frame probe identified the bright Pet wellness-style grid as:
+- `a-cardui`
+- `_multi-category-card_style_gwm-multiCategoryCard_*`
+- direct `<img class="_multi-category-card_image_*">` leaves
 
-When PID discovery was needed, Amazon appeared in `ps` using its full executable path
-ending in `/Amazon.app/Amazon`, so matching only the bare process name was unreliable.
+Those IMG leaves were outside v7.0.33's TWB selector map. v7.0.38 adds a direct static selector for them.
 
-This build therefore listens for SIGUSR2.
+The same media leaf also gets `mix-blend-mode: normal` on the OLED Home floor. This is intentionally leaf-only and is aimed at the Disney-style disappearing-image failure where the visual can appear during the long-press interaction but vanish again against the black card floor.
 
-The supplied NewTerm block uses:
-- `ps`
-- `grep`
-- `head`
-- zsh's own whitespace splitting to extract the PID
+### Hero / creative isolation at any Home depth
+v7.0.33's card-local Home text rule assumed hero/creative cards lived outside `#gwm-Deck-btf`.
+Amazon can now insert hero/standalone creative cards farther down Home.
 
-It does NOT use:
-- notifyutil
-- pgrep
-- awk
-- pidof
+The text owner now rejects hero, single-creative, single-video, theming, creative-card,
+ad-card, canvas-card, mobile-mshop-ad and APE ancestry regardless of vertical position.
+Amazon therefore keeps ownership of campaign text/background contrast.
 
-## Probe coverage
+### Standalone / child-frame TWB
+TWB remains media-only.
+A child document gets one documentStart attribute and static CSS tames raster `<img>` leaves
+with identity/UI/Sponsored exclusions. No frame walk or media census is used.
 
-Current visible Home frame only:
-- missing category-card visual leaves;
-- large Home photo ads not receiving TWB;
-- large seasonal/category glyph/media not receiving TWB;
-- visible iframe and child-frame media where the all-frame bootstrap can respond.
-
-No production styling changes.
+If a standalone Home ad renders direct IMG/VIDEO/CANVAS media in its known
+mobile-mshop/APE wrapper, that media is also tamed directly. Sponsored feedback text and glyph
+ancestry is excluded.
 
 ## Performance
+No MutationObserver.
+No querySelectorAll.
+No TreeWalker.
+No scroll listener.
+No setInterval.
+No requestAnimationFrame.
+No media sweep.
+No recurring timer.
+No viewport scan.
+No getComputedStyle loop.
 
-Diagnostic only:
-- 0 querySelectorAll
-- 0 MutationObserver
-- 0 TreeWalker
-- 0 scroll listeners
-- 0 setInterval
-- 0 requestAnimationFrame
-- 0 recurring scanners/timers
+The only new runtime operation is one `window.top !== window` check per document at documentStart;
+all actual coverage is static CSS.

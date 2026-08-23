@@ -33,9 +33,8 @@
 #import <errno.h>
 #import <string.h>
 #import <float.h>
-#import <signal.h>
 
-#define AD_VERSION "v7.0.37-home-media-twb-probe"
+#define AD_VERSION "v7.0.38-v729-static-home-media"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -599,13 +598,12 @@ static void ADPostReadyOnce(void);
 static void ADScheduleLaunchReadyCheck706(void);
 static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
-static const void *kADProbeUS7037=&kADProbeUS7037;
 static NSHashTable *gADWebViews=nil;
 
 static NSString *ADFloorJS(void){
     // v7.0.14: static v185-style palette. CSS only: no Dark Reader, no observer,
     // no computed-style repair walker. Own known structural shells; preserve media/art.
-    return @"(function(){try{var id='ad7-static-theme',s=document.getElementById(id);"
+    return @"(function(){try{var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement)document.documentElement.setAttribute('data-ad7-child-frame','1');var id='ad7-static-theme',s=document.getElementById(id);"
             "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
             "s.textContent='"
             /* Root/page floors: immediate OLED canvas. */
@@ -635,6 +633,7 @@ static NSString *ADFloorJS(void){
             ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *))"
             ":not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *))"
             ":not(:where([id^=af-label-] *))"
+            ":not(:where(html[data-ad7-child-frame] *))"
             ":not(:where(#gwm-Deck *)):not(:where([class*=hero] *))"
             ":not(:where([class*=single-creative] *)):not(:where([class*=single-video] *))"
             ":not(:where([class*=theming-card] *))"
@@ -645,6 +644,7 @@ static NSString *ADFloorJS(void){
             ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *))"
             ":not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *))"
             ":not(:where([id^=af-label-] *))"
+            ":not(:where(html[data-ad7-child-frame] *))"
             ":not(:where(#gwm-Deck *)):not(:where([class*=hero] *))"
             ":not(:where([class*=single-creative] *)):not(:where([class*=single-video] *))"
             ":not(:where([class*=theming-card] *))"
@@ -701,6 +701,13 @@ static NSString *ADFloorJS(void){
             ":is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
             "[class*=asin-metadata]"
             "{mix-blend-mode:normal!important;isolation:auto!important;}"
+            /* v7.0.38 probe-confirmed multi-category media.
+             * Disney/Pet wellness/Jewelry/Smart Home cards use direct IMG leaves
+             * named _multi-category-card_image_* rather than asin/product-image.
+             * Normalize the IMG leaf only; never the card or its live text. */
+            ":is(#gwm-Deck-btf,.gwm-dashboard-container) [class*=multi-category-card] img"
+            "{mix-blend-mode:normal!important;isolation:auto!important;"
+            "background-color:transparent!important;}"
             /* Exact deal-message host only: remove the white plate, but never
              * repaint %off badgeLabel or Limited time deal text. */
             ":is(#gwm-PageContent,#gwm-Deck-btf,#gwm-Deck,.gwm-dashboard-container) [class*=badgeMessage]"
@@ -719,6 +726,10 @@ static NSString *ADFloorJS(void){
             ":not(:where([id^=af-label-] *))"
             ":not([class*=badge]):not([class*=deal]):not([class*=coupon])"
             ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *))"
+            ":not(:where([class*=hero] *)):not(:where([class*=single-creative] *)):not(:where([class*=single-video] *))"
+            ":not(:where([class*=theming-card] *)):not(:where([class*=creative-card] *)):not(:where([class*=ad-card] *)):not(:where([class*=canvas-card] *))"
+            ":not(:where([class*=mobile-mshop-ad] *)):not(:where([class*=mobile-ad-container] *))"
+            ":not(:where([class*=ape-wrapper] *)):not(:where([class*=ape-placement] *))"
             "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
             /* Bare Home section headers can live outside the inner card shell. */
             ":is(#gwm-Deck-btf,.gwm-dashboard-container) :is(h1,h2,h3,h4,h5,h6)"
@@ -730,6 +741,8 @@ static NSString *ADFloorJS(void){
             ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *))"
             ":not(:where([class*=hero] *)):not(:where([class*=single-creative] *)):not(:where([class*=single-video] *))"
             ":not(:where([class*=theming-card] *)):not(:where([class*=creative-card] *)):not(:where([class*=ad-card] *)):not(:where([class*=canvas-card] *))"
+            ":not(:where([class*=mobile-mshop-ad] *)):not(:where([class*=mobile-ad-container] *))"
+            ":not(:where([class*=ape-wrapper] *)):not(:where([class*=ape-placement] *))"
             "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
             /* Seasonal/widget headings and captions may sit outside a-cardui. */
             ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
@@ -773,7 +786,7 @@ static NSString *ADTWBJS(void){
     CGFloat factor=MAX(0.50,1.0-0.50*strength/100.0);
     CGFloat shade=0.50*strength/100.0;
     return [NSString stringWithFormat:
-        @"(function(){try{var id='ad7-twb-static',s=document.getElementById(id);"
+        @"(function(){try{var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement)document.documentElement.setAttribute('data-ad7-twb-child','1');var id='ad7-twb-static',s=document.getElementById(id);"
          "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
          "s.textContent='"
          /* Ordinary/product imagery. */
@@ -786,6 +799,23 @@ static NSString *ADTWBJS(void){
          ":is(img.a-amazon-image,[class*=image-wrapper] img,[class*=img-wrapper] img,[class*=image-container] img),"
          "#gwm-Deck-btf :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
          ":is(img.a-amazon-image,[class*=image-wrapper] img,[class*=img-wrapper] img,[class*=image-container] img),"
+         /* v7.0.38: probe-confirmed direct IMG leaves in Home multi-category cards. */
+         ":is(#gwm-Deck-btf,.gwm-dashboard-container) [class*=multi-category-card] img,"
+         /* Cheap v185-coverage equivalent for Home ad child frames: raster media only.
+          * Text, backgrounds and Sponsored feedback remain Amazon-owned. */
+         "html[data-ad7-twb-child=\"1\"] img"
+         ":not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller])"
+         ":not([class*=rating]):not([class*=star]):not([class*=checkbox]):not([class*=heart]):not([class*=wishlist])"
+         ":not([class*=search-icon]):not([class*=microphone]):not([class*=camera]):not([class*=location])"
+         ":not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon]):not([class*=sprite]):not([class*=pixel])"
+         ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
+         ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),"
+         /* Main-document standalone ad media if Amazon renders it outside the iframe. */
+         "#gwm-Deck-btf :is([class*=mobile-mshop-ad],[class*=mobile-ad-container],[class*=ape-wrapper],[class*=ape-placement]) "
+         ":is(img,video,canvas)"
+         ":not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge])"
+         ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
+         ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),"
          /* Seasonal mosaic media + its image/SVG glyph artwork. */
          "[class*=hp-mosaic-container] :is(img,svg),"
          "[class*=_mosaic-container_style_widgetContainer] :is(img,svg),"
@@ -801,45 +831,6 @@ static NSString *ADTWBJS(void){
          "[class*=theming-card] [class*=vjs-poster]"
          "{box-shadow:inset 0 0 0 9999px rgba(0,0,0,%.3f)!important;}"
          "';}catch(e){}})();",factor,shade];
-}
-
-
-static NSString *ADProbeBootstrap7037(void){
-    return @"(function(){try{"
-    "if(window.__ADP7037_INSTALLED__)return;window.__ADP7037_INSTALLED__=1;"
-    "function c(v,n){return String(v==null?'':v).replace(/\\s+/g,' ').trim().slice(0,n||260)}"
-    "function cls(e){try{var x=e.className;if(x&&x.baseVal!==undefined)x=x.baseVal;return typeof x==='string'?x:''}catch(z){return ''}}"
-    "function at(e,n){try{return e.getAttribute&&e.getAttribute(n)||''}catch(z){return ''}}"
-    "function sem(e){return c((e.id||'')+' '+cls(e)+' '+at(e,'data-component-type')+' '+at(e,'data-csa-c-type')+' '+at(e,'data-cel-widget')+' '+at(e,'role')+' '+at(e,'aria-label'),320)}"
-    "function rr(e){try{return e.getBoundingClientRect()}catch(z){return {left:0,top:0,right:0,bottom:0,width:0,height:0}}}"
-    "function pss(x){if(!x)return '{}';return '{bg:'+c(x.backgroundColor,70)+',bgi:'+c(x.backgroundImage,180)+',mask:'+c(x.webkitMaskImage||x.maskImage,180)+',filter:'+c(x.filter,80)+',blend:'+c(x.mixBlendMode,50)+',op:'+c(x.opacity,25)+',content:'+c(x.content,100)+',color:'+c(x.color,70)+',fill:'+c(x.fill,70)+'}'}"
-    "function med(e){var t=(e.tagName||'').toUpperCase(),a=[];"
-      "if(t==='IMG'){a.push('src='+c(e.src,190));a.push('currentSrc='+c(e.currentSrc,190));a.push('natural='+e.naturalWidth+'x'+e.naturalHeight);a.push('complete='+!!e.complete)}"
-      "else if(t==='VIDEO'){a.push('poster='+c(e.poster,190));a.push('video='+e.videoWidth+'x'+e.videoHeight);a.push('ready='+e.readyState)}"
-      "else if(t==='SOURCE'){a.push('src='+c(e.src,190));a.push('srcset='+c(e.srcset,190))}"
-      "else if(t==='SVG'||t==='USE'||t==='IMAGE'){a.push('href='+c(at(e,'href')||at(e,'xlink:href'),190));a.push('viewBox='+c(at(e,'viewBox'),100))}"
-      "return a.join(' ')}"
-    "function snap(){try{var D=document,W=innerWidth||D.documentElement.clientWidth,H=innerHeight||D.documentElement.clientHeight;"
-      "var xs=[.03,.10,.19,.30,.42,.54,.66,.78,.89,.97],ys=[.08,.16,.24,.32,.40,.48,.56,.64,.72,.80,.88,.95],seen=new Set(),rows=[],frames=[];"
-      "function add(e,why,d,x,y){try{if(!e||e.nodeType!==1||seen.has(e)||rows.length>=190)return;seen.add(e);var r=rr(e);if(r.bottom<0||r.top>H||r.right<0||r.left>W)return;"
-        "var st=getComputedStyle(e),bf=null,af=null;try{bf=getComputedStyle(e,'::before');af=getComputedStyle(e,'::after')}catch(z){};"
-        "rows.push('E['+rows.length+'] why='+why+' d='+d+' pt='+Math.round(x)+','+Math.round(y)+' tag='+e.tagName+' rect=('+r.left.toFixed(1)+','+r.top.toFixed(1)+' '+r.width.toFixed(1)+'x'+r.height.toFixed(1)+') sem='+sem(e)+' bg='+c(st.backgroundColor,70)+' bgi='+c(st.backgroundImage,200)+' mask='+c(st.webkitMaskImage||st.maskImage,200)+' maskSize='+c(st.webkitMaskSize||st.maskSize,90)+' filter='+c(st.filter,100)+' blend='+c(st.mixBlendMode,50)+' bgBlend='+c(st.backgroundBlendMode,50)+' iso='+c(st.isolation,40)+' op='+c(st.opacity,25)+' vis='+c(st.visibility,25)+' display='+c(st.display,35)+' color='+c(st.color,70)+' textFill='+c(st.webkitTextFillColor,70)+' fill='+c(st.fill,70)+' stroke='+c(st.stroke,70)+' objectFit='+c(st.objectFit,40)+' '+med(e)+' before='+pss(bf)+' after='+pss(af)+' text='+c(e.innerText||e.textContent,180));"
-      "}catch(z){}}"
-      "function near(e,x,y){var n=e;for(var d=0;d<6&&n&&rows.length<190;d++,n=n.parentElement){add(n,d?'ancestor':'hit',d,x,y);var ch=n.children||[];for(var j=0;j<Math.min(ch.length,8)&&rows.length<190;j++){var q=ch[j],r=rr(q);if(r.width>=8&&r.height>=8&&r.bottom>=0&&r.top<=H&&r.right>=0&&r.left<=W)add(q,'child',d+1,x,y)}}}"
-      "for(var yi=0;yi<ys.length&&rows.length<190;yi++){for(var xi=0;xi<xs.length&&rows.length<190;xi++){var x=W*xs[xi],y=H*ys[yi],st=D.elementsFromPoint(x,y);for(var k=0;k<Math.min(st.length,6)&&rows.length<190;k++)near(st[k],x,y)}}"
-      "var fs=D.getElementsByTagName('iframe');for(var fi=0;fi<fs.length&&fi<12;fi++){var fr=fs[fi],r=rr(fr);if(r.width>1&&r.height>1&&r.bottom>0&&r.top<H&&r.right>0&&r.left<W){frames.push(fr);add(fr,'visible-iframe',0,r.left+r.width/2,r.top+r.height/2)}}"
-      "window.__ADP7037_FRAMES=frames;"
-      "return 'FRAME href='+c(location.href,380)+' top='+(window.top===window?1:0)+' viewport='+W+'x'+H+' visibleFrames='+frames.length+'\\n'+rows.join('\\n')+'\\nFRAME_SUMMARY elements='+rows.length;"
-    "}catch(e){return 'SNAP_EXCEPTION '+e}}"
-    "window.__ADP7037_SNAP=snap;window.__ADP7037_CHILD=[];"
-    "window.addEventListener('message',function(ev){try{var d=ev.data;if(!d)return;"
-      "if(d.__adp7037_req){var z=snap();try{ev.source.postMessage({__adp7037_resp:d.__adp7037_req,dump:z},'*')}catch(x){}}"
-      "else if(d.__adp7037_resp&&window.top===window){window.__ADP7037_CHILD.push(d.dump||'EMPTY_CHILD')}}catch(x){}});"
-    "if(window.top===window){"
-      "window.__ADP7037_TRIGGER=function(){try{window.__ADP7037_CHILD=[];window.__ADP7037_MAIN=snap();var fs=window.__ADP7037_FRAMES||[];for(var i=0;i<fs.length;i++){try{fs[i].contentWindow.postMessage({__adp7037_req:'go'},'*')}catch(x){}}return 'TRIGGERED childFrames='+fs.length}catch(e){return 'TRIGGER_EXCEPTION '+e}};"
-      "window.__ADP7037_DUMP=function(){try{return (window.__ADP7037_MAIN||snap())+'\\n\\n=== CHILD FRAME SNAPSHOTS ===\\n'+(window.__ADP7037_CHILD.length?window.__ADP7037_CHILD.join('\\n\\n--- CHILD ---\\n'):'NO_CHILD_RESPONSES')}catch(e){return 'DUMP_EXCEPTION '+e}};"
-    "}"
-    "}catch(e){}})();";
 }
 
 static void ADTrackWebView(WKWebView *wv){
@@ -861,11 +852,6 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADTWBJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADTWBUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
-        if(!objc_getAssociatedObject(ucc,kADProbeUS7037)){
-            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADProbeBootstrap7037() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
-            [ucc addUserScript:us];
-            objc_setAssociatedObject(ucc,kADProbeUS7037,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
     } @catch(...) {}
 }
@@ -919,7 +905,6 @@ static void ADApplyAllFloors(void){
     if(gP.enabled){
         objc_setAssociatedObject(self,kADFloorUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADTWBUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(self,kADProbeUS7037,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADAttachScriptsToUCC710(self);
     }
 }
@@ -1851,84 +1836,6 @@ static void ADScheduleLaunchReadyCheck706(void){
     gADReadyScheduled706=YES; dispatch_async(dispatch_get_main_queue(),^{ ADRunLaunchReadyCheck706(); });
 }
 
-
-// -----------------------------------------------------------------------------
-// v7.0.37 manual SIGUSR2 current-frame Home media/TWB probe.
-// Diagnostic only: no theming changes, no background-triggered capture.
-// User workflow: leave target viewport visible -> background Amazon -> run the known-good NewTerm
-// block that sends SIGUSR2 and copies the report into the shared Documents folder.
-// -----------------------------------------------------------------------------
-static BOOL gADProbe7037Busy=NO;
-
-static NSString *ADProbePath7037(void){
-    @try {
-        NSArray *dirs=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
-        NSString *base=dirs.firstObject;
-        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-home-media-twb-probe-7037.txt"];
-    } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-home-media-twb-probe-7037.txt"];
-}
-static void ADWriteProbe7037(NSString *body){
-    @try {
-        NSMutableString *out=[NSMutableString string];
-        [out appendFormat:@"AmazonDark %@ current-frame Home media/TWB probe\n",[NSString stringWithUTF8String:AD_VERSION]];
-        [out appendFormat:@"timestamp=%@\n\n",[NSDate date]];
-        [out appendString:body?:@"NO_BODY"];
-        [out writeToFile:ADProbePath7037() atomically:YES encoding:NSUTF8StringEncoding error:nil];
-    } @catch(...) {}
-}
-static WKWebView *ADVisibleWebView7037(void){
-    WKWebView *best=nil; CGFloat bestArea=0;
-    @try {
-        for(WKWebView *wv in ADTrackedWebViews()){
-            if(!wv||wv.hidden||wv.alpha<0.01)continue;
-            CGRect b=wv.bounds;
-            CGFloat area=MAX(0,b.size.width)*MAX(0,b.size.height);
-            if(wv.window)area*=2.0;
-            if(area>bestArea){bestArea=area;best=wv;}
-        }
-    } @catch(...) {}
-    return best;
-}
-static void ADEndProbeBG7037(UIBackgroundTaskIdentifier bg){
-    if(bg==UIBackgroundTaskInvalid)return;
-    @try { [[UIApplication sharedApplication] endBackgroundTask:bg]; } @catch(...) {}
-}
-static void ADRunProbe7037(void){
-    if(gADProbe7037Busy)return;
-    gADProbe7037Busy=YES;
-    ADWriteProbe7037(@"PROBE_TRIGGERED");
-    WKWebView *wv=ADVisibleWebView7037();
-    if(!wv){ADWriteProbe7037(@"NO_TRACKED_WKWEBVIEW");gADProbe7037Busy=NO;return;}
-
-    __block UIBackgroundTaskIdentifier bg=UIBackgroundTaskInvalid;
-    @try {
-        bg=[[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
-            UIBackgroundTaskIdentifier x=bg;bg=UIBackgroundTaskInvalid;ADEndProbeBG7037(x);
-        }];
-    } @catch(...) {}
-
-    [wv evaluateJavaScript:@"window.__ADP7037_TRIGGER?window.__ADP7037_TRIGGER():'NO_PROBE_BOOTSTRAP'"
-         completionHandler:^(id value,NSError *error){
-        NSString *head=error?[NSString stringWithFormat:@"TRIGGER_ERROR %@",error]:[value description];
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.35*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-            [wv evaluateJavaScript:@"window.__ADP7037_DUMP?window.__ADP7037_DUMP():'NO_PROBE_DUMP'"
-                 completionHandler:^(id dump,NSError *dumpError){
-                NSString *body=dumpError
-                    ? [NSString stringWithFormat:@"%@\nDUMP_ERROR %@",head,dumpError]
-                    : [NSString stringWithFormat:@"%@\n\n%@",head,([dump isKindOfClass:[NSString class]]?dump:[dump description])];
-                ADWriteProbe7037(body);
-                gADProbe7037Busy=NO;
-                UIBackgroundTaskIdentifier x=bg;bg=UIBackgroundTaskInvalid;ADEndProbeBG7037(x);
-            }];
-        });
-    }];
-}
-static void ADProbeSignal7037(int sig){
-    if(sig!=SIGUSR2)return;
-    dispatch_async(dispatch_get_main_queue(),^{ @try { ADRunProbe7037(); } @catch(...) {} });
-}
-
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
     ADLoadPrefs(); ADRefreshPromotionState611(); ADApplyAllFloors();
 }
@@ -1949,8 +1856,6 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
     } @catch(...) {}
 
     %init;
-
-    signal(SIGUSR2, ADProbeSignal7037);
 
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);
