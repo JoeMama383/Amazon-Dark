@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.15-home-status-probe"
+#define AD_VERSION "v7.0.16-home-status-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -651,6 +651,26 @@ static NSString *ADFloorJS(void){
             /* Share/overflow exact leaves from probe history. */
             ".puis-mab-overlay-row-share .puis-mab-overlay-icon-share"
             "{background-color:#e8e6e3!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;filter:none!important;}"
+            /* v6.0.185 seasonal Home mosaic contract, ported as CSS only.
+             * Background literals intentionally changed to true OLED #000; media remains Amazon-owned. */
+            "#gwm-PageContent [class*=hp-mosaic-container],"
+            "#gwm-PageContent [class*=_mosaic-container_style_widgetContainer]"
+            "{background-color:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;border-color:#494d4d!important;mix-blend-mode:normal!important;isolation:isolate!important;}"
+            "#gwm-PageContent [class*=hp-mosaic-container] :is(div,section,article,ul,ol,li,a),"
+            "#gwm-PageContent [class*=_mosaic-container_style_widgetContainer] :is(div,section,article,ul,ol,li,a)"
+            "{background-color:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;border-color:#494d4d!important;mix-blend-mode:normal!important;}"
+            "#gwm-PageContent [class*=hp-mosaic-container] :is(img,video,canvas,picture,svg),"
+            "#gwm-PageContent [class*=_mosaic-container_style_widgetContainer] :is(img,video,canvas,picture,svg)"
+            "{background-color:transparent!important;}"
+            "#gwm-PageContent [class*=hp-mosaic-container] [class*=badgeMessage],"
+            "#gwm-PageContent [class*=_mosaic-container_style_widgetContainer] [class*=badgeMessage]"
+            "{background-color:transparent!important;background-image:none!important;box-shadow:none!important;border-color:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            "#gwm-PageContent [class*=hp-mosaic-container] [class*=badgeLabel],"
+            "#gwm-PageContent [class*=_mosaic-container_style_widgetContainer] [class*=badgeLabel]"
+            "{background-color:#cc0c39!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+            "#gwm-PageContent [class*=hp-mosaic-container] [class*=next],#gwm-PageContent [class*=hp-mosaic-container] [class*=prev],#gwm-PageContent [class*=hp-mosaic-container] [class*=chevron],#gwm-PageContent [class*=hp-mosaic-container] [class*=arrow],"
+            "#gwm-PageContent [class*=_mosaic-container_style_widgetContainer] [class*=next],#gwm-PageContent [class*=_mosaic-container_style_widgetContainer] [class*=prev],#gwm-PageContent [class*=_mosaic-container_style_widgetContainer] [class*=chevron],#gwm-PageContent [class*=_mosaic-container_style_widgetContainer] [class*=arrow]"
+            "{color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;}"
             /* Proven Home product-card shells (v6.0.36 / v6.0.210-211): own the shell, not the creative/media plane. */
             "#gwm-PageContent [class*=a-cardui]:not([class*=creative]):not([class*=ad-card]),"
             "#gwm-PageContent [class*=npack-asin-card],"
@@ -740,19 +760,21 @@ static void ADApplyWebFloor(WKWebView *wv){
 }
 
 
+static BOOL ADPrimaryAmazonWindow713(UIWindow *w, UIViewController *candidate);
+
 // -----------------------------------------------------------------------------
-// v7.0.15 one-shot visible-screen probe.
+// v7.0.16 one-shot visible-screen probe.
 // Scope is intentionally tiny: current Home viewport below the hero/carousel and
 // the native status/top-chrome strip. No MutationObserver, no document traversal,
 // no recurring timer, no scroll listener, and no full-window hierarchy dump.
 // -----------------------------------------------------------------------------
-static BOOL gADProbe7015Scheduled=NO;
-static BOOL gADProbe7015Done=NO;
+static BOOL gADProbe7016Scheduled=NO;
+static BOOL gADProbe7016Done=NO;
 
-static NSString *ADProbe7015Path(void){
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-home-ad-status-probe-7015.txt"];
+static NSString *ADProbe7016Path(void){
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-home-ad-status-probe-7016.txt"];
 }
-static NSString *ADColor7015(UIColor *c){
+static NSString *ADColor7016(UIColor *c){
     if(!c)return @"nil";
     @try {
         CGFloat r=0,g=0,b=0,a=0,w=0;
@@ -761,22 +783,22 @@ static NSString *ADColor7015(UIColor *c){
     } @catch(...) {}
     return c.description?:@"?";
 }
-static NSString *ADCGColor7015(CGColorRef cg){
+static NSString *ADCGColor7016(CGColorRef cg){
     if(!cg)return @"nil";
-    @try { return ADColor7015([UIColor colorWithCGColor:cg]); } @catch(...) { return @"?"; }
+    @try { return ADColor7016([UIColor colorWithCGColor:cg]); } @catch(...) { return @"?"; }
 }
-static BOOL ADRectHitsTop7015(CGRect r){
+static BOOL ADRectHitsTop7016(CGRect r){
     if(CGRectIsNull(r)||CGRectIsEmpty(r))return NO;
     CGRect top=CGRectMake(0,0,UIScreen.mainScreen.bounds.size.width,220.0);
     return CGRectIntersectsRect(r,top);
 }
-static NSString *ADAncestors7015(UIView *v){
+static NSString *ADAncestors7016(UIView *v){
     NSMutableArray *a=[NSMutableArray array];
     UIView *n=v.superview;
     for(int i=0;i<4&&n;i++,n=n.superview) [a addObject:NSStringFromClass(n.class)?:@"?"];
     return [a componentsJoinedByString:@" > "];
 }
-static NSString *ADNativeTopSnapshot7015(void){
+static NSString *ADNativeTopSnapshot7016(void){
     NSMutableString *out=[NSMutableString stringWithString:@"=== NATIVE STATUS/TOP-CHROME VISIBLE SNAPSHOT ===\n"];
     @try {
         UIWindow *target=nil;
@@ -791,22 +813,22 @@ static NSString *ADNativeTopSnapshot7015(void){
             UIView *v=q[i]; seen++;
             if(!v||v.hidden||v.alpha<0.01)continue;
             CGRect rr=CGRectZero; @try { rr=[v convertRect:v.bounds toView:nil]; } @catch(...) { continue; }
-            if(!ADRectHitsTop7015(rr))continue;
+            if(!ADRectHitsTop7016(rr))continue;
             NSString *cn=NSStringFromClass(v.class)?:@"?";
             NSString *low=cn.lowercaseString;
             BOOL interesting=([low containsString:@"status"]||[low containsString:@"topnav"]||[low containsString:@"search"]||[low containsString:@"barbackground"]||[low containsString:@"visualeffect"]||[low containsString:@"navigation"]||[low containsString:@"header"]||rr.size.width>UIScreen.mainScreen.bounds.size.width*0.75);
             if(interesting && logged<100){
                 [out appendFormat:@"N[%lu] cls=%@ rect=(%.1f,%.1f %.1fx%.1f) bg=%@ layer=%@ alpha=%.2f opaque=%d hidden=%d aid=\"%@\" label=\"%@\" parent=%@\n",
                     (unsigned long)logged,cn,rr.origin.x,rr.origin.y,rr.size.width,rr.size.height,
-                    ADColor7015(v.backgroundColor),ADCGColor7015(v.layer.backgroundColor),v.alpha,v.opaque?1:0,v.hidden?1:0,
-                    v.accessibilityIdentifier?:@"",v.accessibilityLabel?:@"",ADAncestors7015(v)];
+                    ADColor7016(v.backgroundColor),ADCGColor7016(v.layer.backgroundColor),v.alpha,v.opaque?1:0,v.hidden?1:0,
+                    v.accessibilityIdentifier?:@"",v.accessibilityLabel?:@"",ADAncestors7016(v)];
                 logged++;
             }
             // Descend only through branches that intersect the top 220pt strip.
             for(UIView *sv in v.subviews){
                 if(!sv||sv.hidden||sv.alpha<0.01)continue;
                 CGRect sr=CGRectZero; @try { sr=[sv convertRect:sv.bounds toView:nil]; } @catch(...) { continue; }
-                if(ADRectHitsTop7015(sr)) [q addObject:sv];
+                if(ADRectHitsTop7016(sr)) [q addObject:sv];
             }
         }
         [out appendFormat:@"NATIVE_SUMMARY visited=%lu logged=%lu\n",(unsigned long)seen,(unsigned long)logged];
@@ -814,9 +836,9 @@ static NSString *ADNativeTopSnapshot7015(void){
     return out;
 }
 
-static NSString *ADWebViewportProbeJS7015(void){
+static NSString *ADWebViewportProbeJS7016(void){
     return @"(function(){try{"
-    "if(window.__AD_PROBE7015_DONE__)return 'WEB_ALREADY_CAPTURED';window.__AD_PROBE7015_DONE__=1;"
+    "if(window.__AD_PROBE7016_DONE__)return 'WEB_ALREADY_CAPTURED';window.__AD_PROBE7016_DONE__=1;"
     "var root=document.getElementById('gwm-PageContent');if(!root)return 'NOT_HOME';"
     "var W=innerWidth||document.documentElement.clientWidth,H=innerHeight||document.documentElement.clientHeight;"
     "var xs=[.08,.25,.5,.75,.92],ys=[.40,.50,.60,.70,.80,.90,.96],seen=new Set(),rows=[];"
@@ -828,7 +850,7 @@ static NSString *ADWebViewportProbeJS7015(void){
     "return '=== WEB HOME BELOW-CAROUSEL VISIBLE SNAPSHOT ===\\nURL='+location.href+'\\nVIEWPORT='+W+'x'+H+'\\n'+rows.join('\\n')+'\\nWEB_SUMMARY sampled='+rows.length;"
     "}catch(e){return 'WEB_EXCEPTION '+e;}})();";
 }
-static void ADWriteProbe7015(NSString *nativePart,NSString *webPart){
+static void ADWriteProbe7016(NSString *nativePart,NSString *webPart){
     @try {
         NSMutableString *s=[NSMutableString string];
         [s appendFormat:@"AmazonDark %@ one-shot Home below-carousel + status-bar probe\n",[NSString stringWithUTF8String:AD_VERSION]];
@@ -836,30 +858,30 @@ static void ADWriteProbe7015(NSString *nativePart,NSString *webPart){
         [s appendString:nativePart?:@"NO_NATIVE\n"];
         [s appendString:@"\n"];
         [s appendString:webPart?:@"NO_WEB\n"];
-        [s writeToFile:ADProbe7015Path() atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        [s writeToFile:ADProbe7016Path() atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } @catch(...) {}
 }
-static void ADRunProbe7015(WKWebView *wv){
-    if(gADProbe7015Done||!gP.enabled||!wv||!wv.window)return;
+static void ADRunProbe7016(WKWebView *wv){
+    if(gADProbe7016Done||!gP.enabled||!wv||!wv.window)return;
     NSString *u=wv.URL.absoluteString.lowercaseString?:@"";
     if(!([u containsString:@"/gp/gw/"]||[u containsString:@"mshop"]||[u containsString:@"ishomepageredesign"]))return;
-    gADProbe7015Done=YES;
-    NSString *nativePart=ADNativeTopSnapshot7015();
-    [wv evaluateJavaScript:ADWebViewportProbeJS7015() completionHandler:^(id value,NSError *error){
+    gADProbe7016Done=YES;
+    NSString *nativePart=ADNativeTopSnapshot7016();
+    [wv evaluateJavaScript:ADWebViewportProbeJS7016() completionHandler:^(id value,NSError *error){
         NSString *webPart=error?[NSString stringWithFormat:@"WEB_ERROR %@",error] : ([value isKindOfClass:[NSString class]]?value:[value description]);
-        ADWriteProbe7015(nativePart,webPart);
+        ADWriteProbe7016(nativePart,webPart);
     }];
 }
-static void ADScheduleProbe7015(WKWebView *wv){
-    if(gADProbe7015Done||gADProbe7015Scheduled||!gP.enabled||!wv)return;
+static void ADScheduleProbe7016(WKWebView *wv){
+    if(gADProbe7016Done||gADProbe7016Scheduled||!gP.enabled||!wv)return;
     NSString *u=wv.URL.absoluteString.lowercaseString?:@"";
     if(!([u containsString:@"/gp/gw/"]||[u containsString:@"mshop"]||[u containsString:@"ishomepageredesign"]))return;
-    gADProbe7015Scheduled=YES;
+    gADProbe7016Scheduled=YES;
     __weak WKWebView *weak=wv;
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(3.0*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-        gADProbe7015Scheduled=NO;
+        gADProbe7016Scheduled=NO;
         WKWebView *strong=weak;
-        if(strong) ADRunProbe7015(strong);
+        if(strong) ADRunProbe7016(strong);
     });
 }
 
@@ -912,7 +934,7 @@ static void ADApplyAllFloors(void){
 }
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled && self.window){ ADAttachWebScripts(self); ADApplyWebFloor(self); ADScheduleLaunchReadyCheck706(); ADScheduleProbe7015(self); }
+    if(gP.enabled && self.window){ ADAttachWebScripts(self); ADApplyWebFloor(self); ADScheduleLaunchReadyCheck706(); ADScheduleProbe7016(self); }
 }
 %end
 
