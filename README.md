@@ -1,39 +1,37 @@
-# AmazonDark v7.0.46~probe
+# AmazonDark v7.0.47
 
-Probe build on the exact v7.0.45 production base.
+Built on **v7.0.46** (`a6a6d86`).
 
-## Production changes
+## Correction
 
-- Ports the cheap v6.0.185 Web border-color contract for stable Amazon card/container families. Existing border widths, radii, shadows and layout remain Amazon-owned; only visible border/outline color is forced to v6.0.185 final gray `#3b4043`. Seasonal/mosaic nested structural shells receive the same gray so Amazon white borders cannot survive on the inner border-bearing node.
-- Adds a cheap standalone-ad child-frame theme. A one-time documentStart referrer gate marks non-PDP/non-Search child frames, and a CSS media query limits the dark treatment to short/wide standalone creatives. The frame floor becomes OLED black and ordinary ad text becomes `#e8e6e3`; images, layout, Sponsored row/glyphs and interaction remain unchanged. No DOM scan, observer, timer or scroll repair is added.
+The previous attempt at these fixes was built on v7.0.21 — I fetched at the start of
+that task and did not re-check origin before packaging, so it was 25 commits behind and
+would have reverted the v7.0.42–46 chevron work. Discarded.
 
-## Palette probe
+## Chevrons: already fixed at v7.0.46, left alone
 
-- Manual `SIGUSR2` trigger only.
-- Appends one current-page frequency snapshot to `AmazonDark-palette-probe-7046.txt` in Amazon's Documents sandbox.
-- Records distinct computed background, text and border/outline colors with occurrence counts, visible viewport area for background colors, and one example selector per color.
-- Intended captures: Home, Search, PDP and Cart.
-- The probe is dormant until triggered and adds no MutationObserver, timer, RAF, scroll listener or normal-runtime DOM scan.
+v7.0.46 targets the actual sprite leaf — `i.a-icon.a-icon-dropdown` under the Home deck
+and the `puis-mab-chevron` families. That is the correct root cause and is more precise
+than the generic `[class*=chevron]` rule I was about to port from v6.0.185. Overwriting
+it would have been a regression. Untouched here: `a-icon-dropdown` still has 6 sites.
 
-## Preserved
+## Two gaps that were real
 
-- v7.0.45 seasonal photo plates, College chevron and unified search/location fill.
-- v7.0.44 NPACK background-video TWB persistence.
-- Existing TWB, 120 Hz, JIT, launch cover, navigation behavior and all unrelated static theme rules.
+Both had **zero occurrences** in v7.0.46, so nothing owned them.
 
-## Previous v7.0.45 notes
+**Sponsored info glyph.** Now uses the same `brightness(0) invert(1)` the chevron work
+relies on: `brightness(0)` flattens the artwork to solid black whatever it started as,
+`invert(1)` flips it to solid white. That avoids needing to know whether Amazon mounted
+the sprite, the SVG or the mask variant on a given card. `position:relative; z-index:2`
+covers the other failure mode — on some cards it is not mis-coloured but buried under
+the card floor. The adjacent `ad-feedback-text` label is set to `#e8e6e3`.
 
-# AmazonDark v7.0.45
+**Scrollbar.** Never ours: v6.0.185 got it from Dark Reader's `styleSystemControls`.
+Without Dark Reader, Amazon's authored near-black thumb sits on the OLED floor and
+disappears. Neutral grey thumb (`#6f6f6f`, `#8a8a8a` hover) over a transparent track.
 
-Production build on the v7.0.44 static-CSS architecture.
+## Verification
 
-## Changes
-
-- Completes the College/seasonal Home chevron owner by whitening the exact `i.a-icon.a-icon-dropdown` sprite leaf anywhere inside the Home deck, while retaining the narrower seasonal/MAB fallbacks.
-- Converts the probe-confirmed NPACK `_asin-container-white__` product-photo shell from white/gray to OLED black. The product raster remains independently TWB-filtered, producing the same black contain/padding plate seen in the v6.0.185 reference instead of shading the white shell to gray.
-- Makes `SBSearchField` and `ANPSearchBarRightButton` use the same dark neutral fill (`#303335`) and light foreground ink. Both surfaces are reasserted only through their exact lifecycle/setter hooks so Amazon cannot restore the lighter fill later.
-- Keeps the v7.0.44 seasonal background-video TWB persistence fix unchanged.
-
-## Performance
-
-Home/hero changes remain document-start CSS only: no MutationObserver, querySelectorAll, TreeWalker, scroll listener, interval, requestAnimationFrame, or recurring repair loop. Search/location are native UIKit surfaces, so they use direct class hooks already in the tweak rather than DOM work or hierarchy scanning.
+- `a-icon-dropdown` sites unchanged at 6 — the v7.0.42–46 chevron work is intact.
+- `ad-feedback-spr` 0 -> 1, `::-webkit-scrollbar-thumb` 0 -> 2.
+- Balance 0/0/0; `scripts/lint-logos.sh`.
