@@ -1,33 +1,35 @@
-# AmazonDark v7.0.29
+# AmazonDark v7.0.30
 
-Production correction built directly from v7.0.28.
+Production build based directly on v7.0.29.
 
-## Sponsored text/glyph isolation
-The text-vs-glyph mismatch was not fixed by taking ownership of Sponsored ink. Instead, v7.0.29 removes two ways AmazonDark could still feed a different inherited `color` into the stock feedback glyph while Amazon's text leaf kept its own inline color:
+## TWB strategy
+This build stops trying to enumerate only the currently-visible v7 selectors. Instead it ports the *coverage contract* of the v6.0.185 lineage onto the lightweight v7 runtime. The scan-heavy v185 scheduling is not ported.
 
-- root/page/card floor rules no longer set inherited foreground color;
-- generic primary/secondary text rules exclude Sponsored/ad-feedback ancestry, not only the exact label leaf.
+Coverage retained semantically:
+- ordinary product/search/PDP media;
+- generic large Home/category imagery;
+- Home single-creative, single-video, video-card, theming-card, canvas, VJS, APE, hybrid-sponsored, NPACK/GWM/mosaic/p13n creative families;
+- hero/ad-frame IMG/VIDEO/CANVAS, CSS-background and pseudo-image leaves;
+- standalone/compact sponsored product media with the v185 full-raster guard for static images;
+- forced product sections such as Subscribe & Save, Keep Shopping, Shop previously watched, Returns, gift cards, Alexa for Shopping, Lists & Registries, Buy Again and Your Interests;
+- review/customer-photo media;
+- seasonal mosaic IMG/SVG artwork. Sponsored/ad-feedback descendants remain excluded.
 
-There is still no Sponsored-specific replacement text color, sprite, SVG, mask, filter, pseudo-element, opacity, geometry or fallback glyph rule.
+Performance architecture:
+- no MutationObserver;
+- no querySelectorAll;
+- no TreeWalker;
+- no scroll listener/recovery;
+- no interval or RAF;
+- one bounded initial media-only pass (max 420 IMG/VIDEO/CANVAS nodes);
+- dynamic media is handled only by media lifecycle events;
+- hero CSS-background recovery is bounded to 140 visible nodes and only inside hero-sized child frames.
 
-## Hero isolation
-The top Home hero/creative tree is now fully excluded from generic foreground ownership.
+## Text regression correction
+The v7.0.29 `#gwm-Deck *` foreground exclusion was too broad and covered ordinary Home content beneath the hero. It is removed. Only actual hero/creative/theming/video/canvas/ad-card ancestry is excluded from the generic light-text owner.
 
-A separate bug was also removed: v7.0.28's media-protection rule forced `background-color:transparent` onto hero/single-creative/theming-card/ad-card containers. That could erase Amazon's campaign floor while generic text stayed light, producing the pale-background/bright-text contrast visible in the screenshot.
+## Sponsored isolation
+Sponsored/ad-feedback text and info glyphs remain Amazon-owned. Seasonal SVG TWB now explicitly excludes Sponsored/ad-feedback descendants so TWB cannot create a text-vs-glyph brightness mismatch.
 
-v7.0.29 only clears background color on true media/product-image wrappers. Hero/creative/theming/ad-card containers keep Amazon's own floor and text palette.
-
-## TWB Home restoration
-The current 7.x TWB sheet had become too narrow. v7.0.29 restores cheap document-start CSS coverage for previously proven families:
-
-- ordinary/product imagery;
-- `a-amazon-image` product leaves under the normal Home dashboard/below-fold cards;
-- seasonal `hp-mosaic` / widget IMG and SVG artwork;
-- Home single-creative / single-video imagery;
-- canvas-card media and VJS video;
-- theming-card / VJS poster CSS-background artwork using a background-only inset shade.
-
-This does not add a DOM walker, MutationObserver, load listener, selector scan, scroll recovery, interval or RAF loop.
-
-## Remaining diagnostic boundary
-This build intentionally does not add a broad all-iframe/all-image TWB rule. If an individual cross-origin ad-frame photo still escapes after v7.0.29, that remaining renderer should be probed rather than solved by globally filtering every image in every ad frame.
+## Native TWB
+Native UIImageView ownership remains assignment/mount/layout-only. The v185 Person/Alexa section coverage is represented with bounded local semantic checks instead of historical scroll/window scans. The black overlay is inserted beneath child sublayers so labels/glyphs hosted inside an image view remain visible.
