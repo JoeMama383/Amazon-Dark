@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.32-home-heading-ink"
+#define AD_VERSION "v7.0.33-v729-home-ink"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -633,10 +633,9 @@ static NSString *ADFloorJS(void){
             ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *))"
             ":not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *))"
             ":not(:where([id^=af-label-] *))"
-            ":not(:where([class*=hero] *))"
+            ":not(:where(#gwm-Deck *)):not(:where([class*=hero] *))"
             ":not(:where([class*=single-creative] *)):not(:where([class*=single-video] *))"
-            ":not(:where([class*=theming-card] *)):not(:where([class*=creative-card] *))"
-            ":not(:where([class*=ad-card] *)):not(:where([class*=canvas-card] *))"
+            ":not(:where([class*=theming-card] *))"
             "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
             ":is(.a-color-secondary,.a-size-small,[class*=secondary])"
             ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
@@ -644,10 +643,9 @@ static NSString *ADFloorJS(void){
             ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *))"
             ":not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *))"
             ":not(:where([id^=af-label-] *))"
-            ":not(:where([class*=hero] *))"
+            ":not(:where(#gwm-Deck *)):not(:where([class*=hero] *))"
             ":not(:where([class*=single-creative] *)):not(:where([class*=single-video] *))"
-            ":not(:where([class*=theming-card] *)):not(:where([class*=creative-card] *))"
-            ":not(:where([class*=ad-card] *)):not(:where([class*=canvas-card] *))"
+            ":not(:where([class*=theming-card] *))"
             "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
             /* Neutral borders/dividers. Exact structural families only; no global * border rewrite. */
             ".s-result-item,.s-card-container,[data-component-type=s-search-result],"
@@ -705,10 +703,10 @@ static NSString *ADFloorJS(void){
              * repaint %off badgeLabel or Limited time deal text. */
             ":is(#gwm-PageContent,#gwm-Deck-btf,#gwm-Deck,.gwm-dashboard-container) [class*=badgeMessage]"
             "{background-color:transparent!important;box-shadow:none!important;}"
-            /* v7.0.31 scoped Home ink.
-             * The OLED shell owner does not rely on inherited text color. Explicitly
-             * own the normal card/mosaic copy that Amazon otherwise leaves dark.
-             * Sponsored/ad-feedback and deal/badge chrome remain Amazon-owned. */
+            /* v7.0.33: text-only Home correction on the v7.0.29 baseline.
+             * Keep v7.0.29 hero/TWB isolation intact and only light ordinary
+             * below-fold card/mosaic captions and headers. Sponsored/ad-feedback
+             * plus badge/deal/coupon chrome remain Amazon-owned. */
             ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
             ":is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
             ":is(h1,h2,h3,h4,h5,h6,p,span,a)"
@@ -720,11 +718,7 @@ static NSString *ADFloorJS(void){
             ":not([class*=badge]):not([class*=deal]):not([class*=coupon])"
             ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *))"
             "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* v7.0.32: Home section headings can be bare H1-H6 nodes directly under
-             * BTF/widget wrappers, so they miss both the generic class-based ink and
-             * the inner card/mosaic selector above. Own only heading tags in the
-             * ordinary below-fold Home region. Hero/creative, Sponsored and deal
-             * ancestry stay isolated. */
+            /* Bare Home section headers can live outside the inner card shell. */
             ":is(#gwm-Deck-btf,.gwm-dashboard-container) :is(h1,h2,h3,h4,h5,h6)"
             ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
             ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
@@ -735,8 +729,7 @@ static NSString *ADFloorJS(void){
             ":not(:where([class*=hero] *)):not(:where([class*=single-creative] *)):not(:where([class*=single-video] *))"
             ":not(:where([class*=theming-card] *)):not(:where([class*=creative-card] *)):not(:where([class*=ad-card] *)):not(:where([class*=canvas-card] *))"
             "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* Seasonal/widget section headings and captions can sit outside the
-             * inner a-cardui shell. Keep only those semantic text families light. */
+            /* Seasonal/widget headings and captions may sit outside a-cardui. */
             ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
             ":is([class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer]) "
             ":is(h1,h2,h3,h4,h5,h6,[class*=headline],[class*=header-link],[class*=caption])"
@@ -771,76 +764,41 @@ static NSString *ADFloorJS(void){
 }
 
 static NSString *ADTWBJS(void){
-    // v7.0.31: v185 coverage, single-owner execution.
-    // No MutationObserver, qSA, TreeWalker, scroll recovery, interval or RAF.
+    // Pure CSS TWB owner: no load listener, no querySelectorAll, no observer.
+    // v7.0.29 restores the proven Home media families from the streamlined 6.x
+    // owner without reviving its runtime scanner/classifier.
     CGFloat strength=MAX(0,MIN(100,gP.whiteTameStrength));
     CGFloat factor=MAX(0.50,1.0-0.50*strength/100.0);
     CGFloat shade=0.50*strength/100.0;
     return [NSString stringWithFormat:
-        @"(function(){try{\n"
-        @"if(window.__AD_TWB731_INSTALLED__)return;window.__AD_TWB731_INSTALLED__=1;\n"
-        @"var F=%.3f,S=%.3f,D=document,W=window;\n"
-        @"var st=D.getElementById('ad7-twb-v185-single-owner');\n"
-        @"if(!st){st=D.createElement('style');st.id='ad7-twb-v185-single-owner';(D.head||D.documentElement||D).appendChild(st);}\n"
-        @"st.textContent='"
-        /* v6.0.200 lesson: ordinary IMG coverage is universal and declarative.
-         * Exclusions are identity/UI/Sponsored semantics, not a product whitelist. */
-        @"img:not([data-ad-twb-skip731=\"1\"])"
-        @":not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller])"
-        @":not([class*=rating]):not([class*=star]):not([class*=checkbox]):not([class*=heart]):not([class*=wishlist])"
-        @":not([class*=search-icon]):not([class*=microphone]):not([class*=camera]):not([class*=location])"
-        @":not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon]):not([class*=sprite]):not([class*=pixel])"
-        @":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
-        @":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *))"
-        @"{filter:brightness('+F+')!important;}"
-        /* VIDEO/CANVAS remain event-classified because they need context/full-raster guards. */
-        @"[data-ad-twb731=\"1\"]{filter:brightness('+F+')!important;}"
-        /* Actual hero creative BACKGROUND leaves only.
-         * Do not shade single-creative/theming-card roots themselves. */
-        @"[class*=single-creative-card-background]:not(:has(img,video,canvas)),"
-        @"[class*=single-video-card-background]:not(:has(img,video,canvas)),"
-        @"[class*=theming-card-background]:not(:has(img,video,canvas)),"
-        @"[class*=vjs-poster]:not(:has(img,video,canvas))"
-        @"{box-shadow:inset 0 0 0 9999px rgba(0,0,0,'+S+')!important;}"
-        /* Background/pseudo URL-image recovery marker: background layer only. */
-        @"[data-ad-twb-bg731=\"1\"]{box-shadow:inset 0 0 0 9999px rgba(0,0,0,'+S+')!important;}"
-        @"[data-ad-twb-before731=\"1\"]::before,[data-ad-twb-after731=\"1\"]::after"
-        @"{filter:brightness('+F+')!important;}"
-        /* Seasonal large artwork/glyphs, never Sponsored feedback controls. */
-        @"[class*=hp-mosaic-container] svg"
-        @":not([class*=arrow]):not([class*=chevron]):not([class*=button])"
-        @":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)),"
-        @"[class*=_mosaic-container_style_widgetContainer] svg"
-        @":not([class*=arrow]):not([class*=chevron]):not([class*=button])"
-        @":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
-        @"{filter:brightness('+F+')!important;}';\n"
-        @"function low(v){return String(v||'').toLowerCase();}\n"
-        @"function sem(e){try{var c=e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;return low((e.id||'')+' '+(typeof c==='string'?c:'')+' '+(e.getAttribute&&((e.getAttribute('data-component-type')||'')+' '+(e.getAttribute('data-csa-c-type')||'')+' '+(e.getAttribute('data-csa-c-content-id')||'')+' '+(e.getAttribute('aria-label')||'')+' '+(e.getAttribute('title')||''))));}catch(x){return '';}}\n"
-        @"function rect(e){try{return e.getBoundingClientRect();}catch(x){return {width:0,height:0,top:0,left:0,bottom:0};}}\n"
-        @"function chain(e,n){var a=[],p=e;for(var i=0;i<n&&p;i++,p=p.parentElement)a.push(p);return a;}\n"
-        @"function chainSem(e,n){var a=chain(e,n),q='';for(var i=0;i<a.length;i++)q+=' '+sem(a[i]);return q;}\n"
-        @"function has(q,arr){for(var i=0;i<arr.length;i++)if(q.indexOf(arr[i])>=0)return true;return false;}\n"
-        @"var hard=['avatar','profile','merchant','seller','store-logo','brand-logo','rating','ratings','star','checkbox','heart','wishlist','search-suggestion','search-icon','microphone','camera','location','chevron','close-button','nav-icon','tab-icon','sprite','pixel','ad-feedback','adfeedback','feedbackicon','feedback-icon','sponsored','sponsored-label','sponsored-badge'];\n"
-        @"var blocked=['medical care','health ai','prescription','your amazon highlights','total savings','sessions streamed','keep streaming','need help','customer service'];\n"
-        @"function frameMode(){try{if(W.top===W)return 'main';var h=W.innerHeight||0,w=W.innerWidth||0;return (w>=220&&h>=145)?'hero':'standalone';}catch(x){return 'child';}}\n"
-        @"function fullRaster(r){try{var fw=W.innerWidth||0,fh=W.innerHeight||0;if(!fw||!fh)return false;return (r.width>fw*.64&&r.height>fh*.55)||((r.width*r.height)>(fw*fh*.58));}catch(x){return false;}}\n"
-        /* IMG only needs a bounded child-frame pass to retain the donor's standalone
-         * full-raster skip. Main-document IMG is already CSS-owned. */
-        @"function classifyImg(e){try{if(!e||e.tagName!=='IMG')return;var q=chainSem(e,6),r=rect(e),m=frameMode();"
-        @"if(has(q,hard)||has(q,blocked)||(m!=='main'&&m!=='hero'&&fullRaster(r)))e.setAttribute('data-ad-twb-skip731','1');"
-        @"else e.removeAttribute('data-ad-twb-skip731');}catch(x){}}\n"
-        @"function classifyVC(e){try{if(!e||!e.tagName)return;var t=e.tagName.toUpperCase();if(t!=='VIDEO'&&t!=='CANVAS')return;var r=rect(e),q=chainSem(e,7),m=frameMode();if(r.width<24||r.height<24||has(q,hard)||has(q,blocked)){e.removeAttribute('data-ad-twb731');return;}if((m==='standalone'||m==='child')&&t!=='VIDEO'&&fullRaster(r)){e.removeAttribute('data-ad-twb731');return;}e.setAttribute('data-ad-twb731','1');}catch(x){}}\n"
-        /* Hero CSS-background recovery: URL/pseudo IMAGE leaves only.
-         * No luminance/pure-color container ownership and no ancestor stacking. */
-        @"function bgAllowed(e){try{var q=chainSem(e,4);return !has(q,hard)&&!has(q,['badge','coupon','deal','promo','label','chip','pill']);}catch(x){return false;}}\n"
-        @"function heroBgPass(){try{if(frameMode()!=='hero')return;var tags=['html','body','div','section','a','span','li','figure','picture'],seen=0;for(var ti=0;ti<tags.length&&seen<140;ti++){var xs=D.getElementsByTagName(tags[ti]);for(var i=0;i<xs.length&&seen<140;i++,seen++){var e=xs[i],r=rect(e);if(r.width<72||r.height<42||r.bottom<0||r.top>(W.innerHeight||1000)||!bgAllowed(e))continue;var cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none');if(bi!=='none'&&bi.indexOf('url(')>=0)e.setAttribute('data-ad-twb-bg731','1');try{var be=getComputedStyle(e,'::before'),ae=getComputedStyle(e,'::after');if(be&&String(be.backgroundImage||'').indexOf('url(')>=0)e.setAttribute('data-ad-twb-before731','1');if(ae&&String(ae.backgroundImage||'').indexOf('url(')>=0)e.setAttribute('data-ad-twb-after731','1');}catch(z){}}}}catch(x){}}\n"
-        @"function sweep(){if(W.__AD_TWB731_SWEEPED__)return;W.__AD_TWB731_SWEEPED__=1;var m=frameMode(),budget=(m==='main'?220:180);if(m!=='main'){var imgs=D.getElementsByTagName('img');for(var i=0;i<imgs.length&&budget>0;i++,budget--)classifyImg(imgs[i]);}var tags=['video','canvas'];for(var ti=0;ti<tags.length&&budget>0;ti++){var xs=D.getElementsByTagName(tags[ti]);for(var j=0;j<xs.length&&budget>0;j++,budget--)classifyVC(xs[j]);}heroBgPass();}\n"
-        @"function onMedia(ev){var e=ev&&ev.target;if(!e||!e.tagName)return;var t=e.tagName.toUpperCase();if(t==='IMG')classifyImg(e);else if(t==='VIDEO'||t==='CANVAS')classifyVC(e);}\n"
-        @"D.addEventListener('load',onMedia,true);D.addEventListener('loadedmetadata',onMedia,true);D.addEventListener('loadeddata',onMedia,true);D.addEventListener('canplay',onMedia,true);\n"
-        @"if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',sweep,{once:true});else sweep();\n"
-        @"W.addEventListener('pageshow',function(){heroBgPass();},false);\n"
-        @"}catch(e){}})();\n"
-        ,factor,shade];
+        @"(function(){try{var id='ad7-twb-static',s=document.getElementById(id);"
+         "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
+         "s.textContent='"
+         /* Ordinary/product imagery. */
+         "img.s-image,img.s-product-image,#landingImage,#imgBlkFront,#imgTagWrapperId img,"
+         "img[data-a-dynamic-image],img.a-dynamic-image,[data-component-type=s-product-image] img,"
+         "[class*=product-image] img,[class*=asin-image] img,.p13n-sc-uncoverable-faceout img,"
+         "[data-asin] img.s-image,[data-csa-c-asin] img.s-image,"
+         /* Home product cards whose actual IMG leaf is only a-amazon-image / wrapper-owned. */
+         ".gwm-dashboard-container :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
+         ":is(img.a-amazon-image,[class*=image-wrapper] img,[class*=img-wrapper] img,[class*=image-container] img),"
+         "#gwm-Deck-btf :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
+         ":is(img.a-amazon-image,[class*=image-wrapper] img,[class*=img-wrapper] img,[class*=image-container] img),"
+         /* Seasonal mosaic media + its image/SVG glyph artwork. */
+         "[class*=hp-mosaic-container] :is(img,svg),"
+         "[class*=_mosaic-container_style_widgetContainer] :is(img,svg),"
+         /* Historical single-creative / single-video / canvas Home media. */
+         "img[class*=_single-creative-card],img[class*=_single-video-card],"
+         "[class*=single-creative-card] img,[class*=single-video-card] img,"
+         "[class*=single-video-card] video,[class*=canvas-card] canvas,video.vjs-tech"
+         "{filter:brightness(%.3f)!important;}"
+         /* CSS-background creative imagery: background-only shade, not text/control filter. */
+         "[class*=single-creative-card] [class*=theming-card-background],"
+         "[class*=single-video-card] [class*=theming-card-background],"
+         "[class*=single-video-card] [class*=vjs-poster],"
+         "[class*=theming-card] [class*=vjs-poster]"
+         "{box-shadow:inset 0 0 0 9999px rgba(0,0,0,%.3f)!important;}"
+         "';}catch(e){}})();",factor,shade];
 }
 
 static void ADTrackWebView(WKWebView *wv){
@@ -1706,63 +1664,28 @@ static void ADDarkenSplash(UIViewController *vc){ if(gP.enabled) @try { if(vc.vi
 // the Tame Light Backgrounds preference. No hierarchy scan or observer is used.
 // -----------------------------------------------------------------------------
 static const void *kADTWBOverlay=&kADTWBOverlay;
-static NSString *ADNativeTWBContext730(UIImageView *iv){
-    if(!iv)return @"";
-    NSMutableString *q=[NSMutableString string];
-    @try {
-        UIView *n=iv;
-        for(int depth=0;depth<5&&n;depth++,n=n.superview){
-            [q appendFormat:@" %@ %@ %@",NSStringFromClass(n.class),n.accessibilityIdentifier?:@"",n.accessibilityLabel?:@""];
-            // v185 coverage semantics without its window/scroll scans: inspect only
-            // a few direct peer labels in the local section when the image is assigned/mounted.
-            NSArray *peers=n.subviews;
-            NSUInteger cap=MIN((NSUInteger)12,peers.count);
-            for(NSUInteger i=0;i<cap;i++){
-                UIView *p=peers[i];
-                if(p==iv)continue;
-                if([p isKindOfClass:[UILabel class]]){
-                    UILabel *l=(UILabel *)p;
-                    if(l.text.length<=120)[q appendFormat:@" %@",l.text?:@""];
-                } else if(p.accessibilityLabel.length<=120){
-                    [q appendFormat:@" %@",p.accessibilityLabel?:@""];
-                }
-            }
-        }
-        [q appendFormat:@" %@",iv.accessibilityLabel?:@""];
-    } @catch(...) {}
-    return q.lowercaseString;
-}
 static BOOL ADNativeMediaBlocked(UIImageView *iv){
     if(!iv)return YES;
     @try {
         UIImage *im=iv.image; if(!im)return YES;
-        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
-        NSString *q=ADNativeTWBContext730(iv);
-        NSString *selfQ=[NSString stringWithFormat:@"%@ %@ %@",NSStringFromClass(iv.class),iv.accessibilityIdentifier?:@"",iv.accessibilityLabel?:@""].lowercaseString;
-        for(UIView *n=iv;n&&n!=iv.window;n=n.superview){
-            if([n isKindOfClass:[UIButton class]]||[n isKindOfClass:[UITabBar class]]||[n isKindOfClass:[UINavigationBar class]])return YES;
-        }
-        for(NSString *tok in @[@"medical care",@"health ai",@"prescription",@"your amazon highlights",@"total savings",@"sessions streamed",@"keep streaming",@"need help",@"customer service"])
-            if([q containsString:tok])return YES;
-        BOOL forced=NO;
-        for(NSString *tok in @[@"returns are easy",@"send an amazon gift card",@"shop previously watched",@"previously watched",@"subscribe & save",@"subscribe and save",@"best deals",@"keep shopping",@"alexa for shopping",@"lists and registries",@"lists & registries",@"buy again",@"your interests"])
-            if([q containsString:tok]){forced=YES;break;}
-        BOOL review=([q containsString:@"your reviews"]||[q containsString:@"what did you think"]||[q containsString:@"review image"]||[q containsString:@"customer image"]||[q containsString:@"review photo"]);
-        BOOL hardUI=NO;
-        for(NSString *tok in @[@"avatar",@"profile",@"seller",@"merchant",@"brand logo",@"store logo",@"rating",@"star",@"checkbox",@"heart",@"wishlist",@"search icon",@"microphone",@"camera",@"location",@"chevron",@"close",@"nav icon",@"tab icon",@"sprite",@"screenshot",@"snapshot",@"share preview"])
-            if([selfQ containsString:tok]){hardUI=YES;break;}
-        if(([selfQ containsString:@"sponsored"]||[selfQ containsString:@"ad feedback"]||[selfQ containsString:@"feedback icon"])&&w<100&&h<100)hardUI=YES;
-        if(hardUI)return YES;
-        if(forced){ if(w<24||h<24)return YES; return NO; }
-        if(review){ if(w<32||h<32)return YES; if(im.renderingMode==UIImageRenderingModeAlwaysTemplate)return YES; return NO; }
         if(im.renderingMode==UIImageRenderingModeAlwaysTemplate)return YES;
-        if(w<48||h<48)return YES;
-        if(im.CGImage && CGImageGetWidth(im.CGImage)<=64 && CGImageGetHeight(im.CGImage)<=64)return YES;
+        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height; if(w<52||h<52)return YES;
+        if(im.CGImage && CGImageGetWidth(im.CGImage)<=80 && CGImageGetHeight(im.CGImage)<=80)return YES;
+        NSMutableString *s=[NSMutableString string];
+        UIView *n=iv;
+        for(int i=0;i<4&&n;i++,n=n.superview){
+            [s appendFormat:@" %@ %@",NSStringFromClass(n.class),n.accessibilityIdentifier?:@""];
+            if([n isKindOfClass:[UIButton class]] || [n isKindOfClass:[UITabBar class]] || [n isKindOfClass:[UINavigationBar class]])return YES;
+        }
+        [s appendFormat:@" %@",iv.accessibilityLabel?:@""];
+        NSString *q=s.lowercaseString;
+        for(NSString *tok in @[@"icon",@"glyph",@"logo",@"avatar",@"profile",@"badge",@"star",@"rating",@"checkbox",@"heart",@"arrow",@"chevron",@"button",@"search",@"menu",@"microphone",@"camera",@"cart",@"location",@"nav",@"tab",@"sprite",@"brand",@"seller",@"store",@"screenshot",@"snapshot",@"screen shot",@"share preview",@"preview"])
+            if([q containsString:tok])return YES;
         CGSize screen=UIScreen.mainScreen.bounds.size;
-        if(screen.width>0 && screen.height>0 && w>=screen.width*0.82&&h>=screen.height*0.62)return YES;
+        if(screen.width>0 && screen.height>0 && w>=screen.width*0.72&&h>=screen.height*0.48)return YES;
         BOOL semanticProduct=NO;
-        for(NSString *tok in @[@"product",@"asin",@"item",@"offer",@"recommend",@"reorder",@"keep shopping",@"shopping for",@"retail image",@"carousel",@"mosaic",@"deal"])
-            if([q containsString:tok]){semanticProduct=YES;break;}
+        for(NSString *tok in @[@"product",@"asin",@"item",@"offer",@"recommend",@"reorder",@"buy again",@"keep shopping",@"shopping for",@"retail image"])
+            if([q containsString:tok]){ semanticProduct=YES; break; }
         NSString *cn=NSStringFromClass(iv.class).lowercaseString?:@"";
         BOOL knownAmazonRaster=([cn containsString:@"rctuiimageviewanimated"]||[cn containsString:@"anxfastimageview"]);
         if(!semanticProduct && !knownAmazonRaster)return YES;
@@ -1777,8 +1700,8 @@ static void ADApplyNativeTWB(UIImageView *iv){
             if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(iv,kADTWBOverlay,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
             return;
         }
-        if(!ov){ ov=[CALayer layer]; ov.name=@"AmazonDarkTWB7"; ov.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"backgroundColor":[NSNull null]}; [iv.layer insertSublayer:ov atIndex:0]; objc_setAssociatedObject(iv,kADTWBOverlay,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
-        ov.frame=iv.bounds; ov.backgroundColor=[UIColor colorWithWhite:0 alpha:0.50*MAX(0,MIN(100,gP.whiteTameStrength))/100.0].CGColor; ov.zPosition=0;
+        if(!ov){ ov=[CALayer layer]; ov.name=@"AmazonDarkTWB7"; ov.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"backgroundColor":[NSNull null]}; [iv.layer addSublayer:ov]; objc_setAssociatedObject(iv,kADTWBOverlay,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
+        ov.frame=iv.bounds; ov.backgroundColor=[UIColor colorWithWhite:0 alpha:0.50*MAX(0,MIN(100,gP.whiteTameStrength))/100.0].CGColor; ov.zPosition=FLT_MAX;
     } @catch(...) {}
 }
 

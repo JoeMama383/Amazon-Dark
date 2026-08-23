@@ -1,27 +1,17 @@
-# AmazonDark v7.0.32
+# AmazonDark v7.0.33
 
-Targeted Home heading correction built directly on v7.0.31.
+Direct production rebase on **v7.0.29**.
 
-## Home heading gap
-v7.0.31 fixed many Home card/mosaic text families, but some section headers are plain
-`H1`-`H6` nodes directly under below-fold Home widget wrappers. They have no matching
-Amazon heading/title class, so they can keep the stock dark ink even though their floor
-is OLED black.
+## Scope
+This release intentionally keeps the v7.0.29 hero isolation, Sponsored isolation, OLED floors, TWB behavior, native hooks, 120 Hz/JIT, bottom navigation, and SpringBoard launch code unchanged.
 
-v7.0.32 adds one document-start CSS rule for heading tags inside `#gwm-Deck-btf` and
-`.gwm-dashboard-container`. This covers section/card headers such as the remaining dark
-Home headings without adding a scan or runtime classifier.
+The only functional correction is **Home ad/card text ink**:
 
-The rule explicitly excludes:
-- Sponsored/ad-feedback ancestry;
-- deal/badge/coupon ancestry;
-- hero/single-creative/single-video/theming/creative/ad/canvas-card ancestry.
+- ordinary below-fold card and mosaic headers/captions are light again;
+- bare Home section H1-H6 headings are light again;
+- seasonal/widget headline, header-link, and caption families are light again.
 
-Amazon therefore continues to own hero campaign text and all Sponsored text/glyphs.
+Sponsored/ad-feedback text and glyphs remain Amazon-owned. Deal/badge/coupon content remains excluded. Hero/single-creative/single-video/theming/creative/ad/canvas card descendants remain excluded from the bare-heading rule, preserving v7.0.29 campaign contrast.
 
-## Preserved architecture
-TWB remains the v7.0.31 single-owner design. No MutationObserver, querySelectorAll,
-TreeWalker, scroll listener, interval, RAF loop, or recurring scanner is added.
-
-The standalone APE shell remains on the existing narrow transparent placement-chrome
-rule. No unproven inner-frame standalone-ad painter is added in this build.
+## Performance
+The correction is document-start CSS only. It adds no MutationObserver, querySelectorAll, TreeWalker, scroll listener, interval, requestAnimationFrame, timer, DOM scanner, or media census.
