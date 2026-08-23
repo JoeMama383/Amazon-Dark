@@ -1,49 +1,14 @@
-# AmazonDark v7.0.22 — Home floors and bottom nav go OLED
+# AmazonDark v7.0.24
 
-Both fixes come from the v7.0.20 probe, not from inference.
+Probe-driven Home/media/badge correction plus a narrow v6.0.185 tab-rendering port.
 
-## Web: the card rules were scoped to an element that does not exist
-
-Every Home card rule was written as `#gwm-PageContent [class*=…]`. The probe's parent
-chains are:
-
-    gwm-Deck-btf > gwm-Deck > a-page > BODY
-
-There is no `#gwm-PageContent` on Home, so **all 27 of those selectors matched nothing**.
-That is why the surfaces the probe measured stayed light:
-
-    .a-cardui                                 rgb(255,255,255)
-    _cXVhZ_mosaic-card_1C-_R                  rgb(255,255,255)
-    _hp-mosaic-container_style_container__    rgb(255,255,255)
-    _cXVhZ_asin-container_EaHh8               rgb(247,247,247)
-    p13n-uf                                   rgb(247,247,247)
-
-All 27 are rescoped to `:is(#gwm-PageContent,#gwm-Deck,#a-page)`, and the floors above
-are named explicitly — several had no rule at all.
-
-**Build-hash pins removed.** Two selectors were written `[class*=cXVhZ][class*=…]`.
-`_cXVhZ_` is a per-deploy Amazon bundle hash; pinning to it means the rules die the next
-time Amazon ships. They now match the stable part of the class name only.
-
-## Native: the bottom bar had no owner
-
-The probe measured `ANXTabBarView` at `(0.0,850.0 430.0x82.0)` with view and layer both
-`1.000,1.000,1.000/1.000`, and its sibling `UIView` backing at the identical rect also
-white. Only `ANXTopNavBackgroundView` was hooked — nothing claimed the bottom bar, which
-is why it stayed white against an otherwise OLED window (`AppCXWindow` and
-`UILayoutContainerView` both measured `0.000,0.000,0.000`).
-
-`ANXTabBarView` now has an assignment-time owner in the same shape as the top nav:
-`setBackgroundColor:`, `didMoveToWindow`, `layoutSubviews`. Three exact entry points, no
-observer, no scan, no timer. The backing view is claimed too, since the probe shows the
-white covers it and not just the bar.
-
-## Verification
-
-- Selectors tested against a rebuild of the probe's actual chain: the old scope matched
-  nothing (reproducing the bug), the new scope matches all five measured floors, media
-  is still excluded, and the hash-agnostic form matches the `_cXVhZ_` classes without
-  naming the hash. 8/8.
-- `scripts/lint-logos.sh` caught `%orig(ADOLED())` — a nested call in `%orig`'s
-  arguments. Resolved to a local first, matching the existing top-nav owner.
-- Balance 0/0/0.
+- Home card floors are scoped to `#gwm-Deck-btf` plus legacy `#gwm-PageContent`; bare `#gwm-Deck` is excluded so the top hero/carousel keeps its media-backed cards.
+- Card ownership is hash-agnostic (`asin-container`, `mosaic-card`, `asin-data-attribute-wrapper`, `p13n-uf`, etc.).
+- Structural floor rules no longer paint text leaves.
+- `% off` / badge / deal / coupon / discount subtrees are excluded from structural floors. `badgeLabel` stays Amazon red with white text.
+- Product IMG/image-wrapper/`asin-metadata` compositing is normalized from multiply to normal inside the owned below-fold cards. TWB brightness filters are preserved.
+- Ad-card text is white with transparent text backgrounds.
+- `ANXTabBarView` remains OLED black.
+- The v6.0.185 bitmap-to-template/tint interception + touch/selection reassertion + thin selected-indicator ownership pattern is restored locally for the current ANX bar.
+- Per current request, all bottom-nav glyphs and the thin selected indicator are white.
+- No MutationObserver, global DOM scan, scroll listener, recurring timer, interval, or RAF theme loop is added.
