@@ -1,4 +1,4 @@
-# AmazonDark v7.0.10
+# AmazonDark v7.0.11
 
 Cold-first-paint / Search / Home-carousel / screenshot-state correction. Keeps the v7.0.9 OLED architecture and successful SpringBoard launch cover, but installs WK document-start scripts before WKWebView creation, excludes Home creative carousel families from OLED/background/compositing ownership, and rejects screenshot/snapshot/full-window raster views from TWB.
 
