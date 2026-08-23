@@ -1,15 +1,24 @@
-# AmazonDark v7.0.19~probe
+# AmazonDark v7.0.20~probe
 
-Workflow:
-1. Open Amazon Home and position the below-carousel cards/floors you want inspected.
-2. Background Amazon once.
-3. Wait 2–3 seconds.
-4. The report is automatically relayed to the normal shared Documents/push folder:
-   AmazonDark-home-floor-bottomnav-probe-7019.txt
+This restores the established probe workflow:
+
+1. Open Amazon.
+2. Position the below-carousel Home cards/floors you want captured.
+3. Background Amazon once.
+4. Wait 2–3 seconds.
+5. Run the supplied NewTerm probe/export block.
+6. That block copies the completed probe from Amazon's sandbox into the normal shared Documents/push folder.
+
+Probe trigger:
+- UIApplicationWillResignActiveNotification.
 
 Probe scope:
-- current visible Home viewport only, excluding hero/carousel ancestry;
-- bottom ~140 pt native navigation stack only;
-- no document walk, MutationObserver, recurring timer, RAF, or scroll listener.
+- visible Home viewport only, excluding hero/carousel ancestry;
+- visible bottom-navigation/background stack only;
+- no document-wide walk;
+- no MutationObserver;
+- no recurring timer;
+- no requestAnimationFrame loop;
+- no scroll listener.
 
-Production nav change remains background-only; no icon/symbology/tint behavior is intentionally changed.
+Bottom-nav production behavior remains background-only. No icon/symbology/tint changes are added.

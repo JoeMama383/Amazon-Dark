@@ -429,44 +429,6 @@ static void ADSBHandleJITRequest622(int token){
 }
 
 
-// v7.0.19 probe relay: same established background-probe pattern used by prior builds.
-static void ADRelayHomeProbe7019(void){
-    @autoreleasepool {
-        @try {
-            NSString *name=@"AmazonDark-home-floor-bottomnav-probe-7019.txt";
-            NSString *root=@"/private/var/mobile/Containers/Data/Application";
-            NSFileManager *fm=[NSFileManager defaultManager];
-            NSDirectoryEnumerator *en=[fm enumeratorAtPath:root];
-            NSString *best=nil;
-            NSDate *bestDate=nil;
-            for(NSString *rel in en){
-                if(![[rel lastPathComponent] isEqualToString:name]) continue;
-                NSString *full=[root stringByAppendingPathComponent:rel];
-                NSDictionary *attrs=[fm attributesOfItemAtPath:full error:nil];
-                NSDate *d=attrs[NSFileModificationDate];
-                if(!best || !bestDate || [d compare:bestDate]==NSOrderedDescending){
-                    best=full; bestDate=d;
-                }
-            }
-            NSString *dest=@"/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/AmazonDark-home-floor-bottomnav-probe-7019.txt";
-            if(!best){
-                ADSBLog(@"PROBE7019 relay failed: source not found");
-                return;
-            }
-            [fm removeItemAtPath:dest error:nil];
-            NSError *err=nil;
-            if([fm copyItemAtPath:best toPath:dest error:&err]){
-                chmod(dest.fileSystemRepresentation,0666);
-                ADSBLog([NSString stringWithFormat:@"PROBE7019 relay OK %@",dest]);
-            } else {
-                ADSBLog([NSString stringWithFormat:@"PROBE7019 relay failed %@",err]);
-            }
-        } @catch(NSException *e){
-            ADSBLog([NSString stringWithFormat:@"PROBE7019 relay exception %@",e]);
-        }
-    }
-}
-
 %hook SBSceneView
 - (void)didMoveToWindow {
     %orig;
@@ -513,15 +475,6 @@ static void ADRelayHomeProbe7019(void){
 
 
 %ctor {
-    @try {
-        static int adProbe7019Token=0;
-        notify_register_dispatch("com.colindavidr.amazondark/home-floor-bottomnav-probe-7019-ready",
-                                 &adProbe7019Token,
-                                 dispatch_get_global_queue(QOS_CLASS_UTILITY,0), ^(int t){
-            ADRelayHomeProbe7019();
-        });
-    } @catch (__unused NSException *e) {}
-
     // Dopamine JIT broker: one event-driven enable request channel. SpringBoard is
     // the platform-authorized caller; the handler itself validates Amazon's PID.
     @try {
