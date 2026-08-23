@@ -428,6 +428,7 @@ static void ADSBHandleJITRequest622(int token){
     }
 }
 
+
 %hook SBSceneView
 - (void)didMoveToWindow {
     %orig;
