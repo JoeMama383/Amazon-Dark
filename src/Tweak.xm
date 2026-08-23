@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.39-v729-home-media-completion"
+#define AD_VERSION "v7.0.40-v729-seasonal-carousel-text"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -756,6 +756,11 @@ static NSString *ADFloorJS(void){
             ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
             ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
             "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            /* v7.0.40: exact dashboard carousel title leaf from the v5.440/v5.449 probes.
+             * This fixes the isolated "You might like" dark title without taking
+             * ownership of the Sponsored row beneath it. */
+            ":is(#gwm-Deck-btf,.gwm-dashboard-container) .a-cardui [class*=wpTitle]"
+            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
             /* Bare Home section headers can live outside the inner card shell. */
             ":is(#gwm-Deck-btf,.gwm-dashboard-container) :is(h1,h2,h3,h4,h5,h6)"
             ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
@@ -769,13 +774,22 @@ static NSString *ADFloorJS(void){
             ":not(:where([class*=mobile-mshop-ad] *)):not(:where([class*=mobile-ad-container] *))"
             ":not(:where([class*=ape-wrapper] *)):not(:where([class*=ape-placement] *))"
             "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* Seasonal/widget headings and captions may sit outside a-cardui. */
-            ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
+            /* v7.0.40: restore the cheap v185/v7.0.16 seasonal mosaic ink contract.
+             * v7.0.39 had accidentally narrowed this to headings/captions only, so
+             * category labels such as Laundry / Beauty / Water bottles inherited
+             * Amazon's dark foreground on our OLED seasonal shell. */
+            ":is(#gwm-PageContent,#gwm-Deck-btf,.gwm-dashboard-container) "
             ":is([class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer]) "
-            ":is(h1,h2,h3,h4,h5,h6,[class*=headline],[class*=header-link],[class*=caption])"
+            ":is(div,section,article,ul,ol,li,a,p,span,h1,h2,h3,h4,h5,h6)"
             ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
-            ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
+            ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
             "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            /* Exact v185/v7.0.16 seasonal navigation ink. */
+            ":is(#gwm-PageContent,#gwm-Deck-btf,.gwm-dashboard-container) "
+            ":is([class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer]) "
+            ":is([class*=next],[class*=prev],[class*=chevron],[class*=arrow])"
+            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;"
+            "fill:#e8e6e3!important;stroke:#e8e6e3!important;}"
             /* Sponsored/ad-feedback text and glyphs have no AmazonDark paint rule.
              * Amazon retains their stock color, sprite/mask/SVG and geometry. */
             /* Creative/media protection: only true media/product-image wrappers are
@@ -852,9 +866,16 @@ static NSString *ADTWBJS(void){
          ":not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge])"
          ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
          ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),"
-         /* Seasonal mosaic media + its image/SVG glyph artwork. */
-         "[class*=hp-mosaic-container] :is(img,svg),"
-         "[class*=_mosaic-container_style_widgetContainer] :is(img,svg),"
+         /* Seasonal mosaic media + image/SVG artwork.
+          * Navigation chevrons/arrows are control ink, not TWB media. */
+         "[class*=hp-mosaic-container] :is(img,svg)"
+         ":not([class*=next]):not([class*=prev]):not([class*=chevron]):not([class*=arrow])"
+         ":not(:where([class*=next] *)):not(:where([class*=prev] *))"
+         ":not(:where([class*=chevron] *)):not(:where([class*=arrow] *)),"
+         "[class*=_mosaic-container_style_widgetContainer] :is(img,svg)"
+         ":not([class*=next]):not([class*=prev]):not([class*=chevron]):not([class*=arrow])"
+         ":not(:where([class*=next] *)):not(:where([class*=prev] *))"
+         ":not(:where([class*=chevron] *)):not(:where([class*=arrow] *)),"
          /* Historical single-creative / single-video / canvas Home media. */
          "img[class*=_single-creative-card],img[class*=_single-video-card],"
          "[class*=single-creative-card] img,[class*=single-video-card] img,"
