@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.24-home-media-badges-v185-nav"
+#define AD_VERSION "v7.0.25-home-media-badges-v185-nav"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -900,6 +900,8 @@ static void ADOwnNativeFloor(UIView *v){
     if(!gP.enabled || !v)return; @try { v.backgroundColor=ADOLED(); v.layer.backgroundColor=ADOLED().CGColor; } @catch(...) {}
 }
 
+
+static UIColor *ADLightText706(void);
 
 // v7.0.24 — v6.0.185 tab-rendering mechanism, narrowed to the current ANX tab bar.
 // Current requested palette: all tab glyphs white + selected indicator white.

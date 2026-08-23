@@ -1,14 +1,15 @@
-# AmazonDark v7.0.24
+# AmazonDark v7.0.25
 
-Probe-driven Home/media/badge correction plus a narrow v6.0.185 tab-rendering port.
+Compile-fix rebuild of v7.0.24.
 
-- Home card floors are scoped to `#gwm-Deck-btf` plus legacy `#gwm-PageContent`; bare `#gwm-Deck` is excluded so the top hero/carousel keeps its media-backed cards.
-- Card ownership is hash-agnostic (`asin-container`, `mosaic-card`, `asin-data-attribute-wrapper`, `p13n-uf`, etc.).
-- Structural floor rules no longer paint text leaves.
-- `% off` / badge / deal / coupon / discount subtrees are excluded from structural floors. `badgeLabel` stays Amazon red with white text.
-- Product IMG/image-wrapper/`asin-metadata` compositing is normalized from multiply to normal inside the owned below-fold cards. TWB brightness filters are preserved.
-- Ad-card text is white with transparent text backgrounds.
-- `ANXTabBarView` remains OLED black.
-- The v6.0.185 bitmap-to-template/tint interception + touch/selection reassertion + thin selected-indicator ownership pattern is restored locally for the current ANX bar.
-- Per current request, all bottom-nav glyphs and the thin selected indicator are white.
-- No MutationObserver, global DOM scan, scroll listener, recurring timer, interval, or RAF theme loop is added.
+Functional behavior is unchanged:
+- below-carousel Home floor ownership remains scoped away from the top hero/carousel;
+- percent-off/deal badges remain excluded from floor paint and badgeLabel remains red/white;
+- product media/asin-metadata multiply compositing remains normalized;
+- ad-card text remains white with transparent text backgrounds;
+- ANXTabBarView remains OLED black;
+- v6.0.185-style local tab bitmap->template/tint/touch/selection/indicator mechanics remain active;
+- all bottom-nav glyphs and the selected indicator remain white.
+
+Compile fix:
+- forward-declares ADLightText706() before the v7.0.24 tab helper block uses it.
