@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.8-oled-floor"
+#define AD_VERSION "v7.0.9-oled-floor"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -605,7 +605,6 @@ static NSString *ADFloorJS(void){
             "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
             "s.textContent='"
             "html,body,#a-page,#gwm-PageContent,main,[role=main],"
-            "section,article,aside,header,footer,nav,"
             "div.a-section,div.a-container,div.a-row,"
             "[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-tile],[class*=puis-card],[class*=cXVhZ],"
             "[class*=sc-][class*=content],[class*=sc-][class*=container],[class*=sc-][class*=list],[class*=sc-][class*=page],"
@@ -761,17 +760,7 @@ static void ADApplyAllFloors(void){
 static const void *kADReactCard708=&kADReactCard708;
 static BOOL ADNativeFloorCandidate(UIView *v){
     if(!v)return NO;
-    @try {
-        if(objc_getAssociatedObject(v,kADReactCard708)) return YES;
-        if([v isKindOfClass:[UIImageView class]] || [v isKindOfClass:[UILabel class]] ||
-           [v isKindOfClass:[UIControl class]] || [v isKindOfClass:[UITextView class]] ||
-           [v isKindOfClass:[UITextField class]] || [v isKindOfClass:[UIVisualEffectView class]]) return NO;
-        NSString *n=NSStringFromClass(v.class).lowercaseString ?: @"";
-        NSArray *reject=@[@"image",@"icon",@"glyph",@"label",@"text",@"button",@"control",@"badge",@"avatar",@"logo",@"star",@"rating",@"switch",@"slider",@"cell"];
-        for(NSString *x in reject) if([n containsString:x]) return NO;
-        NSArray *floor=@[@"root",@"content",@"container",@"background",@"surface",@"screen",@"page",@"scroll",@"collection",@"table",@"host",@"wrapper",@"bottomnav",@"tabbar",@"navtoolbar",@"storemodes"];
-        for(NSString *x in floor) if([n containsString:x]) return YES;
-    } @catch(...) {}
+    @try { return objc_getAssociatedObject(v,kADReactCard708)!=nil; } @catch(...) {}
     return NO;
 }
 static void ADOwnNativeFloor(UIView *v){
@@ -837,16 +826,33 @@ static void ADTintBottomNavImage706(UIImageView *iv){
 static void ADTintBottomNavTree706(UIView *v){
     if(!v)return; @try { if([v isKindOfClass:[UIImageView class]])ADTintBottomNavImage706((UIImageView*)v); for(UIView *s in v.subviews)ADTintBottomNavTree706(s); } @catch(...) {}
 }
-static void ADTintSearchGlyph706(UIImageView *iv){
-    if(!gP.enabled||!iv||!iv.image||!ADInSearchChrome706(iv))return;
+static BOOL ADIsLocationGlyph709(UIImageView *iv){
+    if(!iv)return NO;
     @try {
-        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height; if(w<3||h<3||w>56||h>56)return;
+        NSMutableString *q=[NSMutableString string];
+        if(iv.accessibilityLabel)[q appendFormat:@" %@",iv.accessibilityLabel];
+        if(iv.accessibilityIdentifier)[q appendFormat:@" %@",iv.accessibilityIdentifier];
+        UIView *n=iv;
+        for(int d=0;n&&d<5;d++,n=n.superview){
+            [q appendFormat:@" %@ %@ %@",NSStringFromClass(n.class),n.accessibilityLabel?:@"",n.accessibilityIdentifier?:@""];
+        }
+        NSString *l=q.lowercaseString;
+        return [l containsString:@"location"] || [l containsString:@"delivery"] || [l containsString:@"address"] || [l containsString:@"map pin"] || [l containsString:@"pin icon"];
+    } @catch(...) {}
+    return NO;
+}
+static void ADTintSearchGlyph706(UIImageView *iv){
+    if(!gP.enabled||!iv||!iv.image)return;
+    BOOL search=ADInSearchChrome706(iv), location=ADIsLocationGlyph709(iv);
+    if(!search&&!location)return;
+    @try {
+        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height; if(w<3||h<3||w>64||h>64)return;
         UIImage *im=iv.image;
         if(im.renderingMode!=UIImageRenderingModeAlwaysTemplate && !gADNavImageWrite706){
             UIImage *tpl=[im imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
             if(tpl){ gADNavImageWrite706=YES; iv.image=tpl; gADNavImageWrite706=NO; }
         }
-        iv.tintColor=ADLightText706();
+        iv.tintColor=[UIColor blackColor];
     } @catch(...) { gADNavImageWrite706=NO; }
 }
 
@@ -922,50 +928,62 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 
 %hook UILabel
 - (void)setAttributedText:(NSAttributedString *)attributedText {
+    if(gP.enabled && ADInSearchChrome706((UIView *)self) && attributedText.length){
+        NSMutableAttributedString *m=[attributedText mutableCopy];
+        [m addAttribute:NSForegroundColorAttributeName value:[UIColor blackColor] range:NSMakeRange(0,m.length)];
+        %orig(m);
+        return;
+    }
     NSAttributedString *r=ADLightAttributedText708(attributedText);
     %orig(r);
 }
 - (void)setTextColor:(UIColor *)color {
     if(gP.enabled){
-        UIColor *light=ADLightText706();
-        %orig(light);
+        UIColor *want=ADInSearchChrome706((UIView *)self)?[UIColor blackColor]:ADLightText706();
+        %orig(want);
         return;
     }
     %orig;
 }
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled&&self.window) self.textColor=ADLightText706();
+    if(gP.enabled&&self.window) self.textColor=ADInSearchChrome706((UIView *)self)?[UIColor blackColor]:ADLightText706();
 }
 %end
 
 %hook UITextView
 - (void)setTextColor:(UIColor *)color {
     if(gP.enabled){
-        UIColor *light=ADLightText706();
-        %orig(light);
+        UIColor *want=ADInSearchChrome706((UIView *)self)?[UIColor blackColor]:ADLightText706();
+        %orig(want);
         return;
     }
     %orig;
 }
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled&&self.window) self.textColor=ADLightText706();
+    if(gP.enabled&&self.window) self.textColor=ADInSearchChrome706((UIView *)self)?[UIColor blackColor]:ADLightText706();
 }
 %end
 
 %hook UITextField
 - (void)setTextColor:(UIColor *)color {
     if(gP.enabled){
-        UIColor *light=ADLightText706();
-        %orig(light);
+        UIColor *want=ADInSearchChrome706((UIView *)self)?[UIColor blackColor]:ADLightText706();
+        %orig(want);
         return;
     }
     %orig;
 }
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled&&self.window) self.textColor=ADLightText706();
+    if(gP.enabled&&self.window){
+        BOOL search=ADInSearchChrome706((UIView *)self);
+        self.textColor=search?[UIColor blackColor]:ADLightText706();
+        if(search && self.placeholder.length){
+            self.attributedPlaceholder=[[NSAttributedString alloc] initWithString:self.placeholder attributes:@{NSForegroundColorAttributeName:[UIColor blackColor]}];
+        }
+    }
 }
 %end
 
@@ -1014,12 +1032,11 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 %hook SBSearchBar
 - (void)didMoveToWindow {
     %orig;
-    UIView *v = (UIView *)self;
-    if (gP.enabled && v.window) {
-        v.backgroundColor = ADOLED();
-        v.layer.backgroundColor = ADOLED().CGColor;
-        v.layer.borderColor = ADBorderGray706().CGColor;
-        if (v.layer.borderWidth < 0.5) v.layer.borderWidth = 1.0;
+    UIView *v=(UIView *)self;
+    if(gP.enabled&&v.window){
+        v.backgroundColor=[UIColor clearColor];
+        v.layer.backgroundColor=[UIColor clearColor].CGColor;
+        v.layer.borderWidth=0;
     }
 }
 %end
@@ -1027,20 +1044,42 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 %hook SBSearchField
 - (void)didMoveToWindow {
     %orig;
-    UIView *v = (UIView *)self;
-    if (gP.enabled && v.window) {
-        v.backgroundColor = ADOLED();
-        v.layer.backgroundColor = ADOLED().CGColor;
-        v.layer.borderColor = ADBorderGray706().CGColor;
-        if (v.layer.borderWidth < 0.5) v.layer.borderWidth = 1.0;
+    UIView *v=(UIView *)self;
+    if(gP.enabled&&v.window){
+        UIColor *fill=[UIColor colorWithWhite:0.78 alpha:1.0];
+        v.backgroundColor=fill;
+        v.layer.backgroundColor=fill.CGColor;
+        v.layer.borderColor=ADBorderGray706().CGColor;
+        if(v.layer.borderWidth<0.5)v.layer.borderWidth=1.0;
+        v.tintColor=[UIColor blackColor];
     }
 }
 %end
 
 
+static BOOL gADTabItemWrite709=NO;
 static void ADOwnBottomBar708(UIView *v){
     if(!gP.enabled||!v||!v.window)return;
-    @try { v.backgroundColor=ADOLED(); v.layer.backgroundColor=ADOLED().CGColor; ADTintBottomNavTree706(v); } @catch(...) {}
+    @try {
+        v.backgroundColor=ADOLED();
+        v.layer.backgroundColor=ADOLED().CGColor;
+        if([v isKindOfClass:[UITabBar class]]){
+            UITabBar *bar=(UITabBar *)v;
+            bar.tintColor=ADLightText706();
+            if([bar respondsToSelector:@selector(setUnselectedItemTintColor:)]) bar.unselectedItemTintColor=ADAmazonBlue706();
+            if(!gADTabItemWrite709){
+                gADTabItemWrite709=YES;
+                for(UITabBarItem *it in bar.items){
+                    UIImage *im=it.image;
+                    if(im && im.renderingMode!=UIImageRenderingModeAlwaysTemplate) it.image=[im imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+                    UIImage *sel=it.selectedImage;
+                    if(sel && sel.renderingMode!=UIImageRenderingModeAlwaysTemplate) it.selectedImage=[sel imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+                }
+                gADTabItemWrite709=NO;
+            }
+        }
+        ADTintBottomNavTree706(v);
+    } @catch(...) { gADTabItemWrite709=NO; }
 }
 %hook UITabBar
 - (void)didMoveToWindow {
@@ -1269,8 +1308,27 @@ static void ADApplyNativeTWB(UIImageView *iv){
     if (gP.enabled && self.window) { ADTintBottomNavImage706(self); ADTintSearchGlyph706(self); }
     ADApplyNativeTWB(self);
 }
+- (void)setTintColor:(UIColor *)color {
+    if(gP.enabled && self.window){
+        if(ADInBottomNav706(self)){
+            UIColor *want=ADSelectedInBottomNav706(self)?ADLightText706():ADAmazonBlue706();
+            %orig(want);
+            return;
+        }
+        if(ADInSearchChrome706(self) || ADIsLocationGlyph709(self)){
+            UIColor *dark=[UIColor blackColor];
+            %orig(dark);
+            return;
+        }
+    }
+    %orig;
+}
 - (void)layoutSubviews {
     %orig;
+    if(gP.enabled && self.window && (ADInBottomNav706(self) || ADInSearchChrome706(self) || ADIsLocationGlyph709(self))){
+        ADTintBottomNavImage706(self);
+        ADTintSearchGlyph706(self);
+    }
     if (objc_getAssociatedObject(self,kADTWBOverlay) || gP.whiteTame) ADApplyNativeTWB(self);
 }
 %end

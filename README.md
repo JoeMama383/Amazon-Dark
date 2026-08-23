@@ -1,3 +1,7 @@
+## v7.0.9
+
+Search/nav recovery: removes the generic native container painter that blanked the Search composer; restores gray Search field + black text/glyphs/location pin; strengthens standard tab-item templating so Alexa remains visible. Launch masking is unchanged from v7.0.8.
+
 ## v7.0.8
 - Restores structural-only OLED ownership after v7.0.5 overpaint; restores light text, gray borders, bottom-nav tint, and stricter splash handoff.
 
