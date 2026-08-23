@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.38-v729-static-home-media"
+#define AD_VERSION "v7.0.39-v729-home-media-completion"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -690,12 +690,28 @@ static NSString *ADFloorJS(void){
             ".a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf])"
             "{background-color:#000!important;border-color:#494d4d!important;"
             "mix-blend-mode:normal!important;isolation:auto!important;}"
-            /* Product-media blend correction, narrowed to product image semantics. */
+            /* Product-media blend correction.
+             * v7.0.39 completes the old generic-Home-media coverage without a
+             * classifier: any real IMG inside a proven ordinary Home card gets
+             * leaf-local blend normalization. UI/identity/ad-chrome leaves are
+             * explicitly rejected. */
             ":is(#gwm-PageContent,#gwm-Deck-btf,#gwm-Deck,.gwm-dashboard-container) "
             ":is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
-            ":is(img.a-amazon-image,img[class*=asin-image],img[class*=product-image],"
-            "[class*=asin-image] img,[class*=product-image] img,"
-            "[class*=image-wrapper] img,[class*=img-wrapper] img,[class*=image-container] img)"
+            "img"
+            ":not([class*=logo]):not([class*=avatar]):not([class*=profile])"
+            ":not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store])"
+            ":not([class*=rating]):not([class*=star]):not([class*=sprite]):not([class*=pixel])"
+            ":not([class*=icon]):not([class*=glyph]):not([class*=badge])"
+            ":not([class*=checkbox]):not([class*=heart]):not([class*=wishlist])"
+            ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
+            ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *))"
+            "{mix-blend-mode:normal!important;isolation:auto!important;background-color:transparent!important;}"
+            /* Some Home cards put the destructive blend on PICTURE/image
+             * wrappers instead of the IMG. Normalize those media-only wrappers
+             * too, but never apply TWB brightness to the wrapper itself. */
+            ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
+            ":is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
+            ":is(picture,[class*=image-wrapper],[class*=img-wrapper],[class*=image-container])"
             "{mix-blend-mode:normal!important;isolation:auto!important;background-color:transparent!important;}"
             ":is(#gwm-PageContent,#gwm-Deck-btf,#gwm-Deck,.gwm-dashboard-container) "
             ":is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
@@ -730,6 +746,15 @@ static NSString *ADFloorJS(void){
             ":not(:where([class*=theming-card] *)):not(:where([class*=creative-card] *)):not(:where([class*=ad-card] *)):not(:where([class*=canvas-card] *))"
             ":not(:where([class*=mobile-mshop-ad] *)):not(:where([class*=mobile-ad-container] *))"
             ":not(:where([class*=ape-wrapper] *)):not(:where([class*=ape-placement] *))"
+            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            /* v7.0.39 exact card-header ink.
+             * The dashboard carousel can hydrate one header with Amazon's dark
+             * inline foreground even while sibling cards are already light.
+             * Own only the a-cardui header text lane; Sponsored lives outside it. */
+            ":is(#gwm-Deck-btf,.gwm-dashboard-container) .a-cardui-header "
+            ":is(h1,h2,h3,h4,h5,h6,a,span,p)"
+            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
+            ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
             "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
             /* Bare Home section headers can live outside the inner card shell. */
             ":is(#gwm-Deck-btf,.gwm-dashboard-container) :is(h1,h2,h3,h4,h5,h6)"
@@ -794,13 +819,24 @@ static NSString *ADTWBJS(void){
          "img[data-a-dynamic-image],img.a-dynamic-image,[data-component-type=s-product-image] img,"
          "[class*=product-image] img,[class*=asin-image] img,.p13n-sc-uncoverable-faceout img,"
          "[data-asin] img.s-image,[data-csa-c-asin] img.s-image,"
-         /* Home product cards whose actual IMG leaf is only a-amazon-image / wrapper-owned. */
-         ".gwm-dashboard-container :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
-         ":is(img.a-amazon-image,[class*=image-wrapper] img,[class*=img-wrapper] img,[class*=image-container] img),"
-         "#gwm-Deck-btf :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
-         ":is(img.a-amazon-image,[class*=image-wrapper] img,[class*=img-wrapper] img,[class*=image-container] img),"
-         /* v7.0.38: probe-confirmed direct IMG leaves in Home multi-category cards. */
-         ":is(#gwm-Deck-btf,.gwm-dashboard-container) [class*=multi-category-card] img,"
+         /* v7.0.39 generic ordinary Home-card media.
+          * v6.0.29's old coverage showed that large Home/category media often
+          * has no product-image semantic class. Restrict the broad IMG rule to
+          * proven ordinary card roots, then reject UI/identity/chrome leaves.
+          * This covers dashboard cards, Trending, Smart Home, Keep Shopping,
+          * multi-category cards, and similar ordinary Home panes without a scan. */
+         ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
+         ":is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
+         "img"
+         ":not([class*=logo]):not([class*=avatar]):not([class*=profile])"
+         ":not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store])"
+         ":not([class*=rating]):not([class*=star]):not([class*=sprite]):not([class*=pixel])"
+         ":not([class*=icon]):not([class*=glyph]):not([class*=badge])"
+         ":not([class*=checkbox]):not([class*=heart]):not([class*=wishlist])"
+         ":not([class*=search-icon]):not([class*=microphone]):not([class*=camera]):not([class*=location])"
+         ":not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon])"
+         ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
+         ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),"
          /* Cheap v185-coverage equivalent for Home ad child frames: raster media only.
           * Text, backgrounds and Sponsored feedback remain Amazon-owned. */
          "html[data-ad7-twb-child=\"1\"] img"
