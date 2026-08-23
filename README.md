@@ -1,15 +1,33 @@
-# AmazonDark v7.0.28
+# AmazonDark v7.0.29
 
-Probe-driven Home ownership correction.
+Production correction built directly from v7.0.28.
 
-- Stops using NPACK/GWM generated bundle-family prefixes as floor selectors. Those prefixes also occur on `badgeLabel`, `ad-feedback-text`, metadata and image descendants.
-- Below-fold Home floors are owned only through actual shell semantics.
-- The ordinary carousel immediately below the hero is isolated through `.gwm-dashboard-container`; the hero remains Amazon-owned and retains original creative colors.
-- `% off` badgeLabel is not styled or repainted by AmazonDark.
-- `badgeMessage` alone has a transparent background/no shadow, removing the white plate behind `Limited time deal`.
-- Sponsored/ad-feedback text and info glyphs are isolated from AmazonDark-specific presentation app-wide. Amazon controls their stock color, sprite/mask/SVG, geometry and spacing.
-- Generic SVG background clearing is removed so tiny stock feedback glyphs cannot be erased by media-protection CSS.
-- Product-image `mix-blend-mode:normal` correction remains, but is narrowed to actual product-image semantics.
-- Ports the narrow later-6.x/v185 APE structural shell rule: wrapper/placement/feedback backgrounds, borders, outlines and shadows are cleared so the OLED page floor shows through. Sponsored ink/artwork is untouched.
-- No v7.0.27 probe runtime ships.
-- No MutationObserver, Home runtime scanner, TreeWalker, scroll listener, interval, RAF loop or recurring timer.
+## Sponsored text/glyph isolation
+The text-vs-glyph mismatch was not fixed by taking ownership of Sponsored ink. Instead, v7.0.29 removes two ways AmazonDark could still feed a different inherited `color` into the stock feedback glyph while Amazon's text leaf kept its own inline color:
+
+- root/page/card floor rules no longer set inherited foreground color;
+- generic primary/secondary text rules exclude Sponsored/ad-feedback ancestry, not only the exact label leaf.
+
+There is still no Sponsored-specific replacement text color, sprite, SVG, mask, filter, pseudo-element, opacity, geometry or fallback glyph rule.
+
+## Hero isolation
+The top Home hero/creative tree is now fully excluded from generic foreground ownership.
+
+A separate bug was also removed: v7.0.28's media-protection rule forced `background-color:transparent` onto hero/single-creative/theming-card/ad-card containers. That could erase Amazon's campaign floor while generic text stayed light, producing the pale-background/bright-text contrast visible in the screenshot.
+
+v7.0.29 only clears background color on true media/product-image wrappers. Hero/creative/theming/ad-card containers keep Amazon's own floor and text palette.
+
+## TWB Home restoration
+The current 7.x TWB sheet had become too narrow. v7.0.29 restores cheap document-start CSS coverage for previously proven families:
+
+- ordinary/product imagery;
+- `a-amazon-image` product leaves under the normal Home dashboard/below-fold cards;
+- seasonal `hp-mosaic` / widget IMG and SVG artwork;
+- Home single-creative / single-video imagery;
+- canvas-card media and VJS video;
+- theming-card / VJS poster CSS-background artwork using a background-only inset shade.
+
+This does not add a DOM walker, MutationObserver, load listener, selector scan, scroll recovery, interval or RAF loop.
+
+## Remaining diagnostic boundary
+This build intentionally does not add a broad all-iframe/all-image TWB rule. If an individual cross-origin ad-frame photo still escapes after v7.0.29, that remaining renderer should be probed rather than solved by globally filtering every image in every ad frame.

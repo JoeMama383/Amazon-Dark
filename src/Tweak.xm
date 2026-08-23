@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.28-home-isolation"
+#define AD_VERSION "v7.0.29-hero-sponsor-twb"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -608,7 +608,7 @@ static NSString *ADFloorJS(void){
             "s.textContent='"
             /* Root/page floors: immediate OLED canvas. */
             "html,body,#a-page,#gwm-PageContent,#dp,main,[role=main],#search,#cart-page,#sc-active-cart,#sc-saved-cart"
-            "{background:#000!important;background-color:#000!important;color:#e8e6e3!important;}"
+            "{background:#000!important;background-color:#000!important;}"
             /* Known structural panels/cards. Deliberately excludes generic section/div/a-cardui on Home creative trees. */
             ".s-result-item,[data-component-type=s-search-result],.s-card-container,.s-main-slot,"
             "#sc-active-cart .sc-list-item,#sc-saved-cart .sc-list-item,[class*=sc-][class*=content],[class*=sc-][class*=container],"
@@ -617,21 +617,35 @@ static NSString *ADFloorJS(void){
             "#authportal-main-section,#auth-footer,.auth-footer,[id*=auth-footer],"
             "[class*=variation],[class*=swatch-container],[class*=status-shell],[class*=badge-message],"
             "[class*=puis-card]:not([class*=creative]):not([class*=image]),[class*=product-card]:not([class*=image])"
-            "{background-color:#181a1b!important;color:#e8e6e3!important;}"
+            "{background-color:#181a1b!important;}"
             /* First-paint Search surface. Search overlay content must remain visible. */
             ".s-suggestion-container,.s-suggestion,.autocomplete-results-container,[class*=autocomplete],[class*=suggestion]"
             "{background:#181a1b!important;color:#e8e6e3!important;}"
-            /* Primary/secondary v185-style text. Keep saturated accents/buttons Amazon-owned. */
+            /* Primary/secondary v185-style text.
+             * Do not let generic ink leak into Amazon-owned Sponsored feedback or
+             * top-Home hero/creative trees. */
             ":is(.a-color-base,.a-text-normal,.a-size-base,.a-size-base-plus,.a-size-medium,"
-            ".a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen)"
-            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
-            ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-]),"
+            ".a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen,"
             ".s-title-instructions-style,.a-link-normal h2,[class*=product-title],"
-            "[class*=heading],[class*=title]:not([class*=badge])"
+            "[class*=heading],[class*=title]:not([class*=badge]))"
+            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
+            ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
+            ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *))"
+            ":not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *))"
+            ":not(:where([id^=af-label-] *))"
+            ":not(:where(#gwm-Deck *)):not(:where([class*=hero] *))"
+            ":not(:where([class*=single-creative] *)):not(:where([class*=single-video] *))"
+            ":not(:where([class*=theming-card] *))"
             "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
             ":is(.a-color-secondary,.a-size-small,[class*=secondary])"
             ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
             ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
+            ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *))"
+            ":not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *))"
+            ":not(:where([id^=af-label-] *))"
+            ":not(:where(#gwm-Deck *)):not(:where([class*=hero] *))"
+            ":not(:where([class*=single-creative] *)):not(:where([class*=single-video] *))"
+            ":not(:where([class*=theming-card] *))"
             "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
             /* Neutral borders/dividers. Exact structural families only; no global * border rewrite. */
             ".s-result-item,.s-card-container,[data-component-type=s-search-result],"
@@ -691,12 +705,11 @@ static NSString *ADFloorJS(void){
             "{background-color:transparent!important;box-shadow:none!important;}"
             /* Sponsored/ad-feedback text and glyphs have no AmazonDark paint rule.
              * Amazon retains their stock color, sprite/mask/SVG and geometry. */
-            /* Creative/media protection: preserve actual art/media independently of structural floors.
-             * Generic SVG is absent so tiny stock info-glyph SVG hosts are not modified. */
+            /* Creative/media protection: only true media/product-image wrappers are
+             * normalized. Hero/single-creative/theming/ad-card containers are excluded so
+             * Amazon keeps their own campaign floor and text contrast. */
             "picture,img,video,canvas,#imgTagWrapperId,.s-product-image-container,[data-component-type=s-product-image],"
-            "[class*=image-wrapper],[class*=img-wrapper],[class*=image-container],[class*=product-image],[class*=asin-image],"
-            "[class*=single-creative],[class*=single-video],[class*=theming-card-background],[class*=vjs-poster],[class*=media-wrapper],"
-            "[class*=hero],[class*=creative-card],[class*=ad-card]"
+            "[class*=image-wrapper],[class*=img-wrapper],[class*=image-container],[class*=product-image],[class*=asin-image]"
             "{background-color:transparent!important;}"
             /* Narrow standalone APE structural owner retained by the later 6.x/v185 lineage.
              * Placement chrome only; no Sponsored text/glyph/media ownership. */
@@ -719,18 +732,40 @@ static NSString *ADFloorJS(void){
 
 static NSString *ADTWBJS(void){
     // Pure CSS TWB owner: no load listener, no querySelectorAll, no observer.
+    // v7.0.29 restores the proven Home media families from the streamlined 6.x
+    // owner without reviving its runtime scanner/classifier.
     CGFloat strength=MAX(0,MIN(100,gP.whiteTameStrength));
     CGFloat factor=MAX(0.50,1.0-0.50*strength/100.0);
+    CGFloat shade=0.50*strength/100.0;
     return [NSString stringWithFormat:
         @"(function(){try{var id='ad7-twb-static',s=document.getElementById(id);"
          "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
          "s.textContent='"
+         /* Ordinary/product imagery. */
          "img.s-image,img.s-product-image,#landingImage,#imgBlkFront,#imgTagWrapperId img,"
          "img[data-a-dynamic-image],img.a-dynamic-image,[data-component-type=s-product-image] img,"
          "[class*=product-image] img,[class*=asin-image] img,.p13n-sc-uncoverable-faceout img,"
-         "[data-asin] img.s-image,[data-csa-c-asin] img.s-image"
+         "[data-asin] img.s-image,[data-csa-c-asin] img.s-image,"
+         /* Home product cards whose actual IMG leaf is only a-amazon-image / wrapper-owned. */
+         ".gwm-dashboard-container :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
+         ":is(img.a-amazon-image,[class*=image-wrapper] img,[class*=img-wrapper] img,[class*=image-container] img),"
+         "#gwm-Deck-btf :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
+         ":is(img.a-amazon-image,[class*=image-wrapper] img,[class*=img-wrapper] img,[class*=image-container] img),"
+         /* Seasonal mosaic media + its image/SVG glyph artwork. */
+         "[class*=hp-mosaic-container] :is(img,svg),"
+         "[class*=_mosaic-container_style_widgetContainer] :is(img,svg),"
+         /* Historical single-creative / single-video / canvas Home media. */
+         "img[class*=_single-creative-card],img[class*=_single-video-card],"
+         "[class*=single-creative-card] img,[class*=single-video-card] img,"
+         "[class*=single-video-card] video,[class*=canvas-card] canvas,video.vjs-tech"
          "{filter:brightness(%.3f)!important;}"
-         "';}catch(e){}})();",factor];
+         /* CSS-background creative imagery: background-only shade, not text/control filter. */
+         "[class*=single-creative-card] [class*=theming-card-background],"
+         "[class*=single-video-card] [class*=theming-card-background],"
+         "[class*=single-video-card] [class*=vjs-poster],"
+         "[class*=theming-card] [class*=vjs-poster]"
+         "{box-shadow:inset 0 0 0 9999px rgba(0,0,0,%.3f)!important;}"
+         "';}catch(e){}})();",factor,shade];
 }
 
 static void ADTrackWebView(WKWebView *wv){
