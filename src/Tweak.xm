@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.9-oled-floor"
+#define AD_VERSION "v7.0.10-oled-floor"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -605,8 +605,9 @@ static NSString *ADFloorJS(void){
             "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
             "s.textContent='"
             "html,body,#a-page,#gwm-PageContent,main,[role=main],"
-            "div.a-section,div.a-container,div.a-row,"
-            "[class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-tile],[class*=puis-card],[class*=cXVhZ],"
+            // Do not own generic a-section/a-container/a-row/a-cardui: Home carousel creatives
+            // reuse those classes internally. Specific structural families below remain dark.
+            "[class*=puis-card],"
             "[class*=sc-][class*=content],[class*=sc-][class*=container],[class*=sc-][class*=list],[class*=sc-][class*=page],"
             "[class*=search][class*=container],[class*=search][class*=content],[class*=suggest][class*=container],"
             "[class*=page-container],[class*=pageContent],[class*=page-content],[class*=content-container],[class*=contentContainer],"
@@ -618,7 +619,8 @@ static NSString *ADFloorJS(void){
             // never put an opaque rectangle behind transparent glyph/logo/creative artwork.
             "picture,img,video,canvas,svg,#imgTagWrapperId,.s-product-image-container,[data-component-type=s-product-image],"
             "[class*=image-wrapper],[class*=img-wrapper],[class*=image-container],[class*=product-image],[class*=asin-image],"
-            "[class*=single-creative],[class*=single-video],[class*=theming-card-background],[class*=vjs-poster],[class*=media-wrapper]"
+            "[class*=single-creative],[class*=single-video],[class*=theming-card-background],[class*=vjs-poster],[class*=media-wrapper],"
+            "[class*=npack],[class*=gwm-asin],[class*=gwm-tile],[class*=cXVhZ],[class*=hero],[class*=creative-card],[class*=ad-card]"
             "{background-color:transparent!important;}"
             // App-wide text contrast. Do not filter SVG/IMG glyphs here.
             "body,#a-page,main,p,span,a,label,h1,h2,h3,h4,h5,h6,strong,b,em,small,sup,sub,blockquote,legend,dt,dd,caption,time,"
@@ -632,9 +634,8 @@ static NSString *ADFloorJS(void){
             // Established neutral border contract.
             "*{border-color:#494d4d!important;outline-color:#494d4d!important;}"
             "hr,.a-divider-inner:after,.a-divider-inner:before,[class*=divider],[class*=separator]{border-color:#494d4d!important;}"
-            // Cheap proven compositor/floor fixes only.
-            "[class*=npack],[class*=npack] *,[class*=gwm-asin],[class*=gwm-asin] *,[class*=gwm-tile],[class*=gwm-tile] *,[class*=cXVhZ],[class*=cXVhZ] *"
-            "{mix-blend-mode:normal!important;isolation:auto!important;}"
+            // Home carousel/ad creative trees stay Amazon-owned. Do not impose floor or blend
+            // state on NPACK/GWM/cXVhZ descendants; their transparent/composited artwork depends on it.
             "#wd-backdrop-gradient,.wd-backdrop-gradient,[class*=wd-backdrop-gradient]{background:#000!important;background-image:none!important;box-shadow:none!important;}"
             "[class*=a-reactive-container],[class*=reactive-contain]{background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
             "#auth-footer,.auth-footer,[id*=auth-footer],#auth-footer .a-divider,#auth-footer .a-divider-inner,.auth-footer .a-divider,.auth-footer .a-divider-inner"
@@ -665,19 +666,24 @@ static NSArray *ADTrackedWebViews(void){
     @try { @synchronized([WKWebView class]) { return gADWebViews?gADWebViews.allObjects:@[]; } } @catch(...) {}
     return @[];
 }
-static void ADAttachWebScripts(WKWebView *wv){
-    if(!wv || !gP.enabled)return; ADTrackWebView(wv);
+static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
+    if(!ucc || !gP.enabled)return;
     @try {
-        WKUserContentController *ucc=wv.configuration.userContentController;
-        if(ucc && !objc_getAssociatedObject(ucc,kADFloorUS)){
+        if(!objc_getAssociatedObject(ucc,kADFloorUS)){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADFloorJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
-            [ucc addUserScript:us]; objc_setAssociatedObject(ucc,kADFloorUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            [ucc addUserScript:us];
+            objc_setAssociatedObject(ucc,kADFloorUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
-        if(gP.whiteTame && ucc && !objc_getAssociatedObject(ucc,kADTWBUS)){
+        if(gP.whiteTame && !objc_getAssociatedObject(ucc,kADTWBUS)){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADTWBJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
-            [ucc addUserScript:us]; objc_setAssociatedObject(ucc,kADTWBUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            [ucc addUserScript:us];
+            objc_setAssociatedObject(ucc,kADTWBUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
     } @catch(...) {}
+}
+static void ADAttachWebScripts(WKWebView *wv){
+    if(!wv || !gP.enabled)return; ADTrackWebView(wv);
+    @try { ADAttachScriptsToUCC710(wv.configuration.userContentController); } @catch(...) {}
 }
 static void ADApplyWebFloor(WKWebView *wv){
     if(!wv || !gP.enabled)return; ADTrackWebView(wv);
@@ -698,8 +704,21 @@ static void ADApplyAllFloors(void){
     });
 }
 
+%hook WKWebViewConfiguration
+- (instancetype)init {
+    id cfg=%orig;
+    if(gP.enabled && cfg){
+        @try { ADAttachScriptsToUCC710(((WKWebViewConfiguration *)cfg).userContentController); } @catch(...) {}
+    }
+    return cfg;
+}
+%end
+
 %hook WKWebView
 - (instancetype)initWithFrame:(CGRect)frame configuration:(WKWebViewConfiguration *)configuration {
+    if(gP.enabled && configuration){
+        @try { ADAttachScriptsToUCC710(configuration.userContentController); } @catch(...) {}
+    }
     id wv = %orig;
     if (gP.enabled) { ADAttachWebScripts(wv); ADApplyWebFloor(wv); }
     return wv;
@@ -1279,8 +1298,10 @@ static BOOL ADNativeMediaBlocked(UIImageView *iv){
         }
         [s appendFormat:@" %@",iv.accessibilityLabel?:@""];
         NSString *q=s.lowercaseString;
-        for(NSString *tok in @[@"icon",@"glyph",@"logo",@"avatar",@"profile",@"badge",@"star",@"rating",@"checkbox",@"heart",@"arrow",@"chevron",@"button",@"search",@"menu",@"microphone",@"camera",@"cart",@"location",@"nav",@"tab",@"sprite",@"brand",@"seller",@"store"])
+        for(NSString *tok in @[@"icon",@"glyph",@"logo",@"avatar",@"profile",@"badge",@"star",@"rating",@"checkbox",@"heart",@"arrow",@"chevron",@"button",@"search",@"menu",@"microphone",@"camera",@"cart",@"location",@"nav",@"tab",@"sprite",@"brand",@"seller",@"store",@"screenshot",@"snapshot",@"screen shot",@"share preview",@"preview"])
             if([q containsString:tok])return YES;
+        CGSize screen=UIScreen.mainScreen.bounds.size;
+        if(screen.width>0 && screen.height>0 && w>=screen.width*0.80 && h>=screen.height*0.60)return YES;
     } @catch(...) { return YES; }
     return NO;
 }
@@ -1332,6 +1353,43 @@ static void ADApplyNativeTWB(UIImageView *iv){
     if (objc_getAssociatedObject(self,kADTWBOverlay) || gP.whiteTame) ADApplyNativeTWB(self);
 }
 %end
+
+// Screenshot/snapshot recovery is intentionally event-only. iOS/Amazon can mount a
+// large snapshot UIImageView while taking a screenshot; that must never inherit TWB.
+static NSInteger gADScreenshotWalk710=0;
+static void ADClearSnapshotTWB710(UIView *v){
+    if(!v || gADScreenshotWalk710>=900)return;
+    gADScreenshotWalk710++;
+    @try {
+        if([v isKindOfClass:[UIImageView class]]){
+            UIImageView *iv=(UIImageView *)v;
+            CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
+            CGSize screen=UIScreen.mainScreen.bounds.size;
+            NSString *sem=[NSString stringWithFormat:@"%@ %@ %@",NSStringFromClass(iv.class),iv.accessibilityLabel?:@"",iv.accessibilityIdentifier?:@""].lowercaseString;
+            BOOL snap=[sem containsString:@"screenshot"]||[sem containsString:@"snapshot"]||[sem containsString:@"preview"]||
+                (screen.width>0&&screen.height>0&&w>=screen.width*0.80&&h>=screen.height*0.60);
+            if(snap){
+                CALayer *ov=objc_getAssociatedObject(iv,kADTWBOverlay);
+                if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(iv,kADTWBOverlay,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
+                [iv.layer setNeedsDisplay];
+                [iv setNeedsLayout];
+            }
+        }
+        for(UIView *sub in v.subviews) ADClearSnapshotTWB710(sub);
+    } @catch(...) {}
+}
+static void ADScreenshotDidOccur710(void){
+    if(!gP.enabled)return;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        gADScreenshotWalk710=0;
+        @try {
+            for(UIWindow *w in UIApplication.sharedApplication.windows){
+                if(!w.hidden && w.alpha>0.01) ADClearSnapshotTWB710(w);
+            }
+            for(WKWebView *wv in ADTrackedWebViews()) if(wv.window) ADApplyWebFloor(wv);
+        } @catch(...) {}
+    });
+}
 
 // -----------------------------------------------------------------------------
 // Launch transition handoff. The SpringBoard side retains v6.0.185's 1.40 s
@@ -1415,6 +1473,10 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);
+
+    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note){
+        (void)note; ADScreenshotDidOccur710();
+    }];
 
     dispatch_async(dispatch_get_main_queue(), ^{
         ADApplyAllFloors();

@@ -1,3 +1,7 @@
+# AmazonDark v7.0.10
+
+Cold-first-paint / Search / Home-carousel / screenshot-state correction. Keeps the v7.0.9 OLED architecture and successful SpringBoard launch cover, but installs WK document-start scripts before WKWebView creation, excludes Home creative carousel families from OLED/background/compositing ownership, and rejects screenshot/snapshot/full-window raster views from TWB.
+
 ## v7.0.9
 
 Search/nav recovery: removes the generic native container painter that blanked the Search composer; restores gray Search field + black text/glyphs/location pin; strengthens standard tab-item templating so Alexa remains visible. Launch masking is unchanged from v7.0.8.
