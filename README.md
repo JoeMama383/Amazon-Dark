@@ -1,25 +1,25 @@
-# AmazonDark v7.0.26
+# AmazonDark v7.0.27~probe
 
-Home floor/chrome exclusion correction built on v7.0.25.
+Diagnostic build based directly on v7.0.26.
 
-- The complex top hero and the first ordinary card row can both live in `#gwm-Deck`.
-- v7.0.26 restores OLED only to known ordinary card-shell roots in that deck and excludes roots carrying complex creative/video/theming background markers.
-- The below-fold `#gwm-Deck-btf` and legacy `#gwm-PageContent` card-shell ownership remain.
+Certain corrections:
+- Removes the unsafe `#gwm-Deck` card-floor owner that blackened color/composited top hero cards.
+- Keeps proven below-fold `#gwm-Deck-btf` / legacy floor ownership.
+- Restores only `[class*=badgeMessage] { background-color:transparent; box-shadow:none; }` to remove the new white plate behind `Limited time deal`. No `% off` badge repaint and no text-color rule.
 
-Percent-off/deal chrome:
-- Generic structural descendant floor painting is removed.
-- v7.0.25's badge/deal replacement paint is removed.
-- Amazon's own `% off`, Limited time deal, coupon, discount, badge, chip and pill descendants are simply left alone.
+Probe target:
+- exact hero vs ordinary-row ancestry;
+- standalone APE / mobile-mshop-ad frame surfaces;
+- Sponsored text and info-glyph hosts;
+- pseudo-element/background-image/mask implementations;
+- deal/badge message hosts.
 
-Sponsored chrome:
-- Sponsored/ad-feedback text is removed from the generic secondary-text repaint.
-- `adFeedbackMainComponent` is removed from generic transparent/box-shadow cleanup.
-- No custom Sponsored glyph is drawn; the stock text/glyph host remains Amazon-owned.
+Probe shape:
+- all WebKit frames receive a tiny documentStart probe bootstrap;
+- one fixed current-viewport `elementsFromPoint()` snapshot;
+- only bounded local neighborhoods around visible semantic hits;
+- child frames reply through probe-only `postMessage`;
+- no querySelectorAll, TreeWalker, MutationObserver, scroll listener, interval, RAF loop or recurring probe timer.
 
-Preserved:
-- OLED card-shell floors.
-- inherited light card copy;
-- product-media `mix-blend-mode:normal` fix;
-- TWB brightness filters;
-- v7.0.25 bottom-nav behavior;
-- zero new MutationObserver, Home runtime scan, scroll listener, timer, interval or RAF loop.
+Workflow:
+Open Amazon on the target Home viewport -> background once -> wait about 2 seconds -> run the supplied single NewTerm export block.
