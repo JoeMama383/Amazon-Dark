@@ -33,8 +33,9 @@
 #import <errno.h>
 #import <string.h>
 #import <float.h>
+#import <signal.h>
 
-#define AD_VERSION "v7.0.34-disney-media-probe"
+#define AD_VERSION "v7.0.36-home-media-twb-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -598,6 +599,7 @@ static void ADPostReadyOnce(void);
 static void ADScheduleLaunchReadyCheck706(void);
 static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
+static const void *kADProbeUS7036=&kADProbeUS7036;
 static NSHashTable *gADWebViews=nil;
 
 static NSString *ADFloorJS(void){
@@ -801,6 +803,45 @@ static NSString *ADTWBJS(void){
          "';}catch(e){}})();",factor,shade];
 }
 
+
+static NSString *ADProbeBootstrap7036(void){
+    return @"(function(){try{"
+    "if(window.__ADP7036_INSTALLED__)return;window.__ADP7036_INSTALLED__=1;"
+    "function c(v,n){return String(v==null?'':v).replace(/\\s+/g,' ').trim().slice(0,n||260)}"
+    "function cls(e){try{var x=e.className;if(x&&x.baseVal!==undefined)x=x.baseVal;return typeof x==='string'?x:''}catch(z){return ''}}"
+    "function at(e,n){try{return e.getAttribute&&e.getAttribute(n)||''}catch(z){return ''}}"
+    "function sem(e){return c((e.id||'')+' '+cls(e)+' '+at(e,'data-component-type')+' '+at(e,'data-csa-c-type')+' '+at(e,'data-cel-widget')+' '+at(e,'role')+' '+at(e,'aria-label'),320)}"
+    "function rr(e){try{return e.getBoundingClientRect()}catch(z){return {left:0,top:0,right:0,bottom:0,width:0,height:0}}}"
+    "function pss(x){if(!x)return '{}';return '{bg:'+c(x.backgroundColor,70)+',bgi:'+c(x.backgroundImage,180)+',mask:'+c(x.webkitMaskImage||x.maskImage,180)+',filter:'+c(x.filter,80)+',blend:'+c(x.mixBlendMode,50)+',op:'+c(x.opacity,25)+',content:'+c(x.content,100)+',color:'+c(x.color,70)+',fill:'+c(x.fill,70)+'}'}"
+    "function med(e){var t=(e.tagName||'').toUpperCase(),a=[];"
+      "if(t==='IMG'){a.push('src='+c(e.src,190));a.push('currentSrc='+c(e.currentSrc,190));a.push('natural='+e.naturalWidth+'x'+e.naturalHeight);a.push('complete='+!!e.complete)}"
+      "else if(t==='VIDEO'){a.push('poster='+c(e.poster,190));a.push('video='+e.videoWidth+'x'+e.videoHeight);a.push('ready='+e.readyState)}"
+      "else if(t==='SOURCE'){a.push('src='+c(e.src,190));a.push('srcset='+c(e.srcset,190))}"
+      "else if(t==='SVG'||t==='USE'||t==='IMAGE'){a.push('href='+c(at(e,'href')||at(e,'xlink:href'),190));a.push('viewBox='+c(at(e,'viewBox'),100))}"
+      "return a.join(' ')}"
+    "function snap(){try{var D=document,W=innerWidth||D.documentElement.clientWidth,H=innerHeight||D.documentElement.clientHeight;"
+      "var xs=[.03,.10,.19,.30,.42,.54,.66,.78,.89,.97],ys=[.08,.16,.24,.32,.40,.48,.56,.64,.72,.80,.88,.95],seen=new Set(),rows=[],frames=[];"
+      "function add(e,why,d,x,y){try{if(!e||e.nodeType!==1||seen.has(e)||rows.length>=190)return;seen.add(e);var r=rr(e);if(r.bottom<0||r.top>H||r.right<0||r.left>W)return;"
+        "var st=getComputedStyle(e),bf=null,af=null;try{bf=getComputedStyle(e,'::before');af=getComputedStyle(e,'::after')}catch(z){};"
+        "rows.push('E['+rows.length+'] why='+why+' d='+d+' pt='+Math.round(x)+','+Math.round(y)+' tag='+e.tagName+' rect=('+r.left.toFixed(1)+','+r.top.toFixed(1)+' '+r.width.toFixed(1)+'x'+r.height.toFixed(1)+') sem='+sem(e)+' bg='+c(st.backgroundColor,70)+' bgi='+c(st.backgroundImage,200)+' mask='+c(st.webkitMaskImage||st.maskImage,200)+' maskSize='+c(st.webkitMaskSize||st.maskSize,90)+' filter='+c(st.filter,100)+' blend='+c(st.mixBlendMode,50)+' bgBlend='+c(st.backgroundBlendMode,50)+' iso='+c(st.isolation,40)+' op='+c(st.opacity,25)+' vis='+c(st.visibility,25)+' display='+c(st.display,35)+' color='+c(st.color,70)+' textFill='+c(st.webkitTextFillColor,70)+' fill='+c(st.fill,70)+' stroke='+c(st.stroke,70)+' objectFit='+c(st.objectFit,40)+' '+med(e)+' before='+pss(bf)+' after='+pss(af)+' text='+c(e.innerText||e.textContent,180));"
+      "}catch(z){}}"
+      "function near(e,x,y){var n=e;for(var d=0;d<6&&n&&rows.length<190;d++,n=n.parentElement){add(n,d?'ancestor':'hit',d,x,y);var ch=n.children||[];for(var j=0;j<Math.min(ch.length,8)&&rows.length<190;j++){var q=ch[j],r=rr(q);if(r.width>=8&&r.height>=8&&r.bottom>=0&&r.top<=H&&r.right>=0&&r.left<=W)add(q,'child',d+1,x,y)}}}"
+      "for(var yi=0;yi<ys.length&&rows.length<190;yi++){for(var xi=0;xi<xs.length&&rows.length<190;xi++){var x=W*xs[xi],y=H*ys[yi],st=D.elementsFromPoint(x,y);for(var k=0;k<Math.min(st.length,6)&&rows.length<190;k++)near(st[k],x,y)}}"
+      "var fs=D.getElementsByTagName('iframe');for(var fi=0;fi<fs.length&&fi<12;fi++){var fr=fs[fi],r=rr(fr);if(r.width>1&&r.height>1&&r.bottom>0&&r.top<H&&r.right>0&&r.left<W){frames.push(fr);add(fr,'visible-iframe',0,r.left+r.width/2,r.top+r.height/2)}}"
+      "window.__ADP7036_FRAMES=frames;"
+      "return 'FRAME href='+c(location.href,380)+' top='+(window.top===window?1:0)+' viewport='+W+'x'+H+' visibleFrames='+frames.length+'\\n'+rows.join('\\n')+'\\nFRAME_SUMMARY elements='+rows.length;"
+    "}catch(e){return 'SNAP_EXCEPTION '+e}}"
+    "window.__ADP7036_SNAP=snap;window.__ADP7036_CHILD=[];"
+    "window.addEventListener('message',function(ev){try{var d=ev.data;if(!d)return;"
+      "if(d.__adp7036_req){var z=snap();try{ev.source.postMessage({__adp7036_resp:d.__adp7036_req,dump:z},'*')}catch(x){}}"
+      "else if(d.__adp7036_resp&&window.top===window){window.__ADP7036_CHILD.push(d.dump||'EMPTY_CHILD')}}catch(x){}});"
+    "if(window.top===window){"
+      "window.__ADP7036_TRIGGER=function(){try{window.__ADP7036_CHILD=[];window.__ADP7036_MAIN=snap();var fs=window.__ADP7036_FRAMES||[];for(var i=0;i<fs.length;i++){try{fs[i].contentWindow.postMessage({__adp7036_req:'go'},'*')}catch(x){}}return 'TRIGGERED childFrames='+fs.length}catch(e){return 'TRIGGER_EXCEPTION '+e}};"
+      "window.__ADP7036_DUMP=function(){try{return (window.__ADP7036_MAIN||snap())+'\\n\\n=== CHILD FRAME SNAPSHOTS ===\\n'+(window.__ADP7036_CHILD.length?window.__ADP7036_CHILD.join('\\n\\n--- CHILD ---\\n'):'NO_CHILD_RESPONSES')}catch(e){return 'DUMP_EXCEPTION '+e}};"
+    "}"
+    "}catch(e){}})();";
+}
+
 static void ADTrackWebView(WKWebView *wv){
     if(!wv)return; @try { @synchronized([WKWebView class]) { if(!gADWebViews)gADWebViews=[NSHashTable weakObjectsHashTable]; [gADWebViews addObject:wv]; } } @catch(...) {}
 }
@@ -820,6 +861,11 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADTWBJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADTWBUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        if(!objc_getAssociatedObject(ucc,kADProbeUS7036)){
+            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADProbeBootstrap7036() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+            [ucc addUserScript:us];
+            objc_setAssociatedObject(ucc,kADProbeUS7036,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
     } @catch(...) {}
 }
@@ -873,6 +919,7 @@ static void ADApplyAllFloors(void){
     if(gP.enabled){
         objc_setAssociatedObject(self,kADFloorUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADTWBUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(self,kADProbeUS7036,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADAttachScriptsToUCC710(self);
     }
 }
@@ -1806,88 +1853,80 @@ static void ADScheduleLaunchReadyCheck706(void){
 
 
 // -----------------------------------------------------------------------------
-// v7.0.34 manual current-frame Disney/category-media probe.
-// Diagnostic only: no styling changes, no DOM census, no automatic trigger.
-// A fixed point grid samples only the currently visible main WebUI frame.
+// v7.0.36 manual SIGUSR1 current-frame Home media/TWB probe.
+// Diagnostic only: no theming changes, no background-triggered capture.
+// User workflow: leave target viewport visible -> background Amazon -> run the known-good NewTerm
+// block that sends SIGUSR1 and copies the report into the shared Documents folder.
 // -----------------------------------------------------------------------------
-static BOOL gADProbe7034Busy=NO;
+static BOOL gADProbe7036Busy=NO;
 
-static NSString *ADProbePath7034(void){
+static NSString *ADProbePath7036(void){
     @try {
         NSArray *dirs=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
         NSString *base=dirs.firstObject;
-        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-disney-media-probe-7034.txt"];
+        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-home-media-twb-probe-7036.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-disney-media-probe-7034.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-home-media-twb-probe-7036.txt"];
 }
-static void ADWriteProbe7034(NSString *body){
+static void ADWriteProbe7036(NSString *body){
     @try {
         NSMutableString *out=[NSMutableString string];
-        [out appendFormat:@"AmazonDark %@ current-frame missing-media probe\n",[NSString stringWithUTF8String:AD_VERSION]];
+        [out appendFormat:@"AmazonDark %@ current-frame Home media/TWB probe\n",[NSString stringWithUTF8String:AD_VERSION]];
         [out appendFormat:@"timestamp=%@\n\n",[NSDate date]];
         [out appendString:body?:@"NO_BODY"];
-        NSError *err=nil;
-        BOOL ok=[out writeToFile:ADProbePath7034() atomically:YES encoding:NSUTF8StringEncoding error:&err];
-        if(ok){
-            CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(),
-                CFSTR("com.colindavidr.amazondark/disney-media-probe-7034-ready"),NULL,NULL,true);
-        }
+        [out writeToFile:ADProbePath7036() atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } @catch(...) {}
 }
-static WKWebView *ADVisibleWebView7034(void){
+static WKWebView *ADVisibleWebView7036(void){
     WKWebView *best=nil; CGFloat bestArea=0;
     @try {
         for(WKWebView *wv in ADTrackedWebViews()){
             if(!wv||wv.hidden||wv.alpha<0.01)continue;
             CGRect b=wv.bounds;
             CGFloat area=MAX(0,b.size.width)*MAX(0,b.size.height);
-            if(wv.window)area*=2.0; // prefer the currently attached Home WebView
+            if(wv.window)area*=2.0;
             if(area>bestArea){bestArea=area;best=wv;}
         }
     } @catch(...) {}
     return best;
 }
-static NSString *ADDisneyMediaProbeJS7034(void){
-    return @"(function(){try{"
-    "var D=document,W=innerWidth||D.documentElement.clientWidth,H=innerHeight||D.documentElement.clientHeight;"
-    "var xs=[.04,.12,.24,.38,.52,.68,.84,.96],ys=[.20,.27,.34,.42,.50,.58,.66,.74,.82,.90],seen=new Set(),rows=[];"
-    "function clean(v,n){v=String(v==null?'':v).replace(/\\s+/g,' ').trim();return v.slice(0,n||260)}"
-    "function cls(e){try{var c=e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;return typeof c==='string'?c:''}catch(x){return ''}}"
-    "function attr(e,n){try{return e.getAttribute&&e.getAttribute(n)||''}catch(x){return ''}}"
-    "function sem(e){return clean((e.id||'')+' '+cls(e)+' '+attr(e,'data-component-type')+' '+attr(e,'data-csa-c-type')+' '+attr(e,'data-cel-widget')+' '+attr(e,'role')+' '+attr(e,'aria-label'),300)}"
-    "function rect(e){try{return e.getBoundingClientRect()}catch(x){return {left:0,top:0,width:0,height:0,right:0,bottom:0}}}"
-    "function ps(c){if(!c)return '{}';return '{bg:'+clean(c.backgroundColor,80)+',bgi:'+clean(c.backgroundImage,150)+',mask:'+clean(c.webkitMaskImage||c.maskImage,150)+',blend:'+clean(c.mixBlendMode,40)+',filter:'+clean(c.filter,90)+',op:'+clean(c.opacity,30)+',content:'+clean(c.content,100)+',color:'+clean(c.color,80)+'}'}"
-    "function media(e){var t=(e.tagName||'').toUpperCase(),a=[];if(t==='IMG'){a.push('src='+clean(e.src,180));a.push('currentSrc='+clean(e.currentSrc,180));a.push('natural='+e.naturalWidth+'x'+e.naturalHeight);a.push('complete='+!!e.complete)}else if(t==='SOURCE'){a.push('src='+clean(e.src,180));a.push('srcset='+clean(e.srcset,180))}else if(t==='VIDEO'){a.push('poster='+clean(e.poster,180));a.push('video='+e.videoWidth+'x'+e.videoHeight);a.push('ready='+e.readyState)}else if(t==='SVG'||t==='USE'||t==='IMAGE'){a.push('href='+clean(attr(e,'href')||attr(e,'xlink:href'),180));a.push('viewBox='+clean(attr(e,'viewBox'),100))}return a.join(' ')}"
-    "function one(e,why,d,x,y){if(!e||seen.has(e)||rows.length>=180)return;seen.add(e);var r=rect(e);if(r.bottom<0||r.top>H||r.right<0||r.left>W)return;var c=getComputedStyle(e),b=null,a=null;try{b=getComputedStyle(e,'::before');a=getComputedStyle(e,'::after')}catch(z){};rows.push('E['+rows.length+'] why='+why+' d='+d+' pt='+Math.round(x)+','+Math.round(y)+' tag='+e.tagName+' rect=('+r.left.toFixed(1)+','+r.top.toFixed(1)+' '+r.width.toFixed(1)+'x'+r.height.toFixed(1)+') sem='+sem(e)+' bg='+clean(c.backgroundColor,80)+' bgi='+clean(c.backgroundImage,180)+' mask='+clean(c.webkitMaskImage||c.maskImage,180)+' maskSize='+clean(c.webkitMaskSize||c.maskSize,90)+' blend='+clean(c.mixBlendMode,50)+' bgBlend='+clean(c.backgroundBlendMode,50)+' iso='+clean(c.isolation,40)+' filter='+clean(c.filter,100)+' op='+clean(c.opacity,30)+' vis='+clean(c.visibility,30)+' display='+clean(c.display,40)+' color='+clean(c.color,80)+' textFill='+clean(c.webkitTextFillColor,80)+' fill='+clean(c.fill,80)+' stroke='+clean(c.stroke,80)+' objectFit='+clean(c.objectFit,40)+' '+media(e)+' before='+ps(b)+' after='+ps(a)+' text='+clean(e.innerText||e.textContent,180));}"
-    "function nearby(e,x,y){var n=e;for(var d=0;d<5&&n&&rows.length<180;d++,n=n.parentElement){one(n,d?'ancestor':'hit',d,x,y);var ch=n.children||[];for(var j=0;j<Math.min(ch.length,6)&&rows.length<180;j++){var q=ch[j],r=rect(q);if(r.width>=8&&r.height>=8&&r.bottom>=0&&r.top<=H&&r.right>=0&&r.left<=W)one(q,'child',d+1,x,y)}}}"
-    "for(var yi=0;yi<ys.length&&rows.length<180;yi++){for(var xi=0;xi<xs.length&&rows.length<180;xi++){var x=W*xs[xi],y=H*ys[yi],st=D.elementsFromPoint(x,y);for(var k=0;k<Math.min(st.length,5)&&rows.length<180;k++)nearby(st[k],x,y)}}"
-    "return 'FRAME href='+location.href+'\\nTITLE='+clean(D.title,180)+'\\nVIEWPORT='+W+'x'+H+'\\n'+rows.join('\\n')+'\\nFRAME_SUMMARY elements='+rows.length;"
-    "}catch(e){return 'PROBE_EXCEPTION '+(e&&e.stack||e);}})();";
-}
-static void ADEndProbeBG7034(UIBackgroundTaskIdentifier bg){
+static void ADEndProbeBG7036(UIBackgroundTaskIdentifier bg){
     if(bg==UIBackgroundTaskInvalid)return;
     @try { [[UIApplication sharedApplication] endBackgroundTask:bg]; } @catch(...) {}
 }
-static void ADRunProbe7034(void){
-    if(gADProbe7034Busy)return;
-    gADProbe7034Busy=YES;
-    WKWebView *wv=ADVisibleWebView7034();
-    if(!wv){ADWriteProbe7034(@"NO_TRACKED_WKWEBVIEW");gADProbe7034Busy=NO;return;}
+static void ADRunProbe7036(void){
+    if(gADProbe7036Busy)return;
+    gADProbe7036Busy=YES;
+    ADWriteProbe7036(@"PROBE_TRIGGERED");
+    WKWebView *wv=ADVisibleWebView7036();
+    if(!wv){ADWriteProbe7036(@"NO_TRACKED_WKWEBVIEW");gADProbe7036Busy=NO;return;}
+
     __block UIBackgroundTaskIdentifier bg=UIBackgroundTaskInvalid;
     @try {
         bg=[[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
-            UIBackgroundTaskIdentifier x=bg;bg=UIBackgroundTaskInvalid;ADEndProbeBG7034(x);
+            UIBackgroundTaskIdentifier x=bg;bg=UIBackgroundTaskInvalid;ADEndProbeBG7036(x);
         }];
     } @catch(...) {}
-    [wv evaluateJavaScript:ADDisneyMediaProbeJS7034() completionHandler:^(id value,NSError *error){
-        NSString *body=error?[NSString stringWithFormat:@"WEB_ERROR %@",error]:([value isKindOfClass:[NSString class]]?value:[value description]);
-        ADWriteProbe7034(body);
-        gADProbe7034Busy=NO;
-        UIBackgroundTaskIdentifier x=bg;bg=UIBackgroundTaskInvalid;ADEndProbeBG7034(x);
+
+    [wv evaluateJavaScript:@"window.__ADP7036_TRIGGER?window.__ADP7036_TRIGGER():'NO_PROBE_BOOTSTRAP'"
+         completionHandler:^(id value,NSError *error){
+        NSString *head=error?[NSString stringWithFormat:@"TRIGGER_ERROR %@",error]:[value description];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.35*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+            [wv evaluateJavaScript:@"window.__ADP7036_DUMP?window.__ADP7036_DUMP():'NO_PROBE_DUMP'"
+                 completionHandler:^(id dump,NSError *dumpError){
+                NSString *body=dumpError
+                    ? [NSString stringWithFormat:@"%@\nDUMP_ERROR %@",head,dumpError]
+                    : [NSString stringWithFormat:@"%@\n\n%@",head,([dump isKindOfClass:[NSString class]]?dump:[dump description])];
+                ADWriteProbe7036(body);
+                gADProbe7036Busy=NO;
+                UIBackgroundTaskIdentifier x=bg;bg=UIBackgroundTaskInvalid;ADEndProbeBG7036(x);
+            }];
+        });
     }];
 }
-static void ADProbeNotify7034(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
-    dispatch_async(dispatch_get_main_queue(),^{ @try { ADRunProbe7034(); } @catch(...) {} });
+static void ADProbeSignal7036(int sig){
+    if(sig!=SIGUSR1)return;
+    dispatch_async(dispatch_get_main_queue(),^{ @try { ADRunProbe7036(); } @catch(...) {} });
 }
 
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
@@ -1911,10 +1950,10 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 
     %init;
 
+    signal(SIGUSR1, ADProbeSignal7036);
+
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);
-    CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADProbeNotify7034,
-        CFSTR("com.colindavidr.amazondark/probe-disney-media-7034"),NULL,CFNotificationSuspensionBehaviorDeliverImmediately);
     dispatch_async(dispatch_get_main_queue(), ^{
         ADApplyAllFloors();
         ADRefreshPromotionState611();

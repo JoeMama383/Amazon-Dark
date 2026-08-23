@@ -1,24 +1,39 @@
-# AmazonDark v7.0.34~probe
+# AmazonDark v7.0.36~probe
 
-Diagnostic build based **directly on v7.0.33**. No production styling/TWB changes.
+Direct continuation of v7.0.35's diagnostic coverage, with the probe trigger
+restored to the exact older known-good workflow.
 
-## Purpose
-Pinpoint the four missing visual leaves in the Home category/ad card (e.g. Disney apparel / mugs / phone cases / keychains) without a document-wide scan.
+## Probe trigger
+The probe listens for SIGUSR1.
 
-## Trigger workflow
-1. Open Amazon and leave the affected card visible.
+Known-good NewTerm sequence:
+1. Leave the target Home frame visible in Amazon.
 2. Background Amazon.
-3. Run: `notifyutil -p com.colindavidr.amazondark/probe-disney-media-7034`
-4. SpringBoard automatically relays the completed report to:
-   `/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/AmazonDark-disney-media-probe-7034.txt`
+3. Run `kill -USR1 "$(pgrep -x Amazon -n)"`.
+4. Wait one second.
+5. Find the generated probe file in Amazon's sandbox and copy it to the shared
+   Documents folder.
 
-## Probe scope
-- manual only; never runs automatically;
-- current main WebUI frame only;
-- fixed 8 x 10 viewport point grid using `elementsFromPoint()`;
-- at most 5 hit-stack elements, 5 ancestors, and 6 immediate visible children per sampled branch;
-- hard cap: 180 unique records;
-- records IMG/SVG/source state, background image/color, WebKit mask image, blend/isolation/filter/opacity, fill/stroke, pseudo-element paint, and geometry;
-- no `querySelectorAll`, TreeWalker, MutationObserver, scroll listener, interval, RAF, or recurring timer.
+No notifyutil.
+No Darwin-notification relay.
+No SpringBoard relay.
+No auto-trigger-on-background.
 
-The probe intentionally changes **no** Home styling.
+## Probe targets
+The current visible Home frame is sampled for:
+- missing category-card visuals that may be IMG/SVG/background/mask/glyph;
+- large Home photo ads that are not currently receiving TWB;
+- large seasonal/category glyph/media leaves that are not receiving TWB;
+- visible standalone iframe elements and child-frame contents when responsive.
+
+The actual capture logic is unchanged from v7.0.35.
+
+## Performance
+Diagnostic only, bounded current-frame snapshot:
+- no querySelectorAll;
+- no MutationObserver;
+- no TreeWalker;
+- no scroll listener;
+- no setInterval;
+- no requestAnimationFrame;
+- no recurring scanner/timer.

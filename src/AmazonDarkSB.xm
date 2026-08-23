@@ -429,38 +429,6 @@ static void ADSBHandleJITRequest622(int token){
 }
 
 
-// v7.0.34 probe relay. Amazon writes inside its sandbox; SpringBoard relays the
-// completed one-shot report to the established shared Documents folder.
-static void ADRelayDisneyProbe7034(void){
-    @autoreleasepool {
-        @try {
-            NSString *name=@"AmazonDark-disney-media-probe-7034.txt";
-            NSString *root=@"/private/var/mobile/Containers/Data/Application";
-            NSFileManager *fm=[NSFileManager defaultManager];
-            NSDirectoryEnumerator *en=[fm enumeratorAtPath:root];
-            NSString *best=nil; NSDate *bestDate=nil;
-            for(NSString *rel in en){
-                if(![[rel lastPathComponent] isEqualToString:name])continue;
-                NSString *full=[root stringByAppendingPathComponent:rel];
-                NSDictionary *attrs=[fm attributesOfItemAtPath:full error:nil];
-                NSDate *d=attrs[NSFileModificationDate];
-                if(!best||!bestDate||[d compare:bestDate]==NSOrderedDescending){best=full;bestDate=d;}
-            }
-            NSString *dest=@"/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/AmazonDark-disney-media-probe-7034.txt";
-            if(!best){ADSBLog(@"PROBE7034 relay failed: source not found");return;}
-            [fm removeItemAtPath:dest error:nil];
-            NSError *err=nil;
-            if([fm copyItemAtPath:best toPath:dest error:&err])
-                ADSBLog([NSString stringWithFormat:@"PROBE7034 relay OK %@",dest]);
-            else
-                ADSBLog([NSString stringWithFormat:@"PROBE7034 relay failed %@",err]);
-        } @catch(NSException *e){
-            ADSBLog([NSString stringWithFormat:@"PROBE7034 relay exception %@",e]);
-        }
-    }
-}
-
-
 %hook SBSceneView
 - (void)didMoveToWindow {
     %orig;
@@ -507,15 +475,6 @@ static void ADRelayDisneyProbe7034(void){
 
 
 %ctor {
-    @try {
-        static int adProbe7034Token=0;
-        notify_register_dispatch("com.colindavidr.amazondark/disney-media-probe-7034-ready",
-                                 &adProbe7034Token,
-                                 dispatch_get_global_queue(QOS_CLASS_UTILITY,0), ^(int t){
-            ADRelayDisneyProbe7034();
-        });
-    } @catch (__unused NSException *e) {}
-
     // Dopamine JIT broker: one event-driven enable request channel. SpringBoard is
     // the platform-authorized caller; the handler itself validates Amazon's PID.
     @try {
