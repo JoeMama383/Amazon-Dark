@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.11-oled-floor"
+#define AD_VERSION "v7.0.12-static-v185"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -599,64 +599,91 @@ static const void *kADTWBUS=&kADTWBUS;
 static NSHashTable *gADWebViews=nil;
 
 static NSString *ADFloorJS(void){
-    // v7.0.6: structural-only OLED ownership. Never blanket-paint generic DIV/controls/media.
-    // Text contrast and neutral borders are declarative and independent from floor ownership.
-    return @"(function(){try{var id='ad7-oled-floor',s=document.getElementById(id);"
+    // v7.0.12: static v185-style palette. CSS only: no Dark Reader, no observer,
+    // no computed-style repair walker. Own known structural shells; preserve media/art.
+    return @"(function(){try{var id='ad7-static-theme',s=document.getElementById(id);"
             "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
             "s.textContent='"
-            "html,body,#a-page,#gwm-PageContent,main,[role=main],"
-            // Do not own generic a-section/a-container/a-row/a-cardui: Home carousel creatives
-            // reuse those classes internally. Specific structural families below remain dark.
-            "[class*=puis-card],"
-            "[class*=sc-][class*=content],[class*=sc-][class*=container],[class*=sc-][class*=list],[class*=sc-][class*=page],"
-            "[class*=search][class*=container],[class*=search][class*=content],[class*=suggest][class*=container],"
-            "[class*=page-container],[class*=pageContent],[class*=page-content],[class*=content-container],[class*=contentContainer],"
-            "[class*=screen-container],[class*=screenContainer],[class*=root-container],[class*=rootContainer],"
-            "[class*=background-container],[class*=backgroundContainer],[class*=surface-container],[class*=surfaceContainer]"
-            "{background-color:#000!important;}"
-            "html::before,html::after,body::before,body::after,#a-page::before,#a-page::after,#gwm-PageContent::before,#gwm-PageContent::after,main::before,main::after,[role=main]::before,[role=main]::after{background-color:#000!important;}"
-            // Explicitly keep media/creative wrappers transparent. This is the v6.0.14/v6.0.15 lesson:
-            // never put an opaque rectangle behind transparent glyph/logo/creative artwork.
+            /* Root/page floors: immediate OLED canvas. */
+            "html,body,#a-page,#gwm-PageContent,#dp,main,[role=main],#search,#cart-page,#sc-active-cart,#sc-saved-cart"
+            "{background:#000!important;background-color:#000!important;color:#e8e6e3!important;}"
+            /* Known structural panels/cards. Deliberately excludes generic section/div/a-cardui on Home creative trees. */
+            ".s-result-item,[data-component-type=s-search-result],.s-card-container,.s-main-slot,"
+            "#sc-active-cart .sc-list-item,#sc-saved-cart .sc-list-item,[class*=sc-][class*=content],[class*=sc-][class*=container],"
+            "#dp [class*=a-box],#dp [class*=a-expander],#dp [class*=celwidget]:not([class*=image]):not([class*=media]),"
+            ".s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion],"
+            "#authportal-main-section,#auth-footer,.auth-footer,[id*=auth-footer],"
+            "[class*=variation],[class*=swatch-container],[class*=status-shell],[class*=badge-message],"
+            "[class*=puis-card]:not([class*=creative]):not([class*=image]),[class*=product-card]:not([class*=image])"
+            "{background-color:#181a1b!important;color:#e8e6e3!important;}"
+            /* First-paint Search surface. Search overlay content must remain visible. */
+            ".s-suggestion-container,.s-suggestion,.autocomplete-results-container,[class*=autocomplete],[class*=suggestion]"
+            "{background:#181a1b!important;color:#e8e6e3!important;}"
+            /* Primary/secondary v185-style text. Keep saturated accents/buttons Amazon-owned. */
+            ".a-color-base,.a-text-normal,.a-size-base,.a-size-base-plus,.a-size-medium,"
+            ".a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen,"
+            ".s-title-instructions-style,.a-link-normal h2,[class*=product-title],[class*=heading],[class*=title]:not([class*=badge])"
+            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            ".a-color-secondary,.a-size-small,[class*=secondary],[class*=sponsored-label],[id^=ad-feedback-text-],.ape-feedback"
+            "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
+            /* Neutral borders/dividers. Exact structural families only; no global * border rewrite. */
+            ".s-result-item,.s-card-container,[data-component-type=s-search-result],"
+            "#sc-active-cart .sc-list-item,#sc-saved-cart .sc-list-item,"
+            "#dp .a-box,#dp .a-divider,#dp [class*=card],"
+            ".s-suggestion-container,#auth-footer .a-divider,.auth-footer .a-divider,"
+            "[class*=swatch-outer-circle],[class*=puis-card]"
+            "{border-color:#494d4d!important;outline-color:#494d4d!important;}"
+            ".a-divider-inner:after,.a-divider-inner:before,hr,[class*=separator]"
+            "{border-color:#494d4d!important;background-color:#494d4d!important;}"
+            /* Established cheap fixes / gradients. */
+            "#wd-backdrop-gradient,.wd-backdrop-gradient,[class*=wd-backdrop-gradient],"
+            "[class*=a-reactive-container],[class*=reactive-contain],"
+            "#auth-footer,.auth-footer,[id*=auth-footer]"
+            "{background-image:none!important;box-shadow:none!important;}"
+            "#auth-footer .a-divider-inner,.auth-footer .a-divider-inner{background-image:none!important;box-shadow:none!important;}"
+            ".s-color-swatch-container,.s-color-swatch-outer-circle{background-color:transparent!important;}"
+            ".s-color-swatch-outer-circle{border-color:#494d4d!important;outline-color:#494d4d!important;}"
+            /* Known mask glyphs from v5/v6 Search history; preserve the mask, own only its ink. */
+            ".s-suggestion-container [class*=icon-past-search-sugge],"
+            ".s-suggestion-container .icon-close.s-suggestion-icon-left"
+            "{background-color:#e8e6e3!important;filter:none!important;opacity:1!important;}"
+            /* Share/overflow exact leaves from probe history. */
+            ".puis-mab-overlay-row-share .puis-mab-overlay-icon-share"
+            "{background-color:#e8e6e3!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;filter:none!important;}"
+            /* Creative/media protection: these families must never inherit a black structural rectangle. */
             "picture,img,video,canvas,svg,#imgTagWrapperId,.s-product-image-container,[data-component-type=s-product-image],"
             "[class*=image-wrapper],[class*=img-wrapper],[class*=image-container],[class*=product-image],[class*=asin-image],"
             "[class*=single-creative],[class*=single-video],[class*=theming-card-background],[class*=vjs-poster],[class*=media-wrapper],"
-            "[class*=npack],[class*=gwm-asin],[class*=gwm-tile],[class*=cXVhZ],[class*=hero],[class*=creative-card],[class*=ad-card]"
+            "[class*=npack],[class*=gwm-asin],[class*=gwm-tile],[class*=cXVhZ],[class*=hero],[class*=creative-card],[class*=ad-card],"
+            "[class*=ape-wrapper],[class*=ape-placement],[class*=adFeedbackMainComponent],[class*=hybrid-widget-sponsored]"
             "{background-color:transparent!important;}"
-            // App-wide text contrast. Do not filter SVG/IMG glyphs here.
-            "body,#a-page,main,p,span,a,label,h1,h2,h3,h4,h5,h6,strong,b,em,small,sup,sub,blockquote,legend,dt,dd,caption,time,"
-            ".a-color-base,.a-text-normal,.a-size-base,.a-size-base-plus,.a-size-medium,.a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen,"
-            "[class*=title],[class*=price],[class*=heading],[class*=description],[class*=truncate]"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            ".a-color-secondary,.a-size-small,[class*=secondary],[class*=sponsored-label],[class*=ad-feedback-text]"
-            "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
-            "input,textarea,select,option{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            "::placeholder{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}"
-            // Established neutral border contract.
-            "*{border-color:#494d4d!important;outline-color:#494d4d!important;}"
-            "hr,.a-divider-inner:after,.a-divider-inner:before,[class*=divider],[class*=separator]{border-color:#494d4d!important;}"
-            // Home carousel/ad creative trees stay Amazon-owned. Do not impose floor or blend
-            // state on NPACK/GWM/cXVhZ descendants; their transparent/composited artwork depends on it.
-            "#wd-backdrop-gradient,.wd-backdrop-gradient,[class*=wd-backdrop-gradient]{background:#000!important;background-image:none!important;box-shadow:none!important;}"
-            "[class*=a-reactive-container],[class*=reactive-contain]{background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
-            "#auth-footer,.auth-footer,[id*=auth-footer],#auth-footer .a-divider,#auth-footer .a-divider-inner,.auth-footer .a-divider,.auth-footer .a-divider-inner"
-            "{background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+            "[class*=ape-wrapper],[class*=ape-placement],[class*=adFeedbackMainComponent],[class*=hybrid-widget-sponsored]"
+            "{box-shadow:none!important;}"
+            /* Keep actual form controls readable without overriding Amazon yellow/accent buttons. */
+            "input:not([type=button]):not([type=submit]),textarea,select"
+            "{background-color:#181a1b!important;color:#e8e6e3!important;border-color:#494d4d!important;}"
+            "::placeholder{color:#b1aaa0!important;opacity:1!important;}"
             "';"
-            "document.documentElement.style.setProperty('background-color','#000','important');document.documentElement.style.setProperty('color-scheme','dark','important');if(document.body){document.body.style.setProperty('background-color','#000','important');document.body.style.setProperty('color-scheme','dark','important');}"
+            "document.documentElement.style.setProperty('background-color','#000','important');"
+            "document.documentElement.style.setProperty('color-scheme','dark','important');"
+            "if(document.body){document.body.style.setProperty('background-color','#000','important');document.body.style.setProperty('color-scheme','dark','important');}"
             "}catch(e){}})();";
 }
 
 static NSString *ADTWBJS(void){
+    // Pure CSS TWB owner: no load listener, no querySelectorAll, no observer.
     CGFloat strength=MAX(0,MIN(100,gP.whiteTameStrength));
     CGFloat factor=MAX(0.50,1.0-0.50*strength/100.0);
     return [NSString stringWithFormat:
-        @"(function(){try{if(window.__AD7TWB)return;window.__AD7TWB=1;var f='brightness(%.3f)';"
-         "var bad=/icon|glyph|logo|avatar|profile|badge|star|rating|checkbox|heart|arrow|chevron|button|search|menu|microphone|camera|cart|location|nav|tab|sprite|brand|seller|store/i;"
-         "function blocked(e){try{var n=e;for(var i=0;i<4&&n;i++,n=n.parentElement){var s=((n.className&&n.className.baseVal)||n.className||'')+' '+(n.id||'')+' '+(n.getAttribute&&((n.getAttribute('aria-label')||'')+' '+(n.getAttribute('alt')||'')+' '+(n.getAttribute('role')||''))||'');if(bad.test(String(s)))return true;if(n.tagName==='BUTTON'||n.getAttribute&&n.getAttribute('role')==='button')return true;}}catch(x){}return false;}"
-         "function tame(e){try{if(!e||!/^(IMG|VIDEO|CANVAS)$/.test(e.tagName)||blocked(e))return;var r=e.getBoundingClientRect();var w=r.width||e.width||0,h=r.height||e.height||0;if(w<52||h<52)return;e.style.setProperty('filter',f,'important');e.setAttribute('data-ad7twb','1');}catch(x){}}"
-         "document.addEventListener('load',function(ev){tame(ev.target);},true);document.addEventListener('loadedmetadata',function(ev){tame(ev.target);},true);"
-         "function once(){try{document.querySelectorAll('img,video,canvas').forEach(tame);}catch(x){}}"
-         "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',once,{once:true});else once();window.addEventListener('pageshow',once,{passive:true});"
-         "}catch(e){}})();",factor];
+        @"(function(){try{var id='ad7-twb-static',s=document.getElementById(id);"
+         "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
+         "s.textContent='"
+         "img.s-image,img.s-product-image,#landingImage,#imgBlkFront,#imgTagWrapperId img,"
+         "img[data-a-dynamic-image],img.a-dynamic-image,[data-component-type=s-product-image] img,"
+         "[class*=product-image] img,[class*=asin-image] img,.p13n-sc-uncoverable-faceout img,"
+         "[data-asin] img.s-image,[data-csa-c-asin] img.s-image"
+         "{filter:brightness(%.3f)!important;}"
+         "';}catch(e){}})();",factor];
 }
 
 static void ADTrackWebView(WKWebView *wv){
@@ -686,20 +713,24 @@ static void ADAttachWebScripts(WKWebView *wv){
     @try { ADAttachScriptsToUCC710(wv.configuration.userContentController); } @catch(...) {}
 }
 static void ADApplyWebFloor(WKWebView *wv){
-    if(!wv || !gP.enabled)return; ADTrackWebView(wv);
+    if(!wv || !gP.enabled)return;
+    ADTrackWebView(wv);
     @try {
-        wv.opaque=NO; wv.backgroundColor=ADOLED(); wv.scrollView.opaque=NO; wv.scrollView.backgroundColor=ADOLED();
+        // Prime only the outer WebKit backing. Do not intercept WebKit's later background
+        // assignments and do not repeatedly evaluate theme JS during view recycling/snapshots.
+        wv.opaque=NO;
+        wv.backgroundColor=ADOLED();
+        wv.scrollView.opaque=NO;
+        wv.scrollView.backgroundColor=ADOLED();
         if(@available(iOS 15.0,*)) wv.underPageBackgroundColor=ADOLED();
-        [wv evaluateJavaScript:ADFloorJS() completionHandler:nil];
-        if(gP.whiteTame)[wv evaluateJavaScript:ADTWBJS() completionHandler:nil];
     } @catch(...) {}
 }
+
 static void ADApplyAllFloors(void){
     if(!gP.enabled)return;
     dispatch_async(dispatch_get_main_queue(), ^{
         @try {
-            for(UIWindow *w in UIApplication.sharedApplication.windows){ if(w){ w.backgroundColor=ADOLED(); UIViewController *vc=w.rootViewController; if(vc && vc.isViewLoaded)vc.view.backgroundColor=ADOLED(); } }
-            for(WKWebView *wv in ADTrackedWebViews()) if(wv.window)ADApplyWebFloor(wv);
+            for(WKWebView *wv in ADTrackedWebViews()) if(wv.window) ADApplyWebFloor(wv);
         } @catch(...) {}
     });
 }
@@ -733,60 +764,33 @@ static void ADApplyAllFloors(void){
     if(gP.enabled && configuration){
         @try { ADAttachScriptsToUCC710(configuration.userContentController); } @catch(...) {}
     }
-    id wv = %orig;
-    if (gP.enabled) { ADAttachWebScripts(wv); ADApplyWebFloor(wv); }
+    id wv=%orig;
+    if(gP.enabled){ ADAttachWebScripts(wv); ADApplyWebFloor(wv); }
     return wv;
 }
 - (instancetype)initWithCoder:(NSCoder *)coder {
-    id wv = %orig;
-    if (gP.enabled) { ADAttachWebScripts(wv); ADApplyWebFloor(wv); }
+    id wv=%orig;
+    if(gP.enabled){ ADAttachWebScripts(wv); ADApplyWebFloor(wv); }
     return wv;
 }
 - (void)didMoveToWindow {
     %orig;
-    if (gP.enabled && self.window) { ADAttachWebScripts(self); ADApplyWebFloor(self); ADScheduleLaunchReadyCheck706(); }
-}
-- (void)setBackgroundColor:(UIColor *)color {
-    if (gP.enabled) {
-        UIColor *black = ADOLED();
-        %orig(black);
-        return;
-    }
-    %orig;
+    if(gP.enabled && self.window){ ADAttachWebScripts(self); ADApplyWebFloor(self); ADScheduleLaunchReadyCheck706(); }
 }
 %end
 
 %hook WKScrollView
 - (void)didMoveToWindow {
     %orig;
-    if (gP.enabled && self.window) self.backgroundColor=ADOLED();
-}
-- (void)setBackgroundColor:(UIColor *)color {
-    if (gP.enabled) {
-        UIColor *black = ADOLED();
-        %orig(black);
-        return;
-    }
-    %orig;
+    if(gP.enabled && self.window){ self.opaque=NO; self.backgroundColor=ADOLED(); }
 }
 %end
 
 %hook WKContentView
 - (void)didMoveToWindow {
     %orig;
-    if (gP.enabled && self.window) { self.backgroundColor=ADOLED(); self.layer.backgroundColor=ADOLED().CGColor; }
-}
-- (void)layoutSubviews {
-    %orig;
-    if (gP.enabled) { self.backgroundColor=ADOLED(); self.layer.backgroundColor=ADOLED().CGColor; }
-}
-- (void)setBackgroundColor:(UIColor *)color {
-    if (gP.enabled) {
-        UIColor *black = ADOLED();
-        %orig(black);
-        return;
-    }
-    %orig;
+    // No forced WKContentView backing paint. WebKit snapshot/share/search composition
+    // must remain free to own its internal compositor layers.
 }
 %end
 
@@ -1100,6 +1104,14 @@ static void ADOwnBottomBar708(UIView *v){
             UITabBar *bar=(UITabBar *)v;
             bar.tintColor=ADLightText706();
             if([bar respondsToSelector:@selector(setUnselectedItemTintColor:)]) bar.unselectedItemTintColor=ADAmazonBlue706();
+            if(@available(iOS 13.0,*)){
+                UITabBarAppearance *ap=[[UITabBarAppearance alloc] init];
+                [ap configureWithOpaqueBackground];
+                ap.backgroundColor=ADOLED();
+                ap.shadowColor=ADBorderGray706();
+                bar.standardAppearance=ap;
+                if(@available(iOS 15.0,*)) bar.scrollEdgeAppearance=ap;
+            }
             if(!gADTabItemWrite709){
                 gADTabItemWrite709=YES;
                 for(UITabBarItem *it in bar.items){
@@ -1114,6 +1126,25 @@ static void ADOwnBottomBar708(UIView *v){
         ADTintBottomNavTree706(v);
     } @catch(...) { gADTabItemWrite709=NO; }
 }
+%hook UIVisualEffectView
+- (void)didMoveToWindow {
+    %orig;
+    if(gP.enabled && self.window && ADInBottomNav706(self)){
+        self.effect=nil;
+        self.backgroundColor=ADOLED();
+        self.layer.backgroundColor=ADOLED().CGColor;
+    }
+}
+- (void)layoutSubviews {
+    %orig;
+    if(gP.enabled && ADInBottomNav706(self)){
+        self.effect=nil;
+        self.backgroundColor=ADOLED();
+        self.layer.backgroundColor=ADOLED().CGColor;
+    }
+}
+%end
+
 %hook UITabBar
 - (void)didMoveToWindow {
     %orig;
@@ -1209,25 +1240,12 @@ static void ADOwnBottomBar708(UIView *v){
 }
 %end
 
-%hook UIViewController
-- (void)viewDidLoad {
-    %orig;
-    ADOwnNativeFloor(self.view);
-}
-- (void)viewWillAppear:(BOOL)animated {
-    %orig;
-    ADOwnNativeFloor(self.view);
-}
-- (void)viewDidAppear:(BOOL)animated {
-    %orig;
-    ADOwnNativeFloor(self.view);
-}
-%end
+// v7.0.12: no generic UIViewController painter. Presentation/search/share controllers stay Amazon-owned.
 
 %hook UIWindow
 - (void)setRootViewController:(UIViewController *)vc {
     %orig;
-    if (gP.enabled) { self.backgroundColor=ADOLED(); if (vc && vc.isViewLoaded) vc.view.backgroundColor=ADOLED(); }
+    if (gP.enabled) self.backgroundColor=ADOLED();
 }
 - (void)makeKeyAndVisible {
     if (gP.enabled) self.backgroundColor=ADOLED();
@@ -1412,7 +1430,7 @@ static void ADRunLaunchReadyCheck706(void){
         NSArray *webs=ADTrackedWebViews();
         for(WKWebView *wv in webs){
             if(!wv.window)continue;
-            NSString *js=@"(function(){try{var d=document;if(!(d.readyState==='interactive'||d.readyState==='complete'))return 0;var x=d.querySelector('#gwm-PageContent,#a-page main,main,[role=main]');if(!x)return 0;var r=x.getBoundingClientRect(),c=getComputedStyle(x),bg=c&&c.backgroundColor||'',txt=(x.innerText||x.textContent||'').trim();var media=x.querySelectorAll('img,video,canvas').length;return ((bg==='rgb(0, 0, 0)'||bg==='rgba(0, 0, 0, 1)')&&r.height>260&&(txt.length>80||media>1))?1:0;}catch(e){return 0;}})();";
+            NSString *js=@"(function(){try{var d=document;if(!(d.readyState==='interactive'||d.readyState==='complete'))return 0;var x=d.querySelector('#gwm-PageContent,#a-page main,main,[role=main]');if(!x)return 0;var r=x.getBoundingClientRect(),c=getComputedStyle(x),bg=c&&c.backgroundColor||'',txt=(x.innerText||x.textContent||'').trim();var media=!!x.querySelector('img,video,canvas');return ((bg==='rgb(0, 0, 0)'||bg==='rgba(0, 0, 0, 1)')&&r.height>260&&(txt.length>80||media))?1:0;}catch(e){return 0;}})();";
             [wv evaluateJavaScript:js completionHandler:^(id value,NSError *error){
                 if(!error&&[value respondsToSelector:@selector(boolValue)]&&[value boolValue]){
                     anyReady=YES; gADReadyStable706++;
