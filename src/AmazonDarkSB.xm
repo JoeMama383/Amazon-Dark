@@ -473,7 +473,52 @@ static void ADSBHandleJITRequest622(int token){
 
 
 
+// ── v6.0.180~probe automatic Buy Again probe relay ──────────────────────────
+#define AD_BUYAGAIN_PROBE_READY_6180 "com.colindavidr.amazondark/buyagain-probe-6180-ready"
+static NSString *ADSBBuyAgainProbeSource6180(void){
+    @try {
+        NSFileManager *fm=[NSFileManager defaultManager];
+        NSString *root=@"/var/mobile/Containers/Data/Application";
+        NSArray *kids=[fm contentsOfDirectoryAtPath:root error:nil];
+        NSString *best=nil; NSDate *bestDate=nil;
+        for(NSString *kid in kids){
+            NSString *file=[[[root stringByAppendingPathComponent:kid] stringByAppendingPathComponent:@"Documents"]
+                            stringByAppendingPathComponent:@"AmazonDark-buyagain-probe-6180.txt"];
+            NSDictionary *a=[fm attributesOfItemAtPath:file error:nil]; if(!a)continue;
+            NSDate *d=a[NSFileModificationDate]?:[NSDate distantPast];
+            if(!bestDate||[d compare:bestDate]==NSOrderedDescending){best=file;bestDate=d;}
+        }
+        return best;
+    } @catch(__unused NSException *e){ return nil; }
+}
+static void ADSBRelayBuyAgainProbe6180(void){
+    @autoreleasepool {
+        @try {
+            NSString *src=ADSBBuyAgainProbeSource6180();
+            NSString *dir=@"/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents";
+            NSString *dst=[dir stringByAppendingPathComponent:@"AmazonDark-buyagain-probe-6180.txt"];
+            NSFileManager *fm=[NSFileManager defaultManager];
+            if(!src.length||![fm fileExistsAtPath:src]){ ADSBLog(@"BUYPROBE6180 relay source not found"); return; }
+            [fm createDirectoryAtPath:dir withIntermediateDirectories:YES attributes:nil error:nil];
+            if([fm fileExistsAtPath:dst])[fm removeItemAtPath:dst error:nil];
+            NSError *err=nil; BOOL ok=[fm copyItemAtPath:src toPath:dst error:&err];
+            if(ok){
+                [fm setAttributes:@{NSFilePosixPermissions:@0666} ofItemAtPath:dst error:nil];
+                ADSBLog([NSString stringWithFormat:@"BUYPROBE6180 relay OK %@ -> %@",src,dst]);
+            } else ADSBLog([NSString stringWithFormat:@"BUYPROBE6180 relay FAIL %@",err]);
+        } @catch(__unused NSException *e){ ADSBLog(@"BUYPROBE6180 relay exception"); }
+    }
+}
+
 %ctor {
+    @try {
+        static int adBuyAgainProbeToken6180=0;
+        notify_register_dispatch(AD_BUYAGAIN_PROBE_READY_6180,&adBuyAgainProbeToken6180,
+                                 dispatch_get_global_queue(QOS_CLASS_UTILITY,0),^(int t){
+            ADSBRelayBuyAgainProbe6180();
+        });
+    } @catch (__unused NSException *e) {}
+
     // Dopamine JIT broker: one event-driven enable request channel. SpringBoard is
     // the platform-authorized caller; the handler itself validates Amazon's PID.
     @try {

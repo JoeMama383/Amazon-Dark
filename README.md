@@ -1,33 +1,40 @@
-# AmazonDark v7.0.12
+# AmazonDark v6.0.214
 
-Cold-first-paint / Search / Home-carousel / screenshot-state correction. Keeps the v7.0.9 OLED architecture and successful SpringBoard launch cover, but installs WK document-start scripts before WKWebView creation, excludes Home creative carousel families from OLED/background/compositing ownership, and rejects screenshot/snapshot/full-window raster views from TWB.
+Back on the 6.x line. The v7 inversion experiment is abandoned.
 
-## v7.0.9
+## State of the performance work
 
-Search/nav recovery: removes the generic native container painter that blanked the Search composer; restores gray Search field + black text/glyphs/location pin; strengthens standard tab-item templating so Alexa remains visible. Launch masking is unchanged from v7.0.8.
+The cause is confirmed on device: **Dark Reader's own MutationObserver**. It re-themes
+every node as it arrives, and Search and PDP hydrate continuously, so it ran on the web
+process main thread through exactly the window where taps queued. v6.0.211 neutralised
+it and the app became fast everywhere — instant product taps, seamless scrolling.
 
-## v7.0.8
-- Restores structural-only OLED ownership after v7.0.5 overpaint; restores light text, gray borders, bottom-nav tint, and stricter splash handoff.
+Everything else inside Dark Reader was eliminated first: the stylesheet proxy (v6.0.210,
+no speed change), image analysis (already `ignoreImageAnalysis:['*']`), and the theme
+object (identical to the fast v5.43.0 build). The native side was never the problem —
+instrumented counters measured 285ms across 29,541 calls for a whole session.
 
-# AmazonDark v7.0.8 — Stock UI / OLED Floors
+Carried forward from v6.0.213:
 
-No inversion and no generic recoloring. Amazon remains stock except structural interface floors are owned as OLED black across native UIKit/React, WKWebView backing surfaces, and Web DOM/composited page shells.
+- observer inert during `enable()`, restored in a `finally`
+- stylesheet proxy on — it covers late-arriving sheets and costs nothing
+- generated CSS published as a plain stylesheet on settle, so late-arriving nodes are
+  themed by the style engine rather than by an observer
 
-# AmazonDark v7.0.0 — OLED floor baseline
+## Simplification in this build
 
-This branch is a clean reset built from the v6.0.185 source baseline.
+The v6.0.208/209 bisect switches are removed entirely — helpers, gates, prefs fields,
+prefs reads, the injected page flag and its format argument. They never worked:
+v6.0.208 read them from `/var/mobile/.ad_off_*`, which a sandboxed Amazon cannot stat,
+and v6.0.209's prefs version still produced no visible change on device. Two mechanisms,
+neither demonstrated, both dead weight.
 
-Retained:
-- v6.0.185 Settings bundle/preferences and preference domain.
-- Tame Light Backgrounds preference, reimplemented as a compact event-driven media owner with glyph/icon exclusions.
-- Force 120 Hz preference.
-- Dopamine per-app JIT preference and SpringBoard broker.
-- SpringBoard launch cover/transition/custom splash artwork.
-- Sileo/package identity, icons, PreferenceLoader wiring and metadata.
+    src/Tweak.xm    466,986 -> 465,674 bytes
+    residual references to the switches: 0
 
-Removed:
-- Dark Reader and all Dark Reader resources/runtime injection.
-- Native dark-theme weblab forcing.
-- Home/Search/PDP/Person/Cart special-case theming, symbol painters, borders, repair passes and probes.
+## Verification
 
-Always-on visual behavior when Enabled is limited to OLED-black root/backing floors across native and WebKit interfaces. Component/card/text/glyph colors are otherwise left to Amazon.
+- Format specifiers re-checked **in position** after removing an argument: 8 and 8, each
+  landing on the literal it belongs to. Removing a middle argument without re-verifying
+  order is precisely how the Dark Reader payload would end up in the wrong slot.
+- Declared-before-use audit clean; balance 0/0/0; all payloads parse; lint-logos.
