@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.18-home-floor-bottomnav-probe"
+#define AD_VERSION "v7.0.19-home-floor-bottomnav-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -763,21 +763,23 @@ static void ADApplyWebFloor(WKWebView *wv){
 static BOOL ADPrimaryAmazonWindow713(UIWindow *w, UIViewController *candidate);
 
 // -----------------------------------------------------------------------------
-// v7.0.18 manual one-shot visible-frame probe.
+// v7.0.19 background one-shot visible-frame probe.
 // - Native: bottom ~140 pt only (bottom navigation/material stack).
 // - Web: elementsFromPoint() only across the CURRENT visible frame; no DOM walk.
 // - Hero/carousel ancestry is explicitly excluded.
 // - Dormant until Darwin notification; no timer/observer/scroll callback.
 // -----------------------------------------------------------------------------
-static BOOL gADProbe7018Busy=NO;
+static BOOL gADProbe7019Busy=NO;
 
-static NSString *ADProbe7018Path(void){
-    return @"/var/mobile/Documents/AmazonDark-home-floor-bottomnav-probe-7018.txt";
+static NSString *ADProbe7019Path(void){
+    @try {
+        NSArray *dirs=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
+        NSString *base=dirs.firstObject;
+        if(base.length) return [base stringByAppendingPathComponent:@"AmazonDark-home-floor-bottomnav-probe-7019.txt"];
+    } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-home-floor-bottomnav-probe-7019.txt"];
 }
-static NSString *ADProbeTrigger7018Path(void){
-    return @"/var/mobile/Documents/.amazondark-probe-7018";
-}
-static NSString *ADColor7018(UIColor *c){
+static NSString *ADColor7019(UIColor *c){
     if(!c)return @"nil";
     @try {
         CGFloat r=0,g=0,b=0,a=0,w=0;
@@ -786,23 +788,23 @@ static NSString *ADColor7018(UIColor *c){
     } @catch(...) {}
     return c.description?:@"?";
 }
-static NSString *ADCGColor7018(CGColorRef cg){
+static NSString *ADCGColor7019(CGColorRef cg){
     if(!cg)return @"nil";
-    @try { return ADColor7018([UIColor colorWithCGColor:cg]); } @catch(...) { return @"?"; }
+    @try { return ADColor7019([UIColor colorWithCGColor:cg]); } @catch(...) { return @"?"; }
 }
-static BOOL ADRectHitsBottom7018(CGRect r){
+static BOOL ADRectHitsBottom7019(CGRect r){
     if(CGRectIsNull(r)||CGRectIsEmpty(r))return NO;
     CGRect screen=UIScreen.mainScreen.bounds;
     CGRect strip=CGRectMake(0,MAX(0,screen.size.height-140.0),screen.size.width,140.0);
     return CGRectIntersectsRect(r,strip);
 }
-static NSString *ADAncestors7018(UIView *v){
+static NSString *ADAncestors7019(UIView *v){
     NSMutableArray *a=[NSMutableArray array];
     UIView *n=v.superview;
     for(int i=0;i<5&&n;i++,n=n.superview) [a addObject:NSStringFromClass(n.class)?:@"?"];
     return [a componentsJoinedByString:@" > "];
 }
-static NSString *ADNativeBottomSnapshot7018(void){
+static NSString *ADNativeBottomSnapshot7019(void){
     NSMutableString *out=[NSMutableString stringWithString:@"=== NATIVE BOTTOM-NAV VISIBLE SNAPSHOT ===\n"];
     @try {
         UIWindow *target=nil;
@@ -817,7 +819,7 @@ static NSString *ADNativeBottomSnapshot7018(void){
             UIView *v=q[i]; seen++;
             if(!v||v.hidden||v.alpha<0.01)continue;
             CGRect rr=CGRectZero; @try { rr=[v convertRect:v.bounds toView:nil]; } @catch(...) { continue; }
-            if(!ADRectHitsBottom7018(rr))continue;
+            if(!ADRectHitsBottom7019(rr))continue;
             NSString *cn=NSStringFromClass(v.class)?:@"?";
             NSString *low=cn.lowercaseString;
             BOOL interesting=([low containsString:@"tabbar"]||[low containsString:@"bottomnav"]||[low containsString:@"navtoolbar"]||[low containsString:@"storemodes"]||[low containsString:@"barbackground"]||[low containsString:@"visualeffect"]||[low containsString:@"blur"]||[low containsString:@"imageview"]||[low containsString:@"button"]||rr.size.width>UIScreen.mainScreen.bounds.size.width*0.75);
@@ -826,14 +828,14 @@ static NSString *ADNativeBottomSnapshot7018(void){
                 if([v isKindOfClass:[UIVisualEffectView class]]) effect=[NSString stringWithFormat:@" effect=%@",((UIVisualEffectView*)v).effect?:@"nil"];
                 [out appendFormat:@"N[%lu] cls=%@ rect=(%.1f,%.1f %.1fx%.1f) bg=%@ layer=%@ alpha=%.2f opaque=%d hidden=%d%@ aid=\"%@\" label=\"%@\" parent=%@\n",
                     (unsigned long)logged,cn,rr.origin.x,rr.origin.y,rr.size.width,rr.size.height,
-                    ADColor7018(v.backgroundColor),ADCGColor7018(v.layer.backgroundColor),v.alpha,v.opaque?1:0,v.hidden?1:0,effect,
-                    v.accessibilityIdentifier?:@"",v.accessibilityLabel?:@"",ADAncestors7018(v)];
+                    ADColor7019(v.backgroundColor),ADCGColor7019(v.layer.backgroundColor),v.alpha,v.opaque?1:0,v.hidden?1:0,effect,
+                    v.accessibilityIdentifier?:@"",v.accessibilityLabel?:@"",ADAncestors7019(v)];
                 logged++;
             }
             for(UIView *sv in v.subviews){
                 if(!sv||sv.hidden||sv.alpha<0.01)continue;
                 CGRect sr=CGRectZero; @try { sr=[sv convertRect:sv.bounds toView:nil]; } @catch(...) { continue; }
-                if(ADRectHitsBottom7018(sr)) [q addObject:sv];
+                if(ADRectHitsBottom7019(sr)) [q addObject:sv];
             }
         }
         [out appendFormat:@"NATIVE_SUMMARY visited=%lu logged=%lu\n",(unsigned long)seen,(unsigned long)logged];
@@ -841,7 +843,7 @@ static NSString *ADNativeBottomSnapshot7018(void){
     return out;
 }
 
-static NSString *ADWebViewportProbeJS7018(void){
+static NSString *ADWebViewportProbeJS7019(void){
     return @"(function(){try{"
     "var W=innerWidth||document.documentElement.clientWidth,H=innerHeight||document.documentElement.clientHeight;"
     "var xs=[.05,.16,.30,.50,.70,.84,.95],ys=[.18,.28,.38,.48,.58,.68,.78,.86],seen=new Set(),rows=[];"
@@ -854,7 +856,7 @@ static NSString *ADWebViewportProbeJS7018(void){
     "return '=== WEB CURRENT-VIEW HOME FLOOR/AD-LAYER SNAPSHOT ===\\nURL='+location.href+'\\nVIEWPORT='+W+'x'+H+'\\n'+rows.join('\\n')+'\\nWEB_SUMMARY sampled='+rows.length;"
     "}catch(e){return 'WEB_EXCEPTION '+e;}})();";
 }
-static void ADWriteProbe7018(NSString *nativePart,NSString *webPart){
+static void ADWriteProbe7019(NSString *nativePart,NSString *webPart){
     @try {
         NSMutableString *s=[NSMutableString string];
         [s appendFormat:@"AmazonDark %@ manual one-frame Home floors + bottom-nav probe\n",[NSString stringWithUTF8String:AD_VERSION]];
@@ -862,10 +864,16 @@ static void ADWriteProbe7018(NSString *nativePart,NSString *webPart){
         [s appendString:nativePart?:@"NO_NATIVE\n"];
         [s appendString:@"\n"];
         [s appendString:webPart?:@"NO_WEB\n"];
-        [s writeToFile:ADProbe7018Path() atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        NSError *err=nil;
+        BOOL ok=[s writeToFile:ADProbe7019Path() atomically:YES encoding:NSUTF8StringEncoding error:&err];
+        if(ok){
+            CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(),
+                CFSTR("com.colindavidr.amazondark/home-floor-bottomnav-probe-7019-ready"),
+                NULL,NULL,true);
+        }
     } @catch(...) {}
 }
-static WKWebView *ADVisibleWebView7018(void){
+static WKWebView *ADVisibleWebView7019(void){
     @try {
         for(WKWebView *wv in ADTrackedWebViews()){
             if(!wv||!wv.window||wv.hidden||wv.alpha<0.01)continue;
@@ -875,24 +883,21 @@ static WKWebView *ADVisibleWebView7018(void){
     } @catch(...) {}
     return nil;
 }
-static void ADRunProbe7018(void){
-    if(gADProbe7018Busy)return;
-    gADProbe7018Busy=YES;
-    NSString *nativePart=ADNativeBottomSnapshot7018();
-    WKWebView *wv=ADVisibleWebView7018();
-    if(!wv){ ADWriteProbe7018(nativePart,@"NO_VISIBLE_WKWEBVIEW"); gADProbe7018Busy=NO; return; }
-    [wv evaluateJavaScript:ADWebViewportProbeJS7018() completionHandler:^(id value,NSError *error){
+static void ADRunProbe7019(void){
+    if(gADProbe7019Busy)return;
+    gADProbe7019Busy=YES;
+    NSString *nativePart=ADNativeBottomSnapshot7019();
+    WKWebView *wv=ADVisibleWebView7019();
+    if(!wv){ ADWriteProbe7019(nativePart,@"NO_VISIBLE_WKWEBVIEW"); gADProbe7019Busy=NO; return; }
+    [wv evaluateJavaScript:ADWebViewportProbeJS7019() completionHandler:^(id value,NSError *error){
         NSString *webPart=error?[NSString stringWithFormat:@"WEB_ERROR %@",error] : ([value isKindOfClass:[NSString class]]?value:[value description]);
-        ADWriteProbe7018(nativePart,webPart);
-        gADProbe7018Busy=NO;
+        ADWriteProbe7019(nativePart,webPart);
+        gADProbe7019Busy=NO;
     }];
 }
-static void ADProbeForeground7018(NSNotification *note){
+static void ADProbeWillResign7019(NSNotification *note){
     @try {
-        NSString *trigger=ADProbeTrigger7018Path();
-        if(![[NSFileManager defaultManager] fileExistsAtPath:trigger])return;
-        [[NSFileManager defaultManager] removeItemAtPath:trigger error:nil];
-        dispatch_async(dispatch_get_main_queue(),^{ ADRunProbe7018(); });
+        dispatch_async(dispatch_get_main_queue(),^{ ADRunProbe7019(); });
     } @catch(...) {}
 }
 
@@ -1754,9 +1759,9 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);
-    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification
+    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillResignActiveNotification
         object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note){
-            ADProbeForeground7018(note);
+            ADProbeWillResign7019(note);
         }];
 
 

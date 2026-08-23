@@ -1,11 +1,15 @@
-# AmazonDark v7.0.18~probe
+# AmazonDark v7.0.19~probe
 
-One-shot current-frame probe for the bottom navigation fill and visible Home floors/ad layers below the hero carousel.
+Workflow:
+1. Open Amazon Home and position the below-carousel cards/floors you want inspected.
+2. Background Amazon once.
+3. Wait 2–3 seconds.
+4. The report is automatically relayed to the normal shared Documents/push folder:
+   AmazonDark-home-floor-bottomnav-probe-7019.txt
 
-Trigger:
-`touch /var/mobile/Documents/.amazondark-probe-7018`
+Probe scope:
+- current visible Home viewport only, excluding hero/carousel ancestry;
+- bottom ~140 pt native navigation stack only;
+- no document walk, MutationObserver, recurring timer, RAF, or scroll listener.
 
-Return to Amazon. It captures once and writes:
-`/var/mobile/Documents/AmazonDark-home-floor-bottomnav-probe-7018.txt`
-
-No document walk, MutationObserver, recurring timer, or scroll listener.
+Production nav change remains background-only; no icon/symbology/tint behavior is intentionally changed.
