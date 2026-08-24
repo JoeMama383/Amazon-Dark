@@ -1,44 +1,49 @@
-# AmazonDark v7.0.63
+# AmazonDark v7.0.64 — the chevron rule from v6.0.185, ported verbatim
 
-## The v7.0.62 fix never applied
+## What the repo already knew
 
-The v7.0.62 sweep, taken on v7.0.62, still reports:
+v6.0.185 owned the carousel chevrons with an explicit rule:
 
-    svg cls=_npack-asin-card_style_header-icon__2cuVV   filter=brightness(0.5)
+    [class*=hp-mosaic-container] .a-icon-next-rounded,
+    [class*=hp-mosaic-container] .a-icon-previous-rounded,
+    [class*=hp-mosaic-container] [class*=chevron],
+    [class*=hp-mosaic-container] [class*=arrow],
+    [class*=_mosaic-container_style_widgetContainer] .a-icon-next-rounded,
+    ...
+    {filter:brightness(0) invert(1)!important;opacity:1!important;
+     color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;}
 
-My v7.0.62 edit targeted a single-line form of the selector. The two chains that
-actually put `svg` in the subject list are **split across source lines**, so the replace
-matched nothing and silently changed the wrong thing — it extended the `img`-only
-chains instead. The verification I ran then tested my hand-written selector string, not
-the one in the file, which is why it passed while the build did nothing.
+**`a-icon-next-rounded` and `a-icon-previous-rounded` had zero occurrences in the 7.x
+tree.** The port kept `puis-mab-chevron` and the generic `[class*=chevron]` /
+`[class*=arrow]` patterns and dropped the two leaves that actually carry the glyph.
+That is why the chevrons went dark on 7.x.
 
-Both `:is(img,svg)` chains now carry the exclusion, verified by re-reading them out of
-the source rather than from a string I typed.
+The rule is now ported as written, plus an unscoped pair for the card families the
+sweep shows carrying their own header controls (`npack-asin-card`,
+`multi-category-card`) outside the mosaic containers.
 
-## The chevron, restated
+## Correcting the record on v7.0.62 / v7.0.63
 
-It is an inline `<svg class="…header-icon…">` whose path inherits
-`color: rgb(232,230,227)` — already correct. `brightness(0.5)` halves it to about
-`rgb(116,115,113)`. Nothing was painting it dark; our own media-dimming filter was
-dimming something already right. The class appears as `_npack-asin-card_style_…`,
-`_multi-category-card_style_…` and `_cXVhZ_…`, which is why it was dark on every card
-family.
+`header-icon` was never the chevron. Its path is
+`M7.0422 22C6.83522 21.9992 6.63313 21.9397…` — a long multi-curve icon repeated across
+cards, not a two-segment `>`. I identified it from the first SVG in a truncated sweep
+and asserted it twice.
 
-`ad-feedback`, `sponsored` and `spr` are excluded on the same chains, which should also
-stop the sponsored glyph being re-dimmed after the painter tints it.
+Those builds were not wasted: v7.0.63 did remove `brightness(0.5)` from those SVGs
+(confirmed `filter=none` in this capture), so the dimming bug was real. It just was not
+the chevron bug.
 
-## Disney card: still no evidence
+## Why the sweep never found the chevron
 
-This capture landed on a working `_YW1he_product-image` tile, not an invisible one. Its
-container `_YW1he_container_…colored-background_…` computes `bg=rgb(247,247,247)` — a
-light plate we are not darkening — but that tile renders fine, so it is not the fault.
-
-A capture with the tap on an actually-invisible Disney tile is still what is needed.
+The sweep's selector list includes bare `svg`, and the only SVGs on the page were
+`header-icon` and zero-size `a-icon-checkmark-inverse`. The chevron is an `<i>` carrying
+a sprite background — `a-icon-next-rounded` — which matches none of `[class*=chevron]`,
+`[class*=arrow]`, `[class*=caret]` or `[class*=dropdown]`, so it fell outside every
+pattern I chose.
 
 ## Verification
 
-- Both `:is(img,svg)` chains re-read from source and confirmed to carry
-  `:not([class*=header-icon])`.
-- Selector test: all three chevron class variants no longer match the dimming selector;
-  a product image and a hero creative still do, so taming is preserved. 5/5.
+- `a-icon-next-rounded` and `a-icon-previous-rounded`: 0 -> 3 occurrences each.
+- Selector test: chevrons inside both mosaic container families and an unscoped one are
+  all matched; `header-icon` is not touched by this rule. 4/4.
 - Balance 0/0/0; `scripts/lint-logos.sh`.

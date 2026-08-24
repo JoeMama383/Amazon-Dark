@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.63"
+#define AD_VERSION "v7.0.64"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -879,6 +879,17 @@ static NSString *ADFloorJS(void){
             "input:not([type=button]):not([type=submit]),textarea,select"
             "{background-color:#181a1b!important;color:#e8e6e3!important;border-color:#494d4d!important;}"
             "::placeholder{color:#b1aaa0!important;opacity:1!important;}"
+            "[class*=hp-mosaic-container] .a-icon-next-rounded,"
+            "[class*=hp-mosaic-container] .a-icon-previous-rounded,"
+            "[class*=hp-mosaic-container] [class*=chevron],"
+            "[class*=hp-mosaic-container] [class*=arrow],"
+            "[class*=_mosaic-container_style_widgetContainer] .a-icon-next-rounded,"
+            "[class*=_mosaic-container_style_widgetContainer] .a-icon-previous-rounded,"
+            "[class*=_mosaic-container_style_widgetContainer] [class*=chevron],"
+            "[class*=_mosaic-container_style_widgetContainer] [class*=arrow],"
+            ".a-icon-next-rounded,.a-icon-previous-rounded"
+            "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;"
+            "opacity:1!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;}"
             /* Retain the current v7.0.47-v7.0.49 system-control parity. */
             "::-webkit-scrollbar{background-color:transparent!important;}"
             "::-webkit-scrollbar-track{background-color:transparent!important;}"
