@@ -1,34 +1,46 @@
-# AmazonDark v7.0.55~probe
+# AmazonDark v7.0.56~probe
 
-Built directly from the v7.0.54 source, with two targeted corrections only.
+Exact visual base: v7.0.50~probe. This intentionally restores the v7.0.50 Sponsored-glyph behavior and removes every v7.0.53-v7.0.55 Sponsor observer/persistence experiment.
 
-## Sponsored glyph persistence
-- Restores the v7.0.50 exact computed-color painter: Sponsored text remains Amazon-owned; only the stock info glyph is recolored.
-- v7.0.53/54 watched only inserted child nodes. Amazon can rehydrate the same glyph by changing its existing `class`/`style`, so no child insertion occurs and the glyph falls back dark.
-- v7.0.55 removes that document-wide child-list observer.
-- Each discovered Sponsor feedback row gets its own tiny observer limited to that row and only `childList`, `class`, and `style` changes.
-- The observer disconnects while repainting, preventing self-trigger loops. It then reapplies the exact current computed Sponsored-label color to a replaced or restyled glyph.
-- No Sponsored text color is hard-coded or written.
+## Minimal chevron point probe
 
-## Chevron probe correction
-The v7.0.54 report proved native touch coordinates were captured but the Web dump came from the wrong/late Web context (`NO_WEB_TAP_CAPTURE` plus a blank `body/html` grid).
+This probe is deliberately tiny. There is no PID/SIGUSR trigger, no MutationObserver, no DOM scanner, no viewport grid, no timer, no RAF, and no probe WKUserScript.
 
-v7.0.55 therefore:
-- captures `UITouch.view` and its ancestor chain **before** `%orig`, before UIKit can clear the touch view;
-- walks that actual touched view's superviews to obtain the exact `WKWebView` that received the tap;
-- stores that exact WebView for the delayed dump instead of choosing an arbitrary tracked visible WebView;
-- maps the native touch coordinate into that WebView and asks the live page for `elementFromPoint` / `elementsFromPoint` evidence directly;
-- still retains the all-frame event tracer, so child-frame capture can supplement the native-point capture when available;
-- captures the opened menu at +650 ms and writes automatically at +950 ms.
+- Navigate until the dark chevron is visible.
+- Tap the dark chevron once.
+- On `UITouchPhaseBegan`, before Amazon handles the tap, the tweak resolves only the WKWebView containing that touch.
+- It runs exactly one `document.elementsFromPoint()` call at that normalized touch coordinate.
+- It records only that point stack (max 18), the top element's local ancestry (max 10), computed paint/background-image/mask/filter/fill/stroke/pseudo paint, and the touched UIKit ancestor chain.
+- The result immediately overwrites `AmazonDark-chevron-point-probe-7056.txt` in Amazon's Documents sandbox.
+- Every later touch simply replaces the file, so the chevron should be the last touch inside Amazon before export.
 
-No PID, SIGUSR, terminal arming, pgrep, notifyutil, or recurring scan is used.
+## Sponsored glyph
 
-Probe output: `AmazonDark-chevron-tap-probe-7055.txt`.
+Unchanged from v7.0.50. AmazonDark reads the rendered Sponsored label color and applies it only to the adjacent stock feedback glyph. No Sponsor MutationObserver is present.
 
-## Performance character
-- Production document-wide MutationObserver: 0.
-- New Sponsor observers are scoped only to already-discovered Sponsor feedback rows.
-- No TreeWalker, scroll listener, setInterval, or requestAnimationFrame loop.
-- Chevron diagnostic work runs only on actual touches and is removed in the next clean production build.
+## Runtime shape
 
-GitHub Actions remains the authoritative Theos compile/link/package proof after push.
+- New probe MutationObserver: 0
+- Probe querySelectorAll: 0
+- Probe TreeWalker: 0
+- Probe scroll listener: 0
+- Probe setInterval: 0
+- Probe requestAnimationFrame: 0
+- Probe setTimeout: 0
+- Probe dispatch_after: 0
+- Probe DOM work: one `elementsFromPoint()` on touch-began only
+
+## Previous v7.0.49 notes
+
+# AmazonDark v7.0.49
+
+Built on v7.0.46 (`a6a6d86`).
+
+### Sponsored glyph: painted again, to sheet ink
+
+v7.0.48 removed the paint on the theory that `color-scheme: dark` would make Amazon render its own dark values for this control. It does not — the glyph went dark again. v7.0.49 therefore painted the glyph and label to `#e8e6e3`. v7.0.50 replaces that fixed pair with label-owned text plus glyph-only dynamic matching.
+
+### Chevrons
+
+v7.0.49 broadened the prior Home-scoped `a-icon-dropdown` rule to an unscoped dropdown/chevron fallback. On-device testing still shows dark chevrons, so v7.0.50 probes the actual tapped painter instead of adding another guessed selector.
+
