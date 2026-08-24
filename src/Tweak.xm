@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.47"
+#define AD_VERSION "v7.0.48"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -865,11 +865,8 @@ static NSString *ADFloorJS(void){
             "::placeholder{color:#b1aaa0!important;opacity:1!important;}"
             "[class*=ad-feedback-spr],[class*=ad-feedback-text] [class*=spr],"
             "[class*=adFeedbackMainComponent] [class*=spr],[class*=ape-feedback] [class*=spr]"
-            "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;"
-            "opacity:1!important;visibility:visible!important;background-color:transparent!important;"
+            "{opacity:1!important;visibility:visible!important;"
             "mix-blend-mode:normal!important;position:relative!important;z-index:2!important;}"
-            "[class*=ad-feedback-text],[class*=sponsored-label],[id^=ad-feedback-text-]"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;opacity:1!important;}"
             "::-webkit-scrollbar{background-color:transparent!important;}"
             "::-webkit-scrollbar-track{background-color:transparent!important;}"
             "::-webkit-scrollbar-thumb{background-color:#6f6f6f!important;border-radius:8px!important;"

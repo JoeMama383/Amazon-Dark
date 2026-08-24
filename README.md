@@ -1,37 +1,36 @@
-# AmazonDark v7.0.47
+# AmazonDark v7.0.48
 
-Built on **v7.0.46** (`a6a6d86`).
+Built on v7.0.46 (`a6a6d86`), carrying v7.0.47.
 
-## Correction
+## Amazon owns the Sponsored control again
 
-The previous attempt at these fixes was built on v7.0.21 — I fetched at the start of
-that task and did not re-check origin before packaging, so it was 25 commits behind and
-would have reverted the v7.0.42–46 chevron work. Discarded.
+v7.0.47 forced `brightness(0) invert(1)` on the glyph and `#e8e6e3` on the label. That
+made both pure white, which is not Amazon's colour — it replaced their rendering instead
+of revealing it.
 
-## Chevrons: already fixed at v7.0.46, left alone
+The rest of this sheet already carries
+`:not([class*=sponsored]):not([class*=ad-feedback]):not([id^=ad-feedback-text-])` guards
+on every text rule, for exactly this reason: Amazon owns that control. The document is
+already set to `color-scheme: dark`, so Amazon renders its own dark values without help.
 
-v7.0.46 targets the actual sprite leaf — `i.a-icon.a-icon-dropdown` under the Home deck
-and the `puis-mab-chevron` families. That is the correct root cause and is more precise
-than the generic `[class*=chevron]` rule I was about to port from v6.0.185. Overwriting
-it would have been a regression. Untouched here: `a-icon-dropdown` still has 6 sites.
+What remains is only the two things that made the glyph invisible, neither of which is a
+colour:
 
-## Two gaps that were real
+    opacity / visibility      it was being composited away
+    position / z-index        it was sitting under the card floor
+    mix-blend-mode: normal    it was multiplying against the OLED floor
 
-Both had **zero occurrences** in v7.0.46, so nothing owned them.
+No `filter`, no `color`, no `fill`, no `-webkit-text-fill-color`. The forced-white label
+rule is deleted outright.
 
-**Sponsored info glyph.** Now uses the same `brightness(0) invert(1)` the chevron work
-relies on: `brightness(0)` flattens the artwork to solid black whatever it started as,
-`invert(1)` flips it to solid white. That avoids needing to know whether Amazon mounted
-the sprite, the SVG or the mask variant on a given card. `position:relative; z-index:2`
-covers the other failure mode — on some cards it is not mis-coloured but buried under
-the card floor. The adjacent `ad-feedback-text` label is set to `#e8e6e3`.
+## Unchanged
 
-**Scrollbar.** Never ours: v6.0.185 got it from Dark Reader's `styleSystemControls`.
-Without Dark Reader, Amazon's authored near-black thumb sits on the OLED floor and
-disappears. Neutral grey thumb (`#6f6f6f`, `#8a8a8a` hover) over a transparent track.
+- Chevron work from v7.0.42–46 — `a-icon-dropdown` still at 6 sites.
+- Scrollbar owner from v7.0.47 — 2 sites.
 
 ## Verification
 
-- `a-icon-dropdown` sites unchanged at 6 — the v7.0.42–46 chevron work is intact.
-- `ad-feedback-spr` 0 -> 1, `::-webkit-scrollbar-thumb` 0 -> 2.
+- The remaining glyph rule contains no `filter`, `color`, `fill` or
+  `-webkit-text-fill-color` property, checked directly against the emitted rule text.
+- Forced-white label rule confirmed absent.
 - Balance 0/0/0; `scripts/lint-logos.sh`.
