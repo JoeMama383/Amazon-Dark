@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.78-spinner-screen-probe"
+#define AD_VERSION "v7.0.79"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -931,6 +931,19 @@ static NSString *ADFloorJS(void){
             ".a-icon-next-rounded,.a-icon-previous-rounded"
             "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;"
             "opacity:1!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;}"
+            /* v7.0.79: deterministic Sponsored glyph ownership for the late-hydrating
+             * NPACK / sponsored-products renderer families.  v7.0.73 could win the
+             * race on-device, but later lifecycle work exposed that the element can
+             * be replaced after the one-shot JS pass.  Own only the masked glyph
+             * paint declaratively so replacement nodes stay light without observers. */
+            ":is([class*=_npack-asin-card_style_ad-feedback-spr],[class*=_npack-asin-card_style_ad-feedback-sprite],[class*=_cXVhZ_ad-feedback-spr],[class*=_cXVhZ_ad-feedback-sprite],[class*=_sponsored-products-mo])"
+            "{color:#e8e6e3!important;background-color:#e8e6e3!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
+            /* v7.0.79: the screenshot probe identified the actual Home load-more
+             * wheel as _hp-mosaic-container_style_loadingSpinner__JXI3z. Amazon's
+             * ::after pseudo is the opaque white center disc; match it to the OLED
+             * floor while preserving the light rotating ::before/ring artwork. */
+            "[class*=_hp-mosaic-container_style_loadingSpinner]::after"
+            "{background:#000!important;background-color:#000!important;box-shadow:none!important;}"
             /* Retain the current v7.0.47-v7.0.49 system-control parity. */
             "::-webkit-scrollbar{background-color:transparent!important;}"
             "::-webkit-scrollbar-track{background-color:transparent!important;}"
@@ -1187,10 +1200,9 @@ static void ADApplyAllFloors(void){
 %hook WKScrollView
 - (void)didMoveToWindow {
     %orig;
-    /* v7.0.78: WKChildScrollView inherits WKScrollView methods.  The v7.0.77
-     * hook therefore still reached Home carousel child scrollers even though it
-     * was nominally scoped to WKScrollView.  Require the exact runtime class so
-     * only the primary WKScrollView receives scrollbar/floor ownership. */
+    /* v7.0.79: keep the proven white native scrollbar while refusing to style
+     * WKChildScrollView carousel descendants. Sponsor glyph ownership above is
+     * now declarative, so it no longer depends on hydration timing. */
     if(gP.enabled && self.window && strcmp(object_getClassName(self), "WKScrollView")==0){
         self.opaque=NO;
         self.backgroundColor=ADOLED();
@@ -1912,107 +1924,6 @@ static void ADOwnBottomBar708(UIView *v){
 }
 %end
 
-
-// -----------------------------------------------------------------------------
-// v7.0.78 probe: screenshot-triggered current-screen spinner capture.
-// Temporary diagnostic only. Taking a screenshot while the bad wheel is visible
-// captures only the current viewport: a bounded elementsFromPoint grid plus known
-// spinner/progress semantics, and a native activity/progress class pass.
-// No MutationObserver, timer, scroll callback, interval, RAF, or recurring scan.
-// -----------------------------------------------------------------------------
-static NSString *ADSpinnerScreenProbePath7078(void){
-    @try {
-        NSArray *dirs=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
-        NSString *base=dirs.firstObject;
-        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-spinner-screen-probe-7078.txt"];
-    } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-spinner-screen-probe-7078.txt"];
-}
-static NSString *ADProbeColor7078(UIColor *c){
-    if(!c)return @"-";
-    @try {
-        CGFloat r=0,g=0,b=0,a=0,w=0;
-        if([c getRed:&r green:&g blue:&b alpha:&a])return [NSString stringWithFormat:@"%.3f,%.3f,%.3f,%.3f",r,g,b,a];
-        if([c getWhite:&w alpha:&a])return [NSString stringWithFormat:@"w=%.3f,a=%.3f",w,a];
-    } @catch(...) {}
-    return @"?";
-}
-static void ADSpinnerNativeWalk7078(UIView *v,UIWindow *w,NSMutableString *o,NSUInteger *seen){
-    if(!v||!w||!o||!seen||*seen>260)return;
-    @try {
-        if(v.hidden||v.alpha<0.01)return;
-        CGRect r=[v convertRect:v.bounds toView:w];
-        if(!CGRectIntersectsRect(r,w.bounds))return;
-        (*seen)++;
-        NSString *n=NSStringFromClass(v.class)?:@"";
-        NSString *ln=n.lowercaseString;
-        BOOL semantic=[v isKindOfClass:[UIActivityIndicatorView class]]||[ln containsString:@"activity"]||[ln containsString:@"spinner"]||[ln containsString:@"progress"]||[ln containsString:@"indicator"]||[ln containsString:@"loading"];
-        if(semantic){
-            [o appendFormat:@"NATIVE cls=%@ rect=%.1f,%.1f,%.1f,%.1f alpha=%.3f bg=%@ tint=%@ layerBG=%@ border=%@ bw=%.2f cr=%.2f sub=%lu label=%@ id=%@",
-                n,r.origin.x,r.origin.y,r.size.width,r.size.height,v.alpha,
-                ADProbeColor7078(v.backgroundColor),ADProbeColor7078(v.tintColor),
-                ADProbeColor7078(v.layer.backgroundColor?[UIColor colorWithCGColor:v.layer.backgroundColor]:nil),
-                ADProbeColor7078(v.layer.borderColor?[UIColor colorWithCGColor:v.layer.borderColor]:nil),
-                v.layer.borderWidth,v.layer.cornerRadius,(unsigned long)v.subviews.count,
-                v.accessibilityLabel?:@"",v.accessibilityIdentifier?:@""];
-            if([v isKindOfClass:[UIActivityIndicatorView class]]){
-                UIActivityIndicatorView *a=(UIActivityIndicatorView *)v;
-                [o appendFormat:@" ACTIVITY style=%ld anim=%d color=%@",(long)a.activityIndicatorViewStyle,a.isAnimating?1:0,ADProbeColor7078(a.color)];
-            }
-            [o appendString:@"\n"];
-        }
-        for(UIView *c in v.subviews)ADSpinnerNativeWalk7078(c,w,o,seen);
-    } @catch(...) {}
-}
-static WKWebView *ADLargestVisibleWeb7078(void){
-    WKWebView *best=nil; CGFloat area=0;
-    @try {
-        for(WKWebView *wv in ADTrackedWebViews()){
-            if(!wv.window||wv.hidden||wv.alpha<0.01)continue;
-            CGRect r=[wv convertRect:wv.bounds toView:wv.window];
-            CGRect ir=CGRectIntersection(r,wv.window.bounds);
-            CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height);
-            if(a>area){area=a;best=wv;}
-        }
-    } @catch(...) {}
-    return best;
-}
-static void ADCaptureSpinnerScreen7078(void){
-    if(!gP.enabled)return;
-    NSMutableString *native=[NSMutableString string];
-    @try {
-        [native appendFormat:@"AmazonDark %@ screenshot spinner probe\ndate=%@\n\n",[NSString stringWithUTF8String:AD_VERSION],[NSDate date]];
-        for(UIWindow *w in UIApplication.sharedApplication.windows){
-            if(w.hidden||w.alpha<0.01)continue;
-            NSUInteger seen=0;
-            ADSpinnerNativeWalk7078(w,w,native,&seen);
-        }
-    } @catch(...) {}
-    WKWebView *wv=ADLargestVisibleWeb7078();
-    if(!wv){
-        [native appendString:@"\nNO_VISIBLE_WEBVIEW\n"];
-        [native writeToFile:ADSpinnerScreenProbePath7078() atomically:YES encoding:NSUTF8StringEncoding error:nil];
-        return;
-    }
-    NSString *js=@"(function(){try{"
-      "function C(e){try{var x=e.className;if(x&&x.baseVal!==undefined)x=x.baseVal;return typeof x==='string'?x:''}catch(_){return ''}}"
-      "function T(e){try{return String(e.textContent||'').replace(/\\s+/g,' ').trim().slice(0,160)}catch(_){return ''}}"
-      "function O(e){try{var r=e.getBoundingClientRect(),c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');return [String(e.tagName||'?').toLowerCase(),e.id?'#'+e.id:'',C(e)?'.'+C(e).trim().replace(/\\s+/g,'.'):'',' rect='+[r.x,r.y,r.width,r.height].map(function(v){return Math.round(v*10)/10}).join(','),' text='+JSON.stringify(T(e)),' role='+(e.getAttribute('role')||''),' aria='+(e.getAttribute('aria-label')||''),' busy='+(e.getAttribute('aria-busy')||''),' color='+c.color,' bg='+c.backgroundColor,' bgimg='+String(c.backgroundImage||'').slice(0,1000),' bgpos='+(c.backgroundPosition||''),' bgsize='+(c.backgroundSize||''),' bgrep='+(c.backgroundRepeat||''),' mask='+String(c.webkitMaskImage||c.maskImage||'').slice(0,1000),' maskpos='+(c.webkitMaskPosition||c.maskPosition||''),' masksize='+(c.webkitMaskSize||c.maskSize||''),' filter='+c.filter,' transform='+c.transform,' animation='+c.animationName+'|'+c.animationDuration+'|'+c.animationTimingFunction,' opacity='+c.opacity,' display='+c.display,' visibility='+c.visibility,' boxshadow='+c.boxShadow,' border='+c.border,' radius='+c.borderRadius,' clip='+c.clipPath,' fill='+c.fill,' stroke='+c.stroke,' before='+[b.content,b.color,b.backgroundColor,b.backgroundImage,b.webkitMaskImage||b.maskImage,b.filter,b.transform,b.animationName,b.animationDuration,b.opacity].join('|').slice(0,1000),' after='+[a.content,a.color,a.backgroundColor,a.backgroundImage,a.webkitMaskImage||a.maskImage,a.filter,a.transform,a.animationName,a.animationDuration,a.opacity].join('|').slice(0,1000)].join('')}catch(z){return 'ERR '+z}}"
-      "var W=innerWidth||document.documentElement.clientWidth||0,H=innerHeight||document.documentElement.clientHeight||0,o=['href='+location.href,'title='+document.title,'ready='+document.readyState,'viewport='+W+'x'+H],seen=[];"
-      "function A(e){if(!e||e.nodeType!==1||seen.indexOf(e)>=0)return;seen.push(e)}"
-      "var pts=[[.42,.66],[.50,.66],[.58,.66],[.42,.72],[.50,.72],[.58,.72],[.42,.78],[.50,.78],[.58,.78],[.42,.84],[.50,.84],[.58,.84],[.50,.90]];"
-      "for(var pi=0;pi<pts.length;pi++){var x=W*pts[pi][0],y=H*pts[pi][1],z=document.elementsFromPoint(x,y);o.push('POINT '+pi+' '+Math.round(x*10)/10+','+Math.round(y*10)/10);for(var j=0;j<z.length&&j<8;j++)o.push('P'+pi+'_'+j+' '+O(z[j]))}"
-      "try{var q=document.querySelectorAll('.a-spinner,.a-spinner-wrapper,[class*=spinner],[class*=loader],[class*=loading],[role=progressbar],[aria-busy=true]');for(var i=0;i<q.length&&i<40;i++){var r=q[i].getBoundingClientRect();if(r.bottom>=0&&r.top<=H&&r.right>=0&&r.left<=W){o.push('SEM'+i+' '+O(q[i]));try{o.push('SEM_OUTER '+String(q[i].outerHTML||'').replace(/\\s+/g,' ').slice(0,4200))}catch(_){}}}}catch(_){}"
-      "return o.join('\\n')}catch(e){return 'JSERR '+e}})();";
-    [wv evaluateJavaScript:js completionHandler:^(id value,NSError *error){
-        @try {
-            NSString *web=error?[NSString stringWithFormat:@"WEB_ERROR %@",error]:([value isKindOfClass:[NSString class]]?value:[value description]);
-            [native appendFormat:@"\n-- WEB_CURRENT_SCREEN --\n%@\n",web?:@"NO_WEB_RESULT"];
-            [native writeToFile:ADSpinnerScreenProbePath7078() atomically:YES encoding:NSUTF8StringEncoding error:nil];
-        } @catch(...) {}
-    }];
-}
-
 %hook UIApplication
 - (void)setStatusBarStyle:(UIStatusBarStyle)style {
     if(gP.enabled){
@@ -2270,7 +2181,6 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 
     %init;
 
-    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note){ (void)note; ADCaptureSpinnerScreen7078(); }];
 
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);
