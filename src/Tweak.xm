@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.75"
+#define AD_VERSION "v7.0.76-spinner-point-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1932,7 +1932,121 @@ static void ADOwnBottomBar708(UIView *v){
 }
 %end
 
+
+// -----------------------------------------------------------------------------
+// v7.0.76 probe: exact-point loading-spinner ownership capture.
+// Temporary diagnostic only. A touch-began writes the native hit chain and, when
+// the touch belongs to a WKWebView, exactly one elementsFromPoint() Web snapshot.
+// No observer, timer, scroll callback, DOM traversal, or recurring scanner.
+// -----------------------------------------------------------------------------
+static NSString *ADSpinnerPointProbePath7076(void){
+    @try {
+        NSArray *dirs=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
+        NSString *base=dirs.firstObject;
+        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-spinner-point-probe-7076.txt"];
+    } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-spinner-point-probe-7076.txt"];
+}
+static NSString *ADSpinnerColor7076(UIColor *c){
+    if(!c)return @"-";
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0;
+        if([c getRed:&r green:&g blue:&b alpha:&a])return [NSString stringWithFormat:@"%.3f,%.3f,%.3f,%.3f",r,g,b,a];
+        if([c getWhite:&w alpha:&a])return [NSString stringWithFormat:@"w=%.3f,a=%.3f",w,a];
+        return c.description?:@"?";
+    } @catch(...) { return @"?"; }
+}
+static NSString *ADSpinnerNativeView7076(UIView *v, UIWindow *w, NSString *tag){
+    if(!v)return @"";
+    @try {
+        CGRect r=w?[v convertRect:v.bounds toView:w]:v.frame;
+        NSMutableString *x=[NSMutableString stringWithFormat:@"%@ cls=%@ rect=%.1f,%.1f,%.1f,%.1f alpha=%.3f hidden=%d bg=%@ tint=%@ layerBG=%@ border=%@ bw=%.2f cr=%.2f sub=%lu label=%@ id=%@",
+            tag?:@"V",NSStringFromClass(v.class),r.origin.x,r.origin.y,r.size.width,r.size.height,v.alpha,v.hidden?1:0,
+            ADSpinnerColor7076(v.backgroundColor),ADSpinnerColor7076(v.tintColor),ADSpinnerColor7076(v.layer.backgroundColor?[UIColor colorWithCGColor:v.layer.backgroundColor]:nil),
+            ADSpinnerColor7076(v.layer.borderColor?[UIColor colorWithCGColor:v.layer.borderColor]:nil),v.layer.borderWidth,v.layer.cornerRadius,(unsigned long)v.subviews.count,
+            v.accessibilityLabel?:@"",v.accessibilityIdentifier?:@""];
+        if([v isKindOfClass:[UIActivityIndicatorView class]]){
+            UIActivityIndicatorView *a=(UIActivityIndicatorView *)v;
+            [x appendFormat:@" ACTIVITY style=%ld anim=%d color=%@",(long)a.activityIndicatorViewStyle,a.isAnimating?1:0,ADSpinnerColor7076(a.color)];
+        }
+        if([v isKindOfClass:[UIImageView class]]){
+            UIImageView *iv=(UIImageView *)v; UIImage *im=iv.image;
+            [x appendFormat:@" IMAGE has=%d size=%.1fx%.1f mode=%ld",im?1:0,im?im.size.width:0,im?im.size.height:0,(long)(im?im.renderingMode:0)];
+        }
+        return x;
+    } @catch(...) { return [NSString stringWithFormat:@"%@ ERR",tag?:@"V"]; }
+}
+static WKWebView *ADSpinnerWebViewFromTouch7076(UITouch *touch){
+    @try {
+        UIView *v=touch.view;
+        for(int i=0;v&&i<28;i++,v=v.superview)if([v isKindOfClass:[WKWebView class]])return (WKWebView *)v;
+    } @catch(...) {}
+    return nil;
+}
+static NSString *ADSpinnerNativeTouch7076(UITouch *touch){
+    NSMutableString *o=[NSMutableString string];
+    @try {
+        UIView *v=touch.view; UIWindow *w=v.window; CGPoint p=w?[touch locationInView:w]:CGPointZero;
+        [o appendFormat:@"NATIVE_TOUCH screen=%.1f,%.1f touchView=%@\n",p.x,p.y,v?NSStringFromClass(v.class):@"nil"];
+        UIView *a=v;
+        for(int i=0;a&&i<14;i++,a=a.superview){
+            [o appendFormat:@"%@\n",ADSpinnerNativeView7076(a,w,[NSString stringWithFormat:@"N%d",i])];
+            if(i<5){
+                NSUInteger lim=MIN((NSUInteger)12,a.subviews.count);
+                for(NSUInteger j=0;j<lim;j++){
+                    UIView *c=a.subviews[j]; CGRect rr=w?[c convertRect:c.bounds toView:w]:c.frame;
+                    if(CGRectIntersectsRect(rr,CGRectMake(p.x-70,p.y-70,140,140)))
+                        [o appendFormat:@"%@\n",ADSpinnerNativeView7076(c,w,[NSString stringWithFormat:@"N%dC%lu",i,(unsigned long)j])];
+                }
+            }
+        }
+    } @catch(...) {}
+    return o;
+}
+static void ADCaptureSpinnerPoint7076(UITouch *touch){
+    if(!touch||!gP.enabled)return;
+    NSString *native=ADSpinnerNativeTouch7076(touch);
+    WKWebView *wv=ADSpinnerWebViewFromTouch7076(touch);
+    if(!wv||!wv.window||wv.bounds.size.width<=1||wv.bounds.size.height<=1){
+        @try {
+            NSString *body=[NSString stringWithFormat:@"AmazonDark %@ exact loading-spinner point probe\ndate=%@\n\n%@\n\nNO_WEBVIEW_IN_TOUCH_CHAIN\n",[NSString stringWithUTF8String:AD_VERSION],[NSDate date],native?:@"NO_NATIVE_TOUCH"];
+            [body writeToFile:ADSpinnerPointProbePath7076() atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        } @catch(...) {}
+        return;
+    }
+    CGPoint p=[touch locationInView:wv];
+    if(p.x<0||p.y<0||p.x>wv.bounds.size.width||p.y>wv.bounds.size.height)return;
+    double fx=p.x/wv.bounds.size.width,fy=p.y/wv.bounds.size.height;
+    NSString *js=[NSString stringWithFormat:
+      @"(function(){try{var x=(innerWidth||document.documentElement.clientWidth||0)*%.9f,y=(innerHeight||document.documentElement.clientHeight||0)*%.9f;"
+       "function C(e){try{var x=e.className;if(x&&x.baseVal!==undefined)x=x.baseVal;return typeof x==='string'?x:''}catch(_){return ''}}"
+       "function T(e){try{return String(e.textContent||'').replace(/\\s+/g,' ').trim().slice(0,180)}catch(_){return ''}}"
+       "function O(e){try{if(!e||e.nodeType!==1)return '-';var r=e.getBoundingClientRect(),c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');return [String(e.tagName||'?').toLowerCase(),e.id?'#'+e.id:'',C(e)?'.'+C(e).trim().replace(/\\s+/g,'.'):'',' rect='+[r.x,r.y,r.width,r.height].map(function(v){return Math.round(v*10)/10}).join(','),' text='+JSON.stringify(T(e)),' role='+(e.getAttribute('role')||''),' aria='+(e.getAttribute('aria-label')||''),' color='+c.color,' bg='+c.backgroundColor,' bgimg='+String(c.backgroundImage||'').slice(0,900),' bgpos='+(c.backgroundPosition||''),' bgsize='+(c.backgroundSize||''),' bgrep='+(c.backgroundRepeat||''),' mask='+String(c.webkitMaskImage||c.maskImage||'').slice(0,900),' maskpos='+(c.webkitMaskPosition||c.maskPosition||''),' masksize='+(c.webkitMaskSize||c.maskSize||''),' filter='+c.filter,' transform='+c.transform,' animation='+c.animationName+'|'+c.animationDuration+'|'+c.animationTimingFunction,' opacity='+c.opacity,' display='+c.display,' visibility='+c.visibility,' boxshadow='+c.boxShadow,' border='+c.border,' radius='+c.borderRadius,' clip='+c.clipPath,' fill='+c.fill,' stroke='+c.stroke,' before='+[b.content,b.color,b.backgroundColor,b.backgroundImage,b.webkitMaskImage||b.maskImage,b.filter,b.transform,b.animationName,b.opacity].join('|').slice(0,900),' after='+[a.content,a.color,a.backgroundColor,a.backgroundImage,a.webkitMaskImage||a.maskImage,a.filter,a.transform,a.animationName,a.opacity].join('|').slice(0,900)].join('')}catch(z){return 'ERR '+z}}"
+       "var o=['href='+location.href,'title='+document.title,'ready='+document.readyState,'viewport='+(innerWidth||0)+'x'+(innerHeight||0),'point='+x.toFixed(1)+','+y.toFixed(1)],s=document.elementsFromPoint(x,y),n=Math.min(s.length,20);"
+       "for(var i=0;i<n;i++)o.push('P'+i+' '+O(s[i]));"
+       "var e=s&&s[0],seen=[];for(var j=0;e&&j<12;j++,e=e.parentElement){o.push('A'+j+' '+O(e));try{o.push('A'+j+'_OUTER '+String(e.outerHTML||'').replace(/\\s+/g,' ').slice(0,3200))}catch(_){ }if(e.matches&&e.matches('.a-spinner,.a-spinner-wrapper,[class*=spinner],[role=progressbar],[aria-label*=loading i]'))seen.push(e);if(j<6&&e.querySelector){var q=e.querySelector('.a-spinner,.a-spinner-wrapper,[class*=spinner],[role=progressbar],[aria-label*=loading i]');if(q)seen.push(q)}}"
+       "for(var k=0;k<seen.length&&k<12;k++){if(seen.indexOf(seen[k])!==k)continue;o.push('SPIN'+k+' '+O(seen[k]));try{o.push('SPIN'+k+'_OUTER '+String(seen[k].outerHTML||'').replace(/\\s+/g,' ').slice(0,4000))}catch(_){}}"
+       "return o.join('\\n')}catch(e){return 'JSERR '+e}})();",fx,fy];
+    [wv evaluateJavaScript:js completionHandler:^(id value,NSError *error){
+        @try {
+            NSString *web=error?[NSString stringWithFormat:@"WEB_ERROR %@",error]:([value isKindOfClass:[NSString class]]?value:[value description]);
+            NSString *body=[NSString stringWithFormat:@"AmazonDark %@ exact loading-spinner point probe\ndate=%@\n\n%@\n\n%@\n",[NSString stringWithUTF8String:AD_VERSION],[NSDate date],native?:@"NO_NATIVE_TOUCH",web?:@"NO_WEB_RESULT"];
+            [body writeToFile:ADSpinnerPointProbePath7076() atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        } @catch(...) {}
+    }];
+}
+
 %hook UIApplication
+- (void)sendEvent:(UIEvent *)event {
+    if(event.type==UIEventTypeTouches){
+        @try {
+            for(UITouch *t in [event allTouches]){
+                if(t.phase==UITouchPhaseBegan){ ADCaptureSpinnerPoint7076(t); break; }
+            }
+        } @catch(...) {}
+    }
+    %orig;
+}
 - (void)setStatusBarStyle:(UIStatusBarStyle)style {
     if(gP.enabled){
         UIStatusBarStyle want=UIStatusBarStyleLightContent;

@@ -1,3 +1,11 @@
+# AmazonDark v7.0.76~probe
+
+- Direct probe base: v7.0.75. Scrollbar fix and current spinner styling are otherwise unchanged.
+- Temporary exact-point loading-spinner probe only: touch the visible bad spinner once.
+- Captures the native UIKit touch/view chain plus one `elementsFromPoint()` Web snapshot at that exact coordinate, including background sprite, mask, filter, transform, animation, pseudo-elements, ancestry and local spinner candidate.
+- Output: `AmazonDark-spinner-point-probe-7076.txt` in Amazon's Documents directory.
+- No MutationObserver, timer, scroll listener, interval, RAF, page-wide DOM scan or recurring probe pass.
+
 # AmazonDark v7.0.75
 
 - Direct production base: v7.0.74; the confirmed-working v7.0.74 light native scrollbar port is unchanged.
