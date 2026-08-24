@@ -1,3 +1,14 @@
+# AmazonDark v7.84~probe — standalone ad renderer inventory
+
+- Built directly from v7.83 production.
+- Adds one scoped declarative correction for the GWM Home window-pane carousel Sponsor row: its `Sponsored` text and info glyph are both forced to the tweak light ink (`#e8e6e3`) because that carousel floor is owned as OLED black. Other Sponsor renderers keep the v7.83 per-card Amazon color path.
+- Trigger is an iOS screenshot while a standalone ad is visible.
+- A dormant documentStart helper exists in every WebKit frame only for this probe build. On trigger, the top frame broadcasts a one-shot `postMessage` request so cross-origin APE/standalone child frames can report themselves.
+- Captures frame URL/referrer/viewport, root/body paint, visible structural surfaces, media leaves, direct-text leaves, semantic ad/creative nodes, iframe hosts, pseudo-elements, colors, backgrounds, borders, filters, source URLs, natural media dimensions, and bounded outerHTML.
+- This is specifically intended to identify: the white base owner, the real creative media leaf that must receive TWB, header/generic text selectors, and accent/badge/brand leaves that should remain Amazon-colored.
+- No MutationObserver, scroll listener, interval, RAF, or recurring scan. The only delay is a 550 ms one-shot collection window after the screenshot so child-frame replies can arrive.
+- Output: `AmazonDark-standalone-ad-probe-v7.84.txt`.
+
 # AmazonDark v7.83 — Sponsor glyph inherits Amazon label color
 
 - Built directly from v7.82 production, preserving the v7.0.79 white-scrollbar baseline and the v7.82 deterministic Hybrid Sponsor-glyph ownership.
