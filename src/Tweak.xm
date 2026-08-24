@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.52-sponsor-glyph-chevron-auto-probe"
+#define AD_VERSION "v7.0.53-sponsor-glyph-persist-chevron-live-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -600,12 +600,13 @@ static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
 static const void *kADChevronProbeUS7050=&kADChevronProbeUS7050;
 static NSHashTable *gADWebViews=nil;
-// v7.0.52 diagnostic state is declared before UIApplication hooks.
+// v7.0.53 diagnostic state is declared before UIApplication hooks.
 // The probe automatically keeps the most recent Amazon tap; there is no shell
 // trigger, PID lookup, signal handler, recurring scan, or background poll.
 static NSUInteger gADChevronTapGeneration7052=0;
 static NSString *gADChevronNativeTap7050=nil;
 static NSString *gADChevronNativeAfter7050=nil;
+static __weak WKWebView *gADChevronTapWebView7053=nil;
 static NSString *ADChevronNativeChain7050(UIView *v, CGPoint screen);
 static NSString *ADChevronNativeSnapshot7050(NSString *label);
 static void ADDumpChevronProbe7050(void);
@@ -913,6 +914,10 @@ static NSString *ADFloorJS(void){
             "function local(n){try{var p=n&&n.nodeType===1?n:n&&n.parentElement;for(var i=0;p&&i<5;i++,p=p.parentElement){if(isL(p)){paint(p);return}var l=p.querySelector&&p.querySelector(LS);if(l){paint(l);return}}}catch(_){}}"
             "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){all(document)},{once:true});else all(document);"
             "window.addEventListener('pageshow',function(){all(document)},false);document.addEventListener('load',function(e){local(e.target)},true);"
+            /* v7.0.53: Amazon can replace the already-correct Sponsor glyph after hydration.
+             * One tiny child-list observer watches only inserted nodes and performs a local
+             * Sponsor lookup; there is no document scan in the callback. */
+            "try{var mo=new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var an=ms[i].addedNodes;for(var j=0;j<an.length;j++){var n=an[j];if(!n||n.nodeType!==1)continue;local(n);try{if(n.matches&&isL(n))paint(n);else if(n.querySelector){var l=n.querySelector(LS);if(l)paint(l)}}catch(_){}}}});mo.observe(document.documentElement||document,{childList:true,subtree:true});window.__ADSPG7053_MO=mo}catch(_){ }"
             "})();}catch(__){}"
             "document.documentElement.style.setProperty('background-color','#000','important');"
             "document.documentElement.style.setProperty('color-scheme','dark','important');"
@@ -1028,18 +1033,18 @@ static NSString *ADTWBJS(void){
 
 
 static NSString *ADChevronProbeJS7050(void){
-    // v7.0.52 diagnostic-only rolling tap tracer. It is always ready but does
+    // v7.0.53 diagnostic-only rolling tap tracer. It is always ready but does
     // nothing until the user actually taps. Each tap replaces the previous
     // cached evidence; the last tap before export is therefore the one reported.
     // A short de-dupe prevents touchend/pointerup/click from triple-capturing the
     // same physical tap. No DOM observer, scroll hook, interval, RAF or scan loop.
     return @"(function(){try{"
-    "if(window.__ADC7052_INSTALLED__)return;window.__ADC7052_INSTALLED__=1;"
+    "if(window.__ADC7053_INSTALLED__)return;window.__ADC7053_INSTALLED__=1;"
     "var rows=[],topf=0,topChildTimer=0,lastHit=0;try{topf=window.top===window}catch(_){topf=0}"
     "function cls(e){try{var x=e.className;if(x&&x.baseVal!==undefined)x=x.baseVal;return typeof x==='string'?x:''}catch(_){return ''}}"
     "function one(e){try{if(!e||e.nodeType!==1)return '-';var r=e.getBoundingClientRect(),c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');return [String(e.tagName||'?').toLowerCase(),e.id?'#'+e.id:'',cls(e)?'.'+cls(e).trim().replace(/\\s+/g,'.'):'',' rect='+[r.x,r.y,r.width,r.height].map(function(v){return Math.round(v*10)/10}).join(','),' role='+(e.getAttribute('role')||''),' aria='+(e.getAttribute('aria-label')||''),' expanded='+(e.getAttribute('aria-expanded')||''),' title='+(e.getAttribute('title')||''),' href='+(e.getAttribute('href')||''),' action='+(e.getAttribute('data-action')||''),' csa='+(e.getAttribute('data-csa-c-content-id')||''),' color='+c.color,' bg='+c.backgroundColor,' bgimg='+String(c.backgroundImage||'').slice(0,180),' mask='+String(c.webkitMaskImage||c.maskImage||'').slice(0,160),' filter='+c.filter,' fill='+c.fill,' stroke='+c.stroke,' pe='+c.pointerEvents,' z='+c.zIndex,' before='+[b.content,b.color,b.backgroundColor,b.backgroundImage,b.webkitMaskImage||b.maskImage,b.filter].join('|').slice(0,260),' after='+[a.content,a.color,a.backgroundColor,a.backgroundImage,a.webkitMaskImage||a.maskImage,a.filter].join('|').slice(0,260)].join('')}catch(_){return 'ERR'}}"
     "function html(e){try{return String(e&&e.outerHTML||'').replace(/\\s+/g,' ').slice(0,1400)}catch(_){return ''}}"
-    "function emit(s){try{if(topf)rows.push(s);else window.top.postMessage({__adc7052:1,t:s},'*')}catch(_){}}"
+    "function emit(s){try{if(topf)rows.push(s);else window.top.postMessage({__adc7053:1,t:s},'*')}catch(_){}}"
     "function chain(e,label){var o=['-- '+label+' --'];try{for(var i=0;e&&i<10;i++,e=e.parentElement)o.push('A'+i+' '+one(e))}catch(_){}return o.join('\\n')}"
     "function epath(e){var o=['-- COMPOSED_PATH --'];try{var p=e.composedPath?e.composedPath():[],n=Math.min(p.length,14);for(var i=0;i<n;i++)if(p[i]&&p[i].nodeType===1)o.push('E'+i+' '+one(p[i]))}catch(_){}return o.join('\\n')}"
     "function point(x,y,label){var o=['-- '+label+' point='+Math.round(x)+','+Math.round(y)+' --'];try{var st=document.elementsFromPoint(x,y),n=Math.min(st.length,12);for(var i=0;i<n;i++)o.push('P'+i+' '+one(st[i]))}catch(e){o.push('POINTERR '+e)}return o.join('\\n')}"
@@ -1047,7 +1052,7 @@ static NSString *ADChevronProbeJS7050(void){
     "function dump(){try{return (rows.length?rows.join('\\n\\n'):'NO_WEB_TAP_CAPTURE')+'\\n\\n'+grid('CURRENT_AT_EXPORT')+'\\nactive='+one(document.activeElement)}catch(e){return 'DUMPERR '+e}}"
     "function xy(e){var x=e.clientX,y=e.clientY;try{if((!isFinite(x)||!isFinite(y))&&e.changedTouches&&e.changedTouches.length){x=e.changedTouches[0].clientX;y=e.changedTouches[0].clientY}}catch(_){}return [Number(x)||0,Number(y)||0]}"
     "function hit(e){try{var now=Date.now();if(now-lastHit<350)return;lastHit=now;var q=xy(e),x=q[0],y=q[1],t=e.target;if(topf)rows=[];emit('EVENT type='+e.type+' href='+location.href+'\\nTARGET_HTML '+html(t)+'\\n'+chain(t,'TARGET_CHAIN')+'\\n'+epath(e)+'\\n'+point(x,y,'BEFORE_HANDLER'));[0,80,250].forEach(function(ms){setTimeout(function(){emit(point(x,y,'AFTER_'+ms+'MS'))},ms)});setTimeout(function(){emit(point(x,y,'AFTER_650MS'));emit(grid('AFTER_650MS_MENU'));emit('ACTIVE_AFTER_650MS '+one(document.activeElement))},650)}catch(z){emit('EVENTERR '+z)}}"
-    "if(topf){window.addEventListener('message',function(e){try{if(e.data&&e.data.__adc7052){var t=String(e.data.t||'');if(t.indexOf('EVENT type=')===0)rows=[];rows.push('CHILD '+t);if(t.indexOf('EVENT type=')===0&&!topChildTimer){topChildTimer=1;setTimeout(function(){rows.push(grid('TOP_AFTER_CHILD_TAP_650MS'));topChildTimer=0},650)}}}catch(_){}},false);window.__ADCHEV7052_DUMP=dump;}"
+    "if(topf){window.addEventListener('message',function(e){try{if(e.data&&e.data.__adc7053){var t=String(e.data.t||'');if(t.indexOf('EVENT type=')===0)rows=[];rows.push('CHILD '+t);if(t.indexOf('EVENT type=')===0&&!topChildTimer){topChildTimer=1;setTimeout(function(){rows.push(grid('TOP_AFTER_CHILD_TAP_650MS'));topChildTimer=0},650)}}}catch(_){}},false);window.__ADCHEV7053_DUMP=dump;}"
     "document.addEventListener('touchend',hit,true);document.addEventListener('pointerup',hit,true);document.addEventListener('click',hit,true);"
     "}catch(e){}})();";
 }
@@ -1151,7 +1156,14 @@ static void ADApplyAllFloors(void){
 }
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled && self.window){ ADAttachWebScripts(self); ADApplyWebFloor(self); ADScheduleLaunchReadyCheck706(); }
+    if(gP.enabled && self.window){
+        ADAttachWebScripts(self);
+        ADApplyWebFloor(self);
+        /* Probe-only: documentStart covers future navigations; this installs the tracer
+         * immediately into an already-live document too. */
+        @try { [self evaluateJavaScript:ADChevronProbeJS7050() completionHandler:nil]; } @catch(...) {}
+        ADScheduleLaunchReadyCheck706();
+    }
 }
 %end
 
@@ -1870,11 +1882,26 @@ static void ADOwnBottomBar708(UIView *v){
 
 %hook UIApplication
 - (void)sendEvent:(UIEvent *)event {
+    NSArray *adTouches=nil;
     if(event.type==UIEventTypeTouches){
         @try {
-            for(UITouch *t in [event allTouches]){
+            adTouches=[[event allTouches] allObjects];
+            /* Probe-only fallback: install into the live page at touch-began, before
+             * WebKit receives the corresponding touch-end/click. */
+            for(UITouch *t in adTouches){
+                if(t.phase!=UITouchPhaseBegan)continue;
+                WKWebView *wv=ADChevronVisibleWebView7050();
+                if(wv){ gADChevronTapWebView7053=wv; [wv evaluateJavaScript:ADChevronProbeJS7050() completionHandler:nil]; }
+                break;
+            }
+        } @catch(...) {}
+    }
+    %orig;
+    if(event.type==UIEventTypeTouches){
+        @try {
+            for(UITouch *t in adTouches){
                 if(t.phase!=UITouchPhaseEnded)continue;
-                UIView *v=t.view; UIWindow *w=v.window; CGPoint p=w?[t locationInView:w]:CGPointZero;
+                UIView *v=t.view; CGPoint p=[t locationInView:nil];
                 NSUInteger gen=++gADChevronTapGeneration7052;
                 gADChevronNativeTap7050=ADChevronNativeChain7050(v,p);
                 gADChevronNativeAfter7050=nil;
@@ -1893,7 +1920,6 @@ static void ADOwnBottomBar708(UIView *v){
             }
         } @catch(...) {}
     }
-    %orig;
 }
 - (void)setStatusBarStyle:(UIStatusBarStyle)style {
     if(gP.enabled){
@@ -2140,9 +2166,9 @@ static NSString *ADChevronProbePath7050(void){
     @try {
         NSArray *dirs=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
         NSString *base=dirs.firstObject;
-        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-chevron-tap-probe-7052.txt"];
+        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-chevron-tap-probe-7053.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-chevron-tap-probe-7052.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-chevron-tap-probe-7053.txt"];
 }
 static NSString *ADChevronColor7050(UIColor *c){
     if(!c)return @"-";
@@ -2210,9 +2236,10 @@ static void ADChevronWrite7050(NSString *body){
     } @catch(...) {}
 }
 static void ADDumpChevronProbe7050(void){
-    WKWebView *wv=ADChevronVisibleWebView7050();
+    WKWebView *wv=gADChevronTapWebView7053;
+    if(!wv || !wv.window || wv.hidden || wv.alpha<0.01) wv=ADChevronVisibleWebView7050();
     if(!wv){ ADChevronWrite7050(@"DUMP_ERROR NO_VISIBLE_WKWEBVIEW"); return; }
-    [wv evaluateJavaScript:@"window.__ADCHEV7052_DUMP?window.__ADCHEV7052_DUMP():'NO_CHEVRON_BOOTSTRAP'" completionHandler:^(id value,NSError *error){
+    [wv evaluateJavaScript:@"window.__ADCHEV7053_DUMP?window.__ADCHEV7053_DUMP():'NO_CHEVRON_BOOTSTRAP'" completionHandler:^(id value,NSError *error){
         NSString *b=error?[NSString stringWithFormat:@"DUMP_JS_ERROR %@",error]:([value isKindOfClass:[NSString class]]?value:[value description]);
         ADChevronWrite7050(b);
     }];

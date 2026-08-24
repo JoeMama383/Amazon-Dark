@@ -1,4 +1,4 @@
-# AmazonDark v7.0.52~probe
+# AmazonDark v7.0.53~probe
 
 Built directly from the v7.0.50 visual base. v7.0.51 is abandoned and is not part of this source lineage.
 
@@ -8,7 +8,7 @@ Built directly from the v7.0.50 visual base. v7.0.51 is abandoned and is not par
 - v7.0.49/v7.0.50 chevron CSS attempts remain unchanged so the diagnostic observes the real still-dark chevron.
 - Gray borders, standalone-ad OLED background/text behavior, scrollbar styling, TWB, 120 Hz, JIT, launch cover, bottom navigation and unrelated theming remain unchanged.
 
-## v7.0.52 automatic chevron probe
+## v7.0.53 automatic chevron probe
 There is no PID lookup, SIGUSR2, ps, awk, pgrep, notifyutil, terminal arming, Darwin relay or SpringBoard relay.
 
 The probe is installed at document start in all frames and remains idle until a real user tap occurs. Each completed Amazon tap replaces the previous diagnostic candidate. A 350 ms de-dupe prevents the normal touchend/pointerup/click sequence from triple-capturing one physical tap.
@@ -24,3 +24,9 @@ Test workflow: navigate to the failing dark chevron, tap it, leave the opened me
 Production paint remains free of MutationObservers, TreeWalkers, scroll listeners, intervals and RAF loops. The probe adds no recurring timer or scanner. Diagnostic work runs only in response to actual taps, and only the most recent tap is allowed to complete its delayed native dump.
 
 GitHub Actions remains the authoritative Theos compile/link/package proof after push.
+
+
+## v7.0.53 probe
+- Sponsor text remains Amazon-owned; a child-list-only local reapply follows glyph replacement after hydration.
+- Chevron tracer is installed into the live WKWebView on mount and again at touch-began as a diagnostic fallback.
+- Output: `AmazonDark-chevron-tap-probe-7053.txt`. No PID or SIGUSR trigger.
