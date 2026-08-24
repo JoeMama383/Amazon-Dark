@@ -1,14 +1,17 @@
-# AmazonDark v7.0.68
+# AmazonDark v7.0.69
 
-## v7.0.68 — Sponsored glyph hydration persistence
+## v7.0.69 — Sponsored glyph hydration lock
 
-- **Exact base:** the supplied full v7.0.65 source tree.
-- Sponsored text remains Amazon-owned; this build does **not** force its color.
-- The first correctly-painted Sponsored info glyph now binds its exact rendered label color and its stock mask/background-sprite renderer to the smallest stable local Sponsored host.
-- If Amazon rewrites or replaces the glyph during final Home hydration, a static host-scoped CSS rule automatically paints the replacement with the same ink and the same stock artwork.
-- The v7.0.65 six-pass Sponsor `setTimeout` retry loop is removed.
-- No Sponsor `MutationObserver`, recurring timer, scroll listener, interval, RAF, or document-wide repair scanner is added.
-- The now-obsolete v7.0.65 exact-point chevron touch probe runtime is removed; the chevron CSS fix itself is retained.
+- **Exact lineage:** v7.0.68 production tree, itself built from the user-supplied full v7.0.65 source. No patcher files.
+- Sponsored text remains Amazon-owned and is never recolored.
+- Root cause of v7.0.68: renderer/color state was stored on a custom-marked Amazon ancestor; final Home hydration can replace that ancestor, deleting the marker and CSS variables with it.
+- v7.0.69 removes that custom-host persistence model completely.
+- On the first correct Sponsor render, AmazonDark derives a CSS selector from the glyph's **real Amazon class/structure** plus its nearest stable Sponsor/ad template class.
+- It then writes a normal static CSS rule containing the exact adjacent Sponsored text color and the stock glyph's existing mask/background-sprite renderer.
+- If Amazon replaces the glyph or its ancestor later, the replacement still carries the same Amazon class/structure and automatically matches the rule; no re-scan is needed.
+- Multiple ad templates can each receive their own scoped rule, so GWM/NPACK/cXVhZ/sponsored-product glyphs do not have to share one global color or sprite position.
+- The v7.0.65 retry loop remains removed. There is **no MutationObserver, Sponsor retry timer, scroll listener, interval, or RAF**.
+- The v7.0.65 chevron diagnostic runtime remains removed. Its production chevron fix is retained unchanged.
 
 
 ## What five failed chevron builds have actually established
