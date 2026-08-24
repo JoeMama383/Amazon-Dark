@@ -1,43 +1,47 @@
-# AmazonDark v7.0.60 — chevron sweep
+# AmazonDark v7.0.61 — sweep actually reports
 
-## Why the tap probe kept failing
+## Why v7.0.60 printed nothing
 
-v7.0.59's scroll compensation worked: the capture shows `NATIVE_TOUCH screen=243.3,915.3`
-and `point=243.3,915.0` in agreement, where earlier captures diverged. The coordinate is
-correct.
+The sweep found 6 candidates and reported 0 rows. Every one was discarded by a
+`if(r.width<1||r.height<1)continue` guard I added to skip unlaid-out nodes — so all six
+are **zero-sized**.
 
-But (243, 915) sits inside a product image's rect (227, 813, 180x182), and all three
-attempts landed at y between 907 and 915 — the very bottom of a 932pt screen. Chevrons
-sit in card headers. The tap is simply not hitting them, and no amount of coordinate
-fixing changes that.
+That is the opposite of noise. A zero-sized box carrying a `::before` or `::after` is
+exactly what a pseudo-element chevron looks like, and my guard was throwing away the
+only candidates that matched. Guard removed; zero-sized elements are now reported, with
+rect printed to one decimal so their size is visible at a glance.
 
-## The sweep
+## Selector widened
 
-The probe no longer depends on aim. On any tap it now enumerates every chevron-ish
-element in the document:
+Six candidates on a Home page full of carousels means the real chevron matches none of
+the earlier patterns. Added:
 
-    i.a-icon, [class*=chevron], [class*=arrow], [class*=caret],
-    [class*=icon-next], [class*=icon-prev], [class*=dropdown]
+    span.a-icon, .a-icon
+    [class*=carousel] button
+    [aria-label*=Next], [aria-label*=Previous]  (and lowercase)
+    [class*=header-link] svg, [class*=cardui-header] svg, [class*=cardui-header] i
+    svg, use
+    [class*=see-more], [class*=seeMore], [class*=view-all]
 
-and reports, for each one that is actually laid out: tag, classes, rect, `color`, `bg`,
-`background-image`, `mask`, `filter`, `fill`, `stroke`, `opacity`, both pseudo-elements,
-and the first 220 characters of `outerHTML`. Capped at 40.
+Cap raised 40 -> 60.
 
-Tap anywhere on Home. The `=== CHEVRON SWEEP ===` section is appended after the existing
-point capture.
+## What each row gives
 
-## What this will settle
+Tag, classes, rect, `color`, `bg`, `background-image`, `mask`, `filter`, `fill`,
+`stroke`, `opacity`, full `::before` and `::after` (content, background, background-image,
+filter), and 220 characters of `outerHTML`.
 
-The unscoped rule added in v7.0.49 is confirmed present in the emitted stylesheet:
+If the chevron is a pseudo-element, its `BEFORE{ct=…}` or `AFTER{ct=…}` will be
+non-`none` and carry the glyph or a background image. If it is an inline SVG, the `svg`
+and `use` rows will show it. Either way one capture names it.
 
-    i.a-icon.a-icon-dropdown,.a-icon.a-icon-dropdown,i[class*=chevron],
-    i[class*=arrow],[class*=chevron-glyph]…{filter:brightness(0) invert(1) brightness(0.91)!important…}
+## Standing note
 
-So the rule ships and the chevrons are still dark. That means the chevron is not any of
-those elements — it is a different tag, a pseudo-element, or an inline SVG. The sweep
-reports all three cases, including `::before` and `::after` content and background
-images, so one capture identifies it.
+The unscoped rule from v7.0.49 is confirmed present in the emitted stylesheet, so it
+ships and the chevrons are still dark. Whatever the chevron is, it is not
+`i.a-icon-dropdown`, `[class*=chevron]` or `[class*=arrow]`.
 
 ## Verification
 
-- Sweep present in source; balance 0/0/0; `scripts/lint-logos.sh`.
+- Size guard removed (0 occurrences); widened selector present; cap 60.
+- Balance 0/0/0; `scripts/lint-logos.sh`.
