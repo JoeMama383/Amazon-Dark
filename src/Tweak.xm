@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.71-sponsored-point-probe"
+#define AD_VERSION "v7.0.72"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -599,9 +599,7 @@ static void ADScheduleLaunchReadyCheck706(void);
 static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
 static NSHashTable *gADWebViews=nil;
-// v7.0.71 diagnostic: one exact Sponsor point-stack capture on touch-began.
-// No probe WKUserScript, observer, timer, scanner, viewport grid or signal handler.
-static void ADCaptureSponsorPoint7071(UITouch *touch);
+// v7.0.68 production: no diagnostic touch probe is installed.
 
 static NSString *ADFloorJS(void){
     // v7.0.14: static v185-style palette. CSS only: no Dark Reader, no observer,
@@ -875,6 +873,37 @@ static NSString *ADFloorJS(void){
             "iframe[id*=ape_],iframe[class*=ape_]"
             "{background-color:transparent!important;border-color:transparent!important;"
             "outline-color:transparent!important;}"
+            /* v7.0.72 pre-release: Amazon ad-feedback bottom sheet.
+             * The v7.0.71 tap capture exposed the exact AUI sheet and
+             * adFeedbackBottomSheet/mobile-ad-feedback hierarchy. Theme this
+             * declaratively only when that feedback sheet exists: OLED structural
+             * floor, light copy, search-field gray textarea, and dark controls.
+             * No observer, timer, traversal, or runtime lifecycle owner. */
+            "body:has([id^=adFeedbackBottomSheet_]) :is(.a-sheet-web-container,.a-sheet-web,.a-sheet-content-container),"
+            "body:has([id^=adFeedbackBottomSheet_]) [class*=ad-feedback-bottom-sheet-container],"
+            "body:has([id^=adFeedbackBottomSheet_]) :is(#af-form-top-container,#mobile-ad-feedback-container)"
+            "{background:#000!important;background-color:#000!important;color:#e8e6e3!important;"
+            "-webkit-text-fill-color:#e8e6e3!important;}"
+            "body:has([id^=adFeedbackBottomSheet_]) :is(#af-form-top-container,#mobile-ad-feedback-container) "
+            ":is(div,section,article,form,fieldset,header,footer)"
+            "{background-color:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            "body:has([id^=adFeedbackBottomSheet_]) :is(#af-form-top-container,#mobile-ad-feedback-container) "
+            ":is(h1,h2,h3,h4,h5,h6,p,span,label,legend,small,strong,b,a)"
+            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            "body:has([id^=adFeedbackBottomSheet_]) #mobile-ad-feedback-container textarea"
+            "{background:#303335!important;background-color:#303335!important;color:#e8e6e3!important;"
+            "-webkit-text-fill-color:#e8e6e3!important;border-color:#6f6f6f!important;box-shadow:none!important;}"
+            "body:has([id^=adFeedbackBottomSheet_]) #mobile-ad-feedback-container input[type=checkbox]"
+            "{background-color:#000!important;border-color:#b1aaa0!important;accent-color:#303335!important;color-scheme:dark!important;}"
+            "body:has([id^=adFeedbackBottomSheet_]) #mobile-ad-feedback-container :is(.a-icon-checkbox,i.a-icon-checkbox)"
+            "{filter:invert(1)!important;-webkit-filter:invert(1)!important;opacity:1!important;}"
+            "body:has([id^=adFeedbackBottomSheet_]) #mobile-ad-feedback-container :is(.a-button,.a-button-inner,button,input[type=button],input[type=submit])"
+            "{background:#181a1b!important;background-color:#181a1b!important;color:#e8e6e3!important;"
+            "-webkit-text-fill-color:#e8e6e3!important;border-color:#6f6f6f!important;box-shadow:none!important;}"
+            "body:has([id^=adFeedbackBottomSheet_]) #mobile-ad-feedback-container :is(button,input[type=button],input[type=submit]):disabled,"
+            "body:has([id^=adFeedbackBottomSheet_]) #mobile-ad-feedback-container .a-button-disabled"
+            "{background:#181a1b!important;background-color:#181a1b!important;color:#8a8a8a!important;"
+            "-webkit-text-fill-color:#8a8a8a!important;border-color:#494d4d!important;}"
             /* Keep actual form controls readable without overriding Amazon yellow/accent buttons. */
             "input:not([type=button]):not([type=submit]),textarea,select"
             "{background-color:#181a1b!important;color:#e8e6e3!important;border-color:#494d4d!important;}"
@@ -902,29 +931,27 @@ static NSString *ADFloorJS(void){
             "border:2px solid transparent!important;background-clip:content-box!important;}"
             "::-webkit-scrollbar-thumb:hover{background-color:#8a8a8a!important;}"
             "';"
-            /* v7.0.70 Sponsored glyph template completion.
-             * v7.0.68 stored renderer/color state on a custom-marked Amazon
-             * ancestor. Final Home hydration can replace that ancestor, taking
-             * the marker and variables with it. This version never relies on
-             * custom DOM ownership. It learns the real Amazon class/structural
-             * selector for each visible Sponsored glyph and emits a static CSS
-             * rule against those Amazon selectors. Replacement nodes therefore
-             * remain matched after hydration. v7.0.70 also recognizes the distinct
-             * 12x12 sponsored-products-mobile background sprite seen by the donor
-             * probe, plus only tiny nearby background/mask/vector painters, so the
-             * Deals-for-you badge can be learned without scanning the page. No
-             * observer, retry timer, scroll listener, interval or RAF is used.
-             * Sponsored text is never written. */
+            /* v7.0.72 Sponsored feedback semantic completion.
+             * Keeps the v7.0.70 static Amazon-class renderer lock, but fixes the
+             * upstream miss shown by the v7.0.71 tap probe. Some Amazon feedback
+             * controls expose the row semantically as aria-label="Leave feedback
+             * on Sponsored" even when the visible text host does not use the
+             * ad-feedback-text/sponsored-label class families. Treat that semantic
+             * feedback control as a Sponsor seed, then resolve at most 16 local
+             * descendants to the exact visible Sponsored text leaf before reading
+             * its computed color. The existing tiny-glyph finder and static CSS
+             * lock then own only the adjacent glyph. No observer, timer, scroll
+             * listener, interval or RAF is used. Sponsored text is never written. */
             "try{(function(){"
             "if(window.__ADSPG7070__)return;window.__ADSPG7070__=1;"
-            "var LS='[class*=ad-feedback-text],[class*=sponsored-label],[id^=ad-feedback-text-],[id^=af-label-primary-link-]';"
+            "var LS='[class*=ad-feedback-text],[class*=sponsored-label],[id^=ad-feedback-text-],[id^=af-label-primary-link-],[aria-label^=\"Leave feedback on Sponsored\"]';"
             "var GS='[class*=ad-feedback-spr],[class*=ad-feedback-sprite],[class*=adFeedback],[id*=feedbackIcon],[id*=feedback-icon],[class*=_sponsored-products-mo]';"
             "var REG=window.__ADSPGR7070__||(window.__ADSPGR7070__={});"
             "function sheet(){try{var st=document.getElementById('ad-spg-lock7070');if(st)return st;st=document.createElement('style');st.id='ad-spg-lock7070';(document.head||document.documentElement).appendChild(st);return st}catch(_){return null}}"
             "function txt(e){try{return String(e.textContent||'').replace(/\\s+/g,' ').trim().toLowerCase()}catch(_){return ''}}"
             "function cls(e){try{var c=e&&e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;return String(c||'')}catch(_){return ''}}"
             "function esc(v){try{return window.CSS&&CSS.escape?CSS.escape(String(v)):String(v).replace(/[^a-zA-Z0-9_-]/g,function(ch){return '\\\\'+ch})}catch(_){return String(v||'')}}"
-            "function isL(e){if(!e||e.nodeType!==1)return false;try{return e.matches(LS)&&(txt(e)==='sponsored'||txt(e)==='sponsored ad'||txt(e)==='advertisement'||/ad-feedback|sponsored/i.test(cls(e)+' '+String(e.id||'')))}catch(_){return false}}"
+            "function isL(e){if(!e||e.nodeType!==1)return false;try{var ar=String((e.getAttribute&&e.getAttribute('aria-label'))||'').toLowerCase();return e.matches(LS)&&(txt(e)==='sponsored'||txt(e)==='sponsored ad'||txt(e)==='advertisement'||ar.indexOf('leave feedback on sponsored')===0||/ad-feedback|sponsored/i.test(cls(e)+' '+String(e.id||'')))}catch(_){return false}}"
             "function near(a,b){try{var ar=a.getBoundingClientRect(),br=b.getBoundingClientRect(),acy=ar.top+ar.height/2,bcy=br.top+br.height/2,dx=Math.max(0,Math.max(br.left-ar.right,ar.left-br.right));return dx<=30&&Math.abs(acy-bcy)<=22}catch(_){return false}}"
             "function tinyPainter(e,l){try{if(!e||e===l||e.nodeType!==1)return false;var r=e.getBoundingClientRect();if(r.width<5||r.height<5||r.width>36||r.height>36||!near(e,l))return false;var cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none'),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),tg=String(e.tagName||'').toLowerCase();return (bi&&bi!=='none')||(mi&&mi!=='none')||tg==='svg'||tg==='img'||/ad-feedback|feedback|sponsor|spr|info|icon/i.test(cls(e)+' '+String(e.id||''))}catch(_){return false}}"
             "function glyph(l){try{var q=l.querySelector(GS+', [class*=spr]');if(q&&tinyPainter(q,l))return q;var p=l.parentElement;for(var i=0;p&&i<3;i++,p=p.parentElement){q=p.querySelector(GS);if(q&&tinyPainter(q,l))return q;var a=p.querySelectorAll('[class*=spr],[class*=_sponsored-products-mo],span,div,i,b,svg,img');for(var j=0;j<a.length&&j<40;j++)if(tinyPainter(a[j],l))return a[j]}}catch(_){}return null}"
@@ -935,7 +962,7 @@ static NSString *ADFloorJS(void){
             "function nthPath(h,g){try{var a=[],n=g;while(n&&n!==h&&a.length<5){var par=n.parentElement;if(!par)return '';var ix=1,c=par.firstElementChild;while(c&&c!==n){ix++;c=c.nextElementSibling}a.unshift(String(n.tagName||'*').toLowerCase()+':nth-child('+ix+')');n=par}return n===h&&a.length?' > '+a.join(' > '):''}catch(_){return ''}}"
             "function selector(l,g){try{var h=common(l,g),hs=atom(h,true),gs=atom(g,false);if(h&&g&&h!==g&&hs){var gc=cls(g);if(gc||/feedbackicon|feedback-icon/i.test(String(g.id||'')))return hs+' '+gs;var np=nthPath(h,g);if(np)return hs+np}return gs||GS}catch(_){return GS}}"
             "function lock(l,g,c,rv,cs,svg){try{var sel=selector(l,g),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),bi=String(cs.backgroundImage||'none'),mode='color',img='',pos='0% 0%',size='auto',rep='no-repeat',flt='none';if(mi&&mi!=='none'){mode='mask';img=mi;pos=cs.webkitMaskPosition||cs.maskPosition||'0% 0%';size=cs.webkitMaskSize||cs.maskSize||'auto';rep=cs.webkitMaskRepeat||cs.maskRepeat||'no-repeat'}else if(svg){mode='svg'}else if(bi&&bi!=='none'){mode='mask';img=bi;pos=cs.backgroundPosition||'0% 0%';size=cs.backgroundSize||'auto';rep=cs.backgroundRepeat||'no-repeat'}else{var spread=Math.max(rv[0],rv[1],rv[2])-Math.min(rv[0],rv[1],rv[2]);if(spread<=8){mode='filter';var gray=(rv[0]+rv[1]+rv[2])/3/255;flt='brightness(0) invert('+gray.toFixed(5)+')'}}var key=sel+'|'+mode+'|'+c+'|'+img+'|'+pos+'|'+size+'|'+rep+'|'+flt;if(REG[key])return;REG[key]=1;var st=sheet();if(!st)return;var base=sel+'{color:'+c+'!important;opacity:'+String(isFinite(rv[3])?rv[3]:1)+'!important;visibility:visible!important;mix-blend-mode:normal!important;position:relative!important;z-index:2!important;';if(mode==='mask')base+='background-image:none!important;background-color:'+c+'!important;-webkit-mask-image:'+img+'!important;mask-image:'+img+'!important;-webkit-mask-position:'+pos+'!important;mask-position:'+pos+'!important;-webkit-mask-size:'+size+'!important;mask-size:'+size+'!important;-webkit-mask-repeat:'+rep+'!important;mask-repeat:'+rep+'!important;filter:none!important;-webkit-filter:none!important;';else if(mode==='filter')base+='filter:'+flt+'!important;-webkit-filter:'+flt+'!important;';else base+='filter:none!important;-webkit-filter:none!important;';base+='}';if(mode==='svg')base+=sel+' svg,'+sel+' path,'+sel+' use,'+sel+' circle,'+sel+' rect,'+sel+' polygon,'+sel+' polyline,'+sel+' line{color:'+c+'!important;fill:'+c+'!important;stroke:'+c+'!important;}';st.textContent+=base}catch(_){}}"
-            "function paint(l){try{if(!isL(l))return;var lc=getComputedStyle(l),c=lc.color,rv=rgba(c),g=glyph(l);if(!g||!rv)return;var cs=getComputedStyle(g),svg=g.matches('svg')?g:g.querySelector('svg');lock(l,g,c,rv,cs,svg)}catch(_){}}"
+            "function ink(l){try{if(txt(l)==='sponsored'||txt(l)==='sponsored ad')return l;var a=l.querySelectorAll('span,a,div,small');for(var i=0;i<a.length&&i<16;i++){var t=txt(a[i]);if(t==='sponsored'||t==='sponsored ad')return a[i]}}catch(_){}return l}function paint(l){try{if(!isL(l))return;var li=ink(l),lc=getComputedStyle(li),c=lc.color,rv=rgba(c),g=glyph(li);if(!g||!rv)return;var cs=getComputedStyle(g),svg=g.matches('svg')?g:g.querySelector('svg');lock(li,g,c,rv,cs,svg)}catch(_){}}"
             "function all(root){try{var a=(root||document).querySelectorAll(LS),n=Math.min(a.length,64);for(var i=0;i<n;i++)paint(a[i])}catch(_){}}"
             "function local(n){try{var p=n&&n.nodeType===1?n:n&&n.parentElement;for(var i=0;p&&i<5;i++,p=p.parentElement){if(isL(p)){paint(p);return}var l=p.querySelector&&p.querySelector(LS);if(l){paint(l);return}}}catch(_){}}"
             "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){all(document)},{once:true});else all(document);window.addEventListener('load',function(){all(document)},{once:true});window.addEventListener('pageshow',function(){all(document)},false);document.addEventListener('load',function(e){local(e.target)},true);"
@@ -1864,18 +1891,6 @@ static void ADOwnBottomBar708(UIView *v){
 %end
 
 %hook UIApplication
-- (void)sendEvent:(UIEvent *)event {
-    // Probe-only: capture exactly one local DOM stack at the point where a touch begins.
-    // Move/end events do nothing, so native Home scrolling behavior is unchanged.
-    if(event.type==UIEventTypeTouches){
-        @try {
-            for(UITouch *t in [event allTouches]){
-                if(t.phase==UITouchPhaseBegan){ ADCaptureSponsorPoint7071(t); break; }
-            }
-        } @catch(...) {}
-    }
-    %orig;
-}
 - (void)setStatusBarStyle:(UIStatusBarStyle)style {
     if(gP.enabled){
         UIStatusBarStyle want=UIStatusBarStyleLightContent;
@@ -2111,67 +2126,6 @@ static void ADScheduleLaunchReadyCheck706(void){
 
 
 // v7.0.68 production: v7.0.65 chevron diagnostic runtime removed.
-
-// -----------------------------------------------------------------------------
-// v7.0.71 exact-point Sponsored glyph probe.
-// Touch the dark Sponsored info glyph. On touch-began, resolve only that WKWebView
-// and run one elementsFromPoint() call. In addition to the hit stack/ancestors,
-// dump only the direct children of the first four ancestors so the adjacent
-// Sponsored text host is visible without any document scan.
-// -----------------------------------------------------------------------------
-static NSString *ADSponsorPointProbePath7071(void){
-    @try {
-        NSArray *dirs=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
-        NSString *base=dirs.firstObject;
-        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-sponsored-point-probe-7071.txt"];
-    } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-sponsored-point-probe-7071.txt"];
-}
-static WKWebView *ADSponsorWebViewFromTouch7071(UITouch *touch){
-    @try {
-        UIView *v=touch.view;
-        for(int i=0;v&&i<24;i++,v=v.superview) if([v isKindOfClass:[WKWebView class]]) return (WKWebView *)v;
-    } @catch(...) {}
-    return nil;
-}
-static NSString *ADSponsorNativeTouchChain7071(UITouch *touch){
-    NSMutableString *o=[NSMutableString string];
-    @try {
-        UIView *v=touch.view; UIWindow *w=v.window; CGPoint p=w?[touch locationInView:w]:CGPointZero;
-        [o appendFormat:@"NATIVE_TOUCH screen=%.1f,%.1f\n",p.x,p.y];
-        for(int i=0;v&&i<12;i++,v=v.superview){
-            CGRect r=v.window?[v convertRect:v.bounds toView:v.window]:v.frame;
-            [o appendFormat:@"N%d cls=%@ rect=%.1f,%.1f,%.1f,%.1f label=%@ id=%@\n",i,NSStringFromClass(v.class),r.origin.x,r.origin.y,r.size.width,r.size.height,v.accessibilityLabel?:@"",v.accessibilityIdentifier?:@""];
-        }
-    } @catch(...) {}
-    return o;
-}
-static void ADCaptureSponsorPoint7071(UITouch *touch){
-    if(!touch||!gP.enabled)return;
-    WKWebView *wv=ADSponsorWebViewFromTouch7071(touch);
-    if(!wv||!wv.window||wv.bounds.size.width<=1||wv.bounds.size.height<=1)return;
-    CGPoint p=[touch locationInView:wv];
-    if(p.x<0||p.y<0||p.x>wv.bounds.size.width||p.y>wv.bounds.size.height)return;
-    double fx=p.x/wv.bounds.size.width, fy=p.y/wv.bounds.size.height;
-    NSString *native=ADSponsorNativeTouchChain7071(touch);
-    NSString *js=[NSString stringWithFormat:
-      @"(function(){try{var x=(innerWidth||document.documentElement.clientWidth||0)*%.9f,y=(innerHeight||document.documentElement.clientHeight||0)*%.9f;"
-       "function C(e){try{var x=e.className;if(x&&x.baseVal!==undefined)x=x.baseVal;return typeof x==='string'?x:''}catch(_){return ''}}"
-       "function T(e){try{return String(e.textContent||'').replace(/\\s+/g,' ').trim().slice(0,180)}catch(_){return ''}}"
-       "function O(e){try{if(!e||e.nodeType!==1)return '-';var r=e.getBoundingClientRect(),c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');return [String(e.tagName||'?').toLowerCase(),e.id?'#'+e.id:'',C(e)?'.'+C(e).trim().replace(/\\s+/g,'.'):'',' rect='+[r.x,r.y,r.width,r.height].map(function(v){return Math.round(v*10)/10}).join(','),' text='+JSON.stringify(T(e)),' role='+(e.getAttribute('role')||''),' aria='+(e.getAttribute('aria-label')||''),' color='+c.color,' textfill='+(c.webkitTextFillColor||''),' bg='+c.backgroundColor,' bgimg='+String(c.backgroundImage||'').slice(0,500),' bgpos='+(c.backgroundPosition||''),' bgsize='+(c.backgroundSize||''),' bgrep='+(c.backgroundRepeat||''),' mask='+String(c.webkitMaskImage||c.maskImage||'').slice(0,420),' maskpos='+(c.webkitMaskPosition||c.maskPosition||''),' masksize='+(c.webkitMaskSize||c.maskSize||''),' filter='+c.filter,' fill='+c.fill,' stroke='+c.stroke,' opacity='+c.opacity,' visibility='+c.visibility,' before='+[b.content,b.color,b.backgroundColor,b.backgroundImage,b.webkitMaskImage||b.maskImage,b.filter].join('|').slice(0,500),' after='+[a.content,a.color,a.backgroundColor,a.backgroundImage,a.webkitMaskImage||a.maskImage,a.filter].join('|').slice(0,500)].join('')}catch(z){return 'ERR '+z}}"
-       "var o=['href='+location.href,'title='+document.title,'viewport='+(innerWidth||0)+'x'+(innerHeight||0),'point='+x.toFixed(1)+','+y.toFixed(1)],s=document.elementsFromPoint(x,y),n=Math.min(s.length,18);"
-       "for(var i=0;i<n;i++)o.push('P'+i+' '+O(s[i]));"
-       "var e=s&&s[0];for(var j=0;e&&j<10;j++,e=e.parentElement){o.push('A'+j+' '+O(e));if(j<4){var ch=e.children||[];for(var k=0;k<ch.length&&k<12;k++)o.push('A'+j+'C'+k+' '+O(ch[k]));try{o.push('A'+j+'_OUTER '+String(e.outerHTML||'').replace(/\\s+/g,' ').slice(0,2400))}catch(_){}}}"
-       "return o.join('\\n')}catch(e){return 'JSERR '+e}})();",fx,fy];
-    [wv evaluateJavaScript:js completionHandler:^(id value,NSError *error){
-        @try {
-            NSString *web=error?[NSString stringWithFormat:@"WEB_ERROR %@",error]:([value isKindOfClass:[NSString class]]?value:[value description]);
-            NSString *body=[NSString stringWithFormat:@"AmazonDark %@ exact Sponsored point probe\ndate=%@\n\n%@\n\n%@\n",[NSString stringWithUTF8String:AD_VERSION],[NSDate date],native?:@"NO_NATIVE_TOUCH",web?:@"NO_WEB_RESULT"];
-            [body writeToFile:ADSponsorPointProbePath7071() atomically:YES encoding:NSUTF8StringEncoding error:nil];
-        } @catch(...) {}
-    }];
-}
-
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
     ADLoadPrefs(); ADRefreshPromotionState611(); ADApplyAllFloors();
 }

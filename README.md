@@ -1,6 +1,14 @@
-# AmazonDark v7.0.71~probe
+# AmazonDark v7.0.72
 
-Diagnostic-only build on the exact v7.0.70 source. It adds one touch-began Sponsored glyph point capture. There is no MutationObserver, timer, recurring scan, scroll hook, interval, RAF, or signal/PID workflow. Touch the dark Sponsored info glyph once; the probe writes `AmazonDark-sponsored-point-probe-7071.txt` immediately. Production v7.0.70 theming behavior is otherwise unchanged.
+- Pre-release refresh: themes Amazon's ad-feedback bottom sheet with cheap documentStart CSS only.
+- Feedback sheet structural floor is OLED black; headings/body/labels are light; issue textarea uses the same #303335 gray as the current search field; buttons and checkbox chrome are dark/neutral.
+- The sheet rule is scoped to `adFeedbackBottomSheet` / `mobile-ad-feedback-container`; the existing Sponsored-glyph fix is otherwise unchanged.
+- No MutationObserver, timer, scroll listener, interval, RAF, or probe runtime is added.
+
+- Built directly from the clean v7.0.70 production source.
+- Fixes the remaining Deals-for-you Sponsored info glyph by recognizing Amazon feedback controls exposed as `aria-label="Leave feedback on Sponsored"`, even when their visible label has no `ad-feedback-text` / `sponsored-label` class.
+- Reads the exact visible Sponsored text leaf's computed color and applies it only to the adjacent stock info glyph through the existing persistent Amazon-class CSS renderer lock.
+- No MutationObserver, retry timer, scroll listener, interval, RAF, or probe runtime. Sponsored text remains Amazon-owned.
 
 # AmazonDark v7.0.70
 
