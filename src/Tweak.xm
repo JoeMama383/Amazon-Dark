@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.66"
+#define AD_VERSION "v7.0.68"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -599,9 +599,7 @@ static void ADScheduleLaunchReadyCheck706(void);
 static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
 static NSHashTable *gADWebViews=nil;
-// v7.0.56 diagnostic: one exact point-stack capture on touch-began.
-// No probe WKUserScript, observer, timer, scanner, viewport grid or signal handler.
-static void ADCaptureChevronPoint7056(UITouch *touch);
+// v7.0.68 production: no diagnostic touch probe is installed.
 
 static NSString *ADFloorJS(void){
     // v7.0.14: static v185-style palette. CSS only: no Dark Reader, no observer,
@@ -880,11 +878,9 @@ static NSString *ADFloorJS(void){
             "{background-color:#181a1b!important;color:#e8e6e3!important;border-color:#494d4d!important;}"
             "::placeholder{color:#b1aaa0!important;opacity:1!important;}"
             "[class*=header-icon],[class*=header-icon] path,[class*=header-icon] use,"
-            "[class*=header-icon] polyline,[class*=header-icon] polygon,[class*=header-icon] line,"
-            "[class*=header-link] svg,[class*=header-link] svg path,"
-            "[class*=cardui-header] svg,[class*=cardui-header] svg path,"
+            "[class*=header-link] svg path,[class*=cardui-header] svg path,"
             "a[class*=header-link] path,[class*=see-more] path,[class*=view-all] path"
-            "{fill:#a7a7a7!important;stroke:#a7a7a7!important;color:#a7a7a7!important;"
+            "{fill:#e8e6e3!important;stroke:#e8e6e3!important;color:#e8e6e3!important;"
             "opacity:1!important;}"
             "[class*=hp-mosaic-container] .a-icon-next-rounded,"
             "[class*=hp-mosaic-container] .a-icon-previous-rounded,"
@@ -904,28 +900,29 @@ static NSString *ADFloorJS(void){
             "border:2px solid transparent!important;background-clip:content-box!important;}"
             "::-webkit-scrollbar-thumb:hover{background-color:#8a8a8a!important;}"
             "';"
-            /* v7.0.50 Sponsored glyph-only synchronization. The label itself is never
-             * written. Read its computed color and apply it to the stock glyph only.
-             * Mask/SVG/currentColor and background-sprite variants preserve their
-             * existing geometry/artwork while taking the exact label CSS color.
-             * Initial/pageshow work is bounded to Sponsor selectors. Lazy/recycled ads
-             * piggyback on their own media load event; no MutationObserver/scroll/timer. */
+            /* v7.0.68 Sponsored glyph persistence.
+             * The label remains 100% Amazon-owned. We read its computed color once,
+             * bind that color + the stock glyph renderer to the smallest stable
+             * common ancestor, and let a static CSS rule own replacement/hydrated
+             * glyph nodes. No MutationObserver, recurring timer, scroll hook or RAF.
+             * This fixes the v7.0.65 bug where the original glyph was correct, then
+             * Amazon's final hydration restored a dark stock background-image. */
             "try{(function(){"
-            "if(window.__ADSPG7050__)return;window.__ADSPG7050__=1;"
+            "if(window.__ADSPG7066__)return;window.__ADSPG7066__=1;"
             "var LS='[class*=ad-feedback-text],[class*=sponsored-label],[id^=ad-feedback-text-],[id^=af-label-primary-link-]';"
             "var GS='[class*=ad-feedback-spr],[class*=ad-feedback-sprite],[id*=feedbackIcon],[id*=feedback-icon]';"
+            "function sheet(){try{if(document.getElementById('ad-spg-persist7066'))return;var st=document.createElement('style');st.id='ad-spg-persist7066';var Q='[data-ad-spg-host7066] [class*=ad-feedback-spr],[data-ad-spg-host7066] [class*=ad-feedback-sprite],[data-ad-spg-host7066] [id*=feedbackIcon],[data-ad-spg-host7066] [id*=feedback-icon]';var M='[data-ad-spg-host7066=mask] [class*=ad-feedback-spr],[data-ad-spg-host7066=mask] [class*=ad-feedback-sprite],[data-ad-spg-host7066=mask] [id*=feedbackIcon],[data-ad-spg-host7066=mask] [id*=feedback-icon]';var F='[data-ad-spg-host7066=filter] [class*=ad-feedback-spr],[data-ad-spg-host7066=filter] [class*=ad-feedback-sprite],[data-ad-spg-host7066=filter] [id*=feedbackIcon],[data-ad-spg-host7066=filter] [id*=feedback-icon]';var V=Q+',[data-ad-spg-host7066] :is([class*=ad-feedback-spr],[class*=ad-feedback-sprite],[id*=feedbackIcon],[id*=feedback-icon]) :is(svg,path,use,circle,rect,polygon,polyline,line)';st.textContent=Q+'{color:var(--ad-spg-color7066)!important;opacity:var(--ad-spg-alpha7066,1)!important;visibility:visible!important;mix-blend-mode:normal!important;position:relative!important;z-index:2!important}'+M+'{background-image:none!important;background-color:var(--ad-spg-color7066)!important;-webkit-mask-image:var(--ad-spg-image7066)!important;mask-image:var(--ad-spg-image7066)!important;-webkit-mask-position:var(--ad-spg-pos7066,0% 0%)!important;mask-position:var(--ad-spg-pos7066,0% 0%)!important;-webkit-mask-size:var(--ad-spg-size7066,auto)!important;mask-size:var(--ad-spg-size7066,auto)!important;-webkit-mask-repeat:var(--ad-spg-repeat7066,no-repeat)!important;mask-repeat:var(--ad-spg-repeat7066,no-repeat)!important;filter:none!important;-webkit-filter:none!important}'+F+'{filter:var(--ad-spg-filter7066)!important;-webkit-filter:var(--ad-spg-filter7066)!important}'+V+'{color:var(--ad-spg-color7066)!important;fill:var(--ad-spg-color7066)!important;stroke:var(--ad-spg-color7066)!important}';(document.head||document.documentElement).appendChild(st)}catch(_){}}"
             "function txt(e){try{return String(e.textContent||'').replace(/\\s+/g,' ').trim().toLowerCase()}catch(_){return ''}}"
             "function isL(e){if(!e||e.nodeType!==1)return false;try{return e.matches(LS)&&(txt(e)==='sponsored'||txt(e)==='sponsored ad'||txt(e)==='advertisement'||/ad-feedback|sponsored/i.test(String(e.className||'')+' '+String(e.id||'')))}catch(_){return false}}"
             "function glyph(l){try{var q=l.querySelector(GS+', [class*=spr]');if(q)return q;var p=l.parentElement;for(var i=0;p&&i<3;i++,p=p.parentElement){q=p.querySelector(GS);if(q)return q;var a=p.querySelectorAll('[class*=spr]');for(var j=0;j<a.length&&j<12;j++){var r=a[j].getBoundingClientRect();if(r.width>=5&&r.width<=36&&r.height>=5&&r.height<=36)return a[j]}}}catch(_){}return null}"
             "function rgba(v){var m=String(v||'').match(/rgba?\\(([^)]+)\\)/i);if(!m)return null;var a=m[1].split(',');if(a.length<3)return null;return [parseFloat(a[0]),parseFloat(a[1]),parseFloat(a[2]),a.length>3?parseFloat(a[3]):1]}"
-            "function spriteMask(g,cs,c){try{var bi=String(cs.backgroundImage||'');if(!bi||bi==='none')return false;g.style.setProperty('-webkit-mask-image',bi,'important');g.style.setProperty('mask-image',bi,'important');g.style.setProperty('-webkit-mask-position',cs.backgroundPosition||'0% 0%','important');g.style.setProperty('mask-position',cs.backgroundPosition||'0% 0%','important');g.style.setProperty('-webkit-mask-size',cs.backgroundSize||'auto','important');g.style.setProperty('mask-size',cs.backgroundSize||'auto','important');g.style.setProperty('-webkit-mask-repeat',cs.backgroundRepeat||'repeat','important');g.style.setProperty('mask-repeat',cs.backgroundRepeat||'repeat','important');g.style.setProperty('background-image','none','important');g.style.setProperty('background-color',c,'important');g.style.setProperty('filter','none','important');g.style.setProperty('-webkit-filter','none','important');return true}catch(_){return false}}"
-            "function paint(l){try{if(!isL(l))return;var lc=getComputedStyle(l),c=lc.color,rv=rgba(c),g=glyph(l);if(!g||!rv)return;try{if(!window.__ADSPGR58__){window.__ADSPGR58__={n:0}}var R=window.__ADSPGR58__;if(!R[c]&&R.n<4){R[c]=1;R.n++;var st=document.getElementById('ad-spg-rule58');if(!st){st=document.createElement('style');st.id='ad-spg-rule58';(document.head||document.documentElement).appendChild(st)}st.textContent+=GS+',[class*=ad-feedback-spr]{color:'+c+'!important;background-color:'+c+'!important;fill:'+c+'!important;stroke:'+c+'!important;visibility:visible!important;mix-blend-mode:normal!important;position:relative!important;z-index:2!important}'+GS+' svg,[class*=ad-feedback-spr] svg,'+GS+' path,[class*=ad-feedback-spr] path{fill:'+c+'!important;stroke:'+c+'!important;color:'+c+'!important}';}}catch(_){}g.style.setProperty('color',c,'important');g.style.setProperty('visibility','visible','important');g.style.setProperty('mix-blend-mode','normal','important');g.style.setProperty('position','relative','important');g.style.setProperty('z-index','2','important');var cs=getComputedStyle(g),mask=(cs.webkitMaskImage&&cs.webkitMaskImage!=='none')||(cs.maskImage&&cs.maskImage!=='none'),mode='currentColor-exact';if(mask){g.style.setProperty('background-color',c,'important');g.style.setProperty('filter','none','important');g.style.setProperty('-webkit-filter','none','important');mode='mask-exact'}var svg=g.matches('svg')?g:g.querySelector('svg');if(svg){svg.style.setProperty('color',c,'important');var z=svg.querySelectorAll('path,use,circle,rect,polygon,polyline,line');for(var k=0;k<z.length&&k<24;k++){z[k].style.setProperty('fill',c,'important');z[k].style.setProperty('stroke',c,'important')}mode='svg-exact'}else if(!mask&&spriteMask(g,cs,c)){mode='sprite-mask-exact'}else if(!mask){var spread=Math.max(rv[0],rv[1],rv[2])-Math.min(rv[0],rv[1],rv[2]);if(spread<=8){var gray=(rv[0]+rv[1]+rv[2])/3/255;g.style.setProperty('filter','brightness(0) invert('+gray.toFixed(5)+')','important');g.style.setProperty('-webkit-filter','brightness(0) invert('+gray.toFixed(5)+')','important');mode='neutral-filter-exact'}else mode='currentColor-only'}g.style.setProperty('opacity',String(isFinite(rv[3])?rv[3]:1),'important');g.setAttribute('data-ad-spg7050',mode);g.setAttribute('data-ad-spg7050-color',c)}catch(_){}}"
+            "function host(l,g){try{var p=l.parentElement||l;for(var i=0;p&&i<5;i++,p=p.parentElement){if(p.contains(g)){var h=p,u=p.parentElement;if(u&&u.contains(l)&&u.contains(g)&&/adfeedback|ad-feedback|sponsor|ape-feedback/i.test(String(u.className||'')+' '+String(u.id||'')))h=u;return h}}}catch(_){}return l.parentElement||l}"
+            "function sv(h,n,v){try{if(h&&v&&v!=='none')h.style.setProperty(n,v,'important')}catch(_){}}"
+            "function bind(h,mode,c,a,img,pos,size,rep,flt){try{if(!h)return;h.setAttribute('data-ad-spg-host7066',mode);sv(h,'--ad-spg-color7066',c);sv(h,'--ad-spg-alpha7066',String(isFinite(a)?a:1));if(mode==='mask'){sv(h,'--ad-spg-image7066',img);sv(h,'--ad-spg-pos7066',pos||'0% 0%');sv(h,'--ad-spg-size7066',size||'auto');sv(h,'--ad-spg-repeat7066',rep||'no-repeat')}else if(mode==='filter')sv(h,'--ad-spg-filter7066',flt)}catch(_){}}"
+            "function paint(l){try{if(!isL(l))return;var lc=getComputedStyle(l),c=lc.color,rv=rgba(c),g=glyph(l);if(!g||!rv)return;sheet();var cs=getComputedStyle(g),svg=g.matches('svg')?g:g.querySelector('svg'),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),bi=String(cs.backgroundImage||'none'),mode='color',img='',pos='0% 0%',size='auto',rep='no-repeat',flt='';if(mi&&mi!=='none'){mode='mask';img=mi;pos=cs.webkitMaskPosition||cs.maskPosition||'0% 0%';size=cs.webkitMaskSize||cs.maskSize||'auto';rep=cs.webkitMaskRepeat||cs.maskRepeat||'no-repeat'}else if(svg){mode='svg'}else if(bi&&bi!=='none'){mode='mask';img=bi;pos=cs.backgroundPosition||'0% 0%';size=cs.backgroundSize||'auto';rep=cs.backgroundRepeat||'no-repeat'}else{var spread=Math.max(rv[0],rv[1],rv[2])-Math.min(rv[0],rv[1],rv[2]);if(spread<=8){var gray=(rv[0]+rv[1]+rv[2])/3/255;flt='brightness(0) invert('+gray.toFixed(5)+')';mode='filter'}}var h=host(l,g);bind(h,mode,c,rv[3],img,pos,size,rep,flt);g.style.setProperty('color',c,'important');g.style.setProperty('visibility','visible','important');g.style.setProperty('mix-blend-mode','normal','important');g.style.setProperty('position','relative','important');g.style.setProperty('z-index','2','important');g.style.setProperty('opacity',String(isFinite(rv[3])?rv[3]:1),'important');if(mode==='mask'){g.style.setProperty('background-image','none','important');g.style.setProperty('background-color',c,'important');g.style.setProperty('-webkit-mask-image',img,'important');g.style.setProperty('mask-image',img,'important');g.style.setProperty('-webkit-mask-position',pos,'important');g.style.setProperty('mask-position',pos,'important');g.style.setProperty('-webkit-mask-size',size,'important');g.style.setProperty('mask-size',size,'important');g.style.setProperty('-webkit-mask-repeat',rep,'important');g.style.setProperty('mask-repeat',rep,'important');g.style.setProperty('filter','none','important');g.style.setProperty('-webkit-filter','none','important')}else if(mode==='svg'&&svg){svg.style.setProperty('color',c,'important');var z=svg.querySelectorAll('path,use,circle,rect,polygon,polyline,line');for(var k=0;k<z.length&&k<24;k++){z[k].style.setProperty('fill',c,'important');z[k].style.setProperty('stroke',c,'important')}}else if(mode==='filter'&&flt){g.style.setProperty('filter',flt,'important');g.style.setProperty('-webkit-filter',flt,'important')}g.setAttribute('data-ad-spg7066',mode);g.setAttribute('data-ad-spg7066-color',c)}catch(_){}}"
             "function all(root){try{var a=(root||document).querySelectorAll(LS),n=Math.min(a.length,64);for(var i=0;i<n;i++)paint(a[i])}catch(_){}}"
             "function local(n){try{var p=n&&n.nodeType===1?n:n&&n.parentElement;for(var i=0;p&&i<5;i++,p=p.parentElement){if(isL(p)){paint(p);return}var l=p.querySelector&&p.querySelector(LS);if(l){paint(l);return}}}catch(_){}}"
-            "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){all(document)},{once:true});else all(document);"
-            "var _spgN=0;(function tick(){try{all(document)}catch(_){}"
-            "if(++_spgN<6)setTimeout(tick,[120,240,420,700,1200][_spgN-1]||1200);})();"
-            "window.addEventListener('pageshow',function(){all(document)},false);document.addEventListener('load',function(e){local(e.target)},true);"
+            "sheet();if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){all(document)},{once:true});else all(document);window.addEventListener('pageshow',function(){all(document)},false);document.addEventListener('load',function(e){local(e.target)},true);"
             "})();}catch(__){}"
             "document.documentElement.style.setProperty('background-color','#000','important');"
             "document.documentElement.style.setProperty('color-scheme','dark','important');"
@@ -1851,18 +1848,6 @@ static void ADOwnBottomBar708(UIView *v){
 %end
 
 %hook UIApplication
-- (void)sendEvent:(UIEvent *)event {
-    // Diagnostic-only and intentionally tiny: one async elementsFromPoint() query
-    // when a gesture begins. Move/end events do nothing, so scrolling stays native.
-    if(event.type==UIEventTypeTouches){
-        @try {
-            for(UITouch *t in [event allTouches]){
-                if(t.phase==UITouchPhaseBegan){ ADCaptureChevronPoint7056(t); break; }
-            }
-        } @catch(...) {}
-    }
-    %orig;
-}
 - (void)setStatusBarStyle:(UIStatusBarStyle)style {
     if(gP.enabled){
         UIStatusBarStyle want=UIStatusBarStyleLightContent;
@@ -2097,71 +2082,7 @@ static void ADScheduleLaunchReadyCheck706(void){
 }
 
 
-// -----------------------------------------------------------------------------
-// v7.0.56 exact-point chevron probe.
-// Touch the dark chevron. On touch-began, resolve the touched WKWebView and run
-// one elementsFromPoint() stack at that exact normalized point. The result is
-// immediately written to Amazon's Documents sandbox. Nothing scans the page.
-// -----------------------------------------------------------------------------
-static NSString *ADChevronPointProbePath7056(void){
-    @try {
-        NSArray *dirs=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
-        NSString *base=dirs.firstObject;
-        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-chevron-point-probe-7056.txt"];
-    } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-chevron-point-probe-7056.txt"];
-}
-static WKWebView *ADChevronWebViewFromTouch7056(UITouch *touch){
-    @try {
-        UIView *v=touch.view;
-        for(int i=0;v&&i<24;i++,v=v.superview) if([v isKindOfClass:[WKWebView class]]) return (WKWebView *)v;
-    } @catch(...) {}
-    return nil;
-}
-static NSString *ADChevronNativeTouchChain7056(UITouch *touch){
-    NSMutableString *o=[NSMutableString string];
-    @try {
-        UIView *v=touch.view; UIWindow *w=v.window; CGPoint p=w?[touch locationInView:w]:CGPointZero;
-        [o appendFormat:@"NATIVE_TOUCH screen=%.1f,%.1f\n",p.x,p.y];
-        for(int i=0;v&&i<12;i++,v=v.superview){
-            CGRect r=v.window?[v convertRect:v.bounds toView:v.window]:v.frame;
-            [o appendFormat:@"N%d cls=%@ rect=%.1f,%.1f,%.1f,%.1f label=%@ id=%@\n",i,NSStringFromClass(v.class),r.origin.x,r.origin.y,r.size.width,r.size.height,v.accessibilityLabel?:@"",v.accessibilityIdentifier?:@""];
-        }
-    } @catch(...) {}
-    return o;
-}
-static void ADCaptureChevronPoint7056(UITouch *touch){
-    if(!touch||!gP.enabled)return;
-    WKWebView *wv=ADChevronWebViewFromTouch7056(touch);
-    if(!wv||!wv.window||wv.bounds.size.width<=1||wv.bounds.size.height<=1)return;
-    CGPoint p=[touch locationInView:wv];
-    if(p.x<0||p.y<0||p.x>wv.bounds.size.width||p.y>wv.bounds.size.height)return;
-    double fx=p.x/wv.bounds.size.width, fy=p.y/wv.bounds.size.height;
-    // Scroll offset read synchronously at touch time; the JS subtracts the CURRENT
-    // offset from this so the point tracks the element, not the screen position.
-    UIScrollView *sv=wv.scrollView;
-    double absX=p.x+(sv?sv.contentOffset.x:0), absY=p.y+(sv?sv.contentOffset.y:0);
-    NSString *native=ADChevronNativeTouchChain7056(touch);
-    NSString *js=[NSString stringWithFormat:
-      @"(function(){try{"
-       "var vw=(innerWidth||document.documentElement.clientWidth||0),vh=(innerHeight||document.documentElement.clientHeight||0);"
-       // Absolute document point captured at touch time, converted back to viewport
-       // coordinates NOW, so a scroll between the tap and this evaluation cancels out.
-       "var ax=%.9f,ay=%.9f,sx=(window.pageXOffset||0),sy=(window.pageYOffset||0);"
-       "var x=ax-sx,y=ay-sy;"
-       "if(x<0||y<0||x>vw||y>vh){x=vw*%.9f;y=vh*%.9f;}"
-       "function C(e){try{var x=e.className;if(x&&x.baseVal!==undefined)x=x.baseVal;return typeof x==='string'?x:''}catch(_){return ''}}"
-       "function O(e){try{if(!e||e.nodeType!==1)return '-';var r=e.getBoundingClientRect(),c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');return [String(e.tagName||'?').toLowerCase(),e.id?'#'+e.id:'',C(e)?'.'+C(e).trim().replace(/\\s+/g,'.'):'',' rect='+[r.x,r.y,r.width,r.height].map(function(v){return Math.round(v*10)/10}).join(','),' role='+(e.getAttribute('role')||''),' aria='+(e.getAttribute('aria-label')||''),' expanded='+(e.getAttribute('aria-expanded')||''),' title='+(e.getAttribute('title')||''),' action='+(e.getAttribute('data-action')||''),' color='+c.color,' bg='+c.backgroundColor,' bgimg='+String(c.backgroundImage||'').slice(0,300),' mask='+String(c.webkitMaskImage||c.maskImage||'').slice(0,220),' filter='+c.filter,' fill='+c.fill,' stroke='+c.stroke,' opacity='+c.opacity,' visibility='+c.visibility,' before='+[b.content,b.color,b.backgroundColor,b.backgroundImage,b.webkitMaskImage||b.maskImage,b.filter].join('|').slice(0,320),' after='+[a.content,a.color,a.backgroundColor,a.backgroundImage,a.webkitMaskImage||a.maskImage,a.filter].join('|').slice(0,320)].join('')}catch(z){return 'ERR '+z}}"
-       "var o=['href='+location.href,'title='+document.title,'viewport='+(innerWidth||0)+'x'+(innerHeight||0),'point='+x.toFixed(1)+','+y.toFixed(1)],s=document.elementsFromPoint(x,y),n=Math.min(s.length,18);for(var i=0;i<n;i++)o.push('P'+i+' '+O(s[i]));var e=s&&s[0];for(var j=0;e&&j<10;j++,e=e.parentElement)o.push('A'+j+' '+O(e));try{o.push('TOP_OUTERHTML '+String(s&&s[0]&&s[0].outerHTML||'').replace(/\\s+/g,' ').slice(0,1800))}catch(_){}try{o.push('');o.push('=== CHEVRON SWEEP ===');var CS='i.a-icon,span.a-icon,.a-icon,[class*=chevron],[class*=arrow],[class*=caret],[class*=icon-next],[class*=icon-prev],[class*=dropdown],[class*=carousel] button,[aria-label*=Next],[aria-label*=next],[aria-label*=Previous],[aria-label*=previous],[class*=header-link] svg,[class*=cardui-header] svg,[class*=cardui-header] i,svg,use,[class*=see-more],[class*=seeMore],[class*=view-all]';var q=document.querySelectorAll(CS),m=Math.min(q.length,60);o.push('chevron_candidates='+q.length+' reported='+m);for(var k=0;k<m;k++){var e=q[k],r=e.getBoundingClientRect();var c=getComputedStyle(e),bb=getComputedStyle(e,'::before'),aa=getComputedStyle(e,'::after');o.push('C'+k+' '+String(e.tagName||'').toLowerCase()+' cls='+C(e)+' rect='+r.left.toFixed(0)+','+r.top.toFixed(0)+','+r.width.toFixed(1)+'x'+r.height.toFixed(1)+' color='+c.color+' bg='+c.backgroundColor+' bgimg='+String(c.backgroundImage).slice(0,90)+' mask='+String(c.webkitMaskImage||c.maskImage||'none').slice(0,90)+' filter='+c.filter+' fill='+c.fill+' stroke='+c.stroke+' opacity='+c.opacity+' BEFORE{ct='+bb.content+' bg='+bb.backgroundColor+' bgimg='+String(bb.backgroundImage).slice(0,70)+' filter='+bb.filter+'}'+' AFTER{ct='+aa.content+' bg='+aa.backgroundColor+' bgimg='+String(aa.backgroundImage).slice(0,70)+' filter='+aa.filter+'}'+' html='+String(e.outerHTML||'').slice(0,700));}}catch(_){o.push('SWEEP_ERROR '+_)}return o.join('\\n')}catch(e){return 'JSERR '+e}})();", absX, absY, fx, fy];
-    [wv evaluateJavaScript:js completionHandler:^(id value,NSError *error){
-        @try {
-            NSString *web=error?[NSString stringWithFormat:@"WEB_ERROR %@",error]:([value isKindOfClass:[NSString class]]?value:[value description]);
-            NSString *body=[NSString stringWithFormat:@"AmazonDark %@ exact chevron point probe\ndate=%@\n\n%@\n\n%@\n",[NSString stringWithUTF8String:AD_VERSION],[NSDate date],native?:@"NO_NATIVE_TOUCH",web?:@"NO_WEB_RESULT"];
-            [body writeToFile:ADChevronPointProbePath7056() atomically:YES encoding:NSUTF8StringEncoding error:nil];
-        } @catch(...) {}
-    }];
-}
-
+// v7.0.68 production: v7.0.65 chevron diagnostic runtime removed.
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
     ADLoadPrefs(); ADRefreshPromotionState611(); ADApplyAllFloors();
 }

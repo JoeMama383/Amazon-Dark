@@ -1,48 +1,61 @@
-# AmazonDark v7.0.66 — AmazonDark owns the card-header chevron
+# AmazonDark v7.0.68
 
-## The leaf, confirmed
+## v7.0.68 — Sponsored glyph hydration persistence
 
-The v7.0.65 capture ended a long guessing sequence. The chevron is:
+- **Exact base:** the supplied full v7.0.65 source tree.
+- Sponsored text remains Amazon-owned; this build does **not** force its color.
+- The first correctly-painted Sponsored info glyph now binds its exact rendered label color and its stock mask/background-sprite renderer to the smallest stable local Sponsored host.
+- If Amazon rewrites or replaces the glyph during final Home hydration, a static host-scoped CSS rule automatically paints the replacement with the same ink and the same stock artwork.
+- The v7.0.65 six-pass Sponsor `setTimeout` retry loop is removed.
+- No Sponsor `MutationObserver`, recurring timer, scroll listener, interval, RAF, or document-wide repair scanner is added.
+- The now-obsolete v7.0.65 exact-point chevron touch probe runtime is removed; the chevron CSS fix itself is retained.
 
-    svg[class*=header-icon]  20x20  viewBox="0 0 24 24"
-      <path d="M7.0422 22 … L15.0381 12.0004 L6.30959 3.71072 … L18 12.0004">
 
-That path is a two-segment `>`. It appears as `_npack-asin-card_style_header-icon__…`,
-`_multi-category-card_style_header-icon__…` and `_cXVhZ_header-icon_…` — the same icon
-across every card family, which is why it was dark everywhere.
+## What five failed chevron builds have actually established
 
-**Why it took so long:** every rule before v7.0.65 set `fill` on the `<svg>`. A `<path>`
-carrying its own fill ignores that entirely. The sweep reported `fill=none` — the svg's
-value — and I read it as "nothing is painting it" rather than "we are painting the wrong
-node". It now reports `fill=rgb(232,230,227)`, so the path-level targeting works.
+- v7.0.63 removed `brightness(0.5)` from the SVG dimming chains. **Confirmed on device**:
+  the v7.0.63 sweep reports `filter=none` where it previously read `brightness(0.5)`.
+  That fix landed and the chevrons were still dark.
+- v7.0.64 ported the v6.0.185 rule for `.a-icon-next-rounded` /
+  `.a-icon-previous-rounded` verbatim. Still dark, so those leaves are not present in
+  this Home build either.
+- Every rule so far — mine and v6.0.185's — sets `fill`/`color`/`filter` on the **svg
+  element**.
 
-## This build
+The sweep reports `fill=none stroke=none` on those SVGs. That is the *svg's* computed
+value. **A `<path>` carrying its own `fill` attribute ignores anything set on its svg
+ancestor.** Every rule written to date targets the wrong node, which is consistent with
+the chevron staying dark through all of them.
 
-Colour set to `#a7a7a7`, read from the reference screenshot. Applied **unscoped**, since
-the sweep proves the class spans multiple card families — scoping it to one container is
-exactly what left chevrons dark in earlier builds.
+This build paints the path itself:
 
-**Colour properties only.** Verified programmatically that the rule sets nothing but
-`fill`, `stroke`, `color` and `opacity`:
+    [class*=header-icon], [class*=header-icon] path, [class*=header-icon] use,
+    [class*=header-link] svg path, [class*=cardui-header] svg path, ...
+    {fill:#e8e6e3!important;stroke:#e8e6e3!important;color:#e8e6e3!important;}
 
-    properties set: ['color', 'fill', 'opacity', 'stroke']
-    geometry/imagery properties touched: none
+Harmless if `header-icon` is not the chevron. Decisive if it is.
 
-No `width`, `height`, `viewBox`, `transform`, `content`, `mask`, `background-image`,
-`display` or `visibility`. The symbol, geometry and artwork remain Amazon's.
+## Sweep: outerHTML 220 -> 700 characters
 
-## If the grey is off
+The 220-character cap truncated every capture at `<path d="M7.0422 22C6.83522…` —
+exactly before the `fill` attribute. That is why five builds went by without anyone
+seeing whether the path carries its own colour. The next capture will show it.
 
-`#a7a7a7` is my read of a JPEG, not a sampled value. It is a single literal appearing
-three times in one rule — give me the hex you want and it is a one-line change.
+## Honest status
+
+I have made five wrong calls on this chevron and asserted several of them confidently.
+The path-vs-svg distinction is the first explanation consistent with *all* the evidence
+rather than just the latest capture, but it is still an inference until the widened
+capture confirms it.
+
+If the next sweep shows `<path fill="#0F1111"` or similar, this build fixes it. If the
+path has no `fill` attribute, then `header-icon` is genuinely not the chevron and the
+element is something the sweep has never matched — in which case the probe needs to walk
+card-header subtrees by structure rather than by class.
 
 ## Verification
 
-Rebuilt the exact captured markup in a real engine:
-
-- the path is owned across all three card-family class variants
-- the colour resolves to `#a7a7a7`
-- `viewBox`, `width`/`height` and the path `d` data are unchanged
-- the rule contains no transform, content, mask or background property
-
-8/8. Balance 0/0/0; `scripts/lint-logos.sh`.
+- Path-vs-svg tested in a real engine: the svg-level selector does **not** match the
+  path, the path-level selector does, and a path with its own `fill` attribute keeps it
+  against an svg-level rule. 3/3.
+- Balance 0/0/0; `scripts/lint-logos.sh`.
