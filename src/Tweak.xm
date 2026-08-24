@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.77-spinner-screen-probe"
+#define AD_VERSION "v7.0.78-spinner-screen-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1187,21 +1187,22 @@ static void ADApplyAllFloors(void){
 %hook WKScrollView
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled && self.window){
+    /* v7.0.78: WKChildScrollView inherits WKScrollView methods.  The v7.0.77
+     * hook therefore still reached Home carousel child scrollers even though it
+     * was nominally scoped to WKScrollView.  Require the exact runtime class so
+     * only the primary WKScrollView receives scrollbar/floor ownership. */
+    if(gP.enabled && self.window && strcmp(object_getClassName(self), "WKScrollView")==0){
         self.opaque=NO;
         self.backgroundColor=ADOLED();
-        /* v7.0.77: keep the proven light main Web scrollbar without the v7.0.74
-         * global UIScrollView hook.  Scoping this to WKScrollView avoids touching
-         * nested WKChildScrollView carousel mounts/hydration. */
         self.indicatorStyle=UIScrollViewIndicatorStyleWhite;
     }
 }
 - (void)setIndicatorStyle:(UIScrollViewIndicatorStyle)style {
-    if(gP.enabled){
+    if(gP.enabled && strcmp(object_getClassName(self), "WKScrollView")==0){
         %orig(UIScrollViewIndicatorStyleWhite);
         return;
     }
-    %orig;
+    %orig(style);
 }
 %end
 
@@ -1913,21 +1914,21 @@ static void ADOwnBottomBar708(UIView *v){
 
 
 // -----------------------------------------------------------------------------
-// v7.0.77 probe: screenshot-triggered current-screen spinner capture.
+// v7.0.78 probe: screenshot-triggered current-screen spinner capture.
 // Temporary diagnostic only. Taking a screenshot while the bad wheel is visible
 // captures only the current viewport: a bounded elementsFromPoint grid plus known
 // spinner/progress semantics, and a native activity/progress class pass.
 // No MutationObserver, timer, scroll callback, interval, RAF, or recurring scan.
 // -----------------------------------------------------------------------------
-static NSString *ADSpinnerScreenProbePath7077(void){
+static NSString *ADSpinnerScreenProbePath7078(void){
     @try {
         NSArray *dirs=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
         NSString *base=dirs.firstObject;
-        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-spinner-screen-probe-7077.txt"];
+        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-spinner-screen-probe-7078.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-spinner-screen-probe-7077.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-spinner-screen-probe-7078.txt"];
 }
-static NSString *ADProbeColor7077(UIColor *c){
+static NSString *ADProbeColor7078(UIColor *c){
     if(!c)return @"-";
     @try {
         CGFloat r=0,g=0,b=0,a=0,w=0;
@@ -1936,7 +1937,7 @@ static NSString *ADProbeColor7077(UIColor *c){
     } @catch(...) {}
     return @"?";
 }
-static void ADSpinnerNativeWalk7077(UIView *v,UIWindow *w,NSMutableString *o,NSUInteger *seen){
+static void ADSpinnerNativeWalk7078(UIView *v,UIWindow *w,NSMutableString *o,NSUInteger *seen){
     if(!v||!w||!o||!seen||*seen>260)return;
     @try {
         if(v.hidden||v.alpha<0.01)return;
@@ -1949,21 +1950,21 @@ static void ADSpinnerNativeWalk7077(UIView *v,UIWindow *w,NSMutableString *o,NSU
         if(semantic){
             [o appendFormat:@"NATIVE cls=%@ rect=%.1f,%.1f,%.1f,%.1f alpha=%.3f bg=%@ tint=%@ layerBG=%@ border=%@ bw=%.2f cr=%.2f sub=%lu label=%@ id=%@",
                 n,r.origin.x,r.origin.y,r.size.width,r.size.height,v.alpha,
-                ADProbeColor7077(v.backgroundColor),ADProbeColor7077(v.tintColor),
-                ADProbeColor7077(v.layer.backgroundColor?[UIColor colorWithCGColor:v.layer.backgroundColor]:nil),
-                ADProbeColor7077(v.layer.borderColor?[UIColor colorWithCGColor:v.layer.borderColor]:nil),
+                ADProbeColor7078(v.backgroundColor),ADProbeColor7078(v.tintColor),
+                ADProbeColor7078(v.layer.backgroundColor?[UIColor colorWithCGColor:v.layer.backgroundColor]:nil),
+                ADProbeColor7078(v.layer.borderColor?[UIColor colorWithCGColor:v.layer.borderColor]:nil),
                 v.layer.borderWidth,v.layer.cornerRadius,(unsigned long)v.subviews.count,
                 v.accessibilityLabel?:@"",v.accessibilityIdentifier?:@""];
             if([v isKindOfClass:[UIActivityIndicatorView class]]){
                 UIActivityIndicatorView *a=(UIActivityIndicatorView *)v;
-                [o appendFormat:@" ACTIVITY style=%ld anim=%d color=%@",(long)a.activityIndicatorViewStyle,a.isAnimating?1:0,ADProbeColor7077(a.color)];
+                [o appendFormat:@" ACTIVITY style=%ld anim=%d color=%@",(long)a.activityIndicatorViewStyle,a.isAnimating?1:0,ADProbeColor7078(a.color)];
             }
             [o appendString:@"\n"];
         }
-        for(UIView *c in v.subviews)ADSpinnerNativeWalk7077(c,w,o,seen);
+        for(UIView *c in v.subviews)ADSpinnerNativeWalk7078(c,w,o,seen);
     } @catch(...) {}
 }
-static WKWebView *ADLargestVisibleWeb7077(void){
+static WKWebView *ADLargestVisibleWeb7078(void){
     WKWebView *best=nil; CGFloat area=0;
     @try {
         for(WKWebView *wv in ADTrackedWebViews()){
@@ -1976,7 +1977,7 @@ static WKWebView *ADLargestVisibleWeb7077(void){
     } @catch(...) {}
     return best;
 }
-static void ADCaptureSpinnerScreen7077(void){
+static void ADCaptureSpinnerScreen7078(void){
     if(!gP.enabled)return;
     NSMutableString *native=[NSMutableString string];
     @try {
@@ -1984,13 +1985,13 @@ static void ADCaptureSpinnerScreen7077(void){
         for(UIWindow *w in UIApplication.sharedApplication.windows){
             if(w.hidden||w.alpha<0.01)continue;
             NSUInteger seen=0;
-            ADSpinnerNativeWalk7077(w,w,native,&seen);
+            ADSpinnerNativeWalk7078(w,w,native,&seen);
         }
     } @catch(...) {}
-    WKWebView *wv=ADLargestVisibleWeb7077();
+    WKWebView *wv=ADLargestVisibleWeb7078();
     if(!wv){
         [native appendString:@"\nNO_VISIBLE_WEBVIEW\n"];
-        [native writeToFile:ADSpinnerScreenProbePath7077() atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        [native writeToFile:ADSpinnerScreenProbePath7078() atomically:YES encoding:NSUTF8StringEncoding error:nil];
         return;
     }
     NSString *js=@"(function(){try{"
@@ -1999,15 +2000,15 @@ static void ADCaptureSpinnerScreen7077(void){
       "function O(e){try{var r=e.getBoundingClientRect(),c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');return [String(e.tagName||'?').toLowerCase(),e.id?'#'+e.id:'',C(e)?'.'+C(e).trim().replace(/\\s+/g,'.'):'',' rect='+[r.x,r.y,r.width,r.height].map(function(v){return Math.round(v*10)/10}).join(','),' text='+JSON.stringify(T(e)),' role='+(e.getAttribute('role')||''),' aria='+(e.getAttribute('aria-label')||''),' busy='+(e.getAttribute('aria-busy')||''),' color='+c.color,' bg='+c.backgroundColor,' bgimg='+String(c.backgroundImage||'').slice(0,1000),' bgpos='+(c.backgroundPosition||''),' bgsize='+(c.backgroundSize||''),' bgrep='+(c.backgroundRepeat||''),' mask='+String(c.webkitMaskImage||c.maskImage||'').slice(0,1000),' maskpos='+(c.webkitMaskPosition||c.maskPosition||''),' masksize='+(c.webkitMaskSize||c.maskSize||''),' filter='+c.filter,' transform='+c.transform,' animation='+c.animationName+'|'+c.animationDuration+'|'+c.animationTimingFunction,' opacity='+c.opacity,' display='+c.display,' visibility='+c.visibility,' boxshadow='+c.boxShadow,' border='+c.border,' radius='+c.borderRadius,' clip='+c.clipPath,' fill='+c.fill,' stroke='+c.stroke,' before='+[b.content,b.color,b.backgroundColor,b.backgroundImage,b.webkitMaskImage||b.maskImage,b.filter,b.transform,b.animationName,b.animationDuration,b.opacity].join('|').slice(0,1000),' after='+[a.content,a.color,a.backgroundColor,a.backgroundImage,a.webkitMaskImage||a.maskImage,a.filter,a.transform,a.animationName,a.animationDuration,a.opacity].join('|').slice(0,1000)].join('')}catch(z){return 'ERR '+z}}"
       "var W=innerWidth||document.documentElement.clientWidth||0,H=innerHeight||document.documentElement.clientHeight||0,o=['href='+location.href,'title='+document.title,'ready='+document.readyState,'viewport='+W+'x'+H],seen=[];"
       "function A(e){if(!e||e.nodeType!==1||seen.indexOf(e)>=0)return;seen.push(e)}"
-      "var sx=Math.max(24,W/16),sy=Math.max(24,H/30);for(var y=sy/2;y<H;y+=sy)for(var x=sx/2;x<W;x+=sx){var z=document.elementsFromPoint(x,y);for(var j=0;j<z.length&&j<3;j++)A(z[j])}"
-      "try{var q=document.querySelectorAll('.a-spinner,.a-spinner-wrapper,[class*=spinner],[class*=loader],[class*=loading],[class*=progress],[role=progressbar],[aria-busy=true],[aria-label*=loading i],[aria-label*=progress i]');for(var i=0;i<q.length&&i<80;i++)A(q[i])}catch(_){}"
-      "var n=0;for(var i=0;i<seen.length&&n<80;i++){var e=seen[i],r=e.getBoundingClientRect();if(r.bottom<0||r.top>H||r.right<0||r.left>W||r.width<4||r.height<4)continue;var c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after'),sem=/spinner|loader|loading|progress|indicator/i.test(C(e)+' '+String(e.id||'')+' '+String(e.getAttribute('role')||'')+' '+String(e.getAttribute('aria-label')||'')),small=r.width<=120&&r.height<=120&&r.width/r.height>.45&&r.width/r.height<2.2,paint=(c.backgroundImage&&c.backgroundImage!=='none')||(c.webkitMaskImage&&c.webkitMaskImage!=='none')||(c.maskImage&&c.maskImage!=='none')||(c.animationName&&c.animationName!=='none')||(b.backgroundImage&&b.backgroundImage!=='none')||(a.backgroundImage&&a.backgroundImage!=='none')||(b.animationName&&b.animationName!=='none')||(a.animationName&&a.animationName!=='none');if(!(sem||(small&&paint)))continue;o.push('C'+(n++)+' '+O(e));try{o.push('C_OUTER '+String(e.outerHTML||'').replace(/\\s+/g,' ').slice(0,4200))}catch(_){}}"
-      "if(!n)o.push('NO_VISIBLE_SPINNER_CANDIDATE');return o.join('\\n')}catch(e){return 'JSERR '+e}})();";
+      "var pts=[[.42,.66],[.50,.66],[.58,.66],[.42,.72],[.50,.72],[.58,.72],[.42,.78],[.50,.78],[.58,.78],[.42,.84],[.50,.84],[.58,.84],[.50,.90]];"
+      "for(var pi=0;pi<pts.length;pi++){var x=W*pts[pi][0],y=H*pts[pi][1],z=document.elementsFromPoint(x,y);o.push('POINT '+pi+' '+Math.round(x*10)/10+','+Math.round(y*10)/10);for(var j=0;j<z.length&&j<8;j++)o.push('P'+pi+'_'+j+' '+O(z[j]))}"
+      "try{var q=document.querySelectorAll('.a-spinner,.a-spinner-wrapper,[class*=spinner],[class*=loader],[class*=loading],[role=progressbar],[aria-busy=true]');for(var i=0;i<q.length&&i<40;i++){var r=q[i].getBoundingClientRect();if(r.bottom>=0&&r.top<=H&&r.right>=0&&r.left<=W){o.push('SEM'+i+' '+O(q[i]));try{o.push('SEM_OUTER '+String(q[i].outerHTML||'').replace(/\\s+/g,' ').slice(0,4200))}catch(_){}}}}catch(_){}"
+      "return o.join('\\n')}catch(e){return 'JSERR '+e}})();";
     [wv evaluateJavaScript:js completionHandler:^(id value,NSError *error){
         @try {
             NSString *web=error?[NSString stringWithFormat:@"WEB_ERROR %@",error]:([value isKindOfClass:[NSString class]]?value:[value description]);
             [native appendFormat:@"\n-- WEB_CURRENT_SCREEN --\n%@\n",web?:@"NO_WEB_RESULT"];
-            [native writeToFile:ADSpinnerScreenProbePath7077() atomically:YES encoding:NSUTF8StringEncoding error:nil];
+            [native writeToFile:ADSpinnerScreenProbePath7078() atomically:YES encoding:NSUTF8StringEncoding error:nil];
         } @catch(...) {}
     }];
 }
@@ -2269,7 +2270,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 
     %init;
 
-    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note){ (void)note; ADCaptureSpinnerScreen7077(); }];
+    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note){ (void)note; ADCaptureSpinnerScreen7078(); }];
 
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);

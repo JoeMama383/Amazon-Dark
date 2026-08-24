@@ -1,19 +1,16 @@
-# AmazonDark v7.0.77~probe
+# AmazonDark v7.0.78~probe
 
 
-## v7.0.77~probe — v7.0.73 Sponsor baseline + scoped scrollbar + spinner screen capture
+## v7.0.78~probe — exact-class scrollbar isolation + lower-center spinner capture
 
-This diagnostic build returns to the exact v7.0.73 production visual/runtime base because that build is confirmed on-device to keep the odd Sponsored glyph hydrated correctly. The v7.0.74 global `UIScrollView` indicator hook is not carried forward. Light scroll-indicator ownership is restricted to the main `WKScrollView`, avoiding nested `WKChildScrollView` carousel mount/hydration side effects. The failed v7.0.74/v7.0.75 spinner CSS experiments are removed. Taking an iOS screenshot triggers a one-shot current-viewport spinner capture; no MutationObserver, timer, scroll listener, interval, RAF, or recurring scan is added.
+This diagnostic build starts from v7.0.77, whose Sponsored implementation is byte-identical to the confirmed-good v7.0.73 Sponsor block. The regression source is the scrollbar hook: `WKChildScrollView` inherits `WKScrollView` methods, so v7.0.77 still forced scrollbar/floor state onto Home carousel child scrollers even though the hook was written as `%hook WKScrollView`. v7.0.78 requires the exact runtime class name `WKScrollView` before changing background or indicator style; inherited `WKChildScrollView` instances now pass through untouched.
 
-- Pre-release refresh: themes Amazon's ad-feedback bottom sheet with cheap documentStart CSS only.
-- Feedback sheet structural floor is OLED black; headings/body/labels are light; issue textarea uses the same #303335 gray as the current search field; buttons and checkbox chrome are dark/neutral.
-- The sheet rule is scoped to `adFeedbackBottomSheet` / `mobile-ad-feedback-container`; the existing Sponsored-glyph fix is otherwise unchanged.
-- No MutationObserver, timer, scroll listener, interval, RAF, or probe runtime is added.
+The v7.0.73 Sponsored block is preserved byte-for-byte. The light main Web scrollbar remains. Failed v7.0.74/v7.0.75 spinner CSS experiments remain removed.
 
-- Built directly from the clean v7.0.70 production source.
-- Fixes the remaining Deals-for-you Sponsored info glyph by recognizing Amazon feedback controls exposed as `aria-label="Leave feedback on Sponsored"`, even when their visible label has no `ad-feedback-text` / `sponsored-label` class.
-- Reads the exact visible Sponsored text leaf's computed color and applies it only to the adjacent stock info glyph through the existing persistent Amazon-class CSS renderer lock.
-- No MutationObserver, retry timer, scroll listener, interval, RAF, or probe runtime. Sponsored text remains Amazon-owned.
+The spinner probe is also narrowed. On an iOS screenshot it dumps the complete DOM stacks at 13 fixed lower-center viewport points (where the white-filled loading wheel appears) plus explicit spinner/loader/busy semantic elements. It no longer treats every small masked icon as a spinner candidate, which is why v7.0.77 reported Sponsored info glyphs instead of the wheel.
+
+No MutationObserver, timer, Web scroll listener, interval, RAF, or recurring scanner is added.
+
 
 # AmazonDark v7.0.70
 
