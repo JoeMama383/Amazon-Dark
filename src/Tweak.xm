@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.56-chevron-point-probe"
+#define AD_VERSION "v7.0.57"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -905,6 +905,8 @@ static NSString *ADFloorJS(void){
             "function all(root){try{var a=(root||document).querySelectorAll(LS),n=Math.min(a.length,64);for(var i=0;i<n;i++)paint(a[i])}catch(_){}}"
             "function local(n){try{var p=n&&n.nodeType===1?n:n&&n.parentElement;for(var i=0;p&&i<5;i++,p=p.parentElement){if(isL(p)){paint(p);return}var l=p.querySelector&&p.querySelector(LS);if(l){paint(l);return}}}catch(_){}}"
             "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){all(document)},{once:true});else all(document);"
+            "var _spgN=0;(function tick(){try{all(document)}catch(_){}"
+            "if(++_spgN<6)setTimeout(tick,[120,240,420,700,1200][_spgN-1]||1200);})();"
             "window.addEventListener('pageshow',function(){all(document)},false);document.addEventListener('load',function(e){local(e.target)},true);"
             "})();}catch(__){}"
             "document.documentElement.style.setProperty('background-color','#000','important');"

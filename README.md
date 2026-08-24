@@ -1,46 +1,46 @@
-# AmazonDark v7.0.56~probe
+# AmazonDark v7.0.57
 
-Exact visual base: v7.0.50~probe. This intentionally restores the v7.0.50 Sponsored-glyph behavior and removes every v7.0.53-v7.0.55 Sponsor observer/persistence experiment.
+Built on v7.0.56 (`2b45ac3`).
 
-## Minimal chevron point probe
+## Sponsored glyph reverting after ~1 second
 
-This probe is deliberately tiny. There is no PID/SIGUSR trigger, no MutationObserver, no DOM scanner, no viewport grid, no timer, no RAF, and no probe WKUserScript.
+The v7.0.50 painter is correct in approach: it reads the label's computed colour and
+converts the sprite into a mask tinted with that exact value, so the glyph matches the
+Sponsored text rather than being forced to some colour I picked. Nothing about that
+needed changing.
 
-- Navigate until the dark chevron is visible.
-- Tap the dark chevron once.
-- On `UITouchPhaseBegan`, before Amazon handles the tap, the tweak resolves only the WKWebView containing that touch.
-- It runs exactly one `document.elementsFromPoint()` call at that normalized touch coordinate.
-- It records only that point stack (max 18), the top element's local ancestry (max 10), computed paint/background-image/mask/filter/fill/stroke/pseudo paint, and the touched UIKit ancestor chain.
-- The result immediately overwrites `AmazonDark-chevron-point-probe-7056.txt` in Amazon's Documents sandbox.
-- Every later touch simply replaces the file, so the chevron should be the last touch inside Amazon before export.
+It reverted because of **when** it ran, not what it did. Its passes were
+`DOMContentLoaded`, `pageshow`, and capture-phase `load`. Amazon's Home hydrates its ad
+cards *after* `DOMContentLoaded`, and those cards fire no `load` event — so the
+re-render replaced the element the painter had already tinted, and nothing ran again.
+Correct for about a second, then Amazon's dark sprite returns.
 
-## Sponsored glyph
+A short bounded settle train now covers the hydration window: passes at 0, 120, 360,
+780, 1480 and 2680ms, then it stops permanently. Each pass is a no-op once the glyphs
+already carry the mask.
 
-Unchanged from v7.0.50. AmazonDark reads the rendered Sponsored label color and applies it only to the adjacent stock feedback glyph. No Sponsor MutationObserver is present.
+**No observer is reintroduced.** Six bounded passes that terminate 2.7s after load are
+not the same mechanism as a subtree observer firing on every mutation for the life of
+the page — that distinction is the whole reason the input latency went away. Confirmed
+below that the train terminates.
 
-## Runtime shape
+## Chevrons: not addressed, and why
 
-- New probe MutationObserver: 0
-- Probe querySelectorAll: 0
-- Probe TreeWalker: 0
-- Probe scroll listener: 0
-- Probe setInterval: 0
-- Probe requestAnimationFrame: 0
-- Probe setTimeout: 0
-- Probe dispatch_after: 0
-- Probe DOM work: one `elementsFromPoint()` on touch-began only
+The v7.0.56 probe captured point `320.3,910.3`, which landed on a product image. The
+entire hit chain is `img.a-amazon-image._npack-asin-card_style_asin-image` ->
+`asin-image-container` -> `asin-image-link` -> asin card -> `gwm-Deck-btf`, and
+`TOP_OUTERHTML` is an `<img>` of a digital calendar. There is no `a-icon`, no `chevron`,
+no `dropdown` anywhere in it.
 
-## Previous v7.0.49 notes
+So that capture contains no evidence about chevrons. The existing `a-icon-dropdown`
+ownership (8 sites) is left exactly as it is. A capture with the touch point on a
+chevron itself would identify the leaf in one pass; guessing again would be the third
+wrong chevron rule in a row.
 
-# AmazonDark v7.0.49
+## Verification
 
-Built on v7.0.46 (`a6a6d86`).
-
-### Sponsored glyph: painted again, to sheet ink
-
-v7.0.48 removed the paint on the theory that `color-scheme: dark` would make Amazon render its own dark values for this control. It does not — the glyph went dark again. v7.0.49 therefore painted the glyph and label to `#e8e6e3`. v7.0.50 replaces that fixed pair with label-owned text plus glyph-only dynamic matching.
-
-### Chevrons
-
-v7.0.49 broadened the prior Home-scoped `a-icon-dropdown` rule to an unscoped dropdown/chevron fallback. On-device testing still shows dark chevrons, so v7.0.50 probes the actual tapped painter instead of adding another guessed selector.
-
+- Settle train simulated: runs exactly 6 times, terminates with no pending timers, first
+  pass immediate, last at 2680ms. 4/4.
+- MutationObserver count still 0.
+- `a-icon-dropdown` unchanged at 8 sites.
+- Balance 0/0/0; `scripts/lint-logos.sh`.
