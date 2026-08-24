@@ -1,4 +1,12 @@
-# AmazonDark v7.0.73
+# AmazonDark v7.81 — Sponsored renderer inventory probe
+
+- Built directly on the v7.0.79 production source / white-scrollbar behavior.
+- Screenshot-triggered one-shot inventory of every visible Sponsored label and nearby glyph painter.
+- Captures class/id, geometry, computed color, background image, mask image, pseudo-elements, ancestry, and outerHTML for each renderer family.
+- Does not alter Sponsored colors beyond the existing v7.0.79 production behavior.
+- No MutationObserver, timer, interval, RAF, web scroll listener, or recurring DOM scan.
+
+# AmazonDark v7.0.79
 
 - Pre-release refresh: themes Amazon's ad-feedback bottom sheet with cheap documentStart CSS only.
 - Feedback sheet structural floor is OLED black; headings/body/labels are light; issue textarea uses the same #303335 gray as the current search field; buttons and checkbox chrome are dark/neutral.
@@ -11,6 +19,13 @@
 - No MutationObserver, retry timer, scroll listener, interval, RAF, or probe runtime. Sponsored text remains Amazon-owned.
 
 # AmazonDark v7.0.70
+
+## v7.0.79 — Sponsor persistence + exact Home spinner center
+
+- Adds a permanent CSS-only paint for late-hydrating NPACK / sponsored-products Sponsored info glyphs so Amazon replacement nodes cannot revert dark after the one-shot Sponsor pass. Sponsored text remains Amazon-owned.
+- Fixes the actual Home mosaic load-more spinner identified by the v7.0.78 screenshot probe: its `::after` pseudo-element was the opaque white center disc, so only that center is changed to OLED black while the rotating light ring remains intact.
+- Retains the white native scrollbar on the exact `WKScrollView` runtime class and leaves `WKChildScrollView` carousel descendants alone.
+- No MutationObserver, timer, interval, RAF, web scroll listener, or probe runtime ships in this production build.
 
 ## v7.0.70 — complete Sponsored glyph template coverage
 
