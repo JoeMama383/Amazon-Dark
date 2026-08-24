@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.61"
+#define AD_VERSION "v7.0.62"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -946,7 +946,7 @@ static NSString *ADTWBJS(void){
          ":not([class*=icon]):not([class*=glyph]):not([class*=badge])"
          ":not([class*=checkbox]):not([class*=heart]):not([class*=wishlist])"
          ":not([class*=search-icon]):not([class*=microphone]):not([class*=camera]):not([class*=location])"
-         ":not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon])"
+         ":not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon]):not([class*=header-icon]):not([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr])"
          ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
          ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),"
          /* v7.0.43: persistent v185-style child-frame media ownership.
@@ -957,7 +957,7 @@ static NSString *ADTWBJS(void){
          ":not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller])"
          ":not([class*=rating]):not([class*=star]):not([class*=checkbox]):not([class*=heart]):not([class*=wishlist])"
          ":not([class*=search-icon]):not([class*=microphone]):not([class*=camera]):not([class*=location])"
-         ":not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon]):not([class*=sprite]):not([class*=pixel])"
+         ":not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon]):not([class*=header-icon]):not([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr]):not([class*=sprite]):not([class*=pixel])"
          ":not([class*=icon]):not([class*=glyph]):not([class*=badge])"
          ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
          ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),"
