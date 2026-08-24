@@ -1,18 +1,15 @@
-# AmazonDark v7.0.69
+# AmazonDark v7.0.70
 
-## v7.0.69 — Sponsored glyph hydration lock
+## v7.0.70 — complete Sponsored glyph template coverage
 
-- **Exact lineage:** v7.0.68 production tree, itself built from the user-supplied full v7.0.65 source. No patcher files.
-- Sponsored text remains Amazon-owned and is never recolored.
-- Root cause of v7.0.68: renderer/color state was stored on a custom-marked Amazon ancestor; final Home hydration can replace that ancestor, deleting the marker and CSS variables with it.
-- v7.0.69 removes that custom-host persistence model completely.
-- On the first correct Sponsor render, AmazonDark derives a CSS selector from the glyph's **real Amazon class/structure** plus its nearest stable Sponsor/ad template class.
-- It then writes a normal static CSS rule containing the exact adjacent Sponsored text color and the stock glyph's existing mask/background-sprite renderer.
-- If Amazon replaces the glyph or its ancestor later, the replacement still carries the same Amazon class/structure and automatically matches the rule; no re-scan is needed.
-- Multiple ad templates can each receive their own scoped rule, so GWM/NPACK/cXVhZ/sponsored-product glyphs do not have to share one global color or sprite position.
-- The v7.0.65 retry loop remains removed. There is **no MutationObserver, Sponsor retry timer, scroll listener, interval, or RAF**.
-- The v7.0.65 chevron diagnostic runtime remains removed. Its production chevron fix is retained unchanged.
-
+- Direct source base: v7.0.69 production.
+- Fixes the remaining dark Sponsored info glyph in the Recommended deals / Deals for you sponsored-products-mobile card.
+- Historical device evidence shows this template uses a distinct 12x12 background-image glyph class beginning `_sponsored-products-mo`, while the GWM/NPACK badges use other families.
+- The v7.0.69 learner only searched `ad-feedback` / `spr` families, so it never learned this renderer and therefore never emitted the persistent CSS rule for it.
+- v7.0.70 keeps the existing exact computed-color behavior, but extends only the local glyph lookup around an already-identified Sponsored label to accept the known sponsored-products-mobile family or another 5–36 px nearby background/mask/vector painter.
+- Once learned, the rule targets the real Amazon glyph selector, so later hydration/replacement remains matched automatically.
+- Sponsored text is never recolored.
+- No MutationObserver, retry timer, scroll listener, interval, RAF loop, or page-wide runtime scan is added.
 
 ## What five failed chevron builds have actually established
 

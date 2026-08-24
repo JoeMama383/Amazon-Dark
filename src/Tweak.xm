@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.69"
+#define AD_VERSION "v7.0.70"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -900,26 +900,32 @@ static NSString *ADFloorJS(void){
             "border:2px solid transparent!important;background-clip:content-box!important;}"
             "::-webkit-scrollbar-thumb:hover{background-color:#8a8a8a!important;}"
             "';"
-            /* v7.0.69 Sponsored glyph hydration lock.
+            /* v7.0.70 Sponsored glyph template completion.
              * v7.0.68 stored renderer/color state on a custom-marked Amazon
              * ancestor. Final Home hydration can replace that ancestor, taking
              * the marker and variables with it. This version never relies on
              * custom DOM ownership. It learns the real Amazon class/structural
              * selector for each visible Sponsored glyph and emits a static CSS
              * rule against those Amazon selectors. Replacement nodes therefore
-             * remain matched after hydration. No observer, retry timer, scroll
-             * listener, interval or RAF is used. Sponsored text is never written. */
+             * remain matched after hydration. v7.0.70 also recognizes the distinct
+             * 12x12 sponsored-products-mobile background sprite seen by the donor
+             * probe, plus only tiny nearby background/mask/vector painters, so the
+             * Deals-for-you badge can be learned without scanning the page. No
+             * observer, retry timer, scroll listener, interval or RAF is used.
+             * Sponsored text is never written. */
             "try{(function(){"
-            "if(window.__ADSPG7069__)return;window.__ADSPG7069__=1;"
+            "if(window.__ADSPG7070__)return;window.__ADSPG7070__=1;"
             "var LS='[class*=ad-feedback-text],[class*=sponsored-label],[id^=ad-feedback-text-],[id^=af-label-primary-link-]';"
-            "var GS='[class*=ad-feedback-spr],[class*=ad-feedback-sprite],[id*=feedbackIcon],[id*=feedback-icon]';"
-            "var REG=window.__ADSPGR7069__||(window.__ADSPGR7069__={});"
-            "function sheet(){try{var st=document.getElementById('ad-spg-lock7069');if(st)return st;st=document.createElement('style');st.id='ad-spg-lock7069';(document.head||document.documentElement).appendChild(st);return st}catch(_){return null}}"
+            "var GS='[class*=ad-feedback-spr],[class*=ad-feedback-sprite],[class*=adFeedback],[id*=feedbackIcon],[id*=feedback-icon],[class*=_sponsored-products-mo]';"
+            "var REG=window.__ADSPGR7070__||(window.__ADSPGR7070__={});"
+            "function sheet(){try{var st=document.getElementById('ad-spg-lock7070');if(st)return st;st=document.createElement('style');st.id='ad-spg-lock7070';(document.head||document.documentElement).appendChild(st);return st}catch(_){return null}}"
             "function txt(e){try{return String(e.textContent||'').replace(/\\s+/g,' ').trim().toLowerCase()}catch(_){return ''}}"
             "function cls(e){try{var c=e&&e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;return String(c||'')}catch(_){return ''}}"
             "function esc(v){try{return window.CSS&&CSS.escape?CSS.escape(String(v)):String(v).replace(/[^a-zA-Z0-9_-]/g,function(ch){return '\\\\'+ch})}catch(_){return String(v||'')}}"
             "function isL(e){if(!e||e.nodeType!==1)return false;try{return e.matches(LS)&&(txt(e)==='sponsored'||txt(e)==='sponsored ad'||txt(e)==='advertisement'||/ad-feedback|sponsored/i.test(cls(e)+' '+String(e.id||'')))}catch(_){return false}}"
-            "function glyph(l){try{var q=l.querySelector(GS+', [class*=spr]');if(q)return q;var p=l.parentElement;for(var i=0;p&&i<3;i++,p=p.parentElement){q=p.querySelector(GS);if(q)return q;var a=p.querySelectorAll('[class*=spr]');for(var j=0;j<a.length&&j<12;j++){var r=a[j].getBoundingClientRect();if(r.width>=5&&r.width<=36&&r.height>=5&&r.height<=36)return a[j]}}}catch(_){}return null}"
+            "function near(a,b){try{var ar=a.getBoundingClientRect(),br=b.getBoundingClientRect(),acy=ar.top+ar.height/2,bcy=br.top+br.height/2,dx=Math.max(0,Math.max(br.left-ar.right,ar.left-br.right));return dx<=30&&Math.abs(acy-bcy)<=22}catch(_){return false}}"
+            "function tinyPainter(e,l){try{if(!e||e===l||e.nodeType!==1)return false;var r=e.getBoundingClientRect();if(r.width<5||r.height<5||r.width>36||r.height>36||!near(e,l))return false;var cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none'),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),tg=String(e.tagName||'').toLowerCase();return (bi&&bi!=='none')||(mi&&mi!=='none')||tg==='svg'||tg==='img'||/ad-feedback|feedback|sponsor|spr|info|icon/i.test(cls(e)+' '+String(e.id||''))}catch(_){return false}}"
+            "function glyph(l){try{var q=l.querySelector(GS+', [class*=spr]');if(q&&tinyPainter(q,l))return q;var p=l.parentElement;for(var i=0;p&&i<3;i++,p=p.parentElement){q=p.querySelector(GS);if(q&&tinyPainter(q,l))return q;var a=p.querySelectorAll('[class*=spr],[class*=_sponsored-products-mo],span,div,i,b,svg,img');for(var j=0;j<a.length&&j<40;j++)if(tinyPainter(a[j],l))return a[j]}}catch(_){}return null}"
             "function rgba(v){var m=String(v||'').match(/rgba?\\(([^)]+)\\)/i);if(!m)return null;var a=m[1].split(',');if(a.length<3)return null;return [parseFloat(a[0]),parseFloat(a[1]),parseFloat(a[2]),a.length>3?parseFloat(a[3]):1]}"
             "function toks(e,rex){try{var a=cls(e).trim().split(/\\s+/),o=[];for(var i=0;i<a.length&&o.length<2;i++)if(a[i]&&(!rex||rex.test(a[i])))o.push(a[i]);if(!o.length&&a[0])o.push(a[0]);return o}catch(_){return []}}"
             "function atom(e,scope){try{if(!e||e.nodeType!==1)return '';var tag=String(e.tagName||'*').toLowerCase(),id=String(e.id||'');if(/feedbackicon/i.test(id))return tag+'[id*=feedbackIcon]';if(/feedback-icon/i.test(id))return tag+'[id*=feedback-icon]';if(scope&&/^af-label-primary-link-/.test(id))return tag+'[id^=af-label-primary-link-]';if(scope&&/^ad-feedback-/.test(id))return tag+'[id^=ad-feedback-]';var r=scope?/adfeedback|ad-feedback|sponsor|ape|gwm|npack|cxvhz|puis|asin|widget/i:/ad-feedback|feedback|sponsor|spr|icon/i,a=toks(e,r),z=tag;for(var i=0;i<a.length;i++)z+='.'+esc(a[i]);return z}catch(_){return ''}}"
