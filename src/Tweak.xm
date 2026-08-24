@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.80-sponsor-spinner-probe"
+#define AD_VERSION "v7.0.73"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -931,18 +931,6 @@ static NSString *ADFloorJS(void){
             ".a-icon-next-rounded,.a-icon-previous-rounded"
             "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;"
             "opacity:1!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;}"
-            /* v7.0.80: exact two-spinner fix from the v7.0.78 screen probe.
-             * Home uses TWO unrelated painters.  The hp-mosaic ring owns an
-             * opaque ::after center; AUI a-spinner-medium is a sprite-backed
-             * wheel.  Keep the first ring, black out only its center, and
-             * replace the second sprite with a transparent CSS ring while
-             * retaining Amazon's existing rotate360 animation. */
-            "[class*=_hp-mosaic-container_style_loadingSpinner]::after"
-            "{background:#000!important;background-color:#000!important;box-shadow:none!important;}"
-            ".a-spinner.a-spinner-medium"
-            "{background-image:none!important;background-color:transparent!important;"
-            "border:4px solid rgba(232,230,227,.38)!important;border-top-color:#e8e6e3!important;"
-            "border-right-color:#e8e6e3!important;border-radius:50%!important;box-sizing:border-box!important;}"
             /* Retain the current v7.0.47-v7.0.49 system-control parity. */
             "::-webkit-scrollbar{background-color:transparent!important;}"
             "::-webkit-scrollbar-track{background-color:transparent!important;}"
@@ -1199,16 +1187,7 @@ static void ADApplyAllFloors(void){
 %hook WKScrollView
 - (void)didMoveToWindow {
     %orig;
-    /* v7.0.80: preserve v7.0.73's exact WKChildScrollView behavior.  The only
-     * addition is a one-shot white indicator assignment on the exact primary
-     * WKScrollView class.  There is deliberately NO setIndicatorStyle hook. */
-    if(gP.enabled && self.window){
-        self.opaque=NO;
-        self.backgroundColor=ADOLED();
-        if(strcmp(object_getClassName(self), "WKScrollView")==0){
-            self.indicatorStyle=UIScrollViewIndicatorStyleWhite;
-        }
-    }
+    if(gP.enabled && self.window){ self.opaque=NO; self.backgroundColor=ADOLED(); }
 }
 %end
 
@@ -1918,56 +1897,6 @@ static void ADOwnBottomBar708(UIView *v){
 }
 %end
 
-
-// -----------------------------------------------------------------------------
-// v7.0.80 probe: screenshot-triggered Sponsor + spinner snapshot.
-// Runs only when the user takes a screenshot.  No observer/timer/scroll hook,
-// interval, RAF, or recurring scan.  Sponsor styling above is unchanged from
-// v7.0.73 so this probe can tell us the exact odd-man-out renderer if it remains.
-// -----------------------------------------------------------------------------
-static NSString *ADSponsorSpinnerProbePath7080(void){
-    @try {
-        NSArray *dirs=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
-        NSString *base=dirs.firstObject;
-        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-sponsor-spinner-screen-probe-7080.txt"];
-    } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-sponsor-spinner-screen-probe-7080.txt"];
-}
-static WKWebView *ADLargestVisibleWeb7080(void){
-    WKWebView *best=nil; CGFloat area=0;
-    @try {
-        for(WKWebView *wv in ADTrackedWebViews()){
-            if(!wv.window||wv.hidden||wv.alpha<0.01)continue;
-            CGRect r=[wv convertRect:wv.bounds toView:wv.window];
-            CGRect ir=CGRectIntersection(r,wv.window.bounds);
-            CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height);
-            if(a>area){area=a;best=wv;}
-        }
-    } @catch(...) {}
-    return best;
-}
-static void ADCaptureSponsorSpinner7080(void){
-    if(!gP.enabled)return;
-    WKWebView *wv=ADLargestVisibleWeb7080();
-    if(!wv)return;
-    NSString *js=@"(function(){try{"
-      "function C(e){try{var x=e.className;if(x&&x.baseVal!==undefined)x=x.baseVal;return typeof x==='string'?x:''}catch(_){return ''}}"
-      "function T(e){try{return String(e.textContent||'').replace(/\\s+/g,' ').trim().slice(0,120)}catch(_){return ''}}"
-      "function O(e){try{var r=e.getBoundingClientRect(),c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');return [String(e.tagName||'?').toLowerCase(),e.id?'#'+e.id:'',C(e)?'.'+C(e).trim().replace(/\\s+/g,'.'):'',' rect='+[r.x,r.y,r.width,r.height].map(function(v){return Math.round(v*10)/10}).join(','),' text='+JSON.stringify(T(e)),' aria='+(e.getAttribute('aria-label')||''),' color='+c.color,' bg='+c.backgroundColor,' bgimg='+String(c.backgroundImage||'').slice(0,600),' mask='+String(c.webkitMaskImage||c.maskImage||'').slice(0,600),' filter='+c.filter,' opacity='+c.opacity,' display='+c.display,' visibility='+c.visibility,' before='+[b.content,b.color,b.backgroundColor,b.backgroundImage,b.webkitMaskImage||b.maskImage,b.filter,b.opacity].join('|').slice(0,600),' after='+[a.content,a.color,a.backgroundColor,a.backgroundImage,a.webkitMaskImage||a.maskImage,a.filter,a.opacity].join('|').slice(0,600)].join('')}catch(z){return 'ERR '+z}}"
-      "var W=innerWidth||0,H=innerHeight||0,o=['href='+location.href,'viewport='+W+'x'+H];"
-      "var LS='[class*=ad-feedback-text],[class*=sponsored-label],[id^=ad-feedback-text-],[id^=af-label-primary-link-],[aria-label^=\\\"Leave feedback on Sponsored\\\"]';"
-      "try{var l=document.querySelectorAll(LS),k=0;for(var i=0;i<l.length&&k<24;i++){var r=l[i].getBoundingClientRect();if(r.bottom<0||r.top>H||r.right<0||r.left>W)continue;var tx=T(l[i]).toLowerCase(),ar=String(l[i].getAttribute('aria-label')||'').toLowerCase();if(tx.indexOf('sponsored')<0&&ar.indexOf('leave feedback on sponsored')!==0)continue;o.push('SPONSOR '+k+' LABEL '+O(l[i]));var p=l[i];for(var d=0;p&&d<3;d++,p=p.parentElement){o.push('SPONSOR '+k+' PARENT'+d+' '+O(p));var q=p.querySelectorAll('[class*=ad-feedback],[class*=sponsor],[class*=spr],[class*=sprite],[class*=icon],b,i,svg,img,span');for(var j=0;j<q.length&&j<36;j++){var qr=q[j].getBoundingClientRect();var cy=Math.abs((qr.top+qr.height/2)-(r.top+r.height/2)),dx=Math.max(0,Math.max(qr.left-r.right,r.left-qr.right));if(qr.width>=5&&qr.height>=5&&qr.width<=36&&qr.height<=36&&cy<=24&&dx<=36)o.push('SPONSOR '+k+' NEAR '+O(q[j]));}}k++;}}catch(e){o.push('SPONSOR_ERR '+e)}"
-      "try{var q=document.querySelectorAll('.a-spinner,.a-spinner-wrapper,[class*=loadingSpinner],[class*=spinner],[role=progressbar],[aria-label=\\\"Loading more\\\"]');for(var i=0;i<q.length&&i<60;i++){var r=q[i].getBoundingClientRect();if((r.bottom>=0&&r.top<=H&&r.right>=0&&r.left<=W)||q[i].matches('[class*=loadingSpinner]'))o.push('SPINNER '+i+' '+O(q[i]));}}catch(e){o.push('SPINNER_ERR '+e)}"
-      "return o.join('\\n')}catch(e){return 'JSERR '+e}})();";
-    [wv evaluateJavaScript:js completionHandler:^(id value,NSError *error){
-        @try {
-            NSString *out=error?[NSString stringWithFormat:@"WEB_ERROR %@",error]:([value isKindOfClass:[NSString class]]?value:[value description]);
-            NSMutableString *m=[NSMutableString stringWithFormat:@"AmazonDark %@ screenshot Sponsor+spinner probe\ndate=%@\n\n%@\n",[NSString stringWithUTF8String:AD_VERSION],[NSDate date],out?:@"NO_RESULT"];
-            [m writeToFile:ADSponsorSpinnerProbePath7080() atomically:YES encoding:NSUTF8StringEncoding error:nil];
-        } @catch(...) {}
-    }];
-}
-
 %hook UIApplication
 - (void)setStatusBarStyle:(UIStatusBarStyle)style {
     if(gP.enabled){
@@ -2224,8 +2153,6 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
     } @catch(...) {}
 
     %init;
-
-    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note){ (void)note; ADCaptureSponsorSpinner7080(); }];
 
 
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,

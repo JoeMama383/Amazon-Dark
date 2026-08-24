@@ -1,4 +1,4 @@
-# AmazonDark v7.0.80~probe
+# AmazonDark v7.0.73
 
 - Pre-release refresh: themes Amazon's ad-feedback bottom sheet with cheap documentStart CSS only.
 - Feedback sheet structural floor is OLED black; headings/body/labels are light; issue textarea uses the same #303335 gray as the current search field; buttons and checkbox chrome are dark/neutral.
@@ -76,8 +76,3 @@ card-header subtrees by structure rather than by class.
 ## v7.0.73 — Sponsored feedback focus-ring cleanup
 
 Amazon's ad-feedback text control applies its own rounded focus outline. After closing the feedback sheet, that control can remain focused, leaving a gray box around `Sponsored`. v7.0.73 suppresses only the focus outline/box-shadow/tap highlight for Sponsored/ad-feedback trigger families. Sponsored text and glyph color ownership from v7.0.72 is unchanged. No observer, timer, scan, scroll hook, interval, or RAF was added.
-
-
-## v7.0.80~probe — v7.0.73 Sponsor baseline + dual-spinner capture
-
-Built directly from the user-confirmed v7.0.73 source. Sponsor logic is unchanged. Adds only a one-shot white indicator assignment on the exact primary WKScrollView, explicit fixes for the two distinct Home spinner painters identified by the v7.0.78 probe, and a screenshot-triggered Sponsor/spinner diagnostic snapshot.
