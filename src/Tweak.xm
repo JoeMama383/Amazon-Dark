@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.84-standalone-ad-probe"
+#define AD_VERSION "v7.86"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -598,7 +598,6 @@ static void ADPostReadyOnce(void);
 static void ADScheduleLaunchReadyCheck706(void);
 static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
-static const void *kADStandaloneProbeUS784=&kADStandaloneProbeUS784;
 static NSHashTable *gADWebViews=nil;
 // v7.0.68 production: no diagnostic touch probe is installed.
 
@@ -939,28 +938,22 @@ static NSString *ADFloorJS(void){
              * paint declaratively so replacement nodes stay light without observers. */
             ":is([class*=_npack-asin-card_style_ad-feedback-spr],[class*=_npack-asin-card_style_ad-feedback-sprite],[class*=_cXVhZ_ad-feedback-spr],[class*=_cXVhZ_ad-feedback-sprite],[class*=_sponsored-products-mo])"
             "{color:#e8e6e3!important;background-color:#e8e6e3!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
-            /* v7.83: retain v7.82's high-specificity Hybrid glyph ownership, but
-             * stop hard-coding the icon to light ink. The glyph is a direct child
-             * of Amazon's Sponsored text span, so inherit that span's live computed
-             * color and use currentColor for the existing mask. This preserves
-             * Amazon's per-card grey/white label choice while keeping the glyph
-             * immune to the late two-class Grey-theme dark override. Glyph only. */
+            /* v7.86: Hybrid GWM/NPACK carousel Sponsor glyphs are owned per instance,
+             * not by the old class-level color learner. The Amazon bundle reuses the
+             * same hashed sprite classes across sibling cards, so a learned literal
+             * color from one card can contaminate another after hydration/refresh.
+             * Rebuild only the 12x12 Hybrid info glyph as the stock mask and let
+             * currentColor inherit from its own adjacent Amazon-owned Sponsor text.
+             * No Sponsored text rule is written. */
             "html body [data-ad-feedback-label-id] b[class*=ad-feedback-sprite-mobile][class*=labelThemeStyle_ad-feedback-sprite-mobile],"
             "html body [data-ad-feedback-label-id] b[class*=ad-feedback-sprite-mobile]"
-            "{color:inherit!important;background-color:currentColor!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
-            /* v7.84 probe-side correction: the GWM Home window-pane carousel is
-             * a distinct Sponsor renderer. Its stock "Grey" feedback theme is for
-             * a light card, but AmazonDark owns this card floor as OLED black. For
-             * this renderer only, the intended dark-card treatment is light Sponsor
-             * text + light info glyph. Keep every other Sponsor renderer on v7.83's
-             * per-card Amazon color/inheritance path. Declarative so refresh/hydration
-             * replacement cannot regress the glyph to black. */
-            "html body [class*=_gwm-asin-tile_style_windowPaneSponsoredBadgeContainer] "
-            ":is([class*=ad-feedback-text],[id^=ad-feedback-text-],[aria-label^=\"Leave feedback on Sponsored\"])"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            "html body [class*=_gwm-asin-tile_style_windowPaneSponsoredBadgeContainer] "
-            ":is(b[class*=ad-feedback-spr],b[class*=ad-feedback-sprite],b[id^=ad-feedback-sprite-])"
-            "{color:#e8e6e3!important;background-color:#e8e6e3!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
+            "{color:inherit!important;background-color:currentColor!important;background-image:none!important;"
+            "-webkit-mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;"
+            "mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;"
+            "-webkit-mask-size:contain!important;mask-size:contain!important;"
+            "-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;"
+            "-webkit-mask-position:center!important;mask-position:center!important;"
+            "filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
             /* v7.0.79: the screenshot probe identified the actual Home load-more
              * wheel as _hp-mosaic-container_style_loadingSpinner__JXI3z. Amazon's
              * ::after pseudo is the opaque white center disc; match it to the OLED
@@ -1005,7 +998,7 @@ static NSString *ADFloorJS(void){
             "function nthPath(h,g){try{var a=[],n=g;while(n&&n!==h&&a.length<5){var par=n.parentElement;if(!par)return '';var ix=1,c=par.firstElementChild;while(c&&c!==n){ix++;c=c.nextElementSibling}a.unshift(String(n.tagName||'*').toLowerCase()+':nth-child('+ix+')');n=par}return n===h&&a.length?' > '+a.join(' > '):''}catch(_){return ''}}"
             "function selector(l,g){try{var h=common(l,g),hs=atom(h,true),gs=atom(g,false);if(h&&g&&h!==g&&hs){var gc=cls(g);if(gc||/feedbackicon|feedback-icon/i.test(String(g.id||'')))return hs+' '+gs;var np=nthPath(h,g);if(np)return hs+np}return gs||GS}catch(_){return GS}}"
             "function lock(l,g,c,rv,cs,svg){try{var sel=selector(l,g),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),bi=String(cs.backgroundImage||'none'),mode='color',img='',pos='0% 0%',size='auto',rep='no-repeat',flt='none';if(mi&&mi!=='none'){mode='mask';img=mi;pos=cs.webkitMaskPosition||cs.maskPosition||'0% 0%';size=cs.webkitMaskSize||cs.maskSize||'auto';rep=cs.webkitMaskRepeat||cs.maskRepeat||'no-repeat'}else if(svg){mode='svg'}else if(bi&&bi!=='none'){mode='mask';img=bi;pos=cs.backgroundPosition||'0% 0%';size=cs.backgroundSize||'auto';rep=cs.backgroundRepeat||'no-repeat'}else{var spread=Math.max(rv[0],rv[1],rv[2])-Math.min(rv[0],rv[1],rv[2]);if(spread<=8){mode='filter';var gray=(rv[0]+rv[1]+rv[2])/3/255;flt='brightness(0) invert('+gray.toFixed(5)+')'}}var key=sel+'|'+mode+'|'+c+'|'+img+'|'+pos+'|'+size+'|'+rep+'|'+flt;if(REG[key])return;REG[key]=1;var st=sheet();if(!st)return;var base=sel+'{color:'+c+'!important;opacity:'+String(isFinite(rv[3])?rv[3]:1)+'!important;visibility:visible!important;mix-blend-mode:normal!important;position:relative!important;z-index:2!important;';if(mode==='mask')base+='background-image:none!important;background-color:'+c+'!important;-webkit-mask-image:'+img+'!important;mask-image:'+img+'!important;-webkit-mask-position:'+pos+'!important;mask-position:'+pos+'!important;-webkit-mask-size:'+size+'!important;mask-size:'+size+'!important;-webkit-mask-repeat:'+rep+'!important;mask-repeat:'+rep+'!important;filter:none!important;-webkit-filter:none!important;';else if(mode==='filter')base+='filter:'+flt+'!important;-webkit-filter:'+flt+'!important;';else base+='filter:none!important;-webkit-filter:none!important;';base+='}';if(mode==='svg')base+=sel+' svg,'+sel+' path,'+sel+' use,'+sel+' circle,'+sel+' rect,'+sel+' polygon,'+sel+' polyline,'+sel+' line{color:'+c+'!important;fill:'+c+'!important;stroke:'+c+'!important;}';st.textContent+=base}catch(_){}}"
-            "function ink(l){try{if(txt(l)==='sponsored'||txt(l)==='sponsored ad')return l;var a=l.querySelectorAll('span,a,div,small');for(var i=0;i<a.length&&i<16;i++){var t=txt(a[i]);if(t==='sponsored'||t==='sponsored ad')return a[i]}}catch(_){}return l}function paint(l){try{if(!isL(l))return;var li=ink(l),lc=getComputedStyle(li),c=lc.color,rv=rgba(c),g=glyph(li);if(!g||!rv)return;var cs=getComputedStyle(g),svg=g.matches('svg')?g:g.querySelector('svg');lock(li,g,c,rv,cs,svg)}catch(_){}}"
+            "function ink(l){try{if(txt(l)==='sponsored'||txt(l)==='sponsored ad')return l;var a=l.querySelectorAll('span,a,div,small');for(var i=0;i<a.length&&i<16;i++){var t=txt(a[i]);if(t==='sponsored'||t==='sponsored ad')return a[i]}}catch(_){}return l}function paint(l){try{if(!isL(l))return;var li=ink(l),lc=getComputedStyle(li),c=lc.color,rv=rgba(c),g=glyph(li);if(!g||!rv)return;if(g.matches('b[class*=ad-feedback-sprite-mobile]')&&g.closest('[data-ad-feedback-label-id]'))return;var cs=getComputedStyle(g),svg=g.matches('svg')?g:g.querySelector('svg');lock(li,g,c,rv,cs,svg)}catch(_){}}"
             "function all(root){try{var a=(root||document).querySelectorAll(LS),n=Math.min(a.length,64);for(var i=0;i<n;i++)paint(a[i])}catch(_){}}"
             "function local(n){try{var p=n&&n.nodeType===1?n:n&&n.parentElement;for(var i=0;p&&i<5;i++,p=p.parentElement){if(isL(p)){paint(p);return}var l=p.querySelector&&p.querySelector(LS);if(l){paint(l);return}}}catch(_){}}"
             "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){all(document)},{once:true});else all(document);window.addEventListener('load',function(){all(document)},{once:true});window.addEventListener('pageshow',function(){all(document)},false);document.addEventListener('load',function(e){local(e.target)},true);"
@@ -1123,43 +1116,6 @@ static NSString *ADTWBJS(void){
 }
 
 
-static NSString *ADStandaloneProbeJS784(void){
-    return
-        @"(function(){try{\n"
-        @"if(window.__adStandaloneProbe784Installed)return;\n"
-        @"window.__adStandaloneProbe784Installed=1;\n"
-        @"function C(e){try{var x=e.className;if(x&&x.baseVal!==undefined)x=x.baseVal;return typeof x==='string'?x:''}catch(_){return ''}}\n"
-        @"function T(e){try{return String(e.textContent||'').replace(/\\s+/g,' ').trim().slice(0,220)}catch(_){return ''}}\n"
-        @"function D(e){try{var s='',a=e.childNodes;for(var i=0;i<a.length;i++)if(a[i].nodeType===3)s+=' '+String(a[i].nodeValue||'');return s.replace(/\\s+/g,' ').trim().slice(0,180)}catch(_){return ''}}\n"
-        @"function X(e){try{return String(e.outerHTML||'').replace(/\\s+/g,' ').slice(0,1200)}catch(_){return ''}}\n"
-        @"function V(e){try{var r=e.getBoundingClientRect(),c=getComputedStyle(e);return r.width>0&&r.height>0&&r.bottom>=0&&r.top<=innerHeight&&r.right>=0&&r.left<=innerWidth&&c.display!=='none'&&c.visibility!=='hidden'&&parseFloat(c.opacity||1)>0}catch(_){return false}}\n"
-        @"function A(c){try{var m=String(c||'').match(/rgba?\\(([^)]+)\\)/i);if(!m)return 1;var p=m[1].split(',');return p.length>3?parseFloat(p[3]):1}catch(_){return 1}}\n"
-        @"function S(e){try{var z=(C(e)+' '+String(e.id||'')+' '+String(e.getAttribute('role')||'')+' '+String(e.getAttribute('aria-label')||'')+' '+String(e.getAttribute('data-testid')||'')+' '+String(e.getAttribute('data-csa-c-type')||'')).toLowerCase();return /ape|advert|sponsor|mobile.?ad|ad[-_]?container|ad[-_]?placement|creative|campaign|headline|header|title|cta|badge|coupon|deal/.test(z)}catch(_){return false}}\n"
-        @"function O(e){try{var r=e.getBoundingClientRect(),c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after'),tg=String(e.tagName||'?').toLowerCase(),src='';if(tg==='img'||tg==='video'||tg==='source')src=String(e.currentSrc||e.src||'').slice(0,600);if(tg==='iframe')src=String(e.src||'').slice(0,600);return [tg,e.id?'#'+e.id:'',C(e)?'.'+C(e).trim().replace(/\\s+/g,'.'):'',' rect='+[r.x,r.y,r.width,r.height].map(function(v){return Math.round(v*10)/10}).join(','),' text='+JSON.stringify(T(e)),' direct='+JSON.stringify(D(e)),' aria='+JSON.stringify(e.getAttribute('aria-label')||''),' role='+(e.getAttribute('role')||''),' color='+c.color,' textfill='+(c.webkitTextFillColor||''),' bg='+c.backgroundColor,' bgimg='+String(c.backgroundImage||'').slice(0,600),' bgpos='+c.backgroundPosition,' bgsize='+c.backgroundSize,' bgrep='+c.backgroundRepeat,' border='+c.border,' radius='+c.borderRadius,' outline='+c.outline,' shadow='+c.boxShadow,' filter='+c.filter,' opacity='+c.opacity,' display='+c.display,' position='+c.position,' overflow='+c.overflow,' font='+c.fontSize+'/'+c.fontWeight,' fill='+c.fill,' stroke='+c.stroke,' src='+src,' nat='+(e.naturalWidth||e.videoWidth||0)+'x'+(e.naturalHeight||e.videoHeight||0),' before='+[b.content,b.color,b.backgroundColor,b.backgroundImage,b.webkitMaskImage||b.maskImage,b.filter,b.opacity,b.display].join('|').slice(0,700),' after='+[a.content,a.color,a.backgroundColor,a.backgroundImage,a.webkitMaskImage||a.maskImage,a.filter,a.opacity,a.display].join('|').slice(0,700)].join('')}catch(z){return 'ERR '+z}}\n"
-        @"function report(){try{\n"
-        @" var child=0;try{child=window.top!==window}catch(_){child=1}\n"
-        @" var W=innerWidth||0,H=innerHeight||0,shortWide=(H<=320&&W>=240),o=['FRAME href='+location.href,'referrer='+document.referrer,'title='+document.title,'ready='+document.readyState,'child='+child,'viewport='+W+'x'+H,'shortWide='+shortWide,'htmlStandalone='+(document.documentElement&&document.documentElement.getAttribute('data-ad7-standalone-candidate')),'htmlTWBChild='+(document.documentElement&&document.documentElement.getAttribute('data-ad7-twb-child'))];\n"
-        @" if(document.documentElement){o.push('ROOT '+O(document.documentElement));o.push('ROOT_HTML '+X(document.documentElement))}\n"
-        @" if(document.body){o.push('BODY '+O(document.body));o.push('BODY_HTML '+X(document.body))}\n"
-        @" var fs=document.querySelectorAll('iframe');o.push('IFRAMES '+fs.length);for(var fi=0;fi<fs.length&&fi<30;fi++)if(V(fs[fi])){o.push('IFRAME '+fi+' '+O(fs[fi]));o.push('IFRAME_HTML '+X(fs[fi]))}\n"
-        @" var all=document.querySelectorAll('*'),surf=0,media=0,text=0,sem=0,seen=[];\n"
-        @" function once(e){if(seen.indexOf(e)>=0)return false;seen.push(e);return true}\n"
-        @" for(var i=0;i<all.length&&i<1800;i++){\n"
-        @"   var e=all[i];if(!V(e))continue;var r=e.getBoundingClientRect(),c=getComputedStyle(e),tg=String(e.tagName||'').toLowerCase(),area=r.width*r.height,di=D(e),semantic=S(e),isMedia=/^(img|picture|video|canvas|svg)$/.test(tg)||String(c.backgroundImage||'none')!=='none';\n"
-        @"   var painted=A(c.backgroundColor)>0.02||String(c.backgroundImage||'none')!=='none'||String(c.boxShadow||'none')!=='none';\n"
-        @"   if((child||shortWide)&&painted&&area>=220&&surf<140){o.push('SURFACE '+surf+' '+O(e));o.push('SURFACE_HTML '+X(e));surf++;}\n"
-        @"   if((child||shortWide)&&isMedia&&media<140){o.push('MEDIA '+media+' '+O(e));o.push('MEDIA_HTML '+X(e));media++;}\n"
-        @"   if((child||shortWide)&&di&&text<180){o.push('TEXT '+text+' '+O(e));o.push('TEXT_HTML '+X(e));text++;}\n"
-        @"   if(semantic&&sem<140){o.push('SEM '+sem+' '+O(e));o.push('SEM_HTML '+X(e));sem++;}\n"
-        @" }\n"
-        @" o.push('COUNTS scanned='+Math.min(all.length,1800)+' surfaces='+surf+' media='+media+' text='+text+' semantic='+sem);\n"
-        @" return o.join('\\n')\n"
-        @"}catch(e){return 'REPORT_ERR '+e}}\n"
-        @"window.__adStandaloneProbeReport784=report;\n"
-        @"window.addEventListener('message',function(ev){try{var d=ev.data;if(!d||d.__adStandaloneProbe784!==1||!d.nonce)return;var rep=report();try{window.top.postMessage({__adStandaloneProbe784Result:1,nonce:d.nonce,href:location.href,report:rep},'*')}catch(_){}var fs=document.querySelectorAll('iframe');for(var i=0;i<fs.length&&i<30;i++)try{if(fs[i].contentWindow)fs[i].contentWindow.postMessage(d,'*')}catch(_){}}catch(_){}},false);\n"
-        @"}catch(e){}})();\n";
-}
-
 static void ADTrackWebView(WKWebView *wv){
     if(!wv)return; @try { @synchronized([WKWebView class]) { if(!gADWebViews)gADWebViews=[NSHashTable weakObjectsHashTable]; [gADWebViews addObject:wv]; } } @catch(...) {}
 }
@@ -1179,11 +1135,6 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADTWBJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADTWBUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
-        if(!objc_getAssociatedObject(ucc,kADStandaloneProbeUS784)){
-            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADStandaloneProbeJS784() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
-            [ucc addUserScript:us];
-            objc_setAssociatedObject(ucc,kADStandaloneProbeUS784,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
     } @catch(...) {}
 }
@@ -1237,7 +1188,6 @@ static void ADApplyAllFloors(void){
     if(gP.enabled){
         objc_setAssociatedObject(self,kADFloorUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADTWBUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(self,kADStandaloneProbeUS784,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADAttachScriptsToUCC710(self);
     }
 }
@@ -1991,54 +1941,6 @@ static void ADOwnBottomBar708(UIView *v){
 %end
 
 
-
-// -----------------------------------------------------------------------------
-// v7.84 probe: screenshot-triggered standalone-ad renderer inventory.
-// Dormant until a screenshot.  The documentStart helper is injected into every
-// frame so cross-origin APE/standalone iframes can report their own DOM via
-// postMessage.  No observer, scroll hook, interval, RAF, or recurring scan.
-// -----------------------------------------------------------------------------
-static NSString *ADStandaloneAdProbePath784(void){
-    @try {
-        NSArray *dirs=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
-        NSString *base=dirs.firstObject;
-        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-standalone-ad-probe-v7.84.txt"];
-    } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-standalone-ad-probe-v7.84.txt"];
-}
-static WKWebView *ADLargestVisibleWeb784(void){
-    WKWebView *best=nil; CGFloat area=0;
-    @try {
-        for(WKWebView *wv in ADTrackedWebViews()){
-            if(!wv.window||wv.hidden||wv.alpha<0.01)continue;
-            CGRect r=[wv convertRect:wv.bounds toView:wv.window];
-            CGRect ir=CGRectIntersection(r,wv.window.bounds);
-            CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height);
-            if(a>area){area=a;best=wv;}
-        }
-    } @catch(...) {}
-    return best;
-}
-static void ADCaptureStandaloneAds784(void){
-    if(!gP.enabled)return;
-    WKWebView *wv=ADLargestVisibleWeb784();
-    if(!wv)return;
-    NSString *trigger=@"(function(){try{var nonce='ad784-'+Date.now()+'-'+Math.random().toString(36).slice(2);var c={nonce:nonce,started:new Date().toISOString(),main:'NO_MAIN_REPORT',children:[]};try{if(typeof window.__adStandaloneProbeReport784==='function')c.main=window.__adStandaloneProbeReport784()}catch(e){c.main='MAIN_ERR '+e}try{if(window.__adStandaloneHandler784)window.removeEventListener('message',window.__adStandaloneHandler784,false)}catch(_){}window.__adStandaloneCollected784=c;window.__adStandaloneHandler784=function(ev){try{var d=ev.data;if(!d||d.__adStandaloneProbe784Result!==1||d.nonce!==nonce)return;if(c.children.length<40)c.children.push({href:String(d.href||''),report:String(d.report||'')})}catch(_){}};window.addEventListener('message',window.__adStandaloneHandler784,false);var fs=document.querySelectorAll('iframe');for(var i=0;i<fs.length&&i<30;i++)try{if(fs[i].contentWindow)fs[i].contentWindow.postMessage({__adStandaloneProbe784:1,nonce:nonce},'*')}catch(_){}return 'STARTED '+nonce+' iframes='+fs.length}catch(e){return 'TRIGGER_ERR '+e}})();";
-    [wv evaluateJavaScript:trigger completionHandler:^(id value,NSError *error){
-        NSString *start=error?[NSString stringWithFormat:@"TRIGGER_ERROR %@",error]:([value isKindOfClass:[NSString class]]?value:[value description]);
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.55*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-            NSString *collect=@"(function(){try{var c=window.__adStandaloneCollected784;if(!c)return 'NO_COLLECTION';try{if(window.__adStandaloneHandler784)window.removeEventListener('message',window.__adStandaloneHandler784,false)}catch(_){}var o=['nonce='+c.nonce,'started='+c.started,'\\n===== MAIN FRAME =====\\n'+String(c.main||'')];for(var i=0;i<c.children.length;i++)o.push('\\n===== CHILD FRAME '+i+' href='+String(c.children[i].href||'')+' =====\\n'+String(c.children[i].report||''));o.push('\\nCHILD_COUNT '+c.children.length);return o.join('\\n')}catch(e){return 'COLLECT_ERR '+e}})();";
-            [wv evaluateJavaScript:collect completionHandler:^(id value2,NSError *error2){
-                @try {
-                    NSString *body=error2?[NSString stringWithFormat:@"COLLECT_ERROR %@",error2]:([value2 isKindOfClass:[NSString class]]?value2:[value2 description]);
-                    NSMutableString *m=[NSMutableString stringWithFormat:@"AmazonDark %@ standalone-ad screenshot probe\ndate=%@\ntrigger=%@\n\n%@\n",[NSString stringWithUTF8String:AD_VERSION],[NSDate date],start?:@"NO_TRIGGER",body?:@"NO_RESULT"];
-                    [m writeToFile:ADStandaloneAdProbePath784() atomically:YES encoding:NSUTF8StringEncoding error:nil];
-                } @catch(...) {}
-            }];
-        });
-    }];
-}
-
 %hook UIApplication
 - (void)setStatusBarStyle:(UIStatusBarStyle)style {
     if(gP.enabled){
@@ -2296,7 +2198,6 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 
     %init;
 
-    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note){ (void)note; ADCaptureStandaloneAds784(); }];
 
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);

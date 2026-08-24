@@ -1,13 +1,10 @@
-# AmazonDark v7.84~probe — standalone ad renderer inventory
+# AmazonDark v7.86 — isolate Hybrid carousel Sponsor glyph color
 
-- Built directly from v7.83 production.
-- Adds one scoped declarative correction for the GWM Home window-pane carousel Sponsor row: its `Sponsored` text and info glyph are both forced to the tweak light ink (`#e8e6e3`) because that carousel floor is owned as OLED black. Other Sponsor renderers keep the v7.83 per-card Amazon color path.
-- Trigger is an iOS screenshot while a standalone ad is visible.
-- A dormant documentStart helper exists in every WebKit frame only for this probe build. On trigger, the top frame broadcasts a one-shot `postMessage` request so cross-origin APE/standalone child frames can report themselves.
-- Captures frame URL/referrer/viewport, root/body paint, visible structural surfaces, media leaves, direct-text leaves, semantic ad/creative nodes, iframe hosts, pseudo-elements, colors, backgrounds, borders, filters, source URLs, natural media dimensions, and bounded outerHTML.
-- This is specifically intended to identify: the white base owner, the real creative media leaf that must receive TWB, header/generic text selectors, and accent/badge/brand leaves that should remain Amazon-colored.
-- No MutationObserver, scroll listener, interval, RAF, or recurring scan. The only delay is a 550 ms one-shot collection window after the screenshot so child-frame replies can arrive.
-- Output: `AmazonDark-standalone-ad-probe-v7.84.txt`.
+- Built from clean v7.83 production. The v7.84/v7.85 standalone-ad probe/overrides are not carried forward.
+- Root cause of the carousel inconsistency: the legacy `ADSPG7070` learner emits a literal color into a CSS selector built from Amazon's shared hashed Sponsor-glyph classes. Multiple sibling carousel cards reuse those same classes, so whichever card is sampled during hydration can overwrite the glyph color for another card; refresh changes the sampling/order and makes the bug appear random.
+- v7.86 prevents that learner from owning Hybrid `ad-feedback-sprite-mobile` glyphs. Those glyphs are now handled entirely by a declarative direct-family rule that converts the stock info PNG to a mask and paints it with `currentColor`, inherited from that glyph's own adjacent Amazon-owned Sponsored label.
+- Sponsored text is never recolored. No standalone-ad work or standalone-ad probe ships in this build.
+- No MutationObserver, timer, interval, RAF, or web scroll listener is added.
 
 # AmazonDark v7.83 — Sponsor glyph inherits Amazon label color
 
