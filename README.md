@@ -1,3 +1,7 @@
+# AmazonDark v7.0.71~probe
+
+Diagnostic-only build on the exact v7.0.70 source. It adds one touch-began Sponsored glyph point capture. There is no MutationObserver, timer, recurring scan, scroll hook, interval, RAF, or signal/PID workflow. Touch the dark Sponsored info glyph once; the probe writes `AmazonDark-sponsored-point-probe-7071.txt` immediately. Production v7.0.70 theming behavior is otherwise unchanged.
+
 # AmazonDark v7.0.70
 
 ## v7.0.70 — complete Sponsored glyph template coverage

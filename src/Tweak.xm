@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.70"
+#define AD_VERSION "v7.0.71-sponsored-point-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -599,7 +599,9 @@ static void ADScheduleLaunchReadyCheck706(void);
 static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
 static NSHashTable *gADWebViews=nil;
-// v7.0.68 production: no diagnostic touch probe is installed.
+// v7.0.71 diagnostic: one exact Sponsor point-stack capture on touch-began.
+// No probe WKUserScript, observer, timer, scanner, viewport grid or signal handler.
+static void ADCaptureSponsorPoint7071(UITouch *touch);
 
 static NSString *ADFloorJS(void){
     // v7.0.14: static v185-style palette. CSS only: no Dark Reader, no observer,
@@ -1862,6 +1864,18 @@ static void ADOwnBottomBar708(UIView *v){
 %end
 
 %hook UIApplication
+- (void)sendEvent:(UIEvent *)event {
+    // Probe-only: capture exactly one local DOM stack at the point where a touch begins.
+    // Move/end events do nothing, so native Home scrolling behavior is unchanged.
+    if(event.type==UIEventTypeTouches){
+        @try {
+            for(UITouch *t in [event allTouches]){
+                if(t.phase==UITouchPhaseBegan){ ADCaptureSponsorPoint7071(t); break; }
+            }
+        } @catch(...) {}
+    }
+    %orig;
+}
 - (void)setStatusBarStyle:(UIStatusBarStyle)style {
     if(gP.enabled){
         UIStatusBarStyle want=UIStatusBarStyleLightContent;
@@ -2097,6 +2111,67 @@ static void ADScheduleLaunchReadyCheck706(void){
 
 
 // v7.0.68 production: v7.0.65 chevron diagnostic runtime removed.
+
+// -----------------------------------------------------------------------------
+// v7.0.71 exact-point Sponsored glyph probe.
+// Touch the dark Sponsored info glyph. On touch-began, resolve only that WKWebView
+// and run one elementsFromPoint() call. In addition to the hit stack/ancestors,
+// dump only the direct children of the first four ancestors so the adjacent
+// Sponsored text host is visible without any document scan.
+// -----------------------------------------------------------------------------
+static NSString *ADSponsorPointProbePath7071(void){
+    @try {
+        NSArray *dirs=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
+        NSString *base=dirs.firstObject;
+        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-sponsored-point-probe-7071.txt"];
+    } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-sponsored-point-probe-7071.txt"];
+}
+static WKWebView *ADSponsorWebViewFromTouch7071(UITouch *touch){
+    @try {
+        UIView *v=touch.view;
+        for(int i=0;v&&i<24;i++,v=v.superview) if([v isKindOfClass:[WKWebView class]]) return (WKWebView *)v;
+    } @catch(...) {}
+    return nil;
+}
+static NSString *ADSponsorNativeTouchChain7071(UITouch *touch){
+    NSMutableString *o=[NSMutableString string];
+    @try {
+        UIView *v=touch.view; UIWindow *w=v.window; CGPoint p=w?[touch locationInView:w]:CGPointZero;
+        [o appendFormat:@"NATIVE_TOUCH screen=%.1f,%.1f\n",p.x,p.y];
+        for(int i=0;v&&i<12;i++,v=v.superview){
+            CGRect r=v.window?[v convertRect:v.bounds toView:v.window]:v.frame;
+            [o appendFormat:@"N%d cls=%@ rect=%.1f,%.1f,%.1f,%.1f label=%@ id=%@\n",i,NSStringFromClass(v.class),r.origin.x,r.origin.y,r.size.width,r.size.height,v.accessibilityLabel?:@"",v.accessibilityIdentifier?:@""];
+        }
+    } @catch(...) {}
+    return o;
+}
+static void ADCaptureSponsorPoint7071(UITouch *touch){
+    if(!touch||!gP.enabled)return;
+    WKWebView *wv=ADSponsorWebViewFromTouch7071(touch);
+    if(!wv||!wv.window||wv.bounds.size.width<=1||wv.bounds.size.height<=1)return;
+    CGPoint p=[touch locationInView:wv];
+    if(p.x<0||p.y<0||p.x>wv.bounds.size.width||p.y>wv.bounds.size.height)return;
+    double fx=p.x/wv.bounds.size.width, fy=p.y/wv.bounds.size.height;
+    NSString *native=ADSponsorNativeTouchChain7071(touch);
+    NSString *js=[NSString stringWithFormat:
+      @"(function(){try{var x=(innerWidth||document.documentElement.clientWidth||0)*%.9f,y=(innerHeight||document.documentElement.clientHeight||0)*%.9f;"
+       "function C(e){try{var x=e.className;if(x&&x.baseVal!==undefined)x=x.baseVal;return typeof x==='string'?x:''}catch(_){return ''}}"
+       "function T(e){try{return String(e.textContent||'').replace(/\\s+/g,' ').trim().slice(0,180)}catch(_){return ''}}"
+       "function O(e){try{if(!e||e.nodeType!==1)return '-';var r=e.getBoundingClientRect(),c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');return [String(e.tagName||'?').toLowerCase(),e.id?'#'+e.id:'',C(e)?'.'+C(e).trim().replace(/\\s+/g,'.'):'',' rect='+[r.x,r.y,r.width,r.height].map(function(v){return Math.round(v*10)/10}).join(','),' text='+JSON.stringify(T(e)),' role='+(e.getAttribute('role')||''),' aria='+(e.getAttribute('aria-label')||''),' color='+c.color,' textfill='+(c.webkitTextFillColor||''),' bg='+c.backgroundColor,' bgimg='+String(c.backgroundImage||'').slice(0,500),' bgpos='+(c.backgroundPosition||''),' bgsize='+(c.backgroundSize||''),' bgrep='+(c.backgroundRepeat||''),' mask='+String(c.webkitMaskImage||c.maskImage||'').slice(0,420),' maskpos='+(c.webkitMaskPosition||c.maskPosition||''),' masksize='+(c.webkitMaskSize||c.maskSize||''),' filter='+c.filter,' fill='+c.fill,' stroke='+c.stroke,' opacity='+c.opacity,' visibility='+c.visibility,' before='+[b.content,b.color,b.backgroundColor,b.backgroundImage,b.webkitMaskImage||b.maskImage,b.filter].join('|').slice(0,500),' after='+[a.content,a.color,a.backgroundColor,a.backgroundImage,a.webkitMaskImage||a.maskImage,a.filter].join('|').slice(0,500)].join('')}catch(z){return 'ERR '+z}}"
+       "var o=['href='+location.href,'title='+document.title,'viewport='+(innerWidth||0)+'x'+(innerHeight||0),'point='+x.toFixed(1)+','+y.toFixed(1)],s=document.elementsFromPoint(x,y),n=Math.min(s.length,18);"
+       "for(var i=0;i<n;i++)o.push('P'+i+' '+O(s[i]));"
+       "var e=s&&s[0];for(var j=0;e&&j<10;j++,e=e.parentElement){o.push('A'+j+' '+O(e));if(j<4){var ch=e.children||[];for(var k=0;k<ch.length&&k<12;k++)o.push('A'+j+'C'+k+' '+O(ch[k]));try{o.push('A'+j+'_OUTER '+String(e.outerHTML||'').replace(/\\s+/g,' ').slice(0,2400))}catch(_){}}}"
+       "return o.join('\\n')}catch(e){return 'JSERR '+e}})();",fx,fy];
+    [wv evaluateJavaScript:js completionHandler:^(id value,NSError *error){
+        @try {
+            NSString *web=error?[NSString stringWithFormat:@"WEB_ERROR %@",error]:([value isKindOfClass:[NSString class]]?value:[value description]);
+            NSString *body=[NSString stringWithFormat:@"AmazonDark %@ exact Sponsored point probe\ndate=%@\n\n%@\n\n%@\n",[NSString stringWithUTF8String:AD_VERSION],[NSDate date],native?:@"NO_NATIVE_TOUCH",web?:@"NO_WEB_RESULT"];
+            [body writeToFile:ADSponsorPointProbePath7071() atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        } @catch(...) {}
+    }];
+}
+
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
     ADLoadPrefs(); ADRefreshPromotionState611(); ADApplyAllFloors();
 }
