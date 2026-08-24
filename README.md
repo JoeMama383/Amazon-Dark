@@ -1,46 +1,49 @@
-# AmazonDark v7.0.57
+# AmazonDark v7.0.59
 
-Built on v7.0.56 (`2b45ac3`).
+## 1. Sponsored glyph reverting — fixed at the mechanism
 
-## Sponsored glyph reverting after ~1 second
+The painter reads the label's computed colour and tints the sprite with that exact
+value. That part was always right. It reverted because it wrote **inline styles onto a
+specific element**, and Amazon re-renders these ad cards after hydration — the
+replacement element carries none of them.
 
-The v7.0.50 painter is correct in approach: it reads the label's computed colour and
-converts the sprite into a mask tinted with that exact value, so the glyph matches the
-Sponsored text rather than being forced to some colour I picked. Nothing about that
-needed changing.
+v7.0.57 added a settle train, which only moved the deadline. The replacement still wins
+whenever it happens after the last pass.
 
-It reverted because of **when** it ran, not what it did. Its passes were
-`DOMContentLoaded`, `pageshow`, and capture-phase `load`. Amazon's Home hydrates its ad
-cards *after* `DOMContentLoaded`, and those cards fire no `load` event — so the
-re-render replaced the element the painter had already tinted, and nothing ran again.
-Correct for about a second, then Amazon's dark sprite returns.
+The painter now also emits a **style rule** carrying the same resolved colour. A rule
+applies to whatever element matches, including one Amazon substituted a moment ago. It
+is emitted once per distinct colour and capped at four, so a page produces one or two
+rules total and every later re-render is covered with no further JavaScript and no
+observer.
 
-A short bounded settle train now covers the hydration window: passes at 0, 120, 360,
-780, 1480 and 2680ms, then it stops permanently. Each pass is a no-op once the glyphs
-already carry the mask.
+## 2. The probe was capturing the wrong element
 
-**No observer is reintroduced.** Six bounded passes that terminate 2.7s after load are
-not the same mechanism as a subtree observer firing on every mutation for the life of
-the page — that distinction is the whole reason the input latency went away. Confirmed
-below that the train terminates.
+Both the v7.0.56 and v7.0.57 chevron captures landed on asin product images. That was a
+probe defect, not a mis-tap.
 
-## Chevrons: not addressed, and why
+The probe converted the touch to a **fraction of the webview**, then re-multiplied by
+`innerWidth`/`innerHeight` inside the page. `evaluateJavaScript` is asynchronous, so any
+scroll between the tap and the evaluation left that fraction pointing at whatever had
+scrolled under it. Both captures resolved onto product images near the bottom of the
+screen, with different scroll offsets in each.
 
-The v7.0.56 probe captured point `320.3,910.3`, which landed on a product image. The
-entire hit chain is `img.a-amazon-image._npack-asin-card_style_asin-image` ->
-`asin-image-container` -> `asin-image-link` -> asin card -> `gwm-Deck-btf`, and
-`TOP_OUTERHTML` is an `<img>` of a digital calendar. There is no `a-icon`, no `chevron`,
-no `dropdown` anywhere in it.
+The touch is now converted to an **absolute document coordinate** using the scroll offset
+read synchronously at touch time. The JS subtracts the *current* offset, so a scroll
+between tap and evaluation cancels out. The old fraction is retained as a fallback for
+the case where the element has scrolled entirely off screen.
 
-So that capture contains no evidence about chevrons. The existing `a-icon-dropdown`
-ownership (8 sites) is left exactly as it is. A capture with the touch point on a
-chevron itself would identify the leaf in one pass; guessing again would be the third
-wrong chevron rule in a row.
+## 3. Chevrons — still not changed
+
+No blind rule. The existing `a-icon-dropdown` ownership is untouched. With the probe
+fixed, one tap on a chevron will identify the leaf.
 
 ## Verification
 
-- Settle train simulated: runs exactly 6 times, terminates with no pending timers, first
-  pass immediate, last at 2680ms. 4/4.
-- MutationObserver count still 0.
-- `a-icon-dropdown` unchanged at 8 sites.
-- Balance 0/0/0; `scripts/lint-logos.sh`.
+- Emitted glyph rule: parses as 2 real rules, carries the label-resolved colour, lifts
+  above the card floor, matches a hashed glyph class, and **still matches after the
+  element is replaced** — which is the whole point. 7/7.
+- Scroll compensation arithmetic: unchanged with no scroll, follows the element when the
+  page scrolls either direction, falls back to the fraction when the element leaves the
+  viewport. 4/4.
+- Probe format specifiers and arguments: 4 and 4.
+- MutationObserver count still 0; balance 0/0/0; `scripts/lint-logos.sh`.
