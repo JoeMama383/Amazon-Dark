@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.65"
+#define AD_VERSION "v7.0.66"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -880,9 +880,11 @@ static NSString *ADFloorJS(void){
             "{background-color:#181a1b!important;color:#e8e6e3!important;border-color:#494d4d!important;}"
             "::placeholder{color:#b1aaa0!important;opacity:1!important;}"
             "[class*=header-icon],[class*=header-icon] path,[class*=header-icon] use,"
-            "[class*=header-link] svg path,[class*=cardui-header] svg path,"
+            "[class*=header-icon] polyline,[class*=header-icon] polygon,[class*=header-icon] line,"
+            "[class*=header-link] svg,[class*=header-link] svg path,"
+            "[class*=cardui-header] svg,[class*=cardui-header] svg path,"
             "a[class*=header-link] path,[class*=see-more] path,[class*=view-all] path"
-            "{fill:#e8e6e3!important;stroke:#e8e6e3!important;color:#e8e6e3!important;"
+            "{fill:#a7a7a7!important;stroke:#a7a7a7!important;color:#a7a7a7!important;"
             "opacity:1!important;}"
             "[class*=hp-mosaic-container] .a-icon-next-rounded,"
             "[class*=hp-mosaic-container] .a-icon-previous-rounded,"
