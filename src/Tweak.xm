@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.50-sponsor-glyph-chevron-tap-probe"
+#define AD_VERSION "v7.0.51-sponsor-glyph-chevron-tap-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -608,6 +608,7 @@ static NSString *gADChevronNativeTap7050=nil;
 static NSString *gADChevronNativeAfter7050=nil;
 static NSString *ADChevronNativeChain7050(UIView *v, CGPoint screen);
 static NSString *ADChevronNativeSnapshot7050(NSString *label);
+static void ADDumpChevronProbe7050(void);
 
 static NSString *ADFloorJS(void){
     // v7.0.14: static v185-style palette. CSS only: no Dark Reader, no observer,
@@ -1881,6 +1882,9 @@ static void ADOwnBottomBar708(UIView *v){
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.65*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
                     @try { gADChevronNativeAfter7050=ADChevronNativeSnapshot7050(@"NATIVE_AFTER_650MS_MENU"); } @catch(...) {}
                 });
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.90*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+                    @try { if(gADChevronAwaitingTap7050) ADDumpChevronProbe7050(); } @catch(...) {}
+                });
                 break;
             }
         } @catch(...) {}
@@ -2122,17 +2126,18 @@ static void ADScheduleLaunchReadyCheck706(void){
 
 
 // -----------------------------------------------------------------------------
-// v7.0.50 manual chevron tap probe.
-// SIGUSR2 #1 arms one click; tap the dark chevron; SIGUSR2 #2 writes the saved
-// click/painter chain plus the currently-open menu snapshot. No broad live scan.
+// v7.0.51 manual chevron tap probe.
+// One SIGUSR2 arms the next Amazon touch. Tapping the dark chevron captures the
+// exact web/native target and the opened menu, then writes the report automatically.
+// NewTerm is used only to export the completed file. No broad live scan.
 // -----------------------------------------------------------------------------
 static NSString *ADChevronProbePath7050(void){
     @try {
         NSArray *dirs=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
         NSString *base=dirs.firstObject;
-        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-chevron-tap-probe-7050.txt"];
+        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-chevron-tap-probe-7051.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-chevron-tap-probe-7050.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-chevron-tap-probe-7051.txt"];
 }
 static NSString *ADChevronColor7050(UIColor *c){
     if(!c)return @"-";
@@ -2201,6 +2206,7 @@ static void ADChevronWrite7050(NSString *body){
 }
 static void ADArmChevronProbe7050(void){
     gADChevronAwaitingTap7050=YES; gADChevronNativeTouchArmed7050=YES; gADChevronNativeTap7050=nil; gADChevronNativeAfter7050=nil;
+    ADChevronWrite7050(@"ARM_REQUESTED");
     WKWebView *wv=ADChevronVisibleWebView7050();
     if(!wv){ gADChevronAwaitingTap7050=NO; gADChevronNativeTouchArmed7050=NO; ADChevronWrite7050(@"ARM_ERROR NO_VISIBLE_WKWEBVIEW"); return; }
     [wv evaluateJavaScript:@"window.__ADCHEV7050_ARM?window.__ADCHEV7050_ARM():'NO_CHEVRON_BOOTSTRAP'" completionHandler:^(id value,NSError *error){
@@ -2219,7 +2225,7 @@ static void ADDumpChevronProbe7050(void){
 }
 static void ADChevronProbeSignal7050(int sig){
     if(sig!=SIGUSR2)return;
-    dispatch_async(dispatch_get_main_queue(),^{ @try { if(gADChevronAwaitingTap7050) ADDumpChevronProbe7050(); else ADArmChevronProbe7050(); } @catch(...) {} });
+    dispatch_async(dispatch_get_main_queue(),^{ @try { if(!gADChevronAwaitingTap7050) ADArmChevronProbe7050(); } @catch(...) {} });
 }
 
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){

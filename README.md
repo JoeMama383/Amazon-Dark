@@ -1,4 +1,17 @@
-# AmazonDark v7.0.50~probe
+# AmazonDark v7.0.51~probe
+
+## v7.0.51 probe workflow correction
+
+This build changes only the chevron probe workflow and package/runtime version. v7.0.50 Sponsored-glyph paint and all production theming remain functionally unchanged.
+
+- Restore the confirmed late-v7 NewTerm PID discovery: `ps -A -o pid=,comm= | grep '/Amazon.app/Amazon'`.
+- No `awk`, `pgrep`, `pidof`, `notifyutil`, Darwin relay, or SpringBoard relay.
+- One `SIGUSR2` arms the next Amazon touch.
+- The next Amazon touch should be the dark chevron. The probe captures the touch/event target, then the opened menu at +650 ms.
+- At +900 ms the report is written automatically. There is no second signal.
+- The probe writes `ARM_REQUESTED` immediately when the signal is received so trigger success can be verified.
+- NewTerm is used only to export `AmazonDark-chevron-tap-probe-7051.txt` after the tap.
+
 
 Built from the current v7.0.49 functional state. v7.0.49 itself was built on v7.0.46 (`a6a6d86`), so this source retains the v7.0.46 border/standalone-ad work and the v7.0.49 unscoped chevron fallback while replacing the two behaviors under test below.
 
