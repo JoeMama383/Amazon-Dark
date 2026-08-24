@@ -1,26 +1,9 @@
-# AmazonDark v7.0.76~probe
+# AmazonDark v7.0.77~probe
 
-- Direct probe base: v7.0.75. Scrollbar fix and current spinner styling are otherwise unchanged.
-- Temporary exact-point loading-spinner probe only: touch the visible bad spinner once.
-- Captures the native UIKit touch/view chain plus one `elementsFromPoint()` Web snapshot at that exact coordinate, including background sprite, mask, filter, transform, animation, pseudo-elements, ancestry and local spinner candidate.
-- Output: `AmazonDark-spinner-point-probe-7076.txt` in Amazon's Documents directory.
-- No MutationObserver, timer, scroll listener, interval, RAF, page-wide DOM scan or recurring probe pass.
 
-# AmazonDark v7.0.75
+## v7.0.77~probe — v7.0.73 Sponsor baseline + scoped scrollbar + spinner screen capture
 
-- Direct production base: v7.0.74; the confirmed-working v7.0.74 light native scrollbar port is unchanged.
-- Replaces the failed spinner `invert(1)` treatment with a static radial mask on Amazon's stock `.a-spinner` leaf.
-- The mask physically removes the center 67% of the spinner, so the center is transparent instead of merely recolored; only the surviving outer ring is normalized to light ink.
-- Amazon retains the spinner's existing dimensions and animation. No replacement DOM, JavaScript scheduler, observer, timer, scroll callback, interval, or RAF is added.
-
-# AmazonDark v7.0.74
-
-- Direct production base: v7.0.73.
-- Restored the proven v6.0.185/v6.0.77 native light-scroll-indicator behavior: `UIScrollViewIndicatorStyleWhite` is requested on mount and remains authoritative if Amazon/WebKit/React later changes `indicatorStyle`. UIKit still owns the thumb geometry, fade, alpha and scrolling behavior.
-- Attempted to remove the AUI loading-wheel center with `invert(1)` on the stock `.a-spinner` sprite. On-device v7.0.74 testing showed that treatment did not remove the opaque center; v7.0.75 supersedes only that spinner rule.
-- No MutationObserver, timer, scroll callback, hierarchy scan, interval or RAF was added.
-
-# AmazonDark v7.0.73
+This diagnostic build returns to the exact v7.0.73 production visual/runtime base because that build is confirmed on-device to keep the odd Sponsored glyph hydrated correctly. The v7.0.74 global `UIScrollView` indicator hook is not carried forward. Light scroll-indicator ownership is restricted to the main `WKScrollView`, avoiding nested `WKChildScrollView` carousel mount/hydration side effects. The failed v7.0.74/v7.0.75 spinner CSS experiments are removed. Taking an iOS screenshot triggers a one-shot current-viewport spinner capture; no MutationObserver, timer, scroll listener, interval, RAF, or recurring scan is added.
 
 - Pre-release refresh: themes Amazon's ad-feedback bottom sheet with cheap documentStart CSS only.
 - Feedback sheet structural floor is OLED black; headings/body/labels are light; issue textarea uses the same #303335 gray as the current search field; buttons and checkbox chrome are dark/neutral.
