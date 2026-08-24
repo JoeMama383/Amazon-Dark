@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.82"
+#define AD_VERSION "v7.83"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -938,15 +938,15 @@ static NSString *ADFloorJS(void){
              * paint declaratively so replacement nodes stay light without observers. */
             ":is([class*=_npack-asin-card_style_ad-feedback-spr],[class*=_npack-asin-card_style_ad-feedback-sprite],[class*=_cXVhZ_ad-feedback-spr],[class*=_cXVhZ_ad-feedback-sprite],[class*=_sponsored-products-mo])"
             "{color:#e8e6e3!important;background-color:#e8e6e3!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
-            /* v7.82: v7.81 inventory proved the intermittent dark glyph is the
-             * Hybrid NPACK/GWM mobile ad-feedback sprite. Amazon's late Grey-theme
-             * rule uses two classes + !important and can therefore beat the older
-             * one-attribute fallback depending on stylesheet insertion order.
-             * Anchor on Amazon's semantic feedback host and both sprite families so
-             * our CSS has strictly higher specificity. Glyph only; text is untouched. */
+            /* v7.83: retain v7.82's high-specificity Hybrid glyph ownership, but
+             * stop hard-coding the icon to light ink. The glyph is a direct child
+             * of Amazon's Sponsored text span, so inherit that span's live computed
+             * color and use currentColor for the existing mask. This preserves
+             * Amazon's per-card grey/white label choice while keeping the glyph
+             * immune to the late two-class Grey-theme dark override. Glyph only. */
             "html body [data-ad-feedback-label-id] b[class*=ad-feedback-sprite-mobile][class*=labelThemeStyle_ad-feedback-sprite-mobile],"
             "html body [data-ad-feedback-label-id] b[class*=ad-feedback-sprite-mobile]"
-            "{color:#e8e6e3!important;background-color:#e8e6e3!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
+            "{color:inherit!important;background-color:currentColor!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
             /* v7.0.79: the screenshot probe identified the actual Home load-more
              * wheel as _hp-mosaic-container_style_loadingSpinner__JXI3z. Amazon's
              * ::after pseudo is the opaque white center disc; match it to the OLED

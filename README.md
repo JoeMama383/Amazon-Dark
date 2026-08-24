@@ -1,3 +1,10 @@
+# AmazonDark v7.83 — Sponsor glyph inherits Amazon label color
+
+- Built directly from v7.82 production, preserving the v7.0.79 white-scrollbar baseline and the v7.82 deterministic Hybrid Sponsor-glyph ownership.
+- v7.82 correctly prevented late hydration from making Hybrid Sponsor glyphs dark, but hard-coded every captured Hybrid glyph to `#e8e6e3`.
+- v7.83 keeps the same high-specificity glyph-only selector and changes its paint to `color: inherit` + `background-color: currentColor`, so each masked info glyph follows the adjacent Amazon-owned Sponsored label whether Amazon renders that label gray or white.
+- Sponsored text is never recolored. No MutationObserver, timer, interval, RAF, web scroll listener, or probe runtime is added.
+
 # AmazonDark v7.82 — deterministic Hybrid Sponsored glyph paint
 
 - Built from the v7.0.79 production/scrollbar baseline through the v7.81 inventory probe.
