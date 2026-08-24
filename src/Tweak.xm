@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.54-sponsor-glyph-persist-chevron-live-probe"
+#define AD_VERSION "v7.0.55-sponsor-glyph-sticky-chevron-touch-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -895,30 +895,30 @@ static NSString *ADFloorJS(void){
             "border:2px solid transparent!important;background-clip:content-box!important;}"
             "::-webkit-scrollbar-thumb:hover{background-color:#8a8a8a!important;}"
             "';"
-            /* v7.0.50 Sponsored glyph-only synchronization. The label itself is never
-             * written. Read its computed color and apply it to the stock glyph only.
-             * Mask/SVG/currentColor and background-sprite variants preserve their
-             * existing geometry/artwork while taking the exact label CSS color.
-             * Initial/pageshow work is bounded to Sponsor selectors. Lazy/recycled ads
-             * piggyback on their own media load event; no MutationObserver/scroll/timer. */
+            /* v7.0.55 Sponsored glyph persistence. Keep the v7.0.50 exact-color
+             * painter, but watch only each discovered Sponsor feedback row. Amazon can
+             * rehydrate the existing glyph by changing class/style without inserting a
+             * new node, which is why the v7.0.53 child-list-only global observer missed
+             * the late revert. Each tiny row observer watches childList + class/style,
+             * disconnects while repainting to avoid self-trigger loops, and never scans
+             * unrelated document mutations. Sponsored text remains Amazon-owned. */
             "try{(function(){"
-            "if(window.__ADSPG7050__)return;window.__ADSPG7050__=1;"
+            "if(window.__ADSPG7055__)return;window.__ADSPG7055__=1;"
             "var LS='[class*=ad-feedback-text],[class*=sponsored-label],[id^=ad-feedback-text-],[id^=af-label-primary-link-]';"
             "var GS='[class*=ad-feedback-spr],[class*=ad-feedback-sprite],[id*=feedbackIcon],[id*=feedback-icon]';"
+            "var watched=new WeakSet();"
             "function txt(e){try{return String(e.textContent||'').replace(/\\s+/g,' ').trim().toLowerCase()}catch(_){return ''}}"
             "function isL(e){if(!e||e.nodeType!==1)return false;try{return e.matches(LS)&&(txt(e)==='sponsored'||txt(e)==='sponsored ad'||txt(e)==='advertisement'||/ad-feedback|sponsored/i.test(String(e.className||'')+' '+String(e.id||'')))}catch(_){return false}}"
+            "function root(l){try{for(var p=l,i=0;p&&i<5;i++,p=p.parentElement){var k=String(p.className||'')+' '+String(p.id||'');if(/ape-feedback|ad-feedback|adFeedbackMainComponent|af-label-primary/i.test(k))return p}return l.parentElement||l}catch(_){return l}}"
             "function glyph(l){try{var q=l.querySelector(GS+', [class*=spr]');if(q)return q;var p=l.parentElement;for(var i=0;p&&i<3;i++,p=p.parentElement){q=p.querySelector(GS);if(q)return q;var a=p.querySelectorAll('[class*=spr]');for(var j=0;j<a.length&&j<12;j++){var r=a[j].getBoundingClientRect();if(r.width>=5&&r.width<=36&&r.height>=5&&r.height<=36)return a[j]}}}catch(_){}return null}"
             "function rgba(v){var m=String(v||'').match(/rgba?\\(([^)]+)\\)/i);if(!m)return null;var a=m[1].split(',');if(a.length<3)return null;return [parseFloat(a[0]),parseFloat(a[1]),parseFloat(a[2]),a.length>3?parseFloat(a[3]):1]}"
             "function spriteMask(g,cs,c){try{var bi=String(cs.backgroundImage||'');if(!bi||bi==='none')return false;g.style.setProperty('-webkit-mask-image',bi,'important');g.style.setProperty('mask-image',bi,'important');g.style.setProperty('-webkit-mask-position',cs.backgroundPosition||'0% 0%','important');g.style.setProperty('mask-position',cs.backgroundPosition||'0% 0%','important');g.style.setProperty('-webkit-mask-size',cs.backgroundSize||'auto','important');g.style.setProperty('mask-size',cs.backgroundSize||'auto','important');g.style.setProperty('-webkit-mask-repeat',cs.backgroundRepeat||'repeat','important');g.style.setProperty('mask-repeat',cs.backgroundRepeat||'repeat','important');g.style.setProperty('background-image','none','important');g.style.setProperty('background-color',c,'important');g.style.setProperty('filter','none','important');g.style.setProperty('-webkit-filter','none','important');return true}catch(_){return false}}"
-            "function paint(l){try{if(!isL(l))return;var lc=getComputedStyle(l),c=lc.color,rv=rgba(c),g=glyph(l);if(!g||!rv)return;g.style.setProperty('color',c,'important');g.style.setProperty('visibility','visible','important');g.style.setProperty('mix-blend-mode','normal','important');g.style.setProperty('position','relative','important');g.style.setProperty('z-index','2','important');var cs=getComputedStyle(g),mask=(cs.webkitMaskImage&&cs.webkitMaskImage!=='none')||(cs.maskImage&&cs.maskImage!=='none'),mode='currentColor-exact';if(mask){g.style.setProperty('background-color',c,'important');g.style.setProperty('filter','none','important');g.style.setProperty('-webkit-filter','none','important');mode='mask-exact'}var svg=g.matches('svg')?g:g.querySelector('svg');if(svg){svg.style.setProperty('color',c,'important');var z=svg.querySelectorAll('path,use,circle,rect,polygon,polyline,line');for(var k=0;k<z.length&&k<24;k++){z[k].style.setProperty('fill',c,'important');z[k].style.setProperty('stroke',c,'important')}mode='svg-exact'}else if(!mask&&spriteMask(g,cs,c)){mode='sprite-mask-exact'}else if(!mask){var spread=Math.max(rv[0],rv[1],rv[2])-Math.min(rv[0],rv[1],rv[2]);if(spread<=8){var gray=(rv[0]+rv[1]+rv[2])/3/255;g.style.setProperty('filter','brightness(0) invert('+gray.toFixed(5)+')','important');g.style.setProperty('-webkit-filter','brightness(0) invert('+gray.toFixed(5)+')','important');mode='neutral-filter-exact'}else mode='currentColor-only'}g.style.setProperty('opacity',String(isFinite(rv[3])?rv[3]:1),'important');g.setAttribute('data-ad-spg7050',mode);g.setAttribute('data-ad-spg7050-color',c)}catch(_){}}"
-            "function all(root){try{var a=(root||document).querySelectorAll(LS),n=Math.min(a.length,64);for(var i=0;i<n;i++)paint(a[i])}catch(_){}}"
-            "function local(n){try{var p=n&&n.nodeType===1?n:n&&n.parentElement;for(var i=0;p&&i<5;i++,p=p.parentElement){if(isL(p)){paint(p);return}var l=p.querySelector&&p.querySelector(LS);if(l){paint(l);return}}}catch(_){}}"
+            "function paint(l){try{if(!isL(l))return;var lc=getComputedStyle(l),c=lc.color,rv=rgba(c),g=glyph(l);if(!g||!rv)return;g.style.setProperty('color',c,'important');g.style.setProperty('visibility','visible','important');g.style.setProperty('mix-blend-mode','normal','important');g.style.setProperty('position','relative','important');g.style.setProperty('z-index','2','important');var cs=getComputedStyle(g),mask=(cs.webkitMaskImage&&cs.webkitMaskImage!=='none')||(cs.maskImage&&cs.maskImage!=='none'),mode='currentColor-exact';if(mask){g.style.setProperty('background-color',c,'important');g.style.setProperty('filter','none','important');g.style.setProperty('-webkit-filter','none','important');mode='mask-exact'}var svg=g.matches('svg')?g:g.querySelector('svg');if(svg){svg.style.setProperty('color',c,'important');var z=svg.querySelectorAll('path,use,circle,rect,polygon,polyline,line');for(var k=0;k<z.length&&k<24;k++){z[k].style.setProperty('fill',c,'important');z[k].style.setProperty('stroke',c,'important')}mode='svg-exact'}else if(!mask&&spriteMask(g,cs,c)){mode='sprite-mask-exact'}else if(!mask){var spread=Math.max(rv[0],rv[1],rv[2])-Math.min(rv[0],rv[1],rv[2]);if(spread<=8){var gray=(rv[0]+rv[1]+rv[2])/3/255;g.style.setProperty('filter','brightness(0) invert('+gray.toFixed(5)+')','important');g.style.setProperty('-webkit-filter','brightness(0) invert('+gray.toFixed(5)+')','important');mode='neutral-filter-exact'}else mode='currentColor-only'}g.style.setProperty('opacity',String(isFinite(rv[3])?rv[3]:1),'important');g.setAttribute('data-ad-spg7055',mode);g.setAttribute('data-ad-spg7055-color',c)}catch(_){}}"
+            "function watch(l){try{if(!isL(l))return;paint(l);var r=root(l);if(!r||watched.has(r))return;watched.add(r);var mo=new MutationObserver(function(){try{mo.disconnect();var nl=(r.matches&&isL(r))?r:(r.querySelector?r.querySelector(LS):null);if(nl)paint(nl)}catch(_){}try{mo.observe(r,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style']})}catch(_){}});mo.observe(r,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style']});}catch(_){}}"
+            "function all(rootNode){try{var a=(rootNode||document).querySelectorAll(LS),n=Math.min(a.length,64);for(var i=0;i<n;i++)watch(a[i])}catch(_){}}"
+            "function local(n){try{var p=n&&n.nodeType===1?n:n&&n.parentElement;for(var i=0;p&&i<5;i++,p=p.parentElement){if(isL(p)){watch(p);return}var l=p.querySelector&&p.querySelector(LS);if(l){watch(l);return}}}catch(_){}}"
             "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){all(document)},{once:true});else all(document);"
             "window.addEventListener('pageshow',function(){all(document)},false);document.addEventListener('load',function(e){local(e.target)},true);"
-            /* v7.0.53: Amazon can replace the already-correct Sponsor glyph after hydration.
-             * One tiny child-list observer watches only inserted nodes and performs a local
-             * Sponsor lookup; there is no document scan in the callback. */
-            "try{var mo=new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var an=ms[i].addedNodes;for(var j=0;j<an.length;j++){var n=an[j];if(!n||n.nodeType!==1)continue;local(n);try{if(n.matches&&isL(n))paint(n);else if(n.querySelector){var l=n.querySelector(LS);if(l)paint(l)}}catch(_){}}}});mo.observe(document.documentElement||document,{childList:true,subtree:true});window.__ADSPG7053_MO=mo}catch(_){ }"
             "})();}catch(__){}"
             "document.documentElement.style.setProperty('background-color','#000','important');"
             "document.documentElement.style.setProperty('color-scheme','dark','important');"
@@ -1053,7 +1053,8 @@ static NSString *ADChevronProbeJS7050(void){
     "function dump(){try{return (rows.length?rows.join('\\n\\n'):'NO_WEB_TAP_CAPTURE')+'\\n\\n'+grid('CURRENT_AT_EXPORT')+'\\nactive='+one(document.activeElement)}catch(e){return 'DUMPERR '+e}}"
     "function xy(e){var x=e.clientX,y=e.clientY;try{if((!isFinite(x)||!isFinite(y))&&e.changedTouches&&e.changedTouches.length){x=e.changedTouches[0].clientX;y=e.changedTouches[0].clientY}}catch(_){}return [Number(x)||0,Number(y)||0]}"
     "function hit(e){try{var now=Date.now();if(now-lastHit<350)return;lastHit=now;var q=xy(e),x=q[0],y=q[1],t=e.target;if(topf)rows=[];emit('EVENT type='+e.type+' href='+location.href+'\\nTARGET_HTML '+html(t)+'\\n'+chain(t,'TARGET_CHAIN')+'\\n'+epath(e)+'\\n'+point(x,y,'BEFORE_HANDLER'));[0,80,250].forEach(function(ms){setTimeout(function(){emit(point(x,y,'AFTER_'+ms+'MS'))},ms)});setTimeout(function(){emit(point(x,y,'AFTER_650MS'));emit(grid('AFTER_650MS_MENU'));emit('ACTIVE_AFTER_650MS '+one(document.activeElement))},650)}catch(z){emit('EVENTERR '+z)}}"
-    "if(topf){window.addEventListener('message',function(e){try{if(e.data&&e.data.__adc7053){var t=String(e.data.t||'');if(t.indexOf('EVENT type=')===0)rows=[];rows.push('CHILD '+t);if(t.indexOf('EVENT type=')===0&&!topChildTimer){topChildTimer=1;setTimeout(function(){rows.push(grid('TOP_AFTER_CHILD_TAP_650MS'));topChildTimer=0},650)}}}catch(_){}},false);window.__ADCHEV7053_DUMP=dump;}"
+    "function np(fx,fy,label){try{var W=innerWidth||document.documentElement.clientWidth||0,H=innerHeight||document.documentElement.clientHeight||0,x=Math.max(0,Math.min(W-1,W*fx)),y=Math.max(0,Math.min(H-1,H*fy)),t=document.elementFromPoint(x,y);if(topf)rows=[];emit('NATIVE_POINT '+String(label||'tap')+' frac='+fx.toFixed(5)+','+fy.toFixed(5)+' css='+Math.round(x)+','+Math.round(y)+' href='+location.href+'\\nTARGET_HTML '+html(t)+'\\n'+chain(t,'NATIVE_TARGET_CHAIN')+'\\n'+point(x,y,'NATIVE_AT_DISPATCH'));[80,250].forEach(function(ms){setTimeout(function(){emit(point(x,y,'NATIVE_AFTER_'+ms+'MS'))},ms)});setTimeout(function(){emit(point(x,y,'NATIVE_AFTER_650MS'));emit(grid('NATIVE_AFTER_650MS_MENU'));emit('ACTIVE_NATIVE_650MS '+one(document.activeElement))},650);return 'NATIVE_POINT_CAPTURED'}catch(e){emit('NATIVE_POINT_ERR '+e);return 'NATIVE_POINT_ERR'}}"
+    "if(topf){window.addEventListener('message',function(e){try{if(e.data&&e.data.__adc7053){var t=String(e.data.t||'');if(t.indexOf('EVENT type=')===0)rows=[];rows.push('CHILD '+t);if(t.indexOf('EVENT type=')===0&&!topChildTimer){topChildTimer=1;setTimeout(function(){rows.push(grid('TOP_AFTER_CHILD_TAP_650MS'));topChildTimer=0},650)}}}catch(_){}},false);window.__ADCHEV7053_DUMP=dump;window.__ADCHEV7055_NATIVE_POINT=np;}"
     "document.addEventListener('touchend',hit,true);document.addEventListener('pointerup',hit,true);document.addEventListener('click',hit,true);"
     "}catch(e){}})();";
 }
@@ -1883,42 +1884,58 @@ static void ADOwnBottomBar708(UIView *v){
 
 %hook UIApplication
 - (void)sendEvent:(UIEvent *)event {
-    NSArray *adTouches=nil;
+    BOOL adEnded=NO;
+    NSUInteger adGen=0;
+    WKWebView *adTouchWV=nil;
+    CGPoint adScreenPoint=CGPointZero;
+    CGFloat adFX=0.5, adFY=0.5;
     if(event.type==UIEventTypeTouches){
         @try {
-            adTouches=[[event allTouches] allObjects];
-            /* Probe-only fallback: install into the live page at touch-began, before
-             * WebKit receives the corresponding touch-end/click. */
-            for(UITouch *t in adTouches){
-                if(t.phase!=UITouchPhaseBegan)continue;
-                WKWebView *wv=ADChevronVisibleWebView7050();
-                if(wv){ gADChevronTapWebView7053=wv; [wv evaluateJavaScript:ADChevronProbeJS7050() completionHandler:nil]; }
+            for(UITouch *t in [event allTouches]){
+                if(t.phase!=UITouchPhaseBegan && t.phase!=UITouchPhaseEnded)continue;
+                UIView *tv=t.view;
+                WKWebView *wv=nil;
+                for(UIView *q=tv;q;q=q.superview){ if([q isKindOfClass:[WKWebView class]]){ wv=(WKWebView *)q; break; } }
+                if(t.phase==UITouchPhaseBegan){
+                    if(wv){ gADChevronTapWebView7053=wv; [wv evaluateJavaScript:ADChevronProbeJS7050() completionHandler:nil]; }
+                    continue;
+                }
+                /* Capture the real touched UIKit chain BEFORE %orig. UIKit may clear
+                 * UITouch.view after dispatch, which caused the blank NATIVE_TOUCH chain
+                 * in v7.0.54. The WKWebView ancestor is also the exact live page instead
+                 * of an arbitrary tracked/hidden web view. */
+                adEnded=YES;
+                adGen=++gADChevronTapGeneration7052;
+                adScreenPoint=[t locationInView:nil];
+                gADChevronNativeTap7050=ADChevronNativeChain7050(tv,adScreenPoint);
+                gADChevronNativeAfter7050=nil;
+                adTouchWV=wv;
+                if(adTouchWV){
+                    gADChevronTapWebView7053=adTouchWV;
+                    CGPoint lp=[adTouchWV convertPoint:adScreenPoint fromView:nil];
+                    if(adTouchWV.bounds.size.width>0) adFX=lp.x/adTouchWV.bounds.size.width;
+                    if(adTouchWV.bounds.size.height>0) adFY=lp.y/adTouchWV.bounds.size.height;
+                    adFX=MAX(0.0,MIN(1.0,adFX)); adFY=MAX(0.0,MIN(1.0,adFY));
+                    [adTouchWV evaluateJavaScript:ADChevronProbeJS7050() completionHandler:nil];
+                }
                 break;
             }
         } @catch(...) {}
     }
     %orig;
-    if(event.type==UIEventTypeTouches){
+    if(adEnded){
         @try {
-            for(UITouch *t in adTouches){
-                if(t.phase!=UITouchPhaseEnded)continue;
-                UIView *v=t.view; CGPoint p=[t locationInView:nil];
-                NSUInteger gen=++gADChevronTapGeneration7052;
-                gADChevronNativeTap7050=ADChevronNativeChain7050(v,p);
-                gADChevronNativeAfter7050=nil;
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.65*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-                    @try {
-                        if(gen==gADChevronTapGeneration7052)
-                            gADChevronNativeAfter7050=ADChevronNativeSnapshot7050(@"NATIVE_AFTER_650MS_MENU");
-                    } @catch(...) {}
-                });
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.95*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-                    @try {
-                        if(gen==gADChevronTapGeneration7052) ADDumpChevronProbe7050();
-                    } @catch(...) {}
-                });
-                break;
+            WKWebView *wv=adTouchWV;
+            if(wv){
+                NSString *js=[NSString stringWithFormat:@"window.__ADCHEV7055_NATIVE_POINT?window.__ADCHEV7055_NATIVE_POINT(%.8f,%.8f,'TOUCH_END'):'NO_NATIVE_POINT_BOOTSTRAP'",adFX,adFY];
+                [wv evaluateJavaScript:js completionHandler:nil];
             }
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.65*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+                @try { if(adGen==gADChevronTapGeneration7052) gADChevronNativeAfter7050=ADChevronNativeSnapshot7050(@"NATIVE_AFTER_650MS_MENU"); } @catch(...) {}
+            });
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.95*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+                @try { if(adGen==gADChevronTapGeneration7052) ADDumpChevronProbe7050(); } @catch(...) {}
+            });
         } @catch(...) {}
     }
 }
@@ -2157,7 +2174,7 @@ static void ADScheduleLaunchReadyCheck706(void){
 
 
 // -----------------------------------------------------------------------------
-// v7.0.52 automatic chevron tap probe.
+// v7.0.55 automatic chevron tap probe.
 // No PID lookup, SIGUSR signal, terminal arming, notification relay or recurring
 // work. Every completed Amazon touch becomes the current candidate; only the
 // most recent candidate survives. At +650 ms the opened menu is sampled, and at
@@ -2167,9 +2184,9 @@ static NSString *ADChevronProbePath7050(void){
     @try {
         NSArray *dirs=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
         NSString *base=dirs.firstObject;
-        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-chevron-tap-probe-7053.txt"];
+        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-chevron-tap-probe-7055.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-chevron-tap-probe-7053.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-chevron-tap-probe-7055.txt"];
 }
 static NSString *ADChevronColor7050(UIColor *c){
     if(!c)return @"-";
