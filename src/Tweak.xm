@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.73"
+#define AD_VERSION "v7.0.74"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -931,6 +931,16 @@ static NSString *ADFloorJS(void){
             ".a-icon-next-rounded,.a-icon-previous-rounded"
             "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;"
             "opacity:1!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;}"
+            /* v7.0.74: Amazon AUI loading spinner on the OLED floor.
+             * Historical v5/v6 probes identify the visible loader as the stock
+             * SPAN.a-spinner background sprite.  The sprite was authored for a
+             * light floor and carries a white center; invert only that sprite so
+             * its center becomes OLED-black while the rotating ring becomes light.
+             * Keep the wrapper/leaf background transparent and preserve Amazon's
+             * stock sprite geometry/animation. */
+            ".a-spinner-wrapper{background-color:transparent!important;background-image:none!important;}"
+            ".a-spinner,.a-spinner-wrapper .a-spinner"
+            "{background-color:transparent!important;filter:invert(1)!important;-webkit-filter:invert(1)!important;}"
             /* Retain the current v7.0.47-v7.0.49 system-control parity. */
             "::-webkit-scrollbar{background-color:transparent!important;}"
             "::-webkit-scrollbar-track{background-color:transparent!important;}"
@@ -1181,6 +1191,26 @@ static void ADApplyAllFloors(void){
 - (void)didMoveToWindow {
     %orig;
     if(gP.enabled && self.window){ ADAttachWebScripts(self); ADApplyWebFloor(self); ADScheduleLaunchReadyCheck706(); }
+}
+%end
+
+/* v7.0.74: restore the v6.0.185/v6.0.77 light native scroll-indicator contract.
+ * UIKit remains the renderer; we only make its public indicator style authoritative.
+ * This covers ordinary UIScrollView, React scroll views and WebKit scroll views
+ * without painting private indicator views or adding scroll-time work. */
+%hook UIScrollView
+- (void)didMoveToWindow {
+    %orig;
+    if(gP.enabled && self.window){
+        self.indicatorStyle=UIScrollViewIndicatorStyleWhite;
+    }
+}
+- (void)setIndicatorStyle:(UIScrollViewIndicatorStyle)style {
+    if(gP.enabled){
+        %orig(UIScrollViewIndicatorStyleWhite);
+        return;
+    }
+    %orig;
 }
 %end
 

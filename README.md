@@ -1,3 +1,10 @@
+# AmazonDark v7.0.74
+
+- Direct production base: v7.0.73.
+- Restores the proven v6.0.185/v6.0.77 native light-scroll-indicator behavior: `UIScrollViewIndicatorStyleWhite` is requested on mount and remains authoritative if Amazon/WebKit/React later changes `indicatorStyle`. UIKit still owns the thumb geometry, fade, alpha and scrolling behavior.
+- Fixes the Home/Search AUI loading wheel white-center artifact with static CSS only. The exact stock `.a-spinner` sprite is inverted over the OLED floor, turning its opaque white center black while keeping the rotating ring light; the spinner wrapper/leaf stays transparent and Amazon keeps its stock animation.
+- No MutationObserver, timer, scroll callback, hierarchy scan, interval or RAF is added.
+
 # AmazonDark v7.0.73
 
 - Pre-release refresh: themes Amazon's ad-feedback bottom sheet with cheap documentStart CSS only.
