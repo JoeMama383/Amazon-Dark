@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.62"
+#define AD_VERSION "v7.0.63"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -972,11 +972,11 @@ static NSString *ADTWBJS(void){
          "[class*=hp-mosaic-container] :is(img,svg)"
          ":not([class*=next]):not([class*=prev]):not([class*=chevron]):not([class*=arrow])"
          ":not(:where([class*=next] *)):not(:where([class*=prev] *))"
-         ":not(:where([class*=chevron] *)):not(:where([class*=arrow] *)),"
+         ":not(:where([class*=chevron] *)):not(:where([class*=arrow] *)):not([class*=header-icon]):not([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr]),"
          "[class*=_mosaic-container_style_widgetContainer] :is(img,svg)"
          ":not([class*=next]):not([class*=prev]):not([class*=chevron]):not([class*=arrow])"
          ":not(:where([class*=next] *)):not(:where([class*=prev] *))"
-         ":not(:where([class*=chevron] *)):not(:where([class*=arrow] *)),"
+         ":not(:where([class*=chevron] *)):not(:where([class*=arrow] *)):not([class*=header-icon]):not([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr]),"
          /* Historical single-creative / single-video / canvas Home media. */
          "img[class*=_single-creative-card],img[class*=_single-video-card],"
          "[class*=single-creative-card] img,[class*=single-video-card] img,"

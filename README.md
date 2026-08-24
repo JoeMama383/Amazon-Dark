@@ -1,49 +1,44 @@
-# AmazonDark v7.0.62
+# AmazonDark v7.0.63
 
-## The chevron was ours all along
+## The v7.0.62 fix never applied
 
-The v7.0.61 sweep identified it in one capture:
+The v7.0.62 sweep, taken on v7.0.62, still reports:
 
-    svg cls=_npack-asin-card_style_header-icon__2cuVV   20x20
-    color=rgb(232,230,227)   filter=brightness(0.5)   fill=none
+    svg cls=_npack-asin-card_style_header-icon__2cuVV   filter=brightness(0.5)
 
-It is an inline `<svg>` whose path inherits `color: rgb(232,230,227)` — already the
-correct light ink. Then **our own TWB media-dimming rule applies
-`filter: brightness(0.5)`**, halving it to about `rgb(116,115,113)`. That is the dark
-chevron.
+My v7.0.62 edit targeted a single-line form of the selector. The two chains that
+actually put `svg` in the subject list are **split across source lines**, so the replace
+matched nothing and silently changed the wrong thing — it extended the `img`-only
+chains instead. The verification I ran then tested my hand-written selector string, not
+the one in the file, which is why it passed while the build did nothing.
 
-Four rules were written to paint it lighter across v7.0.42–61. None could work, because
-nothing was painting it dark — a filter was dimming something already correct. The same
-class appears as `_multi-category-card_style_header-icon__…` and `_cXVhZ_header-icon_…`,
-so it spans every card family on Home, which matches "dark everywhere".
+Both `:is(img,svg)` chains now carry the exclusion, verified by re-reading them out of
+the source rather than from a string I typed.
 
-The TWB exclusion chain has `:not([class*=icon])`, but this class is `header-icon` on the
-**svg itself**, and the surrounding `:not(:where(… *))` guards only exclude *descendants*
-of an ad-feedback or sponsored subtree, never the element itself. Both exclusion chains
-now also carry `:not([class*=header-icon])`.
+## The chevron, restated
 
-## The sponsored glyph revert, same root cause
+It is an inline `<svg class="…header-icon…">` whose path inherits
+`color: rgb(232,230,227)` — already correct. `brightness(0.5)` halves it to about
+`rgb(116,115,113)`. Nothing was painting it dark; our own media-dimming filter was
+dimming something already right. The class appears as `_npack-asin-card_style_…`,
+`_multi-category-card_style_…` and `_cXVhZ_…`, which is why it was dark on every card
+family.
 
-`ad-feedback-spr` fell through the identical gap: `:not([class*=sprite])` does not match
-`spr`, and `:not(:where([class*=ad-feedback] *))` covers descendants only. So the painter
-tinted the glyph to the label colour, and our own TWB filter then re-dimmed it — which is
-why it looked correct for a moment and then went dark, and why neither a settle train nor
-a persistent style rule fixed it. Both chains now exclude `[class*=ad-feedback]`,
-`[class*=sponsored]` and `[class*=spr]`.
+`ad-feedback`, `sponsored` and `spr` are excluded on the same chains, which should also
+stop the sponsored glyph being re-dimmed after the painter tints it.
 
-## Not fixed: Disney card images
+## Disney card: still no evidence
 
-Not enough evidence. The point capture landed on a *working* multi-category image
-(`_multi-category-card_image_round-corners__22iOW`, `filter=brightness(0.5)`, visible),
-not a broken one. Press-and-hold revealing the image is iOS's link-preview sheet
-rendering it independently, which tells us the image data is fine and something in the
-normal paint path is hiding it — but not what.
+This capture landed on a working `_YW1he_product-image` tile, not an invisible one. Its
+container `_YW1he_container_…colored-background_…` computes `bg=rgb(247,247,247)` — a
+light plate we are not darkening — but that tile renders fine, so it is not the fault.
 
-The next capture should tap directly on one of the invisible Disney tiles.
+A capture with the tap on an actually-invisible Disney tile is still what is needed.
 
 ## Verification
 
-- Selector test: the chevron svg no longer matches the dimming selector, the sponsored
-  sprite no longer matches, and a product image **still** matches so taming is preserved.
-  3/3.
-- Both exclusion chains extended; balance 0/0/0; `scripts/lint-logos.sh`.
+- Both `:is(img,svg)` chains re-read from source and confirmed to carry
+  `:not([class*=header-icon])`.
+- Selector test: all three chevron class variants no longer match the dimming selector;
+  a product image and a hero creative still do, so taming is preserved. 5/5.
+- Balance 0/0/0; `scripts/lint-logos.sh`.
