@@ -1,10 +1,10 @@
-# AmazonDark v7.81 — Sponsored renderer inventory probe
+# AmazonDark v7.82 — deterministic Hybrid Sponsored glyph paint
 
-- Built directly on the v7.0.79 production source / white-scrollbar behavior.
-- Screenshot-triggered one-shot inventory of every visible Sponsored label and nearby glyph painter.
-- Captures class/id, geometry, computed color, background image, mask image, pseudo-elements, ancestry, and outerHTML for each renderer family.
-- Does not alter Sponsored colors beyond the existing v7.0.79 production behavior.
-- No MutationObserver, timer, interval, RAF, web scroll listener, or recurring DOM scan.
+- Built from the v7.0.79 production/scrollbar baseline through the v7.81 inventory probe.
+- v7.81 proved the intermittent dark Sponsor glyph is Amazon's Hybrid NPACK/GWM `ad-feedback-sprite-mobile` renderer: the visible text is Amazon-owned, while the masked 12x12 glyph can hydrate to `rgb(17,17,17)`.
+- Adds one declarative, high-specificity CSS rule anchored to `data-ad-feedback-label-id` so Amazon's late two-class Grey-theme rule cannot win by stylesheet order.
+- Paints only the Sponsor glyph light; Sponsored text remains fully Amazon-owned.
+- Removes the v7.81 screenshot probe/runtime. No MutationObserver, timer, interval, RAF, or web scroll listener.
 
 # AmazonDark v7.0.79
 

@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.81-sponsor-inventory-probe"
+#define AD_VERSION "v7.82"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -937,6 +937,15 @@ static NSString *ADFloorJS(void){
              * be replaced after the one-shot JS pass.  Own only the masked glyph
              * paint declaratively so replacement nodes stay light without observers. */
             ":is([class*=_npack-asin-card_style_ad-feedback-spr],[class*=_npack-asin-card_style_ad-feedback-sprite],[class*=_cXVhZ_ad-feedback-spr],[class*=_cXVhZ_ad-feedback-sprite],[class*=_sponsored-products-mo])"
+            "{color:#e8e6e3!important;background-color:#e8e6e3!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
+            /* v7.82: v7.81 inventory proved the intermittent dark glyph is the
+             * Hybrid NPACK/GWM mobile ad-feedback sprite. Amazon's late Grey-theme
+             * rule uses two classes + !important and can therefore beat the older
+             * one-attribute fallback depending on stylesheet insertion order.
+             * Anchor on Amazon's semantic feedback host and both sprite families so
+             * our CSS has strictly higher specificity. Glyph only; text is untouched. */
+            "html body [data-ad-feedback-label-id] b[class*=ad-feedback-sprite-mobile][class*=labelThemeStyle_ad-feedback-sprite-mobile],"
+            "html body [data-ad-feedback-label-id] b[class*=ad-feedback-sprite-mobile]"
             "{color:#e8e6e3!important;background-color:#e8e6e3!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
             /* v7.0.79: the screenshot probe identified the actual Home load-more
              * wheel as _hp-mosaic-container_style_loadingSpinner__JXI3z. Amazon's
@@ -1925,61 +1934,6 @@ static void ADOwnBottomBar708(UIView *v){
 %end
 
 
-// -----------------------------------------------------------------------------
-// v7.81 probe: screenshot-triggered full Sponsored renderer inventory.
-// One-shot only when the user takes a screenshot.  No observer, timer, interval,
-// RAF, scroll listener, or recurring DOM scan.
-// -----------------------------------------------------------------------------
-static NSString *ADSponsorInventoryProbePath781(void){
-    @try {
-        NSArray *dirs=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
-        NSString *base=dirs.firstObject;
-        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-sponsored-inventory-probe-v7.81.txt"];
-    } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-sponsored-inventory-probe-v7.81.txt"];
-}
-static WKWebView *ADLargestVisibleWeb781(void){
-    WKWebView *best=nil; CGFloat area=0;
-    @try {
-        for(WKWebView *wv in ADTrackedWebViews()){
-            if(!wv.window||wv.hidden||wv.alpha<0.01)continue;
-            CGRect r=[wv convertRect:wv.bounds toView:wv.window];
-            CGRect ir=CGRectIntersection(r,wv.window.bounds);
-            CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height);
-            if(a>area){area=a;best=wv;}
-        }
-    } @catch(...) {}
-    return best;
-}
-static void ADCaptureSponsorInventory781(void){
-    if(!gP.enabled)return;
-    WKWebView *wv=ADLargestVisibleWeb781();
-    if(!wv)return;
-    NSString *js=@"(function(){try{"
-      "function C(e){try{var x=e.className;if(x&&x.baseVal!==undefined)x=x.baseVal;return typeof x==='string'?x:''}catch(_){return ''}}"
-      "function T(e){try{return String(e.textContent||'').replace(/\\s+/g,' ').trim().slice(0,180)}catch(_){return ''}}"
-      "function X(e){try{return String(e.outerHTML||'').replace(/\\s+/g,' ').slice(0,1400)}catch(_){return ''}}"
-      "function V(e){try{var r=e.getBoundingClientRect(),c=getComputedStyle(e);return r.width>0&&r.height>0&&r.bottom>=0&&r.top<=innerHeight&&r.right>=0&&r.left<=innerWidth&&c.display!=='none'&&c.visibility!=='hidden'&&parseFloat(c.opacity||1)>0}catch(_){return false}}"
-      "function O(e){try{var r=e.getBoundingClientRect(),c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');return [String(e.tagName||'?').toLowerCase(),e.id?'#'+e.id:'',C(e)?'.'+C(e).trim().replace(/\\s+/g,'.'):'',' rect='+[r.x,r.y,r.width,r.height].map(function(v){return Math.round(v*10)/10}).join(','),' visible='+V(e),' text='+JSON.stringify(T(e)),' aria='+JSON.stringify(e.getAttribute('aria-label')||''),' role='+(e.getAttribute('role')||''),' color='+c.color,' bg='+c.backgroundColor,' bgimg='+String(c.backgroundImage||'').slice(0,500),' bgpos='+c.backgroundPosition,' bgsize='+c.backgroundSize,' bgrep='+c.backgroundRepeat,' mask='+String(c.webkitMaskImage||c.maskImage||'').slice(0,500),' maskpos='+(c.webkitMaskPosition||c.maskPosition||''),' masksize='+(c.webkitMaskSize||c.maskSize||''),' filter='+c.filter,' opacity='+c.opacity,' display='+c.display,' visibility='+c.visibility,' fill='+c.fill,' stroke='+c.stroke,' outline='+c.outline,' boxshadow='+c.boxShadow,' before='+[b.content,b.color,b.backgroundColor,b.backgroundImage,b.webkitMaskImage||b.maskImage,b.filter,b.opacity,b.display,b.visibility].join('|').slice(0,700),' after='+[a.content,a.color,a.backgroundColor,a.backgroundImage,a.webkitMaskImage||a.maskImage,a.filter,a.opacity,a.display,a.visibility].join('|').slice(0,700)].join('')}catch(z){return 'ERR '+z}}"
-      "function semantic(e){var z=(C(e)+' '+String(e.id||'')+' '+String(e.getAttribute('aria-label')||'')+' '+T(e)).toLowerCase();return z.indexOf('sponsor')>=0||z.indexOf('ad-feedback')>=0||z.indexOf('feedbackicon')>=0||z.indexOf('feedback-icon')>=0||z.indexOf('ape-feedback')>=0}"
-      "function tiny(e){try{var r=e.getBoundingClientRect();return r.width>=4&&r.height>=4&&r.width<=48&&r.height<=48}catch(_){return false}}"
-      "var W=innerWidth||0,H=innerHeight||0,o=['AmazonDark v7.81 Sponsored inventory','href='+location.href,'title='+document.title,'ready='+document.readyState,'viewport='+W+'x'+H];"
-      "var all=document.querySelectorAll('*'),rels=[],labs=[],glyphs=[];"
-      "for(var i=0;i<all.length;i++){var e=all[i],tx=T(e).toLowerCase(),ar=String(e.getAttribute('aria-label')||'').toLowerCase();if(semantic(e)){rels.push(e);if((tx==='sponsored'||tx.indexOf('sponsored')===0||ar.indexOf('sponsored')>=0)&&!tiny(e))labs.push(e);if(tiny(e))glyphs.push(e)}}"
-      "o.push('COUNTS related='+rels.length+' labels='+labs.length+' tinyGlyphCandidates='+glyphs.length);"
-      "for(var i=0,k=0;i<labs.length&&k<40;i++){var l=labs[i];if(!V(l))continue;var lr=l.getBoundingClientRect();o.push('\\nPAIR '+k+' LABEL '+O(l));o.push('PAIR '+k+' LABEL_HTML '+X(l));var p=l;for(var d=0;p&&d<5;d++,p=p.parentElement){o.push('PAIR '+k+' ANCESTOR'+d+' '+O(p));var q=p.querySelectorAll('*');for(var j=0,n=0;j<q.length&&n<80;j++){var g=q[j];if(g===l||!tiny(g)||!V(g))continue;var gr=g.getBoundingClientRect(),cy=Math.abs((gr.top+gr.height/2)-(lr.top+lr.height/2)),dx=Math.max(0,Math.max(gr.left-lr.right,lr.left-gr.right));var gc=getComputedStyle(g),hasPaint=(String(gc.backgroundImage||'none')!=='none'||String(gc.webkitMaskImage||gc.maskImage||'none')!=='none'||String(g.tagName||'').toLowerCase()==='svg'||String(g.tagName||'').toLowerCase()==='img'||semantic(g));if(hasPaint&&cy<=40&&dx<=70){o.push('PAIR '+k+' GLYPH_CAND '+O(g));o.push('PAIR '+k+' GLYPH_HTML '+X(g));n++;}}}k++;}"
-      "o.push('\\n-- ALL VISIBLE SPONSOR-RELATED NODES --');for(var i=0,n=0;i<rels.length&&n<160;i++){if(!V(rels[i]))continue;o.push('REL '+n+' '+O(rels[i]));o.push('REL_HTML '+X(rels[i]));n++;}"
-      "o.push('\\n-- ALL VISIBLE TINY PAINTERS WITHIN SPONSOR CARDS --');for(var i=0,n=0;i<glyphs.length&&n<160;i++){if(!V(glyphs[i]))continue;var p=glyphs[i],hit=false;for(var d=0;p&&d<6;d++,p=p.parentElement){if(semantic(p)||T(p).toLowerCase().indexOf('sponsored')>=0){hit=true;break}}if(hit){o.push('GLYPH '+n+' '+O(glyphs[i]));o.push('GLYPH_HTML '+X(glyphs[i]));n++;}}"
-      "return o.join('\\n')}catch(e){return 'JSERR '+e}})();";
-    [wv evaluateJavaScript:js completionHandler:^(id value,NSError *error){
-        @try {
-            NSString *out=error?[NSString stringWithFormat:@"WEB_ERROR %@",error]:([value isKindOfClass:[NSString class]]?value:[value description]);
-            NSMutableString *m=[NSMutableString stringWithFormat:@"AmazonDark %@ full Sponsored glyph inventory probe\ndate=%@\n\n%@\n",[NSString stringWithUTF8String:AD_VERSION],[NSDate date],out?:@"NO_RESULT"];
-            [m writeToFile:ADSponsorInventoryProbePath781() atomically:YES encoding:NSUTF8StringEncoding error:nil];
-        } @catch(...) {}
-    }];
-}
-
 %hook UIApplication
 - (void)setStatusBarStyle:(UIStatusBarStyle)style {
     if(gP.enabled){
@@ -2236,8 +2190,6 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
     } @catch(...) {}
 
     %init;
-
-    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note){ (void)note; ADCaptureSponsorInventory781(); }];
 
 
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
