@@ -1,36 +1,40 @@
-# AmazonDark v7.0.48
+# AmazonDark v7.0.49
 
-Built on v7.0.46 (`a6a6d86`), carrying v7.0.47.
+Built on v7.0.46 (`a6a6d86`).
 
-## Amazon owns the Sponsored control again
+## Sponsored glyph: painted again, to sheet ink
 
-v7.0.47 forced `brightness(0) invert(1)` on the glyph and `#e8e6e3` on the label. That
-made both pure white, which is not Amazon's colour — it replaced their rendering instead
-of revealing it.
+v7.0.48 removed the paint on the theory that `color-scheme: dark` would make Amazon
+render its own dark values for this control. It does not — the glyph went dark again. So
+it is painted, but not to pure white the way v7.0.47 did it.
 
-The rest of this sheet already carries
-`:not([class*=sponsored]):not([class*=ad-feedback]):not([id^=ad-feedback-text-])` guards
-on every text rule, for exactly this reason: Amazon owns that control. The document is
-already set to `color-scheme: dark`, so Amazon renders its own dark values without help.
+    brightness(0)      flatten the sprite to solid black, whatever it started as
+    invert(1)          take it to #ffffff
+    brightness(0.91)   land it on ~#e8e6e3
 
-What remains is only the two things that made the glyph invisible, neither of which is a
-colour:
+`#e8e6e3` is the ink this sheet uses everywhere else, which is what makes the glyph
+uniform with the standalone APE ads rather than brighter than them. The label takes the
+same value directly.
 
-    opacity / visibility      it was being composited away
-    position / z-index        it was sitting under the card floor
-    mix-blend-mode: normal    it was multiplying against the OLED floor
+## Chevrons: the rules were scoped to the Home deck
 
-No `filter`, no `color`, no `fill`, no `-webkit-text-fill-color`. The forced-white label
-rule is deleted outright.
+Every existing chevron rule is scoped under `#gwm-PageContent`, `#gwm-Deck`,
+`#gwm-Deck-btf` or `.gwm-dashboard-container`. A chevron rendered anywhere else matches
+nothing — which is exactly why they are dark everywhere rather than only on Home.
 
-## Unchanged
-
-- Chevron work from v7.0.42–46 — `a-icon-dropdown` still at 6 sites.
-- Scrollbar owner from v7.0.47 — 2 sites.
+This is the same failure as the `#gwm-PageContent` floor scope fixed in v7.0.22. The
+sprite leaf `i.a-icon.a-icon-dropdown` is now owned **unscoped**, with the same filter.
+The existing scoped rules are left in place as narrower fallbacks — the v7.0.42–46 work
+is not touched, `a-icon-dropdown` is still at 8 sites.
 
 ## Verification
 
-- The remaining glyph rule contains no `filter`, `color`, `fill` or
-  `-webkit-text-fill-color` property, checked directly against the emitted rule text.
-- Forced-white label rule confirmed absent.
+- Selector test in a real engine: the chevron sprite matches **outside** any gwm deck
+  scope (reproducing what was broken), the glyph matches on a hashed class, both rules
+  parse, and the filter resolves to sheet ink rather than pure white. 4/4.
 - Balance 0/0/0; `scripts/lint-logos.sh`.
+
+## If a chevron is still dark
+
+Then that one is not the `a-icon-dropdown` sprite and needs its own leaf identified —
+a one-element probe on that card family, not another blind selector.
