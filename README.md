@@ -1,49 +1,43 @@
-# AmazonDark v7.0.59
+# AmazonDark v7.0.60 — chevron sweep
 
-## 1. Sponsored glyph reverting — fixed at the mechanism
+## Why the tap probe kept failing
 
-The painter reads the label's computed colour and tints the sprite with that exact
-value. That part was always right. It reverted because it wrote **inline styles onto a
-specific element**, and Amazon re-renders these ad cards after hydration — the
-replacement element carries none of them.
+v7.0.59's scroll compensation worked: the capture shows `NATIVE_TOUCH screen=243.3,915.3`
+and `point=243.3,915.0` in agreement, where earlier captures diverged. The coordinate is
+correct.
 
-v7.0.57 added a settle train, which only moved the deadline. The replacement still wins
-whenever it happens after the last pass.
+But (243, 915) sits inside a product image's rect (227, 813, 180x182), and all three
+attempts landed at y between 907 and 915 — the very bottom of a 932pt screen. Chevrons
+sit in card headers. The tap is simply not hitting them, and no amount of coordinate
+fixing changes that.
 
-The painter now also emits a **style rule** carrying the same resolved colour. A rule
-applies to whatever element matches, including one Amazon substituted a moment ago. It
-is emitted once per distinct colour and capped at four, so a page produces one or two
-rules total and every later re-render is covered with no further JavaScript and no
-observer.
+## The sweep
 
-## 2. The probe was capturing the wrong element
+The probe no longer depends on aim. On any tap it now enumerates every chevron-ish
+element in the document:
 
-Both the v7.0.56 and v7.0.57 chevron captures landed on asin product images. That was a
-probe defect, not a mis-tap.
+    i.a-icon, [class*=chevron], [class*=arrow], [class*=caret],
+    [class*=icon-next], [class*=icon-prev], [class*=dropdown]
 
-The probe converted the touch to a **fraction of the webview**, then re-multiplied by
-`innerWidth`/`innerHeight` inside the page. `evaluateJavaScript` is asynchronous, so any
-scroll between the tap and the evaluation left that fraction pointing at whatever had
-scrolled under it. Both captures resolved onto product images near the bottom of the
-screen, with different scroll offsets in each.
+and reports, for each one that is actually laid out: tag, classes, rect, `color`, `bg`,
+`background-image`, `mask`, `filter`, `fill`, `stroke`, `opacity`, both pseudo-elements,
+and the first 220 characters of `outerHTML`. Capped at 40.
 
-The touch is now converted to an **absolute document coordinate** using the scroll offset
-read synchronously at touch time. The JS subtracts the *current* offset, so a scroll
-between tap and evaluation cancels out. The old fraction is retained as a fallback for
-the case where the element has scrolled entirely off screen.
+Tap anywhere on Home. The `=== CHEVRON SWEEP ===` section is appended after the existing
+point capture.
 
-## 3. Chevrons — still not changed
+## What this will settle
 
-No blind rule. The existing `a-icon-dropdown` ownership is untouched. With the probe
-fixed, one tap on a chevron will identify the leaf.
+The unscoped rule added in v7.0.49 is confirmed present in the emitted stylesheet:
+
+    i.a-icon.a-icon-dropdown,.a-icon.a-icon-dropdown,i[class*=chevron],
+    i[class*=arrow],[class*=chevron-glyph]…{filter:brightness(0) invert(1) brightness(0.91)!important…}
+
+So the rule ships and the chevrons are still dark. That means the chevron is not any of
+those elements — it is a different tag, a pseudo-element, or an inline SVG. The sweep
+reports all three cases, including `::before` and `::after` content and background
+images, so one capture identifies it.
 
 ## Verification
 
-- Emitted glyph rule: parses as 2 real rules, carries the label-resolved colour, lifts
-  above the card floor, matches a hashed glyph class, and **still matches after the
-  element is replaced** — which is the whole point. 7/7.
-- Scroll compensation arithmetic: unchanged with no scroll, follows the element when the
-  page scrolls either direction, falls back to the fraction when the element leaves the
-  viewport. 4/4.
-- Probe format specifiers and arguments: 4 and 4.
-- MutationObserver count still 0; balance 0/0/0; `scripts/lint-logos.sh`.
+- Sweep present in source; balance 0/0/0; `scripts/lint-logos.sh`.
