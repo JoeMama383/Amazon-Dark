@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.51-sponsor-glyph-chevron-tap-probe"
+#define AD_VERSION "v7.0.52-sponsor-glyph-chevron-auto-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -600,10 +600,10 @@ static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
 static const void *kADChevronProbeUS7050=&kADChevronProbeUS7050;
 static NSHashTable *gADWebViews=nil;
-// v7.0.50 probe state is declared before UIApplication hooks so the touch tracer
-// compiles without relying on declaration order. It is dormant until SIGUSR2.
-static BOOL gADChevronAwaitingTap7050=NO;
-static BOOL gADChevronNativeTouchArmed7050=NO;
+// v7.0.52 diagnostic state is declared before UIApplication hooks.
+// The probe automatically keeps the most recent Amazon tap; there is no shell
+// trigger, PID lookup, signal handler, recurring scan, or background poll.
+static NSUInteger gADChevronTapGeneration7052=0;
 static NSString *gADChevronNativeTap7050=nil;
 static NSString *gADChevronNativeAfter7050=nil;
 static NSString *ADChevronNativeChain7050(UIView *v, CGPoint screen);
@@ -822,7 +822,7 @@ static NSString *ADFloorJS(void){
             "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
             /* v7.0.49 current-head behavior retained: broad unscoped dropdown/
              * chevron sprite fallbacks. The remaining dark chevron therefore is
-             * not assumed to be one of these leaves; v7.0.50 probes the actual tap. */
+             * not assumed to be one of these leaves; v7.0.52 automatically probes the actual tap. */
             "i.a-icon.a-icon-dropdown,.a-icon.a-icon-dropdown,"
             "i[class*=chevron],i[class*=arrow],[class*=chevron-glyph],"
             "[class*=puis-mab-chevron] :is(i.a-icon-dropdown,.a-icon.a-icon-dropdown)"
@@ -1028,28 +1028,26 @@ static NSString *ADTWBJS(void){
 
 
 static NSString *ADChevronProbeJS7050(void){
-    // Diagnostic-only tap tracer. Inert until SIGUSR2 arms one interaction.
-    // All frames listen so a chevron inside a child/ad frame can report the
-    // exact event target. One bounded post-tap grid captures the menu while it
-    // is still open, before the user returns to NewTerm to export the report.
+    // v7.0.52 diagnostic-only rolling tap tracer. It is always ready but does
+    // nothing until the user actually taps. Each tap replaces the previous
+    // cached evidence; the last tap before export is therefore the one reported.
+    // A short de-dupe prevents touchend/pointerup/click from triple-capturing the
+    // same physical tap. No DOM observer, scroll hook, interval, RAF or scan loop.
     return @"(function(){try{"
-    "if(window.__ADC7050_INSTALLED__)return;window.__ADC7050_INSTALLED__=1;"
-    "var armed=0,rows=[],topf=0,topChildTimer=0;try{topf=window.top===window}catch(_){topf=0}"
+    "if(window.__ADC7052_INSTALLED__)return;window.__ADC7052_INSTALLED__=1;"
+    "var rows=[],topf=0,topChildTimer=0,lastHit=0;try{topf=window.top===window}catch(_){topf=0}"
     "function cls(e){try{var x=e.className;if(x&&x.baseVal!==undefined)x=x.baseVal;return typeof x==='string'?x:''}catch(_){return ''}}"
     "function one(e){try{if(!e||e.nodeType!==1)return '-';var r=e.getBoundingClientRect(),c=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');return [String(e.tagName||'?').toLowerCase(),e.id?'#'+e.id:'',cls(e)?'.'+cls(e).trim().replace(/\\s+/g,'.'):'',' rect='+[r.x,r.y,r.width,r.height].map(function(v){return Math.round(v*10)/10}).join(','),' role='+(e.getAttribute('role')||''),' aria='+(e.getAttribute('aria-label')||''),' expanded='+(e.getAttribute('aria-expanded')||''),' title='+(e.getAttribute('title')||''),' href='+(e.getAttribute('href')||''),' action='+(e.getAttribute('data-action')||''),' csa='+(e.getAttribute('data-csa-c-content-id')||''),' color='+c.color,' bg='+c.backgroundColor,' bgimg='+String(c.backgroundImage||'').slice(0,180),' mask='+String(c.webkitMaskImage||c.maskImage||'').slice(0,160),' filter='+c.filter,' fill='+c.fill,' stroke='+c.stroke,' pe='+c.pointerEvents,' z='+c.zIndex,' before='+[b.content,b.color,b.backgroundColor,b.backgroundImage,b.webkitMaskImage||b.maskImage,b.filter].join('|').slice(0,260),' after='+[a.content,a.color,a.backgroundColor,a.backgroundImage,a.webkitMaskImage||a.maskImage,a.filter].join('|').slice(0,260)].join('')}catch(_){return 'ERR'}}"
     "function html(e){try{return String(e&&e.outerHTML||'').replace(/\\s+/g,' ').slice(0,1400)}catch(_){return ''}}"
-    "function emit(s){try{if(topf)rows.push(s);else window.top.postMessage({__adc7050:1,t:s},'*')}catch(_){}}"
+    "function emit(s){try{if(topf)rows.push(s);else window.top.postMessage({__adc7052:1,t:s},'*')}catch(_){}}"
     "function chain(e,label){var o=['-- '+label+' --'];try{for(var i=0;e&&i<10;i++,e=e.parentElement)o.push('A'+i+' '+one(e))}catch(_){}return o.join('\\n')}"
     "function epath(e){var o=['-- COMPOSED_PATH --'];try{var p=e.composedPath?e.composedPath():[],n=Math.min(p.length,14);for(var i=0;i<n;i++)if(p[i]&&p[i].nodeType===1)o.push('E'+i+' '+one(p[i]))}catch(_){}return o.join('\\n')}"
     "function point(x,y,label){var o=['-- '+label+' point='+Math.round(x)+','+Math.round(y)+' --'];try{var st=document.elementsFromPoint(x,y),n=Math.min(st.length,12);for(var i=0;i<n;i++)o.push('P'+i+' '+one(st[i]))}catch(e){o.push('POINTERR '+e)}return o.join('\\n')}"
     "function grid(label){var o=['-- '+label+' GRID --'],seen=new Set(),W=innerWidth||0,H=innerHeight||0;try{for(var yi=1;yi<=7;yi++)for(var xi=1;xi<=6;xi++){var x=W*xi/7,y=H*yi/8,st=document.elementsFromPoint(x,y);for(var j=0;j<st.length&&j<5;j++){var e=st[j];if(seen.has(e))continue;seen.add(e);if(seen.size>180)break;o.push('G'+seen.size+' '+one(e))}if(seen.size>180)break}}catch(e){o.push('GRIDERR '+e)}return o.join('\\n')}"
-    "function framesArm(){try{var f=document.getElementsByTagName('iframe');for(var i=0;i<f.length&&i<24;i++)try{f[i].contentWindow.postMessage({__adc7050arm:1},'*')}catch(_){}}catch(_){}}"
-    "function arm(){rows=[];armed=1;emit('ARM href='+location.href+' title='+document.title+' viewport='+(innerWidth||0)+'x'+(innerHeight||0));emit(grid('ARM_BASELINE'));if(topf)framesArm();return 'ARMED'}"
     "function dump(){try{return (rows.length?rows.join('\\n\\n'):'NO_WEB_TAP_CAPTURE')+'\\n\\n'+grid('CURRENT_AT_EXPORT')+'\\nactive='+one(document.activeElement)}catch(e){return 'DUMPERR '+e}}"
     "function xy(e){var x=e.clientX,y=e.clientY;try{if((!isFinite(x)||!isFinite(y))&&e.changedTouches&&e.changedTouches.length){x=e.changedTouches[0].clientX;y=e.changedTouches[0].clientY}}catch(_){}return [Number(x)||0,Number(y)||0]}"
-    "function hit(e){if(!armed)return;armed=0;try{var q=xy(e),x=q[0],y=q[1],t=e.target;emit('EVENT type='+e.type+' href='+location.href+'\\nTARGET_HTML '+html(t)+'\\n'+chain(t,'TARGET_CHAIN')+'\\n'+epath(e)+'\\n'+point(x,y,'BEFORE_HANDLER'));[0,80,250].forEach(function(ms){setTimeout(function(){emit(point(x,y,'AFTER_'+ms+'MS'))},ms)});setTimeout(function(){emit(point(x,y,'AFTER_650MS'));emit(grid('AFTER_650MS_MENU'));emit('ACTIVE_AFTER_650MS '+one(document.activeElement))},650)}catch(z){emit('EVENTERR '+z)}}"
-    "if(topf){window.addEventListener('message',function(e){try{if(e.data&&e.data.__adc7050){var t=String(e.data.t||'');rows.push('CHILD '+t);if(t.indexOf('EVENT type=')===0&&!topChildTimer){topChildTimer=1;setTimeout(function(){rows.push(grid('TOP_AFTER_CHILD_TAP_650MS'));topChildTimer=0},650)}}}catch(_){}},false);window.__ADCHEV7050_ARM=arm;window.__ADCHEV7050_DUMP=dump;}"
-    "window.addEventListener('message',function(e){try{if(e.data&&e.data.__adc7050arm)arm()}catch(_){}},false);"
+    "function hit(e){try{var now=Date.now();if(now-lastHit<350)return;lastHit=now;var q=xy(e),x=q[0],y=q[1],t=e.target;if(topf)rows=[];emit('EVENT type='+e.type+' href='+location.href+'\\nTARGET_HTML '+html(t)+'\\n'+chain(t,'TARGET_CHAIN')+'\\n'+epath(e)+'\\n'+point(x,y,'BEFORE_HANDLER'));[0,80,250].forEach(function(ms){setTimeout(function(){emit(point(x,y,'AFTER_'+ms+'MS'))},ms)});setTimeout(function(){emit(point(x,y,'AFTER_650MS'));emit(grid('AFTER_650MS_MENU'));emit('ACTIVE_AFTER_650MS '+one(document.activeElement))},650)}catch(z){emit('EVENTERR '+z)}}"
+    "if(topf){window.addEventListener('message',function(e){try{if(e.data&&e.data.__adc7052){var t=String(e.data.t||'');if(t.indexOf('EVENT type=')===0)rows=[];rows.push('CHILD '+t);if(t.indexOf('EVENT type=')===0&&!topChildTimer){topChildTimer=1;setTimeout(function(){rows.push(grid('TOP_AFTER_CHILD_TAP_650MS'));topChildTimer=0},650)}}}catch(_){}},false);window.__ADCHEV7052_DUMP=dump;}"
     "document.addEventListener('touchend',hit,true);document.addEventListener('pointerup',hit,true);document.addEventListener('click',hit,true);"
     "}catch(e){}})();";
 }
@@ -1872,18 +1870,24 @@ static void ADOwnBottomBar708(UIView *v){
 
 %hook UIApplication
 - (void)sendEvent:(UIEvent *)event {
-    if(gADChevronNativeTouchArmed7050 && event.type==UIEventTypeTouches){
+    if(event.type==UIEventTypeTouches){
         @try {
             for(UITouch *t in [event allTouches]){
                 if(t.phase!=UITouchPhaseEnded)continue;
                 UIView *v=t.view; UIWindow *w=v.window; CGPoint p=w?[t locationInView:w]:CGPointZero;
+                NSUInteger gen=++gADChevronTapGeneration7052;
                 gADChevronNativeTap7050=ADChevronNativeChain7050(v,p);
-                gADChevronNativeTouchArmed7050=NO;
+                gADChevronNativeAfter7050=nil;
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.65*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-                    @try { gADChevronNativeAfter7050=ADChevronNativeSnapshot7050(@"NATIVE_AFTER_650MS_MENU"); } @catch(...) {}
+                    @try {
+                        if(gen==gADChevronTapGeneration7052)
+                            gADChevronNativeAfter7050=ADChevronNativeSnapshot7050(@"NATIVE_AFTER_650MS_MENU");
+                    } @catch(...) {}
                 });
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.90*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-                    @try { if(gADChevronAwaitingTap7050) ADDumpChevronProbe7050(); } @catch(...) {}
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.95*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+                    @try {
+                        if(gen==gADChevronTapGeneration7052) ADDumpChevronProbe7050();
+                    } @catch(...) {}
                 });
                 break;
             }
@@ -2126,18 +2130,19 @@ static void ADScheduleLaunchReadyCheck706(void){
 
 
 // -----------------------------------------------------------------------------
-// v7.0.51 manual chevron tap probe.
-// One SIGUSR2 arms the next Amazon touch. Tapping the dark chevron captures the
-// exact web/native target and the opened menu, then writes the report automatically.
-// NewTerm is used only to export the completed file. No broad live scan.
+// v7.0.52 automatic chevron tap probe.
+// No PID lookup, SIGUSR signal, terminal arming, notification relay or recurring
+// work. Every completed Amazon touch becomes the current candidate; only the
+// most recent candidate survives. At +650 ms the opened menu is sampled, and at
+// +950 ms the cached WebKit + UIKit evidence is written automatically.
 // -----------------------------------------------------------------------------
 static NSString *ADChevronProbePath7050(void){
     @try {
         NSArray *dirs=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
         NSString *base=dirs.firstObject;
-        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-chevron-tap-probe-7051.txt"];
+        if(base.length)return [base stringByAppendingPathComponent:@"AmazonDark-chevron-tap-probe-7052.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-chevron-tap-probe-7051.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-chevron-tap-probe-7052.txt"];
 }
 static NSString *ADChevronColor7050(UIColor *c){
     if(!c)return @"-";
@@ -2196,36 +2201,21 @@ static WKWebView *ADChevronVisibleWebView7050(void){
 }
 static void ADChevronWrite7050(NSString *body){
     @try {
-        NSString *h=[NSString stringWithFormat:@"AmazonDark %@ chevron tap probe\ndate=%@\nstate=%@\n\n%@\n\n%@\n\n%@\n",
-                     [NSString stringWithUTF8String:AD_VERSION],[NSDate date],gADChevronAwaitingTap7050?@"ARMED":@"CAPTURED",
+        NSString *h=[NSString stringWithFormat:@"AmazonDark %@ automatic chevron tap probe\ndate=%@\ngeneration=%lu\n\n%@\n\n%@\n\n%@\n",
+                     [NSString stringWithUTF8String:AD_VERSION],[NSDate date],(unsigned long)gADChevronTapGeneration7052,
                      gADChevronNativeTap7050?:@"NO_NATIVE_TOUCH_CAPTURE",
                      gADChevronNativeAfter7050?:@"NO_NATIVE_AFTER_650_CAPTURE",
                      body?:@"NO_WEB_CAPTURE"];
         [h writeToFile:ADChevronProbePath7050() atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } @catch(...) {}
 }
-static void ADArmChevronProbe7050(void){
-    gADChevronAwaitingTap7050=YES; gADChevronNativeTouchArmed7050=YES; gADChevronNativeTap7050=nil; gADChevronNativeAfter7050=nil;
-    ADChevronWrite7050(@"ARM_REQUESTED");
-    WKWebView *wv=ADChevronVisibleWebView7050();
-    if(!wv){ gADChevronAwaitingTap7050=NO; gADChevronNativeTouchArmed7050=NO; ADChevronWrite7050(@"ARM_ERROR NO_VISIBLE_WKWEBVIEW"); return; }
-    [wv evaluateJavaScript:@"window.__ADCHEV7050_ARM?window.__ADCHEV7050_ARM():'NO_CHEVRON_BOOTSTRAP'" completionHandler:^(id value,NSError *error){
-        NSString *b=error?[NSString stringWithFormat:@"ARM_JS_ERROR %@",error]:[NSString stringWithFormat:@"WEB_ARM_RESULT %@",value?:@"nil"];
-        ADChevronWrite7050(b);
-    }];
-}
 static void ADDumpChevronProbe7050(void){
     WKWebView *wv=ADChevronVisibleWebView7050();
-    if(!wv){ gADChevronAwaitingTap7050=NO; gADChevronNativeTouchArmed7050=NO; ADChevronWrite7050(@"DUMP_ERROR NO_VISIBLE_WKWEBVIEW"); return; }
-    [wv evaluateJavaScript:@"window.__ADCHEV7050_DUMP?window.__ADCHEV7050_DUMP():'NO_CHEVRON_BOOTSTRAP'" completionHandler:^(id value,NSError *error){
-        gADChevronAwaitingTap7050=NO; gADChevronNativeTouchArmed7050=NO;
+    if(!wv){ ADChevronWrite7050(@"DUMP_ERROR NO_VISIBLE_WKWEBVIEW"); return; }
+    [wv evaluateJavaScript:@"window.__ADCHEV7052_DUMP?window.__ADCHEV7052_DUMP():'NO_CHEVRON_BOOTSTRAP'" completionHandler:^(id value,NSError *error){
         NSString *b=error?[NSString stringWithFormat:@"DUMP_JS_ERROR %@",error]:([value isKindOfClass:[NSString class]]?value:[value description]);
         ADChevronWrite7050(b);
     }];
-}
-static void ADChevronProbeSignal7050(int sig){
-    if(sig!=SIGUSR2)return;
-    dispatch_async(dispatch_get_main_queue(),^{ @try { if(!gADChevronAwaitingTap7050) ADArmChevronProbe7050(); } @catch(...) {} });
 }
 
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
@@ -2249,7 +2239,6 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 
     %init;
 
-    signal(SIGUSR2, ADChevronProbeSignal7050);
 
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);

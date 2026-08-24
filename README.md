@@ -1,65 +1,26 @@
-# AmazonDark v7.0.51~probe
+# AmazonDark v7.0.52~probe
 
-## v7.0.51 probe workflow correction
+Built directly from the v7.0.50 visual base. v7.0.51 is abandoned and is not part of this source lineage.
 
-This build changes only the chevron probe workflow and package/runtime version. v7.0.50 Sponsored-glyph paint and all production theming remain functionally unchanged.
+## Production behavior retained
+- Sponsored text remains Amazon-owned.
+- AmazonDark paints only the adjacent Sponsored info glyph, dynamically matching the label's rendered computed color.
+- v7.0.49/v7.0.50 chevron CSS attempts remain unchanged so the diagnostic observes the real still-dark chevron.
+- Gray borders, standalone-ad OLED background/text behavior, scrollbar styling, TWB, 120 Hz, JIT, launch cover, bottom navigation and unrelated theming remain unchanged.
 
-- Restore the confirmed late-v7 NewTerm PID discovery: `ps -A -o pid=,comm= | grep '/Amazon.app/Amazon'`.
-- No `awk`, `pgrep`, `pidof`, `notifyutil`, Darwin relay, or SpringBoard relay.
-- One `SIGUSR2` arms the next Amazon touch.
-- The next Amazon touch should be the dark chevron. The probe captures the touch/event target, then the opened menu at +650 ms.
-- At +900 ms the report is written automatically. There is no second signal.
-- The probe writes `ARM_REQUESTED` immediately when the signal is received so trigger success can be verified.
-- NewTerm is used only to export `AmazonDark-chevron-tap-probe-7051.txt` after the tap.
+## v7.0.52 automatic chevron probe
+There is no PID lookup, SIGUSR2, ps, awk, pgrep, notifyutil, terminal arming, Darwin relay or SpringBoard relay.
 
+The probe is installed at document start in all frames and remains idle until a real user tap occurs. Each completed Amazon tap replaces the previous diagnostic candidate. A 350 ms de-dupe prevents the normal touchend/pointerup/click sequence from triple-capturing one physical tap.
 
-Built from the current v7.0.49 functional state. v7.0.49 itself was built on v7.0.46 (`a6a6d86`), so this source retains the v7.0.46 border/standalone-ad work and the v7.0.49 unscoped chevron fallback while replacing the two behaviors under test below.
+For the latest tap it records the exact DOM event target, bounded outerHTML, composed event path, ancestors, hit-test stack, computed painter state, post-tap states at 0/80/250/650 ms, a bounded visible viewport grid at +650 ms, child-frame reports, the native touched UIView chain, and one bounded visible UIKit snapshot at +650 ms.
 
-## Sponsored: Amazon owns the label, AmazonDark only owns the glyph
+At +950 ms after the latest tap, the report is automatically serialized to:
+`AmazonDark-chevron-tap-probe-7052.txt`
 
-- Removes v7.0.49's fixed `#e8e6e3` Sponsored-label paint.
-- The standalone short/wide ad text rule now explicitly excludes Sponsored/ad-feedback label families and their descendants, so it cannot recolor the label indirectly.
-- AmazonDark reads the real label's **computed color** and applies that result only to the adjacent stock info glyph.
-- Existing CSS-mask and SVG/currentColor glyphs receive the exact computed label color.
-- Background-image `ad-feedback-spr` sprites are converted in place to a mask using their own image/position/size/repeat, then filled with the exact computed label color. Geometry and the stock glyph artwork stay in place; the Sponsored text itself is never written.
-- Initial/pageshow Sponsor discovery is bounded to 64 matching labels. Lazy/recycled ad coverage piggybacks on normal load events and a local ancestor search. No MutationObserver, scroll listener, interval or RAF is added.
+Test workflow: navigate to the failing dark chevron, tap it, leave the opened menu visible for about 2 seconds, background Amazon once, then run the supplied export command.
 
-## Chevron tap probe
+## Runtime character
+Production paint remains free of MutationObservers, TreeWalkers, scroll listeners, intervals and RAF loops. The probe adds no recurring timer or scanner. Diagnostic work runs only in response to actual taps, and only the most recent tap is allowed to complete its delayed native dump.
 
-The v7.0.49 unscoped `a-icon-dropdown` / chevron paint remains present so the probe observes the exact currently failing behavior rather than changing the target again.
-
-- Replaces the v7.0.46 palette probe with a manual two-stage `SIGUSR2` chevron probe.
-- First `SIGUSR2`: arms exactly one interaction in every mounted frame.
-- Tap the still-dark chevron as the **first touch after arming**.
-- The probe captures the target's DOM ancestry, composed event path, outerHTML, point stack, computed background/mask/filter/fill/stroke/pseudo paint, plus 0/80/250/650 ms post-tap states.
-- At 650 ms it also takes a bounded `elementsFromPoint()` viewport grid so the menu opened by the chevron is recorded while it is still visible.
-- Child/ad frames post their one-shot capture to the top frame; if a child-frame tap opens a parent-frame menu, the top frame also records a 650 ms grid.
-- Native UIKit touch ancestry is captured from the same touch. A bounded visible UIKit snapshot runs once at +650 ms, after the menu has opened, so a native chevron/menu can be distinguished from WebKit.
-- Second `SIGUSR2`: serializes the cached WebKit + UIKit evidence to `AmazonDark-chevron-tap-probe-7050.txt` in Amazon's Documents sandbox.
-
-## Runtime shape
-
-Normal paint remains observer-free: `MutationObserver=0`, `TreeWalker=0`, web scroll listeners=0, `setInterval=0`, `requestAnimationFrame=0`. The dynamic Sponsored glyph bridge uses three bounded/local `querySelectorAll` call sites. Chevron probe work is dormant until manually armed; its post-tap timeouts and visible-tree/grid capture run only for that one diagnostic interaction.
-
-## Preserved
-
-- v7.0.49 broad/unscoped chevron attempt, for direct before/after probe evidence.
-- v7.0.47-v7.0.49 neutral WebKit scrollbar owner (`#6f6f6f` thumb / transparent track).
-- v7.0.46 gray border and standalone-ad OLED/background rules.
-- v7.0.45 seasonal product-photo plate and search/location chrome corrections.
-- v7.0.44 NPACK background-video TWB persistence.
-- TWB, 120 Hz, JIT, launch cover, bottom navigation and unrelated static theme behavior.
-
-## Previous v7.0.49 notes
-
-# AmazonDark v7.0.49
-
-Built on v7.0.46 (`a6a6d86`).
-
-### Sponsored glyph: painted again, to sheet ink
-
-v7.0.48 removed the paint on the theory that `color-scheme: dark` would make Amazon render its own dark values for this control. It does not — the glyph went dark again. v7.0.49 therefore painted the glyph and label to `#e8e6e3`. v7.0.50 replaces that fixed pair with label-owned text plus glyph-only dynamic matching.
-
-### Chevrons
-
-v7.0.49 broadened the prior Home-scoped `a-icon-dropdown` rule to an unscoped dropdown/chevron fallback. On-device testing still shows dark chevrons, so v7.0.50 probes the actual tapped painter instead of adding another guessed selector.
+GitHub Actions remains the authoritative Theos compile/link/package proof after push.
