@@ -1,4 +1,4 @@
-# AmazonDark v7.0.72
+# AmazonDark v7.0.73
 
 - Pre-release refresh: themes Amazon's ad-feedback bottom sheet with cheap documentStart CSS only.
 - Feedback sheet structural floor is OLED black; headings/body/labels are light; issue textarea uses the same #303335 gray as the current search field; buttons and checkbox chrome are dark/neutral.
@@ -71,3 +71,8 @@ card-header subtrees by structure rather than by class.
   path, the path-level selector does, and a path with its own `fill` attribute keeps it
   against an svg-level rule. 3/3.
 - Balance 0/0/0; `scripts/lint-logos.sh`.
+
+
+## v7.0.73 — Sponsored feedback focus-ring cleanup
+
+Amazon's ad-feedback text control applies its own rounded focus outline. After closing the feedback sheet, that control can remain focused, leaving a gray box around `Sponsored`. v7.0.73 suppresses only the focus outline/box-shadow/tap highlight for Sponsored/ad-feedback trigger families. Sponsored text and glyph color ownership from v7.0.72 is unchanged. No observer, timer, scan, scroll hook, interval, or RAF was added.

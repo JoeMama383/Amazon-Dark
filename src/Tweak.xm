@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.72"
+#define AD_VERSION "v7.0.73"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -873,6 +873,13 @@ static NSString *ADFloorJS(void){
             "iframe[id*=ape_],iframe[class*=ape_]"
             "{background-color:transparent!important;border-color:transparent!important;"
             "outline-color:transparent!important;}"
+            /* v7.0.73: suppress Amazon's persistent keyboard-focus ring on the
+             * Sponsored feedback trigger. Amazon's own ad-feedback CSS applies a
+             * rounded 3px outline to the focused Sponsored text control; after the
+             * feedback sheet closes that control remains focused, leaving the gray
+             * box seen on Home. Own only the focus decoration, not text/glyph ink. */
+            ":is([class*=ad-feedback-text],[class*=ad-feedback-text-desktop],[id^=ad-feedback-text-],[id^=af-label-primary-link-],[aria-label^=\"Leave feedback on Sponsored\"]):is(:focus,:focus-visible)"
+            "{outline:none!important;box-shadow:none!important;-webkit-tap-highlight-color:transparent!important;}"
             /* v7.0.72 pre-release: Amazon ad-feedback bottom sheet.
              * The v7.0.71 tap capture exposed the exact AUI sheet and
              * adFeedbackBottomSheet/mobile-ad-feedback hierarchy. Theme this
