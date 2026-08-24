@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.74"
+#define AD_VERSION "v7.0.75"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -931,16 +931,21 @@ static NSString *ADFloorJS(void){
             ".a-icon-next-rounded,.a-icon-previous-rounded"
             "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;"
             "opacity:1!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;}"
-            /* v7.0.74: Amazon AUI loading spinner on the OLED floor.
-             * Historical v5/v6 probes identify the visible loader as the stock
-             * SPAN.a-spinner background sprite.  The sprite was authored for a
-             * light floor and carries a white center; invert only that sprite so
-             * its center becomes OLED-black while the rotating ring becomes light.
-             * Keep the wrapper/leaf background transparent and preserve Amazon's
-             * stock sprite geometry/animation. */
+            /* v7.0.75: transparent-center Amazon AUI loading spinner.
+             * v7.0.74 proved that color inversion alone cannot reliably remove the
+             * stock sprite's opaque center.  Keep Amazon's existing sprite and its
+             * animation, but physically clip away the center with a radial mask.
+             * Only the surviving outer ring is normalized to light ink.  The mask
+             * is declarative, so lazy/recycled spinners inherit it automatically. */
             ".a-spinner-wrapper{background-color:transparent!important;background-image:none!important;}"
             ".a-spinner,.a-spinner-wrapper .a-spinner"
-            "{background-color:transparent!important;filter:invert(1)!important;-webkit-filter:invert(1)!important;}"
+            "{background-color:transparent!important;filter:brightness(0) invert(1)!important;"
+            "-webkit-filter:brightness(0) invert(1)!important;"
+            "-webkit-mask-image:radial-gradient(circle at center,transparent 0 67%,#000 73% 100%)!important;"
+            "mask-image:radial-gradient(circle at center,transparent 0 67%,#000 73% 100%)!important;"
+            "-webkit-mask-position:center!important;mask-position:center!important;"
+            "-webkit-mask-size:100% 100%!important;mask-size:100% 100%!important;"
+            "-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;}"
             /* Retain the current v7.0.47-v7.0.49 system-control parity. */
             "::-webkit-scrollbar{background-color:transparent!important;}"
             "::-webkit-scrollbar-track{background-color:transparent!important;}"
