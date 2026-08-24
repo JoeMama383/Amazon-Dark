@@ -1,6 +1,13 @@
-# AmazonDark v7.0.53~probe
+# AmazonDark v7.0.54~probe
 
 Built directly from the v7.0.50 visual base. v7.0.51 is abandoned and is not part of this source lineage.
+
+## v7.0.54 compile correction
+
+- No visual or probe-behavior changes from v7.0.53.
+- Adds the missing forward declaration for `ADChevronVisibleWebView7050()` before the `UIApplication -sendEvent:` hook uses it.
+- This fixes the GitHub Actions compile error: `use of undeclared identifier 'ADChevronVisibleWebView7050'`.
+
 
 ## Production behavior retained
 - Sponsored text remains Amazon-owned.

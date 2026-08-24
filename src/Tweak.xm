@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.0.53-sponsor-glyph-persist-chevron-live-probe"
+#define AD_VERSION "v7.0.54-sponsor-glyph-persist-chevron-live-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -610,6 +610,7 @@ static __weak WKWebView *gADChevronTapWebView7053=nil;
 static NSString *ADChevronNativeChain7050(UIView *v, CGPoint screen);
 static NSString *ADChevronNativeSnapshot7050(NSString *label);
 static void ADDumpChevronProbe7050(void);
+static WKWebView *ADChevronVisibleWebView7050(void);
 
 static NSString *ADFloorJS(void){
     // v7.0.14: static v185-style palette. CSS only: no Dark Reader, no observer,
