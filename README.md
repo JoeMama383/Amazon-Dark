@@ -1,49 +1,50 @@
-# AmazonDark v7.0.64 — the chevron rule from v6.0.185, ported verbatim
+# AmazonDark v7.0.65
 
-## What the repo already knew
+## What five failed chevron builds have actually established
 
-v6.0.185 owned the carousel chevrons with an explicit rule:
+- v7.0.63 removed `brightness(0.5)` from the SVG dimming chains. **Confirmed on device**:
+  the v7.0.63 sweep reports `filter=none` where it previously read `brightness(0.5)`.
+  That fix landed and the chevrons were still dark.
+- v7.0.64 ported the v6.0.185 rule for `.a-icon-next-rounded` /
+  `.a-icon-previous-rounded` verbatim. Still dark, so those leaves are not present in
+  this Home build either.
+- Every rule so far — mine and v6.0.185's — sets `fill`/`color`/`filter` on the **svg
+  element**.
 
-    [class*=hp-mosaic-container] .a-icon-next-rounded,
-    [class*=hp-mosaic-container] .a-icon-previous-rounded,
-    [class*=hp-mosaic-container] [class*=chevron],
-    [class*=hp-mosaic-container] [class*=arrow],
-    [class*=_mosaic-container_style_widgetContainer] .a-icon-next-rounded,
-    ...
-    {filter:brightness(0) invert(1)!important;opacity:1!important;
-     color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;}
+The sweep reports `fill=none stroke=none` on those SVGs. That is the *svg's* computed
+value. **A `<path>` carrying its own `fill` attribute ignores anything set on its svg
+ancestor.** Every rule written to date targets the wrong node, which is consistent with
+the chevron staying dark through all of them.
 
-**`a-icon-next-rounded` and `a-icon-previous-rounded` had zero occurrences in the 7.x
-tree.** The port kept `puis-mab-chevron` and the generic `[class*=chevron]` /
-`[class*=arrow]` patterns and dropped the two leaves that actually carry the glyph.
-That is why the chevrons went dark on 7.x.
+This build paints the path itself:
 
-The rule is now ported as written, plus an unscoped pair for the card families the
-sweep shows carrying their own header controls (`npack-asin-card`,
-`multi-category-card`) outside the mosaic containers.
+    [class*=header-icon], [class*=header-icon] path, [class*=header-icon] use,
+    [class*=header-link] svg path, [class*=cardui-header] svg path, ...
+    {fill:#e8e6e3!important;stroke:#e8e6e3!important;color:#e8e6e3!important;}
 
-## Correcting the record on v7.0.62 / v7.0.63
+Harmless if `header-icon` is not the chevron. Decisive if it is.
 
-`header-icon` was never the chevron. Its path is
-`M7.0422 22C6.83522 21.9992 6.63313 21.9397…` — a long multi-curve icon repeated across
-cards, not a two-segment `>`. I identified it from the first SVG in a truncated sweep
-and asserted it twice.
+## Sweep: outerHTML 220 -> 700 characters
 
-Those builds were not wasted: v7.0.63 did remove `brightness(0.5)` from those SVGs
-(confirmed `filter=none` in this capture), so the dimming bug was real. It just was not
-the chevron bug.
+The 220-character cap truncated every capture at `<path d="M7.0422 22C6.83522…` —
+exactly before the `fill` attribute. That is why five builds went by without anyone
+seeing whether the path carries its own colour. The next capture will show it.
 
-## Why the sweep never found the chevron
+## Honest status
 
-The sweep's selector list includes bare `svg`, and the only SVGs on the page were
-`header-icon` and zero-size `a-icon-checkmark-inverse`. The chevron is an `<i>` carrying
-a sprite background — `a-icon-next-rounded` — which matches none of `[class*=chevron]`,
-`[class*=arrow]`, `[class*=caret]` or `[class*=dropdown]`, so it fell outside every
-pattern I chose.
+I have made five wrong calls on this chevron and asserted several of them confidently.
+The path-vs-svg distinction is the first explanation consistent with *all* the evidence
+rather than just the latest capture, but it is still an inference until the widened
+capture confirms it.
+
+If the next sweep shows `<path fill="#0F1111"` or similar, this build fixes it. If the
+path has no `fill` attribute, then `header-icon` is genuinely not the chevron and the
+element is something the sweep has never matched — in which case the probe needs to walk
+card-header subtrees by structure rather than by class.
 
 ## Verification
 
-- `a-icon-next-rounded` and `a-icon-previous-rounded`: 0 -> 3 occurrences each.
-- Selector test: chevrons inside both mosaic container families and an unscoped one are
-  all matched; `header-icon` is not touched by this rule. 4/4.
+- Path-vs-svg tested in a real engine: the svg-level selector does **not** match the
+  path, the path-level selector does, and a path with its own `fill` attribute keeps it
+  against an svg-level rule. 3/3.
 - Balance 0/0/0; `scripts/lint-logos.sh`.
