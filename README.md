@@ -1,3 +1,11 @@
+# AmazonDark v7.96 — Disney hero-style product plates
+
+- Production build based directly on v7.95; no probe runtime ships.
+- Keeps the v7.95 Disney / Amazon Shopping Guides visibility fix, then gives its four product-image tiles the same OLED-black contain plate used by the seasonal NPACK hero cards.
+- Only the Shopping Guides `_colored-background_` shell changes from Amazon's light `#f7f7f7` plate to OLED black. The product raster, sizing/contain behavior, padding, radius, position, links, labels, and card geometry are untouched.
+- TWB continues to act on the actual product raster at the user's selected strength; the new black backdrop itself is never dimmed.
+- No MutationObserver, recurring timer, RAF, scroll listener, or probe runtime.
+
 # AmazonDark v7.95 — compact standalone + Disney media repair
 
 - Production build based on v7.93 production plus the v7.94 viewport-probe findings; no probe runtime ships.

@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.95"
+#define AD_VERSION "v7.96"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -842,12 +842,20 @@ static NSString *ADFloorJS(void){
              * _YW1he_colored-background_* shell uses mix-blend-mode:darken and
              * the product IMG uses mix-blend-mode:multiply. Against our OLED card
              * floor those blend modes collapse the artwork into black until the
-             * pressed state changes compositing. Normalize compositing only; keep
-             * Amazon's dimensions, padding, positioning and product raster intact. */
+             * pressed state changes compositing. Normalize compositing only. */
             "[data-csa-c-painter=amazon-shopping-guides-quad-card-cards] [class*=_colored-background_],"
             "[data-csa-c-painter=amazon-shopping-guides-quad-card-cards] [class*=_product-image_],"
             "[data-csa-c-painter=amazon-shopping-guides-quad-card-cards] [class*=_image_]"
             "{mix-blend-mode:normal!important;isolation:auto!important;}"
+            /* v7.96: give Shopping Guides product tiles the same v185/hero
+             * product-photo plate treatment used by the seasonal NPACK hero.
+             * Amazon's _colored-background_ shell is the light #f7f7f7 contain
+             * plate visible around the actual product raster. Replace only that
+             * leftover plate with OLED black; the existing image sizing/contain,
+             * padding, radius, position and TWB raster filter are left untouched. */
+            "[data-csa-c-painter=amazon-shopping-guides-quad-card-cards] [class*=_colored-background_]"
+            "{background:#000!important;background-color:#000!important;border-color:#000!important;"
+            "outline-color:#000!important;box-shadow:none!important;transition-property:none!important;}"
             /* v7.0.46: standalone ad dark surface. Classification is O(1) at
              * documentStart from child-frame/referrer state; viewport geometry is
              * handled declaratively by the media query, so there is no DOM scan,
