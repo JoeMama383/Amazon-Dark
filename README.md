@@ -1,3 +1,14 @@
+# AmazonDark v7.92~probe — standalone-ad current-viewport inventory
+
+- Built directly from v7.91 production; no production theming rule is changed.
+- Targets the standalone Home ad visible in the current screen frame (the bright white banner-style ad), without scrolling, tapping, or walking the whole document.
+- Uses the proven manual SIGUSR2 trigger and Amazon-sandbox Documents output workflow from the working late-v7 probe lineage.
+- A dormant documentStart helper is installed in every WebKit frame only for this probe build so visible cross-origin APE/standalone child frames can report through a one-shot `postMessage` fan-out.
+- Captures viewport hit-tested elements, candidate ad roots, bright-wide fallback surfaces, visible descendants inside those roots, full attribute sets, direct text, computed paint, `::before`/`::after`, masks/backgrounds, borders/shadows, media/iframe/link sources, parent chains, and matching accessible CSS rules.
+- Includes a native UIKit viewport inventory in the same run in case any part of the standalone ad is hosted outside the DOM.
+- Output appends inside Amazon's own sandbox as `AmazonDark-v7.92-standalone-ad-probe.txt`; NewTerm exports that file to the established shared AppGroup Documents folder.
+- No MutationObserver, recurring timer, RAF, scroll listener, click automation, or DOM mutation.
+
 # AmazonDark v7.91 — Sponsored gray + functional TWB range
 
 - Home carousel Sponsored text and info glyphs now use the same subdued secondary gray (`#b1aaa0`) instead of pure white.
