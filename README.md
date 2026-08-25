@@ -1,9 +1,11 @@
-# AmazonDark v7.87-probe — viewport-only carousel snapshot
-- Built from clean v7.86 production; no production paint rule was changed.
-- Taking an iOS screenshot captures only the current screen viewport while Amazon remains foregrounded. It does not scroll, tap, or walk the whole document.
-- The same probe is intended to be run twice: once on the good carousel card and once on the bad card.
-- Captures Sponsored text/glyph paint plus local chevron/SVG/path/pseudo-element state inside on-screen card roots.
-- Output appends to `AmazonDark-v7.87-viewport-probe.txt` in the established shared AppGroup Documents folder.
+# AmazonDark v7.88~probe — manual viewport snapshot
+
+- Direct base: v7.87~probe, with **no production theming changes**.
+- Replaces the unreliable screenshot-notification trigger with an explicit one-shot **SIGUSR2** trigger.
+- The capture remains viewport-only: no scrolling, no tapping, no MutationObserver, no recurring timer/RAF, and no whole-document `querySelectorAll("*")`.
+- Run the exact same trigger twice: once after leaving the good carousel state on screen, then again after leaving the bad state on screen.
+- Captures Sponsored text/glyph paint plus local chevron/SVG/path/pseudo-element state inside card/header roots found in the current viewport.
+- Output appends to `AmazonDark-v7.88-viewport-probe.txt` in the shared AppGroup Documents folder.
 
 # AmazonDark v7.86 — isolate Hybrid carousel Sponsor glyph color
 
