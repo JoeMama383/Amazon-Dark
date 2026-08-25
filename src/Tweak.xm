@@ -33,9 +33,8 @@
 #import <errno.h>
 #import <string.h>
 #import <float.h>
-#import <signal.h>
 
-#define AD_VERSION "v7.94-probe"
+#define AD_VERSION "v7.95"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -599,7 +598,6 @@ static void ADPostReadyOnce(void);
 static void ADScheduleLaunchReadyCheck706(void);
 static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
-static const void *kADStandaloneProbeUS794=&kADStandaloneProbeUS794;
 static NSHashTable *gADWebViews=nil;
 // v7.0.68 production: no diagnostic touch probe is installed.
 
@@ -838,6 +836,18 @@ static NSString *ADFloorJS(void){
             ":is([class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer]) "
             ":is(div,section,article,ul,ol,li)"
             "{border-color:#3b4043!important;outline-color:#3b4043!important;}"
+            /* v7.95: Disney / Amazon Shopping Guides quad-card media parity.
+             * The v7.94 current-viewport probe exposed this renderer as
+             * data-csa-c-painter=amazon-shopping-guides-quad-card-cards. Its own
+             * _YW1he_colored-background_* shell uses mix-blend-mode:darken and
+             * the product IMG uses mix-blend-mode:multiply. Against our OLED card
+             * floor those blend modes collapse the artwork into black until the
+             * pressed state changes compositing. Normalize compositing only; keep
+             * Amazon's dimensions, padding, positioning and product raster intact. */
+            "[data-csa-c-painter=amazon-shopping-guides-quad-card-cards] [class*=_colored-background_],"
+            "[data-csa-c-painter=amazon-shopping-guides-quad-card-cards] [class*=_product-image_],"
+            "[data-csa-c-painter=amazon-shopping-guides-quad-card-cards] [class*=_image_]"
+            "{mix-blend-mode:normal!important;isolation:auto!important;}"
             /* v7.0.46: standalone ad dark surface. Classification is O(1) at
              * documentStart from child-frame/referrer state; viewport geometry is
              * handled declaratively by the media query, so there is no DOM scan,
@@ -877,6 +887,21 @@ static NSString *ADFloorJS(void){
              * not blanket-clear nested badges or accent components. */
             "html[data-ad7-standalone-candidate] [data-testid=ad-background-container] > div"
             "{background:#000!important;background-color:#000!important;background-image:none!important;}"
+            /* v7.95: compact REC/renderer-factory lane from the v7.94 probe.
+             * The captured 430x130 child frame uses modern-414x125-layout-container
+             * with an Amazon #d5d9d9 border and dark navy product copy. Own paint
+             * only: no width/height/margin/padding/radius/display/flex changes. */
+            "html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] "
+            "[data-testid^=modern-][data-testid$=-layout-container]"
+            "{background:#000!important;background-color:#000!important;border-color:#3b4043!important;"
+            "outline-color:#3b4043!important;box-shadow:none!important;}"
+            "html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] "
+            ":is([data-id=brand-name-text],[data-id=product-name-text],[data-testid=ratings-value],"
+            "[data-testid=formatted-price],[data-testid=formatted-price] *)"
+            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            "html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] "
+            ":is([data-testid=ratings-review-count],[data-testid=full-price])"
+            "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
             /* Primary standalone-ad copy. */
             "html[data-ad7-standalone-candidate] [data-testid=brand-product-description] p,"
             "html[data-ad7-standalone-candidate] [data-testid=ratings-value],"
@@ -1052,6 +1077,11 @@ static NSString *ADFloorJS(void){
             "border:2px solid transparent!important;background-clip:content-box!important;}"
             "::-webkit-scrollbar-thumb:hover{background-color:#8a8a8a!important;}"
             "';"
+            /* v7.95: compact REC child frames can discard the early style
+             * node while their document parser/renderer finishes. Re-attach the
+             * same sheet once at load; no scan, timer, observer or geometry work. */
+            "function ad7RelinkStatic(){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}"
+            "if(document.readyState==='loading')window.addEventListener('load',ad7RelinkStatic,{once:true});else ad7RelinkStatic();"
             /* v7.0.72 Sponsored feedback semantic completion.
              * Keeps the v7.0.70 static Amazon-class renderer lock, but fixes the
              * upstream miss shown by the v7.0.71 tap probe. Some Amazon feedback
@@ -1083,7 +1113,7 @@ static NSString *ADFloorJS(void){
             "function nthPath(h,g){try{var a=[],n=g;while(n&&n!==h&&a.length<5){var par=n.parentElement;if(!par)return '';var ix=1,c=par.firstElementChild;while(c&&c!==n){ix++;c=c.nextElementSibling}a.unshift(String(n.tagName||'*').toLowerCase()+':nth-child('+ix+')');n=par}return n===h&&a.length?' > '+a.join(' > '):''}catch(_){return ''}}"
             "function selector(l,g){try{var h=common(l,g),hs=atom(h,true),gs=atom(g,false);if(h&&g&&h!==g&&hs){var gc=cls(g);if(gc||/feedbackicon|feedback-icon/i.test(String(g.id||'')))return hs+' '+gs;var np=nthPath(h,g);if(np)return hs+np}return gs||GS}catch(_){return GS}}"
             "function lock(l,g,c,rv,cs,svg){try{var sel=selector(l,g),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),bi=String(cs.backgroundImage||'none'),mode='color',img='',pos='0% 0%',size='auto',rep='no-repeat',flt='none';if(mi&&mi!=='none'){mode='mask';img=mi;pos=cs.webkitMaskPosition||cs.maskPosition||'0% 0%';size=cs.webkitMaskSize||cs.maskSize||'auto';rep=cs.webkitMaskRepeat||cs.maskRepeat||'no-repeat'}else if(svg){mode='svg'}else if(bi&&bi!=='none'){mode='mask';img=bi;pos=cs.backgroundPosition||'0% 0%';size=cs.backgroundSize||'auto';rep=cs.backgroundRepeat||'no-repeat'}else{var spread=Math.max(rv[0],rv[1],rv[2])-Math.min(rv[0],rv[1],rv[2]);if(spread<=8){mode='filter';var gray=(rv[0]+rv[1]+rv[2])/3/255;flt='brightness(0) invert('+gray.toFixed(5)+')'}}var key=sel+'|'+mode+'|'+c+'|'+img+'|'+pos+'|'+size+'|'+rep+'|'+flt;if(REG[key])return;REG[key]=1;var st=sheet();if(!st)return;var base=sel+'{color:'+c+'!important;opacity:'+String(isFinite(rv[3])?rv[3]:1)+'!important;visibility:visible!important;mix-blend-mode:normal!important;position:relative!important;z-index:2!important;';if(mode==='mask')base+='background-image:none!important;background-color:'+c+'!important;-webkit-mask-image:'+img+'!important;mask-image:'+img+'!important;-webkit-mask-position:'+pos+'!important;mask-position:'+pos+'!important;-webkit-mask-size:'+size+'!important;mask-size:'+size+'!important;-webkit-mask-repeat:'+rep+'!important;mask-repeat:'+rep+'!important;filter:none!important;-webkit-filter:none!important;';else if(mode==='filter')base+='filter:'+flt+'!important;-webkit-filter:'+flt+'!important;';else base+='filter:none!important;-webkit-filter:none!important;';base+='}';if(mode==='svg')base+=sel+' svg,'+sel+' path,'+sel+' use,'+sel+' circle,'+sel+' rect,'+sel+' polygon,'+sel+' polyline,'+sel+' line{color:'+c+'!important;fill:'+c+'!important;stroke:'+c+'!important;}';st.textContent+=base}catch(_){}}"
-            "function ink(l){try{if(txt(l)==='sponsored'||txt(l)==='sponsored ad')return l;var a=l.querySelectorAll('span,a,div,small');for(var i=0;i<a.length&&i<16;i++){var t=txt(a[i]);if(t==='sponsored'||t==='sponsored ad')return a[i]}}catch(_){}return l}function paint(l){try{if(!isL(l))return;var li=ink(l),lc=getComputedStyle(li),c=lc.color,rv=rgba(c),g=glyph(li);if(!g||!rv)return;if(g.matches('b[class*=ad-feedback-sprite-mobile]')&&g.closest('[data-ad-feedback-label-id]'))return;var cs=getComputedStyle(g),svg=g.matches('svg')?g:g.querySelector('svg');lock(li,g,c,rv,cs,svg)}catch(_){}}"
+            "function ink(l){try{var v=l.querySelector&&l.querySelector('[id^=ad-feedback-text-],[class*=ad-feedback-text]');if(v&&(txt(v)==='sponsored'||txt(v)==='sponsored ad'))return v;if(txt(l)==='sponsored'||txt(l)==='sponsored ad')return l;var a=l.querySelectorAll('span,a,div,small');for(var i=0;i<a.length&&i<16;i++){var t=txt(a[i]);if(t==='sponsored'||t==='sponsored ad')return a[i]}}catch(_){}return l}function paint(l){try{if(!isL(l))return;var li=ink(l),lc=getComputedStyle(li),c=lc.color,rv=rgba(c),g=glyph(li);if(!g||!rv)return;if(g.matches('b[class*=ad-feedback-sprite-mobile]')&&g.closest('[data-ad-feedback-label-id]'))return;if(/^ad-feedback-sprite-/.test(String(g.id||''))&&g.closest('.ape-feedback'))return;var cs=getComputedStyle(g),svg=g.matches('svg')?g:g.querySelector('svg');lock(li,g,c,rv,cs,svg)}catch(_){}}"
             "function all(root){try{var a=(root||document).querySelectorAll(LS),n=Math.min(a.length,64);for(var i=0;i<n;i++)paint(a[i])}catch(_){}}"
             "function local(n){try{var p=n&&n.nodeType===1?n:n&&n.parentElement;for(var i=0;p&&i<5;i++,p=p.parentElement){if(isL(p)){paint(p);return}var l=p.querySelector&&p.querySelector(LS);if(l){paint(l);return}}}catch(_){}}"
             "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){all(document)},{once:true});else all(document);window.addEventListener('load',function(){all(document)},{once:true});window.addEventListener('pageshow',function(){all(document)},false);document.addEventListener('load',function(e){local(e.target)},true);"
@@ -1156,6 +1186,13 @@ static NSString *ADTWBJS(void){
          ":is(img,video,canvas)"
          ":not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge])"
          ":not(:where([data-testid=ratings-stars] *)):not(:where([data-testid=prime-badge] *)),"
+         /* v7.95: compact renderer-factory ads expose the actual creative raster
+          * under data-testid=image / data-acei-id=lfstyl-img rather than the
+          * large renderer's product-picture names. Filter only that media leaf;
+          * the surrounding REC geometry and text remain untouched. */
+         "html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] "
+         ":is([data-testid=image],[data-acei-id=lfstyl-img]) :is(img,video,canvas)"
+         ":not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge]),"
          /* Main-document standalone ad media if Amazon renders it outside the iframe. */
          "#gwm-Deck-btf :is([class*=mobile-mshop-ad],[class*=mobile-ad-container],[class*=ape-wrapper],[class*=ape-placement]) "
          ":is(img,video,canvas)"
@@ -1213,49 +1250,14 @@ static NSString *ADTWBJS(void){
          ":not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=badge]):not([class*=chevron]),"
          "html[data-ad7-twb-child=\"1\"] :is([class*=theming-card-background],[class*=vjs-poster],[class*=single-creative-card-background],[class*=single-video-card-background])"
          "{box-shadow:inset 0 0 0 9999px rgba(0,0,0,%.3f)!important;transition-property:none!important;}"
-         "';}catch(e){}})();",factor,shade];
+         "';"
+         /* v7.95: the same compact REC frame retained data-ad7-twb-child but
+          * lost the early ad7-twb-static node. Re-attach it once at load. */
+         "function ad7RelinkTWB(){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}"
+         "if(document.readyState==='loading')window.addEventListener('load',ad7RelinkTWB,{once:true});else ad7RelinkTWB();"
+         "}catch(e){}})();",factor,shade];
 }
 
-
-// -----------------------------------------------------------------------------
-// v7.94~probe — current-viewport standalone-ad renderer inventory.
-//
-// The helper is injected at documentStart into every WebKit frame, but remains
-// dormant until the proven manual SIGUSR2 trigger.  Each frame samples only its
-// current visual viewport with elementsFromPoint; it never walks the whole page.
-// Visible APE/advertising/creative roots and wide bright surfaces are then
-// inventoried locally, including visible descendants, parent chains, computed
-// paint, pseudo-elements, media sources, attributes and matching stylesheet rules.
-// Visible child iframes report through a one-shot postMessage fan-out so a
-// cross-origin standalone creative can describe itself without a second build.
-// No MutationObserver, scroll hook, timer loop, RAF, click or DOM mutation.
-// -----------------------------------------------------------------------------
-static NSString *ADStandaloneViewportProbeJS794(void){
-    return
-        @"(function(){try{\n"
-        @"if(window.__adStandaloneProbe794Installed)return;window.__adStandaloneProbe794Installed=1;\n"
-        @"function C(e){try{var x=e.className;if(x&&x.baseVal!==undefined)x=x.baseVal;return typeof x==='string'?x:''}catch(_){return ''}}\n"
-        @"function R(e){try{var r=e.getBoundingClientRect();return {x:+r.x.toFixed(2),y:+r.y.toFixed(2),w:+r.width.toFixed(2),h:+r.height.toFixed(2),top:+r.top.toFixed(2),right:+r.right.toFixed(2),bottom:+r.bottom.toFixed(2),left:+r.left.toFixed(2)}}catch(_){return {x:0,y:0,w:0,h:0,top:0,right:0,bottom:0,left:0}}}\n"
-        @"function V(e){try{var r=e.getBoundingClientRect(),c=getComputedStyle(e);return r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth&&c.display!=='none'&&c.visibility!=='hidden'&&parseFloat(c.opacity||1)>0}catch(_){return false}}\n"
-        @"function T(e){try{return String(e.innerText||e.textContent||'').replace(/\\s+/g,' ').trim().slice(0,500)}catch(_){return ''}}\n"
-        @"function D(e){try{var s='',a=e.childNodes||[];for(var i=0;i<a.length;i++)if(a[i].nodeType===3)s+=' '+String(a[i].nodeValue||'');return s.replace(/\\s+/g,' ').trim().slice(0,300)}catch(_){return ''}}\n"
-        @"function A(e){var o={};try{var n=e.getAttributeNames?e.getAttributeNames():[];for(var i=0;i<n.length&&i<80;i++){var k=n[i],v=e.getAttribute(k);o[k]=String(v==null?'':v).slice(0,1800)}}catch(_){}return o}\n"
-        @"function S(e,p){try{var c=getComputedStyle(e,p||null);return {display:c.display,visibility:c.visibility,opacity:c.opacity,color:c.color,textFill:c.webkitTextFillColor||'',backgroundColor:c.backgroundColor,backgroundImage:String(c.backgroundImage||'').slice(0,1200),backgroundPosition:c.backgroundPosition,backgroundSize:c.backgroundSize,backgroundRepeat:c.backgroundRepeat,maskImage:String(c.webkitMaskImage||c.maskImage||'').slice(0,1200),maskPosition:c.webkitMaskPosition||c.maskPosition||'',maskSize:c.webkitMaskSize||c.maskSize||'',filter:c.filter,webkitFilter:c.webkitFilter||'',fill:c.fill,stroke:c.stroke,border:c.border,borderColor:c.borderColor,borderRadius:c.borderRadius,outline:c.outline,boxShadow:String(c.boxShadow||'').slice(0,900),position:c.position,zIndex:c.zIndex,overflow:c.overflow,pointerEvents:c.pointerEvents,font:c.font,fontSize:c.fontSize,fontWeight:c.fontWeight,lineHeight:c.lineHeight,textAlign:c.textAlign,whiteSpace:c.whiteSpace,transform:String(c.transform||'').slice(0,600),mixBlendMode:c.mixBlendMode,isolation:c.isolation,objectFit:c.objectFit,objectPosition:c.objectPosition}}catch(x){return {error:String(x)}}}\n"
-        @"function P(e,p){try{var c=getComputedStyle(e,p);return {content:String(c.content||'').slice(0,400),display:c.display,visibility:c.visibility,opacity:c.opacity,color:c.color,textFill:c.webkitTextFillColor||'',backgroundColor:c.backgroundColor,backgroundImage:String(c.backgroundImage||'').slice(0,900),maskImage:String(c.webkitMaskImage||c.maskImage||'').slice(0,900),filter:c.filter,fill:c.fill,stroke:c.stroke,border:c.border,boxShadow:String(c.boxShadow||'').slice(0,600),position:c.position,zIndex:c.zIndex,width:c.width,height:c.height,transform:String(c.transform||'').slice(0,500)}}catch(x){return {error:String(x)}}}\n"
-        @"function SRC(e){try{var t=String(e.tagName||'').toLowerCase();if(t==='img'||t==='video'||t==='source'||t==='audio')return String(e.currentSrc||e.src||'').slice(0,1400);if(t==='iframe')return String(e.src||'').slice(0,1400);if(t==='a')return String(e.href||'').slice(0,1400);if(t==='use')return String(e.getAttribute('href')||e.getAttribute('xlink:href')||'').slice(0,1400)}catch(_){}return ''}\n"
-        @"function SNAP(e,why){try{var t=String(e.tagName||'').toLowerCase(),r=R(e);return {why:why,tag:t,id:String(e.id||''),cls:C(e).slice(0,2400),text:T(e),directText:D(e),rect:r,attrs:A(e),style:S(e),before:P(e,'::before'),after:P(e,'::after'),src:SRC(e),natural:{w:+(e.naturalWidth||e.videoWidth||0),h:+(e.naturalHeight||e.videoHeight||0)},html:String(e.outerHTML||'').replace(/\\s+/g,' ').slice(0,12000)}}catch(x){return {why:why,error:String(x&&x.stack||x)}}}\n"
-        @"function SEM(e){try{var a=A(e),z=(String(e.tagName||'')+' '+C(e)+' '+String(e.id||'')+' '+String(a['role']||'')+' '+String(a['aria-label']||'')+' '+String(a['data-testid']||'')+' '+String(a['data-csa-c-type']||'')+' '+String(a['data-csa-c-painter']||'')+' '+String(a['data-ad-feedback-payload']||'')+' '+String(a['data-ad-id']||'')+' '+String(a['data-cel-widget']||'')+' '+String(a['data-csm-placement-id']||'')).toLowerCase();return /(^|[^a-z])(ape|advert|advertisement|sponsor|sponsored|mobile.?ad|ad[-_ ]?(container|placement|slot|wrapper|feedback)|creative|campaign|billboard|display.?ad|native.?ad)([^a-z]|$)/.test(z)}catch(_){return false}}\n"
-        @"function RGB(c){try{var m=String(c||'').match(/rgba?\\(([^)]+)\\)/i);if(!m)return null;var p=m[1].split(',').map(parseFloat),a=p.length>3?p[3]:1;return {r:p[0],g:p[1],b:p[2],a:a}}catch(_){return null}}\n"
-        @"function BRIGHT(e){try{if(!V(e))return false;var r=e.getBoundingClientRect();if(r.width<Math.min(210,innerWidth*.48)||r.height<28||r.height>Math.min(innerHeight*.48,360))return false;var q=RGB(getComputedStyle(e).backgroundColor);if(!q||q.a<.2)return false;var lum=(.2126*q.r+.7152*q.g+.0722*q.b)/255;return lum>.72}catch(_){return false}}\n"
-        @"function sample(){var set=new Set(),arr=[],frames=[];function add(e,w){if(!e||e.nodeType!==1||set.has(e)||!V(e))return;set.add(e);arr.push({e:e,why:w});if(String(e.tagName||'').toLowerCase()==='iframe')frames.push(e)}var st=7,W=innerWidth||0,H=innerHeight||0;for(var y=3;y<H;y+=st)for(var x=3;x<W;x+=st){var z=[];try{z=document.elementsFromPoint(x,y)||[]}catch(_){}for(var i=0;i<z.length&&i<22;i++){var e=z[i];add(e,'paint@'+x+','+y);var p=e.parentElement;for(var d=0;p&&d<10;d++,p=p.parentElement)add(p,'ancestor@'+x+','+y)}}return {arr:arr,frames:frames}}\n"
-        @"function rootFor(e){try{if(SEM(e))return e;var p=e;for(var i=0;p&&i<8;i++,p=p.parentElement)if(SEM(p))return p;return e}catch(_){return e}}\n"
-        @"function cssRulesFor(nodes){var toks=[];function tok(x){if(!x||x.length<3||toks.indexOf(x)>=0)return;if(toks.length<120)toks.push(x)}for(var i=0;i<nodes.length&&i<140;i++){var e=nodes[i];tok(String(e.id||''));var cc=C(e).split(/\\s+/);for(var j=0;j<cc.length;j++)tok(cc[j])}var out=[];function walk(rs,depth){if(!rs||depth>5||out.length>=360)return;for(var i=0;i<rs.length&&out.length<360;i++){var r=rs[i];try{if(r.cssRules){walk(r.cssRules,depth+1);continue}var sel=String(r.selectorText||''),hit=false;if(sel){for(var j=0;j<toks.length;j++)if(sel.indexOf(toks[j])>=0){hit=true;break}if(!hit&&/ape|sponsor|advert|creative|ad-feedback|display-ad/i.test(sel))hit=true}if(hit)out.push(String(r.cssText||'').slice(0,5000))}catch(_){}}}try{var ss=document.styleSheets||[];for(var si=0;si<ss.length&&out.length<360;si++)try{walk(ss[si].cssRules,0)}catch(_){}}catch(_){}return out}\n"
-        @"function report(){try{var sm=sample(),arr=sm.arr,W=innerWidth||0,H=innerHeight||0,out={frame:{href:String(location.href||''),referrer:String(document.referrer||''),title:String(document.title||''),ready:document.readyState,child:(function(){try{return window.top!==window}catch(_){return true}})(),viewport:{w:W,h:H,dpr:devicePixelRatio||1,scrollX:scrollX||0,scrollY:scrollY||0}},html:document.documentElement?SNAP(document.documentElement,'html'):null,body:document.body?SNAP(document.body,'body'):null,viewportElements:[],candidates:[],visibleFrames:[]};for(var i=0;i<arr.length&&i<1800;i++)out.viewportElements.push(SNAP(arr[i].e,arr[i].why));var roots=[],seen=new Set();function addRoot(e,reason){if(!e||seen.has(e)||!V(e))return;seen.add(e);roots.push({e:e,reason:reason})}for(var i=0;i<arr.length;i++){var e=arr[i].e;if(SEM(e))addRoot(rootFor(e),'semantic');if(BRIGHT(e)){addRoot(rootFor(e),'bright-wide');var p=e.parentElement;for(var u=0;p&&u<4;u++,p=p.parentElement)addRoot(p,'bright-parent-'+u)}}for(var i=0;i<sm.frames.length;i++)addRoot(sm.frames[i],'visible-iframe');for(var ri=0;ri<roots.length&&ri<36;ri++){var rt=roots[ri].e,rec={reason:roots[ri].reason,root:SNAP(rt,'candidate-root'),chain:[],visibleDescendants:[],cssRules:[]},p=rt;for(var up=0;p&&up<12;up++,p=p.parentElement)rec.chain.push(SNAP(p,'chain-'+up));var nodes=[rt];try{var q=rt.querySelectorAll('*');for(var qi=0;qi<q.length&&nodes.length<520;qi++)if(V(q[qi]))nodes.push(q[qi])}catch(_){}for(var ni=0;ni<nodes.length&&ni<520;ni++)rec.visibleDescendants.push(SNAP(nodes[ni],'desc-'+ni));rec.cssRules=cssRulesFor(nodes);out.candidates.push(rec)}for(var i=0;i<sm.frames.length&&i<24;i++)out.visibleFrames.push(SNAP(sm.frames[i],'visible-frame-host'));return JSON.stringify(out,null,2)}catch(e){return JSON.stringify({fatal:String(e&&e.stack||e)})}}\n"
-        @"window.__adStandaloneProbeReport794=report;\n"
-        @"window.__adStandaloneProbeBroadcast794=function(msg){try{var sm=sample(),fs=sm.frames;for(var i=0;i<fs.length&&i<24;i++)try{if(fs[i].contentWindow)fs[i].contentWindow.postMessage(msg,'*')}catch(_){}}catch(_){}};\n"
-        @"window.addEventListener('message',function(ev){try{var d=ev.data;if(!d||d.__adStandaloneProbe794!==1||!d.nonce)return;var rep=report();try{window.top.postMessage({__adStandaloneProbe794Result:1,nonce:d.nonce,href:String(location.href||''),report:rep},'*')}catch(_){}try{window.__adStandaloneProbeBroadcast794(d)}catch(_){}}catch(_){}},false);\n"
-        @"}catch(e){}})();\n";
-}
 
 static void ADTrackWebView(WKWebView *wv){
     if(!wv)return; @try { @synchronized([WKWebView class]) { if(!gADWebViews)gADWebViews=[NSHashTable weakObjectsHashTable]; [gADWebViews addObject:wv]; } } @catch(...) {}
@@ -1290,11 +1292,6 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADTWBJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADTWBUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
-        if(!objc_getAssociatedObject(ucc,kADStandaloneProbeUS794)){
-            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADStandaloneViewportProbeJS794() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
-            [ucc addUserScript:us];
-            objc_setAssociatedObject(ucc,kADStandaloneProbeUS794,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
     } @catch(...) {}
 }
@@ -1348,7 +1345,6 @@ static void ADApplyAllFloors(void){
     if(gP.enabled){
         objc_setAssociatedObject(self,kADFloorUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADTWBUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(self,kADStandaloneProbeUS794,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADAttachScriptsToUCC710(self);
     }
 }
@@ -2341,69 +2337,6 @@ static void ADScheduleLaunchReadyCheck706(void){
 
 
 
-// -----------------------------------------------------------------------------
-// v7.94 probe runtime — proven manual trigger / Amazon-sandbox output workflow.
-// -----------------------------------------------------------------------------
-static NSUInteger gADStandaloneProbeRun794=0;
-static NSString *ADStandaloneProbePath794(void){
-    @try {
-        NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.94-standalone-ad-probe.txt"];
-    } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.94-standalone-ad-probe.txt"];
-}
-static NSString *ADProbeColor794(UIColor *c){
-    if(!c)return @"nil";
-    @try { CGFloat r=0,g=0,b=0,a=0,w=0; if([c getRed:&r green:&g blue:&b alpha:&a])return [NSString stringWithFormat:@"rgba(%.4f,%.4f,%.4f,%.4f)",r,g,b,a]; if([c getWhite:&w alpha:&a])return [NSString stringWithFormat:@"white(%.4f,%.4f)",w,a]; return c.description?:@"?"; } @catch(...) { return @"?"; }
-}
-static NSString *ADStandaloneNativeViewport794(void){
-    NSMutableString *o=[NSMutableString string];
-    @try {
-        CGRect screen=UIScreen.mainScreen.bounds; [o appendFormat:@"NATIVE_SCREEN %@\n",NSStringFromCGRect(screen)];
-        NSHashTable *seen=[NSHashTable hashTableWithOptions:NSHashTableObjectPointerPersonality];
-        for(UIWindow *w in UIApplication.sharedApplication.windows?:@[]){
-            if(!w||w.hidden||w.alpha<0.01)continue;
-            [o appendFormat:@"WINDOW class=%@ frame=%@ key=%d bg=%@\n",NSStringFromClass(w.class),NSStringFromCGRect(w.frame),w.isKeyWindow?1:0,ADProbeColor794(w.backgroundColor)];
-            for(CGFloat y=8;y<CGRectGetHeight(screen);y+=16)for(CGFloat x=8;x<CGRectGetWidth(screen);x+=16){
-                UIView *v=nil; @try { v=[w hitTest:[w convertPoint:CGPointMake(x,y) fromWindow:nil] withEvent:nil]; } @catch(...) {}
-                for(int d=0;v&&d<12;d++,v=v.superview){ if([seen containsObject:v])continue; [seen addObject:v]; CGRect rr=CGRectZero; @try{rr=[v convertRect:v.bounds toView:nil];}@catch(...){}
-                    [o appendFormat:@"VIEW class=%@ rect=%@ hidden=%d alpha=%.3f bg=%@ tint=%@ aid=%@ alabel=%@",NSStringFromClass(v.class),NSStringFromCGRect(rr),v.hidden?1:0,v.alpha,ADProbeColor794(v.backgroundColor),ADProbeColor794(v.tintColor),v.accessibilityIdentifier?:@"-",v.accessibilityLabel?:@"-"];
-                    if([v isKindOfClass:[UILabel class]])[o appendFormat:@" text=%@ textColor=%@",((UILabel*)v).text?:@"-",ADProbeColor794(((UILabel*)v).textColor)];
-                    if([v isKindOfClass:[UIImageView class]]){UIImage *im=((UIImageView*)v).image;[o appendFormat:@" image=%@ size=%@ mode=%ld",im?@"yes":@"no",im?NSStringFromCGSize(im.size):@"-",(long)(im?im.renderingMode:0)];}
-                    [o appendFormat:@" layerBg=%@ borderWidth=%.2f\n",v.layer.backgroundColor?ADProbeColor794([UIColor colorWithCGColor:v.layer.backgroundColor]):@"nil",v.layer.borderWidth];
-                }
-            }
-        }
-    } @catch(NSException *e){[o appendFormat:@"NATIVE_ERROR %@ %@\n",e.name,e.reason];}
-    return o;
-}
-static WKWebView *ADLargestTrackedWeb794(void){
-    WKWebView *best=nil; CGFloat area=0; @try { for(WKWebView *wv in ADTrackedWebViews()){ if(!wv||!wv.window||wv.hidden||wv.alpha<0.01)continue; CGRect r=[wv convertRect:wv.bounds toView:nil],ir=CGRectIntersection(r,UIScreen.mainScreen.bounds); CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height); if(a>area){area=a;best=wv;} } } @catch(...) {} return best;
-}
-static void ADAppendStandaloneProbe794(NSString *s){
-    if(!s.length)return; @try { NSString *p=ADStandaloneProbePath794(); NSFileManager *fm=[NSFileManager defaultManager]; [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil]; NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding]; if(![fm fileExistsAtPath:p]){[d writeToFile:p atomically:YES];return;} NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p]; if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];} } @catch(...) {}
-}
-static void ADCaptureStandaloneViewport794(void){
-    if(!gP.enabled)return; WKWebView *wv=ADLargestTrackedWeb794(); if(!wv)return;
-    NSUInteger run=++gADStandaloneProbeRun794;
-    NSString *trigger=@"(function(){try{if(typeof window.__adStandaloneProbeReport794!=='function')return 'HELPER_MISSING';var nonce='ad794-'+Date.now()+'-'+Math.random().toString(36).slice(2),c={nonce:nonce,started:new Date().toISOString(),main:window.__adStandaloneProbeReport794(),children:[]};try{if(window.__adStandaloneHandler794)window.removeEventListener('message',window.__adStandaloneHandler794,false)}catch(_){}window.__adStandaloneCollected794=c;window.__adStandaloneHandler794=function(ev){try{var d=ev.data;if(!d||d.__adStandaloneProbe794Result!==1||d.nonce!==nonce)return;if(c.children.length<48)c.children.push({href:String(d.href||''),report:String(d.report||'')})}catch(_){}};window.addEventListener('message',window.__adStandaloneHandler794,false);window.__adStandaloneProbeBroadcast794({__adStandaloneProbe794:1,nonce:nonce});return 'STARTED '+nonce}catch(e){return 'TRIGGER_ERR '+e}})();";
-    [wv evaluateJavaScript:trigger completionHandler:^(id v,NSError *e){
-        NSString *start=e?[NSString stringWithFormat:@"TRIGGER_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.65*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-            NSString *collect=@"(function(){try{var c=window.__adStandaloneCollected794;if(!c)return 'NO_COLLECTION';try{if(window.__adStandaloneHandler794)window.removeEventListener('message',window.__adStandaloneHandler794,false)}catch(_){}var o=['nonce='+c.nonce,'started='+c.started,'\\n===== MAIN FRAME =====\\n'+String(c.main||'')];for(var i=0;i<c.children.length;i++)o.push('\\n===== CHILD FRAME '+i+' href='+String(c.children[i].href||'')+' =====\\n'+String(c.children[i].report||''));o.push('\\nCHILD_COUNT '+c.children.length);return o.join('\\n')}catch(e){return 'COLLECT_ERR '+e}})();";
-            [wv evaluateJavaScript:collect completionHandler:^(id v2,NSError *e2){
-                NSString *body=e2?[NSString stringWithFormat:@"COLLECT_ERROR %@",e2]:([v2 isKindOfClass:[NSString class]]?v2:[v2 description]);
-                NSMutableString *m=[NSMutableString stringWithFormat:@"\\n\\n================ AMAZON DARK v7.94 STANDALONE-AD VIEWPORT PROBE RUN %lu ================\\ndate=%@\\npid=%d\\nversion=%s\\nmethod=current-viewport-only + visible child-frame fanout; no scroll/tap/full-document walk\\ntrigger=%@\\n\\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,start?:@"NO_TRIGGER"];
-                [m appendString:ADStandaloneNativeViewport794()]; [m appendString:@"\\n"]; [m appendString:body?:@"NO_RESULT"]; [m appendString:@"\\n================ END RUN ================\\n"]; ADAppendStandaloneProbe794(m);
-            }];
-        });
-    }];
-}
-static dispatch_source_t gADStandaloneProbeSignal794=nil;
-static void ADInstallStandaloneProbeSignal794(void){
-    static dispatch_once_t once; dispatch_once(&once,^{ signal(SIGUSR2,SIG_IGN); gADStandaloneProbeSignal794=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue()); if(!gADStandaloneProbeSignal794)return; dispatch_source_set_event_handler(gADStandaloneProbeSignal794,^{ADCaptureStandaloneViewport794();}); dispatch_resume(gADStandaloneProbeSignal794); });
-}
-
 // v7.0.68 production: v7.0.65 chevron diagnostic runtime removed.
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
     ADLoadPrefs();
@@ -2428,7 +2361,6 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
     } @catch(...) {}
 
     %init;
-    ADInstallStandaloneProbeSignal794();
 
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);

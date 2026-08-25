@@ -1,12 +1,11 @@
-# AmazonDark v7.94~probe — small standalone-ad viewport inventory
+# AmazonDark v7.95 — compact standalone + Disney media repair
 
-- Directly based on v7.93 production; all v7.93 standalone-ad theming, Sponsored contrast, and TWB behavior remain unchanged for diagnosis.
-- Reuses the exact proven v7.92 probe architecture: manual one-shot SIGUSR2 trigger, Amazon-sandbox Documents output, then a separate NewTerm export after returning to Amazon.
-- Captures only the current visual viewport. It does not scroll, tap, install a MutationObserver, run a recurring timer/RAF, or walk the whole document.
-- Visible APE/standalone ad roots are locally inventoried with computed paint, pseudo-elements, inline attributes, media sources, parent chains, visible descendants, and relevant CSS rules.
-- Cross-origin visible child ad frames report their own current viewport through the same one-shot postMessage fanout, allowing compact/condensed standalone renderers to be compared with the previously probed large renderer.
-- The main-frame APE Sponsored text + glyph are included in the same capture.
-- Probe output: `AmazonDark-v7.94-standalone-ad-probe.txt` inside Amazon's own Documents sandbox.
+- Production build based on v7.93 production plus the v7.94 viewport-probe findings; no probe runtime ships.
+- Compact renderer-factory standalone ads keep their stock geometry while the actual responsive layout floor stays OLED black, the existing 1px border becomes `#3b4043`, primary copy becomes `#e8e6e3`, and secondary metadata becomes `#b1aaa0`.
+- TWB now reaches the compact renderer's real `data-testid=image` / `data-acei-id=lfstyl-img` raster lane as well as the large dynamic-product lane.
+- Standalone APE Sponsored text and info glyph are both fixed at `#b1aaa0`; the legacy glyph learner no longer overwrites the standalone glyph with the black parent control color.
+- The Disney / Amazon Shopping Guides quad card keeps its product images visible by neutralizing only Amazon's `darken` / `multiply` blend modes on that renderer; layout and image geometry are untouched.
+- No MutationObserver, recurring timer, RAF, scroll listener, or probe runtime.
 
 # AmazonDark v7.93 — standalone dynamic-product ad theming
 
