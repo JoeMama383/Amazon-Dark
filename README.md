@@ -1,3 +1,12 @@
+# AmazonDark v7.89~probe — restored proven manual probe I/O
+
+- Directly based on v7.88~probe; production theming behavior is unchanged.
+- Keeps the manual SIGUSR2 one-shot trigger.
+- Restores the proven probe I/O model: Amazon writes inside its own sandbox Documents directory; NewTerm finds that file and copies it to the shared AppGroup Documents folder.
+- Removes the invalid v7.88 behavior that tried to write directly from the sandboxed Amazon process into NewTerm's shared AppGroup path.
+- Viewport capture remains fixed-current-frame only: no auto-scroll, no auto-tap, no MutationObserver, no recurring timer.
+- Two identical runs are intended: GOOD carousel state, then BAD carousel state.
+
 # AmazonDark v7.88~probe — manual viewport snapshot
 
 - Direct base: v7.87~probe, with **no production theming changes**.

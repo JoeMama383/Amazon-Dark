@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.88-probe"
+#define AD_VERSION "v7.89-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2179,7 +2179,7 @@ static void ADScheduleLaunchReadyCheck706(void){
 
 
 // -----------------------------------------------------------------------------
-// v7.88-probe — viewport-only Home carousel paint inventory.
+// v7.89-probe — viewport-only Home carousel paint inventory.
 //
 // Triggered only by SIGUSR2. It does
 // not scroll, tap, mutate the DOM, install an observer, or walk the whole document.
@@ -2188,12 +2188,16 @@ static void ADScheduleLaunchReadyCheck706(void){
 // icon/Sponsored/chevron descendants inside card/header roots that were themselves
 // found on-screen. This lets two identical runs be compared on two carousel cards.
 // -----------------------------------------------------------------------------
-static NSUInteger gADViewportProbeRun788 = 0;
+static NSUInteger gADViewportProbeRun789 = 0;
 
-static NSString *ADViewportProbePath788(void){
-    return @"/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents/AmazonDark-v7.88-viewport-probe.txt";
+static NSString *ADViewportProbePath789(void){
+    @try {
+        NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
+        if(docs.length) return [docs stringByAppendingPathComponent:@"AmazonDark-v7.89-viewport-probe.txt"];
+    } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.89-viewport-probe.txt"];
 }
-static NSString *ADProbeColor788(UIColor *c){
+static NSString *ADProbeColor789(UIColor *c){
     if(!c)return @"nil";
     @try {
         CGFloat r=0,g=0,b=0,a=0,w=0;
@@ -2204,10 +2208,10 @@ static NSString *ADProbeColor788(UIColor *c){
         return c.description ?: @"?";
     } @catch(...) { return @"?"; }
 }
-static void ADAppendViewportProbe788(NSString *s){
+static void ADAppendViewportProbe789(NSString *s){
     if(!s.length)return;
     @try {
-        NSString *p=ADViewportProbePath788();
+        NSString *p=ADViewportProbePath789();
         NSString *dir=[p stringByDeletingLastPathComponent];
         NSFileManager *fm=[NSFileManager defaultManager];
         [fm createDirectoryAtPath:dir withIntermediateDirectories:YES attributes:nil error:nil];
@@ -2224,7 +2228,7 @@ static void ADAppendViewportProbe788(NSString *s){
         }
     } @catch(...) {}
 }
-static NSString *ADViewportProbeNative788(void){
+static NSString *ADViewportProbeNative789(void){
     NSMutableString *o=[NSMutableString string];
     @try {
         CGRect screen=UIScreen.mainScreen.bounds;
@@ -2236,7 +2240,7 @@ static NSString *ADViewportProbeNative788(void){
             if(!w || w.hidden || w.alpha<0.01)continue;
             [o appendFormat:@"WINDOW[%lu] class=%@ frame=%@ level=%.2f key=%d hidden=%d alpha=%.3f bg=%@\n",
              (unsigned long)wi++,NSStringFromClass(w.class),NSStringFromCGRect(w.frame),
-             w.windowLevel,w.isKeyWindow?1:0,w.hidden?1:0,w.alpha,ADProbeColor788(w.backgroundColor)];
+             w.windowLevel,w.isKeyWindow?1:0,w.hidden?1:0,w.alpha,ADProbeColor789(w.backgroundColor)];
             const CGFloat step=12.0;
             for(CGFloat y=0;y<CGRectGetHeight(screen);y+=step){
                 for(CGFloat x=0;x<CGRectGetWidth(screen);x+=step){
@@ -2250,11 +2254,11 @@ static NSString *ADViewportProbeNative788(void){
                         @try { rr=[v convertRect:v.bounds toView:nil]; } @catch(...) {}
                         [o appendFormat:@"  VIEW class=%@ rect=%@ bounds=%@ hidden=%d alpha=%.3f opaque=%d bg=%@ tint=%@ aid=%@ alabel=%@",
                          NSStringFromClass(v.class),NSStringFromCGRect(rr),NSStringFromCGRect(v.bounds),
-                         v.hidden?1:0,v.alpha,v.opaque?1:0,ADProbeColor788(v.backgroundColor),ADProbeColor788(v.tintColor),
+                         v.hidden?1:0,v.alpha,v.opaque?1:0,ADProbeColor789(v.backgroundColor),ADProbeColor789(v.tintColor),
                          v.accessibilityIdentifier?:@"-",v.accessibilityLabel?:@"-"];
                         if([v isKindOfClass:[UILabel class]]){
                             UILabel *l=(UILabel *)v;
-                            [o appendFormat:@" text=%@ textColor=%@",l.text?:@"-",ADProbeColor788(l.textColor)];
+                            [o appendFormat:@" text=%@ textColor=%@",l.text?:@"-",ADProbeColor789(l.textColor)];
                         } else if([v isKindOfClass:[UIImageView class]]){
                             UIImageView *iv=(UIImageView *)v;
                             UIImage *im=iv.image;
@@ -2266,13 +2270,13 @@ static NSString *ADViewportProbeNative788(void){
                         }
                         CALayer *ly=v.layer;
                         [o appendFormat:@" layerBg=%@ borderWidth=%.3f border=%@",
-                         ly.backgroundColor?ADProbeColor788([UIColor colorWithCGColor:ly.backgroundColor]):@"nil",
-                         ly.borderWidth,ly.borderColor?ADProbeColor788([UIColor colorWithCGColor:ly.borderColor]):@"nil"];
+                         ly.backgroundColor?ADProbeColor789([UIColor colorWithCGColor:ly.backgroundColor]):@"nil",
+                         ly.borderWidth,ly.borderColor?ADProbeColor789([UIColor colorWithCGColor:ly.borderColor]):@"nil"];
                         if([ly isKindOfClass:[CAShapeLayer class]]){
                             CAShapeLayer *sl=(CAShapeLayer *)ly;
                             [o appendFormat:@" shapeFill=%@ shapeStroke=%@",
-                             sl.fillColor?ADProbeColor788([UIColor colorWithCGColor:sl.fillColor]):@"nil",
-                             sl.strokeColor?ADProbeColor788([UIColor colorWithCGColor:sl.strokeColor]):@"nil"];
+                             sl.fillColor?ADProbeColor789([UIColor colorWithCGColor:sl.fillColor]):@"nil",
+                             sl.strokeColor?ADProbeColor789([UIColor colorWithCGColor:sl.strokeColor]):@"nil"];
                         }
                         [o appendString:@"\n"];
                     }
@@ -2284,7 +2288,7 @@ static NSString *ADViewportProbeNative788(void){
     }
     return o;
 }
-static NSString *ADViewportProbeJS788(void){
+static NSString *ADViewportProbeJS789(void){
     return
     @"(function(){try{"
      "var W=innerWidth||document.documentElement.clientWidth||0,H=innerHeight||document.documentElement.clientHeight||0;"
@@ -2332,15 +2336,15 @@ static NSString *ADViewportProbeJS788(void){
      "return JSON.stringify(out,null,2)"
      "}catch(e){return JSON.stringify({fatal:String(e&&e.stack||e)})}})();";
 }
-static void ADRunViewportProbe788(void){
+static void ADRunViewportProbe789(void){
     dispatch_async(dispatch_get_main_queue(), ^{
-        NSUInteger run=++gADViewportProbeRun788;
+        NSUInteger run=++gADViewportProbeRun789;
         NSMutableString *base=[NSMutableString stringWithFormat:
-            @"\n\n================ AMAZON DARK v7.88 VIEWPORT PROBE RUN %lu ================\n"
+            @"\n\n================ AMAZON DARK v7.89 VIEWPORT PROBE RUN %lu ================\n"
              "timestamp=%@\npid=%d\nversion=%s\n"
              "method=viewport-paint-sampling-only; no scroll; no tap; no whole-document querySelectorAll\n\n",
              (unsigned long)run,[NSDate date],getpid(),AD_VERSION];
-        [base appendString:ADViewportProbeNative788()];
+        [base appendString:ADViewportProbeNative789()];
         [base appendString:@"\n"];
         NSArray *all=ADTrackedWebViews();
         NSMutableArray *webs=[NSMutableArray array];
@@ -2355,7 +2359,7 @@ static void ADRunViewportProbe788(void){
         [base appendFormat:@"VISIBLE_WEBVIEWS=%lu\n",(unsigned long)webs.count];
         if(!webs.count){
             [base appendString:@"NO_VISIBLE_WEBVIEW\n================ END RUN ================\n"];
-            ADAppendViewportProbe788(base);
+            ADAppendViewportProbe789(base);
             return;
         }
         dispatch_group_t group=dispatch_group_create();
@@ -2369,7 +2373,7 @@ static void ADRunViewportProbe788(void){
                 @"\n--- WEBVIEW[%lu] class=%@ rect=%@ url=%@ ---\n",
                 (unsigned long)thisIdx,NSStringFromClass(wv.class),NSStringFromCGRect(r),wv.URL.absoluteString?:@"-"];
             dispatch_group_enter(group);
-            [wv evaluateJavaScript:ADViewportProbeJS788() completionHandler:^(id value,NSError *error){
+            [wv evaluateJavaScript:ADViewportProbeJS789() completionHandler:^(id value,NSError *error){
                 NSString *body=nil;
                 if(error) body=[NSString stringWithFormat:@"JS_ERROR domain=%@ code=%ld desc=%@\n",error.domain,(long)error.code,error.localizedDescription];
                 else if([value isKindOfClass:[NSString class]]) body=(NSString *)value;
@@ -2385,21 +2389,21 @@ static void ADRunViewportProbe788(void){
             }];
             for(NSDictionary *p in sorted)[base appendString:p[@"s"]];
             [base appendString:@"================ END RUN ================\n"];
-            ADAppendViewportProbe788(base);
+            ADAppendViewportProbe789(base);
         });
     });
 }
 
 
-static dispatch_source_t gADViewportProbeSignal788 = nil;
-static void ADInstallViewportProbeSignal788(void){
+static dispatch_source_t gADViewportProbeSignal789 = nil;
+static void ADInstallViewportProbeSignal789(void){
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         signal(SIGUSR2, SIG_IGN);
-        gADViewportProbeSignal788 = dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL, SIGUSR2, 0, dispatch_get_main_queue());
-        if(!gADViewportProbeSignal788) return;
-        dispatch_source_set_event_handler(gADViewportProbeSignal788, ^{ ADRunViewportProbe788(); });
-        dispatch_resume(gADViewportProbeSignal788);
+        gADViewportProbeSignal789 = dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL, SIGUSR2, 0, dispatch_get_main_queue());
+        if(!gADViewportProbeSignal789) return;
+        dispatch_source_set_event_handler(gADViewportProbeSignal789, ^{ ADRunViewportProbe789(); });
+        dispatch_resume(gADViewportProbeSignal789);
     });
 }
 
@@ -2426,7 +2430,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 
     %init;
 
-    ADInstallViewportProbeSignal788();
+    ADInstallViewportProbeSignal789();
 
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);
