@@ -1,3 +1,13 @@
+# AmazonDark v7.94~probe — small standalone-ad viewport inventory
+
+- Directly based on v7.93 production; all v7.93 standalone-ad theming, Sponsored contrast, and TWB behavior remain unchanged for diagnosis.
+- Reuses the exact proven v7.92 probe architecture: manual one-shot SIGUSR2 trigger, Amazon-sandbox Documents output, then a separate NewTerm export after returning to Amazon.
+- Captures only the current visual viewport. It does not scroll, tap, install a MutationObserver, run a recurring timer/RAF, or walk the whole document.
+- Visible APE/standalone ad roots are locally inventoried with computed paint, pseudo-elements, inline attributes, media sources, parent chains, visible descendants, and relevant CSS rules.
+- Cross-origin visible child ad frames report their own current viewport through the same one-shot postMessage fanout, allowing compact/condensed standalone renderers to be compared with the previously probed large renderer.
+- The main-frame APE Sponsored text + glyph are included in the same capture.
+- Probe output: `AmazonDark-v7.94-standalone-ad-probe.txt` inside Amazon's own Documents sandbox.
+
 # AmazonDark v7.93 — standalone dynamic-product ad theming
 
 - Built from v7.91 production; the v7.92 probe runtime does **not** ship.
