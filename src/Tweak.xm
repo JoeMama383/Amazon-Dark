@@ -33,9 +33,8 @@
 #import <errno.h>
 #import <string.h>
 #import <float.h>
-#import <signal.h>
 
-#define AD_VERSION "v7.89-probe"
+#define AD_VERSION "v7.90"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -949,6 +948,26 @@ static NSString *ADFloorJS(void){
             "html body [data-ad-feedback-label-id] b[class*=ad-feedback-sprite-mobile][class*=labelThemeStyle_ad-feedback-sprite-mobile],"
             "html body [data-ad-feedback-label-id] b[class*=ad-feedback-sprite-mobile]"
             "{color:inherit!important;background-color:currentColor!important;background-image:none!important;"
+            "-webkit-mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;"
+            "mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;"
+            "-webkit-mask-size:contain!important;mask-size:contain!important;"
+            "-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;"
+            "-webkit-mask-position:center!important;mask-position:center!important;"
+            "filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
+            /* v7.90: Home product-carousel Sponsored parity. The v7.89 current-frame
+             * capture proved these card families can hydrate through multiple Amazon
+             * renderers while reusing the Grey ad-feedback theme. In the failing
+             * states the visible text is driven by -webkit-text-fill-color while the
+             * 12x12 info mask is driven independently by background-color, producing
+             * white/gray text beside a dark glyph. Own both inks only inside the
+             * carousel badge shells captured by the probe; other Sponsored surfaces
+             * remain Amazon-owned. This is declarative CSS only. */
+            "html body :is([class*=widget-sponsored-badge-container],[class*=asin-sponsored-badge-container]) "
+            "[data-ad-feedback-label-id] [class*=ad-feedback-text]"
+            "{color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important;}"
+            "html body :is([class*=widget-sponsored-badge-container],[class*=asin-sponsored-badge-container]) "
+            "[data-ad-feedback-label-id] [class*=ad-feedback-text] > b[class*=ad-feedback-sprite-mobile]"
+            "{color:#fff!important;background-color:#fff!important;background-image:none!important;"
             "-webkit-mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;"
             "mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;"
             "-webkit-mask-size:contain!important;mask-size:contain!important;"
@@ -2178,236 +2197,6 @@ static void ADScheduleLaunchReadyCheck706(void){
 
 
 
-// -----------------------------------------------------------------------------
-// v7.89-probe — viewport-only Home carousel paint inventory.
-//
-// Triggered only by SIGUSR2. It does
-// not scroll, tap, mutate the DOM, install an observer, or walk the whole document.
-// The web snapshot samples only elements
-// actually under points in the current visual viewport, then locally inventories
-// icon/Sponsored/chevron descendants inside card/header roots that were themselves
-// found on-screen. This lets two identical runs be compared on two carousel cards.
-// -----------------------------------------------------------------------------
-static NSUInteger gADViewportProbeRun789 = 0;
-
-static NSString *ADViewportProbePath789(void){
-    @try {
-        NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length) return [docs stringByAppendingPathComponent:@"AmazonDark-v7.89-viewport-probe.txt"];
-    } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.89-viewport-probe.txt"];
-}
-static NSString *ADProbeColor789(UIColor *c){
-    if(!c)return @"nil";
-    @try {
-        CGFloat r=0,g=0,b=0,a=0,w=0;
-        if([c getRed:&r green:&g blue:&b alpha:&a])
-            return [NSString stringWithFormat:@"rgba(%.4f,%.4f,%.4f,%.4f)",r,g,b,a];
-        if([c getWhite:&w alpha:&a])
-            return [NSString stringWithFormat:@"white(%.4f,%.4f)",w,a];
-        return c.description ?: @"?";
-    } @catch(...) { return @"?"; }
-}
-static void ADAppendViewportProbe789(NSString *s){
-    if(!s.length)return;
-    @try {
-        NSString *p=ADViewportProbePath789();
-        NSString *dir=[p stringByDeletingLastPathComponent];
-        NSFileManager *fm=[NSFileManager defaultManager];
-        [fm createDirectoryAtPath:dir withIntermediateDirectories:YES attributes:nil error:nil];
-        NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding];
-        if(![fm fileExistsAtPath:p]){
-            [d writeToFile:p atomically:YES];
-            return;
-        }
-        NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p];
-        if(h){
-            [h seekToEndOfFile];
-            [h writeData:d];
-            [h closeFile];
-        }
-    } @catch(...) {}
-}
-static NSString *ADViewportProbeNative789(void){
-    NSMutableString *o=[NSMutableString string];
-    @try {
-        CGRect screen=UIScreen.mainScreen.bounds;
-        [o appendFormat:@"NATIVE_SCREEN bounds=%@\n",NSStringFromCGRect(screen)];
-        NSHashTable *seen=[NSHashTable hashTableWithOptions:NSHashTableObjectPointerPersonality];
-        NSArray *wins=UIApplication.sharedApplication.windows ?: @[];
-        NSUInteger wi=0;
-        for(UIWindow *w in wins){
-            if(!w || w.hidden || w.alpha<0.01)continue;
-            [o appendFormat:@"WINDOW[%lu] class=%@ frame=%@ level=%.2f key=%d hidden=%d alpha=%.3f bg=%@\n",
-             (unsigned long)wi++,NSStringFromClass(w.class),NSStringFromCGRect(w.frame),
-             w.windowLevel,w.isKeyWindow?1:0,w.hidden?1:0,w.alpha,ADProbeColor789(w.backgroundColor)];
-            const CGFloat step=12.0;
-            for(CGFloat y=0;y<CGRectGetHeight(screen);y+=step){
-                for(CGFloat x=0;x<CGRectGetWidth(screen);x+=step){
-                    CGPoint sp=CGPointMake(x+step*0.5,y+step*0.5);
-                    CGPoint wp=[w convertPoint:sp fromWindow:nil];
-                    UIView *v=[w hitTest:wp withEvent:nil];
-                    for(int d=0;v && d<12;d++,v=v.superview){
-                        if([seen containsObject:v])continue;
-                        [seen addObject:v];
-                        CGRect rr=CGRectZero;
-                        @try { rr=[v convertRect:v.bounds toView:nil]; } @catch(...) {}
-                        [o appendFormat:@"  VIEW class=%@ rect=%@ bounds=%@ hidden=%d alpha=%.3f opaque=%d bg=%@ tint=%@ aid=%@ alabel=%@",
-                         NSStringFromClass(v.class),NSStringFromCGRect(rr),NSStringFromCGRect(v.bounds),
-                         v.hidden?1:0,v.alpha,v.opaque?1:0,ADProbeColor789(v.backgroundColor),ADProbeColor789(v.tintColor),
-                         v.accessibilityIdentifier?:@"-",v.accessibilityLabel?:@"-"];
-                        if([v isKindOfClass:[UILabel class]]){
-                            UILabel *l=(UILabel *)v;
-                            [o appendFormat:@" text=%@ textColor=%@",l.text?:@"-",ADProbeColor789(l.textColor)];
-                        } else if([v isKindOfClass:[UIImageView class]]){
-                            UIImageView *iv=(UIImageView *)v;
-                            UIImage *im=iv.image;
-                            [o appendFormat:@" image=%@ imageSize=%@ mode=%ld",
-                             im?@"yes":@"no",im?NSStringFromCGSize(im.size):@"-",(long)(im?im.renderingMode:0)];
-                        } else if([v isKindOfClass:[UIButton class]]){
-                            UIButton *b=(UIButton *)v;
-                            [o appendFormat:@" title=%@",[b titleForState:UIControlStateNormal]?:@"-"];
-                        }
-                        CALayer *ly=v.layer;
-                        [o appendFormat:@" layerBg=%@ borderWidth=%.3f border=%@",
-                         ly.backgroundColor?ADProbeColor789([UIColor colorWithCGColor:ly.backgroundColor]):@"nil",
-                         ly.borderWidth,ly.borderColor?ADProbeColor789([UIColor colorWithCGColor:ly.borderColor]):@"nil"];
-                        if([ly isKindOfClass:[CAShapeLayer class]]){
-                            CAShapeLayer *sl=(CAShapeLayer *)ly;
-                            [o appendFormat:@" shapeFill=%@ shapeStroke=%@",
-                             sl.fillColor?ADProbeColor789([UIColor colorWithCGColor:sl.fillColor]):@"nil",
-                             sl.strokeColor?ADProbeColor789([UIColor colorWithCGColor:sl.strokeColor]):@"nil"];
-                        }
-                        [o appendString:@"\n"];
-                    }
-                }
-            }
-        }
-    } @catch(NSException *e){
-        [o appendFormat:@"NATIVE_ERROR %@ %@\n",e.name,e.reason];
-    }
-    return o;
-}
-static NSString *ADViewportProbeJS789(void){
-    return
-    @"(function(){try{"
-     "var W=innerWidth||document.documentElement.clientWidth||0,H=innerHeight||document.documentElement.clientHeight||0;"
-     "var out={href:String(location.href||''),title:String(document.title||''),ready:document.readyState,"
-     "viewport:{w:W,h:H,dpr:devicePixelRatio||1,scrollX:scrollX||0,scrollY:scrollY||0},elements:[],roots:[]};"
-     "function tr(v,n){v=String(v==null?'':v);return v.length>n?v.slice(0,n)+'…':v}"
-     "function cl(e){try{var c=e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;return String(c||'')}catch(_){return ''}}"
-     "function rr(e){try{var r=e.getBoundingClientRect();return {x:+r.x.toFixed(2),y:+r.y.toFixed(2),w:+r.width.toFixed(2),h:+r.height.toFixed(2),"
-     "top:+r.top.toFixed(2),right:+r.right.toFixed(2),bottom:+r.bottom.toFixed(2),left:+r.left.toFixed(2)}}catch(_){return {x:0,y:0,w:0,h:0,top:0,right:0,bottom:0,left:0}}}"
-     "function on(r){return r.right>0&&r.bottom>0&&r.left<W&&r.top<H}"
-     "function sty(e,p){try{var s=getComputedStyle(e,p||null);return {display:s.display,visibility:s.visibility,opacity:s.opacity,color:s.color,"
-     "textFill:s.webkitTextFillColor||'',backgroundColor:s.backgroundColor,backgroundImage:tr(s.backgroundImage,900),"
-     "maskImage:tr((s.webkitMaskImage||s.maskImage||''),900),filter:s.filter,webkitFilter:s.webkitFilter||'',fill:s.fill,stroke:s.stroke,"
-     "borderColor:s.borderColor,boxShadow:tr(s.boxShadow,500),content:tr(s.content,300),position:s.position,zIndex:s.zIndex,"
-     "transform:tr(s.transform,500),overflow:s.overflow,pointerEvents:s.pointerEvents,width:s.width,height:s.height,"
-     "backgroundPosition:s.backgroundPosition,backgroundSize:s.backgroundSize,maskPosition:s.webkitMaskPosition||s.maskPosition||'',"
-     "maskSize:s.webkitMaskSize||s.maskSize||''}}catch(_){return {error:String(_)}}}"
-     "function at(e){var o={};try{['id','role','aria-label','aria-hidden','data-ad-feedback-label-id','href','src','fill','stroke','d','viewBox','style'].forEach(function(k){"
-     "var v=e.getAttribute&&e.getAttribute(k);if(v!=null&&v!=='')o[k]=tr(v,k==='d'?900:1200)});"
-     "if(e.tagName&&String(e.tagName).toLowerCase()==='use'){var h=e.getAttribute('href')||e.getAttribute('xlink:href');if(h)o.useHref=tr(h,900)}}catch(_){}return o}"
-     "function pseudo(e,p){try{var s=getComputedStyle(e,p);return {content:tr(s.content,300),display:s.display,visibility:s.visibility,opacity:s.opacity,"
-     "color:s.color,backgroundColor:s.backgroundColor,backgroundImage:tr(s.backgroundImage,900),maskImage:tr((s.webkitMaskImage||s.maskImage||''),900),"
-     "filter:s.filter,webkitFilter:s.webkitFilter||'',fill:s.fill,stroke:s.stroke,width:s.width,height:s.height,position:s.position,zIndex:s.zIndex,"
-     "transform:tr(s.transform,500)}}catch(_){return {error:String(_)}}}"
-     "function snap(e,why,force){try{if(!e||e.nodeType!==1)return null;var r=rr(e);if(!force&&!on(r))return null;"
-     "var tag=String(e.tagName||'').toLowerCase(),c=cl(e),txt=tr(String(e.innerText||e.textContent||'').replace(/\\s+/g,' ').trim(),220);"
-     "var sem=(tag+' '+c+' '+String(e.id||'')+' '+String((e.getAttribute&&e.getAttribute('aria-label'))||'')).toLowerCase();"
-     "var hot=/sponsor|ad-feedback|feedback|chevron|arrow|header|next|prev|icon|sprite|glyph|svg|path|use/.test(sem)||tag==='svg'||tag==='path'||tag==='use'||tag==='i'||tag==='b';"
-     "return {why:why,tag:tag,id:String(e.id||''),cls:tr(c,1800),text:txt,rect:r,attrs:at(e),style:sty(e),before:pseudo(e,'::before'),after:pseudo(e,'::after'),"
-     "html:hot?tr(String(e.outerHTML||''),5000):tr(String(e.outerHTML||''),1200)}"
-     "}catch(x){return {why:why,error:String(x&&x.stack||x)}}}"
-     "var set=new Set(),arr=[];function add(e,why){if(!e||set.has(e))return;set.add(e);var s=snap(e,why,false);if(s)arr.push({e:e,s:s})}"
-     "var step=6;"
-     "for(var y=3;y<H;y+=step){for(var x=3;x<W;x+=step){var z=[];try{z=document.elementsFromPoint(x,y)||[]}catch(_){};"
-     "for(var i=0;i<z.length&&i<24;i++){var e=z[i];add(e,'paint@'+x+','+y);var p=e.parentElement;for(var d=0;p&&d<8;d++,p=p.parentElement)add(p,'ancestor@'+x+','+y)}}}"
-     "out.elements=arr.map(function(q){return q.s});"
-     "var roots=[],rootSet=new Set();"
-     "function rootish(e){try{var r=rr(e);if(!on(r)||r.w<120||r.h<70)return false;var s=(String(e.tagName||'')+' '+cl(e)+' '+String(e.id||'')+' '+String((e.getAttribute&&e.getAttribute('role'))||'')).toLowerCase();"
-     "return /card|carousel|mosaic|widgetcontainer|windowpane|npack|sponsored-products|dashboard|deal/.test(s)}catch(_){return false}}"
-     "for(var ai=0;ai<arr.length;ai++){var n=arr[ai].e;for(var up=0;n&&up<9;up++,n=n.parentElement){if(rootish(n)&&!rootSet.has(n)){rootSet.add(n);roots.push(n)}}}"
-     "for(var ri=0;ri<roots.length&&ri<80;ri++){var root=roots[ri],rec={root:snap(root,'onscreen-root',true),controls:[]};"
-     "try{var q=root.querySelectorAll('svg,path,use,i,b,button,[role=button],[class*=chevron],[class*=arrow],[class*=next],[class*=prev],[class*=header-icon],[class*=header-link],[class*=ad-feedback],[class*=sponsored],[class*=sprite],[class*=glyph],[aria-label*=Sponsored],[aria-label*=feedback]');"
-     "for(var qi=0;qi<q.length&&qi<180;qi++){var ce=q[qi],cs=snap(ce,'local-control',true);if(cs)rec.controls.push(cs)}}catch(x){rec.controlsError=String(x)}"
-     "out.roots.push(rec)}"
-     "return JSON.stringify(out,null,2)"
-     "}catch(e){return JSON.stringify({fatal:String(e&&e.stack||e)})}})();";
-}
-static void ADRunViewportProbe789(void){
-    dispatch_async(dispatch_get_main_queue(), ^{
-        NSUInteger run=++gADViewportProbeRun789;
-        NSMutableString *base=[NSMutableString stringWithFormat:
-            @"\n\n================ AMAZON DARK v7.89 VIEWPORT PROBE RUN %lu ================\n"
-             "timestamp=%@\npid=%d\nversion=%s\n"
-             "method=viewport-paint-sampling-only; no scroll; no tap; no whole-document querySelectorAll\n\n",
-             (unsigned long)run,[NSDate date],getpid(),AD_VERSION];
-        [base appendString:ADViewportProbeNative789()];
-        [base appendString:@"\n"];
-        NSArray *all=ADTrackedWebViews();
-        NSMutableArray *webs=[NSMutableArray array];
-        CGRect screen=UIScreen.mainScreen.bounds;
-        for(WKWebView *wv in all){
-            if(!wv || !wv.window || wv.hidden || wv.alpha<0.01)continue;
-            CGRect r=CGRectZero;
-            @try { r=[wv convertRect:wv.bounds toView:nil]; } @catch(...) {}
-            if(!CGRectIntersectsRect(screen,r))continue;
-            [webs addObject:wv];
-        }
-        [base appendFormat:@"VISIBLE_WEBVIEWS=%lu\n",(unsigned long)webs.count];
-        if(!webs.count){
-            [base appendString:@"NO_VISIBLE_WEBVIEW\n================ END RUN ================\n"];
-            ADAppendViewportProbe789(base);
-            return;
-        }
-        dispatch_group_t group=dispatch_group_create();
-        NSMutableArray *parts=[NSMutableArray array];
-        __block NSUInteger idx=0;
-        for(WKWebView *wv in webs){
-            NSUInteger thisIdx=idx++;
-            CGRect r=CGRectZero;
-            @try { r=[wv convertRect:wv.bounds toView:nil]; } @catch(...) {}
-            NSString *meta=[NSString stringWithFormat:
-                @"\n--- WEBVIEW[%lu] class=%@ rect=%@ url=%@ ---\n",
-                (unsigned long)thisIdx,NSStringFromClass(wv.class),NSStringFromCGRect(r),wv.URL.absoluteString?:@"-"];
-            dispatch_group_enter(group);
-            [wv evaluateJavaScript:ADViewportProbeJS789() completionHandler:^(id value,NSError *error){
-                NSString *body=nil;
-                if(error) body=[NSString stringWithFormat:@"JS_ERROR domain=%@ code=%ld desc=%@\n",error.domain,(long)error.code,error.localizedDescription];
-                else if([value isKindOfClass:[NSString class]]) body=(NSString *)value;
-                else body=[value description] ?: @"(null)";
-                NSString *part=[NSString stringWithFormat:@"%@%@\n",meta,body];
-                @synchronized(parts){ [parts addObject:@{@"i":@(thisIdx),@"s":part}]; }
-                dispatch_group_leave(group);
-            }];
-        }
-        dispatch_group_notify(group,dispatch_get_main_queue(), ^{
-            NSArray *sorted=[parts sortedArrayUsingComparator:^NSComparisonResult(NSDictionary *a,NSDictionary *b){
-                return [a[@"i"] compare:b[@"i"]];
-            }];
-            for(NSDictionary *p in sorted)[base appendString:p[@"s"]];
-            [base appendString:@"================ END RUN ================\n"];
-            ADAppendViewportProbe789(base);
-        });
-    });
-}
-
-
-static dispatch_source_t gADViewportProbeSignal789 = nil;
-static void ADInstallViewportProbeSignal789(void){
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        signal(SIGUSR2, SIG_IGN);
-        gADViewportProbeSignal789 = dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL, SIGUSR2, 0, dispatch_get_main_queue());
-        if(!gADViewportProbeSignal789) return;
-        dispatch_source_set_event_handler(gADViewportProbeSignal789, ^{ ADRunViewportProbe789(); });
-        dispatch_resume(gADViewportProbeSignal789);
-    });
-}
-
-
 // v7.0.68 production: v7.0.65 chevron diagnostic runtime removed.
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
     ADLoadPrefs(); ADRefreshPromotionState611(); ADApplyAllFloors();
@@ -2429,8 +2218,6 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
     } @catch(...) {}
 
     %init;
-
-    ADInstallViewportProbeSignal789();
 
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);

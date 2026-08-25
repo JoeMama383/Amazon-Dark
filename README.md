@@ -1,3 +1,12 @@
+# AmazonDark v7.90 — Home carousel Sponsored parity
+
+- Production build based on the v7.89 probe lineage; all temporary viewport-probe runtime has been removed.
+- The v7.89 capture resolved the carousel mismatch as separate text-fill and masked-glyph paint lanes inside Amazon's product-carousel Sponsored badge shells.
+- Only `[class*=widget-sponsored-badge-container]` / `[class*=asin-sponsored-badge-container]` Sponsored feedback rows are normalized to pure white text and a pure white 12x12 info-mask glyph.
+- Covers the observed NPACK, GWM asin-tile, and blended/p13n (`_cXVhZ`) carousel renderer variants without changing Sponsored styling elsewhere.
+- No MutationObserver, timer, scroll callback, or new runtime scan is added; the correction is static document-start CSS.
+- No probe ships in v7.90.
+
 # AmazonDark v7.89~probe — restored proven manual probe I/O
 
 - Directly based on v7.88~probe; production theming behavior is unchanged.
