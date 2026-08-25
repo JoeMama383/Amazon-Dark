@@ -1,13 +1,11 @@
-# AmazonDark v7.92~probe — standalone-ad current-viewport inventory
+# AmazonDark v7.93 — standalone dynamic-product ad theming
 
-- Built directly from v7.91 production; no production theming rule is changed.
-- Targets the standalone Home ad visible in the current screen frame (the bright white banner-style ad), without scrolling, tapping, or walking the whole document.
-- Uses the proven manual SIGUSR2 trigger and Amazon-sandbox Documents output workflow from the working late-v7 probe lineage.
-- A dormant documentStart helper is installed in every WebKit frame only for this probe build so visible cross-origin APE/standalone child frames can report through a one-shot `postMessage` fan-out.
-- Captures viewport hit-tested elements, candidate ad roots, bright-wide fallback surfaces, visible descendants inside those roots, full attribute sets, direct text, computed paint, `::before`/`::after`, masks/backgrounds, borders/shadows, media/iframe/link sources, parent chains, and matching accessible CSS rules.
-- Includes a native UIKit viewport inventory in the same run in case any part of the standalone ad is hosted outside the DOM.
-- Output appends inside Amazon's own sandbox as `AmazonDark-v7.92-standalone-ad-probe.txt`; NewTerm exports that file to the established shared AppGroup Documents folder.
-- No MutationObserver, recurring timer, RAF, scroll listener, click automation, or DOM mutation.
+- Built from v7.91 production; the v7.92 probe runtime does **not** ship.
+- Owns the probed standalone APE dynamic-product creative as OLED black while preserving Amazon blue/colored accents and orange rating stars.
+- Primary standalone-ad copy uses `#e8e6e3`; secondary review/list-price metadata uses `#b1aaa0`.
+- TWB skips generic standalone-child media and dims only the dedicated product-picture raster.
+- Standalone APE Sponsored text + info glyph now use the same subdued `#b1aaa0` contrast as the corrected Home carousel Sponsored badges.
+- No MutationObserver, recurring timer, RAF, scroll listener, or probe runtime.
 
 # AmazonDark v7.91 — Sponsored gray + functional TWB range
 
