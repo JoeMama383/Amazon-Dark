@@ -30,7 +30,7 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>footerText</key>
-			<string>Adds a subtle overlay to bright areas in the app to reduce glare and make nighttime viewing easier.</string>
+			<string>Dims bright product and ad imagery. Strength now spans a useful minimum-to-maximum range; use the toggle to turn the effect completely off.</string>
 		</dict>
 		<dict>
 			<key>cell</key>

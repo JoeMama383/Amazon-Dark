@@ -1,3 +1,11 @@
+# AmazonDark v7.91 — Sponsored gray + functional TWB range
+
+- Home carousel Sponsored text and info glyphs now use the same subdued secondary gray (`#b1aaa0`) instead of pure white.
+- Tame Light Backgrounds now maps the full 0–100 slider to an effective dimming range: 10% black-equivalent at 0 through 58% at 100. The toggle is the true off switch.
+- The currently loaded web surface refreshes once when the TWB preference changes; native image overlays recalculate through their existing layout hooks.
+- The upper TWB bound is slightly darker than v7.90's former 50% maximum.
+- No probe ships in v7.91.
+
 # AmazonDark v7.90 — Home carousel Sponsored parity
 
 - Production build based on the v7.89 probe lineage; all temporary viewport-probe runtime has been removed.

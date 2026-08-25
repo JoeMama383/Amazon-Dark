@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.90"
+#define AD_VERSION "v7.91"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -954,20 +954,21 @@ static NSString *ADFloorJS(void){
             "-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;"
             "-webkit-mask-position:center!important;mask-position:center!important;"
             "filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
-            /* v7.90: Home product-carousel Sponsored parity. The v7.89 current-frame
+            /* v7.91: Home product-carousel Sponsored parity. The v7.89 current-frame
              * capture proved these card families can hydrate through multiple Amazon
              * renderers while reusing the Grey ad-feedback theme. In the failing
              * states the visible text is driven by -webkit-text-fill-color while the
              * 12x12 info mask is driven independently by background-color, producing
              * white/gray text beside a dark glyph. Own both inks only inside the
              * carousel badge shells captured by the probe; other Sponsored surfaces
-             * remain Amazon-owned. This is declarative CSS only. */
+             * remain Amazon-owned. v7.91 uses the app's subdued secondary gray for
+             * both inks rather than pure white. This is declarative CSS only. */
             "html body :is([class*=widget-sponsored-badge-container],[class*=asin-sponsored-badge-container]) "
             "[data-ad-feedback-label-id] [class*=ad-feedback-text]"
-            "{color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important;}"
+            "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}"
             "html body :is([class*=widget-sponsored-badge-container],[class*=asin-sponsored-badge-container]) "
             "[data-ad-feedback-label-id] [class*=ad-feedback-text] > b[class*=ad-feedback-sprite-mobile]"
-            "{color:#fff!important;background-color:#fff!important;background-image:none!important;"
+            "{color:#b1aaa0!important;background-color:#b1aaa0!important;background-image:none!important;"
             "-webkit-mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;"
             "mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;"
             "-webkit-mask-size:contain!important;mask-size:contain!important;"
@@ -1034,8 +1035,14 @@ static NSString *ADTWBJS(void){
     // v7.0.29 restores the proven Home media families from the streamlined 6.x
     // owner without reviving its runtime scanner/classifier.
     CGFloat strength=MAX(0,MIN(100,gP.whiteTameStrength));
-    CGFloat factor=MAX(0.50,1.0-0.50*strength/100.0);
-    CGFloat shade=0.50*strength/100.0;
+    /* v7.91: map the full 0..100 slider onto a useful dimming envelope.
+     * The toggle is the true off switch, so slider 0 is intentionally a subtle
+     * minimum treatment rather than "no effect". Old range: 1.00..0.50.
+     * New range: 0.90..0.42 (10%%..58%% black equivalent), making the low end
+     * visibly functional and the high end slightly darker than the old maximum. */
+    CGFloat t=strength/100.0;
+    CGFloat shade=0.10+(0.48*t);
+    CGFloat factor=1.0-shade;
     return [NSString stringWithFormat:
         @"(function(){try{var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement)document.documentElement.setAttribute('data-ad7-twb-child','1');var id='ad7-twb-static',s=document.getElementById(id);"
          "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
@@ -1142,6 +1149,20 @@ static void ADTrackWebView(WKWebView *wv){
 static NSArray *ADTrackedWebViews(void){
     @try { @synchronized([WKWebView class]) { return gADWebViews?gADWebViews.allObjects:@[]; } } @catch(...) {}
     return @[];
+}
+
+// v7.91: preference changes immediately refresh the currently loaded main
+// documents. This is a one-shot settings action, not an observer/scan loop.
+// A respring/relaunch still gives document-start coverage to all future frames.
+static NSString *ADTWBClearJS791(void){
+    return @"(function(){try{var s=document.getElementById('ad7-twb-static');if(s)s.remove();if(document.documentElement)document.documentElement.removeAttribute('data-ad7-twb-child');}catch(e){}})();";
+}
+static void ADRefreshWebTWBPrefs791(void){
+    NSString *js=(gP.enabled&&gP.whiteTame)?ADTWBJS():ADTWBClearJS791();
+    for(WKWebView *wv in ADTrackedWebViews()){
+        if(!wv)continue;
+        @try { [wv evaluateJavaScript:js completionHandler:nil]; } @catch(...) {}
+    }
 }
 static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
     if(!ucc || !gP.enabled)return;
@@ -2092,9 +2113,12 @@ static void ADApplyNativeTWB(UIImageView *iv){
             return;
         }
         if(!ov){ ov=[CALayer layer]; ov.name=@"AmazonDarkTWB7"; ov.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"backgroundColor":[NSNull null]}; [iv.layer addSublayer:ov]; objc_setAssociatedObject(iv,kADTWBOverlay,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
-        ov.frame=iv.bounds; ov.backgroundColor=[UIColor colorWithWhite:0 alpha:0.50*MAX(0,MIN(100,gP.whiteTameStrength))/100.0].CGColor; ov.zPosition=FLT_MAX;
+        CGFloat strength=MAX(0,MIN(100,gP.whiteTameStrength));
+        CGFloat shade=0.10+(0.48*(strength/100.0));
+        ov.frame=iv.bounds; ov.backgroundColor=[UIColor colorWithWhite:0 alpha:shade].CGColor; ov.zPosition=FLT_MAX;
     } @catch(...) {}
 }
+
 
 %hook UIImageView
 - (void)setImage:(UIImage *)image {
@@ -2199,7 +2223,10 @@ static void ADScheduleLaunchReadyCheck706(void){
 
 // v7.0.68 production: v7.0.65 chevron diagnostic runtime removed.
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
-    ADLoadPrefs(); ADRefreshPromotionState611(); ADApplyAllFloors();
+    ADLoadPrefs();
+    ADRefreshPromotionState611();
+    ADApplyAllFloors();
+    ADRefreshWebTWBPrefs791();
 }
 
 %ctor {
