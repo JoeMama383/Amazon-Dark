@@ -74,7 +74,7 @@
 			<key>label</key>
 			<string>Privacy</string>
 			<key>footerText</key>
-			<string>Experimental. Blocks known Amazon analytics, crash telemetry, and ad-measurement endpoints with local synthetic success while leaving shopping, media, and ad creative traffic untouched. May slightly reduce background network/CPU work. Respring after changing this toggle.</string>
+			<string>Experimental. Blocks known Amazon analytics, crash telemetry, and ad-measurement endpoints while leaving shopping, media, and ad creative traffic untouched. v7.118 also hardens late NSURLSession configuration and WebKit pixel blocking. May slightly reduce background network/CPU work. Respring after changing this toggle.</string>
 		</dict>
 		<dict>
 			<key>cell</key>

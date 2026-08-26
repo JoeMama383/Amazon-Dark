@@ -1,3 +1,7 @@
+# AmazonDark v7.118~privacy-probe
+
+Privacy Mode follow-up built directly from v7.117~privacy-probe / v7.116 production visuals. Fixes the failed WKContentRuleList compilation with a simpler documented WebKit regex subset, reasserts the privacy NSURLProtocol at NSURLSession construction time and when protocolClasses are overwritten, and adds counters to verify Minerva coverage. All v7.116 visual/theming payloads remain unchanged.
+
 # AmazonDark v7.117~privacy-probe
 
 Built directly from v7.116 production. Adds an opt-in **Privacy Mode** preference (default OFF) that conservatively sinks known Amazon analytics, diagnostics, and ad-measurement traffic while preserving shopping/media/ad-creative hosts. Web `sendBeacon`, `fetch`, and XHR calls to the known telemetry set receive local synthetic success; WebKit pixel/resource telemetry is covered by a narrow content rule list; native Foundation requests are answered locally through a narrow `NSURLProtocol`. A manual SIGUSR2 probe reports only metadata/counters so on-device coverage and residual telemetry can be verified. No visual theming payload was intentionally changed.

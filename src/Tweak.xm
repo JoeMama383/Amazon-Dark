@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.117-privacy-probe"
+#define AD_VERSION "v7.118-privacy-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -138,6 +138,9 @@ static NSUInteger gADPrivacyNativeRequestedTotal7117=0;
 static NSUInteger gADPrivacyNativeBlockedTotal7117=0;
 static NSUInteger gADPrivacyRun7117=0;
 static BOOL gADPrivacyProtocolRegistered7117=NO;
+static NSUInteger gADPrivacyConfigInsertions7118=0;
+static NSUInteger gADPrivacyLateProtocolRewrites7118=0;
+static NSUInteger gADPrivacySessionCtorChecks7118=0;
 
 static void ADPrivacyInit7117(void){
     static dispatch_once_t once; dispatch_once(&once,^{
@@ -206,7 +209,10 @@ static void ADPrivacyInstallProtocolOnConfig7117(NSURLSessionConfiguration *cfg)
     if(!cfg||!gP.enabled||!gP.privacyMode)return;
     @try {
         NSMutableArray *a=[cfg.protocolClasses mutableCopy]?:[NSMutableArray array];
-        if(![a containsObject:[ADPrivacyURLProtocol7117 class]])[a insertObject:[ADPrivacyURLProtocol7117 class] atIndex:0];
+        if(![a containsObject:[ADPrivacyURLProtocol7117 class]]){
+            [a insertObject:[ADPrivacyURLProtocol7117 class] atIndex:0];
+            gADPrivacyConfigInsertions7118++;
+        }
         cfg.protocolClasses=a;
     } @catch(...) {}
 }
@@ -1704,15 +1710,20 @@ static NSString *gADPrivacyRuleError7117=nil;
 static BOOL gADPrivacyRuleCompilePending7117=NO;
 
 static NSString *ADPrivacyContentRules7117(void){
+    // v7.118: keep the Content Blocker regexes deliberately simple. The v7.117
+    // list used several compound host expressions and failed compilation on the
+    // target WebKit with WKErrorContentRuleListStoreCompileFailed. These filters
+    // use only the documented WebKit Content Blocker regex subset.
     return @"["
-    @"{\"trigger\":{\"url-filter\":\"^https?://unagi(-na)?\\\\.amazon\\\\.com/\"},\"action\":{\"type\":\"block\"}},"
-    @"{\"trigger\":{\"url-filter\":\"^https?://fls-na\\\\.amazon\\\\.com/\"},\"action\":{\"type\":\"block\"}},"
-    @"{\"trigger\":{\"url-filter\":\"^https?://[^/]+\\\\.service\\\\.minerva\\\\.devices\\\\.a2z\\\\.com/\"},\"action\":{\"type\":\"block\"}},"
-    @"{\"trigger\":{\"url-filter\":\"^https?://(session|trace)\\\\.mshopbugsnag\\\\.irm\\\\.amazon\\\\.dev/\"},\"action\":{\"type\":\"block\"}},"
-    @"{\"trigger\":{\"url-filter\":\"^https?://api\\\\.mshop\\\\.bdtelemetry\\\\.amazon/\"},\"action\":{\"type\":\"block\"}},"
-    @"{\"trigger\":{\"url-filter\":\"^https?://api\\\\.stores\\\\.[^/]+\\\\.prod\\\\.paets\\\\.advertising\\\\.amazon\\\\.dev/\"},\"action\":{\"type\":\"block\"}},"
-    @"{\"trigger\":{\"url-filter\":\"^https?://aes\\\\.[^/]*\\\\.amazon-adsystem\\\\.com/\"},\"action\":{\"type\":\"block\"}},"
-    @"{\"trigger\":{\"url-filter\":\"^https?://vfw\\\\.amazon-adsystem\\\\.com/\"},\"action\":{\"type\":\"block\"}}"
+    @"{\"trigger\":{\"url-filter\":\"unagi\\\\.amazon\\\\.com/\"},\"action\":{\"type\":\"block\"}},"
+    @"{\"trigger\":{\"url-filter\":\"unagi-na\\\\.amazon\\\\.com/\"},\"action\":{\"type\":\"block\"}},"
+    @"{\"trigger\":{\"url-filter\":\"fls-na\\\\.amazon\\\\.com/\"},\"action\":{\"type\":\"block\"}},"
+    @"{\"trigger\":{\"url-filter\":\"service\\\\.minerva\\\\.devices\\\\.a2z\\\\.com/\"},\"action\":{\"type\":\"block\"}},"
+    @"{\"trigger\":{\"url-filter\":\"mshopbugsnag\\\\.irm\\\\.amazon\\\\.dev/\"},\"action\":{\"type\":\"block\"}},"
+    @"{\"trigger\":{\"url-filter\":\"api\\\\.mshop\\\\.bdtelemetry\\\\.amazon/\"},\"action\":{\"type\":\"block\"}},"
+    @"{\"trigger\":{\"url-filter\":\"prod\\\\.paets\\\\.advertising\\\\.amazon\\\\.dev/\"},\"action\":{\"type\":\"block\"}},"
+    @"{\"trigger\":{\"url-filter\":\"aes\\\\..*\\\\.amazon-adsystem\\\\.com/\"},\"action\":{\"type\":\"block\"}},"
+    @"{\"trigger\":{\"url-filter\":\"vfw\\\\.amazon-adsystem\\\\.com/\"},\"action\":{\"type\":\"block\"}}"
     @"]";
 }
 static void ADAttachPrivacyContentRule7117(WKUserContentController *ucc){
@@ -1727,9 +1738,12 @@ static void ADAttachPrivacyContentRule7117(WKUserContentController *ucc){
 static void ADCompilePrivacyContentRules7117(void){
     if(!gP.enabled||!gP.privacyMode||gADPrivacyRuleList7117||gADPrivacyRuleCompilePending7117)return;
     gADPrivacyRuleCompilePending7117=YES;
-    [[WKContentRuleListStore defaultStore] compileContentRuleListForIdentifier:@"AmazonDarkPrivacy7117" encodedContentRuleList:ADPrivacyContentRules7117() completionHandler:^(WKContentRuleList *list,NSError *error){
+    [[WKContentRuleListStore defaultStore] compileContentRuleListForIdentifier:@"AmazonDarkPrivacy7118" encodedContentRuleList:ADPrivacyContentRules7117() completionHandler:^(WKContentRuleList *list,NSError *error){
         gADPrivacyRuleCompilePending7117=NO;
-        if(!list){ gADPrivacyRuleError7117=error.localizedDescription?:@"compile failed"; return; }
+        if(!list){
+            gADPrivacyRuleError7117=[NSString stringWithFormat:@"code=%ld %@ userInfo=%@",(long)error.code,error.localizedDescription?:@"compile failed",error.userInfo?:@{}];
+            return;
+        }
         gADPrivacyRuleList7117=list; gADPrivacyRuleError7117=nil;
         dispatch_async(dispatch_get_main_queue(),^{
             for(WKWebView *wv in ADTrackedWebViews()){
@@ -2859,6 +2873,38 @@ static void ADConsiderLaunchReady706(void){
     ADPrivacyInstallProtocolOnConfig7117(c);
     return c;
 }
+- (void)setProtocolClasses:(NSArray *)protocolClasses {
+    if(gP.enabled&&gP.privacyMode){
+        @try {
+            NSMutableArray *a=[protocolClasses mutableCopy]?:[NSMutableArray array];
+            if(![a containsObject:[ADPrivacyURLProtocol7117 class]]){
+                [a insertObject:[ADPrivacyURLProtocol7117 class] atIndex:0];
+                gADPrivacyLateProtocolRewrites7118++;
+            }
+            %orig(a);
+            return;
+        } @catch(...) {}
+    }
+    %orig(protocolClasses);
+}
+%end
+
+%hook NSURLSession
++ (NSURLSession *)sessionWithConfiguration:(NSURLSessionConfiguration *)configuration {
+    if(gP.enabled&&gP.privacyMode)gADPrivacySessionCtorChecks7118++;
+    ADPrivacyInstallProtocolOnConfig7117(configuration);
+    return %orig;
+}
++ (NSURLSession *)sessionWithConfiguration:(NSURLSessionConfiguration *)configuration delegate:(id)delegate delegateQueue:(NSOperationQueue *)queue {
+    if(gP.enabled&&gP.privacyMode)gADPrivacySessionCtorChecks7118++;
+    ADPrivacyInstallProtocolOnConfig7117(configuration);
+    return %orig;
+}
+- (instancetype)initWithConfiguration:(NSURLSessionConfiguration *)configuration delegate:(id)delegate delegateQueue:(NSOperationQueue *)queue {
+    if(gP.enabled&&gP.privacyMode)gADPrivacySessionCtorChecks7118++;
+    ADPrivacyInstallProtocolOnConfig7117(configuration);
+    return %orig;
+}
 %end
 
 %hook NSURLSessionTask
@@ -2874,7 +2920,7 @@ static NSString *ADPrivacyNativeSnapshot7117(void){
     ADPrivacyInit7117(); __block NSDictionary *requested=nil,*blocked=nil; __block NSUInteger rq=0,bl=0;
     @synchronized(gADPrivacyLock7117){ requested=[gADPrivacyNativeRequested7117 copy]; blocked=[gADPrivacyNativeBlocked7117 copy]; rq=gADPrivacyNativeRequestedTotal7117; bl=gADPrivacyNativeBlockedTotal7117; }
     NSMutableString *m=[NSMutableString string];
-    [m appendFormat:@"privacy_pref=%d\nurlprotocol_registered=%d\ncontent_rule_compiled=%d\ncontent_rule_pending=%d\ncontent_rule_error=%@\nnative_candidate_resumes=%lu\nnative_protocol_blocks=%lu\n",(gP.enabled&&gP.privacyMode)?1:0,gADPrivacyProtocolRegistered7117?1:0,gADPrivacyRuleList7117?1:0,gADPrivacyRuleCompilePending7117?1:0,gADPrivacyRuleError7117?:@"none",(unsigned long)rq,(unsigned long)bl];
+    [m appendFormat:@"privacy_pref=%d\nurlprotocol_registered=%d\ncontent_rule_compiled=%d\ncontent_rule_pending=%d\ncontent_rule_error=%@\nconfig_protocol_insertions=%lu\nlate_protocol_rewrites=%lu\nsession_ctor_checks=%lu\nnative_candidate_resumes=%lu\nnative_protocol_blocks=%lu\n",(gP.enabled&&gP.privacyMode)?1:0,gADPrivacyProtocolRegistered7117?1:0,gADPrivacyRuleList7117?1:0,gADPrivacyRuleCompilePending7117?1:0,gADPrivacyRuleError7117?:@"none",(unsigned long)gADPrivacyConfigInsertions7118,(unsigned long)gADPrivacyLateProtocolRewrites7118,(unsigned long)gADPrivacySessionCtorChecks7118,(unsigned long)rq,(unsigned long)bl];
     [m appendString:@"\n--- NATIVE CANDIDATE RESUMES ---\n"];
     for(NSString *k in [[requested allKeys] sortedArrayUsingSelector:@selector(compare:)])[m appendFormat:@"%@ = %@\n",k,requested[k]];
     [m appendString:@"\n--- NATIVE SYNTHETIC-204 BLOCKS ---\n"];
@@ -2882,8 +2928,8 @@ static NSString *ADPrivacyNativeSnapshot7117(void){
     return m;
 }
 static NSString *ADPrivacyProbePath7117(void){
-    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.117-privacy-probe.txt"]; } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.117-privacy-probe.txt"];
+    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.118-privacy-probe.txt"]; } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.118-privacy-probe.txt"];
 }
 static void ADAppendPrivacy7117(NSString *s){
     if(!s.length)return; @try { NSString *p=ADPrivacyProbePath7117(); NSFileManager *fm=[NSFileManager defaultManager]; [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil]; NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding]; if(![fm fileExistsAtPath:p]){[d writeToFile:p atomically:YES];return;} NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p]; if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];} } @catch(...) {}
@@ -2893,7 +2939,7 @@ static WKWebView *ADLargestTrackedWeb7117(void){
 }
 static void ADCapturePrivacy7117(void){
     if(!gP.enabled)return; NSUInteger run=++gADPrivacyRun7117; NSString *native=ADPrivacyNativeSnapshot7117(); WKWebView *wv=ADLargestTrackedWeb7117();
-    NSMutableString *prefix=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.117 PRIVACY MODE PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\npolicy=metadata only; no request bodies/headers/content, typed text, clipboard contents or coordinates\nmode=known telemetry endpoints receive local synthetic success; shopping/media/creative hosts remain untouched\n\n===== NATIVE =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,native?:@"NO_NATIVE_DATA"];
+    NSMutableString *prefix=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.118 PRIVACY MODE PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\npolicy=metadata only; no request bodies/headers/content, typed text, clipboard contents or coordinates\nmode=known telemetry endpoints receive local synthetic success; shopping/media/creative hosts remain untouched\n\n===== NATIVE =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,native?:@"NO_NATIVE_DATA"];
     if(!wv){ [prefix appendString:@"\n===== WEB =====\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"]; ADAppendPrivacy7117(prefix); return; }
     NSString *trigger=@"(function(){try{if(typeof window.__adPrivacy7117Report!=='function')return 'HELPER_MISSING privacyMode may be off or this document predates enable';var nonce='priv7117-'+Date.now()+'-'+Math.random().toString(36).slice(2),c={nonce:nonce,main:window.__adPrivacy7117Report(),children:[]};window.__adPrivacy7117Collection=c;window.__adPrivacy7117Collector=function(ev){try{var d=ev.data;if(!d||d.__adPrivacy7117Result!==1||d.nonce!==nonce)return;if(c.children.length<64)c.children.push({href:String(d.href||''),report:String(d.report||'')})}catch(_){}};addEventListener('message',window.__adPrivacy7117Collector,false);window.__adPrivacy7117Broadcast({__adPrivacy7117:1,nonce:nonce});return 'STARTED '+nonce}catch(e){return 'TRIGGER_ERR '+e}})();";
     [wv evaluateJavaScript:trigger completionHandler:^(id v,NSError *e){
