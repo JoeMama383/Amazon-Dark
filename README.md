@@ -1,3 +1,7 @@
+# AmazonDark v7.106~probe — compact standalone capture + zero-observer performance pass
+
+Built directly from v7.105 production. The current standalone child-frame CSS payload is unchanged, but its shell-survival owner now uses `document.adoptedStyleSheets` instead of a direct-child MutationObserver. The legacy semantic Sponsored glyph learner is removed because the currently proven NPACK, Hybrid, product-carousel, and APE families already have deterministic static CSS owners. This probe adds a manual SIGUSR2 snapshot for the still-light compact standalone ad family; it performs no diagnostic traversal until triggered.
+
 # AmazonDark v7.105 — production standalone survivor + transparent deal-message plate
 
 - Production cut of the device-confirmed v7.104 standalone child-shell survival repair; the temporary lifecycle/UCC/SIGUSR2 probe runtime is removed.

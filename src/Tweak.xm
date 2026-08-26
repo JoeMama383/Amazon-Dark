@@ -33,8 +33,9 @@
 #import <errno.h>
 #import <string.h>
 #import <float.h>
+#import <signal.h>
 
-#define AD_VERSION "v7.105"
+#define AD_VERSION "v7.106-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -599,6 +600,7 @@ static void ADScheduleLaunchReadyCheck706(void);
 static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
 static const void *kADStandalonePaintUS7104=&kADStandalonePaintUS7104;
+static const void *kADCompactStandaloneProbeUS7106=&kADCompactStandaloneProbeUS7106;
 static NSHashTable *gADWebViews=nil;
 // v7.0.68 production: no diagnostic touch probe is installed.
 
@@ -937,9 +939,9 @@ static NSString *ADFloorJS(void){
              * actual raster leaf in ADTWBJS below. */
             "html[data-ad7-standalone-candidate] :is([data-testid*=product-picture],[data-testid*=product-image],[data-testid*=asin-image],picture)"
             "{background-color:transparent!important;box-shadow:none!important;}"
-            /* v7.0.50: Sponsored TEXT remains Amazon-owned. Glyph paint is synced
-             * separately from the label's computed color by a tiny event-driven JS
-             * helper below; no fixed Sponsored text color exists in this sheet. */
+            /* v7.106: Sponsored TEXT remains Amazon-owned. Known Sponsored glyph
+             * families are owned declaratively below; the old semantic DOM learner
+             * has been retired, so there is no Sponsored runtime selector scan. */
             /* Creative/media protection: only true media/product-image wrappers are
              * normalized. Hero/single-creative/theming/ad-card containers are excluded so
              * Amazon keeps their own campaign floor and text contrast. */
@@ -1091,55 +1093,22 @@ static NSString *ADFloorJS(void){
              * same sheet once at load; no scan, timer, observer or geometry work. */
             "function ad7RelinkStatic(){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}"
             "if(document.readyState==='loading')window.addEventListener('load',ad7RelinkStatic,{once:true});else ad7RelinkStatic();"
-            /* v7.0.72 Sponsored feedback semantic completion.
-             * Keeps the v7.0.70 static Amazon-class renderer lock, but fixes the
-             * upstream miss shown by the v7.0.71 tap probe. Some Amazon feedback
-             * controls expose the row semantically as aria-label="Leave feedback
-             * on Sponsored" even when the visible text host does not use the
-             * ad-feedback-text/sponsored-label class families. Treat that semantic
-             * feedback control as a Sponsor seed, then resolve at most 16 local
-             * descendants to the exact visible Sponsored text leaf before reading
-             * its computed color. The existing tiny-glyph finder and static CSS
-             * lock then own only the adjacent glyph. No observer, timer, scroll
-             * listener, interval or RAF is used. Sponsored text is never written. */
-            "try{(function(){"
-            "if(window.__ADSPG7070__)return;window.__ADSPG7070__=1;"
-            "var LS='[class*=ad-feedback-text],[class*=sponsored-label],[id^=ad-feedback-text-],[id^=af-label-primary-link-],[aria-label^=\"Leave feedback on Sponsored\"]';"
-            "var GS='[class*=ad-feedback-spr],[class*=ad-feedback-sprite],[class*=adFeedback],[id*=feedbackIcon],[id*=feedback-icon],[class*=_sponsored-products-mo]';"
-            "var REG=window.__ADSPGR7070__||(window.__ADSPGR7070__={});"
-            "function sheet(){try{var st=document.getElementById('ad-spg-lock7070');if(st)return st;st=document.createElement('style');st.id='ad-spg-lock7070';(document.head||document.documentElement).appendChild(st);return st}catch(_){return null}}"
-            "function txt(e){try{return String(e.textContent||'').replace(/\\s+/g,' ').trim().toLowerCase()}catch(_){return ''}}"
-            "function cls(e){try{var c=e&&e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;return String(c||'')}catch(_){return ''}}"
-            "function esc(v){try{return window.CSS&&CSS.escape?CSS.escape(String(v)):String(v).replace(/[^a-zA-Z0-9_-]/g,function(ch){return '\\\\'+ch})}catch(_){return String(v||'')}}"
-            "function isL(e){if(!e||e.nodeType!==1)return false;try{var ar=String((e.getAttribute&&e.getAttribute('aria-label'))||'').toLowerCase();return e.matches(LS)&&(txt(e)==='sponsored'||txt(e)==='sponsored ad'||txt(e)==='advertisement'||ar.indexOf('leave feedback on sponsored')===0||/ad-feedback|sponsored/i.test(cls(e)+' '+String(e.id||'')))}catch(_){return false}}"
-            "function near(a,b){try{var ar=a.getBoundingClientRect(),br=b.getBoundingClientRect(),acy=ar.top+ar.height/2,bcy=br.top+br.height/2,dx=Math.max(0,Math.max(br.left-ar.right,ar.left-br.right));return dx<=30&&Math.abs(acy-bcy)<=22}catch(_){return false}}"
-            "function tinyPainter(e,l){try{if(!e||e===l||e.nodeType!==1)return false;var r=e.getBoundingClientRect();if(r.width<5||r.height<5||r.width>36||r.height>36||!near(e,l))return false;var cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none'),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),tg=String(e.tagName||'').toLowerCase();return (bi&&bi!=='none')||(mi&&mi!=='none')||tg==='svg'||tg==='img'||/ad-feedback|feedback|sponsor|spr|info|icon/i.test(cls(e)+' '+String(e.id||''))}catch(_){return false}}"
-            "function glyph(l){try{var q=l.querySelector(GS+', [class*=spr]');if(q&&tinyPainter(q,l))return q;var p=l.parentElement;for(var i=0;p&&i<3;i++,p=p.parentElement){q=p.querySelector(GS);if(q&&tinyPainter(q,l))return q;var a=p.querySelectorAll('[class*=spr],[class*=_sponsored-products-mo],span,div,i,b,svg,img');for(var j=0;j<a.length&&j<40;j++)if(tinyPainter(a[j],l))return a[j]}}catch(_){}return null}"
-            "function rgba(v){var m=String(v||'').match(/rgba?\\(([^)]+)\\)/i);if(!m)return null;var a=m[1].split(',');if(a.length<3)return null;return [parseFloat(a[0]),parseFloat(a[1]),parseFloat(a[2]),a.length>3?parseFloat(a[3]):1]}"
-            "function toks(e,rex){try{var a=cls(e).trim().split(/\\s+/),o=[];for(var i=0;i<a.length&&o.length<2;i++)if(a[i]&&(!rex||rex.test(a[i])))o.push(a[i]);if(!o.length&&a[0])o.push(a[0]);return o}catch(_){return []}}"
-            "function atom(e,scope){try{if(!e||e.nodeType!==1)return '';var tag=String(e.tagName||'*').toLowerCase(),id=String(e.id||'');if(/feedbackicon/i.test(id))return tag+'[id*=feedbackIcon]';if(/feedback-icon/i.test(id))return tag+'[id*=feedback-icon]';if(scope&&/^af-label-primary-link-/.test(id))return tag+'[id^=af-label-primary-link-]';if(scope&&/^ad-feedback-/.test(id))return tag+'[id^=ad-feedback-]';var r=scope?/adfeedback|ad-feedback|sponsor|ape|gwm|npack|cxvhz|puis|asin|widget/i:/ad-feedback|feedback|sponsor|spr|icon/i,a=toks(e,r),z=tag;for(var i=0;i<a.length;i++)z+='.'+esc(a[i]);return z}catch(_){return ''}}"
-            "function common(l,g){try{var p=l.parentElement||l,b=l.parentElement||l;for(var i=0;p&&i<6;i++,p=p.parentElement){if(p.contains(g)){b=p;var sem=cls(p)+' '+String(p.id||'');if(/adfeedback|ad-feedback|sponsor|ape-feedback|gwm|npack|cxvhz|puis|asin/i.test(sem))return p}}return b}catch(_){return l.parentElement||l}}"
-            "function nthPath(h,g){try{var a=[],n=g;while(n&&n!==h&&a.length<5){var par=n.parentElement;if(!par)return '';var ix=1,c=par.firstElementChild;while(c&&c!==n){ix++;c=c.nextElementSibling}a.unshift(String(n.tagName||'*').toLowerCase()+':nth-child('+ix+')');n=par}return n===h&&a.length?' > '+a.join(' > '):''}catch(_){return ''}}"
-            "function selector(l,g){try{var h=common(l,g),hs=atom(h,true),gs=atom(g,false);if(h&&g&&h!==g&&hs){var gc=cls(g);if(gc||/feedbackicon|feedback-icon/i.test(String(g.id||'')))return hs+' '+gs;var np=nthPath(h,g);if(np)return hs+np}return gs||GS}catch(_){return GS}}"
-            "function lock(l,g,c,rv,cs,svg){try{var sel=selector(l,g),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),bi=String(cs.backgroundImage||'none'),mode='color',img='',pos='0% 0%',size='auto',rep='no-repeat',flt='none';if(mi&&mi!=='none'){mode='mask';img=mi;pos=cs.webkitMaskPosition||cs.maskPosition||'0% 0%';size=cs.webkitMaskSize||cs.maskSize||'auto';rep=cs.webkitMaskRepeat||cs.maskRepeat||'no-repeat'}else if(svg){mode='svg'}else if(bi&&bi!=='none'){mode='mask';img=bi;pos=cs.backgroundPosition||'0% 0%';size=cs.backgroundSize||'auto';rep=cs.backgroundRepeat||'no-repeat'}else{var spread=Math.max(rv[0],rv[1],rv[2])-Math.min(rv[0],rv[1],rv[2]);if(spread<=8){mode='filter';var gray=(rv[0]+rv[1]+rv[2])/3/255;flt='brightness(0) invert('+gray.toFixed(5)+')'}}var key=sel+'|'+mode+'|'+c+'|'+img+'|'+pos+'|'+size+'|'+rep+'|'+flt;if(REG[key])return;REG[key]=1;var st=sheet();if(!st)return;var base=sel+'{color:'+c+'!important;opacity:'+String(isFinite(rv[3])?rv[3]:1)+'!important;visibility:visible!important;mix-blend-mode:normal!important;position:relative!important;z-index:2!important;';if(mode==='mask')base+='background-image:none!important;background-color:'+c+'!important;-webkit-mask-image:'+img+'!important;mask-image:'+img+'!important;-webkit-mask-position:'+pos+'!important;mask-position:'+pos+'!important;-webkit-mask-size:'+size+'!important;mask-size:'+size+'!important;-webkit-mask-repeat:'+rep+'!important;mask-repeat:'+rep+'!important;filter:none!important;-webkit-filter:none!important;';else if(mode==='filter')base+='filter:'+flt+'!important;-webkit-filter:'+flt+'!important;';else base+='filter:none!important;-webkit-filter:none!important;';base+='}';if(mode==='svg')base+=sel+' svg,'+sel+' path,'+sel+' use,'+sel+' circle,'+sel+' rect,'+sel+' polygon,'+sel+' polyline,'+sel+' line{color:'+c+'!important;fill:'+c+'!important;stroke:'+c+'!important;}';st.textContent+=base}catch(_){}}"
-            "function ink(l){try{var v=l.querySelector&&l.querySelector('[id^=ad-feedback-text-],[class*=ad-feedback-text]');if(v&&(txt(v)==='sponsored'||txt(v)==='sponsored ad'))return v;if(txt(l)==='sponsored'||txt(l)==='sponsored ad')return l;var a=l.querySelectorAll('span,a,div,small');for(var i=0;i<a.length&&i<16;i++){var t=txt(a[i]);if(t==='sponsored'||t==='sponsored ad')return a[i]}}catch(_){}return l}function paint(l){try{if(!isL(l))return;var li=ink(l),lc=getComputedStyle(li),c=lc.color,rv=rgba(c),g=glyph(li);if(!g||!rv)return;if(g.matches('b[class*=ad-feedback-sprite-mobile]')&&g.closest('[data-ad-feedback-label-id]'))return;if(/^ad-feedback-sprite-/.test(String(g.id||''))&&g.closest('.ape-feedback'))return;var cs=getComputedStyle(g),svg=g.matches('svg')?g:g.querySelector('svg');lock(li,g,c,rv,cs,svg)}catch(_){}}"
-            "function all(root){try{var a=(root||document).querySelectorAll(LS),n=Math.min(a.length,64);for(var i=0;i<n;i++)paint(a[i])}catch(_){}}"
-            "function local(n){try{var p=n&&n.nodeType===1?n:n&&n.parentElement;for(var i=0;p&&i<5;i++,p=p.parentElement){if(isL(p)){paint(p);return}var l=p.querySelector&&p.querySelector(LS);if(l){paint(l);return}}}catch(_){}}"
-            "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){all(document)},{once:true});else all(document);window.addEventListener('load',function(){all(document)},{once:true});window.addEventListener('pageshow',function(){all(document)},false);document.addEventListener('load',function(e){local(e.target)},true);"
-            "})();}catch(__){}"
+            /* v7.106 performance: retire the legacy semantic Sponsored glyph learner.
+             * Every currently-proven Sponsored family now has a deterministic static
+             * CSS owner above (NPACK, Hybrid, product-carousel and APE feedback).
+             * Removing the learner eliminates its document/local selector scans while
+             * preserving those current renderer-specific owners. */
             "document.documentElement.style.setProperty('background-color','#000','important');"
             "document.documentElement.style.setProperty('color-scheme','dark','important');"
             "if(document.body){document.body.style.setProperty('background-color','#000','important');document.body.style.setProperty('color-scheme','dark','important');}"
             "}catch(e){}})();";
 }
 
-// v7.104: standalone-ad shell-survival owner, built on the exact v7.96 visual base.
-// v7.103 proved that Amazon replaces the child document's HEAD and BODY *after*
-// documentEnd/pageshow, atomically deleting ad7-static-theme, ad7-twb-static and
-// the former standalone sheet. This owner therefore installs at documentStart and
-// watches only direct children of the standalone child documentElement. If Amazon
-// replaces HEAD/BODY, the exact standalone CSS is reattached immediately. It never
-// walks descendants, observes subtree mutations, scrolls, polls, or changes geometry.
+// v7.106: standalone-ad shell-survival owner migrated from a DOM <style> node to
+// a document-adopted constructable stylesheet. v7.104 proved Amazon replaces HEAD/BODY
+// while preserving the Document/HTML object and also proved adoptedStyleSheets support.
+// The standalone theme therefore survives that shell swap without MutationObserver,
+// descendant scanning, polling, or geometry work.
 static NSString *ADStandalonePaintJS7104(void){
     CGFloat strength=MAX(0,MIN(100,gP.whiteTameStrength));
     CGFloat t=strength/100.0;
@@ -1150,7 +1119,7 @@ static NSString *ADStandalonePaintJS7104(void){
          "var ref=String(document.referrer||'').toLowerCase();"
          "var productish=/\\/dp\\/|\\/gp\\/product\\/|\\/gp\\/aw\\/d\\/|\\/s(?:[\\/?]|$)|[?&]k=/.test(ref);"
          "if(productish)return;h.setAttribute('data-ad7104-standalone','1');"
-         "var ID='ad7-standalone-7104',OBS=null,S={installs:0,repairs:0,shells:0,events:[]};"
+         "var KEY='__ad7StandaloneSheet7106';"
          "var CSS='"
          "html[data-ad7104-standalone],html[data-ad7104-standalone] body,"
          "html[data-ad7104-standalone] #ad,html[data-ad7104-standalone] #ad > div,"
@@ -1209,16 +1178,36 @@ static NSString *ADStandalonePaintJS7104(void){
          "html[data-ad7104-standalone] :is([data-testid*=product-picture],[data-testid*=product-image],[data-testid*=asin-image]) :is(img,video,canvas)"
          "{filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;}"
          "';"
-         "function ev(type,extra){try{S.events.push({t:+performance.now().toFixed(3),type:type,extra:extra||null});if(S.events.length>24)S.events.shift()}catch(_){}}"
-         "function black(){try{h.style.setProperty('background-color','#000','important');h.style.setProperty('color-scheme','dark','important');if(document.body){document.body.style.setProperty('background-color','#000','important');document.body.style.setProperty('color-scheme','dark','important')}}catch(_){}}"
-         "function ensure(reason,repair){try{h=document.documentElement||h;if(!h)return false;h.setAttribute('data-ad7104-standalone','1');black();var old=document.getElementById(ID),was=!!(old&&old.isConnected);if(!was){var st=document.createElement('style');st.id=ID;st.setAttribute('data-ad7104-owner','1');st.textContent=CSS;h.appendChild(st);S.installs++;if(repair)S.repairs++;h.setAttribute('data-ad7104-repair-count',String(S.repairs));ev(repair?'REPAIR':'INSTALL',{reason:reason||'',wasConnected:was,parent:st.parentNode&&st.parentNode.nodeName||''});return true}return false}catch(e){ev('ENSURE_ERR',{reason:reason||'',e:String(e)});return false}}"
-         "function mutation(ms){try{var shell=0,owner=0,items=[];for(var i=0;i<ms.length;i++){var m=ms[i];for(var j=0;j<m.removedNodes.length;j++){var n=m.removedNodes[j],nm=String(n&&n.nodeName||'').toUpperCase();if(nm==='HEAD'||nm==='BODY'){shell=1;items.push('removed:'+nm)}if(n&&n.id===ID)owner=1}for(var k=0;k<m.addedNodes.length;k++){var a=m.addedNodes[k],am=String(a&&a.nodeName||'').toUpperCase();if(am==='HEAD'||am==='BODY'){shell=1;items.push('added:'+am)}}}if(shell)S.shells++;var missing=!document.getElementById(ID);if(shell||owner||missing){ev('ROOT_MUTATION',{shell:shell,ownerRemoved:owner,missing:missing,items:items.slice(0,8)});ensure(shell?'shell-replaced':(owner?'owner-removed':'owner-missing'),true)}}catch(e){ev('MUTATION_ERR',{e:String(e)})}}"
-         "function bind(){try{h=document.documentElement||h;if(!h)return;if(OBS)try{OBS.disconnect()}catch(_){}OBS=new MutationObserver(mutation);OBS.observe(h,{childList:true});ev('OBSERVER_BOUND',{tag:h.nodeName||''})}catch(e){ev('OBSERVER_ERR',{e:String(e)})}}"
-         "window.__ad7104StandaloneState=function(){try{return{style:!!document.getElementById(ID),connected:!!(document.getElementById(ID)&&document.getElementById(ID).isConnected),installs:S.installs,repairs:S.repairs,shells:S.shells,events:S.events.slice(),htmlSame:(document.documentElement===h),adoptedSupported:!!(document.adoptedStyleSheets&&window.CSSStyleSheet&&CSSStyleSheet.prototype&&CSSStyleSheet.prototype.replaceSync)}}catch(e){return{error:String(e)}}};"
-         "ensure('documentStart',false);bind();"
-         "document.addEventListener('readystatechange',function(){try{if(document.documentElement!==h){ev('HTML_REPLACED');bind()}ensure('readystatechange-'+document.readyState,true)}catch(_){}},false);"
-         "window.addEventListener('pageshow',function(){try{if(document.documentElement!==h){ev('HTML_REPLACED_PAGESHOW');bind()}ensure('pageshow',true)}catch(_){}},false);"
+         "function black(){try{h=document.documentElement||h;if(!h)return;h.setAttribute('data-ad7104-standalone','1');h.style.setProperty('background-color','#000','important');h.style.setProperty('color-scheme','dark','important');if(document.body){document.body.style.setProperty('background-color','#000','important');document.body.style.setProperty('color-scheme','dark','important')}}catch(_){}}"
+         "function own(){try{h=document.documentElement||h;if(!h)return false;black();if(!(document.adoptedStyleSheets&&window.CSSStyleSheet&&CSSStyleSheet.prototype&&CSSStyleSheet.prototype.replaceSync))return false;var sh=window[KEY];if(!sh){sh=new CSSStyleSheet();sh.replaceSync(CSS);window[KEY]=sh;}var a=document.adoptedStyleSheets||[],found=false;for(var i=0;i<a.length;i++)if(a[i]===sh){found=true;break;}if(!found)document.adoptedStyleSheets=a.concat([sh]);return true}catch(e){return false}}"
+         "window.__ad7106StandaloneState=function(){try{var sh=window[KEY]||null,a=document.adoptedStyleSheets||[],found=false;for(var i=0;i<a.length;i++)if(a[i]===sh){found=true;break;}return{adoptedSupported:!!(document.adoptedStyleSheets&&window.CSSStyleSheet&&CSSStyleSheet.prototype&&CSSStyleSheet.prototype.replaceSync),sheet:!!sh,adopted:found,rules:sh&&sh.cssRules?sh.cssRules.length:0,htmlSame:(document.documentElement===h),attr:!!(document.documentElement&&document.documentElement.hasAttribute('data-ad7104-standalone'))}}catch(e){return{error:String(e)}}};"
+         "own();document.addEventListener('readystatechange',function(){own()},false);window.addEventListener('pageshow',function(){own()},false);"
          "}catch(e){}})();",factor,factor];
+}
+
+
+// v7.106~probe: zero-idle-work compact standalone capture. The helper is installed
+// in all frames at documentStart but does no traversal until manual SIGUSR2. It uses
+// bounded firstElementChild/nextElementSibling walking only: no MutationObserver,
+// querySelector/querySelectorAll, TreeWalker, timer, RAF, or scroll listener.
+static NSString *ADCompactStandaloneProbeJS7106(void){
+    return
+        @"(function(){try{if(window.__adCompactStandaloneProbe7106Installed)return;window.__adCompactStandaloneProbe7106Installed=1;\n"
+        @"var fid='f7106-'+Date.now()+'-'+Math.random().toString(36).slice(2);\n"
+        @"function cls(e){try{var c=e&&e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;return String(c||'')}catch(_){return''}}\n"
+        @"function rect(e){try{var r=e.getBoundingClientRect();return{x:+r.x.toFixed(2),y:+r.y.toFixed(2),w:+r.width.toFixed(2),h:+r.height.toFixed(2),top:+r.top.toFixed(2),right:+r.right.toFixed(2),bottom:+r.bottom.toFixed(2),left:+r.left.toFixed(2)}}catch(_){return{}}}\n"
+        @"function vis(e){try{var r=e.getBoundingClientRect(),c=getComputedStyle(e);return r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth&&c.display!=='none'&&c.visibility!=='hidden'&&parseFloat(c.opacity||1)>0}catch(_){return false}}\n"
+        @"function pseudo(e,w){try{var c=getComputedStyle(e,w);return{content:c.content,backgroundColor:c.backgroundColor,backgroundImage:String(c.backgroundImage||'').slice(0,500),color:c.color,textFill:c.webkitTextFillColor||'',border:c.border,boxShadow:String(c.boxShadow||'').slice(0,300),filter:c.filter,opacity:c.opacity,position:c.position,zIndex:c.zIndex}}catch(_){return null}}\n"
+        @"function attrs(e){var o={};try{var a=e.attributes;for(var i=0;a&&i<a.length&&i<40;i++){var n=String(a[i].name||'');if(/^data-|^aria-|^role$|^src$|^href$|^alt$/.test(n))o[n]=String(a[i].value||'').slice(0,700)}}catch(_){}return o}\n"
+        @"function parents(e){var o=[];try{for(var p=e&&e.parentElement,n=0;p&&n<7;p=p.parentElement,n++)o.push({tag:String(p.tagName||'').toLowerCase(),id:String(p.id||''),cls:cls(p).slice(0,400),rect:rect(p),inline:String(p.getAttribute&&p.getAttribute('style')||'').slice(0,700)})}catch(_){}return o}\n"
+        @"function snap(e,label){try{var c=getComputedStyle(e),t='';try{t=String(e.innerText||e.textContent||'').replace(/\\s+/g,' ').trim().slice(0,1000)}catch(_){}return{label:label,tag:String(e.tagName||'').toLowerCase(),id:String(e.id||''),cls:cls(e).slice(0,700),attrs:attrs(e),text:t,rect:rect(e),inline:String(e.getAttribute&&e.getAttribute('style')||'').slice(0,1800),computed:{display:c.display,visibility:c.visibility,opacity:c.opacity,color:c.color,textFill:c.webkitTextFillColor||'',backgroundColor:c.backgroundColor,backgroundImage:String(c.backgroundImage||'').slice(0,600),border:c.border,borderColor:c.borderColor,borderRadius:c.borderRadius,outline:c.outline,boxShadow:String(c.boxShadow||'').slice(0,500),filter:c.filter,webkitFilter:c.webkitFilter||'',mixBlendMode:c.mixBlendMode,position:c.position,zIndex:c.zIndex,overflow:c.overflow,fontSize:c.fontSize,lineHeight:c.lineHeight,fontWeight:c.fontWeight},before:pseudo(e,'::before'),after:pseudo(e,'::after'),parents:parents(e)}}catch(x){return{label:label,error:String(x)}}}\n"
+        @"function walk(root,fn,cap){try{var stack=[],n=root,count=0;if(n)stack.push(n);while(stack.length&&count<(cap||600)){n=stack.pop();if(!n||n.nodeType!==1)continue;count++;fn(n,count);var kids=[],c=n.firstElementChild,k=0;while(c&&k<80){kids.push(c);c=c.nextElementSibling;k++}for(var i=kids.length-1;i>=0;i--)stack.push(kids[i])}return count}catch(_){return-1}}\n"
+        @"function whiteish(v){try{var m=String(v||'').match(/rgba?\\(([^)]+)\\)/i);if(!m)return false;var a=m[1].split(','),r=parseFloat(a[0]),g=parseFloat(a[1]),b=parseFloat(a[2]),al=a.length>3?parseFloat(a[3]):1;return al>.2&&r>225&&g>225&&b>225}catch(_){return false}}\n"
+        @"function adopted(){try{var sh=window.__ad7StandaloneSheet7106||null,a=document.adoptedStyleSheets||[],found=false;for(var i=0;i<a.length;i++)if(a[i]===sh){found=true;break;}return{supported:!!(document.adoptedStyleSheets&&window.CSSStyleSheet&&CSSStyleSheet.prototype&&CSSStyleSheet.prototype.replaceSync),count:a.length,standaloneSheet:!!sh,standaloneAdopted:found,rules:sh&&sh.cssRules?sh.cssRules.length:0}}catch(e){return{error:String(e)}}}\n"
+        @"function report(){try{var child=false;try{child=window.top!==window}catch(_){child=true}var compact=child&&innerHeight<=220,nodes=[],light=[],ifr=[],markers=[],cap=compact?520:(child?260:1400);var seen=walk(document.documentElement,function(e,i){if(!vis(e))return;var tag=String(e.tagName||'').toLowerCase(),a=attrs(e),c=getComputedStyle(e),interesting=compact||tag==='iframe'||/^ape_|^gwm-|^ad$/.test(String(e.id||''))||/ape-|ad-|sponsor|renderer|dynamic|creative|banner/i.test(cls(e)+' '+String(e.id||''));if(a['data-size-str'])markers.push(a['data-size-str']);if(tag==='iframe')ifr.push(snap(e,'iframe['+ifr.length+']'));if(interesting&&nodes.length<220)nodes.push(snap(e,'node['+i+']'));if(whiteish(c.backgroundColor)&&light.length<80)light.push(snap(e,'light['+i+']'))},cap);var h=document.documentElement;return JSON.stringify({frame:{id:fid,href:String(location.href||''),referrer:String(document.referrer||''),title:String(document.title||''),ready:document.readyState,child:child,compact:compact,viewport:{w:innerWidth,h:innerHeight,dpr:devicePixelRatio},visibility:document.visibilityState},attrs:{standalone:h&&h.getAttribute('data-ad7104-standalone'),candidate:h&&h.getAttribute('data-ad7-standalone-candidate'),twbChild:h&&h.getAttribute('data-ad7-twb-child')},adopted:adopted(),walked:seen,sizeMarkers:markers.slice(0,30),iframes:ifr,nodes:nodes,lightPlanes:light},null,2)}catch(e){return JSON.stringify({error:String(e&&e.stack||e)})}}\n"
+        @"window.__adCompactStandaloneReport7106=report;window.__adCompactStandaloneBroadcast7106=function(msg){try{for(var i=0;i<window.frames.length&&i<32;i++)try{window.frames[i].postMessage(msg,'*')}catch(_){}}catch(_){}};\n"
+        @"window.addEventListener('message',function(ev){try{var d=ev.data;if(!d||d.__adCompactStandalone7106!==1||!d.nonce)return;var rep=report();try{window.top.postMessage({__adCompactStandalone7106Result:1,nonce:d.nonce,frameId:fid,href:String(location.href||''),report:rep},'*')}catch(_){}try{window.__adCompactStandaloneBroadcast7106(d)}catch(_){}}catch(_){}},false);\n"
+        @"}catch(e){}})();";
 }
 
 static NSString *ADTWBJS(void){
@@ -1391,6 +1380,11 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADStandalonePaintUS7104,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
+        if(!objc_getAssociatedObject(ucc,kADCompactStandaloneProbeUS7106)){
+            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADCompactStandaloneProbeJS7106() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+            [ucc addUserScript:us];
+            objc_setAssociatedObject(ucc,kADCompactStandaloneProbeUS7106,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
         if(gP.whiteTame && !objc_getAssociatedObject(ucc,kADTWBUS)){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADTWBJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
@@ -1449,6 +1443,7 @@ static void ADApplyAllFloors(void){
         objc_setAssociatedObject(self,kADFloorUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADTWBUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADStandalonePaintUS7104,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(self,kADCompactStandaloneProbeUS7106,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADAttachScriptsToUCC710(self);
     }
 }
@@ -2443,6 +2438,49 @@ static void ADScheduleLaunchReadyCheck706(void){
 
 
 
+
+// v7.106~probe manual SIGUSR2 capture. The app has no recurring diagnostic work:
+// signal receipt snapshots the largest visible WKWebView, broadcasts once to child
+// frames, waits 450 ms for replies, appends one report, and returns idle.
+static NSUInteger gADCompactStandaloneRun7106=0;
+static NSString *ADCompactStandaloneProbePath7106(void){
+    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.106-compact-standalone-probe.txt"]; } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.106-compact-standalone-probe.txt"];
+}
+static WKWebView *ADLargestTrackedWeb7106(void){
+    WKWebView *best=nil; CGFloat area=0;
+    @try { for(WKWebView *wv in ADTrackedWebViews()){ if(!wv||!wv.window||wv.hidden||wv.alpha<0.01)continue; CGRect rr=[wv convertRect:wv.bounds toView:nil],ir=CGRectIntersection(rr,UIScreen.mainScreen.bounds); CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height); if(a>area){area=a;best=wv;} } } @catch(...) {}
+    return best;
+}
+static void ADAppendCompactStandalone7106(NSString *text){
+    if(!text.length)return;
+    @try { NSString *p=ADCompactStandaloneProbePath7106(); NSFileManager *fm=[NSFileManager defaultManager]; [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil]; NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding]; if(![fm fileExistsAtPath:p]){[d writeToFile:p atomically:YES];return;} NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p]; if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];} } @catch(...) {}
+}
+static void ADCaptureCompactStandalone7106(void){
+    if(!gP.enabled)return;
+    WKWebView *wv=ADLargestTrackedWeb7106(); NSUInteger run=++gADCompactStandaloneRun7106;
+    if(!wv){ ADAppendCompactStandalone7106([NSString stringWithFormat:@"\n\n===== v7.106 RUN %lu NO_VISIBLE_WEBVIEW date=%@ =====\n",(unsigned long)run,[NSDate date]]); return; }
+    NSString *meta=@""; @try { CGRect r=[wv convertRect:wv.bounds toView:nil]; meta=[NSString stringWithFormat:@"wv=%p frame=(%.1f,%.1f %.1fx%.1f) loading=%d progress=%.3f url=%@",wv,r.origin.x,r.origin.y,r.size.width,r.size.height,wv.loading?1:0,wv.estimatedProgress,wv.URL.absoluteString?:@""]; } @catch(...) {}
+    NSString *trigger=@"(function(){try{if(typeof window.__adCompactStandaloneReport7106!=='function')return 'HELPER_MISSING';var nonce='ad7106-'+Date.now()+'-'+Math.random().toString(36).slice(2),c={nonce:nonce,main:window.__adCompactStandaloneReport7106(),children:[]};try{if(window.__adCompactStandaloneHandler7106)window.removeEventListener('message',window.__adCompactStandaloneHandler7106,false)}catch(_){}window.__adCompactStandaloneCollected7106=c;window.__adCompactStandaloneHandler7106=function(ev){try{var d=ev.data;if(!d||d.__adCompactStandalone7106Result!==1||d.nonce!==nonce)return;if(c.children.length<32)c.children.push({frameId:String(d.frameId||''),href:String(d.href||''),report:String(d.report||'')})}catch(_){}};window.addEventListener('message',window.__adCompactStandaloneHandler7106,false);window.__adCompactStandaloneBroadcast7106({__adCompactStandalone7106:1,nonce:nonce});return 'STARTED '+nonce}catch(e){return 'TRIGGER_ERR '+e}})();";
+    [wv evaluateJavaScript:trigger completionHandler:^(id v,NSError *e){
+        NSString *start=e?[NSString stringWithFormat:@"TRIGGER_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.45*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+            NSString *collect=@"(function(){try{var c=window.__adCompactStandaloneCollected7106;if(!c)return 'NO_COLLECTION';try{if(window.__adCompactStandaloneHandler7106)window.removeEventListener('message',window.__adCompactStandaloneHandler7106,false)}catch(_){}var o=['===== MAIN FRAME =====\\n'+String(c.main||'')];for(var i=0;i<c.children.length;i++)o.push('\\n===== CHILD FRAME '+i+' id='+String(c.children[i].frameId||'')+' '+String(c.children[i].href||'')+' =====\\n'+String(c.children[i].report||''));o.push('\\nCHILD_COUNT '+c.children.length);return o.join('\\n')}catch(e){return 'COLLECT_ERR '+e}})();";
+            [wv evaluateJavaScript:collect completionHandler:^(id v2,NSError *e2){
+                NSString *body=e2?[NSString stringWithFormat:@"COLLECT_ERROR %@",e2]:([v2 isKindOfClass:[NSString class]]?v2:[v2 description]);
+                NSMutableString *m=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.106 COMPACT STANDALONE PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\nbase=v7.105 production + zero-observer/adopted-sheet performance pass\nmethod=manual SIGUSR2; bounded current-frame tree walk only\ntrigger=%@\nweb=%@\n\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,start?:@"NO_TRIGGER",meta?:@""];
+                [m appendString:body?:@"NO_RESULT"];
+                [m appendString:@"\n================ END RUN ================\n"];
+                ADAppendCompactStandalone7106(m);
+            }];
+        });
+    }];
+}
+static dispatch_source_t gADCompactStandaloneSignal7106=nil;
+static void ADInstallCompactStandaloneSignal7106(void){
+    static dispatch_once_t once; dispatch_once(&once,^{ signal(SIGUSR2,SIG_IGN); gADCompactStandaloneSignal7106=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue()); if(!gADCompactStandaloneSignal7106)return; dispatch_source_set_event_handler(gADCompactStandaloneSignal7106,^{ ADCaptureCompactStandalone7106(); }); dispatch_resume(gADCompactStandaloneSignal7106); });
+}
+
 // v7.0.68 production: v7.0.65 chevron diagnostic runtime removed.
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
     ADLoadPrefs();
@@ -2454,6 +2492,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 %ctor {
     if(strcmp(__progname,"Amazon")!=0)return;
     ADLoadPrefs();
+    ADInstallCompactStandaloneSignal7106();
 
     // v6.0.185 launch-transition behavior: discard stale light SplashBoard snapshots.
     @try {
