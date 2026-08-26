@@ -1,3 +1,13 @@
+# AmazonDark v7.98 — standalone ad border/floor/header correction
+
+- Direct base: v7.96. The discarded v7.97 branch is not carried forward.
+- Leaves the entire existing Home border implementation unchanged. Adds one separate document-end CSS owner for standalone APE child renderers only.
+- Standalone existing border color -> `#3b4043`; no border width/style/radius or card geometry is changed.
+- Reasserts exact standalone renderer floors to OLED black after child-document construction and restores primary/secondary neutral text contrast.
+- Colored ad elements (deal/discount red, rating stars, Prime/blue accents, creative media) remain Amazon-owned.
+- Sponsored text/glyph logic is byte-for-byte unchanged from v7.96.
+- No MutationObserver, timer, interval, RAF, scroll listener, probe runtime, or recurring repair path.
+
 # AmazonDark v7.96 — Disney hero-style product plates
 
 - Production build based directly on v7.95; no probe runtime ships.

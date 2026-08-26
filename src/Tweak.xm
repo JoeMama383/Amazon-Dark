@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.96"
+#define AD_VERSION "v7.98"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -598,6 +598,7 @@ static void ADPostReadyOnce(void);
 static void ADScheduleLaunchReadyCheck706(void);
 static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
+static const void *kADStandalone798US=&kADStandalone798US;
 static NSHashTable *gADWebViews=nil;
 // v7.0.68 production: no diagnostic touch probe is installed.
 
@@ -1132,6 +1133,67 @@ static NSString *ADFloorJS(void){
             "}catch(e){}})();";
 }
 
+static NSString *ADStandalone798JS(void){
+    /* v7.98: standalone-ad paint-only backstop, injected at documentEnd.
+     * Do NOT fold this into the existing Home border sheet: the point is to leave
+     * every current border owner untouched and add one exact rule for the APE
+     * standalone renderer after Amazon's child document has finished constructing.
+     * This also avoids the v7.94/7.96 failure mode where the early static style node
+     * is absent while the inline OLED html/body backing survives. */
+    return @"(function(){try{if(window.top===window)return;var h=document.documentElement;if(!h)return;"
+           "var ref=String(document.referrer||'').toLowerCase();"
+           "var productish=/\\/dp\\/|\\/gp\\/product\\/|\\/gp\\/aw\\/d\\/|\\/s(?:[\\/?]|$)|[?&]k=/.test(ref);"
+           "if(productish)return;h.setAttribute('data-ad798-standalone','1');"
+           "var id='ad7-standalone-798',st=document.getElementById(id);if(st)return;"
+           "st=document.createElement('style');st.id=id;st.textContent='"
+           /* OLED floor: own the child ad canvas plus the exact Responsive eCommerce
+            * and dynamic-product renderer surfaces. */
+           "html[data-ad798-standalone],html[data-ad798-standalone] body,"
+           "html[data-ad798-standalone] #ad,html[data-ad798-standalone] #ad > div,"
+           "html[data-ad798-standalone] [data-testid=renderer-factory-ad-container],"
+           "html[data-ad798-standalone] [data-testid=renderer-factory-ad-container] [data-testid=main-content],"
+           "html[data-ad798-standalone] [data-testid=renderer-factory-ad-container] [data-testid^=modern-][data-testid$=-layout-container],"
+           "html[data-ad798-standalone] [data-testid=ad-background-container]"
+           "{background:#000!important;background-color:#000!important;}"
+           /* New standalone border rule. Color only: Amazon retains existing width,
+            * style, radius, box geometry, iframe geometry and hit target. */
+           "html[data-ad798-standalone] [data-testid=renderer-factory-ad-container] [data-testid^=modern-][data-testid$=-layout-container],"
+           "html[data-ad798-standalone] [data-testid=ad-background-container]"
+           "{border-color:#3b4043!important;outline-color:#3b4043!important;}"
+           /* The large renderer probe identified two direct structural paint planes.
+            * They are floors, not media; keep product pixels/Prime/deal artwork stock. */
+           "html[data-ad798-standalone] [data-testid=ad-background-container] > div"
+           "{background:#000!important;background-color:#000!important;background-image:none!important;}"
+           /* Primary header/product/price ink. Includes the exact dark navy inline
+            * color captured by the compact probe. Red deal ink, orange stars and
+            * blue Prime are not neutral, so these selectors do not touch them. */
+           "html[data-ad798-standalone] [data-testid=renderer-factory-ad-container] "
+           ":is([data-id=brand-name-text],[data-id=product-name-text],[data-testid=ratings-value],"
+           "[data-testid=formatted-price],[data-testid=formatted-price] *),"
+           "html[data-ad798-standalone] [data-testid=renderer-factory-ad-container] "
+           ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(0, 0, 17)\\\"],"
+           "html[data-ad798-standalone] [data-testid=renderer-factory-ad-container] "
+           ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(15, 17, 17)\\\"],"
+           "html[data-ad798-standalone] [data-testid=brand-product-description] p,"
+           "html[data-ad798-standalone] [data-testid=price-container] :is(div,span)"
+           ":not([data-testid=full-price]):not([data-testid=prime-badge])"
+           ":not(:where([data-testid=prime-badge] *)),"
+           "html[data-ad798-standalone] [data-testid=ad-background-container] "
+           ":is(p,span,div,a,small,strong,b)[style*=\\\"color: rgb(15, 17, 17)\\\"]"
+           ":not(:where([data-testid=ratings-stars] *)):not(:where([data-testid=prime-badge] *))"
+           "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+           /* Secondary neutral metadata. */
+           "html[data-ad798-standalone] [data-testid=renderer-factory-ad-container] "
+           ":is([data-testid=ratings-review-count],[data-testid=full-price]),"
+           "html[data-ad798-standalone] [data-testid=renderer-factory-ad-container] "
+           ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(86, 89, 89)\\\"],"
+           "html[data-ad798-standalone] [data-testid=ad-background-container] "
+           ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(86, 89, 89)\\\"]"
+           "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
+           "';(document.head||h).appendChild(st);"
+           "}catch(e){}})();";
+}
+
 static NSString *ADTWBJS(void){
     // Pure CSS TWB owner: no load listener, no querySelectorAll, no observer.
     // v7.0.29 restores the proven Home media families from the streamlined 6.x
@@ -1295,6 +1357,11 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADFloorJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADFloorUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        if(!objc_getAssociatedObject(ucc,kADStandalone798US)){
+            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADStandalone798JS() injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:NO];
+            [ucc addUserScript:us];
+            objc_setAssociatedObject(ucc,kADStandalone798US,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
         if(gP.whiteTame && !objc_getAssociatedObject(ucc,kADTWBUS)){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADTWBJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
