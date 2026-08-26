@@ -1,11 +1,13 @@
-# AmazonDark v7.99~probe — ultra-compact + medium standalone-ad viewport inventory
+# AmazonDark v7.100 — standalone renderer lifecycle + 320x50 REC repair
 
-- Direct production base: v7.98. Production theming, v7.98 standalone paint, TWB, Sponsored text/glyph, Disney and all Home borders are unchanged.
-- Manual SIGUSR2 one-shot probe only. Amazon writes to its own Documents sandbox; NewTerm exports afterward.
-- Current visible viewport only. Visible child frames receive one bounded postMessage snapshot request.
-- Intended two-run use: (1) the extra-compact white-floor standalone banner, then (2) a medium standalone ad whose large/header text is missing.
-- Captures frame/referrer/viewport, explicit AmazonDark marker/style presence, visible element paint/geometry/attributes, candidate-local descendants and matching CSS rules.
-- No MutationObserver, scroll listener, interval, RAF, auto-tap, auto-scroll, or production visual modification.
+- Direct production base: v7.98. v7.99 probe runtime is not shipped.
+- Fixes the proven `removeAllUserScripts` bookkeeping defect: the standalone document-end user-script key is now cleared and reattached along with the floor/TWB scripts.
+- Adds exact 320x50 AdaptiveRenderer ownership from the v7.99 viewport probe: its dedicated white backplane becomes OLED black, `product-description` becomes primary light ink, and `sns-disc` becomes secondary gray.
+- Keeps 414x125 / medium REC stock geometry; existing brand/product header selectors become reliable again because the document-end standalone owner is no longer silently skipped after Amazon clears user scripts.
+- Persists the user-selected TWB factor inline on the child `<html>` and adds a document-end standalone raster backstop, so product media remains tamed even when Amazon discards the early TWB style node.
+- Adds only border-color ownership for the existing 1px 320x50 safe-frame border; width, radius, aspect ratio, margins, padding, iframe dimensions, and layout remain Amazon-owned.
+- Standalone Sponsored text/glyph logic is unchanged from v7.98. Colored Prime/deal/rating/accent paint remains stock.
+- No MutationObserver, interval, RAF, scroll listener, recurring scan, or probe runtime is added.
 
 # AmazonDark v7.98 — standalone ad border/floor/header correction
 
