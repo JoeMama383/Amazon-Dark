@@ -33,9 +33,8 @@
 #import <errno.h>
 #import <string.h>
 #import <float.h>
-#import <signal.h>
 
-#define AD_VERSION "v7.112-probe"
+#define AD_VERSION "v7.114"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -600,7 +599,6 @@ static void ADScheduleLaunchReadyCheck706(void);
 static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
 static const void *kADStandalonePaintUS7104=&kADStandalonePaintUS7104;
-static const void *kADCompactStandaloneProbeUS7107=&kADCompactStandaloneProbeUS7107;
 static NSHashTable *gADWebViews=nil;
 // v7.0.68 production: no diagnostic touch probe is installed.
 
@@ -1333,14 +1331,21 @@ static NSString *ADStandalonePaintJS7104(void){
          /* v7.112: exact compact 320x50 media ownership. The live v7.111
           * capture identifies lfstyl-img as the Image grid host; keep prod-img as
           * the known A/B fallback. Require compact #dynamic-bb so medium/large
-          * standalone renderers and creative logos stay untouched. */
+          * standalone renderers stay untouched except for the exact store-logo lane added below. */
          "html[data-ad7104-standalone] #ad:has(#dynamic-bb) "
-         ":is([data-acei-id=lfstyl-img],[data-acei-id=prod-img]) :is(img,video,canvas)"
+         ":is([data-acei-id=lfstyl-img],[data-acei-id=prod-img]) :is(img,video,canvas),"
+         /* v7.114: store/brand identity raster parity. Repeated device captures
+          * expose the store image as data-acei-id=brnd-logo -> IMG alt=Brand logo
+          * (with data-testid=logo as the renderer wrapper on 414x125). Add only
+          * this exact standalone identity lane to TWB; do not widen the generic
+          * logo exclusions that protect Prime, stars, badges and UI glyphs. */
+         "html[data-ad7104-standalone] [data-acei-id=brnd-logo] img,"
+         "html[data-ad7104-standalone] [data-testid=logo] img[alt=\"Brand logo\"]"
          "{filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;}"
          /* v7.108: exact first-party 300x250 Swiper carousel media. Both the
           * active product tile and the neighboring custom-image tile expose the
           * actual raster as data-testid=pictureHighQuality. Tame only those leaves,
-          * which keeps Prime blue, orange rating stars, logos/badges and glyphs at
+          * which keeps Prime blue, orange rating stars, unrelated logos/badges and glyphs at
           * their authored colors/intensity. */
          "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] "
          ".swiper-slide [data-testid=pictureHighQuality]"
@@ -1361,30 +1366,7 @@ static NSString *ADStandalonePaintJS7104(void){
 }
 
 
-// v7.107~probe: retained zero-idle-work compact standalone capture. The helper is installed
-// in all frames at documentStart but does no traversal until manual SIGUSR2. It uses
-// bounded firstElementChild/nextElementSibling walking only: no MutationObserver,
-// querySelector/querySelectorAll, TreeWalker, timer, RAF, or scroll listener.
-static NSString *ADCompactStandaloneProbeJS7107(void){
-    return
-        @"(function(){try{if(window.__adCompactStandaloneProbe7107Installed)return;window.__adCompactStandaloneProbe7107Installed=1;\n"
-        @"var fid='f7107-'+Date.now()+'-'+Math.random().toString(36).slice(2);\n"
-        @"function cls(e){try{var c=e&&e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;return String(c||'')}catch(_){return''}}\n"
-        @"function rect(e){try{var r=e.getBoundingClientRect();return{x:+r.x.toFixed(2),y:+r.y.toFixed(2),w:+r.width.toFixed(2),h:+r.height.toFixed(2),top:+r.top.toFixed(2),right:+r.right.toFixed(2),bottom:+r.bottom.toFixed(2),left:+r.left.toFixed(2)}}catch(_){return{}}}\n"
-        @"function vis(e){try{var r=e.getBoundingClientRect(),c=getComputedStyle(e);return r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth&&c.display!=='none'&&c.visibility!=='hidden'&&parseFloat(c.opacity||1)>0}catch(_){return false}}\n"
-        @"function pseudo(e,w){try{var c=getComputedStyle(e,w);return{content:c.content,backgroundColor:c.backgroundColor,backgroundImage:String(c.backgroundImage||'').slice(0,500),color:c.color,textFill:c.webkitTextFillColor||'',border:c.border,boxShadow:String(c.boxShadow||'').slice(0,300),filter:c.filter,opacity:c.opacity,position:c.position,zIndex:c.zIndex}}catch(_){return null}}\n"
-        @"function attrs(e){var o={};try{var a=e.attributes;for(var i=0;a&&i<a.length&&i<40;i++){var n=String(a[i].name||'');if(/^data-|^aria-|^role$|^src$|^href$|^alt$/.test(n))o[n]=String(a[i].value||'').slice(0,700)}}catch(_){}return o}\n"
-        @"function parents(e){var o=[];try{for(var p=e&&e.parentElement,n=0;p&&n<7;p=p.parentElement,n++)o.push({tag:String(p.tagName||'').toLowerCase(),id:String(p.id||''),cls:cls(p).slice(0,400),rect:rect(p),inline:String(p.getAttribute&&p.getAttribute('style')||'').slice(0,700)})}catch(_){}return o}\n"
-        @"function snap(e,label){try{var c=getComputedStyle(e),t='';try{t=String(e.innerText||e.textContent||'').replace(/\\s+/g,' ').trim().slice(0,1000)}catch(_){}return{label:label,tag:String(e.tagName||'').toLowerCase(),id:String(e.id||''),cls:cls(e).slice(0,700),attrs:attrs(e),text:t,rect:rect(e),inline:String(e.getAttribute&&e.getAttribute('style')||'').slice(0,1800),computed:{display:c.display,visibility:c.visibility,opacity:c.opacity,color:c.color,textFill:c.webkitTextFillColor||'',backgroundColor:c.backgroundColor,backgroundImage:String(c.backgroundImage||'').slice(0,600),border:c.border,borderColor:c.borderColor,borderRadius:c.borderRadius,outline:c.outline,boxShadow:String(c.boxShadow||'').slice(0,500),filter:c.filter,webkitFilter:c.webkitFilter||'',mixBlendMode:c.mixBlendMode,position:c.position,zIndex:c.zIndex,overflow:c.overflow,fontSize:c.fontSize,lineHeight:c.lineHeight,fontWeight:c.fontWeight},before:pseudo(e,'::before'),after:pseudo(e,'::after'),parents:parents(e)}}catch(x){return{label:label,error:String(x)}}}\n"
-        @"function walk(root,fn,cap){try{var stack=[],n=root,count=0;if(n)stack.push(n);while(stack.length&&count<(cap||600)){n=stack.pop();if(!n||n.nodeType!==1)continue;count++;fn(n,count);var kids=[],c=n.firstElementChild,k=0;while(c&&k<80){kids.push(c);c=c.nextElementSibling;k++}for(var i=kids.length-1;i>=0;i--)stack.push(kids[i])}return count}catch(_){return-1}}\n"
-        @"function whiteish(v){try{var m=String(v||'').match(/rgba?\\(([^)]+)\\)/i);if(!m)return false;var a=m[1].split(','),r=parseFloat(a[0]),g=parseFloat(a[1]),b=parseFloat(a[2]),al=a.length>3?parseFloat(a[3]):1;return al>.2&&r>225&&g>225&&b>225}catch(_){return false}}\n"
-        @"function adopted(){try{var sh=window.__ad7StandaloneSheet7106||null,a=document.adoptedStyleSheets||[],found=false;for(var i=0;i<a.length;i++)if(a[i]===sh){found=true;break;}return{supported:!!(document.adoptedStyleSheets&&window.CSSStyleSheet&&CSSStyleSheet.prototype&&CSSStyleSheet.prototype.replaceSync),count:a.length,standaloneSheet:!!sh,standaloneAdopted:found,rules:sh&&sh.cssRules?sh.cssRules.length:0}}catch(e){return{error:String(e)}}}\n"
-        @"function report(){try{var child=false;try{child=window.top!==window}catch(_){child=true}var compact=child&&innerHeight<=220,nodes=[],light=[],darkText=[],ifr=[],markers=[],cap=compact?520:(child?260:1400);var seen=walk(document.documentElement,function(e,i){if(!vis(e))return;var tag=String(e.tagName||'').toLowerCase(),a=attrs(e),c=getComputedStyle(e),interesting=compact||tag==='iframe'||/^ape_|^gwm-|^ad$/.test(String(e.id||''))||/ape-|ad-|sponsor|renderer|dynamic|creative|banner|outlet|carousel|featured|prime|rating|star|mobile-mshop/i.test(cls(e)+' '+String(e.id||''));if(a['data-size-str'])markers.push(a['data-size-str']);if(tag==='iframe')ifr.push(snap(e,'iframe['+ifr.length+']'));if(interesting&&nodes.length<220)nodes.push(snap(e,'node['+i+']'));if(whiteish(c.backgroundColor)&&light.length<80)light.push(snap(e,'light['+i+']'));if(darkText.length<80&&/^(a|span|p|div|h[1-6])$/.test(tag)){var tx='';try{tx=String(e.innerText||e.textContent||'').replace(/\s+/g,' ').trim()}catch(_){}var m=String(c.color||'').match(/rgba?\(([^)]+)\)/i);if(tx&&tx.length<220&&m){var z=m[1].split(','),r=parseFloat(z[0]),g=parseFloat(z[1]),b=parseFloat(z[2]);if(r<70&&g<70&&b<70)darkText.push(snap(e,'darkText['+i+']'))}}},cap);var h=document.documentElement;return JSON.stringify({frame:{id:fid,href:String(location.href||''),referrer:String(document.referrer||''),title:String(document.title||''),ready:document.readyState,child:child,compact:compact,viewport:{w:innerWidth,h:innerHeight,dpr:devicePixelRatio},visibility:document.visibilityState},attrs:{standalone:h&&h.getAttribute('data-ad7104-standalone'),candidate:h&&h.getAttribute('data-ad7-standalone-candidate'),twbChild:h&&h.getAttribute('data-ad7-twb-child')},adopted:adopted(),walked:seen,sizeMarkers:markers.slice(0,30),iframes:ifr,nodes:nodes,lightPlanes:light,darkTextPlanes:darkText},null,2)}catch(e){return JSON.stringify({error:String(e&&e.stack||e)})}}\n"
-        @"window.__adCompactStandaloneReport7107=report;window.__adCompactStandaloneBroadcast7107=function(msg){try{for(var i=0;i<window.frames.length&&i<32;i++)try{window.frames[i].postMessage(msg,'*')}catch(_){}}catch(_){}};\n"
-        @"window.addEventListener('message',function(ev){try{var d=ev.data;if(!d||d.__adCompactStandalone7107!==1||!d.nonce)return;var rep=report();try{window.top.postMessage({__adCompactStandalone7107Result:1,nonce:d.nonce,frameId:fid,href:String(location.href||''),report:rep},'*')}catch(_){}try{window.__adCompactStandaloneBroadcast7107(d)}catch(_){}}catch(_){}},false);\n"
-        @"}catch(e){}})();";
-}
-
+// v7.114 production: compact standalone diagnostic WKUserScript removed.
 static NSString *ADTWBJS(void){
     // Pure CSS TWB owner: no load listener, no querySelectorAll, no observer.
     // v7.0.29 restores the proven Home media families from the streamlined 6.x
@@ -1460,6 +1442,12 @@ static NSString *ADTWBJS(void){
           * the 320x50 creative raster is tamed. */
          "html[data-ad7-standalone-candidate] #ad:has(#dynamic-bb) "
          ":is([data-acei-id=lfstyl-img],[data-acei-id=prod-img]) :is(img,video,canvas),"
+         /* v7.114: exact store/brand image lane shared by the standalone
+          * AdaptiveRenderer / renderer-factory variants. This is deliberately
+          * positive ownership: generic logo/icon exclusions stay in place, while
+          * only the captured brnd-logo raster receives the current TWB factor. */
+         "html[data-ad7-standalone-candidate] [data-acei-id=brnd-logo] img,"
+         "html[data-ad7-standalone-candidate] [data-testid=logo] img[alt=\"Brand logo\"],"
          /* v7.108: exact first-party 300x250 Swiper carousel media. The probe
           * identifies data-testid=pictureHighQuality on both product and custom
           * slide rasters, so this lane no longer depends on nonexistent
@@ -1575,11 +1563,6 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADStandalonePaintUS7104,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
-        if(!objc_getAssociatedObject(ucc,kADCompactStandaloneProbeUS7107)){
-            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADCompactStandaloneProbeJS7107() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
-            [ucc addUserScript:us];
-            objc_setAssociatedObject(ucc,kADCompactStandaloneProbeUS7107,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
         if(gP.whiteTame && !objc_getAssociatedObject(ucc,kADTWBUS)){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADTWBJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
@@ -1638,7 +1621,6 @@ static void ADApplyAllFloors(void){
         objc_setAssociatedObject(self,kADFloorUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADTWBUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADStandalonePaintUS7104,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(self,kADCompactStandaloneProbeUS7107,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADAttachScriptsToUCC710(self);
     }
 }
@@ -2634,66 +2616,7 @@ static void ADScheduleLaunchReadyCheck706(void){
 
 
 
-// v7.112~probe manual SIGUSR2 capture. The app has no recurring diagnostic work:
-// signal receipt snapshots the largest visible WKWebView, broadcasts once to child
-// frames, waits 450 ms for replies, appends one report, and returns idle.
-static NSUInteger gADCompactStandaloneRun7107=0;
-static NSString *ADCompactStandaloneProbePath7107(void){
-    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.112-compact-standalone-probe.txt"]; } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.112-compact-standalone-probe.txt"];
-}
-static WKWebView *ADLargestTrackedWeb7107(void){
-    WKWebView *best=nil; CGFloat area=0;
-    @try { for(WKWebView *wv in ADTrackedWebViews()){ if(!wv||!wv.window||wv.hidden||wv.alpha<0.01)continue; CGRect rr=[wv convertRect:wv.bounds toView:nil],ir=CGRectIntersection(rr,UIScreen.mainScreen.bounds); CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height); if(a>area){area=a;best=wv;} } } @catch(...) {}
-    return best;
-}
-static BOOL ADAppendCompactStandalone7107(NSString *text){
-    if(!text.length)return NO;
-    @try {
-        NSFileManager *fm=[NSFileManager defaultManager];
-        NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding];
-        NSMutableArray<NSString *> *paths=[NSMutableArray array];
-        NSString *primary=ADCompactStandaloneProbePath7107(); if(primary.length)[paths addObject:primary];
-        NSString *fallback=[NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.112-compact-standalone-probe.txt"];
-        if(fallback.length && ![fallback isEqualToString:primary])[paths addObject:fallback];
-        for(NSString *p in paths){
-            @try {
-                [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil];
-                if(![fm fileExistsAtPath:p]){ NSError *we=nil; if([d writeToFile:p options:NSDataWritingAtomic error:&we])return YES; }
-                NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p];
-                if(h){ [h seekToEndOfFile]; [h writeData:d]; [h synchronizeFile]; [h closeFile]; return YES; }
-            } @catch(...) {}
-        }
-    } @catch(...) {}
-    return NO;
-}
-static void ADCaptureCompactStandalone7107(void){
-    NSUInteger run=++gADCompactStandaloneRun7107;
-    ADAppendCompactStandalone7107([NSString stringWithFormat:@"\n\n===== v7.112 SIGNAL RECEIVED run=%lu date=%@ pid=%d =====\n",(unsigned long)run,[NSDate date],getpid()]);
-    if(!gP.enabled){ ADAppendCompactStandalone7107(@"STATUS: tweak disabled; capture skipped\n"); return; }
-    WKWebView *wv=ADLargestTrackedWeb7107();
-    if(!wv){ ADAppendCompactStandalone7107([NSString stringWithFormat:@"STATUS: NO_VISIBLE_WEBVIEW run=%lu date=%@\n",(unsigned long)run,[NSDate date]]); return; }
-    NSString *meta=@""; @try { CGRect r=[wv convertRect:wv.bounds toView:nil]; meta=[NSString stringWithFormat:@"wv=%p frame=(%.1f,%.1f %.1fx%.1f) loading=%d progress=%.3f url=%@",wv,r.origin.x,r.origin.y,r.size.width,r.size.height,wv.loading?1:0,wv.estimatedProgress,wv.URL.absoluteString?:@""]; } @catch(...) {}
-    NSString *trigger=@"(function(){try{if(typeof window.__adCompactStandaloneReport7107!=='function')return 'HELPER_MISSING';var nonce='ad7107-'+Date.now()+'-'+Math.random().toString(36).slice(2),c={nonce:nonce,main:window.__adCompactStandaloneReport7107(),children:[]};try{if(window.__adCompactStandaloneHandler7107)window.removeEventListener('message',window.__adCompactStandaloneHandler7107,false)}catch(_){}window.__adCompactStandaloneCollected7107=c;window.__adCompactStandaloneHandler7107=function(ev){try{var d=ev.data;if(!d||d.__adCompactStandalone7107Result!==1||d.nonce!==nonce)return;if(c.children.length<32)c.children.push({frameId:String(d.frameId||''),href:String(d.href||''),report:String(d.report||'')})}catch(_){}};window.addEventListener('message',window.__adCompactStandaloneHandler7107,false);window.__adCompactStandaloneBroadcast7107({__adCompactStandalone7107:1,nonce:nonce});return 'STARTED '+nonce}catch(e){return 'TRIGGER_ERR '+e}})();";
-    [wv evaluateJavaScript:trigger completionHandler:^(id v,NSError *e){
-        NSString *start=e?[NSString stringWithFormat:@"TRIGGER_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.45*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-            NSString *collect=@"(function(){try{var c=window.__adCompactStandaloneCollected7107;if(!c)return 'NO_COLLECTION';try{if(window.__adCompactStandaloneHandler7107)window.removeEventListener('message',window.__adCompactStandaloneHandler7107,false)}catch(_){}var o=['===== MAIN FRAME =====\\n'+String(c.main||'')];for(var i=0;i<c.children.length;i++)o.push('\\n===== CHILD FRAME '+i+' id='+String(c.children[i].frameId||'')+' '+String(c.children[i].href||'')+' =====\\n'+String(c.children[i].report||''));o.push('\\nCHILD_COUNT '+c.children.length);return o.join('\\n')}catch(e){return 'COLLECT_ERR '+e}})();";
-            [wv evaluateJavaScript:collect completionHandler:^(id v2,NSError *e2){
-                NSString *body=e2?[NSString stringWithFormat:@"COLLECT_ERROR %@",e2]:([v2 isKindOfClass:[NSString class]]?v2:[v2 description]);
-                NSMutableString *m=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.112 COMPACT STANDALONE PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\nbase=v7.111~probe + parent-owned compact APE border + exact lfstyl-img/prod-img compact TWB; retained deal plate/content floor + 300x250 Swiper repair\nmethod=manual SIGUSR2; bounded current-frame tree walk only\ntrigger=%@\nweb=%@\n\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,start?:@"NO_TRIGGER",meta?:@""];
-                [m appendString:body?:@"NO_RESULT"];
-                [m appendString:@"\n================ END RUN ================\n"];
-                ADAppendCompactStandalone7107(m);
-            }];
-        });
-    }];
-}
-static dispatch_source_t gADCompactStandaloneSignal7107=nil;
-static void ADInstallCompactStandaloneSignal7107(void){
-    static dispatch_once_t once; dispatch_once(&once,^{ signal(SIGUSR2,SIG_IGN); gADCompactStandaloneSignal7107=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue()); if(!gADCompactStandaloneSignal7107)return; dispatch_source_set_event_handler(gADCompactStandaloneSignal7107,^{ ADCaptureCompactStandalone7107(); }); dispatch_resume(gADCompactStandaloneSignal7107); });
-}
-
+// v7.114 production: standalone diagnostic signal/background capture runtime removed.
 // v7.0.68 production: v7.0.65 chevron diagnostic runtime removed.
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
     ADLoadPrefs();
@@ -2705,7 +2628,6 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 %ctor {
     if(strcmp(__progname,"Amazon")!=0)return;
     ADLoadPrefs();
-    ADInstallCompactStandaloneSignal7107();
 
     // v6.0.185 launch-transition behavior: discard stale light SplashBoard snapshots.
     @try {

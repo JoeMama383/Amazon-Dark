@@ -1,3 +1,15 @@
+# AmazonDark v7.114 — standalone store-image TWB parity
+
+Production build based directly on the device-confirmed v7.113/v7.112 visual code. Existing captures already identify the standalone store/brand image precisely: the raster lives under `data-acei-id="brnd-logo"`, with the 414x125 renderer also exposing a `data-testid="logo"` wrapper and an `img[alt="Brand logo"]` leaf. v7.114 adds that exact identity raster to the same TWB brightness factor already used for standalone product imagery, in both the document-start TWB sheet and the constructable/adopted standalone survivor sheet. This covers the known compact, medium, large/dynamic, and first-party standalone renderer variants without reopening the generic logo/icon lane.
+
+Prime blue, orange rating stars, red deal/coupon accents, Sponsored text/glyphs, ordinary page/store logos, badges, UI icons, geometry, borders, and the successful compact 320x50 fixes remain unchanged. The v7.113 compact diagnostic WKUserScript, SIGUSR2 handler, background observer/task, and probe file writer are removed from this production cut; no probe ships in v7.114. No MutationObserver, `querySelectorAll`, TreeWalker, web scroll listener, interval, RAF loop, or timeout is added.
+
+---
+
+# AmazonDark v7.113~probe — reliable background compact-ad capture
+
+Built directly from v7.112~probe with the **visual/theming code unchanged**. The compact standalone parent-owned APE border and exact `lfstyl-img` / `prod-img` TWB selectors are preserved byte-for-byte. The only runtime change is probe delivery: backgrounding Amazon once now starts a short iOS background task, captures the currently visible WebKit frame, waits for the existing 450 ms child-frame replies, writes `AmazonDark-v7.113-compact-standalone-probe.txt`, then ends the background task. Manual SIGUSR2 remains as a fallback. No MutationObserver, querySelectorAll scan, TreeWalker, scroll listener, interval, RAF loop, or recurring timer is added.
+
 # AmazonDark v7.112~probe — compact standalone parent-border + live media-host repair
 
 This build is based directly on v7.111~probe and changes only the two compact standalone failures proven by the v7.111 SIGUSR2 capture.
