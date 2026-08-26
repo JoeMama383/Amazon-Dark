@@ -1,12 +1,12 @@
-# AmazonDark v7.111~probe — compact standalone border/TWB regression repair
+# AmazonDark v7.112~probe — compact standalone parent-border + live media-host repair
 
-Built directly from v7.110~probe after the compact 320x50 standalone regressed to no visible gray boundary and an untamed product raster.
+This build is based directly on v7.111~probe and changes only the two compact standalone failures proven by the v7.111 SIGUSR2 capture.
 
-The v7.110 main-frame `.ape-placement::after` border is removed. The compact boundary returns to the exact child creative geometry that was correct in v7.108, but is now drawn as a zero-layout high-z `#ad:has(#dynamic-bb)::after` overlay. It therefore ends above Amazon's separate Sponsored feedback row while painting its bottom edge on top of the child content instead of relying on a physical border that can be clipped/covered. The same rule is present in both the first-paint sheet and the constructable standalone survivor sheet.
+- **Border:** removes the child `#ad::after` ring. The compact main-frame `.ape-placement` already owns the correct 1 px rounded border geometry, so v7.112 only recolors that existing transparent border to `#3b4043` when its wrapper is `--ad-height:50` and the placement is `aspect-ratio: 320 / 50`. The separate Sponsored feedback row stays outside the border.
+- **TWB:** the live compact raster is under `data-acei-id="lfstyl-img"`, not only `prod-img`. v7.112 tames the media leaves under either known compact host, scoped behind `#ad:has(#dynamic-bb)`, in both the first-paint TWB sheet and constructable standalone survivor sheet.
+- Existing compact OLED floor, transparent Limited-time-deal plate, medium/large standalone treatment, 300x250 standalone carousel treatment, third-party display/video TWB, Prime blue, rating-star orange, deal accents, and Sponsored paint remain unchanged.
 
-Compact TWB is also hardened: `[data-acei-id=prod-img]` is already the probed dedicated product-image host, so its media leaf is now targeted directly instead of depending on `#ad:has(#dynamic-bb)`. This preserves the same TWB brightness factor while avoiding sibling-hydration/order failures. Logos, badges, Sponsored chrome, Prime, stars, and deal accents remain outside that host.
-
-The v7.110 fixes for the transparent compact `Limited time deal` plate and the renderer-factory `[data-testid=content]` white floor remain intact. The manual SIGUSR2 probe is retained as `AmazonDark-v7.111-compact-standalone-probe.txt`, now writing an immediate signal breadcrumb before WebKit collection and falling back to Amazon's tmp directory if the Documents write fails. No recurring observer, querySelectorAll scan, TreeWalker, scroll listener, interval, RAF loop, or timer is added.
+The manual SIGUSR2 probe remains available as `AmazonDark-v7.112-compact-standalone-probe.txt`. No recurring observer, querySelectorAll scan, TreeWalker, scroll listener, interval, RAF loop, or timer is added.
 
 ---
 
