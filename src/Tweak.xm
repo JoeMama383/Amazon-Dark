@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.124"
+#define AD_VERSION "v7.125-search-ui-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -722,8 +722,13 @@ static NSString *ADFloorJS(void){
             "[class*=puis-card]:not([class*=creative]):not([class*=image]),[class*=product-card]:not([class*=image])"
             "{background-color:#181a1b!important;}"
             /* First-paint Search surface. Search overlay content must remain visible. */
-            ".s-suggestion-container,.s-suggestion,.autocomplete-results-container,[class*=autocomplete],[class*=suggestion],"
-            "[class*=recentSearch],[class*=search-suggestion]"
+            /* v7.125: do NOT let the Search floor shorthand match the 20x20 <i> glyph leaves.
+             * Those stock icons are background-image / pseudo artwork. A `background:#000` shorthand
+             * resets background-image to none before any later color/filter rule can see the shape. */
+            ".s-suggestion-container,.s-suggestion,.autocomplete-results-container,[class*=autocomplete],"
+            "[class*=suggestion]:not([class*=icon]):not([class*=glyph]),"
+            "[class*=recentSearch]:not([class*=icon]):not([class*=glyph]),"
+            "[class*=search-suggestion]:not([class*=icon]):not([class*=glyph])"
             "{background:#000!important;background-color:#000!important;color:#e8e6e3!important;}"
             /* Search is rendered inside a Home-deck WebView, so the general Home-text exclusion
              * can intentionally skip these leaves. Give only the Search/autocomplete family its
@@ -776,70 +781,45 @@ static NSString *ADFloorJS(void){
             "#auth-footer .a-divider-inner,.auth-footer .a-divider-inner{background-image:none!important;box-shadow:none!important;}"
             ".s-color-swatch-container,.s-color-swatch-outer-circle{background-color:transparent!important;}"
             ".s-color-swatch-outer-circle{border-color:#494d4d!important;outline-color:#494d4d!important;}"
-            /* v7.121 Search glyph correction. Search/nav IMG chrome stays transparent, but
-             * the proven autocomplete I-elements are CSS MASK leaves: their background-color IS
-             * the glyph ink. v7.120 made those exact mask leaves transparent and therefore hid
-             * them. Keep generic image/SVG glyph treatment separate, then own only the exact mask
-             * ink leaves after it so no square host is created. */
+            /* v7.125 Search glyph repair — current v7.124 device probe proves these
+             * 20x20 <i> leaves have mask:none. The shape is stock background/pseudo artwork,
+             * so background-color must stay transparent and the existing artwork is filtered.
+             * Crucially, the structural floor rule above no longer erases background-image. */
             "[class*=nav-search] img,[class*=searchbar] img,[class*=search-bar] img,[role=search] img,"
             "[class*=nav-] img[class*=icon],[class*=header] img[class*=icon]"
             "{background-color:transparent!important;}"
-            ".s-suggestion-container :is(img[class*=icon],img[alt*=search],img[alt*=arrow],svg,i.a-icon,[class*=glyph],[class*=icon-search],[class*=search-icon]),"
-            ".s-suggestion :is(img[class*=icon],img[alt*=search],img[alt*=arrow],svg,i.a-icon,[class*=glyph],[class*=icon-search],[class*=search-icon])"
+            ".s-suggestion-container :is(img[class*=icon],img[alt*=search],img[alt*=arrow],svg,i.a-icon,[class*=glyph]),"
+            ".s-suggestion :is(img[class*=icon],img[alt*=search],img[alt*=arrow],svg,i.a-icon,[class*=glyph])"
             "{color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;"
             "filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;}"
-            /* v7.124 -- the square glyphs.
-             *
-             * The comment these rules carried ("background-color is mask ink") is only
-             * true when a mask-image is present to clip it. The v7.123 probe reports
-             * mask:none on every one of these leaves, so background-color was not ink --
-             * it filled the whole 20x20 box. That is literally the grey and white squares:
-             *
-             *   icon-past-search-suggestion  bg=rgb(157,163,163)  -> grey square, left
-             *   icon-close                   bg=rgb(232,230,227)  -> white square, right
-             *   icon-search-suggestion       bg=rgb(0,0,0)        -> reads correct only
-             *                                                       because black matches
-             *                                                       the OLED floor
-             *
-             * v6.0.185 got this right and said so in its own comment: "The mask is the
-             * shape; the visible colour is the element background-color" -- and it only
-             * applied that when it had first checked the element actually had a mask
-             * (if(mi && mi!=='none')). Icon-font glyphs draw a character from ::before,
-             * where colour is the ink and background-color paints a block behind it.
-             *
-             * So: colour by default, and background-color only behind a real mask. */
-            ".s-suggestion-container [class*=icon-past-search-sugge],"
-            ".s-suggestion-container [class*=icon-past-search-sugge]::before,"
-            ".s-suggestion-container [class*=icon-past-search-sugge]::after"
-            "{background-color:transparent!important;color:#9da3a3!important;"
-            "fill:#9da3a3!important;stroke:#9da3a3!important;"
-            "filter:none!important;-webkit-filter:none!important;"
-            "opacity:1!important;box-shadow:none!important;}"
-            ".s-suggestion-container .icon-close,"
-            ".s-suggestion-container .icon-close::before,"
-            ".s-suggestion-container .icon-close::after"
-            "{background-color:transparent!important;color:#e8e6e3!important;"
-            "fill:#e8e6e3!important;stroke:#e8e6e3!important;"
-            "filter:none!important;-webkit-filter:none!important;"
-            "opacity:1!important;box-shadow:none!important;}"
+            /* Current exact autocomplete sprite/pseudo leaves. Never write a light background
+             * rectangle; keep Amazon's background image/content and transform only its ink. */
+            ".s-suggestion-container i.icon-past-search-suggestion.s-suggestion-icon-left"
+            "{background-color:transparent!important;color:#9da3a3!important;fill:#9da3a3!important;"
+            "stroke:#9da3a3!important;filter:brightness(0) invert(1) brightness(0.65)!important;"
+            "-webkit-filter:brightness(0) invert(1) brightness(0.65)!important;opacity:1!important;box-shadow:none!important;}"
+            ".s-suggestion-container i.icon-close.s-suggestion-icon-left"
+            "{background-color:transparent!important;color:#e8e6e3!important;fill:#e8e6e3!important;"
+            "stroke:#e8e6e3!important;filter:brightness(0) invert(1)!important;"
+            "-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;box-shadow:none!important;}"
+            ".s-query-row i.icon-search-suggestion.s-query-row-search-icon,"
             ".s-suggestion-container i:is([class*=icon-search],[class*=search-icon]),"
             ".s-suggestion i:is([class*=icon-search],[class*=search-icon]),"
-            ".s-suggestion-container i:is([class*=icon-search],[class*=search-icon])::before,"
-            ".s-suggestion i:is([class*=icon-search],[class*=search-icon])::before"
-            "{background-color:transparent!important;color:#e8e6e3!important;"
-            "fill:#e8e6e3!important;stroke:#e8e6e3!important;"
-            "filter:none!important;-webkit-filter:none!important;"
-            "opacity:1!important;box-shadow:none!important;}"
-            /* Only a genuinely masked leaf gets background-color as ink, exactly as
-             * v6.0.185 gated it. Declared after the rules above so it wins for those. */
-            ".s-suggestion-container i[style*=mask],.s-suggestion i[style*=mask]"
-            "{background-color:#e8e6e3!important;}"
-            /* Section headers and row copy. The probe reports the autocomplete body at
-             * color:rgb(15,17,17) on an rgb(0,0,0) floor, which is why YOU MAY BE
-             * INTERESTED and RECENT are almost invisible. */
-            ".s-suggestion-container :is(h1,h2,h3,h4,h5,[class*=header],[class*=title],[class*=label])"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;opacity:1!important;}"
-            ".s-suggestion-container,.s-suggestion-container :is(div,span,a,li,p)"
+            ".s-suggestion-container i.s-suggestion-icon-right"
+            "{background-color:transparent!important;color:#e8e6e3!important;fill:#e8e6e3!important;"
+            "stroke:#e8e6e3!important;filter:brightness(0) invert(1) brightness(0.91)!important;"
+            "-webkit-filter:brightness(0) invert(1) brightness(0.91)!important;opacity:1!important;box-shadow:none!important;}"
+            /* v7.125 exact Search `Deals for you` / ufs_tiles_card_widget family from the
+             * screenshot-triggered v7.124 probe: row/card/image shields were the remaining
+             * white Search surface. Own its floor and neutral copy only. */
+            ".ufs_tiles_card_widget-suggestion"
+            "{background:#000!important;background-color:#000!important;color:#e8e6e3!important;}"
+            ".ufs_tiles_card_widget-suggestion :is(.ufs_tiles_card_widget-sug-container-top,"
+            ".ufs_tiles_card_widget-sug-column,.ufs_tiles_card_widget-sug-card,"
+            ".ufs_tiles_card_widget-sug-link,.ufs_tiles_card_widget-sug-image-container,"
+            ".ufs_tiles_card_widget-sug-image-background)"
+            "{background-color:transparent!important;border-color:#494d4d!important;}"
+            ".ufs_tiles_card_widget-suggestion :is(h1,h2,h3,h4,h5,h6,p,span,a,div)"
             "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
             /* Share/overflow exact leaves from probe history. */
             ".puis-mab-overlay-row-share .puis-mab-overlay-icon-share"
@@ -1554,6 +1534,8 @@ static NSString *ADTWBJS(void){
          "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
          "s.textContent='"
          /* Ordinary/product imagery. */
+         /* v7.125 Search Deals-for-you image tiles from the exact ufs probe family. */
+         "img.ufs_tiles_card_widget-sug-image,"
          "img.s-image,img.s-product-image,#landingImage,#imgBlkFront,#imgTagWrapperId img,"
          "img[data-a-dynamic-image],img.a-dynamic-image,[data-component-type=s-product-image] img,"
          "[class*=product-image] img,[class*=asin-image] img,.p13n-sc-uncoverable-faceout img,"
@@ -2104,47 +2086,10 @@ static void ADRepaintNearestANXTab724(UIView *v){
     if(root)ADPaintANXTabBar724(root);
 }
 
-// v7.124: structural full-bleed white planes.
-//
-// The v7.123 search probe found three of them sitting under the Search UI:
-//   UILayoutContainerView (0,103 430x829)  bg=rgba(1,1,1,1)
-//   UIView                (0,0   430x932)  bg=rgba(1,1,1,1)
-//   UIView                (0,103 430x829)  bg=rgba(1,1,1,1)
-// ADNativeFloorCandidate only claims React cards, so nothing owned these and they
-// flashed white behind the autocomplete list.
-//
-// Deliberately narrow: a view is a structural plane only if it is opaque, very light,
-// and covers essentially the whole window. Content views, cards, buttons and image
-// hosts all fail at least one of those, so this cannot reach product artwork.
-static BOOL ADStructuralWhitePlane7124(UIView *v){
-    if(!v)return NO;
-    @try {
-        if([v isKindOfClass:UIWindow.class])return NO;
-        UIWindow *w=v.window; if(!w)return NO;
-        UIColor *bg=v.backgroundColor; if(!bg)return NO;
-        CGFloat r=0,g=0,b=0,a=0;
-        if(![bg getRed:&r green:&g blue:&b alpha:&a])return NO;
-        if(a<0.95)return NO;
-        if((0.2126*r+0.7152*g+0.0722*b)<0.90)return NO;   // near-white only
-        CGRect f=[v convertRect:v.bounds toView:w], wb=w.bounds;
-        if(wb.size.width<1||wb.size.height<1)return NO;
-        if(f.size.width < wb.size.width*0.95)return NO;    // full-bleed width
-        if(f.size.height < wb.size.height*0.55)return NO;  // and most of the height
-        if(v.layer.contents)return NO;                     // never an image host
-        return YES;
-    } @catch(...) {}
-    return NO;
-}
-
 %hook UIView
 - (void)didMoveToWindow {
     %orig;
     if(gP.enabled && self.window && ADNativeFloorCandidate(self)) ADOwnNativeFloor(self);
-    if(gP.enabled && ADStructuralWhitePlane7124(self)){
-        UIColor *black=ADOLED();
-        self.backgroundColor=black;
-        self.layer.backgroundColor=black.CGColor;
-    }
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if(gP.enabled && objc_getAssociatedObject(self,kADTabIndicator724)){
@@ -2155,11 +2100,6 @@ static BOOL ADStructuralWhitePlane7124(UIView *v){
     if(gP.enabled && self.window && ADNativeFloorCandidate(self)){
         UIColor *black=ADOLED();
         %orig(black);
-        return;
-    }
-    if(gP.enabled && self.window && ADStructuralWhitePlane7124(self)){
-        UIColor *oled=ADOLED();
-        %orig(oled);
         return;
     }
     %orig;
@@ -3171,7 +3111,7 @@ static void ADConsiderLaunchReady706(void){
 %end
 
 // -----------------------------------------------------------------------------
-// v7.123 Search visibility probe. This replaces the old manual privacy report.
+// v7.125 Search UI probe. Screenshot/SIGUSR2 capture is tailored to autocomplete glyphs and Deals-for-you.
 // It is diagnostic-only and runs only after an iOS screenshot or SIGUSR2.
 // No observer/scan/timer runs during ordinary app use.
 // -----------------------------------------------------------------------------
@@ -3181,9 +3121,9 @@ static dispatch_source_t gADSearchProbeSignal7123=nil;
 static NSString *ADSearchProbePath7123(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.123-search-visibility-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.125-search-ui-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.123-search-visibility-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.125-search-ui-probe.txt"];
 }
 static void ADSearchProbeAppend7123(NSString *s){
     if(!s.length)return;
@@ -3309,21 +3249,23 @@ static NSString *ADSearchProbeWebViews7123(void){
 }
 static NSString *ADSearchProbeDOMJS7123(void){
     return @"(function(){try{"
-    "function P(e){if(!e)return null;var r=e.getBoundingClientRect(),s=getComputedStyle(e);return {tag:e.tagName,id:e.id||'',cls:String(e.className||'').slice(0,180),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,color:s.color,mask:s.webkitMaskImage||s.maskImage||'none',filter:s.webkitFilter||s.filter||'none',pe:s.pointerEvents,z:s.zIndex,pos:s.position};}"
+    "function Q(s){return {content:s.content||'none',bg:s.backgroundColor,bgi:s.backgroundImage,bgp:s.backgroundPosition,bgs:s.backgroundSize,bgr:s.backgroundRepeat,color:s.color,mask:s.webkitMaskImage||s.maskImage||'none',filter:s.webkitFilter||s.filter||'none',font:s.fontFamily,fs:s.fontSize};}"
+    "function P(e){if(!e)return null;var r=e.getBoundingClientRect(),s=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');return {tag:e.tagName,id:e.id||'',cls:String(e.className||'').slice(0,220),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,bgi:s.backgroundImage,bgp:s.backgroundPosition,bgs:s.backgroundSize,bgr:s.backgroundRepeat,color:s.color,mask:s.webkitMaskImage||s.maskImage||'none',filter:s.webkitFilter||s.filter||'none',font:s.fontFamily,fs:s.fontSize,pe:s.pointerEvents,z:s.zIndex,pos:s.position,before:Q(b),after:Q(a)};}"
     "function G(sel){var a=[].slice.call(document.querySelectorAll(sel));return {count:a.length,items:a.slice(0,36).map(P)};}"
     "var pts=[[24,88],[innerWidth/2,88],[innerWidth/2,180],[innerWidth/2,320],[innerWidth/2,500]];"
     "var hit=pts.map(function(p){var a=(document.elementsFromPoint?document.elementsFromPoint(p[0],p[1]):[document.elementFromPoint(p[0],p[1])]).filter(Boolean).slice(0,8);return {p:p,stack:a.map(P)};});"
     "var o={href:location.href,ready:document.readyState,viewport:[innerWidth,innerHeight,devicePixelRatio],body:P(document.body),doc:P(document.documentElement),scroll:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],"
     "suggestions:G('.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]'),"
     "history:G('[class*=icon-past-search-sugge],.icon-close.s-suggestion-icon-left'),"
-    "searchIcons:G('.s-suggestion-container [class*=icon-search],.s-suggestion-container [class*=search-icon],.s-suggestion [class*=icon-search],.s-suggestion [class*=search-icon]'),"
+    "searchIcons:G('i.icon-search-suggestion,.s-query-row-search-icon,.s-suggestion-icon-right,.s-suggestion-container [class*=icon-search],.s-suggestion-container [class*=search-icon],.s-suggestion [class*=icon-search],.s-suggestion [class*=search-icon]'),"
+    "deals:G('[class*=ufs_tiles_card_widget]'),"
     "fixed:G('body *'),hit:hit};"
     "o.fixed.items=o.fixed.items.filter(function(x){return x&&((x.pos==='fixed'||x.pos==='sticky')&&(x.r[2]*x.r[3]>2000));}).slice(0,30);o.fixed.count=o.fixed.items.length;"
     "return JSON.stringify(o,null,2);}catch(e){return 'DOM_ERR '+e;}})();";
 }
 static void ADCaptureSearchVisibility7123(NSString *trigger){
     if(!gP.enabled)return; NSUInteger run=++gADSearchProbeRun7123;
-    NSMutableString *head=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.123 SEARCH VISIBILITY PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE WINDOWS / VIEWS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchProbeNative7123(),ADSearchProbeWebViews7123()];
+    NSMutableString *head=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.125 SEARCH UI PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE WINDOWS / VIEWS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchProbeNative7123(),ADSearchProbeWebViews7123()];
     ADSearchProbeAppend7123(head);
     WKWebView *wv=ADSearchProbeAutocompleteWeb7123();
     if(!wv){ ADSearchProbeAppend7123(@"\n===== AUTOCOMPLETE DOM =====\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"); return; }
