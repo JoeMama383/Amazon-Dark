@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.123-search-visibility-probe"
+#define AD_VERSION "v7.124"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -788,24 +788,59 @@ static NSString *ADFloorJS(void){
             ".s-suggestion :is(img[class*=icon],img[alt*=search],img[alt*=arrow],svg,i.a-icon,[class*=glyph],[class*=icon-search],[class*=search-icon])"
             "{color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;"
             "filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;}"
-            /* Current + donor-proven mask leaves. These are 20px I-elements, not rectangular
-             * backdrop hosts. Background-color is mask ink and filter must remain none. */
-            ".s-suggestion-container [class*=icon-past-search-sugge]"
-            "{background-color:#9da3a3!important;color:#9da3a3!important;fill:#9da3a3!important;"
-            "stroke:#9da3a3!important;filter:none!important;-webkit-filter:none!important;"
+            /* v7.124 -- the square glyphs.
+             *
+             * The comment these rules carried ("background-color is mask ink") is only
+             * true when a mask-image is present to clip it. The v7.123 probe reports
+             * mask:none on every one of these leaves, so background-color was not ink --
+             * it filled the whole 20x20 box. That is literally the grey and white squares:
+             *
+             *   icon-past-search-suggestion  bg=rgb(157,163,163)  -> grey square, left
+             *   icon-close                   bg=rgb(232,230,227)  -> white square, right
+             *   icon-search-suggestion       bg=rgb(0,0,0)        -> reads correct only
+             *                                                       because black matches
+             *                                                       the OLED floor
+             *
+             * v6.0.185 got this right and said so in its own comment: "The mask is the
+             * shape; the visible colour is the element background-color" -- and it only
+             * applied that when it had first checked the element actually had a mask
+             * (if(mi && mi!=='none')). Icon-font glyphs draw a character from ::before,
+             * where colour is the ink and background-color paints a block behind it.
+             *
+             * So: colour by default, and background-color only behind a real mask. */
+            ".s-suggestion-container [class*=icon-past-search-sugge],"
+            ".s-suggestion-container [class*=icon-past-search-sugge]::before,"
+            ".s-suggestion-container [class*=icon-past-search-sugge]::after"
+            "{background-color:transparent!important;color:#9da3a3!important;"
+            "fill:#9da3a3!important;stroke:#9da3a3!important;"
+            "filter:none!important;-webkit-filter:none!important;"
             "opacity:1!important;box-shadow:none!important;}"
-            ".s-suggestion-container .icon-close.s-suggestion-icon-left"
-            "{background-color:#e8e6e3!important;color:#e8e6e3!important;fill:#e8e6e3!important;"
-            "stroke:#e8e6e3!important;filter:none!important;-webkit-filter:none!important;"
+            ".s-suggestion-container .icon-close,"
+            ".s-suggestion-container .icon-close::before,"
+            ".s-suggestion-container .icon-close::after"
+            "{background-color:transparent!important;color:#e8e6e3!important;"
+            "fill:#e8e6e3!important;stroke:#e8e6e3!important;"
+            "filter:none!important;-webkit-filter:none!important;"
             "opacity:1!important;box-shadow:none!important;}"
-            /* The left You-May-Be-Interested magnifier is also an icon-search/search-icon mask
-             * family on this autocomplete lineage. Restrict mask-ink ownership to I elements so
-             * image-backed icons retain transparent backdrops. */
             ".s-suggestion-container i:is([class*=icon-search],[class*=search-icon]),"
-            ".s-suggestion i:is([class*=icon-search],[class*=search-icon])"
-            "{background-color:#e8e6e3!important;color:#e8e6e3!important;fill:#e8e6e3!important;"
-            "stroke:#e8e6e3!important;filter:none!important;-webkit-filter:none!important;"
+            ".s-suggestion i:is([class*=icon-search],[class*=search-icon]),"
+            ".s-suggestion-container i:is([class*=icon-search],[class*=search-icon])::before,"
+            ".s-suggestion i:is([class*=icon-search],[class*=search-icon])::before"
+            "{background-color:transparent!important;color:#e8e6e3!important;"
+            "fill:#e8e6e3!important;stroke:#e8e6e3!important;"
+            "filter:none!important;-webkit-filter:none!important;"
             "opacity:1!important;box-shadow:none!important;}"
+            /* Only a genuinely masked leaf gets background-color as ink, exactly as
+             * v6.0.185 gated it. Declared after the rules above so it wins for those. */
+            ".s-suggestion-container i[style*=mask],.s-suggestion i[style*=mask]"
+            "{background-color:#e8e6e3!important;}"
+            /* Section headers and row copy. The probe reports the autocomplete body at
+             * color:rgb(15,17,17) on an rgb(0,0,0) floor, which is why YOU MAY BE
+             * INTERESTED and RECENT are almost invisible. */
+            ".s-suggestion-container :is(h1,h2,h3,h4,h5,[class*=header],[class*=title],[class*=label])"
+            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;opacity:1!important;}"
+            ".s-suggestion-container,.s-suggestion-container :is(div,span,a,li,p)"
+            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
             /* Share/overflow exact leaves from probe history. */
             ".puis-mab-overlay-row-share .puis-mab-overlay-icon-share"
             "{background-color:#e8e6e3!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;filter:none!important;}"
@@ -2069,10 +2104,47 @@ static void ADRepaintNearestANXTab724(UIView *v){
     if(root)ADPaintANXTabBar724(root);
 }
 
+// v7.124: structural full-bleed white planes.
+//
+// The v7.123 search probe found three of them sitting under the Search UI:
+//   UILayoutContainerView (0,103 430x829)  bg=rgba(1,1,1,1)
+//   UIView                (0,0   430x932)  bg=rgba(1,1,1,1)
+//   UIView                (0,103 430x829)  bg=rgba(1,1,1,1)
+// ADNativeFloorCandidate only claims React cards, so nothing owned these and they
+// flashed white behind the autocomplete list.
+//
+// Deliberately narrow: a view is a structural plane only if it is opaque, very light,
+// and covers essentially the whole window. Content views, cards, buttons and image
+// hosts all fail at least one of those, so this cannot reach product artwork.
+static BOOL ADStructuralWhitePlane7124(UIView *v){
+    if(!v)return NO;
+    @try {
+        if([v isKindOfClass:UIWindow.class])return NO;
+        UIWindow *w=v.window; if(!w)return NO;
+        UIColor *bg=v.backgroundColor; if(!bg)return NO;
+        CGFloat r=0,g=0,b=0,a=0;
+        if(![bg getRed:&r green:&g blue:&b alpha:&a])return NO;
+        if(a<0.95)return NO;
+        if((0.2126*r+0.7152*g+0.0722*b)<0.90)return NO;   // near-white only
+        CGRect f=[v convertRect:v.bounds toView:w], wb=w.bounds;
+        if(wb.size.width<1||wb.size.height<1)return NO;
+        if(f.size.width < wb.size.width*0.95)return NO;    // full-bleed width
+        if(f.size.height < wb.size.height*0.55)return NO;  // and most of the height
+        if(v.layer.contents)return NO;                     // never an image host
+        return YES;
+    } @catch(...) {}
+    return NO;
+}
+
 %hook UIView
 - (void)didMoveToWindow {
     %orig;
     if(gP.enabled && self.window && ADNativeFloorCandidate(self)) ADOwnNativeFloor(self);
+    if(gP.enabled && ADStructuralWhitePlane7124(self)){
+        UIColor *black=ADOLED();
+        self.backgroundColor=black;
+        self.layer.backgroundColor=black.CGColor;
+    }
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if(gP.enabled && objc_getAssociatedObject(self,kADTabIndicator724)){
@@ -2083,6 +2155,11 @@ static void ADRepaintNearestANXTab724(UIView *v){
     if(gP.enabled && self.window && ADNativeFloorCandidate(self)){
         UIColor *black=ADOLED();
         %orig(black);
+        return;
+    }
+    if(gP.enabled && self.window && ADStructuralWhitePlane7124(self)){
+        UIColor *oled=ADOLED();
+        %orig(oled);
         return;
     }
     %orig;
