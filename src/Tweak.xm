@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.107-probe"
+#define AD_VERSION "v7.108-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -918,31 +918,39 @@ static NSString *ADFloorJS(void){
              * not blanket-clear nested badges or accent components. */
             "html[data-ad7-standalone-candidate] [data-testid=ad-background-container] > div"
             "{background:#000!important;background-color:#000!important;background-image:none!important;}"
-            /* v7.107: rare large first-party standalone sponsored carousel.
-             * Activate only when the child frame actually exposes Amazon carousel
-             * semantics. This closes the white "Featured by ..." shell without
-             * broadening generic standalone ownership to branded third-party
-             * creatives. Prime/star/deal/badge paint stays stock. */
-            "html[data-ad7-standalone-candidate]:has(:is([class*=carousel],[data-testid*=carousel])) body,"
-            "html[data-ad7-standalone-candidate]:has(:is([class*=carousel],[data-testid*=carousel])) #ad"
+            /* v7.108: exact first-party 300x250 Swiper standalone carousel from
+             * the v7.107 device capture. v7.107 looked for the literal word
+             * "carousel", but this renderer never exposes it: the child is
+             * #ad[data-html-dimensions=300x250] -> data-testid=gridContainer ->
+             * .swiper-wrapper/.swiper-slide. Own that proven signature directly.
+             * The gridContainer is the one surviving #fff light plane; slide
+             * structure is otherwise transparent. Prime/rating-star/deal/badge
+             * accents stay Amazon-owned. */
+            "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"]"
             "{background:#000!important;background-color:#000!important;}"
-            "html[data-ad7-standalone-candidate]:has(:is([class*=carousel],[data-testid*=carousel])) "
+            "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] [data-testid=gridContainer]"
+            "{background:#000!important;background-color:#000!important;background-image:none!important;}"
+            "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] "
             ":is(div,section,article,main,header,footer,ul,ol,li)"
             ":not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime])"
             ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *))"
             "{background-color:transparent!important;}"
-            "html[data-ad7-standalone-candidate]:has(:is([class*=carousel],[data-testid*=carousel])) "
-            ":is(h1,h2,h3,h4,h5,h6,p,span,a,strong,small,b,em,label)"
-            ":not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime])"
+            "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] .swiper-slide > [class*=border-gray-]"
+            "{border-color:#3b4043!important;outline-color:#3b4043!important;box-shadow:none!important;}"
+            "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] "
+            ":is(h1,h2,h3,h4,h5,h6,p,span,a,strong,small,b,em,label,div)"
+            ":not(div:has([class*=prime],[data-testid*=prime],[class*=star],[data-testid*=star]))"
+            ":not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime]):not([class*=star])"
             ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
-            ":not([data-testid=prime-badge]):not(:where([data-testid=prime-badge] *))"
-            ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *))"
+            ":not([data-testid*=prime]):not([data-testid*=star])"
+            ":not(:where([data-testid*=prime] *)):not(:where([data-testid*=star] *))"
+            ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *)):not(:where([class*=star] *))"
             ":not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
             "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            "html[data-ad7-standalone-candidate]:has(:is([class*=carousel],[data-testid*=carousel])) "
-            ":is(span,p,a,small,strong,b)[class*=sponsored],"
-            "html[data-ad7-standalone-candidate]:has(:is([class*=carousel],[data-testid*=carousel])) "
-            ":is(span,p,a,small,strong,b)[data-testid*=sponsored]"
+            "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] "
+            ":is(div,span,p,a,small,strong,b)[class*=sponsored],"
+            "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] "
+            ":is(div,span,p,a,small,strong,b)[data-testid*=sponsored]"
             "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}"
             /* v7.95: compact REC/renderer-factory lane from the v7.94 probe.
              * The captured 430x130 child frame uses modern-414x125-layout-container
@@ -1212,6 +1220,13 @@ static NSString *ADStandalonePaintJS7104(void){
          "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] [data-testid^=modern-][data-testid$=-layout-container],"
          "html[data-ad7104-standalone] [data-testid=ad-background-container]"
          "{border-color:#3b4043!important;outline-color:#3b4043!important;}"
+         /* v7.108: exact compact 320x50 AdaptiveRenderer shell. The v7.107
+          * device capture shows #ad fills the 396x62 child viewport, contains
+          * #dynamic-bb, and owns no border at all. Add the same neutral 1px /
+          * 8px treatment used by the repaired medium standalone card without
+          * changing its outer dimensions. */
+         "html[data-ad7104-standalone] #ad:has(#dynamic-bb)"
+         "{box-sizing:border-box!important;border:1px solid #3b4043!important;border-radius:8px!important;overflow:hidden!important;}"
          /* Large dynamic-product structural planes. */
          "html[data-ad7104-standalone] [data-testid=ad-background-container] > div"
          "{background:#000!important;background-color:#000!important;background-image:none!important;}"
@@ -1221,37 +1236,42 @@ static NSString *ADStandalonePaintJS7104(void){
           * plate/shadow and leave the discount badge + label ink Amazon-owned. */
          "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] [data-testid=message-container]"
          "{background-color:transparent!important;box-shadow:none!important;}"
-         /* v7.107: rare first-party standalone sponsored carousel. The large
-          * "Featured by ..." product carousel is a separate renderer family from
-          * the 320x50 / 414x125 / dynamic-product cards. Keep the lane fully
-          * declarative and only activate it when the standalone child actually
-          * contains Amazon carousel semantics. Structural floors go OLED, ordinary
-          * neutral copy goes v185 light, while Prime, rating-star, deal/coupon and
-          * badge paint remain Amazon-owned. */
-         "html[data-ad7104-standalone]:has(:is([class*=carousel],[data-testid*=carousel])) body,"
-         "html[data-ad7104-standalone]:has(:is([class*=carousel],[data-testid*=carousel])) #ad"
+         /* v7.108: exact first-party 300x250 Swiper standalone carousel. The
+          * v7.107 probe proves why the prior rule missed: this renderer has no
+          * class/data-testid containing "carousel". Its stable signature is
+          * #ad[data-html-dimensions=300x250] with data-testid=gridContainer and
+          * .swiper-wrapper/.swiper-slide descendants. The gridContainer is the
+          * sole surviving white plane, so make it OLED and leave slide structure
+          * transparent; own the existing slide border only. */
+         "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"]"
          "{background:#000!important;background-color:#000!important;}"
-         "html[data-ad7104-standalone]:has(:is([class*=carousel],[data-testid*=carousel])) "
+         "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] [data-testid=gridContainer]"
+         "{background:#000!important;background-color:#000!important;background-image:none!important;}"
+         "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] "
          ":is(div,section,article,main,header,footer,ul,ol,li)"
          ":not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime])"
          ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *))"
          "{background-color:transparent!important;}"
-         "html[data-ad7104-standalone]:has(:is([class*=carousel],[data-testid*=carousel])) "
-         ":is(h1,h2,h3,h4,h5,h6,p,span,a,strong,small,b,em,label)"
-         ":not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime])"
+         "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] .swiper-slide > [class*=border-gray-]"
+         "{border-color:#3b4043!important;outline-color:#3b4043!important;box-shadow:none!important;}"
+         "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] "
+         ":is(h1,h2,h3,h4,h5,h6,p,span,a,strong,small,b,em,label,div)"
+         ":not(div:has([class*=prime],[data-testid*=prime],[class*=star],[data-testid*=star]))"
+         ":not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime]):not([class*=star])"
          ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
-         ":not([data-testid=prime-badge]):not(:where([data-testid=prime-badge] *))"
-         ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *))"
+         ":not([data-testid*=prime]):not([data-testid*=star])"
+         ":not(:where([data-testid*=prime] *)):not(:where([data-testid*=star] *))"
+         ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *)):not(:where([class*=star] *))"
          ":not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
          "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-         "html[data-ad7104-standalone]:has(:is([class*=carousel],[data-testid*=carousel])) "
-         ":is(span,p,a,small,strong,b)[class*=sponsored],"
-         "html[data-ad7104-standalone]:has(:is([class*=carousel],[data-testid*=carousel])) "
-         ":is(span,p,a,small,strong,b)[data-testid*=sponsored],"
-         "html[data-ad7104-standalone]:has(:is([class*=carousel],[data-testid*=carousel])) "
+         "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] "
+         ":is(div,span,p,a,small,strong,b)[class*=sponsored],"
+         "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] "
+         ":is(div,span,p,a,small,strong,b)[data-testid*=sponsored],"
+         "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] "
          ":is([data-ad-feedback-label-id] [class*=ad-feedback-text],[id^=ad-feedback-text-])"
          "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}"
-         "html[data-ad7104-standalone]:has(:is([class*=carousel],[data-testid*=carousel])) "
+         "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] "
          ":is([data-ad-feedback-label-id] [class*=ad-feedback-sprite],[id^=ad-feedback-sprite-])"
          "{color:#b1aaa0!important;background-color:#b1aaa0!important;background-image:none!important;"
          "-webkit-mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;"
@@ -1291,18 +1311,20 @@ static NSString *ADStandalonePaintJS7104(void){
           * if Amazon's shell replacement deletes the global ad7-twb-static sheet. */
          "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] "
          ":is([data-testid=image],[data-acei-id=lfstyl-img]) :is(img,video,canvas),"
-         "html[data-ad7104-standalone] :is([data-testid*=product-picture],[data-testid*=product-image],[data-testid*=asin-image]) :is(img,video,canvas)"
+         "html[data-ad7104-standalone] :is([data-testid*=product-picture],[data-testid*=product-image],[data-testid*=asin-image]) :is(img,video,canvas),"
+         /* v7.108: compact 320x50 product raster. Probe proves data-acei-id=prod-img
+          * is the dedicated Image grid host and its only media leaf is the product
+          * IMG. Scope to the #dynamic-bb renderer signature so no logos/badges in
+          * other standalone families are dimmed. */
+         "html[data-ad7104-standalone] #ad:has(#dynamic-bb) [data-acei-id=prod-img] :is(img,video,canvas)"
          "{filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;}"
-         /* v7.107: first-party standalone carousel product media. Tame the
-          * raster leaves but explicitly preserve Prime, star/rating, logo, badge,
-          * icon/glyph and Sponsored-feedback artwork at stock color/intensity. */
-         "html[data-ad7104-standalone]:has(:is([class*=carousel],[data-testid*=carousel])) "
-         ":is(img,video,canvas)"
-         ":not([class*=logo]):not([class*=prime]):not([class*=rating]):not([class*=star])"
-         ":not([class*=icon]):not([class*=glyph]):not([class*=badge])"
-         ":not(:where([class*=logo] *)):not(:where([class*=prime] *)):not(:where([class*=rating] *)):not(:where([class*=star] *))"
-         ":not(:where([class*=badge] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
-         ":not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *))"
+         /* v7.108: exact first-party 300x250 Swiper carousel media. Both the
+          * active product tile and the neighboring custom-image tile expose the
+          * actual raster as data-testid=pictureHighQuality. Tame only those leaves,
+          * which keeps Prime blue, orange rating stars, logos/badges and glyphs at
+          * their authored colors/intensity. */
+         "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] "
+         ".swiper-slide [data-testid=pictureHighQuality]"
          "{filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;}"
          /* v7.107: third-party 300x250 display/video creative TWB. The device
           * probe exposes this lane as #mobile-third-party-ad -> Flashtalking
@@ -1413,15 +1435,16 @@ static NSString *ADTWBJS(void){
          "html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] "
          ":is([data-testid=image],[data-acei-id=lfstyl-img]) :is(img,video,canvas)"
          ":not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge]),"
-         /* v7.107: rare first-party standalone carousel. Product/media raster
-          * is tamed while rating stars and Prime/logo/badge artwork are excluded. */
-         "html[data-ad7-standalone-candidate]:has(:is([class*=carousel],[data-testid*=carousel])) "
-         ":is(img,video,canvas)"
-         ":not([class*=logo]):not([class*=prime]):not([class*=rating]):not([class*=star])"
-         ":not([class*=icon]):not([class*=glyph]):not([class*=badge])"
-         ":not(:where([class*=logo] *)):not(:where([class*=prime] *)):not(:where([class*=rating] *)):not(:where([class*=star] *))"
-         ":not(:where([class*=badge] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
-         ":not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)),"
+         /* v7.108: exact compact AdaptiveRenderer image grid from the v7.107
+          * device probe. This is the dedicated product-media host in the 320x50
+          * #dynamic-bb family; keep it in the same pure-CSS TWB list. */
+         "html[data-ad7-standalone-candidate] #ad:has(#dynamic-bb) [data-acei-id=prod-img] :is(img,video,canvas),"
+         /* v7.108: exact first-party 300x250 Swiper carousel media. The probe
+          * identifies data-testid=pictureHighQuality on both product and custom
+          * slide rasters, so this lane no longer depends on nonexistent
+          * "carousel" semantics and cannot touch Prime/star accent painters. */
+         "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] "
+         ".swiper-slide [data-testid=pictureHighQuality],"
          /* v7.107: exact third-party standalone creative host captured by the
           * Flashtalking 300x250 probe. Filtering the outer host once tames the
           * entire HTML5/canvas/video creative while avoiding generic standalone
@@ -2590,13 +2613,13 @@ static void ADScheduleLaunchReadyCheck706(void){
 
 
 
-// v7.107~probe manual SIGUSR2 capture. The app has no recurring diagnostic work:
+// v7.108~probe manual SIGUSR2 capture. The app has no recurring diagnostic work:
 // signal receipt snapshots the largest visible WKWebView, broadcasts once to child
 // frames, waits 450 ms for replies, appends one report, and returns idle.
 static NSUInteger gADCompactStandaloneRun7107=0;
 static NSString *ADCompactStandaloneProbePath7107(void){
-    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.107-compact-standalone-probe.txt"]; } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.107-compact-standalone-probe.txt"];
+    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.108-compact-standalone-probe.txt"]; } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.108-compact-standalone-probe.txt"];
 }
 static WKWebView *ADLargestTrackedWeb7107(void){
     WKWebView *best=nil; CGFloat area=0;
@@ -2610,7 +2633,7 @@ static void ADAppendCompactStandalone7107(NSString *text){
 static void ADCaptureCompactStandalone7107(void){
     if(!gP.enabled)return;
     WKWebView *wv=ADLargestTrackedWeb7107(); NSUInteger run=++gADCompactStandaloneRun7107;
-    if(!wv){ ADAppendCompactStandalone7107([NSString stringWithFormat:@"\n\n===== v7.107 RUN %lu NO_VISIBLE_WEBVIEW date=%@ =====\n",(unsigned long)run,[NSDate date]]); return; }
+    if(!wv){ ADAppendCompactStandalone7107([NSString stringWithFormat:@"\n\n===== v7.108 RUN %lu NO_VISIBLE_WEBVIEW date=%@ =====\n",(unsigned long)run,[NSDate date]]); return; }
     NSString *meta=@""; @try { CGRect r=[wv convertRect:wv.bounds toView:nil]; meta=[NSString stringWithFormat:@"wv=%p frame=(%.1f,%.1f %.1fx%.1f) loading=%d progress=%.3f url=%@",wv,r.origin.x,r.origin.y,r.size.width,r.size.height,wv.loading?1:0,wv.estimatedProgress,wv.URL.absoluteString?:@""]; } @catch(...) {}
     NSString *trigger=@"(function(){try{if(typeof window.__adCompactStandaloneReport7107!=='function')return 'HELPER_MISSING';var nonce='ad7107-'+Date.now()+'-'+Math.random().toString(36).slice(2),c={nonce:nonce,main:window.__adCompactStandaloneReport7107(),children:[]};try{if(window.__adCompactStandaloneHandler7107)window.removeEventListener('message',window.__adCompactStandaloneHandler7107,false)}catch(_){}window.__adCompactStandaloneCollected7107=c;window.__adCompactStandaloneHandler7107=function(ev){try{var d=ev.data;if(!d||d.__adCompactStandalone7107Result!==1||d.nonce!==nonce)return;if(c.children.length<32)c.children.push({frameId:String(d.frameId||''),href:String(d.href||''),report:String(d.report||'')})}catch(_){}};window.addEventListener('message',window.__adCompactStandaloneHandler7107,false);window.__adCompactStandaloneBroadcast7107({__adCompactStandalone7107:1,nonce:nonce});return 'STARTED '+nonce}catch(e){return 'TRIGGER_ERR '+e}})();";
     [wv evaluateJavaScript:trigger completionHandler:^(id v,NSError *e){
@@ -2619,7 +2642,7 @@ static void ADCaptureCompactStandalone7107(void){
             NSString *collect=@"(function(){try{var c=window.__adCompactStandaloneCollected7107;if(!c)return 'NO_COLLECTION';try{if(window.__adCompactStandaloneHandler7107)window.removeEventListener('message',window.__adCompactStandaloneHandler7107,false)}catch(_){}var o=['===== MAIN FRAME =====\\n'+String(c.main||'')];for(var i=0;i<c.children.length;i++)o.push('\\n===== CHILD FRAME '+i+' id='+String(c.children[i].frameId||'')+' '+String(c.children[i].href||'')+' =====\\n'+String(c.children[i].report||''));o.push('\\nCHILD_COUNT '+c.children.length);return o.join('\\n')}catch(e){return 'COLLECT_ERR '+e}})();";
             [wv evaluateJavaScript:collect completionHandler:^(id v2,NSError *e2){
                 NSString *body=e2?[NSString stringWithFormat:@"COLLECT_ERROR %@",e2]:([v2 isKindOfClass:[NSString class]]?v2:[v2 description]);
-                NSMutableString *m=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.107 COMPACT STANDALONE PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\nbase=v7.106~probe + Outlet ink + third-party creative TWB + standalone carousel repair\nmethod=manual SIGUSR2; bounded current-frame tree walk only\ntrigger=%@\nweb=%@\n\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,start?:@"NO_TRIGGER",meta?:@""];
+                NSMutableString *m=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.108 COMPACT STANDALONE PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\nbase=v7.107~probe + compact 320x50 border/TWB + exact 300x250 Swiper carousel repair\nmethod=manual SIGUSR2; bounded current-frame tree walk only\ntrigger=%@\nweb=%@\n\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,start?:@"NO_TRIGGER",meta?:@""];
                 [m appendString:body?:@"NO_RESULT"];
                 [m appendString:@"\n================ END RUN ================\n"];
                 ADAppendCompactStandalone7107(m);
