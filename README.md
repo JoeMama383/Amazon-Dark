@@ -1,3 +1,18 @@
+# AmazonDark v7.126 — OledKeyboard UIKit port + Search UI probe
+
+- Direct base: v7.125 Search UI probe. Search glyph-sprite preservation, Deals-for-you OLED/TWB rules, Privacy Mode behavior, launch cover, 120 Hz, JIT, and the screenshot Search probe are retained.
+- Keyboard implementation now follows dayanch96/OledKeyboard's proven UIKit ownership model rather than AmazonDark's earlier UIInputSet/compositor experiments.
+- Search still requests `UIKeyboardAppearanceDark`; once the keyboard is in dark mode, AmazonDark paints the real keyboard floor OLED black through `UIKeyboard`, clears the keyboard blur backing through `UIKBVisualEffectView`, paints `UIKeyboardDockView`, and handles the prediction, emoji-search, and autofill input surfaces.
+- These hooks are confined to the Amazon process by the existing `com.amazon.Amazon` filter; there is no SpringBoard-wide or system-wide keyboard injection.
+- No full-screen `UITextEffectsWindow`, `UIInputSetContainerView`, `UIInputSetHostView`, or `_UIRemoteKeyboardPlaceholderView` painting/filtering is reintroduced.
+- Search section headings such as `YOU MAY BE INTERESTED` / `RECENT` are explicitly light, because they are sibling heading nodes rather than descendants of the suggestion rows.
+- The autocomplete delivery/location banner is scoped to the Search document: structural location/delivery hosts become OLED black, their text becomes light, and location icon leaves are whitened without erasing sprite/pseudo artwork.
+- The existing v7.126 Search UI screenshot probe writes `AmazonDark-v7.126-search-ui-probe.txt` and now also inventories the location/delivery and heading families if either renderer changes.
+
+Source basis: https://github.com/dayanch96/OledKeyboard (public source; README reports testing through iOS 17.4.1).
+
+---
+
 # AmazonDark v7.125 — Search glyph sprite preservation + Deals-for-you OLED
 
 - Search/autocomplete glyph root cause: the broad Search floor selector matched `icon-*-suggestion` `<i>` leaves and its `background:#000 !important` shorthand reset Amazon's stock `background-image` to `none`. Later light `background-color` rules therefore produced 20x20 boxes; making those backgrounds transparent produced invisible glyphs. v7.125 excludes icon/glyph leaves from that structural shorthand, preserves Amazon's original sprite/pseudo artwork, and uses leaf-local filters/colors only.

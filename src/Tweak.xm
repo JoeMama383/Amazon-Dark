@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.125-search-ui-probe"
+#define AD_VERSION "v7.126-search-ui-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -64,6 +64,16 @@ extern char *__progname;
 @interface ANXTopNavBackgroundView : UIView @end
 @interface SBMultilineSearchView : UIView @end
 @interface A9VSScanItSearchWidget : UIView @end
+
+// OledKeyboard-derived UIKit owners. Kept local to the Amazon process by AmazonDark.plist.
+@interface UIKeyboard : UIView
++ (instancetype)activeKeyboard;
+@end
+@interface UIPredictionViewController : UIViewController @end
+@interface UIKeyboardDockView : UIView @end
+@interface UIKBVisualEffectView : UIVisualEffectView
+@property (nonatomic, copy, readwrite) NSArray *backgroundEffects;
+@end
 
 // -----------------------------------------------------------------------------
 // Preferences — same public keys/domain as v6.0.185.
@@ -736,6 +746,25 @@ static NSString *ADFloorJS(void){
             ":is(.s-suggestion-container,.s-suggestion,.autocomplete-results-container,[class*=autocomplete],"
             "[class*=recentSearch],[class*=search-suggestion]) :is(h1,h2,h3,h4,h5,h6,p,span,a,div)"
             "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            /* v7.126: section headings such as YOU MAY BE INTERESTED / RECENT are siblings of the
+             * suggestion rows, not descendants of the family above. Own the exact heading family. */
+            ".s-suggestion-section-heading,.sac-header-component-single-line-header"
+            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            /* v7.126: autocomplete delivery/location banner. The screenshot shows Amazon's warm
+             * yellow location surface inside the autocomplete document. Keep this bounded to the
+             * autocomplete root and semantic location/delivery families. Structural hosts go OLED;
+             * icon leaves stay transparent so sprite/pseudo artwork is not erased. */
+            "#attach-to-me :is([class*=location],[class*=delivery],[id*=location],[id*=delivery],[class*=glow],[id*=glow],[class*=ship-to],[id*=ship-to],[class*=shipto],[id*=shipto])"
+            ":not(img):not(svg):not(i):not([class*=icon]):not([class*=glyph]):not([id*=icon])"
+            "{background-color:#000!important;border-color:#494d4d!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            "#attach-to-me :is(div,section,a):has(:is([class*=location],[class*=delivery],[id*=location],[id*=delivery],[class*=glow],[id*=glow],[class*=ship-to],[id*=ship-to],[class*=shipto],[id*=shipto]))"
+            "{background-color:#000!important;border-color:#494d4d!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            "#attach-to-me :is([class*=location],[class*=delivery],[id*=location],[id*=delivery],[class*=glow],[id*=glow],[class*=ship-to],[id*=ship-to],[class*=shipto],[id*=shipto]) "
+            ":is(span,a,p,div,label,strong,b)"
+            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            "#attach-to-me :is([class*=location],[class*=delivery],[id*=location],[id*=delivery],[class*=glow],[id*=glow],[class*=ship-to],[id*=ship-to],[class*=shipto],[id*=shipto]) "
+            ":is(img,svg,i,[class*=icon],[class*=glyph],[id*=icon])"
+            "{background-color:transparent!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;}"
             /* Primary/secondary v185-style text.
              * Do not let generic ink leak into Amazon-owned Sponsored feedback or
              * top-Home hero/creative trees. */
@@ -2263,6 +2292,95 @@ static void ADPrepareSearchKeyboard7120(UIView *v){
     } @catch(...) {}
 }
 
+// v7.126 — port the stable OledKeyboard ownership model instead of tinting the
+// full UITextEffectsWindow/UIInputSet compositor.  The donor tweak has been
+// tested by its author through iOS 17.4.1.  We independently mirror the small
+// set of UIKit owners it uses: the keyboard floor, prediction panel, notched
+// dock, emoji/autofill input surfaces, and keyboard visual-effect backing.
+// AmazonDark's bundle filter already confines these hooks to com.amazon.Amazon.
+static BOOL ADKeyboardDark7126(UIView *view){
+    if(!gP.enabled || !view) return NO;
+    @try {
+        SEL darkSel=NSSelectorFromString(@"_mapkit_isDarkModeEnabled");
+        if([view respondsToSelector:darkSel]){
+            return ((BOOL(*)(id,SEL))objc_msgSend)(view,darkSel);
+        }
+        UIViewController *vc=nil;
+        SEL vcSel=NSSelectorFromString(@"_viewControllerForAncestor");
+        if([view respondsToSelector:vcSel]) vc=((id(*)(id,SEL))objc_msgSend)(view,vcSel);
+        UITraitCollection *traits=vc.traitCollection ?: view.traitCollection;
+        if(@available(iOS 12.0,*)) return traits.userInterfaceStyle==UIUserInterfaceStyleDark;
+    } @catch(...) {}
+    return NO;
+}
+
+static void ADSetKeyboardFloor7126(UIView *view){
+    if(!view) return;
+    @try {
+        if(!gP.enabled) return;
+        view.backgroundColor=ADKeyboardDark7126(view) ? ADOLED() : [UIColor clearColor];
+    } @catch(...) {}
+}
+
+%hook UIKeyboard
+- (void)displayLayer:(id)layer {
+    %orig;
+    ADSetKeyboardFloor7126((UIView *)self);
+}
+%end
+
+%hook UIPredictionViewController
+- (id)_currentTextSuggestions {
+    if(gP.enabled){
+        @try {
+            UIKeyboard *keyboard=[%c(UIKeyboard) activeKeyboard];
+            BOOL dark=keyboard ? ADKeyboardDark7126(keyboard) : ADKeyboardDark7126(self.view);
+            if(dark){
+                self.view.backgroundColor=ADOLED();
+                keyboard.backgroundColor=ADOLED();
+            } else {
+                self.view.backgroundColor=[UIColor clearColor];
+                keyboard.backgroundColor=[UIColor clearColor];
+            }
+        } @catch(...) {}
+    }
+    return %orig;
+}
+%end
+
+%hook UIKeyboardDockView
+- (void)layoutSubviews {
+    %orig;
+    ADSetKeyboardFloor7126((UIView *)self);
+}
+%end
+
+%hook UIInputView
+- (void)layoutSubviews {
+    %orig;
+    if(!gP.enabled) return;
+    @try {
+        Class emoji=NSClassFromString(@"TUIEmojiSearchInputView");
+        Class autofill=NSClassFromString(@"_SFAutoFillInputView");
+        if((emoji && [self isKindOfClass:emoji]) || (autofill && [self isKindOfClass:autofill]))
+            ADSetKeyboardFloor7126((UIView *)self);
+    } @catch(...) {}
+}
+%end
+
+%hook UIKBVisualEffectView
+- (void)layoutSubviews {
+    %orig;
+    if(!gP.enabled) return;
+    @try {
+        if(ADKeyboardDark7126((UIView *)self)){
+            self.backgroundEffects=nil;
+            self.backgroundColor=ADOLED();
+        }
+    } @catch(...) {}
+}
+%end
+
 static NSAttributedString *ADLightAttributedText708(NSAttributedString *in){
     if(!gP.enabled || !in || in.length==0) return in;
     @try {
@@ -3111,7 +3229,7 @@ static void ADConsiderLaunchReady706(void){
 %end
 
 // -----------------------------------------------------------------------------
-// v7.125 Search UI probe. Screenshot/SIGUSR2 capture is tailored to autocomplete glyphs and Deals-for-you.
+// v7.126 Search UI probe. Screenshot/SIGUSR2 capture is tailored to autocomplete glyphs, headings, delivery/location banner, and Deals-for-you.
 // It is diagnostic-only and runs only after an iOS screenshot or SIGUSR2.
 // No observer/scan/timer runs during ordinary app use.
 // -----------------------------------------------------------------------------
@@ -3121,9 +3239,9 @@ static dispatch_source_t gADSearchProbeSignal7123=nil;
 static NSString *ADSearchProbePath7123(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.125-search-ui-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.126-search-ui-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.125-search-ui-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.126-search-ui-probe.txt"];
 }
 static void ADSearchProbeAppend7123(NSString *s){
     if(!s.length)return;
@@ -3252,20 +3370,22 @@ static NSString *ADSearchProbeDOMJS7123(void){
     "function Q(s){return {content:s.content||'none',bg:s.backgroundColor,bgi:s.backgroundImage,bgp:s.backgroundPosition,bgs:s.backgroundSize,bgr:s.backgroundRepeat,color:s.color,mask:s.webkitMaskImage||s.maskImage||'none',filter:s.webkitFilter||s.filter||'none',font:s.fontFamily,fs:s.fontSize};}"
     "function P(e){if(!e)return null;var r=e.getBoundingClientRect(),s=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');return {tag:e.tagName,id:e.id||'',cls:String(e.className||'').slice(0,220),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,bgi:s.backgroundImage,bgp:s.backgroundPosition,bgs:s.backgroundSize,bgr:s.backgroundRepeat,color:s.color,mask:s.webkitMaskImage||s.maskImage||'none',filter:s.webkitFilter||s.filter||'none',font:s.fontFamily,fs:s.fontSize,pe:s.pointerEvents,z:s.zIndex,pos:s.position,before:Q(b),after:Q(a)};}"
     "function G(sel){var a=[].slice.call(document.querySelectorAll(sel));return {count:a.length,items:a.slice(0,36).map(P)};}"
-    "var pts=[[24,88],[innerWidth/2,88],[innerWidth/2,180],[innerWidth/2,320],[innerWidth/2,500]];"
+    "var pts=[[24,20],[innerWidth/2,20],[innerWidth/2,48],[24,88],[innerWidth/2,88],[innerWidth/2,180],[innerWidth/2,320],[innerWidth/2,500]];"
     "var hit=pts.map(function(p){var a=(document.elementsFromPoint?document.elementsFromPoint(p[0],p[1]):[document.elementFromPoint(p[0],p[1])]).filter(Boolean).slice(0,8);return {p:p,stack:a.map(P)};});"
     "var o={href:location.href,ready:document.readyState,viewport:[innerWidth,innerHeight,devicePixelRatio],body:P(document.body),doc:P(document.documentElement),scroll:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],"
     "suggestions:G('.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]'),"
     "history:G('[class*=icon-past-search-sugge],.icon-close.s-suggestion-icon-left'),"
     "searchIcons:G('i.icon-search-suggestion,.s-query-row-search-icon,.s-suggestion-icon-right,.s-suggestion-container [class*=icon-search],.s-suggestion-container [class*=search-icon],.s-suggestion [class*=icon-search],.s-suggestion [class*=search-icon]'),"
     "deals:G('[class*=ufs_tiles_card_widget]'),"
+    "location:G('#attach-to-me [class*=location],#attach-to-me [class*=delivery],#attach-to-me [id*=location],#attach-to-me [id*=delivery],#attach-to-me [class*=glow],#attach-to-me [id*=glow],#attach-to-me [class*=ship-to],#attach-to-me [id*=ship-to],#attach-to-me [class*=shipto],#attach-to-me [id*=shipto]'),"
+    "headings:G('.s-suggestion-section-heading,.sac-header-component-single-line-header'),"
     "fixed:G('body *'),hit:hit};"
     "o.fixed.items=o.fixed.items.filter(function(x){return x&&((x.pos==='fixed'||x.pos==='sticky')&&(x.r[2]*x.r[3]>2000));}).slice(0,30);o.fixed.count=o.fixed.items.length;"
     "return JSON.stringify(o,null,2);}catch(e){return 'DOM_ERR '+e;}})();";
 }
 static void ADCaptureSearchVisibility7123(NSString *trigger){
     if(!gP.enabled)return; NSUInteger run=++gADSearchProbeRun7123;
-    NSMutableString *head=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.125 SEARCH UI PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE WINDOWS / VIEWS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchProbeNative7123(),ADSearchProbeWebViews7123()];
+    NSMutableString *head=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.126 SEARCH UI PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE WINDOWS / VIEWS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchProbeNative7123(),ADSearchProbeWebViews7123()];
     ADSearchProbeAppend7123(head);
     WKWebView *wv=ADSearchProbeAutocompleteWeb7123();
     if(!wv){ ADSearchProbeAppend7123(@"\n===== AUTOCOMPLETE DOM =====\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"); return; }
