@@ -13,10 +13,10 @@
  *   - Dark Reader and its runtime bundle
  *   - Amazon native-dark weblab forcing
  *   - nav/search/symbol/border/card/Person/PDP/Home special-case theming
- *   - contrast scanners, repair queues, probes and theme MutationObservers
+ *   - broad contrast scanners, repair queues and document-wide theme MutationObservers
  *
- * The only always-on visual owner is an OLED-black FLOOR. It targets root/backing
- * surfaces, not text, glyphs, cards, borders, buttons or images.
+ * The core visual owner is an OLED-black FLOOR. Later v7.x releases add only
+ * narrowly scoped renderer-specific owners where device probes establish exact targets.
  */
 
 #import <UIKit/UIKit.h>
@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.103-probe"
+#define AD_VERSION "v7.104-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -599,8 +599,8 @@ static void ADPostReadyOnce(void);
 static void ADScheduleLaunchReadyCheck706(void);
 static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
-static const void *kADStandaloneLifecycleProbeUS7103=&kADStandaloneLifecycleProbeUS7103;
-static const void *kADStandalonePaintUS7103=&kADStandalonePaintUS7103;
+static const void *kADStandaloneLifecycleProbeUS7104=&kADStandaloneLifecycleProbeUS7104;
+static const void *kADStandalonePaintUS7104=&kADStandalonePaintUS7104;
 static NSHashTable *gADWebViews=nil;
 // v7.0.68 production: no diagnostic touch probe is installed.
 
@@ -1135,63 +1135,86 @@ static NSString *ADFloorJS(void){
             "}catch(e){}})();";
 }
 
-// v7.103: exact standalone-ad documentEnd backstop, built onto v7.96.
-// Existing ADFloorJS remains byte-identical. This owner runs after the child
-// renderer is constructed so parser/hydration loss of the early style cannot
-// leave explicit stock dark copy on OLED or the 320x50 hardcoded #fff floor.
-static NSString *ADStandalonePaintJS7103(void){
-    return @"(function(){try{if(window.top===window)return;var h=document.documentElement;if(!h)return;"
-           "var ref=String(document.referrer||'').toLowerCase();"
-           "var productish=/\\/dp\\/|\\/gp\\/product\\/|\\/gp\\/aw\\/d\\/|\\/s(?:[\\/?]|$)|[?&]k=/.test(ref);"
-           "if(productish)return;h.setAttribute('data-ad7103-standalone','1');"
-           "var id='ad7-standalone-7103',st=document.getElementById(id);if(st)return;"
-           "st=document.createElement('style');st.id=id;st.textContent='"
-           "html[data-ad7103-standalone],html[data-ad7103-standalone] body,"
-           "html[data-ad7103-standalone] #ad,html[data-ad7103-standalone] #ad > div,"
-           "html[data-ad7103-standalone] [data-testid=renderer-factory-ad-container],"
-           "html[data-ad7103-standalone] [data-testid=renderer-factory-ad-container] [data-testid=main-content],"
-           "html[data-ad7103-standalone] [data-testid=renderer-factory-ad-container] [data-testid^=modern-][data-testid$=-layout-container],"
-           "html[data-ad7103-standalone] [data-testid=ad-background-container]"
-           "{background:#000!important;background-color:#000!important;}"
-           /* Exact 320x50 AdaptiveRenderer structural backplane. */
-           "html[data-ad7103-standalone] #ad [style*=\\\"z-index:-2\\\"]"
-           "{background:#000!important;background-color:#000!important;}"
-           /* Preserve Amazon geometry; normalize existing border color only. */
-           "html[data-ad7103-standalone] [data-testid=renderer-factory-ad-container] [data-testid^=modern-][data-testid$=-layout-container],"
-           "html[data-ad7103-standalone] [data-testid=ad-background-container]"
-           "{border-color:#3b4043!important;outline-color:#3b4043!important;}"
-           /* Large dynamic renderer structural planes only. */
-           "html[data-ad7103-standalone] [data-testid=ad-background-container] > div"
-           "{background:#000!important;background-color:#000!important;background-image:none!important;}"
-           /* 320x50 buy-box neutral text hierarchy. */
-           "html[data-ad7103-standalone] #dynamic-bb [data-testid=product-description]"
-           "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-           "html[data-ad7103-standalone] #dynamic-bb [data-acei-id=sns-disc]"
-           "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
-           /* Medium/large primary neutral copy. Dynamic deal/Prime/star families are not selected. */
-           "html[data-ad7103-standalone] [data-testid=renderer-factory-ad-container] "
-           ":is([data-id=brand-name-text],[data-id=product-name-text],[data-testid=ratings-value],[data-testid=formatted-price],[data-testid=formatted-price] *),"
-           "html[data-ad7103-standalone] [data-testid=renderer-factory-ad-container] "
-           ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(0, 0, 17)\\\"],"
-           "html[data-ad7103-standalone] [data-testid=renderer-factory-ad-container] "
-           ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(15, 17, 17)\\\"],"
-           "html[data-ad7103-standalone] [data-testid=brand-product-description] p,"
-           "html[data-ad7103-standalone] [data-testid=price-container] :is(div,span)"
-           ":not([data-testid=full-price]):not([data-testid=prime-badge]):not(:where([data-testid=prime-badge] *)),"
-           "html[data-ad7103-standalone] [data-testid=ad-background-container] "
-           ":is(p,span,div,a,small,strong,b)[style*=\\\"color: rgb(15, 17, 17)\\\"]"
-           ":not(:where([data-testid=ratings-stars] *)):not(:where([data-testid=prime-badge] *))"
-           "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-           /* Secondary neutral metadata. */
-           "html[data-ad7103-standalone] [data-testid=renderer-factory-ad-container] "
-           ":is([data-testid=ratings-review-count],[data-testid=full-price]),"
-           "html[data-ad7103-standalone] [data-testid=renderer-factory-ad-container] "
-           ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(86, 89, 89)\\\"],"
-           "html[data-ad7103-standalone] [data-testid=ad-background-container] "
-           ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(86, 89, 89)\\\"]"
-           "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
-           "';(document.head||h).appendChild(st);"
-           "}catch(e){}})();";
+// v7.104: standalone-ad shell-survival owner, built on the exact v7.96 visual base.
+// v7.103 proved that Amazon replaces the child document's HEAD and BODY *after*
+// documentEnd/pageshow, atomically deleting ad7-static-theme, ad7-twb-static and
+// the former standalone sheet. This owner therefore installs at documentStart and
+// watches only direct children of the standalone child documentElement. If Amazon
+// replaces HEAD/BODY, the exact standalone CSS is reattached immediately. It never
+// walks descendants, observes subtree mutations, scrolls, polls, or changes geometry.
+static NSString *ADStandalonePaintJS7104(void){
+    CGFloat strength=MAX(0,MIN(100,gP.whiteTameStrength));
+    CGFloat t=strength/100.0;
+    CGFloat shade=0.10+(0.48*t);
+    CGFloat factor=1.0-shade;
+    return [NSString stringWithFormat:
+        @"(function(){try{if(window.top===window)return;var h=document.documentElement;if(!h)return;"
+         "var ref=String(document.referrer||'').toLowerCase();"
+         "var productish=/\\/dp\\/|\\/gp\\/product\\/|\\/gp\\/aw\\/d\\/|\\/s(?:[\\/?]|$)|[?&]k=/.test(ref);"
+         "if(productish)return;h.setAttribute('data-ad7104-standalone','1');"
+         "var ID='ad7-standalone-7104',OBS=null,S={installs:0,repairs:0,shells:0,events:[]};"
+         "var CSS='"
+         "html[data-ad7104-standalone],html[data-ad7104-standalone] body,"
+         "html[data-ad7104-standalone] #ad,html[data-ad7104-standalone] #ad > div,"
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container],"
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] [data-testid=main-content],"
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] [data-testid^=modern-][data-testid$=-layout-container],"
+         "html[data-ad7104-standalone] [data-testid=ad-background-container]"
+         "{background:#000!important;background-color:#000!important;}"
+         /* Exact 320x50 AdaptiveRenderer negative-z white backplane. */
+         "html[data-ad7104-standalone] #ad [style*=\\\"z-index:-2\\\"]"
+         "{background:#000!important;background-color:#000!important;}"
+         /* Medium/large existing outlines only; geometry remains Amazon-owned. */
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] [data-testid^=modern-][data-testid$=-layout-container],"
+         "html[data-ad7104-standalone] [data-testid=ad-background-container]"
+         "{border-color:#3b4043!important;outline-color:#3b4043!important;}"
+         /* Large dynamic-product structural planes. */
+         "html[data-ad7104-standalone] [data-testid=ad-background-container] > div"
+         "{background:#000!important;background-color:#000!important;background-image:none!important;}"
+         /* Compact 320x50 neutral copy. */
+         "html[data-ad7104-standalone] #dynamic-bb [data-testid=product-description]"
+         "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+         "html[data-ad7104-standalone] #dynamic-bb [data-acei-id=sns-disc]"
+         "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
+         /* 414x125 + large primary neutral copy. */
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] "
+         ":is([data-id=brand-name-text],[data-id=product-name-text],[data-testid=ratings-value],[data-testid=formatted-price],[data-testid=formatted-price] *),"
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] "
+         ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(0, 0, 17)\\\"],"
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] "
+         ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(15, 17, 17)\\\"],"
+         "html[data-ad7104-standalone] [data-testid=brand-product-description] p,"
+         "html[data-ad7104-standalone] [data-testid=price-container] :is(div,span)"
+         ":not([data-testid=full-price]):not([data-testid=prime-badge]):not(:where([data-testid=prime-badge] *)),"
+         "html[data-ad7104-standalone] [data-testid=ad-background-container] "
+         ":is(p,span,div,a,small,strong,b)[style*=\\\"color: rgb(15, 17, 17)\\\"]"
+         ":not(:where([data-testid=ratings-stars] *)):not(:where([data-testid=prime-badge] *))"
+         "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+         /* Secondary neutral metadata only. */
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] "
+         ":is([data-testid=ratings-review-count],[data-testid=full-price]),"
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] "
+         ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(86, 89, 89)\\\"],"
+         "html[data-ad7104-standalone] [data-testid=ad-background-container] "
+         ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(86, 89, 89)\\\"]"
+         "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
+         /* Preserve current TWB strength on the exact standalone product-raster lanes even
+          * if Amazon's shell replacement deletes the global ad7-twb-static sheet. */
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] "
+         ":is([data-testid=image],[data-acei-id=lfstyl-img]) :is(img,video,canvas),"
+         "html[data-ad7104-standalone] :is([data-testid*=product-picture],[data-testid*=product-image],[data-testid*=asin-image]) :is(img,video,canvas)"
+         "{filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;}"
+         "';"
+         "function ev(type,extra){try{S.events.push({t:+performance.now().toFixed(3),type:type,extra:extra||null});if(S.events.length>24)S.events.shift()}catch(_){}}"
+         "function black(){try{h.style.setProperty('background-color','#000','important');h.style.setProperty('color-scheme','dark','important');if(document.body){document.body.style.setProperty('background-color','#000','important');document.body.style.setProperty('color-scheme','dark','important')}}catch(_){}}"
+         "function ensure(reason,repair){try{h=document.documentElement||h;if(!h)return false;h.setAttribute('data-ad7104-standalone','1');black();var old=document.getElementById(ID),was=!!(old&&old.isConnected);if(!was){var st=document.createElement('style');st.id=ID;st.setAttribute('data-ad7104-owner','1');st.textContent=CSS;h.appendChild(st);S.installs++;if(repair)S.repairs++;h.setAttribute('data-ad7104-repair-count',String(S.repairs));ev(repair?'REPAIR':'INSTALL',{reason:reason||'',wasConnected:was,parent:st.parentNode&&st.parentNode.nodeName||''});return true}return false}catch(e){ev('ENSURE_ERR',{reason:reason||'',e:String(e)});return false}}"
+         "function mutation(ms){try{var shell=0,owner=0,items=[];for(var i=0;i<ms.length;i++){var m=ms[i];for(var j=0;j<m.removedNodes.length;j++){var n=m.removedNodes[j],nm=String(n&&n.nodeName||'').toUpperCase();if(nm==='HEAD'||nm==='BODY'){shell=1;items.push('removed:'+nm)}if(n&&n.id===ID)owner=1}for(var k=0;k<m.addedNodes.length;k++){var a=m.addedNodes[k],am=String(a&&a.nodeName||'').toUpperCase();if(am==='HEAD'||am==='BODY'){shell=1;items.push('added:'+am)}}}if(shell)S.shells++;var missing=!document.getElementById(ID);if(shell||owner||missing){ev('ROOT_MUTATION',{shell:shell,ownerRemoved:owner,missing:missing,items:items.slice(0,8)});ensure(shell?'shell-replaced':(owner?'owner-removed':'owner-missing'),true)}}catch(e){ev('MUTATION_ERR',{e:String(e)})}}"
+         "function bind(){try{h=document.documentElement||h;if(!h)return;if(OBS)try{OBS.disconnect()}catch(_){}OBS=new MutationObserver(mutation);OBS.observe(h,{childList:true});ev('OBSERVER_BOUND',{tag:h.nodeName||''})}catch(e){ev('OBSERVER_ERR',{e:String(e)})}}"
+         "window.__ad7104StandaloneState=function(){try{return{style:!!document.getElementById(ID),connected:!!(document.getElementById(ID)&&document.getElementById(ID).isConnected),installs:S.installs,repairs:S.repairs,shells:S.shells,events:S.events.slice(),htmlSame:(document.documentElement===h),adoptedSupported:!!(document.adoptedStyleSheets&&window.CSSStyleSheet&&CSSStyleSheet.prototype&&CSSStyleSheet.prototype.replaceSync)}}catch(e){return{error:String(e)}}};"
+         "ensure('documentStart',false);bind();"
+         "document.addEventListener('readystatechange',function(){try{if(document.documentElement!==h){ev('HTML_REPLACED');bind()}ensure('readystatechange-'+document.readyState,true)}catch(_){}},false);"
+         "window.addEventListener('pageshow',function(){try{if(document.documentElement!==h){ev('HTML_REPLACED_PAGESHOW');bind()}ensure('pageshow',true)}catch(_){}},false);"
+         "}catch(e){}})();",factor,factor];
 }
 
 static NSString *ADTWBJS(void){
@@ -1330,39 +1353,41 @@ static NSString *ADTWBJS(void){
 
 
 // -----------------------------------------------------------------------------
-// v7.103~probe — standalone-ad floor/text lifecycle tracer on exact v7.96 visuals.
-// Probe only: it records owner-style removal/replacement and exact renderer paint.
-// It does not repair, recolor, resize, scroll, tap, or mutate Amazon content.
+// v7.104~probe — verifies the new standalone child-shell survival repair.
+// Production repair is the direct-child documentElement observer above; this probe
+// records whether that observer actually reattaches before the captured renderer paints.
 // -----------------------------------------------------------------------------
-static NSString *ADStandaloneLifecycleProbeJS7103(void){
+static NSString *ADStandaloneLifecycleProbeJS7104(void){
     return
         @"(function(){try{\n"
-        @"if(window.__adStandaloneLifecycle7103Installed)return;window.__adStandaloneLifecycle7103Installed=1;\n"
-        @"var L=[],CAP=140,ownerObs=null,rootObs=null;var frameId='f7103-'+Date.now()+'-'+Math.random().toString(36).slice(2);\n"
+        @"if(window.__adStandaloneLifecycle7104Installed)return;window.__adStandaloneLifecycle7104Installed=1;\n"
+        @"var L=[],CAP=140,ownerObs=null,rootObs=null;var frameId='f7104-'+Date.now()+'-'+Math.random().toString(36).slice(2);\n"
         @"function ts(){try{return +performance.now().toFixed(3)}catch(_){return -1}}\n"
         @"function cls(e){try{var x=e&&e.className;if(x&&x.baseVal!==undefined)x=x.baseVal;return typeof x==='string'?x:''}catch(_){return ''}}\n"
         @"function rect(e){try{var x=e.getBoundingClientRect();return{x:+x.x.toFixed(2),y:+x.y.toFixed(2),w:+x.width.toFixed(2),h:+x.height.toFixed(2),top:+x.top.toFixed(2),right:+x.right.toFixed(2),bottom:+x.bottom.toFixed(2),left:+x.left.toFixed(2)}}catch(_){return{}}}\n"
         @"function visible(e){try{var q=e.getBoundingClientRect(),c=getComputedStyle(e);return q.width>0&&q.height>0&&q.bottom>0&&q.top<innerHeight&&q.right>0&&q.left<innerWidth&&c.display!=='none'&&c.visibility!=='hidden'&&parseFloat(c.opacity||1)>0}catch(_){return false}}\n"
         @"function sty(id){try{var e=document.getElementById(id),t=e?String(e.textContent||''):'';return{present:!!e,connected:!!(e&&e.isConnected),parent:e&&e.parentNode?String(e.parentNode.nodeName||''):null,len:t.length,hasMedium:t.indexOf('renderer-factory-ad-container')>=0,hasBrand:t.indexOf('brand-name-text')>=0,hasLarge:t.indexOf('ad-background-container')>=0,hasDynamicBB:t.indexOf('dynamic-bb')>=0,has320Backplane:t.indexOf('z-index:-2')>=0,hasShortWide:t.indexOf('max-height:260px')>=0}}catch(e){return{error:String(e)}}}\n"
-        @"function rec(type,extra){try{var x={t:ts(),type:type,ready:document.readyState,head:!!document.head,theme:sty('ad7-static-theme'),standalone:sty('ad7-standalone-7103'),twb:sty('ad7-twb-static')};if(extra)x.extra=extra;L.push(x);if(L.length>CAP)L.splice(0,L.length-CAP)}catch(_){}}\n"
+        @"function rec(type,extra){try{var x={t:ts(),type:type,ready:document.readyState,head:!!document.head,theme:sty('ad7-static-theme'),standalone:sty('ad7-standalone-7104'),twb:sty('ad7-twb-static')};if(extra)x.extra=extra;L.push(x);if(L.length>CAP)L.splice(0,L.length-CAP)}catch(_){}}\n"
         @"function nodeInfo(n){try{return{tag:String(n&&n.nodeName||''),id:String(n&&n.id||''),cls:cls(n).slice(0,240)}}catch(_){return{}}}\n"
-        @"function ownerMutation(ms){try{for(var i=0;i<ms.length;i++){var m=ms[i];for(var j=0;j<m.removedNodes.length;j++){var n=m.removedNodes[j];if(n&&((n.id==='ad7-static-theme')||(n.id==='ad7-standalone-7103')||(n.id==='ad7-twb-static')))rec('OWNER_REMOVED',nodeInfo(n))}for(var k=0;k<m.addedNodes.length;k++){var a=m.addedNodes[k];if(a&&((a.id==='ad7-static-theme')||(a.id==='ad7-standalone-7103')||(a.id==='ad7-twb-static')))rec('OWNER_ADDED',nodeInfo(a))}}}catch(_){}}\n"
-        @"function bindOwners(){try{if(ownerObs)ownerObs.disconnect();var a=document.getElementById('ad7-static-theme'),b=document.getElementById('ad7-twb-static'),c=document.getElementById('ad7-standalone-7103'),p=(a&&a.parentNode)||(c&&c.parentNode)||(b&&b.parentNode)||document.head;if(p){ownerObs=new MutationObserver(ownerMutation);ownerObs.observe(p,{childList:true});rec('OWNER_OBSERVER_BOUND',nodeInfo(p))}else rec('OWNER_OBSERVER_NO_PARENT')}catch(e){rec('OWNER_OBSERVER_ERR',{e:String(e)})}}\n"
+        @"function ownerMutation(ms){try{for(var i=0;i<ms.length;i++){var m=ms[i];for(var j=0;j<m.removedNodes.length;j++){var n=m.removedNodes[j];if(n&&((n.id==='ad7-static-theme')||(n.id==='ad7-standalone-7104')||(n.id==='ad7-twb-static')))rec('OWNER_REMOVED',nodeInfo(n))}for(var k=0;k<m.addedNodes.length;k++){var a=m.addedNodes[k];if(a&&((a.id==='ad7-static-theme')||(a.id==='ad7-standalone-7104')||(a.id==='ad7-twb-static')))rec('OWNER_ADDED',nodeInfo(a))}}}catch(_){}}\n"
+        @"function bindOwners(){try{if(ownerObs)ownerObs.disconnect();var a=document.getElementById('ad7-static-theme'),b=document.getElementById('ad7-twb-static'),c=document.getElementById('ad7-standalone-7104'),p=(a&&a.parentNode)||(c&&c.parentNode)||(b&&b.parentNode)||document.head;if(p){ownerObs=new MutationObserver(ownerMutation);ownerObs.observe(p,{childList:true});rec('OWNER_OBSERVER_BOUND',nodeInfo(p))}else rec('OWNER_OBSERVER_NO_PARENT')}catch(e){rec('OWNER_OBSERVER_ERR',{e:String(e)})}}\n"
         @"function rootMutation(ms){try{var hit=0,items=[];for(var i=0;i<ms.length;i++){var m=ms[i];for(var j=0;j<m.removedNodes.length;j++){var n=m.removedNodes[j],nm=String(n&&n.nodeName||'').toUpperCase();if(nm==='HEAD'||nm==='BODY'){hit=1;items.push({dir:'removed',n:nodeInfo(n)})}}for(var k=0;k<m.addedNodes.length;k++){var a=m.addedNodes[k],am=String(a&&a.nodeName||'').toUpperCase();if(am==='HEAD'||am==='BODY'){hit=1;items.push({dir:'added',n:nodeInfo(a)})}}}if(hit){rec('DOCUMENT_SHELL_MUTATION',{items:items.slice(0,12)});bindOwners()}}catch(_){}}\n"
         @"function bindRoot(){try{if(rootObs)rootObs.disconnect();if(document.documentElement){rootObs=new MutationObserver(rootMutation);rootObs.observe(document.documentElement,{childList:true});rec('ROOT_OBSERVER_BOUND',nodeInfo(document.documentElement))}else rec('ROOT_OBSERVER_NO_HTML')}catch(e){rec('ROOT_OBSERVER_ERR',{e:String(e)})}}\n"
         @"function lifecycle(name){rec(name);bindOwners();if(!rootObs)bindRoot()}\n"
         @"lifecycle('PROBE_INSTALL');document.addEventListener('readystatechange',function(){lifecycle('READYSTATE_'+document.readyState)},false);document.addEventListener('DOMContentLoaded',function(){lifecycle('DOMContentLoaded')},{once:true});window.addEventListener('load',function(){lifecycle('LOAD')},{once:true});window.addEventListener('pageshow',function(e){lifecycle('PAGESHOW_'+(e&&e.persisted?'BFCache':'normal'))},false);window.addEventListener('pagehide',function(e){rec('PAGEHIDE_'+(e&&e.persisted?'BFCache':'normal'))},false);\n"
         @"function pseudo(e,w){try{var c=getComputedStyle(e,w);return{content:c.content,display:c.display,backgroundColor:c.backgroundColor,backgroundImage:String(c.backgroundImage||'').slice(0,420),color:c.color,textFill:c.webkitTextFillColor||'',border:c.border,filter:c.filter,opacity:c.opacity,position:c.position,zIndex:c.zIndex}}catch(_){return null}}\n"
         @"function parentChain(e){var o=[];try{for(var p=e&&e.parentElement,n=0;p&&n<6;p=p.parentElement,n++)o.push({tag:String(p.tagName||'').toLowerCase(),id:String(p.id||''),cls:cls(p).slice(0,260),rect:rect(p)})}catch(_){}return o}\n"
-        @"function themeMatches(e){var o=[];try{var st=document.getElementById('ad7-static-theme'),sh=st&&st.sheet,rs=sh&&sh.cssRules;if(!rs)return o;for(var i=0;i<rs.length&&o.length<36;i++){var q=rs[i];if(!q.selectorText||!q.style)continue;var ok=false;try{ok=e.matches(q.selectorText)}catch(_){}if(!ok)continue;var z=q.style;if(z.background||z.backgroundColor||z.color||z.webkitTextFillColor||z.borderColor||z.outlineColor||z.filter||z.boxShadow)o.push({i:i,selector:String(q.selectorText).slice(0,1000),css:String(z.cssText||'').slice(0,1200)})}}catch(x){o.push({error:String(x)})}return o}\n"
-        @"function snap(e,label){try{if(!e)return null;var c=getComputedStyle(e),at={};['data-testid','data-id','data-acei-id','data-size-str','data-is-ad','data-csa-c-painter','role','aria-label'].forEach(function(k){try{var v=e.getAttribute(k);if(v!==null)at[k]=String(v).slice(0,500)}catch(_){}});return{label:label,visible:visible(e),tag:String(e.tagName||'').toLowerCase(),id:String(e.id||''),cls:cls(e).slice(0,700),attrs:at,text:String(e.innerText||e.textContent||'').replace(/\\s+/g,' ').trim().slice(0,1200),directText:(function(){try{var q='';for(var n=e.firstChild;n;n=n.nextSibling)if(n.nodeType===3)q+=n.nodeValue;return q.replace(/\\s+/g,' ').trim().slice(0,700)}catch(_){return''}})(),rect:rect(e),inline:String(e.getAttribute&&e.getAttribute('style')||'').slice(0,2400),computed:{display:c.display,visibility:c.visibility,opacity:c.opacity,color:c.color,textFill:c.webkitTextFillColor||'',backgroundColor:c.backgroundColor,backgroundImage:String(c.backgroundImage||'').slice(0,700),border:c.border,borderColor:c.borderColor,borderRadius:c.borderRadius,outline:c.outline,boxShadow:String(c.boxShadow||'').slice(0,500),filter:c.filter,webkitFilter:c.webkitFilter||'',mixBlendMode:c.mixBlendMode,isolation:c.isolation,position:c.position,zIndex:c.zIndex,overflow:c.overflow,objectFit:c.objectFit,fontSize:c.fontSize,lineHeight:c.lineHeight,fontWeight:c.fontWeight,textShadow:String(c.textShadow||'').slice(0,300),pointerEvents:c.pointerEvents},before:pseudo(e,'::before'),after:pseudo(e,'::after'),parents:parentChain(e),themeMatches:themeMatches(e)}}catch(x){return{label:label,error:String(x)}}}\n"
+        @"function ownerMatches(e,id){var o=[];try{var st=document.getElementById(id),sh=st&&st.sheet,rs=sh&&sh.cssRules;if(!rs)return o;for(var i=0;i<rs.length&&o.length<36;i++){var q=rs[i];if(!q.selectorText||!q.style)continue;var ok=false;try{ok=e.matches(q.selectorText)}catch(_){}if(!ok)continue;var z=q.style;if(z.background||z.backgroundColor||z.color||z.webkitTextFillColor||z.borderColor||z.outlineColor||z.filter||z.boxShadow)o.push({i:i,selector:String(q.selectorText).slice(0,1000),css:String(z.cssText||'').slice(0,1200)})}}catch(x){o.push({error:String(x)})}return o}\n"
+        @"function themeMatches(e){return ownerMatches(e,'ad7-static-theme')}\n"
+        @"function standaloneMatches(e){return ownerMatches(e,'ad7-standalone-7104')}\n"
+        @"function snap(e,label){try{if(!e)return null;var c=getComputedStyle(e),at={};['data-testid','data-id','data-acei-id','data-size-str','data-is-ad','data-csa-c-painter','role','aria-label'].forEach(function(k){try{var v=e.getAttribute(k);if(v!==null)at[k]=String(v).slice(0,500)}catch(_){}});return{label:label,visible:visible(e),tag:String(e.tagName||'').toLowerCase(),id:String(e.id||''),cls:cls(e).slice(0,700),attrs:at,text:String(e.innerText||e.textContent||'').replace(/\\s+/g,' ').trim().slice(0,1200),directText:(function(){try{var q='';for(var n=e.firstChild;n;n=n.nextSibling)if(n.nodeType===3)q+=n.nodeValue;return q.replace(/\\s+/g,' ').trim().slice(0,700)}catch(_){return''}})(),rect:rect(e),inline:String(e.getAttribute&&e.getAttribute('style')||'').slice(0,2400),computed:{display:c.display,visibility:c.visibility,opacity:c.opacity,color:c.color,textFill:c.webkitTextFillColor||'',backgroundColor:c.backgroundColor,backgroundImage:String(c.backgroundImage||'').slice(0,700),border:c.border,borderColor:c.borderColor,borderRadius:c.borderRadius,outline:c.outline,boxShadow:String(c.boxShadow||'').slice(0,500),filter:c.filter,webkitFilter:c.webkitFilter||'',mixBlendMode:c.mixBlendMode,isolation:c.isolation,position:c.position,zIndex:c.zIndex,overflow:c.overflow,objectFit:c.objectFit,fontSize:c.fontSize,lineHeight:c.lineHeight,fontWeight:c.fontWeight,textShadow:String(c.textShadow||'').slice(0,300),pointerEvents:c.pointerEvents},before:pseudo(e,'::before'),after:pseudo(e,'::after'),parents:parentChain(e),themeMatches:themeMatches(e),standaloneMatches:standaloneMatches(e)}}catch(x){return{label:label,error:String(x)}}}\n"
         @"function sheetInventory(){var o=[];try{var a=document.styleSheets;for(var i=0;i<a.length&&o.length<40;i++){var sh=a[i],n=sh.ownerNode,rc=null,err='';try{rc=sh.cssRules?sh.cssRules.length:0}catch(x){err=String(x)}o.push({i:i,id:n&&n.id?String(n.id):'',tag:n&&n.tagName?String(n.tagName).toLowerCase():'',href:String(sh.href||''),disabled:!!sh.disabled,rules:rc,error:err})}}catch(x){o.push({error:String(x)})}return o}\n"
         @"function add(out,seen,e,label){if(!e||seen.has(e))return;seen.add(e);out.push(snap(e,label))}\n"
         @"function qall(out,seen,sel,label,cap,visOnly){try{var a=document.querySelectorAll(sel);for(var i=0;i<a.length&&i<(cap||8);i++)if(!visOnly||visible(a[i]))add(out,seen,a[i],label+'['+i+']')}catch(_){}}\n"
         @"function adPlanes(){var o=[];try{var ad=document.getElementById('ad');if(!ad)return o;for(var n=ad.firstElementChild,i=0;n&&i<16;n=n.nextElementSibling,i++)o.push(snap(n,'ad.direct['+i+']'));var ds=ad.querySelectorAll('div');for(var j=0;j<ds.length&&o.length<42;j++){var e=ds[j],c=getComputedStyle(e),r=e.getBoundingClientRect(),inl=String(e.getAttribute('style')||'');var wide=r.width>=innerWidth*.65&&r.height>=innerHeight*.55;var back=/z-index\\s*:\\s*-2|background\\s*:\\s*#fff|background-color\\s*:\\s*(white|#fff|rgb\\(255)/i.test(inl);if((wide||back)&&visible(e))o.push(snap(e,'ad.plane['+j+']'))}}catch(x){o.push({error:String(x)})}return o}\n"
-        @"function report(){try{var h=document.documentElement,targets=[],seen=new Set();add(targets,seen,h,'html');add(targets,seen,document.body,'body');var sels=[['#ad','ad',4,false],['[data-testid=renderer-factory-ad-container]','medium.renderer',8,true],['[data-testid^=modern-][data-testid$=-layout-container]','medium.layout',8,true],['[data-id=brand-name-text]','medium.brand',8,true],['[data-id=product-name-text]','medium.product',8,true],['[data-testid=formatted-price]','medium.price',8,true],['[data-testid=ratings-value]','rating.value',8,true],['[data-testid=ratings-review-count]','rating.count',8,true],['[data-testid=full-price]','full.price',8,true],['[data-testid=ad-background-container]','large.background',8,true],['[data-testid=brand-product-description] p','large.description',8,true],['#dynamic-bb','compact.buybox',8,true],['#dynamic-bb [data-testid=product-description]','compact.description',8,true],['#dynamic-bb [data-acei-id=sns-disc]','compact.sns',8,true],['[data-acei-id=lfstyl-img]','media.lfstyl',8,true],['[data-size-str]','size.marker',8,false],['[style*=\"z-index:-2\"]','negative-z-inline',12,true],['[style*=\"background:#fff\"]','inline-white-bg',12,true],['[style*=\"background: #fff\"]','inline-white-bg-space',12,true],['.ape-wrapper','ape.wrapper',8,true],['.ape-placement','ape.placement',8,true],['.ape-feedback','ape.feedback',8,true],['iframe','iframe',12,true],['[id^=ad-feedback-text-]','sponsor.text',8,true],['[id^=ad-feedback-sprite-]','sponsor.glyph',8,true]];for(var i=0;i<sels.length;i++)qall(targets,seen,sels[i][0],sels[i][1],sels[i][2],sels[i][3]);var sizes=[];try{var sm=document.querySelectorAll('[data-size-str]');for(var z=0;z<sm.length&&z<12;z++)sizes.push(String(sm[z].getAttribute('data-size-str')||''))}catch(_){}return JSON.stringify({frame:{id:frameId,href:String(location.href||''),referrer:String(document.referrer||''),title:String(document.title||''),ready:document.readyState,child:(function(){try{return window.top!==window}catch(_){return true}})(),viewport:{w:innerWidth,h:innerHeight,dpr:devicePixelRatio||1},visibility:document.visibilityState},attrs:h?{child:h.getAttribute('data-ad7-child-frame'),candidate:h.getAttribute('data-ad7-standalone-candidate'),standalone7103:h.getAttribute('data-ad7103-standalone'),twbChild:h.getAttribute('data-ad7-twb-child')}:null,styles:{theme:sty('ad7-static-theme'),standalone:sty('ad7-standalone-7103'),twb:sty('ad7-twb-static')},styleSheets:sheetInventory(),sizeMarkers:sizes,timeline:L.slice(),targets:targets,adPlanes:adPlanes()},null,2)}catch(e){return JSON.stringify({error:String(e&&e.stack||e),timeline:L.slice()})}}\n"
+        @"function report(){try{var h=document.documentElement,targets=[],seen=new Set();add(targets,seen,h,'html');add(targets,seen,document.body,'body');var sels=[['#ad','ad',4,false],['[data-testid=renderer-factory-ad-container]','medium.renderer',8,true],['[data-testid^=modern-][data-testid$=-layout-container]','medium.layout',8,true],['[data-id=brand-name-text]','medium.brand',8,true],['[data-id=product-name-text]','medium.product',8,true],['[data-testid=formatted-price]','medium.price',8,true],['[data-testid=ratings-value]','rating.value',8,true],['[data-testid=ratings-review-count]','rating.count',8,true],['[data-testid=full-price]','full.price',8,true],['[data-testid=ad-background-container]','large.background',8,true],['[data-testid=brand-product-description] p','large.description',8,true],['#dynamic-bb','compact.buybox',8,true],['#dynamic-bb [data-testid=product-description]','compact.description',8,true],['#dynamic-bb [data-acei-id=sns-disc]','compact.sns',8,true],['[data-acei-id=lfstyl-img]','media.lfstyl',8,true],['[data-size-str]','size.marker',8,false],['[style*=\"z-index:-2\"]','negative-z-inline',12,true],['[style*=\"background:#fff\"]','inline-white-bg',12,true],['[style*=\"background: #fff\"]','inline-white-bg-space',12,true],['.ape-wrapper','ape.wrapper',8,true],['.ape-placement','ape.placement',8,true],['.ape-feedback','ape.feedback',8,true],['iframe','iframe',12,true],['[id^=ad-feedback-text-]','sponsor.text',8,true],['[id^=ad-feedback-sprite-]','sponsor.glyph',8,true]];for(var i=0;i<sels.length;i++)qall(targets,seen,sels[i][0],sels[i][1],sels[i][2],sels[i][3]);var sizes=[];try{var sm=document.querySelectorAll('[data-size-str]');for(var z=0;z<sm.length&&z<12;z++)sizes.push(String(sm[z].getAttribute('data-size-str')||''))}catch(_){}return JSON.stringify({frame:{id:frameId,href:String(location.href||''),referrer:String(document.referrer||''),title:String(document.title||''),ready:document.readyState,child:(function(){try{return window.top!==window}catch(_){return true}})(),viewport:{w:innerWidth,h:innerHeight,dpr:devicePixelRatio||1},visibility:document.visibilityState},attrs:h?{child:h.getAttribute('data-ad7-child-frame'),candidate:h.getAttribute('data-ad7-standalone-candidate'),standalone7104:h.getAttribute('data-ad7104-standalone'),twbChild:h.getAttribute('data-ad7-twb-child')}:null,styles:{theme:sty('ad7-static-theme'),standalone:sty('ad7-standalone-7104'),twb:sty('ad7-twb-static')},survivor:(function(){try{return typeof window.__ad7104StandaloneState==='function'?window.__ad7104StandaloneState():null}catch(e){return{error:String(e)}}})(),styleSheets:sheetInventory(),sizeMarkers:sizes,timeline:L.slice(),targets:targets,adPlanes:adPlanes()},null,2)}catch(e){return JSON.stringify({error:String(e&&e.stack||e),timeline:L.slice()})}}\n"
         @"function frames(){var o=[];try{var a=document.querySelectorAll('iframe');for(var i=0;i<a.length&&o.length<16;i++)if(visible(a[i]))o.push(a[i])}catch(_){}return o}\n"
-        @"window.__adStandaloneLifecycleReport7103=report;window.__adStandaloneLifecycleBroadcast7103=function(msg){try{var a=frames();for(var i=0;i<a.length;i++)try{a[i].contentWindow.postMessage(msg,'*')}catch(_){}}catch(_){}};window.addEventListener('message',function(ev){try{var d=ev.data;if(!d||d.__adStandaloneLifecycle7103!==1||!d.nonce)return;var rep=report();try{window.top.postMessage({__adStandaloneLifecycle7103Result:1,nonce:d.nonce,frameId:frameId,href:String(location.href||''),report:rep},'*')}catch(_){}try{window.__adStandaloneLifecycleBroadcast7103(d)}catch(_){}}catch(_){}},false);\n"
+        @"window.__adStandaloneLifecycleReport7104=report;window.__adStandaloneLifecycleBroadcast7104=function(msg){try{var a=frames();for(var i=0;i<a.length;i++)try{a[i].contentWindow.postMessage(msg,'*')}catch(_){}}catch(_){}};window.addEventListener('message',function(ev){try{var d=ev.data;if(!d||d.__adStandaloneLifecycle7104!==1||!d.nonce)return;var rep=report();try{window.top.postMessage({__adStandaloneLifecycle7104Result:1,nonce:d.nonce,frameId:frameId,href:String(location.href||''),report:rep},'*')}catch(_){}try{window.__adStandaloneLifecycleBroadcast7104(d)}catch(_){}}catch(_){}},false);\n"
         @"}catch(e){}})();";
 }
 
@@ -1392,62 +1417,62 @@ static void ADRefreshWebTWBPrefs791(void){
 
 // Probe-only native WKUserContentController lifecycle ring. This is deliberately
 // in-memory and capped; file I/O occurs only after manual SIGUSR2 capture.
-static NSMutableArray *gADUCCLifecycle7103=nil;
-static NSString *ADUCCScriptSummary7103(WKUserContentController *ucc){
+static NSMutableArray *gADUCCLifecycle7104=nil;
+static NSString *ADUCCScriptSummary7104(WKUserContentController *ucc){
     if(!ucc)return @"ucc=nil";
     @try {
         NSArray *a=ucc.userScripts; NSUInteger floor=0,twb=0,stand=0,probe=0;
-        for(WKUserScript *us in a){ NSString *q=us.source?:@""; if([q containsString:@"ad7-static-theme"])floor++; if([q containsString:@"ad7-twb-static"])twb++; if([q containsString:@"ad7-standalone-7103"])stand++; if([q containsString:@"__adStandaloneLifecycle7103Installed"])probe++; }
+        for(WKUserScript *us in a){ NSString *q=us.source?:@""; if([q containsString:@"ad7-static-theme"])floor++; if([q containsString:@"ad7-twb-static"])twb++; if([q containsString:@"ad7-standalone-7104"])stand++; if([q containsString:@"__adStandaloneLifecycle7104Installed"])probe++; }
         return [NSString stringWithFormat:@"scripts=%lu sourceFloor=%lu sourceTWB=%lu sourceStand=%lu sourceProbe=%lu",(unsigned long)a.count,(unsigned long)floor,(unsigned long)twb,(unsigned long)stand,(unsigned long)probe];
     } @catch(NSException *e){ return [NSString stringWithFormat:@"scripts=ERR(%@)",e.name?:@"?"]; }
 }
-static void ADLogUCCLifecycle7103(NSString *action,WKUserContentController *ucc){
+static void ADLogUCCLifecycle7104(NSString *action,WKUserContentController *ucc){
     @try {
-        if(!gADUCCLifecycle7103)gADUCCLifecycle7103=[NSMutableArray array];
+        if(!gADUCCLifecycle7104)gADUCCLifecycle7104=[NSMutableArray array];
         NSString *line=[NSString stringWithFormat:@"mono=%.6f wall=%.3f main=%d action=%@ ucc=%p assocFloor=%d assocTWB=%d assocStand=%d assocProbe=%d %@",
             CACurrentMediaTime(),[[NSDate date] timeIntervalSince1970],[NSThread isMainThread]?1:0,action?:@"?",ucc,
-            (ucc&&objc_getAssociatedObject(ucc,kADFloorUS))?1:0,(ucc&&objc_getAssociatedObject(ucc,kADTWBUS))?1:0,(ucc&&objc_getAssociatedObject(ucc,kADStandalonePaintUS7103))?1:0,(ucc&&objc_getAssociatedObject(ucc,kADStandaloneLifecycleProbeUS7103))?1:0,ADUCCScriptSummary7103(ucc)];
-        @synchronized(gADUCCLifecycle7103){ [gADUCCLifecycle7103 addObject:line]; if(gADUCCLifecycle7103.count>180)[gADUCCLifecycle7103 removeObjectsInRange:NSMakeRange(0,gADUCCLifecycle7103.count-180)]; }
+            (ucc&&objc_getAssociatedObject(ucc,kADFloorUS))?1:0,(ucc&&objc_getAssociatedObject(ucc,kADTWBUS))?1:0,(ucc&&objc_getAssociatedObject(ucc,kADStandalonePaintUS7104))?1:0,(ucc&&objc_getAssociatedObject(ucc,kADStandaloneLifecycleProbeUS7104))?1:0,ADUCCScriptSummary7104(ucc)];
+        @synchronized(gADUCCLifecycle7104){ [gADUCCLifecycle7104 addObject:line]; if(gADUCCLifecycle7104.count>180)[gADUCCLifecycle7104 removeObjectsInRange:NSMakeRange(0,gADUCCLifecycle7104.count-180)]; }
     } @catch(...) {}
 }
-static NSString *ADUCCLifecycleDump7103(void){
-    @try { @synchronized(gADUCCLifecycle7103){ return gADUCCLifecycle7103.count?[gADUCCLifecycle7103 componentsJoinedByString:@"\n"]:@"NO_NATIVE_UCC_EVENTS"; } } @catch(...) {}
+static NSString *ADUCCLifecycleDump7104(void){
+    @try { @synchronized(gADUCCLifecycle7104){ return gADUCCLifecycle7104.count?[gADUCCLifecycle7104 componentsJoinedByString:@"\n"]:@"NO_NATIVE_UCC_EVENTS"; } } @catch(...) {}
     return @"NATIVE_UCC_DUMP_ERROR";
 }
 
 static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
     if(!ucc || !gP.enabled)return;
     @try {
-        ADLogUCCLifecycle7103(@"attach.enter",ucc);
+        ADLogUCCLifecycle7104(@"attach.enter",ucc);
         if(!objc_getAssociatedObject(ucc,kADFloorUS)){
-            ADLogUCCLifecycle7103(@"attach.floor.before",ucc);
+            ADLogUCCLifecycle7104(@"attach.floor.before",ucc);
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADFloorJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADFloorUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            ADLogUCCLifecycle7103(@"attach.floor.after",ucc);
+            ADLogUCCLifecycle7104(@"attach.floor.after",ucc);
         }
-        if(!objc_getAssociatedObject(ucc,kADStandalonePaintUS7103)){
-            ADLogUCCLifecycle7103(@"attach.standalone.before",ucc);
-            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADStandalonePaintJS7103() injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:NO];
+        if(!objc_getAssociatedObject(ucc,kADStandalonePaintUS7104)){
+            ADLogUCCLifecycle7104(@"attach.standalone.before",ucc);
+            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADStandalonePaintJS7104() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
-            objc_setAssociatedObject(ucc,kADStandalonePaintUS7103,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            ADLogUCCLifecycle7103(@"attach.standalone.after",ucc);
+            objc_setAssociatedObject(ucc,kADStandalonePaintUS7104,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            ADLogUCCLifecycle7104(@"attach.standalone.after",ucc);
         }
         if(gP.whiteTame && !objc_getAssociatedObject(ucc,kADTWBUS)){
-            ADLogUCCLifecycle7103(@"attach.twb.before",ucc);
+            ADLogUCCLifecycle7104(@"attach.twb.before",ucc);
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADTWBJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADTWBUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            ADLogUCCLifecycle7103(@"attach.twb.after",ucc);
+            ADLogUCCLifecycle7104(@"attach.twb.after",ucc);
         }
-        if(!objc_getAssociatedObject(ucc,kADStandaloneLifecycleProbeUS7103)){
-            ADLogUCCLifecycle7103(@"attach.probe.before",ucc);
-            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADStandaloneLifecycleProbeJS7103() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+        if(!objc_getAssociatedObject(ucc,kADStandaloneLifecycleProbeUS7104)){
+            ADLogUCCLifecycle7104(@"attach.probe.before",ucc);
+            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADStandaloneLifecycleProbeJS7104() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
-            objc_setAssociatedObject(ucc,kADStandaloneLifecycleProbeUS7103,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            ADLogUCCLifecycle7103(@"attach.probe.after",ucc);
+            objc_setAssociatedObject(ucc,kADStandaloneLifecycleProbeUS7104,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            ADLogUCCLifecycle7104(@"attach.probe.after",ucc);
         }
-        ADLogUCCLifecycle7103(@"attach.exit",ucc);
+        ADLogUCCLifecycle7104(@"attach.exit",ucc);
     } @catch(...) {}
 }
 static void ADAttachWebScripts(WKWebView *wv){
@@ -1485,7 +1510,7 @@ static void ADApplyAllFloors(void){
 - (instancetype)init {
     id cfg=%orig;
     if(gP.enabled && cfg){
-        @try { WKUserContentController *u=((WKWebViewConfiguration *)cfg).userContentController; ADLogUCCLifecycle7103(@"config.init",u); ADAttachScriptsToUCC710(u); } @catch(...) {}
+        @try { WKUserContentController *u=((WKWebViewConfiguration *)cfg).userContentController; ADLogUCCLifecycle7104(@"config.init",u); ADAttachScriptsToUCC710(u); } @catch(...) {}
     }
     return cfg;
 }
@@ -1496,17 +1521,17 @@ static void ADApplyAllFloors(void){
 // without this, cold Home/Search can miss the OLED sheet until a warm lifecycle reapply.
 %hook WKUserContentController
 - (void)removeAllUserScripts {
-    ADLogUCCLifecycle7103(@"removeAll.enter",self);
+    ADLogUCCLifecycle7104(@"removeAll.enter",self);
     %orig;
-    ADLogUCCLifecycle7103(@"removeAll.afterOrig",self);
+    ADLogUCCLifecycle7104(@"removeAll.afterOrig",self);
     if(gP.enabled){
         objc_setAssociatedObject(self,kADFloorUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADTWBUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(self,kADStandalonePaintUS7103,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(self,kADStandaloneLifecycleProbeUS7103,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        ADLogUCCLifecycle7103(@"removeAll.flagsCleared",self);
+        objc_setAssociatedObject(self,kADStandalonePaintUS7104,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(self,kADStandaloneLifecycleProbeUS7104,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        ADLogUCCLifecycle7104(@"removeAll.flagsCleared",self);
         ADAttachScriptsToUCC710(self);
-        ADLogUCCLifecycle7103(@"removeAll.reattachDone",self);
+        ADLogUCCLifecycle7104(@"removeAll.reattachDone",self);
     }
 }
 %end
@@ -1514,7 +1539,7 @@ static void ADApplyAllFloors(void){
 %hook WKWebView
 - (instancetype)initWithFrame:(CGRect)frame configuration:(WKWebViewConfiguration *)configuration {
     if(gP.enabled && configuration){
-        @try { ADLogUCCLifecycle7103(@"webview.init.preOrig",configuration.userContentController); ADAttachScriptsToUCC710(configuration.userContentController); } @catch(...) {}
+        @try { ADLogUCCLifecycle7104(@"webview.init.preOrig",configuration.userContentController); ADAttachScriptsToUCC710(configuration.userContentController); } @catch(...) {}
     }
     id wv=%orig;
     if(gP.enabled){ ADAttachWebScripts(wv); ADApplyWebFloor(wv); }
@@ -2501,51 +2526,51 @@ static void ADScheduleLaunchReadyCheck706(void){
 
 
 // -----------------------------------------------------------------------------
-// v7.103 focused lifecycle probe runtime — manual SIGUSR2 only. The current
-// visible WKWebView is sampled, visible child frames reply once, and the capped
-// native UCC event ring is appended to Amazon's own Documents sandbox.
+// v7.104 shell-survival verification probe — manual SIGUSR2 only. The current
+// visible WKWebView is sampled and child frames report the production survivor
+// state plus final computed renderer paint; native UCC data is retained as a guard.
 // -----------------------------------------------------------------------------
-static NSUInteger gADStandaloneLifecycleRun7103=0;
-static NSString *ADStandaloneLifecycleProbePath7103(void){
-    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.103-standalone-lifecycle-probe.txt"]; } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.103-standalone-lifecycle-probe.txt"];
+static NSUInteger gADStandaloneLifecycleRun7104=0;
+static NSString *ADStandaloneLifecycleProbePath7104(void){
+    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.104-standalone-shell-probe.txt"]; } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.104-standalone-shell-probe.txt"];
 }
-static WKWebView *ADLargestTrackedWeb7103(void){
+static WKWebView *ADLargestTrackedWeb7104(void){
     WKWebView *best=nil; CGFloat area=0;
     @try { for(WKWebView *wv in ADTrackedWebViews()){ if(!wv||!wv.window||wv.hidden||wv.alpha<0.01)continue; CGRect rr=[wv convertRect:wv.bounds toView:nil],ir=CGRectIntersection(rr,UIScreen.mainScreen.bounds); CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height); if(a>area){area=a;best=wv;} } } @catch(...) {}
     return best;
 }
-static NSString *ADVisibleWebMetadata7103(WKWebView *wv){
+static NSString *ADVisibleWebMetadata7104(WKWebView *wv){
     if(!wv)return @"NO_VISIBLE_WEBVIEW";
-    @try { CGRect r=[wv convertRect:wv.bounds toView:nil]; WKUserContentController *u=wv.configuration.userContentController; return [NSString stringWithFormat:@"wv=%p config=%p ucc=%p frame=(%.1f,%.1f %.1fx%.1f) hidden=%d alpha=%.3f loading=%d progress=%.3f url=%@\\n%@",wv,wv.configuration,u,r.origin.x,r.origin.y,r.size.width,r.size.height,wv.hidden?1:0,wv.alpha,wv.loading?1:0,wv.estimatedProgress,wv.URL.absoluteString?:@"",ADUCCScriptSummary7103(u)]; } @catch(NSException *e){ return [NSString stringWithFormat:@"WEB_METADATA_ERROR %@",e]; }
+    @try { CGRect r=[wv convertRect:wv.bounds toView:nil]; WKUserContentController *u=wv.configuration.userContentController; return [NSString stringWithFormat:@"wv=%p config=%p ucc=%p frame=(%.1f,%.1f %.1fx%.1f) hidden=%d alpha=%.3f loading=%d progress=%.3f url=%@\\n%@",wv,wv.configuration,u,r.origin.x,r.origin.y,r.size.width,r.size.height,wv.hidden?1:0,wv.alpha,wv.loading?1:0,wv.estimatedProgress,wv.URL.absoluteString?:@"",ADUCCScriptSummary7104(u)]; } @catch(NSException *e){ return [NSString stringWithFormat:@"WEB_METADATA_ERROR %@",e]; }
 }
-static void ADAppendStandaloneLifecycle7103(NSString *text){
+static void ADAppendStandaloneLifecycle7104(NSString *text){
     if(!text.length)return;
-    @try { NSString *p=ADStandaloneLifecycleProbePath7103(); NSFileManager *fm=[NSFileManager defaultManager]; [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil]; NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding]; if(![fm fileExistsAtPath:p]){[d writeToFile:p atomically:YES];return;} NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p]; if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];} } @catch(...) {}
+    @try { NSString *p=ADStandaloneLifecycleProbePath7104(); NSFileManager *fm=[NSFileManager defaultManager]; [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil]; NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding]; if(![fm fileExistsAtPath:p]){[d writeToFile:p atomically:YES];return;} NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p]; if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];} } @catch(...) {}
 }
-static void ADCaptureStandaloneLifecycle7103(void){
+static void ADCaptureStandaloneLifecycle7104(void){
     if(!gP.enabled)return;
-    WKWebView *wv=ADLargestTrackedWeb7103(); NSUInteger run=++gADStandaloneLifecycleRun7103;
-    if(!wv){ ADAppendStandaloneLifecycle7103([NSString stringWithFormat:@"\\n\\n===== v7.103 RUN %lu NO_VISIBLE_WEBVIEW date=%@ =====\\nNATIVE UCC TIMELINE\\n%@\\n",(unsigned long)run,[NSDate date],ADUCCLifecycleDump7103()]); return; }
-    NSString *nativeBefore=ADUCCLifecycleDump7103(); NSString *webMeta=ADVisibleWebMetadata7103(wv);
-    NSString *trigger=@"(function(){try{if(typeof window.__adStandaloneLifecycleReport7103!=='function')return 'HELPER_MISSING';var nonce='ad7103-'+Date.now()+'-'+Math.random().toString(36).slice(2),c={nonce:nonce,main:window.__adStandaloneLifecycleReport7103(),children:[]};try{if(window.__adStandaloneLifecycleHandler7103)window.removeEventListener('message',window.__adStandaloneLifecycleHandler7103,false)}catch(_){}window.__adStandaloneLifecycleCollected7103=c;window.__adStandaloneLifecycleHandler7103=function(ev){try{var d=ev.data;if(!d||d.__adStandaloneLifecycle7103Result!==1||d.nonce!==nonce)return;if(c.children.length<32)c.children.push({frameId:String(d.frameId||''),href:String(d.href||''),report:String(d.report||'')})}catch(_){}};window.addEventListener('message',window.__adStandaloneLifecycleHandler7103,false);window.__adStandaloneLifecycleBroadcast7103({__adStandaloneLifecycle7103:1,nonce:nonce});return 'STARTED '+nonce}catch(e){return 'TRIGGER_ERR '+e}})();";
+    WKWebView *wv=ADLargestTrackedWeb7104(); NSUInteger run=++gADStandaloneLifecycleRun7104;
+    if(!wv){ ADAppendStandaloneLifecycle7104([NSString stringWithFormat:@"\\n\\n===== v7.104 RUN %lu NO_VISIBLE_WEBVIEW date=%@ =====\\nNATIVE UCC TIMELINE\\n%@\\n",(unsigned long)run,[NSDate date],ADUCCLifecycleDump7104()]); return; }
+    NSString *nativeBefore=ADUCCLifecycleDump7104(); NSString *webMeta=ADVisibleWebMetadata7104(wv);
+    NSString *trigger=@"(function(){try{if(typeof window.__adStandaloneLifecycleReport7104!=='function')return 'HELPER_MISSING';var nonce='ad7104-'+Date.now()+'-'+Math.random().toString(36).slice(2),c={nonce:nonce,main:window.__adStandaloneLifecycleReport7104(),children:[]};try{if(window.__adStandaloneLifecycleHandler7104)window.removeEventListener('message',window.__adStandaloneLifecycleHandler7104,false)}catch(_){}window.__adStandaloneLifecycleCollected7104=c;window.__adStandaloneLifecycleHandler7104=function(ev){try{var d=ev.data;if(!d||d.__adStandaloneLifecycle7104Result!==1||d.nonce!==nonce)return;if(c.children.length<32)c.children.push({frameId:String(d.frameId||''),href:String(d.href||''),report:String(d.report||'')})}catch(_){}};window.addEventListener('message',window.__adStandaloneLifecycleHandler7104,false);window.__adStandaloneLifecycleBroadcast7104({__adStandaloneLifecycle7104:1,nonce:nonce});return 'STARTED '+nonce}catch(e){return 'TRIGGER_ERR '+e}})();";
     [wv evaluateJavaScript:trigger completionHandler:^(id v,NSError *e){
         NSString *start=e?[NSString stringWithFormat:@"TRIGGER_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.70*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-            NSString *collect=@"(function(){try{var c=window.__adStandaloneLifecycleCollected7103;if(!c)return 'NO_COLLECTION';try{if(window.__adStandaloneLifecycleHandler7103)window.removeEventListener('message',window.__adStandaloneLifecycleHandler7103,false)}catch(_){}var o=['===== MAIN FRAME =====\\n'+String(c.main||'')];for(var i=0;i<c.children.length;i++)o.push('\\n===== CHILD FRAME '+i+' id='+String(c.children[i].frameId||'')+' '+String(c.children[i].href||'')+' =====\\n'+String(c.children[i].report||''));o.push('\\nCHILD_COUNT '+c.children.length);return o.join('\\n')}catch(e){return 'COLLECT_ERR '+e}})();";
+            NSString *collect=@"(function(){try{var c=window.__adStandaloneLifecycleCollected7104;if(!c)return 'NO_COLLECTION';try{if(window.__adStandaloneLifecycleHandler7104)window.removeEventListener('message',window.__adStandaloneLifecycleHandler7104,false)}catch(_){}var o=['===== MAIN FRAME =====\\n'+String(c.main||'')];for(var i=0;i<c.children.length;i++)o.push('\\n===== CHILD FRAME '+i+' id='+String(c.children[i].frameId||'')+' '+String(c.children[i].href||'')+' =====\\n'+String(c.children[i].report||''));o.push('\\nCHILD_COUNT '+c.children.length);return o.join('\\n')}catch(e){return 'COLLECT_ERR '+e}})();";
             [wv evaluateJavaScript:collect completionHandler:^(id v2,NSError *e2){
                 NSString *body=e2?[NSString stringWithFormat:@"COLLECT_ERROR %@",e2]:([v2 isKindOfClass:[NSString class]]?v2:[v2 description]);
-                NSMutableString *m=[NSMutableString stringWithFormat:@"\\n\\n================ AMAZON DARK v7.103 STANDALONE LIFECYCLE PROBE RUN %lu ================\\ndate=%@\\npid=%d\\nversion=%s\\nbase=v7.96 production visuals unchanged\\nmethod=manual current-visible-frame; style-owner timeline + renderer paint + native UCC lifecycle\\ntrigger=%@\\n\\n----- VISIBLE WEBVIEW / CURRENT UCC -----\\n%@\\n\\n----- NATIVE UCC TIMELINE BEFORE SNAPSHOT -----\\n%@\\n\\n----- WEB FRAME REPORTS -----\\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,start?:@"NO_TRIGGER",webMeta?:@"",nativeBefore?:@""];
+                NSMutableString *m=[NSMutableString stringWithFormat:@"\\n\\n================ AMAZON DARK v7.104 STANDALONE LIFECYCLE PROBE RUN %lu ================\\ndate=%@\\npid=%d\\nversion=%s\\nbase=v7.96 production + v7.104 standalone shell-survival repair\\nmethod=manual current-visible-frame; repair-state timeline + renderer paint + native UCC guard\\ntrigger=%@\\n\\n----- VISIBLE WEBVIEW / CURRENT UCC -----\\n%@\\n\\n----- NATIVE UCC TIMELINE BEFORE SNAPSHOT -----\\n%@\\n\\n----- WEB FRAME REPORTS -----\\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,start?:@"NO_TRIGGER",webMeta?:@"",nativeBefore?:@""];
                 [m appendString:body?:@"NO_RESULT"];
-                [m appendFormat:@"\\n\\n----- NATIVE UCC TIMELINE AFTER SNAPSHOT -----\\n%@\\n================ END RUN ================\\n",ADUCCLifecycleDump7103()];
-                ADAppendStandaloneLifecycle7103(m);
+                [m appendFormat:@"\\n\\n----- NATIVE UCC TIMELINE AFTER SNAPSHOT -----\\n%@\\n================ END RUN ================\\n",ADUCCLifecycleDump7104()];
+                ADAppendStandaloneLifecycle7104(m);
             }];
         });
     }];
 }
-static dispatch_source_t gADStandaloneLifecycleSignal7103=nil;
-static void ADInstallStandaloneLifecycleSignal7103(void){
-    static dispatch_once_t once; dispatch_once(&once,^{ signal(SIGUSR2,SIG_IGN); gADStandaloneLifecycleSignal7103=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue()); if(!gADStandaloneLifecycleSignal7103)return; dispatch_source_set_event_handler(gADStandaloneLifecycleSignal7103,^{ ADCaptureStandaloneLifecycle7103(); }); dispatch_resume(gADStandaloneLifecycleSignal7103); });
+static dispatch_source_t gADStandaloneLifecycleSignal7104=nil;
+static void ADInstallStandaloneLifecycleSignal7104(void){
+    static dispatch_once_t once; dispatch_once(&once,^{ signal(SIGUSR2,SIG_IGN); gADStandaloneLifecycleSignal7104=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue()); if(!gADStandaloneLifecycleSignal7104)return; dispatch_source_set_event_handler(gADStandaloneLifecycleSignal7104,^{ ADCaptureStandaloneLifecycle7104(); }); dispatch_resume(gADStandaloneLifecycleSignal7104); });
 }
 
 // v7.0.68 production: v7.0.65 chevron diagnostic runtime removed.
@@ -2559,7 +2584,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 %ctor {
     if(strcmp(__progname,"Amazon")!=0)return;
     ADLoadPrefs();
-    ADInstallStandaloneLifecycleSignal7103();
+    ADInstallStandaloneLifecycleSignal7104();
 
     // v6.0.185 launch-transition behavior: discard stale light SplashBoard snapshots.
     @try {

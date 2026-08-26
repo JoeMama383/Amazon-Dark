@@ -1,12 +1,14 @@
-# AmazonDark v7.103~probe — standalone ad repair + lifecycle tracer
+# AmazonDark v7.104~probe — survive Amazon child-shell replacement
 
-**Exact base:** v7.96 production. No later branch is used as the source base. The existing v7.96 `ADFloorJS` and `ADTWBJS` remain byte-for-byte unchanged.
+**Direct lineage:** v7.103~probe, whose production visual base is exact v7.96.
 
-This build adds one narrow **documentEnd standalone-ad paint owner** using the renderer identities already proven by the v7.94/v7.99 captures. It repairs the known causes without changing card geometry: the 320x50 inline negative-z `#fff` floor is forced OLED black; medium/large standalone structural floors are OLED black; existing borders are recolored `#3b4043`; explicit dark primary product/headline/price ink is changed to `#e8e6e3`; secondary review/list-price/Subscribe & Save copy is `#b1aaa0`. Product media, Prime, stars, deal/coupon colors, Sponsored chrome, sizing, padding, radius, flex/grid, position and iframe geometry are not blanket modified.
+The v7.103 device capture finally identifies the standalone-ad failure precisely. In the visible 414x125 safe-frame, `ad7-static-theme`, `ad7-twb-static`, and `ad7-standalone-7103` are all present at document end / load / pageshow. One millisecond later Amazon removes both `HEAD` and `BODY`, adds replacements, and all three AmazonDark style owners disappear. The renderer then paints its stock inline `background: rgb(255,255,255)` and stock dark navy `rgb(0,0,17)` headline/product text. This exactly explains both symptoms: white cards and apparently missing text on dark cards.
 
-The same build is a manual probe because one lifecycle question remains: **what removes the early v7.96 style owners in the failing child documents?** New diagnostics record the exact native `WKUserContentController` remove/re-add sequence plus a per-frame timeline of `#ad7-static-theme`, `#ad7-standalone-7103`, and `#ad7-twb-static` being added/removed or the HEAD/BODY shell being replaced. The two probe-only MutationObservers are deliberately narrow and diagnostic-only; they never repair the page.
+v7.104 replaces the document-end standalone backstop with a document-start **shell-survival owner**. It observes only the direct children of the standalone child document's `HTML` element (`childList:true`, no subtree). If Amazon replaces `HEAD`/`BODY` or removes the owner itself, it immediately reattaches the standalone stylesheet directly to `HTML`. There is no document scan, scroll listener, interval, RAF, timer, or subtree observer.
 
-Capture two representative standalone renderers in the same output file after installing: first one that previously showed a white floor, then one that previously showed black floor/missing text. If the repair lands on both, the report still tells us which renderer and which style owner won. If either still fails, the lifecycle timeline should show exactly why.
+The surviving stylesheet owns only the already-probed standalone renderer families: OLED floor; existing border color; 414x125 brand/product/price ink; 320x50 product-description/Subscribe & Save ink; large dynamic-product neutral copy; and the exact standalone product-raster TWB lanes at the current user strength. Geometry, padding, radius, flex/grid, positions, links, Prime, stars, colored deal/coupon accents, and outer Sponsored feedback chrome remain untouched.
+
+The v7.104 probe adds the one thing previous probes did not have: the production repair's own bounded state (`installs`, `repairs`, `shells`, event timestamps, final style connectivity, HTML identity, and constructable-stylesheet support) alongside the final computed renderer paint. A successful failing-card capture should show `shells>=1`, `repairs>=1`, `connected=true`, medium layout background `rgb(0,0,0)`, and brand/product text `rgb(232,230,227)`.
 
 ---
 
