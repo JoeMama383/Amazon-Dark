@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.0.14 — static v185-style theme / persistent OLED floors
+ * AmazonDark v7.101 — static v7 theme + isolated v6.0.185 standalone-ad donor
  *
  * Retained from v6.0.185:
  *   - Settings bundle/preferences and preference domain
@@ -9,14 +9,14 @@
  *   - SpringBoard launch cover / transition / custom artwork (AmazonDarkSB)
  *   - Sileo/package metadata and artwork
  *
- * Removed:
- *   - Dark Reader and its runtime bundle
+ * Main-app architecture removed:
+ *   - App-wide Dark Reader (v7.101 restores the verified v6.0.185 UMD only inside matched standalone-ad child frames)
  *   - Amazon native-dark weblab forcing
  *   - nav/search/symbol/border/card/Person/PDP/Home special-case theming
  *   - contrast scanners, repair queues, probes and theme MutationObservers
  *
- * The only always-on visual owner is an OLED-black FLOOR. It targets root/backing
- * surfaces, not text, glyphs, cards, borders, buttons or images.
+ * The main app remains the static v7 architecture. Standalone ad child frames that
+ * match the captured Amazon renderer families hand off to the isolated v6.0.185 donor.
  */
 
 #import <UIKit/UIKit.h>
@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.100"
+#define AD_VERSION "v7.101"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -598,14 +598,158 @@ static void ADPostReadyOnce(void);
 static void ADScheduleLaunchReadyCheck706(void);
 static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
-static const void *kADStandalone798US=&kADStandalone798US;
+static const void *kADStandalone6185US=&kADStandalone6185US;
 static NSHashTable *gADWebViews=nil;
 // v7.0.68 production: no diagnostic touch probe is installed.
+
+
+// -----------------------------------------------------------------------------
+// v7.101: v6.0.185 standalone-ad donor.
+// ADBundledDarkReaderJS() and ADWhiteTameWebJS6027() below are copied verbatim
+// from verified v6.0.185 source (Tweak.xm SHA-256 836b250b7965ab429b5f38a6f88199ec81e242683a1bb9d9e51ce4343551c0af).
+// -----------------------------------------------------------------------------
+static NSString *ADBundledDarkReaderJS(void){
+    static NSString *cached = nil;
+    static BOOL tried = NO;
+    if (tried) return cached;
+    tried = YES;
+    @try {
+        Dl_info info; static int anchor;
+        if (dladdr((const void *)&anchor, &info) && info.dli_fname){
+            NSString *dylib = @(info.dli_fname);
+            NSString *dir = [dylib stringByDeletingLastPathComponent];
+            // Theos installs BUNDLE resources to .../AmazonDark.bundle next to the dylib.
+            NSArray *cands = @[
+                [dir stringByAppendingPathComponent:@"AmazonDark.bundle/darkreader.js"],
+                [dir stringByAppendingPathComponent:@"darkreader.js"],
+                @"/var/jb/Library/Application Support/AmazonDark/darkreader.js",
+            ];
+            for (NSString *c in cands){
+                NSString *s = [NSString stringWithContentsOfFile:c encoding:NSUTF8StringEncoding error:nil];
+                if (s.length){
+                    cached = s;
+                    break;
+                }
+            }
+        }
+    } @catch(...) {}
+    return cached;
+}
+
+static NSString *gADTameWeb613 = nil;
+static NSString *ADWhiteTameWebJS6027(void){
+    if (!gP.enabled || !gP.whiteTame) return nil;
+    if (gADTameWeb613) return gADTameWeb613;
+    CGFloat s=MAX(0,MIN(100,gP.whiteTameStrength));
+    CGFloat b=1.0-(0.50*(s/100.0));
+    CGFloat a=0.50*(s/100.0);
+    gADTameWeb613 = [NSString stringWithFormat:
+        @"(function(){try{"
+         // v6.0.34: keep the v6.0.33 direct-ownership TWB baseline. Close the final
+         // canvas-card gap with one declarative/leaf-local background owner. College
+         // structural paint now belongs to the always-on dark-theme bootstrap above.
+         // No TWB scroll listener, timer, or new MutationObserver is added.
+         "var BB='brightness(%.3f) saturate(1.08)',AA='rgba(0,0,0,%.3f)';"
+         "var U=String(location.href||'').toLowerCase(),HOME=(window.top===window&&(/\\/gp\\/gw\\/ajax\\/mshop/.test(U)||/ishome(?:pageredesign)?=true/.test(U)||/istransparentnav=true/.test(U)));if(HOME&&document.documentElement)document.documentElement.setAttribute('data-ad-twb-home6033','1');"
+         "var old=document.getElementById('ad-twb6027'),old2=document.getElementById('ad-twb6029'),old3=document.getElementById('ad-twb6031'),old4=document.getElementById('ad-twb6033'),id='ad-twb6034',st=document.getElementById(id);"
+         "if(old&&old!==st&&old.parentNode)old.parentNode.removeChild(old);if(old2&&old2!==st&&old2.parentNode)old2.parentNode.removeChild(old2);if(old3&&old3!==st&&old3.parentNode)old3.parentNode.removeChild(old3);if(old4&&old4!==st&&old4.parentNode)old4.parentNode.removeChild(old4);"
+         "if(!st){st=document.createElement('style');st.id=id;(document.head||document.documentElement).appendChild(st);}"
+         "var css='html body :is(' +"
+           "'img.s-image,'+"
+           "'.s-product-image-container img,'+"
+           "'[data-component-type=s-product-image] img,'+"
+           "'[data-component-type=s-search-result] img,'+"
+           "'#dp-container img.a-dynamic-image,'+"
+           "'#ppd img.a-dynamic-image,'+"
+           "'#landingImage,'+"
+           "'#imgTagWrapperId img,'+"
+           "'.a-carousel-card img.a-dynamic-image,'+"
+           "'img.a-amazon-image,'+"
+           "'[class*=_gwm-asin-tile] img,'+"
+           "'img[class*=_np],'+"
+           "'[class*=product-image] img,'+"
+           "'img[class*=_single-creative-card],'+"
+           "'img[class*=_single-video-card],'+"
+           "'[class*=single-creative-card] img,'+"
+           "'[class*=single-video-card] img,'+"
+           "'video.vjs-tech,'+"
+           "'[class*=single-video-card] video,'+"
+           "'[class*=video-card] video,'+"
+           "'[class*=sbv-video] video,'+"
+           "'[data-component-type*=video] video' +"
+         "'):not([class*=icon]):not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store]):not([class*=sprite]){filter:'+BB+'!important;}'+"
+         // v5.446 _adHomeBgLeaf395 owns the actual leaf itself. v6.0.31 accidentally
+         // required a second matching ancestor, so NPACK/vjs variants could escape.
+         "'html[data-ad-twb-home6033] body [class*=theming-card-background],html[data-ad-twb-home6033] body .vjs-poster,html[data-ad-twb-home6033] body [class*=vjs-poster]{filter:none!important;background-blend-mode:normal!important;box-shadow:inset 0 0 0 9999px '+AA+'!important;}'+"
+         "'html body :is([class*=single-creative-card],[class*=single-video-card],[class*=video-card],[class*=theming-card]) :is([class*=theming-card-background],.vjs-poster,[class*=vjs-poster]){filter:none!important;background-blend-mode:normal!important;box-shadow:inset 0 0 0 9999px '+AA+'!important;}'+"
+         "'html[data-ad-twb-home6033] body :is([class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-tile],[class*=mosaic-container],[class*=canvas-container]) canvas,html body :is([class*=single-creative-card],[class*=single-video-card],[class*=video-card],[class*=theming-card],[class*=canvas-card],[class*=sbv-video]) canvas{filter:'+BB+'!important;}'+"
+         "'html body :is([class*=single-creative-card],[class*=single-video-card],[class*=video-card],[class*=theming-card],[class*=canvas-card],[class*=sbv-video]) [style*=background-image]{background-blend-mode:normal!important;box-shadow:inset 0 0 0 9999px '+AA+'!important;}'+"
+         // The last untamed Home hero is a _canvas-card_ whose visible painter is a
+         // solid-color canvas-container, not an IMG or background-image:url(...) leaf.
+         // An inset shadow dims only that background plane and leaves live text/art above it.
+         "'html[data-ad-twb-home6033] body [class*=canvas-card] [class*=canvas-container],html[data-ad-twb-home6033] body [class*=canvas-card][class*=canvas-container]{filter:none!important;background-blend-mode:normal!important;box-shadow:inset 0 0 0 9999px '+AA+'!important;}'+"
+         "'[data-ad-twb-before6033]::before,[data-ad-twb-after6033]::after{filter:'+BB+'!important;}'+"
+         "'html body :is(.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion],[class*=avatar],[class*=profile],[class*=merchant],[class*=seller],[class*=brand],[class*=store],[class*=logo]) img{filter:none!important;}';"
+         "if(st.textContent!==css)st.textContent=css;"
+         "function S(v){try{return String(v&&v.baseVal!==undefined?v.baseVal:(v||''));}catch(e){return '';}}"
+         "function chain(e){var p=e,d=0,c='';while(p&&d++<6){c+=' '+S(p.className)+' '+String(p.id||'')+' '+String((p.getAttribute&&p.getAttribute('data-component-type'))||'')+' '+String((p.getAttribute&&p.getAttribute('data-hook'))||'');p=p.parentElement;}return c.toLowerCase();}"
+         "function localText(e){var p=e,d=0,t='';while(p&&d++<6){var x=String(p.textContent||'').replace(/\\s+/g,' ').trim();if(x&&x.length<1200)t+=' '+x.toLowerCase();p=p.parentElement;}return t;}"
+         "function blocked(e,c,t,fo,rv){if(!fo&&e.__adGlyph)return true;if(/avatar|profile|author|reviewer|byline|merchant|seller|brand-logo|store-logo|headshot|user-image|customer-avatar|star|rating|checkbox|heart|wish|search-suggestion|recentsearch|camera|microphone|location-icon|chevron|close-icon/.test(c))return true;if(!fo&&/sprite|icon|logo/.test(c))return true;if(rv&&/sprite|icon|logo|pixel/.test(c))return true;if(/medical care|health ai|prescriptions|personal guida|fast,? free deliv|your amazon highlights|total savings|sessions streamed|keep streaming/.test(t))return true;if(/same-day|same day|pharmacy|prime video|amazon haul|whole foods|autos/.test(t)&&/nav|explore|shortcut|chip|pill|category/.test(c+t))return true;return false;}"
+         "function forced(t){return /subscribe (?:&|and) save|keep shopping for|shop previously watched|lists (?:and|&) registries|alexa for shopping|best deals on|send an amazon gift card|how can i help|returns are easy/.test(t);}"
+         "function reviewCtx(t,c){return /your reviews|what did you think of the item/.test(t)||/review-image|customer-image|review.*photo/.test(c);}"
+         "function product(e,c){var p=e,d=0;while(p&&d++<6){var asin=String((p.getAttribute&&p.getAttribute('data-asin'))||''),h=String((p.getAttribute&&p.getAttribute('href'))||''),q=S(p.className)+' '+String(p.id||'');if(asin||/asin|product|p13n|npack|cxvhz|gwm-asin|carousel-image|product-image|s-image|a-amazon-image/i.test(q)||h.indexOf('/dp/')>=0||h.indexOf('/gp/product/')>=0)return true;p=p.parentElement;}return /review-image|customer-image|review.*photo/.test(c);}"
+         // Exact donor Home probes repeatedly name NPACK/GWM/mosaic roots in addition
+         // to the obvious single-creative/video classes.
+         "function carouselFamily(s){return /single-creative-card|single-video-card|video-card|theming-card|canvas-card|sbv-video|video-js|vjs-|ape-placement|ape-wrapper|hybrid-widget-sponsored|adfeedbackmaincomponent|sponsored-products|npack-asin-card|gwm-asin-tile|gwm-tile|mosaic-container|canvas-container/i.test(s);}"
+         "function ownClass(e){return (S(e&&e.className)+' '+String(e&&e.id||'')).toLowerCase();}"
+         // Donor __AD_HEROFAST365__ protects logo/icon/sprite on the media leaf itself;
+         // it does not reject a whole image because an ancestor happens to say brand.
+         "function creativeBlocked(e,src){var c=ownClass(e),al=String((e&&e.getAttribute&&e.getAttribute('alt'))||'').toLowerCase();return /sprite|icon|logo|pixel|avatar|profile|headshot|rating|star|checkbox|heart|wish/.test(c)||/logo|pixel|placeholder|spacer|blank|transparent/.test(src)||/\\b(?:logo|avatar|profile)\\b/.test(al);}"
+         // v6.0.128: exact v5.446 _adBgPlacement365 policy. The four-parent check is
+         // bounded and only prevents TWB from claiming structural ad backgrounds.
+         "function adPlacement(e){try{var p=e,d=0;while(p&&d++<4){var c=S(p.className),id=String(p.id||''),cw=String((p.getAttribute&&p.getAttribute('data-cel-widget'))||'');if(/ape-placement|ape-wrapper|adfeedbackmaincomponent|ad-slot|adslot/i.test(c+' '+id+' '+cw))return true;if(p.getElementsByTagName&&p.getElementsByTagName('iframe').length&&p.getBoundingClientRect().width>240)return true;p=p.parentElement;}return false;}catch(x){return false;}}"
+         "function paintBg(e){try{if(!e||e.nodeType!==1)return 0;if(e.__adTWBBg6176Parent===e.parentElement&&(e.hasAttribute('data-ad-twb-bg6033')||e.hasAttribute('data-ad-twb-before6033')||e.hasAttribute('data-ad-twb-after6033')))return 0;if(e.closest&&e.closest('[data-ad-college6034]'))return 0;if(adPlacement(e))return 0;var r=e.getBoundingClientRect();if(r.width<32||r.height<32)return 0;var c=ownClass(e);if(/sprite|icon|logo|pixel|avatar|profile/.test(c))return 0;var cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none'),known=/theming-card-background|vjs-poster/.test(c),solidCanvas=HOME&&/canvas-container/.test(c)&&e.closest&&e.closest('[class*=canvas-card]'),n=0;if(known||solidCanvas||bi.indexOf('url(')>=0){e.style.setProperty('filter','none','important');e.style.setProperty('background-blend-mode','normal','important');e.style.setProperty('box-shadow','inset 0 0 0 9999px '+AA,'important');e.setAttribute('data-ad-twb-bg6033','1');n++;}try{var bf=getComputedStyle(e,'::before'),af=getComputedStyle(e,'::after');if(String(bf.backgroundImage||'none').indexOf('url(')>=0){e.setAttribute('data-ad-twb-before6033','1');n++;}if(String(af.backgroundImage||'none').indexOf('url(')>=0){e.setAttribute('data-ad-twb-after6033','1');n++;}}catch(px){}if(n)e.__adTWBBg6176Parent=e.parentElement;return n;}catch(x){return 0;}}"
+         "function creativeMedia(e){try{if(!e||e.nodeType!==1)return 0;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return 0;var src=String(e.currentSrc||e.src||e.poster||'').toLowerCase(),sig=mode+'|'+BB+'|'+String(innerWidth||0)+'x'+String(innerHeight||0)+'|'+src;if(e.__adTWBMedia6176===sig&&e.__adTWBMedia6176Parent===e.parentElement&&e.getAttribute('data-ad-twb6033')==='1')return 0;var r=e.getBoundingClientRect(),nw=(tg==='VIDEO'?(e.videoWidth||0):(e.naturalWidth||0)),nh=(tg==='VIDEO'?(e.videoHeight||0):(e.naturalHeight||0));if(creativeBlocked(e,src)||!((r.width>=32&&r.height>=32)||(nw>=32&&nh>=32)))return 0;if(mode==='productad'||mode==='standalone'){var W=innerWidth||390,H=innerHeight||700,full=(r.width>W*.64&&r.height>H*.55)||(r.width*r.height>W*H*.58);if(full&&tg!=='VIDEO'){e.style.removeProperty('filter');e.removeAttribute('data-ad-twb6033');return 0;}}e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6033','1');e.__adTWBMedia6176=sig;e.__adTWBMedia6176Parent=e.parentElement;return 1;}catch(x){return 0;}}"
+         // Card-local equivalent of the donor hero/Home scans. It is bounded and runs
+         // only when that card itself loads/changes; no page-wide or scroll-time recovery.
+         "function adRoot(root){try{if(!root||root.nodeType!==1)return 0;var now=Date.now();if(root.__adTWB6055Stamp&&now-root.__adTWB6055Stamp<220)return 0;root.__adTWB6055Stamp=now;var A=[root],n=0,Q=root.querySelectorAll?root.querySelectorAll('img,video,canvas,[class*=theming-card-background],[class*=vjs-poster],[class*=canvas-container],[style*=background-image]'):[];for(var i=0;i<Q.length&&A.length<36;i++)A.push(Q[i]);for(var j=0;j<A.length;j++){var e=A[j],tg=String(e.tagName||'').toUpperCase();if(tg==='IMG'||tg==='VIDEO'||tg==='CANVAS')n+=creativeMedia(e);else n+=paintBg(e);}return n;}catch(x){return 0;}}"
+         "function tameBgChain(e,c){try{if(!e)return;var p=e,d=0,ctx=c||'';while(p&&d++<6){var pc=S(p.className)+' '+String(p.id||''),fam=(mode==='hero')||carouselFamily(ctx+' '+pc);if(fam)paintBg(p);ctx+=' '+pc;p=p.parentElement;}}catch(x){}}"
+         "var mode=(function(){try{if(window.top===window)return 'main';var u=String(document.referrer||'').toLowerCase();if(u.indexOf('/dp/')>=0||u.indexOf('/gp/aw/d/')>=0||u.indexOf('/gp/product/')>=0||u.indexOf('/s?')>=0||u.indexOf('/search')>=0||u.indexOf('?k=')>=0||u.indexOf('&k=')>=0||u.indexOf('field-keywords=')>=0)return 'productad';return ((innerHeight||0)<180||((innerWidth||1)/(innerHeight||1))>2.25)?'standalone':'hero';}catch(e){return 'main';}})();"
+         "function tame(e){try{if(!e||e.nodeType!==1)return;var tg=String(e.tagName||'').toUpperCase();if(tg!=='IMG'&&tg!=='VIDEO'&&tg!=='CANVAS')return;var src=String(e.currentSrc||e.src||e.poster||'').toLowerCase(),sig=mode+'|'+BB+'|'+String(innerWidth||0)+'x'+String(innerHeight||0)+'|'+src;if(e.__adTWBMedia6176===sig&&e.__adTWBMedia6176Parent===e.parentElement&&e.getAttribute('data-ad-twb6033')==='1')return;var r=e.getBoundingClientRect();if(r.width<2||r.height<2)return;var c=chain(e),t=localText(e),fo=forced(t),rv=reviewCtx(t,c),pr=product(e,c),hf=carouselFamily(c);if(mode==='hero')tameBgChain(e,c);if((hf?creativeBlocked(e,src):blocked(e,c,t,fo,rv))||/pixel|placeholder|spacer|blank|transparent/.test(src))return;var W=innerWidth||390,H=innerHeight||700,nw=(tg==='VIDEO'?(e.videoWidth||0):(e.naturalWidth||0)),nh=(tg==='VIDEO'?(e.videoHeight||0):(e.naturalHeight||0)),ok=false;if(mode==='productad'||mode==='standalone'){var full=(r.width>W*.64&&r.height>H*.55)||(r.width*r.height>W*H*.58);if(full&&tg!=='VIDEO'){e.style.removeProperty('filter');e.removeAttribute('data-ad-twb6033');return;}ok=(r.width>=26&&r.height>=26)||(nw>=26&&nh>=26);}else if(mode==='hero'||hf){ok=(r.width>=32&&r.height>=32)||(nw>=32&&nh>=32);}else{if(rv&&tg!=='IMG')return;var mn=(pr||fo||rv)?24:56;ok=(r.width>=mn&&r.height>=mn)||(nw>=mn&&nh>=mn);}if(!ok)return;e.style.setProperty('filter',BB,'important');e.setAttribute('data-ad-twb6033','1');e.__adTWBMedia6176=sig;e.__adTWBMedia6176Parent=e.parentElement;}catch(x){}}"
+         // Piggyback target for the already-existing v6.0.15 ad-island observer.
+         "window.__AD_TWB6033_ADROOT__=adRoot;"
+         "function ev(x){try{tame(x.target);}catch(e){}}"
+         "document.addEventListener('load',ev,true);document.addEventListener('loadedmetadata',ev,true);document.addEventListener('loadeddata',ev,true);document.addEventListener('canplay',ev,true);document.addEventListener('playing',ev,true);"
+         // One bounded initial/BFCache pass catches already-complete media. The only
+         // pass remains media-only; the existing v6.0.15 ad observer invokes adRoot for lazy cards.
+         "function once(){try{var tags=['img','video','canvas'],budget=420;for(var ti=0;ti<tags.length&&budget>0;ti++){var Q=document.getElementsByTagName(tags[ti]);for(var i=0;i<Q.length&&budget-- >0;i++)tame(Q[i]);}}catch(e){}}"
+         "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',once,{once:true});else once();"
+         "window.addEventListener('pageshow',once,{passive:true});"
+         "window.__AD_TWB6027_INSTALLED__=1;window.__AD_TWB6029_INSTALLED__=1;window.__AD_TWB6030_INSTALLED__=1;window.__AD_TWB6031_INSTALLED__=1;window.__AD_TWB6033_INSTALLED__=1;window.__AD_TWB6034_INSTALLED__=1;window.__AD_TWB6033_MODE__=mode;"
+         "}catch(e){}})();", b, a];
+    return gADTameWeb613;
+}
+
+static NSString *ADStandalone6185Bootstrap(void){
+    NSString *dr=ADBundledDarkReaderJS();
+    if(!dr.length)return nil;
+    NSString *twb=ADWhiteTameWebJS6027() ?: @"";
+    return [NSString stringWithFormat:
+        @"(function(){try{if(window.top===window)return;"
+         "function ad6185(){try{return !!document.querySelector('[data-size-str=\"320x50\"],[data-size-str=\"414x125\"],[data-testid=renderer-factory-ad-container],[data-testid=ad-background-container],#dynamic-bb');}catch(_){return false;}}"
+         "function boot6185(){try{if(window.__AD_STANDALONE6185__||!ad6185())return;window.__AD_STANDALONE6185__=1;if(document.documentElement){document.documentElement.setAttribute('data-ad6185-standalone','1');document.documentElement.style.removeProperty('--ad7-twb-factor');document.documentElement.style.removeProperty('background-color');document.documentElement.style.removeProperty('color-scheme');}if(document.body){document.body.style.removeProperty('background-color');document.body.style.removeProperty('color-scheme');}try{var v7s=document.getElementById('ad7-static-theme');if(v7s&&v7s.parentNode)v7s.parentNode.removeChild(v7s);var v7t=document.getElementById('ad7-twb-static');if(v7t&&v7t.parentNode)v7t.parentNode.removeChild(v7t);}catch(_v7){}"
+         "%@\n"
+         "if(window.DarkReader&&DarkReader.enable){try{DarkReader.setFetchMethod(window.fetch);}catch(_){}DarkReader.enable({mode:1,brightness:100,contrast:100,sepia:0,grayscale:0,darkSchemeBackgroundColor:'#181a1b',darkSchemeTextColor:'#e8e6e3',styleSystemControls:true},{css:'img,picture,video,canvas,svg{filter:none !important;opacity:1 !important;mix-blend-mode:normal !important;isolation:auto !important;}[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback]{background-color:transparent !important;border-color:transparent !important;box-shadow:none !important;outline-color:transparent !important;}',invert:[],ignoreInlineStyle:['[data-ad-native615]','[data-ad-native615] *','[class*=ape-wrapper]','[class*=ape-placement]','[class*=ape-feedback]','[class*=ape-feedback] *'],ignoreImageAnalysis:['*'],disableStyleSheetsProxy:false});}"
+         "%@"
+         "}catch(_){}}"
+         "if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',boot6185,{once:true});window.addEventListener('load',boot6185,{once:true});}else boot6185();window.addEventListener('pageshow',boot6185,{passive:true});"
+         "}catch(_){}})();",dr,twb];
+}
 
 static NSString *ADFloorJS(void){
     // v7.0.14: static v185-style palette. CSS only: no Dark Reader, no observer,
     // no computed-style repair walker. Own known structural shells; preserve media/art.
-    return @"(function(){try{var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement){document.documentElement.setAttribute('data-ad7-child-frame','1');try{var ref=String(document.referrer||'').toLowerCase();var productish=/\\/dp\\/|\\/gp\\/product\\/|\\/gp\\/aw\\/d\\/|\\/s(?:[\\/?]|$)|[?&]k=/.test(ref);if(!productish)document.documentElement.setAttribute('data-ad7-standalone-candidate','1');}catch(__){}}var id='ad7-static-theme',s=document.getElementById(id);"
+    return @"(function(){try{var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement)document.documentElement.setAttribute('data-ad7-child-frame','1');var id='ad7-static-theme',s=document.getElementById(id);"
             "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
             "s.textContent='"
             /* Root/page floors: immediate OLED canvas. */
@@ -857,86 +1001,6 @@ static NSString *ADFloorJS(void){
             "[data-csa-c-painter=amazon-shopping-guides-quad-card-cards] [class*=_colored-background_]"
             "{background:#000!important;background-color:#000!important;border-color:#000!important;"
             "outline-color:#000!important;box-shadow:none!important;transition-property:none!important;}"
-            /* v7.0.46: standalone ad dark surface. Classification is O(1) at
-             * documentStart from child-frame/referrer state; viewport geometry is
-             * handled declaratively by the media query, so there is no DOM scan,
-             * observer, timer, or per-node classifier. Product/Search child frames
-             * are excluded by the referrer gate. */
-            "@media (max-height:260px) and (min-aspect-ratio:5/3){"
-            "html[data-ad7-standalone-candidate],html[data-ad7-standalone-candidate] body"
-            "{background:#000!important;background-color:#000!important;color:#e8e6e3!important;}"
-            "html[data-ad7-standalone-candidate] :is(div,section,article,main,header,footer,ul,ol,li)"
-            "{background-color:transparent!important;border-color:#3b4043!important;}"
-            "html[data-ad7-standalone-candidate] :is(h1,h2,h3,h4,h5,h6,p,span,a,strong,small,b,em,label)"
-            ":not([class*=badge]):not([class*=deal]):not([class*=coupon])"
-            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
-            ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
-            ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
-            ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *))"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            "html[data-ad7-standalone-candidate] :is(img,picture,video,canvas,svg)"
-            "{background-color:transparent!important;}"
-            "}"
-            /* v7.93: standalone dynamic-product ad ownership from the v7.92
-             * current-viewport probe. These APE child creatives are a separate
-             * m.media-amazon.com frame and the captured 430x358 renderer is not
-             * covered by the old wide/short @media lane above. Anchor only to the
-             * ad renderer's own data-is-ad/data-testid semantics so ordinary child
-             * documents stay untouched. Structural floor becomes OLED black;
-             * neutral primary copy becomes v185 primary ink and Amazon's genuinely
-             * secondary neutral copy becomes subdued gray. Blue/colored accents,
-             * Prime artwork and rating stars are intentionally not recolored. */
-            "html[data-ad7-standalone-candidate] :is(body,#ad,section[data-is-ad=true],[data-testid=ad-background-container])"
-            "{background:#000!important;background-color:#000!important;color:#e8e6e3!important;}"
-            "html[data-ad7-standalone-candidate] [data-testid=ad-background-container]"
-            "{background:#000!important;background-color:#000!important;background-image:none!important;"
-            "border-color:#3b4043!important;outline-color:#3b4043!important;box-shadow:none!important;}"
-            /* The captured renderer owns a left text gradient and a right product
-             * plate as the two direct children. Kill only those floor paints; do
-             * not blanket-clear nested badges or accent components. */
-            "html[data-ad7-standalone-candidate] [data-testid=ad-background-container] > div"
-            "{background:#000!important;background-color:#000!important;background-image:none!important;}"
-            /* v7.95: compact REC/renderer-factory lane from the v7.94 probe.
-             * The captured 430x130 child frame uses modern-414x125-layout-container
-             * with an Amazon #d5d9d9 border and dark navy product copy. Own paint
-             * only: no width/height/margin/padding/radius/display/flex changes. */
-            "html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] "
-            "[data-testid^=modern-][data-testid$=-layout-container]"
-            "{background:#000!important;background-color:#000!important;border-color:#3b4043!important;"
-            "outline-color:#3b4043!important;box-shadow:none!important;}"
-            "html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] "
-            ":is([data-id=brand-name-text],[data-id=product-name-text],[data-testid=ratings-value],"
-            "[data-testid=formatted-price],[data-testid=formatted-price] *)"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            "html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] "
-            ":is([data-testid=ratings-review-count],[data-testid=full-price])"
-            "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
-            /* Primary standalone-ad copy. */
-            "html[data-ad7-standalone-candidate] [data-testid=brand-product-description] p,"
-            "html[data-ad7-standalone-candidate] [data-testid=ratings-value],"
-            "html[data-ad7-standalone-candidate] [data-testid=price-container] :is(div,span)"
-            ":not([data-testid=full-price]):not([data-testid=prime-badge])"
-            ":not(:where([data-testid=prime-badge] *)),"
-            "html[data-ad7-standalone-candidate] [data-testid=sns-coupon-badge-container] :is(div,span,p),"
-            "html[data-ad7-standalone-candidate] [data-testid=ad-background-container] "
-            ":is(p,span,div,a,small,strong,b)[style*=\"color: rgb(15, 17, 17)\"]"
-            ":not(:where([data-testid=ratings-stars] *)):not(:where([data-testid=prime-badge] *)),"
-            "html[data-ad7-standalone-candidate] [data-testid=ad-background-container] "
-            ":is(p,span,div,a,small,strong,b)[style*=\"color: black\"]"
-            ":not(:where([data-testid=ratings-stars] *)):not(:where([data-testid=prime-badge] *))"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* Secondary neutral metadata: review count and struck list price. */
-            "html[data-ad7-standalone-candidate] [data-testid=ratings-review-count],"
-            "html[data-ad7-standalone-candidate] [data-testid=full-price],"
-            "html[data-ad7-standalone-candidate] [data-testid=ad-background-container] "
-            ":is(p,span,div,a,small,strong,b)[style*=\"color: rgb(86, 89, 89)\"],"
-            "html[data-ad7-standalone-candidate] [data-testid=ad-background-container] "
-            ":is(p,span,div,a,small,strong,b)[style*=\"color:#565959\"]"
-            "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
-            /* Keep the product-photo lane structurally black; TWB owns only the
-             * actual raster leaf in ADTWBJS below. */
-            "html[data-ad7-standalone-candidate] :is([data-testid*=product-picture],[data-testid*=product-image],[data-testid*=asin-image],picture)"
-            "{background-color:transparent!important;box-shadow:none!important;}"
             /* v7.0.50: Sponsored TEXT remains Amazon-owned. Glyph paint is synced
              * separately from the label's computed color by a tiny event-driven JS
              * helper below; no fixed Sponsored text color exists in this sheet. */
@@ -946,19 +1010,12 @@ static NSString *ADFloorJS(void){
             "picture,img,video,canvas,#imgTagWrapperId,.s-product-image-container,[data-component-type=s-product-image],"
             "[class*=image-wrapper],[class*=img-wrapper],[class*=image-container],[class*=product-image],[class*=asin-image]"
             "{background-color:transparent!important;}"
-            /* Narrow standalone APE structural owner retained by the later 6.x/v185 lineage.
-             * Placement chrome only; no Sponsored text/glyph/media ownership. */
+            // Keep the probe-proven v6.0.133 APE floor ownership. This is not the
+            // 6.0.134+ ancestor clearer: only Amazon's known APE placement chrome is
+            // transparent so the already-dark page floor shows through.
             "[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback]"
-            "{background-color:transparent!important;border-color:transparent!important;"
-            "outline-color:transparent!important;box-shadow:none!important;}"
-            "iframe[id*=ape_],iframe[class*=ape_]"
-            "{background-color:transparent!important;border-color:transparent!important;"
-            "outline-color:transparent!important;}"
-            /* v7.100: 320x50 safe-frame has no inner REC border. Amazon already
-             * allocates a 1px transparent border on the exact mshop placement;
-             * change only that existing color, preserving width/radius/geometry. */
-            ".ape-placement[id^=ape_gateway_][id$=_mshop_placement][style*=\"320 / 50\"]"
-            "{border-color:#3b4043!important;outline-color:#3b4043!important;}"
+            "{background-color:transparent !important;border-color:transparent !important;"
+            "box-shadow:none !important;outline-color:transparent !important;}"
             /* v7.0.73: suppress Amazon's persistent keyboard-focus ring on the
              * Sponsored feedback trigger. Amazon's own ad-feedback CSS applies a
              * rounded 3px outline to the focused Sponsored text control; after the
@@ -1094,7 +1151,7 @@ static NSString *ADFloorJS(void){
             /* v7.95: compact REC child frames can discard the early style
              * node while their document parser/renderer finishes. Re-attach the
              * same sheet once at load; no scan, timer, observer or geometry work. */
-            "function ad7RelinkStatic(){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}"
+            "function ad7RelinkStatic(){try{if(document.documentElement&&document.documentElement.hasAttribute('data-ad6185-standalone'))return;if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}"
             "if(document.readyState==='loading')window.addEventListener('load',ad7RelinkStatic,{once:true});else ad7RelinkStatic();"
             /* v7.0.72 Sponsored feedback semantic completion.
              * Keeps the v7.0.70 static Amazon-class renderer lock, but fixes the
@@ -1136,87 +1193,6 @@ static NSString *ADFloorJS(void){
             "document.documentElement.style.setProperty('color-scheme','dark','important');"
             "if(document.body){document.body.style.setProperty('background-color','#000','important');document.body.style.setProperty('color-scheme','dark','important');}"
             "}catch(e){}})();";
-}
-
-static NSString *ADStandalone798JS(void){
-    /* v7.98: standalone-ad paint-only backstop, injected at documentEnd.
-     * Do NOT fold this into the existing Home border sheet: the point is to leave
-     * every current border owner untouched and add one exact rule for the APE
-     * standalone renderer after Amazon's child document has finished constructing.
-     * This also avoids the v7.94/7.96 failure mode where the early static style node
-     * is absent while the inline OLED html/body backing survives. */
-    return @"(function(){try{if(window.top===window)return;var h=document.documentElement;if(!h)return;"
-           "var ref=String(document.referrer||'').toLowerCase();"
-           "var productish=/\\/dp\\/|\\/gp\\/product\\/|\\/gp\\/aw\\/d\\/|\\/s(?:[\\/?]|$)|[?&]k=/.test(ref);"
-           "if(productish)return;h.setAttribute('data-ad798-standalone','1');"
-           "var id='ad7-standalone-798',st=document.getElementById(id);if(st)return;"
-           "st=document.createElement('style');st.id=id;st.textContent='"
-           /* OLED floor: own the child ad canvas plus the exact Responsive eCommerce
-            * and dynamic-product renderer surfaces. */
-           "html[data-ad798-standalone],html[data-ad798-standalone] body,"
-           "html[data-ad798-standalone] #ad,html[data-ad798-standalone] #ad > div,"
-           "html[data-ad798-standalone] [data-testid=renderer-factory-ad-container],"
-           "html[data-ad798-standalone] [data-testid=renderer-factory-ad-container] [data-testid=main-content],"
-           "html[data-ad798-standalone] [data-testid=renderer-factory-ad-container] [data-testid^=modern-][data-testid$=-layout-container],"
-           "html[data-ad798-standalone] [data-testid=ad-background-container]"
-           "{background:#000!important;background-color:#000!important;}"
-           /* v7.100: the 320x50 REC probe exposed a dedicated absolute white
-            * backplane under #ad (z-index:-2). It is the floor, not creative
-            * media. Paint that one plane OLED without touching grid geometry. */
-           "html[data-ad798-standalone] #ad [style*=\"z-index:-2\"]"
-           "{background:#000!important;background-color:#000!important;}"
-           /* New standalone border rule. Color only: Amazon retains existing width,
-            * style, radius, box geometry, iframe geometry and hit target. */
-           "html[data-ad798-standalone] [data-testid=renderer-factory-ad-container] [data-testid^=modern-][data-testid$=-layout-container],"
-           "html[data-ad798-standalone] [data-testid=ad-background-container]"
-           "{border-color:#3b4043!important;outline-color:#3b4043!important;}"
-           /* The large renderer probe identified two direct structural paint planes.
-            * They are floors, not media; keep product pixels/Prime/deal artwork stock. */
-           "html[data-ad798-standalone] [data-testid=ad-background-container] > div"
-           "{background:#000!important;background-color:#000!important;background-image:none!important;}"
-           /* v7.100: exact 320x50 AdaptiveRenderer buy-box copy. The probe
-            * exposes product-description as primary ink and sns-disc as secondary
-            * metadata; both carry stock rgb(15,17,17) inline paint. */
-           "html[data-ad798-standalone] #dynamic-bb [data-testid=product-description]"
-           "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-           "html[data-ad798-standalone] #dynamic-bb [data-acei-id=sns-disc]"
-           "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
-           /* TWB backstop for standalone media. The document-start TWB script
-            * writes --ad7-twb-factor inline on <html>; that survives the renderer
-            * replacing style nodes. Missing/off TWB falls back to brightness(1). */
-           "html[data-ad798-standalone] #dynamic-bb [data-acei-id=lfstyl-img] :is(img,video,canvas),"
-           "html[data-ad798-standalone] [data-testid=renderer-factory-ad-container] "
-           ":is([data-testid=image],[data-acei-id=lfstyl-img]) :is(img,video,canvas),"
-           "html[data-ad798-standalone] :is([data-testid*=product-picture],[data-testid*=product-image],[data-testid*=asin-image]) :is(img,video,canvas)"
-           "{filter:brightness(var(--ad7-twb-factor,1))!important;}"
-           /* Primary header/product/price ink. Includes the exact dark navy inline
-            * color captured by the compact probe. Red deal ink, orange stars and
-            * blue Prime are not neutral, so these selectors do not touch them. */
-           "html[data-ad798-standalone] [data-testid=renderer-factory-ad-container] "
-           ":is([data-id=brand-name-text],[data-id=product-name-text],[data-testid=ratings-value],"
-           "[data-testid=formatted-price],[data-testid=formatted-price] *),"
-           "html[data-ad798-standalone] [data-testid=renderer-factory-ad-container] "
-           ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(0, 0, 17)\\\"],"
-           "html[data-ad798-standalone] [data-testid=renderer-factory-ad-container] "
-           ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(15, 17, 17)\\\"],"
-           "html[data-ad798-standalone] [data-testid=brand-product-description] p,"
-           "html[data-ad798-standalone] [data-testid=price-container] :is(div,span)"
-           ":not([data-testid=full-price]):not([data-testid=prime-badge])"
-           ":not(:where([data-testid=prime-badge] *)),"
-           "html[data-ad798-standalone] [data-testid=ad-background-container] "
-           ":is(p,span,div,a,small,strong,b)[style*=\\\"color: rgb(15, 17, 17)\\\"]"
-           ":not(:where([data-testid=ratings-stars] *)):not(:where([data-testid=prime-badge] *))"
-           "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-           /* Secondary neutral metadata. */
-           "html[data-ad798-standalone] [data-testid=renderer-factory-ad-container] "
-           ":is([data-testid=ratings-review-count],[data-testid=full-price]),"
-           "html[data-ad798-standalone] [data-testid=renderer-factory-ad-container] "
-           ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(86, 89, 89)\\\"],"
-           "html[data-ad798-standalone] [data-testid=ad-background-container] "
-           ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(86, 89, 89)\\\"]"
-           "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
-           "';(document.head||h).appendChild(st);"
-           "}catch(e){}})();";
 }
 
 static NSString *ADTWBJS(void){
@@ -1263,39 +1239,12 @@ static NSString *ADTWBJS(void){
           * A recycled hero can hydrate from IMG into VIDEO/CANVAS after the first
           * viewport visit. Keep the lane declarative so any replacement leaf is
           * tamed immediately with no observer, scan or scroll repair. */
-         "html[data-ad7-twb-child=\"1\"]:not([data-ad7-standalone-candidate]) :is(img,video,canvas)"
+         "html[data-ad7-twb-child=\"1\"]:not([data-ad6185-standalone]) :is(img,video,canvas)"
          ":not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller])"
          ":not([class*=rating]):not([class*=star]):not([class*=checkbox]):not([class*=heart]):not([class*=wishlist])"
          ":not([class*=search-icon]):not([class*=microphone]):not([class*=camera]):not([class*=location])"
          ":not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon]):not([class*=header-icon]):not([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr]):not([class*=sprite]):not([class*=pixel])"
          ":not([class*=icon]):not([class*=glyph]):not([class*=badge])"
-         ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
-         ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),"
-         /* v7.93: standalone dynamic-product ads get TWB on the product raster
-          * only. The v7.92 probe exposed simple-product-picture as the dedicated
-          * product-photo host; excluding the generic child-frame lane above keeps
-          * logos, Prime artwork, orange stars and all other creative accents at
-          * stock intensity. */
-         "html[data-ad7-standalone-candidate] "
-         ":is([data-testid*=product-picture],[data-testid*=product-image],[data-testid*=asin-image]) "
-         ":is(img,video,canvas)"
-         ":not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge])"
-         ":not(:where([data-testid=ratings-stars] *)):not(:where([data-testid=prime-badge] *)),"
-         /* v7.95: compact renderer-factory ads expose the actual creative raster
-          * under data-testid=image / data-acei-id=lfstyl-img rather than the
-          * large renderer's product-picture names. Filter only that media leaf;
-          * the surrounding REC geometry and text remain untouched. */
-         "html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] "
-         ":is([data-testid=image],[data-acei-id=lfstyl-img]) :is(img,video,canvas)"
-         ":not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge]),"
-         /* v7.100: 320x50 AdaptiveRenderer uses #dynamic-bb plus lfstyl-img
-          * without renderer-factory-ad-container. Own only that raster leaf. */
-         "html[data-ad7-standalone-candidate] #dynamic-bb [data-acei-id=lfstyl-img] :is(img,video,canvas)"
-         ":not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge]),"
-         /* Main-document standalone ad media if Amazon renders it outside the iframe. */
-         "#gwm-Deck-btf :is([class*=mobile-mshop-ad],[class*=mobile-ad-container],[class*=ape-wrapper],[class*=ape-placement]) "
-         ":is(img,video,canvas)"
-         ":not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge])"
          ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
          ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),"
          /* Seasonal mosaic media + image/SVG artwork.
@@ -1347,12 +1296,12 @@ static NSString *ADTWBJS(void){
          ":is([class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=_npack-asin-card],[class*=npack-asin-card],[class*=canvas-card],[class*=canvas-container]) "
          ":is([style*=\"background-image\"],[style*=\"backgroundImage\"])"
          ":not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=badge]):not([class*=chevron]),"
-         "html[data-ad7-twb-child=\"1\"] :is([class*=theming-card-background],[class*=vjs-poster],[class*=single-creative-card-background],[class*=single-video-card-background])"
+         "html[data-ad7-twb-child=\"1\"]:not([data-ad6185-standalone]) :is([class*=theming-card-background],[class*=vjs-poster],[class*=single-creative-card-background],[class*=single-video-card-background])"
          "{box-shadow:inset 0 0 0 9999px rgba(0,0,0,%.3f)!important;transition-property:none!important;}"
          "';"
          /* v7.95: the same compact REC frame retained data-ad7-twb-child but
           * lost the early ad7-twb-static node. Re-attach it once at load. */
-         "function ad7RelinkTWB(){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}"
+         "function ad7RelinkTWB(){try{if(document.documentElement&&document.documentElement.hasAttribute('data-ad6185-standalone'))return;if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}"
          "if(document.readyState==='loading')window.addEventListener('load',ad7RelinkTWB,{once:true});else ad7RelinkTWB();"
          "}catch(e){}})();",factor,factor,shade];
 }
@@ -1387,10 +1336,13 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADFloorUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
-        if(!objc_getAssociatedObject(ucc,kADStandalone798US)){
-            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADStandalone798JS() injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:NO];
-            [ucc addUserScript:us];
-            objc_setAssociatedObject(ucc,kADStandalone798US,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        if(!objc_getAssociatedObject(ucc,kADStandalone6185US)){
+            NSString *legacy=ADStandalone6185Bootstrap();
+            if(legacy.length){
+                WKUserScript *us=[[WKUserScript alloc] initWithSource:legacy injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+                [ucc addUserScript:us];
+                objc_setAssociatedObject(ucc,kADStandalone6185US,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            }
         }
         if(gP.whiteTame && !objc_getAssociatedObject(ucc,kADTWBUS)){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADTWBJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
@@ -1448,7 +1400,7 @@ static void ADApplyAllFloors(void){
     %orig;
     if(gP.enabled){
         objc_setAssociatedObject(self,kADFloorUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(self,kADStandalone798US,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(self,kADStandalone6185US,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADTWBUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADAttachScriptsToUCC710(self);
     }

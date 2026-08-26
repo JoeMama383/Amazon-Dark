@@ -1,3 +1,7 @@
+# AmazonDark v7.101
+
+Replaces the v7.46-v7.100 standalone-ad paint/TWB implementation with the exact v6.0.185 donor Dark Reader resource and donor TWB runtime inside the probe-proven standalone APE/REC child renderers. Current standalone Sponsored text/glyph ownership is preserved unchanged.
+
 # AmazonDark v7.100 — standalone renderer lifecycle + 320x50 REC repair
 
 - Direct production base: v7.98. v7.99 probe runtime is not shipped.
