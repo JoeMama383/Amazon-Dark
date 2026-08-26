@@ -1,3 +1,12 @@
+# AmazonDark v7.99~probe — ultra-compact + medium standalone-ad viewport inventory
+
+- Direct production base: v7.98. Production theming, v7.98 standalone paint, TWB, Sponsored text/glyph, Disney and all Home borders are unchanged.
+- Manual SIGUSR2 one-shot probe only. Amazon writes to its own Documents sandbox; NewTerm exports afterward.
+- Current visible viewport only. Visible child frames receive one bounded postMessage snapshot request.
+- Intended two-run use: (1) the extra-compact white-floor standalone banner, then (2) a medium standalone ad whose large/header text is missing.
+- Captures frame/referrer/viewport, explicit AmazonDark marker/style presence, visible element paint/geometry/attributes, candidate-local descendants and matching CSS rules.
+- No MutationObserver, scroll listener, interval, RAF, auto-tap, auto-scroll, or production visual modification.
+
 # AmazonDark v7.98 — standalone ad border/floor/header correction
 
 - Direct base: v7.96. The discarded v7.97 branch is not carried forward.
