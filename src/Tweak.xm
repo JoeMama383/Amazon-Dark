@@ -1,5 +1,5 @@
 /*
- * AmazonDark v8.0.0 privacy experiment — v7.95 visual baseline + passive privacy instrumentation
+ * AmazonDark v7.0.14 — static v185-style theme / persistent OLED floors
  *
  * Retained from v6.0.185:
  *   - Settings bundle/preferences and preference domain
@@ -13,18 +13,16 @@
  *   - Dark Reader and its runtime bundle
  *   - Amazon native-dark weblab forcing
  *   - nav/search/symbol/border/card/Person/PDP/Home special-case theming
- *   - contrast scanners, repair queues, probes and theme MutationObservers
+ *   - broad contrast scanners, repair queues and document-wide theme MutationObservers
  *
- * The only always-on visual owner is an OLED-black FLOOR. It targets root/backing
- * surfaces, not text, glyphs, cards, borders, buttons or images.
+ * The core visual owner is an OLED-black FLOOR. Later v7.x releases add only
+ * narrowly scoped renderer-specific owners where device probes establish exact targets.
  */
 
 #import <UIKit/UIKit.h>
 #import <WebKit/WebKit.h>
 #import <QuartzCore/QuartzCore.h>
 #import <CoreFoundation/CoreFoundation.h>
-#import <CoreLocation/CoreLocation.h>
-#import <AVFoundation/AVFoundation.h>
 #import <objc/runtime.h>
 #import <objc/message.h>
 #import <notify.h>
@@ -37,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v8.0.0-privacy"
+#define AD_VERSION "v7.109-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -601,9 +599,9 @@ static void ADPostReadyOnce(void);
 static void ADScheduleLaunchReadyCheck706(void);
 static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
-static const void *kADPrivacyProbeUS8000=&kADPrivacyProbeUS8000;
+static const void *kADStandalonePaintUS7104=&kADStandalonePaintUS7104;
+static const void *kADCompactStandaloneProbeUS7107=&kADCompactStandaloneProbeUS7107;
 static NSHashTable *gADWebViews=nil;
-static void ADPrivacyRecord8000(NSString *kind,NSString *detail);
 // v7.0.68 production: no diagnostic touch probe is installed.
 
 static NSString *ADFloorJS(void){
@@ -753,6 +751,26 @@ static NSString *ADFloorJS(void){
             ":not(:where([class*=mobile-mshop-ad] *)):not(:where([class*=mobile-ad-container] *))"
             ":not(:where([class*=ape-wrapper] *)):not(:where([class*=ape-placement] *))"
             "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            /* v7.107: below-fold neutral Home ink fallback. The Outlet recommendation
+             * pane can place otherwise-standard Amazon neutral text leaves outside
+             * the historical a-cardui/asin/mosaic/p13n roots, leaving product names
+             * and prices at stock #0f1111/#111 on our OLED floor. Match only known
+             * neutral Amazon text/price semantics and reject ad/creative/deal chrome. */
+            ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
+            ":is(.a-color-base,.a-text-normal,.a-size-base,.a-size-base-plus,.a-size-medium,"
+            ".a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen,"
+            "[class*=product-title],[class*=product-name],[class*=item-title])"
+            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
+            ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
+            ":not([class*=badge]):not([class*=deal]):not([class*=coupon])"
+            ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *))"
+            ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
+            ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *))"
+            ":not(:where([class*=hero] *)):not(:where([class*=single-creative] *)):not(:where([class*=single-video] *))"
+            ":not(:where([class*=theming-card] *)):not(:where([class*=creative-card] *)):not(:where([class*=ad-card] *)):not(:where([class*=canvas-card] *))"
+            ":not(:where([class*=mobile-mshop-ad] *)):not(:where([class*=mobile-ad-container] *)):not(:where(#mobile-third-party-ad *))"
+            ":not(:where([class*=ape-wrapper] *)):not(:where([class*=ape-placement] *))"
+            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
             /* v7.0.39 exact card-header ink.
              * The dashboard carousel can hydrate one header with Amazon's dark
              * inline foreground even while sibling cards are already light.
@@ -847,12 +865,20 @@ static NSString *ADFloorJS(void){
              * _YW1he_colored-background_* shell uses mix-blend-mode:darken and
              * the product IMG uses mix-blend-mode:multiply. Against our OLED card
              * floor those blend modes collapse the artwork into black until the
-             * pressed state changes compositing. Normalize compositing only; keep
-             * Amazon's dimensions, padding, positioning and product raster intact. */
+             * pressed state changes compositing. Normalize compositing only. */
             "[data-csa-c-painter=amazon-shopping-guides-quad-card-cards] [class*=_colored-background_],"
             "[data-csa-c-painter=amazon-shopping-guides-quad-card-cards] [class*=_product-image_],"
             "[data-csa-c-painter=amazon-shopping-guides-quad-card-cards] [class*=_image_]"
             "{mix-blend-mode:normal!important;isolation:auto!important;}"
+            /* v7.96: give Shopping Guides product tiles the same v185/hero
+             * product-photo plate treatment used by the seasonal NPACK hero.
+             * Amazon's _colored-background_ shell is the light #f7f7f7 contain
+             * plate visible around the actual product raster. Replace only that
+             * leftover plate with OLED black; the existing image sizing/contain,
+             * padding, radius, position and TWB raster filter are left untouched. */
+            "[data-csa-c-painter=amazon-shopping-guides-quad-card-cards] [class*=_colored-background_]"
+            "{background:#000!important;background-color:#000!important;border-color:#000!important;"
+            "outline-color:#000!important;box-shadow:none!important;transition-property:none!important;}"
             /* v7.0.46: standalone ad dark surface. Classification is O(1) at
              * documentStart from child-frame/referrer state; viewport geometry is
              * handled declaratively by the media query, so there is no DOM scan,
@@ -892,6 +918,40 @@ static NSString *ADFloorJS(void){
              * not blanket-clear nested badges or accent components. */
             "html[data-ad7-standalone-candidate] [data-testid=ad-background-container] > div"
             "{background:#000!important;background-color:#000!important;background-image:none!important;}"
+            /* v7.108: exact first-party 300x250 Swiper standalone carousel from
+             * the v7.107 device capture. v7.107 looked for the literal word
+             * "carousel", but this renderer never exposes it: the child is
+             * #ad[data-html-dimensions=300x250] -> data-testid=gridContainer ->
+             * .swiper-wrapper/.swiper-slide. Own that proven signature directly.
+             * The gridContainer is the one surviving #fff light plane; slide
+             * structure is otherwise transparent. Prime/rating-star/deal/badge
+             * accents stay Amazon-owned. */
+            "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"]"
+            "{background:#000!important;background-color:#000!important;}"
+            "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] [data-testid=gridContainer]"
+            "{background:#000!important;background-color:#000!important;background-image:none!important;}"
+            "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] "
+            ":is(div,section,article,main,header,footer,ul,ol,li)"
+            ":not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime])"
+            ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *))"
+            "{background-color:transparent!important;}"
+            "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] .swiper-slide > [class*=border-gray-]"
+            "{border-color:#3b4043!important;outline-color:#3b4043!important;box-shadow:none!important;}"
+            "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] "
+            ":is(h1,h2,h3,h4,h5,h6,p,span,a,strong,small,b,em,label,div)"
+            ":not(div:has([class*=prime],[data-testid*=prime],[class*=star],[data-testid*=star]))"
+            ":not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime]):not([class*=star])"
+            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
+            ":not([data-testid*=prime]):not([data-testid*=star])"
+            ":not(:where([data-testid*=prime] *)):not(:where([data-testid*=star] *))"
+            ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *)):not(:where([class*=star] *))"
+            ":not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
+            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] "
+            ":is(div,span,p,a,small,strong,b)[class*=sponsored],"
+            "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] "
+            ":is(div,span,p,a,small,strong,b)[data-testid*=sponsored]"
+            "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}"
             /* v7.95: compact REC/renderer-factory lane from the v7.94 probe.
              * The captured 430x130 child frame uses modern-414x125-layout-container
              * with an Amazon #d5d9d9 border and dark navy product copy. Own paint
@@ -933,9 +993,9 @@ static NSString *ADFloorJS(void){
              * actual raster leaf in ADTWBJS below. */
             "html[data-ad7-standalone-candidate] :is([data-testid*=product-picture],[data-testid*=product-image],[data-testid*=asin-image],picture)"
             "{background-color:transparent!important;box-shadow:none!important;}"
-            /* v7.0.50: Sponsored TEXT remains Amazon-owned. Glyph paint is synced
-             * separately from the label's computed color by a tiny event-driven JS
-             * helper below; no fixed Sponsored text color exists in this sheet. */
+            /* v7.106: Sponsored TEXT remains Amazon-owned. Known Sponsored glyph
+             * families are owned declaratively below; the old semantic DOM learner
+             * has been retired, so there is no Sponsored runtime selector scan. */
             /* Creative/media protection: only true media/product-image wrappers are
              * normalized. Hero/single-creative/theming/ad-card containers are excluded so
              * Amazon keeps their own campaign floor and text contrast. */
@@ -950,6 +1010,49 @@ static NSString *ADFloorJS(void){
             "iframe[id*=ape_],iframe[class*=ape_]"
             "{background-color:transparent!important;border-color:transparent!important;"
             "outline-color:transparent!important;}"
+            /* v7.109: compact 320x50 APE ownership belongs to the MAIN-FRAME wrapper,
+             * not the child creative. The v7.108 device probe proves the 398x84.19
+             * .ape-wrapper contains BOTH the 398x62.19 placement/iframe and the
+             * separate 398x20 .ape-feedback Sponsored row. The feedback row is already
+             * transparent, so it was not masking a child border; the v7.108 border was
+             * simply attached to the 396x62 child #ad and therefore ended before the
+             * Sponsored row. Draw the established 1px/8px neutral border on the exact
+             * --ad-height:50 APE wrapper so the lower edge sits beneath Sponsored. */
+            ".mobile-ad-container > .ape-wrapper[style*=\"--ad-height:50\"]"
+            "{background-color:transparent!important;box-sizing:border-box!important;"
+            "border:1px solid #3b4043!important;border-radius:8px!important;"
+            "outline:none!important;box-shadow:none!important;}"
+            /* v7.107: same rare sponsored carousel when Amazon renders the shell
+             * directly in the mshop document instead of wholly inside a child
+             * safe-frame. Scope to the already-known standalone mobile ad roots
+             * and require carousel semantics so ordinary Home carousels are not
+             * affected. */
+            ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
+            ":is([class*=mobile-mshop-ad],[class*=mobile-ad-container]):has(:is([class*=carousel],[data-testid*=carousel]))"
+            "{background:#000!important;background-color:#000!important;border-color:#3b4043!important;"
+            "outline-color:#3b4043!important;box-shadow:none!important;}"
+            ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
+            ":is([class*=mobile-mshop-ad],[class*=mobile-ad-container]):has(:is([class*=carousel],[data-testid*=carousel])) "
+            ":is(div,section,article,main,header,footer,ul,ol,li)"
+            ":not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime])"
+            ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *))"
+            "{background-color:transparent!important;}"
+            ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
+            ":is([class*=mobile-mshop-ad],[class*=mobile-ad-container]):has(:is([class*=carousel],[data-testid*=carousel])) "
+            ":is(h1,h2,h3,h4,h5,h6,p,span,a,strong,small,b,em,label)"
+            ":not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime])"
+            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
+            ":not([data-testid=prime-badge]):not(:where([data-testid=prime-badge] *))"
+            ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *))"
+            ":not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
+            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
+            ":is([class*=mobile-mshop-ad],[class*=mobile-ad-container]):has(:is([class*=carousel],[data-testid*=carousel])) "
+            ":is(span,p,a,small,strong,b)[class*=sponsored],"
+            ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
+            ":is([class*=mobile-mshop-ad],[class*=mobile-ad-container]):has(:is([class*=carousel],[data-testid*=carousel])) "
+            ":is(span,p,a,small,strong,b)[data-testid*=sponsored]"
+            "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}"
             /* v7.0.73: suppress Amazon's persistent keyboard-focus ring on the
              * Sponsored feedback trigger. Amazon's own ad-feedback CSS applies a
              * rounded 3px outline to the focused Sponsored text control; after the
@@ -1087,46 +1190,189 @@ static NSString *ADFloorJS(void){
              * same sheet once at load; no scan, timer, observer or geometry work. */
             "function ad7RelinkStatic(){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}"
             "if(document.readyState==='loading')window.addEventListener('load',ad7RelinkStatic,{once:true});else ad7RelinkStatic();"
-            /* v7.0.72 Sponsored feedback semantic completion.
-             * Keeps the v7.0.70 static Amazon-class renderer lock, but fixes the
-             * upstream miss shown by the v7.0.71 tap probe. Some Amazon feedback
-             * controls expose the row semantically as aria-label="Leave feedback
-             * on Sponsored" even when the visible text host does not use the
-             * ad-feedback-text/sponsored-label class families. Treat that semantic
-             * feedback control as a Sponsor seed, then resolve at most 16 local
-             * descendants to the exact visible Sponsored text leaf before reading
-             * its computed color. The existing tiny-glyph finder and static CSS
-             * lock then own only the adjacent glyph. No observer, timer, scroll
-             * listener, interval or RAF is used. Sponsored text is never written. */
-            "try{(function(){"
-            "if(window.__ADSPG7070__)return;window.__ADSPG7070__=1;"
-            "var LS='[class*=ad-feedback-text],[class*=sponsored-label],[id^=ad-feedback-text-],[id^=af-label-primary-link-],[aria-label^=\"Leave feedback on Sponsored\"]';"
-            "var GS='[class*=ad-feedback-spr],[class*=ad-feedback-sprite],[class*=adFeedback],[id*=feedbackIcon],[id*=feedback-icon],[class*=_sponsored-products-mo]';"
-            "var REG=window.__ADSPGR7070__||(window.__ADSPGR7070__={});"
-            "function sheet(){try{var st=document.getElementById('ad-spg-lock7070');if(st)return st;st=document.createElement('style');st.id='ad-spg-lock7070';(document.head||document.documentElement).appendChild(st);return st}catch(_){return null}}"
-            "function txt(e){try{return String(e.textContent||'').replace(/\\s+/g,' ').trim().toLowerCase()}catch(_){return ''}}"
-            "function cls(e){try{var c=e&&e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;return String(c||'')}catch(_){return ''}}"
-            "function esc(v){try{return window.CSS&&CSS.escape?CSS.escape(String(v)):String(v).replace(/[^a-zA-Z0-9_-]/g,function(ch){return '\\\\'+ch})}catch(_){return String(v||'')}}"
-            "function isL(e){if(!e||e.nodeType!==1)return false;try{var ar=String((e.getAttribute&&e.getAttribute('aria-label'))||'').toLowerCase();return e.matches(LS)&&(txt(e)==='sponsored'||txt(e)==='sponsored ad'||txt(e)==='advertisement'||ar.indexOf('leave feedback on sponsored')===0||/ad-feedback|sponsored/i.test(cls(e)+' '+String(e.id||'')))}catch(_){return false}}"
-            "function near(a,b){try{var ar=a.getBoundingClientRect(),br=b.getBoundingClientRect(),acy=ar.top+ar.height/2,bcy=br.top+br.height/2,dx=Math.max(0,Math.max(br.left-ar.right,ar.left-br.right));return dx<=30&&Math.abs(acy-bcy)<=22}catch(_){return false}}"
-            "function tinyPainter(e,l){try{if(!e||e===l||e.nodeType!==1)return false;var r=e.getBoundingClientRect();if(r.width<5||r.height<5||r.width>36||r.height>36||!near(e,l))return false;var cs=getComputedStyle(e),bi=String(cs.backgroundImage||'none'),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),tg=String(e.tagName||'').toLowerCase();return (bi&&bi!=='none')||(mi&&mi!=='none')||tg==='svg'||tg==='img'||/ad-feedback|feedback|sponsor|spr|info|icon/i.test(cls(e)+' '+String(e.id||''))}catch(_){return false}}"
-            "function glyph(l){try{var q=l.querySelector(GS+', [class*=spr]');if(q&&tinyPainter(q,l))return q;var p=l.parentElement;for(var i=0;p&&i<3;i++,p=p.parentElement){q=p.querySelector(GS);if(q&&tinyPainter(q,l))return q;var a=p.querySelectorAll('[class*=spr],[class*=_sponsored-products-mo],span,div,i,b,svg,img');for(var j=0;j<a.length&&j<40;j++)if(tinyPainter(a[j],l))return a[j]}}catch(_){}return null}"
-            "function rgba(v){var m=String(v||'').match(/rgba?\\(([^)]+)\\)/i);if(!m)return null;var a=m[1].split(',');if(a.length<3)return null;return [parseFloat(a[0]),parseFloat(a[1]),parseFloat(a[2]),a.length>3?parseFloat(a[3]):1]}"
-            "function toks(e,rex){try{var a=cls(e).trim().split(/\\s+/),o=[];for(var i=0;i<a.length&&o.length<2;i++)if(a[i]&&(!rex||rex.test(a[i])))o.push(a[i]);if(!o.length&&a[0])o.push(a[0]);return o}catch(_){return []}}"
-            "function atom(e,scope){try{if(!e||e.nodeType!==1)return '';var tag=String(e.tagName||'*').toLowerCase(),id=String(e.id||'');if(/feedbackicon/i.test(id))return tag+'[id*=feedbackIcon]';if(/feedback-icon/i.test(id))return tag+'[id*=feedback-icon]';if(scope&&/^af-label-primary-link-/.test(id))return tag+'[id^=af-label-primary-link-]';if(scope&&/^ad-feedback-/.test(id))return tag+'[id^=ad-feedback-]';var r=scope?/adfeedback|ad-feedback|sponsor|ape|gwm|npack|cxvhz|puis|asin|widget/i:/ad-feedback|feedback|sponsor|spr|icon/i,a=toks(e,r),z=tag;for(var i=0;i<a.length;i++)z+='.'+esc(a[i]);return z}catch(_){return ''}}"
-            "function common(l,g){try{var p=l.parentElement||l,b=l.parentElement||l;for(var i=0;p&&i<6;i++,p=p.parentElement){if(p.contains(g)){b=p;var sem=cls(p)+' '+String(p.id||'');if(/adfeedback|ad-feedback|sponsor|ape-feedback|gwm|npack|cxvhz|puis|asin/i.test(sem))return p}}return b}catch(_){return l.parentElement||l}}"
-            "function nthPath(h,g){try{var a=[],n=g;while(n&&n!==h&&a.length<5){var par=n.parentElement;if(!par)return '';var ix=1,c=par.firstElementChild;while(c&&c!==n){ix++;c=c.nextElementSibling}a.unshift(String(n.tagName||'*').toLowerCase()+':nth-child('+ix+')');n=par}return n===h&&a.length?' > '+a.join(' > '):''}catch(_){return ''}}"
-            "function selector(l,g){try{var h=common(l,g),hs=atom(h,true),gs=atom(g,false);if(h&&g&&h!==g&&hs){var gc=cls(g);if(gc||/feedbackicon|feedback-icon/i.test(String(g.id||'')))return hs+' '+gs;var np=nthPath(h,g);if(np)return hs+np}return gs||GS}catch(_){return GS}}"
-            "function lock(l,g,c,rv,cs,svg){try{var sel=selector(l,g),mi=String(cs.webkitMaskImage||cs.maskImage||'none'),bi=String(cs.backgroundImage||'none'),mode='color',img='',pos='0% 0%',size='auto',rep='no-repeat',flt='none';if(mi&&mi!=='none'){mode='mask';img=mi;pos=cs.webkitMaskPosition||cs.maskPosition||'0% 0%';size=cs.webkitMaskSize||cs.maskSize||'auto';rep=cs.webkitMaskRepeat||cs.maskRepeat||'no-repeat'}else if(svg){mode='svg'}else if(bi&&bi!=='none'){mode='mask';img=bi;pos=cs.backgroundPosition||'0% 0%';size=cs.backgroundSize||'auto';rep=cs.backgroundRepeat||'no-repeat'}else{var spread=Math.max(rv[0],rv[1],rv[2])-Math.min(rv[0],rv[1],rv[2]);if(spread<=8){mode='filter';var gray=(rv[0]+rv[1]+rv[2])/3/255;flt='brightness(0) invert('+gray.toFixed(5)+')'}}var key=sel+'|'+mode+'|'+c+'|'+img+'|'+pos+'|'+size+'|'+rep+'|'+flt;if(REG[key])return;REG[key]=1;var st=sheet();if(!st)return;var base=sel+'{color:'+c+'!important;opacity:'+String(isFinite(rv[3])?rv[3]:1)+'!important;visibility:visible!important;mix-blend-mode:normal!important;position:relative!important;z-index:2!important;';if(mode==='mask')base+='background-image:none!important;background-color:'+c+'!important;-webkit-mask-image:'+img+'!important;mask-image:'+img+'!important;-webkit-mask-position:'+pos+'!important;mask-position:'+pos+'!important;-webkit-mask-size:'+size+'!important;mask-size:'+size+'!important;-webkit-mask-repeat:'+rep+'!important;mask-repeat:'+rep+'!important;filter:none!important;-webkit-filter:none!important;';else if(mode==='filter')base+='filter:'+flt+'!important;-webkit-filter:'+flt+'!important;';else base+='filter:none!important;-webkit-filter:none!important;';base+='}';if(mode==='svg')base+=sel+' svg,'+sel+' path,'+sel+' use,'+sel+' circle,'+sel+' rect,'+sel+' polygon,'+sel+' polyline,'+sel+' line{color:'+c+'!important;fill:'+c+'!important;stroke:'+c+'!important;}';st.textContent+=base}catch(_){}}"
-            "function ink(l){try{var v=l.querySelector&&l.querySelector('[id^=ad-feedback-text-],[class*=ad-feedback-text]');if(v&&(txt(v)==='sponsored'||txt(v)==='sponsored ad'))return v;if(txt(l)==='sponsored'||txt(l)==='sponsored ad')return l;var a=l.querySelectorAll('span,a,div,small');for(var i=0;i<a.length&&i<16;i++){var t=txt(a[i]);if(t==='sponsored'||t==='sponsored ad')return a[i]}}catch(_){}return l}function paint(l){try{if(!isL(l))return;var li=ink(l),lc=getComputedStyle(li),c=lc.color,rv=rgba(c),g=glyph(li);if(!g||!rv)return;if(g.matches('b[class*=ad-feedback-sprite-mobile]')&&g.closest('[data-ad-feedback-label-id]'))return;if(/^ad-feedback-sprite-/.test(String(g.id||''))&&g.closest('.ape-feedback'))return;var cs=getComputedStyle(g),svg=g.matches('svg')?g:g.querySelector('svg');lock(li,g,c,rv,cs,svg)}catch(_){}}"
-            "function all(root){try{var a=(root||document).querySelectorAll(LS),n=Math.min(a.length,64);for(var i=0;i<n;i++)paint(a[i])}catch(_){}}"
-            "function local(n){try{var p=n&&n.nodeType===1?n:n&&n.parentElement;for(var i=0;p&&i<5;i++,p=p.parentElement){if(isL(p)){paint(p);return}var l=p.querySelector&&p.querySelector(LS);if(l){paint(l);return}}}catch(_){}}"
-            "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){all(document)},{once:true});else all(document);window.addEventListener('load',function(){all(document)},{once:true});window.addEventListener('pageshow',function(){all(document)},false);document.addEventListener('load',function(e){local(e.target)},true);"
-            "})();}catch(__){}"
+            /* v7.106 performance: retire the legacy semantic Sponsored glyph learner.
+             * Every currently-proven Sponsored family now has a deterministic static
+             * CSS owner above (NPACK, Hybrid, product-carousel and APE feedback).
+             * Removing the learner eliminates its document/local selector scans while
+             * preserving those current renderer-specific owners. */
             "document.documentElement.style.setProperty('background-color','#000','important');"
             "document.documentElement.style.setProperty('color-scheme','dark','important');"
             "if(document.body){document.body.style.setProperty('background-color','#000','important');document.body.style.setProperty('color-scheme','dark','important');}"
             "}catch(e){}})();";
+}
+
+// v7.106: standalone-ad shell-survival owner migrated from a DOM <style> node to
+// a document-adopted constructable stylesheet. v7.104 proved Amazon replaces HEAD/BODY
+// while preserving the Document/HTML object and also proved adoptedStyleSheets support.
+// The standalone theme therefore survives that shell swap without MutationObserver,
+// descendant scanning, polling, or geometry work.
+static NSString *ADStandalonePaintJS7104(void){
+    CGFloat strength=MAX(0,MIN(100,gP.whiteTameStrength));
+    CGFloat t=strength/100.0;
+    CGFloat shade=0.10+(0.48*t);
+    CGFloat factor=1.0-shade;
+    return [NSString stringWithFormat:
+        @"(function(){try{if(window.top===window)return;var h=document.documentElement;if(!h)return;"
+         "var ref=String(document.referrer||'').toLowerCase();"
+         "var productish=/\\/dp\\/|\\/gp\\/product\\/|\\/gp\\/aw\\/d\\/|\\/s(?:[\\/?]|$)|[?&]k=/.test(ref);"
+         "if(productish)return;h.setAttribute('data-ad7104-standalone','1');"
+         "var KEY='__ad7StandaloneSheet7106';"
+         "var CSS='"
+         "html[data-ad7104-standalone],html[data-ad7104-standalone] body,"
+         "html[data-ad7104-standalone] #ad,html[data-ad7104-standalone] #ad > div,"
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container],"
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] [data-testid=main-content],"
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] [data-testid^=modern-][data-testid$=-layout-container],"
+         "html[data-ad7104-standalone] [data-testid=ad-background-container]"
+         "{background:#000!important;background-color:#000!important;}"
+         /* Exact 320x50 AdaptiveRenderer negative-z white backplane. */
+         "html[data-ad7104-standalone] #ad [style*=\\\"z-index:-2\\\"]"
+         "{background:#000!important;background-color:#000!important;}"
+         /* Medium/large existing outlines only; geometry remains Amazon-owned. */
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] [data-testid^=modern-][data-testid$=-layout-container],"
+         "html[data-ad7104-standalone] [data-testid=ad-background-container]"
+         "{border-color:#3b4043!important;outline-color:#3b4043!important;}"
+         /* v7.109: compact 320x50 border moved out of this child frame. The
+          * v7.108 probe shows Amazon's separate Sponsored feedback row is a MAIN-FRAME
+          * sibling beneath the iframe, so a child #ad border can only enclose the
+          * creative half. The main static sheet now owns the full .ape-wrapper border. */
+         /* Large dynamic-product structural planes. */
+         "html[data-ad7104-standalone] [data-testid=ad-background-container] > div"
+         "{background:#000!important;background-color:#000!important;background-image:none!important;}"
+         /* Exact standalone deal-message host. The device capture exposes the
+          * white `Limited time deal` plate as data-testid=message-container.
+          * Mirror the existing Home badgeMessage fix: clear only the structural
+          * plate/shadow and leave the discount badge + label ink Amazon-owned. */
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] [data-testid=message-container]"
+         "{background-color:transparent!important;box-shadow:none!important;}"
+         /* v7.108: exact first-party 300x250 Swiper standalone carousel. The
+          * v7.107 probe proves why the prior rule missed: this renderer has no
+          * class/data-testid containing "carousel". Its stable signature is
+          * #ad[data-html-dimensions=300x250] with data-testid=gridContainer and
+          * .swiper-wrapper/.swiper-slide descendants. The gridContainer is the
+          * sole surviving white plane, so make it OLED and leave slide structure
+          * transparent; own the existing slide border only. */
+         "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"]"
+         "{background:#000!important;background-color:#000!important;}"
+         "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] [data-testid=gridContainer]"
+         "{background:#000!important;background-color:#000!important;background-image:none!important;}"
+         "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] "
+         ":is(div,section,article,main,header,footer,ul,ol,li)"
+         ":not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime])"
+         ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *))"
+         "{background-color:transparent!important;}"
+         "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] .swiper-slide > [class*=border-gray-]"
+         "{border-color:#3b4043!important;outline-color:#3b4043!important;box-shadow:none!important;}"
+         "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] "
+         ":is(h1,h2,h3,h4,h5,h6,p,span,a,strong,small,b,em,label,div)"
+         ":not(div:has([class*=prime],[data-testid*=prime],[class*=star],[data-testid*=star]))"
+         ":not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime]):not([class*=star])"
+         ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
+         ":not([data-testid*=prime]):not([data-testid*=star])"
+         ":not(:where([data-testid*=prime] *)):not(:where([data-testid*=star] *))"
+         ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *)):not(:where([class*=star] *))"
+         ":not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
+         "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+         "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] "
+         ":is(div,span,p,a,small,strong,b)[class*=sponsored],"
+         "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] "
+         ":is(div,span,p,a,small,strong,b)[data-testid*=sponsored],"
+         "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] "
+         ":is([data-ad-feedback-label-id] [class*=ad-feedback-text],[id^=ad-feedback-text-])"
+         "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}"
+         "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] "
+         ":is([data-ad-feedback-label-id] [class*=ad-feedback-sprite],[id^=ad-feedback-sprite-])"
+         "{color:#b1aaa0!important;background-color:#b1aaa0!important;background-image:none!important;"
+         "-webkit-mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;"
+         "mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;"
+         "-webkit-mask-size:contain!important;mask-size:contain!important;"
+         "-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;"
+         "-webkit-mask-position:center!important;mask-position:center!important;"
+         "filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
+         /* Compact 320x50 neutral copy. */
+         "html[data-ad7104-standalone] #dynamic-bb [data-testid=product-description]"
+         "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+         "html[data-ad7104-standalone] #dynamic-bb [data-acei-id=sns-disc]"
+         "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
+         /* 414x125 + large primary neutral copy. */
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] "
+         ":is([data-id=brand-name-text],[data-id=product-name-text],[data-testid=ratings-value],[data-testid=formatted-price],[data-testid=formatted-price] *),"
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] "
+         ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(0, 0, 17)\\\"],"
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] "
+         ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(15, 17, 17)\\\"],"
+         "html[data-ad7104-standalone] [data-testid=brand-product-description] p,"
+         "html[data-ad7104-standalone] [data-testid=price-container] :is(div,span)"
+         ":not([data-testid=full-price]):not([data-testid=prime-badge]):not(:where([data-testid=prime-badge] *)),"
+         "html[data-ad7104-standalone] [data-testid=ad-background-container] "
+         ":is(p,span,div,a,small,strong,b)[style*=\\\"color: rgb(15, 17, 17)\\\"]"
+         ":not(:where([data-testid=ratings-stars] *)):not(:where([data-testid=prime-badge] *))"
+         "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+         /* Secondary neutral metadata only. */
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] "
+         ":is([data-testid=ratings-review-count],[data-testid=full-price]),"
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] "
+         ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(86, 89, 89)\\\"],"
+         "html[data-ad7104-standalone] [data-testid=ad-background-container] "
+         ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(86, 89, 89)\\\"]"
+         "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
+         /* Preserve current TWB strength on the exact standalone product-raster lanes even
+          * if Amazon's shell replacement deletes the global ad7-twb-static sheet. */
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] "
+         ":is([data-testid=image],[data-acei-id=lfstyl-img]) :is(img,video,canvas),"
+         "html[data-ad7104-standalone] :is([data-testid*=product-picture],[data-testid*=product-image],[data-testid*=asin-image]) :is(img,video,canvas),"
+         /* v7.108: compact 320x50 product raster. Probe proves data-acei-id=prod-img
+          * is the dedicated Image grid host and its only media leaf is the product
+          * IMG. Scope to the #dynamic-bb renderer signature so no logos/badges in
+          * other standalone families are dimmed. */
+         "html[data-ad7104-standalone] #ad:has(#dynamic-bb) [data-acei-id=prod-img] :is(img,video,canvas)"
+         "{filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;}"
+         /* v7.108: exact first-party 300x250 Swiper carousel media. Both the
+          * active product tile and the neighboring custom-image tile expose the
+          * actual raster as data-testid=pictureHighQuality. Tame only those leaves,
+          * which keeps Prime blue, orange rating stars, logos/badges and glyphs at
+          * their authored colors/intensity. */
+         "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] "
+         ".swiper-slide [data-testid=pictureHighQuality]"
+         "{filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;}"
+         /* v7.107: third-party 300x250 display/video creative TWB. The device
+          * probe exposes this lane as #mobile-third-party-ad -> Flashtalking
+          * creative container -> nested iframe. Dim the one outer ad host once;
+          * this reaches canvas/HTML5/video internals without scanning or touching
+          * Amazon's separate Sponsored feedback row. */
+         "html[data-ad7104-standalone] #mobile-third-party-ad"
+         "{filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;}"
+         "';"
+         "function black(){try{h=document.documentElement||h;if(!h)return;h.setAttribute('data-ad7104-standalone','1');h.style.setProperty('background-color','#000','important');h.style.setProperty('color-scheme','dark','important');if(document.body){document.body.style.setProperty('background-color','#000','important');document.body.style.setProperty('color-scheme','dark','important')}}catch(_){}}"
+         "function own(){try{h=document.documentElement||h;if(!h)return false;black();if(!(document.adoptedStyleSheets&&window.CSSStyleSheet&&CSSStyleSheet.prototype&&CSSStyleSheet.prototype.replaceSync))return false;var sh=window[KEY];if(!sh){sh=new CSSStyleSheet();sh.replaceSync(CSS);window[KEY]=sh;}var a=document.adoptedStyleSheets||[],found=false;for(var i=0;i<a.length;i++)if(a[i]===sh){found=true;break;}if(!found)document.adoptedStyleSheets=a.concat([sh]);return true}catch(e){return false}}"
+         "window.__ad7106StandaloneState=function(){try{var sh=window[KEY]||null,a=document.adoptedStyleSheets||[],found=false;for(var i=0;i<a.length;i++)if(a[i]===sh){found=true;break;}return{adoptedSupported:!!(document.adoptedStyleSheets&&window.CSSStyleSheet&&CSSStyleSheet.prototype&&CSSStyleSheet.prototype.replaceSync),sheet:!!sh,adopted:found,rules:sh&&sh.cssRules?sh.cssRules.length:0,htmlSame:(document.documentElement===h),attr:!!(document.documentElement&&document.documentElement.hasAttribute('data-ad7104-standalone'))}}catch(e){return{error:String(e)}}};"
+         "own();document.addEventListener('readystatechange',function(){own()},false);window.addEventListener('pageshow',function(){own()},false);"
+         "}catch(e){}})();",factor,factor,factor,factor,factor,factor];
+}
+
+
+// v7.107~probe: retained zero-idle-work compact standalone capture. The helper is installed
+// in all frames at documentStart but does no traversal until manual SIGUSR2. It uses
+// bounded firstElementChild/nextElementSibling walking only: no MutationObserver,
+// querySelector/querySelectorAll, TreeWalker, timer, RAF, or scroll listener.
+static NSString *ADCompactStandaloneProbeJS7107(void){
+    return
+        @"(function(){try{if(window.__adCompactStandaloneProbe7107Installed)return;window.__adCompactStandaloneProbe7107Installed=1;\n"
+        @"var fid='f7107-'+Date.now()+'-'+Math.random().toString(36).slice(2);\n"
+        @"function cls(e){try{var c=e&&e.className;if(c&&c.baseVal!==undefined)c=c.baseVal;return String(c||'')}catch(_){return''}}\n"
+        @"function rect(e){try{var r=e.getBoundingClientRect();return{x:+r.x.toFixed(2),y:+r.y.toFixed(2),w:+r.width.toFixed(2),h:+r.height.toFixed(2),top:+r.top.toFixed(2),right:+r.right.toFixed(2),bottom:+r.bottom.toFixed(2),left:+r.left.toFixed(2)}}catch(_){return{}}}\n"
+        @"function vis(e){try{var r=e.getBoundingClientRect(),c=getComputedStyle(e);return r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth&&c.display!=='none'&&c.visibility!=='hidden'&&parseFloat(c.opacity||1)>0}catch(_){return false}}\n"
+        @"function pseudo(e,w){try{var c=getComputedStyle(e,w);return{content:c.content,backgroundColor:c.backgroundColor,backgroundImage:String(c.backgroundImage||'').slice(0,500),color:c.color,textFill:c.webkitTextFillColor||'',border:c.border,boxShadow:String(c.boxShadow||'').slice(0,300),filter:c.filter,opacity:c.opacity,position:c.position,zIndex:c.zIndex}}catch(_){return null}}\n"
+        @"function attrs(e){var o={};try{var a=e.attributes;for(var i=0;a&&i<a.length&&i<40;i++){var n=String(a[i].name||'');if(/^data-|^aria-|^role$|^src$|^href$|^alt$/.test(n))o[n]=String(a[i].value||'').slice(0,700)}}catch(_){}return o}\n"
+        @"function parents(e){var o=[];try{for(var p=e&&e.parentElement,n=0;p&&n<7;p=p.parentElement,n++)o.push({tag:String(p.tagName||'').toLowerCase(),id:String(p.id||''),cls:cls(p).slice(0,400),rect:rect(p),inline:String(p.getAttribute&&p.getAttribute('style')||'').slice(0,700)})}catch(_){}return o}\n"
+        @"function snap(e,label){try{var c=getComputedStyle(e),t='';try{t=String(e.innerText||e.textContent||'').replace(/\\s+/g,' ').trim().slice(0,1000)}catch(_){}return{label:label,tag:String(e.tagName||'').toLowerCase(),id:String(e.id||''),cls:cls(e).slice(0,700),attrs:attrs(e),text:t,rect:rect(e),inline:String(e.getAttribute&&e.getAttribute('style')||'').slice(0,1800),computed:{display:c.display,visibility:c.visibility,opacity:c.opacity,color:c.color,textFill:c.webkitTextFillColor||'',backgroundColor:c.backgroundColor,backgroundImage:String(c.backgroundImage||'').slice(0,600),border:c.border,borderColor:c.borderColor,borderRadius:c.borderRadius,outline:c.outline,boxShadow:String(c.boxShadow||'').slice(0,500),filter:c.filter,webkitFilter:c.webkitFilter||'',mixBlendMode:c.mixBlendMode,position:c.position,zIndex:c.zIndex,overflow:c.overflow,fontSize:c.fontSize,lineHeight:c.lineHeight,fontWeight:c.fontWeight},before:pseudo(e,'::before'),after:pseudo(e,'::after'),parents:parents(e)}}catch(x){return{label:label,error:String(x)}}}\n"
+        @"function walk(root,fn,cap){try{var stack=[],n=root,count=0;if(n)stack.push(n);while(stack.length&&count<(cap||600)){n=stack.pop();if(!n||n.nodeType!==1)continue;count++;fn(n,count);var kids=[],c=n.firstElementChild,k=0;while(c&&k<80){kids.push(c);c=c.nextElementSibling;k++}for(var i=kids.length-1;i>=0;i--)stack.push(kids[i])}return count}catch(_){return-1}}\n"
+        @"function whiteish(v){try{var m=String(v||'').match(/rgba?\\(([^)]+)\\)/i);if(!m)return false;var a=m[1].split(','),r=parseFloat(a[0]),g=parseFloat(a[1]),b=parseFloat(a[2]),al=a.length>3?parseFloat(a[3]):1;return al>.2&&r>225&&g>225&&b>225}catch(_){return false}}\n"
+        @"function adopted(){try{var sh=window.__ad7StandaloneSheet7106||null,a=document.adoptedStyleSheets||[],found=false;for(var i=0;i<a.length;i++)if(a[i]===sh){found=true;break;}return{supported:!!(document.adoptedStyleSheets&&window.CSSStyleSheet&&CSSStyleSheet.prototype&&CSSStyleSheet.prototype.replaceSync),count:a.length,standaloneSheet:!!sh,standaloneAdopted:found,rules:sh&&sh.cssRules?sh.cssRules.length:0}}catch(e){return{error:String(e)}}}\n"
+        @"function report(){try{var child=false;try{child=window.top!==window}catch(_){child=true}var compact=child&&innerHeight<=220,nodes=[],light=[],darkText=[],ifr=[],markers=[],cap=compact?520:(child?260:1400);var seen=walk(document.documentElement,function(e,i){if(!vis(e))return;var tag=String(e.tagName||'').toLowerCase(),a=attrs(e),c=getComputedStyle(e),interesting=compact||tag==='iframe'||/^ape_|^gwm-|^ad$/.test(String(e.id||''))||/ape-|ad-|sponsor|renderer|dynamic|creative|banner|outlet|carousel|featured|prime|rating|star|mobile-mshop/i.test(cls(e)+' '+String(e.id||''));if(a['data-size-str'])markers.push(a['data-size-str']);if(tag==='iframe')ifr.push(snap(e,'iframe['+ifr.length+']'));if(interesting&&nodes.length<220)nodes.push(snap(e,'node['+i+']'));if(whiteish(c.backgroundColor)&&light.length<80)light.push(snap(e,'light['+i+']'));if(darkText.length<80&&/^(a|span|p|div|h[1-6])$/.test(tag)){var tx='';try{tx=String(e.innerText||e.textContent||'').replace(/\s+/g,' ').trim()}catch(_){}var m=String(c.color||'').match(/rgba?\(([^)]+)\)/i);if(tx&&tx.length<220&&m){var z=m[1].split(','),r=parseFloat(z[0]),g=parseFloat(z[1]),b=parseFloat(z[2]);if(r<70&&g<70&&b<70)darkText.push(snap(e,'darkText['+i+']'))}}},cap);var h=document.documentElement;return JSON.stringify({frame:{id:fid,href:String(location.href||''),referrer:String(document.referrer||''),title:String(document.title||''),ready:document.readyState,child:child,compact:compact,viewport:{w:innerWidth,h:innerHeight,dpr:devicePixelRatio},visibility:document.visibilityState},attrs:{standalone:h&&h.getAttribute('data-ad7104-standalone'),candidate:h&&h.getAttribute('data-ad7-standalone-candidate'),twbChild:h&&h.getAttribute('data-ad7-twb-child')},adopted:adopted(),walked:seen,sizeMarkers:markers.slice(0,30),iframes:ifr,nodes:nodes,lightPlanes:light,darkTextPlanes:darkText},null,2)}catch(e){return JSON.stringify({error:String(e&&e.stack||e)})}}\n"
+        @"window.__adCompactStandaloneReport7107=report;window.__adCompactStandaloneBroadcast7107=function(msg){try{for(var i=0;i<window.frames.length&&i<32;i++)try{window.frames[i].postMessage(msg,'*')}catch(_){}}catch(_){}};\n"
+        @"window.addEventListener('message',function(ev){try{var d=ev.data;if(!d||d.__adCompactStandalone7107!==1||!d.nonce)return;var rep=report();try{window.top.postMessage({__adCompactStandalone7107Result:1,nonce:d.nonce,frameId:fid,href:String(location.href||''),report:rep},'*')}catch(_){}try{window.__adCompactStandaloneBroadcast7107(d)}catch(_){}}catch(_){}},false);\n"
+        @"}catch(e){}})();";
 }
 
 static NSString *ADTWBJS(void){
@@ -1198,11 +1444,29 @@ static NSString *ADTWBJS(void){
          "html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] "
          ":is([data-testid=image],[data-acei-id=lfstyl-img]) :is(img,video,canvas)"
          ":not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge]),"
+         /* v7.108: exact compact AdaptiveRenderer image grid from the v7.107
+          * device probe. This is the dedicated product-media host in the 320x50
+          * #dynamic-bb family; keep it in the same pure-CSS TWB list. */
+         "html[data-ad7-standalone-candidate] #ad:has(#dynamic-bb) [data-acei-id=prod-img] :is(img,video,canvas),"
+         /* v7.108: exact first-party 300x250 Swiper carousel media. The probe
+          * identifies data-testid=pictureHighQuality on both product and custom
+          * slide rasters, so this lane no longer depends on nonexistent
+          * "carousel" semantics and cannot touch Prime/star accent painters. */
+         "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] "
+         ".swiper-slide [data-testid=pictureHighQuality],"
+         /* v7.107: exact third-party standalone creative host captured by the
+          * Flashtalking 300x250 probe. Filtering the outer host once tames the
+          * entire HTML5/canvas/video creative while avoiding generic standalone
+          * child media and its logos/deal artwork. */
+         "html[data-ad7-standalone-candidate] #mobile-third-party-ad,"
          /* Main-document standalone ad media if Amazon renders it outside the iframe. */
          "#gwm-Deck-btf :is([class*=mobile-mshop-ad],[class*=mobile-ad-container],[class*=ape-wrapper],[class*=ape-placement]) "
          ":is(img,video,canvas)"
-         ":not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge])"
+         ":not([class*=logo]):not([class*=prime]):not([class*=rating]):not([class*=star])"
+         ":not([class*=icon]):not([class*=glyph]):not([class*=badge])"
+         ":not(:where([class*=logo] *)):not(:where([class*=prime] *)):not(:where([class*=rating] *)):not(:where([class*=star] *))"
          ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
+         ":not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *))"
          ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),"
          /* Seasonal mosaic media + image/SVG artwork.
           * Navigation chevrons/arrows are control ink, not TWB media. */
@@ -1264,42 +1528,6 @@ static NSString *ADTWBJS(void){
 }
 
 
-
-// -----------------------------------------------------------------------------
-// v8.0.0 privacy experiment — passive API-call inventory. No payload contents,
-// clipboard contents, typed text, coordinates, camera frames or microphone audio
-// are collected. The web shim records only API/event registration metadata and
-// sanitized destination URLs (query/fragment stripped), then forwards originals.
-// -----------------------------------------------------------------------------
-static NSString *ADPrivacyProbeJS8000(void){
-    return
-        @"(function(){try{\n"
-        @"if(window.__adPrivacy8000Installed)return;window.__adPrivacy8000Installed=1;\n"
-        @"var MAX=1200,ev=[],counts=Object.create(null),dropped=0,t0=Date.now();\n"
-        @"function clean(v,n){try{return String(v==null?'':v).replace(/\\s+/g,' ').slice(0,n||240)}catch(_){return ''}}\n"
-        @"function urlsum(u){try{var x=new URL(String(u&&u.url?u.url:u||''),location.href),p=x.pathname||'/';if(p.length>160)p=p.slice(0,160)+'…';return x.protocol+'//'+x.host+p}catch(_){return clean(u,180)}}\n"
-        @"function tgt(x){try{if(x===window)return 'window';if(x===document)return 'document';if(x===navigator)return 'navigator';var t=String(x&&x.tagName||x&&x.constructor&&x.constructor.name||typeof x).toLowerCase(),id=x&&x.id?('#'+clean(x.id,80)):'';return (t+id).slice(0,140)}catch(_){return 'unknown'}}\n"
-        @"function rec(k,d){try{counts[k]=(counts[k]||0)+1;if(ev.length<MAX)ev.push({ms:Date.now()-t0,kind:k,detail:d||{}});else dropped++}catch(_){}}\n"
-        @"window.__adPrivacy8000Record=rec;\n"
-        @"try{var oa=EventTarget.prototype.addEventListener,wat={keydown:1,keyup:1,keypress:1,beforeinput:1,input:1,compositionstart:1,compositionupdate:1,compositionend:1,paste:1,copy:1,cut:1,selectionchange:1};EventTarget.prototype.addEventListener=function(type,listener,opt){try{var k=String(type||'').toLowerCase();if(wat[k])rec('listener.'+k,{target:tgt(this),capture:!!(opt===true||(opt&&opt.capture))})}catch(_){}return oa.apply(this,arguments)}}catch(_){}\n"
-        @"try{var g=navigator.geolocation;if(g){['getCurrentPosition','watchPosition'].forEach(function(n){var o=g[n];if(typeof o==='function')g[n]=function(a,b,c){try{rec('geolocation.'+n,{highAccuracy:!!(c&&c.enableHighAccuracy),timeout:c&&c.timeout!=null?Number(c.timeout):null,maximumAge:c&&c.maximumAge!=null?Number(c.maximumAge):null})}catch(_){}return o.apply(this,arguments)}});if(typeof g.clearWatch==='function'){var oc=g.clearWatch;g.clearWatch=function(){rec('geolocation.clearWatch',{});return oc.apply(this,arguments)}}}}catch(_){}\n"
-        @"try{var cb=navigator.clipboard;if(cb){['read','readText'].forEach(function(n){var o=cb[n];if(typeof o==='function')cb[n]=function(){rec('clipboard.'+n,{});return o.apply(this,arguments)}})}}catch(_){}\n"
-        @"try{var oe=document.execCommand;if(typeof oe==='function')document.execCommand=function(cmd){try{var c=String(cmd||'').toLowerCase();if(c==='paste'||c==='copy'||c==='cut')rec('document.execCommand',{command:c})}catch(_){}return oe.apply(this,arguments)}}catch(_){}\n"
-        @"try{var md=navigator.mediaDevices;if(md&&typeof md.getUserMedia==='function'){var og=md.getUserMedia;md.getUserMedia=function(c){try{rec('media.getUserMedia',{audio:!!(c&&c.audio),video:!!(c&&c.video)})}catch(_){}return og.apply(this,arguments)}}}catch(_){}\n"
-        @"try{var of=window.fetch;if(typeof of==='function')window.fetch=function(input,init){try{rec('network.fetch',{method:clean(init&&init.method||'GET',16),url:urlsum(input)})}catch(_){}return of.apply(this,arguments)}}catch(_){}\n"
-        @"try{var xo=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(method,url){try{rec('network.xhr',{method:clean(method,16),url:urlsum(url)})}catch(_){}return xo.apply(this,arguments)}}catch(_){}\n"
-        @"try{var sb=navigator.sendBeacon;if(typeof sb==='function')navigator.sendBeacon=function(url,data){var n=null;try{if(typeof data==='string')n=data.length;else if(data&&typeof data.size==='number')n=data.size;else if(data&&typeof data.byteLength==='number')n=data.byteLength}catch(_){}rec('network.sendBeacon',{url:urlsum(url),payloadBytes:n});return sb.apply(this,arguments)}}catch(_){}\n"
-        @"function resources(){var m=Object.create(null),a=[];try{a=performance.getEntriesByType('resource')||[]}catch(_){};for(var i=0;i<a.length;i++){try{var u=new URL(a[i].name,location.href),key=u.host+'|'+String(a[i].initiatorType||'other');m[key]=(m[key]||0)+1}catch(_){}}var o=[];Object.keys(m).sort(function(a,b){return m[b]-m[a]}).slice(0,80).forEach(function(k){var z=k.split('|');o.push({host:z[0],initiator:z[1],count:m[k]})});return o}\n"
-        @"function report(){return JSON.stringify({frame:{href:urlsum(location.href),referrer:urlsum(document.referrer||''),ready:document.readyState,child:(function(){try{return top!==window}catch(_){return true}})()},sinceMs:Date.now()-t0,dropped:dropped,counts:counts,events:ev,resourceHosts:resources()},null,2)}\n"
-        @"function frames(){var o=[];try{var a=document.querySelectorAll('iframe');for(var i=0;i<a.length&&o.length<32;i++)o.push(a[i])}catch(_){}return o}\n"
-        @"window.__adPrivacy8000Report=report;\n"
-        @"window.__adPrivacy8000Broadcast=function(msg){try{var a=frames();for(var i=0;i<a.length;i++)try{a[i].contentWindow.postMessage(msg,'*')}catch(_){}}catch(_){}};\n"
-        @"window.addEventListener('message',function(e){try{var d=e.data;if(!d||d.__adPrivacy8000!==1||!d.nonce)return;var rep=report();try{top.postMessage({__adPrivacy8000Result:1,nonce:d.nonce,href:urlsum(location.href),report:rep},'*')}catch(_){}try{window.__adPrivacy8000Broadcast(d)}catch(_){}}catch(_){}},false);\n"
-        @"rec('probe.install',{href:urlsum(location.href),child:(function(){try{return top!==window}catch(_){return true}})()});\n"
-        @"}catch(e){}})();\n"
-        ;
-}
-
 static void ADTrackWebView(WKWebView *wv){
     if(!wv)return; @try { @synchronized([WKWebView class]) { if(!gADWebViews)gADWebViews=[NSHashTable weakObjectsHashTable]; [gADWebViews addObject:wv]; } } @catch(...) {}
 }
@@ -1321,6 +1549,7 @@ static void ADRefreshWebTWBPrefs791(void){
         @try { [wv evaluateJavaScript:js completionHandler:nil]; } @catch(...) {}
     }
 }
+
 static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
     if(!ucc || !gP.enabled)return;
     @try {
@@ -1329,15 +1558,20 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADFloorUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
+        if(!objc_getAssociatedObject(ucc,kADStandalonePaintUS7104)){
+            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADStandalonePaintJS7104() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+            [ucc addUserScript:us];
+            objc_setAssociatedObject(ucc,kADStandalonePaintUS7104,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        if(!objc_getAssociatedObject(ucc,kADCompactStandaloneProbeUS7107)){
+            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADCompactStandaloneProbeJS7107() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+            [ucc addUserScript:us];
+            objc_setAssociatedObject(ucc,kADCompactStandaloneProbeUS7107,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
         if(gP.whiteTame && !objc_getAssociatedObject(ucc,kADTWBUS)){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADTWBJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADTWBUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
-        if(!objc_getAssociatedObject(ucc,kADPrivacyProbeUS8000)){
-            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADPrivacyProbeJS8000() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
-            [ucc addUserScript:us];
-            objc_setAssociatedObject(ucc,kADPrivacyProbeUS8000,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
     } @catch(...) {}
 }
@@ -1391,7 +1625,8 @@ static void ADApplyAllFloors(void){
     if(gP.enabled){
         objc_setAssociatedObject(self,kADFloorUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADTWBUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(self,kADPrivacyProbeUS8000,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(self,kADStandalonePaintUS7104,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(self,kADCompactStandaloneProbeUS7107,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADAttachScriptsToUCC710(self);
     }
 }
@@ -1884,10 +2119,6 @@ static void ADDarkenReactCardNearText708(UIView *textView){
     BOOL r=%orig;
     if(gP.enabled&&self.window)ADRepaintNearestANXTab724((UIView *)self);
     return r;
-}
-- (void)addTarget:(id)target action:(SEL)action forControlEvents:(UIControlEvents)events {
-    if(events&UIControlEventEditingChanged)ADPrivacyRecord8000(@"text.observe",[NSString stringWithFormat:@"editingChanged control=%@ target=%@ action=%@",NSStringFromClass(self.class),target?NSStringFromClass([target class]):@"nil",action?NSStringFromSelector(action):@"nil"]);
-    %orig;
 }
 %end
 
@@ -2389,274 +2620,48 @@ static void ADScheduleLaunchReadyCheck706(void){
 
 
 
-// -----------------------------------------------------------------------------
-// v8.0.0 privacy experiment runtime.
-// Keeps a bounded in-memory native event ring and host counters. Disk I/O happens
-// only on manual SIGUSR2 export. Sensitive values are deliberately not captured.
-// -----------------------------------------------------------------------------
-static dispatch_queue_t gADPrivacyQ8000=nil;
-static NSMutableArray<NSString *> *gADPrivacyEvents8000=nil;
-static NSMutableDictionary<NSString *,NSNumber *> *gADPrivacyHosts8000=nil;
-static NSUInteger gADPrivacyDropped8000=0;
-static NSDate *gADPrivacyStarted8000=nil;
-static NSUInteger gADPrivacyRun8000=0;
 
-static void ADPrivacyInit8000(void){
-    static dispatch_once_t once; dispatch_once(&once,^{
-        gADPrivacyQ8000=dispatch_queue_create("com.colindavidr.amazondark.privacy8000",DISPATCH_QUEUE_SERIAL);
-        gADPrivacyEvents8000=[NSMutableArray array];
-        gADPrivacyHosts8000=[NSMutableDictionary dictionary];
-        gADPrivacyStarted8000=[NSDate date];
-    });
-}
-static NSString *ADPrivacyTrim8000(NSString *s,NSUInteger n){
-    if(!s)return @""; NSString *x=[s stringByReplacingOccurrencesOfString:@"\n" withString:@" "]; return x.length>n?[x substringToIndex:n]:x;
-}
-static NSString *ADPrivacyURLSummary8000(NSURL *u){
-    if(!u)return @"";
-    @try {
-        NSString *scheme=u.scheme.lowercaseString?:@"";
-        NSString *host=u.host.lowercaseString?:@"";
-        NSString *path=u.path?:@"/";
-        if(path.length>160)path=[[path substringToIndex:160] stringByAppendingString:@"…"];
-        return [NSString stringWithFormat:@"%@://%@%@",scheme,host,path];
-    } @catch(...) { return @""; }
-}
-static void ADPrivacyRecord8000(NSString *kind,NSString *detail){
-    ADPrivacyInit8000(); NSString *k=[kind copy]?:@"event",*d=[ADPrivacyTrim8000(detail?:@"",500) copy];
-    NSTimeInterval ts=[NSDate date].timeIntervalSince1970;
-    dispatch_async(gADPrivacyQ8000,^{
-        if(gADPrivacyEvents8000.count<1600)[gADPrivacyEvents8000 addObject:[NSString stringWithFormat:@"%.3f | %@ | %@",ts,k,d]];
-        else gADPrivacyDropped8000++;
-    });
-}
-static void ADPrivacyNetwork8000(NSString *kind,NSURL *u){
-    ADPrivacyInit8000(); NSString *host=[u.host.lowercaseString copy]?:@"(no-host)"; NSString *sample=[ADPrivacyURLSummary8000(u) copy]; NSTimeInterval ts=[NSDate date].timeIntervalSince1970;
-    dispatch_async(gADPrivacyQ8000,^{
-        NSUInteger n=[gADPrivacyHosts8000[host] unsignedIntegerValue]+1; gADPrivacyHosts8000[host]=@(n);
-        if(n<=5){
-            if(gADPrivacyEvents8000.count<1600)[gADPrivacyEvents8000 addObject:[NSString stringWithFormat:@"%.3f | %@ | %@",ts,kind?:@"network",sample?:@""]];
-            else gADPrivacyDropped8000++;
-        }
-    });
-}
-static BOOL ADPrivacyIsGeneralPasteboard8000(UIPasteboard *pb){
-    @try { return pb && [pb.name isEqualToString:UIPasteboardNameGeneral]; } @catch(...) { return NO; }
-}
-static NSString *ADPrivacyNativeSnapshot8000(void){
-    ADPrivacyInit8000(); __block NSArray *events=nil; __block NSDictionary *hosts=nil; __block NSUInteger dropped=0;
-    dispatch_sync(gADPrivacyQ8000,^{ events=[gADPrivacyEvents8000 copy]; hosts=[gADPrivacyHosts8000 copy]; dropped=gADPrivacyDropped8000; });
-    NSMutableString *m=[NSMutableString string];
-    @try {
-        [m appendFormat:@"privacy_probe_started=%@\nlocation_services_enabled=%d\nlocation_authorization=%d\ncamera_authorization=%ld\nmicrophone_authorization=%ld\nnative_event_count=%lu\nnative_dropped=%lu\n",
-            gADPrivacyStarted8000?:@"",[CLLocationManager locationServicesEnabled]?1:0,(int)[CLLocationManager authorizationStatus],
-            (long)[AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo],(long)[AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio],
-            (unsigned long)events.count,(unsigned long)dropped];
-    } @catch(...) {}
-    [m appendString:@"\n--- NATIVE NETWORK HOST COUNTS ---\n"];
-    NSArray *keys=[hosts.allKeys sortedArrayUsingComparator:^NSComparisonResult(NSString *a,NSString *b){ NSUInteger aa=[hosts[a] unsignedIntegerValue],bb=[hosts[b] unsignedIntegerValue]; if(aa>bb)return NSOrderedAscending;if(aa<bb)return NSOrderedDescending;return [a compare:b]; }];
-    for(NSString *h in keys)[m appendFormat:@"%@ = %@\n",h,hosts[h]];
-    [m appendString:@"\n--- NATIVE PRIVACY EVENTS (NO CONTENT VALUES) ---\n"];
-    for(NSString *e in events)[m appendFormat:@"%@\n",e];
-    return m;
-}
 
-// Core Location: record requests/starts only; never record coordinates.
-%hook CLLocationManager
-- (void)requestWhenInUseAuthorization {
-    ADPrivacyRecord8000(@"location.permission",@"requestWhenInUseAuthorization");
-    %orig;
+// v7.109~probe manual SIGUSR2 capture. The app has no recurring diagnostic work:
+// signal receipt snapshots the largest visible WKWebView, broadcasts once to child
+// frames, waits 450 ms for replies, appends one report, and returns idle.
+static NSUInteger gADCompactStandaloneRun7107=0;
+static NSString *ADCompactStandaloneProbePath7107(void){
+    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.109-compact-standalone-probe.txt"]; } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.109-compact-standalone-probe.txt"];
 }
-- (void)requestAlwaysAuthorization {
-    ADPrivacyRecord8000(@"location.permission",@"requestAlwaysAuthorization");
-    %orig;
+static WKWebView *ADLargestTrackedWeb7107(void){
+    WKWebView *best=nil; CGFloat area=0;
+    @try { for(WKWebView *wv in ADTrackedWebViews()){ if(!wv||!wv.window||wv.hidden||wv.alpha<0.01)continue; CGRect rr=[wv convertRect:wv.bounds toView:nil],ir=CGRectIntersection(rr,UIScreen.mainScreen.bounds); CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height); if(a>area){area=a;best=wv;} } } @catch(...) {}
+    return best;
 }
-- (void)requestTemporaryFullAccuracyAuthorizationWithPurposeKey:(NSString *)purposeKey {
-    ADPrivacyRecord8000(@"location.permission",[NSString stringWithFormat:@"temporaryFullAccuracy purpose=%@",ADPrivacyTrim8000(purposeKey,80)]);
-    %orig;
+static void ADAppendCompactStandalone7107(NSString *text){
+    if(!text.length)return;
+    @try { NSString *p=ADCompactStandaloneProbePath7107(); NSFileManager *fm=[NSFileManager defaultManager]; [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil]; NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding]; if(![fm fileExistsAtPath:p]){[d writeToFile:p atomically:YES];return;} NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p]; if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];} } @catch(...) {}
 }
-- (void)startUpdatingLocation {
-    ADPrivacyRecord8000(@"location.start",[NSString stringWithFormat:@"continuous desiredAccuracy=%.1f distanceFilter=%.1f background=%d pauses=%d",self.desiredAccuracy,self.distanceFilter,self.allowsBackgroundLocationUpdates?1:0,self.pausesLocationUpdatesAutomatically?1:0]);
-    %orig;
-}
-- (void)startMonitoringSignificantLocationChanges {
-    ADPrivacyRecord8000(@"location.start",@"significant-change");
-    %orig;
-}
-- (void)startMonitoringVisits {
-    ADPrivacyRecord8000(@"location.start",@"visits");
-    %orig;
-}
-- (void)requestLocation {
-    ADPrivacyRecord8000(@"location.request",@"one-shot requestLocation");
-    %orig;
-}
-- (CLLocation *)location {
-    ADPrivacyRecord8000(@"location.read",@"CLLocationManager.location getter");
-    return %orig;
-}
-%end
-
-// General pasteboard reads only. Content is never copied into the log.
-%hook UIPasteboard
-- (NSString *)string {
-    if(ADPrivacyIsGeneralPasteboard8000(self))ADPrivacyRecord8000(@"pasteboard.read",@"string");
-    return %orig;
-}
-- (NSArray *)strings {
-    if(ADPrivacyIsGeneralPasteboard8000(self))ADPrivacyRecord8000(@"pasteboard.read",@"strings");
-    return %orig;
-}
-- (NSURL *)URL {
-    if(ADPrivacyIsGeneralPasteboard8000(self))ADPrivacyRecord8000(@"pasteboard.read",@"URL");
-    return %orig;
-}
-- (NSArray *)URLs {
-    if(ADPrivacyIsGeneralPasteboard8000(self))ADPrivacyRecord8000(@"pasteboard.read",@"URLs");
-    return %orig;
-}
-- (UIImage *)image {
-    if(ADPrivacyIsGeneralPasteboard8000(self))ADPrivacyRecord8000(@"pasteboard.read",@"image");
-    return %orig;
-}
-- (NSArray *)images {
-    if(ADPrivacyIsGeneralPasteboard8000(self))ADPrivacyRecord8000(@"pasteboard.read",@"images");
-    return %orig;
-}
-- (NSArray *)items {
-    if(ADPrivacyIsGeneralPasteboard8000(self))ADPrivacyRecord8000(@"pasteboard.read",@"items");
-    return %orig;
-}
-- (NSData *)dataForPasteboardType:(NSString *)type {
-    if(ADPrivacyIsGeneralPasteboard8000(self))ADPrivacyRecord8000(@"pasteboard.read",[NSString stringWithFormat:@"dataForType=%@",ADPrivacyTrim8000(type,100)]);
-    return %orig;
-}
-- (id)valueForPasteboardType:(NSString *)type {
-    if(ADPrivacyIsGeneralPasteboard8000(self))ADPrivacyRecord8000(@"pasteboard.read",[NSString stringWithFormat:@"valueForType=%@",ADPrivacyTrim8000(type,100)]);
-    return %orig;
-}
-- (BOOL)containsPasteboardTypes:(NSArray *)types {
-    if(ADPrivacyIsGeneralPasteboard8000(self))ADPrivacyRecord8000(@"pasteboard.inspect",[NSString stringWithFormat:@"containsTypes count=%lu",(unsigned long)types.count]);
-    return %orig;
-}
-%end
-
-// Camera/microphone: permission requests, device lookups and actual capture starts.
-%hook AVCaptureDevice
-+ (void)requestAccessForMediaType:(AVMediaType)mediaType completionHandler:(void (^)(BOOL granted))handler {
-    ADPrivacyRecord8000(@"capture.permission",[NSString stringWithFormat:@"requestAccess media=%@",mediaType?:@""]);
-    %orig;
-}
-+ (AVCaptureDevice *)defaultDeviceWithMediaType:(AVMediaType)mediaType {
-    ADPrivacyRecord8000(@"capture.deviceLookup",[NSString stringWithFormat:@"media=%@",mediaType?:@""]);
-    return %orig;
-}
-%end
-
-%hook AVCaptureSession
-- (void)startRunning {
-    BOOL a=NO,v=NO;
-    @try {
-        for(AVCaptureInput *i in self.inputs){
-            if([i isKindOfClass:[AVCaptureDeviceInput class]]){
-                AVCaptureDevice *d=((AVCaptureDeviceInput *)i).device;
-                a=a||[d hasMediaType:AVMediaTypeAudio];
-                v=v||[d hasMediaType:AVMediaTypeVideo];
-            }
-        }
-    } @catch(...) {}
-    ADPrivacyRecord8000(@"capture.start",[NSString stringWithFormat:@"audio=%d video=%d",a?1:0,v?1:0]);
-    %orig;
-}
-%end
-
-// Native text-observation plumbing is merged into the existing UIControl hook above.
-
-%hook NSNotificationCenter
-- (void)addObserver:(id)observer selector:(SEL)selector name:(NSNotificationName)name object:(id)object {
-    NSString *n=name?:@"";
-    if([n containsString:@"TextDidChange"]||[n containsString:@"Keyboard"]||[n containsString:@"Pasteboard"]){
-        ADPrivacyRecord8000(@"notification.observe",[NSString stringWithFormat:@"name=%@ observer=%@ selector=%@",ADPrivacyTrim8000(n,120),observer?NSStringFromClass([observer class]):@"nil",selector?NSStringFromSelector(selector):@"nil"]);
-    }
-    %orig;
-}
-- (id)addObserverForName:(NSNotificationName)name object:(id)obj queue:(NSOperationQueue *)queue usingBlock:(void (^)(NSNotification *note))block {
-    NSString *n=name?:@"";
-    if([n containsString:@"TextDidChange"]||[n containsString:@"Keyboard"]||[n containsString:@"Pasteboard"]){
-        ADPrivacyRecord8000(@"notification.observe",[NSString stringWithFormat:@"block name=%@",ADPrivacyTrim8000(n,120)]);
-    }
-    return %orig;
-}
-%end
-
-// Foundation networking: sanitized URL only; no query string, headers or body.
-%hook NSURLSession
-- (NSURLSessionDataTask *)dataTaskWithRequest:(NSURLRequest *)request {
-    ADPrivacyNetwork8000(@"network.dataTask",request.URL);
-    return %orig;
-}
-- (NSURLSessionDataTask *)dataTaskWithRequest:(NSURLRequest *)request completionHandler:(void (^)(NSData *data,NSURLResponse *response,NSError *error))completionHandler {
-    ADPrivacyNetwork8000(@"network.dataTask",request.URL);
-    return %orig;
-}
-- (NSURLSessionDataTask *)dataTaskWithURL:(NSURL *)url {
-    ADPrivacyNetwork8000(@"network.dataTask",url);
-    return %orig;
-}
-- (NSURLSessionDataTask *)dataTaskWithURL:(NSURL *)url completionHandler:(void (^)(NSData *data,NSURLResponse *response,NSError *error))completionHandler {
-    ADPrivacyNetwork8000(@"network.dataTask",url);
-    return %orig;
-}
-- (NSURLSessionUploadTask *)uploadTaskWithRequest:(NSURLRequest *)request fromData:(NSData *)bodyData {
-    ADPrivacyNetwork8000(@"network.uploadTask",request.URL);
-    return %orig;
-}
-- (NSURLSessionUploadTask *)uploadTaskWithRequest:(NSURLRequest *)request fromData:(NSData *)bodyData completionHandler:(void (^)(NSData *data,NSURLResponse *response,NSError *error))completionHandler {
-    ADPrivacyNetwork8000(@"network.uploadTask",request.URL);
-    return %orig;
-}
-- (NSURLSessionDownloadTask *)downloadTaskWithRequest:(NSURLRequest *)request {
-    ADPrivacyNetwork8000(@"network.downloadTask",request.URL);
-    return %orig;
-}
-%end
-
-%hook NSURLSessionTask
-- (void)resume {
-    @try {
-        NSURLRequest *r=self.currentRequest?:self.originalRequest;
-        if(r.URL)ADPrivacyNetwork8000(@"network.taskResume",r.URL);
-    } @catch(...) {}
-    %orig;
-}
-%end
-
-static NSString *ADPrivacyProbePath8000(void){
-    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v8.0.0-privacy-probe.txt"]; } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v8.0.0-privacy-probe.txt"];
-}
-static void ADAppendPrivacy8000(NSString *s){
-    if(!s.length)return; @try { NSString *p=ADPrivacyProbePath8000(); NSFileManager *fm=[NSFileManager defaultManager]; [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil]; NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding]; if(![fm fileExistsAtPath:p]){[d writeToFile:p atomically:YES];return;} NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p]; if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];} } @catch(...) {}
-}
-static WKWebView *ADLargestTrackedWeb8000(void){
-    WKWebView *best=nil; CGFloat area=0; @try { for(WKWebView *wv in ADTrackedWebViews()){ if(!wv||!wv.window||wv.hidden||wv.alpha<0.01)continue; CGRect rr=[wv convertRect:wv.bounds toView:nil],ir=CGRectIntersection(rr,UIScreen.mainScreen.bounds); CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height); if(a>area){area=a;best=wv;} } } @catch(...) {} return best;
-}
-static void ADCapturePrivacy8000(void){
-    if(!gP.enabled)return; NSUInteger run=++gADPrivacyRun8000; NSString *native=ADPrivacyNativeSnapshot8000(); WKWebView *wv=ADLargestTrackedWeb8000();
-    NSMutableString *prefix=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v8.0.0 PRIVACY PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\npolicy=metadata only; NO typed text, clipboard contents, coordinates, request bodies, headers, camera frames or microphone audio\n\n===== NATIVE =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,native?:@"NO_NATIVE_DATA"];
-    if(!wv){ [prefix appendString:@"\n===== WEB =====\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"]; ADAppendPrivacy8000(prefix); return; }
-    NSString *trigger=@"(function(){try{if(typeof window.__adPrivacy8000Report!=='function')return 'HELPER_MISSING';var nonce='priv8000-'+Date.now()+'-'+Math.random().toString(36).slice(2),c={nonce:nonce,main:window.__adPrivacy8000Report(),children:[]};try{if(window.__adPrivacy8000Collector)removeEventListener('message',window.__adPrivacy8000Collector,false)}catch(_){}window.__adPrivacy8000Collection=c;window.__adPrivacy8000Collector=function(ev){try{var d=ev.data;if(!d||d.__adPrivacy8000Result!==1||d.nonce!==nonce)return;if(c.children.length<64)c.children.push({href:String(d.href||''),report:String(d.report||'')})}catch(_){}};addEventListener('message',window.__adPrivacy8000Collector,false);window.__adPrivacy8000Broadcast({__adPrivacy8000:1,nonce:nonce});return 'STARTED '+nonce}catch(e){return 'TRIGGER_ERR '+e}})();";
+static void ADCaptureCompactStandalone7107(void){
+    if(!gP.enabled)return;
+    WKWebView *wv=ADLargestTrackedWeb7107(); NSUInteger run=++gADCompactStandaloneRun7107;
+    if(!wv){ ADAppendCompactStandalone7107([NSString stringWithFormat:@"\n\n===== v7.109 RUN %lu NO_VISIBLE_WEBVIEW date=%@ =====\n",(unsigned long)run,[NSDate date]]); return; }
+    NSString *meta=@""; @try { CGRect r=[wv convertRect:wv.bounds toView:nil]; meta=[NSString stringWithFormat:@"wv=%p frame=(%.1f,%.1f %.1fx%.1f) loading=%d progress=%.3f url=%@",wv,r.origin.x,r.origin.y,r.size.width,r.size.height,wv.loading?1:0,wv.estimatedProgress,wv.URL.absoluteString?:@""]; } @catch(...) {}
+    NSString *trigger=@"(function(){try{if(typeof window.__adCompactStandaloneReport7107!=='function')return 'HELPER_MISSING';var nonce='ad7107-'+Date.now()+'-'+Math.random().toString(36).slice(2),c={nonce:nonce,main:window.__adCompactStandaloneReport7107(),children:[]};try{if(window.__adCompactStandaloneHandler7107)window.removeEventListener('message',window.__adCompactStandaloneHandler7107,false)}catch(_){}window.__adCompactStandaloneCollected7107=c;window.__adCompactStandaloneHandler7107=function(ev){try{var d=ev.data;if(!d||d.__adCompactStandalone7107Result!==1||d.nonce!==nonce)return;if(c.children.length<32)c.children.push({frameId:String(d.frameId||''),href:String(d.href||''),report:String(d.report||'')})}catch(_){}};window.addEventListener('message',window.__adCompactStandaloneHandler7107,false);window.__adCompactStandaloneBroadcast7107({__adCompactStandalone7107:1,nonce:nonce});return 'STARTED '+nonce}catch(e){return 'TRIGGER_ERR '+e}})();";
     [wv evaluateJavaScript:trigger completionHandler:^(id v,NSError *e){
         NSString *start=e?[NSString stringWithFormat:@"TRIGGER_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.8*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-            NSString *collect=@"(function(){try{var c=window.__adPrivacy8000Collection;if(!c)return 'NO_COLLECTION';try{if(window.__adPrivacy8000Collector)removeEventListener('message',window.__adPrivacy8000Collector,false)}catch(_){}var o=['===== MAIN FRAME =====\\n'+String(c.main||'')];for(var i=0;i<c.children.length;i++)o.push('\\n===== CHILD FRAME '+i+' '+String(c.children[i].href||'')+' =====\\n'+String(c.children[i].report||''));o.push('\\nCHILD_COUNT '+c.children.length);return o.join('\\n')}catch(e){return 'COLLECT_ERR '+e}})();";
-            [wv evaluateJavaScript:collect completionHandler:^(id v2,NSError *e2){ NSString *body=e2?[NSString stringWithFormat:@"COLLECT_ERROR %@",e2]:([v2 isKindOfClass:[NSString class]]?v2:[v2 description]); [prefix appendFormat:@"\n===== WEB =====\ntrigger=%@\n%@\n================ END RUN ================\n",start?:@"",body?:@"NO_WEB_DATA"]; ADAppendPrivacy8000(prefix); }];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.45*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+            NSString *collect=@"(function(){try{var c=window.__adCompactStandaloneCollected7107;if(!c)return 'NO_COLLECTION';try{if(window.__adCompactStandaloneHandler7107)window.removeEventListener('message',window.__adCompactStandaloneHandler7107,false)}catch(_){}var o=['===== MAIN FRAME =====\\n'+String(c.main||'')];for(var i=0;i<c.children.length;i++)o.push('\\n===== CHILD FRAME '+i+' id='+String(c.children[i].frameId||'')+' '+String(c.children[i].href||'')+' =====\\n'+String(c.children[i].report||''));o.push('\\nCHILD_COUNT '+c.children.length);return o.join('\\n')}catch(e){return 'COLLECT_ERR '+e}})();";
+            [wv evaluateJavaScript:collect completionHandler:^(id v2,NSError *e2){
+                NSString *body=e2?[NSString stringWithFormat:@"COLLECT_ERROR %@",e2]:([v2 isKindOfClass:[NSString class]]?v2:[v2 description]);
+                NSMutableString *m=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.109 COMPACT STANDALONE PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\nbase=v7.108~probe + compact APE wrapper-border ownership; retained TWB + exact 300x250 Swiper carousel repair\nmethod=manual SIGUSR2; bounded current-frame tree walk only\ntrigger=%@\nweb=%@\n\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,start?:@"NO_TRIGGER",meta?:@""];
+                [m appendString:body?:@"NO_RESULT"];
+                [m appendString:@"\n================ END RUN ================\n"];
+                ADAppendCompactStandalone7107(m);
+            }];
         });
     }];
 }
-static dispatch_source_t gADPrivacySignal8000=nil;
-static void ADInstallPrivacySignal8000(void){
-    static dispatch_once_t once; dispatch_once(&once,^{ signal(SIGUSR2,SIG_IGN); gADPrivacySignal8000=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue()); if(!gADPrivacySignal8000)return; dispatch_source_set_event_handler(gADPrivacySignal8000,^{ ADCapturePrivacy8000(); }); dispatch_resume(gADPrivacySignal8000); });
+static dispatch_source_t gADCompactStandaloneSignal7107=nil;
+static void ADInstallCompactStandaloneSignal7107(void){
+    static dispatch_once_t once; dispatch_once(&once,^{ signal(SIGUSR2,SIG_IGN); gADCompactStandaloneSignal7107=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue()); if(!gADCompactStandaloneSignal7107)return; dispatch_source_set_event_handler(gADCompactStandaloneSignal7107,^{ ADCaptureCompactStandalone7107(); }); dispatch_resume(gADCompactStandaloneSignal7107); });
 }
 
 // v7.0.68 production: v7.0.65 chevron diagnostic runtime removed.
@@ -2670,8 +2675,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 %ctor {
     if(strcmp(__progname,"Amazon")!=0)return;
     ADLoadPrefs();
-    ADPrivacyInit8000();
-    ADInstallPrivacySignal8000();
+    ADInstallCompactStandaloneSignal7107();
 
     // v6.0.185 launch-transition behavior: discard stale light SplashBoard snapshots.
     @try {

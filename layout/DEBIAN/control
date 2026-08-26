@@ -1,8 +1,8 @@
 Package: com.joemama383.amazondark
 Name: AmazonDark
-Version: 8.0.0
+Version: 7.109~probe
 Architecture: iphoneos-arm64
-Description: Amazon Dark Mode v8.0.0 privacy instrumentation experiment for rootless jailbreaks, iOS 15+
+Description: Amazon Dark Mode for rootless jailbreaks, iOS 15+
 Maintainer: JoeMama383
 Author: JoeMama383
 Section: Tweaks

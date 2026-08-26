@@ -7,7 +7,7 @@ TWEAK_NAME = AmazonDark AmazonDarkSB
 
 AmazonDark_FILES      = src/Tweak.xm
 AmazonDark_CFLAGS     = -fobjc-arc -fexceptions -Wno-unused-variable -Wno-unused-function -Wno-deprecated-declarations -Wno-error
-AmazonDark_FRAMEWORKS = UIKit Foundation WebKit QuartzCore CoreFoundation CoreLocation AVFoundation
+AmazonDark_FRAMEWORKS = UIKit Foundation WebKit QuartzCore CoreFoundation
 
 # SpringBoard launch cover / transition / custom artwork and JIT broker.
 AmazonDarkSB_FILES      = src/AmazonDarkSB.xm
