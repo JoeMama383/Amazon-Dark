@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.120"
+#define AD_VERSION "v7.121-search-ui"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -64,6 +64,21 @@ extern char *__progname;
 @interface ANXTopNavBackgroundView : UIView @end
 @interface SBMultilineSearchView : UIView @end
 @interface A9VSScanItSearchWidget : UIView @end
+@interface UIInputSetContainerView : UIView @end
+@interface UIInputSetHostView : UIView @end
+@interface _UIRemoteKeyboardPlaceholderView : UIView @end
+
+/* v7.121: Search keyboard is remotely rendered. Keep ownership on the local
+ * input host only; no keyboard-process injection or hierarchy scanner. */
+typedef struct {
+    float m11,m12,m13,m14,m15;
+    float m21,m22,m23,m24,m25;
+    float m31,m32,m33,m34,m35;
+    float m41,m42,m43,m44,m45;
+} ADCAColorMatrix7121;
+@interface NSValue (AmazonDarkCAColorMatrix7121)
++ (NSValue *)valueWithCAColorMatrix:(ADCAColorMatrix7121)matrix;
+@end
 
 // -----------------------------------------------------------------------------
 // Preferences — same public keys/domain as v6.0.185.
@@ -777,28 +792,36 @@ static NSString *ADFloorJS(void){
             "#auth-footer .a-divider-inner,.auth-footer .a-divider-inner{background-image:none!important;box-shadow:none!important;}"
             ".s-color-swatch-container,.s-color-swatch-outer-circle{background-color:transparent!important;}"
             ".s-color-swatch-outer-circle{border-color:#494d4d!important;outline-color:#494d4d!important;}"
-            /* v7.120 Search glyph correction. The old v6.0.87 host painter is deliberately
-             * removed: on the current renderer it paints a literal light square. Keep Search/nav
-             * image backdrops transparent (the proven v5.446/v6.0.116 contract), and tint only
-             * actual glyph-like leaves. */
+            /* v7.121 Search glyph correction. Search/nav IMG chrome stays transparent, but
+             * the proven autocomplete I-elements are CSS MASK leaves: their background-color IS
+             * the glyph ink. v7.120 made those exact mask leaves transparent and therefore hid
+             * them. Keep generic image/SVG glyph treatment separate, then own only the exact mask
+             * ink leaves after it so no square host is created. */
             "[class*=nav-search] img,[class*=searchbar] img,[class*=search-bar] img,[role=search] img,"
             "[class*=nav-] img[class*=icon],[class*=header] img[class*=icon]"
-            "{background-color:transparent!important;}"
-            ".s-suggestion-container [class*=icon-past-search-sugge],"
-            ".s-suggestion-container .icon-close.s-suggestion-icon-left"
             "{background-color:transparent!important;}"
             ".s-suggestion-container :is(img[class*=icon],img[alt*=search],img[alt*=arrow],svg,i.a-icon,[class*=glyph],[class*=icon-search],[class*=search-icon]),"
             ".s-suggestion :is(img[class*=icon],img[alt*=search],img[alt*=arrow],svg,i.a-icon,[class*=glyph],[class*=icon-search],[class*=search-icon])"
             "{color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;"
             "filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;}"
-            /* Match the Recent-history glyph to the established right-side arrow gray without
-             * painting its host. This is the same 0.91 light-glyph filter used by arrow/chevron
-             * sprites elsewhere in the current sheet. */
+            /* Current + donor-proven mask leaves. These are 20px I-elements, not rectangular
+             * backdrop hosts. Background-color is mask ink and filter must remain none. */
             ".s-suggestion-container [class*=icon-past-search-sugge]"
-            "{filter:brightness(0) invert(1) brightness(0.91)!important;"
-            "-webkit-filter:brightness(0) invert(1) brightness(0.91)!important;opacity:1!important;}"
+            "{background-color:#9da3a3!important;color:#9da3a3!important;fill:#9da3a3!important;"
+            "stroke:#9da3a3!important;filter:none!important;-webkit-filter:none!important;"
+            "opacity:1!important;box-shadow:none!important;}"
             ".s-suggestion-container .icon-close.s-suggestion-icon-left"
-            "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+            "{background-color:#e8e6e3!important;color:#e8e6e3!important;fill:#e8e6e3!important;"
+            "stroke:#e8e6e3!important;filter:none!important;-webkit-filter:none!important;"
+            "opacity:1!important;box-shadow:none!important;}"
+            /* The left You-May-Be-Interested magnifier is also an icon-search/search-icon mask
+             * family on this autocomplete lineage. Restrict mask-ink ownership to I elements so
+             * image-backed icons retain transparent backdrops. */
+            ".s-suggestion-container i:is([class*=icon-search],[class*=search-icon]),"
+            ".s-suggestion i:is([class*=icon-search],[class*=search-icon])"
+            "{background-color:#e8e6e3!important;color:#e8e6e3!important;fill:#e8e6e3!important;"
+            "stroke:#e8e6e3!important;filter:none!important;-webkit-filter:none!important;"
+            "opacity:1!important;box-shadow:none!important;}"
             /* Share/overflow exact leaves from probe history. */
             ".puis-mab-overlay-row-share .puis-mab-overlay-icon-share"
             "{background-color:#e8e6e3!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;filter:none!important;}"
@@ -2231,12 +2254,104 @@ static void ADTintSearchGlyph706(UIImageView *iv){
     } @catch(...) { gADSearchImageWrite706=NO; }
 }
 
+static BOOL gADSearchKeyboardActive7121=NO;
+static BOOL gADKeyboardBGWrite7121=NO;
+static __weak UIView *gADKeyboardContainer7121=nil;
+static __weak UIView *gADKeyboardHost7121=nil;
+static __weak UIView *gADKeyboardPlaceholder7121=nil;
+static const void *kADKeyboardOrigBG7121=&kADKeyboardOrigBG7121;
+static NSString *const kADKeyboardFilterName7121=@"AmazonDarkOLEDKeyboard7121";
+
+static id ADKeyboardOLEDFilter7121(void){
+    static id filter=nil; static dispatch_once_t once;
+    dispatch_once(&once,^{
+        @try {
+            Class c=NSClassFromString(@"CAFilter");
+            SEL make=NSSelectorFromString(@"filterWithType:");
+            if(!c||![c respondsToSelector:make])return;
+            id f=((id(*)(id,SEL,id))objc_msgSend)(c,make,@"colorMatrix");
+            if(!f)return;
+            [f setValue:kADKeyboardFilterName7121 forKey:@"name"];
+            /* Stock dark keyboard: floor ~= 0.17, keys ~= 0.35. This affine map
+             * sends the floor to black while retaining separated gray keys and
+             * clipping light labels back to white. */
+            ADCAColorMatrix7121 m={
+                1.70f,0,0,0,-0.29f,
+                0,1.70f,0,0,-0.29f,
+                0,0,1.70f,0,-0.29f,
+                0,0,0,1,0
+            };
+            if([NSValue respondsToSelector:@selector(valueWithCAColorMatrix:)]){
+                [f setValue:[NSValue valueWithCAColorMatrix:m] forKey:@"inputColorMatrix"];
+            }
+            filter=f;
+        } @catch(...) { filter=nil; }
+    });
+    return filter;
+}
+static BOOL ADKeyboardLayerHasFilter7121(CALayer *layer){
+    if(!layer)return NO;
+    @try {
+        NSArray *fs=[layer valueForKey:@"filters"];
+        for(id f in fs){ NSString *n=nil; @try { n=[f valueForKey:@"name"]; } @catch(...) {} if([n isEqualToString:kADKeyboardFilterName7121])return YES; }
+    } @catch(...) {}
+    return NO;
+}
+static void ADKeyboardSaveBG7121(UIView *v){
+    if(!v||objc_getAssociatedObject(v,kADKeyboardOrigBG7121))return;
+    @try { objc_setAssociatedObject(v,kADKeyboardOrigBG7121,v.backgroundColor?:[NSNull null],OBJC_ASSOCIATION_RETAIN_NONATOMIC); } @catch(...) {}
+}
+static void ADKeyboardPaintLocal7121(UIView *v,BOOL addFilter){
+    if(!v||!gP.enabled||!gADSearchKeyboardActive7121)return;
+    @try {
+        ADKeyboardSaveBG7121(v);
+        UIColor *black=ADOLED();
+        gADKeyboardBGWrite7121=YES;
+        v.backgroundColor=black;
+        v.layer.backgroundColor=black.CGColor;
+        gADKeyboardBGWrite7121=NO;
+        if(addFilter&&!ADKeyboardLayerHasFilter7121(v.layer)){
+            id f=ADKeyboardOLEDFilter7121();
+            if(f){
+                NSMutableArray *a=[NSMutableArray array];
+                NSArray *old=[v.layer valueForKey:@"filters"]; if(old)[a addObjectsFromArray:old];
+                [a addObject:f]; [v.layer setValue:a forKey:@"filters"];
+            }
+        }
+    } @catch(...) { gADKeyboardBGWrite7121=NO; }
+}
+static void ADKeyboardRestoreLocal7121(UIView *v){
+    if(!v)return;
+    @try {
+        NSMutableArray *a=[NSMutableArray array]; NSArray *old=[v.layer valueForKey:@"filters"];
+        for(id f in old){ NSString *n=nil; @try { n=[f valueForKey:@"name"]; } @catch(...) {} if(![n isEqualToString:kADKeyboardFilterName7121])[a addObject:f]; }
+        [v.layer setValue:(a.count?a:nil) forKey:@"filters"];
+        id orig=objc_getAssociatedObject(v,kADKeyboardOrigBG7121);
+        UIColor *bg=(orig&&orig!=[NSNull null])?orig:nil;
+        gADKeyboardBGWrite7121=YES; v.backgroundColor=bg; v.layer.backgroundColor=bg.CGColor; gADKeyboardBGWrite7121=NO;
+        objc_setAssociatedObject(v,kADKeyboardOrigBG7121,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    } @catch(...) { gADKeyboardBGWrite7121=NO; }
+}
+static void ADKeyboardReassert7121(void){
+    if(!gP.enabled||!gADSearchKeyboardActive7121)return;
+    ADKeyboardPaintLocal7121(gADKeyboardContainer7121,NO);
+    ADKeyboardPaintLocal7121(gADKeyboardHost7121,YES);
+    ADKeyboardPaintLocal7121(gADKeyboardPlaceholder7121,NO);
+}
+static void ADKeyboardDeactivate7121(void){
+    gADSearchKeyboardActive7121=NO;
+    ADKeyboardRestoreLocal7121(gADKeyboardContainer7121);
+    ADKeyboardRestoreLocal7121(gADKeyboardHost7121);
+    ADKeyboardRestoreLocal7121(gADKeyboardPlaceholder7121);
+}
 static void ADPrepareSearchKeyboard7120(UIView *v){
     if(!gP.enabled||!v||!ADInSearchChrome706(v))return;
+    gADSearchKeyboardActive7121=YES;
     @try {
         SEL sel=NSSelectorFromString(@"setKeyboardAppearance:");
         if([v respondsToSelector:sel]) ((void(*)(id,SEL,NSInteger))objc_msgSend)(v,sel,(NSInteger)UIKeyboardAppearanceDark);
     } @catch(...) {}
+    ADKeyboardReassert7121();
 }
 
 static NSAttributedString *ADLightAttributedText708(NSAttributedString *in){
@@ -2507,8 +2622,12 @@ static void ADOwnFocusedSearchSurface7120(UIView *v){
 }
 - (void)didMoveToWindow {
     %orig;
-    ADOwnFocusedSearchSurface7120((UIView *)self);
-    ADPrepareSearchKeyboard7120((UIView *)self);
+    if(((UIView *)self).window){
+        ADOwnFocusedSearchSurface7120((UIView *)self);
+        ADPrepareSearchKeyboard7120((UIView *)self);
+    } else {
+        ADKeyboardDeactivate7121();
+    }
 }
 - (void)layoutSubviews {
     %orig;
@@ -2562,6 +2681,72 @@ static void ADPaintScanItSearchWidget7120(UIView *root){
         }
     } @catch(...) {}
 }
+
+/* v7.121: Search-only local keyboard compositor owner. The actual keyboard is
+ * remote; these hooks keep its local backing OLED and apply one color-matrix
+ * filter to the host composite. No keyboard-process injection, timer or scan. */
+%hook UIInputSetContainerView
+- (void)didMoveToWindow {
+    %orig;
+    gADKeyboardContainer7121=(UIView *)self;
+    if(gADSearchKeyboardActive7121)ADKeyboardPaintLocal7121((UIView *)self,NO);
+}
+- (void)layoutSubviews {
+    %orig;
+    gADKeyboardContainer7121=(UIView *)self;
+    if(gADSearchKeyboardActive7121)ADKeyboardPaintLocal7121((UIView *)self,NO);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(gP.enabled&&gADSearchKeyboardActive7121&&!gADKeyboardBGWrite7121){
+        UIColor *b=ADOLED();
+        %orig(b);
+        return;
+    }
+    %orig;
+}
+%end
+
+%hook UIInputSetHostView
+- (void)didMoveToWindow {
+    %orig;
+    gADKeyboardHost7121=(UIView *)self;
+    if(gADSearchKeyboardActive7121)ADKeyboardPaintLocal7121((UIView *)self,YES);
+}
+- (void)layoutSubviews {
+    %orig;
+    gADKeyboardHost7121=(UIView *)self;
+    if(gADSearchKeyboardActive7121)ADKeyboardPaintLocal7121((UIView *)self,YES);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(gP.enabled&&gADSearchKeyboardActive7121&&!gADKeyboardBGWrite7121){
+        UIColor *b=ADOLED();
+        %orig(b);
+        return;
+    }
+    %orig;
+}
+%end
+
+%hook _UIRemoteKeyboardPlaceholderView
+- (void)didMoveToWindow {
+    %orig;
+    gADKeyboardPlaceholder7121=(UIView *)self;
+    if(gADSearchKeyboardActive7121)ADKeyboardPaintLocal7121((UIView *)self,NO);
+}
+- (void)layoutSubviews {
+    %orig;
+    gADKeyboardPlaceholder7121=(UIView *)self;
+    if(gADSearchKeyboardActive7121)ADKeyboardPaintLocal7121((UIView *)self,NO);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(gP.enabled&&gADSearchKeyboardActive7121&&!gADKeyboardBGWrite7121){
+        UIColor *b=ADOLED();
+        %orig(b);
+        return;
+    }
+    %orig;
+}
+%end
 
 %hook A9VSScanItSearchWidget
 - (void)didMoveToWindow {
@@ -3098,8 +3283,8 @@ static NSString *ADPrivacyNativeSnapshot7117(void){
     return m;
 }
 static NSString *ADPrivacyProbePath7117(void){
-    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.120-privacy-probe.txt"]; } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.120-privacy-probe.txt"];
+    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.121-search-ui-probe.txt"]; } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.121-search-ui-probe.txt"];
 }
 static void ADAppendPrivacy7117(NSString *s){
     if(!s.length)return; @try { NSString *p=ADPrivacyProbePath7117(); NSFileManager *fm=[NSFileManager defaultManager]; [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil]; NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding]; if(![fm fileExistsAtPath:p]){[d writeToFile:p atomically:YES];return;} NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p]; if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];} } @catch(...) {}
@@ -3109,7 +3294,7 @@ static WKWebView *ADLargestTrackedWeb7117(void){
 }
 static void ADCapturePrivacy7117(void){
     if(!gP.enabled)return; NSUInteger run=++gADPrivacyRun7117; NSString *native=ADPrivacyNativeSnapshot7117(); WKWebView *wv=ADLargestTrackedWeb7117();
-    NSMutableString *prefix=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.120 PRIVACY MODE PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\npolicy=metadata only; no request bodies/headers/content, typed text, clipboard contents or coordinates\nmode=known telemetry endpoints receive local synthetic success; shopping/media/creative hosts remain untouched\n\n===== NATIVE =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,native?:@"NO_NATIVE_DATA"];
+    NSMutableString *prefix=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.121 SEARCH UI PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\npolicy=metadata only; no request bodies/headers/content, typed text, clipboard contents or coordinates\nmode=known telemetry endpoints receive local synthetic success; shopping/media/creative hosts remain untouched\n\n===== NATIVE =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,native?:@"NO_NATIVE_DATA"];
     if(!wv){ [prefix appendString:@"\n===== WEB =====\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"]; ADAppendPrivacy7117(prefix); return; }
     NSString *trigger=@"(function(){try{if(typeof window.__adPrivacy7117Report!=='function')return 'HELPER_MISSING privacyMode may be off or this document predates enable';var nonce='priv7117-'+Date.now()+'-'+Math.random().toString(36).slice(2),c={nonce:nonce,main:window.__adPrivacy7117Report(),children:[]};window.__adPrivacy7117Collection=c;window.__adPrivacy7117Collector=function(ev){try{var d=ev.data;if(!d||d.__adPrivacy7117Result!==1||d.nonce!==nonce)return;if(c.children.length<64)c.children.push({href:String(d.href||''),report:String(d.report||'')})}catch(_){}};addEventListener('message',window.__adPrivacy7117Collector,false);window.__adPrivacy7117Broadcast({__adPrivacy7117:1,nonce:nonce});return 'STARTED '+nonce}catch(e){return 'TRIGGER_ERR '+e}})();";
     [wv evaluateJavaScript:trigger completionHandler:^(id v,NSError *e){
@@ -3166,6 +3351,10 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
     } @catch(...) {}
 
     %init;
+
+    /* Event-only reassertion for the retained Search keyboard across background/foreground. */
+    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){ ADKeyboardReassert7121(); }];
+    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){ ADKeyboardReassert7121(); }];
 
     ADPrivacyInit7117();
     ADInstallPrivacySignal7117();
