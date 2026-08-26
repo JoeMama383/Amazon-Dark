@@ -1,3 +1,15 @@
+# AmazonDark v7.111~probe — compact standalone border/TWB regression repair
+
+Built directly from v7.110~probe after the compact 320x50 standalone regressed to no visible gray boundary and an untamed product raster.
+
+The v7.110 main-frame `.ape-placement::after` border is removed. The compact boundary returns to the exact child creative geometry that was correct in v7.108, but is now drawn as a zero-layout high-z `#ad:has(#dynamic-bb)::after` overlay. It therefore ends above Amazon's separate Sponsored feedback row while painting its bottom edge on top of the child content instead of relying on a physical border that can be clipped/covered. The same rule is present in both the first-paint sheet and the constructable standalone survivor sheet.
+
+Compact TWB is also hardened: `[data-acei-id=prod-img]` is already the probed dedicated product-image host, so its media leaf is now targeted directly instead of depending on `#ad:has(#dynamic-bb)`. This preserves the same TWB brightness factor while avoiding sibling-hydration/order failures. Logos, badges, Sponsored chrome, Prime, stars, and deal accents remain outside that host.
+
+The v7.110 fixes for the transparent compact `Limited time deal` plate and the renderer-factory `[data-testid=content]` white floor remain intact. The manual SIGUSR2 probe is retained as `AmazonDark-v7.111-compact-standalone-probe.txt`, now writing an immediate signal breadcrumb before WebKit collection and falling back to Amazon's tmp directory if the Documents write fails. No recurring observer, querySelectorAll scan, TreeWalker, scroll listener, interval, RAF loop, or timer is added.
+
+---
+
 # AmazonDark v7.110~probe — compact standalone geometry + floor parity
 
 Built directly from v7.109~probe using the two manual current-frame captures made on the visible compact standalone variants.

@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.110-probe"
+#define AD_VERSION "v7.111-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1024,20 +1024,14 @@ static NSString *ADFloorJS(void){
             "iframe[id*=ape_],iframe[class*=ape_]"
             "{background-color:transparent!important;border-color:transparent!important;"
             "outline-color:transparent!important;}"
-            /* v7.110: restore the compact 320x50 card boundary ABOVE Amazon's
-             * separate Sponsored feedback row without returning to the clipped child
-             * #ad border. v7.109 proved the 398x62.19 .ape-placement is the exact
-             * creative owner while .ape-feedback is a separate 20px sibling inside
-             * the taller wrapper. Keep the wrapper borderless and draw a zero-layout
-             * overlay on the placement itself. The pseudo border is inside the
-             * main-frame placement, so the child iframe cannot clip its lower edge. */
-            ".mobile-ad-container > .ape-wrapper[style*=\"--ad-height:50\"]"
-            "{background-color:transparent!important;border-color:transparent!important;"
-            "outline:none!important;box-shadow:none!important;}"
-            ".mobile-ad-container > .ape-wrapper[style*=\"--ad-height:50\"] > .ape-placement"
-            "{background-color:transparent!important;border-color:transparent!important;"
-            "outline:none!important;box-shadow:none!important;position:relative!important;}"
-            ".mobile-ad-container > .ape-wrapper[style*=\"--ad-height:50\"] > .ape-placement::after"
+            /* v7.111: compact 320x50 border returns to the exact child creative
+             * geometry that was correct in v7.108, but uses a zero-layout overlay
+             * inside #ad instead of a physical border. This keeps the boundary above
+             * Amazon's separate Sponsored feedback row and paints the lower edge on
+             * top of the child content so it cannot be clipped/covered. */
+            "html[data-ad7-standalone-candidate] #ad:has(#dynamic-bb)"
+            "{position:relative!important;}"
+            "html[data-ad7-standalone-candidate] #ad:has(#dynamic-bb)::after"
             "{content:\"\"!important;position:absolute!important;inset:0!important;"
             "box-sizing:border-box!important;border:1px solid #3b4043!important;"
             "border-radius:8px!important;outline:none!important;box-shadow:none!important;"
@@ -1253,10 +1247,16 @@ static NSString *ADStandalonePaintJS7104(void){
          "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] [data-testid^=modern-][data-testid$=-layout-container],"
          "html[data-ad7104-standalone] [data-testid=ad-background-container]"
          "{border-color:#3b4043!important;outline-color:#3b4043!important;}"
-         /* v7.110: compact 320x50 border remains main-frame-owned, but now
-          * terminates at the .ape-placement boundary above Sponsored. The main
-          * static sheet draws that placement overlay; the survivor child sheet
-          * deliberately owns no compact border geometry. */
+         /* v7.111: mirror the compact child-overlay border in the constructable
+          * survivor sheet so Amazon shell replacement cannot drop it. The overlay
+          * lives inside the 320x50 creative and never encloses Sponsored feedback. */
+         "html[data-ad7104-standalone] #ad:has(#dynamic-bb)"
+         "{position:relative!important;}"
+         "html[data-ad7104-standalone] #ad:has(#dynamic-bb)::after"
+         "{content:\"\"!important;position:absolute!important;inset:0!important;"
+         "box-sizing:border-box!important;border:1px solid #3b4043!important;"
+         "border-radius:8px!important;outline:none!important;box-shadow:none!important;"
+         "pointer-events:none!important;z-index:2147483646!important;}"
          /* Large dynamic-product structural planes. */
          "html[data-ad7104-standalone] [data-testid=ad-background-container] > div"
          "{background:#000!important;background-color:#000!important;background-image:none!important;}"
@@ -1344,11 +1344,11 @@ static NSString *ADStandalonePaintJS7104(void){
          "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] "
          ":is([data-testid=image],[data-acei-id=lfstyl-img]) :is(img,video,canvas),"
          "html[data-ad7104-standalone] :is([data-testid*=product-picture],[data-testid*=product-image],[data-testid*=asin-image]) :is(img,video,canvas),"
-         /* v7.108: compact 320x50 product raster. Probe proves data-acei-id=prod-img
-          * is the dedicated Image grid host and its only media leaf is the product
-          * IMG. Scope to the #dynamic-bb renderer signature so no logos/badges in
-          * other standalone families are dimmed. */
-         "html[data-ad7104-standalone] #ad:has(#dynamic-bb) [data-acei-id=prod-img] :is(img,video,canvas)"
+         /* v7.111: compact 320x50 product raster. data-acei-id=prod-img is the
+          * dedicated Image grid host and its only media leaf is the product IMG.
+          * Target that exact host directly so TWB no longer depends on the sibling
+          * #dynamic-bb hydration state; logos/badges remain outside this host. */
+         "html[data-ad7104-standalone] [data-acei-id=prod-img] :is(img,video,canvas)"
          "{filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;}"
          /* v7.108: exact first-party 300x250 Swiper carousel media. Both the
           * active product tile and the neighboring custom-image tile expose the
@@ -1467,10 +1467,10 @@ static NSString *ADTWBJS(void){
          "html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] "
          ":is([data-testid=image],[data-acei-id=lfstyl-img]) :is(img,video,canvas)"
          ":not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge]),"
-         /* v7.108: exact compact AdaptiveRenderer image grid from the v7.107
-          * device probe. This is the dedicated product-media host in the 320x50
-          * #dynamic-bb family; keep it in the same pure-CSS TWB list. */
-         "html[data-ad7-standalone-candidate] #ad:has(#dynamic-bb) [data-acei-id=prod-img] :is(img,video,canvas),"
+         /* v7.111: exact compact AdaptiveRenderer product-media host. Target
+          * data-acei-id=prod-img directly so TWB survives sibling hydration/order
+          * differences without widening to logos, badges, or Sponsored chrome. */
+         "html[data-ad7-standalone-candidate] [data-acei-id=prod-img] :is(img,video,canvas),"
          /* v7.108: exact first-party 300x250 Swiper carousel media. The probe
           * identifies data-testid=pictureHighQuality on both product and custom
           * slide rasters, so this lane no longer depends on nonexistent
@@ -2645,27 +2645,45 @@ static void ADScheduleLaunchReadyCheck706(void){
 
 
 
-// v7.110~probe manual SIGUSR2 capture. The app has no recurring diagnostic work:
+// v7.111~probe manual SIGUSR2 capture. The app has no recurring diagnostic work:
 // signal receipt snapshots the largest visible WKWebView, broadcasts once to child
 // frames, waits 450 ms for replies, appends one report, and returns idle.
 static NSUInteger gADCompactStandaloneRun7107=0;
 static NSString *ADCompactStandaloneProbePath7107(void){
-    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.110-compact-standalone-probe.txt"]; } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.110-compact-standalone-probe.txt"];
+    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.111-compact-standalone-probe.txt"]; } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.111-compact-standalone-probe.txt"];
 }
 static WKWebView *ADLargestTrackedWeb7107(void){
     WKWebView *best=nil; CGFloat area=0;
     @try { for(WKWebView *wv in ADTrackedWebViews()){ if(!wv||!wv.window||wv.hidden||wv.alpha<0.01)continue; CGRect rr=[wv convertRect:wv.bounds toView:nil],ir=CGRectIntersection(rr,UIScreen.mainScreen.bounds); CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height); if(a>area){area=a;best=wv;} } } @catch(...) {}
     return best;
 }
-static void ADAppendCompactStandalone7107(NSString *text){
-    if(!text.length)return;
-    @try { NSString *p=ADCompactStandaloneProbePath7107(); NSFileManager *fm=[NSFileManager defaultManager]; [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil]; NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding]; if(![fm fileExistsAtPath:p]){[d writeToFile:p atomically:YES];return;} NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p]; if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];} } @catch(...) {}
+static BOOL ADAppendCompactStandalone7107(NSString *text){
+    if(!text.length)return NO;
+    @try {
+        NSFileManager *fm=[NSFileManager defaultManager];
+        NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding];
+        NSMutableArray<NSString *> *paths=[NSMutableArray array];
+        NSString *primary=ADCompactStandaloneProbePath7107(); if(primary.length)[paths addObject:primary];
+        NSString *fallback=[NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.111-compact-standalone-probe.txt"];
+        if(fallback.length && ![fallback isEqualToString:primary])[paths addObject:fallback];
+        for(NSString *p in paths){
+            @try {
+                [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil];
+                if(![fm fileExistsAtPath:p]){ NSError *we=nil; if([d writeToFile:p options:NSDataWritingAtomic error:&we])return YES; }
+                NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p];
+                if(h){ [h seekToEndOfFile]; [h writeData:d]; [h synchronizeFile]; [h closeFile]; return YES; }
+            } @catch(...) {}
+        }
+    } @catch(...) {}
+    return NO;
 }
 static void ADCaptureCompactStandalone7107(void){
-    if(!gP.enabled)return;
-    WKWebView *wv=ADLargestTrackedWeb7107(); NSUInteger run=++gADCompactStandaloneRun7107;
-    if(!wv){ ADAppendCompactStandalone7107([NSString stringWithFormat:@"\n\n===== v7.109 RUN %lu NO_VISIBLE_WEBVIEW date=%@ =====\n",(unsigned long)run,[NSDate date]]); return; }
+    NSUInteger run=++gADCompactStandaloneRun7107;
+    ADAppendCompactStandalone7107([NSString stringWithFormat:@"\n\n===== v7.111 SIGNAL RECEIVED run=%lu date=%@ pid=%d =====\n",(unsigned long)run,[NSDate date],getpid()]);
+    if(!gP.enabled){ ADAppendCompactStandalone7107(@"STATUS: tweak disabled; capture skipped\n"); return; }
+    WKWebView *wv=ADLargestTrackedWeb7107();
+    if(!wv){ ADAppendCompactStandalone7107([NSString stringWithFormat:@"STATUS: NO_VISIBLE_WEBVIEW run=%lu date=%@\n",(unsigned long)run,[NSDate date]]); return; }
     NSString *meta=@""; @try { CGRect r=[wv convertRect:wv.bounds toView:nil]; meta=[NSString stringWithFormat:@"wv=%p frame=(%.1f,%.1f %.1fx%.1f) loading=%d progress=%.3f url=%@",wv,r.origin.x,r.origin.y,r.size.width,r.size.height,wv.loading?1:0,wv.estimatedProgress,wv.URL.absoluteString?:@""]; } @catch(...) {}
     NSString *trigger=@"(function(){try{if(typeof window.__adCompactStandaloneReport7107!=='function')return 'HELPER_MISSING';var nonce='ad7107-'+Date.now()+'-'+Math.random().toString(36).slice(2),c={nonce:nonce,main:window.__adCompactStandaloneReport7107(),children:[]};try{if(window.__adCompactStandaloneHandler7107)window.removeEventListener('message',window.__adCompactStandaloneHandler7107,false)}catch(_){}window.__adCompactStandaloneCollected7107=c;window.__adCompactStandaloneHandler7107=function(ev){try{var d=ev.data;if(!d||d.__adCompactStandalone7107Result!==1||d.nonce!==nonce)return;if(c.children.length<32)c.children.push({frameId:String(d.frameId||''),href:String(d.href||''),report:String(d.report||'')})}catch(_){}};window.addEventListener('message',window.__adCompactStandaloneHandler7107,false);window.__adCompactStandaloneBroadcast7107({__adCompactStandalone7107:1,nonce:nonce});return 'STARTED '+nonce}catch(e){return 'TRIGGER_ERR '+e}})();";
     [wv evaluateJavaScript:trigger completionHandler:^(id v,NSError *e){
@@ -2674,7 +2692,7 @@ static void ADCaptureCompactStandalone7107(void){
             NSString *collect=@"(function(){try{var c=window.__adCompactStandaloneCollected7107;if(!c)return 'NO_COLLECTION';try{if(window.__adCompactStandaloneHandler7107)window.removeEventListener('message',window.__adCompactStandaloneHandler7107,false)}catch(_){}var o=['===== MAIN FRAME =====\\n'+String(c.main||'')];for(var i=0;i<c.children.length;i++)o.push('\\n===== CHILD FRAME '+i+' id='+String(c.children[i].frameId||'')+' '+String(c.children[i].href||'')+' =====\\n'+String(c.children[i].report||''));o.push('\\nCHILD_COUNT '+c.children.length);return o.join('\\n')}catch(e){return 'COLLECT_ERR '+e}})();";
             [wv evaluateJavaScript:collect completionHandler:^(id v2,NSError *e2){
                 NSString *body=e2?[NSString stringWithFormat:@"COLLECT_ERROR %@",e2]:([v2 isKindOfClass:[NSString class]]?v2:[v2 description]);
-                NSMutableString *m=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.110 COMPACT STANDALONE PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\nbase=v7.109~probe + compact placement-border geometry + dynamic-bb deal plate + renderer content floor; retained TWB + exact 300x250 Swiper carousel repair\nmethod=manual SIGUSR2; bounded current-frame tree walk only\ntrigger=%@\nweb=%@\n\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,start?:@"NO_TRIGGER",meta?:@""];
+                NSMutableString *m=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.111 COMPACT STANDALONE PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\nbase=v7.110~probe + child-overlay compact border + direct prod-img TWB + reliable probe breadcrumb; retained deal plate/content floor + 300x250 Swiper repair\nmethod=manual SIGUSR2; bounded current-frame tree walk only\ntrigger=%@\nweb=%@\n\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,start?:@"NO_TRIGGER",meta?:@""];
                 [m appendString:body?:@"NO_RESULT"];
                 [m appendString:@"\n================ END RUN ================\n"];
                 ADAppendCompactStandalone7107(m);
