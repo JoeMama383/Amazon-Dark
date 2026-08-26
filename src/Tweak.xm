@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.121-search-ui"
+#define AD_VERSION "v7.122-search-ui"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -64,11 +64,10 @@ extern char *__progname;
 @interface ANXTopNavBackgroundView : UIView @end
 @interface SBMultilineSearchView : UIView @end
 @interface A9VSScanItSearchWidget : UIView @end
-@interface UIInputSetContainerView : UIView @end
 @interface UIInputSetHostView : UIView @end
 @interface _UIRemoteKeyboardPlaceholderView : UIView @end
 
-/* v7.121: Search keyboard is remotely rendered. Keep ownership on the local
+/* v7.122: Search keyboard is remotely rendered. Keep ownership on the local
  * input host only; no keyboard-process injection or hierarchy scanner. */
 typedef struct {
     float m11,m12,m13,m14,m15;
@@ -2256,7 +2255,6 @@ static void ADTintSearchGlyph706(UIImageView *iv){
 
 static BOOL gADSearchKeyboardActive7121=NO;
 static BOOL gADKeyboardBGWrite7121=NO;
-static __weak UIView *gADKeyboardContainer7121=nil;
 static __weak UIView *gADKeyboardHost7121=nil;
 static __weak UIView *gADKeyboardPlaceholder7121=nil;
 static const void *kADKeyboardOrigBG7121=&kADKeyboardOrigBG7121;
@@ -2334,13 +2332,11 @@ static void ADKeyboardRestoreLocal7121(UIView *v){
 }
 static void ADKeyboardReassert7121(void){
     if(!gP.enabled||!gADSearchKeyboardActive7121)return;
-    ADKeyboardPaintLocal7121(gADKeyboardContainer7121,NO);
     ADKeyboardPaintLocal7121(gADKeyboardHost7121,YES);
     ADKeyboardPaintLocal7121(gADKeyboardPlaceholder7121,NO);
 }
 static void ADKeyboardDeactivate7121(void){
     gADSearchKeyboardActive7121=NO;
-    ADKeyboardRestoreLocal7121(gADKeyboardContainer7121);
     ADKeyboardRestoreLocal7121(gADKeyboardHost7121);
     ADKeyboardRestoreLocal7121(gADKeyboardPlaceholder7121);
 }
@@ -2682,30 +2678,9 @@ static void ADPaintScanItSearchWidget7120(UIView *root){
     } @catch(...) {}
 }
 
-/* v7.121: Search-only local keyboard compositor owner. The actual keyboard is
+/* v7.122: Search-only local keyboard compositor owner. The actual keyboard is
  * remote; these hooks keep its local backing OLED and apply one color-matrix
  * filter to the host composite. No keyboard-process injection, timer or scan. */
-%hook UIInputSetContainerView
-- (void)didMoveToWindow {
-    %orig;
-    gADKeyboardContainer7121=(UIView *)self;
-    if(gADSearchKeyboardActive7121)ADKeyboardPaintLocal7121((UIView *)self,NO);
-}
-- (void)layoutSubviews {
-    %orig;
-    gADKeyboardContainer7121=(UIView *)self;
-    if(gADSearchKeyboardActive7121)ADKeyboardPaintLocal7121((UIView *)self,NO);
-}
-- (void)setBackgroundColor:(UIColor *)color {
-    if(gP.enabled&&gADSearchKeyboardActive7121&&!gADKeyboardBGWrite7121){
-        UIColor *b=ADOLED();
-        %orig(b);
-        return;
-    }
-    %orig;
-}
-%end
-
 %hook UIInputSetHostView
 - (void)didMoveToWindow {
     %orig;
@@ -3283,8 +3258,8 @@ static NSString *ADPrivacyNativeSnapshot7117(void){
     return m;
 }
 static NSString *ADPrivacyProbePath7117(void){
-    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.121-search-ui-probe.txt"]; } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.121-search-ui-probe.txt"];
+    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.122-search-ui-probe.txt"]; } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.122-search-ui-probe.txt"];
 }
 static void ADAppendPrivacy7117(NSString *s){
     if(!s.length)return; @try { NSString *p=ADPrivacyProbePath7117(); NSFileManager *fm=[NSFileManager defaultManager]; [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil]; NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding]; if(![fm fileExistsAtPath:p]){[d writeToFile:p atomically:YES];return;} NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p]; if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];} } @catch(...) {}
@@ -3294,7 +3269,7 @@ static WKWebView *ADLargestTrackedWeb7117(void){
 }
 static void ADCapturePrivacy7117(void){
     if(!gP.enabled)return; NSUInteger run=++gADPrivacyRun7117; NSString *native=ADPrivacyNativeSnapshot7117(); WKWebView *wv=ADLargestTrackedWeb7117();
-    NSMutableString *prefix=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.121 SEARCH UI PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\npolicy=metadata only; no request bodies/headers/content, typed text, clipboard contents or coordinates\nmode=known telemetry endpoints receive local synthetic success; shopping/media/creative hosts remain untouched\n\n===== NATIVE =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,native?:@"NO_NATIVE_DATA"];
+    NSMutableString *prefix=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.122 SEARCH UI PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\npolicy=metadata only; no request bodies/headers/content, typed text, clipboard contents or coordinates\nmode=known telemetry endpoints receive local synthetic success; shopping/media/creative hosts remain untouched\n\n===== NATIVE =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,native?:@"NO_NATIVE_DATA"];
     if(!wv){ [prefix appendString:@"\n===== WEB =====\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"]; ADAppendPrivacy7117(prefix); return; }
     NSString *trigger=@"(function(){try{if(typeof window.__adPrivacy7117Report!=='function')return 'HELPER_MISSING privacyMode may be off or this document predates enable';var nonce='priv7117-'+Date.now()+'-'+Math.random().toString(36).slice(2),c={nonce:nonce,main:window.__adPrivacy7117Report(),children:[]};window.__adPrivacy7117Collection=c;window.__adPrivacy7117Collector=function(ev){try{var d=ev.data;if(!d||d.__adPrivacy7117Result!==1||d.nonce!==nonce)return;if(c.children.length<64)c.children.push({href:String(d.href||''),report:String(d.report||'')})}catch(_){}};addEventListener('message',window.__adPrivacy7117Collector,false);window.__adPrivacy7117Broadcast({__adPrivacy7117:1,nonce:nonce});return 'STARTED '+nonce}catch(e){return 'TRIGGER_ERR '+e}})();";
     [wv evaluateJavaScript:trigger completionHandler:^(id v,NSError *e){

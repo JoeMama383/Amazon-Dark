@@ -1,3 +1,7 @@
+# AmazonDark v7.122 Search UI
+
+Fixes the v7.121 Search keyboard overlay regression without changing the keyboard appearance or Search glyph work. The full-screen `UIInputSetContainerView` is no longer painted; only the bottom keyboard host/placeholder remain OLED-owned. This restores the Search UI and back control while keeping the OLED keyboard.
+
 # AmazonDark v7.121~search-ui — Search mask glyph + OLED keyboard follow-up
 
 Directly based on v7.120. Fixes two v7.120 Search follow-up regressions: (1) Recent clock/X mask glyphs disappeared because their actual CSS-mask ink host was made transparent; v7.121 restores ink on the exact 20px mask leaves while keeping surrounding hosts/image backdrops transparent, and also restores the Search-suggestion magnifier mask lane. (2) UIKeyboardAppearanceDark only requests Apple's stock dark-gray keyboard. v7.121 retains that request, paints the local remote-keyboard backing OLED black, and applies one Search-only Core Animation color-matrix filter to the local UIInputSetHostView composite to push the stock dark floor to OLED while retaining differentiated gray keys/light labels. The host owner remains active across background/foreground to suppress the brief blank-white re-entry composite. No keyboard-process injection, DOM scan, observer, recurring timer, RAF, interval, or scroll worker is added.
