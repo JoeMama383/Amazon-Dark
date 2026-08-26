@@ -34,6 +34,10 @@ static const NSTimeInterval kCoverHold    = 8.5;  // LAST RESORT. The app guaran
                                                   // that or the timer pre-empts the signal -
                                                   // which is exactly what 3.0s was doing.
 static const NSTimeInterval kCoverFade    = 0.55; // lift animation
+static const NSTimeInterval kReadySettle   = 0.40; // v7.116: keep the cover fully opaque for
+                                                  // a short post-ready settle window. If the
+                                                  // ready event arrives early, the existing
+                                                  // 1.40 s minimum absorbs this completely.
 static const NSTimeInterval kCoverHardCap = 10.0; // absolute max on screen
 static const NSTimeInterval kReCoverGap   = 8.0;  // ignore re-triggers within
 
@@ -496,8 +500,17 @@ static void ADSBHandleJITRequest622(int token){
             @try {
                 if (!gCoverWin && !gCoverOverlay) return;
                 double shown = CFAbsoluteTimeGetCurrent() - gPresentAt;
-                double wait  = shown < 1.40 ? (1.40 - shown) : 0.0;  // no strobe
-                ADSBLog([NSString stringWithFormat:@"COVER ready (shown %.2fs, wait %.2fs)", shown, wait]);
+                // v7.116: the app-side handoff is now event-driven and deliberately free of
+                // DOM polling/timers. A lifecycle event can still precede Amazon's final
+                // splash-to-Home composite by a few frames, which made the stock white
+                // loading surface briefly visible through our 0.55 s fade. Keep that
+                // protection here in SpringBoard instead of putting polling/delays back
+                // into Amazon. This is bounded and one-shot: wait until BOTH the historical
+                // 1.40 s minimum and a 0.40 s post-ready settle window are satisfied.
+                double minimumRemaining = shown < 1.40 ? (1.40 - shown) : 0.0;
+                double wait = minimumRemaining > kReadySettle ? minimumRemaining : kReadySettle;
+                ADSBLog([NSString stringWithFormat:@"COVER ready (shown %.2fs, minRemain %.2fs, settle %.2fs, wait %.2fs)",
+                         shown, minimumRemaining, kReadySettle, wait]);
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(wait * NSEC_PER_SEC)),
                                dispatch_get_main_queue(), ^{ ADDismissCover(); });
             } @catch (__unused NSException *e) {}

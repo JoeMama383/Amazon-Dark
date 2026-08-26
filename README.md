@@ -1,3 +1,13 @@
+# AmazonDark v7.116 — SpringBoard post-ready settle guard
+
+Production build based directly on v7.115. The v7.115 event-driven app-side launch handoff is kept intact: no DOM polling, no `querySelector()`, no app-side `dispatch_after`, and no recurring launch timer is restored. The brief stock-white Amazon loading/splash flash seen just before Home was caused by the ready lifecycle event arriving a few frames before Amazon's final splash-to-Home composite was visually settled.
+
+The fix stays entirely on the SpringBoard cover side. When Amazon posts the existing one-shot ready signal, SpringBoard now waits until **both** conditions are satisfied before beginning the existing 0.55 s fade: (1) the historical 1.40 s minimum cover time, and (2) a 0.40 s post-ready settle window. If the ready signal arrives early enough, the existing 1.40 s minimum absorbs some or all of that settle window; otherwise the maximum additional hold is 0.40 s. This keeps the cover opaque across the fragile final composite without reintroducing WebKit queries, polling, app-process timers, observers, or extra dispatch work.
+
+All v7.115/v7.114 theming code is unchanged, including OLED floors, standalone ad families, store-image/product-image TWB, compact border geometry, transparent Limited-time-deal plate, 300x250 Swiper ads, third-party video/display TWB, Prime blue, orange rating stars, red deal accents, Sponsored paint, native TWB, search/top/bottom chrome, 120 Hz, and JIT. No probe ships in v7.116.
+
+---
+
 # AmazonDark v7.115 — event-driven launch handoff / performance cleanup
 
 Production build based directly on v7.114. No visual theming selector, standalone-ad rule, TWB media lane, border geometry, text ownership, Sponsored paint, Prime blue, rating-star orange, or deal/coupon accent rule is changed.

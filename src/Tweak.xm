@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.115"
+#define AD_VERSION "v7.116"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2617,7 +2617,9 @@ static void ADConsiderLaunchReady706(void){
 
 
 
-// v7.115 production: v7.114 standalone treatment retained; launch DOM polling removed.
+// v7.116 production: v7.115 event-driven app handoff retained; SpringBoard owns a
+// bounded 0.40 s post-ready settle guard so Amazon's final white loading composite
+// cannot peek through the cover fade.
 // v7.0.68 production: v7.0.65 chevron diagnostic runtime removed.
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
     ADLoadPrefs();
