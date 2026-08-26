@@ -34,7 +34,7 @@
 #import <string.h>
 #import <float.h>
 
-#define AD_VERSION "v7.114"
+#define AD_VERSION "v7.115"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -595,7 +595,7 @@ static void ADRefreshPromotionState611(void){
 // OLED floor — no Dark Reader, no DOM observer, no visual-component classifier.
 // -----------------------------------------------------------------------------
 static void ADPostReadyOnce(void);
-static void ADScheduleLaunchReadyCheck706(void);
+static void ADConsiderLaunchReady706(void);
 static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
 static const void *kADStandalonePaintUS7104=&kADStandalonePaintUS7104;
@@ -1594,11 +1594,22 @@ static BOOL ADPrimaryAmazonWindow713(UIWindow *w, UIViewController *candidate);
 // -----------------------------------------------------------------------------
 static void ADApplyAllFloors(void){
     if(!gP.enabled)return;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        @try {
-            for(WKWebView *wv in ADTrackedWebViews()) if(wv.window) ADApplyWebFloor(wv);
-        } @catch(...) {}
-    });
+    @try {
+        for(WKWebView *wv in ADTrackedWebViews()) if(wv.window) ADApplyWebFloor(wv);
+    } @catch(...) {}
+}
+
+// v7.115: one main-thread handoff owns launch/prefs refresh work. At process
+// startup Logos normally enters on the main thread, so this runs inline; a
+// Darwin prefs callback arriving off-main uses the single guarded dispatch.
+static void ADRefreshRuntimeState7115(BOOL refreshTWB){
+    void (^work)(void)=^{
+        ADApplyAllFloors();
+        ADRefreshPromotionState611();
+        if(refreshTWB) ADRefreshWebTWBPrefs791();
+    };
+    if([NSThread isMainThread]) work();
+    else dispatch_async(dispatch_get_main_queue(),work);
 }
 
 %hook WKWebViewConfiguration
@@ -1642,7 +1653,7 @@ static void ADApplyAllFloors(void){
 }
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled && self.window){ ADAttachWebScripts(self); ADApplyWebFloor(self); ADScheduleLaunchReadyCheck706(); }
+    if(gP.enabled && self.window){ ADAttachWebScripts(self); ADApplyWebFloor(self); ADConsiderLaunchReady706(); }
 }
 %end
 
@@ -2365,10 +2376,12 @@ static void ADOwnBottomBar708(UIView *v){
     %orig;
     if(gP.enabled){
         ADClaimStatusController713(self);
-        if(ADPrimaryAmazonController713(self) && self.isViewLoaded){
+        BOOL primary=ADPrimaryAmazonController713(self);
+        if(primary && self.isViewLoaded){
             self.view.backgroundColor=ADOLED();
             self.view.layer.backgroundColor=ADOLED().CGColor;
         }
+        if(primary) ADConsiderLaunchReady706();
     }
 }
 %end
@@ -2451,6 +2464,10 @@ static void ADDarkenSplash(UIViewController *vc){ if(gP.enabled) @try { if(vc.vi
     %orig;
     ADDarkenSplash(self);
 }
+- (void)viewDidDisappear:(BOOL)animated {
+    %orig;
+    ADConsiderLaunchReady706();
+}
 %end
 %hook TezBaseSplashScreenViewController
 - (void)viewDidLayoutSubviews {
@@ -2460,6 +2477,10 @@ static void ADDarkenSplash(UIViewController *vc){ if(gP.enabled) @try { if(vc.vi
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
     ADDarkenSplash(self);
+}
+- (void)viewDidDisappear:(BOOL)animated {
+    %orig;
+    ADConsiderLaunchReady706();
 }
 %end
 
@@ -2558,9 +2579,6 @@ static void ADApplyNativeTWB(UIImageView *iv){
 // is mounted. Cached light launch snapshots are cleared exactly as in v6.0.185.
 // -----------------------------------------------------------------------------
 static BOOL gADReadyPosted706=NO;
-static BOOL gADReadyScheduled706=NO;
-static NSInteger gADReadyAttempts706=0;
-static NSInteger gADReadyStable706=0;
 static BOOL ADVisibleSplashController706(void){
     @try {
         for(UIWindow *w in UIApplication.sharedApplication.windows){
@@ -2581,34 +2599,17 @@ static void ADPostReadyOnce(void){
     if(gADReadyPosted706)return; gADReadyPosted706=YES;
     @try { notify_post("com.colindavidr.amazondark.ready"); } @catch(...) {}
 }
-static void ADRunLaunchReadyCheck706(void){
-    if(gADReadyPosted706||!gP.enabled){gADReadyScheduled706=NO;return;}
-    gADReadyAttempts706++;
-    if(ADVisibleSplashController706()){ gADReadyStable706=0; }
-    else {
-        __block BOOL anyReady=NO;
-        NSArray *webs=ADTrackedWebViews();
-        for(WKWebView *wv in webs){
-            if(!wv.window)continue;
-            NSString *js=@"(function(){try{var d=document;if(!(d.readyState==='interactive'||d.readyState==='complete'))return 0;var x=d.querySelector('#gwm-PageContent,#a-page main,main,[role=main]');if(!x)return 0;var r=x.getBoundingClientRect(),c=getComputedStyle(x),bg=c&&c.backgroundColor||'',txt=(x.innerText||x.textContent||'').trim();var media=!!x.querySelector('img,video,canvas');return ((bg==='rgb(0, 0, 0)'||bg==='rgba(0, 0, 0, 1)')&&r.height>260&&(txt.length>80||media))?1:0;}catch(e){return 0;}})();";
-            [wv evaluateJavaScript:js completionHandler:^(id value,NSError *error){
-                if(!error&&[value respondsToSelector:@selector(boolValue)]&&[value boolValue]){
-                    anyReady=YES; gADReadyStable706++;
-                    if(gADReadyStable706>=3 && !ADVisibleSplashController706()){
-                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.25*NSEC_PER_SEC)),dispatch_get_main_queue(),^{ if(!ADVisibleSplashController706())ADPostReadyOnce(); });
-                    }
-                }
-            }];
-        }
-        (void)anyReady;
-    }
-    if(!gADReadyPosted706 && gADReadyAttempts706<64){
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.125*NSEC_PER_SEC)),dispatch_get_main_queue(),^{ ADRunLaunchReadyCheck706(); });
-    } else gADReadyScheduled706=NO;
-}
-static void ADScheduleLaunchReadyCheck706(void){
-    if(gADReadyPosted706||gADReadyScheduled706||!gP.enabled)return;
-    gADReadyScheduled706=YES; dispatch_async(dispatch_get_main_queue(),^{ ADRunLaunchReadyCheck706(); });
+// v7.115: launch-cover release is event-driven. Visible primary controller /
+// WebView lifecycle events and the known Amazon splash controllers' disappearance
+// are enough to signal readiness; there is no DOM polling, delayed retry loop or
+// JavaScript readiness query. The tiny splash-tree check only runs until the first
+// successful signal and prevents an underneath-splash view event from releasing
+// the SpringBoard cover early. SpringBoard still owns the 1.40 s minimum and
+// 0.55 s fade, so presentation timing remains unchanged.
+static void ADConsiderLaunchReady706(void){
+    if(gADReadyPosted706||!gP.enabled)return;
+    if(ADVisibleSplashController706())return;
+    ADPostReadyOnce();
 }
 
 
@@ -2616,13 +2617,11 @@ static void ADScheduleLaunchReadyCheck706(void){
 
 
 
-// v7.114 production: standalone diagnostic signal/background capture runtime removed.
+// v7.115 production: v7.114 standalone treatment retained; launch DOM polling removed.
 // v7.0.68 production: v7.0.65 chevron diagnostic runtime removed.
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
     ADLoadPrefs();
-    ADRefreshPromotionState611();
-    ADApplyAllFloors();
-    ADRefreshWebTWBPrefs791();
+    ADRefreshRuntimeState7115(YES);
 }
 
 %ctor {
@@ -2644,12 +2643,8 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);
-    dispatch_async(dispatch_get_main_queue(), ^{
-        ADApplyAllFloors();
-        ADRefreshPromotionState611();
-        ADApplyJIT622();
-        ADScheduleLaunchReadyCheck706();
-    });
+    ADRefreshRuntimeState7115(NO);
+    ADApplyJIT622();
 }
 
 #pragma clang diagnostic pop

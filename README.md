@@ -1,3 +1,13 @@
+# AmazonDark v7.115 — event-driven launch handoff / performance cleanup
+
+Production build based directly on v7.114. No visual theming selector, standalone-ad rule, TWB media lane, border geometry, text ownership, Sponsored paint, Prime blue, rating-star orange, or deal/coupon accent rule is changed.
+
+The old launch-cover readiness system polled visible WebViews every 125 ms for up to 64 attempts and evaluated JavaScript containing two `querySelector()` calls, then used a second delayed handoff before posting the SpringBoard ready signal. v7.115 removes that polling path completely. Readiness is now event-driven from the existing visible WebView / primary Amazon controller lifecycle and the two known Amazon splash controllers disappearing. A small native splash-controller tree check prevents an underneath-splash lifecycle event from releasing the cover early. SpringBoard still owns the existing 1.40 s minimum presentation and 0.55 s fade.
+
+The runtime refresh path is also consolidated so launch and preference refreshes share one guarded main-thread handoff instead of stacking main-queue dispatches. App-side `src/Tweak.xm` now contains 0 MutationObservers, 0 `querySelectorAll`, 0 `querySelector`, 0 TreeWalker, 0 web scroll listeners, 0 intervals, 0 RAF loops, 0 timeouts, 0 `dispatch_after`, and 2 `dispatch_async` call sites (JIT utility request + guarded main-thread refresh). No probe ships in v7.115.
+
+---
+
 # AmazonDark v7.114 — standalone store-image TWB parity
 
 Production build based directly on the device-confirmed v7.113/v7.112 visual code. Existing captures already identify the standalone store/brand image precisely: the raster lives under `data-acei-id="brnd-logo"`, with the 414x125 renderer also exposing a `data-testid="logo"` wrapper and an `img[alt="Brand logo"]` leaf. v7.114 adds that exact identity raster to the same TWB brightness factor already used for standalone product imagery, in both the document-start TWB sheet and the constructable/adopted standalone survivor sheet. This covers the known compact, medium, large/dynamic, and first-party standalone renderer variants without reopening the generic logo/icon lane.
