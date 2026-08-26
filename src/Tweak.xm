@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.126-search-ui-probe"
+#define AD_VERSION "v7.127-search-ui-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -71,6 +71,7 @@ extern char *__progname;
 @end
 @interface UIPredictionViewController : UIViewController @end
 @interface UIKeyboardDockView : UIView @end
+@interface UIKeyboardDockItemButton : UIView @end
 @interface UIKBVisualEffectView : UIVisualEffectView
 @property (nonatomic, copy, readwrite) NSArray *backgroundEffects;
 @end
@@ -2355,6 +2356,51 @@ static void ADSetKeyboardFloor7126(UIView *view){
 }
 %end
 
+// v7.127: the device screenshot measures the right dictation glyph about 5.5pt
+// higher than the left emoji glyph even though the two UIKeyboardDockItemButton
+// frames themselves are on the same plane (the probe shows only a 0.3pt frame
+// difference).  Shift only the right dock item's rendered button content down
+// by that measured amount; the 80x69pt hit target and dock geometry stay stock.
+static const CGFloat kADKeyboardRightGlyphShift7127 = 5.5;
+static BOOL ADIsRightKeyboardDockItem7127(UIView *v){
+    if(!gP.enabled||!v||!v.window)return NO;
+    @try {
+        CGRect r=[v convertRect:v.bounds toView:v.window];
+        CGFloat ww=v.window.bounds.size.width;
+        return ww>0.0 && CGRectGetMidX(r)>(ww*0.70) &&
+               r.size.width>=50.0 && r.size.width<=100.0 &&
+               r.size.height>=50.0 && r.size.height<=85.0;
+    } @catch(...) {}
+    return NO;
+}
+
+%hook UIKeyboardDockItemButton
+- (void)layoutSubviews {
+    %orig;
+    if(!gP.enabled||!ADKeyboardDark7126((UIView *)self))return;
+    @try {
+        BOOL right=ADIsRightKeyboardDockItem7127((UIView *)self);
+        ((UIView *)self).clipsToBounds=NO;
+        SEL imageViewSel=NSSelectorFromString(@"imageView");
+        if([(id)self respondsToSelector:imageViewSel]){
+            id iv=((id(*)(id,SEL))objc_msgSend)((id)self,imageViewSel);
+            if([iv isKindOfClass:[UIImageView class]])((UIImageView *)iv).clipsToBounds=NO;
+        }
+        if(right){
+            // UIKeyboardDockItemButton behaves as a button on current iOS, but keep
+            // this port ABI-safe by asking for the selector dynamically rather than
+            // asserting a private superclass in our source declaration.
+            SEL edgeSel=NSSelectorFromString(@"setImageEdgeInsets:");
+            if([(id)self respondsToSelector:edgeSel]){
+                UIEdgeInsets e=UIEdgeInsetsMake(kADKeyboardRightGlyphShift7127,0.0,
+                                                -kADKeyboardRightGlyphShift7127,0.0);
+                ((void(*)(id,SEL,UIEdgeInsets))objc_msgSend)((id)self,edgeSel,e);
+            }
+        }
+    } @catch(...) {}
+}
+%end
+
 %hook UIInputView
 - (void)layoutSubviews {
     %orig;
@@ -2672,6 +2718,14 @@ static void ADPaintScanItSearchWidget7120(UIView *root){
     @try {
         root.backgroundColor=ADOLED();
         root.layer.backgroundColor=ADOLED().CGColor;
+        // v7.127: probe/screenshot put the stray bright hairline exactly on this
+        // 60pt widget's top edge (y=526). Own the root edge itself instead of
+        // touching Search-row separators in WebKit. A black 1pt border is
+        // invisible on the OLED body but covers Amazon's stock top seam.
+        root.layer.borderWidth=1.0;
+        root.layer.borderColor=ADOLED().CGColor;
+        root.layer.shadowOpacity=0.0f;
+        root.layer.shadowColor=ADOLED().CGColor;
         UIView *ancestor=root.superview;
         CGFloat screenW=UIScreen.mainScreen.bounds.size.width;
         for(int ad=0;ancestor&&ad<7;ad++,ancestor=ancestor.superview){
@@ -3229,7 +3283,7 @@ static void ADConsiderLaunchReady706(void){
 %end
 
 // -----------------------------------------------------------------------------
-// v7.126 Search UI probe. Screenshot/SIGUSR2 capture is tailored to autocomplete glyphs, headings, delivery/location banner, and Deals-for-you.
+// v7.127 Search UI probe. Screenshot/SIGUSR2 capture is retained for the Search surface while the native seam/dock geometry fixes are verified.
 // It is diagnostic-only and runs only after an iOS screenshot or SIGUSR2.
 // No observer/scan/timer runs during ordinary app use.
 // -----------------------------------------------------------------------------
@@ -3239,9 +3293,9 @@ static dispatch_source_t gADSearchProbeSignal7123=nil;
 static NSString *ADSearchProbePath7123(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.126-search-ui-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.127-search-ui-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.126-search-ui-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.127-search-ui-probe.txt"];
 }
 static void ADSearchProbeAppend7123(NSString *s){
     if(!s.length)return;
@@ -3385,7 +3439,7 @@ static NSString *ADSearchProbeDOMJS7123(void){
 }
 static void ADCaptureSearchVisibility7123(NSString *trigger){
     if(!gP.enabled)return; NSUInteger run=++gADSearchProbeRun7123;
-    NSMutableString *head=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.126 SEARCH UI PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE WINDOWS / VIEWS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchProbeNative7123(),ADSearchProbeWebViews7123()];
+    NSMutableString *head=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.127 SEARCH UI PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE WINDOWS / VIEWS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchProbeNative7123(),ADSearchProbeWebViews7123()];
     ADSearchProbeAppend7123(head);
     WKWebView *wv=ADSearchProbeAutocompleteWeb7123();
     if(!wv){ ADSearchProbeAppend7123(@"\n===== AUTOCOMPLETE DOM =====\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"); return; }

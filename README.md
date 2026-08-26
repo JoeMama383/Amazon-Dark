@@ -1,3 +1,11 @@
+# AmazonDark v7.127~search-ui-probe — Search seam + keyboard dock alignment
+
+Directly based on v7.126. The OledKeyboard-derived OLED keyboard ownership, Search heading contrast, location/delivery treatment, v7.125 glyph-sprite preservation, Deals-for-you treatment, Privacy Mode, launch cover, 120 Hz, JIT, and all established ad/TWB behavior remain intact.
+
+This pass fixes only the two remaining native quirks shown in the current Search screenshot/probe. The bright full-width hairline is exactly coincident with the top edge of `A9VSScanItSearchWidget` (the probe places that 60pt native widget at y=526, with its photo/camera buttons beginning at y=534), so the widget now owns an invisible OLED-black 1pt root border and zero shadow rather than altering the WebKit Recent-row separators. The keyboard probe shows the left/right `UIKeyboardDockItemButton` frames already aligned within 0.3pt, while screenshot pixel geometry places the right microphone artwork about 5.5pt above the left emoji artwork. v7.127 therefore leaves both hit-target frames untouched and applies a 5.5pt downward `imageEdgeInsets` translation only to the right dock item while disabling clipping on its button/image view.
+
+The one-shot screenshot/SIGUSR2 Search probe is retained as `AmazonDark-v7.127-search-ui-probe.txt` for this final geometry verification. Normal use still adds no DOM observer, polling loop, recurring timer, RAF, interval, or scroll listener.
+
 # AmazonDark v7.126 — OledKeyboard UIKit port + Search UI probe
 
 - Direct base: v7.125 Search UI probe. Search glyph-sprite preservation, Deals-for-you OLED/TWB rules, Privacy Mode behavior, launch cover, 120 Hz, JIT, and the screenshot Search probe are retained.
@@ -5,9 +13,7 @@
 - Search still requests `UIKeyboardAppearanceDark`; once the keyboard is in dark mode, AmazonDark paints the real keyboard floor OLED black through `UIKeyboard`, clears the keyboard blur backing through `UIKBVisualEffectView`, paints `UIKeyboardDockView`, and handles the prediction, emoji-search, and autofill input surfaces.
 - These hooks are confined to the Amazon process by the existing `com.amazon.Amazon` filter; there is no SpringBoard-wide or system-wide keyboard injection.
 - No full-screen `UITextEffectsWindow`, `UIInputSetContainerView`, `UIInputSetHostView`, or `_UIRemoteKeyboardPlaceholderView` painting/filtering is reintroduced.
-- Search section headings such as `YOU MAY BE INTERESTED` / `RECENT` are explicitly light, because they are sibling heading nodes rather than descendants of the suggestion rows.
-- The autocomplete delivery/location banner is scoped to the Search document: structural location/delivery hosts become OLED black, their text becomes light, and location icon leaves are whitened without erasing sprite/pseudo artwork.
-- The existing v7.126 Search UI screenshot probe writes `AmazonDark-v7.126-search-ui-probe.txt` and now also inventories the location/delivery and heading families if either renderer changes.
+- The existing v7.126 Search UI screenshot probe writes `AmazonDark-v7.126-search-ui-probe.txt`.
 
 Source basis: https://github.com/dayanch96/OledKeyboard (public source; README reports testing through iOS 17.4.1).
 
