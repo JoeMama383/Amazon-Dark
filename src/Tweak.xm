@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.122-search-ui"
+#define AD_VERSION "v7.123-search-visibility-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -64,20 +64,6 @@ extern char *__progname;
 @interface ANXTopNavBackgroundView : UIView @end
 @interface SBMultilineSearchView : UIView @end
 @interface A9VSScanItSearchWidget : UIView @end
-@interface UIInputSetHostView : UIView @end
-@interface _UIRemoteKeyboardPlaceholderView : UIView @end
-
-/* v7.122: Search keyboard is remotely rendered. Keep ownership on the local
- * input host only; no keyboard-process injection or hierarchy scanner. */
-typedef struct {
-    float m11,m12,m13,m14,m15;
-    float m21,m22,m23,m24,m25;
-    float m31,m32,m33,m34,m35;
-    float m41,m42,m43,m44,m45;
-} ADCAColorMatrix7121;
-@interface NSValue (AmazonDarkCAColorMatrix7121)
-+ (NSValue *)valueWithCAColorMatrix:(ADCAColorMatrix7121)matrix;
-@end
 
 // -----------------------------------------------------------------------------
 // Preferences — same public keys/domain as v6.0.185.
@@ -152,7 +138,6 @@ static NSMutableDictionary<NSString *,NSNumber *> *gADPrivacyNativeRequested7117
 static NSMutableDictionary<NSString *,NSNumber *> *gADPrivacyNativeBlocked7117=nil;
 static NSUInteger gADPrivacyNativeRequestedTotal7117=0;
 static NSUInteger gADPrivacyNativeBlockedTotal7117=0;
-static NSUInteger gADPrivacyRun7117=0;
 static BOOL gADPrivacyProtocolRegistered7117=NO;
 static NSUInteger gADPrivacyConfigInsertions7118=0;
 static NSUInteger gADPrivacyLateProtocolRewrites7118=0;
@@ -2253,101 +2238,12 @@ static void ADTintSearchGlyph706(UIImageView *iv){
     } @catch(...) { gADSearchImageWrite706=NO; }
 }
 
-static BOOL gADSearchKeyboardActive7121=NO;
-static BOOL gADKeyboardBGWrite7121=NO;
-static __weak UIView *gADKeyboardHost7121=nil;
-static __weak UIView *gADKeyboardPlaceholder7121=nil;
-static const void *kADKeyboardOrigBG7121=&kADKeyboardOrigBG7121;
-static NSString *const kADKeyboardFilterName7121=@"AmazonDarkOLEDKeyboard7121";
-
-static id ADKeyboardOLEDFilter7121(void){
-    static id filter=nil; static dispatch_once_t once;
-    dispatch_once(&once,^{
-        @try {
-            Class c=NSClassFromString(@"CAFilter");
-            SEL make=NSSelectorFromString(@"filterWithType:");
-            if(!c||![c respondsToSelector:make])return;
-            id f=((id(*)(id,SEL,id))objc_msgSend)(c,make,@"colorMatrix");
-            if(!f)return;
-            [f setValue:kADKeyboardFilterName7121 forKey:@"name"];
-            /* Stock dark keyboard: floor ~= 0.17, keys ~= 0.35. This affine map
-             * sends the floor to black while retaining separated gray keys and
-             * clipping light labels back to white. */
-            ADCAColorMatrix7121 m={
-                1.70f,0,0,0,-0.29f,
-                0,1.70f,0,0,-0.29f,
-                0,0,1.70f,0,-0.29f,
-                0,0,0,1,0
-            };
-            if([NSValue respondsToSelector:@selector(valueWithCAColorMatrix:)]){
-                [f setValue:[NSValue valueWithCAColorMatrix:m] forKey:@"inputColorMatrix"];
-            }
-            filter=f;
-        } @catch(...) { filter=nil; }
-    });
-    return filter;
-}
-static BOOL ADKeyboardLayerHasFilter7121(CALayer *layer){
-    if(!layer)return NO;
-    @try {
-        NSArray *fs=[layer valueForKey:@"filters"];
-        for(id f in fs){ NSString *n=nil; @try { n=[f valueForKey:@"name"]; } @catch(...) {} if([n isEqualToString:kADKeyboardFilterName7121])return YES; }
-    } @catch(...) {}
-    return NO;
-}
-static void ADKeyboardSaveBG7121(UIView *v){
-    if(!v||objc_getAssociatedObject(v,kADKeyboardOrigBG7121))return;
-    @try { objc_setAssociatedObject(v,kADKeyboardOrigBG7121,v.backgroundColor?:[NSNull null],OBJC_ASSOCIATION_RETAIN_NONATOMIC); } @catch(...) {}
-}
-static void ADKeyboardPaintLocal7121(UIView *v,BOOL addFilter){
-    if(!v||!gP.enabled||!gADSearchKeyboardActive7121)return;
-    @try {
-        ADKeyboardSaveBG7121(v);
-        UIColor *black=ADOLED();
-        gADKeyboardBGWrite7121=YES;
-        v.backgroundColor=black;
-        v.layer.backgroundColor=black.CGColor;
-        gADKeyboardBGWrite7121=NO;
-        if(addFilter&&!ADKeyboardLayerHasFilter7121(v.layer)){
-            id f=ADKeyboardOLEDFilter7121();
-            if(f){
-                NSMutableArray *a=[NSMutableArray array];
-                NSArray *old=[v.layer valueForKey:@"filters"]; if(old)[a addObjectsFromArray:old];
-                [a addObject:f]; [v.layer setValue:a forKey:@"filters"];
-            }
-        }
-    } @catch(...) { gADKeyboardBGWrite7121=NO; }
-}
-static void ADKeyboardRestoreLocal7121(UIView *v){
-    if(!v)return;
-    @try {
-        NSMutableArray *a=[NSMutableArray array]; NSArray *old=[v.layer valueForKey:@"filters"];
-        for(id f in old){ NSString *n=nil; @try { n=[f valueForKey:@"name"]; } @catch(...) {} if(![n isEqualToString:kADKeyboardFilterName7121])[a addObject:f]; }
-        [v.layer setValue:(a.count?a:nil) forKey:@"filters"];
-        id orig=objc_getAssociatedObject(v,kADKeyboardOrigBG7121);
-        UIColor *bg=(orig&&orig!=[NSNull null])?orig:nil;
-        gADKeyboardBGWrite7121=YES; v.backgroundColor=bg; v.layer.backgroundColor=bg.CGColor; gADKeyboardBGWrite7121=NO;
-        objc_setAssociatedObject(v,kADKeyboardOrigBG7121,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    } @catch(...) { gADKeyboardBGWrite7121=NO; }
-}
-static void ADKeyboardReassert7121(void){
-    if(!gP.enabled||!gADSearchKeyboardActive7121)return;
-    ADKeyboardPaintLocal7121(gADKeyboardHost7121,YES);
-    ADKeyboardPaintLocal7121(gADKeyboardPlaceholder7121,NO);
-}
-static void ADKeyboardDeactivate7121(void){
-    gADSearchKeyboardActive7121=NO;
-    ADKeyboardRestoreLocal7121(gADKeyboardHost7121);
-    ADKeyboardRestoreLocal7121(gADKeyboardPlaceholder7121);
-}
 static void ADPrepareSearchKeyboard7120(UIView *v){
     if(!gP.enabled||!v||!ADInSearchChrome706(v))return;
-    gADSearchKeyboardActive7121=YES;
     @try {
         SEL sel=NSSelectorFromString(@"setKeyboardAppearance:");
         if([v respondsToSelector:sel]) ((void(*)(id,SEL,NSInteger))objc_msgSend)(v,sel,(NSInteger)UIKeyboardAppearanceDark);
     } @catch(...) {}
-    ADKeyboardReassert7121();
 }
 
 static NSAttributedString *ADLightAttributedText708(NSAttributedString *in){
@@ -2618,12 +2514,8 @@ static void ADOwnFocusedSearchSurface7120(UIView *v){
 }
 - (void)didMoveToWindow {
     %orig;
-    if(((UIView *)self).window){
-        ADOwnFocusedSearchSurface7120((UIView *)self);
-        ADPrepareSearchKeyboard7120((UIView *)self);
-    } else {
-        ADKeyboardDeactivate7121();
-    }
+    ADOwnFocusedSearchSurface7120((UIView *)self);
+    ADPrepareSearchKeyboard7120((UIView *)self);
 }
 - (void)layoutSubviews {
     %orig;
@@ -2677,51 +2569,6 @@ static void ADPaintScanItSearchWidget7120(UIView *root){
         }
     } @catch(...) {}
 }
-
-/* v7.122: Search-only local keyboard compositor owner. The actual keyboard is
- * remote; these hooks keep its local backing OLED and apply one color-matrix
- * filter to the host composite. No keyboard-process injection, timer or scan. */
-%hook UIInputSetHostView
-- (void)didMoveToWindow {
-    %orig;
-    gADKeyboardHost7121=(UIView *)self;
-    if(gADSearchKeyboardActive7121)ADKeyboardPaintLocal7121((UIView *)self,YES);
-}
-- (void)layoutSubviews {
-    %orig;
-    gADKeyboardHost7121=(UIView *)self;
-    if(gADSearchKeyboardActive7121)ADKeyboardPaintLocal7121((UIView *)self,YES);
-}
-- (void)setBackgroundColor:(UIColor *)color {
-    if(gP.enabled&&gADSearchKeyboardActive7121&&!gADKeyboardBGWrite7121){
-        UIColor *b=ADOLED();
-        %orig(b);
-        return;
-    }
-    %orig;
-}
-%end
-
-%hook _UIRemoteKeyboardPlaceholderView
-- (void)didMoveToWindow {
-    %orig;
-    gADKeyboardPlaceholder7121=(UIView *)self;
-    if(gADSearchKeyboardActive7121)ADKeyboardPaintLocal7121((UIView *)self,NO);
-}
-- (void)layoutSubviews {
-    %orig;
-    gADKeyboardPlaceholder7121=(UIView *)self;
-    if(gADSearchKeyboardActive7121)ADKeyboardPaintLocal7121((UIView *)self,NO);
-}
-- (void)setBackgroundColor:(UIColor *)color {
-    if(gP.enabled&&gADSearchKeyboardActive7121&&!gADKeyboardBGWrite7121){
-        UIColor *b=ADOLED();
-        %orig(b);
-        return;
-    }
-    %orig;
-}
-%end
 
 %hook A9VSScanItSearchWidget
 - (void)didMoveToWindow {
@@ -3246,49 +3093,178 @@ static void ADConsiderLaunchReady706(void){
 }
 %end
 
-static NSString *ADPrivacyNativeSnapshot7117(void){
-    ADPrivacyInit7117(); __block NSDictionary *requested=nil,*blocked=nil; __block NSUInteger rq=0,bl=0;
-    @synchronized(gADPrivacyLock7117){ requested=[gADPrivacyNativeRequested7117 copy]; blocked=[gADPrivacyNativeBlocked7117 copy]; rq=gADPrivacyNativeRequestedTotal7117; bl=gADPrivacyNativeBlockedTotal7117; }
+// -----------------------------------------------------------------------------
+// v7.123 Search visibility probe. This replaces the old manual privacy report.
+// It is diagnostic-only and runs only after an iOS screenshot or SIGUSR2.
+// No observer/scan/timer runs during ordinary app use.
+// -----------------------------------------------------------------------------
+static NSUInteger gADSearchProbeRun7123=0;
+static dispatch_source_t gADSearchProbeSignal7123=nil;
+
+static NSString *ADSearchProbePath7123(void){
+    @try {
+        NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.123-search-visibility-probe.txt"];
+    } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.123-search-visibility-probe.txt"];
+}
+static void ADSearchProbeAppend7123(NSString *s){
+    if(!s.length)return;
+    @try {
+        NSString *p=ADSearchProbePath7123(); NSFileManager *fm=[NSFileManager defaultManager];
+        [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil];
+        NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding];
+        if(![fm fileExistsAtPath:p]){ [d writeToFile:p atomically:YES]; return; }
+        NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p];
+        if(h){ [h seekToEndOfFile]; [h writeData:d]; [h closeFile]; }
+    } @catch(...) {}
+}
+static NSString *ADSearchProbeColor7123(UIColor *c){
+    if(!c)return @"nil";
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0;
+        if([c getRed:&r green:&g blue:&b alpha:&a])return [NSString stringWithFormat:@"rgba(%.3f,%.3f,%.3f,%.3f)",r,g,b,a];
+        if([c getWhite:&w alpha:&a])return [NSString stringWithFormat:@"white(%.3f,%.3f)",w,a];
+        return c.description?:@"?";
+    } @catch(...) { return @"?"; }
+}
+static NSString *ADSearchProbeCG7123(CGColorRef cg){
+    if(!cg)return @"nil";
+    @try { return ADSearchProbeColor7123([UIColor colorWithCGColor:cg]); } @catch(...) { return @"?"; }
+}
+static NSString *ADSearchProbeFilters7123(CALayer *l){
+    if(!l)return @"-";
+    @try {
+        NSMutableArray *out=[NSMutableArray array];
+        NSArray *fs=[l valueForKey:@"filters"];
+        for(id f in fs){
+            NSString *n=nil,*t=nil;
+            @try { n=[f valueForKey:@"name"]; } @catch(...) {}
+            @try { t=[f valueForKey:@"type"]; } @catch(...) {}
+            [out addObject:[NSString stringWithFormat:@"%@:%@:%@",NSStringFromClass([f class]),n?:@"-",t?:@"-"]];
+        }
+        id comp=nil; @try { comp=l.compositingFilter; } @catch(...) {}
+        if(comp)[out addObject:[NSString stringWithFormat:@"compositing=%@",comp]];
+        return out.count?[out componentsJoinedByString:@","]:@"-";
+    } @catch(...) { return @"?"; }
+}
+static NSString *ADSearchProbeAid7123(UIView *v){
+    @try { NSString *a=v.accessibilityIdentifier; return a.length?[a substringToIndex:MIN((NSUInteger)100,a.length)]:@""; } @catch(...) { return @""; }
+}
+static BOOL ADSearchProbeRelevantClass7123(NSString *n){
+    NSString *s=n.lowercaseString?:@"";
+    NSArray *keys=@[@"search",@"keyboard",@"inputset",@"texteffects",@"overlay",@"portal",@"webview",@"wkcontent",@"wkscroll",@"scanit",@"toucharea",@"multiline",@"topnav"];
+    for(NSString *k in keys)if([s containsString:k])return YES;
+    return NO;
+}
+static NSString *ADSearchProbeViewLine7123(UIView *v,NSUInteger idx,NSUInteger depth){
+    @try {
+        CGRect r=[v convertRect:v.bounds toView:nil]; CALayer *l=v.layer;
+        return [NSString stringWithFormat:@"V #%lu d=%lu cls=%@ r=(%.1f,%.1f %.1fx%.1f) b=(%.1f,%.1f %.1fx%.1f) hidden=%d a=%.2f ui=%d opaque=%d clips=%d masks=%d bg=%@ layerBg=%@ z=%.1f filters=%@ aid=\"%@\" contents=%d\n",
+                (unsigned long)idx,(unsigned long)depth,NSStringFromClass(v.class),r.origin.x,r.origin.y,r.size.width,r.size.height,
+                v.bounds.origin.x,v.bounds.origin.y,v.bounds.size.width,v.bounds.size.height,v.hidden?1:0,v.alpha,v.userInteractionEnabled?1:0,v.opaque?1:0,
+                v.clipsToBounds?1:0,l.masksToBounds?1:0,ADSearchProbeColor7123(v.backgroundColor),ADSearchProbeCG7123(l.backgroundColor),
+                l.zPosition,ADSearchProbeFilters7123(l),ADSearchProbeAid7123(v),l.contents?1:0];
+    } @catch(...) { return [NSString stringWithFormat:@"V #%lu d=%lu ERROR\n",(unsigned long)idx,(unsigned long)depth]; }
+}
+static NSString *ADSearchProbeHitChain7123(UIView *v){
+    if(!v)return @"nil";
+    NSMutableArray *a=[NSMutableArray array]; UIView *x=v;
+    for(int i=0;x&&i<8;i++,x=x.superview)[a addObject:[NSString stringWithFormat:@"%@%@",NSStringFromClass(x.class),ADSearchProbeAid7123(x).length?[NSString stringWithFormat:@"[%@]",ADSearchProbeAid7123(x)]:@""]];
+    return [a componentsJoinedByString:@" <- "];
+}
+static NSString *ADSearchProbeNative7123(void){
     NSMutableString *m=[NSMutableString string];
-    [m appendFormat:@"privacy_pref=%d\nurlprotocol_registered=%d\ncontent_rule_compiled=%d\ncontent_rule_pending=%d\ncontent_rule_error=%@\nconfig_protocol_insertions=%lu\nlate_protocol_rewrites=%lu\nsession_ctor_checks=%lu\nnative_candidate_resumes=%lu\nnative_protocol_blocks=%lu\n",(gP.enabled&&gP.privacyMode)?1:0,gADPrivacyProtocolRegistered7117?1:0,gADPrivacyRuleList7117?1:0,gADPrivacyRuleCompilePending7117?1:0,gADPrivacyRuleError7117?:@"none",(unsigned long)gADPrivacyConfigInsertions7118,(unsigned long)gADPrivacyLateProtocolRewrites7118,(unsigned long)gADPrivacySessionCtorChecks7118,(unsigned long)rq,(unsigned long)bl];
-    [m appendString:@"\n--- NATIVE CANDIDATE RESUMES ---\n"];
-    for(NSString *k in [[requested allKeys] sortedArrayUsingSelector:@selector(compare:)])[m appendFormat:@"%@ = %@\n",k,requested[k]];
-    [m appendString:@"\n--- NATIVE SYNTHETIC-204 BLOCKS ---\n"];
-    for(NSString *k in [[blocked allKeys] sortedArrayUsingSelector:@selector(compare:)])[m appendFormat:@"%@ = %@\n",k,blocked[k]];
+    @try {
+        CGRect screen=UIScreen.mainScreen.bounds; CGFloat sa=screen.size.width*screen.size.height;
+        NSArray *wins=UIApplication.sharedApplication.windows;
+        [m appendFormat:@"screen=(%.1fx%.1f) windows=%lu appState=%ld\n",screen.size.width,screen.size.height,(unsigned long)wins.count,(long)UIApplication.sharedApplication.applicationState];
+        NSUInteger wi=0,visited=0,emitted=0;
+        for(UIWindow *w in wins){
+            if(!w)continue;
+            [m appendFormat:@"\nWINDOW #%lu cls=%@ level=%.1f key=%d hidden=%d alpha=%.2f frame=(%.1f,%.1f %.1fx%.1f) bg=%@ layerBg=%@ filters=%@\n",
+             (unsigned long)wi++,NSStringFromClass(w.class),w.windowLevel,w.isKeyWindow?1:0,w.hidden?1:0,w.alpha,w.frame.origin.x,w.frame.origin.y,w.frame.size.width,w.frame.size.height,
+             ADSearchProbeColor7123(w.backgroundColor),ADSearchProbeCG7123(w.layer.backgroundColor),ADSearchProbeFilters7123(w.layer)];
+            NSMutableArray *q=[NSMutableArray arrayWithObject:@{ @"v":w,@"d":@0 }];
+            while(q.count&&visited<1800&&emitted<950){
+                NSDictionary *m0=q.firstObject; [q removeObjectAtIndex:0]; UIView *v=m0[@"v"]; NSUInteger d=[m0[@"d"] unsignedIntegerValue]; if(!v)continue; visited++;
+                CGRect r=CGRectZero; @try { r=[v convertRect:v.bounds toView:nil]; } @catch(...) {}
+                CGRect ir=CGRectIntersection(r,screen); CGFloat area=CGRectIsNull(ir)?0:MAX(0,ir.size.width)*MAX(0,ir.size.height); CGFloat frac=sa>0?area/sa:0;
+                NSString *cn=NSStringFromClass(v.class);
+                BOOL emit=(v==w)||ADSearchProbeRelevantClass7123(cn)||frac>=0.20||(CGRectGetMinY(ir)<260&&area>900);
+                if([v isKindOfClass:[UITextField class]]||[v isKindOfClass:[UITextView class]]||[v isKindOfClass:[WKWebView class]])emit=YES;
+                if(emit){ [m appendString:ADSearchProbeViewLine7123(v,visited,d)]; emitted++; }
+                if(d<22)for(UIView *c in v.subviews)if(c)[q addObject:@{ @"v":c,@"d":@(d+1) }];
+            }
+        }
+        [m appendFormat:@"\nNATIVE_SUMMARY visited=%lu emitted=%lu\n",(unsigned long)visited,(unsigned long)emitted];
+        [m appendString:@"\n--- HIT TESTS BY WINDOW ---\n"];
+        NSArray *pts=@[[NSValue valueWithCGPoint:CGPointMake(24,88)],[NSValue valueWithCGPoint:CGPointMake(screen.size.width/2,88)],[NSValue valueWithCGPoint:CGPointMake(screen.size.width/2,220)],[NSValue valueWithCGPoint:CGPointMake(screen.size.width/2,440)],[NSValue valueWithCGPoint:CGPointMake(screen.size.width/2,620)],[NSValue valueWithCGPoint:CGPointMake(screen.size.width/2,820)]];
+        for(UIWindow *w in wins){ if(!w||w.hidden||w.alpha<0.01)continue; [m appendFormat:@"WINDOW %@ level=%.1f\n",NSStringFromClass(w.class),w.windowLevel]; for(NSValue *pv in pts){ CGPoint sp=pv.CGPointValue,p=[w convertPoint:sp fromWindow:nil]; UIView *h=nil; @try { h=[w hitTest:p withEvent:nil]; } @catch(...) {} [m appendFormat:@"  p=(%.0f,%.0f) -> %@\n",sp.x,sp.y,ADSearchProbeHitChain7123(h)]; } }
+        [m appendString:@"\n--- VIEW CONTROLLERS ---\n"];
+        for(UIWindow *w in wins){ UIViewController *root=w.rootViewController; if(!root)continue; NSMutableArray *q=[NSMutableArray arrayWithObject:@{ @"vc":root,@"d":@0 }]; NSUInteger n=0; while(q.count&&n<80){ NSDictionary *it=q.firstObject;[q removeObjectAtIndex:0];UIViewController *vc=it[@"vc"];NSUInteger d=[it[@"d"] unsignedIntegerValue];if(!vc)continue;n++;CGRect r=CGRectZero;@try{if(vc.isViewLoaded)r=[vc.view convertRect:vc.view.bounds toView:nil];}@catch(...){}[m appendFormat:@"VC d=%lu cls=%@ viewLoaded=%d window=%d hidden=%d alpha=%.2f r=(%.1f,%.1f %.1fx%.1f)\n",(unsigned long)d,NSStringFromClass(vc.class),vc.isViewLoaded?1:0,(vc.isViewLoaded&&vc.view.window)?1:0,(vc.isViewLoaded&&vc.view.hidden)?1:0,vc.isViewLoaded?vc.view.alpha:0,r.origin.x,r.origin.y,r.size.width,r.size.height];if(vc.presentedViewController)[q addObject:@{ @"vc":vc.presentedViewController,@"d":@(d+1) }];for(UIViewController *c in vc.childViewControllers)if(c)[q addObject:@{ @"vc":c,@"d":@(d+1) }];} }
+    } @catch(NSException *e){ [m appendFormat:@"NATIVE_EXCEPTION %@\n",e]; }
     return m;
 }
-static NSString *ADPrivacyProbePath7117(void){
-    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.122-search-ui-probe.txt"]; } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.122-search-ui-probe.txt"];
+static WKWebView *ADSearchProbeAutocompleteWeb7123(void){
+    WKWebView *fallback=nil; CGFloat best=0;
+    @try {
+        for(WKWebView *wv in ADTrackedWebViews()){
+            if(!wv||!wv.window||wv.hidden||wv.alpha<0.01)continue;
+            NSString *aid=wv.accessibilityIdentifier?:@""; NSString *u=wv.URL.absoluteString?:@"";
+            if([aid isEqualToString:@"Autocomplete_Webview_Identifier"]||[u.lowercaseString containsString:@"autocomplete"])return wv;
+            CGRect r=[wv convertRect:wv.bounds toView:nil],ir=CGRectIntersection(r,UIScreen.mainScreen.bounds);CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height);if(a>best){best=a;fallback=wv;}
+        }
+    } @catch(...) {}
+    return fallback;
 }
-static void ADAppendPrivacy7117(NSString *s){
-    if(!s.length)return; @try { NSString *p=ADPrivacyProbePath7117(); NSFileManager *fm=[NSFileManager defaultManager]; [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil]; NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding]; if(![fm fileExistsAtPath:p]){[d writeToFile:p atomically:YES];return;} NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p]; if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];} } @catch(...) {}
+static NSString *ADSearchProbeWebViews7123(void){
+    NSMutableString *m=[NSMutableString string]; NSUInteger n=0;
+    @try {
+        for(WKWebView *wv in ADTrackedWebViews()){
+            if(!wv)continue; CGRect r=CGRectZero; @try { r=[wv convertRect:wv.bounds toView:nil]; } @catch(...) {}
+            UIScrollView *sv=wv.scrollView;
+            [m appendFormat:@"WEB #%lu aid=\"%@\" url=\"%@\" visible=%d hidden=%d alpha=%.2f loading=%d r=(%.1f,%.1f %.1fx%.1f) bg=%@ scrollBg=%@ content=(%.1fx%.1f) offset=(%.1f,%.1f) inset=(%.1f,%.1f,%.1f,%.1f)\n",
+             (unsigned long)n++,wv.accessibilityIdentifier?:@"",wv.URL.absoluteString?:@"",(wv.window&&!wv.hidden&&wv.alpha>0.01)?1:0,wv.hidden?1:0,wv.alpha,wv.loading?1:0,r.origin.x,r.origin.y,r.size.width,r.size.height,ADSearchProbeColor7123(wv.backgroundColor),ADSearchProbeColor7123(sv.backgroundColor),sv.contentSize.width,sv.contentSize.height,sv.contentOffset.x,sv.contentOffset.y,sv.contentInset.top,sv.contentInset.left,sv.contentInset.bottom,sv.contentInset.right];
+        }
+    } @catch(NSException *e){ [m appendFormat:@"WEBVIEW_EXCEPTION %@\n",e]; }
+    return m;
 }
-static WKWebView *ADLargestTrackedWeb7117(void){
-    WKWebView *best=nil; CGFloat area=0; @try { for(WKWebView *wv in ADTrackedWebViews()){ if(!wv||!wv.window||wv.hidden||wv.alpha<0.01)continue; CGRect rr=[wv convertRect:wv.bounds toView:nil],ir=CGRectIntersection(rr,UIScreen.mainScreen.bounds); CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height); if(a>area){area=a;best=wv;} } } @catch(...) {} return best;
+static NSString *ADSearchProbeDOMJS7123(void){
+    return @"(function(){try{"
+    "function P(e){if(!e)return null;var r=e.getBoundingClientRect(),s=getComputedStyle(e);return {tag:e.tagName,id:e.id||'',cls:String(e.className||'').slice(0,180),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,color:s.color,mask:s.webkitMaskImage||s.maskImage||'none',filter:s.webkitFilter||s.filter||'none',pe:s.pointerEvents,z:s.zIndex,pos:s.position};}"
+    "function G(sel){var a=[].slice.call(document.querySelectorAll(sel));return {count:a.length,items:a.slice(0,36).map(P)};}"
+    "var pts=[[24,88],[innerWidth/2,88],[innerWidth/2,180],[innerWidth/2,320],[innerWidth/2,500]];"
+    "var hit=pts.map(function(p){var a=(document.elementsFromPoint?document.elementsFromPoint(p[0],p[1]):[document.elementFromPoint(p[0],p[1])]).filter(Boolean).slice(0,8);return {p:p,stack:a.map(P)};});"
+    "var o={href:location.href,ready:document.readyState,viewport:[innerWidth,innerHeight,devicePixelRatio],body:P(document.body),doc:P(document.documentElement),scroll:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],"
+    "suggestions:G('.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]'),"
+    "history:G('[class*=icon-past-search-sugge],.icon-close.s-suggestion-icon-left'),"
+    "searchIcons:G('.s-suggestion-container [class*=icon-search],.s-suggestion-container [class*=search-icon],.s-suggestion [class*=icon-search],.s-suggestion [class*=search-icon]'),"
+    "fixed:G('body *'),hit:hit};"
+    "o.fixed.items=o.fixed.items.filter(function(x){return x&&((x.pos==='fixed'||x.pos==='sticky')&&(x.r[2]*x.r[3]>2000));}).slice(0,30);o.fixed.count=o.fixed.items.length;"
+    "return JSON.stringify(o,null,2);}catch(e){return 'DOM_ERR '+e;}})();";
 }
-static void ADCapturePrivacy7117(void){
-    if(!gP.enabled)return; NSUInteger run=++gADPrivacyRun7117; NSString *native=ADPrivacyNativeSnapshot7117(); WKWebView *wv=ADLargestTrackedWeb7117();
-    NSMutableString *prefix=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.122 SEARCH UI PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\npolicy=metadata only; no request bodies/headers/content, typed text, clipboard contents or coordinates\nmode=known telemetry endpoints receive local synthetic success; shopping/media/creative hosts remain untouched\n\n===== NATIVE =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,native?:@"NO_NATIVE_DATA"];
-    if(!wv){ [prefix appendString:@"\n===== WEB =====\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"]; ADAppendPrivacy7117(prefix); return; }
-    NSString *trigger=@"(function(){try{if(typeof window.__adPrivacy7117Report!=='function')return 'HELPER_MISSING privacyMode may be off or this document predates enable';var nonce='priv7117-'+Date.now()+'-'+Math.random().toString(36).slice(2),c={nonce:nonce,main:window.__adPrivacy7117Report(),children:[]};window.__adPrivacy7117Collection=c;window.__adPrivacy7117Collector=function(ev){try{var d=ev.data;if(!d||d.__adPrivacy7117Result!==1||d.nonce!==nonce)return;if(c.children.length<64)c.children.push({href:String(d.href||''),report:String(d.report||'')})}catch(_){}};addEventListener('message',window.__adPrivacy7117Collector,false);window.__adPrivacy7117Broadcast({__adPrivacy7117:1,nonce:nonce});return 'STARTED '+nonce}catch(e){return 'TRIGGER_ERR '+e}})();";
-    [wv evaluateJavaScript:trigger completionHandler:^(id v,NSError *e){
-        NSString *start=e?[NSString stringWithFormat:@"TRIGGER_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.65*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-            NSString *collect=@"(function(){try{var c=window.__adPrivacy7117Collection;if(!c)return 'NO_COLLECTION';try{if(window.__adPrivacy7117Collector)removeEventListener('message',window.__adPrivacy7117Collector,false)}catch(_){}var o=['===== MAIN FRAME =====\\n'+String(c.main||'')];for(var i=0;i<c.children.length;i++)o.push('\\n===== CHILD FRAME '+i+' '+String(c.children[i].href||'')+' =====\\n'+String(c.children[i].report||''));o.push('\\nCHILD_COUNT '+c.children.length);return o.join('\\n')}catch(e){return 'COLLECT_ERR '+e}})();";
-            [wv evaluateJavaScript:collect completionHandler:^(id v2,NSError *e2){ NSString *body=e2?[NSString stringWithFormat:@"COLLECT_ERROR %@",e2]:([v2 isKindOfClass:[NSString class]]?v2:[v2 description]); [prefix appendFormat:@"\n===== WEB =====\ntrigger=%@\n%@\n================ END RUN ================\n",start?:@"",body?:@"NO_WEB_DATA"]; ADAppendPrivacy7117(prefix); }];
-        });
+static void ADCaptureSearchVisibility7123(NSString *trigger){
+    if(!gP.enabled)return; NSUInteger run=++gADSearchProbeRun7123;
+    NSMutableString *head=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.123 SEARCH VISIBILITY PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE WINDOWS / VIEWS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchProbeNative7123(),ADSearchProbeWebViews7123()];
+    ADSearchProbeAppend7123(head);
+    WKWebView *wv=ADSearchProbeAutocompleteWeb7123();
+    if(!wv){ ADSearchProbeAppend7123(@"\n===== AUTOCOMPLETE DOM =====\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"); return; }
+    NSString *chosen=[NSString stringWithFormat:@"\n===== AUTOCOMPLETE DOM =====\nchosen aid=\"%@\" url=\"%@\"\n",wv.accessibilityIdentifier?:@"",wv.URL.absoluteString?:@""];
+    ADSearchProbeAppend7123(chosen);
+    [wv evaluateJavaScript:ADSearchProbeDOMJS7123() completionHandler:^(id v,NSError *e){
+        NSString *body=e?[NSString stringWithFormat:@"EVAL_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
+        ADSearchProbeAppend7123([NSString stringWithFormat:@"%@\n================ END RUN ================\n",body?:@"NO_DOM_DATA"]);
     }];
 }
-
-// -----------------------------------------------------------------------------
-// Privacy-mode manual SIGUSR2 verification retained from v7.118.
-// -----------------------------------------------------------------------------
-static dispatch_source_t gADPrivacySignal7117=nil;
-static void ADInstallPrivacySignal7117(void){
-    static dispatch_once_t once; dispatch_once(&once,^{ signal(SIGUSR2,SIG_IGN); gADPrivacySignal7117=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue()); if(!gADPrivacySignal7117)return; dispatch_source_set_event_handler(gADPrivacySignal7117,^{ ADCapturePrivacy7117(); }); dispatch_resume(gADPrivacySignal7117); });
+static void ADInstallSearchProbe7123(void){
+    static dispatch_once_t once; dispatch_once(&once,^{
+        signal(SIGUSR2,SIG_IGN);
+        gADSearchProbeSignal7123=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue());
+        if(gADSearchProbeSignal7123){ dispatch_source_set_event_handler(gADSearchProbeSignal7123,^{ ADCaptureSearchVisibility7123(@"SIGUSR2"); }); dispatch_resume(gADSearchProbeSignal7123); }
+        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){ ADCaptureSearchVisibility7123(@"screenshot"); }];
+    });
 }
-
 
 // v7.116 production: v7.115 event-driven app handoff retained; SpringBoard owns a
 // bounded 0.40 s post-ready settle guard so Amazon's final white loading composite
@@ -3327,12 +3303,8 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 
     %init;
 
-    /* Event-only reassertion for the retained Search keyboard across background/foreground. */
-    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){ ADKeyboardReassert7121(); }];
-    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){ ADKeyboardReassert7121(); }];
-
     ADPrivacyInit7117();
-    ADInstallPrivacySignal7117();
+    ADInstallSearchProbe7123();
     if(gP.enabled&&gP.privacyMode){
         ADRegisterPrivacyProtocol7117();
         ADCompilePrivacyContentRules7117();

@@ -1,3 +1,11 @@
+# AmazonDark v7.123~search-visibility-probe
+
+Built directly from v7.122 Search UI. v7.121/v7.122 proved that directly painting/filtering the local remote-keyboard host can make the keyboard look OLED while causing the full Search interface above it to disappear behind the keyboard/effects composition. v7.123 therefore rolls back only that experimental local keyboard compositor ownership to the known-safe v7.120 keyboard path: Search still requests iOS dark keyboard appearance, but AmazonDark no longer paints or filters `UIInputSetHostView`, `_UIRemoteKeyboardPlaceholderView`, or any full-screen text-effects container. The v7.121 Search mask-glyph fixes, focused search pill, Back arrow, OLED Search floors, and photo/camera controls remain unchanged.
+
+A new Search-specific visibility probe replaces the stale privacy diagnostic. It is triggered by an iOS screenshot while the broken Search screen is visible, with SIGUSR2 as a fallback. The probe captures the live window/view/controller stack, full-screen/large overlays, hit-test ownership at several screen points, layer filters/backgrounds, tracked WKWebView geometry, and the exact `Autocomplete_Webview_Identifier` DOM state. It never records typed search text, clipboard data, request bodies, or headers. Probe work is one-shot only: no MutationObserver, polling loop, recurring timer, RAF, interval, or scroll listener is added. Privacy Mode itself remains unchanged; only its old manual diagnostic is replaced.
+
+Expected behavior: Search content and Back navigation should return. The keyboard remains dark through `UIKeyboardAppearanceDark`, but this probe build intentionally does not force the risky OLED compositor filter. If Search is still blank, take one iOS screenshot on the broken frame and export `AmazonDark-v7.123-search-visibility-probe.txt`.
+
 # AmazonDark v7.122 Search UI
 
 Fixes the v7.121 Search keyboard overlay regression without changing the keyboard appearance or Search glyph work. The full-screen `UIInputSetContainerView` is no longer painted; only the bottom keyboard host/placeholder remain OLED-owned. This restores the Search UI and back control while keeping the OLED keyboard.
