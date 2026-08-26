@@ -33,9 +33,8 @@
 #import <errno.h>
 #import <string.h>
 #import <float.h>
-#import <signal.h>
 
-#define AD_VERSION "v7.104-probe"
+#define AD_VERSION "v7.105"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -599,7 +598,6 @@ static void ADPostReadyOnce(void);
 static void ADScheduleLaunchReadyCheck706(void);
 static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
-static const void *kADStandaloneLifecycleProbeUS7104=&kADStandaloneLifecycleProbeUS7104;
 static const void *kADStandalonePaintUS7104=&kADStandalonePaintUS7104;
 static NSHashTable *gADWebViews=nil;
 // v7.0.68 production: no diagnostic touch probe is installed.
@@ -1171,6 +1169,12 @@ static NSString *ADStandalonePaintJS7104(void){
          /* Large dynamic-product structural planes. */
          "html[data-ad7104-standalone] [data-testid=ad-background-container] > div"
          "{background:#000!important;background-color:#000!important;background-image:none!important;}"
+         /* Exact standalone deal-message host. The device capture exposes the
+          * white `Limited time deal` plate as data-testid=message-container.
+          * Mirror the existing Home badgeMessage fix: clear only the structural
+          * plate/shadow and leave the discount badge + label ink Amazon-owned. */
+         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] [data-testid=message-container]"
+         "{background-color:transparent!important;box-shadow:none!important;}"
          /* Compact 320x50 neutral copy. */
          "html[data-ad7104-standalone] #dynamic-bb [data-testid=product-description]"
          "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
@@ -1352,47 +1356,6 @@ static NSString *ADTWBJS(void){
 }
 
 
-// -----------------------------------------------------------------------------
-// v7.104~probe — verifies the new standalone child-shell survival repair.
-// Production repair is the direct-child documentElement observer above; this probe
-// records whether that observer actually reattaches before the captured renderer paints.
-// -----------------------------------------------------------------------------
-static NSString *ADStandaloneLifecycleProbeJS7104(void){
-    return
-        @"(function(){try{\n"
-        @"if(window.__adStandaloneLifecycle7104Installed)return;window.__adStandaloneLifecycle7104Installed=1;\n"
-        @"var L=[],CAP=140,ownerObs=null,rootObs=null;var frameId='f7104-'+Date.now()+'-'+Math.random().toString(36).slice(2);\n"
-        @"function ts(){try{return +performance.now().toFixed(3)}catch(_){return -1}}\n"
-        @"function cls(e){try{var x=e&&e.className;if(x&&x.baseVal!==undefined)x=x.baseVal;return typeof x==='string'?x:''}catch(_){return ''}}\n"
-        @"function rect(e){try{var x=e.getBoundingClientRect();return{x:+x.x.toFixed(2),y:+x.y.toFixed(2),w:+x.width.toFixed(2),h:+x.height.toFixed(2),top:+x.top.toFixed(2),right:+x.right.toFixed(2),bottom:+x.bottom.toFixed(2),left:+x.left.toFixed(2)}}catch(_){return{}}}\n"
-        @"function visible(e){try{var q=e.getBoundingClientRect(),c=getComputedStyle(e);return q.width>0&&q.height>0&&q.bottom>0&&q.top<innerHeight&&q.right>0&&q.left<innerWidth&&c.display!=='none'&&c.visibility!=='hidden'&&parseFloat(c.opacity||1)>0}catch(_){return false}}\n"
-        @"function sty(id){try{var e=document.getElementById(id),t=e?String(e.textContent||''):'';return{present:!!e,connected:!!(e&&e.isConnected),parent:e&&e.parentNode?String(e.parentNode.nodeName||''):null,len:t.length,hasMedium:t.indexOf('renderer-factory-ad-container')>=0,hasBrand:t.indexOf('brand-name-text')>=0,hasLarge:t.indexOf('ad-background-container')>=0,hasDynamicBB:t.indexOf('dynamic-bb')>=0,has320Backplane:t.indexOf('z-index:-2')>=0,hasShortWide:t.indexOf('max-height:260px')>=0}}catch(e){return{error:String(e)}}}\n"
-        @"function rec(type,extra){try{var x={t:ts(),type:type,ready:document.readyState,head:!!document.head,theme:sty('ad7-static-theme'),standalone:sty('ad7-standalone-7104'),twb:sty('ad7-twb-static')};if(extra)x.extra=extra;L.push(x);if(L.length>CAP)L.splice(0,L.length-CAP)}catch(_){}}\n"
-        @"function nodeInfo(n){try{return{tag:String(n&&n.nodeName||''),id:String(n&&n.id||''),cls:cls(n).slice(0,240)}}catch(_){return{}}}\n"
-        @"function ownerMutation(ms){try{for(var i=0;i<ms.length;i++){var m=ms[i];for(var j=0;j<m.removedNodes.length;j++){var n=m.removedNodes[j];if(n&&((n.id==='ad7-static-theme')||(n.id==='ad7-standalone-7104')||(n.id==='ad7-twb-static')))rec('OWNER_REMOVED',nodeInfo(n))}for(var k=0;k<m.addedNodes.length;k++){var a=m.addedNodes[k];if(a&&((a.id==='ad7-static-theme')||(a.id==='ad7-standalone-7104')||(a.id==='ad7-twb-static')))rec('OWNER_ADDED',nodeInfo(a))}}}catch(_){}}\n"
-        @"function bindOwners(){try{if(ownerObs)ownerObs.disconnect();var a=document.getElementById('ad7-static-theme'),b=document.getElementById('ad7-twb-static'),c=document.getElementById('ad7-standalone-7104'),p=(a&&a.parentNode)||(c&&c.parentNode)||(b&&b.parentNode)||document.head;if(p){ownerObs=new MutationObserver(ownerMutation);ownerObs.observe(p,{childList:true});rec('OWNER_OBSERVER_BOUND',nodeInfo(p))}else rec('OWNER_OBSERVER_NO_PARENT')}catch(e){rec('OWNER_OBSERVER_ERR',{e:String(e)})}}\n"
-        @"function rootMutation(ms){try{var hit=0,items=[];for(var i=0;i<ms.length;i++){var m=ms[i];for(var j=0;j<m.removedNodes.length;j++){var n=m.removedNodes[j],nm=String(n&&n.nodeName||'').toUpperCase();if(nm==='HEAD'||nm==='BODY'){hit=1;items.push({dir:'removed',n:nodeInfo(n)})}}for(var k=0;k<m.addedNodes.length;k++){var a=m.addedNodes[k],am=String(a&&a.nodeName||'').toUpperCase();if(am==='HEAD'||am==='BODY'){hit=1;items.push({dir:'added',n:nodeInfo(a)})}}}if(hit){rec('DOCUMENT_SHELL_MUTATION',{items:items.slice(0,12)});bindOwners()}}catch(_){}}\n"
-        @"function bindRoot(){try{if(rootObs)rootObs.disconnect();if(document.documentElement){rootObs=new MutationObserver(rootMutation);rootObs.observe(document.documentElement,{childList:true});rec('ROOT_OBSERVER_BOUND',nodeInfo(document.documentElement))}else rec('ROOT_OBSERVER_NO_HTML')}catch(e){rec('ROOT_OBSERVER_ERR',{e:String(e)})}}\n"
-        @"function lifecycle(name){rec(name);bindOwners();if(!rootObs)bindRoot()}\n"
-        @"lifecycle('PROBE_INSTALL');document.addEventListener('readystatechange',function(){lifecycle('READYSTATE_'+document.readyState)},false);document.addEventListener('DOMContentLoaded',function(){lifecycle('DOMContentLoaded')},{once:true});window.addEventListener('load',function(){lifecycle('LOAD')},{once:true});window.addEventListener('pageshow',function(e){lifecycle('PAGESHOW_'+(e&&e.persisted?'BFCache':'normal'))},false);window.addEventListener('pagehide',function(e){rec('PAGEHIDE_'+(e&&e.persisted?'BFCache':'normal'))},false);\n"
-        @"function pseudo(e,w){try{var c=getComputedStyle(e,w);return{content:c.content,display:c.display,backgroundColor:c.backgroundColor,backgroundImage:String(c.backgroundImage||'').slice(0,420),color:c.color,textFill:c.webkitTextFillColor||'',border:c.border,filter:c.filter,opacity:c.opacity,position:c.position,zIndex:c.zIndex}}catch(_){return null}}\n"
-        @"function parentChain(e){var o=[];try{for(var p=e&&e.parentElement,n=0;p&&n<6;p=p.parentElement,n++)o.push({tag:String(p.tagName||'').toLowerCase(),id:String(p.id||''),cls:cls(p).slice(0,260),rect:rect(p)})}catch(_){}return o}\n"
-        @"function ownerMatches(e,id){var o=[];try{var st=document.getElementById(id),sh=st&&st.sheet,rs=sh&&sh.cssRules;if(!rs)return o;for(var i=0;i<rs.length&&o.length<36;i++){var q=rs[i];if(!q.selectorText||!q.style)continue;var ok=false;try{ok=e.matches(q.selectorText)}catch(_){}if(!ok)continue;var z=q.style;if(z.background||z.backgroundColor||z.color||z.webkitTextFillColor||z.borderColor||z.outlineColor||z.filter||z.boxShadow)o.push({i:i,selector:String(q.selectorText).slice(0,1000),css:String(z.cssText||'').slice(0,1200)})}}catch(x){o.push({error:String(x)})}return o}\n"
-        @"function themeMatches(e){return ownerMatches(e,'ad7-static-theme')}\n"
-        @"function standaloneMatches(e){return ownerMatches(e,'ad7-standalone-7104')}\n"
-        @"function snap(e,label){try{if(!e)return null;var c=getComputedStyle(e),at={};['data-testid','data-id','data-acei-id','data-size-str','data-is-ad','data-csa-c-painter','role','aria-label'].forEach(function(k){try{var v=e.getAttribute(k);if(v!==null)at[k]=String(v).slice(0,500)}catch(_){}});return{label:label,visible:visible(e),tag:String(e.tagName||'').toLowerCase(),id:String(e.id||''),cls:cls(e).slice(0,700),attrs:at,text:String(e.innerText||e.textContent||'').replace(/\\s+/g,' ').trim().slice(0,1200),directText:(function(){try{var q='';for(var n=e.firstChild;n;n=n.nextSibling)if(n.nodeType===3)q+=n.nodeValue;return q.replace(/\\s+/g,' ').trim().slice(0,700)}catch(_){return''}})(),rect:rect(e),inline:String(e.getAttribute&&e.getAttribute('style')||'').slice(0,2400),computed:{display:c.display,visibility:c.visibility,opacity:c.opacity,color:c.color,textFill:c.webkitTextFillColor||'',backgroundColor:c.backgroundColor,backgroundImage:String(c.backgroundImage||'').slice(0,700),border:c.border,borderColor:c.borderColor,borderRadius:c.borderRadius,outline:c.outline,boxShadow:String(c.boxShadow||'').slice(0,500),filter:c.filter,webkitFilter:c.webkitFilter||'',mixBlendMode:c.mixBlendMode,isolation:c.isolation,position:c.position,zIndex:c.zIndex,overflow:c.overflow,objectFit:c.objectFit,fontSize:c.fontSize,lineHeight:c.lineHeight,fontWeight:c.fontWeight,textShadow:String(c.textShadow||'').slice(0,300),pointerEvents:c.pointerEvents},before:pseudo(e,'::before'),after:pseudo(e,'::after'),parents:parentChain(e),themeMatches:themeMatches(e),standaloneMatches:standaloneMatches(e)}}catch(x){return{label:label,error:String(x)}}}\n"
-        @"function sheetInventory(){var o=[];try{var a=document.styleSheets;for(var i=0;i<a.length&&o.length<40;i++){var sh=a[i],n=sh.ownerNode,rc=null,err='';try{rc=sh.cssRules?sh.cssRules.length:0}catch(x){err=String(x)}o.push({i:i,id:n&&n.id?String(n.id):'',tag:n&&n.tagName?String(n.tagName).toLowerCase():'',href:String(sh.href||''),disabled:!!sh.disabled,rules:rc,error:err})}}catch(x){o.push({error:String(x)})}return o}\n"
-        @"function add(out,seen,e,label){if(!e||seen.has(e))return;seen.add(e);out.push(snap(e,label))}\n"
-        @"function qall(out,seen,sel,label,cap,visOnly){try{var a=document.querySelectorAll(sel);for(var i=0;i<a.length&&i<(cap||8);i++)if(!visOnly||visible(a[i]))add(out,seen,a[i],label+'['+i+']')}catch(_){}}\n"
-        @"function adPlanes(){var o=[];try{var ad=document.getElementById('ad');if(!ad)return o;for(var n=ad.firstElementChild,i=0;n&&i<16;n=n.nextElementSibling,i++)o.push(snap(n,'ad.direct['+i+']'));var ds=ad.querySelectorAll('div');for(var j=0;j<ds.length&&o.length<42;j++){var e=ds[j],c=getComputedStyle(e),r=e.getBoundingClientRect(),inl=String(e.getAttribute('style')||'');var wide=r.width>=innerWidth*.65&&r.height>=innerHeight*.55;var back=/z-index\\s*:\\s*-2|background\\s*:\\s*#fff|background-color\\s*:\\s*(white|#fff|rgb\\(255)/i.test(inl);if((wide||back)&&visible(e))o.push(snap(e,'ad.plane['+j+']'))}}catch(x){o.push({error:String(x)})}return o}\n"
-        @"function report(){try{var h=document.documentElement,targets=[],seen=new Set();add(targets,seen,h,'html');add(targets,seen,document.body,'body');var sels=[['#ad','ad',4,false],['[data-testid=renderer-factory-ad-container]','medium.renderer',8,true],['[data-testid^=modern-][data-testid$=-layout-container]','medium.layout',8,true],['[data-id=brand-name-text]','medium.brand',8,true],['[data-id=product-name-text]','medium.product',8,true],['[data-testid=formatted-price]','medium.price',8,true],['[data-testid=ratings-value]','rating.value',8,true],['[data-testid=ratings-review-count]','rating.count',8,true],['[data-testid=full-price]','full.price',8,true],['[data-testid=ad-background-container]','large.background',8,true],['[data-testid=brand-product-description] p','large.description',8,true],['#dynamic-bb','compact.buybox',8,true],['#dynamic-bb [data-testid=product-description]','compact.description',8,true],['#dynamic-bb [data-acei-id=sns-disc]','compact.sns',8,true],['[data-acei-id=lfstyl-img]','media.lfstyl',8,true],['[data-size-str]','size.marker',8,false],['[style*=\"z-index:-2\"]','negative-z-inline',12,true],['[style*=\"background:#fff\"]','inline-white-bg',12,true],['[style*=\"background: #fff\"]','inline-white-bg-space',12,true],['.ape-wrapper','ape.wrapper',8,true],['.ape-placement','ape.placement',8,true],['.ape-feedback','ape.feedback',8,true],['iframe','iframe',12,true],['[id^=ad-feedback-text-]','sponsor.text',8,true],['[id^=ad-feedback-sprite-]','sponsor.glyph',8,true]];for(var i=0;i<sels.length;i++)qall(targets,seen,sels[i][0],sels[i][1],sels[i][2],sels[i][3]);var sizes=[];try{var sm=document.querySelectorAll('[data-size-str]');for(var z=0;z<sm.length&&z<12;z++)sizes.push(String(sm[z].getAttribute('data-size-str')||''))}catch(_){}return JSON.stringify({frame:{id:frameId,href:String(location.href||''),referrer:String(document.referrer||''),title:String(document.title||''),ready:document.readyState,child:(function(){try{return window.top!==window}catch(_){return true}})(),viewport:{w:innerWidth,h:innerHeight,dpr:devicePixelRatio||1},visibility:document.visibilityState},attrs:h?{child:h.getAttribute('data-ad7-child-frame'),candidate:h.getAttribute('data-ad7-standalone-candidate'),standalone7104:h.getAttribute('data-ad7104-standalone'),twbChild:h.getAttribute('data-ad7-twb-child')}:null,styles:{theme:sty('ad7-static-theme'),standalone:sty('ad7-standalone-7104'),twb:sty('ad7-twb-static')},survivor:(function(){try{return typeof window.__ad7104StandaloneState==='function'?window.__ad7104StandaloneState():null}catch(e){return{error:String(e)}}})(),styleSheets:sheetInventory(),sizeMarkers:sizes,timeline:L.slice(),targets:targets,adPlanes:adPlanes()},null,2)}catch(e){return JSON.stringify({error:String(e&&e.stack||e),timeline:L.slice()})}}\n"
-        @"function frames(){var o=[];try{var a=document.querySelectorAll('iframe');for(var i=0;i<a.length&&o.length<16;i++)if(visible(a[i]))o.push(a[i])}catch(_){}return o}\n"
-        @"window.__adStandaloneLifecycleReport7104=report;window.__adStandaloneLifecycleBroadcast7104=function(msg){try{var a=frames();for(var i=0;i<a.length;i++)try{a[i].contentWindow.postMessage(msg,'*')}catch(_){}}catch(_){}};window.addEventListener('message',function(ev){try{var d=ev.data;if(!d||d.__adStandaloneLifecycle7104!==1||!d.nonce)return;var rep=report();try{window.top.postMessage({__adStandaloneLifecycle7104Result:1,nonce:d.nonce,frameId:frameId,href:String(location.href||''),report:rep},'*')}catch(_){}try{window.__adStandaloneLifecycleBroadcast7104(d)}catch(_){}}catch(_){}},false);\n"
-        @"}catch(e){}})();";
-}
-
-
-
 static void ADTrackWebView(WKWebView *wv){
     if(!wv)return; @try { @synchronized([WKWebView class]) { if(!gADWebViews)gADWebViews=[NSHashTable weakObjectsHashTable]; [gADWebViews addObject:wv]; } } @catch(...) {}
 }
@@ -1415,64 +1378,24 @@ static void ADRefreshWebTWBPrefs791(void){
     }
 }
 
-// Probe-only native WKUserContentController lifecycle ring. This is deliberately
-// in-memory and capped; file I/O occurs only after manual SIGUSR2 capture.
-static NSMutableArray *gADUCCLifecycle7104=nil;
-static NSString *ADUCCScriptSummary7104(WKUserContentController *ucc){
-    if(!ucc)return @"ucc=nil";
-    @try {
-        NSArray *a=ucc.userScripts; NSUInteger floor=0,twb=0,stand=0,probe=0;
-        for(WKUserScript *us in a){ NSString *q=us.source?:@""; if([q containsString:@"ad7-static-theme"])floor++; if([q containsString:@"ad7-twb-static"])twb++; if([q containsString:@"ad7-standalone-7104"])stand++; if([q containsString:@"__adStandaloneLifecycle7104Installed"])probe++; }
-        return [NSString stringWithFormat:@"scripts=%lu sourceFloor=%lu sourceTWB=%lu sourceStand=%lu sourceProbe=%lu",(unsigned long)a.count,(unsigned long)floor,(unsigned long)twb,(unsigned long)stand,(unsigned long)probe];
-    } @catch(NSException *e){ return [NSString stringWithFormat:@"scripts=ERR(%@)",e.name?:@"?"]; }
-}
-static void ADLogUCCLifecycle7104(NSString *action,WKUserContentController *ucc){
-    @try {
-        if(!gADUCCLifecycle7104)gADUCCLifecycle7104=[NSMutableArray array];
-        NSString *line=[NSString stringWithFormat:@"mono=%.6f wall=%.3f main=%d action=%@ ucc=%p assocFloor=%d assocTWB=%d assocStand=%d assocProbe=%d %@",
-            CACurrentMediaTime(),[[NSDate date] timeIntervalSince1970],[NSThread isMainThread]?1:0,action?:@"?",ucc,
-            (ucc&&objc_getAssociatedObject(ucc,kADFloorUS))?1:0,(ucc&&objc_getAssociatedObject(ucc,kADTWBUS))?1:0,(ucc&&objc_getAssociatedObject(ucc,kADStandalonePaintUS7104))?1:0,(ucc&&objc_getAssociatedObject(ucc,kADStandaloneLifecycleProbeUS7104))?1:0,ADUCCScriptSummary7104(ucc)];
-        @synchronized(gADUCCLifecycle7104){ [gADUCCLifecycle7104 addObject:line]; if(gADUCCLifecycle7104.count>180)[gADUCCLifecycle7104 removeObjectsInRange:NSMakeRange(0,gADUCCLifecycle7104.count-180)]; }
-    } @catch(...) {}
-}
-static NSString *ADUCCLifecycleDump7104(void){
-    @try { @synchronized(gADUCCLifecycle7104){ return gADUCCLifecycle7104.count?[gADUCCLifecycle7104 componentsJoinedByString:@"\n"]:@"NO_NATIVE_UCC_EVENTS"; } } @catch(...) {}
-    return @"NATIVE_UCC_DUMP_ERROR";
-}
-
 static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
     if(!ucc || !gP.enabled)return;
     @try {
-        ADLogUCCLifecycle7104(@"attach.enter",ucc);
         if(!objc_getAssociatedObject(ucc,kADFloorUS)){
-            ADLogUCCLifecycle7104(@"attach.floor.before",ucc);
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADFloorJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADFloorUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            ADLogUCCLifecycle7104(@"attach.floor.after",ucc);
         }
         if(!objc_getAssociatedObject(ucc,kADStandalonePaintUS7104)){
-            ADLogUCCLifecycle7104(@"attach.standalone.before",ucc);
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADStandalonePaintJS7104() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADStandalonePaintUS7104,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            ADLogUCCLifecycle7104(@"attach.standalone.after",ucc);
         }
         if(gP.whiteTame && !objc_getAssociatedObject(ucc,kADTWBUS)){
-            ADLogUCCLifecycle7104(@"attach.twb.before",ucc);
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADTWBJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADTWBUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            ADLogUCCLifecycle7104(@"attach.twb.after",ucc);
         }
-        if(!objc_getAssociatedObject(ucc,kADStandaloneLifecycleProbeUS7104)){
-            ADLogUCCLifecycle7104(@"attach.probe.before",ucc);
-            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADStandaloneLifecycleProbeJS7104() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
-            [ucc addUserScript:us];
-            objc_setAssociatedObject(ucc,kADStandaloneLifecycleProbeUS7104,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            ADLogUCCLifecycle7104(@"attach.probe.after",ucc);
-        }
-        ADLogUCCLifecycle7104(@"attach.exit",ucc);
     } @catch(...) {}
 }
 static void ADAttachWebScripts(WKWebView *wv){
@@ -1510,7 +1433,7 @@ static void ADApplyAllFloors(void){
 - (instancetype)init {
     id cfg=%orig;
     if(gP.enabled && cfg){
-        @try { WKUserContentController *u=((WKWebViewConfiguration *)cfg).userContentController; ADLogUCCLifecycle7104(@"config.init",u); ADAttachScriptsToUCC710(u); } @catch(...) {}
+        @try { ADAttachScriptsToUCC710(((WKWebViewConfiguration *)cfg).userContentController); } @catch(...) {}
     }
     return cfg;
 }
@@ -1521,17 +1444,12 @@ static void ADApplyAllFloors(void){
 // without this, cold Home/Search can miss the OLED sheet until a warm lifecycle reapply.
 %hook WKUserContentController
 - (void)removeAllUserScripts {
-    ADLogUCCLifecycle7104(@"removeAll.enter",self);
     %orig;
-    ADLogUCCLifecycle7104(@"removeAll.afterOrig",self);
     if(gP.enabled){
         objc_setAssociatedObject(self,kADFloorUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADTWBUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADStandalonePaintUS7104,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(self,kADStandaloneLifecycleProbeUS7104,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        ADLogUCCLifecycle7104(@"removeAll.flagsCleared",self);
         ADAttachScriptsToUCC710(self);
-        ADLogUCCLifecycle7104(@"removeAll.reattachDone",self);
     }
 }
 %end
@@ -1539,7 +1457,7 @@ static void ADApplyAllFloors(void){
 %hook WKWebView
 - (instancetype)initWithFrame:(CGRect)frame configuration:(WKWebViewConfiguration *)configuration {
     if(gP.enabled && configuration){
-        @try { ADLogUCCLifecycle7104(@"webview.init.preOrig",configuration.userContentController); ADAttachScriptsToUCC710(configuration.userContentController); } @catch(...) {}
+        @try { ADAttachScriptsToUCC710(configuration.userContentController); } @catch(...) {}
     }
     id wv=%orig;
     if(gP.enabled){ ADAttachWebScripts(wv); ADApplyWebFloor(wv); }
@@ -2525,54 +2443,6 @@ static void ADScheduleLaunchReadyCheck706(void){
 
 
 
-// -----------------------------------------------------------------------------
-// v7.104 shell-survival verification probe — manual SIGUSR2 only. The current
-// visible WKWebView is sampled and child frames report the production survivor
-// state plus final computed renderer paint; native UCC data is retained as a guard.
-// -----------------------------------------------------------------------------
-static NSUInteger gADStandaloneLifecycleRun7104=0;
-static NSString *ADStandaloneLifecycleProbePath7104(void){
-    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.104-standalone-shell-probe.txt"]; } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.104-standalone-shell-probe.txt"];
-}
-static WKWebView *ADLargestTrackedWeb7104(void){
-    WKWebView *best=nil; CGFloat area=0;
-    @try { for(WKWebView *wv in ADTrackedWebViews()){ if(!wv||!wv.window||wv.hidden||wv.alpha<0.01)continue; CGRect rr=[wv convertRect:wv.bounds toView:nil],ir=CGRectIntersection(rr,UIScreen.mainScreen.bounds); CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height); if(a>area){area=a;best=wv;} } } @catch(...) {}
-    return best;
-}
-static NSString *ADVisibleWebMetadata7104(WKWebView *wv){
-    if(!wv)return @"NO_VISIBLE_WEBVIEW";
-    @try { CGRect r=[wv convertRect:wv.bounds toView:nil]; WKUserContentController *u=wv.configuration.userContentController; return [NSString stringWithFormat:@"wv=%p config=%p ucc=%p frame=(%.1f,%.1f %.1fx%.1f) hidden=%d alpha=%.3f loading=%d progress=%.3f url=%@\\n%@",wv,wv.configuration,u,r.origin.x,r.origin.y,r.size.width,r.size.height,wv.hidden?1:0,wv.alpha,wv.loading?1:0,wv.estimatedProgress,wv.URL.absoluteString?:@"",ADUCCScriptSummary7104(u)]; } @catch(NSException *e){ return [NSString stringWithFormat:@"WEB_METADATA_ERROR %@",e]; }
-}
-static void ADAppendStandaloneLifecycle7104(NSString *text){
-    if(!text.length)return;
-    @try { NSString *p=ADStandaloneLifecycleProbePath7104(); NSFileManager *fm=[NSFileManager defaultManager]; [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil]; NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding]; if(![fm fileExistsAtPath:p]){[d writeToFile:p atomically:YES];return;} NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p]; if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];} } @catch(...) {}
-}
-static void ADCaptureStandaloneLifecycle7104(void){
-    if(!gP.enabled)return;
-    WKWebView *wv=ADLargestTrackedWeb7104(); NSUInteger run=++gADStandaloneLifecycleRun7104;
-    if(!wv){ ADAppendStandaloneLifecycle7104([NSString stringWithFormat:@"\\n\\n===== v7.104 RUN %lu NO_VISIBLE_WEBVIEW date=%@ =====\\nNATIVE UCC TIMELINE\\n%@\\n",(unsigned long)run,[NSDate date],ADUCCLifecycleDump7104()]); return; }
-    NSString *nativeBefore=ADUCCLifecycleDump7104(); NSString *webMeta=ADVisibleWebMetadata7104(wv);
-    NSString *trigger=@"(function(){try{if(typeof window.__adStandaloneLifecycleReport7104!=='function')return 'HELPER_MISSING';var nonce='ad7104-'+Date.now()+'-'+Math.random().toString(36).slice(2),c={nonce:nonce,main:window.__adStandaloneLifecycleReport7104(),children:[]};try{if(window.__adStandaloneLifecycleHandler7104)window.removeEventListener('message',window.__adStandaloneLifecycleHandler7104,false)}catch(_){}window.__adStandaloneLifecycleCollected7104=c;window.__adStandaloneLifecycleHandler7104=function(ev){try{var d=ev.data;if(!d||d.__adStandaloneLifecycle7104Result!==1||d.nonce!==nonce)return;if(c.children.length<32)c.children.push({frameId:String(d.frameId||''),href:String(d.href||''),report:String(d.report||'')})}catch(_){}};window.addEventListener('message',window.__adStandaloneLifecycleHandler7104,false);window.__adStandaloneLifecycleBroadcast7104({__adStandaloneLifecycle7104:1,nonce:nonce});return 'STARTED '+nonce}catch(e){return 'TRIGGER_ERR '+e}})();";
-    [wv evaluateJavaScript:trigger completionHandler:^(id v,NSError *e){
-        NSString *start=e?[NSString stringWithFormat:@"TRIGGER_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.70*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-            NSString *collect=@"(function(){try{var c=window.__adStandaloneLifecycleCollected7104;if(!c)return 'NO_COLLECTION';try{if(window.__adStandaloneLifecycleHandler7104)window.removeEventListener('message',window.__adStandaloneLifecycleHandler7104,false)}catch(_){}var o=['===== MAIN FRAME =====\\n'+String(c.main||'')];for(var i=0;i<c.children.length;i++)o.push('\\n===== CHILD FRAME '+i+' id='+String(c.children[i].frameId||'')+' '+String(c.children[i].href||'')+' =====\\n'+String(c.children[i].report||''));o.push('\\nCHILD_COUNT '+c.children.length);return o.join('\\n')}catch(e){return 'COLLECT_ERR '+e}})();";
-            [wv evaluateJavaScript:collect completionHandler:^(id v2,NSError *e2){
-                NSString *body=e2?[NSString stringWithFormat:@"COLLECT_ERROR %@",e2]:([v2 isKindOfClass:[NSString class]]?v2:[v2 description]);
-                NSMutableString *m=[NSMutableString stringWithFormat:@"\\n\\n================ AMAZON DARK v7.104 STANDALONE LIFECYCLE PROBE RUN %lu ================\\ndate=%@\\npid=%d\\nversion=%s\\nbase=v7.96 production + v7.104 standalone shell-survival repair\\nmethod=manual current-visible-frame; repair-state timeline + renderer paint + native UCC guard\\ntrigger=%@\\n\\n----- VISIBLE WEBVIEW / CURRENT UCC -----\\n%@\\n\\n----- NATIVE UCC TIMELINE BEFORE SNAPSHOT -----\\n%@\\n\\n----- WEB FRAME REPORTS -----\\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,start?:@"NO_TRIGGER",webMeta?:@"",nativeBefore?:@""];
-                [m appendString:body?:@"NO_RESULT"];
-                [m appendFormat:@"\\n\\n----- NATIVE UCC TIMELINE AFTER SNAPSHOT -----\\n%@\\n================ END RUN ================\\n",ADUCCLifecycleDump7104()];
-                ADAppendStandaloneLifecycle7104(m);
-            }];
-        });
-    }];
-}
-static dispatch_source_t gADStandaloneLifecycleSignal7104=nil;
-static void ADInstallStandaloneLifecycleSignal7104(void){
-    static dispatch_once_t once; dispatch_once(&once,^{ signal(SIGUSR2,SIG_IGN); gADStandaloneLifecycleSignal7104=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue()); if(!gADStandaloneLifecycleSignal7104)return; dispatch_source_set_event_handler(gADStandaloneLifecycleSignal7104,^{ ADCaptureStandaloneLifecycle7104(); }); dispatch_resume(gADStandaloneLifecycleSignal7104); });
-}
-
 // v7.0.68 production: v7.0.65 chevron diagnostic runtime removed.
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
     ADLoadPrefs();
@@ -2584,7 +2454,6 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 %ctor {
     if(strcmp(__progname,"Amazon")!=0)return;
     ADLoadPrefs();
-    ADInstallStandaloneLifecycleSignal7104();
 
     // v6.0.185 launch-transition behavior: discard stale light SplashBoard snapshots.
     @try {

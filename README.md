@@ -1,3 +1,11 @@
+# AmazonDark v7.105 — production standalone survivor + transparent deal-message plate
+
+- Production cut of the device-confirmed v7.104 standalone child-shell survival repair; the temporary lifecycle/UCC/SIGUSR2 probe runtime is removed.
+- Retains the document-start standalone owner and its single direct-child `documentElement` MutationObserver so Amazon's late HEAD/BODY replacement cannot restore a white standalone card.
+- Ports the existing Home `badgeMessage` treatment to the exact standalone Responsive eCommerce host exposed by the v7.104 device capture: `[data-testid="message-container"]` inside `renderer-factory-ad-container` now has a transparent background and no box shadow.
+- The new rule does **not** recolor the `% off` badge, `Limited time deal` text, deal/coupon accent colors, product media, borders, geometry, links, or hit targets.
+- No probe, recurring timer, RAF, scroll listener, subtree observer, or DOM scan was added.
+
 # AmazonDark v7.104~probe — survive Amazon child-shell replacement
 
 **Direct lineage:** v7.103~probe, whose production visual base is exact v7.96.
