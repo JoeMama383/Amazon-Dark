@@ -1,24 +1,74 @@
-# AmazonDark v8.0.1~privacy-probe — focused ad-frame input/privacy audit
+# AmazonDark v7.110~probe — compact standalone geometry + floor parity
 
-Direct base: **v8.0.0 privacy experiment**. Visual theming is unchanged. This iteration removes the noisy generic keyboard-notification and camera-device-lookup logging and narrows the Web probe to the advertising child frames that registered broad keyboard/composition/clipboard listeners in the first 8.0.0 run.
+Built directly from v7.109~probe using the two manual current-frame captures made on the visible compact standalone variants.
 
-For each sensitive listener in an `m.media-amazon.com` child frame it records registration owner metadata (target, capture flag, current script URL when available, sanitized stack, function name/hash/length), whether the listener actually fires, and whether the callback accesses `KeyboardEvent.key/code/keyCode/charCode/which`, `InputEvent.data/inputType`, input/textarea `.value`, `ClipboardEvent.clipboardData`, `DataTransfer.getData`, or Selection APIs. **Values are never logged.** Fetch/XHR/sendBeacon is recorded only when it occurs inside or within 1.5 seconds of such a sensitive callback/access, allowing correlation without collecting bodies, headers, queries, typed text, clipboard contents, or selection text.
+The dark 394x62 `#dynamic-bb` creative is already OLED and TWB-tamed, but v7.109 moved its gray outline to the taller main-frame APE wrapper. That wrapper also contains Amazon's separate Sponsored feedback row, so the outline now incorrectly extends below Sponsored. v7.110 removes that wrapper outline and draws the established 1px `#3b4043` / 8px-radius outline as a zero-layout `::after` overlay on the exact `--ad-height:50` `.ape-placement`. The placement is the creative-height owner above `.ape-feedback`, so the bottom edge stays above Sponsored while remaining in the main frame where the child iframe cannot clip it.
 
-Native monitoring keeps only meaningful privacy actions: Core Location requests/starts/reads, general pasteboard reads/inspection, camera/microphone permission requests and actual `AVCaptureSession startRunning`, plus destination-host counts. The hundreds of passive `defaultDeviceWithMediaType` lookups and generic keyboard notification registrations from v8.0.0 are intentionally removed.
+The same `#dynamic-bb` capture also exposes the remaining white `Limited time deal` plate: it is a classless direct child of `[data-testid=deal-badge]` with an inline `background-color: rgb(255, 255, 255)`. v7.110 clears only that inline-white plate and leaves the red `% off` badge and red deal text authored.
 
-Manual SIGUSR2 output: `AmazonDark-v8.0.1-ad-input-privacy-probe.txt`. This remains a temporary diagnostic build, not a production release.
+The separate 430x67 renderer-factory capture proves that `html`, `body`, `#ad`, `renderer-factory-ad-container`, and `main-content` are already OLED. The sole surviving light plane is `[data-testid=content]`, whose inline white background wins because it was not part of the constructable survivor sheet. v7.110 adds that exact structural floor to both the first-paint and adopted standalone sheets, without changing its radius/layout or the already-correct Sponsored/border geometry.
 
-# AmazonDark v8.0.0 — Privacy instrumentation experiment
+The manual SIGUSR2 probe is retained as `AmazonDark-v7.110-compact-standalone-probe.txt`. All three corrections are declarative CSS only: no MutationObserver, querySelectorAll, TreeWalker, scroll listener, interval, RAF loop, timeout, or recurring probe work is added. Existing compact/medium TWB, 300x250 Swiper carousel treatment, third-party display/video TWB, Prime blue, orange rating stars, deal accents, and Sponsored ink/glyph behavior are preserved.
 
-Direct base: **v7.102~probe source / v7.95 visual behavior**. The focused standalone probe was removed and replaced with a privacy-only diagnostic layer. Visual theming is otherwise unchanged from that base.
+---
 
-The experiment records **metadata only** while Amazon runs: Core Location request/start calls, general-pasteboard read APIs, camera/microphone permission/device/capture calls, native text-observer registration, sanitized native network destinations, WebView geolocation/clipboard/getUserMedia calls, keyboard/input listener registration, and WebView fetch/XHR/sendBeacon destinations. It deliberately does **not** record typed text, clipboard contents, coordinates, HTTP bodies/headers/query strings, camera frames, or microphone audio.
+# AmazonDark v7.109~probe — compact standalone full-wrapper border
 
-All native events stay in a bounded in-memory ring. A report is written only when SIGUSR2 is triggered, to `AmazonDark-v8.0.0-privacy-probe.txt` inside Amazon's Documents sandbox.
+Built directly from v7.108~probe using the manual current-frame capture made on the visible Hill's Science Diet compact standalone ad. The probe resolves the remaining border defect: the compact creative itself is a 396x62 child iframe, but Amazon renders its `Sponsored` feedback chrome as a separate 398x20 main-frame sibling beneath that iframe. Both live inside the same 398x84.19 `.ape-wrapper` (`--ad-height:50`). The feedback row is already transparent; it was not covering the border. v7.108 simply put the border on the wrong ownership level — the child `#ad` — so the border necessarily ended before the Sponsored row.
 
-This is a diagnostic experiment, not a production build. Because it wraps selected web/native APIs to observe calls, use it temporarily for auditing and revert to the production line afterward.
+v7.109 removes that child-frame border and gives the exact compact main-frame `.mobile-ad-container > .ape-wrapper[style*="--ad-height:50"]` the established 1px `#3b4043` / 8px-radius neutral border. This encloses both the creative and Amazon's Sponsored feedback row without changing either row's ink or adding any runtime DOM work. The compact product-image TWB from v7.108 remains unchanged, as does the exact 300x250 Swiper standalone-carousel repair and the third-party display/video TWB path.
 
-# AmazonDark v7.102~probe — v7.95 standalone lifecycle/paint probe
+The manual SIGUSR2 probe is retained as `AmazonDark-v7.109-compact-standalone-probe.txt` so the finished wrapper geometry can be verified on-device. No MutationObserver, querySelectorAll, timer, RAF, scroll listener, or recurring probe work is added.
+
+---
+
+# AmazonDark v7.108~probe — compact standalone + exact 300x250 Swiper repair
+
+Built directly from v7.107~probe from the two device captures in the same probe run. For the compact 396x62/320x50 AdaptiveRenderer, the probe identifies the full-size `#ad` + `#dynamic-bb` shell, which is already OLED black but has no border, and `[data-acei-id=prod-img]` as the dedicated product-raster host. v7.108 gives that exact shell the established 1px `#3b4043` / 8px-radius standalone border and applies the existing TWB brightness factor only to its product raster.
+
+The same v7.107 probe also proves why the previous rare `Featured by BEULT` carousel fix missed: this 430x250 child does **not** expose any class or `data-testid` containing `carousel`. Its stable renderer signature is `#ad[data-html-dimensions="300x250"]` with `[data-testid=gridContainer]`, `.swiper-wrapper`, and `.swiper-slide`. The surviving light plane is exactly `gridContainer` (`rgb(255,255,255)`), the active and next slide frames use `border-gray-500`, and both the product image and neighboring custom-image slide expose their raster as `[data-testid=pictureHighQuality]`. v7.108 therefore targets that exact Swiper signature in both the first-paint sheet and the constructable standalone survivor sheet: the grid floor becomes OLED black, slide structure stays transparent, existing slide borders become `#3b4043`, ordinary copy becomes v185 light, Sponsored becomes subdued light gray, and only `pictureHighQuality` rasters receive TWB. Prime/rating-star/badge/deal/glyph paint is explicitly excluded so Prime blue and orange stars remain authored.
+
+The manual SIGUSR2 probe is retained as `AmazonDark-v7.108-compact-standalone-probe.txt` for verification and remains idle until triggered. No MutationObserver, querySelectorAll, timer, RAF, or scroll listener is added.
+
+# AmazonDark v7.107~probe — standalone ad parity + Outlet ink
+
+Built directly from v7.106~probe, retaining the zero-observer/adopted-sheet performance pass and the manual compact-standalone SIGUSR2 probe. The device capture identifies the bright AT&T creative as a nested Flashtalking 300x250 under the exact `#mobile-third-party-ad` host, so v7.107 restores TWB on that one outer third-party creative host rather than reopening the generic standalone-media lane. It also adds a below-fold Home neutral-ink fallback for standard Amazon product-title/price semantics outside the historical card roots. The revised v7.107 additionally covers the rare large first-party standalone sponsored carousel shown as a white `Featured by ...` panel: carousel structural floors become OLED, ordinary carousel copy becomes v185 light, and carousel product media receives the current TWB strength while Prime, rating-star, logo, badge, deal/coupon and Sponsored-feedback accent paint stay Amazon-owned. The same lane is present for both a child safe-frame renderer and the already-known main-document `mobile-mshop-ad` / `mobile-ad-container` form. The manual probe now records carousel/Featured/Prime/rating/star nodes, light planes, and dark-neutral text only when SIGUSR2 is triggered; it remains idle otherwise.
+
+# AmazonDark v7.106~probe — compact standalone capture + zero-observer performance pass
+
+Built directly from v7.105 production. The current standalone child-frame CSS payload is unchanged, but its shell-survival owner now uses `document.adoptedStyleSheets` instead of a direct-child MutationObserver. The legacy semantic Sponsored glyph learner is removed because the currently proven NPACK, Hybrid, product-carousel, and APE families already have deterministic static CSS owners. This probe adds a manual SIGUSR2 snapshot for the still-light compact standalone ad family; it performs no diagnostic traversal until triggered.
+
+# AmazonDark v7.105 — production standalone survivor + transparent deal-message plate
+
+- Production cut of the device-confirmed v7.104 standalone child-shell survival repair; the temporary lifecycle/UCC/SIGUSR2 probe runtime is removed.
+- Retains the document-start standalone owner and its single direct-child `documentElement` MutationObserver so Amazon's late HEAD/BODY replacement cannot restore a white standalone card.
+- Ports the existing Home `badgeMessage` treatment to the exact standalone Responsive eCommerce host exposed by the v7.104 device capture: `[data-testid="message-container"]` inside `renderer-factory-ad-container` now has a transparent background and no box shadow.
+- The new rule does **not** recolor the `% off` badge, `Limited time deal` text, deal/coupon accent colors, product media, borders, geometry, links, or hit targets.
+- No probe, recurring timer, RAF, scroll listener, subtree observer, or DOM scan was added.
+
+# AmazonDark v7.104~probe — survive Amazon child-shell replacement
+
+**Direct lineage:** v7.103~probe, whose production visual base is exact v7.96.
+
+The v7.103 device capture finally identifies the standalone-ad failure precisely. In the visible 414x125 safe-frame, `ad7-static-theme`, `ad7-twb-static`, and `ad7-standalone-7103` are all present at document end / load / pageshow. One millisecond later Amazon removes both `HEAD` and `BODY`, adds replacements, and all three AmazonDark style owners disappear. The renderer then paints its stock inline `background: rgb(255,255,255)` and stock dark navy `rgb(0,0,17)` headline/product text. This exactly explains both symptoms: white cards and apparently missing text on dark cards.
+
+v7.104 replaces the document-end standalone backstop with a document-start **shell-survival owner**. It observes only the direct children of the standalone child document's `HTML` element (`childList:true`, no subtree). If Amazon replaces `HEAD`/`BODY` or removes the owner itself, it immediately reattaches the standalone stylesheet directly to `HTML`. There is no document scan, scroll listener, interval, RAF, timer, or subtree observer.
+
+The surviving stylesheet owns only the already-probed standalone renderer families: OLED floor; existing border color; 414x125 brand/product/price ink; 320x50 product-description/Subscribe & Save ink; large dynamic-product neutral copy; and the exact standalone product-raster TWB lanes at the current user strength. Geometry, padding, radius, flex/grid, positions, links, Prime, stars, colored deal/coupon accents, and outer Sponsored feedback chrome remain untouched.
+
+The v7.104 probe adds the one thing previous probes did not have: the production repair's own bounded state (`installs`, `repairs`, `shells`, event timestamps, final style connectivity, HTML identity, and constructable-stylesheet support) alongside the final computed renderer paint. A successful failing-card capture should show `shells>=1`, `repairs>=1`, `connected=true`, medium layout background `rgb(0,0,0)`, and brand/product text `rgb(232,230,227)`.
+
+---
+
+# AmazonDark v7.96 — Disney hero-style product plates
+
+- Production build based directly on v7.95; no probe runtime ships.
+- Keeps the v7.95 Disney / Amazon Shopping Guides visibility fix, then gives its four product-image tiles the same OLED-black contain plate used by the seasonal NPACK hero cards.
+- Only the Shopping Guides `_colored-background_` shell changes from Amazon's light `#f7f7f7` plate to OLED black. The product raster, sizing/contain behavior, padding, radius, position, links, labels, and card geometry are untouched.
+- TWB continues to act on the actual product raster at the user's selected strength; the new black backdrop itself is never dimmed.
+- No MutationObserver, recurring timer, RAF, scroll listener, or probe runtime.
+
+# AmazonDark v7.95 — compact standalone + Disney media repair
 
 - Production build based on v7.93 production plus the v7.94 viewport-probe findings; no probe runtime ships.
 - Compact renderer-factory standalone ads keep their stock geometry while the actual responsive layout floor stays OLED black, the existing 1px border becomes `#3b4043`, primary copy becomes `#e8e6e3`, and secondary metadata becomes `#b1aaa0`.
@@ -179,7 +229,3 @@ card-header subtrees by structure rather than by class.
 ## v7.0.73 — Sponsored feedback focus-ring cleanup
 
 Amazon's ad-feedback text control applies its own rounded focus outline. After closing the feedback sheet, that control can remain focused, leaving a gray box around `Sponsored`. v7.0.73 suppresses only the focus outline/box-shadow/tap highlight for Sponsored/ad-feedback trigger families. Sponsored text and glyph color ownership from v7.0.72 is unchanged. No observer, timer, scan, scroll hook, interval, or RAF was added.
-
-
-## v7.102~probe
-Diagnostic-only build based directly on v7.95. No visual CSS/TWB/Sponsored production rule changes. Captures only current visible standalone renderer style-owner, floor, header, border and TWB state via manual SIGUSR2.
