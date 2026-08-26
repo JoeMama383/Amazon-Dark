@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.119-search-probe"
+#define AD_VERSION "v7.120"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -62,6 +62,8 @@ extern char *__progname;
 @interface ANPRetailTabBar : UIView @end
 @interface ANXTabBarView : UIView @end
 @interface ANXTopNavBackgroundView : UIView @end
+@interface SBMultilineSearchView : UIView @end
+@interface A9VSScanItSearchWidget : UIView @end
 
 // -----------------------------------------------------------------------------
 // Preferences — same public keys/domain as v6.0.185.
@@ -716,14 +718,20 @@ static NSString *ADFloorJS(void){
             ".s-result-item,[data-component-type=s-search-result],.s-card-container,.s-main-slot,"
             "#sc-active-cart .sc-list-item,#sc-saved-cart .sc-list-item,[class*=sc-][class*=content],[class*=sc-][class*=container],"
             "#dp [class*=a-box],#dp [class*=a-expander],#dp [class*=celwidget]:not([class*=image]):not([class*=media]),"
-            ".s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion],"
             "#authportal-main-section,#auth-footer,.auth-footer,[id*=auth-footer],"
             "[class*=variation],[class*=swatch-container],[class*=status-shell],[class*=badge-message],"
             "[class*=puis-card]:not([class*=creative]):not([class*=image]),[class*=product-card]:not([class*=image])"
             "{background-color:#181a1b!important;}"
             /* First-paint Search surface. Search overlay content must remain visible. */
-            ".s-suggestion-container,.s-suggestion,.autocomplete-results-container,[class*=autocomplete],[class*=suggestion]"
-            "{background:#181a1b!important;color:#e8e6e3!important;}"
+            ".s-suggestion-container,.s-suggestion,.autocomplete-results-container,[class*=autocomplete],[class*=suggestion],"
+            "[class*=recentSearch],[class*=search-suggestion]"
+            "{background:#000!important;background-color:#000!important;color:#e8e6e3!important;}"
+            /* Search is rendered inside a Home-deck WebView, so the general Home-text exclusion
+             * can intentionally skip these leaves. Give only the Search/autocomplete family its
+             * own neutral text owner; no traversal or runtime repair is needed. */
+            ":is(.s-suggestion-container,.s-suggestion,.autocomplete-results-container,[class*=autocomplete],"
+            "[class*=recentSearch],[class*=search-suggestion]) :is(h1,h2,h3,h4,h5,h6,p,span,a,div)"
+            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
             /* Primary/secondary v185-style text.
              * Do not let generic ink leak into Amazon-owned Sponsored feedback or
              * top-Home hero/creative trees. */
@@ -769,10 +777,28 @@ static NSString *ADFloorJS(void){
             "#auth-footer .a-divider-inner,.auth-footer .a-divider-inner{background-image:none!important;box-shadow:none!important;}"
             ".s-color-swatch-container,.s-color-swatch-outer-circle{background-color:transparent!important;}"
             ".s-color-swatch-outer-circle{border-color:#494d4d!important;outline-color:#494d4d!important;}"
-            /* Known mask glyphs from v5/v6 Search history; preserve the mask, own only its ink. */
+            /* v7.120 Search glyph correction. The old v6.0.87 host painter is deliberately
+             * removed: on the current renderer it paints a literal light square. Keep Search/nav
+             * image backdrops transparent (the proven v5.446/v6.0.116 contract), and tint only
+             * actual glyph-like leaves. */
+            "[class*=nav-search] img,[class*=searchbar] img,[class*=search-bar] img,[role=search] img,"
+            "[class*=nav-] img[class*=icon],[class*=header] img[class*=icon]"
+            "{background-color:transparent!important;}"
             ".s-suggestion-container [class*=icon-past-search-sugge],"
             ".s-suggestion-container .icon-close.s-suggestion-icon-left"
-            "{background-color:#e8e6e3!important;filter:none!important;opacity:1!important;}"
+            "{background-color:transparent!important;}"
+            ".s-suggestion-container :is(img[class*=icon],img[alt*=search],img[alt*=arrow],svg,i.a-icon,[class*=glyph],[class*=icon-search],[class*=search-icon]),"
+            ".s-suggestion :is(img[class*=icon],img[alt*=search],img[alt*=arrow],svg,i.a-icon,[class*=glyph],[class*=icon-search],[class*=search-icon])"
+            "{color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;"
+            "filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;}"
+            /* Match the Recent-history glyph to the established right-side arrow gray without
+             * painting its host. This is the same 0.91 light-glyph filter used by arrow/chevron
+             * sprites elsewhere in the current sheet. */
+            ".s-suggestion-container [class*=icon-past-search-sugge]"
+            "{filter:brightness(0) invert(1) brightness(0.91)!important;"
+            "-webkit-filter:brightness(0) invert(1) brightness(0.91)!important;opacity:1!important;}"
+            ".s-suggestion-container .icon-close.s-suggestion-icon-left"
+            "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
             /* Share/overflow exact leaves from probe history. */
             ".puis-mab-overlay-row-share .puis-mab-overlay-icon-share"
             "{background-color:#e8e6e3!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;filter:none!important;}"
@@ -2150,8 +2176,24 @@ static BOOL ADInBottomNav706(UIView *v){
 static BOOL ADInSearchChrome706(UIView *v){
     @try { UIView *n=v; for(int d=0;n&&d<10;d++,n=n.superview){
         NSString *c=NSStringFromClass(n.class).lowercaseString ?: @"";
-        if([c containsString:@"sbsearchbar"]||[c containsString:@"sbsearchfield"]||[c containsString:@"searchbar"]||[c containsString:@"searchfield"]) return YES;
+        if([c containsString:@"sbsearchbar"]||[c containsString:@"sbsearchfield"]||
+           [c containsString:@"sbmultilinesearchview"]||[c containsString:@"searchbar"]||
+           [c containsString:@"searchfield"]||[c containsString:@"scanitsearchwidget"]) return YES;
     }} @catch(...) {}
+    return NO;
+}
+static BOOL ADIsSearchBackGlyph7120(UIView *v){
+    if(!v)return NO;
+    @try {
+        UIView *n=v;
+        for(int d=0;n&&d<7;d++,n=n.superview){
+            NSString *aid=(n.accessibilityIdentifier?:@"").lowercaseString;
+            NSString *lab=(n.accessibilityLabel?:@"").lowercaseString;
+            if([aid isEqualToString:@"nav_back_button"] ||
+               ([aid containsString:@"back"]&&[aid containsString:@"nav"]) ||
+               ([lab isEqualToString:@"back"]&&[NSStringFromClass(n.class).lowercaseString containsString:@"button"])) return YES;
+        }
+    } @catch(...) {}
     return NO;
 }
 static BOOL gADSearchImageWrite706=NO;
@@ -2176,8 +2218,8 @@ static BOOL ADIsLocationGlyph709(UIImageView *iv){
 }
 static void ADTintSearchGlyph706(UIImageView *iv){
     if(!gP.enabled||!iv||!iv.image)return;
-    BOOL search=ADInSearchChrome706(iv), location=ADIsLocationGlyph709(iv);
-    if(!search&&!location)return;
+    BOOL search=ADInSearchChrome706(iv), location=ADIsLocationGlyph709(iv), back=ADIsSearchBackGlyph7120(iv);
+    if(!search&&!location&&!back)return;
     @try {
         CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height; if(w<3||h<3||w>64||h>64)return;
         UIImage *im=iv.image;
@@ -2187,6 +2229,14 @@ static void ADTintSearchGlyph706(UIImageView *iv){
         }
         iv.tintColor=ADLightText706();
     } @catch(...) { gADSearchImageWrite706=NO; }
+}
+
+static void ADPrepareSearchKeyboard7120(UIView *v){
+    if(!gP.enabled||!v||!ADInSearchChrome706(v))return;
+    @try {
+        SEL sel=NSSelectorFromString(@"setKeyboardAppearance:");
+        if([v respondsToSelector:sel]) ((void(*)(id,SEL,NSInteger))objc_msgSend)(v,sel,(NSInteger)UIKeyboardAppearanceDark);
+    } @catch(...) {}
 }
 
 static NSAttributedString *ADLightAttributedText708(NSAttributedString *in){
@@ -2285,6 +2335,18 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 %end
 
 %hook UITextView
+- (BOOL)becomeFirstResponder {
+    if(gP.enabled)ADPrepareSearchKeyboard7120((UIView *)self);
+    return %orig;
+}
+- (void)setKeyboardAppearance:(UIKeyboardAppearance)appearance {
+    if(gP.enabled&&ADInSearchChrome706((UIView *)self)){
+        UIKeyboardAppearance dark=UIKeyboardAppearanceDark;
+        %orig(dark);
+        return;
+    }
+    %orig;
+}
 - (void)setTextColor:(UIColor *)color {
     if(gP.enabled){
         UIColor *want=ADLightText706();
@@ -2295,11 +2357,23 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 }
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled&&self.window) self.textColor=ADLightText706();
+    if(gP.enabled&&self.window){ self.textColor=ADLightText706(); ADPrepareSearchKeyboard7120((UIView *)self); }
 }
 %end
 
 %hook UITextField
+- (BOOL)becomeFirstResponder {
+    if(gP.enabled)ADPrepareSearchKeyboard7120((UIView *)self);
+    return %orig;
+}
+- (void)setKeyboardAppearance:(UIKeyboardAppearance)appearance {
+    if(gP.enabled&&ADInSearchChrome706((UIView *)self)){
+        UIKeyboardAppearance dark=UIKeyboardAppearanceDark;
+        %orig(dark);
+        return;
+    }
+    %orig;
+}
 - (void)setTextColor:(UIColor *)color {
     if(gP.enabled){
         UIColor *want=ADLightText706();
@@ -2312,6 +2386,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
     %orig;
     if(gP.enabled&&self.window){
         BOOL search=ADInSearchChrome706((UIView *)self);
+        ADPrepareSearchKeyboard7120((UIView *)self);
         self.textColor=ADLightText706();
         if(search && self.placeholder.length){
             self.attributedPlaceholder=[[NSAttributedString alloc] initWithString:self.placeholder attributes:@{NSForegroundColorAttributeName:ADLightText706()}];
@@ -2406,6 +2481,101 @@ static void ADOwnSearchSurface7045(UIView *v, BOOL ownBorder){
     if(gP.enabled&&((UIView *)self).window){
         UIColor *fill=ADSearchChromeFill7045();
         %orig(fill);
+        return;
+    }
+    %orig;
+}
+%end
+
+static void ADOwnFocusedSearchSurface7120(UIView *v){
+    if(!gP.enabled||!v||!v.window)return;
+    @try {
+        UIColor *fill=ADSearchChromeFill7045();
+        v.backgroundColor=fill;
+        v.layer.backgroundColor=fill.CGColor;
+        v.layer.borderColor=ADBorderGray706().CGColor;
+        if(v.layer.borderWidth<0.5)v.layer.borderWidth=1.0;
+        // Do not force v.tintColor here: the focused editor uses the user's existing
+        // accent tint for its insertion caret. Search glyphs are owned independently.
+    } @catch(...) {}
+}
+
+%hook SBMultilineSearchView
+- (BOOL)becomeFirstResponder {
+    ADPrepareSearchKeyboard7120((UIView *)self);
+    return %orig;
+}
+- (void)didMoveToWindow {
+    %orig;
+    ADOwnFocusedSearchSurface7120((UIView *)self);
+    ADPrepareSearchKeyboard7120((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADOwnFocusedSearchSurface7120((UIView *)self);
+    ADPrepareSearchKeyboard7120((UIView *)self);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(gP.enabled&&((UIView *)self).window){
+        UIColor *fill=ADSearchChromeFill7045();
+        %orig(fill);
+        return;
+    }
+    %orig;
+}
+%end
+
+static void ADPaintScanItSearchWidget7120(UIView *root){
+    if(!gP.enabled||!root||!root.window)return;
+    @try {
+        root.backgroundColor=ADOLED();
+        root.layer.backgroundColor=ADOLED().CGColor;
+        UIView *ancestor=root.superview;
+        CGFloat screenW=UIScreen.mainScreen.bounds.size.width;
+        for(int ad=0;ancestor&&ad<7;ad++,ancestor=ancestor.superview){
+            if(ancestor.bounds.size.width>=screenW*0.85 && ADBrightNeutralUIView708(ancestor)){
+                ancestor.backgroundColor=ADOLED();
+                ancestor.layer.backgroundColor=ADOLED().CGColor;
+            }
+        }
+        NSMutableArray *stack=[NSMutableArray arrayWithObject:@{ @"v":root, @"d":@0 }];
+        while(stack.count){
+            NSDictionary *it=stack.lastObject; [stack removeLastObject];
+            UIView *v=it[@"v"]; int d=[it[@"d"] intValue];
+            if(!v||d>7)continue;
+            CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+            BOOL control=[v isKindOfClass:[UIControl class]];
+            BOOL plate=(d>0 && w>=120.0 && h>=32.0 && h<=70.0 && ADBrightNeutralUIView708(v));
+            if(control||plate){
+                v.backgroundColor=ADOLED();
+                v.layer.backgroundColor=ADOLED().CGColor;
+                v.layer.borderColor=ADBorderGray706().CGColor;
+                if(v.layer.borderWidth<0.5)v.layer.borderWidth=1.0;
+            } else if(d>0 && ADBrightNeutralUIView708(v)){
+                v.backgroundColor=ADOLED();
+                v.layer.backgroundColor=ADOLED().CGColor;
+            }
+            v.tintColor=ADLightText706();
+            if([v isKindOfClass:[UILabel class]])((UILabel *)v).textColor=ADLightText706();
+            if([v isKindOfClass:[UIImageView class]])ADTintSearchGlyph706((UIImageView *)v);
+            for(UIView *c in v.subviews)if(c)[stack addObject:@{ @"v":c, @"d":@(d+1) }];
+        }
+    } @catch(...) {}
+}
+
+%hook A9VSScanItSearchWidget
+- (void)didMoveToWindow {
+    %orig;
+    ADPaintScanItSearchWidget7120((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADPaintScanItSearchWidget7120((UIView *)self);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(gP.enabled&&((UIView *)self).window){
+        UIColor *black=ADOLED();
+        %orig(black);
         return;
     }
     %orig;
@@ -2797,7 +2967,7 @@ static void ADApplyNativeTWB(UIImageView *iv){
             %orig(white);
             return;
         }
-        if(ADInSearchChrome706(self)||ADIsLocationGlyph709(self)){
+        if(ADInSearchChrome706(self)||ADIsLocationGlyph709(self)||ADIsSearchBackGlyph7120(self)){
             UIColor *light=ADLightText706();
             %orig(light);
             return;
@@ -2808,7 +2978,7 @@ static void ADApplyNativeTWB(UIImageView *iv){
 - (void)layoutSubviews {
     %orig;
     if(gP.enabled&&self.window&&ADANXTabRoot724(self))ADTabImageWhite724(self);
-    if(gP.enabled&&self.window&&(ADInSearchChrome706(self)||ADIsLocationGlyph709(self)))ADTintSearchGlyph706(self);
+    if(gP.enabled&&self.window&&(ADInSearchChrome706(self)||ADIsLocationGlyph709(self)||ADIsSearchBackGlyph7120(self)))ADTintSearchGlyph706(self);
     if(objc_getAssociatedObject(self,kADTWBOverlay)||gP.whiteTame)ADApplyNativeTWB(self);
 }
 %end
@@ -2928,8 +3098,8 @@ static NSString *ADPrivacyNativeSnapshot7117(void){
     return m;
 }
 static NSString *ADPrivacyProbePath7117(void){
-    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.118-privacy-probe.txt"]; } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.118-privacy-probe.txt"];
+    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.120-privacy-probe.txt"]; } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.120-privacy-probe.txt"];
 }
 static void ADAppendPrivacy7117(NSString *s){
     if(!s.length)return; @try { NSString *p=ADPrivacyProbePath7117(); NSFileManager *fm=[NSFileManager defaultManager]; [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil]; NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding]; if(![fm fileExistsAtPath:p]){[d writeToFile:p atomically:YES];return;} NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p]; if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];} } @catch(...) {}
@@ -2939,7 +3109,7 @@ static WKWebView *ADLargestTrackedWeb7117(void){
 }
 static void ADCapturePrivacy7117(void){
     if(!gP.enabled)return; NSUInteger run=++gADPrivacyRun7117; NSString *native=ADPrivacyNativeSnapshot7117(); WKWebView *wv=ADLargestTrackedWeb7117();
-    NSMutableString *prefix=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.118 PRIVACY MODE PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\npolicy=metadata only; no request bodies/headers/content, typed text, clipboard contents or coordinates\nmode=known telemetry endpoints receive local synthetic success; shopping/media/creative hosts remain untouched\n\n===== NATIVE =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,native?:@"NO_NATIVE_DATA"];
+    NSMutableString *prefix=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.120 PRIVACY MODE PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\npolicy=metadata only; no request bodies/headers/content, typed text, clipboard contents or coordinates\nmode=known telemetry endpoints receive local synthetic success; shopping/media/creative hosts remain untouched\n\n===== NATIVE =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,native?:@"NO_NATIVE_DATA"];
     if(!wv){ [prefix appendString:@"\n===== WEB =====\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"]; ADAppendPrivacy7117(prefix); return; }
     NSString *trigger=@"(function(){try{if(typeof window.__adPrivacy7117Report!=='function')return 'HELPER_MISSING privacyMode may be off or this document predates enable';var nonce='priv7117-'+Date.now()+'-'+Math.random().toString(36).slice(2),c={nonce:nonce,main:window.__adPrivacy7117Report(),children:[]};window.__adPrivacy7117Collection=c;window.__adPrivacy7117Collector=function(ev){try{var d=ev.data;if(!d||d.__adPrivacy7117Result!==1||d.nonce!==nonce)return;if(c.children.length<64)c.children.push({href:String(d.href||''),report:String(d.report||'')})}catch(_){}};addEventListener('message',window.__adPrivacy7117Collector,false);window.__adPrivacy7117Broadcast({__adPrivacy7117:1,nonce:nonce});return 'STARTED '+nonce}catch(e){return 'TRIGGER_ERR '+e}})();";
     [wv evaluateJavaScript:trigger completionHandler:^(id v,NSError *e){
@@ -2952,105 +3122,11 @@ static void ADCapturePrivacy7117(void){
 }
 
 // -----------------------------------------------------------------------------
-// v7.119 manual Search-menu probe — current screen only, no recurring work.
-// Captures native top-search chrome + keyboard windows and the visible Web Search
-// overlay so the production repair can stay selector/class exact.
+// Privacy-mode manual SIGUSR2 verification retained from v7.118.
 // -----------------------------------------------------------------------------
-static NSUInteger gADSearchProbeRun7119=0;
-static NSString *ADSearchProbePath7119(void){
-    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.119-search-menu-probe.txt"]; } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.119-search-menu-probe.txt"];
-}
-static void ADAppendSearchProbe7119(NSString *text){
-    if(!text.length)return;
-    @try {
-        NSString *p=ADSearchProbePath7119(); NSFileManager *fm=[NSFileManager defaultManager];
-        [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil];
-        NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding];
-        if(![fm fileExistsAtPath:p]){ [d writeToFile:p atomically:YES]; return; }
-        NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p]; if(h){ [h seekToEndOfFile]; [h writeData:d]; [h synchronizeFile]; [h closeFile]; }
-    } @catch(...) {}
-}
-static NSString *ADProbeColor7119(UIColor *u){
-    if(!u)return @"nil";
-    @try { CGFloat r=0,g=0,b=0,a=0,w=0; if([u getRed:&r green:&g blue:&b alpha:&a])return [NSString stringWithFormat:@"rgba(%.3f,%.3f,%.3f,%.3f)",r,g,b,a]; if([u getWhite:&w alpha:&a])return [NSString stringWithFormat:@"white(%.3f,%.3f)",w,a]; return u.description?:@"?"; } @catch(...) { return @"?"; }
-}
-static NSString *ADProbeCGColor7119(CGColorRef c){
-    if(!c)return @"nil"; @try { return ADProbeColor7119([UIColor colorWithCGColor:c]); } @catch(...) { return @"?"; }
-}
-static NSString *ADProbeText7119(UIView *v){
-    @try {
-        NSString *t=nil;
-        if([v isKindOfClass:[UILabel class]])t=((UILabel *)v).text;
-        else if([v isKindOfClass:[UIButton class]])t=[((UIButton *)v) titleForState:UIControlStateNormal];
-        else if([v isKindOfClass:[UITextField class]])t=((UITextField *)v).text.length?((UITextField *)v).text:((UITextField *)v).placeholder;
-        else if([v isKindOfClass:[UITextView class]])t=((UITextView *)v).text;
-        if(!t.length)t=v.accessibilityLabel;
-        t=[t stringByReplacingOccurrencesOfString:@"\n" withString:@" "];
-        if(t.length>120)t=[[t substringToIndex:120] stringByAppendingString:@"…"];
-        return t?:@"";
-    } @catch(...) { return @""; }
-}
-static BOOL ADProbeSearchNativeInteresting7119(UIView *v, CGRect rr, BOOL keyboardWindow){
-    if(!v||v.hidden||v.alpha<0.01)return NO;
-    NSString *c=NSStringFromClass(v.class).lowercaseString?:@"";
-    if(keyboardWindow)return YES;
-    if(CGRectGetMinY(rr)<250.0)return YES;
-    for(NSString *k in @[@"search",@"textfield",@"textinput",@"camera",@"microphone",@"voice",@"backbutton",@"navigationbar"]){ if([c containsString:k])return YES; }
-    return NO;
-}
-static NSArray *ADProbeWindows7119(void){
-    NSMutableArray *a=[NSMutableArray array];
-    @try {
-        for(UIWindow *w in UIApplication.sharedApplication.windows)if(w&&![a containsObject:w])[a addObject:w];
-        if(@available(iOS 13.0,*))for(UIScene *sc in UIApplication.sharedApplication.connectedScenes)if([sc isKindOfClass:[UIWindowScene class]])for(UIWindow *w in ((UIWindowScene *)sc).windows)if(w&&![a containsObject:w])[a addObject:w];
-    } @catch(...) {}
-    return a;
-}
-static NSString *ADNativeSearchSnapshot7119(void){
-    NSMutableString *m=[NSMutableString string]; NSUInteger emitted=0,visited=0; CGRect screen=UIScreen.mainScreen.bounds;
-    NSArray *wins=ADProbeWindows7119(); [m appendFormat:@"window_count=%lu screen=(%.1f,%.1f %.1fx%.1f)\n",(unsigned long)wins.count,screen.origin.x,screen.origin.y,screen.size.width,screen.size.height];
-    for(UIWindow *w in wins){
-        if(!w||w.hidden||w.alpha<0.01)continue;
-        NSString *wc=NSStringFromClass(w.class); NSString *wl=wc.lowercaseString?:@""; BOOL kb=[wl containsString:@"texteffects"]||[wl containsString:@"keyboard"]||[wl containsString:@"input"];
-        [m appendFormat:@"\nWINDOW %@ level=%.1f key=%d frame=(%.1f,%.1f %.1fx%.1f) bg=%@ tint=%@\n",wc,(double)w.windowLevel,w.isKeyWindow?1:0,w.frame.origin.x,w.frame.origin.y,w.frame.size.width,w.frame.size.height,ADProbeColor7119(w.backgroundColor),ADProbeColor7119(w.tintColor)];
-        NSMutableArray *stack=[NSMutableArray arrayWithObject:@{ @"v":w, @"d":@0 }];
-        while(stack.count&&visited<1800&&emitted<900){
-            NSDictionary *it=stack.lastObject; [stack removeLastObject]; UIView *v=it[@"v"]; int d=[it[@"d"] intValue]; if(!v)continue; visited++;
-            CGRect rr=CGRectZero; @try { rr=[v convertRect:v.bounds toView:nil]; } @catch(...) {}
-            if(!CGRectIntersectsRect(rr,screen)&&![v isKindOfClass:[UIWindow class]])continue;
-            if(ADProbeSearchNativeInteresting7119(v,rr,kb)){
-                CALayer *l=v.layer; NSString *txt=ADProbeText7119(v); NSString *aid=v.accessibilityIdentifier?:@"";
-                [m appendFormat:@"V #%lu d=%d cls=%@ r=(%.1f,%.1f %.1fx%.1f) a=%.2f bg=%@ tint=%@ txt=\"%@\" aid=\"%@\" layerBg=%@ border=%@ bw=%.1f cr=%.1f contents=%d",
-                    (unsigned long)emitted,d,NSStringFromClass(v.class),rr.origin.x,rr.origin.y,rr.size.width,rr.size.height,(double)v.alpha,ADProbeColor7119(v.backgroundColor),ADProbeColor7119(v.tintColor),txt,aid,ADProbeCGColor7119(l.backgroundColor),ADProbeCGColor7119(l.borderColor),(double)l.borderWidth,(double)l.cornerRadius,l.contents?1:0];
-                if([v isKindOfClass:[UIImageView class]]){ UIImageView *iv=(UIImageView *)v; [m appendFormat:@" img=%d mode=%ld imgSz=(%.0f,%.0f)",iv.image?1:0,(long)iv.image.renderingMode,iv.image.size.width,iv.image.size.height]; }
-                if([v isKindOfClass:[UITextField class]]){ UITextField *tf=(UITextField *)v; [m appendFormat:@" first=%d kbAppearance=%ld kbType=%ld",tf.isFirstResponder?1:0,(long)tf.keyboardAppearance,(long)tf.keyboardType]; }
-                [m appendString:@"\n"]; emitted++;
-            }
-            NSArray *subs=v.subviews; for(NSInteger i=subs.count-1;i>=0;i--){ UIView *sv=subs[(NSUInteger)i]; if(sv)[stack addObject:@{ @"v":sv,@"d":@(d+1) }]; }
-        }
-    }
-    [m appendFormat:@"\nNATIVE_SUMMARY visited=%lu emitted=%lu\n",(unsigned long)visited,(unsigned long)emitted];
-    return m;
-}
-static NSString *ADSearchProbeJS7119(void){
-    return @"(function(){try{var out=[],seen=new Set();function q(v){return String(v==null?'':v).replace(/\\s+/g,' ').trim().slice(0,180)}function cs(el,p){try{var s=getComputedStyle(el,p||null);return {color:s.color,bg:s.backgroundColor,bgi:s.backgroundImage,border:s.border,borderColor:s.borderColor,outline:s.outline,shadow:s.boxShadow,filter:s.filter,opacity:s.opacity,display:s.display,visibility:s.visibility,mask:s.webkitMaskImage||s.maskImage||'none',fill:s.fill,stroke:s.stroke,content:p?s.content:''}}catch(e){return {err:String(e)}}}function desc(el){var r=el.getBoundingClientRect();var o={tag:el.tagName,id:q(el.id),cl:q(el.className),role:q(el.getAttribute&&el.getAttribute('role')),aria:q(el.getAttribute&&el.getAttribute('aria-label')),title:q(el.getAttribute&&el.getAttribute('title')),txt:q(el.textContent),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],sty:q(el.getAttribute&&el.getAttribute('style')),c:cs(el),bef:cs(el,'::before'),aft:cs(el,'::after')};if(el.tagName==='IMG'){o.src=q(el.currentSrc||el.src);o.nat=[el.naturalWidth||0,el.naturalHeight||0]}var p=[],n=el.parentElement;for(var i=0;n&&i<5;i++,n=n.parentElement)p.push(n.tagName+'#'+q(n.id)+'.'+q(n.className));o.parents=p;return o}function add(el,why){if(!el||el.nodeType!==1||seen.has(el))return;seen.add(el);var d=desc(el);d.why=why;out.push(d);var c=el.children;for(var i=0;c&&i<c.length&&i<12;i++){var cr=c[i].getBoundingClientRect();if(cr.width>0&&cr.height>0)add(c[i],why+':child')}}var sel='.s-suggestion-container,.s-suggestion,[class*=recentSearch],[class*=search-suggestion],[class*=icon-past-search-sugge],.icon-close.s-suggestion-icon-left,[class*=photo],[class*=camera],[class*=autocomplete]';try{document.querySelectorAll(sel).forEach(function(e){var r=e.getBoundingClientRect();if(r.bottom>=0&&r.top<=innerHeight&&r.right>=0&&r.left<=innerWidth)add(e,'target')})}catch(_){}var xs=[8,28,48,82,130,215,330,382,414],ys=[];for(var y=0;y<innerHeight;y+=38)ys.push(y+10);for(var yi=0;yi<ys.length;yi++)for(var xi=0;xi<xs.length;xi++){var st=document.elementsFromPoint(xs[xi],ys[yi]);for(var si=0;si<st.length&&si<5;si++)add(st[si],'point:'+xs[xi]+','+ys[yi])}var style=document.getElementById('ad7-static-theme');return JSON.stringify({href:location.href,title:document.title,ready:document.readyState,viewport:[innerWidth,innerHeight,devicePixelRatio],scroll:[scrollX,scrollY],theme:{present:!!style,len:style&&style.textContent?style.textContent.length:0},count:out.length,items:out},null,2)}catch(e){return 'SEARCH_PROBE_ERR '+e}})();";
-}
-static void ADCaptureSearch7119(void){
-    NSUInteger run=++gADSearchProbeRun7119;
-    NSMutableString *head=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.119 SEARCH MENU PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\nenabled=%d privacy=%d\nmanual=SIGUSR2; current visible Search screen only\n\n===== NATIVE TOP CHROME + KEYBOARD =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,gP.enabled?1:0,gP.privacyMode?1:0,ADNativeSearchSnapshot7119()];
-    // Immediate write proves the signal handler fired even if WebKit evaluation fails.
-    ADAppendSearchProbe7119(head);
-    WKWebView *wv=ADLargestTrackedWeb7117();
-    if(!wv){ ADAppendSearchProbe7119(@"\n===== WEB SEARCH OVERLAY =====\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END SEARCH RUN ================\n"); return; }
-    [wv evaluateJavaScript:ADSearchProbeJS7119() completionHandler:^(id v,NSError *e){
-        NSString *body=e?[NSString stringWithFormat:@"WEB_EVAL_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
-        ADAppendSearchProbe7119([NSString stringWithFormat:@"\n===== WEB SEARCH OVERLAY =====\n%@\n================ END SEARCH RUN ================\n",body?:@"NO_WEB_DATA"]);
-    }];
-}
 static dispatch_source_t gADPrivacySignal7117=nil;
 static void ADInstallPrivacySignal7117(void){
-    static dispatch_once_t once; dispatch_once(&once,^{ signal(SIGUSR2,SIG_IGN); gADPrivacySignal7117=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue()); if(!gADPrivacySignal7117)return; dispatch_source_set_event_handler(gADPrivacySignal7117,^{ ADCaptureSearch7119(); ADCapturePrivacy7117(); }); dispatch_resume(gADPrivacySignal7117); });
+    static dispatch_once_t once; dispatch_once(&once,^{ signal(SIGUSR2,SIG_IGN); gADPrivacySignal7117=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue()); if(!gADPrivacySignal7117)return; dispatch_source_set_event_handler(gADPrivacySignal7117,^{ ADCapturePrivacy7117(); }); dispatch_resume(gADPrivacySignal7117); });
 }
 
 
@@ -3093,7 +3169,6 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 
     ADPrivacyInit7117();
     ADInstallPrivacySignal7117();
-    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *note){ ADCaptureSearch7119(); }];
     if(gP.enabled&&gP.privacyMode){
         ADRegisterPrivacyProtocol7117();
         ADCompilePrivacyContentRules7117();

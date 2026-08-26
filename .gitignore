@@ -3,5 +3,3 @@ packages/
 obj/
 *.deb
 .DS_Store
-
-# v7.119 search probe build trigger

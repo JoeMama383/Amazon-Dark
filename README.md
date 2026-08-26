@@ -1,3 +1,11 @@
+# AmazonDark v7.120~privacy-probe — Search menu production repair
+
+Built directly from v7.119~search-probe / v7.118~privacy-probe. The v7.119 device capture identified the current native Search owners, so the temporary screenshot Search probe is removed. Search now uses OLED Web floors, the focused `SBMultilineSearchView` uses the same neutral fill/border as Home, the exact `nav_back_button` image receives light template tint, and the `A9VSScanItSearchWidget` tray/buttons are OLED with neutral borders and light text/glyphs. The search input requests the stock iOS dark keyboard before becoming first responder.
+
+The known v6.0.87 Search host painter that produced literal light clock/X squares is removed. The proven v5.446/v6.0.116 transparent Search/nav image-backdrop rule is restored, while Search glyph-like leaves receive light ink/filter treatment and the Recent-history glyph uses the same 0.91 neutral-light filter as the established arrow/chevron lane. No MutationObserver, DOM polling, recurring timer, or Web scroll listener is introduced. The only new native traversal is bounded to the exact 60pt `A9VSScanItSearchWidget` subtree on its own mount/layout so its two controls can be recolored without a window-wide sweep.
+
+Privacy Mode behavior from v7.118 is retained. The Privacy footer wording remains exactly: “Blocks known Amazon analytics, crash telemetry, and ad-measurement endpoints. Late NSURLSession configuration and WebKit pixel blocking. May slightly reduce background network/CPU work.” The existing manual Privacy SIGUSR2 verification probe remains available, renamed for v7.120.
+
 # AmazonDark v7.119~search-probe
 
 Directly based on v7.118~privacy-probe. No Search visual fix is applied yet: this diagnostic captures the currently broken Search pane exactly as rendered, including native top search chrome/back control, visible keyboard view hierarchy, and the current Web Search suggestion/photo-camera DOM. Privacy Mode functional blocking remains unchanged. The Privacy footer text is updated exactly to the requested wording.
