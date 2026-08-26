@@ -1,27 +1,14 @@
-# AmazonDark v7.101
+# AmazonDark v7.103~probe — standalone ad repair + lifecycle tracer
 
-Replaces the v7.46-v7.100 standalone-ad paint/TWB implementation with the exact v6.0.185 donor Dark Reader resource and donor TWB runtime inside the probe-proven standalone APE/REC child renderers. Current standalone Sponsored text/glyph ownership is preserved unchanged.
+**Exact base:** v7.96 production. No later branch is used as the source base. The existing v7.96 `ADFloorJS` and `ADTWBJS` remain byte-for-byte unchanged.
 
-# AmazonDark v7.100 — standalone renderer lifecycle + 320x50 REC repair
+This build adds one narrow **documentEnd standalone-ad paint owner** using the renderer identities already proven by the v7.94/v7.99 captures. It repairs the known causes without changing card geometry: the 320x50 inline negative-z `#fff` floor is forced OLED black; medium/large standalone structural floors are OLED black; existing borders are recolored `#3b4043`; explicit dark primary product/headline/price ink is changed to `#e8e6e3`; secondary review/list-price/Subscribe & Save copy is `#b1aaa0`. Product media, Prime, stars, deal/coupon colors, Sponsored chrome, sizing, padding, radius, flex/grid, position and iframe geometry are not blanket modified.
 
-- Direct production base: v7.98. v7.99 probe runtime is not shipped.
-- Fixes the proven `removeAllUserScripts` bookkeeping defect: the standalone document-end user-script key is now cleared and reattached along with the floor/TWB scripts.
-- Adds exact 320x50 AdaptiveRenderer ownership from the v7.99 viewport probe: its dedicated white backplane becomes OLED black, `product-description` becomes primary light ink, and `sns-disc` becomes secondary gray.
-- Keeps 414x125 / medium REC stock geometry; existing brand/product header selectors become reliable again because the document-end standalone owner is no longer silently skipped after Amazon clears user scripts.
-- Persists the user-selected TWB factor inline on the child `<html>` and adds a document-end standalone raster backstop, so product media remains tamed even when Amazon discards the early TWB style node.
-- Adds only border-color ownership for the existing 1px 320x50 safe-frame border; width, radius, aspect ratio, margins, padding, iframe dimensions, and layout remain Amazon-owned.
-- Standalone Sponsored text/glyph logic is unchanged from v7.98. Colored Prime/deal/rating/accent paint remains stock.
-- No MutationObserver, interval, RAF, scroll listener, recurring scan, or probe runtime is added.
+The same build is a manual probe because one lifecycle question remains: **what removes the early v7.96 style owners in the failing child documents?** New diagnostics record the exact native `WKUserContentController` remove/re-add sequence plus a per-frame timeline of `#ad7-static-theme`, `#ad7-standalone-7103`, and `#ad7-twb-static` being added/removed or the HEAD/BODY shell being replaced. The two probe-only MutationObservers are deliberately narrow and diagnostic-only; they never repair the page.
 
-# AmazonDark v7.98 — standalone ad border/floor/header correction
+Capture two representative standalone renderers in the same output file after installing: first one that previously showed a white floor, then one that previously showed black floor/missing text. If the repair lands on both, the report still tells us which renderer and which style owner won. If either still fails, the lifecycle timeline should show exactly why.
 
-- Direct base: v7.96. The discarded v7.97 branch is not carried forward.
-- Leaves the entire existing Home border implementation unchanged. Adds one separate document-end CSS owner for standalone APE child renderers only.
-- Standalone existing border color -> `#3b4043`; no border width/style/radius or card geometry is changed.
-- Reasserts exact standalone renderer floors to OLED black after child-document construction and restores primary/secondary neutral text contrast.
-- Colored ad elements (deal/discount red, rating stars, Prime/blue accents, creative media) remain Amazon-owned.
-- Sponsored text/glyph logic is byte-for-byte unchanged from v7.96.
-- No MutationObserver, timer, interval, RAF, scroll listener, probe runtime, or recurring repair path.
+---
 
 # AmazonDark v7.96 — Disney hero-style product plates
 
