@@ -1,3 +1,7 @@
+# AmazonDark v7.117~privacy-probe
+
+Built directly from v7.116 production. Adds an opt-in **Privacy Mode** preference (default OFF) that conservatively sinks known Amazon analytics, diagnostics, and ad-measurement traffic while preserving shopping/media/ad-creative hosts. Web `sendBeacon`, `fetch`, and XHR calls to the known telemetry set receive local synthetic success; WebKit pixel/resource telemetry is covered by a narrow content rule list; native Foundation requests are answered locally through a narrow `NSURLProtocol`. A manual SIGUSR2 probe reports only metadata/counters so on-device coverage and residual telemetry can be verified. No visual theming payload was intentionally changed.
+
 # AmazonDark v7.116 — SpringBoard post-ready settle guard
 
 Production build based directly on v7.115. The v7.115 event-driven app-side launch handoff is kept intact: no DOM polling, no `querySelector()`, no app-side `dispatch_after`, and no recurring launch timer is restored. The brief stock-white Amazon loading/splash flash seen just before Home was caused by the ready lifecycle event arriving a few frames before Amazon's final splash-to-Home composite was visually settled.

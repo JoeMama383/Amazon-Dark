@@ -33,8 +33,9 @@
 #import <errno.h>
 #import <string.h>
 #import <float.h>
+#import <signal.h>
 
-#define AD_VERSION "v7.116"
+#define AD_VERSION "v7.117-privacy-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -70,6 +71,7 @@ typedef struct {
     BOOL whiteTame;
     BOOL force120Hz;
     BOOL enableJIT;
+    BOOL privacyMode;
     long whiteTameStrength;
 } ADPrefs;
 
@@ -87,6 +89,7 @@ static void ADLoadPrefs(void){
     gP.whiteTame=NO;
     gP.force120Hz=NO;
     gP.enableJIT=NO;
+    gP.privacyMode=NO;
     gP.whiteTameStrength=45;
     @try {
         NSUserDefaults *u=[[NSUserDefaults alloc] initWithSuiteName:@(AD_PREF_DOMAIN)];
@@ -113,11 +116,101 @@ static void ADLoadPrefs(void){
         gP.whiteTame=ADPrefBool(d,@"whiteTame",gP.whiteTame);
         gP.force120Hz=ADPrefBool(d,@"force120Hz",gP.force120Hz);
         gP.enableJIT=ADPrefBool(d,@"enableJIT",gP.enableJIT);
+        gP.privacyMode=ADPrefBool(d,@"privacyMode",gP.privacyMode);
         gP.whiteTameStrength=ADPrefLong(d,@"whiteTameStrength",gP.whiteTameStrength);
     } @catch(...) {}
 }
 
 static inline UIColor *ADOLED(void){ return [UIColor blackColor]; }
+
+// -----------------------------------------------------------------------------
+// v7.117 experimental Privacy Mode.
+// Conservative telemetry sink: exact analytics / diagnostics / ad-measurement
+// destinations are answered locally with HTTP 204 while shopping, media, ad
+// creative, account, cart, search and configuration traffic is left untouched.
+// No request bodies, headers, typed text, clipboard contents or coordinates are
+// recorded. Counters exist only so the manual SIGUSR2 probe can verify coverage.
+// -----------------------------------------------------------------------------
+static NSObject *gADPrivacyLock7117=nil;
+static NSMutableDictionary<NSString *,NSNumber *> *gADPrivacyNativeRequested7117=nil;
+static NSMutableDictionary<NSString *,NSNumber *> *gADPrivacyNativeBlocked7117=nil;
+static NSUInteger gADPrivacyNativeRequestedTotal7117=0;
+static NSUInteger gADPrivacyNativeBlockedTotal7117=0;
+static NSUInteger gADPrivacyRun7117=0;
+static BOOL gADPrivacyProtocolRegistered7117=NO;
+
+static void ADPrivacyInit7117(void){
+    static dispatch_once_t once; dispatch_once(&once,^{
+        gADPrivacyLock7117=[NSObject new];
+        gADPrivacyNativeRequested7117=[NSMutableDictionary dictionary];
+        gADPrivacyNativeBlocked7117=[NSMutableDictionary dictionary];
+    });
+}
+static NSString *ADPrivacyCategoryForHost7117(NSString *host){
+    NSString *h=host.lowercaseString?:@"";
+    if([h isEqualToString:@"unagi.amazon.com"]||[h isEqualToString:@"unagi-na.amazon.com"])return @"unagi";
+    if([h isEqualToString:@"fls-na.amazon.com"])return @"fls";
+    if([h isEqualToString:@"api.mshop.bdtelemetry.amazon"])return @"bdtelemetry";
+    if([h isEqualToString:@"session.mshopbugsnag.irm.amazon.dev"]||[h isEqualToString:@"trace.mshopbugsnag.irm.amazon.dev"])return @"bugsnag";
+    if([h isEqualToString:@"vfw.amazon-adsystem.com"])return @"ad-viewability";
+    if([h hasSuffix:@".service.minerva.devices.a2z.com"])return @"minerva";
+    if([h hasPrefix:@"api.stores."]&&[h hasSuffix:@".prod.paets.advertising.amazon.dev"])return @"ad-event";
+    if([h hasPrefix:@"aes."]&&[h hasSuffix:@".amazon-adsystem.com"])return @"ad-instrumentation";
+    return nil;
+}
+static NSString *ADPrivacyCategoryForURL7117(NSURL *url){ return url?ADPrivacyCategoryForHost7117(url.host):nil; }
+static BOOL ADPrivacyShouldBlockURL7117(NSURL *url){ return gP.enabled&&gP.privacyMode&&ADPrivacyCategoryForURL7117(url).length; }
+static NSString *ADPrivacyCounterKey7117(NSURL *url){
+    NSString *cat=ADPrivacyCategoryForURL7117(url)?:@"unknown",*host=url.host.lowercaseString?:@"(no-host)";
+    return [NSString stringWithFormat:@"%@|%@",cat,host];
+}
+static void ADPrivacyCount7117(NSMutableDictionary<NSString *,NSNumber *> *dict,NSURL *url,BOOL blocked){
+    if(!url)return; ADPrivacyInit7117(); NSString *key=ADPrivacyCounterKey7117(url);
+    @synchronized(gADPrivacyLock7117){
+        dict[key]=@([dict[key] unsignedIntegerValue]+1);
+        if(blocked)gADPrivacyNativeBlockedTotal7117++; else gADPrivacyNativeRequestedTotal7117++;
+    }
+}
+
+@interface ADPrivacyURLProtocol7117 : NSURLProtocol @end
+@implementation ADPrivacyURLProtocol7117
++ (BOOL)canInitWithRequest:(NSURLRequest *)request {
+    return ADPrivacyShouldBlockURL7117(request.URL);
+}
++ (BOOL)canInitWithTask:(NSURLSessionTask *)task {
+    NSURLRequest *request=task.currentRequest?:task.originalRequest;
+    return ADPrivacyShouldBlockURL7117(request.URL);
+}
++ (NSURLRequest *)canonicalRequestForRequest:(NSURLRequest *)request { return request; }
++ (BOOL)requestIsCacheEquivalent:(NSURLRequest *)a toRequest:(NSURLRequest *)b { return [super requestIsCacheEquivalent:a toRequest:b]; }
+- (void)startLoading {
+    NSURL *url=self.request.URL; ADPrivacyCount7117(gADPrivacyNativeBlocked7117,url,YES);
+    @try {
+        NSHTTPURLResponse *r=[[NSHTTPURLResponse alloc] initWithURL:url statusCode:204 HTTPVersion:@"HTTP/1.1" headerFields:@{@"Cache-Control":@"no-store",@"X-AmazonDark-Privacy":@"1",@"Content-Length":@"0"}];
+        [self.client URLProtocol:self didReceiveResponse:r cacheStoragePolicy:NSURLCacheStorageNotAllowed];
+        [self.client URLProtocolDidFinishLoading:self];
+    } @catch(...) {
+        NSError *e=[NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorCancelled userInfo:nil];
+        [self.client URLProtocol:self didFailWithError:e];
+    }
+}
+- (void)stopLoading {}
+@end
+
+static void ADRegisterPrivacyProtocol7117(void){
+    if(gADPrivacyProtocolRegistered7117||!gP.enabled||!gP.privacyMode)return;
+    @try { gADPrivacyProtocolRegistered7117=[NSURLProtocol registerClass:[ADPrivacyURLProtocol7117 class]]; } @catch(...) { gADPrivacyProtocolRegistered7117=NO; }
+}
+
+static void ADPrivacyInstallProtocolOnConfig7117(NSURLSessionConfiguration *cfg){
+    if(!cfg||!gP.enabled||!gP.privacyMode)return;
+    @try {
+        NSMutableArray *a=[cfg.protocolClasses mutableCopy]?:[NSMutableArray array];
+        if(![a containsObject:[ADPrivacyURLProtocol7117 class]])[a insertObject:[ADPrivacyURLProtocol7117 class] atIndex:0];
+        cfg.protocolClasses=a;
+    } @catch(...) {}
+}
+
 
 // -----------------------------------------------------------------------------
 // Retained v6.0.185 Dopamine per-app JIT client.
@@ -599,6 +692,8 @@ static void ADConsiderLaunchReady706(void);
 static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
 static const void *kADStandalonePaintUS7104=&kADStandalonePaintUS7104;
+static const void *kADPrivacyUS7117=&kADPrivacyUS7117;
+static const void *kADPrivacyRule7117=&kADPrivacyRule7117;
 static NSHashTable *gADWebViews=nil;
 // v7.0.68 production: no diagnostic touch probe is installed.
 
@@ -1528,6 +1623,74 @@ static NSString *ADTWBJS(void){
 }
 
 
+static NSString *ADPrivacyModeJS7117(void){
+    return
+        @"(function(){\n"
+        @"try{\n"
+        @"  if(window.__adPrivacy7117Installed){window.__adPrivacy7117Enabled=true;return;}\n"
+        @"  window.__adPrivacy7117Installed=1;\n"
+        @"  window.__adPrivacy7117Enabled=true;\n"
+        @"  var MAX=320, ev=[], counts=Object.create(null), dropped=0, t0=Date.now(), xhrMeta=new WeakMap();\n"
+        @"  function clean(v,n){try{return String(v==null?'':v).replace(/\\s+/g,' ').slice(0,n||180)}catch(_){return ''}}\n"
+        @"  function parse(u){try{return new URL(String(u&&u.url?u.url:u||''),location.href)}catch(_){return null}}\n"
+        @"  function catHost(h){\n"
+        @"    h=String(h||'').toLowerCase();\n"
+        @"    if(h==='unagi.amazon.com'||h==='unagi-na.amazon.com')return 'unagi';\n"
+        @"    if(h==='fls-na.amazon.com')return 'fls';\n"
+        @"    if(h==='api.mshop.bdtelemetry.amazon')return 'bdtelemetry';\n"
+        @"    if(h==='session.mshopbugsnag.irm.amazon.dev'||h==='trace.mshopbugsnag.irm.amazon.dev')return 'bugsnag';\n"
+        @"    if(h==='vfw.amazon-adsystem.com')return 'ad-viewability';\n"
+        @"    if(h.endsWith('.service.minerva.devices.a2z.com'))return 'minerva';\n"
+        @"    if(/^api\\.stores\\.[^.]+\\.prod\\.paets\\.advertising\\.amazon\\.dev$/.test(h))return 'ad-event';\n"
+        @"    if(/^aes\\..*\\.amazon-adsystem\\.com$/.test(h))return 'ad-instrumentation';\n"
+        @"    return '';\n"
+        @"  }\n"
+        @"  function info(u){var x=parse(u),h=x?x.hostname.toLowerCase():'',c=catHost(h),p=x?(x.pathname||'/'):'';if(p.length>140)p=p.slice(0,140)+'…';return {blocked:!!c,category:c,host:h,path:p,url:x?(x.protocol+'//'+x.host+p):clean(u,180)}}\n"
+        @"  function sizeOf(v){try{if(v==null)return null;if(typeof v==='string')return v.length;if(typeof v.size==='number')return v.size;if(typeof v.byteLength==='number')return v.byteLength;if(typeof URLSearchParams!=='undefined'&&v instanceof URLSearchParams)return String(v).length}catch(_){}return null}\n"
+        @"  function inc(k){counts[k]=(counts[k]||0)+1}\n"
+        @"  function rec(kind,i,extra){try{inc(kind);if(i&&i.category)inc('category.'+i.category);if(i&&i.host)inc('host.'+i.host);if(ev.length<MAX){var d={ms:Date.now()-t0,kind:kind,category:i&&i.category||'',host:i&&i.host||'',path:i&&i.path||''};if(extra)for(var k in extra)d[k]=extra[k];ev.push(d)}else dropped++}catch(_){}}\n"
+        @"  function fakeResponse(url){try{return new Response(null,{status:204,statusText:'No Content',headers:{'Cache-Control':'no-store','X-AmazonDark-Privacy':'1'}})}catch(_){return {ok:true,status:204,statusText:'No Content',url:String(url||''),text:function(){return Promise.resolve('')},json:function(){return Promise.resolve({})},arrayBuffer:function(){return Promise.resolve(new ArrayBuffer(0))}}}}\n"
+        @"\n"
+        @"  try{\n"
+        @"    var osb=navigator.sendBeacon;\n"
+        @"    if(typeof osb==='function')navigator.sendBeacon=function(url,data){\n"
+        @"      var i=info(url); if(window.__adPrivacy7117Enabled&&i.blocked){var n=null;try{if(typeof data==='string')n=data.length;else if(data&&typeof data.size==='number')n=data.size;else if(data&&typeof data.byteLength==='number')n=data.byteLength}catch(_){}rec('blocked.sendBeacon',i,{payloadBytes:n});return true;} return osb.apply(this,arguments);\n"
+        @"    };\n"
+        @"  }catch(_){}\n"
+        @"\n"
+        @"  try{\n"
+        @"    var of=window.fetch;\n"
+        @"    if(typeof of==='function')window.fetch=function(input,init){var i=info(input);if(window.__adPrivacy7117Enabled&&i.blocked){rec('blocked.fetch',i,{method:clean(init&&init.method||input&&input.method||'GET',16),payloadBytes:sizeOf(init&&init.body)});return Promise.resolve(fakeResponse(i.url));}return of.apply(this,arguments)};\n"
+        @"  }catch(_){}\n"
+        @"\n"
+        @"  try{\n"
+        @"    var xo=XMLHttpRequest.prototype.open, xs=XMLHttpRequest.prototype.send;\n"
+        @"    XMLHttpRequest.prototype.open=function(method,url){try{xhrMeta.set(this,{method:clean(method||'GET',16),i:info(url)})}catch(_){}return xo.apply(this,arguments)};\n"
+        @"    XMLHttpRequest.prototype.send=function(){var m=null;try{m=xhrMeta.get(this)}catch(_){};if(window.__adPrivacy7117Enabled&&m&&m.i&&m.i.blocked){\n"
+        @"      rec('blocked.xhr',m.i,{method:m.method,payloadBytes:sizeOf(arguments[0])}); var self=this;\n"
+        @"      try{Object.defineProperty(self,'readyState',{configurable:true,get:function(){return 4}})}catch(_){}\n"
+        @"      try{Object.defineProperty(self,'status',{configurable:true,get:function(){return 204}})}catch(_){}\n"
+        @"      try{Object.defineProperty(self,'statusText',{configurable:true,get:function(){return 'No Content'}})}catch(_){}\n"
+        @"      try{Object.defineProperty(self,'responseURL',{configurable:true,get:function(){return m.i.url}})}catch(_){}\n"
+        @"      try{Object.defineProperty(self,'responseText',{configurable:true,get:function(){return ''}})}catch(_){}\n"
+        @"      try{Object.defineProperty(self,'response',{configurable:true,get:function(){return ''}})}catch(_){}\n"
+        @"      Promise.resolve().then(function(){try{self.dispatchEvent(new Event('readystatechange'));self.dispatchEvent(new Event('load'));self.dispatchEvent(new Event('loadend'))}catch(_){}});\n"
+        @"      return;\n"
+        @"    }return xs.apply(this,arguments)};\n"
+        @"  }catch(_){}\n"
+        @"\n"
+        @"  function residual(){var m=Object.create(null),a=[];try{a=performance.getEntriesByType('resource')||[]}catch(_){};for(var j=0;j<a.length;j++){try{var i=info(a[j].name);if(!i.blocked)continue;var key=i.category+'|'+i.host+'|'+String(a[j].initiatorType||'other');m[key]=(m[key]||0)+1}catch(_){}}var o=[];Object.keys(m).sort(function(a,b){return m[b]-m[a]}).forEach(function(k){var z=k.split('|');o.push({category:z[0],host:z[1],initiator:z[2],count:m[k]})});return o}\n"
+        @"  function report(){return JSON.stringify({frame:{href:(function(){var i=info(location.href);return i.url})(),child:(function(){try{return top!==window}catch(_){return true}})(),ready:document.readyState},installed:!!window.__adPrivacy7117Installed,enabled:!!window.__adPrivacy7117Enabled,sinceMs:Date.now()-t0,dropped:dropped,counts:counts,blockedEvents:ev,residualTelemetryResources:residual()},null,2)}\n"
+        @"  function frames(){var out=[];try{var a=document.getElementsByTagName('iframe');for(var i=0;i<a.length&&out.length<32;i++)out.push(a[i])}catch(_){}return out}\n"
+        @"  window.__adPrivacy7117Report=report;\n"
+        @"  window.__adPrivacy7117Broadcast=function(msg){try{var a=frames();for(var i=0;i<a.length;i++)try{a[i].contentWindow.postMessage(msg,'*')}catch(_){}}catch(_){}};\n"
+        @"  window.addEventListener('message',function(e){try{var d=e.data;if(!d)return;if(d.__adPrivacy7117Toggle===1){window.__adPrivacy7117Enabled=!!d.enabled;try{window.__adPrivacy7117Broadcast(d)}catch(_){}return;}if(d.__adPrivacy7117!==1||!d.nonce)return;try{top.postMessage({__adPrivacy7117Result:1,nonce:d.nonce,href:location.href,report:report()},'*')}catch(_){}try{window.__adPrivacy7117Broadcast(d)}catch(_){}}catch(_){}},false);\n"
+        @"}catch(e){}\n"
+        @"})();\n"
+        ;
+}
+
+
 static void ADTrackWebView(WKWebView *wv){
     if(!wv)return; @try { @synchronized([WKWebView class]) { if(!gADWebViews)gADWebViews=[NSHashTable weakObjectsHashTable]; [gADWebViews addObject:wv]; } } @catch(...) {}
 }
@@ -1535,6 +1698,57 @@ static NSArray *ADTrackedWebViews(void){
     @try { @synchronized([WKWebView class]) { return gADWebViews?gADWebViews.allObjects:@[]; } } @catch(...) {}
     return @[];
 }
+
+static WKContentRuleList *gADPrivacyRuleList7117=nil;
+static NSString *gADPrivacyRuleError7117=nil;
+static BOOL gADPrivacyRuleCompilePending7117=NO;
+
+static NSString *ADPrivacyContentRules7117(void){
+    return @"["
+    @"{\"trigger\":{\"url-filter\":\"^https?://unagi(-na)?\\\\.amazon\\\\.com/\"},\"action\":{\"type\":\"block\"}},"
+    @"{\"trigger\":{\"url-filter\":\"^https?://fls-na\\\\.amazon\\\\.com/\"},\"action\":{\"type\":\"block\"}},"
+    @"{\"trigger\":{\"url-filter\":\"^https?://[^/]+\\\\.service\\\\.minerva\\\\.devices\\\\.a2z\\\\.com/\"},\"action\":{\"type\":\"block\"}},"
+    @"{\"trigger\":{\"url-filter\":\"^https?://(session|trace)\\\\.mshopbugsnag\\\\.irm\\\\.amazon\\\\.dev/\"},\"action\":{\"type\":\"block\"}},"
+    @"{\"trigger\":{\"url-filter\":\"^https?://api\\\\.mshop\\\\.bdtelemetry\\\\.amazon/\"},\"action\":{\"type\":\"block\"}},"
+    @"{\"trigger\":{\"url-filter\":\"^https?://api\\\\.stores\\\\.[^/]+\\\\.prod\\\\.paets\\\\.advertising\\\\.amazon\\\\.dev/\"},\"action\":{\"type\":\"block\"}},"
+    @"{\"trigger\":{\"url-filter\":\"^https?://aes\\\\.[^/]*\\\\.amazon-adsystem\\\\.com/\"},\"action\":{\"type\":\"block\"}},"
+    @"{\"trigger\":{\"url-filter\":\"^https?://vfw\\\\.amazon-adsystem\\\\.com/\"},\"action\":{\"type\":\"block\"}}"
+    @"]";
+}
+static void ADAttachPrivacyContentRule7117(WKUserContentController *ucc){
+    if(!ucc||!gP.enabled||!gP.privacyMode||!gADPrivacyRuleList7117)return;
+    @try {
+        if(!objc_getAssociatedObject(ucc,kADPrivacyRule7117)){
+            [ucc addContentRuleList:gADPrivacyRuleList7117];
+            objc_setAssociatedObject(ucc,kADPrivacyRule7117,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+    } @catch(...) {}
+}
+static void ADCompilePrivacyContentRules7117(void){
+    if(!gP.enabled||!gP.privacyMode||gADPrivacyRuleList7117||gADPrivacyRuleCompilePending7117)return;
+    gADPrivacyRuleCompilePending7117=YES;
+    [[WKContentRuleListStore defaultStore] compileContentRuleListForIdentifier:@"AmazonDarkPrivacy7117" encodedContentRuleList:ADPrivacyContentRules7117() completionHandler:^(WKContentRuleList *list,NSError *error){
+        gADPrivacyRuleCompilePending7117=NO;
+        if(!list){ gADPrivacyRuleError7117=error.localizedDescription?:@"compile failed"; return; }
+        gADPrivacyRuleList7117=list; gADPrivacyRuleError7117=nil;
+        dispatch_async(dispatch_get_main_queue(),^{
+            for(WKWebView *wv in ADTrackedWebViews()){
+                @try { ADAttachPrivacyContentRule7117(wv.configuration.userContentController); } @catch(...) {}
+            }
+        });
+    }];
+}
+static void ADSetLoadedWebPrivacyEnabled7117(BOOL on){
+    NSString *js=[NSString stringWithFormat:@"(function(){try{window.__adPrivacy7117Enabled=%@;if(window.__adPrivacy7117Broadcast)window.__adPrivacy7117Broadcast({__adPrivacy7117Toggle:1,enabled:%@});}catch(e){}})();",on?@"true":@"false",on?@"true":@"false"];
+    for(WKWebView *wv in ADTrackedWebViews()){
+        if(!wv)continue;
+        @try { [wv evaluateJavaScript:js completionHandler:nil]; } @catch(...) {}
+        if(!on&&gADPrivacyRuleList7117){
+            @try { [wv.configuration.userContentController removeContentRuleList:gADPrivacyRuleList7117]; objc_setAssociatedObject(wv.configuration.userContentController,kADPrivacyRule7117,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); } @catch(...) {}
+        }
+    }
+}
+
 
 // v7.91: preference changes immediately refresh the currently loaded main
 // documents. This is a one-shot settings action, not an observer/scan loop.
@@ -1568,6 +1782,12 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADTWBUS,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
+        if(gP.privacyMode && !objc_getAssociatedObject(ucc,kADPrivacyUS7117)){
+            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADPrivacyModeJS7117() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+            [ucc addUserScript:us];
+            objc_setAssociatedObject(ucc,kADPrivacyUS7117,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        ADAttachPrivacyContentRule7117(ucc);
     } @catch(...) {}
 }
 static void ADAttachWebScripts(WKWebView *wv){
@@ -1632,8 +1852,14 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
         objc_setAssociatedObject(self,kADFloorUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADTWBUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADStandalonePaintUS7104,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(self,kADPrivacyUS7117,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADAttachScriptsToUCC710(self);
     }
+}
+- (void)removeAllContentRuleLists {
+    %orig;
+    objc_setAssociatedObject(self,kADPrivacyRule7117,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    if(gP.enabled&&gP.privacyMode){ ADCompilePrivacyContentRules7117(); ADAttachPrivacyContentRule7117(self); }
 }
 %end
 
@@ -2617,13 +2843,91 @@ static void ADConsiderLaunchReady706(void){
 
 
 
+%hook NSURLSessionConfiguration
++ (NSURLSessionConfiguration *)defaultSessionConfiguration {
+    NSURLSessionConfiguration *c=%orig;
+    ADPrivacyInstallProtocolOnConfig7117(c);
+    return c;
+}
++ (NSURLSessionConfiguration *)ephemeralSessionConfiguration {
+    NSURLSessionConfiguration *c=%orig;
+    ADPrivacyInstallProtocolOnConfig7117(c);
+    return c;
+}
++ (NSURLSessionConfiguration *)backgroundSessionConfigurationWithIdentifier:(NSString *)identifier {
+    NSURLSessionConfiguration *c=%orig;
+    ADPrivacyInstallProtocolOnConfig7117(c);
+    return c;
+}
+%end
+
+%hook NSURLSessionTask
+- (void)resume {
+    if(gP.enabled&&gP.privacyMode){
+        @try { NSURLRequest *r=self.currentRequest?:self.originalRequest; if(ADPrivacyShouldBlockURL7117(r.URL))ADPrivacyCount7117(gADPrivacyNativeRequested7117,r.URL,NO); } @catch(...) {}
+    }
+    %orig;
+}
+%end
+
+static NSString *ADPrivacyNativeSnapshot7117(void){
+    ADPrivacyInit7117(); __block NSDictionary *requested=nil,*blocked=nil; __block NSUInteger rq=0,bl=0;
+    @synchronized(gADPrivacyLock7117){ requested=[gADPrivacyNativeRequested7117 copy]; blocked=[gADPrivacyNativeBlocked7117 copy]; rq=gADPrivacyNativeRequestedTotal7117; bl=gADPrivacyNativeBlockedTotal7117; }
+    NSMutableString *m=[NSMutableString string];
+    [m appendFormat:@"privacy_pref=%d\nurlprotocol_registered=%d\ncontent_rule_compiled=%d\ncontent_rule_pending=%d\ncontent_rule_error=%@\nnative_candidate_resumes=%lu\nnative_protocol_blocks=%lu\n",(gP.enabled&&gP.privacyMode)?1:0,gADPrivacyProtocolRegistered7117?1:0,gADPrivacyRuleList7117?1:0,gADPrivacyRuleCompilePending7117?1:0,gADPrivacyRuleError7117?:@"none",(unsigned long)rq,(unsigned long)bl];
+    [m appendString:@"\n--- NATIVE CANDIDATE RESUMES ---\n"];
+    for(NSString *k in [[requested allKeys] sortedArrayUsingSelector:@selector(compare:)])[m appendFormat:@"%@ = %@\n",k,requested[k]];
+    [m appendString:@"\n--- NATIVE SYNTHETIC-204 BLOCKS ---\n"];
+    for(NSString *k in [[blocked allKeys] sortedArrayUsingSelector:@selector(compare:)])[m appendFormat:@"%@ = %@\n",k,blocked[k]];
+    return m;
+}
+static NSString *ADPrivacyProbePath7117(void){
+    @try { NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.117-privacy-probe.txt"]; } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.117-privacy-probe.txt"];
+}
+static void ADAppendPrivacy7117(NSString *s){
+    if(!s.length)return; @try { NSString *p=ADPrivacyProbePath7117(); NSFileManager *fm=[NSFileManager defaultManager]; [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil]; NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding]; if(![fm fileExistsAtPath:p]){[d writeToFile:p atomically:YES];return;} NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p]; if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];} } @catch(...) {}
+}
+static WKWebView *ADLargestTrackedWeb7117(void){
+    WKWebView *best=nil; CGFloat area=0; @try { for(WKWebView *wv in ADTrackedWebViews()){ if(!wv||!wv.window||wv.hidden||wv.alpha<0.01)continue; CGRect rr=[wv convertRect:wv.bounds toView:nil],ir=CGRectIntersection(rr,UIScreen.mainScreen.bounds); CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height); if(a>area){area=a;best=wv;} } } @catch(...) {} return best;
+}
+static void ADCapturePrivacy7117(void){
+    if(!gP.enabled)return; NSUInteger run=++gADPrivacyRun7117; NSString *native=ADPrivacyNativeSnapshot7117(); WKWebView *wv=ADLargestTrackedWeb7117();
+    NSMutableString *prefix=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.117 PRIVACY MODE PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\npolicy=metadata only; no request bodies/headers/content, typed text, clipboard contents or coordinates\nmode=known telemetry endpoints receive local synthetic success; shopping/media/creative hosts remain untouched\n\n===== NATIVE =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,native?:@"NO_NATIVE_DATA"];
+    if(!wv){ [prefix appendString:@"\n===== WEB =====\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"]; ADAppendPrivacy7117(prefix); return; }
+    NSString *trigger=@"(function(){try{if(typeof window.__adPrivacy7117Report!=='function')return 'HELPER_MISSING privacyMode may be off or this document predates enable';var nonce='priv7117-'+Date.now()+'-'+Math.random().toString(36).slice(2),c={nonce:nonce,main:window.__adPrivacy7117Report(),children:[]};window.__adPrivacy7117Collection=c;window.__adPrivacy7117Collector=function(ev){try{var d=ev.data;if(!d||d.__adPrivacy7117Result!==1||d.nonce!==nonce)return;if(c.children.length<64)c.children.push({href:String(d.href||''),report:String(d.report||'')})}catch(_){}};addEventListener('message',window.__adPrivacy7117Collector,false);window.__adPrivacy7117Broadcast({__adPrivacy7117:1,nonce:nonce});return 'STARTED '+nonce}catch(e){return 'TRIGGER_ERR '+e}})();";
+    [wv evaluateJavaScript:trigger completionHandler:^(id v,NSError *e){
+        NSString *start=e?[NSString stringWithFormat:@"TRIGGER_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.65*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+            NSString *collect=@"(function(){try{var c=window.__adPrivacy7117Collection;if(!c)return 'NO_COLLECTION';try{if(window.__adPrivacy7117Collector)removeEventListener('message',window.__adPrivacy7117Collector,false)}catch(_){}var o=['===== MAIN FRAME =====\\n'+String(c.main||'')];for(var i=0;i<c.children.length;i++)o.push('\\n===== CHILD FRAME '+i+' '+String(c.children[i].href||'')+' =====\\n'+String(c.children[i].report||''));o.push('\\nCHILD_COUNT '+c.children.length);return o.join('\\n')}catch(e){return 'COLLECT_ERR '+e}})();";
+            [wv evaluateJavaScript:collect completionHandler:^(id v2,NSError *e2){ NSString *body=e2?[NSString stringWithFormat:@"COLLECT_ERROR %@",e2]:([v2 isKindOfClass:[NSString class]]?v2:[v2 description]); [prefix appendFormat:@"\n===== WEB =====\ntrigger=%@\n%@\n================ END RUN ================\n",start?:@"",body?:@"NO_WEB_DATA"]; ADAppendPrivacy7117(prefix); }];
+        });
+    }];
+}
+static dispatch_source_t gADPrivacySignal7117=nil;
+static void ADInstallPrivacySignal7117(void){
+    static dispatch_once_t once; dispatch_once(&once,^{ signal(SIGUSR2,SIG_IGN); gADPrivacySignal7117=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue()); if(!gADPrivacySignal7117)return; dispatch_source_set_event_handler(gADPrivacySignal7117,^{ ADCapturePrivacy7117(); }); dispatch_resume(gADPrivacySignal7117); });
+}
+
+
 // v7.116 production: v7.115 event-driven app handoff retained; SpringBoard owns a
 // bounded 0.40 s post-ready settle guard so Amazon's final white loading composite
 // cannot peek through the cover fade.
 // v7.0.68 production: v7.0.65 chevron diagnostic runtime removed.
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
+    BOOL wasPrivacy=gP.privacyMode;
     ADLoadPrefs();
     ADRefreshRuntimeState7115(YES);
+    if(gP.enabled&&gP.privacyMode){
+        ADRegisterPrivacyProtocol7117();
+        ADCompilePrivacyContentRules7117();
+        for(WKWebView *wv in ADTrackedWebViews()){
+            @try { ADAttachScriptsToUCC710(wv.configuration.userContentController); [wv evaluateJavaScript:ADPrivacyModeJS7117() completionHandler:nil]; } @catch(...) {}
+        }
+        ADSetLoadedWebPrivacyEnabled7117(YES);
+    } else if(wasPrivacy){
+        ADSetLoadedWebPrivacyEnabled7117(NO);
+    }
 }
 
 %ctor {
@@ -2642,6 +2946,13 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
     } @catch(...) {}
 
     %init;
+
+    ADPrivacyInit7117();
+    ADInstallPrivacySignal7117();
+    if(gP.enabled&&gP.privacyMode){
+        ADRegisterPrivacyProtocol7117();
+        ADCompilePrivacyContentRules7117();
+    }
 
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);
