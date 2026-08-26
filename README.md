@@ -1,3 +1,7 @@
+# AmazonDark v7.119~search-probe
+
+Directly based on v7.118~privacy-probe. No Search visual fix is applied yet: this diagnostic captures the currently broken Search pane exactly as rendered, including native top search chrome/back control, visible keyboard view hierarchy, and the current Web Search suggestion/photo-camera DOM. Privacy Mode functional blocking remains unchanged. The Privacy footer text is updated exactly to the requested wording.
+
 # AmazonDark v7.118~privacy-probe
 
 Privacy Mode follow-up built directly from v7.117~privacy-probe / v7.116 production visuals. Fixes the failed WKContentRuleList compilation with a simpler documented WebKit regex subset, reasserts the privacy NSURLProtocol at NSURLSession construction time and when protocolClasses are overwritten, and adds counters to verify Minerva coverage. All v7.116 visual/theming payloads remain unchanged.
