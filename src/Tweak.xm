@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.131-deals-for-you-fix-probe"
+#define AD_VERSION "v7.132-held-query-row-fix-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -768,6 +768,19 @@ static NSString *ADFloorJS(void){
              * suggestion rows, not descendants of the family above. Own the exact heading family. */
             ".s-suggestion-section-heading,.sac-header-component-single-line-header"
             "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            /* v7.132: long-press / held `YOU MAY BE INTERESTED` row. The v7.131 probe
+             * shows the exact 430x38 query-row structure is a separate family from
+             * `.s-suggestion-container`: `.s-query-row` -> `.s-query-row-link` /
+             * `.s-query-row-container`. Amazon can paint that full-width row white
+             * in its pressed/held state while our inner `.s-query-row-text` remains
+             * black, producing the screenshot's white strip + black text rectangle.
+             * Own only these exact query-row structural surfaces. #a-page gives this
+             * rule enough specificity to beat Amazon's state selector without a
+             * MutationObserver, event listener, timer, or per-row runtime mutation. */
+            "#a-page :is([id^=sac-query-row-].s-query-row,.s-query-row-container,.s-query-row-link)"
+            "{background:#000!important;background-color:#000!important;-webkit-tap-highlight-color:transparent!important;}"
+            "#a-page :is([id^=sac-query-row-].s-query-row,.s-query-row-container,.s-query-row-link):is(:active,:focus,:focus-visible,:focus-within)"
+            "{background:#000!important;background-color:#000!important;-webkit-tap-highlight-color:transparent!important;box-shadow:none!important;}"
             /* v7.126: autocomplete delivery/location banner. The screenshot shows Amazon's warm
              * yellow location surface inside the autocomplete document. Keep this bounded to the
              * autocomplete root and semantic location/delivery families. Structural hosts go OLED;
@@ -3796,7 +3809,7 @@ static void ADConsiderLaunchReady706(void){
 %end
 
 // -----------------------------------------------------------------------------
-// v7.131 Search Deals probe. Screenshot/SIGUSR2 capture is retained so the
+// v7.132 held-query-row probe. Screenshot/SIGUSR2 capture is retained so the
 // exact held-row platter, native backing floors and loading WKWebViews can be verified.
 // It is diagnostic-only and runs only after an iOS screenshot or SIGUSR2.
 // No observer/scan/timer runs during ordinary app use.
@@ -3807,9 +3820,9 @@ static dispatch_source_t gADSearchProbeSignal7123=nil;
 static NSString *ADSearchProbePath7123(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.131-deals-for-you-fix-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.132-held-query-row-fix-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.131-deals-for-you-fix-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.132-held-query-row-fix-probe.txt"];
 }
 static void ADSearchProbeAppend7123(NSString *s){
     if(!s.length)return;
@@ -3938,10 +3951,11 @@ static NSString *ADSearchProbeDOMJS7123(void){
     "function Q(s){return {content:s.content||'none',bg:s.backgroundColor,bgi:s.backgroundImage,bgp:s.backgroundPosition,bgs:s.backgroundSize,bgr:s.backgroundRepeat,color:s.color,mask:s.webkitMaskImage||s.maskImage||'none',filter:s.webkitFilter||s.filter||'none',font:s.fontFamily,fs:s.fontSize};}"
     "function P(e){if(!e)return null;var r=e.getBoundingClientRect(),s=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');return {tag:e.tagName,id:e.id||'',cls:String(e.className||'').slice(0,220),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,bgi:s.backgroundImage,bgp:s.backgroundPosition,bgs:s.backgroundSize,bgr:s.backgroundRepeat,color:s.color,mask:s.webkitMaskImage||s.maskImage||'none',filter:s.webkitFilter||s.filter||'none',font:s.fontFamily,fs:s.fontSize,pe:s.pointerEvents,z:s.zIndex,pos:s.position,before:Q(b),after:Q(a)};}"
     "function G(sel){var a=[].slice.call(document.querySelectorAll(sel));return {count:a.length,items:a.slice(0,36).map(P)};}"
-    "var pts=[[24,20],[innerWidth/2,20],[innerWidth/2,48],[24,88],[innerWidth/2,88],[innerWidth/2,180],[innerWidth/2,320],[innerWidth/2,500]];"
+    "var pts=[[24,20],[innerWidth/2,20],[innerWidth/2,48],[24,88],[innerWidth/2,88],[innerWidth/2,126],[innerWidth/2,180],[innerWidth/2,320],[innerWidth/2,500]];"
     "var hit=pts.map(function(p){var a=(document.elementsFromPoint?document.elementsFromPoint(p[0],p[1]):[document.elementFromPoint(p[0],p[1])]).filter(Boolean).slice(0,8);return {p:p,stack:a.map(P)};});"
     "var o={href:location.href,ready:document.readyState,viewport:[innerWidth,innerHeight,devicePixelRatio],body:P(document.body),doc:P(document.documentElement),scroll:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],"
     "suggestions:G('.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]'),"
+    "queryRows:G('.s-query-row,.s-query-row-container,.s-query-row-link,.s-query-row-text'),"
     "history:G('[class*=icon-past-search-sugge],.icon-close.s-suggestion-icon-left'),"
     "searchIcons:G('i.icon-search-suggestion,.s-query-row-search-icon,.s-suggestion-icon-right,.s-suggestion-container [class*=icon-search],.s-suggestion-container [class*=search-icon],.s-suggestion [class*=icon-search],.s-suggestion [class*=search-icon]'),"
     "deals:G('[class*=ufs_tiles_card_widget]'),"
@@ -3953,7 +3967,7 @@ static NSString *ADSearchProbeDOMJS7123(void){
 }
 static void ADCaptureSearchVisibility7123(NSString *trigger){
     if(!gP.enabled)return; NSUInteger run=++gADSearchProbeRun7123;
-    NSMutableString *head=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.131 DEALS FOR YOU FIX PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE WINDOWS / VIEWS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchProbeNative7123(),ADSearchProbeWebViews7123()];
+    NSMutableString *head=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.132 HELD QUERY ROW FIX PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE WINDOWS / VIEWS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchProbeNative7123(),ADSearchProbeWebViews7123()];
     ADSearchProbeAppend7123(head);
     WKWebView *wv=ADSearchProbeAutocompleteWeb7123();
     if(!wv){ ADSearchProbeAppend7123(@"\n===== AUTOCOMPLETE DOM =====\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"); return; }

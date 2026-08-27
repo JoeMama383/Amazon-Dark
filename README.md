@@ -1,8 +1,10 @@
-# AmazonDark v7.131~deals-for-you-fix-probe — exact Search “Deals for you” caption floors
+# AmazonDark v7.132~held-query-row-fix-probe — held Search query-row floor
 
-Built directly from v7.130 after the transition/loading fix was confirmed working on-device. The new screenshot-triggered Search probe identifies the remaining white boxes under each “Deals for you” product label as exact `.ufs_tiles_card_widget-sug-text` DIV leaves (76×42 pt in the captured layout), each still computing to `rgb(255,255,255)` while the surrounding card, link, and image wrappers are already transparent/OLED. v7.131 therefore owns only those caption leaves as OLED black and forces their text/descendants to pure white. Product imagery, image shields, carousel geometry, Search history/suggestion rows, keyboard behavior, transition-floor owners, Sponsored styling, and the prior microphone geometry removals are unchanged.
+Built directly from v7.131. The v7.131 screenshot/probe confirms the visible Search autocomplete WebView itself is already OLED black, while the `YOU MAY BE INTERESTED` query-row family is separate from the older `.s-suggestion-container` rules. The exact row geometry is 430×38 via `.s-query-row`, with `.s-query-row-container` and `.s-query-row-link` structural descendants. During a long press Amazon paints that row-state surface white; the inner `.s-query-row-text` remains black, which is why the screenshot shows a full-width white strip with a black rectangle immediately behind the label.
 
-The existing one-shot screenshot/SIGUSR2 diagnostic is retained and renamed `AmazonDark-v7.131-deals-for-you-fix-probe.txt` so the caption computed styles can be verified without adding any normal-use scan, MutationObserver, timer, RAF, interval, or scroll listener.
+v7.132 gives only those exact query-row structural surfaces an OLED-black background in normal and pressed/focused states and disables their tap-highlight overlay. No generic DOM floor sweep, MutationObserver, timer, RAF, polling loop, touch listener, or recurring scan is added. Existing keyboard, transition, Deals-for-you, Sponsored, product-image, and microphone behavior is unchanged.
+
+The one-shot screenshot/SIGUSR2 probe is retained as `AmazonDark-v7.132-held-query-row-fix-probe.txt` and now explicitly captures `.s-query-row`, `.s-query-row-container`, `.s-query-row-link`, `.s-query-row-text`, plus a hit point through the third query row.
 
 # AmazonDark v7.130~transition-floor-probe — exact loading overlay + platter + keyboard placeholder owners
 
