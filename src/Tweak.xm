@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.142-search-results-container-polish-fix-probe"
+#define AD_VERSION "v7.143-search-results-dropdown-polish-fix-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1009,6 +1009,33 @@ static NSString *ADFloorJS(void){
             "#search#search .sf-rib30-dropdown-pill-icon .sf-rib30-review-stars-group"
             "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
             "border-color:transparent!important;box-shadow:none!important;filter:none!important;-webkit-filter:none!important;}"
+            /* v7.143: Discover / Seller are the sf-rib30 dropdown-title family. The v7.141
+             * probe shows the desired #202324 shell already exists on .sf-rib30-dropdown-title,
+             * but a same-size .sf-rib30-title-content-container is painted OLED black on top of
+             * it, with another black .sf-rib30-dropdown-pill-content and #202324 text plate.
+             * Clear only those compositing plates so the existing gray shell/border shows through. */
+            "#search#search .sf-rib30-dropdown-title > .a-declarative > .sf-rib30-title-content-container,"
+            "#search#search .sf-rib30-dropdown-title .sf-rib30-title-content-container .sf-rib30-dropdown-pill-content,"
+            "#search#search .sf-rib30-dropdown-title .sf-rib30-title-content-container .sf-rib30-dropdown-pill-text"
+            "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
+            "box-shadow:none!important;filter:none!important;-webkit-filter:none!important;}"
+            "#search#search .sf-rib30-dropdown-title"
+            "{background:#202324!important;background-color:#202324!important;border-color:#747a7c!important;"
+            "color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}"
+            /* The same probe identifies the trailing glyph as an 8x5
+             * .sf-rib30-dropdown-arrow-icon whose black rectangular floor is passed through
+             * brightness(0) invert(1), creating the white rectangle. Remove that compositor
+             * entirely and draw only a tiny neutral chevron inside the exact dropdown-title. */
+            "#search#search .sf-rib30-dropdown-title .sf-rib30-dropdown-arrow-icon"
+            "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
+            "filter:none!important;-webkit-filter:none!important;box-shadow:none!important;position:relative!important;}"
+            "#search#search .sf-rib30-dropdown-title .sf-rib30-dropdown-arrow-icon::before"
+            "{content:\"\"!important;display:block!important;position:absolute!important;left:1px!important;top:-1px!important;"
+            "width:5px!important;height:5px!important;background:transparent!important;background-color:transparent!important;"
+            "border:0!important;border-right:1.5px solid #d6d9d9!important;border-bottom:1.5px solid #d6d9d9!important;"
+            "box-sizing:border-box!important;transform:rotate(45deg)!important;-webkit-transform:rotate(45deg)!important;"
+            "filter:none!important;-webkit-filter:none!important;}"
+            "#search#search .sf-rib30-dropdown-title .sf-rib30-dropdown-arrow-icon::after{content:none!important;}"
             /* The Sources button is a stock 12pt round shell containing an exact 7pt
              * .rufus-expandable-pills-chevron. Broad Rufus floor ownership blackened
              * that 7pt child into a square; leave the circle stock and clear only the
@@ -4279,7 +4306,7 @@ static void ADConsiderLaunchReady706(void){
 %end
 
 // -----------------------------------------------------------------------------
-// v7.142 Search-results container/pill polish verification probe. Screenshot/SIGUSR2 only.
+// v7.143 Search-results dropdown polish verification probe. Screenshot/SIGUSR2 only.
 // It records paint/geometry for the current /s document without capturing query
 // text, element text, outerHTML, clipboard data, request bodies, or headers.
 // No observer, timer, RAF, scroll listener, or recurring DOM work is installed.
@@ -4290,9 +4317,9 @@ static dispatch_source_t gADSearchResultsProbeSignal7139=nil;
 static NSString *ADSearchResultsProbePath7139(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.142-search-results-container-polish-fix-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.143-search-results-dropdown-polish-fix-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.142-search-results-container-polish-fix-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.143-search-results-dropdown-polish-fix-probe.txt"];
 }
 static void ADSearchResultsProbeAppend7139(NSString *s){
     if(!s.length)return;
@@ -4404,6 +4431,7 @@ static NSString *ADSearchResultsProbeJS7139(void){
     "root:G('#search,#a-page',12),"
     "ribbon:G('[class*=sf-rib],[class*=sf-mobile-rib],[class*=filter]',64),"
     "ribbonArt:GC('.s-rib-toggle-container,.s-rib-toggle-icon,.sf-rib30-dropdown-pill-icon,.sf-rib30-review-content,.sf-rib30-review-stars-group,.sf-rib30-review-star,i.a-icon-prime.a-icon-small,.sf-mobile-rib-filter-icon,.sf-rib30-dropdown-arrow-icon',56),"
+    "ribbonDropdowns:GC('.sf-rib30-dropdown-title,.sf-rib30-title-content-container,.sf-rib30-dropdown-title .sf-rib30-dropdown-pill-content,.sf-rib30-dropdown-title .sf-rib30-dropdown-pill-text,.sf-rib30-dropdown-title .sf-rib30-dropdown-arrow-icon,a[id^=dynamic-picker-].sf-rib30-dropdown-pill-option,a[id^=dynamic-picker-] .sf-rib30-dropdown-pill-content,a[id^=dynamic-picker-] .sf-rib30-dropdown-pill-text',72),"
     "location:G('#nav-global-location-slot,#glow-ingress-block,[id*=glow-ingress],[class*=glow-ingress],[id*=delivery-location],[class*=delivery-location],[id*=ship-to],[class*=ship-to]',48),"
     "ai:G('#search [class*=alexa],#search [id*=alexa],#search [class*=research],#search [id*=research],#search [class*=rufus],#search [id*=rufus],#search [class*=query-understanding],#search [class*=shopping-assistant],#search [class*=ai-overview],#search [class*=search-guidance],#search [class*=guided-search]',64),"
     "aiLogo:GC('#search [class*=alexa-plus-logo],#search [class*=rufus][class*=icon],#search img[class*=alexa],#search img[class*=rufus]',32),"
@@ -4420,7 +4448,7 @@ static NSString *ADSearchResultsProbeJS7139(void){
 }
 static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     if(!gP.enabled)return; NSUInteger run=++gADSearchResultsProbeRun7139;
-    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.142 SEARCH RESULTS CONTAINER POLISH FIX PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== LOCATION LAYERS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
+    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.143 SEARCH RESULTS DROPDOWN POLISH FIX PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== LOCATION LAYERS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
         (unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchResultsProbeNative7139(),ADSearchResultsProbeGlowLayers7141(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(head);
     NSMutableArray *search=[NSMutableArray array],*fallback=[NSMutableArray array];
