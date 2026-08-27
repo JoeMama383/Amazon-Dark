@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.127-search-ui-probe"
+#define AD_VERSION "v7.128-search-ui-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -71,7 +71,10 @@ extern char *__progname;
 @end
 @interface UIPredictionViewController : UIViewController @end
 @interface UIKeyboardDockView : UIView @end
-@interface UIKeyboardDockItemButton : UIView @end
+@interface UIKeyboardDockItemButton : UIView
+- (void)setHighlighted:(BOOL)highlighted;
+- (void)setSelected:(BOOL)selected;
+@end
 @interface UIKBVisualEffectView : UIVisualEffectView
 @property (nonatomic, copy, readwrite) NSArray *backgroundEffects;
 @end
@@ -2356,13 +2359,15 @@ static void ADSetKeyboardFloor7126(UIView *view){
 }
 %end
 
-// v7.127: the device screenshot measures the right dictation glyph about 5.5pt
-// higher than the left emoji glyph even though the two UIKeyboardDockItemButton
-// frames themselves are on the same plane (the probe shows only a 0.3pt frame
-// difference).  Shift only the right dock item's rendered button content down
-// by that measured amount; the 80x69pt hit target and dock geometry stay stock.
-static const CGFloat kADKeyboardRightGlyphShift7127 = 5.5;
-static BOOL ADIsRightKeyboardDockItem7127(UIView *v){
+// v7.128: the before/during/after press probe proves the two dock-item frames
+// stay fixed while the right microphone artwork changes vertical position.  The
+// v7.127 5.5pt image correction was gated by ADKeyboardDark7126(), so the first
+// mount could miss it and a later press-triggered layout could apply it visibly.
+// This is geometry-only ownership: apply the same measured inset as soon as the
+// right stock-size dock item reaches a window, and reassert it after ordinary
+// layout/highlight/selection transitions.  The 80x69pt hit target stays stock.
+static const CGFloat kADKeyboardRightGlyphShift7128 = 5.5;
+static BOOL ADIsRightKeyboardDockItem7128(UIView *v){
     if(!gP.enabled||!v||!v.window)return NO;
     @try {
         CGRect r=[v convertRect:v.bounds toView:v.window];
@@ -2373,31 +2378,42 @@ static BOOL ADIsRightKeyboardDockItem7127(UIView *v){
     } @catch(...) {}
     return NO;
 }
-
-%hook UIKeyboardDockItemButton
-- (void)layoutSubviews {
-    %orig;
-    if(!gP.enabled||!ADKeyboardDark7126((UIView *)self))return;
+static void ADApplyKeyboardDockGlyphAlignment7128(UIView *v){
+    if(!ADIsRightKeyboardDockItem7128(v))return;
     @try {
-        BOOL right=ADIsRightKeyboardDockItem7127((UIView *)self);
-        ((UIView *)self).clipsToBounds=NO;
+        v.clipsToBounds=NO;
         SEL imageViewSel=NSSelectorFromString(@"imageView");
-        if([(id)self respondsToSelector:imageViewSel]){
-            id iv=((id(*)(id,SEL))objc_msgSend)((id)self,imageViewSel);
+        if([(id)v respondsToSelector:imageViewSel]){
+            id iv=((id(*)(id,SEL))objc_msgSend)((id)v,imageViewSel);
             if([iv isKindOfClass:[UIImageView class]])((UIImageView *)iv).clipsToBounds=NO;
         }
-        if(right){
-            // UIKeyboardDockItemButton behaves as a button on current iOS, but keep
-            // this port ABI-safe by asking for the selector dynamically rather than
-            // asserting a private superclass in our source declaration.
-            SEL edgeSel=NSSelectorFromString(@"setImageEdgeInsets:");
-            if([(id)self respondsToSelector:edgeSel]){
-                UIEdgeInsets e=UIEdgeInsetsMake(kADKeyboardRightGlyphShift7127,0.0,
-                                                -kADKeyboardRightGlyphShift7127,0.0);
-                ((void(*)(id,SEL,UIEdgeInsets))objc_msgSend)((id)self,edgeSel,e);
-            }
+        // UIKeyboardDockItemButton behaves as a button on current iOS, but keep
+        // this ABI-safe by resolving the private-button selector dynamically.
+        SEL edgeSel=NSSelectorFromString(@"setImageEdgeInsets:");
+        if([(id)v respondsToSelector:edgeSel]){
+            UIEdgeInsets e=UIEdgeInsetsMake(kADKeyboardRightGlyphShift7128,0.0,
+                                            -kADKeyboardRightGlyphShift7128,0.0);
+            ((void(*)(id,SEL,UIEdgeInsets))objc_msgSend)((id)v,edgeSel,e);
         }
     } @catch(...) {}
+}
+
+%hook UIKeyboardDockItemButton
+- (void)didMoveToWindow {
+    %orig;
+    ADApplyKeyboardDockGlyphAlignment7128((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADApplyKeyboardDockGlyphAlignment7128((UIView *)self);
+}
+- (void)setHighlighted:(BOOL)highlighted {
+    %orig;
+    ADApplyKeyboardDockGlyphAlignment7128((UIView *)self);
+}
+- (void)setSelected:(BOOL)selected {
+    %orig;
+    ADApplyKeyboardDockGlyphAlignment7128((UIView *)self);
 }
 %end
 
@@ -3283,7 +3299,7 @@ static void ADConsiderLaunchReady706(void){
 %end
 
 // -----------------------------------------------------------------------------
-// v7.127 Search UI probe. Screenshot/SIGUSR2 capture is retained for the Search surface while the native seam/dock geometry fixes are verified.
+// v7.128 Search UI probe. Screenshot/SIGUSR2 capture is retained for the Search surface while the press-stable dock glyph geometry is verified.
 // It is diagnostic-only and runs only after an iOS screenshot or SIGUSR2.
 // No observer/scan/timer runs during ordinary app use.
 // -----------------------------------------------------------------------------
@@ -3293,9 +3309,9 @@ static dispatch_source_t gADSearchProbeSignal7123=nil;
 static NSString *ADSearchProbePath7123(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.127-search-ui-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.128-search-ui-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.127-search-ui-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.128-search-ui-probe.txt"];
 }
 static void ADSearchProbeAppend7123(NSString *s){
     if(!s.length)return;
@@ -3349,11 +3365,20 @@ static BOOL ADSearchProbeRelevantClass7123(NSString *n){
 static NSString *ADSearchProbeViewLine7123(UIView *v,NSUInteger idx,NSUInteger depth){
     @try {
         CGRect r=[v convertRect:v.bounds toView:nil]; CALayer *l=v.layer;
-        return [NSString stringWithFormat:@"V #%lu d=%lu cls=%@ r=(%.1f,%.1f %.1fx%.1f) b=(%.1f,%.1f %.1fx%.1f) hidden=%d a=%.2f ui=%d opaque=%d clips=%d masks=%d bg=%@ layerBg=%@ z=%.1f filters=%@ aid=\"%@\" contents=%d\n",
+        NSMutableString *dock=[NSMutableString string];
+        if([NSStringFromClass(v.class) isEqualToString:@"UIKeyboardDockItemButton"]){
+            BOOL hi=NO,sel=NO; UIEdgeInsets e=UIEdgeInsetsZero;
+            SEL hiSel=NSSelectorFromString(@"isHighlighted"), selSel=NSSelectorFromString(@"isSelected"), edgeSel=NSSelectorFromString(@"imageEdgeInsets");
+            if([(id)v respondsToSelector:hiSel])hi=((BOOL(*)(id,SEL))objc_msgSend)((id)v,hiSel);
+            if([(id)v respondsToSelector:selSel])sel=((BOOL(*)(id,SEL))objc_msgSend)((id)v,selSel);
+            if([(id)v respondsToSelector:edgeSel])e=((UIEdgeInsets(*)(id,SEL))objc_msgSend)((id)v,edgeSel);
+            [dock appendFormat:@" dockHi=%d dockSel=%d imageInsets=(%.1f,%.1f,%.1f,%.1f)",hi?1:0,sel?1:0,e.top,e.left,e.bottom,e.right];
+        }
+        return [NSString stringWithFormat:@"V #%lu d=%lu cls=%@ r=(%.1f,%.1f %.1fx%.1f) b=(%.1f,%.1f %.1fx%.1f) hidden=%d a=%.2f ui=%d opaque=%d clips=%d masks=%d bg=%@ layerBg=%@ z=%.1f filters=%@ aid=\"%@\" contents=%d%@\n",
                 (unsigned long)idx,(unsigned long)depth,NSStringFromClass(v.class),r.origin.x,r.origin.y,r.size.width,r.size.height,
                 v.bounds.origin.x,v.bounds.origin.y,v.bounds.size.width,v.bounds.size.height,v.hidden?1:0,v.alpha,v.userInteractionEnabled?1:0,v.opaque?1:0,
                 v.clipsToBounds?1:0,l.masksToBounds?1:0,ADSearchProbeColor7123(v.backgroundColor),ADSearchProbeCG7123(l.backgroundColor),
-                l.zPosition,ADSearchProbeFilters7123(l),ADSearchProbeAid7123(v),l.contents?1:0];
+                l.zPosition,ADSearchProbeFilters7123(l),ADSearchProbeAid7123(v),l.contents?1:0,dock];
     } @catch(...) { return [NSString stringWithFormat:@"V #%lu d=%lu ERROR\n",(unsigned long)idx,(unsigned long)depth]; }
 }
 static NSString *ADSearchProbeHitChain7123(UIView *v){
@@ -3439,7 +3464,7 @@ static NSString *ADSearchProbeDOMJS7123(void){
 }
 static void ADCaptureSearchVisibility7123(NSString *trigger){
     if(!gP.enabled)return; NSUInteger run=++gADSearchProbeRun7123;
-    NSMutableString *head=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.127 SEARCH UI PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE WINDOWS / VIEWS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchProbeNative7123(),ADSearchProbeWebViews7123()];
+    NSMutableString *head=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.128 SEARCH UI PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE WINDOWS / VIEWS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchProbeNative7123(),ADSearchProbeWebViews7123()];
     ADSearchProbeAppend7123(head);
     WKWebView *wv=ADSearchProbeAutocompleteWeb7123();
     if(!wv){ ADSearchProbeAppend7123(@"\n===== AUTOCOMPLETE DOM =====\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"); return; }

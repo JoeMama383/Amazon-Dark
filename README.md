@@ -1,3 +1,15 @@
+# AmazonDark v7.128~search-ui-probe — press-stable keyboard microphone alignment
+
+Directly based on v7.127. The Search photo/camera top-seam correction, OledKeyboard-derived OLED keyboard ownership, Search heading/location/glyph treatment, Privacy Mode, launch cover, 120 Hz, JIT, standalone-ad handling, and TWB behavior are unchanged.
+
+The v7.127 before/during/after device probe proves both `UIKeyboardDockItemButton` hit-target frames remain fixed across the microphone press. The visible jump is therefore inside the right button's rendered microphone content. v7.127 applied the measured 5.5pt downward `imageEdgeInsets` correction only from `layoutSubviews` and only after `ADKeyboardDark7126()` resolved true; the first mounted frame can miss that gate, then the touch-triggered layout can apply the inset late and visibly move the glyph.
+
+v7.128 makes this geometry correction independent of dark-trait timing. The same 5.5pt inset is applied to only the right, stock-size dock item on `didMoveToWindow` and `layoutSubviews`, then reasserted after highlighted/selected state transitions. The dock button frame/hit target is never moved, the left emoji is untouched, and Apple's normal white pressed-state circle is intentionally untouched.
+
+The one-shot screenshot/SIGUSR2 Search probe remains as `AmazonDark-v7.128-search-ui-probe.txt` and now records each dock item's highlighted/selected state plus `imageEdgeInsets`, making any remaining state-specific displacement directly visible in the diagnostic. No recurring keyboard scan, observer, timer, polling loop, RAF, interval, or Web work is added.
+
+---
+
 # AmazonDark v7.127~search-ui-probe — Search seam + keyboard dock alignment
 
 Directly based on v7.126. The OledKeyboard-derived OLED keyboard ownership, Search heading contrast, location/delivery treatment, v7.125 glyph-sprite preservation, Deals-for-you treatment, Privacy Mode, launch cover, 120 Hz, JIT, and all established ad/TWB behavior remain intact.
