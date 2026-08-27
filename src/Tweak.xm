@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.141-search-results-specificity-location-fix-probe"
+#define AD_VERSION "v7.142-search-results-container-polish-fix-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -989,12 +989,26 @@ static NSString *ADFloorJS(void){
              * long :not(...) selector had greater specificity. The exact parents are now
              * excluded above, and these duplicated-#search resets are a narrow backstop. */
             "#search#search .s-rib-toggle-icon:has(i.a-icon-prime)"
-            "{filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;opacity:1!important;}"
+            "{background:transparent!important;background-color:transparent!important;filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;opacity:1!important;}"
+            /* v7.142: Prime itself is now restored blue, but v7.141's screenshot shows the
+             * stock sprite sitting on a themed #202324 rectangle. v7.140's ancestor chain
+             * identifies that rectangle exactly as A.s-rib-toggle-container. It is only a
+             * compositing shell, so clear its floor while leaving the toggle and Prime art. */
+            "#search#search .s-rib-toggle-container:has(.s-rib-toggle-icon i.a-icon-prime)"
+            "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
+            "border-color:transparent!important;box-shadow:none!important;filter:none!important;-webkit-filter:none!important;}"
             "#search#search .sf-rib30-dropdown-pill-icon:has(.sf-rib30-review-star)"
             "{background-color:#202324!important;border-color:#747a7c!important;box-shadow:none!important;"
             "filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;opacity:1!important;}"
             "#search#search .sf-rib30-dropdown-pill-icon:has(.sf-rib30-review-star) .sf-rib30-review-star"
             "{filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;opacity:1!important;}"
+            /* v7.142: the black rectangle behind the orange stars is not the outer pill.
+             * The probe chain isolates it as .sf-rib30-review-content (68x17). Clear only
+             * that inner floor; keep the outer gray pill, border, orange SVGs and '& Up'. */
+            "#search#search .sf-rib30-dropdown-pill-icon .sf-rib30-review-content,"
+            "#search#search .sf-rib30-dropdown-pill-icon .sf-rib30-review-stars-group"
+            "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
+            "border-color:transparent!important;box-shadow:none!important;filter:none!important;-webkit-filter:none!important;}"
             /* The Sources button is a stock 12pt round shell containing an exact 7pt
              * .rufus-expandable-pills-chevron. Broad Rufus floor ownership blackened
              * that 7pt child into a square; leave the circle stock and clear only the
@@ -1003,16 +1017,34 @@ static NSString *ADFloorJS(void){
             "{background:transparent!important;background-color:transparent!important;border-color:transparent!important;box-shadow:none!important;}"
             "#search#search .rufus-expandable-pills-chevron img"
             "{background-color:transparent!important;filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;opacity:1!important;}"
-            /* Alexa/Rufus suggestion pills: replace the light-blue stock plates with one
-             * dark neutral while keeping their text legible. Both current carousel IDs
-             * are scoped; no product-result button is included. */
-            "#search :is(#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container) "
-            ":is(.a-carousel-card,.a-button,.a-button-inner,[role=button],a)"
-            "{background:#3b4143!important;background-color:#3b4143!important;border-color:#747a7c!important;box-shadow:none!important;"
-            "color:#f2f2f2!important;-webkit-text-fill-color:#f2f2f2!important;}"
-            "#search :is(#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container) "
-            ":is(.a-carousel-card,.a-button,.a-button-inner,[role=button],a) :is(span,p,strong,b,div)"
-            "{color:#f2f2f2!important;-webkit-text-fill-color:#f2f2f2!important;}"
+            /* v7.142 Alexa/Rufus/source pills. v7.141 proves the expanded Sources chips
+             * can still expose Amazon's white button plate. Keep carousel/card plumbing
+             * transparent, then own the actual pill shell at higher specificity. */
+            "#search#search :is(#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container) "
+            ".a-carousel-card"
+            "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
+            "border-color:transparent!important;box-shadow:none!important;}"
+            "#search#search :is(#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container) "
+            ":is(.nile-inline-pill-button,.nile-inline-ingress-pill-button,.a-button,[role=button],.a-carousel-card>a)"
+            "{background:#4a4f51!important;background-color:#4a4f51!important;background-image:none!important;"
+            "border:1px solid #34383a!important;border-color:#34383a!important;box-shadow:none!important;"
+            "color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+            "#search#search :is(#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container) "
+            ":is(.nile-inline-pill-button,.nile-inline-ingress-pill-button,.a-button,[role=button],.a-carousel-card>a) .a-button-inner"
+            "{background:#4a4f51!important;background-color:#4a4f51!important;background-image:none!important;"
+            "border-color:transparent!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+            "#search#search :is(#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container) "
+            ":is(.nile-inline-pill-button,.nile-inline-ingress-pill-button,.a-button,[role=button],.a-carousel-card>a) .a-button-text"
+            "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
+            "border:0!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+            "#search#search :is(#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container) "
+            ":is(.nile-inline-pill-button,.nile-inline-ingress-pill-button,.a-button,[role=button],.a-carousel-card>a) :is(.a-button-text,span,p,strong,b,div)"
+            "{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+            "#search#search :is(#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container) "
+            ":is(.nile-inline-pill-button,.nile-inline-ingress-pill-button,.a-button,[role=button],.a-carousel-card>a)::before,"
+            "#search#search :is(#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container) "
+            ":is(.nile-inline-pill-button,.nile-inline-ingress-pill-button,.a-button,[role=button],.a-carousel-card>a)::after"
+            "{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}"
             /* The category carousel probe isolates each remaining white product/category
              * floor to li.a-carousel-card plus its outer 76x78 .a-box. Keep the image
              * leaf on TWB, but return the card/description floor to OLED and use white copy. */
@@ -4247,7 +4279,7 @@ static void ADConsiderLaunchReady706(void){
 %end
 
 // -----------------------------------------------------------------------------
-// v7.141 Search-results specificity/location verification probe. Screenshot/SIGUSR2 only.
+// v7.142 Search-results container/pill polish verification probe. Screenshot/SIGUSR2 only.
 // It records paint/geometry for the current /s document without capturing query
 // text, element text, outerHTML, clipboard data, request bodies, or headers.
 // No observer, timer, RAF, scroll listener, or recurring DOM work is installed.
@@ -4258,9 +4290,9 @@ static dispatch_source_t gADSearchResultsProbeSignal7139=nil;
 static NSString *ADSearchResultsProbePath7139(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.141-search-results-specificity-location-fix-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.142-search-results-container-polish-fix-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.141-search-results-specificity-location-fix-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.142-search-results-container-polish-fix-probe.txt"];
 }
 static void ADSearchResultsProbeAppend7139(NSString *s){
     if(!s.length)return;
@@ -4371,12 +4403,12 @@ static NSString *ADSearchResultsProbeJS7139(void){
     "var o={path:location.pathname,ready:document.readyState,viewport:[w,h,devicePixelRatio],scroll:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],body:P(document.body),doc:P(document.documentElement),"
     "root:G('#search,#a-page',12),"
     "ribbon:G('[class*=sf-rib],[class*=sf-mobile-rib],[class*=filter]',64),"
-    "ribbonArt:GC('.s-rib-toggle-icon,.sf-rib30-dropdown-pill-icon,.sf-rib30-review-star,i.a-icon-prime.a-icon-small,.sf-mobile-rib-filter-icon,.sf-rib30-dropdown-arrow-icon',40),"
+    "ribbonArt:GC('.s-rib-toggle-container,.s-rib-toggle-icon,.sf-rib30-dropdown-pill-icon,.sf-rib30-review-content,.sf-rib30-review-stars-group,.sf-rib30-review-star,i.a-icon-prime.a-icon-small,.sf-mobile-rib-filter-icon,.sf-rib30-dropdown-arrow-icon',56),"
     "location:G('#nav-global-location-slot,#glow-ingress-block,[id*=glow-ingress],[class*=glow-ingress],[id*=delivery-location],[class*=delivery-location],[id*=ship-to],[class*=ship-to]',48),"
     "ai:G('#search [class*=alexa],#search [id*=alexa],#search [class*=research],#search [id*=research],#search [class*=rufus],#search [id*=rufus],#search [class*=query-understanding],#search [class*=shopping-assistant],#search [class*=ai-overview],#search [class*=search-guidance],#search [class*=guided-search]',64),"
     "aiLogo:GC('#search [class*=alexa-plus-logo],#search [class*=rufus][class*=icon],#search img[class*=alexa],#search img[class*=rufus]',32),"
     "aiControls:GC('#search .rufus-expandable-pills-toggle-button,#search .rufus-expandable-pills-chevron,#search .rufus-expandable-pills-chevron img',32),"
-    "aiPills:GC('#search #rufus-overviews-pills-carousel .a-carousel-card,#search #rufus-overviews-pills-carousel .a-button,#search #rufus-mobile-overviews-expandable-pills-carousel-container .a-carousel-card,#search #rufus-mobile-overviews-expandable-pills-carousel-container .a-button',48),"
+    "aiPills:GC('#search #rufus-overviews-pills-carousel,#search #rufus-mobile-overviews-expandable-pills-carousel-container,#search #rufus-overviews-pills-carousel .a-carousel-card,#search #rufus-mobile-overviews-expandable-pills-carousel-container .a-carousel-card,#search .nile-inline-pill-button,#search .nile-inline-ingress-pill-button,#search #rufus-overviews-pills-carousel .a-button-inner,#search #rufus-mobile-overviews-expandable-pills-carousel-container .a-button-inner',72),"
     "tiles:GC('#search #rufus-overviews-category-cards-carousel .a-carousel-card,#search #rufus-overviews-category-cards-carousel .a-carousel-card > .a-box,#search #rufus-overviews-category-cards-carousel .nice-cat-card_box,#search #rufus-overviews-category-cards-carousel img.nice-cat-card_image',64),"
     "atc:GC('#search .puis-atcb-button,#search .puis-atcb-button .a-button-inner,#search .puis-atcb-button .a-button-text',48),"
     "results:G('#search .s-result-item,#search .s-card-container,#search [data-component-type=s-search-result],#search .puisg-row,#search .puisg-col,#search .puisg-col-inner',72),"
@@ -4388,7 +4420,7 @@ static NSString *ADSearchResultsProbeJS7139(void){
 }
 static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     if(!gP.enabled)return; NSUInteger run=++gADSearchResultsProbeRun7139;
-    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.141 SEARCH RESULTS SPECIFICITY LOCATION FIX PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== LOCATION LAYERS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
+    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.142 SEARCH RESULTS CONTAINER POLISH FIX PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== LOCATION LAYERS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
         (unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchResultsProbeNative7139(),ADSearchResultsProbeGlowLayers7141(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(head);
     NSMutableArray *search=[NSMutableArray array],*fallback=[NSMutableArray array];
