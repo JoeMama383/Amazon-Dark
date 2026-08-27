@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.128-search-ui-probe"
+#define AD_VERSION "v7.129-transition-floor-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -65,16 +65,23 @@ extern char *__progname;
 @interface SBMultilineSearchView : UIView @end
 @interface A9VSScanItSearchWidget : UIView @end
 
+// v7.129: exact UIKit transition / WebKit text-selection surfaces proven by the
+// v7.128 held-row probe. These remain Amazon-process-local through the tweak filter.
+@interface UILayoutContainerView : UIView @end
+@interface UITransitionView : UIView @end
+@interface UINavigationTransitionView : UIView @end
+@interface UIViewControllerWrapperView : UIView @end
+@interface _UIPlatterContainerView : UIView @end
+@interface _UIPlatterView : UIView @end
+@interface _UIPlatterSoftShadowView : UIView @end
+@interface _UIPlatterShadowView : UIView @end
+
 // OledKeyboard-derived UIKit owners. Kept local to the Amazon process by AmazonDark.plist.
 @interface UIKeyboard : UIView
 + (instancetype)activeKeyboard;
 @end
 @interface UIPredictionViewController : UIViewController @end
 @interface UIKeyboardDockView : UIView @end
-@interface UIKeyboardDockItemButton : UIView
-- (void)setHighlighted:(BOOL)highlighted;
-- (void)setSelected:(BOOL)selected;
-@end
 @interface UIKBVisualEffectView : UIVisualEffectView
 @property (nonatomic, copy, readwrite) NSArray *backgroundEffects;
 @end
@@ -1895,13 +1902,17 @@ static void ADApplyWebFloor(WKWebView *wv){
     if(!wv || !gP.enabled)return;
     ADTrackWebView(wv);
     @try {
-        // Prime only the outer WebKit backing. Do not intercept WebKit's later background
-        // assignments and do not repeatedly evaluate theme JS during view recycling/snapshots.
+        // v7.129: own the backing before attachment as well as after it. The v7.128
+        // probe caught a destination/search WKWebView still stock-white while loading.
+        // This is constant-time UIKit/WebKit property ownership only; no JS retry lane.
+        UIColor *black=ADOLED();
         wv.opaque=NO;
-        wv.backgroundColor=ADOLED();
+        wv.backgroundColor=black;
+        wv.layer.backgroundColor=black.CGColor;
         wv.scrollView.opaque=NO;
-        wv.scrollView.backgroundColor=ADOLED();
-        if(@available(iOS 15.0,*)) wv.underPageBackgroundColor=ADOLED();
+        wv.scrollView.backgroundColor=black;
+        wv.scrollView.layer.backgroundColor=black.CGColor;
+        if(@available(iOS 15.0,*)) wv.underPageBackgroundColor=black;
     } @catch(...) {}
 }
 
@@ -1912,7 +1923,9 @@ static BOOL ADPrimaryAmazonWindow713(UIWindow *w, UIViewController *candidate);
 static void ADApplyAllFloors(void){
     if(!gP.enabled)return;
     @try {
-        for(WKWebView *wv in ADTrackedWebViews()) if(wv.window) ADApplyWebFloor(wv);
+        // v6.0.160-era lesson: a destination WebView is transition-live as soon as
+        // it has a superview, before UIWindow attachment. Prime that state too.
+        for(WKWebView *wv in ADTrackedWebViews()) if(wv.window || wv.superview) ADApplyWebFloor(wv);
     } @catch(...) {}
 }
 
@@ -1974,23 +1987,77 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
     if(gP.enabled){ ADAttachWebScripts(wv); ADApplyWebFloor(wv); }
     return wv;
 }
+- (void)didMoveToSuperview {
+    %orig;
+    if(gP.enabled && self.superview){ ADAttachWebScripts(self); ADApplyWebFloor(self); }
+}
 - (void)didMoveToWindow {
     %orig;
     if(gP.enabled && self.window){ ADAttachWebScripts(self); ADApplyWebFloor(self); ADConsiderLaunchReady706(); }
 }
+- (void)setBackgroundColor:(UIColor *)color {
+    if(gP.enabled){
+        UIColor *black=ADOLED();
+        %orig(black);
+        self.layer.backgroundColor=black.CGColor;
+        return;
+    }
+    %orig(color);
+}
+- (void)setOpaque:(BOOL)opaque {
+    if(gP.enabled){
+        %orig(NO);
+        return;
+    }
+    %orig(opaque);
+}
+- (void)setUnderPageBackgroundColor:(UIColor *)color {
+    if(gP.enabled){
+        UIColor *black=ADOLED();
+        %orig(black);
+        return;
+    }
+    %orig(color);
+}
 %end
 
 %hook WKScrollView
+- (void)didMoveToSuperview {
+    %orig;
+    if(gP.enabled && strcmp(object_getClassName(self), "WKScrollView")==0){
+        UIColor *black=ADOLED();
+        self.opaque=NO;
+        self.backgroundColor=black;
+        self.layer.backgroundColor=black.CGColor;
+    }
+}
 - (void)didMoveToWindow {
     %orig;
-    /* v7.0.79: keep the proven white native scrollbar while refusing to style
-     * WKChildScrollView carousel descendants. Sponsor glyph ownership above is
-     * now declarative, so it no longer depends on hydration timing. */
+    /* Keep the proven white native scrollbar while refusing to style
+     * WKChildScrollView carousel descendants. */
     if(gP.enabled && self.window && strcmp(object_getClassName(self), "WKScrollView")==0){
+        UIColor *black=ADOLED();
         self.opaque=NO;
-        self.backgroundColor=ADOLED();
+        self.backgroundColor=black;
+        self.layer.backgroundColor=black.CGColor;
         self.indicatorStyle=UIScrollViewIndicatorStyleWhite;
     }
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(gP.enabled && strcmp(object_getClassName(self), "WKScrollView")==0){
+        UIColor *black=ADOLED();
+        %orig(black);
+        self.layer.backgroundColor=black.CGColor;
+        return;
+    }
+    %orig(color);
+}
+- (void)setOpaque:(BOOL)opaque {
+    if(gP.enabled && strcmp(object_getClassName(self), "WKScrollView")==0){
+        %orig(NO);
+        return;
+    }
+    %orig(opaque);
 }
 - (void)setIndicatorStyle:(UIScrollViewIndicatorStyle)style {
     if(gP.enabled && strcmp(object_getClassName(self), "WKScrollView")==0){
@@ -2183,6 +2250,233 @@ static BOOL ADPrimaryAmazonWindow713(UIWindow *w, UIViewController *candidate){
     return NO;
 }
 
+static BOOL ADPrimaryLargeFloor7129(UIView *v){
+    if(!gP.enabled||!v||!v.window||!ADPrimaryAmazonWindow713(v.window,nil))return NO;
+    @try {
+        CGRect wb=v.window.bounds;
+        CGRect r=[v convertRect:v.bounds toView:v.window];
+        if(wb.size.width<1.0||wb.size.height<1.0)return NO;
+        return r.size.width>=wb.size.width*0.80 && r.size.height>=wb.size.height*0.30;
+    } @catch(...) {}
+    return NO;
+}
+static void ADPaintPrimaryLargeFloor7129(UIView *v){
+    if(!ADPrimaryLargeFloor7129(v))return;
+    @try {
+        UIColor *black=ADOLED();
+        v.backgroundColor=black;
+        v.layer.backgroundColor=black.CGColor;
+    } @catch(...) {}
+}
+static BOOL ADTransitionShell7129(UIView *v){
+    if(!v)return NO;
+    const char *cn=object_getClassName(v);
+    return (cn&&strcmp(cn,"UIView")==0)||
+           [v isKindOfClass:%c(UILayoutContainerView)]||
+           [v isKindOfClass:%c(UITransitionView)]||
+           [v isKindOfClass:%c(UINavigationTransitionView)]||
+           [v isKindOfClass:%c(UIViewControllerWrapperView)];
+}
+static void ADPaintTransitionCandidate7129(UIView *v, UIColor *black){
+    if(!ADTransitionShell7129(v)||!ADPrimaryLargeFloor7129(v))return;
+    v.backgroundColor=black;
+    v.layer.backgroundColor=black.CGColor;
+}
+static void ADPaintWrapperChildren7129(UIView *root){
+    if(!ADPrimaryLargeFloor7129(root))return;
+    @try {
+        UIColor *black=ADOLED();
+        // Probe V#30/V#73 are plain-UIView backing planes below the wrapper.
+        // Walk only two shallow levels and only large transition-shell classes.
+        for(UIView *a in (root.subviews.copy?:@[])){
+            ADPaintTransitionCandidate7129(a,black);
+            for(UIView *b in (a.subviews.copy?:@[])) ADPaintTransitionCandidate7129(b,black);
+        }
+    } @catch(...) {}
+}
+static BOOL ADBrightNeutral7129(UIColor *c){
+    if(!c)return NO;
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0;
+        if([c getRed:&r green:&g blue:&b alpha:&a]){
+            CGFloat hi=MAX(r,MAX(g,b)), lo=MIN(r,MIN(g,b));
+            return a>0.20 && ((r+g+b)/3.0)>0.72 && (hi-lo)<0.12;
+        }
+        if([c getWhite:&w alpha:&a]) return a>0.20 && w>0.72;
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADWebPlatter7129(UIView *v){
+    if(!v||!v.window||!ADPrimaryAmazonWindow713(v.window,nil))return NO;
+    @try {
+        for(UIView *n=v;n;n=n.superview){
+            NSString *cn=NSStringFromClass(n.class);
+            if([cn isEqualToString:@"WKContentView"]||[cn isEqualToString:@"WKWebView"])return YES;
+            if([n isKindOfClass:[UIWindow class]])break;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static void ADPaintWebPlatter7129(UIView *root){
+    if(!gP.enabled||!root||!ADWebPlatter7129(root))return;
+    @try {
+        UIColor *black=ADOLED();
+        root.layer.shadowOpacity=0.0f;
+        root.layer.shadowColor=black.CGColor;
+        NSArray *l1=root.subviews.copy?:@[];
+        for(UIView *a in l1){
+            a.layer.shadowOpacity=0.0f;
+            a.layer.shadowColor=black.CGColor;
+            // Probe V#210/V#213: the offending strip is a plain UIView child of
+            // the platter shadow owner with a bright neutral fill and no raster.
+            const char *ac=object_getClassName(a);
+            if(ac&&strcmp(ac,"UIView")==0&&a.layer.contents==nil&&ADBrightNeutral7129(a.backgroundColor)){
+                a.backgroundColor=black; a.layer.backgroundColor=black.CGColor;
+            }
+            for(UIView *b in (a.subviews.copy?:@[])){
+                b.layer.shadowOpacity=0.0f;
+                b.layer.shadowColor=black.CGColor;
+                const char *bc=object_getClassName(b);
+                if(bc&&strcmp(bc,"UIView")==0&&b.layer.contents==nil&&ADBrightNeutral7129(b.backgroundColor)){
+                    b.backgroundColor=black; b.layer.backgroundColor=black.CGColor;
+                }
+            }
+        }
+    } @catch(...) {}
+}
+
+%hook UILayoutContainerView
+- (void)didMoveToWindow {
+    %orig;
+    ADPaintPrimaryLargeFloor7129((UIView *)self);
+    ADPaintWrapperChildren7129((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADPaintPrimaryLargeFloor7129((UIView *)self);
+    ADPaintWrapperChildren7129((UIView *)self);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(ADPrimaryLargeFloor7129((UIView *)self)){
+        UIColor *black=ADOLED();
+        %orig(black);
+        self.layer.backgroundColor=black.CGColor;
+        return;
+    }
+    %orig(color);
+}
+%end
+
+%hook UITransitionView
+- (void)didMoveToWindow {
+    %orig;
+    ADPaintPrimaryLargeFloor7129((UIView *)self);
+    ADPaintWrapperChildren7129((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADPaintPrimaryLargeFloor7129((UIView *)self);
+    ADPaintWrapperChildren7129((UIView *)self);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(ADPrimaryLargeFloor7129((UIView *)self)){
+        UIColor *black=ADOLED();
+        %orig(black);
+        self.layer.backgroundColor=black.CGColor;
+        return;
+    }
+    %orig(color);
+}
+%end
+
+%hook UINavigationTransitionView
+- (void)didMoveToWindow {
+    %orig;
+    ADPaintPrimaryLargeFloor7129((UIView *)self);
+    ADPaintWrapperChildren7129((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADPaintPrimaryLargeFloor7129((UIView *)self);
+    ADPaintWrapperChildren7129((UIView *)self);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(ADPrimaryLargeFloor7129((UIView *)self)){
+        UIColor *black=ADOLED();
+        %orig(black);
+        self.layer.backgroundColor=black.CGColor;
+        return;
+    }
+    %orig(color);
+}
+%end
+
+%hook UIViewControllerWrapperView
+- (void)didMoveToWindow {
+    %orig;
+    ADPaintPrimaryLargeFloor7129((UIView *)self);
+    ADPaintWrapperChildren7129((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADPaintPrimaryLargeFloor7129((UIView *)self);
+    ADPaintWrapperChildren7129((UIView *)self);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(ADPrimaryLargeFloor7129((UIView *)self)){
+        UIColor *black=ADOLED();
+        %orig(black);
+        self.layer.backgroundColor=black.CGColor;
+        return;
+    }
+    %orig(color);
+}
+%end
+
+%hook _UIPlatterContainerView
+- (void)didMoveToWindow {
+    %orig;
+    ADPaintWebPlatter7129((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADPaintWebPlatter7129((UIView *)self);
+}
+%end
+
+%hook _UIPlatterView
+- (void)didMoveToWindow {
+    %orig;
+    ADPaintWebPlatter7129((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADPaintWebPlatter7129((UIView *)self);
+}
+%end
+
+%hook _UIPlatterSoftShadowView
+- (void)didMoveToWindow {
+    %orig;
+    ADPaintWebPlatter7129((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADPaintWebPlatter7129((UIView *)self);
+}
+%end
+
+%hook _UIPlatterShadowView
+- (void)didMoveToWindow {
+    %orig;
+    ADPaintWebPlatter7129((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADPaintWebPlatter7129((UIView *)self);
+}
+%end
+
 static NSMutableDictionary *gADStatusOrig713;
 static UIStatusBarStyle ADStatusLightIMP713(id self, SEL _cmd){
     if(gP.enabled)return UIStatusBarStyleLightContent;
@@ -2359,63 +2653,8 @@ static void ADSetKeyboardFloor7126(UIView *view){
 }
 %end
 
-// v7.128: the before/during/after press probe proves the two dock-item frames
-// stay fixed while the right microphone artwork changes vertical position.  The
-// v7.127 5.5pt image correction was gated by ADKeyboardDark7126(), so the first
-// mount could miss it and a later press-triggered layout could apply it visibly.
-// This is geometry-only ownership: apply the same measured inset as soon as the
-// right stock-size dock item reaches a window, and reassert it after ordinary
-// layout/highlight/selection transitions.  The 80x69pt hit target stays stock.
-static const CGFloat kADKeyboardRightGlyphShift7128 = 5.5;
-static BOOL ADIsRightKeyboardDockItem7128(UIView *v){
-    if(!gP.enabled||!v||!v.window)return NO;
-    @try {
-        CGRect r=[v convertRect:v.bounds toView:v.window];
-        CGFloat ww=v.window.bounds.size.width;
-        return ww>0.0 && CGRectGetMidX(r)>(ww*0.70) &&
-               r.size.width>=50.0 && r.size.width<=100.0 &&
-               r.size.height>=50.0 && r.size.height<=85.0;
-    } @catch(...) {}
-    return NO;
-}
-static void ADApplyKeyboardDockGlyphAlignment7128(UIView *v){
-    if(!ADIsRightKeyboardDockItem7128(v))return;
-    @try {
-        v.clipsToBounds=NO;
-        SEL imageViewSel=NSSelectorFromString(@"imageView");
-        if([(id)v respondsToSelector:imageViewSel]){
-            id iv=((id(*)(id,SEL))objc_msgSend)((id)v,imageViewSel);
-            if([iv isKindOfClass:[UIImageView class]])((UIImageView *)iv).clipsToBounds=NO;
-        }
-        // UIKeyboardDockItemButton behaves as a button on current iOS, but keep
-        // this ABI-safe by resolving the private-button selector dynamically.
-        SEL edgeSel=NSSelectorFromString(@"setImageEdgeInsets:");
-        if([(id)v respondsToSelector:edgeSel]){
-            UIEdgeInsets e=UIEdgeInsetsMake(kADKeyboardRightGlyphShift7128,0.0,
-                                            -kADKeyboardRightGlyphShift7128,0.0);
-            ((void(*)(id,SEL,UIEdgeInsets))objc_msgSend)((id)v,edgeSel,e);
-        }
-    } @catch(...) {}
-}
-
-%hook UIKeyboardDockItemButton
-- (void)didMoveToWindow {
-    %orig;
-    ADApplyKeyboardDockGlyphAlignment7128((UIView *)self);
-}
-- (void)layoutSubviews {
-    %orig;
-    ADApplyKeyboardDockGlyphAlignment7128((UIView *)self);
-}
-- (void)setHighlighted:(BOOL)highlighted {
-    %orig;
-    ADApplyKeyboardDockGlyphAlignment7128((UIView *)self);
-}
-- (void)setSelected:(BOOL)selected {
-    %orig;
-    ADApplyKeyboardDockGlyphAlignment7128((UIView *)self);
-}
-%end
+// v7.129: all v7.127/v7.128 microphone/dock-item geometry ownership is removed.
+// The keyboard below is intentionally the v7.126 OledKeyboard-derived port only.
 
 %hook UIInputView
 - (void)layoutSubviews {
@@ -3299,7 +3538,8 @@ static void ADConsiderLaunchReady706(void){
 %end
 
 // -----------------------------------------------------------------------------
-// v7.128 Search UI probe. Screenshot/SIGUSR2 capture is retained for the Search surface while the press-stable dock glyph geometry is verified.
+// v7.129 transition-floor probe. Screenshot/SIGUSR2 capture is retained so the
+// exact held-row platter, native backing floors and loading WKWebViews can be verified.
 // It is diagnostic-only and runs only after an iOS screenshot or SIGUSR2.
 // No observer/scan/timer runs during ordinary app use.
 // -----------------------------------------------------------------------------
@@ -3309,9 +3549,9 @@ static dispatch_source_t gADSearchProbeSignal7123=nil;
 static NSString *ADSearchProbePath7123(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.128-search-ui-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.129-transition-floor-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.128-search-ui-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.129-transition-floor-probe.txt"];
 }
 static void ADSearchProbeAppend7123(NSString *s){
     if(!s.length)return;
@@ -3358,27 +3598,18 @@ static NSString *ADSearchProbeAid7123(UIView *v){
 }
 static BOOL ADSearchProbeRelevantClass7123(NSString *n){
     NSString *s=n.lowercaseString?:@"";
-    NSArray *keys=@[@"search",@"keyboard",@"inputset",@"texteffects",@"overlay",@"portal",@"webview",@"wkcontent",@"wkscroll",@"scanit",@"toucharea",@"multiline",@"topnav"];
+    NSArray *keys=@[@"search",@"keyboard",@"inputset",@"texteffects",@"overlay",@"portal",@"platter",@"transition",@"layoutcontainer",@"wrapper",@"webview",@"wkcontent",@"wkscroll",@"scanit",@"toucharea",@"multiline",@"topnav"];
     for(NSString *k in keys)if([s containsString:k])return YES;
     return NO;
 }
 static NSString *ADSearchProbeViewLine7123(UIView *v,NSUInteger idx,NSUInteger depth){
     @try {
         CGRect r=[v convertRect:v.bounds toView:nil]; CALayer *l=v.layer;
-        NSMutableString *dock=[NSMutableString string];
-        if([NSStringFromClass(v.class) isEqualToString:@"UIKeyboardDockItemButton"]){
-            BOOL hi=NO,sel=NO; UIEdgeInsets e=UIEdgeInsetsZero;
-            SEL hiSel=NSSelectorFromString(@"isHighlighted"), selSel=NSSelectorFromString(@"isSelected"), edgeSel=NSSelectorFromString(@"imageEdgeInsets");
-            if([(id)v respondsToSelector:hiSel])hi=((BOOL(*)(id,SEL))objc_msgSend)((id)v,hiSel);
-            if([(id)v respondsToSelector:selSel])sel=((BOOL(*)(id,SEL))objc_msgSend)((id)v,selSel);
-            if([(id)v respondsToSelector:edgeSel])e=((UIEdgeInsets(*)(id,SEL))objc_msgSend)((id)v,edgeSel);
-            [dock appendFormat:@" dockHi=%d dockSel=%d imageInsets=(%.1f,%.1f,%.1f,%.1f)",hi?1:0,sel?1:0,e.top,e.left,e.bottom,e.right];
-        }
-        return [NSString stringWithFormat:@"V #%lu d=%lu cls=%@ r=(%.1f,%.1f %.1fx%.1f) b=(%.1f,%.1f %.1fx%.1f) hidden=%d a=%.2f ui=%d opaque=%d clips=%d masks=%d bg=%@ layerBg=%@ z=%.1f filters=%@ aid=\"%@\" contents=%d%@\n",
+        return [NSString stringWithFormat:@"V #%lu d=%lu cls=%@ r=(%.1f,%.1f %.1fx%.1f) b=(%.1f,%.1f %.1fx%.1f) hidden=%d a=%.2f ui=%d opaque=%d clips=%d masks=%d bg=%@ layerBg=%@ z=%.1f filters=%@ aid=\"%@\" contents=%d\n",
                 (unsigned long)idx,(unsigned long)depth,NSStringFromClass(v.class),r.origin.x,r.origin.y,r.size.width,r.size.height,
                 v.bounds.origin.x,v.bounds.origin.y,v.bounds.size.width,v.bounds.size.height,v.hidden?1:0,v.alpha,v.userInteractionEnabled?1:0,v.opaque?1:0,
                 v.clipsToBounds?1:0,l.masksToBounds?1:0,ADSearchProbeColor7123(v.backgroundColor),ADSearchProbeCG7123(l.backgroundColor),
-                l.zPosition,ADSearchProbeFilters7123(l),ADSearchProbeAid7123(v),l.contents?1:0,dock];
+                l.zPosition,ADSearchProbeFilters7123(l),ADSearchProbeAid7123(v),l.contents?1:0];
     } @catch(...) { return [NSString stringWithFormat:@"V #%lu d=%lu ERROR\n",(unsigned long)idx,(unsigned long)depth]; }
 }
 static NSString *ADSearchProbeHitChain7123(UIView *v){
@@ -3464,7 +3695,7 @@ static NSString *ADSearchProbeDOMJS7123(void){
 }
 static void ADCaptureSearchVisibility7123(NSString *trigger){
     if(!gP.enabled)return; NSUInteger run=++gADSearchProbeRun7123;
-    NSMutableString *head=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.128 SEARCH UI PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE WINDOWS / VIEWS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchProbeNative7123(),ADSearchProbeWebViews7123()];
+    NSMutableString *head=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.129 TRANSITION FLOOR PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE WINDOWS / VIEWS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchProbeNative7123(),ADSearchProbeWebViews7123()];
     ADSearchProbeAppend7123(head);
     WKWebView *wv=ADSearchProbeAutocompleteWeb7123();
     if(!wv){ ADSearchProbeAppend7123(@"\n===== AUTOCOMPLETE DOM =====\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"); return; }

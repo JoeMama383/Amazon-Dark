@@ -1,3 +1,17 @@
+# AmazonDark v7.129~transition-floor-probe — OLED transition backings + held-row platter
+
+Directly based on v7.128, with **all v7.127/v7.128 microphone/dock-item geometry edits removed**. The keyboard implementation is back to the unchanged v7.126 OledKeyboard-derived ownership model: no `UIKeyboardDockItemButton` hook, no microphone image inset, and no edit to the left/right dock glyph geometry.
+
+The v7.128 held-row probe identifies two independent stock-white owners. First, the long-pressed autocomplete row is covered by WebKit's UIKit text-selection platter: `_UIPlatterSoftShadowView` contains a plain `UIView` painted pure white. v7.129 owns only bright neutral, raster-free plain-UIView backing children inside a WebKit platter and removes the platter's bright shadow; selected text/portal content is left alone.
+
+Second, the large white region below autocomplete is **not the v7.126 keyboard floor**. The keyboard dock is already OLED black but hidden while `_UIRemoteKeyboardPlaceholderView` remains transparent. The exposed app hierarchy contains large stock-white `UILayoutContainerView` / plain-`UIView` transition backing planes. v7.129 owns only large primary-Amazon transition/container/wrapper shells plus their shallow large plain-`UIView` backing children as OLED black. It does not add a global `UIView` painter and does not paint `UITextEffectsWindow`, `UIInputSetContainerView`, `UIInputSetHostView`, or `_UIRemoteKeyboardPlaceholderView`.
+
+WebKit first-frame ownership is also hardened without a runtime scan: a `WKWebView` is primed on init and `didMoveToSuperview`, later white `backgroundColor`/`opaque` assignments are intercepted, the exact `WKScrollView` backing is held black, and transition-live tracked WebViews are considered active when they have either a window **or a superview**. This ports the lightweight pre-attachment lesson from the v6.0.160-era anti-flash work without bringing back Dark Reader, MutationObserver, timers, RAF, polling, or document-wide rescans.
+
+The one-shot screenshot/SIGUSR2 diagnostic is retained as `AmazonDark-v7.129-transition-floor-probe.txt`.
+
+---
+
 # AmazonDark v7.128~search-ui-probe — press-stable keyboard microphone alignment
 
 Directly based on v7.127. The Search photo/camera top-seam correction, OledKeyboard-derived OLED keyboard ownership, Search heading/location/glyph treatment, Privacy Mode, launch cover, 120 Hz, JIT, standalone-ad handling, and TWB behavior are unchanged.
