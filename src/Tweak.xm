@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.140-search-results-cleanup-fix-probe"
+#define AD_VERSION "v7.141-search-results-specificity-location-fix-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -904,6 +904,7 @@ static NSString *ADFloorJS(void){
             ":not([class*=coupon]):not(:where([class*=coupon] *)):not([class*=prime]):not(:where([class*=prime] *))"
             ":not([class*=star]):not(:where([class*=star] *)):not([class*=rating]):not(:where([class*=rating] *))"
             ":not([class*=mlt]):not(:where([class*=mlt] *)):not([class*=heart]):not(:where([class*=heart] *))"
+            ":not(.rufus-expandable-pills-chevron)"
             ":not([class*=sponsored]):not(:where([class*=sponsored] *)):not([class*=ad-feedback]):not(:where([class*=ad-feedback] *))"
             "{background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
             /* Current/known Alexa-for-Shopping overview semantics. These remain narrow to
@@ -913,7 +914,7 @@ static NSString *ADFloorJS(void){
             "#search :is(div,section,article):is([class*=alexa],[id*=alexa],[class*=research],[id*=research],[class*=rufus],[id*=rufus],"
             "[class*=query-understanding],[id*=query-understanding],[class*=shopping-assistant],[id*=shopping-assistant],"
             "[class*=ai-overview],[id*=ai-overview],[class*=search-guidance],[id*=search-guidance],[class*=guided-search],[id*=guided-search])"
-            ":not([class*=logo]):not([class*=icon]):not([class*=glyph])"
+            ":not([class*=logo]):not([class*=icon]):not([class*=glyph]):not(.rufus-expandable-pills-chevron)"
             "{background-color:#000!important;border-color:#494d4d!important;box-shadow:none!important;}"
             /* Neutral Search-results copy. Do not recolor Prime branding, orange stars,
              * deal/coupon badges, Sponsored feedback, or button labels. */
@@ -972,30 +973,35 @@ static NSString *ADFloorJS(void){
             /* Non-brand Search glyphs. Prime/star/rating and the quick-action artwork
              * above are explicitly excluded so their current accent colors/shapes survive. */
             "#search :is(svg,i,[class*=icon],[class*=glyph])"
+            /* v7.141: these three proven controls are compositor/content parents, not
+             * monochrome glyph leaves. Excluding them here prevents the generic white-
+             * glyph filter from bleaching Prime, ReviewStarIcon.svg, and Add-to-cart. */
+            ":not(.s-rib-toggle-icon):not(.sf-rib30-dropdown-pill-icon):not(.puis-atcb-button)"
             ":not(.a-icon-prime):not([class*=prime]):not(:where([class*=prime] *))"
             ":not([class*=star]):not(:where([class*=star] *)):not([class*=rating]):not(:where([class*=rating] *))"
             ":not([class*=heart]):not(:where([class*=heart] *)):not([class*=mlt]):not(:where([class*=mlt] *))"
             ":not([class*=alexa]):not(:where([class*=alexa] *)):not([class*=rufus]):not(:where([class*=rufus] *)):not([class*=research]):not(:where([class*=research] *))"
             ":not([class*=sponsored]):not(:where([class*=sponsored] *)):not([class*=ad-feedback]):not(:where([class*=ad-feedback] *))"
             "{background-color:transparent!important;color:#d6d9d9!important;fill:#d6d9d9!important;stroke:#d6d9d9!important;filter:brightness(0) invert(1) brightness(.88)!important;-webkit-filter:brightness(0) invert(1) brightness(.88)!important;}"
-            /* v7.140 exact Search-results cleanup from the screenshot-triggered v7.139
-             * probe. The generic [class*=icon] lane above was filtering compositor
-             * parents, not the authored art leaves: that bleached Prime and ReviewStarIcon
-             * into white blocks. Reset only those proven parents, after the generic rule. */
-            "#search .s-rib-toggle-icon:has(i.a-icon-prime)"
+            /* v7.141: v7.140 proved the exact failure mechanism. The authored Prime
+             * sprite and ReviewStarIcon.svg leaves still have filter:none, but their
+             * compositor parents retained the generic white-glyph filter because the
+             * long :not(...) selector had greater specificity. The exact parents are now
+             * excluded above, and these duplicated-#search resets are a narrow backstop. */
+            "#search#search .s-rib-toggle-icon:has(i.a-icon-prime)"
             "{filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;opacity:1!important;}"
-            "#search .sf-rib30-dropdown-pill-icon:has(.sf-rib30-review-star)"
+            "#search#search .sf-rib30-dropdown-pill-icon:has(.sf-rib30-review-star)"
             "{background-color:#202324!important;border-color:#747a7c!important;box-shadow:none!important;"
             "filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;opacity:1!important;}"
-            "#search .sf-rib30-dropdown-pill-icon:has(.sf-rib30-review-star) .sf-rib30-review-star"
+            "#search#search .sf-rib30-dropdown-pill-icon:has(.sf-rib30-review-star) .sf-rib30-review-star"
             "{filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;opacity:1!important;}"
             /* The Sources button is a stock 12pt round shell containing an exact 7pt
              * .rufus-expandable-pills-chevron. Broad Rufus floor ownership blackened
              * that 7pt child into a square; leave the circle stock and clear only the
              * inner chevron floor/art filter. */
-            "#search .rufus-expandable-pills-chevron"
+            "#search#search .rufus-expandable-pills-chevron"
             "{background:transparent!important;background-color:transparent!important;border-color:transparent!important;box-shadow:none!important;}"
-            "#search .rufus-expandable-pills-chevron img"
+            "#search#search .rufus-expandable-pills-chevron img"
             "{background-color:transparent!important;filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;opacity:1!important;}"
             /* Alexa/Rufus suggestion pills: replace the light-blue stock plates with one
              * dark neutral while keeping their text legible. Both current carousel IDs
@@ -1019,12 +1025,12 @@ static NSString *ADFloorJS(void){
             /* Product-result Add-to-cart is exactly .puis-atcb-button in the v7.139
              * probe. Keep its requested OLED fill, remove the generic icon-parent filter,
              * and give the pill a visible neutral outline. */
-            "#search .puis-atcb-button"
-            "{background:#000!important;background-color:#000!important;border:1px solid #747a7c!important;box-shadow:none!important;"
+            "#search#search .puis-atcb-button"
+            "{background:#000!important;background-color:#000!important;border:1px solid #747a7c!important;box-shadow:inset 0 0 0 1px #747a7c!important;"
             "filter:none!important;-webkit-filter:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            "#search .puis-atcb-button .a-button-inner"
+            "#search#search .puis-atcb-button .a-button-inner"
             "{background:transparent!important;background-color:transparent!important;border-color:transparent!important;box-shadow:none!important;}"
-            "#search .puis-atcb-button .a-button-text"
+            "#search#search .puis-atcb-button .a-button-text"
             "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
             /* Share/overflow exact leaves from probe history. */
             ".puis-mab-overlay-row-share .puis-mab-overlay-icon-share"
@@ -2446,6 +2452,57 @@ static BOOL ADExactGlowIngress7140(UIView *v){
 // compact, primary-window instance so full-screen/hidden subnav controller variants
 // cannot be swept into this lane.
 static void ADTintSearchDeliveryGlyph7139(UIImageView *iv);
+
+// v7.141: v7.140 proves GlowIngressView.backgroundColor and layer.backgroundColor are
+// already OLED while the 430x44 strip is still visibly yellow. Therefore the warm floor
+// is being painted by layer contents / an internal decoration layer, not UIView background
+// color. Place one OLED CALayer above each exact-band decoration stack but below that
+// view's subview layers, so the white pin/text children remain intact.
+static const void *kADGlowFloorLayer7141=&kADGlowFloorLayer7141;
+static BOOL ADGlowFloorHost7141(UIView *v,UIView *root){
+    if(!v||!root)return NO;
+    if(v==root)return YES;
+    if([v isKindOfClass:[UILabel class]]||[v isKindOfClass:[UIImageView class]]||[v isKindOfClass:[UIControl class]])return NO;
+    @try {
+        CGRect r=[v convertRect:v.bounds toView:root], rb=root.bounds;
+        if(rb.size.width<1.0||rb.size.height<1.0)return NO;
+        return r.size.width>=rb.size.width*0.90 && r.size.height>=rb.size.height*0.72 &&
+               CGRectGetMinY(r)<=rb.size.height*0.20 && CGRectGetMaxY(r)>=rb.size.height*0.80;
+    } @catch(...) {}
+    return NO;
+}
+static void ADInstallGlowFloorLayer7141(UIView *v){
+    if(!v)return;
+    @try {
+        CALayer *floor=(CALayer *)objc_getAssociatedObject(v,kADGlowFloorLayer7141);
+        if(!floor){
+            floor=[CALayer layer]; floor.name=@"AmazonDarkGlowFloor7141";
+            floor.actions=@{ @"bounds":[NSNull null], @"position":[NSNull null], @"backgroundColor":[NSNull null], @"opacity":[NSNull null] };
+            objc_setAssociatedObject(v,kADGlowFloorLayer7141,floor,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        floor.frame=v.bounds; floor.backgroundColor=ADOLED().CGColor; floor.opacity=1.0; floor.hidden=NO;
+        [floor removeFromSuperlayer];
+        NSArray<CALayer *> *layers=v.layer.sublayers?:@[]; NSUInteger idx=layers.count;
+        for(UIView *sv in v.subviews?:@[]){
+            NSUInteger n=[layers indexOfObjectIdenticalTo:sv.layer];
+            if(n!=NSNotFound&&n<idx)idx=n;
+        }
+        if(idx<=(v.layer.sublayers?:@[]).count)[v.layer insertSublayer:floor atIndex:(unsigned)idx];
+        else [v.layer addSublayer:floor];
+    } @catch(...) {}
+}
+static void ADInstallGlowFloorTree7141(UIView *root){
+    if(!ADExactGlowIngress7140(root))return;
+    @try {
+        NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger seen=0;
+        while(q.count&&seen++<96){
+            UIView *x=q.firstObject; [q removeObjectAtIndex:0]; if(!x)continue;
+            if(ADGlowFloorHost7141(x,root))ADInstallGlowFloorLayer7141(x);
+            if(q.count<96&&x.subviews.count)[q addObjectsFromArray:x.subviews];
+        }
+    } @catch(...) {}
+}
+
 static void ADOwnGlowIngress7140(UIView *root){
     if(!ADExactGlowIngress7140(root))return;
     @try {
@@ -2467,6 +2524,7 @@ static void ADOwnGlowIngress7140(UIView *root){
             x.tintColor=light;
             if(q.count<96 && x.subviews.count)[q addObjectsFromArray:x.subviews];
         }
+        ADInstallGlowFloorTree7141(root);
     } @catch(...) {}
 }
 static BOOL ADSearchSubNavControllerClass7139(UIViewController *vc){
@@ -3828,6 +3886,10 @@ static void ADOwnBottomBar708(UIView *v){
     %orig;
     if(gP.enabled&&self.window)ADOwnGlowIngress7140(self);
 }
+- (void)didAddSubview:(UIView *)subview {
+    %orig;
+    if(gP.enabled&&self.window)ADOwnGlowIngress7140(self);
+}
 - (void)setBackgroundColor:(UIColor *)color {
     if(gP.enabled&&self.window&&ADExactGlowIngress7140(self)){
         UIColor *black=ADOLED();
@@ -4185,7 +4247,7 @@ static void ADConsiderLaunchReady706(void){
 %end
 
 // -----------------------------------------------------------------------------
-// v7.140 Search-results cleanup verification probe. Screenshot/SIGUSR2 only.
+// v7.141 Search-results specificity/location verification probe. Screenshot/SIGUSR2 only.
 // It records paint/geometry for the current /s document without capturing query
 // text, element text, outerHTML, clipboard data, request bodies, or headers.
 // No observer, timer, RAF, scroll listener, or recurring DOM work is installed.
@@ -4196,9 +4258,9 @@ static dispatch_source_t gADSearchResultsProbeSignal7139=nil;
 static NSString *ADSearchResultsProbePath7139(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.140-search-results-cleanup-fix-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.141-search-results-specificity-location-fix-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.140-search-results-cleanup-fix-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.141-search-results-specificity-location-fix-probe.txt"];
 }
 static void ADSearchResultsProbeAppend7139(NSString *s){
     if(!s.length)return;
@@ -4253,6 +4315,30 @@ static NSString *ADSearchResultsProbeNative7139(void){
     return m;
 }
 
+static NSString *ADSearchResultsProbeGlowLayers7141(void){
+    NSMutableString *m=[NSMutableString string];
+    @try {
+        for(UIWindow *w in UIApplication.sharedApplication.windows){
+            if(!w||w.hidden||w.alpha<0.01)continue;
+            NSMutableArray *q=[NSMutableArray arrayWithObject:w]; NSUInteger seen=0;
+            while(q.count&&seen++<420){
+                UIView *v=q.firstObject; [q removeObjectAtIndex:0]; if(!v)continue;
+                if(ADExactGlowIngress7140(v)){
+                    NSMutableArray *lq=[NSMutableArray arrayWithObject:@{ @"l":v.layer,@"d":@0 }]; NSUInteger ln=0;
+                    while(lq.count&&ln++<120){
+                        NSDictionary *it=lq.firstObject; [lq removeObjectAtIndex:0]; CALayer *l=it[@"l"]; NSUInteger d=[it[@"d"] unsignedIntegerValue]; if(!l)continue;
+                        NSUInteger chars=MIN((NSUInteger)40,d*2); NSString *pad=[@"                                        " substringToIndex:chars];
+                        [m appendFormat:@"%@L cls=%@ name=\"%@\" f=(%.1f,%.1f %.1fx%.1f) bg=%@ contents=%d hidden=%d op=%.2f z=%.2f\n",pad,NSStringFromClass(l.class),l.name?:@"",l.frame.origin.x,l.frame.origin.y,l.frame.size.width,l.frame.size.height,ADSearchResultsProbeCG7139(l.backgroundColor),l.contents?1:0,l.hidden?1:0,l.opacity,l.zPosition];
+                        for(CALayer *c in l.sublayers?:@[])if(lq.count<120)[lq addObject:@{ @"l":c,@"d":@(d+1) }];
+                    }
+                }
+                if(q.count<420&&v.subviews.count)[q addObjectsFromArray:v.subviews];
+            }
+        }
+    } @catch(NSException *e){ [m appendFormat:@"LAYER_EXCEPTION %@\n",e]; }
+    return m;
+}
+
 static NSString *ADSearchResultsProbeSafeURL7139(WKWebView *wv){
     @try {
         NSURL *u=wv.URL; if(!u)return @"";
@@ -4285,7 +4371,7 @@ static NSString *ADSearchResultsProbeJS7139(void){
     "var o={path:location.pathname,ready:document.readyState,viewport:[w,h,devicePixelRatio],scroll:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],body:P(document.body),doc:P(document.documentElement),"
     "root:G('#search,#a-page',12),"
     "ribbon:G('[class*=sf-rib],[class*=sf-mobile-rib],[class*=filter]',64),"
-    "ribbonArt:GC('.sf-rib30-dropdown-pill-icon,.sf-rib30-review-star,i.a-icon-prime.a-icon-small,.sf-mobile-rib-filter-icon,.sf-rib30-dropdown-arrow-icon',40),"
+    "ribbonArt:GC('.s-rib-toggle-icon,.sf-rib30-dropdown-pill-icon,.sf-rib30-review-star,i.a-icon-prime.a-icon-small,.sf-mobile-rib-filter-icon,.sf-rib30-dropdown-arrow-icon',40),"
     "location:G('#nav-global-location-slot,#glow-ingress-block,[id*=glow-ingress],[class*=glow-ingress],[id*=delivery-location],[class*=delivery-location],[id*=ship-to],[class*=ship-to]',48),"
     "ai:G('#search [class*=alexa],#search [id*=alexa],#search [class*=research],#search [id*=research],#search [class*=rufus],#search [id*=rufus],#search [class*=query-understanding],#search [class*=shopping-assistant],#search [class*=ai-overview],#search [class*=search-guidance],#search [class*=guided-search]',64),"
     "aiLogo:GC('#search [class*=alexa-plus-logo],#search [class*=rufus][class*=icon],#search img[class*=alexa],#search img[class*=rufus]',32),"
@@ -4302,8 +4388,8 @@ static NSString *ADSearchResultsProbeJS7139(void){
 }
 static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     if(!gP.enabled)return; NSUInteger run=++gADSearchResultsProbeRun7139;
-    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.140 SEARCH RESULTS CLEANUP FIX PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
-        (unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
+    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.141 SEARCH RESULTS SPECIFICITY LOCATION FIX PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== LOCATION LAYERS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
+        (unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchResultsProbeNative7139(),ADSearchResultsProbeGlowLayers7141(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(head);
     NSMutableArray *search=[NSMutableArray array],*fallback=[NSMutableArray array];
     @try {
