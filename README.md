@@ -1,3 +1,13 @@
+# AmazonDark v7.137~search-results-pane-fix-probe — Search results + Researched by Alexa dark parity
+
+Directly based on v7.136. This pass targets the current `/s` search-results surface shown in the supplied spider-wood screenshot. The existing v7.136 GWM spinner-center fix, v7.135 third-party-video restore, Search transition/keyboard work, Privacy Mode, Sponsored handling, borders and Home/PDP theming are retained.
+
+The Search results document now has a dedicated static documentStart CSS lane. Structural Search/result/Alexa-for-Shopping shells are OLED black, neutral copy is light, the location/delivery strip is a medium neutral gray, and the filter ribbon/pills are dark with light neutral glyphs. Prime branding and star/rating accent painters are explicitly excluded from generic recolor/filter ownership so Prime stays blue and rating stars stay orange. Add-to-cart/button, deal/coupon and Sponsored families are also excluded from the broad neutral owners.
+
+The historical exact `spider wood` search probe identifies the product-card control families used here: `.puis-status-badge-container` for the Overall Pick lane, `.lists-framework-action-button.puis-heart-icon-container` for the heart, and `.mlt-icon-container` / `.mlt-image-icon` for More like this. v7.137 forces the Overall Pick status lane black and gives the heart/More-like-this circular shells a light-gray fill while preserving their actual artwork. Search-result/category imagery gets TWB through a declarative `#search img` lane with Prime/star/logo/icon/glyph exclusions, so the new Researched-by-Alexa thumbnails are tamed without dimming brand/rating accents.
+
+The former spinner verification probe is removed from the installed path and replaced by a screenshot/SIGUSR2 Search-results verification probe: `AmazonDark-v7.137-search-results-pane-fix-probe.txt`. It records only class/id/geometry/computed paint for Search/result/filter/location/Alexa/badge/action/media families and bounded hit stacks; typed query text, element text and outerHTML are deliberately not captured. No MutationObserver, interval, RAF, scroll listener, touch listener, or recurring DOM scan is added.
+
 # AmazonDark v7.136~spinner-wheel-fix-probe — exact GWM white-center repair
 
 Directly based on v7.135, preserving the v7.135 AT&T/Flashtalking video restore, Search fixes, Privacy Mode behavior, TWB, Sponsored handling, and all existing dark-floor rules. The v7.135 screenshot probe was captured directly on the visible white-filled wheel and identified a third current Home loader family that was not covered by the existing `_hp-mosaic-container_style_loadingSpinner...` rule.

@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.136-spinner-wheel-fix-probe"
+#define AD_VERSION "v7.137-search-results-pane-fix-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -891,6 +891,81 @@ static NSString *ADFloorJS(void){
             "-webkit-text-fill-color:#fff!important;}"
             ".ufs_tiles_card_widget-suggestion .ufs_tiles_card_widget-sug-text *"
             "{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+            /* v7.137: Search-results feed parity. The current screenshot is the /s results
+             * document, not the autocomplete overlay. Keep this CSS-only and scope the
+             * broad structural ownership to #search so Home/PDP/third-party creatives are
+             * untouched. Prime/star accent painters, deal/coupon chrome and real buttons
+             * are excluded below. */
+            "#search > :is(div,section,article),#search .s-main-slot > :is(div,section,article),"
+            "#search :is(div,section,article,ul,ol,li)[class]:is([class*=container],[class*=content],[class*=module],[class*=panel],[class*=pane],[class*=widget],[class*=row],[class*=section],[class*=puisg])"
+            ":not(.a-button):not([class*=button]):not(:where(.a-button *)):not(:where([class*=button] *))"
+            ":not([class*=badge]):not(:where([class*=badge] *)):not([class*=deal]):not(:where([class*=deal] *))"
+            ":not([class*=coupon]):not(:where([class*=coupon] *)):not([class*=prime]):not(:where([class*=prime] *))"
+            ":not([class*=star]):not(:where([class*=star] *)):not([class*=rating]):not(:where([class*=rating] *))"
+            ":not([class*=sponsored]):not(:where([class*=sponsored] *)):not([class*=ad-feedback]):not(:where([class*=ad-feedback] *))"
+            "{background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+            /* Current/known Alexa-for-Shopping overview semantics. These remain narrow to
+             * the Search document and cover the new Researched-by-Alexa shell even when
+             * Amazon moves it outside .s-main-slot. Generated inner container/row classes
+             * are caught by the structural rule above. */
+            "#search :is([class*=alexa],[id*=alexa],[class*=research],[id*=research],[class*=rufus],[id*=rufus],"
+            "[class*=query-understanding],[id*=query-understanding],[class*=shopping-assistant],[id*=shopping-assistant],"
+            "[class*=ai-overview],[id*=ai-overview],[class*=search-guidance],[id*=search-guidance],[class*=guided-search],[id*=guided-search])"
+            ":not(img):not(svg):not(i):not([class*=icon]):not([class*=glyph])"
+            "{background-color:#000!important;background-image:none!important;border-color:#494d4d!important;box-shadow:none!important;}"
+            /* Neutral Search-results copy. Do not recolor Prime branding, orange stars,
+             * deal/coupon badges, Sponsored feedback, or button labels. */
+            "#search :is(.s-main-slot,.s-result-item,[data-component-type=s-search-result],[class*=container],[class*=content],[class*=module],[class*=panel],[class*=pane],[class*=widget],[class*=puisg]) "
+            ":is(h1,h2,h3,h4,h5,h6,p,span,a,div,label,strong,b)"
+            ":not(.a-button):not(:where(.a-button *)):not([class*=button]):not(:where([class*=button] *))"
+            ":not([class*=prime]):not(:where([class*=prime] *)):not([class*=star]):not(:where([class*=star] *))"
+            ":not([class*=rating]):not(:where([class*=rating] *)):not([class*=deal]):not(:where([class*=deal] *))"
+            ":not([class*=coupon]):not(:where([class*=coupon] *)):not([class*=sponsored]):not(:where([class*=sponsored] *))"
+            ":not([class*=ad-feedback]):not(:where([class*=ad-feedback] *))"
+            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            "#search :is(.a-color-secondary,.a-size-small,[class*=secondary])"
+            ":not([class*=prime]):not(:where([class*=prime] *)):not([class*=star]):not(:where([class*=star] *))"
+            ":not([class*=rating]):not(:where([class*=rating] *)):not([class*=sponsored]):not(:where([class*=sponsored] *))"
+            "{color:#b1b5b5!important;-webkit-text-fill-color:#b1b5b5!important;}"
+            /* Search delivery/location strip. Current mobile markup uses the glow-ingress /
+             * nav-global-location family; older variants use ship-to/delivery-location.
+             * Medium gray is deliberate here rather than OLED black. */
+            "#a-page :is(#nav-global-location-slot,#glow-ingress-block,[id*=glow-ingress],[class*=glow-ingress],"
+            "[id*=delivery-location],[class*=delivery-location],[id*=ship-to],[class*=ship-to])"
+            ":not(img):not(svg):not(i):not([class*=icon]):not([class*=glyph])"
+            "{background:#565a5c!important;background-color:#565a5c!important;background-image:none!important;border-color:#565a5c!important;color:#f2f2f2!important;-webkit-text-fill-color:#f2f2f2!important;box-shadow:none!important;}"
+            "#a-page :is(#nav-global-location-slot,#glow-ingress-block,[id*=glow-ingress],[class*=glow-ingress],[id*=delivery-location],[class*=delivery-location],[id*=ship-to],[class*=ship-to]) "
+            ":is(span,a,p,div,label,strong,b){color:#f2f2f2!important;-webkit-text-fill-color:#f2f2f2!important;}"
+            "#a-page :is(#nav-global-location-slot,#glow-ingress-block,[id*=glow-ingress],[class*=glow-ingress],[id*=delivery-location],[class*=delivery-location],[id*=ship-to],[class*=ship-to]) "
+            ":is(svg,i,[class*=icon],[class*=glyph]){background-color:transparent!important;color:#f2f2f2!important;fill:#f2f2f2!important;stroke:#f2f2f2!important;filter:brightness(0) invert(1) brightness(.95)!important;-webkit-filter:brightness(0) invert(1) brightness(.95)!important;}"
+            /* Search filter ribbon. v5.440/v6 lineage exposes sf-rib30 and
+             * sf-mobile-rib-filter leaves; current screenshot is the same UI family. */
+            "#a-page :is([class*=sf-rib],[class*=sf-mobile-rib])"
+            ":not([class*=icon]):not([class*=arrow]){background:#000!important;background-color:#000!important;background-image:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;border-color:#494d4d!important;}"
+            "#a-page :is([class*=sf-rib],[class*=sf-mobile-rib]) :is(button,[role=button],a,[class*=pill],[class*=dropdown],[class*=filter])"
+            ":not([class*=icon]):not([class*=arrow]){background:#202324!important;background-color:#202324!important;border-color:#747a7c!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}"
+            "#a-page :is(.sf-mobile-rib-filter-icon,[class*=sf-mobile-rib-filter-i],.sf-rib30-dropdown-arrow-icon,[class*=sf-rib][class*=icon],[class*=sf-rib][class*=arrow])"
+            ":not([class*=prime]):not([class*=star]):not([class*=rating]){background-color:transparent!important;filter:brightness(0) invert(1) brightness(.88)!important;-webkit-filter:brightness(0) invert(1) brightness(.88)!important;}"
+            /* Overall Pick / Amazon's Choice status lane. The old exact spider-wood
+             * probe identifies .puis-status-badge-container -> mvt badge -> a-badge-label;
+             * own the entire left-column status lane so the current white stripe cannot survive. */
+            "#search :is(.puis-status-badge-container,.puis-status-badge-container .a-section,.puis-status-badge-container .rush-component,"
+            ".puis-status-badge-container .a-badge,.puis-status-badge-container .a-badge-label,.puis-status-badge-container .a-badge-label-inner,"
+            ".puisg-col-inner:has(> .puis-status-badge-container),.puisg-col:has(.puis-status-badge-container))"
+            "{background:#000!important;background-color:#000!important;background-image:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}"
+            "#search .puis-status-badge-container :is(i,svg,[class*=icon]){background-color:transparent!important;color:#d6d9d9!important;fill:#d6d9d9!important;stroke:#d6d9d9!important;filter:brightness(0) invert(1) brightness(.88)!important;-webkit-filter:brightness(0) invert(1) brightness(.88)!important;}"
+            /* Search card quick-action discs: current screenshot wants a light-gray
+             * fill, not the stock white. Preserve the actual heart/MLT artwork. */
+            "#search :is(.mlt-icon-container,.mlt-image-icon,.lists-framework-action-button.puis-heart-icon-container,.lists-framework-heart-background)"
+            "{background-color:#c7cbcb!important;border-color:#c7cbcb!important;border-radius:50%!important;box-shadow:none!important;}"
+            /* Non-brand Search glyphs. Prime/star/rating and the quick-action artwork
+             * above are explicitly excluded so their current accent colors/shapes survive. */
+            "#search :is(svg,i,[class*=icon],[class*=glyph])"
+            ":not(.a-icon-prime):not([class*=prime]):not(:where([class*=prime] *))"
+            ":not([class*=star]):not(:where([class*=star] *)):not([class*=rating]):not(:where([class*=rating] *))"
+            ":not([class*=heart]):not(:where([class*=heart] *)):not([class*=mlt]):not(:where([class*=mlt] *))"
+            ":not([class*=sponsored]):not(:where([class*=sponsored] *)):not([class*=ad-feedback]):not(:where([class*=ad-feedback] *))"
+            "{background-color:transparent!important;color:#d6d9d9!important;fill:#d6d9d9!important;stroke:#d6d9d9!important;filter:brightness(0) invert(1) brightness(.88)!important;-webkit-filter:brightness(0) invert(1) brightness(.88)!important;}"
             /* Share/overflow exact leaves from probe history. */
             ".puis-mab-overlay-row-share .puis-mab-overlay-icon-share"
             "{background-color:#e8e6e3!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;filter:none!important;}"
@@ -1609,6 +1684,17 @@ static NSString *ADTWBJS(void){
          "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
          "s.textContent='"
          /* Ordinary/product imagery. */
+         /* v7.137 Search results / Researched-by-Alexa media. Product/category
+          * rasters are tamed declaratively; Prime, stars, logos and UI glyphs are
+          * explicitly outside this lane. */
+         "#search img"
+         ":not([class*=logo]):not([class*=brand]):not([class*=store]):not([class*=avatar]):not([class*=profile])"
+         ":not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel])"
+         ":not([class*=prime]):not([class*=star]):not([class*=rating]):not([class*=heart]):not([class*=wishlist])"
+         ":not([class*=chevron]):not([class*=arrow]):not([class*=microphone]):not([class*=camera]):not([class*=location])"
+         ":not([alt*=prime i]):not([alt*=star i]):not([alt*=logo i]):not([alt*=icon i]):not([alt*=arrow i]):not([alt*=heart i]):not([alt*=\"More like this\" i])"
+         ":not(:where([class*=prime] *)):not(:where([class*=star] *)):not(:where([class*=rating] *))"
+         ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)),"
          /* v7.125 Search Deals-for-you image tiles from the exact ufs probe family. */
          "img.ufs_tiles_card_widget-sug-image,"
          "img.s-image,img.s-product-image,#landingImage,#imgBlkFront,#imgTagWrapperId img,"
@@ -3839,24 +3925,25 @@ static void ADConsiderLaunchReady706(void){
 %end
 
 // -----------------------------------------------------------------------------
-// v7.134 spinner-wheel probe. Diagnostic-only screenshot/SIGUSR2 capture for the
-// intermittent white-filled loading wheel. The current production CSS is left
-// unchanged so the capture reflects the real painter. No recurring work runs.
+// v7.137 Search-results pane verification probe. Screenshot/SIGUSR2 only.
+// It records paint/geometry for the current /s document without capturing query
+// text, element text, outerHTML, clipboard data, request bodies, or headers.
+// No observer, timer, RAF, scroll listener, or recurring DOM work is installed.
 // -----------------------------------------------------------------------------
-static NSUInteger gADSpinnerProbeRun7134=0;
-static dispatch_source_t gADSpinnerProbeSignal7134=nil;
+static NSUInteger gADSearchResultsProbeRun7137=0;
+static dispatch_source_t gADSearchResultsProbeSignal7137=nil;
 
-static NSString *ADSpinnerProbePath7134(void){
+static NSString *ADSearchResultsProbePath7137(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.136-spinner-wheel-fix-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.137-search-results-pane-fix-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.136-spinner-wheel-fix-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.137-search-results-pane-fix-probe.txt"];
 }
-static void ADSpinnerProbeAppend7134(NSString *s){
+static void ADSearchResultsProbeAppend7137(NSString *s){
     if(!s.length)return;
     @try {
-        NSString *p=ADSpinnerProbePath7134(); NSFileManager *fm=[NSFileManager defaultManager];
+        NSString *p=ADSearchResultsProbePath7137(); NSFileManager *fm=[NSFileManager defaultManager];
         [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil];
         NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding];
         if(![fm fileExistsAtPath:p]){ [d writeToFile:p atomically:YES]; return; }
@@ -3864,7 +3951,7 @@ static void ADSpinnerProbeAppend7134(NSString *s){
         if(h){ [h seekToEndOfFile]; [h writeData:d]; [h closeFile]; }
     } @catch(...) {}
 }
-static NSString *ADSpinnerProbeColor7134(UIColor *c){
+static NSString *ADSearchResultsProbeColor7137(UIColor *c){
     if(!c)return @"nil";
     @try {
         CGFloat r=0,g=0,b=0,a=0,w=0;
@@ -3873,118 +3960,79 @@ static NSString *ADSpinnerProbeColor7134(UIColor *c){
         return c.description?:@"?";
     } @catch(...) { return @"?"; }
 }
-static NSString *ADSpinnerProbeCG7134(CGColorRef cg){
-    if(!cg)return @"nil";
-    @try { return ADSpinnerProbeColor7134([UIColor colorWithCGColor:cg]); } @catch(...) { return @"?"; }
-}
-static BOOL ADSpinnerProbeClass7134(NSString *name){
-    NSString *n=name.lowercaseString?:@"";
-    NSArray *keys=@[@"spinner",@"loading",@"progress",@"activityindicator",@"indicator",@"refresh"];
-    for(NSString *k in keys)if([n containsString:k])return YES;
-    return NO;
-}
-static NSString *ADSpinnerProbeNativeLine7134(UIView *v,NSUInteger depth){
+static NSString *ADSearchResultsProbeSafeURL7137(WKWebView *wv){
     @try {
-        CGRect r=[v convertRect:v.bounds toView:nil]; CALayer *l=v.layer;
-        NSMutableString *x=[NSMutableString stringWithFormat:@"N d=%lu cls=%@ r=(%.1f,%.1f %.1fx%.1f) hidden=%d alpha=%.2f bg=%@ layerBg=%@ tint=%@ border=%.1f:%@ radius=%.1f aid=\"%@\"",
-            (unsigned long)depth,NSStringFromClass(v.class),r.origin.x,r.origin.y,r.size.width,r.size.height,v.hidden?1:0,v.alpha,
-            ADSpinnerProbeColor7134(v.backgroundColor),ADSpinnerProbeCG7134(l.backgroundColor),ADSpinnerProbeColor7134(v.tintColor),l.borderWidth,ADSpinnerProbeCG7134(l.borderColor),l.cornerRadius,v.accessibilityIdentifier?:@""];
-        if([v isKindOfClass:[UIActivityIndicatorView class]]){
-            UIActivityIndicatorView *a=(UIActivityIndicatorView *)v;
-            [x appendFormat:@" activity=1 style=%ld color=%@ anim=%d",(long)a.activityIndicatorViewStyle,ADSpinnerProbeColor7134(a.color),a.isAnimating?1:0];
-        }
-        if([v isKindOfClass:[UIImageView class]]){
-            UIImage *im=((UIImageView *)v).image;
-            [x appendFormat:@" image=%d imageSize=(%.1fx%.1f) mode=%ld",im?1:0,im.size.width,im.size.height,(long)im.renderingMode];
-        }
-        [x appendString:@"\n"]; return x;
-    } @catch(...) { return @"NATIVE_LINE_ERR\n"; }
+        NSURL *u=wv.URL; if(!u)return @"";
+        return [NSString stringWithFormat:@"%@://%@%@",u.scheme?:@"https",u.host?:@"",u.path?:@""];
+    } @catch(...) { return @""; }
 }
-static NSString *ADSpinnerProbeHitChain7134(UIView *v){
-    NSMutableArray *a=[NSMutableArray array]; NSUInteger n=0;
-    @try { for(UIView *x=v;x&&n<14;x=x.superview,n++){ NSString *aid=x.accessibilityIdentifier?:@""; [a addObject:[NSString stringWithFormat:@"%@%@",NSStringFromClass(x.class),aid.length?[NSString stringWithFormat:@"[%@]",aid]:@""]]; } } @catch(...) {}
-    return a.count?[a componentsJoinedByString:@" <- "]:@"nil";
-}
-static NSString *ADSpinnerProbeNative7134(void){
-    NSMutableString *m=[NSMutableString string];
-    @try {
-        NSArray *wins=UIApplication.sharedApplication.windows; CGRect screen=UIScreen.mainScreen.bounds;
-        [m appendFormat:@"screen=(%.1fx%.1f) windows=%lu appState=%ld\n",screen.size.width,screen.size.height,(unsigned long)wins.count,(long)UIApplication.sharedApplication.applicationState];
-        NSArray *pts=@[[NSValue valueWithCGPoint:CGPointMake(screen.size.width*.5,screen.size.height*.35)],
-                       [NSValue valueWithCGPoint:CGPointMake(screen.size.width*.5,screen.size.height*.50)],
-                       [NSValue valueWithCGPoint:CGPointMake(screen.size.width*.5,screen.size.height*.65)],
-                       [NSValue valueWithCGPoint:CGPointMake(screen.size.width*.5,screen.size.height*.80)]];
-        for(UIWindow *w in wins){
-            if(!w||w.hidden||w.alpha<0.01)continue;
-            [m appendFormat:@"WINDOW cls=%@ level=%.1f bg=%@ layerBg=%@\n",NSStringFromClass(w.class),w.windowLevel,ADSpinnerProbeColor7134(w.backgroundColor),ADSpinnerProbeCG7134(w.layer.backgroundColor)];
-            NSMutableArray *q=[NSMutableArray arrayWithObject:@{ @"v":w,@"d":@0 }]; NSUInteger seen=0,emitted=0;
-            while(q.count&&seen<700){
-                NSDictionary *it=q.firstObject; [q removeObjectAtIndex:0]; UIView *v=it[@"v"]; NSUInteger d=[it[@"d"] unsignedIntegerValue]; if(!v)continue; seen++;
-                NSString *cn=NSStringFromClass(v.class);
-                if((ADSpinnerProbeClass7134(cn)||[v isKindOfClass:[UIActivityIndicatorView class]])&&!v.hidden&&v.alpha>0.01){ [m appendString:ADSpinnerProbeNativeLine7134(v,d)]; emitted++; }
-                if(d<24)for(UIView *c in v.subviews)if(c)[q addObject:@{ @"v":c,@"d":@(d+1) }];
-            }
-            [m appendFormat:@"NATIVE_WINDOW_SUMMARY visited=%lu emitted=%lu\n",(unsigned long)seen,(unsigned long)emitted];
-            for(NSValue *pv in pts){ CGPoint sp=pv.CGPointValue,p=[w convertPoint:sp fromWindow:nil]; UIView *h=nil; @try { h=[w hitTest:p withEvent:nil]; } @catch(...) {} [m appendFormat:@"HIT p=(%.0f,%.0f) -> %@\n",sp.x,sp.y,ADSpinnerProbeHitChain7134(h)]; }
-        }
-    } @catch(NSException *e){ [m appendFormat:@"NATIVE_EXCEPTION %@\n",e]; }
-    return m;
-}
-static NSString *ADSpinnerProbeWebList7134(void){
+static NSString *ADSearchResultsProbeWebList7137(void){
     NSMutableString *m=[NSMutableString string]; NSUInteger n=0;
     @try {
         for(WKWebView *wv in ADTrackedWebViews()){
             if(!wv)continue; CGRect r=CGRectZero; @try { r=[wv convertRect:wv.bounds toView:nil]; } @catch(...) {}
             CGRect ir=CGRectIntersection(r,UIScreen.mainScreen.bounds); CGFloat area=MAX(0,ir.size.width)*MAX(0,ir.size.height);
-            [m appendFormat:@"WEB #%lu aid=\"%@\" url=\"%@\" visible=%d hidden=%d alpha=%.2f loading=%d r=(%.1f,%.1f %.1fx%.1f) visibleArea=%.0f bg=%@ scrollBg=%@\n",
-                (unsigned long)n++,wv.accessibilityIdentifier?:@"",wv.URL.absoluteString?:@"",(wv.window&&!wv.hidden&&wv.alpha>0.01&&area>1)?1:0,wv.hidden?1:0,wv.alpha,wv.loading?1:0,
-                r.origin.x,r.origin.y,r.size.width,r.size.height,area,ADSpinnerProbeColor7134(wv.backgroundColor),ADSpinnerProbeColor7134(wv.scrollView.backgroundColor)];
+            [m appendFormat:@"WEB #%lu aid=\"%@\" path=\"%@\" visible=%d loading=%d r=(%.1f,%.1f %.1fx%.1f) visibleArea=%.0f bg=%@ scrollBg=%@\n",
+                (unsigned long)n++,wv.accessibilityIdentifier?:@"",ADSearchResultsProbeSafeURL7137(wv),(wv.window&&!wv.hidden&&wv.alpha>0.01&&area>1)?1:0,wv.loading?1:0,
+                r.origin.x,r.origin.y,r.size.width,r.size.height,area,ADSearchResultsProbeColor7137(wv.backgroundColor),ADSearchResultsProbeColor7137(wv.scrollView.backgroundColor)];
         }
     } @catch(NSException *e){ [m appendFormat:@"WEBLIST_EXCEPTION %@\n",e]; }
     return m;
 }
-static NSString *ADSpinnerProbeJS7134(void){
+static NSString *ADSearchResultsProbeJS7137(void){
     return @"(function(){try{"
-    "function S(e,p){try{var s=getComputedStyle(e,p||null);return {content:s.content||'none',display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,bgi:s.backgroundImage,bgp:s.backgroundPosition,bgs:s.backgroundSize,bgr:s.backgroundRepeat,color:s.color,mask:s.webkitMaskImage||s.maskImage||'none',filter:s.webkitFilter||s.filter||'none',transform:s.transform,anim:s.animationName+' '+s.animationDuration+' '+s.animationTimingFunction,border:s.border,borderTop:s.borderTop,borderRight:s.borderRight,borderBottom:s.borderBottom,borderLeft:s.borderLeft,radius:s.borderRadius,clip:s.clipPath||s.webkitClipPath||'none',fill:s.fill,stroke:s.stroke};}catch(_){return {err:String(_)}}}"
-    "function P(e){if(!e)return null;var r=e.getBoundingClientRect();return {tag:e.tagName,id:e.id||'',cls:String(e.className||'').slice(0,280),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],style:S(e),before:S(e,'::before'),after:S(e,'::after'),html:String(e.outerHTML||'').slice(0,700)};}"
-    "function V(e){if(!e)return false;var r=e.getBoundingClientRect(),s=getComputedStyle(e);return s.display!=='none'&&s.visibility!=='hidden'&&+s.opacity>0&&r.width>0&&r.height>0&&r.bottom>0&&r.right>0&&r.top<innerHeight&&r.left<innerWidth;}"
-    "var sel='.a-spinner,.a-spinner-wrapper,span.a-spinner.a-spinner-medium,[class*=_hp-mosaic-container_style_loadingSpinner],[class*=spinner],[class*=Spinner],[class*=loader],[class*=Loader],[class*=loading],[class*=Loading],[role=progressbar],[aria-busy=true]';"
-    "var q=[].slice.call(document.querySelectorAll(sel)).filter(V).slice(0,80).map(P);"
-    "var w=innerWidth,h=innerHeight;var pts=[[.5,.30],[.35,.42],[.5,.42],[.65,.42],[.35,.54],[.5,.54],[.65,.54],[.35,.66],[.5,.66],[.65,.66],[.35,.78],[.5,.78],[.65,.78]];"
-    "var grid=pts.map(function(p){var x=Math.round(w*p[0]),y=Math.round(h*p[1]);var a=(document.elementsFromPoint?document.elementsFromPoint(x,y):[document.elementFromPoint(x,y)]).filter(Boolean).slice(0,10);return {p:[x,y],stack:a.map(P)};});"
-    "return JSON.stringify({href:location.href,ready:document.readyState,viewport:[w,h,devicePixelRatio],scroll:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],body:P(document.body),doc:P(document.documentElement),semantic:q,grid:grid},null,2);"
-    "}catch(e){return 'SPINNER_DOM_ERR '+e;}})();";
+    "function S(e,p){try{var s=getComputedStyle(e,p||null);return {content:s.content||'none',display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,bgi:s.backgroundImage,color:s.color,fill:s.fill,stroke:s.stroke,filter:s.webkitFilter||s.filter||'none',border:s.border,radius:s.borderRadius,shadow:s.boxShadow};}catch(_){return {err:String(_)}}}"
+    "function P(e){if(!e)return null;var r=e.getBoundingClientRect();return {tag:e.tagName,id:e.id||'',cls:String(e.className||'').slice(0,260),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],style:S(e),before:S(e,'::before'),after:S(e,'::after')};}"
+    "function G(sel,n){var a=[].slice.call(document.querySelectorAll(sel));return {count:a.length,items:a.slice(0,n||48).map(P)};}"
+    "var w=innerWidth,h=innerHeight,ys=[.03,.08,.14,.22,.31,.42,.56,.72,.86];"
+    "var hit=ys.map(function(y){var x=Math.round(w*.5),py=Math.round(h*y),a=(document.elementsFromPoint?document.elementsFromPoint(x,py):[document.elementFromPoint(x,py)]).filter(Boolean).slice(0,10);return {p:[x,py],stack:a.map(P)};});"
+    "var o={path:location.pathname,ready:document.readyState,viewport:[w,h,devicePixelRatio],scroll:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],body:P(document.body),doc:P(document.documentElement),"
+    "root:G('#search,#a-page',12),"
+    "ribbon:G('[class*=sf-rib],[class*=sf-mobile-rib],[class*=filter]',64),"
+    "location:G('#nav-global-location-slot,#glow-ingress-block,[id*=glow-ingress],[class*=glow-ingress],[id*=delivery-location],[class*=delivery-location],[id*=ship-to],[class*=ship-to]',48),"
+    "ai:G('#search [class*=alexa],#search [id*=alexa],#search [class*=research],#search [id*=research],#search [class*=rufus],#search [id*=rufus],#search [class*=query-understanding],#search [class*=shopping-assistant],#search [class*=ai-overview],#search [class*=search-guidance],#search [class*=guided-search]',64),"
+    "results:G('#search .s-result-item,#search .s-card-container,#search [data-component-type=s-search-result],#search .puisg-row,#search .puisg-col,#search .puisg-col-inner',72),"
+    "badges:G('#search .puis-status-badge-container,#search .puis-status-badge-container .a-badge,#search .puis-status-badge-container .a-badge-label',32),"
+    "actions:G('#search .mlt-icon-container,#search .mlt-image-icon,#search .lists-framework-action-button.puis-heart-icon-container,#search .lists-framework-heart-background',32),"
+    "accents:G('#search i.a-icon-prime,#search [class*=prime],#search i[class*=a-icon-star],#search [class*=star],#search [class*=rating]',48),"
+    "media:G('#search img,#search picture,#search video,#search canvas',64),hit:hit};"
+    "return JSON.stringify(o,null,2);}catch(e){return 'SEARCH_RESULTS_DOM_ERR '+e;}})();";
 }
-static void ADCaptureSpinnerProbe7134(NSString *trigger){
-    if(!gP.enabled)return; NSUInteger run=++gADSpinnerProbeRun7134;
-    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.136 SPINNER WHEEL FIX PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nprivacyMode=%d\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
-        (unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",gP.privacyMode?1:0,ADSpinnerProbeNative7134(),ADSpinnerProbeWebList7134()];
-    ADSpinnerProbeAppend7134(head);
-    NSMutableArray *visible=[NSMutableArray array];
+static void ADCaptureSearchResultsProbe7137(NSString *trigger){
+    if(!gP.enabled)return; NSUInteger run=++gADSearchResultsProbeRun7137;
+    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.137 SEARCH RESULTS PANE FIX PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TRACKED WEBVIEWS =====\n%@\n",
+        (unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchResultsProbeWebList7137()];
+    ADSearchResultsProbeAppend7137(head);
+    NSMutableArray *search=[NSMutableArray array],*fallback=[NSMutableArray array];
     @try {
         for(WKWebView *wv in ADTrackedWebViews()){
-            if(!wv||!wv.window||wv.hidden||wv.alpha<0.01)continue; CGRect r=[wv convertRect:wv.bounds toView:nil],ir=CGRectIntersection(r,UIScreen.mainScreen.bounds); CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height); if(a>1000)[visible addObject:@{ @"wv":wv,@"a":@(a) }];
+            if(!wv||!wv.window||wv.hidden||wv.alpha<0.01)continue;
+            CGRect r=[wv convertRect:wv.bounds toView:nil],ir=CGRectIntersection(r,UIScreen.mainScreen.bounds); CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height); if(a<1000)continue;
+            NSDictionary *it=@{ @"wv":wv,@"a":@(a) }; NSString *path=wv.URL.path?:@"";
+            if([path isEqualToString:@"/s"]||[path hasPrefix:@"/s/"])[search addObject:it]; else [fallback addObject:it];
         }
-        [visible sortUsingComparator:^NSComparisonResult(NSDictionary *a,NSDictionary *b){ return [b[@"a"] compare:a[@"a"]]; }];
+        NSComparator cmp=^NSComparisonResult(NSDictionary *a,NSDictionary *b){ return [b[@"a"] compare:a[@"a"]]; };
+        [search sortUsingComparator:cmp]; [fallback sortUsingComparator:cmp];
     } @catch(...) {}
-    if(!visible.count){ ADSpinnerProbeAppend7134(@"\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"); return; }
-    NSUInteger lim=MIN((NSUInteger)6,visible.count); __block NSUInteger pending=lim;
+    NSArray *chosen=search.count?search:fallback;
+    if(!chosen.count){ ADSearchResultsProbeAppend7137(@"\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"); return; }
+    NSUInteger lim=MIN((NSUInteger)3,chosen.count); __block NSUInteger pending=lim;
     for(NSUInteger i=0;i<lim;i++){
-        WKWebView *wv=visible[i][@"wv"]; NSString *meta=[NSString stringWithFormat:@"\n===== WEB DOM #%lu =====\naid=\"%@\" url=\"%@\"\n",(unsigned long)i,wv.accessibilityIdentifier?:@"",wv.URL.absoluteString?:@""];
-        ADSpinnerProbeAppend7134(meta);
-        [wv evaluateJavaScript:ADSpinnerProbeJS7134() completionHandler:^(id v,NSError *e){
+        WKWebView *wv=chosen[i][@"wv"];
+        ADSearchResultsProbeAppend7137([NSString stringWithFormat:@"\n===== WEB DOM #%lu =====\naid=\"%@\" path=\"%@\"\n",(unsigned long)i,wv.accessibilityIdentifier?:@"",ADSearchResultsProbeSafeURL7137(wv)]);
+        [wv evaluateJavaScript:ADSearchResultsProbeJS7137() completionHandler:^(id v,NSError *e){
             NSString *body=e?[NSString stringWithFormat:@"EVAL_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
-            ADSpinnerProbeAppend7134([NSString stringWithFormat:@"%@\n",body?:@"NO_DOM_DATA"]);
-            if(--pending==0)ADSpinnerProbeAppend7134(@"================ END RUN ================\n");
+            ADSearchResultsProbeAppend7137([NSString stringWithFormat:@"%@\n",body?:@"NO_DOM_DATA"]);
+            if(--pending==0)ADSearchResultsProbeAppend7137(@"================ END RUN ================\n");
         }];
     }
 }
-static void ADInstallSpinnerProbe7134(void){
+static void ADInstallSearchResultsProbe7137(void){
     static dispatch_once_t once; dispatch_once(&once,^{
         signal(SIGUSR2,SIG_IGN);
-        gADSpinnerProbeSignal7134=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue());
-        if(gADSpinnerProbeSignal7134){ dispatch_source_set_event_handler(gADSpinnerProbeSignal7134,^{ ADCaptureSpinnerProbe7134(@"SIGUSR2"); }); dispatch_resume(gADSpinnerProbeSignal7134); }
-        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){ ADCaptureSpinnerProbe7134(@"screenshot"); }];
+        gADSearchResultsProbeSignal7137=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue());
+        if(gADSearchResultsProbeSignal7137){ dispatch_source_set_event_handler(gADSearchResultsProbeSignal7137,^{ ADCaptureSearchResultsProbe7137(@"SIGUSR2"); }); dispatch_resume(gADSearchResultsProbeSignal7137); }
+        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){ ADCaptureSearchResultsProbe7137(@"screenshot"); }];
     });
 }
 
@@ -4026,7 +4074,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
     %init;
 
     ADPrivacyInit7117();
-    ADInstallSpinnerProbe7134();
+    ADInstallSearchResultsProbe7137();
     if(gP.enabled&&gP.privacyMode){
         ADRegisterPrivacyProtocol7117();
         ADCompilePrivacyContentRules7117();
