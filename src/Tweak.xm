@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.135-att-video-restore-probe"
+#define AD_VERSION "v7.136-spinner-wheel-fix-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1399,11 +1399,19 @@ static NSString *ADFloorJS(void){
             "-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;"
             "-webkit-mask-position:center!important;mask-position:center!important;"
             "filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
-            /* v7.0.79: the screenshot probe identified the actual Home load-more
+            /* v7.0.79: the screenshot probe identified the DRAM mosaic load-more
              * wheel as _hp-mosaic-container_style_loadingSpinner__JXI3z. Amazon's
              * ::after pseudo is the opaque white center disc; match it to the OLED
              * floor while preserving the light rotating ::before/ring artwork. */
             "[class*=_hp-mosaic-container_style_loadingSpinner]::after"
+            "{background:#000!important;background-color:#000!important;box-shadow:none!important;}"
+            /* v7.136: the v7.135 screenshot probe caught the separate legacy GWM
+             * card loader actually visible on-device: #gwm-CardLoadingIndicator.
+             * Its rotating .gwm-LoadingIndicator shell is transparent with a light
+             * gradient/ring and light ::before wedge, but its ::after pseudo paints
+             * the solid white center disc. Own only that center pseudo so the stock
+             * 1s rotation and light outer ring remain unchanged. */
+            "#gwm-CardLoadingIndicator.gwm-LoadingIndicator::after"
             "{background:#000!important;background-color:#000!important;box-shadow:none!important;}"
             /* Retain the current v7.0.47-v7.0.49 system-control parity. */
             "::-webkit-scrollbar{background-color:transparent!important;}"
@@ -3841,9 +3849,9 @@ static dispatch_source_t gADSpinnerProbeSignal7134=nil;
 static NSString *ADSpinnerProbePath7134(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.135-spinner-wheel-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.136-spinner-wheel-fix-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.135-spinner-wheel-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.136-spinner-wheel-fix-probe.txt"];
 }
 static void ADSpinnerProbeAppend7134(NSString *s){
     if(!s.length)return;
@@ -3949,7 +3957,7 @@ static NSString *ADSpinnerProbeJS7134(void){
 }
 static void ADCaptureSpinnerProbe7134(NSString *trigger){
     if(!gP.enabled)return; NSUInteger run=++gADSpinnerProbeRun7134;
-    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.135 SPINNER WHEEL PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nprivacyMode=%d\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
+    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.136 SPINNER WHEEL FIX PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nprivacyMode=%d\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
         (unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",gP.privacyMode?1:0,ADSpinnerProbeNative7134(),ADSpinnerProbeWebList7134()];
     ADSpinnerProbeAppend7134(head);
     NSMutableArray *visible=[NSMutableArray array];

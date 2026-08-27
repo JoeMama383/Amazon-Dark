@@ -1,3 +1,13 @@
+# AmazonDark v7.136~spinner-wheel-fix-probe — exact GWM white-center repair
+
+Directly based on v7.135, preserving the v7.135 AT&T/Flashtalking video restore, Search fixes, Privacy Mode behavior, TWB, Sponsored handling, and all existing dark-floor rules. The v7.135 screenshot probe was captured directly on the visible white-filled wheel and identified a third current Home loader family that was not covered by the existing `_hp-mosaic-container_style_loadingSpinner...` rule.
+
+The visible painter is `div#gwm-CardLoadingIndicator.gwm-LoadingIndicator` (about 45x45 pt). Its element background is transparent while its rotating outer artwork is a light linear gradient; `::before` is also light and belongs to the rotating ring. The defect is isolated to `::after`, which computes to a solid white `rgb(255,255,255)` circular center. v7.136 adds one documentStart CSS rule only for `#gwm-CardLoadingIndicator.gwm-LoadingIndicator::after`, forcing that center disc to OLED black while leaving the outer gradient, `::before`, geometry, and Amazon's existing 1-second rotation untouched.
+
+This is independent of Privacy Mode. The captured failing frame reported `privacyMode=1`, but the white fill is directly owned by the loader's CSS pseudo-element and predates the Privacy Mode work. No privacy/network behavior is changed.
+
+The screenshot/SIGUSR2 probe is retained for one verification pass and renamed to `AmazonDark-v7.136-spinner-wheel-fix-probe.txt`. A fixed-state capture should show the same `#gwm-CardLoadingIndicator.gwm-LoadingIndicator` with `::after` background black instead of white. The probe remains manual-only; no MutationObserver, timer, interval, RAF, scroll listener, or recurring scan is added.
+
 # AmazonDark v7.135~att-video-restore-probe — third-party video compositor restore
 
 Directly based on v7.134. The supplied v7.133 screenshot/probe shows the blank large Sponsored slot still has its full 430x358 `ape_gateway_dynamic-2-1_mshop_iframe` / `ape-placement` geometry mounted. Historical v7.106/v7.107 device evidence identifies the matching large third-party path as an Amazon SafeFrame containing `#mobile-third-party-ad` -> Flashtalking -> a nested 300x250 AT&T creative. That means the current failure is inside the creative/compositor path, not a collapsed Home layout or missing APE placement.
