@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.132-held-query-row-fix-probe"
+#define AD_VERSION "v7.133-search-gap-floor-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2232,6 +2232,17 @@ static BOOL ADBrightNeutral7130(UIColor *c){
     } @catch(...) {}
     return NO;
 }
+// v7.133: The Search/autocomplete probe shows one exact full-screen plain UIView
+// under the already-owned transition wrapper remains stock white after steady state.
+// The existing v7.129 shallow transition pass can identify this plane correctly,
+// but Amazon later assigns white again. Mark only plain UIViews that have already
+// passed that exact bounded transition-candidate gate, then preserve their OLED
+// floor through the existing UIView lifecycle/setBackgroundColor hook.
+static const void *kADTransitionBacking7133=&kADTransitionBacking7133;
+static BOOL ADMarkedTransitionBacking7133(UIView *v){
+    return v && objc_getAssociatedObject(v,kADTransitionBacking7133)!=nil;
+}
+
 static BOOL ADSelectionPlatterChild7130(UIView *v, UIColor *candidate){
     if(!gP.enabled||!v||!v.window||!candidate||!ADBrightNeutral7130(candidate))return NO;
     @try {
@@ -2253,6 +2264,12 @@ static BOOL ADSelectionPlatterChild7130(UIView *v, UIColor *candidate){
 %hook UIView
 - (void)didMoveToWindow {
     %orig;
+    if(gP.enabled && self.window && ADMarkedTransitionBacking7133(self) && ADPrimaryAmazonWindow713(self.window,nil)){
+        UIColor *black=ADOLED();
+        self.backgroundColor=black;
+        self.layer.backgroundColor=black.CGColor;
+        return;
+    }
     if(gP.enabled && self.window && ADSelectionPlatterChild7130(self,self.backgroundColor)){
         UIColor *black=ADOLED();
         self.backgroundColor=black;
@@ -2262,6 +2279,12 @@ static BOOL ADSelectionPlatterChild7130(UIView *v, UIColor *candidate){
     if(gP.enabled && self.window && ADNativeFloorCandidate(self)) ADOwnNativeFloor(self);
 }
 - (void)setBackgroundColor:(UIColor *)color {
+    if(gP.enabled && ADMarkedTransitionBacking7133(self) && (!self.window || ADPrimaryAmazonWindow713(self.window,nil))){
+        UIColor *black=ADOLED();
+        %orig(black);
+        self.layer.backgroundColor=black.CGColor;
+        return;
+    }
     if(gP.enabled && self.window && ADSelectionPlatterChild7130(self,color)){
         UIColor *black=ADOLED();
         %orig(black);
@@ -2355,6 +2378,10 @@ static BOOL ADTransitionShell7129(UIView *v){
 }
 static void ADPaintTransitionCandidate7129(UIView *v, UIColor *black){
     if(!ADTransitionShell7129(v)||!ADPrimaryLargeFloor7129(v))return;
+    const char *cn=object_getClassName(v);
+    if(cn&&strcmp(cn,"UIView")==0){
+        objc_setAssociatedObject(v,kADTransitionBacking7133,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
     v.backgroundColor=black;
     v.layer.backgroundColor=black.CGColor;
 }
@@ -3809,7 +3836,7 @@ static void ADConsiderLaunchReady706(void){
 %end
 
 // -----------------------------------------------------------------------------
-// v7.132 held-query-row probe. Screenshot/SIGUSR2 capture is retained so the
+// v7.133 Search-gap floor probe. Screenshot/SIGUSR2 capture is retained so the
 // exact held-row platter, native backing floors and loading WKWebViews can be verified.
 // It is diagnostic-only and runs only after an iOS screenshot or SIGUSR2.
 // No observer/scan/timer runs during ordinary app use.
@@ -3820,9 +3847,9 @@ static dispatch_source_t gADSearchProbeSignal7123=nil;
 static NSString *ADSearchProbePath7123(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.132-held-query-row-fix-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.133-search-gap-floor-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.132-held-query-row-fix-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.133-search-gap-floor-probe.txt"];
 }
 static void ADSearchProbeAppend7123(NSString *s){
     if(!s.length)return;
@@ -3876,11 +3903,11 @@ static BOOL ADSearchProbeRelevantClass7123(NSString *n){
 static NSString *ADSearchProbeViewLine7123(UIView *v,NSUInteger idx,NSUInteger depth){
     @try {
         CGRect r=[v convertRect:v.bounds toView:nil]; CALayer *l=v.layer;
-        return [NSString stringWithFormat:@"V #%lu d=%lu cls=%@ r=(%.1f,%.1f %.1fx%.1f) b=(%.1f,%.1f %.1fx%.1f) hidden=%d a=%.2f ui=%d opaque=%d clips=%d masks=%d bg=%@ layerBg=%@ z=%.1f filters=%@ aid=\"%@\" contents=%d\n",
+        return [NSString stringWithFormat:@"V #%lu d=%lu cls=%@ r=(%.1f,%.1f %.1fx%.1f) b=(%.1f,%.1f %.1fx%.1f) hidden=%d a=%.2f ui=%d opaque=%d clips=%d masks=%d bg=%@ layerBg=%@ z=%.1f filters=%@ aid=\"%@\" contents=%d transBack=%d\n",
                 (unsigned long)idx,(unsigned long)depth,NSStringFromClass(v.class),r.origin.x,r.origin.y,r.size.width,r.size.height,
                 v.bounds.origin.x,v.bounds.origin.y,v.bounds.size.width,v.bounds.size.height,v.hidden?1:0,v.alpha,v.userInteractionEnabled?1:0,v.opaque?1:0,
                 v.clipsToBounds?1:0,l.masksToBounds?1:0,ADSearchProbeColor7123(v.backgroundColor),ADSearchProbeCG7123(l.backgroundColor),
-                l.zPosition,ADSearchProbeFilters7123(l),ADSearchProbeAid7123(v),l.contents?1:0];
+                l.zPosition,ADSearchProbeFilters7123(l),ADSearchProbeAid7123(v),l.contents?1:0,ADMarkedTransitionBacking7133(v)?1:0];
     } @catch(...) { return [NSString stringWithFormat:@"V #%lu d=%lu ERROR\n",(unsigned long)idx,(unsigned long)depth]; }
 }
 static NSString *ADSearchProbeHitChain7123(UIView *v){
@@ -3967,7 +3994,7 @@ static NSString *ADSearchProbeDOMJS7123(void){
 }
 static void ADCaptureSearchVisibility7123(NSString *trigger){
     if(!gP.enabled)return; NSUInteger run=++gADSearchProbeRun7123;
-    NSMutableString *head=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.132 HELD QUERY ROW FIX PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE WINDOWS / VIEWS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchProbeNative7123(),ADSearchProbeWebViews7123()];
+    NSMutableString *head=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.133 SEARCH GAP FLOOR PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE WINDOWS / VIEWS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchProbeNative7123(),ADSearchProbeWebViews7123()];
     ADSearchProbeAppend7123(head);
     WKWebView *wv=ADSearchProbeAutocompleteWeb7123();
     if(!wv){ ADSearchProbeAppend7123(@"\n===== AUTOCOMPLETE DOM =====\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"); return; }

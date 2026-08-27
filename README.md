@@ -1,3 +1,9 @@
+# AmazonDark v7.133~search-gap-floor-probe — Search opening/release white-gap floor
+
+Directly based on v7.132. The v7.132 screenshot probe caught a persistent full-screen stock-white plain `UIView` underneath the already-black Search autocomplete WebView and keyboard host. Search normally covers that plane, but its height changes while Search opens and when a held row is released, briefly exposing the white underlay. v7.133 does not add a broader scan: it marks only exact plain `UIView` candidates already discovered by the existing bounded v7.129 transition-wrapper pass, then uses the already-present `UIView` lifecycle/background setter hook to keep those marked backing planes OLED black if Amazon writes white later.
+
+The Search row fix from v7.132, v7.130 loading/platter fixes, v7.126 keyboard ownership, Deals-for-you, Privacy Mode, Sponsored handling, TWB, product-image protections, and all other visual behavior remain unchanged. The screenshot/SIGUSR2 probe is retained as `AmazonDark-v7.133-search-gap-floor-probe.txt` and now reports `transBack=1` for a backing plane owned by this exact lane. No MutationObserver, timer, interval, RAF, recurring DOM/native scan, new global hook, or keyboard compositor change is added.
+
 # AmazonDark v7.132~held-query-row-fix-probe — held Search query-row floor
 
 Built directly from v7.131. The v7.131 screenshot/probe confirms the visible Search autocomplete WebView itself is already OLED black, while the `YOU MAY BE INTERESTED` query-row family is separate from the older `.s-suggestion-container` rules. The exact row geometry is 430×38 via `.s-query-row`, with `.s-query-row-container` and `.s-query-row-link` structural descendants. During a long press Amazon paints that row-state surface white; the inner `.s-query-row-text` remains black, which is why the screenshot shows a full-width white strip with a black rectangle immediately behind the label.
