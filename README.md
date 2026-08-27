@@ -1,3 +1,14 @@
+## v7.140 search-results cleanup fix probe
+
+- Fixes the exact v7.139 Search ribbon compositor regressions: the Prime parent and ReviewStar parent are no longer globally filtered, so Amazon's authored blue Prime sprite and orange star artwork can render normally.
+- Clears only the 7pt `rufus-expandable-pills-chevron` floor/filter inside the stock Sources circle.
+- Returns the Rufus category-card outer floors to OLED black with white descriptions while keeping category images on the existing TWB path.
+- Restyles the Rufus suggestion-pill carousels from light blue to a medium-dark neutral with light text.
+- Gives the exact `.puis-atcb-button` Add-to-cart control an OLED fill with a visible neutral-gray outline.
+- Owns the probe-confirmed native `GlowIngressView` delivery band at the top of Search as OLED black and sends its image glyphs, including the location pin, through the existing light-template path.
+- Retains the v7.139 stock Heart/More-like-this restoration, Overall Pick lane, result floors, Alexa branding, Privacy Mode, and performance architecture.
+- Verification remains screenshot/SIGUSR2-only; no MutationObserver, timer, RAF, scroll listener, touch listener, or recurring hierarchy scan is added.
+
 ## v7.139 search-results regression repair probe
 
 - Restores stock v7.136 Heart/More-like-this action controls by excluding their exact subtrees from the v7.137 Search structural/text owners.
