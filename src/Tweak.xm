@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.138-search-results-regression-fix-probe"
+#define AD_VERSION "v7.139-search-results-regression-repair-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -902,17 +902,18 @@ static NSString *ADFloorJS(void){
             ":not([class*=badge]):not(:where([class*=badge] *)):not([class*=deal]):not(:where([class*=deal] *))"
             ":not([class*=coupon]):not(:where([class*=coupon] *)):not([class*=prime]):not(:where([class*=prime] *))"
             ":not([class*=star]):not(:where([class*=star] *)):not([class*=rating]):not(:where([class*=rating] *))"
+            ":not([class*=mlt]):not(:where([class*=mlt] *)):not([class*=heart]):not(:where([class*=heart] *))"
             ":not([class*=sponsored]):not(:where([class*=sponsored] *)):not([class*=ad-feedback]):not(:where([class*=ad-feedback] *))"
             "{background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
             /* Current/known Alexa-for-Shopping overview semantics. These remain narrow to
              * the Search document and cover the new Researched-by-Alexa shell even when
              * Amazon moves it outside .s-main-slot. Generated inner container/row classes
              * are caught by the structural rule above. */
-            "#search :is([class*=alexa],[id*=alexa],[class*=research],[id*=research],[class*=rufus],[id*=rufus],"
+            "#search :is(div,section,article):is([class*=alexa],[id*=alexa],[class*=research],[id*=research],[class*=rufus],[id*=rufus],"
             "[class*=query-understanding],[id*=query-understanding],[class*=shopping-assistant],[id*=shopping-assistant],"
             "[class*=ai-overview],[id*=ai-overview],[class*=search-guidance],[id*=search-guidance],[class*=guided-search],[id*=guided-search])"
-            ":not(img):not(svg):not(i):not([class*=icon]):not([class*=glyph])"
-            "{background-color:#000!important;background-image:none!important;border-color:#494d4d!important;box-shadow:none!important;}"
+            ":not([class*=logo]):not([class*=icon]):not([class*=glyph])"
+            "{background-color:#000!important;border-color:#494d4d!important;box-shadow:none!important;}"
             /* Neutral Search-results copy. Do not recolor Prime branding, orange stars,
              * deal/coupon badges, Sponsored feedback, or button labels. */
             "#search :is(.s-main-slot,.s-result-item,[data-component-type=s-search-result],[class*=container],[class*=content],[class*=module],[class*=panel],[class*=pane],[class*=widget],[class*=puisg]) "
@@ -920,6 +921,7 @@ static NSString *ADFloorJS(void){
             ":not(.a-button):not(:where(.a-button *)):not([class*=button]):not(:where([class*=button] *))"
             ":not([class*=prime]):not(:where([class*=prime] *)):not([class*=star]):not(:where([class*=star] *))"
             ":not([class*=rating]):not(:where([class*=rating] *)):not([class*=deal]):not(:where([class*=deal] *))"
+            ":not([class*=mlt]):not(:where([class*=mlt] *)):not([class*=heart]):not(:where([class*=heart] *))"
             ":not([class*=coupon]):not(:where([class*=coupon] *)):not([class*=sponsored]):not(:where([class*=sponsored] *))"
             ":not([class*=ad-feedback]):not(:where([class*=ad-feedback] *))"
             "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
@@ -929,7 +931,7 @@ static NSString *ADFloorJS(void){
             "{color:#b1b5b5!important;-webkit-text-fill-color:#b1b5b5!important;}"
             /* Search delivery/location strip. Current mobile markup uses the glow-ingress /
              * nav-global-location family; older variants use ship-to/delivery-location.
-             * v7.138: current requested treatment is OLED black. */
+             * v7.139: DOM selector remains as fallback; the current yellow band is native. */
             "#a-page :is(#nav-global-location-slot,#glow-ingress-block,[id*=glow-ingress],[class*=glow-ingress],"
             "[id*=delivery-location],[class*=delivery-location],[id*=ship-to],[class*=ship-to])"
             ":not(img):not(svg):not(i):not([class*=icon]):not([class*=glyph])"
@@ -940,7 +942,7 @@ static NSString *ADFloorJS(void){
             ":is(svg,i,[class*=icon],[class*=glyph]){background-color:transparent!important;color:#f2f2f2!important;fill:#f2f2f2!important;stroke:#f2f2f2!important;filter:brightness(0) invert(1) brightness(.95)!important;-webkit-filter:brightness(0) invert(1) brightness(.95)!important;}"
             /* Search filter ribbon. v5.440/v6 lineage exposes sf-rib30 and
              * sf-mobile-rib-filter leaves; current screenshot is the same UI family. */
-            /* v7.138: keep only the ribbon floors/controls dark. Do NOT erase
+            /* v7.139: keep only the ribbon floors/controls dark. Do NOT erase
              * background-image on sf-rib descendants: Amazon paints Prime and the
              * orange review-star art with those authored sprite/SVG backgrounds. */
             "#a-page :is([class*=sf-rib],[class*=sf-mobile-rib])"
@@ -949,8 +951,13 @@ static NSString *ADFloorJS(void){
             "#a-page :is([class*=sf-rib],[class*=sf-mobile-rib]) :is(button,[role=button],a,[class*=pill],[class*=dropdown],[class*=filter])"
             ":not([class*=icon]):not([class*=arrow]):not([class*=prime]):not([class*=star]):not([class*=rating])"
             "{background-color:#202324!important;border-color:#747a7c!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}"
-            "#a-page :is(.sf-mobile-rib-filter-icon,[class*=sf-mobile-rib-filter-i],.sf-rib30-dropdown-arrow-icon,[class*=sf-rib][class*=icon],[class*=sf-rib][class*=arrow])"
-            ":not([class*=prime]):not([class*=star]):not([class*=rating]){background-color:transparent!important;filter:brightness(0) invert(1) brightness(.88)!important;-webkit-filter:brightness(0) invert(1) brightness(.88)!important;}"
+            "#a-page :is(.sf-mobile-rib-filter-icon,.sf-rib30-dropdown-arrow-icon)"
+            "{background-color:transparent!important;filter:brightness(0) invert(1) brightness(.88)!important;-webkit-filter:brightness(0) invert(1) brightness(.88)!important;}"
+            /* v7.139: v7.138 hit testing proves sf-rib30-dropdown-pill-icon is the
+             * compositing parent around ReviewStarIcon.svg. Never filter that parent: doing
+             * so turns Amazon-authored orange stars and Prime pill art into white blocks. */
+            "#a-page .sf-rib30-dropdown-pill-icon,#a-page i.a-icon-prime"
+            "{filter:none!important;-webkit-filter:none!important;}"
             /* Overall Pick / Amazon's Choice status lane. The old exact spider-wood
              * probe identifies .puis-status-badge-container -> mvt badge -> a-badge-label;
              * own the entire left-column status lane so the current white stripe cannot survive. */
@@ -959,8 +966,8 @@ static NSString *ADFloorJS(void){
             ".puisg-col-inner:has(> .puis-status-badge-container),.puisg-col:has(.puis-status-badge-container))"
             "{background:#000!important;background-color:#000!important;background-image:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}"
             "#search .puis-status-badge-container :is(i,svg,[class*=icon]){background-color:transparent!important;color:#d6d9d9!important;fill:#d6d9d9!important;stroke:#d6d9d9!important;filter:brightness(0) invert(1) brightness(.88)!important;-webkit-filter:brightness(0) invert(1) brightness(.88)!important;}"
-            /* v7.138: quick-action Heart / More-like-this styling removed entirely.
-             * Leave both controls stock until they are handled separately. */
+            /* v7.139: Heart / More-like-this are excluded from the new Search structural/text
+             * owners above, restoring the exact stock controls from the v7.136 base. */
             /* Non-brand Search glyphs. Prime/star/rating and the quick-action artwork
              * above are explicitly excluded so their current accent colors/shapes survive. */
             "#search :is(svg,i,[class*=icon],[class*=glyph])"
@@ -2339,8 +2346,8 @@ static BOOL ADMarkedTransitionBacking7133(UIView *v){
 // v7.138: Search results sometimes mount the delivery/location strip as native
 // UIKit chrome rather than DOM. Own only a full-width warm Amazon delivery band
 // in the upper content region; ordinary buttons/cards cannot pass this geometry.
-static const void *kADSearchDeliveryBand7138=&kADSearchDeliveryBand7138;
-static BOOL ADWarmDeliveryColor7138(UIColor *c){
+static const void *kADSearchDeliveryBand7139=&kADSearchDeliveryBand7139;
+static BOOL ADWarmDeliveryColor7139(UIColor *c){
     if(!c)return NO;
     @try {
         CGFloat r=0,g=0,b=0,a=0;
@@ -2349,11 +2356,11 @@ static BOOL ADWarmDeliveryColor7138(UIColor *c){
     } @catch(...) {}
     return NO;
 }
-static BOOL ADSearchDeliveryBandCandidate7138(UIView *v, UIColor *candidate){
+static BOOL ADSearchDeliveryBandCandidate7139(UIView *v, UIColor *candidate){
     if(!gP.enabled||!v||!v.window||!candidate||!ADPrimaryAmazonWindow713(v.window,nil))return NO;
     @try {
         if([v isKindOfClass:[UIControl class]]||[v isKindOfClass:[UILabel class]]||[v isKindOfClass:[UIImageView class]])return NO;
-        if(!ADWarmDeliveryColor7138(candidate))return NO;
+        if(!ADWarmDeliveryColor7139(candidate))return NO;
         CGRect r=[v convertRect:v.bounds toView:v.window], wb=v.window.bounds;
         if(wb.size.width<1.0)return NO;
         return r.size.width>=wb.size.width*0.88 && r.size.height>=28.0 && r.size.height<=92.0 &&
@@ -2361,9 +2368,54 @@ static BOOL ADSearchDeliveryBandCandidate7138(UIView *v, UIColor *candidate){
     } @catch(...) {}
     return NO;
 }
-static BOOL ADInMarkedSearchDeliveryBand7138(UIView *v){
-    @try { for(UIView *n=v;n;n=n.superview) if(objc_getAssociatedObject(n,kADSearchDeliveryBand7138))return YES; } @catch(...) {}
+static BOOL ADInMarkedSearchDeliveryBand7139(UIView *v){
+    @try { for(UIView *n=v;n;n=n.superview) if(objc_getAssociatedObject(n,kADSearchDeliveryBand7139))return YES; } @catch(...) {}
     return NO;
+}
+
+// v7.139: v7.138's Web probe proves the yellow strip is outside the /s DOM (the
+// WebView starts directly on the sf-rib30 filter ribbon). Historical Search captures
+// consistently expose the 47pt native ANX sub-navigation controllers. Own only the
+// compact, primary-window instance so full-screen/hidden subnav controller variants
+// cannot be swept into this lane.
+static void ADTintSearchDeliveryGlyph7139(UIImageView *iv);
+static BOOL ADSearchSubNavControllerClass7139(UIViewController *vc){
+    if(!vc)return NO;
+    NSString *cn=NSStringFromClass(vc.class);
+    return [cn isEqualToString:@"ANXVisualSubNavViewController"] || [cn isEqualToString:@"ANXSubNavContainer"];
+}
+static BOOL ADCompactSearchSubNavView7139(UIView *v){
+    if(!v||!v.window||!ADPrimaryAmazonWindow713(v.window,nil))return NO;
+    @try {
+        CGRect r=[v convertRect:v.bounds toView:v.window], wb=v.window.bounds;
+        if(wb.size.width<1.0)return NO;
+        return r.size.width>=wb.size.width*0.88 && r.size.height>=24.0 && r.size.height<=96.0 &&
+               CGRectGetMinY(r)>=80.0 && CGRectGetMinY(r)<=260.0;
+    } @catch(...) {}
+    return NO;
+}
+static void ADOwnCompactSearchSubNav7139(UIViewController *vc){
+    if(!gP.enabled||!ADSearchSubNavControllerClass7139(vc)||!vc.isViewLoaded)return;
+    @try {
+        UIView *root=vc.view; if(!ADCompactSearchSubNavView7139(root))return;
+        UIColor *black=ADOLED();
+        if(objc_getAssociatedObject(root,kADSearchDeliveryBand7139)){
+            root.backgroundColor=black; root.layer.backgroundColor=black.CGColor; root.tintColor=ADLightText706();
+            return;
+        }
+        objc_setAssociatedObject(root,kADSearchDeliveryBand7139,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        root.backgroundColor=black; root.layer.backgroundColor=black.CGColor; root.tintColor=ADLightText706();
+        // One bounded event-driven pass handles descendants that were already mounted before
+        // the controller was marked. Later background/image writes are owned by existing hooks.
+        NSMutableArray *q=[NSMutableArray arrayWithArray:root.subviews?:@[]]; NSUInteger seen=0;
+        while(q.count && seen++<96){
+            UIView *x=q.firstObject; [q removeObjectAtIndex:0]; if(!x)continue;
+            if([x isKindOfClass:[UIImageView class]]) ADTintSearchDeliveryGlyph7139((UIImageView *)x);
+            else if([x isKindOfClass:[UILabel class]]) ((UILabel *)x).textColor=ADLightText706();
+            else if(ADWarmDeliveryColor7139(x.backgroundColor)){ x.backgroundColor=black; x.layer.backgroundColor=black.CGColor; }
+            if(q.count<96 && x.subviews.count)[q addObjectsFromArray:x.subviews];
+        }
+    } @catch(...) {}
 }
 
 static BOOL ADSelectionPlatterChild7130(UIView *v, UIColor *candidate){
@@ -2387,14 +2439,18 @@ static BOOL ADSelectionPlatterChild7130(UIView *v, UIColor *candidate){
 %hook UIView
 - (void)didMoveToWindow {
     %orig;
+    if(gP.enabled && self.window && ADInMarkedSearchDeliveryBand7139(self) && ![self isKindOfClass:[UIImageView class]]){
+        UIColor *black=ADOLED(); self.backgroundColor=black; self.layer.backgroundColor=black.CGColor;
+        return;
+    }
     if(gP.enabled && self.window && ADMarkedTransitionBacking7133(self) && ADPrimaryAmazonWindow713(self.window,nil)){
         UIColor *black=ADOLED();
         self.backgroundColor=black;
         self.layer.backgroundColor=black.CGColor;
         return;
     }
-    if(gP.enabled && self.window && ADSearchDeliveryBandCandidate7138(self,self.backgroundColor)){
-        objc_setAssociatedObject(self,kADSearchDeliveryBand7138,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    if(gP.enabled && self.window && ADSearchDeliveryBandCandidate7139(self,self.backgroundColor)){
+        objc_setAssociatedObject(self,kADSearchDeliveryBand7139,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         UIColor *black=ADOLED(); self.backgroundColor=black; self.layer.backgroundColor=black.CGColor;
         return;
     }
@@ -2407,14 +2463,20 @@ static BOOL ADSelectionPlatterChild7130(UIView *v, UIColor *candidate){
     if(gP.enabled && self.window && ADNativeFloorCandidate(self)) ADOwnNativeFloor(self);
 }
 - (void)setBackgroundColor:(UIColor *)color {
+    if(gP.enabled && self.window && ADInMarkedSearchDeliveryBand7139(self) && ![self isKindOfClass:[UIImageView class]]){
+        UIColor *black=ADOLED();
+        %orig(black);
+        self.layer.backgroundColor=black.CGColor;
+        return;
+    }
     if(gP.enabled && ADMarkedTransitionBacking7133(self) && (!self.window || ADPrimaryAmazonWindow713(self.window,nil))){
         UIColor *black=ADOLED();
         %orig(black);
         self.layer.backgroundColor=black.CGColor;
         return;
     }
-    if(gP.enabled && self.window && ADSearchDeliveryBandCandidate7138(self,color)){
-        objc_setAssociatedObject(self,kADSearchDeliveryBand7138,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    if(gP.enabled && self.window && ADSearchDeliveryBandCandidate7139(self,color)){
+        objc_setAssociatedObject(self,kADSearchDeliveryBand7139,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         UIColor *black=ADOLED();
         %orig(black);
         self.layer.backgroundColor=black.CGColor;
@@ -3015,8 +3077,8 @@ static void ADTintSearchGlyph706(UIImageView *iv){
     } @catch(...) { gADSearchImageWrite706=NO; }
 }
 
-static void ADTintSearchDeliveryGlyph7138(UIImageView *iv){
-    if(!gP.enabled||!iv||!iv.image||!ADInMarkedSearchDeliveryBand7138(iv))return;
+static void ADTintSearchDeliveryGlyph7139(UIImageView *iv){
+    if(!gP.enabled||!iv||!iv.image||!ADInMarkedSearchDeliveryBand7139(iv))return;
     @try {
         CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height; if(w<3||h<3||w>70||h>70)return;
         UIImage *im=iv.image;
@@ -3666,6 +3728,30 @@ static void ADOwnBottomBar708(UIView *v){
 }
 %end
 
+// v7.139 exact compact Search delivery/subnav ownership. These controller hooks are
+// event-driven and geometry-gated; no hierarchy polling or recurring timer is used.
+%hook ANXVisualSubNavViewController
+- (void)viewDidAppear:(BOOL)animated {
+    %orig;
+    ADOwnCompactSearchSubNav7139((UIViewController *)self);
+}
+- (void)viewDidLayoutSubviews {
+    %orig;
+    ADOwnCompactSearchSubNav7139((UIViewController *)self);
+}
+%end
+
+%hook ANXSubNavContainer
+- (void)viewDidAppear:(BOOL)animated {
+    %orig;
+    ADOwnCompactSearchSubNav7139((UIViewController *)self);
+}
+- (void)viewDidLayoutSubviews {
+    %orig;
+    ADOwnCompactSearchSubNav7139((UIViewController *)self);
+}
+%end
+
 // Status-bar ownership from the v5.446/v6.0.5 lineage. This generic lifecycle hook
 // does NOT paint controller views; it only installs a cached per-class light-content claim.
 %hook UIViewController
@@ -3848,13 +3934,13 @@ static void ADApplyNativeTWB(UIImageView *iv){
     }
     %orig;
     if(gP.enabled&&self.window&&ADANXTabRoot724(self))ADTabImageWhite724(self);
-    if(gP.enabled&&self.window){ ADTintSearchGlyph706(self); ADTintSearchDeliveryGlyph7138(self); }
+    if(gP.enabled&&self.window){ ADTintSearchGlyph706(self); ADTintSearchDeliveryGlyph7139(self); }
     if(gP.whiteTame)ADApplyNativeTWB(self);
 }
 - (void)didMoveToWindow {
     %orig;
     if(gP.enabled&&self.window&&ADANXTabRoot724(self))ADTabImageWhite724(self);
-    if(gP.enabled&&self.window){ ADTintSearchGlyph706(self); ADTintSearchDeliveryGlyph7138(self); }
+    if(gP.enabled&&self.window){ ADTintSearchGlyph706(self); ADTintSearchDeliveryGlyph7139(self); }
     ADApplyNativeTWB(self);
 }
 - (void)setTintColor:(UIColor *)color {
@@ -3864,7 +3950,7 @@ static void ADApplyNativeTWB(UIImageView *iv){
             %orig(white);
             return;
         }
-        if(ADInSearchChrome706(self)||ADIsLocationGlyph709(self)||ADIsSearchBackGlyph7120(self)||ADInMarkedSearchDeliveryBand7138(self)){
+        if(ADInSearchChrome706(self)||ADIsLocationGlyph709(self)||ADIsSearchBackGlyph7120(self)||ADInMarkedSearchDeliveryBand7139(self)){
             UIColor *light=ADLightText706();
             %orig(light);
             return;
@@ -3877,7 +3963,7 @@ static void ADApplyNativeTWB(UIImageView *iv){
     if(gP.enabled&&self.window&&ADANXTabRoot724(self))ADTabImageWhite724(self);
     if(gP.enabled&&self.window){
         if(ADInSearchChrome706(self)||ADIsLocationGlyph709(self)||ADIsSearchBackGlyph7120(self))ADTintSearchGlyph706(self);
-        ADTintSearchDeliveryGlyph7138(self);
+        ADTintSearchDeliveryGlyph7139(self);
     }
     if(objc_getAssociatedObject(self,kADTWBOverlay)||gP.whiteTame)ADApplyNativeTWB(self);
 }
@@ -3987,25 +4073,25 @@ static void ADConsiderLaunchReady706(void){
 %end
 
 // -----------------------------------------------------------------------------
-// v7.137 Search-results pane verification probe. Screenshot/SIGUSR2 only.
+// v7.139 Search-results regression verification probe. Screenshot/SIGUSR2 only.
 // It records paint/geometry for the current /s document without capturing query
 // text, element text, outerHTML, clipboard data, request bodies, or headers.
 // No observer, timer, RAF, scroll listener, or recurring DOM work is installed.
 // -----------------------------------------------------------------------------
-static NSUInteger gADSearchResultsProbeRun7137=0;
-static dispatch_source_t gADSearchResultsProbeSignal7137=nil;
+static NSUInteger gADSearchResultsProbeRun7139=0;
+static dispatch_source_t gADSearchResultsProbeSignal7139=nil;
 
-static NSString *ADSearchResultsProbePath7137(void){
+static NSString *ADSearchResultsProbePath7139(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.138-search-results-regression-fix-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.139-search-results-regression-repair-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.138-search-results-regression-fix-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.139-search-results-regression-repair-probe.txt"];
 }
-static void ADSearchResultsProbeAppend7137(NSString *s){
+static void ADSearchResultsProbeAppend7139(NSString *s){
     if(!s.length)return;
     @try {
-        NSString *p=ADSearchResultsProbePath7137(); NSFileManager *fm=[NSFileManager defaultManager];
+        NSString *p=ADSearchResultsProbePath7139(); NSFileManager *fm=[NSFileManager defaultManager];
         [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil];
         NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding];
         if(![fm fileExistsAtPath:p]){ [d writeToFile:p atomically:YES]; return; }
@@ -4013,7 +4099,7 @@ static void ADSearchResultsProbeAppend7137(NSString *s){
         if(h){ [h seekToEndOfFile]; [h writeData:d]; [h closeFile]; }
     } @catch(...) {}
 }
-static NSString *ADSearchResultsProbeColor7137(UIColor *c){
+static NSString *ADSearchResultsProbeColor7139(UIColor *c){
     if(!c)return @"nil";
     @try {
         CGFloat r=0,g=0,b=0,a=0,w=0;
@@ -4022,49 +4108,87 @@ static NSString *ADSearchResultsProbeColor7137(UIColor *c){
         return c.description?:@"?";
     } @catch(...) { return @"?"; }
 }
-static NSString *ADSearchResultsProbeSafeURL7137(WKWebView *wv){
+static NSString *ADSearchResultsProbeCG7139(CGColorRef cg){
+    if(!cg)return @"nil";
+    @try { return ADSearchResultsProbeColor7139([UIColor colorWithCGColor:cg]); } @catch(...) { return @"?"; }
+}
+static NSString *ADSearchResultsProbeNative7139(void){
+    NSMutableString *m=[NSMutableString string];
+    @try {
+        CGRect screen=UIScreen.mainScreen.bounds; NSUInteger visited=0,logged=0;
+        NSArray *pts=@[[NSValue valueWithCGPoint:CGPointMake(CGRectGetMidX(screen),125)],
+                       [NSValue valueWithCGPoint:CGPointMake(28,140)],
+                       [NSValue valueWithCGPoint:CGPointMake(CGRectGetMidX(screen),150)],
+                       [NSValue valueWithCGPoint:CGPointMake(CGRectGetMidX(screen),180)]];
+        for(UIWindow *w in UIApplication.sharedApplication.windows){
+            if(!w||w.hidden||w.alpha<0.01)continue;
+            [m appendFormat:@"WINDOW cls=%@ key=%d level=%.1f r=(%.1f,%.1f %.1fx%.1f) bg=%@\n",NSStringFromClass(w.class),w.isKeyWindow?1:0,w.windowLevel,w.frame.origin.x,w.frame.origin.y,w.frame.size.width,w.frame.size.height,ADSearchResultsProbeColor7139(w.backgroundColor)];
+            NSMutableArray *q=[NSMutableArray arrayWithObject:w];
+            while(q.count&&visited++<420&&logged<180){
+                UIView *v=q.firstObject; [q removeObjectAtIndex:0]; if(!v||v.hidden||v.alpha<0.01)continue;
+                CGRect r=CGRectZero; @try { r=[v convertRect:v.bounds toView:nil]; } @catch(...) {}
+                NSString *cn=NSStringFromClass(v.class),*lo=cn.lowercaseString;
+                BOOL band=CGRectIntersectsRect(r,CGRectMake(0,80,screen.size.width,150)) && r.size.width>=screen.size.width*0.45 && r.size.height>=10;
+                BOOL sem=[lo containsString:@"subnav"]||[lo containsString:@"delivery"]||[lo containsString:@"location"]||[lo containsString:@"topnav"];
+                if(band||sem){
+                    [m appendFormat:@"N cls=%@ r=(%.1f,%.1f %.1fx%.1f) bg=%@ layerBg=%@ tint=%@ marked=%d aid=\"%@\"\n",cn,r.origin.x,r.origin.y,r.size.width,r.size.height,ADSearchResultsProbeColor7139(v.backgroundColor),ADSearchResultsProbeCG7139(v.layer.backgroundColor),ADSearchResultsProbeColor7139(v.tintColor),ADInMarkedSearchDeliveryBand7139(v)?1:0,v.accessibilityIdentifier?:@""]; logged++;
+                }
+                if(q.count<420&&v.subviews.count)[q addObjectsFromArray:v.subviews];
+            }
+            for(NSValue *pv in pts){ CGPoint p=pv.CGPointValue; UIView *h=[w hitTest:p withEvent:nil]; NSMutableArray *c=[NSMutableArray array]; for(UIView *x=h;x&&c.count<12;x=x.superview)[c addObject:NSStringFromClass(x.class)]; [m appendFormat:@"HIT (%.0f,%.0f) %@\n",p.x,p.y,c.count?[c componentsJoinedByString:@" <- "]:@"nil"]; }
+        }
+    } @catch(NSException *e){ [m appendFormat:@"NATIVE_EXCEPTION %@\n",e]; }
+    return m;
+}
+
+static NSString *ADSearchResultsProbeSafeURL7139(WKWebView *wv){
     @try {
         NSURL *u=wv.URL; if(!u)return @"";
         return [NSString stringWithFormat:@"%@://%@%@",u.scheme?:@"https",u.host?:@"",u.path?:@""];
     } @catch(...) { return @""; }
 }
-static NSString *ADSearchResultsProbeWebList7137(void){
+static NSString *ADSearchResultsProbeWebList7139(void){
     NSMutableString *m=[NSMutableString string]; NSUInteger n=0;
     @try {
         for(WKWebView *wv in ADTrackedWebViews()){
             if(!wv)continue; CGRect r=CGRectZero; @try { r=[wv convertRect:wv.bounds toView:nil]; } @catch(...) {}
             CGRect ir=CGRectIntersection(r,UIScreen.mainScreen.bounds); CGFloat area=MAX(0,ir.size.width)*MAX(0,ir.size.height);
             [m appendFormat:@"WEB #%lu aid=\"%@\" path=\"%@\" visible=%d loading=%d r=(%.1f,%.1f %.1fx%.1f) visibleArea=%.0f bg=%@ scrollBg=%@\n",
-                (unsigned long)n++,wv.accessibilityIdentifier?:@"",ADSearchResultsProbeSafeURL7137(wv),(wv.window&&!wv.hidden&&wv.alpha>0.01&&area>1)?1:0,wv.loading?1:0,
-                r.origin.x,r.origin.y,r.size.width,r.size.height,area,ADSearchResultsProbeColor7137(wv.backgroundColor),ADSearchResultsProbeColor7137(wv.scrollView.backgroundColor)];
+                (unsigned long)n++,wv.accessibilityIdentifier?:@"",ADSearchResultsProbeSafeURL7139(wv),(wv.window&&!wv.hidden&&wv.alpha>0.01&&area>1)?1:0,wv.loading?1:0,
+                r.origin.x,r.origin.y,r.size.width,r.size.height,area,ADSearchResultsProbeColor7139(wv.backgroundColor),ADSearchResultsProbeColor7139(wv.scrollView.backgroundColor)];
         }
     } @catch(NSException *e){ [m appendFormat:@"WEBLIST_EXCEPTION %@\n",e]; }
     return m;
 }
-static NSString *ADSearchResultsProbeJS7137(void){
+static NSString *ADSearchResultsProbeJS7139(void){
     return @"(function(){try{"
-    "function S(e,p){try{var s=getComputedStyle(e,p||null);return {content:s.content||'none',display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,bgi:s.backgroundImage,color:s.color,fill:s.fill,stroke:s.stroke,filter:s.webkitFilter||s.filter||'none',border:s.border,radius:s.borderRadius,shadow:s.boxShadow};}catch(_){return {err:String(_)}}}"
+    "function S(e,p){try{var s=getComputedStyle(e,p||null);return {content:s.content||'none',display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,bgi:s.backgroundImage,bgp:s.backgroundPosition,bgs:s.backgroundSize,bgr:s.backgroundRepeat,mask:s.webkitMaskImage||s.maskImage||'none',color:s.color,fill:s.fill,stroke:s.stroke,filter:s.webkitFilter||s.filter||'none',border:s.border,radius:s.borderRadius,shadow:s.boxShadow};}catch(_){return {err:String(_)}}}"
     "function P(e){if(!e)return null;var r=e.getBoundingClientRect();return {tag:e.tagName,id:e.id||'',cls:String(e.className||'').slice(0,260),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],style:S(e),before:S(e,'::before'),after:S(e,'::after')};}"
-    "function G(sel,n){var a=[].slice.call(document.querySelectorAll(sel));return {count:a.length,items:a.slice(0,n||48).map(P)};}"
+    "function C(e,n){var a=[];for(var x=e;x&&a.length<(n||6);x=x.parentElement)a.push(P(x));return a;}"
+    "function Q(sel){return [].slice.call(document.querySelectorAll(sel));}"
+    "function G(sel,n){var a=Q(sel);return {count:a.length,items:a.slice(0,n||48).map(P)};}"
+    "function GC(sel,n){var a=Q(sel);return {count:a.length,items:a.slice(0,n||32).map(function(e){return {self:P(e),chain:C(e,7)}})};}"
     "var w=innerWidth,h=innerHeight,ys=[.03,.08,.14,.22,.31,.42,.56,.72,.86];"
     "var hit=ys.map(function(y){var x=Math.round(w*.5),py=Math.round(h*y),a=(document.elementsFromPoint?document.elementsFromPoint(x,py):[document.elementFromPoint(x,py)]).filter(Boolean).slice(0,10);return {p:[x,py],stack:a.map(P)};});"
     "var o={path:location.pathname,ready:document.readyState,viewport:[w,h,devicePixelRatio],scroll:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],body:P(document.body),doc:P(document.documentElement),"
     "root:G('#search,#a-page',12),"
     "ribbon:G('[class*=sf-rib],[class*=sf-mobile-rib],[class*=filter]',64),"
+    "ribbonArt:GC('.sf-rib30-dropdown-pill-icon,.sf-rib30-review-star,i.a-icon-prime.a-icon-small,.sf-mobile-rib-filter-icon,.sf-rib30-dropdown-arrow-icon',40),"
     "location:G('#nav-global-location-slot,#glow-ingress-block,[id*=glow-ingress],[class*=glow-ingress],[id*=delivery-location],[class*=delivery-location],[id*=ship-to],[class*=ship-to]',48),"
     "ai:G('#search [class*=alexa],#search [id*=alexa],#search [class*=research],#search [id*=research],#search [class*=rufus],#search [id*=rufus],#search [class*=query-understanding],#search [class*=shopping-assistant],#search [class*=ai-overview],#search [class*=search-guidance],#search [class*=guided-search]',64),"
+    "aiLogo:GC('#search [class*=alexa-plus-logo],#search [class*=rufus][class*=icon],#search img[class*=alexa],#search img[class*=rufus]',32),"
     "results:G('#search .s-result-item,#search .s-card-container,#search [data-component-type=s-search-result],#search .puisg-row,#search .puisg-col,#search .puisg-col-inner',72),"
     "badges:G('#search .puis-status-badge-container,#search .puis-status-badge-container .a-badge,#search .puis-status-badge-container .a-badge-label',32),"
-    "actions:G('#search .mlt-icon-container,#search .mlt-image-icon,#search .lists-framework-action-button.puis-heart-icon-container,#search .lists-framework-heart-background',32),"
+    "actions:GC('#search .mlt-icon-container,#search .mlt-icon-container *,#search .lists-framework-action-button.puis-heart-icon-container,#search .lists-framework-heart-background',48),"
     "accents:G('#search i.a-icon-prime,#search [class*=prime],#search i[class*=a-icon-star],#search [class*=star],#search [class*=rating]',48),"
     "media:G('#search img,#search picture,#search video,#search canvas',64),hit:hit};"
     "return JSON.stringify(o,null,2);}catch(e){return 'SEARCH_RESULTS_DOM_ERR '+e;}})();";
 }
-static void ADCaptureSearchResultsProbe7137(NSString *trigger){
-    if(!gP.enabled)return; NSUInteger run=++gADSearchResultsProbeRun7137;
-    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.138 SEARCH RESULTS REGRESSION FIX PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TRACKED WEBVIEWS =====\n%@\n",
-        (unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchResultsProbeWebList7137()];
-    ADSearchResultsProbeAppend7137(head);
+static void ADCaptureSearchResultsProbe7139(NSString *trigger){
+    if(!gP.enabled)return; NSUInteger run=++gADSearchResultsProbeRun7139;
+    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.139 SEARCH RESULTS REGRESSION REPAIR PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
+        (unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
+    ADSearchResultsProbeAppend7139(head);
     NSMutableArray *search=[NSMutableArray array],*fallback=[NSMutableArray array];
     @try {
         for(WKWebView *wv in ADTrackedWebViews()){
@@ -4077,24 +4201,24 @@ static void ADCaptureSearchResultsProbe7137(NSString *trigger){
         [search sortUsingComparator:cmp]; [fallback sortUsingComparator:cmp];
     } @catch(...) {}
     NSArray *chosen=search.count?search:fallback;
-    if(!chosen.count){ ADSearchResultsProbeAppend7137(@"\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"); return; }
+    if(!chosen.count){ ADSearchResultsProbeAppend7139(@"\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"); return; }
     NSUInteger lim=MIN((NSUInteger)3,chosen.count); __block NSUInteger pending=lim;
     for(NSUInteger i=0;i<lim;i++){
         WKWebView *wv=chosen[i][@"wv"];
-        ADSearchResultsProbeAppend7137([NSString stringWithFormat:@"\n===== WEB DOM #%lu =====\naid=\"%@\" path=\"%@\"\n",(unsigned long)i,wv.accessibilityIdentifier?:@"",ADSearchResultsProbeSafeURL7137(wv)]);
-        [wv evaluateJavaScript:ADSearchResultsProbeJS7137() completionHandler:^(id v,NSError *e){
+        ADSearchResultsProbeAppend7139([NSString stringWithFormat:@"\n===== WEB DOM #%lu =====\naid=\"%@\" path=\"%@\"\n",(unsigned long)i,wv.accessibilityIdentifier?:@"",ADSearchResultsProbeSafeURL7139(wv)]);
+        [wv evaluateJavaScript:ADSearchResultsProbeJS7139() completionHandler:^(id v,NSError *e){
             NSString *body=e?[NSString stringWithFormat:@"EVAL_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
-            ADSearchResultsProbeAppend7137([NSString stringWithFormat:@"%@\n",body?:@"NO_DOM_DATA"]);
-            if(--pending==0)ADSearchResultsProbeAppend7137(@"================ END RUN ================\n");
+            ADSearchResultsProbeAppend7139([NSString stringWithFormat:@"%@\n",body?:@"NO_DOM_DATA"]);
+            if(--pending==0)ADSearchResultsProbeAppend7139(@"================ END RUN ================\n");
         }];
     }
 }
-static void ADInstallSearchResultsProbe7137(void){
+static void ADInstallSearchResultsProbe7139(void){
     static dispatch_once_t once; dispatch_once(&once,^{
         signal(SIGUSR2,SIG_IGN);
-        gADSearchResultsProbeSignal7137=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue());
-        if(gADSearchResultsProbeSignal7137){ dispatch_source_set_event_handler(gADSearchResultsProbeSignal7137,^{ ADCaptureSearchResultsProbe7137(@"SIGUSR2"); }); dispatch_resume(gADSearchResultsProbeSignal7137); }
-        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){ ADCaptureSearchResultsProbe7137(@"screenshot"); }];
+        gADSearchResultsProbeSignal7139=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue());
+        if(gADSearchResultsProbeSignal7139){ dispatch_source_set_event_handler(gADSearchResultsProbeSignal7139,^{ ADCaptureSearchResultsProbe7139(@"SIGUSR2"); }); dispatch_resume(gADSearchResultsProbeSignal7139); }
+        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){ ADCaptureSearchResultsProbe7139(@"screenshot"); }];
     });
 }
 
@@ -4136,7 +4260,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
     %init;
 
     ADPrivacyInit7117();
-    ADInstallSearchResultsProbe7137();
+    ADInstallSearchResultsProbe7139();
     if(gP.enabled&&gP.privacyMode){
         ADRegisterPrivacyProtocol7117();
         ADCompilePrivacyContentRules7117();

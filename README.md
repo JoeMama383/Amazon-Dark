@@ -1,3 +1,12 @@
+## v7.139 search-results regression repair probe
+
+- Restores stock v7.136 Heart/More-like-this action controls by excluding their exact subtrees from the v7.137 Search structural/text owners.
+- Removes the proven parent-level `sf-rib30-dropdown-pill-icon` compositor filter that turns authored orange ReviewStarIcon.svg art into white boxes; Prime and review-star pill artwork are explicitly left unfiltered.
+- Stops treating the `puis-product-insight-prompt-alexa-plus-logo` semantic logo span as a structural floor, preserving its authored Alexa artwork.
+- Adds exact, geometry-gated ownership for the compact native `ANXVisualSubNavViewController` / `ANXSubNavContainer` delivery strip: OLED-black floor, existing light text, and light templated image glyphs. The older warm-color detector remains only as a fallback.
+- Retains the successful v7.137 Overall Pick lane and Search-result OLED/TWB changes.
+- The screenshot/SIGUSR2 probe now captures the top native band plus parent chains for ribbon art, Alexa logo and More-like-this controls.
+
 ## v7.138 search-results regression fix probe
 
 - Removes all v7.137 Heart / More-like-this quick-action styling.
