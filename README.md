@@ -1,3 +1,10 @@
+## v7.138 search-results regression fix probe
+
+- Removes all v7.137 Heart / More-like-this quick-action styling.
+- Restores Amazon-authored Prime and review-star sprite/SVG imagery in the Search filter ribbon while keeping ribbon floors dark.
+- Excludes Rufus/Alexa/research icon families from generic neutral-glyph filtering so the Researched by Alexa mark keeps its authored color/detail.
+- Retains v7.137 OLED Search/result floors, Overall Pick black lane, Search-result TWB, and verification probe.
+
 # AmazonDark v7.137~search-results-pane-fix-probe — Search results + Researched by Alexa dark parity
 
 Directly based on v7.136. This pass targets the current `/s` search-results surface shown in the supplied spider-wood screenshot. The existing v7.136 GWM spinner-center fix, v7.135 third-party-video restore, Search transition/keyboard work, Privacy Mode, Sponsored handling, borders and Home/PDP theming are retained.
