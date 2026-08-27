@@ -1,3 +1,9 @@
+# AmazonDark v7.131~deals-for-you-fix-probe — exact Search “Deals for you” caption floors
+
+Built directly from v7.130 after the transition/loading fix was confirmed working on-device. The new screenshot-triggered Search probe identifies the remaining white boxes under each “Deals for you” product label as exact `.ufs_tiles_card_widget-sug-text` DIV leaves (76×42 pt in the captured layout), each still computing to `rgb(255,255,255)` while the surrounding card, link, and image wrappers are already transparent/OLED. v7.131 therefore owns only those caption leaves as OLED black and forces their text/descendants to pure white. Product imagery, image shields, carousel geometry, Search history/suggestion rows, keyboard behavior, transition-floor owners, Sponsored styling, and the prior microphone geometry removals are unchanged.
+
+The existing one-shot screenshot/SIGUSR2 diagnostic is retained and renamed `AmazonDark-v7.131-deals-for-you-fix-probe.txt` so the caption computed styles can be verified without adding any normal-use scan, MutationObserver, timer, RAF, interval, or scroll listener.
+
 # AmazonDark v7.130~transition-floor-probe — exact loading overlay + platter + keyboard placeholder owners
 
 Directly based on v7.129. The new Home→Cart screenshot/probe proves the v7.129 generic transition shells and destination WebKit backings are already OLED black while the visible white screen remains. Hit testing lands at every sampled content point on `AWLoadingIndicatorWidgets_BkgView <- AWLoadingIndicatorFullScreenModalBar`, so v7.130 owns those exact Amazon loading surfaces as OLED black and adds a black backing sublayer beneath their child content. The yellow loading/progress strip remains Amazon-owned. `AWLoadingIndicatorWidgets_LoadingText` is explicitly light.

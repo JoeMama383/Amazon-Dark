@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.130-transition-floor-probe"
+#define AD_VERSION "v7.131-deals-for-you-fix-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -868,6 +868,16 @@ static NSString *ADFloorJS(void){
             "{background-color:transparent!important;border-color:#494d4d!important;}"
             ".ufs_tiles_card_widget-suggestion :is(h1,h2,h3,h4,h5,h6,p,span,a,div)"
             "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+            /* v7.131: the v7.130 screenshot probe shows the one remaining white plane is not
+             * a card/image wrapper at all; every caption owns an exact 76x42
+             * .ufs_tiles_card_widget-sug-text DIV with computed rgb(255,255,255). Keep this
+             * exact caption owner after the generic neutral-copy rule so the requested OLED
+             * floor + pure-white label ink win by source order without touching product media. */
+            ".ufs_tiles_card_widget-suggestion .ufs_tiles_card_widget-sug-text"
+            "{background:#000!important;background-color:#000!important;color:#fff!important;"
+            "-webkit-text-fill-color:#fff!important;}"
+            ".ufs_tiles_card_widget-suggestion .ufs_tiles_card_widget-sug-text *"
+            "{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
             /* Share/overflow exact leaves from probe history. */
             ".puis-mab-overlay-row-share .puis-mab-overlay-icon-share"
             "{background-color:#e8e6e3!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;filter:none!important;}"
@@ -3786,7 +3796,7 @@ static void ADConsiderLaunchReady706(void){
 %end
 
 // -----------------------------------------------------------------------------
-// v7.130 transition-floor probe. Screenshot/SIGUSR2 capture is retained so the
+// v7.131 Search Deals probe. Screenshot/SIGUSR2 capture is retained so the
 // exact held-row platter, native backing floors and loading WKWebViews can be verified.
 // It is diagnostic-only and runs only after an iOS screenshot or SIGUSR2.
 // No observer/scan/timer runs during ordinary app use.
@@ -3797,9 +3807,9 @@ static dispatch_source_t gADSearchProbeSignal7123=nil;
 static NSString *ADSearchProbePath7123(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.130-transition-floor-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.131-deals-for-you-fix-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.130-transition-floor-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.131-deals-for-you-fix-probe.txt"];
 }
 static void ADSearchProbeAppend7123(NSString *s){
     if(!s.length)return;
@@ -3943,7 +3953,7 @@ static NSString *ADSearchProbeDOMJS7123(void){
 }
 static void ADCaptureSearchVisibility7123(NSString *trigger){
     if(!gP.enabled)return; NSUInteger run=++gADSearchProbeRun7123;
-    NSMutableString *head=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.129 TRANSITION FLOOR PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE WINDOWS / VIEWS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchProbeNative7123(),ADSearchProbeWebViews7123()];
+    NSMutableString *head=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.131 DEALS FOR YOU FIX PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE WINDOWS / VIEWS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchProbeNative7123(),ADSearchProbeWebViews7123()];
     ADSearchProbeAppend7123(head);
     WKWebView *wv=ADSearchProbeAutocompleteWeb7123();
     if(!wv){ ADSearchProbeAppend7123(@"\n===== AUTOCOMPLETE DOM =====\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"); return; }
