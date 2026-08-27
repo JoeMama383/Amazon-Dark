@@ -1,3 +1,15 @@
+# AmazonDark v7.130~transition-floor-probe — exact loading overlay + platter + keyboard placeholder owners
+
+Directly based on v7.129. The new Home→Cart screenshot/probe proves the v7.129 generic transition shells and destination WebKit backings are already OLED black while the visible white screen remains. Hit testing lands at every sampled content point on `AWLoadingIndicatorWidgets_BkgView <- AWLoadingIndicatorFullScreenModalBar`, so v7.130 owns those exact Amazon loading surfaces as OLED black and adds a black backing sublayer beneath their child content. The yellow loading/progress strip remains Amazon-owned. `AWLoadingIndicatorWidgets_LoadingText` is explicitly light.
+
+The held autocomplete row fix is corrected rather than broadened globally. The previous gate incorrectly required `_UIPlatter*` to be an ancestor/descendant of `WKContentView`/`WKWebView`; the probe shows UIKit portal-mounts the platter alongside WebKit compositing views. v7.130 gates exact `_UIPlatter*` classes in `AppCXWindow` by row-sized geometry, paints the platter backing black, and intercepts only bright-neutral plain `UIView` children that actually live under a platter. No general bright-UIView repaint is added.
+
+The lower white block exposed when the keyboard disappears is now owned at the two exact lower keyboard surfaces seen in the probe: `UIInputSetHostView` and `_UIRemoteKeyboardPlaceholderView`. `UIInputSetContainerView` remains untouched. Unlike the failed v7.121/v7.122 compositor experiment, v7.130 applies no color-matrix/filter and no full-screen text-effects paint. The lower host/placeholder are allowed to take OLED backing only while their local `UIKeyboardDockView` is actually hidden, so normal keyboard presentation stays on the existing v7.126 OledKeyboard path.
+
+All v7.127/v7.128 microphone geometry edits remain absent. No MutationObserver, polling loop, recurring timer, RAF, interval, or web scroll listener is introduced. The screenshot/SIGUSR2 probe remains and writes `AmazonDark-v7.130-transition-floor-probe.txt`.
+
+---
+
 # AmazonDark v7.129~transition-floor-probe — OLED transition backings + held-row platter
 
 Directly based on v7.128, with **all v7.127/v7.128 microphone/dock-item geometry edits removed**. The keyboard implementation is back to the unchanged v7.126 OledKeyboard-derived ownership model: no `UIKeyboardDockItemButton` hook, no microphone image inset, and no edit to the left/right dock glyph geometry.

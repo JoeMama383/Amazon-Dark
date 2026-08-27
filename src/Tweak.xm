@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.129-transition-floor-probe"
+#define AD_VERSION "v7.130-transition-floor-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -75,6 +75,13 @@ extern char *__progname;
 @interface _UIPlatterView : UIView @end
 @interface _UIPlatterSoftShadowView : UIView @end
 @interface _UIPlatterShadowView : UIView @end
+
+// v7.130: exact owners proven by the v7.129 transition probe.
+@interface AWLoadingIndicatorFullScreenModalBar : UIView @end
+@interface AWLoadingIndicatorWidgets_BkgView : UIView @end
+@interface AWLoadingIndicatorWidgets_LoadingText : UILabel @end
+@interface UIInputSetHostView : UIView @end
+@interface _UIRemoteKeyboardPlaceholderView : UIView @end
 
 // OledKeyboard-derived UIKit owners. Kept local to the Amazon process by AmazonDark.plist.
 @interface UIKeyboard : UIView
@@ -2186,12 +2193,58 @@ static void ADRepaintNearestANXTab724(UIView *v){
     if(root)ADPaintANXTabBar724(root);
 }
 
+// v7.130: the v7.129 platter fix missed because UIKit's selection platter is
+// portal-mounted alongside WebKit compositing views rather than necessarily being
+// a descendant of WKContentView/WKWebView.  Gate the actual bright child by exact
+// platter ancestry + AppCXWindow + row-sized geometry instead.
+static BOOL ADBrightNeutral7130(UIColor *c){
+    if(!c)return NO;
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0;
+        if([c getRed:&r green:&g blue:&b alpha:&a]){
+            CGFloat hi=MAX(r,MAX(g,b)),lo=MIN(r,MIN(g,b));
+            return a>0.20 && ((r+g+b)/3.0)>0.72 && (hi-lo)<0.12;
+        }
+        if([c getWhite:&w alpha:&a])return a>0.20 && w>0.72;
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADSelectionPlatterChild7130(UIView *v, UIColor *candidate){
+    if(!gP.enabled||!v||!v.window||!candidate||!ADBrightNeutral7130(candidate))return NO;
+    @try {
+        if(strcmp(object_getClassName(v),"UIView")!=0)return NO;
+        if(![NSStringFromClass(v.window.class) isEqualToString:@"AppCXWindow"])return NO;
+        CGRect r=[v convertRect:v.bounds toView:v.window];
+        CGFloat sw=v.window.bounds.size.width;
+        if(sw<1.0||r.size.width<sw*0.60||r.size.height<18.0||r.size.height>130.0)return NO;
+        UIView *n=v.superview;
+        for(int d=0;n&&d<8;d++,n=n.superview){
+            NSString *cn=NSStringFromClass(n.class);
+            if([cn hasPrefix:@"_UIPlatter"])return YES;
+            if([n isKindOfClass:[UIWindow class]])break;
+        }
+    } @catch(...) {}
+    return NO;
+}
+
 %hook UIView
 - (void)didMoveToWindow {
     %orig;
+    if(gP.enabled && self.window && ADSelectionPlatterChild7130(self,self.backgroundColor)){
+        UIColor *black=ADOLED();
+        self.backgroundColor=black;
+        self.layer.backgroundColor=black.CGColor;
+        return;
+    }
     if(gP.enabled && self.window && ADNativeFloorCandidate(self)) ADOwnNativeFloor(self);
 }
 - (void)setBackgroundColor:(UIColor *)color {
+    if(gP.enabled && self.window && ADSelectionPlatterChild7130(self,color)){
+        UIColor *black=ADOLED();
+        %orig(black);
+        self.layer.backgroundColor=black.CGColor;
+        return;
+    }
     if(gP.enabled && objc_getAssociatedObject(self,kADTabIndicator724)){
         UIColor *white=ADLightText706();
         %orig(white);
@@ -2307,13 +2360,17 @@ static BOOL ADBrightNeutral7129(UIColor *c){
     return NO;
 }
 static BOOL ADWebPlatter7129(UIView *v){
-    if(!v||!v.window||!ADPrimaryAmazonWindow713(v.window,nil))return NO;
+    if(!v||!v.window||!gP.enabled)return NO;
     @try {
-        for(UIView *n=v;n;n=n.superview){
-            NSString *cn=NSStringFromClass(n.class);
-            if([cn isEqualToString:@"WKContentView"]||[cn isEqualToString:@"WKWebView"])return YES;
-            if([n isKindOfClass:[UIWindow class]])break;
-        }
+        // Text-selection platters are portal-mounted siblings of WebKit content on
+        // this iOS build, so WK ancestor testing is wrong.  The exact private
+        // platter class + primary AppCXWindow + row-sized geometry is sufficient.
+        NSString *cn=NSStringFromClass(v.class);
+        if(![cn hasPrefix:@"_UIPlatter"])return NO;
+        if(![NSStringFromClass(v.window.class) isEqualToString:@"AppCXWindow"])return NO;
+        CGRect r=[v convertRect:v.bounds toView:v.window];
+        CGFloat sw=v.window.bounds.size.width;
+        return sw>0.0 && r.size.width>=sw*0.55 && r.size.height>=18.0 && r.size.height<=140.0;
     } @catch(...) {}
     return NO;
 }
@@ -2321,26 +2378,29 @@ static void ADPaintWebPlatter7129(UIView *root){
     if(!gP.enabled||!root||!ADWebPlatter7129(root))return;
     @try {
         UIColor *black=ADOLED();
+        root.backgroundColor=black;
+        root.layer.backgroundColor=black.CGColor;
         root.layer.shadowOpacity=0.0f;
         root.layer.shadowColor=black.CGColor;
-        NSArray *l1=root.subviews.copy?:@[];
-        for(UIView *a in l1){
-            a.layer.shadowOpacity=0.0f;
-            a.layer.shadowColor=black.CGColor;
-            // Probe V#210/V#213: the offending strip is a plain UIView child of
-            // the platter shadow owner with a bright neutral fill and no raster.
-            const char *ac=object_getClassName(a);
-            if(ac&&strcmp(ac,"UIView")==0&&a.layer.contents==nil&&ADBrightNeutral7129(a.backgroundColor)){
-                a.backgroundColor=black; a.layer.backgroundColor=black.CGColor;
+
+        // The current platter subtree is tiny. Walk at most five levels so the
+        // exact V#210/V#213 plain-UIView plates are caught regardless of which
+        // _UIPlatter* node Amazon lays out first. Portal/raster content is not
+        // recolored; only bright-neutral plain UIView backplates are changed.
+        NSMutableArray *stack=[NSMutableArray array];
+        for(UIView *c in (root.subviews.copy?:@[])) [stack addObject:@{ @"v":c, @"d":@1 }];
+        while(stack.count){
+            NSDictionary *it=stack.lastObject; [stack removeLastObject];
+            UIView *v=it[@"v"]; int d=[it[@"d"] intValue];
+            if(!v||d>5)continue;
+            v.layer.shadowOpacity=0.0f;
+            v.layer.shadowColor=black.CGColor;
+            const char *vc=object_getClassName(v);
+            if(vc&&strcmp(vc,"UIView")==0&&v.layer.contents==nil&&ADBrightNeutral7129(v.backgroundColor)){
+                v.backgroundColor=black;
+                v.layer.backgroundColor=black.CGColor;
             }
-            for(UIView *b in (a.subviews.copy?:@[])){
-                b.layer.shadowOpacity=0.0f;
-                b.layer.shadowColor=black.CGColor;
-                const char *bc=object_getClassName(b);
-                if(bc&&strcmp(bc,"UIView")==0&&b.layer.contents==nil&&ADBrightNeutral7129(b.backgroundColor)){
-                    b.backgroundColor=black; b.layer.backgroundColor=black.CGColor;
-                }
-            }
+            for(UIView *c in (v.subviews.copy?:@[])) [stack addObject:@{ @"v":c, @"d":@(d+1) }];
         }
     } @catch(...) {}
 }
@@ -2474,6 +2534,194 @@ static void ADPaintWebPlatter7129(UIView *root){
 - (void)layoutSubviews {
     %orig;
     ADPaintWebPlatter7129((UIView *)self);
+}
+%end
+
+// v7.130 — probe-proven cart/Home transition owner.  Every generic transition
+// shell and the destination WKWebView is already OLED black in v7.129.  The
+// visible white frame is Amazon's own full-screen loading overlay:
+// AWLoadingIndicatorFullScreenModalBar -> AWLoadingIndicatorWidgets_BkgView.
+// A dedicated black backing sublayer also covers any class-owned drawRect/layer
+// contents while keeping Amazon's yellow progress bar and child labels above it.
+static const void *kADLoadingBacking7130=&kADLoadingBacking7130;
+static const void *kADKeyboardBacking7130=&kADKeyboardBacking7130;
+static CALayer *ADBlackBackingLayer7130(UIView *v,const void *key){
+    if(!v)return nil;
+    CALayer *back=objc_getAssociatedObject(v,key);
+    if(!back){
+        back=[CALayer layer];
+        back.name=@"AmazonDarkOLEDBacking7130";
+        back.zPosition=-1000.0;
+        [v.layer insertSublayer:back atIndex:0];
+        objc_setAssociatedObject(v,key,back,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+    back.frame=v.bounds;
+    back.backgroundColor=ADOLED().CGColor;
+    back.hidden=NO;
+    return back;
+}
+static BOOL ADAppLoadingSurface7130(UIView *v){
+    if(!gP.enabled||!v||!v.window)return NO;
+    @try {
+        if(![NSStringFromClass(v.window.class) isEqualToString:@"AppCXWindow"])return NO;
+        CGRect r=[v convertRect:v.bounds toView:v.window];
+        CGFloat sw=v.window.bounds.size.width;
+        return sw>0.0 && r.size.width>=sw*0.85 && r.size.height>=120.0;
+    } @catch(...) {}
+    return NO;
+}
+static void ADOwnAppLoadingSurface7130(UIView *v){
+    if(!ADAppLoadingSurface7130(v))return;
+    @try {
+        UIColor *black=ADOLED();
+        v.opaque=YES;
+        v.backgroundColor=black;
+        v.layer.backgroundColor=black.CGColor;
+        ADBlackBackingLayer7130(v,kADLoadingBacking7130);
+    } @catch(...) {}
+}
+
+%hook AWLoadingIndicatorFullScreenModalBar
+- (void)didMoveToWindow {
+    %orig;
+    ADOwnAppLoadingSurface7130((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADOwnAppLoadingSurface7130((UIView *)self);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(ADAppLoadingSurface7130((UIView *)self)){
+        UIColor *black=ADOLED();
+        %orig(black);
+        self.layer.backgroundColor=black.CGColor;
+        ADBlackBackingLayer7130((UIView *)self,kADLoadingBacking7130);
+        return;
+    }
+    %orig(color);
+}
+%end
+
+%hook AWLoadingIndicatorWidgets_BkgView
+- (void)didMoveToWindow {
+    %orig;
+    ADOwnAppLoadingSurface7130((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADOwnAppLoadingSurface7130((UIView *)self);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(ADAppLoadingSurface7130((UIView *)self)){
+        UIColor *black=ADOLED();
+        %orig(black);
+        self.layer.backgroundColor=black.CGColor;
+        ADBlackBackingLayer7130((UIView *)self,kADLoadingBacking7130);
+        return;
+    }
+    %orig(color);
+}
+%end
+
+%hook AWLoadingIndicatorWidgets_LoadingText
+- (void)didMoveToWindow {
+    %orig;
+    if(gP.enabled&&self.window) self.textColor=ADLightText706();
+}
+- (void)layoutSubviews {
+    %orig;
+    if(gP.enabled&&self.window) self.textColor=ADLightText706();
+}
+- (void)setTextColor:(UIColor *)color {
+    if(gP.enabled&&self.window){
+        UIColor *light=ADLightText706();
+        %orig(light);
+        return;
+    }
+    %orig(color);
+}
+%end
+
+// v7.130 — fill only the lower remote-keyboard host/placeholder exposed while
+// the real OLED UIKeyboardDockView is hidden during WebKit selection.  Unlike
+// v7.121/v7.122 this does NOT touch UIInputSetContainerView and applies NO
+// Core Animation color-matrix/compositor filter.  A black backing sublayer sits
+// behind the remote placeholder only while the real UIKeyboardDockView is hidden.
+// Normal keyboard presentation therefore remains on the v7.126 OledKeyboard path.
+static BOOL ADHiddenKeyboardDock7130(UIView *v){
+    if(!v)return NO;
+    @try {
+        UIView *host=v;
+        if(![host isKindOfClass:%c(UIInputSetHostView)]) host=v.superview;
+        if(!host||![host isKindOfClass:%c(UIInputSetHostView)])return NO;
+        for(UIView *child in (host.subviews.copy?:@[])){
+            if([NSStringFromClass(child.class) isEqualToString:@"UIKeyboardDockView"])
+                return child.hidden||child.alpha<=0.01;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADLowerKeyboardSurface7130(UIView *v){
+    if(!gP.enabled||!v||!v.window||!ADHiddenKeyboardDock7130(v))return NO;
+    @try {
+        if(![NSStringFromClass(v.window.class) isEqualToString:@"UITextEffectsWindow"])return NO;
+        CGRect r=[v convertRect:v.bounds toView:v.window];
+        CGRect wb=v.window.bounds;
+        return wb.size.width>0.0 && r.size.width>=wb.size.width*0.85 &&
+               r.size.height>=120.0 && r.size.height<=460.0 && CGRectGetMinY(r)>=wb.size.height*0.35;
+    } @catch(...) {}
+    return NO;
+}
+static void ADOwnLowerKeyboardSurface7130(UIView *v){
+    if(!ADLowerKeyboardSurface7130(v))return;
+    @try {
+        UIColor *black=ADOLED();
+        v.opaque=YES;
+        v.backgroundColor=black;
+        v.layer.backgroundColor=black.CGColor;
+        ADBlackBackingLayer7130(v,kADKeyboardBacking7130);
+    } @catch(...) {}
+}
+
+%hook UIInputSetHostView
+- (void)didMoveToWindow {
+    %orig;
+    ADOwnLowerKeyboardSurface7130((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADOwnLowerKeyboardSurface7130((UIView *)self);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(ADLowerKeyboardSurface7130((UIView *)self)){
+        UIColor *black=ADOLED();
+        %orig(black);
+        self.layer.backgroundColor=black.CGColor;
+        ADBlackBackingLayer7130((UIView *)self,kADKeyboardBacking7130);
+        return;
+    }
+    %orig(color);
+}
+%end
+
+%hook _UIRemoteKeyboardPlaceholderView
+- (void)didMoveToWindow {
+    %orig;
+    ADOwnLowerKeyboardSurface7130((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADOwnLowerKeyboardSurface7130((UIView *)self);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(ADLowerKeyboardSurface7130((UIView *)self)){
+        UIColor *black=ADOLED();
+        %orig(black);
+        self.layer.backgroundColor=black.CGColor;
+        ADBlackBackingLayer7130((UIView *)self,kADKeyboardBacking7130);
+        return;
+    }
+    %orig(color);
 }
 %end
 
@@ -3538,7 +3786,7 @@ static void ADConsiderLaunchReady706(void){
 %end
 
 // -----------------------------------------------------------------------------
-// v7.129 transition-floor probe. Screenshot/SIGUSR2 capture is retained so the
+// v7.130 transition-floor probe. Screenshot/SIGUSR2 capture is retained so the
 // exact held-row platter, native backing floors and loading WKWebViews can be verified.
 // It is diagnostic-only and runs only after an iOS screenshot or SIGUSR2.
 // No observer/scan/timer runs during ordinary app use.
@@ -3549,9 +3797,9 @@ static dispatch_source_t gADSearchProbeSignal7123=nil;
 static NSString *ADSearchProbePath7123(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.129-transition-floor-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.130-transition-floor-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.129-transition-floor-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.130-transition-floor-probe.txt"];
 }
 static void ADSearchProbeAppend7123(NSString *s){
     if(!s.length)return;
