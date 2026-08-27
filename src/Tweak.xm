@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.133-search-gap-floor-probe"
+#define AD_VERSION "v7.135-att-video-restore-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -735,7 +735,7 @@ static NSHashTable *gADWebViews=nil;
 static NSString *ADFloorJS(void){
     // v7.0.14: static v185-style palette. CSS only: no Dark Reader, no observer,
     // no computed-style repair walker. Own known structural shells; preserve media/art.
-    return @"(function(){try{var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement){document.documentElement.setAttribute('data-ad7-child-frame','1');try{var ref=String(document.referrer||'').toLowerCase();var productish=/\\/dp\\/|\\/gp\\/product\\/|\\/gp\\/aw\\/d\\/|\\/s(?:[\\/?]|$)|[?&]k=/.test(ref);if(!productish)document.documentElement.setAttribute('data-ad7-standalone-candidate','1');}catch(__){}}var id='ad7-static-theme',s=document.getElementById(id);"
+    return @"(function(){try{var host='';try{host=String(location.hostname||'').toLowerCase();}catch(_){}if(host==='flashtalking.com'||/\\.flashtalking\\.com$/.test(host))return;var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement){document.documentElement.setAttribute('data-ad7-child-frame','1');try{var ref=String(document.referrer||'').toLowerCase();var productish=/\\/dp\\/|\\/gp\\/product\\/|\\/gp\\/aw\\/d\\/|\\/s(?:[\\/?]|$)|[?&]k=/.test(ref);if(!productish)document.documentElement.setAttribute('data-ad7-standalone-candidate','1');}catch(__){}}var id='ad7-static-theme',s=document.getElementById(id);"
             "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
             "s.textContent='"
             /* Root/page floors: immediate OLED canvas. */
@@ -1439,7 +1439,7 @@ static NSString *ADStandalonePaintJS7104(void){
     CGFloat shade=0.10+(0.48*t);
     CGFloat factor=1.0-shade;
     return [NSString stringWithFormat:
-        @"(function(){try{if(window.top===window)return;var h=document.documentElement;if(!h)return;"
+        @"(function(){try{if(window.top===window)return;var host='';try{host=String(location.hostname||'').toLowerCase();}catch(_){}if(host==='flashtalking.com'||/\\.flashtalking\\.com$/.test(host))return;var h=document.documentElement;if(!h)return;"
          "var ref=String(document.referrer||'').toLowerCase();"
          "var productish=/\\/dp\\/|\\/gp\\/product\\/|\\/gp\\/aw\\/d\\/|\\/s(?:[\\/?]|$)|[?&]k=/.test(ref);"
          "if(productish)return;h.setAttribute('data-ad7104-standalone','1');"
@@ -1569,19 +1569,16 @@ static NSString *ADStandalonePaintJS7104(void){
          "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] "
          ".swiper-slide [data-testid=pictureHighQuality]"
          "{filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;}"
-         /* v7.107: third-party 300x250 display/video creative TWB. The device
-          * probe exposes this lane as #mobile-third-party-ad -> Flashtalking
-          * creative container -> nested iframe. Dim the one outer ad host once;
-          * this reaches canvas/HTML5/video internals without scanning or touching
-          * Amazon's separate Sponsored feedback row. */
-         "html[data-ad7104-standalone] #mobile-third-party-ad"
-         "{filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;}"
+         /* v7.135: do not filter the entire #mobile-third-party-ad subtree.
+          * Current AT&T video keeps the 430x358 APE SafeFrame mounted but paints black;
+          * whole-subtree CSS filter ownership is removed so WebKit can composite the
+          * nested third-party video/iframe natively. */
          "';"
          "function black(){try{h=document.documentElement||h;if(!h)return;h.setAttribute('data-ad7104-standalone','1');h.style.setProperty('background-color','#000','important');h.style.setProperty('color-scheme','dark','important');if(document.body){document.body.style.setProperty('background-color','#000','important');document.body.style.setProperty('color-scheme','dark','important')}}catch(_){}}"
          "function own(){try{h=document.documentElement||h;if(!h)return false;black();if(!(document.adoptedStyleSheets&&window.CSSStyleSheet&&CSSStyleSheet.prototype&&CSSStyleSheet.prototype.replaceSync))return false;var sh=window[KEY];if(!sh){sh=new CSSStyleSheet();sh.replaceSync(CSS);window[KEY]=sh;}var a=document.adoptedStyleSheets||[],found=false;for(var i=0;i<a.length;i++)if(a[i]===sh){found=true;break;}if(!found)document.adoptedStyleSheets=a.concat([sh]);return true}catch(e){return false}}"
          "window.__ad7106StandaloneState=function(){try{var sh=window[KEY]||null,a=document.adoptedStyleSheets||[],found=false;for(var i=0;i<a.length;i++)if(a[i]===sh){found=true;break;}return{adoptedSupported:!!(document.adoptedStyleSheets&&window.CSSStyleSheet&&CSSStyleSheet.prototype&&CSSStyleSheet.prototype.replaceSync),sheet:!!sh,adopted:found,rules:sh&&sh.cssRules?sh.cssRules.length:0,htmlSame:(document.documentElement===h),attr:!!(document.documentElement&&document.documentElement.hasAttribute('data-ad7104-standalone'))}}catch(e){return{error:String(e)}}};"
          "own();document.addEventListener('readystatechange',function(){own()},false);window.addEventListener('pageshow',function(){own()},false);"
-         "}catch(e){}})();",factor,factor,factor,factor,factor,factor];
+         "}catch(e){}})();",factor,factor,factor,factor];
 }
 
 
@@ -1600,7 +1597,7 @@ static NSString *ADTWBJS(void){
     CGFloat shade=0.10+(0.48*t);
     CGFloat factor=1.0-shade;
     return [NSString stringWithFormat:
-        @"(function(){try{var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement)document.documentElement.setAttribute('data-ad7-twb-child','1');var id='ad7-twb-static',s=document.getElementById(id);"
+        @"(function(){try{var host='';try{host=String(location.hostname||'').toLowerCase();}catch(_){}if(host==='flashtalking.com'||/\\.flashtalking\\.com$/.test(host))return;var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement)document.documentElement.setAttribute('data-ad7-twb-child','1');var id='ad7-twb-static',s=document.getElementById(id);"
          "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
          "s.textContent='"
          /* Ordinary/product imagery. */
@@ -1675,11 +1672,9 @@ static NSString *ADTWBJS(void){
           * "carousel" semantics and cannot touch Prime/star accent painters. */
          "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] "
          ".swiper-slide [data-testid=pictureHighQuality],"
-         /* v7.107: exact third-party standalone creative host captured by the
-          * Flashtalking 300x250 probe. Filtering the outer host once tames the
-          * entire HTML5/canvas/video creative while avoiding generic standalone
-          * child media and its logos/deal artwork. */
-         "html[data-ad7-standalone-candidate] #mobile-third-party-ad,"
+         /* v7.135: third-party Flashtalking/video creatives are intentionally absent
+          * from TWB selector ownership. They render as stock opaque creatives so a
+          * compositor filter cannot turn the nested video surface black. */
          /* Main-document standalone ad media if Amazon renders it outside the iframe. */
          "#gwm-Deck-btf :is([class*=mobile-mshop-ad],[class*=mobile-ad-container],[class*=ape-wrapper],[class*=ape-placement]) "
          ":is(img,video,canvas)"
@@ -3836,25 +3831,24 @@ static void ADConsiderLaunchReady706(void){
 %end
 
 // -----------------------------------------------------------------------------
-// v7.133 Search-gap floor probe. Screenshot/SIGUSR2 capture is retained so the
-// exact held-row platter, native backing floors and loading WKWebViews can be verified.
-// It is diagnostic-only and runs only after an iOS screenshot or SIGUSR2.
-// No observer/scan/timer runs during ordinary app use.
+// v7.134 spinner-wheel probe. Diagnostic-only screenshot/SIGUSR2 capture for the
+// intermittent white-filled loading wheel. The current production CSS is left
+// unchanged so the capture reflects the real painter. No recurring work runs.
 // -----------------------------------------------------------------------------
-static NSUInteger gADSearchProbeRun7123=0;
-static dispatch_source_t gADSearchProbeSignal7123=nil;
+static NSUInteger gADSpinnerProbeRun7134=0;
+static dispatch_source_t gADSpinnerProbeSignal7134=nil;
 
-static NSString *ADSearchProbePath7123(void){
+static NSString *ADSpinnerProbePath7134(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.133-search-gap-floor-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.135-spinner-wheel-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.133-search-gap-floor-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.135-spinner-wheel-probe.txt"];
 }
-static void ADSearchProbeAppend7123(NSString *s){
+static void ADSpinnerProbeAppend7134(NSString *s){
     if(!s.length)return;
     @try {
-        NSString *p=ADSearchProbePath7123(); NSFileManager *fm=[NSFileManager defaultManager];
+        NSString *p=ADSpinnerProbePath7134(); NSFileManager *fm=[NSFileManager defaultManager];
         [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil];
         NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding];
         if(![fm fileExistsAtPath:p]){ [d writeToFile:p atomically:YES]; return; }
@@ -3862,7 +3856,7 @@ static void ADSearchProbeAppend7123(NSString *s){
         if(h){ [h seekToEndOfFile]; [h writeData:d]; [h closeFile]; }
     } @catch(...) {}
 }
-static NSString *ADSearchProbeColor7123(UIColor *c){
+static NSString *ADSpinnerProbeColor7134(UIColor *c){
     if(!c)return @"nil";
     @try {
         CGFloat r=0,g=0,b=0,a=0,w=0;
@@ -3871,146 +3865,118 @@ static NSString *ADSearchProbeColor7123(UIColor *c){
         return c.description?:@"?";
     } @catch(...) { return @"?"; }
 }
-static NSString *ADSearchProbeCG7123(CGColorRef cg){
+static NSString *ADSpinnerProbeCG7134(CGColorRef cg){
     if(!cg)return @"nil";
-    @try { return ADSearchProbeColor7123([UIColor colorWithCGColor:cg]); } @catch(...) { return @"?"; }
+    @try { return ADSpinnerProbeColor7134([UIColor colorWithCGColor:cg]); } @catch(...) { return @"?"; }
 }
-static NSString *ADSearchProbeFilters7123(CALayer *l){
-    if(!l)return @"-";
-    @try {
-        NSMutableArray *out=[NSMutableArray array];
-        NSArray *fs=[l valueForKey:@"filters"];
-        for(id f in fs){
-            NSString *n=nil,*t=nil;
-            @try { n=[f valueForKey:@"name"]; } @catch(...) {}
-            @try { t=[f valueForKey:@"type"]; } @catch(...) {}
-            [out addObject:[NSString stringWithFormat:@"%@:%@:%@",NSStringFromClass([f class]),n?:@"-",t?:@"-"]];
-        }
-        id comp=nil; @try { comp=l.compositingFilter; } @catch(...) {}
-        if(comp)[out addObject:[NSString stringWithFormat:@"compositing=%@",comp]];
-        return out.count?[out componentsJoinedByString:@","]:@"-";
-    } @catch(...) { return @"?"; }
-}
-static NSString *ADSearchProbeAid7123(UIView *v){
-    @try { NSString *a=v.accessibilityIdentifier; return a.length?[a substringToIndex:MIN((NSUInteger)100,a.length)]:@""; } @catch(...) { return @""; }
-}
-static BOOL ADSearchProbeRelevantClass7123(NSString *n){
-    NSString *s=n.lowercaseString?:@"";
-    NSArray *keys=@[@"search",@"keyboard",@"inputset",@"texteffects",@"overlay",@"portal",@"platter",@"transition",@"layoutcontainer",@"wrapper",@"webview",@"wkcontent",@"wkscroll",@"scanit",@"toucharea",@"multiline",@"topnav"];
-    for(NSString *k in keys)if([s containsString:k])return YES;
+static BOOL ADSpinnerProbeClass7134(NSString *name){
+    NSString *n=name.lowercaseString?:@"";
+    NSArray *keys=@[@"spinner",@"loading",@"progress",@"activityindicator",@"indicator",@"refresh"];
+    for(NSString *k in keys)if([n containsString:k])return YES;
     return NO;
 }
-static NSString *ADSearchProbeViewLine7123(UIView *v,NSUInteger idx,NSUInteger depth){
+static NSString *ADSpinnerProbeNativeLine7134(UIView *v,NSUInteger depth){
     @try {
         CGRect r=[v convertRect:v.bounds toView:nil]; CALayer *l=v.layer;
-        return [NSString stringWithFormat:@"V #%lu d=%lu cls=%@ r=(%.1f,%.1f %.1fx%.1f) b=(%.1f,%.1f %.1fx%.1f) hidden=%d a=%.2f ui=%d opaque=%d clips=%d masks=%d bg=%@ layerBg=%@ z=%.1f filters=%@ aid=\"%@\" contents=%d transBack=%d\n",
-                (unsigned long)idx,(unsigned long)depth,NSStringFromClass(v.class),r.origin.x,r.origin.y,r.size.width,r.size.height,
-                v.bounds.origin.x,v.bounds.origin.y,v.bounds.size.width,v.bounds.size.height,v.hidden?1:0,v.alpha,v.userInteractionEnabled?1:0,v.opaque?1:0,
-                v.clipsToBounds?1:0,l.masksToBounds?1:0,ADSearchProbeColor7123(v.backgroundColor),ADSearchProbeCG7123(l.backgroundColor),
-                l.zPosition,ADSearchProbeFilters7123(l),ADSearchProbeAid7123(v),l.contents?1:0,ADMarkedTransitionBacking7133(v)?1:0];
-    } @catch(...) { return [NSString stringWithFormat:@"V #%lu d=%lu ERROR\n",(unsigned long)idx,(unsigned long)depth]; }
+        NSMutableString *x=[NSMutableString stringWithFormat:@"N d=%lu cls=%@ r=(%.1f,%.1f %.1fx%.1f) hidden=%d alpha=%.2f bg=%@ layerBg=%@ tint=%@ border=%.1f:%@ radius=%.1f aid=\"%@\"",
+            (unsigned long)depth,NSStringFromClass(v.class),r.origin.x,r.origin.y,r.size.width,r.size.height,v.hidden?1:0,v.alpha,
+            ADSpinnerProbeColor7134(v.backgroundColor),ADSpinnerProbeCG7134(l.backgroundColor),ADSpinnerProbeColor7134(v.tintColor),l.borderWidth,ADSpinnerProbeCG7134(l.borderColor),l.cornerRadius,v.accessibilityIdentifier?:@""];
+        if([v isKindOfClass:[UIActivityIndicatorView class]]){
+            UIActivityIndicatorView *a=(UIActivityIndicatorView *)v;
+            [x appendFormat:@" activity=1 style=%ld color=%@ anim=%d",(long)a.activityIndicatorViewStyle,ADSpinnerProbeColor7134(a.color),a.isAnimating?1:0];
+        }
+        if([v isKindOfClass:[UIImageView class]]){
+            UIImage *im=((UIImageView *)v).image;
+            [x appendFormat:@" image=%d imageSize=(%.1fx%.1f) mode=%ld",im?1:0,im.size.width,im.size.height,(long)im.renderingMode];
+        }
+        [x appendString:@"\n"]; return x;
+    } @catch(...) { return @"NATIVE_LINE_ERR\n"; }
 }
-static NSString *ADSearchProbeHitChain7123(UIView *v){
-    if(!v)return @"nil";
-    NSMutableArray *a=[NSMutableArray array]; UIView *x=v;
-    for(int i=0;x&&i<8;i++,x=x.superview)[a addObject:[NSString stringWithFormat:@"%@%@",NSStringFromClass(x.class),ADSearchProbeAid7123(x).length?[NSString stringWithFormat:@"[%@]",ADSearchProbeAid7123(x)]:@""]];
-    return [a componentsJoinedByString:@" <- "];
+static NSString *ADSpinnerProbeHitChain7134(UIView *v){
+    NSMutableArray *a=[NSMutableArray array]; NSUInteger n=0;
+    @try { for(UIView *x=v;x&&n<14;x=x.superview,n++){ NSString *aid=x.accessibilityIdentifier?:@""; [a addObject:[NSString stringWithFormat:@"%@%@",NSStringFromClass(x.class),aid.length?[NSString stringWithFormat:@"[%@]",aid]:@""]]; } } @catch(...) {}
+    return a.count?[a componentsJoinedByString:@" <- "]:@"nil";
 }
-static NSString *ADSearchProbeNative7123(void){
+static NSString *ADSpinnerProbeNative7134(void){
     NSMutableString *m=[NSMutableString string];
     @try {
-        CGRect screen=UIScreen.mainScreen.bounds; CGFloat sa=screen.size.width*screen.size.height;
-        NSArray *wins=UIApplication.sharedApplication.windows;
+        NSArray *wins=UIApplication.sharedApplication.windows; CGRect screen=UIScreen.mainScreen.bounds;
         [m appendFormat:@"screen=(%.1fx%.1f) windows=%lu appState=%ld\n",screen.size.width,screen.size.height,(unsigned long)wins.count,(long)UIApplication.sharedApplication.applicationState];
-        NSUInteger wi=0,visited=0,emitted=0;
+        NSArray *pts=@[[NSValue valueWithCGPoint:CGPointMake(screen.size.width*.5,screen.size.height*.35)],
+                       [NSValue valueWithCGPoint:CGPointMake(screen.size.width*.5,screen.size.height*.50)],
+                       [NSValue valueWithCGPoint:CGPointMake(screen.size.width*.5,screen.size.height*.65)],
+                       [NSValue valueWithCGPoint:CGPointMake(screen.size.width*.5,screen.size.height*.80)]];
         for(UIWindow *w in wins){
-            if(!w)continue;
-            [m appendFormat:@"\nWINDOW #%lu cls=%@ level=%.1f key=%d hidden=%d alpha=%.2f frame=(%.1f,%.1f %.1fx%.1f) bg=%@ layerBg=%@ filters=%@\n",
-             (unsigned long)wi++,NSStringFromClass(w.class),w.windowLevel,w.isKeyWindow?1:0,w.hidden?1:0,w.alpha,w.frame.origin.x,w.frame.origin.y,w.frame.size.width,w.frame.size.height,
-             ADSearchProbeColor7123(w.backgroundColor),ADSearchProbeCG7123(w.layer.backgroundColor),ADSearchProbeFilters7123(w.layer)];
-            NSMutableArray *q=[NSMutableArray arrayWithObject:@{ @"v":w,@"d":@0 }];
-            while(q.count&&visited<1800&&emitted<950){
-                NSDictionary *m0=q.firstObject; [q removeObjectAtIndex:0]; UIView *v=m0[@"v"]; NSUInteger d=[m0[@"d"] unsignedIntegerValue]; if(!v)continue; visited++;
-                CGRect r=CGRectZero; @try { r=[v convertRect:v.bounds toView:nil]; } @catch(...) {}
-                CGRect ir=CGRectIntersection(r,screen); CGFloat area=CGRectIsNull(ir)?0:MAX(0,ir.size.width)*MAX(0,ir.size.height); CGFloat frac=sa>0?area/sa:0;
+            if(!w||w.hidden||w.alpha<0.01)continue;
+            [m appendFormat:@"WINDOW cls=%@ level=%.1f bg=%@ layerBg=%@\n",NSStringFromClass(w.class),w.windowLevel,ADSpinnerProbeColor7134(w.backgroundColor),ADSpinnerProbeCG7134(w.layer.backgroundColor)];
+            NSMutableArray *q=[NSMutableArray arrayWithObject:@{ @"v":w,@"d":@0 }]; NSUInteger seen=0,emitted=0;
+            while(q.count&&seen<700){
+                NSDictionary *it=q.firstObject; [q removeObjectAtIndex:0]; UIView *v=it[@"v"]; NSUInteger d=[it[@"d"] unsignedIntegerValue]; if(!v)continue; seen++;
                 NSString *cn=NSStringFromClass(v.class);
-                BOOL emit=(v==w)||ADSearchProbeRelevantClass7123(cn)||frac>=0.20||(CGRectGetMinY(ir)<260&&area>900);
-                if([v isKindOfClass:[UITextField class]]||[v isKindOfClass:[UITextView class]]||[v isKindOfClass:[WKWebView class]])emit=YES;
-                if(emit){ [m appendString:ADSearchProbeViewLine7123(v,visited,d)]; emitted++; }
-                if(d<22)for(UIView *c in v.subviews)if(c)[q addObject:@{ @"v":c,@"d":@(d+1) }];
+                if((ADSpinnerProbeClass7134(cn)||[v isKindOfClass:[UIActivityIndicatorView class]])&&!v.hidden&&v.alpha>0.01){ [m appendString:ADSpinnerProbeNativeLine7134(v,d)]; emitted++; }
+                if(d<24)for(UIView *c in v.subviews)if(c)[q addObject:@{ @"v":c,@"d":@(d+1) }];
             }
+            [m appendFormat:@"NATIVE_WINDOW_SUMMARY visited=%lu emitted=%lu\n",(unsigned long)seen,(unsigned long)emitted];
+            for(NSValue *pv in pts){ CGPoint sp=pv.CGPointValue,p=[w convertPoint:sp fromWindow:nil]; UIView *h=nil; @try { h=[w hitTest:p withEvent:nil]; } @catch(...) {} [m appendFormat:@"HIT p=(%.0f,%.0f) -> %@\n",sp.x,sp.y,ADSpinnerProbeHitChain7134(h)]; }
         }
-        [m appendFormat:@"\nNATIVE_SUMMARY visited=%lu emitted=%lu\n",(unsigned long)visited,(unsigned long)emitted];
-        [m appendString:@"\n--- HIT TESTS BY WINDOW ---\n"];
-        NSArray *pts=@[[NSValue valueWithCGPoint:CGPointMake(24,88)],[NSValue valueWithCGPoint:CGPointMake(screen.size.width/2,88)],[NSValue valueWithCGPoint:CGPointMake(screen.size.width/2,220)],[NSValue valueWithCGPoint:CGPointMake(screen.size.width/2,440)],[NSValue valueWithCGPoint:CGPointMake(screen.size.width/2,620)],[NSValue valueWithCGPoint:CGPointMake(screen.size.width/2,820)]];
-        for(UIWindow *w in wins){ if(!w||w.hidden||w.alpha<0.01)continue; [m appendFormat:@"WINDOW %@ level=%.1f\n",NSStringFromClass(w.class),w.windowLevel]; for(NSValue *pv in pts){ CGPoint sp=pv.CGPointValue,p=[w convertPoint:sp fromWindow:nil]; UIView *h=nil; @try { h=[w hitTest:p withEvent:nil]; } @catch(...) {} [m appendFormat:@"  p=(%.0f,%.0f) -> %@\n",sp.x,sp.y,ADSearchProbeHitChain7123(h)]; } }
-        [m appendString:@"\n--- VIEW CONTROLLERS ---\n"];
-        for(UIWindow *w in wins){ UIViewController *root=w.rootViewController; if(!root)continue; NSMutableArray *q=[NSMutableArray arrayWithObject:@{ @"vc":root,@"d":@0 }]; NSUInteger n=0; while(q.count&&n<80){ NSDictionary *it=q.firstObject;[q removeObjectAtIndex:0];UIViewController *vc=it[@"vc"];NSUInteger d=[it[@"d"] unsignedIntegerValue];if(!vc)continue;n++;CGRect r=CGRectZero;@try{if(vc.isViewLoaded)r=[vc.view convertRect:vc.view.bounds toView:nil];}@catch(...){}[m appendFormat:@"VC d=%lu cls=%@ viewLoaded=%d window=%d hidden=%d alpha=%.2f r=(%.1f,%.1f %.1fx%.1f)\n",(unsigned long)d,NSStringFromClass(vc.class),vc.isViewLoaded?1:0,(vc.isViewLoaded&&vc.view.window)?1:0,(vc.isViewLoaded&&vc.view.hidden)?1:0,vc.isViewLoaded?vc.view.alpha:0,r.origin.x,r.origin.y,r.size.width,r.size.height];if(vc.presentedViewController)[q addObject:@{ @"vc":vc.presentedViewController,@"d":@(d+1) }];for(UIViewController *c in vc.childViewControllers)if(c)[q addObject:@{ @"vc":c,@"d":@(d+1) }];} }
     } @catch(NSException *e){ [m appendFormat:@"NATIVE_EXCEPTION %@\n",e]; }
     return m;
 }
-static WKWebView *ADSearchProbeAutocompleteWeb7123(void){
-    WKWebView *fallback=nil; CGFloat best=0;
-    @try {
-        for(WKWebView *wv in ADTrackedWebViews()){
-            if(!wv||!wv.window||wv.hidden||wv.alpha<0.01)continue;
-            NSString *aid=wv.accessibilityIdentifier?:@""; NSString *u=wv.URL.absoluteString?:@"";
-            if([aid isEqualToString:@"Autocomplete_Webview_Identifier"]||[u.lowercaseString containsString:@"autocomplete"])return wv;
-            CGRect r=[wv convertRect:wv.bounds toView:nil],ir=CGRectIntersection(r,UIScreen.mainScreen.bounds);CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height);if(a>best){best=a;fallback=wv;}
-        }
-    } @catch(...) {}
-    return fallback;
-}
-static NSString *ADSearchProbeWebViews7123(void){
+static NSString *ADSpinnerProbeWebList7134(void){
     NSMutableString *m=[NSMutableString string]; NSUInteger n=0;
     @try {
         for(WKWebView *wv in ADTrackedWebViews()){
             if(!wv)continue; CGRect r=CGRectZero; @try { r=[wv convertRect:wv.bounds toView:nil]; } @catch(...) {}
-            UIScrollView *sv=wv.scrollView;
-            [m appendFormat:@"WEB #%lu aid=\"%@\" url=\"%@\" visible=%d hidden=%d alpha=%.2f loading=%d r=(%.1f,%.1f %.1fx%.1f) bg=%@ scrollBg=%@ content=(%.1fx%.1f) offset=(%.1f,%.1f) inset=(%.1f,%.1f,%.1f,%.1f)\n",
-             (unsigned long)n++,wv.accessibilityIdentifier?:@"",wv.URL.absoluteString?:@"",(wv.window&&!wv.hidden&&wv.alpha>0.01)?1:0,wv.hidden?1:0,wv.alpha,wv.loading?1:0,r.origin.x,r.origin.y,r.size.width,r.size.height,ADSearchProbeColor7123(wv.backgroundColor),ADSearchProbeColor7123(sv.backgroundColor),sv.contentSize.width,sv.contentSize.height,sv.contentOffset.x,sv.contentOffset.y,sv.contentInset.top,sv.contentInset.left,sv.contentInset.bottom,sv.contentInset.right];
+            CGRect ir=CGRectIntersection(r,UIScreen.mainScreen.bounds); CGFloat area=MAX(0,ir.size.width)*MAX(0,ir.size.height);
+            [m appendFormat:@"WEB #%lu aid=\"%@\" url=\"%@\" visible=%d hidden=%d alpha=%.2f loading=%d r=(%.1f,%.1f %.1fx%.1f) visibleArea=%.0f bg=%@ scrollBg=%@\n",
+                (unsigned long)n++,wv.accessibilityIdentifier?:@"",wv.URL.absoluteString?:@"",(wv.window&&!wv.hidden&&wv.alpha>0.01&&area>1)?1:0,wv.hidden?1:0,wv.alpha,wv.loading?1:0,
+                r.origin.x,r.origin.y,r.size.width,r.size.height,area,ADSpinnerProbeColor7134(wv.backgroundColor),ADSpinnerProbeColor7134(wv.scrollView.backgroundColor)];
         }
-    } @catch(NSException *e){ [m appendFormat:@"WEBVIEW_EXCEPTION %@\n",e]; }
+    } @catch(NSException *e){ [m appendFormat:@"WEBLIST_EXCEPTION %@\n",e]; }
     return m;
 }
-static NSString *ADSearchProbeDOMJS7123(void){
+static NSString *ADSpinnerProbeJS7134(void){
     return @"(function(){try{"
-    "function Q(s){return {content:s.content||'none',bg:s.backgroundColor,bgi:s.backgroundImage,bgp:s.backgroundPosition,bgs:s.backgroundSize,bgr:s.backgroundRepeat,color:s.color,mask:s.webkitMaskImage||s.maskImage||'none',filter:s.webkitFilter||s.filter||'none',font:s.fontFamily,fs:s.fontSize};}"
-    "function P(e){if(!e)return null;var r=e.getBoundingClientRect(),s=getComputedStyle(e),b=getComputedStyle(e,'::before'),a=getComputedStyle(e,'::after');return {tag:e.tagName,id:e.id||'',cls:String(e.className||'').slice(0,220),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,bgi:s.backgroundImage,bgp:s.backgroundPosition,bgs:s.backgroundSize,bgr:s.backgroundRepeat,color:s.color,mask:s.webkitMaskImage||s.maskImage||'none',filter:s.webkitFilter||s.filter||'none',font:s.fontFamily,fs:s.fontSize,pe:s.pointerEvents,z:s.zIndex,pos:s.position,before:Q(b),after:Q(a)};}"
-    "function G(sel){var a=[].slice.call(document.querySelectorAll(sel));return {count:a.length,items:a.slice(0,36).map(P)};}"
-    "var pts=[[24,20],[innerWidth/2,20],[innerWidth/2,48],[24,88],[innerWidth/2,88],[innerWidth/2,126],[innerWidth/2,180],[innerWidth/2,320],[innerWidth/2,500]];"
-    "var hit=pts.map(function(p){var a=(document.elementsFromPoint?document.elementsFromPoint(p[0],p[1]):[document.elementFromPoint(p[0],p[1])]).filter(Boolean).slice(0,8);return {p:p,stack:a.map(P)};});"
-    "var o={href:location.href,ready:document.readyState,viewport:[innerWidth,innerHeight,devicePixelRatio],body:P(document.body),doc:P(document.documentElement),scroll:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],"
-    "suggestions:G('.s-suggestion,.s-suggestion-container,[class*=recentSearch],[class*=search-suggestion]'),"
-    "queryRows:G('.s-query-row,.s-query-row-container,.s-query-row-link,.s-query-row-text'),"
-    "history:G('[class*=icon-past-search-sugge],.icon-close.s-suggestion-icon-left'),"
-    "searchIcons:G('i.icon-search-suggestion,.s-query-row-search-icon,.s-suggestion-icon-right,.s-suggestion-container [class*=icon-search],.s-suggestion-container [class*=search-icon],.s-suggestion [class*=icon-search],.s-suggestion [class*=search-icon]'),"
-    "deals:G('[class*=ufs_tiles_card_widget]'),"
-    "location:G('#attach-to-me [class*=location],#attach-to-me [class*=delivery],#attach-to-me [id*=location],#attach-to-me [id*=delivery],#attach-to-me [class*=glow],#attach-to-me [id*=glow],#attach-to-me [class*=ship-to],#attach-to-me [id*=ship-to],#attach-to-me [class*=shipto],#attach-to-me [id*=shipto]'),"
-    "headings:G('.s-suggestion-section-heading,.sac-header-component-single-line-header'),"
-    "fixed:G('body *'),hit:hit};"
-    "o.fixed.items=o.fixed.items.filter(function(x){return x&&((x.pos==='fixed'||x.pos==='sticky')&&(x.r[2]*x.r[3]>2000));}).slice(0,30);o.fixed.count=o.fixed.items.length;"
-    "return JSON.stringify(o,null,2);}catch(e){return 'DOM_ERR '+e;}})();";
+    "function S(e,p){try{var s=getComputedStyle(e,p||null);return {content:s.content||'none',display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,bgi:s.backgroundImage,bgp:s.backgroundPosition,bgs:s.backgroundSize,bgr:s.backgroundRepeat,color:s.color,mask:s.webkitMaskImage||s.maskImage||'none',filter:s.webkitFilter||s.filter||'none',transform:s.transform,anim:s.animationName+' '+s.animationDuration+' '+s.animationTimingFunction,border:s.border,borderTop:s.borderTop,borderRight:s.borderRight,borderBottom:s.borderBottom,borderLeft:s.borderLeft,radius:s.borderRadius,clip:s.clipPath||s.webkitClipPath||'none',fill:s.fill,stroke:s.stroke};}catch(_){return {err:String(_)}}}"
+    "function P(e){if(!e)return null;var r=e.getBoundingClientRect();return {tag:e.tagName,id:e.id||'',cls:String(e.className||'').slice(0,280),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],style:S(e),before:S(e,'::before'),after:S(e,'::after'),html:String(e.outerHTML||'').slice(0,700)};}"
+    "function V(e){if(!e)return false;var r=e.getBoundingClientRect(),s=getComputedStyle(e);return s.display!=='none'&&s.visibility!=='hidden'&&+s.opacity>0&&r.width>0&&r.height>0&&r.bottom>0&&r.right>0&&r.top<innerHeight&&r.left<innerWidth;}"
+    "var sel='.a-spinner,.a-spinner-wrapper,span.a-spinner.a-spinner-medium,[class*=_hp-mosaic-container_style_loadingSpinner],[class*=spinner],[class*=Spinner],[class*=loader],[class*=Loader],[class*=loading],[class*=Loading],[role=progressbar],[aria-busy=true]';"
+    "var q=[].slice.call(document.querySelectorAll(sel)).filter(V).slice(0,80).map(P);"
+    "var w=innerWidth,h=innerHeight;var pts=[[.5,.30],[.35,.42],[.5,.42],[.65,.42],[.35,.54],[.5,.54],[.65,.54],[.35,.66],[.5,.66],[.65,.66],[.35,.78],[.5,.78],[.65,.78]];"
+    "var grid=pts.map(function(p){var x=Math.round(w*p[0]),y=Math.round(h*p[1]);var a=(document.elementsFromPoint?document.elementsFromPoint(x,y):[document.elementFromPoint(x,y)]).filter(Boolean).slice(0,10);return {p:[x,y],stack:a.map(P)};});"
+    "return JSON.stringify({href:location.href,ready:document.readyState,viewport:[w,h,devicePixelRatio],scroll:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],body:P(document.body),doc:P(document.documentElement),semantic:q,grid:grid},null,2);"
+    "}catch(e){return 'SPINNER_DOM_ERR '+e;}})();";
 }
-static void ADCaptureSearchVisibility7123(NSString *trigger){
-    if(!gP.enabled)return; NSUInteger run=++gADSearchProbeRun7123;
-    NSMutableString *head=[NSMutableString stringWithFormat:@"\n\n================ AMAZON DARK v7.133 SEARCH GAP FLOOR PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE WINDOWS / VIEWS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",(unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchProbeNative7123(),ADSearchProbeWebViews7123()];
-    ADSearchProbeAppend7123(head);
-    WKWebView *wv=ADSearchProbeAutocompleteWeb7123();
-    if(!wv){ ADSearchProbeAppend7123(@"\n===== AUTOCOMPLETE DOM =====\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"); return; }
-    NSString *chosen=[NSString stringWithFormat:@"\n===== AUTOCOMPLETE DOM =====\nchosen aid=\"%@\" url=\"%@\"\n",wv.accessibilityIdentifier?:@"",wv.URL.absoluteString?:@""];
-    ADSearchProbeAppend7123(chosen);
-    [wv evaluateJavaScript:ADSearchProbeDOMJS7123() completionHandler:^(id v,NSError *e){
-        NSString *body=e?[NSString stringWithFormat:@"EVAL_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
-        ADSearchProbeAppend7123([NSString stringWithFormat:@"%@\n================ END RUN ================\n",body?:@"NO_DOM_DATA"]);
-    }];
+static void ADCaptureSpinnerProbe7134(NSString *trigger){
+    if(!gP.enabled)return; NSUInteger run=++gADSpinnerProbeRun7134;
+    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.135 SPINNER WHEEL PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nprivacyMode=%d\npolicy=no typed text, clipboard data, request bodies or headers captured\n\n===== NATIVE =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
+        (unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",gP.privacyMode?1:0,ADSpinnerProbeNative7134(),ADSpinnerProbeWebList7134()];
+    ADSpinnerProbeAppend7134(head);
+    NSMutableArray *visible=[NSMutableArray array];
+    @try {
+        for(WKWebView *wv in ADTrackedWebViews()){
+            if(!wv||!wv.window||wv.hidden||wv.alpha<0.01)continue; CGRect r=[wv convertRect:wv.bounds toView:nil],ir=CGRectIntersection(r,UIScreen.mainScreen.bounds); CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height); if(a>1000)[visible addObject:@{ @"wv":wv,@"a":@(a) }];
+        }
+        [visible sortUsingComparator:^NSComparisonResult(NSDictionary *a,NSDictionary *b){ return [b[@"a"] compare:a[@"a"]]; }];
+    } @catch(...) {}
+    if(!visible.count){ ADSpinnerProbeAppend7134(@"\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"); return; }
+    NSUInteger lim=MIN((NSUInteger)6,visible.count); __block NSUInteger pending=lim;
+    for(NSUInteger i=0;i<lim;i++){
+        WKWebView *wv=visible[i][@"wv"]; NSString *meta=[NSString stringWithFormat:@"\n===== WEB DOM #%lu =====\naid=\"%@\" url=\"%@\"\n",(unsigned long)i,wv.accessibilityIdentifier?:@"",wv.URL.absoluteString?:@""];
+        ADSpinnerProbeAppend7134(meta);
+        [wv evaluateJavaScript:ADSpinnerProbeJS7134() completionHandler:^(id v,NSError *e){
+            NSString *body=e?[NSString stringWithFormat:@"EVAL_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
+            ADSpinnerProbeAppend7134([NSString stringWithFormat:@"%@\n",body?:@"NO_DOM_DATA"]);
+            if(--pending==0)ADSpinnerProbeAppend7134(@"================ END RUN ================\n");
+        }];
+    }
 }
-static void ADInstallSearchProbe7123(void){
+static void ADInstallSpinnerProbe7134(void){
     static dispatch_once_t once; dispatch_once(&once,^{
         signal(SIGUSR2,SIG_IGN);
-        gADSearchProbeSignal7123=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue());
-        if(gADSearchProbeSignal7123){ dispatch_source_set_event_handler(gADSearchProbeSignal7123,^{ ADCaptureSearchVisibility7123(@"SIGUSR2"); }); dispatch_resume(gADSearchProbeSignal7123); }
-        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){ ADCaptureSearchVisibility7123(@"screenshot"); }];
+        gADSpinnerProbeSignal7134=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue());
+        if(gADSpinnerProbeSignal7134){ dispatch_source_set_event_handler(gADSpinnerProbeSignal7134,^{ ADCaptureSpinnerProbe7134(@"SIGUSR2"); }); dispatch_resume(gADSpinnerProbeSignal7134); }
+        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){ ADCaptureSpinnerProbe7134(@"screenshot"); }];
     });
 }
 
@@ -4052,7 +4018,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
     %init;
 
     ADPrivacyInit7117();
-    ADInstallSearchProbe7123();
+    ADInstallSpinnerProbe7134();
     if(gP.enabled&&gP.privacyMode){
         ADRegisterPrivacyProtocol7117();
         ADCompilePrivacyContentRules7117();

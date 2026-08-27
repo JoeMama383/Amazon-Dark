@@ -1,3 +1,21 @@
+# AmazonDark v7.135~att-video-restore-probe — third-party video compositor restore
+
+Directly based on v7.134. The supplied v7.133 screenshot/probe shows the blank large Sponsored slot still has its full 430x358 `ape_gateway_dynamic-2-1_mshop_iframe` / `ape-placement` geometry mounted. Historical v7.106/v7.107 device evidence identifies the matching large third-party path as an Amazon SafeFrame containing `#mobile-third-party-ad` -> Flashtalking -> a nested 300x250 AT&T creative. That means the current failure is inside the creative/compositor path, not a collapsed Home layout or missing APE placement.
+
+v7.135 removes AmazonDark's whole-subtree `filter:brightness(...)` ownership from `#mobile-third-party-ad` in both TWB owners. A filter on the outer host forces the entire cross-origin HTML5/video subtree through a filtered compositing surface; the current symptom is exactly a fully black creative while the outer APE iframe remains visible. The final `*.flashtalking.com` creative document is now also excluded from AmazonDark floor/standalone/TWB injection, so its own video/canvas/HTML renders stock while the surrounding Amazon SafeFrame and separate Sponsored feedback row keep normal AmazonDark treatment. No geometry, iframe size, display, visibility, opacity, autoplay, media URL, or hit target is changed.
+
+This deliberately favors a visible stock third-party video over applying TWB to the entire video subtree. First-party standalone ads, compact/medium/large product ads, 300x250 Swiper cards, ordinary Home media, Sponsored text/glyphs, Search fixes, keyboard fixes, and spinner theming are unchanged. Privacy Mode is not weakened in this build; the retained spinner screenshot/SIGUSR2 probe now records `privacyMode=0/1` so a still-blank ad immediately tells us whether the optional ad-measurement blocker is active.
+
+The v7.134 white-spinner diagnostic remains installed, with output renamed to `AmazonDark-v7.135-spinner-wheel-probe.txt`. It remains screenshot/SIGUSR2-only and adds no recurring scan, observer, timer, RAF, or scroll listener.
+
+# AmazonDark v7.134~spinner-wheel-probe — white-filled loading wheel capture
+
+Directly based on v7.133. This is a diagnostic-only build for the intermittent white-filled loading wheel. The existing v7.133 Search transition-backing fix is preserved, but the temporary Search probe is removed and replaced with a screenshot/SIGUSR2 spinner probe. The current spinner theming is intentionally not changed so the report captures the failing painter exactly as rendered.
+
+Historical v7.0.78/v7.0.80 evidence identified two different Home loading renderers: the `_hp-mosaic-container_style_loadingSpinner...` ring whose `::after` can paint a white center, and `span.a-spinner.a-spinner-medium`, an AUI sprite-backed wheel. Current v7.133 already retains the first renderer's black-center rule, but not the later v7.0.80 AUI sprite replacement. v7.134 therefore inventories both known families plus current spinner/loader/loading/progress semantics and bounded lower-center `elementsFromPoint()` stacks before any new fix is attempted.
+
+The probe runs only when an iOS screenshot is taken or SIGUSR2 is sent. It inspects up to six visible tracked WKWebViews, performs one bounded semantic `querySelectorAll` per captured WebView and 13 fixed `elementsFromPoint()` stacks, and records native activity/loading/progress classes. There is no MutationObserver, timer, interval, RAF, scroll listener, touch hook, or recurring scan. Output: `AmazonDark-v7.134-spinner-wheel-probe.txt`.
+
 # AmazonDark v7.133~search-gap-floor-probe — Search opening/release white-gap floor
 
 Directly based on v7.132. The v7.132 screenshot probe caught a persistent full-screen stock-white plain `UIView` underneath the already-black Search autocomplete WebView and keyboard host. Search normally covers that plane, but its height changes while Search opens and when a held row is released, briefly exposing the white underlay. v7.133 does not add a broader scan: it marks only exact plain `UIView` candidates already discovered by the existing bounded v7.129 transition-wrapper pass, then uses the already-present `UIView` lifecycle/background setter hook to keep those marked backing planes OLED black if Amazon writes white later.
