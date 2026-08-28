@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.144-home-ad-dual-fix-probe"
+#define AD_VERSION "v7.145-search-video-mlt-fix-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -904,8 +904,8 @@ static NSString *ADFloorJS(void){
             ":not([class*=badge]):not(:where([class*=badge] *)):not([class*=deal]):not(:where([class*=deal] *))"
             ":not([class*=coupon]):not(:where([class*=coupon] *)):not([class*=prime]):not(:where([class*=prime] *))"
             ":not([class*=star]):not(:where([class*=star] *)):not([class*=rating]):not(:where([class*=rating] *))"
-            ":not([class*=mlt]):not(:where([class*=mlt] *)):not([class*=heart]):not(:where([class*=heart] *))"
-            ":not(.rufus-expandable-pills-chevron)"
+            ":not([class*=mlt]):not(:where([class*=mlt] *)):not([class*=more-like-this]):not(:where([class*=more-like-this] *)):not([class*=heart]):not(:where([class*=heart] *))"
+            ":not(.sbv-video-overlay):not(:where(.sbv-video-overlay *)):not(.rufus-expandable-pills-chevron)"
             ":not([class*=sponsored]):not(:where([class*=sponsored] *)):not([class*=ad-feedback]):not(:where([class*=ad-feedback] *))"
             "{background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
             /* Current/known Alexa-for-Shopping overview semantics. These remain narrow to
@@ -926,7 +926,7 @@ static NSString *ADFloorJS(void){
             ":not([class*=rating]):not(:where([class*=rating] *)):not([class*=deal]):not(:where([class*=deal] *))"
             ":not([class*=mlt]):not(:where([class*=mlt] *)):not([class*=heart]):not(:where([class*=heart] *))"
             ":not([class*=coupon]):not(:where([class*=coupon] *)):not([class*=sponsored]):not(:where([class*=sponsored] *))"
-            ":not([class*=ad-feedback]):not(:where([class*=ad-feedback] *))"
+            ":not([class*=ad-feedback]):not(:where([class*=ad-feedback] *)):not(:where(.sbv-video-overlay *))"
             "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
             "#search :is(.a-color-secondary,.a-size-small,[class*=secondary])"
             ":not([class*=prime]):not(:where([class*=prime] *)):not([class*=star]):not(:where([class*=star] *))"
@@ -971,6 +971,13 @@ static NSString *ADFloorJS(void){
             "#search .puis-status-badge-container :is(i,svg,[class*=icon]){background-color:transparent!important;color:#d6d9d9!important;fill:#d6d9d9!important;stroke:#d6d9d9!important;filter:brightness(0) invert(1) brightness(.88)!important;-webkit-filter:brightness(0) invert(1) brightness(.88)!important;}"
             /* v7.139: Heart / More-like-this are excluded from the new Search structural/text
              * owners above, restoring the exact stock controls from the v7.136 base. */
+            /* v7.145: current probe proves the stock 32x32 .mlt-icon-container remains white,
+             * while its 48x48 .more-like-this-container parent is the OLED-black square visible
+             * behind the two-cards control. The broad [class*=container] Search floor caused it.
+             * The exact family is excluded above; this high-specificity backstop keeps only that
+             * 48x48 wrapper transparent if Amazon composes it through another Search selector. */
+            "#search#search .more-like-this-container:has(.mlt-icon-container)"
+            "{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}"
             /* Non-brand Search glyphs. Prime/star/rating and the quick-action artwork
              * above are explicitly excluded so their current accent colors/shapes survive. */
             "#search :is(svg,i,[class*=icon],[class*=glyph])"
@@ -982,7 +989,7 @@ static NSString *ADFloorJS(void){
             ":not([class*=star]):not(:where([class*=star] *)):not([class*=rating]):not(:where([class*=rating] *))"
             ":not([class*=heart]):not(:where([class*=heart] *)):not([class*=mlt]):not(:where([class*=mlt] *))"
             ":not([class*=alexa]):not(:where([class*=alexa] *)):not([class*=rufus]):not(:where([class*=rufus] *)):not([class*=research]):not(:where([class*=research] *))"
-            ":not([class*=sponsored]):not(:where([class*=sponsored] *)):not([class*=ad-feedback]):not(:where([class*=ad-feedback] *))"
+            ":not([class*=sponsored]):not(:where([class*=sponsored] *)):not([class*=ad-feedback]):not(:where([class*=ad-feedback] *)):not(:where(.sbv-video-overlay *))"
             "{background-color:transparent!important;color:#d6d9d9!important;fill:#d6d9d9!important;stroke:#d6d9d9!important;filter:brightness(0) invert(1) brightness(.88)!important;-webkit-filter:brightness(0) invert(1) brightness(.88)!important;}"
             /* v7.141: v7.140 proved the exact failure mechanism. The authored Prime
              * sprite and ReviewStarIcon.svg leaves still have filter:none, but their
@@ -1947,6 +1954,15 @@ static NSString *ADTWBJS(void){
          "video[class*=_npack-asin-card_style_background-video__],"
          "[class*=_npack-asin-card_style_background-video-container__] > video[class*=_npack-asin-card_style_motion-content__]"
          "{filter:brightness(%.3f)!important;}"
+         /* v7.145: Search sponsored-video repair. The probe shows VIDEO.sbv-video-player-ecx
+          * is alive/visible with filter:none while a same-size DIV.sbv-video-overlay sits above
+          * it at computed opaque black. Keep the accelerated VIDEO surface unfiltered so WebKit
+          * can render frames, then use only the overlay's own background as the TWB shade. Child
+          * controls remain above that background and retain Amazon's stock artwork. */
+         "#search#search video.sbv-video-player-ecx"
+         "{filter:none!important;-webkit-filter:none!important;}"
+         "#search#search .sbv-video-overlay"
+         "{background-color:rgba(0,0,0,%.3f)!important;}"
          /* v7.0.45: exact v185-style NPACK product-photo plate. The probe shows
           * each product IMG is already TWB-filtered, but its 133x117
           * _asin-container-white__ shell still owns rgb(255,255,255). v185's
@@ -1981,7 +1997,7 @@ static NSString *ADTWBJS(void){
           * lost the early ad7-twb-static node. Re-attach it once at load. */
          "function ad7RelinkTWB(){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}"
          "if(document.readyState==='loading')window.addEventListener('load',ad7RelinkTWB,{once:true});else ad7RelinkTWB();"
-         "}catch(e){}})();",factor,shade];
+         "}catch(e){}})();",factor,shade,shade];
 }
 
 
@@ -4352,9 +4368,9 @@ static dispatch_source_t gADSearchResultsProbeSignal7139=nil;
 static NSString *ADSearchResultsProbePath7139(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.144-home-ad-dual-fix-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.145-search-video-mlt-fix-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.144-home-ad-dual-fix-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.145-search-video-mlt-fix-probe.txt"];
 }
 static void ADSearchResultsProbeAppend7139(NSString *s){
     if(!s.length)return;
@@ -4479,14 +4495,16 @@ static NSString *ADSearchResultsProbeJS7139(void){
     "atc:GC('#search .puis-atcb-button,#search .puis-atcb-button .a-button-inner,#search .puis-atcb-button .a-button-text',48),"
     "results:G('#search .s-result-item,#search .s-card-container,#search [data-component-type=s-search-result],#search .puisg-row,#search .puisg-col,#search .puisg-col-inner',72),"
     "badges:G('#search .puis-status-badge-container,#search .puis-status-badge-container .a-badge,#search .puis-status-badge-container .a-badge-label',32),"
-    "actions:GC('#search .mlt-icon-container,#search .mlt-icon-container *,#search .lists-framework-action-button.puis-heart-icon-container,#search .lists-framework-heart-background',48),"
+    "actions:GC('#search .more-like-this-container,#search .mlt-icon-container,#search .mlt-icon-container *,#search .lists-framework-action-button.puis-heart-icon-container,#search .lists-framework-heart-background',64),"
+    "videoAd:GC('#search .sbv-video-overlay,#search video.sbv-video-player-ecx,#search .sbv-video,#search .sbv-video-container,#search .sbv-mobile-video-link',64),"
+    "videoControls:GC('#search .sbv-video-overlay,#search .sbv-video-overlay *',120),"
     "accents:G('#search i.a-icon-prime,#search [class*=prime],#search i[class*=a-icon-star],#search [class*=star],#search [class*=rating]',48),"
     "media:G('#search img,#search picture,#search video,#search canvas',64),hit:hit};"
     "return JSON.stringify(o,null,2);}catch(e){return 'SEARCH_RESULTS_DOM_ERR '+e;}})();";
 }
 static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     if(!gP.enabled)return; NSUInteger run=++gADSearchResultsProbeRun7139;
-    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.144 HOME AD DUAL FIX PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== LOCATION LAYERS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
+    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.145 SEARCH VIDEO MLT FIX PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== LOCATION LAYERS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
         (unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchResultsProbeNative7139(),ADSearchResultsProbeGlowLayers7141(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(head);
     NSMutableArray *home=[NSMutableArray array],*search=[NSMutableArray array],*fallback=[NSMutableArray array];
