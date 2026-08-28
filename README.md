@@ -1,3 +1,7 @@
+# AmazonDark v7.157~three-lane-stylesheet-probe
+
+Performance architecture: three route-exclusive WebKit style lanes. The Home/menu document receives only the menu sheet; the dedicated `/autocomplete` WebView receives only the Search-pane sheet; `/s` receives only the product-scrolling sheet. The same split is applied to TWB. This build retains the v7.156 diagnostic probes temporarily while UI parity is verified.
+
 # AmazonDark v7.156~search-regression-fix-probe — fast Search regression repair + diagnostics
 
 ## v7.156 delta (direct base: v7.155)
