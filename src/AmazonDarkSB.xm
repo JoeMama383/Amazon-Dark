@@ -39,19 +39,11 @@ static const NSTimeInterval kReadySettle   = 0.40; // v7.116: keep the cover ful
                                                   // ready event arrives early, the existing
                                                   // 1.40 s minimum absorbs this completely.
 static const NSTimeInterval kCoverHardCap = 10.0; // absolute max on screen
-static const NSTimeInterval kReCoverGap   = 8.0;  // ignore re-triggers within
 
 @interface SBSceneView : UIView
 @end
 
-@interface UIImage (AD)
-+ (UIImage *)_applicationIconImageForBundleIdentifier:(NSString *)bid format:(int)fmt scale:(CGFloat)scale;
-+ (UIImage *)_applicationIconImageForBundleIdentifier:(NSString *)bid format:(int)fmt;
-@end
-
-static UIWindow *gCoverWin;
 static double gPresentAt;
-static NSTimeInterval gLastPresent;
 
 static void ADSBLog(NSString *msg) {
     @try {
@@ -103,19 +95,6 @@ static NSString *ADSceneBundleId(UIView *v, NSString **hitPathOut) {
             }
         } @catch (__unused NSException *e) {}
     }
-    return nil;
-}
-
-static UIWindowScene *ADForegroundWindowScene(void) {
-    @try {
-        NSArray *scenes = [[UIApplication sharedApplication].connectedScenes allObjects];
-        for (UIScene *s in scenes)
-            if ([s isKindOfClass:[UIWindowScene class]] &&
-                s.activationState == UISceneActivationStateForegroundActive)
-                return (UIWindowScene *)s;
-        for (UIScene *s in scenes)
-            if ([s isKindOfClass:[UIWindowScene class]]) return (UIWindowScene *)s;
-    } @catch (__unused NSException *e) {}
     return nil;
 }
 
@@ -215,146 +194,14 @@ static void ADAttachCoverToScene(UIView *host) {
 
 static void ADDismissCover(void) {
     @try {
-        if (gCoverOverlay) {
-            UIView *ov = gCoverOverlay; gCoverOverlay = nil;
-            [UIView animateWithDuration:kCoverFade animations:^{ ov.alpha = 0.0; }
-                             completion:^(BOOL f){ @try { [ov removeFromSuperview]; }
-                                                   @catch (__unused NSException *e) {} }];
-            ADSBLog(@"COVER overlay dismissed (signal)");
-        }
-        if (!gCoverWin) return;
-        UIWindow *w = gCoverWin; gCoverWin = nil;
-        [UIView animateWithDuration:kCoverFade animations:^{ w.alpha = 0.0; }
-                         completion:^(BOOL f){ @try { w.hidden = YES; } @catch (__unused NSException *e) {} }];
-        ADSBLog(@"COVER dismissed");
+        if (!gCoverOverlay) return;
+        UIView *ov = gCoverOverlay; gCoverOverlay = nil;
+        [UIView animateWithDuration:kCoverFade animations:^{ ov.alpha = 0.0; }
+                         completion:^(BOOL f){ @try { [ov removeFromSuperview]; }
+                                               @catch (__unused NSException *e) {} }];
+        ADSBLog(@"COVER overlay dismissed (signal)");
     } @catch (__unused NSException *e) {}
 }
-
-static void ADPresentCover(void) {
-    @try {
-        NSTimeInterval now = CFAbsoluteTimeGetCurrent();
-        if (gCoverWin) return;
-        if (now - gLastPresent < kReCoverGap) return;
-        gLastPresent = now;
-
-        UIWindow *w = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-        UIWindowScene *sc = ADForegroundWindowScene();
-        if (sc) w.windowScene = sc;
-        UIColor *dark = [UIColor colorWithRed:0x18/255.0 green:0x1a/255.0 blue:0x1b/255.0 alpha:1.0];
-        UIViewController *vc = [UIViewController new];
-        vc.view.backgroundColor = dark;
-        w.rootViewController = vc;
-        w.backgroundColor = dark;
-
-        // The zooming surface. Slightly lifted from the base so the growth is
-        // legible as a surface opening rather than a logo drifting in place.
-        UIView *adCard = [[UIView alloc] initWithFrame:vc.view.bounds];
-        adCard.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-        adCard.backgroundColor = [UIColor colorWithRed:0.118 green:0.126 blue:0.130 alpha:1.0];
-        adCard.layer.masksToBounds = YES;
-        [vc.view addSubview:adCard];
-
-        // Inverted splash logo, generated from the app's own launch screen: dark
-        // ground, light wordmark, the orange smile kept orange. Falls back to the
-        // rounded app icon only if the packaged asset is missing.
-        BOOL usedSplash = NO;
-        @try {
-            UIImage *splash = nil;
-            NSArray *cand = @[@"/var/jb/Library/Application Support/AmazonDark/splash-logo.png",
-                              @"/Library/Application Support/AmazonDark/splash-logo.png"];
-            for (NSString *cp in cand) {
-                splash = [UIImage imageWithContentsOfFile:cp];
-                if (splash) break;
-            }
-            if (splash) {
-                UIImageView *logo = [[UIImageView alloc] initWithImage:splash];
-                logo.contentMode = UIViewContentModeScaleAspectFit;   // wordmark: no
-                logo.translatesAutoresizingMaskIntoConstraints = NO;  // corner mask
-                logo.tag = 7741;
-                [adCard addSubview:logo];
-                CGFloat lw = [UIScreen mainScreen].bounds.size.width * 0.62;
-                CGFloat lh = lw * (splash.size.height / MAX(splash.size.width, 1.0));
-                [NSLayoutConstraint activateConstraints:@[
-                    [logo.centerXAnchor constraintEqualToAnchor:adCard.centerXAnchor],
-                    [logo.centerYAnchor constraintEqualToAnchor:adCard.centerYAnchor],
-                    [logo.widthAnchor constraintEqualToConstant:lw],
-                    [logo.heightAnchor constraintEqualToConstant:lh],
-                ]];
-                usedSplash = YES;
-                ADSBLog([NSString stringWithFormat:@"COVER splash logo (%.0fx%.0f)", splash.size.width, splash.size.height]);
-            }
-        } @catch (__unused NSException *e) {}
-        @try {
-            if (usedSplash) goto coverAssembled;
-            UIImage *icon = nil;
-            if ([UIImage respondsToSelector:@selector(_applicationIconImageForBundleIdentifier:format:scale:)])
-                icon = [UIImage _applicationIconImageForBundleIdentifier:kAMZ format:2 scale:[UIScreen mainScreen].scale];
-            if (!icon && [UIImage respondsToSelector:@selector(_applicationIconImageForBundleIdentifier:format:)])
-                icon = [UIImage _applicationIconImageForBundleIdentifier:kAMZ format:2];
-            if (icon) {
-                UIImageView *logo = [[UIImageView alloc] initWithImage:icon];
-                logo.contentMode = UIViewContentModeScaleAspectFit;
-                logo.translatesAutoresizingMaskIntoConstraints = NO;
-                logo.tag = 7741;
-                logo.layer.cornerRadius = 22.0;
-                logo.layer.masksToBounds = YES;
-                [adCard addSubview:logo];
-                [NSLayoutConstraint activateConstraints:@[
-                    [logo.centerXAnchor constraintEqualToAnchor:adCard.centerXAnchor],
-                    [logo.centerYAnchor constraintEqualToAnchor:adCard.centerYAnchor],
-                    [logo.widthAnchor constraintEqualToConstant:132.0],
-                    [logo.heightAnchor constraintEqualToConstant:132.0],
-                ]];
-                ADSBLog(@"COVER logo added");
-            } else { ADSBLog(@"COVER logo unavailable"); }
-        } @catch (__unused NSException *e) {}
-        coverAssembled:;
-        w.windowLevel = UIWindowLevelAlert + 1.0;
-        w.userInteractionEnabled = NO;
-
-        // OPAQUE BASE, ZOOMING CARD. The base is dark and full-screen on frame
-        // one, so the white launch frame is never visible for even one frame --
-        // that was the flaw in the earlier zoom attempt. The card then grows from
-        // icon-sized to full-screen with its corner radius relaxing, which is the
-        // stock "app opens" motion, at a stock-like pace.
-        UIView *cv = w.rootViewController.view;
-        BOOL adReduce = UIAccessibilityIsReduceMotionEnabled();
-        cv.alpha = 1.0;                       // base opaque immediately: no white
-        UIView *card = nil;
-        for (UIView *sv in cv.subviews) { card = sv; break; }
-        if (card && !adReduce){
-            card.layer.cornerRadius = 46.0;
-            card.transform = CGAffineTransformMakeScale(0.26, 0.26);
-            card.alpha = 0.55;
-        }
-        w.hidden = NO;   // show without becoming key (don't steal input focus)
-        if (card && !adReduce){
-            [UIView animateWithDuration:0.62 delay:0.0
-                                options:UIViewAnimationOptionCurveEaseOut
-                             animations:^{
-                                 card.transform = CGAffineTransformIdentity;
-                                 card.alpha = 1.0;
-                             } completion:nil];
-            CABasicAnimation *cr = [CABasicAnimation animationWithKeyPath:@"cornerRadius"];
-            cr.fromValue = @46.0; cr.toValue = @0.0; cr.duration = 0.62;
-            cr.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
-            [card.layer addAnimation:cr forKey:@"adcr"];
-            card.layer.cornerRadius = 0.0;
-        }
-        gCoverWin = w;
-        gPresentAt = CFAbsoluteTimeGetCurrent();
-        ADSBLog(@"COVER presented (zoom)");
-
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHold * NSEC_PER_SEC)),
-                       dispatch_get_main_queue(), ^{ ADDismissCover(); });
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHardCap * NSEC_PER_SEC)),
-                       dispatch_get_main_queue(), ^{
-            @try { if (gCoverWin) { UIWindow *x = gCoverWin; gCoverWin = nil; x.hidden = YES; ADSBLog(@"COVER hardcap"); } }
-            @catch (__unused NSException *e) {}
-        });
-    } @catch (__unused NSException *e) {}
-}
-
 
 // ── v6.0.22 Dopamine JIT broker ─────────────────────────────────────────────
 // SpringBoard is the platform-authorized caller Dopamine requires. This broker
@@ -498,7 +345,7 @@ static void ADSBHandleJITRequest622(int token){
         notify_register_dispatch("com.colindavidr.amazondark.ready", &adReadyToken,
                                  dispatch_get_main_queue(), ^(int t){
             @try {
-                if (!gCoverWin && !gCoverOverlay) return;
+                if (!gCoverOverlay) return;
                 double shown = CFAbsoluteTimeGetCurrent() - gPresentAt;
                 // v7.116: the app-side handoff is now event-driven and deliberately free of
                 // DOM polling/timers. A lifecycle event can still precede Amazon's final
