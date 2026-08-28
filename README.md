@@ -1,9 +1,43 @@
-# AmazonDark v7.153~production-performance-hotpath-fix
+# AmazonDark v7.154~zero-delay-search-hotpath
 
-Direct base: v7.152~performance-compaction-image-fix.
+Direct base: v7.153~production-performance-hotpath-fix.
 
 ## Priority
 Production performance is the primary design constraint. Search theming must be achieved with static, narrowly scoped ownership and must not add live DOM walkers, MutationObservers, timers, RAF loops, screenshot probes, or broad selectors that force every Search element/image to participate in expensive style matching.
+
+## v7.154 zero-delay Search hot-path rewrite
+
+- Adds a dedicated `/s` fast stylesheet: Search no longer parses or matches the cross-surface Home/PDP/cart theme. The Search sheet is ~19 KB, has **0 `:has()`**, **0 `:where()`**, and only two class-substring matches, while retaining the Search/video/coupon/Haul/Rufus/badge fixes through exact owners.
+- Adds a dedicated Search TWB sheet of only four rules. Search no longer participates in the large Home/standalone media selector graph.
+- Main cross-surface CSS removes the duplicated Search block entirely, shrinking `Tweak.xm` below the v7.146/v7.149 source size despite the newer UI fixes.
+- Generic `UIView` floor hooks immediately bypass WebKit internal views; exact WKWebView/WKScrollView/WKContentView owners handle those surfaces without running UIKit heuristics over the compositing tree.
+- Removes the remaining broad Search DOM selector lanes that made every recycled result node/image evaluate substring and long `:not(...)` chains.
+- Replaces Search TWB's generic `#search img` matcher with positive product/media classes and uses compositor-cheap opacity on Search raster media over OLED black instead of CSS brightness filters.
+- Removes Search `:has()` selectors from the live result/ribbon paths.
+- Moves bottom-tab repaint interception from every `UIControl` interaction to `ANXTabBarButton` only.
+- Removes the generic native delivery-band heuristic from the all-`UIView` background hot path; exact `GlowIngressView`/ANX subnav owners remain.
+- Replaces delivery-band ancestor walks with one-time associated-object descendant marks.
+- Removes `WKContentView` per-layout floor rewrites and converts large transition-wrapper floor rescans from `layoutSubviews` to `didAddSubview`/lifecycle events.
+- Preserves v7.153 Search/ad/badge/video fixes and ships no diagnostic probe.
+
+
+## Post-v7.149 UI parity gate
+
+The Search fast-path rewrite retains the UI fixes added after v7.149 without restoring the expensive generic selector graph:
+
+- v7.150 Nile ingress pills remain medium gray (`#4a4f51`) with white text.
+- Crazy-good-finds / Haul non-image card chrome remains OLED black.
+- Coupon tile + price segment remain muted sage (`#405a4a`) with white text.
+- Search video compositor remains unfiltered; stock play/mute controls are not custom-painted by AmazonDark.
+- VIDEO_SINGLE_PRODUCT cards retain the standardized `#494d4d` border and OLED product-detail floors.
+- Alternate `_c2Itd_*` standalone-video cards retain the standardized gray border/OLED floors, video-overlay TWB, and direct product-raster TWB.
+- `_c2Itd_image_pQREQ` keeps the v7.152 visibility/stacking repair so the lower-left product image can render.
+- Natural / `sx-cloud` attribute badges remain transparent with yellow text.
+- savings/success text remains transparent green; Limited Time Deal remains a red plate with white text.
+- Rufus/Nile inline pills, Add-to-cart outlines, Sponsored/ad-feedback gray chrome, Search ribbon/dropdowns, and the More-like-this wrapper fixes remain present.
+
+No diagnostic probe ships in v7.154.
+
 
 ## v7.153 performance correction
 v7.152 removed the explicit probe runtime, but review against the fast v7.146 production baseline exposed additional recent hot-path regressions:

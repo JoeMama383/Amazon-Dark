@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.153-production-performance-hotpath-fix"
+#define AD_VERSION "v7.154-zero-delay-search-hotpath"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -703,1051 +703,79 @@ static NSHashTable *gADWebViews=nil;
 static NSString *ADFloorJS(void){
     // v7.0.14: static v185-style palette. CSS only: no Dark Reader, no observer,
     // no computed-style repair walker. Own known structural shells; preserve media/art.
-    return @"(function(){try{var host='';try{host=String(location.hostname||'').toLowerCase();}catch(_){}if(host==='flashtalking.com'||/\\.flashtalking\\.com$/.test(host))return;var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement){document.documentElement.setAttribute('data-ad7-child-frame','1');try{var ref=String(document.referrer||'').toLowerCase();var productish=/\\/dp\\/|\\/gp\\/product\\/|\\/gp\\/aw\\/d\\/|\\/s(?:[\\/?]|$)|[?&]k=/.test(ref);if(!productish)document.documentElement.setAttribute('data-ad7-standalone-candidate','1');}catch(__){}}var id='ad7-static-theme',s=document.getElementById(id);"
+    return @"(function(){try{var host='';try{host=String(location.hostname||'').toLowerCase();}catch(_){}if(host==='flashtalking.com'||/\\.flashtalking\\.com$/.test(host))return;var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement){document.documentElement.setAttribute('data-ad7-child-frame','1');try{var ref=String(document.referrer||'').toLowerCase();var productish=/\\/dp\\/|\\/gp\\/product\\/|\\/gp\\/aw\\/d\\/|\\/s(?:[\\/?]|$)|[?&]k=/.test(ref);if(!productish)document.documentElement.setAttribute('data-ad7-standalone-candidate','1');}catch(__){}}"
+            /* v7.154 performance: proven standalone child ads use the compact child palette; productish child frames retain the general theme. */
+            "if(child&&document.documentElement&&document.documentElement.hasAttribute('data-ad7-standalone-candidate')){var cid='ad7-child-floor-min',cs=document.getElementById(cid);if(!cs){cs=document.createElement('style');cs.id=cid;(document.head||document.documentElement||document).appendChild(cs);}cs.textContent='html,body{background:#000!important;background-color:#000!important;color-scheme:dark!important;}';return;}"
+            /* v7.154 zero-delay Search lane: /s never parses the 54 KB cross-surface
+             * theme. Search gets a compact exact-owner sheet with no :has(), no :where(),
+             * and no broad class-substring ancestry chains. This attacks the residual v7.149
+             * style-recalculation cost that remained even after probe removal. */
+            "var ad7p='';try{ad7p=String(location.pathname||'');}catch(_){}"
+            "if(!child&&(ad7p==='/s'||ad7p.indexOf('/s/')===0)){var sid='ad7-search-fast-theme',ss=document.getElementById(sid);if(!ss){ss=document.createElement('style');ss.id=sid;(document.head||document.documentElement||document).appendChild(ss);}ss.textContent='"
+            "html,body,#a-page,#search,.s-main-slot,.s-result-item,[data-component-type=s-search-result],.s-card-container,.puis-card-container,.puisg-row,.puisg-col,.puisg-col-inner{background:#000!important;background-color:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}#search :is(.a-color-base,.a-text-normal,.a-size-base,.a-size-base-plus,.a-size-medium,.a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen,.s-title-instructions-style,h1,h2,h3,h4,h5,h6,p,label,strong,b){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#search :is(.a-color-secondary,.a-size-small){color:#b1b5b5!important;-webkit-text-fill-color:#b1b5b5!important;}#search :is(.s-result-item,.s-card-container,.puis-card-container,[data-component-type=s-search-result]){border-color:#494d4d!important;outline-color:#494d4d!important;}#search "
+            ":is(.a-divider-inner)::before,#search :is(.a-divider-inner)::after,#search hr{border-color:#494d4d!important;background-color:#494d4d!important;}.ufs_tiles_card_widget-suggestion{background:#000!important;background-color:#000!important;color:#e8e6e3!important;}.ufs_tiles_card_widget-suggestion :is(.ufs_tiles_card_widget-sug-container-top,.ufs_tiles_card_widget-sug-column,.ufs_tiles_card_widget-sug-card,.ufs_tiles_card_widget-sug-link,.ufs_tiles_card_widget-sug-image-container,.ufs_tiles_card_widget-sug-image-background){background-color:transparent!important;border-color:#494d4d!important;}.ufs_tiles_card_widget-suggestion :is(h1,h2,h3,h4,h5,h6,p,span,a,div){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}.ufs_tiles_card_widget-suggestion .ufs_tiles_card_widget-sug-text{background:#000!important;background-color:#000!important;color:#fff!important;-webkit-text-fill-co"
+            "lor:#fff!important;}.ufs_tiles_card_widget-suggestion .ufs_tiles_card_widget-sug-text *{color:#fff!important;-webkit-text-fill-color:#fff!important;}#search :is(.puis-product-insight-prompt-group,#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container,#rufus-overviews-category-cards-carousel){background-color:#000!important;border-color:#494d4d!important;box-shadow:none!important;}#nav-global-location-slot,#glow-ingress-block{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#000!important;color:#f2f2f2!important;-webkit-text-fill-color:#f2f2f2!important;box-shadow:none!important;}#nav-global-location-slot :is(span,a,p,div,label,strong,b),#glow-ingress-block :is(span,a,p,div,label,strong,b){color:#f2f2f2!important;-webkit-text-fill-color:#f2f2f2!important;}#nav-global-location-slot :is(svg,i),#glow-i"
+            "ngress-block :is(svg,i){background-color:transparent!important;color:#f2f2f2!important;fill:#f2f2f2!important;stroke:#f2f2f2!important;}#a-page :is(.s-mobile-toolbar,.sf-rib30-toolbar,.sf-rib30-panel,.sf-rib30-content){background-color:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;border-color:#494d4d!important;}#a-page :is(.s-rib-toggle-container,.sf-rib30-dropdown-title,a.sf-rib30-dropdown-pill-option){background-color:#202324!important;border-color:#747a7c!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}#a-page :is(.sf-mobile-rib-filter-icon,.sf-rib30-dropdown-arrow-icon){background-color:transparent!important;filter:brightness(0) invert(1) brightness(.88)!important;-webkit-filter:brightness(0) invert(1) brightness(.88)!important;}#a-page .sf-rib30-dropdown-pill-icon,#a-page i.a-icon-prime{filter"
+            ":none!important;-webkit-filter:none!important;}#search :is(.puis-status-badge-container,.puis-status-badge-container .a-section,.puis-status-badge-container .rush-component,.puis-status-badge-container .a-badge,.puis-status-badge-container .a-badge-label,.puis-status-badge-container .a-badge-label-inner){background:#000!important;background-color:#000!important;background-image:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}#search .puis-status-badge-container :is(i,svg,[class*=icon]){background-color:transparent!important;color:#d6d9d9!important;fill:#d6d9d9!important;stroke:#d6d9d9!important;filter:brightness(0) invert(1) brightness(.88)!important;-webkit-filter:brightness(0) invert(1) brightness(.88)!important;}#search#search .more-like-this-container{background:transparent!important;background-color:transparent!important;ba"
+            "ckground-image:none!important;box-shadow:none!important;}#search#search .nile-ingress-pill-button,#search#search .nile-ingress-pill-button .a-button-inner{background:#4a4f51!important;background-color:#4a4f51!important;background-image:none!important;border-color:#747a7c!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search .nile-ingress-pill-button :is(span,div){color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search .haul-puis-widget-faceout-container{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}#search#search .haul-puis-widget-faceout-container > :not(.haul-puis-image-container):not(.haul-puis-widget-action-button){border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}#search#search "
+            ".haul-puis-widget-faceout-container > :not(.haul-puis-image-container):not(.haul-puis-widget-action-button){background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}#search#search .s-coupon-tile,#search#search .s-coupon-tile-price-content,#search#search .s-coupon-unclipped,#search#search .s-coupon-highlight-color{background:#405a4a!important;background-color:#405a4a!important;background-image:none!important;border-color:#587161!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search .s-coupon-tile-text-content,#search#search .s-coupon-checkbox-label,#search#search .s-coupon-tile-price-content,#search#search .s-coupon-unclipped,#search#search .s-coupon-highlight-color{color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search :is(vid"
+            "eo.sbv-video-player-ecx,video._c2Itd_video_17g-f){color-scheme:light!important;accent-color:auto!important;filter:none!important;-webkit-filter:none!important;}#search#search :is(.sbv-video-pause-button-container,.sbv-video-mute-button-container,.sbv-mobile-video-play-click-region,._c2Itd_playClickRegion_87ZZa){background-color:transparent!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;filter:none!important;-webkit-filter:none!important;}#search#search .puis-card-container.mobile-video-product-view.puis-card-border{background:#000!important;background-color:#000!important;border:1px solid #494d4d!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}#search#search .sbv-video-single-product .sbv-product-container,#search#search .sbv-video-single-product .sbv-product-container :is(.pui"
+            "sg-row,.puisg-col,.puisg-col-inner,.faceout-product-title,.faceout-product-review,.faceout-product-price,.puis-delivery-recipe,.udm-delivery-block){background-color:#000!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}#search#search ._c2Itd_container_ut_MN.sb-video-creative{background:#000!important;background-color:#000!important;border:1px solid #494d4d!important;border-color:#494d4d!important;border-radius:4px!important;outline-color:#494d4d!important;box-shadow:none!important;overflow:hidden!important;}#search#search ._c2Itd_cardContent_3OGkG.sbv-ad-content-container,#search#search ._c2Itd_content_2L-a5,#search#search ._c2Itd_singleAsin_fHkKv{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}#search#searc"
+            "h ._c2Itd_singleAsin_fHkKv{border:1px solid #494d4d!important;}#search#search ._c2Itd_singleAsin_fHkKv :is(._c2Itd_pdCntr_2lxVH,._c2Itd_pdRowCntr_1SQrE,._c2Itd_pdImgCol_3WO1V,._c2Itd_pdcol_3gSOx,.productDetailsContainer){background-color:#000!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}#search#search ._c2Itd_singleAsin_fHkKv :is(.productDetailsContainer,._c2Itd_productTitle_1rGyG,._c2Itd_reviewStars_1pJ4C,._c2Itd_badgeContainer_3rI4l,._c2Itd_dealMessage_1qaio,._c2Itd_priceLinkContainer_6y-Wc,._c2Itd_savingPercentage_3sw1C){background-color:transparent!important;box-shadow:none!important;}#search#search ._c2Itd_singleAsin_fHkKv :is(._c2Itd_singleProductImageContainer_1xhVQ,._c2Itd_productImageLinkContainer_3novt,a._c2Itd_productImageLink_2cbWY){background-color:transparent!important;box-shadow:none!important;}#search#search ._c2Itd_s"
+            "ingleAsin_fHkKv img._c2Itd_image_pQREQ{display:block!important;visibility:visible!important;position:relative!important;z-index:6!important;background-color:transparent!important;mix-blend-mode:normal!important;}#search :is(.sf-mobile-rib-filter-icon,.sf-rib30-dropdown-arrow-icon,.rufus-expandable-pills-chevron){background-color:transparent!important;color:#d6d9d9!important;fill:#d6d9d9!important;stroke:#d6d9d9!important;}#search#search .s-rib-toggle-icon{background:transparent!important;background-color:transparent!important;filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;opacity:1!important;}#search#search .s-rib-toggle-container{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;filter:none!important;-webkit-filter:none!important;}#searc"
+            "h#search .sf-rib30-dropdown-pill-icon{background-color:#202324!important;border-color:#747a7c!important;box-shadow:none!important;filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;opacity:1!important;}#search#search .sf-rib30-review-star{filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;opacity:1!important;}#search#search .sf-rib30-dropdown-pill-icon .sf-rib30-review-content,#search#search .sf-rib30-dropdown-pill-icon .sf-rib30-review-stars-group{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;filter:none!important;-webkit-filter:none!important;}#search#search .sf-rib30-dropdown-title > .a-declarative > .sf-rib30-title-content-container,#search#search .sf-rib30-dropdown-title .sf-rib30-title-content-contai"
+            "ner .sf-rib30-dropdown-pill-content,#search#search .sf-rib30-dropdown-title .sf-rib30-title-content-container .sf-rib30-dropdown-pill-text{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;filter:none!important;-webkit-filter:none!important;}#search#search .sf-rib30-dropdown-title{background:#202324!important;background-color:#202324!important;border-color:#747a7c!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}#search#search .sf-rib30-dropdown-title .sf-rib30-dropdown-arrow-icon{background:transparent!important;background-color:transparent!important;background-image:none!important;filter:none!important;-webkit-filter:none!important;box-shadow:none!important;position:relative!important;}#search#search .sf-rib30-dropdown-title .sf-rib30-dropdown-arrow-icon"
+            "::before{content:\"\"!important;display:block!important;position:absolute!important;left:1px!important;top:-1px!important;width:5px!important;height:5px!important;background:transparent!important;background-color:transparent!important;border:0!important;border-right:1.5px solid #d6d9d9!important;border-bottom:1.5px solid #d6d9d9!important;box-sizing:border-box!important;transform:rotate(45deg)!important;-webkit-transform:rotate(45deg)!important;filter:none!important;-webkit-filter:none!important;}#search#search .sf-rib30-dropdown-title .sf-rib30-dropdown-arrow-icon::after{content:none!important;}#search#search .rufus-expandable-pills-chevron{background:transparent!important;background-color:transparent!important;border-color:transparent!important;box-shadow:none!important;}#search#search .rufus-expandable-pills-chevron img{background-color:transparent!important;filter:none!important;-web"
+            "kit-filter:none!important;mix-blend-mode:normal!important;opacity:1!important;}#search#search :is(#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container) .a-carousel-card{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;}#search#search :is(#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container) :is(.nile-inline-pill-button,.nile-inline-ingress-pill-button,.a-button,[role=button],.a-carousel-card>a){background:#4a4f51!important;background-color:#4a4f51!important;background-image:none!important;border:1px solid #34383a!important;border-color:#34383a!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search :is(#rufus-overviews-pills-carousel,#rufus-m"
+            "obile-overviews-expandable-pills-carousel-container) :is(.nile-inline-pill-button,.nile-inline-ingress-pill-button,.a-button,[role=button],.a-carousel-card>a) .a-button-inner{background:#4a4f51!important;background-color:#4a4f51!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search :is(#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container) :is(.nile-inline-pill-button,.nile-inline-ingress-pill-button,.a-button,[role=button],.a-carousel-card>a) .a-button-text{background:transparent!important;background-color:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search :is(#rufus-overviews-pills-carousel,#rufus-mobile"
+            "-overviews-expandable-pills-carousel-container) :is(.nile-inline-pill-button,.nile-inline-ingress-pill-button,.a-button,[role=button],.a-carousel-card>a) :is(.a-button-text,span,p,strong,b,div){color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search :is(#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container) :is(.nile-inline-pill-button,.nile-inline-ingress-pill-button,.a-button,[role=button],.a-carousel-card>a)::before,#search#search :is(#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container) :is(.nile-inline-pill-button,.nile-inline-ingress-pill-button,.a-button,[role=button],.a-carousel-card>a)::after{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}#search #rufus-overviews-category-cards-carousel .a-carousel-ca"
+            "rd,#search #rufus-overviews-category-cards-carousel .a-carousel-card > .a-box,#search #rufus-overviews-category-cards-carousel .a-carousel-card > .a-box > .a-box-inner{background:#000!important;background-color:#000!important;border-color:#494d4d!important;box-shadow:none!important;}#search #rufus-overviews-category-cards-carousel .a-carousel-card :is(span,a,p,strong,b,div){color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search .puis-atcb-button{background:#000!important;background-color:#000!important;border:1px solid #747a7c!important;box-shadow:inset 0 0 0 1px #747a7c!important;filter:none!important;-webkit-filter:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#search#search .puis-atcb-button .a-button-inner{background:transparent!important;background-color:transparent!important;border-color:transparent!important;box-shadow:none!"
+            "important;}#search#search .puis-atcb-button .a-button-text{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}.puis-mab-chevron :is(i.a-icon-dropdown,.a-icon.a-icon-dropdown),.puis-mab-chevron-glyph :is(i.a-icon-dropdown,.a-icon.a-icon-dropdown){filter:brightness(0) invert(1)!important;opacity:1!important;}#search [data-a-badge-color=\"sx-cloud\"],#search [data-a-badge-color=\"sx-cloud\"] :is(.a-badge-label,.a-badge-label-inner,.a-badge-text){background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;color:#ffd814!important;-webkit-text-fill-color:#ffd814!important;}#search [data-a-badge-color=\"sx-cloud\"]::before,#search [data-a-badge-color=\"sx-cloud\"]::after,#search [data-a-badge-color=\"sx-cloud\"] :is(.a-badge-label,.a-badge-label-inner)::before,#search [data-a"
+            "-badge-color=\"sx-cloud\"] :is(.a-badge-label,.a-badge-label-inner)::after{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;}#search .a-color-success{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;color:#00a650!important;-webkit-text-fill-color:#00a650!important;}#search .a-badge[data-a-badge-type=\"deal\"]{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#search .a-badge[data-a-badge-type=\"deal\"]>.a-badge-label{background:#cc0c39!important;background-color:#cc0c39!important;backgro"
+            "und-image:none!important;border-color:#cc0c39!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#search .a-badge[data-a-badge-type=\"deal\"] .a-badge-label-inner{background:transparent!important;background-color:transparent!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#search .puis-ad-feedback-info-icon{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;background-color:transparent!important;}#search .puis-ad-feedback-info-icon b[class*=\"ad-feedback-sprite\"]{color:#b1aaa0!important;background-color:#b1aaa0!important;filter:none!important;-webkit-filter:none!important;}"
+            "';function ad7RelinkSearch(){try{if(ss&&!ss.isConnected)(document.head||document.documentElement).appendChild(ss)}catch(_){}}if(document.readyState==='loading')window.addEventListener('load',ad7RelinkSearch,{once:true});else ad7RelinkSearch();return;}"
+            "var id='ad7-static-theme',s=document.getElementById(id);"
             "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
             "s.textContent='"
-            /* Root/page floors: immediate OLED canvas. */
-            "html,body,#a-page,#gwm-PageContent,#dp,main,[role=main],#search,#cart-page,#sc-active-cart,#sc-saved-cart"
-            "{background:#000!important;background-color:#000!important;}"
-            /* Known structural panels/cards. Deliberately excludes generic section/div/a-cardui on Home creative trees. */
-            ".s-result-item,[data-component-type=s-search-result],.s-card-container,.s-main-slot,"
-            "#sc-active-cart .sc-list-item,#sc-saved-cart .sc-list-item,[class*=sc-][class*=content],[class*=sc-][class*=container],"
-            "#dp [class*=a-box],#dp [class*=a-expander],#dp [class*=celwidget]:not([class*=image]):not([class*=media]),"
-            "#authportal-main-section,#auth-footer,.auth-footer,[id*=auth-footer],"
-            "[class*=variation],[class*=swatch-container],[class*=status-shell],[class*=badge-message],"
-            "[class*=puis-card]:not([class*=creative]):not([class*=image]),[class*=product-card]:not([class*=image])"
-            "{background-color:#181a1b!important;}"
-            /* First-paint Search surface. Search overlay content must remain visible. */
-            /* v7.125: do NOT let the Search floor shorthand match the 20x20 <i> glyph leaves.
-             * Those stock icons are background-image / pseudo artwork. A `background:#000` shorthand
-             * resets background-image to none before any later color/filter rule can see the shape. */
-            ".s-suggestion-container,.s-suggestion,.autocomplete-results-container,[class*=autocomplete],"
-            "[class*=suggestion]:not([class*=icon]):not([class*=glyph]),"
-            "[class*=recentSearch]:not([class*=icon]):not([class*=glyph]),"
-            "[class*=search-suggestion]:not([class*=icon]):not([class*=glyph])"
-            "{background:#000!important;background-color:#000!important;color:#e8e6e3!important;}"
-            /* Search is rendered inside a Home-deck WebView, so the general Home-text exclusion
-             * can intentionally skip these leaves. Give only the Search/autocomplete family its
-             * own neutral text owner; no traversal or runtime repair is needed. */
-            ":is(.s-suggestion-container,.s-suggestion,.autocomplete-results-container,[class*=autocomplete],"
-            "[class*=recentSearch],[class*=search-suggestion]) :is(h1,h2,h3,h4,h5,h6,p,span,a,div)"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* v7.126: section headings such as YOU MAY BE INTERESTED / RECENT are siblings of the
-             * suggestion rows, not descendants of the family above. Own the exact heading family. */
-            ".s-suggestion-section-heading,.sac-header-component-single-line-header"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* v7.132: long-press / held `YOU MAY BE INTERESTED` row. The v7.131 probe
-             * shows the exact 430x38 query-row structure is a separate family from
-             * `.s-suggestion-container`: `.s-query-row` -> `.s-query-row-link` /
-             * `.s-query-row-container`. Amazon can paint that full-width row white
-             * in its pressed/held state while our inner `.s-query-row-text` remains
-             * black, producing the screenshot's white strip + black text rectangle.
-             * Own only these exact query-row structural surfaces. #a-page gives this
-             * rule enough specificity to beat Amazon's state selector without a
-             * MutationObserver, event listener, timer, or per-row runtime mutation. */
-            "#a-page :is([id^=sac-query-row-].s-query-row,.s-query-row-container,.s-query-row-link)"
-            "{background:#000!important;background-color:#000!important;-webkit-tap-highlight-color:transparent!important;}"
-            "#a-page :is([id^=sac-query-row-].s-query-row,.s-query-row-container,.s-query-row-link):is(:active,:focus,:focus-visible,:focus-within)"
-            "{background:#000!important;background-color:#000!important;-webkit-tap-highlight-color:transparent!important;box-shadow:none!important;}"
-            /* v7.126: autocomplete delivery/location banner. The screenshot shows Amazon's warm
-             * yellow location surface inside the autocomplete document. Keep this bounded to the
-             * autocomplete root and semantic location/delivery families. Structural hosts go OLED;
-             * icon leaves stay transparent so sprite/pseudo artwork is not erased. */
-            "#attach-to-me :is([class*=location],[class*=delivery],[id*=location],[id*=delivery],[class*=glow],[id*=glow],[class*=ship-to],[id*=ship-to],[class*=shipto],[id*=shipto])"
-            ":not(img):not(svg):not(i):not([class*=icon]):not([class*=glyph]):not([id*=icon])"
-            "{background-color:#000!important;border-color:#494d4d!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            "#attach-to-me :is(div,section,a):has(:is([class*=location],[class*=delivery],[id*=location],[id*=delivery],[class*=glow],[id*=glow],[class*=ship-to],[id*=ship-to],[class*=shipto],[id*=shipto]))"
-            "{background-color:#000!important;border-color:#494d4d!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            "#attach-to-me :is([class*=location],[class*=delivery],[id*=location],[id*=delivery],[class*=glow],[id*=glow],[class*=ship-to],[id*=ship-to],[class*=shipto],[id*=shipto]) "
-            ":is(span,a,p,div,label,strong,b)"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            "#attach-to-me :is([class*=location],[class*=delivery],[id*=location],[id*=delivery],[class*=glow],[id*=glow],[class*=ship-to],[id*=ship-to],[class*=shipto],[id*=shipto]) "
-            ":is(img,svg,i,[class*=icon],[class*=glyph],[id*=icon])"
-            "{background-color:transparent!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;}"
-            /* Primary/secondary v185-style text.
-             * Do not let generic ink leak into Amazon-owned Sponsored feedback or
-             * top-Home hero/creative trees. */
-            ":is(.a-color-base,.a-text-normal,.a-size-base,.a-size-base-plus,.a-size-medium,"
-            ".a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen,"
-            ".s-title-instructions-style,.a-link-normal h2,[class*=product-title],"
-            "[class*=heading],[class*=title]:not([class*=badge]))"
-            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
-            ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
-            ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *))"
-            ":not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *))"
-            ":not(:where([id^=af-label-] *))"
-            ":not(:where(html[data-ad7-child-frame] *))"
-            ":not(:where(#gwm-Deck *)):not(:where([class*=hero] *))"
-            ":not(:where([class*=single-creative] *)):not(:where([class*=single-video] *))"
-            ":not(:where([class*=theming-card] *))"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            ":is(.a-color-secondary,.a-size-small,[class*=secondary])"
-            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
-            ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
-            ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *))"
-            ":not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *))"
-            ":not(:where([id^=af-label-] *))"
-            ":not(:where(html[data-ad7-child-frame] *))"
-            ":not(:where(#gwm-Deck *)):not(:where([class*=hero] *))"
-            ":not(:where([class*=single-creative] *)):not(:where([class*=single-video] *))"
-            ":not(:where([class*=theming-card] *))"
-            "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
-            /* Neutral borders/dividers. Exact structural families only; no global * border rewrite. */
-            ".s-result-item,.s-card-container,[data-component-type=s-search-result],"
-            "#sc-active-cart .sc-list-item,#sc-saved-cart .sc-list-item,"
-            "#dp .a-box,#dp .a-divider,#dp [class*=card],"
-            ".s-suggestion-container,#auth-footer .a-divider,.auth-footer .a-divider,"
-            "[class*=swatch-outer-circle],[class*=puis-card]"
-            "{border-color:#494d4d!important;outline-color:#494d4d!important;}"
-            ".a-divider-inner:after,.a-divider-inner:before,hr,[class*=separator]"
-            "{border-color:#494d4d!important;background-color:#494d4d!important;}"
-            /* Established cheap fixes / gradients. */
-            "#wd-backdrop-gradient,.wd-backdrop-gradient,[class*=wd-backdrop-gradient],"
-            "[class*=a-reactive-container],[class*=reactive-contain],"
-            "#auth-footer,.auth-footer,[id*=auth-footer]"
-            "{background-image:none!important;box-shadow:none!important;}"
-            "#auth-footer .a-divider-inner,.auth-footer .a-divider-inner{background-image:none!important;box-shadow:none!important;}"
-            ".s-color-swatch-container,.s-color-swatch-outer-circle{background-color:transparent!important;}"
-            ".s-color-swatch-outer-circle{border-color:#494d4d!important;outline-color:#494d4d!important;}"
-            /* v7.125 Search glyph repair — current v7.124 device probe proves these
-             * 20x20 <i> leaves have mask:none. The shape is stock background/pseudo artwork,
-             * so background-color must stay transparent and the existing artwork is filtered.
-             * Crucially, the structural floor rule above no longer erases background-image. */
-            "[class*=nav-search] img,[class*=searchbar] img,[class*=search-bar] img,[role=search] img,"
-            "[class*=nav-] img[class*=icon],[class*=header] img[class*=icon]"
-            "{background-color:transparent!important;}"
-            ".s-suggestion-container :is(img[class*=icon],img[alt*=search],img[alt*=arrow],svg,i.a-icon,[class*=glyph]),"
-            ".s-suggestion :is(img[class*=icon],img[alt*=search],img[alt*=arrow],svg,i.a-icon,[class*=glyph])"
-            "{color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;"
-            "filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;}"
-            /* Current exact autocomplete sprite/pseudo leaves. Never write a light background
-             * rectangle; keep Amazon's background image/content and transform only its ink. */
-            ".s-suggestion-container i.icon-past-search-suggestion.s-suggestion-icon-left"
-            "{background-color:transparent!important;color:#9da3a3!important;fill:#9da3a3!important;"
-            "stroke:#9da3a3!important;filter:brightness(0) invert(1) brightness(0.65)!important;"
-            "-webkit-filter:brightness(0) invert(1) brightness(0.65)!important;opacity:1!important;box-shadow:none!important;}"
-            ".s-suggestion-container i.icon-close.s-suggestion-icon-left"
-            "{background-color:transparent!important;color:#e8e6e3!important;fill:#e8e6e3!important;"
-            "stroke:#e8e6e3!important;filter:brightness(0) invert(1)!important;"
-            "-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;box-shadow:none!important;}"
-            ".s-query-row i.icon-search-suggestion.s-query-row-search-icon,"
-            ".s-suggestion-container i:is([class*=icon-search],[class*=search-icon]),"
-            ".s-suggestion i:is([class*=icon-search],[class*=search-icon]),"
-            ".s-suggestion-container i.s-suggestion-icon-right"
-            "{background-color:transparent!important;color:#e8e6e3!important;fill:#e8e6e3!important;"
-            "stroke:#e8e6e3!important;filter:brightness(0) invert(1) brightness(0.91)!important;"
-            "-webkit-filter:brightness(0) invert(1) brightness(0.91)!important;opacity:1!important;box-shadow:none!important;}"
-            /* v7.125 exact Search `Deals for you` / ufs_tiles_card_widget family from the
-             * screenshot-triggered v7.124 probe: row/card/image shields were the remaining
-             * white Search surface. Own its floor and neutral copy only. */
-            ".ufs_tiles_card_widget-suggestion"
-            "{background:#000!important;background-color:#000!important;color:#e8e6e3!important;}"
-            ".ufs_tiles_card_widget-suggestion :is(.ufs_tiles_card_widget-sug-container-top,"
-            ".ufs_tiles_card_widget-sug-column,.ufs_tiles_card_widget-sug-card,"
-            ".ufs_tiles_card_widget-sug-link,.ufs_tiles_card_widget-sug-image-container,"
-            ".ufs_tiles_card_widget-sug-image-background)"
-            "{background-color:transparent!important;border-color:#494d4d!important;}"
-            ".ufs_tiles_card_widget-suggestion :is(h1,h2,h3,h4,h5,h6,p,span,a,div)"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* v7.131: the v7.130 screenshot probe shows the one remaining white plane is not
-             * a card/image wrapper at all; every caption owns an exact 76x42
-             * .ufs_tiles_card_widget-sug-text DIV with computed rgb(255,255,255). Keep this
-             * exact caption owner after the generic neutral-copy rule so the requested OLED
-             * floor + pure-white label ink win by source order without touching product media. */
-            ".ufs_tiles_card_widget-suggestion .ufs_tiles_card_widget-sug-text"
-            "{background:#000!important;background-color:#000!important;color:#fff!important;"
-            "-webkit-text-fill-color:#fff!important;}"
-            ".ufs_tiles_card_widget-suggestion .ufs_tiles_card_widget-sug-text *"
-            "{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
-            /* v7.137: Search-results feed parity. The current screenshot is the /s results
-             * document, not the autocomplete overlay. Keep this CSS-only and scope the
-             * broad structural ownership to #search so Home/PDP/third-party creatives are
-             * untouched. Prime/star accent painters, deal/coupon chrome and real buttons
-             * are excluded below. */
-            "#search > :is(div,section,article),#search .s-main-slot > :is(div,section,article),"
-            "#search :is(div,section,article,ul,ol,li)[class]:is([class*=container],[class*=content],[class*=module],[class*=panel],[class*=pane],[class*=widget],[class*=row],[class*=section],[class*=puisg])"
-            ":not(.a-button):not([class*=button]):not(:where(.a-button *)):not(:where([class*=button] *))"
-            ":not([class*=badge]):not(:where([class*=badge] *)):not([class*=deal]):not(:where([class*=deal] *))"
-            ":not([class*=coupon]):not(:where([class*=coupon] *)):not([class*=prime]):not(:where([class*=prime] *))"
-            ":not([class*=star]):not(:where([class*=star] *)):not([class*=rating]):not(:where([class*=rating] *))"
-            ":not([class*=mlt]):not(:where([class*=mlt] *)):not([class*=more-like-this]):not(:where([class*=more-like-this] *)):not([class*=heart]):not(:where([class*=heart] *))"
-            ":not(.sbv-video-overlay):not(:where(.sbv-video-overlay *)):not(.rufus-expandable-pills-chevron)"
-            ":not([class*=sponsored]):not(:where([class*=sponsored] *)):not([class*=ad-feedback]):not(:where([class*=ad-feedback] *))"
-            "{background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
-            /* Current/known Alexa-for-Shopping overview semantics. These remain narrow to
-             * the Search document and cover the new Researched-by-Alexa shell even when
-             * Amazon moves it outside .s-main-slot. Generated inner container/row classes
-             * are caught by the structural rule above. */
-            "#search :is(div,section,article):is([class*=alexa],[id*=alexa],[class*=research],[id*=research],[class*=rufus],[id*=rufus],"
-            "[class*=query-understanding],[id*=query-understanding],[class*=shopping-assistant],[id*=shopping-assistant],"
-            "[class*=ai-overview],[id*=ai-overview],[class*=search-guidance],[id*=search-guidance],[class*=guided-search],[id*=guided-search])"
-            ":not([class*=logo]):not([class*=icon]):not([class*=glyph]):not(.rufus-expandable-pills-chevron)"
-            "{background-color:#000!important;border-color:#494d4d!important;box-shadow:none!important;}"
-            /* Neutral Search-results copy. Do not recolor Prime branding, orange stars,
-             * deal/coupon badges, Sponsored feedback, or button labels. */
-            "#search :is(.s-main-slot,.s-result-item,[data-component-type=s-search-result],[class*=container],[class*=content],[class*=module],[class*=panel],[class*=pane],[class*=widget],[class*=puisg]) "
-            ":is(h1,h2,h3,h4,h5,h6,p,span,a,div,label,strong,b)"
-            ":not(.a-button):not(:where(.a-button *)):not([class*=button]):not(:where([class*=button] *))"
-            ":not([class*=prime]):not(:where([class*=prime] *)):not([class*=star]):not(:where([class*=star] *))"
-            ":not([class*=rating]):not(:where([class*=rating] *)):not([class*=deal]):not(:where([class*=deal] *))"
-            ":not([class*=mlt]):not(:where([class*=mlt] *)):not([class*=heart]):not(:where([class*=heart] *))"
-            ":not([class*=coupon]):not(:where([class*=coupon] *)):not([class*=sponsored]):not(:where([class*=sponsored] *))"
-            ":not([class*=ad-feedback]):not(:where([class*=ad-feedback] *)):not(:where(.sbv-video-overlay *))"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            "#search :is(.a-color-secondary,.a-size-small,[class*=secondary])"
-            ":not([class*=prime]):not(:where([class*=prime] *)):not([class*=star]):not(:where([class*=star] *))"
-            ":not([class*=rating]):not(:where([class*=rating] *)):not([class*=sponsored]):not(:where([class*=sponsored] *))"
-            "{color:#b1b5b5!important;-webkit-text-fill-color:#b1b5b5!important;}"
-            /* Search delivery/location strip. Current mobile markup uses the glow-ingress /
-             * nav-global-location family; older variants use ship-to/delivery-location.
-             * v7.139: DOM selector remains as fallback; the current yellow band is native. */
-            "#a-page :is(#nav-global-location-slot,#glow-ingress-block,[id*=glow-ingress],[class*=glow-ingress],"
-            "[id*=delivery-location],[class*=delivery-location],[id*=ship-to],[class*=ship-to])"
-            ":not(img):not(svg):not(i):not([class*=icon]):not([class*=glyph])"
-            "{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#000!important;color:#f2f2f2!important;-webkit-text-fill-color:#f2f2f2!important;box-shadow:none!important;}"
-            "#a-page :is(#nav-global-location-slot,#glow-ingress-block,[id*=glow-ingress],[class*=glow-ingress],[id*=delivery-location],[class*=delivery-location],[id*=ship-to],[class*=ship-to]) "
-            ":is(span,a,p,div,label,strong,b){color:#f2f2f2!important;-webkit-text-fill-color:#f2f2f2!important;}"
-            "#a-page :is(#nav-global-location-slot,#glow-ingress-block,[id*=glow-ingress],[class*=glow-ingress],[id*=delivery-location],[class*=delivery-location],[id*=ship-to],[class*=ship-to]) "
-            ":is(svg,i,[class*=icon],[class*=glyph]){background-color:transparent!important;color:#f2f2f2!important;fill:#f2f2f2!important;stroke:#f2f2f2!important;filter:brightness(0) invert(1) brightness(.95)!important;-webkit-filter:brightness(0) invert(1) brightness(.95)!important;}"
-            /* Search filter ribbon. v5.440/v6 lineage exposes sf-rib30 and
-             * sf-mobile-rib-filter leaves; current screenshot is the same UI family. */
-            /* v7.139: keep only the ribbon floors/controls dark. Do NOT erase
-             * background-image on sf-rib descendants: Amazon paints Prime and the
-             * orange review-star art with those authored sprite/SVG backgrounds. */
-            "#a-page :is([class*=sf-rib],[class*=sf-mobile-rib])"
-            ":not([class*=icon]):not([class*=arrow]):not([class*=prime]):not([class*=star]):not([class*=rating])"
-            "{background-color:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;border-color:#494d4d!important;}"
-            "#a-page :is([class*=sf-rib],[class*=sf-mobile-rib]) :is(button,[role=button],a,[class*=pill],[class*=dropdown],[class*=filter])"
-            ":not([class*=icon]):not([class*=arrow]):not([class*=prime]):not([class*=star]):not([class*=rating])"
-            "{background-color:#202324!important;border-color:#747a7c!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}"
-            "#a-page :is(.sf-mobile-rib-filter-icon,.sf-rib30-dropdown-arrow-icon)"
-            "{background-color:transparent!important;filter:brightness(0) invert(1) brightness(.88)!important;-webkit-filter:brightness(0) invert(1) brightness(.88)!important;}"
-            /* v7.139: v7.138 hit testing proves sf-rib30-dropdown-pill-icon is the
-             * compositing parent around ReviewStarIcon.svg. Never filter that parent: doing
-             * so turns Amazon-authored orange stars and Prime pill art into white blocks. */
-            "#a-page .sf-rib30-dropdown-pill-icon,#a-page i.a-icon-prime"
-            "{filter:none!important;-webkit-filter:none!important;}"
-            /* Overall Pick / Amazon's Choice status lane. The old exact spider-wood
-             * probe identifies .puis-status-badge-container -> mvt badge -> a-badge-label;
-             * own the entire left-column status lane so the current white stripe cannot survive. */
-            "#search :is(.puis-status-badge-container,.puis-status-badge-container .a-section,.puis-status-badge-container .rush-component,"
-            ".puis-status-badge-container .a-badge,.puis-status-badge-container .a-badge-label,.puis-status-badge-container .a-badge-label-inner,"
-            ".puisg-col-inner:has(> .puis-status-badge-container),.puisg-col:has(.puis-status-badge-container))"
-            "{background:#000!important;background-color:#000!important;background-image:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}"
-            "#search .puis-status-badge-container :is(i,svg,[class*=icon]){background-color:transparent!important;color:#d6d9d9!important;fill:#d6d9d9!important;stroke:#d6d9d9!important;filter:brightness(0) invert(1) brightness(.88)!important;-webkit-filter:brightness(0) invert(1) brightness(.88)!important;}"
-            /* v7.151: micro-badge ownership is deliberately split by semantic state.
-             * v7.150 proved that generic .a-badge ownership is unsafe: Limited-time-deal is
-             * SPAN.a-badge with a stable DEAL_* id. Keep deal plates stock-red/white, and only
-             * let anonymous product micro-badges become the transparent yellow attribute lane. */
-            "#search#search .puis-card-container .a-badge:not([id]):not(:where(.puis-status-badge-container *)):not(:where([class*=coupon] *)):not(:where([class*=deal] *))"
-            "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
-            "border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;"
-            "color:#ffd814!important;-webkit-text-fill-color:#ffd814!important;}"
-            "#search#search .puis-card-container .a-badge:not([id]):not(:where(.puis-status-badge-container *)):not(:where([class*=coupon] *)):not(:where([class*=deal] *)) > .a-badge-label,"
-            "#search#search .puis-card-container .a-badge:not([id]):not(:where(.puis-status-badge-container *)):not(:where([class*=coupon] *)):not(:where([class*=deal] *)) .a-badge-label-inner"
-            "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
-            "border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;"
-            "color:#ffd814!important;-webkit-text-fill-color:#ffd814!important;}"
-            "#search#search .puis-card-container .a-badge:not([id]):not(:where(.puis-status-badge-container *)):not(:where([class*=coupon] *)):not(:where([class*=deal] *)) > .a-badge-label::before,"
-            "#search#search .puis-card-container .a-badge:not([id]):not(:where(.puis-status-badge-container *)):not(:where([class*=coupon] *)):not(:where([class*=deal] *)) > .a-badge-label::after,"
-            "#search#search .puis-card-container .a-badge:not([id]):not(:where(.puis-status-badge-container *)):not(:where([class*=coupon] *)):not(:where([class*=deal] *)) .a-badge-label-inner::before,"
-            "#search#search .puis-card-container .a-badge:not([id]):not(:where(.puis-status-badge-container *)):not(:where([class*=coupon] *)):not(:where([class*=deal] *)) .a-badge-label-inner::after"
-            "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
-            "border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;}"
-            /* Savings is a separate semantic lane. Apply green to the complete anonymous badge
-             * when it contains/is contained by a success/saving marker; this fixes the v7.150
-             * case where the plate disappeared but its nested AUI label stayed yellow. Never use
-             * generic `discount`, and explicitly exclude DEAL_* / coupon / deal families. */
-            /* v7.152 performance: savings stays a direct semantic lane. No relational
-             * :has() matching is needed on the live Search result tree. */
-            "#search#search .puis-card-container :is(.a-color-success,[class*=saving],[class*=savings],[id*=saving],[id*=savings])"
-            ":not([class*=coupon]):not(:where([class*=coupon] *)):not([class*=deal]):not(:where([class*=deal] *))"
-            ":not([id^=DEAL_]):not(:where([id^=DEAL_] *)):not([class*=button]):not(:where([class*=button] *)),"
-            "#search#search .puis-card-container :is(.a-color-success,[class*=saving],[class*=savings],[id*=saving],[id*=savings]) "
-            ":is(.a-badge,.a-badge-label,.a-badge-label-inner,span,strong,b)"
-            "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
-            "border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;"
-            "color:#00a650!important;-webkit-text-fill-color:#00a650!important;}"
-            /* Limited-time-deal is now an explicit positive stock lane rather than an exclusion.
-             * The probe captured ids such as DEAL_B0BM63Y2TT; the label is the visible plate. */
-            "#search#search .puis-card-container .a-badge[id^=DEAL_],"
-            "#search#search .puis-card-container .a-badge[data-a-badge-type=deal]"
-            "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
-            "border-color:transparent!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
-            "#search#search .puis-card-container .a-badge[id^=DEAL_] > .a-badge-label,"
-            "#search#search .puis-card-container .a-badge[data-a-badge-type=deal] > .a-badge-label"
-            "{background:#cc0c39!important;background-color:#cc0c39!important;background-image:none!important;"
-            "border-color:#cc0c39!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
-            "#search#search .puis-card-container .a-badge[id^=DEAL_] .a-badge-label-inner,"
-            "#search#search .puis-card-container .a-badge[data-a-badge-type=deal] .a-badge-label-inner"
-            "{background:transparent!important;background-color:transparent!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
-            /* v7.139: Heart / More-like-this are excluded from the new Search structural/text
-             * owners above, restoring the exact stock controls from the v7.136 base. */
-            /* v7.145: current probe proves the stock 32x32 .mlt-icon-container remains white,
-             * while its 48x48 .more-like-this-container parent is the OLED-black square visible
-             * behind the two-cards control. The broad [class*=container] Search floor caused it.
-             * The exact family is excluded above; this high-specificity backstop keeps only that
-             * 48x48 wrapper transparent if Amazon composes it through another Search selector. */
-            "#search#search .more-like-this-container"
-            "{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}"
-            /* v7.150: Search Nile ingress pills. The v7.149 screenshot probe found the
-             * visible blue surface is the nested 293.5x32 .a-button-inner (rgb(194,220,255))
-             * while the matching .nile-ingress-pill-button shell remains rgb(240,242,242).
-             * Own both painters together with the same established medium-gray Search button
-             * treatment; preserve Amazon's radius, sizing and carousel behavior. */
-            "#search#search .nile-ingress-pill-button,"
-            "#search#search .nile-ingress-pill-button .a-button-inner"
-            "{background:#4a4f51!important;background-color:#4a4f51!important;background-image:none!important;"
-            "border-color:#747a7c!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
-            "#search#search .nile-ingress-pill-button :is(span,div)"
-            "{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
-            /* v7.150: Crazy-good finds / Amazon Haul card separator repair. The v7.149 probe
-             * identifies the visible cards as .haul-puis-widget-faceout-container with
-             * .haul-puis-image-container + IMG.haul-puis-portrait-img. The image container is
-             * already OLED and the IMG is already under the working TWB media path, so never
-             * touch that subtree. Force only the non-image/non-action card chrome (including
-             * borders/dividers/shadows that create the white strip below the image) to OLED. */
-            "#search#search .haul-puis-widget-faceout-container"
-            "{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}"
-            /* v7.153 performance: no universal descendant matcher here. The visible white
-             * strip belongs to the faceout chrome, so own the root/direct structural children only. */
-            "#search#search .haul-puis-widget-faceout-container > :not(.haul-puis-image-container):not(.haul-puis-widget-action-button)"
-            "{border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}"
-            "#search#search .haul-puis-widget-faceout-container > :not(.haul-puis-image-container):not(.haul-puis-widget-action-button)"
-            "{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}"
-            /* v7.149: exact coupon split from the v7.148 device probe. The 163.4x28
-             * .s-coupon-tile is the surviving stock pink painter (rgb(255,227,227)); the
-             * 38.7x22 .s-coupon-tile-price-content is a separate right-hand price painter.
-             * Give both halves one subdued sage surface and pure-white copy. The checkbox
-             * control/artwork remains Amazon-owned; only surrounding coupon chrome/copy is styled. */
-            "#search#search .s-coupon-tile,"
-            "#search#search .s-coupon-tile-price-content,"
-            "#search#search .s-coupon-unclipped,"
-            "#search#search .s-coupon-highlight-color"
-            "{background:#405a4a!important;background-color:#405a4a!important;background-image:none!important;"
-            "border-color:#587161!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
-            "#search#search .s-coupon-tile-text-content,"
-            "#search#search .s-coupon-checkbox-label,"
-            "#search#search .s-coupon-tile-price-content,"
-            "#search#search .s-coupon-unclipped,"
-            "#search#search .s-coupon-highlight-color"
-            "{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
-            /* v7.151: stock media-control boundary. v7.150's all:revert on WebKit pseudo
-             * controls caused rectangular backing boxes. Remove author ownership of the pseudos
-             * entirely; only put the VIDEO itself back on the stock/light UA control scheme.
-             * Also clear AmazonDark structural floors from the ordinary DOM control wrappers
-             * without touching their authored icon/background-image leaves. */
-            "#search#search :is(video.sbv-video-player-ecx,video._c2Itd_video_17g-f)"
-            "{color-scheme:light!important;accent-color:auto!important;filter:none!important;-webkit-filter:none!important;}"
-            "#search#search :is(.sbv-video-pause-button-container,.sbv-video-mute-button-container,.sbv-mobile-video-play-click-region,._c2Itd_playClickRegion_87ZZa)"
-            "{background-color:transparent!important;border-color:transparent!important;outline-color:transparent!important;"
-            "box-shadow:none!important;filter:none!important;-webkit-filter:none!important;}"
-            /* v7.150: VIDEO_SINGLE_PRODUCT standalone/Search ad card ownership. The v7.149
-             * device probe identifies the exact outer card as s-card-container.s-card-border
-             * containing .sbv-video-single-product. Own that border directly with the same
-             * #494d4d standardized ad-card gray used elsewhere. The white lattice below the
-             * video comes from nested product-detail structural surfaces/borders, so collapse
-             * only those non-media/non-brand planes to OLED/transparent and normalize their
-             * divider ink to the same gray. Video/media and Amazon accent artwork stay excluded. */
-            "#search#search .puis-card-container.mobile-video-product-view.puis-card-border"
-            "{background:#000!important;background-color:#000!important;border:1px solid #494d4d!important;"
-            "border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}"
-            /* v7.152 performance: the probe exposes a dedicated .sbv-product-container
-             * below the video. Own only its known layout/detail shells instead of matching
-             * every descendant of the entire creative with a long exclusion chain. */
-            "#search#search .sbv-video-single-product .sbv-product-container,"
-            "#search#search .sbv-video-single-product .sbv-product-container "
-            ":is(.puisg-row,.puisg-col,.puisg-col-inner,.faceout-product-title,.faceout-product-review,"
-            ".faceout-product-price,.puis-delivery-recipe,.udm-delivery-block)"
-            "{background-color:#000!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}"
-            /* v7.151: second Search standalone-video renderer captured by v7.150.
-             * Root: _c2Itd_container_ut_MN.sb-video-creative; lower product shell:
-             * _c2Itd_singleAsin_fHkKv (captured with a literal rgb(230,230,230) border).
-             * Own this renderer separately so the standardized gray card border and OLED
-             * product-detail floors do not depend on VIDEO_SINGLE_PRODUCT selectors. */
-            "#search#search ._c2Itd_container_ut_MN.sb-video-creative"
-            "{background:#000!important;background-color:#000!important;border:1px solid #494d4d!important;"
-            "border-color:#494d4d!important;border-radius:4px!important;outline-color:#494d4d!important;box-shadow:none!important;overflow:hidden!important;}"
-            "#search#search ._c2Itd_cardContent_3OGkG.sbv-ad-content-container,"
-            "#search#search ._c2Itd_content_2L-a5,"
-            "#search#search ._c2Itd_singleAsin_fHkKv"
-            "{background:#000!important;background-color:#000!important;background-image:none!important;"
-            "border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}"
-            "#search#search ._c2Itd_singleAsin_fHkKv"
-            "{border:1px solid #494d4d!important;}"
-            /* v7.152 performance/image repair: do not blanket-style every descendant of the
-             * alternate product shell. Stable structural owners preserve the OLED/gray card
-             * without putting opaque planes over its product-image stack. */
-            "#search#search ._c2Itd_singleAsin_fHkKv :is(._c2Itd_pdCntr_2lxVH,._c2Itd_pdRowCntr_1SQrE,"
-            "._c2Itd_pdImgCol_3WO1V,._c2Itd_pdcol_3gSOx,.productDetailsContainer)"
-            "{background-color:#000!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}"
-            /* v7.153 performance: exact captured _c2Itd detail owners only. Avoid matching
-             * every DIV/SPAN/A in the live Search tree and then walking a long exclusion chain. */
-            "#search#search ._c2Itd_singleAsin_fHkKv :is(.productDetailsContainer,._c2Itd_productTitle_1rGyG,"
-            "._c2Itd_reviewStars_1pJ4C,._c2Itd_badgeContainer_3rI4l,._c2Itd_dealMessage_1qaio,"
-            "._c2Itd_priceLinkContainer_6y-Wc,._c2Itd_savingPercentage_3sw1C)"
-            "{background-color:transparent!important;box-shadow:none!important;}"
-            /* Exact image stack: the IMG remains the TWB owner; transparent wrappers and an
-             * explicit z-order keep the real raster above the renderer's background-link plane. */
-            "#search#search ._c2Itd_singleAsin_fHkKv :is(._c2Itd_singleProductImageContainer_1xhVQ,"
-            "._c2Itd_productImageLinkContainer_3novt,a._c2Itd_productImageLink_2cbWY)"
-            "{background-color:transparent!important;box-shadow:none!important;}"
-            "#search#search ._c2Itd_singleAsin_fHkKv img._c2Itd_image_pQREQ"
-            "{display:block!important;visibility:visible!important;opacity:1!important;position:relative!important;"
-            "z-index:6!important;background-color:transparent!important;mix-blend-mode:normal!important;}"
-            /* Non-brand Search glyphs. Prime/star/rating and the quick-action artwork
-             * above are explicitly excluded so their current accent colors/shapes survive. */
-            "#search :is(svg,i,[class*=icon],[class*=glyph])"
-            /* v7.141: these three proven controls are compositor/content parents, not
-             * monochrome glyph leaves. Excluding them here prevents the generic white-
-             * glyph filter from bleaching Prime, ReviewStarIcon.svg, and Add-to-cart. */
-            ":not(.s-rib-toggle-icon):not(.sf-rib30-dropdown-pill-icon):not(.puis-atcb-button)"
-            ":not(.a-icon-prime):not([class*=prime]):not(:where([class*=prime] *))"
-            ":not([class*=star]):not(:where([class*=star] *)):not([class*=rating]):not(:where([class*=rating] *))"
-            ":not([class*=heart]):not(:where([class*=heart] *)):not([class*=mlt]):not(:where([class*=mlt] *))"
-            ":not([class*=alexa]):not(:where([class*=alexa] *)):not([class*=rufus]):not(:where([class*=rufus] *)):not([class*=research]):not(:where([class*=research] *))"
-            ":not([class*=sponsored]):not(:where([class*=sponsored] *)):not([class*=ad-feedback]):not(:where([class*=ad-feedback] *)):not(:where(.sbv-video-overlay *))"
-            ":not(:where(.sbv-video-pause-button-container *)):not(:where(.sbv-video-mute-button-container *)):not(:where(.sbv-mobile-video-play-click-region *)):not(:where(._c2Itd_playClickRegion_87ZZa *))"
-            "{background-color:transparent!important;color:#d6d9d9!important;fill:#d6d9d9!important;stroke:#d6d9d9!important;filter:brightness(0) invert(1) brightness(.88)!important;-webkit-filter:brightness(0) invert(1) brightness(.88)!important;}"
-            /* v7.141: v7.140 proved the exact failure mechanism. The authored Prime
-             * sprite and ReviewStarIcon.svg leaves still have filter:none, but their
-             * compositor parents retained the generic white-glyph filter because the
-             * long :not(...) selector had greater specificity. The exact parents are now
-             * excluded above, and these duplicated-#search resets are a narrow backstop. */
-            "#search#search .s-rib-toggle-icon:has(i.a-icon-prime)"
-            "{background:transparent!important;background-color:transparent!important;filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;opacity:1!important;}"
-            /* v7.142: Prime itself is now restored blue, but v7.141's screenshot shows the
-             * stock sprite sitting on a themed #202324 rectangle. v7.140's ancestor chain
-             * identifies that rectangle exactly as A.s-rib-toggle-container. It is only a
-             * compositing shell, so clear its floor while leaving the toggle and Prime art. */
-            "#search#search .s-rib-toggle-container:has(.s-rib-toggle-icon i.a-icon-prime)"
-            "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
-            "border-color:transparent!important;box-shadow:none!important;filter:none!important;-webkit-filter:none!important;}"
-            "#search#search .sf-rib30-dropdown-pill-icon:has(.sf-rib30-review-star)"
-            "{background-color:#202324!important;border-color:#747a7c!important;box-shadow:none!important;"
-            "filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;opacity:1!important;}"
-            "#search#search .sf-rib30-dropdown-pill-icon:has(.sf-rib30-review-star) .sf-rib30-review-star"
-            "{filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;opacity:1!important;}"
-            /* v7.142: the black rectangle behind the orange stars is not the outer pill.
-             * The probe chain isolates it as .sf-rib30-review-content (68x17). Clear only
-             * that inner floor; keep the outer gray pill, border, orange SVGs and '& Up'. */
-            "#search#search .sf-rib30-dropdown-pill-icon .sf-rib30-review-content,"
-            "#search#search .sf-rib30-dropdown-pill-icon .sf-rib30-review-stars-group"
-            "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
-            "border-color:transparent!important;box-shadow:none!important;filter:none!important;-webkit-filter:none!important;}"
-            /* v7.143: Discover / Seller are the sf-rib30 dropdown-title family. The v7.141
-             * probe shows the desired #202324 shell already exists on .sf-rib30-dropdown-title,
-             * but a same-size .sf-rib30-title-content-container is painted OLED black on top of
-             * it, with another black .sf-rib30-dropdown-pill-content and #202324 text plate.
-             * Clear only those compositing plates so the existing gray shell/border shows through. */
-            "#search#search .sf-rib30-dropdown-title > .a-declarative > .sf-rib30-title-content-container,"
-            "#search#search .sf-rib30-dropdown-title .sf-rib30-title-content-container .sf-rib30-dropdown-pill-content,"
-            "#search#search .sf-rib30-dropdown-title .sf-rib30-title-content-container .sf-rib30-dropdown-pill-text"
-            "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
-            "box-shadow:none!important;filter:none!important;-webkit-filter:none!important;}"
-            "#search#search .sf-rib30-dropdown-title"
-            "{background:#202324!important;background-color:#202324!important;border-color:#747a7c!important;"
-            "color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}"
-            /* The same probe identifies the trailing glyph as an 8x5
-             * .sf-rib30-dropdown-arrow-icon whose black rectangular floor is passed through
-             * brightness(0) invert(1), creating the white rectangle. Remove that compositor
-             * entirely and draw only a tiny neutral chevron inside the exact dropdown-title. */
-            "#search#search .sf-rib30-dropdown-title .sf-rib30-dropdown-arrow-icon"
-            "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
-            "filter:none!important;-webkit-filter:none!important;box-shadow:none!important;position:relative!important;}"
-            "#search#search .sf-rib30-dropdown-title .sf-rib30-dropdown-arrow-icon::before"
-            "{content:\"\"!important;display:block!important;position:absolute!important;left:1px!important;top:-1px!important;"
-            "width:5px!important;height:5px!important;background:transparent!important;background-color:transparent!important;"
-            "border:0!important;border-right:1.5px solid #d6d9d9!important;border-bottom:1.5px solid #d6d9d9!important;"
-            "box-sizing:border-box!important;transform:rotate(45deg)!important;-webkit-transform:rotate(45deg)!important;"
-            "filter:none!important;-webkit-filter:none!important;}"
-            "#search#search .sf-rib30-dropdown-title .sf-rib30-dropdown-arrow-icon::after{content:none!important;}"
-            /* The Sources button is a stock 12pt round shell containing an exact 7pt
-             * .rufus-expandable-pills-chevron. Broad Rufus floor ownership blackened
-             * that 7pt child into a square; leave the circle stock and clear only the
-             * inner chevron floor/art filter. */
-            "#search#search .rufus-expandable-pills-chevron"
-            "{background:transparent!important;background-color:transparent!important;border-color:transparent!important;box-shadow:none!important;}"
-            "#search#search .rufus-expandable-pills-chevron img"
-            "{background-color:transparent!important;filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;opacity:1!important;}"
-            /* v7.142 Alexa/Rufus/source pills. v7.141 proves the expanded Sources chips
-             * can still expose Amazon's white button plate. Keep carousel/card plumbing
-             * transparent, then own the actual pill shell at higher specificity. */
-            "#search#search :is(#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container) "
-            ".a-carousel-card"
-            "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
-            "border-color:transparent!important;box-shadow:none!important;}"
-            "#search#search :is(#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container) "
-            ":is(.nile-inline-pill-button,.nile-inline-ingress-pill-button,.a-button,[role=button],.a-carousel-card>a)"
-            "{background:#4a4f51!important;background-color:#4a4f51!important;background-image:none!important;"
-            "border:1px solid #34383a!important;border-color:#34383a!important;box-shadow:none!important;"
-            "color:#fff!important;-webkit-text-fill-color:#fff!important;}"
-            "#search#search :is(#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container) "
-            ":is(.nile-inline-pill-button,.nile-inline-ingress-pill-button,.a-button,[role=button],.a-carousel-card>a) .a-button-inner"
-            "{background:#4a4f51!important;background-color:#4a4f51!important;background-image:none!important;"
-            "border-color:transparent!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
-            "#search#search :is(#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container) "
-            ":is(.nile-inline-pill-button,.nile-inline-ingress-pill-button,.a-button,[role=button],.a-carousel-card>a) .a-button-text"
-            "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
-            "border:0!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
-            "#search#search :is(#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container) "
-            ":is(.nile-inline-pill-button,.nile-inline-ingress-pill-button,.a-button,[role=button],.a-carousel-card>a) :is(.a-button-text,span,p,strong,b,div)"
-            "{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
-            "#search#search :is(#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container) "
-            ":is(.nile-inline-pill-button,.nile-inline-ingress-pill-button,.a-button,[role=button],.a-carousel-card>a)::before,"
-            "#search#search :is(#rufus-overviews-pills-carousel,#rufus-mobile-overviews-expandable-pills-carousel-container) "
-            ":is(.nile-inline-pill-button,.nile-inline-ingress-pill-button,.a-button,[role=button],.a-carousel-card>a)::after"
-            "{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}"
-            /* The category carousel probe isolates each remaining white product/category
-             * floor to li.a-carousel-card plus its outer 76x78 .a-box. Keep the image
-             * leaf on TWB, but return the card/description floor to OLED and use white copy. */
-            "#search #rufus-overviews-category-cards-carousel .a-carousel-card,"
-            "#search #rufus-overviews-category-cards-carousel .a-carousel-card > .a-box,"
-            "#search #rufus-overviews-category-cards-carousel .a-carousel-card > .a-box > .a-box-inner"
-            "{background:#000!important;background-color:#000!important;border-color:#494d4d!important;box-shadow:none!important;}"
-            "#search #rufus-overviews-category-cards-carousel .a-carousel-card :is(span,a,p,strong,b,div)"
-            "{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
-            /* Product-result Add-to-cart is exactly .puis-atcb-button in the v7.139
-             * probe. Keep its requested OLED fill, remove the generic icon-parent filter,
-             * and give the pill a visible neutral outline. */
-            "#search#search .puis-atcb-button"
-            "{background:#000!important;background-color:#000!important;border:1px solid #747a7c!important;box-shadow:inset 0 0 0 1px #747a7c!important;"
-            "filter:none!important;-webkit-filter:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            "#search#search .puis-atcb-button .a-button-inner"
-            "{background:transparent!important;background-color:transparent!important;border-color:transparent!important;box-shadow:none!important;}"
-            "#search#search .puis-atcb-button .a-button-text"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* Share/overflow exact leaves from probe history. */
-            ".puis-mab-overlay-row-share .puis-mab-overlay-icon-share"
-            "{background-color:#e8e6e3!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;filter:none!important;}"
-            /* v7.0.28 Home floor ownership.
-             *
-             * Probe correction: generated NPACK/GWM bundle-family prefixes occur
-             * on descendants such as badgeLabel and ad-feedback-text, so those
-             * prefixes are never used as floor selectors. */
-            ":is(#gwm-PageContent,#gwm-Deck-btf) :is("
-            ".a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf],"
-            "[class*=hp-mosaic-container_style_container],[class*=_mosaic-container_style_widgetContainer])"
-            "{background-color:#000!important;border-color:#494d4d!important;"
-            "mix-blend-mode:normal!important;isolation:auto!important;}"
-            /* Exact ordinary carousel below the hero. Historical/current probes
-             * expose gwm-dashboard-container here; hero theming/creative cards are
-             * outside this parent and retain Amazon's original color/media paint. */
-            ".gwm-dashboard-container :is("
-            ".a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf])"
-            "{background-color:#000!important;border-color:#494d4d!important;"
-            "mix-blend-mode:normal!important;isolation:auto!important;}"
-            /* Product-media blend correction.
-             * v7.0.39 completes the old generic-Home-media coverage without a
-             * classifier: any real IMG inside a proven ordinary Home card gets
-             * leaf-local blend normalization. UI/identity/ad-chrome leaves are
-             * explicitly rejected. */
-            ":is(#gwm-PageContent,#gwm-Deck-btf,#gwm-Deck,.gwm-dashboard-container) "
-            ":is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
-            "img"
-            ":not([class*=logo]):not([class*=avatar]):not([class*=profile])"
-            ":not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store])"
-            ":not([class*=rating]):not([class*=star]):not([class*=sprite]):not([class*=pixel])"
-            ":not([class*=icon]):not([class*=glyph]):not([class*=badge])"
-            ":not([class*=checkbox]):not([class*=heart]):not([class*=wishlist])"
-            ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
-            ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *))"
-            "{mix-blend-mode:normal!important;isolation:auto!important;background-color:transparent!important;}"
-            /* Some Home cards put the destructive blend on PICTURE/image
-             * wrappers instead of the IMG. Normalize those media-only wrappers
-             * too, but never apply TWB brightness to the wrapper itself. */
-            ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
-            ":is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
-            ":is(picture,[class*=image-wrapper],[class*=img-wrapper],[class*=image-container])"
-            "{mix-blend-mode:normal!important;isolation:auto!important;background-color:transparent!important;}"
-            ":is(#gwm-PageContent,#gwm-Deck-btf,#gwm-Deck,.gwm-dashboard-container) "
-            ":is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
-            "[class*=asin-metadata]"
-            "{mix-blend-mode:normal!important;isolation:auto!important;}"
-            /* v7.0.38 probe-confirmed multi-category media.
-             * Disney/Pet wellness/Jewelry/Smart Home cards use direct IMG leaves
-             * named _multi-category-card_image_* rather than asin/product-image.
-             * Normalize the IMG leaf only; never the card or its live text. */
-            ":is(#gwm-Deck-btf,.gwm-dashboard-container) [class*=multi-category-card] img"
-            "{mix-blend-mode:normal!important;isolation:auto!important;"
-            "background-color:transparent!important;}"
-            /* Exact deal-message host only: remove the white plate, but never
-             * repaint %off badgeLabel or Limited time deal text. */
-            ":is(#gwm-PageContent,#gwm-Deck-btf,#gwm-Deck,.gwm-dashboard-container) [class*=badgeMessage]"
-            "{background-color:transparent!important;box-shadow:none!important;}"
-            /* v7.0.33: text-only Home correction on the v7.0.29 baseline.
-             * Keep v7.0.29 hero/TWB isolation intact and only light ordinary
-             * below-fold card/mosaic captions and headers. Sponsored/ad-feedback
-             * plus badge/deal/coupon chrome remain Amazon-owned. */
-            ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
-            ":is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) "
-            ":is(h1,h2,h3,h4,h5,h6,p,span,a)"
-            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
-            ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
-            ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *))"
-            ":not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *))"
-            ":not(:where([id^=af-label-] *))"
-            ":not([class*=badge]):not([class*=deal]):not([class*=coupon])"
-            ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *))"
-            ":not(:where([class*=hero] *)):not(:where([class*=single-creative] *)):not(:where([class*=single-video] *))"
-            ":not(:where([class*=theming-card] *)):not(:where([class*=creative-card] *)):not(:where([class*=ad-card] *)):not(:where([class*=canvas-card] *))"
-            ":not(:where([class*=mobile-mshop-ad] *)):not(:where([class*=mobile-ad-container] *))"
-            ":not(:where([class*=ape-wrapper] *)):not(:where([class*=ape-placement] *))"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* v7.107: below-fold neutral Home ink fallback. The Outlet recommendation
-             * pane can place otherwise-standard Amazon neutral text leaves outside
-             * the historical a-cardui/asin/mosaic/p13n roots, leaving product names
-             * and prices at stock #0f1111/#111 on our OLED floor. Match only known
-             * neutral Amazon text/price semantics and reject ad/creative/deal chrome. */
-            ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
-            ":is(.a-color-base,.a-text-normal,.a-size-base,.a-size-base-plus,.a-size-medium,"
-            ".a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen,"
-            "[class*=product-title],[class*=product-name],[class*=item-title])"
-            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
-            ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
-            ":not([class*=badge]):not([class*=deal]):not([class*=coupon])"
-            ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *))"
-            ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
-            ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *))"
-            ":not(:where([class*=hero] *)):not(:where([class*=single-creative] *)):not(:where([class*=single-video] *))"
-            ":not(:where([class*=theming-card] *)):not(:where([class*=creative-card] *)):not(:where([class*=ad-card] *)):not(:where([class*=canvas-card] *))"
-            ":not(:where([class*=mobile-mshop-ad] *)):not(:where([class*=mobile-ad-container] *)):not(:where(#mobile-third-party-ad *))"
-            ":not(:where([class*=ape-wrapper] *)):not(:where([class*=ape-placement] *))"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* v7.0.39 exact card-header ink.
-             * The dashboard carousel can hydrate one header with Amazon's dark
-             * inline foreground even while sibling cards are already light.
-             * Own only the a-cardui header text lane; Sponsored lives outside it. */
-            ":is(#gwm-Deck-btf,.gwm-dashboard-container) .a-cardui-header "
-            ":is(h1,h2,h3,h4,h5,h6,a,span,p)"
-            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
-            ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* v7.0.42: exact dashboard title leaves seen by the current probe.
-             * Some APE-backed cards use windowPaneHeaderContainer instead of wpTitle.
-             * Own only the title link/leaf; Sponsored remains in a separate badge row. */
-            ":is(#gwm-Deck-btf,.gwm-dashboard-container) .a-cardui :is([class*=wpTitle],[class*=windowPaneHeaderContainer])"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* Bare Home section headers can live outside the inner card shell. */
-            ":is(#gwm-Deck-btf,.gwm-dashboard-container) :is(h1,h2,h3,h4,h5,h6)"
-            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
-            ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
-            ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
-            ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *))"
-            ":not([class*=badge]):not([class*=deal]):not([class*=coupon])"
-            ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *))"
-            ":not(:where([class*=hero] *)):not(:where([class*=single-creative] *)):not(:where([class*=single-video] *))"
-            ":not(:where([class*=theming-card] *)):not(:where([class*=creative-card] *)):not(:where([class*=ad-card] *)):not(:where([class*=canvas-card] *))"
-            ":not(:where([class*=mobile-mshop-ad] *)):not(:where([class*=mobile-ad-container] *))"
-            ":not(:where([class*=ape-wrapper] *)):not(:where([class*=ape-placement] *))"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* v7.0.40: restore the cheap v185/v7.0.16 seasonal mosaic ink contract.
-             * v7.0.39 had accidentally narrowed this to headings/captions only, so
-             * category labels such as Laundry / Beauty / Water bottles inherited
-             * Amazon's dark foreground on our OLED seasonal shell. */
-            ":is(#gwm-PageContent,#gwm-Deck-btf,.gwm-dashboard-container) "
-            ":is([class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer]) "
-            ":is(div,section,article,ul,ol,li,a,p,span,h1,h2,h3,h4,h5,h6)"
-            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
-            ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* Seasonal navigation host ink. */
-            ":is(#gwm-PageContent,#gwm-Deck-btf,.gwm-dashboard-container) "
-            ":is([class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer]) "
-            ":is([class*=next],[class*=prev],[class*=chevron],[class*=arrow])"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;"
-            "fill:#e8e6e3!important;stroke:#e8e6e3!important;}"
-            /* v7.0.42 restores the proven v5.440/v5.449 MAB sprite leaf directly.
-             * The visible chevron is an I.a-icon.a-icon-dropdown background sprite;
-             * it is not reliably nested under the seasonal family wrapper. */
-            ".puis-mab-chevron :is(i.a-icon-dropdown,.a-icon.a-icon-dropdown),"
-            ".puis-mab-chevron-glyph :is(i.a-icon-dropdown,.a-icon.a-icon-dropdown)"
-            "{filter:brightness(0) invert(1)!important;opacity:1!important;}"
-            /* v7.0.45: College/seasonal chevron completion. The v7.0.43 native
-             * probe found no UIKit seasonal/college control, so this glyph is web
-             * chrome. Current Amazon layouts can detach the historical MAB wrapper
-             * from the newer seasonal/NPACK family names, leaving the exact
-             * i.a-icon.a-icon-dropdown sprite dark. Own that sprite leaf anywhere
-             * inside the Home deck; keep the narrower semantic fallbacks too. */
-            ":is(#gwm-PageContent,#gwm-Deck,#gwm-Deck-btf,.gwm-dashboard-container) i.a-icon.a-icon-dropdown,"
-            ":is(#gwm-PageContent,#gwm-Deck-btf,.gwm-dashboard-container) "
-            ":is([class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer],[class*=_npack-asin-card_style_theming-background-override__]) "
-            ":is([class*=next],[class*=prev],[class*=chevron],[class*=arrow]) :is(i.a-icon,.a-icon,[class*=glyph]),"
-            ":is(#gwm-PageContent,#gwm-Deck-btf,.gwm-dashboard-container) "
-            ":is([class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer],[class*=_npack-asin-card_style_theming-background-override__]) "
-            ":is(i.a-icon-dropdown,i[class*=chevron],i[class*=arrow])"
-            "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
-            /* v7.0.49 current-head behavior retained: broad unscoped dropdown/
-             * chevron sprite fallbacks. The remaining dark chevron therefore is
-             * not assumed to be one of these leaves; v7.0.50 probes the actual tap. */
-            "i.a-icon.a-icon-dropdown,.a-icon.a-icon-dropdown,"
-            "i[class*=chevron],i[class*=arrow],[class*=chevron-glyph],"
-            "[class*=puis-mab-chevron] :is(i.a-icon-dropdown,.a-icon.a-icon-dropdown)"
-            "{filter:brightness(0) invert(1) brightness(0.91)!important;"
-            "-webkit-filter:brightness(0) invert(1) brightness(0.91)!important;"
-            "opacity:1!important;visibility:visible!important;mix-blend-mode:normal!important;}"
-            /* v7.0.46: cheap v6.0.185 Web border parity. v185's final visible
-             * card/section outline was #3b4043 after its palette path. Own color only:
-             * no width, radius, layout, shadow, or hit-target changes. */
-            ":is([class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],"
-            "[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],"
-            "[class*=theming-card],[class*=a-unordered-list],[class*=mosaic-container],"
-            "[class*=puis-card],[class*=gwm-tile],[class*=_container_])"
-            ":not([class*=deal]):not([class*=badge]):not([class*=prime]):not([class*=error])"
-            ":not([class*=alert]):not([class*=warning])"
-            "{border-color:#3b4043!important;outline-color:#3b4043!important;}"
-            /* v185 also owned the actual nested seasonal/mosaic border-bearing shells,
-             * not just the outer mosaic root. This is what keeps those visible card
-             * outlines from falling back to Amazon white. */
-            ":is([class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer]) "
-            ":is(div,section,article,ul,ol,li)"
-            "{border-color:#3b4043!important;outline-color:#3b4043!important;}"
-            /* v7.95: Disney / Amazon Shopping Guides quad-card media parity.
-             * The v7.94 current-viewport probe exposed this renderer as
-             * data-csa-c-painter=amazon-shopping-guides-quad-card-cards. Its own
-             * _YW1he_colored-background_* shell uses mix-blend-mode:darken and
-             * the product IMG uses mix-blend-mode:multiply. Against our OLED card
-             * floor those blend modes collapse the artwork into black until the
-             * pressed state changes compositing. Normalize compositing only. */
-            "[data-csa-c-painter=amazon-shopping-guides-quad-card-cards] [class*=_colored-background_],"
-            "[data-csa-c-painter=amazon-shopping-guides-quad-card-cards] [class*=_product-image_],"
-            "[data-csa-c-painter=amazon-shopping-guides-quad-card-cards] [class*=_image_]"
-            "{mix-blend-mode:normal!important;isolation:auto!important;}"
-            /* v7.96: give Shopping Guides product tiles the same v185/hero
-             * product-photo plate treatment used by the seasonal NPACK hero.
-             * Amazon's _colored-background_ shell is the light #f7f7f7 contain
-             * plate visible around the actual product raster. Replace only that
-             * leftover plate with OLED black; the existing image sizing/contain,
-             * padding, radius, position and TWB raster filter are left untouched. */
-            "[data-csa-c-painter=amazon-shopping-guides-quad-card-cards] [class*=_colored-background_]"
-            "{background:#000!important;background-color:#000!important;border-color:#000!important;"
-            "outline-color:#000!important;box-shadow:none!important;transition-property:none!important;}"
-            /* v7.0.46: standalone ad dark surface. Classification is O(1) at
-             * documentStart from child-frame/referrer state; viewport geometry is
-             * handled declaratively by the media query, so there is no DOM scan,
-             * observer, timer, or per-node classifier. Product/Search child frames
-             * are excluded by the referrer gate. */
-            "@media (max-height:260px) and (min-aspect-ratio:5/3){"
-            "html[data-ad7-standalone-candidate],html[data-ad7-standalone-candidate] body"
-            "{background:#000!important;background-color:#000!important;color:#e8e6e3!important;}"
-            "html[data-ad7-standalone-candidate] :is(div,section,article,main,header,footer,ul,ol,li)"
-            "{background-color:transparent!important;border-color:#3b4043!important;}"
-            "html[data-ad7-standalone-candidate] :is(h1,h2,h3,h4,h5,h6,p,span,a,strong,small,b,em,label)"
-            ":not([class*=badge]):not([class*=deal]):not([class*=coupon])"
-            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
-            ":not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-])"
-            ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
-            ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *))"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            "html[data-ad7-standalone-candidate] :is(img,picture,video,canvas,svg)"
-            "{background-color:transparent!important;}"
-            "}"
-            /* v7.93: standalone dynamic-product ad ownership from the v7.92
-             * current-viewport probe. These APE child creatives are a separate
-             * m.media-amazon.com frame and the captured 430x358 renderer is not
-             * covered by the old wide/short @media lane above. Anchor only to the
-             * ad renderer's own data-is-ad/data-testid semantics so ordinary child
-             * documents stay untouched. Structural floor becomes OLED black;
-             * neutral primary copy becomes v185 primary ink and Amazon's genuinely
-             * secondary neutral copy becomes subdued gray. Blue/colored accents,
-             * Prime artwork and rating stars are intentionally not recolored. */
-            "html[data-ad7-standalone-candidate] :is(body,#ad,section[data-is-ad=true],[data-testid=ad-background-container])"
-            "{background:#000!important;background-color:#000!important;color:#e8e6e3!important;}"
-            "html[data-ad7-standalone-candidate] [data-testid=ad-background-container]"
-            "{background:#000!important;background-color:#000!important;background-image:none!important;"
-            "border-color:#3b4043!important;outline-color:#3b4043!important;box-shadow:none!important;}"
-            /* The captured renderer owns a left text gradient and a right product
-             * plate as the two direct children. Kill only those floor paints; do
-             * not blanket-clear nested badges or accent components. */
-            "html[data-ad7-standalone-candidate] [data-testid=ad-background-container] > div"
-            "{background:#000!important;background-color:#000!important;background-image:none!important;}"
-            /* v7.108: exact first-party 300x250 Swiper standalone carousel from
-             * the v7.107 device capture. v7.107 looked for the literal word
-             * "carousel", but this renderer never exposes it: the child is
-             * #ad[data-html-dimensions=300x250] -> data-testid=gridContainer ->
-             * .swiper-wrapper/.swiper-slide. Own that proven signature directly.
-             * The gridContainer is the one surviving #fff light plane; slide
-             * structure is otherwise transparent. Prime/rating-star/deal/badge
-             * accents stay Amazon-owned. */
-            "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"]"
-            "{background:#000!important;background-color:#000!important;}"
-            "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] [data-testid=gridContainer]"
-            "{background:#000!important;background-color:#000!important;background-image:none!important;}"
-            "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] "
-            ":is(div,section,article,main,header,footer,ul,ol,li)"
-            ":not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime])"
-            ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *))"
-            "{background-color:transparent!important;}"
-            "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] .swiper-slide > [class*=border-gray-]"
-            "{border-color:#3b4043!important;outline-color:#3b4043!important;box-shadow:none!important;}"
-            "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] "
-            ":is(h1,h2,h3,h4,h5,h6,p,span,a,strong,small,b,em,label,div)"
-            ":not(div:has([class*=prime],[data-testid*=prime],[class*=star],[data-testid*=star]))"
-            ":not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime]):not([class*=star])"
-            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
-            ":not([data-testid*=prime]):not([data-testid*=star])"
-            ":not(:where([data-testid*=prime] *)):not(:where([data-testid*=star] *))"
-            ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *)):not(:where([class*=star] *))"
-            ":not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] "
-            ":is(div,span,p,a,small,strong,b)[class*=sponsored],"
-            "html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] "
-            ":is(div,span,p,a,small,strong,b)[data-testid*=sponsored]"
-            "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}"
-            /* v7.95: compact REC/renderer-factory lane from the v7.94 probe.
-             * The captured 430x130 child frame uses modern-414x125-layout-container
-             * with an Amazon #d5d9d9 border and dark navy product copy. Own paint
-             * only: no width/height/margin/padding/radius/display/flex changes. */
-            "html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] "
-            "[data-testid^=modern-][data-testid$=-layout-container]"
-            "{background:#000!important;background-color:#000!important;border-color:#3b4043!important;"
-            "outline-color:#3b4043!important;box-shadow:none!important;}"
-            /* v7.110: 430x67 compact renderer-factory variant. The device probe
-             * shows renderer-factory + main-content are already black, but the
-             * deeper data-testid=content surface retains an inline #fff floor.
-             * Own only that proven structural surface; its existing radius/layout,
-             * Sponsored row geometry and text remain Amazon-owned. */
-            "html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] [data-testid=content]"
-            "{background:#000!important;background-color:#000!important;}"
-            /* v7.110: dynamic-bb deal copy uses a classless white direct child
-             * inside data-testid=deal-badge rather than message-container. Clear
-             * only the inline-white label plate; the red % badge and red
-             * `Limited time deal` text keep their authored color. */
-            "html[data-ad7-standalone-candidate] #dynamic-bb [data-testid=deal-badge] > "
-            "div[style*=\"background-color: rgb(255, 255, 255)\"]"
-            "{background-color:transparent!important;box-shadow:none!important;}"
-            "html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] "
-            ":is([data-id=brand-name-text],[data-id=product-name-text],[data-testid=ratings-value],"
-            "[data-testid=formatted-price],[data-testid=formatted-price] *)"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            "html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] "
-            ":is([data-testid=ratings-review-count],[data-testid=full-price])"
-            "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
-            /* Primary standalone-ad copy. */
-            "html[data-ad7-standalone-candidate] [data-testid=brand-product-description] p,"
-            "html[data-ad7-standalone-candidate] [data-testid=ratings-value],"
-            "html[data-ad7-standalone-candidate] [data-testid=price-container] :is(div,span)"
-            ":not([data-testid=full-price]):not([data-testid=prime-badge])"
-            ":not(:where([data-testid=prime-badge] *)),"
-            "html[data-ad7-standalone-candidate] [data-testid=sns-coupon-badge-container] :is(div,span,p),"
-            "html[data-ad7-standalone-candidate] [data-testid=ad-background-container] "
-            ":is(p,span,div,a,small,strong,b)[style*=\"color: rgb(15, 17, 17)\"]"
-            ":not(:where([data-testid=ratings-stars] *)):not(:where([data-testid=prime-badge] *)),"
-            "html[data-ad7-standalone-candidate] [data-testid=ad-background-container] "
-            ":is(p,span,div,a,small,strong,b)[style*=\"color: black\"]"
-            ":not(:where([data-testid=ratings-stars] *)):not(:where([data-testid=prime-badge] *))"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            /* Secondary neutral metadata: review count and struck list price. */
-            "html[data-ad7-standalone-candidate] [data-testid=ratings-review-count],"
-            "html[data-ad7-standalone-candidate] [data-testid=full-price],"
-            "html[data-ad7-standalone-candidate] [data-testid=ad-background-container] "
-            ":is(p,span,div,a,small,strong,b)[style*=\"color: rgb(86, 89, 89)\"],"
-            "html[data-ad7-standalone-candidate] [data-testid=ad-background-container] "
-            ":is(p,span,div,a,small,strong,b)[style*=\"color:#565959\"]"
-            "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
-            /* Keep the product-photo lane structurally black; TWB owns only the
-             * actual raster leaf in ADTWBJS below. */
-            "html[data-ad7-standalone-candidate] :is([data-testid*=product-picture],[data-testid*=product-image],[data-testid*=asin-image],picture)"
-            "{background-color:transparent!important;box-shadow:none!important;}"
-            /* v7.106: Sponsored TEXT remains Amazon-owned. Known Sponsored glyph
-             * families are owned declaratively below; the old semantic DOM learner
-             * has been retired, so there is no Sponsored runtime selector scan. */
-            /* Creative/media protection: only true media/product-image wrappers are
-             * normalized. Hero/single-creative/theming/ad-card containers are excluded so
-             * Amazon keeps their own campaign floor and text contrast. */
-            "picture,img,video,canvas,#imgTagWrapperId,.s-product-image-container,[data-component-type=s-product-image],"
-            "[class*=image-wrapper],[class*=img-wrapper],[class*=image-container],[class*=product-image],[class*=asin-image]"
-            "{background-color:transparent!important;}"
-            /* Narrow standalone APE structural owner retained by the later 6.x/v185 lineage.
-             * Placement chrome only; no Sponsored text/glyph/media ownership. */
-            "[class*=ape-wrapper],[class*=ape-placement],"
-            "[class*=ape-feedback]:not(:where(#gwm-window *)):not(:where([class*=single-creative-card] *)):not(:where([class*=single-video-card] *)):not([id*=mobile-wd-])"
-            "{background-color:transparent!important;border-color:transparent!important;"
-            "outline-color:transparent!important;box-shadow:none!important;}"
-            "iframe[id*=ape_],iframe[class*=ape_]"
-            "{background-color:transparent!important;border-color:transparent!important;"
-            "outline-color:transparent!important;}"
-            /* v7.112: the compact 320x50 SafeFrame already owns the correct
-             * 1px rounded boundary on the MAIN-FRAME .ape-placement. v7.111
-             * proved a child #ad::after overlay is clipped at the SafeFrame's
-             * terminal compositor edge. Recolor only Amazon's existing parent
-             * border; width/radius/overflow/geometry remain Amazon-owned and the
-             * separate Sponsored feedback row remains outside the boundary. */
-            ".ape-wrapper[style*=\"--ad-height:50\"] > .ape-placement[style*=\"aspect-ratio: 320 / 50\"]"
-            "{border-color:#3b4043!important;}"
-            /* v7.107: same rare sponsored carousel when Amazon renders the shell
-             * directly in the mshop document instead of wholly inside a child
-             * safe-frame. Scope to the already-known standalone mobile ad roots
-             * and require carousel semantics so ordinary Home carousels are not
-             * affected. */
-            ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
-            ":is([class*=mobile-mshop-ad],[class*=mobile-ad-container]):has(:is([class*=carousel],[data-testid*=carousel]))"
-            "{background:#000!important;background-color:#000!important;border-color:#3b4043!important;"
-            "outline-color:#3b4043!important;box-shadow:none!important;}"
-            ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
-            ":is([class*=mobile-mshop-ad],[class*=mobile-ad-container]):has(:is([class*=carousel],[data-testid*=carousel])) "
-            ":is(div,section,article,main,header,footer,ul,ol,li)"
-            ":not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime])"
-            ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *))"
-            "{background-color:transparent!important;}"
-            ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
-            ":is([class*=mobile-mshop-ad],[class*=mobile-ad-container]):has(:is([class*=carousel],[data-testid*=carousel])) "
-            ":is(h1,h2,h3,h4,h5,h6,p,span,a,strong,small,b,em,label)"
-            ":not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime])"
-            ":not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
-            ":not([data-testid=prime-badge]):not(:where([data-testid=prime-badge] *))"
-            ":not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *))"
-            ":not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
-            ":is([class*=mobile-mshop-ad],[class*=mobile-ad-container]):has(:is([class*=carousel],[data-testid*=carousel])) "
-            ":is(span,p,a,small,strong,b)[class*=sponsored],"
-            ":is(#gwm-Deck-btf,.gwm-dashboard-container) "
-            ":is([class*=mobile-mshop-ad],[class*=mobile-ad-container]):has(:is([class*=carousel],[data-testid*=carousel])) "
-            ":is(span,p,a,small,strong,b)[data-testid*=sponsored]"
-            "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}"
-            /* v7.0.73: suppress Amazon's persistent keyboard-focus ring on the
-             * Sponsored feedback trigger. Amazon's own ad-feedback CSS applies a
-             * rounded 3px outline to the focused Sponsored text control; after the
-             * feedback sheet closes that control remains focused, leaving the gray
-             * box seen on Home. Own only the focus decoration, not text/glyph ink. */
-            ":is([class*=ad-feedback-text],[class*=ad-feedback-text-desktop],[id^=ad-feedback-text-],[id^=af-label-primary-link-],[aria-label^=\"Leave feedback on Sponsored\"])"
-            ":not(:where(#gwm-window [id^=wd-shoppable-] *)):not(:where([id*=mobile-wd-] *)):not(:where([class*=single-creative-card] *)):not(:where([class*=single-video-card] *)):is(:focus,:focus-visible)"
-            "{outline:none!important;box-shadow:none!important;-webkit-tap-highlight-color:transparent!important;}"
-            /* v7.0.72 pre-release: Amazon ad-feedback bottom sheet.
-             * The v7.0.71 tap capture exposed the exact AUI sheet and
-             * adFeedbackBottomSheet/mobile-ad-feedback hierarchy. Theme this
-             * declaratively only when that feedback sheet exists: OLED structural
-             * floor, light copy, search-field gray textarea, and dark controls.
-             * No observer, timer, traversal, or runtime lifecycle owner. */
-            "body:has([id^=adFeedbackBottomSheet_]) :is(.a-sheet-web-container,.a-sheet-web,.a-sheet-content-container),"
-            "body:has([id^=adFeedbackBottomSheet_]) [class*=ad-feedback-bottom-sheet-container],"
-            "body:has([id^=adFeedbackBottomSheet_]) :is(#af-form-top-container,#mobile-ad-feedback-container)"
-            "{background:#000!important;background-color:#000!important;color:#e8e6e3!important;"
-            "-webkit-text-fill-color:#e8e6e3!important;}"
-            "body:has([id^=adFeedbackBottomSheet_]) :is(#af-form-top-container,#mobile-ad-feedback-container) "
-            ":is(div,section,article,form,fieldset,header,footer)"
-            "{background-color:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            "body:has([id^=adFeedbackBottomSheet_]) :is(#af-form-top-container,#mobile-ad-feedback-container) "
-            ":is(h1,h2,h3,h4,h5,h6,p,span,label,legend,small,strong,b,a)"
-            "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-            "body:has([id^=adFeedbackBottomSheet_]) #mobile-ad-feedback-container textarea"
-            "{background:#303335!important;background-color:#303335!important;color:#e8e6e3!important;"
-            "-webkit-text-fill-color:#e8e6e3!important;border-color:#6f6f6f!important;box-shadow:none!important;}"
-            "body:has([id^=adFeedbackBottomSheet_]) #mobile-ad-feedback-container input[type=checkbox]"
-            "{background-color:#000!important;border-color:#b1aaa0!important;accent-color:#303335!important;color-scheme:dark!important;}"
-            "body:has([id^=adFeedbackBottomSheet_]) #mobile-ad-feedback-container :is(.a-icon-checkbox,i.a-icon-checkbox)"
-            "{filter:invert(1)!important;-webkit-filter:invert(1)!important;opacity:1!important;}"
-            "body:has([id^=adFeedbackBottomSheet_]) #mobile-ad-feedback-container :is(.a-button,.a-button-inner,button,input[type=button],input[type=submit])"
-            "{background:#181a1b!important;background-color:#181a1b!important;color:#e8e6e3!important;"
-            "-webkit-text-fill-color:#e8e6e3!important;border-color:#6f6f6f!important;box-shadow:none!important;}"
-            "body:has([id^=adFeedbackBottomSheet_]) #mobile-ad-feedback-container :is(button,input[type=button],input[type=submit]):disabled,"
-            "body:has([id^=adFeedbackBottomSheet_]) #mobile-ad-feedback-container .a-button-disabled"
-            "{background:#181a1b!important;background-color:#181a1b!important;color:#8a8a8a!important;"
-            "-webkit-text-fill-color:#8a8a8a!important;border-color:#494d4d!important;}"
-            /* Keep actual form controls readable without overriding Amazon yellow/accent buttons. */
-            "input:not([type=button]):not([type=submit]),textarea,select"
-            "{background-color:#181a1b!important;color:#e8e6e3!important;border-color:#494d4d!important;}"
-            "::placeholder{color:#b1aaa0!important;opacity:1!important;}"
-            "[class*=header-icon],[class*=header-icon] path,[class*=header-icon] use,"
-            "[class*=header-link] svg path,[class*=cardui-header] svg path,"
-            "a[class*=header-link] path,[class*=see-more] path,[class*=view-all] path"
-            "{fill:#e8e6e3!important;stroke:#e8e6e3!important;color:#e8e6e3!important;"
-            "opacity:1!important;}"
-            "[class*=hp-mosaic-container] .a-icon-next-rounded,"
-            "[class*=hp-mosaic-container] .a-icon-previous-rounded,"
-            "[class*=hp-mosaic-container] [class*=chevron],"
-            "[class*=hp-mosaic-container] [class*=arrow],"
-            "[class*=_mosaic-container_style_widgetContainer] .a-icon-next-rounded,"
-            "[class*=_mosaic-container_style_widgetContainer] .a-icon-previous-rounded,"
-            "[class*=_mosaic-container_style_widgetContainer] [class*=chevron],"
-            "[class*=_mosaic-container_style_widgetContainer] [class*=arrow],"
-            ".a-icon-next-rounded,.a-icon-previous-rounded"
-            "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;"
-            "opacity:1!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;}"
-            /* v7.0.79: deterministic Sponsored glyph ownership for the late-hydrating
-             * NPACK / sponsored-products renderer families.  v7.0.73 could win the
-             * race on-device, but later lifecycle work exposed that the element can
-             * be replaced after the one-shot JS pass.  Own only the masked glyph
-             * paint declaratively so replacement nodes stay light without observers. */
-            ":is([class*=_npack-asin-card_style_ad-feedback-spr],[class*=_npack-asin-card_style_ad-feedback-sprite],[class*=_cXVhZ_ad-feedback-spr],[class*=_cXVhZ_ad-feedback-sprite],[class*=_sponsored-products-mo])"
-            ":not(:where(#gwm-window [id^=wd-shoppable-] *)):not(:where([id*=mobile-wd-] *)):not(:where([class*=single-creative-card] *)):not(:where([class*=single-video-card] *))"
-            "{color:#e8e6e3!important;background-color:#e8e6e3!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
-            /* v7.86: Hybrid GWM/NPACK carousel Sponsor glyphs are owned per instance,
-             * not by the old class-level color learner. The Amazon bundle reuses the
-             * same hashed sprite classes across sibling cards, so a learned literal
-             * color from one card can contaminate another after hydration/refresh.
-             * Rebuild only the 12x12 Hybrid info glyph as the stock mask and let
-             * currentColor inherit from its own adjacent Amazon-owned Sponsor text.
-             * No Sponsored text rule is written. */
-            "html body [data-ad-feedback-label-id] b[class*=ad-feedback-sprite-mobile][class*=labelThemeStyle_ad-feedback-sprite-mobile]:not(:where(#gwm-window [id^=wd-shoppable-] *)):not(:where([id*=mobile-wd-] *)):not(:where([class*=single-creative-card] *)):not(:where([class*=single-video-card] *)),"
-            "html body [data-ad-feedback-label-id] b[class*=ad-feedback-sprite-mobile]:not(:where(#gwm-window [id^=wd-shoppable-] *)):not(:where([id*=mobile-wd-] *)):not(:where([class*=single-creative-card] *)):not(:where([class*=single-video-card] *))"
-            "{color:inherit!important;background-color:currentColor!important;background-image:none!important;"
-            "-webkit-mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;"
-            "mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;"
-            "-webkit-mask-size:contain!important;mask-size:contain!important;"
-            "-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;"
-            "-webkit-mask-position:center!important;mask-position:center!important;"
-            "filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
-            /* v7.91: Home product-carousel Sponsored parity. The v7.89 current-frame
-             * capture proved these card families can hydrate through multiple Amazon
-             * renderers while reusing the Grey ad-feedback theme. In the failing
-             * states the visible text is driven by -webkit-text-fill-color while the
-             * 12x12 info mask is driven independently by background-color, producing
-             * white/gray text beside a dark glyph. Own both inks only inside the
-             * carousel badge shells captured by the probe; other Sponsored surfaces
-             * remain Amazon-owned. v7.91 uses the app's subdued secondary gray for
-             * both inks rather than pure white. This is declarative CSS only. */
-            "html body :is([class*=widget-sponsored-badge-container],[class*=asin-sponsored-badge-container]) "
-            "[data-ad-feedback-label-id] [class*=ad-feedback-text]"
-            "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}"
-            "html body :is([class*=widget-sponsored-badge-container],[class*=asin-sponsored-badge-container]) "
-            "[data-ad-feedback-label-id] [class*=ad-feedback-text] > b[class*=ad-feedback-sprite-mobile]"
-            "{color:#b1aaa0!important;background-color:#b1aaa0!important;background-image:none!important;"
-            "-webkit-mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;"
-            "mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;"
-            "-webkit-mask-size:contain!important;mask-size:contain!important;"
-            "-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;"
-            "-webkit-mask-position:center!important;mask-position:center!important;"
-            "filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
-            /* v7.93: standalone APE Sponsored label parity. The v7.92 viewport
-             * capture identified a separate main-frame renderer under .ape-feedback:
-             * ad-feedback-text-* is inline #555 and ad-feedback-sprite-* is a
-             * new_info_icon_3x.png background that our dark palette converts into a
-             * mask. Match the same subdued #b1aaa0 contrast used by the carousel
-             * Sponsored badges, but scope it only to the standalone APE feedback
-             * chrome so every other Sponsored surface keeps its existing owner. */
-            "html body :is(.ape-feedback,[id^=ape_][id*=\"_Feedback\"]):not(:where(#gwm-window [id^=wd-shoppable-] *)):not(:where([id*=mobile-wd-] *)):not(:where([class*=single-creative-card] *)):not(:where([class*=single-video-card] *)) [id^=ad-feedback-text-]"
-            "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}"
-            "html body :is(.ape-feedback,[id^=ape_][id*=\"_Feedback\"]):not(:where(#gwm-window [id^=wd-shoppable-] *)):not(:where([id*=mobile-wd-] *)):not(:where([class*=single-creative-card] *)):not(:where([class*=single-video-card] *)) [id^=ad-feedback-sprite-]"
-            "{color:#b1aaa0!important;background-color:#b1aaa0!important;background-image:none!important;"
-            "-webkit-mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;"
-            "mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;"
-            "-webkit-mask-size:contain!important;mask-size:contain!important;"
-            "-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;"
-            "-webkit-mask-position:center!important;mask-position:center!important;"
-            "filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
-            /* v7.0.79: the screenshot probe identified the DRAM mosaic load-more
-             * wheel as _hp-mosaic-container_style_loadingSpinner__JXI3z. Amazon's
-             * ::after pseudo is the opaque white center disc; match it to the OLED
-             * floor while preserving the light rotating ::before/ring artwork. */
-            "[class*=_hp-mosaic-container_style_loadingSpinner]::after"
-            "{background:#000!important;background-color:#000!important;box-shadow:none!important;}"
-            /* v7.136: the v7.135 screenshot probe caught the separate legacy GWM
-             * card loader actually visible on-device: #gwm-CardLoadingIndicator.
-             * Its rotating .gwm-LoadingIndicator shell is transparent with a light
-             * gradient/ring and light ::before wedge, but its ::after pseudo paints
-             * the solid white center disc. Own only that center pseudo so the stock
-             * 1s rotation and light outer ring remain unchanged. */
-            "#gwm-CardLoadingIndicator.gwm-LoadingIndicator::after"
-            "{background:#000!important;background-color:#000!important;box-shadow:none!important;}"
-            /* Retain the current v7.0.47-v7.0.49 system-control parity. */
-            "::-webkit-scrollbar{background-color:transparent!important;}"
-            "::-webkit-scrollbar-track{background-color:transparent!important;}"
-            "::-webkit-scrollbar-thumb{background-color:#6f6f6f!important;border-radius:8px!important;"
-            "border:2px solid transparent!important;background-clip:content-box!important;}"
-            "::-webkit-scrollbar-thumb:hover{background-color:#8a8a8a!important;}"
+            "html,body,#a-page,#gwm-PageContent,#dp,main,[role=main],#search,#cart-page,#sc-active-cart,#sc-saved-cart{background:#000!important;background-color:#000!important;}.s-result-item,[data-component-type=s-search-result],.s-card-container,.s-main-slot,#sc-active-cart .sc-list-item,#sc-saved-cart .sc-list-item,[class*=sc-][class*=content],[class*=sc-][class*=container],#dp [class*=a-box],#dp [class*=a-expander],#dp [class*=celwidget]:not([class*=image]):not([class*=media]),#authportal-main-section,#auth-footer,.auth-footer,[id*=auth-footer],[class*=variation],[class*=swatch-container],[class*=status-shell],[class*=badge-message],[class*=puis-card]:not([class*=creative]):not([class*=image]),[class*=product-card]:not([class*=image]){background-color:#181a1b!important;}.s-suggestion-container,.s-suggestion,.autocomplete-results-container,[class*=autocomplete],[class*=suggestion]:not([class*=ico"
+            "n]):not([class*=glyph]),[class*=recentSearch]:not([class*=icon]):not([class*=glyph]),[class*=search-suggestion]:not([class*=icon]):not([class*=glyph]){background:#000!important;background-color:#000!important;color:#e8e6e3!important;}:is(.s-suggestion-container,.s-suggestion,.autocomplete-results-container,[class*=autocomplete],[class*=recentSearch],[class*=search-suggestion]) :is(h1,h2,h3,h4,h5,h6,p,span,a,div){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}.s-suggestion-section-heading,.sac-header-component-single-line-header{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#a-page :is([id^=sac-query-row-].s-query-row,.s-query-row-container,.s-query-row-link){background:#000!important;background-color:#000!important;-webkit-tap-highlight-color:transparent!important;}#a-page :is([id^=sac-query-row-].s-query-row,.s-query-row-container,.s-query-row-li"
+            "nk):is(:active,:focus,:focus-visible,:focus-within){background:#000!important;background-color:#000!important;-webkit-tap-highlight-color:transparent!important;box-shadow:none!important;}#attach-to-me :is([class*=location],[class*=delivery],[id*=location],[id*=delivery],[class*=glow],[id*=glow],[class*=ship-to],[id*=ship-to],[class*=shipto],[id*=shipto]):not(img):not(svg):not(i):not([class*=icon]):not([class*=glyph]):not([id*=icon]){background-color:#000!important;border-color:#494d4d!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#attach-to-me :is(div,section,a):has(:is([class*=location],[class*=delivery],[id*=location],[id*=delivery],[class*=glow],[id*=glow],[class*=ship-to],[id*=ship-to],[class*=shipto],[id*=shipto])){background-color:#000!important;border-color:#494d4d!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#attach-t"
+            "o-me :is([class*=location],[class*=delivery],[id*=location],[id*=delivery],[class*=glow],[id*=glow],[class*=ship-to],[id*=ship-to],[class*=shipto],[id*=shipto]) :is(span,a,p,div,label,strong,b){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#attach-to-me :is([class*=location],[class*=delivery],[id*=location],[id*=delivery],[class*=glow],[id*=glow],[class*=ship-to],[id*=ship-to],[class*=shipto],[id*=shipto]) :is(img,svg,i,[class*=icon],[class*=glyph],[id*=icon]){background-color:transparent!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;}:is(.a-color-base,.a-text-normal,.a-size-base,.a-size-base-plus,.a-size-medium,.a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen,.s-title-instructions-style,.a-link-normal h2,[class*=product-"
+            "title],[class*=heading],[class*=title]:not([class*=badge])):not(:where(#search *)):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-]):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)):not(:where(html[data-ad7-child-frame] *)):not(:where(#gwm-Deck *)):not(:where([class*=hero] *)):not(:where([class*=single-creative] *)):not(:where([class*=single-video] *)):not(:where([class*=theming-card] *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}:is(.a-color-secondary,.a-size-small,[class*=secondary]):not(:where(#search *)):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-]):not(:where([cl"
+            "ass*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)):not(:where(html[data-ad7-child-frame] *)):not(:where(#gwm-Deck *)):not(:where([class*=hero] *)):not(:where([class*=single-creative] *)):not(:where([class*=single-video] *)):not(:where([class*=theming-card] *)){color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}.s-result-item,.s-card-container,[data-component-type=s-search-result],#sc-active-cart .sc-list-item,#sc-saved-cart .sc-list-item,#dp .a-box,#dp .a-divider,#dp [class*=card],.s-suggestion-container,#auth-footer .a-divider,.auth-footer .a-divider,[class*=swatch-outer-circle],[class*=puis-card]{border-color:#494d4d!important;outline-color:#494d4d!important;}.a-divider-inner:after,.a-divider-inner:before,hr,[class*=separator]{border-color:#494d4d!important;backgroun"
+            "d-color:#494d4d!important;}#wd-backdrop-gradient,.wd-backdrop-gradient,[class*=wd-backdrop-gradient],[class*=a-reactive-container],[class*=reactive-contain],#auth-footer,.auth-footer,[id*=auth-footer]{background-image:none!important;box-shadow:none!important;}#auth-footer .a-divider-inner,.auth-footer .a-divider-inner{background-image:none!important;box-shadow:none!important;}.s-color-swatch-container,.s-color-swatch-outer-circle{background-color:transparent!important;}.s-color-swatch-outer-circle{border-color:#494d4d!important;outline-color:#494d4d!important;}[class*=nav-search] img,[class*=searchbar] img,[class*=search-bar] img,[role=search] img,[class*=nav-] img[class*=icon],[class*=header] img[class*=icon]{background-color:transparent!important;}.s-suggestion-container :is(img[class*=icon],img[alt*=search],img[alt*=arrow],svg,i.a-icon,[class*=glyph]),.s-suggestion :is(img[class*=icon"
+            "],img[alt*=search],img[alt*=arrow],svg,i.a-icon,[class*=glyph]){color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;}.s-suggestion-container i.icon-past-search-suggestion.s-suggestion-icon-left{background-color:transparent!important;color:#9da3a3!important;fill:#9da3a3!important;stroke:#9da3a3!important;filter:brightness(0) invert(1) brightness(0.65)!important;-webkit-filter:brightness(0) invert(1) brightness(0.65)!important;opacity:1!important;box-shadow:none!important;}.s-suggestion-container i.icon-close.s-suggestion-icon-left{background-color:transparent!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;box-shadow:none!important;}.s-que"
+            "ry-row i.icon-search-suggestion.s-query-row-search-icon,.s-suggestion-container i:is([class*=icon-search],[class*=search-icon]),.s-suggestion i:is([class*=icon-search],[class*=search-icon]),.s-suggestion-container i.s-suggestion-icon-right{background-color:transparent!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;filter:brightness(0) invert(1) brightness(0.91)!important;-webkit-filter:brightness(0) invert(1) brightness(0.91)!important;opacity:1!important;box-shadow:none!important;}.puis-mab-overlay-row-share .puis-mab-overlay-icon-share{background-color:#e8e6e3!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;filter:none!important;}:is(#gwm-PageContent,#gwm-Deck-btf) :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf],[class*=hp-mosaic-container_style_container],[class*=_mosaic-container_style_wi"
+            "dgetContainer]){background-color:#000!important;border-color:#494d4d!important;mix-blend-mode:normal!important;isolation:auto!important;}.gwm-dashboard-container :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]){background-color:#000!important;border-color:#494d4d!important;mix-blend-mode:normal!important;isolation:auto!important;}:is(#gwm-PageContent,#gwm-Deck-btf,#gwm-Deck,.gwm-dashboard-container) :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) img:not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store]):not([class*=rating]):not([class*=star]):not([class*=sprite]):not([class*=pixel]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not([class*=checkbox]):not([class*=heart]):not([class*=wishlist]):not(:where([class*=sponsored] *)):no"
+            "t(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)){mix-blend-mode:normal!important;isolation:auto!important;background-color:transparent!important;}:is(#gwm-Deck-btf,.gwm-dashboard-container) :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) :is(picture,[class*=image-wrapper],[class*=img-wrapper],[class*=image-container]){mix-blend-mode:normal!important;isolation:auto!important;background-color:transparent!important;}:is(#gwm-PageContent,#gwm-Deck-btf,#gwm-Deck,.gwm-dashboard-container) :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) [class*=asin-metadata]{mix-blend-mode:normal!important;isolation:auto!important;}:is(#gwm-Deck-btf,.gwm-dashboard-container) [class*=multi-category-card] img{mix-blend-mode:normal!important;isolation:auto!important;backgr"
+            "ound-color:transparent!important;}:is(#gwm-PageContent,#gwm-Deck-btf,#gwm-Deck,.gwm-dashboard-container) [class*=badgeMessage]{background-color:transparent!important;box-shadow:none!important;}:is(#gwm-Deck-btf,.gwm-dashboard-container) :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) :is(h1,h2,h3,h4,h5,h6,p,span,a):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-]):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)):not([class*=badge]):not([class*=deal]):not([class*=coupon]):not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=hero] *)):not(:where([class*=single-creative] *)):not(:where([class*=single-v"
+            "ideo] *)):not(:where([class*=theming-card] *)):not(:where([class*=creative-card] *)):not(:where([class*=ad-card] *)):not(:where([class*=canvas-card] *)):not(:where([class*=mobile-mshop-ad] *)):not(:where([class*=mobile-ad-container] *)):not(:where([class*=ape-wrapper] *)):not(:where([class*=ape-placement] *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}:is(#gwm-Deck-btf,.gwm-dashboard-container) :is(.a-color-base,.a-text-normal,.a-size-base,.a-size-base-plus,.a-size-medium,.a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen,[class*=product-title],[class*=product-name],[class*=item-title]):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-]):not([class*=badge]):not([class*=deal]):not([class*=coupon]):not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:"
+            "where([class*=coupon] *)):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)):not(:where([class*=hero] *)):not(:where([class*=single-creative] *)):not(:where([class*=single-video] *)):not(:where([class*=theming-card] *)):not(:where([class*=creative-card] *)):not(:where([class*=ad-card] *)):not(:where([class*=canvas-card] *)):not(:where([class*=mobile-mshop-ad] *)):not(:where([class*=mobile-ad-container] *)):not(:where(#mobile-third-party-ad *)):not(:where([class*=ape-wrapper] *)):not(:where([class*=ape-placement] *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}:is(#gwm-Deck-btf,.gwm-dashboard-container) .a-cardui-header :is(h1,h2,h3,h4,h5,h6,a,span,p):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([id^=ad-feedback-tex"
+            "t-]):not([id^=af-label-primary-link-]){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}:is(#gwm-Deck-btf,.gwm-dashboard-container) .a-cardui :is([class*=wpTitle],[class*=windowPaneHeaderContainer]){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}:is(#gwm-Deck-btf,.gwm-dashboard-container) :is(h1,h2,h3,h4,h5,h6):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-]):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)):not([class*=badge]):not([class*=deal]):not([class*=coupon]):not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=hero] *)):not(:where([class*=single-creative] *)):not(:where([class*=sin"
+            "gle-video] *)):not(:where([class*=theming-card] *)):not(:where([class*=creative-card] *)):not(:where([class*=ad-card] *)):not(:where([class*=canvas-card] *)):not(:where([class*=mobile-mshop-ad] *)):not(:where([class*=mobile-ad-container] *)):not(:where([class*=ape-wrapper] *)):not(:where([class*=ape-placement] *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}:is(#gwm-PageContent,#gwm-Deck-btf,.gwm-dashboard-container) :is([class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer]) :is(div,section,article,ul,ol,li,a,p,span,h1,h2,h3,h4,h5,h6):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-]){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}:is(#gwm-PageContent,#gwm-Deck-btf,.gwm-dashboard-container) :is([class*=hp-mosaic-container],[class*=_mosa"
+            "ic-container_style_widgetContainer]) :is([class*=next],[class*=prev],[class*=chevron],[class*=arrow]){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;}.puis-mab-chevron :is(i.a-icon-dropdown,.a-icon.a-icon-dropdown),.puis-mab-chevron-glyph :is(i.a-icon-dropdown,.a-icon.a-icon-dropdown){filter:brightness(0) invert(1)!important;opacity:1!important;}:is(#gwm-PageContent,#gwm-Deck,#gwm-Deck-btf,.gwm-dashboard-container) i.a-icon.a-icon-dropdown,:is(#gwm-PageContent,#gwm-Deck-btf,.gwm-dashboard-container) :is([class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer],[class*=_npack-asin-card_style_theming-background-override__]) :is([class*=next],[class*=prev],[class*=chevron],[class*=arrow]) :is(i.a-icon,.a-icon,[class*=glyph]),:is(#gwm-PageContent,#gwm-Deck-btf,.gwm-dashboard-container) :is([class*=hp-mosai"
+            "c-container],[class*=_mosaic-container_style_widgetContainer],[class*=_npack-asin-card_style_theming-background-override__]) :is(i.a-icon-dropdown,i[class*=chevron],i[class*=arrow]){filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}i.a-icon.a-icon-dropdown,.a-icon.a-icon-dropdown,i[class*=chevron],i[class*=arrow],[class*=chevron-glyph],[class*=puis-mab-chevron] :is(i.a-icon-dropdown,.a-icon.a-icon-dropdown){filter:brightness(0) invert(1) brightness(0.91)!important;-webkit-filter:brightness(0) invert(1) brightness(0.91)!important;opacity:1!important;visibility:visible!important;mix-blend-mode:normal!important;}:is([class*=a-cardui],[class*=npack-asin-card],[class*=gwm-asin-tile],[class*=gwm-window-layout],[class*=window-container],[class*=gwm-dashboard-container],[class*=wd-backdrop],[class*=theming-card],[class*=a-unordered-lis"
+            "t],[class*=mosaic-container],[class*=puis-card],[class*=gwm-tile],[class*=_container_]):not([class*=deal]):not([class*=badge]):not([class*=prime]):not([class*=error]):not([class*=alert]):not([class*=warning]){border-color:#3b4043!important;outline-color:#3b4043!important;}:is([class*=hp-mosaic-container],[class*=_mosaic-container_style_widgetContainer]) :is(div,section,article,ul,ol,li){border-color:#3b4043!important;outline-color:#3b4043!important;}[data-csa-c-painter=amazon-shopping-guides-quad-card-cards] [class*=_colored-background_],[data-csa-c-painter=amazon-shopping-guides-quad-card-cards] [class*=_product-image_],[data-csa-c-painter=amazon-shopping-guides-quad-card-cards] [class*=_image_]{mix-blend-mode:normal!important;isolation:auto!important;}[data-csa-c-painter=amazon-shopping-guides-quad-card-cards] [class*=_colored-background_]{background:#000!important;background-color:#00"
+            "0!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;transition-property:none!important;}@media (max-height:260px) and (min-aspect-ratio:5/3){html[data-ad7-standalone-candidate],html[data-ad7-standalone-candidate] body{background:#000!important;background-color:#000!important;color:#e8e6e3!important;}html[data-ad7-standalone-candidate] :is(div,section,article,main,header,footer,ul,ol,li){background-color:transparent!important;border-color:#3b4043!important;}html[data-ad7-standalone-candidate] :is(h1,h2,h3,h4,h5,h6,p,span,a,strong,small,b,em,label):not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-]):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):n"
+            "ot(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}html[data-ad7-standalone-candidate] :is(img,picture,video,canvas,svg){background-color:transparent!important;}}html[data-ad7-standalone-candidate] :is(body,#ad,section[data-is-ad=true],[data-testid=ad-background-container]){background:#000!important;background-color:#000!important;color:#e8e6e3!important;}html[data-ad7-standalone-candidate] [data-testid=ad-background-container]{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#3b4043!important;outline-color:#3b4043!important;box-shadow:none!important;}html[data-ad7-standalone-candidate] [data-testid=ad-background-container] > div{background:#000!important;background-color:#000!important;background-image:none!important;}html[data-ad7-standalone-candidate] #"
+            "ad[data-html-dimensions=\"300x250\"]{background:#000!important;background-color:#000!important;}html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] [data-testid=gridContainer]{background:#000!important;background-color:#000!important;background-image:none!important;}html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] :is(div,section,article,main,header,footer,ul,ol,li):not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime]):not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *)){background-color:transparent!important;}html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] .swiper-slide > [class*=border-gray-]{border-color:#3b4043!important;outline-color:#3b4043!important;box-shadow:none!important;}html[data-ad7-standalone-candidate] #ad[da"
+            "ta-html-dimensions=\"300x250\"] :is(h1,h2,h3,h4,h5,h6,p,span,a,strong,small,b,em,label,div):not(div:has([class*=prime],[data-testid*=prime],[class*=star],[data-testid*=star])):not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime]):not([class*=star]):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([data-testid*=prime]):not([data-testid*=star]):not(:where([data-testid*=prime] *)):not(:where([data-testid*=star] *)):not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *)):not(:where([class*=star] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\"300x250\"] :is(div,span,p,a,small,strong,b)[class*=sponsored],html[data-ad7-st"
+            "andalone-candidate] #ad[data-html-dimensions=\"300x250\"] :is(div,span,p,a,small,strong,b)[data-testid*=sponsored]{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] [data-testid^=modern-][data-testid$=-layout-container]{background:#000!important;background-color:#000!important;border-color:#3b4043!important;outline-color:#3b4043!important;box-shadow:none!important;}html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] [data-testid=content]{background:#000!important;background-color:#000!important;}html[data-ad7-standalone-candidate] #dynamic-bb [data-testid=deal-badge] > div[style*=\"background-color: rgb(255, 255, 255)\"]{background-color:transparent!important;box-shadow:none!important;}html[data-ad7-standalone-candidate] [data-testid=renderer-fa"
+            "ctory-ad-container] :is([data-id=brand-name-text],[data-id=product-name-text],[data-testid=ratings-value],[data-testid=formatted-price],[data-testid=formatted-price] *){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] :is([data-testid=ratings-review-count],[data-testid=full-price]){color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}html[data-ad7-standalone-candidate] [data-testid=brand-product-description] p,html[data-ad7-standalone-candidate] [data-testid=ratings-value],html[data-ad7-standalone-candidate] [data-testid=price-container] :is(div,span):not([data-testid=full-price]):not([data-testid=prime-badge]):not(:where([data-testid=prime-badge] *)),html[data-ad7-standalone-candidate] [data-testid=sns-coupon-badge-container] :is(div,span,p),html[data-ad7-standalone-candidate]"
+            " [data-testid=ad-background-container] :is(p,span,div,a,small,strong,b)[style*=\"color: rgb(15, 17, 17)\"]:not(:where([data-testid=ratings-stars] *)):not(:where([data-testid=prime-badge] *)),html[data-ad7-standalone-candidate] [data-testid=ad-background-container] :is(p,span,div,a,small,strong,b)[style*=\"color: black\"]:not(:where([data-testid=ratings-stars] *)):not(:where([data-testid=prime-badge] *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}html[data-ad7-standalone-candidate] [data-testid=ratings-review-count],html[data-ad7-standalone-candidate] [data-testid=full-price],html[data-ad7-standalone-candidate] [data-testid=ad-background-container] :is(p,span,div,a,small,strong,b)[style*=\"color: rgb(86, 89, 89)\"],html[data-ad7-standalone-candidate] [data-testid=ad-background-container] :is(p,span,div,a,small,strong,b)[style*=\"color:#565959\"]{color:#b1aaa0!impor"
+            "tant;-webkit-text-fill-color:#b1aaa0!important;}html[data-ad7-standalone-candidate] :is([data-testid*=product-picture],[data-testid*=product-image],[data-testid*=asin-image],picture){background-color:transparent!important;box-shadow:none!important;}picture,img,video,canvas,#imgTagWrapperId,.s-product-image-container,[data-component-type=s-product-image],[class*=image-wrapper],[class*=img-wrapper],[class*=image-container],[class*=product-image],[class*=asin-image]{background-color:transparent!important;}[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback]:not(:where(#gwm-window *)):not(:where([class*=single-creative-card] *)):not(:where([class*=single-video-card] *)):not([id*=mobile-wd-]){background-color:transparent!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;}iframe[id*=ape_],iframe[class*=ape_]{background-color"
+            ":transparent!important;border-color:transparent!important;outline-color:transparent!important;}.ape-wrapper[style*=\"--ad-height:50\"] > .ape-placement[style*=\"aspect-ratio: 320 / 50\"]{border-color:#3b4043!important;}:is(#gwm-Deck-btf,.gwm-dashboard-container) :is([class*=mobile-mshop-ad],[class*=mobile-ad-container]):has(:is([class*=carousel],[data-testid*=carousel])){background:#000!important;background-color:#000!important;border-color:#3b4043!important;outline-color:#3b4043!important;box-shadow:none!important;}:is(#gwm-Deck-btf,.gwm-dashboard-container) :is([class*=mobile-mshop-ad],[class*=mobile-ad-container]):has(:is([class*=carousel],[data-testid*=carousel])) :is(div,section,article,main,header,footer,ul,ol,li):not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime]):not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):"
+            "not(:where([class*=prime] *)){background-color:transparent!important;}:is(#gwm-Deck-btf,.gwm-dashboard-container) :is([class*=mobile-mshop-ad],[class*=mobile-ad-container]):has(:is([class*=carousel],[data-testid*=carousel])) :is(h1,h2,h3,h4,h5,h6,p,span,a,strong,small,b,em,label):not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime]):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([data-testid=prime-badge]):not(:where([data-testid=prime-badge] *)):not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}:is(#gwm-Deck-btf,.gwm-dashboard-container) :is([class*=mobile-mshop-ad],[class*=mobile-ad-container]):has(:is([class*=carousel],[data"
+            "-testid*=carousel])) :is(span,p,a,small,strong,b)[class*=sponsored],:is(#gwm-Deck-btf,.gwm-dashboard-container) :is([class*=mobile-mshop-ad],[class*=mobile-ad-container]):has(:is([class*=carousel],[data-testid*=carousel])) :is(span,p,a,small,strong,b)[data-testid*=sponsored]{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}:is([class*=ad-feedback-text],[class*=ad-feedback-text-desktop],[id^=ad-feedback-text-],[id^=af-label-primary-link-],[aria-label^=\"Leave feedback on Sponsored\"]):not(:where(#gwm-window [id^=wd-shoppable-] *)):not(:where([id*=mobile-wd-] *)):not(:where([class*=single-creative-card] *)):not(:where([class*=single-video-card] *)):is(:focus,:focus-visible){outline:none!important;box-shadow:none!important;-webkit-tap-highlight-color:transparent!important;}body:has([id^=adFeedbackBottomSheet_]) :is(.a-sheet-web-container,.a-sheet-web,.a"
+            "-sheet-content-container),body:has([id^=adFeedbackBottomSheet_]) [class*=ad-feedback-bottom-sheet-container],body:has([id^=adFeedbackBottomSheet_]) :is(#af-form-top-container,#mobile-ad-feedback-container){background:#000!important;background-color:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}body:has([id^=adFeedbackBottomSheet_]) :is(#af-form-top-container,#mobile-ad-feedback-container) :is(div,section,article,form,fieldset,header,footer){background-color:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}body:has([id^=adFeedbackBottomSheet_]) :is(#af-form-top-container,#mobile-ad-feedback-container) :is(h1,h2,h3,h4,h5,h6,p,span,label,legend,small,strong,b,a){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}body:has([id^=adFeedbackBottomSheet_]) #mobile-ad-feedback-container textarea{background:"
+            "#303335!important;background-color:#303335!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;border-color:#6f6f6f!important;box-shadow:none!important;}body:has([id^=adFeedbackBottomSheet_]) #mobile-ad-feedback-container input[type=checkbox]{background-color:#000!important;border-color:#b1aaa0!important;accent-color:#303335!important;color-scheme:dark!important;}body:has([id^=adFeedbackBottomSheet_]) #mobile-ad-feedback-container :is(.a-icon-checkbox,i.a-icon-checkbox){filter:invert(1)!important;-webkit-filter:invert(1)!important;opacity:1!important;}body:has([id^=adFeedbackBottomSheet_]) #mobile-ad-feedback-container :is(.a-button,.a-button-inner,button,input[type=button],input[type=submit]){background:#181a1b!important;background-color:#181a1b!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;border-color:#6f6f6f!important;box-shadow:n"
+            "one!important;}body:has([id^=adFeedbackBottomSheet_]) #mobile-ad-feedback-container :is(button,input[type=button],input[type=submit]):disabled,body:has([id^=adFeedbackBottomSheet_]) #mobile-ad-feedback-container .a-button-disabled{background:#181a1b!important;background-color:#181a1b!important;color:#8a8a8a!important;-webkit-text-fill-color:#8a8a8a!important;border-color:#494d4d!important;}input:not([type=button]):not([type=submit]),textarea,select{background-color:#181a1b!important;color:#e8e6e3!important;border-color:#494d4d!important;}::placeholder{color:#b1aaa0!important;opacity:1!important;}[class*=header-icon],[class*=header-icon] path,[class*=header-icon] use,[class*=header-link] svg path,[class*=cardui-header] svg path,a[class*=header-link] path,[class*=see-more] path,[class*=view-all] path{fill:#e8e6e3!important;stroke:#e8e6e3!important;color:#e8e6e3!important;opacity:1!importan"
+            "t;}[class*=hp-mosaic-container] .a-icon-next-rounded,[class*=hp-mosaic-container] .a-icon-previous-rounded,[class*=hp-mosaic-container] [class*=chevron],[class*=hp-mosaic-container] [class*=arrow],[class*=_mosaic-container_style_widgetContainer] .a-icon-next-rounded,[class*=_mosaic-container_style_widgetContainer] .a-icon-previous-rounded,[class*=_mosaic-container_style_widgetContainer] [class*=chevron],[class*=_mosaic-container_style_widgetContainer] [class*=arrow],.a-icon-next-rounded,.a-icon-previous-rounded{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;color:#e8e6e3!important;fill:#e8e6e3!important;stroke:#e8e6e3!important;}:is([class*=_npack-asin-card_style_ad-feedback-spr],[class*=_npack-asin-card_style_ad-feedback-sprite],[class*=_cXVhZ_ad-feedback-spr],[class*=_cXVhZ_ad-feedback-sprite],[class*=_sponsored-products-mo"
+            "]):not(:where(#gwm-window [id^=wd-shoppable-] *)):not(:where([id*=mobile-wd-] *)):not(:where([class*=single-creative-card] *)):not(:where([class*=single-video-card] *)){color:#e8e6e3!important;background-color:#e8e6e3!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}html body [data-ad-feedback-label-id] b[class*=ad-feedback-sprite-mobile][class*=labelThemeStyle_ad-feedback-sprite-mobile]:not(:where(#gwm-window [id^=wd-shoppable-] *)):not(:where([id*=mobile-wd-] *)):not(:where([class*=single-creative-card] *)):not(:where([class*=single-video-card] *)),html body [data-ad-feedback-label-id] b[class*=ad-feedback-sprite-mobile]:not(:where(#gwm-window [id^=wd-shoppable-] *)):not(:where([id*=mobile-wd-] *)):not(:where([class*=single-creative-card] *)):not(:where([class*=single-video-card] *)){color:inherit!important;background-color:currentColor!important;backg"
+            "round-image:none!important;-webkit-mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;-webkit-mask-size:contain!important;mask-size:contain!important;-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;-webkit-mask-position:center!important;mask-position:center!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}html body :is([class*=widget-sponsored-badge-container],[class*=asin-sponsored-badge-container]) [data-ad-feedback-label-id] [class*=ad-feedback-text]{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}html body :is([class*=widget-sponsored-badge-container],[class*=asin-sponsored-badge-container]) [data-ad-feedback-label-id] [class*=ad-feedback-text] >"
+            " b[class*=ad-feedback-sprite-mobile]{color:#b1aaa0!important;background-color:#b1aaa0!important;background-image:none!important;-webkit-mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;-webkit-mask-size:contain!important;mask-size:contain!important;-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;-webkit-mask-position:center!important;mask-position:center!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}html body :is(.ape-feedback,[id^=ape_][id*=\"_Feedback\"]):not(:where(#gwm-window [id^=wd-shoppable-] *)):not(:where([id*=mobile-wd-] *)):not(:where([class*=single-creative-card] *)):not(:where([class*=single-video-card] *)) [id^=ad-feedback-text-]{color:#b1aaa0!important;-webkit-text-fil"
+            "l-color:#b1aaa0!important;opacity:1!important;}html body :is(.ape-feedback,[id^=ape_][id*=\"_Feedback\"]):not(:where(#gwm-window [id^=wd-shoppable-] *)):not(:where([id*=mobile-wd-] *)):not(:where([class*=single-creative-card] *)):not(:where([class*=single-video-card] *)) [id^=ad-feedback-sprite-]{color:#b1aaa0!important;background-color:#b1aaa0!important;background-image:none!important;-webkit-mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;-webkit-mask-size:contain!important;mask-size:contain!important;-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;-webkit-mask-position:center!important;mask-position:center!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}[class*=_hp-mosaic-container"
+            "_style_loadingSpinner]::after{background:#000!important;background-color:#000!important;box-shadow:none!important;}#gwm-CardLoadingIndicator.gwm-LoadingIndicator::after{background:#000!important;background-color:#000!important;box-shadow:none!important;}::-webkit-scrollbar{background-color:transparent!important;}::-webkit-scrollbar-track{background-color:transparent!important;}::-webkit-scrollbar-thumb{background-color:#6f6f6f!important;border-radius:8px!important;border:2px solid transparent!important;background-clip:content-box!important;}::-webkit-scrollbar-thumb:hover{background-color:#8a8a8a!important;}"
             "';"
             /* v7.95: compact REC child frames can discard the early style
              * node while their document parser/renderer finishes. Re-attach the
@@ -1940,22 +968,33 @@ static NSString *ADTWBJS(void){
     CGFloat shade=0.10+(0.48*t);
     CGFloat factor=1.0-shade;
     return [NSString stringWithFormat:
-        @"(function(){try{var host='';try{host=String(location.hostname||'').toLowerCase();}catch(_){}if(host==='flashtalking.com'||/\\.flashtalking\\.com$/.test(host))return;var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement)document.documentElement.setAttribute('data-ad7-twb-child','1');var id='ad7-twb-static',s=document.getElementById(id);"
+        @"(function(){try{var host='';try{host=String(location.hostname||'').toLowerCase();}catch(_){}if(host==='flashtalking.com'||/\\.flashtalking\\.com$/.test(host))return;var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement)document.documentElement.setAttribute('data-ad7-twb-child','1');"
+         /* v7.154 performance: standalone child ads use ADStandalonePaintJS7104; productish
+          * child frames get one compact media rule instead of the full main TWB sheet. */
+         "if(child&&document.documentElement&&document.documentElement.hasAttribute('data-ad7-standalone-candidate'))return;"
+         "if(child){var cid='ad7-twb-child-min',cs=document.getElementById(cid);if(!cs){cs=document.createElement('style');cs.id=cid;(document.head||document.documentElement||document).appendChild(cs);}cs.textContent='html[data-ad7-twb-child=\"1\"] :is(img,video,canvas):not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=rating]):not([class*=star]):not([class*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=icon]):not([class*=glyph]):not([class*=badge]){filter:brightness(%.3f)!important;}';return;}"
+         /* v7.154 zero-delay Search TWB: /s receives only the proven positive media lanes.
+          * No global product-image selectors, background-image substring scans or :has() rules
+          * are parsed in the live Search result document. */
+         "var ad7tp='';try{ad7tp=String(location.pathname||'');}catch(_){}"
+         "if(!child&&(ad7tp==='/s'||ad7tp.indexOf('/s/')===0)){var sid='ad7-search-twb-fast',ss=document.getElementById(sid);if(!ss){ss=document.createElement('style');ss.id=sid;(document.head||document.documentElement||document).appendChild(ss);}ss.textContent='"
+         "#search img.s-image,#search img.s-product-image,#search [data-component-type=s-product-image] img,#search img.ufs_tiles_card_widget-sug-image,#search img.nice-cat-card_image,#search img.haul-puis-portrait-img,#search img._c2Itd_image_pQREQ{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}"
+         "#search video.sbv-video-player-ecx,#search video._c2Itd_video_17g-f{filter:none!important;-webkit-filter:none!important;}"
+         "#search .sbv-video-overlay{background-color:rgba(0,0,0,%.3f)!important;}"
+         "#search ._c2Itd_videoOverlay_1H_Jm{background-color:rgba(0,0,0,%.3f)!important;}"
+         "';function ad7RelinkSearchTWB(){try{if(ss&&!ss.isConnected)(document.head||document.documentElement).appendChild(ss)}catch(_){}}if(document.readyState==='loading')window.addEventListener('load',ad7RelinkSearchTWB,{once:true});else ad7RelinkSearchTWB();return;}"
+         "var id='ad7-twb-static',s=document.getElementById(id);"
          "if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}"
          "s.textContent='"
          /* Ordinary/product imagery. */
-         /* v7.137 Search results / Researched-by-Alexa media. Product/category
-          * rasters are tamed declaratively; Prime, stars, logos and UI glyphs are
-          * explicitly outside this lane. */
-         "#search img"
-         ":not([class*=logo]):not([class*=brand]):not([class*=store]):not([class*=avatar]):not([class*=profile])"
-         ":not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel])"
-         ":not([class*=prime]):not([class*=star]):not([class*=rating]):not([class*=heart]):not([class*=wishlist])"
-         ":not([class*=chevron]):not([class*=arrow]):not([class*=microphone]):not([class*=camera]):not([class*=location])"
-         ":not([alt*=prime i]):not([alt*=star i]):not([alt*=logo i]):not([alt*=icon i]):not([alt*=arrow i]):not([alt*=heart i]):not([alt*=\"More like this\" i])"
-         ":not(:where([class*=prime] *)):not(:where([class*=star] *)):not(:where([class*=rating] *))"
-         ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
-         ":not(:where(.rufus-expandable-pills-chevron *)),"
+         /* v7.154 performance: Search TWB is positive ownership only. The former
+          * `#search img` selector made every image in the large recycled feed evaluate
+          * twenty-plus substring/ancestor exclusions. Stable product/media classes cover
+          * the observed Search families without that hot path. */
+         "#search img.s-image,#search img.s-product-image,"
+         "#search [data-component-type=s-product-image] img,"
+         "#search img.ufs_tiles_card_widget-sug-image,#search img.nice-cat-card_image,"
+         "#search img.haul-puis-portrait-img,#search img._c2Itd_image_pQREQ,"
          /* v7.125 Search Deals-for-you image tiles from the exact ufs probe family. */
          "img.ufs_tiles_card_widget-sug-image,"
          "img.s-image,img.s-product-image,#landingImage,#imgBlkFront,#imgTagWrapperId img,"
@@ -2043,18 +1082,6 @@ static NSString *ADTWBJS(void){
          ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
          ":not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *))"
          ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),"
-         /* v7.150: VIDEO_SINGLE_PRODUCT product-thumbnail TWB. The generic #search img
-          * lane intentionally excludes descendants of Sponsored/ad-feedback families, which
-          * leaves the product raster beneath the sponsored video untamed. Re-own only ordinary
-          * raster media inside this exact card, outside the video/control subtree, while keeping
-          * Prime/stars/logos/badges/glyphs stock. */
-         /* v7.153 performance: exact Search video-ad product image lane. The product raster
-          * lives in Amazon's s-product-image-container; do not make every IMG/CANVAS in Search
-          * evaluate a long sponsored/video exclusion chain. */
-         "#search#search .mobile-video-product-view .s-product-image-container img.s-image,"
-         /* v7.151: exact product raster in the alternate _c2Itd standalone-video
-          * renderer. This is ordinary IMG media, so it can safely use the normal TWB factor. */
-         "#search#search img._c2Itd_image_pQREQ,"
          /* Seasonal mosaic media + image/SVG artwork.
           * Navigation chevrons/arrows are control ink, not TWB media. */
          "[class*=hp-mosaic-container] :is(img,svg)"
@@ -2084,6 +1111,13 @@ static NSString *ADTWBJS(void){
          "video[class*=_npack-asin-card_style_background-video__],"
          "[class*=_npack-asin-card_style_background-video-container__] > video[class*=_npack-asin-card_style_motion-content__]"
          "{filter:brightness(%.3f)!important;}"
+         /* v7.154 Search TWB compositor optimization. Over an OLED-black product plate,
+          * opacity=factor is pixel-equivalent to brightness(factor) for raster media but avoids
+          * WebKit's expensive CSS filter pipeline on dozens of scrolling result images. */
+         "#search img.s-image,#search img.s-product-image,#search [data-component-type=s-product-image] img,"
+         "#search img.ufs_tiles_card_widget-sug-image,#search img.nice-cat-card_image,"
+         "#search img.haul-puis-portrait-img,#search img._c2Itd_image_pQREQ"
+         "{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}"
          /* v7.145: Search sponsored-video repair. The probe shows VIDEO.sbv-video-player-ecx
           * is alive/visible with filter:none while a same-size DIV.sbv-video-overlay sits above
           * it at computed opaque black. Keep the accelerated VIDEO surface unfiltered so WebKit
@@ -2131,7 +1165,7 @@ static NSString *ADTWBJS(void){
           * lost the early ad7-twb-static node. Re-attach it once at load. */
          "function ad7RelinkTWB(){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}"
          "if(document.readyState==='loading')window.addEventListener('load',ad7RelinkTWB,{once:true});else ad7RelinkTWB();"
-         "}catch(e){}})();",factor,shade,shade,shade];
+         "}catch(e){}})();",factor,factor,shade,shade,factor,factor,shade,shade,shade];
 }
 
 
@@ -2454,14 +1488,6 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
         self.layer.backgroundColor=ADOLED().CGColor;
     }
 }
-- (void)layoutSubviews {
-    %orig;
-    if(gP.enabled && self.window){
-        self.opaque=YES;
-        self.backgroundColor=ADOLED();
-        self.layer.backgroundColor=ADOLED().CGColor;
-    }
-}
 %end
 
 static const void *kADReactCard708=&kADReactCard708;
@@ -2504,7 +1530,10 @@ static BOOL ADTabImageTemplateish724(UIImage *im){
     return NO;
 }
 static void ADTabImageWhite724(UIImageView *iv){
-    if(!gP.enabled||!iv||!iv.window||!ADANXTabRoot724(iv))return;
+    if(!gP.enabled||!iv||!iv.window)return;
+    CGFloat iw=iv.bounds.size.width, ih=iv.bounds.size.height;
+    if(iw<2.0||ih<2.0||iw>100.0||ih>100.0)return;
+    if(!ADANXTabRoot724(iv))return;
     @try {
         UIImage *im=iv.image;
         if(im && !ADTabImageTemplateish724(im) && !gADTabImageWriting724){
@@ -2587,6 +1616,7 @@ static BOOL ADMarkedTransitionBacking7133(UIView *v){
 // UIKit chrome rather than DOM. Own only a full-width warm Amazon delivery band
 // in the upper content region; ordinary buttons/cards cannot pass this geometry.
 static const void *kADSearchDeliveryBand7139=&kADSearchDeliveryBand7139;
+static const void *kADSearchDeliveryDescendant7139=&kADSearchDeliveryDescendant7139;
 static BOOL ADWarmDeliveryColor7139(UIColor *c){
     if(!c)return NO;
     @try {
@@ -2596,21 +1626,17 @@ static BOOL ADWarmDeliveryColor7139(UIColor *c){
     } @catch(...) {}
     return NO;
 }
-static BOOL ADSearchDeliveryBandCandidate7139(UIView *v, UIColor *candidate){
-    if(!gP.enabled||!v||!v.window||!candidate||!ADPrimaryAmazonWindow713(v.window,nil))return NO;
+static BOOL ADInMarkedSearchDeliveryBand7139(UIView *v){
+    if(!v)return NO;
     @try {
-        if([v isKindOfClass:[UIControl class]]||[v isKindOfClass:[UILabel class]]||[v isKindOfClass:[UIImageView class]])return NO;
-        if(!ADWarmDeliveryColor7139(candidate))return NO;
-        CGRect r=[v convertRect:v.bounds toView:v.window], wb=v.window.bounds;
-        if(wb.size.width<1.0)return NO;
-        return r.size.width>=wb.size.width*0.88 && r.size.height>=28.0 && r.size.height<=92.0 &&
-               CGRectGetMinY(r)>=80.0 && CGRectGetMinY(r)<=310.0;
+        return objc_getAssociatedObject(v,kADSearchDeliveryBand7139)!=nil ||
+               objc_getAssociatedObject(v,kADSearchDeliveryDescendant7139)!=nil;
     } @catch(...) {}
     return NO;
 }
-static BOOL ADInMarkedSearchDeliveryBand7139(UIView *v){
-    @try { for(UIView *n=v;n;n=n.superview) if(objc_getAssociatedObject(n,kADSearchDeliveryBand7139))return YES; } @catch(...) {}
-    return NO;
+static inline void ADMarkSearchDeliveryDescendant7139(UIView *v){
+    if(!v)return;
+    @try { objc_setAssociatedObject(v,kADSearchDeliveryDescendant7139,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC); } @catch(...) {}
 }
 
 // v7.140: the screenshot-triggered v7.139 native probe names the visible 430x44
@@ -2700,6 +1726,7 @@ static void ADOwnGlowIngress7140(UIView *root){
         NSMutableArray *q=[NSMutableArray arrayWithArray:root.subviews?:@[]]; NSUInteger seen=0;
         while(q.count && seen++<96){
             UIView *x=q.firstObject; [q removeObjectAtIndex:0]; if(!x)continue;
+            ADMarkSearchDeliveryDescendant7139(x);
             if([x isKindOfClass:[UIImageView class]]) ADTintSearchDeliveryGlyph7139((UIImageView *)x);
             else if([x isKindOfClass:[UILabel class]]) ((UILabel *)x).textColor=light;
             else if(ADWarmDeliveryColor7139(x.backgroundColor)||ADBrightNeutral7130(x.backgroundColor)){
@@ -2742,6 +1769,7 @@ static void ADOwnCompactSearchSubNav7139(UIViewController *vc){
         NSMutableArray *q=[NSMutableArray arrayWithArray:root.subviews?:@[]]; NSUInteger seen=0;
         while(q.count && seen++<96){
             UIView *x=q.firstObject; [q removeObjectAtIndex:0]; if(!x)continue;
+            ADMarkSearchDeliveryDescendant7139(x);
             if([x isKindOfClass:[UIImageView class]]) ADTintSearchDeliveryGlyph7139((UIImageView *)x);
             else if([x isKindOfClass:[UILabel class]]) ((UILabel *)x).textColor=ADLightText706();
             else if(ADWarmDeliveryColor7139(x.backgroundColor)){ x.backgroundColor=black; x.layer.backgroundColor=black.CGColor; }
@@ -2751,13 +1779,14 @@ static void ADOwnCompactSearchSubNav7139(UIViewController *vc){
 }
 
 static BOOL ADSelectionPlatterChild7130(UIView *v, UIColor *candidate){
-    if(!gP.enabled||!v||!v.window||!candidate||!ADBrightNeutral7130(candidate))return NO;
+    if(!gP.enabled||!v||!v.window||!candidate)return NO;
     @try {
         if(strcmp(object_getClassName(v),"UIView")!=0)return NO;
         if(![NSStringFromClass(v.window.class) isEqualToString:@"AppCXWindow"])return NO;
         CGRect r=[v convertRect:v.bounds toView:v.window];
         CGFloat sw=v.window.bounds.size.width;
         if(sw<1.0||r.size.width<sw*0.60||r.size.height<18.0||r.size.height>130.0)return NO;
+        if(!ADBrightNeutral7130(candidate))return NO;
         UIView *n=v.superview;
         for(int d=0;n&&d<8;d++,n=n.superview){
             NSString *cn=NSStringFromClass(n.class);
@@ -2768,9 +1797,18 @@ static BOOL ADSelectionPlatterChild7130(UIView *v, UIColor *candidate){
     return NO;
 }
 
+static inline BOOL ADWebKitInternalView7154(UIView *v){
+    if(!v)return NO;
+    const char *cn=object_getClassName(v);
+    return cn && ((cn[0]=='W'&&cn[1]=='K')||(cn[0]=='_'&&cn[1]=='W'&&cn[2]=='K'));
+}
+
 %hook UIView
 - (void)didMoveToWindow {
     %orig;
+    // v7.154: WKWebView/WKScrollView/WKContentView have exact owners above. Do not
+    // run generic UIKit floor heuristics on WebKit's large compositing-view tree.
+    if(ADWebKitInternalView7154(self))return;
     if(gP.enabled && self.window && ADInMarkedSearchDeliveryBand7139(self) && ![self isKindOfClass:[UIImageView class]]){
         UIColor *black=ADOLED(); self.backgroundColor=black; self.layer.backgroundColor=black.CGColor;
         return;
@@ -2779,11 +1817,6 @@ static BOOL ADSelectionPlatterChild7130(UIView *v, UIColor *candidate){
         UIColor *black=ADOLED();
         self.backgroundColor=black;
         self.layer.backgroundColor=black.CGColor;
-        return;
-    }
-    if(gP.enabled && self.window && ADSearchDeliveryBandCandidate7139(self,self.backgroundColor)){
-        objc_setAssociatedObject(self,kADSearchDeliveryBand7139,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        UIColor *black=ADOLED(); self.backgroundColor=black; self.layer.backgroundColor=black.CGColor;
         return;
     }
     if(gP.enabled && self.window && ADSelectionPlatterChild7130(self,self.backgroundColor)){
@@ -2795,6 +1828,10 @@ static BOOL ADSelectionPlatterChild7130(UIView *v, UIColor *candidate){
     if(gP.enabled && self.window && ADNativeFloorCandidate(self)) ADOwnNativeFloor(self);
 }
 - (void)setBackgroundColor:(UIColor *)color {
+    if(ADWebKitInternalView7154(self)){
+        %orig(color);
+        return;
+    }
     if(gP.enabled && self.window && ADInMarkedSearchDeliveryBand7139(self) && ![self isKindOfClass:[UIImageView class]]){
         UIColor *black=ADOLED();
         %orig(black);
@@ -2802,13 +1839,6 @@ static BOOL ADSelectionPlatterChild7130(UIView *v, UIColor *candidate){
         return;
     }
     if(gP.enabled && ADMarkedTransitionBacking7133(self) && (!self.window || ADPrimaryAmazonWindow713(self.window,nil))){
-        UIColor *black=ADOLED();
-        %orig(black);
-        self.layer.backgroundColor=black.CGColor;
-        return;
-    }
-    if(gP.enabled && self.window && ADSearchDeliveryBandCandidate7139(self,color)){
-        objc_setAssociatedObject(self,kADSearchDeliveryBand7139,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         UIColor *black=ADOLED();
         %orig(black);
         self.layer.backgroundColor=black.CGColor;
@@ -2995,10 +2025,13 @@ static void ADPaintWebPlatter7129(UIView *root){
     ADPaintPrimaryLargeFloor7129((UIView *)self);
     ADPaintWrapperChildren7129((UIView *)self);
 }
-- (void)layoutSubviews {
+- (void)didAddSubview:(UIView *)subview {
     %orig;
-    ADPaintPrimaryLargeFloor7129((UIView *)self);
-    ADPaintWrapperChildren7129((UIView *)self);
+    if(gP.enabled&&self.window){
+        ADPaintPrimaryLargeFloor7129((UIView *)self);
+        ADPaintTransitionCandidate7129(subview,ADOLED());
+        ADPaintWrapperChildren7129((UIView *)self);
+    }
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if(ADPrimaryLargeFloor7129((UIView *)self)){
@@ -3017,10 +2050,13 @@ static void ADPaintWebPlatter7129(UIView *root){
     ADPaintPrimaryLargeFloor7129((UIView *)self);
     ADPaintWrapperChildren7129((UIView *)self);
 }
-- (void)layoutSubviews {
+- (void)didAddSubview:(UIView *)subview {
     %orig;
-    ADPaintPrimaryLargeFloor7129((UIView *)self);
-    ADPaintWrapperChildren7129((UIView *)self);
+    if(gP.enabled&&self.window){
+        ADPaintPrimaryLargeFloor7129((UIView *)self);
+        ADPaintTransitionCandidate7129(subview,ADOLED());
+        ADPaintWrapperChildren7129((UIView *)self);
+    }
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if(ADPrimaryLargeFloor7129((UIView *)self)){
@@ -3039,10 +2075,13 @@ static void ADPaintWebPlatter7129(UIView *root){
     ADPaintPrimaryLargeFloor7129((UIView *)self);
     ADPaintWrapperChildren7129((UIView *)self);
 }
-- (void)layoutSubviews {
+- (void)didAddSubview:(UIView *)subview {
     %orig;
-    ADPaintPrimaryLargeFloor7129((UIView *)self);
-    ADPaintWrapperChildren7129((UIView *)self);
+    if(gP.enabled&&self.window){
+        ADPaintPrimaryLargeFloor7129((UIView *)self);
+        ADPaintTransitionCandidate7129(subview,ADOLED());
+        ADPaintWrapperChildren7129((UIView *)self);
+    }
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if(ADPrimaryLargeFloor7129((UIView *)self)){
@@ -3061,10 +2100,13 @@ static void ADPaintWebPlatter7129(UIView *root){
     ADPaintPrimaryLargeFloor7129((UIView *)self);
     ADPaintWrapperChildren7129((UIView *)self);
 }
-- (void)layoutSubviews {
+- (void)didAddSubview:(UIView *)subview {
     %orig;
-    ADPaintPrimaryLargeFloor7129((UIView *)self);
-    ADPaintWrapperChildren7129((UIView *)self);
+    if(gP.enabled&&self.window){
+        ADPaintPrimaryLargeFloor7129((UIView *)self);
+        ADPaintTransitionCandidate7129(subview,ADOLED());
+        ADPaintWrapperChildren7129((UIView *)self);
+    }
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if(ADPrimaryLargeFloor7129((UIView *)self)){
@@ -3351,9 +2393,16 @@ static UIColor *ADBorderGray706(void){
 }
 static BOOL ADNeutralCGColor706(CGColorRef c){
     if(!c)return NO;
-    @try { UIColor *u=[UIColor colorWithCGColor:c]; CGFloat r=0,g=0,b=0,a=0,w=0;
-        if([u getRed:&r green:&g blue:&b alpha:&a]) return a>0.05 && (MAX(r,MAX(g,b))-MIN(r,MIN(g,b)))<0.16;
-        if([u getWhite:&w alpha:&a]) return a>0.05;
+    @try {
+        CGFloat a=CGColorGetAlpha(c); if(a<=0.05)return NO;
+        CGColorSpaceRef cs=CGColorGetColorSpace(c);
+        CGColorSpaceModel model=cs?CGColorSpaceGetModel(cs):kCGColorSpaceModelUnknown;
+        const CGFloat *v=CGColorGetComponents(c); size_t n=CGColorGetNumberOfComponents(c);
+        if(model==kCGColorSpaceModelMonochrome && n>=1)return YES;
+        if(model==kCGColorSpaceModelRGB && n>=3){
+            CGFloat r=v[0],g=v[1],b=v[2];
+            return (MAX(r,MAX(g,b))-MIN(r,MIN(g,b)))<0.16;
+        }
     } @catch(...) {}
     return NO;
 }
@@ -3410,10 +2459,11 @@ static BOOL ADIsLocationGlyph709(UIImageView *iv){
 }
 static void ADTintSearchGlyph706(UIImageView *iv){
     if(!gP.enabled||!iv||!iv.image)return;
+    CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
+    if(w<3||h<3||w>64||h>64)return;
     BOOL search=ADInSearchChrome706(iv), location=ADIsLocationGlyph709(iv), back=ADIsSearchBackGlyph7120(iv);
     if(!search&&!location&&!back)return;
     @try {
-        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height; if(w<3||h<3||w>64||h>64)return;
         UIImage *im=iv.image;
         if(im.renderingMode!=UIImageRenderingModeAlwaysTemplate && !gADSearchImageWrite706){
             UIImage *tpl=[im imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
@@ -3723,7 +2773,9 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 }
 %end
 
-%hook UIControl
+// v7.154 performance: tab repainting belongs only to Amazon's actual bottom-tab button.
+// Do not intercept every UIControl interaction in the app's input hot path.
+%hook ANXTabBarButton
 - (void)setSelected:(BOOL)selected {
     %orig;
     if(gP.enabled&&self.window)ADRepaintNearestANXTab724((UIView *)self);
@@ -4250,6 +3302,8 @@ static void ADDarkenSplash(UIViewController *vc){ if(gP.enabled) @try { if(vc.vi
 // the Tame Light Backgrounds preference. No hierarchy scan or observer is used.
 // -----------------------------------------------------------------------------
 static const void *kADTWBOverlay=&kADTWBOverlay;
+static const void *kADTWBEligibility=&kADTWBEligibility;
+static const void *kADTWBEligibilityImage=&kADTWBEligibilityImage;
 static UIColor *ADNativeTWBOverlayColor7146(void){
     static long cachedStrength=-1; static UIColor *cached=nil;
     long strength=MAX(0,MIN(100,gP.whiteTameStrength));
@@ -4288,11 +3342,25 @@ static BOOL ADNativeMediaBlocked(UIImageView *iv){
     } @catch(...) { return YES; }
     return NO;
 }
+static BOOL ADNativeMediaBlockedCached7146(UIImageView *iv){
+    if(!iv||!iv.image)return YES;
+    CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
+    if(w<52||h<52)return YES; // geometry can still settle; do not cache this early rejection.
+    @try {
+        UIImage *last=objc_getAssociatedObject(iv,kADTWBEligibilityImage);
+        NSNumber *cached=objc_getAssociatedObject(iv,kADTWBEligibility);
+        if(last==iv.image&&cached)return cached.boolValue;
+        BOOL blocked=ADNativeMediaBlocked(iv);
+        objc_setAssociatedObject(iv,kADTWBEligibilityImage,iv.image,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(iv,kADTWBEligibility,@(blocked),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        return blocked;
+    } @catch(...) { return ADNativeMediaBlocked(iv); }
+}
 static void ADApplyNativeTWB(UIImageView *iv){
     if(!iv)return;
     @try {
         CALayer *ov=objc_getAssociatedObject(iv,kADTWBOverlay);
-        if(!gP.enabled || !gP.whiteTame || !iv.window || ADNativeMediaBlocked(iv)){
+        if(!gP.enabled || !gP.whiteTame || !iv.window || ADNativeMediaBlockedCached7146(iv)){
             if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(iv,kADTWBOverlay,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
             return;
         }
@@ -4309,25 +3377,32 @@ static void ADApplyNativeTWB(UIImageView *iv){
         return;
     }
     %orig;
+    objc_setAssociatedObject(self,kADTWBEligibility,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(self,kADTWBEligibilityImage,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     if(gP.enabled&&self.window){ ADTabImageWhite724(self); ADTintSearchGlyph706(self); ADTintSearchDeliveryGlyph7139(self); }
     if(gP.whiteTame)ADApplyNativeTWB(self);
 }
 - (void)didMoveToWindow {
     %orig;
+    objc_setAssociatedObject(self,kADTWBEligibility,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(self,kADTWBEligibilityImage,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     if(gP.enabled&&self.window){ ADTabImageWhite724(self); ADTintSearchGlyph706(self); ADTintSearchDeliveryGlyph7139(self); }
     ADApplyNativeTWB(self);
 }
 - (void)setTintColor:(UIColor *)color {
     if(gP.enabled&&self.window){
-        if(ADANXTabRoot724(self)){
-            UIColor *white=ADLightText706();
-            %orig(white);
-            return;
-        }
-        if(ADInSearchChrome706(self)||ADIsLocationGlyph709(self)||ADIsSearchBackGlyph7120(self)||ADInMarkedSearchDeliveryBand7139(self)){
-            UIColor *light=ADLightText706();
-            %orig(light);
-            return;
+        CGFloat w=self.bounds.size.width,h=self.bounds.size.height;
+        if(w>1.0&&h>1.0&&w<=100.0&&h<=100.0){
+            if(ADANXTabRoot724(self)){
+                UIColor *white=ADLightText706();
+                %orig(white);
+                return;
+            }
+            if(ADInMarkedSearchDeliveryBand7139(self)||ADInSearchChrome706(self)||ADIsLocationGlyph709(self)||ADIsSearchBackGlyph7120(self)){
+                UIColor *light=ADLightText706();
+                %orig(light);
+                return;
+            }
         }
     }
     %orig;
