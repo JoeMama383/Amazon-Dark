@@ -1,3 +1,15 @@
+# AmazonDark v7.156~search-regression-fix-probe — fast Search regression repair + diagnostics
+
+## v7.156 delta (direct base: v7.155)
+
+- Preserves the v7.154/v7.155 fast Search architecture rather than restoring the old cross-surface Search stylesheet.
+- Restores the Researched-by-Alexa/Rufus header floor with cheap direct structural ownership.
+- Restores the Search-focus/autocomplete floor to OLED black.
+- Restores expanded filter footer controls to the established medium gray.
+- Makes exact deal-badge text white after Natural/sx-cloud ownership.
+- Keeps the white two-cards control shell while forcing only its inner glyph black.
+- Reintroduces the screenshot/SIGUSR2 UI diagnostics and all-frame bridge for this temporary probe build only.
+
 # AmazonDark v7.155~zero-delay-search-compile-fix
 
 Direct base: v7.153~production-performance-hotpath-fix.
