@@ -1,13 +1,10 @@
-# AmazonDark v7.150~search-video-ad-haul-polish-probe — Search video ad + Haul/Nile polish
+# AmazonDark v7.151~search-alt-video-ad-badge-fix-probe — alternate Search video ad + badge ownership fix
 
-## v7.150 delta (direct base: working v7.149)
-- Search Nile ingress pills: both `.nile-ingress-pill-button` and its nested `.a-button-inner` now use the established medium gray `#4a4f51` with white text.
-- Crazy-good finds / Amazon Haul: the non-image/non-action separator chrome inside `.haul-puis-widget-faceout-container` is forced OLED black, eliminating the bright strip/border under product images without altering product rasters.
-- Search product micro-badges: small generic AUI attribute badges outside the Amazon's Choice/Overall Pick lane are transparent with `#ffd814` yellow copy; savings/success chips such as `Save %` are transparent with `#00a650` green copy. Coupon/deal badges and Search filter controls remain excluded.
-- Search VIDEO_SINGLE_PRODUCT ad: the exact `s-card-container.s-card-border` wrapper gets the standardized `#494d4d` gray ad border. Product-detail structural floors are OLED black/transparent and internal light dividers normalize to `#494d4d`.
-- Search VIDEO_SINGLE_PRODUCT product image: added an exact positive TWB lane outside the video/control subtree, because generic Search TWB intentionally excludes Sponsored descendants.
-- Sponsored video controls: the custom glyph paint remains removed. The remaining OLED control-shell leak is consistent with the document-wide `color-scheme:dark` reaching WebKit's UA media chrome. The video is therefore isolated with `color-scheme:light`, and the play/pause/mute pseudo-controls use `all:revert` so author theming no longer owns their visuals. This is intended to restore Amazon/WebKit's stock semi-transparent gray shells with white glyphs.
-- Keeps the accelerated-video rendering repair: the real `VIDEO.sbv-video-player-ecx` stays unfiltered; video TWB remains on the separate overlay.
-- Existing v7.149 coupon sage treatment remains unchanged.
-- Diagnostics remain enabled and now explicitly inventory the VIDEO_SINGLE_PRODUCT card, Nile pills and Haul families.
-- No MutationObserver, interval, RAF, scroll listener, or recurring DOM scan is added by these fixes.
+## v7.151 delta (direct base: v7.150)
+- Alternate standalone Search video ad (`_c2Itd_*` renderer): adds standardized `#494d4d` card/product-shell borders and owns the lower product-detail structural floors as OLED black.
+- Alternate standalone ad TWB: keeps `VIDEO._c2Itd_video_17g-f` compositor-unfiltered, shades the renderer's own full-size `_c2Itd_videoOverlay_1H_Jm`, and adds the exact product raster `img._c2Itd_image_pQREQ` to the normal TWB brightness lane.
+- Video controls: removes v7.150's `all:revert` author rule on WebKit media-control pseudos (the source of rectangular control backing boxes). Both known Search video renderers now only receive `color-scheme:light`/`filter:none` on the real video; ordinary control wrappers are kept transparent, and their icon descendants are excluded from AmazonDark's generic glyph filter.
+- Limited-time-deal: explicitly restores `DEAL_*` AUI badges to the stock-style deep red `#cc0c39` plate with white text.
+- Product micro-badges: retracts the unsafe blanket `.a-badge` rule. Anonymous non-status/non-coupon badges are the yellow transparent attribute lane, including badge-label pseudos so the small white plate can no longer survive. Savings/success markers override the whole matching badge subtree to transparent with `#00a650` green copy. Generic `discount` matching is removed.
+- Diagnostics: retains the full v7.150 probe, adds `data-a-badge-type`, `data-a-badge-color`, `data-testid`, and `data-component-type` metadata (still no element text), expands alternate `_c2Itd` card capture, and includes the alternate media/control roots in the control-tree probe.
+- No MutationObserver, interval, RAF loop, scroll listener, or recurring DOM scanner is added.
