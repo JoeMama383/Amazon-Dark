@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.149-stock-video-controls-coupon-green-probe"
+#define AD_VERSION "v7.150-search-video-ad-haul-polish-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -969,6 +969,32 @@ static NSString *ADFloorJS(void){
             ".puisg-col-inner:has(> .puis-status-badge-container),.puisg-col:has(.puis-status-badge-container))"
             "{background:#000!important;background-color:#000!important;background-image:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}"
             "#search .puis-status-badge-container :is(i,svg,[class*=icon]){background-color:transparent!important;color:#d6d9d9!important;fill:#d6d9d9!important;stroke:#d6d9d9!important;filter:brightness(0) invert(1) brightness(.88)!important;-webkit-filter:brightness(0) invert(1) brightness(.88)!important;}"
+            /* v7.150 late micro-badge polish. Search grid cards can expose small authored
+             * attribute/status chips (for example the white Natural chip) outside the larger
+             * .puis-status-badge-container lane. Clear only those generic AUI badge painters
+             * inside product cards, while excluding Amazon's Choice/Overall Pick/deal/coupon
+             * families. Keep the chip text as AmazonDark's standard yellow accent. */
+            "#search#search .puis-card-container :is(.a-badge,.a-badge-label,.a-badge-label-inner)"
+            ":not(:where(.puis-status-badge-container *)):not([id*=amazons-choice]):not([id*=overall-pick])"
+            ":not([class*=deal]):not(:where([class*=deal] *)):not([class*=coupon]):not(:where([class*=coupon] *))"
+            "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
+            "border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;"
+            "color:#ffd814!important;-webkit-text-fill-color:#ffd814!important;}"
+            "#search#search .puis-card-container :is(.a-badge,.a-badge-label,.a-badge-label-inner)"
+            ":not(:where(.puis-status-badge-container *)):not([id*=amazons-choice]):not([id*=overall-pick]) "
+            ":is(span,div,strong,b)"
+            "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
+            "border-color:transparent!important;box-shadow:none!important;color:#ffd814!important;-webkit-text-fill-color:#ffd814!important;}"
+            /* Small savings/success chips such as `Save 5%`: remove the lime plate but keep
+             * semantic success copy green. Scope this to product cards so Search filter/ribbon
+             * discount controls are not affected. Covers both AUI success utilities and current
+             * savings/discount badge naming without touching coupon/deal badges. */
+            "#search#search .puis-card-container :is(.a-color-success,[class*=success],[class*=saving],[class*=savings],[class*=discount])"
+            ":not([class*=coupon]):not(:where([class*=coupon] *)):not([class*=deal]):not(:where([class*=deal] *))"
+            ":not([class*=button]):not(:where([class*=button] *))"
+            "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
+            "border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;"
+            "color:#00a650!important;-webkit-text-fill-color:#00a650!important;}"
             /* v7.139: Heart / More-like-this are excluded from the new Search structural/text
              * owners above, restoring the exact stock controls from the v7.136 base. */
             /* v7.145: current probe proves the stock 32x32 .mlt-icon-container remains white,
@@ -978,6 +1004,32 @@ static NSString *ADFloorJS(void){
              * 48x48 wrapper transparent if Amazon composes it through another Search selector. */
             "#search#search .more-like-this-container:has(.mlt-icon-container)"
             "{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}"
+            /* v7.150: Search Nile ingress pills. The v7.149 screenshot probe found the
+             * visible blue surface is the nested 293.5x32 .a-button-inner (rgb(194,220,255))
+             * while the matching .nile-ingress-pill-button shell remains rgb(240,242,242).
+             * Own both painters together with the same established medium-gray Search button
+             * treatment; preserve Amazon's radius, sizing and carousel behavior. */
+            "#search#search .nile-ingress-pill-button,"
+            "#search#search .nile-ingress-pill-button .a-button-inner"
+            "{background:#4a4f51!important;background-color:#4a4f51!important;background-image:none!important;"
+            "border-color:#747a7c!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+            "#search#search .nile-ingress-pill-button :is(span,div)"
+            "{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+            /* v7.150: Crazy-good finds / Amazon Haul card separator repair. The v7.149 probe
+             * identifies the visible cards as .haul-puis-widget-faceout-container with
+             * .haul-puis-image-container + IMG.haul-puis-portrait-img. The image container is
+             * already OLED and the IMG is already under the working TWB media path, so never
+             * touch that subtree. Force only the non-image/non-action card chrome (including
+             * borders/dividers/shadows that create the white strip below the image) to OLED. */
+            "#search#search .haul-puis-widget-faceout-container"
+            "{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}"
+            "#search#search .haul-puis-widget-faceout-container *"
+            ":not(.haul-puis-portrait-img):not(:where(.haul-puis-image-container *))"
+            ":not(.haul-puis-widget-action-button):not(:where(.haul-puis-widget-action-button *))"
+            "{border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}"
+            "#search#search .haul-puis-widget-faceout-container > :not(.haul-puis-image-container):not(.haul-puis-widget-action-button),"
+            "#search#search .haul-puis-widget-faceout-container :is(hr,[class*=separator],[class*=divider])"
+            "{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}"
             /* v7.149: exact coupon split from the v7.148 device probe. The 163.4x28
              * .s-coupon-tile is the surviving stock pink painter (rgb(255,227,227)); the
              * 38.7x22 .s-coupon-tile-price-content is a separate right-hand price painter.
@@ -998,23 +1050,41 @@ static NSString *ADFloorJS(void){
             ":is(span,div,p,strong,b)"
             ":not([class*=checkbox]):not(:where([class*=checkbox] *)):not([class*=icon]):not(:where([class*=icon] *))"
             "{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
-            /* v7.149: stock-island boundary for Search sponsored-video controls. v7.147
-             * proved the visible right-side controls are WebKit media-control chrome rather
-             * than descendants of .sbv-video-overlay. The original malformed mute artwork
-             * therefore predates v7.148's custom SVG and can still receive author-origin
-             * spillover from broad theming. Explicitly roll the exposed play/pause + mute
-             * pseudo-controls back to their UA/stock values. AmazonDark owns neither glyph,
-             * background image, tint, filter, border nor shell styling here. The VIDEO itself
-             * remains unfiltered below and TWB remains on the separate overlay background. */
+            /* v7.150: complete stock-island boundary for Search sponsored-video controls.
+             * v7.149 removed our custom glyph paint, but the control shells still rendered OLED.
+             * The remaining leak is consistent with the document-wide color-scheme:dark inheritance
+             * reaching WebKit's UA media chrome even after visual pseudo properties are reverted.
+             * Force only this VIDEO
+             * back to the stock/light UA control scheme, then keep the exposed panel/play/mute
+             * pseudos at UA values. AmazonDark owns no control glyph, shell, tint, border, mask,
+             * filter or background; the VIDEO remains unfiltered and TWB stays separate. */
+            "#search#search video.sbv-video-player-ecx"
+            "{color-scheme:light!important;accent-color:auto!important;}"
             "#search#search video.sbv-video-player-ecx::-webkit-media-controls-panel,"
             "#search#search video.sbv-video-player-ecx::-webkit-media-controls-play-button,"
             "#search#search video.sbv-video-player-ecx::-webkit-media-controls-mute-button"
-            "{-webkit-appearance:revert!important;appearance:revert!important;background:revert!important;"
-            "background-image:revert!important;background-color:revert!important;color:revert!important;"
-            "-webkit-text-fill-color:revert!important;fill:revert!important;stroke:revert!important;"
-            "filter:revert!important;-webkit-filter:revert!important;opacity:revert!important;"
-            "border:revert!important;outline:revert!important;box-shadow:revert!important;text-shadow:revert!important;"
-            "-webkit-mask:revert!important;mask:revert!important;mix-blend-mode:revert!important;}"
+            "{all:revert!important;color-scheme:light!important;}"
+            /* v7.150: VIDEO_SINGLE_PRODUCT standalone/Search ad card ownership. The v7.149
+             * device probe identifies the exact outer card as s-card-container.s-card-border
+             * containing .sbv-video-single-product. Own that border directly with the same
+             * #494d4d standardized ad-card gray used elsewhere. The white lattice below the
+             * video comes from nested product-detail structural surfaces/borders, so collapse
+             * only those non-media/non-brand planes to OLED/transparent and normalize their
+             * divider ink to the same gray. Video/media and Amazon accent artwork stay excluded. */
+            "#search#search .s-card-container.s-card-border:has(.sbv-video-single-product)"
+            "{background:#000!important;background-color:#000!important;border:1px solid #494d4d!important;"
+            "border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}"
+            "#search#search .sbv-video-single-product :is(div,section,article,main,header,footer,ul,ol,li,span)"
+            ":not(.sbv-video):not(.sbv-video-overlay):not(.sbv-video-container)"
+            ":not(:where(.sbv-video *)):not(:where(.sbv-video-overlay *)):not(:where(.sbv-video-container *))"
+            ":not([class*=button]):not(:where([class*=button] *)):not([class*=badge]):not(:where([class*=badge] *))"
+            ":not([class*=deal]):not(:where([class*=deal] *)):not([class*=coupon]):not(:where([class*=coupon] *))"
+            ":not([class*=prime]):not(:where([class*=prime] *)):not([class*=star]):not(:where([class*=star] *))"
+            ":not([class*=rating]):not(:where([class*=rating] *)):not([class*=heart]):not(:where([class*=heart] *))"
+            ":not([class*=mlt]):not(:where([class*=mlt] *)):not([class*=sponsored])"
+            ":not([class*=ad-feedback]):not(:where([class*=ad-feedback] *))"
+            "{background:#000!important;background-color:#000!important;background-image:none!important;"
+            "border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}"
             /* Non-brand Search glyphs. Prime/star/rating and the quick-action artwork
              * above are explicitly excluded so their current accent colors/shapes survive. */
             "#search :is(svg,i,[class*=icon],[class*=glyph])"
@@ -1962,6 +2032,17 @@ static NSString *ADTWBJS(void){
          ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
          ":not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *))"
          ":not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),"
+         /* v7.150: VIDEO_SINGLE_PRODUCT product-thumbnail TWB. The generic #search img
+          * lane intentionally excludes descendants of Sponsored/ad-feedback families, which
+          * leaves the product raster beneath the sponsored video untamed. Re-own only ordinary
+          * raster media inside this exact card, outside the video/control subtree, while keeping
+          * Prime/stars/logos/badges/glyphs stock. */
+         "#search#search .sbv-video-single-product :is(img,canvas)"
+         ":not(:where(.sbv-video *)):not(:where(.sbv-video-container *)):not(:where(.sbv-video-overlay *))"
+         ":not([class*=logo]):not([class*=prime]):not([class*=rating]):not([class*=star])"
+         ":not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=badge])"
+         ":not(:where([class*=logo] *)):not(:where([class*=prime] *)):not(:where([class*=rating] *)):not(:where([class*=star] *))"
+         ":not(:where([data-ad-feedback-label-id] *)):not(:where([class*=ad-feedback] *)),"
          /* Seasonal mosaic media + image/SVG artwork.
           * Navigation chevrons/arrows are control ink, not TWB media. */
          "[class*=hp-mosaic-container] :is(img,svg)"
@@ -4411,7 +4492,7 @@ static void ADConsiderLaunchReady706(void){
 %end
 
 // -----------------------------------------------------------------------------
-// v7.149 stock video-control exclusion + coupon-green verification probe. Screenshot/SIGUSR2 only.
+// v7.150 Search video-ad/Haul/Nile verification + existing stock-video/coupon diagnostics. Screenshot/SIGUSR2 only.
 // It records Home hero Sponsored chrome plus full-raster/TWB geometry without capturing query
 // text, element text, outerHTML, clipboard data, request bodies, or headers.
 // No observer, timer, RAF, scroll listener, or recurring DOM work is installed.
@@ -4422,9 +4503,9 @@ static dispatch_source_t gADSearchResultsProbeSignal7139=nil;
 static NSString *ADSearchResultsProbePath7139(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.149-stock-video-controls-coupon-green-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.150-search-video-ad-haul-polish-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.149-stock-video-controls-coupon-green-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.150-search-video-ad-haul-polish-probe.txt"];
 }
 static void ADSearchResultsProbeAppend7139(NSString *s){
     if(!s.length)return;
@@ -4553,18 +4634,22 @@ static NSString *ADSearchResultsProbeJS7139(void){
     "atc:GC('#search .puis-atcb-button,#search .puis-atcb-button .a-button-inner,#search .puis-atcb-button .a-button-text',48),"
     "results:G('#search .s-result-item,#search .s-card-container,#search [data-component-type=s-search-result],#search .puisg-row,#search .puisg-col,#search .puisg-col-inner',72),"
     "badges:G('#search .puis-status-badge-container,#search .puis-status-badge-container .a-badge,#search .puis-status-badge-container .a-badge-label',32),"
+    "microBadges:GC('#search .puis-card-container .a-badge,#search .puis-card-container .a-badge-label,#search .puis-card-container .a-badge-label-inner,#search .puis-card-container .a-color-success,#search .puis-card-container [class*=success],#search .puis-card-container [class*=saving],#search .puis-card-container [class*=savings],#search .puis-card-container [class*=discount]',96),"
     "actions:GC('#search .more-like-this-container,#search .mlt-icon-container,#search .mlt-icon-container *,#search .lists-framework-action-button.puis-heart-icon-container,#search .lists-framework-heart-background',64),"
     "videoAd:GC('#search .sbv-video-overlay,#search video.sbv-video-player-ecx,#search .sbv-video,#search .sbv-video-container,#search .sbv-mobile-video-link',64),"
     "videoControls:GC('#search .sbv-video-overlay,#search .sbv-video-overlay *',180),"
     "videoControlTrees:VCTRL(),"
+    "videoCard:GC('#search .sbv-video-single-product,#search .s-card-container:has(.sbv-video-single-product),#search .sbv-video-single-product :is(div,section,article,span,img,video,canvas)',220),"
     "coupon:GC('#search [data-component-type=s-coupon-component],#search .s-coupon-tile-content-container,#search .s-coupon-tile,#search .s-coupon-tile-text-content,#search .s-coupon-checkbox-label,#search .s-coupon-tile-price-content,#search .s-coupon-unclipped,#search .s-coupon-highlight-color,#search [class*=coupon][class*=price],#search [class*=coupon][class*=highlight]',96),"
+    "nile:GC('#search .nile-ingress-pill-button,#search .nile-ingress-pill-button .a-button-inner',64),"
+    "haul:GC('#search [class*=haul-puis],#search [class*=haul-asin-recommendation]',160),"
     "accents:G('#search i.a-icon-prime,#search [class*=prime],#search i[class*=a-icon-star],#search [class*=star],#search [class*=rating]',48),"
     "media:G('#search img,#search picture,#search video,#search canvas',64),hit:hit};"
     "return JSON.stringify(o,null,2);}catch(e){return 'SEARCH_RESULTS_DOM_ERR '+e;}})();";
 }
 static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     if(!gP.enabled)return; NSUInteger run=++gADSearchResultsProbeRun7139;
-    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.149 STOCK VIDEO CONTROLS + COUPON GREEN PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== LOCATION LAYERS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
+    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.150 SEARCH VIDEO AD + HAUL + NILE POLISH PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== LOCATION LAYERS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
         (unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchResultsProbeNative7139(),ADSearchResultsProbeGlowLayers7141(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(head);
     NSMutableArray *home=[NSMutableArray array],*search=[NSMutableArray array],*fallback=[NSMutableArray array];

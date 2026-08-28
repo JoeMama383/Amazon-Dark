@@ -1,10 +1,13 @@
-# AmazonDark v7.149~stock-video-controls-coupon-green-probe — stock Search video controls + coupon green
+# AmazonDark v7.150~search-video-ad-haul-polish-probe — Search video ad + Haul/Nile polish
 
-Direct base: v7.148~search-mute-coupon-fix-probe.
-
-- Removes v7.148 custom mute SVG artwork entirely.
-- Adds an explicit stock-island boundary for the Search sponsored-video WebKit play/pause and mute pseudo-controls by reverting the exact visual properties AmazonDark can spill into (appearance/background/color/filter/border/mask/blend), so AmazonDark does not own their glyph or shell paint while control geometry remains stock.
-- Keeps the v7.145 accelerated-video repair: `VIDEO.sbv-video-player-ecx` remains unfiltered and TWB remains on the separate `.sbv-video-overlay` background.
-- Uses the v7.148 device probe to target the exact coupon painters: `.s-coupon-tile` (the surviving pink 163.4x28 owner) and `.s-coupon-tile-price-content` (the separate right price owner). Both now use muted sage `#405a4a` with white copy; checkbox artwork is preserved.
-- Retains the full manual screenshot/SIGUSR2 diagnostics, including WebKit media-control pseudo-style capture and coupon family capture.
-- No MutationObserver, interval, RAF, scroll listener, or recurring scan is added by these visual fixes.
+## v7.150 delta (direct base: working v7.149)
+- Search Nile ingress pills: both `.nile-ingress-pill-button` and its nested `.a-button-inner` now use the established medium gray `#4a4f51` with white text.
+- Crazy-good finds / Amazon Haul: the non-image/non-action separator chrome inside `.haul-puis-widget-faceout-container` is forced OLED black, eliminating the bright strip/border under product images without altering product rasters.
+- Search product micro-badges: small generic AUI attribute badges outside the Amazon's Choice/Overall Pick lane are transparent with `#ffd814` yellow copy; savings/success chips such as `Save %` are transparent with `#00a650` green copy. Coupon/deal badges and Search filter controls remain excluded.
+- Search VIDEO_SINGLE_PRODUCT ad: the exact `s-card-container.s-card-border` wrapper gets the standardized `#494d4d` gray ad border. Product-detail structural floors are OLED black/transparent and internal light dividers normalize to `#494d4d`.
+- Search VIDEO_SINGLE_PRODUCT product image: added an exact positive TWB lane outside the video/control subtree, because generic Search TWB intentionally excludes Sponsored descendants.
+- Sponsored video controls: the custom glyph paint remains removed. The remaining OLED control-shell leak is consistent with the document-wide `color-scheme:dark` reaching WebKit's UA media chrome. The video is therefore isolated with `color-scheme:light`, and the play/pause/mute pseudo-controls use `all:revert` so author theming no longer owns their visuals. This is intended to restore Amazon/WebKit's stock semi-transparent gray shells with white glyphs.
+- Keeps the accelerated-video rendering repair: the real `VIDEO.sbv-video-player-ecx` stays unfiltered; video TWB remains on the separate overlay.
+- Existing v7.149 coupon sage treatment remains unchanged.
+- Diagnostics remain enabled and now explicitly inventory the VIDEO_SINGLE_PRODUCT card, Nile pills and Haul families.
+- No MutationObserver, interval, RAF, scroll listener, or recurring DOM scan is added by these fixes.
