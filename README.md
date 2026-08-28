@@ -1,3 +1,7 @@
+# AmazonDark v7.159~v149-search-compat-carousel-twb-probe
+
+Built directly from v7.158. Restores the exact v7.149 Search/autocomplete CSS behavior inside the route-exclusive /autocomplete lane and restores v7.149 transition-wrapper layout-time ownership for the proven Search keyboard-gap underlay. Keeps the fast three-lane architecture. Fixes the scx-stt image wrapper to OLED black and applies TWB to the exact _c2Itd theme-collection product carousel images while excluding the brand-logo image that shares the same raster class. Diagnostic probe retained for verification only.
+
 # AmazonDark v7.158~search-floor-scx-fix-probe
 
 Direct base: v7.157. Keeps the three route-exclusive stylesheet/TWB architecture. Restores the proven v7.133 Search-gap transition-backing mechanism at exact Autocomplete WebView mount, normalizes autocomplete row separators back to #494d4d, and restores direct brightness TWB on exact `img.scx-stt-image` sticky-refinement rasters. Diagnostic probes remain enabled temporarily.
