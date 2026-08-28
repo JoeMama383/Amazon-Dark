@@ -1,3 +1,17 @@
+# AmazonDark v7.152~performance-compaction-image-fix — production performance + alternate-ad image repair
+
+## v7.152 delta (direct base: v7.151)
+
+- **Production-performance cut:** removes the Search screenshot/SIGUSR2 diagnostics, all-frame probe bridge, diagnostic file writer, and probe-only WebKit user script.
+- **Privacy fast path:** removes diagnostic request counters/bookkeeping and the probe-only `NSURLSessionTask -resume` hook while preserving Privacy Mode blocking.
+- **Search selector compaction:** removes four savings `:has()` relationships plus two unnecessary Search relational selectors and replaces them with direct exact-family selectors.
+- **Alternate video-ad image repair:** keeps `_c2Itd_image_pQREQ` visible above the renderer's background-link plane while retaining TWB directly on the real raster.
+- **Alternate video-ad floor compaction:** replaces blanket `_c2Itd_singleAsin_fHkKv` descendant painting with exact layout/detail ownership.
+- **No active MutationObserver, interval, RAF loop, scroll listener, or recurring DOM scanner.** The production WebKit stack is back to Floor, standalone-ad paint, optional TWB, and optional Privacy Mode.
+
+
+## Previous v7.151 notes
+
 # AmazonDark v7.151~search-alt-video-ad-badge-fix-probe — alternate Search video ad + badge ownership fix
 
 ## v7.151 delta (direct base: v7.150)

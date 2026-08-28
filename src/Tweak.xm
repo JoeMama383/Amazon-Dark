@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.151-search-alt-video-ad-badge-fix-probe"
+#define AD_VERSION "v7.152-performance-compaction-image-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -155,30 +155,10 @@ static void ADLoadPrefs(void){
 static inline UIColor *ADOLED(void){ return [UIColor blackColor]; }
 
 // -----------------------------------------------------------------------------
-// v7.117 experimental Privacy Mode.
-// Conservative telemetry sink: exact analytics / diagnostics / ad-measurement
-// destinations are answered locally with HTTP 204 while shopping, media, ad
-// creative, account, cart, search and configuration traffic is left untouched.
-// No request bodies, headers, typed text, clipboard contents or coordinates are
-// recorded. Counters exist only so the manual SIGUSR2 probe can verify coverage.
+// Privacy Mode. Production keeps only the blocking path; probe-only counters and
+// request bookkeeping are intentionally absent.
 // -----------------------------------------------------------------------------
-static NSObject *gADPrivacyLock7117=nil;
-static NSMutableDictionary<NSString *,NSNumber *> *gADPrivacyNativeRequested7117=nil;
-static NSMutableDictionary<NSString *,NSNumber *> *gADPrivacyNativeBlocked7117=nil;
-static NSUInteger gADPrivacyNativeRequestedTotal7117=0;
-static NSUInteger gADPrivacyNativeBlockedTotal7117=0;
 static BOOL gADPrivacyProtocolRegistered7117=NO;
-static NSUInteger gADPrivacyConfigInsertions7118=0;
-static NSUInteger gADPrivacyLateProtocolRewrites7118=0;
-static NSUInteger gADPrivacySessionCtorChecks7118=0;
-
-static void ADPrivacyInit7117(void){
-    static dispatch_once_t once; dispatch_once(&once,^{
-        gADPrivacyLock7117=[NSObject new];
-        gADPrivacyNativeRequested7117=[NSMutableDictionary dictionary];
-        gADPrivacyNativeBlocked7117=[NSMutableDictionary dictionary];
-    });
-}
 static NSString *ADPrivacyCategoryForHost7117(NSString *host){
     NSString *h=host.lowercaseString?:@"";
     if([h isEqualToString:@"unagi.amazon.com"]||[h isEqualToString:@"unagi-na.amazon.com"])return @"unagi";
@@ -193,18 +173,6 @@ static NSString *ADPrivacyCategoryForHost7117(NSString *host){
 }
 static NSString *ADPrivacyCategoryForURL7117(NSURL *url){ return url?ADPrivacyCategoryForHost7117(url.host):nil; }
 static BOOL ADPrivacyShouldBlockURL7117(NSURL *url){ return gP.enabled&&gP.privacyMode&&ADPrivacyCategoryForURL7117(url).length; }
-static NSString *ADPrivacyCounterKey7117(NSURL *url){
-    NSString *cat=ADPrivacyCategoryForURL7117(url)?:@"unknown",*host=url.host.lowercaseString?:@"(no-host)";
-    return [NSString stringWithFormat:@"%@|%@",cat,host];
-}
-static void ADPrivacyCount7117(NSMutableDictionary<NSString *,NSNumber *> *dict,NSURL *url,BOOL blocked){
-    if(!url)return; ADPrivacyInit7117(); NSString *key=ADPrivacyCounterKey7117(url);
-    @synchronized(gADPrivacyLock7117){
-        dict[key]=@([dict[key] unsignedIntegerValue]+1);
-        if(blocked)gADPrivacyNativeBlockedTotal7117++; else gADPrivacyNativeRequestedTotal7117++;
-    }
-}
-
 @interface ADPrivacyURLProtocol7117 : NSURLProtocol @end
 @implementation ADPrivacyURLProtocol7117
 + (BOOL)canInitWithRequest:(NSURLRequest *)request {
@@ -217,7 +185,7 @@ static void ADPrivacyCount7117(NSMutableDictionary<NSString *,NSNumber *> *dict,
 + (NSURLRequest *)canonicalRequestForRequest:(NSURLRequest *)request { return request; }
 + (BOOL)requestIsCacheEquivalent:(NSURLRequest *)a toRequest:(NSURLRequest *)b { return [super requestIsCacheEquivalent:a toRequest:b]; }
 - (void)startLoading {
-    NSURL *url=self.request.URL; ADPrivacyCount7117(gADPrivacyNativeBlocked7117,url,YES);
+    NSURL *url=self.request.URL;
     @try {
         NSHTTPURLResponse *r=[[NSHTTPURLResponse alloc] initWithURL:url statusCode:204 HTTPVersion:@"HTTP/1.1" headerFields:@{@"Cache-Control":@"no-store",@"X-AmazonDark-Privacy":@"1",@"Content-Length":@"0"}];
         [self.client URLProtocol:self didReceiveResponse:r cacheStoragePolicy:NSURLCacheStorageNotAllowed];
@@ -241,7 +209,6 @@ static void ADPrivacyInstallProtocolOnConfig7117(NSURLSessionConfiguration *cfg)
         NSMutableArray *a=[cfg.protocolClasses mutableCopy]?:[NSMutableArray array];
         if(![a containsObject:[ADPrivacyURLProtocol7117 class]]){
             [a insertObject:[ADPrivacyURLProtocol7117 class] atIndex:0];
-            gADPrivacyConfigInsertions7118++;
         }
         cfg.protocolClasses=a;
     } @catch(...) {}
@@ -730,7 +697,6 @@ static const void *kADTWBUS=&kADTWBUS;
 static const void *kADStandalonePaintUS7104=&kADStandalonePaintUS7104;
 static const void *kADPrivacyUS7117=&kADPrivacyUS7117;
 static const void *kADPrivacyRule7117=&kADPrivacyRule7117;
-static const void *kADHomeAdProbeUS7144=&kADHomeAdProbeUS7144;
 static NSHashTable *gADWebViews=nil;
 // v7.0.68 production: no diagnostic touch probe is installed.
 
@@ -992,19 +958,16 @@ static NSString *ADFloorJS(void){
              * when it contains/is contained by a success/saving marker; this fixes the v7.150
              * case where the plate disappeared but its nested AUI label stayed yellow. Never use
              * generic `discount`, and explicitly exclude DEAL_* / coupon / deal families. */
-            "#search#search .puis-card-container .a-badge:not([id]):not(:where(.puis-status-badge-container *)):not(:where([class*=coupon] *)):not(:where([class*=deal] *)):has(.a-color-success),"
-            "#search#search .puis-card-container .a-badge:not([id]):not(:where(.puis-status-badge-container *)):not(:where([class*=coupon] *)):not(:where([class*=deal] *)):has([class*=saving]),"
-            "#search#search .puis-card-container .a-badge:not([id]):not(:where(.puis-status-badge-container *)):not(:where([class*=coupon] *)):not(:where([class*=deal] *)):has([class*=savings]),"
-            "#search#search .puis-card-container :is([class*=saving],[class*=savings],[id*=saving],[id*=savings])"
+            /* v7.152 performance: savings stays a direct semantic lane. No relational
+             * :has() matching is needed on the live Search result tree. */
+            "#search#search .puis-card-container :is(.a-color-success,[class*=saving],[class*=savings],[id*=saving],[id*=savings])"
             ":not([class*=coupon]):not(:where([class*=coupon] *)):not([class*=deal]):not(:where([class*=deal] *))"
-            ":not([id^=DEAL_]):not(:where([id^=DEAL_] *)):not([class*=button]):not(:where([class*=button] *))"
+            ":not([id^=DEAL_]):not(:where([id^=DEAL_] *)):not([class*=button]):not(:where([class*=button] *)),"
+            "#search#search .puis-card-container :is(.a-color-success,[class*=saving],[class*=savings],[id*=saving],[id*=savings]) "
+            ":is(.a-badge,.a-badge-label,.a-badge-label-inner,span,strong,b)"
             "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
             "border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;"
             "color:#00a650!important;-webkit-text-fill-color:#00a650!important;}"
-            "#search#search .puis-card-container .a-badge:not([id]):not(:where(.puis-status-badge-container *)):not(:where([class*=coupon] *)):not(:where([class*=deal] *)):has(:is(.a-color-success,[class*=saving],[class*=savings])) :is(.a-badge-label,.a-badge-label-inner,span,strong,b),"
-            "#search#search .puis-card-container :is(.a-color-success,[class*=saving],[class*=savings],[id*=saving],[id*=savings]) :is(.a-badge,.a-badge-label,.a-badge-label-inner,span,strong,b)"
-            "{background:transparent!important;background-color:transparent!important;background-image:none!important;"
-            "border-color:transparent!important;box-shadow:none!important;color:#00a650!important;-webkit-text-fill-color:#00a650!important;}"
             /* Limited-time-deal is now an explicit positive stock lane rather than an exclusion.
              * The probe captured ids such as DEAL_B0BM63Y2TT; the label is the visible plate. */
             "#search#search .puis-card-container .a-badge[id^=DEAL_],"
@@ -1025,7 +988,7 @@ static NSString *ADFloorJS(void){
              * behind the two-cards control. The broad [class*=container] Search floor caused it.
              * The exact family is excluded above; this high-specificity backstop keeps only that
              * 48x48 wrapper transparent if Amazon composes it through another Search selector. */
-            "#search#search .more-like-this-container:has(.mlt-icon-container)"
+            "#search#search .more-like-this-container"
             "{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}"
             /* v7.150: Search Nile ingress pills. The v7.149 screenshot probe found the
              * visible blue surface is the nested 293.5x32 .a-button-inner (rgb(194,220,255))
@@ -1090,20 +1053,17 @@ static NSString *ADFloorJS(void){
              * video comes from nested product-detail structural surfaces/borders, so collapse
              * only those non-media/non-brand planes to OLED/transparent and normalize their
              * divider ink to the same gray. Video/media and Amazon accent artwork stay excluded. */
-            "#search#search .s-card-container.s-card-border:has(.sbv-video-single-product)"
+            "#search#search .puis-card-container.mobile-video-product-view.puis-card-border"
             "{background:#000!important;background-color:#000!important;border:1px solid #494d4d!important;"
             "border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}"
-            "#search#search .sbv-video-single-product :is(div,section,article,main,header,footer,ul,ol,li,span)"
-            ":not(.sbv-video):not(.sbv-video-overlay):not(.sbv-video-container)"
-            ":not(:where(.sbv-video *)):not(:where(.sbv-video-overlay *)):not(:where(.sbv-video-container *))"
-            ":not([class*=button]):not(:where([class*=button] *)):not([class*=badge]):not(:where([class*=badge] *))"
-            ":not([class*=deal]):not(:where([class*=deal] *)):not([class*=coupon]):not(:where([class*=coupon] *))"
-            ":not([class*=prime]):not(:where([class*=prime] *)):not([class*=star]):not(:where([class*=star] *))"
-            ":not([class*=rating]):not(:where([class*=rating] *)):not([class*=heart]):not(:where([class*=heart] *))"
-            ":not([class*=mlt]):not(:where([class*=mlt] *)):not([class*=sponsored])"
-            ":not([class*=ad-feedback]):not(:where([class*=ad-feedback] *))"
-            "{background:#000!important;background-color:#000!important;background-image:none!important;"
-            "border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}"
+            /* v7.152 performance: the probe exposes a dedicated .sbv-product-container
+             * below the video. Own only its known layout/detail shells instead of matching
+             * every descendant of the entire creative with a long exclusion chain. */
+            "#search#search .sbv-video-single-product .sbv-product-container,"
+            "#search#search .sbv-video-single-product .sbv-product-container "
+            ":is(.puisg-row,.puisg-col,.puisg-col-inner,.faceout-product-title,.faceout-product-review,"
+            ".faceout-product-price,.puis-delivery-recipe,.udm-delivery-block)"
+            "{background-color:#000!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}"
             /* v7.151: second Search standalone-video renderer captured by v7.150.
              * Root: _c2Itd_container_ut_MN.sb-video-creative; lower product shell:
              * _c2Itd_singleAsin_fHkKv (captured with a literal rgb(230,230,230) border).
@@ -1119,15 +1079,28 @@ static NSString *ADFloorJS(void){
             "border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}"
             "#search#search ._c2Itd_singleAsin_fHkKv"
             "{border:1px solid #494d4d!important;}"
-            "#search#search ._c2Itd_singleAsin_fHkKv :is(div,section,article,main,header,footer,ul,ol,li)"
-            ":not(:where([class*=button] *)):not([class*=button]):not(:where([class*=badge] *)):not([class*=badge])"
-            ":not(:where([class*=deal] *)):not([class*=deal]):not(:where([class*=prime] *)):not([class*=prime])"
-            ":not(:where([class*=star] *)):not([class*=star]):not(:where([class*=rating] *)):not([class*=rating])"
-            "{background:#000!important;background-color:#000!important;background-image:none!important;"
-            "border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}"
-            "#search#search ._c2Itd_singleAsin_fHkKv :is(span,p,a,strong,b)"
+            /* v7.152 performance/image repair: do not blanket-style every descendant of the
+             * alternate product shell. Stable structural owners preserve the OLED/gray card
+             * without putting opaque planes over its product-image stack. */
+            "#search#search ._c2Itd_singleAsin_fHkKv :is(._c2Itd_pdCntr_2lxVH,._c2Itd_pdRowCntr_1SQrE,"
+            "._c2Itd_pdImgCol_3WO1V,._c2Itd_pdcol_3gSOx,.productDetailsContainer)"
+            "{background-color:#000!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}"
+            "#search#search ._c2Itd_singleAsin_fHkKv .productDetailsContainer :is(div,section,article,main,header,footer,ul,ol,li)"
+            ":not([class*=button]):not(:where([class*=button] *)):not([class*=badge]):not(:where([class*=badge] *))"
+            ":not([class*=deal]):not(:where([class*=deal] *)):not([class*=prime]):not(:where([class*=prime] *))"
+            ":not([class*=star]):not(:where([class*=star] *)):not([class*=rating]):not(:where([class*=rating] *))"
+            "{background-color:#000!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}"
+            "#search#search ._c2Itd_singleAsin_fHkKv .productDetailsContainer :is(span,p,a,strong,b)"
             ":not([class*=badge]):not(:where([class*=badge] *)):not([class*=deal]):not(:where([class*=deal] *))"
-            "{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}"
+            "{background-color:transparent!important;box-shadow:none!important;}"
+            /* Exact image stack: the IMG remains the TWB owner; transparent wrappers and an
+             * explicit z-order keep the real raster above the renderer's background-link plane. */
+            "#search#search ._c2Itd_singleAsin_fHkKv :is(._c2Itd_singleProductImageContainer_1xhVQ,"
+            "._c2Itd_productImageLinkContainer_3novt,a._c2Itd_productImageLink_2cbWY)"
+            "{background-color:transparent!important;box-shadow:none!important;}"
+            "#search#search ._c2Itd_singleAsin_fHkKv img._c2Itd_image_pQREQ"
+            "{display:block!important;visibility:visible!important;opacity:1!important;position:relative!important;"
+            "z-index:6!important;background-color:transparent!important;mix-blend-mode:normal!important;}"
             /* Non-brand Search glyphs. Prime/star/rating and the quick-action artwork
              * above are explicitly excluded so their current accent colors/shapes survive. */
             "#search :is(svg,i,[class*=icon],[class*=glyph])"
@@ -2320,13 +2293,7 @@ static void ADRefreshWebTWBPrefs791(void){
 }
 
 
-// v7.144 probe-only all-frame Home-ad snapshot bridge. Installed in every frame at
-// document start, but performs no DOM collection until screenshot/SIGUSR2 explicitly
-// requests it. Child frames answer by postMessage, so cross-origin APE/SafeFrame
-// media can be captured without polling, MutationObserver, RAF, or scroll listeners.
-static NSString *ADHomeAdFrameProbeJS7144(void){
-    return @"(function(){try{\nif(window.__ad7144FrameProbeInstalled)return;\nwindow.__ad7144FrameProbeInstalled=1;\nfunction st(e,p){try{var s=getComputedStyle(e,p||null);return {display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,bgi:s.backgroundImage,color:s.color,fill:s.fill,stroke:s.stroke,filter:s.webkitFilter||s.filter||'none',border:s.border,radius:s.borderRadius,shadow:s.boxShadow,outline:s.outline,font:s.fontFamily,fontSize:s.fontSize,fontWeight:s.fontWeight,lineHeight:s.lineHeight,textShadow:s.textShadow,webkitTextStroke:s.webkitTextStroke||'',transform:s.transform,overflow:s.overflow,clipPath:s.clipPath||s.webkitClipPath||'',z:s.zIndex,position:s.position,mask:s.webkitMaskImage||s.maskImage||'none',objectFit:s.objectFit||'',mix:s.mixBlendMode||''};}catch(x){return {err:String(x)}}}\nfunction nd(e){if(!e)return null;var r=e.getBoundingClientRect(),o={tag:e.tagName||'',id:e.id||'',cls:String(e.className||'').slice(0,280),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],style:st(e),before:st(e,'::before'),after:st(e,'::after'),a:{testid:e.getAttribute&&e.getAttribute('data-testid')||'',acei:e.getAttribute&&e.getAttribute('data-acei-id')||'',htmlDim:e.getAttribute&&e.getAttribute('data-html-dimensions')||'',role:e.getAttribute&&e.getAttribute('role')||'',feedback:e.hasAttribute&&e.hasAttribute('data-ad-feedback-label-id')?1:0,ariaSponsored:/sponsored/i.test(e.getAttribute&&e.getAttribute('aria-label')||'')?1:0}};if(e.tagName==='IMG')o.natural=[e.naturalWidth||0,e.naturalHeight||0];if(e.tagName==='VIDEO'){o.natural=[e.videoWidth||0,e.videoHeight||0];o.media={muted:e.muted?1:0,volume:+(+e.volume||0).toFixed(3),paused:e.paused?1:0,controls:e.controls?1:0,readyState:e.readyState||0,currentTime:+(+e.currentTime||0).toFixed(2)};o.ua={mute:st(e,'::-webkit-media-controls-mute-button'),play:st(e,'::-webkit-media-controls-play-button'),panel:st(e,'::-webkit-media-controls-panel')};}return o;}\nfunction ch(e,n){var a=[];for(var x=e;x&&a.length<(n||8);x=x.parentElement)a.push(nd(x));return a;}\nfunction vis(e,min){try{var r=e.getBoundingClientRect(),s=getComputedStyle(e),a=Math.max(0,Math.min(innerWidth,r.right)-Math.max(0,r.left))*Math.max(0,Math.min(innerHeight,r.bottom)-Math.max(0,r.top));return s.display!=='none'&&s.visibility!=='hidden'&&+s.opacity>0.01&&a>=(min||1);}catch(_){return false}}\nfunction q(sel,lim,min){var out=[];try{var a=document.querySelectorAll(sel);for(var i=0;i<a.length&&out.length<(lim||60);i++)if(vis(a[i],min||1))out.push({self:nd(a[i]),chain:ch(a[i],8)});}catch(e){out.push({err:String(e),sel:sel})}return out;}\nfunction media(){var out=[];try{var a=document.querySelectorAll('img,video,canvas');for(var i=0;i<a.length&&out.length<100;i++){var e=a[i];if(!vis(e,1200))continue;out.push({self:nd(e),chain:ch(e,9)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction bgmedia(){var out=[];try{var a=document.getElementsByTagName('*'),n=Math.min(a.length,2600);for(var i=0;i<n&&out.length<70;i++){var e=a[i];if(!vis(e,6000))continue;var b=getComputedStyle(e).backgroundImage;if(b&&b!=='none')out.push({self:nd(e),chain:ch(e,7)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction hits(){var out=[],xs=[.18,.5,.82],ys=[.18,.38,.58,.76,.9];try{for(var i=0;i<xs.length;i++)for(var j=0;j<ys.length;j++){var x=Math.round(innerWidth*xs[i]),y=Math.round(innerHeight*ys[j]),a=(document.elementsFromPoint?document.elementsFromPoint(x,y):[document.elementFromPoint(x,y)]).filter(Boolean).slice(0,10);out.push({p:[x,y],stack:a.map(nd)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction safeAttr(e,n){try{return String(e.getAttribute&&e.getAttribute(n)||'').slice(0,360)}catch(_){return ''}}\nfunction controlNode(e){var o=nd(e)||{};try{o.ctrl={aria:(/mute|unmute|sound|volume|speaker|audio/i.test(safeAttr(e,'aria-label'))?safeAttr(e,'aria-label'):''),title:(/mute|unmute|sound|volume|speaker|audio/i.test(safeAttr(e,'title'))?safeAttr(e,'title'):''),role:safeAttr(e,'role'),testid:safeAttr(e,'data-testid'),name:safeAttr(e,'name'),type:safeAttr(e,'type'),viewBox:safeAttr(e,'viewBox'),href:(e.tagName==='USE'?safeAttr(e,'href')||safeAttr(e,'xlink:href'):''),d:(e.tagName==='PATH'?safeAttr(e,'d'):'')};var cs=getComputedStyle(e);o.ctrl.font={family:cs.fontFamily,size:cs.fontSize,weight:cs.fontWeight,lineHeight:cs.lineHeight,textShadow:cs.textShadow,webkitTextStroke:cs.webkitTextStroke||'',transform:cs.transform,overflow:cs.overflow,clipPath:cs.clipPath||cs.webkitClipPath||'',outline:cs.outline,z:cs.zIndex,position:cs.position};}catch(_){}return o;}\nfunction subTree(root){var budget=180;function walk(e,d){if(!e||budget--<=0)return null;var o=controlNode(e);if(d<10){var kids=[];for(var c=e.firstElementChild;c&&kids.length<40;c=c.nextElementSibling){var z=walk(c,d+1);if(z)kids.push(z);}if(kids.length)o.children=kids;}return o;}return walk(root,0);}\nfunction videoControlTrees(){var out=[];try{var roots=document.querySelectorAll('#search .sbv-video-overlay,.sbv-video-overlay,#search video.sbv-video-player-ecx,video.sbv-video-player-ecx,#search video._c2Itd_video_17g-f,#search ._c2Itd_videoOverlay_1H_Jm,#search ._c2Itd_playClickRegion_87ZZa,[class*=single-video-card],[class*=singleVideoCard],.video-js');for(var r=0;r<roots.length&&out.length<24;r++){var root=roots[r];if(!vis(root,1))continue;var cand=[];try{cand=[].slice.call(root.querySelectorAll('button,[role=button],[aria-label],[title],svg,use,path,i,span,div')).filter(function(e){var k=(String(e.id||'')+' '+String(e.className&&e.className.baseVal||e.className||'')+' '+safeAttr(e,'aria-label')+' '+safeAttr(e,'title')+' '+safeAttr(e,'data-testid')).toLowerCase();return /mute|unmute|sound|volume|speaker|audio/.test(k);});}catch(_){}var buttons=[];try{buttons=[].slice.call(root.querySelectorAll('button,[role=button]')).filter(function(e){return vis(e,1)});}catch(_){}var uniq=[];cand.concat(buttons).forEach(function(e){if(e&&uniq.indexOf(e)<0&&uniq.length<16)uniq.push(e);});out.push({root:controlNode(root),rootTree:subTree(root),controls:uniq.map(function(e){return {ancestors:ch(e,10),tree:subTree(e)}})});} }catch(e){out.push({err:String(e)})}return out;}\nfunction snap(){var h=document.documentElement||{},state=null;try{state=window.__ad7106StandaloneState?window.__ad7106StandaloneState():null}catch(_){}return {frame:{top:window===top?1:0,host:String(location.hostname||''),path:String(location.pathname||''),viewport:[innerWidth,innerHeight,devicePixelRatio]},markers:{child:h.getAttribute&&h.getAttribute('data-ad7-child-frame')||'',standaloneCandidate:h.getAttribute&&h.getAttribute('data-ad7-standalone-candidate')||'',standaloneSurvivor:h.getAttribute&&h.getAttribute('data-ad7104-standalone')||'',twbChild:h.getAttribute&&h.getAttribute('data-ad7-twb-child')||''},standaloneState:state,heroFeedback:q('#gwm-window [id^=wd-shoppable-] [data-ad-feedback-label-id],#gwm-window [id^=wd-shoppable-] .ape-feedback,#gwm-window [id^=wd-shoppable-] [class*=ad-feedback],#gwm-window [id^=wd-shoppable-] [id^=ad-feedback-],#gwm-window [id^=wd-shoppable-] [aria-label*=\"Sponsored\"],[class*=single-creative-card] [data-ad-feedback-label-id],[class*=single-creative-card] [class*=ad-feedback],[id*=mobile-wd-][class*=ape-feedback]',90,1),shells:q('#gwm-window,[id^=wd-shoppable-],[class*=single-creative-card],[class*=single-video-card],[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback],[data-testid=renderer-factory-ad-container],#ad,#dynamic-bb,[data-testid=image],[data-acei-id=lfstyl-img],[data-acei-id=prod-img]',100,1),media:media(),bgMedia:bgmedia(),videoControlTrees:videoControlTrees(),hit:hits()};}\nfunction fan(token){var z=snap();if(window===top){window.__ad7144ProbeToken=token;window.__ad7144ProbeFrames=[z];}else{try{top.postMessage({__ad7144ProbeFrame:1,token:token,snap:z},'*')}catch(_){}}try{var fs=document.getElementsByTagName('iframe');for(var i=0;i<fs.length&&i<24;i++)if(fs[i].contentWindow)fs[i].contentWindow.postMessage({__ad7144ProbeRequest:1,token:token},'*');}catch(_){}}\nwindow.addEventListener('message',function(ev){try{var d=ev.data||{};if(d.__ad7144ProbeRequest&&d.token)fan(String(d.token));if(window===top&&d.__ad7144ProbeFrame&&d.token===window.__ad7144ProbeToken&&d.snap){var a=window.__ad7144ProbeFrames||(window.__ad7144ProbeFrames=[]);if(a.length<48)a.push(d.snap);}}catch(_){}},false);\nif(window===top){window.__ad7144StartProbe=function(t){try{fan(String(t||Date.now()));return 'STARTED';}catch(e){return 'START_ERR '+e}};window.__ad7144DumpProbe=function(t){try{return JSON.stringify({token:String(t||''),frames:window.__ad7144ProbeFrames||[]},null,2);}catch(e){return 'DUMP_ERR '+e}};}\n}catch(e){}})();";
-}
+// v7.152 production: probe-only all-frame bridge removed; only theme scripts remain.
 
 static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
     if(!ucc || !gP.enabled)return;
@@ -2340,11 +2307,6 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADStandalonePaintJS7104() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADStandalonePaintUS7104,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
-        if(!objc_getAssociatedObject(ucc,kADHomeAdProbeUS7144)){
-            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADHomeAdFrameProbeJS7144() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
-            [ucc addUserScript:us];
-            objc_setAssociatedObject(ucc,kADHomeAdProbeUS7144,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
         if(gP.whiteTame && !objc_getAssociatedObject(ucc,kADTWBUS)){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADTWBJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
@@ -4505,7 +4467,6 @@ static void ADConsiderLaunchReady706(void){
             NSMutableArray *a=[protocolClasses mutableCopy]?:[NSMutableArray array];
             if(![a containsObject:[ADPrivacyURLProtocol7117 class]]){
                 [a insertObject:[ADPrivacyURLProtocol7117 class] atIndex:0];
-                gADPrivacyLateProtocolRewrites7118++;
             }
             %orig(a);
             return;
@@ -4517,242 +4478,19 @@ static void ADConsiderLaunchReady706(void){
 
 %hook NSURLSession
 + (NSURLSession *)sessionWithConfiguration:(NSURLSessionConfiguration *)configuration {
-    if(gP.enabled&&gP.privacyMode)gADPrivacySessionCtorChecks7118++;
     ADPrivacyInstallProtocolOnConfig7117(configuration);
     return %orig;
 }
 + (NSURLSession *)sessionWithConfiguration:(NSURLSessionConfiguration *)configuration delegate:(id)delegate delegateQueue:(NSOperationQueue *)queue {
-    if(gP.enabled&&gP.privacyMode)gADPrivacySessionCtorChecks7118++;
     ADPrivacyInstallProtocolOnConfig7117(configuration);
     return %orig;
 }
 - (instancetype)initWithConfiguration:(NSURLSessionConfiguration *)configuration delegate:(id)delegate delegateQueue:(NSOperationQueue *)queue {
-    if(gP.enabled&&gP.privacyMode)gADPrivacySessionCtorChecks7118++;
     ADPrivacyInstallProtocolOnConfig7117(configuration);
     return %orig;
 }
 %end
 
-%hook NSURLSessionTask
-- (void)resume {
-    if(gP.enabled&&gP.privacyMode){
-        @try { NSURLRequest *r=self.currentRequest?:self.originalRequest; if(ADPrivacyShouldBlockURL7117(r.URL))ADPrivacyCount7117(gADPrivacyNativeRequested7117,r.URL,NO); } @catch(...) {}
-    }
-    %orig;
-}
-%end
-
-// -----------------------------------------------------------------------------
-// v7.151 alternate video-ad + badge verification with existing Search diagnostics. Screenshot/SIGUSR2 only.
-// It records Home hero Sponsored chrome plus full-raster/TWB geometry without capturing query
-// text, element text, outerHTML, clipboard data, request bodies, or headers.
-// No observer, timer, RAF, scroll listener, or recurring DOM work is installed.
-// -----------------------------------------------------------------------------
-static NSUInteger gADSearchResultsProbeRun7139=0;
-static dispatch_source_t gADSearchResultsProbeSignal7139=nil;
-
-static NSString *ADSearchResultsProbePath7139(void){
-    @try {
-        NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.151-search-alt-video-ad-badge-fix-probe.txt"];
-    } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.151-search-alt-video-ad-badge-fix-probe.txt"];
-}
-static void ADSearchResultsProbeAppend7139(NSString *s){
-    if(!s.length)return;
-    @try {
-        NSString *p=ADSearchResultsProbePath7139(); NSFileManager *fm=[NSFileManager defaultManager];
-        [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil];
-        NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding];
-        if(![fm fileExistsAtPath:p]){ [d writeToFile:p atomically:YES]; return; }
-        NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p];
-        if(h){ [h seekToEndOfFile]; [h writeData:d]; [h closeFile]; }
-    } @catch(...) {}
-}
-static NSString *ADSearchResultsProbeColor7139(UIColor *c){
-    if(!c)return @"nil";
-    @try {
-        CGFloat r=0,g=0,b=0,a=0,w=0;
-        if([c getRed:&r green:&g blue:&b alpha:&a])return [NSString stringWithFormat:@"rgba(%.3f,%.3f,%.3f,%.3f)",r,g,b,a];
-        if([c getWhite:&w alpha:&a])return [NSString stringWithFormat:@"white(%.3f,%.3f)",w,a];
-        return c.description?:@"?";
-    } @catch(...) { return @"?"; }
-}
-static NSString *ADSearchResultsProbeCG7139(CGColorRef cg){
-    if(!cg)return @"nil";
-    @try { return ADSearchResultsProbeColor7139([UIColor colorWithCGColor:cg]); } @catch(...) { return @"?"; }
-}
-static NSString *ADSearchResultsProbeNative7139(void){
-    NSMutableString *m=[NSMutableString string];
-    @try {
-        CGRect screen=UIScreen.mainScreen.bounds; NSUInteger visited=0,logged=0;
-        NSArray *pts=@[[NSValue valueWithCGPoint:CGPointMake(CGRectGetMidX(screen),125)],
-                       [NSValue valueWithCGPoint:CGPointMake(28,140)],
-                       [NSValue valueWithCGPoint:CGPointMake(CGRectGetMidX(screen),150)],
-                       [NSValue valueWithCGPoint:CGPointMake(CGRectGetMidX(screen),180)]];
-        for(UIWindow *w in UIApplication.sharedApplication.windows){
-            if(!w||w.hidden||w.alpha<0.01)continue;
-            [m appendFormat:@"WINDOW cls=%@ key=%d level=%.1f r=(%.1f,%.1f %.1fx%.1f) bg=%@\n",NSStringFromClass(w.class),w.isKeyWindow?1:0,w.windowLevel,w.frame.origin.x,w.frame.origin.y,w.frame.size.width,w.frame.size.height,ADSearchResultsProbeColor7139(w.backgroundColor)];
-            NSMutableArray *q=[NSMutableArray arrayWithObject:w];
-            while(q.count&&visited++<420&&logged<180){
-                UIView *v=q.firstObject; [q removeObjectAtIndex:0]; if(!v||v.hidden||v.alpha<0.01)continue;
-                CGRect r=CGRectZero; @try { r=[v convertRect:v.bounds toView:nil]; } @catch(...) {}
-                NSString *cn=NSStringFromClass(v.class),*lo=cn.lowercaseString;
-                BOOL band=CGRectIntersectsRect(r,CGRectMake(0,80,screen.size.width,150)) && r.size.width>=screen.size.width*0.45 && r.size.height>=10;
-                BOOL sem=[lo containsString:@"subnav"]||[lo containsString:@"delivery"]||[lo containsString:@"location"]||[lo containsString:@"topnav"]||[lo containsString:@"ingress"];
-                if(band||sem){
-                    [m appendFormat:@"N cls=%@ r=(%.1f,%.1f %.1fx%.1f) bg=%@ layerBg=%@ tint=%@ marked=%d aid=\"%@\"\n",cn,r.origin.x,r.origin.y,r.size.width,r.size.height,ADSearchResultsProbeColor7139(v.backgroundColor),ADSearchResultsProbeCG7139(v.layer.backgroundColor),ADSearchResultsProbeColor7139(v.tintColor),ADInMarkedSearchDeliveryBand7139(v)?1:0,v.accessibilityIdentifier?:@""]; logged++;
-                }
-                if(q.count<420&&v.subviews.count)[q addObjectsFromArray:v.subviews];
-            }
-            for(NSValue *pv in pts){ CGPoint p=pv.CGPointValue; UIView *h=[w hitTest:p withEvent:nil]; NSMutableArray *c=[NSMutableArray array]; for(UIView *x=h;x&&c.count<12;x=x.superview)[c addObject:NSStringFromClass(x.class)]; [m appendFormat:@"HIT (%.0f,%.0f) %@\n",p.x,p.y,c.count?[c componentsJoinedByString:@" <- "]:@"nil"]; }
-        }
-    } @catch(NSException *e){ [m appendFormat:@"NATIVE_EXCEPTION %@\n",e]; }
-    return m;
-}
-
-static NSString *ADSearchResultsProbeGlowLayers7141(void){
-    NSMutableString *m=[NSMutableString string];
-    @try {
-        for(UIWindow *w in UIApplication.sharedApplication.windows){
-            if(!w||w.hidden||w.alpha<0.01)continue;
-            NSMutableArray *q=[NSMutableArray arrayWithObject:w]; NSUInteger seen=0;
-            while(q.count&&seen++<420){
-                UIView *v=q.firstObject; [q removeObjectAtIndex:0]; if(!v)continue;
-                if(ADExactGlowIngress7140(v)){
-                    NSMutableArray *lq=[NSMutableArray arrayWithObject:@{ @"l":v.layer,@"d":@0 }]; NSUInteger ln=0;
-                    while(lq.count&&ln++<120){
-                        NSDictionary *it=lq.firstObject; [lq removeObjectAtIndex:0]; CALayer *l=it[@"l"]; NSUInteger d=[it[@"d"] unsignedIntegerValue]; if(!l)continue;
-                        NSUInteger chars=MIN((NSUInteger)40,d*2); NSString *pad=[@"                                        " substringToIndex:chars];
-                        [m appendFormat:@"%@L cls=%@ name=\"%@\" f=(%.1f,%.1f %.1fx%.1f) bg=%@ contents=%d hidden=%d op=%.2f z=%.2f\n",pad,NSStringFromClass(l.class),l.name?:@"",l.frame.origin.x,l.frame.origin.y,l.frame.size.width,l.frame.size.height,ADSearchResultsProbeCG7139(l.backgroundColor),l.contents?1:0,l.hidden?1:0,l.opacity,l.zPosition];
-                        for(CALayer *c in l.sublayers?:@[])if(lq.count<120)[lq addObject:@{ @"l":c,@"d":@(d+1) }];
-                    }
-                }
-                if(q.count<420&&v.subviews.count)[q addObjectsFromArray:v.subviews];
-            }
-        }
-    } @catch(NSException *e){ [m appendFormat:@"LAYER_EXCEPTION %@\n",e]; }
-    return m;
-}
-
-static NSString *ADSearchResultsProbeSafeURL7139(WKWebView *wv){
-    @try {
-        NSURL *u=wv.URL; if(!u)return @"";
-        return [NSString stringWithFormat:@"%@://%@%@",u.scheme?:@"https",u.host?:@"",u.path?:@""];
-    } @catch(...) { return @""; }
-}
-static NSString *ADSearchResultsProbeWebList7139(void){
-    NSMutableString *m=[NSMutableString string]; NSUInteger n=0;
-    @try {
-        for(WKWebView *wv in ADTrackedWebViews()){
-            if(!wv)continue; CGRect r=CGRectZero; @try { r=[wv convertRect:wv.bounds toView:nil]; } @catch(...) {}
-            CGRect ir=CGRectIntersection(r,UIScreen.mainScreen.bounds); CGFloat area=MAX(0,ir.size.width)*MAX(0,ir.size.height);
-            [m appendFormat:@"WEB #%lu aid=\"%@\" path=\"%@\" visible=%d loading=%d r=(%.1f,%.1f %.1fx%.1f) visibleArea=%.0f bg=%@ scrollBg=%@\n",
-                (unsigned long)n++,wv.accessibilityIdentifier?:@"",ADSearchResultsProbeSafeURL7139(wv),(wv.window&&!wv.hidden&&wv.alpha>0.01&&area>1)?1:0,wv.loading?1:0,
-                r.origin.x,r.origin.y,r.size.width,r.size.height,area,ADSearchResultsProbeColor7139(wv.backgroundColor),ADSearchResultsProbeColor7139(wv.scrollView.backgroundColor)];
-        }
-    } @catch(NSException *e){ [m appendFormat:@"WEBLIST_EXCEPTION %@\n",e]; }
-    return m;
-}
-static NSString *ADSearchResultsProbeJS7139(void){
-    return @"(function(){try{"
-    "function S(e,p){try{var s=getComputedStyle(e,p||null);return {content:s.content||'none',display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,bgi:s.backgroundImage,bgp:s.backgroundPosition,bgs:s.backgroundSize,bgr:s.backgroundRepeat,mask:s.webkitMaskImage||s.maskImage||'none',color:s.color,fill:s.fill,stroke:s.stroke,filter:s.webkitFilter||s.filter||'none',border:s.border,radius:s.borderRadius,shadow:s.boxShadow,outline:s.outline,font:s.fontFamily,fontSize:s.fontSize,fontWeight:s.fontWeight,lineHeight:s.lineHeight,textShadow:s.textShadow,webkitTextStroke:s.webkitTextStroke||'',transform:s.transform,overflow:s.overflow,clipPath:s.clipPath||s.webkitClipPath||'',z:s.zIndex,position:s.position};}catch(_){return {err:String(_)}}}"
-    "function P(e){if(!e)return null;var r=e.getBoundingClientRect(),o={tag:e.tagName,id:e.id||'',cls:String(e.className||'').slice(0,260),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],attrs:{badgeType:A(e,'data-a-badge-type'),badgeColor:A(e,'data-a-badge-color'),testid:A(e,'data-testid'),component:A(e,'data-component-type')},style:S(e),before:S(e,'::before'),after:S(e,'::after')};if(e.tagName==='VIDEO'){o.media={muted:e.muted?1:0,volume:+(+e.volume||0).toFixed(3),paused:e.paused?1:0,controls:e.controls?1:0,readyState:e.readyState||0,currentTime:+(+e.currentTime||0).toFixed(2)};o.ua={mute:S(e,'::-webkit-media-controls-mute-button'),play:S(e,'::-webkit-media-controls-play-button'),panel:S(e,'::-webkit-media-controls-panel')};}return o;}"
-    "function C(e,n){var a=[];for(var x=e;x&&a.length<(n||6);x=x.parentElement)a.push(P(x));return a;}"
-    "function Q(sel){return [].slice.call(document.querySelectorAll(sel));}"
-    "function G(sel,n){var a=Q(sel);return {count:a.length,items:a.slice(0,n||48).map(P)};}"
-    "function GC(sel,n){var a=Q(sel);return {count:a.length,items:a.slice(0,n||32).map(function(e){return {self:P(e),chain:C(e,7)}})};}"
-    "function A(e,n){try{return String(e.getAttribute&&e.getAttribute(n)||'').slice(0,360)}catch(_){return ''}}"
-    "function CP(e){var o=P(e)||{};try{o.ctrl={aria:(/mute|unmute|sound|volume|speaker|audio/i.test(A(e,'aria-label'))?A(e,'aria-label'):''),title:(/mute|unmute|sound|volume|speaker|audio/i.test(A(e,'title'))?A(e,'title'):''),role:A(e,'role'),testid:A(e,'data-testid'),name:A(e,'name'),type:A(e,'type'),viewBox:A(e,'viewBox'),href:(e.tagName==='USE'?A(e,'href')||A(e,'xlink:href'):''),d:(e.tagName==='PATH'?A(e,'d'):'')};}catch(_){}return o;}"
-    "function TREE(root){var budget=220;function W(e,d){if(!e||budget--<=0)return null;var o=CP(e);if(d<12){var kids=[];for(var c=e.firstElementChild;c&&kids.length<50;c=c.nextElementSibling){var z=W(c,d+1);if(z)kids.push(z);}if(kids.length)o.children=kids;}return o;}return W(root,0);}"
-    "function VCTRL(){var out=[];try{var roots=Q('#search .sbv-video-overlay,.sbv-video-overlay,#search video.sbv-video-player-ecx,video.sbv-video-player-ecx,#search video._c2Itd_video_17g-f,#search ._c2Itd_videoOverlay_1H_Jm,#search ._c2Itd_playClickRegion_87ZZa,[class*=single-video-card],[class*=singleVideoCard],.video-js');for(var r=0;r<roots.length&&out.length<24;r++){var root=roots[r],cand=[];try{cand=[].slice.call(root.querySelectorAll('button,[role=button],[aria-label],[title],svg,use,path,i,span,div')).filter(function(e){var k=(String(e.id||'')+' '+String(e.className&&e.className.baseVal||e.className||'')+' '+A(e,'aria-label')+' '+A(e,'title')+' '+A(e,'data-testid')).toLowerCase();return /mute|unmute|sound|volume|speaker|audio/.test(k);});}catch(_){}var buttons=[];try{buttons=[].slice.call(root.querySelectorAll('button,[role=button]'));}catch(_){}var uniq=[];cand.concat(buttons).forEach(function(e){if(e&&uniq.indexOf(e)<0&&uniq.length<20)uniq.push(e);});out.push({root:CP(root),rootTree:TREE(root),controls:uniq.map(function(e){return {ancestors:C(e,12),tree:TREE(e)}})});} }catch(e){out.push({err:String(e)})}return {count:out.length,items:out};}"
-        "var w=innerWidth,h=innerHeight,ys=[.03,.08,.14,.22,.31,.42,.56,.72,.86];"
-    "var hit=ys.map(function(y){var x=Math.round(w*.5),py=Math.round(h*y),a=(document.elementsFromPoint?document.elementsFromPoint(x,py):[document.elementFromPoint(x,py)]).filter(Boolean).slice(0,10);return {p:[x,py],stack:a.map(P)};});"
-    "var o={path:location.pathname,ready:document.readyState,viewport:[w,h,devicePixelRatio],scroll:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],body:P(document.body),doc:P(document.documentElement),"
-    "root:G('#search,#a-page',12),"
-    "ribbon:G('[class*=sf-rib],[class*=sf-mobile-rib],[class*=filter]',64),"
-    "ribbonArt:GC('.s-rib-toggle-container,.s-rib-toggle-icon,.sf-rib30-dropdown-pill-icon,.sf-rib30-review-content,.sf-rib30-review-stars-group,.sf-rib30-review-star,i.a-icon-prime.a-icon-small,.sf-mobile-rib-filter-icon,.sf-rib30-dropdown-arrow-icon',56),"
-    "ribbonDropdowns:GC('.sf-rib30-dropdown-title,.sf-rib30-title-content-container,.sf-rib30-dropdown-title .sf-rib30-dropdown-pill-content,.sf-rib30-dropdown-title .sf-rib30-dropdown-pill-text,.sf-rib30-dropdown-title .sf-rib30-dropdown-arrow-icon,a[id^=dynamic-picker-].sf-rib30-dropdown-pill-option,a[id^=dynamic-picker-] .sf-rib30-dropdown-pill-content,a[id^=dynamic-picker-] .sf-rib30-dropdown-pill-text',72),"
-    "heroSponsored:GC('#gwm-window [id^=wd-shoppable-] [data-ad-feedback-label-id],#gwm-window [id^=wd-shoppable-] .ape-feedback,#gwm-window [id^=wd-shoppable-] [class*=ad-feedback],#gwm-window [id^=wd-shoppable-] [id^=ad-feedback-],[class*=single-creative-card] [data-ad-feedback-label-id],[class*=single-creative-card] [class*=ad-feedback],[id*=mobile-wd-][class*=ape-feedback]',80),"
-    "homeAdShells:GC('#gwm-window,[id^=wd-shoppable-],[class*=single-creative-card],[class*=single-video-card],[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback],[data-testid=renderer-factory-ad-container],#ad,#dynamic-bb,[data-acei-id=lfstyl-img],[data-acei-id=prod-img]',90),"
-    "homeAdMedia:GC('#gwm-window [id^=wd-shoppable-] img,#gwm-window [id^=wd-shoppable-] video,#gwm-window [id^=wd-shoppable-] canvas,[class*=single-creative-card] img,[class*=single-video-card] img,#ad:has(#dynamic-bb) img,#ad:has(#dynamic-bb) video,#ad:has(#dynamic-bb) canvas,[data-testid=renderer-factory-ad-container] img,[data-acei-id=lfstyl-img] img,[data-acei-id=prod-img] img',100),"
-    "location:G('#nav-global-location-slot,#glow-ingress-block,[id*=glow-ingress],[class*=glow-ingress],[id*=delivery-location],[class*=delivery-location],[id*=ship-to],[class*=ship-to]',48),"
-    "ai:G('#search [class*=alexa],#search [id*=alexa],#search [class*=research],#search [id*=research],#search [class*=rufus],#search [id*=rufus],#search [class*=query-understanding],#search [class*=shopping-assistant],#search [class*=ai-overview],#search [class*=search-guidance],#search [class*=guided-search]',64),"
-    "aiLogo:GC('#search [class*=alexa-plus-logo],#search [class*=rufus][class*=icon],#search img[class*=alexa],#search img[class*=rufus]',32),"
-    "aiControls:GC('#search .rufus-expandable-pills-toggle-button,#search .rufus-expandable-pills-chevron,#search .rufus-expandable-pills-chevron img',32),"
-    "aiPills:GC('#search #rufus-overviews-pills-carousel,#search #rufus-mobile-overviews-expandable-pills-carousel-container,#search #rufus-overviews-pills-carousel .a-carousel-card,#search #rufus-mobile-overviews-expandable-pills-carousel-container .a-carousel-card,#search .nile-inline-pill-button,#search .nile-inline-ingress-pill-button,#search #rufus-overviews-pills-carousel .a-button-inner,#search #rufus-mobile-overviews-expandable-pills-carousel-container .a-button-inner',72),"
-    "tiles:GC('#search #rufus-overviews-category-cards-carousel .a-carousel-card,#search #rufus-overviews-category-cards-carousel .a-carousel-card > .a-box,#search #rufus-overviews-category-cards-carousel .nice-cat-card_box,#search #rufus-overviews-category-cards-carousel img.nice-cat-card_image',64),"
-    "atc:GC('#search .puis-atcb-button,#search .puis-atcb-button .a-button-inner,#search .puis-atcb-button .a-button-text',48),"
-    "results:G('#search .s-result-item,#search .s-card-container,#search [data-component-type=s-search-result],#search .puisg-row,#search .puisg-col,#search .puisg-col-inner',72),"
-    "badges:G('#search .puis-status-badge-container,#search .puis-status-badge-container .a-badge,#search .puis-status-badge-container .a-badge-label',32),"
-    "microBadges:GC('#search .puis-card-container .a-badge,#search .puis-card-container .a-badge-label,#search .puis-card-container .a-badge-label-inner,#search .puis-card-container [data-a-badge-type],#search .puis-card-container [data-a-badge-color],#search .puis-card-container .a-color-success,#search .puis-card-container [class*=success],#search .puis-card-container [class*=saving],#search .puis-card-container [class*=savings],#search .puis-card-container [class*=natural],#search .puis-card-container [class*=attribute],#search .puis-card-container [class*=variation]',140),"
-    "actions:GC('#search .more-like-this-container,#search .mlt-icon-container,#search .mlt-icon-container *,#search .lists-framework-action-button.puis-heart-icon-container,#search .lists-framework-heart-background',64),"
-    "videoAd:GC('#search .sbv-video-overlay,#search video.sbv-video-player-ecx,#search .sbv-video,#search .sbv-video-container,#search .sbv-mobile-video-link',64),"
-    "videoControls:GC('#search .sbv-video-overlay,#search .sbv-video-overlay *',180),"
-    "videoControlTrees:VCTRL(),"
-    "videoCard:GC('#search .sbv-video-single-product,#search .s-card-container:has(.sbv-video-single-product),#search .sbv-video-single-product :is(div,section,article,span,img,video,canvas)',220),"
-    "altVideoCard:GC('#search ._c2Itd_container_ut_MN,#search ._c2Itd_cardContent_3OGkG,#search ._c2Itd_content_2L-a5,#search ._c2Itd_videoSectionContainer_Ot6Fs,#search ._c2Itd_videoOverlay_1H_Jm,#search ._c2Itd_playClickRegion_87ZZa,#search video._c2Itd_video_17g-f,#search ._c2Itd_singleAsin_fHkKv,#search ._c2Itd_singleAsin_fHkKv *,#search img._c2Itd_image_pQREQ',260),"
-    "coupon:GC('#search [data-component-type=s-coupon-component],#search .s-coupon-tile-content-container,#search .s-coupon-tile,#search .s-coupon-tile-text-content,#search .s-coupon-checkbox-label,#search .s-coupon-tile-price-content,#search .s-coupon-unclipped,#search .s-coupon-highlight-color,#search [class*=coupon][class*=price],#search [class*=coupon][class*=highlight]',96),"
-    "nile:GC('#search .nile-ingress-pill-button,#search .nile-ingress-pill-button .a-button-inner',64),"
-    "haul:GC('#search [class*=haul-puis],#search [class*=haul-asin-recommendation]',160),"
-    "accents:G('#search i.a-icon-prime,#search [class*=prime],#search i[class*=a-icon-star],#search [class*=star],#search [class*=rating]',48),"
-    "media:G('#search img,#search picture,#search video,#search canvas',64),hit:hit};"
-    "return JSON.stringify(o,null,2);}catch(e){return 'SEARCH_RESULTS_DOM_ERR '+e;}})();";
-}
-static void ADCaptureSearchResultsProbe7139(NSString *trigger){
-    if(!gP.enabled)return; NSUInteger run=++gADSearchResultsProbeRun7139;
-    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.151 SEARCH ALT VIDEO AD + BADGE FIX PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== LOCATION LAYERS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
-        (unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchResultsProbeNative7139(),ADSearchResultsProbeGlowLayers7141(),ADSearchResultsProbeWebList7139()];
-    ADSearchResultsProbeAppend7139(head);
-    NSMutableArray *home=[NSMutableArray array],*search=[NSMutableArray array],*fallback=[NSMutableArray array];
-    @try {
-        for(WKWebView *wv in ADTrackedWebViews()){
-            if(!wv||!wv.window||wv.hidden||wv.alpha<0.01)continue;
-            CGRect r=[wv convertRect:wv.bounds toView:nil],ir=CGRectIntersection(r,UIScreen.mainScreen.bounds); CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height); if(a<1000)continue;
-            NSDictionary *it=@{ @"wv":wv,@"a":@(a) }; NSString *path=wv.URL.path?:@"";
-            if([path containsString:@"/gp/gw/ajax/mshop.html"])[home addObject:it];
-            else if([path isEqualToString:@"/s"]||[path hasPrefix:@"/s/"])[search addObject:it];
-            else [fallback addObject:it];
-        }
-        NSComparator cmp=^NSComparisonResult(NSDictionary *a,NSDictionary *b){ return [b[@"a"] compare:a[@"a"]]; };
-        [home sortUsingComparator:cmp]; [search sortUsingComparator:cmp]; [fallback sortUsingComparator:cmp];
-    } @catch(...) {}
-    NSMutableArray *chosen=[NSMutableArray array];
-    for(NSDictionary *it in home)if(chosen.count<2)[chosen addObject:it];
-    for(NSDictionary *it in search)if(chosen.count<3)[chosen addObject:it];
-    for(NSDictionary *it in fallback)if(chosen.count<3)[chosen addObject:it];
-    if(!chosen.count){ ADSearchResultsProbeAppend7139(@"\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"); return; }
-    NSUInteger lim=MIN((NSUInteger)3,chosen.count); __block NSUInteger pending=lim*2;
-    void (^done)(void)=^{ if(--pending==0)ADSearchResultsProbeAppend7139(@"================ END RUN ================\n"); };
-    for(NSUInteger i=0;i<lim;i++){
-        WKWebView *wv=chosen[i][@"wv"];
-        NSString *tok=[NSString stringWithFormat:@"%lu-%lu-%llu",(unsigned long)run,(unsigned long)i,(unsigned long long)([[NSDate date] timeIntervalSince1970]*1000.0)];
-        ADSearchResultsProbeAppend7139([NSString stringWithFormat:@"\n===== WEB DOM #%lu =====\naid=\"%@\" path=\"%@\"\n",(unsigned long)i,wv.accessibilityIdentifier?:@"",ADSearchResultsProbeSafeURL7139(wv)]);
-        NSString *startJS=[NSString stringWithFormat:@"(function(){try{return window.__ad7144StartProbe?window.__ad7144StartProbe('%@'):'NO_ALL_FRAME_PROBE';}catch(e){return 'START_ERR '+e;}})();",tok];
-        @try { [wv evaluateJavaScript:startJS completionHandler:nil]; } @catch(...) {}
-        [wv evaluateJavaScript:ADSearchResultsProbeJS7139() completionHandler:^(id v,NSError *e){
-            NSString *body=e?[NSString stringWithFormat:@"EVAL_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
-            ADSearchResultsProbeAppend7139([NSString stringWithFormat:@"%@\n",body?:@"NO_DOM_DATA"]); done();
-        }];
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.65*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-            NSString *dumpJS=[NSString stringWithFormat:@"(function(){try{return window.__ad7144DumpProbe?window.__ad7144DumpProbe('%@'):'NO_ALL_FRAME_DUMP';}catch(e){return 'DUMP_ERR '+e;}})();",tok];
-            @try {
-                [wv evaluateJavaScript:dumpJS completionHandler:^(id v,NSError *e){
-                    NSString *body=e?[NSString stringWithFormat:@"ALL_FRAME_EVAL_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
-                    ADSearchResultsProbeAppend7139([NSString stringWithFormat:@"\n===== HOME AD ALL-FRAME #%lu =====\n%@\n",(unsigned long)i,body?:@"NO_ALL_FRAME_DATA"]); done();
-                }];
-            } @catch(...) { ADSearchResultsProbeAppend7139(@"\nALL_FRAME_EXCEPTION\n"); done(); }
-        });
-    }
-}
-static void ADInstallSearchResultsProbe7139(void){
-    static dispatch_once_t once; dispatch_once(&once,^{
-        signal(SIGUSR2,SIG_IGN);
-        gADSearchResultsProbeSignal7139=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue());
-        if(gADSearchResultsProbeSignal7139){ dispatch_source_set_event_handler(gADSearchResultsProbeSignal7139,^{ ADCaptureSearchResultsProbe7139(@"SIGUSR2"); }); dispatch_resume(gADSearchResultsProbeSignal7139); }
-        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){ ADCaptureSearchResultsProbe7139(@"screenshot"); }];
-    });
-}
 
 // v7.116 production: v7.115 event-driven app handoff retained; SpringBoard owns a
 // bounded 0.40 s post-ready settle guard so Amazon's final white loading composite
@@ -4791,8 +4529,6 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 
     %init;
 
-    ADPrivacyInit7117();
-    ADInstallSearchResultsProbe7139();
 
     if(gP.enabled&&gP.privacyMode){
         ADRegisterPrivacyProtocol7117();
