@@ -1,4 +1,21 @@
-# AmazonDark v7.163~product-card-polish-probe
+# AmazonDark v7.164~swatch-options-bounded-probe
+
+Direct base: v7.163~product-card-polish-probe.
+
+## Product-card corrections
+
+- Restores Amazon-authored color swatches. The v7.163 descendant-wide `.puis-variations-block :is(a,span,div)` OLED rule is removed because it flattened `.s-color-swatch-inner-circle-fill` artwork to black.
+- Ports the previously proven exact variation/swatch shell ownership: variation/link/list-view shells, `.s-color-swatch-container`, and `.s-color-swatch-outer-circle` are transparent with background-image/shadow cleared, while the inner color fill is never recolored.
+- Themes product-card action-stack buttons, including `See options`, exactly like the established Add-to-cart treatment: OLED black, neutral `#747a7c` border/inset edge, light text, and no compositor filter.
+- Keeps v7.163 Best Seller white text, transparent true-green savings text, and true-green coupon boxes.
+
+## Bounded probe
+
+- Probe output is reset at the start of every manual/screenshot capture instead of accumulating runs indefinitely.
+- Hard file cap is 28 MiB, safely below the requested 30 MB ceiling.
+- Search DOM JSON is capped at 2.2M characters per evaluated WebView and the all-frame bridge at 0.9M characters.
+- Variation diagnostics now inventory the exact swatch structures rather than every `a/span/div` descendant.
+- No MutationObserver, interval, RAF, scroll listener, or recurring scan was added.
 
 ## v7.163 product-card result polish
 
@@ -7,7 +24,7 @@
 - Every primary button inside `.puis-card-container` receives the same OLED-black + gray-border paint already used by the correct `.puis-atcb-button`, so yellow and dark Add to cart variants converge without geometry changes.
 - Text under `.puis-status-badge-container` is forced true white while Amazon keeps the badge fill/shape.
 - Savings/saving/success labels inside product cards lose colored floors and use true-green `#00c853` text on transparent backgrounds.
-- The custom coupon tile fill changes from muted sage `#405a4a` to true green `#00a650`; white coupon copy is preserved.
+- The custom coupon tile fill changes from muted sage `#405a4a` to true green `#008000`; white coupon copy is preserved.
 - Screenshot/SIGUSR2 diagnostics stay enabled and now inventory variation strips, all product-card primary buttons, status-badge descendants, and savings candidates.
 - No MutationObserver, timer, interval, RAF loop, scroll listener, or recurring repair scan is added.
 

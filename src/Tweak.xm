@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.163-product-card-polish-probe"
+#define AD_VERSION "v7.164-swatch-options-bounded-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -850,8 +850,8 @@ static NSString *ADFloorJS(void){
         @"inset 0 0 0 1px #747a7c!important;filter:none!important;-webkit-filter:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#search#search .puis-atcb-b"
         @"utton .a-button-inner{background:transparent!important;background-color:transparent!important;border-color:transparent!important;box-shadow:none!important;}#search#search .puis-atc"
         @"b-button .a-button-text{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-        @"#search#search .puis-card-container .puis-variations-block,#search#search .puis-card-container .puis-variations-block :is(a,span,div){background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
-        @"#search#search .puis-card-container .a-button.a-button-primary{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:inset 0 0 0 1px #747a7c!important;filter:none!important;-webkit-filter:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#search#search .puis-card-container .a-button.a-button-primary .a-button-inner{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;}#search#search .puis-card-container .a-button.a-button-primary .a-button-text{background:transparent!important;background-color:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        @"#search#search .puis-card-container .puis-variations-block{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}#search#search .puis-card-container :is([data-csa-c-content-id=variation-options-link],[class*=s-variations-options-justify-content],[class*=s-variation-options-text],[class*=s-variation-options-link],.s-color-swatch-container-list-view,.puis-csi-with-label-container,.s-color-swatch-container,.s-color-swatch-outer-circle){background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}#search#search .puis-card-container :is([data-csa-c-content-id=variation-options-link],[class*=s-variations-options-justify-content],[class*=s-variation-options-text],[class*=s-variation-options-link],.s-color-swatch-container-list-view,.puis-csi-with-label-container,.s-color-swatch-container,.s-color-swatch-outer-circle)::before,#search#search .puis-card-container :is([data-csa-c-content-id=variation-options-link],[class*=s-variations-options-justify-content],[class*=s-variation-options-text],[class*=s-variation-options-link],.s-color-swatch-container-list-view,.puis-csi-with-label-container,.s-color-swatch-container,.s-color-swatch-outer-circle)::after{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}"
+        @"#search#search .puis-card-container :is(.a-button.a-button-primary,.a-button-stack>.a-button){background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:inset 0 0 0 1px #747a7c!important;filter:none!important;-webkit-filter:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#search#search .puis-card-container :is(.a-button.a-button-primary,.a-button-stack>.a-button) .a-button-inner{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;filter:none!important;-webkit-filter:none!important;}#search#search .puis-card-container :is(.a-button.a-button-primary,.a-button-stack>.a-button) .a-button-text{background:transparent!important;background-color:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;filter:none!important;-webkit-filter:none!important;}"
         @"#search#search .puis-status-badge-container :is(span,div,a){color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search .puis-card-container :is(.a-color-success,[class*=success],[class*=saving],[class*=savings]){background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;color:#00c853!important;-webkit-text-fill-color:#00c853!important;}#search#search .puis-card-container :is(.a-color-success,[class*=success],[class*=saving],[class*=savings]) :is(span,a,div){color:#00c853!important;-webkit-text-fill-color:#00c853!important;}"
         @".puis-mab-chevron :is(i.a-icon-dropdown,.a-icon.a-icon-dropdown),.puis-mab-chevron-glyph "
         @":is(i.a-icon-dropdown,.a-icon.a-icon-dropdown){filter:brightness(0) invert(1)!important;opacity:1!important;}#search [data-a-badge-color=\\\"sx-cloud\\\"],#search [data-a-badge-color=\\"
@@ -3561,20 +3561,43 @@ static void ADConsiderLaunchReady706(void){
 // v7.0.68 production: v7.0.65 chevron diagnostic runtime removed.
 static NSUInteger gADSearchResultsProbeRun7139=0;
 static dispatch_source_t gADSearchResultsProbeSignal7139=nil;
+static const unsigned long long kADSearchResultsProbeMaxBytes7139=(28ULL*1024ULL*1024ULL);
+static BOOL gADSearchResultsProbeFileFull7139=NO;
 
 static NSString *ADSearchResultsProbePath7139(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.163-product-card-polish-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.164-swatch-options-bounded-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.163-product-card-polish-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.164-swatch-options-bounded-probe.txt"];
+}
+static void ADSearchResultsProbeReset7139(void){
+    @try {
+        NSString *p=ADSearchResultsProbePath7139();
+        [[NSFileManager defaultManager] removeItemAtPath:p error:nil];
+        gADSearchResultsProbeFileFull7139=NO;
+    } @catch(...) {}
 }
 static void ADSearchResultsProbeAppend7139(NSString *s){
-    if(!s.length)return;
+    if(!s.length||gADSearchResultsProbeFileFull7139)return;
     @try {
         NSString *p=ADSearchResultsProbePath7139(); NSFileManager *fm=[NSFileManager defaultManager];
         [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil];
+        unsigned long long cur=0;
+        NSDictionary *attrs=[fm attributesOfItemAtPath:p error:nil];
+        if(attrs)cur=[attrs fileSize];
+        if(cur>=kADSearchResultsProbeMaxBytes7139){ gADSearchResultsProbeFileFull7139=YES; return; }
         NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding];
+        unsigned long long remain=kADSearchResultsProbeMaxBytes7139-cur;
+        if((unsigned long long)d.length>remain){
+            NSString *marker=@"\n[PROBE HARD-CAPPED AT 28 MiB — remaining diagnostic output omitted]\n";
+            NSData *md=[marker dataUsingEncoding:NSUTF8StringEncoding];
+            unsigned long long bodyCap=(remain>(unsigned long long)md.length)?(remain-(unsigned long long)md.length):0;
+            NSMutableData *trim=[NSMutableData data];
+            if(bodyCap>0)[trim appendData:[d subdataWithRange:NSMakeRange(0,(NSUInteger)MIN((unsigned long long)NSUIntegerMax,bodyCap))]];
+            if((unsigned long long)trim.length+(unsigned long long)md.length<=remain)[trim appendData:md];
+            d=trim; gADSearchResultsProbeFileFull7139=YES;
+        }
         if(![fm fileExistsAtPath:p]){ [d writeToFile:p atomically:YES]; return; }
         NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p];
         if(h){ [h seekToEndOfFile]; [h writeData:d]; [h closeFile]; }
@@ -3691,8 +3714,8 @@ static NSString *ADSearchResultsProbeJS7139(void){
     "seasonalAutocomplete:GC('.s-entity-pd-carousel-tile-suggestion,.s-entity-pd-carousel-tile-container,.s-entity-pd-carousel-tile-element-container,.s-entity-pd-carousel-tile-element-image-container,.s-entity-pd-carousel-tile-element-image,.s-entity-pd-carousel-tile-element-title-container',96),"
     "alexaStrip:GC('#search .nice-widget-container-inline-slot,#search .nice-widget-container-inline-slot::before,#search .nice-widget-container-inline-slot::after',32),"
     "standaloneCarouselMedia:GC('#search img._bXVsd_image_iVomf,#search img._bXVsd_lifestyleImage_1fluW,#search img._bXVsd_pixel_3yBgA',64),"
-    "variationStrips:GC('#search .puis-card-container .puis-variations-block,#search .puis-card-container .puis-variations-block a,#search .puis-card-container .puis-variations-block span,#search .puis-card-container .puis-variations-block div',96),"
-    "productPrimaryButtons:GC('#search .puis-card-container .a-button.a-button-primary,#search .puis-card-container .a-button.a-button-primary .a-button-inner,#search .puis-card-container .a-button.a-button-primary .a-button-text',96),"
+    "variationStrips:GC('#search .puis-card-container .puis-variations-block,#search .puis-card-container [data-csa-c-content-id=variation-options-link],#search .puis-card-container [class*=s-variations-options-justify-content],#search .puis-card-container [class*=s-variation-options-text],#search .puis-card-container [class*=s-variation-options-link],#search .puis-card-container .s-color-swatch-container-list-view,#search .puis-card-container .puis-csi-with-label-container,#search .puis-card-container .s-color-swatch-container,#search .puis-card-container .s-color-swatch-outer-circle,#search .puis-card-container .s-color-swatch-inner-circle-fill',72),"
+    "productPrimaryButtons:GC('#search .puis-card-container .a-button.a-button-primary,#search .puis-card-container .a-button-stack>.a-button,#search .puis-card-container .a-button-stack>.a-button .a-button-inner,#search .puis-card-container .a-button-stack>.a-button .a-button-text',72),"
     "statusBadgeText:GC('#search .puis-status-badge-container,#search .puis-status-badge-container span,#search .puis-status-badge-container div,#search .puis-status-badge-container a',96),"
     "savingsCandidates:GC('#search .puis-card-container .a-color-success,#search .puis-card-container [class*=success],#search .puis-card-container [class*=saving],#search .puis-card-container [class*=savings]',96),"
     "searchDirect:GC('#search>div,#search>section,#search>article,#search .s-main-slot>div,#search .s-main-slot>section,#search .s-main-slot>article',120),"
@@ -3720,11 +3743,12 @@ static NSString *ADSearchResultsProbeJS7139(void){
     "haul:GC('#search [class*=haul-puis],#search [class*=haul-asin-recommendation]',160),"
     "accents:G('#search i.a-icon-prime,#search [class*=prime],#search i[class*=a-icon-star],#search [class*=star],#search [class*=rating]',48),"
     "media:G('#search img,#search picture,#search video,#search canvas',64),hit:hit};"
-    "return JSON.stringify(o,null,2);}catch(e){return 'SEARCH_RESULTS_DOM_ERR '+e;}})();";
+    "var out=JSON.stringify(o,null,2),cap=2200000;if(out.length>cap)out=out.slice(0,cap)+'\\n[WEB DOM TRUNCATED AT 2,200,000 CHARACTERS]\\n';return out;}catch(e){return 'SEARCH_RESULTS_DOM_ERR '+e;}})();";
 }
 static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     if(!gP.enabled)return; NSUInteger run=++gADSearchResultsProbeRun7139;
-    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.163 PRODUCT CARD POLISH PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== LOCATION LAYERS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
+    ADSearchResultsProbeReset7139();
+    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.164 SWATCH + OPTIONS BOUNDED PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== LOCATION LAYERS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
         (unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchResultsProbeNative7139(),ADSearchResultsProbeGlowLayers7141(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(head);
     NSMutableArray *home=[NSMutableArray array],*search=[NSMutableArray array],*fallback=[NSMutableArray array];
@@ -3758,7 +3782,7 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
             ADSearchResultsProbeAppend7139([NSString stringWithFormat:@"%@\n",body?:@"NO_DOM_DATA"]); done();
         }];
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.65*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-            NSString *dumpJS=[NSString stringWithFormat:@"(function(){try{return window.__ad7144DumpProbe?window.__ad7144DumpProbe('%@'):'NO_ALL_FRAME_DUMP';}catch(e){return 'DUMP_ERR '+e;}})();",tok];
+            NSString *dumpJS=[NSString stringWithFormat:@"(function(){try{var x=window.__ad7144DumpProbe?window.__ad7144DumpProbe('%@'):'NO_ALL_FRAME_DUMP';x=String(x||'');var cap=900000;if(x.length>cap)x=x.slice(0,cap)+'\\n[ALL-FRAME DUMP TRUNCATED AT 900,000 CHARACTERS]\\n';return x;}catch(e){return 'DUMP_ERR '+e;}})();",tok];
             @try {
                 [wv evaluateJavaScript:dumpJS completionHandler:^(id v,NSError *e){
                     NSString *body=e?[NSString stringWithFormat:@"ALL_FRAME_EVAL_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
