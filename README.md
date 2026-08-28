@@ -1,3 +1,16 @@
+# AmazonDark v7.162~search-scrollbar-alexa-carousel-twb-probe
+
+## v7.162 Search scrollbar + Alexa strip + standalone-carousel TWB probe
+
+- Direct base: v7.161. Preserves every working v7.159/v7.161 Search transition and three-lane stylesheet fix.
+- Makes the `/s` product-feed WebKit scrollbar thumb light (`#d5d9d9`, hover `#e8e6e3`) instead of the dark thumb introduced by the split stylesheet.
+- Removes the light gradient/white strip from `nice-widget-container-inline-slot` (the Researched-by-Alexa inline slot) by owning its background and pseudo-painters as OLED black/transparent.
+- Tames the exact standalone-carousel company-logo raster `img._bXVsd_image_iVomf`.
+- Tames the exact standalone-carousel product/lifestyle raster `img._bXVsd_lifestyleImage_1fluW`.
+- Explicitly leaves the 1x1 tracking pixel `_bXVsd_pixel_3yBgA` alone.
+- Retains the screenshot/SIGUSR2 diagnostics and adds dedicated `alexaStrip` and `standaloneCarouselMedia` inventories.
+- Adds no MutationObserver, interval, RAF loop, scroll listener, or recurring repair scan.
+
 # AmazonDark v7.161~search-seasonal-scrollbar-probe
 
 ## v7.161 search seasonal + scrollbar probe
