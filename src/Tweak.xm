@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.146-performance-compaction"
+#define AD_VERSION "v7.147-ui-diagnostics-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -155,10 +155,30 @@ static void ADLoadPrefs(void){
 static inline UIColor *ADOLED(void){ return [UIColor blackColor]; }
 
 // -----------------------------------------------------------------------------
-// Privacy Mode. Production keeps only the blocking path; probe-only counters and
-// request bookkeeping are intentionally absent.
+// v7.117 experimental Privacy Mode.
+// Conservative telemetry sink: exact analytics / diagnostics / ad-measurement
+// destinations are answered locally with HTTP 204 while shopping, media, ad
+// creative, account, cart, search and configuration traffic is left untouched.
+// No request bodies, headers, typed text, clipboard contents or coordinates are
+// recorded. Counters exist only so the manual SIGUSR2 probe can verify coverage.
 // -----------------------------------------------------------------------------
+static NSObject *gADPrivacyLock7117=nil;
+static NSMutableDictionary<NSString *,NSNumber *> *gADPrivacyNativeRequested7117=nil;
+static NSMutableDictionary<NSString *,NSNumber *> *gADPrivacyNativeBlocked7117=nil;
+static NSUInteger gADPrivacyNativeRequestedTotal7117=0;
+static NSUInteger gADPrivacyNativeBlockedTotal7117=0;
 static BOOL gADPrivacyProtocolRegistered7117=NO;
+static NSUInteger gADPrivacyConfigInsertions7118=0;
+static NSUInteger gADPrivacyLateProtocolRewrites7118=0;
+static NSUInteger gADPrivacySessionCtorChecks7118=0;
+
+static void ADPrivacyInit7117(void){
+    static dispatch_once_t once; dispatch_once(&once,^{
+        gADPrivacyLock7117=[NSObject new];
+        gADPrivacyNativeRequested7117=[NSMutableDictionary dictionary];
+        gADPrivacyNativeBlocked7117=[NSMutableDictionary dictionary];
+    });
+}
 static NSString *ADPrivacyCategoryForHost7117(NSString *host){
     NSString *h=host.lowercaseString?:@"";
     if([h isEqualToString:@"unagi.amazon.com"]||[h isEqualToString:@"unagi-na.amazon.com"])return @"unagi";
@@ -173,6 +193,18 @@ static NSString *ADPrivacyCategoryForHost7117(NSString *host){
 }
 static NSString *ADPrivacyCategoryForURL7117(NSURL *url){ return url?ADPrivacyCategoryForHost7117(url.host):nil; }
 static BOOL ADPrivacyShouldBlockURL7117(NSURL *url){ return gP.enabled&&gP.privacyMode&&ADPrivacyCategoryForURL7117(url).length; }
+static NSString *ADPrivacyCounterKey7117(NSURL *url){
+    NSString *cat=ADPrivacyCategoryForURL7117(url)?:@"unknown",*host=url.host.lowercaseString?:@"(no-host)";
+    return [NSString stringWithFormat:@"%@|%@",cat,host];
+}
+static void ADPrivacyCount7117(NSMutableDictionary<NSString *,NSNumber *> *dict,NSURL *url,BOOL blocked){
+    if(!url)return; ADPrivacyInit7117(); NSString *key=ADPrivacyCounterKey7117(url);
+    @synchronized(gADPrivacyLock7117){
+        dict[key]=@([dict[key] unsignedIntegerValue]+1);
+        if(blocked)gADPrivacyNativeBlockedTotal7117++; else gADPrivacyNativeRequestedTotal7117++;
+    }
+}
+
 @interface ADPrivacyURLProtocol7117 : NSURLProtocol @end
 @implementation ADPrivacyURLProtocol7117
 + (BOOL)canInitWithRequest:(NSURLRequest *)request {
@@ -185,7 +217,7 @@ static BOOL ADPrivacyShouldBlockURL7117(NSURL *url){ return gP.enabled&&gP.priva
 + (NSURLRequest *)canonicalRequestForRequest:(NSURLRequest *)request { return request; }
 + (BOOL)requestIsCacheEquivalent:(NSURLRequest *)a toRequest:(NSURLRequest *)b { return [super requestIsCacheEquivalent:a toRequest:b]; }
 - (void)startLoading {
-    NSURL *url=self.request.URL;
+    NSURL *url=self.request.URL; ADPrivacyCount7117(gADPrivacyNativeBlocked7117,url,YES);
     @try {
         NSHTTPURLResponse *r=[[NSHTTPURLResponse alloc] initWithURL:url statusCode:204 HTTPVersion:@"HTTP/1.1" headerFields:@{@"Cache-Control":@"no-store",@"X-AmazonDark-Privacy":@"1",@"Content-Length":@"0"}];
         [self.client URLProtocol:self didReceiveResponse:r cacheStoragePolicy:NSURLCacheStorageNotAllowed];
@@ -209,6 +241,7 @@ static void ADPrivacyInstallProtocolOnConfig7117(NSURLSessionConfiguration *cfg)
         NSMutableArray *a=[cfg.protocolClasses mutableCopy]?:[NSMutableArray array];
         if(![a containsObject:[ADPrivacyURLProtocol7117 class]]){
             [a insertObject:[ADPrivacyURLProtocol7117 class] atIndex:0];
+            gADPrivacyConfigInsertions7118++;
         }
         cfg.protocolClasses=a;
     } @catch(...) {}
@@ -697,6 +730,7 @@ static const void *kADTWBUS=&kADTWBUS;
 static const void *kADStandalonePaintUS7104=&kADStandalonePaintUS7104;
 static const void *kADPrivacyUS7117=&kADPrivacyUS7117;
 static const void *kADPrivacyRule7117=&kADPrivacyRule7117;
+static const void *kADHomeAdProbeUS7144=&kADHomeAdProbeUS7144;
 static NSHashTable *gADWebViews=nil;
 // v7.0.68 production: no diagnostic touch probe is installed.
 
@@ -1969,19 +2003,69 @@ static NSString *ADTWBJS(void){
 
 static NSString *ADPrivacyModeJS7117(void){
     return
-        @"(function(){try{"
-        @"if(window.__adPrivacy7117Installed){window.__adPrivacy7117Enabled=true;return;}"
-        @"window.__adPrivacy7117Installed=1;window.__adPrivacy7117Enabled=true;var xhrMeta=new WeakMap();"
-        @"function parse(u){try{return new URL(String(u&&u.url?u.url:u||''),location.href)}catch(_){return null}}"
-        @"function blockedHost(h){h=String(h||'').toLowerCase();return h==='unagi.amazon.com'||h==='unagi-na.amazon.com'||h==='fls-na.amazon.com'||h==='api.mshop.bdtelemetry.amazon'||h==='session.mshopbugsnag.irm.amazon.dev'||h==='trace.mshopbugsnag.irm.amazon.dev'||h==='vfw.amazon-adsystem.com'||h.endsWith('.service.minerva.devices.a2z.com')||/^api\.stores\.[^.]+\.prod\.paets\.advertising\.amazon\.dev$/.test(h)||/^aes\..*\.amazon-adsystem\.com$/.test(h)}"
-        @"function info(u){var x=parse(u),h=x?x.hostname.toLowerCase():'';return{blocked:!!(x&&blockedHost(h)),url:x?(x.protocol+'//'+x.host+(x.pathname||'/')):String(u||'')}}"
-        @"function fakeResponse(url){try{return new Response(null,{status:204,statusText:'No Content',headers:{'Cache-Control':'no-store','X-AmazonDark-Privacy':'1'}})}catch(_){return{ok:true,status:204,statusText:'No Content',url:String(url||''),text:function(){return Promise.resolve('')},json:function(){return Promise.resolve({})},arrayBuffer:function(){return Promise.resolve(new ArrayBuffer(0))}}}}"
-        @"try{var osb=navigator.sendBeacon;if(typeof osb==='function')navigator.sendBeacon=function(url,data){var i=info(url);if(window.__adPrivacy7117Enabled&&i.blocked)return true;return osb.apply(this,arguments)}}catch(_){}"
-        @"try{var of=window.fetch;if(typeof of==='function')window.fetch=function(input,init){var i=info(input);if(window.__adPrivacy7117Enabled&&i.blocked)return Promise.resolve(fakeResponse(i.url));return of.apply(this,arguments)}}catch(_){}"
-        @"try{var xo=XMLHttpRequest.prototype.open,xs=XMLHttpRequest.prototype.send;XMLHttpRequest.prototype.open=function(method,url){try{xhrMeta.set(this,info(url))}catch(_){}return xo.apply(this,arguments)};XMLHttpRequest.prototype.send=function(){var m=null;try{m=xhrMeta.get(this)}catch(_){};if(window.__adPrivacy7117Enabled&&m&&m.blocked){var self=this;try{Object.defineProperty(self,'readyState',{configurable:true,get:function(){return 4}})}catch(_){}try{Object.defineProperty(self,'status',{configurable:true,get:function(){return 204}})}catch(_){}try{Object.defineProperty(self,'statusText',{configurable:true,get:function(){return 'No Content'}})}catch(_){}try{Object.defineProperty(self,'responseURL',{configurable:true,get:function(){return m.url}})}catch(_){}try{Object.defineProperty(self,'responseText',{configurable:true,get:function(){return ''}})}catch(_){}try{Object.defineProperty(self,'response',{configurable:true,get:function(){return ''}})}catch(_){}Promise.resolve().then(function(){try{self.dispatchEvent(new Event('readystatechange'));self.dispatchEvent(new Event('load'));self.dispatchEvent(new Event('loadend'))}catch(_){}});return}return xs.apply(this,arguments)}}catch(_){}"
-        @"function broadcast(msg){try{var a=document.getElementsByTagName('iframe');for(var i=0;i<a.length&&i<32;i++)try{a[i].contentWindow.postMessage(msg,'*')}catch(_){}}catch(_){}}"
-        @"window.__adPrivacy7117Broadcast=broadcast;window.addEventListener('message',function(e){try{var d=e.data;if(d&&d.__adPrivacy7117Toggle===1){window.__adPrivacy7117Enabled=!!d.enabled;broadcast(d)}}catch(_){}},false);"
-        @"}catch(e){}})();";
+        @"(function(){\n"
+        @"try{\n"
+        @"  if(window.__adPrivacy7117Installed){window.__adPrivacy7117Enabled=true;return;}\n"
+        @"  window.__adPrivacy7117Installed=1;\n"
+        @"  window.__adPrivacy7117Enabled=true;\n"
+        @"  var MAX=320, ev=[], counts=Object.create(null), dropped=0, t0=Date.now(), xhrMeta=new WeakMap();\n"
+        @"  function clean(v,n){try{return String(v==null?'':v).replace(/\\s+/g,' ').slice(0,n||180)}catch(_){return ''}}\n"
+        @"  function parse(u){try{return new URL(String(u&&u.url?u.url:u||''),location.href)}catch(_){return null}}\n"
+        @"  function catHost(h){\n"
+        @"    h=String(h||'').toLowerCase();\n"
+        @"    if(h==='unagi.amazon.com'||h==='unagi-na.amazon.com')return 'unagi';\n"
+        @"    if(h==='fls-na.amazon.com')return 'fls';\n"
+        @"    if(h==='api.mshop.bdtelemetry.amazon')return 'bdtelemetry';\n"
+        @"    if(h==='session.mshopbugsnag.irm.amazon.dev'||h==='trace.mshopbugsnag.irm.amazon.dev')return 'bugsnag';\n"
+        @"    if(h==='vfw.amazon-adsystem.com')return 'ad-viewability';\n"
+        @"    if(h.endsWith('.service.minerva.devices.a2z.com'))return 'minerva';\n"
+        @"    if(/^api\\.stores\\.[^.]+\\.prod\\.paets\\.advertising\\.amazon\\.dev$/.test(h))return 'ad-event';\n"
+        @"    if(/^aes\\..*\\.amazon-adsystem\\.com$/.test(h))return 'ad-instrumentation';\n"
+        @"    return '';\n"
+        @"  }\n"
+        @"  function info(u){var x=parse(u),h=x?x.hostname.toLowerCase():'',c=catHost(h),p=x?(x.pathname||'/'):'';if(p.length>140)p=p.slice(0,140)+'…';return {blocked:!!c,category:c,host:h,path:p,url:x?(x.protocol+'//'+x.host+p):clean(u,180)}}\n"
+        @"  function sizeOf(v){try{if(v==null)return null;if(typeof v==='string')return v.length;if(typeof v.size==='number')return v.size;if(typeof v.byteLength==='number')return v.byteLength;if(typeof URLSearchParams!=='undefined'&&v instanceof URLSearchParams)return String(v).length}catch(_){}return null}\n"
+        @"  function inc(k){counts[k]=(counts[k]||0)+1}\n"
+        @"  function rec(kind,i,extra){try{inc(kind);if(i&&i.category)inc('category.'+i.category);if(i&&i.host)inc('host.'+i.host);if(ev.length<MAX){var d={ms:Date.now()-t0,kind:kind,category:i&&i.category||'',host:i&&i.host||'',path:i&&i.path||''};if(extra)for(var k in extra)d[k]=extra[k];ev.push(d)}else dropped++}catch(_){}}\n"
+        @"  function fakeResponse(url){try{return new Response(null,{status:204,statusText:'No Content',headers:{'Cache-Control':'no-store','X-AmazonDark-Privacy':'1'}})}catch(_){return {ok:true,status:204,statusText:'No Content',url:String(url||''),text:function(){return Promise.resolve('')},json:function(){return Promise.resolve({})},arrayBuffer:function(){return Promise.resolve(new ArrayBuffer(0))}}}}\n"
+        @"\n"
+        @"  try{\n"
+        @"    var osb=navigator.sendBeacon;\n"
+        @"    if(typeof osb==='function')navigator.sendBeacon=function(url,data){\n"
+        @"      var i=info(url); if(window.__adPrivacy7117Enabled&&i.blocked){var n=null;try{if(typeof data==='string')n=data.length;else if(data&&typeof data.size==='number')n=data.size;else if(data&&typeof data.byteLength==='number')n=data.byteLength}catch(_){}rec('blocked.sendBeacon',i,{payloadBytes:n});return true;} return osb.apply(this,arguments);\n"
+        @"    };\n"
+        @"  }catch(_){}\n"
+        @"\n"
+        @"  try{\n"
+        @"    var of=window.fetch;\n"
+        @"    if(typeof of==='function')window.fetch=function(input,init){var i=info(input);if(window.__adPrivacy7117Enabled&&i.blocked){rec('blocked.fetch',i,{method:clean(init&&init.method||input&&input.method||'GET',16),payloadBytes:sizeOf(init&&init.body)});return Promise.resolve(fakeResponse(i.url));}return of.apply(this,arguments)};\n"
+        @"  }catch(_){}\n"
+        @"\n"
+        @"  try{\n"
+        @"    var xo=XMLHttpRequest.prototype.open, xs=XMLHttpRequest.prototype.send;\n"
+        @"    XMLHttpRequest.prototype.open=function(method,url){try{xhrMeta.set(this,{method:clean(method||'GET',16),i:info(url)})}catch(_){}return xo.apply(this,arguments)};\n"
+        @"    XMLHttpRequest.prototype.send=function(){var m=null;try{m=xhrMeta.get(this)}catch(_){};if(window.__adPrivacy7117Enabled&&m&&m.i&&m.i.blocked){\n"
+        @"      rec('blocked.xhr',m.i,{method:m.method,payloadBytes:sizeOf(arguments[0])}); var self=this;\n"
+        @"      try{Object.defineProperty(self,'readyState',{configurable:true,get:function(){return 4}})}catch(_){}\n"
+        @"      try{Object.defineProperty(self,'status',{configurable:true,get:function(){return 204}})}catch(_){}\n"
+        @"      try{Object.defineProperty(self,'statusText',{configurable:true,get:function(){return 'No Content'}})}catch(_){}\n"
+        @"      try{Object.defineProperty(self,'responseURL',{configurable:true,get:function(){return m.i.url}})}catch(_){}\n"
+        @"      try{Object.defineProperty(self,'responseText',{configurable:true,get:function(){return ''}})}catch(_){}\n"
+        @"      try{Object.defineProperty(self,'response',{configurable:true,get:function(){return ''}})}catch(_){}\n"
+        @"      Promise.resolve().then(function(){try{self.dispatchEvent(new Event('readystatechange'));self.dispatchEvent(new Event('load'));self.dispatchEvent(new Event('loadend'))}catch(_){}});\n"
+        @"      return;\n"
+        @"    }return xs.apply(this,arguments)};\n"
+        @"  }catch(_){}\n"
+        @"\n"
+        @"  function residual(){var m=Object.create(null),a=[];try{a=performance.getEntriesByType('resource')||[]}catch(_){};for(var j=0;j<a.length;j++){try{var i=info(a[j].name);if(!i.blocked)continue;var key=i.category+'|'+i.host+'|'+String(a[j].initiatorType||'other');m[key]=(m[key]||0)+1}catch(_){}}var o=[];Object.keys(m).sort(function(a,b){return m[b]-m[a]}).forEach(function(k){var z=k.split('|');o.push({category:z[0],host:z[1],initiator:z[2],count:m[k]})});return o}\n"
+        @"  function report(){return JSON.stringify({frame:{href:(function(){var i=info(location.href);return i.url})(),child:(function(){try{return top!==window}catch(_){return true}})(),ready:document.readyState},installed:!!window.__adPrivacy7117Installed,enabled:!!window.__adPrivacy7117Enabled,sinceMs:Date.now()-t0,dropped:dropped,counts:counts,blockedEvents:ev,residualTelemetryResources:residual()},null,2)}\n"
+        @"  function frames(){var out=[];try{var a=document.getElementsByTagName('iframe');for(var i=0;i<a.length&&out.length<32;i++)out.push(a[i])}catch(_){}return out}\n"
+        @"  window.__adPrivacy7117Report=report;\n"
+        @"  window.__adPrivacy7117Broadcast=function(msg){try{var a=frames();for(var i=0;i<a.length;i++)try{a[i].contentWindow.postMessage(msg,'*')}catch(_){}}catch(_){}};\n"
+        @"  window.addEventListener('message',function(e){try{var d=e.data;if(!d)return;if(d.__adPrivacy7117Toggle===1){window.__adPrivacy7117Enabled=!!d.enabled;try{window.__adPrivacy7117Broadcast(d)}catch(_){}return;}if(d.__adPrivacy7117!==1||!d.nonce)return;try{top.postMessage({__adPrivacy7117Result:1,nonce:d.nonce,href:location.href,report:report()},'*')}catch(_){}try{window.__adPrivacy7117Broadcast(d)}catch(_){}}catch(_){}},false);\n"
+        @"}catch(e){}\n"
+        @"})();\n"
+        ;
 }
 
 
@@ -2067,6 +2151,14 @@ static void ADRefreshWebTWBPrefs791(void){
 }
 
 
+// v7.144 probe-only all-frame Home-ad snapshot bridge. Installed in every frame at
+// document start, but performs no DOM collection until screenshot/SIGUSR2 explicitly
+// requests it. Child frames answer by postMessage, so cross-origin APE/SafeFrame
+// media can be captured without polling, MutationObserver, RAF, or scroll listeners.
+static NSString *ADHomeAdFrameProbeJS7144(void){
+    return @"(function(){try{\nif(window.__ad7144FrameProbeInstalled)return;\nwindow.__ad7144FrameProbeInstalled=1;\nfunction st(e,p){try{var s=getComputedStyle(e,p||null);return {display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,bgi:s.backgroundImage,color:s.color,fill:s.fill,stroke:s.stroke,filter:s.webkitFilter||s.filter||'none',border:s.border,radius:s.borderRadius,shadow:s.boxShadow,outline:s.outline,font:s.fontFamily,fontSize:s.fontSize,fontWeight:s.fontWeight,lineHeight:s.lineHeight,textShadow:s.textShadow,webkitTextStroke:s.webkitTextStroke||'',transform:s.transform,overflow:s.overflow,clipPath:s.clipPath||s.webkitClipPath||'',z:s.zIndex,position:s.position,mask:s.webkitMaskImage||s.maskImage||'none',objectFit:s.objectFit||'',mix:s.mixBlendMode||''};}catch(x){return {err:String(x)}}}\nfunction nd(e){if(!e)return null;var r=e.getBoundingClientRect(),o={tag:e.tagName||'',id:e.id||'',cls:String(e.className||'').slice(0,280),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],style:st(e),before:st(e,'::before'),after:st(e,'::after'),a:{testid:e.getAttribute&&e.getAttribute('data-testid')||'',acei:e.getAttribute&&e.getAttribute('data-acei-id')||'',htmlDim:e.getAttribute&&e.getAttribute('data-html-dimensions')||'',role:e.getAttribute&&e.getAttribute('role')||'',feedback:e.hasAttribute&&e.hasAttribute('data-ad-feedback-label-id')?1:0,ariaSponsored:/sponsored/i.test(e.getAttribute&&e.getAttribute('aria-label')||'')?1:0}};if(e.tagName==='IMG')o.natural=[e.naturalWidth||0,e.naturalHeight||0];if(e.tagName==='VIDEO')o.natural=[e.videoWidth||0,e.videoHeight||0];return o;}\nfunction ch(e,n){var a=[];for(var x=e;x&&a.length<(n||8);x=x.parentElement)a.push(nd(x));return a;}\nfunction vis(e,min){try{var r=e.getBoundingClientRect(),s=getComputedStyle(e),a=Math.max(0,Math.min(innerWidth,r.right)-Math.max(0,r.left))*Math.max(0,Math.min(innerHeight,r.bottom)-Math.max(0,r.top));return s.display!=='none'&&s.visibility!=='hidden'&&+s.opacity>0.01&&a>=(min||1);}catch(_){return false}}\nfunction q(sel,lim,min){var out=[];try{var a=document.querySelectorAll(sel);for(var i=0;i<a.length&&out.length<(lim||60);i++)if(vis(a[i],min||1))out.push({self:nd(a[i]),chain:ch(a[i],8)});}catch(e){out.push({err:String(e),sel:sel})}return out;}\nfunction media(){var out=[];try{var a=document.querySelectorAll('img,video,canvas');for(var i=0;i<a.length&&out.length<100;i++){var e=a[i];if(!vis(e,1200))continue;out.push({self:nd(e),chain:ch(e,9)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction bgmedia(){var out=[];try{var a=document.getElementsByTagName('*'),n=Math.min(a.length,2600);for(var i=0;i<n&&out.length<70;i++){var e=a[i];if(!vis(e,6000))continue;var b=getComputedStyle(e).backgroundImage;if(b&&b!=='none')out.push({self:nd(e),chain:ch(e,7)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction hits(){var out=[],xs=[.18,.5,.82],ys=[.18,.38,.58,.76,.9];try{for(var i=0;i<xs.length;i++)for(var j=0;j<ys.length;j++){var x=Math.round(innerWidth*xs[i]),y=Math.round(innerHeight*ys[j]),a=(document.elementsFromPoint?document.elementsFromPoint(x,y):[document.elementFromPoint(x,y)]).filter(Boolean).slice(0,10);out.push({p:[x,y],stack:a.map(nd)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction safeAttr(e,n){try{return String(e.getAttribute&&e.getAttribute(n)||'').slice(0,360)}catch(_){return ''}}\nfunction controlNode(e){var o=nd(e)||{};try{o.ctrl={aria:(/mute|unmute|sound|volume|speaker|audio/i.test(safeAttr(e,'aria-label'))?safeAttr(e,'aria-label'):''),title:(/mute|unmute|sound|volume|speaker|audio/i.test(safeAttr(e,'title'))?safeAttr(e,'title'):''),role:safeAttr(e,'role'),testid:safeAttr(e,'data-testid'),name:safeAttr(e,'name'),type:safeAttr(e,'type'),viewBox:safeAttr(e,'viewBox'),href:(e.tagName==='USE'?safeAttr(e,'href')||safeAttr(e,'xlink:href'):''),d:(e.tagName==='PATH'?safeAttr(e,'d'):'')};var cs=getComputedStyle(e);o.ctrl.font={family:cs.fontFamily,size:cs.fontSize,weight:cs.fontWeight,lineHeight:cs.lineHeight,textShadow:cs.textShadow,webkitTextStroke:cs.webkitTextStroke||'',transform:cs.transform,overflow:cs.overflow,clipPath:cs.clipPath||cs.webkitClipPath||'',outline:cs.outline,z:cs.zIndex,position:cs.position};}catch(_){}return o;}\nfunction subTree(root){var budget=180;function walk(e,d){if(!e||budget--<=0)return null;var o=controlNode(e);if(d<10){var kids=[];for(var c=e.firstElementChild;c&&kids.length<40;c=c.nextElementSibling){var z=walk(c,d+1);if(z)kids.push(z);}if(kids.length)o.children=kids;}return o;}return walk(root,0);}\nfunction videoControlTrees(){var out=[];try{var roots=document.querySelectorAll('#search .sbv-video-overlay,.sbv-video-overlay,[class*=single-video-card],[class*=singleVideoCard],.video-js');for(var r=0;r<roots.length&&out.length<24;r++){var root=roots[r];if(!vis(root,1))continue;var cand=[];try{cand=[].slice.call(root.querySelectorAll('button,[role=button],[aria-label],[title],svg,use,path,i,span,div')).filter(function(e){var k=(String(e.id||'')+' '+String(e.className&&e.className.baseVal||e.className||'')+' '+safeAttr(e,'aria-label')+' '+safeAttr(e,'title')+' '+safeAttr(e,'data-testid')).toLowerCase();return /mute|unmute|sound|volume|speaker|audio/.test(k);});}catch(_){}var buttons=[];try{buttons=[].slice.call(root.querySelectorAll('button,[role=button]')).filter(function(e){return vis(e,1)});}catch(_){}var uniq=[];cand.concat(buttons).forEach(function(e){if(e&&uniq.indexOf(e)<0&&uniq.length<16)uniq.push(e);});out.push({root:controlNode(root),rootTree:subTree(root),controls:uniq.map(function(e){return {ancestors:ch(e,10),tree:subTree(e)}})});} }catch(e){out.push({err:String(e)})}return out;}\nfunction snap(){var h=document.documentElement||{},state=null;try{state=window.__ad7106StandaloneState?window.__ad7106StandaloneState():null}catch(_){}return {frame:{top:window===top?1:0,host:String(location.hostname||''),path:String(location.pathname||''),viewport:[innerWidth,innerHeight,devicePixelRatio]},markers:{child:h.getAttribute&&h.getAttribute('data-ad7-child-frame')||'',standaloneCandidate:h.getAttribute&&h.getAttribute('data-ad7-standalone-candidate')||'',standaloneSurvivor:h.getAttribute&&h.getAttribute('data-ad7104-standalone')||'',twbChild:h.getAttribute&&h.getAttribute('data-ad7-twb-child')||''},standaloneState:state,heroFeedback:q('#gwm-window [id^=wd-shoppable-] [data-ad-feedback-label-id],#gwm-window [id^=wd-shoppable-] .ape-feedback,#gwm-window [id^=wd-shoppable-] [class*=ad-feedback],#gwm-window [id^=wd-shoppable-] [id^=ad-feedback-],#gwm-window [id^=wd-shoppable-] [aria-label*=\"Sponsored\"],[class*=single-creative-card] [data-ad-feedback-label-id],[class*=single-creative-card] [class*=ad-feedback],[id*=mobile-wd-][class*=ape-feedback]',90,1),shells:q('#gwm-window,[id^=wd-shoppable-],[class*=single-creative-card],[class*=single-video-card],[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback],[data-testid=renderer-factory-ad-container],#ad,#dynamic-bb,[data-testid=image],[data-acei-id=lfstyl-img],[data-acei-id=prod-img]',100,1),media:media(),bgMedia:bgmedia(),videoControlTrees:videoControlTrees(),hit:hits()};}\nfunction fan(token){var z=snap();if(window===top){window.__ad7144ProbeToken=token;window.__ad7144ProbeFrames=[z];}else{try{top.postMessage({__ad7144ProbeFrame:1,token:token,snap:z},'*')}catch(_){}}try{var fs=document.getElementsByTagName('iframe');for(var i=0;i<fs.length&&i<24;i++)if(fs[i].contentWindow)fs[i].contentWindow.postMessage({__ad7144ProbeRequest:1,token:token},'*');}catch(_){}}\nwindow.addEventListener('message',function(ev){try{var d=ev.data||{};if(d.__ad7144ProbeRequest&&d.token)fan(String(d.token));if(window===top&&d.__ad7144ProbeFrame&&d.token===window.__ad7144ProbeToken&&d.snap){var a=window.__ad7144ProbeFrames||(window.__ad7144ProbeFrames=[]);if(a.length<48)a.push(d.snap);}}catch(_){}},false);\nif(window===top){window.__ad7144StartProbe=function(t){try{fan(String(t||Date.now()));return 'STARTED';}catch(e){return 'START_ERR '+e}};window.__ad7144DumpProbe=function(t){try{return JSON.stringify({token:String(t||''),frames:window.__ad7144ProbeFrames||[]},null,2);}catch(e){return 'DUMP_ERR '+e}};}\n}catch(e){}})();";
+}
+
 static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
     if(!ucc || !gP.enabled)return;
     @try {
@@ -2079,6 +2171,11 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADStandalonePaintJS7104() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADStandalonePaintUS7104,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        if(!objc_getAssociatedObject(ucc,kADHomeAdProbeUS7144)){
+            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADHomeAdFrameProbeJS7144() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+            [ucc addUserScript:us];
+            objc_setAssociatedObject(ucc,kADHomeAdProbeUS7144,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
         if(gP.whiteTame && !objc_getAssociatedObject(ucc,kADTWBUS)){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADTWBJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
@@ -4239,6 +4336,7 @@ static void ADConsiderLaunchReady706(void){
             NSMutableArray *a=[protocolClasses mutableCopy]?:[NSMutableArray array];
             if(![a containsObject:[ADPrivacyURLProtocol7117 class]]){
                 [a insertObject:[ADPrivacyURLProtocol7117 class] atIndex:0];
+                gADPrivacyLateProtocolRewrites7118++;
             }
             %orig(a);
             return;
@@ -4250,19 +4348,236 @@ static void ADConsiderLaunchReady706(void){
 
 %hook NSURLSession
 + (NSURLSession *)sessionWithConfiguration:(NSURLSessionConfiguration *)configuration {
+    if(gP.enabled&&gP.privacyMode)gADPrivacySessionCtorChecks7118++;
     ADPrivacyInstallProtocolOnConfig7117(configuration);
     return %orig;
 }
 + (NSURLSession *)sessionWithConfiguration:(NSURLSessionConfiguration *)configuration delegate:(id)delegate delegateQueue:(NSOperationQueue *)queue {
+    if(gP.enabled&&gP.privacyMode)gADPrivacySessionCtorChecks7118++;
     ADPrivacyInstallProtocolOnConfig7117(configuration);
     return %orig;
 }
 - (instancetype)initWithConfiguration:(NSURLSessionConfiguration *)configuration delegate:(id)delegate delegateQueue:(NSOperationQueue *)queue {
+    if(gP.enabled&&gP.privacyMode)gADPrivacySessionCtorChecks7118++;
     ADPrivacyInstallProtocolOnConfig7117(configuration);
     return %orig;
 }
 %end
 
+%hook NSURLSessionTask
+- (void)resume {
+    if(gP.enabled&&gP.privacyMode){
+        @try { NSURLRequest *r=self.currentRequest?:self.originalRequest; if(ADPrivacyShouldBlockURL7117(r.URL))ADPrivacyCount7117(gADPrivacyNativeRequested7117,r.URL,NO); } @catch(...) {}
+    }
+    %orig;
+}
+%end
+
+// -----------------------------------------------------------------------------
+// v7.147 full UI diagnostic verification probe. Screenshot/SIGUSR2 only.
+// It records Home hero Sponsored chrome plus full-raster/TWB geometry without capturing query
+// text, element text, outerHTML, clipboard data, request bodies, or headers.
+// No observer, timer, RAF, scroll listener, or recurring DOM work is installed.
+// -----------------------------------------------------------------------------
+static NSUInteger gADSearchResultsProbeRun7139=0;
+static dispatch_source_t gADSearchResultsProbeSignal7139=nil;
+
+static NSString *ADSearchResultsProbePath7139(void){
+    @try {
+        NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.147-ui-diagnostics-probe.txt"];
+    } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.147-ui-diagnostics-probe.txt"];
+}
+static void ADSearchResultsProbeAppend7139(NSString *s){
+    if(!s.length)return;
+    @try {
+        NSString *p=ADSearchResultsProbePath7139(); NSFileManager *fm=[NSFileManager defaultManager];
+        [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil];
+        NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding];
+        if(![fm fileExistsAtPath:p]){ [d writeToFile:p atomically:YES]; return; }
+        NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p];
+        if(h){ [h seekToEndOfFile]; [h writeData:d]; [h closeFile]; }
+    } @catch(...) {}
+}
+static NSString *ADSearchResultsProbeColor7139(UIColor *c){
+    if(!c)return @"nil";
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0;
+        if([c getRed:&r green:&g blue:&b alpha:&a])return [NSString stringWithFormat:@"rgba(%.3f,%.3f,%.3f,%.3f)",r,g,b,a];
+        if([c getWhite:&w alpha:&a])return [NSString stringWithFormat:@"white(%.3f,%.3f)",w,a];
+        return c.description?:@"?";
+    } @catch(...) { return @"?"; }
+}
+static NSString *ADSearchResultsProbeCG7139(CGColorRef cg){
+    if(!cg)return @"nil";
+    @try { return ADSearchResultsProbeColor7139([UIColor colorWithCGColor:cg]); } @catch(...) { return @"?"; }
+}
+static NSString *ADSearchResultsProbeNative7139(void){
+    NSMutableString *m=[NSMutableString string];
+    @try {
+        CGRect screen=UIScreen.mainScreen.bounds; NSUInteger visited=0,logged=0;
+        NSArray *pts=@[[NSValue valueWithCGPoint:CGPointMake(CGRectGetMidX(screen),125)],
+                       [NSValue valueWithCGPoint:CGPointMake(28,140)],
+                       [NSValue valueWithCGPoint:CGPointMake(CGRectGetMidX(screen),150)],
+                       [NSValue valueWithCGPoint:CGPointMake(CGRectGetMidX(screen),180)]];
+        for(UIWindow *w in UIApplication.sharedApplication.windows){
+            if(!w||w.hidden||w.alpha<0.01)continue;
+            [m appendFormat:@"WINDOW cls=%@ key=%d level=%.1f r=(%.1f,%.1f %.1fx%.1f) bg=%@\n",NSStringFromClass(w.class),w.isKeyWindow?1:0,w.windowLevel,w.frame.origin.x,w.frame.origin.y,w.frame.size.width,w.frame.size.height,ADSearchResultsProbeColor7139(w.backgroundColor)];
+            NSMutableArray *q=[NSMutableArray arrayWithObject:w];
+            while(q.count&&visited++<420&&logged<180){
+                UIView *v=q.firstObject; [q removeObjectAtIndex:0]; if(!v||v.hidden||v.alpha<0.01)continue;
+                CGRect r=CGRectZero; @try { r=[v convertRect:v.bounds toView:nil]; } @catch(...) {}
+                NSString *cn=NSStringFromClass(v.class),*lo=cn.lowercaseString;
+                BOOL band=CGRectIntersectsRect(r,CGRectMake(0,80,screen.size.width,150)) && r.size.width>=screen.size.width*0.45 && r.size.height>=10;
+                BOOL sem=[lo containsString:@"subnav"]||[lo containsString:@"delivery"]||[lo containsString:@"location"]||[lo containsString:@"topnav"]||[lo containsString:@"ingress"];
+                if(band||sem){
+                    [m appendFormat:@"N cls=%@ r=(%.1f,%.1f %.1fx%.1f) bg=%@ layerBg=%@ tint=%@ marked=%d aid=\"%@\"\n",cn,r.origin.x,r.origin.y,r.size.width,r.size.height,ADSearchResultsProbeColor7139(v.backgroundColor),ADSearchResultsProbeCG7139(v.layer.backgroundColor),ADSearchResultsProbeColor7139(v.tintColor),ADInMarkedSearchDeliveryBand7139(v)?1:0,v.accessibilityIdentifier?:@""]; logged++;
+                }
+                if(q.count<420&&v.subviews.count)[q addObjectsFromArray:v.subviews];
+            }
+            for(NSValue *pv in pts){ CGPoint p=pv.CGPointValue; UIView *h=[w hitTest:p withEvent:nil]; NSMutableArray *c=[NSMutableArray array]; for(UIView *x=h;x&&c.count<12;x=x.superview)[c addObject:NSStringFromClass(x.class)]; [m appendFormat:@"HIT (%.0f,%.0f) %@\n",p.x,p.y,c.count?[c componentsJoinedByString:@" <- "]:@"nil"]; }
+        }
+    } @catch(NSException *e){ [m appendFormat:@"NATIVE_EXCEPTION %@\n",e]; }
+    return m;
+}
+
+static NSString *ADSearchResultsProbeGlowLayers7141(void){
+    NSMutableString *m=[NSMutableString string];
+    @try {
+        for(UIWindow *w in UIApplication.sharedApplication.windows){
+            if(!w||w.hidden||w.alpha<0.01)continue;
+            NSMutableArray *q=[NSMutableArray arrayWithObject:w]; NSUInteger seen=0;
+            while(q.count&&seen++<420){
+                UIView *v=q.firstObject; [q removeObjectAtIndex:0]; if(!v)continue;
+                if(ADExactGlowIngress7140(v)){
+                    NSMutableArray *lq=[NSMutableArray arrayWithObject:@{ @"l":v.layer,@"d":@0 }]; NSUInteger ln=0;
+                    while(lq.count&&ln++<120){
+                        NSDictionary *it=lq.firstObject; [lq removeObjectAtIndex:0]; CALayer *l=it[@"l"]; NSUInteger d=[it[@"d"] unsignedIntegerValue]; if(!l)continue;
+                        NSUInteger chars=MIN((NSUInteger)40,d*2); NSString *pad=[@"                                        " substringToIndex:chars];
+                        [m appendFormat:@"%@L cls=%@ name=\"%@\" f=(%.1f,%.1f %.1fx%.1f) bg=%@ contents=%d hidden=%d op=%.2f z=%.2f\n",pad,NSStringFromClass(l.class),l.name?:@"",l.frame.origin.x,l.frame.origin.y,l.frame.size.width,l.frame.size.height,ADSearchResultsProbeCG7139(l.backgroundColor),l.contents?1:0,l.hidden?1:0,l.opacity,l.zPosition];
+                        for(CALayer *c in l.sublayers?:@[])if(lq.count<120)[lq addObject:@{ @"l":c,@"d":@(d+1) }];
+                    }
+                }
+                if(q.count<420&&v.subviews.count)[q addObjectsFromArray:v.subviews];
+            }
+        }
+    } @catch(NSException *e){ [m appendFormat:@"LAYER_EXCEPTION %@\n",e]; }
+    return m;
+}
+
+static NSString *ADSearchResultsProbeSafeURL7139(WKWebView *wv){
+    @try {
+        NSURL *u=wv.URL; if(!u)return @"";
+        return [NSString stringWithFormat:@"%@://%@%@",u.scheme?:@"https",u.host?:@"",u.path?:@""];
+    } @catch(...) { return @""; }
+}
+static NSString *ADSearchResultsProbeWebList7139(void){
+    NSMutableString *m=[NSMutableString string]; NSUInteger n=0;
+    @try {
+        for(WKWebView *wv in ADTrackedWebViews()){
+            if(!wv)continue; CGRect r=CGRectZero; @try { r=[wv convertRect:wv.bounds toView:nil]; } @catch(...) {}
+            CGRect ir=CGRectIntersection(r,UIScreen.mainScreen.bounds); CGFloat area=MAX(0,ir.size.width)*MAX(0,ir.size.height);
+            [m appendFormat:@"WEB #%lu aid=\"%@\" path=\"%@\" visible=%d loading=%d r=(%.1f,%.1f %.1fx%.1f) visibleArea=%.0f bg=%@ scrollBg=%@\n",
+                (unsigned long)n++,wv.accessibilityIdentifier?:@"",ADSearchResultsProbeSafeURL7139(wv),(wv.window&&!wv.hidden&&wv.alpha>0.01&&area>1)?1:0,wv.loading?1:0,
+                r.origin.x,r.origin.y,r.size.width,r.size.height,area,ADSearchResultsProbeColor7139(wv.backgroundColor),ADSearchResultsProbeColor7139(wv.scrollView.backgroundColor)];
+        }
+    } @catch(NSException *e){ [m appendFormat:@"WEBLIST_EXCEPTION %@\n",e]; }
+    return m;
+}
+static NSString *ADSearchResultsProbeJS7139(void){
+    return @"(function(){try{"
+    "function S(e,p){try{var s=getComputedStyle(e,p||null);return {content:s.content||'none',display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,bgi:s.backgroundImage,bgp:s.backgroundPosition,bgs:s.backgroundSize,bgr:s.backgroundRepeat,mask:s.webkitMaskImage||s.maskImage||'none',color:s.color,fill:s.fill,stroke:s.stroke,filter:s.webkitFilter||s.filter||'none',border:s.border,radius:s.borderRadius,shadow:s.boxShadow,outline:s.outline,font:s.fontFamily,fontSize:s.fontSize,fontWeight:s.fontWeight,lineHeight:s.lineHeight,textShadow:s.textShadow,webkitTextStroke:s.webkitTextStroke||'',transform:s.transform,overflow:s.overflow,clipPath:s.clipPath||s.webkitClipPath||'',z:s.zIndex,position:s.position};}catch(_){return {err:String(_)}}}"
+    "function P(e){if(!e)return null;var r=e.getBoundingClientRect();return {tag:e.tagName,id:e.id||'',cls:String(e.className||'').slice(0,260),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],style:S(e),before:S(e,'::before'),after:S(e,'::after')};}"
+    "function C(e,n){var a=[];for(var x=e;x&&a.length<(n||6);x=x.parentElement)a.push(P(x));return a;}"
+    "function Q(sel){return [].slice.call(document.querySelectorAll(sel));}"
+    "function G(sel,n){var a=Q(sel);return {count:a.length,items:a.slice(0,n||48).map(P)};}"
+    "function GC(sel,n){var a=Q(sel);return {count:a.length,items:a.slice(0,n||32).map(function(e){return {self:P(e),chain:C(e,7)}})};}"
+    "function A(e,n){try{return String(e.getAttribute&&e.getAttribute(n)||'').slice(0,360)}catch(_){return ''}}"
+    "function CP(e){var o=P(e)||{};try{o.ctrl={aria:(/mute|unmute|sound|volume|speaker|audio/i.test(A(e,'aria-label'))?A(e,'aria-label'):''),title:(/mute|unmute|sound|volume|speaker|audio/i.test(A(e,'title'))?A(e,'title'):''),role:A(e,'role'),testid:A(e,'data-testid'),name:A(e,'name'),type:A(e,'type'),viewBox:A(e,'viewBox'),href:(e.tagName==='USE'?A(e,'href')||A(e,'xlink:href'):''),d:(e.tagName==='PATH'?A(e,'d'):'')};}catch(_){}return o;}"
+    "function TREE(root){var budget=220;function W(e,d){if(!e||budget--<=0)return null;var o=CP(e);if(d<12){var kids=[];for(var c=e.firstElementChild;c&&kids.length<50;c=c.nextElementSibling){var z=W(c,d+1);if(z)kids.push(z);}if(kids.length)o.children=kids;}return o;}return W(root,0);}"
+    "function VCTRL(){var out=[];try{var roots=Q('#search .sbv-video-overlay,.sbv-video-overlay,[class*=single-video-card],[class*=singleVideoCard],.video-js');for(var r=0;r<roots.length&&out.length<24;r++){var root=roots[r],cand=[];try{cand=[].slice.call(root.querySelectorAll('button,[role=button],[aria-label],[title],svg,use,path,i,span,div')).filter(function(e){var k=(String(e.id||'')+' '+String(e.className&&e.className.baseVal||e.className||'')+' '+A(e,'aria-label')+' '+A(e,'title')+' '+A(e,'data-testid')).toLowerCase();return /mute|unmute|sound|volume|speaker|audio/.test(k);});}catch(_){}var buttons=[];try{buttons=[].slice.call(root.querySelectorAll('button,[role=button]'));}catch(_){}var uniq=[];cand.concat(buttons).forEach(function(e){if(e&&uniq.indexOf(e)<0&&uniq.length<20)uniq.push(e);});out.push({root:CP(root),rootTree:TREE(root),controls:uniq.map(function(e){return {ancestors:C(e,12),tree:TREE(e)}})});} }catch(e){out.push({err:String(e)})}return {count:out.length,items:out};}"
+        "var w=innerWidth,h=innerHeight,ys=[.03,.08,.14,.22,.31,.42,.56,.72,.86];"
+    "var hit=ys.map(function(y){var x=Math.round(w*.5),py=Math.round(h*y),a=(document.elementsFromPoint?document.elementsFromPoint(x,py):[document.elementFromPoint(x,py)]).filter(Boolean).slice(0,10);return {p:[x,py],stack:a.map(P)};});"
+    "var o={path:location.pathname,ready:document.readyState,viewport:[w,h,devicePixelRatio],scroll:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],body:P(document.body),doc:P(document.documentElement),"
+    "root:G('#search,#a-page',12),"
+    "ribbon:G('[class*=sf-rib],[class*=sf-mobile-rib],[class*=filter]',64),"
+    "ribbonArt:GC('.s-rib-toggle-container,.s-rib-toggle-icon,.sf-rib30-dropdown-pill-icon,.sf-rib30-review-content,.sf-rib30-review-stars-group,.sf-rib30-review-star,i.a-icon-prime.a-icon-small,.sf-mobile-rib-filter-icon,.sf-rib30-dropdown-arrow-icon',56),"
+    "ribbonDropdowns:GC('.sf-rib30-dropdown-title,.sf-rib30-title-content-container,.sf-rib30-dropdown-title .sf-rib30-dropdown-pill-content,.sf-rib30-dropdown-title .sf-rib30-dropdown-pill-text,.sf-rib30-dropdown-title .sf-rib30-dropdown-arrow-icon,a[id^=dynamic-picker-].sf-rib30-dropdown-pill-option,a[id^=dynamic-picker-] .sf-rib30-dropdown-pill-content,a[id^=dynamic-picker-] .sf-rib30-dropdown-pill-text',72),"
+    "heroSponsored:GC('#gwm-window [id^=wd-shoppable-] [data-ad-feedback-label-id],#gwm-window [id^=wd-shoppable-] .ape-feedback,#gwm-window [id^=wd-shoppable-] [class*=ad-feedback],#gwm-window [id^=wd-shoppable-] [id^=ad-feedback-],[class*=single-creative-card] [data-ad-feedback-label-id],[class*=single-creative-card] [class*=ad-feedback],[id*=mobile-wd-][class*=ape-feedback]',80),"
+    "homeAdShells:GC('#gwm-window,[id^=wd-shoppable-],[class*=single-creative-card],[class*=single-video-card],[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback],[data-testid=renderer-factory-ad-container],#ad,#dynamic-bb,[data-acei-id=lfstyl-img],[data-acei-id=prod-img]',90),"
+    "homeAdMedia:GC('#gwm-window [id^=wd-shoppable-] img,#gwm-window [id^=wd-shoppable-] video,#gwm-window [id^=wd-shoppable-] canvas,[class*=single-creative-card] img,[class*=single-video-card] img,#ad:has(#dynamic-bb) img,#ad:has(#dynamic-bb) video,#ad:has(#dynamic-bb) canvas,[data-testid=renderer-factory-ad-container] img,[data-acei-id=lfstyl-img] img,[data-acei-id=prod-img] img',100),"
+    "location:G('#nav-global-location-slot,#glow-ingress-block,[id*=glow-ingress],[class*=glow-ingress],[id*=delivery-location],[class*=delivery-location],[id*=ship-to],[class*=ship-to]',48),"
+    "ai:G('#search [class*=alexa],#search [id*=alexa],#search [class*=research],#search [id*=research],#search [class*=rufus],#search [id*=rufus],#search [class*=query-understanding],#search [class*=shopping-assistant],#search [class*=ai-overview],#search [class*=search-guidance],#search [class*=guided-search]',64),"
+    "aiLogo:GC('#search [class*=alexa-plus-logo],#search [class*=rufus][class*=icon],#search img[class*=alexa],#search img[class*=rufus]',32),"
+    "aiControls:GC('#search .rufus-expandable-pills-toggle-button,#search .rufus-expandable-pills-chevron,#search .rufus-expandable-pills-chevron img',32),"
+    "aiPills:GC('#search #rufus-overviews-pills-carousel,#search #rufus-mobile-overviews-expandable-pills-carousel-container,#search #rufus-overviews-pills-carousel .a-carousel-card,#search #rufus-mobile-overviews-expandable-pills-carousel-container .a-carousel-card,#search .nile-inline-pill-button,#search .nile-inline-ingress-pill-button,#search #rufus-overviews-pills-carousel .a-button-inner,#search #rufus-mobile-overviews-expandable-pills-carousel-container .a-button-inner',72),"
+    "tiles:GC('#search #rufus-overviews-category-cards-carousel .a-carousel-card,#search #rufus-overviews-category-cards-carousel .a-carousel-card > .a-box,#search #rufus-overviews-category-cards-carousel .nice-cat-card_box,#search #rufus-overviews-category-cards-carousel img.nice-cat-card_image',64),"
+    "atc:GC('#search .puis-atcb-button,#search .puis-atcb-button .a-button-inner,#search .puis-atcb-button .a-button-text',48),"
+    "results:G('#search .s-result-item,#search .s-card-container,#search [data-component-type=s-search-result],#search .puisg-row,#search .puisg-col,#search .puisg-col-inner',72),"
+    "badges:G('#search .puis-status-badge-container,#search .puis-status-badge-container .a-badge,#search .puis-status-badge-container .a-badge-label',32),"
+    "actions:GC('#search .more-like-this-container,#search .mlt-icon-container,#search .mlt-icon-container *,#search .lists-framework-action-button.puis-heart-icon-container,#search .lists-framework-heart-background',64),"
+    "videoAd:GC('#search .sbv-video-overlay,#search video.sbv-video-player-ecx,#search .sbv-video,#search .sbv-video-container,#search .sbv-mobile-video-link',64),"
+    "videoControls:GC('#search .sbv-video-overlay,#search .sbv-video-overlay *',180),"
+    "videoControlTrees:VCTRL(),"
+    "accents:G('#search i.a-icon-prime,#search [class*=prime],#search i[class*=a-icon-star],#search [class*=star],#search [class*=rating]',48),"
+    "media:G('#search img,#search picture,#search video,#search canvas',64),hit:hit};"
+    "return JSON.stringify(o,null,2);}catch(e){return 'SEARCH_RESULTS_DOM_ERR '+e;}})();";
+}
+static void ADCaptureSearchResultsProbe7139(NSString *trigger){
+    if(!gP.enabled)return; NSUInteger run=++gADSearchResultsProbeRun7139;
+    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.147 UI DIAGNOSTICS PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== LOCATION LAYERS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
+        (unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchResultsProbeNative7139(),ADSearchResultsProbeGlowLayers7141(),ADSearchResultsProbeWebList7139()];
+    ADSearchResultsProbeAppend7139(head);
+    NSMutableArray *home=[NSMutableArray array],*search=[NSMutableArray array],*fallback=[NSMutableArray array];
+    @try {
+        for(WKWebView *wv in ADTrackedWebViews()){
+            if(!wv||!wv.window||wv.hidden||wv.alpha<0.01)continue;
+            CGRect r=[wv convertRect:wv.bounds toView:nil],ir=CGRectIntersection(r,UIScreen.mainScreen.bounds); CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height); if(a<1000)continue;
+            NSDictionary *it=@{ @"wv":wv,@"a":@(a) }; NSString *path=wv.URL.path?:@"";
+            if([path containsString:@"/gp/gw/ajax/mshop.html"])[home addObject:it];
+            else if([path isEqualToString:@"/s"]||[path hasPrefix:@"/s/"])[search addObject:it];
+            else [fallback addObject:it];
+        }
+        NSComparator cmp=^NSComparisonResult(NSDictionary *a,NSDictionary *b){ return [b[@"a"] compare:a[@"a"]]; };
+        [home sortUsingComparator:cmp]; [search sortUsingComparator:cmp]; [fallback sortUsingComparator:cmp];
+    } @catch(...) {}
+    NSMutableArray *chosen=[NSMutableArray array];
+    for(NSDictionary *it in home)if(chosen.count<2)[chosen addObject:it];
+    for(NSDictionary *it in search)if(chosen.count<3)[chosen addObject:it];
+    for(NSDictionary *it in fallback)if(chosen.count<3)[chosen addObject:it];
+    if(!chosen.count){ ADSearchResultsProbeAppend7139(@"\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"); return; }
+    NSUInteger lim=MIN((NSUInteger)3,chosen.count); __block NSUInteger pending=lim*2;
+    void (^done)(void)=^{ if(--pending==0)ADSearchResultsProbeAppend7139(@"================ END RUN ================\n"); };
+    for(NSUInteger i=0;i<lim;i++){
+        WKWebView *wv=chosen[i][@"wv"];
+        NSString *tok=[NSString stringWithFormat:@"%lu-%lu-%llu",(unsigned long)run,(unsigned long)i,(unsigned long long)([[NSDate date] timeIntervalSince1970]*1000.0)];
+        ADSearchResultsProbeAppend7139([NSString stringWithFormat:@"\n===== WEB DOM #%lu =====\naid=\"%@\" path=\"%@\"\n",(unsigned long)i,wv.accessibilityIdentifier?:@"",ADSearchResultsProbeSafeURL7139(wv)]);
+        NSString *startJS=[NSString stringWithFormat:@"(function(){try{return window.__ad7144StartProbe?window.__ad7144StartProbe('%@'):'NO_ALL_FRAME_PROBE';}catch(e){return 'START_ERR '+e;}})();",tok];
+        @try { [wv evaluateJavaScript:startJS completionHandler:nil]; } @catch(...) {}
+        [wv evaluateJavaScript:ADSearchResultsProbeJS7139() completionHandler:^(id v,NSError *e){
+            NSString *body=e?[NSString stringWithFormat:@"EVAL_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
+            ADSearchResultsProbeAppend7139([NSString stringWithFormat:@"%@\n",body?:@"NO_DOM_DATA"]); done();
+        }];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.65*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+            NSString *dumpJS=[NSString stringWithFormat:@"(function(){try{return window.__ad7144DumpProbe?window.__ad7144DumpProbe('%@'):'NO_ALL_FRAME_DUMP';}catch(e){return 'DUMP_ERR '+e;}})();",tok];
+            @try {
+                [wv evaluateJavaScript:dumpJS completionHandler:^(id v,NSError *e){
+                    NSString *body=e?[NSString stringWithFormat:@"ALL_FRAME_EVAL_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
+                    ADSearchResultsProbeAppend7139([NSString stringWithFormat:@"\n===== HOME AD ALL-FRAME #%lu =====\n%@\n",(unsigned long)i,body?:@"NO_ALL_FRAME_DATA"]); done();
+                }];
+            } @catch(...) { ADSearchResultsProbeAppend7139(@"\nALL_FRAME_EXCEPTION\n"); done(); }
+        });
+    }
+}
+static void ADInstallSearchResultsProbe7139(void){
+    static dispatch_once_t once; dispatch_once(&once,^{
+        signal(SIGUSR2,SIG_IGN);
+        gADSearchResultsProbeSignal7139=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue());
+        if(gADSearchResultsProbeSignal7139){ dispatch_source_set_event_handler(gADSearchResultsProbeSignal7139,^{ ADCaptureSearchResultsProbe7139(@"SIGUSR2"); }); dispatch_resume(gADSearchResultsProbeSignal7139); }
+        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){ ADCaptureSearchResultsProbe7139(@"screenshot"); }];
+    });
+}
 
 // v7.116 production: v7.115 event-driven app handoff retained; SpringBoard owns a
 // bounded 0.40 s post-ready settle guard so Amazon's final white loading composite
@@ -4300,6 +4615,9 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
     } @catch(...) {}
 
     %init;
+
+    ADPrivacyInit7117();
+    ADInstallSearchResultsProbe7139();
 
     if(gP.enabled&&gP.privacyMode){
         ADRegisterPrivacyProtocol7117();
