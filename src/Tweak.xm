@@ -33,8 +33,9 @@
 #import <errno.h>
 #import <string.h>
 #import <float.h>
+#import <signal.h>
 
-#define AD_VERSION "v7.160-three-lane-production-twb-polish"
+#define AD_VERSION "v7.161-search-seasonal-scrollbar-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -696,12 +697,13 @@ static const void *kADTWBUS=&kADTWBUS;
 static const void *kADStandalonePaintUS7104=&kADStandalonePaintUS7104;
 static const void *kADPrivacyUS7117=&kADPrivacyUS7117;
 static const void *kADPrivacyRule7117=&kADPrivacyRule7117;
+static const void *kADHomeAdProbeUS7144=&kADHomeAdProbeUS7144;
 static NSHashTable *gADWebViews=nil;
 // v7.0.68 production: no diagnostic touch probe is installed.
 
 static NSString *ADFloorJS(void){
-    // v7.159: keep the three route-exclusive lanes, but make /autocomplete use the
-    // exact v7.149 Search/autocomplete CSS payload. /s remains the fast product-feed lane.
+    // v7.161: preserve the proven v7.159 three-lane Search behavior and transition fix.
+    // Add only exact seasonal autocomplete tile ownership and product-feed scrollbar parity.
     return
         @"(function(){try{var host='';try{host=String(location.hostname||'').toLowerCase();}catch(_){}if(host==='flashtalking.com'||/\\.flashtalking\\.com$/.test(host))return;var child=0;try{c"
         @"hild=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement){document.documentElement.setAttribute('data-ad7-child-frame','1');try{var ref=String(document.referr"
@@ -756,7 +758,7 @@ static NSString *ADFloorJS(void){
         @"card_widget-sug-image-container,.ufs_tiles_card_widget-sug-image-background){background-color:transparent!important;border-color:#494d4d!important;}.ufs_tiles_card_widget-suggestio"
         @"n :is(h1,h2,h3,h4,h5,h6,p,span,a,div){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}.ufs_tiles_card_widget-suggestion .ufs_tiles_card_widget-sug-text{backgroun"
         @"d:#000!important;background-color:#000!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}.ufs_tiles_card_widget-suggestion .ufs_tiles_card_widget-sug-text *{co"
-        @"lor:#fff!important;-webkit-text-fill-color:#fff!important;}\");}else if(!child&&(p==='/s'||p.indexOf('/s/')===0)){s=put('ad7-product-feed-theme',\"html,body,#a-page,#search,.s-main-s"
+        @"lor:#fff!important;-webkit-text-fill-color:#fff!important;}.s-entity-pd-carousel-tile-suggestion,.s-entity-pd-carousel-tile-container,.s-entity-pd-carousel-tile-element-container,.s-entity-pd-carousel-tile-element-image-container{background:#000!important;background-color:#000!important;}.s-entity-pd-carousel-tile-element-title-container{background:#000!important;background-color:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}.s-entity-pd-carousel-tile-element-title-container :is(span,a,p,div){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}\");}else if(!child&&(p==='/s'||p.indexOf('/s/')===0)){s=put('ad7-product-feed-theme',\"::-webkit-scrollbar{background-color:transparent!important;}::-webkit-scrollbar-track{background-color:transparent!important;}::-webkit-scrollbar-thumb{background-color:#6f6f6f!important;border-radius:8px!important;border:2px solid transparent!important;background-clip:content-box!important;}::-webkit-scrollbar-thumb:hover{background-color:#8a8a8a!important;}html,body,#a-page,#search,.s-main-s"
         @"lot,.s-result-item,[data-component-type=s-search-result],.s-card-container,.puis-card-container,.puisg-row,.puisg-col,.puisg-col-inner{background:#000!important;background-color:#0"
         @"00!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}#search :is(.a-color-base,.a-text-normal,.a-size-base,.a-size-base-plus,.a"
         @"-size-medium,.a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen,.s-title-instructions-style,h1,h2,h3,h4,h5,h6,p,label,strong,b){color:#e8e6e3!important;-webkit-"
@@ -1188,16 +1190,15 @@ static NSString *ADStandalonePaintJS7104(void){
 
 // v7.114 production: compact standalone diagnostic WKUserScript removed.
 static NSString *ADTWBJS(void){
-    // v7.160 production: TWB stays route-exclusive. Restore the exact v7.149
-    // autocomplete promotional-tile raster owner, and tame the full _c2Itd brand
-    // carousel raster family (logo + product images) with no DOM scanner.
+    // v7.161 probe: keep v7.160 route-exclusive TWB and full _c2Itd brand-carousel
+    // image ownership. Add the exact seasonal autocomplete tile image found by v7.159.
     CGFloat strength=MAX(0,MIN(100,gP.whiteTameStrength));
     CGFloat t=strength/100.0;
     CGFloat shade=0.10+(0.48*t);
     CGFloat factor=1.0-shade;
     return [NSString stringWithFormat:
         @"(function(){try{var host='';try{host=String(location.hostname||'').toLowerCase();}catch(_){}if(host==='flashtalking.com'||/\\.flashtalking\\.com$/.test(host))return;var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement)document.documentElement.setAttribute('data-ad7-twb-child','1');if(child&&document.documentElement&&document.documentElement.hasAttribute('data-ad7-standalone-candidate'))return;function put(id,css){var s=document.getElementById(id);if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}s.textContent=css;return s;}function relink(s){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}if(child){put('ad7-twb-child-min',\"html[data-ad7-twb-child=\\\"1\\\"] :is(img,video,canvas):not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=rating]):not([class*=star]):not([class"
-        @"*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=icon]):not([class*=glyph]):not([class*=badge]){filter:brightness(%.3f)!important;}\");return;}var p='';try{p=String(location.pathname||'');}catch(_){}var s=null;if(p==='/autocomplete'||p.indexOf('/autocomplete/')===0){s=put('ad7-search-pane-twb',\"img.ufs_tiles_card_widget-sug-image{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;}#attach-to-me img.s-image,#attach-to-me img.s-product-image,.s-suggestion-container img.s-image,.s-suggestion-container img.s-product-image{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}\");}else if(p==='/s'||p.indexOf('/s/')===0){s=put('ad7-product-feed-twb',\"#search img.scx-stt-image,#search img._c2Itd_image_3UiYm{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;}#search img.s-image,#search img.s-product-image,#search [data-component-type=s-product-image] img,#search img.ufs_tiles_card_widget-sug-image,#search img.nice-cat-card_image,#search img.haul-puis-portrait-img,#search img._c2Itd_image_pQREQ{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}#search video.sbv-video-player-ecx,#search video._"
+        @"*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=icon]):not([class*=glyph]):not([class*=badge]){filter:brightness(%.3f)!important;}\");return;}var p='';try{p=String(location.pathname||'');}catch(_){}var s=null;if(p==='/autocomplete'||p.indexOf('/autocomplete/')===0){s=put('ad7-search-pane-twb',\"img.ufs_tiles_card_widget-sug-image,img.s-entity-pd-carousel-tile-element-image{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;}#attach-to-me img.s-image,#attach-to-me img.s-product-image,.s-suggestion-container img.s-image,.s-suggestion-container img.s-product-image{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}\");}else if(p==='/s'||p.indexOf('/s/')===0){s=put('ad7-product-feed-twb',\"#search img.scx-stt-image,#search img._c2Itd_image_3UiYm{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;}#search img.s-image,#search img.s-product-image,#search [data-component-type=s-product-image] img,#search img.ufs_tiles_card_widget-sug-image,#search img.nice-cat-card_image,#search img.haul-puis-portrait-img,#search img._c2Itd_image_pQREQ{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}#search video.sbv-video-player-ecx,#search video._"
         @"c2Itd_video_17g-f{filter:none!important;-webkit-filter:none!important;}#search .sbv-video-overlay{background-color:rgba(0,0,0,%.3f)!important;}#search ._c2Itd_videoOverlay_1H_Jm{background-color:rgba(0,0,0,%.3f)!important;}\");}else{s=put('ad7-menu-twb',\"img.ufs_tiles_card_widget-sug-image,img.s-image,img.s-product-image,#landingImage,#imgBlkFront,#imgTagWrapperId img,img[data-a-dynamic-image],img.a-dynamic-image,[data-component-type=s-product-image] img,[class*=product-image] img,[class*=asin-image] img,.p13n-sc-uncoverable-faceout img,[data-asin] img.s-image,[data-csa-c-asin] img.s-image,:is(#gwm-Deck-btf,.gwm-dashboard-container) :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) img:not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store]):not([class*=rating]):not([class*=star]):not([class*=sprite]):not([class*=pixel]):not([class*=icon]):not([class*=glyph]):not([class*"
         @"=badge]):not([class*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=search-icon]):not([class*=microphone]):not([class*=camera]):not([class*=location]):not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon]):not([class*=header-icon]):not([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr]):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),html[data-ad7-twb-child=\\\"1\\\"]:not([data-ad7-standalone-candidate]) :is(img,video,canvas):not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=rating]):not([class*=star]):not([class*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=search-icon]):not([class*=microphone]):not([class*=camera]):not([class*=location]):not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon]):not([class*=header-icon]):not"
         @"([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr]):not([class*=sprite]):not([class*=pixel]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),html[data-ad7-standalone-candidate] :is([data-testid*=product-picture],[data-testid*=product-image],[data-testid*=asin-image]) :is(img,video,canvas):not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([data-testid=ratings-stars] *)):not(:where([data-testid=prime-badge] *)),html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] :is([data-testid=image],[data-acei-id=lfstyl-img]) :is(img,video,canvas):not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge]),html[data-ad7-standalone-candidate] #ad:has(#dynamic-bb) :is([data-acei-id=lfstyl-img],[data-acei-id=prod-img]) :is(img,vid"
@@ -1311,6 +1312,10 @@ static void ADRefreshWebTWBPrefs791(void){
 
 // v7.152 production: probe-only all-frame bridge removed; only theme scripts remain.
 
+static NSString *ADHomeAdFrameProbeJS7144(void){
+    return @"(function(){try{\nif(window.__ad7144FrameProbeInstalled)return;\nwindow.__ad7144FrameProbeInstalled=1;\nfunction st(e,p){try{var s=getComputedStyle(e,p||null);return {display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,bgi:s.backgroundImage,color:s.color,fill:s.fill,stroke:s.stroke,filter:s.webkitFilter||s.filter||'none',border:s.border,radius:s.borderRadius,shadow:s.boxShadow,outline:s.outline,font:s.fontFamily,fontSize:s.fontSize,fontWeight:s.fontWeight,lineHeight:s.lineHeight,textShadow:s.textShadow,webkitTextStroke:s.webkitTextStroke||'',transform:s.transform,overflow:s.overflow,clipPath:s.clipPath||s.webkitClipPath||'',z:s.zIndex,position:s.position,mask:s.webkitMaskImage||s.maskImage||'none',objectFit:s.objectFit||'',mix:s.mixBlendMode||''};}catch(x){return {err:String(x)}}}\nfunction nd(e){if(!e)return null;var r=e.getBoundingClientRect(),o={tag:e.tagName||'',id:e.id||'',cls:String(e.className||'').slice(0,280),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],style:st(e),before:st(e,'::before'),after:st(e,'::after'),a:{testid:e.getAttribute&&e.getAttribute('data-testid')||'',acei:e.getAttribute&&e.getAttribute('data-acei-id')||'',htmlDim:e.getAttribute&&e.getAttribute('data-html-dimensions')||'',role:e.getAttribute&&e.getAttribute('role')||'',feedback:e.hasAttribute&&e.hasAttribute('data-ad-feedback-label-id')?1:0,ariaSponsored:/sponsored/i.test(e.getAttribute&&e.getAttribute('aria-label')||'')?1:0}};if(e.tagName==='IMG')o.natural=[e.naturalWidth||0,e.naturalHeight||0];if(e.tagName==='VIDEO'){o.natural=[e.videoWidth||0,e.videoHeight||0];o.media={muted:e.muted?1:0,volume:+(+e.volume||0).toFixed(3),paused:e.paused?1:0,controls:e.controls?1:0,readyState:e.readyState||0,currentTime:+(+e.currentTime||0).toFixed(2)};o.ua={mute:st(e,'::-webkit-media-controls-mute-button'),play:st(e,'::-webkit-media-controls-play-button'),panel:st(e,'::-webkit-media-controls-panel')};}return o;}\nfunction ch(e,n){var a=[];for(var x=e;x&&a.length<(n||8);x=x.parentElement)a.push(nd(x));return a;}\nfunction vis(e,min){try{var r=e.getBoundingClientRect(),s=getComputedStyle(e),a=Math.max(0,Math.min(innerWidth,r.right)-Math.max(0,r.left))*Math.max(0,Math.min(innerHeight,r.bottom)-Math.max(0,r.top));return s.display!=='none'&&s.visibility!=='hidden'&&+s.opacity>0.01&&a>=(min||1);}catch(_){return false}}\nfunction q(sel,lim,min){var out=[];try{var a=document.querySelectorAll(sel);for(var i=0;i<a.length&&out.length<(lim||60);i++)if(vis(a[i],min||1))out.push({self:nd(a[i]),chain:ch(a[i],8)});}catch(e){out.push({err:String(e),sel:sel})}return out;}\nfunction media(){var out=[];try{var a=document.querySelectorAll('img,video,canvas');for(var i=0;i<a.length&&out.length<100;i++){var e=a[i];if(!vis(e,1200))continue;out.push({self:nd(e),chain:ch(e,9)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction bgmedia(){var out=[];try{var a=document.getElementsByTagName('*'),n=Math.min(a.length,2600);for(var i=0;i<n&&out.length<70;i++){var e=a[i];if(!vis(e,6000))continue;var b=getComputedStyle(e).backgroundImage;if(b&&b!=='none')out.push({self:nd(e),chain:ch(e,7)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction hits(){var out=[],xs=[.18,.5,.82],ys=[.18,.38,.58,.76,.9];try{for(var i=0;i<xs.length;i++)for(var j=0;j<ys.length;j++){var x=Math.round(innerWidth*xs[i]),y=Math.round(innerHeight*ys[j]),a=(document.elementsFromPoint?document.elementsFromPoint(x,y):[document.elementFromPoint(x,y)]).filter(Boolean).slice(0,10);out.push({p:[x,y],stack:a.map(nd)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction safeAttr(e,n){try{return String(e.getAttribute&&e.getAttribute(n)||'').slice(0,360)}catch(_){return ''}}\nfunction controlNode(e){var o=nd(e)||{};try{o.ctrl={aria:(/mute|unmute|sound|volume|speaker|audio/i.test(safeAttr(e,'aria-label'))?safeAttr(e,'aria-label'):''),title:(/mute|unmute|sound|volume|speaker|audio/i.test(safeAttr(e,'title'))?safeAttr(e,'title'):''),role:safeAttr(e,'role'),testid:safeAttr(e,'data-testid'),name:safeAttr(e,'name'),type:safeAttr(e,'type'),viewBox:safeAttr(e,'viewBox'),href:(e.tagName==='USE'?safeAttr(e,'href')||safeAttr(e,'xlink:href'):''),d:(e.tagName==='PATH'?safeAttr(e,'d'):'')};var cs=getComputedStyle(e);o.ctrl.font={family:cs.fontFamily,size:cs.fontSize,weight:cs.fontWeight,lineHeight:cs.lineHeight,textShadow:cs.textShadow,webkitTextStroke:cs.webkitTextStroke||'',transform:cs.transform,overflow:cs.overflow,clipPath:cs.clipPath||cs.webkitClipPath||'',outline:cs.outline,z:cs.zIndex,position:cs.position};}catch(_){}return o;}\nfunction subTree(root){var budget=180;function walk(e,d){if(!e||budget--<=0)return null;var o=controlNode(e);if(d<10){var kids=[];for(var c=e.firstElementChild;c&&kids.length<40;c=c.nextElementSibling){var z=walk(c,d+1);if(z)kids.push(z);}if(kids.length)o.children=kids;}return o;}return walk(root,0);}\nfunction videoControlTrees(){var out=[];try{var roots=document.querySelectorAll('#search .sbv-video-overlay,.sbv-video-overlay,#search video.sbv-video-player-ecx,video.sbv-video-player-ecx,#search video._c2Itd_video_17g-f,#search ._c2Itd_videoOverlay_1H_Jm,#search ._c2Itd_playClickRegion_87ZZa,[class*=single-video-card],[class*=singleVideoCard],.video-js');for(var r=0;r<roots.length&&out.length<24;r++){var root=roots[r];if(!vis(root,1))continue;var cand=[];try{cand=[].slice.call(root.querySelectorAll('button,[role=button],[aria-label],[title],svg,use,path,i,span,div')).filter(function(e){var k=(String(e.id||'')+' '+String(e.className&&e.className.baseVal||e.className||'')+' '+safeAttr(e,'aria-label')+' '+safeAttr(e,'title')+' '+safeAttr(e,'data-testid')).toLowerCase();return /mute|unmute|sound|volume|speaker|audio/.test(k);});}catch(_){}var buttons=[];try{buttons=[].slice.call(root.querySelectorAll('button,[role=button]')).filter(function(e){return vis(e,1)});}catch(_){}var uniq=[];cand.concat(buttons).forEach(function(e){if(e&&uniq.indexOf(e)<0&&uniq.length<16)uniq.push(e);});out.push({root:controlNode(root),rootTree:subTree(root),controls:uniq.map(function(e){return {ancestors:ch(e,10),tree:subTree(e)}})});} }catch(e){out.push({err:String(e)})}return out;}\nfunction snap(){var h=document.documentElement||{},state=null;try{state=window.__ad7106StandaloneState?window.__ad7106StandaloneState():null}catch(_){}return {frame:{top:window===top?1:0,host:String(location.hostname||''),path:String(location.pathname||''),viewport:[innerWidth,innerHeight,devicePixelRatio]},markers:{child:h.getAttribute&&h.getAttribute('data-ad7-child-frame')||'',standaloneCandidate:h.getAttribute&&h.getAttribute('data-ad7-standalone-candidate')||'',standaloneSurvivor:h.getAttribute&&h.getAttribute('data-ad7104-standalone')||'',twbChild:h.getAttribute&&h.getAttribute('data-ad7-twb-child')||''},standaloneState:state,heroFeedback:q('#gwm-window [id^=wd-shoppable-] [data-ad-feedback-label-id],#gwm-window [id^=wd-shoppable-] .ape-feedback,#gwm-window [id^=wd-shoppable-] [class*=ad-feedback],#gwm-window [id^=wd-shoppable-] [id^=ad-feedback-],#gwm-window [id^=wd-shoppable-] [aria-label*=\"Sponsored\"],[class*=single-creative-card] [data-ad-feedback-label-id],[class*=single-creative-card] [class*=ad-feedback],[id*=mobile-wd-][class*=ape-feedback]',90,1),shells:q('#gwm-window,[id^=wd-shoppable-],[class*=single-creative-card],[class*=single-video-card],[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback],[data-testid=renderer-factory-ad-container],#ad,#dynamic-bb,[data-testid=image],[data-acei-id=lfstyl-img],[data-acei-id=prod-img]',100,1),media:media(),bgMedia:bgmedia(),videoControlTrees:videoControlTrees(),hit:hits()};}\nfunction fan(token){var z=snap();if(window===top){window.__ad7144ProbeToken=token;window.__ad7144ProbeFrames=[z];}else{try{top.postMessage({__ad7144ProbeFrame:1,token:token,snap:z},'*')}catch(_){}}try{var fs=document.getElementsByTagName('iframe');for(var i=0;i<fs.length&&i<24;i++)if(fs[i].contentWindow)fs[i].contentWindow.postMessage({__ad7144ProbeRequest:1,token:token},'*');}catch(_){}}\nwindow.addEventListener('message',function(ev){try{var d=ev.data||{};if(d.__ad7144ProbeRequest&&d.token)fan(String(d.token));if(window===top&&d.__ad7144ProbeFrame&&d.token===window.__ad7144ProbeToken&&d.snap){var a=window.__ad7144ProbeFrames||(window.__ad7144ProbeFrames=[]);if(a.length<48)a.push(d.snap);}}catch(_){}},false);\nif(window===top){window.__ad7144StartProbe=function(t){try{fan(String(t||Date.now()));return 'STARTED';}catch(e){return 'START_ERR '+e}};window.__ad7144DumpProbe=function(t){try{return JSON.stringify({token:String(t||''),frames:window.__ad7144ProbeFrames||[]},null,2);}catch(e){return 'DUMP_ERR '+e}};}\n}catch(e){}})();";
+}
+
 static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
     if(!ucc || !gP.enabled)return;
     @try {
@@ -1323,6 +1328,11 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADStandalonePaintJS7104() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADStandalonePaintUS7104,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        if(!objc_getAssociatedObject(ucc,kADHomeAdProbeUS7144)){
+            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADHomeAdFrameProbeJS7144() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+            [ucc addUserScript:us];
+            objc_setAssociatedObject(ucc,kADHomeAdProbeUS7144,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
         if(gP.whiteTame && !objc_getAssociatedObject(ucc,kADTWBUS)){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADTWBJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
@@ -3545,7 +3555,218 @@ static void ADConsiderLaunchReady706(void){
 // bounded 0.40 s post-ready settle guard so Amazon's final white loading composite
 // cannot peek through the cover fade.
 // v7.0.68 production: v7.0.65 chevron diagnostic runtime removed.
-// v7.160 production: heavy temporary diagnostics stripped after v7.159 verification.
+static NSUInteger gADSearchResultsProbeRun7139=0;
+static dispatch_source_t gADSearchResultsProbeSignal7139=nil;
+
+static NSString *ADSearchResultsProbePath7139(void){
+    @try {
+        NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.161-search-seasonal-scrollbar-probe.txt"];
+    } @catch(...) {}
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.161-search-seasonal-scrollbar-probe.txt"];
+}
+static void ADSearchResultsProbeAppend7139(NSString *s){
+    if(!s.length)return;
+    @try {
+        NSString *p=ADSearchResultsProbePath7139(); NSFileManager *fm=[NSFileManager defaultManager];
+        [fm createDirectoryAtPath:[p stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil];
+        NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding];
+        if(![fm fileExistsAtPath:p]){ [d writeToFile:p atomically:YES]; return; }
+        NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:p];
+        if(h){ [h seekToEndOfFile]; [h writeData:d]; [h closeFile]; }
+    } @catch(...) {}
+}
+static NSString *ADSearchResultsProbeColor7139(UIColor *c){
+    if(!c)return @"nil";
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0;
+        if([c getRed:&r green:&g blue:&b alpha:&a])return [NSString stringWithFormat:@"rgba(%.3f,%.3f,%.3f,%.3f)",r,g,b,a];
+        if([c getWhite:&w alpha:&a])return [NSString stringWithFormat:@"white(%.3f,%.3f)",w,a];
+        return c.description?:@"?";
+    } @catch(...) { return @"?"; }
+}
+static NSString *ADSearchResultsProbeCG7139(CGColorRef cg){
+    if(!cg)return @"nil";
+    @try { return ADSearchResultsProbeColor7139([UIColor colorWithCGColor:cg]); } @catch(...) { return @"?"; }
+}
+static NSString *ADSearchResultsProbeNative7139(void){
+    NSMutableString *m=[NSMutableString string];
+    @try {
+        CGRect screen=UIScreen.mainScreen.bounds; NSUInteger visited=0,logged=0;
+        NSArray *pts=@[[NSValue valueWithCGPoint:CGPointMake(CGRectGetMidX(screen),125)],
+                       [NSValue valueWithCGPoint:CGPointMake(28,140)],
+                       [NSValue valueWithCGPoint:CGPointMake(CGRectGetMidX(screen),150)],
+                       [NSValue valueWithCGPoint:CGPointMake(CGRectGetMidX(screen),180)]];
+        for(UIWindow *w in UIApplication.sharedApplication.windows){
+            if(!w||w.hidden||w.alpha<0.01)continue;
+            [m appendFormat:@"WINDOW cls=%@ key=%d level=%.1f r=(%.1f,%.1f %.1fx%.1f) bg=%@\n",NSStringFromClass(w.class),w.isKeyWindow?1:0,w.windowLevel,w.frame.origin.x,w.frame.origin.y,w.frame.size.width,w.frame.size.height,ADSearchResultsProbeColor7139(w.backgroundColor)];
+            NSMutableArray *q=[NSMutableArray arrayWithObject:w];
+            while(q.count&&visited++<420&&logged<180){
+                UIView *v=q.firstObject; [q removeObjectAtIndex:0]; if(!v||v.hidden||v.alpha<0.01)continue;
+                CGRect r=CGRectZero; @try { r=[v convertRect:v.bounds toView:nil]; } @catch(...) {}
+                NSString *cn=NSStringFromClass(v.class),*lo=cn.lowercaseString;
+                BOOL band=CGRectIntersectsRect(r,CGRectMake(0,80,screen.size.width,150)) && r.size.width>=screen.size.width*0.45 && r.size.height>=10;
+                BOOL sem=[lo containsString:@"subnav"]||[lo containsString:@"delivery"]||[lo containsString:@"location"]||[lo containsString:@"topnav"]||[lo containsString:@"ingress"];
+                if(band||sem){
+                    [m appendFormat:@"N cls=%@ r=(%.1f,%.1f %.1fx%.1f) bg=%@ layerBg=%@ tint=%@ marked=%d aid=\"%@\"\n",cn,r.origin.x,r.origin.y,r.size.width,r.size.height,ADSearchResultsProbeColor7139(v.backgroundColor),ADSearchResultsProbeCG7139(v.layer.backgroundColor),ADSearchResultsProbeColor7139(v.tintColor),ADInMarkedSearchDeliveryBand7139(v)?1:0,v.accessibilityIdentifier?:@""]; logged++;
+                }
+                if(q.count<420&&v.subviews.count)[q addObjectsFromArray:v.subviews];
+            }
+            for(NSValue *pv in pts){ CGPoint p=pv.CGPointValue; UIView *h=[w hitTest:p withEvent:nil]; NSMutableArray *c=[NSMutableArray array]; for(UIView *x=h;x&&c.count<12;x=x.superview)[c addObject:NSStringFromClass(x.class)]; [m appendFormat:@"HIT (%.0f,%.0f) %@\n",p.x,p.y,c.count?[c componentsJoinedByString:@" <- "]:@"nil"]; }
+        }
+    } @catch(NSException *e){ [m appendFormat:@"NATIVE_EXCEPTION %@\n",e]; }
+    return m;
+}
+
+static NSString *ADSearchResultsProbeGlowLayers7141(void){
+    NSMutableString *m=[NSMutableString string];
+    @try {
+        for(UIWindow *w in UIApplication.sharedApplication.windows){
+            if(!w||w.hidden||w.alpha<0.01)continue;
+            NSMutableArray *q=[NSMutableArray arrayWithObject:w]; NSUInteger seen=0;
+            while(q.count&&seen++<420){
+                UIView *v=q.firstObject; [q removeObjectAtIndex:0]; if(!v)continue;
+                if(ADExactGlowIngress7140(v)){
+                    NSMutableArray *lq=[NSMutableArray arrayWithObject:@{ @"l":v.layer,@"d":@0 }]; NSUInteger ln=0;
+                    while(lq.count&&ln++<120){
+                        NSDictionary *it=lq.firstObject; [lq removeObjectAtIndex:0]; CALayer *l=it[@"l"]; NSUInteger d=[it[@"d"] unsignedIntegerValue]; if(!l)continue;
+                        NSUInteger chars=MIN((NSUInteger)40,d*2); NSString *pad=[@"                                        " substringToIndex:chars];
+                        [m appendFormat:@"%@L cls=%@ name=\"%@\" f=(%.1f,%.1f %.1fx%.1f) bg=%@ contents=%d hidden=%d op=%.2f z=%.2f\n",pad,NSStringFromClass(l.class),l.name?:@"",l.frame.origin.x,l.frame.origin.y,l.frame.size.width,l.frame.size.height,ADSearchResultsProbeCG7139(l.backgroundColor),l.contents?1:0,l.hidden?1:0,l.opacity,l.zPosition];
+                        for(CALayer *c in l.sublayers?:@[])if(lq.count<120)[lq addObject:@{ @"l":c,@"d":@(d+1) }];
+                    }
+                }
+                if(q.count<420&&v.subviews.count)[q addObjectsFromArray:v.subviews];
+            }
+        }
+    } @catch(NSException *e){ [m appendFormat:@"LAYER_EXCEPTION %@\n",e]; }
+    return m;
+}
+
+static NSString *ADSearchResultsProbeSafeURL7139(WKWebView *wv){
+    @try {
+        NSURL *u=wv.URL; if(!u)return @"";
+        return [NSString stringWithFormat:@"%@://%@%@",u.scheme?:@"https",u.host?:@"",u.path?:@""];
+    } @catch(...) { return @""; }
+}
+static NSString *ADSearchResultsProbeWebList7139(void){
+    NSMutableString *m=[NSMutableString string]; NSUInteger n=0;
+    @try {
+        for(WKWebView *wv in ADTrackedWebViews()){
+            if(!wv)continue; CGRect r=CGRectZero; @try { r=[wv convertRect:wv.bounds toView:nil]; } @catch(...) {}
+            CGRect ir=CGRectIntersection(r,UIScreen.mainScreen.bounds); CGFloat area=MAX(0,ir.size.width)*MAX(0,ir.size.height);
+            [m appendFormat:@"WEB #%lu aid=\"%@\" path=\"%@\" visible=%d loading=%d r=(%.1f,%.1f %.1fx%.1f) visibleArea=%.0f bg=%@ scrollBg=%@\n",
+                (unsigned long)n++,wv.accessibilityIdentifier?:@"",ADSearchResultsProbeSafeURL7139(wv),(wv.window&&!wv.hidden&&wv.alpha>0.01&&area>1)?1:0,wv.loading?1:0,
+                r.origin.x,r.origin.y,r.size.width,r.size.height,area,ADSearchResultsProbeColor7139(wv.backgroundColor),ADSearchResultsProbeColor7139(wv.scrollView.backgroundColor)];
+        }
+    } @catch(NSException *e){ [m appendFormat:@"WEBLIST_EXCEPTION %@\n",e]; }
+    return m;
+}
+static NSString *ADSearchResultsProbeJS7139(void){
+    return @"(function(){try{"
+    "function S(e,p){try{var s=getComputedStyle(e,p||null);return {content:s.content||'none',display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,bgi:s.backgroundImage,bgp:s.backgroundPosition,bgs:s.backgroundSize,bgr:s.backgroundRepeat,mask:s.webkitMaskImage||s.maskImage||'none',color:s.color,fill:s.fill,stroke:s.stroke,filter:s.webkitFilter||s.filter||'none',border:s.border,radius:s.borderRadius,shadow:s.boxShadow,outline:s.outline,font:s.fontFamily,fontSize:s.fontSize,fontWeight:s.fontWeight,lineHeight:s.lineHeight,textShadow:s.textShadow,webkitTextStroke:s.webkitTextStroke||'',transform:s.transform,overflow:s.overflow,clipPath:s.clipPath||s.webkitClipPath||'',z:s.zIndex,position:s.position};}catch(_){return {err:String(_)}}}"
+    "function P(e){if(!e)return null;var r=e.getBoundingClientRect(),o={tag:e.tagName,id:e.id||'',cls:String(e.className||'').slice(0,260),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],attrs:{badgeType:A(e,'data-a-badge-type'),badgeColor:A(e,'data-a-badge-color'),testid:A(e,'data-testid'),component:A(e,'data-component-type')},style:S(e),before:S(e,'::before'),after:S(e,'::after')};if(e.tagName==='VIDEO'){o.media={muted:e.muted?1:0,volume:+(+e.volume||0).toFixed(3),paused:e.paused?1:0,controls:e.controls?1:0,readyState:e.readyState||0,currentTime:+(+e.currentTime||0).toFixed(2)};o.ua={mute:S(e,'::-webkit-media-controls-mute-button'),play:S(e,'::-webkit-media-controls-play-button'),panel:S(e,'::-webkit-media-controls-panel')};}return o;}"
+    "function C(e,n){var a=[];for(var x=e;x&&a.length<(n||6);x=x.parentElement)a.push(P(x));return a;}"
+    "function Q(sel){return [].slice.call(document.querySelectorAll(sel));}"
+    "function G(sel,n){var a=Q(sel);return {count:a.length,items:a.slice(0,n||48).map(P)};}"
+    "function GC(sel,n){var a=Q(sel);return {count:a.length,items:a.slice(0,n||32).map(function(e){return {self:P(e),chain:C(e,7)}})};}"
+    "function A(e,n){try{return String(e.getAttribute&&e.getAttribute(n)||'').slice(0,360)}catch(_){return ''}}"
+    "function CP(e){var o=P(e)||{};try{o.ctrl={aria:(/mute|unmute|sound|volume|speaker|audio/i.test(A(e,'aria-label'))?A(e,'aria-label'):''),title:(/mute|unmute|sound|volume|speaker|audio/i.test(A(e,'title'))?A(e,'title'):''),role:A(e,'role'),testid:A(e,'data-testid'),name:A(e,'name'),type:A(e,'type'),viewBox:A(e,'viewBox'),href:(e.tagName==='USE'?A(e,'href')||A(e,'xlink:href'):''),d:(e.tagName==='PATH'?A(e,'d'):'')};}catch(_){}return o;}"
+    "function TREE(root){var budget=220;function W(e,d){if(!e||budget--<=0)return null;var o=CP(e);if(d<12){var kids=[];for(var c=e.firstElementChild;c&&kids.length<50;c=c.nextElementSibling){var z=W(c,d+1);if(z)kids.push(z);}if(kids.length)o.children=kids;}return o;}return W(root,0);}"
+    "function VCTRL(){var out=[];try{var roots=Q('#search .sbv-video-overlay,.sbv-video-overlay,#search video.sbv-video-player-ecx,video.sbv-video-player-ecx,#search video._c2Itd_video_17g-f,#search ._c2Itd_videoOverlay_1H_Jm,#search ._c2Itd_playClickRegion_87ZZa,[class*=single-video-card],[class*=singleVideoCard],.video-js');for(var r=0;r<roots.length&&out.length<24;r++){var root=roots[r],cand=[];try{cand=[].slice.call(root.querySelectorAll('button,[role=button],[aria-label],[title],svg,use,path,i,span,div')).filter(function(e){var k=(String(e.id||'')+' '+String(e.className&&e.className.baseVal||e.className||'')+' '+A(e,'aria-label')+' '+A(e,'title')+' '+A(e,'data-testid')).toLowerCase();return /mute|unmute|sound|volume|speaker|audio/.test(k);});}catch(_){}var buttons=[];try{buttons=[].slice.call(root.querySelectorAll('button,[role=button]'));}catch(_){}var uniq=[];cand.concat(buttons).forEach(function(e){if(e&&uniq.indexOf(e)<0&&uniq.length<20)uniq.push(e);});out.push({root:CP(root),rootTree:TREE(root),controls:uniq.map(function(e){return {ancestors:C(e,12),tree:TREE(e)}})});} }catch(e){out.push({err:String(e)})}return {count:out.length,items:out};}"
+        "var w=innerWidth,h=innerHeight,ys=[.03,.08,.14,.22,.31,.42,.56,.72,.86];"
+    "var hit=ys.map(function(y){var x=Math.round(w*.5),py=Math.round(h*y),a=(document.elementsFromPoint?document.elementsFromPoint(x,py):[document.elementFromPoint(x,py)]).filter(Boolean).slice(0,10);return {p:[x,py],stack:a.map(P)};});"
+    "var o={path:location.pathname,ready:document.readyState,viewport:[w,h,devicePixelRatio],scroll:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],body:P(document.body),doc:P(document.documentElement),"
+    "root:G('#search,#a-page',12),"
+    "ribbon:G('[class*=sf-rib],[class*=sf-mobile-rib],[class*=filter]',64),"
+    "ribbonArt:GC('.s-rib-toggle-container,.s-rib-toggle-icon,.sf-rib30-dropdown-pill-icon,.sf-rib30-review-content,.sf-rib30-review-stars-group,.sf-rib30-review-star,i.a-icon-prime.a-icon-small,.sf-mobile-rib-filter-icon,.sf-rib30-dropdown-arrow-icon',56),"
+    "scxTop:GC('.scx-stt-image,.scx-stt-image-container',48),"
+    "brandCarousel:GC('#search ._c2Itd_themeCollectionAsinItem_3wl1T,#search ._c2Itd_themeCollectionAsinItem_3wl1T img._c2Itd_image_3UiYm',64),"
+    "ribbonDropdowns:GC('.sf-rib30-dropdown-title,.sf-rib30-title-content-container,.sf-rib30-dropdown-title .sf-rib30-dropdown-pill-content,.sf-rib30-dropdown-title .sf-rib30-dropdown-pill-text,.sf-rib30-dropdown-title .sf-rib30-dropdown-arrow-icon,a[id^=dynamic-picker-].sf-rib30-dropdown-pill-option,a[id^=dynamic-picker-] .sf-rib30-dropdown-pill-content,a[id^=dynamic-picker-] .sf-rib30-dropdown-pill-text',72),"
+    "ribbonPanel:GC('#search .sf-rib30-panel,#search .sf-rib30-content,#search .sf-rib30-panel .a-button,#search .sf-rib30-panel .a-button-inner,#search .sf-rib30-panel .a-button-text,#search .sf-rib30-panel button',96),"
+    "autocomplete:GC('#attach-to-me,#attach-to-me .s-suggestion-container,#attach-to-me .s-suggestion,#attach-to-me .s-query-row,#attach-to-me .s-query-row-container,#attach-to-me .s-query-row-link,.autocomplete-results-container',100),"
+    "seasonalAutocomplete:GC('.s-entity-pd-carousel-tile-suggestion,.s-entity-pd-carousel-tile-container,.s-entity-pd-carousel-tile-element-container,.s-entity-pd-carousel-tile-element-image-container,.s-entity-pd-carousel-tile-element-image,.s-entity-pd-carousel-tile-element-title-container',96),"
+    "searchDirect:GC('#search>div,#search>section,#search>article,#search .s-main-slot>div,#search .s-main-slot>section,#search .s-main-slot>article',120),"
+    "heroSponsored:GC('#gwm-window [id^=wd-shoppable-] [data-ad-feedback-label-id],#gwm-window [id^=wd-shoppable-] .ape-feedback,#gwm-window [id^=wd-shoppable-] [class*=ad-feedback],#gwm-window [id^=wd-shoppable-] [id^=ad-feedback-],[class*=single-creative-card] [data-ad-feedback-label-id],[class*=single-creative-card] [class*=ad-feedback],[id*=mobile-wd-][class*=ape-feedback]',80),"
+    "homeAdShells:GC('#gwm-window,[id^=wd-shoppable-],[class*=single-creative-card],[class*=single-video-card],[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback],[data-testid=renderer-factory-ad-container],#ad,#dynamic-bb,[data-acei-id=lfstyl-img],[data-acei-id=prod-img]',90),"
+    "homeAdMedia:GC('#gwm-window [id^=wd-shoppable-] img,#gwm-window [id^=wd-shoppable-] video,#gwm-window [id^=wd-shoppable-] canvas,[class*=single-creative-card] img,[class*=single-video-card] img,#ad:has(#dynamic-bb) img,#ad:has(#dynamic-bb) video,#ad:has(#dynamic-bb) canvas,[data-testid=renderer-factory-ad-container] img,[data-acei-id=lfstyl-img] img,[data-acei-id=prod-img] img',100),"
+    "location:G('#nav-global-location-slot,#glow-ingress-block,[id*=glow-ingress],[class*=glow-ingress],[id*=delivery-location],[class*=delivery-location],[id*=ship-to],[class*=ship-to]',48),"
+    "ai:GC('#search [class*=alexa],#search [id*=alexa],#search [class*=research],#search [id*=research],#search [class*=rufus],#search [id*=rufus],#search [class*=query-understanding],#search [class*=shopping-assistant],#search [class*=ai-overview],#search [class*=search-guidance],#search [class*=guided-search]',96),"
+    "aiLogo:GC('#search [class*=alexa-plus-logo],#search [class*=rufus][class*=icon],#search img[class*=alexa],#search img[class*=rufus]',32),"
+    "aiControls:GC('#search .rufus-expandable-pills-toggle-button,#search .rufus-expandable-pills-chevron,#search .rufus-expandable-pills-chevron img',32),"
+    "aiPills:GC('#search #rufus-overviews-pills-carousel,#search #rufus-mobile-overviews-expandable-pills-carousel-container,#search #rufus-overviews-pills-carousel .a-carousel-card,#search #rufus-mobile-overviews-expandable-pills-carousel-container .a-carousel-card,#search .nile-inline-pill-button,#search .nile-inline-ingress-pill-button,#search #rufus-overviews-pills-carousel .a-button-inner,#search #rufus-mobile-overviews-expandable-pills-carousel-container .a-button-inner',72),"
+    "tiles:GC('#search #rufus-overviews-category-cards-carousel .a-carousel-card,#search #rufus-overviews-category-cards-carousel .a-carousel-card > .a-box,#search #rufus-overviews-category-cards-carousel .nice-cat-card_box,#search #rufus-overviews-category-cards-carousel img.nice-cat-card_image',64),"
+    "atc:GC('#search .puis-atcb-button,#search .puis-atcb-button .a-button-inner,#search .puis-atcb-button .a-button-text',48),"
+    "results:G('#search .s-result-item,#search .s-card-container,#search [data-component-type=s-search-result],#search .puisg-row,#search .puisg-col,#search .puisg-col-inner',72),"
+    "badges:G('#search .puis-status-badge-container,#search .puis-status-badge-container .a-badge,#search .puis-status-badge-container .a-badge-label',32),"
+    "microBadges:GC('#search .puis-card-container .a-badge,#search .puis-card-container .a-badge-label,#search .puis-card-container .a-badge-label-inner,#search .puis-card-container [data-a-badge-type],#search .puis-card-container [data-a-badge-color],#search .puis-card-container .a-color-success,#search .puis-card-container [class*=success],#search .puis-card-container [class*=saving],#search .puis-card-container [class*=savings],#search .puis-card-container [class*=natural],#search .puis-card-container [class*=attribute],#search .puis-card-container [class*=variation]',140),"
+    "actions:GC('#search .more-like-this-container,#search .mlt-icon-container,#search .mlt-icon-container *,#search .lists-framework-action-button.puis-heart-icon-container,#search .lists-framework-heart-background',64),"
+    "videoAd:GC('#search .sbv-video-overlay,#search video.sbv-video-player-ecx,#search .sbv-video,#search .sbv-video-container,#search .sbv-mobile-video-link',64),"
+    "videoControls:GC('#search .sbv-video-overlay,#search .sbv-video-overlay *',180),"
+    "videoControlTrees:VCTRL(),"
+    "videoCard:GC('#search .sbv-video-single-product,#search .s-card-container:has(.sbv-video-single-product),#search .sbv-video-single-product :is(div,section,article,span,img,video,canvas)',220),"
+    "altVideoCard:GC('#search ._c2Itd_container_ut_MN,#search ._c2Itd_cardContent_3OGkG,#search ._c2Itd_content_2L-a5,#search ._c2Itd_videoSectionContainer_Ot6Fs,#search ._c2Itd_videoOverlay_1H_Jm,#search ._c2Itd_playClickRegion_87ZZa,#search video._c2Itd_video_17g-f,#search ._c2Itd_singleAsin_fHkKv,#search ._c2Itd_singleAsin_fHkKv *,#search img._c2Itd_image_pQREQ',260),"
+    "coupon:GC('#search [data-component-type=s-coupon-component],#search .s-coupon-tile-content-container,#search .s-coupon-tile,#search .s-coupon-tile-text-content,#search .s-coupon-checkbox-label,#search .s-coupon-tile-price-content,#search .s-coupon-unclipped,#search .s-coupon-highlight-color,#search [class*=coupon][class*=price],#search [class*=coupon][class*=highlight]',96),"
+    "nile:GC('#search .nile-ingress-pill-button,#search .nile-ingress-pill-button .a-button-inner',64),"
+    "haul:GC('#search [class*=haul-puis],#search [class*=haul-asin-recommendation]',160),"
+    "accents:G('#search i.a-icon-prime,#search [class*=prime],#search i[class*=a-icon-star],#search [class*=star],#search [class*=rating]',48),"
+    "media:G('#search img,#search picture,#search video,#search canvas',64),hit:hit};"
+    "return JSON.stringify(o,null,2);}catch(e){return 'SEARCH_RESULTS_DOM_ERR '+e;}})();";
+}
+static void ADCaptureSearchResultsProbe7139(NSString *trigger){
+    if(!gP.enabled)return; NSUInteger run=++gADSearchResultsProbeRun7139;
+    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.161 SEARCH SEASONAL + SCROLLBAR PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== LOCATION LAYERS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
+        (unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchResultsProbeNative7139(),ADSearchResultsProbeGlowLayers7141(),ADSearchResultsProbeWebList7139()];
+    ADSearchResultsProbeAppend7139(head);
+    NSMutableArray *home=[NSMutableArray array],*search=[NSMutableArray array],*fallback=[NSMutableArray array];
+    @try {
+        for(WKWebView *wv in ADTrackedWebViews()){
+            if(!wv||!wv.window||wv.hidden||wv.alpha<0.01)continue;
+            CGRect r=[wv convertRect:wv.bounds toView:nil],ir=CGRectIntersection(r,UIScreen.mainScreen.bounds); CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height); if(a<1000)continue;
+            NSDictionary *it=@{ @"wv":wv,@"a":@(a) }; NSString *path=wv.URL.path?:@"";
+            if([path containsString:@"/gp/gw/ajax/mshop.html"])[home addObject:it];
+            else if([path isEqualToString:@"/s"]||[path hasPrefix:@"/s/"])[search addObject:it];
+            else [fallback addObject:it];
+        }
+        NSComparator cmp=^NSComparisonResult(NSDictionary *a,NSDictionary *b){ return [b[@"a"] compare:a[@"a"]]; };
+        [home sortUsingComparator:cmp]; [search sortUsingComparator:cmp]; [fallback sortUsingComparator:cmp];
+    } @catch(...) {}
+    NSMutableArray *chosen=[NSMutableArray array];
+    for(NSDictionary *it in home)if(chosen.count<2)[chosen addObject:it];
+    for(NSDictionary *it in search)if(chosen.count<3)[chosen addObject:it];
+    for(NSDictionary *it in fallback)if(chosen.count<3)[chosen addObject:it];
+    if(!chosen.count){ ADSearchResultsProbeAppend7139(@"\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"); return; }
+    NSUInteger lim=MIN((NSUInteger)3,chosen.count); __block NSUInteger pending=lim*2;
+    void (^done)(void)=^{ if(--pending==0)ADSearchResultsProbeAppend7139(@"================ END RUN ================\n"); };
+    for(NSUInteger i=0;i<lim;i++){
+        WKWebView *wv=chosen[i][@"wv"];
+        NSString *tok=[NSString stringWithFormat:@"%lu-%lu-%llu",(unsigned long)run,(unsigned long)i,(unsigned long long)([[NSDate date] timeIntervalSince1970]*1000.0)];
+        ADSearchResultsProbeAppend7139([NSString stringWithFormat:@"\n===== WEB DOM #%lu =====\naid=\"%@\" path=\"%@\"\n",(unsigned long)i,wv.accessibilityIdentifier?:@"",ADSearchResultsProbeSafeURL7139(wv)]);
+        NSString *startJS=[NSString stringWithFormat:@"(function(){try{return window.__ad7144StartProbe?window.__ad7144StartProbe('%@'):'NO_ALL_FRAME_PROBE';}catch(e){return 'START_ERR '+e;}})();",tok];
+        @try { [wv evaluateJavaScript:startJS completionHandler:nil]; } @catch(...) {}
+        [wv evaluateJavaScript:ADSearchResultsProbeJS7139() completionHandler:^(id v,NSError *e){
+            NSString *body=e?[NSString stringWithFormat:@"EVAL_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
+            ADSearchResultsProbeAppend7139([NSString stringWithFormat:@"%@\n",body?:@"NO_DOM_DATA"]); done();
+        }];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.65*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+            NSString *dumpJS=[NSString stringWithFormat:@"(function(){try{return window.__ad7144DumpProbe?window.__ad7144DumpProbe('%@'):'NO_ALL_FRAME_DUMP';}catch(e){return 'DUMP_ERR '+e;}})();",tok];
+            @try {
+                [wv evaluateJavaScript:dumpJS completionHandler:^(id v,NSError *e){
+                    NSString *body=e?[NSString stringWithFormat:@"ALL_FRAME_EVAL_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
+                    ADSearchResultsProbeAppend7139([NSString stringWithFormat:@"\n===== HOME AD ALL-FRAME #%lu =====\n%@\n",(unsigned long)i,body?:@"NO_ALL_FRAME_DATA"]); done();
+                }];
+            } @catch(...) { ADSearchResultsProbeAppend7139(@"\nALL_FRAME_EXCEPTION\n"); done(); }
+        });
+    }
+}
+static void ADInstallSearchResultsProbe7139(void){
+    static dispatch_once_t once; dispatch_once(&once,^{
+        signal(SIGUSR2,SIG_IGN);
+        gADSearchResultsProbeSignal7139=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue());
+        if(gADSearchResultsProbeSignal7139){ dispatch_source_set_event_handler(gADSearchResultsProbeSignal7139,^{ ADCaptureSearchResultsProbe7139(@"SIGUSR2"); }); dispatch_resume(gADSearchResultsProbeSignal7139); }
+        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){ ADCaptureSearchResultsProbe7139(@"screenshot"); }];
+    });
+}
+
 // v7.116 production: v7.115 event-driven app handoff retained; SpringBoard owns a
 // bounded 0.40 s post-ready settle guard so Amazon's final white loading composite
 // cannot peek through the cover fade.
@@ -3583,6 +3804,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 
     %init;
 
+    ADInstallSearchResultsProbe7139();
 
     if(gP.enabled&&gP.privacyMode){
         ADRegisterPrivacyProtocol7117();

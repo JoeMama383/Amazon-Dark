@@ -1,6 +1,16 @@
-# AmazonDark v7.160~three-lane-production-twb-polish
+# AmazonDark v7.161~search-seasonal-scrollbar-probe
 
-Built directly from v7.159. Keeps the verified v7.149 Search/autocomplete transition behavior and the fast three-lane route split. Restores v7.149 TWB to autocomplete promotional-tile rasters, tames the _c2Itd brand-carousel logo and product rasters, and strips the screenshot/SIGUSR2/all-frame diagnostics for production performance.
+## v7.161 search seasonal + scrollbar probe
+
+- Preserves the v7.159 three-lane Search/transition behavior that fixed the reopen floor.
+- Restores a light WebKit scrollbar thumb in the `/s` product-feed lane.
+- Tames `img.s-entity-pd-carousel-tile-element-image` in the seasonal autocomplete carousel.
+- Paints the seasonal tile title/description container OLED black with light text.
+- Keeps v7.160 `_c2Itd_image_3UiYm` company-logo + product-carousel TWB.
+- Reintroduces the screenshot/SIGUSR2 diagnostics and adds a dedicated `seasonalAutocomplete` inventory.
+
+
+Built directly from v7.158. Restores the exact v7.149 Search/autocomplete CSS behavior inside the route-exclusive /autocomplete lane and restores v7.149 transition-wrapper layout-time ownership for the proven Search keyboard-gap underlay. Keeps the fast three-lane architecture. Fixes the scx-stt image wrapper to OLED black and applies TWB to the exact _c2Itd theme-collection product carousel images while excluding the brand-logo image that shares the same raster class. Diagnostic probe retained for verification only.
 
 # AmazonDark v7.158~search-floor-scx-fix-probe
 
