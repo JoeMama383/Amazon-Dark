@@ -1,4 +1,4 @@
-# AmazonDark v7.154~zero-delay-search-hotpath
+# AmazonDark v7.155~zero-delay-search-compile-fix
 
 Direct base: v7.153~production-performance-hotpath-fix.
 
@@ -36,7 +36,7 @@ The Search fast-path rewrite retains the UI fixes added after v7.149 without res
 - savings/success text remains transparent green; Limited Time Deal remains a red plate with white text.
 - Rufus/Nile inline pills, Add-to-cart outlines, Sponsored/ad-feedback gray chrome, Search ribbon/dropdowns, and the More-like-this wrapper fixes remain present.
 
-No diagnostic probe ships in v7.154.
+No diagnostic probe ships in v7.155.
 
 
 ## v7.153 performance correction
@@ -64,3 +64,10 @@ The v7.152 image-stack repair is preserved: `_c2Itd_image_pQREQ` remains visible
 - 0 probe-only NSURLSessionTask hook
 
 No diagnostic probe ships in this production build.
+
+
+## v7.155 compile-only correction
+
+- Cast `ANXTabBarButton` to `UIView *` before checking `window`, avoiding private forward-class property errors.
+- Correct Objective-C escaping for the existing Privacy JavaScript regexes. Runtime regex semantics are unchanged.
+- No Search-theme, TWB, ad-card, badge, video, or performance-path behavior was intentionally changed from v7.154.

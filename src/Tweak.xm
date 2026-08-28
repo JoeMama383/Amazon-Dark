@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.154-zero-delay-search-hotpath"
+#define AD_VERSION "v7.155-zero-delay-search-compile-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1175,7 +1175,7 @@ static NSString *ADPrivacyModeJS7117(void){
         @"if(window.__adPrivacy7117Installed){window.__adPrivacy7117Enabled=true;return;}"
         @"window.__adPrivacy7117Installed=1;window.__adPrivacy7117Enabled=true;var xhrMeta=new WeakMap();"
         @"function parse(u){try{return new URL(String(u&&u.url?u.url:u||''),location.href)}catch(_){return null}}"
-        @"function blockedHost(h){h=String(h||'').toLowerCase();return h==='unagi.amazon.com'||h==='unagi-na.amazon.com'||h==='fls-na.amazon.com'||h==='api.mshop.bdtelemetry.amazon'||h==='session.mshopbugsnag.irm.amazon.dev'||h==='trace.mshopbugsnag.irm.amazon.dev'||h==='vfw.amazon-adsystem.com'||h.endsWith('.service.minerva.devices.a2z.com')||/^api\.stores\.[^.]+\.prod\.paets\.advertising\.amazon\.dev$/.test(h)||/^aes\..*\.amazon-adsystem\.com$/.test(h)}"
+        @"function blockedHost(h){h=String(h||'').toLowerCase();return h==='unagi.amazon.com'||h==='unagi-na.amazon.com'||h==='fls-na.amazon.com'||h==='api.mshop.bdtelemetry.amazon'||h==='session.mshopbugsnag.irm.amazon.dev'||h==='trace.mshopbugsnag.irm.amazon.dev'||h==='vfw.amazon-adsystem.com'||h.endsWith('.service.minerva.devices.a2z.com')||/^api\\.stores\\.[^.]+\\.prod\\.paets\\.advertising\\.amazon\\.dev$/.test(h)||/^aes\\..*\\.amazon-adsystem\\.com$/.test(h)}"
         @"function info(u){var x=parse(u),h=x?x.hostname.toLowerCase():'';return{blocked:!!(x&&blockedHost(h)),url:x?(x.protocol+'//'+x.host+(x.pathname||'/')):String(u||'')}}"
         @"function fakeResponse(url){try{return new Response(null,{status:204,statusText:'No Content',headers:{'Cache-Control':'no-store','X-AmazonDark-Privacy':'1'}})}catch(_){return{ok:true,status:204,statusText:'No Content',url:String(url||''),text:function(){return Promise.resolve('')},json:function(){return Promise.resolve({})},arrayBuffer:function(){return Promise.resolve(new ArrayBuffer(0))}}}}"
         @"try{var osb=navigator.sendBeacon;if(typeof osb==='function')navigator.sendBeacon=function(url,data){var i=info(url);if(window.__adPrivacy7117Enabled&&i.blocked)return true;return osb.apply(this,arguments)}}catch(_){}"
@@ -2778,11 +2778,13 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 %hook ANXTabBarButton
 - (void)setSelected:(BOOL)selected {
     %orig;
-    if(gP.enabled&&self.window)ADRepaintNearestANXTab724((UIView *)self);
+    UIView *v=(UIView *)self;
+    if(gP.enabled&&v.window)ADRepaintNearestANXTab724(v);
 }
 - (BOOL)beginTrackingWithTouch:(UITouch *)touch withEvent:(UIEvent *)event {
     BOOL r=%orig;
-    if(gP.enabled&&self.window)ADRepaintNearestANXTab724((UIView *)self);
+    UIView *v=(UIView *)self;
+    if(gP.enabled&&v.window)ADRepaintNearestANXTab724(v);
     return r;
 }
 %end
