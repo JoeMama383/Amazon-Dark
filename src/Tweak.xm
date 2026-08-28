@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.152-performance-compaction-image-fix"
+#define AD_VERSION "v7.153-production-performance-hotpath-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1009,12 +1009,11 @@ static NSString *ADFloorJS(void){
              * borders/dividers/shadows that create the white strip below the image) to OLED. */
             "#search#search .haul-puis-widget-faceout-container"
             "{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}"
-            "#search#search .haul-puis-widget-faceout-container *"
-            ":not(.haul-puis-portrait-img):not(:where(.haul-puis-image-container *))"
-            ":not(.haul-puis-widget-action-button):not(:where(.haul-puis-widget-action-button *))"
+            /* v7.153 performance: no universal descendant matcher here. The visible white
+             * strip belongs to the faceout chrome, so own the root/direct structural children only. */
+            "#search#search .haul-puis-widget-faceout-container > :not(.haul-puis-image-container):not(.haul-puis-widget-action-button)"
             "{border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}"
-            "#search#search .haul-puis-widget-faceout-container > :not(.haul-puis-image-container):not(.haul-puis-widget-action-button),"
-            "#search#search .haul-puis-widget-faceout-container :is(hr,[class*=separator],[class*=divider])"
+            "#search#search .haul-puis-widget-faceout-container > :not(.haul-puis-image-container):not(.haul-puis-widget-action-button)"
             "{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}"
             /* v7.149: exact coupon split from the v7.148 device probe. The 163.4x28
              * .s-coupon-tile is the surviving stock pink painter (rgb(255,227,227)); the
@@ -1023,18 +1022,15 @@ static NSString *ADFloorJS(void){
              * control/artwork remains Amazon-owned; only surrounding coupon chrome/copy is styled. */
             "#search#search .s-coupon-tile,"
             "#search#search .s-coupon-tile-price-content,"
-            "#search#search :is([data-component-type=s-coupon-component] .s-coupon-unclipped,"
-            "[data-component-type=s-coupon-component] .s-coupon-highlight-color,"
-            "[class*=coupon][class*=price],[class*=coupon][class*=highlight])"
+            "#search#search .s-coupon-unclipped,"
+            "#search#search .s-coupon-highlight-color"
             "{background:#405a4a!important;background-color:#405a4a!important;background-image:none!important;"
             "border-color:#587161!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
-            "#search#search .s-coupon-tile :is(.s-coupon-tile-text-content,.s-coupon-checkbox-label),"
+            "#search#search .s-coupon-tile-text-content,"
+            "#search#search .s-coupon-checkbox-label,"
             "#search#search .s-coupon-tile-price-content,"
-            "#search#search :is([data-component-type=s-coupon-component] .s-coupon-unclipped,"
-            "[data-component-type=s-coupon-component] .s-coupon-highlight-color,"
-            "[class*=coupon][class*=price],[class*=coupon][class*=highlight]) "
-            ":is(span,div,p,strong,b)"
-            ":not([class*=checkbox]):not(:where([class*=checkbox] *)):not([class*=icon]):not(:where([class*=icon] *))"
+            "#search#search .s-coupon-unclipped,"
+            "#search#search .s-coupon-highlight-color"
             "{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
             /* v7.151: stock media-control boundary. v7.150's all:revert on WebKit pseudo
              * controls caused rectangular backing boxes. Remove author ownership of the pseudos
@@ -1085,13 +1081,11 @@ static NSString *ADFloorJS(void){
             "#search#search ._c2Itd_singleAsin_fHkKv :is(._c2Itd_pdCntr_2lxVH,._c2Itd_pdRowCntr_1SQrE,"
             "._c2Itd_pdImgCol_3WO1V,._c2Itd_pdcol_3gSOx,.productDetailsContainer)"
             "{background-color:#000!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}"
-            "#search#search ._c2Itd_singleAsin_fHkKv .productDetailsContainer :is(div,section,article,main,header,footer,ul,ol,li)"
-            ":not([class*=button]):not(:where([class*=button] *)):not([class*=badge]):not(:where([class*=badge] *))"
-            ":not([class*=deal]):not(:where([class*=deal] *)):not([class*=prime]):not(:where([class*=prime] *))"
-            ":not([class*=star]):not(:where([class*=star] *)):not([class*=rating]):not(:where([class*=rating] *))"
-            "{background-color:#000!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}"
-            "#search#search ._c2Itd_singleAsin_fHkKv .productDetailsContainer :is(span,p,a,strong,b)"
-            ":not([class*=badge]):not(:where([class*=badge] *)):not([class*=deal]):not(:where([class*=deal] *))"
+            /* v7.153 performance: exact captured _c2Itd detail owners only. Avoid matching
+             * every DIV/SPAN/A in the live Search tree and then walking a long exclusion chain. */
+            "#search#search ._c2Itd_singleAsin_fHkKv :is(.productDetailsContainer,._c2Itd_productTitle_1rGyG,"
+            "._c2Itd_reviewStars_1pJ4C,._c2Itd_badgeContainer_3rI4l,._c2Itd_dealMessage_1qaio,"
+            "._c2Itd_priceLinkContainer_6y-Wc,._c2Itd_savingPercentage_3sw1C)"
             "{background-color:transparent!important;box-shadow:none!important;}"
             /* Exact image stack: the IMG remains the TWB owner; transparent wrappers and an
              * explicit z-order keep the real raster above the renderer's background-link plane. */
@@ -2054,12 +2048,10 @@ static NSString *ADTWBJS(void){
           * leaves the product raster beneath the sponsored video untamed. Re-own only ordinary
           * raster media inside this exact card, outside the video/control subtree, while keeping
           * Prime/stars/logos/badges/glyphs stock. */
-         "#search#search .sbv-video-single-product :is(img,canvas)"
-         ":not(:where(.sbv-video *)):not(:where(.sbv-video-container *)):not(:where(.sbv-video-overlay *))"
-         ":not([class*=logo]):not([class*=prime]):not([class*=rating]):not([class*=star])"
-         ":not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=badge])"
-         ":not(:where([class*=logo] *)):not(:where([class*=prime] *)):not(:where([class*=rating] *)):not(:where([class*=star] *))"
-         ":not(:where([data-ad-feedback-label-id] *)):not(:where([class*=ad-feedback] *)),"
+         /* v7.153 performance: exact Search video-ad product image lane. The product raster
+          * lives in Amazon's s-product-image-container; do not make every IMG/CANVAS in Search
+          * evaluate a long sponsored/video exclusion chain. */
+         "#search#search .mobile-video-product-view .s-product-image-container img.s-image,"
          /* v7.151: exact product raster in the alternate _c2Itd standalone-video
           * renderer. This is ordinary IMG media, so it can safely use the normal TWB factor. */
          "#search#search img._c2Itd_image_pQREQ,"
@@ -2145,69 +2137,19 @@ static NSString *ADTWBJS(void){
 
 static NSString *ADPrivacyModeJS7117(void){
     return
-        @"(function(){\n"
-        @"try{\n"
-        @"  if(window.__adPrivacy7117Installed){window.__adPrivacy7117Enabled=true;return;}\n"
-        @"  window.__adPrivacy7117Installed=1;\n"
-        @"  window.__adPrivacy7117Enabled=true;\n"
-        @"  var MAX=320, ev=[], counts=Object.create(null), dropped=0, t0=Date.now(), xhrMeta=new WeakMap();\n"
-        @"  function clean(v,n){try{return String(v==null?'':v).replace(/\\s+/g,' ').slice(0,n||180)}catch(_){return ''}}\n"
-        @"  function parse(u){try{return new URL(String(u&&u.url?u.url:u||''),location.href)}catch(_){return null}}\n"
-        @"  function catHost(h){\n"
-        @"    h=String(h||'').toLowerCase();\n"
-        @"    if(h==='unagi.amazon.com'||h==='unagi-na.amazon.com')return 'unagi';\n"
-        @"    if(h==='fls-na.amazon.com')return 'fls';\n"
-        @"    if(h==='api.mshop.bdtelemetry.amazon')return 'bdtelemetry';\n"
-        @"    if(h==='session.mshopbugsnag.irm.amazon.dev'||h==='trace.mshopbugsnag.irm.amazon.dev')return 'bugsnag';\n"
-        @"    if(h==='vfw.amazon-adsystem.com')return 'ad-viewability';\n"
-        @"    if(h.endsWith('.service.minerva.devices.a2z.com'))return 'minerva';\n"
-        @"    if(/^api\\.stores\\.[^.]+\\.prod\\.paets\\.advertising\\.amazon\\.dev$/.test(h))return 'ad-event';\n"
-        @"    if(/^aes\\..*\\.amazon-adsystem\\.com$/.test(h))return 'ad-instrumentation';\n"
-        @"    return '';\n"
-        @"  }\n"
-        @"  function info(u){var x=parse(u),h=x?x.hostname.toLowerCase():'',c=catHost(h),p=x?(x.pathname||'/'):'';if(p.length>140)p=p.slice(0,140)+'…';return {blocked:!!c,category:c,host:h,path:p,url:x?(x.protocol+'//'+x.host+p):clean(u,180)}}\n"
-        @"  function sizeOf(v){try{if(v==null)return null;if(typeof v==='string')return v.length;if(typeof v.size==='number')return v.size;if(typeof v.byteLength==='number')return v.byteLength;if(typeof URLSearchParams!=='undefined'&&v instanceof URLSearchParams)return String(v).length}catch(_){}return null}\n"
-        @"  function inc(k){counts[k]=(counts[k]||0)+1}\n"
-        @"  function rec(kind,i,extra){try{inc(kind);if(i&&i.category)inc('category.'+i.category);if(i&&i.host)inc('host.'+i.host);if(ev.length<MAX){var d={ms:Date.now()-t0,kind:kind,category:i&&i.category||'',host:i&&i.host||'',path:i&&i.path||''};if(extra)for(var k in extra)d[k]=extra[k];ev.push(d)}else dropped++}catch(_){}}\n"
-        @"  function fakeResponse(url){try{return new Response(null,{status:204,statusText:'No Content',headers:{'Cache-Control':'no-store','X-AmazonDark-Privacy':'1'}})}catch(_){return {ok:true,status:204,statusText:'No Content',url:String(url||''),text:function(){return Promise.resolve('')},json:function(){return Promise.resolve({})},arrayBuffer:function(){return Promise.resolve(new ArrayBuffer(0))}}}}\n"
-        @"\n"
-        @"  try{\n"
-        @"    var osb=navigator.sendBeacon;\n"
-        @"    if(typeof osb==='function')navigator.sendBeacon=function(url,data){\n"
-        @"      var i=info(url); if(window.__adPrivacy7117Enabled&&i.blocked){var n=null;try{if(typeof data==='string')n=data.length;else if(data&&typeof data.size==='number')n=data.size;else if(data&&typeof data.byteLength==='number')n=data.byteLength}catch(_){}rec('blocked.sendBeacon',i,{payloadBytes:n});return true;} return osb.apply(this,arguments);\n"
-        @"    };\n"
-        @"  }catch(_){}\n"
-        @"\n"
-        @"  try{\n"
-        @"    var of=window.fetch;\n"
-        @"    if(typeof of==='function')window.fetch=function(input,init){var i=info(input);if(window.__adPrivacy7117Enabled&&i.blocked){rec('blocked.fetch',i,{method:clean(init&&init.method||input&&input.method||'GET',16),payloadBytes:sizeOf(init&&init.body)});return Promise.resolve(fakeResponse(i.url));}return of.apply(this,arguments)};\n"
-        @"  }catch(_){}\n"
-        @"\n"
-        @"  try{\n"
-        @"    var xo=XMLHttpRequest.prototype.open, xs=XMLHttpRequest.prototype.send;\n"
-        @"    XMLHttpRequest.prototype.open=function(method,url){try{xhrMeta.set(this,{method:clean(method||'GET',16),i:info(url)})}catch(_){}return xo.apply(this,arguments)};\n"
-        @"    XMLHttpRequest.prototype.send=function(){var m=null;try{m=xhrMeta.get(this)}catch(_){};if(window.__adPrivacy7117Enabled&&m&&m.i&&m.i.blocked){\n"
-        @"      rec('blocked.xhr',m.i,{method:m.method,payloadBytes:sizeOf(arguments[0])}); var self=this;\n"
-        @"      try{Object.defineProperty(self,'readyState',{configurable:true,get:function(){return 4}})}catch(_){}\n"
-        @"      try{Object.defineProperty(self,'status',{configurable:true,get:function(){return 204}})}catch(_){}\n"
-        @"      try{Object.defineProperty(self,'statusText',{configurable:true,get:function(){return 'No Content'}})}catch(_){}\n"
-        @"      try{Object.defineProperty(self,'responseURL',{configurable:true,get:function(){return m.i.url}})}catch(_){}\n"
-        @"      try{Object.defineProperty(self,'responseText',{configurable:true,get:function(){return ''}})}catch(_){}\n"
-        @"      try{Object.defineProperty(self,'response',{configurable:true,get:function(){return ''}})}catch(_){}\n"
-        @"      Promise.resolve().then(function(){try{self.dispatchEvent(new Event('readystatechange'));self.dispatchEvent(new Event('load'));self.dispatchEvent(new Event('loadend'))}catch(_){}});\n"
-        @"      return;\n"
-        @"    }return xs.apply(this,arguments)};\n"
-        @"  }catch(_){}\n"
-        @"\n"
-        @"  function residual(){var m=Object.create(null),a=[];try{a=performance.getEntriesByType('resource')||[]}catch(_){};for(var j=0;j<a.length;j++){try{var i=info(a[j].name);if(!i.blocked)continue;var key=i.category+'|'+i.host+'|'+String(a[j].initiatorType||'other');m[key]=(m[key]||0)+1}catch(_){}}var o=[];Object.keys(m).sort(function(a,b){return m[b]-m[a]}).forEach(function(k){var z=k.split('|');o.push({category:z[0],host:z[1],initiator:z[2],count:m[k]})});return o}\n"
-        @"  function report(){return JSON.stringify({frame:{href:(function(){var i=info(location.href);return i.url})(),child:(function(){try{return top!==window}catch(_){return true}})(),ready:document.readyState},installed:!!window.__adPrivacy7117Installed,enabled:!!window.__adPrivacy7117Enabled,sinceMs:Date.now()-t0,dropped:dropped,counts:counts,blockedEvents:ev,residualTelemetryResources:residual()},null,2)}\n"
-        @"  function frames(){var out=[];try{var a=document.getElementsByTagName('iframe');for(var i=0;i<a.length&&out.length<32;i++)out.push(a[i])}catch(_){}return out}\n"
-        @"  window.__adPrivacy7117Report=report;\n"
-        @"  window.__adPrivacy7117Broadcast=function(msg){try{var a=frames();for(var i=0;i<a.length;i++)try{a[i].contentWindow.postMessage(msg,'*')}catch(_){}}catch(_){}};\n"
-        @"  window.addEventListener('message',function(e){try{var d=e.data;if(!d)return;if(d.__adPrivacy7117Toggle===1){window.__adPrivacy7117Enabled=!!d.enabled;try{window.__adPrivacy7117Broadcast(d)}catch(_){}return;}if(d.__adPrivacy7117!==1||!d.nonce)return;try{top.postMessage({__adPrivacy7117Result:1,nonce:d.nonce,href:location.href,report:report()},'*')}catch(_){}try{window.__adPrivacy7117Broadcast(d)}catch(_){}}catch(_){}},false);\n"
-        @"}catch(e){}\n"
-        @"})();\n"
-        ;
+        @"(function(){try{"
+        @"if(window.__adPrivacy7117Installed){window.__adPrivacy7117Enabled=true;return;}"
+        @"window.__adPrivacy7117Installed=1;window.__adPrivacy7117Enabled=true;var xhrMeta=new WeakMap();"
+        @"function parse(u){try{return new URL(String(u&&u.url?u.url:u||''),location.href)}catch(_){return null}}"
+        @"function blockedHost(h){h=String(h||'').toLowerCase();return h==='unagi.amazon.com'||h==='unagi-na.amazon.com'||h==='fls-na.amazon.com'||h==='api.mshop.bdtelemetry.amazon'||h==='session.mshopbugsnag.irm.amazon.dev'||h==='trace.mshopbugsnag.irm.amazon.dev'||h==='vfw.amazon-adsystem.com'||h.endsWith('.service.minerva.devices.a2z.com')||/^api\.stores\.[^.]+\.prod\.paets\.advertising\.amazon\.dev$/.test(h)||/^aes\..*\.amazon-adsystem\.com$/.test(h)}"
+        @"function info(u){var x=parse(u),h=x?x.hostname.toLowerCase():'';return{blocked:!!(x&&blockedHost(h)),url:x?(x.protocol+'//'+x.host+(x.pathname||'/')):String(u||'')}}"
+        @"function fakeResponse(url){try{return new Response(null,{status:204,statusText:'No Content',headers:{'Cache-Control':'no-store','X-AmazonDark-Privacy':'1'}})}catch(_){return{ok:true,status:204,statusText:'No Content',url:String(url||''),text:function(){return Promise.resolve('')},json:function(){return Promise.resolve({})},arrayBuffer:function(){return Promise.resolve(new ArrayBuffer(0))}}}}"
+        @"try{var osb=navigator.sendBeacon;if(typeof osb==='function')navigator.sendBeacon=function(url,data){var i=info(url);if(window.__adPrivacy7117Enabled&&i.blocked)return true;return osb.apply(this,arguments)}}catch(_){}"
+        @"try{var of=window.fetch;if(typeof of==='function')window.fetch=function(input,init){var i=info(input);if(window.__adPrivacy7117Enabled&&i.blocked)return Promise.resolve(fakeResponse(i.url));return of.apply(this,arguments)}}catch(_){}"
+        @"try{var xo=XMLHttpRequest.prototype.open,xs=XMLHttpRequest.prototype.send;XMLHttpRequest.prototype.open=function(method,url){try{xhrMeta.set(this,info(url))}catch(_){}return xo.apply(this,arguments)};XMLHttpRequest.prototype.send=function(){var m=null;try{m=xhrMeta.get(this)}catch(_){};if(window.__adPrivacy7117Enabled&&m&&m.blocked){var self=this;try{Object.defineProperty(self,'readyState',{configurable:true,get:function(){return 4}})}catch(_){}try{Object.defineProperty(self,'status',{configurable:true,get:function(){return 204}})}catch(_){}try{Object.defineProperty(self,'statusText',{configurable:true,get:function(){return 'No Content'}})}catch(_){}try{Object.defineProperty(self,'responseURL',{configurable:true,get:function(){return m.url}})}catch(_){}try{Object.defineProperty(self,'responseText',{configurable:true,get:function(){return ''}})}catch(_){}try{Object.defineProperty(self,'response',{configurable:true,get:function(){return ''}})}catch(_){}Promise.resolve().then(function(){try{self.dispatchEvent(new Event('readystatechange'));self.dispatchEvent(new Event('load'));self.dispatchEvent(new Event('loadend'))}catch(_){}});return}return xs.apply(this,arguments)}}catch(_){}"
+        @"function broadcast(msg){try{var a=document.getElementsByTagName('iframe');for(var i=0;i<a.length&&i<32;i++)try{a[i].contentWindow.postMessage(msg,'*')}catch(_){}}catch(_){}}"
+        @"window.__adPrivacy7117Broadcast=broadcast;window.addEventListener('message',function(e){try{var d=e.data;if(d&&d.__adPrivacy7117Toggle===1){window.__adPrivacy7117Enabled=!!d.enabled;broadcast(d)}}catch(_){}},false);"
+        @"}catch(e){}})();";
 }
 
 

@@ -1,24 +1,32 @@
-# AmazonDark v7.152~performance-compaction-image-fix — production performance + alternate-ad image repair
+# AmazonDark v7.153~production-performance-hotpath-fix
 
-## v7.152 delta (direct base: v7.151)
+Direct base: v7.152~performance-compaction-image-fix.
 
-- **Production-performance cut:** removes the Search screenshot/SIGUSR2 diagnostics, all-frame probe bridge, diagnostic file writer, and probe-only WebKit user script.
-- **Privacy fast path:** removes diagnostic request counters/bookkeeping and the probe-only `NSURLSessionTask -resume` hook while preserving Privacy Mode blocking.
-- **Search selector compaction:** removes four savings `:has()` relationships plus two unnecessary Search relational selectors and replaces them with direct exact-family selectors.
-- **Alternate video-ad image repair:** keeps `_c2Itd_image_pQREQ` visible above the renderer's background-link plane while retaining TWB directly on the real raster.
-- **Alternate video-ad floor compaction:** replaces blanket `_c2Itd_singleAsin_fHkKv` descendant painting with exact layout/detail ownership.
-- **No active MutationObserver, interval, RAF loop, scroll listener, or recurring DOM scanner.** The production WebKit stack is back to Floor, standalone-ad paint, optional TWB, and optional Privacy Mode.
+## Priority
+Production performance is the primary design constraint. Search theming must be achieved with static, narrowly scoped ownership and must not add live DOM walkers, MutationObservers, timers, RAF loops, screenshot probes, or broad selectors that force every Search element/image to participate in expensive style matching.
 
+## v7.153 performance correction
+v7.152 removed the explicit probe runtime, but review against the fast v7.146 production baseline exposed additional recent hot-path regressions:
 
-## Previous v7.151 notes
+- The privacy document-start script still contained the expanded v7.151 diagnostic request bookkeeping (`MAX=320`, event arrays/counters, residual resource reporting, diagnostic message reporting). v7.153 restores `ADPrivacyModeJS7117` byte-for-byte to the compact v7.146 production implementation.
+- Removed the universal `.haul-puis-widget-faceout-container *` Search matcher. The Haul repair now owns only the faceout root and its direct non-image/action structural children.
+- Removed generic coupon substring fallbacks such as `[class*=coupon][class*=price]`; the known coupon classes captured by the probe are targeted directly.
+- Removed the alternate-video product-detail rules that matched every DIV/SECTION/SPAN/A under `productDetailsContainer` and then evaluated long exclusion chains. Exact `_c2Itd` classes captured by the probe are used instead.
+- Removed the VIDEO_SINGLE_PRODUCT TWB rule whose rightmost selector was every `img,canvas` in Search plus a long exclusion chain. TWB now targets the product raster through `.mobile-video-product-view .s-product-image-container img.s-image` and the alternate renderer through `img._c2Itd_image_pQREQ`.
 
-# AmazonDark v7.151~search-alt-video-ad-badge-fix-probe — alternate Search video ad + badge ownership fix
+## Alternate standalone-video image
+The v7.152 image-stack repair is preserved: `_c2Itd_image_pQREQ` remains visible/opaque above its local link plane, the wrapper stack remains transparent, unused image-column area remains OLED black, and TWB stays on the actual product raster.
 
-## v7.151 delta (direct base: v7.150)
-- Alternate standalone Search video ad (`_c2Itd_*` renderer): adds standardized `#494d4d` card/product-shell borders and owns the lower product-detail structural floors as OLED black.
-- Alternate standalone ad TWB: keeps `VIDEO._c2Itd_video_17g-f` compositor-unfiltered, shades the renderer's own full-size `_c2Itd_videoOverlay_1H_Jm`, and adds the exact product raster `img._c2Itd_image_pQREQ` to the normal TWB brightness lane.
-- Video controls: removes v7.150's `all:revert` author rule on WebKit media-control pseudos (the source of rectangular control backing boxes). Both known Search video renderers now only receive `color-scheme:light`/`filter:none` on the real video; ordinary control wrappers are kept transparent, and their icon descendants are excluded from AmazonDark's generic glyph filter.
-- Limited-time-deal: explicitly restores `DEAL_*` AUI badges to the stock-style deep red `#cc0c39` plate with white text.
-- Product micro-badges: retracts the unsafe blanket `.a-badge` rule. Anonymous non-status/non-coupon badges are the yellow transparent attribute lane, including badge-label pseudos so the small white plate can no longer survive. Savings/success markers override the whole matching badge subtree to transparent with `#00a650` green copy. Generic `discount` matching is removed.
-- Diagnostics: retains the full v7.150 probe, adds `data-a-badge-type`, `data-a-badge-color`, `data-testid`, and `data-component-type` metadata (still no element text), expands alternate `_c2Itd` card capture, and includes the alternate media/control roots in the control-tree probe.
-- No MutationObserver, interval, RAF loop, scroll listener, or recurring DOM scanner is added.
+## Production runtime
+- 4 WKUserScript installation lanes (same as v7.146)
+- 30 existing `:has()` selectors (same count as v7.146; no new relational selectors)
+- 0 active `MutationObserver`
+- 0 `setInterval`
+- 0 `requestAnimationFrame`
+- 0 `setTimeout`
+- 0 runtime `querySelectorAll`
+- 0 screenshot diagnostic listener
+- 0 SIGUSR2 probe runtime
+- 0 probe-only NSURLSessionTask hook
+
+No diagnostic probe ships in this production build.
