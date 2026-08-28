@@ -1,3 +1,7 @@
+# AmazonDark v7.158~search-floor-scx-fix-probe
+
+Direct base: v7.157. Keeps the three route-exclusive stylesheet/TWB architecture. Restores the proven v7.133 Search-gap transition-backing mechanism at exact Autocomplete WebView mount, normalizes autocomplete row separators back to #494d4d, and restores direct brightness TWB on exact `img.scx-stt-image` sticky-refinement rasters. Diagnostic probes remain enabled temporarily.
+
 # AmazonDark v7.157~three-lane-stylesheet-probe
 
 Performance architecture: three route-exclusive WebKit style lanes. The Home/menu document receives only the menu sheet; the dedicated `/autocomplete` WebView receives only the Search-pane sheet; `/s` receives only the product-scrolling sheet. The same split is applied to TWB. This build retains the v7.156 diagnostic probes temporarily while UI parity is verified.
