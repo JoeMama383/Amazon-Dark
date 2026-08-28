@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.162-search-scrollbar-alexa-carousel-twb-probe"
+#define AD_VERSION "v7.163-product-card-polish-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -791,7 +791,7 @@ static NSString *ADFloorJS(void){
         @"ntainer):not(.haul-puis-widget-action-button){border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}#search#search .haul-puis-widget-faceout-container"
         @" > :not(.haul-puis-image-container):not(.haul-puis-widget-action-button){background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!im"
         @"portant;box-shadow:none!important;}#search#search .s-coupon-tile,#search#search .s-coupon-tile-price-content,#search#search .s-coupon-unclipped,#search#search .s-coupon-highlight-c"
-        @"olor{background:#405a4a!important;background-color:#405a4a!important;background-image:none!important;border-color:#587161!important;box-shadow:none!important;color:#fff!important;-"
+        @"olor{background:#008000!important;background-color:#008000!important;background-image:none!important;border-color:#008000!important;box-shadow:none!important;color:#fff!important;-"
         @"webkit-text-fill-color:#fff!important;}#search#search .s-coupon-tile-text-content,#search#search .s-coupon-checkbox-label,#search#search .s-coupon-tile-price-content,#search#search"
         @" .s-coupon-unclipped,#search#search .s-coupon-highlight-color{color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search :is(video.sbv-video-player-ecx,video._c2It"
         @"d_video_17g-f){color-scheme:light!important;accent-color:auto!important;filter:none!important;-webkit-filter:none!important;}#search#search :is(.sbv-video-pause-button-container,.s"
@@ -849,7 +849,11 @@ static NSString *ADFloorJS(void){
         @"nt;-webkit-text-fill-color:#fff!important;}#search#search .puis-atcb-button{background:#000!important;background-color:#000!important;border:1px solid #747a7c!important;box-shadow:"
         @"inset 0 0 0 1px #747a7c!important;filter:none!important;-webkit-filter:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#search#search .puis-atcb-b"
         @"utton .a-button-inner{background:transparent!important;background-color:transparent!important;border-color:transparent!important;box-shadow:none!important;}#search#search .puis-atc"
-        @"b-button .a-button-text{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}.puis-mab-chevron :is(i.a-icon-dropdown,.a-icon.a-icon-dropdown),.puis-mab-chevron-glyph "
+        @"b-button .a-button-text{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        @"#search#search .puis-card-container .puis-variations-block,#search#search .puis-card-container .puis-variations-block :is(a,span,div){background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+        @"#search#search .puis-card-container .a-button.a-button-primary{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:inset 0 0 0 1px #747a7c!important;filter:none!important;-webkit-filter:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#search#search .puis-card-container .a-button.a-button-primary .a-button-inner{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;}#search#search .puis-card-container .a-button.a-button-primary .a-button-text{background:transparent!important;background-color:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        @"#search#search .puis-status-badge-container :is(span,div,a){color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search .puis-card-container :is(.a-color-success,[class*=success],[class*=saving],[class*=savings]){background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;color:#00c853!important;-webkit-text-fill-color:#00c853!important;}#search#search .puis-card-container :is(.a-color-success,[class*=success],[class*=saving],[class*=savings]) :is(span,a,div){color:#00c853!important;-webkit-text-fill-color:#00c853!important;}"
+        @".puis-mab-chevron :is(i.a-icon-dropdown,.a-icon.a-icon-dropdown),.puis-mab-chevron-glyph "
         @":is(i.a-icon-dropdown,.a-icon.a-icon-dropdown){filter:brightness(0) invert(1)!important;opacity:1!important;}#search [data-a-badge-color=\\\"sx-cloud\\\"],#search [data-a-badge-color=\\"
         @"\"sx-cloud\\\"] :is(.a-badge-label,.a-badge-label-inner,.a-badge-text){background:transparent!important;background-color:transparent!important;background-image:none!important;border-c"
         @"olor:transparent!important;box-shadow:none!important;color:#ffd814!important;-webkit-text-fill-color:#ffd814!important;}#search [data-a-badge-color=\\\"sx-cloud\\\"]::before,#search [d"
@@ -3561,9 +3565,9 @@ static dispatch_source_t gADSearchResultsProbeSignal7139=nil;
 static NSString *ADSearchResultsProbePath7139(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.162-search-scrollbar-alexa-carousel-twb-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.163-product-card-polish-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.162-search-scrollbar-alexa-carousel-twb-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.163-product-card-polish-probe.txt"];
 }
 static void ADSearchResultsProbeAppend7139(NSString *s){
     if(!s.length)return;
@@ -3687,6 +3691,10 @@ static NSString *ADSearchResultsProbeJS7139(void){
     "seasonalAutocomplete:GC('.s-entity-pd-carousel-tile-suggestion,.s-entity-pd-carousel-tile-container,.s-entity-pd-carousel-tile-element-container,.s-entity-pd-carousel-tile-element-image-container,.s-entity-pd-carousel-tile-element-image,.s-entity-pd-carousel-tile-element-title-container',96),"
     "alexaStrip:GC('#search .nice-widget-container-inline-slot,#search .nice-widget-container-inline-slot::before,#search .nice-widget-container-inline-slot::after',32),"
     "standaloneCarouselMedia:GC('#search img._bXVsd_image_iVomf,#search img._bXVsd_lifestyleImage_1fluW,#search img._bXVsd_pixel_3yBgA',64),"
+    "variationStrips:GC('#search .puis-card-container .puis-variations-block,#search .puis-card-container .puis-variations-block a,#search .puis-card-container .puis-variations-block span,#search .puis-card-container .puis-variations-block div',96),"
+    "productPrimaryButtons:GC('#search .puis-card-container .a-button.a-button-primary,#search .puis-card-container .a-button.a-button-primary .a-button-inner,#search .puis-card-container .a-button.a-button-primary .a-button-text',96),"
+    "statusBadgeText:GC('#search .puis-status-badge-container,#search .puis-status-badge-container span,#search .puis-status-badge-container div,#search .puis-status-badge-container a',96),"
+    "savingsCandidates:GC('#search .puis-card-container .a-color-success,#search .puis-card-container [class*=success],#search .puis-card-container [class*=saving],#search .puis-card-container [class*=savings]',96),"
     "searchDirect:GC('#search>div,#search>section,#search>article,#search .s-main-slot>div,#search .s-main-slot>section,#search .s-main-slot>article',120),"
     "heroSponsored:GC('#gwm-window [id^=wd-shoppable-] [data-ad-feedback-label-id],#gwm-window [id^=wd-shoppable-] .ape-feedback,#gwm-window [id^=wd-shoppable-] [class*=ad-feedback],#gwm-window [id^=wd-shoppable-] [id^=ad-feedback-],[class*=single-creative-card] [data-ad-feedback-label-id],[class*=single-creative-card] [class*=ad-feedback],[id*=mobile-wd-][class*=ape-feedback]',80),"
     "homeAdShells:GC('#gwm-window,[id^=wd-shoppable-],[class*=single-creative-card],[class*=single-video-card],[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback],[data-testid=renderer-factory-ad-container],#ad,#dynamic-bb,[data-acei-id=lfstyl-img],[data-acei-id=prod-img]',90),"
@@ -3716,7 +3724,7 @@ static NSString *ADSearchResultsProbeJS7139(void){
 }
 static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     if(!gP.enabled)return; NSUInteger run=++gADSearchResultsProbeRun7139;
-    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.162 SEARCH SCROLLBAR + ALEXA STRIP + CAROUSEL TWB PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== LOCATION LAYERS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
+    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.163 PRODUCT CARD POLISH PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== LOCATION LAYERS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
         (unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchResultsProbeNative7139(),ADSearchResultsProbeGlowLayers7141(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(head);
     NSMutableArray *home=[NSMutableArray array],*search=[NSMutableArray array],*fallback=[NSMutableArray array];

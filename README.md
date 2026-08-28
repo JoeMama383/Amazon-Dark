@@ -1,3 +1,16 @@
+# AmazonDark v7.163~product-card-polish-probe
+
+## v7.163 product-card result polish
+
+- Direct base: v7.162. Preserves the working v7.159/v7.161 Search-transition behavior and the three route-exclusive styling/TWB lanes.
+- The exact `.puis-variations-block` family seen under the product photos is OLED black, including its small structural descendants; its existing text color is left alone.
+- Every primary button inside `.puis-card-container` receives the same OLED-black + gray-border paint already used by the correct `.puis-atcb-button`, so yellow and dark Add to cart variants converge without geometry changes.
+- Text under `.puis-status-badge-container` is forced true white while Amazon keeps the badge fill/shape.
+- Savings/saving/success labels inside product cards lose colored floors and use true-green `#00c853` text on transparent backgrounds.
+- The custom coupon tile fill changes from muted sage `#405a4a` to true green `#00a650`; white coupon copy is preserved.
+- Screenshot/SIGUSR2 diagnostics stay enabled and now inventory variation strips, all product-card primary buttons, status-badge descendants, and savings candidates.
+- No MutationObserver, timer, interval, RAF loop, scroll listener, or recurring repair scan is added.
+
 # AmazonDark v7.162~search-scrollbar-alexa-carousel-twb-probe
 
 ## v7.162 Search scrollbar + Alexa strip + standalone-carousel TWB probe
