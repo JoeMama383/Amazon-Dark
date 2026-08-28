@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.148-search-mute-coupon-fix-probe"
+#define AD_VERSION "v7.149-stock-video-controls-coupon-green-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -978,35 +978,43 @@ static NSString *ADFloorJS(void){
              * 48x48 wrapper transparent if Amazon composes it through another Search selector. */
             "#search#search .more-like-this-container:has(.mlt-icon-container)"
             "{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}"
-            /* v7.148: current Search coupon-price presentation uses Amazon coupon chrome that
-             * the broad Search owners intentionally exclude. Normalize only coupon-price /
-             * coupon-highlight surfaces to the same medium gray used by other neutral pills;
-             * leave the checkbox/icon leaf alone and make coupon copy pure white. */
+            /* v7.149: exact coupon split from the v7.148 device probe. The 163.4x28
+             * .s-coupon-tile is the surviving stock pink painter (rgb(255,227,227)); the
+             * 38.7x22 .s-coupon-tile-price-content is a separate right-hand price painter.
+             * Give both halves one subdued sage surface and pure-white copy. The checkbox
+             * control/artwork remains Amazon-owned; only surrounding coupon chrome/copy is styled. */
+            "#search#search .s-coupon-tile,"
+            "#search#search .s-coupon-tile-price-content,"
             "#search#search :is([data-component-type=s-coupon-component] .s-coupon-unclipped,"
             "[data-component-type=s-coupon-component] .s-coupon-highlight-color,"
             "[class*=coupon][class*=price],[class*=coupon][class*=highlight])"
-            "{background:#4a4f51!important;background-color:#4a4f51!important;background-image:none!important;"
-            "border-color:#62686a!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+            "{background:#405a4a!important;background-color:#405a4a!important;background-image:none!important;"
+            "border-color:#587161!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+            "#search#search .s-coupon-tile :is(.s-coupon-tile-text-content,.s-coupon-checkbox-label),"
+            "#search#search .s-coupon-tile-price-content,"
             "#search#search :is([data-component-type=s-coupon-component] .s-coupon-unclipped,"
             "[data-component-type=s-coupon-component] .s-coupon-highlight-color,"
             "[class*=coupon][class*=price],[class*=coupon][class*=highlight]) "
             ":is(span,div,p,strong,b)"
             ":not([class*=checkbox]):not(:where([class*=checkbox] *)):not([class*=icon]):not(:where([class*=icon] *))"
             "{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
-            /* v7.148: v7.147 proves the visible right-side media controls are not ordinary
-             * descendants of .sbv-video-overlay: the captured subtree contains zero controls.
-             * They are WebKit media controls attached to VIDEO.sbv-video-player-ecx. Replace
-             * only the mute-button glyph image, keyed off WebKit's dynamic :muted state, so a
-             * single speaker+waves OR speaker+X is rendered instead of both simultaneously.
-             * The stock circular control shell, geometry and play/pause control remain owned
-             * by WebKit/Amazon. No JS listener or recurring state watcher is required. */
+            /* v7.149: stock-island boundary for Search sponsored-video controls. v7.147
+             * proved the visible right-side controls are WebKit media-control chrome rather
+             * than descendants of .sbv-video-overlay. The original malformed mute artwork
+             * therefore predates v7.148's custom SVG and can still receive author-origin
+             * spillover from broad theming. Explicitly roll the exposed play/pause + mute
+             * pseudo-controls back to their UA/stock values. AmazonDark owns neither glyph,
+             * background image, tint, filter, border nor shell styling here. The VIDEO itself
+             * remains unfiltered below and TWB remains on the separate overlay background. */
+            "#search#search video.sbv-video-player-ecx::-webkit-media-controls-panel,"
+            "#search#search video.sbv-video-player-ecx::-webkit-media-controls-play-button,"
             "#search#search video.sbv-video-player-ecx::-webkit-media-controls-mute-button"
-            "{background-repeat:no-repeat!important;background-position:center!important;background-size:28px 28px!important;"
-            "filter:none!important;-webkit-filter:none!important;}"
-            "#search#search video.sbv-video-player-ecx:not(:muted)::-webkit-media-controls-mute-button"
-            "{background-image:url(\"data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAzMiAzMic+PHBhdGggZmlsbD0nI2ZmZicgZD0nTTQuNSAxMi41aDUuMmw2LjMtNXYxN2wtNi4zLTVINC41eicvPjxwYXRoIGZpbGw9J25vbmUnIHN0cm9rZT0nI2ZmZicgc3Ryb2tlLXdpZHRoPScyLjMnIHN0cm9rZS1saW5lY2FwPSdyb3VuZCcgZD0nTTIwIDExLjVjMi42IDIuNSAyLjYgNi41IDAgOU0yMy41IDguNWM0LjQgNC4yIDQuNCAxMC44IDAgMTUnLz48L3N2Zz4=\")!important;}"
-            "#search#search video.sbv-video-player-ecx:muted::-webkit-media-controls-mute-button"
-            "{background-image:url(\"data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAzMiAzMic+PHBhdGggZmlsbD0nI2ZmZicgZD0nTTQuNSAxMi41aDUuMmw2LjMtNXYxN2wtNi4zLTVINC41eicvPjxwYXRoIGZpbGw9J25vbmUnIHN0cm9rZT0nI2ZmZicgc3Ryb2tlLXdpZHRoPScyLjUnIHN0cm9rZS1saW5lY2FwPSdyb3VuZCcgZD0nbTIwLjUgMTEuNSA3IDltMC05LTcgOScvPjwvc3ZnPg==\")!important;}"
+            "{-webkit-appearance:revert!important;appearance:revert!important;background:revert!important;"
+            "background-image:revert!important;background-color:revert!important;color:revert!important;"
+            "-webkit-text-fill-color:revert!important;fill:revert!important;stroke:revert!important;"
+            "filter:revert!important;-webkit-filter:revert!important;opacity:revert!important;"
+            "border:revert!important;outline:revert!important;box-shadow:revert!important;text-shadow:revert!important;"
+            "-webkit-mask:revert!important;mask:revert!important;mix-blend-mode:revert!important;}"
             /* Non-brand Search glyphs. Prime/star/rating and the quick-action artwork
              * above are explicitly excluded so their current accent colors/shapes survive. */
             "#search :is(svg,i,[class*=icon],[class*=glyph])"
@@ -4403,7 +4411,7 @@ static void ADConsiderLaunchReady706(void){
 %end
 
 // -----------------------------------------------------------------------------
-// v7.148 Search mute/coupon fix verification probe. Screenshot/SIGUSR2 only.
+// v7.149 stock video-control exclusion + coupon-green verification probe. Screenshot/SIGUSR2 only.
 // It records Home hero Sponsored chrome plus full-raster/TWB geometry without capturing query
 // text, element text, outerHTML, clipboard data, request bodies, or headers.
 // No observer, timer, RAF, scroll listener, or recurring DOM work is installed.
@@ -4414,9 +4422,9 @@ static dispatch_source_t gADSearchResultsProbeSignal7139=nil;
 static NSString *ADSearchResultsProbePath7139(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.148-search-mute-coupon-fix-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.149-stock-video-controls-coupon-green-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.148-search-mute-coupon-fix-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.149-stock-video-controls-coupon-green-probe.txt"];
 }
 static void ADSearchResultsProbeAppend7139(NSString *s){
     if(!s.length)return;
@@ -4549,14 +4557,14 @@ static NSString *ADSearchResultsProbeJS7139(void){
     "videoAd:GC('#search .sbv-video-overlay,#search video.sbv-video-player-ecx,#search .sbv-video,#search .sbv-video-container,#search .sbv-mobile-video-link',64),"
     "videoControls:GC('#search .sbv-video-overlay,#search .sbv-video-overlay *',180),"
     "videoControlTrees:VCTRL(),"
-    "coupon:GC('#search [data-component-type=s-coupon-component],#search .s-coupon-unclipped,#search .s-coupon-highlight-color,#search [class*=coupon][class*=price],#search [class*=coupon][class*=highlight]',72),"
+    "coupon:GC('#search [data-component-type=s-coupon-component],#search .s-coupon-tile-content-container,#search .s-coupon-tile,#search .s-coupon-tile-text-content,#search .s-coupon-checkbox-label,#search .s-coupon-tile-price-content,#search .s-coupon-unclipped,#search .s-coupon-highlight-color,#search [class*=coupon][class*=price],#search [class*=coupon][class*=highlight]',96),"
     "accents:G('#search i.a-icon-prime,#search [class*=prime],#search i[class*=a-icon-star],#search [class*=star],#search [class*=rating]',48),"
     "media:G('#search img,#search picture,#search video,#search canvas',64),hit:hit};"
     "return JSON.stringify(o,null,2);}catch(e){return 'SEARCH_RESULTS_DOM_ERR '+e;}})();";
 }
 static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     if(!gP.enabled)return; NSUInteger run=++gADSearchResultsProbeRun7139;
-    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.148 SEARCH MUTE + COUPON FIX PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== LOCATION LAYERS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
+    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.149 STOCK VIDEO CONTROLS + COUPON GREEN PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== LOCATION LAYERS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
         (unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchResultsProbeNative7139(),ADSearchResultsProbeGlowLayers7141(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(head);
     NSMutableArray *home=[NSMutableArray array],*search=[NSMutableArray array],*fallback=[NSMutableArray array];
