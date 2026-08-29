@@ -1,4 +1,16 @@
-# AmazonDark v7.164~swatch-options-bounded-probe
+# AmazonDark v7.165~swatch-art-preservation-probe
+
+Direct base: v7.164~swatch-options-bounded-probe.
+
+## v7.165 single-swatch artwork preservation
+
+- Fixes the remaining one-off color swatch that could render as an empty black circle while neighboring swatches retained their authored colors.
+- Root cause candidate is isolated to v7.164's exact swatch-shell cleanup: it cleared `background-image` on `.s-color-swatch-outer-circle`. Most Amazon swatches keep color in `.s-color-swatch-inner-circle-fill`, but an alternate/image-backed swatch can keep authored paint on the outer-circle/pseudo path.
+- Structural row shells still lose their white floors, but `.s-color-swatch-outer-circle` now clears only background-color/shadow/filter; it no longer destroys authored background-image paint on the circle or its pseudos.
+- Known inner swatch-art families explicitly keep stock filters/blending/opacity and receive no forced color/background.
+- Probe now records swatches FIRST, before the large ribbon inventories can consume the per-WebView JSON budget, and records each target's inline style attribute for color-source verification.
+- Existing 28 MiB hard probe-file ceiling and per-run reset remain unchanged.
+
 
 Direct base: v7.163~product-card-polish-probe.
 
