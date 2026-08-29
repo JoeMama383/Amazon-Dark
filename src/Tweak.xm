@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.178-home-ape-card-text-fix-probe"
+#define AD_VERSION "v7.179-home-p13n-text-source-fix-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -713,7 +713,7 @@ static NSString *ADFloorJS(void){
         @"k(){try{var h=document.documentElement;if(h){h.style.setProperty('background-color','#000','important');h.style.setProperty('color-scheme','dark','important');}if(document.body){do"
         @"cument.body.style.setProperty('background-color','#000','important');document.body.style.setProperty('color-scheme','dark','important');}}catch(_){}}if(child&&document.documentElem"
         @"ent&&document.documentElement.hasAttribute('data-ad7-standalone-candidate')){put('ad7-child-floor-min','html,body{background:#000!important;background-color:#000!important;color-sc"
-        @"heme:dark!important;}:is(.p13n-uf,[class*=asin-container],[class*=_asin-data-attribute-wrapper]) :is([class*=asin-title],[class*=asin-metadata]){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}:is(.p13n-uf,[class*=asin-container],[class*=_asin-data-attribute-wrapper]) :is([class*=asin-title],[class*=asin-metadata]) :is(div,span,a,p,strong,small,.a-color-base,.a-text-normal,.a-size-base,.a-size-base-plus,.a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen):not([class*=rating]):not([class*=star]):not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}');rootBlack();return;}var p='';try{p=String(location.pathname||'');}catch(_){}var s=null;if(!child&&(p==='/autocomplete'||p.indexOf('/autocomplete/')===0)){s="
+        @"heme:dark!important;}');rootBlack();return;}var p='';try{p=String(location.pathname||'');}catch(_){}var s=null;if(!child&&(p==='/autocomplete'||p.indexOf('/autocomplete/')===0)){s="
         @"put('ad7-search-pane-theme',\"html,body,#a-page,#attach-to-me{background:#000!important;background-color:#000!important;color:#e8e6e3!important;color-scheme:dark!important;}.s-sugge"
         @"stion-container,.s-suggestion,.autocomplete-results-container,[class*=autocomplete],[class*=suggestion]:not([class*=icon]):not([class*=glyph]),[class*=recentSearch]:not([class*=ico"
         @"n]):not([class*=glyph]),[class*=search-suggestion]:not([class*=icon]):not([class*=glyph]){background:#000!important;background-color:#000!important;color:#e8e6e3!important;}:is(.s-"
@@ -964,7 +964,7 @@ static NSString *ADFloorJS(void){
         @"text-fill-color:#e8e6e3!important;}:is(#gwm-Deck-btf,.gwm-dashboard-container) :is(.a-color-base,.a-text-normal,.a-size-base,.a-size-base-plus,.a-size-medium,.a-price,.a-price-whol"
         @"e,.a-price-symbol,.a-price-fraction,.a-offscreen,[class*=product-title],[class*=product-name],[class*=item-title]):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adF"
         @"eedback]):not([id^=ad-feedback-text-]):not([id^=af-label-primary-link-]):not([class*=badge]):not([class*=deal]):not([class*=coupon]):not(:where([class*=badge] *)):not(:where([class"
-        @"*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *)"
+        @"*=deal]:not([class*=csm-strategy-id]) *)):not(:where([class*=coupon] *)):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *)"
         @"):not(:where([id^=af-label-] *)):not(:where([class*=hero] *)):not(:where([class*=single-creative] *)):not(:where([class*=single-video] *)):not(:where([class*=theming-card] *)):not("
         @":where([class*=creative-card] *)):not(:where([class*=ad-card] *)):not(:where([class*=canvas-card] *)):not(:where([class*=mobile-mshop-ad] *)):not(:where([class*=mobile-ad-container"
         @"] *)):not(:where(#mobile-third-party-ad *)):not(:where([class*=ape-wrapper] *)):not(:where([class*=ape-placement] *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!import"
@@ -3795,12 +3795,12 @@ static NSString *ADSearchResultsProbePath7139(NSUInteger run){
         fmt.timeZone=[NSTimeZone localTimeZone];
         fmt.dateFormat=@"yyyyMMdd-HHmmss-SSS";
         NSString *stamp=[fmt stringFromDate:[NSDate date]]?:@"unknown";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.178-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.179-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(docs.length)return [docs stringByAppendingPathComponent:name];
         return [NSTemporaryDirectory() stringByAppendingPathComponent:name];
     } @catch(...) {
-        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.178-dynamic-probe-r%lu.txt",(unsigned long)run]];
+        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.179-dynamic-probe-r%lu.txt",(unsigned long)run]];
     }
 }
 static void ADSearchResultsProbeAppend7139(NSString *p,NSString *s){
@@ -3953,7 +3953,7 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     NSUInteger run=++gADSearchResultsProbeRun7139;
     NSString *path=ADSearchResultsProbePath7139(run);
     NSString *runID=[NSString stringWithFormat:@"%@-pid%d-r%lu",[[path lastPathComponent] stringByDeletingPathExtension],getpid(),(unsigned long)run];
-    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.178 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
+    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.179 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(path,head);
     NSMutableArray *chosen=[NSMutableArray array];
     @try {

@@ -1,3 +1,20 @@
+# AmazonDark v7.179~home-p13n-text-source-fix-probe
+
+## v7.179 Home p13n text source fix
+
+- Direct source base: v7.178~home-ape-card-text-fix-probe.
+- The v7.178 device probe disproves the v7.178 APE-child diagnosis: the failing Outlet grid is in the top-frame Home `/gp/gw/ajax/mshop.html` document, inside a `gwm-widget` whose stable strategy class is `csm-strategy-id-outlet-deals-gateway-p13n`.
+- The source bug is the Home product-text selector's broad `:not(:where([class*=deal] *))` exclusion. Because the strategy wrapper itself contains the substring `deals`, that exclusion rejects every `.a-color-base` / `.a-price` descendant in the entire Outlet module before AmazonDark can make it light.
+- v7.179 fixes that selector at its source: the product-text lane now ignores a `deal` ancestor only when it is an actual deal/chrome container, not when the matching ancestor is a `csm-strategy-id-*` wrapper. Nested real deal/badge/coupon content stays excluded, while the product title/price leaves are allowed through to the existing `#e8e6e3` rule.
+- The broad card-link/text lane is intentionally unchanged, so authored CTA links such as `Explore more in Outlet` are not swept to white by this repair.
+- The mistaken v7.178 child-frame p13n override is removed; standalone child frames return to the minimal v7.177 floor-only protection.
+- Retains the v7.173+ dynamic multi-interface probe: screenshot/SIGUSR2 creates one unique v7.179 capture, capped at 28 MiB.
+
+No production MutationObserver, recurring timer, RAF loop, scroll listener, or recurring repair scan is added.
+
+---
+
+
 # AmazonDark v7.178~home-ape-card-text-fix-probe
 
 ## v7.178 Home APE product-card text parity
