@@ -1,4 +1,8 @@
-# AmazonDark v7.166~swatch-raster-preservation-probe
+## v7.167 visible-swatch truth probe
+
+Diagnostic-only child of v7.166. Production styling/TWB behavior is unchanged. The prior broad swatch inventory hit the 2.2 MB Web JSON cap before the visible-only inventory could serialize. v7.167 replaces that Web snapshot with a bounded visible-card-only swatch/circle capture and lowers the hard file cap to 5 MiB.
+
+# AmazonDark v7.167~visible-swatch-truth-probe
 
 ## v7.166 patterned/raster swatch preservation
 

@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.166-swatch-raster-preservation-probe"
+#define AD_VERSION "v7.167-visible-swatch-truth-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -3561,15 +3561,15 @@ static void ADConsiderLaunchReady706(void){
 // v7.0.68 production: v7.0.65 chevron diagnostic runtime removed.
 static NSUInteger gADSearchResultsProbeRun7139=0;
 static dispatch_source_t gADSearchResultsProbeSignal7139=nil;
-static const unsigned long long kADSearchResultsProbeMaxBytes7139=(28ULL*1024ULL*1024ULL);
+static const unsigned long long kADSearchResultsProbeMaxBytes7139=(5ULL*1024ULL*1024ULL);
 static BOOL gADSearchResultsProbeFileFull7139=NO;
 
 static NSString *ADSearchResultsProbePath7139(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.166-swatch-raster-preservation-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.167-visible-swatch-truth-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.166-swatch-raster-preservation-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.167-visible-swatch-truth-probe.txt"];
 }
 static void ADSearchResultsProbeReset7139(void){
     @try {
@@ -3590,7 +3590,7 @@ static void ADSearchResultsProbeAppend7139(NSString *s){
         NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding];
         unsigned long long remain=kADSearchResultsProbeMaxBytes7139-cur;
         if((unsigned long long)d.length>remain){
-            NSString *marker=@"\n[PROBE HARD-CAPPED AT 28 MiB — remaining diagnostic output omitted]\n";
+            NSString *marker=@"\n[PROBE HARD-CAPPED AT 5 MiB — remaining diagnostic output omitted]\n";
             NSData *md=[marker dataUsingEncoding:NSUTF8StringEncoding];
             unsigned long long bodyCap=(remain>(unsigned long long)md.length)?(remain-(unsigned long long)md.length):0;
             NSMutableData *trim=[NSMutableData data];
@@ -3689,69 +3689,26 @@ static NSString *ADSearchResultsProbeWebList7139(void){
     return m;
 }
 static NSString *ADSearchResultsProbeJS7139(void){
+    // v7.167 diagnostic-only: v7.166's broad `swatches` inventory consumed the
+    // 2.2 MB Web JSON cap before `visibleCircularSwatches` serialized. Capture
+    // only visible Search-result cards and their swatch/circle paint owners.
     return @"(function(){try{"
-    "function S(e,p){try{var s=getComputedStyle(e,p||null);return {content:s.content||'none',display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,bgi:s.backgroundImage,bgp:s.backgroundPosition,bgs:s.backgroundSize,bgr:s.backgroundRepeat,mask:s.webkitMaskImage||s.maskImage||'none',color:s.color,fill:s.fill,stroke:s.stroke,filter:s.webkitFilter||s.filter||'none',border:s.border,radius:s.borderRadius,shadow:s.boxShadow,outline:s.outline,font:s.fontFamily,fontSize:s.fontSize,fontWeight:s.fontWeight,lineHeight:s.lineHeight,textShadow:s.textShadow,webkitTextStroke:s.webkitTextStroke||'',transform:s.transform,overflow:s.overflow,clipPath:s.clipPath||s.webkitClipPath||'',z:s.zIndex,position:s.position};}catch(_){return {err:String(_)}}}"
-    "function P(e){if(!e)return null;var r=e.getBoundingClientRect(),o={tag:e.tagName,id:e.id||'',cls:String(e.className||'').slice(0,260),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],attrs:{badgeType:A(e,'data-a-badge-type'),badgeColor:A(e,'data-a-badge-color'),testid:A(e,'data-testid'),component:A(e,'data-component-type'),styleAttr:A(e,'style')},style:S(e),before:S(e,'::before'),after:S(e,'::after')};if(e.tagName==='VIDEO'){o.media={muted:e.muted?1:0,volume:+(+e.volume||0).toFixed(3),paused:e.paused?1:0,controls:e.controls?1:0,readyState:e.readyState||0,currentTime:+(+e.currentTime||0).toFixed(2)};o.ua={mute:S(e,'::-webkit-media-controls-mute-button'),play:S(e,'::-webkit-media-controls-play-button'),panel:S(e,'::-webkit-media-controls-panel')};}return o;}"
-    "function C(e,n){var a=[];for(var x=e;x&&a.length<(n||6);x=x.parentElement)a.push(P(x));return a;}"
-    "function Q(sel){return [].slice.call(document.querySelectorAll(sel));}"
-    "function G(sel,n){var a=Q(sel);return {count:a.length,items:a.slice(0,n||48).map(P)};}"
-    "function GC(sel,n){var a=Q(sel);return {count:a.length,items:a.slice(0,n||32).map(function(e){return {self:P(e),chain:C(e,7)}})};}"
-    "function A(e,n){try{return String(e.getAttribute&&e.getAttribute(n)||'').slice(0,360)}catch(_){return ''}}"
-    "function CP(e){var o=P(e)||{};try{o.ctrl={aria:(/mute|unmute|sound|volume|speaker|audio/i.test(A(e,'aria-label'))?A(e,'aria-label'):''),title:(/mute|unmute|sound|volume|speaker|audio/i.test(A(e,'title'))?A(e,'title'):''),role:A(e,'role'),testid:A(e,'data-testid'),name:A(e,'name'),type:A(e,'type'),viewBox:A(e,'viewBox'),href:(e.tagName==='USE'?A(e,'href')||A(e,'xlink:href'):''),d:(e.tagName==='PATH'?A(e,'d'):'')};}catch(_){}return o;}"
-    "function TREE(root){var budget=220;function W(e,d){if(!e||budget--<=0)return null;var o=CP(e);if(d<12){var kids=[];for(var c=e.firstElementChild;c&&kids.length<50;c=c.nextElementSibling){var z=W(c,d+1);if(z)kids.push(z);}if(kids.length)o.children=kids;}return o;}return W(root,0);}"
-    "function VCTRL(){var out=[];try{var roots=Q('#search .sbv-video-overlay,.sbv-video-overlay,#search video.sbv-video-player-ecx,video.sbv-video-player-ecx,#search video._c2Itd_video_17g-f,#search ._c2Itd_videoOverlay_1H_Jm,#search ._c2Itd_playClickRegion_87ZZa,[class*=single-video-card],[class*=singleVideoCard],.video-js');for(var r=0;r<roots.length&&out.length<24;r++){var root=roots[r],cand=[];try{cand=[].slice.call(root.querySelectorAll('button,[role=button],[aria-label],[title],svg,use,path,i,span,div')).filter(function(e){var k=(String(e.id||'')+' '+String(e.className&&e.className.baseVal||e.className||'')+' '+A(e,'aria-label')+' '+A(e,'title')+' '+A(e,'data-testid')).toLowerCase();return /mute|unmute|sound|volume|speaker|audio/.test(k);});}catch(_){}var buttons=[];try{buttons=[].slice.call(root.querySelectorAll('button,[role=button]'));}catch(_){}var uniq=[];cand.concat(buttons).forEach(function(e){if(e&&uniq.indexOf(e)<0&&uniq.length<20)uniq.push(e);});out.push({root:CP(root),rootTree:TREE(root),controls:uniq.map(function(e){return {ancestors:C(e,12),tree:TREE(e)}})});} }catch(e){out.push({err:String(e)})}return {count:out.length,items:out};}"
-    "function VSW(){var out=[];try{var cards=Q('#search .puis-card-container');for(var i=0;i<cards.length&&out.length<120;i++){var cr=cards[i].getBoundingClientRect();if(cr.bottom<0||cr.top>innerHeight||cr.right<0||cr.left>innerWidth)continue;var a=cards[i].querySelectorAll('*'),lim=Math.min(a.length,520);for(var j=0;j<lim&&out.length<120;j++){var e=a[j],r=e.getBoundingClientRect();if(r.width<10||r.height<10||r.width>64||r.height>64||Math.abs(r.width-r.height)>10)continue;var cs=getComputedStyle(e),rad=parseFloat(cs.borderRadius)||0,k=(String(e.className&&e.className.baseVal||e.className||'')+' '+A(e,'data-csa-c-content-id')+' '+A(e,'data-testid')).toLowerCase();var media=/^(IMG|PICTURE|CANVAS|SVG)$/.test(e.tagName||'');if(rad<7&&!media&&!/swatch|color/.test(k))continue;var kids=[];for(var c=e.firstElementChild;c&&kids.length<8;c=c.nextElementSibling)kids.push(P(c));out.push({self:P(e),chain:C(e,6),children:kids});}}}catch(e){out.push({err:String(e)})}return {count:out.length,items:out};}"
-        "var w=innerWidth,h=innerHeight,ys=[.03,.08,.14,.22,.31,.42,.56,.72,.86];"
-    "var hit=ys.map(function(y){var x=Math.round(w*.5),py=Math.round(h*y),a=(document.elementsFromPoint?document.elementsFromPoint(x,py):[document.elementFromPoint(x,py)]).filter(Boolean).slice(0,10);return {p:[x,py],stack:a.map(P)};});"
-    "var o={path:location.pathname,ready:document.readyState,viewport:[w,h,devicePixelRatio],scroll:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],body:P(document.body),doc:P(document.documentElement),"
-    "root:G('#search,#a-page',12),"
-    "swatches:GC('#search .puis-card-container .s-color-swatch-container-list-view,#search .puis-card-container .s-color-swatch-container,#search .puis-card-container .s-color-swatch-outer-circle,#search .puis-card-container .s-color-swatch-outer-circle>*,#search .puis-card-container [class*=s-color-swatch-inner-circle],#search .puis-card-container [class*=swatch-fill],#search .puis-card-container [class*=swatch-image]',96),"
-    "visibleCircularSwatches:VSW(),"
-    "ribbon:G('[class*=sf-rib],[class*=sf-mobile-rib],[class*=filter]',64),"
-    "ribbonArt:GC('.s-rib-toggle-container,.s-rib-toggle-icon,.sf-rib30-dropdown-pill-icon,.sf-rib30-review-content,.sf-rib30-review-stars-group,.sf-rib30-review-star,i.a-icon-prime.a-icon-small,.sf-mobile-rib-filter-icon,.sf-rib30-dropdown-arrow-icon',56),"
-    "scxTop:GC('.scx-stt-image,.scx-stt-image-container',48),"
-    "brandCarousel:GC('#search ._c2Itd_themeCollectionAsinItem_3wl1T,#search ._c2Itd_themeCollectionAsinItem_3wl1T img._c2Itd_image_3UiYm',64),"
-    "ribbonDropdowns:GC('.sf-rib30-dropdown-title,.sf-rib30-title-content-container,.sf-rib30-dropdown-title .sf-rib30-dropdown-pill-content,.sf-rib30-dropdown-title .sf-rib30-dropdown-pill-text,.sf-rib30-dropdown-title .sf-rib30-dropdown-arrow-icon,a[id^=dynamic-picker-].sf-rib30-dropdown-pill-option,a[id^=dynamic-picker-] .sf-rib30-dropdown-pill-content,a[id^=dynamic-picker-] .sf-rib30-dropdown-pill-text',72),"
-    "ribbonPanel:GC('#search .sf-rib30-panel,#search .sf-rib30-content,#search .sf-rib30-panel .a-button,#search .sf-rib30-panel .a-button-inner,#search .sf-rib30-panel .a-button-text,#search .sf-rib30-panel button',96),"
-    "autocomplete:GC('#attach-to-me,#attach-to-me .s-suggestion-container,#attach-to-me .s-suggestion,#attach-to-me .s-query-row,#attach-to-me .s-query-row-container,#attach-to-me .s-query-row-link,.autocomplete-results-container',100),"
-    "seasonalAutocomplete:GC('.s-entity-pd-carousel-tile-suggestion,.s-entity-pd-carousel-tile-container,.s-entity-pd-carousel-tile-element-container,.s-entity-pd-carousel-tile-element-image-container,.s-entity-pd-carousel-tile-element-image,.s-entity-pd-carousel-tile-element-title-container',96),"
-    "alexaStrip:GC('#search .nice-widget-container-inline-slot,#search .nice-widget-container-inline-slot::before,#search .nice-widget-container-inline-slot::after',32),"
-    "standaloneCarouselMedia:GC('#search img._bXVsd_image_iVomf,#search img._bXVsd_lifestyleImage_1fluW,#search img._bXVsd_pixel_3yBgA',64),"
-    "variationStrips:GC('#search .puis-card-container .puis-variations-block,#search .puis-card-container [data-csa-c-content-id=variation-options-link],#search .puis-card-container [class*=s-variations-options-justify-content],#search .puis-card-container [class*=s-variation-options-text],#search .puis-card-container [class*=s-variation-options-link],#search .puis-card-container .puis-csi-with-label-container',48),"
-    "productPrimaryButtons:GC('#search .puis-card-container .a-button.a-button-primary,#search .puis-card-container .a-button-stack>.a-button,#search .puis-card-container .a-button-stack>.a-button .a-button-inner,#search .puis-card-container .a-button-stack>.a-button .a-button-text',72),"
-    "statusBadgeText:GC('#search .puis-status-badge-container,#search .puis-status-badge-container span,#search .puis-status-badge-container div,#search .puis-status-badge-container a',96),"
-    "savingsCandidates:GC('#search .puis-card-container .a-color-success,#search .puis-card-container [class*=success],#search .puis-card-container [class*=saving],#search .puis-card-container [class*=savings]',96),"
-    "searchDirect:GC('#search>div,#search>section,#search>article,#search .s-main-slot>div,#search .s-main-slot>section,#search .s-main-slot>article',120),"
-    "heroSponsored:GC('#gwm-window [id^=wd-shoppable-] [data-ad-feedback-label-id],#gwm-window [id^=wd-shoppable-] .ape-feedback,#gwm-window [id^=wd-shoppable-] [class*=ad-feedback],#gwm-window [id^=wd-shoppable-] [id^=ad-feedback-],[class*=single-creative-card] [data-ad-feedback-label-id],[class*=single-creative-card] [class*=ad-feedback],[id*=mobile-wd-][class*=ape-feedback]',80),"
-    "homeAdShells:GC('#gwm-window,[id^=wd-shoppable-],[class*=single-creative-card],[class*=single-video-card],[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback],[data-testid=renderer-factory-ad-container],#ad,#dynamic-bb,[data-acei-id=lfstyl-img],[data-acei-id=prod-img]',90),"
-    "homeAdMedia:GC('#gwm-window [id^=wd-shoppable-] img,#gwm-window [id^=wd-shoppable-] video,#gwm-window [id^=wd-shoppable-] canvas,[class*=single-creative-card] img,[class*=single-video-card] img,#ad:has(#dynamic-bb) img,#ad:has(#dynamic-bb) video,#ad:has(#dynamic-bb) canvas,[data-testid=renderer-factory-ad-container] img,[data-acei-id=lfstyl-img] img,[data-acei-id=prod-img] img',100),"
-    "location:G('#nav-global-location-slot,#glow-ingress-block,[id*=glow-ingress],[class*=glow-ingress],[id*=delivery-location],[class*=delivery-location],[id*=ship-to],[class*=ship-to]',48),"
-    "ai:GC('#search [class*=alexa],#search [id*=alexa],#search [class*=research],#search [id*=research],#search [class*=rufus],#search [id*=rufus],#search [class*=query-understanding],#search [class*=shopping-assistant],#search [class*=ai-overview],#search [class*=search-guidance],#search [class*=guided-search]',96),"
-    "aiLogo:GC('#search [class*=alexa-plus-logo],#search [class*=rufus][class*=icon],#search img[class*=alexa],#search img[class*=rufus]',32),"
-    "aiControls:GC('#search .rufus-expandable-pills-toggle-button,#search .rufus-expandable-pills-chevron,#search .rufus-expandable-pills-chevron img',32),"
-    "aiPills:GC('#search #rufus-overviews-pills-carousel,#search #rufus-mobile-overviews-expandable-pills-carousel-container,#search #rufus-overviews-pills-carousel .a-carousel-card,#search #rufus-mobile-overviews-expandable-pills-carousel-container .a-carousel-card,#search .nile-inline-pill-button,#search .nile-inline-ingress-pill-button,#search #rufus-overviews-pills-carousel .a-button-inner,#search #rufus-mobile-overviews-expandable-pills-carousel-container .a-button-inner',72),"
-    "tiles:GC('#search #rufus-overviews-category-cards-carousel .a-carousel-card,#search #rufus-overviews-category-cards-carousel .a-carousel-card > .a-box,#search #rufus-overviews-category-cards-carousel .nice-cat-card_box,#search #rufus-overviews-category-cards-carousel img.nice-cat-card_image',64),"
-    "atc:GC('#search .puis-atcb-button,#search .puis-atcb-button .a-button-inner,#search .puis-atcb-button .a-button-text',48),"
-    "results:G('#search .s-result-item,#search .s-card-container,#search [data-component-type=s-search-result],#search .puisg-row,#search .puisg-col,#search .puisg-col-inner',72),"
-    "badges:G('#search .puis-status-badge-container,#search .puis-status-badge-container .a-badge,#search .puis-status-badge-container .a-badge-label',32),"
-    "microBadges:GC('#search .puis-card-container .a-badge,#search .puis-card-container .a-badge-label,#search .puis-card-container .a-badge-label-inner,#search .puis-card-container [data-a-badge-type],#search .puis-card-container [data-a-badge-color],#search .puis-card-container .a-color-success,#search .puis-card-container [class*=success],#search .puis-card-container [class*=saving],#search .puis-card-container [class*=savings],#search .puis-card-container [class*=natural],#search .puis-card-container [class*=attribute],#search .puis-card-container [class*=variation]',140),"
-    "actions:GC('#search .more-like-this-container,#search .mlt-icon-container,#search .mlt-icon-container *,#search .lists-framework-action-button.puis-heart-icon-container,#search .lists-framework-heart-background',64),"
-    "videoAd:GC('#search .sbv-video-overlay,#search video.sbv-video-player-ecx,#search .sbv-video,#search .sbv-video-container,#search .sbv-mobile-video-link',64),"
-    "videoControls:GC('#search .sbv-video-overlay,#search .sbv-video-overlay *',180),"
-    "videoControlTrees:VCTRL(),"
-    "videoCard:GC('#search .sbv-video-single-product,#search .s-card-container:has(.sbv-video-single-product),#search .sbv-video-single-product :is(div,section,article,span,img,video,canvas)',220),"
-    "altVideoCard:GC('#search ._c2Itd_container_ut_MN,#search ._c2Itd_cardContent_3OGkG,#search ._c2Itd_content_2L-a5,#search ._c2Itd_videoSectionContainer_Ot6Fs,#search ._c2Itd_videoOverlay_1H_Jm,#search ._c2Itd_playClickRegion_87ZZa,#search video._c2Itd_video_17g-f,#search ._c2Itd_singleAsin_fHkKv,#search ._c2Itd_singleAsin_fHkKv *,#search img._c2Itd_image_pQREQ',260),"
-    "coupon:GC('#search [data-component-type=s-coupon-component],#search .s-coupon-tile-content-container,#search .s-coupon-tile,#search .s-coupon-tile-text-content,#search .s-coupon-checkbox-label,#search .s-coupon-tile-price-content,#search .s-coupon-unclipped,#search .s-coupon-highlight-color,#search [class*=coupon][class*=price],#search [class*=coupon][class*=highlight]',96),"
-    "nile:GC('#search .nile-ingress-pill-button,#search .nile-ingress-pill-button .a-button-inner',64),"
-    "haul:GC('#search [class*=haul-puis],#search [class*=haul-asin-recommendation]',160),"
-    "accents:G('#search i.a-icon-prime,#search [class*=prime],#search i[class*=a-icon-star],#search [class*=star],#search [class*=rating]',48),"
-    "media:G('#search img,#search picture,#search video,#search canvas',64),hit:hit};"
-    "var out=JSON.stringify(o,null,2),cap=2200000;if(out.length>cap)out=out.slice(0,cap)+'\\n[WEB DOM TRUNCATED AT 2,200,000 CHARACTERS]\\n';return out;}catch(e){return 'SEARCH_RESULTS_DOM_ERR '+e;}})();";
+    "function A(e,n){try{return e&&e.getAttribute?String(e.getAttribute(n)||''):''}catch(_){return ''}}"
+    "function R(e){try{var r=e.getBoundingClientRect();return [+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)]}catch(_){return [0,0,0,0]}}"
+    "function S(e,p){try{var s=getComputedStyle(e,p||null);return {bg:s.backgroundColor,bgi:s.backgroundImage,bgp:s.backgroundPosition,bgs:s.backgroundSize,bgr:s.backgroundRepeat,filter:s.filter,webkitFilter:s.webkitFilter,opacity:s.opacity,blend:s.mixBlendMode,border:s.border,borderColor:s.borderColor,radius:s.borderRadius,boxShadow:s.boxShadow,mask:s.maskImage||s.webkitMaskImage||'none',position:s.position,z:s.zIndex}}catch(_){return {err:String(_)}}}"
+    "function P(e){if(!e)return null;var cn='';try{cn=String(e.className&&e.className.baseVal||e.className||'')}catch(_){}return {tag:String(e.tagName||''),id:String(e.id||''),cls:cn,r:R(e),attrs:{styleAttr:A(e,'style'),'data-csa-c-content-id':A(e,'data-csa-c-content-id'),'data-csa-c-item-id':A(e,'data-csa-c-item-id'),'data-testid':A(e,'data-testid'),'component':A(e,'data-csa-c-component'),'puisIndex':A(e,'data-csa-c-posx')},style:S(e),before:S(e,'::before'),after:S(e,'::after')}}"
+    "function C(e,n){var a=[];for(var x=e;x&&a.length<n;x=x.parentElement)a.push(P(x));return a}"
+    "function vis(r){return r&&r.width>0&&r.height>0&&r.bottom>=0&&r.top<=innerHeight&&r.right>=0&&r.left<=innerWidth}"
+    "var cards=[],roots=document.querySelectorAll('#search .puis-card-container');"
+    "for(var i=0;i<roots.length&&cards.length<8;i++){var card=roots[i],cr=card.getBoundingClientRect();if(!vis(cr))continue;var sw=[],all=card.querySelectorAll('*');for(var j=0;j<all.length&&sw.length<120;j++){var e=all[j],r=e.getBoundingClientRect();if(!vis(r)||r.width<8||r.height<8||r.width>72||r.height>72)continue;var cn='';try{cn=String(e.className&&e.className.baseVal||e.className||'')}catch(_){}var k=(cn+' '+A(e,'data-csa-c-content-id')+' '+A(e,'data-testid')).toLowerCase();var cs=getComputedStyle(e),rad=parseFloat(cs.borderRadius)||0,style=A(e,'style');var swatchish=/swatch|color/.test(k)||/background-color|background-image/.test(style);var media=/^(IMG|PICTURE|CANVAS|SVG)$/.test(String(e.tagName||''));if(!swatchish&&!media&&rad<7)continue;var kids=[];for(var c=e.firstElementChild;c&&kids.length<8;c=c.nextElementSibling)kids.push(P(c));sw.push({self:P(e),chain:C(e,6),children:kids});}cards.push({card:P(card),swatches:sw});}"
+    "var out={path:String(location.pathname||''),viewport:[innerWidth,innerHeight,devicePixelRatio],scroll:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],visibleCards:cards};"
+    "return JSON.stringify(out,null,2);"
+    "}catch(e){return 'VISIBLE_SWATCH_TRUTH_ERR '+e;}})();";
 }
 static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     if(!gP.enabled)return; NSUInteger run=++gADSearchResultsProbeRun7139;
     ADSearchResultsProbeReset7139();
-    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.166 SWATCH RASTER PRESERVATION PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== LOCATION LAYERS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
+    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.167 VISIBLE SWATCH TRUTH PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== LOCATION LAYERS =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
         (unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchResultsProbeNative7139(),ADSearchResultsProbeGlowLayers7141(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(head);
     NSMutableArray *home=[NSMutableArray array],*search=[NSMutableArray array],*fallback=[NSMutableArray array];
