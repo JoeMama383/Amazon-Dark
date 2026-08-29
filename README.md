@@ -1,3 +1,17 @@
+# AmazonDark v7.177~scrollbar-haul-strip-fix-probe
+
+## v7.177 Search filter scrollbar + Haul strip cleanup
+
+- Direct source base: v7.176~standalone-media-sbs-filter-fix-probe.
+- Restores the Search SBS filter's native iOS/WebKit overflow scrollbar by removing the v7.176 custom `::-webkit-scrollbar*` pseudo-element override that suppressed the indicator; the exact scroll owners keep `color-scheme: dark` so the native indicator is contrast-correct on OLED black.
+- Keeps the v7.176 OLED filter floors, light text, gray borders, dark pills, and true `invert(1)` image-glyph treatment unchanged.
+- The v7.176 device probe identifies the white strips beneath Haul product images as the live `a.haul-puis-widget-product-info-container` plane (`220x68`, computed white background). v7.177 makes that exact plane OLED black, including its background image, without changing product raster TWB, stars, copy, or Add-to-cart treatment.
+- Retains the v7.173+ dynamic multi-interface probe: screenshot/SIGUSR2 creates one unique v7.177 capture, capped at 28 MiB.
+
+No production MutationObserver, recurring timer, RAF loop, scroll listener, or recurring repair scan is added.
+
+---
+
 # AmazonDark v7.176~standalone-media-sbs-filter-fix-probe
 
 ## v7.176 standalone media-only TWB + Search filter interface

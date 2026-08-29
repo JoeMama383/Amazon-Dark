@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.176-standalone-media-sbs-filter-fix-probe"
+#define AD_VERSION "v7.177-scrollbar-haul-strip-fix-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -789,7 +789,7 @@ static NSString *ADFloorJS(void){
         @"ss-pill-button :is(span,div){color:#fff!important;-webkit-text-fill-color:#fff!important;}"
         // v7.175 r3: current Amazon Haul renderer. Preserve its authored animated background image
         // so the emoji/art remains stock; replace only the purple base and white structural planes.
-        @"#search#search .haul-asin-recommendation-styled-widget-container-override,#search#search .haul-asin-recommendation-styled-widget-container{background-color:#000!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}#search#search :is(.haul-asin-recommendation-styled-header-container,.haul-asin-recommendation-styled-subtitle,.haul-asin-recommendation-styled-carousel-container,.haul-puis-image-container,.haul-puis-product-info){background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}"
+        @"#search#search .haul-asin-recommendation-styled-widget-container-override,#search#search .haul-asin-recommendation-styled-widget-container{background-color:#000!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}#search#search :is(.haul-asin-recommendation-styled-header-container,.haul-asin-recommendation-styled-subtitle,.haul-asin-recommendation-styled-carousel-container,.haul-puis-image-container,.haul-puis-product-info,.haul-puis-widget-product-info-container){background:#000!important;background-color:#000!important;background-image:none!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}"
         @"#search#search .haul-puis-widget-faceout-container{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}#search#search .haul-puis-widget-faceout-container > :not(.haul-puis-widget-action-button){border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}"
         @"#search#search :is(.haul-asin-recommendation-styled-widget-container-override,.haul-asin-recommendation-styled-widget-container) :is(h1,h2,h3,h4,h5,h6,p,a,span,div):not(.haul-puis-image-container){color:#fff!important;-webkit-text-fill-color:#fff!important;}"
         // Same Add-to-cart palette as normal product cards; Amazon keeps geometry and radius.
@@ -905,11 +905,7 @@ static NSString *ADFloorJS(void){
         @"#search#search .s-sbs-widget :is(.sbs-pill,.sbs-tag-pill,.sbs-refinement-pill).sbs-pill--selected{background:#30383a!important;background-color:#30383a!important;border-color:#6f979d!important;outline-color:#6f979d!important;}"
         @"#search#search .s-sbs-widget .sbs-pill-image-container{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#494d4d!important;box-shadow:none!important;}"
         @"#search#search .s-sbs-widget img.sbs-pill-image{background:transparent!important;background-color:transparent!important;filter:invert(1)!important;-webkit-filter:invert(1)!important;opacity:1!important;mix-blend-mode:normal!important;}"
-        @"#search#search :is(.sbs-refinement-bin,.sbs-refinement-bin-grid){scrollbar-color:#d5d9d9 #000!important;}"
-        @"#search#search :is(.sbs-refinement-bin,.sbs-refinement-bin-grid)::-webkit-scrollbar{width:6px!important;height:6px!important;background:#000!important;}"
-        @"#search#search :is(.sbs-refinement-bin,.sbs-refinement-bin-grid)::-webkit-scrollbar-track{background:#000!important;}"
-        @"#search#search :is(.sbs-refinement-bin,.sbs-refinement-bin-grid)::-webkit-scrollbar-thumb{background:#d5d9d9!important;background-color:#d5d9d9!important;border:1px solid #000!important;border-radius:999px!important;}"
-        @"#search#search :is(.sbs-refinement-bin,.sbs-refinement-bin-grid)::-webkit-scrollbar-thumb:hover{background:#e8e6e3!important;background-color:#e8e6e3!important;}"
+        @"#search#search :is(.sbs-refinement-bin,.sbs-refinement-bin-grid){color-scheme:dark!important;scrollbar-width:auto!important;-webkit-overflow-scrolling:touch!important;}"
         @".puis-mab-chevron :is(i.a-icon-dropdown,.a-icon.a-icon-dropdown),.puis-mab-chevron-glyph "
         @":is(i.a-icon-dropdown,.a-icon.a-icon-dropdown){filter:brightness(0) invert(1)!important;opacity:1!important;}#search [data-a-badge-color=\\\"sx-cloud\\\"],#search [data-a-badge-color=\\"
         @"\"sx-cloud\\\"] :is(.a-badge-label,.a-badge-label-inner,.a-badge-text){background:transparent!important;background-color:transparent!important;background-image:none!important;border-c"
@@ -3799,12 +3795,12 @@ static NSString *ADSearchResultsProbePath7139(NSUInteger run){
         fmt.timeZone=[NSTimeZone localTimeZone];
         fmt.dateFormat=@"yyyyMMdd-HHmmss-SSS";
         NSString *stamp=[fmt stringFromDate:[NSDate date]]?:@"unknown";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.176-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.177-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(docs.length)return [docs stringByAppendingPathComponent:name];
         return [NSTemporaryDirectory() stringByAppendingPathComponent:name];
     } @catch(...) {
-        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.176-dynamic-probe-r%lu.txt",(unsigned long)run]];
+        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.177-dynamic-probe-r%lu.txt",(unsigned long)run]];
     }
 }
 static void ADSearchResultsProbeAppend7139(NSString *p,NSString *s){
@@ -3957,7 +3953,7 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     NSUInteger run=++gADSearchResultsProbeRun7139;
     NSString *path=ADSearchResultsProbePath7139(run);
     NSString *runID=[NSString stringWithFormat:@"%@-pid%d-r%lu",[[path lastPathComponent] stringByDeletingPathExtension],getpid(),(unsigned long)run];
-    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.176 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
+    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.177 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(path,head);
     NSMutableArray *chosen=[NSMutableArray array];
     @try {
