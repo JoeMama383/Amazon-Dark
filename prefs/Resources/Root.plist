@@ -96,7 +96,7 @@
 			<key>label</key>
 			<string>Performance</string>
 			<key>footerText</key>
-			<string>May improve smoothness or responsiveness in some situations. Results vary, and higher refresh rates may use more battery.</string>
+			<string>Requests up to 120 Hz on supported ProMotion displays for smoother scrolling and animations. Results vary, and higher refresh rates may use more battery.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -111,6 +111,14 @@
 			<string>Force 120 Hz</string>
 			<key>PostNotification</key>
 			<string>com.colindavidr.amazondark/prefs-changed</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>JIT</string>
+			<key>footerText</key>
+			<string>Allows the Amazon process to use just-in-time code compilation on supported jailbreaks. This does not make Amazon faster by itself; enable it only for features or tools that require JIT.</string>
 		</dict>
 		<dict>
 			<key>cell</key>

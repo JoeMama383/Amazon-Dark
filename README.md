@@ -1,33 +1,104 @@
-# AmazonDark
+# Amazon Dark
 
-AmazonDark brings a full dark mode to the Amazon app, with OLED-black backgrounds, light interface text, and dark styling across native and web-based parts of the app.
+True dark mode for the Amazon Shopping iOS app - designed to look native instead of simply inverting the screen.
 
-Bright product and advertisement images can be toned down without changing the rest of the interface, helping the app stay comfortable to use in low light while keeping product imagery recognizable.
+Rootless jailbreak, arm64 + arm64e, iOS 15+.
 
-## Features
+---
 
-- OLED-black dark mode throughout the Amazon app
-- Dark styling for menus, search, product pages, ads, navigation, and other app surfaces
-- Light text and icons for better contrast on dark backgrounds
-- Optional **Tame Light Backgrounds** setting with adjustable strength
-- Optional **Privacy Mode** to block known Amazon analytics, crash telemetry, and ad-measurement endpoints
-- Optional **Force 120 Hz** setting for supported displays
-- Optional **Enable JIT** setting
-- Simple enable/disable switch in Settings
-- Built for rootless jailbreaks on iOS 15 and newer
+## Install
+
+### Sileo
+
+**[Add Repo](https://joemama383.github.io/add/)**
+
+Tap **Add Repo** to open the repository in Sileo.
+
+If Sileo does not open automatically, add the following source manually:
+
+`https://joemama383.github.io/`
+
+Then find **Amazon Dark** in Sileo and install it.
+
+### Manual Install
+
+**[Download the latest .deb](https://github.com/JoeMama383/Amazon-Dark/releases/latest)**
+
+After installing or updating, respring and relaunch Amazon.
+
+Make sure tweak injection is enabled for Amazon in your jailbreak environment.
+
+---
+
+## Tame Light Backgrounds
+
+Product and advertisement images can contain bright backgrounds that stand out against the dark interface.
+
+Optional **Tame Light Backgrounds** reduces the brightness of these areas to reduce glare, especially when using the app at night.
+
+Taming strength can be adjusted in Settings.
+
+---
+
+## Privacy Mode
+
+Optional **Privacy Mode** blocks known Amazon analytics, crash telemetry, ad-measurement, and related tracking endpoints.
+
+This setting does not need to be enabled for Amazon Dark's visual theming to work.
+
+---
+
+## Dark Launch Screen
+
+Amazon normally displays a bright screen during a cold launch before the app has finished loading.
+
+Amazon Dark replaces this with a dark launch screen for a more consistent dark-mode experience.
+
+---
+
+## 120 Hz
+
+Amazon Dark can optionally request up to **120 Hz** while using Amazon on supported ProMotion devices.
+
+This can make scrolling and animations appear smoother. iOS may still lower the refresh rate depending on Low Power Mode, temperature, hardware, or other system conditions, and higher refresh rates may use more battery.
+
+---
+
+## JIT
+
+Amazon Dark can optionally enable **JIT** for the Amazon process on supported jailbreak configurations.
+
+JIT allows software that requires just-in-time compilation to compile code while it is running. It does not make Amazon or Amazon Dark faster by itself, so it can be left disabled unless a specific feature or tool requires it.
+
+---
 
 ## Settings
 
-AmazonDark adds a preference pane in the Settings app. Changes take effect after a respring.
+Settings → **AmazonDark**
 
-**Tame Light Backgrounds** reduces the brightness of light product and ad imagery. The strength slider controls how strongly the effect is applied.
+Available options:
 
-**Privacy Mode** blocks a selection of known Amazon telemetry and measurement endpoints.
+- Enabled
+- Tame Light Backgrounds
+- Taming Strength
+- Privacy Mode
+- Force 120 Hz
+- Enable JIT
 
-**Force 120 Hz** requests a higher display refresh rate on supported devices.
-
-**Enable JIT** enables the tweak's JIT option for the Amazon app.
+---
 
 ## Compatibility
 
-AmazonDark is intended for the Amazon iOS app on rootless jailbreaks running iOS 15 or newer.
+Amazon uses a mixture of WebKit, UIKit, React Native, server-driven UI, advertisements, custom icons, and product media.
+
+Amazon Dark uses targeted fixes for each type of content instead of applying one global visual filter over the entire app.
+
+**The goal: make Amazon look like it actually shipped with a proper dark mode.**
+
+---
+
+## Credits
+
+Amazon Dark is an independent jailbreak tweak and is not affiliated with Amazon.
+
+Maintained by **JoeMama383**.
