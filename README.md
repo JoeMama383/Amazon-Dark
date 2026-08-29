@@ -1,3 +1,42 @@
+# AmazonDark v7.173~dynamic-multi-interface-probe
+
+Direct base: **v7.172~smart-refinements-targeted-probe**.
+
+## v7.173 classified fix + probe rebuild
+
+- Preserves the probe-proven More-to-explore repair from v7.172: only `a.smart-refinement-pill[role=button]` inside `.smart-refinements-content` gets the established `#4a4f51` fill / `#34383a` pill border / white text treatment; the exact `.smart-refinements-content` top and bottom dividers use standard border gray `#494d4d`.
+- Does **not** add new speculative styling for the still-unclassified Save-% plate, medium raster standalone ad, or Brands-related media. Those are intentionally left for fresh v7.173 captures.
+- Rebuilds diagnostics as a route-independent, screenshot/SIGUSR2-triggered dynamic truth probe. It inventories visible computed backgrounds, pseudo-element paint, borders, buttons/controls, semantic ad/badge/savings/pill/feature/brand surfaces, all visible IMG/PICTURE/SVG/VIDEO/CANVAS media, hit-test stacks, native visible view paint, and child/cross-origin frame truth.
+- Every trigger writes a **new uniquely timestamped probe file** instead of deleting/overwriting the previous capture. Multiple screenshots across different interfaces can therefore be exported and uploaded from the same build without losing earlier runs.
+- Each probe file is independently hard-capped at **28 MiB**, below the requested 30 MB ceiling. Main-frame and all-frame payloads are individually bounded so one pathological frame cannot consume the entire file before other diagnostics land.
+- The probe remains dormant during normal use: no MutationObserver, interval, RAF loop, scroll listener, or recurring whole-document scan is added.
+
+## v7.173 probe filenames
+
+Each screenshot/SIGUSR2 capture writes a file matching:
+
+`AmazonDark-v7.173-dynamic-probe-YYYYMMDD-HHMMSS-SSS-rN.txt`
+
+This eliminates stale same-name export collisions and allows several interface captures per build.
+
+---
+
+## Historical base: AmazonDark v7.172~smart-refinements-targeted-probe
+Direct base: **v7.171~search-regression-restore-probe**.
+
+## v7.172 targeted More-to-explore repair
+
+- Probe-proven current pill: `a.smart-refinement-pill[role=button]` inside `.smart-refinements-content`.
+- Retires v7.170/v7.171 broad `.s-widget-container` button fallback entirely; unrelated Search/video controls are no longer in this lane.
+- Exact current pills: `#4a4f51` fill, `#34383a` existing outline/border color, white copy; Amazon geometry/radius remains untouched.
+- Exact `.smart-refinements-content` existing top/bottom divider colors become standard neutral `#494d4d`; widths/styles are not changed.
+- Existing v7.169 Nile/Rufus pill lane remains for the alternate renderer.
+- All v7.171 launch/location/TWB/video-control restoration and v7.170 standalone/full-raster work is preserved.
+- Screenshot/SIGUSR2 probe remains reset-per-capture with 28 MiB ceiling and now adds a dedicated `smartRefinements` inventory with directional border paint.
+- Probe-only `greenSavingsSurfaces` scan records any visible green-painted surface by computed color, plus ancestry/children, so the still-unresolved lime savings plate can be identified without guessing its class.
+
+---
+
 # AmazonDark v7.171~search-regression-restore-probe
 
 Direct base: **v7.170~launch-search-full-raster-probe**.
