@@ -1,30 +1,38 @@
-## v7.167 visible-swatch truth probe
+# AmazonDark v7.168~badge-container-fix-probe
 
-Diagnostic-only child of v7.166. Production styling/TWB behavior is unchanged. The prior broad swatch inventory hit the 2.2 MB Web JSON cap before the visible-only inventory could serialize. v7.167 replaces that Web snapshot with a bounded visible-card-only swatch/circle capture and lowers the hard file cap to 5 MiB.
+Direct visual base: **v7.164~swatch-options-bounded-probe**.
 
-# AmazonDark v7.167~visible-swatch-truth-probe
+## Swatch cleanup
 
-## v7.166 patterned/raster swatch preservation
+The v7.165-v7.167 special-case work that attempted to restore the one blank/black
+swatch has been discarded. Stock Amazon renders that same odd-man-out swatch as
+blank OLED black, so it is not an AmazonDark defect. The v7.164 correction that
+stopped AmazonDark from flattening *all* normal authored color swatches remains.
 
-- Direct base: v7.165.
-- Fixes the remaining alternate product-card swatch family used by patterned/photo variants.
-- Keeps v7.164/165 structural swatch shells transparent, but explicitly exempts swatch-region `img` / `picture` / `canvas` / `svg` artwork from the `/s` TWB opacity lane and generic filter ownership.
-- Does not manufacture or recolor swatch colors; Amazon remains the artwork owner.
-- Adds a one-shot visible-card circular-element inventory so an unknown alternate renderer is captured even when it does not use the legacy `s-color-swatch-*` class family.
-- Probe still resets on every capture and hard-caps at 28 MiB.
+## Search micro-badge fixes
 
+- Exact current white attribute-chip renderer: `.s-background-color-platinum`.
+  Its stock `rgb(240,242,242)` floor and light border are removed; the chip is
+  transparent and its text becomes Amazon yellow `#ffd814`.
+- Limited-time-deal is deliberately excluded from this lane. Existing
+  `DEAL_*` / `data-a-badge-type=deal` handling is unchanged.
+- Savings/Prime Savings uses the historical anonymous AUI badge structure that
+  can wrap `.a-color-success` / saving / savings descendants. The complete
+  anonymous badge and its label/inner label are now transparent, while the text
+  uses `#008000`, matching the current AmazonDark coupon-container green.
+- Coupon boxes themselves remain `#008000` with white text.
 
-Direct base: v7.164~swatch-options-bounded-probe.
+## Probe
 
-## v7.165 single-swatch artwork preservation
+The screenshot/SIGUSR2 probe is now a narrow **visible badge truth** capture.
+It records only visible Search product cards containing platinum attribute chips,
+savings/success badges, explicit deal comparison elements, or coupon comparison
+elements. It does not record element text. The file resets every run and is hard
+capped at 5 MiB.
 
-- Fixes the remaining one-off color swatch that could render as an empty black circle while neighboring swatches retained their authored colors.
-- Root cause candidate is isolated to v7.164's exact swatch-shell cleanup: it cleared `background-image` on `.s-color-swatch-outer-circle`. Most Amazon swatches keep color in `.s-color-swatch-inner-circle-fill`, but an alternate/image-backed swatch can keep authored paint on the outer-circle/pseudo path.
-- Structural row shells still lose their white floors, but `.s-color-swatch-outer-circle` now clears only background-color/shadow/filter; it no longer destroys authored background-image paint on the circle or its pseudos.
-- Known inner swatch-art families explicitly keep stock filters/blending/opacity and receive no forced color/background.
-- Probe now records swatches FIRST, before the large ribbon inventories can consume the per-WebView JSON budget, and records each target's inline style attribute for color-source verification.
-- Existing 28 MiB hard probe-file ceiling and per-run reset remain unchanged.
+No MutationObserver, interval, RAF, scroll listener, or recurring scan is added.
 
+# AmazonDark v7.164~swatch-options-bounded-probe
 
 Direct base: v7.163~product-card-polish-probe.
 
