@@ -165,7 +165,7 @@ static void ADAttachCoverToScene(UIView *host, BOOL warm) {
         if (!ADSBEnabled()) { ADSBLog(@"COVER skipped (disabled)"); return; }
         [host addSubview:ov];
         gCoverOverlay = ov;
-        gCoverHost = [host isKindOfClass:[SBSceneView class]] ? (SBSceneView *)host : nil;
+        gCoverHost = (SBSceneView *)host;
         gCoverWarm = warm;
         unsigned myGen = ++gCoverGen;
 
