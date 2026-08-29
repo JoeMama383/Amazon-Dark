@@ -21,11 +21,6 @@
 #import <UIKit/UIKit.h>
 #import <notify.h>
 #import <objc/runtime.h>
-#import <dlfcn.h>
-#import <limits.h>
-#import <string.h>
-#import <stdint.h>
-#import <sys/types.h>
 
 static NSString * const kAMZ      = @"com.amazon.Amazon";
 static NSString * const kDefaults = @"com.colindavidr.amazondark";
@@ -203,83 +198,6 @@ static void ADDismissCover(void) {
     } @catch (__unused NSException *e) {}
 }
 
-// ── v6.0.22 Dopamine JIT broker ─────────────────────────────────────────────
-// SpringBoard is the platform-authorized caller Dopamine requires. This broker
-// accepts only Amazon's PID and only enables the debug/JIT state; disabling is
-// handled by the normal respring + clean Amazon launch path.
-#define AD_JIT_REQ_NOTIFY_622 "com.colindavidr.amazondark/jit-request-622"
-#define AD_JIT_RES_NOTIFY_622 "com.colindavidr.amazondark/jit-result-622"
-#define AD_JIT_RC_NO_BACKEND_622 (-1001)
-#define AD_JIT_RC_EXCEPTION_622  (-1002)
-#define AD_JIT_RC_BAD_PID_622    (-1003)
-
-static uint64_t ADSBJITWireState622(pid_t pid, uint16_t nonce, int rc){
-    return (((uint64_t)(uint32_t)pid) << 32) |
-           (((uint64_t)nonce) << 16) |
-           ((uint16_t)(int16_t)rc);
-}
-static pid_t ADSBJITWirePID622(uint64_t state){ return (pid_t)(uint32_t)(state >> 32); }
-static uint16_t ADSBJITWireNonce622(uint64_t state){ return (uint16_t)((state >> 16) & 0xffffU); }
-
-static BOOL ADSBIsAmazonPID622(pid_t pid){
-    if (pid <= 1) return NO;
-    typedef int (*ADProcPidPathFn622)(int, void *, uint32_t);
-    static ADProcPidPathFn622 procPidPath = NULL;
-    static dispatch_once_t once;
-    dispatch_once(&once, ^{
-        procPidPath = (ADProcPidPathFn622)dlsym(RTLD_DEFAULT, "proc_pidpath");
-        if (!procPidPath){
-            void *h = dlopen("/usr/lib/libproc.dylib", RTLD_LAZY | RTLD_LOCAL);
-            if (h) procPidPath = (ADProcPidPathFn622)dlsym(h, "proc_pidpath");
-        }
-    });
-    if (!procPidPath) return NO;
-
-    char path[PATH_MAX] = {0};
-    int n = procPidPath((int)pid, path, (uint32_t)sizeof(path));
-    if (n <= 0 || !path[0]) return NO;
-    size_t len = strlen(path);
-    const char *suffix = "/Amazon.app/Amazon";
-    size_t slen = strlen(suffix);
-    return len >= slen && strcmp(path + len - slen, suffix) == 0;
-}
-
-static void ADSBHandleJITRequest622(int token){
-    @autoreleasepool {
-        @try {
-            uint64_t req = 0;
-            if (notify_get_state(token, &req) != NOTIFY_STATUS_OK) return;
-            pid_t pid = ADSBJITWirePID622(req);
-            uint16_t nonce = ADSBJITWireNonce622(req);
-            int rc = AD_JIT_RC_EXCEPTION_622;
-
-            if (!ADSBIsAmazonPID622(pid)){
-                rc = AD_JIT_RC_BAD_PID_622;
-            } else {
-                typedef int (*ADSetProcessDebuggedFn622)(uint64_t, bool);
-                ADSetProcessDebuggedFn622 fn =
-                    (ADSetProcessDebuggedFn622)dlsym(RTLD_DEFAULT, "jbclient_platform_set_process_debugged");
-                if (!fn) rc = AD_JIT_RC_NO_BACKEND_622;
-                else {
-                    @try { rc = fn((uint64_t)pid, true); }
-                    @catch (__unused NSException *e) { rc = AD_JIT_RC_EXCEPTION_622; }
-                }
-            }
-
-            int resToken = 0;
-            if (notify_register_check(AD_JIT_RES_NOTIFY_622, &resToken) == NOTIFY_STATUS_OK){
-                notify_set_state(resToken, ADSBJITWireState622(pid, nonce, rc));
-                notify_post(AD_JIT_RES_NOTIFY_622);
-                notify_cancel(resToken);
-            }
-            ADSBLog([NSString stringWithFormat:@"JIT broker pid=%d rc=%d", pid, rc]);
-        } @catch (__unused NSException *e) {
-            ADSBLog(@"JIT broker exception");
-        }
-    }
-}
-
-
 %hook SBSceneView
 - (void)didMoveToWindow {
     %orig;
@@ -326,15 +244,6 @@ static void ADSBHandleJITRequest622(int token){
 
 
 %ctor {
-    // Dopamine JIT broker: one event-driven enable request channel. SpringBoard is
-    // the platform-authorized caller; the handler itself validates Amazon's PID.
-    @try {
-        static int adJITToken622 = 0;
-        notify_register_dispatch(AD_JIT_REQ_NOTIFY_622, &adJITToken622,
-                                 dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^(int t){
-            ADSBHandleJITRequest622(t);
-        });
-    } @catch (__unused NSException *e) {}
 
     // Event-driven dismissal, matching the system: the launch screen leaves at
     // the app's first frame, not on a timer. The app posts this once its UI is

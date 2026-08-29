@@ -4,7 +4,6 @@
  * Retained from v6.0.185:
  *   - Settings bundle/preferences and preference domain
  *   - Force 120 Hz preference path
- *   - Dopamine per-app JIT request path
  *   - Tame Light Backgrounds preference (rewritten as a small generic media owner)
  *   - SpringBoard launch cover / transition / custom artwork (AmazonDarkSB)
  *   - Sileo/package metadata and artwork
@@ -27,15 +26,13 @@
 #import <objc/message.h>
 #import <notify.h>
 #import <dlfcn.h>
-#import <sys/types.h>
 #import <unistd.h>
 #import <stdint.h>
-#import <errno.h>
 #import <string.h>
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.181-readme-prefs-final"
+#define AD_VERSION "v7.183-native-hotpath-performance-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -101,7 +98,6 @@ typedef struct {
     BOOL enabled;
     BOOL whiteTame;
     BOOL force120Hz;
-    BOOL enableJIT;
     BOOL privacyMode;
     long whiteTameStrength;
 } ADPrefs;
@@ -119,7 +115,6 @@ static void ADLoadPrefs(void){
     gP.enabled=YES;
     gP.whiteTame=NO;
     gP.force120Hz=NO;
-    gP.enableJIT=NO;
     gP.privacyMode=NO;
     gP.whiteTameStrength=45;
     @try {
@@ -146,7 +141,6 @@ static void ADLoadPrefs(void){
         gP.enabled=ADPrefBool(d,@"enabled",gP.enabled);
         gP.whiteTame=ADPrefBool(d,@"whiteTame",gP.whiteTame);
         gP.force120Hz=ADPrefBool(d,@"force120Hz",gP.force120Hz);
-        gP.enableJIT=ADPrefBool(d,@"enableJIT",gP.enableJIT);
         gP.privacyMode=ADPrefBool(d,@"privacyMode",gP.privacyMode);
         gP.whiteTameStrength=ADPrefLong(d,@"whiteTameStrength",gP.whiteTameStrength);
     } @catch(...) {}
@@ -212,160 +206,6 @@ static void ADPrivacyInstallProtocolOnConfig7117(NSURLSessionConfiguration *cfg)
         }
         cfg.protocolClasses=a;
     } @catch(...) {}
-}
-
-
-// -----------------------------------------------------------------------------
-// Retained v6.0.185 Dopamine per-app JIT client.
-// -----------------------------------------------------------------------------
-// ── DOPAMINE PER-APP JIT (v6.0.22) ──────────────────────────────────────────
-// Production path: JIT is launch-time only. Settings changes already use the
-// tweak's normal respring workflow, so there is no live CS_DEBUGGED revocation.
-// Amazon asks the existing SpringBoard component to make one platform-authorized
-// Dopamine request for Amazon's own PID, then verifies raw kernel CS_DEBUGGED.
-#ifndef CS_OPS_STATUS
-#define CS_OPS_STATUS 0
-#endif
-#ifndef CS_DEBUGGED
-#define CS_DEBUGGED 0x10000000
-#endif
-#ifndef SYS_csops
-#define SYS_csops 169
-#endif
-
-#define AD_JIT_REQ_NOTIFY_622 "com.colindavidr.amazondark/jit-request-622"
-#define AD_JIT_RES_NOTIFY_622 "com.colindavidr.amazondark/jit-result-622"
-#define AD_JIT_RC_NO_BACKEND_622 (-1001)
-#define AD_JIT_RC_EXCEPTION_622  (-1002)
-#define AD_JIT_RC_BAD_PID_622    (-1003)
-
-typedef struct {
-    uint32_t flags;
-    int err;
-    BOOL debugged;
-} ADJITState622;
-
-static ADJITState622 ADReadJITState622(void){
-    ADJITState622 st = {0, 0, NO};
-    errno = 0;
-    long rc = syscall(SYS_csops, getpid(), CS_OPS_STATUS, &st.flags, sizeof(st.flags));
-    st.err = (rc == 0 ? 0 : errno);
-    st.debugged = (rc == 0 && (st.flags & CS_DEBUGGED) != 0);
-    return st;
-}
-
-// 64-bit Darwin-notify state: pid[63:32], nonce[31:16], signed rc[15:0].
-static uint64_t ADJITWireState622(pid_t pid, uint16_t nonce, int rc){
-    return (((uint64_t)(uint32_t)pid) << 32) |
-           (((uint64_t)nonce) << 16) |
-           ((uint16_t)(int16_t)rc);
-}
-static pid_t ADJITWirePID622(uint64_t state){ return (pid_t)(uint32_t)(state >> 32); }
-static uint16_t ADJITWireNonce622(uint64_t state){ return (uint16_t)((state >> 16) & 0xffffU); }
-static int ADJITWireRC622(uint64_t state){ return (int)(int16_t)(state & 0xffffU); }
-
-static uint16_t ADNextJITNonce622(void){
-    static volatile uint32_t seq = 0;
-    uint16_t n = (uint16_t)__sync_add_and_fetch(&seq, 1);
-    return n ? n : 1;
-}
-
-static BOOL ADSendJITBrokerRequest622(int *brokerRCOut){
-    int reqToken = 0, resToken = 0;
-    BOOL got = NO;
-    int rc = AD_JIT_RC_EXCEPTION_622;
-    uint16_t nonce = ADNextJITNonce622();
-    pid_t pid = getpid();
-
-    if (notify_register_check(AD_JIT_RES_NOTIFY_622, &resToken) != NOTIFY_STATUS_OK) goto done;
-    if (notify_register_check(AD_JIT_REQ_NOTIFY_622, &reqToken) != NOTIFY_STATUS_OK) goto done;
-    if (notify_set_state(reqToken, ADJITWireState622(pid, nonce, 0)) != NOTIFY_STATUS_OK) goto done;
-    if (notify_post(AD_JIT_REQ_NOTIFY_622) != NOTIFY_STATUS_OK) goto done;
-
-    // Runs on a utility queue. Normal broker responses arrive almost immediately.
-    for (int i = 0; i < 35; i++){
-        uint64_t res = 0;
-        if (notify_get_state(resToken, &res) == NOTIFY_STATUS_OK &&
-            ADJITWirePID622(res) == pid && ADJITWireNonce622(res) == nonce){
-            rc = ADJITWireRC622(res);
-            got = YES;
-            break;
-        }
-        usleep(10000);
-    }
-
-done:
-    if (reqToken) notify_cancel(reqToken);
-    if (resToken) notify_cancel(resToken);
-    if (brokerRCOut) *brokerRCOut = rc;
-    return got;
-}
-
-static void ADWriteJITReport622(NSString *status, BOOL responded, int backendRC,
-                                ADJITState622 pre, ADJITState622 post){
-    @try {
-        NSString *p = [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-jit.txt"];
-        NSString *s = [NSString stringWithFormat:
-            @"AmazonDark %@\n"
-             "enableJIT=%d\n"
-             "status=%@\n"
-             "backend=%@\n"
-             "brokerResponded=%d\n"
-             "backendRC=%d\n"
-             "pid=%d\n"
-             "preCsopsErr=%d\n"
-             "preCsFlags=0x%08x\n"
-             "preCS_DEBUGGED=%d\n"
-             "postCsopsErr=%d\n"
-             "postCsFlags=0x%08x\n"
-             "postCS_DEBUGGED=%d\n"
-             "amazonDarkTransitionedOn=%d\n",
-             [NSString stringWithUTF8String:AD_VERSION], (gP.enabled && gP.enableJIT) ? 1 : 0,
-             status ?: @"-",
-             (gP.enabled && gP.enableJIT) ? @"SpringBoard-Dopamine-jbclient_platform_set_process_debugged" : @"none",
-             responded ? 1 : 0, backendRC, getpid(),
-             pre.err, pre.flags, pre.debugged ? 1 : 0,
-             post.err, post.flags, post.debugged ? 1 : 0,
-             (!pre.debugged && post.debugged && responded && backendRC == 0) ? 1 : 0];
-        [s writeToFile:p atomically:YES encoding:NSUTF8StringEncoding error:nil];
-    } @catch(...) {}
-}
-
-static void ADPerformJITRequest622(BOOL requestedOn){
-    ADJITState622 pre = ADReadJITState622();
-
-    // OFF is intentionally passive. The preference UI resprings, so a clean launch
-    // simply makes no JIT request and starts without AmazonDark-owned CS_DEBUGGED.
-    if (!requestedOn){
-        ADWriteJITReport622(pre.debugged ? @"off-baseline-debugged" : @"off-clean",
-                            NO, 0, pre, pre);
-        return;
-    }
-
-    if (pre.debugged){
-        ADWriteJITReport622(@"on-already-debugged", NO, 0, pre, pre);
-        return;
-    }
-
-    int backendRC = AD_JIT_RC_EXCEPTION_622;
-    BOOL responded = ADSendJITBrokerRequest622(&backendRC);
-    ADJITState622 post = ADReadJITState622();
-    NSString *status = @"on-failed-verification";
-
-    if (!responded) status = @"on-broker-timeout";
-    else if (backendRC == AD_JIT_RC_NO_BACKEND_622) status = @"broker-backend-unavailable";
-    else if (backendRC == AD_JIT_RC_BAD_PID_622) status = @"broker-pid-rejected";
-    else if (backendRC != 0) status = @"on-backend-error";
-    else if (post.debugged) status = @"on-enabled-by-amazondark";
-
-    ADWriteJITReport622(status, responded, backendRC, pre, post);
-}
-
-static void ADApplyJIT622(void){
-    BOOL requestedOn = gP.enabled && gP.enableJIT;
-    dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
-        @autoreleasepool { ADPerformJITRequest622(requestedOn); }
-    });
 }
 
 
@@ -1259,8 +1099,7 @@ static NSString *ADStandalonePaintJS7104(void){
           * for standalone-candidate child frames. Narrow it to compact wide frames only. */
          "function ad7144VisibleRect(e){try{var r=e.getBoundingClientRect(),cs=getComputedStyle(e);if(r.width<2||r.height<2||cs.display==='none'||cs.visibility==='hidden'||parseFloat(cs.opacity||'1')<.02)return null;return r}catch(_){return null}}"
          "function ad7144MediaKind(e){try{var t=(e.tagName||'').toLowerCase();if(t==='img'||t==='video'||t==='canvas')return t;var bg=getComputedStyle(e).backgroundImage||'none';return bg&&bg!=='none'?'background':''}catch(_){return ''}}"
-         "function ad7144Structured(root){try{return !!root.querySelector('[data-testid=ratings-stars],[data-testid=prime-badge],[data-testid=price-container],#dynamic-bb,#ad[data-html-dimensions=\"300x250\"] .swiper-wrapper')}catch(_){return false}}"
-         "function ad7144Pick(root,rr){try{if(!root||!rr||ad7144Structured(root))return null;var best=null,score=0,a=[].slice.call(root.querySelectorAll('img,video,canvas'));for(var i=0;i<a.length;i++){var e=a[i],r=ad7144VisibleRect(e);if(!r)continue;var ar=r.width*r.height/(rr.width*rr.height),wr=r.width/rr.width,hr=r.height/rr.height;if(wr>=.76&&hr>=.60&&ar>=.56&&ar>score){best=e;score=ar}}if(!best){var all=root.querySelectorAll('*'),lim=Math.min(all.length,360);for(var j=0;j<lim;j++){var x=all[j],r2=ad7144VisibleRect(x);if(!r2||ad7144MediaKind(x)!=='background')continue;var ar2=r2.width*r2.height/(rr.width*rr.height),wr2=r2.width/rr.width,hr2=r2.height/rr.height;if(wr2>=.76&&hr2>=.60&&ar2>=.56&&ar2>score){best=x;score=ar2}}}return best?{e:best,score:score,kind:ad7144MediaKind(best)}:null}catch(_){return null}}"
+         "function ad7144Pick(root,rr){try{if(!root||!rr)return null;var best=null,score=0,all=root.getElementsByTagName('*'),ad=document.getElementById('ad'),is300=!!(ad&&ad.getAttribute('data-html-dimensions')==='300x250');for(var i=0;i<all.length;i++){var e=all[i],tid=e.getAttribute&&e.getAttribute('data-testid')||'';if(e.id==='dynamic-bb'||tid==='ratings-stars'||tid==='prime-badge'||tid==='price-container'||(is300&&ad.contains(e)&&String(e.className||'').indexOf('swiper-wrapper')>=0))return null;var tag=(e.tagName||'').toLowerCase();if(tag!=='img'&&tag!=='video'&&tag!=='canvas')continue;var r=ad7144VisibleRect(e);if(!r)continue;var ar=r.width*r.height/(rr.width*rr.height),wr=r.width/rr.width,hr=r.height/rr.height;if(wr>=.76&&hr>=.60&&ar>=.56&&ar>score){best=e;score=ar}}if(!best){var lim=Math.min(all.length,360);for(var j=0;j<lim;j++){var x=all[j],r2=ad7144VisibleRect(x);if(!r2||ad7144MediaKind(x)!=='background')continue;var ar2=r2.width*r2.height/(rr.width*rr.height),wr2=r2.width/rr.width,hr2=r2.height/rr.height;if(wr2>=.76&&hr2>=.60&&ar2>=.56&&ar2>score){best=x;score=ar2}}}return best?{e:best,score:score,kind:ad7144MediaKind(best)}:null}catch(_){return null}}"
          "function ad7144Mark(e,score,kind){try{if(!e)return;var attr=kind==='background'?'data-ad7144-full-raster-bg':'data-ad7144-full-raster';e.setAttribute(attr,'1');var r=e.getBoundingClientRect();window.__ad7144FullRasterState=window.__ad7144FullRasterState||[];var a=window.__ad7144FullRasterState;if(a.length<16)a.push({mode:'compact-standalone-child',kind:kind||'',tag:e.tagName||'',id:e.id||'',cls:String(e.className||'').slice(0,180),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],score:+score.toFixed(3)});}catch(_){}}"
          "function ad7144Classify(){try{var hh=document.documentElement;if(!hh)return;var vw=Math.max(1,innerWidth,hh.clientWidth||0),vh=Math.max(1,innerHeight,hh.clientHeight||0);if(vw<220||vh<35||vh>180||(vw/vh)<2.2)return;var root=document.body||hh,p=ad7144Pick(root,{width:vw,height:vh});if(p){hh.setAttribute('data-ad7144-full-raster-frame','1');ad7144Mark(p.e,p.score,p.kind)}}catch(_){}}"
          "ad7144Classify();if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',ad7144Classify,{once:true});window.addEventListener('load',ad7144Classify,{once:true});}else ad7144Classify();"
@@ -1285,7 +1124,7 @@ static NSString *ADTWBJS(void){
     CGFloat factor=1.0-shade;
     return [NSString stringWithFormat:
         @"(function(){try{var host='';try{host=String(location.hostname||'').toLowerCase();}catch(_){}if(host==='flashtalking.com'||/\\.flashtalking\\.com$/.test(host))return;var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement)document.documentElement.setAttribute('data-ad7-twb-child','1');if(child&&document.documentElement&&document.documentElement.hasAttribute('data-ad7-standalone-candidate'))return;function put(id,css){var s=document.getElementById(id);if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}s.textContent=css;return s;}function relink(s){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}if(child){put('ad7-twb-child-min',\"html[data-ad7-twb-child=\\\"1\\\"] :is(img,video,canvas):not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([class"
-        @"*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)){filter:brightness(%.3f)!important;}\");return;}var p='';try{p=String(location.pathname||'');}catch(_){}var s=null;if(p==='/autocomplete'||p.indexOf('/autocomplete/')===0){s=put('ad7-search-pane-twb',\"img.ufs_tiles_card_widget-sug-image,img.s-entity-pd-carousel-tile-element-image{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;}#attach-to-me img.s-image,#attach-to-me img.s-product-image,.s-suggestion-container img.s-image,.s-suggestion-container img.s-product-image{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}\");}else if(p==='/s'||p.indexOf('/s/')===0){s=put('ad7-product-feed-twb',\"#search img.scx-stt-image,#search img._c2Itd_image_3UiYm,#search img._bXVsd_image_iVomf,#search img._bXVsd_lifestyleImage_1fluW{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;}#search img.s-image,#search img.s-product-image,#search [data-component-type=s-product-image] img,#search img.ufs_tiles_card_widget-sug-image,#search img.nice-cat-card_image,#search img.haul-puis-portrait-img,#search img._c2Itd_image_pQREQ{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}#search video.sbv-video-player-ecx,#search video._"
+        @"*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)){filter:brightness(%.3f)!important;}\");return;}var p='';try{p=String(location.pathname||'');}catch(_){}var s=null;if(p==='/autocomplete'||p.indexOf('/autocomplete/')===0){s=put('ad7-search-pane-twb',\"img.ufs_tiles_card_widget-sug-image,img.s-entity-pd-carousel-tile-element-image,#attach-to-me img.s-image,#attach-to-me img.s-product-image,.s-suggestion-container img.s-image,.s-suggestion-container img.s-product-image{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}\");}else if(p==='/s'||p.indexOf('/s/')===0){s=put('ad7-product-feed-twb',\"#search img.scx-stt-image,#search img._c2Itd_image_3UiYm,#search img._bXVsd_image_iVomf,#search img._bXVsd_lifestyleImage_1fluW,#search img.s-image,#search img.s-product-image,#search [data-component-type=s-product-image] img,#search img.ufs_tiles_card_widget-sug-image,#search img.nice-cat-card_image,#search img.haul-puis-portrait-img,#search img._c2Itd_image_pQREQ{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}#search video.sbv-video-player-ecx,#search video._"
         @"c2Itd_video_17g-f{filter:none!important;-webkit-filter:none!important;}#search .sbv-video-overlay{background-color:rgba(0,0,0,%.3f)!important;}#search ._c2Itd_videoOverlay_1H_Jm{background-color:rgba(0,0,0,%.3f)!important;}\");}else{s=put('ad7-menu-twb',\"img.ufs_tiles_card_widget-sug-image,img.s-image,img.s-product-image,#landingImage,#imgBlkFront,#imgTagWrapperId img,img[data-a-dynamic-image],img.a-dynamic-image,[data-component-type=s-product-image] img,[class*=product-image] img,[class*=asin-image] img,.p13n-sc-uncoverable-faceout img,[data-asin] img.s-image,[data-csa-c-asin] img.s-image,:is(#gwm-Deck-btf,.gwm-dashboard-container) :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) img:not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store]):not([class*=rating]):not([class*=star]):not([class*=sprite]):not([class*=pixel]):not([class*=icon]):not([class*=glyph]):not([class*"
         @"=badge]):not([class*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=search-icon]):not([class*=microphone]):not([class*=camera]):not([class*=location]):not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon]):not([class*=header-icon]):not([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr]):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),html[data-ad7-twb-child=\\\"1\\\"]:not([data-ad7-standalone-candidate]) :is(img,video,canvas):not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=rating]):not([class*=star]):not([class*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=search-icon]):not([class*=microphone]):not([class*=camera]):not([class*=location]):not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon]):not([class*=header-icon]):not"
         @"([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr]):not([class*=sprite]):not([class*=pixel]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),html[data-ad7-standalone-candidate] :is([data-testid*=product-picture],[data-testid*=product-image],[data-testid*=asin-image]) :is(img,video,canvas):not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([data-testid=ratings-stars] *)):not(:where([data-testid=prime-badge] *)),html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] :is([data-testid=image],[data-acei-id=lfstyl-img]) :is(img,video,canvas):not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge]),html[data-ad7-standalone-candidate] #ad:has(#dynamic-bb) :is([data-acei-id=lfstyl-img],[data-acei-id=prod-img]) :is(img,vid"
@@ -1294,7 +1133,7 @@ static NSString *ADTWBJS(void){
         @"onsored]):not([class*=spr]),#gwm-window [id^=wd-shoppable-] :is(img,video,canvas):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=logo]):not([class*=badge]):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=ad-feedback] *)),img[class*=_single-creative-card],img[class*=_single-video-card],[class*=single-creative-card] img,[class*=single-video-card] img,[class*=single-video-card] video,[class*=canvas-card] canvas,video.vjs-tech,video[class*=_npack-asin-card_style_background-video__],[class*=_npack-asin-card_style_background-video-container__] > video[class*=_npack-asin-card_style_motion-content__]{filter:brightness(%.3f)!important;}:is([class*=theming-card-background],[class*=_npack-asin-card_style_theming-background-override__]) [class*=_npack-asin-card_style_asin-container-white__]{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;transition"
         @"-property:none!important;}[class*=theming-card-background],[class*=vjs-poster],[class*=single-creative-card-background],[class*=single-video-card-background],[class*=single-creative-card] [class*=theming-card-background],[class*=single-video-card] [class*=theming-card-background],[class*=single-video-card] [class*=vjs-poster],:is([class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=_npack-asin-card],[class*=npack-asin-card],[class*=canvas-card],[class*=canvas-container]):is([style*=\\\"background-image\\\"],[style*=\\\"backgroundImage\\\"]):not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=badge]):not([class*=chevron]),:is([class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=_npack-asin-card],[class*=npack-asin-card],[class*=canvas-card],[class*=canvas-container]) :is([style*=\\\"background-image\\\"],[style*=\\\"backgroundImage\\\"]):not([class*=logo]):not(["
         @"class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=badge]):not([class*=chevron]),html[data-ad7-twb-child=\\\"1\\\"] :is([class*=theming-card-background],[class*=vjs-poster],[class*=single-creative-card-background],[class*=single-video-card-background]){box-shadow:inset 0 0 0 9999px rgba(0,0,0,%.3f)!important;transition-property:none!important;}\");}if(document.readyState==='loading')window.addEventListener('load',function(){relink(s);},{once:true});else relink(s);}catch(e){}})();",
-        factor,factor,factor,factor,factor,factor,factor,factor,factor,factor,factor];
+        factor,factor,factor,factor,factor,factor,factor];
 }
 
 static NSString *ADPrivacyModeJS7117(void){
@@ -1641,6 +1480,34 @@ static void ADOwnNativeFloor(UIView *v){
 
 static UIColor *ADLightText706(void);
 
+static inline BOOL ADClassNameHas7183(id obj,const char *needle){
+    if(!obj||!needle)return NO;
+    const char *cn=object_getClassName(obj);
+    return cn&&strstr(cn,needle)!=NULL;
+}
+static inline char ADAsciiLower7183(char c){ return (c>='A'&&c<='Z')?(char)(c+('a'-'A')):c; }
+static inline BOOL ADClassNameHasFold7183(id obj,const char *needleLower){
+    if(!obj||!needleLower||!*needleLower)return NO;
+    const char *cn=object_getClassName(obj); if(!cn)return NO;
+    size_t nl=strlen(needleLower);
+    for(const char *p=cn;*p;p++){
+        size_t i=0; while(i<nl&&p[i]&&ADAsciiLower7183(p[i])==needleLower[i])i++;
+        if(i==nl)return YES;
+    }
+    return NO;
+}
+static inline BOOL ADClassNameIs7183(id obj,const char *exact){
+    if(!obj||!exact)return NO;
+    const char *cn=object_getClassName(obj);
+    return cn&&strcmp(cn,exact)==0;
+}
+static inline BOOL ADClassNamePrefix7183(id obj,const char *prefix){
+    if(!obj||!prefix)return NO;
+    const char *cn=object_getClassName(obj); if(!cn)return NO;
+    size_t n=strlen(prefix);
+    return strncmp(cn,prefix,n)==0;
+}
+
 // v7.0.24 — v6.0.185 tab-rendering mechanism, narrowed to the current ANX tab bar.
 // Current requested palette: all tab glyphs white + selected indicator white.
 static const void *kADTabIndicator724=&kADTabIndicator724;
@@ -1651,8 +1518,7 @@ static UIView *ADANXTabRoot724(UIView *v){
     @try {
         UIView *n=v;
         for(int d=0;n&&d<12;d++,n=n.superview){
-            NSString *c=NSStringFromClass(n.class);
-            if([c containsString:@"ANXTabBarView"])return n;
+            if(ADClassNameHas7183(n,"ANXTabBarView"))return n;
         }
     } @catch(...) {}
     return nil;
@@ -1786,7 +1652,7 @@ static inline void ADMarkSearchDeliveryDescendant7139(UIView *v){
 static BOOL ADExactGlowIngress7140(UIView *v){
     if(!gP.enabled||!v||!v.window)return NO;
     @try {
-        if(![NSStringFromClass(v.class) isEqualToString:@"GlowIngressView"])return NO;
+        if(!ADClassNameIs7183(v,"GlowIngressView"))return NO;
         // v7.171: v7.169 rendered this exact Search delivery strip correctly. v7.170's
         // longer launch handoff can change controller timing, so do not make the proven
         // GlowIngress owner depend on primary-controller classification. Keep the exact
@@ -1884,8 +1750,7 @@ static void ADOwnGlowIngress7140(UIView *root){
 }
 static BOOL ADSearchSubNavControllerClass7139(UIViewController *vc){
     if(!vc)return NO;
-    NSString *cn=NSStringFromClass(vc.class);
-    return [cn isEqualToString:@"ANXVisualSubNavViewController"] || [cn isEqualToString:@"ANXSubNavContainer"];
+    return ADClassNameIs7183(vc,"ANXVisualSubNavViewController") || ADClassNameIs7183(vc,"ANXSubNavContainer");
 }
 // v7.175: Home visual-category cells are Amazon-authored stock UI.  v7.174 only
 // released the VisualSubNav controller, but ANXSubNavContainer could still mark these
@@ -1894,7 +1759,7 @@ static BOOL ADInAuthoredVisualSubNav7175(UIView *v){
     if(!v)return NO;
     @try {
         for(UIView *n=v;n;n=n.superview){
-            if([NSStringFromClass(n.class) isEqualToString:@"ANXVisualSubNavTextCollectionViewCell"])return YES;
+            if(ADClassNameIs7183(n,"ANXVisualSubNavTextCollectionViewCell"))return YES;
             if([n isKindOfClass:[UIWindow class]])break;
         }
     } @catch(...) {}
@@ -1914,7 +1779,7 @@ static void ADOwnCompactSearchSubNav7139(UIViewController *vc){
     if(!gP.enabled||!ADSearchSubNavControllerClass7139(vc)||!vc.isViewLoaded)return;
     @try {
         // v7.174 probe: release authored Home category chips.
-        if([NSStringFromClass(vc.class) isEqualToString:@"ANXVisualSubNavViewController"])return;
+        if(ADClassNameIs7183(vc,"ANXVisualSubNavViewController"))return;
         UIView *root=vc.view; if(!ADCompactSearchSubNavView7139(root))return;
         UIColor *black=ADOLED();
         if(objc_getAssociatedObject(root,kADSearchDeliveryBand7139)){
@@ -1942,15 +1807,14 @@ static BOOL ADSelectionPlatterChild7130(UIView *v, UIColor *candidate){
     if(!gP.enabled||!v||!v.window||!candidate)return NO;
     @try {
         if(strcmp(object_getClassName(v),"UIView")!=0)return NO;
-        if(![NSStringFromClass(v.window.class) isEqualToString:@"AppCXWindow"])return NO;
+        if(!ADClassNameIs7183(v.window,"AppCXWindow"))return NO;
         CGRect r=[v convertRect:v.bounds toView:v.window];
         CGFloat sw=v.window.bounds.size.width;
         if(sw<1.0||r.size.width<sw*0.60||r.size.height<18.0||r.size.height>130.0)return NO;
         if(!ADBrightNeutral7130(candidate))return NO;
         UIView *n=v.superview;
         for(int d=0;n&&d<8;d++,n=n.superview){
-            NSString *cn=NSStringFromClass(n.class);
-            if([cn hasPrefix:@"_UIPlatter"])return YES;
+            if(ADClassNamePrefix7183(n,"_UIPlatter"))return YES;
             if([n isKindOfClass:[UIWindow class]])break;
         }
     } @catch(...) {}
@@ -2034,8 +1898,8 @@ static BOOL ADTopChromeClass713(UIView *v){
     @try {
         UIView *n=v;
         for(int d=0;n&&d<10;d++,n=n.superview){
-            NSString *c=NSStringFromClass(n.class).lowercaseString?:@"";
-            if([c containsString:@"anxtopnav"]||[c containsString:@"topmainbar"]||[c containsString:@"statusbarinset"]||[c containsString:@"topnav"]) return YES;
+            if(ADClassNameHasFold7183(n,"anxtopnav")||ADClassNameHasFold7183(n,"topmainbar")||
+               ADClassNameHasFold7183(n,"statusbarinset")||ADClassNameHasFold7183(n,"topnav")) return YES;
         }
     } @catch(...) {}
     return NO;
@@ -2053,11 +1917,10 @@ static BOOL ADBarGeometry713(UIView *v, BOOL *isBottom){
 static BOOL ADPrimaryAmazonController713(UIViewController *vc){
     if(!vc)return NO;
     @try {
-        NSString *n=NSStringFromClass(vc.class).lowercaseString?:@"";
-        return [n containsString:@"anpdockedtabbar"]||[n containsString:@"anxtabroot"]||
-               [n containsString:@"anxtopmainbar"]||[n containsString:@"anxsubnav"]||
-               [n containsString:@"anxvisualsubnav"]||[n containsString:@"sxwebresults"]||
-               [n containsString:@"anptopnav"]||[n containsString:@"cxistatusbarinset"];
+        return ADClassNameHasFold7183(vc,"anpdockedtabbar")||ADClassNameHasFold7183(vc,"anxtabroot")||
+               ADClassNameHasFold7183(vc,"anxtopmainbar")||ADClassNameHasFold7183(vc,"anxsubnav")||
+               ADClassNameHasFold7183(vc,"anxvisualsubnav")||ADClassNameHasFold7183(vc,"sxwebresults")||
+               ADClassNameHasFold7183(vc,"anptopnav")||ADClassNameHasFold7183(vc,"cxistatusbarinset");
     } @catch(...) {}
     return NO;
 }
@@ -2069,8 +1932,7 @@ static BOOL ADPrimaryAmazonWindow713(UIWindow *w, UIViewController *candidate){
         UIViewController *vc=candidate?:w.rootViewController;
         BOOL primary=ADPrimaryAmazonController713(vc);
         if(!primary){
-            NSString *n=NSStringFromClass(vc.class).lowercaseString?:@"";
-            primary=[n containsString:@"splash"]||[n containsString:@"launchscreen"];
+            primary=ADClassNameHasFold7183(vc,"splash")||ADClassNameHasFold7183(vc,"launchscreen");
         }
         if(primary)objc_setAssociatedObject(w,kADPrimaryWindow713,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         return primary;
@@ -2144,9 +2006,8 @@ static BOOL ADWebPlatter7129(UIView *v){
         // Text-selection platters are portal-mounted siblings of WebKit content on
         // this iOS build, so WK ancestor testing is wrong.  The exact private
         // platter class + primary AppCXWindow + row-sized geometry is sufficient.
-        NSString *cn=NSStringFromClass(v.class);
-        if(![cn hasPrefix:@"_UIPlatter"])return NO;
-        if(![NSStringFromClass(v.window.class) isEqualToString:@"AppCXWindow"])return NO;
+        if(!ADClassNamePrefix7183(v,"_UIPlatter"))return NO;
+        if(!ADClassNameIs7183(v.window,"AppCXWindow"))return NO;
         CGRect r=[v convertRect:v.bounds toView:v.window];
         CGFloat sw=v.window.bounds.size.width;
         return sw>0.0 && r.size.width>=sw*0.55 && r.size.height>=18.0 && r.size.height<=140.0;
@@ -2342,7 +2203,7 @@ static CALayer *ADBlackBackingLayer7130(UIView *v,const void *key){
 static BOOL ADAppLoadingSurface7130(UIView *v){
     if(!gP.enabled||!v||!v.window)return NO;
     @try {
-        if(![NSStringFromClass(v.window.class) isEqualToString:@"AppCXWindow"])return NO;
+        if(!ADClassNameIs7183(v.window,"AppCXWindow"))return NO;
         CGRect r=[v convertRect:v.bounds toView:v.window];
         CGFloat sw=v.window.bounds.size.width;
         return sw>0.0 && r.size.width>=sw*0.85 && r.size.height>=120.0;
@@ -2434,7 +2295,7 @@ static BOOL ADHiddenKeyboardDock7130(UIView *v){
         if(![host isKindOfClass:%c(UIInputSetHostView)]) host=v.superview;
         if(!host||![host isKindOfClass:%c(UIInputSetHostView)])return NO;
         for(UIView *child in (host.subviews.copy?:@[])){
-            if([NSStringFromClass(child.class) isEqualToString:@"UIKeyboardDockView"])
+            if(ADClassNameIs7183(child,"UIKeyboardDockView"))
                 return child.hidden||child.alpha<=0.01;
         }
     } @catch(...) {}
@@ -2443,7 +2304,7 @@ static BOOL ADHiddenKeyboardDock7130(UIView *v){
 static BOOL ADLowerKeyboardSurface7130(UIView *v){
     if(!gP.enabled||!v||!v.window||!ADHiddenKeyboardDock7130(v))return NO;
     @try {
-        if(![NSStringFromClass(v.window.class) isEqualToString:@"UITextEffectsWindow"])return NO;
+        if(!ADClassNameIs7183(v.window,"UITextEffectsWindow"))return NO;
         CGRect r=[v convertRect:v.bounds toView:v.window];
         CGRect wb=v.window.bounds;
         return wb.size.width>0.0 && r.size.width>=wb.size.width*0.85 &&
@@ -2561,17 +2422,16 @@ static BOOL ADNeutralCGColor706(CGColorRef c){
 }
 static BOOL ADInBottomNav706(UIView *v){
     @try { UIView *n=v; for(int d=0;n&&d<12;d++,n=n.superview){
-        NSString *c=NSStringFromClass(n.class).lowercaseString ?: @"";
-        if([c containsString:@"bottomnav"]||[c containsString:@"tabbar"]||[c containsString:@"navtoolbar"]||[c containsString:@"storemodestab"]) return YES;
+        if(ADClassNameHasFold7183(n,"bottomnav")||ADClassNameHasFold7183(n,"tabbar")||
+           ADClassNameHasFold7183(n,"navtoolbar")||ADClassNameHasFold7183(n,"storemodestab")) return YES;
     }} @catch(...) {}
     return NO;
 }
 static BOOL ADInSearchChrome706(UIView *v){
     @try { UIView *n=v; for(int d=0;n&&d<10;d++,n=n.superview){
-        NSString *c=NSStringFromClass(n.class).lowercaseString ?: @"";
-        if([c containsString:@"sbsearchbar"]||[c containsString:@"sbsearchfield"]||
-           [c containsString:@"sbmultilinesearchview"]||[c containsString:@"searchbar"]||
-           [c containsString:@"searchfield"]||[c containsString:@"scanitsearchwidget"]) return YES;
+        if(ADClassNameHasFold7183(n,"sbsearchbar")||ADClassNameHasFold7183(n,"sbsearchfield")||
+           ADClassNameHasFold7183(n,"sbmultilinesearchview")||ADClassNameHasFold7183(n,"searchbar")||
+           ADClassNameHasFold7183(n,"searchfield")||ADClassNameHasFold7183(n,"scanitsearchwidget")) return YES;
     }} @catch(...) {}
     return NO;
 }
@@ -2584,7 +2444,7 @@ static BOOL ADIsSearchBackGlyph7120(UIView *v){
             NSString *lab=(n.accessibilityLabel?:@"").lowercaseString;
             if([aid isEqualToString:@"nav_back_button"] ||
                ([aid containsString:@"back"]&&[aid containsString:@"nav"]) ||
-               ([lab isEqualToString:@"back"]&&[NSStringFromClass(n.class).lowercaseString containsString:@"button"])) return YES;
+               ([lab isEqualToString:@"back"]&&ADClassNameHasFold7183(n,"button"))) return YES;
         }
     } @catch(...) {}
     return NO;
@@ -2614,7 +2474,11 @@ static void ADTintSearchGlyph706(UIImageView *iv){
     if(!gP.enabled||!iv||!iv.image)return;
     CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
     if(w<3||h<3||w>64||h>64)return;
-    BOOL search=ADInSearchChrome706(iv), location=ADIsLocationGlyph709(iv), back=ADIsSearchBackGlyph7120(iv);
+    BOOL search=ADInSearchChrome706(iv), location=NO, back=NO;
+    if(!search){
+        location=ADIsLocationGlyph709(iv);
+        if(!location)back=ADIsSearchBackGlyph7120(iv);
+    }
     if(!search&&!location&&!back)return;
     @try {
         UIImage *im=iv.image;
@@ -2742,8 +2606,11 @@ static void ADSetKeyboardFloor7126(UIView *view){
 static NSAttributedString *ADLightAttributedText708(NSAttributedString *in){
     if(!gP.enabled || !in || in.length==0) return in;
     @try {
+        UIColor *light=ADLightText706(); NSRange whole=NSMakeRange(0,in.length),range=NSMakeRange(0,0);
+        id c=[in attribute:NSForegroundColorAttributeName atIndex:0 longestEffectiveRange:&range inRange:whole];
+        if(range.location==0 && NSMaxRange(range)==in.length && [c isKindOfClass:[UIColor class]] && [(UIColor *)c isEqual:light]) return in;
         NSMutableAttributedString *m=[in mutableCopy];
-        [m addAttribute:NSForegroundColorAttributeName value:ADLightText706() range:NSMakeRange(0,m.length)];
+        [m addAttribute:NSForegroundColorAttributeName value:light range:whole];
         return m;
     } @catch(...) { return in; }
 }
@@ -2765,6 +2632,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
     @try {
         UIView *n=textView.superview;
         for(int d=0;n&&d<7;d++,n=n.superview){
+            if(objc_getAssociatedObject(n,kADReactCard708))return;
             CGFloat w=n.bounds.size.width,h=n.bounds.size.height;
             if(w>=150&&w<=430&&h>=170&&h<=700&&ADBrightNeutralUIView708(n)){
                 objc_setAssociatedObject(n,kADReactCard708,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -2798,7 +2666,12 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 %hook RCTTextView
 - (void)setTextStorage:(NSTextStorage *)textStorage {
     if(gP.enabled && textStorage.length){
-        @try { [textStorage addAttribute:NSForegroundColorAttributeName value:ADLightText706() range:NSMakeRange(0,textStorage.length)]; } @catch(...) {}
+        @try {
+            NSRange whole=NSMakeRange(0,textStorage.length),range=NSMakeRange(0,0); UIColor *light=ADLightText706();
+            id c=[textStorage attribute:NSForegroundColorAttributeName atIndex:0 longestEffectiveRange:&range inRange:whole];
+            if(!(range.location==0 && NSMaxRange(range)==textStorage.length && [c isKindOfClass:[UIColor class]] && [(UIColor *)c isEqual:light]))
+                [textStorage addAttribute:NSForegroundColorAttributeName value:light range:whole];
+        } @catch(...) {}
     }
     %orig;
     ADDarkenReactCardNearText708((UIView *)self);
@@ -2827,6 +2700,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
     }
     if(gP.enabled){
         UIColor *want=ADLightText706();
+        if([self.textColor isEqual:want])return;
         %orig(want);
         return;
     }
@@ -2834,7 +2708,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 }
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled&&self.window&&!ADInAuthoredVisualSubNav7175((UIView *)self)) self.textColor=ADLightText706();
+    if(gP.enabled&&self.window&&!ADInAuthoredVisualSubNav7175((UIView *)self)){ UIColor *want=ADLightText706(); if(![self.textColor isEqual:want]) self.textColor=want; }
 }
 %end
 
@@ -2854,6 +2728,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 - (void)setTextColor:(UIColor *)color {
     if(gP.enabled){
         UIColor *want=ADLightText706();
+        if([self.textColor isEqual:want])return;
         %orig(want);
         return;
     }
@@ -2861,7 +2736,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 }
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled&&self.window){ self.textColor=ADLightText706(); ADPrepareSearchKeyboard7120((UIView *)self); }
+    if(gP.enabled&&self.window){ UIColor *want=ADLightText706(); if(![self.textColor isEqual:want]) self.textColor=want; ADPrepareSearchKeyboard7120((UIView *)self); }
 }
 %end
 
@@ -2881,6 +2756,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 - (void)setTextColor:(UIColor *)color {
     if(gP.enabled){
         UIColor *want=ADLightText706();
+        if([self.textColor isEqual:want])return;
         %orig(want);
         return;
     }
@@ -2891,7 +2767,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
     if(gP.enabled&&self.window){
         BOOL search=ADInSearchChrome706((UIView *)self);
         ADPrepareSearchKeyboard7120((UIView *)self);
-        self.textColor=ADLightText706();
+        UIColor *want=ADLightText706(); if(![self.textColor isEqual:want]) self.textColor=want;
         if(search && self.placeholder.length){
             self.attributedPlaceholder=[[NSAttributedString alloc] initWithString:self.placeholder attributes:@{NSForegroundColorAttributeName:ADLightText706()}];
         }
@@ -2907,6 +2783,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
     }
     if(gP.enabled){
         UIColor *light=ADLightText706();
+        if([[self titleColorForState:state] isEqual:light])return;
         %orig(light,state);
         return;
     }
@@ -2928,6 +2805,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
     if(gP.enabled&&color&&ADNeutralCGColor706(color)){
         UIColor *g=ADBorderGray706();
         CGColorRef cg=g.CGColor;
+        if(self.borderColor&&CGColorEqualToColor(self.borderColor,cg))return;
         %orig(cg);
         return;
     }
@@ -2949,6 +2827,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
     if(gP.enabled&&color&&ADNeutralCGColor706(color)&&(self.bounds.size.width>24||self.bounds.size.height>24)){
         UIColor *g=ADBorderGray706();
         CGColorRef cg=g.CGColor;
+        if(self.strokeColor&&CGColorEqualToColor(self.strokeColor,cg))return;
         %orig(cg);
         return;
     }
@@ -3521,8 +3400,7 @@ static BOOL ADNativeMediaBlocked(UIImageView *iv){
         BOOL semanticProduct=NO;
         for(NSString *tok in @[@"product",@"asin",@"item",@"offer",@"recommend",@"reorder",@"buy again",@"keep shopping",@"shopping for",@"retail image"])
             if([q containsString:tok]){ semanticProduct=YES; break; }
-        NSString *cn=NSStringFromClass(iv.class).lowercaseString?:@"";
-        BOOL knownAmazonRaster=([cn containsString:@"rctuiimageviewanimated"]||[cn containsString:@"anxfastimageview"]);
+        BOOL knownAmazonRaster=(ADClassNameHasFold7183(iv,"rctuiimageviewanimated")||ADClassNameHasFold7183(iv,"anxfastimageview"));
         if(!semanticProduct && !knownAmazonRaster)return YES;
     } @catch(...) { return YES; }
     return NO;
@@ -3541,11 +3419,11 @@ static BOOL ADNativeMediaBlockedCached7146(UIImageView *iv){
         return blocked;
     } @catch(...) { return ADNativeMediaBlocked(iv); }
 }
-static void ADApplyNativeTWB(UIImageView *iv){
+static void ADApplyNativeTWBCached7183(UIImageView *iv,BOOL authoredSubNav){
     if(!iv)return;
     @try {
         CALayer *ov=objc_getAssociatedObject(iv,kADTWBOverlay);
-        if(gP.enabled && ADInAuthoredVisualSubNav7175((UIView *)iv)){
+        if(gP.enabled && authoredSubNav){
             if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(iv,kADTWBOverlay,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
             return;
         }
@@ -3553,12 +3431,13 @@ static void ADApplyNativeTWB(UIImageView *iv){
             if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(iv,kADTWBOverlay,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
             return;
         }
-        if(!ov){ ov=[CALayer layer]; ov.name=@"AmazonDarkTWB7"; ov.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"backgroundColor":[NSNull null]}; [iv.layer addSublayer:ov]; objc_setAssociatedObject(iv,kADTWBOverlay,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
-        ov.frame=iv.bounds; ov.backgroundColor=ADNativeTWBOverlayColor7146().CGColor; ov.zPosition=FLT_MAX;
+        if(!ov){ ov=[CALayer layer]; ov.name=@"AmazonDarkTWB7"; ov.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"backgroundColor":[NSNull null],@"zPosition":[NSNull null]}; [iv.layer addSublayer:ov]; objc_setAssociatedObject(iv,kADTWBOverlay,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
+        CGRect want=iv.bounds; CGColorRef wantColor=ADNativeTWBOverlayColor7146().CGColor;
+        if(!CGRectEqualToRect(ov.frame,want))ov.frame=want;
+        if(!ov.backgroundColor||!CGColorEqualToColor(ov.backgroundColor,wantColor))ov.backgroundColor=wantColor;
+        if(ov.zPosition!=FLT_MAX)ov.zPosition=FLT_MAX;
     } @catch(...) {}
 }
-
-
 %hook UIImageView
 - (void)setImage:(UIImage *)image {
     if(gADTabImageWriting724){
@@ -3568,15 +3447,17 @@ static void ADApplyNativeTWB(UIImageView *iv){
     %orig;
     objc_setAssociatedObject(self,kADTWBEligibility,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADTWBEligibilityImage,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    if(gP.enabled&&self.window&&!ADInAuthoredVisualSubNav7175((UIView *)self)){ ADTabImageWhite724(self); ADTintSearchGlyph706(self); ADTintSearchDeliveryGlyph7139(self); }
-    if(gP.whiteTame)ADApplyNativeTWB(self);
+    BOOL authored=ADInAuthoredVisualSubNav7175((UIView *)self);
+    if(gP.enabled&&self.window&&!authored){ ADTabImageWhite724(self); ADTintSearchGlyph706(self); ADTintSearchDeliveryGlyph7139(self); }
+    if(gP.whiteTame)ADApplyNativeTWBCached7183(self,authored);
 }
 - (void)didMoveToWindow {
     %orig;
     objc_setAssociatedObject(self,kADTWBEligibility,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADTWBEligibilityImage,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    if(gP.enabled&&self.window&&!ADInAuthoredVisualSubNav7175((UIView *)self)){ ADTabImageWhite724(self); ADTintSearchGlyph706(self); ADTintSearchDeliveryGlyph7139(self); }
-    ADApplyNativeTWB(self);
+    BOOL authored=ADInAuthoredVisualSubNav7175((UIView *)self);
+    if(gP.enabled&&self.window&&!authored){ ADTabImageWhite724(self); ADTintSearchGlyph706(self); ADTintSearchDeliveryGlyph7139(self); }
+    ADApplyNativeTWBCached7183(self,authored);
 }
 - (void)setTintColor:(UIColor *)color {
     if(gP.enabled && ADInAuthoredVisualSubNav7175((UIView *)self)){
@@ -3602,12 +3483,21 @@ static void ADApplyNativeTWB(UIImageView *iv){
 }
 - (void)layoutSubviews {
     %orig;
-    if(gP.enabled&&self.window&&!ADInAuthoredVisualSubNav7175((UIView *)self)){
+    BOOL authored=ADInAuthoredVisualSubNav7175((UIView *)self);
+    if(gP.enabled&&self.window&&!authored){
         ADTabImageWhite724(self);
         ADTintSearchGlyph706(self);
         ADTintSearchDeliveryGlyph7139(self);
     }
-    if(objc_getAssociatedObject(self,kADTWBOverlay)||gP.whiteTame)ADApplyNativeTWB(self);
+    CALayer *ov=objc_getAssociatedObject(self,kADTWBOverlay);
+    if(ov||gP.whiteTame){
+        if(!ov&&gP.whiteTame){
+            UIImage *last=objc_getAssociatedObject(self,kADTWBEligibilityImage);
+            NSNumber *blocked=objc_getAssociatedObject(self,kADTWBEligibility);
+            if(last==self.image&&blocked&&blocked.boolValue)return;
+        }
+        ADApplyNativeTWBCached7183(self,authored);
+    }
 }
 %end
 
@@ -3630,8 +3520,8 @@ static BOOL ADVisibleSplashController706(void){
             UIViewController *vc=w.rootViewController;
             NSMutableArray *q=[NSMutableArray array]; if(vc)[q addObject:vc];
             for(NSUInteger i=0;i<q.count&&i<24;i++){
-                UIViewController *x=q[i]; NSString *n=NSStringFromClass(x.class).lowercaseString?:@"";
-                if(([n containsString:@"splash"]||[n containsString:@"launchscreen"]||[n containsString:@"loading"]) && x.isViewLoaded && x.view.window && !x.view.hidden && x.view.alpha>0.01) return YES;
+                UIViewController *x=q[i];
+                if((ADClassNameHasFold7183(x,"splash")||ADClassNameHasFold7183(x,"launchscreen")||ADClassNameHasFold7183(x,"loading")) && x.isViewLoaded && x.view.window && !x.view.hidden && x.view.alpha>0.01) return YES;
                 if(x.presentedViewController)[q addObject:x.presentedViewController];
                 for(UIViewController *c in x.childViewControllers) if(c)[q addObject:c];
             }
@@ -3795,12 +3685,12 @@ static NSString *ADSearchResultsProbePath7139(NSUInteger run){
         fmt.timeZone=[NSTimeZone localTimeZone];
         fmt.dateFormat=@"yyyyMMdd-HHmmss-SSS";
         NSString *stamp=[fmt stringFromDate:[NSDate date]]?:@"unknown";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.181-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.183-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(docs.length)return [docs stringByAppendingPathComponent:name];
         return [NSTemporaryDirectory() stringByAppendingPathComponent:name];
     } @catch(...) {
-        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.181-dynamic-probe-r%lu.txt",(unsigned long)run]];
+        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.183-dynamic-probe-r%lu.txt",(unsigned long)run]];
     }
 }
 static void ADSearchResultsProbeAppend7139(NSString *p,NSString *s){
@@ -3953,7 +3843,7 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     NSUInteger run=++gADSearchResultsProbeRun7139;
     NSString *path=ADSearchResultsProbePath7139(run);
     NSString *runID=[NSString stringWithFormat:@"%@-pid%d-r%lu",[[path lastPathComponent] stringByDeletingPathExtension],getpid(),(unsigned long)run];
-    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.181 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
+    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.183 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(path,head);
     NSMutableArray *chosen=[NSMutableArray array];
     @try {
@@ -4046,7 +3936,6 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
         CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);
     ADRefreshRuntimeState7115(NO);
-    ADApplyJIT622();
 }
 
 #pragma clang diagnostic pop

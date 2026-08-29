@@ -64,14 +64,6 @@ This can make scrolling and animations appear smoother. iOS may still lower the 
 
 ---
 
-## JIT
-
-Amazon Dark can optionally enable **JIT** for the Amazon process on supported jailbreak configurations.
-
-JIT allows software that requires just-in-time compilation to compile code while it is running. It does not make Amazon or Amazon Dark faster by itself, so it can be left disabled unless a specific feature or tool requires it.
-
----
-
 ## Settings
 
 Settings → **AmazonDark**
@@ -83,7 +75,6 @@ Available options:
 - Taming Strength
 - Privacy Mode
 - Force 120 Hz
-- Enable JIT
 
 ---
 
