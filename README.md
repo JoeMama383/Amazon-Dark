@@ -1,3 +1,17 @@
+# AmazonDark v7.178~home-ape-card-text-fix-probe
+
+## v7.178 Home APE product-card text parity
+
+- Direct source base: v7.177~scrollbar-haul-strip-fix-probe.
+- The v7.177 device probe identifies the visible Outlet recommendation grid as a Home APE mosaic (`ape_gateway_mobile-homepage-btf-mosaics-*`) containing p13n / `_cXVhZ_` product cards.
+- Those cards are already OLED black, but Amazon's nested ASIN metadata/title subtree still computes dark stock ink (`rgb(17,17,17)`), producing nearly invisible product titles and prices.
+- v7.178 gives only that Home APE p13n title/metadata subtree light `#e8e6e3` ink, including nested title/price text leaves. Ratings/stars, badges, deals/coupons, Sponsored feedback, imagery, and card-level CTA links remain outside this override.
+- Retains the v7.173+ dynamic multi-interface probe: screenshot/SIGUSR2 creates one unique v7.178 capture, capped at 28 MiB.
+
+No production MutationObserver, recurring timer, RAF loop, scroll listener, or recurring repair scan is added.
+
+---
+
 # AmazonDark v7.177~scrollbar-haul-strip-fix-probe
 
 ## v7.177 Search filter scrollbar + Haul strip cleanup
