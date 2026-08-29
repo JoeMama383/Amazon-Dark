@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.168-badge-container-fix-probe"
+#define AD_VERSION "v7.169-search-carousel-pills-standalone-badge-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -856,6 +856,20 @@ static NSString *ADFloorJS(void){
         @"#search#search .puis-card-container .s-background-color-platinum{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;color:#ffd814!important;-webkit-text-fill-color:#ffd814!important;}#search#search .puis-card-container .s-background-color-platinum::before,#search#search .puis-card-container .s-background-color-platinum::after{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;}#search#search .puis-card-container .s-background-color-platinum :is(span,strong,b){background:transparent!important;background-color:transparent!important;color:#ffd814!important;-webkit-text-fill-color:#ffd814!important;}"
         @"#search#search .puis-card-container :is(.a-color-success,[class*=saving],[class*=savings],[id*=saving],[id*=savings]):not([class*=coupon]):not(:where([class*=coupon] *)):not([class*=deal]):not(:where([class*=deal] *)):not([id^=DEAL_]):not(:where([id^=DEAL_] *)){background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;color:#008000!important;-webkit-text-fill-color:#008000!important;}#search#search .puis-card-container :is(.a-color-success,[class*=saving],[class*=savings],[id*=saving],[id*=savings]) :is(.a-badge,.a-badge-label,.a-badge-label-inner,span,a,div,strong,b){background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;color:#008000!important;-webkit-text-fill-color:#008000!important;}"
         @"#search#search .puis-card-container .a-badge:not([id]):not(:where(.puis-status-badge-container *)):not(:where([class*=coupon] *)):not(:where([class*=deal] *)):has(:is(.a-color-success,[class*=saving],[class*=savings],[id*=saving],[id*=savings])){background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;color:#008000!important;-webkit-text-fill-color:#008000!important;}#search#search .puis-card-container .a-badge:not([id]):not(:where(.puis-status-badge-container *)):not(:where([class*=coupon] *)):not(:where([class*=deal] *)):has(:is(.a-color-success,[class*=saving],[class*=savings],[id*=saving],[id*=savings])) :is(.a-badge-label,.a-badge-label-inner,.a-badge-text,.a-color-success,span,a,div,strong,b){background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;color:#008000!important;-webkit-text-fill-color:#008000!important;}"
+        // v7.169: exact Prime-Savings renderer. The bright lime plate in the device screenshot
+        // is Amazon's _bGlmZ_couponBadge_vDASk surface (stock #7fda69), not an AUI
+        // success/saving badge. Own only that exact family; leave deal/coupon/status lanes alone.
+        @"#search#search :is(._bGlmZ_couponSns_1QLVK,._bGlmZ_couponSns_-u_8b){background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;}#search#search ._bGlmZ_couponBadge_vDASk{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;color:#008000!important;-webkit-text-fill-color:#008000!important;}#search#search ._bGlmZ_couponBadge_vDASk::before,#search#search ._bGlmZ_couponBadge_vDASk::after{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;}#search#search ._bGlmZ_couponBadge_vDASk :is(span,a,div,strong,b){background:transparent!important;background-color:transparent!important;color:#008000!important;-webkit-text-fill-color:#008000!important;}"
+
+        // v7.169: More-to-explore uses the Nile pill family outside the Rufus carousel gate. Reuse the exact established header/Rufus gray scheme.
+        @"#search#search :is(.nile-ingress-pill-button,.nile-inline-pill-button,.nile-inline-ingress-pill-button){background:#4a4f51!important;background-color:#4a4f51!important;background-image:none!important;border:1px solid #34383a!important;border-color:#34383a!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search :is(.nile-ingress-pill-button,.nile-inline-pill-button,.nile-inline-ingress-pill-button) .a-button-inner{background:#4a4f51!important;background-color:#4a4f51!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search :is(.nile-ingress-pill-button,.nile-inline-pill-button,.nile-inline-ingress-pill-button) .a-button-text{background:transparent!important;background-color:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search :is(.nile-ingress-pill-button,.nile-inline-pill-button,.nile-inline-ingress-pill-button) :is(span,p,strong,b,div){color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search :is(.nile-ingress-pill-button,.nile-inline-pill-button,.nile-inline-ingress-pill-button)::before,#search#search :is(.nile-ingress-pill-button,.nile-inline-pill-button,.nile-inline-ingress-pill-button)::after{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}"
+
+        // v7.169: exact v7.162 multi-brand standalone carousel (Explore key features).
+        // Own structural floors/text only; image, SVG, star/sparkle and icon art remain Amazon-owned.
+        @"#search#search ._bXVsd_multiBrandContainer_1cmb8,#search#search ._bXVsd_multiBrandContainer_1cmb8 :is(._bXVsd_carouselContainer_HJZMN,._bXVsd_carousel_3xahA,._bXVsd_container_1MiMG,._bXVsd_container_yQKU1,._bXVsd_content_1H2is,._bXVsd_cardContainer_388jB,._bXVsd_imageContainer_2X1hS,._bXVsd_container_3vH0A,._bXVsd_tintContain_15D7X,._bXVsd_container_1cD4b,.a-carousel-card,.a-box,.a-box-inner){background-color:#000!important;border-color:#494d4d!important;box-shadow:none!important;}#search#search ._bXVsd_multiBrandContainer_1cmb8{background:#000!important;background-color:#000!important;background-image:none!important;}"
+        @"#search#search ._bXVsd_multiBrandContainer_1cmb8 :is(div,section,article,main,header,footer,ul,ol,li){background-color:#000!important;box-shadow:none!important;}"
+        @"#search#search ._bXVsd_multiBrandContainer_1cmb8 :is(._bXVsd_content_1H2is,._bXVsd_cardContainer_388jB,h1,h2,h3,h4,h5,h6,p,a,strong,small,b,em,label,.a-color-base,.a-color-secondary,.a-text-normal,.a-size-base,.a-size-small,.a-size-medium,span:not(:has(svg,i,[class*=icon],[class*=star],[class*=sparkle]))):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([class*=icon]):not([class*=star]):not([class*=sparkle]):not(:where([class*=icon] *)):not(:where([class*=star] *)):not(:where([class*=sparkle] *)){color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search ._bXVsd_multiBrandContainer_1cmb8 :is(img,picture,svg,i,[class*=icon],[class*=star],[class*=sparkle]){filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;}"
+        @"#search#search ._bXVsd_multiBrandContainer_1cmb8 :is([data-ad-feedback-label-id],[class*=ad-feedback],[class*=adFeedback],[id^=ad-feedback-text-],[id^=af-label-primary-link-]){background-color:transparent!important;color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}#search#search ._bXVsd_multiBrandContainer_1cmb8 [data-ad-feedback-label-id] b[class*=ad-feedback-sprite]{color:#b1aaa0!important;background-color:#b1aaa0!important;background-image:none!important;-webkit-mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;-webkit-mask-size:contain!important;mask-size:contain!important;-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;-webkit-mask-position:center!important;mask-position:center!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
         @".puis-mab-chevron :is(i.a-icon-dropdown,.a-icon.a-icon-dropdown),.puis-mab-chevron-glyph "
         @":is(i.a-icon-dropdown,.a-icon.a-icon-dropdown){filter:brightness(0) invert(1)!important;opacity:1!important;}#search [data-a-badge-color=\\\"sx-cloud\\\"],#search [data-a-badge-color=\\"
         @"\"sx-cloud\\\"] :is(.a-badge-label,.a-badge-label-inner,.a-badge-text){background:transparent!important;background-color:transparent!important;background-image:none!important;border-c"
@@ -1036,7 +1050,12 @@ static NSString *ADFloorJS(void){
         @"ortant;-webkit-filter:none!important;opacity:1!important;}[class*=_hp-mosaic-container_style_loadingSpinner]::after{background:#000!important;background-color:#000!important;box-sh"
         @"adow:none!important;}#gwm-CardLoadingIndicator.gwm-LoadingIndicator::after{background:#000!important;background-color:#000!important;box-shadow:none!important;}::-webkit-scrollbar{"
         @"background-color:transparent!important;}::-webkit-scrollbar-track{background-color:transparent!important;}::-webkit-scrollbar-thumb{background-color:#6f6f6f!important;border-radius"
-        @":8px!important;border:2px solid transparent!important;background-clip:content-box!important;}::-webkit-scrollbar-thumb:hover{background-color:#8a8a8a!important;}\");}if(document.rea"
+        @":8px!important;border:2px solid transparent!important;background-clip:content-box!important;}::-webkit-scrollbar-thumb:hover{background-color:#8a8a8a!important;}"
+        // v7.169: /s product-referrer ad iframes are child frames but intentionally are not
+        // standalone-candidates. Reuse the proven Home 414x125 renderer contract by exact
+        // renderer identity, without touching layout/geometry or unrelated child frames.
+        @"html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container],html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container] :is([data-testid=main-content],[data-testid=content],[data-testid^=modern-][data-testid$=-layout-container]){background:#000!important;background-color:#000!important;background-image:none!important;border-color:#3b4043!important;outline-color:#3b4043!important;box-shadow:none!important;}html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container] :is(div,section,article,main,header,footer):not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime]):not([class*=star]):not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *)):not(:where([class*=star] *)){background-color:transparent!important;box-shadow:none!important;}html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container] :is([data-id=brand-name-text],[data-id=product-name-text],[data-testid=ratings-value],[data-testid=formatted-price],[data-testid=formatted-price] *){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container] :is([data-testid=ratings-review-count],[data-testid=full-price]){color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container] :is([data-ad-feedback-label-id],[class*=ad-feedback],[class*=adFeedback],[class*=sponsored],[data-testid*=sponsored],[id^=ad-feedback-text-],[id^=af-label-primary-link-]){background-color:transparent!important;color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container] :is([data-ad-feedback-label-id] b[class*=ad-feedback-sprite],b[class*=ad-feedback-sprite-mobile],[id^=ad-feedback-sprite-]){color:#b1aaa0!important;background-color:#b1aaa0!important;background-image:none!important;-webkit-mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;-webkit-mask-size:contain!important;mask-size:contain!important;-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;-webkit-mask-position:center!important;mask-position:center!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
+        @"\");}if(document.rea"
         @"dyState==='loading')window.addEventListener('load',function(){relink(s);rootBlack();},{once:true});else relink(s);rootBlack();}catch(e){}})();";
 }
 
@@ -3570,9 +3589,9 @@ static BOOL gADSearchResultsProbeFileFull7139=NO;
 static NSString *ADSearchResultsProbePath7139(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.168-badge-container-fix-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.169-search-carousel-pills-standalone-badge-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.168-badge-container-fix-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.169-search-carousel-pills-standalone-badge-probe.txt"];
 }
 static void ADSearchResultsProbeReset7139(void){
     @try {
@@ -3692,9 +3711,10 @@ static NSString *ADSearchResultsProbeWebList7139(void){
     return m;
 }
 static NSString *ADSearchResultsProbeJS7139(void){
-    // v7.168 diagnostic-only: capture only the two currently-failing Search micro-chip
-    // families (platinum attribute chips and savings/success badges) plus explicit deal
-    // and coupon comparison lanes. No element text or broad page inventory is recorded.
+    // v7.169 diagnostic-only: one bounded visible-frame truth capture for the four active
+    // Search targets: exact _bGlmZ Prime-Savings badge, More-to-explore pills, the exact
+    // _bXVsd multi-brand carousel, and Search renderer-factory medium-ad shells.
+    // No element text, outerHTML, typed query, clipboard, request body or header is recorded.
     return @"(function(){try{"
     "function A(e,n){try{return e&&e.getAttribute?String(e.getAttribute(n)||''):''}catch(_){return ''}}"
     "function R(e){try{var r=e.getBoundingClientRect();return [+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)]}catch(_){return [0,0,0,0]}}"
@@ -3702,16 +3722,18 @@ static NSString *ADSearchResultsProbeJS7139(void){
     "function P(e){if(!e)return null;var cn='';try{cn=String(e.className&&e.className.baseVal||e.className||'')}catch(_){}return {tag:String(e.tagName||''),id:String(e.id||''),cls:cn,r:R(e),attrs:{styleAttr:A(e,'style'),'data-a-badge-type':A(e,'data-a-badge-type'),'data-a-badge-color':A(e,'data-a-badge-color'),'data-csa-c-content-id':A(e,'data-csa-c-content-id'),'data-csa-c-item-id':A(e,'data-csa-c-item-id'),'data-testid':A(e,'data-testid'),'component':A(e,'data-csa-c-component')},style:S(e),before:S(e,'::before'),after:S(e,'::after')}}"
     "function C(e,n){var a=[];for(var x=e;x&&a.length<n;x=x.parentElement)a.push(P(x));return a}"
     "function vis(r){return r&&r.width>0&&r.height>0&&r.bottom>=0&&r.top<=innerHeight&&r.right>=0&&r.left<=innerWidth}"
-    "var cards=[],roots=document.querySelectorAll('#search .puis-card-container');"
-    "var sel='.s-background-color-platinum,.a-badge,.a-badge-label,.a-badge-label-inner,.a-color-success,[class*=saving],[class*=savings],[id*=saving],[id*=savings],[id^=DEAL_],[data-a-badge-type=deal],.s-coupon-tile,.s-coupon-tile-price-content';"
-    "for(var i=0;i<roots.length&&cards.length<10;i++){var card=roots[i],cr=card.getBoundingClientRect();if(!vis(cr))continue;var chips=[],all=card.querySelectorAll(sel);for(var j=0;j<all.length&&chips.length<80;j++){var e=all[j],r=e.getBoundingClientRect();if(!vis(r))continue;var kids=[];for(var c=e.firstElementChild;c&&kids.length<10;c=c.nextElementSibling)kids.push(P(c));chips.push({self:P(e),chain:C(e,6),children:kids});}if(chips.length)cards.push({card:P(card),chips:chips});}"
-    "return JSON.stringify({path:String(location.pathname||''),viewport:[innerWidth,innerHeight,devicePixelRatio],scroll:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],visibleChipCards:cards},null,2);"
-    "}catch(e){return 'VISIBLE_BADGE_TRUTH_ERR '+e;}})();";
+    "function Q(sel,lim){var out=[];try{var a=document.querySelectorAll(sel);for(var i=0;i<a.length&&out.length<(lim||80);i++){var e=a[i],r=e.getBoundingClientRect();if(!vis(r))continue;var kids=[];for(var c=e.firstElementChild;c&&kids.length<8;c=c.nextElementSibling)kids.push(P(c));out.push({self:P(e),chain:C(e,7),children:kids});}}catch(e){out.push({err:String(e),selector:sel})}return out;}"
+    "var badges=Q('#search ._bGlmZ_couponSns_1QLVK,#search ._bGlmZ_couponSns_-u_8b,#search ._bGlmZ_couponBadge_vDASk,#search .puis-card-container .a-badge,#search .puis-card-container [data-a-badge-color],#search .puis-card-container .a-color-success,#search .puis-card-container [class*=saving],#search .puis-card-container [class*=savings],#search .puis-card-container [id*=saving],#search .puis-card-container [id*=savings],#search .s-background-color-platinum,#search .s-coupon-tile',120);"
+    "var pills=Q('#search .nile-ingress-pill-button,#search .nile-inline-pill-button,#search .nile-inline-ingress-pill-button,#search .nile-ingress-pill-button .a-button-inner,#search .nile-inline-pill-button .a-button-inner,#search .nile-inline-ingress-pill-button .a-button-inner,#search .nile-ingress-pill-button .a-button-text,#search .nile-inline-pill-button .a-button-text,#search .nile-inline-ingress-pill-button .a-button-text',48);"
+    "var keyFeatures=Q('#search ._bXVsd_multiBrandContainer_1cmb8,#search ._bXVsd_carouselContainer_HJZMN,#search ._bXVsd_carousel_3xahA,#search ._bXVsd_container_1MiMG,#search ._bXVsd_container_yQKU1,#search ._bXVsd_content_1H2is,#search ._bXVsd_cardContainer_388jB,#search ._bXVsd_imageContainer_2X1hS,#search ._bXVsd_container_3vH0A,#search ._bXVsd_tintContain_15D7X,#search ._bXVsd_container_1cD4b,#search ._bXVsd_multiBrandContainer_1cmb8 [data-ad-feedback-label-id],#search ._bXVsd_multiBrandContainer_1cmb8 [class*=ad-feedback],#search ._bXVsd_multiBrandContainer_1cmb8 svg',120);"
+    "var medium=Q('#search [data-testid=renderer-factory-ad-container],#search [data-testid=renderer-factory-ad-container] [data-testid^=modern-][data-testid$=-layout-container],#search [data-testid=renderer-factory-ad-container] [data-testid=main-content],#search [data-testid=renderer-factory-ad-container] [data-testid=content],#search [data-testid=renderer-factory-ad-container] [data-id=brand-name-text],#search [data-testid=renderer-factory-ad-container] [data-id=product-name-text],#search [data-testid=renderer-factory-ad-container] [data-ad-feedback-label-id],#search [data-testid=renderer-factory-ad-container] [class*=ad-feedback]',96);"
+    "return JSON.stringify({path:String(location.pathname||''),viewport:[innerWidth,innerHeight,devicePixelRatio],scroll:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],badges:badges,moreToExplorePills:pills,keyFeaturesCarousel:keyFeatures,searchMediumStandalone:medium},null,2);"
+    "}catch(e){return 'V7169_SEARCH_TRUTH_ERR '+e;}})();";
 }
 static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     if(!gP.enabled)return; NSUInteger run=++gADSearchResultsProbeRun7139;
     ADSearchResultsProbeReset7139();
-    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.168 BADGE CONTAINER FIX PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
+    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.169 SEARCH CAROUSEL + PILLS + STANDALONE + BADGE PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
         (unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(head);
     NSMutableArray *search=[NSMutableArray array],*fallback=[NSMutableArray array];
@@ -3730,15 +3752,26 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     for(NSDictionary *it in search)if(chosen.count<2)[chosen addObject:it];
     if(!chosen.count)for(NSDictionary *it in fallback)if(chosen.count<1)[chosen addObject:it];
     if(!chosen.count){ ADSearchResultsProbeAppend7139(@"\nNO_VISIBLE_TRACKED_WKWEBVIEW\n================ END RUN ================\n"); return; }
-    NSUInteger lim=MIN((NSUInteger)2,chosen.count); __block NSUInteger pending=lim;
+    NSUInteger lim=MIN((NSUInteger)2,chosen.count); __block NSUInteger pending=lim*2;
     void (^done)(void)=^{ if(--pending==0)ADSearchResultsProbeAppend7139(@"================ END RUN ================\n"); };
     for(NSUInteger i=0;i<lim;i++){
         WKWebView *wv=chosen[i][@"wv"];
-        ADSearchResultsProbeAppend7139([NSString stringWithFormat:@"\n===== WEB BADGES #%lu =====\naid=\"%@\" path=\"%@\"\n",(unsigned long)i,wv.accessibilityIdentifier?:@"",ADSearchResultsProbeSafeURL7139(wv)]);
+        NSString *token=[NSString stringWithFormat:@"v7169-%lu-%lu",(unsigned long)run,(unsigned long)i];
+        NSString *startJS=[NSString stringWithFormat:@"(function(){try{return window.__ad7144StartProbe?window.__ad7144StartProbe('%@'):'NO_ALL_FRAME_START'}catch(e){return 'START_ERR '+e}})();",token];
+        [wv evaluateJavaScript:startJS completionHandler:nil];
+        ADSearchResultsProbeAppend7139([NSString stringWithFormat:@"\n===== WEB SEARCH TARGETS #%lu =====\naid=\"%@\" path=\"%@\"\n",(unsigned long)i,wv.accessibilityIdentifier?:@"",ADSearchResultsProbeSafeURL7139(wv)]);
         [wv evaluateJavaScript:ADSearchResultsProbeJS7139() completionHandler:^(id v,NSError *e){
             NSString *body=e?[NSString stringWithFormat:@"EVAL_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
             ADSearchResultsProbeAppend7139([NSString stringWithFormat:@"%@\n",body?:@"NO_DOM_DATA"]); done();
         }];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.55*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+            NSString *dumpJS=[NSString stringWithFormat:@"(function(){try{return window.__ad7144DumpProbe?window.__ad7144DumpProbe('%@'):'NO_ALL_FRAME_DUMP'}catch(e){return 'DUMP_ERR '+e}})();",token];
+            [wv evaluateJavaScript:dumpJS completionHandler:^(id v,NSError *e){
+                NSString *body=e?[NSString stringWithFormat:@"ALL_FRAME_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
+                if(body.length>900000)body=[[body substringToIndex:900000] stringByAppendingString:@"\n[ALL-FRAME DUMP TRUNCATED AT 900,000 CHARACTERS]\n"];
+                ADSearchResultsProbeAppend7139([NSString stringWithFormat:@"\n===== ALL-FRAME MEDIUM-AD TARGETS #%lu =====\n%@\n",(unsigned long)i,body?:@"NO_ALL_FRAME_DUMP"]); done();
+            }];
+        });
     }
 }
 static void ADInstallSearchResultsProbe7139(void){

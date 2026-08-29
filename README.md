@@ -1,4 +1,15 @@
-# AmazonDark v7.168~badge-container-fix-probe
+# AmazonDark v7.169~search-carousel-pills-standalone-badge-probe
+
+Direct base: **v7.168~badge-container-fix-probe**.
+
+## v7.169 Search polish
+
+- Prime Savings: pins the actual bright-lime renderer rather than guessing another AUI badge path. The live plate color is Amazon's `#7fda69` and its exact class family is `._bGlmZ_couponBadge_vDASk` inside `._bGlmZ_couponSns_1QLVK` / `._bGlmZ_couponSns_-u_8b`. That exact plate/pseudos become transparent and its copy uses coupon green `#008000`. Existing AUI success/savings coverage remains as a separate fallback; Limited-time-deal, status badges, and coupon tiles are untouched.
+- More to explore: themes all three established Nile pill shells (`.nile-ingress-pill-button`, `.nile-inline-pill-button`, `.nile-inline-ingress-pill-button`) with the already-established header/Rufus pill scheme: `#4a4f51` fill, `#34383a` border, white text. No geometry changes.
+- Explore key features: owns the exact `_bXVsd_multiBrandContainer_1cmb8` carousel family captured in v7.162. Structural floors become OLED black and generic copy white; blue star/sparkle/icon/SVG art and media remain Amazon-owned; Sponsored copy/glyph use the existing subdued `#b1aaa0` contract.
+- Search medium standalone: extends the proven `renderer-factory-ad-container -> modern-414x125-layout-container` standalone contract to product/search-referrer child frames by renderer identity, including the root/main-content/content/layout, primary/secondary text, and Sponsored feedback row. This reuses the Home medium-ad OLED/text/border treatment without width/height/padding/radius/flex/position changes.
+- Probe remains screenshot/SIGUSR2 triggered, resets each run, and remains hard-capped at 5 MiB. The existing bounded all-frame bridge is sampled once after 0.55 s so a visible cross-origin 414x125 Search ad child can report its renderer shell/paint; that sub-dump is separately truncated at 900,000 characters.
+- No MutationObserver, interval, RAF, scroll listener or recurring DOM scan is added.
 
 Direct visual base: **v7.164~swatch-options-bounded-probe**.
 
