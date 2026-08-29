@@ -1,3 +1,19 @@
+# AmazonDark v7.176~standalone-media-sbs-filter-fix-probe
+
+## v7.176 standalone media-only TWB + Search filter interface
+
+- Direct source base: v7.175~remaining-fixes-dynamic-probe.
+- Removes the v7.175 whole-iframe 414x125 TWB prepaint that dimmed standalone-ad text, rating stars, Prime/badge art, and other authored chrome together with the product raster.
+- Search and Home/menu APE standalones return to media-leaf TWB: the actual product/ad image is tamed while copy, stars, badges, Prime and Sponsored chrome stay at full intensity.
+- Themes the probe-captured Search SBS filter interface (`s-sbs` / `sbs-refinement-*`) with OLED-black structural floors, light text, dark pills, and neutral gray borders.
+- Makes the filter's internal scrollbar light-on-black.
+- Applies true `invert(1)` to `img.sbs-pill-image`, exchanging authored black and white pixels without flattening the glyph first.
+- Retains the v7.173+ dynamic multi-interface probe: screenshot/SIGUSR2 creates one unique v7.176 capture, capped at 28 MiB.
+
+No production MutationObserver, recurring timer, RAF loop, scroll listener, or recurring repair scan is added.
+
+---
+
 # AmazonDark v7.175~remaining-fixes-dynamic-probe
 
 ## v7.175 remaining fixes
