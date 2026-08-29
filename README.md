@@ -1,4 +1,17 @@
-# AmazonDark v7.169~search-carousel-pills-standalone-badge-probe
+# AmazonDark v7.170~launch-search-full-raster-probe
+
+Direct base: **v7.169~search-carousel-pills-standalone-badge-probe**.
+
+## v7.170 launch/Search/full-raster repair
+
+- Launch cover: restores the proven bounded pre-v7.115 readiness gate. The cover is not released merely because native splash controllers disappear; a visible Amazon Web root must be interactive/complete, populated with media, effectively OLED-dark, stable for three 125 ms checks, and survive a final 250 ms dwell. The check is launch-only, capped at 64 attempts, and falls back to the existing SpringBoard hold rather than exposing stock white.
+- Prime Savings: replaces the stale exact `_bGlmZ` hash selectors with prefix-stable `couponSns` / `couponBadge` family ownership. Plate/pseudos are transparent and copy is coupon green `#008000`; Limited-time-deal remains separate.
+- More to explore: adds the actual AUI base-button-in-carousel lane while retaining the existing Nile lane. Fill `#4a4f51`, border `#34383a`, text white; geometry is untouched.
+- Explore key features: owns the hash-rotating `_bXVsd_multiBrandContainer_` family plus its one/two outer structural shells as OLED black, generic copy white, Sponsored copy/glyph subdued, while authored blue sparkle/icon/SVG/media art remains untouched.
+- Search APE Sponsored feedback: the main-frame feedback sibling is explicitly OLED black with the existing subdued Sponsored text/info-glyph contract.
+- Home complete-raster standalone TWB: restores the proven v7.144 bounded dominant-raster classifier inside standalone child frames. Structured product ads are rejected; only a >=76% width / >=60% height / >=56% area raster or CSS-background leaf is tamed. No observer, interval, RAF, scroll listener, or recurring scan is introduced.
+- Probe: screenshot + SIGUSR2, reset per capture, 28 MiB hard ceiling; Search inventories are prefix-stable and the all-frame Home/Search ad dump may use up to 5 MB so cross-origin raster ownership is no longer starved.
+
 
 Direct base: **v7.168~badge-container-fix-probe**.
 

@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.169-search-carousel-pills-standalone-badge-probe"
+#define AD_VERSION "v7.170-launch-search-full-raster-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -856,20 +856,26 @@ static NSString *ADFloorJS(void){
         @"#search#search .puis-card-container .s-background-color-platinum{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;color:#ffd814!important;-webkit-text-fill-color:#ffd814!important;}#search#search .puis-card-container .s-background-color-platinum::before,#search#search .puis-card-container .s-background-color-platinum::after{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;}#search#search .puis-card-container .s-background-color-platinum :is(span,strong,b){background:transparent!important;background-color:transparent!important;color:#ffd814!important;-webkit-text-fill-color:#ffd814!important;}"
         @"#search#search .puis-card-container :is(.a-color-success,[class*=saving],[class*=savings],[id*=saving],[id*=savings]):not([class*=coupon]):not(:where([class*=coupon] *)):not([class*=deal]):not(:where([class*=deal] *)):not([id^=DEAL_]):not(:where([id^=DEAL_] *)){background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;color:#008000!important;-webkit-text-fill-color:#008000!important;}#search#search .puis-card-container :is(.a-color-success,[class*=saving],[class*=savings],[id*=saving],[id*=savings]) :is(.a-badge,.a-badge-label,.a-badge-label-inner,span,a,div,strong,b){background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;color:#008000!important;-webkit-text-fill-color:#008000!important;}"
         @"#search#search .puis-card-container .a-badge:not([id]):not(:where(.puis-status-badge-container *)):not(:where([class*=coupon] *)):not(:where([class*=deal] *)):has(:is(.a-color-success,[class*=saving],[class*=savings],[id*=saving],[id*=savings])){background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;color:#008000!important;-webkit-text-fill-color:#008000!important;}#search#search .puis-card-container .a-badge:not([id]):not(:where(.puis-status-badge-container *)):not(:where([class*=coupon] *)):not(:where([class*=deal] *)):has(:is(.a-color-success,[class*=saving],[class*=savings],[id*=saving],[id*=savings])) :is(.a-badge-label,.a-badge-label-inner,.a-badge-text,.a-color-success,span,a,div,strong,b){background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;color:#008000!important;-webkit-text-fill-color:#008000!important;}"
-        // v7.169: exact Prime-Savings renderer. The bright lime plate in the device screenshot
-        // is Amazon's _bGlmZ_couponBadge_vDASk surface (stock #7fda69), not an AUI
-        // success/saving badge. Own only that exact family; leave deal/coupon/status lanes alone.
-        @"#search#search :is(._bGlmZ_couponSns_1QLVK,._bGlmZ_couponSns_-u_8b){background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;}#search#search ._bGlmZ_couponBadge_vDASk{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;color:#008000!important;-webkit-text-fill-color:#008000!important;}#search#search ._bGlmZ_couponBadge_vDASk::before,#search#search ._bGlmZ_couponBadge_vDASk::after{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;}#search#search ._bGlmZ_couponBadge_vDASk :is(span,a,div,strong,b){background:transparent!important;background-color:transparent!important;color:#008000!important;-webkit-text-fill-color:#008000!important;}"
+        // v7.170: the v7.169 exact hashed class guesses did not survive the live Search renderer.
+        // Keep ownership on the proven module families, but match their stable module prefixes so a hash
+        // revision cannot recreate the lime Prime-Savings plate or the white multi-brand carousel shell.
+        @"#search#search :is([class*=_bGlmZ_couponSns_],[class*=_bGlmZ_couponBadge_]){background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;}#search#search [class*=_bGlmZ_couponBadge_],#search#search [class*=_bGlmZ_couponBadge_] :is(span,a,div,strong,b){background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;color:#008000!important;-webkit-text-fill-color:#008000!important;}#search#search [class*=_bGlmZ_couponBadge_]::before,#search#search [class*=_bGlmZ_couponBadge_]::after{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;outline-color:transparent!important;box-shadow:none!important;}"
 
-        // v7.169: More-to-explore uses the Nile pill family outside the Rufus carousel gate. Reuse the exact established header/Rufus gray scheme.
-        @"#search#search :is(.nile-ingress-pill-button,.nile-inline-pill-button,.nile-inline-ingress-pill-button){background:#4a4f51!important;background-color:#4a4f51!important;background-image:none!important;border:1px solid #34383a!important;border-color:#34383a!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search :is(.nile-ingress-pill-button,.nile-inline-pill-button,.nile-inline-ingress-pill-button) .a-button-inner{background:#4a4f51!important;background-color:#4a4f51!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search :is(.nile-ingress-pill-button,.nile-inline-pill-button,.nile-inline-ingress-pill-button) .a-button-text{background:transparent!important;background-color:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search :is(.nile-ingress-pill-button,.nile-inline-pill-button,.nile-inline-ingress-pill-button) :is(span,p,strong,b,div){color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search :is(.nile-ingress-pill-button,.nile-inline-pill-button,.nile-inline-ingress-pill-button)::before,#search#search :is(.nile-ingress-pill-button,.nile-inline-pill-button,.nile-inline-ingress-pill-button)::after{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}"
+        // More-to-explore is a stock AUI button carousel, not the Nile family used by the Rufus/header
+        // pills. Scope this fallback to non-product Search widgets so Add-to-cart / See-options and the
+        // filter ribbon retain their separate owners. Reuse the exact established header-button palette.
+        @"#search#search .s-widget-container :is(.a-button,.a-button-inner,button,[role=button]):not(:where(.puis-card-container *)):not(:where([data-component-type=s-search-result] *)):not(:where(.sf-rib30-panel *)):not(:where(.s-mobile-toolbar *)){background:#4a4f51!important;background-color:#4a4f51!important;background-image:none!important;border-color:#34383a!important;outline-color:#34383a!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search .s-widget-container .a-button:not(:where(.puis-card-container *)):not(:where([data-component-type=s-search-result] *)):not(:where(.sf-rib30-panel *)):not(:where(.s-mobile-toolbar *)){border:1px solid #34383a!important;}#search#search .s-widget-container .a-button-inner:not(:where(.puis-card-container *)):not(:where([data-component-type=s-search-result] *)):not(:where(.sf-rib30-panel *)):not(:where(.s-mobile-toolbar *)){border-color:transparent!important;}#search#search .s-widget-container :is(.a-button-text,button span,[role=button] span):not(:where(.puis-card-container *)):not(:where([data-component-type=s-search-result] *)):not(:where(.sf-rib30-panel *)):not(:where(.s-mobile-toolbar *)){background:transparent!important;background-color:transparent!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
 
-        // v7.169: exact v7.162 multi-brand standalone carousel (Explore key features).
-        // Own structural floors/text only; image, SVG, star/sparkle and icon art remain Amazon-owned.
-        @"#search#search ._bXVsd_multiBrandContainer_1cmb8,#search#search ._bXVsd_multiBrandContainer_1cmb8 :is(._bXVsd_carouselContainer_HJZMN,._bXVsd_carousel_3xahA,._bXVsd_container_1MiMG,._bXVsd_container_yQKU1,._bXVsd_content_1H2is,._bXVsd_cardContainer_388jB,._bXVsd_imageContainer_2X1hS,._bXVsd_container_3vH0A,._bXVsd_tintContain_15D7X,._bXVsd_container_1cD4b,.a-carousel-card,.a-box,.a-box-inner){background-color:#000!important;border-color:#494d4d!important;box-shadow:none!important;}#search#search ._bXVsd_multiBrandContainer_1cmb8{background:#000!important;background-color:#000!important;background-image:none!important;}"
-        @"#search#search ._bXVsd_multiBrandContainer_1cmb8 :is(div,section,article,main,header,footer,ul,ol,li){background-color:#000!important;box-shadow:none!important;}"
-        @"#search#search ._bXVsd_multiBrandContainer_1cmb8 :is(._bXVsd_content_1H2is,._bXVsd_cardContainer_388jB,h1,h2,h3,h4,h5,h6,p,a,strong,small,b,em,label,.a-color-base,.a-color-secondary,.a-text-normal,.a-size-base,.a-size-small,.a-size-medium,span:not(:has(svg,i,[class*=icon],[class*=star],[class*=sparkle]))):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([class*=icon]):not([class*=star]):not([class*=sparkle]):not(:where([class*=icon] *)):not(:where([class*=star] *)):not(:where([class*=sparkle] *)){color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search ._bXVsd_multiBrandContainer_1cmb8 :is(img,picture,svg,i,[class*=icon],[class*=star],[class*=sparkle]){filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;}"
-        @"#search#search ._bXVsd_multiBrandContainer_1cmb8 :is([data-ad-feedback-label-id],[class*=ad-feedback],[class*=adFeedback],[id^=ad-feedback-text-],[id^=af-label-primary-link-]){background-color:transparent!important;color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}#search#search ._bXVsd_multiBrandContainer_1cmb8 [data-ad-feedback-label-id] b[class*=ad-feedback-sprite]{color:#b1aaa0!important;background-color:#b1aaa0!important;background-image:none!important;-webkit-mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;-webkit-mask-size:contain!important;mask-size:contain!important;-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;-webkit-mask-position:center!important;mask-position:center!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
+        // Explore-key-features / multi-brand ad: own both the hashed module and the enclosing Search widget.
+        // This closes the outer white plane that v7.169 missed. Raster media and blue sparkle/icon art are
+        // explicitly released; only neutral floors/copy and the established Sponsored lane are themed.
+        @"#search#search :is(.s-widget-container,.celwidget):has([class*=_bXVsd_]),#search#search :is(div,section,article):has(> [class*=_bXVsd_]),#search#search :is(div,section,article):has(> * > [class*=_bXVsd_]){background:#000!important;background-color:#000!important;background-image:none!important;border-color:#494d4d!important;box-shadow:none!important;}#search#search [class*=_bXVsd_]:is(div,section,article,main,header,footer,ul,ol,li),#search#search [class*=_bXVsd_] :is(div,section,article,main,header,footer,ul,ol,li,.a-carousel-card,.a-box,.a-box-inner){background:#000!important;background-color:#000!important;background-image:none!important;border-color:#494d4d!important;box-shadow:none!important;}"
+        @"#search#search :is(.s-widget-container,.celwidget):has([class*=_bXVsd_]) :is(h1,h2,h3,h4,h5,h6,p,a,strong,small,b,em,label,.a-color-base,.a-color-secondary,.a-text-normal,.a-size-base,.a-size-small,.a-size-medium,span):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([class*=icon]):not([class*=star]):not([class*=sparkle]):not(:where([class*=icon] *)):not(:where([class*=star] *)):not(:where([class*=sparkle] *)){color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search :is(.s-widget-container,.celwidget):has([class*=_bXVsd_]) :is(img,picture,svg,i,[class*=icon],[class*=star],[class*=sparkle]){filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;}"
+        @"#search#search :is(.s-widget-container,.celwidget):has([class*=_bXVsd_]) :is([data-ad-feedback-label-id],[class*=ad-feedback],[class*=adFeedback],[id^=ad-feedback-text-],[id^=af-label-primary-link-]){background:transparent!important;background-color:transparent!important;background-image:none!important;color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}#search#search :is(.s-widget-container,.celwidget):has([class*=_bXVsd_]) [data-ad-feedback-label-id] b[class*=ad-feedback-sprite]{color:#b1aaa0!important;background-color:#b1aaa0!important;background-image:none!important;-webkit-mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;-webkit-mask-size:contain!important;mask-size:contain!important;-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;-webkit-mask-position:center!important;mask-position:center!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
+
+        // Search APE/standalone wrapper: the creative iframe can already be dark while Amazon's main-frame
+        // placement/feedback strip remains white. Own that route-local shell exactly as Home standalone does.
+        @":is(.mobile-ad-container,.ape-wrapper,.ape-placement,.ape-feedback),[id^=ape_][id*=_wrapper],[id^=ape_][id*=_Feedback]{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}:is(.ape-feedback,[id^=ape_][id*=_Feedback]) :is([data-ad-feedback-label-id],[id^=ad-feedback-text-],[id^=af-label-primary-link-],[class*=ad-feedback],[class*=adFeedback]){background:transparent!important;background-color:transparent!important;color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}"
         @".puis-mab-chevron :is(i.a-icon-dropdown,.a-icon.a-icon-dropdown),.puis-mab-chevron-glyph "
         @":is(i.a-icon-dropdown,.a-icon.a-icon-dropdown){filter:brightness(0) invert(1)!important;opacity:1!important;}#search [data-a-badge-color=\\\"sx-cloud\\\"],#search [data-a-badge-color=\\"
         @"\"sx-cloud\\\"] :is(.a-badge-label,.a-badge-label-inner,.a-badge-text){background:transparent!important;background-color:transparent!important;background-image:none!important;border-c"
@@ -1201,16 +1207,35 @@ static NSString *ADStandalonePaintJS7104(void){
          "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] "
          ".swiper-slide [data-testid=pictureHighQuality]"
          "{filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;}"
+         /* v7.170 addendum: compact standalone complete-raster creative. The live
+          * banner is a single authored raster, so there is no product-image leaf to target.
+          * The bounded classifier below marks only the dominant media/background inside a
+          * short, wide standalone child frame; the separate Sponsored feedback row is not
+          * inside that child and is therefore never filtered. */
+         "[data-ad7144-full-raster=\"1\"]"
+         "{filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;}"
+         "[data-ad7144-full-raster-bg=\"1\"]"
+         "{background-color:rgba(0,0,0,%.3f)!important;background-blend-mode:multiply!important;}"
          /* v7.135: do not filter the entire #mobile-third-party-ad subtree.
           * Current AT&T video keeps the 430x358 APE SafeFrame mounted but paints black;
           * whole-subtree CSS filter ownership is removed so WebKit can composite the
           * nested third-party video/iframe natively. */
          "';"
+         /* v7.170 addendum: port the proven v7.144 dominant-raster classifier into the
+          * standalone survivor path, because current ADTWBJS intentionally exits early
+          * for standalone-candidate child frames. Narrow it to compact wide frames only. */
+         "function ad7144VisibleRect(e){try{var r=e.getBoundingClientRect(),cs=getComputedStyle(e);if(r.width<2||r.height<2||cs.display==='none'||cs.visibility==='hidden'||parseFloat(cs.opacity||'1')<.02)return null;return r}catch(_){return null}}"
+         "function ad7144MediaKind(e){try{var t=(e.tagName||'').toLowerCase();if(t==='img'||t==='video'||t==='canvas')return t;var bg=getComputedStyle(e).backgroundImage||'none';return bg&&bg!=='none'?'background':''}catch(_){return ''}}"
+         "function ad7144Structured(root){try{return !!root.querySelector('[data-testid=ratings-stars],[data-testid=prime-badge],[data-testid=price-container],#dynamic-bb,#ad[data-html-dimensions=\"300x250\"] .swiper-wrapper')}catch(_){return false}}"
+         "function ad7144Pick(root,rr){try{if(!root||!rr||ad7144Structured(root))return null;var best=null,score=0,a=[].slice.call(root.querySelectorAll('img,video,canvas'));for(var i=0;i<a.length;i++){var e=a[i],r=ad7144VisibleRect(e);if(!r)continue;var ar=r.width*r.height/(rr.width*rr.height),wr=r.width/rr.width,hr=r.height/rr.height;if(wr>=.76&&hr>=.60&&ar>=.56&&ar>score){best=e;score=ar}}if(!best){var all=root.querySelectorAll('*'),lim=Math.min(all.length,360);for(var j=0;j<lim;j++){var x=all[j],r2=ad7144VisibleRect(x);if(!r2||ad7144MediaKind(x)!=='background')continue;var ar2=r2.width*r2.height/(rr.width*rr.height),wr2=r2.width/rr.width,hr2=r2.height/rr.height;if(wr2>=.76&&hr2>=.60&&ar2>=.56&&ar2>score){best=x;score=ar2}}}return best?{e:best,score:score,kind:ad7144MediaKind(best)}:null}catch(_){return null}}"
+         "function ad7144Mark(e,score,kind){try{if(!e)return;var attr=kind==='background'?'data-ad7144-full-raster-bg':'data-ad7144-full-raster';e.setAttribute(attr,'1');var r=e.getBoundingClientRect();window.__ad7144FullRasterState=window.__ad7144FullRasterState||[];var a=window.__ad7144FullRasterState;if(a.length<16)a.push({mode:'compact-standalone-child',kind:kind||'',tag:e.tagName||'',id:e.id||'',cls:String(e.className||'').slice(0,180),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],score:+score.toFixed(3)});}catch(_){}}"
+         "function ad7144Classify(){try{var hh=document.documentElement;if(!hh)return;var vw=Math.max(1,innerWidth,hh.clientWidth||0),vh=Math.max(1,innerHeight,hh.clientHeight||0);if(vw<220||vh<35||vh>180||(vw/vh)<2.2)return;var root=document.body||hh,p=ad7144Pick(root,{width:vw,height:vh});if(p){hh.setAttribute('data-ad7144-full-raster-frame','1');ad7144Mark(p.e,p.score,p.kind)}}catch(_){}}"
+         "ad7144Classify();if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',ad7144Classify,{once:true});window.addEventListener('load',ad7144Classify,{once:true});}else ad7144Classify();"
          "function black(){try{h=document.documentElement||h;if(!h)return;h.setAttribute('data-ad7104-standalone','1');h.style.setProperty('background-color','#000','important');h.style.setProperty('color-scheme','dark','important');if(document.body){document.body.style.setProperty('background-color','#000','important');document.body.style.setProperty('color-scheme','dark','important')}}catch(_){}}"
          "function own(){try{h=document.documentElement||h;if(!h)return false;black();if(!(document.adoptedStyleSheets&&window.CSSStyleSheet&&CSSStyleSheet.prototype&&CSSStyleSheet.prototype.replaceSync))return false;var sh=window[KEY];if(!sh){sh=new CSSStyleSheet();sh.replaceSync(CSS);window[KEY]=sh;}var a=document.adoptedStyleSheets||[],found=false;for(var i=0;i<a.length;i++)if(a[i]===sh){found=true;break;}if(!found)document.adoptedStyleSheets=a.concat([sh]);return true}catch(e){return false}}"
          "window.__ad7106StandaloneState=function(){try{var sh=window[KEY]||null,a=document.adoptedStyleSheets||[],found=false;for(var i=0;i<a.length;i++)if(a[i]===sh){found=true;break;}return{adoptedSupported:!!(document.adoptedStyleSheets&&window.CSSStyleSheet&&CSSStyleSheet.prototype&&CSSStyleSheet.prototype.replaceSync),sheet:!!sh,adopted:found,rules:sh&&sh.cssRules?sh.cssRules.length:0,htmlSame:(document.documentElement===h),attr:!!(document.documentElement&&document.documentElement.hasAttribute('data-ad7104-standalone'))}}catch(e){return{error:String(e)}}};"
          "own();document.addEventListener('readystatechange',function(){own()},false);window.addEventListener('pageshow',function(){own()},false);"
-         "}catch(e){}})();",factor,factor,factor,factor];
+         "}catch(e){}})();",factor,factor,factor,factor,factor,factor,shade];
 }
 
 
@@ -1339,7 +1364,7 @@ static void ADRefreshWebTWBPrefs791(void){
 // v7.152 production: probe-only all-frame bridge removed; only theme scripts remain.
 
 static NSString *ADHomeAdFrameProbeJS7144(void){
-    return @"(function(){try{\nif(window.__ad7144FrameProbeInstalled)return;\nwindow.__ad7144FrameProbeInstalled=1;\nfunction st(e,p){try{var s=getComputedStyle(e,p||null);return {display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,bgi:s.backgroundImage,color:s.color,fill:s.fill,stroke:s.stroke,filter:s.webkitFilter||s.filter||'none',border:s.border,radius:s.borderRadius,shadow:s.boxShadow,outline:s.outline,font:s.fontFamily,fontSize:s.fontSize,fontWeight:s.fontWeight,lineHeight:s.lineHeight,textShadow:s.textShadow,webkitTextStroke:s.webkitTextStroke||'',transform:s.transform,overflow:s.overflow,clipPath:s.clipPath||s.webkitClipPath||'',z:s.zIndex,position:s.position,mask:s.webkitMaskImage||s.maskImage||'none',objectFit:s.objectFit||'',mix:s.mixBlendMode||''};}catch(x){return {err:String(x)}}}\nfunction nd(e){if(!e)return null;var r=e.getBoundingClientRect(),o={tag:e.tagName||'',id:e.id||'',cls:String(e.className||'').slice(0,280),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],style:st(e),before:st(e,'::before'),after:st(e,'::after'),a:{testid:e.getAttribute&&e.getAttribute('data-testid')||'',acei:e.getAttribute&&e.getAttribute('data-acei-id')||'',htmlDim:e.getAttribute&&e.getAttribute('data-html-dimensions')||'',role:e.getAttribute&&e.getAttribute('role')||'',feedback:e.hasAttribute&&e.hasAttribute('data-ad-feedback-label-id')?1:0,ariaSponsored:/sponsored/i.test(e.getAttribute&&e.getAttribute('aria-label')||'')?1:0}};if(e.tagName==='IMG')o.natural=[e.naturalWidth||0,e.naturalHeight||0];if(e.tagName==='VIDEO'){o.natural=[e.videoWidth||0,e.videoHeight||0];o.media={muted:e.muted?1:0,volume:+(+e.volume||0).toFixed(3),paused:e.paused?1:0,controls:e.controls?1:0,readyState:e.readyState||0,currentTime:+(+e.currentTime||0).toFixed(2)};o.ua={mute:st(e,'::-webkit-media-controls-mute-button'),play:st(e,'::-webkit-media-controls-play-button'),panel:st(e,'::-webkit-media-controls-panel')};}return o;}\nfunction ch(e,n){var a=[];for(var x=e;x&&a.length<(n||8);x=x.parentElement)a.push(nd(x));return a;}\nfunction vis(e,min){try{var r=e.getBoundingClientRect(),s=getComputedStyle(e),a=Math.max(0,Math.min(innerWidth,r.right)-Math.max(0,r.left))*Math.max(0,Math.min(innerHeight,r.bottom)-Math.max(0,r.top));return s.display!=='none'&&s.visibility!=='hidden'&&+s.opacity>0.01&&a>=(min||1);}catch(_){return false}}\nfunction q(sel,lim,min){var out=[];try{var a=document.querySelectorAll(sel);for(var i=0;i<a.length&&out.length<(lim||60);i++)if(vis(a[i],min||1))out.push({self:nd(a[i]),chain:ch(a[i],8)});}catch(e){out.push({err:String(e),sel:sel})}return out;}\nfunction media(){var out=[];try{var a=document.querySelectorAll('img,video,canvas');for(var i=0;i<a.length&&out.length<100;i++){var e=a[i];if(!vis(e,1200))continue;out.push({self:nd(e),chain:ch(e,9)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction bgmedia(){var out=[];try{var a=document.getElementsByTagName('*'),n=Math.min(a.length,2600);for(var i=0;i<n&&out.length<70;i++){var e=a[i];if(!vis(e,6000))continue;var b=getComputedStyle(e).backgroundImage;if(b&&b!=='none')out.push({self:nd(e),chain:ch(e,7)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction hits(){var out=[],xs=[.18,.5,.82],ys=[.18,.38,.58,.76,.9];try{for(var i=0;i<xs.length;i++)for(var j=0;j<ys.length;j++){var x=Math.round(innerWidth*xs[i]),y=Math.round(innerHeight*ys[j]),a=(document.elementsFromPoint?document.elementsFromPoint(x,y):[document.elementFromPoint(x,y)]).filter(Boolean).slice(0,10);out.push({p:[x,y],stack:a.map(nd)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction safeAttr(e,n){try{return String(e.getAttribute&&e.getAttribute(n)||'').slice(0,360)}catch(_){return ''}}\nfunction controlNode(e){var o=nd(e)||{};try{o.ctrl={aria:(/mute|unmute|sound|volume|speaker|audio/i.test(safeAttr(e,'aria-label'))?safeAttr(e,'aria-label'):''),title:(/mute|unmute|sound|volume|speaker|audio/i.test(safeAttr(e,'title'))?safeAttr(e,'title'):''),role:safeAttr(e,'role'),testid:safeAttr(e,'data-testid'),name:safeAttr(e,'name'),type:safeAttr(e,'type'),viewBox:safeAttr(e,'viewBox'),href:(e.tagName==='USE'?safeAttr(e,'href')||safeAttr(e,'xlink:href'):''),d:(e.tagName==='PATH'?safeAttr(e,'d'):'')};var cs=getComputedStyle(e);o.ctrl.font={family:cs.fontFamily,size:cs.fontSize,weight:cs.fontWeight,lineHeight:cs.lineHeight,textShadow:cs.textShadow,webkitTextStroke:cs.webkitTextStroke||'',transform:cs.transform,overflow:cs.overflow,clipPath:cs.clipPath||cs.webkitClipPath||'',outline:cs.outline,z:cs.zIndex,position:cs.position};}catch(_){}return o;}\nfunction subTree(root){var budget=180;function walk(e,d){if(!e||budget--<=0)return null;var o=controlNode(e);if(d<10){var kids=[];for(var c=e.firstElementChild;c&&kids.length<40;c=c.nextElementSibling){var z=walk(c,d+1);if(z)kids.push(z);}if(kids.length)o.children=kids;}return o;}return walk(root,0);}\nfunction videoControlTrees(){var out=[];try{var roots=document.querySelectorAll('#search .sbv-video-overlay,.sbv-video-overlay,#search video.sbv-video-player-ecx,video.sbv-video-player-ecx,#search video._c2Itd_video_17g-f,#search ._c2Itd_videoOverlay_1H_Jm,#search ._c2Itd_playClickRegion_87ZZa,[class*=single-video-card],[class*=singleVideoCard],.video-js');for(var r=0;r<roots.length&&out.length<24;r++){var root=roots[r];if(!vis(root,1))continue;var cand=[];try{cand=[].slice.call(root.querySelectorAll('button,[role=button],[aria-label],[title],svg,use,path,i,span,div')).filter(function(e){var k=(String(e.id||'')+' '+String(e.className&&e.className.baseVal||e.className||'')+' '+safeAttr(e,'aria-label')+' '+safeAttr(e,'title')+' '+safeAttr(e,'data-testid')).toLowerCase();return /mute|unmute|sound|volume|speaker|audio/.test(k);});}catch(_){}var buttons=[];try{buttons=[].slice.call(root.querySelectorAll('button,[role=button]')).filter(function(e){return vis(e,1)});}catch(_){}var uniq=[];cand.concat(buttons).forEach(function(e){if(e&&uniq.indexOf(e)<0&&uniq.length<16)uniq.push(e);});out.push({root:controlNode(root),rootTree:subTree(root),controls:uniq.map(function(e){return {ancestors:ch(e,10),tree:subTree(e)}})});} }catch(e){out.push({err:String(e)})}return out;}\nfunction snap(){var h=document.documentElement||{},state=null;try{state=window.__ad7106StandaloneState?window.__ad7106StandaloneState():null}catch(_){}return {frame:{top:window===top?1:0,host:String(location.hostname||''),path:String(location.pathname||''),viewport:[innerWidth,innerHeight,devicePixelRatio]},markers:{child:h.getAttribute&&h.getAttribute('data-ad7-child-frame')||'',standaloneCandidate:h.getAttribute&&h.getAttribute('data-ad7-standalone-candidate')||'',standaloneSurvivor:h.getAttribute&&h.getAttribute('data-ad7104-standalone')||'',twbChild:h.getAttribute&&h.getAttribute('data-ad7-twb-child')||''},standaloneState:state,heroFeedback:q('#gwm-window [id^=wd-shoppable-] [data-ad-feedback-label-id],#gwm-window [id^=wd-shoppable-] .ape-feedback,#gwm-window [id^=wd-shoppable-] [class*=ad-feedback],#gwm-window [id^=wd-shoppable-] [id^=ad-feedback-],#gwm-window [id^=wd-shoppable-] [aria-label*=\"Sponsored\"],[class*=single-creative-card] [data-ad-feedback-label-id],[class*=single-creative-card] [class*=ad-feedback],[id*=mobile-wd-][class*=ape-feedback]',90,1),shells:q('#gwm-window,[id^=wd-shoppable-],[class*=single-creative-card],[class*=single-video-card],[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback],[data-testid=renderer-factory-ad-container],#ad,#dynamic-bb,[data-testid=image],[data-acei-id=lfstyl-img],[data-acei-id=prod-img]',100,1),media:media(),bgMedia:bgmedia(),videoControlTrees:videoControlTrees(),hit:hits()};}\nfunction fan(token){var z=snap();if(window===top){window.__ad7144ProbeToken=token;window.__ad7144ProbeFrames=[z];}else{try{top.postMessage({__ad7144ProbeFrame:1,token:token,snap:z},'*')}catch(_){}}try{var fs=document.getElementsByTagName('iframe');for(var i=0;i<fs.length&&i<24;i++)if(fs[i].contentWindow)fs[i].contentWindow.postMessage({__ad7144ProbeRequest:1,token:token},'*');}catch(_){}}\nwindow.addEventListener('message',function(ev){try{var d=ev.data||{};if(d.__ad7144ProbeRequest&&d.token)fan(String(d.token));if(window===top&&d.__ad7144ProbeFrame&&d.token===window.__ad7144ProbeToken&&d.snap){var a=window.__ad7144ProbeFrames||(window.__ad7144ProbeFrames=[]);if(a.length<48)a.push(d.snap);}}catch(_){}},false);\nif(window===top){window.__ad7144StartProbe=function(t){try{fan(String(t||Date.now()));return 'STARTED';}catch(e){return 'START_ERR '+e}};window.__ad7144DumpProbe=function(t){try{return JSON.stringify({token:String(t||''),frames:window.__ad7144ProbeFrames||[]},null,2);}catch(e){return 'DUMP_ERR '+e}};}\n}catch(e){}})();";
+    return @"(function(){try{\nif(window.__ad7144FrameProbeInstalled)return;\nwindow.__ad7144FrameProbeInstalled=1;\nfunction st(e,p){try{var s=getComputedStyle(e,p||null);return {display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,bgi:s.backgroundImage,color:s.color,fill:s.fill,stroke:s.stroke,filter:s.webkitFilter||s.filter||'none',border:s.border,radius:s.borderRadius,shadow:s.boxShadow,outline:s.outline,font:s.fontFamily,fontSize:s.fontSize,fontWeight:s.fontWeight,lineHeight:s.lineHeight,textShadow:s.textShadow,webkitTextStroke:s.webkitTextStroke||'',transform:s.transform,overflow:s.overflow,clipPath:s.clipPath||s.webkitClipPath||'',z:s.zIndex,position:s.position,mask:s.webkitMaskImage||s.maskImage||'none',objectFit:s.objectFit||'',mix:s.mixBlendMode||''};}catch(x){return {err:String(x)}}}\nfunction nd(e){if(!e)return null;var r=e.getBoundingClientRect(),o={tag:e.tagName||'',id:e.id||'',cls:String(e.className||'').slice(0,280),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],style:st(e),before:st(e,'::before'),after:st(e,'::after'),a:{testid:e.getAttribute&&e.getAttribute('data-testid')||'',acei:e.getAttribute&&e.getAttribute('data-acei-id')||'',htmlDim:e.getAttribute&&e.getAttribute('data-html-dimensions')||'',role:e.getAttribute&&e.getAttribute('role')||'',feedback:e.hasAttribute&&e.hasAttribute('data-ad-feedback-label-id')?1:0,ariaSponsored:/sponsored/i.test(e.getAttribute&&e.getAttribute('aria-label')||'')?1:0}};if(e.tagName==='IMG')o.natural=[e.naturalWidth||0,e.naturalHeight||0];if(e.tagName==='VIDEO'){o.natural=[e.videoWidth||0,e.videoHeight||0];o.media={muted:e.muted?1:0,volume:+(+e.volume||0).toFixed(3),paused:e.paused?1:0,controls:e.controls?1:0,readyState:e.readyState||0,currentTime:+(+e.currentTime||0).toFixed(2)};o.ua={mute:st(e,'::-webkit-media-controls-mute-button'),play:st(e,'::-webkit-media-controls-play-button'),panel:st(e,'::-webkit-media-controls-panel')};}return o;}\nfunction ch(e,n){var a=[];for(var x=e;x&&a.length<(n||8);x=x.parentElement)a.push(nd(x));return a;}\nfunction vis(e,min){try{var r=e.getBoundingClientRect(),s=getComputedStyle(e),a=Math.max(0,Math.min(innerWidth,r.right)-Math.max(0,r.left))*Math.max(0,Math.min(innerHeight,r.bottom)-Math.max(0,r.top));return s.display!=='none'&&s.visibility!=='hidden'&&+s.opacity>0.01&&a>=(min||1);}catch(_){return false}}\nfunction q(sel,lim,min){var out=[];try{var a=document.querySelectorAll(sel);for(var i=0;i<a.length&&out.length<(lim||60);i++)if(vis(a[i],min||1))out.push({self:nd(a[i]),chain:ch(a[i],8)});}catch(e){out.push({err:String(e),sel:sel})}return out;}\nfunction media(){var out=[];try{var a=document.querySelectorAll('img,video,canvas');for(var i=0;i<a.length&&out.length<100;i++){var e=a[i];if(!vis(e,1200))continue;out.push({self:nd(e),chain:ch(e,9)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction bgmedia(){var out=[];try{var a=document.getElementsByTagName('*'),n=Math.min(a.length,2600);for(var i=0;i<n&&out.length<70;i++){var e=a[i];if(!vis(e,6000))continue;var b=getComputedStyle(e).backgroundImage;if(b&&b!=='none')out.push({self:nd(e),chain:ch(e,7)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction hits(){var out=[],xs=[.18,.5,.82],ys=[.18,.38,.58,.76,.9];try{for(var i=0;i<xs.length;i++)for(var j=0;j<ys.length;j++){var x=Math.round(innerWidth*xs[i]),y=Math.round(innerHeight*ys[j]),a=(document.elementsFromPoint?document.elementsFromPoint(x,y):[document.elementFromPoint(x,y)]).filter(Boolean).slice(0,10);out.push({p:[x,y],stack:a.map(nd)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction safeAttr(e,n){try{return String(e.getAttribute&&e.getAttribute(n)||'').slice(0,360)}catch(_){return ''}}\nfunction controlNode(e){var o=nd(e)||{};try{o.ctrl={aria:(/mute|unmute|sound|volume|speaker|audio/i.test(safeAttr(e,'aria-label'))?safeAttr(e,'aria-label'):''),title:(/mute|unmute|sound|volume|speaker|audio/i.test(safeAttr(e,'title'))?safeAttr(e,'title'):''),role:safeAttr(e,'role'),testid:safeAttr(e,'data-testid'),name:safeAttr(e,'name'),type:safeAttr(e,'type'),viewBox:safeAttr(e,'viewBox'),href:(e.tagName==='USE'?safeAttr(e,'href')||safeAttr(e,'xlink:href'):''),d:(e.tagName==='PATH'?safeAttr(e,'d'):'')};var cs=getComputedStyle(e);o.ctrl.font={family:cs.fontFamily,size:cs.fontSize,weight:cs.fontWeight,lineHeight:cs.lineHeight,textShadow:cs.textShadow,webkitTextStroke:cs.webkitTextStroke||'',transform:cs.transform,overflow:cs.overflow,clipPath:cs.clipPath||cs.webkitClipPath||'',outline:cs.outline,z:cs.zIndex,position:cs.position};}catch(_){}return o;}\nfunction subTree(root){var budget=180;function walk(e,d){if(!e||budget--<=0)return null;var o=controlNode(e);if(d<10){var kids=[];for(var c=e.firstElementChild;c&&kids.length<40;c=c.nextElementSibling){var z=walk(c,d+1);if(z)kids.push(z);}if(kids.length)o.children=kids;}return o;}return walk(root,0);}\nfunction videoControlTrees(){var out=[];try{var roots=document.querySelectorAll('#search .sbv-video-overlay,.sbv-video-overlay,#search video.sbv-video-player-ecx,video.sbv-video-player-ecx,#search video._c2Itd_video_17g-f,#search ._c2Itd_videoOverlay_1H_Jm,#search ._c2Itd_playClickRegion_87ZZa,[class*=single-video-card],[class*=singleVideoCard],.video-js');for(var r=0;r<roots.length&&out.length<24;r++){var root=roots[r];if(!vis(root,1))continue;var cand=[];try{cand=[].slice.call(root.querySelectorAll('button,[role=button],[aria-label],[title],svg,use,path,i,span,div')).filter(function(e){var k=(String(e.id||'')+' '+String(e.className&&e.className.baseVal||e.className||'')+' '+safeAttr(e,'aria-label')+' '+safeAttr(e,'title')+' '+safeAttr(e,'data-testid')).toLowerCase();return /mute|unmute|sound|volume|speaker|audio/.test(k);});}catch(_){}var buttons=[];try{buttons=[].slice.call(root.querySelectorAll('button,[role=button]')).filter(function(e){return vis(e,1)});}catch(_){}var uniq=[];cand.concat(buttons).forEach(function(e){if(e&&uniq.indexOf(e)<0&&uniq.length<16)uniq.push(e);});out.push({root:controlNode(root),rootTree:subTree(root),controls:uniq.map(function(e){return {ancestors:ch(e,10),tree:subTree(e)}})});} }catch(e){out.push({err:String(e)})}return out;}\nfunction snap(){var h=document.documentElement||{},state=null;try{state=window.__ad7106StandaloneState?window.__ad7106StandaloneState():null}catch(_){}return {frame:{top:window===top?1:0,host:String(location.hostname||''),path:String(location.pathname||''),viewport:[innerWidth,innerHeight,devicePixelRatio]},markers:{child:h.getAttribute&&h.getAttribute('data-ad7-child-frame')||'',standaloneCandidate:h.getAttribute&&h.getAttribute('data-ad7-standalone-candidate')||'',standaloneSurvivor:h.getAttribute&&h.getAttribute('data-ad7104-standalone')||'',twbChild:h.getAttribute&&h.getAttribute('data-ad7-twb-child')||'',fullRasterFrame:h.getAttribute&&h.getAttribute('data-ad7144-full-raster-frame')||''},standaloneState:state,fullRasterState:window.__ad7144FullRasterState||[],heroFeedback:q('#gwm-window [id^=wd-shoppable-] [data-ad-feedback-label-id],#gwm-window [id^=wd-shoppable-] .ape-feedback,#gwm-window [id^=wd-shoppable-] [class*=ad-feedback],#gwm-window [id^=wd-shoppable-] [id^=ad-feedback-],#gwm-window [id^=wd-shoppable-] [aria-label*=\"Sponsored\"],[class*=single-creative-card] [data-ad-feedback-label-id],[class*=single-creative-card] [class*=ad-feedback],[id*=mobile-wd-][class*=ape-feedback]',90,1),shells:q('#gwm-window,[id^=wd-shoppable-],[class*=single-creative-card],[class*=single-video-card],[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback],[data-testid=renderer-factory-ad-container],#ad,#dynamic-bb,[data-testid=image],[data-acei-id=lfstyl-img],[data-acei-id=prod-img]',100,1),media:media(),bgMedia:bgmedia(),videoControlTrees:videoControlTrees(),hit:hits()};}\nfunction fan(token){var z=snap();if(window===top){window.__ad7144ProbeToken=token;window.__ad7144ProbeFrames=[z];}else{try{top.postMessage({__ad7144ProbeFrame:1,token:token,snap:z},'*')}catch(_){}}try{var fs=document.getElementsByTagName('iframe');for(var i=0;i<fs.length&&i<24;i++)if(fs[i].contentWindow)fs[i].contentWindow.postMessage({__ad7144ProbeRequest:1,token:token},'*');}catch(_){}}\nwindow.addEventListener('message',function(ev){try{var d=ev.data||{};if(d.__ad7144ProbeRequest&&d.token)fan(String(d.token));if(window===top&&d.__ad7144ProbeFrame&&d.token===window.__ad7144ProbeToken&&d.snap){var a=window.__ad7144ProbeFrames||(window.__ad7144ProbeFrames=[]);if(a.length<48)a.push(d.snap);}}catch(_){}},false);\nif(window===top){window.__ad7144StartProbe=function(t){try{fan(String(t||Date.now()));return 'STARTED';}catch(e){return 'START_ERR '+e}};window.__ad7144DumpProbe=function(t){try{return JSON.stringify({token:String(t||''),frames:window.__ad7144ProbeFrames||[]},null,2);}catch(e){return 'DUMP_ERR '+e}};}\n}catch(e){}})();";
 }
 
 static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
@@ -3492,6 +3517,12 @@ static void ADApplyNativeTWB(UIImageView *iv){
 // is mounted. Cached light launch snapshots are cleared exactly as in v6.0.185.
 // -----------------------------------------------------------------------------
 static BOOL gADReadyPosted706=NO;
+static BOOL gADReadyScheduled706=NO;
+static BOOL gADReadyEvaluating706=NO;
+static BOOL gADReadyDwell706=NO;
+static NSUInteger gADReadyAttempts706=0;
+static NSUInteger gADReadyStable706=0;
+
 static BOOL ADVisibleSplashController706(void){
     @try {
         for(UIWindow *w in UIApplication.sharedApplication.windows){
@@ -3512,17 +3543,86 @@ static void ADPostReadyOnce(void){
     if(gADReadyPosted706)return; gADReadyPosted706=YES;
     @try { notify_post("com.colindavidr.amazondark.ready"); } @catch(...) {}
 }
-// v7.115: launch-cover release is event-driven. Visible primary controller /
-// WebView lifecycle events and the known Amazon splash controllers' disappearance
-// are enough to signal readiness; there is no DOM polling, delayed retry loop or
-// JavaScript readiness query. The tiny splash-tree check only runs until the first
-// successful signal and prevents an underneath-splash view event from releasing
-// the SpringBoard cover early. SpringBoard still owns the 1.40 s minimum and
-// 0.55 s fade, so presentation timing remains unchanged.
+
+// v7.170: restore the proven pre-v7.115 launch-readiness contract. v7.115 replaced
+// this bounded launch-only gate with an event-only handoff; the device now proves
+// that the ready signal can arrive while Amazon's stock white splash composite is
+// still on screen. Do not release the SpringBoard cover until a real, finished,
+// OLED Home document is stable. This work exists only during cold-launch handoff.
+static WKWebView *ADLaunchReadyWebView706(void){
+    WKWebView *best=nil; CGFloat bestArea=0;
+    @try {
+        for(WKWebView *wv in ADTrackedWebViews()){
+            if(!wv||!wv.window||wv.hidden||wv.alpha<0.01||wv.loading)continue;
+            CGRect r=[wv convertRect:wv.bounds toView:nil];
+            CGRect ir=CGRectIntersection(r,UIScreen.mainScreen.bounds);
+            CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height);
+            if(a>bestArea){ bestArea=a; best=wv; }
+        }
+    } @catch(...) {}
+    return bestArea>=100000.0?best:nil;
+}
+static NSString *ADLaunchReadyJS706(void){
+    return @"(function(){try{"
+           "if(document.readyState!=='interactive'&&document.readyState!=='complete')return 0;"
+           "var root=document.querySelector('#gwm-PageContent,#gwm-Deck,.gwm-dashboard-container,#a-page,[role=main],main');"
+           "if(!root)return 0;var r=root.getBoundingClientRect(),h=Math.max(r.height||0,root.scrollHeight||0);"
+           "if(r.width<300||h<300)return 0;var c=getComputedStyle(root).backgroundColor||'',m=c.match(/rgba?\\(\\s*([\\d.]+)\\s*,\\s*([\\d.]+)\\s*,\\s*([\\d.]+)/i);"
+           "if(!m||(+m[1]>8)||(+m[2]>8)||(+m[3]>8))return 0;"
+           "var media=root.querySelector('img,video,canvas');"
+           "if(!media&&(root.children||[]).length<3&&h<innerHeight*.75)return 0;return 1;"
+           "}catch(e){return 0}})();";
+}
+static void ADRunLaunchReadyCheck706(void);
+static void ADScheduleLaunchReadyCheck706(NSTimeInterval delay){
+    if(gADReadyPosted706||!gP.enabled||gADReadyScheduled706||gADReadyEvaluating706||gADReadyDwell706)return;
+    if(gADReadyAttempts706>=64)return;
+    gADReadyScheduled706=YES;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(MAX(0.0,delay)*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+        gADReadyScheduled706=NO;
+        ADRunLaunchReadyCheck706();
+    });
+}
+static void ADLaunchReadyFailure706(void){
+    gADReadyStable706=0;
+    gADReadyEvaluating706=NO;
+    gADReadyDwell706=NO;
+    ADScheduleLaunchReadyCheck706(0.125);
+}
+static void ADRunLaunchReadyCheck706(void){
+    if(gADReadyPosted706||!gP.enabled||gADReadyEvaluating706||gADReadyDwell706)return;
+    if(gADReadyAttempts706>=64)return;
+    gADReadyAttempts706++;
+    if(ADVisibleSplashController706()){ ADLaunchReadyFailure706(); return; }
+    WKWebView *wv=ADLaunchReadyWebView706();
+    if(!wv){ ADLaunchReadyFailure706(); return; }
+    gADReadyEvaluating706=YES;
+    [wv evaluateJavaScript:ADLaunchReadyJS706() completionHandler:^(id v,NSError *e){
+        gADReadyEvaluating706=NO;
+        if(gADReadyPosted706||!gP.enabled)return;
+        BOOL ok=(!e&&[v respondsToSelector:@selector(integerValue)]&&[v integerValue]==1&&!wv.loading&&!ADVisibleSplashController706());
+        if(!ok){ ADLaunchReadyFailure706(); return; }
+        gADReadyStable706++;
+        if(gADReadyStable706<3){ ADScheduleLaunchReadyCheck706(0.125); return; }
+        gADReadyDwell706=YES;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.250*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+            if(gADReadyPosted706||!gP.enabled){ gADReadyDwell706=NO; return; }
+            if(ADVisibleSplashController706()){ ADLaunchReadyFailure706(); return; }
+            WKWebView *finalWV=ADLaunchReadyWebView706();
+            if(!finalWV){ ADLaunchReadyFailure706(); return; }
+            gADReadyEvaluating706=YES; gADReadyDwell706=NO;
+            [finalWV evaluateJavaScript:ADLaunchReadyJS706() completionHandler:^(id fv,NSError *fe){
+                gADReadyEvaluating706=NO;
+                BOOL finalOK=(!fe&&[fv respondsToSelector:@selector(integerValue)]&&[fv integerValue]==1&&!finalWV.loading&&!ADVisibleSplashController706());
+                if(finalOK)ADPostReadyOnce(); else ADLaunchReadyFailure706();
+            }];
+        });
+    }];
+}
 static void ADConsiderLaunchReady706(void){
     if(gADReadyPosted706||!gP.enabled)return;
-    if(ADVisibleSplashController706())return;
-    ADPostReadyOnce();
+    // Multiple existing lifecycle hooks may arrive; this scheduler deduplicates them.
+    ADScheduleLaunchReadyCheck706(0.0);
 }
 
 
@@ -3577,21 +3677,20 @@ static void ADConsiderLaunchReady706(void){
 %end
 
 
-// v7.116 production: v7.115 event-driven app handoff retained; SpringBoard owns a
-// bounded 0.40 s post-ready settle guard so Amazon's final white loading composite
-// cannot peek through the cover fade.
+// v7.170: restored bounded launch-ready gate + expanded Search-surface diagnostics.
+// The probe remains screenshot/SIGUSR2-triggered only; no steady-state DOM scan is added.
 // v7.0.68 production: v7.0.65 chevron diagnostic runtime removed.
 static NSUInteger gADSearchResultsProbeRun7139=0;
 static dispatch_source_t gADSearchResultsProbeSignal7139=nil;
-static const unsigned long long kADSearchResultsProbeMaxBytes7139=(5ULL*1024ULL*1024ULL);
+static const unsigned long long kADSearchResultsProbeMaxBytes7139=(28ULL*1024ULL*1024ULL);
 static BOOL gADSearchResultsProbeFileFull7139=NO;
 
 static NSString *ADSearchResultsProbePath7139(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
-        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.169-search-carousel-pills-standalone-badge-probe.txt"];
+        if(docs.length)return [docs stringByAppendingPathComponent:@"AmazonDark-v7.170-launch-search-full-raster-probe.txt"];
     } @catch(...) {}
-    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.169-search-carousel-pills-standalone-badge-probe.txt"];
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"AmazonDark-v7.170-launch-search-full-raster-probe.txt"];
 }
 static void ADSearchResultsProbeReset7139(void){
     @try {
@@ -3612,7 +3711,7 @@ static void ADSearchResultsProbeAppend7139(NSString *s){
         NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding];
         unsigned long long remain=kADSearchResultsProbeMaxBytes7139-cur;
         if((unsigned long long)d.length>remain){
-            NSString *marker=@"\n[PROBE HARD-CAPPED AT 5 MiB — remaining diagnostic output omitted]\n";
+            NSString *marker=@"\n[PROBE HARD-CAPPED AT 28 MiB — remaining diagnostic output omitted]\n";
             NSData *md=[marker dataUsingEncoding:NSUTF8StringEncoding];
             unsigned long long bodyCap=(remain>(unsigned long long)md.length)?(remain-(unsigned long long)md.length):0;
             NSMutableData *trim=[NSMutableData data];
@@ -3711,29 +3810,30 @@ static NSString *ADSearchResultsProbeWebList7139(void){
     return m;
 }
 static NSString *ADSearchResultsProbeJS7139(void){
-    // v7.169 diagnostic-only: one bounded visible-frame truth capture for the four active
-    // Search targets: exact _bGlmZ Prime-Savings badge, More-to-explore pills, the exact
-    // _bXVsd multi-brand carousel, and Search renderer-factory medium-ad shells.
-    // No element text, outerHTML, typed query, clipboard, request body or header is recorded.
+    // v7.170 diagnostic-only: capture the actual visible Search painters without depending on
+    // the stale v7.169 hashed-class guesses. The broad viewport scan is dormant until an explicit
+    // screenshot/SIGUSR2 capture and records no element text, outerHTML, typed query or network data.
     return @"(function(){try{"
     "function A(e,n){try{return e&&e.getAttribute?String(e.getAttribute(n)||''):''}catch(_){return ''}}"
     "function R(e){try{var r=e.getBoundingClientRect();return [+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)]}catch(_){return [0,0,0,0]}}"
-    "function S(e,p){try{var s=getComputedStyle(e,p||null);return {color:s.color,textFill:s.webkitTextFillColor,bg:s.backgroundColor,bgi:s.backgroundImage,bgp:s.backgroundPosition,bgs:s.backgroundSize,bgr:s.backgroundRepeat,filter:s.filter,webkitFilter:s.webkitFilter,opacity:s.opacity,blend:s.mixBlendMode,border:s.border,borderColor:s.borderColor,outline:s.outline,outlineColor:s.outlineColor,radius:s.borderRadius,boxShadow:s.boxShadow,mask:s.maskImage||s.webkitMaskImage||'none',position:s.position,z:s.zIndex}}catch(_){return {err:String(_)}}}"
-    "function P(e){if(!e)return null;var cn='';try{cn=String(e.className&&e.className.baseVal||e.className||'')}catch(_){}return {tag:String(e.tagName||''),id:String(e.id||''),cls:cn,r:R(e),attrs:{styleAttr:A(e,'style'),'data-a-badge-type':A(e,'data-a-badge-type'),'data-a-badge-color':A(e,'data-a-badge-color'),'data-csa-c-content-id':A(e,'data-csa-c-content-id'),'data-csa-c-item-id':A(e,'data-csa-c-item-id'),'data-testid':A(e,'data-testid'),'component':A(e,'data-csa-c-component')},style:S(e),before:S(e,'::before'),after:S(e,'::after')}}"
+    "function S(e,p){try{var s=getComputedStyle(e,p||null);return {color:s.color,textFill:s.webkitTextFillColor,bg:s.backgroundColor,bgi:s.backgroundImage,bgp:s.backgroundPosition,bgs:s.backgroundSize,bgr:s.backgroundRepeat,filter:s.filter,webkitFilter:s.webkitFilter,opacity:s.opacity,blend:s.mixBlendMode,border:s.border,borderColor:s.borderColor,outline:s.outline,outlineColor:s.outlineColor,radius:s.borderRadius,boxShadow:s.boxShadow,mask:s.maskImage||s.webkitMaskImage||'none',fill:s.fill,stroke:s.stroke,position:s.position,z:s.zIndex,display:s.display,visibility:s.visibility}}catch(_){return {err:String(_)}}}"
+    "function P(e){if(!e)return null;var cn='';try{cn=String(e.className&&e.className.baseVal||e.className||'')}catch(_){}return {tag:String(e.tagName||''),id:String(e.id||''),cls:cn.slice(0,420),r:R(e),attrs:{styleAttr:A(e,'style').slice(0,700),'data-a-badge-type':A(e,'data-a-badge-type'),'data-a-badge-color':A(e,'data-a-badge-color'),'data-csa-c-content-id':A(e,'data-csa-c-content-id'),'data-csa-c-item-id':A(e,'data-csa-c-item-id'),'data-testid':A(e,'data-testid'),'component':A(e,'data-csa-c-component'),'role':A(e,'role'),'aria':A(e,'aria-label')},style:S(e),before:S(e,'::before'),after:S(e,'::after')}}"
     "function C(e,n){var a=[];for(var x=e;x&&a.length<n;x=x.parentElement)a.push(P(x));return a}"
     "function vis(r){return r&&r.width>0&&r.height>0&&r.bottom>=0&&r.top<=innerHeight&&r.right>=0&&r.left<=innerWidth}"
-    "function Q(sel,lim){var out=[];try{var a=document.querySelectorAll(sel);for(var i=0;i<a.length&&out.length<(lim||80);i++){var e=a[i],r=e.getBoundingClientRect();if(!vis(r))continue;var kids=[];for(var c=e.firstElementChild;c&&kids.length<8;c=c.nextElementSibling)kids.push(P(c));out.push({self:P(e),chain:C(e,7),children:kids});}}catch(e){out.push({err:String(e),selector:sel})}return out;}"
-    "var badges=Q('#search ._bGlmZ_couponSns_1QLVK,#search ._bGlmZ_couponSns_-u_8b,#search ._bGlmZ_couponBadge_vDASk,#search .puis-card-container .a-badge,#search .puis-card-container [data-a-badge-color],#search .puis-card-container .a-color-success,#search .puis-card-container [class*=saving],#search .puis-card-container [class*=savings],#search .puis-card-container [id*=saving],#search .puis-card-container [id*=savings],#search .s-background-color-platinum,#search .s-coupon-tile',120);"
-    "var pills=Q('#search .nile-ingress-pill-button,#search .nile-inline-pill-button,#search .nile-inline-ingress-pill-button,#search .nile-ingress-pill-button .a-button-inner,#search .nile-inline-pill-button .a-button-inner,#search .nile-inline-ingress-pill-button .a-button-inner,#search .nile-ingress-pill-button .a-button-text,#search .nile-inline-pill-button .a-button-text,#search .nile-inline-ingress-pill-button .a-button-text',48);"
-    "var keyFeatures=Q('#search ._bXVsd_multiBrandContainer_1cmb8,#search ._bXVsd_carouselContainer_HJZMN,#search ._bXVsd_carousel_3xahA,#search ._bXVsd_container_1MiMG,#search ._bXVsd_container_yQKU1,#search ._bXVsd_content_1H2is,#search ._bXVsd_cardContainer_388jB,#search ._bXVsd_imageContainer_2X1hS,#search ._bXVsd_container_3vH0A,#search ._bXVsd_tintContain_15D7X,#search ._bXVsd_container_1cD4b,#search ._bXVsd_multiBrandContainer_1cmb8 [data-ad-feedback-label-id],#search ._bXVsd_multiBrandContainer_1cmb8 [class*=ad-feedback],#search ._bXVsd_multiBrandContainer_1cmb8 svg',120);"
-    "var medium=Q('#search [data-testid=renderer-factory-ad-container],#search [data-testid=renderer-factory-ad-container] [data-testid^=modern-][data-testid$=-layout-container],#search [data-testid=renderer-factory-ad-container] [data-testid=main-content],#search [data-testid=renderer-factory-ad-container] [data-testid=content],#search [data-testid=renderer-factory-ad-container] [data-id=brand-name-text],#search [data-testid=renderer-factory-ad-container] [data-id=product-name-text],#search [data-testid=renderer-factory-ad-container] [data-ad-feedback-label-id],#search [data-testid=renderer-factory-ad-container] [class*=ad-feedback]',96);"
-    "return JSON.stringify({path:String(location.pathname||''),viewport:[innerWidth,innerHeight,devicePixelRatio],scroll:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],badges:badges,moreToExplorePills:pills,keyFeaturesCarousel:keyFeatures,searchMediumStandalone:medium},null,2);"
-    "}catch(e){return 'V7169_SEARCH_TRUTH_ERR '+e;}})();";
+    "function Q(sel,lim){var out=[];try{var a=document.querySelectorAll(sel);for(var i=0;i<a.length&&out.length<(lim||160);i++){var e=a[i],r=e.getBoundingClientRect();if(!vis(r))continue;var kids=[];for(var c=e.firstElementChild;c&&kids.length<12;c=c.nextElementSibling)kids.push(P(c));out.push({self:P(e),chain:C(e,9),children:kids});}}catch(e){out.push({err:String(e),selector:sel})}return out;}"
+    "function light(bg){var m=String(bg||'').match(/rgba?\\(\\s*([\\d.]+)\\s*,\\s*([\\d.]+)\\s*,\\s*([\\d.]+)(?:\\s*,\\s*([\\d.]+))?/i);if(!m)return false;var a=m[4]===undefined?1:+m[4];if(a<.08)return false;return ((+m[1])+(+m[2])+(+m[3]))/3>185}"
+    "function truth(){var out=[],all=document.getElementsByTagName('*'),seen=0;for(var i=0;i<all.length&&seen<7500&&out.length<900;i++){var e=all[i],r=e.getBoundingClientRect();if(!vis(r))continue;seen++;var p=P(e),k=(p.cls+' '+p.id+' '+p.attrs['data-testid']+' '+p.attrs.component).toLowerCase(),tag=p.tag.toLowerCase(),interesting=light(p.style.bg)||p.style.bgi!=='none'||tag==='button'||p.attrs.role==='button'||k.indexOf('a-button')>=0||k.indexOf('_bxvsd_')>=0||k.indexOf('_bglmz_')>=0||k.indexOf('ape-')>=0||k.indexOf('feedback')>=0||k.indexOf('sponsored')>=0||k.indexOf('pill')>=0||k.indexOf('explore')>=0||k.indexOf('feature')>=0||k.indexOf('coupon')>=0||k.indexOf('saving')>=0;if(!interesting)continue;var kids=[];for(var c=e.firstElementChild;c&&kids.length<8;c=c.nextElementSibling)kids.push(P(c));out.push({self:p,chain:C(e,8),children:kids});}return {visited:seen,emitted:out.length,nodes:out}}"
+    "var badges=Q('#search [class*=_bGlmZ_],#search .puis-card-container .a-badge,#search .puis-card-container [data-a-badge-color],#search .puis-card-container .a-color-success,#search .puis-card-container [class*=saving],#search .puis-card-container [class*=savings],#search .puis-card-container [id*=saving],#search .puis-card-container [id*=savings],#search .s-background-color-platinum,#search .s-coupon-tile',260);"
+    "var pills=Q('#search .s-widget-container .a-button,#search .s-widget-container .a-button-inner,#search .s-widget-container .a-button-text,#search .s-widget-container button,#search .s-widget-container [role=button],#search [class*=pill]',260);"
+    "var keyFeatures=Q('#search [class*=_bXVsd_],#search .s-widget-container:has([class*=_bXVsd_]),#search .celwidget:has([class*=_bXVsd_]),#search :is(div,section,article):has(> [class*=_bXVsd_]),#search :is(div,section,article):has(> * > [class*=_bXVsd_])',320);"
+    "var medium=Q('#search .mobile-ad-container,#search .ape-wrapper,#search .ape-placement,#search .ape-feedback,#search [id^=ape_][id*=_wrapper],#search [id^=ape_][id*=_Feedback],#search [data-testid=renderer-factory-ad-container],#search [data-testid=renderer-factory-ad-container] [data-testid^=modern-][data-testid$=-layout-container],#search [data-testid=renderer-factory-ad-container] [data-testid=main-content],#search [data-testid=renderer-factory-ad-container] [data-testid=content],#search [data-testid=renderer-factory-ad-container] [data-id=brand-name-text],#search [data-testid=renderer-factory-ad-container] [data-id=product-name-text],#search [data-ad-feedback-label-id],#search [class*=ad-feedback]',260);"
+    "return JSON.stringify({path:String(location.pathname||''),viewport:[innerWidth,innerHeight,devicePixelRatio],scroll:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],badges:badges,moreToExplorePills:pills,keyFeaturesCarousel:keyFeatures,searchMediumStandalone:medium,visibleSurfaceTruth:truth()},null,2);"
+    "}catch(e){return 'V7170_SEARCH_TRUTH_ERR '+e;}})();";
 }
 static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     if(!gP.enabled)return; NSUInteger run=++gADSearchResultsProbeRun7139;
     ADSearchResultsProbeReset7139();
-    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.169 SEARCH CAROUSEL + PILLS + STANDALONE + BADGE PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
+    NSString *head=[NSString stringWithFormat:@"\n\n================ AMAZON DARK v7.170 LAUNCH + SEARCH + FULL RASTER PROBE RUN %lu ================\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\npolicy=no typed query text, element text, outerHTML, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",
         (unsigned long)run,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(head);
     NSMutableArray *search=[NSMutableArray array],*fallback=[NSMutableArray array];
@@ -3756,7 +3856,7 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     void (^done)(void)=^{ if(--pending==0)ADSearchResultsProbeAppend7139(@"================ END RUN ================\n"); };
     for(NSUInteger i=0;i<lim;i++){
         WKWebView *wv=chosen[i][@"wv"];
-        NSString *token=[NSString stringWithFormat:@"v7169-%lu-%lu",(unsigned long)run,(unsigned long)i];
+        NSString *token=[NSString stringWithFormat:@"v7170-%lu-%lu",(unsigned long)run,(unsigned long)i];
         NSString *startJS=[NSString stringWithFormat:@"(function(){try{return window.__ad7144StartProbe?window.__ad7144StartProbe('%@'):'NO_ALL_FRAME_START'}catch(e){return 'START_ERR '+e}})();",token];
         [wv evaluateJavaScript:startJS completionHandler:nil];
         ADSearchResultsProbeAppend7139([NSString stringWithFormat:@"\n===== WEB SEARCH TARGETS #%lu =====\naid=\"%@\" path=\"%@\"\n",(unsigned long)i,wv.accessibilityIdentifier?:@"",ADSearchResultsProbeSafeURL7139(wv)]);
@@ -3764,11 +3864,11 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
             NSString *body=e?[NSString stringWithFormat:@"EVAL_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
             ADSearchResultsProbeAppend7139([NSString stringWithFormat:@"%@\n",body?:@"NO_DOM_DATA"]); done();
         }];
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.55*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.70*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
             NSString *dumpJS=[NSString stringWithFormat:@"(function(){try{return window.__ad7144DumpProbe?window.__ad7144DumpProbe('%@'):'NO_ALL_FRAME_DUMP'}catch(e){return 'DUMP_ERR '+e}})();",token];
             [wv evaluateJavaScript:dumpJS completionHandler:^(id v,NSError *e){
                 NSString *body=e?[NSString stringWithFormat:@"ALL_FRAME_ERROR %@",e]:([v isKindOfClass:[NSString class]]?v:[v description]);
-                if(body.length>900000)body=[[body substringToIndex:900000] stringByAppendingString:@"\n[ALL-FRAME DUMP TRUNCATED AT 900,000 CHARACTERS]\n"];
+                if(body.length>8000000)body=[[body substringToIndex:8000000] stringByAppendingString:@"\n[ALL-FRAME DUMP TRUNCATED AT 8,000,000 CHARACTERS]\n"];
                 ADSearchResultsProbeAppend7139([NSString stringWithFormat:@"\n===== ALL-FRAME MEDIUM-AD TARGETS #%lu =====\n%@\n",(unsigned long)i,body?:@"NO_ALL_FRAME_DUMP"]); done();
             }];
         });
@@ -3783,9 +3883,8 @@ static void ADInstallSearchResultsProbe7139(void){
     });
 }
 
-// v7.116 production: v7.115 event-driven app handoff retained; SpringBoard owns a
-// bounded 0.40 s post-ready settle guard so Amazon's final white loading composite
-// cannot peek through the cover fade.
+// v7.170: restored bounded launch-ready gate + expanded Search-surface diagnostics.
+// The probe remains screenshot/SIGUSR2-triggered only; no steady-state DOM scan is added.
 // v7.0.68 production: v7.0.65 chevron diagnostic runtime removed.
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
     BOOL wasPrivacy=gP.privacyMode;
