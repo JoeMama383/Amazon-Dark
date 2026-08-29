@@ -1,3 +1,17 @@
+# AmazonDark v7.175~remaining-fixes-dynamic-probe
+
+## v7.175 remaining fixes
+
+- Fully release Home visual-subnav category chips (including Luxury / See all) from AmazonDark ownership, including generic label/button/tint/TWB/border paths.
+- Pre-paint exact 414x125 Home and Search APE standalone creatives with TWB from stable placement IDs; Sponsored feedback remains outside the filter and the placement keeps the standard gray border.
+- Preserve the now-working Search Amazon Haul treatment: OLED floors, white copy, existing TWB product imagery, stock emoji/stars, and standard OLED/gray Add-to-cart buttons.
+- Claimed coupon state: white Saving copy, black check-circle background, white check mark.
+- Retain the v7.173+ dynamic multi-interface probe: one unique file per screenshot/SIGUSR2 trigger, 28 MiB cap per capture.
+
+No active MutationObserver, recurring timer, RAF loop, or scroll listener is introduced by these fixes.
+
+---
+
 # AmazonDark v7.174~four-surface-fixes-dynamic-probe
 
 ## v7.174 probe-classified fixes

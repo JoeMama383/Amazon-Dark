@@ -35,7 +35,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.174-four-surface-fixes-dynamic-probe"
+#define AD_VERSION "v7.175-remaining-fixes-dynamic-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -786,14 +786,21 @@ static NSString *ADFloorJS(void){
         @"1) brightness(.88)!important;}#search#search .more-like-this-container{background:transparent!important;background-color:transparent!important;background-image:none!important;box-s"
         @"hadow:none!important;}#search#search .nile-ingress-pill-button,#search#search .nile-ingress-pill-button .a-button-inner{background:#4a4f51!important;background-color:#4a4f51!import"
         @"ant;background-image:none!important;border-color:#747a7c!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search .nile-ingre"
-        @"ss-pill-button :is(span,div){color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search .haul-puis-widget-faceout-container{background:#000!important;background-co"
-        @"lor:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}#search#search .haul-puis-widget-faceout-container > :not(.haul-puis-image-co"
-        @"ntainer):not(.haul-puis-widget-action-button){border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}#search#search .haul-puis-widget-faceout-container"
-        @" > :not(.haul-puis-image-container):not(.haul-puis-widget-action-button){background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!im"
-        @"portant;box-shadow:none!important;}#search#search .s-coupon-tile,#search#search .s-coupon-tile-price-content,#search#search .s-coupon-unclipped,#search#search .s-coupon-highlight-c"
+        @"ss-pill-button :is(span,div){color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+        // v7.175 r3: current Amazon Haul renderer. Preserve its authored animated background image
+        // so the emoji/art remains stock; replace only the purple base and white structural planes.
+        @"#search#search .haul-asin-recommendation-styled-widget-container-override,#search#search .haul-asin-recommendation-styled-widget-container{background-color:#000!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}#search#search :is(.haul-asin-recommendation-styled-header-container,.haul-asin-recommendation-styled-subtitle,.haul-asin-recommendation-styled-carousel-container,.haul-puis-image-container,.haul-puis-product-info){background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}"
+        @"#search#search .haul-puis-widget-faceout-container{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}#search#search .haul-puis-widget-faceout-container > :not(.haul-puis-widget-action-button){border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}"
+        @"#search#search :is(.haul-asin-recommendation-styled-widget-container-override,.haul-asin-recommendation-styled-widget-container) :is(h1,h2,h3,h4,h5,h6,p,a,span,div):not(.haul-puis-image-container){color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+        // Same Add-to-cart palette as normal product cards; Amazon keeps geometry and radius.
+        @"#search#search .haul-puis-widget-action-button .a-button.a-button-primary{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:inset 0 0 0 1px #747a7c!important;filter:none!important;-webkit-filter:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#search#search .haul-puis-widget-action-button .a-button.a-button-primary .a-button-inner{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;filter:none!important;-webkit-filter:none!important;}#search#search .haul-puis-widget-action-button .a-button.a-button-primary .a-button-text{background:transparent!important;background-color:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;filter:none!important;-webkit-filter:none!important;}"
+        @"#search#search .s-coupon-tile,#search#search .s-coupon-tile-price-content,#search#search .s-coupon-unclipped,#search#search .s-coupon-highlight-c"
         @"olor{background:#008000!important;background-color:#008000!important;background-image:none!important;border-color:#008000!important;box-shadow:none!important;color:#fff!important;-"
         @"webkit-text-fill-color:#fff!important;}#search#search .s-coupon-tile-text-content,#search#search .s-coupon-checkbox-label,#search#search .s-coupon-tile-price-content,#search#search"
-        @" .s-coupon-unclipped,#search#search .s-coupon-highlight-color{color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search :is(video.sbv-video-player-ecx,video._c2It"
+        @" .s-coupon-unclipped,#search#search .s-coupon-highlight-color{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+        // v7.175 r5: claimed coupon state. Keep the true-green root; change only selected-state details.
+        @"#search#search .s-coupon-tile.claimed .s-coupon-tile-content > span.a-size-small.a-color-base.a-text-normal{color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search .s-coupon-tile.claimed svg.s-coupon-success path.s-coupon-icon-background{fill:#000!important;stroke:none!important;}#search#search .s-coupon-tile.claimed svg.s-coupon-success path:not(.s-coupon-icon-background){fill:#fff!important;}#search#search .s-coupon-tile.claimed svg.s-coupon-success{filter:none!important;-webkit-filter:none!important;}"
+        @"#search#search :is(video.sbv-video-player-ecx,video._c2It"
         @"d_video_17g-f){color-scheme:light!important;accent-color:auto!important;filter:none!important;-webkit-filter:none!important;}#search#search :is(.sbv-video-pause-button-container,.s"
         @"bv-video-mute-button-container,.sbv-mobile-video-play-click-region,._c2Itd_playClickRegion_87ZZa){background-color:transparent!important;border-color:transparent!important;outline-"
         @"color:transparent!important;box-shadow:none!important;filter:none!important;-webkit-filter:none!important;}#search#search .puis-card-container.mobile-video-product-view.puis-card-b"
@@ -887,6 +894,8 @@ static NSString *ADFloorJS(void){
         // Search APE/standalone wrapper: the creative iframe can already be dark while Amazon's main-frame
         // placement/feedback strip remains white. Own that route-local shell exactly as Home standalone does.
         @":is(.mobile-ad-container,.ape-wrapper,.ape-placement,.ape-feedback),[id^=ape_][id*=_wrapper],[id^=ape_][id*=_Feedback]{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}:is(.ape-feedback,[id^=ape_][id*=_Feedback]) :is([data-ad-feedback-label-id],[id^=ad-feedback-text-],[id^=af-label-primary-link-],[class*=ad-feedback],[class*=adFeedback]){background:transparent!important;background-color:transparent!important;color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}"
+        // v7.175 r2: exact Search medium APE shell; Sponsored feedback is a separate sibling below it.
+        @"#search#search [id^=ape_search_][id$=_placement][style*='414 / 125']{border:1px solid #3b4043!important;border-color:#3b4043!important;outline-color:#3b4043!important;box-shadow:none!important;box-sizing:border-box!important;}"
         @".puis-mab-chevron :is(i.a-icon-dropdown,.a-icon.a-icon-dropdown),.puis-mab-chevron-glyph "
         @":is(i.a-icon-dropdown,.a-icon.a-icon-dropdown){filter:brightness(0) invert(1)!important;opacity:1!important;}#search [data-a-badge-color=\\\"sx-cloud\\\"],#search [data-a-badge-color=\\"
         @"\"sx-cloud\\\"] :is(.a-badge-label,.a-badge-label-inner,.a-badge-text){background:transparent!important;background-color:transparent!important;background-image:none!important;border-c"
@@ -1069,7 +1078,7 @@ static NSString *ADFloorJS(void){
         @"background-color:transparent!important;}::-webkit-scrollbar-track{background-color:transparent!important;}::-webkit-scrollbar-thumb{background-color:#6f6f6f!important;border-radius"
         @":8px!important;border:2px solid transparent!important;background-clip:content-box!important;}::-webkit-scrollbar-thumb:hover{background-color:#8a8a8a!important;}"
         // v7.174 probe r2: exact Home image-only APE 414x125 border.
-        @".ape-placement.is-image-oo,[id^=ape_][id*=\\\"_placement\\\"].is-image-oo{border:1px solid #3b4043!important;border-color:#3b4043!important;outline-color:#3b4043!important;box-shadow:none!important;box-sizing:border-box!important;}"
+        @".ape-placement.is-image-oo,[id^=ape_][id*=\\\"_placement\\\"].is-image-oo,[id^=ape_gateway_dynamic-][id$=_mshop_placement][style*='414 / 125']{border:1px solid #3b4043!important;border-color:#3b4043!important;outline-color:#3b4043!important;box-shadow:none!important;box-sizing:border-box!important;}"
 
         // v7.169: /s product-referrer ad iframes are child frames but intentionally are not
         // standalone-candidates. Reuse the proven Home 414x125 renderer contract by exact
@@ -1263,8 +1272,8 @@ static NSString *ADTWBJS(void){
     CGFloat factor=1.0-shade;
     return [NSString stringWithFormat:
         @"(function(){try{var host='';try{host=String(location.hostname||'').toLowerCase();}catch(_){}if(host==='flashtalking.com'||/\\.flashtalking\\.com$/.test(host))return;var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement)document.documentElement.setAttribute('data-ad7-twb-child','1');if(child&&document.documentElement&&document.documentElement.hasAttribute('data-ad7-standalone-candidate'))return;function put(id,css){var s=document.getElementById(id);if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}s.textContent=css;return s;}function relink(s){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}if(child){put('ad7-twb-child-min',\"html[data-ad7-twb-child=\\\"1\\\"] :is(img,video,canvas):not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=rating]):not([class*=star]):not([class"
-        @"*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=icon]):not([class*=glyph]):not([class*=badge]){filter:brightness(%.3f)!important;}\");return;}var p='';try{p=String(location.pathname||'');}catch(_){}var s=null;if(p==='/autocomplete'||p.indexOf('/autocomplete/')===0){s=put('ad7-search-pane-twb',\"img.ufs_tiles_card_widget-sug-image,img.s-entity-pd-carousel-tile-element-image{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;}#attach-to-me img.s-image,#attach-to-me img.s-product-image,.s-suggestion-container img.s-image,.s-suggestion-container img.s-product-image{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}\");}else if(p==='/s'||p.indexOf('/s/')===0){s=put('ad7-product-feed-twb',\"#search img.scx-stt-image,#search img._c2Itd_image_3UiYm,#search img._bXVsd_image_iVomf,#search img._bXVsd_lifestyleImage_1fluW{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;}#search img.s-image,#search img.s-product-image,#search [data-component-type=s-product-image] img,#search img.ufs_tiles_card_widget-sug-image,#search img.nice-cat-card_image,#search img.haul-puis-portrait-img,#search img._c2Itd_image_pQREQ{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}#search video.sbv-video-player-ecx,#search video._"
-        @"c2Itd_video_17g-f{filter:none!important;-webkit-filter:none!important;}#search .sbv-video-overlay{background-color:rgba(0,0,0,%.3f)!important;}#search ._c2Itd_videoOverlay_1H_Jm{background-color:rgba(0,0,0,%.3f)!important;}\");}else{s=put('ad7-menu-twb',\".ape-placement.is-image-oo>iframe,[id^=ape_][id*=_placement].is-image-oo>iframe{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;}img.ufs_tiles_card_widget-sug-image,img.s-image,img.s-product-image,#landingImage,#imgBlkFront,#imgTagWrapperId img,img[data-a-dynamic-image],img.a-dynamic-image,[data-component-type=s-product-image] img,[class*=product-image] img,[class*=asin-image] img,.p13n-sc-uncoverable-faceout img,[data-asin] img.s-image,[data-csa-c-asin] img.s-image,:is(#gwm-Deck-btf,.gwm-dashboard-container) :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) img:not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store]):not([class*=rating]):not([class*=star]):not([class*=sprite]):not([class*=pixel]):not([class*=icon]):not([class*=glyph]):not([class*"
+        @"*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=icon]):not([class*=glyph]):not([class*=badge]){filter:brightness(%.3f)!important;}\");return;}var p='';try{p=String(location.pathname||'');}catch(_){}var s=null;if(p==='/autocomplete'||p.indexOf('/autocomplete/')===0){s=put('ad7-search-pane-twb',\"img.ufs_tiles_card_widget-sug-image,img.s-entity-pd-carousel-tile-element-image{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;}#attach-to-me img.s-image,#attach-to-me img.s-product-image,.s-suggestion-container img.s-image,.s-suggestion-container img.s-product-image{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}\");}else if(p==='/s'||p.indexOf('/s/')===0){s=put('ad7-product-feed-twb',\"#search [id^=ape_search_][id$=_placement][style*='414 / 125']>iframe{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;}#search img.scx-stt-image,#search img._c2Itd_image_3UiYm,#search img._bXVsd_image_iVomf,#search img._bXVsd_lifestyleImage_1fluW{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;}#search img.s-image,#search img.s-product-image,#search [data-component-type=s-product-image] img,#search img.ufs_tiles_card_widget-sug-image,#search img.nice-cat-card_image,#search img.haul-puis-portrait-img,#search img._c2Itd_image_pQREQ{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}#search video.sbv-video-player-ecx,#search video._"
+        @"c2Itd_video_17g-f{filter:none!important;-webkit-filter:none!important;}#search .sbv-video-overlay{background-color:rgba(0,0,0,%.3f)!important;}#search ._c2Itd_videoOverlay_1H_Jm{background-color:rgba(0,0,0,%.3f)!important;}\");}else{s=put('ad7-menu-twb',\".ape-placement.is-image-oo>iframe,[id^=ape_][id*=_placement].is-image-oo>iframe,[id^=ape_gateway_dynamic-][id$=_mshop_placement][style*='414 / 125']>iframe{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;}img.ufs_tiles_card_widget-sug-image,img.s-image,img.s-product-image,#landingImage,#imgBlkFront,#imgTagWrapperId img,img[data-a-dynamic-image],img.a-dynamic-image,[data-component-type=s-product-image] img,[class*=product-image] img,[class*=asin-image] img,.p13n-sc-uncoverable-faceout img,[data-asin] img.s-image,[data-csa-c-asin] img.s-image,:is(#gwm-Deck-btf,.gwm-dashboard-container) :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) img:not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store]):not([class*=rating]):not([class*=star]):not([class*=sprite]):not([class*=pixel]):not([class*=icon]):not([class*=glyph]):not([class*"
         @"=badge]):not([class*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=search-icon]):not([class*=microphone]):not([class*=camera]):not([class*=location]):not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon]):not([class*=header-icon]):not([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr]):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),html[data-ad7-twb-child=\\\"1\\\"]:not([data-ad7-standalone-candidate]) :is(img,video,canvas):not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=rating]):not([class*=star]):not([class*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=search-icon]):not([class*=microphone]):not([class*=camera]):not([class*=location]):not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon]):not([class*=header-icon]):not"
         @"([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr]):not([class*=sprite]):not([class*=pixel]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),html[data-ad7-standalone-candidate] :is([data-testid*=product-picture],[data-testid*=product-image],[data-testid*=asin-image]) :is(img,video,canvas):not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([data-testid=ratings-stars] *)):not(:where([data-testid=prime-badge] *)),html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] :is([data-testid=image],[data-acei-id=lfstyl-img]) :is(img,video,canvas):not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge]),html[data-ad7-standalone-candidate] #ad:has(#dynamic-bb) :is([data-acei-id=lfstyl-img],[data-acei-id=prod-img]) :is(img,vid"
         @"eo,canvas),html[data-ad7-standalone-candidate] #ad:has(#dynamic-bb) :is(img,video,canvas):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=badge]):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=ad-feedback] *)),html[data-ad7-standalone-candidate] [data-acei-id=brnd-logo] img,html[data-ad7-standalone-candidate] [data-testid=logo] img[alt=\\\"Brand logo\\\"],html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\\\"300x250\\\"] .swiper-slide [data-testid=pictureHighQuality],#gwm-Deck-btf :is([class*=mobile-mshop-ad],[class*=mobile-ad-container],[class*=ape-wrapper],[class*=ape-placement]) :is(img,video,canvas):not([class*=logo]):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([class*=logo] *)):not(:whe"
@@ -1272,7 +1281,7 @@ static NSString *ADTWBJS(void){
         @"onsored]):not([class*=spr]),#gwm-window [id^=wd-shoppable-] :is(img,video,canvas):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=logo]):not([class*=badge]):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=ad-feedback] *)),img[class*=_single-creative-card],img[class*=_single-video-card],[class*=single-creative-card] img,[class*=single-video-card] img,[class*=single-video-card] video,[class*=canvas-card] canvas,video.vjs-tech,video[class*=_npack-asin-card_style_background-video__],[class*=_npack-asin-card_style_background-video-container__] > video[class*=_npack-asin-card_style_motion-content__]{filter:brightness(%.3f)!important;}:is([class*=theming-card-background],[class*=_npack-asin-card_style_theming-background-override__]) [class*=_npack-asin-card_style_asin-container-white__]{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;transition"
         @"-property:none!important;}[class*=theming-card-background],[class*=vjs-poster],[class*=single-creative-card-background],[class*=single-video-card-background],[class*=single-creative-card] [class*=theming-card-background],[class*=single-video-card] [class*=theming-card-background],[class*=single-video-card] [class*=vjs-poster],:is([class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=_npack-asin-card],[class*=npack-asin-card],[class*=canvas-card],[class*=canvas-container]):is([style*=\\\"background-image\\\"],[style*=\\\"backgroundImage\\\"]):not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=badge]):not([class*=chevron]),:is([class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=_npack-asin-card],[class*=npack-asin-card],[class*=canvas-card],[class*=canvas-container]) :is([style*=\\\"background-image\\\"],[style*=\\\"backgroundImage\\\"]):not([class*=logo]):not(["
         @"class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=badge]):not([class*=chevron]),html[data-ad7-twb-child=\\\"1\\\"] :is([class*=theming-card-background],[class*=vjs-poster],[class*=single-creative-card-background],[class*=single-video-card-background]){box-shadow:inset 0 0 0 9999px rgba(0,0,0,%.3f)!important;transition-property:none!important;}\");}if(document.readyState==='loading')window.addEventListener('load',function(){relink(s);},{once:true});else relink(s);}catch(e){}})();",
-        factor,factor,factor,factor,factor,factor,factor,factor,factor,factor,factor,factor,factor];
+        factor,factor,factor,factor,factor,factor,factor,factor,factor,factor,factor,factor,factor,factor,factor];
 }
 
 static NSString *ADPrivacyModeJS7117(void){
@@ -1865,6 +1874,19 @@ static BOOL ADSearchSubNavControllerClass7139(UIViewController *vc){
     NSString *cn=NSStringFromClass(vc.class);
     return [cn isEqualToString:@"ANXVisualSubNavViewController"] || [cn isEqualToString:@"ANXSubNavContainer"];
 }
+// v7.175: Home visual-category cells are Amazon-authored stock UI.  v7.174 only
+// released the VisualSubNav controller, but ANXSubNavContainer could still mark these
+// cells as delivery-band descendants and the global UILabel owner could recolor labels.
+static BOOL ADInAuthoredVisualSubNav7175(UIView *v){
+    if(!v)return NO;
+    @try {
+        for(UIView *n=v;n;n=n.superview){
+            if([NSStringFromClass(n.class) isEqualToString:@"ANXVisualSubNavTextCollectionViewCell"])return YES;
+            if([n isKindOfClass:[UIWindow class]])break;
+        }
+    } @catch(...) {}
+    return NO;
+}
 static BOOL ADCompactSearchSubNavView7139(UIView *v){
     if(!v||!v.window||!ADPrimaryAmazonWindow713(v.window,nil))return NO;
     @try {
@@ -1893,6 +1915,7 @@ static void ADOwnCompactSearchSubNav7139(UIViewController *vc){
         NSMutableArray *q=[NSMutableArray arrayWithArray:root.subviews?:@[]]; NSUInteger seen=0;
         while(q.count && seen++<96){
             UIView *x=q.firstObject; [q removeObjectAtIndex:0]; if(!x)continue;
+            if(ADInAuthoredVisualSubNav7175(x))continue;
             ADMarkSearchDeliveryDescendant7139(x);
             if([x isKindOfClass:[UIImageView class]]) ADTintSearchDeliveryGlyph7139((UIImageView *)x);
             else if([x isKindOfClass:[UILabel class]]) ((UILabel *)x).textColor=ADLightText706();
@@ -1933,6 +1956,7 @@ static inline BOOL ADWebKitInternalView7154(UIView *v){
     // v7.154: WKWebView/WKScrollView/WKContentView have exact owners above. Do not
     // run generic UIKit floor heuristics on WebKit's large compositing-view tree.
     if(ADWebKitInternalView7154(self))return;
+    if(gP.enabled && ADInAuthoredVisualSubNav7175(self))return;
     if(gP.enabled && self.window && ADInMarkedSearchDeliveryBand7139(self) && ![self isKindOfClass:[UIImageView class]]){
         UIColor *black=ADOLED(); self.backgroundColor=black; self.layer.backgroundColor=black.CGColor;
         return;
@@ -1953,6 +1977,10 @@ static inline BOOL ADWebKitInternalView7154(UIView *v){
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if(ADWebKitInternalView7154(self)){
+        %orig(color);
+        return;
+    }
+    if(gP.enabled && ADInAuthoredVisualSubNav7175(self)){
         %orig(color);
         return;
     }
@@ -2766,6 +2794,10 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 
 %hook UILabel
 - (void)setAttributedText:(NSAttributedString *)attributedText {
+    if(gP.enabled && ADInAuthoredVisualSubNav7175((UIView *)self)){
+        %orig(attributedText);
+        return;
+    }
     if(gP.enabled && ADInSearchChrome706((UIView *)self) && attributedText.length){
         NSMutableAttributedString *m=[attributedText mutableCopy];
         [m addAttribute:NSForegroundColorAttributeName value:ADLightText706() range:NSMakeRange(0,m.length)];
@@ -2776,6 +2808,10 @@ static void ADDarkenReactCardNearText708(UIView *textView){
     %orig(r);
 }
 - (void)setTextColor:(UIColor *)color {
+    if(gP.enabled && ADInAuthoredVisualSubNav7175((UIView *)self)){
+        %orig(color);
+        return;
+    }
     if(gP.enabled){
         UIColor *want=ADLightText706();
         %orig(want);
@@ -2785,7 +2821,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 }
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled&&self.window) self.textColor=ADLightText706();
+    if(gP.enabled&&self.window&&!ADInAuthoredVisualSubNav7175((UIView *)self)) self.textColor=ADLightText706();
 }
 %end
 
@@ -2852,6 +2888,10 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 
 %hook UIButton
 - (void)setTitleColor:(UIColor *)color forState:(UIControlState)state {
+    if(gP.enabled && ADInAuthoredVisualSubNav7175((UIView *)self)){
+        %orig(color,state);
+        return;
+    }
     if(gP.enabled){
         UIColor *light=ADLightText706();
         %orig(light,state);
@@ -2863,6 +2903,15 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 
 %hook CALayer
 - (void)setBorderColor:(CGColorRef)color {
+    if(gP.enabled){
+        @try {
+            id d=self.delegate;
+            if([d isKindOfClass:[UIView class]] && ADInAuthoredVisualSubNav7175((UIView *)d)){
+                %orig(color);
+                return;
+            }
+        } @catch(...) {}
+    }
     if(gP.enabled&&color&&ADNeutralCGColor706(color)){
         UIColor *g=ADBorderGray706();
         CGColorRef cg=g.CGColor;
@@ -2875,6 +2924,15 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 
 %hook CAShapeLayer
 - (void)setStrokeColor:(CGColorRef)color {
+    if(gP.enabled){
+        @try {
+            id d=self.delegate;
+            if([d isKindOfClass:[UIView class]] && ADInAuthoredVisualSubNav7175((UIView *)d)){
+                %orig(color);
+                return;
+            }
+        } @catch(...) {}
+    }
     if(gP.enabled&&color&&ADNeutralCGColor706(color)&&(self.bounds.size.width>24||self.bounds.size.height>24)){
         UIColor *g=ADBorderGray706();
         CGColorRef cg=g.CGColor;
@@ -3474,6 +3532,10 @@ static void ADApplyNativeTWB(UIImageView *iv){
     if(!iv)return;
     @try {
         CALayer *ov=objc_getAssociatedObject(iv,kADTWBOverlay);
+        if(gP.enabled && ADInAuthoredVisualSubNav7175((UIView *)iv)){
+            if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(iv,kADTWBOverlay,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
+            return;
+        }
         if(!gP.enabled || !gP.whiteTame || !iv.window || ADNativeMediaBlockedCached7146(iv)){
             if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(iv,kADTWBOverlay,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
             return;
@@ -3493,17 +3555,21 @@ static void ADApplyNativeTWB(UIImageView *iv){
     %orig;
     objc_setAssociatedObject(self,kADTWBEligibility,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADTWBEligibilityImage,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    if(gP.enabled&&self.window){ ADTabImageWhite724(self); ADTintSearchGlyph706(self); ADTintSearchDeliveryGlyph7139(self); }
+    if(gP.enabled&&self.window&&!ADInAuthoredVisualSubNav7175((UIView *)self)){ ADTabImageWhite724(self); ADTintSearchGlyph706(self); ADTintSearchDeliveryGlyph7139(self); }
     if(gP.whiteTame)ADApplyNativeTWB(self);
 }
 - (void)didMoveToWindow {
     %orig;
     objc_setAssociatedObject(self,kADTWBEligibility,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADTWBEligibilityImage,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    if(gP.enabled&&self.window){ ADTabImageWhite724(self); ADTintSearchGlyph706(self); ADTintSearchDeliveryGlyph7139(self); }
+    if(gP.enabled&&self.window&&!ADInAuthoredVisualSubNav7175((UIView *)self)){ ADTabImageWhite724(self); ADTintSearchGlyph706(self); ADTintSearchDeliveryGlyph7139(self); }
     ADApplyNativeTWB(self);
 }
 - (void)setTintColor:(UIColor *)color {
+    if(gP.enabled && ADInAuthoredVisualSubNav7175((UIView *)self)){
+        %orig(color);
+        return;
+    }
     if(gP.enabled&&self.window){
         CGFloat w=self.bounds.size.width,h=self.bounds.size.height;
         if(w>1.0&&h>1.0&&w<=100.0&&h<=100.0){
@@ -3523,7 +3589,7 @@ static void ADApplyNativeTWB(UIImageView *iv){
 }
 - (void)layoutSubviews {
     %orig;
-    if(gP.enabled&&self.window){
+    if(gP.enabled&&self.window&&!ADInAuthoredVisualSubNav7175((UIView *)self)){
         ADTabImageWhite724(self);
         ADTintSearchGlyph706(self);
         ADTintSearchDeliveryGlyph7139(self);
@@ -3716,12 +3782,12 @@ static NSString *ADSearchResultsProbePath7139(NSUInteger run){
         fmt.timeZone=[NSTimeZone localTimeZone];
         fmt.dateFormat=@"yyyyMMdd-HHmmss-SSS";
         NSString *stamp=[fmt stringFromDate:[NSDate date]]?:@"unknown";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.174-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.175-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(docs.length)return [docs stringByAppendingPathComponent:name];
         return [NSTemporaryDirectory() stringByAppendingPathComponent:name];
     } @catch(...) {
-        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.174-dynamic-probe-r%lu.txt",(unsigned long)run]];
+        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.175-dynamic-probe-r%lu.txt",(unsigned long)run]];
     }
 }
 static void ADSearchResultsProbeAppend7139(NSString *p,NSString *s){
@@ -3874,7 +3940,7 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     NSUInteger run=++gADSearchResultsProbeRun7139;
     NSString *path=ADSearchResultsProbePath7139(run);
     NSString *runID=[NSString stringWithFormat:@"%@-pid%d-r%lu",[[path lastPathComponent] stringByDeletingPathExtension],getpid(),(unsigned long)run];
-    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.174 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
+    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.175 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(path,head);
     NSMutableArray *chosen=[NSMutableArray array];
     @try {
