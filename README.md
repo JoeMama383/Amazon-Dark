@@ -1,3 +1,17 @@
+# AmazonDark v7.171~search-regression-restore-probe
+
+Direct base: **v7.170~launch-search-full-raster-probe**.
+
+## v7.171 regression restoration
+
+- Restores the Search delivery/location strip to OLED black without weakening the v7.170 launch-cover gate. The exact `GlowIngressView` owner no longer depends on primary-controller classification timing; it remains gated by exact class, normal window level, full-width compact geometry and the existing light pin/text path.
+- Restores v7.169 Brands-related `_bXVsd` raster/logo TWB. v7.170's broad multi-brand preservation rule was clearing `filter` on every IMG/PICTURE and therefore outranking the dedicated TWB selectors. Only SVG/icon/star/sparkle artwork is now released from filtering.
+- Restores v7.169 sponsored-video controls. The v7.170 generic non-product AUI-button fallback is excluded from video/play/pause/mute subtrees, allowing the existing stock-control isolation/transparent control-shell rules to remain authoritative.
+- Keeps the v7.170 launch readiness fix, Search savings/pill/carousel floors, medium Search standalone ownership and compact full-raster TWB classifier.
+- Probe remains screenshot + SIGUSR2, resets per capture, and retains the 28 MiB ceiling.
+
+---
+
 # AmazonDark v7.170~launch-search-full-raster-probe
 
 Direct base: **v7.169~search-carousel-pills-standalone-badge-probe**.
