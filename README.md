@@ -1,3 +1,13 @@
+# AmazonDark v7.174~four-surface-fixes-dynamic-probe
+
+## v7.174 probe-classified fixes
+
+- Release the exact native Home visual-subnav controller so Amazon category chips keep authored stock styling.
+- Tame exact Home `.ape-placement.is-image-oo` 414x125 full-raster iframe; use the standardized gray ad border; Sponsored feedback stays outside the filter.
+- Theme exact Search `template=PROMPTS_BENEFITS_CAROUSEL` / `spt-benefits-carousel-*` floors OLED black with white generic text; preserve `spt-benefit-chip-sparkle` blue raster.
+- Theme exact Search `.s-promotion-highlight-color` Save-% span transparent with `#008000` text; Limited-time-deal remains separate.
+- Retain v7.173 multi-file dynamic probe architecture: every screenshot/SIGUSR2 writes a unique capture, 28 MiB max per file.
+
 # AmazonDark v7.173~dynamic-multi-interface-probe
 
 Direct base: **v7.172~smart-refinements-targeted-probe**.
