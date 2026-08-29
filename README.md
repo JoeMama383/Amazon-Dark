@@ -1,4 +1,14 @@
-# AmazonDark v7.165~swatch-art-preservation-probe
+# AmazonDark v7.166~swatch-raster-preservation-probe
+
+## v7.166 patterned/raster swatch preservation
+
+- Direct base: v7.165.
+- Fixes the remaining alternate product-card swatch family used by patterned/photo variants.
+- Keeps v7.164/165 structural swatch shells transparent, but explicitly exempts swatch-region `img` / `picture` / `canvas` / `svg` artwork from the `/s` TWB opacity lane and generic filter ownership.
+- Does not manufacture or recolor swatch colors; Amazon remains the artwork owner.
+- Adds a one-shot visible-card circular-element inventory so an unknown alternate renderer is captured even when it does not use the legacy `s-color-swatch-*` class family.
+- Probe still resets on every capture and hard-caps at 28 MiB.
+
 
 Direct base: v7.164~swatch-options-bounded-probe.
 
