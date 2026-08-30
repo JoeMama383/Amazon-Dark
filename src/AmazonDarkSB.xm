@@ -34,8 +34,6 @@ static const NSTimeInterval kReadySettle   = 0.40; // v7.116: keep the cover ful
                                                   // ready event arrives early, the existing
                                                   // 1.40 s minimum absorbs this completely.
 static const NSTimeInterval kCoverHardCap = 20.0; // absolute max on screen
-static const NSTimeInterval kWarmCoverFallback = 2.50; // only if foreground-ready races/is missed
-static const NSTimeInterval kWarmReadySettle = 0.40; // let the resumed scene composite under the mask
 
 @interface SBSceneView : UIView
 @end
@@ -87,7 +85,6 @@ static void ADDismissCover(void);
 static UIView *gCoverOverlay;
 static SBSceneView *gCoverHost;
 static const void *kCoveredKey = &kCoveredKey;
-static BOOL gCoverWarm;
 static unsigned gCoverGen;
 
 // YES when Amazon already has a running process -- i.e. this is a resume, not a
@@ -126,7 +123,7 @@ static UIImage *ADSplashImage7191(void) {
 // Dark surface parented to the zooming scene view, so SpringBoard's launch
 // animation plays exactly as it does for every other app -- only its contents
 // are dark instead of Amazon's white launch screen.
-static void ADAttachCoverToScene(UIView *host, BOOL warm) {
+static void ADAttachCoverToScene(UIView *host) {
     @try {
         if (!host) return;
         if (gCoverOverlay && gCoverOverlay.superview == host) return;
@@ -154,35 +151,23 @@ static void ADAttachCoverToScene(UIView *host, BOOL warm) {
         [host addSubview:ov];
         gCoverOverlay = ov;
         gCoverHost = (SBSceneView *)host;
-        gCoverWarm = warm;
         unsigned myGen = ++gCoverGen;
 
         gPresentAt = CFAbsoluteTimeGetCurrent();
 
-        if (warm) {
-            // v7.185: historical warm/soft-launch mask. DidBecomeActive normally releases
-            // this first; bounded fallback only prevents a missed notification from sticking.
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kWarmCoverFallback * NSEC_PER_SEC)),
-                           dispatch_get_main_queue(), ^{
-                if (myGen == gCoverGen && gCoverOverlay && gCoverWarm) {
-                    ADDismissCover();
-                }
-            });
-        } else {
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHold * NSEC_PER_SEC)),
-                           dispatch_get_main_queue(), ^{
-                if (myGen == gCoverGen){
-                    ADDismissCover();
-                }
-            });
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHardCap * NSEC_PER_SEC)),
-                           dispatch_get_main_queue(), ^{
-                @try { if (gCoverOverlay && myGen == gCoverGen){ UIView *x = gCoverOverlay; gCoverOverlay = nil;
-                           SBSceneView *h=gCoverHost; gCoverHost=nil; gCoverWarm=NO; if(h)objc_setAssociatedObject(h,kCoveredKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                           [x removeFromSuperview]; } }
-                @catch (__unused NSException *e) {}
-            });
-        }
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHold * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            if (myGen == gCoverGen){
+                ADDismissCover();
+            }
+        });
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHardCap * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            @try { if (gCoverOverlay && myGen == gCoverGen){ UIView *x = gCoverOverlay; gCoverOverlay = nil;
+                       SBSceneView *h=gCoverHost; gCoverHost=nil; if(h)objc_setAssociatedObject(h,kCoveredKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                       [x removeFromSuperview]; } }
+            @catch (__unused NSException *e) {}
+        });
     } @catch (__unused NSException *e) {}
 }
 
@@ -190,7 +175,7 @@ static void ADDismissCover(void) {
     @try {
         if (!gCoverOverlay) return;
         UIView *ov = gCoverOverlay; gCoverOverlay = nil;
-        SBSceneView *h=gCoverHost; gCoverHost=nil; gCoverWarm=NO; if(h)objc_setAssociatedObject(h,kCoveredKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        SBSceneView *h=gCoverHost; gCoverHost=nil; if(h)objc_setAssociatedObject(h,kCoveredKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         [UIView animateWithDuration:kCoverFade animations:^{ ov.alpha = 0.0; }
                          completion:^(BOOL f){ @try { [ov removeFromSuperview]; }
                                                @catch (__unused NSException *e) {} }];
@@ -207,20 +192,17 @@ static void ADDismissCover(void) {
         NSString *bid = ADSceneBundleId(self);
         if (![bid isEqualToString:kAMZ]) return;
 
-        // Cold and warm scene entries are both masked. Historical device testing showed
-        // that a running/suspended process can still expose a cached/native white first frame.
+        // Cold-launch cover only. If Amazon already has a live/suspended process,
+        // reopening it is a normal foreground resume and must not replay our launch screen.
         BOOL alive = ADAmazonProcessAlive();
-        // One active cover per scene entry. Unknown process state is treated as cold;
-        // the hard cap guarantees that a missed app signal cannot leave the mask stuck.
-        // Per active launch, not permanently per scene: the marker is cleared when the
-        // cover leaves so a reused SpringBoard scene can protect a later cold launch too.
+        if (alive) return;
+
+        // One active cover per cold launch. The marker is cleared when the cover leaves,
+        // allowing a later true cold launch to receive the cover again.
         BOOL already = (objc_getAssociatedObject(self, kCoveredKey) != nil);
         if (already) return;
         objc_setAssociatedObject(self, kCoveredKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-
-        // Cold launches use the full readiness gate. A live/suspended Amazon process gets
-        // the proven warm first-frame mask instead of exposing a cached/native white frame.
-        ADAttachCoverToScene(self, alive);
+        ADAttachCoverToScene(self);
     } @catch (__unused NSException *e) {}
 }
 %end
@@ -238,7 +220,7 @@ static void ADDismissCover(void) {
         notify_register_dispatch("com.colindavidr.amazondark.ready", &adReadyToken,
                                  dispatch_get_main_queue(), ^(int t){
             @try {
-                if (!gCoverOverlay || gCoverWarm) return;
+                if (!gCoverOverlay) return;
                 double shown = CFAbsoluteTimeGetCurrent() - gPresentAt;
                 // v7.116: the app-side handoff is now event-driven and deliberately free of
                 // DOM polling/timers. A lifecycle event can still precede Amazon's final
@@ -254,22 +236,6 @@ static void ADDismissCover(void) {
             } @catch (__unused NSException *e) {}
         });
     } @catch (__unused NSException *e) {}
-    @try {
-        static int adForegroundToken = 0;
-        notify_register_dispatch("com.colindavidr.amazondark.foreground-ready", &adForegroundToken,
-                                 dispatch_get_main_queue(), ^(int t){
-            @try {
-                if (!gCoverOverlay || !gCoverWarm) return;
-                double shown = CFAbsoluteTimeGetCurrent() - gPresentAt;
-                double wait = kWarmReadySettle;
-                if (shown < 0.20) wait = MAX(wait, 0.20 - shown);
-                unsigned gen = gCoverGen;
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(wait*NSEC_PER_SEC)),
-                               dispatch_get_main_queue(), ^{ if(gen==gCoverGen && gCoverWarm) ADDismissCover(); });
-            } @catch (__unused NSException *e) {}
-        });
-    } @catch (__unused NSException *e) {}
-
     @autoreleasepool {
         @try { %init; }
         @catch (__unused NSException *e) {}
