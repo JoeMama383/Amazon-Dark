@@ -32,7 +32,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.191-cleanup-performance-probe"
+#define AD_VERSION "v7.192-packard-coupon-fix-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -639,6 +639,9 @@ static NSString *ADFloorJS(void){
         @"olor{background:#008000!important;background-color:#008000!important;background-image:none!important;border-color:#008000!important;box-shadow:none!important;color:#fff!important;-"
         @"webkit-text-fill-color:#fff!important;}#search#search .s-coupon-tile-text-content,#search#search .s-coupon-checkbox-label,#search#search .s-coupon-tile-price-content,#search#search"
         @" .s-coupon-unclipped,#search#search .s-coupon-highlight-color{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+        // v7.192: the unclaimed Search coupon label carries its own a-color-base gray.
+        // Own that exact small label leaf without changing the green tile or discounted price.
+        @"#search#search .s-coupon-tile .s-coupon-tile-text-content .a-size-small.a-color-base.a-text-normal{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
         // v7.175 r5: claimed coupon state. Keep the true-green root; change only selected-state details.
         @"#search#search .s-coupon-tile.claimed .s-coupon-tile-content > span.a-size-small.a-color-base.a-text-normal{color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search .s-coupon-tile.claimed svg.s-coupon-success path.s-coupon-icon-background{fill:#000!important;stroke:none!important;}#search#search .s-coupon-tile.claimed svg.s-coupon-success path:not(.s-coupon-icon-background){fill:#fff!important;}#search#search .s-coupon-tile.claimed svg.s-coupon-success{filter:none!important;-webkit-filter:none!important;}"
         @"#search#search :is(video.sbv-video-player-ecx,video._c2It"
@@ -1738,14 +1741,17 @@ static BOOL ADExactGlowIngress7140(UIView *v){
 // cannot be swept into this lane.
 static void ADTintSearchDeliveryGlyph7139(UIImageView *iv);
 
-// v7.141: v7.140 proves GlowIngressView.backgroundColor and layer.backgroundColor are
-// already OLED while the 430x44 strip is still visibly yellow. Therefore the warm floor
-// is being painted by layer contents / an internal decoration layer, not UIView background
-// color. Place one OLED CALayer above each exact-band decoration stack but below that
-// view's subview layers, so the white pin/text children remain intact.
-static const void *kADGlowFloorLayer7141=&kADGlowFloorLayer7141;
+// v7.192: the current Search probe again shows the exact 430x44 GlowIngressView
+// while the yellow painter itself reports no UIView/layer background. Amazon is drawing
+// that warm band into host contents/internal decoration. A CALayer floor can be lost or
+// reordered by that renderer. Use one noninteractive OLED backing UIView inside each
+// full-size painter host: it sits above the host's custom-drawn contents but below its
+// label/image/control subviews, and is reasserted only on existing Glow lifecycle events.
+static const void *kADGlowFloorView7192=&kADGlowFloorView7192;
+static const void *kADGlowFloorSentinel7192=&kADGlowFloorSentinel7192;
 static BOOL ADGlowFloorHost7141(UIView *v,UIView *root){
     if(!v||!root)return NO;
+    if(objc_getAssociatedObject(v,kADGlowFloorSentinel7192))return NO;
     if(v==root)return YES;
     if([v isKindOfClass:[UILabel class]]||[v isKindOfClass:[UIImageView class]]||[v isKindOfClass:[UIControl class]])return NO;
     @try {
@@ -1756,24 +1762,27 @@ static BOOL ADGlowFloorHost7141(UIView *v,UIView *root){
     } @catch(...) {}
     return NO;
 }
-static void ADInstallGlowFloorLayer7141(UIView *v){
-    if(!v)return;
+static void ADInstallGlowFloorView7192(UIView *host){
+    if(!host)return;
     @try {
-        CALayer *floor=(CALayer *)objc_getAssociatedObject(v,kADGlowFloorLayer7141);
+        UIView *floor=(UIView *)objc_getAssociatedObject(host,kADGlowFloorView7192);
         if(!floor){
-            floor=[CALayer layer]; floor.name=@"AmazonDarkGlowFloor7141";
-            floor.actions=@{ @"bounds":[NSNull null], @"position":[NSNull null], @"backgroundColor":[NSNull null], @"opacity":[NSNull null] };
-            objc_setAssociatedObject(v,kADGlowFloorLayer7141,floor,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            floor=[[UIView alloc] initWithFrame:host.bounds];
+            floor.userInteractionEnabled=NO;
+            floor.accessibilityElementsHidden=YES;
+            floor.opaque=YES;
+            floor.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+            objc_setAssociatedObject(floor,kADGlowFloorSentinel7192,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(host,kADGlowFloorView7192,floor,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
-        floor.frame=v.bounds; floor.backgroundColor=ADOLED().CGColor; floor.opacity=1.0; floor.hidden=NO;
-        [floor removeFromSuperlayer];
-        NSArray<CALayer *> *layers=v.layer.sublayers?:@[]; NSUInteger idx=layers.count;
-        for(UIView *sv in v.subviews?:@[]){
-            NSUInteger n=[layers indexOfObjectIdenticalTo:sv.layer];
-            if(n!=NSNotFound&&n<idx)idx=n;
-        }
-        if(idx<=(v.layer.sublayers?:@[]).count)[v.layer insertSublayer:floor atIndex:(unsigned)idx];
-        else [v.layer addSublayer:floor];
+        UIColor *black=ADOLED();
+        floor.frame=host.bounds;
+        if(![floor.backgroundColor isEqual:black])floor.backgroundColor=black;
+        floor.layer.backgroundColor=black.CGColor;
+        floor.hidden=NO;
+        floor.alpha=1.0;
+        if(floor.superview!=host)[host insertSubview:floor atIndex:0];
+        else if(host.subviews.count && host.subviews.firstObject!=floor)[host insertSubview:floor atIndex:0];
     } @catch(...) {}
 }
 static void ADInstallGlowFloorTree7141(UIView *root){
@@ -1782,8 +1791,9 @@ static void ADInstallGlowFloorTree7141(UIView *root){
         NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger seen=0;
         while(q.count&&seen++<96){
             UIView *x=q.firstObject; [q removeObjectAtIndex:0]; if(!x)continue;
-            if(ADGlowFloorHost7141(x,root))ADInstallGlowFloorLayer7141(x);
-            if(q.count<96&&x.subviews.count)[q addObjectsFromArray:x.subviews];
+            BOOL sentinel=objc_getAssociatedObject(x,kADGlowFloorSentinel7192)!=nil;
+            if(!sentinel && ADGlowFloorHost7141(x,root))ADInstallGlowFloorView7192(x);
+            if(!sentinel && q.count<96&&x.subviews.count)[q addObjectsFromArray:x.subviews];
         }
     } @catch(...) {}
 }
@@ -3777,12 +3787,12 @@ static NSString *ADSearchResultsProbePath7139(NSUInteger run){
         fmt.timeZone=[NSTimeZone localTimeZone];
         fmt.dateFormat=@"yyyyMMdd-HHmmss-SSS";
         NSString *stamp=[fmt stringFromDate:[NSDate date]]?:@"unknown";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.191-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.192-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(docs.length)return [docs stringByAppendingPathComponent:name];
         return [NSTemporaryDirectory() stringByAppendingPathComponent:name];
     } @catch(...) {
-        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.191-dynamic-probe-r%lu.txt",(unsigned long)run]];
+        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.192-dynamic-probe-r%lu.txt",(unsigned long)run]];
     }
 }
 static void ADSearchResultsProbeAppend7139(NSString *p,NSString *s){
@@ -3935,7 +3945,7 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     NSUInteger run=++gADSearchResultsProbeRun7139;
     NSString *path=ADSearchResultsProbePath7139(run);
     NSString *runID=[NSString stringWithFormat:@"%@-pid%d-r%lu",[[path lastPathComponent] stringByDeletingPathExtension],getpid(),(unsigned long)run];
-    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.191 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
+    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.192 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(path,head);
     NSMutableArray *chosen=[NSMutableArray array];
     @try {
