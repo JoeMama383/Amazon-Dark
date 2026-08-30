@@ -32,7 +32,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.194-location-sheet-direct-fix-probe"
+#define AD_VERSION "v7.195-location-sheet-layout-fix-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1904,10 +1904,10 @@ static inline BOOL ADWebKitInternalView7154(UIView *v){
     return cn && ((cn[0]=='W'&&cn[1]=='K')||(cn[0]=='_'&&cn[1]=='W'&&cn[2]=='K'));
 }
 
-// v7.194 location-sheet owners are defined with the React helpers below.
-static BOOL ADLocationSheetFloor7194(UIView *v, UIColor *candidate);
-static void ADLocationSheetOwnText7194(UIView *v);
-static void ADScheduleLocationSheetPaint7194(UIView *v);
+// v7.195 location-sheet owners are defined with the React helpers below.
+static BOOL ADLocationSheetFloor7195(UIView *v, UIColor *candidate);
+static void ADLocationSheetOwnText7195(UIView *v);
+static void ADPaintLocationSheetStable7195(UIView *outer);
 
 %hook UIView
 - (void)didMoveToWindow {
@@ -1937,11 +1937,10 @@ static void ADScheduleLocationSheetPaint7194(UIView *v);
         BOOL adReact=adcn&&((adcn[0]=='R'&&adcn[1]=='C'&&adcn[2]=='T')||(adcn[0]=='R'&&adcn[1]=='N'));
         if(adReact){
             UIColor *bg=self.backgroundColor;
-            if(ADLocationSheetFloor7194(self,bg)){
+            if(ADLocationSheetFloor7195(self,bg)){
                 UIColor *black=ADOLED(); self.backgroundColor=black; self.layer.backgroundColor=black.CGColor;
             }
-            ADLocationSheetOwnText7194(self);
-            ADScheduleLocationSheetPaint7194(self);
+            ADLocationSheetOwnText7195(self);
         }
     }
     if(gP.enabled && self.window && ADNativeFloorCandidate(self)) ADOwnNativeFloor(self);
@@ -1973,11 +1972,10 @@ static void ADScheduleLocationSheetPaint7194(UIView *v);
         self.layer.backgroundColor=black.CGColor;
         return;
     }
-    if(gP.enabled && self.window && ADLocationSheetFloor7194(self,color)){
+    if(gP.enabled && self.window && ADLocationSheetFloor7195(self,color)){
         UIColor *black=ADOLED();
         %orig(black);
         self.layer.backgroundColor=black.CGColor;
-        ADScheduleLocationSheetPaint7194(self);
         return;
     }
     if(gP.enabled && objc_getAssociatedObject(self,kADTabIndicator724)){
@@ -2730,16 +2728,21 @@ static BOOL ADBrightNeutralUIView708(UIView *v){
 }
 
 
-// v7.194: Search's "Choose your location" sheet is a React Native bottom sheet.
-// v7.193 incorrectly required a whole-SNPRoot breadth-first signature scan before
-// any local owner could run. The actual probe hierarchy is larger than that scan's
-// cap, so the mark could be missed and the entire fix became a no-op. Own this
-// surface from exact local ancestry instead: full-screen SNPRootView + the lower
-// wide RCTScrollView that contains the location-sheet content. No global scan,
-// timer, observer, or recurring traversal is used.
-static const void *kADLocationSheetPaintScheduled7194=&kADLocationSheetPaintScheduled7194;
+// v7.195: Search's "Choose your location" sheet is a React Native bottom sheet.
+// v7.194 proved the target geometry but still evaluated ownership too early: React
+// mounts these RCTViews before their final frame/ancestor geometry is stable, then
+// paints their cream/white backgrounds during layout.  Own the exact sheet again
+// from final-layout state instead of a one-shot mount-time discovery pass.
+//
+// Scope stays local and static:
+//   - full-screen SNPRootView ancestor
+//   - exact lower vertical RCTScrollView for text content
+//   - exact 130pt horizontal address-card RCTScrollView for card floors
+//   - exact lower full-width seam/sheet planes
+// No global scan, timer, observer, scroll callback, or recurring traversal.
+static const void *kADLocationSheetStablePaint7195=&kADLocationSheetStablePaint7195;
 
-static BOOL ADColorBrightNeutral7194(UIColor *u){
+static BOOL ADColorBrightNeutral7195(UIColor *u){
     if(!u)return NO;
     @try {
         CGFloat r=0,g=0,b=0,a=0,w=0;
@@ -2751,7 +2754,7 @@ static BOOL ADColorBrightNeutral7194(UIColor *u){
     } @catch(...) {}
     return NO;
 }
-static BOOL ADColorLinkBlue7194(UIColor *c){
+static BOOL ADColorLinkBlue7195(UIColor *c){
     if(!c)return NO;
     @try {
         CGFloat r=0,g=0,b=0,a=0;
@@ -2760,7 +2763,7 @@ static BOOL ADColorLinkBlue7194(UIColor *c){
     } @catch(...) {}
     return NO;
 }
-static UIView *ADLocationSheetRoot7194(UIView *v){
+static UIView *ADLocationSheetRoot7195(UIView *v){
     if(!v||!v.window)return nil;
     @try {
         CGRect wb=v.window.bounds;
@@ -2775,8 +2778,8 @@ static UIView *ADLocationSheetRoot7194(UIView *v){
     } @catch(...) {}
     return nil;
 }
-static UIView *ADLocationSheetOuterScroll7194(UIView *v){
-    if(!v||!v.window||!ADLocationSheetRoot7194(v))return nil;
+static UIView *ADLocationSheetOuterScroll7195(UIView *v){
+    if(!v||!v.window||!ADLocationSheetRoot7195(v))return nil;
     @try {
         CGRect wb=v.window.bounds;
         for(UIView *n=v;n;n=n.superview){
@@ -2792,125 +2795,155 @@ static UIView *ADLocationSheetOuterScroll7194(UIView *v){
     } @catch(...) {}
     return nil;
 }
-static BOOL ADInLocationSheetContent7194(UIView *v){
-    return ADLocationSheetOuterScroll7194(v)!=nil;
+static UIView *ADLocationSheetCardScroll7195(UIView *v){
+    if(!v||!v.window||!ADLocationSheetRoot7195(v))return nil;
+    @try {
+        CGRect wb=v.window.bounds;
+        for(UIView *n=v;n;n=n.superview){
+            if(ADClassNameIs7183(n,"RCTScrollView")){
+                CGRect r=[n convertRect:n.bounds toView:v.window];
+                if(r.size.width>=wb.size.width*0.80&&r.size.width<=wb.size.width*0.98&&
+                   r.size.height>=100.0&&r.size.height<=180.0&&
+                   CGRectGetMinY(r)>=wb.size.height*0.62&&CGRectGetMinY(r)<=wb.size.height*0.78)
+                    return n;
+            }
+            if(ADClassNameIs7183(n,"SNPRootView")||[n isKindOfClass:[UIWindow class]])break;
+        }
+    } @catch(...) {}
+    return nil;
 }
-static BOOL ADLocationSheetPreserveBlueGeometry7194(UIView *v){
+static BOOL ADInLocationSheetContent7195(UIView *v){
+    return ADLocationSheetOuterScroll7195(v)!=nil || ADLocationSheetCardScroll7195(v)!=nil;
+}
+static BOOL ADLocationSheetPreserveBlueGeometry7195(UIView *v){
     if(!v||!v.window)return NO;
     @try {
         CGRect r=[v convertRect:v.bounds toView:v.window], wb=v.window.bounds;
-        // Preserve the far-right manage-address card and all blue action rows.
+        // Preserve the far-right manage-address card and all lower blue action rows.
         if(CGRectGetMinX(r)>=wb.size.width*0.68 && CGRectGetMinY(r)>=wb.size.height*0.64)return YES;
         if(CGRectGetMinY(r)>=wb.size.height*0.83)return YES;
     } @catch(...) {}
     return NO;
 }
-static BOOL ADLocationSheetFloor7194(UIView *v, UIColor *candidate){
+static BOOL ADLocationSheetFloor7195(UIView *v, UIColor *candidate){
     if(!gP.enabled||!v||!v.window||!candidate)return NO;
     const char *cn=object_getClassName(v);
-    if(!cn||strcmp(cn,"RCTView")!=0||!ADColorBrightNeutral7194(candidate)||!ADLocationSheetRoot7194(v))return NO;
+    if(!cn||strcmp(cn,"RCTView")!=0||!ADColorBrightNeutral7195(candidate)||!ADLocationSheetRoot7195(v))return NO;
     @try {
         CGRect r=[v convertRect:v.bounds toView:v.window], wb=v.window.bounds;
-        // Exact full-width lower sheet/seam planes from the v7.192 probe.
-        if(r.size.width>=wb.size.width*0.90&&CGRectGetMinY(r)>=wb.size.height*0.54&&
+        // Exact lower sheet + 18pt seam family.  This does not depend on a child scroller
+        // because those two bright planes are siblings of the scroll hierarchy.
+        if(r.size.width>=wb.size.width*0.90&&
+           CGRectGetMinY(r)>=wb.size.height*0.54&&CGRectGetMinY(r)<=wb.size.height*0.66&&
            r.size.height>=12.0&&CGRectGetMaxY(r)>wb.size.height*0.58)return YES;
-        // Exact address-card family, but only inside the proven lower location scroller.
-        if(ADInLocationSheetContent7194(v)&&r.size.width>=wb.size.width*0.25&&
-           r.size.width<=wb.size.width*0.42&&r.size.height>=90.0&&r.size.height<=180.0&&
-           CGRectGetMinY(r)>=wb.size.height*0.60)return YES;
+        // Exact address-card family inside Amazon's 130pt horizontal location scroller.
+        if(ADLocationSheetCardScroll7195(v)&&
+           r.size.width>=wb.size.width*0.25&&r.size.width<=wb.size.width*0.42&&
+           r.size.height>=90.0&&r.size.height<=180.0&&
+           CGRectGetMinY(r)>=wb.size.height*0.60&&CGRectGetMinY(r)<=wb.size.height*0.86)return YES;
     } @catch(...) {}
     return NO;
 }
-static NSAttributedString *ADLocationSheetLightString7194(NSAttributedString *in, BOOL preserveBlue){
-    if(!in||!in.length)return in;
+static NSTextStorage *ADLocationSheetTextStorage7195(UIView *v){
+    if(!v)return nil;
     @try {
-        NSMutableAttributedString *m=[in mutableCopy];
-        UIColor *light=ADLightText706(); NSRange whole=NSMakeRange(0,m.length);
-        if(!preserveBlue){
-            [m addAttribute:NSForegroundColorAttributeName value:light range:whole];
-            return m;
+        SEL tsSel=NSSelectorFromString(@"textStorage");
+        if([v respondsToSelector:tsSel]){
+            id ts=((id(*)(id,SEL))objc_msgSend)(v,tsSel);
+            if([ts isKindOfClass:[NSTextStorage class]])return (NSTextStorage *)ts;
         }
-        NSMutableArray<NSValue *> *ranges=[NSMutableArray array];
+        Ivar iv=class_getInstanceVariable([v class],"_textStorage");
+        if(iv){
+            id ts=object_getIvar(v,iv);
+            if([ts isKindOfClass:[NSTextStorage class]])return (NSTextStorage *)ts;
+        }
+    } @catch(...) {}
+    return nil;
+}
+static void ADLocationSheetLightStorage7195(UIView *v, NSTextStorage *ts){
+    if(!gP.enabled||!v||!ts||!ts.length||!ADInLocationSheetContent7195(v))return;
+    @try {
+        if(ADLocationSheetPreserveBlueGeometry7195(v))return;
+        UIColor *light=ADLightText706(); NSRange whole=NSMakeRange(0,ts.length);
+        NSMutableArray *ranges=[NSMutableArray array];
+        [ts enumerateAttribute:NSForegroundColorAttributeName inRange:whole options:0 usingBlock:^(id value,NSRange range,BOOL *stop){
+            UIColor *c=[value isKindOfClass:[UIColor class]]?(UIColor *)value:nil;
+            if(!ADColorLinkBlue7195(c))[ranges addObject:[NSValue valueWithRange:range]];
+        }];
+        [ts beginEditing];
+        for(NSValue *rv in ranges)[ts addAttribute:NSForegroundColorAttributeName value:light range:rv.rangeValue];
+        [ts endEditing];
+        [v setNeedsDisplay];
+    } @catch(...) {}
+}
+static NSAttributedString *ADLocationSheetLightString7195(UIView *v, NSAttributedString *in){
+    if(!in||!in.length||!v||!ADInLocationSheetContent7195(v))return in;
+    @try {
+        if(ADLocationSheetPreserveBlueGeometry7195(v))return in;
+        NSMutableAttributedString *m=[in mutableCopy]; UIColor *light=ADLightText706(); NSRange whole=NSMakeRange(0,m.length);
+        NSMutableArray *ranges=[NSMutableArray array];
         [m enumerateAttribute:NSForegroundColorAttributeName inRange:whole options:0 usingBlock:^(id value,NSRange range,BOOL *stop){
             UIColor *c=[value isKindOfClass:[UIColor class]]?(UIColor *)value:nil;
-            if(!ADColorLinkBlue7194(c))[ranges addObject:[NSValue valueWithRange:range]];
+            if(!ADColorLinkBlue7195(c))[ranges addObject:[NSValue valueWithRange:range]];
         }];
         for(NSValue *rv in ranges)[m addAttribute:NSForegroundColorAttributeName value:light range:rv.rangeValue];
         return m;
     } @catch(...) { return in; }
 }
-static void ADLocationSheetTextStorage7194(UIView *v, NSTextStorage *ts){
-    if(!gP.enabled||!v||!ts||!ts.length||!ADInLocationSheetContent7194(v))return;
-    @try {
-        BOOL preserve=ADLocationSheetPreserveBlueGeometry7194(v);
-        NSAttributedString *r=ADLocationSheetLightString7194(ts,preserve);
-        if(r&&r!=ts){
-            [ts setAttributedString:r];
-            [v setNeedsDisplay];
-        }
-    } @catch(...) {}
-}
-static void ADLocationSheetOwnText7194(UIView *v){
-    if(!gP.enabled||!v||!v.window)return;
+static void ADLocationSheetOwnText7195(UIView *v){
+    if(!gP.enabled||!v||!v.window||!ADInLocationSheetContent7195(v))return;
     const char *cn=object_getClassName(v);
     BOOL possible=[v isKindOfClass:[UILabel class]]||(cn&&strstr(cn,"Text"))||[v respondsToSelector:NSSelectorFromString(@"textStorage")];
-    if(!possible||!ADInLocationSheetContent7194(v))return;
+    if(!possible)return;
     @try {
-        BOOL preserve=ADLocationSheetPreserveBlueGeometry7194(v);
+        BOOL preserve=ADLocationSheetPreserveBlueGeometry7195(v);
         if([v isKindOfClass:[UILabel class]]){
             UILabel *l=(UILabel *)v;
-            if(!preserve&&!ADColorLinkBlue7194(l.textColor))l.textColor=ADLightText706();
+            if(!preserve&&!ADColorLinkBlue7195(l.textColor))l.textColor=ADLightText706();
             return;
         }
-        SEL tsSel=NSSelectorFromString(@"textStorage");
-        if([v respondsToSelector:tsSel]){
-            id ts=((id(*)(id,SEL))objc_msgSend)(v,tsSel);
-            if([ts isKindOfClass:[NSTextStorage class]]){
-                ADLocationSheetTextStorage7194(v,(NSTextStorage *)ts);
-                return;
-            }
-        }
+        NSTextStorage *ts=ADLocationSheetTextStorage7195(v);
+        if(ts){ ADLocationSheetLightStorage7195(v,ts); return; }
         if(!preserve){
             SEL getSel=NSSelectorFromString(@"attributedText"), setSel=NSSelectorFromString(@"setAttributedText:");
             if([v respondsToSelector:getSel]&&[v respondsToSelector:setSel]){
                 id a=((id(*)(id,SEL))objc_msgSend)(v,getSel);
                 if([a isKindOfClass:[NSAttributedString class]]){
-                    NSAttributedString *r=ADLocationSheetLightString7194((NSAttributedString *)a,NO);
-                    ((void(*)(id,SEL,id))objc_msgSend)(v,setSel,r);
+                    NSAttributedString *r=ADLocationSheetLightString7195(v,(NSAttributedString *)a);
+                    if(r&&r!=a)((void(*)(id,SEL,id))objc_msgSend)(v,setSel,r);
                 }
             }
         }
     } @catch(...) {}
 }
-static void ADPaintLocationSheetLocal7194(UIView *outer){
-    if(!gP.enabled||!outer||!outer.window||!ADClassNameIs7183(outer,"RCTScrollView"))return;
+static void ADOwnLocationSheetFloor7195(UIView *v){
+    if(!gP.enabled||!v||!v.window)return;
     @try {
+        UIColor *bg=v.backgroundColor;
+        if(!ADLocationSheetFloor7195(v,bg))return;
         UIColor *black=ADOLED();
-        outer.backgroundColor=black; outer.layer.backgroundColor=black.CGColor;
-        NSMutableArray *q=[NSMutableArray arrayWithObject:outer]; NSUInteger seen=0;
-        while(q.count&&seen++<180){
-            UIView *x=q.firstObject; [q removeObjectAtIndex:0]; if(!x)continue;
-            UIColor *bg=x.backgroundColor;
-            if(ADLocationSheetFloor7194(x,bg)){
-                x.backgroundColor=black;
-                x.layer.backgroundColor=black.CGColor;
-            }
-            ADLocationSheetOwnText7194(x);
-            if(q.count<180&&x.subviews.count)[q addObjectsFromArray:x.subviews];
-        }
+        if(![bg isEqual:black])v.backgroundColor=black;
+        CGColorRef lbg=v.layer.backgroundColor;
+        if(!lbg||!CGColorEqualToColor(lbg,black.CGColor))v.layer.backgroundColor=black.CGColor;
     } @catch(...) {}
 }
-static void ADScheduleLocationSheetPaint7194(UIView *v){
-    if(!v)return;
-    const char *cn=object_getClassName(v);
-    if(!cn||!((cn[0]=='R'&&cn[1]=='C'&&cn[2]=='T')||(cn[0]=='R'&&cn[1]=='N')))return;
-    UIView *outer=ADLocationSheetOuterScroll7194(v);
-    if(!outer||objc_getAssociatedObject(outer,kADLocationSheetPaintScheduled7194))return;
-    objc_setAssociatedObject(outer,kADLocationSheetPaintScheduled7194,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    UIView *paintOuter=outer;
-    dispatch_async(dispatch_get_main_queue(),^{
-        if(paintOuter&&paintOuter.window)ADPaintLocationSheetLocal7194(paintOuter);
-    });
+static void ADPaintLocationSheetStable7195(UIView *outer){
+    if(!gP.enabled||!outer||!outer.window||!ADClassNameIs7183(outer,"RCTScrollView"))return;
+    if(ADLocationSheetOuterScroll7195(outer)!=outer)return;
+    if(objc_getAssociatedObject(outer,kADLocationSheetStablePaint7195))return;
+    objc_setAssociatedObject(outer,kADLocationSheetStablePaint7195,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    @try {
+        // One stable-layout pass over this small bottom-sheet subtree catches React
+        // content that was mounted before final geometry existed. Later repaints are
+        // still handled directly by the RCTView/RCTTextView hooks below.
+        NSMutableArray *q=[NSMutableArray arrayWithObject:outer]; NSUInteger seen=0;
+        while(q.count&&seen++<140){
+            UIView *x=q.firstObject; [q removeObjectAtIndex:0]; if(!x)continue;
+            ADOwnLocationSheetFloor7195(x);
+            ADLocationSheetOwnText7195(x);
+            if(q.count<140&&x.subviews.count)[q addObjectsFromArray:x.subviews];
+        }
+    } @catch(...) {}
 }
 static void ADDarkenReactCardNearText708(UIView *textView){
     if(!gP.enabled||!textView||!textView.window)return;
@@ -2934,21 +2967,25 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 %hook RCTView
 - (void)didMoveToWindow {
     %orig;
-    if(!gP.enabled||!self.window)return;
-    UIColor *bg=self.backgroundColor;
-    if(ADLocationSheetFloor7194((UIView *)self,bg)){
-        UIColor *black=ADOLED();
-        self.backgroundColor=black;
-        self.layer.backgroundColor=black.CGColor;
+    if(gP.enabled&&self.window){
+        ADOwnLocationSheetFloor7195((UIView *)self);
+        ADLocationSheetOwnText7195((UIView *)self);
     }
-    ADScheduleLocationSheetPaint7194((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    // React applies the address-card/sheet colors after mount when final geometry is known.
+    // This final-layout owner is the critical v7.195 correction.
+    if(gP.enabled&&self.window){
+        ADOwnLocationSheetFloor7195((UIView *)self);
+        ADLocationSheetOwnText7195((UIView *)self);
+    }
 }
 - (void)setBackgroundColor:(UIColor *)color {
-    if(gP.enabled&&self.window&&ADLocationSheetFloor7194((UIView *)self,color)){
+    if(gP.enabled&&self.window&&ADLocationSheetFloor7195((UIView *)self,color)){
         UIColor *black=ADOLED();
         %orig(black);
         self.layer.backgroundColor=black.CGColor;
-        ADScheduleLocationSheetPaint7194((UIView *)self);
         return;
     }
     %orig(color);
@@ -2974,8 +3011,8 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 
 %hook RCTTextView
 - (void)setTextStorage:(NSTextStorage *)textStorage {
-    if(gP.enabled && ADInLocationSheetContent7194((UIView *)self)){
-        ADLocationSheetTextStorage7194((UIView *)self,textStorage);
+    if(gP.enabled && ADInLocationSheetContent7195((UIView *)self)){
+        ADLocationSheetLightStorage7195((UIView *)self,textStorage);
         %orig;
         return;
     }
@@ -2992,11 +3029,11 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 }
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled&&((UIView *)self).window)ADLocationSheetOwnText7194((UIView *)self);
+    if(gP.enabled&&((UIView *)self).window)ADLocationSheetOwnText7195((UIView *)self);
 }
 - (void)layoutSubviews {
     %orig;
-    if(gP.enabled&&((UIView *)self).window)ADLocationSheetOwnText7194((UIView *)self);
+    if(gP.enabled&&((UIView *)self).window)ADLocationSheetOwnText7195((UIView *)self);
 }
 %end
 
@@ -3651,6 +3688,13 @@ static void ADOwnBottomBar708(UIView *v){
     %orig;
     if (gP.enabled && self.window) self.backgroundColor=ADOLED();
 }
+- (void)layoutSubviews {
+    %orig;
+    if(gP.enabled&&self.window){
+        if(![self.backgroundColor isEqual:ADOLED()])self.backgroundColor=ADOLED();
+        ADPaintLocationSheetStable7195((UIView *)self);
+    }
+}
 %end
 
 static void ADDarkenSplash(UIViewController *vc){ if(gP.enabled) @try { if(vc.view)vc.view.backgroundColor=ADOLED(); } @catch(...) {} }
@@ -4034,12 +4078,12 @@ static NSString *ADSearchResultsProbePath7139(NSUInteger run){
         fmt.timeZone=[NSTimeZone localTimeZone];
         fmt.dateFormat=@"yyyyMMdd-HHmmss-SSS";
         NSString *stamp=[fmt stringFromDate:[NSDate date]]?:@"unknown";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.194-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.195-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(docs.length)return [docs stringByAppendingPathComponent:name];
         return [NSTemporaryDirectory() stringByAppendingPathComponent:name];
     } @catch(...) {
-        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.194-dynamic-probe-r%lu.txt",(unsigned long)run]];
+        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.195-dynamic-probe-r%lu.txt",(unsigned long)run]];
     }
 }
 static void ADSearchResultsProbeAppend7139(NSString *p,NSString *s){
@@ -4192,7 +4236,7 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     NSUInteger run=++gADSearchResultsProbeRun7139;
     NSString *path=ADSearchResultsProbePath7139(run);
     NSString *runID=[NSString stringWithFormat:@"%@-pid%d-r%lu",[[path lastPathComponent] stringByDeletingPathExtension],getpid(),(unsigned long)run];
-    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.194 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
+    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.195 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(path,head);
     NSMutableArray *chosen=[NSMutableArray array];
     @try {
