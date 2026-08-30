@@ -32,7 +32,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.190-home-hero-poster-parity-probe"
+#define AD_VERSION "v7.191-cleanup-performance-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -538,6 +538,7 @@ static const void *kADStandalonePaintUS7104=&kADStandalonePaintUS7104;
 static const void *kADPrivacyUS7117=&kADPrivacyUS7117;
 static const void *kADPrivacyRule7117=&kADPrivacyRule7117;
 static const void *kADHomeAdProbeUS7144=&kADHomeAdProbeUS7144;
+static const void *kADTrackedWebView7191=&kADTrackedWebView7191;
 static NSHashTable *gADWebViews=nil;
 // v7.0.68 production: no diagnostic touch probe is installed.
 
@@ -938,12 +939,22 @@ static NSString *ADFloorJS(void){
         @"dyState==='loading')window.addEventListener('load',function(){relink(s);rootBlack();},{once:true});else relink(s);rootBlack();}catch(e){}})();";
 }
 
+// v7.191: cache the large strength-dependent TWB payloads. They are identical
+// for every WKUserContentController at a given preference value and are rebuilt
+// automatically only when Tame Light Background strength changes.
+static long gADStandaloneJSStrength7191=-1;
+static NSString *gADStandaloneJSCached7191=nil;
+static long gADTWBJSStrength7191=-1;
+static NSString *gADTWBJSCached7191=nil;
+
 static NSString *ADStandalonePaintJS7104(void){
-    CGFloat strength=MAX(0,MIN(100,gP.whiteTameStrength));
+    long strengthKey=MAX(0,MIN(100,gP.whiteTameStrength));
+    if(gADStandaloneJSCached7191 && gADStandaloneJSStrength7191==strengthKey) return gADStandaloneJSCached7191;
+    CGFloat strength=(CGFloat)strengthKey;
     CGFloat t=strength/100.0;
     CGFloat shade=0.10+(0.48*t);
     CGFloat factor=1.0-shade;
-    return [NSString stringWithFormat:
+    NSString *built=[NSString stringWithFormat:
         @"(function(){try{if(window.top===window)return;var host='';try{host=String(location.hostname||'').toLowerCase();}catch(_){}if(host==='flashtalking.com'||/\\.flashtalking\\.com$/.test(host))return;var h=document.documentElement;if(!h)return;"
          "var ref=String(document.referrer||'').toLowerCase();"
          "var productish=/\\/dp\\/|\\/gp\\/product\\/|\\/gp\\/aw\\/d\\/|\\/s(?:[\\/?]|$)|[?&]k=/.test(ref);"
@@ -1072,7 +1083,7 @@ static NSString *ADStandalonePaintJS7104(void){
          "html[data-ad7104-standalone] .vjs-poster.vjs-poster[style*=background-image]"
          "{box-shadow:none!important;filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;transition:none!important;}"
          /* Preserve current TWB strength on the exact standalone product-raster lanes even
-          * if Amazon's shell replacement deletes the global ad7-twb-static sheet. */
+          * if Amazon's shell replacement deletes the global TWB sheet. */
          "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] "
          ":is([data-testid=image],[data-acei-id=lfstyl-img]) :is(img,video,canvas),"
          "html[data-ad7104-standalone] :is([data-testid*=product-picture],[data-testid*=product-image],[data-testid*=asin-image]) :is(img,video,canvas),"
@@ -1133,11 +1144,16 @@ static NSString *ADStandalonePaintJS7104(void){
          "window.__ad7106StandaloneState=function(){try{var sh=window[KEY]||null,a=document.adoptedStyleSheets||[],found=false;for(var i=0;i<a.length;i++)if(a[i]===sh){found=true;break;}return{adoptedSupported:!!(document.adoptedStyleSheets&&window.CSSStyleSheet&&CSSStyleSheet.prototype&&CSSStyleSheet.prototype.replaceSync),sheet:!!sh,adopted:found,rules:sh&&sh.cssRules?sh.cssRules.length:0,htmlSame:(document.documentElement===h),attr:!!(document.documentElement&&document.documentElement.hasAttribute('data-ad7104-standalone'))}}catch(e){return{error:String(e)}}};"
          "own();document.addEventListener('readystatechange',function(){own()},false);window.addEventListener('pageshow',function(){own()},false);"
          "}catch(e){}})();",factor,factor,shade,factor,factor,factor,factor,factor,factor,factor,factor,shade];
+    gADStandaloneJSStrength7191=strengthKey;
+    gADStandaloneJSCached7191=built;
+    return built;
 }
 
 
 // v7.114 production: compact standalone diagnostic WKUserScript removed.
 static NSString *ADTWBJS(void){
+    long strengthKey=MAX(0,MIN(100,gP.whiteTameStrength));
+    if(gADTWBJSCached7191 && gADTWBJSStrength7191==strengthKey) return gADTWBJSCached7191;
     // v7.190: probe-proven Home hero state parity. Off-center paused Video.js heroes
     // expose vjs-poster; the same front card hides it and exposes VIDEO.vjs-tech.
     // Both surfaces get one identical TWB factor. No active-slide/state repair.
@@ -1146,11 +1162,11 @@ static NSString *ADTWBJS(void){
     // TWB lanes remain authoritative for Search child frames and standalone survivors.
     // v7.162 probe: keep route-exclusive TWB and add the exact _bXVsd standalone-carousel
     // company-logo and lifestyle/product rasters captured by the v7.161 probe.
-    CGFloat strength=MAX(0,MIN(100,gP.whiteTameStrength));
+    CGFloat strength=(CGFloat)strengthKey;
     CGFloat t=strength/100.0;
     CGFloat shade=0.10+(0.48*t);
     CGFloat factor=1.0-shade;
-    return [NSString stringWithFormat:
+    NSString *built=[NSString stringWithFormat:
         @"(function(){try{var host='';try{host=String(location.hostname||'').toLowerCase();}catch(_){}if(host==='flashtalking.com'||/\\.flashtalking\\.com$/.test(host))return;var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement)document.documentElement.setAttribute('data-ad7-twb-child','1');if(child&&document.documentElement&&document.documentElement.hasAttribute('data-ad7-standalone-candidate'))return;function put(id,css){var s=document.getElementById(id);if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}s.textContent=css;return s;}function relink(s){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}if(child){put('ad7-twb-child-min',\"html[data-ad7-twb-child=\\\"1\\\"] :is(img,video,canvas):not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([class"
         @"*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)){filter:brightness(%.3f)!important;}\");return;}var p='';try{p=String(location.pathname||'');}catch(_){}var s=null;if(p==='/autocomplete'||p.indexOf('/autocomplete/')===0){s=put('ad7-search-pane-twb',\"img.ufs_tiles_card_widget-sug-image,img.s-entity-pd-carousel-tile-element-image,#attach-to-me img.s-image,#attach-to-me img.s-product-image,.s-suggestion-container img.s-image,.s-suggestion-container img.s-product-image{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}\");}else if(p==='/s'||p.indexOf('/s/')===0){s=put('ad7-product-feed-twb',\"#search img.scx-stt-image,#search img._c2Itd_image_3UiYm,#search img._bXVsd_image_iVomf,#search img._bXVsd_lifestyleImage_1fluW,#search img.s-image,#search img.s-product-image,#search [data-component-type=s-product-image] img,#search img.ufs_tiles_card_widget-sug-image,#search img.nice-cat-card_image,#search img.haul-puis-portrait-img,#search img._c2Itd_image_pQREQ{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}#search video.sbv-video-player-ecx,#search video._"
         @"c2Itd_video_17g-f{filter:none!important;-webkit-filter:none!important;}#search .sbv-video-overlay{background-color:rgba(0,0,0,%.3f)!important;}#search ._c2Itd_videoOverlay_1H_Jm{background-color:rgba(0,0,0,%.3f)!important;}\");}else{s=put('ad7-menu-twb',\".ape-placement.is-image-oo[style*=\\\"aspect-ratio: 300 / 250\\\"]>iframe,[id^=ape_gateway_dynamic-][id$=_mshop_placement].is-image-oo[style*=\\\"aspect-ratio: 300 / 250\\\"]>iframe{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}img.ufs_tiles_card_widget-sug-image,img.s-image,img.s-product-image,#landingImage,#imgBlkFront,#imgTagWrapperId img,img[data-a-dynamic-image],img.a-dynamic-image,[data-component-type=s-product-image] img,[class*=product-image] img,[class*=asin-image] img,.p13n-sc-uncoverable-faceout img,[data-asin] img.s-image,[data-csa-c-asin] img.s-image,:is(#gwm-Deck-btf,.gwm-dashboard-container) :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) img:not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store]):not([class*=rating]):not([class*=star]):not([class*=sprite]):not([class*=pixel]):not([class*=icon]):not([class*=glyph]):not([class*"
@@ -1161,6 +1177,9 @@ static NSString *ADTWBJS(void){
         @"onsored]):not([class*=spr]),#gwm-window [id^=wd-shoppable-] :is(img,video,canvas):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=logo]):not([class*=badge]):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=ad-feedback] *)),img[class*=_single-creative-card],img[class*=_single-video-card],[class*=single-creative-card] img,[class*=single-video-card] img,[class*=single-video-card] video,[class*=canvas-card] canvas,video.vjs-tech,video[class*=_npack-asin-card_style_background-video__],[class*=_npack-asin-card_style_background-video-container__] > video[class*=_npack-asin-card_style_motion-content__]{filter:brightness(%.3f)!important;}:is([class*=theming-card-background],[class*=_npack-asin-card_style_theming-background-override__]) [class*=_npack-asin-card_style_asin-container-white__]{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;transition"
         @"-property:none!important;}[class*=theming-card-background],[class*=vjs-poster],[class*=single-creative-card-background],[class*=single-video-card-background],[class*=single-creative-card] [class*=theming-card-background],[class*=single-video-card] [class*=theming-card-background],[class*=single-video-card] [class*=vjs-poster],:is([class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=_npack-asin-card],[class*=npack-asin-card],[class*=canvas-card],[class*=canvas-container]):is([style*=background-image],[style*=backgroundImage]),:is([class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=_npack-asin-card],[class*=npack-asin-card],[class*=canvas-card],[class*=canvas-container]) :is([style*=background-image],[style*=backgroundImage]){box-shadow:inset 0 0 0 9999px rgba(0,0,0,%.3f)!important;transition-property:none!important;}.video-js .vjs-poster[style*=background-image],.vjs-poster.vjs-poster[style*=background-image]{box-shadow:none!important;filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;transition:none!important;}\");}if(document.readyState==='loading')window.addEventListener('load',function(){relink(s);},{once:true});else relink(s);}catch(e){}})();",
         factor,factor,factor,factor,factor,factor,factor,factor,factor,factor,factor];
+    gADTWBJSStrength7191=strengthKey;
+    gADTWBJSCached7191=built;
+    return built;
 }
 
 static NSString *ADPrivacyModeJS7117(void){
@@ -1182,7 +1201,15 @@ static NSString *ADPrivacyModeJS7117(void){
 
 
 static void ADTrackWebView(WKWebView *wv){
-    if(!wv)return; @try { @synchronized([WKWebView class]) { if(!gADWebViews)gADWebViews=[NSHashTable weakObjectsHashTable]; [gADWebViews addObject:wv]; } } @catch(...) {}
+    if(!wv)return;
+    @try {
+        if(objc_getAssociatedObject(wv,kADTrackedWebView7191)) return;
+        @synchronized([WKWebView class]) {
+            if(!gADWebViews)gADWebViews=[NSHashTable weakObjectsHashTable];
+            [gADWebViews addObject:wv];
+            objc_setAssociatedObject(wv,kADTrackedWebView7191,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+    } @catch(...) {}
 }
 static NSArray *ADTrackedWebViews(void){
     @try { @synchronized([WKWebView class]) { return gADWebViews?gADWebViews.allObjects:@[]; } } @catch(...) {}
@@ -1252,7 +1279,7 @@ static void ADSetLoadedWebPrivacyEnabled7117(BOOL on){
 // documents. This is a one-shot settings action, not an observer/scan loop.
 // A respring/relaunch still gives document-start coverage to all future frames.
 static NSString *ADTWBClearJS791(void){
-    return @"(function(){try{var ids=['ad7-twb-static','ad7-twb-child-min','ad7-search-pane-twb','ad7-product-feed-twb','ad7-menu-twb-critical','ad7-menu-twb'];for(var i=0;i<ids.length;i++){var s=document.getElementById(ids[i]);if(s)s.remove();}if(document.documentElement)document.documentElement.removeAttribute('data-ad7-twb-child');}catch(e){}})();";
+    return @"(function(){try{var ids=['ad7-twb-child-min','ad7-search-pane-twb','ad7-product-feed-twb','ad7-menu-twb'];for(var i=0;i<ids.length;i++){var s=document.getElementById(ids[i]);if(s)s.remove();}if(document.documentElement)document.documentElement.removeAttribute('data-ad7-twb-child');}catch(e){}})();";
 }
 static void ADRefreshWebTWBPrefs791(void){
     NSString *js=(gP.enabled&&gP.whiteTame)?ADTWBJS():ADTWBClearJS791();
@@ -1313,13 +1340,15 @@ static void ADApplyWebFloor(WKWebView *wv){
         // probe caught a destination/search WKWebView still stock-white while loading.
         // This is constant-time UIKit/WebKit property ownership only; no JS retry lane.
         UIColor *black=ADOLED();
-        wv.opaque=NO;
-        wv.backgroundColor=black;
-        wv.layer.backgroundColor=black.CGColor;
-        wv.scrollView.opaque=NO;
-        wv.scrollView.backgroundColor=black;
-        wv.scrollView.layer.backgroundColor=black.CGColor;
-        if(@available(iOS 15.0,*)) wv.underPageBackgroundColor=black;
+        CGColorRef blackCG=black.CGColor;
+        if(wv.isOpaque) wv.opaque=NO;
+        if(![wv.backgroundColor isEqual:black]) wv.backgroundColor=black;
+        if(!wv.layer.backgroundColor || !CGColorEqualToColor(wv.layer.backgroundColor,blackCG)) wv.layer.backgroundColor=blackCG;
+        UIScrollView *sv=wv.scrollView;
+        if(sv.isOpaque) sv.opaque=NO;
+        if(![sv.backgroundColor isEqual:black]) sv.backgroundColor=black;
+        if(!sv.layer.backgroundColor || !CGColorEqualToColor(sv.layer.backgroundColor,blackCG)) sv.layer.backgroundColor=blackCG;
+        if(@available(iOS 15.0,*)) if(![wv.underPageBackgroundColor isEqual:black]) wv.underPageBackgroundColor=black;
     } @catch(...) {}
 }
 
@@ -1370,6 +1399,7 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
         objc_setAssociatedObject(self,kADTWBUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADStandalonePaintUS7104,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADPrivacyUS7117,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(self,kADHomeAdProbeUS7144,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADAttachScriptsToUCC710(self);
     }
 }
@@ -1386,7 +1416,15 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
         @try { ADAttachScriptsToUCC710(configuration.userContentController); } @catch(...) {}
     }
     id wv=%orig;
-    if(gP.enabled){ ADAttachWebScripts(wv); ADApplyWebFloor(wv); }
+    if(gP.enabled){
+        // The supplied configuration normally retains the same UCC. If WebKit ever
+        // substitutes one during initialization, attach once to that replacement.
+        @try {
+            WKUserContentController *actual=((WKWebView *)wv).configuration.userContentController;
+            if(actual && actual!=configuration.userContentController) ADAttachScriptsToUCC710(actual);
+        } @catch(...) {}
+        ADApplyWebFloor(wv);
+    }
     return wv;
 }
 - (instancetype)initWithCoder:(NSCoder *)coder {
@@ -1396,11 +1434,11 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
 }
 - (void)didMoveToSuperview {
     %orig;
-    if(gP.enabled && self.superview){ ADAttachWebScripts(self); ADApplyWebFloor(self); }
+    if(gP.enabled && self.superview) ADApplyWebFloor(self);
 }
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled && self.window){ ADAttachWebScripts(self); ADApplyWebFloor(self); ADConsiderLaunchReady706(); }
+    if(gP.enabled && self.window){ ADApplyWebFloor(self); ADConsiderLaunchReady706(); }
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if(gP.enabled){
@@ -3739,12 +3777,12 @@ static NSString *ADSearchResultsProbePath7139(NSUInteger run){
         fmt.timeZone=[NSTimeZone localTimeZone];
         fmt.dateFormat=@"yyyyMMdd-HHmmss-SSS";
         NSString *stamp=[fmt stringFromDate:[NSDate date]]?:@"unknown";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.190-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.191-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(docs.length)return [docs stringByAppendingPathComponent:name];
         return [NSTemporaryDirectory() stringByAppendingPathComponent:name];
     } @catch(...) {
-        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.190-dynamic-probe-r%lu.txt",(unsigned long)run]];
+        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.191-dynamic-probe-r%lu.txt",(unsigned long)run]];
     }
 }
 static void ADSearchResultsProbeAppend7139(NSString *p,NSString *s){
@@ -3897,7 +3935,7 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     NSUInteger run=++gADSearchResultsProbeRun7139;
     NSString *path=ADSearchResultsProbePath7139(run);
     NSString *runID=[NSString stringWithFormat:@"%@-pid%d-r%lu",[[path lastPathComponent] stringByDeletingPathExtension],getpid(),(unsigned long)run];
-    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.190 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
+    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.191 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(path,head);
     NSMutableArray *chosen=[NSMutableArray array];
     @try {

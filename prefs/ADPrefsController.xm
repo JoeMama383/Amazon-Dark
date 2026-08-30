@@ -20,14 +20,7 @@
 #import <UIKit/UIKit.h>
 #import <CoreFoundation/CoreFoundation.h>
 #import <objc/runtime.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <string.h>
 
-static void ADPLog(const char *m){
-    int fd = open("/var/mobile/AD_prefs_live.txt", O_WRONLY|O_CREAT|O_APPEND, 0644);
-    if (fd >= 0){ write(fd, m, strlen(m)); write(fd, "\n", 1); close(fd); }
-}
 
 #define AD_DOMAIN    @"com.colindavidr.amazondark"
 #define AD_JB_PLIST  @"/var/jb/var/mobile/Library/Preferences/com.colindavidr.amazondark.plist"
@@ -134,7 +127,6 @@ static void ADWriteBoth(NSString *key, id value){
 
 %new
 - (void)adRespringTapped {
-    ADPLog("[prefs] respring tapped");
     @try {
         SBSRelaunchAction *a = [%c(SBSRelaunchAction) actionWithReason:@"AmazonDark"
                                                                options:(1 << 2) targetURL:nil];
@@ -143,12 +135,10 @@ static void ADWriteBoth(NSString *key, id value){
 }
 
 - (id)specifiers {
-    ADPLog("[prefs] specifiers: enter");
     NSArray *specs = nil;
     @try {
         specs = [(PSListController *)self loadSpecifiersFromPlistName:@"Root" target:self];
-        ADPLog(specs.count ? "[prefs] specifiers: plist OK" : "[prefs] specifiers: plist EMPTY");
-    } @catch (NSException *e) { ADPLog("[prefs] specifiers: plist EXCEPTION"); }
+    } @catch (NSException *e) {}
     if (!specs.count){
         @try {
             NSMutableArray *out = [NSMutableArray array];
@@ -163,22 +153,18 @@ static void ADWriteBoth(NSString *key, id value){
             [sw setProperty:@YES       forKey:@"default"];
             [out addObject:sw];
             specs = out;
-            ADPLog("[prefs] specifiers: manual fallback built");
-        } @catch (NSException *e) { ADPLog("[prefs] specifiers: manual EXCEPTION"); specs = @[]; }
+        } @catch (NSException *e) { specs = @[]; }
     }
     @try {
         objc_setAssociatedObject(self, "adSpecs", specs, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         Ivar iv = class_getInstanceVariable(%c(PSListController), "_specifiers");
         if (iv) object_setIvar(self, iv, specs);
     } @catch (NSException *e) {}
-    ADPLog("[prefs] specifiers: returning");
     return specs;
 }
 
 %end
 
 %ctor {
-    ADPLog("[prefs] ctor");
     %init;
-    ADPLog(objc_getClass("ADRootListController") ? "[prefs] subclass OK" : "[prefs] subclass MISSING");
 }

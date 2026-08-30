@@ -42,19 +42,6 @@ static const NSTimeInterval kWarmReadySettle = 0.40; // let the resumed scene co
 
 static double gPresentAt;
 
-static void ADSBLog(NSString *msg) {
-    @try {
-        static NSFileHandle *fh; static dispatch_once_t once;
-        dispatch_once(&once, ^{
-            NSString *p = @"/var/mobile/AmazonDarkSB.log";
-            [[NSFileManager defaultManager] createFileAtPath:p contents:nil attributes:nil];
-            fh = [NSFileHandle fileHandleForWritingAtPath:p];
-        });
-        NSString *line = [NSString stringWithFormat:@"%f %@\n", CFAbsoluteTimeGetCurrent(), msg];
-        [fh writeData:[line dataUsingEncoding:NSUTF8StringEncoding]];
-    } @catch (__unused NSException *e) {}
-}
-
 static BOOL ADSBEnabled(void) {
     @try {
         CFPreferencesAppSynchronize((__bridge CFStringRef)kDefaults);
@@ -77,17 +64,18 @@ static BOOL ADSBEnabled(void) {
     } @catch (__unused NSException *e) { return YES; }
 }
 
-static NSString *ADSceneBundleId(UIView *v, NSString **hitPathOut) {
-    NSArray *paths = @[ @"sceneHandle.application.bundleIdentifier",
-                        @"sceneHandle.sceneIdentity.bundleIdentifier",
-                        @"application.bundleIdentifier",
-                        @"sceneHandle.sceneIdentity.bundleIdentifierOverride",
-                        @"_sceneHandle.application.bundleIdentifier" ];
+static NSString *ADSceneBundleId(UIView *v) {
+    static NSArray<NSString *> *paths;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{ paths = @[ @"sceneHandle.application.bundleIdentifier",
+                                      @"sceneHandle.sceneIdentity.bundleIdentifier",
+                                      @"application.bundleIdentifier",
+                                      @"sceneHandle.sceneIdentity.bundleIdentifierOverride",
+                                      @"_sceneHandle.application.bundleIdentifier" ]; });
     for (NSString *kp in paths) {
         @try {
             id val = [v valueForKeyPath:kp];
             if ([val isKindOfClass:[NSString class]] && [(NSString *)val length]) {
-                if (hitPathOut) *hitPathOut = kp;
                 return (NSString *)val;
             }
         } @catch (__unused NSException *e) {}
@@ -104,8 +92,7 @@ static unsigned gCoverGen;
 
 // YES when Amazon already has a running process -- i.e. this is a resume, not a
 // cold launch. Nothing here is required to exist; unknown means "cover it".
-static BOOL ADAmazonProcessAlive(int *taskStateOut) {
-    if (taskStateOut) *taskStateOut = -1;
+static BOOL ADAmazonProcessAlive(void) {
     @try {
         Class ctl = objc_getClass("SBApplicationController");
         if (!ctl || ![ctl respondsToSelector:@selector(sharedInstance)]) return NO;
@@ -115,16 +102,25 @@ static BOOL ADAmazonProcessAlive(int *taskStateOut) {
         if (!app || ![app respondsToSelector:@selector(processState)]) return NO;
         id ps = [app performSelector:@selector(processState)];
         if (!ps) return NO;
-        if (taskStateOut && [ps respondsToSelector:@selector(taskState)]) {
-            NSNumber *ts = [ps valueForKey:@"taskState"];
-            if (ts) *taskStateOut = ts.intValue;
-        }
         if ([ps respondsToSelector:@selector(isRunning)]) {
             NSNumber *r = [ps valueForKey:@"isRunning"];
             if (r) return r.boolValue;
         }
     } @catch (__unused NSException *e) {}
     return NO;
+}
+
+static UIImage *ADSplashImage7191(void) {
+    static UIImage *image;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        for (NSString *cp in @[@"/var/jb/Library/Application Support/AmazonDark/splash-logo.png",
+                               @"/Library/Application Support/AmazonDark/splash-logo.png"]) {
+            image = [UIImage imageWithContentsOfFile:cp];
+            if (image) break;
+        }
+    });
+    return image;
 }
 
 // Dark surface parented to the zooming scene view, so SpringBoard's launch
@@ -140,12 +136,7 @@ static void ADAttachCoverToScene(UIView *host, BOOL warm) {
         ov.backgroundColor = dk;
         ov.userInteractionEnabled = NO;
 
-        UIImage *splash = nil;
-        for (NSString *cp in @[@"/var/jb/Library/Application Support/AmazonDark/splash-logo.png",
-                               @"/Library/Application Support/AmazonDark/splash-logo.png"]) {
-            splash = [UIImage imageWithContentsOfFile:cp];
-            if (splash) break;
-        }
+        UIImage *splash = ADSplashImage7191();
         if (splash) {
             UIImageView *logo = [[UIImageView alloc] initWithImage:splash];
             logo.contentMode = UIViewContentModeScaleAspectFit;
@@ -160,9 +151,6 @@ static void ADAttachCoverToScene(UIView *host, BOOL warm) {
                 [logo.heightAnchor constraintEqualToConstant:lh],
             ]];
         }
-        // Re-check at the moment of attach: the switch can be turned off while
-        // SpringBoard is already running, and nothing should be covered then.
-        if (!ADSBEnabled()) { ADSBLog(@"COVER skipped (disabled)"); return; }
         [host addSubview:ov];
         gCoverOverlay = ov;
         gCoverHost = (SBSceneView *)host;
@@ -170,8 +158,6 @@ static void ADAttachCoverToScene(UIView *host, BOOL warm) {
         unsigned myGen = ++gCoverGen;
 
         gPresentAt = CFAbsoluteTimeGetCurrent();
-        ADSBLog([NSString stringWithFormat:@"COVER overlay in scene (%@ logo=%d)",
-                 NSStringFromClass([host class]), splash ? 1 : 0]);
 
         if (warm) {
             // v7.185: historical warm/soft-launch mask. DidBecomeActive normally releases
@@ -179,7 +165,6 @@ static void ADAttachCoverToScene(UIView *host, BOOL warm) {
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kWarmCoverFallback * NSEC_PER_SEC)),
                            dispatch_get_main_queue(), ^{
                 if (myGen == gCoverGen && gCoverOverlay && gCoverWarm) {
-                    ADSBLog([NSString stringWithFormat:@"WARM cover fallback at %.2fs", CFAbsoluteTimeGetCurrent()-gPresentAt]);
                     ADDismissCover();
                 }
             });
@@ -187,9 +172,6 @@ static void ADAttachCoverToScene(UIView *host, BOOL warm) {
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHold * NSEC_PER_SEC)),
                            dispatch_get_main_queue(), ^{
                 if (myGen == gCoverGen){
-                    ADSBLog([NSString stringWithFormat:
-                             @"COVER hold-timer fired at %.2fs (no ready signal arrived)",
-                             CFAbsoluteTimeGetCurrent() - gPresentAt]);
                     ADDismissCover();
                 }
             });
@@ -197,7 +179,7 @@ static void ADAttachCoverToScene(UIView *host, BOOL warm) {
                            dispatch_get_main_queue(), ^{
                 @try { if (gCoverOverlay && myGen == gCoverGen){ UIView *x = gCoverOverlay; gCoverOverlay = nil;
                            SBSceneView *h=gCoverHost; gCoverHost=nil; gCoverWarm=NO; if(h)objc_setAssociatedObject(h,kCoveredKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                           [x removeFromSuperview]; ADSBLog(@"COVER overlay hardcap (no signal)"); } }
+                           [x removeFromSuperview]; } }
                 @catch (__unused NSException *e) {}
             });
         }
@@ -212,7 +194,6 @@ static void ADDismissCover(void) {
         [UIView animateWithDuration:kCoverFade animations:^{ ov.alpha = 0.0; }
                          completion:^(BOOL f){ @try { [ov removeFromSuperview]; }
                                                @catch (__unused NSException *e) {} }];
-        ADSBLog(@"COVER overlay dismissed (signal)");
     } @catch (__unused NSException *e) {}
 }
 
@@ -222,30 +203,18 @@ static void ADDismissCover(void) {
     @try {
         if (!self.window) return;
 
-        static NSMutableSet *seen; static dispatch_once_t once;
-        dispatch_once(&once, ^{ seen = [NSMutableSet set]; });
-        NSString *cls = NSStringFromClass([self class]);
-
         if (!ADSBEnabled()) return;
-        NSString *hitPath = nil;
-        NSString *bid = ADSceneBundleId(self, &hitPath);
-        if (![seen containsObject:cls]) {
-            [seen addObject:cls];
-            ADSBLog([NSString stringWithFormat:@"SCENE class=%@ bid=%@ via=%@", cls, bid ?: @"-", hitPath ?: @"-"]);
-        }
+        NSString *bid = ADSceneBundleId(self);
         if (![bid isEqualToString:kAMZ]) return;
 
         // Cold and warm scene entries are both masked. Historical device testing showed
         // that a running/suspended process can still expose a cached/native white first frame.
-        int ts = -1;
-        BOOL alive = ADAmazonProcessAlive(&ts);
+        BOOL alive = ADAmazonProcessAlive();
         // One active cover per scene entry. Unknown process state is treated as cold;
         // the hard cap guarantees that a missed app signal cannot leave the mask stuck.
         // Per active launch, not permanently per scene: the marker is cleared when the
         // cover leaves so a reused SpringBoard scene can protect a later cold launch too.
         BOOL already = (objc_getAssociatedObject(self, kCoveredKey) != nil);
-        ADSBLog([NSString stringWithFormat:@"scene attach alive=%d taskState=%d already=%d",
-                 alive ? 1 : 0, ts, already ? 1 : 0]);
         if (already) return;
         objc_setAssociatedObject(self, kCoveredKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 
@@ -280,8 +249,6 @@ static void ADDismissCover(void) {
                 // 1.40 s minimum and a 0.40 s post-ready settle window are satisfied.
                 double minimumRemaining = shown < 1.40 ? (1.40 - shown) : 0.0;
                 double wait = minimumRemaining > kReadySettle ? minimumRemaining : kReadySettle;
-                ADSBLog([NSString stringWithFormat:@"COVER ready (shown %.2fs, minRemain %.2fs, settle %.2fs, wait %.2fs)",
-                         shown, minimumRemaining, kReadySettle, wait]);
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(wait * NSEC_PER_SEC)),
                                dispatch_get_main_queue(), ^{ ADDismissCover(); });
             } @catch (__unused NSException *e) {}
@@ -296,7 +263,6 @@ static void ADDismissCover(void) {
                 double shown = CFAbsoluteTimeGetCurrent() - gPresentAt;
                 double wait = kWarmReadySettle;
                 if (shown < 0.20) wait = MAX(wait, 0.20 - shown);
-                ADSBLog([NSString stringWithFormat:@"WARM cover ready (shown %.2fs, wait %.2fs)",shown,wait]);
                 unsigned gen = gCoverGen;
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(wait*NSEC_PER_SEC)),
                                dispatch_get_main_queue(), ^{ if(gen==gCoverGen && gCoverWarm) ADDismissCover(); });
@@ -305,7 +271,7 @@ static void ADDismissCover(void) {
     } @catch (__unused NSException *e) {}
 
     @autoreleasepool {
-        @try { %init; ADSBLog(@"AmazonDarkSB ctor"); }
+        @try { %init; }
         @catch (__unused NSException *e) {}
     }
 }
