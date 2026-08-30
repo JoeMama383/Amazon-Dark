@@ -32,7 +32,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.185-launch-twb-lifecycle-fix-probe"
+#define AD_VERSION "v7.188-home-hero-single-owner-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -933,7 +933,7 @@ static NSString *ADFloorJS(void){
         // v7.169: /s product-referrer ad iframes are child frames but intentionally are not
         // standalone-candidates. Reuse the proven Home 414x125 renderer contract by exact
         // renderer identity, without touching layout/geometry or unrelated child frames.
-        @"html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container],html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container] :is([data-testid=main-content],[data-testid=content],[data-testid^=modern-][data-testid$=-layout-container]){background:#000!important;background-color:#000!important;background-image:none!important;border-color:#3b4043!important;outline-color:#3b4043!important;box-shadow:none!important;}html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container] :is(div,section,article,main,header,footer):not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime]):not([class*=star]):not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *)):not(:where([class*=star] *)){background-color:transparent!important;box-shadow:none!important;}html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container] :is([data-id=brand-name-text],[data-id=product-name-text],[data-testid=ratings-value],[data-testid=formatted-price],[data-testid=formatted-price] *){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container] :is([data-testid=ratings-review-count],[data-testid=full-price]){color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container] :is([data-ad-feedback-label-id],[class*=ad-feedback],[class*=adFeedback],[class*=sponsored],[data-testid*=sponsored],[id^=ad-feedback-text-],[id^=af-label-primary-link-]){background-color:transparent!important;color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container] :is([data-ad-feedback-label-id] b[class*=ad-feedback-sprite],b[class*=ad-feedback-sprite-mobile],[id^=ad-feedback-sprite-]){color:#b1aaa0!important;background-color:#b1aaa0!important;background-image:none!important;-webkit-mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;-webkit-mask-size:contain!important;mask-size:contain!important;-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;-webkit-mask-position:center!important;mask-position:center!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
+        @"html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container],html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container] :is([data-testid=main-content],[data-testid=content],[data-testid^=modern-][data-testid$=-layout-container]){background:#000!important;background-color:#000!important;background-image:none!important;border-color:#3b4043!important;outline-color:#3b4043!important;box-shadow:none!important;}html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container] :is(div,section,article,main,header,footer):not([class*=badge]):not([class*=deal]):not([class*=coupon]):not([class*=prime]):not([class*=star]):not(:where([class*=badge] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=prime] *)):not(:where([class*=star] *)){background-color:transparent!important;box-shadow:none!important;}html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container] :is([data-id=brand-name-text],[data-id=product-name-text],[data-testid=ratings-value],[data-testid=formatted-price],[data-testid=formatted-price] *,.a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen),html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container] [data-testid=price-container] :is(div,span):not([data-testid=full-price]):not([data-testid=prime-badge]):not(:where([data-testid=prime-badge] *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container] :is([data-testid=ratings-review-count],[data-testid=full-price]){color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container] :is([data-ad-feedback-label-id],[class*=ad-feedback],[class*=adFeedback],[class*=sponsored],[data-testid*=sponsored],[id^=ad-feedback-text-],[id^=af-label-primary-link-]){background-color:transparent!important;color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}html[data-ad7-child-frame] [data-testid=renderer-factory-ad-container] :is([data-ad-feedback-label-id] b[class*=ad-feedback-sprite],b[class*=ad-feedback-sprite-mobile],[id^=ad-feedback-sprite-]){color:#b1aaa0!important;background-color:#b1aaa0!important;background-image:none!important;-webkit-mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;-webkit-mask-size:contain!important;mask-size:contain!important;-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;-webkit-mask-position:center!important;mask-position:center!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
         @"\");}if(document.rea"
         @"dyState==='loading')window.addEventListener('load',function(){relink(s);rootBlack();},{once:true});else relink(s);rootBlack();}catch(e){}})();";
 }
@@ -1027,7 +1027,7 @@ static NSString *ADStandalonePaintJS7104(void){
          "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
          /* 414x125 + large primary neutral copy. */
          "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] "
-         ":is([data-id=brand-name-text],[data-id=product-name-text],[data-testid=ratings-value],[data-testid=formatted-price],[data-testid=formatted-price] *),"
+         ":is([data-id=brand-name-text],[data-id=product-name-text],[data-testid=ratings-value],[data-testid=formatted-price],[data-testid=formatted-price] *,.a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen),"
          "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] "
          ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(0, 0, 17)\\\"],"
          "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] "
@@ -1047,6 +1047,38 @@ static NSString *ADStandalonePaintJS7104(void){
          "html[data-ad7104-standalone] [data-testid=ad-background-container] "
          ":is(div,span,p,a,small,strong,b)[style*=\\\"color: rgb(86, 89, 89)\\\"]"
          "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
+         /* v7.188: one authoritative Home hero TWB lane. Every eligible raster leaf in
+          * non-product Home child frames gets exactly the configured brightness factor,
+          * independent of active/front carousel state. */
+         "html[data-ad7104-standalone] :is(img,video,canvas)"
+         ":not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller])"
+         ":not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
+         ":not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=badge]):not([class*=chevron]):not([class*=arrow])"
+         ":not(:where([class*=logo] *)):not(:where([class*=prime] *)):not(:where([class*=rating] *)):not(:where([class*=star] *)):not(:where([class*=badge] *))"
+         ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *))"
+         ":not(:where([data-testid*=logo] *)):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([data-ad-feedback-label-id] *))"
+         "{filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;transition:none!important;}"
+         /* Inactive/preloaded hero renderers can expose artwork only as an inline CSS
+          * background. Shade that fallback only while the same background host has no real
+          * raster descendant. Once Amazon hydrates IMG/VIDEO/CANVAS for the front slide, the
+          * background shade releases so the raster brightness owner cannot compound with it. */
+         "html[data-ad7104-standalone] :is(div,section,article,main)[style*=\"background-image\"]"
+         ":not(:has(:is(img,video,canvas):not([class*=logo]):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=badge]):not([class*=chevron]):not([class*=arrow]):not(:where([data-testid*=logo] *)):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([data-ad-feedback-label-id] *)))):not([class*=logo]):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
+         ":not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=badge]):not([class*=chevron]):not([class*=arrow])"
+         ":not(:where([class*=logo] *)):not(:where([class*=prime] *)):not(:where([class*=rating] *)):not(:where([class*=star] *)):not(:where([class*=badge] *))"
+         ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([data-ad-feedback-label-id] *)),"
+         "html[data-ad7104-standalone] :is(div,section,article,main)[style*=\"backgroundImage\"]"
+         ":not(:has(:is(img,video,canvas):not([class*=logo]):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=badge]):not([class*=chevron]):not([class*=arrow]):not(:where([data-testid*=logo] *)):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([data-ad-feedback-label-id] *)))):not([class*=logo]):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback])"
+         ":not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=badge]):not([class*=chevron]):not([class*=arrow])"
+         ":not(:where([class*=logo] *)):not(:where([class*=prime] *)):not(:where([class*=rating] *)):not(:where([class*=star] *)):not(:where([class*=badge] *))"
+         ":not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([data-ad-feedback-label-id] *))"
+         "{box-shadow:inset 0 0 0 9999px rgba(0,0,0,%.3f)!important;transition-property:none!important;}"
+         /* Proven semantic hero containers can hydrate the real raster as a sibling of an
+          * existing background leaf. Explicitly release that leaf's shade whenever the same
+          * creative container has real media, leaving only the single raster brightness owner. */
+         "html[data-ad7104-standalone] :is([class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=_npack-asin-card],[class*=npack-asin-card],[class*=canvas-card],[class*=canvas-container]):has(:is(img,video,canvas):not([class*=logo]):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=badge]):not([class*=chevron]):not([class*=arrow]):not(:where([data-testid*=logo] *)):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([data-ad-feedback-label-id] *))) "
+         ":is([class*=theming-card-background],[class*=vjs-poster],[class*=single-creative-card-background],[class*=single-video-card-background],[style*=\"background-image\"],[style*=\"backgroundImage\"])"
+         "{box-shadow:none!important;}"
          /* Preserve current TWB strength on the exact standalone product-raster lanes even
           * if Amazon's shell replacement deletes the global ad7-twb-static sheet. */
          "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] "
@@ -1080,19 +1112,6 @@ static NSString *ADStandalonePaintJS7104(void){
          "html[data-ad7104-standalone] #ad[data-html-dimensions=\"300x250\"] "
          ".swiper-slide [data-testid=pictureHighQuality]"
          "{filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;}"
-         /* v7.185: static Home hero/creative child-frame raster ownership. ADFloor marks
-          * Home APE children as standalone candidates, and ADTWBJS intentionally returns for
-          * those frames. Own only raster/background leaves here so every recycled carousel card
-          * matches from the moment its media node/background appears, not only when it becomes active. */
-         "html[data-ad7104-standalone] :is([class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=_npack-asin-card],[class*=npack-asin-card],[class*=canvas-card],[class*=canvas-container]) "
-         ":is(img,video,canvas):not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=badge]):not([class*=chevron]):not([class*=arrow]),"
-         "html[data-ad7104-standalone] video[class*=_npack-asin-card_style_background-video__],"
-         "html[data-ad7104-standalone] [class*=_npack-asin-card_style_background-video-container__] > video[class*=_npack-asin-card_style_motion-content__]"
-         "{filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;opacity:1!important;transition:none!important;}"
-         "html[data-ad7104-standalone] :is([class*=theming-card-background],[class*=vjs-poster],[class*=single-creative-card-background],[class*=single-video-card-background]),"
-         "html[data-ad7104-standalone] :is([class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=_npack-asin-card],[class*=npack-asin-card],[class*=canvas-card],[class*=canvas-container]):is([style*=\"background-image\"],[style*=\"backgroundImage\"]),"
-         "html[data-ad7104-standalone] :is([class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=_npack-asin-card],[class*=npack-asin-card],[class*=canvas-card],[class*=canvas-container]) :is([style*=\"background-image\"],[style*=\"backgroundImage\"])"
-         "{box-shadow:inset 0 0 0 9999px rgba(0,0,0,%.3f)!important;transition-property:none!important;}"
          /* v7.170 addendum: compact standalone complete-raster creative. The live
           * banner is a single authored raster, so there is no product-image leaf to target.
           * The bounded classifier below marks only the dominant media/background inside a
@@ -1121,7 +1140,7 @@ static NSString *ADStandalonePaintJS7104(void){
          "function own(){try{h=document.documentElement||h;if(!h)return false;black();if(!(document.adoptedStyleSheets&&window.CSSStyleSheet&&CSSStyleSheet.prototype&&CSSStyleSheet.prototype.replaceSync))return false;var sh=window[KEY];if(!sh){sh=new CSSStyleSheet();sh.replaceSync(CSS);window[KEY]=sh;}var a=document.adoptedStyleSheets||[],found=false;for(var i=0;i<a.length;i++)if(a[i]===sh){found=true;break;}if(!found)document.adoptedStyleSheets=a.concat([sh]);return true}catch(e){return false}}"
          "window.__ad7106StandaloneState=function(){try{var sh=window[KEY]||null,a=document.adoptedStyleSheets||[],found=false;for(var i=0;i<a.length;i++)if(a[i]===sh){found=true;break;}return{adoptedSupported:!!(document.adoptedStyleSheets&&window.CSSStyleSheet&&CSSStyleSheet.prototype&&CSSStyleSheet.prototype.replaceSync),sheet:!!sh,adopted:found,rules:sh&&sh.cssRules?sh.cssRules.length:0,htmlSame:(document.documentElement===h),attr:!!(document.documentElement&&document.documentElement.hasAttribute('data-ad7104-standalone'))}}catch(e){return{error:String(e)}}};"
          "own();document.addEventListener('readystatechange',function(){own()},false);window.addEventListener('pageshow',function(){own()},false);"
-         "}catch(e){}})();",factor,factor,factor,factor,factor,factor,shade,factor,factor,shade];
+         "}catch(e){}})();",factor,factor,shade,factor,factor,factor,factor,factor,factor,shade];
 }
 
 
@@ -3729,12 +3748,12 @@ static NSString *ADSearchResultsProbePath7139(NSUInteger run){
         fmt.timeZone=[NSTimeZone localTimeZone];
         fmt.dateFormat=@"yyyyMMdd-HHmmss-SSS";
         NSString *stamp=[fmt stringFromDate:[NSDate date]]?:@"unknown";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.185-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.188-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(docs.length)return [docs stringByAppendingPathComponent:name];
         return [NSTemporaryDirectory() stringByAppendingPathComponent:name];
     } @catch(...) {
-        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.185-dynamic-probe-r%lu.txt",(unsigned long)run]];
+        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.188-dynamic-probe-r%lu.txt",(unsigned long)run]];
     }
 }
 static void ADSearchResultsProbeAppend7139(NSString *p,NSString *s){
@@ -3887,7 +3906,7 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     NSUInteger run=++gADSearchResultsProbeRun7139;
     NSString *path=ADSearchResultsProbePath7139(run);
     NSString *runID=[NSString stringWithFormat:@"%@-pid%d-r%lu",[[path lastPathComponent] stringByDeletingPathExtension],getpid(),(unsigned long)run];
-    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.185 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
+    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.188 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(path,head);
     NSMutableArray *chosen=[NSMutableArray array];
     @try {
