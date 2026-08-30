@@ -32,7 +32,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.200-location-structural-firstpaint-probe"
+#define AD_VERSION "v7.201-location-mount-owner-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -55,6 +55,7 @@ extern char *__progname;
 @interface RCTScrollView : UIScrollView @end
 @interface RCTParagraphComponentView : UIView @end
 @interface RCTTextView : UIView @end
+@interface RNCEKVExternalKeyboardView : UIView @end
 @interface _UIBarBackground : UIView @end
 @interface CXIStoreModesBottomNavToolbar : UIView @end
 @interface CXIStoreModesTabBarView : UIView @end
@@ -3134,6 +3135,32 @@ static void ADOwnLocationSheetFloor7196(UIView *v){
         if(!lbg||!CGColorEqualToColor(lbg,black.CGColor))v.layer.backgroundColor=black.CGColor;
     } @catch(...) {}
 }
+// v7.201: restore an exact mount-time owner for the three address-card wrappers.
+// v7.200 made the predicates position-independent, but removed the one lifecycle
+// event guaranteed to occur after the card subtree exists and before composition.
+// Keep the structural predicate, and repaint only this tiny location-panel subtree
+// when an exact 140x130 RNCEKV address wrapper mounts/changes.
+static void ADPaintLocationPanel7201(UIView *panel){
+    if(!gP.enabled||!panel||!ADLocationPanelShape7199(panel,nil))return;
+    @try {
+        NSMutableArray *q=[NSMutableArray arrayWithObject:panel]; NSUInteger seen=0;
+        while(q.count&&seen++<160){
+            UIView *x=q.firstObject; [q removeObjectAtIndex:0]; if(!x)continue;
+            if(ADLocationExactCardPre7199(x)||ADLocationExactSeamPre7199(x)||ADLocationOuterFloorPre7199(x))
+                ADOwnLocationSheetFloor7196(x);
+            ADLocationSheetOwnText7196(x);
+            if(x.subviews.count)[q addObjectsFromArray:x.subviews];
+        }
+    } @catch(...) {}
+}
+static void ADPrimeLocationWrapper7201(UIView *wrapper){
+    if(!gP.enabled||!wrapper)return;
+    UIView *root=nil;
+    if(!ADLocationCardWrapper7199(wrapper,&root)||!root)return;
+    UIView *panel=ADLocationPanelAncestor7199(wrapper,nil);
+    if(panel)ADPaintLocationPanel7201(panel);
+}
+
 static const void *kADLocationExactPaint7198=&kADLocationExactPaint7198;
 static void ADPaintLocationSheetExactContent7198(UIView *outer){
     if(!gP.enabled||!outer||!outer.window||ADLocationSheetOuterScroll7196(outer)!=outer)return;
@@ -3169,6 +3196,17 @@ static void ADPaintLocationSheetExactContent7198(UIView *outer){
 }
 static void ADPaintLocationSheetStable7196(UIView *scroll){
     if(!gP.enabled||!scroll||!scroll.window||!ADClassNameIs7183(scroll,"RCTScrollView"))return;
+    @try {
+        // The location address carousel is a narrow 394x130-ish React scroll.
+        // Its layout is guaranteed before display, so use it as a second exact
+        // structural trigger in case the RNCEKV wrapper mounted before the panel
+        // had finished attaching its seam/floor siblings.
+        CGRect b=scroll.bounds;
+        if(b.size.width>=350.0&&b.size.width<=430.0&&b.size.height>=100.0&&b.size.height<=260.0){
+            UIView *panel=ADLocationPanelAncestor7199(scroll,nil);
+            if(panel)ADPaintLocationPanel7201(panel);
+        }
+    } @catch(...) {}
     if(ADLocationSheetOuterScroll7196(scroll)==scroll)ADPaintLocationSheetExactContent7198(scroll);
 }
 static void ADDarkenReactCardNearText708(UIView *textView){
@@ -3222,6 +3260,29 @@ static void ADDarkenReactCardNearText708(UIView *textView){
         return;
     }
     %orig(color);
+}
+%end
+
+%hook RNCEKVExternalKeyboardView
+- (void)didMoveToSuperview {
+    %orig;
+    ADPrimeLocationWrapper7201((UIView *)self);
+}
+- (void)setFrame:(CGRect)frame {
+    %orig(frame);
+    ADPrimeLocationWrapper7201((UIView *)self);
+}
+- (void)didMoveToWindow {
+    %orig;
+    ADPrimeLocationWrapper7201((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADPrimeLocationWrapper7201((UIView *)self);
+}
+- (void)didAddSubview:(UIView *)subview {
+    %orig(subview);
+    ADPrimeLocationWrapper7201((UIView *)self);
 }
 %end
 
@@ -4348,12 +4409,12 @@ static NSString *ADSearchResultsProbePath7139(NSUInteger run){
         fmt.timeZone=[NSTimeZone localTimeZone];
         fmt.dateFormat=@"yyyyMMdd-HHmmss-SSS";
         NSString *stamp=[fmt stringFromDate:[NSDate date]]?:@"unknown";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.200-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.201-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(docs.length)return [docs stringByAppendingPathComponent:name];
         return [NSTemporaryDirectory() stringByAppendingPathComponent:name];
     } @catch(...) {
-        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.200-dynamic-probe-r%lu.txt",(unsigned long)run]];
+        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.201-dynamic-probe-r%lu.txt",(unsigned long)run]];
     }
 }
 static void ADSearchResultsProbeAppend7139(NSString *p,NSString *s){
@@ -4506,7 +4567,7 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     NSUInteger run=++gADSearchResultsProbeRun7139;
     NSString *path=ADSearchResultsProbePath7139(run);
     NSString *runID=[NSString stringWithFormat:@"%@-pid%d-r%lu",[[path lastPathComponent] stringByDeletingPathExtension],getpid(),(unsigned long)run];
-    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.200 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
+    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.201 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(path,head);
     NSMutableArray *chosen=[NSMutableArray array];
     @try {
