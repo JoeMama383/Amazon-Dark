@@ -32,7 +32,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.199-location-firstpaint-probe"
+#define AD_VERSION "v7.200-location-structural-firstpaint-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -55,7 +55,6 @@ extern char *__progname;
 @interface RCTScrollView : UIScrollView @end
 @interface RCTParagraphComponentView : UIView @end
 @interface RCTTextView : UIView @end
-@interface RNCEKVExternalKeyboardView : UIView @end
 @interface _UIBarBackground : UIView @end
 @interface CXIStoreModesBottomNavToolbar : UIView @end
 @interface CXIStoreModesTabBarView : UIView @end
@@ -2807,12 +2806,12 @@ static UIView *ADLocationSheetCardScroll7196(UIView *v){
     } @catch(...) {}
     return nil;
 }
-// v7.199: first-paint owner for the React Native location sheet.
-// React assembles the address-card subtree before its final window geometry is stable.
-// Use the exact 140x130 RNCEKV address-card wrapper as the early semantic marker, then
-// own the sheet/card/seam fills during the same mount/layout transaction (no timer/observer).
-static const void *kADLocationWrappers7199=&kADLocationWrappers7199;
-static const void *kADLocationWrapperPrimed7199=&kADLocationWrapperPrimed7199;
+// v7.200: structural first-paint owner for the React Native location sheet.
+// v7.199 still depended on the sheet's absolute Y position while the bottom sheet
+// was animating upward.  During that transition the exact seam/card views existed,
+// but sat below the old Y thresholds and therefore painted Amazon's stock white.
+// Identify the sheet from its local parent/child geometry instead.  These checks do
+// not require UIWindow attachment, a root marker, a timer, or an RNCEKV class hook.
 static UIView *ADLocationRootAny7199(UIView *v){
     if(!v)return nil;
     @try {
@@ -2827,57 +2826,84 @@ static UIView *ADLocationRootAny7199(UIView *v){
     } @catch(...) {}
     return nil;
 }
+static BOOL ADLocationPanelShape7199(UIView *p, UIView **rootOut){
+    if(rootOut)*rootOut=nil;
+    if(!p||!ADClassNameIs7183(p,"RCTView"))return NO;
+    UIView *root=ADLocationRootAny7199(p); if(!root||p==root)return NO;
+    @try {
+        CGRect pb=p.bounds, rb=root.bounds;
+        if(pb.size.width<rb.size.width*0.95||pb.size.width>rb.size.width*1.05||
+           pb.size.height<170.0||pb.size.height>460.0)return NO;
+        BOOL seam=NO,floor=NO;
+        for(UIView *x in p.subviews){
+            if(!ADClassNameIs7183(x,"RCTView"))continue;
+            CGRect f=x.frame;
+            if(f.size.width<pb.size.width*0.95)continue;
+            if(f.origin.x>=-3.0&&f.origin.x<=3.0&&f.origin.y>=-3.0&&f.origin.y<=5.0&&
+               f.size.height>=10.0&&f.size.height<=28.0)seam=YES;
+            if(f.origin.x>=-3.0&&f.origin.x<=3.0&&f.origin.y>=8.0&&f.origin.y<=34.0&&
+               f.size.height>=pb.size.height*0.62&&CGRectGetMaxY(f)>=pb.size.height-5.0)floor=YES;
+        }
+        if(seam||floor){ if(rootOut)*rootOut=root; return YES; }
+    } @catch(...) {}
+    return NO;
+}
+static UIView *ADLocationPanelAncestor7199(UIView *v, UIView **rootOut){
+    if(rootOut)*rootOut=nil;
+    if(!v)return nil;
+    @try {
+        UIView *root=ADLocationRootAny7199(v); if(!root)return nil;
+        for(UIView *n=v;n&&n!=root;n=n.superview){
+            UIView *r=nil;
+            if(ADLocationPanelShape7199(n,&r)){
+                if(rootOut)*rootOut=r;
+                return n;
+            }
+        }
+    } @catch(...) {}
+    return nil;
+}
 static BOOL ADLocationCardWrapper7199(UIView *v, UIView **rootOut){
     if(rootOut)*rootOut=nil;
     if(!v||!ADClassNameIs7183(v,"RNCEKVExternalKeyboardView"))return NO;
-    UIView *root=ADLocationRootAny7199(v); if(!root)return NO;
+    UIView *root=nil; UIView *panel=ADLocationPanelAncestor7199(v,&root);
+    if(!root||!panel)return NO;
     @try {
-        CGRect r=[v convertRect:v.bounds toView:root], rb=root.bounds;
-        if(r.size.width<118.0||r.size.width>165.0||r.size.height<108.0||r.size.height>155.0||
-           CGRectGetMinY(r)<rb.size.height*0.62||CGRectGetMinY(r)>rb.size.height*0.84)return NO;
+        CGRect b=v.bounds;
+        if(b.size.width<118.0||b.size.width>165.0||b.size.height<108.0||b.size.height>155.0)return NO;
         BOOL content=NO,cardScroll=NO;
-        for(UIView *n=v.superview;n&&n!=root;n=n.superview){
+        for(UIView *n=v.superview;n&&n!=panel;n=n.superview){
             if(ADClassNameIs7183(n,"RCTScrollContentView"))content=YES;
             if(ADClassNameIs7183(n,"RCTScrollView")){
-                CGRect nr=[n convertRect:n.bounds toView:root];
-                if(nr.size.width>=rb.size.width*0.80&&nr.size.width<=rb.size.width*1.10&&
-                   nr.size.height>=100.0&&nr.size.height<=180.0)cardScroll=YES;
+                CGRect nb=n.bounds;
+                if(nb.size.width>=root.bounds.size.width*0.75&&nb.size.width<=root.bounds.size.width*1.10&&
+                   nb.size.height>=100.0&&nb.size.height<=180.0)cardScroll=YES;
             }
         }
         if(content&&cardScroll){ if(rootOut)*rootOut=root; return YES; }
     } @catch(...) {}
     return NO;
 }
-static void ADMarkLocationWrapper7199(UIView *wrapper){
-    UIView *root=nil; if(!ADLocationCardWrapper7199(wrapper,&root)||!root)return;
-    @try {
-        NSHashTable *t=objc_getAssociatedObject(root,kADLocationWrappers7199);
-        if(!t){ t=[NSHashTable weakObjectsHashTable]; objc_setAssociatedObject(root,kADLocationWrappers7199,t,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
-        [t addObject:wrapper];
-    } @catch(...) {}
-}
 static BOOL ADLocationRootMarked7199(UIView *v, UIView **rootOut){
     if(rootOut)*rootOut=nil;
-    UIView *root=ADLocationRootAny7199(v); if(!root)return NO;
-    @try {
-        NSHashTable *t=objc_getAssociatedObject(root,kADLocationWrappers7199);
-        if(t.count>0){ if(rootOut)*rootOut=root; return YES; }
-    } @catch(...) {}
+    UIView *root=nil;
+    if(ADLocationPanelAncestor7199(v,&root)){
+        if(rootOut)*rootOut=root;
+        return YES;
+    }
     return NO;
 }
 static BOOL ADLocationExactCardPre7199(UIView *v){
     if(!v||!ADClassNameIs7183(v,"RCTView"))return NO;
-    UIView *root=nil; if(!ADLocationRootMarked7199(v,&root))return NO;
     @try {
-        CGRect r=[v convertRect:v.bounds toView:root], rb=root.bounds;
-        if(r.size.width<118.0||r.size.width>165.0||r.size.height<108.0||r.size.height>155.0||
-           CGRectGetMinY(r)<rb.size.height*0.62||CGRectGetMinY(r)>rb.size.height*0.84)return NO;
-        for(UIView *n=v.superview;n&&n!=root;n=n.superview){
+        CGRect b=v.bounds;
+        if(b.size.width<118.0||b.size.width>165.0||b.size.height<108.0||b.size.height>155.0)return NO;
+        UIView *panel=ADLocationPanelAncestor7199(v,nil); if(!panel)return NO;
+        for(UIView *n=v.superview;n&&n!=panel;n=n.superview){
             if(ADClassNameIs7183(n,"RNCEKVExternalKeyboardView")){
-                UIView *wr=nil; if(!ADLocationCardWrapper7199(n,&wr))continue;
-                CGRect nr=[n convertRect:n.bounds toView:root];
-                if(fabs(nr.origin.x-r.origin.x)<=3.0&&fabs(nr.origin.y-r.origin.y)<=3.0&&
-                   fabs(nr.size.width-r.size.width)<=4.0&&fabs(nr.size.height-r.size.height)<=4.0)return YES;
+                UIView *root=nil; if(!ADLocationCardWrapper7199(n,&root))continue;
+                CGRect nb=n.bounds;
+                if(fabs(nb.size.width-b.size.width)<=4.0&&fabs(nb.size.height-b.size.height)<=4.0)return YES;
             }
         }
     } @catch(...) {}
@@ -2885,42 +2911,37 @@ static BOOL ADLocationExactCardPre7199(UIView *v){
 }
 static BOOL ADInsideLocationExactCardPre7199(UIView *v){
     if(!v)return NO;
-    UIView *root=nil; if(!ADLocationRootMarked7199(v,&root))return NO;
     @try {
-        for(UIView *n=v;n&&n!=root;n=n.superview)if(ADLocationExactCardPre7199(n))return YES;
+        UIView *panel=ADLocationPanelAncestor7199(v,nil); if(!panel)return NO;
+        for(UIView *n=v;n&&n!=panel;n=n.superview)if(ADLocationExactCardPre7199(n))return YES;
     } @catch(...) {}
     return NO;
 }
 static BOOL ADLocationExactSeamPre7199(UIView *v){
     if(!v||!ADClassNameIs7183(v,"RCTView"))return NO;
-    UIView *root=nil; if(!ADLocationRootMarked7199(v,&root))return NO;
+    UIView *p=v.superview; if(!p||!ADLocationPanelShape7199(p,nil))return NO;
     @try {
-        CGRect r=[v convertRect:v.bounds toView:root], rb=root.bounds;
-        return r.size.width>=rb.size.width*0.95&&r.size.height>=10.0&&r.size.height<=28.0&&
-               CGRectGetMinY(r)>=rb.size.height*0.54&&CGRectGetMinY(r)<=rb.size.height*0.61;
+        CGRect f=v.frame,pb=p.bounds;
+        return f.size.width>=pb.size.width*0.95&&f.size.height>=10.0&&f.size.height<=28.0&&
+               f.origin.x>=-3.0&&f.origin.x<=3.0&&f.origin.y>=-3.0&&f.origin.y<=5.0;
     } @catch(...) {}
     return NO;
 }
 static BOOL ADLocationOuterFloorPre7199(UIView *v){
     if(!v||!ADClassNameIs7183(v,"RCTView"))return NO;
-    UIView *root=nil; if(!ADLocationRootMarked7199(v,&root))return NO;
+    UIView *p=v.superview; if(!p||!ADLocationPanelShape7199(p,nil))return NO;
     @try {
-        CGRect r=[v convertRect:v.bounds toView:root], rb=root.bounds;
-        return r.size.width>=rb.size.width*0.95&&r.size.height>=rb.size.height*0.25&&r.size.height<=rb.size.height*0.50&&
-               CGRectGetMinY(r)>=rb.size.height*0.54&&CGRectGetMinY(r)<=rb.size.height*0.66;
+        CGRect f=v.frame,pb=p.bounds;
+        return f.size.width>=pb.size.width*0.95&&f.origin.x>=-3.0&&f.origin.x<=3.0&&
+               f.origin.y>=8.0&&f.origin.y<=34.0&&f.size.height>=pb.size.height*0.62&&
+               CGRectGetMaxY(f)>=pb.size.height-5.0;
     } @catch(...) {}
     return NO;
 }
 static BOOL ADInLocationContentPre7199(UIView *v){
     if(!v)return NO;
     if(ADInsideLocationExactCardPre7199(v))return YES;
-    UIView *root=nil; if(!ADLocationRootMarked7199(v,&root))return NO;
-    @try {
-        CGRect r=[v convertRect:v.bounds toView:root], rb=root.bounds;
-        return CGRectGetMaxY(r)>=rb.size.height*0.59&&CGRectGetMinY(r)<=rb.size.height*0.99&&
-               CGRectGetMaxX(r)>=0.0&&CGRectGetMinX(r)<=rb.size.width;
-    } @catch(...) {}
-    return NO;
+    return ADLocationPanelAncestor7199(v,nil)!=nil;
 }
 static BOOL ADLocationSheetExactCard7198(UIView *v);
 static BOOL ADInsideLocationSheetExactCard7198(UIView *v);
@@ -3113,37 +3134,6 @@ static void ADOwnLocationSheetFloor7196(UIView *v){
         if(!lbg||!CGColorEqualToColor(lbg,black.CGColor))v.layer.backgroundColor=black.CGColor;
     } @catch(...) {}
 }
-static void ADPrepaintLocationRoot7199(UIView *root){
-    if(!gP.enabled||!root)return;
-    @try {
-        NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger seen=0;
-        while(q.count&&seen++<384){
-            UIView *x=q.firstObject; [q removeObjectAtIndex:0]; if(!x)continue;
-            if(ADLocationExactCardPre7199(x)||ADLocationExactSeamPre7199(x)||ADLocationOuterFloorPre7199(x))
-                ADOwnLocationSheetFloor7196(x);
-            ADLocationSheetOwnText7196(x);
-            if(x.subviews.count)[q addObjectsFromArray:x.subviews];
-        }
-    } @catch(...) {}
-}
-static void ADPrimeLocationWrapper7199(UIView *wrapper){
-    if(!gP.enabled||!wrapper)return;
-    UIView *root=nil; if(!ADLocationCardWrapper7199(wrapper,&root)||!root)return;
-    ADMarkLocationWrapper7199(wrapper);
-    @try {
-        // Run once per exact address-card wrapper. Later nodes are caught by their own
-        // mount/background hooks once the root has this live-wrapper marker.
-        if(!objc_getAssociatedObject(wrapper,kADLocationWrapperPrimed7199)){
-            objc_setAssociatedObject(wrapper,kADLocationWrapperPrimed7199,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            ADPrepaintLocationRoot7199(root);
-        }
-        for(UIView *x in wrapper.subviews){
-            ADOwnLocationSheetFloor7196(x);
-            ADLocationSheetOwnText7196(x);
-            for(UIView *c in x.subviews)ADLocationSheetOwnText7196(c);
-        }
-    } @catch(...) {}
-}
 static const void *kADLocationExactPaint7198=&kADLocationExactPaint7198;
 static void ADPaintLocationSheetExactContent7198(UIView *outer){
     if(!gP.enabled||!outer||!outer.window||ADLocationSheetOuterScroll7196(outer)!=outer)return;
@@ -3232,29 +3222,6 @@ static void ADDarkenReactCardNearText708(UIView *textView){
         return;
     }
     %orig(color);
-}
-%end
-
-%hook RNCEKVExternalKeyboardView
-- (void)didMoveToSuperview {
-    %orig;
-    ADPrimeLocationWrapper7199((UIView *)self);
-}
-- (void)setFrame:(CGRect)frame {
-    %orig(frame);
-    ADPrimeLocationWrapper7199((UIView *)self);
-}
-- (void)didMoveToWindow {
-    %orig;
-    ADPrimeLocationWrapper7199((UIView *)self);
-}
-- (void)layoutSubviews {
-    %orig;
-    ADPrimeLocationWrapper7199((UIView *)self);
-}
-- (void)didAddSubview:(UIView *)subview {
-    %orig(subview);
-    ADPrimeLocationWrapper7199((UIView *)self);
 }
 %end
 
@@ -4381,12 +4348,12 @@ static NSString *ADSearchResultsProbePath7139(NSUInteger run){
         fmt.timeZone=[NSTimeZone localTimeZone];
         fmt.dateFormat=@"yyyyMMdd-HHmmss-SSS";
         NSString *stamp=[fmt stringFromDate:[NSDate date]]?:@"unknown";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.199-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.200-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(docs.length)return [docs stringByAppendingPathComponent:name];
         return [NSTemporaryDirectory() stringByAppendingPathComponent:name];
     } @catch(...) {
-        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.199-dynamic-probe-r%lu.txt",(unsigned long)run]];
+        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.200-dynamic-probe-r%lu.txt",(unsigned long)run]];
     }
 }
 static void ADSearchResultsProbeAppend7139(NSString *p,NSString *s){
@@ -4539,7 +4506,7 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     NSUInteger run=++gADSearchResultsProbeRun7139;
     NSString *path=ADSearchResultsProbePath7139(run);
     NSString *runID=[NSString stringWithFormat:@"%@-pid%d-r%lu",[[path lastPathComponent] stringByDeletingPathExtension],getpid(),(unsigned long)run];
-    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.199 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
+    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.200 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(path,head);
     NSMutableArray *chosen=[NSMutableArray array];
     @try {
