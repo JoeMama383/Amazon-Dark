@@ -1,3 +1,18 @@
+# AmazonDark v7.211~home-hero-medium-gray-compile-hotfix-probe
+
+## v7.211 compile hotfix + Home hero-row adjustment
+
+- Fixes the v7.210 Theos compile failure by treating `ANXVisualSubNavTextCollectionViewCell` as `UIView *` before reading `window`.
+- Escapes literal `100%` CSS values inside the Objective-C `stringWithFormat:` TWB payload (`100%%`) so they are not parsed as format specifiers.
+- Keeps the v7.210 Home hero poster/live-media TWB parity correction.
+- Changes the Home visual-subnav behavior per device feedback: only bright/white `ANXVisualSubNavTextCollectionViewCell` floors are replaced with medium gray `#4a4f51`. Amazon-authored text, icons, tint, colored chip floors, sizing, corner radii, and interaction are preserved.
+- Retains the v7.209 Person crash fix and all v7.208/v7.207 video, Person, Search/location and TWB hardening.
+- Screenshot-triggered dynamic probe retained and renamed v7.211.
+
+No MutationObserver, recurring interval, RAF loop, or web scroll listener is added.
+
+---
+
 # Amazon Dark
 
 True dark mode for the Amazon Shopping iOS app - designed to look native instead of simply inverting the screen.

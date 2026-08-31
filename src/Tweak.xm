@@ -32,7 +32,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.210-home-hero-subnav-regression-fix-probe"
+#define AD_VERSION "v7.211-home-hero-medium-gray-compile-hotfix-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1182,7 +1182,7 @@ static NSString *ADTWBJS(void){
     NSString *built=[NSString stringWithFormat:
         @"(function(){try{var host='';try{host=String(location.hostname||'').toLowerCase();}catch(_){}if(host==='flashtalking.com'||/\\.flashtalking\\.com$/.test(host))return;var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement)document.documentElement.setAttribute('data-ad7-twb-child','1');if(child&&document.documentElement&&document.documentElement.hasAttribute('data-ad7-standalone-candidate'))return;function put(id,css){var s=document.getElementById(id);if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}s.textContent=css;return s;}function relink(s){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}if(child){put('ad7-twb-child-min',\"html[data-ad7-twb-child=\\\"1\\\"] :is(img,video,canvas):not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([class"
         @"*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)){filter:brightness(%.3f)!important;}\");return;}var p='';try{p=String(location.pathname||'');}catch(_){}var s=null;if(p==='/autocomplete'||p.indexOf('/autocomplete/')===0){s=put('ad7-search-pane-twb',\"img.ufs_tiles_card_widget-sug-image,img.s-entity-pd-carousel-tile-element-image,#attach-to-me img.s-image,#attach-to-me img.s-product-image,.s-suggestion-container img.s-image,.s-suggestion-container img.s-product-image{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}\");}else if(p==='/s'||p.indexOf('/s/')===0){s=put('ad7-product-feed-twb',\"#search img.scx-stt-image,#search img._c2Itd_image_3UiYm,#search [class*=_bXVsd_image_],#search [class*=_bXVsd_lifestyleImage_],#search [class*=_bXVsd_lifestyleimage_],#search img.s-image,#search img.s-product-image,#search [data-component-type=s-product-image] img,#search img.ufs_tiles_card_widget-sug-image,#search img.nice-cat-card_image,#search img.haul-puis-portrait-img,#search img._c2Itd_image_pQREQ,#search ._c2Itd_cardContent_3OGkG.sbv-ad-content-container img:not([class*=_trackingPixel_]):not([class*=ad-feedback]):not([class*=sprite]){filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;mix-blend-mode:multiply!important;}#search video.sbv-video-player-ecx,#search video._"
-        @"c2Itd_video_17g-f{filter:none!important;-webkit-filter:none!important;}#search .sbv-video-overlay{background-color:rgba(0,0,0,%.3f)!important;}#search ._c2Itd_videoOverlay_1H_Jm{top:0!important;left:0!important;right:0!important;bottom:0!important;width:100%!important;height:100%!important;pointer-events:none!important;z-index:6!important;background-color:rgba(0,0,0,%.3f)!important;}#search .s-widget-container[class*=\\\"template=FEATURED_ASINS_VIDEO_LIST\\\"] video[class*=_video_1m98b_]{filter:none!important;-webkit-filter:none!important;}#search .s-widget-container[class*=\\\"template=FEATURED_ASINS_VIDEO_LIST\\\"] [class*=_videoOverlay_1m98b_]{background-color:rgba(0,0,0,%.3f)!important;}\");}else{s=put('ad7-menu-twb',\".ape-placement.is-image-oo[style*=\\\"aspect-ratio: 300 / 250\\\"]>iframe,[id^=ape_gateway_dynamic-][id$=_mshop_placement].is-image-oo[style*=\\\"aspect-ratio: 300 / 250\\\"]>iframe{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}img.ufs_tiles_card_widget-sug-image,img.s-image,img.s-product-image,#landingImage,#imgBlkFront,#imgTagWrapperId img,img[data-a-dynamic-image],img.a-dynamic-image,[data-component-type=s-product-image] img,[class*=product-image] img,[class*=asin-image] img,.p13n-sc-uncoverable-faceout img,[data-asin] img.s-image,[data-csa-c-asin] img.s-image,:is(#gwm-Deck-btf,.gwm-dashboard-container) :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) img:not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store]):not([class*=rating]):not([class*=star]):not([class*=sprite]):not([class*=pixel]):not([class*=icon]):not([class*=glyph]):not([class*"
+        @"c2Itd_video_17g-f{filter:none!important;-webkit-filter:none!important;}#search .sbv-video-overlay{background-color:rgba(0,0,0,%.3f)!important;}#search ._c2Itd_videoOverlay_1H_Jm{top:0!important;left:0!important;right:0!important;bottom:0!important;width:100%%!important;height:100%%!important;pointer-events:none!important;z-index:6!important;background-color:rgba(0,0,0,%.3f)!important;}#search .s-widget-container[class*=\\\"template=FEATURED_ASINS_VIDEO_LIST\\\"] video[class*=_video_1m98b_]{filter:none!important;-webkit-filter:none!important;}#search .s-widget-container[class*=\\\"template=FEATURED_ASINS_VIDEO_LIST\\\"] [class*=_videoOverlay_1m98b_]{background-color:rgba(0,0,0,%.3f)!important;}\");}else{s=put('ad7-menu-twb',\".ape-placement.is-image-oo[style*=\\\"aspect-ratio: 300 / 250\\\"]>iframe,[id^=ape_gateway_dynamic-][id$=_mshop_placement].is-image-oo[style*=\\\"aspect-ratio: 300 / 250\\\"]>iframe{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}img.ufs_tiles_card_widget-sug-image,img.s-image,img.s-product-image,#landingImage,#imgBlkFront,#imgTagWrapperId img,img[data-a-dynamic-image],img.a-dynamic-image,[data-component-type=s-product-image] img,[class*=product-image] img,[class*=asin-image] img,.p13n-sc-uncoverable-faceout img,[data-asin] img.s-image,[data-csa-c-asin] img.s-image,:is(#gwm-Deck-btf,.gwm-dashboard-container) :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) img:not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store]):not([class*=rating]):not([class*=star]):not([class*=sprite]):not([class*=pixel]):not([class*=icon]):not([class*=glyph]):not([class*"
         @"=badge]):not([class*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=search-icon]):not([class*=microphone]):not([class*=camera]):not([class*=location]):not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon]):not([class*=header-icon]):not([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr]):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),html[data-ad7-twb-child=\\\"1\\\"]:not([data-ad7-standalone-candidate]) :is(img,video,canvas):not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=rating]):not([class*=star]):not([class*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=search-icon]):not([class*=microphone]):not([class*=camera]):not([class*=location]):not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon]):not([class*=header-icon]):not"
         @"([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr]):not([class*=sprite]):not([class*=pixel]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),html[data-ad7-standalone-candidate] :is([data-testid*=product-picture],[data-testid*=product-image],[data-testid*=asin-image]) :is(img,video,canvas):not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([data-testid=ratings-stars] *)):not(:where([data-testid=prime-badge] *)),html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] :is([data-testid=image],[data-acei-id=lfstyl-img]) :is(img,video,canvas):not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge]),html[data-ad7-standalone-candidate] #ad:has(#dynamic-bb) :is([data-acei-id=lfstyl-img],[data-acei-id=prod-img]) :is(img,vid"
         @"eo,canvas),html[data-ad7-standalone-candidate] #ad:has(#dynamic-bb) :is(img,video,canvas):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=badge]):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=ad-feedback] *)),html[data-ad7-standalone-candidate] [data-acei-id=brnd-logo] img,html[data-ad7-standalone-candidate] [data-testid=logo] img[alt=\\\"Brand logo\\\"],html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\\\"300x250\\\"] .swiper-slide [data-testid=pictureHighQuality],#gwm-Deck-btf :is([class*=mobile-mshop-ad],[class*=mobile-ad-container],[class*=ape-wrapper],[class*=ape-placement]) :is(img,video,canvas):not([class*=logo]):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([class*=logo] *)):not(:whe"
@@ -1855,13 +1855,10 @@ static BOOL ADInAuthoredVisualSubNav7175(UIView *v){
     } @catch(...) {}
     return NO;
 }
-// v7.210: reclaim only the exact Home visual-category chip cell that v7.175
-// intentionally released to stock. Current Home now authors some of these chips with
-// bright/white floors; the user wants the pre-release dark treatment back. Keep the
-// controller itself released so Search delivery/subnav classification cannot bleed into
-// this row. Every exact ANXVisualSubNavTextCollectionViewCell is OLED with light copy,
-// including the See all chip; no generic native button/card ownership is added.
-static UIView *ADHomeVisualSubNavCell7210(UIView *v){
+// v7.211: keep Amazon-authored Home visual-category chip ink intact and only
+// replace bright/white chip containers with the established medium gray. Colored
+// authored chips remain untouched; no text/tint/icon inversion is performed.
+static UIView *ADHomeVisualSubNavCell7211(UIView *v){
     if(!v)return nil;
     @try {
         for(UIView *n=v;n;n=n.superview){
@@ -1871,31 +1868,17 @@ static UIView *ADHomeVisualSubNavCell7210(UIView *v){
     } @catch(...) {}
     return nil;
 }
-static void ADOwnHomeVisualSubNavCell7210(UIView *v){
+static void ADOwnHomeVisualSubNavCell7211(UIView *v){
     if(!gP.enabled||!v||!v.window)return;
-    UIView *cell=ADHomeVisualSubNavCell7210(v);
+    UIView *cell=ADHomeVisualSubNavCell7211(v);
     if(!cell)return;
     @try {
-        UIColor *black=ADOLED(), *light=ADLightText706();
-        cell.backgroundColor=black;
-        cell.layer.backgroundColor=black.CGColor;
-        cell.tintColor=light;
-        // Exact text-only chips have a tiny subtree. Reassert only text/control ink;
-        // do not touch image contents, masks, corner radius, sizing, or interaction.
-        NSMutableArray *q=[NSMutableArray arrayWithArray:cell.subviews?:@[]];
-        NSUInteger seen=0;
-        while(q.count && seen++<24){
-            UIView *x=q.firstObject; [q removeObjectAtIndex:0]; if(!x)continue;
-            if([x isKindOfClass:[UILabel class]])((UILabel *)x).textColor=light;
-            else if([x isKindOfClass:[UIButton class]]){
-                UIButton *b=(UIButton *)x;
-                [b setTitleColor:light forState:UIControlStateNormal];
-                [b setTitleColor:light forState:UIControlStateHighlighted];
-                [b setTitleColor:light forState:UIControlStateSelected];
-            }
-            x.tintColor=light;
-            if(q.count<24 && x.subviews.count)[q addObjectsFromArray:x.subviews];
-        }
+        UIColor *candidate=cell.backgroundColor;
+        if(!candidate && cell.layer.backgroundColor)candidate=[UIColor colorWithCGColor:cell.layer.backgroundColor];
+        if(!ADBrightNeutral7130(candidate))return;
+        UIColor *fill=[UIColor colorWithRed:74.0/255.0 green:79.0/255.0 blue:81.0/255.0 alpha:1.0]; // #4a4f51
+        cell.backgroundColor=fill;
+        cell.layer.backgroundColor=fill.CGColor;
     } @catch(...) {}
 }
 static BOOL ADCompactSearchSubNavView7139(UIView *v){
@@ -2033,7 +2016,7 @@ static void ADOwnSearchPackard7206(UIView *v);
     // v7.154: WKWebView/WKScrollView/WKContentView have exact owners above. Do not
     // run generic UIKit floor heuristics on WebKit's large compositing-view tree.
     if(ADWebKitInternalView7154(self))return;
-    if(gP.enabled && ADInAuthoredVisualSubNav7175(self)){ ADOwnHomeVisualSubNavCell7210(self); return; }
+    if(gP.enabled && ADInAuthoredVisualSubNav7175(self)){ ADOwnHomeVisualSubNavCell7211(self); return; }
     if(gP.enabled && self.window && ADInMarkedSearchDeliveryBand7139(self) && ![self isKindOfClass:[UIImageView class]]){
         UIColor *black=ADOLED(); self.backgroundColor=black; self.layer.backgroundColor=black.CGColor;
         return;
@@ -2075,10 +2058,10 @@ static void ADOwnSearchPackard7206(UIView *v);
         return;
     }
     if(gP.enabled && ADInAuthoredVisualSubNav7175(self)){
-        if(ADClassNameIs7183(self,"ANXVisualSubNavTextCollectionViewCell")){
-            UIColor *black=ADOLED();
-            %orig(black);
-            self.layer.backgroundColor=black.CGColor;
+        if(ADClassNameIs7183(self,"ANXVisualSubNavTextCollectionViewCell") && ADBrightNeutral7130(color)){
+            UIColor *fill=[UIColor colorWithRed:74.0/255.0 green:79.0/255.0 blue:81.0/255.0 alpha:1.0]; // #4a4f51
+            %orig(fill);
+            self.layer.backgroundColor=fill.CGColor;
         } else {
             %orig(color);
         }
@@ -3835,11 +3818,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 %hook UILabel
 - (void)setAttributedText:(NSAttributedString *)attributedText {
     if(gP.enabled && ADInAuthoredVisualSubNav7175((UIView *)self)){
-        if(attributedText.length){
-            NSMutableAttributedString *m=[attributedText mutableCopy];
-            [m addAttribute:NSForegroundColorAttributeName value:ADLightText706() range:NSMakeRange(0,m.length)];
-            %orig(m);
-        } else %orig(attributedText);
+        %orig(attributedText);
         return;
     }
     if(gP.enabled && self.window && ADInPersonTab7206((UIView *)self)){
@@ -3863,8 +3842,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 }
 - (void)setTextColor:(UIColor *)color {
     if(gP.enabled && ADInAuthoredVisualSubNav7175((UIView *)self)){
-        UIColor *light=ADLightText706();
-        %orig(light);
+        %orig(color);
         return;
     }
     if(gP.enabled && self.window && ADInPersonTab7206((UIView *)self)){
@@ -3895,8 +3873,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 }
 - (void)didMoveToWindow {
     %orig;
-    if(!gP.enabled||!self.window)return;
-    if(ADInAuthoredVisualSubNav7175((UIView *)self)){ self.textColor=ADLightText706(); return; }
+    if(!gP.enabled||!self.window||ADInAuthoredVisualSubNav7175((UIView *)self))return;
     if(ADInPersonTab7206((UIView *)self)){ ADPersonOwnText7206((UIView *)self); return; }
     if(ADInLocationSheetContent7196((UIView *)self)){
         ADLocationSheetOwnText7196((UIView *)self);
@@ -3972,8 +3949,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 %hook UIButton
 - (void)setTitleColor:(UIColor *)color forState:(UIControlState)state {
     if(gP.enabled && ADInAuthoredVisualSubNav7175((UIView *)self)){
-        UIColor *light=ADLightText706();
-        %orig(light,state);
+        %orig(color,state);
         return;
     }
     if(gP.enabled){
@@ -4407,17 +4383,17 @@ static void ADOwnBottomBar708(UIView *v){
 }
 %end
 
-// v7.210 exact Home visual-category chip ownership. This is deliberately on the
-// cell class rather than the whole VisualSubNav controller: layout/reuse can rewrite
-// authored cell colors, so reassert on the cell's own existing lifecycle only.
+// v7.211 exact Home visual-category chip floor ownership. This is deliberately on
+// the cell class rather than the whole VisualSubNav controller: layout/reuse can
+// rewrite authored cell floors, so reassert only bright/white floors on lifecycle.
 %hook ANXVisualSubNavTextCollectionViewCell
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled&&self.window)ADOwnHomeVisualSubNavCell7210((UIView *)self);
+    if(gP.enabled&&((UIView *)self).window)ADOwnHomeVisualSubNavCell7211((UIView *)self);
 }
 - (void)layoutSubviews {
     %orig;
-    if(gP.enabled&&self.window)ADOwnHomeVisualSubNavCell7210((UIView *)self);
+    if(gP.enabled&&((UIView *)self).window)ADOwnHomeVisualSubNavCell7211((UIView *)self);
 }
 %end
 
@@ -4928,12 +4904,12 @@ static NSString *ADSearchResultsProbePath7139(NSUInteger run){
         fmt.timeZone=[NSTimeZone localTimeZone];
         fmt.dateFormat=@"yyyyMMdd-HHmmss-SSS";
         NSString *stamp=[fmt stringFromDate:[NSDate date]]?:@"unknown";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.210-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.211-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(docs.length)return [docs stringByAppendingPathComponent:name];
         return [NSTemporaryDirectory() stringByAppendingPathComponent:name];
     } @catch(...) {
-        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.210-dynamic-probe-r%lu.txt",(unsigned long)run]];
+        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.211-dynamic-probe-r%lu.txt",(unsigned long)run]];
     }
 }
 static void ADSearchResultsProbeAppend7139(NSString *p,NSString *s){
@@ -5086,7 +5062,7 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     NSUInteger run=++gADSearchResultsProbeRun7139;
     NSString *path=ADSearchResultsProbePath7139(run);
     NSString *runID=[NSString stringWithFormat:@"%@-pid%d-r%lu",[[path lastPathComponent] stringByDeletingPathExtension],getpid(),(unsigned long)run];
-    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.210 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== LOCATION LIFECYCLE RING v7.210 =====\n%@\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADLocationLifeDump7203(),ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
+    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.211 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== LOCATION LIFECYCLE RING v7.211 =====\n%@\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADLocationLifeDump7203(),ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(path,head);
     NSMutableArray *chosen=[NSMutableArray array];
     @try {
