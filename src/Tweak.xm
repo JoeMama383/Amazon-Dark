@@ -32,7 +32,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.202-location-root-firstpaint-probe"
+#define AD_VERSION "v7.203-location-lifecycle-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1909,10 +1909,18 @@ static inline BOOL ADWebKitInternalView7154(UIView *v){
 static BOOL ADLocationSheetFloor7196(UIView *v, UIColor *candidate);
 static void ADLocationSheetOwnText7196(UIView *v);
 static void ADPaintLocationSheetStable7196(UIView *outer);
+// v7.203 probe-only: bounded in-memory lifecycle ring for the location sheet.
+// This records exact native mount/color events before the screenshot trigger, so
+// the screenshot probe can reconstruct first-paint ordering without polling.
+static void ADLocationLifeInit7203(void);
+static void ADLocationLifeNote7203(NSString *tag, UIView *v, UIColor *candidate, NSInteger decision);
+static NSString *ADLocationLifeDump7203(void);
 
 %hook UIView
 - (void)didMoveToWindow {
     %orig;
+    if(gP.enabled && ADClassNameIs7183(self,"RNCEKVExternalKeyboardView"))
+        ADLocationLifeNote7203(@"UIView.didMoveToWindow/RNCEKV",self,self.backgroundColor,-1);
     // v7.154: WKWebView/WKScrollView/WKContentView have exact owners above. Do not
     // run generic UIKit floor heuristics on WebKit's large compositing-view tree.
     if(ADWebKitInternalView7154(self))return;
@@ -1947,6 +1955,7 @@ static void ADPaintLocationSheetStable7196(UIView *outer);
     if(gP.enabled && self.window && ADNativeFloorCandidate(self)) ADOwnNativeFloor(self);
 }
 - (void)setBackgroundColor:(UIColor *)color {
+    if(gP.enabled) ADLocationLifeNote7203(@"UIView.setBackgroundColor",self,color,-1);
     if(ADWebKitInternalView7154(self)){
         %orig(color);
         return;
@@ -2856,6 +2865,82 @@ static BOOL ADLocationRootActive7202(UIView *v, UIView **rootOut){
     if(rootOut)*rootOut=root;
     return YES;
 }
+
+// v7.203 probe-only lifecycle ring.  The heavy hierarchy dump remains screenshot-
+// triggered; this tiny ring only records exact candidate native events so we can
+// see what happened before the screenshot was taken.
+static NSMutableArray<NSString *> *gADLocationLife7203=nil;
+static CFAbsoluteTime gADLocationLifeStart7203=0;
+static BOOL gADLocCtorRNCEKV7203=NO,gADLocCtorRCTView7203=NO,gADLocCtorSNPRoot7203=NO;
+static const NSUInteger kADLocationLifeCap7203=384;
+static BOOL ADLocationLifeCandidate7203(UIView *v, UIColor *candidate){
+    if(!v)return NO;
+    const char *cn=object_getClassName(v); if(!cn)return NO;
+    @try {
+        CGRect b=v.bounds; CGFloat w=b.size.width,h=b.size.height;
+        if(strcmp(cn,"RNCEKVExternalKeyboardView")==0)
+            return (w>=118.0&&w<=165.0&&h>=108.0&&h<=155.0);
+        if(strcmp(cn,"RCTView")==0){
+            if(w>=118.0&&w<=165.0&&h>=108.0&&h<=155.0)return YES;
+            if(w>=400.0&&w<=440.0&&h>=10.0&&h<=470.0){
+                if(!candidate)return YES;
+                return ADColorBrightNeutral7196(candidate)||CGColorGetAlpha(candidate.CGColor)<0.05;
+            }
+        }
+        if(strcmp(cn,"RCTScrollView")==0)
+            return w>=350.0&&w<=430.0&&h>=100.0&&h<=470.0;
+        if(strcmp(cn,"SNPRootView")==0)return YES;
+    } @catch(...) {}
+    return NO;
+}
+static NSString *ADLocationLifeColor7203(UIColor *c){
+    if(!c)return @"nil";
+    @try { CGFloat r=0,g=0,b=0,a=0; if([c getRed:&r green:&g blue:&b alpha:&a])return [NSString stringWithFormat:@"%.3f,%.3f,%.3f,%.3f",r,g,b,a]; } @catch(...) {}
+    return @"other";
+}
+static NSString *ADLocationLifeChain7203(UIView *v){
+    if(!v)return @"";
+    NSMutableArray *a=[NSMutableArray array];
+    @try {
+        for(UIView *n=v;n&&a.count<8;n=n.superview){
+            const char *cn=object_getClassName(n); [a addObject:cn?[NSString stringWithUTF8String:cn]:@"?"];
+            if([n isKindOfClass:[UIWindow class]])break;
+        }
+    } @catch(...) {}
+    return [a componentsJoinedByString:@"<-"];
+}
+static void ADLocationLifeInit7203(void){
+    gADLocationLifeStart7203=CFAbsoluteTimeGetCurrent();
+    gADLocationLife7203=[NSMutableArray array];
+    gADLocCtorRNCEKV7203=objc_getClass("RNCEKVExternalKeyboardView")!=Nil;
+    gADLocCtorRCTView7203=objc_getClass("RCTView")!=Nil;
+    gADLocCtorSNPRoot7203=objc_getClass("SNPRootView")!=Nil;
+}
+static void ADLocationLifeNote7203(NSString *tag, UIView *v, UIColor *candidate, NSInteger decision){
+    if(!gADLocationLife7203||!tag||!ADLocationLifeCandidate7203(v,candidate))return;
+    @try {
+        UIView *root=ADLocationRootAny7202(v);
+        BOOL marked=root&&objc_getAssociatedObject(root,kADLocationRootFirstPaint7202)!=nil;
+        CGRect b=v.bounds,f=v.frame;
+        NSString *line=[NSString stringWithFormat:@"t=%.4f tag=%@ cls=%s b=(%.1f,%.1f) f=(%.1f,%.1f %.1fx%.1f) win=%d root=%d mark=%d color=%@ decision=%ld chain=%@",
+            CFAbsoluteTimeGetCurrent()-gADLocationLifeStart7203,tag,object_getClassName(v)?:"?",b.size.width,b.size.height,
+            f.origin.x,f.origin.y,f.size.width,f.size.height,v.window?1:0,root?1:0,marked?1:0,ADLocationLifeColor7203(candidate),(long)decision,ADLocationLifeChain7203(v)];
+        @synchronized(gADLocationLife7203){
+            if(gADLocationLife7203.count>=kADLocationLifeCap7203)[gADLocationLife7203 removeObjectAtIndex:0];
+            [gADLocationLife7203 addObject:line];
+        }
+    } @catch(...) {}
+}
+static NSString *ADLocationLifeDump7203(void){
+    @try {
+        BOOL rnNow=objc_getClass("RNCEKVExternalKeyboardView")!=Nil;
+        BOOL rvNow=objc_getClass("RCTView")!=Nil;
+        BOOL srNow=objc_getClass("SNPRootView")!=Nil;
+        NSArray *copy=nil; @synchronized(gADLocationLife7203){ copy=[gADLocationLife7203 copy]; }
+        return [NSString stringWithFormat:@"ctor_classes RNCEKV=%d RCTView=%d SNPRoot=%d\nnow_classes RNCEKV=%d RCTView=%d SNPRoot=%d\nevents=%lu\n%@\n",
+            gADLocCtorRNCEKV7203,gADLocCtorRCTView7203,gADLocCtorSNPRoot7203,rnNow,rvNow,srNow,(unsigned long)copy.count,[copy componentsJoinedByString:@"\n"]];
+    } @catch(...) { return @"location_lifecycle_dump_error\n"; }
+}
 static BOOL ADLocationEarlyCard7202(UIView *v){
     if(!v||!ADClassNameIs7183(v,"RCTView"))return NO;
     @try {
@@ -2933,21 +3018,27 @@ static void ADSetLocationBlack7202(UIView *v){
     } @catch(...) {}
 }
 static void ADPaintLocationRoot7202(UIView *root){
+    if(root)ADLocationLifeNote7203(@"ADPaintRoot.enter",root,root.backgroundColor,objc_getAssociatedObject(root,kADLocationRootFirstPaint7202)?1:0);
     if(!gP.enabled||!root||!objc_getAssociatedObject(root,kADLocationRootFirstPaint7202))return;
     @try {
         NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger seen=0;
         while(q.count&&seen++<512){
             UIView *x=q.firstObject; [q removeObjectAtIndex:0]; if(!x)continue;
-            if(ADLocationEarlyFloor7202(x))ADSetLocationBlack7202(x);
+            BOOL floor=ADLocationEarlyFloor7202(x);
+            if(floor){ ADLocationLifeNote7203(@"ADPaintRoot.floor",x,x.backgroundColor,1); ADSetLocationBlack7202(x); }
             ADLocationSheetOwnText7196(x);
             if(x.subviews.count)[q addObjectsFromArray:x.subviews];
         }
     } @catch(...) {}
 }
 static void ADPrimeLocationWrapper7202(UIView *wrapper){
+    if(wrapper)ADLocationLifeNote7203(@"ADPrime.enter",wrapper,wrapper.backgroundColor,-1);
     if(!gP.enabled||!wrapper)return;
-    UIView *root=nil; if(!ADLocationEarlyWrapper7202(wrapper,&root)||!root)return;
+    UIView *root=nil; BOOL ok=ADLocationEarlyWrapper7202(wrapper,&root);
+    ADLocationLifeNote7203(ok?@"ADPrime.accept":@"ADPrime.reject",wrapper,wrapper.backgroundColor,ok?1:0);
+    if(!ok||!root)return;
     objc_setAssociatedObject(root,kADLocationRootFirstPaint7202,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    ADLocationLifeNote7203(@"ADPrime.markRoot",wrapper,wrapper.backgroundColor,1);
     @try {
         NSMutableArray *q=[NSMutableArray arrayWithObject:wrapper]; NSUInteger seen=0;
         while(q.count&&seen++<64){
@@ -3202,6 +3293,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 %hook RCTView
 - (void)didMoveToSuperview {
     %orig;
+    ADLocationLifeNote7203(@"RCTView.didMoveToSuperview",(UIView *)self,self.backgroundColor,-1);
     if(gP.enabled){
         ADOwnLocationSheetFloor7196((UIView *)self);
         ADLocationSheetOwnText7196((UIView *)self);
@@ -3209,6 +3301,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 }
 - (void)didMoveToWindow {
     %orig;
+    ADLocationLifeNote7203(@"RCTView.didMoveToWindow",(UIView *)self,self.backgroundColor,-1);
     if(gP.enabled&&self.window){
         ADOwnLocationSheetFloor7196((UIView *)self);
         ADLocationSheetOwnText7196((UIView *)self);
@@ -3216,6 +3309,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 }
 - (void)layoutSubviews {
     %orig;
+    ADLocationLifeNote7203(@"RCTView.layoutSubviews",(UIView *)self,self.backgroundColor,-1);
     // React applies the address-card/sheet colors after mount when final geometry is known.
     // Final-layout ownership keeps the exact location-sheet floors stable after React paints.
     if(gP.enabled&&self.window){
@@ -3224,7 +3318,9 @@ static void ADDarkenReactCardNearText708(UIView *textView){
     }
 }
 - (void)setBackgroundColor:(UIColor *)color {
-    if(gP.enabled&&ADLocationSheetFloor7196((UIView *)self,color)){
+    BOOL adLocDecision=gP.enabled&&ADLocationSheetFloor7196((UIView *)self,color);
+    ADLocationLifeNote7203(@"RCTView.setBackgroundColor",(UIView *)self,color,adLocDecision?1:0);
+    if(adLocDecision){
         UIColor *black=ADOLED();
         %orig(black);
         self.layer.backgroundColor=black.CGColor;
@@ -3237,22 +3333,27 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 %hook RNCEKVExternalKeyboardView
 - (void)didMoveToSuperview {
     %orig;
+    ADLocationLifeNote7203(@"RNCEKV.LOGOS.didMoveToSuperview",(UIView *)self,self.backgroundColor,-1);
     ADPrimeLocationWrapper7202((UIView *)self);
 }
 - (void)didMoveToWindow {
     %orig;
+    ADLocationLifeNote7203(@"RNCEKV.LOGOS.didMoveToWindow",(UIView *)self,self.backgroundColor,-1);
     ADPrimeLocationWrapper7202((UIView *)self);
 }
 - (void)setFrame:(CGRect)frame {
     %orig(frame);
+    ADLocationLifeNote7203(@"RNCEKV.LOGOS.setFrame",(UIView *)self,self.backgroundColor,-1);
     ADPrimeLocationWrapper7202((UIView *)self);
 }
 - (void)layoutSubviews {
     %orig;
+    ADLocationLifeNote7203(@"RNCEKV.LOGOS.layoutSubviews",(UIView *)self,self.backgroundColor,-1);
     ADPrimeLocationWrapper7202((UIView *)self);
 }
 - (void)didAddSubview:(UIView *)subview {
     %orig(subview);
+    ADLocationLifeNote7203(@"RNCEKV.LOGOS.didAddSubview",(UIView *)self,self.backgroundColor,-1);
     ADPrimeLocationWrapper7202((UIView *)self);
 }
 %end
@@ -4372,12 +4473,12 @@ static NSString *ADSearchResultsProbePath7139(NSUInteger run){
         fmt.timeZone=[NSTimeZone localTimeZone];
         fmt.dateFormat=@"yyyyMMdd-HHmmss-SSS";
         NSString *stamp=[fmt stringFromDate:[NSDate date]]?:@"unknown";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.202-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.203-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(docs.length)return [docs stringByAppendingPathComponent:name];
         return [NSTemporaryDirectory() stringByAppendingPathComponent:name];
     } @catch(...) {
-        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.202-dynamic-probe-r%lu.txt",(unsigned long)run]];
+        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.203-dynamic-probe-r%lu.txt",(unsigned long)run]];
     }
 }
 static void ADSearchResultsProbeAppend7139(NSString *p,NSString *s){
@@ -4530,7 +4631,7 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     NSUInteger run=++gADSearchResultsProbeRun7139;
     NSString *path=ADSearchResultsProbePath7139(run);
     NSString *runID=[NSString stringWithFormat:@"%@-pid%d-r%lu",[[path lastPathComponent] stringByDeletingPathExtension],getpid(),(unsigned long)run];
-    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.202 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
+    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.203 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== LOCATION LIFECYCLE RING v7.203 =====\n%@\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADLocationLifeDump7203(),ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(path,head);
     NSMutableArray *chosen=[NSMutableArray array];
     @try {
@@ -4607,6 +4708,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 %ctor {
     if(strcmp(__progname,"Amazon")!=0)return;
     ADLoadPrefs();
+    ADLocationLifeInit7203();
 
     // v6.0.185 launch-transition behavior: discard stale light SplashBoard snapshots.
     @try {
