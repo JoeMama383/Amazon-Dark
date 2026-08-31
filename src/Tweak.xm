@@ -32,7 +32,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.203-location-lifecycle-probe"
+#define AD_VERSION "v7.204-location-structural-prime-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1909,7 +1909,7 @@ static inline BOOL ADWebKitInternalView7154(UIView *v){
 static BOOL ADLocationSheetFloor7196(UIView *v, UIColor *candidate);
 static void ADLocationSheetOwnText7196(UIView *v);
 static void ADPaintLocationSheetStable7196(UIView *outer);
-// v7.203 probe-only: bounded in-memory lifecycle ring for the location sheet.
+// v7.204 probe-only: bounded in-memory lifecycle ring for the location sheet.
 // This records exact native mount/color events before the screenshot trigger, so
 // the screenshot probe can reconstruct first-paint ordering without polling.
 static void ADLocationLifeInit7203(void);
@@ -2844,17 +2844,23 @@ static BOOL ADLocationEarlyWrapper7202(UIView *v, UIView **rootOut){
     @try {
         CGRect b=v.bounds;
         if(b.size.width<118.0||b.size.width>165.0||b.size.height<108.0||b.size.height>155.0)return NO;
-        BOOL content=NO,cardScroll=NO; UIView *root=nil;
+
+        // v7.204: do not require the card RCTScrollView to have its final 130pt
+        // height before accepting the wrapper.  The lifecycle probe proved the
+        // exact wrapper mounts ~20ms before that ancestor receives final layout,
+        // so the old 100..180pt height gate rejected every valid first-paint event.
+        // Qualify by the stable React hierarchy instead:
+        // RNCEKV -> cell RCTView -> RCTScrollContentView -> RCTCustomScrollView
+        // -> RCTScrollView -> ... -> full-screen SNPRootView.
+        NSInteger stage=0; BOOL cardScrollStructure=NO; UIView *root=nil;
         for(UIView *n=v.superview;n;n=n.superview){
-            if(ADClassNameIs7183(n,"RCTScrollContentView"))content=YES;
-            if(ADClassNameIs7183(n,"RCTScrollView")){
-                CGRect nb=n.bounds;
-                if(nb.size.width>=350.0&&nb.size.width<=430.0&&nb.size.height>=100.0&&nb.size.height<=180.0)cardScroll=YES;
-            }
+            if(stage==0 && ADClassNameIs7183(n,"RCTScrollContentView")){ stage=1; continue; }
+            if(stage==1 && ADClassNameIs7183(n,"RCTCustomScrollView")){ stage=2; continue; }
+            if(stage==2 && ADClassNameIs7183(n,"RCTScrollView")){ stage=3; cardScrollStructure=YES; }
             if(ADClassNameIs7183(n,"SNPRootView")){ root=ADLocationRootAny7202(n); break; }
             if([n isKindOfClass:[UIWindow class]])break;
         }
-        if(root&&content&&cardScroll){ if(rootOut)*rootOut=root; return YES; }
+        if(root&&cardScrollStructure){ if(rootOut)*rootOut=root; return YES; }
     } @catch(...) {}
     return NO;
 }
@@ -2866,7 +2872,7 @@ static BOOL ADLocationRootActive7202(UIView *v, UIView **rootOut){
     return YES;
 }
 
-// v7.203 probe-only lifecycle ring.  The heavy hierarchy dump remains screenshot-
+// v7.204 lifecycle verification ring.  The heavy hierarchy dump remains screenshot-
 // triggered; this tiny ring only records exact candidate native events so we can
 // see what happened before the screenshot was taken.
 static NSMutableArray<NSString *> *gADLocationLife7203=nil;
@@ -4473,12 +4479,12 @@ static NSString *ADSearchResultsProbePath7139(NSUInteger run){
         fmt.timeZone=[NSTimeZone localTimeZone];
         fmt.dateFormat=@"yyyyMMdd-HHmmss-SSS";
         NSString *stamp=[fmt stringFromDate:[NSDate date]]?:@"unknown";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.203-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.204-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(docs.length)return [docs stringByAppendingPathComponent:name];
         return [NSTemporaryDirectory() stringByAppendingPathComponent:name];
     } @catch(...) {
-        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.203-dynamic-probe-r%lu.txt",(unsigned long)run]];
+        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.204-dynamic-probe-r%lu.txt",(unsigned long)run]];
     }
 }
 static void ADSearchResultsProbeAppend7139(NSString *p,NSString *s){
@@ -4631,7 +4637,7 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     NSUInteger run=++gADSearchResultsProbeRun7139;
     NSString *path=ADSearchResultsProbePath7139(run);
     NSString *runID=[NSString stringWithFormat:@"%@-pid%d-r%lu",[[path lastPathComponent] stringByDeletingPathExtension],getpid(),(unsigned long)run];
-    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.203 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== LOCATION LIFECYCLE RING v7.203 =====\n%@\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADLocationLifeDump7203(),ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
+    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.204 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== LOCATION LIFECYCLE RING v7.204 =====\n%@\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADLocationLifeDump7203(),ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(path,head);
     NSMutableArray *chosen=[NSMutableArray array];
     @try {
