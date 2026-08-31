@@ -32,7 +32,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.205-location-presentation-floor-probe"
+#define AD_VERSION "v7.207-video-twb-location-hardening-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -633,7 +633,7 @@ static NSString *ADFloorJS(void){
         @"ss-pill-button :is(span,div){color:#fff!important;-webkit-text-fill-color:#fff!important;}"
         // v7.175 r3: current Amazon Haul renderer. Preserve its authored animated background image
         // so the emoji/art remains stock; replace only the purple base and white structural planes.
-        @"#search#search .haul-asin-recommendation-styled-widget-container-override,#search#search .haul-asin-recommendation-styled-widget-container{background-color:#000!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}#search#search :is(.haul-asin-recommendation-styled-header-container,.haul-asin-recommendation-styled-subtitle,.haul-asin-recommendation-styled-carousel-container,.haul-puis-image-container,.haul-puis-product-info,.haul-puis-widget-product-info-container){background:#000!important;background-color:#000!important;background-image:none!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}"
+        @"#search#search .haul-asin-recommendation-styled-widget-container-override,#search#search .haul-asin-recommendation-styled-widget-container{background-color:#000!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}#search#search :is(.haul-asin-recommendation-styled-header-container,.haul-asin-recommendation-styled-subtitle,.haul-asin-recommendation-styled-carousel-container,.haul-puis-product-info,.haul-puis-widget-product-info-container){background:#000!important;background-color:#000!important;background-image:none!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}#search#search .haul-puis-image-container{background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}"
         @"#search#search .haul-puis-widget-faceout-container{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}#search#search .haul-puis-widget-faceout-container > :not(.haul-puis-widget-action-button){border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}"
         @"#search#search :is(.haul-asin-recommendation-styled-widget-container-override,.haul-asin-recommendation-styled-widget-container) :is(h1,h2,h3,h4,h5,h6,p,a,span,div):not(.haul-puis-image-container){color:#fff!important;-webkit-text-fill-color:#fff!important;}"
         // Same Add-to-cart palette as normal product cards; Amazon keeps geometry and radius.
@@ -651,10 +651,10 @@ static NSString *ADFloorJS(void){
         @"d_video_17g-f){color-scheme:light!important;accent-color:auto!important;filter:none!important;-webkit-filter:none!important;}#search#search :is(.sbv-video-pause-button-container,.s"
         @"bv-video-mute-button-container,.sbv-mobile-video-play-click-region,._c2Itd_playClickRegion_87ZZa){background-color:transparent!important;border-color:transparent!important;outline-"
         @"color:transparent!important;box-shadow:none!important;filter:none!important;-webkit-filter:none!important;}#search#search .puis-card-container.mobile-video-product-view.puis-card-b"
-        @"order{background:#000!important;background-color:#000!important;border:1px solid #494d4d!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!im"
+        @"order{background-color:#000!important;border:1px solid #494d4d!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!im"
         @"portant;}#search#search .sbv-video-single-product .sbv-product-container,#search#search .sbv-video-single-product .sbv-product-container :is(.puisg-row,.puisg-col,.puisg-col-inner,"
         @".faceout-product-title,.faceout-product-review,.faceout-product-price,.puis-delivery-recipe,.udm-delivery-block){background-color:#000!important;border-color:#494d4d!important;outl"
-        @"ine-color:#494d4d!important;box-shadow:none!important;}#search#search ._c2Itd_container_ut_MN.sb-video-creative{background:#000!important;background-color:#000!important;border:1px"
+        @"ine-color:#494d4d!important;box-shadow:none!important;}#search#search ._c2Itd_container_ut_MN.sb-video-creative{background-color:#000!important;border:1px"
         @" solid #494d4d!important;border-color:#494d4d!important;border-radius:4px!important;outline-color:#494d4d!important;box-shadow:none!important;overflow:hidden!important;}#search#sea"
         @"rch ._c2Itd_cardContent_3OGkG.sbv-ad-content-container,#search#search ._c2Itd_content_2L-a5,#search#search ._c2Itd_singleAsin_fHkKv{background:#000!important;background-color:#000!"
         @"important;background-image:none!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}#search#search ._c2Itd_singleAsin_fHkKv{border:1"
@@ -731,7 +731,7 @@ static NSString *ADFloorJS(void){
         // Explore-key-features / multi-brand ad: own both the hashed module and the enclosing Search widget.
         // This closes the outer white plane that v7.169 missed. Raster media and blue sparkle/icon art are
         // explicitly released; only neutral floors/copy and the established Sponsored lane are themed.
-        @"#search#search :is(.s-widget-container,.celwidget):has([class*=_bXVsd_]),#search#search :is(div,section,article):has(> [class*=_bXVsd_]),#search#search :is(div,section,article):has(> * > [class*=_bXVsd_]){background:#000!important;background-color:#000!important;background-image:none!important;border-color:#494d4d!important;box-shadow:none!important;}#search#search [class*=_bXVsd_]:is(div,section,article,main,header,footer,ul,ol,li),#search#search [class*=_bXVsd_] :is(div,section,article,main,header,footer,ul,ol,li,.a-carousel-card,.a-box,.a-box-inner){background:#000!important;background-color:#000!important;background-image:none!important;border-color:#494d4d!important;box-shadow:none!important;}"
+        @"#search#search :is(.s-widget-container,.celwidget):has([class*=_bXVsd_]),#search#search :is(div,section,article):has(> [class*=_bXVsd_]),#search#search :is(div,section,article):has(> * > [class*=_bXVsd_]){background-color:#000!important;border-color:#494d4d!important;box-shadow:none!important;}#search#search [class*=_bXVsd_]:is(div,section,article,main,header,footer,ul,ol,li),#search#search [class*=_bXVsd_] :is(div,section,article,main,header,footer,ul,ol,li,.a-carousel-card,.a-box,.a-box-inner){background-color:#000!important;border-color:#494d4d!important;box-shadow:none!important;}"
         @"#search#search :is(.s-widget-container,.celwidget):has([class*=_bXVsd_]) :is(h1,h2,h3,h4,h5,h6,p,a,strong,small,b,em,label,.a-color-base,.a-color-secondary,.a-text-normal,.a-size-base,.a-size-small,.a-size-medium,span):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([class*=icon]):not([class*=star]):not([class*=sparkle]):not(:where([class*=icon] *)):not(:where([class*=star] *)):not(:where([class*=sparkle] *)){color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search :is(.s-widget-container,.celwidget):has([class*=_bXVsd_]) :is(svg,i,[class*=icon],[class*=star],[class*=sparkle]){filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;}"
         @"#search#search :is(.s-widget-container,.celwidget):has([class*=_bXVsd_]) :is([data-ad-feedback-label-id],[class*=ad-feedback],[class*=adFeedback],[id^=ad-feedback-text-],[id^=af-label-primary-link-]){background:transparent!important;background-color:transparent!important;background-image:none!important;color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}#search#search :is(.s-widget-container,.celwidget):has([class*=_bXVsd_]) [data-ad-feedback-label-id] b[class*=ad-feedback-sprite]{color:#b1aaa0!important;background-color:#b1aaa0!important;background-image:none!important;-webkit-mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;mask-image:url(https://m.media-amazon.com/images/G/01/ad-feedback/new_info_icon_3x.png)!important;-webkit-mask-size:contain!important;mask-size:contain!important;-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;-webkit-mask-position:center!important;mask-position:center!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;}"
 
@@ -750,7 +750,7 @@ static NSString *ADFloorJS(void){
         @"#search#search .s-sbs-widget :is(h1,h2,h3,h4,h5,h6,p,span,a,label,strong,b,em,small,div,button):not([class*=a-icon]){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
         @"#search#search .s-sbs-widget :is(.sbs-pill,.sbs-tag-pill,.sbs-refinement-pill,.sbs-reset-filters){background:#202324!important;background-color:#202324!important;background-image:none!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
         @"#search#search .s-sbs-widget :is(.sbs-pill,.sbs-tag-pill,.sbs-refinement-pill).sbs-pill--selected{background:#30383a!important;background-color:#30383a!important;border-color:#6f979d!important;outline-color:#6f979d!important;}"
-        @"#search#search .s-sbs-widget .sbs-pill-image-container{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#494d4d!important;box-shadow:none!important;}"
+        @"#search#search .s-sbs-widget .sbs-pill-image-container{background-color:#000!important;border-color:#494d4d!important;box-shadow:none!important;}"
         @"#search#search .s-sbs-widget img.sbs-pill-image{background:transparent!important;background-color:transparent!important;filter:invert(1)!important;-webkit-filter:invert(1)!important;opacity:1!important;mix-blend-mode:normal!important;}"
         @"#search#search :is(.sbs-refinement-bin,.sbs-refinement-bin-grid){color-scheme:dark!important;scrollbar-width:auto!important;-webkit-overflow-scrolling:touch!important;}"
         @".puis-mab-chevron :is(i.a-icon-dropdown,.a-icon.a-icon-dropdown),.puis-mab-chevron-glyph "
@@ -767,7 +767,7 @@ static NSString *ADFloorJS(void){
         @"ound:transparent!important;background-color:transparent!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#search .puis-ad-feedback-info-icon{color:#b1aaa0!imp"
         @"ortant;-webkit-text-fill-color:#b1aaa0!important;background-color:transparent!important;}#search .puis-ad-feedback-info-icon b[class*=\\\"ad-feedback-sprite\\\"]{color:#b1aaa0!importan"
         @"t;background-color:#b1aaa0!important;filter:none!important;-webkit-filter:none!important;}#search>div,#search>section,#search>article,#search .s-main-slot>div,#search .s-main-slot>"
-        @"section,#search .s-main-slot>article{background-color:#000!important;background-image:none!important;box-shadow:none!important;}#search :is(div,section,article)[class*=rufus],#sear"
+        @"section,#search .s-main-slot>article{background-color:#000!important;box-shadow:none!important;}#search :is(div,section,article)[class*=rufus],#sear"
         @"ch :is(div,section,article)[id*=rufus],#search :is(div,section,article)[class*=alexa],#search :is(div,section,article)[id*=alexa],#search :is(div,section,article)[class*=research],"
         @"#search :is(div,section,article)[id*=research]{background:#000!important;background-color:#000!important;border-color:#494d4d!important;box-shadow:none!important;color:#e8e6e3!impo"
         @"rtant;-webkit-text-fill-color:#e8e6e3!important;}#search .sf-rib30-panel .a-button,#search .sf-rib30-panel .a-button-inner,#search .sf-rib30-panel button{background:#202324!importa"
@@ -775,8 +775,8 @@ static NSString *ADFloorJS(void){
         @"e3!important;}#search .sf-rib30-panel .a-button-text{background:transparent!important;background-color:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3"
         @"!important;}#search .a-badge[data-a-badge-type=\\\"deal\\\"],#search .a-badge[data-a-badge-type=\\\"deal\\\"] *,#search .a-badge[id^=DEAL_],#search .a-badge[id^=DEAL_] *{color:#fff!importa"
         @"nt;-webkit-text-fill-color:#fff!important;}#search .mlt-icon-container :is(img,svg,i,[class*=glyph],[class*=icon]){color:#0f1111!important;fill:#0f1111!important;stroke:#0f1111!imp"
-        @"ortant;filter:brightness(0)!important;-webkit-filter:brightness(0)!important;opacity:1!important;mix-blend-mode:normal!important;}#search .scx-stt-image-container{background:#000!i"
-        @"mportant;background-color:#000!important;background-image:none!important;box-shadow:none!important;}#search img.scx-stt-image{background-color:transparent!important;mix-blend-mode:"
+        @"ortant;filter:brightness(0)!important;-webkit-filter:brightness(0)!important;opacity:1!important;mix-blend-mode:normal!important;}#search .scx-stt-image-container{background-color:#000!i"
+        @"mportant;box-shadow:none!important;}#search img.scx-stt-image{background-color:transparent!important;mix-blend-mode:"
         @"normal!important;}#search [class^=\\\"scx-stt-\\\"]:not(img),#search [class*=\\\" scx-stt-\\\"]:not(img){color:#fff!important;-webkit-text-fill-color:#fff!important;}\");}else{s=put('ad7-me"
         @"nu-theme',\"html,body,#a-page,#gwm-PageContent,#dp,main,[role=main],#cart-page,#sc-active-cart,#sc-saved-cart{background:#000!important;background-color:#000!important;}.s-main-slot"
         @",#sc-active-cart .sc-list-item,#sc-saved-cart .sc-list-item,[class*=sc-][class*=content],[class*=sc-][class*=container],#dp [class*=a-box],#dp [class*=a-expander],#dp [class*=celwi"
@@ -1174,15 +1174,15 @@ static NSString *ADTWBJS(void){
     CGFloat factor=1.0-shade;
     NSString *built=[NSString stringWithFormat:
         @"(function(){try{var host='';try{host=String(location.hostname||'').toLowerCase();}catch(_){}if(host==='flashtalking.com'||/\\.flashtalking\\.com$/.test(host))return;var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement)document.documentElement.setAttribute('data-ad7-twb-child','1');if(child&&document.documentElement&&document.documentElement.hasAttribute('data-ad7-standalone-candidate'))return;function put(id,css){var s=document.getElementById(id);if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}s.textContent=css;return s;}function relink(s){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}if(child){put('ad7-twb-child-min',\"html[data-ad7-twb-child=\\\"1\\\"] :is(img,video,canvas):not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([class"
-        @"*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)){filter:brightness(%.3f)!important;}\");return;}var p='';try{p=String(location.pathname||'');}catch(_){}var s=null;if(p==='/autocomplete'||p.indexOf('/autocomplete/')===0){s=put('ad7-search-pane-twb',\"img.ufs_tiles_card_widget-sug-image,img.s-entity-pd-carousel-tile-element-image,#attach-to-me img.s-image,#attach-to-me img.s-product-image,.s-suggestion-container img.s-image,.s-suggestion-container img.s-product-image{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}\");}else if(p==='/s'||p.indexOf('/s/')===0){s=put('ad7-product-feed-twb',\"#search img.scx-stt-image,#search img._c2Itd_image_3UiYm,#search img._bXVsd_image_iVomf,#search img._bXVsd_lifestyleImage_1fluW,#search img.s-image,#search img.s-product-image,#search [data-component-type=s-product-image] img,#search img.ufs_tiles_card_widget-sug-image,#search img.nice-cat-card_image,#search img.haul-puis-portrait-img,#search img._c2Itd_image_pQREQ{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}#search video.sbv-video-player-ecx,#search video._"
-        @"c2Itd_video_17g-f{filter:none!important;-webkit-filter:none!important;}#search .sbv-video-overlay{background-color:rgba(0,0,0,%.3f)!important;}#search ._c2Itd_videoOverlay_1H_Jm{background-color:rgba(0,0,0,%.3f)!important;}\");}else{s=put('ad7-menu-twb',\".ape-placement.is-image-oo[style*=\\\"aspect-ratio: 300 / 250\\\"]>iframe,[id^=ape_gateway_dynamic-][id$=_mshop_placement].is-image-oo[style*=\\\"aspect-ratio: 300 / 250\\\"]>iframe{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}img.ufs_tiles_card_widget-sug-image,img.s-image,img.s-product-image,#landingImage,#imgBlkFront,#imgTagWrapperId img,img[data-a-dynamic-image],img.a-dynamic-image,[data-component-type=s-product-image] img,[class*=product-image] img,[class*=asin-image] img,.p13n-sc-uncoverable-faceout img,[data-asin] img.s-image,[data-csa-c-asin] img.s-image,:is(#gwm-Deck-btf,.gwm-dashboard-container) :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) img:not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store]):not([class*=rating]):not([class*=star]):not([class*=sprite]):not([class*=pixel]):not([class*=icon]):not([class*=glyph]):not([class*"
+        @"*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)){filter:brightness(%.3f)!important;}\");return;}var p='';try{p=String(location.pathname||'');}catch(_){}var s=null;if(p==='/autocomplete'||p.indexOf('/autocomplete/')===0){s=put('ad7-search-pane-twb',\"img.ufs_tiles_card_widget-sug-image,img.s-entity-pd-carousel-tile-element-image,#attach-to-me img.s-image,#attach-to-me img.s-product-image,.s-suggestion-container img.s-image,.s-suggestion-container img.s-product-image{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}\");}else if(p==='/s'||p.indexOf('/s/')===0){s=put('ad7-product-feed-twb',\"#search img.scx-stt-image,#search img._c2Itd_image_3UiYm,#search [class*=_bXVsd_image_],#search [class*=_bXVsd_lifestyleImage_],#search [class*=_bXVsd_lifestyleimage_],#search img.s-image,#search img.s-product-image,#search [data-component-type=s-product-image] img,#search img.ufs_tiles_card_widget-sug-image,#search img.nice-cat-card_image,#search img.haul-puis-portrait-img,#search img._c2Itd_image_pQREQ{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}#search video.sbv-video-player-ecx,#search video._"
+        @"c2Itd_video_17g-f{filter:none!important;-webkit-filter:none!important;}#search .sbv-video-overlay{background-color:rgba(0,0,0,%.3f)!important;}#search ._c2Itd_videoOverlay_1H_Jm{background-color:rgba(0,0,0,%.3f)!important;}#search .s-widget-container[class*=\\\"template=FEATURED_ASINS_VIDEO_LIST\\\"] video[class*=_video_1m98b_]{filter:none!important;-webkit-filter:none!important;}#search .s-widget-container[class*=\\\"template=FEATURED_ASINS_VIDEO_LIST\\\"] [class*=_videoOverlay_1m98b_]{background-color:rgba(0,0,0,%.3f)!important;}\");}else{s=put('ad7-menu-twb',\".ape-placement.is-image-oo[style*=\\\"aspect-ratio: 300 / 250\\\"]>iframe,[id^=ape_gateway_dynamic-][id$=_mshop_placement].is-image-oo[style*=\\\"aspect-ratio: 300 / 250\\\"]>iframe{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}img.ufs_tiles_card_widget-sug-image,img.s-image,img.s-product-image,#landingImage,#imgBlkFront,#imgTagWrapperId img,img[data-a-dynamic-image],img.a-dynamic-image,[data-component-type=s-product-image] img,[class*=product-image] img,[class*=asin-image] img,.p13n-sc-uncoverable-faceout img,[data-asin] img.s-image,[data-csa-c-asin] img.s-image,:is(#gwm-Deck-btf,.gwm-dashboard-container) :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) img:not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store]):not([class*=rating]):not([class*=star]):not([class*=sprite]):not([class*=pixel]):not([class*=icon]):not([class*=glyph]):not([class*"
         @"=badge]):not([class*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=search-icon]):not([class*=microphone]):not([class*=camera]):not([class*=location]):not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon]):not([class*=header-icon]):not([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr]):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),html[data-ad7-twb-child=\\\"1\\\"]:not([data-ad7-standalone-candidate]) :is(img,video,canvas):not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=rating]):not([class*=star]):not([class*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=search-icon]):not([class*=microphone]):not([class*=camera]):not([class*=location]):not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon]):not([class*=header-icon]):not"
         @"([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr]):not([class*=sprite]):not([class*=pixel]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),html[data-ad7-standalone-candidate] :is([data-testid*=product-picture],[data-testid*=product-image],[data-testid*=asin-image]) :is(img,video,canvas):not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([data-testid=ratings-stars] *)):not(:where([data-testid=prime-badge] *)),html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] :is([data-testid=image],[data-acei-id=lfstyl-img]) :is(img,video,canvas):not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge]),html[data-ad7-standalone-candidate] #ad:has(#dynamic-bb) :is([data-acei-id=lfstyl-img],[data-acei-id=prod-img]) :is(img,vid"
         @"eo,canvas),html[data-ad7-standalone-candidate] #ad:has(#dynamic-bb) :is(img,video,canvas):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=badge]):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=ad-feedback] *)),html[data-ad7-standalone-candidate] [data-acei-id=brnd-logo] img,html[data-ad7-standalone-candidate] [data-testid=logo] img[alt=\\\"Brand logo\\\"],html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\\\"300x250\\\"] .swiper-slide [data-testid=pictureHighQuality],#gwm-Deck-btf :is([class*=mobile-mshop-ad],[class*=mobile-ad-container],[class*=ape-wrapper],[class*=ape-placement]) :is(img,video,canvas):not([class*=logo]):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([class*=logo] *)):not(:whe"
         @"re([class*=prime] *)):not(:where([class*=rating] *)):not(:where([class*=star] *)):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),[class*=hp-mosaic-container] :is(img,svg):not([class*=next]):not([class*=prev]):not([class*=chevron]):not([class*=arrow]):not(:where([class*=next] *)):not(:where([class*=prev] *)):not(:where([class*=chevron] *)):not(:where([class*=arrow] *)):not([class*=header-icon]):not([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr]),[class*=_mosaic-container_style_widgetContainer] :is(img,svg):not([class*=next]):not([class*=prev]):not([class*=chevron]):not([class*=arrow]):not(:where([class*=next] *)):not(:where([class*=prev] *)):not(:where([class*=chevron] *)):not(:where([class*=arrow] *)):not([class*=header-icon]):not([class*=ad-feedback]):not([class*=sp"
         @"onsored]):not([class*=spr]),#gwm-window [id^=wd-shoppable-] :is(img,video,canvas):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=logo]):not([class*=badge]):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=ad-feedback] *)),img[class*=_single-creative-card],img[class*=_single-video-card],[class*=single-creative-card] img,[class*=single-video-card] img,[class*=single-video-card] video,[class*=canvas-card] canvas,video.vjs-tech,video[class*=_npack-asin-card_style_background-video__],[class*=_npack-asin-card_style_background-video-container__] > video[class*=_npack-asin-card_style_motion-content__]{filter:brightness(%.3f)!important;}:is([class*=theming-card-background],[class*=_npack-asin-card_style_theming-background-override__]) [class*=_npack-asin-card_style_asin-container-white__]{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;transition"
         @"-property:none!important;}[class*=theming-card-background],[class*=vjs-poster],[class*=single-creative-card-background],[class*=single-video-card-background],[class*=single-creative-card] [class*=theming-card-background],[class*=single-video-card] [class*=theming-card-background],[class*=single-video-card] [class*=vjs-poster],:is([class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=_npack-asin-card],[class*=npack-asin-card],[class*=canvas-card],[class*=canvas-container]):is([style*=background-image],[style*=backgroundImage]),:is([class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=_npack-asin-card],[class*=npack-asin-card],[class*=canvas-card],[class*=canvas-container]) :is([style*=background-image],[style*=backgroundImage]){box-shadow:inset 0 0 0 9999px rgba(0,0,0,%.3f)!important;transition-property:none!important;}.video-js .vjs-poster[style*=background-image],.vjs-poster.vjs-poster[style*=background-image]{box-shadow:none!important;filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;transition:none!important;}\");}if(document.readyState==='loading')window.addEventListener('load',function(){relink(s);},{once:true});else relink(s);}catch(e){}})();",
-        factor,factor,factor,factor,factor,factor,factor,factor,shade,factor,factor];
+        factor,factor,factor,factor,factor,factor,factor,factor,shade,shade,factor,factor];
     gADTWBJSStrength7191=strengthKey;
     gADTWBJSCached7191=built;
     return built;
@@ -1299,7 +1299,7 @@ static void ADRefreshWebTWBPrefs791(void){
 // v7.152 production: probe-only all-frame bridge removed; only theme scripts remain.
 
 static NSString *ADHomeAdFrameProbeJS7144(void){
-    return @"(function(){try{\nif(window.__ad7144FrameProbeInstalled)return;\nwindow.__ad7144FrameProbeInstalled=1;\nfunction st(e,p){try{var s=getComputedStyle(e,p||null);return {display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,bgi:s.backgroundImage,color:s.color,fill:s.fill,stroke:s.stroke,filter:s.webkitFilter||s.filter||'none',border:s.border,radius:s.borderRadius,shadow:s.boxShadow,outline:s.outline,font:s.fontFamily,fontSize:s.fontSize,fontWeight:s.fontWeight,lineHeight:s.lineHeight,textShadow:s.textShadow,webkitTextStroke:s.webkitTextStroke||'',transform:s.transform,overflow:s.overflow,clipPath:s.clipPath||s.webkitClipPath||'',z:s.zIndex,position:s.position,mask:s.webkitMaskImage||s.maskImage||'none',objectFit:s.objectFit||'',mix:s.mixBlendMode||''};}catch(x){return {err:String(x)}}}\nfunction nd(e){if(!e)return null;var r=e.getBoundingClientRect(),o={tag:e.tagName||'',id:e.id||'',cls:String(e.className||'').slice(0,280),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],style:st(e),before:st(e,'::before'),after:st(e,'::after'),a:{testid:e.getAttribute&&e.getAttribute('data-testid')||'',acei:e.getAttribute&&e.getAttribute('data-acei-id')||'',htmlDim:e.getAttribute&&e.getAttribute('data-html-dimensions')||'',role:e.getAttribute&&e.getAttribute('role')||'',feedback:e.hasAttribute&&e.hasAttribute('data-ad-feedback-label-id')?1:0,ariaSponsored:/sponsored/i.test(e.getAttribute&&e.getAttribute('aria-label')||'')?1:0}};if(e.tagName==='IMG')o.natural=[e.naturalWidth||0,e.naturalHeight||0];if(e.tagName==='VIDEO'){o.natural=[e.videoWidth||0,e.videoHeight||0];o.media={muted:e.muted?1:0,volume:+(+e.volume||0).toFixed(3),paused:e.paused?1:0,controls:e.controls?1:0,readyState:e.readyState||0,currentTime:+(+e.currentTime||0).toFixed(2)};o.ua={mute:st(e,'::-webkit-media-controls-mute-button'),play:st(e,'::-webkit-media-controls-play-button'),panel:st(e,'::-webkit-media-controls-panel')};}return o;}\nfunction ch(e,n){var a=[];for(var x=e;x&&a.length<(n||8);x=x.parentElement)a.push(nd(x));return a;}\nfunction vis(e,min){try{var r=e.getBoundingClientRect(),s=getComputedStyle(e),a=Math.max(0,Math.min(innerWidth,r.right)-Math.max(0,r.left))*Math.max(0,Math.min(innerHeight,r.bottom)-Math.max(0,r.top));return s.display!=='none'&&s.visibility!=='hidden'&&+s.opacity>0.01&&a>=(min||1);}catch(_){return false}}\nfunction q(sel,lim,min){var out=[];try{var a=document.querySelectorAll(sel);for(var i=0;i<a.length&&out.length<(lim||60);i++)if(vis(a[i],min||1))out.push({self:nd(a[i]),chain:ch(a[i],8)});}catch(e){out.push({err:String(e),sel:sel})}return out;}\nfunction qall(sel,lim){var out=[];try{var a=document.querySelectorAll(sel);for(var i=0;i<a.length&&out.length<(lim||120);i++)out.push({self:nd(a[i]),chain:ch(a[i],10)});}catch(e){out.push({err:String(e),sel:sel})}return out;}\nfunction media(){var out=[];try{var a=document.querySelectorAll('img,video,canvas');for(var i=0;i<a.length&&out.length<100;i++){var e=a[i];if(!vis(e,1200))continue;out.push({self:nd(e),chain:ch(e,9)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction bgmedia(){var out=[];try{var a=document.getElementsByTagName('*'),n=Math.min(a.length,2600);for(var i=0;i<n&&out.length<70;i++){var e=a[i];if(!vis(e,6000))continue;var b=getComputedStyle(e).backgroundImage;if(b&&b!=='none')out.push({self:nd(e),chain:ch(e,7)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction hits(){var out=[],xs=[.18,.5,.82],ys=[.18,.38,.58,.76,.9];try{for(var i=0;i<xs.length;i++)for(var j=0;j<ys.length;j++){var x=Math.round(innerWidth*xs[i]),y=Math.round(innerHeight*ys[j]),a=(document.elementsFromPoint?document.elementsFromPoint(x,y):[document.elementFromPoint(x,y)]).filter(Boolean).slice(0,10);out.push({p:[x,y],stack:a.map(nd)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction safeAttr(e,n){try{return String(e.getAttribute&&e.getAttribute(n)||'').slice(0,360)}catch(_){return ''}}\nfunction controlNode(e){var o=nd(e)||{};try{o.ctrl={aria:(/mute|unmute|sound|volume|speaker|audio/i.test(safeAttr(e,'aria-label'))?safeAttr(e,'aria-label'):''),title:(/mute|unmute|sound|volume|speaker|audio/i.test(safeAttr(e,'title'))?safeAttr(e,'title'):''),role:safeAttr(e,'role'),testid:safeAttr(e,'data-testid'),name:safeAttr(e,'name'),type:safeAttr(e,'type'),viewBox:safeAttr(e,'viewBox'),href:(e.tagName==='USE'?safeAttr(e,'href')||safeAttr(e,'xlink:href'):''),d:(e.tagName==='PATH'?safeAttr(e,'d'):'')};var cs=getComputedStyle(e);o.ctrl.font={family:cs.fontFamily,size:cs.fontSize,weight:cs.fontWeight,lineHeight:cs.lineHeight,textShadow:cs.textShadow,webkitTextStroke:cs.webkitTextStroke||'',transform:cs.transform,overflow:cs.overflow,clipPath:cs.clipPath||cs.webkitClipPath||'',outline:cs.outline,z:cs.zIndex,position:cs.position};}catch(_){}return o;}\nfunction subTree(root){var budget=180;function walk(e,d){if(!e||budget--<=0)return null;var o=controlNode(e);if(d<10){var kids=[];for(var c=e.firstElementChild;c&&kids.length<40;c=c.nextElementSibling){var z=walk(c,d+1);if(z)kids.push(z);}if(kids.length)o.children=kids;}return o;}return walk(root,0);}\nfunction videoControlTrees(){var out=[];try{var roots=document.querySelectorAll('#search .sbv-video-overlay,.sbv-video-overlay,#search video.sbv-video-player-ecx,video.sbv-video-player-ecx,#search video._c2Itd_video_17g-f,#search ._c2Itd_videoOverlay_1H_Jm,#search ._c2Itd_playClickRegion_87ZZa,[class*=single-video-card],[class*=singleVideoCard],.video-js');for(var r=0;r<roots.length&&out.length<24;r++){var root=roots[r];if(!vis(root,1))continue;var cand=[];try{cand=[].slice.call(root.querySelectorAll('button,[role=button],[aria-label],[title],svg,use,path,i,span,div')).filter(function(e){var k=(String(e.id||'')+' '+String(e.className&&e.className.baseVal||e.className||'')+' '+safeAttr(e,'aria-label')+' '+safeAttr(e,'title')+' '+safeAttr(e,'data-testid')).toLowerCase();return /mute|unmute|sound|volume|speaker|audio/.test(k);});}catch(_){}var buttons=[];try{buttons=[].slice.call(root.querySelectorAll('button,[role=button]')).filter(function(e){return vis(e,1)});}catch(_){}var uniq=[];cand.concat(buttons).forEach(function(e){if(e&&uniq.indexOf(e)<0&&uniq.length<16)uniq.push(e);});out.push({root:controlNode(root),rootTree:subTree(root),controls:uniq.map(function(e){return {ancestors:ch(e,10),tree:subTree(e)}})});} }catch(e){out.push({err:String(e)})}return out;}\nfunction dyn(){var out=[];try{var a=document.getElementsByTagName('*'),n=Math.min(a.length,7000);for(var i=0;i<n&&out.length<700;i++){var e=a[i];if(!vis(e,1))continue;var o=nd(e),stl=o&&o.style||{},k=((o&&o.tag||'')+' '+(o&&o.id||'')+' '+(o&&o.cls||'')).toLowerCase(),bg=String(stl.bg||''),border=String(stl.border||''),tag=String(o&&o.tag||'').toLowerCase(),interesting=(bg&&bg!=='rgba(0, 0, 0, 0)'&&bg!=='transparent')||(stl.bgi&&stl.bgi!=='none')||(border&&border.indexOf('none')<0&&border.indexOf('0px')!==0)||tag==='img'||tag==='video'||tag==='canvas'||tag==='svg'||tag==='button'||/ad|ape|sponsor|feedback|badge|coupon|saving|deal|pill|feature|brand|carousel|media|logo|button/.test(k);if(interesting)out.push({self:o,chain:ch(e,8)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction snap(){var h=document.documentElement||{},state=null;try{state=window.__ad7106StandaloneState?window.__ad7106StandaloneState():null}catch(_){}return {frame:{top:window===top?1:0,host:String(location.hostname||''),path:String(location.pathname||''),viewport:[innerWidth,innerHeight,devicePixelRatio]},markers:{child:h.getAttribute&&h.getAttribute('data-ad7-child-frame')||'',standaloneCandidate:h.getAttribute&&h.getAttribute('data-ad7-standalone-candidate')||'',standaloneSurvivor:h.getAttribute&&h.getAttribute('data-ad7104-standalone')||'',twbChild:h.getAttribute&&h.getAttribute('data-ad7-twb-child')||'',fullRasterFrame:h.getAttribute&&h.getAttribute('data-ad7144-full-raster-frame')||''},standaloneState:state,fullRasterState:window.__ad7144FullRasterState||[],heroFeedback:q('#gwm-window [id^=wd-shoppable-] [data-ad-feedback-label-id],#gwm-window [id^=wd-shoppable-] .ape-feedback,#gwm-window [id^=wd-shoppable-] [class*=ad-feedback],#gwm-window [id^=wd-shoppable-] [id^=ad-feedback-],#gwm-window [id^=wd-shoppable-] [aria-label*=\"Sponsored\"],[class*=single-creative-card] [data-ad-feedback-label-id],[class*=single-creative-card] [class*=ad-feedback],[id*=mobile-wd-][class*=ape-feedback]',90,1),shells:q('#gwm-window,[id^=wd-shoppable-],[class*=single-creative-card],[class*=single-video-card],[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback],[data-testid=renderer-factory-ad-container],#ad,#dynamic-bb,[data-testid=image],[data-acei-id=lfstyl-img],[data-acei-id=prod-img]',100,1),media:media(),bgMedia:bgmedia(),videoControlTrees:videoControlTrees(),dynamicVisibleTruth:dyn(),hit:hits()};}\nfunction heroSnap(label){var h=document.documentElement||{};return {label:String(label||''),perf:+performance.now().toFixed(1),wall:Date.now(),frame:{top:window===top?1:0,host:String(location.hostname||''),path:String(location.pathname||''),viewport:[innerWidth,innerHeight,devicePixelRatio],ready:document.readyState},markers:{child:h.getAttribute&&h.getAttribute('data-ad7-child-frame')||'',standaloneCandidate:h.getAttribute&&h.getAttribute('data-ad7-standalone-candidate')||'',standaloneSurvivor:h.getAttribute&&h.getAttribute('data-ad7104-standalone')||'',twbChild:h.getAttribute&&h.getAttribute('data-ad7-twb-child')||'',fullRasterFrame:h.getAttribute&&h.getAttribute('data-ad7144-full-raster-frame')||''},hero:qall('#gwm-window [id^=wd-shoppable-],#gwm-window [class*=theming-card],#gwm-window [class*=single-creative-card],#gwm-window [class*=single-video-card],#gwm-window .video-js,#gwm-window .vjs-poster,#gwm-window video.vjs-tech,[class*=theming-card-background],[class*=single-creative-card-background],[class*=single-video-card-background],[class*=singleCreativeCard],[class*=singleVideoCard],.video-js,.vjs-poster,video.vjs-tech',180),visibleMedia:media(),visibleBackgroundMedia:bgmedia()};}\nfunction fan(token){var z=snap();if(window===top){window.__ad7144ProbeToken=token;window.__ad7144ProbeFrames=[z];}else{try{top.postMessage({__ad7144ProbeFrame:1,token:token,snap:z},'*')}catch(_){}}try{var fs=document.getElementsByTagName('iframe');for(var i=0;i<fs.length&&i<24;i++)if(fs[i].contentWindow)fs[i].contentWindow.postMessage({__ad7144ProbeRequest:1,token:token},'*');}catch(_){}}\nfunction hfan(token,label){var z=heroSnap(label);if(window===top){var a=window.__ad7144ProbeTimeline||(window.__ad7144ProbeTimeline=[]);if(a.length<96)a.push(z);}else{try{top.postMessage({__ad7144HeroProbeFrame:1,token:token,label:String(label||''),snap:z},'*')}catch(_){}}try{var fs=document.getElementsByTagName('iframe');for(var i=0;i<fs.length&&i<24;i++)if(fs[i].contentWindow)fs[i].contentWindow.postMessage({__ad7144HeroProbeRequest:1,token:token,label:String(label||'')},'*');}catch(_){}}\nwindow.addEventListener('message',function(ev){try{var d=ev.data||{};if(d.__ad7144ProbeRequest&&d.token)fan(String(d.token));if(d.__ad7144HeroProbeRequest&&d.token)hfan(String(d.token),String(d.label||''));if(window===top&&d.__ad7144ProbeFrame&&d.token===window.__ad7144ProbeToken&&d.snap){var a=window.__ad7144ProbeFrames||(window.__ad7144ProbeFrames=[]);if(a.length<48)a.push(d.snap);}if(window===top&&d.__ad7144HeroProbeFrame&&d.token===window.__ad7144ProbeToken&&d.snap){var h=window.__ad7144ProbeTimeline||(window.__ad7144ProbeTimeline=[]);if(h.length<96)h.push(d.snap);}}catch(_){}},false);\nif(window===top){window.__ad7144StartProbe=function(t){try{var tok=String(t||Date.now());window.__ad7144ProbeToken=tok;window.__ad7144ProbeFrames=[];window.__ad7144ProbeTimeline=[];fan(tok);hfan(tok,'t0');return 'STARTED';}catch(e){return 'START_ERR '+e}};window.__ad7144SampleProbe=function(t,label){try{var tok=String(t||'');if(tok!==window.__ad7144ProbeToken)return 'TOKEN_MISMATCH';hfan(tok,String(label||''));return 'SAMPLED';}catch(e){return 'SAMPLE_ERR '+e}};window.__ad7144DumpProbe=function(t){try{return JSON.stringify({token:String(t||''),frames:window.__ad7144ProbeFrames||[],heroTimeline:window.__ad7144ProbeTimeline||[]},null,2);}catch(e){return 'DUMP_ERR '+e}};}\n}catch(e){}})();";
+    return @"(function(){try{\nif(window.__ad7144FrameProbeInstalled)return;\nwindow.__ad7144FrameProbeInstalled=1;\nfunction st(e,p){try{var s=getComputedStyle(e,p||null);return {display:s.display,vis:s.visibility,op:s.opacity,bg:s.backgroundColor,bgi:s.backgroundImage,color:s.color,fill:s.fill,stroke:s.stroke,filter:s.webkitFilter||s.filter||'none',border:s.border,radius:s.borderRadius,shadow:s.boxShadow,outline:s.outline,font:s.fontFamily,fontSize:s.fontSize,fontWeight:s.fontWeight,lineHeight:s.lineHeight,textShadow:s.textShadow,webkitTextStroke:s.webkitTextStroke||'',transform:s.transform,overflow:s.overflow,clipPath:s.clipPath||s.webkitClipPath||'',z:s.zIndex,position:s.position,mask:s.webkitMaskImage||s.maskImage||'none',objectFit:s.objectFit||'',mix:s.mixBlendMode||''};}catch(x){return {err:String(x)}}}\nfunction nd(e){if(!e)return null;var r=e.getBoundingClientRect(),o={tag:e.tagName||'',id:e.id||'',cls:String(e.className||'').slice(0,280),r:[+r.x.toFixed(1),+r.y.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],style:st(e),before:st(e,'::before'),after:st(e,'::after'),a:{testid:e.getAttribute&&e.getAttribute('data-testid')||'',acei:e.getAttribute&&e.getAttribute('data-acei-id')||'',htmlDim:e.getAttribute&&e.getAttribute('data-html-dimensions')||'',role:e.getAttribute&&e.getAttribute('role')||'',feedback:e.hasAttribute&&e.hasAttribute('data-ad-feedback-label-id')?1:0,ariaSponsored:/sponsored/i.test(e.getAttribute&&e.getAttribute('aria-label')||'')?1:0}};if(e.tagName==='IMG')o.natural=[e.naturalWidth||0,e.naturalHeight||0];if(e.tagName==='VIDEO'){o.natural=[e.videoWidth||0,e.videoHeight||0];o.media={muted:e.muted?1:0,volume:+(+e.volume||0).toFixed(3),paused:e.paused?1:0,controls:e.controls?1:0,readyState:e.readyState||0,currentTime:+(+e.currentTime||0).toFixed(2)};o.ua={mute:st(e,'::-webkit-media-controls-mute-button'),play:st(e,'::-webkit-media-controls-play-button'),panel:st(e,'::-webkit-media-controls-panel')};}return o;}\nfunction ch(e,n){var a=[];for(var x=e;x&&a.length<(n||8);x=x.parentElement)a.push(nd(x));return a;}\nfunction vis(e,min){try{var r=e.getBoundingClientRect(),s=getComputedStyle(e),a=Math.max(0,Math.min(innerWidth,r.right)-Math.max(0,r.left))*Math.max(0,Math.min(innerHeight,r.bottom)-Math.max(0,r.top));return s.display!=='none'&&s.visibility!=='hidden'&&+s.opacity>0.01&&a>=(min||1);}catch(_){return false}}\nfunction q(sel,lim,min){var out=[];try{var a=document.querySelectorAll(sel);for(var i=0;i<a.length&&out.length<(lim||60);i++)if(vis(a[i],min||1))out.push({self:nd(a[i]),chain:ch(a[i],8)});}catch(e){out.push({err:String(e),sel:sel})}return out;}\nfunction qall(sel,lim){var out=[];try{var a=document.querySelectorAll(sel);for(var i=0;i<a.length&&out.length<(lim||120);i++)out.push({self:nd(a[i]),chain:ch(a[i],10)});}catch(e){out.push({err:String(e),sel:sel})}return out;}\nfunction media(){var out=[];try{var a=document.querySelectorAll('img,video,canvas');for(var i=0;i<a.length&&out.length<100;i++){var e=a[i];if(!vis(e,1200))continue;out.push({self:nd(e),chain:ch(e,9)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction bgmedia(){var out=[];try{var a=document.getElementsByTagName('*'),n=Math.min(a.length,2600);for(var i=0;i<n&&out.length<70;i++){var e=a[i];if(!vis(e,6000))continue;var b=getComputedStyle(e).backgroundImage;if(b&&b!=='none')out.push({self:nd(e),chain:ch(e,7)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction hits(){var out=[],xs=[.18,.5,.82],ys=[.18,.38,.58,.76,.9];try{for(var i=0;i<xs.length;i++)for(var j=0;j<ys.length;j++){var x=Math.round(innerWidth*xs[i]),y=Math.round(innerHeight*ys[j]),a=(document.elementsFromPoint?document.elementsFromPoint(x,y):[document.elementFromPoint(x,y)]).filter(Boolean).slice(0,10);out.push({p:[x,y],stack:a.map(nd)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction safeAttr(e,n){try{return String(e.getAttribute&&e.getAttribute(n)||'').slice(0,360)}catch(_){return ''}}\nfunction controlNode(e){var o=nd(e)||{};try{o.ctrl={aria:(/mute|unmute|sound|volume|speaker|audio/i.test(safeAttr(e,'aria-label'))?safeAttr(e,'aria-label'):''),title:(/mute|unmute|sound|volume|speaker|audio/i.test(safeAttr(e,'title'))?safeAttr(e,'title'):''),role:safeAttr(e,'role'),testid:safeAttr(e,'data-testid'),name:safeAttr(e,'name'),type:safeAttr(e,'type'),viewBox:safeAttr(e,'viewBox'),href:(e.tagName==='USE'?safeAttr(e,'href')||safeAttr(e,'xlink:href'):''),d:(e.tagName==='PATH'?safeAttr(e,'d'):'')};var cs=getComputedStyle(e);o.ctrl.font={family:cs.fontFamily,size:cs.fontSize,weight:cs.fontWeight,lineHeight:cs.lineHeight,textShadow:cs.textShadow,webkitTextStroke:cs.webkitTextStroke||'',transform:cs.transform,overflow:cs.overflow,clipPath:cs.clipPath||cs.webkitClipPath||'',outline:cs.outline,z:cs.zIndex,position:cs.position};}catch(_){}return o;}\nfunction subTree(root){var budget=180;function walk(e,d){if(!e||budget--<=0)return null;var o=controlNode(e);if(d<10){var kids=[];for(var c=e.firstElementChild;c&&kids.length<40;c=c.nextElementSibling){var z=walk(c,d+1);if(z)kids.push(z);}if(kids.length)o.children=kids;}return o;}return walk(root,0);}\nfunction videoControlTrees(){var out=[];try{var roots=document.querySelectorAll('#search .sbv-video-overlay,.sbv-video-overlay,#search video.sbv-video-player-ecx,video.sbv-video-player-ecx,#search video._c2Itd_video_17g-f,#search ._c2Itd_videoOverlay_1H_Jm,#search ._c2Itd_playClickRegion_87ZZa,#search video[class*=_video_1m98b_],#search [class*=_videoOverlay_1m98b_],#search [class*=_videoPlayerContainer_8wyx7_],[class*=single-video-card],[class*=singleVideoCard],.video-js');for(var r=0;r<roots.length&&out.length<24;r++){var root=roots[r];if(!vis(root,1))continue;var cand=[];try{cand=[].slice.call(root.querySelectorAll('button,[role=button],[aria-label],[title],svg,use,path,i,span,div')).filter(function(e){var k=(String(e.id||'')+' '+String(e.className&&e.className.baseVal||e.className||'')+' '+safeAttr(e,'aria-label')+' '+safeAttr(e,'title')+' '+safeAttr(e,'data-testid')).toLowerCase();return /mute|unmute|sound|volume|speaker|audio/.test(k);});}catch(_){}var buttons=[];try{buttons=[].slice.call(root.querySelectorAll('button,[role=button]')).filter(function(e){return vis(e,1)});}catch(_){}var uniq=[];cand.concat(buttons).forEach(function(e){if(e&&uniq.indexOf(e)<0&&uniq.length<16)uniq.push(e);});out.push({root:controlNode(root),rootTree:subTree(root),controls:uniq.map(function(e){return {ancestors:ch(e,10),tree:subTree(e)}})});} }catch(e){out.push({err:String(e)})}return out;}\nfunction dyn(){var out=[];try{var a=document.getElementsByTagName('*'),n=Math.min(a.length,7000);for(var i=0;i<n&&out.length<700;i++){var e=a[i];if(!vis(e,1))continue;var o=nd(e),stl=o&&o.style||{},k=((o&&o.tag||'')+' '+(o&&o.id||'')+' '+(o&&o.cls||'')).toLowerCase(),bg=String(stl.bg||''),border=String(stl.border||''),tag=String(o&&o.tag||'').toLowerCase(),interesting=(bg&&bg!=='rgba(0, 0, 0, 0)'&&bg!=='transparent')||(stl.bgi&&stl.bgi!=='none')||(border&&border.indexOf('none')<0&&border.indexOf('0px')!==0)||tag==='img'||tag==='video'||tag==='canvas'||tag==='svg'||tag==='button'||/ad|ape|sponsor|feedback|badge|coupon|saving|deal|pill|feature|brand|carousel|media|logo|button/.test(k);if(interesting)out.push({self:o,chain:ch(e,8)});}}catch(e){out.push({err:String(e)})}return out;}\nfunction snap(){var h=document.documentElement||{},state=null;try{state=window.__ad7106StandaloneState?window.__ad7106StandaloneState():null}catch(_){}return {frame:{top:window===top?1:0,host:String(location.hostname||''),path:String(location.pathname||''),viewport:[innerWidth,innerHeight,devicePixelRatio]},markers:{child:h.getAttribute&&h.getAttribute('data-ad7-child-frame')||'',standaloneCandidate:h.getAttribute&&h.getAttribute('data-ad7-standalone-candidate')||'',standaloneSurvivor:h.getAttribute&&h.getAttribute('data-ad7104-standalone')||'',twbChild:h.getAttribute&&h.getAttribute('data-ad7-twb-child')||'',fullRasterFrame:h.getAttribute&&h.getAttribute('data-ad7144-full-raster-frame')||''},standaloneState:state,fullRasterState:window.__ad7144FullRasterState||[],heroFeedback:q('#gwm-window [id^=wd-shoppable-] [data-ad-feedback-label-id],#gwm-window [id^=wd-shoppable-] .ape-feedback,#gwm-window [id^=wd-shoppable-] [class*=ad-feedback],#gwm-window [id^=wd-shoppable-] [id^=ad-feedback-],#gwm-window [id^=wd-shoppable-] [aria-label*=\"Sponsored\"],[class*=single-creative-card] [data-ad-feedback-label-id],[class*=single-creative-card] [class*=ad-feedback],[id*=mobile-wd-][class*=ape-feedback]',90,1),shells:q('#gwm-window,[id^=wd-shoppable-],[class*=single-creative-card],[class*=single-video-card],[class*=ape-wrapper],[class*=ape-placement],[class*=ape-feedback],[data-testid=renderer-factory-ad-container],#ad,#dynamic-bb,[data-testid=image],[data-acei-id=lfstyl-img],[data-acei-id=prod-img]',100,1),media:media(),bgMedia:bgmedia(),videoControlTrees:videoControlTrees(),dynamicVisibleTruth:dyn(),hit:hits()};}\nfunction heroSnap(label){var h=document.documentElement||{};return {label:String(label||''),perf:+performance.now().toFixed(1),wall:Date.now(),frame:{top:window===top?1:0,host:String(location.hostname||''),path:String(location.pathname||''),viewport:[innerWidth,innerHeight,devicePixelRatio],ready:document.readyState},markers:{child:h.getAttribute&&h.getAttribute('data-ad7-child-frame')||'',standaloneCandidate:h.getAttribute&&h.getAttribute('data-ad7-standalone-candidate')||'',standaloneSurvivor:h.getAttribute&&h.getAttribute('data-ad7104-standalone')||'',twbChild:h.getAttribute&&h.getAttribute('data-ad7-twb-child')||'',fullRasterFrame:h.getAttribute&&h.getAttribute('data-ad7144-full-raster-frame')||''},hero:qall('#gwm-window [id^=wd-shoppable-],#gwm-window [class*=theming-card],#gwm-window [class*=single-creative-card],#gwm-window [class*=single-video-card],#gwm-window .video-js,#gwm-window .vjs-poster,#gwm-window video.vjs-tech,[class*=theming-card-background],[class*=single-creative-card-background],[class*=single-video-card-background],[class*=singleCreativeCard],[class*=singleVideoCard],.video-js,.vjs-poster,video.vjs-tech',180),visibleMedia:media(),visibleBackgroundMedia:bgmedia()};}\nfunction fan(token){var z=snap();if(window===top){window.__ad7144ProbeToken=token;window.__ad7144ProbeFrames=[z];}else{try{top.postMessage({__ad7144ProbeFrame:1,token:token,snap:z},'*')}catch(_){}}try{var fs=document.getElementsByTagName('iframe');for(var i=0;i<fs.length&&i<24;i++)if(fs[i].contentWindow)fs[i].contentWindow.postMessage({__ad7144ProbeRequest:1,token:token},'*');}catch(_){}}\nfunction hfan(token,label){var z=heroSnap(label);if(window===top){var a=window.__ad7144ProbeTimeline||(window.__ad7144ProbeTimeline=[]);if(a.length<96)a.push(z);}else{try{top.postMessage({__ad7144HeroProbeFrame:1,token:token,label:String(label||''),snap:z},'*')}catch(_){}}try{var fs=document.getElementsByTagName('iframe');for(var i=0;i<fs.length&&i<24;i++)if(fs[i].contentWindow)fs[i].contentWindow.postMessage({__ad7144HeroProbeRequest:1,token:token,label:String(label||'')},'*');}catch(_){}}\nwindow.addEventListener('message',function(ev){try{var d=ev.data||{};if(d.__ad7144ProbeRequest&&d.token)fan(String(d.token));if(d.__ad7144HeroProbeRequest&&d.token)hfan(String(d.token),String(d.label||''));if(window===top&&d.__ad7144ProbeFrame&&d.token===window.__ad7144ProbeToken&&d.snap){var a=window.__ad7144ProbeFrames||(window.__ad7144ProbeFrames=[]);if(a.length<48)a.push(d.snap);}if(window===top&&d.__ad7144HeroProbeFrame&&d.token===window.__ad7144ProbeToken&&d.snap){var h=window.__ad7144ProbeTimeline||(window.__ad7144ProbeTimeline=[]);if(h.length<96)h.push(d.snap);}}catch(_){}},false);\nif(window===top){window.__ad7144StartProbe=function(t){try{var tok=String(t||Date.now());window.__ad7144ProbeToken=tok;window.__ad7144ProbeFrames=[];window.__ad7144ProbeTimeline=[];fan(tok);hfan(tok,'t0');return 'STARTED';}catch(e){return 'START_ERR '+e}};window.__ad7144SampleProbe=function(t,label){try{var tok=String(t||'');if(tok!==window.__ad7144ProbeToken)return 'TOKEN_MISMATCH';hfan(tok,String(label||''));return 'SAMPLED';}catch(e){return 'SAMPLE_ERR '+e}};window.__ad7144DumpProbe=function(t){try{return JSON.stringify({token:String(t||''),frames:window.__ad7144ProbeFrames||[],heroTimeline:window.__ad7144ProbeTimeline||[]},null,2);}catch(e){return 'DUMP_ERR '+e}};}\n}catch(e){}})();";
 }
 
 static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
@@ -1731,8 +1731,13 @@ static BOOL ADExactGlowIngress7140(UIView *v){
         if(fabs(v.window.windowLevel-UIWindowLevelNormal)>0.1)return NO;
         CGRect r=[v convertRect:v.bounds toView:v.window], wb=v.window.bounds;
         if(wb.size.width<1.0)return NO;
+        // v7.207: current device truth shows the same exact 430x44 Glow owner at y=75.
+        // The old y>=90 gate made ownership launch-order dependent: a root first seen at
+        // y~119 was marked, while one first laid out at y~75 could remain yellow. Keep the
+        // exact private class/full-width/compact-height/normal-window contract, but accept
+        // the complete observed top-nav travel range.
         return r.size.width>=wb.size.width*0.88 && r.size.height>=28.0 && r.size.height<=72.0 &&
-               CGRectGetMinY(r)>=90.0 && CGRectGetMinY(r)<=220.0;
+               CGRectGetMinY(r)>=55.0 && CGRectGetMinY(r)<=220.0;
     } @catch(...) {}
     return NO;
 }
@@ -1848,8 +1853,11 @@ static BOOL ADCompactSearchSubNavView7139(UIView *v){
     @try {
         CGRect r=[v convertRect:v.bounds toView:v.window], wb=v.window.bounds;
         if(wb.size.width<1.0)return NO;
+        // v7.207: alternate ANXSubNavContainer delivery ownership follows the same
+        // top-nav travel as Glow/Packard. Keep this exact-controller fallback aligned
+        // with the observed y=75 position instead of leaving another y>=80 timing seam.
         return r.size.width>=wb.size.width*0.88 && r.size.height>=24.0 && r.size.height<=96.0 &&
-               CGRectGetMinY(r)>=80.0 && CGRectGetMinY(r)<=260.0;
+               CGRectGetMinY(r)>=55.0 && CGRectGetMinY(r)<=260.0;
     } @catch(...) {}
     return NO;
 }
@@ -1899,6 +1907,47 @@ static BOOL ADSelectionPlatterChild7130(UIView *v, UIColor *candidate){
     return NO;
 }
 
+// v7.206: Search's 430x44 Deliver-to band has now regressed more than once.
+// v7.192 already owns the exact GlowIngressView painter, but the device probe also
+// identified its full-row host by accessibilityIdentifier=nav_packard_bar. Own that
+// exact host independently so launch/controller timing or internal Glow reordering
+// cannot expose Amazon's warm/yellow custom-drawn contents again. No polling/scan.
+static const void *kADPackardFloor7206=&kADPackardFloor7206;
+static const void *kADPackardFloorSentinel7206=&kADPackardFloorSentinel7206;
+static BOOL ADExactSearchPackard7206(UIView *v){
+    if(!gP.enabled||!v||!v.window)return NO;
+    @try {
+        if(![v.accessibilityIdentifier isEqualToString:@"nav_packard_bar"])return NO;
+        if(fabs(v.window.windowLevel-UIWindowLevelNormal)>0.1)return NO;
+        CGRect r=[v convertRect:v.bounds toView:v.window], wb=v.window.bounds;
+        if(wb.size.width<1.0)return NO;
+        // v7.207: Packard is a fallback owner for the same moving Search delivery band.
+        // Match the proven y=75..119 travel range so this fallback cannot reintroduce the
+        // old timing split when Amazon assigns nav_packard_bar before/after top-nav layout.
+        return r.size.width>=wb.size.width*0.88 && r.size.height>=28.0 && r.size.height<=72.0 &&
+               CGRectGetMinY(r)>=55.0 && CGRectGetMinY(r)<=220.0;
+    } @catch(...) {}
+    return NO;
+}
+static void ADOwnSearchPackard7206(UIView *host){
+    if(!ADExactSearchPackard7206(host))return;
+    @try {
+        UIColor *black=ADOLED();
+        if(![host.backgroundColor isEqual:black])host.backgroundColor=black;
+        host.layer.backgroundColor=black.CGColor;
+        UIView *floor=(UIView *)objc_getAssociatedObject(host,kADPackardFloor7206);
+        if(!floor){
+            floor=[[UIView alloc] initWithFrame:host.bounds];
+            floor.userInteractionEnabled=NO; floor.accessibilityElementsHidden=YES; floor.opaque=YES;
+            floor.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+            objc_setAssociatedObject(floor,kADPackardFloorSentinel7206,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(host,kADPackardFloor7206,floor,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        floor.frame=host.bounds; floor.backgroundColor=black; floor.layer.backgroundColor=black.CGColor; floor.hidden=NO; floor.alpha=1.0;
+        if(floor.superview!=host || (host.subviews.count && host.subviews.firstObject!=floor))[host insertSubview:floor atIndex:0];
+    } @catch(...) {}
+}
+
 static inline BOOL ADWebKitInternalView7154(UIView *v){
     if(!v)return NO;
     const char *cn=object_getClassName(v);
@@ -1916,11 +1965,21 @@ static void ADLocationLifeInit7203(void);
 static void ADLocationLifeNote7203(NSString *tag, UIView *v, UIColor *candidate, NSInteger decision);
 static NSString *ADLocationLifeDump7203(void);
 
+// v7.206 Person-tab and Search Packard owners. Implementations live with the
+// React/text helpers below; these prototypes keep the global UIView hook narrow.
+static BOOL ADInPersonTab7206(UIView *v);
+static BOOL ADPersonFloorCandidate7206(UIView *v, UIColor *candidate);
+static void ADPersonOwnView7206(UIView *v);
+static void ADPersonOwnText7206(UIView *v);
+static BOOL ADExactSearchPackard7206(UIView *v);
+static void ADOwnSearchPackard7206(UIView *v);
+
 %hook UIView
 - (void)didMoveToWindow {
     %orig;
     if(gP.enabled && ADClassNameIs7183(self,"RNCEKVExternalKeyboardView"))
         ADLocationLifeNote7203(@"UIView.didMoveToWindow/RNCEKV",self,self.backgroundColor,-1);
+    if(gP.enabled && self.window && ADExactSearchPackard7206(self))ADOwnSearchPackard7206(self);
     // v7.154: WKWebView/WKScrollView/WKContentView have exact owners above. Do not
     // run generic UIKit floor heuristics on WebKit's large compositing-view tree.
     if(ADWebKitInternalView7154(self))return;
@@ -1952,7 +2011,12 @@ static NSString *ADLocationLifeDump7203(void);
             ADLocationSheetOwnText7196(self);
         }
     }
+    if(gP.enabled && self.window && ADInPersonTab7206(self)){ ADPersonOwnView7206(self); ADPersonOwnText7206(self); }
     if(gP.enabled && self.window && ADNativeFloorCandidate(self)) ADOwnNativeFloor(self);
+}
+- (void)setAccessibilityIdentifier:(NSString *)identifier {
+    %orig(identifier);
+    if(gP.enabled && self.window && ADExactSearchPackard7206(self))ADOwnSearchPackard7206(self);
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if(gP.enabled) ADLocationLifeNote7203(@"UIView.setBackgroundColor",self,color,-1);
@@ -1962,6 +2026,20 @@ static NSString *ADLocationLifeDump7203(void);
     }
     if(gP.enabled && ADInAuthoredVisualSubNav7175(self)){
         %orig(color);
+        return;
+    }
+    if(gP.enabled && self.window && ADExactSearchPackard7206(self)){
+        UIColor *black=ADOLED();
+        %orig(black);
+        self.layer.backgroundColor=black.CGColor;
+        ADOwnSearchPackard7206(self);
+        return;
+    }
+    if(gP.enabled && self.window && ADPersonFloorCandidate7206(self,color)){
+        UIColor *black=ADOLED();
+        %orig(black);
+        self.layer.backgroundColor=black.CGColor;
+        ADPersonOwnView7206(self);
         return;
     }
     if(gP.enabled && self.window && ADInMarkedSearchDeliveryBand7139(self) && ![self isKindOfClass:[UIImageView class]]){
@@ -3306,6 +3384,163 @@ static void ADPaintLocationSheetStable7196(UIView *scroll){
     if(ADLocationRootActive7202(scroll,&root)&&root)ADPaintLocationRoot7202(root);
     if(ADLocationSheetOuterScroll7196(scroll)==scroll)ADPaintLocationSheetExactContent7198(scroll);
 }
+// v7.206 Person tab: the four screenshot probes identify the entire pane as native
+// React under the exact RCTScrollView accessibilityIdentifier "me". Scope every
+// Person repair through that root; there is no global React sweep or recurring scan.
+static UIView *ADPersonRoot7206(UIView *v){
+    if(!v)return nil;
+    @try {
+        UIView *n=v;
+        for(int d=0;n&&d<24;d++,n=n.superview){
+            if([n.accessibilityIdentifier isEqualToString:@"me"] && ADClassNameIs7183(n,"RCTScrollView"))return n;
+        }
+    } @catch(...) {}
+    return nil;
+}
+static BOOL ADInPersonTab7206(UIView *v){ return ADPersonRoot7206(v)!=nil; }
+static UIColor *ADPersonSecondary7206(void){
+    static UIColor *c=nil; static dispatch_once_t once;
+    dispatch_once(&once,^{ c=[UIColor colorWithRed:177.0/255.0 green:181.0/255.0 blue:181.0/255.0 alpha:1.0]; });
+    return c;
+}
+static BOOL ADPersonAccent7206(UIColor *c){
+    if(!c)return NO;
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0;
+        if([c getRed:&r green:&g blue:&b alpha:&a]){
+            if(a<0.08)return NO;
+            CGFloat hi=MAX(r,MAX(g,b)),lo=MIN(r,MIN(g,b));
+            return (hi-lo)>0.20; // preserve Prime/links/teal/orange/green authored accents
+        }
+        if([c getWhite:&w alpha:&a])return NO;
+    } @catch(...) {}
+    return NO;
+}
+static void ADPersonReassertBorder7206(UIView *v,BOOL wasBright){
+    if(!v)return;
+    @try {
+        CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+        // Recolor every real existing Person border. When a stock white card is itself
+        // the visible edge, add the standard 1pt gray edge only to rounded/card-sized
+        // surfaces; tiny dots and broad section floors never enter this path.
+        BOOL force=wasBright&&(v.layer.cornerRadius>=3.0||(w>=120.0&&h>=80.0&&w<=410.0&&h<=500.0));
+        if(v.layer.borderWidth>0.05||force){
+            v.layer.borderColor=ADBorderGray706().CGColor;
+            if(force&&v.layer.borderWidth<0.5)v.layer.borderWidth=1.0;
+        }
+    } @catch(...) {}
+}
+static BOOL ADPersonFloorCandidate7206(UIView *v,UIColor *candidate){
+    if(!gP.enabled||!v||!ADInPersonTab7206(v)||!ADBrightNeutral7130(candidate))return NO;
+    if([v isKindOfClass:[UIImageView class]]||[v isKindOfClass:[UILabel class]]||[v isKindOfClass:[UIControl class]])return NO;
+    if(ADClassNameIs7183(v,"RCTScrollView")||ADClassNameIs7183(v,"RCTCustomScrollView")||ADClassNameIs7183(v,"RCTScrollContentView"))return NO;
+    CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+    // Preserve the Shopping List carousel indicators (8-10pt) and other authored dots/glyph plates.
+    if(w<24.0||h<24.0)return NO;
+    return YES;
+}
+static void ADPersonOwnView7206(UIView *v){
+    if(!gP.enabled||!v||!v.window||!ADInPersonTab7206(v))return;
+    @try {
+        UIColor *bg=v.backgroundColor; BOOL bright=ADPersonFloorCandidate7206(v,bg);
+        if(bright){ UIColor *black=ADOLED(); v.backgroundColor=black; v.layer.backgroundColor=black.CGColor; }
+        ADPersonReassertBorder7206(v,bright);
+    } @catch(...) {}
+}
+static BOOL ADPersonPrimaryFont7206(UIFont *font){
+    if(!font||![font isKindOfClass:[UIFont class]])return NO;
+    @try {
+        if(font.pointSize>=17.0)return YES;
+        UIFontDescriptorSymbolicTraits t=font.fontDescriptor.symbolicTraits;
+        if(t&UIFontDescriptorTraitBold)return YES;
+    } @catch(...) {}
+    return NO;
+}
+static NSAttributedString *ADPersonLightString7206(NSAttributedString *in){
+    if(!gP.enabled||!in||!in.length)return in;
+    @try {
+        NSMutableAttributedString *m=[in mutableCopy]; NSRange whole=NSMakeRange(0,m.length);
+        [in enumerateAttributesInRange:whole options:0 usingBlock:^(NSDictionary *attrs,NSRange range,BOOL *stop){
+            UIColor *old=attrs[NSForegroundColorAttributeName];
+            if(old&&ADPersonAccent7206(old))return;
+            UIFont *font=attrs[NSFontAttributeName];
+            UIColor *want=ADPersonPrimaryFont7206(font)?ADLightText706():ADPersonSecondary7206();
+            [m addAttribute:NSForegroundColorAttributeName value:want range:range];
+        }];
+        return m;
+    } @catch(...) { return in; }
+}
+static void ADPersonLightStorage7206(NSTextStorage *ts){
+    if(!gP.enabled||!ts||!ts.length)return;
+    @try {
+        NSRange whole=NSMakeRange(0,ts.length); NSMutableArray *runs=[NSMutableArray array];
+        [ts enumerateAttributesInRange:whole options:0 usingBlock:^(NSDictionary *attrs,NSRange range,BOOL *stop){
+            UIColor *old=attrs[NSForegroundColorAttributeName]; if(old&&ADPersonAccent7206(old))return;
+            UIFont *font=attrs[NSFontAttributeName]; UIColor *want=ADPersonPrimaryFont7206(font)?ADLightText706():ADPersonSecondary7206();
+            [runs addObject:@{ @"r":[NSValue valueWithRange:range], @"c":want }];
+        }];
+        [ts beginEditing];
+        for(NSDictionary *run in runs)[ts addAttribute:NSForegroundColorAttributeName value:run[@"c"] range:[run[@"r"] rangeValue]];
+        [ts endEditing];
+    } @catch(...) {}
+}
+static NSTextStorage *ADPersonTextStorage7206(UIView *v){
+    if(!v)return nil;
+    @try {
+        SEL sel=NSSelectorFromString(@"textStorage");
+        if([v respondsToSelector:sel]){ id ts=((id(*)(id,SEL))objc_msgSend)(v,sel); if([ts isKindOfClass:[NSTextStorage class]])return ts; }
+        Ivar iv=class_getInstanceVariable([v class],"_textStorage");
+        if(iv){ id ts=object_getIvar(v,iv); if([ts isKindOfClass:[NSTextStorage class]])return ts; }
+    } @catch(...) {}
+    return nil;
+}
+static void ADPersonOwnText7206(UIView *v){
+    if(!gP.enabled||!v||!v.window||!ADInPersonTab7206(v))return;
+    const char *cn=object_getClassName(v);
+    BOOL textish=[v isKindOfClass:[UILabel class]]||(cn&&(strstr(cn,"Text")||strstr(cn,"Paragraph")));
+    if(!textish)return;
+    @try {
+        if([v isKindOfClass:[UILabel class]]){
+            UILabel *l=(UILabel *)v;
+            if(ADPersonAccent7206(l.textColor))return;
+            UIColor *want=(l.font.pointSize>=17.0||ADPersonPrimaryFont7206(l.font))?ADLightText706():ADPersonSecondary7206();
+            l.textColor=want;
+            if(l.attributedText.length){ NSAttributedString *r=ADPersonLightString7206(l.attributedText); if(r)l.attributedText=r; }
+            return;
+        }
+        NSTextStorage *ts=ADPersonTextStorage7206(v); if(ts)ADPersonLightStorage7206(ts);
+    } @catch(...) {}
+}
+static BOOL ADPersonExplicitProductMedia7206(UIImageView *iv){
+    if(!iv)return NO;
+    NSString *aid=(iv.accessibilityIdentifier?:@"").lowercaseString;
+    return [aid containsString:@"product-image"]||[aid containsString:@"carousel-item-image"]||
+           [aid containsString:@"tile-image-url"]||[aid isEqualToString:@"avr_image"];
+}
+static BOOL ADPersonMediaBlocked7206(UIImageView *iv){
+    if(!iv||!iv.image||!ADInPersonTab7206(iv))return YES;
+    @try {
+        UIImage *im=iv.image; if(im.renderingMode==UIImageRenderingModeAlwaysTemplate)return YES;
+        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height; BOOL explicitMedia=ADPersonExplicitProductMedia7206(iv);
+        if((w<52.0||h<52.0)&&!explicitMedia)return YES;
+        if(im.CGImage&&CGImageGetWidth(im.CGImage)<=80&&CGImageGetHeight(im.CGImage)<=80&&!explicitMedia)return YES;
+        NSMutableString *q=[NSMutableString stringWithFormat:@"%@ %@",iv.accessibilityIdentifier?:@"",iv.accessibilityLabel?:@""];
+        for(UIView *n=iv.superview; n; n=n.superview){
+            [q appendFormat:@" %@ %@",NSStringFromClass(n.class),n.accessibilityIdentifier?:@""];
+            if([n.accessibilityIdentifier isEqualToString:@"me"])break;
+        }
+        NSString *low=q.lowercaseString;
+        for(NSString *tok in @[@"avatar",@"profile",@"icon",@"glyph",@"logo",@"badge",@"star",@"rating",@"checkbox",@"heart",@"arrow",@"chevron",@"prime",@"camera",@"microphone",@"nav",@"tab"]){
+            if([low containsString:tok]&&!explicitMedia)return YES;
+        }
+        CGSize screen=UIScreen.mainScreen.bounds.size;
+        if(screen.width>0&&screen.height>0&&w>=screen.width*0.72&&h>=screen.height*0.48)return YES;
+        if(explicitMedia)return NO;
+        if(ADClassNameHasFold7183(iv,"anxfastimageview")||ADClassNameHasFold7183(iv,"rctuiimageviewanimated")||ADClassNameIs7183(iv,"RCTImageView"))return NO;
+    } @catch(...) { return YES; }
+    return YES;
+}
+
 static void ADDarkenReactCardNearText708(UIView *textView){
     if(!gP.enabled||!textView||!textView.window)return;
     @try {
@@ -3332,6 +3567,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
     if(gP.enabled){
         ADOwnLocationSheetFloor7196((UIView *)self);
         ADLocationSheetOwnText7196((UIView *)self);
+        if(((UIView *)self).window&&ADInPersonTab7206((UIView *)self)){ ADPersonOwnView7206((UIView *)self); ADPersonOwnText7206((UIView *)self); }
     }
 }
 - (void)didMoveToWindow {
@@ -3340,6 +3576,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
     if(gP.enabled&&self.window){
         ADOwnLocationSheetFloor7196((UIView *)self);
         ADLocationSheetOwnText7196((UIView *)self);
+        if(ADInPersonTab7206((UIView *)self)){ ADPersonOwnView7206((UIView *)self); ADPersonOwnText7206((UIView *)self); }
     }
 }
 - (void)layoutSubviews {
@@ -3351,11 +3588,20 @@ static void ADDarkenReactCardNearText708(UIView *textView){
         ADOwnLocationSheetFloor7196((UIView *)self);
         if(ADLocationMarkedWideBrightFloor7205((UIView *)self,self.backgroundColor))ADSetLocationBlack7202((UIView *)self);
         ADLocationSheetOwnText7196((UIView *)self);
+        if(ADInPersonTab7206((UIView *)self)){ ADPersonOwnView7206((UIView *)self); ADPersonOwnText7206((UIView *)self); }
     }
 }
 - (void)setBackgroundColor:(UIColor *)color {
     BOOL adLocDecision=gP.enabled&&(ADLocationSheetFloor7196((UIView *)self,color)||ADLocationMarkedWideBrightFloor7205((UIView *)self,color));
+    BOOL adPersonDecision=gP.enabled&&((UIView *)self).window&&ADPersonFloorCandidate7206((UIView *)self,color);
     ADLocationLifeNote7203(@"RCTView.setBackgroundColor",(UIView *)self,color,adLocDecision?1:0);
+    if(adPersonDecision){
+        UIColor *black=ADOLED();
+        %orig(black);
+        self.layer.backgroundColor=black.CGColor;
+        ADPersonReassertBorder7206((UIView *)self,YES);
+        return;
+    }
     if(adLocDecision){
         // Call the original setter with OLED while implicit layer actions are
         // disabled, then clear any backgroundColor animation React/Amazon had
@@ -3403,16 +3649,18 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 
 %hook RCTParagraphComponentView
 - (void)setAttributedText:(NSAttributedString *)attributedText {
-    NSAttributedString *r=(gP.enabled&&((UIView *)self).window&&ADInLocationSheetContent7196((UIView *)self))
-        ? ADLocationSheetLightString7196((UIView *)self,attributedText)
-        : ADLightAttributedText708(attributedText);
+    NSAttributedString *r=nil;
+    if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)) r=ADPersonLightString7206(attributedText);
+    else if(gP.enabled&&((UIView *)self).window&&ADInLocationSheetContent7196((UIView *)self)) r=ADLocationSheetLightString7196((UIView *)self,attributedText);
+    else r=ADLightAttributedText708(attributedText);
     %orig(r);
     ADDarkenReactCardNearText708((UIView *)self);
 }
 - (void)_setAttributedString:(NSAttributedString *)attributedString {
-    NSAttributedString *r=(gP.enabled&&((UIView *)self).window&&ADInLocationSheetContent7196((UIView *)self))
-        ? ADLocationSheetLightString7196((UIView *)self,attributedString)
-        : ADLightAttributedText708(attributedString);
+    NSAttributedString *r=nil;
+    if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)) r=ADPersonLightString7206(attributedString);
+    else if(gP.enabled&&((UIView *)self).window&&ADInLocationSheetContent7196((UIView *)self)) r=ADLocationSheetLightString7196((UIView *)self,attributedString);
+    else r=ADLightAttributedText708(attributedString);
     %orig(r);
     ADDarkenReactCardNearText708((UIView *)self);
 }
@@ -3421,16 +3669,22 @@ static void ADDarkenReactCardNearText708(UIView *textView){
     if(gP.enabled && ((UIView *)self).window){
         ADDarkenReactCardNearText708((UIView *)self);
         ADLocationSheetOwnText7196((UIView *)self);
+        ADPersonOwnText7206((UIView *)self);
     }
 }
 - (void)layoutSubviews {
     %orig;
-    if(gP.enabled&&((UIView *)self).window)ADLocationSheetOwnText7196((UIView *)self);
+    if(gP.enabled&&((UIView *)self).window){ ADLocationSheetOwnText7196((UIView *)self); ADPersonOwnText7206((UIView *)self); }
 }
 %end
 
 %hook RCTTextView
 - (void)setTextStorage:(NSTextStorage *)textStorage {
+    if(gP.enabled && ((UIView *)self).window && ADInPersonTab7206((UIView *)self)){
+        ADPersonLightStorage7206(textStorage);
+        %orig;
+        return;
+    }
     if(gP.enabled && ADInLocationSheetContent7196((UIView *)self)){
         ADLocationSheetLightStorage7196((UIView *)self,textStorage);
         %orig;
@@ -3449,11 +3703,11 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 }
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled&&((UIView *)self).window)ADLocationSheetOwnText7196((UIView *)self);
+    if(gP.enabled&&((UIView *)self).window){ ADLocationSheetOwnText7196((UIView *)self); ADPersonOwnText7206((UIView *)self); }
 }
 - (void)layoutSubviews {
     %orig;
-    if(gP.enabled&&((UIView *)self).window)ADLocationSheetOwnText7196((UIView *)self);
+    if(gP.enabled&&((UIView *)self).window){ ADLocationSheetOwnText7196((UIView *)self); ADPersonOwnText7206((UIView *)self); }
 }
 %end
 
@@ -3461,6 +3715,11 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 - (void)setAttributedText:(NSAttributedString *)attributedText {
     if(gP.enabled && ADInAuthoredVisualSubNav7175((UIView *)self)){
         %orig(attributedText);
+        return;
+    }
+    if(gP.enabled && self.window && ADInPersonTab7206((UIView *)self)){
+        NSAttributedString *r=ADPersonLightString7206(attributedText);
+        %orig(r);
         return;
     }
     if(gP.enabled && self.window && ADInLocationSheetContent7196((UIView *)self)){
@@ -3480,6 +3739,15 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 - (void)setTextColor:(UIColor *)color {
     if(gP.enabled && ADInAuthoredVisualSubNav7175((UIView *)self)){
         %orig(color);
+        return;
+    }
+    if(gP.enabled && self.window && ADInPersonTab7206((UIView *)self)){
+        if(ADPersonAccent7206(color)){
+            %orig(color);
+            return;
+        }
+        UIColor *want=ADPersonPrimaryFont7206(self.font)?ADLightText706():ADPersonSecondary7206();
+        %orig(want);
         return;
     }
     if(gP.enabled && self.window && ADInLocationSheetContent7196((UIView *)self)){
@@ -3502,6 +3770,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 - (void)didMoveToWindow {
     %orig;
     if(!gP.enabled||!self.window||ADInAuthoredVisualSubNav7175((UIView *)self))return;
+    if(ADInPersonTab7206((UIView *)self)){ ADPersonOwnText7206((UIView *)self); return; }
     if(ADInLocationSheetContent7196((UIView *)self)){
         ADLocationSheetOwnText7196((UIView *)self);
         return;
@@ -4185,6 +4454,7 @@ static UIColor *ADNativeTWBOverlayColor7146(void){
 }
 static BOOL ADNativeMediaBlocked(UIImageView *iv){
     if(!iv)return YES;
+    if(ADInPersonTab7206(iv))return ADPersonMediaBlocked7206(iv);
     @try {
         UIImage *im=iv.image; if(!im)return YES;
         if(im.renderingMode==UIImageRenderingModeAlwaysTemplate)return YES;
@@ -4213,7 +4483,7 @@ static BOOL ADNativeMediaBlocked(UIImageView *iv){
 static BOOL ADNativeMediaBlockedCached7146(UIImageView *iv){
     if(!iv||!iv.image)return YES;
     CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
-    if(w<52||h<52)return YES; // geometry can still settle; do not cache this early rejection.
+    if((w<52||h<52)&&!(ADInPersonTab7206(iv)&&ADPersonExplicitProductMedia7206(iv)))return YES; // explicit small Person product tiles are real rasters.
     @try {
         UIImage *last=objc_getAssociatedObject(iv,kADTWBEligibilityImage);
         NSNumber *cached=objc_getAssociatedObject(iv,kADTWBEligibility);
@@ -4516,12 +4786,12 @@ static NSString *ADSearchResultsProbePath7139(NSUInteger run){
         fmt.timeZone=[NSTimeZone localTimeZone];
         fmt.dateFormat=@"yyyyMMdd-HHmmss-SSS";
         NSString *stamp=[fmt stringFromDate:[NSDate date]]?:@"unknown";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.205-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.207-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(docs.length)return [docs stringByAppendingPathComponent:name];
         return [NSTemporaryDirectory() stringByAppendingPathComponent:name];
     } @catch(...) {
-        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.205-dynamic-probe-r%lu.txt",(unsigned long)run]];
+        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.207-dynamic-probe-r%lu.txt",(unsigned long)run]];
     }
 }
 static void ADSearchResultsProbeAppend7139(NSString *p,NSString *s){
@@ -4674,7 +4944,7 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     NSUInteger run=++gADSearchResultsProbeRun7139;
     NSString *path=ADSearchResultsProbePath7139(run);
     NSString *runID=[NSString stringWithFormat:@"%@-pid%d-r%lu",[[path lastPathComponent] stringByDeletingPathExtension],getpid(),(unsigned long)run];
-    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.205 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== LOCATION LIFECYCLE RING v7.205 =====\n%@\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADLocationLifeDump7203(),ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
+    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.207 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== LOCATION LIFECYCLE RING v7.207 =====\n%@\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADLocationLifeDump7203(),ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(path,head);
     NSMutableArray *chosen=[NSMutableArray array];
     @try {
