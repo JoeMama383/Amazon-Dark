@@ -1,9 +1,11 @@
-# AmazonDark v7.216~person-v6185-visual-port-probe
+# AmazonDark v7.217~person-v6185-corrective-visual-port-probe
 
-## v7.216 Person visual reconstruction from v6.0.185 semantics
+## v7.217 corrective Person visual port
 
-This build keeps the v7 event-driven/no-observer architecture but reconstructs the native Person tab using v6.0.185 as the visual/semantic donor: one rounded gray outline per real card, borderless internal carousel/media plates, OLED structural/card floors, v6-style section-aware TWB, and an intentional v7 divergence that also tames Amazon Highlights media/glyphs.
+v7.216 is intentionally rolled back at the Person implementation level. Its broad local-section/raster ownership could classify legitimate cards as carousel internals and could suppress arbitrary React `layer.contents`, which caused missing Review content and lost card borders. v7.217 restores the narrower v7.214 Person ownership model, keeps OLED Person floors, prevents the generic React helper from adding a second square CALayer border inside Person, reasserts the exact `*ttl` Person heading bands/section chevrons after React hydration, and adds one narrow Highlights raster/glyph TWB owner for compact tile-widget media plates. No observer, timer, RAF, or scroll scanner is added.
 
+
+## v7.214 Person carousel ownership + recycled-media TWB hardening
 
 - Person commerce carousels now use one rounded gray outer frame only; recycled page/content views inside the carousel have both React and CALayer borders cleared.
 - Tiny 8-10pt carousel indicators are explicitly excluded from Person border normalization so Amazon's authored dot styling is preserved.
