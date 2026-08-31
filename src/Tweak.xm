@@ -32,7 +32,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.204-location-structural-prime-probe"
+#define AD_VERSION "v7.205-location-presentation-floor-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2872,7 +2872,7 @@ static BOOL ADLocationRootActive7202(UIView *v, UIView **rootOut){
     return YES;
 }
 
-// v7.204 lifecycle verification ring.  The heavy hierarchy dump remains screenshot-
+// v7.205 lifecycle verification ring.  The heavy hierarchy dump remains screenshot-
 // triggered; this tiny ring only records exact candidate native events so we can
 // see what happened before the screenshot was taken.
 static NSMutableArray<NSString *> *gADLocationLife7203=nil;
@@ -3015,13 +3015,42 @@ static BOOL ADLocationEarlyOuterFloor7202(UIView *v){
 static BOOL ADLocationEarlyFloor7202(UIView *v){
     return ADLocationEarlyCard7202(v)||ADLocationEarlySeam7202(v)||ADLocationEarlyOuterFloor7202(v);
 }
+// v7.205: location first-paint must not interpolate Amazon's stock white/cream
+// background into our OLED target.  The v7.204 lifecycle probe proved the model
+// layer is already black while the user can still see the bright transition, which
+// is consistent with an in-flight Core Animation backgroundColor animation.
+// Kill only backgroundColor animation on exact location floors; keep the sheet's
+// position/bounds animation intact.
 static void ADSetLocationBlack7202(UIView *v){
     if(!v)return;
     @try {
         UIColor *black=ADOLED();
+        CALayer *layer=v.layer;
+        [CATransaction begin];
+        [CATransaction setDisableActions:YES];
+        if(layer)[layer removeAnimationForKey:@"backgroundColor"];
         if(![v.backgroundColor isEqual:black])v.backgroundColor=black;
-        if(!v.layer.backgroundColor||!CGColorEqualToColor(v.layer.backgroundColor,black.CGColor))v.layer.backgroundColor=black.CGColor;
+        if(layer&&(!layer.backgroundColor||!CGColorEqualToColor(layer.backgroundColor,black.CGColor)))layer.backgroundColor=black.CGColor;
+        [CATransaction commit];
     } @catch(...) {}
+}
+
+// Once an exact address wrapper has marked this SNPRootView, a bright full-width
+// RCTView below 470pt is part of the location sheet's moving floor/seam family.
+// This intentionally does not require the old panel-shape height to mature: the
+// v7.204 probe shows the same white floor growing 18 -> 39 -> 72 -> 103 -> ...
+// while the address-card root is already marked.  The full-screen dimming overlay
+// and root itself are excluded by the height cap.
+static BOOL ADLocationMarkedWideBrightFloor7205(UIView *v, UIColor *candidate){
+    if(!v||!ADClassNameIs7183(v,"RCTView")||!candidate||!ADColorBrightNeutral7196(candidate))return NO;
+    UIView *root=nil; if(!ADLocationRootActive7202(v,&root)||!root)return NO;
+    @try {
+        CGRect b=v.bounds,rb=root.bounds;
+        if(rb.size.width<=0.0)return NO;
+        return b.size.width>=rb.size.width*0.95 && b.size.width<=rb.size.width*1.05 &&
+               b.size.height>=1.0 && b.size.height<=470.0;
+    } @catch(...) {}
+    return NO;
 }
 static void ADPaintLocationRoot7202(UIView *root){
     if(root)ADLocationLifeNote7203(@"ADPaintRoot.enter",root,root.backgroundColor,objc_getAssociatedObject(root,kADLocationRootFirstPaint7202)?1:0);
@@ -3030,7 +3059,7 @@ static void ADPaintLocationRoot7202(UIView *root){
         NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger seen=0;
         while(q.count&&seen++<512){
             UIView *x=q.firstObject; [q removeObjectAtIndex:0]; if(!x)continue;
-            BOOL floor=ADLocationEarlyFloor7202(x);
+            BOOL floor=ADLocationEarlyFloor7202(x)||ADLocationMarkedWideBrightFloor7205(x,x.backgroundColor);
             if(floor){ ADLocationLifeNote7203(@"ADPaintRoot.floor",x,x.backgroundColor,1); ADSetLocationBlack7202(x); }
             ADLocationSheetOwnText7196(x);
             if(x.subviews.count)[q addObjectsFromArray:x.subviews];
@@ -3320,16 +3349,24 @@ static void ADDarkenReactCardNearText708(UIView *textView){
     // Final-layout ownership keeps the exact location-sheet floors stable after React paints.
     if(gP.enabled&&self.window){
         ADOwnLocationSheetFloor7196((UIView *)self);
+        if(ADLocationMarkedWideBrightFloor7205((UIView *)self,self.backgroundColor))ADSetLocationBlack7202((UIView *)self);
         ADLocationSheetOwnText7196((UIView *)self);
     }
 }
 - (void)setBackgroundColor:(UIColor *)color {
-    BOOL adLocDecision=gP.enabled&&ADLocationSheetFloor7196((UIView *)self,color);
+    BOOL adLocDecision=gP.enabled&&(ADLocationSheetFloor7196((UIView *)self,color)||ADLocationMarkedWideBrightFloor7205((UIView *)self,color));
     ADLocationLifeNote7203(@"RCTView.setBackgroundColor",(UIView *)self,color,adLocDecision?1:0);
     if(adLocDecision){
+        // Call the original setter with OLED while implicit layer actions are
+        // disabled, then clear any backgroundColor animation React/Amazon had
+        // already installed.  Do not disturb position/bounds animations.
         UIColor *black=ADOLED();
+        [CATransaction begin];
+        [CATransaction setDisableActions:YES];
+        [self.layer removeAnimationForKey:@"backgroundColor"];
         %orig(black);
         self.layer.backgroundColor=black.CGColor;
+        [CATransaction commit];
         return;
     }
     %orig(color);
@@ -4479,12 +4516,12 @@ static NSString *ADSearchResultsProbePath7139(NSUInteger run){
         fmt.timeZone=[NSTimeZone localTimeZone];
         fmt.dateFormat=@"yyyyMMdd-HHmmss-SSS";
         NSString *stamp=[fmt stringFromDate:[NSDate date]]?:@"unknown";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.204-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.205-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(docs.length)return [docs stringByAppendingPathComponent:name];
         return [NSTemporaryDirectory() stringByAppendingPathComponent:name];
     } @catch(...) {
-        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.204-dynamic-probe-r%lu.txt",(unsigned long)run]];
+        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.205-dynamic-probe-r%lu.txt",(unsigned long)run]];
     }
 }
 static void ADSearchResultsProbeAppend7139(NSString *p,NSString *s){
@@ -4637,7 +4674,7 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     NSUInteger run=++gADSearchResultsProbeRun7139;
     NSString *path=ADSearchResultsProbePath7139(run);
     NSString *runID=[NSString stringWithFormat:@"%@-pid%d-r%lu",[[path lastPathComponent] stringByDeletingPathExtension],getpid(),(unsigned long)run];
-    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.204 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== LOCATION LIFECYCLE RING v7.204 =====\n%@\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADLocationLifeDump7203(),ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
+    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.205 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== LOCATION LIFECYCLE RING v7.205 =====\n%@\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADLocationLifeDump7203(),ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(path,head);
     NSMutableArray *chosen=[NSMutableArray array];
     @try {
