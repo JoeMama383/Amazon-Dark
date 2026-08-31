@@ -32,7 +32,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.212-person-rounded-border-media-parity-probe"
+#define AD_VERSION "v7.213-home-compact-person-card-hardening-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1187,7 +1187,7 @@ static NSString *ADTWBJS(void){
         @"([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr]):not([class*=sprite]):not([class*=pixel]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),html[data-ad7-standalone-candidate] :is([data-testid*=product-picture],[data-testid*=product-image],[data-testid*=asin-image]) :is(img,video,canvas):not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([data-testid=ratings-stars] *)):not(:where([data-testid=prime-badge] *)),html[data-ad7-standalone-candidate] [data-testid=renderer-factory-ad-container] :is([data-testid=image],[data-acei-id=lfstyl-img]) :is(img,video,canvas):not([class*=logo]):not([class*=icon]):not([class*=glyph]):not([class*=badge]),html[data-ad7-standalone-candidate] #ad:has(#dynamic-bb) :is([data-acei-id=lfstyl-img],[data-acei-id=prod-img]) :is(img,vid"
         @"eo,canvas),html[data-ad7-standalone-candidate] #ad:has(#dynamic-bb) :is(img,video,canvas):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=badge]):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=ad-feedback] *)),html[data-ad7-standalone-candidate] [data-acei-id=brnd-logo] img,html[data-ad7-standalone-candidate] [data-testid=logo] img[alt=\\\"Brand logo\\\"],html[data-ad7-standalone-candidate] #ad[data-html-dimensions=\\\"300x250\\\"] .swiper-slide [data-testid=pictureHighQuality],#gwm-Deck-btf :is([class*=mobile-mshop-ad],[class*=mobile-ad-container],[class*=ape-wrapper],[class*=ape-placement]) :is(img,video,canvas):not([class*=logo]):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([class*=logo] *)):not(:whe"
         @"re([class*=prime] *)):not(:where([class*=rating] *)):not(:where([class*=star] *)):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),[class*=hp-mosaic-container] :is(img,svg):not([class*=next]):not([class*=prev]):not([class*=chevron]):not([class*=arrow]):not(:where([class*=next] *)):not(:where([class*=prev] *)):not(:where([class*=chevron] *)):not(:where([class*=arrow] *)):not([class*=header-icon]):not([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr]),[class*=_mosaic-container_style_widgetContainer] :is(img,svg):not([class*=next]):not([class*=prev]):not([class*=chevron]):not([class*=arrow]):not(:where([class*=next] *)):not(:where([class*=prev] *)):not(:where([class*=chevron] *)):not(:where([class*=arrow] *)):not([class*=header-icon]):not([class*=ad-feedback]):not([class*=sp"
-        @"onsored]):not([class*=spr]),#gwm-window [id^=wd-shoppable-] :is(img,video,canvas):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=logo]):not([class*=badge]):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=ad-feedback] *)),img[class*=_single-creative-card],img[class*=_single-video-card],[class*=single-creative-card] img,[class*=single-video-card] img,[class*=single-video-card] video,[class*=canvas-card] canvas,video.vjs-tech,video[class*=_npack-asin-card_style_background-video__],[class*=_npack-asin-card_style_background-video-container__] > video[class*=_npack-asin-card_style_motion-content__]{filter:brightness(%.3f)!important;}:is([class*=theming-card-background],[class*=_npack-asin-card_style_theming-background-override__]) [class*=_npack-asin-card_style_asin-container-white__]{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;transition"
+        @"onsored]):not([class*=spr]),#gwm-window [id^=wd-shoppable-] :is(img,video,canvas):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=logo]):not([class*=badge]):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=ad-feedback] *)),#gwm-Deck-atf [id^=ape_][id$=_mshop_placement][style*=\\\"320 / 50\\\"] img.ad-background-image.mrc-btr-creative,img[class*=_single-creative-card],img[class*=_single-video-card],[class*=single-creative-card] img,[class*=single-video-card] img,[class*=single-video-card] video,[class*=canvas-card] canvas,video.vjs-tech,video[class*=_npack-asin-card_style_background-video__],[class*=_npack-asin-card_style_background-video-container__] > video[class*=_npack-asin-card_style_motion-content__]{filter:brightness(%.3f)!important;}:is([class*=theming-card-background],[class*=_npack-asin-card_style_theming-background-override__]) [class*=_npack-asin-card_style_asin-container-white__]{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;transition"
         @"-property:none!important;}[class*=theming-card-background],[class*=vjs-poster],[class*=single-creative-card-background],[class*=single-video-card-background],[class*=single-creative-card] [class*=theming-card-background],[class*=single-video-card] [class*=theming-card-background],[class*=single-video-card] [class*=vjs-poster],:is([class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=_npack-asin-card],[class*=npack-asin-card],[class*=canvas-card],[class*=canvas-container]):is([style*=background-image],[style*=backgroundImage]),:is([class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=_npack-asin-card],[class*=npack-asin-card],[class*=canvas-card],[class*=canvas-container]) :is([style*=background-image],[style*=backgroundImage]){box-shadow:inset 0 0 0 9999px rgba(0,0,0,%.3f)!important;transition-property:none!important;}.video-js .vjs-poster[style*=background-image],.vjs-poster.vjs-poster[style*=background-image]{box-shadow:none!important;filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;transition:none!important;}\");}if(document.readyState==='loading')window.addEventListener('load',function(){relink(s);},{once:true});else relink(s);}catch(e){}})();",
         factor,factor,factor,factor,factor,factor,factor,factor,factor,shade,factor,factor];
     gADTWBJSStrength7191=strengthKey;
@@ -3532,6 +3532,94 @@ static void ADPersonSetRCTBorder7208(UIView *v,CGFloat width){
         [v.layer setNeedsDisplay];
     } @catch(...) {}
 }
+static const void *kADPersonInternalMedia7213=&kADPersonInternalMedia7213;
+// v7.213 Person card hardening: inner carousel/product-media plates are content,
+// not cards.  They may own an OLED floor, but never a border.  This keeps one
+// rounded gray frame on the outer card while removing duplicated image/pane frames.
+static BOOL ADPersonHasNestedScroll7213(UIView *v){
+    if(!v)return NO;
+    @try {
+        for(UIView *n=v.superview;n;n=n.superview){
+            if(ADClassNameIs7183(n,"RCTScrollView")){
+                if([n.accessibilityIdentifier isEqualToString:@"me"])return NO;
+                return YES;
+            }
+            if([n.accessibilityIdentifier isEqualToString:@"me"])break;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADPersonContainsMedia7213(UIView *v){
+    if(!v)return NO;
+    @try {
+        NSMutableArray<UIView *> *stack=[NSMutableArray arrayWithArray:v.subviews];
+        int seen=0;
+        while(stack.count&&seen<28){
+            UIView *n=stack.lastObject; [stack removeLastObject]; seen++;
+            if([n isKindOfClass:[UIImageView class]])return YES;
+            for(UIView *c in n.subviews)[stack addObject:c];
+        }
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADPersonInternalMediaPlate7213(UIView *v){
+    if(!v||!ADInPersonTab7206(v)||!ADClassNameIs7183(v,"RCTView"))return NO;
+    @try {
+        if(objc_getAssociatedObject(v,kADPersonInternalMedia7213))return YES;
+        CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+        if(w<92.0||w>235.0||h<76.0||h>215.0)return NO;
+        NSString *aid=(v.accessibilityIdentifier?:@"").lowercaseString;
+        if([aid isEqualToString:@"carouselimagecontainer"]){
+            // Buy Again / Person commerce image wells are never card borders.
+            if(ADPersonBuyAgain7208(v)||ADPersonHasNestedScroll7213(v)){
+                objc_setAssociatedObject(v,kADPersonInternalMedia7213,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                return YES;
+            }
+        }
+        if(!ADPersonHasNestedScroll7213(v))return NO;
+        if([aid hasPrefix:@"tile-widget-"]||[aid isEqualToString:@"ya0"]||[aid isEqualToString:@"ya1"]||
+           [aid isEqualToString:@"ya2"]||[aid isEqualToString:@"gc0"]||[aid isEqualToString:@"gc1"])return NO;
+        if(ADPersonContainsMedia7213(v)){
+            objc_setAssociatedObject(v,kADPersonInternalMedia7213,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            return YES;
+        }
+        return NO;
+    } @catch(...) { return NO; }
+}
+static BOOL ADPersonVisibleColor7213(UIColor *c){
+    if(!c)return NO;
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0;
+        if([c getRed:&r green:&g blue:&b alpha:&a])return a>=0.015;
+        if([c getWhite:&w alpha:&a])return a>=0.015;
+    } @catch(...) {}
+    return NO;
+}
+static UIColor *ADPersonBackground7213(UIView *v){
+    if(!v)return nil;
+    @try {
+        if(v.backgroundColor)return v.backgroundColor;
+        if(v.layer.backgroundColor)return [UIColor colorWithCGColor:v.layer.backgroundColor];
+    } @catch(...) {}
+    return nil;
+}
+static BOOL ADPersonOuterCardFloor7213(UIView *v){
+    if(!v||!ADInPersonTab7206(v)||!ADClassNameIs7183(v,"RCTView")||ADPersonInternalMediaPlate7213(v))return NO;
+    @try {
+        CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+        if(w<145.0||h<76.0)return NO;
+        NSString *aid=(v.accessibilityIdentifier?:@"").lowercaseString;
+        if(ADPersonTopMenuPill7208(v))return YES;
+        if([aid hasPrefix:@"tile-widget-"]||[aid isEqualToString:@"ya0"]||[aid isEqualToString:@"ya1"]||
+           [aid isEqualToString:@"ya2"]||[aid isEqualToString:@"gc0"]||[aid isEqualToString:@"gc1"]||
+           [aid isEqualToString:@"buy-again-flow-card"]||[aid isEqualToString:@"cardwrapperview"]||
+           [aid isEqualToString:@"tmpwrapperview"])return YES;
+        if(ADPersonRCTBorderWidth7208(v)>0.05||v.layer.borderWidth>0.05)return YES;
+        CGFloat rr=MAX(ADPersonRCTBorderRadius7212(v),v.layer.cornerRadius);
+        if(rr>=3.0&&w>=160.0&&h>=90.0)return YES;
+    } @catch(...) {}
+    return NO;
+}
 static BOOL ADPersonSemanticRoundedOwner7212(UIView *v){
     if(!v||!ADClassNameIs7183(v,"RCTView"))return NO;
     @try {
@@ -3579,6 +3667,12 @@ static void ADPersonReassertBorder7206(UIView *v,BOOL wasBright){
             CGFloat rctW=ADPersonRCTBorderWidth7208(v);
             CGFloat rctR=ADPersonRCTBorderRadius7212(v);
             CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+            BOOL internalMedia=ADPersonInternalMediaPlate7213(v);
+            if(internalMedia){
+                v.layer.borderWidth=0.0;
+                ADPersonSetRCTBorder7208(v,0.0);
+                return;
+            }
             BOOL semantic=ADPersonSemanticRoundedOwner7212(v);
             BOOL authoredRounded=(rctR>=3.0||v.layer.cornerRadius>=3.0)&&(w>=100.0||h>=90.0);
             BOOL duplicateInner=ADPersonSameGeometrySemanticParent7212(v);
@@ -3620,9 +3714,13 @@ static void ADPersonOwnView7206(UIView *v){
     if(!gP.enabled||!v||!v.window||!(ADInPersonTab7206(v)||ADPersonBuyAgain7208(v)))return;
     @try {
         ADPersonObserveSectionAnchor7212(v);
-        UIColor *bg=v.backgroundColor; BOOL bright=ADPersonFloorCandidate7206(v,bg);
-        if(bright){ UIColor *black=ADOLED(); v.backgroundColor=black; v.layer.backgroundColor=black.CGColor; }
-        ADPersonReassertBorder7206(v,bright);
+        UIColor *bg=ADPersonBackground7213(v); BOOL bright=ADPersonFloorCandidate7206(v,bg);
+        BOOL internalMedia=ADPersonInternalMediaPlate7213(v);
+        BOOL outerCard=ADPersonOuterCardFloor7213(v);
+        if(bright||((internalMedia||outerCard)&&ADPersonVisibleColor7213(bg))){
+            UIColor *black=ADOLED(); v.backgroundColor=black; v.layer.backgroundColor=black.CGColor;
+        }
+        ADPersonReassertBorder7206(v,bright||outerCard);
         ADPersonOwnHighlightPlate7212(v);
     } @catch(...) {}
 }
@@ -5089,12 +5187,12 @@ static NSString *ADSearchResultsProbePath7139(NSUInteger run){
         fmt.timeZone=[NSTimeZone localTimeZone];
         fmt.dateFormat=@"yyyyMMdd-HHmmss-SSS";
         NSString *stamp=[fmt stringFromDate:[NSDate date]]?:@"unknown";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.212-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.213-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(docs.length)return [docs stringByAppendingPathComponent:name];
         return [NSTemporaryDirectory() stringByAppendingPathComponent:name];
     } @catch(...) {
-        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.212-dynamic-probe-r%lu.txt",(unsigned long)run]];
+        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.213-dynamic-probe-r%lu.txt",(unsigned long)run]];
     }
 }
 static void ADSearchResultsProbeAppend7139(NSString *p,NSString *s){
@@ -5157,7 +5255,7 @@ static NSString *ADSearchResultsProbeNative7139(void){
                 BOOL sem=[lo containsString:@"button"]||[lo containsString:@"label"]||[lo containsString:@"image"]||[lo containsString:@"nav"]||[lo containsString:@"tab"]||[lo containsString:@"search"]||[lo containsString:@"delivery"]||[lo containsString:@"location"]||[lo containsString:@"ingress"]||[lo containsString:@"keyboard"]||[lo containsString:@"web"]||[lo containsString:@"scroll"]||[lo containsString:@"collection"]||[lo containsString:@"cell"];
                 BOOL paint=(bg!=nil)||(lbg!=nil)||v.layer.borderWidth>0.01||v.layer.cornerRadius>0.01;
                 if(sem||paint||r.size.width>=screen.size.width*0.72){
-                    [m appendFormat:@"N cls=%@ r=(%.1f,%.1f %.1fx%.1f) bg=%@ layerBg=%@ tint=%@ borderW=%.2f border=%@ radius=%.2f rctBorderW=%.2f rctRadius=%.2f alpha=%.2f clips=%d marked=%d aid=\"%@\"\n",cn,r.origin.x,r.origin.y,r.size.width,r.size.height,ADSearchResultsProbeColor7139(bg),ADSearchResultsProbeCG7139(lbg),ADSearchResultsProbeColor7139(tint),v.layer.borderWidth,ADSearchResultsProbeCG7139(v.layer.borderColor),v.layer.cornerRadius,ADPersonRCTBorderWidth7208(v),ADPersonRCTBorderRadius7212(v),v.alpha,v.clipsToBounds?1:0,ADInMarkedSearchDeliveryBand7139(v)?1:0,v.accessibilityIdentifier?:@""]; logged++;
+                    [m appendFormat:@"N cls=%@ r=(%.1f,%.1f %.1fx%.1f) bg=%@ layerBg=%@ tint=%@ borderW=%.2f border=%@ radius=%.2f rctBorderW=%.2f rctRadius=%.2f pOuter=%d pInnerMedia=%d alpha=%.2f clips=%d marked=%d aid=\"%@\"\n",cn,r.origin.x,r.origin.y,r.size.width,r.size.height,ADSearchResultsProbeColor7139(bg),ADSearchResultsProbeCG7139(lbg),ADSearchResultsProbeColor7139(tint),v.layer.borderWidth,ADSearchResultsProbeCG7139(v.layer.borderColor),v.layer.cornerRadius,ADPersonRCTBorderWidth7208(v),ADPersonRCTBorderRadius7212(v),ADPersonOuterCardFloor7213(v)?1:0,ADPersonInternalMediaPlate7213(v)?1:0,v.alpha,v.clipsToBounds?1:0,ADInMarkedSearchDeliveryBand7139(v)?1:0,v.accessibilityIdentifier?:@""]; logged++;
                 }
                 if(q.count<1500&&v.subviews.count)[q addObjectsFromArray:v.subviews];
             }
@@ -5247,7 +5345,7 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     NSUInteger run=++gADSearchResultsProbeRun7139;
     NSString *path=ADSearchResultsProbePath7139(run);
     NSString *runID=[NSString stringWithFormat:@"%@-pid%d-r%lu",[[path lastPathComponent] stringByDeletingPathExtension],getpid(),(unsigned long)run];
-    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.212 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== LOCATION LIFECYCLE RING v7.212 =====\n%@\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADLocationLifeDump7203(),ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
+    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.213 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== LOCATION LIFECYCLE RING v7.213 =====\n%@\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADLocationLifeDump7203(),ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(path,head);
     NSMutableArray *chosen=[NSMutableArray array];
     @try {
