@@ -1,4 +1,8 @@
-# AmazonDark v7.217~person-v6185-corrective-visual-port-probe
+# AmazonDark v7.218~person-simplified-visual-restore-probe
+
+## v7.218 simplified Person visual restore
+
+Uses the v7.217 probes to tighten Person ownership around the actual React cards and media leaves instead of broad panel/raster heuristics. Section-title text is reasserted at the exact hydrated `*ttl` text leaf; Reviews, Interests, Subscribe & Save, Shop previously watched, Buy Again and Highlights image leaves render their authored raster before image-only TWB; Medical Care artwork stays authored; Project Hail Mary regains its outer frame; Highlights keeps one real tile border; and Buy Again owns only the physical ~286pt card host with an OLED floor and one gray rounded outline. No observer, timer, RAF, recurring scan, or web scroll listener is added.
 
 ## v7.217 corrective Person visual port
 
