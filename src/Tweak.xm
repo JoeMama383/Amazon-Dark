@@ -32,7 +32,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.213-home-compact-person-card-hardening-probe"
+#define AD_VERSION "v7.216-person-v6185-visual-port-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2002,9 +2002,13 @@ static NSString *ADLocationLifeDump7203(void);
 // React/text helpers below; these prototypes keep the global UIView hook narrow.
 static BOOL ADInPersonTab7206(UIView *v);
 static BOOL ADPersonFloorCandidate7206(UIView *v, UIColor *candidate);
+static BOOL ADPersonShouldOLEDColor7216(UIView *v, UIColor *candidate);
+static BOOL ADPersonHighlightPlate7212(UIView *v);
+static CGFloat ADPersonDesiredRadius7212(UIView *v,CGFloat authored);
 static void ADPersonOwnView7206(UIView *v);
 static void ADPersonOwnText7206(UIView *v);
 static void ADApplyNativeTWBCached7183(UIImageView *iv,BOOL authoredSubNav);
+static void ADResetNativeTWBCache7214(UIImageView *iv);
 static UIColor *ADNativeTWBOverlayColor7146(void);
 static void ADPersonObserveSectionAnchor7212(UIView *v);
 static void ADPersonOwnHighlightPlate7212(UIView *v);
@@ -2078,7 +2082,7 @@ static void ADOwnSearchPackard7206(UIView *v);
         ADOwnSearchPackard7206(self);
         return;
     }
-    if(gP.enabled && self.window && ADPersonFloorCandidate7206(self,color)){
+    if(gP.enabled && self.window && ADPersonShouldOLEDColor7216(self,color)){
         UIColor *black=ADOLED();
         %orig(black);
         self.layer.backgroundColor=black.CGColor;
@@ -3463,6 +3467,127 @@ static BOOL ADPersonAccent7206(UIColor *c){
 // own per-edge border properties rather than CALayer.borderColor.  The v7.207 probe
 // shows the four BAC pills with layer borderWidth=0 while a bright rounded edge is
 // still visible, so reassert both paint paths.  This remains exact-Person only.
+
+// v7.216 Person visual reconstruction: keep the v7 event-driven architecture, but
+// reuse v6.0.185's proven local-section semantics as the visual/TWB baseline.  The
+// bounded walks below run only from native Person media/card events; no observer,
+// timer, scroll callback, or window-wide sweep is introduced.
+static const void *kADPersonLocalCtx7216=&kADPersonLocalCtx7216;
+static const void *kADPersonLocalTime7216=&kADPersonLocalTime7216;
+static NSString *ADPersonViewText7216(UIView *v){
+    if(!v)return @"";
+    @try {
+        NSString *t=v.accessibilityLabel;
+        if([v isKindOfClass:[UILabel class]])t=((UILabel *)v).text?:t;
+        else if([v isKindOfClass:[UIButton class]])t=((UIButton *)v).titleLabel.text?:t;
+        else if([v isKindOfClass:[UITextView class]])t=((UITextView *)v).text?:t;
+        if(!t.length){
+            SEL q=NSSelectorFromString(@"text");
+            if([v respondsToSelector:q]){ id x=((id(*)(id,SEL))objc_msgSend)(v,q); if([x isKindOfClass:[NSString class]])t=x; }
+        }
+        if(!t.length){
+            SEL q=NSSelectorFromString(@"attributedText");
+            if([v respondsToSelector:q]){ id x=((id(*)(id,SEL))objc_msgSend)(v,q); if([x isKindOfClass:[NSAttributedString class]])t=[x string]; }
+        }
+        return t?:@"";
+    } @catch(...) { return @""; }
+}
+static NSString *ADPersonNormalizeText7216(NSString *text){
+    if(!text.length)return @"";
+    NSString *lo=text.lowercaseString;
+    lo=[lo stringByReplacingOccurrencesOfString:@"\n" withString:@" "];
+    lo=[lo stringByReplacingOccurrencesOfString:@"\r" withString:@" "];
+    lo=[lo stringByReplacingOccurrencesOfString:@"\t" withString:@" "];
+    while([lo containsString:@"  "])lo=[lo stringByReplacingOccurrencesOfString:@"  " withString:@" "];
+    return [lo stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+}
+// 0 unknown, 1 explicit non-product/exclusion, 2 product/commerce, 3 reviews,
+// 4 Highlights.  v6.185 treated Highlights as a TWB exclusion; v7.216 deliberately
+// promotes it to kind 4 because the requested target tames Highlights media/glyphs.
+static int ADPersonSemanticTextKind7216(NSString *raw){
+    NSString *lo=ADPersonNormalizeText7216(raw);
+    if(!lo.length)return 0;
+    if([lo containsString:@"medical care"]||[lo containsString:@"need help"]||
+       [lo containsString:@"contact customer service"]||[lo containsString:@"customer service"]||
+       [lo containsString:@"sessions streamed"])return 1;
+    if([lo containsString:@"your amazon highlights"]||[lo containsString:@"total savings"]||
+       [lo containsString:@"prime benefits"])return 4;
+    if([lo containsString:@"your reviews"]||[lo containsString:@"what did you think of the item"])return 3;
+    if([lo containsString:@"returns are easy"]||[lo containsString:@"send an amazon gift card"]||
+       [lo containsString:@"shop previously watched"]||[lo containsString:@"subscribe & save"]||
+       [lo containsString:@"subscribe and save"]||[lo hasPrefix:@"best deals on"]||
+       [lo containsString:@"keep shopping for"]||[lo containsString:@"your interests"]||
+       [lo containsString:@"buy again"]||[lo containsString:@"reorder soon"]||
+       [lo containsString:@"alexa for shopping"]||[lo containsString:@"lists and registries"]||
+       [lo containsString:@"lists & registries"]||[lo containsString:@"shopping list"]||
+       [lo containsString:@"your orders"]||[lo containsString:@"delivered "])return 2;
+    return 0;
+}
+static int ADPersonLocalSection7216(UIView *v){
+    if(!v||!ADInPersonTab7206(v))return 0;
+    @try {
+        UIWindow *w=v.window; UIView *p=v; int up=0;
+        while(p&&up++<7){
+            if([p.accessibilityIdentifier isEqualToString:@"me"])break;
+            CGFloat h=p.bounds.size.height,ww=p.bounds.size.width;
+            if(h>=40.0&&h<=760.0&&ww>=40.0&&(!w||ww<=w.bounds.size.width*1.25)){
+                CFAbsoluteTime now=CFAbsoluteTimeGetCurrent();
+                NSNumber *ct=objc_getAssociatedObject(p,kADPersonLocalTime7216);
+                NSNumber *cc=objc_getAssociatedObject(p,kADPersonLocalCtx7216);
+                if(ct&&cc){
+                    CFAbsoluteTime age=now-ct.doubleValue; int cv=cc.intValue;
+                    if((cv!=0&&age<2.0)||(cv==0&&age<0.20)){
+                        if(cv)return cv;
+                        p=p.superview; continue;
+                    }
+                }
+                NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:p];
+                int seen=0; BOOL excluded=NO,product=NO,reviews=NO,highlights=NO;
+                for(NSUInteger qi=0;qi<q.count&&seen++<72;qi++){
+                    UIView *x=q[qi]; int k=ADPersonSemanticTextKind7216(ADPersonViewText7216(x));
+                    if(k==1)excluded=YES; else if(k==2)product=YES; else if(k==3)reviews=YES; else if(k==4)highlights=YES;
+                    if(qi<24){ for(UIView *c in x.subviews){ if(q.count<72)[q addObject:c]; else break; } }
+                }
+                int result=0;
+                if(highlights&&h<=320.0)result=4;
+                else if(excluded&&h<=280.0)result=1;
+                else if(reviews)result=3;
+                else if(product)result=2;
+                else if(highlights)result=4;
+                else if(excluded)result=1;
+                objc_setAssociatedObject(p,kADPersonLocalCtx7216,@(result),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                objc_setAssociatedObject(p,kADPersonLocalTime7216,@(now),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                if(result)return result;
+            }
+            p=p.superview;
+        }
+    } @catch(...) {}
+    return 0;
+}
+static int ADPersonCarouselSection7216(UIView *v){
+    if(!v||!ADInPersonTab7206(v))return 0;
+    @try {
+        UIView *p=v; int up=0;
+        while(p&&up++<11){
+            if([p.accessibilityIdentifier isEqualToString:@"me"])break;
+            if([p isKindOfClass:[UIScrollView class]]){
+                UIScrollView *sv=(UIScrollView *)p;
+                CGFloat bw=sv.bounds.size.width,bh=sv.bounds.size.height;
+                CGFloat cw=sv.contentSize.width,ch=sv.contentSize.height;
+                BOOL compact=(bw>=70.0&&bh>=40.0&&bh<=480.0&&
+                              (cw>bw*1.03||ch<=MAX(bh*1.40,bh+48.0)||cw<=1.0));
+                if(compact){ int k=ADPersonLocalSection7216(sv); if(k)return k; }
+            }
+            p=p.superview;
+        }
+    } @catch(...) {}
+    return 0;
+}
+static int ADPersonMediaSection7216(UIView *v){
+    int k=ADPersonCarouselSection7216(v);
+    return k?:ADPersonLocalSection7216(v);
+}
+
 static BOOL ADPersonTopMenuPill7208(UIView *v){
     if(!v||!ADClassNameIs7183(v,"RCTView"))return NO;
     @try {
@@ -3562,29 +3687,96 @@ static BOOL ADPersonContainsMedia7213(UIView *v){
     } @catch(...) {}
     return NO;
 }
+static const void *kADPersonCarouselOuter7214=&kADPersonCarouselOuter7214;
+static const void *kADPersonCarouselInner7214=&kADPersonCarouselInner7214;
+// v7.214: Person commerce carousels use one rounded outer frame only.  Their
+// recycled page/content views are structural content and must never manufacture
+// a second border.  This is geometry + nested-scroll scoped under the exact me root.
+static BOOL ADPersonCarouselOuter7214(UIView *v){
+    if(!v||!ADInPersonTab7206(v)||!ADClassNameIs7183(v,"RCTView"))return NO;
+    @try {
+        if(objc_getAssociatedObject(v,kADPersonCarouselOuter7214))return YES;
+        NSString *aid=(v.accessibilityIdentifier?:@"").lowercaseString;
+        // Highlights intentionally frames each tile-widget card, not the full carousel.
+        if([aid isEqualToString:@"tile-carousel-container"]||[aid isEqualToString:@"tile-carousel-item"]||
+           [aid isEqualToString:@"tile-carousel-list"])return NO;
+        CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+        if(w<360.0||w>420.0||h<78.0||h>245.0)return NO;
+        NSMutableArray<UIView *> *q=[NSMutableArray arrayWithArray:v.subviews]; int seen=0;
+        while(q.count&&seen<22){
+            UIView *n=q.firstObject; [q removeObjectAtIndex:0]; seen++;
+            if(ADClassNameIs7183(n,"RCTScrollView")){
+                CGFloat sw=n.bounds.size.width,sh=n.bounds.size.height;
+                if(sw>=w-12.0&&sw<=w+12.0&&sh>=h-24.0&&sh<=h+8.0){
+                    objc_setAssociatedObject(v,kADPersonCarouselOuter7214,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                    return YES;
+                }
+            }
+            if(seen<12)for(UIView *c in n.subviews)[q addObject:c];
+        }
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADPersonInsideCarouselOuter7214(UIView *v){
+    if(!v||!ADInPersonTab7206(v))return NO;
+    @try {
+        if(objc_getAssociatedObject(v,kADPersonCarouselInner7214))return YES;
+        CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+        if(w<=18.0&&h<=18.0)return NO;
+        NSString *aid=(v.accessibilityIdentifier?:@"").lowercaseString;
+        if([aid hasPrefix:@"tile-widget-"])return NO; // real Highlights card
+        if([aid isEqualToString:@"tile-carousel-item"]||[aid isEqualToString:@"tile-carousel-list"]||
+           [aid isEqualToString:@"tile-carousel-container"]){
+            objc_setAssociatedObject(v,kADPersonCarouselInner7214,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            return YES;
+        }
+        UIView *n=v.superview;
+        for(int d=0;n&&d<8;d++,n=n.superview){
+            if([n.accessibilityIdentifier isEqualToString:@"me"])break;
+            if(ADPersonCarouselOuter7214(n)){
+                objc_setAssociatedObject(v,kADPersonCarouselInner7214,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                return YES;
+            }
+        }
+    } @catch(...) {}
+    return NO;
+}
 static BOOL ADPersonInternalMediaPlate7213(UIView *v){
     if(!v||!ADInPersonTab7206(v)||!ADClassNameIs7183(v,"RCTView"))return NO;
     @try {
         if(objc_getAssociatedObject(v,kADPersonInternalMedia7213))return YES;
         CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
-        if(w<92.0||w>235.0||h<76.0||h>215.0)return NO;
+        if(w<=18.0&&h<=18.0)return NO;
         NSString *aid=(v.accessibilityIdentifier?:@"").lowercaseString;
-        if([aid isEqualToString:@"carouselimagecontainer"]){
-            // Buy Again / Person commerce image wells are never card borders.
-            if(ADPersonBuyAgain7208(v)||ADPersonHasNestedScroll7213(v)){
-                objc_setAssociatedObject(v,kADPersonInternalMedia7213,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                return YES;
-            }
-        }
-        if(!ADPersonHasNestedScroll7213(v))return NO;
-        if([aid hasPrefix:@"tile-widget-"]||[aid isEqualToString:@"ya0"]||[aid isEqualToString:@"ya1"]||
-           [aid isEqualToString:@"ya2"]||[aid isEqualToString:@"gc0"]||[aid isEqualToString:@"gc1"])return NO;
-        if(ADPersonContainsMedia7213(v)){
+        if([aid isEqualToString:@"tile-carousel-item"]||[aid isEqualToString:@"tile-carousel-list"]||
+           [aid isEqualToString:@"tile-carousel-container"]){
             objc_setAssociatedObject(v,kADPersonInternalMedia7213,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             return YES;
         }
-        return NO;
-    } @catch(...) { return NO; }
+        if([aid isEqualToString:@"carouselimagecontainer"]&&(ADPersonBuyAgain7208(v)||ADPersonHasNestedScroll7213(v))){
+            objc_setAssociatedObject(v,kADPersonInternalMedia7213,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            return YES;
+        }
+        // Any wrapper nested under a product-image container is media/chrome, never another card.
+        for(UIView *n=v.superview;n;n=n.superview){
+            NSString *na=(n.accessibilityIdentifier?:@"").lowercaseString;
+            if([na isEqualToString:@"carouselimagecontainer"]){
+                objc_setAssociatedObject(v,kADPersonInternalMedia7213,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                return YES;
+            }
+            if([n.accessibilityIdentifier isEqualToString:@"me"])break;
+        }
+        if(ADPersonInsideCarouselOuter7214(v)){
+            objc_setAssociatedObject(v,kADPersonInternalMedia7213,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            return YES;
+        }
+        // Small/medium RCT wrappers that contain raster media inside a nested carousel are content.
+        if(w>=70.0&&w<=245.0&&h>=58.0&&h<=225.0&&ADPersonHasNestedScroll7213(v)&&ADPersonContainsMedia7213(v)){
+            objc_setAssociatedObject(v,kADPersonInternalMedia7213,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            return YES;
+        }
+    } @catch(...) {}
+    return NO;
 }
 static BOOL ADPersonVisibleColor7213(UIColor *c){
     if(!c)return NO;
@@ -3609,6 +3801,7 @@ static BOOL ADPersonOuterCardFloor7213(UIView *v){
         CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
         if(w<145.0||h<76.0)return NO;
         NSString *aid=(v.accessibilityIdentifier?:@"").lowercaseString;
+        if(ADPersonCarouselOuter7214(v))return YES;
         if(ADPersonTopMenuPill7208(v))return YES;
         if([aid hasPrefix:@"tile-widget-"]||[aid isEqualToString:@"ya0"]||[aid isEqualToString:@"ya1"]||
            [aid isEqualToString:@"ya2"]||[aid isEqualToString:@"gc0"]||[aid isEqualToString:@"gc1"]||
@@ -3621,15 +3814,18 @@ static BOOL ADPersonOuterCardFloor7213(UIView *v){
     return NO;
 }
 static BOOL ADPersonSemanticRoundedOwner7212(UIView *v){
-    if(!v||!ADClassNameIs7183(v,"RCTView"))return NO;
+    if(!v||!ADClassNameIs7183(v,"RCTView")||!ADInPersonTab7206(v))return NO;
     @try {
+        if(ADPersonInternalMediaPlate7213(v))return NO;
         NSString *aid=(v.accessibilityIdentifier?:@"").lowercaseString;
+        if(ADPersonCarouselOuter7214(v))return YES;
         if(ADPersonTopMenuPill7208(v))return YES;
-        if([aid isEqualToString:@"carouselimagecontainer"])return YES;
+        if([aid isEqualToString:@"carouselimagecontainer"])return YES; // v6.185-style standalone product tile
         if([aid hasPrefix:@"tile-widget-"])return YES;
         if([aid isEqualToString:@"ya0"]||[aid isEqualToString:@"ya1"]||[aid isEqualToString:@"ya2"]||
            [aid isEqualToString:@"gc0"]||[aid isEqualToString:@"gc1"])return YES;
-        if([aid isEqualToString:@"buy-again-flow-card"]||[aid isEqualToString:@"cardwrapperview"]||[aid isEqualToString:@"tmpwrapperview"])return YES;
+        if([aid isEqualToString:@"buy-again-flow-card"]||[aid isEqualToString:@"cardwrapperview"]||
+           [aid isEqualToString:@"tmpwrapperview"])return YES;
     } @catch(...) {}
     return NO;
 }
@@ -3646,6 +3842,99 @@ static BOOL ADPersonSameGeometrySemanticParent7212(UIView *v){
     } @catch(...) {}
     return NO;
 }
+
+// v6.185 visual donor: some Person rounded borders are stretchable 24..96px
+// rasters stored in RCTView.layer.contents.  v7.216 keeps the fast v7 architecture
+// but restores v6's one-physical-outline rule for those hosts.
+static const void *kADPersonRasterOwner7216=&kADPersonRasterOwner7216;
+static const void *kADPersonRasterOutline7216=&kADPersonRasterOutline7216;
+static BOOL ADPersonSmallRasterPlate7216(id contents){
+    if(!contents)return NO;
+    @try {
+        CFTypeRef obj=(__bridge CFTypeRef)contents;
+        if(!obj||CFGetTypeID(obj)!=CGImageGetTypeID())return NO;
+        CGImageRef im=(CGImageRef)obj;
+        size_t iw=CGImageGetWidth(im),ih=CGImageGetHeight(im);
+        return iw>=20&&iw<=112&&ih>=20&&ih<=112;
+    } @catch(...) { return NO; }
+}
+static BOOL ADPersonRasterHostCandidate7216(UIView *v,id contents){
+    if(!v||!v.window||!ADInPersonTab7206(v)||!ADClassNameIs7183(v,"RCTView")||
+       ADPersonInternalMediaPlate7213(v)||!ADPersonSmallRasterPlate7216(contents))return NO;
+    CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+    if(w<100.0||w>430.0||h<36.0||h>520.0)return NO;
+    if(ADPersonSemanticRoundedOwner7212(v)||ADPersonTopMenuPill7208(v))return YES;
+    CGFloat rr=MAX(v.layer.cornerRadius,ADPersonRCTBorderRadius7212(v));
+    if(rr>=3.0)return YES;
+    // v6.185 semantic fallback for raster-only Explore/Gift-card hosts.
+    NSString *t=ADPersonNormalizeText7216(ADPersonViewText7216(v));
+    return [t containsString:@"explore more to shop"]||[t containsString:@"redeem gift card"]||
+           [t containsString:@"reload balance"];
+}
+static void ADPersonRemoveRasterOutline7216(UIView *v){
+    if(!v)return;
+    @try {
+        CAShapeLayer *ov=objc_getAssociatedObject(v,kADPersonRasterOutline7216);
+        if(ov)[ov removeFromSuperlayer];
+        objc_setAssociatedObject(v,kADPersonRasterOutline7216,nil,OBJC_ASSOCIATION_ASSIGN);
+        objc_setAssociatedObject(v,kADPersonRasterOwner7216,nil,OBJC_ASSOCIATION_ASSIGN);
+        objc_setAssociatedObject(v.layer,kADPersonRasterOwner7216,nil,OBJC_ASSOCIATION_ASSIGN);
+    } @catch(...) {}
+}
+static void ADPersonClearHostBorderLayers7216(UIView *v,CALayer *keep){
+    if(!v)return;
+    @try {
+        for(CALayer *sl in (v.layer.sublayers?:@[])){
+            if(sl==keep)continue;
+            id del=sl.delegate;
+            if(del&&del!=v&&[del isKindOfClass:[UIView class]])continue; // child-view content
+            if(sl.borderWidth>0.0&&sl.borderWidth<=4.0)sl.borderWidth=0.0;
+            if([sl isKindOfClass:[CAShapeLayer class]]){
+                CAShapeLayer *sh=(CAShapeLayer *)sl;
+                if(sh.lineWidth>0.0&&sh.lineWidth<=4.0)sh.lineWidth=0.0;
+            }
+        }
+    } @catch(...) {}
+}
+static void ADPersonInstallRasterOutline7216(UIView *v){
+    if(!v||!ADInPersonTab7206(v))return;
+    @try {
+        CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+        if(w<100.0||h<36.0)return;
+        objc_setAssociatedObject(v,kADPersonRasterOwner7216,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(v.layer,kADPersonRasterOwner7216,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        v.layer.contents=nil;
+        v.layer.borderWidth=0.0;
+        ADPersonSetRCTBorder7208(v,0.0);
+        CGFloat r=ADPersonDesiredRadius7212(v,MAX(v.layer.cornerRadius,ADPersonRCTBorderRadius7212(v)));
+        v.layer.cornerRadius=r;
+        CAShapeLayer *ov=objc_getAssociatedObject(v,kADPersonRasterOutline7216);
+        if(!ov){
+            ov=[CAShapeLayer layer]; ov.name=@"AmazonDarkPersonSingleOutline7216";
+            ov.fillColor=[UIColor clearColor].CGColor; ov.lineWidth=1.0;
+            ov.contentsScale=UIScreen.mainScreen.scale; ov.zPosition=CGFLOAT_MAX;
+            ov.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"path":[NSNull null],@"strokeColor":[NSNull null]};
+            [v.layer addSublayer:ov];
+            objc_setAssociatedObject(v,kADPersonRasterOutline7216,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        ADPersonClearHostBorderLayers7216(v,ov);
+        ov.frame=v.bounds;
+        CGRect rr=CGRectInset(v.bounds,0.5,0.5);
+        ov.path=[UIBezierPath bezierPathWithRoundedRect:rr cornerRadius:MAX(0.0,r-0.5)].CGPath;
+        ov.strokeColor=ADBorderGray706().CGColor;
+        ov.hidden=(v.hidden||v.alpha<0.01||CGRectIsEmpty(v.bounds));
+    } @catch(...) {}
+}
+static void ADPersonRasterLayout7216(UIView *v){
+    if(!v||!v.window||!ADInPersonTab7206(v))return;
+    @try {
+        BOOL owned=objc_getAssociatedObject(v,kADPersonRasterOwner7216)!=nil;
+        if(ADPersonInternalMediaPlate7213(v)){ if(owned)ADPersonRemoveRasterOutline7216(v); return; }
+        if(owned){ ADPersonInstallRasterOutline7216(v); return; }
+        if(ADPersonRasterHostCandidate7216(v,v.layer.contents))ADPersonInstallRasterOutline7216(v);
+    } @catch(...) {}
+}
+
 static CGFloat ADPersonDesiredRadius7212(UIView *v,CGFloat authored){
     CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
     if(ADPersonTopMenuPill7208(v))return MAX(6.0,MIN(h*0.5,30.0));
@@ -3662,40 +3951,43 @@ static void ADPersonReassertBorder7206(UIView *v,BOOL wasBright){
     if(!v)return;
     @try {
         BOOL isRCT=ADClassNameIs7183(v,"RCTView");
-        CGFloat layerW=v.layer.borderWidth;
+        CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+        if(w<=18.0&&h<=18.0)return; // authored carousel dots
         if(isRCT){
-            CGFloat rctW=ADPersonRCTBorderWidth7208(v);
-            CGFloat rctR=ADPersonRCTBorderRadius7212(v);
-            CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
             BOOL internalMedia=ADPersonInternalMediaPlate7213(v);
             if(internalMedia){
+                ADPersonRemoveRasterOutline7216(v);
                 v.layer.borderWidth=0.0;
                 ADPersonSetRCTBorder7208(v,0.0);
+                ADPersonClearHostBorderLayers7216(v,nil);
                 return;
             }
-            BOOL semantic=ADPersonSemanticRoundedOwner7212(v);
-            BOOL authoredRounded=(rctR>=3.0||v.layer.cornerRadius>=3.0)&&(w>=100.0||h>=90.0);
+            if(objc_getAssociatedObject(v,kADPersonRasterOwner7216)){
+                ADPersonInstallRasterOutline7216(v);
+                return;
+            }
+            CGFloat rctW=ADPersonRCTBorderWidth7208(v);
+            CGFloat rctR=ADPersonRCTBorderRadius7212(v);
             BOOL duplicateInner=ADPersonSameGeometrySemanticParent7212(v);
             if(duplicateInner){
                 v.layer.borderWidth=0.0;
                 ADPersonSetRCTBorder7208(v,0.0);
                 return;
             }
-            // Do not manufacture borders on every bright inner plate. Own only an existing
-            // React border, an authored rounded card, or an exact semantic outer card.
-            BOOL own=(rctW>0.05||layerW>0.05||authoredRounded||semantic);
+            BOOL semantic=ADPersonSemanticRoundedOwner7212(v);
+            BOOL authoredRounded=(rctR>=3.0||v.layer.cornerRadius>=3.0)&&(w>=100.0||h>=90.0);
+            BOOL own=(rctW>0.05||v.layer.borderWidth>0.05||authoredRounded||semantic);
             if(!own)return;
-            CGFloat wantW=MAX(1.0,rctW);
             CGFloat wantR=ADPersonDesiredRadius7212(v,MAX(rctR,v.layer.cornerRadius));
-            // One renderer only: React draws the rounded contour. A simultaneous CALayer
-            // border is what produced the square outline around rounded cards in v7.211.
+            // React is the normal Person border renderer. CALayer direct borders are
+            // always zero here, so a square second contour cannot sit over the RCT radius.
             v.layer.borderWidth=0.0;
             v.layer.borderColor=ADBorderGray706().CGColor;
             ADPersonSetRCTRadius7212(v,wantR);
-            ADPersonSetRCTBorder7208(v,wantW);
+            ADPersonSetRCTBorder7208(v,1.0);
             return;
         }
-        if(layerW>0.05){
+        if(v.layer.borderWidth>0.05){
             v.layer.borderColor=ADBorderGray706().CGColor;
             if(v.layer.cornerRadius<3.0&&wasBright)v.layer.cornerRadius=8.0;
         }
@@ -3706,21 +3998,37 @@ static BOOL ADPersonFloorCandidate7206(UIView *v,UIColor *candidate){
     if([v isKindOfClass:[UIImageView class]]||[v isKindOfClass:[UILabel class]]||[v isKindOfClass:[UIControl class]])return NO;
     if(ADClassNameIs7183(v,"RCTScrollView")||ADClassNameIs7183(v,"RCTCustomScrollView")||ADClassNameIs7183(v,"RCTScrollContentView"))return NO;
     CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
-    // Preserve the Shopping List carousel indicators (8-10pt) and other authored dots/glyph plates.
+    return w>=24.0&&h>=24.0;
+}
+static BOOL ADPersonShouldOLEDColor7216(UIView *v,UIColor *candidate){
+    if(!gP.enabled||!v||!candidate||!ADInPersonTab7206(v))return NO;
+    if([v isKindOfClass:[UIImageView class]]||[v isKindOfClass:[UILabel class]]||[v isKindOfClass:[UIControl class]])return NO;
+    CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
     if(w<24.0||h<24.0)return NO;
-    return YES;
+    if(ADPersonHighlightPlate7212(v))return NO; // preserve the authored blue plate; tame it separately.
+    if(ADPersonFloorCandidate7206(v,candidate))return YES;
+    if((ADPersonInternalMediaPlate7213(v)||ADPersonOuterCardFloor7213(v))&&ADPersonVisibleColor7213(candidate))return YES;
+    // v6.185 used a dark slate base; the requested port keeps its structure but
+    // turns large neutral Person structural floors into true OLED black.
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,white=0;
+        BOOL neutral=NO;
+        if([candidate getRed:&r green:&g blue:&b alpha:&a]){
+            CGFloat hi=MAX(r,MAX(g,b)),lo=MIN(r,MIN(g,b)); neutral=(a>=0.015&&(hi-lo)<0.14);
+        } else if([candidate getWhite:&white alpha:&a]) neutral=(a>=0.015);
+        if(neutral&&w>=360.0&&h>=160.0)return YES;
+    } @catch(...) {}
+    return NO;
 }
 static void ADPersonOwnView7206(UIView *v){
     if(!gP.enabled||!v||!v.window||!(ADInPersonTab7206(v)||ADPersonBuyAgain7208(v)))return;
     @try {
         ADPersonObserveSectionAnchor7212(v);
-        UIColor *bg=ADPersonBackground7213(v); BOOL bright=ADPersonFloorCandidate7206(v,bg);
-        BOOL internalMedia=ADPersonInternalMediaPlate7213(v);
-        BOOL outerCard=ADPersonOuterCardFloor7213(v);
-        if(bright||((internalMedia||outerCard)&&ADPersonVisibleColor7213(bg))){
-            UIColor *black=ADOLED(); v.backgroundColor=black; v.layer.backgroundColor=black.CGColor;
-        }
-        ADPersonReassertBorder7206(v,bright||outerCard);
+        UIColor *bg=ADPersonBackground7213(v);
+        BOOL ownFloor=bg&&ADPersonShouldOLEDColor7216(v,bg);
+        if(ownFloor){ UIColor *black=ADOLED(); v.backgroundColor=black; v.layer.backgroundColor=black.CGColor; }
+        ADPersonRasterLayout7216(v);
+        ADPersonReassertBorder7206(v,ownFloor);
         ADPersonOwnHighlightPlate7212(v);
     } @catch(...) {}
 }
@@ -3829,7 +4137,13 @@ static void ADPersonPrimeMarkedMedia7212(UIView *root){
         int seen=0;
         while(stack.count&&seen<120){
             UIView *v=stack.lastObject; [stack removeLastObject]; seen++;
-            if([v isKindOfClass:[UIImageView class]])ADApplyNativeTWBCached7183((UIImageView *)v,NO);
+            if([v isKindOfClass:[UIImageView class]]){
+                // The same recycled UIImage can have been cached as blocked before the
+                // Lists/Reviews section marker existed.  Invalidate that stale answer
+                // before forcing the newly-positive section media through TWB.
+                ADResetNativeTWBCache7214((UIImageView *)v);
+                ADApplyNativeTWBCached7183((UIImageView *)v,NO);
+            }
             for(UIView *c in v.subviews)if(c.window==root.window)[stack addObject:c];
         }
     } @catch(...) {}
@@ -3905,18 +4219,22 @@ static BOOL ADPersonExplicitProductMedia7206(UIImageView *iv){
 static BOOL ADPersonMediaBlocked7206(UIImageView *iv){
     if(!iv||!iv.image||!ADInPersonTab7206(iv))return YES;
     @try {
-        UIImage *im=iv.image; BOOL forced=ADPersonForcedMedia7212(iv);
+        UIImage *im=iv.image;
+        int section=ADPersonMediaSection7216(iv);
+        BOOL forced=ADPersonForcedMedia7212(iv)||(section==2||section==3||section==4);
+        if(section==1&&!ADPersonForcedMedia7212(iv))return YES; // Medical Care / Customer Service stay authored.
         if(im.renderingMode==UIImageRenderingModeAlwaysTemplate&&!forced)return YES;
-        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height; BOOL explicitMedia=ADPersonExplicitProductMedia7206(iv)||forced;
-        if((w<52.0||h<52.0)&&!explicitMedia)return YES;
-        if(im.CGImage&&CGImageGetWidth(im.CGImage)<=80&&CGImageGetHeight(im.CGImage)<=80&&!explicitMedia)return YES;
+        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
+        BOOL explicitMedia=ADPersonExplicitProductMedia7206(iv)||forced;
+        if((w<30.0||h<30.0)&&!explicitMedia)return YES;
+        if(im.CGImage&&CGImageGetWidth(im.CGImage)<=48&&CGImageGetHeight(im.CGImage)<=48&&!explicitMedia)return YES;
         NSMutableString *q=[NSMutableString stringWithFormat:@"%@ %@",iv.accessibilityIdentifier?:@"",iv.accessibilityLabel?:@""];
-        for(UIView *n=iv.superview; n; n=n.superview){
+        for(UIView *n=iv.superview;n;n=n.superview){
             [q appendFormat:@" %@ %@",NSStringFromClass(n.class),n.accessibilityIdentifier?:@""];
             if([n.accessibilityIdentifier isEqualToString:@"me"])break;
         }
         NSString *low=q.lowercaseString;
-        for(NSString *tok in @[@"avatar",@"profile",@"icon",@"glyph",@"logo",@"badge",@"star",@"rating",@"checkbox",@"heart",@"arrow",@"chevron",@"prime",@"camera",@"microphone",@"nav",@"tab"]){
+        for(NSString *tok in @[@"avatar",@"profile",@"logo",@"badge",@"star",@"rating",@"checkbox",@"heart",@"camera",@"microphone",@"nav",@"tab"]){
             if([low containsString:tok]&&!explicitMedia)return YES;
         }
         CGSize screen=UIScreen.mainScreen.bounds.size;
@@ -3927,8 +4245,11 @@ static BOOL ADPersonMediaBlocked7206(UIImageView *iv){
     return YES;
 }
 
+// Person is its own native theme domain.  The generic React-card helper predates
+// that domain and can create a second square CALayer border.  Never let it own a
+// Person ancestor; Person borders are resolved exclusively above.
 static void ADDarkenReactCardNearText708(UIView *textView){
-    if(!gP.enabled||!textView||!textView.window)return;
+    if(!gP.enabled||!textView||!textView.window||ADInPersonTab7206(textView))return;
     @try {
         UIView *n=textView.superview;
         for(int d=0;n&&d<7;d++,n=n.superview){
@@ -3936,8 +4257,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
             CGFloat w=n.bounds.size.width,h=n.bounds.size.height;
             if(w>=150&&w<=430&&h>=170&&h<=700&&ADBrightNeutralUIView708(n)){
                 objc_setAssociatedObject(n,kADReactCard708,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                n.backgroundColor=ADOLED();
-                n.layer.backgroundColor=ADOLED().CGColor;
+                n.backgroundColor=ADOLED(); n.layer.backgroundColor=ADOLED().CGColor;
                 n.layer.borderColor=ADBorderGray706().CGColor;
                 if(n.layer.borderWidth<0.5)n.layer.borderWidth=1.0;
                 break;
@@ -3979,7 +4299,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 }
 - (void)setBackgroundColor:(UIColor *)color {
     BOOL adLocDecision=gP.enabled&&(ADLocationSheetFloor7196((UIView *)self,color)||ADLocationMarkedWideBrightFloor7205((UIView *)self,color));
-    BOOL adPersonDecision=gP.enabled&&((UIView *)self).window&&ADPersonFloorCandidate7206((UIView *)self,color);
+    BOOL adPersonDecision=gP.enabled&&((UIView *)self).window&&ADPersonShouldOLEDColor7216((UIView *)self,color);
     ADLocationLifeNote7203(@"RCTView.setBackgroundColor",(UIView *)self,color,adLocDecision?1:0);
     if(adPersonDecision){
         UIColor *black=ADOLED();
@@ -4245,6 +4565,44 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 %end
 
 %hook CALayer
+- (void)setContents:(id)contents {
+    if(gP.enabled){
+        @try {
+            id d=self.delegate;
+            UIView *v=(d&&[d isKindOfClass:[UIView class]])?(UIView *)d:nil;
+            if(v&&v.window&&ADInPersonTab7206(v)&&ADClassNameIs7183(v,"RCTView")){
+                BOOL owned=objc_getAssociatedObject(v,kADPersonRasterOwner7216)!=nil;
+                if(ADPersonInternalMediaPlate7213(v)){
+                    if(owned)ADPersonRemoveRasterOutline7216(v);
+                    %orig(contents);
+                    return;
+                }
+                if((owned&&ADPersonSmallRasterPlate7216(contents))||ADPersonRasterHostCandidate7216(v,contents)){
+                    objc_setAssociatedObject(v,kADPersonRasterOwner7216,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                    objc_setAssociatedObject(self,kADPersonRasterOwner7216,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                    %orig(nil);
+                    ADPersonInstallRasterOutline7216(v);
+                    return;
+                }
+            }
+        } @catch(...) {}
+    }
+    %orig(contents);
+}
+- (void)setBorderWidth:(CGFloat)width {
+    if(gP.enabled){
+        @try {
+            id d=self.delegate;
+            UIView *v=(d&&[d isKindOfClass:[UIView class]])?(UIView *)d:nil;
+            if(v&&v.window&&ADInPersonTab7206(v)&&ADClassNameIs7183(v,"RCTView")&&
+               (objc_getAssociatedObject(v,kADPersonRasterOwner7216)||ADPersonInternalMediaPlate7213(v))){
+                %orig(0.0);
+                return;
+            }
+        } @catch(...) {}
+    }
+    %orig(width);
+}
 - (void)setBorderColor:(CGColorRef)color {
     if(gP.enabled){
         @try {
@@ -4842,6 +5200,13 @@ static void ADDarkenSplash(UIViewController *vc){ if(gP.enabled) @try { if(vc.vi
 static const void *kADTWBOverlay=&kADTWBOverlay;
 static const void *kADTWBEligibility=&kADTWBEligibility;
 static const void *kADTWBEligibilityImage=&kADTWBEligibilityImage;
+static void ADResetNativeTWBCache7214(UIImageView *iv){
+    if(!iv)return;
+    @try {
+        objc_setAssociatedObject(iv,kADTWBEligibility,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(iv,kADTWBEligibilityImage,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    } @catch(...) {}
+}
 static UIColor *ADNativeTWBOverlayColor7146(void){
     static long cachedStrength=-1; static UIColor *cached=nil;
     long strength=MAX(0,MIN(100,gP.whiteTameStrength));
@@ -4883,9 +5248,17 @@ static BOOL ADNativeMediaBlocked(UIImageView *iv){
 static BOOL ADNativeMediaBlockedCached7146(UIImageView *iv){
     if(!iv||!iv.image)return YES;
     CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
-    BOOL personForced=ADInPersonTab7206(iv)&&(ADPersonExplicitProductMedia7206(iv)||ADPersonForcedMedia7212(iv));
+    int personSection=ADInPersonTab7206(iv)?ADPersonMediaSection7216(iv):0;
+    BOOL personForced=ADInPersonTab7206(iv)&&(ADPersonExplicitProductMedia7206(iv)||ADPersonForcedMedia7212(iv)||personSection==2||personSection==3||personSection==4);
     if((w<52||h<52)&&!personForced)return YES; // exact Person section media may be smaller than the generic native threshold.
     @try {
+        if(personForced){
+            // A section marker is stronger than an earlier generic blocked-cache result.
+            // This closes the single recycled Shopping List image that stayed untamed.
+            objc_setAssociatedObject(iv,kADTWBEligibilityImage,iv.image,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADTWBEligibility,@NO,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            return NO;
+        }
         UIImage *last=objc_getAssociatedObject(iv,kADTWBEligibilityImage);
         NSNumber *cached=objc_getAssociatedObject(iv,kADTWBEligibility);
         if(last==iv.image&&cached)return cached.boolValue;
@@ -4895,19 +5268,58 @@ static BOOL ADNativeMediaBlockedCached7146(UIImageView *iv){
         return blocked;
     } @catch(...) { return ADNativeMediaBlocked(iv); }
 }
+
+static const void *kADPersonHighlightGlyphAlpha7216=&kADPersonHighlightGlyphAlpha7216;
+static BOOL ADPersonHighlightGlyph7216(UIImageView *iv){
+    if(!iv||!ADInPersonTab7206(iv)||!ADPersonInHighlightTile7212(iv))return NO;
+    @try {
+        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
+        NSString *aid=(iv.accessibilityIdentifier?:@"").lowercaseString;
+        if([aid hasPrefix:@"tile-image-iconsection-"])return YES;
+        if(w<=72.0&&h<=72.0)return YES;
+        if(iv.image.CGImage&&CGImageGetWidth(iv.image.CGImage)<=96&&CGImageGetHeight(iv.image.CGImage)<=96)return YES;
+    } @catch(...) {}
+    return NO;
+}
+static CGFloat ADPersonHighlightGlyphFactor7216(void){
+    CGFloat strength=MAX(0.0,MIN(100.0,(CGFloat)gP.whiteTameStrength))/100.0;
+    return MAX(0.38,MIN(0.90,0.90-(0.48*strength)));
+}
+static void ADPersonRestoreHighlightGlyphAlpha7216(UIImageView *iv){
+    if(!iv)return;
+    @try {
+        NSNumber *orig=objc_getAssociatedObject(iv,kADPersonHighlightGlyphAlpha7216);
+        if(orig){ iv.alpha=orig.doubleValue; objc_setAssociatedObject(iv,kADPersonHighlightGlyphAlpha7216,nil,OBJC_ASSOCIATION_ASSIGN); }
+    } @catch(...) {}
+}
 static void ADApplyNativeTWBCached7183(UIImageView *iv,BOOL authoredSubNav){
     if(!iv)return;
     @try {
         CALayer *ov=objc_getAssociatedObject(iv,kADTWBOverlay);
-        if(gP.enabled && authoredSubNav){
+        BOOL highlightGlyph=ADPersonHighlightGlyph7216(iv);
+        if(gP.enabled&&authoredSubNav){
+            ADPersonRestoreHighlightGlyphAlpha7216(iv);
             if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(iv,kADTWBOverlay,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
             return;
         }
-        if(!gP.enabled || !gP.whiteTame || !iv.window || ADNativeMediaBlockedCached7146(iv)){
+        if(!gP.enabled||!gP.whiteTame||!iv.window||ADNativeMediaBlockedCached7146(iv)){
+            ADPersonRestoreHighlightGlyphAlpha7216(iv);
             if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(iv,kADTWBOverlay,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
             return;
         }
-        if(!ov){ ov=[CALayer layer]; ov.name=@"AmazonDarkTWB7"; ov.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"backgroundColor":[NSNull null],@"zPosition":[NSNull null]}; [iv.layer addSublayer:ov]; objc_setAssociatedObject(iv,kADTWBOverlay,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
+        if(highlightGlyph){
+            if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(iv,kADTWBOverlay,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
+            if(!objc_getAssociatedObject(iv,kADPersonHighlightGlyphAlpha7216))
+                objc_setAssociatedObject(iv,kADPersonHighlightGlyphAlpha7216,@(iv.alpha),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            iv.alpha=ADPersonHighlightGlyphFactor7216();
+            return;
+        }
+        ADPersonRestoreHighlightGlyphAlpha7216(iv);
+        if(!ov){
+            ov=[CALayer layer]; ov.name=@"AmazonDarkTWB7";
+            ov.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"backgroundColor":[NSNull null],@"zPosition":[NSNull null]};
+            [iv.layer addSublayer:ov]; objc_setAssociatedObject(iv,kADTWBOverlay,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
         CGRect want=iv.bounds; CGColorRef wantColor=ADNativeTWBOverlayColor7146().CGColor;
         if(!CGRectEqualToRect(ov.frame,want))ov.frame=want;
         if(!ov.backgroundColor||!CGColorEqualToColor(ov.backgroundColor,wantColor))ov.backgroundColor=wantColor;
@@ -5187,12 +5599,12 @@ static NSString *ADSearchResultsProbePath7139(NSUInteger run){
         fmt.timeZone=[NSTimeZone localTimeZone];
         fmt.dateFormat=@"yyyyMMdd-HHmmss-SSS";
         NSString *stamp=[fmt stringFromDate:[NSDate date]]?:@"unknown";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.213-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.216-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(docs.length)return [docs stringByAppendingPathComponent:name];
         return [NSTemporaryDirectory() stringByAppendingPathComponent:name];
     } @catch(...) {
-        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.213-dynamic-probe-r%lu.txt",(unsigned long)run]];
+        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.216-dynamic-probe-r%lu.txt",(unsigned long)run]];
     }
 }
 static void ADSearchResultsProbeAppend7139(NSString *p,NSString *s){
@@ -5255,7 +5667,7 @@ static NSString *ADSearchResultsProbeNative7139(void){
                 BOOL sem=[lo containsString:@"button"]||[lo containsString:@"label"]||[lo containsString:@"image"]||[lo containsString:@"nav"]||[lo containsString:@"tab"]||[lo containsString:@"search"]||[lo containsString:@"delivery"]||[lo containsString:@"location"]||[lo containsString:@"ingress"]||[lo containsString:@"keyboard"]||[lo containsString:@"web"]||[lo containsString:@"scroll"]||[lo containsString:@"collection"]||[lo containsString:@"cell"];
                 BOOL paint=(bg!=nil)||(lbg!=nil)||v.layer.borderWidth>0.01||v.layer.cornerRadius>0.01;
                 if(sem||paint||r.size.width>=screen.size.width*0.72){
-                    [m appendFormat:@"N cls=%@ r=(%.1f,%.1f %.1fx%.1f) bg=%@ layerBg=%@ tint=%@ borderW=%.2f border=%@ radius=%.2f rctBorderW=%.2f rctRadius=%.2f pOuter=%d pInnerMedia=%d alpha=%.2f clips=%d marked=%d aid=\"%@\"\n",cn,r.origin.x,r.origin.y,r.size.width,r.size.height,ADSearchResultsProbeColor7139(bg),ADSearchResultsProbeCG7139(lbg),ADSearchResultsProbeColor7139(tint),v.layer.borderWidth,ADSearchResultsProbeCG7139(v.layer.borderColor),v.layer.cornerRadius,ADPersonRCTBorderWidth7208(v),ADPersonRCTBorderRadius7212(v),ADPersonOuterCardFloor7213(v)?1:0,ADPersonInternalMediaPlate7213(v)?1:0,v.alpha,v.clipsToBounds?1:0,ADInMarkedSearchDeliveryBand7139(v)?1:0,v.accessibilityIdentifier?:@""]; logged++;
+                    [m appendFormat:@"N cls=%@ r=(%.1f,%.1f %.1fx%.1f) bg=%@ layerBg=%@ tint=%@ borderW=%.2f border=%@ radius=%.2f rctBorderW=%.2f rctRadius=%.2f pOuter=%d pInnerMedia=%d pCarouselOuter=%d pCarouselInner=%d pRaster=%d pSec=%d alpha=%.2f clips=%d marked=%d aid=\"%@\"\n",cn,r.origin.x,r.origin.y,r.size.width,r.size.height,ADSearchResultsProbeColor7139(bg),ADSearchResultsProbeCG7139(lbg),ADSearchResultsProbeColor7139(tint),v.layer.borderWidth,ADSearchResultsProbeCG7139(v.layer.borderColor),v.layer.cornerRadius,ADPersonRCTBorderWidth7208(v),ADPersonRCTBorderRadius7212(v),ADPersonOuterCardFloor7213(v)?1:0,ADPersonInternalMediaPlate7213(v)?1:0,ADPersonCarouselOuter7214(v)?1:0,ADPersonInsideCarouselOuter7214(v)?1:0,objc_getAssociatedObject(v,kADPersonRasterOwner7216)?1:0,ADPersonMediaSection7216(v),v.alpha,v.clipsToBounds?1:0,ADInMarkedSearchDeliveryBand7139(v)?1:0,v.accessibilityIdentifier?:@""]; logged++;
                 }
                 if(q.count<1500&&v.subviews.count)[q addObjectsFromArray:v.subviews];
             }
@@ -5345,7 +5757,7 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     NSUInteger run=++gADSearchResultsProbeRun7139;
     NSString *path=ADSearchResultsProbePath7139(run);
     NSString *runID=[NSString stringWithFormat:@"%@-pid%d-r%lu",[[path lastPathComponent] stringByDeletingPathExtension],getpid(),(unsigned long)run];
-    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.213 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== LOCATION LIFECYCLE RING v7.213 =====\n%@\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADLocationLifeDump7203(),ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
+    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.216 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== LOCATION LIFECYCLE RING v7.216 =====\n%@\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADLocationLifeDump7203(),ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(path,head);
     NSMutableArray *chosen=[NSMutableArray array];
     @try {

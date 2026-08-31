@@ -1,4 +1,15 @@
-# AmazonDark v7.212~person-rounded-border-media-parity-probe
+# AmazonDark v7.216~person-v6185-visual-port-probe
+
+## v7.216 Person visual reconstruction from v6.0.185 semantics
+
+This build keeps the v7 event-driven/no-observer architecture but reconstructs the native Person tab using v6.0.185 as the visual/semantic donor: one rounded gray outline per real card, borderless internal carousel/media plates, OLED structural/card floors, v6-style section-aware TWB, and an intentional v7 divergence that also tames Amazon Highlights media/glyphs.
+
+
+- Person commerce carousels now use one rounded gray outer frame only; recycled page/content views inside the carousel have both React and CALayer borders cleared.
+- Tiny 8-10pt carousel indicators are explicitly excluded from Person border normalization so Amazon's authored dot styling is preserved.
+- Lists/Reviews forced media invalidates stale native-TWB eligibility when a section becomes positively marked, and positive Person media bypasses an earlier blocked cache.
+- Retains v7.213 Home ATF 320x50 compact full-raster standalone-ad TWB coverage and the Person OLED internal-media floor hardening.
+- Dynamic native probe adds `pCarouselOuter` / `pCarouselInner` ownership fields.
 
 ## v7.212 Person border + media parity
 
