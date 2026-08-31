@@ -1,4 +1,15 @@
-# AmazonDark v7.211~home-hero-medium-gray-compile-hotfix-probe
+# AmazonDark v7.212~person-rounded-border-media-parity-probe
+
+## v7.212 Person border + media parity
+
+- Removes the v7.211 double-border path on Person: React Native is the sole RCT border renderer; CALayer borders are no longer stacked over rounded React borders.
+- Semantic Person cards (top pills, Highlights tiles, carousel image containers) get one standardized gray rounded edge; same-geometry nested wrappers do not get a second square edge.
+- Existing authored rounded Person cards retain their radius and receive the standard gray edge, including full-width cards that previously lost an edge.
+- Lists & Registries media is marked from the exact `wl_titlettl` section and forced through native TWB without broadening Medical Care.
+- Reviews media is marked from the exact `avr_image` owner so the 40x40 secondary review thumbnail is tamed too.
+- Highlights `tile-widget-*` / `tile-image-iconSection-*` media is forced through TWB, and the blue 48x48 arrow plate receives the same strength overlay.
+- v7.211 Home hero parity / medium-gray Home chip behavior and v7.209 Person crash ABI fix remain intact.
+- Dynamic probe now logs both CALayer and RCTView border width/radius to distinguish the two renderers.
 
 ## v7.211 compile hotfix + Home hero-row adjustment
 
