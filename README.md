@@ -1,3 +1,11 @@
+# AmazonDark v7.242 — Cart probe build fix + Person Orders search polish
+
+- Keeps the v7.241 Shopping Cart WKWebView forensics probe, but relocates the Logos `%ctor` boundary above the probe implementation so the long JavaScript/Objective-C probe body cannot poison Logos directive-depth parsing.
+- Person > Your Orders expanded search now has one gray 1pt rounded outer border; the nested 2pt/1pt React border pair and cached border rasters are retired.
+- The exact Person Orders `RCTUITextField` / `RCTSinglelineTextInputView` / `RNCEKVTextInputFocusWrapper` chain now requests `UIKeyboardAppearanceDark`, reusing the existing v7.126 OLED keyboard owner used by Search.
+- Person theming otherwise remains the finalized v7.240 production result.
+- Cart probe remains screenshot/SIGUSR2-triggered and finite; no MutationObserver, interval, RAF loop, web scroll listener, or recurring hierarchy scanner is added.
+
 # AmazonDark v7.241 — Shopping Cart UI forensics probe
 
 ## Cart probe moved from Person to the Cart WKWebView

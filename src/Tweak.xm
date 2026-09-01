@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.241 — Shopping Cart UI forensics probe / v7.240 finalized Person production architecture
+ * AmazonDark v7.242 — Cart UI forensics probe + Person Orders search polish / v7.240 finalized Person production architecture
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -26,7 +26,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.241-cart-ui-forensics-probe"
+#define AD_VERSION "v7.242-cart-probe-person-order-search-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2732,8 +2732,37 @@ static void ADTintSearchDeliveryGlyph7139(UIImageView *iv){
     } @catch(...) { gADSearchImageWrite706=NO; }
 }
 
+// v7.242: the expanded Person > Your Orders search field is React Native, not the
+// Search-tab chrome.  The probe identifies its exact chain as
+// RCTUITextField <- RCTSinglelineTextInputView <- RNCEKVTextInputFocusWrapper
+// inside a 360x50 / 364x54 nested shell pair.  Reuse the proven OLED keyboard
+// request for only that field instead of adding another keyboard implementation.
+static BOOL ADPersonOrderSearchInput7242(UIView *v){
+    if(!gP.enabled||!v||!v.window||!ADInPersonTab7206(v))return NO;
+    @try {
+        BOOL sawInput=ADClassNameIs7183(v,"RCTUITextField")||
+                      ADClassNameIs7183(v,"RCTSinglelineTextInputView")||
+                      ADClassNameIs7183(v,"RNCEKVTextInputFocusWrapper");
+        BOOL sawFocus=NO,sawShell=NO;
+        UIView *n=v;
+        for(int d=0;n&&d<10&&n!=v.window;d++,n=n.superview){
+            if(ADClassNameIs7183(n,"RNCEKVTextInputFocusWrapper"))sawFocus=YES;
+            if(ADClassNameIs7183(n,"RCTSinglelineTextInputView")||ADClassNameIs7183(n,"RCTUITextField"))sawInput=YES;
+            if(ADClassNameIs7183(n,"RCTView")){
+                CGFloat w=n.bounds.size.width,h=n.bounds.size.height;
+                if((w>=358.0&&w<=366.0)&&(h>=48.0&&h<=56.0))sawShell=YES;
+            }
+            if([n.accessibilityIdentifier isEqualToString:@"me"])break;
+        }
+        return sawInput&&sawFocus&&sawShell;
+    } @catch(...) { return NO; }
+}
+static BOOL ADWantsDarkKeyboard7242(UIView *v){
+    return gP.enabled&&v&&(ADInSearchChrome706(v)||ADPersonOrderSearchInput7242(v));
+}
+
 static void ADPrepareSearchKeyboard7120(UIView *v){
-    if(!gP.enabled||!v||!ADInSearchChrome706(v))return;
+    if(!gP.enabled||!v||!ADWantsDarkKeyboard7242(v))return;
     @try {
         SEL sel=NSSelectorFromString(@"setKeyboardAppearance:");
         if([v respondsToSelector:sel]) ((void(*)(id,SEL,NSInteger))objc_msgSend)(v,sel,(NSInteger)UIKeyboardAppearanceDark);
@@ -3486,6 +3515,87 @@ static void ADPersonSetRCTBorder7208(UIView *v,CGFloat width){
         [v.layer setNeedsDisplay];
     } @catch(...) {}
 }
+
+// v7.242: expanded Your Orders search field. The v7.240 probe shows two
+// concentric React borders: 364x54 @ 2pt and 360x50 @ 1pt.  Retire both stock
+// border rasters and let only the persistent outer shell own one 1pt gray path.
+static const void *kADPersonOrderSearchOutline7242=&kADPersonOrderSearchOutline7242;
+static BOOL ADPersonDescendantClass7242(UIView *root,const char *wanted,int maxNodes){
+    if(!root||!wanted)return NO;
+    @try {
+        NSMutableArray<UIView *> *q=[NSMutableArray arrayWithArray:root.subviews];
+        int seen=0;
+        while(q.count&&seen++<maxNodes){
+            UIView *v=q.firstObject; [q removeObjectAtIndex:0];
+            if(ADClassNameIs7183(v,wanted))return YES;
+            for(UIView *c in v.subviews)if(q.count<(NSUInteger)maxNodes)[q addObject:c];
+        }
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADPersonOrderSearchOuter7242(UIView *v){
+    if(!v||!v.window||!ADInPersonTab7206(v)||!ADClassNameIs7183(v,"RCTView"))return NO;
+    @try {
+        CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+        if(w<362.0||w>366.0||h<52.0||h>56.0)return NO;
+        return ADPersonDescendantClass7242(v,"RNCEKVTextInputFocusWrapper",12);
+    } @catch(...) { return NO; }
+}
+static BOOL ADPersonOrderSearchInner7242(UIView *v){
+    if(!v||!v.window||!ADInPersonTab7206(v)||!ADClassNameIs7183(v,"RCTView"))return NO;
+    @try {
+        CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+        if(w<358.0||w>362.0||h<48.0||h>52.0)return NO;
+        return v.superview&&ADPersonOrderSearchOuter7242(v.superview)&&
+               ADPersonDescendantClass7242(v,"RNCEKVTextInputFocusWrapper",8);
+    } @catch(...) { return NO; }
+}
+static void ADPersonOwnOrderSearch7242(UIView *v){
+    if(!v)return;
+    @try {
+        BOOL outer=gP.enabled&&ADPersonOrderSearchOuter7242(v);
+        BOOL inner=gP.enabled&&ADPersonOrderSearchInner7242(v);
+        CAShapeLayer *ol=objc_getAssociatedObject(v,kADPersonOrderSearchOutline7242);
+        if(!outer&&!inner){
+            if(ol){ [ol removeFromSuperlayer]; objc_setAssociatedObject(v,kADPersonOrderSearchOutline7242,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
+            return;
+        }
+        // The text and magnifier live in child views, so these exact shell
+        // contents are only React's cached border renderer and are safe to retire.
+        v.layer.contents=nil;
+        v.layer.borderWidth=0.0;
+        ADPersonSetRCTBorder7208(v,0.0);
+        if(inner){
+            if(ol){ [ol removeFromSuperlayer]; objc_setAssociatedObject(v,kADPersonOrderSearchOutline7242,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
+            return;
+        }
+        if(!ol){
+            ol=[CAShapeLayer layer];
+            ol.name=@"AmazonDarkPersonOrderSearchOutline7242";
+            ol.fillColor=[UIColor clearColor].CGColor;
+            ol.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"path":[NSNull null],@"strokeColor":[NSNull null],@"zPosition":[NSNull null]};
+            [v.layer addSublayer:ol];
+            objc_setAssociatedObject(v,kADPersonOrderSearchOutline7242,ol,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        } else if(ol.superlayer!=v.layer){ [v.layer addSublayer:ol]; }
+        ol.frame=v.bounds;
+        ol.fillColor=[UIColor clearColor].CGColor;
+        ol.strokeColor=ADBorderGray706().CGColor;
+        ol.lineWidth=1.0;
+        ol.path=[UIBezierPath bezierPathWithRoundedRect:CGRectInset(v.bounds,0.5,0.5) cornerRadius:6.0].CGPath;
+        ol.zPosition=FLT_MAX;
+        ol.hidden=v.hidden||v.alpha<0.01;
+    } @catch(...) {}
+}
+static void ADPersonRepairOrderSearchAncestors7242(UIView *v){
+    if(!v||!v.window||!ADInPersonTab7206(v))return;
+    @try {
+        for(UIView *n=v;n&&n!=v.window;n=n.superview){
+            if(ADPersonOrderSearchOuter7242(n)||ADPersonOrderSearchInner7242(n)||objc_getAssociatedObject(n,kADPersonOrderSearchOutline7242))
+                ADPersonOwnOrderSearch7242(n);
+            if([n.accessibilityIdentifier isEqualToString:@"me"])break;
+        }
+    } @catch(...) {}
+}
 static const void *kADPersonInternalMedia7213=&kADPersonInternalMedia7213;
 // v7.213 Person card hardening: inner carousel/product-media plates are content,
 // not cards.  They may own an OLED floor, but never a border.  This keeps one
@@ -4053,6 +4163,12 @@ static void ADPersonOwnView7206(UIView *v){
     if(!gP.enabled||!v||!v.window||!(ADInPersonTab7206(v)||ADPersonBuyAgain7208(v)))return;
     @try {
         ADPersonObserveSectionAnchor7212(v);
+        BOOL orderSearchOuter=ADPersonOrderSearchOuter7242(v);
+        BOOL orderSearchInner=ADPersonOrderSearchInner7242(v);
+        if(orderSearchOuter||orderSearchInner||objc_getAssociatedObject(v,kADPersonOrderSearchOutline7242)){
+            ADPersonOwnOrderSearch7242(v);
+            if(orderSearchOuter||orderSearchInner)return;
+        }
         // Final exact first-paint owners run before the
         // generic visual-ownership early return. Their bad stock state can begin
         // transparent/unbordered and only become bright later in the same mount.
@@ -5192,7 +5308,7 @@ static void ADOwnReactView7226(UIView *v){
     return %orig;
 }
 - (void)setKeyboardAppearance:(UIKeyboardAppearance)appearance {
-    if(gP.enabled&&ADInSearchChrome706((UIView *)self)){
+    if(gP.enabled&&ADWantsDarkKeyboard7242((UIView *)self)){
         UIKeyboardAppearance dark=UIKeyboardAppearanceDark;
         %orig(dark);
         return;
@@ -5216,11 +5332,14 @@ static void ADOwnReactView7226(UIView *v){
 
 %hook UITextField
 - (BOOL)becomeFirstResponder {
+    BOOL orderSearch=gP.enabled&&ADPersonOrderSearchInput7242((UIView *)self);
     if(gP.enabled)ADPrepareSearchKeyboard7120((UIView *)self);
-    return %orig;
+    BOOL became=%orig;
+    if(orderSearch&&became)ADPersonRepairOrderSearchAncestors7242((UIView *)self);
+    return became;
 }
 - (void)setKeyboardAppearance:(UIKeyboardAppearance)appearance {
-    if(gP.enabled&&ADInSearchChrome706((UIView *)self)){
+    if(gP.enabled&&ADWantsDarkKeyboard7242((UIView *)self)){
         UIKeyboardAppearance dark=UIKeyboardAppearanceDark;
         %orig(dark);
         return;
@@ -5245,6 +5364,7 @@ static void ADOwnReactView7226(UIView *v){
         if(search && self.placeholder.length){
             self.attributedPlaceholder=[[NSAttributedString alloc] initWithString:self.placeholder attributes:@{NSForegroundColorAttributeName:ADLightText706()}];
         }
+        if(ADPersonOrderSearchInput7242((UIView *)self))ADPersonRepairOrderSearchAncestors7242((UIView *)self);
     }
 }
 %end
@@ -6526,7 +6646,55 @@ static void ADConsiderLaunchReady706(void){
 
 
 
-// v7.241: Shopping Cart UI forensics probe. The production theme is unchanged from v7.240.
+// v7.242: keep all Logos directives above the Cart probe implementation.
+// The probe is plain C/Objective-C below; only this forward declaration is needed here.
+static void ADInstallCartProbe7241(void);
+
+static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
+    BOOL wasPrivacy=gP.privacyMode;
+    ADLoadPrefs();
+    ADRefreshRuntimeState7115(YES);
+    if(gP.enabled&&gP.privacyMode){
+        ADRegisterPrivacyProtocol7117();
+        ADCompilePrivacyContentRules7117();
+        for(WKWebView *wv in ADTrackedWebViews()){
+            @try { ADAttachScriptsToUCC710(wv.configuration.userContentController); [wv evaluateJavaScript:ADPrivacyModeJS7117() completionHandler:nil]; } @catch(...) {}
+        }
+        ADSetLoadedWebPrivacyEnabled7117(YES);
+    } else if(wasPrivacy){
+        ADSetLoadedWebPrivacyEnabled7117(NO);
+    }
+}
+
+%ctor {
+    if(strcmp(__progname,"Amazon")!=0)return;
+    ADLoadPrefs();
+
+    // v6.0.185 launch-transition behavior: discard stale light SplashBoard snapshots.
+    @try {
+        NSString *lib=[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,NSUserDomainMask,YES) firstObject];
+        NSString *snap=[lib stringByAppendingPathComponent:@"SplashBoard/Snapshots"];
+        NSFileManager *fm=[NSFileManager defaultManager];
+        for(NSString *k in [fm contentsOfDirectoryAtPath:snap error:nil]){
+            NSString *sub=[snap stringByAppendingPathComponent:k];
+            for(NSString *f in [fm contentsOfDirectoryAtPath:sub error:nil]) [fm removeItemAtPath:[sub stringByAppendingPathComponent:f] error:nil];
+        }
+    } @catch(...) {}
+
+    %init;
+    ADInstallCartProbe7241();
+    if(gP.enabled&&gP.privacyMode){
+        ADRegisterPrivacyProtocol7117();
+        ADCompilePrivacyContentRules7117();
+    }
+
+    CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
+        CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);
+    ADRefreshRuntimeState7115(NO);
+}
+
+
+// v7.242: Shopping Cart UI forensics probe retained from v7.241; Person gets only the exact Orders-search border/keyboard fixes below.
 // GitHub history/current web ownership identifies Cart as a WKWebView document (#cart-page /
 // #sc-active-cart / #sc-saved-cart), not the React RCTScrollView#me used by Person.
 // This subsystem is dormant until screenshot/SIGUSR2. A trigger selects only the active Cart
@@ -6587,7 +6755,7 @@ static void ADCartProbeAppend7241(NSString *path,NSString *text){
     if(!path.length||!text.length)return; @try {NSFileManager *fm=[NSFileManager defaultManager];[fm createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES attributes:nil error:nil];unsigned long long cur=[[[fm attributesOfItemAtPath:path error:nil] objectForKey:NSFileSize] unsignedLongLongValue];if(cur>=kADCartProbeCap7241)return;NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding];unsigned long long remain=kADCartProbeCap7241-cur;if((unsigned long long)d.length>remain)d=[d subdataWithRange:NSMakeRange(0,(NSUInteger)remain)];if(![fm fileExistsAtPath:path]){[d writeToFile:path atomically:YES];return;}NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:path];if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];}} @catch(...) {}
 }
 static NSString *ADCartProbePath7241(NSUInteger run){
-    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.241-cart-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.241-cart-ui-probe-r%lu.txt",(unsigned long)run]];}
+    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.242-cart-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.242-cart-ui-probe-r%lu.txt",(unsigned long)run]];}
 }
 static NSString *ADCartProbeDetectJS7241(void){
     return
@@ -6673,7 +6841,7 @@ static void ADCartProbeEvalAppend7241(WKWebView *wv,NSString *path,NSString *js,
 }
 static void ADCaptureCartProbe7241(NSString *trigger){
     if(!gP.enabled||gADCartProbeBusy7241)return; gADCartProbeBusy7241=YES; NSUInteger run=++gADCartProbeRun7241; NSString *path=ADCartProbePath7241(run);
-    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"AMAZONDARK v7.241 SHOPPING CART UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=Cart is a WKWebView document; target signatures #cart-page/#sc-active-cart/#sc-saved-cart plus cart URL path\npolicy=no visible text strings, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes and privacy-safe text hashes retained\nscan=finite explicit-trigger WKScrollView walk + viewport computed-style DOM snapshots + final full DOM inventory + native UIKit/WebKit snapshots; original offset restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADCartProbeCap7241]);
+    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"AMAZONDARK v7.242 SHOPPING CART UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=Cart is a WKWebView document; target signatures #cart-page/#sc-active-cart/#sc-saved-cart plus cart URL path\npolicy=no visible text strings, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes and privacy-safe text hashes retained\nscan=finite explicit-trigger WKScrollView walk + viewport computed-style DOM snapshots + final full DOM inventory + native UIKit/WebKit snapshots; original offset restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADCartProbeCap7241]);
     ADCartProbeFindWebView7241(path,^(WKWebView *wv,NSString *meta){
         if(!wv||ADCartProbeScore7241(meta)<=0){ADCartProbeAppend7241(path,[NSString stringWithFormat:@"CART_PROBE_NO_TARGET meta=%@\n================ END RUN ================\n",ADCartProbeSafe7241(meta)]);gADCartProbeBusy7241=NO;return;}
         UIScrollView *sv=wv.scrollView; CGPoint original=sv.contentOffset; BOOL originalScroll=sv.scrollEnabled; sv.scrollEnabled=NO; CGFloat viewport=MAX(1.0,sv.bounds.size.height),stride=MAX(300.0,MIN(620.0,viewport*0.60)); CGRect wr=CGRectZero;@try{wr=[wv convertRect:wv.bounds toView:nil];}@catch(...){}
@@ -6691,48 +6859,5 @@ static void ADInstallCartProbe7241(void){
 }
 
 // Probe build: v7.240 finalized Person ownership remains the production path; Cart diagnostics are explicit-trigger only.
-
-static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
-    BOOL wasPrivacy=gP.privacyMode;
-    ADLoadPrefs();
-    ADRefreshRuntimeState7115(YES);
-    if(gP.enabled&&gP.privacyMode){
-        ADRegisterPrivacyProtocol7117();
-        ADCompilePrivacyContentRules7117();
-        for(WKWebView *wv in ADTrackedWebViews()){
-            @try { ADAttachScriptsToUCC710(wv.configuration.userContentController); [wv evaluateJavaScript:ADPrivacyModeJS7117() completionHandler:nil]; } @catch(...) {}
-        }
-        ADSetLoadedWebPrivacyEnabled7117(YES);
-    } else if(wasPrivacy){
-        ADSetLoadedWebPrivacyEnabled7117(NO);
-    }
-}
-
-%ctor {
-    if(strcmp(__progname,"Amazon")!=0)return;
-    ADLoadPrefs();
-
-    // v6.0.185 launch-transition behavior: discard stale light SplashBoard snapshots.
-    @try {
-        NSString *lib=[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,NSUserDomainMask,YES) firstObject];
-        NSString *snap=[lib stringByAppendingPathComponent:@"SplashBoard/Snapshots"];
-        NSFileManager *fm=[NSFileManager defaultManager];
-        for(NSString *k in [fm contentsOfDirectoryAtPath:snap error:nil]){
-            NSString *sub=[snap stringByAppendingPathComponent:k];
-            for(NSString *f in [fm contentsOfDirectoryAtPath:sub error:nil]) [fm removeItemAtPath:[sub stringByAppendingPathComponent:f] error:nil];
-        }
-    } @catch(...) {}
-
-    %init;
-    ADInstallCartProbe7241();
-    if(gP.enabled&&gP.privacyMode){
-        ADRegisterPrivacyProtocol7117();
-        ADCompilePrivacyContentRules7117();
-    }
-
-    CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),NULL,ADPrefsChanged,
-        CFSTR("com.colindavidr.amazondark/prefs-changed"),NULL,CFNotificationSuspensionBehaviorCoalesce);
-    ADRefreshRuntimeState7115(NO);
-}
 
 #pragma clang diagnostic pop
