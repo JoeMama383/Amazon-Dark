@@ -1,3 +1,13 @@
+# AmazonDark v7.239~person-final-cleanup
+
+## Finalized Person ownership + production cleanup
+
+- Repairs the exact top-row Person primary text leaves under `xopufnv` (greeting) and `calv` (language label) to light text at final draw.
+- Makes the persistent 400x108 Lists & Registries viewport the sole section outline owner; recycled 400x106 / 360x95 carousel contents have their border raster and React border widths suppressed.
+- Retains v7.238 Buy Again single-border ownership, Highlights arrow cleanup, white Person scroll indicator, authored avatar/badge/flag pixels, and all prior Person theming.
+- Removes the completed screenshot/SIGUSR2 Person forensics subsystem and its signal dependency from production.
+- No Dark Reader, MutationObserver, timer/polling loop, RAF loop, web scroll listener, or recurring hierarchy scanner.
+
 # AmazonDark v7.238~person-buyagain-highlight-scrollbar-cleanup-probe
 
 ## v7.238 final Person cleanup before pane switch
