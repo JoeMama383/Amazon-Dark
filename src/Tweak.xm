@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.233 — Person UI forensics probe / v7.232 production visuals
+ * AmazonDark v7.234 — Person stock-raster restore fix + UI forensics probe / v7.232 production architecture
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -26,7 +26,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.233-person-ui-forensics-probe"
+#define AD_VERSION "v7.234-person-stock-raster-restore-fix-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -4458,12 +4458,12 @@ static BOOL ADPersonExplicitProductMedia7206(UIImageView *iv){
 static BOOL ADPersonMediaBlocked7206(UIImageView *iv){
     if(!iv||!iv.image||!ADInPersonTab7206(iv))return YES;
     @try {
-        // Right arrows and authored Medical/Customer Service glyphs are controls,
-        // never Person media. This also removes any stale TWB overlay from recycling.
-        if(ADPersonSectionChevron7217(iv)||ADPersonMedicalAuthoredIcon7231(iv)||
-           ADPersonCustomerServiceLeadingImage7229(iv))return YES;
+        // Right arrows and authored Medical Care artwork are controls, never Person media.
+        // Customer Service is deliberately treated as a tiny image lane below so its stock
+        // raster can be restored first and then receive the requested image-only TWB.
+        if(ADPersonSectionChevron7217(iv)||ADPersonMedicalAuthoredIcon7231(iv))return YES;
         UIImage *im=iv.image; int kind=ADPersonSectionKind7218(iv);
-        BOOL forced=ADPersonForcedMedia7212(iv)||ADPersonForcedMedia7218(iv)||ADPersonReviewCompactImage7229(iv);
+        BOOL forced=ADPersonForcedMedia7212(iv)||ADPersonForcedMedia7218(iv)||ADPersonReviewCompactImage7229(iv)||ADPersonCustomerServiceLeadingImage7229(iv);
         if(kind==1)return YES; // Medical Care remains fully authored.
         if(im.renderingMode==UIImageRenderingModeAlwaysTemplate&&!forced)return YES;
         CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height; BOOL explicitMedia=ADPersonExplicitProductMedia7206(iv)||forced;
@@ -5525,10 +5525,10 @@ static BOOL ADNativeMediaBlockedCached7146(UIImageView *iv){
     if(!iv||!iv.image)return YES;
     CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
     BOOL person=ADInPersonTab7206(iv);
-    BOOL personControl=person&&(ADPersonSectionChevron7217(iv)||ADPersonMedicalAuthoredIcon7231(iv)||
-                               ADPersonCustomerServiceLeadingImage7229(iv));
+    BOOL personControl=person&&(ADPersonSectionChevron7217(iv)||ADPersonMedicalAuthoredIcon7231(iv));
     BOOL personForced=person&&(ADPersonExplicitProductMedia7206(iv)||ADPersonForcedMedia7212(iv)||
-                               ADPersonForcedMedia7218(iv)||ADPersonReviewCompactImage7229(iv));
+                               ADPersonForcedMedia7218(iv)||ADPersonReviewCompactImage7229(iv)||
+                               ADPersonCustomerServiceLeadingImage7229(iv));
     if((w<52||h<52)&&!personForced)return YES; // exact Person section media may be smaller than the generic native threshold.
     @try {
         if(personControl){
@@ -5790,6 +5790,87 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
 }
 %end
 
+// v7.234: React's final renderer is RCTUIImageViewAnimated, not the semantic
+// RCTImageView wrapper.  The v7.233 full-menu probe proves the broken Medical Care,
+// compact Reviews and Customer Service leaves all still reach final paint as
+// AlwaysTemplate (mode=2) even though their CGImage pixels are present.  Generic
+// UIImageView ownership runs too early for this renderer.  Own only those three
+// probe-backed raster families at the exact leaf after RCT's own lifecycle method.
+// A tiny associated classification cache makes layout-time reassertion O(1); it is
+// invalidated on image/superview changes so recycled React image leaves are safe.
+static const void *kADPersonStockRasterKind7234=&kADPersonStockRasterKind7234;
+static int ADPersonStockRasterKind7234(UIImageView *iv,BOOL discover){
+    if(!iv||!gP.enabled||!iv.window||!ADInPersonTab7206((UIView *)iv))return 0;
+    @try {
+        NSNumber *cached=objc_getAssociatedObject(iv,kADPersonStockRasterKind7234);
+        if(cached)return cached.intValue;
+        if(!discover)return 0;
+        int kind=0;
+        if(ADPersonMedicalAuthoredIcon7231(iv))kind=1;
+        else if(ADPersonReviewCompactImage7229(iv))kind=2;
+        else if(ADPersonCustomerServiceLeadingImage7229(iv))kind=3;
+        objc_setAssociatedObject(iv,kADPersonStockRasterKind7234,@(kind),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        return kind;
+    } @catch(...) { return 0; }
+}
+static void ADPersonFinalizeStockRaster7234(UIImageView *iv,BOOL discover){
+    int kind=ADPersonStockRasterKind7234(iv,discover); if(!kind||!iv.image)return;
+    @try {
+        UIImage *im=iv.image;
+        if(im.renderingMode!=UIImageRenderingModeAlwaysOriginal&&!gADPersonOriginalImageWriting7218){
+            UIImage *orig=[im imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+            if(orig){
+                gADPersonOriginalImageWriting7218=YES;
+                iv.image=orig;
+                gADPersonOriginalImageWriting7218=NO;
+            }
+        }
+        if(kind==1){
+            // Medical Care is authored stock artwork: preserve its real fill exactly
+            // and explicitly retire any stale generic media shade from recycling.
+            CALayer *ov=objc_getAssociatedObject(iv,kADTWBOverlay);
+            if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(iv,kADTWBOverlay,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
+            objc_setAssociatedObject(iv,kADTWBEligibilityImage,iv.image,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADTWBEligibility,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        } else {
+            // Reviews and Customer Service retain the stock raster first, then use
+            // the existing image-only TWB overlay. No parent/card/text is filtered.
+            ADResetNativeTWBCache7214(iv);
+            ADApplyNativeTWBCached7183(iv,NO);
+        }
+        ADLayoutImageOverlays7226(iv);
+    } @catch(...) { gADPersonOriginalImageWriting7218=NO; }
+}
+
+%hook RCTUIImageViewAnimated
+- (void)setImage:(UIImage *)image {
+    if(gADPersonOriginalImageWriting7218){
+        %orig(image);
+        return;
+    }
+    objc_setAssociatedObject(self,kADPersonStockRasterKind7234,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    %orig(image);
+    ADPersonFinalizeStockRaster7234((UIImageView *)self,YES);
+}
+- (void)didMoveToSuperview {
+    objc_setAssociatedObject(self,kADPersonStockRasterKind7234,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    %orig;
+    if(((UIView *)self).window)ADPersonFinalizeStockRaster7234((UIImageView *)self,YES);
+}
+- (void)didMoveToWindow {
+    %orig;
+    if(((UIView *)self).window)ADPersonFinalizeStockRaster7234((UIImageView *)self,YES);
+    else objc_setAssociatedObject(self,kADPersonStockRasterKind7234,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+- (void)layoutSubviews {
+    %orig;
+    // Discover once after final React ancestry exists; every later layout is a
+    // cached exact-owner check rather than a Person hierarchy scan.
+    NSNumber *cached=objc_getAssociatedObject(self,kADPersonStockRasterKind7234);
+    ADPersonFinalizeStockRaster7234((UIImageView *)self,cached?NO:YES);
+}
+%end
+
 // Exact Highlights semantic wrapper fallback.  Most tiles expose an anonymous
 // RCTUIImageViewAnimated child and keep the v7.224 image-leaf TWB path. The probe
 // shows the first visible tile can instead expose only its RCTImageView wrapper, so
@@ -5998,7 +6079,7 @@ static void ADConsiderLaunchReady706(void){
 
 
 
-// v7.233: Person UI forensics probe. This subsystem is completely dormant until the user
+// v7.234: Person UI forensics probe retained from v7.233. This subsystem is completely dormant until the user
 // explicitly takes a screenshot or sends SIGUSR2. It never alters Person visual ownership.
 // A trigger temporarily walks only the exact React Person scroll surface top-to-bottom,
 // allowing lazy/recycled nodes to hydrate, snapshots native/React text, glyph, border,
@@ -6173,9 +6254,9 @@ static void ADProbeAppend7233(NSString *path,NSString *text){
 static NSString *ADProbePath7233(NSUInteger run){
     @try {
         NSDateFormatter *f=[NSDateFormatter new]; f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]; f.timeZone=[NSTimeZone localTimeZone]; f.dateFormat=@"yyyyMMdd-HHmmss-SSS";
-        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.233-person-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.234-person-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];
-    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.233-person-ui-probe-r%lu.txt",(unsigned long)run]]; }
+    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.234-person-ui-probe-r%lu.txt",(unsigned long)run]]; }
 }
 static NSString *ADPersonSnapshot7233(UIView *wrap,UIScrollView *root,NSUInteger step,CGFloat targetY){
     NSMutableString *m=[NSMutableString string]; if(!root||!wrap)return @"PERSON_SNAPSHOT_NO_ROOT\n";
@@ -6207,7 +6288,7 @@ static void ADCapturePersonProbe7233(NSString *trigger){
     gADPersonProbeBusy7233=YES; NSUInteger run=++gADPersonProbeRun7233; NSString *path=ADProbePath7233(run);
     CGPoint original=root.contentOffset; BOOL originalScroll=root.scrollEnabled; root.scrollEnabled=NO;
     CGFloat viewport=MAX(1.0,root.bounds.size.height),stride=MAX(320.0,MIN(600.0,viewport*0.58));
-    ADProbeAppend7233(path,[NSString stringWithFormat:@"AMAZONDARK v7.233 PERSON UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\npolicy=no visible text strings, no accessibilityLabel text, no typed query, no web DOM, no network payloads\nroot wrapper is exact RCTScrollView aid=me; real scroll descendant is walked non-animated and restored\noriginalOffset=(%.1f,%.1f) content=(%.1fx%.1f) viewport=%.1f stride=%.1f maxSteps=40\n",
+    ADProbeAppend7233(path,[NSString stringWithFormat:@"AMAZONDARK v7.234 PERSON UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\npolicy=no visible text strings, no accessibilityLabel text, no typed query, no web DOM, no network payloads\nroot wrapper is exact RCTScrollView aid=me; real scroll descendant is walked non-animated and restored\noriginalOffset=(%.1f,%.1f) content=(%.1fx%.1f) viewport=%.1f stride=%.1f maxSteps=40\n",
         AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADPersonProbeCap7233,original.x,original.y,root.contentSize.width,root.contentSize.height,viewport,stride]);
     __block NSUInteger step=0; __block CGFloat targetY=0,lastY=-999999; __block void (^next)(void)=nil;
     void (^finish)(NSString *)=^(NSString *reason){

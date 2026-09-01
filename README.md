@@ -1,3 +1,15 @@
+# AmazonDark v7.234~person-stock-raster-restore-fix-probe
+
+## v7.234 Person stock-raster restore fix
+
+- Built directly from v7.233, preserving the v7.232 optimized production architecture and the v7.233 explicit-trigger Person forensics probe.
+- The v7.233 Person probe proves the broken Health AI, Prescriptions, compact Reviews thumbnail, and Customer Service leading image all have real CGImage contents but reach final paint as `UIImageRenderingModeAlwaysTemplate` (`mode=2`). That template conversion collapses their authored pixels into the light theme tint, producing the white silhouettes/blank squares visible on device.
+- Adds one exact `RCTUIImageViewAnimated` final-render owner for only those probe-backed leaves. It restores `AlwaysOriginal` after React's own image/mount/layout work, so the stock raster/fill survives the late renderer rewrite.
+- Medical Care stays fully authored with no TWB. Reviews keeps image-only TWB. The Customer Service/Need Help leading image now also receives image-only TWB after its stock pixels are restored, as requested.
+- The exact-leaf owner caches its three-way classification and invalidates on image/superview changes; normal layout reassertion is O(1) and safe for recycled React image leaves. No Person hierarchy scan is added to steady-state rendering.
+- The v7.233 screenshot/SIGUSR2 full-menu probe remains available so the corrected leaves can be verified as `mode=1` (`AlwaysOriginal`), with `twb=0` for Medical and `twb=1` for Reviews/Customer Service.
+- No MutationObserver, polling loop, recurring hierarchy scanner, RAF, web scroll listener, or recurring timer is added.
+
 # AmazonDark v7.233~person-ui-forensics-probe
 
 ## v7.233 Person UI forensics probe
