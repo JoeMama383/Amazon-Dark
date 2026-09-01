@@ -1,3 +1,13 @@
+# AmazonDark v7.248 — Cart buy-box refresh-floor first-paint ownership
+
+## v7.248 delta
+
+- Directly builds on v7.247. All settled Cart theming is unchanged; the quantity stepper, buttons, text, floors, and product/recommendation TWB remain as already fixed.
+- The v7.247 probe proves `.sc-cart-spinner`, `html/body/#a-page`, `#sc-page-container`, the native `AWWebCartViewController`/`SMASHWebContainer`, and the settled `#sc-buy-box`/`#sc-mini-buy-box` are already OLED black. The remaining white pill therefore belongs to Amazon's short-lived buy-box refresh/hydration content, not the page spinner or WebView backing.
+- Owns every direct Cart page child floor as OLED black from document start, then makes transient descendants/pseudo-elements inside only `#sc-buy-box` and `#sc-mini-buy-box` transparent over that black floor. The established checkout button rule that follows still owns the visible checkout button as OLED black with the existing gray border/light text.
+- Disables only CSS transitions on those two buy-box subtrees so Amazon cannot interpolate a temporary stock-light background during refresh. No mutation observer, timer, RAF, scroll listener, or delayed repaint path is added.
+- Cart probe remains screenshot/SIGUSR2 triggered and exports `AmazonDark-v7.248-cart-ui-probe-*`.
+
 # AmazonDark v7.247 — Cart refresh transition floor + stepper fill geometry
 
 ## v7.247 delta
