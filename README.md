@@ -1,4 +1,13 @@
-# AmazonDark v7.218~person-simplified-visual-restore-probe
+# AmazonDark v7.224~person-highlights-deepscan-fix-probe
+
+## v7.224
+
+- Keeps the first/good v7.222 Person heading draw-time fix.
+- Highlights tile borders now use one topmost exact outline so same-geometry React children cannot cover the straight edges.
+- Highlights TWB follows the actual anonymous RCTUIImageViewAnimated raster under `tile-image-*` wrappers.
+- Fixes the v7.223 Person deep-probe root: `RCTScrollView` is a wrapper; the screenshot probe now walks its real `RCTCustomScrollView` UIScrollView child.
+- Deep snapshots also report image presence/render mode and native RNSVG shape colors for the blank Reviews investigation.
+
 
 ## v7.218 simplified Person visual restore
 
