@@ -32,7 +32,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.219-person-v7206-text-restore-probe"
+#define AD_VERSION "v7.220-person-header-highlight-restore-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -3919,21 +3919,47 @@ static NSTextStorage *ADPersonTextStorage7206(UIView *v){
     } @catch(...) {}
     return nil;
 }
+// v7.220: current React headers expose the stable *ttl identifier on the parent RCTView,
+// while the drawing RCTTextView itself is anonymous. Keep the original v7.206 text
+// treatment everywhere else, but make that exact heading leaf unconditionally light.
+static BOOL ADPersonHeaderLeaf7220(UIView *v){
+    if(!v||!ADInPersonTab7206(v))return NO;
+    @try {
+        UIView *n=v;
+        for(int d=0;n&&d<5;d++,n=n.superview){
+            NSString *aid=(n.accessibilityIdentifier?:@"").lowercaseString;
+            CGFloat w=n.bounds.size.width,h=n.bounds.size.height;
+            if([aid hasSuffix:@"ttl"]&&w>=300.0&&w<=410.0&&h>=20.0&&h<=46.0)return YES;
+            if([n.accessibilityIdentifier isEqualToString:@"me"])break;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static NSAttributedString *ADPersonHeaderString7220(NSAttributedString *in){
+    if(!in||!in.length)return in;
+    @try { NSMutableAttributedString *m=[in mutableCopy]; [m addAttribute:NSForegroundColorAttributeName value:ADLightText706() range:NSMakeRange(0,m.length)]; return m; } @catch(...) { return in; }
+}
+static void ADPersonHeaderStorage7220(NSTextStorage *ts){
+    if(!ts||!ts.length)return;
+    @try { [ts beginEditing]; [ts addAttribute:NSForegroundColorAttributeName value:ADLightText706() range:NSMakeRange(0,ts.length)]; [ts endEditing]; } @catch(...) {}
+}
 static void ADPersonOwnText7206(UIView *v){
     if(!gP.enabled||!v||!v.window||!ADInPersonTab7206(v))return;
     const char *cn=object_getClassName(v);
     BOOL textish=[v isKindOfClass:[UILabel class]]||(cn&&(strstr(cn,"Text")||strstr(cn,"Paragraph")));
     if(!textish)return;
     @try {
+        BOOL header=ADPersonHeaderLeaf7220(v);
         if([v isKindOfClass:[UILabel class]]){
             UILabel *l=(UILabel *)v;
+            if(header){ l.textColor=ADLightText706(); if(l.attributedText.length)l.attributedText=ADPersonHeaderString7220(l.attributedText); return; }
             if(ADPersonAccent7206(l.textColor))return;
             UIColor *want=(l.font.pointSize>=17.0||ADPersonPrimaryFont7206(l.font))?ADLightText706():ADPersonSecondary7206();
             l.textColor=want;
             if(l.attributedText.length){ NSAttributedString *r=ADPersonLightString7206(l.attributedText); if(r)l.attributedText=r; }
             return;
         }
-        NSTextStorage *ts=ADPersonTextStorage7206(v); if(ts)ADPersonLightStorage7206(ts);
+        NSTextStorage *ts=ADPersonTextStorage7206(v); if(ts){ if(header)ADPersonHeaderStorage7220(ts); else ADPersonLightStorage7206(ts); }
     } @catch(...) {}
 }
 // Kept only as an exact section-chevron locator. Text itself is owned at the leaf above.
@@ -4107,6 +4133,15 @@ static int ADPersonSectionKind7218(UIView *v){
     return 0;
 }
 static BOOL ADPersonForcedMedia7218(UIImageView *iv){ int k=ADPersonSectionKind7218(iv); return k==2||k==3||k==4; }
+static BOOL ADPersonHighlightMedia7220(UIImageView *iv){
+    if(!iv||!iv.window||!ADInPersonTab7206(iv))return NO;
+    @try { NSString *aid=(iv.accessibilityIdentifier?:@"").lowercaseString; return [aid hasPrefix:@"tile-image-url-"]||[aid hasPrefix:@"tile-image-iconsection-"]||ADPersonInHighlightTile7212(iv); } @catch(...) { return NO; }
+}
+static void ADPersonForceHighlightTWB7220(UIImageView *iv){
+    if(!gP.enabled||!gP.whiteTame||!ADPersonHighlightMedia7220(iv))return;
+    ADResetNativeTWBCache7214(iv);
+    ADApplyNativeTWBCached7183(iv,NO);
+}
 static BOOL gADPersonOriginalImageWriting7218=NO;
 static void ADPersonRestoreOriginalImage7218(UIImageView *iv){
     if(!iv||gADPersonOriginalImageWriting7218)return;
@@ -4278,7 +4313,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 %hook RCTParagraphComponentView
 - (void)setAttributedText:(NSAttributedString *)attributedText {
     NSAttributedString *r=nil;
-    if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)) r=ADPersonLightString7206(attributedText);
+    if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)) r=ADPersonHeaderLeaf7220((UIView *)self)?ADPersonHeaderString7220(attributedText):ADPersonLightString7206(attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADInLocationSheetContent7196((UIView *)self)) r=ADLocationSheetLightString7196((UIView *)self,attributedText);
     else r=ADLightAttributedText708(attributedText);
     %orig(r);
@@ -4286,7 +4321,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 }
 - (void)_setAttributedString:(NSAttributedString *)attributedString {
     NSAttributedString *r=nil;
-    if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)) r=ADPersonLightString7206(attributedString);
+    if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)) r=ADPersonHeaderLeaf7220((UIView *)self)?ADPersonHeaderString7220(attributedString):ADPersonLightString7206(attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADInLocationSheetContent7196((UIView *)self)) r=ADLocationSheetLightString7196((UIView *)self,attributedString);
     else r=ADLightAttributedText708(attributedString);
     %orig(r);
@@ -4309,7 +4344,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
 %hook RCTTextView
 - (void)setTextStorage:(NSTextStorage *)textStorage {
     if(gP.enabled && ((UIView *)self).window && ADInPersonTab7206((UIView *)self)){
-        ADPersonLightStorage7206(textStorage);
+        if(ADPersonHeaderLeaf7220((UIView *)self))ADPersonHeaderStorage7220(textStorage); else ADPersonLightStorage7206(textStorage);
         %orig;
         return;
     }
@@ -4346,7 +4381,7 @@ static void ADDarkenReactCardNearText708(UIView *textView){
         return;
     }
     if(gP.enabled && self.window && ADInPersonTab7206((UIView *)self)){
-        NSAttributedString *r=ADPersonLightString7206(attributedText);
+        NSAttributedString *r=ADPersonHeaderLeaf7220((UIView *)self)?ADPersonHeaderString7220(attributedText):ADPersonLightString7206(attributedText);
         %orig(r);
         return;
     }
@@ -4370,6 +4405,11 @@ static void ADDarkenReactCardNearText708(UIView *textView){
         return;
     }
     if(gP.enabled && self.window && ADInPersonTab7206((UIView *)self)){
+        if(ADPersonHeaderLeaf7220((UIView *)self)){
+            UIColor *light=ADLightText706();
+            %orig(light);
+            return;
+        }
         if(ADPersonAccent7206(color)){
             %orig(color);
             return;
@@ -5238,6 +5278,7 @@ static void ADPersonOwnSectionChevron7217(UIImageView *iv){
     if(gP.enabled&&self.window&&ADInPersonTab7206((UIView *)self))ADPersonRestoreOriginalImage7218(self);
     if(gP.enabled&&self.window&&!authored){ ADTabImageWhite724(self); ADTintSearchGlyph706(self); ADTintSearchDeliveryGlyph7139(self); ADPersonOwnTopChromeGlyph7217(self); ADPersonOwnSectionChevron7217(self); }
     if(gP.whiteTame)ADApplyNativeTWBCached7183(self,authored);
+    ADPersonForceHighlightTWB7220(self);
 }
 - (void)didMoveToWindow {
     %orig;
@@ -5247,6 +5288,7 @@ static void ADPersonOwnSectionChevron7217(UIImageView *iv){
     if(gP.enabled&&self.window&&ADInPersonTab7206((UIView *)self))ADPersonRestoreOriginalImage7218(self);
     if(gP.enabled&&self.window&&!authored){ ADTabImageWhite724(self); ADTintSearchGlyph706(self); ADTintSearchDeliveryGlyph7139(self); ADPersonOwnTopChromeGlyph7217(self); ADPersonOwnSectionChevron7217(self); }
     ADApplyNativeTWBCached7183(self,authored);
+    ADPersonForceHighlightTWB7220(self);
 }
 - (void)setTintColor:(UIColor *)color {
     if(gP.enabled && ADInAuthoredVisualSubNav7175((UIView *)self)){
@@ -5298,6 +5340,7 @@ static void ADPersonOwnSectionChevron7217(UIImageView *iv){
         }
         ADApplyNativeTWBCached7183(self,authored);
     }
+    ADPersonForceHighlightTWB7220(self);
 }
 %end
 
@@ -5511,12 +5554,12 @@ static NSString *ADSearchResultsProbePath7139(NSUInteger run){
         fmt.timeZone=[NSTimeZone localTimeZone];
         fmt.dateFormat=@"yyyyMMdd-HHmmss-SSS";
         NSString *stamp=[fmt stringFromDate:[NSDate date]]?:@"unknown";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.219-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.220-dynamic-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(docs.length)return [docs stringByAppendingPathComponent:name];
         return [NSTemporaryDirectory() stringByAppendingPathComponent:name];
     } @catch(...) {
-        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.219-dynamic-probe-r%lu.txt",(unsigned long)run]];
+        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.220-dynamic-probe-r%lu.txt",(unsigned long)run]];
     }
 }
 static void ADSearchResultsProbeAppend7139(NSString *p,NSString *s){
@@ -5669,7 +5712,7 @@ static void ADCaptureSearchResultsProbe7139(NSString *trigger){
     NSUInteger run=++gADSearchResultsProbeRun7139;
     NSString *path=ADSearchResultsProbePath7139(run);
     NSString *runID=[NSString stringWithFormat:@"%@-pid%d-r%lu",[[path lastPathComponent] stringByDeletingPathExtension],getpid(),(unsigned long)run];
-    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.219 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== LOCATION LIFECYCLE RING v7.219 =====\n%@\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADLocationLifeDump7203(),ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
+    NSString *head=[NSString stringWithFormat:@"\n================ AMAZON DARK v7.220 DYNAMIC MULTI-INTERFACE PROBE ================\nrun_id=%@\ndate=%@\npid=%d\nversion=%s\ntrigger=%@\nfile=%@\ncap_bytes=%llu\npolicy=no typed query text, element text, outerHTML, URL query strings, clipboard data, request bodies or headers captured\n\n===== LOCATION LIFECYCLE RING v7.220 =====\n%@\n===== TOP NATIVE DYNAMIC TRUTH =====\n%@\n===== TRACKED WEBVIEWS =====\n%@\n",runID,[NSDate date],getpid(),AD_VERSION,trigger?:@"unknown",path.lastPathComponent,(unsigned long long)kADSearchResultsProbeMaxBytes7139,ADLocationLifeDump7203(),ADSearchResultsProbeNative7139(),ADSearchResultsProbeWebList7139()];
     ADSearchResultsProbeAppend7139(path,head);
     NSMutableArray *chosen=[NSMutableArray array];
     @try {
