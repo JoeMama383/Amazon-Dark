@@ -1,4 +1,10 @@
-# AmazonDark v7.224~person-highlights-deepscan-fix-probe
+# AmazonDark v7.225~person-chevron-reviews-fix-probe
+
+## v7.225
+
+- Person right-edge chevrons are resolved at the real UIImageView raster leaf and forced to the light template tint.
+- Your Reviews border-only overlay siblings stay transparent so mounted review images/text/SVG content is no longer occluded.
+- v7.224 Highlights border/deep-scan fixes and the first-v7.222 draw-time header fix are retained.
 
 ## v7.224
 
