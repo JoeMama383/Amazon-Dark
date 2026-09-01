@@ -1,3 +1,16 @@
+# AmazonDark v7.245 — Shopping Cart probe-backed first-pass theming + Cart probe
+
+## v7.245 delta
+
+- Directly builds on v7.244; finalized Person/Search/native magnifier and universal OLED keyboard ownership are unchanged.
+- Uses the v7.244 full-document Cart probe to move Cart floors to OLED black at document start, while leaving the existing product-image TWB selectors untouched.
+- Cart Add-to-cart and Proceed-to-checkout buttons now reuse the Search-result primary-button contract: OLED floor, #747a7c border, light text.
+- Cart item quantity/action controls use one medium-neutral #303335 floor, #747a7c border and light text; Rufus/other authored child imagery is preserved.
+- Restores light Subtotal, gift, Cart primary/delivery text, Returns header/body, Prime Business primary text, and recommendation headings while preserving authored blue/green/red/orange/Prime accents.
+- Adds TWB only to the exact Returns box raster and Prime Business card raster; existing Cart product/recommendation image taming is unchanged.
+- Retains the screenshot/SIGUSR2 Cart full-document forensics probe, now exporting `AmazonDark-v7.245-cart-ui-probe-*`.
+- No MutationObserver, interval, RAF loop, web scroll listener, polling loop, or recurring hierarchy scanner is added.
+
 # AmazonDark v7.244 — Search leading magnifier regression fix + Cart probe
 
 ## v7.244 delta
