@@ -1,3 +1,18 @@
+# AmazonDark v7.235~person-probe-backed-ui-corrections
+
+## v7.235 probe-backed Person UI corrections
+
+- Built directly from v7.234; all changes below are tied to exact owners visible in the v7.234 Person forensics capture.
+- Removes the stale TWB square from the exact Highlights blue-circle arrow leaf without changing Amazon's authored blue circular parent.
+- Restores stock pixels at final `RCTUIImageViewAnimated` paint for Subscribe & Save and the three Shop previously watched product leaves, then applies image-only TWB.
+- Restores one standard gray rounded border to the two Medical Care cards and each Your Orders `yo_btn` card.
+- Makes the non-orange copy in the `$23` savings row light at final draw while preserving the saturated orange savings amount.
+- Narrows Buy Again outline ownership to one direct `CardWrapperView` child per carousel page and makes exact empty `undefined-overlay` image occluders transparent, revealing the already-loaded/tamed rasters.
+- Replaces the Lists & Registries square cached border raster with one complete 8pt gray rounded outline.
+- Replaces the bright empty border-raster plates under `aiwl_widget0/1` with one 6pt standard-gray outline per Your Interests card.
+- Retains the screenshot/SIGUSR2 Person forensics probe and adds explicit v7.235 final-raster/card-owner verification flags.
+- Adds no MutationObserver, polling loop, recurring hierarchy scanner, RAF, web scroll listener, or recurring timer.
+
 # AmazonDark v7.234~person-stock-raster-restore-fix-probe
 
 ## v7.234 Person stock-raster restore fix
