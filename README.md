@@ -1,15 +1,27 @@
-# AmazonDark v7.230~person-global-text-ownership-probe
+# AmazonDark v7.232~production-architecture-optimization
 
-## v7.230 Person sheet-wide text ownership
+## v7.232 production architecture optimization
 
-- Broadens the already-working Person neutral-text correction from a handful of probe-backed sections to every `RCTTextView` inside the `me` Person sheet.
-- The correction happens at final draw time because React can rewrite `NSTextStorage` after assignment/hydration.
-- Section headings remain fully `#e8e6e3`; other neutral text keeps the existing primary/bold light + secondary gray hierarchy. Authored saturated accents such as Prime blue remain preserved.
-- No Person border, radius, card-floor, carousel-frame, or border-owner code is changed relative to v7.229.
-- Retains the v7.229 Search magnifier, Review/Customer Service image, section-chevron, and Highlights fallback corrections.
-- Screenshot single-frame Person/Search probe remains available.
+- Builds directly on v7.231 and preserves its exact Person, Search, Home, location-sheet, web, launch-transition, TWB, privacy, preference, and SpringBoard theming behavior.
+- Uses the reviewed Person probe structure to return early for transparent React layout wrappers while retaining every semantic, colored, bordered, raster-backed, and exact-geometry visual owner.
+- Caches positive Person/location React-surface ownership and invalidates it on reparent/window transitions, replacing repeated ancestor walks in layout and background-setter hot paths without caching unresolved views.
+- Reuses registered React border selectors instead of allocating selector-name arrays for every border correction.
+- Makes Person and location-sheet attributed-text repair allocation-free when the requested colors are already present.
+- Keeps the exact Highlights wrapper fallback on its dedicated `RCTImageView` hook instead of rechecking it from the generic `RCTView` owner.
+- Removes the v7.231 screenshot/SIGUSR2 diagnostic subsystem, signal handler, and file-export code from the production dylib.
+- Adds no MutationObserver, timer, RAF, web scroll listener, polling loop, or recurring hierarchy scan. Route CSS/JS and all visual color/geometry contracts are unchanged.
 
-# AmazonDark v7.229~person-probe-backed-corrections
+No probe or probe trigger/export command ships in this production build.
+
+## v7.231 Person visible-owner corrections
+
+- Directly based on v7.229; v7.230's sheet-wide Person text change is intentionally excluded.
+- Keeps every visible Person right-arrow control in the same light color at final layout and excludes those controls from both native and Highlights TWB overlays.
+- Removes the TWB overlays from the authored blue Highlights icon plate and its 24x24 arrow leaf, eliminating the black square while preserving the blue circle and a light arrow.
+- Keeps the Health AI and Prescriptions 45x45 icons in AlwaysOriginal mode so their authored multicolor pixels survive React's late rendering-mode rewrite.
+- Keeps the Reviews 40x40 compact product image in AlwaysOriginal mode and retains Reviews-only TWB; keeps the 40x40 Customer Service glyph AlwaysOriginal and no-TWB.
+- Restores the exact empty Reviews border-plate owner using the guarded v7.229 paint architecture: React's cached bright raster is retired and replaced by one `#494d4d` rounded outline matching neighboring cards.
+- Extends the dormant screenshot/SIGUSR2 single-frame probe with exact owner/overlay markers. It captures no visible text strings, typed query, web DOM, or scrolling.
 
 ## v7.229 probe-backed visible-frame corrections
 
