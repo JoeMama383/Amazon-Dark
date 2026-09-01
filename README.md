@@ -1,3 +1,14 @@
+# AmazonDark v7.230~person-global-text-ownership-probe
+
+## v7.230 Person sheet-wide text ownership
+
+- Broadens the already-working Person neutral-text correction from a handful of probe-backed sections to every `RCTTextView` inside the `me` Person sheet.
+- The correction happens at final draw time because React can rewrite `NSTextStorage` after assignment/hydration.
+- Section headings remain fully `#e8e6e3`; other neutral text keeps the existing primary/bold light + secondary gray hierarchy. Authored saturated accents such as Prime blue remain preserved.
+- No Person border, radius, card-floor, carousel-frame, or border-owner code is changed relative to v7.229.
+- Retains the v7.229 Search magnifier, Review/Customer Service image, section-chevron, and Highlights fallback corrections.
+- Screenshot single-frame Person/Search probe remains available.
+
 # AmazonDark v7.229~person-probe-backed-corrections
 
 ## v7.229 probe-backed visible-frame corrections

@@ -32,7 +32,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.229-person-probe-backed-corrections"
+#define AD_VERSION "v7.230-person-global-text-ownership-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -4539,15 +4539,17 @@ static void ADOwnReactView7226(UIView *v){
     ADDarkenReactCardNearText708((UIView *)self);
 }
 - (void)drawRect:(CGRect)rect {
-    // v7.222 heading final-paint gate plus v7.228's exact Highlights tile gate.
-    // React can rewrite body-copy storage after assignment; repair only text below
-    // tile-widget/iconSection ancestry immediately before draw. Existing accent
-    // preservation keeps Prime blue and other authored saturated runs intact.
+    // v7.230: Person text is a sheet-wide visual contract, not a list of section exceptions.
+    // React can replace NSTextStorage after assignment/hydration, so every Person RCTTextView
+    // gets the same final-paint normalization immediately before drawing. Section headings stay
+    // fully light; all other neutral runs use the existing primary/secondary hierarchy while
+    // authored saturated accents (Prime blue, stars/deal accents, etc.) remain untouched.
     if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)){
         NSTextStorage *ts=ADPersonTextStorage7206((UIView *)self);
-        if(ADPersonHeaderLeaf7221((UIView *)self)){ if(ts)ADPersonHeaderStorage7221(ts); }
-        else if(ADPersonProbeBackedText7229((UIView *)self)){ if(ts)ADPersonLightStorage7206(ts); }
-        else if(ADPersonInHighlightTile7212((UIView *)self)){ if(ts)ADPersonLightStorage7206(ts); }
+        if(ts){
+            if(ADPersonHeaderLeaf7221((UIView *)self))ADPersonHeaderStorage7221(ts);
+            else ADPersonLightStorage7206(ts);
+        }
     }
     %orig(rect);
 }
@@ -5894,9 +5896,9 @@ static void ADProbeAppend7228(NSString *path,NSString *text){
 static NSString *ADProbePath7228(NSUInteger run){
     @try {
         NSDateFormatter *f=[NSDateFormatter new]; f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]; f.timeZone=[NSTimeZone localTimeZone]; f.dateFormat=@"yyyyMMdd-HHmmss-SSS";
-        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown"; NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.229-person-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown"; NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.230-person-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];
-    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.229-person-probe-r%lu.txt",(unsigned long)run]]; }
+    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.230-person-probe-r%lu.txt",(unsigned long)run]]; }
 }
 static void ADCaptureNativeProbe7228(NSString *trigger){
     if(!gP.enabled)return;
