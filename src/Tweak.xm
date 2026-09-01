@@ -32,7 +32,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.228-person-search-highlights-probe"
+#define AD_VERSION "v7.229-person-probe-backed-corrections"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1992,6 +1992,8 @@ static UIColor *ADNativeTWBOverlayColor7146(void);
 static void ADPersonObserveSectionAnchor7212(UIView *v);
 static BOOL ADPersonHighlightPlate7212(UIView *v);
 static void ADPersonOwnHighlightPlate7212(UIView *v);
+static void ADPersonOwnHighlightWrapperFallback7229(UIView *v);
+static BOOL ADPersonSectionChevron7217(UIImageView *iv);
 static int ADPersonSectionKind7218(UIView *v);
 static BOOL ADPersonBuyAgainItem7218(UIView *v);
 static void ADPersonOwnBuyAgainItem7218(UIView *v);
@@ -3838,6 +3840,7 @@ static void ADPersonOwnView7206(UIView *v){
         ADPersonOwnBuyAgainItem7218(v);
         ADPersonOwnHighlightTile7224(v);
         ADPersonOwnHighlightPlate7212(v);
+        ADPersonOwnHighlightWrapperFallback7229(v);
     } @catch(...) {}
 }
 static BOOL ADPersonPrimaryFont7206(UIFont *font){
@@ -4138,6 +4141,80 @@ static int ADPersonSectionKind7218(UIView *v){
     } @catch(...) {}
     return 0;
 }
+// v7.229 probe-backed Person corrections.  These gates are derived only from the
+// captured frame: Medical Care text reports pSec=1, Reviews text reports pSec=3
+// (with avr_title as the one direct leaf that reports pSec=0), Gift Card buttons
+// sit under exact gc0/gc1 wrappers, and the bottom Customer Service row is the
+// unique 398x58 rounded/bordered row with a 40x40 leading image and 20x20 trailing image.
+static BOOL ADPersonCustomerServiceRow7229(UIView *v){
+    if(!v||!v.window||!ADInPersonTab7206(v))return NO;
+    @try {
+        for(UIView *n=v;n;n=n.superview){
+            if([n.accessibilityIdentifier isEqualToString:@"me"])break;
+            CGFloat w=n.bounds.size.width,h=n.bounds.size.height;
+            if(w<380.0||w>410.0||h<52.0||h>64.0)continue;
+            CGFloat bw=MAX(n.layer.borderWidth,ADPersonRCTBorderWidth7208(n));
+            CGFloat rr=MAX(n.layer.cornerRadius,ADPersonRCTBorderRadius7212(n));
+            if(bw<0.5||rr<6.0||rr>14.0)continue;
+            int lead40=0,trail20=0,textish=0;
+            NSMutableArray<UIView *> *q=[NSMutableArray arrayWithArray:n.subviews]; int seen=0;
+            while(q.count&&seen++<28){
+                UIView *x=q.firstObject; [q removeObjectAtIndex:0];
+                CGRect xr=[x convertRect:x.bounds toView:n];
+                CGFloat xw=x.bounds.size.width,xh=x.bounds.size.height;
+                if([x isKindOfClass:[UIImageView class]]){
+                    if(xw>=36.0&&xw<=44.0&&xh>=36.0&&xh<=44.0&&CGRectGetMidX(xr)<70.0)lead40++;
+                    if(xw>=16.0&&xw<=24.0&&xh>=16.0&&xh<=24.0&&CGRectGetMidX(xr)>350.0)trail20++;
+                }
+                const char *cn=object_getClassName(x);
+                if([x isKindOfClass:[UILabel class]]||(cn&&(strstr(cn,"Text")||strstr(cn,"Paragraph"))))textish++;
+                if(seen<18)for(UIView *c in x.subviews)[q addObject:c];
+            }
+            if(lead40>=1&&trail20>=1&&textish>=1)return YES;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADPersonProbeBackedText7229(UIView *v){
+    if(!v||!v.window||!ADInPersonTab7206(v))return NO;
+    @try {
+        int kind=ADPersonSectionKind7218(v);
+        if(kind==1||kind==3)return YES;
+        NSString *aid=(v.accessibilityIdentifier?:@"").lowercaseString;
+        if([aid isEqualToString:@"avr_title"])return YES;
+        for(UIView *n=v;n;n=n.superview){
+            NSString *a=(n.accessibilityIdentifier?:@"").lowercaseString;
+            if([a isEqualToString:@"gc0"]||[a isEqualToString:@"gc1"])return YES;
+            if([n.accessibilityIdentifier isEqualToString:@"me"])break;
+        }
+        if(ADPersonCustomerServiceRow7229(v))return YES;
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADPersonReviewCompactImage7229(UIImageView *iv){
+    if(!iv||!iv.window||!iv.image||!ADInPersonTab7206(iv))return NO;
+    @try {
+        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
+        if(w<36.0||w>44.0||h<36.0||h>44.0||fabs(w-h)>3.0)return NO;
+        for(UIView *n=iv.superview;n&&n!=iv.window;n=n.superview){
+            if(ADPersonSectionKind7218(n)==3)return YES;
+            if([n.accessibilityIdentifier isEqualToString:@"me"])break;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADPersonCustomerServiceLeadingImage7229(UIImageView *iv){
+    if(!iv||!iv.window||!iv.image||!ADPersonCustomerServiceRow7229(iv))return NO;
+    @try {
+        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
+        if(w<36.0||w>44.0||h<36.0||h>44.0)return NO;
+        UIView *row=nil;
+        for(UIView *n=iv.superview;n;n=n.superview){ if(ADPersonCustomerServiceRow7229(n)){ row=n; break; } }
+        if(!row)return NO;
+        CGRect r=[iv convertRect:iv.bounds toView:row];
+        return CGRectGetMidX(r)<70.0;
+    } @catch(...) { return NO; }
+}
 static BOOL ADPersonForcedMedia7218(UIImageView *iv){ int k=ADPersonSectionKind7218(iv); return k==2||k==3||k==4; }
 static const void *kADPersonHighlightImageOverlay7221=&kADPersonHighlightImageOverlay7221;
 // v7.224: RCTImageView is only the semantic wrapper for current Highlights images.
@@ -4156,10 +4233,10 @@ static BOOL ADPersonHighlightImageContext7224(UIView *v){
     } @catch(...) {}
     return NO;
 }
-static BOOL ADPersonImageHasRasterDescendant7224(UIImageView *iv){
-    if(!iv)return NO;
+static BOOL ADPersonHasRasterDescendant7229(UIView *root){
+    if(!root)return NO;
     @try {
-        NSMutableArray<UIView *> *q=[NSMutableArray arrayWithArray:iv.subviews]; int seen=0;
+        NSMutableArray<UIView *> *q=[NSMutableArray arrayWithArray:root.subviews]; int seen=0;
         while(q.count&&seen++<18){
             UIView *v=q.firstObject; [q removeObjectAtIndex:0];
             if([v isKindOfClass:[UIImageView class]]&&((UIImageView *)v).image)return YES;
@@ -4167,6 +4244,34 @@ static BOOL ADPersonImageHasRasterDescendant7224(UIImageView *iv){
         }
     } @catch(...) {}
     return NO;
+}
+static BOOL ADPersonImageHasRasterDescendant7224(UIImageView *iv){ return ADPersonHasRasterDescendant7229(iv); }
+static const void *kADPersonHighlightWrapperOverlay7229=&kADPersonHighlightWrapperOverlay7229;
+static BOOL ADPersonHighlightWrapperFallback7229(UIView *v){
+    if(!v||!v.window||!ADInPersonTab7206(v)||!ADClassNameIs7183(v,"RCTImageView"))return NO;
+    @try {
+        NSString *aid=(v.accessibilityIdentifier?:@"").lowercaseString;
+        if(!([aid hasPrefix:@"tile-image-url-"]||[aid hasPrefix:@"tile-image-iconsection-"]))return NO;
+        CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+        if(w<40.0||w>120.0||h<40.0||h>120.0)return NO;
+        return !ADPersonHasRasterDescendant7229(v);
+    } @catch(...) { return NO; }
+}
+static void ADPersonOwnHighlightWrapperFallback7229(UIView *v){
+    if(!v)return;
+    @try {
+        CALayer *ov=objc_getAssociatedObject(v,kADPersonHighlightWrapperOverlay7229);
+        BOOL own=gP.enabled&&gP.whiteTame&&ADPersonHighlightWrapperFallback7229(v);
+        if(!own){ if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(v,kADPersonHighlightWrapperOverlay7229,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); } return; }
+        if(!ov){
+            ov=[CALayer layer]; ov.name=@"AmazonDarkPersonHighlightWrapperTWB7229";
+            ov.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"backgroundColor":[NSNull null],@"cornerRadius":[NSNull null],@"zPosition":[NSNull null]};
+            [v.layer addSublayer:ov];
+            objc_setAssociatedObject(v,kADPersonHighlightWrapperOverlay7229,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        } else if(ov.superlayer!=v.layer)[v.layer addSublayer:ov];
+        ov.frame=v.bounds; ov.cornerRadius=MAX(v.layer.cornerRadius,12.0);
+        ov.backgroundColor=ADNativeTWBOverlayColor7146().CGColor; ov.zPosition=FLT_MAX;
+    } @catch(...) {}
 }
 static BOOL ADPersonExactHighlightImage7221(UIImageView *iv){
     if(!iv||!iv.window||!iv.image||!ADPersonHighlightImageContext7224(iv))return NO;
@@ -4207,6 +4312,17 @@ static void ADPersonRestoreOriginalImage7218(UIImageView *iv){
         }
     } @catch(...) { gADPersonOriginalImageWriting7218=NO; }
 }
+static void ADPersonRestoreProbeBackedOriginal7229(UIImageView *iv){
+    if(!iv||gADPersonOriginalImageWriting7218||!iv.image)return;
+    if(!(ADPersonReviewCompactImage7229(iv)||ADPersonCustomerServiceLeadingImage7229(iv)))return;
+    @try {
+        UIImage *im=iv.image;
+        if(im.renderingMode!=UIImageRenderingModeAlwaysOriginal){
+            UIImage *orig=[im imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+            if(orig){ gADPersonOriginalImageWriting7218=YES; iv.image=orig; gADPersonOriginalImageWriting7218=NO; }
+        }
+    } @catch(...) { gADPersonOriginalImageWriting7218=NO; }
+}
 static BOOL ADPersonExplicitProductMedia7206(UIImageView *iv){
     if(!iv)return NO;
     NSString *aid=(iv.accessibilityIdentifier?:@"").lowercaseString;
@@ -4217,8 +4333,10 @@ static BOOL ADPersonExplicitProductMedia7206(UIImageView *iv){
 static BOOL ADPersonMediaBlocked7206(UIImageView *iv){
     if(!iv||!iv.image||!ADInPersonTab7206(iv))return YES;
     @try {
+        // Probe-backed section-header chevrons are controls, never Person media.
+        if(ADPersonSectionChevron7217(iv))return YES;
         UIImage *im=iv.image; int kind=ADPersonSectionKind7218(iv);
-        BOOL forced=ADPersonForcedMedia7212(iv)||ADPersonForcedMedia7218(iv);
+        BOOL forced=ADPersonForcedMedia7212(iv)||ADPersonForcedMedia7218(iv)||ADPersonReviewCompactImage7229(iv);
         if(kind==1)return YES; // Medical Care remains fully authored.
         if(im.renderingMode==UIImageRenderingModeAlwaysTemplate&&!forced)return YES;
         CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height; BOOL explicitMedia=ADPersonExplicitProductMedia7206(iv)||forced;
@@ -4428,6 +4546,7 @@ static void ADOwnReactView7226(UIView *v){
     if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)){
         NSTextStorage *ts=ADPersonTextStorage7206((UIView *)self);
         if(ADPersonHeaderLeaf7221((UIView *)self)){ if(ts)ADPersonHeaderStorage7221(ts); }
+        else if(ADPersonProbeBackedText7229((UIView *)self)){ if(ts)ADPersonLightStorage7206(ts); }
         else if(ADPersonInHighlightTile7212((UIView *)self)){ if(ts)ADPersonLightStorage7206(ts); }
     }
     %orig(rect);
@@ -4653,23 +4772,42 @@ static void ADOwnReactView7226(UIView *v){
 }
 %end
 
-// v7.228: v7.226 removed per-image layout repainting. Amazon can rewrite the left
-// magnifier after mount while camera/mic remain correct, so reassert only glyph-sized
-// UIImageViews inside this tiny fixed Search subtree when the bar itself lays out.
-static void ADReassertSearchChromeGlyphs7228(UIView *root){
-    if(!gP.enabled||!root||!root.window)return;
+// v7.229: the screenshot probe proves the Search leading magnifier is the one
+// outlier: its 24x24 UIImageView has light tint but renderingMode=Automatic (0),
+// while the adjacent camera/mic are already AlwaysTemplate (2).  Do not walk the
+// whole Search subtree on every layout.  Mark/own only the leading square image
+// inside SBSearchField / SBMultilineSearchView and canonicalize every image write.
+static const void *kADSearchLeadingMagnifier7229=&kADSearchLeadingMagnifier7229;
+static BOOL ADSearchLeadingMagnifier7229(UIImageView *iv){
+    if(!iv)return NO;
     @try {
-        NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:root];
-        int seen=0;
-        while(q.count&&seen++<48){
-            UIView *v=q.firstObject; [q removeObjectAtIndex:0];
-            if([v isKindOfClass:[UIImageView class]]){
-                UIImageView *iv=(UIImageView *)v; CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
-                if(w>=3.0&&h>=3.0&&w<=64.0&&h<=64.0)ADTintSearchGlyph706(iv);
-            }
-            if(seen<32)for(UIView *c in v.subviews)if(c)[q addObject:c];
+        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
+        if(w<18.0||w>30.0||h<18.0||h>30.0||fabs(w-h)>4.0)return NO;
+        UIView *field=nil;
+        for(UIView *n=iv.superview;n&&n!=iv.window;n=n.superview){
+            if(ADClassNameHasFold7183(n,"sbsearchfield")||ADClassNameHasFold7183(n,"sbmultilinesearchview")){ field=n; break; }
+            if(ADClassNameHasFold7183(n,"sbsearchbar")&&n!=iv.superview)continue;
         }
-    } @catch(...) {}
+        if(!field)return NO;
+        CGRect r=[iv convertRect:iv.bounds toView:field];
+        CGFloat midX=CGRectGetMidX(r),midY=CGRectGetMidY(r);
+        if(midX<8.0||midX>42.0)return NO;
+        if(midY<4.0||midY>field.bounds.size.height-4.0)return NO;
+        objc_setAssociatedObject(iv,kADSearchLeadingMagnifier7229,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        return YES;
+    } @catch(...) { return NO; }
+}
+static void ADOwnSearchLeadingMagnifier7229(UIImageView *iv){
+    if(!gP.enabled||!iv||!iv.image)return;
+    if(!objc_getAssociatedObject(iv,kADSearchLeadingMagnifier7229)&&!ADSearchLeadingMagnifier7229(iv))return;
+    @try {
+        UIImage *im=iv.image;
+        if(im.renderingMode!=UIImageRenderingModeAlwaysTemplate&&!gADSearchImageWrite706){
+            UIImage *tpl=[im imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            if(tpl){ gADSearchImageWrite706=YES; iv.image=tpl; gADSearchImageWrite706=NO; }
+        }
+        iv.tintColor=ADLightText706();
+    } @catch(...) { gADSearchImageWrite706=NO; }
 }
 
 %hook SBSearchBar
@@ -4679,12 +4817,7 @@ static void ADReassertSearchChromeGlyphs7228(UIView *root){
     if(gP.enabled&&v.window){
         ADSetViewBackground7226(v,[UIColor clearColor],YES);
         v.layer.borderWidth=0;
-        ADReassertSearchChromeGlyphs7228(v);
     }
-}
-- (void)layoutSubviews {
-    %orig;
-    ADReassertSearchChromeGlyphs7228((UIView *)self);
 }
 %end
 
@@ -4705,11 +4838,6 @@ static void ADOwnSearchSurface7045(UIView *v, BOOL ownBorder){
 - (void)didMoveToWindow {
     %orig;
     ADOwnSearchSurface7045((UIView *)self,YES);
-    ADReassertSearchChromeGlyphs7228((UIView *)self);
-}
-- (void)layoutSubviews {
-    %orig;
-    ADReassertSearchChromeGlyphs7228((UIView *)self);
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if(ADInternalPaintWrite7226()){
@@ -4746,11 +4874,6 @@ static void ADOwnFocusedSearchSurface7120(UIView *v){
     %orig;
     ADOwnFocusedSearchSurface7120((UIView *)self);
     ADPrepareSearchKeyboard7120((UIView *)self);
-    ADReassertSearchChromeGlyphs7228((UIView *)self);
-}
-- (void)layoutSubviews {
-    %orig;
-    ADReassertSearchChromeGlyphs7228((UIView *)self);
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if(ADInternalPaintWrite7226()){
@@ -5327,6 +5450,15 @@ static BOOL ADPersonSectionChevron7217(UIImageView *iv){
     @try {
         CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
         if(w<12.0||w>36.0||h<12.0||h>36.0)return NO;
+        // v7.228 probe exposes the current section-chevron wrappers directly.
+        // Use only those captured identifiers; this also prevents Highlights/Reviews
+        // section arrows from being misclassified as forced TWB media.
+        for(UIView *n=iv.superview;n&&n!=iv.window;n=n.superview){
+            NSString *aid=(n.accessibilityIdentifier?:@"").lowercaseString;
+            if([aid isEqualToString:@"yhwftr"]||[aid isEqualToString:@"gpw-footer-idftr"]||
+               [aid isEqualToString:@"gcfooterftr"]||[aid isEqualToString:@"cm_yc-headerftr"])return YES;
+            if([n.accessibilityIdentifier isEqualToString:@"me"])break;
+        }
         UIView *row=iv.superview;
         for(int up=0;row&&up<3;up++,row=row.superview){
             for(UIView *n in row.subviews){
@@ -5356,7 +5488,7 @@ static void ADOwnImageView7226(UIImageView *iv,BOOL resetCache){
         objc_setAssociatedObject(iv,kADTWBEligibilityImage,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
     BOOL authored=ADInAuthoredVisualSubNav7175((UIView *)iv);
-    if(gP.enabled&&iv.window&&ADInPersonTab7206((UIView *)iv))ADPersonRestoreOriginalImage7218(iv);
+    if(gP.enabled&&iv.window&&ADInPersonTab7206((UIView *)iv)){ ADPersonRestoreOriginalImage7218(iv); ADPersonRestoreProbeBackedOriginal7229(iv); }
     if(gP.enabled&&iv.window&&!authored){
         ADTabImageWhite724(iv);
         ADTintSearchGlyph706(iv);
@@ -5403,22 +5535,29 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
 
 %hook UIImageView
 - (void)setImage:(UIImage *)image {
-    if(gADTabImageWriting724||gADPersonOriginalImageWriting7218){
+    if(gADTabImageWriting724||gADPersonOriginalImageWriting7218||gADSearchImageWrite706){
         %orig(image);
         return;
     }
-    %orig(image);
+    UIImage *finalImage=image;
+    if(gP.enabled&&image&&ADSearchLeadingMagnifier7229(self)&&image.renderingMode!=UIImageRenderingModeAlwaysTemplate){
+        UIImage *tpl=[image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]; if(tpl)finalImage=tpl;
+    }
+    %orig(finalImage);
+    ADOwnSearchLeadingMagnifier7229(self);
     ADOwnImageView7226(self,YES);
     ADSchedulePersonImageSettle7227(self);
 }
 - (void)didMoveToWindow {
     %orig;
+    ADOwnSearchLeadingMagnifier7229(self);
     ADOwnImageView7226(self,YES);
     ADSchedulePersonImageSettle7227(self);
 }
 - (void)didMoveToSuperview {
     %orig;
     if(self.window){
+        ADOwnSearchLeadingMagnifier7229(self);
         ADOwnImageView7226(self,YES);
         ADSchedulePersonImageSettle7227(self);
     }
@@ -5456,9 +5595,25 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
 }
 - (void)layoutSubviews {
     %orig;
-    // Layout owns geometry only. Image classification/painting is event-driven by
-    // setImage:/mount so scrolling cannot rerun the full TWB/glyph decision tree.
+    // Layout remains geometry-only for media. The only paint reassertion is the exact
+    // marked Search leading magnifier proven by the v7.228 probe.
+    if(objc_getAssociatedObject(self,kADSearchLeadingMagnifier7229)||ADSearchLeadingMagnifier7229(self))ADOwnSearchLeadingMagnifier7229(self);
     ADLayoutImageOverlays7226(self);
+}
+%end
+
+// Exact Highlights semantic wrapper fallback.  Most tiles expose an anonymous
+// RCTUIImageViewAnimated child and keep the v7.224 image-leaf TWB path. The probe
+// shows the first visible tile can instead expose only its RCTImageView wrapper, so
+// this hook shades that exact wrapper only while it lacks a raster UIImageView child.
+%hook RCTImageView
+- (void)didMoveToWindow {
+    %orig;
+    ADPersonOwnHighlightWrapperFallback7229((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADPersonOwnHighlightWrapperFallback7229((UIView *)self);
 }
 %end
 
@@ -5654,7 +5809,7 @@ static void ADConsiderLaunchReady706(void){
 %end
 
 
-// v7.228 targeted native probe. Dormant until screenshot/SIGUSR2 and captures only
+// v7.229 targeted native probe. Dormant until screenshot/SIGUSR2 and captures only
 // the currently visible native Person/Search frame. It does not scroll, poll, inspect
 // Web DOM, capture visible text strings, or add steady-state hierarchy work.
 static NSUInteger gADNativeProbeRun7228=0;
@@ -5739,15 +5894,15 @@ static void ADProbeAppend7228(NSString *path,NSString *text){
 static NSString *ADProbePath7228(NSUInteger run){
     @try {
         NSDateFormatter *f=[NSDateFormatter new]; f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]; f.timeZone=[NSTimeZone localTimeZone]; f.dateFormat=@"yyyyMMdd-HHmmss-SSS";
-        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown"; NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.228-person-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown"; NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.229-person-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];
-    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.228-person-probe-r%lu.txt",(unsigned long)run]]; }
+    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.229-person-probe-r%lu.txt",(unsigned long)run]]; }
 }
 static void ADCaptureNativeProbe7228(NSString *trigger){
     if(!gP.enabled)return;
     @try {
         NSUInteger run=++gADNativeProbeRun7228; NSString *path=ADProbePath7228(run); CGRect screen=UIScreen.mainScreen.bounds;
-        NSMutableString *out=[NSMutableString stringWithFormat:@"AMAZONDARK v7.228 PERSON/SEARCH SINGLE-FRAME PROBE\nversion=%s\ntrigger=%@\ndate=%@\npolicy=no visible text strings, no typed query, no web DOM, no scrolling\nscreen=(%.1fx%.1f)\n\n",AD_VERSION,trigger?:@"unknown",[NSDate date],screen.size.width,screen.size.height];
+        NSMutableString *out=[NSMutableString stringWithFormat:@"AMAZONDARK v7.229 PERSON/SEARCH SINGLE-FRAME PROBE\nversion=%s\ntrigger=%@\ndate=%@\npolicy=no visible text strings, no typed query, no web DOM, no scrolling\nscreen=(%.1fx%.1f)\n\n",AD_VERSION,trigger?:@"unknown",[NSDate date],screen.size.width,screen.size.height];
         NSUInteger visited=0,emitted=0;
         for(UIWindow *w in UIApplication.sharedApplication.windows){
             if(!w||w.hidden||w.alpha<0.01)continue; NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:w];
@@ -5756,8 +5911,8 @@ static void ADCaptureNativeProbe7228(NSString *trigger){
                 CGRect r=CGRectZero; @try { r=[v convertRect:v.bounds toView:nil]; } @catch(...) {}
                 BOOL on=!v.hidden&&v.alpha>0.01&&r.size.width>=0.5&&r.size.height>=0.5&&CGRectIntersectsRect(r,screen); BOOL person=on&&ADInPersonTab7206(v),search=on&&ADInSearchChrome706(v);
                 if(person||search){
-                    NSString *cn=NSStringFromClass(v.class),*aid=ADProbeSafeID7228(v.accessibilityIdentifier); BOOL textish=[v isKindOfClass:[UILabel class]]||[cn rangeOfString:@"Text" options:NSCaseInsensitiveSearch].location!=NSNotFound||[cn rangeOfString:@"Paragraph" options:NSCaseInsensitiveSearch].location!=NSNotFound; BOOL vector=[cn rangeOfString:@"RNSVG" options:NSCaseInsensitiveSearch].location!=NSNotFound; BOOL image=[v isKindOfClass:[UIImageView class]]; CALayer *plate=objc_getAssociatedObject(v,kADPersonHighlightPlateOverlay7212);
-                    [out appendFormat:@"N cls=%@ r=(%.1f,%.1f %.1fx%.1f) a=%.2f aid=\"%@\" person=%d search=%d bg=%@ layerBg=%@ tint=%@ borderW=%.2f border=%@ radius=%.2f rctBW=%.2f rctR=%.2f contents=%d pSec=%d pHL=%d pPlate=%d pPlateOverlay=%d pShell=%d pHeader=%d %@ %@ %@\n",cn,r.origin.x,r.origin.y,r.size.width,r.size.height,v.alpha,aid,person?1:0,search?1:0,ADProbeColor7228(v.backgroundColor),ADProbeCG7228(v.layer.backgroundColor),ADProbeColor7228(v.tintColor),v.layer.borderWidth,ADProbeCG7228(v.layer.borderColor),v.layer.cornerRadius,person?ADPersonRCTBorderWidth7208(v):0.0,person?ADPersonRCTBorderRadius7212(v):0.0,v.layer.contents?1:0,person?ADPersonSectionKind7218(v):0,person?ADPersonInHighlightTile7212(v):0,person?ADPersonHighlightPlate7212(v):0,plate?1:0,person?ADPersonBorderOnlyShell7227(v):0,person?ADPersonHeaderLeaf7221(v):0,textish?ADProbeTextRuns7228(v):@"text=0",image?ADProbeImage7228(v):@"img=0",vector?ADProbeVector7228(v):@"vec=0"];
+                    NSString *cn=NSStringFromClass(v.class),*aid=ADProbeSafeID7228(v.accessibilityIdentifier); BOOL textish=[v isKindOfClass:[UILabel class]]||[cn rangeOfString:@"Text" options:NSCaseInsensitiveSearch].location!=NSNotFound||[cn rangeOfString:@"Paragraph" options:NSCaseInsensitiveSearch].location!=NSNotFound; BOOL vector=[cn rangeOfString:@"RNSVG" options:NSCaseInsensitiveSearch].location!=NSNotFound; BOOL image=[v isKindOfClass:[UIImageView class]]; CALayer *plate=objc_getAssociatedObject(v,kADPersonHighlightPlateOverlay7212); CALayer *wrap=objc_getAssociatedObject(v,kADPersonHighlightWrapperOverlay7229);
+                    [out appendFormat:@"N cls=%@ r=(%.1f,%.1f %.1fx%.1f) a=%.2f aid=\"%@\" person=%d search=%d bg=%@ layerBg=%@ tint=%@ borderW=%.2f border=%@ radius=%.2f rctBW=%.2f rctR=%.2f contents=%d pSec=%d pHL=%d pPlate=%d pPlateOverlay=%d pWrapOverlay=%d pTextFix=%d pReview40=%d pCustomer40=%d searchMag=%d pShell=%d pHeader=%d %@ %@ %@\n",cn,r.origin.x,r.origin.y,r.size.width,r.size.height,v.alpha,aid,person?1:0,search?1:0,ADProbeColor7228(v.backgroundColor),ADProbeCG7228(v.layer.backgroundColor),ADProbeColor7228(v.tintColor),v.layer.borderWidth,ADProbeCG7228(v.layer.borderColor),v.layer.cornerRadius,person?ADPersonRCTBorderWidth7208(v):0.0,person?ADPersonRCTBorderRadius7212(v):0.0,v.layer.contents?1:0,person?ADPersonSectionKind7218(v):0,person?ADPersonInHighlightTile7212(v):0,person?ADPersonHighlightPlate7212(v):0,plate?1:0,wrap?1:0,(person&&textish&&ADPersonProbeBackedText7229(v))?1:0,(person&&image&&ADPersonReviewCompactImage7229((UIImageView *)v))?1:0,(person&&image&&ADPersonCustomerServiceLeadingImage7229((UIImageView *)v))?1:0,(search&&image&&ADSearchLeadingMagnifier7229((UIImageView *)v))?1:0,person?ADPersonBorderOnlyShell7227(v):0,person?ADPersonHeaderLeaf7221(v):0,textish?ADProbeTextRuns7228(v):@"text=0",image?ADProbeImage7228(v):@"img=0",vector?ADProbeVector7228(v):@"vec=0"];
                     emitted++;
                 }
                 if(q.count<4800&&v.subviews.count)[q addObjectsFromArray:v.subviews];

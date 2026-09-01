@@ -1,14 +1,15 @@
-# AmazonDark v7.228~person-search-highlights-probe
+# AmazonDark v7.229~person-probe-backed-corrections
 
+## v7.229 probe-backed visible-frame corrections
 
-## v7.228 Person/Search/Highlights targeted probe
-
-- Directly based on v7.227; current Person border ownership is intentionally unchanged.
-- Restores a bounded Search-bar-only glyph reassertion so Amazon's late rewrite cannot leave the left magnifier black while camera/mic are light.
-- Reasserts exact Highlights tile text at RCTTextView draw time while preserving saturated authored accents such as Prime blue.
-- Extends the exact `tile-image-iconSection-*` compact Highlights plate owner from circle-only to rounded-square-or-circle geometry so the current delivery-style glyph plate receives TWB.
-- Adds a dormant single-frame native Person/Search probe triggered by screenshot or SIGUSR2. It does not scroll the Person menu and captures no user-visible text content.
-- No Person border selector/owner is changed. No MutationObserver, polling loop, recurring hierarchy scanner, RAF, or scroll listener is added.
+- Directly based on v7.228; Person card/border ownership is intentionally untouched.
+- Fixes the top Search magnifier from the captured renderer state: the leading 24x24 image was `renderingMode=0` while camera/mic were `renderingMode=2`. The old broad Search subtree walk is removed; only the exact leading magnifier is marked and kept AlwaysTemplate/light on image assignment, mount, and its own layout.
+- Fixes captured faint Person text at final draw time only in the proven contexts: Medical Care (`pSec=1`), Reviews (`pSec=3` plus exact `avr_title`), Gift Card action wrappers (`gc0` / `gc1`), and the structurally exact bottom Customer Service row. Prime/link accents remain preserved.
+- Fixes the two captured blank white boxes by restoring authored pixels only for the 40x40 Reviews compact image and the 40x40 leading Customer Service image. The Reviews compact image is also allowed through the existing Reviews TWB lane; Customer Service remains no-TWB.
+- Reclaims the captured Person section chevrons through their exact footer-wrapper IDs (`yhwftr`, `gpw-footer-idftr`, `gcfooterftr`, `cm_yc-headerftr`) and explicitly excludes them from Person TWB, fixing the dark Highlights/Gift Card/Reviews arrows without broad glyph ownership.
+- Fixes the one visible Highlights tile that missed TWB because the probe exposed only its semantic `RCTImageView tile-image-url-*` wrapper (`has=0`) while the neighboring tile exposed an actual `RCTUIImageViewAnimated` raster with `hlTwb=1`. The wrapper receives a TWB overlay only when no raster UIImageView descendant exists, so normal neighboring tiles retain the v7.224 image-leaf owner and are not double-darkened.
+- Retains the dormant screenshot/SIGUSR2 single-frame probe and adds markers for the new exact owners. No visible text strings, typed query, web DOM, or automatic scrolling are captured.
+- No MutationObserver, polling loop, recurring hierarchy scan, RAF, or web scroll listener is added.
 
 ## v7.227 media ownership stabilization
 
