@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.242 — Cart UI forensics probe + Person Orders search polish / v7.240 finalized Person production architecture
+ * AmazonDark v7.243 — universal OLED keyboard + Person Orders magnifier + Cart UI forensics probe / v7.242 border ownership
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -26,7 +26,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.242-cart-probe-person-order-search-fix"
+#define AD_VERSION "v7.243-universal-oled-keyboard-person-order-magnifier-cart-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2732,37 +2732,18 @@ static void ADTintSearchDeliveryGlyph7139(UIImageView *iv){
     } @catch(...) { gADSearchImageWrite706=NO; }
 }
 
-// v7.242: the expanded Person > Your Orders search field is React Native, not the
-// Search-tab chrome.  The probe identifies its exact chain as
-// RCTUITextField <- RCTSinglelineTextInputView <- RNCEKVTextInputFocusWrapper
-// inside a 360x50 / 364x54 nested shell pair.  Reuse the proven OLED keyboard
-// request for only that field instead of adding another keyboard implementation.
-static BOOL ADPersonOrderSearchInput7242(UIView *v){
-    if(!gP.enabled||!v||!v.window||!ADInPersonTab7206(v))return NO;
-    @try {
-        BOOL sawInput=ADClassNameIs7183(v,"RCTUITextField")||
-                      ADClassNameIs7183(v,"RCTSinglelineTextInputView")||
-                      ADClassNameIs7183(v,"RNCEKVTextInputFocusWrapper");
-        BOOL sawFocus=NO,sawShell=NO;
-        UIView *n=v;
-        for(int d=0;n&&d<10&&n!=v.window;d++,n=n.superview){
-            if(ADClassNameIs7183(n,"RNCEKVTextInputFocusWrapper"))sawFocus=YES;
-            if(ADClassNameIs7183(n,"RCTSinglelineTextInputView")||ADClassNameIs7183(n,"RCTUITextField"))sawInput=YES;
-            if(ADClassNameIs7183(n,"RCTView")){
-                CGFloat w=n.bounds.size.width,h=n.bounds.size.height;
-                if((w>=358.0&&w<=366.0)&&(h>=48.0&&h<=56.0))sawShell=YES;
-            }
-            if([n.accessibilityIdentifier isEqualToString:@"me"])break;
-        }
-        return sawInput&&sawFocus&&sawShell;
-    } @catch(...) { return NO; }
-}
-static BOOL ADWantsDarkKeyboard7242(UIView *v){
-    return gP.enabled&&v&&(ADInSearchChrome706(v)||ADPersonOrderSearchInput7242(v));
+// v7.243: make the already-proven v7.126 OLED keyboard contract universal inside
+// Amazon instead of trying to recognize individual input surfaces.  AmazonDark.plist
+// already filters these hooks to com.amazon.Amazon, so every native text responder in
+// this process can safely request UIKeyboardAppearanceDark.  This is cheaper and more
+// robust than maintaining Search/Person/Cart ancestry predicates, and it exactly ports
+// the working Search-panel behavior to React Native fields such as Person > Search orders.
+static BOOL ADWantsDarkKeyboard7243(UIView *v){
+    return gP.enabled&&v;
 }
 
 static void ADPrepareSearchKeyboard7120(UIView *v){
-    if(!gP.enabled||!v||!ADWantsDarkKeyboard7242(v))return;
+    if(!ADWantsDarkKeyboard7243(v))return;
     @try {
         SEL sel=NSSelectorFromString(@"setKeyboardAppearance:");
         if([v respondsToSelector:sel]) ((void(*)(id,SEL,NSInteger))objc_msgSend)(v,sel,(NSInteger)UIKeyboardAppearanceDark);
@@ -2776,25 +2757,21 @@ static void ADPrepareSearchKeyboard7120(UIView *v){
 // dock, emoji/autofill input surfaces, and keyboard visual-effect backing.
 // AmazonDark's bundle filter already confines these hooks to com.amazon.Amazon.
 static BOOL ADKeyboardDark7126(UIView *view){
-    if(!gP.enabled || !view) return NO;
-    @try {
-        SEL darkSel=NSSelectorFromString(@"_mapkit_isDarkModeEnabled");
-        if([view respondsToSelector:darkSel]){
-            return ((BOOL(*)(id,SEL))objc_msgSend)(view,darkSel);
-        }
-        UIViewController *vc=nil;
-        SEL vcSel=NSSelectorFromString(@"_viewControllerForAncestor");
-        if([view respondsToSelector:vcSel]) vc=((id(*)(id,SEL))objc_msgSend)(view,vcSel);
-        UITraitCollection *traits=vc.traitCollection ?: view.traitCollection;
-        if(@available(iOS 12.0,*)) return traits.userInterfaceStyle==UIUserInterfaceStyleDark;
-    } @catch(...) {}
-    return NO;
+    // v7.243: AmazonDark intentionally owns an OLED keyboard everywhere in Amazon.
+    // Do not key the floor to the app's light trait collection; the responder-level
+    // keyboardAppearance hook above is the source of keycap appearance, while this
+    // owner guarantees the v7.126 floor/prediction/dock surfaces stay OLED black.
+    return gP.enabled&&view;
 }
 
 static void ADSetKeyboardFloor7126(UIView *view){
     if(!view) return;
     @try {
         if(!gP.enabled) return;
+        // Keep the actual keyboard hierarchy in dark appearance even though Amazon's
+        // application trait is light.  This complements keyboardAppearance=Dark on
+        // the responder and makes the existing v7.126 floor/dock owner universal.
+        if(@available(iOS 13.0,*))view.overrideUserInterfaceStyle=UIUserInterfaceStyleDark;
         ADSetViewBackground7226(view,ADKeyboardDark7126(view)?ADOLED():[UIColor clearColor],YES);
     } @catch(...) {}
 }
@@ -3595,6 +3572,41 @@ static void ADPersonRepairOrderSearchAncestors7242(UIView *v){
             if([n.accessibilityIdentifier isEqualToString:@"me"])break;
         }
     } @catch(...) {}
+}
+
+// v7.243: the v7.240 Person probe identifies the Search-orders magnifier exactly:
+// RCTUIImageViewAnimated 20x20 <- RCTImageView 20x20, where the RCTImageView is a
+// direct child of the already-proven 360x50 inner Search-orders shell and is the
+// sibling of RNCEKVTextInputFocusWrapper.  Own only this glyph; do not touch the
+// v7.242 border implementation above.
+static BOOL ADPersonOrderSearchMagnifierWrapper7243(UIView *v){
+    if(!gP.enabled||!v||!v.window||!ADClassNameIs7183(v,"RCTImageView"))return NO;
+    @try {
+        CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+        if(w<18.0||w>22.0||h<18.0||h>22.0)return NO;
+        UIView *host=v.superview;
+        return host&&ADPersonOrderSearchInner7242(host)&&ADPersonDescendantClass7242(host,"RNCEKVTextInputFocusWrapper",8);
+    } @catch(...) { return NO; }
+}
+static BOOL ADPersonOrderSearchMagnifierLeaf7243(UIImageView *iv){
+    if(!gP.enabled||!iv||!iv.window||!iv.image)return NO;
+    @try {
+        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
+        if(w<18.0||w>22.0||h<18.0||h>22.0)return NO;
+        return iv.superview&&ADPersonOrderSearchMagnifierWrapper7243(iv.superview);
+    } @catch(...) { return NO; }
+}
+static BOOL gADPersonOrderMagnifierWrite7243=NO;
+static void ADPersonOwnOrderSearchMagnifierLeaf7243(UIImageView *iv){
+    if(!ADPersonOrderSearchMagnifierLeaf7243(iv))return;
+    @try {
+        UIImage *im=iv.image;
+        if(im&&im.renderingMode!=UIImageRenderingModeAlwaysTemplate&&!gADPersonOrderMagnifierWrite7243){
+            UIImage *tpl=[im imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            if(tpl){ gADPersonOrderMagnifierWrite7243=YES; iv.image=tpl; gADPersonOrderMagnifierWrite7243=NO; }
+        }
+        iv.tintColor=ADLightText706();
+    } @catch(...) { gADPersonOrderMagnifierWrite7243=NO; }
 }
 static const void *kADPersonInternalMedia7213=&kADPersonInternalMedia7213;
 // v7.213 Person card hardening: inner carousel/product-media plates are content,
@@ -5308,7 +5320,7 @@ static void ADOwnReactView7226(UIView *v){
     return %orig;
 }
 - (void)setKeyboardAppearance:(UIKeyboardAppearance)appearance {
-    if(gP.enabled&&ADWantsDarkKeyboard7242((UIView *)self)){
+    if(gP.enabled&&ADWantsDarkKeyboard7243((UIView *)self)){
         UIKeyboardAppearance dark=UIKeyboardAppearanceDark;
         %orig(dark);
         return;
@@ -5332,14 +5344,14 @@ static void ADOwnReactView7226(UIView *v){
 
 %hook UITextField
 - (BOOL)becomeFirstResponder {
-    BOOL orderSearch=gP.enabled&&ADPersonOrderSearchInput7242((UIView *)self);
+    BOOL orderSearch=gP.enabled&&((UIView *)self).window;
     if(gP.enabled)ADPrepareSearchKeyboard7120((UIView *)self);
     BOOL became=%orig;
     if(orderSearch&&became)ADPersonRepairOrderSearchAncestors7242((UIView *)self);
     return became;
 }
 - (void)setKeyboardAppearance:(UIKeyboardAppearance)appearance {
-    if(gP.enabled&&ADWantsDarkKeyboard7242((UIView *)self)){
+    if(gP.enabled&&ADWantsDarkKeyboard7243((UIView *)self)){
         UIKeyboardAppearance dark=UIKeyboardAppearanceDark;
         %orig(dark);
         return;
@@ -5364,7 +5376,33 @@ static void ADOwnReactView7226(UIView *v){
         if(search && self.placeholder.length){
             self.attributedPlaceholder=[[NSAttributedString alloc] initWithString:self.placeholder attributes:@{NSForegroundColorAttributeName:ADLightText706()}];
         }
-        if(ADPersonOrderSearchInput7242((UIView *)self))ADPersonRepairOrderSearchAncestors7242((UIView *)self);
+        ADPersonRepairOrderSearchAncestors7242((UIView *)self);
+    }
+}
+%end
+
+// v7.243: React Native may override UITextField lifecycle methods on RCTUITextField.
+// Own that exact class too so the universal OLED request cannot be bypassed by RN.
+%hook RCTUITextField
+- (BOOL)becomeFirstResponder {
+    ADPrepareSearchKeyboard7120((UIView *)self);
+    BOOL became=%orig;
+    if(became)ADPersonRepairOrderSearchAncestors7242((UIView *)self);
+    return became;
+}
+- (void)setKeyboardAppearance:(UIKeyboardAppearance)appearance {
+    if(gP.enabled){
+        UIKeyboardAppearance dark=UIKeyboardAppearanceDark;
+        %orig(dark);
+        return;
+    }
+    %orig(appearance);
+}
+- (void)didMoveToWindow {
+    %orig;
+    if(gP.enabled&&((UIView *)self).window){
+        ADPrepareSearchKeyboard7120((UIView *)self);
+        ADPersonRepairOrderSearchAncestors7242((UIView *)self);
     }
 }
 %end
@@ -6280,7 +6318,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
 
 %hook UIImageView
 - (void)setImage:(UIImage *)image {
-    if(gADTabImageWriting724||gADPersonOriginalImageWriting7218||gADSearchImageWrite706){
+    if(gADTabImageWriting724||gADPersonOriginalImageWriting7218||gADSearchImageWrite706||gADPersonOrderMagnifierWrite7243){
         %orig(image);
         return;
     }
@@ -6288,14 +6326,19 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
     if(gP.enabled&&image&&ADSearchLeadingMagnifier7229(self)&&image.renderingMode!=UIImageRenderingModeAlwaysTemplate){
         UIImage *tpl=[image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]; if(tpl)finalImage=tpl;
     }
+    if(gP.enabled&&finalImage&&ADPersonOrderSearchMagnifierLeaf7243(self)&&finalImage.renderingMode!=UIImageRenderingModeAlwaysTemplate){
+        UIImage *tpl=[finalImage imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]; if(tpl)finalImage=tpl;
+    }
     %orig(finalImage);
     ADOwnSearchLeadingMagnifier7229(self);
+    ADPersonOwnOrderSearchMagnifierLeaf7243(self);
     ADOwnImageView7226(self,YES);
     ADSchedulePersonImageSettle7227(self);
 }
 - (void)didMoveToWindow {
     %orig;
     ADOwnSearchLeadingMagnifier7229(self);
+    ADPersonOwnOrderSearchMagnifierLeaf7243(self);
     ADOwnImageView7226(self,YES);
     ADSchedulePersonImageSettle7227(self);
 }
@@ -6303,6 +6346,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
     %orig;
     if(self.window){
         ADOwnSearchLeadingMagnifier7229(self);
+        ADPersonOwnOrderSearchMagnifierLeaf7243(self);
         ADOwnImageView7226(self,YES);
         ADSchedulePersonImageSettle7227(self);
     }
@@ -6313,6 +6357,11 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
         return;
     }
     if(gP.enabled&&self.window){
+        if(ADPersonOrderSearchMagnifierLeaf7243(self)){
+            UIColor *light=ADLightText706();
+            %orig(light);
+            return;
+        }
         if(ADInPersonTab7206((UIView *)self)&&ADPersonSectionKind7218((UIView *)self)==1){
             %orig(color);
             return;
@@ -6344,6 +6393,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
     // owners. Reassert only those small components at final layout; product/media
     // classification outside them remains off the scrolling hot path.
     if(objc_getAssociatedObject(self,kADSearchLeadingMagnifier7229)||ADSearchLeadingMagnifier7229(self))ADOwnSearchLeadingMagnifier7229(self);
+    ADPersonOwnOrderSearchMagnifierLeaf7243(self);
     if(ADPersonRightArrow7231(self)||ADPersonMedicalAuthoredIcon7231(self)||
        ADPersonReviewCompactImage7229(self)||ADPersonCustomerServiceLeadingImage7229(self))
         ADOwnImageView7226(self,YES);
@@ -6445,11 +6495,24 @@ static void ADPersonFinalizePersonImage7235(UIImageView *iv,BOOL discover){
 %hook RCTImageView
 - (void)didMoveToWindow {
     %orig;
+    if(ADPersonOrderSearchMagnifierWrapper7243((UIView *)self))((UIView *)self).tintColor=ADLightText706();
     ADPersonOwnHighlightWrapperFallback7229((UIView *)self);
 }
 - (void)layoutSubviews {
     %orig;
+    if(ADPersonOrderSearchMagnifierWrapper7243((UIView *)self)){
+        ((UIView *)self).tintColor=ADLightText706();
+        for(UIView *child in ((UIView *)self).subviews)if([child isKindOfClass:[UIImageView class]])ADPersonOwnOrderSearchMagnifierLeaf7243((UIImageView *)child);
+    }
     ADPersonOwnHighlightWrapperFallback7229((UIView *)self);
+}
+- (void)setTintColor:(UIColor *)color {
+    if(gP.enabled&&((UIView *)self).window&&ADPersonOrderSearchMagnifierWrapper7243((UIView *)self)){
+        UIColor *light=ADLightText706();
+        %orig(light);
+        return;
+    }
+    %orig(color);
 }
 %end
 
@@ -6646,7 +6709,7 @@ static void ADConsiderLaunchReady706(void){
 
 
 
-// v7.242: keep all Logos directives above the Cart probe implementation.
+// v7.243: keep all Logos directives above the Cart probe implementation.
 // The probe is plain C/Objective-C below; only this forward declaration is needed here.
 static void ADInstallCartProbe7241(void);
 
@@ -6694,7 +6757,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 }
 
 
-// v7.242: Shopping Cart UI forensics probe retained from v7.241; Person gets only the exact Orders-search border/keyboard fixes below.
+// v7.243: Shopping Cart UI forensics probe retained; universal OLED keyboard and exact Person Orders magnifier are production-only fixes above.
 // GitHub history/current web ownership identifies Cart as a WKWebView document (#cart-page /
 // #sc-active-cart / #sc-saved-cart), not the React RCTScrollView#me used by Person.
 // This subsystem is dormant until screenshot/SIGUSR2. A trigger selects only the active Cart
@@ -6755,7 +6818,7 @@ static void ADCartProbeAppend7241(NSString *path,NSString *text){
     if(!path.length||!text.length)return; @try {NSFileManager *fm=[NSFileManager defaultManager];[fm createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES attributes:nil error:nil];unsigned long long cur=[[[fm attributesOfItemAtPath:path error:nil] objectForKey:NSFileSize] unsignedLongLongValue];if(cur>=kADCartProbeCap7241)return;NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding];unsigned long long remain=kADCartProbeCap7241-cur;if((unsigned long long)d.length>remain)d=[d subdataWithRange:NSMakeRange(0,(NSUInteger)remain)];if(![fm fileExistsAtPath:path]){[d writeToFile:path atomically:YES];return;}NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:path];if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];}} @catch(...) {}
 }
 static NSString *ADCartProbePath7241(NSUInteger run){
-    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.242-cart-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.242-cart-ui-probe-r%lu.txt",(unsigned long)run]];}
+    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.243-cart-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.243-cart-ui-probe-r%lu.txt",(unsigned long)run]];}
 }
 static NSString *ADCartProbeDetectJS7241(void){
     return
@@ -6841,7 +6904,7 @@ static void ADCartProbeEvalAppend7241(WKWebView *wv,NSString *path,NSString *js,
 }
 static void ADCaptureCartProbe7241(NSString *trigger){
     if(!gP.enabled||gADCartProbeBusy7241)return; gADCartProbeBusy7241=YES; NSUInteger run=++gADCartProbeRun7241; NSString *path=ADCartProbePath7241(run);
-    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"AMAZONDARK v7.242 SHOPPING CART UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=Cart is a WKWebView document; target signatures #cart-page/#sc-active-cart/#sc-saved-cart plus cart URL path\npolicy=no visible text strings, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes and privacy-safe text hashes retained\nscan=finite explicit-trigger WKScrollView walk + viewport computed-style DOM snapshots + final full DOM inventory + native UIKit/WebKit snapshots; original offset restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADCartProbeCap7241]);
+    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"AMAZONDARK v7.243 SHOPPING CART UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=Cart is a WKWebView document; target signatures #cart-page/#sc-active-cart/#sc-saved-cart plus cart URL path\npolicy=no visible text strings, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes and privacy-safe text hashes retained\nscan=finite explicit-trigger WKScrollView walk + viewport computed-style DOM snapshots + final full DOM inventory + native UIKit/WebKit snapshots; original offset restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADCartProbeCap7241]);
     ADCartProbeFindWebView7241(path,^(WKWebView *wv,NSString *meta){
         if(!wv||ADCartProbeScore7241(meta)<=0){ADCartProbeAppend7241(path,[NSString stringWithFormat:@"CART_PROBE_NO_TARGET meta=%@\n================ END RUN ================\n",ADCartProbeSafe7241(meta)]);gADCartProbeBusy7241=NO;return;}
         UIScrollView *sv=wv.scrollView; CGPoint original=sv.contentOffset; BOOL originalScroll=sv.scrollEnabled; sv.scrollEnabled=NO; CGFloat viewport=MAX(1.0,sv.bounds.size.height),stride=MAX(300.0,MIN(620.0,viewport*0.60)); CGRect wr=CGRectZero;@try{wr=[wv convertRect:wv.bounds toView:nil];}@catch(...){}

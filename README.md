@@ -1,4 +1,13 @@
-# AmazonDark v7.242 — Cart probe build fix + Person Orders search polish
+# AmazonDark v7.243 — universal OLED keyboard + Person Orders magnifier + Cart probe
+
+## v7.243 delta
+
+- Keeps the proven v7.242 single-border ownership for Person > Your Orders search unchanged.
+- Makes the existing v7.126 OLED keyboard architecture universal inside the Amazon process: every native text responder requests `UIKeyboardAppearanceDark`, while the existing keyboard floor/prediction/dock owners stay OLED black regardless of Amazon's light app trait.
+- Fixes the exact Person Orders 20x20 magnifier identified by the v7.240 probe (`RCTUIImageViewAnimated <- RCTImageView`, direct child of the 360x50 inner search shell) by enforcing template rendering plus the standard light glyph tint at final layout.
+- Retains the v7.241 Cart full-document forensics probe, with v7.243 output filenames.
+- No MutationObserver, timer, RAF loop, web scroll listener, or recurring hierarchy scan is added.
+
 
 - Keeps the v7.241 Shopping Cart WKWebView forensics probe, but relocates the Logos `%ctor` boundary above the probe implementation so the long JavaScript/Objective-C probe body cannot poison Logos directive-depth parsing.
 - Person > Your Orders expanded search now has one gray 1pt rounded outer border; the nested 2pt/1pt React border pair and cached border rasters are retired.
