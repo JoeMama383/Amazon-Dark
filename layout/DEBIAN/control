@@ -1,6 +1,6 @@
 Package: com.joemama383.amazondark
 Name: AmazonDark
-Version: 7.243~universal-oled-keyboard-person-order-magnifier-cart-probe
+Version: 7.244~search-leading-magnifier-regression-fix-cart-probe
 Architecture: iphoneos-arm64
 Description: Amazon Dark Mode for rootless jailbreaks, iOS 15+
 Maintainer: JoeMama383

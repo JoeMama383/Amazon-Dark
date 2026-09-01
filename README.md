@@ -1,3 +1,13 @@
+# AmazonDark v7.244 — Search leading magnifier regression fix + Cart probe
+
+## v7.244 delta
+
+- Fixes the regressed main Search-bar leading magnifier using the exact semantic owner proven by older Search probes: 24x24 `SBSearchBarIconView` inside `SBSearchBarLeadingStackView`.
+- Restores `UIImageRenderingModeAlwaysTemplate` plus the standard light `#e8e6e3` tint on assignment/mount/layout, matching the camera and microphone glyphs.
+- Retains v7.243's universal OLED keyboard and Person Orders magnifier fixes unchanged.
+- Retains the Shopping Cart full-document forensics probe, now exporting `AmazonDark-v7.244-cart-ui-probe-*`.
+- No MutationObserver, interval, RAF loop, web scroll listener, or recurring hierarchy scan is added.
+
 # AmazonDark v7.243 — universal OLED keyboard + Person Orders magnifier + Cart probe
 
 ## v7.243 delta

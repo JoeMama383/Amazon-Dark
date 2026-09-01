@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.243 — universal OLED keyboard + Person Orders magnifier + Cart UI forensics probe / v7.242 border ownership
+ * AmazonDark v7.244 — Search leading magnifier regression fix + universal OLED keyboard + Cart UI forensics probe
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -26,7 +26,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.243-universal-oled-keyboard-person-order-magnifier-cart-probe"
+#define AD_VERSION "v7.244-search-leading-magnifier-regression-fix-cart-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -5483,21 +5483,25 @@ static void ADOwnReactView7226(UIView *v){
 }
 %end
 
-// v7.229: the screenshot probe proves the Search leading magnifier is the one
-// outlier: its 24x24 UIImageView has light tint but renderingMode=Automatic (0),
-// while the adjacent camera/mic are already AlwaysTemplate (2).  Do not walk the
-// whole Search subtree on every layout.  Mark/own only the leading square image
-// inside SBSearchField / SBMultilineSearchView and canonicalize every image write.
+// v7.244: old Search probes show the stable semantic owner is a 24x24
+// SBSearchBarIconView inside SBSearchBarLeadingStackView.  The Search field itself
+// is a sibling, not an ancestor, so v7.229's field-ancestry classifier could miss
+// the glyph after Amazon rebuilt the bar.  Prefer the exact leading-stack owner,
+// with the old field-position test retained only as a compatibility fallback.
 static const void *kADSearchLeadingMagnifier7229=&kADSearchLeadingMagnifier7229;
 static BOOL ADSearchLeadingMagnifier7229(UIImageView *iv){
     if(!iv)return NO;
     @try {
         CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
         if(w<18.0||w>30.0||h<18.0||h>30.0||fabs(w-h)>4.0)return NO;
-        UIView *field=nil;
-        for(UIView *n=iv.superview;n&&n!=iv.window;n=n.superview){
-            if(ADClassNameHasFold7183(n,"sbsearchfield")||ADClassNameHasFold7183(n,"sbmultilinesearchview")){ field=n; break; }
-            if(ADClassNameHasFold7183(n,"sbsearchbar")&&n!=iv.superview)continue;
+        UIView *field=nil; BOOL inLeadingStack=NO;
+        for(UIView *n=iv;n&&n!=iv.window;n=n.superview){
+            if(ADClassNameHasFold7183(n,"sbsearchbarleadingstackview")){ inLeadingStack=YES; break; }
+            if(!field&&(ADClassNameHasFold7183(n,"sbsearchfield")||ADClassNameHasFold7183(n,"sbmultilinesearchview")))field=n;
+        }
+        if(inLeadingStack){
+            objc_setAssociatedObject(iv,kADSearchLeadingMagnifier7229,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            return YES;
         }
         if(!field)return NO;
         CGRect r=[iv convertRect:iv.bounds toView:field];
@@ -6818,7 +6822,7 @@ static void ADCartProbeAppend7241(NSString *path,NSString *text){
     if(!path.length||!text.length)return; @try {NSFileManager *fm=[NSFileManager defaultManager];[fm createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES attributes:nil error:nil];unsigned long long cur=[[[fm attributesOfItemAtPath:path error:nil] objectForKey:NSFileSize] unsignedLongLongValue];if(cur>=kADCartProbeCap7241)return;NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding];unsigned long long remain=kADCartProbeCap7241-cur;if((unsigned long long)d.length>remain)d=[d subdataWithRange:NSMakeRange(0,(NSUInteger)remain)];if(![fm fileExistsAtPath:path]){[d writeToFile:path atomically:YES];return;}NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:path];if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];}} @catch(...) {}
 }
 static NSString *ADCartProbePath7241(NSUInteger run){
-    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.243-cart-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.243-cart-ui-probe-r%lu.txt",(unsigned long)run]];}
+    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.244-cart-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.244-cart-ui-probe-r%lu.txt",(unsigned long)run]];}
 }
 static NSString *ADCartProbeDetectJS7241(void){
     return
@@ -6904,7 +6908,7 @@ static void ADCartProbeEvalAppend7241(WKWebView *wv,NSString *path,NSString *js,
 }
 static void ADCaptureCartProbe7241(NSString *trigger){
     if(!gP.enabled||gADCartProbeBusy7241)return; gADCartProbeBusy7241=YES; NSUInteger run=++gADCartProbeRun7241; NSString *path=ADCartProbePath7241(run);
-    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"AMAZONDARK v7.243 SHOPPING CART UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=Cart is a WKWebView document; target signatures #cart-page/#sc-active-cart/#sc-saved-cart plus cart URL path\npolicy=no visible text strings, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes and privacy-safe text hashes retained\nscan=finite explicit-trigger WKScrollView walk + viewport computed-style DOM snapshots + final full DOM inventory + native UIKit/WebKit snapshots; original offset restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADCartProbeCap7241]);
+    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"AMAZONDARK v7.244 SHOPPING CART UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=Cart is a WKWebView document; target signatures #cart-page/#sc-active-cart/#sc-saved-cart plus cart URL path\npolicy=no visible text strings, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes and privacy-safe text hashes retained\nscan=finite explicit-trigger WKScrollView walk + viewport computed-style DOM snapshots + final full DOM inventory + native UIKit/WebKit snapshots; original offset restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADCartProbeCap7241]);
     ADCartProbeFindWebView7241(path,^(WKWebView *wv,NSString *meta){
         if(!wv||ADCartProbeScore7241(meta)<=0){ADCartProbeAppend7241(path,[NSString stringWithFormat:@"CART_PROBE_NO_TARGET meta=%@\n================ END RUN ================\n",ADCartProbeSafe7241(meta)]);gADCartProbeBusy7241=NO;return;}
         UIScrollView *sv=wv.scrollView; CGPoint original=sv.contentOffset; BOOL originalScroll=sv.scrollEnabled; sv.scrollEnabled=NO; CGFloat viewport=MAX(1.0,sv.bounds.size.height),stride=MAX(300.0,MIN(620.0,viewport*0.60)); CGRect wr=CGRectZero;@try{wr=[wv convertRect:wv.bounds toView:nil];}@catch(...){}
