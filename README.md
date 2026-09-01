@@ -1,12 +1,13 @@
-# AmazonDark v7.240~person-final-polish-probe
+# AmazonDark v7.241 — Shopping Cart UI forensics probe
 
-## Final Person polish with dormant forensics retained
+## Cart probe moved from Person to the Cart WKWebView
 
-- Keeps the v7.239 streamlined Person runtime instead of removing the requested diagnostic path; the screenshot/SIGUSR2 Person forensics probe is restored and remains dormant until explicitly triggered.
-- Fixes the exact dark 17pt primary title leaves directly beneath `aiwl_widget0/1`, so Your Interests card subheaders paint light without touching the teal item-count copy.
-- Fixes the Highlights `tile-image-iconSection-*` arrow as an exact control leaf even when its horizontally recycled carousel geometry is far offscreen; the stale `AmazonDarkPersonHighlightImageTWB7221` square is never allowed to own that arrow.
-- Retains the single Lists & Registries outer outline, Buy Again single-border ownership, authored/tamed media, white Person scroll indicator, and all prior Person theming.
-- The production Person path remains event-driven with no MutationObserver, interval, RAF, web scroll listener, polling loop, or recurring hierarchy scan.
+- Builds directly on v7.240 and does not change finalized Person theming.
+- Replaces the explicit-trigger Person forensics target with the Shopping Cart web document.
+- Cart targeting follows the project’s established web owners: `#cart-page`, `#sc-active-cart`, `#sc-saved-cart`, `.sc-list-item`, with a cart-route fallback.
+- Screenshot/SIGUSR2 performs one finite top-to-bottom WKScrollView hydration walk, captures viewport DOM computed paint/geometry/technical attributes plus native UIKit/WebKit hierarchy, records one final full-document inventory, and restores the original offset.
+- Visible text strings, aria-label/alt/value contents, href/src URLs, and network payloads are not dumped.
+- Probe remains dormant outside an explicit trigger; no MutationObserver, polling timer, RAF loop, or web scroll listener is added.
 
 # AmazonDark v7.239~person-final-cleanup
 
