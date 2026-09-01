@@ -1,6 +1,6 @@
-# AmazonDark v7.226~stability-simplicity-production
+# AmazonDark v7.227~media-ownership-stability-production
 
-## v7.226 stability + simplicity pass
+## v7.227 media ownership stabilization
 
 - Built from the stable v7.224 visual base; the unstable v7.225 Person Reviews/chevron experiment is not carried forward.
 - Fixes the main-thread recursive background-paint path that could bounce between `RCTView` and `UIView` setters until the stack guard was hit.
@@ -160,3 +160,9 @@ Amazon Dark uses targeted fixes for each type of content instead of applying one
 Amazon Dark is an independent jailbreak tweak and is not affiliated with Amazon.
 
 Maintained by **JoeMama383**.
+
+### v7.227
+- Search product media no longer uses multiply blending against OLED black; TWB uses brightness only.
+- Person border-only React shells are transparent so they cannot cover sibling media.
+- Person image classification gets one post-hydration settle pass plus reparent events, without restoring layout-time scanning.
+- v7.226 recursion barrier and global single-owner architecture retained.
