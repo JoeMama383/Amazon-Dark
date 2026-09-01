@@ -1,3 +1,13 @@
+# AmazonDark v7.240~person-final-polish-probe
+
+## Final Person polish with dormant forensics retained
+
+- Keeps the v7.239 streamlined Person runtime instead of removing the requested diagnostic path; the screenshot/SIGUSR2 Person forensics probe is restored and remains dormant until explicitly triggered.
+- Fixes the exact dark 17pt primary title leaves directly beneath `aiwl_widget0/1`, so Your Interests card subheaders paint light without touching the teal item-count copy.
+- Fixes the Highlights `tile-image-iconSection-*` arrow as an exact control leaf even when its horizontally recycled carousel geometry is far offscreen; the stale `AmazonDarkPersonHighlightImageTWB7221` square is never allowed to own that arrow.
+- Retains the single Lists & Registries outer outline, Buy Again single-border ownership, authored/tamed media, white Person scroll indicator, and all prior Person theming.
+- The production Person path remains event-driven with no MutationObserver, interval, RAF, web scroll listener, polling loop, or recurring hierarchy scan.
+
 # AmazonDark v7.239~person-final-cleanup
 
 ## Finalized Person ownership + production cleanup
