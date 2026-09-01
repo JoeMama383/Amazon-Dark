@@ -1,3 +1,27 @@
+# AmazonDark v7.237~person-post235-completion-probe
+
+## v7.237 complete post-v7.235 Person correction pass
+
+- Audited every user-reported issue after v7.235 against the v7.235 Person forensics capture instead of assuming v7.236 covered them.
+- Preserves v7.236's corrected single Buy Again contour on the stock ~286x416.7 geometry and its Buy Again / Subscribe primary-text final-draw repairs.
+- Makes Your Interests and Lists & Registries border ownership first-paint deterministic instead of waiting for React's stale bright/square raster to appear.
+- Repairs Keep Shopping product title/count text at the exact local card renderer on first draw so recycled rows cannot retain the darker pre-theme color.
+- Reveals the already-loaded/tamed Subscribe & Save image by clearing its probe-confirmed empty opaque 60x64 sibling occluder.
+- Restores authored stock pixels for the Person avatar, 8x8 notification badge, and country flag; the badge/flag are explicitly excluded from the monochrome top-glyph/right-arrow classifiers.
+- Keeps the screenshot/SIGUSR2 Person forensics probe, now with v7.237 owner flags.
+- Adds no MutationObserver, interval, RAF loop, web scroll listener, polling loop, or recurring hierarchy scan.
+
+# AmazonDark v7.236~person-buyagain-border-text-firstpaint
+
+## v7.236 Buy Again contour + Person text first-paint correction
+
+- Built directly from v7.235 and preserves every v7.235 Person/UI correction.
+- Retargets Buy Again border ownership from the oversized 296x418.7 padding shell to the probe-confirmed ~286x416.7 direct child of `tmpWrapperView`, which is the stock contour with the correct geometry.
+- Suppresses that exact stock white raster edge and draws one 1pt standard-gray radius-8 outline on the same physical bounds, eliminating the gray/white double border.
+- Adds final-draw text repair for Buy Again and the exact Subscribe & Save `me_tab_delivery_name_a11y_id` delivery wrapper so primary/bold subheaders are light on first paint while normal secondary copy remains secondary gray.
+- Updates the Person probe filename/classification path to v7.236 so the corrected border owner and text final-paint lane are explicit in the next capture.
+- Adds no MutationObserver, interval, RAF loop, web scroll listener, recurring hierarchy scan, or polling.
+
 # AmazonDark v7.235~person-probe-backed-ui-corrections
 
 ## v7.235 probe-backed Person UI corrections
