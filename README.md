@@ -1,3 +1,14 @@
+# AmazonDark v7.251~cart-loading-card-placeholder-fix-probe
+
+## Exact Cart loading-card placeholder ownership
+
+- Builds directly on v7.250 and keeps the successful Person top-pill white-text fix unchanged.
+- The v7.250 Cart probe finally exposes Amazon's real pre-hydration recommendation placeholder: `li.a-carousel-card.a-carousel-card-empty > div.a-loading-static`, a 120x120 stock `rgb(243,243,243)` loading card with ~#eee borders and an `a-loading-static-inner` background-image sprite.
+- Retires the v7.249/v7.250 compositor-TWB experiment and restores the proven v7.248 direct-image TWB path for finished recommendation product images.
+- Styles only the exact empty loading card at document start: #303335 floor, #494d4d edge, no stock inset shadow; its small loading sprite is converted to a subdued light-on-dark indicator. No image delay, polling, observer, or hydration watcher is required.
+- All completed Cart floors/buttons/text/stepper/refresh fixes and the retained Cart forensics probe remain intact.
+- Cart probe remains screenshot/SIGUSR2 triggered and exports `AmazonDark-v7.251-cart-ui-probe-*`.
+
 # AmazonDark v7.250~cart-placeholder-person-pill-text-probe
 
 ## Cart placeholder compositor ownership + Person top-pill text

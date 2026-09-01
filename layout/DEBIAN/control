@@ -1,6 +1,6 @@
 Package: com.joemama383.amazondark
 Name: AmazonDark
-Version: 7.250~cart-placeholder-person-pill-text-probe
+Version: 7.251~cart-loading-card-placeholder-fix-probe
 Architecture: iphoneos-arm64
 Description: Amazon Dark Mode for rootless jailbreaks, iOS 15+
 Maintainer: JoeMama383
