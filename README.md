@@ -1,3 +1,13 @@
+# AmazonDark v7.249~cart-carousel-placeholder-twb-probe
+
+## Cart recommendation placeholder first-paint TWB
+
+- Keeps the fully fixed v7.248 Cart production styling and retained Cart forensics probe.
+- Moves TWB ownership for the exact p13n Cart recommendation image slot from the eventual product IMG to its 150x115 image-link compositor.
+- This shades Amazon's bright placeholder raster immediately while the recommendation image is loading, then applies the same configured TWB strength to the finished product image without double-darkening it.
+- Scope is limited to `#cart-atf-recommendations`, `#sc-recs-atf-widget`, and `#sc-recs-btf-widget`; recommendation text, stars, Prime badges, prices, Add-to-cart buttons, and non-Cart images are unchanged.
+- No observer, timer, RAF, scroll listener, or recurring scan is added.
+
 # AmazonDark v7.248 — Cart buy-box refresh-floor first-paint ownership
 
 ## v7.248 delta
