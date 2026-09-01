@@ -1,3 +1,14 @@
+# AmazonDark v7.233~person-ui-forensics-probe
+
+## v7.233 Person UI forensics probe
+
+- Built directly from v7.232~production-architecture-optimization; all Person, Search, Home, location, web, launch, TWB, privacy, preferences, and SpringBoard visual ownership remains unchanged.
+- Reintroduces diagnostics only as a dormant screenshot/SIGUSR2 probe.
+- On the exact Person `RCTScrollView` accessibilityIdentifier `me`, one trigger resolves the real nested UIScrollView, walks the vertical Person menu in bounded overlapping steps, waits briefly for React recycling/hydration, records a deep native snapshot, and restores the original scroll offset/state.
+- Captures class/ID/hierarchy/geometry, native and React per-edge border data, CALayer/CAShapeLayer/CAGradientLayer paint, attributed text run colors/fonts (without text strings), UIImage rendering/tint/TWB and Person media/glyph ownership, control/scroll state, and current Person classifiers/overlays.
+- Does not record visible text strings, accessibilityLabel text, typed queries, Web DOM, clipboard, URLs, request bodies, headers, or network payloads.
+- No MutationObserver, polling loop, recurring hierarchy scanner, RAF, web scroll listener, or steady-state timer is added. Finite dispatch_after calls exist only while the explicitly triggered scan is running.
+
 # AmazonDark v7.232~production-architecture-optimization
 
 ## v7.232 production architecture optimization
