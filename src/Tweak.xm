@@ -26,7 +26,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.237-person-post235-completion-probe"
+#define AD_VERSION "v7.238-person-buyagain-highlight-scrollbar-cleanup-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -3637,6 +3637,44 @@ static BOOL ADPersonBuyAgainItem7218(UIView *v){
         return [parentAid isEqualToString:@"tmpwrapperview"];
     } @catch(...) { return NO; }
 }
+// v7.238: the follow-up probe finally isolates the remaining jangled Buy Again
+// contour. Each card has an anonymous 296x418.7 RCT border-raster shell directly
+// under a 294x416.7 CardWrapperView, while the desired corrected contour is the
+// separate 286x416.7 child of tmpWrapperView. Retire only that exact outer shell;
+// the dedicated 286x416.7 AmazonDarkPersonBuyAgainOutline7218 remains the sole
+// visible card outline. Positive ownership is revalidated through local Buy Again
+// ancestry, so recycled/unresolved views are never globally cached as this shell.
+static const void *kADPersonBuyAgainOuterShell7238=&kADPersonBuyAgainOuterShell7238;
+static BOOL ADPersonBuyAgainOuterBorderShell7238(UIView *v){
+    if(!v||!v.window||!ADClassNameIs7183(v,"RCTView")||!ADPersonBuyAgain7208(v))return NO;
+    if(ADPersonBuyAgainWrapper7218(v)||ADPersonBuyAgainItem7218(v))return NO;
+    @try {
+        NSString *aid=(v.accessibilityIdentifier?:@"").lowercaseString;
+        if(aid.length)return NO;
+        CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+        if(w<292.0||w>300.0||h<414.0||h>422.0)return NO;
+        NSString *parentAid=(v.superview.accessibilityIdentifier?:@"").lowercaseString;
+        if(![parentAid isEqualToString:@"cardwrapperview"])return NO;
+        if(objc_getAssociatedObject(v,kADPersonBuyAgainOuterShell7238))return YES;
+        CGFloat rw=ADPersonRCTBorderWidth7208(v);
+        if(rw<0.5&&v.layer.borderWidth<0.5&&v.layer.contents==nil)return NO;
+        objc_setAssociatedObject(v,kADPersonBuyAgainOuterShell7238,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        return YES;
+    } @catch(...) { return NO; }
+}
+static void ADPersonSuppressBuyAgainOuterBorder7238(UIView *v){
+    if(!v||!ADPersonBuyAgainOuterBorderShell7238(v))return;
+    @try {
+        // The probe proves this exact layer.contents is React's oversized border
+        // raster; child product content is hosted below it in a separate 286pt view.
+        v.layer.contents=nil;
+        v.layer.borderWidth=0.0;
+        ADPersonSetRCTBorder7208(v,0.0);
+        ADSetViewBackground7226(v,[UIColor clearColor],YES);
+        v.layer.backgroundColor=[UIColor clearColor].CGColor;
+    } @catch(...) {}
+}
+
 static BOOL ADPersonBuyAgainOccluder7235(UIView *v){
     if(!v||!v.window||!ADInPersonTab7206(v)||!ADClassNameIs7183(v,"RCTView")||!ADPersonBuyAgain7208(v))return NO;
     @try {
@@ -3860,6 +3898,10 @@ static void ADPersonReassertBorder7206(UIView *v,BOOL wasBright){
         BOOL isRCT=ADClassNameIs7183(v,"RCTView");
         CGFloat layerW=v.layer.borderWidth;
         if(isRCT){
+            if(ADPersonBuyAgainOuterBorderShell7238(v)){
+                ADPersonSuppressBuyAgainOuterBorder7238(v);
+                return;
+            }
             CGFloat rctW=ADPersonRCTBorderWidth7208(v);
             CGFloat rctR=ADPersonRCTBorderRadius7212(v);
             CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
@@ -4027,6 +4069,10 @@ static void ADPersonOwnView7206(UIView *v){
             v.layer.backgroundColor=[UIColor clearColor].CGColor;
             return;
         }
+        if(ADPersonBuyAgainOuterBorderShell7238(v)){
+            ADPersonSuppressBuyAgainOuterBorder7238(v);
+            return;
+        }
         if(!ADPersonNeedsVisualOwnership7232(v))return;
         BOOL reviewPlate=ADPersonReviewBorderPlate7231(v);
         if(reviewPlate||objc_getAssociatedObject(v,kADPersonReviewOutline7231)){
@@ -4167,7 +4213,7 @@ static void ADPersonHeaderStorage7221(NSTextStorage *ts){
     } @catch(...) {}
 }
 static void ADPersonOwnText7206(UIView *v){
-    if(!gP.enabled||!v||!v.window||!ADInPersonTab7206(v))return;
+    if(!gP.enabled||!v||!v.window||!(ADInPersonTab7206(v)||ADPersonBuyAgain7208(v)))return;
     const char *cn=object_getClassName(v);
     BOOL textish=[v isKindOfClass:[UILabel class]]||(cn&&(strstr(cn,"Text")||strstr(cn,"Paragraph")));
     if(!textish)return;
@@ -4457,7 +4503,9 @@ static BOOL ADPersonKeepShoppingText7237(UIView *v){
 }
 
 static BOOL ADPersonProbeBackedText7229(UIView *v){
-    if(!v||!v.window||!ADInPersonTab7206(v))return NO;
+    if(!v||!v.window)return NO;
+    BOOL buyAgain=ADPersonBuyAgain7208(v);
+    if(!ADInPersonTab7206(v)&&!buyAgain)return NO;
     @try {
         int kind=ADPersonSectionKind7218(v);
         if(kind==1||kind==3)return YES;
@@ -4466,7 +4514,7 @@ static BOOL ADPersonProbeBackedText7229(UIView *v){
         // surviving in Buy Again and under the Subscribe & Save delivery wrapper.
         // Reuse the existing font-aware storage recolor at final draw: bold/primary
         // runs become light while regular secondary copy stays secondary gray.
-        if(ADPersonBuyAgain7208(v))return YES;
+        if(buyAgain)return YES;
         if(ADPersonAncestorAid7235(v,@"me_tab_delivery_name_a11y_id",14))return YES;
         NSString *aid=(v.accessibilityIdentifier?:@"").lowercaseString;
         if([aid isEqualToString:@"avr_title"])return YES;
@@ -4935,7 +4983,7 @@ static void ADOwnReactView7226(UIView *v){
 
 %hook RCTTextView
 - (void)setTextStorage:(NSTextStorage *)textStorage {
-    if(gP.enabled && ((UIView *)self).window && ADInPersonTab7206((UIView *)self)){
+    if(gP.enabled && ((UIView *)self).window && (ADInPersonTab7206((UIView *)self)||ADPersonBuyAgain7208((UIView *)self))){
         if(ADPersonHeaderLeaf7221((UIView *)self))ADPersonHeaderStorage7221(textStorage); else ADPersonLightStorage7206(textStorage);
         %orig;
         return;
@@ -4961,7 +5009,7 @@ static void ADOwnReactView7226(UIView *v){
     // React can rewrite body-copy storage after assignment; repair only text below
     // tile-widget/iconSection ancestry immediately before draw. Existing accent
     // preservation keeps Prime blue and other authored saturated runs intact.
-    if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)){
+    if(gP.enabled&&((UIView *)self).window&&(ADInPersonTab7206((UIView *)self)||ADPersonBuyAgain7208((UIView *)self))){
         NSTextStorage *ts=ADPersonTextStorage7206((UIView *)self);
         if(ADPersonHeaderLeaf7221((UIView *)self)){ if(ts)ADPersonHeaderStorage7221(ts); }
         else if(ADPersonProbeBackedText7229((UIView *)self)){ if(ts)ADPersonLightStorage7206(ts); }
@@ -4973,7 +5021,7 @@ static void ADOwnReactView7226(UIView *v){
     %orig;
     if(!gP.enabled||!((UIView *)self).window)return;
     UIView *v=(UIView *)self;
-    if(ADInPersonTab7206(v))ADPersonOwnText7206(v);
+    if(ADInPersonTab7206(v)||ADPersonBuyAgain7208(v))ADPersonOwnText7206(v);
     else if(ADInLocationSheetContent7196(v))ADLocationSheetOwnText7196(v);
 }
 %end
@@ -5687,6 +5735,34 @@ static void ADOwnBottomBar708(UIView *v){
 }
 %end
 
+// v7.238: Person's vertical indicator is native UIScrollView chrome, not web
+// content. The probe identifies the exact RCTCustomScrollView directly under
+// RCTScrollView#me and shows its indicator thumb is black at 35% alpha. Set the
+// stock indicator style to white only on that exact owner; no scroll listener or
+// recurring hierarchy work is introduced.
+static BOOL ADPersonCustomScroll7238(UIView *v){
+    if(!v||!v.window||!ADClassNameIs7183(v,"RCTCustomScrollView"))return NO;
+    @try {
+        UIView *p=v.superview;
+        return p&&ADClassNameIs7183(p,"RCTScrollView")&&[p.accessibilityIdentifier isEqualToString:@"me"];
+    } @catch(...) { return NO; }
+}
+static void ADPersonOwnScrollIndicator7238(UIView *v){
+    if(!gP.enabled||!ADPersonCustomScroll7238(v))return;
+    @try { [(UIScrollView *)v setIndicatorStyle:UIScrollViewIndicatorStyleWhite]; } @catch(...) {}
+}
+
+%hook RCTCustomScrollView
+- (void)didMoveToWindow {
+    %orig;
+    ADPersonOwnScrollIndicator7238((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADPersonOwnScrollIndicator7238((UIView *)self);
+}
+%end
+
 %hook RCTRootView
 - (void)didMoveToWindow {
     %orig;
@@ -6075,7 +6151,7 @@ static int ADPersonFinalRasterKind7235(UIImageView *iv,BOOL discover){
     if(!iv||!gP.enabled||!iv.window||!ADInPersonTab7206((UIView *)iv))return 0;
     @try {
         NSNumber *cached=objc_getAssociatedObject(iv,kADPersonFinalRasterKind7235);
-        if(cached)return cached.intValue;
+        if(cached&&cached.intValue>0)return cached.intValue;
         if(!discover)return 0;
         int kind=0;
         if(ADPersonMedicalAuthoredIcon7231(iv))kind=1;
@@ -6087,7 +6163,8 @@ static int ADPersonFinalRasterKind7235(UIImageView *iv,BOOL discover){
         else if(ADPersonAvatarImage7237(iv))kind=7;
         else if(ADPersonNotificationBadge7237(iv))kind=8;
         else if(ADPersonCountryFlag7237(iv))kind=9;
-        objc_setAssociatedObject(iv,kADPersonFinalRasterKind7235,@(kind),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        if(kind>0)objc_setAssociatedObject(iv,kADPersonFinalRasterKind7235,@(kind),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        else objc_setAssociatedObject(iv,kADPersonFinalRasterKind7235,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         return kind;
     } @catch(...) { return 0; }
 }
@@ -6149,7 +6226,7 @@ static void ADPersonFinalizePersonImage7235(UIImageView *iv,BOOL discover){
 - (void)layoutSubviews {
     %orig;
     NSNumber *cached=objc_getAssociatedObject(self,kADPersonFinalRasterKind7235);
-    ADPersonFinalizePersonImage7235((UIImageView *)self,cached?NO:YES);
+    ADPersonFinalizePersonImage7235((UIImageView *)self,(cached&&cached.intValue>0)?NO:YES);
 }
 %end
 
@@ -6483,7 +6560,7 @@ static NSString *ADProbeImage7233(UIView *v){
         UIImageView *iv=(UIImageView *)v; UIImage *im=iv.image; size_t pxw=0,pxh=0;
         if(im.CGImage){ pxw=CGImageGetWidth(im.CGImage); pxh=CGImageGetHeight(im.CGImage); }
         CALayer *twb=objc_getAssociatedObject(iv,kADTWBOverlay),*hl=objc_getAssociatedObject(iv,kADPersonHighlightImageOverlay7221);
-        return [NSString stringWithFormat:@"img=1 has=%d mode=%ld pts=(%.1fx%.1f) px=(%zux%zu) scale=%.2f orient=%ld cap=(%.1f,%.1f,%.1f,%.1f) resize=%ld contentMode=%ld highlighted=%d anim=%d tint=%@ twb=%d hlTwb=%d topGlyph=%d arrow=%d chev=%d medical=%d review40=%d customer40=%d exactHL=%d hlCtx=%d explicit=%d forced12=%d forced18=%d blocked=%d final237=%d avatar=%d badge=%d flag=%d",
+        return [NSString stringWithFormat:@"img=1 has=%d mode=%ld pts=(%.1fx%.1f) px=(%zux%zu) scale=%.2f orient=%ld cap=(%.1f,%.1f,%.1f,%.1f) resize=%ld contentMode=%ld highlighted=%d anim=%d tint=%@ twb=%d hlTwb=%d topGlyph=%d arrow=%d chev=%d medical=%d review40=%d customer40=%d exactHL=%d hlCtx=%d explicit=%d forced12=%d forced18=%d blocked=%d final238=%d avatar=%d badge=%d flag=%d",
             im?1:0,(long)(im?im.renderingMode:-1),im?im.size.width:0.0,im?im.size.height:0.0,pxw,pxh,im?im.scale:0.0,(long)(im?im.imageOrientation:-1),
             im?im.capInsets.top:0.0,im?im.capInsets.left:0.0,im?im.capInsets.bottom:0.0,im?im.capInsets.right:0.0,(long)(im?im.resizingMode:-1),(long)iv.contentMode,iv.highlighted?1:0,iv.animationImages.count?1:0,ADProbeColor7233(iv.tintColor),twb?1:0,hl?1:0,
             ADPersonTopChromeGlyph7217(iv)?1:0,ADPersonRightArrow7231(iv)?1:0,ADPersonSectionChevron7217(iv)?1:0,ADPersonMedicalAuthoredIcon7231(iv)?1:0,ADPersonReviewCompactImage7229(iv)?1:0,ADPersonCustomerServiceLeadingImage7229(iv)?1:0,ADPersonExactHighlightImage7221(iv)?1:0,ADPersonHighlightImageContext7224(iv)?1:0,ADPersonExplicitProductMedia7206(iv)?1:0,ADPersonForcedMedia7212(iv)?1:0,ADPersonForcedMedia7218(iv)?1:0,ADPersonMediaBlocked7206(iv)?1:0,ADPersonFinalRasterKind7235(iv,YES),ADPersonAvatarImage7237(iv)?1:0,ADPersonNotificationBadge7237(iv)?1:0,ADPersonCountryFlag7237(iv)?1:0];
@@ -6492,7 +6569,7 @@ static NSString *ADProbeImage7233(UIView *v){
 static NSString *ADProbeControl7233(UIView *v){
     @try {
         if([v isKindOfClass:[UIControl class]]){ UIControl *c=(UIControl *)v; return [NSString stringWithFormat:@"control=1 enabled=%d selected=%d highlighted=%d state=%lu",c.enabled?1:0,c.selected?1:0,c.highlighted?1:0,(unsigned long)c.state]; }
-        if([v isKindOfClass:[UIScrollView class]]){ UIScrollView *sv=(UIScrollView *)v; return [NSString stringWithFormat:@"scroll=1 offset=(%.1f,%.1f) content=(%.1fx%.1f) inset=(%.1f,%.1f,%.1f,%.1f) enabled=%d hInd=%d vInd=%d",sv.contentOffset.x,sv.contentOffset.y,sv.contentSize.width,sv.contentSize.height,sv.adjustedContentInset.top,sv.adjustedContentInset.left,sv.adjustedContentInset.bottom,sv.adjustedContentInset.right,sv.scrollEnabled?1:0,sv.showsHorizontalScrollIndicator?1:0,sv.showsVerticalScrollIndicator?1:0]; }
+        if([v isKindOfClass:[UIScrollView class]]){ UIScrollView *sv=(UIScrollView *)v; return [NSString stringWithFormat:@"scroll=1 offset=(%.1f,%.1f) content=(%.1fx%.1f) inset=(%.1f,%.1f,%.1f,%.1f) enabled=%d hInd=%d vInd=%d style=%ld",sv.contentOffset.x,sv.contentOffset.y,sv.contentSize.width,sv.contentSize.height,sv.adjustedContentInset.top,sv.adjustedContentInset.left,sv.adjustedContentInset.bottom,sv.adjustedContentInset.right,sv.scrollEnabled?1:0,sv.showsHorizontalScrollIndicator?1:0,sv.showsVerticalScrollIndicator?1:0,(long)sv.indicatorStyle]; }
     } @catch(...) {}
     return @"control=0";
 }
@@ -6501,12 +6578,12 @@ static NSString *ADProbeClassifiers7233(UIView *v){
     @try {
         BOOL image=[v isKindOfClass:[UIImageView class]]; UIImageView *iv=image?(UIImageView *)v:nil;
         CALayer *buy=objc_getAssociatedObject(v,kADPersonBuyAgainOutline7218),*plate=objc_getAssociatedObject(v,kADPersonHighlightPlateOverlay7212),*wrap=objc_getAssociatedObject(v,kADPersonHighlightWrapperOverlay7229),*review=objc_getAssociatedObject(v,kADPersonReviewOutline7231);
-        return [NSString stringWithFormat:@"classifiers outer=%d inner=%d carOuter=%d carInner=%d sec=%d buyItem=%d buyWrap=%d topPill=%d shell=%d header=%d titleBand=%d textFix=%d hlTile=%d hlPlate=%d reviewPlate=%d hlWrap=%d fix237(list=%d interest=%d medicalCard=%d orderCard=%d buyOverlay=%d buyPrimary=%d subscribeOverlay=%d keepText=%d) ownOverlay(buy=%d plate=%d wrap=%d review=%d)%@",
+        return [NSString stringWithFormat:@"classifiers outer=%d inner=%d carOuter=%d carInner=%d sec=%d buyItem=%d buyWrap=%d topPill=%d shell=%d header=%d titleBand=%d textFix=%d hlTile=%d hlPlate=%d reviewPlate=%d hlWrap=%d fix238(list=%d interest=%d medicalCard=%d orderCard=%d buyOverlay=%d buyPrimary=%d subscribeOverlay=%d keepText=%d buyOuter=%d) ownOverlay(buy=%d plate=%d wrap=%d review=%d)%@",
             ADPersonOuterCardFloor7213(v)?1:0,ADPersonInternalMediaPlate7213(v)?1:0,ADPersonCarouselOuter7214(v)?1:0,ADPersonInsideCarouselOuter7214(v)?1:0,ADPersonSectionKind7218(v),ADPersonBuyAgainItem7218(v)?1:0,ADPersonBuyAgainWrapper7218(v)?1:0,ADPersonTopMenuPill7208(v)?1:0,ADPersonBorderOnlyShell7227(v)?1:0,ADPersonHeaderLeaf7221(v)?1:0,ADPersonHeadingBandGeometry7221(v)?1:0,ADPersonProbeBackedText7229(v)?1:0,ADPersonHighlightTile7224(v)?1:0,ADPersonHighlightPlate7212(v)?1:0,ADPersonReviewBorderPlate7231(v)?1:0,ADPersonHighlightWrapperFallback7229(v)?1:0,
             ADPersonListCard7235(v)?1:0,ADPersonInterestBorderPlate7235(v)?1:0,
             ([(v.accessibilityIdentifier?:@"").lowercaseString isEqualToString:@"yhw_healthai_0"]||[(v.accessibilityIdentifier?:@"").lowercaseString isEqualToString:@"yhw_pharmacy_1"])?1:0,
             [(v.accessibilityIdentifier?:@"").lowercaseString isEqualToString:@"yo_btn"]?1:0,ADPersonBuyAgainOccluder7235(v)?1:0,ADPersonBuyAgainItem7218(v)?1:0,
-            ADPersonSubscribeOccluder7237(v)?1:0,ADPersonKeepShoppingText7237(v)?1:0,
+            ADPersonSubscribeOccluder7237(v)?1:0,ADPersonKeepShoppingText7237(v)?1:0,ADPersonBuyAgainOuterBorderShell7238(v)?1:0,
             buy?1:0,plate?1:0,wrap?1:0,review?1:0,image?[NSString stringWithFormat:@" imgArrow=%d imgChevron=%d",ADPersonRightArrow7231(iv)?1:0,ADPersonSectionChevron7217(iv)?1:0]:@""];
     } @catch(...) { return @"classifiers=err"; }
 }
@@ -6541,9 +6618,9 @@ static void ADProbeAppend7233(NSString *path,NSString *text){
 static NSString *ADProbePath7233(NSUInteger run){
     @try {
         NSDateFormatter *f=[NSDateFormatter new]; f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]; f.timeZone=[NSTimeZone localTimeZone]; f.dateFormat=@"yyyyMMdd-HHmmss-SSS";
-        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.237-person-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.238-person-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];
-    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.237-person-ui-probe-r%lu.txt",(unsigned long)run]]; }
+    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.238-person-ui-probe-r%lu.txt",(unsigned long)run]]; }
 }
 static NSString *ADPersonSnapshot7233(UIView *wrap,UIScrollView *root,NSUInteger step,CGFloat targetY){
     NSMutableString *m=[NSMutableString string]; if(!root||!wrap)return @"PERSON_SNAPSHOT_NO_ROOT\n";

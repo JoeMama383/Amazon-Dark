@@ -1,3 +1,14 @@
+# AmazonDark v7.238~person-buyagain-highlight-scrollbar-cleanup-probe
+
+## v7.238 final Person cleanup before pane switch
+
+- Repairs deep Buy Again primary/subheader text at final draw through the exact local `tmpWrapperView` / `CardWrapperView` ancestry, even when that leaf sits beyond the older 24-hop Person-root classifier.
+- Removes the probe-confirmed anonymous 296x418.7 React border-raster shell under each Buy Again `CardWrapperView`; the corrected 286x416.7 `AmazonDarkPersonBuyAgainOutline7218` is now the sole large-card outline.
+- Fixes the Highlights blue-circle arrow by no longer caching unresolved Person raster classifications. Once `tile-image-iconSection-*` mounts, the arrow is rediscovered, its stale TWB square is removed, and only the authored blue circle + light arrow remain.
+- Sets the exact Person `RCTCustomScrollView` under `RCTScrollView#me` to the stock white scroll-indicator style, replacing the nearly invisible black 35%-alpha thumb.
+- Retains all v7.237 Person fixes and the screenshot/SIGUSR2 Person forensics probe.
+- Adds no MutationObserver, interval, RAF loop, web scroll listener, polling loop, or recurring hierarchy scan.
+
 # AmazonDark v7.237~person-post235-completion-probe
 
 ## v7.237 complete post-v7.235 Person correction pass
