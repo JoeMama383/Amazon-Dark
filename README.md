@@ -1,3 +1,13 @@
+# AmazonDark v7.246 — Cart separator + quantity-stepper geometry cleanup
+
+## v7.246 delta
+
+- Directly builds on v7.245; all successful Cart theming, product/recommendation TWB, Person/Search fixes, universal OLED keyboard ownership, and the Cart full-document probe remain intact.
+- Probe-backed saved-cart separator fix: preserves Amazon's 13px top/bottom spacing on `#sc-saved-cart` but repaints those exact `#eaeded` borders OLED black.
+- Probe-backed quantity-stepper fix: removes the duplicate medium-gray floor from the 126x32 fieldset shell and makes the exact inner pill own the medium-gray fill + single gray border at the full stock geometry.
+- No product-image selectors, recommendation-image filters, button text rules, or other Cart borders are changed.
+- Cart probe remains screenshot/SIGUSR2 triggered and exports `AmazonDark-v7.246-cart-ui-probe-*`.
+
 # AmazonDark v7.245 — Shopping Cart probe-backed first-pass theming + Cart probe
 
 ## v7.245 delta
