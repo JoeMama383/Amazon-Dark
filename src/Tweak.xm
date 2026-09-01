@@ -32,7 +32,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.227-media-ownership-stability-production"
+#define AD_VERSION "v7.228-person-search-highlights-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -4053,7 +4053,12 @@ static BOOL ADPersonHighlightPlate7212(UIView *v){
         CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
         if(w<40.0||w>60.0||h<40.0||h>60.0||fabs(w-h)>4.0)return NO;
         CGFloat rr=MAX(v.layer.cornerRadius,ADPersonRCTBorderRadius7212(v));
-        if(rr<18.0)return NO;
+        // v7.228: Highlights now also ships this exact iconSection plate as a rounded
+        // square. The semantic descendant gate below is exact, so accept either the
+        // older circle or the current rounded-square plate without broadening ownership.
+        if(rr<6.0)return NO;
+        NSString *selfAid=(v.accessibilityIdentifier?:@"").lowercaseString;
+        if([selfAid hasPrefix:@"tile-image-iconsection-"])return YES;
         NSMutableArray<UIView *> *stack=[NSMutableArray arrayWithArray:v.subviews]; int seen=0;
         while(stack.count&&seen<16){
             UIView *n=stack.lastObject; [stack removeLastObject]; seen++;
@@ -4416,12 +4421,14 @@ static void ADOwnReactView7226(UIView *v){
     ADDarkenReactCardNearText708((UIView *)self);
 }
 - (void)drawRect:(CGRect)rect {
-    // v7.222: final paint gate for the probe-proven Person heading renderer.
-    // React may rewrite its storage after assignment; force the foreground directly
-    // before RCTTextView draws, with no timer, scan or persistent repaint loop.
-    if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)&&ADPersonHeaderLeaf7221((UIView *)self)){
+    // v7.222 heading final-paint gate plus v7.228's exact Highlights tile gate.
+    // React can rewrite body-copy storage after assignment; repair only text below
+    // tile-widget/iconSection ancestry immediately before draw. Existing accent
+    // preservation keeps Prime blue and other authored saturated runs intact.
+    if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)){
         NSTextStorage *ts=ADPersonTextStorage7206((UIView *)self);
-        if(ts)ADPersonHeaderStorage7221(ts);
+        if(ADPersonHeaderLeaf7221((UIView *)self)){ if(ts)ADPersonHeaderStorage7221(ts); }
+        else if(ADPersonInHighlightTile7212((UIView *)self)){ if(ts)ADPersonLightStorage7206(ts); }
     }
     %orig(rect);
 }
@@ -4646,6 +4653,25 @@ static void ADOwnReactView7226(UIView *v){
 }
 %end
 
+// v7.228: v7.226 removed per-image layout repainting. Amazon can rewrite the left
+// magnifier after mount while camera/mic remain correct, so reassert only glyph-sized
+// UIImageViews inside this tiny fixed Search subtree when the bar itself lays out.
+static void ADReassertSearchChromeGlyphs7228(UIView *root){
+    if(!gP.enabled||!root||!root.window)return;
+    @try {
+        NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:root];
+        int seen=0;
+        while(q.count&&seen++<48){
+            UIView *v=q.firstObject; [q removeObjectAtIndex:0];
+            if([v isKindOfClass:[UIImageView class]]){
+                UIImageView *iv=(UIImageView *)v; CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
+                if(w>=3.0&&h>=3.0&&w<=64.0&&h<=64.0)ADTintSearchGlyph706(iv);
+            }
+            if(seen<32)for(UIView *c in v.subviews)if(c)[q addObject:c];
+        }
+    } @catch(...) {}
+}
+
 %hook SBSearchBar
 - (void)didMoveToWindow {
     %orig;
@@ -4653,7 +4679,12 @@ static void ADOwnReactView7226(UIView *v){
     if(gP.enabled&&v.window){
         ADSetViewBackground7226(v,[UIColor clearColor],YES);
         v.layer.borderWidth=0;
+        ADReassertSearchChromeGlyphs7228(v);
     }
+}
+- (void)layoutSubviews {
+    %orig;
+    ADReassertSearchChromeGlyphs7228((UIView *)self);
 }
 %end
 
@@ -4674,6 +4705,11 @@ static void ADOwnSearchSurface7045(UIView *v, BOOL ownBorder){
 - (void)didMoveToWindow {
     %orig;
     ADOwnSearchSurface7045((UIView *)self,YES);
+    ADReassertSearchChromeGlyphs7228((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADReassertSearchChromeGlyphs7228((UIView *)self);
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if(ADInternalPaintWrite7226()){
@@ -4710,6 +4746,11 @@ static void ADOwnFocusedSearchSurface7120(UIView *v){
     %orig;
     ADOwnFocusedSearchSurface7120((UIView *)self);
     ADPrepareSearchKeyboard7120((UIView *)self);
+    ADReassertSearchChromeGlyphs7228((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADReassertSearchChromeGlyphs7228((UIView *)self);
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if(ADInternalPaintWrite7226()){
@@ -5613,7 +5654,127 @@ static void ADConsiderLaunchReady706(void){
 %end
 
 
-// Production runtime only; runtime work is limited to actual ownership hooks.
+// v7.228 targeted native probe. Dormant until screenshot/SIGUSR2 and captures only
+// the currently visible native Person/Search frame. It does not scroll, poll, inspect
+// Web DOM, capture visible text strings, or add steady-state hierarchy work.
+static NSUInteger gADNativeProbeRun7228=0;
+static dispatch_source_t gADNativeProbeSignal7228=nil;
+static const unsigned long long kADNativeProbeMax7228=(6ULL*1024ULL*1024ULL);
+
+static NSString *ADProbeSafeID7228(NSString *v){
+    if(!v.length)return @"";
+    @try {
+        NSString *x=[[v stringByReplacingOccurrencesOfString:@"\n" withString:@" "] stringByReplacingOccurrencesOfString:@"\r" withString:@" "];
+        return x.length>160?[x substringToIndex:160]:x;
+    } @catch(...) { return @""; }
+}
+static NSString *ADProbeColor7228(UIColor *c){
+    if(!c)return @"nil";
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0;
+        if([c getRed:&r green:&g blue:&b alpha:&a])return [NSString stringWithFormat:@"rgba(%.3f,%.3f,%.3f,%.3f)",r,g,b,a];
+        if([c getWhite:&w alpha:&a])return [NSString stringWithFormat:@"white(%.3f,%.3f)",w,a];
+        return @"other";
+    } @catch(...) { return @"?"; }
+}
+static NSString *ADProbeCG7228(CGColorRef c){
+    if(!c)return @"nil";
+    @try { return ADProbeColor7228([UIColor colorWithCGColor:c]); } @catch(...) { return @"?"; }
+}
+static NSString *ADProbeTextRuns7228(UIView *v){
+    if(!v)return @"text=0";
+    @try {
+        NSTextStorage *ts=ADPersonTextStorage7206(v);
+        if(ts&&ts.length){
+            NSMutableArray<NSString *> *runs=[NSMutableArray array]; NSRange whole=NSMakeRange(0,ts.length);
+            [ts enumerateAttributesInRange:whole options:0 usingBlock:^(NSDictionary *attrs,NSRange range,BOOL *stop){
+                if(runs.count>=8){ *stop=YES; return; }
+                UIColor *fg=attrs[NSForegroundColorAttributeName]; UIFont *font=attrs[NSFontAttributeName];
+                [runs addObject:[NSString stringWithFormat:@"%lu:%lu:%@/%.1f/%d",(unsigned long)range.location,(unsigned long)range.length,ADProbeColor7228(fg),font?font.pointSize:0.0,ADPersonPrimaryFont7206(font)?1:0]];
+            }];
+            return [NSString stringWithFormat:@"text=1 len=%lu runs=[%@]",(unsigned long)ts.length,[runs componentsJoinedByString:@","]];
+        }
+        if([v isKindOfClass:[UILabel class]]){
+            UILabel *l=(UILabel *)v;
+            return [NSString stringWithFormat:@"text=1 len=%lu labelColor=%@ font=%.1f/%d",(unsigned long)l.text.length,ADProbeColor7228(l.textColor),l.font.pointSize,ADPersonPrimaryFont7206(l.font)?1:0];
+        }
+    } @catch(...) {}
+    return @"text=0";
+}
+static NSString *ADProbeImage7228(UIView *v){
+    if(![v isKindOfClass:[UIImageView class]])return @"img=0";
+    @try {
+        UIImageView *iv=(UIImageView *)v; UIImage *im=iv.image;
+        CALayer *twb=objc_getAssociatedObject(iv,kADTWBOverlay); CALayer *hl=objc_getAssociatedObject(iv,kADPersonHighlightImageOverlay7221);
+        return [NSString stringWithFormat:@"img=1 has=%d mode=%ld pts=(%.1fx%.1f) twb=%d hlTwb=%d exactHL=%d hlCtx=%d forced=%d blocked=%d",
+                im?1:0,(long)(im?im.renderingMode:-1),im?im.size.width:0.0,im?im.size.height:0.0,twb?1:0,hl?1:0,
+                ADPersonExactHighlightImage7221(iv)?1:0,ADPersonHighlightImageContext7224(iv)?1:0,ADPersonForcedMedia7212(iv)?1:0,ADPersonMediaBlocked7206(iv)?1:0];
+    } @catch(...) { return @"img=1 err=1"; }
+}
+static NSString *ADProbeVector7228(UIView *v){
+    if(!v)return @"vec=0";
+    @try {
+        NSString *cn=NSStringFromClass(v.class);
+        if([cn rangeOfString:@"RNSVG" options:NSCaseInsensitiveSearch].location==NSNotFound)return @"vec=0";
+        NSMutableArray<CALayer *> *q=[NSMutableArray arrayWithObject:v.layer]; NSMutableArray<NSString *> *samples=[NSMutableArray array]; int seen=0,shapes=0;
+        while(q.count&&seen++<64){
+            CALayer *l=q.firstObject; [q removeObjectAtIndex:0];
+            if([l isKindOfClass:[CAShapeLayer class]]){ CAShapeLayer *sh=(CAShapeLayer *)l; shapes++; if(samples.count<8)[samples addObject:[NSString stringWithFormat:@"f=%@/s=%@/a=%.2f",ADProbeCG7228(sh.fillColor),ADProbeCG7228(sh.strokeColor),sh.opacity]]; }
+            if(seen<40)for(CALayer *c in l.sublayers?:@[])[q addObject:c];
+        }
+        return [NSString stringWithFormat:@"vec=1 shapes=%d samples=[%@]",shapes,[samples componentsJoinedByString:@","]];
+    } @catch(...) { return @"vec=1 err=1"; }
+}
+static void ADProbeAppend7228(NSString *path,NSString *text){
+    if(!path.length||!text.length)return;
+    @try {
+        NSFileManager *fm=[NSFileManager defaultManager]; [fm createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES attributes:nil error:nil];
+        NSDictionary *attrs=[fm attributesOfItemAtPath:path error:nil]; unsigned long long cur=attrs?[attrs fileSize]:0; if(cur>=kADNativeProbeMax7228)return;
+        NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding]; unsigned long long remain=kADNativeProbeMax7228-cur;
+        if((unsigned long long)d.length>remain)d=[d subdataWithRange:NSMakeRange(0,(NSUInteger)remain)];
+        if(![fm fileExistsAtPath:path]){ [d writeToFile:path atomically:YES]; return; }
+        NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:path]; if(h){ [h seekToEndOfFile]; [h writeData:d]; [h closeFile]; }
+    } @catch(...) {}
+}
+static NSString *ADProbePath7228(NSUInteger run){
+    @try {
+        NSDateFormatter *f=[NSDateFormatter new]; f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]; f.timeZone=[NSTimeZone localTimeZone]; f.dateFormat=@"yyyyMMdd-HHmmss-SSS";
+        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown"; NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.228-person-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];
+    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.228-person-probe-r%lu.txt",(unsigned long)run]]; }
+}
+static void ADCaptureNativeProbe7228(NSString *trigger){
+    if(!gP.enabled)return;
+    @try {
+        NSUInteger run=++gADNativeProbeRun7228; NSString *path=ADProbePath7228(run); CGRect screen=UIScreen.mainScreen.bounds;
+        NSMutableString *out=[NSMutableString stringWithFormat:@"AMAZONDARK v7.228 PERSON/SEARCH SINGLE-FRAME PROBE\nversion=%s\ntrigger=%@\ndate=%@\npolicy=no visible text strings, no typed query, no web DOM, no scrolling\nscreen=(%.1fx%.1f)\n\n",AD_VERSION,trigger?:@"unknown",[NSDate date],screen.size.width,screen.size.height];
+        NSUInteger visited=0,emitted=0;
+        for(UIWindow *w in UIApplication.sharedApplication.windows){
+            if(!w||w.hidden||w.alpha<0.01)continue; NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:w];
+            while(q.count&&visited++<5200&&emitted<2400){
+                UIView *v=q.firstObject; [q removeObjectAtIndex:0]; if(!v)continue;
+                CGRect r=CGRectZero; @try { r=[v convertRect:v.bounds toView:nil]; } @catch(...) {}
+                BOOL on=!v.hidden&&v.alpha>0.01&&r.size.width>=0.5&&r.size.height>=0.5&&CGRectIntersectsRect(r,screen); BOOL person=on&&ADInPersonTab7206(v),search=on&&ADInSearchChrome706(v);
+                if(person||search){
+                    NSString *cn=NSStringFromClass(v.class),*aid=ADProbeSafeID7228(v.accessibilityIdentifier); BOOL textish=[v isKindOfClass:[UILabel class]]||[cn rangeOfString:@"Text" options:NSCaseInsensitiveSearch].location!=NSNotFound||[cn rangeOfString:@"Paragraph" options:NSCaseInsensitiveSearch].location!=NSNotFound; BOOL vector=[cn rangeOfString:@"RNSVG" options:NSCaseInsensitiveSearch].location!=NSNotFound; BOOL image=[v isKindOfClass:[UIImageView class]]; CALayer *plate=objc_getAssociatedObject(v,kADPersonHighlightPlateOverlay7212);
+                    [out appendFormat:@"N cls=%@ r=(%.1f,%.1f %.1fx%.1f) a=%.2f aid=\"%@\" person=%d search=%d bg=%@ layerBg=%@ tint=%@ borderW=%.2f border=%@ radius=%.2f rctBW=%.2f rctR=%.2f contents=%d pSec=%d pHL=%d pPlate=%d pPlateOverlay=%d pShell=%d pHeader=%d %@ %@ %@\n",cn,r.origin.x,r.origin.y,r.size.width,r.size.height,v.alpha,aid,person?1:0,search?1:0,ADProbeColor7228(v.backgroundColor),ADProbeCG7228(v.layer.backgroundColor),ADProbeColor7228(v.tintColor),v.layer.borderWidth,ADProbeCG7228(v.layer.borderColor),v.layer.cornerRadius,person?ADPersonRCTBorderWidth7208(v):0.0,person?ADPersonRCTBorderRadius7212(v):0.0,v.layer.contents?1:0,person?ADPersonSectionKind7218(v):0,person?ADPersonInHighlightTile7212(v):0,person?ADPersonHighlightPlate7212(v):0,plate?1:0,person?ADPersonBorderOnlyShell7227(v):0,person?ADPersonHeaderLeaf7221(v):0,textish?ADProbeTextRuns7228(v):@"text=0",image?ADProbeImage7228(v):@"img=0",vector?ADProbeVector7228(v):@"vec=0"];
+                    emitted++;
+                }
+                if(q.count<4800&&v.subviews.count)[q addObjectsFromArray:v.subviews];
+            }
+        }
+        [out appendFormat:@"\nEND visited=%lu emitted=%lu\n",(unsigned long)visited,(unsigned long)emitted]; ADProbeAppend7228(path,out);
+    } @catch(...) {}
+}
+static void ADInstallNativeProbe7228(void){
+    static dispatch_once_t once; dispatch_once(&once,^{
+        signal(SIGUSR2,SIG_IGN); gADNativeProbeSignal7228=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue());
+        if(gADNativeProbeSignal7228){ dispatch_source_set_event_handler(gADNativeProbeSignal7228,^{ ADCaptureNativeProbe7228(@"SIGUSR2"); }); dispatch_resume(gADNativeProbeSignal7228); }
+        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){ ADCaptureNativeProbe7228(@"screenshot"); }];
+    });
+}
+
+// Probe build: visual runtime remains ownership-hook-only; probe is dormant until explicit trigger.
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
     BOOL wasPrivacy=gP.privacyMode;
     ADLoadPrefs();
@@ -5646,6 +5807,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
     } @catch(...) {}
 
     %init;
+    ADInstallNativeProbe7228();
 
     if(gP.enabled&&gP.privacyMode){
         ADRegisterPrivacyProtocol7117();

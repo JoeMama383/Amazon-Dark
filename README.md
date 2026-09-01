@@ -1,4 +1,14 @@
-# AmazonDark v7.227~media-ownership-stability-production
+# AmazonDark v7.228~person-search-highlights-probe
+
+
+## v7.228 Person/Search/Highlights targeted probe
+
+- Directly based on v7.227; current Person border ownership is intentionally unchanged.
+- Restores a bounded Search-bar-only glyph reassertion so Amazon's late rewrite cannot leave the left magnifier black while camera/mic are light.
+- Reasserts exact Highlights tile text at RCTTextView draw time while preserving saturated authored accents such as Prime blue.
+- Extends the exact `tile-image-iconSection-*` compact Highlights plate owner from circle-only to rounded-square-or-circle geometry so the current delivery-style glyph plate receives TWB.
+- Adds a dormant single-frame native Person/Search probe triggered by screenshot or SIGUSR2. It does not scroll the Person menu and captures no user-visible text content.
+- No Person border selector/owner is changed. No MutationObserver, polling loop, recurring hierarchy scanner, RAF, or scroll listener is added.
 
 ## v7.227 media ownership stabilization
 
