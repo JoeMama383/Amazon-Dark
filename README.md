@@ -1,10 +1,19 @@
-# AmazonDark v7.225~person-chevron-reviews-fix-probe
+# AmazonDark v7.226~stability-simplicity-production
 
-## v7.225
+## v7.226 stability + simplicity pass
 
-- Person right-edge chevrons are resolved at the real UIImageView raster leaf and forced to the light template tint.
-- Your Reviews border-only overlay siblings stay transparent so mounted review images/text/SVG content is no longer occluded.
-- v7.224 Highlights border/deep-scan fixes and the first-v7.222 draw-time header fix are retained.
+- Built from the stable v7.224 visual base; the unstable v7.225 Person Reviews/chevron experiment is not carried forward.
+- Fixes the main-thread recursive background-paint path that could bounce between `RCTView` and `UIView` setters until the stack guard was hit.
+- Every AmazonDark-initiated `UIView` background write now goes through one guarded, idempotent writer; exact renderer classes are excluded from the generic UIView owner.
+- React lifecycle work is routed once by surface (Person, location sheet, or generic claimed card) instead of running overlapping Person/location ownership on the same view.
+- Home visual-category cells now have one exact owner and one uniform medium-gray fill (`#4a4f51`); the old “only gray bright placeholders, preserve colored final cells” split is removed.
+- Removes the screenshot/deep-scan runtime, location lifecycle log ring, and unused Home ad-frame diagnostic JavaScript from production.
+- Removes redundant layout-time repaint paths for fixed Search, top-nav, bottom-nav, Home-chip, and image surfaces. Image layout now updates overlay geometry only; classification happens on image/mount events.
+- Removes mutable `appendFormat:` metadata construction from native image classification hot paths and makes the full location-root first-paint scan one-shot.
+- Web ownership is route-exclusive: standalone ad child frames have one dedicated floor/media owner; dead duplicate standalone CSS/TWB selectors in the general Web sheets are removed.
+- Retains the first/good v7.222 Person heading draw-time fix and the v7.224 Highlights border/TWB corrections.
+
+No polling loop, MutationObserver, recurring hierarchy scan, screenshot probe, or SIGUSR2 probe ships in this build.
 
 ## v7.224
 
