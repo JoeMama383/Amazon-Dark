@@ -1,3 +1,14 @@
+# AmazonDark v7.247 — Cart refresh transition floor + stepper fill geometry
+
+## v7.247 delta
+
+- Directly builds on v7.246; all successful Cart theming, product/recommendation TWB, Search/Person fixes, and the full-document Cart probe remain intact.
+- Corrects the quantity stepper in the requested direction: the 126x32 fieldset shell remains transparent, while Amazon's stock 126x28 inner pill regains its original geometry and alone owns the #303335 fill plus the existing #747a7c border. No border geometry is stretched.
+- Uses the probe-confirmed fixed `.sc-cart-spinner` as the Cart refresh transition owner. When Amazon makes that loader visible, it now covers the web viewport with OLED black from document-start CSS; the spinner child itself stays transparent so no white loading floor can show through.
+- This complements the existing v7.129 Search-style early WKWebView/WKScrollView/WKContentView OLED backing ownership, which already applies before attachment; no polling or delayed repaint path is added.
+- Cart probe remains screenshot/SIGUSR2 triggered and exports `AmazonDark-v7.247-cart-ui-probe-*`.
+- No product-image/TWB selectors or already-correct Cart button/text rules are changed.
+
 # AmazonDark v7.246 — Cart separator + quantity-stepper geometry cleanup
 
 ## v7.246 delta
