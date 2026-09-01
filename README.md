@@ -1,3 +1,14 @@
+# AmazonDark v7.250~cart-placeholder-person-pill-text-probe
+
+## Cart placeholder compositor ownership + Person top-pill text
+
+- Builds directly on v7.249; all completed Cart styling, Person borders/floors, Search fixes, universal OLED keyboard, and the explicit Cart forensics probe remain intact.
+- Moves Cart recommendation TWB one level farther outward to the probe-proven 150x115 `a-section.a-spacing-mini.aok-relative` image compositor. The failed v7.249 rule owned only its child link, allowing Amazon's pre-image placeholder paint to remain bright.
+- The compositor owns a medium-gray loading floor plus the configured TWB brightness. Its child link and finished product IMG stay transparent/filter-free, so the placeholder and final image receive one—and only one—TWB pass.
+- Uses the v7.238 Person probe's exact top-pill owners (`bac_yo`, `bac_ya`, `bac_wl`, `bac_aiwl`) to force only their direct 15pt `RCTTextView` leaf to the standard light foreground. Existing pill geometry, OLED floor, and gray React border are untouched.
+- No MutationObserver, polling loop, interval, RAF, web scroll listener, or recurring hierarchy scan is added.
+- Cart probe remains screenshot/SIGUSR2 triggered and exports `AmazonDark-v7.250-cart-ui-probe-*`.
+
 # AmazonDark v7.249~cart-carousel-placeholder-twb-probe
 
 ## Cart recommendation placeholder first-paint TWB

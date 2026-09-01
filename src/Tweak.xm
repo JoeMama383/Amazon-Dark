@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.249 — Cart recommendation placeholder first-paint TWB + retained Cart UI forensics probe
+ * AmazonDark v7.250 — Cart recommendation compositor TWB + Person top-pill text + retained Cart UI forensics probe
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -26,7 +26,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.249-cart-carousel-placeholder-twb-probe"
+#define AD_VERSION "v7.250-cart-placeholder-person-pill-text-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1189,7 +1189,7 @@ static NSString *ADTWBJS(void){
         @"#gwm-Deck-btf :is([class*=mobile-mshop-ad],[class*=mobile-ad-container],[class*=ape-wrapper],[class*=ape-placement]) :is(img,video,canvas):not([class*=logo]):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([class*=logo] *)):not(:whe"
         @"re([class*=prime] *)):not(:where([class*=rating] *)):not(:where([class*=star] *)):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),[class*=hp-mosaic-container] :is(img,svg):not([class*=next]):not([class*=prev]):not([class*=chevron]):not([class*=arrow]):not(:where([class*=next] *)):not(:where([class*=prev] *)):not(:where([class*=chevron] *)):not(:where([class*=arrow] *)):not([class*=header-icon]):not([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr]),[class*=_mosaic-container_style_widgetContainer] :is(img,svg):not([class*=next]):not([class*=prev]):not([class*=chevron]):not([class*=arrow]):not(:where([class*=next] *)):not(:where([class*=prev] *)):not(:where([class*=chevron] *)):not(:where([class*=arrow] *)):not([class*=header-icon]):not([class*=ad-feedback]):not([class*=sp"
         @"onsored]):not([class*=spr]),#gwm-window [id^=wd-shoppable-] :is(img,video,canvas):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=logo]):not([class*=badge]):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=ad-feedback] *)),#gwm-Deck-atf [id^=ape_][id$=_mshop_placement][style*=\\\"320 / 50\\\"] img.ad-background-image.mrc-btr-creative,img[class*=_single-creative-card],img[class*=_single-video-card],[class*=single-creative-card] img,[class*=single-video-card] img,[class*=single-video-card] video,[class*=canvas-card] canvas,video.vjs-tech,video[class*=_npack-asin-card_style_background-video__],[class*=_npack-asin-card_style_background-video-container__] > video[class*=_npack-asin-card_style_motion-content__]{filter:brightness(%.3f)!important;}:is([class*=theming-card-background],[class*=_npack-asin-card_style_theming-background-override__]) [class*=_npack-asin-card_style_asin-container-white__]{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;transition"
-        @"-property:none!important;}[class*=theming-card-background],[class*=vjs-poster],[class*=single-creative-card-background],[class*=single-video-card-background],[class*=single-creative-card] [class*=theming-card-background],[class*=single-video-card] [class*=theming-card-background],[class*=single-video-card] [class*=vjs-poster],:is([class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=_npack-asin-card],[class*=npack-asin-card],[class*=canvas-card],[class*=canvas-container]):is([style*=background-image],[style*=backgroundImage]),:is([class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=_npack-asin-card],[class*=npack-asin-card],[class*=canvas-card],[class*=canvas-container]) :is([style*=background-image],[style*=backgroundImage]){box-shadow:inset 0 0 0 9999px rgba(0,0,0,%.3f)!important;transition-property:none!important;}.video-js .vjs-poster[style*=background-image],.vjs-poster.vjs-poster[style*=background-image]{box-shadow:none!important;filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;transition:none!important;}:is(#cart-atf-recommendations,#sc-recs-atf-widget,#sc-recs-btf-widget) .p13n-sc-uncoverable-faceout>.a-section.a-spacing-mini.aok-relative>a.a-link-normal.aok-block{background:#000!important;background-color:#000!important;filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;transition:none!important;}:is(#cart-atf-recommendations,#sc-recs-atf-widget,#sc-recs-btf-widget) .p13n-sc-uncoverable-faceout>.a-section.a-spacing-mini.aok-relative>a.a-link-normal.aok-block img{filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;}\");}if(document.readyState==='loading')window.addEventListener('load',function(){relink(s);},{once:true});else relink(s);}catch(e){}})();",
+        @"-property:none!important;}[class*=theming-card-background],[class*=vjs-poster],[class*=single-creative-card-background],[class*=single-video-card-background],[class*=single-creative-card] [class*=theming-card-background],[class*=single-video-card] [class*=theming-card-background],[class*=single-video-card] [class*=vjs-poster],:is([class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=_npack-asin-card],[class*=npack-asin-card],[class*=canvas-card],[class*=canvas-container]):is([style*=background-image],[style*=backgroundImage]),:is([class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=_npack-asin-card],[class*=npack-asin-card],[class*=canvas-card],[class*=canvas-container]) :is([style*=background-image],[style*=backgroundImage]){box-shadow:inset 0 0 0 9999px rgba(0,0,0,%.3f)!important;transition-property:none!important;}.video-js .vjs-poster[style*=background-image],.vjs-poster.vjs-poster[style*=background-image]{box-shadow:none!important;filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;transition:none!important;}:is(#cart-atf-recommendations,#sc-recs-atf-widget,#sc-recs-btf-widget) .p13n-sc-uncoverable-faceout>.a-section.a-spacing-mini.aok-relative{background:#303335!important;background-color:#303335!important;filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;transition:none!important;}:is(#cart-atf-recommendations,#sc-recs-atf-widget,#sc-recs-btf-widget) .p13n-sc-uncoverable-faceout>.a-section.a-spacing-mini.aok-relative>a.a-link-normal.aok-block,:is(#cart-atf-recommendations,#sc-recs-atf-widget,#sc-recs-btf-widget) .p13n-sc-uncoverable-faceout>.a-section.a-spacing-mini.aok-relative img{background:transparent!important;background-color:transparent!important;filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;}\");}if(document.readyState==='loading')window.addEventListener('load',function(){relink(s);},{once:true});else relink(s);}catch(e){}})();",
         factor,factor,factor,factor,factor,factor,factor,factor,factor,factor,shade,factor,factor,factor,factor];
     gADTWBJSStrength7191=strengthKey;
     gADTWBJSCached7191=built;
@@ -4710,6 +4710,22 @@ static BOOL ADPersonTopRowText7239(UIView *v){
     } @catch(...) { return NO; }
 }
 
+// v7.250: the v7.238 Person probe identifies each top oval as an exact RCTView
+// (bac_yo / bac_ya / bac_wl / bac_aiwl) with one direct 15pt RCTTextView child.
+// That text is intentionally forced to the normal light foreground instead of the
+// generic 15pt Person-secondary gray. Border/floor ownership remains untouched.
+static BOOL ADPersonTopMenuPillText7250(UIView *v){
+    if(!v||!ADClassNameIs7183(v,"RCTTextView"))return NO;
+    @try {
+        UIView *p=v.superview;
+        return p&&ADPersonTopMenuPill7208(p);
+    } @catch(...) { return NO; }
+}
+static void ADPersonTopMenuPillWhiteStorage7250(NSTextStorage *ts){
+    if(!gP.enabled||!ts||!ts.length)return;
+    @try { [ts addAttribute:NSForegroundColorAttributeName value:ADLightText706() range:NSMakeRange(0,ts.length)]; } @catch(...) {}
+}
+
 static BOOL ADPersonFinalTextOwner7239(UIView *v){
     if(!v||!v.window)return NO;
     BOOL buyAgain=ADPersonBuyAgain7208(v);
@@ -5214,7 +5230,9 @@ static void ADOwnReactView7226(UIView *v){
 %hook RCTTextView
 - (void)setTextStorage:(NSTextStorage *)textStorage {
     if(gP.enabled && ((UIView *)self).window && (ADInPersonTab7206((UIView *)self)||ADPersonBuyAgain7208((UIView *)self))){
-        if(ADPersonHeaderLeaf7221((UIView *)self))ADPersonHeaderStorage7221(textStorage); else ADPersonLightStorage7206(textStorage);
+        if(ADPersonTopMenuPillText7250((UIView *)self))ADPersonTopMenuPillWhiteStorage7250(textStorage);
+        else if(ADPersonHeaderLeaf7221((UIView *)self))ADPersonHeaderStorage7221(textStorage);
+        else ADPersonLightStorage7206(textStorage);
         %orig;
         return;
     }
@@ -5241,7 +5259,8 @@ static void ADOwnReactView7226(UIView *v){
     // preservation keeps Prime blue and other authored saturated runs intact.
     if(gP.enabled&&((UIView *)self).window&&(ADInPersonTab7206((UIView *)self)||ADPersonBuyAgain7208((UIView *)self))){
         NSTextStorage *ts=ADPersonTextStorage7206((UIView *)self);
-        if(ADPersonHeaderLeaf7221((UIView *)self)){ if(ts)ADPersonHeaderStorage7221(ts); }
+        if(ADPersonTopMenuPillText7250((UIView *)self)){ if(ts)ADPersonTopMenuPillWhiteStorage7250(ts); }
+        else if(ADPersonHeaderLeaf7221((UIView *)self)){ if(ts)ADPersonHeaderStorage7221(ts); }
         else if(ADPersonFinalTextOwner7239((UIView *)self)){ if(ts)ADPersonLightStorage7206(ts); }
         else if(ADPersonInHighlightTile7212((UIView *)self)){ if(ts)ADPersonLightStorage7206(ts); }
     }
@@ -6837,7 +6856,7 @@ static void ADCartProbeAppend7241(NSString *path,NSString *text){
     if(!path.length||!text.length)return; @try {NSFileManager *fm=[NSFileManager defaultManager];[fm createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES attributes:nil error:nil];unsigned long long cur=[[[fm attributesOfItemAtPath:path error:nil] objectForKey:NSFileSize] unsignedLongLongValue];if(cur>=kADCartProbeCap7241)return;NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding];unsigned long long remain=kADCartProbeCap7241-cur;if((unsigned long long)d.length>remain)d=[d subdataWithRange:NSMakeRange(0,(NSUInteger)remain)];if(![fm fileExistsAtPath:path]){[d writeToFile:path atomically:YES];return;}NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:path];if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];}} @catch(...) {}
 }
 static NSString *ADCartProbePath7241(NSUInteger run){
-    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.249-cart-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.249-cart-ui-probe-r%lu.txt",(unsigned long)run]];}
+    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.250-cart-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.250-cart-ui-probe-r%lu.txt",(unsigned long)run]];}
 }
 static NSString *ADCartProbeDetectJS7241(void){
     return
@@ -6923,7 +6942,7 @@ static void ADCartProbeEvalAppend7241(WKWebView *wv,NSString *path,NSString *js,
 }
 static void ADCaptureCartProbe7241(NSString *trigger){
     if(!gP.enabled||gADCartProbeBusy7241)return; gADCartProbeBusy7241=YES; NSUInteger run=++gADCartProbeRun7241; NSString *path=ADCartProbePath7241(run);
-    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"AMAZONDARK v7.249 SHOPPING CART UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=Cart is a WKWebView document; target signatures #cart-page/#sc-active-cart/#sc-saved-cart plus cart URL path\npolicy=no visible text strings, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes and privacy-safe text hashes retained\nscan=finite explicit-trigger WKScrollView walk + viewport computed-style DOM snapshots + final full DOM inventory + native UIKit/WebKit snapshots; original offset restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADCartProbeCap7241]);
+    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"AMAZONDARK v7.250 SHOPPING CART UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=Cart is a WKWebView document; target signatures #cart-page/#sc-active-cart/#sc-saved-cart plus cart URL path\npolicy=no visible text strings, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes and privacy-safe text hashes retained\nscan=finite explicit-trigger WKScrollView walk + viewport computed-style DOM snapshots + final full DOM inventory + native UIKit/WebKit snapshots; original offset restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADCartProbeCap7241]);
     ADCartProbeFindWebView7241(path,^(WKWebView *wv,NSString *meta){
         if(!wv||ADCartProbeScore7241(meta)<=0){ADCartProbeAppend7241(path,[NSString stringWithFormat:@"CART_PROBE_NO_TARGET meta=%@\n================ END RUN ================\n",ADCartProbeSafe7241(meta)]);gADCartProbeBusy7241=NO;return;}
         UIScrollView *sv=wv.scrollView; CGPoint original=sv.contentOffset; BOOL originalScroll=sv.scrollEnabled; sv.scrollEnabled=NO; CGFloat viewport=MAX(1.0,sv.bounds.size.height),stride=MAX(300.0,MIN(620.0,viewport*0.60)); CGRect wr=CGRectZero;@try{wr=[wv convertRect:wv.bounds toView:nil];}@catch(...){}
