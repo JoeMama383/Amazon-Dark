@@ -1,4 +1,4 @@
-# AmazonDark v7.260~person-savings-menu-columns-row-borders-stock-footer-probes
+# AmazonDark v7.261~menu-footer-row-parity-probes
 
 ## Probe-backed Person savings sheet + final Hamburger cleanup
 
@@ -9,7 +9,7 @@
 - Forces configured TWB at final layout for exact `subtheme_image_*` UIImage-backed Hamburger column artwork. RNSVG/SVG remains completely outside this path and untamed.
 - Makes expanded Hamburger subtheme-row borders structural rather than state-dependent: the real 376x50/radius-16 two-child row owns one standard gray border, while same-geometry zero-child border/highlight shells are cleared. This explicitly covers the probe-proven Travel (`sbdlt`) row whose stock primary border width is 0 while neighboring rows report 1.
 - Stops AmazonDark from writing any border property on the three Hamburger footer actions (`account_switcher`, `so`, `cs`). Their gray fill/light text remains themed, while Amazon alone owns the surviving stock border.
-- Cart/Person/Menu probes remain finite and explicit-trigger only, now exported with v7.260 filenames. No MutationObserver, interval, RAF loop, web scroll listener, polling loop, or recurring production hierarchy scan is added.
+- Cart/Person/Menu probes remain finite and explicit-trigger only, now exported with v7.261 filenames. No MutationObserver, interval, RAF loop, web scroll listener, polling loop, or recurring production hierarchy scan is added.
 
 # AmazonDark v7.258~menu-single-border-person-sheet-probe
 
@@ -487,3 +487,11 @@ Maintained by **JoeMama383**.
 
 ## v7.260 compile correction
 - Corrected the Person savings attributed-string helper so its lazily-created mutable copy is declared `__block` before assignment from the enumeration block. This is compile-only; there is no UI behavior change from the intended v7.260 build.
+
+
+## v7.261 Hamburger footer-row parity
+- Uses the v7.260 Menu probe’s exact footer hierarchy: each bottom action has a rounded 406x48.7 React shell around a square 404x46.7 action leaf.
+- The rounded shell is now the sole visual owner: OLED black fill, 1pt `#494d4d` border, 16pt radius, clipped exactly like the category cards above it.
+- `account_switcher`, `so`, and `cs` inner action leaves are transparent so their former `#303335` square fills cannot cover the rounded shell.
+- Replaces the stock teal/blue footer edge with the same gray border used by Menu category rows. No extra border layer is added.
+- All v7.260 Person savings, Cart Share, Menu column TWB, Travel-row border, stock footer glyph, and SVG exclusions remain unchanged.
