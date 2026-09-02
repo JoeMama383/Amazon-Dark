@@ -1,3 +1,16 @@
+# AmazonDark v7.256~cart-person-completion-probes
+
+## Probe-backed Cart + Person completion with v7.255 Hamburger fix retained
+
+- Builds from the final v7.255 Hamburger/Menu source and retains that exact Menu surface ownership: OLED rows/expanded cards, standard gray borders, light neutral text, restored authored category artwork, and featured-program TWB.
+- Restores Amazon-authored Cart semantic accents proven by the v7.254 probe: success/stock messaging remains green and the exact Free Returns action remains Amazon blue instead of being flattened to the global light foreground.
+- Repairs Saved for Later product-title/price text and the newer `_sp-cart-mobile-carousel` Items-related faceout neutral/price text without recoloring Prime, deal, coupon, success, or other authored accent lanes.
+- Themes the Cart SSF Share sheet at document start: OLED structural floors, light neutral heading/title/channel labels, standard neutral preview border, configured TWB on the large CSS-background product preview, and configured TWB on the share-channel glyph rasters.
+- Themes the exact AppCX native/React bottom sheet used from Person: neutral near-white floors become OLED, neutral near-black text becomes the standard light foreground, saturated/dynamic Amazon colors remain authored, and the two bright passthrough safe-area/chrome sibling strips are now owned without touching the gray drag handle.
+- Retains Cart, Person, and Hamburger/Menu finite screenshot/SIGUSR2 forensics probes, now exporting v7.256 filenames; when the Person AppCX savings sheet is visible, the Person trigger also records one bounded external-sheet snapshot so its chrome/text/image/layer paint can be verified directly.
+- Normal runtime remains event-driven: no MutationObserver, interval, RAF loop, web scroll listener, polling loop, recurring timer, or full hierarchy scanner is added.
+
+
 # AmazonDark v7.254~three-tab-forensics-probes
 
 ## Cart + Person + Hamburger/Menu diagnostics restored
