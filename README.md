@@ -1,5 +1,21 @@
-# AmazonDark v7.270~menu-footer-first-paint-alexa-probe
+# AmazonDark v7.270~optimized-exact-probes
 
+## v7.270 maximal optimization sweep
+
+- Preserves the v7.270 visual contract and all five explicit probes (Home, Person, Cart, Hamburger, Alexa/Rufus).
+- Removes the dead Hamburger helper and collapses the three exact footer action IDs behind one predicate. The first-open footer repair now rejects every non-footer RCTView before any Menu ancestry/classification work.
+- Makes Search delivery ownership singular: the current probe-proven `GlowIngressView` is authoritative; the old `ANXSubNavContainer` and `nav_packard_bar` alternate owners and their generic `UIView` hot-path checks are removed.
+- Makes the main Search magnifier exact to `SBSearchBarIconView` inside `SBSearchBarLeadingStackView`; the old geometry/field alternate path is removed.
+- Narrows compact standalone media TWB to the current probe-proven `#dynamic-bb [data-acei-id=prod-img]` lane and removes the broad compact media sweep plus the legacy `lfstyl-img` lane.
+- Keeps the active Highlights wrapper-only TWB path but promotes it to an exact owner (recent Person probes still show this renderer). No visual behavior is dropped there.
+- Centralizes native TWB overlay creation/update and gives Menu `subtheme_image_*` one exact overlay path instead of a generic-pass-plus-secondary path.
+- Person section headings now use only the current probe-proven final text-renderer geometry; the nested `*ttl` alternate hydration path is removed.
+- Probe dispatch uses only current native tab IDs: `home`, `meTab`, `cartTab`, `menuTab`, `rufusTab`. No probe is removed.
+- Retires the old generic React “bright card near text” heuristic. Person, Hamburger, location, AppCX sheets, and savings sheets now rely on their exact surface owners instead of a seven-ancestor size/color claim on ordinary React text updates.
+- Positive Person/Hamburger surface classifications are cached on the view until normal React move/reuse invalidation, avoiding repeat root walks on stable views.
+- Hamburger raster classification now rejects every non-`RCTUIImageViewAnimated` leaf before Menu-root/ancestor work; the current Menu probe shows these are the actual raster leaves for featured programs and expanded subthemes.
+- Footer IDs are compared directly with no temporary lowercased string allocation.
+- Production remains event-driven: no MutationObserver, interval, RAF loop, web scroll listener, polling loop, or recurring hierarchy scan.
 
 ## v7.270 hamburger footer first-paint repair + retained Alexa/Rufus comprehensive probe
 
@@ -12,7 +28,7 @@
 - Fixes the newly introduced double-border regression on structured 414x125 standalone Home ads. The v7.268 Home probe shows the top-level `ape_gateway_dynamic-…_mshop_placement` is 430x129.8 and carries a 1px `#3b4043` edge, while the child `modern-414x125-layout-container` independently carries the correct rounded 1px `#3b4043` edge. The outer APE edge is therefore duplicate renderer chrome.
 - Removes only that top-level structured 414x125 APE placement border/outline/shadow. The child renderer border remains unchanged and is the sole visible ad frame. Full-raster borderless handling, medium/XL divider removal, Sponsored feedback, TWB, and compact-price parity are retained.
 - GitHub history review found v7.162 (`54a8764`) as the clearest earlier Alexa/Rufus paint reference: Search Rufus surfaces were explicitly owned OLED black with gray borders, and the `nice-widget-container-inline-slot` Alexa surface required both its normal background and `::before`/`::after` painters to be neutralized. That evidence is used to shape the new probe, but this build does not guess at or change the current Alexa-tab visuals yet.
-- Adds an Alexa/Rufus probe gated to the selected native `ANXTabBarButton#rufusTab` (with `#alexaTab` fallback). It scores every visible WKWebView for Rufus/Alexa/assistant/conversation/chat/Nile signatures, inventories stylesheet owners and AmazonDark injected owners, performs finite viewport snapshots plus a final full DOM inventory, recurses through open shadow roots/accessibly reachable iframes, and records computed text/fill/background/image/mask/border/radius/outline/shadow/font/SVG/filter/transform/pseudo-element/media state.
+- Adds an Alexa/Rufus probe gated to the selected native `ANXTabBarButton#rufusTab`. It scores every visible WKWebView for Rufus/Alexa/assistant/conversation/chat/Nile signatures, inventories stylesheet owners and AmazonDark injected owners, performs finite viewport snapshots plus a final full DOM inventory, recurses through open shadow roots/accessibly reachable iframes, and records computed text/fill/background/image/mask/border/radius/outline/shadow/font/SVG/filter/transform/pseudo-element/media state.
 - The same Alexa trigger also inventories native UIKit/React ownership: all native scroll candidates, complete view ancestry/geometry, backgrounds/tints/layer borders, sublayer samples including shapes/gradients, RCT border properties, attributed-text runs, controls, image/TWB state, and a finite top-to-bottom native scroll walk. WebKit/native offsets and `scrollEnabled` are restored after capture.
 - The Alexa probe records no visible strings, accessibility-label text, aria-label/alt/value contents, URLs, or network payloads; it retains technical identifiers and privacy-safe text lengths/hashes only.
 - No MutationObserver, interval, RAF loop, web scroll listener, or recurring hierarchy scan is added. All probe work remains screenshot/SIGUSR2-only.

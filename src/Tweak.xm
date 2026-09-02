@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.270 — hamburger footer first-paint repair + retained Alexa/Rufus UI probe
+ * AmazonDark v7.270 — maximal event-path optimization + exact probe-backed ownership
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.270-menu-footer-first-paint-alexa-probe"
+#define AD_VERSION "v7.270-optimized-exact-probes"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -749,7 +749,7 @@ static NSString *ADFloorJS(void){
 
         // v7.172: the screenshot probe identifies the current More-to-explore renderer exactly as
         // .smart-refinements-content > .smart-refinements-pills > .smart-refinements-row >
-        // a.smart-refinement-pill[role=button]. Retire the broad .s-widget-container button fallback
+        // a.smart-refinement-pill[role=button]. Retire the broad .s-widget-container button rule
         // entirely so unrelated Search/video controls cannot be painted. Keep the older proven Nile
         // lane above for the alternate renderer. The current pill retains Amazon geometry/radius,
         // receives the established header-button gray palette, and the two existing content dividers
@@ -1186,20 +1186,12 @@ static NSString *ADStandalonePaintJS7104(void){
          /* Preserve current TWB strength on the exact standalone product-raster lanes even
           * if Amazon's shell replacement deletes the global TWB sheet. */
          "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] "
-         ":is([data-testid=image],[data-acei-id=lfstyl-img]) :is(img,video,canvas),"
+         "[data-testid=image] :is(img,video,canvas),"
          "html[data-ad7104-standalone] :is([data-testid*=product-picture],[data-testid*=product-image],[data-testid*=asin-image]) :is(img,video,canvas),"
-         /* v7.112: exact compact 320x50 media ownership. The live v7.111
-          * capture identifies lfstyl-img as the Image grid host; keep prod-img as
-          * the known A/B fallback. Require compact #dynamic-bb so medium/large
-          * standalone renderers stay untouched except for the exact store-logo lane added below. */
-         "html[data-ad7104-standalone] #ad:has(#dynamic-bb) "
-         ":is([data-acei-id=lfstyl-img],[data-acei-id=prod-img]) :is(img,video,canvas),"
-         /* v7.144: host-name-independent compact fallback. If Amazon moves the full-raster
-          * creative out of lfstyl-img/prod-img, keep TWB on visible media inside the exact
-          * dynamic-bb compact renderer while protecting Prime/rating/Sponsored control art. */
-         "html[data-ad7104-standalone] #ad:has(#dynamic-bb) :is(img,video,canvas)"
-         ":not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=badge])"
-         ":not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=ad-feedback] *)),"
+         /* Current v7.267/v7.268 frame probes identify the compact 320x50 product
+          * raster exactly as data-acei-id=prod-img under #dynamic-bb. Keep this one
+          * renderer owner only; no host-independent media sweep or legacy lane. */
+         "html[data-ad7104-standalone] #ad:has(#dynamic-bb) [data-acei-id=prod-img] :is(img,video,canvas),"
          /* v7.114: store/brand identity raster parity. Repeated device captures
           * expose the store image as data-acei-id=brnd-logo -> IMG alt=Brand logo
           * (with data-testid=logo as the renderer wrapper on 414x125). Add only
@@ -1236,7 +1228,7 @@ static NSString *ADStandalonePaintJS7104(void){
           * structured product-ad semantics before declaring a medium/large frame full-raster. */
          "function ad7144VisibleRect(e){try{var r=e.getBoundingClientRect(),cs=getComputedStyle(e);if(r.width<2||r.height<2||cs.display==='none'||cs.visibility==='hidden'||parseFloat(cs.opacity||'1')<.02)return null;return r}catch(_){return null}}"
          "function ad7144MediaKind(e){try{var t=(e.tagName||'').toLowerCase();if(t==='img'||t==='video'||t==='canvas')return t;var bg=getComputedStyle(e).backgroundImage||'none';return bg&&bg!=='none'?'background':''}catch(_){return ''}}"
-         "function ad7144Pick(root,rr){try{if(!root||!rr)return null;var best=null,score=0,all=root.getElementsByTagName('*'),ad=document.getElementById('ad'),is300=!!(ad&&ad.getAttribute('data-html-dimensions')==='300x250'),compact=rr.height<=180,minW=compact?0.76:0.88,minH=compact?0.60:0.80,minA=compact?0.56:0.72;for(var i=0;i<all.length;i++){var e=all[i],tid=e.getAttribute&&e.getAttribute('data-testid')||'',did=e.getAttribute&&e.getAttribute('data-id')||'',ace=e.getAttribute&&e.getAttribute('data-acei-id')||'';if(e.id==='dynamic-bb'||tid==='ratings-stars'||tid==='prime-badge'||tid==='price-container'||tid==='formatted-price'||tid==='ratings-review-count'||tid==='brand-product-description'||tid==='product-description'||tid==='deal-badge'||did==='brand-name-text'||did==='product-name-text'||ace==='brnd-logo'||ace==='prod-img'||ace==='lfstyl-img'||/product-(?:picture|image)/i.test(tid)||(is300&&ad.contains(e)&&String(e.className||'').indexOf('swiper-wrapper')>=0))return null;var tag=(e.tagName||'').toLowerCase();if(tag!=='img'&&tag!=='video'&&tag!=='canvas')continue;var r=ad7144VisibleRect(e);if(!r)continue;var ar=r.width*r.height/(rr.width*rr.height),wr=r.width/rr.width,hr=r.height/rr.height;if(wr>=minW&&hr>=minH&&ar>=minA&&ar>score){best=e;score=ar}}if(!best){var lim=Math.min(all.length,360);for(var j=0;j<lim;j++){var x=all[j],r2=ad7144VisibleRect(x);if(!r2||ad7144MediaKind(x)!=='background')continue;var ar2=r2.width*r2.height/(rr.width*rr.height),wr2=r2.width/rr.width,hr2=r2.height/rr.height;if(wr2>=minW&&hr2>=minH&&ar2>=minA&&ar2>score){best=x;score=ar2}}}return best?{e:best,score:score,kind:ad7144MediaKind(best)}:null}catch(_){return null}}"
+         "function ad7144Pick(root,rr){try{if(!root||!rr)return null;var best=null,score=0,all=root.getElementsByTagName('*'),ad=document.getElementById('ad'),is300=!!(ad&&ad.getAttribute('data-html-dimensions')==='300x250'),compact=rr.height<=180,minW=compact?0.76:0.88,minH=compact?0.60:0.80,minA=compact?0.56:0.72;for(var i=0;i<all.length;i++){var e=all[i],tid=e.getAttribute&&e.getAttribute('data-testid')||'',did=e.getAttribute&&e.getAttribute('data-id')||'',ace=e.getAttribute&&e.getAttribute('data-acei-id')||'';if(e.id==='dynamic-bb'||tid==='ratings-stars'||tid==='prime-badge'||tid==='price-container'||tid==='formatted-price'||tid==='ratings-review-count'||tid==='brand-product-description'||tid==='product-description'||tid==='deal-badge'||did==='brand-name-text'||did==='product-name-text'||ace==='brnd-logo'||ace==='prod-img'||/product-(?:picture|image)/i.test(tid)||(is300&&ad.contains(e)&&String(e.className||'').indexOf('swiper-wrapper')>=0))return null;var tag=(e.tagName||'').toLowerCase();if(tag!=='img'&&tag!=='video'&&tag!=='canvas')continue;var r=ad7144VisibleRect(e);if(!r)continue;var ar=r.width*r.height/(rr.width*rr.height),wr=r.width/rr.width,hr=r.height/rr.height;if(wr>=minW&&hr>=minH&&ar>=minA&&ar>score){best=e;score=ar}}if(!best){var lim=Math.min(all.length,360);for(var j=0;j<lim;j++){var x=all[j],r2=ad7144VisibleRect(x);if(!r2||ad7144MediaKind(x)!=='background')continue;var ar2=r2.width*r2.height/(rr.width*rr.height),wr2=r2.width/rr.width,hr2=r2.height/rr.height;if(wr2>=minW&&hr2>=minH&&ar2>=minA&&ar2>score){best=x;score=ar2}}}return best?{e:best,score:score,kind:ad7144MediaKind(best)}:null}catch(_){return null}}"
          "function ad7144Mark(e,score,kind,mode){try{if(!e)return;var attr=kind==='background'?'data-ad7144-full-raster-bg':'data-ad7144-full-raster';e.setAttribute(attr,'1')}catch(_){}}"
          "function ad7266KillRasterChrome(){try{var hh=document.documentElement;if(!hh||!hh.hasAttribute('data-ad7144-full-raster-frame'))return;var xs=document.getElementsByClassName('border-enforcement');for(var i=0;i<xs.length&&i<12;i++){var e=xs[i],st=e.style;if(!st)continue;st.setProperty('display','none','important');st.setProperty('height','0','important');st.setProperty('min-height','0','important');st.setProperty('max-height','0','important');st.setProperty('margin','0','important');st.setProperty('padding','0','important');st.setProperty('border','0','important');st.setProperty('outline','0','important');st.setProperty('box-shadow','none','important');st.setProperty('background','#000','important')}var all=document.getElementsByTagName('*'),lim=Math.min(all.length,360),done=0;for(var j=0;j<lim&&done<20;j++){var q=all[j],tid=q.getAttribute&&q.getAttribute('data-testid')||'',cl=String(q.className||'');if(tid!=='renderer-factory-ad-container'&&tid!=='ad-background-container'&&!(/^modern-/.test(tid)&&/-layout-container$/.test(tid))&&cl.indexOf('creative-container')<0)continue;var z=q.style;if(!z)continue;z.setProperty('border','0','important');z.setProperty('outline','0','important');z.setProperty('box-shadow','none','important');done++}}catch(_){}}"
          "function ad7144Classify(){try{var hh=document.documentElement;if(!hh)return;var vw=Math.max(1,innerWidth,hh.clientWidth||0),vh=Math.max(1,innerHeight,hh.clientHeight||0);if(vw<220||vh<35||vh>520)return;var root=document.body||hh,p=ad7144Pick(root,{width:vw,height:vh});if(p){hh.setAttribute('data-ad7144-full-raster-frame','1');ad7144Mark(p.e,p.score,p.kind,'standalone-full-raster');ad7266KillRasterChrome();try{parent.postMessage({__adFullRaster7266:1},'*')}catch(_){}}}catch(_){}}"
@@ -1674,18 +1666,6 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
 }
 %end
 
-static const void *kADReactCard708=&kADReactCard708;
-static BOOL ADNativeFloorCandidate(UIView *v){
-    if(!v)return NO;
-    @try { return objc_getAssociatedObject(v,kADReactCard708)!=nil; } @catch(...) {}
-    return NO;
-}
-static void ADOwnNativeFloor(UIView *v){
-    if(!gP.enabled||!v)return;
-    ADSetViewBackground7226(v,ADOLED(),YES);
-}
-
-
 static UIColor *ADLightText706(void);
 
 static inline BOOL ADClassNameHas7183(id obj,const char *needle){
@@ -1964,12 +1944,8 @@ static void ADOwnGlowIngress7140(UIView *root){
         ADInstallGlowFloorTree7141(root);
     } @catch(...) {}
 }
-static BOOL ADSearchSubNavControllerClass7139(UIViewController *vc){
-    return vc&&ADClassNameIs7183(vc,"ANXSubNavContainer");
-}
-// v7.175: Home visual-category cells are Amazon-authored stock UI.  v7.174 only
-// released the VisualSubNav controller, but ANXSubNavContainer could still mark these
-// cells as delivery-band descendants and the global UILabel owner could recolor labels.
+// Home visual-category cells are Amazon-authored stock UI and stay isolated from
+// Search delivery-band ownership so the global UILabel owner cannot recolor them.
 static BOOL ADInAuthoredVisualSubNav7175(UIView *v){
     if(!v)return NO;
     @try {
@@ -1999,45 +1975,6 @@ static void ADOwnHomeVisualSubNavCell7211(UIView *v){
     // fill and do not let generic UIKit floor logic touch this subtree.
     ADSetViewBackground7226(cell,ADHomeChipGray7226(),YES);
 }
-static BOOL ADCompactSearchSubNavView7139(UIView *v){
-    if(!v||!v.window||!ADPrimaryAmazonWindow713(v.window,nil))return NO;
-    @try {
-        CGRect r=[v convertRect:v.bounds toView:v.window], wb=v.window.bounds;
-        if(wb.size.width<1.0)return NO;
-        // v7.207: alternate ANXSubNavContainer delivery ownership follows the same
-        // top-nav travel as Glow/Packard. Keep this exact-controller fallback aligned
-        // with the observed y=75 position instead of leaving another y>=80 timing seam.
-        return r.size.width>=wb.size.width*0.88 && r.size.height>=24.0 && r.size.height<=96.0 &&
-               CGRectGetMinY(r)>=55.0 && CGRectGetMinY(r)<=260.0;
-    } @catch(...) {}
-    return NO;
-}
-static void ADOwnCompactSearchSubNav7139(UIViewController *vc){
-    if(!gP.enabled||!ADSearchSubNavControllerClass7139(vc)||!vc.isViewLoaded)return;
-    @try {
-        UIView *root=vc.view; if(!ADCompactSearchSubNavView7139(root))return;
-        UIColor *black=ADOLED();
-        if(objc_getAssociatedObject(root,kADSearchDeliveryBand7139)){
-            ADSetViewBackground7226(root,black,YES); root.tintColor=ADLightText706();
-            return;
-        }
-        objc_setAssociatedObject(root,kADSearchDeliveryBand7139,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        ADSetViewBackground7226(root,black,YES); root.tintColor=ADLightText706();
-        // One bounded event-driven pass handles descendants that were already mounted before
-        // the controller was marked. Later background/image writes are owned by existing hooks.
-        NSMutableArray *q=[NSMutableArray arrayWithArray:root.subviews?:@[]]; NSUInteger seen=0;
-        while(q.count && seen++<96){
-            UIView *x=q.firstObject; [q removeObjectAtIndex:0]; if(!x)continue;
-            if(ADInAuthoredVisualSubNav7175(x))continue;
-            ADMarkSearchDeliveryDescendant7139(x);
-            if([x isKindOfClass:[UIImageView class]]) ADTintSearchDeliveryGlyph7139((UIImageView *)x);
-            else if([x isKindOfClass:[UILabel class]]) ((UILabel *)x).textColor=ADLightText706();
-            else if(ADWarmDeliveryColor7139(x.backgroundColor)){ ADSetViewBackground7226(x,black,YES); }
-            if(q.count<96 && x.subviews.count)[q addObjectsFromArray:x.subviews];
-        }
-    } @catch(...) {}
-}
-
 static BOOL ADSelectionPlatterChild7130(UIView *v, UIColor *candidate){
     if(!gP.enabled||!v||!v.window||!candidate)return NO;
     @try {
@@ -2056,46 +1993,8 @@ static BOOL ADSelectionPlatterChild7130(UIView *v, UIColor *candidate){
     return NO;
 }
 
-// v7.206: Search's 430x44 Deliver-to band has now regressed more than once.
-// v7.192 already owns the exact GlowIngressView painter, but the device probe also
-// identified its full-row host by accessibilityIdentifier=nav_packard_bar. Own that
-// exact host independently so launch/controller timing or internal Glow reordering
-// cannot expose Amazon's warm/yellow custom-drawn contents again. No polling/scan.
-static const void *kADPackardFloor7206=&kADPackardFloor7206;
-static const void *kADPackardFloorSentinel7206=&kADPackardFloorSentinel7206;
-static BOOL ADExactSearchPackard7206(UIView *v){
-    if(!gP.enabled||!v||!v.window)return NO;
-    @try {
-        if(![v.accessibilityIdentifier isEqualToString:@"nav_packard_bar"])return NO;
-        if(fabs(v.window.windowLevel-UIWindowLevelNormal)>0.1)return NO;
-        CGRect r=[v convertRect:v.bounds toView:v.window], wb=v.window.bounds;
-        if(wb.size.width<1.0)return NO;
-        // v7.207: Packard is a fallback owner for the same moving Search delivery band.
-        // Match the proven y=75..119 travel range so this fallback cannot reintroduce the
-        // old timing split when Amazon assigns nav_packard_bar before/after top-nav layout.
-        return r.size.width>=wb.size.width*0.88 && r.size.height>=28.0 && r.size.height<=72.0 &&
-               CGRectGetMinY(r)>=55.0 && CGRectGetMinY(r)<=220.0;
-    } @catch(...) {}
-    return NO;
-}
-static void ADOwnSearchPackard7206(UIView *host){
-    if(!ADExactSearchPackard7206(host))return;
-    @try {
-        UIColor *black=ADOLED();
-        if(![host.backgroundColor isEqual:black])ADSetViewBackground7226(host,black,YES);
-        UIView *floor=(UIView *)objc_getAssociatedObject(host,kADPackardFloor7206);
-        if(!floor){
-            floor=[[UIView alloc] initWithFrame:host.bounds];
-            floor.userInteractionEnabled=NO; floor.accessibilityElementsHidden=YES; floor.opaque=YES;
-            floor.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
-            objc_setAssociatedObject(floor,kADPackardFloorSentinel7206,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            objc_setAssociatedObject(host,kADPackardFloor7206,floor,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
-        floor.frame=host.bounds; ADSetViewBackground7226(floor,black,YES); floor.hidden=NO; floor.alpha=1.0;
-        if(floor.superview!=host || (host.subviews.count && host.subviews.firstObject!=floor))[host insertSubview:floor atIndex:0];
-    } @catch(...) {}
-}
-
+// Search delivery ownership is singular: current device probes name GlowIngressView
+// as the visible 430x44 painter. Alternate controller/Packard owners were removed.
 static inline BOOL ADWebKitInternalView7154(UIView *v){
     if(!v)return NO;
     const char *cn=object_getClassName(v);
@@ -2169,8 +2068,6 @@ static BOOL ADPersonListCard7235(UIView *v);
 static void ADPersonOwnListCard7235(UIView *v);
 static BOOL ADPersonNestedListBorder7239(UIView *v);
 static void ADPersonSuppressNestedListBorder7239(UIView *v);
-static BOOL ADExactSearchPackard7206(UIView *v);
-static void ADOwnSearchPackard7206(UIView *v);
 
 // v7.255: Amazon's native/RN bottom-sheet host used by Person savings and other
 // in-app sheets. This is exact-context lifecycle ownership: no polling or hierarchy
@@ -2358,7 +2255,6 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
     // Exact owners win. Generic UIView never repaints WebKit, React Native, or
     // Amazon's authored Home category subtree.
     if(ADWebKitInternalView7154(self)||ADReactNativeView7226(self)||ADExactBackgroundOwner7226(self)||ADInAuthoredVisualSubNav7175(self))return;
-    if(ADExactSearchPackard7206(self)){ ADOwnSearchPackard7206(self); return; }
     if(ADInMarkedSearchDeliveryBand7139(self)&&![self isKindOfClass:[UIImageView class]]){
         ADSetViewBackground7226(self,ADOLED(),YES); return;
     }
@@ -2368,11 +2264,6 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
     if(ADSelectionPlatterChild7130(self,self.backgroundColor)){
         ADSetViewBackground7226(self,ADOLED(),YES); return;
     }
-    if(ADNativeFloorCandidate(self))ADOwnNativeFloor(self);
-}
-- (void)setAccessibilityIdentifier:(NSString *)identifier {
-    %orig(identifier);
-    if(gP.enabled&&self.window&&ADExactSearchPackard7206(self))ADOwnSearchPackard7206(self);
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if(ADInternalPaintWrite7226()){
@@ -2398,11 +2289,6 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
         %orig(color);
         return;
     }
-    if(gP.enabled&&self.window&&ADExactSearchPackard7206(self)){
-        UIColor *black=ADOLED();
-        %orig(black);
-        return;
-    }
     if(gP.enabled&&self.window&&ADInMarkedSearchDeliveryBand7139(self)&&![self isKindOfClass:[UIImageView class]]){
         UIColor *black=ADOLED();
         %orig(black);
@@ -2421,11 +2307,6 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
     if(gP.enabled&&objc_getAssociatedObject(self,kADTabIndicator724)){
         UIColor *light=ADLightText706();
         %orig(light);
-        return;
-    }
-    if(gP.enabled&&self.window&&ADNativeFloorCandidate(self)){
-        UIColor *black=ADOLED();
-        %orig(black);
         return;
     }
     %orig(color);
@@ -3733,7 +3614,9 @@ static BOOL ADInPersonTab7206(UIView *v){
     if(!v)return NO;
     NSNumber *surface=objc_getAssociatedObject(v,kADReactSurfaceCache7232);
     if(surface)return surface.intValue==ADReactSurfacePerson7226;
-    return ADPersonRoot7206(v)!=nil;
+    UIView *root=ADPersonRoot7206(v);
+    if(root)objc_setAssociatedObject(v,kADReactSurfaceCache7232,@(ADReactSurfacePerson7226),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    return root!=nil;
 }
 static UIColor *ADPersonSecondary7206(void){
     static UIColor *c=nil; static dispatch_once_t once;
@@ -4670,14 +4553,9 @@ static BOOL ADPersonHeaderLeaf7221(UIView *v){
         CGRect r=[v convertRect:v.bounds toView:v.window];
         // Probe-proven current renderer: RCTTextView x=16, width=374/390,
         // height=30.7.  Keep a small tolerance for scale/font rounding only.
-        if(r.origin.x>=8.0&&r.origin.x<=24.0&&
-           r.size.width>=360.0&&r.size.width<=405.0&&
-           r.size.height>=26.0&&r.size.height<=36.0)return YES;
-        // Retain only the cheap nested-*ttl fallback for alternate hydration.
-        for(UIView *n=v.superview;n;n=n.superview){
-            if(ADPersonHeadingBandGeometry7221(n))return YES;
-            if([n.accessibilityIdentifier isEqualToString:@"me"])break;
-        }
+        return r.origin.x>=8.0&&r.origin.x<=24.0&&
+               r.size.width>=360.0&&r.size.width<=405.0&&
+               r.size.height>=26.0&&r.size.height<=36.0;
     } @catch(...) {}
     return NO;
 }
@@ -5284,7 +5162,7 @@ static BOOL ADPersonHasRasterDescendant7229(UIView *root){
 }
 static BOOL ADPersonImageHasRasterDescendant7224(UIImageView *iv){ return ADPersonHasRasterDescendant7229(iv); }
 static const void *kADPersonHighlightWrapperOverlay7229=&kADPersonHighlightWrapperOverlay7229;
-static BOOL ADPersonHighlightWrapperFallback7229(UIView *v){
+static BOOL ADPersonHighlightWrapperOwner7229(UIView *v){
     if(!v||!v.window||!ADInPersonTab7206(v)||!ADClassNameIs7183(v,"RCTImageView"))return NO;
     @try {
         NSString *aid=(v.accessibilityIdentifier?:@"").lowercaseString;
@@ -5294,11 +5172,11 @@ static BOOL ADPersonHighlightWrapperFallback7229(UIView *v){
         return !ADPersonHasRasterDescendant7229(v);
     } @catch(...) { return NO; }
 }
-static void ADPersonOwnHighlightWrapperFallback7229(UIView *v){
+static void ADPersonOwnHighlightWrapper7229(UIView *v){
     if(!v)return;
     @try {
         CALayer *ov=objc_getAssociatedObject(v,kADPersonHighlightWrapperOverlay7229);
-        BOOL own=gP.enabled&&gP.whiteTame&&ADPersonHighlightWrapperFallback7229(v);
+        BOOL own=gP.enabled&&gP.whiteTame&&ADPersonHighlightWrapperOwner7229(v);
         if(!own){ if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(v,kADPersonHighlightWrapperOverlay7229,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); } return; }
         if(!ov){
             ov=[CALayer layer]; ov.name=@"AmazonDarkPersonHighlightWrapperTWB7229";
@@ -5426,14 +5304,11 @@ static BOOL ADInMenuTab7255(UIView *v){
     @try {
         NSNumber *surface=objc_getAssociatedObject(v,kADReactSurfaceCache7232);
         if(surface)return surface.intValue==ADReactSurfaceMenu7255;
+        UIView *root=ADMenuRoot7255(v);
+        if(root)objc_setAssociatedObject(v,kADReactSurfaceCache7232,@(ADReactSurfaceMenu7255),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        return root!=nil;
     } @catch(...) {}
-    return ADMenuRoot7255(v)!=nil;
-}
-static BOOL ADMenuAidIsSubthemeRow7255(NSString *aid){
-    if(!aid.length)return NO;
-    static NSSet<NSString *> *ids=nil; static dispatch_once_t once;
-    dispatch_once(&once,^{ ids=[NSSet setWithArray:@[@"pr",@"samedaystore",@"sbdav",@"sbddi",@"sbdprimeprr",@"amazonkey"]]; });
-    return [ids containsObject:aid.lowercaseString];
+    return NO;
 }
 static UIView *ADMenuAncestorMatching7255(UIView *v,BOOL (^match)(NSString *),int maxDepth){
     if(!v||!match)return nil;
@@ -5451,13 +5326,16 @@ static BOOL ADMenuDirectChildAid7255(UIView *v,NSString *wanted){
     @try { for(UIView *c in v.subviews)if([c.accessibilityIdentifier isEqualToString:wanted])return YES; } @catch(...) {}
     return NO;
 }
+static inline BOOL ADMenuFooterActionAid7255(NSString *aid){
+    return [aid isEqualToString:@"account_switcher"]||[aid isEqualToString:@"so"]||[aid isEqualToString:@"cs"];
+}
 // v7.262: exact footer actions live under a nested rounded React footer surface.
 // Find only those three known action IDs and keep this finite/local to the candidate row.
 static UIView *ADMenuFooterActionDescendant7261(UIView *v,int maxDepth){
     if(!v||maxDepth<0)return nil;
     @try {
-        NSString *aid=(v.accessibilityIdentifier?:@"").lowercaseString;
-        if([aid isEqualToString:@"account_switcher"]||[aid isEqualToString:@"so"]||[aid isEqualToString:@"cs"])return v;
+        NSString *aid=v.accessibilityIdentifier?:@"";
+        if(ADMenuFooterActionAid7255(aid))return v;
         if(maxDepth==0)return nil;
         for(UIView *c in v.subviews){
             UIView *hit=ADMenuFooterActionDescendant7261(c,maxDepth-1);
@@ -5516,7 +5394,7 @@ static int ADMenuViewRole7255(UIView *v){
         UIView *shortcut=ADMenuAncestorMatching7255(v,^BOOL(NSString *a){ return [a hasPrefix:@"image_menu_item_pill_"]; },6);
         if(shortcut&&w>=36.0&&w<=240.0&&h>=30.0&&h<=54.0&&ADPersonRCTBorderRadius7212(v)>=12.0)return 2;
         UIView *action=ADMenuAncestorMatching7255(v,^BOOL(NSString *a){
-            NSString *x=a.lowercaseString; return [x isEqualToString:@"account_switcher"]||[x isEqualToString:@"so"]||[x isEqualToString:@"cs"];
+            return ADMenuFooterActionAid7255(a);
         },5);
         if(action&&v==action&&w>=300.0&&w<=420.0&&h>=36.0&&h<=66.0)return 6;
         // v7.261 probe: the visible stock footer surface is the INNER
@@ -5591,10 +5469,10 @@ static void ADMenuOwnView7255(UIView *v){
 // hook, walk only its local ancestor chain and re-own the footer shells immediately.
 // This is event-driven and bounded; no observer, timer, scroll hook, or tree scan.
 static void ADMenuPrimeFooterAncestors7270(UIView *v){
-    if(!gP.enabled||!v||!v.window||!ADInMenuTab7255(v))return;
+    if(!gP.enabled||!v||!v.window)return;
     @try {
-        NSString *aid=(v.accessibilityIdentifier?:@"").lowercaseString;
-        if(!([aid isEqualToString:@"account_switcher"]||[aid isEqualToString:@"so"]||[aid isEqualToString:@"cs"]))return;
+        if(!ADMenuFooterActionAid7255(v.accessibilityIdentifier))return;
+        if(!ADInMenuTab7255(v))return;
         UIView *n=v.superview;
         for(int d=0;n&&d<7;d++,n=n.superview){
             if([n.accessibilityIdentifier isEqualToString:@"scrolled-hamburger"]||[n.accessibilityIdentifier isEqualToString:@"scrolled-hamburger-view"])break;
@@ -5656,28 +5534,6 @@ static void ADMenuOwnText7255(UIView *v){
 }
 
 
-static void ADDarkenReactCardNearText708(UIView *textView){
-    if(!gP.enabled||!textView||!textView.window)return;
-    @try {
-        // Exact React surfaces have exact owners.  The legacy generic near-text card
-        // heuristic is only allowed outside Person and the location sheet.
-        UIView *loc=nil;
-        if(ADInPersonTab7206(textView)||ADInMenuTab7255(textView)||ADLocationRootActive7202(textView,&loc)||ADInLocationSheetContent7196(textView))return;
-        UIView *n=textView.superview;
-        for(int d=0;n&&d<7;d++,n=n.superview){
-            if(objc_getAssociatedObject(n,kADReactCard708))return;
-            CGFloat w=n.bounds.size.width,h=n.bounds.size.height;
-            if(w>=150&&w<=430&&h>=170&&h<=700&&ADBrightNeutralUIView708(n)){
-                objc_setAssociatedObject(n,kADReactCard708,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                ADSetViewBackground7226(n,ADOLED(),YES);
-                n.layer.borderColor=ADBorderGray706().CGColor;
-                if(n.layer.borderWidth<0.5)n.layer.borderWidth=1.0;
-                break;
-            }
-        }
-    } @catch(...) {}
-}
-
 static int ADReactSurface7226(UIView *v){
     if(!v)return ADReactSurfaceNone7226;
     @try {
@@ -5709,11 +5565,6 @@ static int ADReactSurface7226(UIView *v){
 static void ADOwnReactView7226(UIView *v){
     if(!gP.enabled||!v||!v.window)return;
     @try {
-        // Generic React card claims are written and reasserted here, not by UIView.
-        if(objc_getAssociatedObject(v,kADReactCard708)){
-            ADSetViewBackground7226(v,ADOLED(),YES);
-            return;
-        }
         int surface=ADReactSurface7226(v);
         if(surface==ADReactSurfacePerson7226){
             ADPersonOwnView7206(v);
@@ -5759,7 +5610,6 @@ static void ADOwnReactView7226(UIView *v){
     }
     UIView *v=(UIView *)self;
     int surface=(gP.enabled&&v.window)?ADReactSurface7226(v):ADReactSurfaceNone7226;
-    BOOL generic=gP.enabled&&objc_getAssociatedObject(v,kADReactCard708)!=nil;
     BOOL reviewPlate=surface==ADReactSurfacePerson7226&&ADPersonReviewBorderPlate7231(v);
     BOOL interestPlate=surface==ADReactSurfacePerson7226&&ADPersonInterestBorderPlate7235(v);
     BOOL buyOccluder=surface==ADReactSurfacePerson7226&&ADPersonBuyAgainOccluder7235(v);
@@ -5792,7 +5642,7 @@ static void ADOwnReactView7226(UIView *v){
     BOOL savings=ADInPersonSavingsSheet7259(v)&&ADNeutralNearWhite7255(color);
     int menuRole=surface==ADReactSurfaceMenu7255?ADMenuViewRole7255(v):0;
     UIColor *menuColor=(menuRole==2)?ADMenuButtonFill7255():((menuRole==3||menuRole==6)?[UIColor clearColor]:ADOLED());
-    UIColor *finalColor=menuRole?menuColor:(personShell?[UIColor clearColor]:((generic||person||location||appcx||savings)?ADOLED():color));
+    UIColor *finalColor=menuRole?menuColor:(personShell?[UIColor clearColor]:((person||location||appcx||savings)?ADOLED():color));
 
     // One original React setter call, guarded across its super-call chain.  This is
     // the critical v7.226 recursion barrier: UIView and RCTView can no longer repaint
@@ -5841,7 +5691,6 @@ static void ADOwnReactView7226(UIView *v){
     else if(gP.enabled&&((UIView *)self).window&&ADInPersonSavingsSheet7259((UIView *)self)) r=ADPersonSavingsLightString7259(attributedText);
     else r=ADLightAttributedText708(attributedText);
     %orig(r);
-    ADDarkenReactCardNearText708((UIView *)self);
 }
 - (void)_setAttributedString:(NSAttributedString *)attributedString {
     NSAttributedString *r=nil;
@@ -5852,7 +5701,6 @@ static void ADOwnReactView7226(UIView *v){
     else if(gP.enabled&&((UIView *)self).window&&ADInPersonSavingsSheet7259((UIView *)self)) r=ADPersonSavingsLightString7259(attributedString);
     else r=ADLightAttributedText708(attributedString);
     %orig(r);
-    ADDarkenReactCardNearText708((UIView *)self);
 }
 - (void)didMoveToWindow {
     %orig;
@@ -5862,7 +5710,6 @@ static void ADOwnReactView7226(UIView *v){
     else if(ADInMenuTab7255(v))ADMenuOwnText7255(v);
     else if(ADInLocationSheetContent7196(v))ADLocationSheetOwnText7196(v);
     else if(ADInPersonSavingsSheet7259(v)){ NSTextStorage *ts=ADPersonTextStorage7206(v); if(ts)ADPersonSavingsLightStorage7259(ts); }
-    else ADDarkenReactCardNearText708(v);
 }
 %end
 
@@ -5904,7 +5751,6 @@ static void ADOwnReactView7226(UIView *v){
         } @catch(...) {}
     }
     %orig;
-    ADDarkenReactCardNearText708((UIView *)self);
 }
 - (void)drawRect:(CGRect)rect {
     // v7.222 heading final-paint gate plus v7.228's exact Highlights tile gate.
@@ -6228,34 +6074,23 @@ static void ADOwnReactView7226(UIView *v){
 }
 %end
 
-// v7.244: old Search probes show the stable semantic owner is a 24x24
-// SBSearchBarIconView inside SBSearchBarLeadingStackView.  The Search field itself
-// is a sibling, not an ancestor, so v7.229's field-ancestry classifier could miss
-// the glyph after Amazon rebuilt the bar.  Prefer the exact leading-stack owner,
-// with the old field-position test retained only as a compatibility fallback.
+// Current Search probes establish one semantic owner: the 24x24
+// SBSearchBarIconView inside SBSearchBarLeadingStackView. Keep only that owner.
 static const void *kADSearchLeadingMagnifier7229=&kADSearchLeadingMagnifier7229;
 static BOOL ADSearchLeadingMagnifier7229(UIImageView *iv){
     if(!iv)return NO;
     @try {
+        if(!ADClassNameHasFold7183(iv,"sbsearchbariconview"))return NO;
         CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
         if(w<18.0||w>30.0||h<18.0||h>30.0||fabs(w-h)>4.0)return NO;
-        UIView *field=nil; BOOL inLeadingStack=NO;
-        for(UIView *n=iv;n&&n!=iv.window;n=n.superview){
-            if(ADClassNameHasFold7183(n,"sbsearchbarleadingstackview")){ inLeadingStack=YES; break; }
-            if(!field&&(ADClassNameHasFold7183(n,"sbsearchfield")||ADClassNameHasFold7183(n,"sbmultilinesearchview")))field=n;
+        for(UIView *n=iv.superview;n&&n!=iv.window;n=n.superview){
+            if(ADClassNameHasFold7183(n,"sbsearchbarleadingstackview")){
+                objc_setAssociatedObject(iv,kADSearchLeadingMagnifier7229,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                return YES;
+            }
         }
-        if(inLeadingStack){
-            objc_setAssociatedObject(iv,kADSearchLeadingMagnifier7229,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            return YES;
-        }
-        if(!field)return NO;
-        CGRect r=[iv convertRect:iv.bounds toView:field];
-        CGFloat midX=CGRectGetMidX(r),midY=CGRectGetMidY(r);
-        if(midX<8.0||midX>42.0)return NO;
-        if(midY<4.0||midY>field.bounds.size.height-4.0)return NO;
-        objc_setAssociatedObject(iv,kADSearchLeadingMagnifier7229,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        return YES;
-    } @catch(...) { return NO; }
+    } @catch(...) {}
+    return NO;
 }
 static void ADOwnSearchLeadingMagnifier7229(UIImageView *iv){
     if(!gP.enabled||!iv||!iv.image)return;
@@ -6654,13 +6489,6 @@ static void ADOwnBottomBar708(UIView *v){
 // exact cell-floor hook above. No controller-level repaint path is installed.
 
 
-%hook ANXSubNavContainer
-- (void)viewDidLayoutSubviews {
-    %orig;
-    ADOwnCompactSearchSubNav7139((UIViewController *)self);
-}
-%end
-
 // Status-bar ownership from the v5.446/v6.0.5 lineage. This generic lifecycle hook
 // does NOT paint controller views; it only installs a cached per-class light-content claim.
 %hook UIViewController
@@ -6896,6 +6724,22 @@ static BOOL ADNativeMediaBlockedCached7146(UIImageView *iv){
         return blocked;
     } @catch(...) { return ADNativeMediaBlocked(iv); }
 }
+static void ADEnsureNativeTWBOverlay7270(UIImageView *iv){
+    if(!iv)return;
+    @try {
+        CALayer *ov=objc_getAssociatedObject(iv,kADTWBOverlay);
+        if(!ov){
+            ov=[CALayer layer]; ov.name=@"AmazonDarkTWB7";
+            ov.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"backgroundColor":[NSNull null],@"zPosition":[NSNull null]};
+            [iv.layer addSublayer:ov];
+            objc_setAssociatedObject(iv,kADTWBOverlay,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        } else if(ov.superlayer!=iv.layer)[iv.layer addSublayer:ov];
+        CGRect want=iv.bounds; CGColorRef wantColor=ADNativeTWBOverlayColor7146().CGColor;
+        if(!CGRectEqualToRect(ov.frame,want))ov.frame=want;
+        if(!ov.backgroundColor||!CGColorEqualToColor(ov.backgroundColor,wantColor))ov.backgroundColor=wantColor;
+        if(ov.zPosition!=FLT_MAX)ov.zPosition=FLT_MAX;
+    } @catch(...) {}
+}
 static void ADApplyNativeTWBCached7183(UIImageView *iv,BOOL authoredSubNav){
     if(!iv)return;
     @try {
@@ -6908,11 +6752,7 @@ static void ADApplyNativeTWBCached7183(UIImageView *iv,BOOL authoredSubNav){
             if(ov){ [ov removeFromSuperlayer]; objc_setAssociatedObject(iv,kADTWBOverlay,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
             return;
         }
-        if(!ov){ ov=[CALayer layer]; ov.name=@"AmazonDarkTWB7"; ov.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"backgroundColor":[NSNull null],@"zPosition":[NSNull null]}; [iv.layer addSublayer:ov]; objc_setAssociatedObject(iv,kADTWBOverlay,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
-        CGRect want=iv.bounds; CGColorRef wantColor=ADNativeTWBOverlayColor7146().CGColor;
-        if(!CGRectEqualToRect(ov.frame,want))ov.frame=want;
-        if(!ov.backgroundColor||!CGColorEqualToColor(ov.backgroundColor,wantColor))ov.backgroundColor=wantColor;
-        if(ov.zPosition!=FLT_MAX)ov.zPosition=FLT_MAX;
+        ADEnsureNativeTWBOverlay7270(iv);
     } @catch(...) {}
 }
 // v7.217: v6.185 Person top chrome keeps the greeting chevron, settings and
@@ -7026,7 +6866,7 @@ static UIView *ADMenuImageAncestor7255(UIView *v,BOOL (^match)(NSString *),int m
 // Restore only this exact leading raster.  The trailing account/person glyph
 // lives inside the text view and does not satisfy this structure.
 static BOOL ADMenuFooterLeadingRaster7257(UIImageView *iv){
-    if(!iv||!iv.window||!iv.image||!ADMenuRoot7255(iv))return NO;
+    if(!iv||!iv.window||!iv.image)return NO;
     @try {
         CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
         if(w<18.0||w>25.0||h<18.0||h>25.0)return NO;
@@ -7052,14 +6892,14 @@ static int ADMenuImageKind7255(UIImageView *iv,BOOL discover){
         NSNumber *cached=objc_getAssociatedObject(iv,kADMenuFinalRasterKind7255);
         if(cached&&cached.intValue>0)return cached.intValue;
         if(!discover)return 0;
-        if(!ADMenuRoot7255(iv))return 0;
+        if(!ADClassNameIs7183(iv,"RCTUIImageViewAnimated")||!ADMenuRoot7255(iv))return 0;
         CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height; int kind=0;
         if(ADMenuImageAncestor7255(iv,^BOOL(NSString *a){ return [a hasPrefix:@"featured-programs-tile-image_"]; },7))kind=3;
         else if(ADMenuImageAncestor7255(iv,^BOOL(NSString *a){ return [a hasPrefix:@"subtheme_image_"]; },7))kind=4;
         else if(ADMenuFooterLeadingRaster7257(iv))kind=1;
         else if(ADMenuImageAncestor7255(iv,^BOOL(NSString *a){ return [a hasPrefix:@"image_menu_item_pill_"]; },7))kind=1;
         else if(ADMenuImageAncestor7255(iv,^BOOL(NSString *a){
-            NSString *x=a.lowercaseString; return [x isEqualToString:@"account_switcher"]||[x isEqualToString:@"so"]||[x isEqualToString:@"cs"];
+            return ADMenuFooterActionAid7255(a);
         },7))kind=(w<=28.0&&h<=28.0)?2:1;
         else if(ADMenuImageAncestor7255(iv,^BOOL(NSString *a){ return [a isEqualToString:@"theme_card_content_view_test_id"]; },6))
             kind=(w<=24.0&&h<=24.0)?2:((w>=28.0&&h>=28.0&&w<=64.0&&h<=64.0)?1:0);
@@ -7090,17 +6930,10 @@ static void ADMenuFinalizeImage7255(UIImageView *iv,BOOL discover){
         if(kind==3||kind==4){
             objc_setAssociatedObject(iv,kADTWBEligibilityImage,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             objc_setAssociatedObject(iv,kADTWBEligibility,@NO,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            ADApplyNativeTWBCached7183(iv,NO);
-            // v7.260: repeated subtheme_image_* leaves were still reaching final
-            // layout without the generic cached TWB overlay.  This fallback is
-            // exact to kind 4 UIImage rasters and uses the same configured TWB
-            // strength/color; SVG/RNSVG never enters this UIImageView path.
-            if(kind==4&&gP.enabled&&gP.whiteTame&&iv.window&&!objc_getAssociatedObject(iv,kADTWBOverlay)){
-                CALayer *ov=[CALayer layer]; ov.name=@"AmazonDarkTWB7";
-                ov.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"backgroundColor":[NSNull null],@"zPosition":[NSNull null]};
-                ov.frame=iv.bounds; ov.backgroundColor=ADNativeTWBOverlayColor7146().CGColor; ov.zPosition=FLT_MAX;
-                [iv.layer addSublayer:ov]; objc_setAssociatedObject(iv,kADTWBOverlay,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            }
+            if(gP.enabled&&gP.whiteTame&&iv.window){
+                if(kind==4)ADEnsureNativeTWBOverlay7270(iv);
+                else ADApplyNativeTWBCached7183(iv,NO);
+            } else ADMenuRemoveTWB7255(iv);
         } else ADMenuRemoveTWB7255(iv);
     } @catch(...) { gADMenuImageWrite7255=NO; }
 }
@@ -7111,7 +6944,7 @@ static BOOL ADMenuControlImageWrapper7255(UIView *v){
         if(w>24.0||h>24.0)return NO;
         if(ADMenuAncestorMatching7255(v,^BOOL(NSString *a){ return [a isEqualToString:@"theme_card_content_view_test_id"]; },6))return YES;
         return ADMenuAncestorMatching7255(v,^BOOL(NSString *a){
-            NSString *x=a.lowercaseString; return [x isEqualToString:@"account_switcher"]||[x isEqualToString:@"so"]||[x isEqualToString:@"cs"];
+            return ADMenuFooterActionAid7255(a);
         },6)!=nil;
     } @catch(...) { return NO; }
 }
@@ -7388,7 +7221,7 @@ static void ADPersonFinalizePersonImage7235(UIImageView *iv,BOOL discover){
 }
 %end
 
-// Exact Highlights semantic wrapper fallback.  Most tiles expose an anonymous
+// Exact Highlights semantic wrapper owner. Most tiles expose an anonymous
 // RCTUIImageViewAnimated child and keep the v7.224 image-leaf TWB path. The probe
 // shows the first visible tile can instead expose only its RCTImageView wrapper, so
 // this hook shades that exact wrapper only while it lacks a raster UIImageView child.
@@ -7397,7 +7230,7 @@ static void ADPersonFinalizePersonImage7235(UIImageView *iv,BOOL discover){
     %orig;
     objc_setAssociatedObject(self,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     if(ADPersonOrderSearchMagnifierWrapper7243((UIView *)self))((UIView *)self).tintColor=ADLightText706();
-    ADPersonOwnHighlightWrapperFallback7229((UIView *)self);
+    ADPersonOwnHighlightWrapper7229((UIView *)self);
     ADMenuOwnImageWrapper7255((UIView *)self);
 }
 - (void)layoutSubviews {
@@ -7406,7 +7239,7 @@ static void ADPersonFinalizePersonImage7235(UIImageView *iv,BOOL discover){
         ((UIView *)self).tintColor=ADLightText706();
         for(UIView *child in ((UIView *)self).subviews)if([child isKindOfClass:[UIImageView class]])ADPersonOwnOrderSearchMagnifierLeaf7243((UIImageView *)child);
     }
-    ADPersonOwnHighlightWrapperFallback7229((UIView *)self);
+    ADPersonOwnHighlightWrapper7229((UIView *)self);
     ADMenuOwnImageWrapper7255((UIView *)self);
 }
 - (void)setTintColor:(UIColor *)color {
@@ -7806,7 +7639,7 @@ static NSString *ADProbeClassifiers7233(UIView *v){
         BOOL image=[v isKindOfClass:[UIImageView class]]; UIImageView *iv=image?(UIImageView *)v:nil;
         CALayer *buy=objc_getAssociatedObject(v,kADPersonBuyAgainOutline7218),*plate=objc_getAssociatedObject(v,kADPersonHighlightPlateOverlay7212),*wrap=objc_getAssociatedObject(v,kADPersonHighlightWrapperOverlay7229),*review=objc_getAssociatedObject(v,kADPersonReviewOutline7231);
         return [NSString stringWithFormat:@"classifiers outer=%d inner=%d carOuter=%d carInner=%d sec=%d buyItem=%d buyWrap=%d topPill=%d shell=%d header=%d titleBand=%d textFix=%d hlTile=%d hlPlate=%d reviewPlate=%d hlWrap=%d fix240(list=%d interest=%d medicalCard=%d orderCard=%d buyOverlay=%d buyPrimary=%d subscribeOverlay=%d keepText=%d buyOuter=%d interestTitle=%d highlightArrow=%d nestedList=%d) ownOverlay(buy=%d plate=%d wrap=%d review=%d)%@",
-            ADPersonOuterCardFloor7213(v)?1:0,ADPersonInternalMediaPlate7213(v)?1:0,ADPersonCarouselOuter7214(v)?1:0,ADPersonInsideCarouselOuter7214(v)?1:0,ADPersonSectionKind7218(v),ADPersonBuyAgainItem7218(v)?1:0,ADPersonBuyAgainWrapper7218(v)?1:0,ADPersonTopMenuPill7208(v)?1:0,ADPersonBorderOnlyShell7227(v)?1:0,ADPersonHeaderLeaf7221(v)?1:0,ADPersonHeadingBandGeometry7221(v)?1:0,ADPersonFinalTextOwner7239(v)?1:0,ADPersonHighlightTile7224(v)?1:0,ADPersonHighlightPlate7212(v)?1:0,ADPersonReviewBorderPlate7231(v)?1:0,ADPersonHighlightWrapperFallback7229(v)?1:0,
+            ADPersonOuterCardFloor7213(v)?1:0,ADPersonInternalMediaPlate7213(v)?1:0,ADPersonCarouselOuter7214(v)?1:0,ADPersonInsideCarouselOuter7214(v)?1:0,ADPersonSectionKind7218(v),ADPersonBuyAgainItem7218(v)?1:0,ADPersonBuyAgainWrapper7218(v)?1:0,ADPersonTopMenuPill7208(v)?1:0,ADPersonBorderOnlyShell7227(v)?1:0,ADPersonHeaderLeaf7221(v)?1:0,ADPersonHeadingBandGeometry7221(v)?1:0,ADPersonFinalTextOwner7239(v)?1:0,ADPersonHighlightTile7224(v)?1:0,ADPersonHighlightPlate7212(v)?1:0,ADPersonReviewBorderPlate7231(v)?1:0,ADPersonHighlightWrapperOwner7229(v)?1:0,
             ADPersonListCard7235(v)?1:0,ADPersonInterestBorderPlate7235(v)?1:0,
             ([(v.accessibilityIdentifier?:@"").lowercaseString isEqualToString:@"yhw_healthai_0"]||[(v.accessibilityIdentifier?:@"").lowercaseString isEqualToString:@"yhw_pharmacy_1"])?1:0,
             [(v.accessibilityIdentifier?:@"").lowercaseString isEqualToString:@"yo_btn"]?1:0,ADPersonBuyAgainOccluder7235(v)?1:0,ADPersonBuyAgainItem7218(v)?1:0,
@@ -8503,7 +8336,7 @@ static BOOL ADProbeTabSelected7254(NSString *aid){
 
 
 // v7.269 Alexa/Rufus UI forensics probe retained in v7.270. The selected native tab is historically
-// ANXTabBarButton#rufusTab (with alexaTab retained as a defensive alias). Historical
+// ANXTabBarButton#rufusTab. Historical
 // v7.162 source proves Amazon's Alexa/Rufus surfaces can use WebKit containers and
 // pseudo-element painters, so this explicit-trigger probe inventories both native and
 // WebKit ownership without assuming which renderer the current Alexa pane uses.
@@ -8514,7 +8347,7 @@ static NSString *ADAlexaProbePath7269(NSUInteger run){
     @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.270-alexa-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.270-alexa-ui-probe-r%lu.txt",(unsigned long)run]];}
 }
 static void ADAlexaProbeLogTabs7269(NSString *path){
-    for(NSString *aid in @[@"rufusTab",@"alexaTab"]){
+    for(NSString *aid in @[@"rufusTab"]){
         UIControl *tab=ADProbeTabButton7254(aid); if(!tab){ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"ALEXA_TAB aid=%@ found=0\n",aid]);continue;}
         CGRect r=CGRectZero;@try{r=[tab convertRect:tab.bounds toView:nil];}@catch(...){}
         ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"ALEXA_TAB aid=%@ found=1 ptr=%p cls=%@ selected=%d enabled=%d highlighted=%d state=%lu traits=%llu frame=(%.1f,%.1f %.1fx%.1f) bg=%@ tint=%@ layerBorder=%.2f/%@ radius=%.2f\n",aid,tab,NSStringFromClass(tab.class),tab.selected?1:0,tab.enabled?1:0,tab.highlighted?1:0,(unsigned long)tab.state,(unsigned long long)tab.accessibilityTraits,r.origin.x,r.origin.y,r.size.width,r.size.height,ADMenuProbeColor7252(tab.backgroundColor),ADMenuProbeColor7252(tab.tintColor),tab.layer.borderWidth,ADMenuProbeCG7252(tab.layer.borderColor),tab.layer.cornerRadius]);
@@ -8549,7 +8382,7 @@ static void ADAlexaProbeScanNative7269(UIScrollView *sv,NSString *path,void (^do
 }
 static void ADCaptureAlexaProbe7269(NSString *trigger){
     if(!gP.enabled||gADAlexaProbeBusy7269)return;gADAlexaProbeBusy7269=YES;NSUInteger run=++gADAlexaProbeRun7269;NSString *path=ADAlexaProbePath7269(run);
-    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.270 ALEXA/RUFUS UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; selected native tab owner is ANXTabBarButton#rufusTab (fallback #alexaTab); content renderer is discovered at trigger time\nhistory=v7.162 proved Alexa/Rufus surfaces can use WebKit nice-widget/Rufus containers and pseudo-element painters; no current Alexa visual ownership is assumed\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes plus privacy-safe text lengths/hashes retained\nweb=all visible WKWebViews scored; chosen document gets finite top-to-bottom viewport snapshots plus final full DOM inventory (max 6200 nodes), open-shadow-root and accessible-iframe recursion, computed colors/backgrounds/images/masks/borders/radii/outlines/shadows/fonts/SVG/filter/transform/pseudo-elements/media and style-owner inventory; original offset restored\nnative=all visible native scroll candidates inventoried; best non-WebKit content scroll gets finite top-to-bottom UIKit/React snapshots including view/layer geometry, colors, borders, gradients/shapes, RCT edge props, text runs, controls, image/TWB state; original offset restored\nnormal_runtime=no observer/timer/RAF/scroll listener/recurring hierarchy scan is added by this probe\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADAlexaProbeCap7269]);
+    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.270 ALEXA/RUFUS UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; selected native tab owner is ANXTabBarButton#rufusTab; content renderer is discovered at trigger time\nhistory=v7.162 proved Alexa/Rufus surfaces can use WebKit nice-widget/Rufus containers and pseudo-element painters; no current Alexa visual ownership is assumed\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes plus privacy-safe text lengths/hashes retained\nweb=all visible WKWebViews scored; chosen document gets finite top-to-bottom viewport snapshots plus final full DOM inventory (max 6200 nodes), open-shadow-root and accessible-iframe recursion, computed colors/backgrounds/images/masks/borders/radii/outlines/shadows/fonts/SVG/filter/transform/pseudo-elements/media and style-owner inventory; original offset restored\nnative=all visible native scroll candidates inventoried; best non-WebKit content scroll gets finite top-to-bottom UIKit/React snapshots including view/layer geometry, colors, borders, gradients/shapes, RCT edge props, text runs, controls, image/TWB state; original offset restored\nnormal_runtime=no observer/timer/RAF/scroll listener/recurring hierarchy scan is added by this probe\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADAlexaProbeCap7269]);
     ADAlexaProbeLogTabs7269(path);UIScrollView *native=ADMenuProbeFindNativeScroll7252(path);UIWindow *root=UIApplication.sharedApplication.keyWindow?:UIApplication.sharedApplication.windows.firstObject;if(root)ADMenuProbeAppend7252(path,ADAlexaNativeSnapshot7269(root,native?:root,@"initial-window"));
     ADAlexaProbeFindWebView7269(path,^(WKWebView *wv,NSString *meta){ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"ALEXA_WEB_SELECTION ptr=%p meta=%@\n",wv,ADMenuProbeSafe7252(meta)]);void (^finishAll)(void)=^{UIWindow *r=UIApplication.sharedApplication.keyWindow?:UIApplication.sharedApplication.windows.firstObject;if(r)ADMenuProbeAppend7252(path,ADAlexaNativeSnapshot7269(r,native?:r,@"final-window"));ADMenuProbeAppend7252(path,@"ALEXA_PROBE_END\n================ END RUN ================\n");gADAlexaProbeBusy7269=NO;};void (^runNative)(void)=^{if(native){ADAlexaProbeScanNative7269(native,path,^(__unused NSString *reason){finishAll();});}else finishAll();};if(wv){ADMenuProbeEvalAppend7252(wv,path,ADAlexaProbeStylesJS7269(@"initial"),@"ALEXA_STYLE_INITIAL",^{ADMenuProbeScanWeb7252(wv,path,^(__unused NSString *reason){ADMenuProbeEvalAppend7252(wv,path,ADAlexaProbeStylesJS7269(@"post-web-scan"),@"ALEXA_STYLE_FINAL",^{runNative();});});});}else runNative();});
 }
@@ -8616,15 +8449,12 @@ static void ADCaptureHomeFrameProbe7265(NSString *trigger){
 
 static void ADCaptureThreeTabProbe7254(NSString *trigger){
     if(!gP.enabled)return;
-    // Prefer Amazon's exact bottom-tab state. Home is current-frame-only and never scrolls.
-    // Person gets an exact-root fallback because its React wrapper is stable; Cart/Menu/Alexa
-    // remain tab-gated to avoid retained off-screen WKWebViews from other panes.
-    if(ADProbeTabSelected7254(@"home")||ADProbeTabSelected7254(@"homeTab")){ ADCaptureHomeFrameProbe7265(trigger); return; }
+    // Dispatch only from the current probe-proven native bottom-tab identifiers.
+    if(ADProbeTabSelected7254(@"home")){ ADCaptureHomeFrameProbe7265(trigger); return; }
     if(ADProbeTabSelected7254(@"meTab")){ ADCapturePersonProbe7233(trigger); return; }
     if(ADProbeTabSelected7254(@"cartTab")){ ADCaptureCartProbe7241(trigger); return; }
     if(ADProbeTabSelected7254(@"menuTab")){ ADCaptureMenuProbe7252(trigger); return; }
-    if(ADProbeTabSelected7254(@"rufusTab")||ADProbeTabSelected7254(@"alexaTab")){ ADCaptureAlexaProbe7269(trigger); return; }
-    if(ADPersonProbeWrapper7233()&&ADInPersonTab7206(ADPersonProbeWrapper7233())){ ADCapturePersonProbe7233(trigger); return; }
+    if(ADProbeTabSelected7254(@"rufusTab")){ ADCaptureAlexaProbe7269(trigger); return; }
 }
 static void ADInstallThreeTabProbes7254(void){
     static dispatch_once_t once; dispatch_once(&once,^{
@@ -8638,6 +8468,6 @@ static void ADInstallThreeTabProbes7254(void){
     });
 }
 
-// v7.270 retains v7.269 and repairs first-open hamburger footer ownership while keeping the Alexa/Rufus hybrid forensics probe intact.
+// v7.270 optimized keeps the same visual contract/probes while removing alternate owners, dead code and redundant hot-path work.
 
 #pragma clang diagnostic pop
