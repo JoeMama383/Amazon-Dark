@@ -1,3 +1,16 @@
+# AmazonDark v7.271~search-video-chrome-regression-fix
+
+Direct base: **v7.270~optimized-exact-probes**.
+
+## Regression repair
+
+- Restores the product-results Search magnifier by retaining both live exact native renderers: `SBSearchBarIconView` in `SBSearchBarLeadingStackView`, plus the bounded leading-image slot under `SBSearchField` / `SBMultilineSearchView`.
+- Restores Search sponsored-video TWB without filtering the playback compositor directly: `_c2Itd_videoOverlay_*` and the exact `template=FEATURED_ASINS_VIDEO_LIST` `_videoOverlay_*` roles are now matched independently of transient CSS-module hash suffixes.
+- Recolors the exact `sf-rib30-dropdown-main-container` left divider under the Search bar to the standard AmazonDark gray `#494d4d`.
+- Retains the optimized v7.270 event-driven architecture and all five dormant probes; no observer, timer, RAF loop, web scroll listener, or recurring scanner is added.
+
+---
+
 # AmazonDark v7.270~optimized-exact-probes
 
 ## v7.270 maximal optimization sweep
