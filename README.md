@@ -1,3 +1,13 @@
+# AmazonDark v7.283~person-media-alexa-ui-restore-all-probes
+
+## v7.283 Person media regression restore + exact Alexa/Rufus controls
+
+- Direct source base: v7.282~max-optimization-menu-first-paint-all-probes. The v7.282 optimization architecture and deterministic Menu footer fix are retained.
+- Restores the exact pre-v7.282 cached `ADInPersonTab7206` resolver: a bounded <=48-ancestor lookup for `RCTScrollView#me`, with positive ownership cached on the queried view. This reconnects the existing probe-backed authored-raster owners for avatar, notification badge, country flag, Medical Care, Customer Service/Need Help, Subscribe & Save, Shop previously watched, Reviews/other Person product media without reviving a scanner or observer.
+- Alexa/Rufus exact native owners come from the v7.282 comprehensive probe: close chevron, chat-history header glyph, vertical ellipsis -> light; Plus and voice 32x32 controls -> standard dark gray backing with light SVG glyphs; View chat history -> standard gray border.
+- Alexa suggestion-card media is split structurally: the first 40x40 authored palette glyph remains untouched, while only the second and third 40x40 product rasters receive the configured TWB overlay.
+- All six explicit probes remain available and are versioned v7.283. No MutationObserver, timer, RAF loop, web-scroll listener, polling loop, or recurring hierarchy/DOM scan is added.
+
 # AmazonDark v7.282~max-optimization-menu-first-paint-all-probes
 
 ## v7.282 maximal reduction + deterministic Menu footer first paint
