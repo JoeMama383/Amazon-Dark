@@ -1,3 +1,16 @@
+# AmazonDark v7.284~person-final-raster-write-restore-all-probes
+
+## v7.284 probe-proven Person authored-raster final-paint restoration
+
+- Exact source base: v7.283, retaining its probe-backed Alexa/Rufus controls and all six explicit probes.
+- The v7.283 Person probe disproves the v7.283 Person-root diagnosis: avatar, badge, flag, Medical Care, Reviews, Customer Service, Subscribe & Save, and Shop previously watched are all positively classified by the existing `final240` owner, but the authored leaves still finish as `UIImageRenderingModeAlwaysTemplate` (`mode=2`).
+- Known-good pre-v280 v7.240 probes show those same exact `final240` owners finishing as `UIImageRenderingModeAlwaysOriginal` (`mode=1`).
+- Root cause in source: v7.282's maximal optimization consolidated the dedicated Person `RCTUIImageViewAnimated` re-entrant image write into the shared `ADSetImageRenderingMode7271` / `gADImageWriteDepth7271` lane. Classification survived, but the exact Person final-render write stopped surviving React's final paint.
+- Restores only the proven pre-v280 dedicated Person write guard/direct `iv.image = [image imageWithRenderingMode:...]` transaction inside `ADPersonFinalizePersonImage7235`; the shared optimized rendering-mode helper remains authoritative everywhere else.
+- Removes the unnecessary v7.283 `ADInPersonTab7206` rollback and restores v7.282's centralized cached React-surface router, because the device probe proves Person classification itself was not broken.
+- Exact intended final states are restored: Medical/avatar/badge/flag -> authored mode=1 with no TWB; Reviews/Customer Service/Subscribe & Save/Shop previously watched -> authored mode=1 plus their existing image-only TWB; Highlights arrow kind 6 remains the intentional light template glyph.
+- No MutationObserver, polling, interval, RAF, web-scroll listener, recurring hierarchy scan, or new hook class is added.
+
 # AmazonDark v7.283~person-media-alexa-ui-restore-all-probes
 
 ## v7.283 Person media regression restore + exact Alexa/Rufus controls
