@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.261 — Menu footer-row parity + v7.260 Person/Cart/Menu fixes
+ * AmazonDark v7.264 — Person refresh image re-tame + standalone full-raster edge cleanup
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.261-menu-footer-row-parity-probes"
+#define AD_VERSION "v7.264-person-refresh-raster-edge-probes"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -986,6 +986,13 @@ static NSString *ADFloorJS(void){
         // v7.174 probe r2: exact Home image-only APE 414x125 border.
         @".ape-placement.is-image-oo,[id^=ape_][id*=\\\"_placement\\\"].is-image-oo,[id^=ape_gateway_dynamic-][id$=_mshop_placement][style*='414 / 125']{border:1px solid #3b4043!important;border-color:#3b4043!important;outline-color:#3b4043!important;box-shadow:none!important;box-sizing:border-box!important;}"
 
+        // v7.264: the v7.174 414x125 full-raster capture exposes a zero-content
+        // DIV.border-enforcement (430x2, inline 1px #ccc) immediately adjacent to
+        // the authored raster. The screenshot reproduces the same #ccc strip on Home.
+        // This is renderer chrome, not image pixels. Own that exact named child-frame
+        // separator at first paint on every route where Amazon mounts the renderer.
+        @"html[data-ad7-child-frame] .border-enforcement{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}"
+
         // v7.169: /s product-referrer ad iframes are child frames but intentionally are not
         // standalone-candidates. Reuse the proven Home 414x125 renderer contract by exact
         // renderer identity, without touching layout/geometry or unrelated child frames.
@@ -1031,6 +1038,12 @@ static NSString *ADStandalonePaintJS7104(void){
          "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] [data-testid^=modern-][data-testid$=-layout-container],"
          "html[data-ad7104-standalone] [data-testid=ad-background-container]"
          "{border-color:#3b4043!important;outline-color:#3b4043!important;}"
+         /* v7.264: keep the same exact border-enforcement repair in the standalone
+          * shell-survival sheet so Home candidate frames cannot re-expose the #ccc
+          * strip if Amazon replaces HEAD/BODY. The route-wide first-paint owner above
+          * also covers the historical Search 414x125 capture. */
+         "html[data-ad7104-standalone] .border-enforcement"
+         "{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}"
          /* Large dynamic-product structural planes. */
          "html[data-ad7104-standalone] [data-testid=ad-background-container] > div"
          "{background:#000!important;background-color:#000!important;background-image:none!important;}"
@@ -3611,14 +3624,16 @@ static void ADPaintLocationSheetStable7196(UIView *scroll){
     if(ADLocationRootActive7202(scroll,&root)&&root)ADPaintLocationRoot7202(root);
     if(ADLocationSheetOuterScroll7196(scroll)==scroll)ADPaintLocationSheetExactContent7198(scroll);
 }
-// v7.206 Person tab: the four screenshot probes identify the entire pane as native
-// React under the exact RCTScrollView accessibilityIdentifier "me". Scope every
-// Person repair through that root; there is no global React sweep or recurring scan.
+// v7.263: Person refresh hydration can remount Buy Again product raster leaves at
+// depth 31 below the exact RCTScrollView#me root.  The old 24-ancestor budget
+// therefore misclassified those known ANXFastImageView leaves as non-Person media
+// after Retry/Refresh and removed TWB. Keep this a finite ancestry walk (48 max)
+// with no global sweep, observer, timer, or recurring hierarchy scan.
 static UIView *ADPersonRoot7206(UIView *v){
     if(!v)return nil;
     @try {
         UIView *n=v;
-        for(int d=0;n&&d<24;d++,n=n.superview){
+        for(int d=0;n&&d<48;d++,n=n.superview){
             if([n.accessibilityIdentifier isEqualToString:@"me"] && ADClassNameIs7183(n,"RCTScrollView"))return n;
         }
     } @catch(...) {}
@@ -5328,7 +5343,7 @@ static BOOL ADMenuDirectChildAid7255(UIView *v,NSString *wanted){
     @try { for(UIView *c in v.subviews)if([c.accessibilityIdentifier isEqualToString:wanted])return YES; } @catch(...) {}
     return NO;
 }
-// v7.261: exact footer actions live three levels below a rounded React shell.
+// v7.262: exact footer actions live under a nested rounded React footer surface.
 // Find only those three known action IDs and keep this finite/local to the candidate row.
 static UIView *ADMenuFooterActionDescendant7261(UIView *v,int maxDepth){
     if(!v||maxDepth<0)return nil;
@@ -5383,8 +5398,8 @@ static void ADMenuSetSingleRCTBorder7258(UIView *v,CGFloat width,UIColor *color)
 }
 // 0 untouched, 1 OLED row/card with one gray border, 2 custom gray shortcut with
 // one gray border, 3 retired React border shell, 4 OLED structural floor,
-// 5 footer rounded shell: OLED + the same one gray edge as category rows,
-// 6 footer inner action: transparent so it cannot square-fill over the shell.
+// 5 footer visible inner surface: OLED + the same one gray edge as category rows,
+// 6 footer action leaf: transparent so it cannot repaint over the rounded surface.
 static int ADMenuViewRole7255(UIView *v){
     if(!v||!v.window||!ADClassNameIs7183(v,"RCTView")||!ADInMenuTab7255(v))return 0;
     @try {
@@ -5396,13 +5411,16 @@ static int ADMenuViewRole7255(UIView *v){
             NSString *x=a.lowercaseString; return [x isEqualToString:@"account_switcher"]||[x isEqualToString:@"so"]||[x isEqualToString:@"cs"];
         },5);
         if(action&&v==action&&w>=300.0&&w<=420.0&&h>=36.0&&h<=66.0)return 6;
-        // v7.260 probe: each footer item has a 406x48.7 rounded React shell
-        // (stock teal edge, r16) around a 404x46.7 square gray action leaf.
-        // Own the shell, not the leaf, so these rows match theme-card geometry:
-        // OLED fill + #494d4d/1pt edge + r16, with the inner leaf transparent.
+        // v7.261 probe: the visible stock footer surface is the INNER
+        // 406x48.7 React view.  It carries the white fill + stock teal edge + r16.
+        // The surrounding 410x52.7 view is only a larger border wrapper.  v7.261
+        // incorrectly owned that outer wrapper, leaving the real white surface
+        // untouched.  Own the inner surface exactly, and retire the outer wrapper.
         CGFloat footerRR=MAX(v.layer.cornerRadius,ADPersonRCTBorderRadius7212(v));
-        if(w>=398.0&&w<=414.0&&h>=44.0&&h<=55.0&&footerRR>=12.0&&
+        if(w>=402.0&&w<=408.0&&h>=46.0&&h<=51.0&&footerRR>=12.0&&
            ADMenuFooterActionDescendant7261(v,4))return 5;
+        if(w>=408.0&&w<=412.0&&h>=50.0&&h<=55.0&&footerRR>=12.0&&
+           ADMenuFooterActionDescendant7261(v,6))return 3;
         if([aid isEqualToString:@"theme_card_content_view_test_id"])return 1;
         // v7.260: the full Menu probe proves every expanded category uses
         // #subtheme-card-view and the same repeated 376x50/r16 row geometry.
@@ -5448,9 +5466,9 @@ static void ADMenuOwnView7255(UIView *v){
             ADMenuSetSingleRCTBorder7258(v,0.0,ADBorderGray706());
         }
         if(role==5){
-            // Match the category cards above: the probe shows their physical
-            // surface is clipped and r16. Force the same physical clip here so
-            // the OLED background itself is rounded, not just the border raster.
+            // Match the category cards above on the real visible 406x48.7 surface:
+            // OLED fill, one gray edge, r16, and clipping. This preserves the
+            // geometry from Amazon while replacing its white/teal paint only.
             v.layer.cornerRadius=16.0;
             v.layer.masksToBounds=YES;
         }
@@ -7038,6 +7056,9 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
         return;
     }
     objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    // v7.263: React/FastImage may recycle this leaf across refresh hydration.
+    // Never let a prior surface classification suppress the new Person ancestry.
+    objc_setAssociatedObject(self,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     UIImage *finalImage=image;
     if(gP.enabled&&image&&ADSearchLeadingMagnifier7229(self)&&image.renderingMode!=UIImageRenderingModeAlwaysTemplate){
         UIImage *tpl=[image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]; if(tpl)finalImage=tpl;
@@ -7054,6 +7075,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
 - (void)didMoveToWindow {
     %orig;
     objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(self,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     ADOwnSearchLeadingMagnifier7229(self);
     ADPersonOwnOrderSearchMagnifierLeaf7243(self);
     ADOwnImageView7226(self,YES);
@@ -7062,6 +7084,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
 - (void)didMoveToSuperview {
     %orig;
     objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(self,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     if(self.window){
         ADOwnSearchLeadingMagnifier7229(self);
         ADPersonOwnOrderSearchMagnifierLeaf7243(self);
@@ -7198,6 +7221,7 @@ static void ADPersonFinalizePersonImage7235(UIImageView *iv,BOOL discover){
     }
     objc_setAssociatedObject(self,kADPersonFinalRasterKind7235,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(self,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     %orig(image);
     ADPersonFinalizePersonImage7235((UIImageView *)self,YES);
     ADMenuFinalizeImage7255((UIImageView *)self,YES);
@@ -7205,6 +7229,7 @@ static void ADPersonFinalizePersonImage7235(UIImageView *iv,BOOL discover){
 - (void)didMoveToSuperview {
     objc_setAssociatedObject(self,kADPersonFinalRasterKind7235,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(self,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     %orig;
     if(((UIView *)self).window){
         ADPersonFinalizePersonImage7235((UIImageView *)self,YES);
@@ -7213,6 +7238,7 @@ static void ADPersonFinalizePersonImage7235(UIImageView *iv,BOOL discover){
 }
 - (void)didMoveToWindow {
     %orig;
+    objc_setAssociatedObject(self,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     if(((UIView *)self).window){
         ADPersonFinalizePersonImage7235((UIImageView *)self,YES);
         ADMenuFinalizeImage7255((UIImageView *)self,YES);
@@ -7688,9 +7714,9 @@ static void ADProbeAppend7233(NSString *path,NSString *text){
 static NSString *ADProbePath7233(NSUInteger run){
     @try {
         NSDateFormatter *f=[NSDateFormatter new]; f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]; f.timeZone=[NSTimeZone localTimeZone]; f.dateFormat=@"yyyyMMdd-HHmmss-SSS";
-        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.261-person-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.264-person-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];
-    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.261-person-ui-probe-r%lu.txt",(unsigned long)run]]; }
+    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.264-person-ui-probe-r%lu.txt",(unsigned long)run]]; }
 }
 static NSString *ADPersonSnapshot7233(UIView *wrap,UIScrollView *root,NSUInteger step,CGFloat targetY){
     NSMutableString *m=[NSMutableString string]; if(!root||!wrap)return @"PERSON_SNAPSHOT_NO_ROOT\n";
@@ -7878,7 +7904,7 @@ static void ADCapturePersonProbe7233(NSString *trigger){
     gADPersonProbeBusy7233=YES; NSUInteger run=++gADPersonProbeRun7233; NSString *path=ADProbePath7233(run);
     CGPoint original=root.contentOffset; BOOL originalScroll=root.scrollEnabled; root.scrollEnabled=NO;
     CGFloat viewport=MAX(1.0,root.bounds.size.height),stride=MAX(320.0,MIN(600.0,viewport*0.58));
-    ADProbeAppend7233(path,[NSString stringWithFormat:@"AMAZONDARK v7.261 PERSON UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\npolicy=no visible text strings, no accessibilityLabel text, no typed query, no web DOM, no network payloads\nroot wrapper is exact RCTScrollView aid=me; real scroll descendant is walked non-animated and restored\nexternal modal discovery=all AppCX roots are scored by visible sheet area; top roots plus best foreign modal are snapshotted\noriginalOffset=(%.1f,%.1f) content=(%.1fx%.1f) viewport=%.1f stride=%.1f maxSteps=40\n",
+    ADProbeAppend7233(path,[NSString stringWithFormat:@"AMAZONDARK v7.264 PERSON UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\npolicy=no visible text strings, no accessibilityLabel text, no typed query, no web DOM, no network payloads\nroot wrapper is exact RCTScrollView aid=me; real scroll descendant is walked non-animated and restored\nexternal modal discovery=all AppCX roots are scored by visible sheet area; top roots plus best foreign modal are snapshotted\noriginalOffset=(%.1f,%.1f) content=(%.1fx%.1f) viewport=%.1f stride=%.1f maxSteps=40\n",
         AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADPersonProbeCap7233,original.x,original.y,root.contentSize.width,root.contentSize.height,viewport,stride]);
     ADProbeAppend7233(path,ADPersonExternalSnapshots7258());
     __block NSUInteger step=0; __block CGFloat targetY=0,lastY=-999999; __block void (^next)(void)=nil;
@@ -7964,7 +7990,7 @@ static void ADCartProbeAppend7241(NSString *path,NSString *text){
     if(!path.length||!text.length)return; @try {NSFileManager *fm=[NSFileManager defaultManager];[fm createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES attributes:nil error:nil];unsigned long long cur=[[[fm attributesOfItemAtPath:path error:nil] objectForKey:NSFileSize] unsignedLongLongValue];if(cur>=kADCartProbeCap7241)return;NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding];unsigned long long remain=kADCartProbeCap7241-cur;if((unsigned long long)d.length>remain)d=[d subdataWithRange:NSMakeRange(0,(NSUInteger)remain)];if(![fm fileExistsAtPath:path]){[d writeToFile:path atomically:YES];return;}NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:path];if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];}} @catch(...) {}
 }
 static NSString *ADCartProbePath7241(NSUInteger run){
-    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.261-cart-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.261-cart-ui-probe-r%lu.txt",(unsigned long)run]];}
+    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.264-cart-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.264-cart-ui-probe-r%lu.txt",(unsigned long)run]];}
 }
 static NSString *ADCartProbeDetectJS7241(void){
     return
@@ -8050,7 +8076,7 @@ static void ADCartProbeEvalAppend7241(WKWebView *wv,NSString *path,NSString *js,
 }
 static void ADCaptureCartProbe7241(NSString *trigger){
     if(!gP.enabled||gADCartProbeBusy7241)return; gADCartProbeBusy7241=YES; NSUInteger run=++gADCartProbeRun7241; NSString *path=ADCartProbePath7241(run);
-    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"AMAZONDARK v7.261 SHOPPING CART UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=Cart is a WKWebView document; target signatures #cart-page/#sc-active-cart/#sc-saved-cart plus cart URL path\npolicy=no visible text strings, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes and privacy-safe text hashes retained\nscan=finite explicit-trigger WKScrollView walk + viewport computed-style DOM snapshots + final full DOM inventory + native UIKit/WebKit snapshots; original offset restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADCartProbeCap7241]);
+    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"AMAZONDARK v7.264 SHOPPING CART UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=Cart is a WKWebView document; target signatures #cart-page/#sc-active-cart/#sc-saved-cart plus cart URL path\npolicy=no visible text strings, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes and privacy-safe text hashes retained\nscan=finite explicit-trigger WKScrollView walk + viewport computed-style DOM snapshots + final full DOM inventory + native UIKit/WebKit snapshots; original offset restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADCartProbeCap7241]);
     ADCartProbeFindWebView7241(path,^(WKWebView *wv,NSString *meta){
         if(!wv||ADCartProbeScore7241(meta)<=0){ADCartProbeAppend7241(path,[NSString stringWithFormat:@"CART_PROBE_NO_TARGET meta=%@\n================ END RUN ================\n",ADCartProbeSafe7241(meta)]);gADCartProbeBusy7241=NO;return;}
         UIScrollView *sv=wv.scrollView; CGPoint original=sv.contentOffset; BOOL originalScroll=sv.scrollEnabled; sv.scrollEnabled=NO; CGFloat viewport=MAX(1.0,sv.bounds.size.height),stride=MAX(300.0,MIN(620.0,viewport*0.60)); CGRect wr=CGRectZero;@try{wr=[wv convertRect:wv.bounds toView:nil];}@catch(...){}
@@ -8120,7 +8146,7 @@ static void ADMenuProbeAppend7252(NSString *path,NSString *text){
     if(!path.length||!text.length)return; @try {NSFileManager *fm=[NSFileManager defaultManager];[fm createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES attributes:nil error:nil];unsigned long long cur=[[[fm attributesOfItemAtPath:path error:nil] objectForKey:NSFileSize] unsignedLongLongValue];if(cur>=kADMenuProbeCap7252)return;NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding];unsigned long long remain=kADMenuProbeCap7252-cur;if((unsigned long long)d.length>remain)d=[d subdataWithRange:NSMakeRange(0,(NSUInteger)remain)];if(![fm fileExistsAtPath:path]){[d writeToFile:path atomically:YES];return;}NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:path];if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];}} @catch(...) {}
 }
 static NSString *ADMenuProbePath7252(NSUInteger run){
-    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.261-menu-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.261-menu-ui-probe-r%lu.txt",(unsigned long)run]];}
+    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.264-menu-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.264-menu-ui-probe-r%lu.txt",(unsigned long)run]];}
 }
 static NSString *ADMenuProbeDetectJS7252(void){
     return
@@ -8312,7 +8338,7 @@ static void ADMenuProbeScanNative7252(UIScrollView *sv,NSString *path,void (^don
 }
 static void ADCaptureMenuProbe7252(NSString *trigger){
     if(!gP.enabled||gADMenuProbeBusy7252)return;gADMenuProbeBusy7252=YES;NSUInteger run=++gADMenuProbeRun7252;NSString *path=ADMenuProbePath7252(run);
-    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.261 HAMBURGER MENU UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; stable native tab owner is ANXTabBarButton#menuTab, content renderer is discovered at trigger time\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes and privacy-safe text lengths/hashes retained\nscan=finite explicit-trigger WebKit full-document walk plus finite native/React scroll walk when present; original offsets and scrollEnabled restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADMenuProbeCap7252]);
+    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.264 HAMBURGER MENU UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; stable native tab owner is ANXTabBarButton#menuTab, content renderer is discovered at trigger time\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes and privacy-safe text lengths/hashes retained\nscan=finite explicit-trigger WebKit full-document walk plus finite native/React scroll walk when present; original offsets and scrollEnabled restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADMenuProbeCap7252]);
     ADMenuProbeLogTab7252(path); UIScrollView *native=ADMenuProbeFindNativeScroll7252(path); UIWindow *root=UIApplication.sharedApplication.keyWindow?:UIApplication.sharedApplication.windows.firstObject; if(root)ADMenuProbeAppend7252(path,ADMenuNativeSnapshot7252(root,native?:root,@"initial-window"));
     ADMenuProbeFindWebView7252(path,^(WKWebView *wv,NSString *meta){
         ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"WEB_SELECTION ptr=%p meta=%@\n",wv,ADMenuProbeSafe7252(meta)]);
@@ -8364,6 +8390,6 @@ static void ADInstallThreeTabProbes7254(void){
     });
 }
 
-// v7.261 retains the v7.260 Person/Cart/Menu fixes and makes the three Menu footer actions structurally match category rows: OLED rounded shell + one gray edge, with square inner action fills cleared.
+// v7.264 retains the v7.263 Person refresh/remount repair and v7.262 Hamburger footer surfaces; standalone full-raster border-enforcement separators are now OLED black.
 
 #pragma clang diagnostic pop

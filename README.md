@@ -1,4 +1,14 @@
-# AmazonDark v7.261~menu-footer-row-parity-probes
+# AmazonDark v7.264~person-refresh-raster-edge-probes
+
+## v7.264 standalone full-raster separator cleanup
+
+- Builds directly on v7.263 and retains the Person refresh/remount image re-tame repair plus every v7.262 Hamburger footer fix.
+- Historical v7.174 full-raster evidence identifies the bright strip as a dedicated zero-content `div.border-enforcement` measuring 430x2 with inline `border:1px solid #ccc`; the captured full-raster image itself is a separate 828x250 authored raster. The retained capture carrying that exact separator is a 414x125 `ape_search_*` placement, while the supplied screenshot shows the same renderer strip on Home, so the defect is renderer-specific rather than Home-only.
+- Reviewed compact 320x50 captures do not expose `border-enforcement`; that renderer already owns its separate rounded 1px parent placement border, which remains unchanged.
+- The reviewed v7.183 large Home image-only 300x250 / ~430x358 capture does not expose `border-enforcement`; its full-raster TWB path remains unchanged. The retained probe corpus does not establish a separate XL full-raster renderer, so no XL-specific rule is invented.
+- v7.264 changes only the exact `.border-enforcement` child-frame separator to OLED black (background/border/outline). It is installed in the general child-frame first-paint floor sheet and repeated in the existing Home standalone shell-survival sheet. It does not touch the raster, Sponsored feedback row, media TWB, dimensions, margins, padding, radius, iframe geometry, or hit targets.
+- Cart/Person/Menu probes remain finite and explicit-trigger only, now exported with v7.264 filenames. No MutationObserver, interval, RAF loop, web scroll listener, polling loop, or recurring production hierarchy scan is added.
+
 
 ## Probe-backed Person savings sheet + final Hamburger cleanup
 
@@ -9,7 +19,7 @@
 - Forces configured TWB at final layout for exact `subtheme_image_*` UIImage-backed Hamburger column artwork. RNSVG/SVG remains completely outside this path and untamed.
 - Makes expanded Hamburger subtheme-row borders structural rather than state-dependent: the real 376x50/radius-16 two-child row owns one standard gray border, while same-geometry zero-child border/highlight shells are cleared. This explicitly covers the probe-proven Travel (`sbdlt`) row whose stock primary border width is 0 while neighboring rows report 1.
 - Stops AmazonDark from writing any border property on the three Hamburger footer actions (`account_switcher`, `so`, `cs`). Their gray fill/light text remains themed, while Amazon alone owns the surviving stock border.
-- Cart/Person/Menu probes remain finite and explicit-trigger only, now exported with v7.261 filenames. No MutationObserver, interval, RAF loop, web scroll listener, polling loop, or recurring production hierarchy scan is added.
+- Cart/Person/Menu probes remain finite and explicit-trigger only, now exported with v7.263 filenames. No MutationObserver, interval, RAF loop, web scroll listener, polling loop, or recurring production hierarchy scan is added.
 
 # AmazonDark v7.258~menu-single-border-person-sheet-probe
 
@@ -495,3 +505,19 @@ Maintained by **JoeMama383**.
 - `account_switcher`, `so`, and `cs` inner action leaves are transparent so their former `#303335` square fills cannot cover the rounded shell.
 - Replaces the stock teal/blue footer edge with the same gray border used by Menu category rows. No extra border layer is added.
 - All v7.260 Person savings, Cart Share, Menu column TWB, Travel-row border, stock footer glyph, and SVG exclusions remain unchanged.
+
+
+## v7.262 Hamburger footer inner-surface parity
+
+- The v7.261 Menu probe proved the three footer actions are nested: a 410x52.7 outer border wrapper contains a 406x48.7 React surface, which contains the 404x46.7 action leaf.
+- The visible white fill and stock teal edge belong to the 406x48.7 middle surface. v7.262 makes that exact surface OLED black with the standard #494d4d 1pt/r16 treatment.
+- The 410x52.7 wrapper and 404x46.7 action leaf are transparent/no-border so they cannot create duplicate edges or square fills.
+- Text/glyph behavior remains the same as the surrounding Menu cards; no SVG/RNSVG taming behavior changed.
+
+
+## v7.263 Person refresh image re-tame
+
+- Probe-backed root cause: refreshed Buy Again product raster leaves are `ANXFastImageView` nodes at depth 31 below the Person `RCTScrollView#me` root. The old Person classifier stopped after 24 ancestors, so refreshed leaves fell out of Person scope, were marked media-blocked, and lost TWB.
+- Extends only the finite Person ancestor budget from 24 to 48. This remains lifecycle/event driven; no observer, timer, recurring hierarchy scan, web scroll listener, or global React sweep is added.
+- Clears the cached React-surface classification when image views receive a new image or move between window/superview owners, including the `RCTUIImageViewAnimated` override path. This prevents recycled refresh leaves from inheriting stale non-Person scope.
+- Leaves the TWB strength, media eligibility rules, authored-image exclusions, Person text/glyph fixes, Cart fixes, and v7.262 Hamburger footer ownership unchanged.
