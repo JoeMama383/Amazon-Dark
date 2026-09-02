@@ -1,11 +1,12 @@
-# AmazonDark v7.266~standalone-border-parity-raster-edge-homeprobe
+# AmazonDark v7.266~home-ad-border-divider-overscroll-probe
 
 
-## v7.266 standalone border parity + full-raster edge hardening + Home probe repair
+## v7.266 Home standalone border parity + full-raster divider + hero overscroll + Home probe repair
 
 - Restores the established gray edge on structured/non-full-raster 414x125 standalone ads. v7.265 removed the broad medium placement rule while making raster ads frameless, which allowed Amazon's stock white renderer border to show again.
 - Keeps every structurally-proven full-raster standalone ad frameless at every size. A full-raster child sends a one-shot proof message to its exact parent iframe/APE placement so outer parent chrome is cleared without guessing from size.
 - Hardens the medium full-raster separator repair: `.border-enforcement` is hidden, its pseudo-elements are suppressed, and the proven full-raster child clears renderer/container borders using inline `!important` ownership.
+- Locks the dedicated Home `#wd-backdrop-overscroll` plane to OLED black, so pulling past the top cannot expose the active hero card's average campaign color. The normal `#wd-color-image-backdrop` and hero artwork remain Amazon-owned.
 - Repairs the v7.265 narrow Home probe regression. `removeAllUserScripts` cleared the actual script but v7.265 left the probe association set, so the bridge was not re-added and captures returned `bridge-missing` / `collector-missing`. v7.266 resets that association and self-heals the main-frame bridge at explicit trigger time.
 - No MutationObserver, interval, RAF loop, scroll listener, automated scrolling, or full Home-document scan is added.
 
