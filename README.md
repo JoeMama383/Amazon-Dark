@@ -1,13 +1,14 @@
-# AmazonDark v7.274~fast-product-probe
+# AmazonDark v7.275~brand-rails-menu-first-paint
+
+
+## v7.275 Brands carousel rails + deterministic Hamburger footer first paint
+
+- Search `/s` Brands-related `_bXVsd` multi-brand cards keep the established OLED floors, TWB media, copy, Sponsored treatment, and outer neutral framing. Only internal left/right border ink is changed from `#494d4d` to OLED black, eliminating the visible gray vertical rails between brand tiles while preserving top/bottom/outer borders.
+- The v7.270 Hamburger footer repair remains, but is hardened for the complementary lifecycle ordering: if `account_switcher`, `so`, or `cs` receives its accessibility identifier after mounting, the existing bounded `ADMenuPrimeFooterAncestors7270()` repair runs immediately. Existing move/superview/layout paths still cover ID-before-window construction. No timer, observer, polling, new hook class, or hierarchy scan is added.
+- The compact `/s` probe now includes the already-proven `_bXVsd` family so Brands carousel border paint can be verified without restoring the old multi-megabyte Search probe.
+- v7.273 exact SWV video TWB and v7.274 `avw36` stage-strip treatment remain unchanged.
 
 Direct production/video baseline: **optimized v7.270**.
-
-
-## v7.274 compact product-scroll probe + SWV stage strip
-
-- Keeps the v7.273 exact SWV/1m98b video overlay TWB owner unchanged.
-- Darkens only the new SWV navigation strip (`8wyx7 > avw36`) from Amazon's translucent near-white plate to `#4a4f51`; its three authored button states/dividers remain untouched.
-- Replaces the oversized product-scroll forensic dump with a compact explicit-trigger current-view inventory for `8wyx7`, `1m98b`, and `avw36`. No cross-frame dump, no hit grid, no recurring runtime work.
 
 
 ## v7.274 compact product-scroll probe + SWV stage strip
