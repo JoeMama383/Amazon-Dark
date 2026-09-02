@@ -1,3 +1,11 @@
+# AmazonDark v7.272 — Product-scroll video parity + restored Search-results probe
+
+- Direct base: v7.271 optimized regression repair.
+- Restores the historically proven Search `single-video-card` / Video.js (`video.vjs-tech` + `.vjs-poster`) media family to the `/s` TWB lane using the existing configured TWB factor.
+- Matches the product-scroll vertical ribbon divider to the adjacent control borders exactly (`#747a7c`).
+- Re-adds a dedicated `/s` product shopping/scrolling forensic probe. It is routed through the existing screenshot/SIGUSR2 dispatcher, performs no scrolling, and adds no second listener/signal source or recurring runtime work.
+- Home / Person / Cart / Menu / Alexa probes remain retained.
+
 # AmazonDark v7.271~search-video-chrome-regression-fix
 
 Direct base: **v7.270~optimized-exact-probes**.
