@@ -1,3 +1,16 @@
+# AmazonDark v7.259~person-savings-menu-columns-row-borders-stock-footer-probes
+
+## Probe-backed Person savings sheet + final Hamburger cleanup
+
+- Builds directly on v7.258 and retains all Cart, Cart Share, Person, and Hamburger fixes already present.
+- Uses the corrected v7.258 Person probe's selected foreground `RCTView#sheet-view` / `sheet-inset-view` surface, uniquely gated by `cvm-metab-bottomsheet-titlettl`, to theme the actual visible “Your savings with Subscribe & Save” sheet rather than the hidden AppCX bottom-sheet tree.
+- Converts the live sheet's white root (including the exposed top and bottom strips) and its near-white 400x251 savings card to OLED black.
+- Converts neutral dark/gray sheet text to AmazonDark light while preserving authored saturated colors, including orange/yellow savings semantics and Amazon blue links. The black close symbol is included in the neutral-text repair; the gray drag handle and authored colored bars remain stock.
+- Forces configured TWB at final layout for exact `subtheme_image_*` UIImage-backed Hamburger column artwork. RNSVG/SVG remains completely outside this path and untamed.
+- Makes expanded Hamburger subtheme-row borders structural rather than state-dependent: the real 376x50/radius-16 two-child row owns one standard gray border, while same-geometry zero-child border/highlight shells are cleared. This explicitly covers the probe-proven Travel (`sbdlt`) row whose stock primary border width is 0 while neighboring rows report 1.
+- Stops AmazonDark from writing any border property on the three Hamburger footer actions (`account_switcher`, `so`, `cs`). Their gray fill/light text remains themed, while Amazon alone owns the surviving stock border.
+- Cart/Person/Menu probes remain finite and explicit-trigger only, now exported with v7.259 filenames. No MutationObserver, interval, RAF loop, web scroll listener, polling loop, or recurring production hierarchy scan is added.
+
 # AmazonDark v7.258~menu-single-border-person-sheet-probe
 
 ## Menu single-border cleanup + corrected Person savings-sheet discovery

@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.258 — Menu single-border cleanup + Person modal discovery probe
+ * AmazonDark v7.259 — Person savings sheet + Menu column TWB + uniform row borders + stock footer borders
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.258-menu-single-border-person-sheet-probe"
+#define AD_VERSION "v7.259-person-savings-menu-columns-row-borders-stock-footer-probes"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2159,6 +2159,90 @@ static void ADOwnAppCXSheetFloor7255(UIView *v){
     } @catch(...) {}
 }
 
+// v7.259: the corrected v7.258 Person probe finally captures the visible savings
+// sheet.  It is not the hidden AppCXBottomSheet tree: it is a foreground React
+// `sheet-view` / `sheet-inset-view` surface in AppCXWindow, uniquely identified
+// by the `cvm-metab-bottomsheet-titlettl` descendant.  Keep ownership exact to
+// that hydrated sheet.  Only neutral light floors and neutral dark text change;
+// authored orange/yellow/blue and other saturated Amazon semantics remain stock.
+static const void *kADPersonSavingsSheet7259=&kADPersonSavingsSheet7259;
+static BOOL ADPersonSavingsDarkNeutral7259(UIColor *color){
+    if(!color)return NO;
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0; UIColor *probe=color;
+        if([probe respondsToSelector:@selector(resolvedColorWithTraitCollection:)])
+            probe=[probe resolvedColorWithTraitCollection:UIScreen.mainScreen.traitCollection];
+        if([probe getRed:&r green:&g blue:&b alpha:&a]){
+            if(a<0.08)return NO;
+            CGFloat hi=MAX(r,MAX(g,b)),lo=MIN(r,MIN(g,b));
+            return (hi-lo)<=0.16&&hi<0.50;
+        }
+        if([probe getWhite:&w alpha:&a])return a>=0.08&&w<0.50;
+    } @catch(...) {}
+    return NO;
+}
+static UIView *ADPersonSavingsSheetRoot7259(UIView *v){
+    if(!v||!v.window||!ADClassNameIs7183(v.window,"AppCXWindow"))return nil;
+    @try {
+        UIView *root=nil;
+        for(UIView *n=v;n;n=n.superview){
+            if(ADClassNameIs7183(n,"RCTView")&&[n.accessibilityIdentifier isEqualToString:@"sheet-view"]){ root=n; break; }
+            if([n isKindOfClass:[UIWindow class]])break;
+        }
+        if(!root)return nil;
+        if([objc_getAssociatedObject(root,kADPersonSavingsSheet7259) boolValue])return root;
+        NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger seen=0; BOOL inset=NO,title=NO;
+        while(q.count&&seen++<96){
+            UIView *x=q.firstObject; [q removeObjectAtIndex:0]; if(!x)continue;
+            NSString *aid=x.accessibilityIdentifier?:@"";
+            if([aid isEqualToString:@"sheet-inset-view"])inset=YES;
+            if([aid isEqualToString:@"cvm-metab-bottomsheet-titlettl"])title=YES;
+            if(inset&&title)break;
+            if(x.subviews.count)[q addObjectsFromArray:x.subviews];
+        }
+        if(inset&&title){
+            objc_setAssociatedObject(root,kADPersonSavingsSheet7259,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            return root;
+        }
+    } @catch(...) {}
+    return nil;
+}
+static BOOL ADInPersonSavingsSheet7259(UIView *v){ return ADPersonSavingsSheetRoot7259(v)!=nil; }
+static NSAttributedString *ADPersonSavingsLightString7259(NSAttributedString *in){
+    if(!in.length)return in;
+    @try {
+        NSMutableAttributedString *m=nil; NSRange whole=NSMakeRange(0,in.length);
+        [in enumerateAttribute:NSForegroundColorAttributeName inRange:whole options:0 usingBlock:^(id value,NSRange range,BOOL *stop){
+            UIColor *c=[value isKindOfClass:[UIColor class]]?value:nil;
+            if(!ADPersonSavingsDarkNeutral7259(c))return;
+            if(!m)m=[in mutableCopy];
+            [m addAttribute:NSForegroundColorAttributeName value:ADLightText706() range:range];
+        }];
+        return m?:in;
+    } @catch(...) { return in; }
+}
+static void ADPersonSavingsLightStorage7259(NSTextStorage *ts){
+    if(!ts.length)return;
+    @try {
+        NSRange whole=NSMakeRange(0,ts.length); NSMutableArray<NSValue *> *rr=[NSMutableArray array];
+        [ts enumerateAttribute:NSForegroundColorAttributeName inRange:whole options:0 usingBlock:^(id value,NSRange range,BOOL *stop){
+            UIColor *c=[value isKindOfClass:[UIColor class]]?value:nil;
+            if(ADPersonSavingsDarkNeutral7259(c))[rr addObject:[NSValue valueWithRange:range]];
+        }];
+        if(!rr.count)return; [ts beginEditing];
+        for(NSValue *x in rr)[ts addAttribute:NSForegroundColorAttributeName value:ADLightText706() range:x.rangeValue];
+        [ts endEditing];
+    } @catch(...) {}
+}
+static void ADOwnPersonSavingsFloor7259(UIView *v){
+    if(!gP.enabled||!v||!v.window||!ADInPersonSavingsSheet7259(v))return;
+    @try {
+        UIColor *bg=v.backgroundColor,*layerBG=nil;
+        if(v.layer.backgroundColor)layerBG=[UIColor colorWithCGColor:v.layer.backgroundColor];
+        if(ADNeutralNearWhite7255(bg)||ADNeutralNearWhite7255(layerBG))ADSetViewBackground7226(v,ADOLED(),YES);
+    } @catch(...) {}
+}
+
 %hook UIView
 - (void)didMoveToWindow {
     %orig;
@@ -2167,6 +2251,7 @@ static void ADOwnAppCXSheetFloor7255(UIView *v){
         ADSetViewBackground7226(self,ADOLED(),YES);
     }
     if(ADInAppCXBottomSheet7255(self)){ ADOwnAppCXSheetFloor7255(self); }
+    if(ADInPersonSavingsSheet7259(self))ADOwnPersonSavingsFloor7259(self);
     // Exact owners win. Generic UIView never repaints WebKit, React Native, or
     // Amazon's authored Home category subtree.
     if(ADWebKitInternalView7154(self)||ADReactNativeView7226(self)||ADExactBackgroundOwner7226(self)||ADInAuthoredVisualSubNav7175(self))return;
@@ -2197,6 +2282,11 @@ static void ADOwnAppCXSheetFloor7255(UIView *v){
         return;
     }
     if(gP.enabled&&self.window&&ADInAppCXBottomSheet7255(self)&&ADNeutralNearWhite7255(color)){
+        UIColor *black=ADOLED();
+        %orig(black);
+        return;
+    }
+    if(gP.enabled&&self.window&&ADInPersonSavingsSheet7259(self)&&ADNeutralNearWhite7255(color)){
         UIColor *black=ADOLED();
         %orig(black);
         return;
@@ -5276,8 +5366,9 @@ static void ADMenuSetSingleRCTBorder7258(UIView *v,CGFloat width,UIColor *color)
         [v setNeedsDisplay]; [v.layer setNeedsDisplay];
     } @catch(...) {}
 }
-// 0 untouched, 1 OLED row/card with one gray border, 2 custom gray button with
-// one gray border, 3 retired React border shell, 4 OLED structural floor.
+// 0 untouched, 1 OLED row/card with one gray border, 2 custom gray shortcut with
+// one gray border, 3 retired React border shell, 4 OLED structural floor,
+// 5 gray footer action row with Amazon stock border ownership untouched.
 static int ADMenuViewRole7255(UIView *v){
     if(!v||!v.window||!ADClassNameIs7183(v,"RCTView")||!ADInMenuTab7255(v))return 0;
     @try {
@@ -5288,20 +5379,26 @@ static int ADMenuViewRole7255(UIView *v){
         UIView *action=ADMenuAncestorMatching7255(v,^BOOL(NSString *a){
             NSString *x=a.lowercaseString; return [x isEqualToString:@"account_switcher"]||[x isEqualToString:@"so"]||[x isEqualToString:@"cs"];
         },5);
-        if(action&&v==action&&w>=300.0&&w<=420.0&&h>=36.0&&h<=66.0)return 2;
+        if(action&&v==action&&w>=300.0&&w<=420.0&&h>=36.0&&h<=66.0)return 5;
         if([aid isEqualToString:@"theme_card_content_view_test_id"])return 1;
-        // v7.257: the v7.256 full Menu probe proves every expanded category uses
-        // #subtheme-card-view, but Amazon assigns many dynamic row IDs beyond the
-        // six IDs captured by the earlier probe.  Own the physical 376x50/r16
-        // row under that exact container instead of enumerating semantic IDs.
-        // A sibling/inner 1pt React border shell on the same geometry is retired
-        // so exactly one standard gray edge remains.
+        // v7.259: the full Menu probe proves every expanded category uses
+        // #subtheme-card-view and the same repeated 376x50/r16 row geometry.
+        // Do NOT use Amazon's current borderWidth as the ownership signal: the
+        // Travel row (`sbdlt`) is structurally identical but arrives with the
+        // primary row's borderWidth at 0, while neighboring rows arrive at 1.
+        // The stable discriminator is hierarchy shape: the real physical row is
+        // the rounded 376x50 view with two content children; the same-geometry
+        // rounded zero-child view is only a border/highlight shell.  Therefore
+        // every subtheme row gets exactly one AmazonDark gray edge, including
+        // Travel, and every competing rounded shell is retired.
         UIView *subthemeView=ADMenuAncestorMatching7255(v,^BOOL(NSString *a){ return [a isEqualToString:@"subtheme-card-view"]; },8);
         if(subthemeView){
             if(v==subthemeView)return 4;
             CGFloat rr=MAX(v.layer.cornerRadius,ADPersonRCTBorderRadius7212(v));
-            CGFloat bw=ADPersonRCTBorderWidth7208(v);
-            if(w>=350.0&&w<=394.0&&h>=43.0&&h<=55.0&&rr>=8.0)return bw>0.0?3:1;
+            if(w>=350.0&&w<=394.0&&h>=43.0&&h<=55.0&&rr>=8.0){
+                if(v.subviews.count>=2)return 1;
+                return 3;
+            }
         }
         if(ADMenuDirectChildAid7255(v,@"subtheme-card"))return 1;
         if([aid isEqualToString:@"subtheme-card"]||[aid isEqualToString:@"subtheme-card-view"])return 4;
@@ -5319,14 +5416,16 @@ static void ADMenuOwnView7255(UIView *v){
     if(!gP.enabled||!v||!v.window)return;
     @try {
         int role=ADMenuViewRole7255(v); if(!role)return;
-        UIColor *fill=(role==2)?ADMenuButtonFill7255():((role==3)?[UIColor clearColor]:ADOLED());
+        UIColor *fill=(role==2||role==5)?ADMenuButtonFill7255():((role==3)?[UIColor clearColor]:ADOLED());
         ADSetViewBackground7226(v,fill,YES);
         if(role==1||role==2){
             UIColor *edge=(role==2)?ADMenuButtonBorder7255():ADBorderGray706();
             ADMenuSetSingleRCTBorder7258(v,1.0,edge);
-        } else {
+        } else if(role!=5){
             ADMenuSetSingleRCTBorder7258(v,0.0,ADBorderGray706());
         }
+        // role 5 deliberately does not touch any React/UIKit border property.
+        // Amazon owns the one surviving footer-row edge.
     } @catch(...) {}
 }
 static BOOL ADMenuDarkNeutral7255(UIColor *color){
@@ -5461,17 +5560,19 @@ static void ADOwnReactView7226(UIView *v){
     UIView *v=(UIView *)self;
     objc_setAssociatedObject(v,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     ADOwnReactView7226(v);
+    ADOwnPersonSavingsFloor7259(v);
 }
 - (void)didMoveToSuperview {
     %orig;
     UIView *v=(UIView *)self;
     objc_setAssociatedObject(v,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    if(v.window)ADOwnReactView7226(v);
+    if(v.window){ ADOwnReactView7226(v); ADOwnPersonSavingsFloor7259(v); }
 }
 - (void)layoutSubviews {
     %orig;
     ADOwnReactView7226((UIView *)self);
     ADOwnAppCXSheetFloor7255((UIView *)self);
+    ADOwnPersonSavingsFloor7259((UIView *)self);
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if(ADInternalPaintWrite7226()){
@@ -5510,9 +5611,10 @@ static void ADOwnReactView7226(UIView *v){
     BOOL person=!personShell&&surface==ADReactSurfacePerson7226&&(ADPersonFloorCandidate7206(v,color)||ADPersonOLEDPlane7218(v,color));
     BOOL location=surface==ADReactSurfaceLocation7226&&(ADLocationSheetFloor7196(v,color)||ADLocationMarkedWideBrightFloor7205(v,color));
     BOOL appcx=ADInAppCXBottomSheet7255(v)&&ADNeutralNearWhite7255(color);
+    BOOL savings=ADInPersonSavingsSheet7259(v)&&ADNeutralNearWhite7255(color);
     int menuRole=surface==ADReactSurfaceMenu7255?ADMenuViewRole7255(v):0;
-    UIColor *menuColor=menuRole==2?ADMenuButtonFill7255():(menuRole==3?[UIColor clearColor]:ADOLED());
-    UIColor *finalColor=menuRole?menuColor:(personShell?[UIColor clearColor]:((generic||person||location||appcx)?ADOLED():color));
+    UIColor *menuColor=(menuRole==2||menuRole==5)?ADMenuButtonFill7255():(menuRole==3?[UIColor clearColor]:ADOLED());
+    UIColor *finalColor=menuRole?menuColor:(personShell?[UIColor clearColor]:((generic||person||location||appcx||savings)?ADOLED():color));
 
     // One original React setter call, guarded across its super-call chain.  This is
     // the critical v7.226 recursion barrier: UIView and RCTView can no longer repaint
@@ -5528,7 +5630,7 @@ static void ADOwnReactView7226(UIView *v){
             self.layer.backgroundColor=finalColor.CGColor;
         } else {
             %orig(finalColor);
-            if(person||menuRole||appcx)self.layer.backgroundColor=finalColor.CGColor;
+            if(person||menuRole||appcx||savings)self.layer.backgroundColor=finalColor.CGColor;
         }
     } @finally {
         if(transactionOpen)[CATransaction commit];
@@ -5558,6 +5660,7 @@ static void ADOwnReactView7226(UIView *v){
     else if(gP.enabled&&((UIView *)self).window&&ADInMenuTab7255((UIView *)self)) r=ADMenuLightString7255(attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADInLocationSheetContent7196((UIView *)self)) r=ADLocationSheetLightString7196((UIView *)self,attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADInAppCXBottomSheet7255((UIView *)self)) r=ADAppCXSheetLightString7255(attributedText);
+    else if(gP.enabled&&((UIView *)self).window&&ADInPersonSavingsSheet7259((UIView *)self)) r=ADPersonSavingsLightString7259(attributedText);
     else r=ADLightAttributedText708(attributedText);
     %orig(r);
     ADDarkenReactCardNearText708((UIView *)self);
@@ -5568,6 +5671,7 @@ static void ADOwnReactView7226(UIView *v){
     else if(gP.enabled&&((UIView *)self).window&&ADInMenuTab7255((UIView *)self)) r=ADMenuLightString7255(attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADInLocationSheetContent7196((UIView *)self)) r=ADLocationSheetLightString7196((UIView *)self,attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADInAppCXBottomSheet7255((UIView *)self)) r=ADAppCXSheetLightString7255(attributedString);
+    else if(gP.enabled&&((UIView *)self).window&&ADInPersonSavingsSheet7259((UIView *)self)) r=ADPersonSavingsLightString7259(attributedString);
     else r=ADLightAttributedText708(attributedString);
     %orig(r);
     ADDarkenReactCardNearText708((UIView *)self);
@@ -5579,6 +5683,7 @@ static void ADOwnReactView7226(UIView *v){
     if(ADInPersonTab7206(v))ADPersonOwnText7206(v);
     else if(ADInMenuTab7255(v))ADMenuOwnText7255(v);
     else if(ADInLocationSheetContent7196(v))ADLocationSheetOwnText7196(v);
+    else if(ADInPersonSavingsSheet7259(v)){ NSTextStorage *ts=ADPersonTextStorage7206(v); if(ts)ADPersonSavingsLightStorage7259(ts); }
     else ADDarkenReactCardNearText708(v);
 }
 %end
@@ -5607,6 +5712,11 @@ static void ADOwnReactView7226(UIView *v){
         %orig;
         return;
     }
+    if(gP.enabled && ((UIView *)self).window && ADInPersonSavingsSheet7259((UIView *)self)){
+        ADPersonSavingsLightStorage7259(textStorage);
+        %orig;
+        return;
+    }
     if(gP.enabled && textStorage.length){
         @try {
             NSRange whole=NSMakeRange(0,textStorage.length),range=NSMakeRange(0,0); UIColor *light=ADLightText706();
@@ -5625,6 +5735,9 @@ static void ADOwnReactView7226(UIView *v){
     // preservation keeps Prime blue and other authored saturated runs intact.
     if(gP.enabled&&((UIView *)self).window&&ADInAppCXBottomSheet7255((UIView *)self)){
         NSTextStorage *sheetTS=ADPersonTextStorage7206((UIView *)self); if(sheetTS)ADAppCXSheetLightStorage7255(sheetTS);
+    }
+    if(gP.enabled&&((UIView *)self).window&&ADInPersonSavingsSheet7259((UIView *)self)){
+        NSTextStorage *saveTS=ADPersonTextStorage7206((UIView *)self); if(saveTS)ADPersonSavingsLightStorage7259(saveTS);
     }
     if(gP.enabled&&((UIView *)self).window&&(ADInPersonTab7206((UIView *)self)||ADPersonBuyAgain7208((UIView *)self))){
         NSTextStorage *ts=ADPersonTextStorage7206((UIView *)self);
@@ -5646,6 +5759,7 @@ static void ADOwnReactView7226(UIView *v){
     if(ADInPersonTab7206(v)||ADPersonBuyAgain7208(v))ADPersonOwnText7206(v);
     else if(ADInMenuTab7255(v))ADMenuOwnText7255(v);
     else if(ADInLocationSheetContent7196(v))ADLocationSheetOwnText7196(v);
+    else if(ADInPersonSavingsSheet7259(v)){ NSTextStorage *ts=ADPersonTextStorage7206(v); if(ts)ADPersonSavingsLightStorage7259(ts); }
 }
 %end
 
@@ -5658,6 +5772,11 @@ static void ADOwnReactView7226(UIView *v){
     if(gP.enabled && self.window && ADInAppCXBottomSheet7255((UIView *)self)){
         NSAttributedString *sheetText=ADAppCXSheetLightString7255(attributedText);
         %orig(sheetText);
+        return;
+    }
+    if(gP.enabled && self.window && ADInPersonSavingsSheet7259((UIView *)self)){
+        NSAttributedString *saveText=ADPersonSavingsLightString7259(attributedText);
+        %orig(saveText);
         return;
     }
     if(gP.enabled && self.window && ADInPersonTab7206((UIView *)self)){
@@ -5696,6 +5815,11 @@ static void ADOwnReactView7226(UIView *v){
         } else {
             %orig(color);
         }
+        return;
+    }
+    if(gP.enabled && self.window && ADInPersonSavingsSheet7259((UIView *)self)){
+        UIColor *saveColor=ADPersonSavingsDarkNeutral7259(color)?ADLightText706():color;
+        %orig(saveColor);
         return;
     }
     if(gP.enabled && self.window && ADInPersonTab7206((UIView *)self)){
@@ -5738,6 +5862,7 @@ static void ADOwnReactView7226(UIView *v){
     %orig;
     if(!gP.enabled||!self.window||ADInAuthoredVisualSubNav7175((UIView *)self))return;
     if(ADInAppCXBottomSheet7255((UIView *)self)){ if(ADNeutralNearBlack7255(self.textColor))self.textColor=ADLightText706(); return; }
+    if(ADInPersonSavingsSheet7259((UIView *)self)){ if(ADPersonSavingsDarkNeutral7259(self.textColor))self.textColor=ADLightText706(); return; }
     if(ADInPersonTab7206((UIView *)self)){ ADPersonOwnText7206((UIView *)self); return; }
     if(ADInMenuTab7255((UIView *)self)){
         if(ADMenuDarkNeutral7255(self.textColor))self.textColor=ADLightText706();
@@ -6788,6 +6913,16 @@ static void ADMenuFinalizeImage7255(UIImageView *iv,BOOL discover){
             objc_setAssociatedObject(iv,kADTWBEligibilityImage,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             objc_setAssociatedObject(iv,kADTWBEligibility,@NO,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             ADApplyNativeTWBCached7183(iv,NO);
+            // v7.259: repeated subtheme_image_* leaves were still reaching final
+            // layout without the generic cached TWB overlay.  This fallback is
+            // exact to kind 4 UIImage rasters and uses the same configured TWB
+            // strength/color; SVG/RNSVG never enters this UIImageView path.
+            if(kind==4&&gP.enabled&&gP.whiteTame&&iv.window&&!objc_getAssociatedObject(iv,kADTWBOverlay)){
+                CALayer *ov=[CALayer layer]; ov.name=@"AmazonDarkTWB7";
+                ov.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"backgroundColor":[NSNull null],@"zPosition":[NSNull null]};
+                ov.frame=iv.bounds; ov.backgroundColor=ADNativeTWBOverlayColor7146().CGColor; ov.zPosition=FLT_MAX;
+                [iv.layer addSublayer:ov]; objc_setAssociatedObject(iv,kADTWBOverlay,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            }
         } else ADMenuRemoveTWB7255(iv);
     } @catch(...) { gADMenuImageWrite7255=NO; }
 }
@@ -7525,9 +7660,9 @@ static void ADProbeAppend7233(NSString *path,NSString *text){
 static NSString *ADProbePath7233(NSUInteger run){
     @try {
         NSDateFormatter *f=[NSDateFormatter new]; f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]; f.timeZone=[NSTimeZone localTimeZone]; f.dateFormat=@"yyyyMMdd-HHmmss-SSS";
-        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.258-person-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.259-person-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];
-    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.258-person-ui-probe-r%lu.txt",(unsigned long)run]]; }
+    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.259-person-ui-probe-r%lu.txt",(unsigned long)run]]; }
 }
 static NSString *ADPersonSnapshot7233(UIView *wrap,UIScrollView *root,NSUInteger step,CGFloat targetY){
     NSMutableString *m=[NSMutableString string]; if(!root||!wrap)return @"PERSON_SNAPSHOT_NO_ROOT\n";
@@ -7715,7 +7850,7 @@ static void ADCapturePersonProbe7233(NSString *trigger){
     gADPersonProbeBusy7233=YES; NSUInteger run=++gADPersonProbeRun7233; NSString *path=ADProbePath7233(run);
     CGPoint original=root.contentOffset; BOOL originalScroll=root.scrollEnabled; root.scrollEnabled=NO;
     CGFloat viewport=MAX(1.0,root.bounds.size.height),stride=MAX(320.0,MIN(600.0,viewport*0.58));
-    ADProbeAppend7233(path,[NSString stringWithFormat:@"AMAZONDARK v7.258 PERSON UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\npolicy=no visible text strings, no accessibilityLabel text, no typed query, no web DOM, no network payloads\nroot wrapper is exact RCTScrollView aid=me; real scroll descendant is walked non-animated and restored\nexternal modal discovery=all AppCX roots are scored by visible sheet area; top roots plus best foreign modal are snapshotted\noriginalOffset=(%.1f,%.1f) content=(%.1fx%.1f) viewport=%.1f stride=%.1f maxSteps=40\n",
+    ADProbeAppend7233(path,[NSString stringWithFormat:@"AMAZONDARK v7.259 PERSON UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\npolicy=no visible text strings, no accessibilityLabel text, no typed query, no web DOM, no network payloads\nroot wrapper is exact RCTScrollView aid=me; real scroll descendant is walked non-animated and restored\nexternal modal discovery=all AppCX roots are scored by visible sheet area; top roots plus best foreign modal are snapshotted\noriginalOffset=(%.1f,%.1f) content=(%.1fx%.1f) viewport=%.1f stride=%.1f maxSteps=40\n",
         AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADPersonProbeCap7233,original.x,original.y,root.contentSize.width,root.contentSize.height,viewport,stride]);
     ADProbeAppend7233(path,ADPersonExternalSnapshots7258());
     __block NSUInteger step=0; __block CGFloat targetY=0,lastY=-999999; __block void (^next)(void)=nil;
@@ -7801,7 +7936,7 @@ static void ADCartProbeAppend7241(NSString *path,NSString *text){
     if(!path.length||!text.length)return; @try {NSFileManager *fm=[NSFileManager defaultManager];[fm createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES attributes:nil error:nil];unsigned long long cur=[[[fm attributesOfItemAtPath:path error:nil] objectForKey:NSFileSize] unsignedLongLongValue];if(cur>=kADCartProbeCap7241)return;NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding];unsigned long long remain=kADCartProbeCap7241-cur;if((unsigned long long)d.length>remain)d=[d subdataWithRange:NSMakeRange(0,(NSUInteger)remain)];if(![fm fileExistsAtPath:path]){[d writeToFile:path atomically:YES];return;}NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:path];if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];}} @catch(...) {}
 }
 static NSString *ADCartProbePath7241(NSUInteger run){
-    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.258-cart-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.258-cart-ui-probe-r%lu.txt",(unsigned long)run]];}
+    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.259-cart-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.259-cart-ui-probe-r%lu.txt",(unsigned long)run]];}
 }
 static NSString *ADCartProbeDetectJS7241(void){
     return
@@ -7887,7 +8022,7 @@ static void ADCartProbeEvalAppend7241(WKWebView *wv,NSString *path,NSString *js,
 }
 static void ADCaptureCartProbe7241(NSString *trigger){
     if(!gP.enabled||gADCartProbeBusy7241)return; gADCartProbeBusy7241=YES; NSUInteger run=++gADCartProbeRun7241; NSString *path=ADCartProbePath7241(run);
-    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"AMAZONDARK v7.258 SHOPPING CART UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=Cart is a WKWebView document; target signatures #cart-page/#sc-active-cart/#sc-saved-cart plus cart URL path\npolicy=no visible text strings, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes and privacy-safe text hashes retained\nscan=finite explicit-trigger WKScrollView walk + viewport computed-style DOM snapshots + final full DOM inventory + native UIKit/WebKit snapshots; original offset restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADCartProbeCap7241]);
+    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"AMAZONDARK v7.259 SHOPPING CART UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=Cart is a WKWebView document; target signatures #cart-page/#sc-active-cart/#sc-saved-cart plus cart URL path\npolicy=no visible text strings, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes and privacy-safe text hashes retained\nscan=finite explicit-trigger WKScrollView walk + viewport computed-style DOM snapshots + final full DOM inventory + native UIKit/WebKit snapshots; original offset restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADCartProbeCap7241]);
     ADCartProbeFindWebView7241(path,^(WKWebView *wv,NSString *meta){
         if(!wv||ADCartProbeScore7241(meta)<=0){ADCartProbeAppend7241(path,[NSString stringWithFormat:@"CART_PROBE_NO_TARGET meta=%@\n================ END RUN ================\n",ADCartProbeSafe7241(meta)]);gADCartProbeBusy7241=NO;return;}
         UIScrollView *sv=wv.scrollView; CGPoint original=sv.contentOffset; BOOL originalScroll=sv.scrollEnabled; sv.scrollEnabled=NO; CGFloat viewport=MAX(1.0,sv.bounds.size.height),stride=MAX(300.0,MIN(620.0,viewport*0.60)); CGRect wr=CGRectZero;@try{wr=[wv convertRect:wv.bounds toView:nil];}@catch(...){}
@@ -7957,7 +8092,7 @@ static void ADMenuProbeAppend7252(NSString *path,NSString *text){
     if(!path.length||!text.length)return; @try {NSFileManager *fm=[NSFileManager defaultManager];[fm createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES attributes:nil error:nil];unsigned long long cur=[[[fm attributesOfItemAtPath:path error:nil] objectForKey:NSFileSize] unsignedLongLongValue];if(cur>=kADMenuProbeCap7252)return;NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding];unsigned long long remain=kADMenuProbeCap7252-cur;if((unsigned long long)d.length>remain)d=[d subdataWithRange:NSMakeRange(0,(NSUInteger)remain)];if(![fm fileExistsAtPath:path]){[d writeToFile:path atomically:YES];return;}NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:path];if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];}} @catch(...) {}
 }
 static NSString *ADMenuProbePath7252(NSUInteger run){
-    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.258-menu-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.258-menu-ui-probe-r%lu.txt",(unsigned long)run]];}
+    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.259-menu-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.259-menu-ui-probe-r%lu.txt",(unsigned long)run]];}
 }
 static NSString *ADMenuProbeDetectJS7252(void){
     return
@@ -8149,7 +8284,7 @@ static void ADMenuProbeScanNative7252(UIScrollView *sv,NSString *path,void (^don
 }
 static void ADCaptureMenuProbe7252(NSString *trigger){
     if(!gP.enabled||gADMenuProbeBusy7252)return;gADMenuProbeBusy7252=YES;NSUInteger run=++gADMenuProbeRun7252;NSString *path=ADMenuProbePath7252(run);
-    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.258 HAMBURGER MENU UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; stable native tab owner is ANXTabBarButton#menuTab, content renderer is discovered at trigger time\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes and privacy-safe text lengths/hashes retained\nscan=finite explicit-trigger WebKit full-document walk plus finite native/React scroll walk when present; original offsets and scrollEnabled restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADMenuProbeCap7252]);
+    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.259 HAMBURGER MENU UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; stable native tab owner is ANXTabBarButton#menuTab, content renderer is discovered at trigger time\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes and privacy-safe text lengths/hashes retained\nscan=finite explicit-trigger WebKit full-document walk plus finite native/React scroll walk when present; original offsets and scrollEnabled restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADMenuProbeCap7252]);
     ADMenuProbeLogTab7252(path); UIScrollView *native=ADMenuProbeFindNativeScroll7252(path); UIWindow *root=UIApplication.sharedApplication.keyWindow?:UIApplication.sharedApplication.windows.firstObject; if(root)ADMenuProbeAppend7252(path,ADMenuNativeSnapshot7252(root,native?:root,@"initial-window"));
     ADMenuProbeFindWebView7252(path,^(WKWebView *wv,NSString *meta){
         ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"WEB_SELECTION ptr=%p meta=%@\n",wv,ADMenuProbeSafe7252(meta)]);
@@ -8201,6 +8336,6 @@ static void ADInstallThreeTabProbes7254(void){
     });
 }
 
-// v7.258 keeps the v7.257 Menu/Share fixes, removes conflicting Menu border overrides, and expands Person modal discovery behind the same explicit trigger.
+// v7.259 themes the probe-proven visible Person savings sheet, forces final TWB on exact Menu subtheme rasters, assigns one structural gray border to every expanded subtheme row (including stock-border-width-zero rows such as Travel), and leaves the three footer-row borders entirely Amazon-owned.
 
 #pragma clang diagnostic pop
