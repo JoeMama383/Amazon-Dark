@@ -1,3 +1,16 @@
+# AmazonDark v7.255~hamburger-menu-fix-probes
+
+## Probe-backed Hamburger/Menu visual restoration
+
+- Builds directly on the exact unpushed v7.254 three-tab-probe lineage; completed Cart, Person, Search, Home, location, web, preferences, privacy, and SpringBoard behavior is retained.
+- Adds a fourth exact React-surface route for `RCTScrollView#scrolled-hamburger` / `#scrolled-hamburger-view`; no generic React view outside the Hamburger menu is claimed.
+- Repaints every `theme_card_content_view_test_id` category row and every expanded `subtheme-card` row OLED black, with the standard `#494d4d` React border. Redundant stock blue/white React border shells are retired so each row owns one edge.
+- Repaints the expanded section container OLED black with one standard gray edge. Shortcut pills and the exact bottom action buttons use the established Cart control palette: `#303335` fill and `#747a7c` border.
+- Repairs Menu text at both assignment and final draw: only black/dark-neutral runs become the standard light foreground; authored saturated Amazon colors remain unchanged.
+- Restores category, subcategory, shortcut, and other authored small Menu images to `AlwaysOriginal` so their stock SVG/raster fills survive. Disclosure glyphs remain `AlwaysTemplate` with a light tint. Featured-program artwork is restored to stock rendering and alone remains eligible for the configured Tame Light Backgrounds overlay.
+- Keeps all three finite screenshot/SIGUSR2 probes. Menu verification now exports `AmazonDark-v7.255-menu-ui-probe-*`; Cart and Person exports are also versioned v7.255.
+- Normal runtime remains event-driven: no MutationObserver, interval, RAF loop, web scroll listener, polling loop, recurring timer, or full hierarchy scanner is added.
+
 # AmazonDark v7.254~three-tab-forensics-probes
 
 ## Cart + Person + Hamburger/Menu diagnostics restored
