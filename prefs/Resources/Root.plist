@@ -96,7 +96,7 @@
 			<key>label</key>
 			<string>Performance</string>
 			<key>footerText</key>
-			<string>Requests up to 120 Hz on supported ProMotion displays for smoother scrolling and animations. Results vary, and higher refresh rates may use more battery.</string>
+			<string>Forces 120 Hz on supported ProMotion displays for smoother scrolling and animations. Depending on the device or the device’s current thermal state, forcing a higher refresh rate may increase battery use and can adversely affect performance or make it worse rather than improve it.</string>
 		</dict>
 		<dict>
 			<key>cell</key>

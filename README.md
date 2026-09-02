@@ -1,3 +1,13 @@
+# AmazonDark v7.276~menu-root-first-paint
+
+## Deterministic Hamburger footer first paint + clearer 120 Hz warning
+
+- Historical bad/good Menu probes are reused; no new diagnostic assumption is introduced. They prove the exact footer stack is 410x52.7 outer wrapper -> 406x48.7 visible r16 surface -> 404x46.7 action leaf (`account_switcher` / `so` / `cs`).
+- v7.270/v7.275 already covered leaf-after-root and ID-after-mount orderings. v7.276 closes the remaining root-after-child ordering: when exact `RCTView#scrolled-hamburger-view` becomes identifiable or enters/reparents into a live window, one bounded depth-14 / 2,048-node pass searches only for the three exact footer action IDs, stops after three hits, and reuses the existing <=7 ancestor owner.
+- The root-side pass is not called from `layoutSubviews`; no timer, observer, polling, new hook class, recurring hierarchy scan, or normal-scroll work is added.
+- Search Brands-carousel OLED vertical-rail fix from v7.275, exact SWV video TWB, `avw36` stage strip, magnifier/divider repair, and all six probes remain unchanged.
+- Settings copy for **Force 120 Hz** now explicitly warns that forcing a higher refresh rate may increase battery use and, depending on the device or the device’s current thermal state, can adversely affect performance or make it worse rather than improve it. The 120 Hz implementation itself is unchanged.
+
 # AmazonDark v7.275~brand-rails-menu-first-paint
 
 
