@@ -1,3 +1,15 @@
+# AmazonDark v7.279~footer-structural-owner
+
+## Hamburger first-paint: direct physical ownership, no timing dependency
+
+- The v7.278 first-paint r1 probe proves the complete footer stack already exists while all three 406x48.7 visible surfaces are still stock white: 430x60.7/52.7 row -> 410x52.7 r16/bw2 shell -> 406x48.7 r16/bw1 visible surface -> 404x46.7 action leaf.
+- This disproves the v7.278 RNCEKV attachment bridge as a complete solution. The wrapper/leaf lifecycle can still finish before a useful ancestor re-prime event.
+- v7.279 removes the v7.278 RNCEKV footer bridge and stops depending on descendant/root timing for the visible shells. A new O(1) local structural fingerprint recognizes only the probe-proven 406/410/430 geometry and React radius/width contract.
+- The 406x48.7 surface is owned directly as OLED black + one established gray edge + r16/clipping; the 410x52.7 wrapper remains transparent/no-border; exact account_switcher/so/cs leaves remain transparent.
+- Structural footer ownership is checked from existing RCTView setBorderRadius:, didMoveToSuperview, didMoveToWindow, layoutSubviews, and setBackgroundColor paths. The cheap geometry gate runs before any Menu-root work and does not walk ancestors or descendants.
+- The v7.270-v7.278 ancestor/RNCEKV timing repair helpers are removed rather than stacked. No timer, delayed retry, MutationObserver, root scan, polling, RAF, web scroll listener, or new hook class is added.
+- All other v7.278 theming, Brands rails, exact SWV video TWB, avw36 strip, Search fixes, six probes, and Force 120 Hz behavior/settings copy remain unchanged.
+
 # AmazonDark v7.278~footer-keyboard-bridge
 
 ## Hamburger first-paint: bridge the actual RNCEKV host attachment
