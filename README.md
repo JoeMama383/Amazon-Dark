@@ -1,5 +1,13 @@
-# AmazonDark v7.266~home-ad-border-divider-overscroll-probe
+# AmazonDark v7.267~xl-raster-divider-hero-backdrop-probe
 
+
+## v7.267 XL full-raster divider + Home hero backdrop OLED lock
+
+- Fixes the XL/300x250-style standalone full-raster white strip captured in the v7.266 Home probe. The probe proves it is the same authored `DIV.border-enforcement` chrome (`430x2`, `1px solid #ccc`) seen on the medium raster case, but this XL renderer lives directly in the main Home document rather than a standalone child frame.
+- Adds a narrow Home-only structural selector for `creative-container` instances with a direct `IMG.ad-background-image.mrc-btr-creative`, hiding only their `.border-enforcement` (plus pseudo-elements). No raster pixels, TWB strength, Sponsored feedback, or structured product-ad borders are changed.
+- Locks both Home hero-derived backdrop planes — `#wd-backdrop-overscroll` and probe-confirmed `#wd-color-image-backdrop` — to OLED black. Actual hero images/video/cards remain untouched.
+- Retains all v7.266 fixes, including medium full-raster divider removal, structured standalone gray border parity, one-shot full-raster parent proof, and repaired Home current-frame probe.
+- No MutationObserver, interval, RAF loop, scroll listener, automated scrolling, or recurring full-document scan is added.
 
 ## v7.266 Home standalone border parity + full-raster divider + hero overscroll + Home probe repair
 
