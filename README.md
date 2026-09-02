@@ -1,6 +1,20 @@
-# AmazonDark v7.273~swv-video-twb-probe
+# AmazonDark v7.274~fast-product-probe
 
 Direct production/video baseline: **optimized v7.270**.
+
+
+## v7.274 compact product-scroll probe + SWV stage strip
+
+- Keeps the v7.273 exact SWV/1m98b video overlay TWB owner unchanged.
+- Darkens only the new SWV navigation strip (`8wyx7 > avw36`) from Amazon's translucent near-white plate to `#4a4f51`; its three authored button states/dividers remain untouched.
+- Replaces the oversized product-scroll forensic dump with a compact explicit-trigger current-view inventory for `8wyx7`, `1m98b`, and `avw36`. No cross-frame dump, no hit grid, no recurring runtime work.
+
+
+## v7.274 compact product-scroll probe + SWV stage strip
+
+- Keeps the v7.273 exact SWV/1m98b video overlay TWB owner.
+- Darkens only the SWV navigation strip (`8wyx7 > avw36`) from Amazon's translucent near-white plate to `#4a4f51`; its three button states and authored divider pseudo-elements are left untouched.
+- Replaces the oversized product-scroll forensic dump with a compact explicit-trigger current-view inventory for `8wyx7`, `1m98b`, and `avw36`. No cross-frame dump, hit grid, scrolling, observer, timer, RAF, or recurring scan.
 
 ## v7.273 exact SWV video repair
 
