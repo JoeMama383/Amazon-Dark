@@ -1,3 +1,14 @@
+# AmazonDark v7.252~cart-subtext-menu-ui-forensics-probe
+
+## Final Cart recommendation text + Hamburger/Menu hybrid forensics
+
+- Fixes the exact Cart recommendation `a-size-mini a-color-base` delivery/history lane next to Prime: stock near-black text becomes AmazonDark light while authored Prime blue, star orange, price red, links, success/deal colors and other dynamic colors remain untouched.
+- Retains the v7.251 exact `a-carousel-card-empty > .a-loading-static` loading-card treatment and every finalized Cart/Person visual owner.
+- Moves the explicit-trigger probe from Cart to the Hamburger/Menu tab. Historical probes identify the stable tab owner as `ANXTabBarButton#menuTab`.
+- The Menu probe is renderer-agnostic: it inventories every visible WKWebView and native scroll candidate, performs a full finite WebKit document walk when a Menu-like web surface is present, and performs a finite native/React scroll walk when a native surface is present. Hybrid panes can capture both.
+- Each node records technical identity, geometry, paint, borders, text colors/fonts without text strings, image/rendering state, control state and layer/vector details. Original scroll offsets and scrollEnabled state are restored.
+- Normal runtime remains event-driven: no MutationObserver, interval, RAF loop, web scroll listener, polling loop or recurring hierarchy scanner is added.
+
 # AmazonDark v7.251~cart-loading-card-placeholder-fix-probe
 
 ## Exact Cart loading-card placeholder ownership
