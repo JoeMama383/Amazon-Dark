@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.264 — Person refresh image re-tame + standalone full-raster edge cleanup
+ * AmazonDark v7.265 — Person refresh text parity + borderless full-raster standalone + Home frame probe
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -11,7 +11,7 @@
  *     recurring hierarchy scanner, RAF loop, or web scroll listener
  *   - Cart Share / Saved / related-item text and Person AppCX sheet ownership are probe-scoped
  *   - the v7.255 Hamburger ownership remains exact to the #scrolled-hamburger React surface
- *   - all three forensics probes remain dormant until screenshot/SIGUSR2
+ *   - all four forensics probes remain dormant until screenshot/SIGUSR2
  */
 
 #import <UIKit/UIKit.h>
@@ -28,7 +28,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.264-person-refresh-raster-edge-probes"
+#define AD_VERSION "v7.265-person-refresh-ordertext-raster-borderless-homeframe-probes"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -565,6 +565,7 @@ static const void *kADFloorUS=&kADFloorUS;
 static const void *kADTWBUS=&kADTWBUS;
 static const void *kADStandalonePaintUS7104=&kADStandalonePaintUS7104;
 static const void *kADPrivacyUS7117=&kADPrivacyUS7117;
+static const void *kADHomeFrameProbeUS7265=&kADHomeFrameProbeUS7265;
 static const void *kADPrivacyRule7117=&kADPrivacyRule7117;
 static const void *kADTrackedWebView7191=&kADTrackedWebView7191;
 static NSHashTable *gADWebViews=nil;
@@ -983,15 +984,17 @@ static NSString *ADFloorJS(void){
         // untouched, and the preview/channel imagery is handled by TWB below.
         @"body:has(#sc-page-container) .a-sheet-web:has(.ssf-customize-container-one),body:has(#sc-page-container) .a-sheet-web:has(.ssf-customize-container-one) .a-sheet-content-container,body:has(#sc-page-container) .a-sheet-web:has(.ssf-customize-container-one) .a-sheet-heading-container,body:has(#sc-page-container) .a-sheet-web:has(.ssf-customize-container-one) .ssf-customize-container-one,body:has(#sc-page-container) .a-sheet-web:has(.ssf-customize-container-one) .ssf-two-row-custom-channels-container,body:has(#sc-page-container) .a-sheet-web:has(.ssf-customize-container-one) .a-padding-base:not(#ssf-preview-container),body:has(#sc-page-container) .a-sheet-web:has(.ssf-customize-container-one) .ssf-product-title-text{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}body:has(#sc-page-container) .a-sheet-web:has(.ssf-customize-container-one) .ssf-preview-box{background:#000!important;background-color:#000!important;border-color:#747a7c!important;box-shadow:none!important;}body:has(#sc-page-container) .a-sheet-web:has(.ssf-customize-container-one) :is(.a-sheet-heading,#ssf-title-label,.ssf-product-title-text,.ssf-custom-share-option .label,h1,h2,h3,h4,h5,h6){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
 
-        // v7.174 probe r2: exact Home image-only APE 414x125 border.
-        @".ape-placement.is-image-oo,[id^=ape_][id*=\\\"_placement\\\"].is-image-oo,[id^=ape_gateway_dynamic-][id$=_mshop_placement][style*='414 / 125']{border:1px solid #3b4043!important;border-color:#3b4043!important;outline-color:#3b4043!important;box-shadow:none!important;box-sizing:border-box!important;}"
+        // v7.265: full-raster standalone creatives are intentionally frameless at every
+        // size. v7.174 had added a gray frame to image-only APE wrappers; that is now
+        // removed. This also prevents the medium 414x125 top edge from being supplied
+        // by the outer placement while preserving the authored raster pixels.
+        @".ape-placement.is-image-oo,[id^=ape_][id*=\\\"_placement\\\"].is-image-oo,[id^=ape_gateway_dynamic-][id$=_mshop_placement].is-image-oo{border:0!important;border-width:0!important;border-color:transparent!important;outline:0!important;outline-width:0!important;box-shadow:none!important;}.ape-placement.is-image-oo>iframe,[id^=ape_][id*=\\\"_placement\\\"].is-image-oo>iframe,[id^=ape_gateway_dynamic-][id$=_mshop_placement].is-image-oo>iframe{border:0!important;border-width:0!important;outline:0!important;box-shadow:none!important;}"
 
-        // v7.264: the v7.174 414x125 full-raster capture exposes a zero-content
-        // DIV.border-enforcement (430x2, inline 1px #ccc) immediately adjacent to
-        // the authored raster. The screenshot reproduces the same #ccc strip on Home.
-        // This is renderer chrome, not image pixels. Own that exact named child-frame
-        // separator at first paint on every route where Amazon mounts the renderer.
-        @"html[data-ad7-child-frame] .border-enforcement{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}"
+        // The historical 430x2 DIV.border-enforcement is renderer chrome, not raster
+        // content. Setting only its color black was insufficient on the live medium
+        // creative because the authored 1px border still participates in paint. Remove
+        // the border entirely and leave its structural strip OLED black.
+        @"html[data-ad7-child-frame] .border-enforcement{background:#000!important;background-color:#000!important;border:0!important;border-width:0!important;border-color:transparent!important;outline:0!important;outline-width:0!important;box-shadow:none!important;height:0!important;min-height:0!important;max-height:0!important;overflow:hidden!important;}"
 
         // v7.169: /s product-referrer ad iframes are child frames but intentionally are not
         // standalone-candidates. Reuse the proven Home 414x125 renderer contract by exact
@@ -1034,16 +1037,17 @@ static NSString *ADStandalonePaintJS7104(void){
          /* Exact 320x50 AdaptiveRenderer negative-z white backplane. */
          "html[data-ad7104-standalone] #ad [style*=\\\"z-index:-2\\\"]"
          "{background:#000!important;background-color:#000!important;}"
-         /* Medium/large existing outlines only; geometry remains Amazon-owned. */
-         "html[data-ad7104-standalone] [data-testid=renderer-factory-ad-container] [data-testid^=modern-][data-testid$=-layout-container],"
-         "html[data-ad7104-standalone] [data-testid=ad-background-container]"
-         "{border-color:#3b4043!important;outline-color:#3b4043!important;}"
-         /* v7.264: keep the same exact border-enforcement repair in the standalone
-          * shell-survival sheet so Home candidate frames cannot re-expose the #ccc
-          * strip if Amazon replaces HEAD/BODY. The route-wide first-paint owner above
-          * also covers the historical Search 414x125 capture. */
+         /* v7.265: full-raster standalone frames are frameless. Exact full-raster
+          * child frames are marked by the bounded dominant-raster classifier below;
+          * remove renderer/container chrome only after that structural proof exists. */
+         "html[data-ad7104-standalone][data-ad7144-full-raster-frame] [data-testid=renderer-factory-ad-container],"
+         "html[data-ad7104-standalone][data-ad7144-full-raster-frame] [data-testid=renderer-factory-ad-container] [data-testid^=modern-][data-testid$=-layout-container],"
+         "html[data-ad7104-standalone][data-ad7144-full-raster-frame] [data-testid=ad-background-container],"
+         "html[data-ad7104-standalone][data-ad7144-full-raster-frame] .creative-container"
+         "{border:0!important;border-width:0!important;border-color:transparent!important;outline:0!important;outline-width:0!important;box-shadow:none!important;}"
+         /* Medium full-raster separator: remove the authored #ccc stroke itself. */
          "html[data-ad7104-standalone] .border-enforcement"
-         "{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}"
+         "{background:#000!important;background-color:#000!important;border:0!important;border-width:0!important;border-color:transparent!important;outline:0!important;outline-width:0!important;box-shadow:none!important;height:0!important;min-height:0!important;max-height:0!important;overflow:hidden!important;}"
          /* Large dynamic-product structural planes. */
          "html[data-ad7104-standalone] [data-testid=ad-background-container] > div"
          "{background:#000!important;background-color:#000!important;background-image:none!important;}"
@@ -1205,7 +1209,7 @@ static NSString *ADStandalonePaintJS7104(void){
          "function ad7144MediaKind(e){try{var t=(e.tagName||'').toLowerCase();if(t==='img'||t==='video'||t==='canvas')return t;var bg=getComputedStyle(e).backgroundImage||'none';return bg&&bg!=='none'?'background':''}catch(_){return ''}}"
          "function ad7144Pick(root,rr){try{if(!root||!rr)return null;var best=null,score=0,all=root.getElementsByTagName('*'),ad=document.getElementById('ad'),is300=!!(ad&&ad.getAttribute('data-html-dimensions')==='300x250');for(var i=0;i<all.length;i++){var e=all[i],tid=e.getAttribute&&e.getAttribute('data-testid')||'';if(e.id==='dynamic-bb'||tid==='ratings-stars'||tid==='prime-badge'||tid==='price-container'||(is300&&ad.contains(e)&&String(e.className||'').indexOf('swiper-wrapper')>=0))return null;var tag=(e.tagName||'').toLowerCase();if(tag!=='img'&&tag!=='video'&&tag!=='canvas')continue;var r=ad7144VisibleRect(e);if(!r)continue;var ar=r.width*r.height/(rr.width*rr.height),wr=r.width/rr.width,hr=r.height/rr.height;if(wr>=.76&&hr>=.60&&ar>=.56&&ar>score){best=e;score=ar}}if(!best){var lim=Math.min(all.length,360);for(var j=0;j<lim;j++){var x=all[j],r2=ad7144VisibleRect(x);if(!r2||ad7144MediaKind(x)!=='background')continue;var ar2=r2.width*r2.height/(rr.width*rr.height),wr2=r2.width/rr.width,hr2=r2.height/rr.height;if(wr2>=.76&&hr2>=.60&&ar2>=.56&&ar2>score){best=x;score=ar2}}}return best?{e:best,score:score,kind:ad7144MediaKind(best)}:null}catch(_){return null}}"
          "function ad7144Mark(e,score,kind,mode){try{if(!e)return;var attr=kind==='background'?'data-ad7144-full-raster-bg':'data-ad7144-full-raster';e.setAttribute(attr,'1')}catch(_){}}"
-         "function ad7144Classify(){try{var hh=document.documentElement;if(!hh)return;var vw=Math.max(1,innerWidth,hh.clientWidth||0),vh=Math.max(1,innerHeight,hh.clientHeight||0),ratio=vw/vh;if(vw<220||vh<35||vh>180||ratio<2.2)return;var root=document.body||hh,p=ad7144Pick(root,{width:vw,height:vh});if(p){hh.setAttribute('data-ad7144-full-raster-frame','1');ad7144Mark(p.e,p.score,p.kind,'compact-standalone-child')}}catch(_){}}"
+         "function ad7144Classify(){try{var hh=document.documentElement;if(!hh)return;var vw=Math.max(1,innerWidth,hh.clientWidth||0),vh=Math.max(1,innerHeight,hh.clientHeight||0);if(vw<220||vh<35||vh>520)return;var root=document.body||hh,p=ad7144Pick(root,{width:vw,height:vh});if(p){hh.setAttribute('data-ad7144-full-raster-frame','1');ad7144Mark(p.e,p.score,p.kind,'standalone-full-raster')}}catch(_){}}"
          "ad7144Classify();if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',ad7144Classify,{once:true});window.addEventListener('load',ad7144Classify,{once:true});}else ad7144Classify();"
          "function black(){try{h=document.documentElement||h;if(!h)return;h.setAttribute('data-ad7104-standalone','1');h.style.setProperty('background-color','#000','important');h.style.setProperty('color-scheme','dark','important');if(document.body){document.body.style.setProperty('background-color','#000','important');document.body.style.setProperty('color-scheme','dark','important')}}catch(_){}}"
          "function own(){try{h=document.documentElement||h;if(!h)return false;black();if(!(document.adoptedStyleSheets&&window.CSSStyleSheet&&CSSStyleSheet.prototype&&CSSStyleSheet.prototype.replaceSync))return false;var sh=window[KEY];if(!sh){sh=new CSSStyleSheet();sh.replaceSync(CSS);window[KEY]=sh;}var a=document.adoptedStyleSheets||[],found=false;for(var i=0;i<a.length;i++)if(a[i]===sh){found=true;break;}if(!found)document.adoptedStyleSheets=a.concat([sh]);return true}catch(e){return false}}"
@@ -1354,13 +1358,56 @@ static void ADRefreshWebTWBPrefs791(void){
 }
 
 
-// v7.152 production: probe-only all-frame bridge removed; only theme scripts remain.
-
-// Probe-only all-frame JavaScript removed from v7.226 production.
+// v7.265: dormant current-frame Home forensics bridge. It installs one message
+// listener per frame and performs no DOM walk until the explicit Home probe trigger.
+static NSString *ADHomeFrameProbeBridgeJS7265(void){
+    return
+        @"(function(){try{if(window.__adHomeProbeBridge7265)return;window.__adHomeProbeBridge7265=1;function clean(v,n){v=String(v==null?'':v).replace(/[\\r\\n\\t]+/g,' ').replace(/\\|"
+        @"/g,'¦').replace(/\\\\/g,'/');n=n||180;return v.length>n?v.slice(0,n)+'…':v}function hash(s){s=String(s||'');var h=2166136261>>>0;for(var i=0;i<s.length;i++){h^=s.charCodeAt"
+        @"(i);h=Math.imul(h,16777619)}return (h>>>0).toString(16)}function cls(e){try{var c=typeof e.className==='string'?e.className:(e.className&&e.className.baseVal)||'';return "
+        @"clean(c,220)}catch(_){return ''}}function attrs(e){var names=['role','data-testid','data-acei-id','data-html-dimensions','data-csa-c-type','data-csa-c-content-id','data-c"
+        @"sa-c-slot-id','data-csa-c-painter','data-cel-widget','cel_widget_id','name','type','aria-hidden'],o={};for(var i=0;i<names.length;i++){try{var v=e.getAttribute(names[i]);"
+        @"if(v!=null&&v!=='')o[names[i]]=clean(v,180)}catch(_){}}try{var st=e.getAttribute('style');if(st)o.style=clean(st,320)}catch(_){}return o}function ownText(e){var x='';try{"
+        @"for(var i=0;i<e.childNodes.length;i++){var n=e.childNodes[i];if(n.nodeType===3)x+=n.nodeValue||''}}catch(_){}x=x.trim();return {len:x.length,hash:hash(x)}}function pseudo"
+        @"(e,p){try{var c=getComputedStyle(e,p),ct=String(c.content||''),bt=parseFloat(c.borderTopWidth||0)||0,w=parseFloat(c.width||0)||0,h=parseFloat(c.height||0)||0;if((!ct||ct="
+        @"=='none'||ct==='normal')&&c.backgroundColor==='rgba(0, 0, 0, 0)'&&c.backgroundImage==='none'&&bt===0&&w===0&&h===0)return null;return {contentLen:ct.length,contentHash:ha"
+        @"sh(ct),display:clean(c.display,24),bg:clean(c.backgroundColor,52),bgImg:clean(c.backgroundImage,100),borderTop:clean(c.borderTop,100),width:clean(c.width,30),height:clean"
+        @"(c.height,30),position:clean(c.position,20),z:clean(c.zIndex,20)}}catch(_){return null}}function media(e){try{var t=String(e.tagName||'').toUpperCase();if(t==='IMG')retur"
+        @"n {kind:'img',natural:[Number(e.naturalWidth||0),Number(e.naturalHeight||0)],complete:e.complete?1:0};if(t==='VIDEO')return {kind:'video',natural:[Number(e.videoWidth||0)"
+        @",Number(e.videoHeight||0)],paused:e.paused?1:0};if(t==='CANVAS')return {kind:'canvas',natural:[Number(e.width||0),Number(e.height||0)]};if(t==='SVG')return {kind:'svg',vi"
+        @"ewBox:clean(e.getAttribute('viewBox')||'',80)}}catch(_){}return null}function snap(){try{var d=document,de=d.documentElement||{},vw=Math.max(1,innerWidth||de.clientWidth|"
+        @"|0),vh=Math.max(1,innerHeight||de.clientHeight||0),MAX=700,out=[],visited=0,trunc=0;function state(e){try{var r=e.getBoundingClientRect(),c=getComputedStyle(e),struct=e=="
+        @"=d.documentElement||e===d.body,hit=struct||(r.width>.1&&r.height>.1&&r.right>=-1&&r.bottom>=-1&&r.left<=vw+1&&r.top<=vh+1),zero=r.width<=.1||r.height<=.1;return {r:r,c:c,"
+        @"struct:struct,hit:hit,zero:zero}}catch(_){return null}}function emit(e,st,depth){if(out.length>=MAX){trunc=1;return}var r=st.r,c=st.c,a=attrs(e),o={depth:depth,tag:String"
+        @"(e.tagName||e.nodeName||'?').toLowerCase(),id:clean(e.id||'',120),cls:cls(e),rect:[+r.left.toFixed(1),+r.top.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)],children"
+        @":Number(e.childElementCount||0),display:clean(c.display,24),visibility:clean(c.visibility,24),opacity:clean(c.opacity,16),position:clean(c.position,20),z:clean(c.zIndex,2"
+        @"0),overflow:[clean(c.overflowX,20),clean(c.overflowY,20)],pointer:clean(c.pointerEvents,20),fg:clean(c.color,52),textFill:clean(c.webkitTextFillColor,52),bg:clean(c.backg"
+        @"roundColor,52),bgImg:clean(c.backgroundImage,120),border:[clean(c.borderTop,100),clean(c.borderRight,100),clean(c.borderBottom,100),clean(c.borderLeft,100)],outline:clean"
+        @"(c.outline,100),radius:clean(c.borderRadius,60),shadow:clean(c.boxShadow,140),filter:clean(c.filter,100),transform:clean(c.transform,120),attrs:a,text:ownText(e)};var m=m"
+        @"edia(e),b=pseudo(e,'::before'),af=pseudo(e,'::after');if(m)o.media=m;if(b)o.before=b;if(af)o.after=af;out.push(o)}function walk(e,depth){if(!e||depth>36||out.length>=MAX)"
+        @"return;visited++;var st=state(e);if(!st)return;if(st.c.display==='none'||st.c.visibility==='hidden'||parseFloat(st.c.opacity||1)<=0.001)return;if(st.hit)emit(e,st,depth);"
+        @"var descend=st.struct||st.hit||st.zero||st.c.position==='fixed'||st.c.position==='sticky';if(!descend)return;var ch=e.children;for(var i=0;ch&&i<ch.length&&out.length<MAX"
+        @";i++)walk(ch[i],depth+1)}walk(d.documentElement,0);return {ready:String(d.readyState||''),viewport:[vw,vh],scroll:[Number(scrollX||0),Number(scrollY||0)],scrollSize:[Numb"
+        @"er((d.scrollingElement||de||d.body).scrollWidth||0),Number((d.scrollingElement||de||d.body).scrollHeight||0)],visited:visited,emitted:out.length,truncated:trunc,nodes:out"
+        @"}}catch(e){return {error:String(e&&e.message||e)}}}window.__adHomeProbeSnap7265=snap;function frames(){try{return document.getElementsByTagName('iframe')}catch(_){return "
+        @"[]}}function frameHit(f){try{var r=f.getBoundingClientRect(),c=getComputedStyle(f),vw=Math.max(1,innerWidth||0),vh=Math.max(1,innerHeight||0);return c.display!=='none'&&c"
+        @".visibility!=='hidden'&&parseFloat(c.opacity||1)>.001&&r.width>.1&&r.height>.1&&r.right>=-1&&r.bottom>=-1&&r.left<=vw+1&&r.top<=vh+1}catch(_){return false}}function broad"
+        @"cast(req){var a=frames();for(var i=0;i<a.length&&i<24;i++){if(!frameHit(a[i]))continue;try{a[i].contentWindow.postMessage(req,'*')}catch(_){}}}window.__adHomeProbeBroadca"
+        @"st7265=broadcast;function sourceIndex(src){var a=frames();for(var i=0;i<a.length&&i<24;i++)try{if(a[i].contentWindow===src)return i}catch(_){}return -1}window.addEventLis"
+        @"tener('message',function(ev){try{var x=ev.data;if(!x)return;if(x.__adHomeProbeReq7265===1){var res={__adHomeProbeRes7265:1,token:x.token,path:'',snap:snap()};if(window==="
+        @"top){var c=window.__adHomeProbeCollector7265;if(c&&c.token===x.token)c.responses.push(res)}else parent.postMessage(res,'*');broadcast(x);return}if(x.__adHomeProbeRes7265="
+        @"==1){var idx=sourceIndex(ev.source);x.path='f'+idx+(x.path?'/'+x.path:'');if(window===top){var c2=window.__adHomeProbeCollector7265;if(c2&&c2.token===x.token&&c2.response"
+        @"s.length<48)c2.responses.push(x)}else parent.postMessage(x,'*')}}catch(_){}},false);}catch(_){}})();";
+}
 
 static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
     if(!ucc || !gP.enabled)return;
     @try {
+        if(!objc_getAssociatedObject(ucc,kADHomeFrameProbeUS7265)){
+            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADHomeFrameProbeBridgeJS7265() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+            [ucc addUserScript:us];
+            objc_setAssociatedObject(ucc,kADHomeFrameProbeUS7265,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
         // Exact standalone child-frame owner first; the general floor script returns on that route.
         if(!objc_getAssociatedObject(ucc,kADStandalonePaintUS7104)){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADStandalonePaintJS7104() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
@@ -4979,6 +5026,24 @@ static void ADPersonTopMenuPillWhiteStorage7250(NSTextStorage *ts){
     @try { [ts addAttribute:NSForegroundColorAttributeName value:ADLightText706() range:NSMakeRange(0,ts.length)]; } @catch(...) {}
 }
 
+// v7.265: Your Orders refresh/retry remounts the probe-proven card header as
+// RCTTextView#ImageWithTextViewTextComponent under yo_btn/YoAsinCarouselItem*.
+// Assignment-time Person recoloring can occur before the leaf has final Person ancestry,
+// so reassert this exact card-header lane at draw time. No generic Person text scan.
+static BOOL ADPersonOrderCardHeaderText7265(UIView *v){
+    if(!v||!v.window||!ADInPersonTab7206(v)||!ADClassNameIs7183(v,"RCTTextView"))return NO;
+    @try {
+        if(![(v.accessibilityIdentifier?:@"") isEqualToString:@"ImageWithTextViewTextComponent"])return NO;
+        int depth=0;
+        for(UIView *n=v.superview;n&&n!=v.window&&depth++<8;n=n.superview){
+            NSString *aid=(n.accessibilityIdentifier?:@"").lowercaseString;
+            if([aid isEqualToString:@"yo_btn"])return YES;
+            if([aid isEqualToString:@"me"])break;
+        }
+    } @catch(...) {}
+    return NO;
+}
+
 static BOOL ADPersonFinalTextOwner7239(UIView *v){
     if(!v||!v.window)return NO;
     BOOL buyAgain=ADPersonBuyAgain7208(v);
@@ -4986,7 +5051,7 @@ static BOOL ADPersonFinalTextOwner7239(UIView *v){
     @try {
         int kind=ADPersonSectionKind7218(v);
         if(kind==1||kind==3)return YES;
-        if(ADPersonKeepShoppingText7237(v)||ADPersonTopRowText7239(v)||ADPersonInterestTitle7240(v))return YES;
+        if(ADPersonOrderCardHeaderText7265(v)||ADPersonKeepShoppingText7237(v)||ADPersonTopRowText7239(v)||ADPersonInterestTitle7240(v))return YES;
         // v7.236 first-paint repair: the v7.235 probe captured dark primary text
         // surviving in Buy Again and under the Subscribe & Save delivery wrapper.
         // Reuse the existing font-aware storage recolor at final draw: bold/primary
@@ -7714,9 +7779,9 @@ static void ADProbeAppend7233(NSString *path,NSString *text){
 static NSString *ADProbePath7233(NSUInteger run){
     @try {
         NSDateFormatter *f=[NSDateFormatter new]; f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]; f.timeZone=[NSTimeZone localTimeZone]; f.dateFormat=@"yyyyMMdd-HHmmss-SSS";
-        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.264-person-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.265-person-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];
-    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.264-person-ui-probe-r%lu.txt",(unsigned long)run]]; }
+    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.265-person-ui-probe-r%lu.txt",(unsigned long)run]]; }
 }
 static NSString *ADPersonSnapshot7233(UIView *wrap,UIScrollView *root,NSUInteger step,CGFloat targetY){
     NSMutableString *m=[NSMutableString string]; if(!root||!wrap)return @"PERSON_SNAPSHOT_NO_ROOT\n";
@@ -7904,7 +7969,7 @@ static void ADCapturePersonProbe7233(NSString *trigger){
     gADPersonProbeBusy7233=YES; NSUInteger run=++gADPersonProbeRun7233; NSString *path=ADProbePath7233(run);
     CGPoint original=root.contentOffset; BOOL originalScroll=root.scrollEnabled; root.scrollEnabled=NO;
     CGFloat viewport=MAX(1.0,root.bounds.size.height),stride=MAX(320.0,MIN(600.0,viewport*0.58));
-    ADProbeAppend7233(path,[NSString stringWithFormat:@"AMAZONDARK v7.264 PERSON UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\npolicy=no visible text strings, no accessibilityLabel text, no typed query, no web DOM, no network payloads\nroot wrapper is exact RCTScrollView aid=me; real scroll descendant is walked non-animated and restored\nexternal modal discovery=all AppCX roots are scored by visible sheet area; top roots plus best foreign modal are snapshotted\noriginalOffset=(%.1f,%.1f) content=(%.1fx%.1f) viewport=%.1f stride=%.1f maxSteps=40\n",
+    ADProbeAppend7233(path,[NSString stringWithFormat:@"AMAZONDARK v7.265 PERSON UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\npolicy=no visible text strings, no accessibilityLabel text, no typed query, no web DOM, no network payloads\nroot wrapper is exact RCTScrollView aid=me; real scroll descendant is walked non-animated and restored\nexternal modal discovery=all AppCX roots are scored by visible sheet area; top roots plus best foreign modal are snapshotted\noriginalOffset=(%.1f,%.1f) content=(%.1fx%.1f) viewport=%.1f stride=%.1f maxSteps=40\n",
         AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADPersonProbeCap7233,original.x,original.y,root.contentSize.width,root.contentSize.height,viewport,stride]);
     ADProbeAppend7233(path,ADPersonExternalSnapshots7258());
     __block NSUInteger step=0; __block CGFloat targetY=0,lastY=-999999; __block void (^next)(void)=nil;
@@ -7990,7 +8055,7 @@ static void ADCartProbeAppend7241(NSString *path,NSString *text){
     if(!path.length||!text.length)return; @try {NSFileManager *fm=[NSFileManager defaultManager];[fm createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES attributes:nil error:nil];unsigned long long cur=[[[fm attributesOfItemAtPath:path error:nil] objectForKey:NSFileSize] unsignedLongLongValue];if(cur>=kADCartProbeCap7241)return;NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding];unsigned long long remain=kADCartProbeCap7241-cur;if((unsigned long long)d.length>remain)d=[d subdataWithRange:NSMakeRange(0,(NSUInteger)remain)];if(![fm fileExistsAtPath:path]){[d writeToFile:path atomically:YES];return;}NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:path];if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];}} @catch(...) {}
 }
 static NSString *ADCartProbePath7241(NSUInteger run){
-    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.264-cart-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.264-cart-ui-probe-r%lu.txt",(unsigned long)run]];}
+    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.265-cart-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.265-cart-ui-probe-r%lu.txt",(unsigned long)run]];}
 }
 static NSString *ADCartProbeDetectJS7241(void){
     return
@@ -8076,7 +8141,7 @@ static void ADCartProbeEvalAppend7241(WKWebView *wv,NSString *path,NSString *js,
 }
 static void ADCaptureCartProbe7241(NSString *trigger){
     if(!gP.enabled||gADCartProbeBusy7241)return; gADCartProbeBusy7241=YES; NSUInteger run=++gADCartProbeRun7241; NSString *path=ADCartProbePath7241(run);
-    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"AMAZONDARK v7.264 SHOPPING CART UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=Cart is a WKWebView document; target signatures #cart-page/#sc-active-cart/#sc-saved-cart plus cart URL path\npolicy=no visible text strings, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes and privacy-safe text hashes retained\nscan=finite explicit-trigger WKScrollView walk + viewport computed-style DOM snapshots + final full DOM inventory + native UIKit/WebKit snapshots; original offset restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADCartProbeCap7241]);
+    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"AMAZONDARK v7.265 SHOPPING CART UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=Cart is a WKWebView document; target signatures #cart-page/#sc-active-cart/#sc-saved-cart plus cart URL path\npolicy=no visible text strings, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes and privacy-safe text hashes retained\nscan=finite explicit-trigger WKScrollView walk + viewport computed-style DOM snapshots + final full DOM inventory + native UIKit/WebKit snapshots; original offset restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADCartProbeCap7241]);
     ADCartProbeFindWebView7241(path,^(WKWebView *wv,NSString *meta){
         if(!wv||ADCartProbeScore7241(meta)<=0){ADCartProbeAppend7241(path,[NSString stringWithFormat:@"CART_PROBE_NO_TARGET meta=%@\n================ END RUN ================\n",ADCartProbeSafe7241(meta)]);gADCartProbeBusy7241=NO;return;}
         UIScrollView *sv=wv.scrollView; CGPoint original=sv.contentOffset; BOOL originalScroll=sv.scrollEnabled; sv.scrollEnabled=NO; CGFloat viewport=MAX(1.0,sv.bounds.size.height),stride=MAX(300.0,MIN(620.0,viewport*0.60)); CGRect wr=CGRectZero;@try{wr=[wv convertRect:wv.bounds toView:nil];}@catch(...){}
@@ -8146,7 +8211,7 @@ static void ADMenuProbeAppend7252(NSString *path,NSString *text){
     if(!path.length||!text.length)return; @try {NSFileManager *fm=[NSFileManager defaultManager];[fm createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES attributes:nil error:nil];unsigned long long cur=[[[fm attributesOfItemAtPath:path error:nil] objectForKey:NSFileSize] unsignedLongLongValue];if(cur>=kADMenuProbeCap7252)return;NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding];unsigned long long remain=kADMenuProbeCap7252-cur;if((unsigned long long)d.length>remain)d=[d subdataWithRange:NSMakeRange(0,(NSUInteger)remain)];if(![fm fileExistsAtPath:path]){[d writeToFile:path atomically:YES];return;}NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:path];if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];}} @catch(...) {}
 }
 static NSString *ADMenuProbePath7252(NSUInteger run){
-    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.264-menu-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.264-menu-ui-probe-r%lu.txt",(unsigned long)run]];}
+    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.265-menu-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.265-menu-ui-probe-r%lu.txt",(unsigned long)run]];}
 }
 static NSString *ADMenuProbeDetectJS7252(void){
     return
@@ -8338,7 +8403,7 @@ static void ADMenuProbeScanNative7252(UIScrollView *sv,NSString *path,void (^don
 }
 static void ADCaptureMenuProbe7252(NSString *trigger){
     if(!gP.enabled||gADMenuProbeBusy7252)return;gADMenuProbeBusy7252=YES;NSUInteger run=++gADMenuProbeRun7252;NSString *path=ADMenuProbePath7252(run);
-    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.264 HAMBURGER MENU UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; stable native tab owner is ANXTabBarButton#menuTab, content renderer is discovered at trigger time\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes and privacy-safe text lengths/hashes retained\nscan=finite explicit-trigger WebKit full-document walk plus finite native/React scroll walk when present; original offsets and scrollEnabled restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADMenuProbeCap7252]);
+    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.265 HAMBURGER MENU UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; stable native tab owner is ANXTabBarButton#menuTab, content renderer is discovered at trigger time\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes and privacy-safe text lengths/hashes retained\nscan=finite explicit-trigger WebKit full-document walk plus finite native/React scroll walk when present; original offsets and scrollEnabled restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADMenuProbeCap7252]);
     ADMenuProbeLogTab7252(path); UIScrollView *native=ADMenuProbeFindNativeScroll7252(path); UIWindow *root=UIApplication.sharedApplication.keyWindow?:UIApplication.sharedApplication.windows.firstObject; if(root)ADMenuProbeAppend7252(path,ADMenuNativeSnapshot7252(root,native?:root,@"initial-window"));
     ADMenuProbeFindWebView7252(path,^(WKWebView *wv,NSString *meta){
         ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"WEB_SELECTION ptr=%p meta=%@\n",wv,ADMenuProbeSafe7252(meta)]);
@@ -8368,11 +8433,69 @@ static BOOL ADProbeTabSelected7254(NSString *aid){
     UIControl *b=ADProbeTabButton7254(aid); if(!b)return NO;
     @try { return b.selected||((b.state&UIControlStateSelected)!=0)||((b.accessibilityTraits&UIAccessibilityTraitSelected)!=0); } @catch(...) { return NO; }
 }
+
+// v7.265 Home probe: exact currently visible frame only. No scrolling, no full-document
+// querySelectorAll/TreeWalker, and no retained background work. The bridge above lets an
+// explicit trigger ask visible cross-origin ad child frames for their own current viewport.
+static BOOL gADHomeFrameProbeBusy7265=NO;
+static NSUInteger gADHomeFrameProbeRun7265=0;
+static const unsigned long long kADHomeFrameProbeCap7265=6ull*1024ull*1024ull;
+static NSString *ADHomeFrameProbePath7265(NSUInteger run){
+    @try {
+        NSDateFormatter *f=[NSDateFormatter new]; f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]; f.timeZone=[NSTimeZone localTimeZone]; f.dateFormat=@"yyyyMMdd-HHmmss-SSS";
+        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.265-home-frame-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];
+    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.265-home-frame-probe-r%lu.txt",(unsigned long)run]]; }
+}
+static void ADHomeFrameProbeAppend7265(NSString *path,NSString *text){
+    if(!path.length||!text.length)return;
+    @try {
+        NSFileManager *fm=[NSFileManager defaultManager]; [fm createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES attributes:nil error:nil];
+        unsigned long long cur=[[[fm attributesOfItemAtPath:path error:nil] objectForKey:NSFileSize] unsignedLongLongValue]; if(cur>=kADHomeFrameProbeCap7265)return;
+        NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding]; unsigned long long remain=kADHomeFrameProbeCap7265-cur; if((unsigned long long)d.length>remain)d=[d subdataWithRange:NSMakeRange(0,(NSUInteger)remain)];
+        if(![fm fileExistsAtPath:path]){[d writeToFile:path atomically:YES];return;} NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:path]; if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];}
+    } @catch(...) {}
+}
+static WKWebView *ADHomeFrameVisibleWebView7265(void){
+    @try {
+        NSMutableOrderedSet<WKWebView *> *set=[NSMutableOrderedSet orderedSet]; for(WKWebView *wv in ADTrackedWebViews())if(wv)[set addObject:wv];
+        for(UIWindow *w in UIApplication.sharedApplication.windows){if(!w||w.hidden||w.alpha<0.01)continue;NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:w];NSUInteger seen=0;while(q.count&&seen++<1800){UIView *v=q.firstObject;[q removeObjectAtIndex:0];if([v isKindOfClass:[WKWebView class]])[set addObject:(WKWebView *)v];if(q.count<1600)for(UIView *c in v.subviews)[q addObject:c];}}
+        CGRect screen=UIScreen.mainScreen.bounds; WKWebView *best=nil; CGFloat bestArea=0;
+        for(WKWebView *wv in set){if(!wv.window||wv.hidden||wv.alpha<0.01)continue;CGRect r=[wv convertRect:wv.bounds toView:nil],i=CGRectIntersection(r,screen);if(CGRectIsNull(i)||CGRectIsEmpty(i))continue;CGFloat a=i.size.width*i.size.height;if(a>bestArea){best=wv;bestArea=a;}}
+        return best;
+    } @catch(...) { return nil; }
+}
+static NSString *ADHomeFrameNativeSnapshot7265(void){
+    NSMutableString *m=[NSMutableString string];
+    @try {
+        UIWindow *root=UIApplication.sharedApplication.keyWindow?:UIApplication.sharedApplication.windows.firstObject;if(!root)return @"NATIVE_NO_WINDOW\n";CGRect screen=UIScreen.mainScreen.bounds;
+        NSMutableArray *q=[NSMutableArray arrayWithObject:@{@"v":root,@"d":@0}];NSUInteger visited=0,logged=0;
+        [m appendFormat:@"NATIVE_FRAME_BEGIN screen=(%.1f,%.1f %.1fx%.1f)\n",screen.origin.x,screen.origin.y,screen.size.width,screen.size.height];
+        while(q.count&&visited++<1800&&logged<1000){NSDictionary *it=q.firstObject;[q removeObjectAtIndex:0];UIView *v=it[@"v"];NSUInteger d=[it[@"d"] unsignedIntegerValue];if(!v||v.hidden||v.alpha<0.01)continue;CGRect r=CGRectZero;@try{r=[v convertRect:v.bounds toView:nil];}@catch(...){}BOOL rootish=(v==root),hit=rootish||(r.size.width>.2&&r.size.height>.2&&CGRectIntersectsRect(r,screen));if(!hit)continue;NSString *cn=NSStringFromClass(v.class)?:@"?",*aid=ADProbeSafe7233(v.accessibilityIdentifier);CALayer *l=v.layer;[m appendFormat:@"N d=%lu cls=%@ aid=\"%@\" frame=(%.1f,%.1f %.1fx%.1f) alpha=%.2f bg=%@ tint=%@ border=%.2f/%@ radius=%.2f subviews=%lu layers=%lu %@ %@\n",(unsigned long)d,cn,aid,r.origin.x,r.origin.y,r.size.width,r.size.height,v.alpha,ADProbeColor7233(v.backgroundColor),ADProbeColor7233(v.tintColor),l.borderWidth,ADProbeCG7233(l.borderColor),l.cornerRadius,(unsigned long)v.subviews.count,(unsigned long)l.sublayers.count,ADProbeText7233(v),ADProbeControl7233(v)];logged++;if(d<28)for(UIView *c in v.subviews)if(q.count<1500)[q addObject:@{@"v":c,@"d":@(d+1)}];}
+        [m appendFormat:@"NATIVE_FRAME_END visited=%lu logged=%lu truncated=%d\n",(unsigned long)visited,(unsigned long)logged,(visited>=1800||logged>=1000)?1:0];
+    } @catch(NSException *e){[m appendFormat:@"NATIVE_EXCEPTION %@\n",e.name?:@"?"];}
+    return m;
+}
+static NSString *ADHomeFramePrettyJSON7265(id result){
+    if(![result isKindOfClass:[NSString class]])return [NSString stringWithFormat:@"WEB_RESULT_TYPE %@\n",NSStringFromClass([result class])?:@"nil"];
+    NSString *s=(NSString *)result;@try{NSData *d=[s dataUsingEncoding:NSUTF8StringEncoding];id o=[NSJSONSerialization JSONObjectWithData:d options:0 error:nil];if(o){NSData *p=[NSJSONSerialization dataWithJSONObject:o options:NSJSONWritingPrettyPrinted error:nil];NSString *x=[[NSString alloc]initWithData:p encoding:NSUTF8StringEncoding];if(x.length)return [x stringByAppendingString:@"\n"];}}@catch(...){}return [s stringByAppendingString:@"\n"];
+}
+static void ADCaptureHomeFrameProbe7265(NSString *trigger){
+    if(!gP.enabled||gADHomeFrameProbeBusy7265)return;gADHomeFrameProbeBusy7265=YES;NSUInteger run=++gADHomeFrameProbeRun7265;NSString *path=ADHomeFrameProbePath7265(run);WKWebView *wv=ADHomeFrameVisibleWebView7265();
+    ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"AMAZONDARK v7.265 HOME CURRENT-FRAME PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\npolicy=current visible screen only; NO scrolling; NO full Home-document scan; privacy-safe text lengths/hashes in WebKit; native accessibility labels not emitted\nweb=bounded visible-branch recursion max 700 nodes per frame; cross-origin child frames respond only to this explicit trigger\nnative=bounded visible-branch walk max 1000 logged nodes\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent]);
+    ADHomeFrameProbeAppend7265(path,ADHomeFrameNativeSnapshot7265());
+    if(!wv){ADHomeFrameProbeAppend7265(path,@"WEB_NO_VISIBLE_WKWEBVIEW\nHOME_FRAME_PROBE_END\n================ END RUN ================\n");gADHomeFrameProbeBusy7265=NO;return;}
+    CGRect wr=CGRectZero;@try{wr=[wv convertRect:wv.bounds toView:nil];}@catch(...){}UIScrollView *sv=wv.scrollView;ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"WEB_TARGET ptr=%p frame=(%.1f,%.1f %.1fx%.1f) offset=(%.1f,%.1f) content=(%.1fx%.1f) -- OFFSET NOT MODIFIED\n",wv,wr.origin.x,wr.origin.y,wr.size.width,wr.size.height,sv.contentOffset.x,sv.contentOffset.y,sv.contentSize.width,sv.contentSize.height]);
+    NSString *start=@"(function(){try{var token='h7265-'+Date.now()+'-'+Math.random().toString(36).slice(2);if(!window.__adHomeProbeSnap7265)return JSON.stringify({error:'bridge-missing'});window.__adHomeProbeCollector7265={token:token,main:window.__adHomeProbeSnap7265(),responses:[]};var req={__adHomeProbeReq7265:1,token:token},a=document.getElementsByTagName('iframe');if(window.__adHomeProbeBroadcast7265)window.__adHomeProbeBroadcast7265(req);return JSON.stringify({started:1,token:token,mainNodes:window.__adHomeProbeCollector7265.main.emitted||0,frameElements:a.length})}catch(e){return JSON.stringify({error:String(e&&e.message||e)})}})();";
+    [wv evaluateJavaScript:start completionHandler:^(id result,NSError *error){ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"WEB_START error=%@ result=%@\n",error?error.localizedDescription:@"none",[result isKindOfClass:[NSString class]]?result:@"(non-string)"]);dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.55*NSEC_PER_SEC)),dispatch_get_main_queue(),^{NSString *finish=@"(function(){try{return JSON.stringify(window.__adHomeProbeCollector7265||{error:'collector-missing'})}catch(e){return JSON.stringify({error:String(e&&e.message||e)})}})();";[wv evaluateJavaScript:finish completionHandler:^(id final,NSError *err){ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"WEB_FRAME_DATA error=%@\n",err?err.localizedDescription:@"none"]);ADHomeFrameProbeAppend7265(path,ADHomeFramePrettyJSON7265(final));ADHomeFrameProbeAppend7265(path,@"HOME_FRAME_PROBE_END\n================ END RUN ================\n");gADHomeFrameProbeBusy7265=NO;}];});}];
+}
+
 static void ADCaptureThreeTabProbe7254(NSString *trigger){
     if(!gP.enabled)return;
-    // Prefer Amazon's exact bottom-tab state. Person gets an exact-root fallback because
-    // its React wrapper is stable and probe-proven; Cart/Menu stay tab-gated to avoid
-    // scanning retained off-screen WKWebViews from other panes.
+    // Prefer Amazon's exact bottom-tab state. Home is current-frame-only and never scrolls.
+    // Person gets an exact-root fallback because its React wrapper is stable; Cart/Menu
+    // remain tab-gated to avoid retained off-screen WKWebViews from other panes.
+    if(ADProbeTabSelected7254(@"home")||ADProbeTabSelected7254(@"homeTab")){ ADCaptureHomeFrameProbe7265(trigger); return; }
     if(ADProbeTabSelected7254(@"meTab")){ ADCapturePersonProbe7233(trigger); return; }
     if(ADProbeTabSelected7254(@"cartTab")){ ADCaptureCartProbe7241(trigger); return; }
     if(ADProbeTabSelected7254(@"menuTab")){ ADCaptureMenuProbe7252(trigger); return; }
@@ -8390,6 +8513,6 @@ static void ADInstallThreeTabProbes7254(void){
     });
 }
 
-// v7.264 retains the v7.263 Person refresh/remount repair and v7.262 Hamburger footer surfaces; standalone full-raster border-enforcement separators are now OLED black.
+// v7.265 retains v7.263 Person image refresh recovery + v7.262 Hamburger footer parity; Your Orders headers recover at final paint, full-raster standalone frames are borderless, and Home has a current-viewport-only probe.
 
 #pragma clang diagnostic pop
