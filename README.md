@@ -1,4 +1,4 @@
-# AmazonDark v7.259~person-savings-menu-columns-row-borders-stock-footer-probes
+# AmazonDark v7.260~person-savings-menu-columns-row-borders-stock-footer-probes
 
 ## Probe-backed Person savings sheet + final Hamburger cleanup
 
@@ -9,7 +9,7 @@
 - Forces configured TWB at final layout for exact `subtheme_image_*` UIImage-backed Hamburger column artwork. RNSVG/SVG remains completely outside this path and untamed.
 - Makes expanded Hamburger subtheme-row borders structural rather than state-dependent: the real 376x50/radius-16 two-child row owns one standard gray border, while same-geometry zero-child border/highlight shells are cleared. This explicitly covers the probe-proven Travel (`sbdlt`) row whose stock primary border width is 0 while neighboring rows report 1.
 - Stops AmazonDark from writing any border property on the three Hamburger footer actions (`account_switcher`, `so`, `cs`). Their gray fill/light text remains themed, while Amazon alone owns the surviving stock border.
-- Cart/Person/Menu probes remain finite and explicit-trigger only, now exported with v7.259 filenames. No MutationObserver, interval, RAF loop, web scroll listener, polling loop, or recurring production hierarchy scan is added.
+- Cart/Person/Menu probes remain finite and explicit-trigger only, now exported with v7.260 filenames. No MutationObserver, interval, RAF loop, web scroll listener, polling loop, or recurring production hierarchy scan is added.
 
 # AmazonDark v7.258~menu-single-border-person-sheet-probe
 
@@ -483,3 +483,7 @@ Maintained by **JoeMama383**.
 - Person border-only React shells are transparent so they cannot cover sibling media.
 - Person image classification gets one post-hydration settle pass plus reparent events, without restoring layout-time scanning.
 - v7.226 recursion barrier and global single-owner architecture retained.
+
+
+## v7.260 compile correction
+- Corrected the Person savings attributed-string helper so its lazily-created mutable copy is declared `__block` before assignment from the enumeration block. This is compile-only; there is no UI behavior change from the intended v7.260 build.
