@@ -1,7 +1,13 @@
-# AmazonDark v7.269~standalone-border-alexa-probe
+# AmazonDark v7.270~menu-footer-first-paint-alexa-probe
 
 
-## v7.269 standalone border de-duplication + Alexa/Rufus comprehensive probe
+## v7.270 hamburger footer first-paint repair + retained Alexa/Rufus comprehensive probe
+
+- Fixes the Menu first-open race where `Switch Accounts`, `Sign Out`, and `Customer Service` can show stock white inner surfaces until leaving and re-entering the tab.
+- Bad/good probe diff shows the exact 406x48.7 footer surfaces are present in both states. In the bad first render their UIKit paint is still white/uncommitted; in the good re-entry they are OLED black with the intended single gray edge and r16.
+- Root cause is lifecycle ordering: the footer parent can run its paint hook before the identifying `account_switcher` / `so` / `cs` descendant exists, so it is not classified as the footer surface on that pass. A later re-entry/layout supplies the missing pass, explaining why the second state is correct.
+- v7.270 uses the already-hooked lifecycle of those three exact action leaves to re-own only their local footer ancestors as soon as the hierarchy is complete. No observer, timer, polling, scroll hook, or document scan is added.
+- Keeps the v7.269 outer standalone-ad border de-duplication and the comprehensive Alexa/Rufus probe unchanged.
 
 - Fixes the newly introduced double-border regression on structured 414x125 standalone Home ads. The v7.268 Home probe shows the top-level `ape_gateway_dynamic-…_mshop_placement` is 430x129.8 and carries a 1px `#3b4043` edge, while the child `modern-414x125-layout-container` independently carries the correct rounded 1px `#3b4043` edge. The outer APE edge is therefore duplicate renderer chrome.
 - Removes only that top-level structured 414x125 APE placement border/outline/shadow. The child renderer border remains unchanged and is the sole visible ad frame. Full-raster borderless handling, medium/XL divider removal, Sponsored feedback, TWB, and compact-price parity are retained.
