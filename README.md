@@ -1,3 +1,19 @@
+# AmazonDark v7.273~swv-video-twb-probe
+
+Direct production/video baseline: **optimized v7.270**.
+
+## v7.273 exact SWV video repair
+
+- Probe-confirmed current untamed Search-results video is a distinct host family: `_mediaSection_8wyx7_` / `_videoPlayerContainer_8wyx7_` / `_videoWrapper_8wyx7_` containing the reused `_videoContainer_1m98b_` player.
+- The captured video leaf is filter-free and the sibling `_videoOverlay_1m98b_` plane is transparent. The captured page does not expose the older `template=FEATURED_ASINS_VIDEO_LIST` host used by the v7.270 rule.
+- All v7.271/v7.272 video-selector broadening is removed. The complete v7.270 ADTWBJS video behavior is restored first.
+- One exact new TWB selector is added: only an `_videoOverlay_1m98b_` directly inside the `8wyx7` video-player/wrapper path receives the configured TWB shade. The VIDEO compositor remains filter-free and controls remain authored by Amazon.
+- Retains the non-video Search magnifier restoration and exact neighboring-button gray divider correction.
+- Retains the explicit-trigger product shopping/scrolling probe behind the existing probe dispatcher. No second screenshot observer or SIGUSR2 source is added.
+- No MutationObserver, interval, RAF loop, web scroll listener, or recurring production scan is added.
+
+---
+
 # AmazonDark v7.272 — Product-scroll video parity + restored Search-results probe
 
 - Direct base: v7.271 optimized regression repair.
