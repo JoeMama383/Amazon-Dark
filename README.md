@@ -1,3 +1,16 @@
+# AmazonDark v7.253~cart-controls-sheet-recs-menu-probe
+
+## Cart controls, long-press sheet, related-item TWB + retained Menu probe
+
+- Builds directly on v7.252 and retains the exact Prime-adjacent Cart recommendation subtext fix unchanged.
+- Styles the probe-proven Cart Undo and Clip-to-Save AUI buttons into the same medium-neutral #303335 / #747a7c family as Delete, Save for later, Share and Compare.
+- Styles only the Subscribe & Save outer AUI box; the stock switch is preserved explicitly as gray when OFF and Amazon blue `rgb(33,98,161)` when ON, with its stock white thumb.
+- Fixes the quantity-stepper `a-icon-small-remove` sprite so the minus uses the same white transform as the adjacent `a-icon-small-add` plus.
+- Darkens the exact long-press `p13n-uf-bottom-sheet_*` AUI sheet: OLED floor, checkout-style OLED/gray-border action buttons, light action text, preserved Amazon-blue product title, and configured TWB on the product image.
+- Adds configured TWB ownership for the modern `_sp-cart-mobile-carousel` `img.sp-dynamic-image` product lane used by the Items-related-to-cart carousel.
+- Keeps the v7.251 dark loading-card placeholder fix and all earlier Cart/Person/Search owners.
+- Retains the v7.252 Hamburger/Menu hybrid forensics probe. Screenshot/SIGUSR2 remains the only trigger; normal runtime adds no MutationObserver, interval, RAF, web scroll listener, polling loop, or recurring hierarchy scan.
+
 # AmazonDark v7.252~cart-subtext-menu-ui-forensics-probe
 
 ## Final Cart recommendation text + Hamburger/Menu hybrid forensics
