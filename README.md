@@ -1,4 +1,14 @@
-# AmazonDark v7.267~xl-raster-divider-hero-backdrop-probe
+# AmazonDark v7.268~compact-standalone-price-probe
+
+
+## v7.268 compact standalone current-price text parity
+
+- Fixes the compact structured/non-full-raster standalone ad current price painting stock dark on the OLED card.
+- The v7.267 Home probe proves this compact renderer uses `#dynamic-bb` and an exact `data-acei-id="prc"` current-price lane rather than the medium/large `data-testid="price-container"` contract.
+- Only `#symbolOne`, `#price-integer`, and `#price-fraction` directly under that `prc` lane are forced to the normal light neutral text.
+- The authored discount percentage remains red, and the struck-through list-price metadata remains secondary gray. Product title, images, Sponsored chrome, borders, and raster/full-raster classifiers are unchanged.
+- Retains both v7.267 fixes: XL full-raster divider removal and OLED-black Home hero backdrop planes.
+- No MutationObserver, timer, RAF loop, scroll listener, or recurring scan is added.
 
 
 ## v7.267 XL full-raster divider + Home hero backdrop OLED lock
