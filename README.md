@@ -1,3 +1,15 @@
+# AmazonDark v7.278~footer-keyboard-bridge
+
+## Hamburger first-paint: bridge the actual RNCEKV host attachment
+
+- v7.277 r1 proves all three exact action leaves are already correctly transparent while the 406x48.7 visible surfaces remain stock white.
+- The exact physical chain is action `RCTView#account_switcher` / `#so` / `#cs` -> direct `RNCEKVExternalKeyboardView` -> inner RCTView -> 406x48.7 visible surface -> 410x52.7 wrapper.
+- v7.277 could still run its exact-leaf ancestor pass before the RNCEKV-hosted subtree had been attached high enough to expose the 406/410 owners. The leaf then need not receive another move/ID event when its wrapper is attached upward.
+- v7.278 uses the existing RNCEKV hook as the missing bridge: on wrapper `didMoveToSuperview`, `didMoveToWindow`, and `setFrame:`, it checks direct children only for one of the three exact footer action IDs and reuses the existing <=7 ancestor owner.
+- No timer, observer, downward hierarchy scan, scroll listener, RAF, delayed retry, or new hook class is added. Non-footer RNCEKV wrappers perform only a tiny direct-child ID check.
+- v7.277 local/root-independent ownership remains; the failed v7.276 2,048-node root scan remains removed.
+- All other v7.277 theming, probes, Brands rails, SWV video, avw36 strip, Search fixes, and Force 120 Hz behavior/settings copy remain unchanged.
+
 # AmazonDark v7.277~footer-local-owner
 
 ## Hamburger footer first-paint: exact local ownership
