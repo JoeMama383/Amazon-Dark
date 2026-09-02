@@ -1,3 +1,27 @@
+# AmazonDark v7.258~menu-single-border-person-sheet-probe
+
+## Menu single-border cleanup + corrected Person savings-sheet discovery
+
+- Builds directly on v7.257, retaining the completed Hamburger dropdown floor/glyph fixes, Hamburger footer raster restoration, and Cart Share product-preview restoration.
+- Removes the conflicting Menu border channels responsible for the three gray footer rows looking double/triple outlined. Menu cards/buttons now use one generic React border width/color; all per-edge width/color overrides are explicitly reset and CALayer borders remain off.
+- The supplied v7.256 Person probe proves the earlier AppCX snapshot did **not** capture the visible Subscribe & Save savings sheet: it selected an AppCX tree whose React payload contains the Alexa/shopping navigation header and whose bottom sheet only intersects the bottom of the screen. v7.258 therefore does not guess at the savings card/header renderer.
+- Refines the Person probe to enumerate every foreground window, discover every `AppCXTouchPassthroughView`, score each candidate by the visible area of its actual bottom-sheet descendants, snapshot the top three AppCX candidates, and also snapshot the top three non-Person modal/presentation candidates. This is designed to capture the real savings sheet in the next run.
+- Person probe cap is raised to 64 MiB only for the explicit finite diagnostic so the additional modal snapshots are not truncated. Normal production runtime remains event-driven and unchanged.
+- Cart/Share and Hamburger fixes from v7.257 remain in place; no new broad visual rule is applied to Person until the corrected probe identifies the actual savings-sheet renderer.
+- No MutationObserver, interval, RAF loop, web scroll listener, polling loop, recurring timer, or production hierarchy scanner is added.
+
+# AmazonDark v7.257~menu-dropdown-share-preview-fix-probes
+
+## Hamburger expanded-row completion + Cart Share preview restoration
+
+- Builds directly on v7.256 and retains its Cart Share sheet, Cart semantic colors, attempted Person AppCX ownership, and final v7.255 Hamburger top-level theming. The later v7.256 on-device Person probe showed that the first AppCX-root probe did not actually select the visible Subscribe & Save savings sheet; v7.258 corrects that diagnostic gap.
+- Uses the supplied v7.256 full Hamburger probe to generalize expanded dropdown row ownership to the exact `subtheme-card-view` container plus its repeated 376x50/radius-16 physical row geometry, covering dynamic category IDs that the earlier six-ID list missed. Each expanded row is OLED black with one standard gray React border; duplicate stock border shells are retired.
+- Expanded `subtheme_image_*` raster artwork is restored as authored pixels and routed through the configured native TWB strength. This applies only to UIImage-backed dropdown artwork; RNSVG/SVG views remain outside the taming path and unchanged.
+- Restores the bottom Hamburger helper row's leading 54x60-source raster from AlwaysTemplate to AlwaysOriginal using its exact 406x~23 two-child footer structure, removing the blank white circle while leaving that authored footer artwork untamed.
+- Fixes the only remaining v7.256 Cart Share regression: `#ssf-preview-container` is excluded from the structural `.a-padding-base` floor rule that was clearing its CSS `background-image`. The existing exact preview TWB selector remains authoritative, so the product image is visible and tamed while the OLED preview frame/title styling stays unchanged.
+- Cart, Person, and Hamburger finite screenshot/SIGUSR2 probes remain available under v7.257 filenames.
+- No MutationObserver, interval, RAF loop, web scroll listener, polling loop, recurring timer, or production hierarchy scanner is added.
+
 # AmazonDark v7.256~cart-person-completion-probes
 
 ## Probe-backed Cart + Person completion with v7.255 Hamburger fix retained
