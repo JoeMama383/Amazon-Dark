@@ -1,3 +1,15 @@
+# AmazonDark v7.254~three-tab-forensics-probes
+
+## Cart + Person + Hamburger/Menu diagnostics restored
+
+- Exact visual/production base is v7.253; finalized Cart and Person theming is unchanged.
+- One screenshot or SIGUSR2 now dispatches to the currently selected `cartTab`, `meTab`, or `menuTab`.
+- Cart restores the comprehensive finite WKWebView full-document probe from v7.251, now exporting `AmazonDark-v7.254-cart-ui-probe-*`.
+- Person restores the comprehensive finite React/native top-to-bottom probe from v7.240, now exporting `AmazonDark-v7.254-person-ui-probe-*`.
+- Hamburger/Menu retains the v7.253 hybrid WebKit/native discovery probe, now exporting `AmazonDark-v7.254-menu-ui-probe-*`.
+- A single dormant screenshot notification observer and a single SIGUSR2 dispatch source replace three independent trigger registrations.
+- No MutationObserver, interval, RAF loop, web scroll listener, polling loop, or recurring native hierarchy scanner is added.
+
 # AmazonDark v7.253~cart-controls-sheet-recs-menu-probe
 
 ## Cart controls, long-press sheet, related-item TWB + retained Menu probe

@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.251 — exact Cart recommendation loading-card ownership + retained Cart UI forensics probe
+ * AmazonDark v7.254 — finalized Cart/Person visuals + restored Cart/Person/Menu forensics probes
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -9,7 +9,7 @@
  * Production invariants:
  *   - no Dark Reader, native-dark weblab forcing, MutationObserver, polling loop,
  *     recurring hierarchy scanner, RAF loop, or web scroll listener
- *   - finalized Person ownership is unchanged; Cart probe runtime is dormant until screenshot/SIGUSR2
+ *   - finalized Person/Cart ownership is unchanged; all three forensics probes are dormant until screenshot/SIGUSR2
  */
 
 #import <UIKit/UIKit.h>
@@ -26,7 +26,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.253-cart-controls-sheet-recs-menu-probe"
+#define AD_VERSION "v7.254-three-tab-forensics-probes"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -6768,9 +6768,9 @@ static void ADConsiderLaunchReady706(void){
 
 
 
-// v7.252: keep all Logos directives above the Hamburger/Menu probe implementation.
-// The probe is plain C/Objective-C below; only this forward declaration is needed here.
-static void ADInstallMenuProbe7252(void);
+// v7.254: keep all Logos directives above every probe implementation.
+// One shared explicit-trigger dispatcher selects Cart, Person, or Hamburger/Menu at runtime.
+static void ADInstallThreeTabProbes7254(void);
 
 static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const void *obj,CFDictionaryRef ui){
     BOOL wasPrivacy=gP.privacyMode;
@@ -6804,7 +6804,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
     } @catch(...) {}
 
     %init;
-    ADInstallMenuProbe7252();
+    ADInstallThreeTabProbes7254();
     if(gP.enabled&&gP.privacyMode){
         ADRegisterPrivacyProtocol7117();
         ADCompilePrivacyContentRules7117();
@@ -6816,10 +6816,409 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 }
 
 
-// v7.252 Hamburger/Menu UI forensics probe. Historical builds expose the tab as
+// v7.254: Restored Person UI forensics probe. It shares one explicit screenshot/SIGUSR2
+// dispatcher with Cart and Hamburger/Menu, and remains dormant outside a matching active tab. This subsystem is completely dormant until the user
+// explicitly takes a screenshot or sends SIGUSR2. It never alters Person visual ownership.
+// A trigger temporarily walks only the exact React Person scroll surface top-to-bottom,
+// allowing lazy/recycled nodes to hydrate, snapshots native/React text, glyph, border,
+// layer, hierarchy and current AmazonDark classifier state, then restores the original offset.
+static NSUInteger gADPersonProbeRun7233=0;
+static BOOL gADPersonProbeBusy7233=NO;
+static const unsigned long long kADPersonProbeCap7233=32ULL*1024ULL*1024ULL;
+
+static NSString *ADProbeSafe7233(NSString *x){
+    if(!x.length)return @"";
+    @try {
+        NSString *s=[x stringByReplacingOccurrencesOfString:@"\\" withString:@"\\\\"];
+        s=[s stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""];
+        s=[s stringByReplacingOccurrencesOfString:@"\n" withString:@"\\n"];
+        s=[s stringByReplacingOccurrencesOfString:@"\r" withString:@"\\r"];
+        if(s.length>180)s=[[s substringToIndex:180] stringByAppendingString:@"…"];
+        return s;
+    } @catch(...) { return @"?"; }
+}
+static NSString *ADProbeColor7233(UIColor *c){
+    if(!c)return @"nil";
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0;
+        if([c getRed:&r green:&g blue:&b alpha:&a])return [NSString stringWithFormat:@"rgba(%.3f,%.3f,%.3f,%.3f)",r,g,b,a];
+        if([c getWhite:&w alpha:&a])return [NSString stringWithFormat:@"white(%.3f,%.3f)",w,a];
+        return [NSString stringWithFormat:@"%@",c];
+    } @catch(...) { return @"?"; }
+}
+static NSString *ADProbeCG7233(CGColorRef c){
+    if(!c)return @"nil";
+    @try { return ADProbeColor7233([UIColor colorWithCGColor:c]); } @catch(...) { return @"?"; }
+}
+static NSString *ADProbeChain7233(UIView *v){
+    NSMutableArray<NSString *> *a=[NSMutableArray array];
+    @try {
+        UIView *n=v;
+        for(int d=0;n&&d<10;d++,n=n.superview){
+            NSString *cn=NSStringFromClass(n.class)?:@"?";
+            NSString *aid=ADProbeSafe7233(n.accessibilityIdentifier);
+            [a addObject:aid.length?[NSString stringWithFormat:@"%@#%@",cn,aid]:cn];
+            if([n.accessibilityIdentifier isEqualToString:@"me"]&&ADClassNameIs7183(n,"RCTScrollView"))break;
+        }
+    } @catch(...) {}
+    return [a componentsJoinedByString:@"<-"];
+}
+static NSString *ADProbeText7233(UIView *v){
+    if(!v)return @"text=0";
+    @try {
+        NSTextStorage *ts=ADPersonTextStorage7206(v);
+        if(ts&&ts.length){
+            NSMutableArray<NSString *> *runs=[NSMutableArray array]; NSRange whole=NSMakeRange(0,ts.length);
+            [ts enumerateAttributesInRange:whole options:0 usingBlock:^(NSDictionary *attrs,NSRange range,BOOL *stop){
+                if(runs.count>=16){ *stop=YES; return; }
+                UIColor *fg=attrs[NSForegroundColorAttributeName]; UIColor *bg=attrs[NSBackgroundColorAttributeName]; UIFont *font=attrs[NSFontAttributeName];
+                NSNumber *ul=attrs[NSUnderlineStyleAttributeName],*st=attrs[NSStrikethroughStyleAttributeName],*kern=attrs[NSKernAttributeName];
+                [runs addObject:[NSString stringWithFormat:@"%lu:%lu:fg=%@:bg=%@:font=%@/%.1f:primary=%d:ul=%@:st=%@:kern=%@",
+                    (unsigned long)range.location,(unsigned long)range.length,ADProbeColor7233(fg),ADProbeColor7233(bg),font.fontName?:@"nil",font?font.pointSize:0.0,ADPersonPrimaryFont7206(font)?1:0,ul?:@0,st?:@0,kern?:@0]];
+            }];
+            return [NSString stringWithFormat:@"text=1 kind=rct len=%lu runs=[%@]",(unsigned long)ts.length,[runs componentsJoinedByString:@";"]];
+        }
+        if([v isKindOfClass:[UILabel class]]){
+            UILabel *l=(UILabel *)v; NSMutableArray<NSString *> *runs=[NSMutableArray array]; NSAttributedString *at=l.attributedText;
+            if(at.length){
+                [at enumerateAttributesInRange:NSMakeRange(0,at.length) options:0 usingBlock:^(NSDictionary *attrs,NSRange range,BOOL *stop){
+                    if(runs.count>=16){ *stop=YES; return; }
+                    UIColor *fg=attrs[NSForegroundColorAttributeName]; UIColor *bg=attrs[NSBackgroundColorAttributeName]; UIFont *font=attrs[NSFontAttributeName];
+                    [runs addObject:[NSString stringWithFormat:@"%lu:%lu:fg=%@:bg=%@:font=%@/%.1f",(unsigned long)range.location,(unsigned long)range.length,ADProbeColor7233(fg),ADProbeColor7233(bg),font.fontName?:@"nil",font?font.pointSize:0.0]];
+                }];
+            }
+            return [NSString stringWithFormat:@"text=1 kind=label len=%lu color=%@ font=%@/%.1f lines=%ld align=%ld break=%ld adjusts=%d scale=%.2f runs=[%@]",
+                (unsigned long)l.text.length,ADProbeColor7233(l.textColor),l.font.fontName?:@"nil",l.font.pointSize,(long)l.numberOfLines,(long)l.textAlignment,(long)l.lineBreakMode,l.adjustsFontSizeToFitWidth?1:0,l.minimumScaleFactor,[runs componentsJoinedByString:@";"]];
+        }
+    } @catch(...) {}
+    NSString *cn=NSStringFromClass(v.class)?:@"";
+    BOOL textish=[cn rangeOfString:@"Text" options:NSCaseInsensitiveSearch].location!=NSNotFound||[cn rangeOfString:@"Paragraph" options:NSCaseInsensitiveSearch].location!=NSNotFound;
+    return textish?@"text=1 storage=none":@"text=0";
+}
+static NSString *ADProbeRCTEdges7233(UIView *v){
+    if(!v||!ADClassNameIs7183(v,"RCTView"))return @"rct=0";
+    @try {
+        const char *wn[]={"borderWidth","borderTopWidth","borderRightWidth","borderBottomWidth","borderLeftWidth","borderStartWidth","borderEndWidth"};
+        const char *cn[]={"borderColor","borderTopColor","borderRightColor","borderBottomColor","borderLeftColor","borderStartColor","borderEndColor"};
+        const char *rn[]={"borderRadius","borderTopLeftRadius","borderTopRightRadius","borderBottomLeftRadius","borderBottomRightRadius","borderTopStartRadius","borderTopEndRadius","borderBottomStartRadius","borderBottomEndRadius"};
+        NSMutableArray *a=[NSMutableArray array];
+        for(size_t i=0;i<sizeof(wn)/sizeof(*wn);i++){ SEL q=sel_registerName(wn[i]); if([v respondsToSelector:q]){ CGFloat x=((CGFloat(*)(id,SEL))objc_msgSend)(v,q); [a addObject:[NSString stringWithFormat:@"%s=%.2f",wn[i],x]]; } }
+        for(size_t i=0;i<sizeof(cn)/sizeof(*cn);i++){ SEL q=sel_registerName(cn[i]); if([v respondsToSelector:q]){ id x=((id(*)(id,SEL))objc_msgSend)(v,q); [a addObject:[NSString stringWithFormat:@"%s=%@",cn[i],[x isKindOfClass:[UIColor class]]?ADProbeColor7233(x):[NSString stringWithFormat:@"%@",x]]]; } }
+        for(size_t i=0;i<sizeof(rn)/sizeof(*rn);i++){ SEL q=sel_registerName(rn[i]); if([v respondsToSelector:q]){ CGFloat x=((CGFloat(*)(id,SEL))objc_msgSend)(v,q); [a addObject:[NSString stringWithFormat:@"%s=%.2f",rn[i],x]]; } }
+        return [NSString stringWithFormat:@"rct=1 [%@]",[a componentsJoinedByString:@","]];
+    } @catch(...) { return @"rct=1 err=1"; }
+}
+static NSString *ADProbeLayer7233(UIView *v){
+    if(!v)return @"layers=0";
+    @try {
+        CALayer *root=v.layer; NSMutableArray<CALayer *> *q=[NSMutableArray arrayWithObject:root]; NSMutableArray<NSString *> *samples=[NSMutableArray array];
+        NSUInteger seen=0,shape=0,grad=0,bordered=0,contents=0;
+        while(q.count&&seen++<72){
+            CALayer *l=q.firstObject; [q removeObjectAtIndex:0]; if(!l)continue;
+            if(l.contents)contents++;
+            BOOL interesting=(l==root)||l.borderWidth>0.01||l.backgroundColor||l.mask||[l isKindOfClass:[CAShapeLayer class]]||[l isKindOfClass:[CAGradientLayer class]]||l.shadowOpacity>0.001;
+            if(l.borderWidth>0.01)bordered++;
+            if([l isKindOfClass:[CAShapeLayer class]])shape++;
+            if([l isKindOfClass:[CAGradientLayer class]])grad++;
+            if(interesting&&samples.count<12){
+                NSString *extra=@"";
+                if([l isKindOfClass:[CAShapeLayer class]]){ CAShapeLayer *sh=(CAShapeLayer *)l; extra=[NSString stringWithFormat:@":shape(f=%@ s=%@ lw=%.2f dash=%@)",ADProbeCG7233(sh.fillColor),ADProbeCG7233(sh.strokeColor),sh.lineWidth,sh.lineDashPattern?:@[]]; }
+                else if([l isKindOfClass:[CAGradientLayer class]]){ CAGradientLayer *g=(CAGradientLayer *)l; NSMutableArray *cs=[NSMutableArray array]; for(id c in g.colors?:@[]){ [cs addObject:ADProbeCG7233((__bridge CGColorRef)c)]; } extra=[NSString stringWithFormat:@":grad(%@)",[cs componentsJoinedByString:@"/"]]; }
+                [samples addObject:[NSString stringWithFormat:@"%@ name=%@ f=(%.1f,%.1f %.1fx%.1f) bg=%@ bw=%.2f bc=%@ cr=%.2f op=%.2f z=%.1f mask=%d contents=%d shadow=%@/%.2f/%.2f%@",
+                    NSStringFromClass(l.class),l.name?:@"nil",l.frame.origin.x,l.frame.origin.y,l.frame.size.width,l.frame.size.height,ADProbeCG7233(l.backgroundColor),l.borderWidth,ADProbeCG7233(l.borderColor),l.cornerRadius,l.opacity,l.zPosition,l.mask?1:0,l.contents?1:0,ADProbeCG7233(l.shadowColor),l.shadowOpacity,l.shadowRadius,extra]];
+            }
+            if(seen<52)for(CALayer *c in l.sublayers?:@[])[q addObject:c];
+        }
+        return [NSString stringWithFormat:@"layers=%lu shape=%lu grad=%lu bordered=%lu contents=%lu maskToBounds=%d samples=[%@]",(unsigned long)seen,(unsigned long)shape,(unsigned long)grad,(unsigned long)bordered,(unsigned long)contents,root.masksToBounds?1:0,[samples componentsJoinedByString:@" || "]];
+    } @catch(...) { return @"layers=1 err=1"; }
+}
+static NSString *ADProbeImage7233(UIView *v){
+    if(![v isKindOfClass:[UIImageView class]])return @"img=0";
+    @try {
+        UIImageView *iv=(UIImageView *)v; UIImage *im=iv.image; size_t pxw=0,pxh=0;
+        if(im.CGImage){ pxw=CGImageGetWidth(im.CGImage); pxh=CGImageGetHeight(im.CGImage); }
+        CALayer *twb=objc_getAssociatedObject(iv,kADTWBOverlay),*hl=objc_getAssociatedObject(iv,kADPersonHighlightImageOverlay7221);
+        return [NSString stringWithFormat:@"img=1 has=%d mode=%ld pts=(%.1fx%.1f) px=(%zux%zu) scale=%.2f orient=%ld cap=(%.1f,%.1f,%.1f,%.1f) resize=%ld contentMode=%ld highlighted=%d anim=%d tint=%@ twb=%d hlTwb=%d topGlyph=%d arrow=%d chev=%d medical=%d review40=%d customer40=%d exactHL=%d hlCtx=%d explicit=%d forced12=%d forced18=%d blocked=%d final240=%d avatar=%d badge=%d flag=%d",
+            im?1:0,(long)(im?im.renderingMode:-1),im?im.size.width:0.0,im?im.size.height:0.0,pxw,pxh,im?im.scale:0.0,(long)(im?im.imageOrientation:-1),
+            im?im.capInsets.top:0.0,im?im.capInsets.left:0.0,im?im.capInsets.bottom:0.0,im?im.capInsets.right:0.0,(long)(im?im.resizingMode:-1),(long)iv.contentMode,iv.highlighted?1:0,iv.animationImages.count?1:0,ADProbeColor7233(iv.tintColor),twb?1:0,hl?1:0,
+            ADPersonTopChromeGlyph7217(iv)?1:0,ADPersonRightArrow7231(iv)?1:0,ADPersonSectionChevron7217(iv)?1:0,ADPersonMedicalAuthoredIcon7231(iv)?1:0,ADPersonReviewCompactImage7229(iv)?1:0,ADPersonCustomerServiceLeadingImage7229(iv)?1:0,ADPersonExactHighlightImage7221(iv)?1:0,ADPersonHighlightImageContext7224(iv)?1:0,ADPersonExplicitProductMedia7206(iv)?1:0,ADPersonForcedMedia7212(iv)?1:0,ADPersonForcedMedia7218(iv)?1:0,ADPersonMediaBlocked7206(iv)?1:0,ADPersonFinalRasterKind7235(iv,YES),ADPersonAvatarImage7237(iv)?1:0,ADPersonNotificationBadge7237(iv)?1:0,ADPersonCountryFlag7237(iv)?1:0];
+    } @catch(...) { return @"img=1 err=1"; }
+}
+static NSString *ADProbeControl7233(UIView *v){
+    @try {
+        if([v isKindOfClass:[UIControl class]]){ UIControl *c=(UIControl *)v; return [NSString stringWithFormat:@"control=1 enabled=%d selected=%d highlighted=%d state=%lu",c.enabled?1:0,c.selected?1:0,c.highlighted?1:0,(unsigned long)c.state]; }
+        if([v isKindOfClass:[UIScrollView class]]){ UIScrollView *sv=(UIScrollView *)v; return [NSString stringWithFormat:@"scroll=1 offset=(%.1f,%.1f) content=(%.1fx%.1f) inset=(%.1f,%.1f,%.1f,%.1f) enabled=%d hInd=%d vInd=%d style=%ld",sv.contentOffset.x,sv.contentOffset.y,sv.contentSize.width,sv.contentSize.height,sv.adjustedContentInset.top,sv.adjustedContentInset.left,sv.adjustedContentInset.bottom,sv.adjustedContentInset.right,sv.scrollEnabled?1:0,sv.showsHorizontalScrollIndicator?1:0,sv.showsVerticalScrollIndicator?1:0,(long)sv.indicatorStyle]; }
+    } @catch(...) {}
+    return @"control=0";
+}
+static NSString *ADProbeClassifiers7233(UIView *v){
+    if(!v)return @"classifiers=none";
+    @try {
+        BOOL image=[v isKindOfClass:[UIImageView class]]; UIImageView *iv=image?(UIImageView *)v:nil;
+        CALayer *buy=objc_getAssociatedObject(v,kADPersonBuyAgainOutline7218),*plate=objc_getAssociatedObject(v,kADPersonHighlightPlateOverlay7212),*wrap=objc_getAssociatedObject(v,kADPersonHighlightWrapperOverlay7229),*review=objc_getAssociatedObject(v,kADPersonReviewOutline7231);
+        return [NSString stringWithFormat:@"classifiers outer=%d inner=%d carOuter=%d carInner=%d sec=%d buyItem=%d buyWrap=%d topPill=%d shell=%d header=%d titleBand=%d textFix=%d hlTile=%d hlPlate=%d reviewPlate=%d hlWrap=%d fix240(list=%d interest=%d medicalCard=%d orderCard=%d buyOverlay=%d buyPrimary=%d subscribeOverlay=%d keepText=%d buyOuter=%d interestTitle=%d highlightArrow=%d nestedList=%d) ownOverlay(buy=%d plate=%d wrap=%d review=%d)%@",
+            ADPersonOuterCardFloor7213(v)?1:0,ADPersonInternalMediaPlate7213(v)?1:0,ADPersonCarouselOuter7214(v)?1:0,ADPersonInsideCarouselOuter7214(v)?1:0,ADPersonSectionKind7218(v),ADPersonBuyAgainItem7218(v)?1:0,ADPersonBuyAgainWrapper7218(v)?1:0,ADPersonTopMenuPill7208(v)?1:0,ADPersonBorderOnlyShell7227(v)?1:0,ADPersonHeaderLeaf7221(v)?1:0,ADPersonHeadingBandGeometry7221(v)?1:0,ADPersonFinalTextOwner7239(v)?1:0,ADPersonHighlightTile7224(v)?1:0,ADPersonHighlightPlate7212(v)?1:0,ADPersonReviewBorderPlate7231(v)?1:0,ADPersonHighlightWrapperFallback7229(v)?1:0,
+            ADPersonListCard7235(v)?1:0,ADPersonInterestBorderPlate7235(v)?1:0,
+            ([(v.accessibilityIdentifier?:@"").lowercaseString isEqualToString:@"yhw_healthai_0"]||[(v.accessibilityIdentifier?:@"").lowercaseString isEqualToString:@"yhw_pharmacy_1"])?1:0,
+            [(v.accessibilityIdentifier?:@"").lowercaseString isEqualToString:@"yo_btn"]?1:0,ADPersonBuyAgainOccluder7235(v)?1:0,ADPersonBuyAgainItem7218(v)?1:0,
+            ADPersonSubscribeOccluder7237(v)?1:0,ADPersonKeepShoppingText7237(v)?1:0,ADPersonBuyAgainOuterBorderShell7238(v)?1:0,
+            ADPersonInterestTitle7240(v)?1:0,(image&&ADPersonHighlightIconArrow7240(iv))?1:0,ADPersonNestedListBorder7239(v)?1:0,
+            buy?1:0,plate?1:0,wrap?1:0,review?1:0,image?[NSString stringWithFormat:@" imgArrow=%d imgChevron=%d",ADPersonRightArrow7231(iv)?1:0,ADPersonSectionChevron7217(iv)?1:0]:@""];
+    } @catch(...) { return @"classifiers=err"; }
+}
+static UIView *ADPersonProbeWrapper7233(void){
+    @try {
+        for(UIWindow *w in UIApplication.sharedApplication.windows){
+            if(!w||w.hidden||w.alpha<0.01)continue; NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:w]; NSUInteger seen=0;
+            while(q.count&&seen++<3600){ UIView *v=q.firstObject; [q removeObjectAtIndex:0]; if(!v)continue; if(ADClassNameIs7183(v,"RCTScrollView")&&[v.accessibilityIdentifier isEqualToString:@"me"])return v; if(q.count<3300)for(UIView *c in v.subviews)[q addObject:c]; }
+        }
+    } @catch(...) {}
+    return nil;
+}
+static UIScrollView *ADPersonProbeScroll7233(UIView **wrapperOut){
+    UIView *wrap=ADPersonProbeWrapper7233(); if(wrapperOut)*wrapperOut=wrap; if(!wrap)return nil;
+    @try {
+        if([wrap isKindOfClass:[UIScrollView class]])return (UIScrollView *)wrap;
+        NSMutableArray<UIView *> *q=[NSMutableArray arrayWithArray:wrap.subviews]; NSUInteger seen=0;
+        while(q.count&&seen++<120){ UIView *v=q.firstObject; [q removeObjectAtIndex:0]; if([v isKindOfClass:[UIScrollView class]])return (UIScrollView *)v; if(seen<80)for(UIView *c in v.subviews)[q addObject:c]; }
+    } @catch(...) {}
+    return nil;
+}
+static void ADProbeAppend7233(NSString *path,NSString *text){
+    if(!path.length||!text.length)return;
+    @try {
+        NSFileManager *fm=[NSFileManager defaultManager]; [fm createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES attributes:nil error:nil];
+        unsigned long long cur=[[[fm attributesOfItemAtPath:path error:nil] objectForKey:NSFileSize] unsignedLongLongValue]; if(cur>=kADPersonProbeCap7233)return;
+        NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding]; unsigned long long remain=kADPersonProbeCap7233-cur; if((unsigned long long)d.length>remain)d=[d subdataWithRange:NSMakeRange(0,(NSUInteger)remain)];
+        if(![fm fileExistsAtPath:path]){ [d writeToFile:path atomically:YES]; return; }
+        NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:path]; if(h){ [h seekToEndOfFile]; [h writeData:d]; [h closeFile]; }
+    } @catch(...) {}
+}
+static NSString *ADProbePath7233(NSUInteger run){
+    @try {
+        NSDateFormatter *f=[NSDateFormatter new]; f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]; f.timeZone=[NSTimeZone localTimeZone]; f.dateFormat=@"yyyyMMdd-HHmmss-SSS";
+        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.254-person-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];
+    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.254-person-ui-probe-r%lu.txt",(unsigned long)run]]; }
+}
+static NSString *ADPersonSnapshot7233(UIView *wrap,UIScrollView *root,NSUInteger step,CGFloat targetY){
+    NSMutableString *m=[NSMutableString string]; if(!root||!wrap)return @"PERSON_SNAPSHOT_NO_ROOT\n";
+    @try {
+        CGRect screen=UIScreen.mainScreen.bounds,rr=[root convertRect:root.bounds toView:nil];
+        [m appendFormat:@"\n===== PERSON UI SNAPSHOT step=%lu targetY=%.1f actualOffset=(%.1f,%.1f) =====\nwrapper=%p root=%p frame=(%.1f,%.1f %.1fx%.1f) content=(%.1fx%.1f)\n",(unsigned long)step,targetY,root.contentOffset.x,root.contentOffset.y,wrap,root,rr.origin.x,rr.origin.y,rr.size.width,rr.size.height,root.contentSize.width,root.contentSize.height];
+        NSMutableArray *q=[NSMutableArray arrayWithObject:@{ @"v":wrap,@"d":@0 }]; NSUInteger visited=0,logged=0,onscreen=0,texts=0,images=0,vectors=0,borders=0;
+        while(q.count&&visited++<4800&&logged<3600){
+            NSDictionary *it=q.firstObject; [q removeObjectAtIndex:0]; UIView *v=it[@"v"]; NSUInteger d=[it[@"d"] unsignedIntegerValue]; if(!v)continue;
+            CGRect wr=CGRectZero; @try { wr=[v convertRect:v.bounds toView:nil]; } @catch(...) {}
+            BOOL on=!v.hidden&&v.alpha>0.01&&wr.size.width>=0.25&&wr.size.height>=0.25&&CGRectIntersectsRect(wr,screen); if(on)onscreen++;
+            NSString *cn=NSStringFromClass(v.class)?:@"?",*aid=ADProbeSafe7233(v.accessibilityIdentifier),*txt=ADProbeText7233(v); BOOL image=[v isKindOfClass:[UIImageView class]],vector=[cn rangeOfString:@"RNSVG" options:NSCaseInsensitiveSearch].location!=NSNotFound;
+            if([txt hasPrefix:@"text=1"])texts++; if(image)images++; if(vector)vectors++; if(v.layer.borderWidth>0.01||ADPersonRCTBorderWidth7208(v)>0.01)borders++;
+            CGFloat cy=wr.origin.y-rr.origin.y+root.contentOffset.y;
+            CGAffineTransform t=v.transform;
+            [m appendFormat:@"P step=%lu d=%lu ptr=%p parent=%p cls=%@ aid=\"%@\" win=(%.1f,%.1f %.1fx%.1f) cy=%.1f onscreen=%d hidden=%d alpha=%.2f user=%d clips=%d transform=(%.3f,%.3f,%.3f,%.3f,%.1f,%.1f) bg=%@ layerBg=%@ tint=%@ layerBorder=%.2f/%@ radius=%.2f shadow=%@/%.2f/%.2f contents=%d subviews=%lu sublayers=%lu traits=%llu chain=\"%@\" %@ %@ %@ %@ %@\n",
+                (unsigned long)step,(unsigned long)d,v,v.superview,cn,aid,wr.origin.x,wr.origin.y,wr.size.width,wr.size.height,cy,on?1:0,v.hidden?1:0,v.alpha,v.userInteractionEnabled?1:0,v.clipsToBounds?1:0,t.a,t.b,t.c,t.d,t.tx,t.ty,ADProbeColor7233(v.backgroundColor),ADProbeCG7233(v.layer.backgroundColor),ADProbeColor7233(v.tintColor),v.layer.borderWidth,ADProbeCG7233(v.layer.borderColor),v.layer.cornerRadius,ADProbeCG7233(v.layer.shadowColor),v.layer.shadowOpacity,v.layer.shadowRadius,v.layer.contents?1:0,(unsigned long)v.subviews.count,(unsigned long)v.layer.sublayers.count,(unsigned long long)v.accessibilityTraits,ADProbeChain7233(v),txt,ADProbeRCTEdges7233(v),ADProbeImage7233(v),ADProbeControl7233(v),ADProbeClassifiers7233(v)];
+            [m appendFormat:@"L ptr=%p %@\n",v,ADProbeLayer7233(v)];
+            logged++;
+            if(q.count<4500)for(UIView *c in v.subviews)[q addObject:@{ @"v":c,@"d":@(d+1) }];
+        }
+        [m appendFormat:@"PERSON_SNAPSHOT_COUNTS step=%lu visited=%lu logged=%lu onscreen=%lu text=%lu images=%lu vectors=%lu bordered=%lu\n",(unsigned long)step,(unsigned long)visited,(unsigned long)logged,(unsigned long)onscreen,(unsigned long)texts,(unsigned long)images,(unsigned long)vectors,(unsigned long)borders];
+    } @catch(NSException *e){ [m appendFormat:@"PERSON_SNAPSHOT_EXCEPTION %@\n",e]; }
+    return m;
+}
+static void ADCapturePersonProbe7233(NSString *trigger){
+    if(!gP.enabled||gADPersonProbeBusy7233)return;
+    UIView *wrap=nil; UIScrollView *root=ADPersonProbeScroll7233(&wrap); if(!root||!wrap)return;
+    gADPersonProbeBusy7233=YES; NSUInteger run=++gADPersonProbeRun7233; NSString *path=ADProbePath7233(run);
+    CGPoint original=root.contentOffset; BOOL originalScroll=root.scrollEnabled; root.scrollEnabled=NO;
+    CGFloat viewport=MAX(1.0,root.bounds.size.height),stride=MAX(320.0,MIN(600.0,viewport*0.58));
+    ADProbeAppend7233(path,[NSString stringWithFormat:@"AMAZONDARK v7.254 PERSON UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\npolicy=no visible text strings, no accessibilityLabel text, no typed query, no web DOM, no network payloads\nroot wrapper is exact RCTScrollView aid=me; real scroll descendant is walked non-animated and restored\noriginalOffset=(%.1f,%.1f) content=(%.1fx%.1f) viewport=%.1f stride=%.1f maxSteps=40\n",
+        AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADPersonProbeCap7233,original.x,original.y,root.contentSize.width,root.contentSize.height,viewport,stride]);
+    __block NSUInteger step=0; __block CGFloat targetY=0,lastY=-999999; __block void (^next)(void)=nil;
+    void (^finish)(NSString *)=^(NSString *reason){
+        @try { [root setContentOffset:original animated:NO]; [root layoutIfNeeded]; root.scrollEnabled=originalScroll; } @catch(...) {}
+        ADProbeAppend7233(path,[NSString stringWithFormat:@"\nPERSON_PROBE_END reason=%@ steps=%lu restoredOffset=(%.1f,%.1f) finalContent=(%.1fx%.1f)\n================ END RUN ================\n",reason?:@"done",(unsigned long)step,root.contentOffset.x,root.contentOffset.y,root.contentSize.width,root.contentSize.height]);
+        gADPersonProbeBusy7233=NO; next=nil;
+    };
+    next=^{
+        if(!root.window||!wrap.window||!ADInPersonTab7206(wrap)){ finish(@"person-left-window"); return; }
+        if(step>=40){ finish(@"step-cap"); return; }
+        CGFloat maxY=MAX(0.0,root.contentSize.height-root.bounds.size.height+root.adjustedContentInset.bottom); targetY=MIN(MAX(0.0,targetY),maxY);
+        if(step>0&&fabs(targetY-lastY)<0.5&&fabs(targetY-maxY)<0.5){ finish(@"bottom"); return; }
+        @try { [root setContentOffset:CGPointMake(original.x,targetY) animated:NO]; [root layoutIfNeeded]; } @catch(...) {}
+        NSUInteger thisStep=step++; CGFloat thisY=targetY; lastY=targetY;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.34*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+            ADProbeAppend7233(path,ADPersonSnapshot7233(wrap,root,thisStep,thisY));
+            CGFloat newMax=MAX(0.0,root.contentSize.height-root.bounds.size.height+root.adjustedContentInset.bottom); if(fabs(thisY-newMax)<0.5){ finish(@"bottom"); return; }
+            targetY=MIN(newMax,thisY+stride); dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.06*NSEC_PER_SEC)),dispatch_get_main_queue(),next);
+        });
+    };
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.05*NSEC_PER_SEC)),dispatch_get_main_queue(),next);
+}
+
+// v7.254: Restored Shopping Cart UI forensics probe. It shares one explicit screenshot/SIGUSR2
+// dispatcher with Person and Hamburger/Menu, and remains dormant outside a matching active tab.
+// GitHub history/current web ownership identifies Cart as a WKWebView document (#cart-page /
+// #sc-active-cart / #sc-saved-cart), not the React RCTScrollView#me used by Person.
+// This subsystem is dormant until screenshot/SIGUSR2. A trigger selects only the active Cart
+// WKWebView, performs a finite non-animated top-to-bottom WKScrollView walk to hydrate the sheet,
+// captures viewport DOM computed paint plus native WebKit/UIKit hierarchy, takes one final full-DOM
+// inventory, and restores the original offset. No MutationObserver/timer/RAF/scroll listener is added.
+static NSUInteger gADCartProbeRun7241=0;
+static BOOL gADCartProbeBusy7241=NO;
+static const unsigned long long kADCartProbeCap7241=48ULL*1024ULL*1024ULL;
+
+static NSString *ADCartProbeSafe7241(NSString *x){
+    if(!x.length)return @"";
+    @try {
+        NSString *s=[x stringByReplacingOccurrencesOfString:@"\\" withString:@"/"];
+        s=[s stringByReplacingOccurrencesOfString:@"\"" withString:@"'"];
+        s=[s stringByReplacingOccurrencesOfString:@"\n" withString:@"\\n"];
+        s=[s stringByReplacingOccurrencesOfString:@"\r" withString:@"\\r"];
+        if(s.length>220)s=[[s substringToIndex:220] stringByAppendingString:@"…"];
+        return s;
+    } @catch(...) { return @"?"; }
+}
+static NSString *ADCartProbeColor7241(UIColor *c){
+    if(!c)return @"nil";
+    @try { CGFloat r=0,g=0,b=0,a=0,w=0; if([c getRed:&r green:&g blue:&b alpha:&a])return [NSString stringWithFormat:@"rgba(%.3f,%.3f,%.3f,%.3f)",r,g,b,a]; if([c getWhite:&w alpha:&a])return [NSString stringWithFormat:@"white(%.3f,%.3f)",w,a]; return [NSString stringWithFormat:@"%@",c]; } @catch(...) { return @"?"; }
+}
+static NSString *ADCartProbeCG7241(CGColorRef c){ if(!c)return @"nil"; @try { return ADCartProbeColor7241([UIColor colorWithCGColor:c]); } @catch(...) { return @"?"; } }
+static NSString *ADCartProbeChain7241(UIView *v){
+    NSMutableArray<NSString *> *a=[NSMutableArray array]; @try { for(UIView *n=v;n&&a.count<12;n=n.superview){ NSString *cn=NSStringFromClass(n.class)?:@"?",*aid=ADCartProbeSafe7241(n.accessibilityIdentifier); [a addObject:aid.length?[NSString stringWithFormat:@"%@#%@",cn,aid]:cn]; } } @catch(...) {} return [a componentsJoinedByString:@"<-"];
+}
+static NSString *ADCartProbeText7241(UIView *v){
+    if(!v)return @"text=0";
+    @try {
+        NSTextStorage *ts=ADPersonTextStorage7206(v);
+        if(ts&&ts.length){ NSMutableArray<NSString *> *runs=[NSMutableArray array]; [ts enumerateAttributesInRange:NSMakeRange(0,ts.length) options:0 usingBlock:^(NSDictionary *attrs,NSRange range,BOOL *stop){ if(runs.count>=16){*stop=YES;return;} UIColor *fg=attrs[NSForegroundColorAttributeName],*bg=attrs[NSBackgroundColorAttributeName]; UIFont *font=attrs[NSFontAttributeName]; [runs addObject:[NSString stringWithFormat:@"%lu:%lu:fg=%@:bg=%@:font=%@/%.1f",(unsigned long)range.location,(unsigned long)range.length,ADCartProbeColor7241(fg),ADCartProbeColor7241(bg),font.fontName?:@"nil",font?font.pointSize:0.0]]; }]; return [NSString stringWithFormat:@"text=1 kind=rct len=%lu runs=[%@]",(unsigned long)ts.length,[runs componentsJoinedByString:@";"]]; }
+        if([v isKindOfClass:[UILabel class]]){ UILabel *l=(UILabel *)v; return [NSString stringWithFormat:@"text=1 kind=label len=%lu color=%@ font=%@/%.1f lines=%ld align=%ld break=%ld",(unsigned long)l.text.length,ADCartProbeColor7241(l.textColor),l.font.fontName?:@"nil",l.font.pointSize,(long)l.numberOfLines,(long)l.textAlignment,(long)l.lineBreakMode]; }
+    } @catch(...) {}
+    NSString *cn=NSStringFromClass(v.class)?:@""; BOOL textish=[cn rangeOfString:@"Text" options:NSCaseInsensitiveSearch].location!=NSNotFound||[cn rangeOfString:@"Paragraph" options:NSCaseInsensitiveSearch].location!=NSNotFound; return textish?@"text=1 storage=none":@"text=0";
+}
+static NSString *ADCartProbeRCT7241(UIView *v){
+    if(!v||!ADClassNameIs7183(v,"RCTView"))return @"rct=0";
+    @try { const char *wn[]={"borderWidth","borderTopWidth","borderRightWidth","borderBottomWidth","borderLeftWidth"}; const char *cn[]={"borderColor","borderTopColor","borderRightColor","borderBottomColor","borderLeftColor"}; const char *rn[]={"borderRadius","borderTopLeftRadius","borderTopRightRadius","borderBottomLeftRadius","borderBottomRightRadius"}; NSMutableArray *a=[NSMutableArray array]; for(size_t i=0;i<sizeof(wn)/sizeof(*wn);i++){SEL q=sel_registerName(wn[i]);if([v respondsToSelector:q]){CGFloat x=((CGFloat(*)(id,SEL))objc_msgSend)(v,q);[a addObject:[NSString stringWithFormat:@"%s=%.2f",wn[i],x]];}} for(size_t i=0;i<sizeof(cn)/sizeof(*cn);i++){SEL q=sel_registerName(cn[i]);if([v respondsToSelector:q]){id x=((id(*)(id,SEL))objc_msgSend)(v,q);[a addObject:[NSString stringWithFormat:@"%s=%@",cn[i],[x isKindOfClass:[UIColor class]]?ADCartProbeColor7241(x):[NSString stringWithFormat:@"%@",x]]];}} for(size_t i=0;i<sizeof(rn)/sizeof(*rn);i++){SEL q=sel_registerName(rn[i]);if([v respondsToSelector:q]){CGFloat x=((CGFloat(*)(id,SEL))objc_msgSend)(v,q);[a addObject:[NSString stringWithFormat:@"%s=%.2f",rn[i],x]];}} return [NSString stringWithFormat:@"rct=1 [%@]",[a componentsJoinedByString:@","]]; } @catch(...) { return @"rct=1 err=1"; }
+}
+static NSString *ADCartProbeImage7241(UIView *v){
+    if(![v isKindOfClass:[UIImageView class]])return @"img=0";
+    @try { UIImageView *iv=(UIImageView *)v; UIImage *im=iv.image; size_t pxw=0,pxh=0; if(im.CGImage){pxw=CGImageGetWidth(im.CGImage);pxh=CGImageGetHeight(im.CGImage);} CALayer *twb=objc_getAssociatedObject(iv,kADTWBOverlay); return [NSString stringWithFormat:@"img=1 has=%d mode=%ld pts=(%.1fx%.1f) px=(%zux%zu) scale=%.2f contentMode=%ld tint=%@ twb=%d",im?1:0,(long)(im?im.renderingMode:-1),im?im.size.width:0.0,im?im.size.height:0.0,pxw,pxh,im?im.scale:0.0,(long)iv.contentMode,ADCartProbeColor7241(iv.tintColor),twb?1:0]; } @catch(...) { return @"img=1 err=1"; }
+}
+static NSString *ADCartProbeControl7241(UIView *v){
+    @try { if([v isKindOfClass:[UIControl class]]){UIControl *c=(UIControl *)v;return [NSString stringWithFormat:@"control=1 enabled=%d selected=%d highlighted=%d state=%lu",c.enabled?1:0,c.selected?1:0,c.highlighted?1:0,(unsigned long)c.state];} if([v isKindOfClass:[UIScrollView class]]){UIScrollView *sv=(UIScrollView *)v;return [NSString stringWithFormat:@"scroll=1 offset=(%.1f,%.1f) content=(%.1fx%.1f) inset=(%.1f,%.1f,%.1f,%.1f) enabled=%d hInd=%d vInd=%d style=%ld",sv.contentOffset.x,sv.contentOffset.y,sv.contentSize.width,sv.contentSize.height,sv.adjustedContentInset.top,sv.adjustedContentInset.left,sv.adjustedContentInset.bottom,sv.adjustedContentInset.right,sv.scrollEnabled?1:0,sv.showsHorizontalScrollIndicator?1:0,sv.showsVerticalScrollIndicator?1:0,(long)sv.indicatorStyle];} } @catch(...) {} return @"control=0";
+}
+static NSString *ADCartProbeLayer7241(UIView *v){
+    if(!v)return @"layers=0"; @try {CALayer *root=v.layer;NSMutableArray<CALayer *> *q=[NSMutableArray arrayWithObject:root];NSMutableArray<NSString *> *samples=[NSMutableArray array];NSUInteger seen=0,shape=0,grad=0,bordered=0,contents=0;while(q.count&&seen++<72){CALayer *l=q.firstObject;[q removeObjectAtIndex:0];if(!l)continue;if(l.contents)contents++;BOOL interesting=(l==root)||l.borderWidth>0.01||l.backgroundColor||l.mask||[l isKindOfClass:[CAShapeLayer class]]||[l isKindOfClass:[CAGradientLayer class]]||l.shadowOpacity>0.001;if(l.borderWidth>0.01)bordered++;if([l isKindOfClass:[CAShapeLayer class]])shape++;if([l isKindOfClass:[CAGradientLayer class]])grad++;if(interesting&&samples.count<12){NSString *extra=@"";if([l isKindOfClass:[CAShapeLayer class]]){CAShapeLayer *sh=(CAShapeLayer *)l;extra=[NSString stringWithFormat:@":shape(f=%@ s=%@ lw=%.2f dash=%@)",ADCartProbeCG7241(sh.fillColor),ADCartProbeCG7241(sh.strokeColor),sh.lineWidth,sh.lineDashPattern?:@[]];}else if([l isKindOfClass:[CAGradientLayer class]]){CAGradientLayer *g=(CAGradientLayer *)l;NSMutableArray *cs=[NSMutableArray array];for(id c in g.colors?:@[])[cs addObject:ADCartProbeCG7241((__bridge CGColorRef)c)];extra=[NSString stringWithFormat:@":grad(%@)",[cs componentsJoinedByString:@"/"]];}[samples addObject:[NSString stringWithFormat:@"%@ name=%@ f=(%.1f,%.1f %.1fx%.1f) bg=%@ bw=%.2f bc=%@ cr=%.2f op=%.2f z=%.1f mask=%d contents=%d shadow=%@/%.2f/%.2f%@",NSStringFromClass(l.class),l.name?:@"nil",l.frame.origin.x,l.frame.origin.y,l.frame.size.width,l.frame.size.height,ADCartProbeCG7241(l.backgroundColor),l.borderWidth,ADCartProbeCG7241(l.borderColor),l.cornerRadius,l.opacity,l.zPosition,l.mask?1:0,l.contents?1:0,ADCartProbeCG7241(l.shadowColor),l.shadowOpacity,l.shadowRadius,extra]];}if(seen<52)for(CALayer *c in l.sublayers?:@[])[q addObject:c];}return [NSString stringWithFormat:@"layers=%lu shape=%lu grad=%lu bordered=%lu contents=%lu maskToBounds=%d samples=[%@]",(unsigned long)seen,(unsigned long)shape,(unsigned long)grad,(unsigned long)bordered,(unsigned long)contents,root.masksToBounds?1:0,[samples componentsJoinedByString:@" || "]];} @catch(...) {return @"layers=1 err=1";}
+}
+static BOOL ADCartProbeIsDescendant7241(UIView *v,UIView *ancestor){ if(!v||!ancestor)return NO; @try {for(UIView *n=v;n;n=n.superview)if(n==ancestor)return YES;} @catch(...) {} return NO; }
+static BOOL ADCartProbeIsAncestor7241(UIView *v,UIView *child){ return ADCartProbeIsDescendant7241(child,v); }
+
+static void ADCartProbeAppend7241(NSString *path,NSString *text){
+    if(!path.length||!text.length)return; @try {NSFileManager *fm=[NSFileManager defaultManager];[fm createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES attributes:nil error:nil];unsigned long long cur=[[[fm attributesOfItemAtPath:path error:nil] objectForKey:NSFileSize] unsignedLongLongValue];if(cur>=kADCartProbeCap7241)return;NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding];unsigned long long remain=kADCartProbeCap7241-cur;if((unsigned long long)d.length>remain)d=[d subdataWithRange:NSMakeRange(0,(NSUInteger)remain)];if(![fm fileExistsAtPath:path]){[d writeToFile:path atomically:YES];return;}NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:path];if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];}} @catch(...) {}
+}
+static NSString *ADCartProbePath7241(NSUInteger run){
+    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.254-cart-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.254-cart-ui-probe-r%lu.txt",(unsigned long)run]];}
+}
+static NSString *ADCartProbeDetectJS7241(void){
+    return
+        @"(function(){try{var d=document,p=String(location.pathname||'').toLowerCase();var cp=!!d.querySelector('#cart-page'),ac=!!d.querySelector('#sc-active-cart'),sv=!"
+        @"!d.querySelector('#sc-saved-cart');var legacy=!!d.querySelector('.sc-list-item,[class*=\"sc-list-item\"],form[id*=\"cart\" i],[id*=\"activeCart\" i]');var pathC"
+        @"art=/\\/gp\\/cart(?:\\/|$)|\\/cart(?:\\/|$)/.test(p);var score=(ac?520:0)+(cp?420:0)+(sv?90:0)+(legacy?160:0)+(pathCart?220:0);var se=d.scrollingElement||d.docu"
+        @"mentElement||d.body;return 'score='+score+' cartPage='+(cp?1:0)+' active='+(ac?1:0)+' saved='+(sv?1:0)+' legacy='+(legacy?1:0)+' pathCart='+(pathCart?1:0)+' rea"
+        @"dy='+String(d.readyState||'')+' scrollH='+(se?Math.round(se.scrollHeight||0):0)+' clientH='+(se?Math.round(se.clientHeight||0):0)+' nodes='+(d.getElementsByTagN"
+        @"ame('*').length||0)+' frames='+(d.getElementsByTagName('iframe').length||0)+' ad7='+(d.getElementById('ad7-static-theme')?1:0)+' twb='+(d.getElementById('ad7-pr"
+        @"oduct-feed-twb')||d.getElementById('ad7-menu-twb')||d.getElementById('ad7-search-pane-twb')?1:0);}catch(e){return 'score=0 error=1';}})();";
+}
+static NSString *ADCartProbeDOMJS7241(NSUInteger step,BOOL full){
+    static NSString *base=nil; static dispatch_once_t once; dispatch_once(&once,^{ base=
+        @"(function(){try{var STEP=__STEP__,FULL=__FULL__,d=document,w=window,de=d.documentElement||{},se=d.scrollingElement||de||d.body;var sx=Number(w.scrollX||se.scrol"
+        @"lLeft||0),sy=Number(w.scrollY||se.scrollTop||0),vw=Number(w.innerWidth||de.clientWidth||0),vh=Number(w.innerHeight||de.clientHeight||0);var LO=sy-140,HI=sy+vh+1"
+        @"40,MAX=FULL?6200:2600,out=[],visited=0,emitted=0,trunc=0;function clean(v,n){v=String(v==null?'':v).replace(/[\\r\\n\\t]+/g,' ').replace(/\\|/g,'¦').replace(/\\"
+        @"\\/g,'/');n=n||180;return v.length>n?v.slice(0,n)+'…':v}function hash(s){s=String(s||'');var h=2166136261>>>0;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=M"
+        @"ath.imul(h,16777619)}return (h>>>0).toString(16)}function cls(e){var c='';try{c=typeof e.className==='string'?e.className:(e.className&&e.className.baseVal)||''"
+        @"}catch(_){ }return clean(c,220)}function sig(e){var z=String(e.tagName||e.nodeName||'?').toLowerCase(),i='';try{i=e.id||''}catch(_){ }var c=cls(e).trim().split("
+        @"/\\s+/).filter(Boolean).slice(0,3).join('.');return z+(i?'#'+clean(i,90):'')+(c?'.'+clean(c,100):'')}function chain(e){var a=[],x=e;for(var n=0;x&&n<8;n++){a.pu"
+        @"sh(sig(x));if(x.parentElement){x=x.parentElement;continue}var r=x.getRootNode&&x.getRootNode();x=r&&r.host?r.host:null}return a.join('<-')}function attr(e,n,lim"
+        @"){try{var v=e.getAttribute(n);return v==null?'':clean(v,lim||150)}catch(_){return ''}}function boolAttr(e,n){try{return e.hasAttribute(n)?1:0}catch(_){return 0}"
+        @"}function kind(v){v=String(v||'');if(!v||v==='none')return 'none';if(/gradient/i.test(v))return 'gradient';if(/url\\(/i.test(v))return 'url';return clean(v,45)}"
+        @"function textInfo(e){var own='';try{for(var i=0;i<e.childNodes.length;i++){var n=e.childNodes[i];if(n.nodeType===3)own+=n.nodeValue||''}}catch(_){ }own=own.trim"
+        @"();var all='';try{all=(e.innerText||e.textContent||'').trim()}catch(_){ }if(all.length>12000)all=all.slice(0,12000);return ' ownText='+own.length+'/'+hash(own)+"
+        @"' allText='+all.length+'/'+hash(all)}function pseudo(e,p){try{var c=getComputedStyle(e,p),ct=String(c.content||'');if((!ct||ct==='none'||ct==='normal')&&c.backg"
+        @"roundColor==='rgba(0, 0, 0, 0)'&&c.backgroundImage==='none'&&parseFloat(c.borderTopWidth||0)===0&&parseFloat(c.width||0)===0&&parseFloat(c.height||0)===0)return"
+        @" '';return ' '+p.slice(2)+'={ct='+ct.length+'/'+hash(ct)+' fg='+clean(c.color,45)+' bg='+clean(c.backgroundColor,45)+' bgImg='+kind(c.backgroundImage)+' wh='+cl"
+        @"ean(c.width,25)+'x'+clean(c.height,25)+' b='+clean(c.borderTopWidth,15)+'/'+clean(c.borderTopColor,45)+' rad='+clean(c.borderRadius,35)+' fill='+clean(c.fill,45"
+        @")+' stroke='+clean(c.stroke,45)+'}'}catch(_){return ''}}function tech(e){var names=['role','data-testid','data-component-type','data-csa-c-type','data-csa-c-con"
+        @"tent-id','data-csa-c-slot-id','data-csa-c-painter','data-cel-widget','cel_widget_id','name','type','aria-hidden'];var a=[];for(var i=0;i<names.length;i++){var v"
+        @"=attr(e,names[i]);if(v)a.push(names[i]+'='+v)}var asin=attr(e,'data-asin',40);if(asin)a.push('data-asin='+asin.length+'/'+hash(asin));if(boolAttr(e,'href'))a.pu"
+        @"sh('href=1');if(boolAttr(e,'src'))a.push('src=1');var al=attr(e,'aria-label',1);try{var av=e.getAttribute('aria-label');if(av!=null)a.push('ariaLabel='+String(a"
+        @"v).length+'/'+hash(av))}catch(_){ }try{var alt=e.getAttribute('alt');if(alt!=null)a.push('alt='+String(alt).length+'/'+hash(alt))}catch(_){ }try{if('value' in e"
+        @"&&e.value!=null)a.push('value='+String(e.value).length+'/'+hash(e.value))}catch(_){ }try{if('checked' in e)a.push('checked='+(e.checked?1:0));if('selected' in e"
+        @")a.push('selected='+(e.selected?1:0));if('disabled' in e)a.push('disabled='+(e.disabled?1:0))}catch(_){ }return a.join(',')}function media(e,c){var t=String(e.t"
+        @"agName||'').toUpperCase();try{if(t==='IMG')return ' media=img('+Number(e.naturalWidth||0)+'x'+Number(e.naturalHeight||0)+' complete='+(e.complete?1:0)+' loading"
+        @"='+clean(e.loading,20)+' fit='+clean(c.objectFit,30)+' pos='+clean(c.objectPosition,40)+')';if(t==='VIDEO')return ' media=video('+Number(e.videoWidth||0)+'x'+Nu"
+        @"mber(e.videoHeight||0)+' paused='+(e.paused?1:0)+' muted='+(e.muted?1:0)+')';if(t==='CANVAS')return ' media=canvas('+Number(e.width||0)+'x'+Number(e.height||0)+"
+        @"')';if(t==='SVG'||e instanceof SVGElement){var vb='';try{vb=e.getAttribute('viewBox')||''}catch(_){ }return ' media=svg(viewBox='+clean(vb,60)+' paths='+(e.quer"
+        @"ySelectorAll?e.querySelectorAll('path').length:0)+' uses='+(e.querySelectorAll?e.querySelectorAll('use').length:0)+')'}}catch(_){ }return ''}function emit(e,sco"
+        @"pe){if(emitted>=MAX){trunc=1;return}visited++;var r;try{r=e.getBoundingClientRect()}catch(_){return}var c;try{c=getComputedStyle(e)}catch(_){return}var docY=r.t"
+        @"op+sy,near=(r.width>0.1&&r.height>0.1&&docY+r.height>=LO&&docY<=HI),sticky=(c.position==='fixed'||c.position==='sticky');if(!FULL&&!near&&!sticky)return;var id="
+        @"'',cl='';try{id=e.id||'';cl=cls(e)}catch(_){ }var ti=tech(e);out.push('D step='+STEP+' scope='+scope+' n='+emitted+' tag='+String(e.tagName||e.nodeName||'?').to"
+        @"LowerCase()+' id=\"'+clean(id,120)+'\" class=\"'+clean(cl,220)+'\" chain=\"'+clean(chain(e),520)+'\" vp=('+r.left.toFixed(1)+','+r.top.toFixed(1)+' '+r.width.to"
+        @"Fixed(1)+'x'+r.height.toFixed(1)+') doc=('+Number(r.left+sx).toFixed(1)+','+Number(docY).toFixed(1)+') scroll=('+Number(e.scrollLeft||0).toFixed(1)+','+Number(e"
+        @".scrollTop||0).toFixed(1)+' '+Number(e.scrollWidth||0).toFixed(1)+'x'+Number(e.scrollHeight||0).toFixed(1)+') children='+Number(e.childElementCount||0)+' disp='"
+        @"+clean(c.display,28)+' vis='+clean(c.visibility,28)+' op='+clean(c.opacity,12)+' pos='+clean(c.position,20)+' z='+clean(c.zIndex,20)+' ov='+clean(c.overflowX,20"
+        @")+'/'+clean(c.overflowY,20)+' pointer='+clean(c.pointerEvents,20)+' fg='+clean(c.color,52)+' textFill='+clean(c.webkitTextFillColor,52)+' bg='+clean(c.backgroun"
+        @"dColor,52)+' bgImg='+kind(c.backgroundImage)+' mask='+kind(c.webkitMaskImage||c.maskImage)+' border='+clean(c.borderTopWidth,14)+'/'+clean(c.borderTopColor,52)+"
+        @"','+clean(c.borderRightWidth,14)+'/'+clean(c.borderRightColor,52)+','+clean(c.borderBottomWidth,14)+'/'+clean(c.borderBottomColor,52)+','+clean(c.borderLeftWidt"
+        @"h,14)+'/'+clean(c.borderLeftColor,52)+' rad='+clean(c.borderRadius,70)+' outline='+clean(c.outlineWidth,14)+'/'+clean(c.outlineColor,52)+' shadow='+clean(c.boxS"
+        @"hadow,120)+' font='+clean(c.fontFamily,70)+'/'+clean(c.fontSize,24)+'/'+clean(c.fontWeight,24)+' line='+clean(c.lineHeight,24)+' align='+clean(c.textAlign,24)+'"
+        @" deco='+clean(c.textDecorationLine,30)+' fill='+clean(c.fill,52)+' stroke='+clean(c.stroke,52)+' sw='+clean(c.strokeWidth,20)+' filter='+clean(c.filter,80)+' bl"
+        @"end='+clean(c.mixBlendMode,24)+' isolate='+clean(c.isolation,24)+' transform='+clean(c.transform,100)+(ti?' attrs=['+ti+']':'')+textInfo(e)+media(e,c)+pseudo(e,"
+        @"'::before')+pseudo(e,'::after'));emitted++;try{if(e.shadowRoot){scan(e.shadowRoot,'shadow:'+sig(e))}}catch(_){ }}function scan(root,scope){var a=[];try{a=root.q"
+        @"uerySelectorAll('*')}catch(_){return}for(var i=0;i<a.length&&emitted<MAX;i++)emit(a[i],scope)}out.push('DOM_BEGIN step='+STEP+' full='+(FULL?1:0)+' ready='+Stri"
+        @"ng(d.readyState||'')+' viewport='+vw+'x'+vh+' scroll='+sx+','+sy+' scrollSize='+Number(se?se.scrollWidth:0)+'x'+Number(se?se.scrollHeight:0)+' nodes='+d.getElem"
+        @"entsByTagName('*').length+' frames='+d.getElementsByTagName('iframe').length+' stylesheets='+d.styleSheets.length+' ad7='+(d.getElementById('ad7-static-theme')?"
+        @"1:0));scan(d,'main');var ifr=d.getElementsByTagName('iframe');for(var fi=0;fi<ifr.length&&emitted<MAX;fi++){try{var fd=ifr[fi].contentDocument;if(fd)scan(fd,'fr"
+        @"ame'+fi);else out.push('FRAME step='+STEP+' index='+fi+' accessible=0')}catch(_){out.push('FRAME step='+STEP+' index='+fi+' accessible=0')}}out.push('DOM_END st"
+        @"ep='+STEP+' full='+(FULL?1:0)+' visited='+visited+' emitted='+emitted+' truncated='+trunc);return out.join('\\n')+'\\n';}catch(e){return 'DOM_EXCEPTION '+String"
+        @"(e&&e.message||e)+'\\n';}})();"; });
+    NSString *js=[base stringByReplacingOccurrencesOfString:@"__STEP__" withString:[NSString stringWithFormat:@"%lu",(unsigned long)step]];
+    return [js stringByReplacingOccurrencesOfString:@"__FULL__" withString:(full?@"true":@"false")];
+}
+static NSInteger ADCartProbeScore7241(id result){
+    if(![result isKindOfClass:[NSString class]])return 0; NSString *s=(NSString *)result; NSRange r=[s rangeOfString:@"score="]; if(r.location==NSNotFound)return 0; NSString *tail=[s substringFromIndex:NSMaxRange(r)]; return [tail integerValue];
+}
+static NSArray<WKWebView *> *ADCartProbeWebViews7241(void){
+    NSMutableOrderedSet<WKWebView *> *set=[NSMutableOrderedSet orderedSet]; @try {for(WKWebView *wv in ADTrackedWebViews())if(wv)[set addObject:wv];for(UIWindow *w in UIApplication.sharedApplication.windows){if(!w||w.hidden||w.alpha<0.01)continue;NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:w];NSUInteger seen=0;while(q.count&&seen++<5000){UIView *v=q.firstObject;[q removeObjectAtIndex:0];if([v isKindOfClass:[WKWebView class]])[set addObject:(WKWebView *)v];if(q.count<4700)for(UIView *c in v.subviews)[q addObject:c];}}} @catch(...) {} return set.array?:@[];
+}
+static void ADCartProbeFindWebView7241(NSString *path,void (^done)(WKWebView *,NSString *)){
+    NSArray<WKWebView *> *views=ADCartProbeWebViews7241(); if(!views.count){done(nil,@"no-webviews");return;}
+    __block NSUInteger idx=0; __block NSInteger bestScore=0; __block CGFloat bestArea=0; __block WKWebView *best=nil; __block NSString *bestMeta=@""; __block void (^next)(void)=nil;
+    next=^{ if(idx>=views.count){WKWebView *winner=best;NSString *meta=bestMeta;next=nil;done(winner,meta);return;} WKWebView *wv=views[idx];NSUInteger thisIdx=idx++;CGRect wr=CGRectZero;@try{wr=[wv convertRect:wv.bounds toView:nil];}@catch(...){}CGFloat area=MAX(0.0,wr.size.width)*MAX(0.0,wr.size.height);[wv evaluateJavaScript:ADCartProbeDetectJS7241() completionHandler:^(id result,NSError *error){NSString *meta=[result isKindOfClass:[NSString class]]?(NSString *)result:[NSString stringWithFormat:@"score=0 error=%@",error.localizedDescription?:@"eval"] ;NSInteger score=ADCartProbeScore7241(meta);ADCartProbeAppend7241(path,[NSString stringWithFormat:@"CANDIDATE index=%lu ptr=%p window=%d hidden=%d alpha=%.2f frame=(%.1f,%.1f %.1fx%.1f) nativeContent=(%.1fx%.1f) %@\n",(unsigned long)thisIdx,wv,wv.window?1:0,wv.hidden?1:0,wv.alpha,wr.origin.x,wr.origin.y,wr.size.width,wr.size.height,wv.scrollView.contentSize.width,wv.scrollView.contentSize.height,ADCartProbeSafe7241(meta)]);if(score>bestScore||(score==bestScore&&score>0&&area>bestArea)){bestScore=score;bestArea=area;best=wv;bestMeta=meta;}dispatch_async(dispatch_get_main_queue(),next);}]; }; next();
+}
+static NSString *ADCartNativeSnapshot7241(UIView *root,WKWebView *target,NSString *phase){
+    NSMutableString *m=[NSMutableString string]; if(!root)return @"NATIVE_SNAPSHOT_NO_ROOT\n"; @try {CGRect screen=UIScreen.mainScreen.bounds;[m appendFormat:@"\n===== CART NATIVE SNAPSHOT phase=%@ root=%p target=%p =====\n",phase?:@"?",root,target];NSMutableArray *q=[NSMutableArray arrayWithObject:@{@"v":root,@"d":@0}];NSUInteger visited=0,logged=0,onscreen=0;while(q.count&&visited++<5200&&logged<4300){NSDictionary *it=q.firstObject;[q removeObjectAtIndex:0];UIView *v=it[@"v"];NSUInteger d=[it[@"d"] unsignedIntegerValue];if(!v)continue;CGRect wr=CGRectZero;@try{wr=[v convertRect:v.bounds toView:nil];}@catch(...){}BOOL on=!v.hidden&&v.alpha>0.01&&wr.size.width>=0.25&&wr.size.height>=0.25&&CGRectIntersectsRect(wr,screen);if(on)onscreen++;NSString *cn=NSStringFromClass(v.class)?:@"?",*aid=ADCartProbeSafe7241(v.accessibilityIdentifier);NSInteger rel=(v==target)?3:(ADCartProbeIsDescendant7241(v,target)?2:(ADCartProbeIsAncestor7241(v,target)?1:0));CGAffineTransform t=v.transform;[m appendFormat:@"N d=%lu ptr=%p parent=%p rel=%ld cls=%@ aid=\"%@\" win=(%.1f,%.1f %.1fx%.1f) onscreen=%d hidden=%d alpha=%.2f user=%d clips=%d transform=(%.3f,%.3f,%.3f,%.3f,%.1f,%.1f) bg=%@ layerBg=%@ tint=%@ layerBorder=%.2f/%@ radius=%.2f shadow=%@/%.2f/%.2f contents=%d subviews=%lu sublayers=%lu traits=%llu chain=\"%@\" %@ %@ %@ %@\n",(unsigned long)d,v,v.superview,(long)rel,cn,aid,wr.origin.x,wr.origin.y,wr.size.width,wr.size.height,on?1:0,v.hidden?1:0,v.alpha,v.userInteractionEnabled?1:0,v.clipsToBounds?1:0,t.a,t.b,t.c,t.d,t.tx,t.ty,ADCartProbeColor7241(v.backgroundColor),ADCartProbeCG7241(v.layer.backgroundColor),ADCartProbeColor7241(v.tintColor),v.layer.borderWidth,ADCartProbeCG7241(v.layer.borderColor),v.layer.cornerRadius,ADCartProbeCG7241(v.layer.shadowColor),v.layer.shadowOpacity,v.layer.shadowRadius,v.layer.contents?1:0,(unsigned long)v.subviews.count,(unsigned long)v.layer.sublayers.count,(unsigned long long)v.accessibilityTraits,ADCartProbeChain7241(v),ADCartProbeText7241(v),ADCartProbeRCT7241(v),ADCartProbeImage7241(v),ADCartProbeControl7241(v)];[m appendFormat:@"NL ptr=%p %@\n",v,ADCartProbeLayer7241(v)];logged++;if(q.count<4900)for(UIView *c in v.subviews)[q addObject:@{@"v":c,@"d":@(d+1)}];}[m appendFormat:@"CART_NATIVE_COUNTS phase=%@ visited=%lu logged=%lu onscreen=%lu\n",phase?:@"?",(unsigned long)visited,(unsigned long)logged,(unsigned long)onscreen];} @catch(NSException *e){[m appendFormat:@"CART_NATIVE_EXCEPTION %@\n",e];} return m;
+}
+static void ADCartProbeEvalAppend7241(WKWebView *wv,NSString *path,NSString *js,NSString *label,void (^done)(void)){
+    [wv evaluateJavaScript:js completionHandler:^(id result,NSError *error){ if([result isKindOfClass:[NSString class]])ADCartProbeAppend7241(path,(NSString *)result);else ADCartProbeAppend7241(path,[NSString stringWithFormat:@"%@_EVAL_ERROR %@\n",label?:@"JS",error.localizedDescription?:@"non-string"]); if(done)dispatch_async(dispatch_get_main_queue(),done); }];
+}
+static void ADCaptureCartProbe7241(NSString *trigger){
+    if(!gP.enabled||gADCartProbeBusy7241)return; gADCartProbeBusy7241=YES; NSUInteger run=++gADCartProbeRun7241; NSString *path=ADCartProbePath7241(run);
+    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"AMAZONDARK v7.254 SHOPPING CART UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=Cart is a WKWebView document; target signatures #cart-page/#sc-active-cart/#sc-saved-cart plus cart URL path\npolicy=no visible text strings, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes and privacy-safe text hashes retained\nscan=finite explicit-trigger WKScrollView walk + viewport computed-style DOM snapshots + final full DOM inventory + native UIKit/WebKit snapshots; original offset restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADCartProbeCap7241]);
+    ADCartProbeFindWebView7241(path,^(WKWebView *wv,NSString *meta){
+        if(!wv||ADCartProbeScore7241(meta)<=0){ADCartProbeAppend7241(path,[NSString stringWithFormat:@"CART_PROBE_NO_TARGET meta=%@\n================ END RUN ================\n",ADCartProbeSafe7241(meta)]);gADCartProbeBusy7241=NO;return;}
+        UIScrollView *sv=wv.scrollView; CGPoint original=sv.contentOffset; BOOL originalScroll=sv.scrollEnabled; sv.scrollEnabled=NO; CGFloat viewport=MAX(1.0,sv.bounds.size.height),stride=MAX(300.0,MIN(620.0,viewport*0.60)); CGRect wr=CGRectZero;@try{wr=[wv convertRect:wv.bounds toView:nil];}@catch(...){}
+        ADCartProbeAppend7241(path,[NSString stringWithFormat:@"TARGET ptr=%p meta=%@ frame=(%.1f,%.1f %.1fx%.1f) originalOffset=(%.1f,%.1f) nativeContent=(%.1fx%.1f) viewport=%.1f stride=%.1f maxSteps=60\n",wv,ADCartProbeSafe7241(meta),wr.origin.x,wr.origin.y,wr.size.width,wr.size.height,original.x,original.y,sv.contentSize.width,sv.contentSize.height,viewport,stride]);
+        UIView *nativeRoot=wv.window?:wv; ADCartProbeAppend7241(path,ADCartNativeSnapshot7241(nativeRoot,wv,@"initial"));
+        __block NSUInteger step=0; __block CGFloat targetY=0,lastY=-999999; __block BOOL finishing=NO; __block void (^next)(void)=nil; __block void (^finish)(NSString *)=nil;
+        finish=^(NSString *reason){ if(finishing)return;finishing=YES;@try{[sv setContentOffset:original animated:NO];[sv layoutIfNeeded];sv.scrollEnabled=originalScroll;}@catch(...){}ADCartProbeAppend7241(path,[NSString stringWithFormat:@"\nCART_PROBE_END reason=%@ steps=%lu restoredOffset=(%.1f,%.1f) finalContent=(%.1fx%.1f)\n================ END RUN ================\n",reason?:@"done",(unsigned long)step,sv.contentOffset.x,sv.contentOffset.y,sv.contentSize.width,sv.contentSize.height]);gADCartProbeBusy7241=NO;next=nil;finish=nil;};
+        void (^fullAndFinish)(NSString *)=^(NSString *reason){ ADCartProbeAppend7241(path,ADCartNativeSnapshot7241(nativeRoot,wv,@"bottom")); ADCartProbeEvalAppend7241(wv,path,ADCartProbeDOMJS7241(step,YES),@"FULL_DOM",^{finish(reason);}); };
+        next=^{ if(finishing)return;if(!wv.window||!sv.superview){fullAndFinish(@"cart-left-window");return;}if(step>=60){fullAndFinish(@"step-cap");return;}CGFloat maxY=MAX(0.0,sv.contentSize.height-sv.bounds.size.height+sv.adjustedContentInset.bottom);targetY=MIN(MAX(0.0,targetY),maxY);if(step>0&&fabs(targetY-lastY)<0.5&&fabs(targetY-maxY)<0.5){fullAndFinish(@"bottom");return;}@try{[sv setContentOffset:CGPointMake(original.x,targetY) animated:NO];[sv layoutIfNeeded];}@catch(...){}NSUInteger thisStep=step++;CGFloat thisY=targetY;lastY=targetY;dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.32*NSEC_PER_SEC)),dispatch_get_main_queue(),^{ADCartProbeEvalAppend7241(wv,path,ADCartProbeDOMJS7241(thisStep,NO),@"VIEWPORT_DOM",^{CGFloat newMax=MAX(0.0,sv.contentSize.height-sv.bounds.size.height+sv.adjustedContentInset.bottom);if(fabs(thisY-newMax)<0.5){fullAndFinish(@"bottom");return;}targetY=MIN(newMax,thisY+stride);dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.06*NSEC_PER_SEC)),dispatch_get_main_queue(),next);});}); };
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.05*NSEC_PER_SEC)),dispatch_get_main_queue(),next);
+    });
+}
+
+// v7.254 Hamburger/Menu UI forensics probe. Historical builds expose the tab as
 // ANXTabBarButton#menuTab, while the pane may be WebKit, React/native, or hybrid.
 // The subsystem is dormant until screenshot/SIGUSR2 and restores every scroll position.
-static dispatch_source_t gADMenuProbeSignal7252=nil;
 static NSUInteger gADMenuProbeRun7252=0;
 static BOOL gADMenuProbeBusy7252=NO;
 static const unsigned long long kADMenuProbeCap7252=64ULL*1024ULL*1024ULL;
@@ -6873,7 +7272,7 @@ static void ADMenuProbeAppend7252(NSString *path,NSString *text){
     if(!path.length||!text.length)return; @try {NSFileManager *fm=[NSFileManager defaultManager];[fm createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES attributes:nil error:nil];unsigned long long cur=[[[fm attributesOfItemAtPath:path error:nil] objectForKey:NSFileSize] unsignedLongLongValue];if(cur>=kADMenuProbeCap7252)return;NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding];unsigned long long remain=kADMenuProbeCap7252-cur;if((unsigned long long)d.length>remain)d=[d subdataWithRange:NSMakeRange(0,(NSUInteger)remain)];if(![fm fileExistsAtPath:path]){[d writeToFile:path atomically:YES];return;}NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:path];if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];}} @catch(...) {}
 }
 static NSString *ADMenuProbePath7252(NSUInteger run){
-    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.253-menu-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.253-menu-ui-probe-r%lu.txt",(unsigned long)run]];}
+    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.254-menu-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.254-menu-ui-probe-r%lu.txt",(unsigned long)run]];}
 }
 static NSString *ADMenuProbeDetectJS7252(void){
     return
@@ -7065,7 +7464,7 @@ static void ADMenuProbeScanNative7252(UIScrollView *sv,NSString *path,void (^don
 }
 static void ADCaptureMenuProbe7252(NSString *trigger){
     if(!gP.enabled||gADMenuProbeBusy7252)return;gADMenuProbeBusy7252=YES;NSUInteger run=++gADMenuProbeRun7252;NSString *path=ADMenuProbePath7252(run);
-    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.253 HAMBURGER MENU UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; stable native tab owner is ANXTabBarButton#menuTab, content renderer is discovered at trigger time\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes and privacy-safe text lengths/hashes retained\nscan=finite explicit-trigger WebKit full-document walk plus finite native/React scroll walk when present; original offsets and scrollEnabled restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADMenuProbeCap7252]);
+    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.254 HAMBURGER MENU UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; stable native tab owner is ANXTabBarButton#menuTab, content renderer is discovered at trigger time\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes and privacy-safe text lengths/hashes retained\nscan=finite explicit-trigger WebKit full-document walk plus finite native/React scroll walk when present; original offsets and scrollEnabled restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADMenuProbeCap7252]);
     ADMenuProbeLogTab7252(path); UIScrollView *native=ADMenuProbeFindNativeScroll7252(path); UIWindow *root=UIApplication.sharedApplication.keyWindow?:UIApplication.sharedApplication.windows.firstObject; if(root)ADMenuProbeAppend7252(path,ADMenuNativeSnapshot7252(root,native?:root,@"initial-window"));
     ADMenuProbeFindWebView7252(path,^(WKWebView *wv,NSString *meta){
         ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"WEB_SELECTION ptr=%p meta=%@\n",wv,ADMenuProbeSafe7252(meta)]);
@@ -7074,10 +7473,49 @@ static void ADCaptureMenuProbe7252(NSString *trigger){
         NSInteger sem=ADMenuProbeScore7252(meta); if(wv&&(sem>0||!native)){ADMenuProbeScanWeb7252(wv,path,^(__unused NSString *reason){runNative();});}else runNative();
     });
 }
-static void ADInstallMenuProbe7252(void){
-    static dispatch_once_t once;dispatch_once(&once,^{signal(SIGUSR2,SIG_IGN);gADMenuProbeSignal7252=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue());if(gADMenuProbeSignal7252){dispatch_source_set_event_handler(gADMenuProbeSignal7252,^{ADCaptureMenuProbe7252(@"SIGUSR2");});dispatch_resume(gADMenuProbeSignal7252);}[[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){ADCaptureMenuProbe7252(@"screenshot");}];});
+static dispatch_source_t gADThreeTabProbeSignal7254=nil;
+
+static UIControl *ADProbeTabButton7254(NSString *aid){
+    if(!aid.length)return nil;
+    @try {
+        for(UIWindow *w in UIApplication.sharedApplication.windows){
+            if(!w||w.hidden||w.alpha<0.01)continue;
+            NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:w]; NSUInteger seen=0;
+            while(q.count&&seen++<1800){
+                UIView *v=q.firstObject; [q removeObjectAtIndex:0];
+                if([v isKindOfClass:[UIControl class]]&&[v.accessibilityIdentifier isEqualToString:aid])return (UIControl *)v;
+                if(q.count<1600)for(UIView *c in v.subviews)[q addObject:c];
+            }
+        }
+    } @catch(...) {}
+    return nil;
+}
+static BOOL ADProbeTabSelected7254(NSString *aid){
+    UIControl *b=ADProbeTabButton7254(aid); if(!b)return NO;
+    @try { return b.selected||((b.state&UIControlStateSelected)!=0)||((b.accessibilityTraits&UIAccessibilityTraitSelected)!=0); } @catch(...) { return NO; }
+}
+static void ADCaptureThreeTabProbe7254(NSString *trigger){
+    if(!gP.enabled)return;
+    // Prefer Amazon's exact bottom-tab state. Person gets an exact-root fallback because
+    // its React wrapper is stable and probe-proven; Cart/Menu stay tab-gated to avoid
+    // scanning retained off-screen WKWebViews from other panes.
+    if(ADProbeTabSelected7254(@"meTab")){ ADCapturePersonProbe7233(trigger); return; }
+    if(ADProbeTabSelected7254(@"cartTab")){ ADCaptureCartProbe7241(trigger); return; }
+    if(ADProbeTabSelected7254(@"menuTab")){ ADCaptureMenuProbe7252(trigger); return; }
+    if(ADPersonProbeWrapper7233()&&ADInPersonTab7206(ADPersonProbeWrapper7233())){ ADCapturePersonProbe7233(trigger); return; }
+}
+static void ADInstallThreeTabProbes7254(void){
+    static dispatch_once_t once; dispatch_once(&once,^{
+        signal(SIGUSR2,SIG_IGN);
+        gADThreeTabProbeSignal7254=dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2,0,dispatch_get_main_queue());
+        if(gADThreeTabProbeSignal7254){
+            dispatch_source_set_event_handler(gADThreeTabProbeSignal7254,^{ ADCaptureThreeTabProbe7254(@"SIGUSR2"); });
+            dispatch_resume(gADThreeTabProbeSignal7254);
+        }
+        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationUserDidTakeScreenshotNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){ ADCaptureThreeTabProbe7254(@"screenshot"); }];
+    });
 }
 
-// Probe build: v7.253 keeps finalized Person/Cart ownership plus the Cart control/sheet repairs; Menu diagnostics remain explicit-trigger only.
+// Probe build: v7.254 keeps v7.253 visual ownership byte-stable and restores Cart, Person, and Menu diagnostics behind one explicit trigger.
 
 #pragma clang diagnostic pop
