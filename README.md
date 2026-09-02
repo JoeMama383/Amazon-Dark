@@ -1,3 +1,16 @@
+# AmazonDark v7.281~max-optimization-menu-first-paint-all-probes
+
+## v7.281 maximal reduction + deterministic Menu footer first paint
+
+- Preserves the complete v7.280 theme and all six explicit screenshot/SIGUSR2 probes: Home, Person, Cart, Hamburger, Alexa/Rufus, and product `/s`.
+- Fixes the cold-first-open white `Switch Accounts`, `Sign Out`, and `Customer Service` rows at the exact React `setBorderRadius:16` commit. The paired bad/good probes show this is the first event where each row simultaneously has its exact action descendant and final 406/410 geometry, so the established OLED/single-gray-edge owner now lands before the first composite.
+- Removes the v7.270-v7.278 leaf-ancestor and RNCEKV re-entry bridges. The final-radius transaction is the only first-paint repair; it uses no timer, observer, delayed retry, root scan, or lifecycle fallback.
+- Removes v7.280's temporary continuously populated Menu lifecycle ring and its diagnostic-only RCT setter hooks. The full on-demand Menu native/WebKit probe remains intact.
+- Collapses four always-on document-start scripts into one cached order-preserving core program, consolidates five image mutation guards, caches fixed colors/classes/selectors and positive React ownership, and converts array-front-removal walks to cursor queues.
+- Removes rootful/derived preference paths, duplicate CFPreferences writes/reads, programmatic Settings reconstruction, alternate resource paths, obsolete ownership lanes, and redundant helpers while retaining exact rootless behavior.
+- Enables `-Os`, section splitting, and linker dead stripping for both tweaks and the preference bundle.
+- Production remains event-driven: no MutationObserver, interval, RAF loop, web-scroll listener, polling loop, or recurring hierarchy/DOM scan.
+
 # AmazonDark v7.280~wide-forensics-probe
 
 **Diagnostic-only branch from the v7.278 production baseline.** v7.279 production changes are intentionally not included.

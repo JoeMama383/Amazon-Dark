@@ -22,14 +22,10 @@
 #import <objc/runtime.h>
 
 
-#define AD_DOMAIN    @"com.colindavidr.amazondark"
 #define AD_JB_PLIST  @"/var/jb/var/mobile/Library/Preferences/com.colindavidr.amazondark.plist"
 #define BUNDLE_PATH  @"/var/jb/Library/PreferenceBundles/ADPrefs.bundle"
 
 @interface PSSpecifier : NSObject
-+ (id)groupSpecifierWithName:(NSString *)name;
-+ (id)preferenceSpecifierNamed:(NSString *)name target:(id)target set:(SEL)set get:(SEL)get detail:(Class)detail cell:(NSInteger)cell edit:(Class)edit;
-- (void)setProperty:(id)value forKey:(NSString *)key;
 - (id)propertyForKey:(NSString *)key;
 @end
 
@@ -49,13 +45,7 @@
 
 static BOOL gADChanged = NO;
 
-static void ADWriteBoth(NSString *key, id value){
-    @try {
-        CFPreferencesSetAppValue((__bridge CFStringRef)key,
-                                 (__bridge CFPropertyListRef)value,
-                                 (__bridge CFStringRef)AD_DOMAIN);
-        CFPreferencesAppSynchronize((__bridge CFStringRef)AD_DOMAIN);
-    } @catch (NSException *e) {}
+static void ADWritePreference(NSString *key,id value){
     @try {
         NSMutableDictionary *d = [NSMutableDictionary dictionaryWithContentsOfFile:AD_JB_PLIST]
                                  ?: [NSMutableDictionary dictionary];
@@ -73,9 +63,7 @@ static void ADWriteBoth(NSString *key, id value){
 - (id)navigationTitle { return @"AmazonDark"; }
 
 - (NSBundle *)bundle {
-    NSBundle *b = [NSBundle bundleWithPath:BUNDLE_PATH];
-    if (b) return b;
-    return %orig;
+    return [NSBundle bundleWithPath:BUNDLE_PATH];
 }
 
 - (id)readPreferenceValue:(PSSpecifier *)specifier {
@@ -85,9 +73,6 @@ static void ADWriteBoth(NSString *key, id value){
         NSDictionary *file = [NSDictionary dictionaryWithContentsOfFile:AD_JB_PLIST];
         id v = file[key];
         if (v) return v;
-        CFPropertyListRef cv = CFPreferencesCopyAppValue((__bridge CFStringRef)key,
-                                                         (__bridge CFStringRef)AD_DOMAIN);
-        if (cv) return (__bridge_transfer id)cv;
         id def = [specifier propertyForKey:@"default"];
         return def ?: @YES;
     } @catch (NSException *e) { return @YES; }
@@ -96,7 +81,7 @@ static void ADWriteBoth(NSString *key, id value){
 - (void)setPreferenceValue:(id)value specifier:(PSSpecifier *)specifier {
     @try {
         NSString *key = [specifier propertyForKey:@"key"];
-        if (key.length) ADWriteBoth(key, value);
+        if (key.length) ADWritePreference(key,value);
         gADChanged = YES;
         // Reveal the Respring button once something actually changed --
         // the standard Settings idiom, and what CBR ships.
@@ -139,22 +124,6 @@ static void ADWriteBoth(NSString *key, id value){
     @try {
         specs = [(PSListController *)self loadSpecifiersFromPlistName:@"Root" target:self];
     } @catch (NSException *e) {}
-    if (!specs.count){
-        @try {
-            NSMutableArray *out = [NSMutableArray array];
-            [out addObject:[%c(PSSpecifier) groupSpecifierWithName:@""]];
-            PSSpecifier *sw = [%c(PSSpecifier) preferenceSpecifierNamed:@"Enabled"
-                                  target:self
-                                     set:@selector(setPreferenceValue:specifier:)
-                                     get:@selector(readPreferenceValue:)
-                                  detail:nil cell:6 edit:nil];   // 6 = PSSwitchCell
-            [sw setProperty:@"enabled" forKey:@"key"];
-            [sw setProperty:AD_DOMAIN  forKey:@"defaults"];
-            [sw setProperty:@YES       forKey:@"default"];
-            [out addObject:sw];
-            specs = out;
-        } @catch (NSException *e) { specs = @[]; }
-    }
     @try {
         objc_setAssociatedObject(self, "adSpecs", specs, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         Ivar iv = class_getInstanceVariable(%c(PSListController), "_specifiers");
