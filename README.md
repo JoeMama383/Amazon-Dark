@@ -1,12 +1,15 @@
-# AmazonDark v7.276~menu-root-first-paint
+# AmazonDark v7.277~footer-local-owner
 
-## Deterministic Hamburger footer first paint + clearer 120 Hz warning
+## Hamburger footer first-paint: exact local ownership
 
-- Historical bad/good Menu probes are reused; no new diagnostic assumption is introduced. They prove the exact footer stack is 410x52.7 outer wrapper -> 406x48.7 visible r16 surface -> 404x46.7 action leaf (`account_switcher` / `so` / `cs`).
-- v7.270/v7.275 already covered leaf-after-root and ID-after-mount orderings. v7.276 closes the remaining root-after-child ordering: when exact `RCTView#scrolled-hamburger-view` becomes identifiable or enters/reparents into a live window, one bounded depth-14 / 2,048-node pass searches only for the three exact footer action IDs, stops after three hits, and reuses the existing <=7 ancestor owner.
-- The root-side pass is not called from `layoutSubviews`; no timer, observer, polling, new hook class, recurring hierarchy scan, or normal-scroll work is added.
-- Search Brands-carousel OLED vertical-rail fix from v7.275, exact SWV video TWB, `avw36` stage strip, magnifier/divider repair, and all six probes remain unchanged.
-- Settings copy for **Force 120 Hz** now explicitly warns that forcing a higher refresh rate may increase battery use and, depending on the device or the device’s current thermal state, can adversely affect performance or make it worse rather than improve it. The 120 Hz implementation itself is unchanged.
+- The new v7.276 bad/good probe pair proves the three 406x48.7 footer surfaces are never owned at all on the bad first paint: they remain stock white, unclipped, layer-borderless, and retain Amazon's teal React border while the exact `account_switcher` / `so` / `cs` action leaves are already present and already transparent/gray.
+- Re-entry changes those same physical 406x48.7 views to the intended OLED fill, one gray edge, radius 16, and clipping. This rules out a late Amazon overwrite of a successful AmazonDark paint pass; the first pass simply never classifies the visible surface.
+- v7.277 removes the remaining dependency between footer ownership and `scrolled-hamburger-view` root timing. The three exact footer action IDs are now locally authoritative. From one exact action leaf, AmazonDark walks at most seven existing ancestors and recognizes only the probe-proven 406x48.7 visible surface and 410x52.7 outer wrapper.
+- The visible 406x48.7 surface is OLED black with the established single gray edge/r16/clipping; the 410x52.7 wrapper and 404x46.7 action leaf remain transparent/no-border.
+- The local footer role is evaluated before general Menu-root classification and is also used by the existing RCTView background setter path, so a stock white React background assignment can be replaced even if the Menu root has not become authoritative yet.
+- The v7.276 depth-14 / 2,048-node downward Menu-root scan is removed completely. No replacement scan, timer, observer, polling, RAF, web scroll listener, or new hook class is added.
+- Search Brands-carousel OLED vertical-rail fix, exact SWV video TWB, `avw36` stage strip, Search magnifier/divider repair, and all six probes remain retained.
+- **Force 120 Hz** remains behaviorally unchanged. Its settings description now reads: “Forces 120 Hz on supported ProMotion displays for smoother scrolling and animations. Depending on the device or the device’s current thermal state, forcing a higher refresh rate may increase battery use and can adversely affect performance or make it worse rather than improve it.”
 
 # AmazonDark v7.275~brand-rails-menu-first-paint
 
