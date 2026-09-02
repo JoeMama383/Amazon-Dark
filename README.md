@@ -1,5 +1,15 @@
-# AmazonDark v7.268~compact-standalone-price-probe
+# AmazonDark v7.269~standalone-border-alexa-probe
 
+
+## v7.269 standalone border de-duplication + Alexa/Rufus comprehensive probe
+
+- Fixes the newly introduced double-border regression on structured 414x125 standalone Home ads. The v7.268 Home probe shows the top-level `ape_gateway_dynamic-…_mshop_placement` is 430x129.8 and carries a 1px `#3b4043` edge, while the child `modern-414x125-layout-container` independently carries the correct rounded 1px `#3b4043` edge. The outer APE edge is therefore duplicate renderer chrome.
+- Removes only that top-level structured 414x125 APE placement border/outline/shadow. The child renderer border remains unchanged and is the sole visible ad frame. Full-raster borderless handling, medium/XL divider removal, Sponsored feedback, TWB, and compact-price parity are retained.
+- GitHub history review found v7.162 (`54a8764`) as the clearest earlier Alexa/Rufus paint reference: Search Rufus surfaces were explicitly owned OLED black with gray borders, and the `nice-widget-container-inline-slot` Alexa surface required both its normal background and `::before`/`::after` painters to be neutralized. That evidence is used to shape the new probe, but this build does not guess at or change the current Alexa-tab visuals yet.
+- Adds an Alexa/Rufus probe gated to the selected native `ANXTabBarButton#rufusTab` (with `#alexaTab` fallback). It scores every visible WKWebView for Rufus/Alexa/assistant/conversation/chat/Nile signatures, inventories stylesheet owners and AmazonDark injected owners, performs finite viewport snapshots plus a final full DOM inventory, recurses through open shadow roots/accessibly reachable iframes, and records computed text/fill/background/image/mask/border/radius/outline/shadow/font/SVG/filter/transform/pseudo-element/media state.
+- The same Alexa trigger also inventories native UIKit/React ownership: all native scroll candidates, complete view ancestry/geometry, backgrounds/tints/layer borders, sublayer samples including shapes/gradients, RCT border properties, attributed-text runs, controls, image/TWB state, and a finite top-to-bottom native scroll walk. WebKit/native offsets and `scrollEnabled` are restored after capture.
+- The Alexa probe records no visible strings, accessibility-label text, aria-label/alt/value contents, URLs, or network payloads; it retains technical identifiers and privacy-safe text lengths/hashes only.
+- No MutationObserver, interval, RAF loop, web scroll listener, or recurring hierarchy scan is added. All probe work remains screenshot/SIGUSR2-only.
 
 ## v7.268 compact standalone current-price text parity
 
