@@ -1,13 +1,14 @@
-# AmazonDark v7.288~alexa-pills-circular-actions
+# AmazonDark v7.289~v288-menu-dedup-compile-repair
 
-## Alexa/Rufus pill + bottom-action polish on the v7.287 convergence architecture
+## Compile-only repair on v7.288 Alexa polish / v7.287 convergence architecture
 
-- Built directly from v7.287; the frozen v7.280 Person/image module is not changed.
-- v7.286 Alexa probe identifies exactly three 30pt light-blue suggestion-pill shells under `in-view-wrapper-ftuxRuxSuggestionPillList-*`; they now use the Cart action-button contract: #303335 fill, #747a7c single edge, and light #e8e6e3 text.
-- The bottom `PlusMenuButton` and `TextBoxSearchVoiceComponentButton` remain #303335 with white glyphs, but both are now forced to the same 32x32/r16 circle and receive one #494d4d ring.
-- The Plus SVG's own full-size RNSVGRect remains suppressed so the parent circle is the sole background; the voice SVG's full-size RNSVGCircle remains suppressed for the same reason.
-- Existing Alexa header controls, chat-history border, product-image TWB split, v7.280 Person behavior, and safe post-v280 architecture are retained.
-- No MutationObserver, interval, RAF, web-scroll listener, polling loop, or recurring hierarchy scan is added.
+- Built directly from v7.288.
+- Removes four accidental duplicate Menu helper definitions introduced by the convergence merge: `ADInMenuTab7255`, `ADMenuRoot7255`, `ADMenuAncestorMatching7255`, and `ADMenuDirectChildAid7255`.
+- Keeps the first/canonical v7.280 Menu implementations; the unique `ADMenuAncestorAid7255` helper and all later Menu/footer code remain intact.
+- Alexa pill styling, circular Plus/voice controls, Alexa product-image TWB, the frozen v7.280 Person/image module, and all safe post-v280 architecture are unchanged.
+- `UIImageView` and `RCTUIImageViewAnimated` hooks are byte-for-byte identical to v7.288.
+- Validation now includes a duplicate-static-function-definition scan across `src/Tweak.xm`.
+- Existing retain-cycle diagnostics in explicit-trigger probes are unchanged warnings; no MutationObserver, interval, RAF, web-scroll listener, polling loop, or recurring hierarchy scan is added.
 
 # AmazonDark v7.287~v280-person-module-safe-optimizations-alexa
 
