@@ -1,14 +1,12 @@
-# AmazonDark v7.304~scoped-loading-revert
+# AmazonDark v7.302~v7281-launch-restore
 
-## v7.301 baseline, narrowly scoped loading fixes
+## Exact v7.281 launch transplant onto v7.301
 
-- Built directly from v7.301. The rejected v7.302/v7.303 launch-cover and broad transition/media changes are not carried forward.
-- `src/AmazonDarkSB.xm` is byte-for-byte identical to v7.301 (and therefore to the pre-v7.300 v7.297 launch implementation). This restores the previously working cold-launch behavior instead of redesigning it.
-- The native `CNMErrorView` OLED floors/text/button ownership from v7.301 remains. The destructive edge-connected white-background knockout is removed entirely.
-- Only the exact large CNM dog hero receives a dedicated preference-controlled TWB overlay. Its authored white field remains in the raster; no other image/glyph/media family is enrolled.
-- Carries forward only the successful v7.302 Cart refresh CSS: `#sc-saved-cart` hydration strip and the early `#p13n-uf-anchor` empty/pre-product loading cards are dark from document start. The global `#a-white` transition override is intentionally omitted.
-- No new MutationObserver, interval, RAF loop, web-scroll listener, polling loop, recurring hierarchy scan, or broad image classifier is added.
-- All seven explicit-trigger probes are retained and bumped to v7.304 filenames/headers.
+- Direct baseline: v7.301~universal-error-screen-dark.
+- Replaces only the launch subsystem with the exact retained v7.281 implementation: `src/AmazonDarkSB.xm` plus the complete app-side launch-ready handoff block.
+- Audit result: those v7.281 launch bytes are already identical to v7.301, so this build is intentionally a launch-behavior parity test rather than a redesign.
+- No v7.302/v7.303 post-v7.301 loading, Cart, CNM, media, or launch experiments are included.
+- Every v7.301 production UI/theme fix remains untouched. Probe filenames/headers are version-bumped only for clean capture separation.
 
 # AmazonDark v7.301~universal-error-screen-dark
 
