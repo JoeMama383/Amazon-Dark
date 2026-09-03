@@ -1,14 +1,17 @@
-# AmazonDark v7.291~alexa-plus-wrapper-probe-fallback
+# AmazonDark v7.292~alexa-plus-durable-fill
 
-## Compile-only repair on v7.288 Alexa polish / v7.287 convergence architecture
+## Alexa Plus: durable circular fill
 
-- Built directly from v7.288.
-- Removes four accidental duplicate Menu helper definitions introduced by the convergence merge: `ADInMenuTab7255`, `ADMenuRoot7255`, `ADMenuAncestorMatching7255`, and `ADMenuDirectChildAid7255`.
-- Keeps the first/canonical v7.280 Menu implementations; the unique `ADMenuAncestorAid7255` helper and all later Menu/footer code remain intact.
-- Alexa pill styling, circular Plus/voice controls, Alexa product-image TWB, the frozen v7.280 Person/image module, and all safe post-v280 architecture are unchanged.
-- `UIImageView` and `RCTUIImageViewAnimated` hooks are byte-for-byte identical to v7.288.
-- Validation now includes a duplicate-static-function-definition scan across `src/Tweak.xm`.
-- Existing retain-cycle diagnostics in explicit-trigger probes are unchanged warnings; no MutationObserver, interval, RAF, web-scroll listener, polling loop, or recurring hierarchy scan is added.
+- Built directly from v7.291, where the square backing was eliminated and the Alexa probe fallback was restored.
+- The v7.291 Alexa probe proves the anonymous 32x32 Plus wrapper is clipped and retains the gray circular ring, but React later rewrites the wrapper's ordinary background to transparent.
+- `PlusMenuButton` remains transparent/glyph-only and its full-size `RNSVGRect` remains hidden.
+- v7.292 adds one named `CAShapeLayer` (`AmazonDarkAlexaPlusCircleFill7292`) at the bottom of the exact Plus wrapper's layer stack. It paints the same `ADMenuButtonFill7255()` gray as the microphone and is not owned by React background-color setters.
+- Existing wrapper oval mask and standard gray ring remain unchanged.
+- v7.291 Alexa screenshot/SIGUSR2 route fallback is retained.
+- Person/image architecture is untouched: `UIImageView` and `RCTUIImageViewAnimated` hooks are byte-for-byte v7.291; `ADFloorJS`, `ADTWBJS`, and standalone-ad paint are byte-for-byte v7.291.
+- Runtime remains event-driven: no MutationObserver, interval, RAF loop, web-scroll listener, polling loop, or recurring hierarchy scan.
+
+---
 
 # AmazonDark v7.287~v280-person-module-safe-optimizations-alexa
 
