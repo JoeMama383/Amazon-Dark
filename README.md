@@ -1,3 +1,15 @@
+# AmazonDark v7.308~cart-refresh-xl-brand-fix
+
+## Cart earliest-paint + XL standalone brand TWB
+
+- Direct production base: v7.307~warm-resume-bypass-mic-center. v7.307 launch/warm-resume behavior and Alexa mic centering are retained unchanged.
+- Restores only the proven v7.302 Cart first-paint rules that were lost during the v7.301 reset/rebuild: exact `#sc-saved-cart` hydration-band ownership plus the earlier empty/pre-product `#p13n-uf-anchor` skeleton descendants. No v7.302 SpringBoard/CNM/global `#a-white` work is restored.
+- Current v7.307 Cart capture was triggered while the target WKWebView was still `ready=loading`; it places `#sc-saved-cart` at 430x26 with 13px top/bottom borders and shows the exact p13n empty/pre-hydration lane.
+- Extends the existing standalone brand-identity TWB lane to the current XL/large renderer `data-testid=simple-brand-logo-picture > img`. Product imagery, text, Prime/stars/Sponsored chrome, and unrelated logos/glyphs are not broadened.
+- Static CSS/TWB selector coverage only; no new MutationObserver, timer, RAF, polling loop, scroll listener, recurring scan, or native hook.
+
+---
+
 # AmazonDark v7.307~warm-resume-bypass-mic-center
 
 ## Warm-resume splash bypass + Alexa microphone geometry correction
