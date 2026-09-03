@@ -1,4 +1,4 @@
-# AmazonDark v7.296~alexa-settings-chat-history-glyphs
+# AmazonDark v7.297~alexa-chat-history-back-chevron
 
 ## Alexa Settings + Chat history submenu parity
 
@@ -252,3 +252,9 @@ Direct base: **v7.270~optimized-exact-probes**.
 - Extends only the finite Person ancestor budget from 24 to 48. This remains lifecycle/event driven; no observer, timer, recurring hierarchy scan, web scroll listener, or global React sweep is added.
 - Clears the cached React-surface classification when image views receive a new image or move between window/superview owners, including the `RCTUIImageViewAnimated` override path. This prevents recycled refresh leaves from inheriting stale non-Person scope.
 - Leaves the TWB strength, media eligibility rules, authored-image exclusions, Person text/glyph fixes, Cart fixes, and v7.262 Hamburger footer ownership unchanged.
+
+
+## v7.297
+- Fixes the Alexa Chat history upper-left back glyph using the probe-proven `chevron-left-Variant-icon` owner under `MainNavigationHeader-left-button-back`.
+- Retains the existing `chevron-down-icon` owner for the other Alexa header hydration.
+- No Person/native-image/WebKit paint architecture changes.
