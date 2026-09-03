@@ -1,4 +1,4 @@
-# AmazonDark v7.289~v288-menu-dedup-compile-repair
+# AmazonDark v7.290~alexa-plus-circle-final
 
 ## Compile-only repair on v7.288 Alexa polish / v7.287 convergence architecture
 
