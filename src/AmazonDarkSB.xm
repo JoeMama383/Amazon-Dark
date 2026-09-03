@@ -3,12 +3,12 @@
 //
 // Injected ONLY into com.apple.springboard (AmazonDarkSB.plist). Amazon's white
 // LaunchScreen is drawn by the render server before Amazon's process is alive,
-// so it can't be themed from inside Amazon. Here we float a dark view in the
-// stable containing SpringBoard window and lift it after Amazon reports ready.
+// so it can't be themed from inside Amazon. Here we float a dark WINDOW over the
+// launching Amazon scene and lift it a few seconds later.
 //
-// Why stable window coordinates and not a subview of the scene: an opaque view placed
+// Why a separate window and not a subview of the scene: an opaque view placed
 // INSIDE SBSceneView makes FrontBoard treat Amazon's scene as fully occluded, so
-// it suspends rendering and the app never draws (permanent black). The containing
+// it suspends rendering and the app never draws (permanent black). A separate
 // SpringBoard window floats on top without changing the app scene's occlusion,
 // so Amazon renders normally underneath and is there the instant we lift it.
 //
@@ -45,36 +45,17 @@ static BOOL ADSBEnabled(void) {
 }
 
 static NSString *ADSceneBundleId(UIView *v) {
-    // FrontBoard has used more than one scene identity path across supported iOS
-    // versions. Resolve after willMoveToWindow:%orig, when those handles exist.
-    for(NSString *kp in @[@"sceneHandle.application.bundleIdentifier",
-                           @"sceneHandle.sceneIdentity.bundleIdentifier",
-                           @"application.bundleIdentifier",
-                           @"sceneHandle.sceneIdentity.bundleIdentifierOverride",
-                           @"_sceneHandle.application.bundleIdentifier"]){
-        @try {
-            id val=[v valueForKeyPath:kp];
-            if([val isKindOfClass:[NSString class]]&&[(NSString *)val length])return val;
-        } @catch (__unused NSException *e) {}
-    }
-    return nil;
+    @try {
+        id val=[v valueForKeyPath:@"sceneHandle.application.bundleIdentifier"];
+        return [val isKindOfClass:[NSString class]] ? val : nil;
+    } @catch (__unused NSException *e) { return nil; }
 }
 
 static void ADDismissCover(void);
 static UIView *gCoverOverlay;
-static SBSceneView *gCoveredScene;
+static SBSceneView *gCoverHost;
 static const void *kCoveredKey = &kCoveredKey;
-static const void *kSceneReadyKey7303 = &kSceneReadyKey7303;
 static unsigned gCoverGen;
-
-static void ADCancelCoverForScene(SBSceneView *scene) {
-    @try {
-        if(!scene||gCoveredScene!=scene)return;
-        UIView *ov=gCoverOverlay; gCoverOverlay=nil; gCoveredScene=nil; ++gCoverGen;
-        objc_setAssociatedObject(scene,kCoveredKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        [ov removeFromSuperview];
-    } @catch (__unused NSException *e) {}
-}
 
 // YES when Amazon already has a running process -- i.e. this is a resume, not a
 // cold launch. Nothing here is required to exist; unknown means "cover it".
@@ -105,18 +86,15 @@ static UIImage *ADSplashImage7191(void) {
     return image;
 }
 
-// First-frame surface in the stable containing SpringBoard window. Unlike an
-// opaque child of SBSceneView, this does not cause FrontBoard to regard Amazon's
-// scene as occluded, so Amazon keeps rendering under the cover until ready.
-static void ADAttachCoverToStableHost(UIView *host,SBSceneView *scene) {
+// Dark surface parented to the zooming scene view, so SpringBoard's launch
+// animation plays exactly as it does for every other app -- only its contents
+// are dark instead of Amazon's white launch screen.
+static void ADAttachCoverToScene(UIView *host) {
     @try {
-        if (!host||!scene) return;
+        if (!host) return;
         if (gCoverOverlay && gCoverOverlay.superview == host) return;
-        if(gCoverOverlay){[gCoverOverlay removeFromSuperview];gCoverOverlay=nil;}
         UIColor *dk = [UIColor colorWithRed:0.094 green:0.102 blue:0.106 alpha:1.0];
-        CGRect coverFrame=host.bounds;
-        if(coverFrame.size.width<100.0||coverFrame.size.height<200.0)coverFrame=UIScreen.mainScreen.bounds;
-        UIView *ov = [[UIView alloc] initWithFrame:coverFrame];
+        UIView *ov = [[UIView alloc] initWithFrame:host.bounds];
         ov.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         ov.backgroundColor = dk;
         ov.userInteractionEnabled = NO;
@@ -125,18 +103,20 @@ static void ADAttachCoverToStableHost(UIView *host,SBSceneView *scene) {
         if (splash) {
             UIImageView *logo = [[UIImageView alloc] initWithImage:splash];
             logo.contentMode = UIViewContentModeScaleAspectFit;
-            CGFloat lw = MAX(ov.bounds.size.width, 200.0) * 0.62;
-            CGFloat lh = lw * (splash.size.height / MAX(splash.size.width, 1.0));
-            logo.bounds=CGRectMake(0.0,0.0,lw,lh);
-            logo.center=CGPointMake(CGRectGetMidX(ov.bounds),CGRectGetMidY(ov.bounds));
-            logo.autoresizingMask=UIViewAutoresizingFlexibleLeftMargin|UIViewAutoresizingFlexibleRightMargin|
-                                  UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleBottomMargin;
+            logo.translatesAutoresizingMaskIntoConstraints = NO;
             [ov addSubview:logo];
+            CGFloat lw = MAX(host.bounds.size.width, 200.0) * 0.62;
+            CGFloat lh = lw * (splash.size.height / MAX(splash.size.width, 1.0));
+            [NSLayoutConstraint activateConstraints:@[
+                [logo.centerXAnchor constraintEqualToAnchor:ov.centerXAnchor],
+                [logo.centerYAnchor constraintEqualToAnchor:ov.centerYAnchor],
+                [logo.widthAnchor constraintEqualToConstant:lw],
+                [logo.heightAnchor constraintEqualToConstant:lh],
+            ]];
         }
         [host addSubview:ov];
-        [host bringSubviewToFront:ov];
         gCoverOverlay = ov;
-        gCoveredScene = scene;
+        gCoverHost = (SBSceneView *)host;
         unsigned myGen = ++gCoverGen;
 
         gPresentAt = CFAbsoluteTimeGetCurrent();
@@ -144,10 +124,7 @@ static void ADAttachCoverToStableHost(UIView *host,SBSceneView *scene) {
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHardCap * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{
             @try { if (gCoverOverlay && myGen == gCoverGen){ UIView *x = gCoverOverlay; gCoverOverlay = nil;
-                       // The hard cap is a safety release, not proof that Amazon reached
-                       // a dark stable frame. Leave ready unset so a later presentation of
-                       // this scene is covered again until the real app-side signal arrives.
-                       SBSceneView *s=gCoveredScene; gCoveredScene=nil; if(s)objc_setAssociatedObject(s,kCoveredKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                       SBSceneView *h=gCoverHost; gCoverHost=nil; if(h)objc_setAssociatedObject(h,kCoveredKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
                        [x removeFromSuperview]; } }
             @catch (__unused NSException *e) {}
         });
@@ -158,7 +135,7 @@ static void ADDismissCover(void) {
     @try {
         if (!gCoverOverlay) return;
         UIView *ov = gCoverOverlay; gCoverOverlay = nil;
-        SBSceneView *s=gCoveredScene; gCoveredScene=nil; if(s){objc_setAssociatedObject(s,kCoveredKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);objc_setAssociatedObject(s,kSceneReadyKey7303,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
+        SBSceneView *h=gCoverHost; gCoverHost=nil; if(h)objc_setAssociatedObject(h,kCoveredKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         [UIView animateWithDuration:kCoverFade animations:^{ ov.alpha = 0.0; }
                          completion:^(BOOL f){ @try { [ov removeFromSuperview]; }
                                                @catch (__unused NSException *e) {} }];
@@ -166,30 +143,6 @@ static void ADDismissCover(void) {
 }
 
 %hook SBSceneView
-- (void)willMoveToWindow:(UIWindow *)newWindow {
-    // %orig populates FrontBoard's scene handle, but this entire call still
-    // completes before the next Core Animation commit. Attach to newWindow—not
-    // SBSceneView—so the first exposed Amazon frame is guaranteed dark while its
-    // renderer continues working underneath.
-    %orig(newWindow);
-    @try {
-        if(!newWindow){ADCancelCoverForScene(self);return;}
-        if(!ADSBEnabled())return;
-        if(![ADSceneBundleId(self) isEqualToString:kAMZ])return;
-        BOOL already=objc_getAssociatedObject(self,kCoveredKey)!=nil;
-        BOOL ready=objc_getAssociatedObject(self,kSceneReadyKey7303)!=nil;
-        if(already){
-            // Scene/window migrations must not strand the full-screen cover in an
-            // obsolete SpringBoard host.
-            if(gCoveredScene==self&&gCoverOverlay.superview!=newWindow)
-                ADAttachCoverToStableHost(newWindow,self);
-            return;
-        }
-        if(ready&&ADAmazonProcessAlive())return;
-        objc_setAssociatedObject(self,kCoveredKey,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        ADAttachCoverToStableHost(newWindow,self);
-    } @catch (__unused NSException *e) {}
-}
 - (void)didMoveToWindow {
     %orig;
     @try {
@@ -198,21 +151,17 @@ static void ADDismissCover(void) {
         NSString *bid = ADSceneBundleId(self);
         if (![bid isEqualToString:kAMZ]) return;
 
-        // Fallback for an iOS variant whose identity became available only here.
-        // A scene already proven ready may resume normally; a new scene is covered
-        // even if Amazon's newly spawned process already reports running.
+        // Cold-launch cover only. If Amazon already has a live/suspended process,
+        // reopening it is a normal foreground resume and must not replay our launch screen.
+        BOOL alive = ADAmazonProcessAlive();
+        if (alive) return;
+
+        // One active cover per cold launch. The marker is cleared when the cover leaves,
+        // allowing a later true cold launch to receive the cover again.
         BOOL already = (objc_getAssociatedObject(self, kCoveredKey) != nil);
-        if(already){
-            // FrontBoard may perform one final sibling reorder between willMove and
-            // didMove. Reassert the stable cover before that transaction commits.
-            if(gCoveredScene==self&&gCoverOverlay.superview)
-                [gCoverOverlay.superview bringSubviewToFront:gCoverOverlay];
-            return;
-        }
-        BOOL ready=objc_getAssociatedObject(self,kSceneReadyKey7303)!=nil;
-        if(ready&&ADAmazonProcessAlive())return;
+        if (already) return;
         objc_setAssociatedObject(self, kCoveredKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        ADAttachCoverToStableHost(self.window,self);
+        ADAttachCoverToScene(self);
     } @catch (__unused NSException *e) {}
 }
 %end

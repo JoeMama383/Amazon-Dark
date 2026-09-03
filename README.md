@@ -1,14 +1,14 @@
-# AmazonDark v7.303~deterministic-first-paint
+# AmazonDark v7.304~scoped-loading-revert
 
-## Deterministic native error, cold-launch, and Cart first paint
+## v7.301 baseline, narrowly scoped loading fixes
 
-- Rebuilt directly from the user-confirmed v7.301 tree. The ineffective v7.302 tree is deliberately not carried forward; v7.303 will be published as a normal descendant of v7.302 whose complete source tree is this corrected v7.301-based replacement.
-- The v7.301 offline probe proves the faint text under the search bar is recycled `ANXSubNavCollectionViewCell` content in its owning `UICollectionView`, not a `CNMErrorView` label or WebKit node. While an exact `CNMErrorView` is live, v7.303 hides only that geometrically adjacent sub-navigation collection and restores its original visibility when the error view leaves the hierarchy.
-- The same probe proves the 640x524 dog asset is attached after the native error tree mounts and contains an edge-connected near-white field. Final Auto Layout now reclaims the exact hero through the direct `CNMErrorView` lifecycle, reapplies the guarded edge-connected knockout after assignment/layout, and keeps the preference-controlled dark media layer on that proven hero. Interior light fur remains outside the edge-connected knockout.
-- The cold-launch cover now resolves Amazon identity after SpringBoard's original `willMoveToWindow:` transition and mounts in the stable containing window before the first Core Animation commit. A new scene is covered even when the just-spawned process already reports alive; a scene is marked reusable only after AmazonDark's existing stable dark-readiness gate succeeds. Explicit-frame cover/logo geometry removes Auto Layout from the first native paint.
-- The v7.301 Cart probe identifies the white strip and cards as the same pre-hydration `#cart-atf-recommendations` / `#p13n-uf-anchor` surface. A document-start, Cart-route-only opaque black compositor cover now owns that entire WebKit viewport from the parser's first paint through `load`; the established v7.293 selectors continue to own the hydrated recommendation lane after the cover is removed.
-- Native error and launch handling remain universal rather than Cart-tab-specific. The Cart cover is route-specific because its proven owners are Cart DOM. Runtime remains event-driven: no MutationObserver, interval, recurring timer, RAF loop, web-scroll listener, or polling hierarchy scan is added.
-- All seven explicit-trigger probes are retained and bumped to v7.303 filenames/headers. The existing GitHub Actions workflow is unchanged.
+- Built directly from v7.301. The rejected v7.302/v7.303 launch-cover and broad transition/media changes are not carried forward.
+- `src/AmazonDarkSB.xm` is byte-for-byte identical to v7.301 (and therefore to the pre-v7.300 v7.297 launch implementation). This restores the previously working cold-launch behavior instead of redesigning it.
+- The native `CNMErrorView` OLED floors/text/button ownership from v7.301 remains. The destructive edge-connected white-background knockout is removed entirely.
+- Only the exact large CNM dog hero receives a dedicated preference-controlled TWB overlay. Its authored white field remains in the raster; no other image/glyph/media family is enrolled.
+- Carries forward only the successful v7.302 Cart refresh CSS: `#sc-saved-cart` hydration strip and the early `#p13n-uf-anchor` empty/pre-product loading cards are dark from document start. The global `#a-white` transition override is intentionally omitted.
+- No new MutationObserver, interval, RAF loop, web-scroll listener, polling loop, recurring hierarchy scan, or broad image classifier is added.
+- All seven explicit-trigger probes are retained and bumped to v7.304 filenames/headers.
 
 # AmazonDark v7.301~universal-error-screen-dark
 
