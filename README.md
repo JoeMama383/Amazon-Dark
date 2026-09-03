@@ -1,25 +1,16 @@
-# AmazonDark v7.302 — comprehensive transition hardening
+# AmazonDark v7.303~deterministic-first-paint
 
-Direct production base: **v7.301** plus the probe-backed fixes captured after that push.
+## Deterministic native error, cold-launch, and Cart first paint
 
-## v7.302 delta
+- Rebuilt directly from the user-confirmed v7.301 tree. The ineffective v7.302 tree is deliberately not carried forward; v7.303 will be published as a normal descendant of v7.302 whose complete source tree is this corrected v7.301-based replacement.
+- The v7.301 offline probe proves the faint text under the search bar is recycled `ANXSubNavCollectionViewCell` content in its owning `UICollectionView`, not a `CNMErrorView` label or WebKit node. While an exact `CNMErrorView` is live, v7.303 hides only that geometrically adjacent sub-navigation collection and restores its original visibility when the error view leaves the hierarchy.
+- The same probe proves the 640x524 dog asset is attached after the native error tree mounts and contains an edge-connected near-white field. Final Auto Layout now reclaims the exact hero through the direct `CNMErrorView` lifecycle, reapplies the guarded edge-connected knockout after assignment/layout, and keeps the preference-controlled dark media layer on that proven hero. Interior light fur remains outside the edge-connected knockout.
+- The cold-launch cover now resolves Amazon identity after SpringBoard's original `willMoveToWindow:` transition and mounts in the stable containing window before the first Core Animation commit. A new scene is covered even when the just-spawned process already reports alive; a scene is marked reusable only after AmazonDark's existing stable dark-readiness gate succeeds. Explicit-frame cover/logo geometry removes Auto Layout from the first native paint.
+- The v7.301 Cart probe identifies the white strip and cards as the same pre-hydration `#cart-atf-recommendations` / `#p13n-uf-anchor` surface. A document-start, Cart-route-only opaque black compositor cover now owns that entire WebKit viewport from the parser's first paint through `load`; the established v7.293 selectors continue to own the hydrated recommendation lane after the cover is removed.
+- Native error and launch handling remain universal rather than Cart-tab-specific. The Cart cover is route-specific because its proven owners are Cart DOM. Runtime remains event-driven: no MutationObserver, interval, recurring timer, RAF loop, web-scroll listener, or polling hierarchy scan is added.
+- All seven explicit-trigger probes are retained and bumped to v7.303 filenames/headers. The existing GitHub Actions workflow is unchanged.
 
-- **Cold launch:** reinstates a pre-exposure SpringBoard cover in `SBSceneView willMoveToWindow:` so a true cold launch cannot be misclassified as warm after Amazon's process flips to running. The existing bounded readiness gate still decides when the cover is released.
-- **Launch hot path:** the universal CNM error classifier no longer performs an 18-level ancestry walk for every native view mounted during launch. Normal views now take an O(1) fast path; bounded ancestry is used only while a live `CNMErrorView` exists.
-- **No-internet / CNM error:** keeps the universal OLED floors, light text and standard gray button border; the exact 640x524 hero gets edge-connected white-field knockout plus the normal AmazonDark TWB overlay.
-- **Subnav leak above CNM:** covers only the geometric gap between Search and the exact CNM error surface so underlying subnav labels cannot bleed through.
-- **Cart refresh white strip:** hard-owns the transient `#sc-saved-cart` strip and its immediate/pseudo surfaces as OLED black during hydration.
-- **Cart refresh white boxes:** extends the existing p13n anti-flash contract to the earlier empty/pre-hydration card state. Empty cards are black/dark-neutral with standard gray edges, and pre-product skeleton descendants cannot paint stock white.
-- **Amazon `#a-white` transition overlay:** recolored OLED black globally while preserving Amazon's display/opacity behavior, eliminating that dedicated fixed white transition plane whenever Amazon activates it.
-- No MutationObserver, interval, RAF loop, web-scroll listener, polling loop, or recurring hierarchy scan is added.
-
-# AmazonDark v7.302~universal-error-screen-dark
-
-## v7.302 cold-launch precover + CNM fast-path
-
-- Restores a cold-only `SBSceneView willMoveToWindow:` pre-cover so the dark Amazon launch surface is installed before the scene can expose Amazon's stock white loading composite. The pre-cover decision is sticky through `didMoveToWindow:`; a process-state change during that transition can no longer cause the cover to be skipped. Warm/resume launches remain unmasked exactly as required by v7.198.
-- Removes v7.301's CNM 18-ancestor classifier from the normal global UIView hot path. Outside an active CNM error screen, CNM classification is now exact-root/associated-marker O(1); ancestry confirmation only occurs while a live CNM root exists on that window.
-- Retains v7.302's exact dog-media TWB and clipped-subnav cap, plus all v7.301 OLED/text/border behavior.
+# AmazonDark v7.301~universal-error-screen-dark
 
 ## Universal native no-internet / error-screen dark ownership
 
@@ -28,7 +19,7 @@ Direct production base: **v7.301** plus the probe-backed fixes captured after th
 - Owns exact `CNMErrorView` ancestry universally, independent of tab/route, so the same Amazon native connectivity/error renderer is dark in Cart, Home, Person, Menu, Search, or another screen. Neutral/white floors become OLED black; action buttons become OLED black with the established `#494d4d` 1pt border and no light shadow. Existing AmazonDark light-text ownership remains authoritative.
 - The probe proves the hero UIImageView itself is transparent while the 640x524 artwork presents with a large white surrounding field. Only that large direct `UIStackView` hero receives a guarded one-time edge-connected near-white backdrop knockout. The transform runs only when the source image edges are substantially opaque near-white; transparent or alternate non-white error art is left unchanged. Because only edge-connected pixels are removed, interior light fur is preserved. The resulting transparent hero sits on OLED black.
 - The image operation is cached per assigned hero and runs only on rare CNM error-image assignment/mount. No observer, polling loop, recurring timer, RAF, web-scroll listener, or hierarchy scanner is added.
-- All seven explicit-trigger probes are retained and bumped to v7.302 filenames/headers.
+- All seven explicit-trigger probes are retained and bumped to v7.301 filenames/headers.
 
 # AmazonDark v7.300~person-gift-card-header-error-mask-probe
 
@@ -322,10 +313,3 @@ Direct base: **v7.270~optimized-exact-probes**.
 - Fixes the Alexa Chat history upper-left back glyph using the probe-proven `chevron-left-Variant-icon` owner under `MainNavigationHeader-left-button-back`.
 - Retains the existing `chevron-down-icon` owner for the other Alexa header hydration.
 - No Person/native-image/WebKit paint architecture changes.
-
-
-## v7.302 delta
-- Exact CNMErrorView dog hero receives a dedicated standard AmazonDark TWB overlay after the conservative edge-connected white-field knockout attempt.
-- Exact CNMErrorView mount performs one bounded immediate-stack refresh so pre-window image assignments cannot miss CNM ownership.
-- Existing SBSearchBar hook caches its live lower edge; CNMErrorView adds an OLED-only gap cap from that edge to the error root, eliminating clipped ANXSubNav label fragments without hiding the Search bar or globally suppressing subnavigation.
-- No MutationObserver, interval, RAF, web-scroll listener, recurring hierarchy scan, or new broad route owner.

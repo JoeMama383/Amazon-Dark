@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.302 — comprehensive transition hardening + universal CNM media/subnav fixes
+ * AmazonDark v7.303 — deterministic native/WebKit first-paint ownership
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.302-comprehensive-transition-hardening"
+#define AD_VERSION "v7.303-deterministic-first-paint"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -564,7 +564,7 @@ static NSString *ADFloorJS(void){
         @"hild=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement)document.documentElement.setAttribute('data-ad7-child-frame','1');function put(id,css){var s=document.getElementById(id);if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||doc"
         @"ument).appendChild(s);}s.textContent=css;return s;}function relink(s){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}function rootBlac"
         @"k(){try{var h=document.documentElement;if(h){h.style.setProperty('background-color','#000','important');h.style.setProperty('color-scheme','dark','important');}if(document.body){do"
-        @"cument.body.style.setProperty('background-color','#000','important');document.body.style.setProperty('color-scheme','dark','important');}}catch(_){}}if(child&&document.documentElement&&document.documentElement.hasAttribute('data-ad7104-standalone'))return;var p='';try{p=String(location.pathname||'');}catch(_){}var s=null;if(!child&&(p==='/autocomplete'||p.indexOf('/autocomplete/')===0)){s="
+        @"cument.body.style.setProperty('background-color','#000','important');document.body.style.setProperty('color-scheme','dark','important');}}catch(_){}}if(child&&document.documentElement&&document.documentElement.hasAttribute('data-ad7104-standalone'))return;var p='';try{p=String(location.pathname||'');}catch(_){}var cartBoot=!child&&(p==='/cart'||p.indexOf('/cart/')===0||p.indexOf('/gp/cart')===0);if(cartBoot&&document.documentElement){var bh=document.documentElement;put('ad7303-cart-boot',\"html[data-ad7303-cart-boot]{background:#000!important;background-color:#000!important;color-scheme:dark!important;}html[data-ad7303-cart-boot]::before{content:''!important;position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;background:#000!important;background-color:#000!important;background-image:none!important;opacity:1!important;z-index:2147483647!important;pointer-events:none!important;}\");bh.setAttribute('data-ad7303-cart-boot','1');var releaseCartBoot=function(){try{bh.removeAttribute('data-ad7303-cart-boot');}catch(_){}};if(document.readyState==='complete')releaseCartBoot();else window.addEventListener('load',releaseCartBoot,{once:true});}var s=null;if(!child&&(p==='/autocomplete'||p.indexOf('/autocomplete/')===0)){s="
         @"put('ad7-search-pane-theme',\"html,body,#a-page,#attach-to-me{background:#000!important;background-color:#000!important;color:#e8e6e3!important;color-scheme:dark!important;}.s-sugge"
         @"stion-container,.s-suggestion,.autocomplete-results-container,[class*=autocomplete],[class*=suggestion]:not([class*=icon]):not([class*=glyph]),[class*=recentSearch]:not([class*=ico"
         @"n]):not([class*=glyph]),[class*=search-suggestion]:not([class*=icon]):not([class*=glyph]){background:#000!important;background-color:#000!important;color:#e8e6e3!important;}:is(.s-"
@@ -922,6 +922,11 @@ static NSString *ADFloorJS(void){
         // v7.245: Cart-probe-backed first-paint ownership. Exact Cart selectors only.
         // Product/media filters are intentionally not touched here; TWB remains in ADTWBJS.
         @"#sc-page-container,#sc-page-content,#sc-buy-box,#sc-mini-buy-box,#sc-active-cart,#sc-saved-cart,#sc-page-container .sc-list-item,#sc-page-container .sc-list-item-content,#sc-page-container .swipe-item-content,#sc-page-container [class*=sc-][class*=content],#sc-page-container [class*=sc-][class*=container],#sc-page-container .a-cardui.sc-card-style,#sc-page-container .a-cardui-deck.sc-background-dark,#sc-page-container .sc-cart-overwrap,#sc-page-container .sc-undo-slide-reveal,#sc-page-container .swipe-button,#sc-page-container .sc-returns-are-easy-container,#sc-page-container .maple-banner__container,#sc-page-container .p13n-sc-shoveler,#sc-page-container .a-carousel-container.p13n-sc-shoveler{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}#sc-page-content>*{background-color:#000!important;}#sc-buy-box *,#sc-buy-box *::before,#sc-buy-box *::after,#sc-mini-buy-box *,#sc-mini-buy-box *::before,#sc-mini-buy-box *::after{background-color:transparent!important;box-shadow:none!important;transition-property:none!important;}#sc-buy-box :not(.a-spinner):not(.a-icon),#sc-mini-buy-box :not(.a-spinner):not(.a-icon),#sc-buy-box *::before,#sc-buy-box *::after,#sc-mini-buy-box *::before,#sc-mini-buy-box *::after{background-image:none!important;}#sc-saved-cart{border-top-color:#000!important;border-bottom-color:#000!important;}#sc-page-container>.sc-cart-spinner{background:#000!important;background-color:#000!important;box-shadow:none!important;top:0!important;right:0!important;bottom:0!important;left:0!important;width:auto!important;height:auto!important;}#sc-page-container>.sc-cart-spinner>.a-spinner{background-color:transparent!important;}"
+        // v7.303: a document-start opaque Cart boot shield is installed above before any
+        // Amazon stylesheet or pre-hydration skeleton can composite. It is removed by the
+        // one-shot load event only after this dark stylesheet is present. The settled DOM
+        // ownership below remains as a defense after the shield leaves; there is no observer,
+        // timer, polling, or recurring scan.
         // v7.293: Cart refresh-transition anti-flash. The current probe shows the visible
         // p13n recommendation carousel at #p13n-uf-anchor with 150x249-269 slots;
         // its hydrated cards contain .p13n-uf, while Amazon's empty slots use
@@ -929,12 +934,6 @@ static NSString *ADFloorJS(void){
         // non-empty/pre-.p13n-uf state that can briefly expose Amazon's white skeleton.
         // Own only that slot/shell at document start. Final .p13n-uf contents are untouched.
         @"#sc-page-container #p13n-uf-anchor li.a-carousel-card{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;transition:none!important;}#sc-page-container #p13n-uf-anchor li.a-carousel-card:not(.a-carousel-card-empty):not(:has(.p13n-uf))>*{background:#303335!important;background-color:#303335!important;background-image:none!important;box-shadow:none!important;transition:none!important;}"
-        // v7.302: the transient Cart capture proves the remaining bright strip/three-card skeleton
-        // is an earlier loading state than the settled p13n structures v7.293 owned. Kill every
-        // stock-white paint lane before hydration, while staying scoped to Cart recommendation
-        // loading states. #a-white is Amazon's dedicated fixed white transition overlay and is
-        // safe to recolor globally: opacity/display semantics remain Amazon-owned.
-        @"#a-white{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}#sc-page-container #sc-saved-cart,#sc-page-container #sc-saved-cart::before,#sc-page-container #sc-saved-cart::after,#sc-page-container #sc-saved-cart>*{background:#000!important;background-color:#000!important;background-image:none!important;border-top-color:#000!important;border-bottom-color:#000!important;box-shadow:none!important;transition:none!important;}#sc-page-container #p13n-uf-anchor li.a-carousel-card.a-carousel-card-empty{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#494d4d!important;box-shadow:none!important;transition:none!important;}#sc-page-container #p13n-uf-anchor li.a-carousel-card.a-carousel-card-empty>*{background:#181a1b!important;background-color:#181a1b!important;background-image:none!important;border-color:#494d4d!important;box-shadow:none!important;transition:none!important;}#sc-page-container #p13n-uf-anchor li.a-carousel-card:not(:has(.p13n-uf)):not(:has(img[src]))>* :is(div,span){background-color:#303335!important;border-color:#494d4d!important;box-shadow:none!important;transition:none!important;}"
         // v7.251: Cart probe identifies the actual white loading boxes as Amazon's
         // li.a-carousel-card.a-carousel-card-empty > .a-loading-static (120x120),
         // not the eventual product IMG/compositor. Own that transient card directly.
@@ -2081,43 +2080,20 @@ static BOOL ADNeutralNearBlack7255(UIColor *c){
     return NO;
 }
 
-// v7.302: Amazon's native connectivity/error surface is the exact CNMErrorView
+// v7.303: Amazon's native connectivity/error surface is the exact CNMErrorView
 // family. The v7.300 Cart probe proves the bright screen is not Cart/WebKit: the
 // 430pt CNMErrorView itself is white, its action buttons own white/near-white
 // fills, while labels and the standard gray button border are already in the
 // normal light/gray contracts. Own this class by ancestry so the same native
 // error renderer is dark in Cart, Home, Person, Menu, Search, or any other route.
 // This is event-driven setter/mount ownership only; no scan or recurring work.
-// v7.302 keeps that exact native owner and closes two probe-proven leftovers:
-// (1) the 640x524 dog hero now gets the same TWB contract as other authored media,
-//     while retaining the conservative edge-connected white-field knockout; and
-// (2) a tiny OLED cap covers only the geometric gap between the live Search bar and
-//     CNMErrorView so the underlying ANXSubNav labels cannot peek through.
-static const void *kADCNMTWB7302=&kADCNMTWB7302;
-static const void *kADCNMTopGapLayer7302=&kADCNMTopGapLayer7302;
-static const void *kADSearchBarBottom7302=&kADSearchBarBottom7302;
-static const void *kADCNMRootGetter7302=&kADCNMRootGetter7302;
-static const void *kADCNMOwned7303=&kADCNMOwned7303;
-// v7.302: v7.301 put an 18-level CNM ancestry walk at the front of the global
-// UIView didMoveToWindow/setBackgroundColor hooks. That made every native view
-// mounted during cold launch pay for an error-screen classifier that almost never
-// exists. Keep the universal CNM behavior, but make the normal path O(1): exact
-// root or already-marked descendant. Only while a live CNM root is registered on
-// this window do we perform the bounded ancestry confirmation for a newly added
-// descendant. The rare error subtree is then permanently marked by its root pass.
 static BOOL ADInCNMErrorView7301(UIView *v){
     if(!v)return NO;
     @try {
-        if(ADClassNameIs7183(v,"CNMErrorView")||objc_getAssociatedObject(v,kADCNMOwned7303))return YES;
-        UIWindow *w=v.window; if(!w)return NO;
-        UIView *(^getter)(void)=objc_getAssociatedObject(w,kADCNMRootGetter7302);
-        UIView *root=getter?getter():nil;
-        if(!root||root.window!=w||!ADClassNameIs7183(root,"CNMErrorView"))return NO;
-        for(UIView *n=v;n&&n!=w;n=n.superview){
-            if(n==root||ADClassNameIs7183(n,"CNMErrorView")){
-                objc_setAssociatedObject(v,kADCNMOwned7303,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                return YES;
-            }
+        UIView *n=v;
+        for(int d=0;n&&d<18;d++,n=n.superview){
+            if(ADClassNameIs7183(n,"CNMErrorView"))return YES;
+            if([n isKindOfClass:[UIWindow class]])break;
         }
     } @catch(...) {}
     return NO;
@@ -2193,47 +2169,53 @@ static UIImage *ADCNMKnockoutWhiteBackdrop7301(UIImage *im){
     return result?:im;
 }
 static const void *kADCNMProcessedImage7301=&kADCNMProcessedImage7301;
+static const void *kADCNMTWB7303=&kADCNMTWB7303;
+static const void *kADCNMSubNavGetter7303=&kADCNMSubNavGetter7303;
+static const void *kADCNMSubNavWasHidden7303=&kADCNMSubNavWasHidden7303;
 static __thread BOOL gADCNMImageWrite7301=NO;
-static void ADEnsureCNMTWB7302(UIImageView *iv){
+static void ADEnsureCNMTWB7303(UIImageView *iv){
     if(!iv)return;
     @try {
-        CALayer *ov=objc_getAssociatedObject(iv,kADCNMTWB7302);
-        if(!gP.enabled||!gP.whiteTame){
-            if(ov){[ov removeFromSuperlayer];objc_setAssociatedObject(iv,kADCNMTWB7302,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
+        CALayer *ov=objc_getAssociatedObject(iv,kADCNMTWB7303);
+        if(!gP.enabled||!gP.whiteTame||!iv.window){
+            if(ov){[ov removeFromSuperlayer];objc_setAssociatedObject(iv,kADCNMTWB7303,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
             return;
         }
         if(!ov){
-            ov=[CALayer layer]; ov.name=@"AmazonDarkCNMTWB7302";
+            ov=[CALayer layer];
+            ov.name=@"AmazonDarkCNMTWB7303";
             ov.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"backgroundColor":[NSNull null],@"zPosition":[NSNull null]};
             [iv.layer addSublayer:ov];
-            objc_setAssociatedObject(iv,kADCNMTWB7302,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADCNMTWB7303,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         } else if(ov.superlayer!=iv.layer)[iv.layer addSublayer:ov];
-        ov.frame=iv.bounds; ov.backgroundColor=ADNativeTWBOverlayColor7146().CGColor; ov.zPosition=FLT_MAX;
+        ov.frame=iv.bounds;
+        ov.backgroundColor=ADNativeTWBOverlayColor7146().CGColor;
+        ov.zPosition=FLT_MAX;
     } @catch(...) {}
 }
 static void ADOwnCNMErrorHero7301(UIImageView *iv){
     if(!gP.enabled||!iv||!iv.window||!iv.image||!ADCNMErrorHero7301(iv,iv.image))return;
     @try {
         ADSetViewBackground7226(iv,ADOLED(),YES);
-        if(objc_getAssociatedObject(iv,kADCNMProcessedImage7301)==iv.image)return;
-        UIImage *clean=ADCNMKnockoutWhiteBackdrop7301(iv.image);
-        if(clean&&clean!=iv.image){
-            gADCNMImageWrite7301=YES;
-            iv.image=clean;
-            gADCNMImageWrite7301=NO;
-            objc_setAssociatedObject(iv,kADCNMProcessedImage7301,clean,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        if(objc_getAssociatedObject(iv,kADCNMProcessedImage7301)!=iv.image){
+            UIImage *clean=ADCNMKnockoutWhiteBackdrop7301(iv.image);
+            if(clean&&clean!=iv.image){
+                gADCNMImageWrite7301=YES;
+                iv.image=clean;
+                gADCNMImageWrite7301=NO;
+            }
+            // Cache both changed and already-transparent variants. The exact hero's
+            // final layout hook below retries any assignment that arrived at zero bounds.
+            objc_setAssociatedObject(iv,kADCNMProcessedImage7301,iv.image,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
-        // v7.302: the screenshot/probe proves the background-cleanup path can miss
-        // the live assignment. Give this exact hero the normal AmazonDark media tame
-        // regardless; if knockout succeeds the dog is tamed on OLED, otherwise the
-        // remaining white field is still safely darkened instead of flashing white.
-        ADEnsureCNMTWB7302(iv);
+        // Never let successful backdrop removal bypass media taming. v7.302 returned
+        // before this layer when the processed image was already current.
+        ADEnsureCNMTWB7303(iv);
     } @catch(...) { gADCNMImageWrite7301=NO; }
 }
 static void ADOwnCNMErrorView7301(UIView *v,UIColor *candidate){
     if(!gP.enabled||!v||!ADInCNMErrorView7301(v))return;
     @try {
-        objc_setAssociatedObject(v,kADCNMOwned7303,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         BOOL root=ADClassNameIs7183(v,"CNMErrorView"),button=[v isKindOfClass:[UIButton class]];
         UIColor *bg=candidate?:v.backgroundColor,*layerBG=v.layer.backgroundColor?[UIColor colorWithCGColor:v.layer.backgroundColor]:nil;
         if(root||button||ADNeutralNearWhite7255(bg)||ADNeutralNearWhite7255(layerBG))ADSetViewBackground7226(v,ADOLED(),YES);
@@ -2249,63 +2231,88 @@ static void ADOwnCNMErrorView7301(UIView *v,UIColor *candidate){
         }
     } @catch(...) {}
 }
-static void ADRememberCNMRoot7302(UIView *root){
-    if(!root||!root.window||!ADClassNameIs7183(root,"CNMErrorView"))return;
+// The error probe identifies the faint text above CNMErrorView as the live native
+// ANXSubNavCollectionViewCell lane (y=88...135), not a CNM label and not WebKit.
+// Hide that exact collection only while a CNM root is mounted, then restore its
+// prior hidden state when the error surface leaves.
+static UICollectionView *ADCNMStoredSubNav7303(UIView *root){
     @try {
-        objc_setAssociatedObject(root,kADCNMOwned7303,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        __weak UIView *weakRoot=root;
-        UIView *(^getter)(void)=^UIView *{ return weakRoot; };
-        objc_setAssociatedObject(root.window,kADCNMRootGetter7302,getter,OBJC_ASSOCIATION_COPY_NONATOMIC);
-    } @catch(...) {}
+        UICollectionView *(^getter)(void)=objc_getAssociatedObject(root,kADCNMSubNavGetter7303);
+        UICollectionView *cv=getter?getter():nil;
+        return (cv&&cv.superview)?cv:nil;
+    } @catch(...) { return nil; }
 }
-static UIView *ADCurrentCNMRoot7302(UIWindow *window){
-    if(!window)return nil;
+static BOOL ADCNMHasSubNavCell7303(UIView *v){
+    if(!v)return NO;
     @try {
-        UIView *(^getter)(void)=objc_getAssociatedObject(window,kADCNMRootGetter7302);
-        UIView *root=getter?getter():nil;
-        return (root&&root.window==window&&ADClassNameIs7183(root,"CNMErrorView"))?root:nil;
+        if(ADClassNameIs7183(v,"ANXSubNavCollectionViewCell"))return YES;
+        for(UIView *c in v.subviews)if(ADClassNameIs7183(c,"ANXSubNavCollectionViewCell"))return YES;
+    } @catch(...) {}
+    return NO;
+}
+static UICollectionView *ADCNMFindSubNav7303(UIView *root){
+    if(!root||!root.window)return nil;
+    @try {
+        UIWindow *w=root.window;
+        CGRect rr=[root convertRect:root.bounds toView:w];
+        NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:w];
+        NSUInteger head=0,visited=0;
+        while(head<q.count&&visited++<320){
+            UIView *v=q[head++];
+            if([v isKindOfClass:[UICollectionView class]]&&ADCNMHasSubNavCell7303(v)){
+                CGRect cr=[v convertRect:v.bounds toView:w];
+                BOOL adjacent=CGRectGetMaxY(cr)>=CGRectGetMinY(rr)-80.0&&CGRectGetMaxY(cr)<=CGRectGetMinY(rr)+3.0;
+                if(adjacent&&CGRectGetWidth(cr)>=CGRectGetWidth(rr)*0.70)return (UICollectionView *)v;
+            }
+            for(UIView *c in v.subviews)if(c!=root)[q addObject:c];
+        }
     } @catch(...) {}
     return nil;
 }
-static void ADLayoutCNMTopGap7302(UIView *root){
+static void ADCNMSuppressSubNav7303(UIView *root){
     if(!gP.enabled||!root||!root.window||!ADClassNameIs7183(root,"CNMErrorView"))return;
     @try {
-        NSNumber *bottomN=objc_getAssociatedObject(root.window,kADSearchBarBottom7302);
-        CALayer *cap=objc_getAssociatedObject(root,kADCNMTopGapLayer7302);
-        if(!bottomN){ if(cap)cap.hidden=YES; return; }
-        CGRect rr=[root convertRect:root.bounds toView:root.window];
-        CGFloat gap=CGRectGetMinY(rr)-bottomN.doubleValue;
-        if(gap<=0.5||gap>64.0){ if(cap)cap.hidden=YES; return; }
-        if(!cap){
-            cap=[CALayer layer]; cap.name=@"AmazonDarkCNMTopGap7302";
-            cap.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"backgroundColor":[NSNull null],@"hidden":[NSNull null],@"zPosition":[NSNull null]};
-            [root.layer addSublayer:cap];
-            objc_setAssociatedObject(root,kADCNMTopGapLayer7302,cap,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        } else if(cap.superlayer!=root.layer)[root.layer addSublayer:cap];
-        cap.hidden=NO; cap.frame=CGRectMake(0.0,-gap,root.bounds.size.width,gap);
-        cap.backgroundColor=ADOLED().CGColor; cap.zPosition=FLT_MAX;
+        UICollectionView *cv=ADCNMStoredSubNav7303(root);
+        if(!cv){
+            cv=ADCNMFindSubNav7303(root);
+            if(!cv)return;
+            objc_setAssociatedObject(root,kADCNMSubNavWasHidden7303,@(cv.hidden),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            __weak UICollectionView *weakCV=cv;
+            UICollectionView *(^getter)(void)=^UICollectionView *{return weakCV;};
+            objc_setAssociatedObject(root,kADCNMSubNavGetter7303,getter,OBJC_ASSOCIATION_COPY_NONATOMIC);
+        }
+        cv.hidden=YES;
     } @catch(...) {}
 }
-static void ADRefreshCNMErrorTree7302(UIView *root){
+static void ADCNMRestoreSubNav7303(UIView *root){
+    if(!root)return;
+    @try {
+        UICollectionView *cv=ADCNMStoredSubNav7303(root);
+        NSNumber *wasHidden=objc_getAssociatedObject(root,kADCNMSubNavWasHidden7303);
+        if(cv&&wasHidden)cv.hidden=wasHidden.boolValue;
+        objc_setAssociatedObject(root,kADCNMSubNavGetter7303,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(root,kADCNMSubNavWasHidden7303,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    } @catch(...) {}
+}
+static void ADRefreshCNMErrorTree7303(UIView *root){
     if(!gP.enabled||!root||!root.window||!ADClassNameIs7183(root,"CNMErrorView"))return;
     @try {
-        // Exact rare surface: bounded to the root's immediate stack and its arranged
-        // children. This is one mount-time pass, not a hierarchy scan or hot path.
+        ADOwnCNMErrorView7301(root,root.backgroundColor);
+        // The probe shows one direct UIStackView and seven arranged descendants.
+        // This bounded, layout-driven pass is deliberately confined to that rare tree.
         for(UIView *v in root.subviews){
             ADOwnCNMErrorView7301(v,v.backgroundColor);
             if([v isKindOfClass:[UIImageView class]])ADOwnCNMErrorHero7301((UIImageView *)v);
-            if([v isKindOfClass:[UIStackView class]]){
-                for(UIView *c in v.subviews){
-                    ADOwnCNMErrorView7301(c,c.backgroundColor);
-                    if([c isKindOfClass:[UIImageView class]])ADOwnCNMErrorHero7301((UIImageView *)c);
-                    for(UIView *g in c.subviews){
-                        ADOwnCNMErrorView7301(g,g.backgroundColor);
-                        if([g isKindOfClass:[UIImageView class]])ADOwnCNMErrorHero7301((UIImageView *)g);
-                    }
+            for(UIView *c in v.subviews){
+                ADOwnCNMErrorView7301(c,c.backgroundColor);
+                if([c isKindOfClass:[UIImageView class]])ADOwnCNMErrorHero7301((UIImageView *)c);
+                for(UIView *g in c.subviews){
+                    ADOwnCNMErrorView7301(g,g.backgroundColor);
+                    if([g isKindOfClass:[UIImageView class]])ADOwnCNMErrorHero7301((UIImageView *)g);
                 }
             }
         }
-        ADLayoutCNMTopGap7302(root);
+        ADCNMSuppressSubNav7303(root);
     } @catch(...) {}
 }
 // v7.256: the AppCX sheet also owns two ordinary UIView safe-area/chrome strips
@@ -2446,17 +2453,35 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
     } @catch(...) {}
 }
 
+%hook CNMErrorView
+- (void)didMoveToWindow {
+    %orig;
+    if(((UIView *)self).window)ADRefreshCNMErrorTree7303((UIView *)self);
+    else ADCNMRestoreSubNav7303((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    // setImage:/mount often occurs while the hero still has zero bounds. Final
+    // Auto Layout is the deterministic point at which the 640x524 raster is owned.
+    ADRefreshCNMErrorTree7303((UIView *)self);
+}
+- (void)willMoveToWindow:(UIWindow *)newWindow {
+    if(!newWindow)ADCNMRestoreSubNav7303((UIView *)self);
+    %orig(newWindow);
+}
+- (void)removeFromSuperview {
+    ADCNMRestoreSubNav7303((UIView *)self);
+    %orig;
+}
+%end
+
 %hook UIView
 - (void)didMoveToWindow {
     %orig;
     if(!gP.enabled||!self.window)return;
     // Exact universal native error owner gets first refusal. Avoid even React/AppCX
     // classification on the CNM subtree; this surface is probe-proven UIKit.
-    if(ADInCNMErrorView7301(self)){
-        ADOwnCNMErrorView7301(self,self.backgroundColor);
-        if(ADClassNameIs7183(self,"CNMErrorView")){ADRememberCNMRoot7302(self);ADRefreshCNMErrorTree7302(self);}
-        return;
-    }
+    if(ADInCNMErrorView7301(self)){ ADOwnCNMErrorView7301(self,self.backgroundColor); return; }
     BOOL react=ADReactNativeView7226(self);
     if(ADClassNameIs7183(self.window,"AppCXWindow")){
         if(!react&&ADInAppCXPassthrough7256(self)&&ADNeutralNearWhite7255(self.backgroundColor))ADSetViewBackground7226(self,ADOLED(),YES);
@@ -2491,7 +2516,6 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
         if(root||button||ADNeutralNearWhite7255(color)){
             UIColor *black=ADOLED(); %orig(black);
             if(button){ self.layer.borderWidth=1.0; self.layer.borderColor=ADBorderGray706().CGColor; self.layer.shadowOpacity=0.0; self.layer.shadowColor=[UIColor clearColor].CGColor; }
-            if(root)ADLayoutCNMTopGap7302(self);
             return;
         }
     }
@@ -6883,11 +6907,6 @@ static void ADOwnSearchLeadingMagnifier7229(UIImageView *iv){
     if(gP.enabled&&v.window){
         ADSetViewBackground7226(v,[UIColor clearColor],YES);
         v.layer.borderWidth=0;
-        @try {
-            CGRect wr=[v convertRect:v.bounds toView:v.window];
-            objc_setAssociatedObject(v.window,kADSearchBarBottom7302,@(CGRectGetMaxY(wr)),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            UIView *cnm=ADCurrentCNMRoot7302(v.window); if(cnm)ADLayoutCNMTopGap7302(cnm);
-        } @catch(...) {}
     }
 }
 %end
@@ -7798,10 +7817,6 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
     }
     objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADCNMProcessedImage7301,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    @try {
-        CALayer *cnmTWB=objc_getAssociatedObject(self,kADCNMTWB7302);
-        if(cnmTWB){[cnmTWB removeFromSuperlayer];objc_setAssociatedObject(self,kADCNMTWB7302,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
-    } @catch(...) {}
     // v7.263: React/FastImage may recycle this leaf across refresh hydration.
     // Never let a prior surface classification suppress the new Person ancestry.
     objc_setAssociatedObject(self,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -7823,6 +7838,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
     %orig;
     objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    if(!self.window||!ADInCNMErrorView7301((UIView *)self))ADEnsureCNMTWB7303(self);
     ADOwnCNMErrorHero7301(self);
     ADOwnSearchLeadingMagnifier7229(self);
     ADPersonOwnOrderSearchMagnifierLeaf7243(self);
@@ -7898,7 +7914,10 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
        ADPersonReviewCompactImage7229(self)||ADPersonCustomerServiceLeadingImage7229(self))
         ADOwnImageView7226(self,YES);
     ADMenuFinalizeImage7255(self,objc_getAssociatedObject(self,kADMenuFinalRasterKind7255)==nil);
+    if(ADInCNMErrorView7301((UIView *)self))ADOwnCNMErrorHero7301(self);
     ADLayoutImageOverlays7226(self);
+    CALayer *cnmTWB=objc_getAssociatedObject(self,kADCNMTWB7303);
+    if(cnmTWB)cnmTWB.frame=self.bounds;
 }
 %end
 
@@ -8582,9 +8601,9 @@ static void ADProbeAppend7233(NSString *path,NSString *text){
 static NSString *ADProbePath7233(NSUInteger run){
     @try {
         NSDateFormatter *f=[NSDateFormatter new]; f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]; f.timeZone=[NSTimeZone localTimeZone]; f.dateFormat=@"yyyyMMdd-HHmmss-SSS";
-        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.302-person-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.303-person-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];
-    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.302-person-ui-probe-r%lu.txt",(unsigned long)run]]; }
+    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.303-person-ui-probe-r%lu.txt",(unsigned long)run]]; }
 }
 static NSString *ADPersonSnapshot7233(UIView *wrap,UIScrollView *root,NSUInteger step,CGFloat targetY){
     NSMutableString *m=[NSMutableString string]; if(!root||!wrap)return @"PERSON_SNAPSHOT_NO_ROOT\n";
@@ -8772,7 +8791,7 @@ static void ADCapturePersonProbe7233(NSString *trigger){
     gADPersonProbeBusy7233=YES; NSUInteger run=++gADPersonProbeRun7233; NSString *path=ADProbePath7233(run);
     CGPoint original=root.contentOffset; BOOL originalScroll=root.scrollEnabled; root.scrollEnabled=NO;
     CGFloat viewport=MAX(1.0,root.bounds.size.height),stride=MAX(320.0,MIN(600.0,viewport*0.58));
-    ADProbeAppend7233(path,[NSString stringWithFormat:@"AMAZONDARK v7.302 PERSON UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\npolicy=no visible text strings, no accessibilityLabel text, no typed query, no web DOM, no network payloads\nroot wrapper is exact RCTScrollView aid=me; real scroll descendant is walked non-animated and restored\nexternal modal discovery=all AppCX roots are scored by visible sheet area; top roots plus best foreign modal are snapshotted\noriginalOffset=(%.1f,%.1f) content=(%.1fx%.1f) viewport=%.1f stride=%.1f maxSteps=40\n",
+    ADProbeAppend7233(path,[NSString stringWithFormat:@"AMAZONDARK v7.303 PERSON UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\npolicy=no visible text strings, no accessibilityLabel text, no typed query, no web DOM, no network payloads\nroot wrapper is exact RCTScrollView aid=me; real scroll descendant is walked non-animated and restored\nexternal modal discovery=all AppCX roots are scored by visible sheet area; top roots plus best foreign modal are snapshotted\noriginalOffset=(%.1f,%.1f) content=(%.1fx%.1f) viewport=%.1f stride=%.1f maxSteps=40\n",
         AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADPersonProbeCap7233,original.x,original.y,root.contentSize.width,root.contentSize.height,viewport,stride]);
     ADProbeAppend7233(path,ADPersonExternalSnapshots7258());
     __block NSUInteger step=0; __block CGFloat targetY=0,lastY=-999999; __block void (^next)(void)=nil;
@@ -8858,7 +8877,7 @@ static void ADCartProbeAppend7241(NSString *path,NSString *text){
     if(!path.length||!text.length)return; @try {NSFileManager *fm=[NSFileManager defaultManager];[fm createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES attributes:nil error:nil];unsigned long long cur=[[[fm attributesOfItemAtPath:path error:nil] objectForKey:NSFileSize] unsignedLongLongValue];if(cur>=kADCartProbeCap7241)return;NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding];unsigned long long remain=kADCartProbeCap7241-cur;if((unsigned long long)d.length>remain)d=[d subdataWithRange:NSMakeRange(0,(NSUInteger)remain)];if(![fm fileExistsAtPath:path]){[d writeToFile:path atomically:YES];return;}NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:path];if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];}} @catch(...) {}
 }
 static NSString *ADCartProbePath7241(NSUInteger run){
-    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.302-cart-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.302-cart-ui-probe-r%lu.txt",(unsigned long)run]];}
+    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.303-cart-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.303-cart-ui-probe-r%lu.txt",(unsigned long)run]];}
 }
 static NSString *ADCartProbeDetectJS7241(void){
     return
@@ -8944,7 +8963,7 @@ static void ADCartProbeEvalAppend7241(WKWebView *wv,NSString *path,NSString *js,
 }
 static void ADCaptureCartProbe7241(NSString *trigger){
     if(!gP.enabled||gADCartProbeBusy7241)return; gADCartProbeBusy7241=YES; NSUInteger run=++gADCartProbeRun7241; NSString *path=ADCartProbePath7241(run);
-    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"AMAZONDARK v7.302 SHOPPING CART UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=Cart is a WKWebView document; target signatures #cart-page/#sc-active-cart/#sc-saved-cart plus cart URL path\npolicy=no visible text strings, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes and privacy-safe text hashes retained\nscan=finite explicit-trigger WKScrollView walk + viewport computed-style DOM snapshots + final full DOM inventory + native UIKit/WebKit snapshots; original offset restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADCartProbeCap7241]);
+    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"AMAZONDARK v7.303 SHOPPING CART UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=Cart is a WKWebView document; target signatures #cart-page/#sc-active-cart/#sc-saved-cart plus cart URL path\npolicy=no visible text strings, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes and privacy-safe text hashes retained\nscan=finite explicit-trigger WKScrollView walk + viewport computed-style DOM snapshots + final full DOM inventory + native UIKit/WebKit snapshots; original offset restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADCartProbeCap7241]);
     ADCartProbeFindWebView7241(path,^(WKWebView *wv,NSString *meta){
         if(!wv||ADCartProbeScore7241(meta)<=0){ADCartProbeAppend7241(path,[NSString stringWithFormat:@"CART_PROBE_NO_TARGET meta=%@\n================ END RUN ================\n",ADCartProbeSafe7241(meta)]);gADCartProbeBusy7241=NO;return;}
         UIScrollView *sv=wv.scrollView; CGPoint original=sv.contentOffset; BOOL originalScroll=sv.scrollEnabled; sv.scrollEnabled=NO; CGFloat viewport=MAX(1.0,sv.bounds.size.height),stride=MAX(300.0,MIN(620.0,viewport*0.60)); CGRect wr=CGRectZero;@try{wr=[wv convertRect:wv.bounds toView:nil];}@catch(...){}
@@ -9014,7 +9033,7 @@ static void ADMenuProbeAppend7252(NSString *path,NSString *text){
     if(!path.length||!text.length)return; @try {NSFileManager *fm=[NSFileManager defaultManager];[fm createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES attributes:nil error:nil];unsigned long long cur=[[[fm attributesOfItemAtPath:path error:nil] objectForKey:NSFileSize] unsignedLongLongValue];if(cur>=kADMenuProbeCap7252)return;NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding];unsigned long long remain=kADMenuProbeCap7252-cur;if((unsigned long long)d.length>remain)d=[d subdataWithRange:NSMakeRange(0,(NSUInteger)remain)];if(![fm fileExistsAtPath:path]){[d writeToFile:path atomically:YES];return;}NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:path];if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];}} @catch(...) {}
 }
 static NSString *ADMenuProbePath7252(NSUInteger run){
-    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.302-menu-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.302-menu-ui-probe-r%lu.txt",(unsigned long)run]];}
+    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.303-menu-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.303-menu-ui-probe-r%lu.txt",(unsigned long)run]];}
 }
 static NSString *ADMenuProbeDetectJS7252(void){
     return
@@ -9206,7 +9225,7 @@ static void ADMenuProbeScanNative7252(UIScrollView *sv,NSString *path,void (^don
 }
 static void ADCaptureMenuProbe7252(NSString *trigger){
     if(!gP.enabled||gADMenuProbeBusy7252)return;gADMenuProbeBusy7252=YES;NSUInteger run=++gADMenuProbeRun7252;NSString *path=ADMenuProbePath7252(run);
-    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.302 HAMBURGER MENU UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; stable native tab owner is ANXTabBarButton#menuTab, content renderer is discovered at trigger time\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes and privacy-safe text lengths/hashes retained\nscan=finite explicit-trigger WebKit full-document walk plus finite native/React scroll walk when present; original offsets and scrollEnabled restored; bounded pre-trigger lifecycle ring captures footer-sized RCTView/RNCEKV setter/mount ordering\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADMenuProbeCap7252]);
+    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.303 HAMBURGER MENU UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; stable native tab owner is ANXTabBarButton#menuTab, content renderer is discovered at trigger time\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes and privacy-safe text lengths/hashes retained\nscan=finite explicit-trigger WebKit full-document walk plus finite native/React scroll walk when present; original offsets and scrollEnabled restored; bounded pre-trigger lifecycle ring captures footer-sized RCTView/RNCEKV setter/mount ordering\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADMenuProbeCap7252]);
     ADMenuProbeAppend7252(path,ADMenuLifecycleSnapshot7280(@"PRE_TRIGGER")); ADMenuLifecycleClear7280();
     ADMenuProbeLogTab7252(path); UIScrollView *native=ADMenuProbeFindNativeScroll7252(path); UIWindow *root=UIApplication.sharedApplication.keyWindow?:UIApplication.sharedApplication.windows.firstObject; if(root)ADMenuProbeAppend7252(path,ADMenuNativeSnapshot7252(root,native?:root,@"initial-window"));
     ADMenuProbeFindWebView7252(path,^(WKWebView *wv,NSString *meta){
@@ -9248,7 +9267,7 @@ static NSUInteger gADAlexaProbeRun7269=0;
 static BOOL gADAlexaProbeBusy7269=NO;
 static const unsigned long long kADAlexaProbeCap7269=64ULL*1024ULL*1024ULL;
 static NSString *ADAlexaProbePath7269(NSUInteger run){
-    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.302-alexa-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.302-alexa-ui-probe-r%lu.txt",(unsigned long)run]];}
+    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.303-alexa-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.303-alexa-ui-probe-r%lu.txt",(unsigned long)run]];}
 }
 static void ADAlexaProbeLogTabs7269(NSString *path){
     for(NSString *aid in @[@"rufusTab"]){
@@ -9286,7 +9305,7 @@ static void ADAlexaProbeScanNative7269(UIScrollView *sv,NSString *path,void (^do
 }
 static void ADCaptureAlexaProbe7269(NSString *trigger){
     if(!gP.enabled||gADAlexaProbeBusy7269)return;gADAlexaProbeBusy7269=YES;NSUInteger run=++gADAlexaProbeRun7269;NSString *path=ADAlexaProbePath7269(run);
-    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.302 ALEXA/RUFUS UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; selected native tab owner is ANXTabBarButton#rufusTab; content renderer is discovered at trigger time\nhistory=v7.162 proved Alexa/Rufus surfaces can use WebKit nice-widget/Rufus containers and pseudo-element painters; no current Alexa visual ownership is assumed\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes plus privacy-safe text lengths/hashes retained\nweb=all visible WKWebViews scored; chosen document gets finite top-to-bottom viewport snapshots plus final full DOM inventory (max 6200 nodes), open-shadow-root and accessible-iframe recursion, computed colors/backgrounds/images/masks/borders/radii/outlines/shadows/fonts/SVG/filter/transform/pseudo-elements/media and style-owner inventory; original offset restored\nnative=all visible native scroll candidates inventoried; best non-WebKit content scroll gets finite top-to-bottom UIKit/React snapshots including view/layer geometry, colors, borders, gradients/shapes, RCT edge props, text runs, controls, image/TWB state; original offset restored\nnormal_runtime=no observer/timer/RAF/scroll listener/recurring hierarchy scan is added by this probe\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADAlexaProbeCap7269]);
+    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.303 ALEXA/RUFUS UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; selected native tab owner is ANXTabBarButton#rufusTab; content renderer is discovered at trigger time\nhistory=v7.162 proved Alexa/Rufus surfaces can use WebKit nice-widget/Rufus containers and pseudo-element painters; no current Alexa visual ownership is assumed\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes plus privacy-safe text lengths/hashes retained\nweb=all visible WKWebViews scored; chosen document gets finite top-to-bottom viewport snapshots plus final full DOM inventory (max 6200 nodes), open-shadow-root and accessible-iframe recursion, computed colors/backgrounds/images/masks/borders/radii/outlines/shadows/fonts/SVG/filter/transform/pseudo-elements/media and style-owner inventory; original offset restored\nnative=all visible native scroll candidates inventoried; best non-WebKit content scroll gets finite top-to-bottom UIKit/React snapshots including view/layer geometry, colors, borders, gradients/shapes, RCT edge props, text runs, controls, image/TWB state; original offset restored\nnormal_runtime=no observer/timer/RAF/scroll listener/recurring hierarchy scan is added by this probe\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADAlexaProbeCap7269]);
     ADAlexaProbeLogTabs7269(path);UIScrollView *native=ADMenuProbeFindNativeScroll7252(path);UIWindow *root=UIApplication.sharedApplication.keyWindow?:UIApplication.sharedApplication.windows.firstObject;if(root)ADMenuProbeAppend7252(path,ADAlexaNativeSnapshot7269(root,native?:root,@"initial-window"));
     ADAlexaProbeFindWebView7269(path,^(WKWebView *wv,NSString *meta){ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"ALEXA_WEB_SELECTION ptr=%p meta=%@\n",wv,ADMenuProbeSafe7252(meta)]);void (^finishAll)(void)=^{UIWindow *r=UIApplication.sharedApplication.keyWindow?:UIApplication.sharedApplication.windows.firstObject;if(r)ADMenuProbeAppend7252(path,ADAlexaNativeSnapshot7269(r,native?:r,@"final-window"));ADMenuProbeAppend7252(path,@"ALEXA_PROBE_END\n================ END RUN ================\n");gADAlexaProbeBusy7269=NO;};void (^runNative)(void)=^{if(native){ADAlexaProbeScanNative7269(native,path,^(__unused NSString *reason){finishAll();});}else finishAll();};if(wv){ADMenuProbeEvalAppend7252(wv,path,ADAlexaProbeStylesJS7269(@"initial"),@"ALEXA_STYLE_INITIAL",^{ADMenuProbeScanWeb7252(wv,path,^(__unused NSString *reason){ADMenuProbeEvalAppend7252(wv,path,ADAlexaProbeStylesJS7269(@"post-web-scan"),@"ALEXA_STYLE_FINAL",^{runNative();});});});}else runNative();});
 }
@@ -9310,11 +9329,11 @@ static NSString *ADPersonSubmenuProbePath7298(NSUInteger run){
         NSDateFormatter *f=[NSDateFormatter new]; f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
         f.timeZone=[NSTimeZone localTimeZone]; f.dateFormat=@"yyyyMMdd-HHmmss-SSS";
         NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.302-person-submenu-hybrid-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.303-person-submenu-hybrid-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];
     } @catch(...) {
-        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.302-person-submenu-hybrid-probe-r%lu.txt",(unsigned long)run]];
+        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.303-person-submenu-hybrid-probe-r%lu.txt",(unsigned long)run]];
     }
 }
 
@@ -9456,7 +9475,7 @@ static BOOL ADPersonSubmenuLikelyActive7298(void){
 static void ADCapturePersonSubmenuProbe7298(NSString *trigger){
     if(!gP.enabled||gADPersonSubmenuProbeBusy7298)return; gADPersonSubmenuProbeBusy7298=YES;
     NSUInteger run=++gADPersonSubmenuProbeRun7298; NSString *path=ADPersonSubmenuProbePath7298(run);
-    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.302 PERSON SUBMENU HYBRID FULL-DOCUMENT PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=selected native tab owner is ANXTabBarButton#meTab; this probe is used only when the exact main Person RCTScrollView#me is absent/covered by redirected or modal content\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URL values, no network payloads; technical ids/classes/testids/component attributes plus privacy-safe text lengths/hashes retained\nweb=EVERY plausible visible WKWebView (max 6) is scanned sequentially from top to bottom; every document receives viewport computed-paint snapshots, open-shadow-root/accessibly reachable iframe recursion, style-owner inventory, final full DOM inventory (max 6200 nodes), and its original offset/scrollEnabled are restored\nnative=EVERY plausible visible non-WebKit native/React scroll root (max 6, ancestry-deduped, main #me root excluded) is scanned sequentially top-to-bottom; full-window snapshots capture non-scrollable native content, UIKit/React hierarchy, layers, colors, borders, gradients/shapes, RCT edge props, text runs, controls, images/TWB state; all original offsets restored\nnormal_runtime=single existing screenshot/SIGUSR2 dispatcher only; no second observer/signal source, no MutationObserver/timer/RAF/web-scroll listener/recurring hierarchy scan\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADPersonSubmenuProbeCap7298]);
+    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.303 PERSON SUBMENU HYBRID FULL-DOCUMENT PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=selected native tab owner is ANXTabBarButton#meTab; this probe is used only when the exact main Person RCTScrollView#me is absent/covered by redirected or modal content\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URL values, no network payloads; technical ids/classes/testids/component attributes plus privacy-safe text lengths/hashes retained\nweb=EVERY plausible visible WKWebView (max 6) is scanned sequentially from top to bottom; every document receives viewport computed-paint snapshots, open-shadow-root/accessibly reachable iframe recursion, style-owner inventory, final full DOM inventory (max 6200 nodes), and its original offset/scrollEnabled are restored\nnative=EVERY plausible visible non-WebKit native/React scroll root (max 6, ancestry-deduped, main #me root excluded) is scanned sequentially top-to-bottom; full-window snapshots capture non-scrollable native content, UIKit/React hierarchy, layers, colors, borders, gradients/shapes, RCT edge props, text runs, controls, images/TWB state; all original offsets restored\nnormal_runtime=single existing screenshot/SIGUSR2 dispatcher only; no second observer/signal source, no MutationObserver/timer/RAF/web-scroll listener/recurring hierarchy scan\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADPersonSubmenuProbeCap7298]);
     UIWindow *root=UIApplication.sharedApplication.keyWindow?:UIApplication.sharedApplication.windows.firstObject;
     if(root)ADMenuProbeAppend7252(path,ADPersonSubmenuNativeSnapshot7298(root,root,@"initial-window"));
     NSArray<WKWebView *> *webs=ADPersonSubmenuVisibleWebViews7298(path); NSArray<UIScrollView *> *natives=ADPersonSubmenuNativeScrolls7298(path);
@@ -9490,9 +9509,9 @@ static const unsigned long long kADHomeFrameProbeCap7265=12ull*1024ull*1024ull;
 static NSString *ADHomeFrameProbePath7265(NSUInteger run){
     @try {
         NSDateFormatter *f=[NSDateFormatter new]; f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]; f.timeZone=[NSTimeZone localTimeZone]; f.dateFormat=@"yyyyMMdd-HHmmss-SSS";
-        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.302-home-frame-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.303-home-frame-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];
-    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.302-home-frame-probe-r%lu.txt",(unsigned long)run]]; }
+    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.303-home-frame-probe-r%lu.txt",(unsigned long)run]]; }
 }
 static void ADHomeFrameProbeAppend7265(NSString *path,NSString *text){
     if(!path.length||!text.length)return;
@@ -9538,9 +9557,9 @@ static NSUInteger gADProductScrollProbeRun7272=0;
 static NSString *ADProductScrollProbePath7272(NSUInteger run){
     @try {
         NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";
-        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.302-product-scroll-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.303-product-scroll-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];
-    } @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.302-product-scroll-probe-r%lu.txt",(unsigned long)run]];}
+    } @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.303-product-scroll-probe-r%lu.txt",(unsigned long)run]];}
 }
 static WKWebView *ADProductScrollWebView7272(void){
     @try {
@@ -9563,7 +9582,7 @@ static NSString *ADProductScrollHitGridJS7280(void){
 }
 static void ADCaptureProductScrollProbe7272(NSString *trigger){
     if(!gP.enabled||gADProductScrollProbeBusy7272)return;WKWebView *wv=ADProductScrollWebView7272();if(!wv)return;gADProductScrollProbeBusy7272=YES;NSUInteger run=++gADProductScrollProbeRun7272;NSString *path=ADProductScrollProbePath7272(run);UIScrollView *sv=wv.scrollView;CGRect wr=CGRectZero;@try{wr=[wv convertRect:wv.bounds toView:nil];}@catch(...){}
-    ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"AMAZONDARK v7.302 PRODUCT SHOPPING/SCROLLING WIDE FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\nroute=/s only\npolicy=no typed query strings/no visible element strings/no URL values/no src/href values/no network payloads; technical ids/classes/testids/roles plus privacy-safe text lengths/hashes retained\nscan=explicit-trigger only; NO scrolling; all current/near-viewport DOM nodes up to 2600 with computed paint/pseudo/media/ancestry plus painted-rounded candidate inventory and viewport elementsFromPoint hit grid\nnormal_runtime=no second screenshot observer, no second SIGUSR2 source, no observer/timer/RAF/web-scroll listener/recurring DOM scan\nWEB_TARGET frame=(%.1f,%.1f %.1fx%.1f) offset=(%.1f,%.1f) content=(%.1fx%.1f) -- OFFSET NOT MODIFIED\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,wr.origin.x,wr.origin.y,wr.size.width,wr.size.height,sv.contentOffset.x,sv.contentOffset.y,sv.contentSize.width,sv.contentSize.height]);
+    ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"AMAZONDARK v7.303 PRODUCT SHOPPING/SCROLLING WIDE FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\nroute=/s only\npolicy=no typed query strings/no visible element strings/no URL values/no src/href values/no network payloads; technical ids/classes/testids/roles plus privacy-safe text lengths/hashes retained\nscan=explicit-trigger only; NO scrolling; all current/near-viewport DOM nodes up to 2600 with computed paint/pseudo/media/ancestry plus painted-rounded candidate inventory and viewport elementsFromPoint hit grid\nnormal_runtime=no second screenshot observer, no second SIGUSR2 source, no observer/timer/RAF/web-scroll listener/recurring DOM scan\nWEB_TARGET frame=(%.1f,%.1f %.1fx%.1f) offset=(%.1f,%.1f) content=(%.1fx%.1f) -- OFFSET NOT MODIFIED\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,wr.origin.x,wr.origin.y,wr.size.width,wr.size.height,sv.contentOffset.x,sv.contentOffset.y,sv.contentSize.width,sv.contentSize.height]);
     ADHomeFrameProbeAppend7265(path,ADHomeFrameNativeSnapshot7265());
     [wv evaluateJavaScript:ADProductScrollProbeJS7272() completionHandler:^(id result,NSError *error){
         ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"MAIN_DOCUMENT_WIDE error=%@\n",error?error.localizedDescription:@"none"]);
@@ -9578,7 +9597,7 @@ static void ADCaptureProductScrollProbe7272(NSString *trigger){
 
 static void ADCaptureHomeFrameProbe7265(NSString *trigger){
     if(!gP.enabled||gADHomeFrameProbeBusy7265)return;gADHomeFrameProbeBusy7265=YES;NSUInteger run=++gADHomeFrameProbeRun7265;NSString *path=ADHomeFrameProbePath7265(run);WKWebView *wv=ADHomeFrameVisibleWebView7265();
-    ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"AMAZONDARK v7.302 HOME CURRENT-FRAME PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\npolicy=current visible screen only; NO scrolling; NO full Home-document scan; privacy-safe text lengths/hashes in WebKit; native accessibility labels not emitted\nweb=bounded visible-branch recursion max 700 nodes per frame; cross-origin child frames respond only to this explicit trigger\nnative=bounded visible-branch walk max 1000 logged nodes\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent]);
+    ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"AMAZONDARK v7.303 HOME CURRENT-FRAME PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\npolicy=current visible screen only; NO scrolling; NO full Home-document scan; privacy-safe text lengths/hashes in WebKit; native accessibility labels not emitted\nweb=bounded visible-branch recursion max 700 nodes per frame; cross-origin child frames respond only to this explicit trigger\nnative=bounded visible-branch walk max 1000 logged nodes\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent]);
     ADHomeFrameProbeAppend7265(path,ADHomeFrameNativeSnapshot7265());
     if(!wv){ADHomeFrameProbeAppend7265(path,@"WEB_NO_VISIBLE_WKWEBVIEW\nHOME_FRAME_PROBE_END\n================ END RUN ================\n");gADHomeFrameProbeBusy7265=NO;return;}
     CGRect wr=CGRectZero;@try{wr=[wv convertRect:wv.bounds toView:nil];}@catch(...){}UIScrollView *sv=wv.scrollView;ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"WEB_TARGET ptr=%p frame=(%.1f,%.1f %.1fx%.1f) offset=(%.1f,%.1f) content=(%.1fx%.1f) -- OFFSET NOT MODIFIED\n",wv,wr.origin.x,wr.origin.y,wr.size.width,wr.size.height,sv.contentOffset.x,sv.contentOffset.y,sv.contentSize.width,sv.contentSize.height]);
