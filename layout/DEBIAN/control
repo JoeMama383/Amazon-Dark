@@ -1,6 +1,6 @@
 Package: com.joemama383.amazondark
 Name: AmazonDark
-Version: 7.286~v285-compile-repair
+Version: 7.288~alexa-pills-circular-actions
 Architecture: iphoneos-arm64
 Description: Amazon Dark Mode for rootless jailbreaks, iOS 15+
 Maintainer: JoeMama383

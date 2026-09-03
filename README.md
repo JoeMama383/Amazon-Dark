@@ -1,3 +1,25 @@
+# AmazonDark v7.288~alexa-pills-circular-actions
+
+## Alexa/Rufus pill + bottom-action polish on the v7.287 convergence architecture
+
+- Built directly from v7.287; the frozen v7.280 Person/image module is not changed.
+- v7.286 Alexa probe identifies exactly three 30pt light-blue suggestion-pill shells under `in-view-wrapper-ftuxRuxSuggestionPillList-*`; they now use the Cart action-button contract: #303335 fill, #747a7c single edge, and light #e8e6e3 text.
+- The bottom `PlusMenuButton` and `TextBoxSearchVoiceComponentButton` remain #303335 with white glyphs, but both are now forced to the same 32x32/r16 circle and receive one #494d4d ring.
+- The Plus SVG's own full-size RNSVGRect remains suppressed so the parent circle is the sole background; the voice SVG's full-size RNSVGCircle remains suppressed for the same reason.
+- Existing Alexa header controls, chat-history border, product-image TWB split, v7.280 Person behavior, and safe post-v280 architecture are retained.
+- No MutationObserver, interval, RAF, web-scroll listener, polling loop, or recurring hierarchy scan is added.
+
+# AmazonDark v7.287~v280-person-module-safe-optimizations-alexa
+
+## v7.280 Person module frozen; safe architecture retained around it
+
+- Built from the working v7.286 lineage after confirming v7.286 eliminated the Person bleaching regression.
+- The complete v7.280 Person production module is restored byte-for-byte, not only its raster/image helpers.
+- The complete v7.280 non-Alexa explicit-trigger probe implementations are restored; only filenames/headers are bumped to v7.287.
+- v7.286 safe non-Person architectural improvements remain: optimized build/dead-strip flags, conditional promotion/privacy hook installation, WebKit program/cache consolidation, 120 Hz bookkeeping improvements, non-Person ownership/cache cleanup, keyboard/location/status-bar/runtime cleanup, deterministic Hamburger first-paint repair, async splash-snapshot purge, and preference/SpringBoard cleanup.
+- Alexa-specific production ownership from v7.285/v7.286 remains: exact white header glyphs, gray bottom circular controls with white glyphs, gray chat-history border, and lower-two suggestion-image TWB while preserving the top authored glyph.
+- No v7.282 shared image writer is present. No MutationObserver, setInterval, RAF loop, or web scroll listener is added.
+
 # AmazonDark v7.286~v285-compile-repair
 
 ## Compile-only repair on the v7.285 / v7.280-image-baseline architecture
