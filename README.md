@@ -1,39 +1,15 @@
-# AmazonDark v7.284~person-final-raster-write-restore-all-probes
+# AmazonDark v7.285~v280-person-baseline-safe-optimizations-alexa
 
-## v7.284 probe-proven Person authored-raster final-paint restoration
+## Hard v7.280 Person/image baseline + safe post-v280 architecture + exact Alexa UI
 
-- Exact source base: v7.283, retaining its probe-backed Alexa/Rufus controls and all six explicit probes.
-- The v7.283 Person probe disproves the v7.283 Person-root diagnosis: avatar, badge, flag, Medical Care, Reviews, Customer Service, Subscribe & Save, and Shop previously watched are all positively classified by the existing `final240` owner, but the authored leaves still finish as `UIImageRenderingModeAlwaysTemplate` (`mode=2`).
-- Known-good pre-v280 v7.240 probes show those same exact `final240` owners finishing as `UIImageRenderingModeAlwaysOriginal` (`mode=1`).
-- Root cause in source: v7.282's maximal optimization consolidated the dedicated Person `RCTUIImageViewAnimated` re-entrant image write into the shared `ADSetImageRenderingMode7271` / `gADImageWriteDepth7271` lane. Classification survived, but the exact Person final-render write stopped surviving React's final paint.
-- Restores only the proven pre-v280 dedicated Person write guard/direct `iv.image = [image imageWithRenderingMode:...]` transaction inside `ADPersonFinalizePersonImage7235`; the shared optimized rendering-mode helper remains authoritative everywhere else.
-- Removes the unnecessary v7.283 `ADInPersonTab7206` rollback and restores v7.282's centralized cached React-surface router, because the device probe proves Person classification itself was not broken.
-- Exact intended final states are restored: Medical/avatar/badge/flag -> authored mode=1 with no TWB; Reviews/Customer Service/Subscribe & Save/Shop previously watched -> authored mode=1 plus their existing image-only TWB; Highlights arrow kind 6 remains the intentional light template glyph.
-- No MutationObserver, polling, interval, RAF, web-scroll listener, recurring hierarchy scan, or new hook class is added.
-
-# AmazonDark v7.283~person-media-alexa-ui-restore-all-probes
-
-## v7.283 Person media regression restore + exact Alexa/Rufus controls
-
-- Direct source base: v7.282~max-optimization-menu-first-paint-all-probes. The v7.282 optimization architecture and deterministic Menu footer fix are retained.
-- Restores the exact pre-v7.282 cached `ADInPersonTab7206` resolver: a bounded <=48-ancestor lookup for `RCTScrollView#me`, with positive ownership cached on the queried view. This reconnects the existing probe-backed authored-raster owners for avatar, notification badge, country flag, Medical Care, Customer Service/Need Help, Subscribe & Save, Shop previously watched, Reviews/other Person product media without reviving a scanner or observer.
-- Alexa/Rufus exact native owners come from the v7.282 comprehensive probe: close chevron, chat-history header glyph, vertical ellipsis -> light; Plus and voice 32x32 controls -> standard dark gray backing with light SVG glyphs; View chat history -> standard gray border.
-- Alexa suggestion-card media is split structurally: the first 40x40 authored palette glyph remains untouched, while only the second and third 40x40 product rasters receive the configured TWB overlay.
-- All six explicit probes remain available and are versioned v7.283. No MutationObserver, timer, RAF loop, web-scroll listener, polling loop, or recurring hierarchy/DOM scan is added.
-
-# AmazonDark v7.282~max-optimization-menu-first-paint-all-probes
-
-## v7.282 maximal reduction + deterministic Menu footer first paint
-
-- Preserves the complete v7.280 theme and all six explicit screenshot/SIGUSR2 probes: Home, Person, Cart, Hamburger, Alexa/Rufus, and product `/s`.
-- Fixes the cold-first-open white `Switch Accounts`, `Sign Out`, and `Customer Service` rows at the exact React `setBorderRadius:16` commit. The paired bad/good probes show this is the first event where each row simultaneously has its exact action descendant and final 406/410 geometry, so the established OLED/single-gray-edge owner now lands before the first composite.
-- Removes the v7.270-v7.278 leaf-ancestor and RNCEKV re-entry bridges. The final-radius transaction is the only first-paint repair; it uses no timer, observer, delayed retry, root scan, or lifecycle fallback.
-- Removes v7.280's temporary continuously populated Menu lifecycle ring and its diagnostic-only RCT setter hooks. The full on-demand Menu native/WebKit probe remains intact.
-- Collapses four always-on document-start scripts into one cached order-preserving core program, consolidates five image mutation guards, caches fixed colors/classes/selectors and positive React ownership, and converts array-front-removal walks to cursor queues.
-- Removes rootful/derived preference paths, duplicate CFPreferences writes/reads, programmatic Settings reconstruction, alternate resource paths, obsolete ownership lanes, and redundant helpers while retaining exact rootless behavior.
-- Enables `-Os`, section splitting, and linker dead stripping for both tweaks and the preference bundle.
-- Stores the dynamically replaced status-bar `IMP` as typed `NSValue` bytes, preserving the function pointer exactly and satisfying Apple clang/arm64e without a function-pointer-to-data-pointer conversion.
-- Production remains event-driven: no MutationObserver, interval, RAF loop, web-scroll listener, polling loop, or recurring hierarchy/DOM scan.
+- **Hard visual baseline:** the complete v7.280 native Person/image pipeline is retained byte-for-byte. This includes the dedicated image mutation guards, Person-root/media classifiers, final `AlwaysOriginal`/template transactions, native TWB eligibility, and the production `UIImageView` hook.
+- The v7.282 generic image-writer consolidation is intentionally **not** ported. `gADImageWriteDepth7271` / `ADSetImageRenderingMode7271` and every post-v280 hunk that changes Person/native-image routing, rendering mode, classifier caching, or final image ownership remain excluded.
+- The v7.280 `RCTUIImageViewAnimated` production path is retained exactly except for one Alexa-only suggestion-card side lane. The first 40x40 authored Alexa palette glyph is left untouched; only the second and third 40x40 product rasters receive the configured TWB.
+- Exact Alexa controls from the v7.282 probe are ported: header close/overflow/chat-history SVG glyphs render white; Plus/voice controls use a dark-gray circular backing with white glyphs; the `pillViewStyle` chat-history border uses the established gray edge.
+- Safe v7.282 architecture is replayed where it cannot alter those image contracts: `-Os`/function-data sections/dead stripping, rootless preference simplification, cached fixed colors/classes/selectors, cursor queues, consolidated document-start WebKit core, positive non-image React ownership caching, typed status-bar IMP storage, 120-Hz bookkeeping reduction, keyboard/location/text/helper cleanup, probe path/append/dispatch compaction, and launch/SpringBoard/preference-bundle cleanup.
+- The deterministic Hamburger first-paint owner at the exact React `setBorderRadius:16` commit is retained; v7.280's temporary continuously populated Menu lifecycle diagnostic ring is removed.
+- The approved Force 120 Hz behavior/settings wording remains unchanged.
+- Runtime stays event-driven: no MutationObserver, interval, RAF loop, web-scroll listener, polling loop, or recurring hierarchy/DOM scan.
 
 # AmazonDark v7.280~wide-forensics-probe
 

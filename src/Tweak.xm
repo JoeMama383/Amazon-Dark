@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.284 — restore pre-v280 Person final-raster write + exact Alexa/Rufus UI ownership
+ * AmazonDark v7.285 — v7.280 Person/image baseline + safe post-280 optimizations + Alexa ownership
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -27,10 +27,11 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.284-person-final-raster-write-restore-all-probes"
+#define AD_VERSION "v7.285-v280-person-baseline-safe-optimizations-alexa"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
+@interface RNSVGSvgView : UIView @end
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
@@ -51,7 +52,6 @@ extern char *__progname;
 @interface RCTParagraphComponentView : UIView @end
 @interface RCTTextView : UIView @end
 @interface RNCEKVExternalKeyboardView : UIView @end
-@interface RNSVGSvgView : UIView @end
 @interface _UIBarBackground : UIView @end
 @interface CXIStoreModesBottomNavToolbar : UIView @end
 @interface CXIStoreModesTabBarView : UIView @end
@@ -1658,19 +1658,7 @@ static inline BOOL ADClassNamePrefix7183(id obj,const char *prefix){
 // v7.0.24 — v6.0.185 tab-rendering mechanism, narrowed to the current ANX tab bar.
 // Current requested palette: all tab glyphs white + selected indicator white.
 static const void *kADTabIndicator724=&kADTabIndicator724;
-static __thread NSUInteger gADImageWriteDepth7271=0;
-// Dedicated Person final-raster re-entrant writer restored in v7.284 from pre-v280.
-static BOOL gADPersonOriginalImageWriting7218=NO;
-static void ADSetImageRenderingMode7271(UIImageView *iv,UIImageRenderingMode mode){
-    if(!iv||!iv.image||iv.image.renderingMode==mode||gADImageWriteDepth7271)return;
-    @try {
-        UIImage *converted=[iv.image imageWithRenderingMode:mode];
-        if(!converted)return;
-        gADImageWriteDepth7271++;
-        @try { iv.image=converted; }
-        @finally { if(gADImageWriteDepth7271)gADImageWriteDepth7271--; }
-    } @catch(...) { gADImageWriteDepth7271=0; }
-}
+static BOOL gADTabImageWriting724=NO;
 
 static UIView *ADANXTabRoot724(UIView *v){
     if(!v)return nil;
@@ -1699,10 +1687,17 @@ static void ADTabImageWhite724(UIImageView *iv){
     if(!ADANXTabRoot724(iv))return;
     @try {
         UIImage *im=iv.image;
-        if(im&&!ADTabImageTemplateish724(im))ADSetImageRenderingMode7271(iv,UIImageRenderingModeAlwaysTemplate);
+        if(im && !ADTabImageTemplateish724(im) && !gADTabImageWriting724){
+            UIImage *tpl=[im imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            if(tpl){
+                gADTabImageWriting724=YES;
+                iv.image=tpl;
+                gADTabImageWriting724=NO;
+            }
+        }
         UIColor *white=ADLightText706();
         [UIView performWithoutAnimation:^{ iv.tintColor=white; }];
-    } @catch(...) {}
+    } @catch(...) { gADTabImageWriting724=NO; }
 }
 static void ADPaintANXTabTree724(UIView *v,int depth){
     if(!gP.enabled||!v||depth>10||v.hidden||v.alpha<0.02)return;
@@ -2874,6 +2869,7 @@ static BOOL ADIsSearchBackGlyph7120(UIView *v){
     } @catch(...) {}
     return NO;
 }
+static BOOL gADSearchImageWrite706=NO;
 static UIColor *ADSearchChromeFill7045(void){
     static UIColor *c=nil; static dispatch_once_t once;
     dispatch_once(&once,^{ c=[UIColor colorWithRed:48.0/255.0 green:51.0/255.0 blue:53.0/255.0 alpha:1.0]; });
@@ -2904,9 +2900,12 @@ static void ADTintSearchGlyph706(UIImageView *iv){
     if(!search&&!location&&!back)return;
     @try {
         UIImage *im=iv.image;
-        if(im.renderingMode!=UIImageRenderingModeAlwaysTemplate)ADSetImageRenderingMode7271(iv,UIImageRenderingModeAlwaysTemplate);
+        if(im.renderingMode!=UIImageRenderingModeAlwaysTemplate && !gADSearchImageWrite706){
+            UIImage *tpl=[im imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            if(tpl){ gADSearchImageWrite706=YES; iv.image=tpl; gADSearchImageWrite706=NO; }
+        }
         iv.tintColor=ADLightText706();
-    } @catch(...) {}
+    } @catch(...) { gADSearchImageWrite706=NO; }
 }
 
 static void ADTintSearchDeliveryGlyph7139(UIImageView *iv){
@@ -2914,9 +2913,12 @@ static void ADTintSearchDeliveryGlyph7139(UIImageView *iv){
     @try {
         CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height; if(w<3||h<3||w>70||h>70)return;
         UIImage *im=iv.image;
-        if(im.renderingMode!=UIImageRenderingModeAlwaysTemplate)ADSetImageRenderingMode7271(iv,UIImageRenderingModeAlwaysTemplate);
+        if(im.renderingMode!=UIImageRenderingModeAlwaysTemplate && !gADSearchImageWrite706){
+            UIImage *tpl=[im imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            if(tpl){ gADSearchImageWrite706=YES; iv.image=tpl; gADSearchImageWrite706=NO; }
+        }
         iv.tintColor=ADLightText706();
-    } @catch(...) {}
+    } @catch(...) { gADSearchImageWrite706=NO; }
 }
 
 // v7.243: make the already-proven v7.126 OLED keyboard contract universal inside
@@ -3527,11 +3529,13 @@ static UIView *ADPersonRoot7206(UIView *v){
     } @catch(...) {}
     return nil;
 }
-// v7.284: keep v7.282's optimized centralized React-surface ownership. The v7.283
-// device probe proves Person classification is already correct; the regression is the
-// final RCTUIImageViewAnimated rendering-mode transaction, repaired separately below.
 static BOOL ADInPersonTab7206(UIView *v){
-    return ADReactSurface7226(v)==ADReactSurfacePerson7226;
+    if(!v)return NO;
+    NSNumber *surface=objc_getAssociatedObject(v,kADReactSurfaceCache7232);
+    if(surface)return surface.intValue==ADReactSurfacePerson7226;
+    UIView *root=ADPersonRoot7206(v);
+    if(root)objc_setAssociatedObject(v,kADReactSurfaceCache7232,@(ADReactSurfacePerson7226),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    return root!=nil;
 }
 static UIColor *ADPersonSecondary7206(void){
     static UIColor *c=nil; static dispatch_once_t once;
@@ -3658,10 +3662,10 @@ static BOOL ADPersonDescendantClass7242(UIView *root,const char *wanted,int maxN
     @try {
         NSMutableArray<UIView *> *q=[NSMutableArray arrayWithArray:root.subviews];
         int seen=0;
-        while(seen<(int)q.count&&seen<maxNodes){
-            UIView *v=q[(NSUInteger)seen++];
+        while(q.count&&seen++<maxNodes){
+            UIView *v=q.firstObject; [q removeObjectAtIndex:0];
             if(ADClassNameIs7183(v,wanted))return YES;
-            for(UIView *c in v.subviews)if(q.count-(NSUInteger)seen<(NSUInteger)maxNodes)[q addObject:c];
+            for(UIView *c in v.subviews)if(q.count<(NSUInteger)maxNodes)[q addObject:c];
         }
     } @catch(...) {}
     return NO;
@@ -3752,13 +3756,17 @@ static BOOL ADPersonOrderSearchMagnifierLeaf7243(UIImageView *iv){
         return iv.superview&&ADPersonOrderSearchMagnifierWrapper7243(iv.superview);
     } @catch(...) { return NO; }
 }
+static BOOL gADPersonOrderMagnifierWrite7243=NO;
 static void ADPersonOwnOrderSearchMagnifierLeaf7243(UIImageView *iv){
     if(!ADPersonOrderSearchMagnifierLeaf7243(iv))return;
     @try {
         UIImage *im=iv.image;
-        if(im&&im.renderingMode!=UIImageRenderingModeAlwaysTemplate)ADSetImageRenderingMode7271(iv,UIImageRenderingModeAlwaysTemplate);
+        if(im&&im.renderingMode!=UIImageRenderingModeAlwaysTemplate&&!gADPersonOrderMagnifierWrite7243){
+            UIImage *tpl=[im imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            if(tpl){ gADPersonOrderMagnifierWrite7243=YES; iv.image=tpl; gADPersonOrderMagnifierWrite7243=NO; }
+        }
         iv.tintColor=ADLightText706();
-    } @catch(...) {}
+    } @catch(...) { gADPersonOrderMagnifierWrite7243=NO; }
 }
 static const void *kADPersonInternalMedia7213=&kADPersonInternalMedia7213;
 // v7.213 Person card hardening: inner carousel/product-media plates are content,
@@ -3803,8 +3811,8 @@ static BOOL ADPersonCarouselOuter7214(UIView *v){
         if(w<370.0||w>415.0||h<88.0||h>136.0)return NO;
         NSMutableArray<UIView *> *q=[NSMutableArray arrayWithArray:v.subviews];
         int seen=0;
-        while(seen<(int)q.count&&seen<18){
-            UIView *n=q[(NSUInteger)seen++];
+        while(q.count&&seen<18){
+            UIView *n=q.firstObject; [q removeObjectAtIndex:0]; seen++;
             if(ADClassNameIs7183(n,"RCTScrollView")){
                 CGFloat sw=n.bounds.size.width,sh=n.bounds.size.height;
                 if(sw>=w-8.0&&sw<=w+8.0&&sh>=h-12.0&&sh<=h+4.0){
@@ -4522,12 +4530,12 @@ static BOOL ADPersonHeadingBand7217(UIView *v){ return ADPersonHeadingBandGeomet
 static const void *kADPersonListSection7212=&kADPersonListSection7212;
 static const void *kADPersonReviewSection7212=&kADPersonReviewSection7212;
 static UIView *ADPersonCompactSectionRoot7212(UIView *v,CGFloat minH,CGFloat maxH){
-    if(!v||!ADInPersonTab7206(v))return nil;
+    if(!v)return nil;
     @try {
         for(UIView *n=v.superview;n;n=n.superview){
+            if(!ADInPersonTab7206(n))break;
             CGFloat w=n.bounds.size.width,h=n.bounds.size.height;
             if(w>=320.0&&w<=430.5&&h>=minH&&h<=maxH)return n;
-            if([n.accessibilityIdentifier isEqualToString:@"me"]||[n isKindOfClass:[UIWindow class]])break;
         }
     } @catch(...) {}
     return nil;
@@ -4717,7 +4725,7 @@ static int ADPersonSectionKind7218(UIView *v){
         if([selfAid hasPrefix:@"tile-image-url-"]||[selfAid hasPrefix:@"tile-image-iconsection-"])return 4;
         if([selfAid containsString:@"product-image"]||[selfAid containsString:@"carousel-item-image"])return 2;
         UIView *p=v;
-        for(int up=0;p&&up<8;up++,p=p.superview){
+        for(int up=0;p&&up<8&&ADInPersonTab7206(p);up++,p=p.superview){
             NSString *aid=(p.accessibilityIdentifier?:@"").lowercaseString;
             int direct=ADPersonTitleKind7218(aid); if(direct)return direct;
             if([aid isEqualToString:@"yhw_healthai_0"]||[aid isEqualToString:@"yhw_pharmacy_1"])return 1;
@@ -4730,14 +4738,13 @@ static int ADPersonSectionKind7218(UIView *v){
             // recognized title band, that title defines its image leaves.
             NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:p];
             int seen=0,found=0,mixed=0;
-            while(seen<(int)q.count&&seen<72){
-                UIView *x=q[(NSUInteger)seen++];
+            while(q.count&&seen++<72){
+                UIView *x=q.firstObject; [q removeObjectAtIndex:0];
                 int k=ADPersonTitleKind7218(x.accessibilityIdentifier);
                 if(k){ if(!found)found=k; else if(found!=k){mixed=1;break;} }
-                if(seen<30)for(UIView *c in x.subviews){ if(q.count-(NSUInteger)seen<72)[q addObject:c]; else break; }
+                if(seen<30)for(UIView *c in x.subviews){ if(q.count<72)[q addObject:c]; else break; }
             }
             if(found&&!mixed)return found;
-            if([p.accessibilityIdentifier isEqualToString:@"me"]||[p isKindOfClass:[UIWindow class]])break;
         }
     } @catch(...) {}
     return 0;
@@ -4759,8 +4766,8 @@ static BOOL ADPersonCustomerServiceRow7229(UIView *v){
             if(bw<0.5||rr<6.0||rr>14.0)continue;
             int lead40=0,trail20=0,textish=0;
             NSMutableArray<UIView *> *q=[NSMutableArray arrayWithArray:n.subviews]; int seen=0;
-            while(seen<(int)q.count&&seen<28){
-                UIView *x=q[(NSUInteger)seen++];
+            while(q.count&&seen++<28){
+                UIView *x=q.firstObject; [q removeObjectAtIndex:0];
                 CGRect xr=[x convertRect:x.bounds toView:n];
                 CGFloat xw=x.bounds.size.width,xh=x.bounds.size.height;
                 if([x isKindOfClass:[UIImageView class]]){
@@ -4792,11 +4799,11 @@ static BOOL ADPersonKeepShoppingText7237(UIView *v){
             CGFloat w=card.bounds.size.width,h=card.bounds.size.height;
             if(w<118.0||w>145.0||h<150.0||h>185.0)continue;
             NSMutableArray<UIView *> *q=[NSMutableArray arrayWithArray:card.subviews]; int seen=0;
-            while(seen<(int)q.count&&seen<14){
-                UIView *x=q[(NSUInteger)seen++];
+            while(q.count&&seen++<14){
+                UIView *x=q.firstObject; [q removeObjectAtIndex:0];
                 NSString *aid=(x.accessibilityIdentifier?:@"").lowercaseString;
                 if([aid isEqualToString:@"carouselimagecontainer"])return YES;
-                if(seen<8)for(UIView *c in x.subviews)if(q.count-(NSUInteger)seen<14)[q addObject:c];
+                if(seen<8)for(UIView *c in x.subviews)if(q.count<14)[q addObject:c];
             }
         }
     } @catch(...) {}
@@ -5064,8 +5071,8 @@ static BOOL ADPersonHasRasterDescendant7229(UIView *root){
     if(!root)return NO;
     @try {
         NSMutableArray<UIView *> *q=[NSMutableArray arrayWithArray:root.subviews]; int seen=0;
-        while(seen<(int)q.count&&seen<18){
-            UIView *v=q[(NSUInteger)seen++];
+        while(q.count&&seen++<18){
+            UIView *v=q.firstObject; [q removeObjectAtIndex:0];
             if([v isKindOfClass:[UIImageView class]]&&((UIImageView *)v).image)return YES;
             if(seen<10)for(UIView *c in v.subviews)[q addObject:c];
         }
@@ -5123,8 +5130,9 @@ static void ADPersonApplyExactHighlightTWB7221(UIImageView *iv){
         ov.zPosition=FLT_MAX;
     } @catch(...) {}
 }
+static BOOL gADPersonOriginalImageWriting7218=NO;
 static void ADPersonRestoreOriginalImage7218(UIImageView *iv){
-    if(!iv||gADImageWriteDepth7271)return;
+    if(!iv||gADPersonOriginalImageWriting7218)return;
     int kind=ADPersonSectionKind7218(iv);
     if(kind==0)return;
     @try {
@@ -5133,16 +5141,22 @@ static void ADPersonRestoreOriginalImage7218(UIImageView *iv){
         // Prescriptions, Reviews, Interests and Subscribe thumbnails.  Restore the
         // original pixels first; TWB then shades only the positive media sections.
         UIImage *im=iv.image;
-        if(im&&im.renderingMode!=UIImageRenderingModeAlwaysOriginal)ADSetImageRenderingMode7271(iv,UIImageRenderingModeAlwaysOriginal);
-    } @catch(...) {}
+        if(im&&im.renderingMode!=UIImageRenderingModeAlwaysOriginal){
+            UIImage *orig=[im imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+            if(orig){ gADPersonOriginalImageWriting7218=YES; iv.image=orig; gADPersonOriginalImageWriting7218=NO; }
+        }
+    } @catch(...) { gADPersonOriginalImageWriting7218=NO; }
 }
 static void ADPersonRestoreProbeBackedOriginal7229(UIImageView *iv){
-    if(!iv||gADImageWriteDepth7271||!iv.image)return;
+    if(!iv||gADPersonOriginalImageWriting7218||!iv.image)return;
     if(!(ADPersonMedicalAuthoredIcon7231(iv)||ADPersonReviewCompactImage7229(iv)||ADPersonCustomerServiceLeadingImage7229(iv)))return;
     @try {
         UIImage *im=iv.image;
-        if(im.renderingMode!=UIImageRenderingModeAlwaysOriginal)ADSetImageRenderingMode7271(iv,UIImageRenderingModeAlwaysOriginal);
-    } @catch(...) {}
+        if(im.renderingMode!=UIImageRenderingModeAlwaysOriginal){
+            UIImage *orig=[im imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+            if(orig){ gADPersonOriginalImageWriting7218=YES; iv.image=orig; gADPersonOriginalImageWriting7218=NO; }
+        }
+    } @catch(...) { gADPersonOriginalImageWriting7218=NO; }
 }
 static BOOL ADPersonExplicitProductMedia7206(UIImageView *iv){
     if(!iv)return NO;
@@ -5197,6 +5211,32 @@ static inline BOOL ADMenuFooterActionAid7255(NSString *aid){
 }
 static BOOL ADInMenuTab7255(UIView *v){
     return ADReactSurface7226(v)==ADReactSurfaceMenu7255;
+}
+// v7.285 compatibility: keep v7.280's exact Menu image-owner helpers because the
+// protected v7.280 RCT image pipeline remains untouched. These are finite ancestor
+// walks used only by the existing Menu image classifier; no recurring scan is added.
+static UIView *ADMenuRoot7255(UIView *v){
+    if(!v)return nil;
+    @try {
+        for(UIView *n=v;n;n=n.superview){
+            NSString *aid=n.accessibilityIdentifier;
+            if(([aid isEqualToString:@"scrolled-hamburger"]&&ADClassNameIs7183(n,@"RCTScrollView"))||
+               [aid isEqualToString:@"scrolled-hamburger-view"])return n;
+            if([n isKindOfClass:[UIWindow class]])break;
+        }
+    } @catch(...) {}
+    return nil;
+}
+static UIView *ADMenuAncestorMatching7255(UIView *v,BOOL (^match)(NSString *),int maxDepth){
+    if(!v||!match)return nil;
+    @try {
+        UIView *n=v;
+        for(int d=0;n&&d<maxDepth;d++,n=n.superview){
+            if(match(n.accessibilityIdentifier?:@""))return n;
+            if([n.accessibilityIdentifier isEqualToString:@"scrolled-hamburger"])break;
+        }
+    } @catch(...) {}
+    return nil;
 }
 static UIView *ADMenuAncestorAid7255(UIView *v,NSString *wanted,BOOL prefix,int maxDepth){
     if(!v)return nil;
@@ -5286,11 +5326,9 @@ static void ADMenuSetSingleRCTBorder7258(UIView *v,CGFloat width,UIColor *color)
         [v setNeedsDisplay]; [v.layer setNeedsDisplay];
     } @catch(...) {}
 }
-// v7.283 Alexa/Rufus: the comprehensive v7.282 native probe gives stable IDs for
-// the two input-box circular controls and the chat-history pill. Own only those exact
-// React surfaces; decorative Alexa artwork and suggestion-card rasters are handled
-// separately below.
-static BOOL ADAlexaAncestorAid7283(UIView *v,NSString *wanted,int maxDepth){
+// v7.285 Alexa/Rufus: exact controls from the v7.282 comprehensive native probe.
+// This is AppCX/navigation-root scoped and does not participate in Person ownership.
+static BOOL ADAlexaAncestorAid7285(UIView *v,NSString *wanted,int maxDepth){
     if(!v||!wanted.length)return NO;
     @try {
         for(UIView *n=v;n&&maxDepth-->0;n=n.superview)
@@ -5299,21 +5337,21 @@ static BOOL ADAlexaAncestorAid7283(UIView *v,NSString *wanted,int maxDepth){
     return NO;
 }
 // 0 untouched, 1 Plus button, 2 voice button, 3 View-chat-history border owner.
-static int ADAlexaReactControlRole7283(UIView *v){
+static int ADAlexaReactControlRole7285(UIView *v){
     if(!v||!v.window||!ADClassNameIs7183(v,"RCTView")||!ADClassNameIs7183(v.window,"AppCXWindow"))return 0;
     @try {
         NSString *aid=v.accessibilityIdentifier?:@"";
-        if([aid isEqualToString:@"PlusMenuButton"]&&ADAlexaAncestorAid7283(v,@"navigation-root",14))return 1;
-        if([aid isEqualToString:@"TextBoxSearchVoiceComponentButton"]&&ADAlexaAncestorAid7283(v,@"navigation-root",14))return 2;
+        if([aid isEqualToString:@"PlusMenuButton"]&&ADAlexaAncestorAid7285(v,@"navigation-root",14))return 1;
+        if([aid isEqualToString:@"TextBoxSearchVoiceComponentButton"]&&ADAlexaAncestorAid7285(v,@"navigation-root",14))return 2;
         if([aid isEqualToString:@"pillViewStyle"]&&[v.superview.accessibilityIdentifier isEqualToString:@"overflow-history-ingress-pill"]&&
-           ADAlexaAncestorAid7283(v,@"navigation-root",14))return 3;
+           ADAlexaAncestorAid7285(v,@"navigation-root",14))return 3;
     } @catch(...) {}
     return 0;
 }
-static void ADAlexaOwnReactControl7283(UIView *v){
+static void ADAlexaOwnReactControl7285(UIView *v){
     if(!gP.enabled||!v||!v.window)return;
     @try {
-        int role=ADAlexaReactControlRole7283(v); if(!role)return;
+        int role=ADAlexaReactControlRole7285(v); if(!role)return;
         if(role==1||role==2){
             ADSetViewBackground7226(v,ADMenuButtonFill7255(),YES);
             v.layer.cornerRadius=16.0;
@@ -5447,7 +5485,7 @@ static int ADReactSurface7226(UIView *v){
 static void ADOwnReactView7226(UIView *v){
     if(!gP.enabled||!v||!v.window)return;
     @try {
-        ADAlexaOwnReactControl7283(v);
+        ADAlexaOwnReactControl7285(v);
         int surface=ADReactSurface7226(v);
         if(surface==ADReactSurfacePerson7226){
             ADPersonOwnView7206(v);
@@ -5492,7 +5530,7 @@ static void ADOwnReactView7226(UIView *v){
         return;
     }
     UIView *v=(UIView *)self;
-    int alexaRole=gP.enabled?ADAlexaReactControlRole7283(v):0;
+    int alexaRole=gP.enabled?ADAlexaReactControlRole7285(v):0;
     if(alexaRole==1||alexaRole==2){
         UIColor *gray=ADMenuButtonFill7255();
         gADPaintWriteDepth7226++;
@@ -5501,7 +5539,8 @@ static void ADOwnReactView7226(UIView *v){
             self.layer.backgroundColor=gray.CGColor;
         }
         @finally { if(gADPaintWriteDepth7226)gADPaintWriteDepth7226--; }
-        self.layer.cornerRadius=16.0; self.clipsToBounds=YES;
+        self.layer.cornerRadius=16.0;
+        self.clipsToBounds=YES;
         return;
     }
     int surface=(gP.enabled&&v.window)?ADReactSurface7226(v):ADReactSurfaceNone7226;
@@ -5568,10 +5607,10 @@ static void ADOwnReactView7226(UIView *v){
 - (void)setBorderRadius:(CGFloat)value {
     %orig(value);
     ADMenuOwnFinalFooterRadius7281((UIView *)self,value);
-    if(gP.enabled&&ADAlexaReactControlRole7283((UIView *)self))ADAlexaOwnReactControl7283((UIView *)self);
+    if(gP.enabled&&ADAlexaReactControlRole7285((UIView *)self))ADAlexaOwnReactControl7285((UIView *)self);
 }
 - (void)setBorderColor:(UIColor *)value {
-    if(gP.enabled&&ADAlexaReactControlRole7283((UIView *)self)==3){
+    if(gP.enabled&&ADAlexaReactControlRole7285((UIView *)self)==3){
         UIColor *gray=ADBorderGray706();
         %orig(gray);
         return;
@@ -5580,13 +5619,11 @@ static void ADOwnReactView7226(UIView *v){
 }
 %end
 
-// v7.283 Alexa/Rufus vector controls. The v7.282 probe positively identifies
-// these roots and their child shape topology. Reuse the historical Alexa CAFilter
-// inversion on only these exact SVG roots. For the two 32x32 bottom controls, hide
-// only the probe-proven full-size backing shape; the exact RCTView parent supplies
-// the gray circular fill while the remaining black glyph paths invert to light.
-static const void *kADAlexaVectorOwned7283=&kADAlexaVectorOwned7283;
-static int ADAlexaVectorRole7283(UIView *svg){
+// v7.285 Alexa/Rufus vector controls. Exact IDs come from the v7.282 Alexa probe.
+// Root-only CAFilter inversion preserves authored geometry; the bottom full-size
+// backing shape is hidden so the gray parent circle remains visible behind a white glyph.
+static const void *kADAlexaVectorOwned7285=&kADAlexaVectorOwned7285;
+static int ADAlexaVectorRole7285(UIView *svg){
     if(!svg||!svg.window||!ADClassNameIs7183(svg,"RNSVGSvgView")||!ADClassNameIs7183(svg.window,"AppCXWindow"))return 0;
     @try {
         NSString *aid=svg.accessibilityIdentifier?:@"",*parentAid=svg.superview.accessibilityIdentifier?:@"";
@@ -5598,7 +5635,7 @@ static int ADAlexaVectorRole7283(UIView *svg){
     } @catch(...) {}
     return 0;
 }
-static void ADAlexaInvertVectorRoot7283(UIView *svg){
+static void ADAlexaInvertVectorRoot7285(UIView *svg){
     if(!svg)return;
     @try {
         Class F=NSClassFromString(@"CAFilter"); if(!F)return;
@@ -5609,12 +5646,12 @@ static void ADAlexaInvertVectorRoot7283(UIView *svg){
         svg.layer.filters=hue?@[inv,hue]:@[inv];
     } @catch(...) {}
 }
-static void ADAlexaOwnVector7283(UIView *svg){
+static void ADAlexaOwnVector7285(UIView *svg){
     if(!svg||!svg.window)return;
     @try {
-        int role=ADAlexaVectorRole7283(svg); if(!role)return;
+        int role=ADAlexaVectorRole7285(svg); if(!role)return;
         if(!gP.enabled){
-            if(objc_getAssociatedObject(svg,kADAlexaVectorOwned7283))svg.layer.filters=nil;
+            if(objc_getAssociatedObject(svg,kADAlexaVectorOwned7285))svg.layer.filters=nil;
             if(role==4||role==5){
                 NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:svg]; NSUInteger seen=0;
                 while(seen<q.count&&seen<16){
@@ -5624,7 +5661,7 @@ static void ADAlexaOwnVector7283(UIView *svg){
                     if(x.subviews.count&&q.count-seen<16)[q addObjectsFromArray:x.subviews];
                 }
             }
-            objc_setAssociatedObject(svg,kADAlexaVectorOwned7283,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(svg,kADAlexaVectorOwned7285,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             return;
         }
         if(role==4||role==5){
@@ -5636,23 +5673,22 @@ static void ADAlexaOwnVector7283(UIView *svg){
                 if(x.subviews.count&&q.count-seen<16)[q addObjectsFromArray:x.subviews];
             }
         }
-        ADAlexaInvertVectorRoot7283(svg);
-        objc_setAssociatedObject(svg,kADAlexaVectorOwned7283,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        ADAlexaInvertVectorRoot7285(svg);
+        objc_setAssociatedObject(svg,kADAlexaVectorOwned7285,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     } @catch(...) {}
 }
-
 %hook RNSVGSvgView
 - (void)didMoveToWindow {
     %orig;
-    ADAlexaOwnVector7283((UIView *)self);
+    ADAlexaOwnVector7285((UIView *)self);
 }
 - (void)didMoveToSuperview {
     %orig;
-    if(((UIView *)self).window)ADAlexaOwnVector7283((UIView *)self);
+    if(((UIView *)self).window)ADAlexaOwnVector7285((UIView *)self);
 }
 - (void)layoutSubviews {
     %orig;
-    ADAlexaOwnVector7283((UIView *)self);
+    ADAlexaOwnVector7285((UIView *)self);
 }
 %end
 
@@ -6120,9 +6156,12 @@ static void ADOwnSearchLeadingMagnifier7229(UIImageView *iv){
     if(!objc_getAssociatedObject(iv,kADSearchLeadingMagnifier7229)&&!ADSearchLeadingMagnifier7229(iv))return;
     @try {
         UIImage *im=iv.image;
-        if(im.renderingMode!=UIImageRenderingModeAlwaysTemplate)ADSetImageRenderingMode7271(iv,UIImageRenderingModeAlwaysTemplate);
+        if(im.renderingMode!=UIImageRenderingModeAlwaysTemplate&&!gADSearchImageWrite706){
+            UIImage *tpl=[im imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            if(tpl){ gADSearchImageWrite706=YES; iv.image=tpl; gADSearchImageWrite706=NO; }
+        }
         iv.tintColor=ADLightText706();
-    } @catch(...) {}
+    } @catch(...) { gADSearchImageWrite706=NO; }
 }
 
 %hook SBSearchBar
@@ -6801,7 +6840,7 @@ static void ADPersonOwnTopChromeGlyph7217(UIImageView *iv){
     if(!gP.enabled||!ADPersonTopChromeGlyph7217(iv))return;
     @try {
         UIImage *im=iv.image;
-        if(im&&im.renderingMode!=UIImageRenderingModeAlwaysTemplate)ADSetImageRenderingMode7271(iv,UIImageRenderingModeAlwaysTemplate);
+        if(im&&im.renderingMode!=UIImageRenderingModeAlwaysTemplate)iv.image=[im imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
         iv.tintColor=ADLightText706();
     } @catch(...) {}
 }
@@ -6859,9 +6898,12 @@ static void ADPersonOwnSectionChevron7217(UIImageView *iv){
     if(!gP.enabled||!ADPersonSectionChevron7217(iv))return;
     @try {
         UIImage *im=iv.image;
-        if(im&&im.renderingMode!=UIImageRenderingModeAlwaysTemplate)ADSetImageRenderingMode7271(iv,UIImageRenderingModeAlwaysTemplate);
+        if(im&&im.renderingMode!=UIImageRenderingModeAlwaysTemplate){
+            UIImage *tpl=[im imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            if(tpl){ gADPersonOriginalImageWriting7218=YES; iv.image=tpl; gADPersonOriginalImageWriting7218=NO; }
+        }
         iv.tintColor=ADLightText706();
-    } @catch(...) {}
+    } @catch(...) { gADPersonOriginalImageWriting7218=NO; }
 }
 
 // v7.257 menu raster split from the captured hierarchy:
@@ -6871,6 +6913,10 @@ static void ADPersonOwnSectionChevron7217(UIImageView *iv){
 //   4 = expanded subtheme/dropdown artwork, restore stock fill and allow TWB
 // RNSVG views are not UIImageViews and remain completely outside this path.
 static const void *kADMenuFinalRasterKind7255=&kADMenuFinalRasterKind7255;
+static BOOL gADMenuImageWrite7255=NO;
+static UIView *ADMenuImageAncestor7255(UIView *v,BOOL (^match)(NSString *),int maxDepth){
+    return ADMenuAncestorMatching7255(v,match,maxDepth);
+}
 // v7.257: the footer helper row at the bottom of the Hamburger page is an
 // anonymous 406x~23 RCTView with exactly two children: a leading ~22pt
 // RCTImageView and a wide RCTTextView.  The v7.256 probe shows the leading
@@ -6905,14 +6951,16 @@ static int ADMenuImageKind7255(UIImageView *iv,BOOL discover){
         NSNumber *cached=objc_getAssociatedObject(iv,kADMenuFinalRasterKind7255);
         if(cached&&cached.intValue>0)return cached.intValue;
         if(!discover)return 0;
-        if(!ADClassNameIs7183(iv,"RCTUIImageViewAnimated")||!ADInMenuTab7255(iv))return 0;
+        if(!ADClassNameIs7183(iv,"RCTUIImageViewAnimated")||!ADMenuRoot7255(iv))return 0;
         CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height; int kind=0;
-        if(ADMenuAncestorAid7255(iv,@"featured-programs-tile-image_",YES,7))kind=3;
-        else if(ADMenuAncestorAid7255(iv,@"subtheme_image_",YES,7))kind=4;
+        if(ADMenuImageAncestor7255(iv,^BOOL(NSString *a){ return [a hasPrefix:@"featured-programs-tile-image_"]; },7))kind=3;
+        else if(ADMenuImageAncestor7255(iv,^BOOL(NSString *a){ return [a hasPrefix:@"subtheme_image_"]; },7))kind=4;
         else if(ADMenuFooterLeadingRaster7257(iv))kind=1;
-        else if(ADMenuAncestorAid7255(iv,@"image_menu_item_pill_",YES,7))kind=1;
-        else if(ADMenuAncestorAid7255(iv,nil,NO,7))kind=(w<=28.0&&h<=28.0)?2:1;
-        else if(ADMenuAncestorAid7255(iv,@"theme_card_content_view_test_id",NO,6))
+        else if(ADMenuImageAncestor7255(iv,^BOOL(NSString *a){ return [a hasPrefix:@"image_menu_item_pill_"]; },7))kind=1;
+        else if(ADMenuImageAncestor7255(iv,^BOOL(NSString *a){
+            return ADMenuFooterActionAid7255(a);
+        },7))kind=(w<=28.0&&h<=28.0)?2:1;
+        else if(ADMenuImageAncestor7255(iv,^BOOL(NSString *a){ return [a isEqualToString:@"theme_card_content_view_test_id"]; },6))
             kind=(w<=24.0&&h<=24.0)?2:((w>=28.0&&h>=28.0&&w<=64.0&&h<=64.0)?1:0);
         if(kind>0)objc_setAssociatedObject(iv,kADMenuFinalRasterKind7255,@(kind),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         else objc_setAssociatedObject(iv,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -6933,7 +6981,10 @@ static void ADMenuFinalizeImage7255(UIImageView *iv,BOOL discover){
     @try {
         UIImage *im=iv.image;
         UIImageRenderingMode want=(kind==2)?UIImageRenderingModeAlwaysTemplate:UIImageRenderingModeAlwaysOriginal;
-        if(im.renderingMode!=want){ ADSetImageRenderingMode7271(iv,want); im=iv.image; }
+        if(im.renderingMode!=want&&!gADMenuImageWrite7255){
+            UIImage *fixed=[im imageWithRenderingMode:want];
+            if(fixed){ gADMenuImageWrite7255=YES; iv.image=fixed; gADMenuImageWrite7255=NO; im=iv.image; }
+        }
         if(kind==2)iv.tintColor=ADLightText706();
         if(kind==3||kind==4){
             objc_setAssociatedObject(iv,kADTWBEligibilityImage,im,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -6943,15 +6994,17 @@ static void ADMenuFinalizeImage7255(UIImageView *iv,BOOL discover){
                 else ADApplyNativeTWBCached7183(iv,NO);
             } else ADMenuRemoveTWB7255(iv);
         } else ADMenuRemoveTWB7255(iv);
-    } @catch(...) {}
+    } @catch(...) { gADMenuImageWrite7255=NO; }
 }
 static BOOL ADMenuControlImageWrapper7255(UIView *v){
     if(!v||!v.window||!ADClassNameIs7183(v,"RCTImageView")||!ADInMenuTab7255(v))return NO;
     @try {
         CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
         if(w>24.0||h>24.0)return NO;
-        if(ADMenuAncestorAid7255(v,@"theme_card_content_view_test_id",NO,6))return YES;
-        return ADMenuAncestorAid7255(v,nil,NO,6)!=nil;
+        if(ADMenuAncestorMatching7255(v,^BOOL(NSString *a){ return [a isEqualToString:@"theme_card_content_view_test_id"]; },6))return YES;
+        return ADMenuAncestorMatching7255(v,^BOOL(NSString *a){
+            return ADMenuFooterActionAid7255(a);
+        },6)!=nil;
     } @catch(...) { return NO; }
 }
 static void ADMenuOwnImageWrapper7255(UIView *v){
@@ -6968,28 +7021,26 @@ static void ADOwnImageView7226(UIImageView *iv,BOOL resetCache){
         objc_setAssociatedObject(iv,kADTWBEligibilityImage,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
     BOOL authored=ADInAuthoredVisualSubNav7175((UIView *)iv);
-    BOOL active=gP.enabled&&iv.window;
-    int surface=active?ADReactSurface7226((UIView *)iv):ADReactSurfaceNone7226;
-    BOOL person=surface==ADReactSurfacePerson7226;
-    if(person){ ADPersonRestoreOriginalImage7218(iv); ADPersonRestoreProbeBackedOriginal7229(iv); }
-    BOOL personArrow=person&&ADPersonRightArrow7231(iv);
-    if(active&&!authored){
+    if(gP.enabled&&iv.window&&ADInPersonTab7206((UIView *)iv)){ ADPersonRestoreOriginalImage7218(iv); ADPersonRestoreProbeBackedOriginal7229(iv); }
+    BOOL personArrow=gP.enabled&&iv.window&&ADPersonRightArrow7231(iv);
+    if(gP.enabled&&iv.window&&!authored){
         ADTabImageWhite724(iv);
         ADTintSearchGlyph706(iv);
         ADTintSearchDeliveryGlyph7139(iv);
-        if(person){ ADPersonOwnTopChromeGlyph7217(iv); ADPersonOwnSectionChevron7217(iv); }
+        ADPersonOwnTopChromeGlyph7217(iv);
+        ADPersonOwnSectionChevron7217(iv);
     }
-    if(person&&personArrow){
+    if(personArrow){
         // A right-arrow control must own no media overlay. Clear both possible
         // overlay lanes after forcing the image to template/light.
         ADPersonApplyExactHighlightTWB7221(iv);
         ADApplyNativeTWBCached7183(iv,authored);
-    } else if(person&&ADPersonExactHighlightImage7221(iv))ADPersonApplyExactHighlightTWB7221(iv);
-    else if(person&&ADPersonHighlightImageContext7224(iv)){
+    } else if(ADPersonExactHighlightImage7221(iv))ADPersonApplyExactHighlightTWB7221(iv);
+    else if(ADPersonHighlightImageContext7224(iv)){
         CALayer *old=objc_getAssociatedObject(iv,kADTWBOverlay);
         if(old){ [old removeFromSuperlayer]; objc_setAssociatedObject(iv,kADTWBOverlay,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
     } else if(iv.window)ADApplyNativeTWBCached7183(iv,authored);
-    if(surface==ADReactSurfaceMenu7255)ADMenuFinalizeImage7255(iv,YES);
+    if(gP.enabled&&iv.window)ADMenuFinalizeImage7255(iv,YES);
 }
 static void ADLayoutImageOverlays7226(UIImageView *iv){
     if(!iv)return;
@@ -7024,7 +7075,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
 
 %hook UIImageView
 - (void)setImage:(UIImage *)image {
-    if(gADPersonOriginalImageWriting7218||gADImageWriteDepth7271){
+    if(gADTabImageWriting724||gADPersonOriginalImageWriting7218||gADSearchImageWrite706||gADPersonOrderMagnifierWrite7243||gADMenuImageWrite7255){
         %orig(image);
         return;
     }
@@ -7129,12 +7180,6 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
 // v7.235: React's actual Person raster leaf remains RCTUIImageViewAnimated.
 // Extend v7.234's cached final-paint owner only to the additional probe-proven
 // Subscribe/Previously-Watched rasters and the Highlights blue-circle arrow.
-// v7.284: restore the dedicated pre-v280 Person final-raster write lane.
-// v7.282 consolidated this into gADImageWriteDepth7271, but the v7.283 device
-// probe proves the exact final240=1..5,7..9 leaves are still classified while
-// ending at UIImageRenderingModeAlwaysTemplate.  Keep the shared optimized
-// writer everywhere else; only these exact Person final rasters use the proven
-// direct RCTUIImageViewAnimated re-entrant write that v7.240/v7.279 shipped.
 static const void *kADPersonFinalRasterKind7235=&kADPersonFinalRasterKind7235;
 static int ADPersonFinalRasterKind7235(UIImageView *iv,BOOL discover){
     if(!iv||!gP.enabled||!iv.window||!ADInPersonTab7206((UIView *)iv))return 0;
@@ -7192,11 +7237,11 @@ static void ADPersonFinalizePersonImage7235(UIImageView *iv,BOOL discover){
     } @catch(...) { gADPersonOriginalImageWriting7218=NO; }
 }
 
-// v7.283 Alexa suggestion-card media split. The v7.282 probe proves this wrapper
-// has exactly three 40x40 RCTUIImageViewAnimated leaves: row 0 is authored palette
-// artwork and stays untouched; rows 1 and 2 are product rasters and receive TWB.
-static const void *kADAlexaSuggestionIndex7283=&kADAlexaSuggestionIndex7283;
-static UIView *ADAlexaSuggestionWrapper7283(UIView *v){
+// v7.285 Alexa suggestion-card media split from the v7.282 probe.
+// The exact wrapper contains three 40x40 rasters: row 0 is authored palette artwork
+// and is explicitly blocked from TWB; rows 1 and 2 alone receive the configured TWB.
+static const void *kADAlexaSuggestionIndex7285=&kADAlexaSuggestionIndex7285;
+static UIView *ADAlexaSuggestionWrapper7285(UIView *v){
     if(!v)return nil;
     @try {
         for(UIView *n=v;n&&n!=v.window;n=n.superview){
@@ -7206,15 +7251,15 @@ static UIView *ADAlexaSuggestionWrapper7283(UIView *v){
     } @catch(...) {}
     return nil;
 }
-static int ADAlexaSuggestionImageIndex7283(UIImageView *iv,BOOL discover){
+static int ADAlexaSuggestionImageIndex7285(UIImageView *iv,BOOL discover){
     if(!iv||!iv.window||!iv.image||!ADClassNameIs7183(iv,"RCTUIImageViewAnimated"))return -1;
     @try {
-        NSNumber *cached=objc_getAssociatedObject(iv,kADAlexaSuggestionIndex7283);
+        NSNumber *cached=objc_getAssociatedObject(iv,kADAlexaSuggestionIndex7285);
         if(cached)return cached.intValue-1;
         if(!discover)return -1;
         CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
         if(w<36.0||w>44.0||h<36.0||h>44.0||fabs(w-h)>3.0)return -1;
-        UIView *wrapper=ADAlexaSuggestionWrapper7283(iv); if(!wrapper)return -1;
+        UIView *wrapper=ADAlexaSuggestionWrapper7285(iv); if(!wrapper)return -1;
         NSMutableArray<UIImageView *> *images=[NSMutableArray array];
         NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:wrapper]; NSUInteger seen=0;
         while(seen<q.count&&seen<96){
@@ -7231,12 +7276,12 @@ static int ADAlexaSuggestionImageIndex7283(UIImageView *iv,BOOL discover){
             if(ay<by)return NSOrderedAscending; if(ay>by)return NSOrderedDescending; return NSOrderedSame;
         }];
         NSUInteger pos=[images indexOfObjectIdenticalTo:iv]; if(pos==NSNotFound||pos>2)return -1;
-        objc_setAssociatedObject(iv,kADAlexaSuggestionIndex7283,@((int)pos+1),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(iv,kADAlexaSuggestionIndex7285,@((int)pos+1),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         return (int)pos;
     } @catch(...) { return -1; }
 }
-static void ADAlexaFinalizeSuggestionImage7283(UIImageView *iv,BOOL discover){
-    int idx=ADAlexaSuggestionImageIndex7283(iv,discover); if(idx<0)return;
+static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
+    int idx=ADAlexaSuggestionImageIndex7285(iv,discover); if(idx<0)return;
     @try {
         CALayer *ov=objc_getAssociatedObject(iv,kADTWBOverlay);
         if(idx==0||!gP.enabled||!gP.whiteTame||!iv.window){
@@ -7254,29 +7299,29 @@ static void ADAlexaFinalizeSuggestionImage7283(UIImageView *iv,BOOL discover){
 
 %hook RCTUIImageViewAnimated
 - (void)setImage:(UIImage *)image {
-    if(gADPersonOriginalImageWriting7218||gADImageWriteDepth7271){
+    if(gADPersonOriginalImageWriting7218||gADMenuImageWrite7255){
         %orig(image);
         return;
     }
     objc_setAssociatedObject(self,kADPersonFinalRasterKind7235,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    objc_setAssociatedObject(self,kADAlexaSuggestionIndex7283,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(self,kADAlexaSuggestionIndex7285,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     %orig(image);
     ADPersonFinalizePersonImage7235((UIImageView *)self,YES);
     ADMenuFinalizeImage7255((UIImageView *)self,YES);
-    ADAlexaFinalizeSuggestionImage7283((UIImageView *)self,YES);
+    ADAlexaFinalizeSuggestionImage7285((UIImageView *)self,YES);
 }
 - (void)didMoveToSuperview {
     objc_setAssociatedObject(self,kADPersonFinalRasterKind7235,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    objc_setAssociatedObject(self,kADAlexaSuggestionIndex7283,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(self,kADAlexaSuggestionIndex7285,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     %orig;
     if(((UIView *)self).window){
         ADPersonFinalizePersonImage7235((UIImageView *)self,YES);
         ADMenuFinalizeImage7255((UIImageView *)self,YES);
-        ADAlexaFinalizeSuggestionImage7283((UIImageView *)self,YES);
+        ADAlexaFinalizeSuggestionImage7285((UIImageView *)self,YES);
     }
 }
 - (void)didMoveToWindow {
@@ -7285,11 +7330,11 @@ static void ADAlexaFinalizeSuggestionImage7283(UIImageView *iv,BOOL discover){
     if(((UIView *)self).window){
         ADPersonFinalizePersonImage7235((UIImageView *)self,YES);
         ADMenuFinalizeImage7255((UIImageView *)self,YES);
-        ADAlexaFinalizeSuggestionImage7283((UIImageView *)self,YES);
+        ADAlexaFinalizeSuggestionImage7285((UIImageView *)self,YES);
     } else {
         objc_setAssociatedObject(self,kADPersonFinalRasterKind7235,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(self,kADAlexaSuggestionIndex7283,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(self,kADAlexaSuggestionIndex7285,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
 }
 - (void)layoutSubviews {
@@ -7298,7 +7343,7 @@ static void ADAlexaFinalizeSuggestionImage7283(UIImageView *iv,BOOL discover){
     ADPersonFinalizePersonImage7235((UIImageView *)self,(cached&&cached.intValue>0)?NO:YES);
     NSNumber *menuCached=objc_getAssociatedObject(self,kADMenuFinalRasterKind7255);
     ADMenuFinalizeImage7255((UIImageView *)self,(menuCached&&menuCached.intValue>0)?NO:YES);
-    ADAlexaFinalizeSuggestionImage7283((UIImageView *)self,objc_getAssociatedObject(self,kADAlexaSuggestionIndex7283)==nil);
+    ADAlexaFinalizeSuggestionImage7285((UIImageView *)self,objc_getAssociatedObject(self,kADAlexaSuggestionIndex7285)==nil);
 }
 %end
 
@@ -7791,7 +7836,7 @@ static NSString *ADProbePath7281(NSString *stem,NSUInteger run){
         dispatch_once(&once,^{ formatter=[NSDateFormatter new]; formatter.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]; formatter.timeZone=[NSTimeZone localTimeZone]; formatter.dateFormat=@"yyyyMMdd-HHmmss-SSS"; documents=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; });
         NSString *stamp=[formatter stringFromDate:[NSDate date]];
         if(!documents.length||!stamp.length||!stem.length)return nil;
-        return [documents stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.284-%@-probe-%@-r%lu.txt",stem,stamp,(unsigned long)run]];
+        return [documents stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.285-%@-probe-%@-r%lu.txt",stem,stamp,(unsigned long)run]];
     } @catch(...) { return nil; }
 }
 static inline void ADProbeAppend7233(NSString *path,NSString *text){ ADProbeAppend7281(path,text,kADPersonProbeCap7233); }
@@ -7982,7 +8027,7 @@ static void ADCapturePersonProbe7233(NSString *trigger){
     gADPersonProbeBusy7233=YES; NSUInteger run=++gADPersonProbeRun7233; NSString *path=ADProbePath7233(run);
     CGPoint original=root.contentOffset; BOOL originalScroll=root.scrollEnabled; root.scrollEnabled=NO;
     CGFloat viewport=MAX(1.0,root.bounds.size.height),stride=MAX(320.0,MIN(600.0,viewport*0.58));
-    ADProbeAppend7233(path,[NSString stringWithFormat:@"AMAZONDARK v7.284 PERSON UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\npolicy=no visible text strings, no accessibilityLabel text, no typed query, no web DOM, no network payloads\nroot wrapper is exact RCTScrollView aid=me; real scroll descendant is walked non-animated and restored\nexternal modal discovery=all AppCX roots are scored by visible sheet area; top roots plus best foreign modal are snapshotted\noriginalOffset=(%.1f,%.1f) content=(%.1fx%.1f) viewport=%.1f stride=%.1f maxSteps=40\n",
+    ADProbeAppend7233(path,[NSString stringWithFormat:@"AMAZONDARK v7.285 PERSON UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\npolicy=no visible text strings, no accessibilityLabel text, no typed query, no web DOM, no network payloads\nroot wrapper is exact RCTScrollView aid=me; real scroll descendant is walked non-animated and restored\nexternal modal discovery=all AppCX roots are scored by visible sheet area; top roots plus best foreign modal are snapshotted\noriginalOffset=(%.1f,%.1f) content=(%.1fx%.1f) viewport=%.1f stride=%.1f maxSteps=40\n",
         AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADPersonProbeCap7233,original.x,original.y,root.contentSize.width,root.contentSize.height,viewport,stride]);
     ADProbeAppend7233(path,ADPersonExternalSnapshots7258());
     __block NSUInteger step=0; __block CGFloat targetY=0,lastY=-999999; __block void (^next)(void)=nil;
@@ -8154,7 +8199,7 @@ static void ADCartProbeEvalAppend7241(WKWebView *wv,NSString *path,NSString *js,
 }
 static void ADCaptureCartProbe7241(NSString *trigger){
     if(!gP.enabled||gADCartProbeBusy7241)return; gADCartProbeBusy7241=YES; NSUInteger run=++gADCartProbeRun7241; NSString *path=ADCartProbePath7241(run);
-    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"AMAZONDARK v7.284 SHOPPING CART UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=Cart is a WKWebView document; target signatures #cart-page/#sc-active-cart/#sc-saved-cart plus cart URL path\npolicy=no visible text strings, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes and privacy-safe text hashes retained\nscan=finite explicit-trigger WKScrollView walk + viewport computed-style DOM snapshots + final full DOM inventory + native UIKit/WebKit snapshots; original offset restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADCartProbeCap7241]);
+    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"AMAZONDARK v7.285 SHOPPING CART UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=Cart is a WKWebView document; target signatures #cart-page/#sc-active-cart/#sc-saved-cart plus cart URL path\npolicy=no visible text strings, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes and privacy-safe text hashes retained\nscan=finite explicit-trigger WKScrollView walk + viewport computed-style DOM snapshots + final full DOM inventory + native UIKit/WebKit snapshots; original offset restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADCartProbeCap7241]);
     ADCartProbeFindWebView7241(path,^(WKWebView *wv,NSString *meta){
         if(!wv||ADCartProbeScore7241(meta)<=0){ADCartProbeAppend7241(path,[NSString stringWithFormat:@"CART_PROBE_NO_TARGET meta=%@\n================ END RUN ================\n",ADCartProbeSafe7241(meta)]);gADCartProbeBusy7241=NO;return;}
         UIScrollView *sv=wv.scrollView; CGPoint original=sv.contentOffset; BOOL originalScroll=sv.scrollEnabled; sv.scrollEnabled=NO; CGFloat viewport=MAX(1.0,sv.bounds.size.height),stride=MAX(300.0,MIN(620.0,viewport*0.60)); CGRect wr=CGRectZero;@try{wr=[wv convertRect:wv.bounds toView:nil];}@catch(...){}
@@ -8416,7 +8461,7 @@ static void ADMenuProbeScanNative7252(UIScrollView *sv,NSString *path,void (^don
 }
 static void ADCaptureMenuProbe7252(NSString *trigger){
     if(!gP.enabled||gADMenuProbeBusy7252)return;gADMenuProbeBusy7252=YES;NSUInteger run=++gADMenuProbeRun7252;NSString *path=ADMenuProbePath7252(run);
-    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.284 HAMBURGER MENU UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; stable native tab owner is ANXTabBarButton#menuTab, content renderer is discovered at trigger time\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes and privacy-safe text lengths/hashes retained\nscan=finite explicit-trigger WebKit full-document walk plus finite native/React scroll walk when present; original offsets and scrollEnabled restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADMenuProbeCap7252]);
+    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.285 HAMBURGER MENU UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; stable native tab owner is ANXTabBarButton#menuTab, content renderer is discovered at trigger time\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes and privacy-safe text lengths/hashes retained\nscan=finite explicit-trigger WebKit full-document walk plus finite native/React scroll walk when present; original offsets and scrollEnabled restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADMenuProbeCap7252]);
     ADMenuProbeLogTab7252(path); UIScrollView *native=ADMenuProbeFindNativeScroll7252(path); UIWindow *root=UIApplication.sharedApplication.keyWindow?:UIApplication.sharedApplication.windows.firstObject; if(root)ADMenuProbeAppend7252(path,ADMenuNativeSnapshot7252(root,native?:root,@"initial-window"));
     ADMenuProbeFindWebView7252(path,^(WKWebView *wv,NSString *meta){
         ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"WEB_SELECTION ptr=%p meta=%@\n",wv,ADMenuProbeSafe7252(meta)]);
@@ -8510,7 +8555,7 @@ static void ADAlexaProbeScanNative7269(UIScrollView *sv,NSString *path,void (^do
 }
 static void ADCaptureAlexaProbe7269(NSString *trigger){
     if(!gP.enabled||gADAlexaProbeBusy7269)return;gADAlexaProbeBusy7269=YES;NSUInteger run=++gADAlexaProbeRun7269;NSString *path=ADAlexaProbePath7269(run);
-    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.284 ALEXA/RUFUS UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; selected native tab owner is ANXTabBarButton#rufusTab; content renderer is discovered at trigger time\nhistory=v7.162 proved Alexa/Rufus surfaces can use WebKit nice-widget/Rufus containers and pseudo-element painters; no current Alexa visual ownership is assumed\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes plus privacy-safe text lengths/hashes retained\nweb=all visible WKWebViews scored; chosen document gets finite top-to-bottom viewport snapshots plus final full DOM inventory (max 6200 nodes), open-shadow-root and accessible-iframe recursion, computed colors/backgrounds/images/masks/borders/radii/outlines/shadows/fonts/SVG/filter/transform/pseudo-elements/media and style-owner inventory; original offset restored\nnative=all visible native scroll candidates inventoried; best non-WebKit content scroll gets finite top-to-bottom UIKit/React snapshots including view/layer geometry, colors, borders, gradients/shapes, RCT edge props, text runs, controls, image/TWB state; original offset restored\nnormal_runtime=no observer/timer/RAF/scroll listener/recurring hierarchy scan is added by this probe\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADAlexaProbeCap7269]);
+    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.285 ALEXA/RUFUS UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; selected native tab owner is ANXTabBarButton#rufusTab; content renderer is discovered at trigger time\nhistory=v7.162 proved Alexa/Rufus surfaces can use WebKit nice-widget/Rufus containers and pseudo-element painters; no current Alexa visual ownership is assumed\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes plus privacy-safe text lengths/hashes retained\nweb=all visible WKWebViews scored; chosen document gets finite top-to-bottom viewport snapshots plus final full DOM inventory (max 6200 nodes), open-shadow-root and accessible-iframe recursion, computed colors/backgrounds/images/masks/borders/radii/outlines/shadows/fonts/SVG/filter/transform/pseudo-elements/media and style-owner inventory; original offset restored\nnative=all visible native scroll candidates inventoried; best non-WebKit content scroll gets finite top-to-bottom UIKit/React snapshots including view/layer geometry, colors, borders, gradients/shapes, RCT edge props, text runs, controls, image/TWB state; original offset restored\nnormal_runtime=no observer/timer/RAF/scroll listener/recurring hierarchy scan is added by this probe\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADAlexaProbeCap7269]);
     ADAlexaProbeLogTabs7269(path);UIScrollView *native=ADMenuProbeFindNativeScroll7252(path);UIWindow *root=UIApplication.sharedApplication.keyWindow?:UIApplication.sharedApplication.windows.firstObject;if(root)ADMenuProbeAppend7252(path,ADAlexaNativeSnapshot7269(root,native?:root,@"initial-window"));
     ADAlexaProbeFindWebView7269(path,^(WKWebView *wv,NSString *meta){ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"ALEXA_WEB_SELECTION ptr=%p meta=%@\n",wv,ADMenuProbeSafe7252(meta)]);void (^finishAll)(void)=^{UIWindow *r=UIApplication.sharedApplication.keyWindow?:UIApplication.sharedApplication.windows.firstObject;if(r)ADMenuProbeAppend7252(path,ADAlexaNativeSnapshot7269(r,native?:r,@"final-window"));ADMenuProbeAppend7252(path,@"ALEXA_PROBE_END\n================ END RUN ================\n");gADAlexaProbeBusy7269=NO;};void (^runNative)(void)=^{if(native){ADAlexaProbeScanNative7269(native,path,^(__unused NSString *reason){finishAll();});}else finishAll();};if(wv){ADMenuProbeEvalAppend7252(wv,path,ADAlexaProbeStylesJS7269(@"initial"),@"ALEXA_STYLE_INITIAL",^{ADMenuProbeScanWeb7252(wv,path,^(__unused NSString *reason){ADMenuProbeEvalAppend7252(wv,path,ADAlexaProbeStylesJS7269(@"post-web-scan"),@"ALEXA_STYLE_FINAL",^{runNative();});});});}else runNative();});
 }
@@ -8573,7 +8618,7 @@ static WKWebView *ADProductScrollWebView7272(void){
     } @catch(...) {return nil;}
 }
 static NSString *ADProductScrollProbeJS7272(void){
-    // v7.283: reuse the mature Menu DOM forensic serializer for /s. It emits every
+    // v7.282: reuse the mature Menu DOM forensic serializer for /s. It emits every
     // current/near-viewport node (up to 2600) with computed paint, pseudo-elements,
     // media, technical attributes, text length/hash and ancestry. No page scrolling.
     return ADMenuProbeDOMJS7252(0,NO);
@@ -8583,7 +8628,7 @@ static NSString *ADProductScrollHitGridJS7280(void){
 }
 static void ADCaptureProductScrollProbe7272(NSString *trigger){
     if(!gP.enabled||gADProductScrollProbeBusy7272)return;WKWebView *wv=ADProductScrollWebView7272();if(!wv)return;gADProductScrollProbeBusy7272=YES;NSUInteger run=++gADProductScrollProbeRun7272;NSString *path=ADProductScrollProbePath7272(run);UIScrollView *sv=wv.scrollView;CGRect wr=CGRectZero;@try{wr=[wv convertRect:wv.bounds toView:nil];}@catch(...){}
-    ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"AMAZONDARK v7.284 PRODUCT SHOPPING/SCROLLING WIDE FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\nroute=/s only\npolicy=no typed query strings/no visible element strings/no URL values/no src/href values/no network payloads; technical ids/classes/testids/roles plus privacy-safe text lengths/hashes retained\nscan=explicit-trigger only; NO scrolling; all current/near-viewport DOM nodes up to 2600 with computed paint/pseudo/media/ancestry plus painted-rounded candidate inventory and viewport elementsFromPoint hit grid\nnormal_runtime=no second screenshot observer, no second SIGUSR2 source, no observer/timer/RAF/web-scroll listener/recurring DOM scan\nWEB_TARGET frame=(%.1f,%.1f %.1fx%.1f) offset=(%.1f,%.1f) content=(%.1fx%.1f) -- OFFSET NOT MODIFIED\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,wr.origin.x,wr.origin.y,wr.size.width,wr.size.height,sv.contentOffset.x,sv.contentOffset.y,sv.contentSize.width,sv.contentSize.height]);
+    ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"AMAZONDARK v7.285 PRODUCT SHOPPING/SCROLLING WIDE FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\nroute=/s only\npolicy=no typed query strings/no visible element strings/no URL values/no src/href values/no network payloads; technical ids/classes/testids/roles plus privacy-safe text lengths/hashes retained\nscan=explicit-trigger only; NO scrolling; all current/near-viewport DOM nodes up to 2600 with computed paint/pseudo/media/ancestry plus painted-rounded candidate inventory and viewport elementsFromPoint hit grid\nnormal_runtime=no second screenshot observer, no second SIGUSR2 source, no observer/timer/RAF/web-scroll listener/recurring DOM scan\nWEB_TARGET frame=(%.1f,%.1f %.1fx%.1f) offset=(%.1f,%.1f) content=(%.1fx%.1f) -- OFFSET NOT MODIFIED\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,wr.origin.x,wr.origin.y,wr.size.width,wr.size.height,sv.contentOffset.x,sv.contentOffset.y,sv.contentSize.width,sv.contentSize.height]);
     ADHomeFrameProbeAppend7265(path,ADHomeFrameNativeSnapshot7265());
     [wv evaluateJavaScript:ADProductScrollProbeJS7272() completionHandler:^(id result,NSError *error){
         ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"MAIN_DOCUMENT_WIDE error=%@\n",error?error.localizedDescription:@"none"]);
@@ -8598,7 +8643,7 @@ static void ADCaptureProductScrollProbe7272(NSString *trigger){
 
 static void ADCaptureHomeFrameProbe7265(NSString *trigger){
     if(!gP.enabled||gADHomeFrameProbeBusy7265)return;gADHomeFrameProbeBusy7265=YES;NSUInteger run=++gADHomeFrameProbeRun7265;NSString *path=ADHomeFrameProbePath7265(run);WKWebView *wv=ADHomeFrameVisibleWebView7265();
-    ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"AMAZONDARK v7.284 HOME CURRENT-FRAME PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\npolicy=current visible screen only; NO scrolling; NO full Home-document scan; privacy-safe text lengths/hashes in WebKit; native accessibility labels not emitted\nweb=bounded visible-branch recursion max 700 nodes per frame; cross-origin child frames respond only to this explicit trigger\nnative=bounded visible-branch walk max 1000 logged nodes\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent]);
+    ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"AMAZONDARK v7.285 HOME CURRENT-FRAME PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\npolicy=current visible screen only; NO scrolling; NO full Home-document scan; privacy-safe text lengths/hashes in WebKit; native accessibility labels not emitted\nweb=bounded visible-branch recursion max 700 nodes per frame; cross-origin child frames respond only to this explicit trigger\nnative=bounded visible-branch walk max 1000 logged nodes\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent]);
     ADHomeFrameProbeAppend7265(path,ADHomeFrameNativeSnapshot7265());
     if(!wv){ADHomeFrameProbeAppend7265(path,@"WEB_NO_VISIBLE_WKWEBVIEW\nHOME_FRAME_PROBE_END\n================ END RUN ================\n");gADHomeFrameProbeBusy7265=NO;return;}
     CGRect wr=CGRectZero;@try{wr=[wv convertRect:wv.bounds toView:nil];}@catch(...){}UIScrollView *sv=wv.scrollView;ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"WEB_TARGET ptr=%p frame=(%.1f,%.1f %.1fx%.1f) offset=(%.1f,%.1f) content=(%.1fx%.1f) -- OFFSET NOT MODIFIED\n",wv,wr.origin.x,wr.origin.y,wr.size.width,wr.size.height,sv.contentOffset.x,sv.contentOffset.y,sv.contentSize.width,sv.contentSize.height]);
