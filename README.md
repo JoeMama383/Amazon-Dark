@@ -1,14 +1,14 @@
-# AmazonDark v7.305~warm-dark-shield
+# AmazonDark v7.306~scene-continuity-launch-fix
 
-## v7.301 baseline + logo-free warm resume protection
+## v7.301 baseline — distinguish real scene reconstruction from ordinary warm resume
 
-- Direct source baseline is untouched v7.301 production behavior.
-- Cold launch keeps the v7.301 Amazon launch cover, readiness gate, 0.40 s settle and 0.55 s fade.
-- v7.301 already retains v7.185/v7.186's 120-attempt readiness gate and large bright-neutral native-plane veto; those are not reimplemented or broadened.
-- Restores only the proven v7.186 warm-resume masking concept, but warm resumes use a plain dark shield with no Amazon artwork, so reopening cannot replay the Amazon loading presentation.
-- The warm shield is released by a repeated UIApplicationDidBecomeActive -> foreground-ready Darwin notification, with a short 0.35 s settle and 0.18 s fade. A 2.50 s fallback prevents a missed signal from sticking.
-- No post-v7.301 Cart, CNM, dog-raster, #a-white, media, or transition experiments are included.
-- No MutationObserver, interval, RAF, web-scroll listener, recurring hierarchy scan, or warm readiness polling is added.
+- Direct production baseline: exact v7.301~universal-error-screen-dark. No v7.302-v7.305 experiments are carried forward.
+- Cold launch presentation remains the v7.301 Amazon-logo cover, readiness gate, settle and fade.
+- SpringBoard no longer decides "warm" solely from Amazon processState. The first attachment of each Amazon SBSceneView receives the v7.301 cover; later reattachments of that same scene receive no cover at all.
+- This matches UIKit scene lifecycle: a suspended/background scene may be disconnected and recreated while the process survives. A new scene therefore gets launch protection; a genuine warm resume of the existing scene returns directly to the existing interface.
+- App launch readiness is reset only on UISceneWillConnectNotification so a reconstructed scene in the same process can post a fresh ready signal. Ordinary warm foregrounding does not reset/replay launch.
+- Restores v6.0.46's proven early background ownership on the exact AXUSplashScreenViewController and TezBaseSplashScreenViewController at viewDidLoad/viewWillAppear, before first native splash paint.
+- No warm SpringBoard mask/shield, no foreground-ready warm cover, no new polling/observer loop, and no Cart/CNM/image behavior changes.
 
 # AmazonDark v7.301~universal-error-screen-dark
 
