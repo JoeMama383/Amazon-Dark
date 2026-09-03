@@ -1,4 +1,13 @@
-# AmazonDark v7.292~alexa-plus-durable-fill
+# AmazonDark v7.293~cart-p13n-refresh-antiflash
+
+## Cart p13n refresh-transition anti-flash
+
+- Builds directly on v7.292 and retains every Alexa/Person/image fix unchanged.
+- Current v7.292 Cart probe identifies the visible refresh-affected recommendation lane as `#p13n-uf-anchor` with 150x249-269 `li.a-carousel-card` slots.
+- Hydrated product slots contain `.p13n-uf`; Amazon's established empty loading slots are `.a-carousel-card-empty > .a-loading-static`.
+- v7.293 owns the carousel slot itself OLED black from document start and paints only the intermediate non-empty/pre-`.p13n-uf` direct shell `#303335`, eliminating the bright white refresh skeleton without changing hydrated product imagery, text, prices, Prime badges, buttons, or TWB.
+- No MutationObserver, timer, RAF, web scroll listener, polling loop, or hydration watcher is added.
+
 
 ## Alexa Plus: durable circular fill
 
