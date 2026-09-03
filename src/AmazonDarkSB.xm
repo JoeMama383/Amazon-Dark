@@ -1,21 +1,15 @@
 // AmazonDarkSB.xm
-// SpringBoard-side dark cover for the Amazon Shopping launch screen.
+// SpringBoard-side FIRST-FRAME shim for Amazon Shopping.
 //
-// Injected ONLY into com.apple.springboard (AmazonDarkSB.plist). Amazon's white
-// LaunchScreen is drawn by the render server before Amazon's process is alive,
-// so it can't be themed from inside Amazon. Here we float a dark WINDOW over the
-// launching Amazon scene and lift it a few seconds later.
+// Scope is intentionally tiny:
+//   1. A genuine new Amazon process can expose the system-rendered stock LaunchScreen
+//      before Amazon's own tweak code exists. SpringBoard masks only that interval.
+//   2. As soon as Amazon's real splash controller is visibly presented with its floor
+//      already owned dark, Amazon posts native-splash-ready and this shim is removed
+//      immediately -- no Home/WebKit readiness gate, minimum hold, settle, or fade.
+//   3. The same Amazon process is a warm resume and receives NO SpringBoard shim.
 //
-// Why a separate window and not a subview of the scene: an opaque view placed
-// INSIDE SBSceneView makes FrontBoard treat Amazon's scene as fully occluded, so
-// it suspends rendering and the app never draws (permanent black). A separate
-// SpringBoard window floats on top without changing the app scene's occlusion,
-// so Amazon renders normally underneath and is there the instant we lift it.
-//
-// SAFETY (runs in SpringBoard => a fault here is safe mode):
-//   - every entry point is @try/@catch guarded;
-//   - the event-driven cover has an absolute hard cap, so it can never remain stuck;
-//   - only ever triggered by a scene whose bundle id is exactly Amazon.
+// A short absolute cap is failure safety only; it is not part of normal presentation.
 
 #import <UIKit/UIKit.h>
 #import <notify.h>
@@ -23,17 +17,16 @@
 
 static NSString * const kAMZ      = @"com.amazon.Amazon";
 static NSString * const kDefaults = @"com.colindavidr.amazondark";
-static const NSTimeInterval kCoverFade    = 0.55; // lift animation
-static const NSTimeInterval kReadySettle   = 0.40; // v7.116: keep the cover fully opaque for
-                                                  // a short post-ready settle window. If the
-                                                  // ready event arrives early, the existing
-                                                  // 1.40 s minimum absorbs this completely.
-static const NSTimeInterval kCoverHardCap = 20.0; // absolute max on screen
+static const NSTimeInterval kShimHardCap7312 = 4.0;
 
 @interface SBSceneView : UIView
 @end
 
-static double gPresentAt;
+static UIView *gShim7312;
+static SBSceneView *gShimHost7312;
+static const void *kShimKey7312 = &kShimKey7312;
+static unsigned gShimGen7312;
+static NSInteger gAmazonProcessID7312;
 
 static BOOL ADSBEnabled(void) {
     @try {
@@ -45,155 +38,214 @@ static BOOL ADSBEnabled(void) {
 }
 
 static NSString *ADSceneBundleId(UIView *v) {
-    @try {
-        id val=[v valueForKeyPath:@"sceneHandle.application.bundleIdentifier"];
-        return [val isKindOfClass:[NSString class]] ? val : nil;
-    } @catch (__unused NSException *e) { return nil; }
+    if(!v)return nil;
+    NSArray *paths=@[@"sceneHandle.application.bundleIdentifier",
+                     @"sceneHandle.sceneIdentity.bundleIdentifier",
+                     @"application.bundleIdentifier",
+                     @"sceneHandle.sceneIdentity.bundleIdentifierOverride",
+                     @"_sceneHandle.application.bundleIdentifier"];
+    for(NSString *path in paths){
+        @try {
+            id val=[v valueForKeyPath:path];
+            if([val isKindOfClass:[NSString class]]&&[val length])return val;
+        } @catch (__unused NSException *e) {}
+    }
+    return nil;
 }
 
-static void ADDismissCover(void);
-static UIView *gCoverOverlay;
-static SBSceneView *gCoverHost;
-static const void *kCoveredKey = &kCoveredKey;
-static unsigned gCoverGen;
-
-// YES when Amazon already has a running process -- i.e. this is a resume, not a
-// cold launch. Nothing here is required to exist; unknown means "cover it".
 static BOOL ADAmazonProcessAlive(void) {
     @try {
-        Class ctl = objc_getClass("SBApplicationController");
-        if (!ctl || ![ctl respondsToSelector:@selector(sharedInstance)]) return NO;
-        id shared = [ctl performSelector:@selector(sharedInstance)];
-        if (!shared || ![shared respondsToSelector:@selector(applicationWithBundleIdentifier:)]) return NO;
-        id app = [shared performSelector:@selector(applicationWithBundleIdentifier:) withObject:kAMZ];
-        if (!app || ![app respondsToSelector:@selector(processState)]) return NO;
-        id ps = [app performSelector:@selector(processState)];
-        if (!ps) return NO;
-        if ([ps respondsToSelector:@selector(isRunning)]) {
-            NSNumber *r = [ps valueForKey:@"isRunning"];
-            if (r) return r.boolValue;
+        Class ctl=objc_getClass("SBApplicationController");
+        if(!ctl||![ctl respondsToSelector:@selector(sharedInstance)])return NO;
+        id shared=[ctl performSelector:@selector(sharedInstance)];
+        if(!shared||![shared respondsToSelector:@selector(applicationWithBundleIdentifier:)])return NO;
+        id app=[shared performSelector:@selector(applicationWithBundleIdentifier:) withObject:kAMZ];
+        if(!app||![app respondsToSelector:@selector(processState)])return NO;
+        id ps=[app performSelector:@selector(processState)];
+        if(ps&&[ps respondsToSelector:@selector(isRunning)]){
+            id r=[ps valueForKey:@"isRunning"];
+            if([r respondsToSelector:@selector(boolValue)])return [r boolValue];
         }
     } @catch (__unused NSException *e) {}
     return NO;
 }
 
-static UIImage *ADSplashImage7191(void) {
+// Stable process identity across a normal warm resume. Unlike isRunning, this cannot
+// flip from false to true midway through one cold launch and change classification.
+static NSInteger ADAmazonProcessIdentifier7312(void) {
+    @try {
+        Class ctl=objc_getClass("SBApplicationController");
+        if(!ctl||![ctl respondsToSelector:@selector(sharedInstance)])return 0;
+        id shared=[ctl performSelector:@selector(sharedInstance)];
+        if(!shared||![shared respondsToSelector:@selector(applicationWithBundleIdentifier:)])return 0;
+        id app=[shared performSelector:@selector(applicationWithBundleIdentifier:) withObject:kAMZ];
+        if(!app)return 0;
+        NSArray *paths=@[@"processState.pid",@"processState.processIdentifier",@"process.pid",
+                         @"process.processIdentifier",@"pid",@"processIdentifier"];
+        for(NSString *path in paths){
+            @try {
+                id value=[app valueForKeyPath:path];
+                if([value respondsToSelector:@selector(integerValue)]){
+                    NSInteger p=[value integerValue];
+                    if(p>0)return p;
+                }
+            } @catch (__unused NSException *e) {}
+        }
+    } @catch (__unused NSException *e) {}
+    return 0;
+}
+
+static UIImage *ADSplashImage7312(void) {
     static UIImage *image;
     static dispatch_once_t once;
     dispatch_once(&once, ^{
         image=[UIImage imageWithContentsOfFile:@"/var/jb/Library/Application Support/AmazonDark/splash-logo.png"];
+        if(!image)image=[UIImage imageWithContentsOfFile:@"/Library/Application Support/AmazonDark/splash-logo.png"];
     });
     return image;
 }
 
-// Dark surface parented to the zooming scene view, so SpringBoard's launch
-// animation plays exactly as it does for every other app -- only its contents
-// are dark instead of Amazon's white launch screen.
-static void ADAttachCoverToScene(UIView *host) {
+static void ADRemoveShim7312(void) {
     @try {
-        if (!host) return;
-        if (gCoverOverlay && gCoverOverlay.superview == host) return;
-        UIColor *dk = [UIColor colorWithRed:0.094 green:0.102 blue:0.106 alpha:1.0];
-        UIView *ov = [[UIView alloc] initWithFrame:host.bounds];
-        ov.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-        ov.backgroundColor = dk;
-        ov.userInteractionEnabled = NO;
+        if(!gShim7312)return;
+        UIView *shim=gShim7312; gShim7312=nil;
+        SBSceneView *host=gShimHost7312; gShimHost7312=nil;
+        if(host)objc_setAssociatedObject(host,kShimKey7312,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        [shim removeFromSuperview];
+    } @catch (__unused NSException *e) {}
+}
 
-        UIImage *splash = ADSplashImage7191();
-        if (splash) {
-            UIImageView *logo = [[UIImageView alloc] initWithImage:splash];
-            logo.contentMode = UIViewContentModeScaleAspectFit;
-            logo.translatesAutoresizingMaskIntoConstraints = NO;
-            [ov addSubview:logo];
-            CGFloat lw = MAX(host.bounds.size.width, 200.0) * 0.62;
-            CGFloat lh = lw * (splash.size.height / MAX(splash.size.width, 1.0));
+// Scene-attached so Apple's normal scene/icon transform remains the animation owner.
+// The shim exists only until Amazon's own dark native splash is confirmed onscreen.
+static void ADAttachShim7312(UIView *host) {
+    @try {
+        if(!host)return;
+        if(gShim7312&&gShim7312.superview==host)return;
+        ADRemoveShim7312();
+
+        UIColor *dk=[UIColor colorWithRed:0.094 green:0.102 blue:0.106 alpha:1.0];
+        CGRect initial=host.bounds;
+        CGRect screen=UIScreen.mainScreen.bounds;
+        if(initial.size.width<200.0||initial.size.height<300.0)initial=screen;
+        UIView *shim=[[UIView alloc] initWithFrame:initial];
+        shim.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+        shim.backgroundColor=dk;
+        shim.userInteractionEnabled=NO;
+
+        UIImage *splash=ADSplashImage7312();
+        if(splash){
+            UIImageView *logo=[[UIImageView alloc] initWithImage:splash];
+            logo.contentMode=UIViewContentModeScaleAspectFit;
+            logo.translatesAutoresizingMaskIntoConstraints=NO;
+            [shim addSubview:logo];
+            CGFloat baseW=host.bounds.size.width>=200.0?host.bounds.size.width:screen.size.width;
+            CGFloat lw=MAX(baseW,200.0)*0.62;
+            CGFloat lh=lw*(splash.size.height/MAX(splash.size.width,1.0));
             [NSLayoutConstraint activateConstraints:@[
-                [logo.centerXAnchor constraintEqualToAnchor:ov.centerXAnchor],
-                [logo.centerYAnchor constraintEqualToAnchor:ov.centerYAnchor],
+                [logo.centerXAnchor constraintEqualToAnchor:shim.centerXAnchor],
+                [logo.centerYAnchor constraintEqualToAnchor:shim.centerYAnchor],
                 [logo.widthAnchor constraintEqualToConstant:lw],
                 [logo.heightAnchor constraintEqualToConstant:lh],
             ]];
         }
-        [host addSubview:ov];
-        gCoverOverlay = ov;
-        gCoverHost = (SBSceneView *)host;
-        unsigned myGen = ++gCoverGen;
 
-        gPresentAt = CFAbsoluteTimeGetCurrent();
-
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHardCap * NSEC_PER_SEC)),
-                       dispatch_get_main_queue(), ^{
-            @try { if (gCoverOverlay && myGen == gCoverGen){ UIView *x = gCoverOverlay; gCoverOverlay = nil;
-                       SBSceneView *h=gCoverHost; gCoverHost=nil; if(h)objc_setAssociatedObject(h,kCoveredKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                       [x removeFromSuperview]; } }
+        [host addSubview:shim];
+        gShim7312=shim;
+        gShimHost7312=(SBSceneView *)host;
+        unsigned gen=++gShimGen7312;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(kShimHardCap7312*NSEC_PER_SEC)),
+                       dispatch_get_main_queue(),^{
+            @try { if(gShim7312&&gen==gShimGen7312)ADRemoveShim7312(); }
             @catch (__unused NSException *e) {}
         });
     } @catch (__unused NSException *e) {}
 }
 
-static void ADDismissCover(void) {
-    @try {
-        if (!gCoverOverlay) return;
-        UIView *ov = gCoverOverlay; gCoverOverlay = nil;
-        SBSceneView *h=gCoverHost; gCoverHost=nil; if(h)objc_setAssociatedObject(h,kCoveredKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        [UIView animateWithDuration:kCoverFade animations:^{ ov.alpha = 0.0; }
-                         completion:^(BOOL f){ @try { [ov removeFromSuperview]; }
-                                               @catch (__unused NSException *e) {} }];
-    } @catch (__unused NSException *e) {}
+static BOOL ADColdProcess7312(BOOL aliveBefore, NSInteger pid) {
+    if(pid>0)return (gAmazonProcessID7312<=0||pid!=gAmazonProcessID7312);
+    return !aliveBefore;
 }
 
 %hook SBSceneView
+- (void)willMoveToWindow:(UIWindow *)newWindow {
+    BOOL enabled=NO, target=NO, aliveBefore=NO, attached=NO;
+    NSInteger pidBefore=0;
+    @try {
+        enabled=(newWindow!=nil&&ADSBEnabled());
+        if(enabled){
+            target=[[ADSceneBundleId(self) ?: @""] isEqualToString:kAMZ];
+            if(target){
+                aliveBefore=ADAmazonProcessAlive();
+                pidBefore=ADAmazonProcessIdentifier7312();
+                if(!objc_getAssociatedObject(self,kShimKey7312)&&ADColdProcess7312(aliveBefore,pidBefore)){
+                    // Earliest safe point: attach BEFORE SpringBoard moves the Amazon scene into
+                    // its destination window, so the stock system LaunchScreen is never the first
+                    // composited Amazon scene surface when the bundle identity is already known.
+                    ADAttachShim7312(self);
+                    if(gShim7312&&gShim7312.superview==self){
+                        objc_setAssociatedObject(self,kShimKey7312,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                        attached=YES;
+                        if(pidBefore>0)gAmazonProcessID7312=pidBefore;
+                    }
+                }
+            }
+        }
+    } @catch (__unused NSException *e) {}
+
+    %orig(newWindow);
+
+    // Some SpringBoard builds do not expose sceneHandle.bundleIdentifier until after %orig.
+    // This is a fallback only; the pre-%orig path above is the normal first-frame owner.
+    @try {
+        if(!enabled||!newWindow||attached||objc_getAssociatedObject(self,kShimKey7312))return;
+        if(![[ADSceneBundleId(self) ?: @""] isEqualToString:kAMZ])return;
+        NSInteger pid=(pidBefore>0)?pidBefore:ADAmazonProcessIdentifier7312();
+        if(!ADColdProcess7312(aliveBefore,pid))return;
+        ADAttachShim7312(self);
+        if(gShim7312&&gShim7312.superview==self){
+            objc_setAssociatedObject(self,kShimKey7312,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            if(pid>0)gAmazonProcessID7312=pid;
+        }
+    } @catch (__unused NSException *e) {}
+}
+
 - (void)didMoveToWindow {
     %orig;
     @try {
-        if (!self.window) return;
-
-        NSString *bid = ADSceneBundleId(self);
-        if (![bid isEqualToString:kAMZ]) return;
-
-        // Cold-launch cover only. If Amazon already has a live/suspended process,
-        // reopening it is a normal foreground resume and must not replay our launch screen.
-        BOOL alive = ADAmazonProcessAlive();
-        if (alive) return;
-
-        // One active cover per cold launch. The marker is cleared when the cover leaves,
-        // allowing a later true cold launch to receive the cover again.
-        BOOL already = (objc_getAssociatedObject(self, kCoveredKey) != nil);
-        if (already) return;
-        objc_setAssociatedObject(self, kCoveredKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        ADAttachCoverToScene(self);
+        if(!self.window||![[ADSceneBundleId(self) ?: @""] isEqualToString:kAMZ])return;
+        NSInteger pid=ADAmazonProcessIdentifier7312();
+        if(objc_getAssociatedObject(self,kShimKey7312)){
+            if(pid>0)gAmazonProcessID7312=pid;
+            return;
+        }
+        // Last-resort compatibility fallback if willMoveToWindow could not classify the scene.
+        if(pid>0){
+            if(gAmazonProcessID7312>0&&pid==gAmazonProcessID7312)return;
+        }else if(ADAmazonProcessAlive())return;
+        ADAttachShim7312(self);
+        if(gShim7312&&gShim7312.superview==self){
+            objc_setAssociatedObject(self,kShimKey7312,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            if(pid>0)gAmazonProcessID7312=pid;
+        }
     } @catch (__unused NSException *e) {}
 }
 %end
 
-
-
 %ctor {
+    @try {
+        if(ADAmazonProcessAlive()){
+            NSInteger p=ADAmazonProcessIdentifier7312();
+            if(p>0)gAmazonProcessID7312=p;
+        }
+    } @catch (__unused NSException *e) {}
     if(!ADSBEnabled())return;
 
-    // Event-driven dismissal: the app posts readiness after its first dark composite.
-    // The independent hard cap above is a SpringBoard safety invariant only.
     @try {
-        static int adReadyToken = 0;
-        notify_register_dispatch("com.colindavidr.amazondark.ready", &adReadyToken,
-                                 dispatch_get_main_queue(), ^(int t){
-            @try {
-                if (!gCoverOverlay) return;
-                double shown = CFAbsoluteTimeGetCurrent() - gPresentAt;
-                // v7.116: the app-side handoff is now event-driven and deliberately free of
-                // DOM polling/timers. A lifecycle event can still precede Amazon's final
-                // splash-to-Home composite by a few frames, which made the stock white
-                // loading surface briefly visible through our 0.55 s fade. Keep that
-                // protection here in SpringBoard instead of putting polling/delays back
-                // into Amazon. This is bounded and one-shot: wait until BOTH the historical
-                // 1.40 s minimum and a 0.40 s post-ready settle window are satisfied.
-                double minimumRemaining = shown < 1.40 ? (1.40 - shown) : 0.0;
-                double wait = minimumRemaining > kReadySettle ? minimumRemaining : kReadySettle;
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(wait * NSEC_PER_SEC)),
-                               dispatch_get_main_queue(), ^{ ADDismissCover(); });
-            } @catch (__unused NSException *e) {}
-        });
+        static int nativeSplashToken=0;
+        notify_register_dispatch("com.colindavidr.amazondark.native-splash-ready",&nativeSplashToken,
+                                 dispatch_get_main_queue(),^(__unused int t){ ADRemoveShim7312(); });
     } @catch (__unused NSException *e) {}
+
     @autoreleasepool {
         @try { %init; }
         @catch (__unused NSException *e) {}

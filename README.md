@@ -1,3 +1,31 @@
+# AmazonDark v7.312~native-splash-handoff
+
+## Minimal cold first-frame shim -> Amazon's real dark splash
+
+- Direct production base: v7.311~cold-launch-cart-firstpaint. The v7.311 Cart earliest-paint fixes, v7.310 Hamburger glyph repair, v7.309 dog/footer/XL-brand work, v7.307 warm-resume splash suppression, and all other theming/TWB/probe behavior are retained.
+- SpringBoard is no longer the owner of the whole cold launch. It masks only the system-rendered pre-process LaunchScreen interval for a genuine new Amazon process. Same-process warm resumes receive no SpringBoard shim.
+- The v7.311 PID identity discriminator is retained, but the shim is now attempted before `SBSceneView willMoveToWindow:` calls `%orig` whenever the Amazon scene identity is already available; post-`%orig` and `didMoveToWindow` lanes are compatibility fallbacks only.
+- `AXUSplashScreenViewController` and `TezBaseSplashScreenViewController` remain directly owned dark at `viewDidLoad` / `viewWillAppear` / layout / appearance. Once either exact native splash is confirmed visible in `viewDidAppear`, Amazon posts `com.colindavidr.amazondark.native-splash-ready` and SpringBoard removes the first-frame shim immediately.
+- The old Home/WebKit readiness subsystem is deleted: no 120x125 ms launch polling, no three-stable-sample requirement, no 250 ms final dwell, no 1.40 s artificial minimum, no 0.40 s post-ready settle, and no 0.55 s custom fade-to-Home. Amazon owns its real splash-to-Home transition.
+- One 4.0-second absolute shim cap remains only as SpringBoard fault containment if the exact Amazon splash callback never arrives; it is not normal launch timing.
+- Ordinary warm resume behavior remains stock-like: no SpringBoard logo/cover. If Amazon itself attempts to replay one of the two exact native splash controllers during an ordinary same-scene resume, the retained v7.307 app-side suppression keeps the existing interface visible underneath.
+- Normal runtime adds no new MutationObserver, interval, RAF loop, web scroll listener, recurring hierarchy scan, or generic image/glyph rule. Existing explicit probes are retained and versioned v7.312.
+
+---
+
+# AmazonDark v7.311~cold-launch-cart-firstpaint
+
+## Deterministic cold/warm launch classification + Cart earliest-paint completion
+
+- Direct production base: v7.310~cart-transition-recorder-menu-glyph-repair. The v7.310 Hamburger glyph repair, v7.309 dog/Cart/footer/XL-brand corrections, v7.307 warm-resume splash bypass, and all existing theme/TWB behavior are retained.
+- Cold/warm launch classification no longer relies on `processState.isRunning` in `SBSceneView didMoveToWindow:`. That flag can become true during a genuine cold launch before `didMoveToWindow` runs, causing the dark cover to be skipped and exposing Amazon's stock white launch screen.
+- SpringBoard now remembers Amazon's process identity. The same process identity is a genuine warm resume and receives no AmazonDark launch cover; a new Amazon process identity is a genuine cold launch and receives the existing dark Amazon cover from `willMoveToWindow:` before scene exposure. Existing artwork, readiness gate, 1.40 s minimum, 0.40 s post-ready settle, 0.55 s fade, and 20 s safety cap are unchanged.
+- Cart early skeleton completion: the pre-product p13n selector now owns the temporary direct shell itself in addition to its nested placeholder leaves. This closes the selector gap that could leave the large card plane stock white while inner skeleton bars were already themed.
+- Cart saved-band ownership is raised to an exact `html body #sc-page-container #sc-saved-cart` first-paint rule with all border channels/outline/shadow/background-image neutralized; only that known 430x26 hydration band and its immediate surfaces are affected.
+- The v7.310 explicit Cart transition recorder is retained and versioned v7.311. Its MutationObserver/RAF recorder exists only during the explicit 45-second probe arm window; normal production runtime adds no observer, interval, RAF loop, scroll listener, recurring hierarchy scan, broad image/glyph rule, or global `#a-white` rule.
+
+---
+
 # AmazonDark v7.310~cart-transition-recorder-menu-glyph-repair
 
 ## Exact Menu repair + first-paint Cart transition recorder
