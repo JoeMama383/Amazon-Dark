@@ -1,3 +1,13 @@
+# AmazonDark v7.286~v285-compile-repair
+
+## Compile-only repair on the v7.285 / v7.280-image-baseline architecture
+
+- Built directly from v7.285.
+- Fixes the single GitHub/Theos compile error in `ADMenuRoot7255`: `ADClassNameIs7183` expects a C string (`const char *`), so the Menu compatibility helper now passes `"RCTScrollView"` instead of Objective-C `@"RCTScrollView"`.
+- No Person/image classifier, raster writer, rendering-mode owner, TWB decision, `UIImageView` hook, or generic image ownership path is changed.
+- Alexa UI ownership and all safe post-v280 optimizations from v7.285 are retained.
+- Existing retain-cycle diagnostics in explicit-trigger probes are unchanged; they are warnings and are not part of steady-state production painting.
+
 # AmazonDark v7.285~v280-person-baseline-safe-optimizations-alexa
 
 ## Hard v7.280 Person/image baseline + safe post-v280 architecture + exact Alexa UI
