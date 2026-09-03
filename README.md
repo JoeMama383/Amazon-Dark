@@ -1,11 +1,15 @@
-# AmazonDark v7.308 — XL standalone brand TWB + footer border release
+# AmazonDark v7.309~probe-exact-dog-cart-footer-xl-brand
 
-- Direct source base: v7.307~warm-resume-bypass-mic-center.
-- XL/large standalone ads: tame only the probe-proven `data-testid=simple-brand-logo-picture > img` company/brand raster through the existing standalone/child-frame TWB lanes.
-- Hamburger footer: `account_switcher`, `so`, and `cs` keep OLED-black floors and existing light-text ownership, but AmazonDark no longer clears, replaces, standardizes, or radius-owns any footer border channel. Amazon alone owns those three rows' border presentation.
-- The category rows above retain their existing AmazonDark gray rounded borders unchanged.
-- No Cart, launch, CNM, other image, glyph, text, floor, or ad behavior is changed.
-- Existing explicit-trigger probes are unchanged except for v7.308 output labels.
+## Four narrow corrections on the v7.307 baseline
+
+- Direct production base: v7.307~warm-resume-bypass-mic-center. Its launch/warm-resume behavior, Alexa microphone geometry, and all existing theming/image-taming paths are retained.
+- No-internet dog: removes v7.301's pixel knockout and applies the existing TWB shade only to the probe-proven 640x524 image directly under `UIStackView` inside `CNMErrorView`. The authored raster and white field remain intact.
+- Cart refresh: owns only the probe-proven `#sc-saved-cart` 430x26 hydration band and empty/pre-hydration cards below `#p13n-uf-anchor` at document start. Hydrated products and imagery remain excluded.
+- Hamburger footer: the exact `account_switcher`, `so`, and `cs` rows keep OLED floors, white text, r16 geometry, and clipping while their visible React border channel is cleared. Category-row borders above remain unchanged.
+- XL standalone ads: adds TWB only to the probe-proven `[data-testid=simple-brand-logo-picture] img` company raster, through the existing standalone and child-frame TWB lanes.
+- No generic image/logo/glyph selector, broad CNM traversal, pixel rewrite, MutationObserver, timer, RAF, polling loop, scroll listener, or recurring scan is added.
+
+---
 
 # AmazonDark v7.307~warm-resume-bypass-mic-center
 
