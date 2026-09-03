@@ -1,3 +1,14 @@
+# AmazonDark v7.301~universal-error-screen-dark
+
+## Universal native no-internet / error-screen dark ownership
+
+- Built directly from the user-confirmed v7.300 baseline; the Gift Card heading and Your Orders error-raster fixes are retained unchanged.
+- The v7.300 Cart probe proves the bright offline page is native `CNMErrorView`, not Cart DOM: its 430pt root is stock white, its action buttons own white/near-white fills, and the visible hero is a 640x524 UIImage on a transparent UIImageView.
+- Owns exact `CNMErrorView` ancestry universally, independent of tab/route, so the same Amazon native connectivity/error renderer is dark in Cart, Home, Person, Menu, Search, or another screen. Neutral/white floors become OLED black; action buttons become OLED black with the established `#494d4d` 1pt border and no light shadow. Existing AmazonDark light-text ownership remains authoritative.
+- The probe proves the hero UIImageView itself is transparent while the 640x524 artwork presents with a large white surrounding field. Only that large direct `UIStackView` hero receives a guarded one-time edge-connected near-white backdrop knockout. The transform runs only when the source image edges are substantially opaque near-white; transparent or alternate non-white error art is left unchanged. Because only edge-connected pixels are removed, interior light fur is preserved. The resulting transparent hero sits on OLED black.
+- The image operation is cached per assigned hero and runs only on rare CNM error-image assignment/mount. No observer, polling loop, recurring timer, RAF, web-scroll listener, or hierarchy scanner is added.
+- All seven explicit-trigger probes are retained and bumped to v7.301 filenames/headers.
+
 # AmazonDark v7.300~person-gift-card-header-error-mask-probe
 
 ## v7.300 Gift Card heading + Your Orders error-raster polish
