@@ -1,3 +1,12 @@
+# AmazonDark v7.294~cart-saved-swipe-move-text
+
+## Saved-for-later swipe-right Move-to-cart text
+
+- Builds directly on v7.293 and retains the Cart p13n refresh anti-flash fix unchanged.
+- The v7.292 Cart probe identifies the separate Saved-for-later swipe-right reveal label as `div.swipe-button.swipe-right-button > div`, stock `rgb(17,17,17)` on the AmazonDark black swipe floor.
+- Forces only that saved-item swipe-right label to the standard light `#e8e6e3`. The normal gray Move-to-cart AUI button was already correct and is unchanged.
+- No observer, timer, RAF, polling loop, web-scroll listener, image/TWB ownership change, or native hook change is added.
+
 # AmazonDark v7.293~cart-p13n-refresh-antiflash
 
 ## Cart p13n refresh-transition anti-flash
