@@ -1,4 +1,12 @@
-# AmazonDark v7.294~cart-saved-swipe-move-text
+# AmazonDark v7.295~alexa-hydration2-pills-voice-circle
+
+## Alexa second-hydration parity
+
+- Adds the probe-proven `in-view-wrapper-related_questions_*` / `pillViewStyle` question-pill family to the existing Alexa button owner: gray `#303335` fill, `#747a7c` border, light text.
+- Keeps the original `ftuxRuxSuggestionPillList` hydration family unchanged.
+- Moves the alternate `TextBoxSearchVoiceComponentButton` physical circle to its exact anonymous 32x32 wrapper using durable fill/mask/ring CAShapeLayers, mirroring the already-working Plus owner.
+- Voice SVG background circle remains suppressed; glyph paths remain white.
+- Person/native-image ownership and WebKit paint payloads are unchanged from v7.294.
 
 ## Saved-for-later swipe-right Move-to-cart text
 
