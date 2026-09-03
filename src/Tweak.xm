@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.308 — v7.307 baseline + Cart refresh anti-flash + XL standalone brand TWB
+ * AmazonDark v7.307 — v7.301 baseline + warm-resume splash bypass + Alexa mic centering
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.308-cart-refresh-xl-brand-fix"
+#define AD_VERSION "v7.308-xl-brand-footer-no-border"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -929,13 +929,6 @@ static NSString *ADFloorJS(void){
         // non-empty/pre-.p13n-uf state that can briefly expose Amazon's white skeleton.
         // Own only that slot/shell at document start. Final .p13n-uf contents are untouched.
         @"#sc-page-container #p13n-uf-anchor li.a-carousel-card{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;transition:none!important;}#sc-page-container #p13n-uf-anchor li.a-carousel-card:not(.a-carousel-card-empty):not(:has(.p13n-uf))>*{background:#303335!important;background-color:#303335!important;background-image:none!important;box-shadow:none!important;transition:none!important;}"
-        // v7.308: restore the proven v7.302 Cart-only earliest-paint ownership.
-        // The current v7.307 capture is still ready=loading and places #sc-saved-cart
-        // at the exact 430x26 hydration band (13px top + bottom borders). The p13n
-        // lane also exposes the earlier empty/pre-product skeleton family before the
-        // later .a-loading-static / hydrated .p13n-uf states. Keep this strictly under
-        // #sc-page-container; do not restore v7.302's rejected global transition work.
-        @"#sc-page-container #sc-saved-cart,#sc-page-container #sc-saved-cart::before,#sc-page-container #sc-saved-cart::after,#sc-page-container #sc-saved-cart>*{background:#000!important;background-color:#000!important;background-image:none!important;border-top-color:#000!important;border-bottom-color:#000!important;box-shadow:none!important;transition:none!important;}#sc-page-container #p13n-uf-anchor li.a-carousel-card.a-carousel-card-empty{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#494d4d!important;box-shadow:none!important;transition:none!important;}#sc-page-container #p13n-uf-anchor li.a-carousel-card.a-carousel-card-empty>*{background:#181a1b!important;background-color:#181a1b!important;background-image:none!important;border-color:#494d4d!important;box-shadow:none!important;transition:none!important;}#sc-page-container #p13n-uf-anchor li.a-carousel-card:not(:has(.p13n-uf)):not(:has(img[src]))>* :is(div,span){background-color:#303335!important;border-color:#494d4d!important;box-shadow:none!important;transition:none!important;}"
         // v7.251: Cart probe identifies the actual white loading boxes as Amazon's
         // li.a-carousel-card.a-carousel-card-empty > .a-loading-static (120x120),
         // not the eventual product IMG/compositor. Own that transient card directly.
@@ -1201,9 +1194,9 @@ static NSString *ADStandalonePaintJS7104(void){
           * logo exclusions that protect Prime, stars, badges and UI glyphs. */
          "html[data-ad7104-standalone] [data-acei-id=brnd-logo] img,"
          "html[data-ad7104-standalone] [data-testid=logo] img[alt=\"Brand logo\"],"
-         /* v7.308: current XL/large 430x358 standalone probe exposes the authored
-          * company identity raster as data-testid=simple-brand-logo-picture -> IMG.
-          * Extend only the existing standalone brand-identity TWB lane. */
+         /* v7.308: probe-proven XL/large standalone company raster. Keep the
+          * override on this exact semantic brand-image leaf; do not widen the
+          * generic logo exclusions that protect Prime, badges and UI glyphs. */
          "html[data-ad7104-standalone] [data-testid=simple-brand-logo-picture] img"
          "{filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;}"
          /* v7.108: exact first-party 300x250 Swiper carousel media. Both the
@@ -1265,7 +1258,7 @@ static NSString *ADTWBJS(void){
     CGFloat factor=1.0-shade;
     NSString *built=[NSString stringWithFormat:
         @"(function(){try{var host='';try{host=String(location.hostname||'').toLowerCase();}catch(_){}if(host==='flashtalking.com'||/\\.flashtalking\\.com$/.test(host))return;var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement)document.documentElement.setAttribute('data-ad7-twb-child','1');if(child&&document.documentElement&&document.documentElement.hasAttribute('data-ad7104-standalone'))return;function put(id,css){var s=document.getElementById(id);if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}s.textContent=css;return s;}function relink(s){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}if(child){put('ad7-twb-child-min',\"html[data-ad7-twb-child=\\\"1\\\"] :is(img,video,canvas):not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([class"
-        @"*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)),html[data-ad7-twb-child=\"1\"] #ad [data-testid=simple-brand-logo-picture] img{filter:brightness(%.3f)!important;}\");return;}var p='';try{p=String(location.pathname||'');}catch(_){}var s=null;if(p==='/autocomplete'||p.indexOf('/autocomplete/')===0){s=put('ad7-search-pane-twb',\"img.ufs_tiles_card_widget-sug-image,img.s-entity-pd-carousel-tile-element-image,#attach-to-me img.s-image,#attach-to-me img.s-product-image,.s-suggestion-container img.s-image,.s-suggestion-container img.s-product-image{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}\");}else if(p==='/s'||p.indexOf('/s/')===0){s=put('ad7-product-feed-twb',\"#search img.scx-stt-image,#search img._c2Itd_image_3UiYm,#search [class*=_bXVsd_image_],#search [class*=_bXVsd_lifestyleImage_],#search [class*=_bXVsd_lifestyleimage_],#search img.s-image,#search img.s-product-image,#search [data-component-type=s-product-image] img,#search img.ufs_tiles_card_widget-sug-image,#search img.nice-cat-card_image,#search img.haul-puis-portrait-img,#search img._c2Itd_image_pQREQ,#search ._c2Itd_cardContent_3OGkG.sbv-ad-content-container img:not([class*=_trackingPixel_]):not([class*=ad-feedback]):not([class*=sprite]){filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}#search video.sbv-video-player-ecx,#search video._"
+        @"*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)),html[data-ad7-twb-child=\"1\"] [data-testid=simple-brand-logo-picture] img{filter:brightness(%.3f)!important;}\");return;}var p='';try{p=String(location.pathname||'');}catch(_){}var s=null;if(p==='/autocomplete'||p.indexOf('/autocomplete/')===0){s=put('ad7-search-pane-twb',\"img.ufs_tiles_card_widget-sug-image,img.s-entity-pd-carousel-tile-element-image,#attach-to-me img.s-image,#attach-to-me img.s-product-image,.s-suggestion-container img.s-image,.s-suggestion-container img.s-product-image{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}\");}else if(p==='/s'||p.indexOf('/s/')===0){s=put('ad7-product-feed-twb',\"#search img.scx-stt-image,#search img._c2Itd_image_3UiYm,#search [class*=_bXVsd_image_],#search [class*=_bXVsd_lifestyleImage_],#search [class*=_bXVsd_lifestyleimage_],#search img.s-image,#search img.s-product-image,#search [data-component-type=s-product-image] img,#search img.ufs_tiles_card_widget-sug-image,#search img.nice-cat-card_image,#search img.haul-puis-portrait-img,#search img._c2Itd_image_pQREQ,#search ._c2Itd_cardContent_3OGkG.sbv-ad-content-container img:not([class*=_trackingPixel_]):not([class*=ad-feedback]):not([class*=sprite]){filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}#search video.sbv-video-player-ecx,#search video._"
         @"c2Itd_video_17g-f{filter:none!important;-webkit-filter:none!important;}#search .sbv-video-overlay{background-color:rgba(0,0,0,%.3f)!important;}#search ._c2Itd_videoOverlay_1H_Jm{top:0!important;left:0!important;right:0!important;bottom:0!important;width:100%%!important;height:100%%!important;pointer-events:none!important;z-index:6!important;background-color:rgba(0,0,0,%.3f)!important;}#search .s-widget-container[class*=\\\"template=FEATURED_ASINS_VIDEO_LIST\\\"] video[class*=_video_1m98b_]{filter:none!important;-webkit-filter:none!important;}#search .s-widget-container[class*=\\\"template=FEATURED_ASINS_VIDEO_LIST\\\"] [class*=_videoOverlay_1m98b_],#search [class*=_videoPlayerContainer_8wyx7_] [class*=_videoWrapper_8wyx7_] [class*=_videoContainer_1m98b_] [class*=_videoLink_1m98b_] > [class*=_videoOverlay_1m98b_]{background-color:rgba(0,0,0,%.3f)!important;}#search [class*=_navigationWrapper_8wyx7_] > [class*=_container_avw36_][class*=_Horizontal_avw36_]{background:#4a4f51!important;background-color:#4a4f51!important;}\");}else{s=put('ad7-menu-twb',\".ape-placement.is-image-oo[style*=\\\"aspect-ratio: 300 / 250\\\"]>iframe,[id^=ape_gateway_dynamic-][id$=_mshop_placement].is-image-oo[style*=\\\"aspect-ratio: 300 / 250\\\"]>iframe{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}body:has(#sc-page-container) .a-sheet-web:has(.ssf-customize-container-one) #ssf-preview-container,body:has(#sc-page-container) .a-sheet-web:has(.ssf-customize-container-one) img[id^=ssf-share-channel-],body:has(#sc-page-container) .a-sheet-web [id^=p13n-uf-bottom-sheet_] img.p13n-product-image,#sc-page-container [class*=_sp-cart-mobile-carousel_style_spMobileCarousel__] [class*=_sp-cart-mobile-carousel_style_imageContainer__] img.sp-dynamic-image,img.ufs_tiles_card_widget-sug-image,img.s-image,img.s-product-image,#landingImage,#imgBlkFront,#imgTagWrapperId img,img[data-a-dynamic-image],img.a-dynamic-image,[data-component-type=s-product-image] img,[class*=product-image] img,[class*=asin-image] img,.p13n-sc-uncoverable-faceout img,[data-asin] img.s-image,[data-csa-c-asin] img.s-image,#sc-page-container .sc-returns-are-easy-container img,#sc-page-container .maple-banner__image img,:is(#gwm-Deck-btf,.gwm-dashboard-container) :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) img:not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store]):not([class*=rating]):not([class*=star]):not([class*=sprite]):not([class*=pixel]):not([class*=icon]):not([class*=glyph]):not([class*"
         @"=badge]):not([class*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=search-icon]):not([class*=microphone]):not([class*=camera]):not([class*=location]):not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon]):not([class*=header-icon]):not([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr]):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),"
         @"#gwm-Deck-btf :is([class*=mobile-mshop-ad],[class*=mobile-ad-container],[class*=ape-wrapper],[class*=ape-placement]) :is(img,video,canvas):not([class*=logo]):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([class*=logo] *)):not(:whe"
@@ -5575,13 +5568,15 @@ static int ADMenuLocalFooterRole7277(UIView *v){
     @try {
         NSString *aid=v.accessibilityIdentifier?:@"";
         CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
-        if(ADMenuFooterActionAid7255(aid)&&w>=300.0&&w<=420.0&&h>=36.0&&h<=66.0)return 6;
+        // v7.308: keep the three exact footer actions themed OLED, but do not
+        // participate in their border stack at all. Amazon remains the sole
+        // owner of every footer border/radius channel.
+        if(ADMenuFooterActionAid7255(aid)&&w>=300.0&&w<=420.0&&h>=36.0&&h<=66.0)return 5;
         BOOL inner=w>=402.0&&w<=408.0&&h>=46.0&&h<=51.0;
-        BOOL wrapper=w>=408.0&&w<=412.0&&h>=50.0&&h<=55.0;
-        if(!(inner||wrapper))return 0;
+        if(!inner)return 0;
         CGFloat rr=MAX(v.layer.cornerRadius,ADPersonRCTBorderRadius7212(v));
         if(rr<12.0)return 0;
-        return ADMenuFooterActionDescendant7261(v,inner?4:6)?(inner?5:3):0;
+        return ADMenuFooterActionDescendant7261(v,4)?5:0;
     } @catch(...) {}
     return 0;
 }
@@ -5929,8 +5924,8 @@ static void ADAlexaOwnReactControl7285(UIView *v){
 
 // 0 untouched, 1 OLED row/card with one gray border, 2 custom gray shortcut with
 // one gray border, 3 retired React border shell, 4 OLED structural floor,
-// 5 footer visible inner surface: OLED + the same one gray edge as category rows,
-// 6 footer action leaf: transparent so it cannot repaint over the rounded surface.
+// 5 exact footer action/visible inner surface: OLED floor only; Amazon owns borders.
+// 6 retained compatibility role (not emitted by the v7.308 footer classifier).
 static int ADMenuViewRole7255(UIView *v){
     if(!v||!ADClassNameIs7183(v,"RCTView"))return 0;
     @try {
@@ -5976,20 +5971,16 @@ static int ADMenuViewRole7255(UIView *v){
 static void ADMenuApplyRole7281(UIView *v,int role){
     if(!gP.enabled||!v||!role)return;
     @try {
+        // v7.308 footer role: OLED floor only. Do not write React/UI layer border,
+        // radius, clipping, or cached-border state for account_switcher/so/cs.
+        if(role==5){ ADSetViewBackground7226(v,ADOLED(),YES); return; }
         UIColor *fill=(role==2)?ADMenuButtonFill7255():((role==3||role==6)?[UIColor clearColor]:ADOLED());
         ADSetViewBackground7226(v,fill,YES);
-        if(role==1||role==2||role==5){
+        if(role==1||role==2){
             UIColor *edge=(role==2)?ADMenuButtonBorder7255():ADBorderGray706();
             ADMenuSetSingleRCTBorder7258(v,1.0,edge);
         } else {
             ADMenuSetSingleRCTBorder7258(v,0.0,ADBorderGray706());
-        }
-        if(role==5){
-            // Match the category cards above on the real visible 406x48.7 surface:
-            // OLED fill, one gray edge, r16, and clipping. This preserves the
-            // geometry from Amazon while replacing its white/teal paint only.
-            v.layer.cornerRadius=16.0;
-            v.layer.masksToBounds=YES;
         }
     } @catch(...) {}
 }
@@ -6002,7 +5993,7 @@ static void ADMenuOwnView7255(UIView *v){
 static void ADMenuOwnFinalFooterRadius7281(UIView *v,CGFloat radius){
     if(!gP.enabled||radius<12.0)return;
     int role=ADMenuLocalFooterRole7277(v);
-    if(role==3||role==5)ADMenuApplyRole7281(v,role);
+    if(role==5)ADMenuApplyRole7281(v,role);
 }
 static BOOL ADMenuDarkNeutral7255(UIColor *color){
     return ADDarkNeutral7259(color,YES);
