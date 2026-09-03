@@ -173,7 +173,7 @@ static BOOL ADColdProcess7312(BOOL aliveBefore, NSInteger pid) {
     @try {
         enabled=(newWindow!=nil&&ADSBEnabled());
         if(enabled){
-            target=[[ADSceneBundleId(self) ?: @""] isEqualToString:kAMZ];
+            target=[(ADSceneBundleId(self) ?: @"") isEqualToString:kAMZ];
             if(target){
                 aliveBefore=ADAmazonProcessAlive();
                 pidBefore=ADAmazonProcessIdentifier7312();
@@ -198,7 +198,7 @@ static BOOL ADColdProcess7312(BOOL aliveBefore, NSInteger pid) {
     // This is a fallback only; the pre-%orig path above is the normal first-frame owner.
     @try {
         if(!enabled||!newWindow||attached||objc_getAssociatedObject(self,kShimKey7312))return;
-        if(![[ADSceneBundleId(self) ?: @""] isEqualToString:kAMZ])return;
+        if(![(ADSceneBundleId(self) ?: @"") isEqualToString:kAMZ])return;
         NSInteger pid=(pidBefore>0)?pidBefore:ADAmazonProcessIdentifier7312();
         if(!ADColdProcess7312(aliveBefore,pid))return;
         ADAttachShim7312(self);
@@ -212,7 +212,7 @@ static BOOL ADColdProcess7312(BOOL aliveBefore, NSInteger pid) {
 - (void)didMoveToWindow {
     %orig;
     @try {
-        if(!self.window||![[ADSceneBundleId(self) ?: @""] isEqualToString:kAMZ])return;
+        if(!self.window||![(ADSceneBundleId(self) ?: @"") isEqualToString:kAMZ])return;
         NSInteger pid=ADAmazonProcessIdentifier7312();
         if(objc_getAssociatedObject(self,kShimKey7312)){
             if(pid>0)gAmazonProcessID7312=pid;

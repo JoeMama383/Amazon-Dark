@@ -1,3 +1,12 @@
+# AmazonDark v7.313~native-splash-handoff-compile-fix
+
+## Compile-only correction to v7.312
+
+- Direct base: v7.312~native-splash-handoff.
+- Fixes three malformed Objective-C receiver expressions in `src/AmazonDarkSB.xm`.
+- No launch timing, classification, handoff, Cart, Menu, TWB, probe behavior, or other production logic is intentionally changed.
+- Internal `7312` launch symbol names are intentionally retained because this is a source-syntax correction only.
+
 # AmazonDark v7.312~native-splash-handoff
 
 ## Minimal cold first-frame shim -> Amazon's real dark splash
@@ -9,7 +18,7 @@
 - The old Home/WebKit readiness subsystem is deleted: no 120x125 ms launch polling, no three-stable-sample requirement, no 250 ms final dwell, no 1.40 s artificial minimum, no 0.40 s post-ready settle, and no 0.55 s custom fade-to-Home. Amazon owns its real splash-to-Home transition.
 - One 4.0-second absolute shim cap remains only as SpringBoard fault containment if the exact Amazon splash callback never arrives; it is not normal launch timing.
 - Ordinary warm resume behavior remains stock-like: no SpringBoard logo/cover. If Amazon itself attempts to replay one of the two exact native splash controllers during an ordinary same-scene resume, the retained v7.307 app-side suppression keeps the existing interface visible underneath.
-- Normal runtime adds no new MutationObserver, interval, RAF loop, web scroll listener, recurring hierarchy scan, or generic image/glyph rule. Existing explicit probes are retained and versioned v7.312.
+- Normal runtime adds no new MutationObserver, interval, RAF loop, web scroll listener, recurring hierarchy scan, or generic image/glyph rule. Existing explicit probes are retained and versioned v7.313.
 
 ---
 
