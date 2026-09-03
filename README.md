@@ -1,4 +1,26 @@
-# AmazonDark v7.297~alexa-chat-history-back-chevron
+# AmazonDark v7.299~person-offline-rehydrate-submenu-probe
+
+
+
+## v7.299 Person offline/error rehydration parity
+
+- Fixes the exact offline Person fallback state captured by `AmazonDark-v7.297-person-ui-probe-20260903-074257-683-r3.txt`.
+- Extends the existing Person heading band only from 410/405pt to 420pt so the probe-proven 414pt offline `*ttl` headings (Buy Again, Your Interests, Lists and Registries) keep the same light final-paint owner as the working 374/390pt headers.
+- Adds the exact offline Interests title ID `aiwl_widget_title_errttl` to the existing commerce-section classifier.
+- Final-paints only fallback action labels beneath `error-message-container_btn` and `errorListString_btn`, matching the probe-proven working Keep-shopping fallback action gray (`rgb(55,62,62)`) instead of letting them collapse to near-black.
+- Restores the probe-proven 18x20 Your Orders offline error raster as authored `AlwaysOriginal` and removes TWB from that exact compact two-child error row; it is no longer misclassified as commerce/product media.
+- Retains the v7.298 Person-submenu hybrid full-document probe as the seventh explicit-trigger probe.
+- No MutationObserver, recurring timer, RAF loop, web scroll listener, or generic Person hierarchy scan is added.
+
+
+## v7.298 Person submenu hybrid full-document probe (retained)
+
+- Adds a seventh explicit-trigger probe dedicated to redirected/modal submenus entered from the Person tab.
+- Keeps the exact main `RCTScrollView#me` Person probe unchanged; when `meTab` remains selected but that root is absent or physically covered, screenshot/SIGUSR2 routing switches to `AmazonDark-v7.299-person-submenu-hybrid-probe-*`.
+- Scans every plausible visible WKWebView (up to six) sequentially, top-to-bottom, with viewport computed-paint snapshots, style-owner inventory, shadow-root/accessible-iframe recursion and a final full DOM inventory; every original WebKit offset/scrollEnabled state is restored.
+- Scans every plausible visible non-WebKit native/React scroll root (up to six, ancestry-deduped, excluding the main `#me` root) sequentially top-to-bottom. Full-window snapshots also capture non-scrollable React/native surfaces, layers, borders, SVGs, controls, text-run paint and image/TWB state.
+- Uses only the existing screenshot/SIGUSR2 dispatcher. No second trigger source, MutationObserver, timer, RAF, web-scroll listener or recurring runtime hierarchy scan is added.
+- The retained v7.298 probe itself changes no production Person/image/WebKit paint ownership; v7.299 production changes are limited to the exact offline/error owners above.
 
 ## Alexa Settings + Chat history submenu parity
 
