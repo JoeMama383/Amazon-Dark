@@ -55,16 +55,27 @@ static void ADDismissCover(void);
 static UIView *gCoverOverlay;
 static SBSceneView *gCoverHost;
 static const void *kCoveredKey = &kCoveredKey;
-// v7.306: persistent for the lifetime of this SBSceneView. A normal warm resume reuses
-// the same scene and must not replay launch. A newly constructed scene (cold launch or
-// UIKit scene reconstruction) receives the normal v7.301 Amazon cover even if the app
-// process itself is still alive.
-static const void *kSceneSeenKey7306 = &kSceneSeenKey7306;
 static unsigned gCoverGen;
 
-// v7.306 deliberately does not use processState as the launch discriminator. UIKit can
-// disconnect/recreate a scene while Amazon's process survives, so scene continuity is the
-// authoritative distinction between an ordinary warm resume and a real scene presentation.
+// YES when Amazon already has a running process -- i.e. this is a resume, not a
+// cold launch. Nothing here is required to exist; unknown means "cover it".
+static BOOL ADAmazonProcessAlive(void) {
+    @try {
+        Class ctl = objc_getClass("SBApplicationController");
+        if (!ctl || ![ctl respondsToSelector:@selector(sharedInstance)]) return NO;
+        id shared = [ctl performSelector:@selector(sharedInstance)];
+        if (!shared || ![shared respondsToSelector:@selector(applicationWithBundleIdentifier:)]) return NO;
+        id app = [shared performSelector:@selector(applicationWithBundleIdentifier:) withObject:kAMZ];
+        if (!app || ![app respondsToSelector:@selector(processState)]) return NO;
+        id ps = [app performSelector:@selector(processState)];
+        if (!ps) return NO;
+        if ([ps respondsToSelector:@selector(isRunning)]) {
+            NSNumber *r = [ps valueForKey:@"isRunning"];
+            if (r) return r.boolValue;
+        }
+    } @catch (__unused NSException *e) {}
+    return NO;
+}
 
 static UIImage *ADSplashImage7191(void) {
     static UIImage *image;
@@ -140,18 +151,13 @@ static void ADDismissCover(void) {
         NSString *bid = ADSceneBundleId(self);
         if (![bid isEqualToString:kAMZ]) return;
 
-        // v7.306: scene continuity is the correct warm/cold discriminator. iOS can keep
-        // Amazon's process alive while disconnecting and later recreating its UIScene. The
-        // old processState-only test called that case "warm" and skipped our cover, exposing
-        // Amazon's stock white scene-rebuild/loading screen.
-        //
-        // First attachment of this SBSceneView = real scene presentation/reconstruction ->
-        // use the exact v7.301 Amazon launch cover. Reattachment of the same scene = ordinary
-        // warm resume -> return directly to the existing app UI with no launch replay.
-        BOOL seen = (objc_getAssociatedObject(self, kSceneSeenKey7306) != nil);
-        if (seen) return;
-        objc_setAssociatedObject(self, kSceneSeenKey7306, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        // Cold-launch cover only. If Amazon already has a live/suspended process,
+        // reopening it is a normal foreground resume and must not replay our launch screen.
+        BOOL alive = ADAmazonProcessAlive();
+        if (alive) return;
 
+        // One active cover per cold launch. The marker is cleared when the cover leaves,
+        // allowing a later true cold launch to receive the cover again.
         BOOL already = (objc_getAssociatedObject(self, kCoveredKey) != nil);
         if (already) return;
         objc_setAssociatedObject(self, kCoveredKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);

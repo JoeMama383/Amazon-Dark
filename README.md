@@ -1,14 +1,14 @@
-# AmazonDark v7.306~scene-continuity-launch-fix
+# AmazonDark v7.307~warm-resume-bypass-mic-center
 
-## v7.301 baseline — distinguish real scene reconstruction from ordinary warm resume
+## Warm-resume splash bypass + Alexa microphone geometry correction
 
-- Direct production baseline: exact v7.301~universal-error-screen-dark. No v7.302-v7.305 experiments are carried forward.
-- Cold launch presentation remains the v7.301 Amazon-logo cover, readiness gate, settle and fade.
-- SpringBoard no longer decides "warm" solely from Amazon processState. The first attachment of each Amazon SBSceneView receives the v7.301 cover; later reattachments of that same scene receive no cover at all.
-- This matches UIKit scene lifecycle: a suspended/background scene may be disconnected and recreated while the process survives. A new scene therefore gets launch protection; a genuine warm resume of the existing scene returns directly to the existing interface.
-- App launch readiness is reset only on UISceneWillConnectNotification so a reconstructed scene in the same process can post a fresh ready signal. Ordinary warm foregrounding does not reset/replay launch.
-- Restores v6.0.46's proven early background ownership on the exact AXUSplashScreenViewController and TezBaseSplashScreenViewController at viewDidLoad/viewWillAppear, before first native splash paint.
-- No warm SpringBoard mask/shield, no foreground-ready warm cover, no new polling/observer loop, and no Cart/CNM/image behavior changes.
+- Built directly from the exact v7.301 production baseline. `src/AmazonDarkSB.xm` is intentionally unchanged: ordinary warm resumes still receive no SpringBoard cover/logo/animation, while true process launches retain the existing v7.301 cold launch.
+- Reverts the complete v7.306 scene-view continuity experiment. No per-`SBSceneView` first-attachment classification and no scene-triggered reset of the cold launch-ready gate remain.
+- Tracks Amazon's own app lifecycle instead: after the process has been active once, a background -> foreground cycle with no intervening `UISceneWillConnectNotification` is treated as an ordinary same-scene warm resume. If Amazon attempts to replay `AXUSplashScreenViewController` or `TezBaseSplashScreenViewController` in that state, only that exact splash view is suppressed so the already-existing/saved app interface remains visible.
+- A genuine scene reconnection cancels warm splash suppression. The two exact Amazon splash controller floors are still darkened at `viewDidLoad` and `viewWillAppear`, preserving their normal content while preventing an early white floor.
+- Does not delete normal warm-resume UI snapshots and does not add a warm cover, timer loop, polling loop, display link, MutationObserver, or recurring scan.
+- Alexa probe evidence shows `TextBoxSearchVoiceComponentButton` and its SVG are 32x32 at x=384, while the old AmazonDark voice-circle host is an anonymous 32x32 wrapper at x=386. v7.307 moves only the gray fill/mask/ring to the actual button layer, eliminating the 2pt circle/glyph center mismatch without moving or resizing the microphone SVG.
+- Existing explicit screenshot/SIGUSR2 probes are retained and versioned v7.307.
 
 # AmazonDark v7.301~universal-error-screen-dark
 
