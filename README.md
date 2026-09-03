@@ -1,3 +1,13 @@
+# AmazonDark v7.300~person-gift-card-header-error-mask-probe
+
+## v7.300 Gift Card heading + Your Orders error-raster polish
+
+- Built directly from v7.299 and preserves its successful Person offline/error text hydration, exact authored-raster restore, Alexa/Cart/Menu/Search/Home ownership and all seven explicit-trigger probes.
+- The v7.299 Person probe proves Gift Card Balance is the only remaining heading outside the normal Person header geometry: its 25pt bold `RCTTextView` is 181x50.7 and is a direct child of exact `RCTView#gctitlettl`, beside a separate reload image. v7.300 adds that exact direct-parent semantic fallback to the existing Person header final-paint owner; the normal wide-header geometry is unchanged.
+- The same probe proves the restored Your Orders error asset is an authored 18x20 / 54x60 raster with no UIView/CALayer background. The visible white square is therefore baked into the source pixels, not an AmazonDark floor. v7.300 clips only exact final-raster kind 10 to its own circular 20x20 bounds, preserving the red badge and white exclamation while exposing OLED black outside the circle.
+- The circular crop is removed automatically if that recycled raster leaf stops being the exact offline-error owner. No generic Person image rule is widened.
+- No MutationObserver, recurring timer, RAF loop, web scroll listener, polling loop, or generic Person hierarchy scan is added.
+
 # AmazonDark v7.299~person-offline-rehydrate-submenu-probe
 
 
