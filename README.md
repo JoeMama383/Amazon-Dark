@@ -1,3 +1,13 @@
+# AmazonDark v7.296~alexa-settings-chat-history-glyphs
+
+## Alexa Settings + Chat history submenu parity
+
+- Builds directly on v7.295 and retains both Alexa hydration-pill families, durable Plus/Voice circles, Cart fixes, and the frozen v7.280 Person/image subsystem.
+- Probe-backed Alexa Settings rows (`conversation_threads.button`, `get_started.button`, `manage_price_alerts.button`) now own every SVG in those exact rows as light, covering the left glyph and right chevron on all three rows without visible-string matching.
+- The three dedicated 390x8 Settings separators receive a persistent 1pt `ADBorderGray706()` overlay instead of Amazon's near-white bottom border.
+- The Alexa navigation `chevron-down-icon` is now keyed to the stable `MainNavigationHeader-left-button` ancestor rather than one intermediate wrapper, covering the Chat history submenu hydration shown in the screenshot.
+- No Person/image, TWB, WebKit ad, Cart, or general React text ownership is changed. No observer/timer/RAF/scroll listener is added.
+
 # AmazonDark v7.295~alexa-hydration2-pills-voice-circle
 
 ## Alexa second-hydration parity
