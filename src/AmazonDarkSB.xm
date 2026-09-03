@@ -14,7 +14,8 @@
 //
 // SAFETY (runs in SpringBoard => a fault here is safe mode):
 //   - every entry point is @try/@catch guarded;
-//   - the event-driven cover has an absolute hard cap, so it can never remain stuck;
+//   - the cover window lifts on a timer AND an absolute hard cap, so it can
+//     never get stuck blacking out the screen;
 //   - only ever triggered by a scene whose bundle id is exactly Amazon.
 
 #import <UIKit/UIKit.h>
@@ -23,6 +24,10 @@
 
 static NSString * const kAMZ      = @"com.amazon.Amazon";
 static NSString * const kDefaults = @"com.colindavidr.amazondark";
+static const NSTimeInterval kCoverHold    = 17.0;  // LAST RESORT. The app guarantees a
+                                                  // signal after a slow cold Home composite; the app-side gate can stay
+                                                  // active for roughly 15 s plus JS completion latency, so this fallback
+                                                  // must remain above that correctness window.
 static const NSTimeInterval kCoverFade    = 0.55; // lift animation
 static const NSTimeInterval kReadySettle   = 0.40; // v7.116: keep the cover fully opaque for
                                                   // a short post-ready settle window. If the
@@ -37,18 +42,43 @@ static double gPresentAt;
 
 static BOOL ADSBEnabled(void) {
     @try {
-        NSString *path=[@"/var/jb/var/mobile/Library/Preferences" stringByAppendingPathComponent:
-                        [kDefaults stringByAppendingPathExtension:@"plist"]];
-        id value=[NSDictionary dictionaryWithContentsOfFile:path][@"enabled"];
-        return value ? [value boolValue] : YES;
+        CFPreferencesAppSynchronize((__bridge CFStringRef)kDefaults);
+        Boolean valid = NO;
+        Boolean on = CFPreferencesGetAppBooleanValue(CFSTR("enabled"),
+                        (__bridge CFStringRef)kDefaults, &valid);
+        if (valid) return on ? YES : NO;
+        // CFPreferences came back invalid: read the file directly rather than
+        // assuming the tweak is on. Guessing "on" here is what let a disabled
+        // tweak keep drawing a cover.
+        @try {
+            for (NSString *base in @[@"/var/mobile/Library/Preferences/",
+                                     @"/var/jb/var/mobile/Library/Preferences/"]) {
+                NSString *pp = [base stringByAppendingFormat:@"%@.plist", kDefaults];
+                NSDictionary *d = [NSDictionary dictionaryWithContentsOfFile:pp];
+                if (d && d[@"enabled"] != nil) return [d[@"enabled"] boolValue];
+            }
+        } @catch (__unused NSException *e) {}
+        return YES;   // genuinely no preference written yet
     } @catch (__unused NSException *e) { return YES; }
 }
 
 static NSString *ADSceneBundleId(UIView *v) {
-    @try {
-        id val=[v valueForKeyPath:@"sceneHandle.application.bundleIdentifier"];
-        return [val isKindOfClass:[NSString class]] ? val : nil;
-    } @catch (__unused NSException *e) { return nil; }
+    static NSArray<NSString *> *paths;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{ paths = @[ @"sceneHandle.application.bundleIdentifier",
+                                      @"sceneHandle.sceneIdentity.bundleIdentifier",
+                                      @"application.bundleIdentifier",
+                                      @"sceneHandle.sceneIdentity.bundleIdentifierOverride",
+                                      @"_sceneHandle.application.bundleIdentifier" ]; });
+    for (NSString *kp in paths) {
+        @try {
+            id val = [v valueForKeyPath:kp];
+            if ([val isKindOfClass:[NSString class]] && [(NSString *)val length]) {
+                return (NSString *)val;
+            }
+        } @catch (__unused NSException *e) {}
+    }
+    return nil;
 }
 
 static void ADDismissCover(void);
@@ -81,7 +111,11 @@ static UIImage *ADSplashImage7191(void) {
     static UIImage *image;
     static dispatch_once_t once;
     dispatch_once(&once, ^{
-        image=[UIImage imageWithContentsOfFile:@"/var/jb/Library/Application Support/AmazonDark/splash-logo.png"];
+        for (NSString *cp in @[@"/var/jb/Library/Application Support/AmazonDark/splash-logo.png",
+                               @"/Library/Application Support/AmazonDark/splash-logo.png"]) {
+            image = [UIImage imageWithContentsOfFile:cp];
+            if (image) break;
+        }
     });
     return image;
 }
@@ -121,6 +155,12 @@ static void ADAttachCoverToScene(UIView *host) {
 
         gPresentAt = CFAbsoluteTimeGetCurrent();
 
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHold * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            if (myGen == gCoverGen){
+                ADDismissCover();
+            }
+        });
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHardCap * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{
             @try { if (gCoverOverlay && myGen == gCoverGen){ UIView *x = gCoverOverlay; gCoverOverlay = nil;
@@ -148,6 +188,7 @@ static void ADDismissCover(void) {
     @try {
         if (!self.window) return;
 
+        if (!ADSBEnabled()) return;
         NSString *bid = ADSceneBundleId(self);
         if (![bid isEqualToString:kAMZ]) return;
 
@@ -169,10 +210,11 @@ static void ADDismissCover(void) {
 
 
 %ctor {
-    if(!ADSBEnabled())return;
 
-    // Event-driven dismissal: the app posts readiness after its first dark composite.
-    // The independent hard cap above is a SpringBoard safety invariant only.
+    // Event-driven dismissal, matching the system: the launch screen leaves at
+    // the app's first frame, not on a timer. The app posts this once its UI is
+    // up; the kCoverHold timer stays only as a fallback for a launch where the
+    // signal never arrives.
     @try {
         static int adReadyToken = 0;
         notify_register_dispatch("com.colindavidr.amazondark.ready", &adReadyToken,
