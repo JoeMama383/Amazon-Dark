@@ -1,11 +1,12 @@
-# AmazonDark v7.303~v7198-launch-restore
+# AmazonDark v7.304~app-transition-hardening
 
-## v7.301 baseline + exact v7.198 launch subsystem
+## v7.301 baseline + proven v7.302 app-side loading fixes, stock launch restored
 
-- Built directly from v7.301. All v7.301 UI, CNM/no-internet, Cart, Person, Alexa, Menu, Search, Home, image and probe behavior remains unchanged except version/probe labels.
-- Replaces `src/AmazonDarkSB.xm` byte-for-byte with the retained v7.198 source. This restores v7.198's 17-second normal fallback hold in addition to the 20-second hard cap, broader SpringBoard scene bundle-ID lookup, broader preference fallback, and rootless/rootful splash asset fallback.
-- Replaces the app-side launch-readiness block with the retained v7.198 implementation. The only source adaptation is the existing helper rename `ADBrightNeutral7129` -> `ADBrightNeutral7130`; launch behavior is otherwise identical.
-- No v7.302 launch experiment or post-v7.301 loading change is included.
+- Direct baseline remains v7.301 for the complete app/theme. `src/AmazonDarkSB.xm` is restored byte-for-byte to v7.301; no custom/pre-cover SpringBoard launch experiment is included.
+- Restores the comprehensive v7.302 **app-side** fixes that actually targeted the problem surfaces: Cart `#sc-saved-cart` hydration strip, early p13n loading cards, universal CNM fast-path ownership, exact CNM dog TWB, CNM/Search gap cap, and Amazon's dedicated `#a-white` WebKit transition plane.
+- The CNM dog raster is **not modified**. The edge-connected white-field/pixel-deletion routine is completely removed. The authored white field remains; only the exact hero receives the established TWB overlay.
+- Launch diagnosis: the retained Cart probes identify `div#a-white` as a fixed z-index 100000 Amazon transition plane with a stock white background. v7.304 colors that exact plane OLED black from document start and additionally prevents the launch-ready signal while that exact plane is visibly active. This closes the case where a dark Home document underneath could be judged ready while Amazon's own transition layer was still on top.
+- No generic image/glyph taming expansion, MutationObserver, interval, RAF loop, web-scroll listener, or recurring hierarchy/DOM scan is added.
 
 # AmazonDark v7.301~universal-error-screen-dark
 
