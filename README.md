@@ -1,12 +1,14 @@
-# AmazonDark v7.304~app-transition-hardening
+# AmazonDark v7.305~warm-dark-shield
 
-## v7.301 baseline + proven v7.302 app-side loading fixes, stock launch restored
+## v7.301 baseline + logo-free warm resume protection
 
-- Direct baseline remains v7.301 for the complete app/theme. `src/AmazonDarkSB.xm` is restored byte-for-byte to v7.301; no custom/pre-cover SpringBoard launch experiment is included.
-- Restores the comprehensive v7.302 **app-side** fixes that actually targeted the problem surfaces: Cart `#sc-saved-cart` hydration strip, early p13n loading cards, universal CNM fast-path ownership, exact CNM dog TWB, CNM/Search gap cap, and Amazon's dedicated `#a-white` WebKit transition plane.
-- The CNM dog raster is **not modified**. The edge-connected white-field/pixel-deletion routine is completely removed. The authored white field remains; only the exact hero receives the established TWB overlay.
-- Launch diagnosis: the retained Cart probes identify `div#a-white` as a fixed z-index 100000 Amazon transition plane with a stock white background. v7.304 colors that exact plane OLED black from document start and additionally prevents the launch-ready signal while that exact plane is visibly active. This closes the case where a dark Home document underneath could be judged ready while Amazon's own transition layer was still on top.
-- No generic image/glyph taming expansion, MutationObserver, interval, RAF loop, web-scroll listener, or recurring hierarchy/DOM scan is added.
+- Direct source baseline is untouched v7.301 production behavior.
+- Cold launch keeps the v7.301 Amazon launch cover, readiness gate, 0.40 s settle and 0.55 s fade.
+- v7.301 already retains v7.185/v7.186's 120-attempt readiness gate and large bright-neutral native-plane veto; those are not reimplemented or broadened.
+- Restores only the proven v7.186 warm-resume masking concept, but warm resumes use a plain dark shield with no Amazon artwork, so reopening cannot replay the Amazon loading presentation.
+- The warm shield is released by a repeated UIApplicationDidBecomeActive -> foreground-ready Darwin notification, with a short 0.35 s settle and 0.18 s fade. A 2.50 s fallback prevents a missed signal from sticking.
+- No post-v7.301 Cart, CNM, dog-raster, #a-white, media, or transition experiments are included.
+- No MutationObserver, interval, RAF, web-scroll listener, recurring hierarchy scan, or warm readiness polling is added.
 
 # AmazonDark v7.301~universal-error-screen-dark
 
