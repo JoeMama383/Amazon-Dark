@@ -55,6 +55,7 @@ static void ADDismissCover(void);
 static UIView *gCoverOverlay;
 static SBSceneView *gCoverHost;
 static const void *kCoveredKey = &kCoveredKey;
+static const void *kColdPrecoverKey7303 = &kColdPrecoverKey7303;
 static unsigned gCoverGen;
 
 // YES when Amazon already has a running process -- i.e. this is a resume, not a
@@ -94,7 +95,9 @@ static void ADAttachCoverToScene(UIView *host) {
         if (!host) return;
         if (gCoverOverlay && gCoverOverlay.superview == host) return;
         UIColor *dk = [UIColor colorWithRed:0.094 green:0.102 blue:0.106 alpha:1.0];
-        UIView *ov = [[UIView alloc] initWithFrame:host.bounds];
+        CGRect coverFrame=host.bounds;
+        if(coverFrame.size.width<100.0||coverFrame.size.height<200.0)coverFrame=UIScreen.mainScreen.bounds;
+        UIView *ov = [[UIView alloc] initWithFrame:coverFrame];
         ov.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         ov.backgroundColor = dk;
         ov.userInteractionEnabled = NO;
@@ -105,7 +108,7 @@ static void ADAttachCoverToScene(UIView *host) {
             logo.contentMode = UIViewContentModeScaleAspectFit;
             logo.translatesAutoresizingMaskIntoConstraints = NO;
             [ov addSubview:logo];
-            CGFloat lw = MAX(host.bounds.size.width, 200.0) * 0.62;
+            CGFloat lw = MAX(ov.bounds.size.width, 200.0) * 0.62;
             CGFloat lh = lw * (splash.size.height / MAX(splash.size.width, 1.0));
             [NSLayoutConstraint activateConstraints:@[
                 [logo.centerXAnchor constraintEqualToAnchor:ov.centerXAnchor],
@@ -124,7 +127,7 @@ static void ADAttachCoverToScene(UIView *host) {
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kCoverHardCap * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{
             @try { if (gCoverOverlay && myGen == gCoverGen){ UIView *x = gCoverOverlay; gCoverOverlay = nil;
-                       SBSceneView *h=gCoverHost; gCoverHost=nil; if(h)objc_setAssociatedObject(h,kCoveredKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                       SBSceneView *h=gCoverHost; gCoverHost=nil; if(h){objc_setAssociatedObject(h,kCoveredKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);objc_setAssociatedObject(h,kColdPrecoverKey7303,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
                        [x removeFromSuperview]; } }
             @catch (__unused NSException *e) {}
         });
@@ -135,7 +138,7 @@ static void ADDismissCover(void) {
     @try {
         if (!gCoverOverlay) return;
         UIView *ov = gCoverOverlay; gCoverOverlay = nil;
-        SBSceneView *h=gCoverHost; gCoverHost=nil; if(h)objc_setAssociatedObject(h,kCoveredKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        SBSceneView *h=gCoverHost; gCoverHost=nil; if(h){objc_setAssociatedObject(h,kCoveredKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);objc_setAssociatedObject(h,kColdPrecoverKey7303,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
         [UIView animateWithDuration:kCoverFade animations:^{ ov.alpha = 0.0; }
                          completion:^(BOOL f){ @try { [ov removeFromSuperview]; }
                                                @catch (__unused NSException *e) {} }];
@@ -143,6 +146,25 @@ static void ADDismissCover(void) {
 }
 
 %hook SBSceneView
+- (void)willMoveToWindow:(UIWindow *)newWindow {
+    // v7.302: cold launch classification must happen before the scene is exposed.
+    // v7.301/v7.302 only checked processState from didMoveToWindow; on a fast/racy
+    // cold boot Amazon can already report running by then, making a true cold launch
+    // look like a warm resume and skipping the dark cover entirely. Historical
+    // v6.0.47 device testing proved willMoveToWindow is the correct first-frame lane.
+    @try {
+        if(newWindow&&ADSBEnabled()){
+            NSString *bid=ADSceneBundleId(self);
+            BOOL already=(objc_getAssociatedObject(self,kCoveredKey)!=nil);
+            if([bid isEqualToString:kAMZ]&&!already&&!ADAmazonProcessAlive()){
+                objc_setAssociatedObject(self,kCoveredKey,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                objc_setAssociatedObject(self,kColdPrecoverKey7303,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                ADAttachCoverToScene(self);
+            }
+        }
+    } @catch (__unused NSException *e) {}
+    %orig(newWindow);
+}
 - (void)didMoveToWindow {
     %orig;
     @try {
@@ -151,15 +173,15 @@ static void ADDismissCover(void) {
         NSString *bid = ADSceneBundleId(self);
         if (![bid isEqualToString:kAMZ]) return;
 
-        // Cold-launch cover only. If Amazon already has a live/suspended process,
-        // reopening it is a normal foreground resume and must not replay our launch screen.
+        // A pre-cover installed before scene exposure wins even if Amazon becomes
+        // "running" during the transition. This is the race v7.302 closes.
+        BOOL already = (objc_getAssociatedObject(self, kCoveredKey) != nil);
+        if (already) return;
+
+        // Cold-launch cover only. Warm/resume behavior from v7.198 remains intact.
         BOOL alive = ADAmazonProcessAlive();
         if (alive) return;
 
-        // One active cover per cold launch. The marker is cleared when the cover leaves,
-        // allowing a later true cold launch to receive the cover again.
-        BOOL already = (objc_getAssociatedObject(self, kCoveredKey) != nil);
-        if (already) return;
         objc_setAssociatedObject(self, kCoveredKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADAttachCoverToScene(self);
     } @catch (__unused NSException *e) {}

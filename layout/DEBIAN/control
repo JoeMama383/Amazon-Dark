@@ -1,6 +1,6 @@
 Package: com.joemama383.amazondark
 Name: AmazonDark
-Version: 7.301~universal-error-screen-dark
+Version: 7.302~comprehensive-transition-hardening
 Architecture: iphoneos-arm64
 Description: Amazon Dark Mode for rootless jailbreaks, iOS 15+
 Maintainer: JoeMama383
