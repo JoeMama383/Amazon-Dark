@@ -1,3 +1,16 @@
+# AmazonDark v7.310~cart-transition-recorder-menu-glyph-repair
+
+## Exact Menu repair + first-paint Cart transition recorder
+
+- Direct production base: the pushed v7.309 commit. Its dog-image taming, Cart document-start rules, footer rows, standalone-ad logo taming, launch behavior, and every other existing theme/image path are retained.
+- Hamburger glyph carousel: the v7.309 Menu probe proves the blank rail is present and correctly laid out. Only the anonymous 58x58 `RCTView` wrappers directly beneath `featured-programs-tile-image-container_*` and directly owning one `RNSVGSvgView` have collapsed to 0.06–0.08 opacity. v7.310 restores opacity only on that exact vector wrapper. Raster carousel tiles, category glyphs, SVG paint, image rendering mode, and TWB ownership are untouched.
+- Cart: the production Cart CSS is intentionally unchanged. The settled-page scroll probe could not identify a surface that exists only during refresh/transition, so v7.310 replaces that Cart route with an explicit two-stage recorder: trigger once on Cart to arm, reproduce within 45 seconds, then trigger again to export.
+- While armed only, the recorder captures frame hit-test stacks; bright/loading candidates and their full computed paint; pseudo-elements; matched CSS rules; stylesheet ownership; DOM mutations; animation/transition events; paint/LCP/layout-shift/long-task entries; ready/load/page lifecycle; and final full-DOM plus native UIKit/WebKit snapshots. Its bounded privacy-safe ring persists through same-origin document reloads.
+- Outside the explicit 45-second Cart probe window, the bridge is inert: no observer, timer, RAF, listener, scan, or production paint mutation runs.
+- No generic image/logo/glyph selector, TWB expansion, broad Menu traversal, guessed Cart selector, launch change, or unrelated theming change is added.
+
+---
+
 # AmazonDark v7.309~probe-exact-dog-cart-footer-xl-brand
 
 ## Four narrow corrections on the v7.307 baseline
