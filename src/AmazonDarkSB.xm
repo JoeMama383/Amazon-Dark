@@ -1,4 +1,4 @@
-// AmazonDarkSB.xm — v7.332 live-scene-continuity pre-arm
+// AmazonDarkSB.xm — v7.333 live-scene-continuity pre-arm
 //
 // A stock launch image/snapshot is owned by iOS before Amazon can draw. The old
 // SBSceneView -didMoveToWindow path attached our cover only after the scene had
@@ -65,20 +65,13 @@ static double gFirstOverlayAt7326=0.0;
 static int gAmazonProcessLaunchPending7327=0;
 static NSInteger gAuthoritativeProcessPID7330=0;
 
-// v7.332: readiness belongs to one concrete Amazon process. A global Darwin
+// v7.333: readiness belongs to one concrete Amazon process. A global Darwin
 // ready channel lets a dying/replaced Amazon process dismiss the cover that now
 // belongs to its successor. Keep exactly one process-scoped subscription.
 static int gReadyToken7330=0;
 static NSInteger gReadyPID7330=0;
 static unsigned gReadyGeneration7330=0;
-// v7.332: a running Amazon process with no live SpringBoard scene is ambiguous:
-// it may be a same-process scene reconstruction, or the stale process iOS is
-// about to replace. Its ready listener is tentative until a short process-boundary
-// confirmation passes; any replacement _processWillLaunch: rebases generation.
-static BOOL gReadyTentative7332=NO;
-static const NSTimeInterval kTentativeReadyConfirm7332=0.25;
-
-static NSString * const kADSBLaunchProbePath7326=@"/var/mobile/AmazonDark-v7.332-launch-sb-probe.txt";
+static NSString * const kADSBLaunchProbePath7326=@"/var/mobile/AmazonDark-v7.333-launch-sb-probe.txt";
 static dispatch_queue_t ADSBProbeQueue7326(void){
     static dispatch_queue_t q; static dispatch_once_t once;
     dispatch_once(&once,^{q=dispatch_queue_create("com.colindavidr.amazondark.launchprobe.sb",DISPATCH_QUEUE_SERIAL);});
@@ -110,7 +103,6 @@ static void ADClearReadyListener7330(NSString *reason){
     gReadyToken7330=0;
     gReadyPID7330=0;
     gReadyGeneration7330=0;
-    gReadyTentative7332=NO;
     if(token>0){
         @try { notify_cancel(token); } @catch(__unused NSException *e){}
     }
@@ -285,36 +277,12 @@ static void ADHandleReady7330(NSInteger pid,int token){
             return;
         }
         unsigned boundGeneration=gReadyGeneration7330;
-        BOOL tentative=gReadyTentative7332;
         if(!gColdActive7326||boundGeneration!=gColdGeneration7326){
             ADSBProbeLog7326(@"ready.notify.stale",[NSString stringWithFormat:@"pid=%ld token=%d active=%d boundGen=%u currentGen=%u",(long)pid,token,gColdActive7326?1:0,boundGeneration,gColdGeneration7326]);
             ADClearReadyListener7330(@"stale-generation");
             return;
         }
-        ADClearReadyListener7330(tentative?@"tentative-ready-received":@"ready-received");
-        if(tentative){
-            // A live PID with no live scene can either survive the reconstruction or
-            // be replaced immediately after the tap. Do not let its ready signal tear
-            // down the cover until the process-launch boundary has had one bounded
-            // confirmation window to rebase the generation. This is not a launch dwell:
-            // it runs only for the ambiguous same-PID/no-scene path.
-            ADSBProbeLog7326(@"ready.tentative",[NSString stringWithFormat:@"pid=%ld gen=%u confirm=%.3f",(long)pid,boundGeneration,kTentativeReadyConfirm7332]);
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(kTentativeReadyConfirm7332*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-                if(!gColdActive7326||boundGeneration!=gColdGeneration7326){
-                    ADSBProbeLog7326(@"ready.tentative.invalidated",[NSString stringWithFormat:@"pid=%ld queuedGen=%u currentGen=%u active=%d",(long)pid,boundGeneration,gColdGeneration7326,gColdActive7326?1:0]);
-                    return;
-                }
-                NSInteger currentPID=ADAmazonPID7326();
-                BOOL running=ADAmazonProcessRunning7326();
-                if(currentPID!=pid||!running){
-                    ADSBProbeLog7326(@"ready.tentative.defer",[NSString stringWithFormat:@"pid=%ld currentPid=%ld running=%d gen=%u",(long)pid,(long)currentPID,running?1:0,boundGeneration]);
-                    return;
-                }
-                ADSBProbeLog7326(@"ready.tentative.confirm",[NSString stringWithFormat:@"pid=%ld gen=%u",(long)pid,boundGeneration]);
-                ADScheduleReadyDismiss7332(pid,boundGeneration);
-            });
-            return;
-        }
+        ADClearReadyListener7330(@"ready-received");
         ADScheduleReadyDismiss7332(pid,boundGeneration);
     } @catch(__unused NSException *e){}
 }
@@ -338,8 +306,7 @@ static void ADBindReadyListener7330(NSInteger pid,NSString *reason){
         gReadyToken7330=newToken;
         gReadyPID7330=pid;
         gReadyGeneration7330=gColdGeneration7326;
-        gReadyTentative7332=NO;
-        ADSBProbeLog7326(@"ready.listener.bind",[NSString stringWithFormat:@"reason=%@ pid=%ld token=%d gen=%u channel=%@",reason?:@"?",(long)pid,newToken,gReadyGeneration7330,channel]);
+            ADSBProbeLog7326(@"ready.listener.bind",[NSString stringWithFormat:@"reason=%@ pid=%ld token=%d gen=%u channel=%@",reason?:@"?",(long)pid,newToken,gReadyGeneration7330,channel]);
     } else {
         ADSBProbeLog7326(@"ready.listener.error",[NSString stringWithFormat:@"reason=%@ pid=%ld status=%u token=%d gen=%u",reason?:@"?",(long)pid,status,newToken,gColdGeneration7326]);
         if(newToken>0)notify_cancel(newToken);
@@ -457,25 +424,30 @@ static void ADHookIconTap7326(id self,SEL _cmd,id gesture){
     BOOL running=ADAmazonProcessRunning7326();
     NSUInteger liveScenes=ADAmazonLiveSceneCount7328();
     BOOL processContinuous=pid>0&&running;
-    BOOL sceneContinuous=liveScenes>0;
-    BOOL sameSceneWarm=processContinuous&&sceneContinuous;
-    BOOL needsCover=amazon&&ADSBEnabled7326()&&state==UIGestureRecognizerStateEnded&&!sameSceneWarm;
-    if(amazon)ADSBProbeLog7326(@"icon.tap",[NSString stringWithFormat:@"view=%p bid=%@ state=%ld pid=%ld running=%d liveScenes=%lu sameSceneWarm=%d cover=%d",self,bundle,(long)state,(long)pid,running?1:0,(unsigned long)liveScenes,sameSceneWarm?1:0,needsCover?1:0]);
-    if(needsCover){
-        // The PID visible at this tap may be the process iOS is about to replace,
-        // but it may also be the exact process that survives a scene reconstruction.
-        // ADArmColdLaunch clears the prior subscription first. For the ambiguous
-        // surviving-process/no-live-scene path, immediately bind that PID tentatively;
-        // a later _processWillLaunch: rebases the generation and replaces the listener.
-        NSString *reason=processContinuous&&!sceneContinuous?@"icon-tap-no-live-scene":@"verified-cold-icon-tap-fallback";
-        ADArmColdLaunch7326(reason,YES);
-        if(processContinuous&&pid>0){
-            ADBindReadyListener7330(pid,@"covered-icon-tap-current-process");
-            if(gReadyPID7330==pid&&gReadyGeneration7330==gColdGeneration7326){
-                gReadyTentative7332=YES;
-                ADSBProbeLog7326(@"ready.listener.tentative",[NSString stringWithFormat:@"pid=%ld gen=%u",(long)pid,gColdGeneration7326]);
-            }
+    // v7.333: process continuity is the warm contract. SpringBoard can transiently
+    // have zero registered SBDeviceApplicationSceneView objects while the exact same
+    // Amazon process survives an app-switcher/background scene reconstruction. Treating
+    // that state as cold caused v7.333 to wait for a cold-only Home-ready signal that
+    // never fires on an ordinary warm resume. A genuine replacement process is still
+    // caught authoritatively by SBApplication -_processWillLaunch:.
+    BOOL sameProcessWarm=processContinuous;
+    BOOL needsCover=amazon&&ADSBEnabled7326()&&state==UIGestureRecognizerStateEnded&&!sameProcessWarm;
+    if(amazon)ADSBProbeLog7326(@"icon.tap",[NSString stringWithFormat:@"view=%p bid=%@ state=%ld pid=%ld running=%d liveScenes=%lu sameProcessWarm=%d cover=%d",self,bundle,(long)state,(long)pid,running?1:0,(unsigned long)liveScenes,sameProcessWarm?1:0,needsCover?1:0]);
+    if(amazon&&ADSBEnabled7326()&&state==UIGestureRecognizerStateEnded&&sameProcessWarm){
+        // A prior cold generation can still be alive while the user briefly enters the
+        // app switcher. Do not let that stale generation follow a warm scene replacement.
+        // Cancel it before SpringBoard continues the stock warm transition.
+        if(gColdActive7326||ADHasAnySceneOverlay7327()){
+            unsigned oldGeneration=gColdGeneration7326;
+            ++gColdGeneration7326; // invalidate queued ready-dismiss/hard-cap closures
+            ADClearReadyListener7330(@"verified-warm-icon-tap");
+            __atomic_store_n(&gAmazonProcessLaunchPending7327,0,__ATOMIC_RELEASE);
+            __atomic_store_n(&gAuthoritativeProcessPID7330,pid,__ATOMIC_RELEASE);
+            ADRemoveAllOverlays7326(NO);
+            ADSBProbeLog7326(@"warm.cancel",[NSString stringWithFormat:@"pid=%ld oldGen=%u newGen=%u liveScenes=%lu",(long)pid,oldGeneration,gColdGeneration7326,(unsigned long)liveScenes]);
         }
+    } else if(needsCover){
+        ADArmColdLaunch7326(@"verified-cold-icon-tap-fallback",YES);
     }
     if(ADOrigIconTap7326)ADOrigIconTap7326(self,_cmd,gesture);
 }

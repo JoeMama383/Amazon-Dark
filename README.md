@@ -1,3 +1,12 @@
+# AmazonDark v7.333 — warm-process continuity correction
+
+- Fixes the v7.332 regression where a surviving Amazon PID with zero temporarily registered SpringBoard scenes was treated as cold, causing a launch overlay to wait for a cold-only Home-ready signal and fall through to the 20-second hard cap.
+- A running Amazon process is now an ordinary warm resume regardless of transient SpringBoard scene registration count. No new cold launch cover is armed for that state.
+- On a verified warm icon tap, any still-active cover generation from a prior cold launch is cancelled synchronously before the stock transition continues; its queued ready/hard-cap closures are invalidated by a generation bump.
+- If iOS really replaces the apparently warm process, the retained `SBApplication -_processWillLaunch:` hook remains authoritative and arms/rebases the cold cover for the replacement PID.
+- Retains v7.331 early app-switcher snapshot ownership (`WillResignActive` -> background -> `WillEnterForeground`) unchanged.
+- No polling, recurring timer, MutationObserver, scene scan loop, or new runtime theming work.
+
 # AmazonDark v7.332 — process-scoped ready continuity
 
 - Fixes the v7.330/v7.331 intermittent 20-second launch stall captured in the supplied trace. The app itself reached real Home readiness, but SpringBoard had cleared the surviving PID's ready listener on an ambiguous `running process + no live scene` icon tap; with no replacement `_processWillLaunch:` callback, the ready post was lost and the overlay survived to the nonanimated 20-second hard cap.
