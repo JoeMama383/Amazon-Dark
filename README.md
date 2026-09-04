@@ -1,3 +1,12 @@
+# AmazonDark v7.328 — live-scene-continuity launch pre-arm
+
+- Fixes the exact v7.327 partial-white trace: the icon tap saw stale PID 8588 as running after its prior scene had already invalidated, so the early hook skipped the cover; replacement PID 8598 was disclosed by `_processWillLaunch:` 688 ms later, after the stock white transition had begun.
+- A running PID alone no longer proves a warm resume. The pre-original icon-tap path skips the cover only when both a running Amazon process and a still-live registered Amazon scene prove same-scene continuity.
+- When no live Amazon scene exists, the black/logo launch generation is armed before the original icon tap even if a stale process is still reported as running. The replacement scene therefore receives the native overlay from its designated initializer before presentation.
+- Retains `SBApplication -_processWillLaunch:` as authoritative new-process confirmation and prewarming protection, while correcting its probe attachment reason so a late process callback is no longer mislabeled `pre-original-icon-tap`.
+- Keeps true same-process/same-scene warm resumes unmasked, along with the stock icon/scene animation, existing native scene overlay, stable real-Home handoff, and 1.40 s minimum / 0.40 s settle / 0.55 s fade / 20 s hard cap.
+- No Cart, Alexa, UI-theming, snapshot-cache, preference, Makefile, injection-plist, or GitHub Actions changes.
+
 # AmazonDark v7.327 — authoritative cold-process launch cover
 
 - Fixes the exact failed v7.326 trace: SpringBoard saw stale PID 7755 as running and classified the icon tap warm, then iOS replaced it with fresh Amazon PID 7763. No cover was active for that actual cold process.

@@ -1,12 +1,14 @@
-// AmazonDarkSB.xm — v7.327 authoritative process-launch scene overlay
+// AmazonDarkSB.xm — v7.328 live-scene-continuity pre-arm
 //
 // A stock launch image/snapshot is owned by iOS before Amazon can draw. The old
 // SBSceneView -didMoveToWindow path attached our cover only after the scene had
 // entered a window, leaving one compositor frame in which the stock white image
 // could win. This build uses SpringBoard's own device-scene overlay API instead:
 //
-//   * SpringBoard's exact Amazon process-launch callback owns the cold decision;
-//   * the icon tap remains only an earlier PID-zero fallback;
+//   * an Amazon icon tap pre-arms unless both process and live-scene continuity
+//     prove that the launch is a genuine same-scene warm resume;
+//   * SpringBoard's exact Amazon process-launch callback confirms/retains a new
+//     process launch even when the old process was still alive at icon tap;
 //   * an already-created Amazon scene receives the overlay before the original tap;
 //   * a newly-created Amazon scene receives it from its designated initializer,
 //     before the scene is presented;
@@ -62,7 +64,7 @@ static double gFirstOverlayAt7326=0.0;
 // queued main-thread block.
 static int gAmazonProcessLaunchPending7327=0;
 
-static NSString * const kADSBLaunchProbePath7326=@"/var/mobile/AmazonDark-v7.327-launch-sb-probe.txt";
+static NSString * const kADSBLaunchProbePath7326=@"/var/mobile/AmazonDark-v7.328-launch-sb-probe.txt";
 static dispatch_queue_t ADSBProbeQueue7326(void){
     static dispatch_queue_t q; static dispatch_once_t once;
     dispatch_once(&once,^{q=dispatch_queue_create("com.colindavidr.amazondark.launchprobe.sb",DISPATCH_QUEUE_SERIAL);});
@@ -188,6 +190,9 @@ static BOOL ADHasAnySceneOverlay7327(void){
         if(ADSceneOverlay7326(scene))return YES;
     return NO;
 }
+static NSUInteger ADAmazonLiveSceneCount7328(void){
+    return ADAmazonScenes7326().allObjects.count;
+}
 static void ADArmColdLaunch7326(NSString *reason,BOOL expireIfUnclaimed);
 static void ADAttachSceneOverlay7326(SBDeviceApplicationSceneView *scene,NSString *reason){
     if(!scene||!gColdActive7326||!ADSBEnabled7326()||ADSceneOverlay7326(scene))return;
@@ -257,7 +262,7 @@ static void ADArmColdLaunch7326(NSString *reason,BOOL expireIfUnclaimed){
     unsigned generation=++gColdGeneration7326;
     NSArray *scenes=ADAmazonScenes7326().allObjects;
     ADSBProbeLog7326(@"cold.arm",[NSString stringWithFormat:@"reason=%@ gen=%u registeredScenes=%lu",reason?:@"?",generation,(unsigned long)scenes.count]);
-    for(SBDeviceApplicationSceneView *scene in scenes)ADAttachSceneOverlay7326(scene,@"pre-original-icon-tap");
+    for(SBDeviceApplicationSceneView *scene in scenes)ADAttachSceneOverlay7326(scene,reason);
 
     // Only the early icon/PID-zero fallback is allowed to expire. An authoritative
     // process-launch arm survives prewarming until an Amazon foreground scene exists.
@@ -280,9 +285,16 @@ static void ADHookIconTap7326(id self,SEL _cmd,id gesture){
     NSInteger state=[gesture respondsToSelector:@selector(state)]?(NSInteger)[gesture state]:-1;
     BOOL amazon=[(bundle?:@"") isEqualToString:kAMZ];
     BOOL running=ADAmazonProcessRunning7326();
-    BOOL cold=amazon&&ADSBEnabled7326()&&state==UIGestureRecognizerStateEnded&&(pid<=0||!running);
-    if(amazon)ADSBProbeLog7326(@"icon.tap",[NSString stringWithFormat:@"view=%p bid=%@ state=%ld pid=%ld running=%d cold=%d",self,bundle,(long)state,(long)pid,running?1:0,cold?1:0]);
-    if(cold)ADArmColdLaunch7326(@"verified-cold-icon-tap-fallback",YES);
+    NSUInteger liveScenes=ADAmazonLiveSceneCount7328();
+    BOOL processContinuous=pid>0&&running;
+    BOOL sceneContinuous=liveScenes>0;
+    BOOL sameSceneWarm=processContinuous&&sceneContinuous;
+    BOOL needsCover=amazon&&ADSBEnabled7326()&&state==UIGestureRecognizerStateEnded&&!sameSceneWarm;
+    if(amazon)ADSBProbeLog7326(@"icon.tap",[NSString stringWithFormat:@"view=%p bid=%@ state=%ld pid=%ld running=%d liveScenes=%lu sameSceneWarm=%d cover=%d",self,bundle,(long)state,(long)pid,running?1:0,(unsigned long)liveScenes,sameSceneWarm?1:0,needsCover?1:0]);
+    if(needsCover){
+        NSString *reason=processContinuous&&!sceneContinuous?@"icon-tap-no-live-scene":@"verified-cold-icon-tap-fallback";
+        ADArmColdLaunch7326(reason,YES);
+    }
     if(ADOrigIconTap7326)ADOrigIconTap7326(self,_cmd,gesture);
 }
 static void ADInstallTapHook7326(void){
