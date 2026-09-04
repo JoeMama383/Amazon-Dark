@@ -1,3 +1,21 @@
+# AmazonDark v7.330 — process-scoped launch readiness
+
+- Fixes the remaining replacement-process handoff race without adding another timing delay.
+- Amazon now posts its proven stable-Home handoff on `com.colindavidr.amazondark.ready.<PID>` instead of one process-agnostic Darwin channel.
+- Every covered Amazon icon tap immediately cancels the prior process readiness subscription before SpringBoard advances the launch.
+- `SBApplication -_processWillLaunch:` binds readiness to the PID SpringBoard actually announces. If the icon tap already installed the native scene overlay, the overlay stays visually untouched while its generation is rebased so any queued dismissal or hard-cap closure from the replaced process becomes invalid.
+- The replacement generation receives its own process-scoped ready listener and a rebased safety cap using the original overlay presentation time.
+- Retains v7.329 dark app-switcher snapshot ownership, v7.328 live-scene continuity pre-arm, the native `SBDeviceApplicationSceneView` overlay, the bounded real-Home gate, 1.40 s minimum / 0.40 s settle / 0.55 s fade / 20 s cap, and true same-scene warm resumes.
+- No independent UIWindow, SplashBoard deletion, Dark Reader, MutationObserver, polling loop, recurring scan, new UI theming, Cart change, or Alexa change.
+
+# AmazonDark v7.329 — dark app-switcher snapshot ownership
+
+- Fixes the separate task-manager/app-switcher defect shown after a fully dark foreground transition: the switcher card is a persisted app-rendered scene snapshot and does not include AmazonDark's SpringBoard-owned live launch overlay.
+- At `UIApplicationDidEnterBackgroundNotification`, synchronously installs an opaque OLED-black view with the existing custom light/orange Amazon logo on every full-size Amazon window. UIKit captures that hierarchy for the app-switcher card immediately afterward.
+- Removes the snapshot-only cover without animation at `UIApplicationWillEnterForegroundNotification`, before a genuine warm resume returns onscreen. Same-scene warm behavior therefore remains direct-to-Home.
+- Newly created full-size windows also inherit the cover while Amazon remains backgrounded. No independent window, snapshot deletion, recurring scan, timer, animation, or SpringBoard app-switcher hook is introduced.
+- Retains the complete v7.328 live-scene-continuity launch correction. No Cart, Alexa, UI-theming, preference, Makefile, injection-plist, or GitHub Actions changes.
+
 # AmazonDark v7.328 — live-scene-continuity launch pre-arm
 
 - Fixes the exact v7.327 partial-white trace: the icon tap saw stale PID 8588 as running after its prior scene had already invalidated, so the early hook skipped the cover; replacement PID 8598 was disclosed by `_processWillLaunch:` 688 ms later, after the stock white transition had begun.
