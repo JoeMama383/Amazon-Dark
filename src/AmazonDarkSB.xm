@@ -1,4 +1,4 @@
-// AmazonDarkSB.xm — v7.318 launch-discovery probe on v7.316 behavior
+// AmazonDarkSB.xm — v7.319 launch-discovery probe on v7.316 behavior
 // Cold-launch first-frame bridge without touching SBSceneView.
 //
 // Architecture:
@@ -18,7 +18,7 @@
 #import <notify.h>
 #import <objc/runtime.h>
 
-extern void MSHookMessageEx(Class cls, SEL sel, IMP imp, IMP *result);
+extern "C" void MSHookMessageEx(Class cls, SEL sel, IMP imp, IMP *result);
 
 static NSString * const kAMZ      = @"com.amazon.Amazon";
 static NSString * const kDefaults = @"com.colindavidr.amazondark";
@@ -42,10 +42,10 @@ static const NSTimeInterval kBridgeHardCap7316 = 4.0;
 static UIWindow *gBridgeWindow7316;
 static unsigned gBridgeGen7316;
 
-// v7.318 probe-only launch recorder. Writes outside any app container so a SpringBoard
+// v7.319 probe-only launch recorder. Writes outside any app container so a SpringBoard
 // launch-path failure can be recovered directly from NewTerm. Logging is serialized off-main;
 // event timestamps are captured before enqueue so file I/O cannot perturb launch ordering.
-static NSString * const kADSBLaunchProbePath7318=@"/var/mobile/AmazonDark-v7.318-launch-sb-probe.txt";
+static NSString * const kADSBLaunchProbePath7318=@"/var/mobile/AmazonDark-v7.319-launch-sb-probe.txt";
 static dispatch_queue_t ADSBProbeQueue7318(void){
     static dispatch_queue_t q; static dispatch_once_t once;
     dispatch_once(&once,^{q=dispatch_queue_create("com.colindavidr.amazondark.launchprobe.sb",DISPATCH_QUEUE_SERIAL);});
