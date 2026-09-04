@@ -1,4 +1,4 @@
-// AmazonDarkSB.xm — v7.333 live-scene-continuity pre-arm
+// AmazonDarkSB.xm — v7.334 snapshot-scoped warm handoff
 //
 // A stock launch image/snapshot is owned by iOS before Amazon can draw. The old
 // SBSceneView -didMoveToWindow path attached our cover only after the scene had
@@ -65,13 +65,13 @@ static double gFirstOverlayAt7326=0.0;
 static int gAmazonProcessLaunchPending7327=0;
 static NSInteger gAuthoritativeProcessPID7330=0;
 
-// v7.333: readiness belongs to one concrete Amazon process. A global Darwin
+// v7.334: readiness belongs to one concrete Amazon process. A global Darwin
 // ready channel lets a dying/replaced Amazon process dismiss the cover that now
 // belongs to its successor. Keep exactly one process-scoped subscription.
 static int gReadyToken7330=0;
 static NSInteger gReadyPID7330=0;
 static unsigned gReadyGeneration7330=0;
-static NSString * const kADSBLaunchProbePath7326=@"/var/mobile/AmazonDark-v7.333-launch-sb-probe.txt";
+static NSString * const kADSBLaunchProbePath7326=@"/var/mobile/AmazonDark-v7.334-launch-sb-probe.txt";
 static dispatch_queue_t ADSBProbeQueue7326(void){
     static dispatch_queue_t q; static dispatch_once_t once;
     dispatch_once(&once,^{q=dispatch_queue_create("com.colindavidr.amazondark.launchprobe.sb",DISPATCH_QUEUE_SERIAL);});
@@ -424,16 +424,22 @@ static void ADHookIconTap7326(id self,SEL _cmd,id gesture){
     BOOL running=ADAmazonProcessRunning7326();
     NSUInteger liveScenes=ADAmazonLiveSceneCount7328();
     BOOL processContinuous=pid>0&&running;
-    // v7.333: process continuity is the warm contract. SpringBoard can transiently
+    // v7.334: process continuity is the warm contract. SpringBoard can transiently
     // have zero registered SBDeviceApplicationSceneView objects while the exact same
     // Amazon process survives an app-switcher/background scene reconstruction. Treating
-    // that state as cold caused v7.333 to wait for a cold-only Home-ready signal that
+    // that state as cold caused v7.334 to wait for a cold-only Home-ready signal that
     // never fires on an ordinary warm resume. A genuine replacement process is still
     // caught authoritatively by SBApplication -_processWillLaunch:.
     BOOL sameProcessWarm=processContinuous;
     BOOL needsCover=amazon&&ADSBEnabled7326()&&state==UIGestureRecognizerStateEnded&&!sameProcessWarm;
     if(amazon)ADSBProbeLog7326(@"icon.tap",[NSString stringWithFormat:@"view=%p bid=%@ state=%ld pid=%ld running=%d liveScenes=%lu sameProcessWarm=%d cover=%d",self,bundle,(long)state,(long)pid,running?1:0,(unsigned long)liveScenes,sameProcessWarm?1:0,needsCover?1:0]);
     if(amazon&&ADSBEnabled7326()&&state==UIGestureRecognizerStateEnded&&sameProcessWarm){
+        // v7.334: v7.331's snapshot-only cover may still be present while Amazon is
+        // inactive in the switcher. Tell this exact surviving process to retire it before
+        // SpringBoard proceeds with the stock warm foreground transition.
+        NSString *releaseChannel=[NSString stringWithFormat:@"com.colindavidr.amazondark.switcher-release.%ld",(long)pid];
+        @try { notify_post(releaseChannel.UTF8String); } @catch(...) {}
+        ADSBProbeLog7326(@"warm.snapshot-release",[NSString stringWithFormat:@"pid=%ld channel=%@",(long)pid,releaseChannel]);
         // A prior cold generation can still be alive while the user briefly enters the
         // app switcher. Do not let that stale generation follow a warm scene replacement.
         // Cancel it before SpringBoard continues the stock warm transition.

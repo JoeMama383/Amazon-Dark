@@ -1,3 +1,11 @@
+# AmazonDark v7.334 — snapshot-scoped app-switcher cover
+
+- Fixes the remaining every-warm-reopen black/logo flash without weakening cold-launch coverage. The v7.333 trace proves SpringBoard already classifies every warm icon tap as `sameProcessWarm=1 cover=0`; the visible artifact is v7.331's app-rendered switcher snapshot cover surviving until `UIApplicationDidBecomeActive`.
+- The snapshot cover is now committed synchronously at `UIApplicationWillResignActive`, retained for one bounded 0.45 s capture window, and retired while Amazon is still inactive when the app has not entered background. `UIApplicationDidEnterBackground` reasserts it for the persisted switcher snapshot, and `UIApplicationWillEnterForeground` removes it before a normal background resume.
+- A verified same-process warm Home-screen tap also posts a PID-scoped `switcher-release.<pid>` notification before SpringBoard calls the original tap handler, giving an immediate preflight release for very fast reopen gestures.
+- Cold launch overlay classification, process-scoped Home readiness, replacement-process generation rebasing, 0.55 s cold fade, v7.331 dark switcher snapshot ownership, Cart/Alexa/UI theming, and all other runtime behavior remain unchanged.
+- No polling, recurring timer, display link, MutationObserver, SpringBoard switcher hook, or independent launch window is added. The only timer is one 0.45 s lifecycle-scoped retirement after `WillResignActive`.
+
 # AmazonDark v7.333 — warm-process continuity correction
 
 - Fixes the v7.332 regression where a surviving Amazon PID with zero temporarily registered SpringBoard scenes was treated as cold, causing a launch overlay to wait for a cold-only Home-ready signal and fall through to the 20-second hard cap.
