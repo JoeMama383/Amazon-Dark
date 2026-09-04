@@ -1,4 +1,4 @@
-// AmazonDarkSB.xm — v7.320 verified icon-tap cold-launch bridge
+// AmazonDarkSB.xm — v7.321 verified icon-tap cold-launch bridge
 // Cold-launch first-frame bridge without touching SBSceneView.
 //
 // Architecture:
@@ -42,10 +42,10 @@ static const NSTimeInterval kBridgeHardCap7316 = 4.0;
 static UIWindow *gBridgeWindow7316;
 static unsigned gBridgeGen7316;
 
-// v7.320 targeted launch recorder. Writes outside any app container so a SpringBoard
+// v7.321 targeted launch recorder. Writes outside any app container so a SpringBoard
 // launch-path failure can be recovered directly from NewTerm. Logging is serialized off-main;
 // event timestamps are captured before enqueue so file I/O cannot perturb launch ordering.
-static NSString * const kADSBLaunchProbePath7318=@"/var/mobile/AmazonDark-v7.320-launch-sb-probe.txt";
+static NSString * const kADSBLaunchProbePath7318=@"/var/mobile/AmazonDark-v7.321-launch-sb-probe.txt";
 static dispatch_queue_t ADSBProbeQueue7318(void){
     static dispatch_queue_t q; static dispatch_once_t once;
     dispatch_once(&once,^{q=dispatch_queue_create("com.colindavidr.amazondark.launchprobe.sb",DISPATCH_QUEUE_SERIAL);});
