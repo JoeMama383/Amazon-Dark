@@ -1,35 +1,14 @@
-# AmazonDark v7.334 — snapshot-scoped app-switcher cover
+# AmazonDark v7.335 — v6.185 warm/switcher behavior on v7.330 cold ownership
 
-- Fixes the remaining every-warm-reopen black/logo flash without weakening cold-launch coverage. The v7.333 trace proves SpringBoard already classifies every warm icon tap as `sameProcessWarm=1 cover=0`; the visible artifact is v7.331's app-rendered switcher snapshot cover surviving until `UIApplicationDidBecomeActive`.
-- The snapshot cover is now committed synchronously at `UIApplicationWillResignActive`, retained for one bounded 0.45 s capture window, and retired while Amazon is still inactive when the app has not entered background. `UIApplicationDidEnterBackground` reasserts it for the persisted switcher snapshot, and `UIApplicationWillEnterForeground` removes it before a normal background resume.
-- A verified same-process warm Home-screen tap also posts a PID-scoped `switcher-release.<pid>` notification before SpringBoard calls the original tap handler, giving an immediate preflight release for very fast reopen gestures.
-- Cold launch overlay classification, process-scoped Home readiness, replacement-process generation rebasing, 0.55 s cold fade, v7.331 dark switcher snapshot ownership, Cart/Alexa/UI theming, and all other runtime behavior remain unchanged.
-- No polling, recurring timer, display link, MutationObserver, SpringBoard switcher hook, or independent launch window is added. The only timer is one 0.45 s lifecycle-scoped retirement after `WillResignActive`.
-
-# AmazonDark v7.333 — warm-process continuity correction
-
-- Fixes the v7.332 regression where a surviving Amazon PID with zero temporarily registered SpringBoard scenes was treated as cold, causing a launch overlay to wait for a cold-only Home-ready signal and fall through to the 20-second hard cap.
-- A running Amazon process is now an ordinary warm resume regardless of transient SpringBoard scene registration count. No new cold launch cover is armed for that state.
-- On a verified warm icon tap, any still-active cover generation from a prior cold launch is cancelled synchronously before the stock transition continues; its queued ready/hard-cap closures are invalidated by a generation bump.
-- If iOS really replaces the apparently warm process, the retained `SBApplication -_processWillLaunch:` hook remains authoritative and arms/rebases the cold cover for the replacement PID.
-- Retains v7.331 early app-switcher snapshot ownership (`WillResignActive` -> background -> `WillEnterForeground`) unchanged.
-- No polling, recurring timer, MutationObserver, scene scan loop, or new runtime theming work.
-
-# AmazonDark v7.332 — process-scoped ready continuity
-
-- Fixes the v7.330/v7.331 intermittent 20-second launch stall captured in the supplied trace. The app itself reached real Home readiness, but SpringBoard had cleared the surviving PID's ready listener on an ambiguous `running process + no live scene` icon tap; with no replacement `_processWillLaunch:` callback, the ready post was lost and the overlay survived to the nonanimated 20-second hard cap.
-- On that exact ambiguous path, SpringBoard now rebinds the currently running Amazon PID as a **tentative** process-scoped ready owner immediately after arming the scene overlay.
-- A tentative ready signal waits only a 0.25-second process-boundary confirmation. If iOS announces a replacement process, the existing generation rebase invalidates the tentative dismissal and binds the replacement PID. If the same PID survives, the normal 1.40 s minimum / 0.40 s settle / 0.55 s fade proceeds.
-- True PID-zero cold launches, true same-process/same-scene warm resumes, v7.331 early app-switcher snapshot ownership, Cart/Alexa/UI theming, and the bounded real-Home readiness gate are otherwise unchanged.
-- No polling, recurring timer, MutationObserver, hierarchy scan, independent launch window, or new SpringBoard scene mutation was added.
-
-# AmazonDark v7.331 — first-switcher-snapshot ownership
-
-- Fixes the remaining v7.329/v7.330 app-switcher race where the first card could preserve Amazon's stock white launch artwork before `UIApplicationDidEnterBackgroundNotification` installed the dark snapshot cover.
-- Activates the existing opaque OLED-black/logo app-window cover synchronously at `UIApplicationWillResignActiveNotification`, before the switcher transition can request its first app-rendered snapshot.
-- Reasserts the same cover at `UIApplicationDidEnterBackgroundNotification` and keeps it continuously installed while Amazon remains backgrounded.
-- Removes it at `UIApplicationWillEnterForegroundNotification`; transient resign-active interruptions that never background are cleaned up at `UIApplicationDidBecomeActiveNotification`.
-- No SpringBoard switcher hook, polling, timer, scan, animation, snapshot-file deletion, or recurring runtime work. v7.330 process-scoped cold-launch readiness is unchanged.
+- Direct cold-launch base is v7.330, the build reported to eliminate cold white transitions.
+- Deletes the entire v7.329-v7.334 app-switcher black/logo cover subsystem. No view is inserted into Amazon's live UIWindow during backgrounding, Home transitions, or warm re-entry.
+- Restores the v6.185 one-time Amazon process-start cleanup of `Library/SplashBoard/Snapshots`; UIKit snapshots the already-dark live Amazon hierarchy naturally. No switcher hook, capture timer, warm-release channel, or recurring file work is added.
+- Warm classification is process-readiness based: a PID that completed the process-scoped dark Home handoff resumes directly even if SpringBoard temporarily rebuilt its scene host. No loading overlay is fabricated for that reopen.
+- A PID still owning the active cold generation cannot self-cancel when a second tap observes it running. The existing exact ready listener/generation stays intact until real Home readiness.
+- An outgoing scene's active cold overlay is no longer removed before SpringBoard invalidates the scene; the dark cover survives the outgoing scene handoff while the replacement scene inherits the same cold generation.
+- `_processWillLaunch:` remains authoritative for a genuinely replacement PID, with v7.330 process-scoped readiness and generation rebasing unchanged.
+- App-side AXU/Tez ownership follows the v6.185 rule: darken the splash floor if Amazon actually creates it, but never hide/show it to manufacture a warm-resume transition.
+- v7.331-v7.334 snapshot/tentative/warm-release experiments are not inherited.
 
 # AmazonDark v7.330 — process-scoped launch readiness
 
