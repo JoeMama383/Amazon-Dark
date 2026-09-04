@@ -1,4 +1,4 @@
-// AmazonDarkSB.xm — v7.319 launch-discovery probe on v7.316 behavior
+// AmazonDarkSB.xm — v7.320 verified icon-tap cold-launch bridge
 // Cold-launch first-frame bridge without touching SBSceneView.
 //
 // Architecture:
@@ -42,10 +42,10 @@ static const NSTimeInterval kBridgeHardCap7316 = 4.0;
 static UIWindow *gBridgeWindow7316;
 static unsigned gBridgeGen7316;
 
-// v7.319 probe-only launch recorder. Writes outside any app container so a SpringBoard
+// v7.320 targeted launch recorder. Writes outside any app container so a SpringBoard
 // launch-path failure can be recovered directly from NewTerm. Logging is serialized off-main;
 // event timestamps are captured before enqueue so file I/O cannot perturb launch ordering.
-static NSString * const kADSBLaunchProbePath7318=@"/var/mobile/AmazonDark-v7.319-launch-sb-probe.txt";
+static NSString * const kADSBLaunchProbePath7318=@"/var/mobile/AmazonDark-v7.320-launch-sb-probe.txt";
 static dispatch_queue_t ADSBProbeQueue7318(void){
     static dispatch_queue_t q; static dispatch_once_t once;
     dispatch_once(&once,^{q=dispatch_queue_create("com.colindavidr.amazondark.launchprobe.sb",DISPATCH_QUEUE_SERIAL);});
@@ -278,9 +278,13 @@ static void (*ADOrigIconTap7318)(id,SEL,id);
 static void ADHookIconTap7318(id self,SEL _cmd,id gesture){
     NSString *bid=ADBundleForIconView7316(self);
     NSInteger pid=ADAmazonProcessIdentifier7316();
-    ADSBProbeLog7318(@"SBIconView.tapGestureDidChange.pre",[NSString stringWithFormat:@"view=%p cls=%@ gestureCls=%@ state=%ld bid=%@ amazon=%d amazonPid=%ld",self,NSStringFromClass([self class])?:@"?",NSStringFromClass([gesture class])?:@"?",(long)([gesture respondsToSelector:@selector(state)]?[gesture state]:-1),bid?:@"nil",[(bid?:@"") isEqualToString:kAMZ]?1:0,(long)pid]);
+    NSInteger state=[gesture respondsToSelector:@selector(state)] ? (NSInteger)[gesture state] : -1;
+    BOOL amazon=[(bid?:@"") isEqualToString:kAMZ];
+    BOOL cold=(amazon && ADSBEnabled7316() && pid<=0 && state==UIGestureRecognizerStateEnded);
+    ADSBProbeLog7318(@"SBIconView.tapGestureDidChange.pre",[NSString stringWithFormat:@"view=%p cls=%@ gestureCls=%@ state=%ld bid=%@ amazon=%d amazonPid=%ld cold=%d",self,NSStringFromClass([self class])?:@"?",NSStringFromClass([gesture class])?:@"?",(long)state,bid?:@"nil",amazon?1:0,(long)pid,cold?1:0]);
+    if(cold)ADPresentBridge7316();
     if(ADOrigIconTap7318)ADOrigIconTap7318(self,_cmd,gesture);
-    ADSBProbeLog7318(@"SBIconView.tapGestureDidChange.post",[NSString stringWithFormat:@"bid=%@ amazonPid=%ld",bid?:@"nil",(long)ADAmazonProcessIdentifier7316()]);
+    ADSBProbeLog7318(@"SBIconView.tapGestureDidChange.post",[NSString stringWithFormat:@"bid=%@ amazonPid=%ld bridge=%d",bid?:@"nil",(long)ADAmazonProcessIdentifier7316(),gBridgeWindow7316?1:0]);
 }
 static void ADInstallDiscoveryHooks7318(void){
     @try {
@@ -293,50 +297,8 @@ static void ADInstallDiscoveryHooks7318(void){
     } @catch(__unused NSException *e){ADSBProbeLog7318(@"hook.exception",@"SBIconView tap");}
 }
 
-%hook SBIconController
-- (void)_launchFromIconView:(id)iconView {
-    BOOL amazon=NO; BOOL cold=NO; NSInteger pid=0; NSString *bid=nil;
-    @try {
-        bid=ADBundleForIconView7316(iconView);
-        pid=ADAmazonProcessIdentifier7316();
-        amazon=[(bid?:@"") isEqualToString:kAMZ];
-        if(amazon&&ADSBEnabled7316())cold=(pid<=0);
-        ADSBProbeLog7318(@"SBIconController._launchFromIconView.pre",[NSString stringWithFormat:@"iconCls=%@ bid=%@ amazon=%d enabled=%d amazonPid=%ld cold=%d",NSStringFromClass([iconView class])?:@"?",bid?:@"nil",amazon?1:0,ADSBEnabled7316()?1:0,(long)pid,cold?1:0]);
-        if(cold)ADPresentBridge7316();
-    } @catch (__unused NSException *e) { ADSBProbeLog7318(@"SBIconController._launchFromIconView.exception",@""); }
-    %orig;
-    ADSBProbeLog7318(@"SBIconController._launchFromIconView.post",[NSString stringWithFormat:@"amazon=%d cold=%d bridge=%d",amazon?1:0,cold?1:0,gBridgeWindow7316?1:0]);
-}
-- (void)iconManager:(id)manager launchIconForIconView:(id)iconView {
-    NSString *bid=nil; @try{bid=ADBundleForIconView7316(iconView);}@catch(__unused NSException *e){}
-    ADSBProbeLog7318(@"SBIconController.iconManager.launchIconForIconView",[NSString stringWithFormat:@"iconCls=%@ bid=%@",NSStringFromClass([iconView class])?:@"?",bid?:@"nil"]);
-    %orig;
-}
-%end
-
-%hook SBApplicationIcon
-- (void)launchFromLocation:(long long)location {
-    NSString *bid=nil;
-    @try { if([self respondsToSelector:@selector(applicationBundleID)])bid=[self applicationBundleID]; } @catch(__unused NSException *e){}
-    ADSBProbeLog7318(@"SBApplicationIcon.launchFromLocation",[NSString stringWithFormat:@"location=%lld bid=%@ amazonPid=%ld",location,bid?:@"nil",(long)ADAmazonProcessIdentifier7316()]);
-    %orig;
-}
-%end
-
-%hook SBHIconManager
-- (void)iconModel:(id)model launchIcon:(id)icon fromLocation:(id)location context:(id)context {
-    NSString *bid=ADBundleForLaunchObject7318(icon);
-    ADSBProbeLog7318(@"SBHIconManager.iconModel.launchIcon",[NSString stringWithFormat:@"iconCls=%@ bid=%@ locationCls=%@ contextCls=%@ amazonPid=%ld",NSStringFromClass([icon class])?:@"?",bid?:@"nil",NSStringFromClass([location class])?:@"?",NSStringFromClass([context class])?:@"?",(long)ADAmazonProcessIdentifier7316()]);
-    %orig;
-}
-%end
-
 %ctor {
     ADSBProbeLog7318(@"ctor",[NSString stringWithFormat:@"enabled=%d",ADSBEnabled7316()?1:0]);
-    @try {
-        ADSBProbeLog7318(@"selector-map",[NSString stringWithFormat:@"SBIconController=%d _launchFromIconView=%d launchIconForIconView=%d SBApplicationIcon=%d launchFromLocation=%d SBHIconManager=%d iconModelLaunch=%d",objc_getClass("SBIconController")?1:0,class_getInstanceMethod(objc_getClass("SBIconController"),@selector(_launchFromIconView:))?1:0,class_getInstanceMethod(objc_getClass("SBIconController"),@selector(iconManager:launchIconForIconView:))?1:0,objc_getClass("SBApplicationIcon")?1:0,class_getInstanceMethod(objc_getClass("SBApplicationIcon"),@selector(launchFromLocation:))?1:0,objc_getClass("SBHIconManager")?1:0,class_getInstanceMethod(objc_getClass("SBHIconManager"),@selector(iconModel:launchIcon:fromLocation:context:))?1:0]);
-    } @catch(__unused NSException *e){}
-    ADSBDumpLaunchSurface7318();
     ADInstallDiscoveryHooks7318();
     if(!ADSBEnabled7316())return;
     @try {
@@ -344,8 +306,4 @@ static void ADInstallDiscoveryHooks7318(void){
         notify_register_dispatch("com.colindavidr.amazondark.native-splash-ready",&nativeSplashToken,
                                  dispatch_get_main_queue(),^(__unused int t){ ADSBProbeLog7318(@"native-splash-ready.notify",[NSString stringWithFormat:@"bridge=%d",gBridgeWindow7316?1:0]); ADRemoveBridge7316(); });
     } @catch (__unused NSException *e) {}
-    @autoreleasepool {
-        @try { %init; }
-        @catch (__unused NSException *e) {}
-    }
 }
