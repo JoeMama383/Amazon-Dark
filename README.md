@@ -1,3 +1,14 @@
+# AmazonDark v7.316~icon-launch-window-bridge
+
+## Cold launch: independent SpringBoard window, zero SBSceneView hooks
+
+- Direct production base: v7.315 app/UI tree, but the entire v7.312-v7.315 SBSceneView shim implementation is deleted.
+- SpringBoard now hooks only `SBIconController -_launchFromIconView:`. It samples Amazon process identity BEFORE `%orig` starts the app launch. Existing process = warm resume => no bridge. No process = cold icon launch => show one independent non-key, noninteractive dark SpringBoard `UIWindow`.
+- The bridge window is never inserted into `SBSceneView`, never reads scene KVC, and never executes from a scene/window attachment callback.
+- Amazon's exact `AXUSplashScreenViewController` / `TezBaseSplashScreenViewController` remain darkened in-app. Their existing `native-splash-ready` signal removes the independent bridge immediately after the real dark native splash is onscreen.
+- Warm-resume splash suppression from v7.307 remains. Normal warm launches therefore return straight to the existing app UI.
+- 4-second bridge cap is failure safety only. No Home/WebKit readiness gate, minimum hold, settle, or custom fade is restored.
+
 # AmazonDark v7.315~springboard-async-shim
 
 ## SpringBoard watchdog fix — fully deferred scene handling

@@ -1,20 +1,18 @@
-// AmazonDarkSB.xm
-// SpringBoard-side FIRST-FRAME shim for Amazon Shopping.
+// AmazonDarkSB.xm — v7.316
+// Cold-launch first-frame bridge without touching SBSceneView.
 //
-// Scope is intentionally tiny:
-//   1. A genuine new Amazon process can expose the system-rendered stock LaunchScreen
-//      before Amazon's own tweak code exists. SpringBoard masks only that interval.
-//   2. As soon as Amazon's real splash controller is visibly presented with its floor
-//      already owned dark, Amazon posts native-splash-ready and this shim is removed
-//      immediately -- no Home/WebKit readiness gate, minimum hold, settle, or fade.
-//   3. The same Amazon process is a warm resume and receives NO SpringBoard shim.
+// Architecture:
+//   * Ordinary warm reopen: Amazon already has a process BEFORE the launch request -> do nothing.
+//   * Genuine cold icon launch: before SpringBoard begins launching Amazon, show one independent,
+//     non-key, noninteractive dark SpringBoard UIWindow. This window is NOT inserted into the
+//     Amazon scene and never participates in SBSceneView lifecycle transactions.
+//   * Amazon's exact native splash controller owns its own floor dark in Tweak.xm. Once that splash
+//     has actually appeared it posts native-splash-ready and this independent bridge disappears.
+//   * A short hard cap is failure safety only.
 //
-// v7.315 safety rule: SBSceneView lifecycle hooks NEVER inspect SpringBoard application
-// state and NEVER mutate UIKit hierarchy synchronously. They only enqueue one main-queue
-// continuation. All bundle/PID classification and any addSubview work occurs after UIKit
-// has fully unwound the scene/window attachment transaction.
-//
-// A short absolute cap is failure safety only; it is not part of normal presentation.
+// The v7.312-v7.315 SBSceneView experiments are intentionally absent. The watchdog stackshots showed
+// SpringBoard main self-deadlocking inside the scene/window attachment transaction even when work was
+// moved after %orig / to a queued continuation. This implementation never hooks SBSceneView.
 
 #import <UIKit/UIKit.h>
 #import <notify.h>
@@ -22,46 +20,29 @@
 
 static NSString * const kAMZ      = @"com.amazon.Amazon";
 static NSString * const kDefaults = @"com.colindavidr.amazondark";
-static const NSTimeInterval kShimHardCap7312 = 4.0;
+static const NSTimeInterval kBridgeHardCap7316 = 4.0;
 
-@interface SBSceneView : UIView
+@interface SBIconController : NSObject
 @end
 
-static UIView *gShim7312;
-static SBSceneView *gShimHost7312;
-static const void *kShimKey7312 = &kShimKey7312;
-static unsigned gShimGen7312;
-static NSInteger gAmazonProcessID7312;
-static NSInteger gNativeSplashReadyPID7315;
+static UIWindow *gBridgeWindow7316;
+static unsigned gBridgeGen7316;
 
-static BOOL ADSBEnabled(void) {
+static BOOL ADSBEnabled7316(void) {
     @try {
-        NSString *path=[@"/var/jb/var/mobile/Library/Preferences" stringByAppendingPathComponent:
-                        [kDefaults stringByAppendingPathExtension:@"plist"]];
-        id value=[NSDictionary dictionaryWithContentsOfFile:path][@"enabled"];
-        return value ? [value boolValue] : YES;
-    } @catch (__unused NSException *e) { return YES; }
+        NSArray *paths=@[@"/var/jb/var/mobile/Library/Preferences/com.colindavidr.amazondark.plist",
+                         @"/var/mobile/Library/Preferences/com.colindavidr.amazondark.plist"];
+        for(NSString *path in paths){
+            NSDictionary *d=[NSDictionary dictionaryWithContentsOfFile:path];
+            if(d){ id value=d[@"enabled"]; return value ? [value boolValue] : YES; }
+        }
+    } @catch (__unused NSException *e) {}
+    return YES;
 }
 
-static NSString *ADSceneBundleId(UIView *v) {
-    if(!v)return nil;
-    NSArray *paths=@[@"sceneHandle.application.bundleIdentifier",
-                     @"sceneHandle.sceneIdentity.bundleIdentifier",
-                     @"application.bundleIdentifier",
-                     @"sceneHandle.sceneIdentity.bundleIdentifierOverride",
-                     @"_sceneHandle.application.bundleIdentifier"];
-    for(NSString *path in paths){
-        @try {
-            id val=[v valueForKeyPath:path];
-            if([val isKindOfClass:[NSString class]]&&[val length])return val;
-        } @catch (__unused NSException *e) {}
-    }
-    return nil;
-}
-
-// Stable process identity across a normal warm resume. Unlike isRunning, this cannot
-// flip from false to true midway through one cold launch and change classification.
-static NSInteger ADAmazonProcessIdentifier7312(void) {
+// Sampled BEFORE SpringBoard starts the launch. This is the key difference from the old
+// didMoveToWindow classifier, where isRunning/PID could change during the same cold launch.
+static NSInteger ADAmazonProcessIdentifier7316(void) {
     @try {
         Class ctl=objc_getClass("SBApplicationController");
         if(!ctl||![ctl respondsToSelector:@selector(sharedInstance)])return 0;
@@ -69,9 +50,8 @@ static NSInteger ADAmazonProcessIdentifier7312(void) {
         if(!shared||![shared respondsToSelector:@selector(applicationWithBundleIdentifier:)])return 0;
         id app=[shared performSelector:@selector(applicationWithBundleIdentifier:) withObject:kAMZ];
         if(!app)return 0;
-        NSArray *paths=@[@"processState.pid",@"processState.processIdentifier",@"process.pid",
-                         @"process.processIdentifier",@"pid",@"processIdentifier"];
-        for(NSString *path in paths){
+        for(NSString *path in @[@"processState.pid",@"processState.processIdentifier",@"process.pid",
+                                @"process.processIdentifier",@"pid",@"processIdentifier"]){
             @try {
                 id value=[app valueForKeyPath:path];
                 if([value respondsToSelector:@selector(integerValue)]){
@@ -84,7 +64,38 @@ static NSInteger ADAmazonProcessIdentifier7312(void) {
     return 0;
 }
 
-static UIImage *ADSplashImage7312(void) {
+static NSString *ADBundleForIconView7316(id iconView) {
+    if(!iconView)return nil;
+    @try {
+        for(NSString *path in @[@"applicationBundleIdentifier",@"applicationBundleIdentifierForShortcuts",
+                                @"icon.applicationBundleID",@"icon.applicationBundleIdentifier",
+                                @"icon.application.bundleIdentifier",@"icon.application.bundleIdentifier"]){
+            @try {
+                id v=[iconView valueForKeyPath:path];
+                if([v isKindOfClass:[NSString class]]&&[v length])return v;
+            } @catch (__unused NSException *e) {}
+        }
+    } @catch (__unused NSException *e) {}
+    return nil;
+}
+
+static UIWindowScene *ADForegroundSpringBoardScene7316(void) {
+    if(@available(iOS 13.0,*)){
+        @try {
+            UIWindowScene *fallback=nil;
+            for(UIScene *s in UIApplication.sharedApplication.connectedScenes){
+                if(![s isKindOfClass:[UIWindowScene class]])continue;
+                UIWindowScene *ws=(UIWindowScene *)s;
+                if(s.activationState==UISceneActivationStateForegroundActive)return ws;
+                if(!fallback&&s.activationState==UISceneActivationStateForegroundInactive)fallback=ws;
+            }
+            return fallback;
+        } @catch (__unused NSException *e) {}
+    }
+    return nil;
+}
+
+static UIImage *ADSplashImage7316(void) {
     static UIImage *image;
     static dispatch_once_t once;
     dispatch_once(&once, ^{
@@ -94,129 +105,81 @@ static UIImage *ADSplashImage7312(void) {
     return image;
 }
 
-static void ADRemoveShim7312(void) {
+static void ADRemoveBridge7316(void) {
     @try {
-        if(!gShim7312)return;
-        UIView *shim=gShim7312; gShim7312=nil;
-        SBSceneView *host=gShimHost7312; gShimHost7312=nil;
-        if(host)objc_setAssociatedObject(host,kShimKey7312,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        [shim removeFromSuperview];
+        UIWindow *w=gBridgeWindow7316;
+        if(!w)return;
+        gBridgeWindow7316=nil;
+        w.hidden=YES;
+        w.rootViewController=nil;
     } @catch (__unused NSException *e) {}
 }
 
-// Scene-attached so Apple's normal scene/icon transform remains the animation owner.
-// The shim exists only until Amazon's own dark native splash is confirmed onscreen.
-static void ADAttachShim7312(UIView *host) {
+static void ADPresentBridge7316(void) {
     @try {
-        if(!host)return;
-        if(gShim7312&&gShim7312.superview==host)return;
-        ADRemoveShim7312();
-
-        UIColor *dk=[UIColor colorWithRed:0.094 green:0.102 blue:0.106 alpha:1.0];
-        CGRect initial=host.bounds;
+        if(gBridgeWindow7316||!ADSBEnabled7316())return;
         CGRect screen=UIScreen.mainScreen.bounds;
-        if(initial.size.width<200.0||initial.size.height<300.0)initial=screen;
-        UIView *shim=[[UIView alloc] initWithFrame:initial];
-        shim.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
-        shim.backgroundColor=dk;
-        shim.userInteractionEnabled=NO;
+        UIWindow *w=[[UIWindow alloc] initWithFrame:screen];
+        if(@available(iOS 13.0,*)){
+            UIWindowScene *scene=ADForegroundSpringBoardScene7316();
+            if(scene)w.windowScene=scene;
+        }
+        UIColor *dark=[UIColor colorWithRed:0.094 green:0.102 blue:0.106 alpha:1.0];
+        UIViewController *vc=[UIViewController new];
+        vc.view.frame=screen;
+        vc.view.backgroundColor=dark;
+        w.rootViewController=vc;
+        w.backgroundColor=dark;
+        w.windowLevel=UIWindowLevelAlert+1000.0;
+        w.userInteractionEnabled=NO;
+        w.alpha=1.0;
 
-        UIImage *splash=ADSplashImage7312();
+        UIImage *splash=ADSplashImage7316();
         if(splash){
-            UIImageView *logo=[[UIImageView alloc] initWithImage:splash];
-            logo.contentMode=UIViewContentModeScaleAspectFit;
-            logo.translatesAutoresizingMaskIntoConstraints=NO;
-            [shim addSubview:logo];
-            CGFloat baseW=host.bounds.size.width>=200.0?host.bounds.size.width:screen.size.width;
-            CGFloat lw=MAX(baseW,200.0)*0.62;
+            CGFloat lw=screen.size.width*0.62;
             CGFloat lh=lw*(splash.size.height/MAX(splash.size.width,1.0));
-            [NSLayoutConstraint activateConstraints:@[
-                [logo.centerXAnchor constraintEqualToAnchor:shim.centerXAnchor],
-                [logo.centerYAnchor constraintEqualToAnchor:shim.centerYAnchor],
-                [logo.widthAnchor constraintEqualToConstant:lw],
-                [logo.heightAnchor constraintEqualToConstant:lh],
-            ]];
+            UIImageView *logo=[[UIImageView alloc] initWithFrame:CGRectMake((screen.size.width-lw)*0.5,
+                                                                            (screen.size.height-lh)*0.5,
+                                                                            lw,lh)];
+            logo.autoresizingMask=UIViewAutoresizingFlexibleLeftMargin|UIViewAutoresizingFlexibleRightMargin|
+                                  UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleBottomMargin;
+            logo.contentMode=UIViewContentModeScaleAspectFit;
+            logo.image=splash;
+            [vc.view addSubview:logo];
         }
 
-        [host addSubview:shim];
-        gShim7312=shim;
-        gShimHost7312=(SBSceneView *)host;
-        unsigned gen=++gShimGen7312;
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(kShimHardCap7312*NSEC_PER_SEC)),
+        // Do not make key. SpringBoard keeps its normal key window/input ownership; this is visual only.
+        gBridgeWindow7316=w;
+        w.hidden=NO;
+        unsigned gen=++gBridgeGen7316;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(kBridgeHardCap7316*NSEC_PER_SEC)),
                        dispatch_get_main_queue(),^{
-            @try { if(gShim7312&&gen==gShimGen7312)ADRemoveShim7312(); }
+            @try { if(gBridgeWindow7316&&gen==gBridgeGen7316)ADRemoveBridge7316(); }
             @catch (__unused NSException *e) {}
         });
     } @catch (__unused NSException *e) {}
 }
 
-// v7.315: defer ALL SpringBoard inspection and hierarchy work until the current
-// SBSceneView callback has completely returned to UIKit. The four watchdog stackshots
-// from v7.313/v7.314 show the same self-owned pthread mutex on SpringBoard main; doing
-// work "after %orig" was still inside UIKit's outer scene-attachment transaction.
-static void ADScheduleShimCheck7315(SBSceneView *host) {
-    if(!host)return;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        @try {
-            if(!host.window||!ADSBEnabled())return;
-            if(objc_getAssociatedObject(host,kShimKey7312))return;
-            if(![(ADSceneBundleId(host) ?: @"") isEqualToString:kAMZ])return;
-
-            NSInteger pid=ADAmazonProcessIdentifier7312();
-            if(pid<=0)return; // fail open rather than risking a warm-resume mask
-
-            // Same process => ordinary warm resume. Never fabricate a launch transition.
-            if(gAmazonProcessID7312>0&&pid==gAmazonProcessID7312)return;
-
-            // The native splash may have become ready before this deferred block ran.
-            // In that case there is nothing left to bridge; remember the process and skip.
-            if(gNativeSplashReadyPID7315>0&&pid==gNativeSplashReadyPID7315){
-                gAmazonProcessID7312=pid;
-                return;
-            }
-
-            ADAttachShim7312(host);
-            if(gShim7312&&gShim7312.superview==host){
-                objc_setAssociatedObject(host,kShimKey7312,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                gAmazonProcessID7312=pid;
-            }
-        } @catch (__unused NSException *e) {}
-    });
-}
-
-%hook SBSceneView
-- (void)didMoveToWindow {
+%hook SBIconController
+- (void)_launchFromIconView:(id)iconView {
+    BOOL amazon=NO;
+    BOOL cold=NO;
+    @try {
+        amazon=[(ADBundleForIconView7316(iconView) ?: @"") isEqualToString:kAMZ];
+        if(amazon&&ADSBEnabled7316())cold=(ADAmazonProcessIdentifier7316()<=0);
+        if(cold)ADPresentBridge7316();
+    } @catch (__unused NSException *e) {}
     %orig;
-    // Intentionally no property access, KVC, process lookup, or UIView mutation here.
-    // Enqueue and return immediately so UIKit can release its scene/window mutex first.
-    ADScheduleShimCheck7315(self);
 }
 %end
 
 %ctor {
-    @try {
-        // SpringBoard may restart while Amazon remains alive. Seed the remembered PID so
-        // that already-running Amazon is still treated as a warm resume.
-        NSInteger p=ADAmazonProcessIdentifier7312();
-        if(p>0)gAmazonProcessID7312=p;
-    } @catch (__unused NSException *e) {}
-    if(!ADSBEnabled())return;
-
+    if(!ADSBEnabled7316())return;
     @try {
         static int nativeSplashToken=0;
         notify_register_dispatch("com.colindavidr.amazondark.native-splash-ready",&nativeSplashToken,
-                                 dispatch_get_main_queue(),^(__unused int t){
-            // Record which Amazon process already reached its real dark native splash.
-            // This closes the race where the notification beats the deferred scene block.
-            NSInteger p=ADAmazonProcessIdentifier7312();
-            if(p>0){
-                gNativeSplashReadyPID7315=p;
-                gAmazonProcessID7312=p;
-            }
-            ADRemoveShim7312();
-        });
+                                 dispatch_get_main_queue(),^(__unused int t){ ADRemoveBridge7316(); });
     } @catch (__unused NSException *e) {}
-
     @autoreleasepool {
         @try { %init; }
         @catch (__unused NSException *e) {}
