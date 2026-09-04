@@ -1,3 +1,19 @@
+# AmazonDark v7.332 — process-scoped ready continuity
+
+- Fixes the v7.330/v7.331 intermittent 20-second launch stall captured in the supplied trace. The app itself reached real Home readiness, but SpringBoard had cleared the surviving PID's ready listener on an ambiguous `running process + no live scene` icon tap; with no replacement `_processWillLaunch:` callback, the ready post was lost and the overlay survived to the nonanimated 20-second hard cap.
+- On that exact ambiguous path, SpringBoard now rebinds the currently running Amazon PID as a **tentative** process-scoped ready owner immediately after arming the scene overlay.
+- A tentative ready signal waits only a 0.25-second process-boundary confirmation. If iOS announces a replacement process, the existing generation rebase invalidates the tentative dismissal and binds the replacement PID. If the same PID survives, the normal 1.40 s minimum / 0.40 s settle / 0.55 s fade proceeds.
+- True PID-zero cold launches, true same-process/same-scene warm resumes, v7.331 early app-switcher snapshot ownership, Cart/Alexa/UI theming, and the bounded real-Home readiness gate are otherwise unchanged.
+- No polling, recurring timer, MutationObserver, hierarchy scan, independent launch window, or new SpringBoard scene mutation was added.
+
+# AmazonDark v7.331 — first-switcher-snapshot ownership
+
+- Fixes the remaining v7.329/v7.330 app-switcher race where the first card could preserve Amazon's stock white launch artwork before `UIApplicationDidEnterBackgroundNotification` installed the dark snapshot cover.
+- Activates the existing opaque OLED-black/logo app-window cover synchronously at `UIApplicationWillResignActiveNotification`, before the switcher transition can request its first app-rendered snapshot.
+- Reasserts the same cover at `UIApplicationDidEnterBackgroundNotification` and keeps it continuously installed while Amazon remains backgrounded.
+- Removes it at `UIApplicationWillEnterForegroundNotification`; transient resign-active interruptions that never background are cleaned up at `UIApplicationDidBecomeActiveNotification`.
+- No SpringBoard switcher hook, polling, timer, scan, animation, snapshot-file deletion, or recurring runtime work. v7.330 process-scoped cold-launch readiness is unchanged.
+
 # AmazonDark v7.330 — process-scoped launch readiness
 
 - Fixes the remaining replacement-process handoff race without adding another timing delay.

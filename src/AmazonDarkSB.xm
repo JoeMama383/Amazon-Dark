@@ -1,4 +1,4 @@
-// AmazonDarkSB.xm — v7.330 live-scene-continuity pre-arm
+// AmazonDarkSB.xm — v7.332 live-scene-continuity pre-arm
 //
 // A stock launch image/snapshot is owned by iOS before Amazon can draw. The old
 // SBSceneView -didMoveToWindow path attached our cover only after the scene had
@@ -65,14 +65,20 @@ static double gFirstOverlayAt7326=0.0;
 static int gAmazonProcessLaunchPending7327=0;
 static NSInteger gAuthoritativeProcessPID7330=0;
 
-// v7.330: readiness belongs to one concrete Amazon process. A global Darwin
+// v7.332: readiness belongs to one concrete Amazon process. A global Darwin
 // ready channel lets a dying/replaced Amazon process dismiss the cover that now
 // belongs to its successor. Keep exactly one process-scoped subscription.
 static int gReadyToken7330=0;
 static NSInteger gReadyPID7330=0;
 static unsigned gReadyGeneration7330=0;
+// v7.332: a running Amazon process with no live SpringBoard scene is ambiguous:
+// it may be a same-process scene reconstruction, or the stale process iOS is
+// about to replace. Its ready listener is tentative until a short process-boundary
+// confirmation passes; any replacement _processWillLaunch: rebases generation.
+static BOOL gReadyTentative7332=NO;
+static const NSTimeInterval kTentativeReadyConfirm7332=0.25;
 
-static NSString * const kADSBLaunchProbePath7326=@"/var/mobile/AmazonDark-v7.330-launch-sb-probe.txt";
+static NSString * const kADSBLaunchProbePath7326=@"/var/mobile/AmazonDark-v7.332-launch-sb-probe.txt";
 static dispatch_queue_t ADSBProbeQueue7326(void){
     static dispatch_queue_t q; static dispatch_once_t once;
     dispatch_once(&once,^{q=dispatch_queue_create("com.colindavidr.amazondark.launchprobe.sb",DISPATCH_QUEUE_SERIAL);});
@@ -104,6 +110,7 @@ static void ADClearReadyListener7330(NSString *reason){
     gReadyToken7330=0;
     gReadyPID7330=0;
     gReadyGeneration7330=0;
+    gReadyTentative7332=NO;
     if(token>0){
         @try { notify_cancel(token); } @catch(__unused NSException *e){}
     }
@@ -242,6 +249,35 @@ static void ADScheduleHardCap7330(unsigned generation){
     });
 }
 
+static void ADScheduleReadyDismiss7332(NSInteger pid,unsigned generation){
+    if(!gColdActive7326||generation!=gColdGeneration7326){
+        ADSBProbeLog7326(@"ready.dismiss.invalidated",[NSString stringWithFormat:@"pid=%ld queuedGen=%u currentGen=%u active=%d",(long)pid,generation,gColdGeneration7326,gColdActive7326?1:0]);
+        return;
+    }
+    BOOL hasOverlay=ADHasAnySceneOverlay7327();
+    if(!hasOverlay){
+        __atomic_store_n(&gAmazonProcessLaunchPending7327,0,__ATOMIC_RELEASE);
+        __atomic_store_n(&gAuthoritativeProcessPID7330,0,__ATOMIC_RELEASE);
+        gColdActive7326=NO;
+        ADSBProbeLog7326(@"ready.notify",[NSString stringWithFormat:@"pid=%ld overlay=0 gen=%u",(long)pid,generation]);
+        return;
+    }
+    double shown=gFirstOverlayAt7326>0.0?(CFAbsoluteTimeGetCurrent()-gFirstOverlayAt7326):0.0;
+    double minimumRemaining=shown<kCoverMinimum7326?(kCoverMinimum7326-shown):0.0;
+    double wait=MAX(minimumRemaining,kReadySettle7326);
+    ADSBProbeLog7326(@"ready.notify",[NSString stringWithFormat:@"pid=%ld overlay=1 shown=%.3f wait=%.3f gen=%u",(long)pid,shown,wait,generation]);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(wait*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+        if(gColdActive7326&&generation==gColdGeneration7326){
+            __atomic_store_n(&gAmazonProcessLaunchPending7327,0,__ATOMIC_RELEASE);
+            __atomic_store_n(&gAuthoritativeProcessPID7330,0,__ATOMIC_RELEASE);
+            ADSBProbeLog7326(@"ready.dismiss",[NSString stringWithFormat:@"pid=%ld gen=%u",(long)pid,generation]);
+            ADRemoveAllOverlays7326(YES);
+        } else {
+            ADSBProbeLog7326(@"ready.dismiss.invalidated",[NSString stringWithFormat:@"pid=%ld queuedGen=%u currentGen=%u active=%d",(long)pid,generation,gColdGeneration7326,gColdActive7326?1:0]);
+        }
+    });
+}
+
 static void ADHandleReady7330(NSInteger pid,int token){
     @try {
         if(token!=gReadyToken7330||pid!=gReadyPID7330){
@@ -249,36 +285,37 @@ static void ADHandleReady7330(NSInteger pid,int token){
             return;
         }
         unsigned boundGeneration=gReadyGeneration7330;
+        BOOL tentative=gReadyTentative7332;
         if(!gColdActive7326||boundGeneration!=gColdGeneration7326){
             ADSBProbeLog7326(@"ready.notify.stale",[NSString stringWithFormat:@"pid=%ld token=%d active=%d boundGen=%u currentGen=%u",(long)pid,token,gColdActive7326?1:0,boundGeneration,gColdGeneration7326]);
             ADClearReadyListener7330(@"stale-generation");
             return;
         }
-        BOOL hasOverlay=ADHasAnySceneOverlay7327();
-        if(!hasOverlay){
-            __atomic_store_n(&gAmazonProcessLaunchPending7327,0,__ATOMIC_RELEASE);
-            __atomic_store_n(&gAuthoritativeProcessPID7330,0,__ATOMIC_RELEASE);
-            gColdActive7326=NO;
-            ADSBProbeLog7326(@"ready.notify",[NSString stringWithFormat:@"pid=%ld overlay=0 gen=%u",(long)pid,boundGeneration]);
-            ADClearReadyListener7330(@"ready-no-overlay");
+        ADClearReadyListener7330(tentative?@"tentative-ready-received":@"ready-received");
+        if(tentative){
+            // A live PID with no live scene can either survive the reconstruction or
+            // be replaced immediately after the tap. Do not let its ready signal tear
+            // down the cover until the process-launch boundary has had one bounded
+            // confirmation window to rebase the generation. This is not a launch dwell:
+            // it runs only for the ambiguous same-PID/no-scene path.
+            ADSBProbeLog7326(@"ready.tentative",[NSString stringWithFormat:@"pid=%ld gen=%u confirm=%.3f",(long)pid,boundGeneration,kTentativeReadyConfirm7332]);
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(kTentativeReadyConfirm7332*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+                if(!gColdActive7326||boundGeneration!=gColdGeneration7326){
+                    ADSBProbeLog7326(@"ready.tentative.invalidated",[NSString stringWithFormat:@"pid=%ld queuedGen=%u currentGen=%u active=%d",(long)pid,boundGeneration,gColdGeneration7326,gColdActive7326?1:0]);
+                    return;
+                }
+                NSInteger currentPID=ADAmazonPID7326();
+                BOOL running=ADAmazonProcessRunning7326();
+                if(currentPID!=pid||!running){
+                    ADSBProbeLog7326(@"ready.tentative.defer",[NSString stringWithFormat:@"pid=%ld currentPid=%ld running=%d gen=%u",(long)pid,(long)currentPID,running?1:0,boundGeneration]);
+                    return;
+                }
+                ADSBProbeLog7326(@"ready.tentative.confirm",[NSString stringWithFormat:@"pid=%ld gen=%u",(long)pid,boundGeneration]);
+                ADScheduleReadyDismiss7332(pid,boundGeneration);
+            });
             return;
         }
-        double shown=gFirstOverlayAt7326>0.0?(CFAbsoluteTimeGetCurrent()-gFirstOverlayAt7326):0.0;
-        double minimumRemaining=shown<kCoverMinimum7326?(kCoverMinimum7326-shown):0.0;
-        double wait=MAX(minimumRemaining,kReadySettle7326);
-        unsigned generation=gColdGeneration7326;
-        ADSBProbeLog7326(@"ready.notify",[NSString stringWithFormat:@"pid=%ld overlay=1 shown=%.3f wait=%.3f gen=%u",(long)pid,shown,wait,generation]);
-        ADClearReadyListener7330(@"ready-received");
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(wait*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-            if(gColdActive7326&&generation==gColdGeneration7326){
-                __atomic_store_n(&gAmazonProcessLaunchPending7327,0,__ATOMIC_RELEASE);
-                __atomic_store_n(&gAuthoritativeProcessPID7330,0,__ATOMIC_RELEASE);
-                ADSBProbeLog7326(@"ready.dismiss",[NSString stringWithFormat:@"pid=%ld gen=%u",(long)pid,generation]);
-                ADRemoveAllOverlays7326(YES);
-            } else {
-                ADSBProbeLog7326(@"ready.dismiss.invalidated",[NSString stringWithFormat:@"pid=%ld queuedGen=%u currentGen=%u active=%d",(long)pid,generation,gColdGeneration7326,gColdActive7326?1:0]);
-            }
-        });
+        ADScheduleReadyDismiss7332(pid,boundGeneration);
     } @catch(__unused NSException *e){}
 }
 
@@ -301,6 +338,7 @@ static void ADBindReadyListener7330(NSInteger pid,NSString *reason){
         gReadyToken7330=newToken;
         gReadyPID7330=pid;
         gReadyGeneration7330=gColdGeneration7326;
+        gReadyTentative7332=NO;
         ADSBProbeLog7326(@"ready.listener.bind",[NSString stringWithFormat:@"reason=%@ pid=%ld token=%d gen=%u channel=%@",reason?:@"?",(long)pid,newToken,gReadyGeneration7330,channel]);
     } else {
         ADSBProbeLog7326(@"ready.listener.error",[NSString stringWithFormat:@"reason=%@ pid=%ld status=%u token=%d gen=%u",reason?:@"?",(long)pid,status,newToken,gColdGeneration7326]);
@@ -424,11 +462,20 @@ static void ADHookIconTap7326(id self,SEL _cmd,id gesture){
     BOOL needsCover=amazon&&ADSBEnabled7326()&&state==UIGestureRecognizerStateEnded&&!sameSceneWarm;
     if(amazon)ADSBProbeLog7326(@"icon.tap",[NSString stringWithFormat:@"view=%p bid=%@ state=%ld pid=%ld running=%d liveScenes=%lu sameSceneWarm=%d cover=%d",self,bundle,(long)state,(long)pid,running?1:0,(unsigned long)liveScenes,sameSceneWarm?1:0,needsCover?1:0]);
     if(needsCover){
-        // The PID visible at this tap may be the process iOS is about to replace.
-        // Stop listening to it before the original tap can advance the launch.
-        ADClearReadyListener7330(@"covered-icon-tap");
+        // The PID visible at this tap may be the process iOS is about to replace,
+        // but it may also be the exact process that survives a scene reconstruction.
+        // ADArmColdLaunch clears the prior subscription first. For the ambiguous
+        // surviving-process/no-live-scene path, immediately bind that PID tentatively;
+        // a later _processWillLaunch: rebases the generation and replaces the listener.
         NSString *reason=processContinuous&&!sceneContinuous?@"icon-tap-no-live-scene":@"verified-cold-icon-tap-fallback";
         ADArmColdLaunch7326(reason,YES);
+        if(processContinuous&&pid>0){
+            ADBindReadyListener7330(pid,@"covered-icon-tap-current-process");
+            if(gReadyPID7330==pid&&gReadyGeneration7330==gColdGeneration7326){
+                gReadyTentative7332=YES;
+                ADSBProbeLog7326(@"ready.listener.tentative",[NSString stringWithFormat:@"pid=%ld gen=%u",(long)pid,gColdGeneration7326]);
+            }
+        }
     }
     if(ADOrigIconTap7326)ADOrigIconTap7326(self,_cmd,gesture);
 }
