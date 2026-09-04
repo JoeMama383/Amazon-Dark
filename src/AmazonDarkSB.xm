@@ -1,4 +1,4 @@
-// AmazonDarkSB.xm — v7.323 pre-armed scene-attached cold launch cover
+// AmazonDarkSB.xm — v7.324 pre-armed scene cover + proven Home-ready handoff
 // Restores the proven stock-transition presentation used by the v7.301 line.
 //
 // Key correction from the v7.319 launch probe:
@@ -20,8 +20,10 @@ extern "C" void MSHookMessageEx(Class cls, SEL sel, IMP imp, IMP *result);
 
 static NSString * const kAMZ      = @"com.amazon.Amazon";
 static NSString * const kDefaults = @"com.colindavidr.amazondark";
-static const NSTimeInterval kCoverFade7323    = 0.55;
-static const NSTimeInterval kCoverHardCap7323 = 20.0;
+static const NSTimeInterval kCoverFade7323        = 0.55;
+static const NSTimeInterval kReadySettle7324       = 0.40;
+static const NSTimeInterval kCoverMinimum7324      = 1.40;
+static const NSTimeInterval kCoverHardCap7323      = 20.0;
 
 @interface SBSceneView : UIView @end
 @interface SBIconView : UIView
@@ -34,8 +36,9 @@ static const void *kCoveredKey7323=&kCoveredKey7323;
 static unsigned gCoverGen7323;
 static BOOL gColdLaunchPending7323=NO;
 static unsigned gColdArmGen7323;
+static double gPresentAt7324=0.0;
 
-static NSString * const kADSBLaunchProbePath7323=@"/var/mobile/AmazonDark-v7.323-launch-sb-probe.txt";
+static NSString * const kADSBLaunchProbePath7323=@"/var/mobile/AmazonDark-v7.324-launch-sb-probe.txt";
 static dispatch_queue_t ADSBProbeQueue7323(void){
     static dispatch_queue_t q; static dispatch_once_t once;
     dispatch_once(&once,^{q=dispatch_queue_create("com.colindavidr.amazondark.launchprobe.sb",DISPATCH_QUEUE_SERIAL);});
@@ -73,6 +76,16 @@ static NSInteger ADAmazonPID7323(void){
     } @catch(__unused NSException *e){}
     return 0;
 }
+static BOOL ADAmazonProcessRunning7324(void){
+    @try {
+        Class ctl=objc_getClass("SBApplicationController"); if(!ctl||![ctl respondsToSelector:@selector(sharedInstance)])return NO;
+        id shared=[ctl performSelector:@selector(sharedInstance)]; if(!shared||![shared respondsToSelector:@selector(applicationWithBundleIdentifier:)])return NO;
+        id app=[shared performSelector:@selector(applicationWithBundleIdentifier:) withObject:kAMZ]; if(!app)return NO;
+        id ps=nil; @try { ps=[app valueForKey:@"processState"]; } @catch(__unused NSException *e){}
+        if(ps&&[ps respondsToSelector:@selector(isRunning)]){ id v=[ps valueForKey:@"isRunning"]; if([v respondsToSelector:@selector(boolValue)])return [v boolValue]; }
+    } @catch(__unused NSException *e){}
+    return NO;
+}
 static NSString *ADBundleForIconView7323(id iconView){
     if(!iconView)return nil;
     @try {
@@ -102,6 +115,17 @@ static void ADRemoveCover7323(BOOL animated){
         else [ov removeFromSuperview];
     } @catch(__unused NSException *e){}
 }
+static void ADMoveCoverToScene7324(SBSceneView *host){
+    @try {
+        UIView *ov=gCoverOverlay7323; SBSceneView *old=gCoverHost7323;
+        if(!ov||!host||!host.window||old==host)return;
+        if(old)objc_setAssociatedObject(old,kCoveredKey7323,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        ov.frame=host.bounds; ov.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+        [host addSubview:ov];
+        gCoverHost7323=host; objc_setAssociatedObject(host,kCoveredKey7323,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        ADSBProbeLog7323(@"cover.move",[NSString stringWithFormat:@"from=%p to=%p win=%p frame=%@",old,host,host.window,ADSBRect7323(host.bounds)]);
+    } @catch(__unused NSException *e){}
+}
 static void ADAttachCoverToScene7323(SBSceneView *host,NSString *reason){
     @try {
         if(!host||!host.window)return;
@@ -115,7 +139,7 @@ static void ADAttachCoverToScene7323(SBSceneView *host,NSString *reason){
             CGFloat lw=MAX(host.bounds.size.width,200.0)*0.62, lh=lw*(splash.size.height/MAX(splash.size.width,1.0));
             [NSLayoutConstraint activateConstraints:@[[logo.centerXAnchor constraintEqualToAnchor:ov.centerXAnchor],[logo.centerYAnchor constraintEqualToAnchor:ov.centerYAnchor],[logo.widthAnchor constraintEqualToConstant:lw],[logo.heightAnchor constraintEqualToConstant:lh]]];
         }
-        [host addSubview:ov]; gCoverOverlay7323=ov; gCoverHost7323=host; unsigned gen=++gCoverGen7323;
+        [host addSubview:ov]; gCoverOverlay7323=ov; gCoverHost7323=host; gPresentAt7324=CFAbsoluteTimeGetCurrent(); unsigned gen=++gCoverGen7323;
         ADSBProbeLog7323(@"cover.attach",[NSString stringWithFormat:@"reason=%@ host=%p win=%p frame=%@ pidNow=%ld",reason?:@"?",host,host.window,ADSBRect7323(host.bounds),(long)ADAmazonPID7323()]);
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(kCoverHardCap7323*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
             @try { if(gCoverOverlay7323&&gen==gCoverGen7323){ADSBProbeLog7323(@"cover.hardcap",@""); ADRemoveCover7323(NO);} } @catch(__unused NSException *e){}
@@ -127,10 +151,11 @@ static void (*ADOrigIconTap7323)(id,SEL,id);
 static void ADHookIconTap7323(id self,SEL _cmd,id gesture){
     NSString *bid=ADBundleForIconView7323(self); NSInteger pid=ADAmazonPID7323();
     NSInteger state=[gesture respondsToSelector:@selector(state)]?(NSInteger)[gesture state]:-1;
-    BOOL amazon=[(bid?:@"") isEqualToString:kAMZ]; BOOL cold=(amazon&&ADSBEnabled7323()&&pid<=0&&state==UIGestureRecognizerStateEnded);
+    BOOL amazon=[(bid?:@"") isEqualToString:kAMZ]; BOOL running=ADAmazonProcessRunning7324();
+    BOOL cold=(amazon&&ADSBEnabled7323()&&state==UIGestureRecognizerStateEnded&&(pid<=0||!running));
     if(cold){
         gColdLaunchPending7323=YES; unsigned arm=++gColdArmGen7323;
-        ADSBProbeLog7323(@"cold.arm",[NSString stringWithFormat:@"view=%p bid=%@ state=%ld pid=%ld gen=%u",self,bid,(long)state,(long)pid,arm]);
+        ADSBProbeLog7323(@"cold.arm",[NSString stringWithFormat:@"view=%p bid=%@ state=%ld pid=%ld running=%d gen=%u",self,bid,(long)state,(long)pid,running?1:0,arm]);
         // One-shot stale-arm safety only. A real scene attachment normally consumes this within ~1 s.
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(3.0*NSEC_PER_SEC)),dispatch_get_main_queue(),^{ if(gColdLaunchPending7323&&arm==gColdArmGen7323){gColdLaunchPending7323=NO; ADSBProbeLog7323(@"cold.arm.expire",[NSString stringWithFormat:@"gen=%u",arm]);} });
     }
@@ -148,12 +173,15 @@ static void ADInstallTapHook7323(void){
         if(!self.window||!ADSBEnabled7323())return;
         NSString *bid=ADSceneBundleId7323(self); if(![bid isEqualToString:kAMZ])return;
         BOOL prearmed=gColdLaunchPending7323; NSInteger pid=ADAmazonPID7323();
-        ADSBProbeLog7323(@"scene.didMove",[NSString stringWithFormat:@"host=%p win=%p prearmed=%d pid=%ld covered=%d",self,self.window,prearmed?1:0,(long)pid,objc_getAssociatedObject(self,kCoveredKey7323)?1:0]);
+        BOOL running=ADAmazonProcessRunning7324();
+        ADSBProbeLog7323(@"scene.didMove",[NSString stringWithFormat:@"host=%p win=%p prearmed=%d pid=%ld running=%d covered=%d activeCover=%d",self,self.window,prearmed?1:0,(long)pid,running?1:0,objc_getAssociatedObject(self,kCoveredKey7323)?1:0,gCoverOverlay7323?1:0]);
+        // During one cold launch SpringBoard may replace the concrete Amazon scene host.
+        // Keep the same opaque cover on whichever Amazon scene is actually entering a window.
+        if(gCoverOverlay7323){ ADMoveCoverToScene7324(self); return; }
         if(objc_getAssociatedObject(self,kCoveredKey7323))return;
-        // The verified tap-time decision wins over the late process state. This is the race fix.
         if(prearmed){ gColdLaunchPending7323=NO; objc_setAssociatedObject(self,kCoveredKey7323,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC); ADAttachCoverToScene7323(self,@"prearmed-cold"); return; }
-        // Fallback for genuine cold launches entered without a Home-screen icon tap.
-        if(pid<=0){ objc_setAssociatedObject(self,kCoveredKey7323,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC); ADAttachCoverToScene7323(self,@"scene-pid-cold-fallback"); }
+        // Treat a stale PID whose processState is no longer running as cold too.
+        if(pid<=0||!running){ objc_setAssociatedObject(self,kCoveredKey7323,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC); ADAttachCoverToScene7323(self,@"scene-cold-fallback"); }
     } @catch(__unused NSException *e){}
 }
 %end
@@ -164,9 +192,18 @@ static void ADInstallTapHook7323(void){
     if(!ADSBEnabled7323())return;
     @try {
         static int token=0;
-        notify_register_dispatch("com.colindavidr.amazondark.native-splash-ready",&token,dispatch_get_main_queue(),^(__unused int t){
-            ADSBProbeLog7323(@"native-splash-ready.notify",[NSString stringWithFormat:@"cover=%d",gCoverOverlay7323?1:0]);
-            if(gCoverOverlay7323)ADRemoveCover7323(YES);
+        notify_register_dispatch("com.colindavidr.amazondark.ready",&token,dispatch_get_main_queue(),^(__unused int t){
+            @try {
+                if(!gCoverOverlay7323){ADSBProbeLog7323(@"ready.notify",@"cover=0");return;}
+                double shown=CFAbsoluteTimeGetCurrent()-gPresentAt7324;
+                double minimumRemaining=shown<kCoverMinimum7324?(kCoverMinimum7324-shown):0.0;
+                double wait=minimumRemaining>kReadySettle7324?minimumRemaining:kReadySettle7324;
+                unsigned gen=gCoverGen7323;
+                ADSBProbeLog7323(@"ready.notify",[NSString stringWithFormat:@"cover=1 shown=%.3f wait=%.3f gen=%u",shown,wait,gen]);
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(wait*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+                    @try { if(gCoverOverlay7323&&gen==gCoverGen7323){ADSBProbeLog7323(@"ready.dismiss",[NSString stringWithFormat:@"gen=%u",gen]);ADRemoveCover7323(YES);} } @catch(__unused NSException *e){}
+                });
+            } @catch(__unused NSException *e){}
         });
     } @catch(__unused NSException *e){}
     @autoreleasepool { @try { %init; } @catch(__unused NSException *e){} }
