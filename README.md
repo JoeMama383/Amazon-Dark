@@ -1,3 +1,14 @@
+# AmazonDark v7.317~launch-transition-probe
+
+## Probe-only cold-launch transition recorder
+
+- Direct production baseline: v7.316~icon-launch-window-bridge. No intended visual or launch-policy change.
+- SpringBoard writes `/var/mobile/AmazonDark-v7.317-launch-sb-probe.txt` with system-uptime timestamps for selector availability, icon-launch entry points, Amazon bundle/PID classification, bridge creation/visibility, window ordering, native-splash-ready receipt, removal, and hard-cap fallback.
+- Passive launch-path coverage includes `SBIconController -_launchFromIconView:`, `SBIconController -iconManager:launchIconForIconView:`, `SBApplicationIcon -launchFromLocation:`, and `SBHIconManager -iconModel:launchIcon:fromLocation:context:`. Probe-only hooks call `%orig` unchanged.
+- Amazon writes `AmazonDark-v7.317-launch-app-probe.txt` in its Documents directory for process start, foreground/background/scene-connect lifecycle, AXU/Tez splash callbacks, splash visibility/background state, and the exact Darwin ready post.
+- Both logs use `NSProcessInfo.systemUptime`, so the export command can merge them into exact cross-process order.
+- No screenshot trigger is used because the target event happens before Amazon can receive one.
+
 # AmazonDark v7.316~icon-launch-window-bridge
 
 ## Cold launch: independent SpringBoard window, zero SBSceneView hooks
