@@ -9,6 +9,11 @@
 //      immediately -- no Home/WebKit readiness gate, minimum hold, settle, or fade.
 //   3. The same Amazon process is a warm resume and receives NO SpringBoard shim.
 //
+// v7.315 safety rule: SBSceneView lifecycle hooks NEVER inspect SpringBoard application
+// state and NEVER mutate UIKit hierarchy synchronously. They only enqueue one main-queue
+// continuation. All bundle/PID classification and any addSubview work occurs after UIKit
+// has fully unwound the scene/window attachment transaction.
+//
 // A short absolute cap is failure safety only; it is not part of normal presentation.
 
 #import <UIKit/UIKit.h>
@@ -27,6 +32,7 @@ static SBSceneView *gShimHost7312;
 static const void *kShimKey7312 = &kShimKey7312;
 static unsigned gShimGen7312;
 static NSInteger gAmazonProcessID7312;
+static NSInteger gNativeSplashReadyPID7315;
 
 static BOOL ADSBEnabled(void) {
     @try {
@@ -51,23 +57,6 @@ static NSString *ADSceneBundleId(UIView *v) {
         } @catch (__unused NSException *e) {}
     }
     return nil;
-}
-
-static BOOL ADAmazonProcessAlive(void) {
-    @try {
-        Class ctl=objc_getClass("SBApplicationController");
-        if(!ctl||![ctl respondsToSelector:@selector(sharedInstance)])return NO;
-        id shared=[ctl performSelector:@selector(sharedInstance)];
-        if(!shared||![shared respondsToSelector:@selector(applicationWithBundleIdentifier:)])return NO;
-        id app=[shared performSelector:@selector(applicationWithBundleIdentifier:) withObject:kAMZ];
-        if(!app||![app respondsToSelector:@selector(processState)])return NO;
-        id ps=[app performSelector:@selector(processState)];
-        if(ps&&[ps respondsToSelector:@selector(isRunning)]){
-            id r=[ps valueForKey:@"isRunning"];
-            if([r respondsToSelector:@selector(boolValue)])return [r boolValue];
-        }
-    } @catch (__unused NSException *e) {}
-    return NO;
 }
 
 // Stable process identity across a normal warm resume. Unlike isRunning, this cannot
@@ -161,78 +150,71 @@ static void ADAttachShim7312(UIView *host) {
     } @catch (__unused NSException *e) {}
 }
 
-static BOOL ADColdProcess7312(BOOL aliveBefore, NSInteger pid) {
-    if(pid>0)return (gAmazonProcessID7312<=0||pid!=gAmazonProcessID7312);
-    return !aliveBefore;
+// v7.315: defer ALL SpringBoard inspection and hierarchy work until the current
+// SBSceneView callback has completely returned to UIKit. The four watchdog stackshots
+// from v7.313/v7.314 show the same self-owned pthread mutex on SpringBoard main; doing
+// work "after %orig" was still inside UIKit's outer scene-attachment transaction.
+static void ADScheduleShimCheck7315(SBSceneView *host) {
+    if(!host)return;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        @try {
+            if(!host.window||!ADSBEnabled())return;
+            if(objc_getAssociatedObject(host,kShimKey7312))return;
+            if(![(ADSceneBundleId(host) ?: @"") isEqualToString:kAMZ])return;
+
+            NSInteger pid=ADAmazonProcessIdentifier7312();
+            if(pid<=0)return; // fail open rather than risking a warm-resume mask
+
+            // Same process => ordinary warm resume. Never fabricate a launch transition.
+            if(gAmazonProcessID7312>0&&pid==gAmazonProcessID7312)return;
+
+            // The native splash may have become ready before this deferred block ran.
+            // In that case there is nothing left to bridge; remember the process and skip.
+            if(gNativeSplashReadyPID7315>0&&pid==gNativeSplashReadyPID7315){
+                gAmazonProcessID7312=pid;
+                return;
+            }
+
+            ADAttachShim7312(host);
+            if(gShim7312&&gShim7312.superview==host){
+                objc_setAssociatedObject(host,kShimKey7312,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                gAmazonProcessID7312=pid;
+            }
+        } @catch (__unused NSException *e) {}
+    });
 }
 
 %hook SBSceneView
-- (void)willMoveToWindow:(UIWindow *)newWindow {
-    // v7.314: classify before exposure, but NEVER mutate the live UIKit hierarchy before %orig.
-    // The v7.312/7.313 pre-%orig [host addSubview:shim] path re-entered UIKit while it already
-    // owned its window/view-hierarchy mutex. Two watchdog stackshots showed SpringBoard's main
-    // thread blocked on that same pthread mutex owned by itself. Sampling process identity here
-    // is safe; the actual shim attachment happens synchronously only after UIKit finishes %orig.
-    BOOL enabled=NO, aliveBefore=NO;
-    NSInteger pidBefore=0;
-    @try {
-        enabled=(newWindow!=nil&&ADSBEnabled());
-        if(enabled){
-            aliveBefore=ADAmazonProcessAlive();
-            pidBefore=ADAmazonProcessIdentifier7312();
-        }
-    } @catch (__unused NSException *e) {}
-
-    %orig(newWindow);
-
-    @try {
-        if(!enabled||!newWindow||objc_getAssociatedObject(self,kShimKey7312))return;
-        if(![(ADSceneBundleId(self) ?: @"") isEqualToString:kAMZ])return;
-        NSInteger pid=(pidBefore>0)?pidBefore:ADAmazonProcessIdentifier7312();
-        if(!ADColdProcess7312(aliveBefore,pid))return;
-        ADAttachShim7312(self);
-        if(gShim7312&&gShim7312.superview==self){
-            objc_setAssociatedObject(self,kShimKey7312,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            if(pid>0)gAmazonProcessID7312=pid;
-        }
-    } @catch (__unused NSException *e) {}
-}
-
 - (void)didMoveToWindow {
     %orig;
-    @try {
-        if(!self.window||![(ADSceneBundleId(self) ?: @"") isEqualToString:kAMZ])return;
-        NSInteger pid=ADAmazonProcessIdentifier7312();
-        if(objc_getAssociatedObject(self,kShimKey7312)){
-            if(pid>0)gAmazonProcessID7312=pid;
-            return;
-        }
-        // Last-resort compatibility fallback if willMoveToWindow could not classify the scene.
-        if(pid>0){
-            if(gAmazonProcessID7312>0&&pid==gAmazonProcessID7312)return;
-        }else if(ADAmazonProcessAlive())return;
-        ADAttachShim7312(self);
-        if(gShim7312&&gShim7312.superview==self){
-            objc_setAssociatedObject(self,kShimKey7312,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            if(pid>0)gAmazonProcessID7312=pid;
-        }
-    } @catch (__unused NSException *e) {}
+    // Intentionally no property access, KVC, process lookup, or UIView mutation here.
+    // Enqueue and return immediately so UIKit can release its scene/window mutex first.
+    ADScheduleShimCheck7315(self);
 }
 %end
 
 %ctor {
     @try {
-        if(ADAmazonProcessAlive()){
-            NSInteger p=ADAmazonProcessIdentifier7312();
-            if(p>0)gAmazonProcessID7312=p;
-        }
+        // SpringBoard may restart while Amazon remains alive. Seed the remembered PID so
+        // that already-running Amazon is still treated as a warm resume.
+        NSInteger p=ADAmazonProcessIdentifier7312();
+        if(p>0)gAmazonProcessID7312=p;
     } @catch (__unused NSException *e) {}
     if(!ADSBEnabled())return;
 
     @try {
         static int nativeSplashToken=0;
         notify_register_dispatch("com.colindavidr.amazondark.native-splash-ready",&nativeSplashToken,
-                                 dispatch_get_main_queue(),^(__unused int t){ ADRemoveShim7312(); });
+                                 dispatch_get_main_queue(),^(__unused int t){
+            // Record which Amazon process already reached its real dark native splash.
+            // This closes the race where the notification beats the deferred scene block.
+            NSInteger p=ADAmazonProcessIdentifier7312();
+            if(p>0){
+                gNativeSplashReadyPID7315=p;
+                gAmazonProcessID7312=p;
+            }
+            ADRemoveShim7312();
+        });
     } @catch (__unused NSException *e) {}
 
     @autoreleasepool {

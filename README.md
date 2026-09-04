@@ -1,3 +1,18 @@
+# AmazonDark v7.315~springboard-async-shim
+
+## SpringBoard watchdog fix — fully deferred scene handling
+
+- Direct base: exact v7.314 source.
+- The new 19:55/19:56 SpringBoard watchdog reports reproduce the same failure as 19:41/19:42: SpringBoard main is blocked on a pthread mutex owned by itself, with a second thread waiting behind main.
+- v7.314 proved that moving `addSubview:` to after `%orig` inside `willMoveToWindow:` was insufficient. UIKit's outer scene/window transaction is still active after that callback's `%orig` returns.
+- v7.315 removes the `willMoveToWindow:` hook entirely.
+- `SBSceneView -didMoveToWindow` now performs only `%orig` plus one `dispatch_async` enqueue. No bundle KVC, PID lookup, preference lookup, view property access, associated-object mutation, or UIView hierarchy mutation occurs synchronously inside the scene callback.
+- On the next main-queue turn, after UIKit has unwound the attachment transaction, AmazonDark identifies the Amazon scene, reads the current Amazon PID, distinguishes a new process from the remembered warm process, and only then attaches the short first-frame shim.
+- `native-splash-ready` now records the ready Amazon PID before removing the shim, preventing a race where Amazon's real dark splash becomes ready before the deferred SpringBoard block executes.
+- Same PID remains a true warm resume and receives no SpringBoard transition.
+- PID lookup failure fails open (no shim) rather than risking a warm-resume mask or SpringBoard lock.
+- App-side native splash ownership and all v7.311 Cart/Menu/Home/Person/Alexa/TWB/standalone/CNM production behavior are unchanged.
+
 # AmazonDark v7.314~native-splash-handoff-deadlock-fix
 
 ## SpringBoard watchdog correction
