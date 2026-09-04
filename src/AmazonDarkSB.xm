@@ -1,4 +1,6 @@
-// AmazonDarkSB.xm — v7.324 pre-armed scene cover + proven Home-ready handoff
+// AmazonDarkSB.xm — v7.325 v6.0.185 anti-flash first-frame hot path
+// Keeps the v6.0.185 scene-attached/stock-transition model and ports only its
+// anti-white ownership principles onto the current lightweight v7 architecture.
 // Restores the proven stock-transition presentation used by the v7.301 line.
 //
 // Key correction from the v7.319 launch probe:
@@ -38,7 +40,7 @@ static BOOL gColdLaunchPending7323=NO;
 static unsigned gColdArmGen7323;
 static double gPresentAt7324=0.0;
 
-static NSString * const kADSBLaunchProbePath7323=@"/var/mobile/AmazonDark-v7.324-launch-sb-probe.txt";
+static NSString * const kADSBLaunchProbePath7323=@"/var/mobile/AmazonDark-v7.325-launch-sb-probe.txt";
 static dispatch_queue_t ADSBProbeQueue7323(void){
     static dispatch_queue_t q; static dispatch_once_t once;
     dispatch_once(&once,^{q=dispatch_queue_create("com.colindavidr.amazondark.launchprobe.sb",DISPATCH_QUEUE_SERIAL);});
@@ -171,16 +173,30 @@ static void ADInstallTapHook7323(void){
     %orig;
     @try {
         if(!self.window||!ADSBEnabled7323())return;
+
+        // v7.325: v6.0.185 anti-flash rule, with the iOS 17 tap proof supplying
+        // identity one step earlier. Once the exact Amazon icon has armed a true
+        // cold launch, DO NOT put scene-bundle/PID/process-state discovery in front
+        // of first-frame coverage. Those late lookups are precisely the kind of
+        // race that can let the stock LaunchScreen win one composite. The first
+        // SBSceneView entering a window during this short one-shot arm gets the
+        // opaque scene-attached cover immediately; the arm expires after 3 s.
+        if(gColdLaunchPending7323){
+            gColdLaunchPending7323=NO;
+            if(!objc_getAssociatedObject(self,kCoveredKey7323))
+                objc_setAssociatedObject(self,kCoveredKey7323,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            ADAttachCoverToScene7323(self,@"prearmed-first-frame");
+            ADSBProbeLog7323(@"scene.didMove",[NSString stringWithFormat:@"host=%p win=%p prearmed=1 covered=%d activeCover=%d",self,self.window,objc_getAssociatedObject(self,kCoveredKey7323)?1:0,gCoverOverlay7323?1:0]);
+            return;
+        }
+
+        // Compatibility/fallback only. This path is not on the verified cold-icon
+        // hot path. It preserves protection for an unobserved cold presentation.
         NSString *bid=ADSceneBundleId7323(self); if(![bid isEqualToString:kAMZ])return;
-        BOOL prearmed=gColdLaunchPending7323; NSInteger pid=ADAmazonPID7323();
-        BOOL running=ADAmazonProcessRunning7324();
-        ADSBProbeLog7323(@"scene.didMove",[NSString stringWithFormat:@"host=%p win=%p prearmed=%d pid=%ld running=%d covered=%d activeCover=%d",self,self.window,prearmed?1:0,(long)pid,running?1:0,objc_getAssociatedObject(self,kCoveredKey7323)?1:0,gCoverOverlay7323?1:0]);
-        // During one cold launch SpringBoard may replace the concrete Amazon scene host.
-        // Keep the same opaque cover on whichever Amazon scene is actually entering a window.
+        NSInteger pid=ADAmazonPID7323(); BOOL running=ADAmazonProcessRunning7324();
+        ADSBProbeLog7323(@"scene.didMove",[NSString stringWithFormat:@"host=%p win=%p prearmed=0 pid=%ld running=%d covered=%d activeCover=%d",self,self.window,(long)pid,running?1:0,objc_getAssociatedObject(self,kCoveredKey7323)?1:0,gCoverOverlay7323?1:0]);
         if(gCoverOverlay7323){ ADMoveCoverToScene7324(self); return; }
         if(objc_getAssociatedObject(self,kCoveredKey7323))return;
-        if(prearmed){ gColdLaunchPending7323=NO; objc_setAssociatedObject(self,kCoveredKey7323,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC); ADAttachCoverToScene7323(self,@"prearmed-cold"); return; }
-        // Treat a stale PID whose processState is no longer running as cold too.
         if(pid<=0||!running){ objc_setAssociatedObject(self,kCoveredKey7323,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC); ADAttachCoverToScene7323(self,@"scene-cold-fallback"); }
     } @catch(__unused NSException *e){}
 }
