@@ -168,36 +168,25 @@ static BOOL ADColdProcess7312(BOOL aliveBefore, NSInteger pid) {
 
 %hook SBSceneView
 - (void)willMoveToWindow:(UIWindow *)newWindow {
-    BOOL enabled=NO, target=NO, aliveBefore=NO, attached=NO;
+    // v7.314: classify before exposure, but NEVER mutate the live UIKit hierarchy before %orig.
+    // The v7.312/7.313 pre-%orig [host addSubview:shim] path re-entered UIKit while it already
+    // owned its window/view-hierarchy mutex. Two watchdog stackshots showed SpringBoard's main
+    // thread blocked on that same pthread mutex owned by itself. Sampling process identity here
+    // is safe; the actual shim attachment happens synchronously only after UIKit finishes %orig.
+    BOOL enabled=NO, aliveBefore=NO;
     NSInteger pidBefore=0;
     @try {
         enabled=(newWindow!=nil&&ADSBEnabled());
         if(enabled){
-            target=[(ADSceneBundleId(self) ?: @"") isEqualToString:kAMZ];
-            if(target){
-                aliveBefore=ADAmazonProcessAlive();
-                pidBefore=ADAmazonProcessIdentifier7312();
-                if(!objc_getAssociatedObject(self,kShimKey7312)&&ADColdProcess7312(aliveBefore,pidBefore)){
-                    // Earliest safe point: attach BEFORE SpringBoard moves the Amazon scene into
-                    // its destination window, so the stock system LaunchScreen is never the first
-                    // composited Amazon scene surface when the bundle identity is already known.
-                    ADAttachShim7312(self);
-                    if(gShim7312&&gShim7312.superview==self){
-                        objc_setAssociatedObject(self,kShimKey7312,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                        attached=YES;
-                        if(pidBefore>0)gAmazonProcessID7312=pidBefore;
-                    }
-                }
-            }
+            aliveBefore=ADAmazonProcessAlive();
+            pidBefore=ADAmazonProcessIdentifier7312();
         }
     } @catch (__unused NSException *e) {}
 
     %orig(newWindow);
 
-    // Some SpringBoard builds do not expose sceneHandle.bundleIdentifier until after %orig.
-    // This is a fallback only; the pre-%orig path above is the normal first-frame owner.
     @try {
-        if(!enabled||!newWindow||attached||objc_getAssociatedObject(self,kShimKey7312))return;
+        if(!enabled||!newWindow||objc_getAssociatedObject(self,kShimKey7312))return;
         if(![(ADSceneBundleId(self) ?: @"") isEqualToString:kAMZ])return;
         NSInteger pid=(pidBefore>0)?pidBefore:ADAmazonProcessIdentifier7312();
         if(!ADColdProcess7312(aliveBefore,pid))return;

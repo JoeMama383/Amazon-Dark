@@ -1,3 +1,14 @@
+# AmazonDark v7.314~native-splash-handoff-deadlock-fix
+
+## SpringBoard watchdog correction
+
+- Direct base: exact v7.313 native-splash-handoff compile-fix source.
+- Removes the only unsafe v7.312/v7.313 behavior: attaching the shim to a live `SBSceneView` before `%orig` inside `willMoveToWindow:`.
+- Two SpringBoard watchdog stackshots independently show the main thread blocked on a pthread mutex owned by itself, consistent with UIKit hierarchy re-entry while its window-transition lock is already held.
+- v7.314 still samples Amazon process identity before `%orig` for deterministic cold/warm classification, but performs no live UIView hierarchy mutation until after `%orig` returns.
+- Cold launch still uses the short first-frame shim and immediately hands off on `native-splash-ready`; ordinary warm resumes still receive no SpringBoard shim.
+- No Cart, Menu, Home, Person, Alexa, TWB, standalone-ad, CNM, or other production UI logic is changed.
+
 # AmazonDark v7.313~native-splash-handoff-compile-fix
 
 ## Compile-only correction to v7.312
