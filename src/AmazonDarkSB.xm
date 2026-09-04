@@ -1,4 +1,4 @@
-// AmazonDarkSB.xm — v7.335 v6.185 warm continuity + v7.330 cold ownership
+// AmazonDarkSB.xm — v7.336 v6.185 warm continuity + v7.330 cold ownership
 //
 // A stock launch image/snapshot is owned by iOS before Amazon can draw. The old
 // SBSceneView -didMoveToWindow path attached our cover only after the scene had
@@ -72,11 +72,11 @@ static NSInteger gAuthoritativeProcessPID7330=0;
 static int gReadyToken7330=0;
 static NSInteger gReadyPID7330=0;
 static unsigned gReadyGeneration7330=0;
-// v7.335: process that has actually completed the dark Home handoff. This is the
+// v7.336: process that has actually completed the dark Home handoff. This is the
 // only running PID allowed to bypass a cover when SpringBoard temporarily has no scene.
-static NSInteger gLastReadyPID7335=0;
+static NSInteger gLastReadyPID7336=0;
 
-static NSString * const kADSBLaunchProbePath7326=@"/var/mobile/AmazonDark-v7.335-launch-sb-probe.txt";
+static NSString * const kADSBLaunchProbePath7326=@"/var/mobile/AmazonDark-v7.336-launch-sb-probe.txt";
 static dispatch_queue_t ADSBProbeQueue7326(void){
     static dispatch_queue_t q; static dispatch_once_t once;
     dispatch_once(&once,^{q=dispatch_queue_create("com.colindavidr.amazondark.launchprobe.sb",DISPATCH_QUEUE_SERIAL);});
@@ -260,7 +260,7 @@ static void ADHandleReady7330(NSInteger pid,int token){
         }
         BOOL hasOverlay=ADHasAnySceneOverlay7327();
         if(!hasOverlay){
-            gLastReadyPID7335=pid;
+            gLastReadyPID7336=pid;
             __atomic_store_n(&gAmazonProcessLaunchPending7327,0,__ATOMIC_RELEASE);
             __atomic_store_n(&gAuthoritativeProcessPID7330,0,__ATOMIC_RELEASE);
             gColdActive7326=NO;
@@ -268,7 +268,7 @@ static void ADHandleReady7330(NSInteger pid,int token){
             ADClearReadyListener7330(@"ready-no-overlay");
             return;
         }
-        gLastReadyPID7335=pid;
+        gLastReadyPID7336=pid;
         double shown=gFirstOverlayAt7326>0.0?(CFAbsoluteTimeGetCurrent()-gFirstOverlayAt7326):0.0;
         double minimumRemaining=shown<kCoverMinimum7326?(kCoverMinimum7326-shown):0.0;
         double wait=MAX(minimumRemaining,kReadySettle7326);
@@ -433,13 +433,13 @@ static void ADHookIconTap7326(id self,SEL _cmd,id gesture){
     // stays cold-in-flight even after it becomes visible in SBApplication state.
     BOOL currentPIDOwnsCold=processContinuous&&gColdActive7326&&
         ((gReadyPID7330==pid&&gReadyGeneration7330==gColdGeneration7326)||authoritativePID==pid);
-    BOOL readyProcessWarm=processContinuous&&pid==gLastReadyPID7335;
+    BOOL readyProcessWarm=processContinuous&&pid==gLastReadyPID7336;
     BOOL liveSceneWarm=processContinuous&&liveScenes>0&&!gColdActive7326&&
         !__atomic_load_n(&gAmazonProcessLaunchPending7327,__ATOMIC_ACQUIRE);
     BOOL sameProcessWarm=!currentPIDOwnsCold&&(readyProcessWarm||liveSceneWarm);
     BOOL needsCover=amazon&&ADSBEnabled7326()&&state==UIGestureRecognizerStateEnded&&!sameProcessWarm&&!currentPIDOwnsCold;
 
-    if(amazon)ADSBProbeLog7326(@"icon.tap",[NSString stringWithFormat:@"view=%p bid=%@ state=%ld pid=%ld running=%d liveScenes=%lu readyPid=%ld coldOwner=%d readyWarm=%d liveWarm=%d sameProcessWarm=%d cover=%d",self,bundle,(long)state,(long)pid,running?1:0,(unsigned long)liveScenes,(long)gLastReadyPID7335,currentPIDOwnsCold?1:0,readyProcessWarm?1:0,liveSceneWarm?1:0,sameProcessWarm?1:0,needsCover?1:0]);
+    if(amazon)ADSBProbeLog7326(@"icon.tap",[NSString stringWithFormat:@"view=%p bid=%@ state=%ld pid=%ld running=%d liveScenes=%lu readyPid=%ld coldOwner=%d readyWarm=%d liveWarm=%d sameProcessWarm=%d cover=%d",self,bundle,(long)state,(long)pid,running?1:0,(unsigned long)liveScenes,(long)gLastReadyPID7336,currentPIDOwnsCold?1:0,readyProcessWarm?1:0,liveSceneWarm?1:0,sameProcessWarm?1:0,needsCover?1:0]);
 
     if(amazon&&ADSBEnabled7326()&&state==UIGestureRecognizerStateEnded){
         if(currentPIDOwnsCold){
@@ -447,7 +447,7 @@ static void ADHookIconTap7326(id self,SEL _cmd,id gesture){
         } else if(sameProcessWarm){
             // v6.185 contract: a settled surviving process resumes directly. Do not
             // manufacture a loading/snapshot cover or touch the live scene hierarchy.
-            ADSBProbeLog7326(@"warm.direct",[NSString stringWithFormat:@"pid=%ld readyPid=%ld liveScenes=%lu",(long)pid,(long)gLastReadyPID7335,(unsigned long)liveScenes]);
+            ADSBProbeLog7326(@"warm.direct",[NSString stringWithFormat:@"pid=%ld readyPid=%ld liveScenes=%lu",(long)pid,(long)gLastReadyPID7336,(unsigned long)liveScenes]);
         } else if(needsCover){
             NSString *reason=processContinuous?@"running-process-not-ready":@"verified-cold-icon-tap-fallback";
             ADArmColdLaunch7326(reason,YES);
@@ -533,7 +533,7 @@ static void ADMarkAuthoritativeProcessLaunch7327(id process){
 %end
 
 // -----------------------------------------------------------------------------
-// v7.335: no switcher cover exists in either process. v6.185 did not manufacture
+// v7.336: no switcher cover exists in either process. v6.185 did not manufacture
 // a task-switcher card; UIKit snapshots the already-dark Amazon hierarchy normally.
 // -----------------------------------------------------------------------------
 %ctor {
