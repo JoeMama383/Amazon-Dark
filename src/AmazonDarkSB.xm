@@ -1,11 +1,11 @@
-// AmazonDarkSB.xm — v7.321 verified icon-tap cold-launch bridge
+// AmazonDarkSB.xm — v7.322 transition-coupled icon-tap cold-launch bridge
 // Cold-launch first-frame bridge without touching SBSceneView.
 //
 // Architecture:
 //   * Ordinary warm reopen: Amazon already has a process BEFORE the launch request -> do nothing.
 //   * Genuine cold icon launch: before SpringBoard begins launching Amazon, show one independent,
-//     non-key, noninteractive dark SpringBoard UIWindow. This window is NOT inserted into the
-//     Amazon scene and never participates in SBSceneView lifecycle transactions.
+//     non-key, noninteractive SpringBoard UIWindow whose dark surface begins at the tapped icon
+//     geometry and expands with the launch. The window never mutates SBSceneView lifecycle state.
 //   * Amazon's exact native splash controller owns its own floor dark in Tweak.xm. Once that splash
 //     has actually appeared it posts native-splash-ready and this independent bridge disappears.
 //   * A short hard cap is failure safety only.
@@ -40,12 +40,13 @@ static const NSTimeInterval kBridgeHardCap7316 = 4.0;
 @end
 
 static UIWindow *gBridgeWindow7316;
+static UIView *gBridgeSurface7322;
 static unsigned gBridgeGen7316;
 
-// v7.321 targeted launch recorder. Writes outside any app container so a SpringBoard
+// v7.322 targeted launch recorder. Writes outside any app container so a SpringBoard
 // launch-path failure can be recovered directly from NewTerm. Logging is serialized off-main;
 // event timestamps are captured before enqueue so file I/O cannot perturb launch ordering.
-static NSString * const kADSBLaunchProbePath7318=@"/var/mobile/AmazonDark-v7.321-launch-sb-probe.txt";
+static NSString * const kADSBLaunchProbePath7318=@"/var/mobile/AmazonDark-v7.322-launch-sb-probe.txt";
 static dispatch_queue_t ADSBProbeQueue7318(void){
     static dispatch_queue_t q; static dispatch_once_t once;
     dispatch_once(&once,^{q=dispatch_queue_create("com.colindavidr.amazondark.launchprobe.sb",DISPATCH_QUEUE_SERIAL);});
@@ -84,47 +85,6 @@ static void ADSBProbeWindows7318(NSString *reason){
     });
 }
 
-
-static BOOL ADSBProbeInterestingClass7318(NSString *name){
-    if(!name.length)return NO;
-    return [name hasPrefix:@"SB"] || [name hasPrefix:@"SBH"] || [name isEqualToString:@"SpringBoard"];
-}
-static BOOL ADSBProbeInterestingSelector7318(NSString *sel){
-    NSString *l=sel.lowercaseString;
-    return [l containsString:@"launch"] || [l containsString:@"activate"] || [l containsString:@"open"] ||
-           [l containsString:@"tap"] || [l containsString:@"touch"] || [l containsString:@"icon"];
-}
-static void ADSBDumpLaunchSurface7318(void){
-    @try {
-        int count=objc_getClassList(NULL,0); if(count<=0)return;
-        Class *classes=(Class *)calloc((size_t)count,sizeof(Class)); if(!classes)return;
-        count=objc_getClassList(classes,count);
-        NSUInteger emitted=0;
-        ADSBProbeLog7318(@"discovery.begin",[NSString stringWithFormat:@"classes=%d",count]);
-        for(int i=0;i<count && emitted<1400;i++){
-            Class c=classes[i]; NSString *cn=NSStringFromClass(c);
-            if(!ADSBProbeInterestingClass7318(cn))continue;
-            unsigned mc=0; Method *ml=class_copyMethodList(c,&mc);
-            for(unsigned j=0;j<mc && emitted<1400;j++){
-                SEL sel=method_getName(ml[j]); NSString *sn=NSStringFromSelector(sel);
-                if(!ADSBProbeInterestingSelector7318(sn))continue;
-                const char *types=method_getTypeEncoding(ml[j]);
-                ADSBProbeLog7318(@"method",[NSString stringWithFormat:@"cls=%@ sel=%@ types=%s",cn,sn,types?:"?"]);
-                emitted++;
-            }
-            if(ml)free(ml);
-        }
-        free(classes);
-        ADSBProbeLog7318(@"discovery.end",[NSString stringWithFormat:@"emitted=%lu",(unsigned long)emitted]);
-        for(NSString *cn in @[@"SBIconView",@"SBIconController",@"SBHIconManager",@"SBApplicationIcon"]){
-            Class c=objc_getClass(cn.UTF8String); if(!c)continue;
-            for(NSString *sn in @[@"tapGestureDidChange:",@"iconManager:touchesEndedForIconView:",@"iconManager:willPrepareIconViewForLaunch:",@"iconManager:launchIconForIconView:",@"iconModel:launchIcon:fromLocation:context:"]){
-                Method m=class_getInstanceMethod(c,NSSelectorFromString(sn));
-                ADSBProbeLog7318(@"candidate",[NSString stringWithFormat:@"cls=%@ sel=%@ exists=%d types=%s",cn,sn,m?1:0,m?(method_getTypeEncoding(m)?:"?"):"-"]);
-            }
-        }
-    } @catch(__unused NSException *e){ ADSBProbeLog7318(@"discovery.exception",@""); }
-}
 
 static BOOL ADSBEnabled7316(void) {
     @try {
@@ -177,16 +137,6 @@ static NSString *ADBundleForIconView7316(id iconView) {
     return nil;
 }
 
-static NSString *ADBundleForLaunchObject7318(id obj){
-    if(!obj)return nil;
-    @try {
-        for(NSString *path in @[@"applicationBundleID",@"applicationBundleIdentifier",@"bundleIdentifier",@"application.bundleIdentifier",@"application.bundleID"]){
-            @try { id v=[obj valueForKeyPath:path]; if([v isKindOfClass:[NSString class]]&&[v length])return v; } @catch(__unused NSException *e){}
-        }
-    } @catch(__unused NSException *e){}
-    return nil;
-}
-
 static UIWindowScene *ADForegroundSpringBoardScene7316(void) {
     if(@available(iOS 13.0,*)){
         @try {
@@ -203,71 +153,89 @@ static UIWindowScene *ADForegroundSpringBoardScene7316(void) {
     return nil;
 }
 
-static UIImage *ADSplashImage7316(void) {
-    static UIImage *image;
-    static dispatch_once_t once;
-    dispatch_once(&once, ^{
-        image=[UIImage imageWithContentsOfFile:@"/var/jb/Library/Application Support/AmazonDark/splash-logo.png"];
-        if(!image)image=[UIImage imageWithContentsOfFile:@"/Library/Application Support/AmazonDark/splash-logo.png"];
-    });
-    return image;
+@interface ADBridgeViewController7322 : UIViewController
+@end
+@implementation ADBridgeViewController7322
+- (BOOL)prefersHomeIndicatorAutoHidden { return YES; }
+- (UIRectEdge)preferredScreenEdgesDeferringSystemGestures { return UIRectEdgeBottom; }
+@end
+
+static CGRect ADIconScreenRect7322(UIView *iconView) {
+    @try {
+        if(!iconView || !iconView.window)return CGRectNull;
+        CGRect r=[iconView convertRect:iconView.bounds toView:nil];
+        if(CGRectIsEmpty(r)||CGRectIsNull(r))return CGRectNull;
+        return r;
+    } @catch (__unused NSException *e) { return CGRectNull; }
 }
 
 static void ADRemoveBridge7316(void) {
     ADSBProbeLog7318(@"bridge.remove.enter",[NSString stringWithFormat:@"exists=%d",gBridgeWindow7316?1:0]);
     @try {
         UIWindow *w=gBridgeWindow7316;
+        UIView *surface=gBridgeSurface7322;
         if(!w)return;
         gBridgeWindow7316=nil;
-        w.hidden=YES;
-        w.rootViewController=nil;
-        ADSBProbeLog7318(@"bridge.remove.done",@"");
+        gBridgeSurface7322=nil;
+        [UIView animateWithDuration:0.10 delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionCurveEaseOut animations:^{
+            surface.alpha=0.0;
+        } completion:^(__unused BOOL finished){
+            w.hidden=YES;
+            w.rootViewController=nil;
+            ADSBProbeLog7318(@"bridge.remove.done",@"");
+        }];
     } @catch (__unused NSException *e) {}
 }
 
-static void ADPresentBridge7316(void) {
+static void ADPresentBridge7316(UIView *iconView) {
     ADSBProbeLog7318(@"bridge.present.enter",[NSString stringWithFormat:@"exists=%d enabled=%d",gBridgeWindow7316?1:0,ADSBEnabled7316()?1:0]);
     @try {
         if(gBridgeWindow7316||!ADSBEnabled7316()){ADSBProbeLog7318(@"bridge.present.skip",@"existing-or-disabled");return;}
         CGRect screen=UIScreen.mainScreen.bounds;
+        CGRect iconRect=ADIconScreenRect7322(iconView);
+        if(CGRectIsNull(iconRect)||CGRectIsEmpty(iconRect))iconRect=CGRectMake(CGRectGetMidX(screen)-30.0,CGRectGetMidY(screen)-30.0,60.0,60.0);
+
         UIWindow *w=[[UIWindow alloc] initWithFrame:screen];
         if(@available(iOS 13.0,*)){
             UIWindowScene *scene=ADForegroundSpringBoardScene7316();
             ADSBProbeLog7318(@"bridge.scene",[NSString stringWithFormat:@"scene=%p state=%ld",scene,(long)scene.activationState]);
             if(scene)w.windowScene=scene;
         }
+
         UIColor *dark=[UIColor colorWithRed:0.094 green:0.102 blue:0.106 alpha:1.0];
-        UIViewController *vc=[UIViewController new];
+        ADBridgeViewController7322 *vc=[ADBridgeViewController7322 new];
         vc.view.frame=screen;
-        vc.view.backgroundColor=dark;
+        vc.view.backgroundColor=UIColor.clearColor;
         w.rootViewController=vc;
-        w.backgroundColor=dark;
-        w.windowLevel=UIWindowLevelAlert+1000.0;
+        w.backgroundColor=UIColor.clearColor;
+        // Stay above SpringBoard/app-host content but below alert/system-overlay strata.
+        w.windowLevel=UIWindowLevelNormal+10.0;
         w.userInteractionEnabled=NO;
         w.alpha=1.0;
 
-        UIImage *splash=ADSplashImage7316();
-        if(splash){
-            CGFloat lw=screen.size.width*0.62;
-            CGFloat lh=lw*(splash.size.height/MAX(splash.size.width,1.0));
-            UIImageView *logo=[[UIImageView alloc] initWithFrame:CGRectMake((screen.size.width-lw)*0.5,
-                                                                            (screen.size.height-lh)*0.5,
-                                                                            lw,lh)];
-            logo.autoresizingMask=UIViewAutoresizingFlexibleLeftMargin|UIViewAutoresizingFlexibleRightMargin|
-                                  UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleBottomMargin;
-            logo.contentMode=UIViewContentModeScaleAspectFit;
-            logo.image=splash;
-            [vc.view addSubview:logo];
-        }
+        UIView *surface=[[UIView alloc] initWithFrame:iconRect];
+        surface.backgroundColor=dark;
+        surface.userInteractionEnabled=NO;
+        surface.layer.masksToBounds=YES;
+        surface.layer.cornerRadius=MIN(iconRect.size.width,iconRect.size.height)*0.225;
+        [vc.view addSubview:surface];
 
-        // Do not make key. SpringBoard keeps its normal key window/input ownership; this is visual only.
+        // No SpringBoard-side logo. The real Amazon splash controller owns artwork once its
+        // scene exists; this bridge only owns the otherwise-white pre-process pixels.
         gBridgeWindow7316=w;
+        gBridgeSurface7322=surface;
         w.hidden=NO;
-        ADSBProbeLog7318(@"bridge.visible",[NSString stringWithFormat:@"ptr=%p level=%.1f hidden=%d alpha=%.3f frame=%@ logo=%d",w,w.windowLevel,w.hidden?1:0,w.alpha,ADSBRect7318(w.frame),splash?1:0]);
-        ADSBProbeWindows7318(@"after-bridge-visible");
+        ADSBProbeLog7318(@"bridge.visible",[NSString stringWithFormat:@"ptr=%p level=%.1f start=%@ target=%@",w,w.windowLevel,ADSBRect7318(iconRect),ADSBRect7318(screen)]);
+
+        [UIView animateWithDuration:0.34 delay:0.0 usingSpringWithDamping:0.90 initialSpringVelocity:0.0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionAllowUserInteraction animations:^{
+            surface.frame=screen;
+            surface.layer.cornerRadius=0.0;
+        } completion:^(__unused BOOL finished){
+            ADSBProbeLog7318(@"bridge.expand.done",[NSString stringWithFormat:@"frame=%@",ADSBRect7318(surface.frame)]);
+        }];
+
         unsigned gen=++gBridgeGen7316;
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(kBridgeHardCap7316*NSEC_PER_SEC)),
-                       dispatch_get_main_queue(),^{
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(kBridgeHardCap7316*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
             @try { if(gBridgeWindow7316&&gen==gBridgeGen7316){ADSBProbeLog7318(@"bridge.hardcap",[NSString stringWithFormat:@"gen=%u",gen]);ADRemoveBridge7316();} }
             @catch (__unused NSException *e) {}
         });
@@ -282,7 +250,7 @@ static void ADHookIconTap7318(id self,SEL _cmd,id gesture){
     BOOL amazon=[(bid?:@"") isEqualToString:kAMZ];
     BOOL cold=(amazon && ADSBEnabled7316() && pid<=0 && state==UIGestureRecognizerStateEnded);
     ADSBProbeLog7318(@"SBIconView.tapGestureDidChange.pre",[NSString stringWithFormat:@"view=%p cls=%@ gestureCls=%@ state=%ld bid=%@ amazon=%d amazonPid=%ld cold=%d",self,NSStringFromClass([self class])?:@"?",NSStringFromClass([gesture class])?:@"?",(long)state,bid?:@"nil",amazon?1:0,(long)pid,cold?1:0]);
-    if(cold)ADPresentBridge7316();
+    if(cold)ADPresentBridge7316((UIView *)self);
     if(ADOrigIconTap7318)ADOrigIconTap7318(self,_cmd,gesture);
     ADSBProbeLog7318(@"SBIconView.tapGestureDidChange.post",[NSString stringWithFormat:@"bid=%@ amazonPid=%ld bridge=%d",bid?:@"nil",(long)ADAmazonProcessIdentifier7316(),gBridgeWindow7316?1:0]);
 }
