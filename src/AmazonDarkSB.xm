@@ -1,11 +1,12 @@
-// AmazonDarkSB.xm — v7.326 pre-presentation native scene overlay
+// AmazonDarkSB.xm — v7.327 authoritative process-launch scene overlay
 //
 // A stock launch image/snapshot is owned by iOS before Amazon can draw. The old
 // SBSceneView -didMoveToWindow path attached our cover only after the scene had
 // entered a window, leaving one compositor frame in which the stock white image
 // could win. This build uses SpringBoard's own device-scene overlay API instead:
 //
-//   * a verified cold Amazon icon tap is classified before SpringBoard launches it;
+//   * SpringBoard's exact Amazon process-launch callback owns the cold decision;
+//   * the icon tap remains only an earlier PID-zero fallback;
 //   * an already-created Amazon scene receives the overlay before the original tap;
 //   * a newly-created Amazon scene receives it from its designated initializer,
 //     before the scene is presented;
@@ -31,6 +32,11 @@ static const long long kOverlayPriority7326   = LLONG_MAX - 0x414D5A;
 - (void)tapGestureDidChange:(id)gesture;
 @end
 
+@interface SBApplication : NSObject
+@property(nonatomic,readonly,copy) NSString *bundleIdentifier;
+- (void)_processWillLaunch:(id)process;
+@end
+
 @interface SBDeviceApplicationSceneOverlayBasicWrapperView : UIView
 - (instancetype)initWithCounterRotationRequirement:(BOOL)required;
 @property(nonatomic) BOOL shouldLayoutOverlayImmediatelyForContainerGeometryChange;
@@ -50,8 +56,13 @@ static const void *kADSceneOverlayKey7326=&kADSceneOverlayKey7326;
 static unsigned gColdGeneration7326=0;
 static BOOL gColdActive7326=NO;
 static double gFirstOverlayAt7326=0.0;
+// Set immediately by SBApplication -_processWillLaunch:, including when that
+// callback is not delivered on SpringBoard's main thread. The next exact Amazon
+// scene can therefore consume the authoritative cold decision without racing a
+// queued main-thread block.
+static int gAmazonProcessLaunchPending7327=0;
 
-static NSString * const kADSBLaunchProbePath7326=@"/var/mobile/AmazonDark-v7.326-launch-sb-probe.txt";
+static NSString * const kADSBLaunchProbePath7326=@"/var/mobile/AmazonDark-v7.327-launch-sb-probe.txt";
 static dispatch_queue_t ADSBProbeQueue7326(void){
     static dispatch_queue_t q; static dispatch_once_t once;
     dispatch_once(&once,^{q=dispatch_queue_create("com.colindavidr.amazondark.launchprobe.sb",DISPATCH_QUEUE_SERIAL);});
@@ -172,6 +183,12 @@ static void ADRemoveAllOverlays7326(BOOL animated){
     for(SBDeviceApplicationSceneView *scene in scenes)ADRemoveSceneOverlay7326(scene,animated);
     gColdActive7326=NO;
 }
+static BOOL ADHasAnySceneOverlay7327(void){
+    for(SBDeviceApplicationSceneView *scene in ADAmazonScenes7326().allObjects)
+        if(ADSceneOverlay7326(scene))return YES;
+    return NO;
+}
+static void ADArmColdLaunch7326(NSString *reason,BOOL expireIfUnclaimed);
 static void ADAttachSceneOverlay7326(SBDeviceApplicationSceneView *scene,NSString *reason){
     if(!scene||!gColdActive7326||!ADSBEnabled7326()||ADSceneOverlay7326(scene))return;
     @try {
@@ -200,7 +217,20 @@ static void ADAttachSceneOverlay7326(SBDeviceApplicationSceneView *scene,NSStrin
 
         objc_setAssociatedObject(scene,kADSceneOverlayKey7326,overlay,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         [scene addOverlayView:overlay withPriority:kOverlayPriority7326];
-        if(gFirstOverlayAt7326<=0.0)gFirstOverlayAt7326=CFAbsoluteTimeGetCurrent();
+        if(gFirstOverlayAt7326<=0.0){
+            gFirstOverlayAt7326=CFAbsoluteTimeGetCurrent();
+            unsigned generation=gColdGeneration7326;
+            // Start the fault cap when a cover actually becomes visible. A process
+            // can be prewarmed long before a foreground scene exists, so timing from
+            // _processWillLaunch: would discard the cover before the user's tap.
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(kCoverHardCap7326*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+                if(gColdActive7326&&generation==gColdGeneration7326){
+                    __atomic_store_n(&gAmazonProcessLaunchPending7327,0,__ATOMIC_RELEASE);
+                    ADSBProbeLog7326(@"overlay.hardcap",[NSString stringWithFormat:@"gen=%u",generation]);
+                    ADRemoveAllOverlays7326(NO);
+                }
+            });
+        }
         ADSBProbeLog7326(@"overlay.attach",[NSString stringWithFormat:@"reason=%@ scene=%p win=%p overlay=%p frame=%@ gen=%u",reason?:@"?",scene,scene.window,overlay,ADSBRect7326(scene.bounds),gColdGeneration7326]);
     } @catch(__unused NSException *e){
         objc_setAssociatedObject(scene,kADSceneOverlayKey7326,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -210,11 +240,17 @@ static void ADAttachSceneOverlay7326(SBDeviceApplicationSceneView *scene,NSStrin
 static void ADRegisterAmazonScene7326(SBDeviceApplicationSceneView *scene,id handle,NSString *reason){
     NSString *bundle=ADBundleForSceneHandle7326(handle);
     if(!scene||![bundle isEqualToString:kAMZ])return;
+    // _processWillLaunch: is the source of truth for a new process. If its
+    // callback arrived off-main and the queued arm has not run yet, consume the
+    // atomic mark here before this newly-created scene can be presented.
+    if(__atomic_load_n(&gAmazonProcessLaunchPending7327,__ATOMIC_ACQUIRE)&&!gColdActive7326){
+        ADArmColdLaunch7326(@"authoritative-process-launch-scene",NO);
+    }
     [ADAmazonScenes7326() addObject:scene];
     ADSBProbeLog7326(@"scene.register",[NSString stringWithFormat:@"reason=%@ scene=%p win=%p active=%d frame=%@",reason?:@"?",scene,scene.window,gColdActive7326?1:0,ADSBRect7326(scene.bounds)]);
     if(gColdActive7326)ADAttachSceneOverlay7326(scene,@"scene-created-during-cold-launch");
 }
-static void ADArmColdLaunch7326(NSString *reason){
+static void ADArmColdLaunch7326(NSString *reason,BOOL expireIfUnclaimed){
     ADRemoveAllOverlays7326(NO);
     gColdActive7326=YES;
     gFirstOverlayAt7326=0.0;
@@ -223,19 +259,16 @@ static void ADArmColdLaunch7326(NSString *reason){
     ADSBProbeLog7326(@"cold.arm",[NSString stringWithFormat:@"reason=%@ gen=%u registeredScenes=%lu",reason?:@"?",generation,(unsigned long)scenes.count]);
     for(SBDeviceApplicationSceneView *scene in scenes)ADAttachSceneOverlay7326(scene,@"pre-original-icon-tap");
 
-    // An icon tap normally creates/reuses its scene immediately. If no exact Amazon
-    // scene appears, discard the arm instead of affecting a later unrelated launch.
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(3.0*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-        if(gColdActive7326&&generation==gColdGeneration7326){
-            BOOL hasOverlay=NO;
-            for(SBDeviceApplicationSceneView *scene in ADAmazonScenes7326().allObjects){if(ADSceneOverlay7326(scene)){hasOverlay=YES;break;}}
-            if(!hasOverlay){gColdActive7326=NO;ADSBProbeLog7326(@"cold.arm.expire",[NSString stringWithFormat:@"gen=%u",generation]);}
-        }
-    });
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(kCoverHardCap7326*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-        if(gColdActive7326&&generation==gColdGeneration7326){
-            ADSBProbeLog7326(@"overlay.hardcap",[NSString stringWithFormat:@"gen=%u",generation]);
-            ADRemoveAllOverlays7326(NO);
+    // Only the early icon/PID-zero fallback is allowed to expire. An authoritative
+    // process-launch arm survives prewarming until an Amazon foreground scene exists.
+    if(expireIfUnclaimed)dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(3.0*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+        if(gColdActive7326&&generation==gColdGeneration7326&&!ADHasAnySceneOverlay7327()){
+            if(__atomic_load_n(&gAmazonProcessLaunchPending7327,__ATOMIC_ACQUIRE)){
+                ADSBProbeLog7326(@"cold.arm.retain",[NSString stringWithFormat:@"gen=%u authoritative=1",generation]);
+            } else {
+                gColdActive7326=NO;
+                ADSBProbeLog7326(@"cold.arm.expire",[NSString stringWithFormat:@"gen=%u",generation]);
+            }
         }
     });
 }
@@ -249,7 +282,7 @@ static void ADHookIconTap7326(id self,SEL _cmd,id gesture){
     BOOL running=ADAmazonProcessRunning7326();
     BOOL cold=amazon&&ADSBEnabled7326()&&state==UIGestureRecognizerStateEnded&&(pid<=0||!running);
     if(amazon)ADSBProbeLog7326(@"icon.tap",[NSString stringWithFormat:@"view=%p bid=%@ state=%ld pid=%ld running=%d cold=%d",self,bundle,(long)state,(long)pid,running?1:0,cold?1:0]);
-    if(cold)ADArmColdLaunch7326(@"verified-cold-icon-tap");
+    if(cold)ADArmColdLaunch7326(@"verified-cold-icon-tap-fallback",YES);
     if(ADOrigIconTap7326)ADOrigIconTap7326(self,_cmd,gesture);
 }
 static void ADInstallTapHook7326(void){
@@ -260,6 +293,36 @@ static void ADInstallTapHook7326(void){
         else ADSBProbeLog7326(@"hook.skip",@"SBIconView tapGestureDidChange: absent");
     } @catch(__unused NSException *e){}
 }
+
+static NSInteger ADProcessPID7327(id process){
+    for(NSString *path in @[@"pid",@"processIdentifier",@"handle.pid",@"identity.pid"]){
+        @try {id value=[process valueForKeyPath:path];if([value respondsToSelector:@selector(integerValue)]){NSInteger pid=[value integerValue];if(pid>0)return pid;}} @catch(__unused NSException *e){}
+    }
+    return 0;
+}
+static void ADMarkAuthoritativeProcessLaunch7327(id process){
+    __atomic_store_n(&gAmazonProcessLaunchPending7327,1,__ATOMIC_RELEASE);
+    ADSBProbeLog7326(@"process.willLaunch",[NSString stringWithFormat:@"process=%p pid=%ld main=%d currentPid=%ld",process,(long)ADProcessPID7327(process),[NSThread isMainThread]?1:0,(long)ADAmazonPID7326()]);
+    void (^arm)(void)=^{
+        if(!ADSBEnabled7326())return;
+        // A prior icon fallback may already own a visible replacement scene. Do
+        // not tear it down; otherwise begin a fresh generation and cover every
+        // exact Amazon scene that SpringBoard has already constructed.
+        if(gColdActive7326&&ADHasAnySceneOverlay7327()){
+            ADSBProbeLog7326(@"process.willLaunch.keep",[NSString stringWithFormat:@"gen=%u",gColdGeneration7326]);
+            return;
+        }
+        ADArmColdLaunch7326(@"SBApplication-processWillLaunch",NO);
+    };
+    if([NSThread isMainThread])arm(); else dispatch_async(dispatch_get_main_queue(),arm);
+}
+
+%hook SBApplication
+- (void)_processWillLaunch:(id)process {
+    @try {if([self.bundleIdentifier isEqualToString:kAMZ]&&ADSBEnabled7326())ADMarkAuthoritativeProcessLaunch7327(process);} @catch(__unused NSException *e){}
+    %orig;
+}
+%end
 
 %hook SBDeviceApplicationSceneView
 - (instancetype)initWithSceneHandle:(id)sceneHandle
@@ -291,10 +354,10 @@ static void ADInstallTapHook7326(void){
         static int readyToken=0;
         notify_register_dispatch("com.colindavidr.amazondark.ready",&readyToken,dispatch_get_main_queue(),^(__unused int token){
             @try {
-                if(!gColdActive7326){ADSBProbeLog7326(@"ready.notify",@"active=0");return;}
+                if(!gColdActive7326){__atomic_store_n(&gAmazonProcessLaunchPending7327,0,__ATOMIC_RELEASE);ADSBProbeLog7326(@"ready.notify",@"active=0");return;}
                 BOOL hasOverlay=NO;
                 for(SBDeviceApplicationSceneView *scene in ADAmazonScenes7326().allObjects){if(ADSceneOverlay7326(scene)){hasOverlay=YES;break;}}
-                if(!hasOverlay){gColdActive7326=NO;ADSBProbeLog7326(@"ready.notify",@"active=1 overlay=0");return;}
+                if(!hasOverlay){__atomic_store_n(&gAmazonProcessLaunchPending7327,0,__ATOMIC_RELEASE);gColdActive7326=NO;ADSBProbeLog7326(@"ready.notify",@"active=1 overlay=0");return;}
                 double shown=gFirstOverlayAt7326>0.0?(CFAbsoluteTimeGetCurrent()-gFirstOverlayAt7326):0.0;
                 double minimumRemaining=shown<kCoverMinimum7326?(kCoverMinimum7326-shown):0.0;
                 double wait=MAX(minimumRemaining,kReadySettle7326);
@@ -302,6 +365,7 @@ static void ADInstallTapHook7326(void){
                 ADSBProbeLog7326(@"ready.notify",[NSString stringWithFormat:@"overlay=1 shown=%.3f wait=%.3f gen=%u",shown,wait,generation]);
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(wait*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
                     if(gColdActive7326&&generation==gColdGeneration7326){
+                        __atomic_store_n(&gAmazonProcessLaunchPending7327,0,__ATOMIC_RELEASE);
                         ADSBProbeLog7326(@"ready.dismiss",[NSString stringWithFormat:@"gen=%u",generation]);
                         ADRemoveAllOverlays7326(YES);
                     }

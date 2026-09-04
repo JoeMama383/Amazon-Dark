@@ -1,3 +1,12 @@
+# AmazonDark v7.327 — authoritative cold-process launch cover
+
+- Fixes the exact failed v7.326 trace: SpringBoard saw stale PID 7755 as running and classified the icon tap warm, then iOS replaced it with fresh Amazon PID 7763. No cover was active for that actual cold process.
+- Arms the existing scene-native black/logo cover from `SBApplication -_processWillLaunch:` for exact bundle `com.amazon.Amazon`. This is the authoritative new-process boundary and does not run on a true same-process warm resume.
+- Retains `SBIconView -tapGestureDidChange:` only as the earlier PID-zero fallback. It is no longer the sole cold-launch owner.
+- Lets an authoritative arm survive iOS process prewarming until an Amazon scene is created, and starts the existing 20-second fault cap only when a cover actually attaches.
+- Keeps replacement-scene continuity, the stock icon/scene animation, the stable real-Home handoff, and the existing 1.40 s minimum / 0.40 s settle / 0.55 s fade.
+- No Cart, Alexa, UI-theming, snapshot-cache, preference, Makefile, injection-plist, or GitHub Actions changes.
+
 # AmazonDark v7.326 — scene-native launch cover, Cart “A,” stock Alexa geometry
 
 - Replaces the unsuccessful v7.323-v7.325 `SBSceneView -didMoveToWindow` cover with SpringBoard's native `SBDeviceApplicationSceneView` overlay API. The cover is installed before the original verified cold icon tap when a scene already exists, or from the scene's designated initializer before a new scene is presented.
