@@ -1,3 +1,12 @@
+# AmazonDark v7.326 — scene-native launch cover, Cart “A,” stock Alexa geometry
+
+- Replaces the unsuccessful v7.323-v7.325 `SBSceneView -didMoveToWindow` cover with SpringBoard's native `SBDeviceApplicationSceneView` overlay API. The cover is installed before the original verified cold icon tap when a scene already exists, or from the scene's designated initializer before a new scene is presented.
+- Keeps the custom black/logo loading view inside Amazon's scene, so Apple's stock icon/scene transition remains the animation owner. No independent `UIWindow`, fake zoom, or scene window-callback mutation is used.
+- Stops deleting iOS SplashBoard snapshots from Amazon's sandbox. That deletion could force the system-owned launch surface back to Amazon's stock launch artwork; the pre-presentation scene overlay now hides the system surface instead.
+- Restores the confirmed v7.280-v7.300 Cart loader behavior: the later v7.312 pre-product selector explicitly excludes `.a-carousel-card-empty`, allowing the existing transparent/filter rule to render Amazon's stock “A” on the dark loader card.
+- Restores Alexa voice-button geometry ownership to Amazon. AmazonDark adds only a centered fill layer and ring to the measured stock 32x32 button; it no longer overrides the voice radius or installs a mask/clipping on the SVG owner.
+- Retains the bounded real-Home ready handoff, 1.40 s minimum, 0.40 s settle, 0.55 s fade, 20 s fault cap, all existing UI theming, all explicit probes, and the unchanged GitHub Actions source-build/package workflow.
+
 # AmazonDark v7.325 — v6.0.185 anti-white first-frame port
 
 - Ports only the cheap anti-flash launch ownership from the v6.0.185 lineage.
