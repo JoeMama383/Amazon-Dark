@@ -17,6 +17,7 @@ AmazonDarkSB_FILES      = src/AmazonDarkSB.xm
 AmazonDarkSB_CFLAGS     = -fobjc-arc -fexceptions -Os -ffunction-sections -fdata-sections -Wno-unused-variable -Wno-error
 AmazonDarkSB_LDFLAGS    = -Wl,-dead_strip
 AmazonDarkSB_FRAMEWORKS = UIKit Foundation CoreGraphics QuartzCore
+AmazonDarkSB_LIBRARIES  = substrate
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 

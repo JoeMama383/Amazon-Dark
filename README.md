@@ -1,16 +1,228 @@
-# AmazonDark v7.331 — v7.307 UI, dark system launch artwork
+# AmazonDark v7.332 — process-scoped ready continuity
 
-Direct base: `4bbbbd9ae7c5dc0a9d4dc1455235da3feeb706f7` (v7.307).
+- Fixes the v7.330/v7.331 intermittent 20-second launch stall captured in the supplied trace. The app itself reached real Home readiness, but SpringBoard had cleared the surviving PID's ready listener on an ambiguous `running process + no live scene` icon tap; with no replacement `_processWillLaunch:` callback, the ready post was lost and the overlay survived to the nonanimated 20-second hard cap.
+- On that exact ambiguous path, SpringBoard now rebinds the currently running Amazon PID as a **tentative** process-scoped ready owner immediately after arming the scene overlay.
+- A tentative ready signal waits only a 0.25-second process-boundary confirmation. If iOS announces a replacement process, the existing generation rebase invalidates the tentative dismissal and binds the replacement PID. If the same PID survives, the normal 1.40 s minimum / 0.40 s settle / 0.55 s fade proceeds.
+- True PID-zero cold launches, true same-process/same-scene warm resumes, v7.331 early app-switcher snapshot ownership, Cart/Alexa/UI theming, and the bounded real-Home readiness gate are otherwise unchanged.
+- No polling, recurring timer, MutationObserver, hierarchy scan, independent launch window, or new SpringBoard scene mutation was added.
 
-`src/Tweak.xm` differs from v7.307 only in its version string and opening comment. All UI, TWB, warm-resume behavior, readiness checks, preferences, assets, Makefile and GitHub Actions are inherited directly from that commit. Existing UI probe filenames remain v7.307; their embedded version identifies this build.
+# AmazonDark v7.331 — first-switcher-snapshot ownership
 
-The SpringBoard addition substitutes black/custom-logo artwork for Amazon snapshots explicitly identified by `XBLaunchImageDataProvider`. It covers the image, generation-options and cached-image accessors. The launch-XIB fallback receives equivalent artwork before its detached view is returned to SpringBoard. Saved scene snapshots from other providers pass through. No numeric content-type guesses, brightness classification or generic image inversion are used.
+- Fixes the remaining v7.329/v7.330 app-switcher race where the first card could preserve Amazon's stock white launch artwork before `UIApplicationDidEnterBackgroundNotification` installed the dark snapshot cover.
+- Activates the existing opaque OLED-black/logo app-window cover synchronously at `UIApplicationWillResignActiveNotification`, before the switcher transition can request its first app-rendered snapshot.
+- Reasserts the same cover at `UIApplicationDidEnterBackgroundNotification` and keeps it continuously installed while Amazon remains backgrounded.
+- Removes it at `UIApplicationWillEnterForegroundNotification`; transient resign-active interruptions that never background are cleaned up at `UIApplicationDidBecomeActiveNotification`.
+- No SpringBoard switcher hook, polling, timer, scan, animation, snapshot-file deletion, or recurring runtime work. v7.330 process-scoped cold-launch readiness is unchanged.
 
-The original v7.307 scene cover remains unchanged. The new correction has no process classification, icon-tap hook, scene registry, new timer, ready listener, or app-switcher cover. It changes what the stock launch-image path returns, independently of whether the existing cover appears.
+# AmazonDark v7.330 — process-scoped launch readiness
 
-This replaces the unfinished v7.331 pending-bit draft: review showed that draft still misses a process callback arriving after scene attachment and cannot attribute global ready events to a process. It is not included here.
+- Fixes the remaining replacement-process handoff race without adding another timing delay.
+- Amazon now posts its proven stable-Home handoff on `com.colindavidr.amazondark.ready.<PID>` instead of one process-agnostic Darwin channel.
+- Every covered Amazon icon tap immediately cancels the prior process readiness subscription before SpringBoard advances the launch.
+- `SBApplication -_processWillLaunch:` binds readiness to the PID SpringBoard actually announces. If the icon tap already installed the native scene overlay, the overlay stays visually untouched while its generation is rebased so any queued dismissal or hard-cap closure from the replaced process becomes invalid.
+- The replacement generation receives its own process-scoped ready listener and a rebased safety cap using the original overlay presentation time.
+- Retains v7.329 dark app-switcher snapshot ownership, v7.328 live-scene continuity pre-arm, the native `SBDeviceApplicationSceneView` overlay, the bounded real-Home gate, 1.40 s minimum / 0.40 s settle / 0.55 s fade / 20 s cap, and true same-scene warm resumes.
+- No independent UIWindow, SplashBoard deletion, Dark Reader, MutationObserver, polling loop, recurring scan, new UI theming, Cart change, or Alexa change.
 
-A SpringBoard log records the source provider and `snapshot.dark`, `xib.dark`, or explicit fallback/error events at `/var/mobile/AmazonDark-v7.331-launch-sb-probe.txt`. These events prove whether the new path executes; they do not measure on-screen pixels. Read `LAUNCH-AUDIT.md` for the history, exact scope, and remaining device-validation requirements.
+# AmazonDark v7.329 — dark app-switcher snapshot ownership
+
+- Fixes the separate task-manager/app-switcher defect shown after a fully dark foreground transition: the switcher card is a persisted app-rendered scene snapshot and does not include AmazonDark's SpringBoard-owned live launch overlay.
+- At `UIApplicationDidEnterBackgroundNotification`, synchronously installs an opaque OLED-black view with the existing custom light/orange Amazon logo on every full-size Amazon window. UIKit captures that hierarchy for the app-switcher card immediately afterward.
+- Removes the snapshot-only cover without animation at `UIApplicationWillEnterForegroundNotification`, before a genuine warm resume returns onscreen. Same-scene warm behavior therefore remains direct-to-Home.
+- Newly created full-size windows also inherit the cover while Amazon remains backgrounded. No independent window, snapshot deletion, recurring scan, timer, animation, or SpringBoard app-switcher hook is introduced.
+- Retains the complete v7.328 live-scene-continuity launch correction. No Cart, Alexa, UI-theming, preference, Makefile, injection-plist, or GitHub Actions changes.
+
+# AmazonDark v7.328 — live-scene-continuity launch pre-arm
+
+- Fixes the exact v7.327 partial-white trace: the icon tap saw stale PID 8588 as running after its prior scene had already invalidated, so the early hook skipped the cover; replacement PID 8598 was disclosed by `_processWillLaunch:` 688 ms later, after the stock white transition had begun.
+- A running PID alone no longer proves a warm resume. The pre-original icon-tap path skips the cover only when both a running Amazon process and a still-live registered Amazon scene prove same-scene continuity.
+- When no live Amazon scene exists, the black/logo launch generation is armed before the original icon tap even if a stale process is still reported as running. The replacement scene therefore receives the native overlay from its designated initializer before presentation.
+- Retains `SBApplication -_processWillLaunch:` as authoritative new-process confirmation and prewarming protection, while correcting its probe attachment reason so a late process callback is no longer mislabeled `pre-original-icon-tap`.
+- Keeps true same-process/same-scene warm resumes unmasked, along with the stock icon/scene animation, existing native scene overlay, stable real-Home handoff, and 1.40 s minimum / 0.40 s settle / 0.55 s fade / 20 s hard cap.
+- No Cart, Alexa, UI-theming, snapshot-cache, preference, Makefile, injection-plist, or GitHub Actions changes.
+
+# AmazonDark v7.327 — authoritative cold-process launch cover
+
+- Fixes the exact failed v7.326 trace: SpringBoard saw stale PID 7755 as running and classified the icon tap warm, then iOS replaced it with fresh Amazon PID 7763. No cover was active for that actual cold process.
+- Arms the existing scene-native black/logo cover from `SBApplication -_processWillLaunch:` for exact bundle `com.amazon.Amazon`. This is the authoritative new-process boundary and does not run on a true same-process warm resume.
+- Retains `SBIconView -tapGestureDidChange:` only as the earlier PID-zero fallback. It is no longer the sole cold-launch owner.
+- Lets an authoritative arm survive iOS process prewarming until an Amazon scene is created, and starts the existing 20-second fault cap only when a cover actually attaches.
+- Keeps replacement-scene continuity, the stock icon/scene animation, the stable real-Home handoff, and the existing 1.40 s minimum / 0.40 s settle / 0.55 s fade.
+- No Cart, Alexa, UI-theming, snapshot-cache, preference, Makefile, injection-plist, or GitHub Actions changes.
+
+# AmazonDark v7.326 — scene-native launch cover, Cart “A,” stock Alexa geometry
+
+- Replaces the unsuccessful v7.323-v7.325 `SBSceneView -didMoveToWindow` cover with SpringBoard's native `SBDeviceApplicationSceneView` overlay API. The cover is installed before the original verified cold icon tap when a scene already exists, or from the scene's designated initializer before a new scene is presented.
+- Keeps the custom black/logo loading view inside Amazon's scene, so Apple's stock icon/scene transition remains the animation owner. No independent `UIWindow`, fake zoom, or scene window-callback mutation is used.
+- Stops deleting iOS SplashBoard snapshots from Amazon's sandbox. That deletion could force the system-owned launch surface back to Amazon's stock launch artwork; the pre-presentation scene overlay now hides the system surface instead.
+- Restores the confirmed v7.280-v7.300 Cart loader behavior: the later v7.312 pre-product selector explicitly excludes `.a-carousel-card-empty`, allowing the existing transparent/filter rule to render Amazon's stock “A” on the dark loader card.
+- Restores Alexa voice-button geometry ownership to Amazon. AmazonDark adds only a centered fill layer and ring to the measured stock 32x32 button; it no longer overrides the voice radius or installs a mask/clipping on the SVG owner.
+- Retains the bounded real-Home ready handoff, 1.40 s minimum, 0.40 s settle, 0.55 s fade, 20 s fault cap, all existing UI theming, all explicit probes, and the unchanged GitHub Actions source-build/package workflow.
+
+# AmazonDark v7.325 — v6.0.185 anti-white first-frame port
+
+- Ports only the cheap anti-flash launch ownership from the v6.0.185 lineage.
+- Verified Amazon cold icon tap pre-arms one launch; the first SBSceneView entering a window gets the opaque scene-attached cover before bundle/PID/process-state discovery.
+- Keeps current documentStart OLED CSS, pre-window/superview WebKit black backing, cached-snapshot purge, bounded real-Home ready handoff, 1.40 s minimum, 0.40 s settle, and 0.55 s fade.
+- Does NOT restore Dark Reader, production MutationObservers, TreeWalkers, scroll listeners, intervals, RAF loops, or v6.0.185 symbol/TWB retry storms.
+- No `willMoveToWindow:` scene mutation is introduced. Apple's normal scene/icon transition remains the animation owner.
+
+# AmazonDark v7.325~scene-cover-prearmed-cold
+
+- Restores the proven scene-attached cold-launch cover so the dark splash rides SpringBoard's stock app transition.
+- Uses the verified iOS 17 `SBIconView -tapGestureDidChange:` path only to classify a true cold Amazon launch before the process exists.
+- `SBSceneView -didMoveToWindow` consumes that one-shot pre-arm, eliminating the old late-PID race that could skip the cover on a real cold launch.
+- No independent top-level launch window; no fake icon expansion; warm launches remain unmasked.
+- Handoff remains event-driven from Amazon's already-dark native splash `viewDidAppear`; 20 s hard cap is safety only.
+
+# AmazonDark v7.325~transition-coupled-cold-bridge
+
+## v7.325 compile/link correction
+
+- Direct base: exact v7.320 icon-tap cold bridge.
+- Adds `AmazonDarkSB_LIBRARIES = substrate` so the SpringBoard target explicitly links the library that exports `MSHookMessageEx`.
+- v7.320 removed the last Logos `%hook` blocks, which also removed Theos' implicit Substrate linkage; the manual hook remained and therefore compiled but failed at final link with undefined `_MSHookMessageEx`.
+- No launch behavior, bridge timing, window behavior, Amazon-side theming, or probe semantics changed.
+- The verified `SBIconView -tapGestureDidChange:` cold-launch bridge remains exactly the runtime path.
+
+
+## Verified iOS 17 cold-launch interception
+
+- Direct base: v7.319 launch-discovery probe.
+- Device probe proved `SBIconView -tapGestureDidChange:` fires for `com.amazon.Amazon` with gesture state 3 and Amazon PID 0 before the Amazon process starts.
+- The independent SpringBoard dark bridge is now presented synchronously at that verified tap boundary, before the original tap handler launches Amazon.
+- Warm launches remain stock: if Amazon already has a PID, no bridge is shown.
+- No `SBSceneView` hook, scene hierarchy insertion, launch readiness polling, or scene callback mutation exists.
+- The broad v7.319 runtime discovery scan and dead private-selector launch hooks are removed.
+- Amazon's exact native splash remains dark-owned in-app and removes the bridge through the existing `native-splash-ready` Darwin handoff.
+- 4.0-second hard cap remains failure safety only.
+
+
+## v7.318 compile-only correction
+
+- Fixes the AmazonDarkSB arm64/arm64e linker failure caused by declaring `MSHookMessageEx` with C++ linkage inside an Objective-C++ `.xm` translation unit.
+- The declaration is now `extern "C" void MSHookMessageEx(...)`, matching the `_MSHookMessageEx` symbol exported by CydiaSubstrate/ElleKit compatibility.
+- No launch behavior, discovery scope, bridge behavior, theming, or probe logic changed beyond v7.325 labels/filenames.
+
+## iOS 17 SpringBoard launch discovery
+
+- Probe-only successor to v7.317; v7.316 visual/bridge behavior is intentionally unchanged.
+- Adds a passive `SBIconView -tapGestureDidChange:` trace, because SpringBoard logs show this is the stable icon-tap boundary even when higher-level private launch selectors drift.
+- At SpringBoard load, enumerates loaded SB/SBH classes and records launch/activate/open/tap/touch/icon selectors plus Objective-C type encodings, capped at 1400 records.
+- Records explicit availability/type encodings for the most likely icon-launch delegate methods.
+- No `SBSceneView` hook, no additional window mutation, no observer/timer/RAF loop, and no new production theming behavior.
+- IMPORTANT: do not delete the SpringBoard probe file after `sbreload`; its constructor discovery inventory is part of the evidence. Add a run marker instead.
+
+# AmazonDark v7.325~launch-transition-probe
+
+## Probe-only cold-launch transition recorder
+
+- Direct production baseline: v7.316~icon-launch-window-bridge. No intended visual or launch-policy change.
+- SpringBoard writes `/var/mobile/AmazonDark-v7.325-launch-sb-probe.txt` with system-uptime timestamps for selector availability, icon-launch entry points, Amazon bundle/PID classification, bridge creation/visibility, window ordering, native-splash-ready receipt, removal, and hard-cap fallback.
+- Passive launch-path coverage includes `SBIconController -_launchFromIconView:`, `SBIconController -iconManager:launchIconForIconView:`, `SBApplicationIcon -launchFromLocation:`, and `SBHIconManager -iconModel:launchIcon:fromLocation:context:`. Probe-only hooks call `%orig` unchanged.
+- Amazon writes `AmazonDark-v7.325-launch-app-probe.txt` in its Documents directory for process start, foreground/background/scene-connect lifecycle, AXU/Tez splash callbacks, splash visibility/background state, and the exact Darwin ready post.
+- Both logs use `NSProcessInfo.systemUptime`, so the export command can merge them into exact cross-process order.
+- No screenshot trigger is used because the target event happens before Amazon can receive one.
+
+# AmazonDark v7.316~icon-launch-window-bridge
+
+## Cold launch: independent SpringBoard window, zero SBSceneView hooks
+
+- Direct production base: v7.315 app/UI tree, but the entire v7.312-v7.315 SBSceneView shim implementation is deleted.
+- SpringBoard now hooks only `SBIconController -_launchFromIconView:`. It samples Amazon process identity BEFORE `%orig` starts the app launch. Existing process = warm resume => no bridge. No process = cold icon launch => show one independent non-key, noninteractive dark SpringBoard `UIWindow`.
+- The bridge window is never inserted into `SBSceneView`, never reads scene KVC, and never executes from a scene/window attachment callback.
+- Amazon's exact `AXUSplashScreenViewController` / `TezBaseSplashScreenViewController` remain darkened in-app. Their existing `native-splash-ready` signal removes the independent bridge immediately after the real dark native splash is onscreen.
+- Warm-resume splash suppression from v7.307 remains. Normal warm launches therefore return straight to the existing app UI.
+- 4-second bridge cap is failure safety only. No Home/WebKit readiness gate, minimum hold, settle, or custom fade is restored.
+
+# AmazonDark v7.315~springboard-async-shim
+
+## SpringBoard watchdog fix — fully deferred scene handling
+
+- Direct base: exact v7.314 source.
+- The new 19:55/19:56 SpringBoard watchdog reports reproduce the same failure as 19:41/19:42: SpringBoard main is blocked on a pthread mutex owned by itself, with a second thread waiting behind main.
+- v7.314 proved that moving `addSubview:` to after `%orig` inside `willMoveToWindow:` was insufficient. UIKit's outer scene/window transaction is still active after that callback's `%orig` returns.
+- v7.315 removes the `willMoveToWindow:` hook entirely.
+- `SBSceneView -didMoveToWindow` now performs only `%orig` plus one `dispatch_async` enqueue. No bundle KVC, PID lookup, preference lookup, view property access, associated-object mutation, or UIView hierarchy mutation occurs synchronously inside the scene callback.
+- On the next main-queue turn, after UIKit has unwound the attachment transaction, AmazonDark identifies the Amazon scene, reads the current Amazon PID, distinguishes a new process from the remembered warm process, and only then attaches the short first-frame shim.
+- `native-splash-ready` now records the ready Amazon PID before removing the shim, preventing a race where Amazon's real dark splash becomes ready before the deferred SpringBoard block executes.
+- Same PID remains a true warm resume and receives no SpringBoard transition.
+- PID lookup failure fails open (no shim) rather than risking a warm-resume mask or SpringBoard lock.
+- App-side native splash ownership and all v7.311 Cart/Menu/Home/Person/Alexa/TWB/standalone/CNM production behavior are unchanged.
+
+# AmazonDark v7.314~native-splash-handoff-deadlock-fix
+
+## SpringBoard watchdog correction
+
+- Direct base: exact v7.313 native-splash-handoff compile-fix source.
+- Removes the only unsafe v7.312/v7.313 behavior: attaching the shim to a live `SBSceneView` before `%orig` inside `willMoveToWindow:`.
+- Two SpringBoard watchdog stackshots independently show the main thread blocked on a pthread mutex owned by itself, consistent with UIKit hierarchy re-entry while its window-transition lock is already held.
+- v7.314 still samples Amazon process identity before `%orig` for deterministic cold/warm classification, but performs no live UIView hierarchy mutation until after `%orig` returns.
+- Cold launch still uses the short first-frame shim and immediately hands off on `native-splash-ready`; ordinary warm resumes still receive no SpringBoard shim.
+- No Cart, Menu, Home, Person, Alexa, TWB, standalone-ad, CNM, or other production UI logic is changed.
+
+# AmazonDark v7.313~native-splash-handoff-compile-fix
+
+## Compile-only correction to v7.312
+
+- Direct base: v7.312~native-splash-handoff.
+- Fixes three malformed Objective-C receiver expressions in `src/AmazonDarkSB.xm`.
+- No launch timing, classification, handoff, Cart, Menu, TWB, probe behavior, or other production logic is intentionally changed.
+- Internal `7312` launch symbol names are intentionally retained because this is a source-syntax correction only.
+
+# AmazonDark v7.312~native-splash-handoff
+
+## Minimal cold first-frame shim -> Amazon's real dark splash
+
+- Direct production base: v7.311~cold-launch-cart-firstpaint. The v7.311 Cart earliest-paint fixes, v7.310 Hamburger glyph repair, v7.309 dog/footer/XL-brand work, v7.307 warm-resume splash suppression, and all other theming/TWB/probe behavior are retained.
+- SpringBoard is no longer the owner of the whole cold launch. It masks only the system-rendered pre-process LaunchScreen interval for a genuine new Amazon process. Same-process warm resumes receive no SpringBoard shim.
+- The v7.311 PID identity discriminator is retained, but the shim is now attempted before `SBSceneView willMoveToWindow:` calls `%orig` whenever the Amazon scene identity is already available; post-`%orig` and `didMoveToWindow` lanes are compatibility fallbacks only.
+- `AXUSplashScreenViewController` and `TezBaseSplashScreenViewController` remain directly owned dark at `viewDidLoad` / `viewWillAppear` / layout / appearance. Once either exact native splash is confirmed visible in `viewDidAppear`, Amazon posts `com.colindavidr.amazondark.native-splash-ready` and SpringBoard removes the first-frame shim immediately.
+- The old Home/WebKit readiness subsystem is deleted: no 120x125 ms launch polling, no three-stable-sample requirement, no 250 ms final dwell, no 1.40 s artificial minimum, no 0.40 s post-ready settle, and no 0.55 s custom fade-to-Home. Amazon owns its real splash-to-Home transition.
+- One 4.0-second absolute shim cap remains only as SpringBoard fault containment if the exact Amazon splash callback never arrives; it is not normal launch timing.
+- Ordinary warm resume behavior remains stock-like: no SpringBoard logo/cover. If Amazon itself attempts to replay one of the two exact native splash controllers during an ordinary same-scene resume, the retained v7.307 app-side suppression keeps the existing interface visible underneath.
+- Normal runtime adds no new MutationObserver, interval, RAF loop, web scroll listener, recurring hierarchy scan, or generic image/glyph rule. Existing explicit probes are retained and versioned v7.313.
+
+---
+
+# AmazonDark v7.311~cold-launch-cart-firstpaint
+
+## Deterministic cold/warm launch classification + Cart earliest-paint completion
+
+- Direct production base: v7.310~cart-transition-recorder-menu-glyph-repair. The v7.310 Hamburger glyph repair, v7.309 dog/Cart/footer/XL-brand corrections, v7.307 warm-resume splash bypass, and all existing theme/TWB behavior are retained.
+- Cold/warm launch classification no longer relies on `processState.isRunning` in `SBSceneView didMoveToWindow:`. That flag can become true during a genuine cold launch before `didMoveToWindow` runs, causing the dark cover to be skipped and exposing Amazon's stock white launch screen.
+- SpringBoard now remembers Amazon's process identity. The same process identity is a genuine warm resume and receives no AmazonDark launch cover; a new Amazon process identity is a genuine cold launch and receives the existing dark Amazon cover from `willMoveToWindow:` before scene exposure. Existing artwork, readiness gate, 1.40 s minimum, 0.40 s post-ready settle, 0.55 s fade, and 20 s safety cap are unchanged.
+- Cart early skeleton completion: the pre-product p13n selector now owns the temporary direct shell itself in addition to its nested placeholder leaves. This closes the selector gap that could leave the large card plane stock white while inner skeleton bars were already themed.
+- Cart saved-band ownership is raised to an exact `html body #sc-page-container #sc-saved-cart` first-paint rule with all border channels/outline/shadow/background-image neutralized; only that known 430x26 hydration band and its immediate surfaces are affected.
+- The v7.310 explicit Cart transition recorder is retained and versioned v7.311. Its MutationObserver/RAF recorder exists only during the explicit 45-second probe arm window; normal production runtime adds no observer, interval, RAF loop, scroll listener, recurring hierarchy scan, broad image/glyph rule, or global `#a-white` rule.
+
+---
+
+# AmazonDark v7.310~cart-transition-recorder-menu-glyph-repair
+
+## Exact Menu repair + first-paint Cart transition recorder
+
+- Direct production base: the pushed v7.309 commit. Its dog-image taming, Cart document-start rules, footer rows, standalone-ad logo taming, launch behavior, and every other existing theme/image path are retained.
+- Hamburger glyph carousel: the v7.309 Menu probe proves the blank rail is present and correctly laid out. Only the anonymous 58x58 `RCTView` wrappers directly beneath `featured-programs-tile-image-container_*` and directly owning one `RNSVGSvgView` have collapsed to 0.06–0.08 opacity. v7.310 restores opacity only on that exact vector wrapper. Raster carousel tiles, category glyphs, SVG paint, image rendering mode, and TWB ownership are untouched.
+- Cart: the production Cart CSS is intentionally unchanged. The settled-page scroll probe could not identify a surface that exists only during refresh/transition, so v7.310 replaces that Cart route with an explicit two-stage recorder: trigger once on Cart to arm, reproduce within 45 seconds, then trigger again to export.
+- While armed only, the recorder captures frame hit-test stacks; bright/loading candidates and their full computed paint; pseudo-elements; matched CSS rules; stylesheet ownership; DOM mutations; animation/transition events; paint/LCP/layout-shift/long-task entries; ready/load/page lifecycle; and final full-DOM plus native UIKit/WebKit snapshots. Its bounded privacy-safe ring persists through same-origin document reloads.
+- Outside the explicit 45-second Cart probe window, the bridge is inert: no observer, timer, RAF, listener, scan, or production paint mutation runs.
+- No generic image/logo/glyph selector, TWB expansion, broad Menu traversal, guessed Cart selector, launch change, or unrelated theming change is added.
+
+---
+
+# AmazonDark v7.309~probe-exact-dog-cart-footer-xl-brand
+
+## Four narrow corrections on the v7.307 baseline
+
+- Direct production base: v7.307~warm-resume-bypass-mic-center. Its launch/warm-resume behavior, Alexa microphone geometry, and all existing theming/image-taming paths are retained.
+- No-internet dog: removes v7.301's pixel knockout and applies the existing TWB shade only to the probe-proven 640x524 image directly under `UIStackView` inside `CNMErrorView`. The authored raster and white field remain intact.
+- Cart refresh: owns only the probe-proven `#sc-saved-cart` 430x26 hydration band and empty/pre-hydration cards below `#p13n-uf-anchor` at document start. Hydrated products and imagery remain excluded.
+- Hamburger footer: the exact `account_switcher`, `so`, and `cs` rows keep OLED floors, white text, r16 geometry, and clipping while their visible React border channel is cleared. Category-row borders above remain unchanged.
+- XL standalone ads: adds TWB only to the probe-proven `[data-testid=simple-brand-logo-picture] img` company raster, through the existing standalone and child-frame TWB lanes.
+- No generic image/logo/glyph selector, broad CNM traversal, pixel rewrite, MutationObserver, timer, RAF, polling loop, scroll listener, or recurring scan is added.
+
+---
 
 # AmazonDark v7.307~warm-resume-bypass-mic-center
 
@@ -327,3 +539,11 @@ Direct base: **v7.270~optimized-exact-probes**.
 - Fixes the Alexa Chat history upper-left back glyph using the probe-proven `chevron-left-Variant-icon` owner under `MainNavigationHeader-left-button-back`.
 - Retains the existing `chevron-down-icon` owner for the other Alexa header hydration.
 - No Person/native-image/WebKit paint architecture changes.
+
+
+## v7.325 launch repair
+- Keeps the verified SBIconView cold pre-arm and scene-attached stock transition.
+- Restores the v7.170/v7.301 Home-ready gate and com.colindavidr.amazondark.ready handoff.
+- Keeps the cover on replacement Amazon SBSceneView hosts during the same cold launch.
+- Treats a stale PID with processState.isRunning == false as cold.
+- Retains 1.40 s minimum, 0.40 s post-ready settle, 0.55 s fade, and 20 s safety cap.
