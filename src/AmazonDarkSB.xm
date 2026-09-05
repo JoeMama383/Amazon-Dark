@@ -1,564 +1,269 @@
-// AmazonDarkSB.xm — v7.332 live-scene-continuity pre-arm
-//
-// A stock launch image/snapshot is owned by iOS before Amazon can draw. The old
-// SBSceneView -didMoveToWindow path attached our cover only after the scene had
-// entered a window, leaving one compositor frame in which the stock white image
-// could win. This build uses SpringBoard's own device-scene overlay API instead:
-//
-//   * an Amazon icon tap pre-arms unless both process and live-scene continuity
-//     prove that the launch is a genuine same-scene warm resume;
-//   * SpringBoard's exact Amazon process-launch callback confirms/retains a new
-//     process launch even when the old process was still alive at icon tap;
-//   * an already-created Amazon scene receives the overlay before the original tap;
-//   * a newly-created Amazon scene receives it from its designated initializer,
-//     before the scene is presented;
-//   * the overlay belongs to the scene, so Apple's normal icon/scene animation is
-//     still the only transition animation and no independent UIWindow is involved.
+// AmazonDarkSB.xm — v7.337, cold-launch artwork with iOS-owned presentation.
+// UI baseline: exact v7.307 (4bbbbd9). Injected only into SpringBoard.
+// Replace only positively identified Amazon launch resources. Saved scene images
+// and live views pass through. No scene cover, PID/cold classification, ready
+// listener, deadline, minimum duration, animation override, or snapshot deletion.
 
 #import <UIKit/UIKit.h>
-#import <notify.h>
 #import <objc/runtime.h>
-#import <limits.h>
+#import <unistd.h>
+#import <math.h>
+#import <string.h>
+#import <ctype.h>
 
-extern "C" void MSHookMessageEx(Class cls, SEL sel, IMP imp, IMP *result);
-
-static NSString * const kAMZ      = @"com.amazon.Amazon";
+static NSString * const kAMZ = @"com.amazon.Amazon";
 static NSString * const kDefaults = @"com.colindavidr.amazondark";
-static const NSTimeInterval kCoverFade7326    = 0.55;
-static const NSTimeInterval kReadySettle7326  = 0.40;
-static const NSTimeInterval kCoverMinimum7326 = 1.40;
-static const NSTimeInterval kCoverHardCap7326 = 20.0;
-static const long long kOverlayPriority7326   = LLONG_MAX - 0x414D5A;
 
-@interface SBIconView : UIView
-- (void)tapGestureDidChange:(id)gesture;
-@end
-
-@interface SBApplication : NSObject
-@property(nonatomic,readonly,copy) NSString *bundleIdentifier;
-- (void)_processWillLaunch:(id)process;
-@end
-
-@interface SBDeviceApplicationSceneOverlayBasicWrapperView : UIView
-- (instancetype)initWithCounterRotationRequirement:(BOOL)required;
-@property(nonatomic) BOOL shouldLayoutOverlayImmediatelyForContainerGeometryChange;
-@end
-
-@interface SBDeviceApplicationSceneView : UIView
-- (instancetype)initWithSceneHandle:(id)sceneHandle
-                      referenceSize:(CGSize)referenceSize
-                 contentOrientation:(long long)contentOrientation
-               containerOrientation:(long long)containerOrientation
-                      hostRequester:(id)hostRequester;
-- (void)addOverlayView:(id)view withPriority:(long long)priority;
-- (void)removeOverlayView:(id)view withPriority:(long long)priority;
-@end
-
-static const void *kADSceneOverlayKey7326=&kADSceneOverlayKey7326;
-static unsigned gColdGeneration7326=0;
-static BOOL gColdActive7326=NO;
-static double gFirstOverlayAt7326=0.0;
-// Set immediately by SBApplication -_processWillLaunch:, including when that
-// callback is not delivered on SpringBoard's main thread. The next exact Amazon
-// scene can therefore consume the authoritative cold decision without racing a
-// queued main-thread block.
-static int gAmazonProcessLaunchPending7327=0;
-static NSInteger gAuthoritativeProcessPID7330=0;
-
-// v7.332: readiness belongs to one concrete Amazon process. A global Darwin
-// ready channel lets a dying/replaced Amazon process dismiss the cover that now
-// belongs to its successor. Keep exactly one process-scoped subscription.
-static int gReadyToken7330=0;
-static NSInteger gReadyPID7330=0;
-static unsigned gReadyGeneration7330=0;
-// v7.332: a running Amazon process with no live SpringBoard scene is ambiguous:
-// it may be a same-process scene reconstruction, or the stale process iOS is
-// about to replace. Its ready listener is tentative until a short process-boundary
-// confirmation passes; any replacement _processWillLaunch: rebases generation.
-static BOOL gReadyTentative7332=NO;
-static const NSTimeInterval kTentativeReadyConfirm7332=0.25;
-
-static NSString * const kADSBLaunchProbePath7326=@"/var/mobile/AmazonDark-v7.332-launch-sb-probe.txt";
-static dispatch_queue_t ADSBProbeQueue7326(void){
-    static dispatch_queue_t q; static dispatch_once_t once;
-    dispatch_once(&once,^{q=dispatch_queue_create("com.colindavidr.amazondark.launchprobe.sb",DISPATCH_QUEUE_SERIAL);});
-    return q;
-}
-static NSString *ADSBRect7326(CGRect r){
-    return [NSString stringWithFormat:@"%.1f,%.1f %.1fx%.1f",r.origin.x,r.origin.y,r.size.width,r.size.height];
-}
-static void ADSBProbeLog7326(NSString *event,NSString *detail){
+static BOOL ADSBEnabled(void) {
     @try {
-        NSTimeInterval wall=[NSDate timeIntervalSinceReferenceDate],up=NSProcessInfo.processInfo.systemUptime;
-        NSString *line=[NSString stringWithFormat:@"%.6f up=%.6f pid=%d main=%d event=%@ %@\n",wall,up,NSProcessInfo.processInfo.processIdentifier,[NSThread isMainThread]?1:0,event?:@"?",detail?:@""];
-        dispatch_async(ADSBProbeQueue7326(),^{ @autoreleasepool { @try {
-            NSData *d=[line dataUsingEncoding:NSUTF8StringEncoding];
-            NSFileManager *fm=[NSFileManager defaultManager];
-            if(![fm fileExistsAtPath:kADSBLaunchProbePath7326])
-                [fm createFileAtPath:kADSBLaunchProbePath7326 contents:nil attributes:@{NSFilePosixPermissions:@0666}];
-            NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:kADSBLaunchProbePath7326];
-            if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];}
-        } @catch(__unused NSException *e){} }});
-    } @catch(__unused NSException *e){}
+        NSString *path=[@"/var/jb/var/mobile/Library/Preferences" stringByAppendingPathComponent:
+                        [kDefaults stringByAppendingPathExtension:@"plist"]];
+        id value=[NSDictionary dictionaryWithContentsOfFile:path][@"enabled"];
+        return value ? [value boolValue] : YES;
+    } @catch (__unused NSException *e) { return YES; }
 }
 
-
-static void ADClearReadyListener7330(NSString *reason){
-    int token=gReadyToken7330;
-    NSInteger pid=gReadyPID7330;
-    unsigned generation=gReadyGeneration7330;
-    gReadyToken7330=0;
-    gReadyPID7330=0;
-    gReadyGeneration7330=0;
-    gReadyTentative7332=NO;
-    if(token>0){
-        @try { notify_cancel(token); } @catch(__unused NSException *e){}
-    }
-    if(token>0||pid>0){
-        ADSBProbeLog7326(@"ready.listener.clear",[NSString stringWithFormat:@"reason=%@ pid=%ld token=%d gen=%u",reason?:@"?",(long)pid,token,generation]);
-    }
-}
-
-static BOOL ADSBEnabled7326(void){
-    @try {
-        for(NSString *path in @[@"/var/jb/var/mobile/Library/Preferences/com.colindavidr.amazondark.plist",@"/var/mobile/Library/Preferences/com.colindavidr.amazondark.plist"]){
-            NSDictionary *d=[NSDictionary dictionaryWithContentsOfFile:path];
-            if(d){id value=d[@"enabled"];return value?[value boolValue]:YES;}
-        }
-    } @catch(__unused NSException *e){}
-    return YES;
-}
-static NSInteger ADAmazonPID7326(void){
-    @try {
-        Class controller=objc_getClass("SBApplicationController");
-        if(!controller||![controller respondsToSelector:@selector(sharedInstance)])return 0;
-        id shared=[controller performSelector:@selector(sharedInstance)];
-        if(!shared||![shared respondsToSelector:@selector(applicationWithBundleIdentifier:)])return 0;
-        id app=[shared performSelector:@selector(applicationWithBundleIdentifier:) withObject:kAMZ];
-        if(!app)return 0;
-        for(NSString *path in @[@"processState.pid",@"processState.processIdentifier",@"process.pid",@"process.processIdentifier",@"pid",@"processIdentifier"]){
-            @try {
-                id value=[app valueForKeyPath:path];
-                if([value respondsToSelector:@selector(integerValue)]){
-                    NSInteger pid=[value integerValue]; if(pid>0)return pid;
-                }
-            } @catch(__unused NSException *e){}
-        }
-    } @catch(__unused NSException *e){}
-    return 0;
-}
-static BOOL ADAmazonProcessRunning7326(void){
-    @try {
-        Class controller=objc_getClass("SBApplicationController");
-        if(!controller||![controller respondsToSelector:@selector(sharedInstance)])return NO;
-        id shared=[controller performSelector:@selector(sharedInstance)];
-        if(!shared||![shared respondsToSelector:@selector(applicationWithBundleIdentifier:)])return NO;
-        id app=[shared performSelector:@selector(applicationWithBundleIdentifier:) withObject:kAMZ];
-        if(!app)return NO;
-        id state=nil; @try {state=[app valueForKey:@"processState"];} @catch(__unused NSException *e){}
-        if(state&&[state respondsToSelector:@selector(isRunning)]){
-            id value=[state valueForKey:@"isRunning"];
-            if([value respondsToSelector:@selector(boolValue)])return [value boolValue];
-        }
-    } @catch(__unused NSException *e){}
-    return NO;
-}
-static NSString *ADBundleForIconView7326(id iconView){
-    if(!iconView)return nil;
-    for(NSString *path in @[@"applicationBundleIdentifier",@"applicationBundleIdentifierForShortcuts",@"icon.applicationBundleID",@"icon.applicationBundleIdentifier",@"icon.application.bundleIdentifier"]){
-        @try {id value=[iconView valueForKeyPath:path];if([value isKindOfClass:[NSString class]]&&[value length])return value;} @catch(__unused NSException *e){}
-    }
-    return nil;
-}
-static NSString *ADBundleForSceneHandle7326(id handle){
-    if(!handle)return nil;
-    for(NSString *path in @[@"application.bundleIdentifier",@"application.bundleID",@"bundleIdentifier",@"clientProcess.identity.embeddedApplicationIdentifier"]){
-        @try {id value=[handle valueForKeyPath:path];if([value isKindOfClass:[NSString class]]&&[value length])return value;} @catch(__unused NSException *e){}
-    }
-    return nil;
-}
-static NSInteger ADPIDForSceneHandle7330(id handle){
-    if(!handle)return 0;
-    for(NSString *path in @[@"clientProcess.pid",@"clientProcess.processIdentifier",@"clientProcess.handle.pid",@"process.pid",@"process.processIdentifier",@"pid",@"processIdentifier"]){
-        @try {
-            id value=[handle valueForKeyPath:path];
-            if([value respondsToSelector:@selector(integerValue)]){
-                NSInteger pid=[value integerValue];
-                if(pid>0)return pid;
-            }
-        } @catch(__unused NSException *e){}
-    }
-    return 0;
-}
-static UIImage *ADSplashImage7326(void){
-    static UIImage *image; static dispatch_once_t once;
-    dispatch_once(&once,^{
+static UIImage *ADSplashImage7191(void) {
+    static UIImage *image;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
         image=[UIImage imageWithContentsOfFile:@"/var/jb/Library/Application Support/AmazonDark/splash-logo.png"];
-        if(!image)image=[UIImage imageWithContentsOfFile:@"/Library/Application Support/AmazonDark/splash-logo.png"];
     });
     return image;
 }
-static NSHashTable<SBDeviceApplicationSceneView *> *ADAmazonScenes7326(void){
-    static NSHashTable *scenes; static dispatch_once_t once;
-    dispatch_once(&once,^{scenes=[NSHashTable weakObjectsHashTable];});
-    return scenes;
-}
 
-static UIView *ADSceneOverlay7326(SBDeviceApplicationSceneView *scene){
-    return scene?(UIView *)objc_getAssociatedObject(scene,kADSceneOverlayKey7326):nil;
-}
-static void ADRemoveSceneOverlay7326(SBDeviceApplicationSceneView *scene,BOOL animated){
+// v7.331's device probe proves dataProviderClassName may be nil. Select the
+// persisted GeneratedDefault/Default kind instead; saved SceneContent is never
+// modified. No image recognition, process classification or new lifecycle code.
+@interface XBApplicationSnapshot : NSObject
+@property(nonatomic,readonly) id containerIdentity;
+@property(nonatomic,readonly,copy) NSString *dataProviderClassName;
+@property(nonatomic,readonly) long long contentType;
+@property(nonatomic,readonly,copy) NSString *launchInterfaceIdentifier;
+@property(nonatomic,readonly) BOOL hasProtectedContent;
+@property(nonatomic,readonly) id generationContext;
+@property(nonatomic,readonly) CGSize referenceSize;
+@property(nonatomic,readonly) CGFloat imageScale;
+- (NSString *)descriptionWithoutVariants;
+@end
+@interface XBApplicationSnapshotManifestImpl : NSObject @end
+@interface XBApplicationSnapshotImage : UIImage @end
+@interface SBDeviceApplicationSceneViewPlaceholderContentViewProvider : NSObject
+@end
+static const char kADGeneratedLaunch7337=0;
+
+static void ADLaunchLog7337(NSString *event,NSString *detail){
     @try {
-        UIView *overlay=ADSceneOverlay7326(scene); if(!overlay)return;
-        objc_setAssociatedObject(scene,kADSceneOverlayKey7326,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        void (^remove)(void)=^{
-            @try {
-                if([scene respondsToSelector:@selector(removeOverlayView:withPriority:)])
-                    [scene removeOverlayView:overlay withPriority:kOverlayPriority7326];
-                else [overlay removeFromSuperview];
-            } @catch(__unused NSException *e){@try{[overlay removeFromSuperview];}@catch(__unused NSException *ignored){}}
-        };
-        if(animated){
-            [UIView animateWithDuration:kCoverFade7326 delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionCurveEaseOut animations:^{overlay.alpha=0.0;} completion:^(__unused BOOL finished){remove();}];
-        } else remove();
-        ADSBProbeLog7326(@"overlay.remove",[NSString stringWithFormat:@"scene=%p overlay=%p animated=%d",scene,overlay,animated?1:0]);
-    } @catch(__unused NSException *e){}
-}
-static void ADRemoveAllOverlays7326(BOOL animated){
-    NSArray *scenes=ADAmazonScenes7326().allObjects;
-    for(SBDeviceApplicationSceneView *scene in scenes)ADRemoveSceneOverlay7326(scene,animated);
-    gColdActive7326=NO;
-}
-static BOOL ADHasAnySceneOverlay7327(void){
-    for(SBDeviceApplicationSceneView *scene in ADAmazonScenes7326().allObjects)
-        if(ADSceneOverlay7326(scene))return YES;
-    return NO;
+        static dispatch_queue_t queue; static dispatch_once_t once;
+        dispatch_once(&once,^{queue=dispatch_queue_create("com.colindavidr.amazondark.launch-artwork",DISPATCH_QUEUE_SERIAL);});
+        NSString *line=[NSString stringWithFormat:@"%.6f up=%.6f pid=%d event=%@ %@\n",
+            CFAbsoluteTimeGetCurrent(),NSProcessInfo.processInfo.systemUptime,getpid(),event,detail?:@""];
+        dispatch_async(queue,^{@autoreleasepool{@try{
+            NSString *path=@"/var/mobile/AmazonDark-v7.337-launch-sb-probe.txt";
+            NSFileManager *fm=NSFileManager.defaultManager;
+            if(![fm fileExistsAtPath:path])[fm createFileAtPath:path contents:nil attributes:@{NSFilePosixPermissions:@0666}];
+            NSFileHandle *file=[NSFileHandle fileHandleForWritingAtPath:path];
+            if(file){[file seekToEndOfFile];[file writeData:[line dataUsingEncoding:NSUTF8StringEncoding]];[file closeFile];}
+        }@catch(__unused NSException *e){}}});
+    }@catch(__unused NSException *e){}
 }
 
-static void ADScheduleHardCap7330(unsigned generation){
-    double elapsed=gFirstOverlayAt7326>0.0?(CFAbsoluteTimeGetCurrent()-gFirstOverlayAt7326):0.0;
-    NSTimeInterval remaining=MAX(0.05,kCoverHardCap7326-MAX(0.0,elapsed));
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(remaining*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-        if(gColdActive7326&&generation==gColdGeneration7326){
-            __atomic_store_n(&gAmazonProcessLaunchPending7327,0,__ATOMIC_RELEASE);
-            __atomic_store_n(&gAuthoritativeProcessPID7330,0,__ATOMIC_RELEASE);
-            ADClearReadyListener7330(@"hardcap");
-            ADSBProbeLog7326(@"overlay.hardcap",[NSString stringWithFormat:@"gen=%u elapsed=%.3f",generation,CFAbsoluteTimeGetCurrent()-gFirstOverlayAt7326]);
-            ADRemoveAllOverlays7326(NO);
-        }
-    });
-}
-
-static void ADScheduleReadyDismiss7332(NSInteger pid,unsigned generation){
-    if(!gColdActive7326||generation!=gColdGeneration7326){
-        ADSBProbeLog7326(@"ready.dismiss.invalidated",[NSString stringWithFormat:@"pid=%ld queuedGen=%u currentGen=%u active=%d",(long)pid,generation,gColdGeneration7326,gColdActive7326?1:0]);
-        return;
-    }
-    BOOL hasOverlay=ADHasAnySceneOverlay7327();
-    if(!hasOverlay){
-        __atomic_store_n(&gAmazonProcessLaunchPending7327,0,__ATOMIC_RELEASE);
-        __atomic_store_n(&gAuthoritativeProcessPID7330,0,__ATOMIC_RELEASE);
-        gColdActive7326=NO;
-        ADSBProbeLog7326(@"ready.notify",[NSString stringWithFormat:@"pid=%ld overlay=0 gen=%u",(long)pid,generation]);
-        return;
-    }
-    double shown=gFirstOverlayAt7326>0.0?(CFAbsoluteTimeGetCurrent()-gFirstOverlayAt7326):0.0;
-    double minimumRemaining=shown<kCoverMinimum7326?(kCoverMinimum7326-shown):0.0;
-    double wait=MAX(minimumRemaining,kReadySettle7326);
-    ADSBProbeLog7326(@"ready.notify",[NSString stringWithFormat:@"pid=%ld overlay=1 shown=%.3f wait=%.3f gen=%u",(long)pid,shown,wait,generation]);
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(wait*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-        if(gColdActive7326&&generation==gColdGeneration7326){
-            __atomic_store_n(&gAmazonProcessLaunchPending7327,0,__ATOMIC_RELEASE);
-            __atomic_store_n(&gAuthoritativeProcessPID7330,0,__ATOMIC_RELEASE);
-            ADSBProbeLog7326(@"ready.dismiss",[NSString stringWithFormat:@"pid=%ld gen=%u",(long)pid,generation]);
-            ADRemoveAllOverlays7326(YES);
-        } else {
-            ADSBProbeLog7326(@"ready.dismiss.invalidated",[NSString stringWithFormat:@"pid=%ld queuedGen=%u currentGen=%u active=%d",(long)pid,generation,gColdGeneration7326,gColdActive7326?1:0]);
-        }
-    });
-}
-
-static void ADHandleReady7330(NSInteger pid,int token){
+// UIKit image drawing uses a local context and works for background snapshot
+// fetches too. Cache only four rendered sizes, not app screenshots or live views.
+static UIImage *ADLaunchArtwork7337(CGSize size,CGFloat scale){
+    if(!isfinite(size.width)||!isfinite(size.height)||!isfinite(scale)||
+       size.width<1||size.height<1||scale<1||scale>4||size.width*size.height*scale*scale>16000000)return nil;
     @try {
-        if(token!=gReadyToken7330||pid!=gReadyPID7330){
-            ADSBProbeLog7326(@"ready.notify.stale",[NSString stringWithFormat:@"pid=%ld token=%d boundPid=%ld boundToken=%d gen=%u",(long)pid,token,(long)gReadyPID7330,gReadyToken7330,gColdGeneration7326]);
-            return;
-        }
-        unsigned boundGeneration=gReadyGeneration7330;
-        BOOL tentative=gReadyTentative7332;
-        if(!gColdActive7326||boundGeneration!=gColdGeneration7326){
-            ADSBProbeLog7326(@"ready.notify.stale",[NSString stringWithFormat:@"pid=%ld token=%d active=%d boundGen=%u currentGen=%u",(long)pid,token,gColdActive7326?1:0,boundGeneration,gColdGeneration7326]);
-            ADClearReadyListener7330(@"stale-generation");
-            return;
-        }
-        ADClearReadyListener7330(tentative?@"tentative-ready-received":@"ready-received");
-        if(tentative){
-            // A live PID with no live scene can either survive the reconstruction or
-            // be replaced immediately after the tap. Do not let its ready signal tear
-            // down the cover until the process-launch boundary has had one bounded
-            // confirmation window to rebase the generation. This is not a launch dwell:
-            // it runs only for the ambiguous same-PID/no-scene path.
-            ADSBProbeLog7326(@"ready.tentative",[NSString stringWithFormat:@"pid=%ld gen=%u confirm=%.3f",(long)pid,boundGeneration,kTentativeReadyConfirm7332]);
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(kTentativeReadyConfirm7332*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-                if(!gColdActive7326||boundGeneration!=gColdGeneration7326){
-                    ADSBProbeLog7326(@"ready.tentative.invalidated",[NSString stringWithFormat:@"pid=%ld queuedGen=%u currentGen=%u active=%d",(long)pid,boundGeneration,gColdGeneration7326,gColdActive7326?1:0]);
-                    return;
-                }
-                NSInteger currentPID=ADAmazonPID7326();
-                BOOL running=ADAmazonProcessRunning7326();
-                if(currentPID!=pid||!running){
-                    ADSBProbeLog7326(@"ready.tentative.defer",[NSString stringWithFormat:@"pid=%ld currentPid=%ld running=%d gen=%u",(long)pid,(long)currentPID,running?1:0,boundGeneration]);
-                    return;
-                }
-                ADSBProbeLog7326(@"ready.tentative.confirm",[NSString stringWithFormat:@"pid=%ld gen=%u",(long)pid,boundGeneration]);
-                ADScheduleReadyDismiss7332(pid,boundGeneration);
-            });
-            return;
-        }
-        ADScheduleReadyDismiss7332(pid,boundGeneration);
-    } @catch(__unused NSException *e){}
-}
-
-static void ADBindReadyListener7330(NSInteger pid,NSString *reason){
-    if(pid<=0){
-        ADSBProbeLog7326(@"ready.listener.wait",[NSString stringWithFormat:@"reason=%@ pid=%ld gen=%u",reason?:@"?",(long)pid,gColdGeneration7326]);
-        return;
-    }
-    if(gReadyToken7330>0&&gReadyPID7330==pid&&gReadyGeneration7330==gColdGeneration7326){
-        ADSBProbeLog7326(@"ready.listener.keep",[NSString stringWithFormat:@"reason=%@ pid=%ld token=%d gen=%u",reason?:@"?",(long)pid,gReadyToken7330,gReadyGeneration7330]);
-        return;
-    }
-    ADClearReadyListener7330(@"rebind");
-    NSString *channel=[NSString stringWithFormat:@"com.colindavidr.amazondark.ready.%ld",(long)pid];
-    int newToken=0;
-    uint32_t status=notify_register_dispatch(channel.UTF8String,&newToken,dispatch_get_main_queue(),^(int token){
-        ADHandleReady7330(pid,token);
-    });
-    if(status==NOTIFY_STATUS_OK&&newToken>0){
-        gReadyToken7330=newToken;
-        gReadyPID7330=pid;
-        gReadyGeneration7330=gColdGeneration7326;
-        gReadyTentative7332=NO;
-        ADSBProbeLog7326(@"ready.listener.bind",[NSString stringWithFormat:@"reason=%@ pid=%ld token=%d gen=%u channel=%@",reason?:@"?",(long)pid,newToken,gReadyGeneration7330,channel]);
-    } else {
-        ADSBProbeLog7326(@"ready.listener.error",[NSString stringWithFormat:@"reason=%@ pid=%ld status=%u token=%d gen=%u",reason?:@"?",(long)pid,status,newToken,gColdGeneration7326]);
-        if(newToken>0)notify_cancel(newToken);
-    }
-}
-
-static NSUInteger ADAmazonLiveSceneCount7328(void){
-    return ADAmazonScenes7326().allObjects.count;
-}
-static void ADArmColdLaunch7326(NSString *reason,BOOL expireIfUnclaimed);
-static void ADAttachSceneOverlay7326(SBDeviceApplicationSceneView *scene,NSString *reason){
-    if(!scene||!gColdActive7326||!ADSBEnabled7326()||ADSceneOverlay7326(scene))return;
-    @try {
-        Class wrapperClass=objc_getClass("SBDeviceApplicationSceneOverlayBasicWrapperView");
-        if(!wrapperClass){ADSBProbeLog7326(@"overlay.skip",@"native-wrapper-class-absent");return;}
-        SBDeviceApplicationSceneOverlayBasicWrapperView *overlay=[[wrapperClass alloc] initWithCounterRotationRequirement:NO];
-        if(!overlay){ADSBProbeLog7326(@"overlay.skip",@"native-wrapper-init-failed");return;}
-        overlay.frame=scene.bounds;
-        overlay.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
-        overlay.backgroundColor=[UIColor blackColor];
-        overlay.opaque=YES;
-        overlay.userInteractionEnabled=NO;
-        overlay.shouldLayoutOverlayImmediatelyForContainerGeometryChange=YES;
-
-        UIImage *splash=ADSplashImage7326();
-        if(splash){
-            UIImageView *logo=[[UIImageView alloc] initWithImage:splash];
-            logo.contentMode=UIViewContentModeScaleAspectFit;
-            logo.translatesAutoresizingMaskIntoConstraints=NO;
-            [overlay addSubview:logo];
-            CGFloat referenceWidth=MAX(CGRectGetWidth(scene.bounds),CGRectGetWidth(UIScreen.mainScreen.bounds));
-            CGFloat logoWidth=MAX(referenceWidth,200.0)*0.62;
-            CGFloat logoHeight=logoWidth*(splash.size.height/MAX(splash.size.width,1.0));
-            [NSLayoutConstraint activateConstraints:@[[logo.centerXAnchor constraintEqualToAnchor:overlay.centerXAnchor],[logo.centerYAnchor constraintEqualToAnchor:overlay.centerYAnchor],[logo.widthAnchor constraintEqualToConstant:logoWidth],[logo.heightAnchor constraintEqualToConstant:logoHeight]]];
-        }
-
-        objc_setAssociatedObject(scene,kADSceneOverlayKey7326,overlay,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        [scene addOverlayView:overlay withPriority:kOverlayPriority7326];
-        if(gFirstOverlayAt7326<=0.0){
-            gFirstOverlayAt7326=CFAbsoluteTimeGetCurrent();
-            unsigned generation=gColdGeneration7326;
-            // Start the fault cap when a cover actually becomes visible. A process
-            // can be prewarmed long before a foreground scene exists, so timing from
-            // _processWillLaunch: would discard the cover before the user's tap.
-            ADScheduleHardCap7330(generation);
-        }
-        ADSBProbeLog7326(@"overlay.attach",[NSString stringWithFormat:@"reason=%@ scene=%p win=%p overlay=%p frame=%@ gen=%u",reason?:@"?",scene,scene.window,overlay,ADSBRect7326(scene.bounds),gColdGeneration7326]);
-    } @catch(__unused NSException *e){
-        objc_setAssociatedObject(scene,kADSceneOverlayKey7326,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        ADSBProbeLog7326(@"overlay.error",[NSString stringWithFormat:@"reason=%@ scene=%p",reason?:@"?",scene]);
-    }
-}
-static void ADRegisterAmazonScene7326(SBDeviceApplicationSceneView *scene,id handle,NSString *reason){
-    NSString *bundle=ADBundleForSceneHandle7326(handle);
-    if(!scene||![bundle isEqualToString:kAMZ])return;
-    NSInteger scenePID=ADPIDForSceneHandle7330(handle);
-
-    // _processWillLaunch: is the source of truth for a new process. If its
-    // callback arrived off-main and the queued arm has not run yet, consume the
-    // atomic mark here before this newly-created scene can be presented.
-    if(__atomic_load_n(&gAmazonProcessLaunchPending7327,__ATOMIC_ACQUIRE)&&!gColdActive7326){
-        ADArmColdLaunch7326(@"authoritative-process-launch-scene",NO);
-    }
-
-    // Prewarming can announce the process before the user's icon tap. A covered
-    // tap deliberately cancels the old listener; restore it here only when this
-    // exact Amazon scene proves it belongs to the same authoritative PID. Never
-    // bind a stale prior PID merely because SBApplication still reports it alive.
-    if(__atomic_load_n(&gAmazonProcessLaunchPending7327,__ATOMIC_ACQUIRE)&&gColdActive7326&&gReadyPID7330<=0&&scenePID>0){
-        NSInteger authoritativePID=__atomic_load_n(&gAuthoritativeProcessPID7330,__ATOMIC_ACQUIRE);
-        if(authoritativePID<=0||authoritativePID==scenePID){
-            if(authoritativePID<=0)__atomic_store_n(&gAuthoritativeProcessPID7330,scenePID,__ATOMIC_RELEASE);
-            ADBindReadyListener7330(scenePID,@"authoritative-scene-process");
-        } else {
-            ADSBProbeLog7326(@"ready.listener.defer",[NSString stringWithFormat:@"scenePid=%ld authoritativePid=%ld gen=%u",(long)scenePID,(long)authoritativePID,gColdGeneration7326]);
-        }
-    }
-
-    [ADAmazonScenes7326() addObject:scene];
-    ADSBProbeLog7326(@"scene.register",[NSString stringWithFormat:@"reason=%@ scene=%p win=%p pid=%ld active=%d frame=%@",reason?:@"?",scene,scene.window,(long)scenePID,gColdActive7326?1:0,ADSBRect7326(scene.bounds)]);
-    if(gColdActive7326)ADAttachSceneOverlay7326(scene,@"scene-created-during-cold-launch");
-}
-static void ADArmColdLaunch7326(NSString *reason,BOOL expireIfUnclaimed){
-    ADClearReadyListener7330(@"cold-arm");
-    ADRemoveAllOverlays7326(NO);
-    gColdActive7326=YES;
-    gFirstOverlayAt7326=0.0;
-    unsigned generation=++gColdGeneration7326;
-    NSArray *scenes=ADAmazonScenes7326().allObjects;
-    ADSBProbeLog7326(@"cold.arm",[NSString stringWithFormat:@"reason=%@ gen=%u registeredScenes=%lu",reason?:@"?",generation,(unsigned long)scenes.count]);
-    for(SBDeviceApplicationSceneView *scene in scenes)ADAttachSceneOverlay7326(scene,reason);
-
-    // Only the early icon/PID-zero fallback is allowed to expire. An authoritative
-    // process-launch arm survives prewarming until an Amazon foreground scene exists.
-    if(expireIfUnclaimed)dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(3.0*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-        if(gColdActive7326&&generation==gColdGeneration7326&&!ADHasAnySceneOverlay7327()){
-            if(__atomic_load_n(&gAmazonProcessLaunchPending7327,__ATOMIC_ACQUIRE)){
-                ADSBProbeLog7326(@"cold.arm.retain",[NSString stringWithFormat:@"gen=%u authoritative=1",generation]);
-            } else {
-                gColdActive7326=NO;
-                __atomic_store_n(&gAuthoritativeProcessPID7330,0,__ATOMIC_RELEASE);
-                ADClearReadyListener7330(@"cold-arm-expire");
-                ADSBProbeLog7326(@"cold.arm.expire",[NSString stringWithFormat:@"gen=%u",generation]);
+        static NSCache *cache; static dispatch_once_t once;
+        dispatch_once(&once,^{cache=[NSCache new];cache.countLimit=4;cache.totalCostLimit=32*1024*1024;});
+        NSString *key=[NSString stringWithFormat:@"%.3f/%.3f/%.3f",size.width,size.height,scale];
+        UIImage *cached=[cache objectForKey:key]; if(cached)return cached;
+        UIImage *logo=ADSplashImage7191();
+        UIGraphicsImageRendererFormat *format=[UIGraphicsImageRendererFormat preferredFormat];
+        format.opaque=YES;format.scale=scale;
+        format.preferredRange=UIGraphicsImageRendererFormatRangeStandard;
+        UIGraphicsImageRenderer *renderer=[[UIGraphicsImageRenderer alloc] initWithSize:size format:format];
+        UIImage *image=[renderer imageWithActions:^(UIGraphicsImageRendererContext *context){
+            [[UIColor blackColor] setFill];[context fillRect:(CGRect){CGPointZero,size}];
+            if(logo){
+                CGFloat width=size.width*0.62,height=width*logo.size.height/MAX(logo.size.width,1.0);
+                [logo drawInRect:CGRectMake((size.width-width)/2,(size.height-height)/2,width,height)];
             }
-        }
-    });
+        }];
+        if(image)[cache setObject:image forKey:key cost:(NSUInteger)(size.width*size.height*scale*scale*4)];
+        return image;
+    }@catch(__unused NSException *e){return nil;}
 }
 
-static void (*ADOrigIconTap7326)(id,SEL,id);
-static void ADHookIconTap7326(id self,SEL _cmd,id gesture){
-    NSString *bundle=ADBundleForIconView7326(self);
-    NSInteger pid=ADAmazonPID7326();
-    NSInteger state=[gesture respondsToSelector:@selector(state)]?(NSInteger)[gesture state]:-1;
-    BOOL amazon=[(bundle?:@"") isEqualToString:kAMZ];
-    BOOL running=ADAmazonProcessRunning7326();
-    NSUInteger liveScenes=ADAmazonLiveSceneCount7328();
-    BOOL processContinuous=pid>0&&running;
-    BOOL sceneContinuous=liveScenes>0;
-    BOOL sameSceneWarm=processContinuous&&sceneContinuous;
-    BOOL needsCover=amazon&&ADSBEnabled7326()&&state==UIGestureRecognizerStateEnded&&!sameSceneWarm;
-    if(amazon)ADSBProbeLog7326(@"icon.tap",[NSString stringWithFormat:@"view=%p bid=%@ state=%ld pid=%ld running=%d liveScenes=%lu sameSceneWarm=%d cover=%d",self,bundle,(long)state,(long)pid,running?1:0,(unsigned long)liveScenes,sameSceneWarm?1:0,needsCover?1:0]);
-    if(needsCover){
-        // The PID visible at this tap may be the process iOS is about to replace,
-        // but it may also be the exact process that survives a scene reconstruction.
-        // ADArmColdLaunch clears the prior subscription first. For the ambiguous
-        // surviving-process/no-live-scene path, immediately bind that PID tentatively;
-        // a later _processWillLaunch: rebases the generation and replaces the listener.
-        NSString *reason=processContinuous&&!sceneContinuous?@"icon-tap-no-live-scene":@"verified-cold-icon-tap-fallback";
-        ADArmColdLaunch7326(reason,YES);
-        if(processContinuous&&pid>0){
-            ADBindReadyListener7330(pid,@"covered-icon-tap-current-process");
-            if(gReadyPID7330==pid&&gReadyGeneration7330==gColdGeneration7326){
-                gReadyTentative7332=YES;
-                ADSBProbeLog7326(@"ready.listener.tentative",[NSString stringWithFormat:@"pid=%ld gen=%u",(long)pid,gColdGeneration7326]);
-            }
-        }
+// BEGIN HOST-TESTED COLD-LAUNCH POLICY
+// XBApplicationSnapshot exposes the numeric contentType but the runtime header
+// does not define its enum values. Read its own symbolic description rather
+// than guess a number or a private C function's ABI. Only the first contentType
+// field is inspected; variants/other objects can never authorize replacement.
+// This small pure-C policy is exercised directly by the host regression test.
+enum { ADKindUnknown7337, ADKindGenerated7337, ADKindDefault7337, ADKindScene7337 };
+static int ADContentKind7337(const char *description){
+    if(!description)return ADKindUnknown7337;
+    const char *p=strstr(description,"contentType");if(!p)return ADKindUnknown7337;
+    p+=strlen("contentType");while(isspace((unsigned char)*p))++p;
+    if(*p!=':'&&*p!='=')return ADKindUnknown7337;
+    ++p;while(isspace((unsigned char)*p))++p;
+    const char *names[]={"GeneratedDefault","Default","SceneContent"};
+    for(int i=0;i<3;++i){
+        size_t n=strlen(names[i]);
+        if(!strncmp(p,names[i],n) && (!p[n]||p[n]==';'||p[n]=='>'||p[n]=='}'||isspace((unsigned char)p[n])))return i+1;
     }
-    if(ADOrigIconTap7326)ADOrigIconTap7326(self,_cmd,gesture);
+    return ADKindUnknown7337;
 }
-static void ADInstallTapHook7326(void){
+static int ADIsColdLaunchArtwork7337(int kind,const char *provider,int protectedContent,int fromLaunchRequest){
+    if(protectedContent||kind==ADKindScene7337)return 0;
+    return fromLaunchRequest||kind==ADKindGenerated7337||kind==ADKindDefault7337||
+        (kind==ADKindUnknown7337&&provider&&!strcmp(provider,"XBLaunchImageDataProvider"));
+}
+// END HOST-TESTED COLD-LAUNCH POLICY
+
+static UIImage *ADLaunchSnapshotImage7337(XBApplicationSnapshot *snapshot,UIImage *original,NSString *accessor,long long orientation){
+    // Guard only synchronous lazy-UIImage recursion, not launch timing/state.
+    static __thread BOOL producingImage=NO;
+    if(producingImage)return original;
     @try {
-        Class cls=objc_getClass("SBIconView"); SEL selector=NSSelectorFromString(@"tapGestureDidChange:");
-        Method method=cls?class_getInstanceMethod(cls,selector):NULL;
-        if(method){MSHookMessageEx(cls,selector,(IMP)ADHookIconTap7326,(IMP *)&ADOrigIconTap7326);ADSBProbeLog7326(@"hook.install",@"SBIconView tapGestureDidChange:");}
-        else ADSBProbeLog7326(@"hook.skip",@"SBIconView tapGestureDidChange: absent");
-    } @catch(__unused NSException *e){}
-}
-
-static NSInteger ADProcessPID7327(id process){
-    for(NSString *path in @[@"pid",@"processIdentifier",@"handle.pid",@"identity.pid"]){
-        @try {id value=[process valueForKeyPath:path];if([value respondsToSelector:@selector(integerValue)]){NSInteger pid=[value integerValue];if(pid>0)return pid;}} @catch(__unused NSException *e){}
-    }
-    return 0;
-}
-static void ADMarkAuthoritativeProcessLaunch7327(id process){
-    NSInteger announcedPID=ADProcessPID7327(process);
-    __atomic_store_n(&gAuthoritativeProcessPID7330,announcedPID,__ATOMIC_RELEASE);
-    __atomic_store_n(&gAmazonProcessLaunchPending7327,1,__ATOMIC_RELEASE);
-    ADSBProbeLog7326(@"process.willLaunch",[NSString stringWithFormat:@"process=%p pid=%ld main=%d currentPid=%ld gen=%u",process,(long)announcedPID,[NSThread isMainThread]?1:0,(long)ADAmazonPID7326(),gColdGeneration7326]);
-    void (^arm)(void)=^{
-        if(!ADSBEnabled7326())return;
-
-        if(gColdActive7326&&ADHasAnySceneOverlay7327()){
-            if(announcedPID>0&&gReadyPID7330==announcedPID&&gReadyGeneration7330==gColdGeneration7326){
-                ADSBProbeLog7326(@"process.willLaunch.keep",[NSString stringWithFormat:@"pid=%ld gen=%u sameProcess=1",(long)announcedPID,gColdGeneration7326]);
-                return;
-            }
-            // The icon tap may already have installed the correct visual overlay while
-            // the old process was still alive. Keep that exact overlay, but transfer
-            // ownership to the process SpringBoard has now announced. Incrementing the
-            // generation invalidates any ready-dismiss or hard-cap closure queued by
-            // the process being replaced without introducing a visual discontinuity.
-            unsigned oldGeneration=gColdGeneration7326;
-            unsigned newGeneration=++gColdGeneration7326;
-            ADSBProbeLog7326(@"generation.rebase",[NSString stringWithFormat:@"pid=%ld oldGen=%u newGen=%u overlay=1",(long)announcedPID,oldGeneration,newGeneration]);
-            ADBindReadyListener7330(announcedPID,@"replacement-process");
-            ADScheduleHardCap7330(newGeneration);
-            ADSBProbeLog7326(@"process.willLaunch.keep",[NSString stringWithFormat:@"pid=%ld oldGen=%u gen=%u sameProcess=0",(long)announcedPID,oldGeneration,newGeneration]);
-            return;
+        id bundle=[snapshot.containerIdentity valueForKey:@"bundleIdentifier"];
+        if(![bundle isEqual:kAMZ])return original;
+        producingImage=YES;
+        @try {
+        NSString *provider=nil;
+        @try {id value=snapshot.dataProviderClassName;if([value isKindOfClass:NSString.class])provider=value;}
+        @catch(__unused NSException *e){}
+        // Do not persist a rejection on snapshot identity: an early accessor
+        // may have no image yet, followed by a populated result on the same object.
+        int kind=ADKindUnknown7337;
+        @try {
+            id description=[snapshot descriptionWithoutVariants];
+            if([description isKindOfClass:NSString.class])kind=ADContentKind7337([description UTF8String]);
+        }@catch(__unused NSException *e){}
+        BOOL protectedContent=snapshot.hasProtectedContent;
+        BOOL fromLaunchRequest=objc_getAssociatedObject(snapshot,&kADGeneratedLaunch7337)!=nil;
+        // Generation context is authoritative even if a new snapshot has not
+        // passed through the manifest callback in this process yet.
+        if(!fromLaunchRequest&&kind!=ADKindScene7337){
+            @try {fromLaunchRequest=[snapshot.generationContext valueForKey:@"launchRequest"]!=nil;}
+            @catch(__unused NSException *e){}
         }
-
-        ADArmColdLaunch7326(@"SBApplication-processWillLaunch",NO);
-        ADBindReadyListener7330(announcedPID,@"authoritative-process-launch");
-    };
-    if([NSThread isMainThread])arm(); else dispatch_async(dispatch_get_main_queue(),arm);
+        BOOL launch=ADIsColdLaunchArtwork7337(kind,[provider UTF8String],protectedContent,fromLaunchRequest);
+        BOOL imageOK=[original isKindOfClass:UIImage.class];
+        CGSize size=CGSizeZero;CGFloat scale=1;
+        if(launch){
+            size=imageOK?original.size:snapshot.referenceSize;
+            scale=imageOK?original.scale:snapshot.imageScale;
+            // A confirmed launch request need not expose stock pixels first.
+            // Its reference dimensions also cover cache misses/nil image results.
+            BOOL useReference=!imageOK||!isfinite(size.width)||!isfinite(size.height)||size.width<1||size.height<1;
+            if(useReference){
+                size=snapshot.referenceSize;scale=snapshot.imageScale;
+                BOOL landscape=orientation==UIInterfaceOrientationLandscapeLeft||orientation==UIInterfaceOrientationLandscapeRight;
+                BOOL portrait=orientation==UIInterfaceOrientationPortrait||orientation==UIInterfaceOrientationPortraitUpsideDown;
+                if((landscape&&size.width<size.height)||(portrait&&size.width>size.height))size=CGSizeMake(size.height,size.width);
+            }
+            if(!isfinite(scale)||scale<1||scale>4)scale=1;
+        }
+        UIImage *dark=launch?ADLaunchArtwork7337(size,scale):nil;
+        NSString *kindName=kind==ADKindGenerated7337?@"GeneratedDefault":kind==ADKindDefault7337?@"Default":kind==ADKindScene7337?@"SceneContent":@"Unknown";
+        // Optional diagnostics must never turn a completed replacement back
+        // into the original white image if a metadata getter is unavailable.
+        @try { ADLaunchLog7337(dark?@"snapshot.dark":@"snapshot.keep",[NSString stringWithFormat:
+            @"snapshot=%p accessor=%@ provider=%@ type=%lld kind=%@ interface=%d request=%d protected=%d image=%@ size=%@ scale=%.2f reason=%@",
+            snapshot,accessor,provider?:@"nil",snapshot.contentType,kindName,snapshot.launchInterfaceIdentifier.length>0,fromLaunchRequest,protectedContent,
+            imageOK?NSStringFromClass(original.class):@"nil",NSStringFromCGSize(size),scale,
+            protectedContent?@"protected":kind==ADKindScene7337?@"saved-scene-unchanged":!launch?@"not-confirmed-launch":dark?@"launch-artwork":@"artwork-failed"]);
+        }@catch(__unused NSException *e){ADLaunchLog7337(dark?@"snapshot.dark":@"snapshot.keep",@"detail=unavailable");}
+        return dark?:original;
+        }@finally {producingImage=NO;}
+    }@catch(__unused NSException *e){ADLaunchLog7337(@"snapshot.error",accessor);return original;}
 }
 
-%hook SBApplication
-- (void)_processWillLaunch:(id)process {
-    @try {if([self.bundleIdentifier isEqualToString:kAMZ]&&ADSBEnabled7326())ADMarkAuthoritativeProcessLaunch7327(process);} @catch(__unused NSException *e){}
-    %orig;
+%hook XBApplicationSnapshot
+- (UIImage *)imageForInterfaceOrientation:(long long)orientation {
+    UIImage *original=%orig;
+    return ADLaunchSnapshotImage7337(self,original,@"image",orientation);
+}
+- (UIImage *)imageForInterfaceOrientation:(long long)orientation generationOptions:(unsigned long long)options {
+    UIImage *original=%orig;
+    return ADLaunchSnapshotImage7337(self,original,@"image-options",orientation);
+}
+- (UIImage *)cachedImageForInterfaceOrientation:(long long)orientation {
+    UIImage *original=%orig;
+    return ADLaunchSnapshotImage7337(self,original,@"cached",orientation);
 }
 %end
 
-%hook SBDeviceApplicationSceneView
-- (instancetype)initWithSceneHandle:(id)sceneHandle
-                      referenceSize:(CGSize)referenceSize
-                 contentOrientation:(long long)contentOrientation
-               containerOrientation:(long long)containerOrientation
-                      hostRequester:(id)hostRequester {
-    SBDeviceApplicationSceneView *scene=%orig(sceneHandle,referenceSize,contentOrientation,containerOrientation,hostRequester);
-    @try {ADRegisterAmazonScene7326(scene,sceneHandle,@"designated-init");} @catch(__unused NSException *e){}
-    return scene;
-}
-- (void)invalidate {
-    @try {
-        if([ADAmazonScenes7326() containsObject:self]){
-            ADRemoveSceneOverlay7326(self,NO);
-            [ADAmazonScenes7326() removeObject:self];
-            ADSBProbeLog7326(@"scene.invalidate",[NSString stringWithFormat:@"scene=%p",self]);
-        }
-    } @catch(__unused NSException *e){}
+// Provenance comes from the system's launch-request factory, never an icon tap,
+// running PID, elapsed time, or a previous process's ready notification.
+%group ADLaunchFactory7337
+%hook XBApplicationSnapshotManifestImpl
++ (void)_configureSnapshot:(XBApplicationSnapshot *)snapshot withCompatibilityInfo:(id)info forLaunchRequest:(id)request {
     %orig;
+    @try {
+        if(request&&[[snapshot.containerIdentity valueForKey:@"bundleIdentifier"] isEqual:kAMZ]){
+            objc_setAssociatedObject(snapshot,&kADGeneratedLaunch7337,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            ADLaunchLog7337(@"launch.configure",[NSString stringWithFormat:@"snapshot=%p type=%lld",snapshot,snapshot.contentType]);
+        }
+    }@catch(__unused NSException *e){}
+}
+%end
+%end
+
+// Trace the lazy delivery form without changing its class or lifetime. The
+// native wrapper has a private interfaceOrientation contract beyond UIImage;
+// replacing the wrapper itself with a plain UIImage would be a regression.
+%group ADLaunchImageWrapper7337
+%hook XBApplicationSnapshotImage
+- (id)initWithSnapshot:(XBApplicationSnapshot *)snapshot interfaceOrientation:(long long)orientation {
+    id original=%orig;
+    @try {
+        if([[snapshot.containerIdentity valueForKey:@"bundleIdentifier"] isEqual:kAMZ])
+            ADLaunchLog7337(@"image.wrapper",[NSString stringWithFormat:@"snapshot=%p orientation=%lld native=%d",snapshot,orientation,original!=nil]);
+    }@catch(__unused NSException *e){}
+    return original;
+}
+%end
+%end
+
+// A missing disk launch snapshot can be supplied by the launch XIB instead.
+// Replace only that detached return value; never insert/remove scene children
+// inside willMoveToWindow:, or alter the provider's saved-user-content branch.
+%hook SBDeviceApplicationSceneViewPlaceholderContentViewProvider
+- (id)_loadLiveXIBViewForApplication:(id)application {
+    id original=%orig;
+    @try {
+        if(![[application valueForKey:@"bundleIdentifier"] isEqual:kAMZ])return original;
+        UIView *source=[original isKindOfClass:UIView.class]?(UIView *)original:nil;
+        CGRect bounds=source.bounds;
+        if(CGRectIsEmpty(bounds))bounds=UIScreen.mainScreen.bounds;
+        CGFloat scale=source?source.contentScaleFactor:UIScreen.mainScreen.scale;
+        UIImage *image=ADLaunchArtwork7337(bounds.size,scale);
+        if(!image){ADLaunchLog7337(@"xib.fallback",@"reason=no-artwork");return original;}
+        UIImageView *replacement=[[UIImageView alloc] initWithImage:image];
+        replacement.frame=source&&!CGRectIsEmpty(source.frame)?source.frame:bounds;
+        replacement.bounds=bounds;
+        replacement.autoresizingMask=source?source.autoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+        replacement.contentMode=UIViewContentModeScaleToFill;
+        replacement.userInteractionEnabled=NO;
+        ADLaunchLog7337(@"xib.dark",NSStringFromCGSize(bounds.size));
+        return replacement;
+    }@catch(__unused NSException *e){ADLaunchLog7337(@"xib.error",nil);return original;}
 }
 %end
 
 %ctor {
-    ADSBProbeLog7326(@"ctor",[NSString stringWithFormat:@"enabled=%d processScopedReady=1",ADSBEnabled7326()?1:0]);
-    ADInstallTapHook7326();
-    if(!ADSBEnabled7326())return;
-    @autoreleasepool {@try{%init;}@catch(__unused NSException *e){}}
+    if(!ADSBEnabled())return;
+    BOOL factory=class_getClassMethod(objc_getClass("XBApplicationSnapshotManifestImpl"),@selector(_configureSnapshot:withCompatibilityInfo:forLaunchRequest:))!=NULL;
+    BOOL wrapper=class_getInstanceMethod(objc_getClass("XBApplicationSnapshotImage"),@selector(initWithSnapshot:interfaceOrientation:))!=NULL;
+    ADLaunchLog7337(@"ctor",[NSString stringWithFormat:@"version=7.337~v7307-stock-timing-cold-artwork base=4bbbbd9 mode=artwork-only snapshotClass=%d xibClass=%d factory=%d wrapper=%d logo=%d",
+        objc_getClass("XBApplicationSnapshot")!=Nil,
+        objc_getClass("SBDeviceApplicationSceneViewPlaceholderContentViewProvider")!=Nil,factory,wrapper,ADSplashImage7191()!=nil]);
+    @autoreleasepool {
+        @try { %init; } @catch (__unused NSException *e) {}
+        if(factory){ @try { %init(ADLaunchFactory7337); } @catch(__unused NSException *e){} }
+        if(wrapper){ @try { %init(ADLaunchImageWrapper7337); } @catch(__unused NSException *e){} }
+    }
 }
