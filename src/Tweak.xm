@@ -1,10 +1,10 @@
 /*
- * AmazonDark v7.330 — process-scoped launch readiness
+ * AmazonDark v7.331 — exact v7.307 UI + dark system launch artwork
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
  *   - exact native lifecycle/setter owners backed by device probes
- *   - retained v6.0.185 preferences, 120 Hz path, TWB, and minimal cold first-frame shim
+ *   - retained v6.0.185 preferences, 120 Hz path, TWB, and launch transition
  *
  * Production invariants:
  *   - no Dark Reader, native-dark weblab forcing, MutationObserver, polling loop,
@@ -12,7 +12,6 @@
  *   - Cart Share / Saved / related-item text and Person AppCX sheet ownership are probe-scoped
  *   - the v7.255 Hamburger ownership remains exact to the #scrolled-hamburger React surface
  *   - all seven forensics probes remain dormant until screenshot/SIGUSR2
- *   - the Cart lifecycle recorder exists only during an explicitly armed probe window
  */
 
 #import <UIKit/UIKit.h>
@@ -28,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.330-process-scoped-launch-ready"
+#define AD_VERSION "v7.331-v7307-launch-artwork"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -544,11 +543,11 @@ static void ADRefreshPromotionState611(void){
 }
 
 
-static void ADConsiderLaunchReady706(void);
-
 // -----------------------------------------------------------------------------
 // OLED floor — no Dark Reader, no DOM observer, no visual-component classifier.
 // -----------------------------------------------------------------------------
+static void ADPostReadyOnce(void);
+static void ADConsiderLaunchReady706(void);
 static const void *kADCoreWebUS7271=&kADCoreWebUS7271;
 static const void *kADTWBUS=&kADTWBUS;
 static const void *kADPrivacyUS7117=&kADPrivacyUS7117;
@@ -930,17 +929,6 @@ static NSString *ADFloorJS(void){
         // non-empty/pre-.p13n-uf state that can briefly expose Amazon's white skeleton.
         // Own only that slot/shell at document start. Final .p13n-uf contents are untouched.
         @"#sc-page-container #p13n-uf-anchor li.a-carousel-card{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;transition:none!important;}#sc-page-container #p13n-uf-anchor li.a-carousel-card:not(.a-carousel-card-empty):not(:has(.p13n-uf))>*{background:#303335!important;background-color:#303335!important;background-image:none!important;box-shadow:none!important;transition:none!important;}"
-        // v7.326: retain v7.311's saved-cart band and non-empty pre-product shell,
-        // but stop its higher-specificity selectors from matching Amazon's established
-        // .a-carousel-card-empty loader. v7.312 began painting the loader's inner sprite
-        // host opaque gray, which hid the stock Amazon "A" restored by the v7.251 rule.
-        // The explicit :not(.a-carousel-card-empty) restores the confirmed v7.280-v7.300
-        // behavior without exposing the separate pre-product white shell.
-        // The 430x26 #sc-saved-cart hydration band gets higher-specificity all-edge ownership.
-        // The p13n pre-product lane previously styled only descendants *inside* the direct
-        // temporary shell (">* :is(div,span)"), allowing that shell itself to remain white.
-        // Own the direct shell dark-neutral too; hydrated .p13n-uf / real IMG states remain out.
-        @"html body #sc-page-container #sc-saved-cart{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;transition:none!important;}html body #sc-page-container #sc-saved-cart::before,html body #sc-page-container #sc-saved-cart::after,html body #sc-page-container #sc-saved-cart>*{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;transition:none!important;}#sc-page-container #p13n-uf-anchor li.a-carousel-card:not(.a-carousel-card-empty):not(:has(.p13n-uf)):not(:has(img[src]))>*{background:#181a1b!important;background-color:#181a1b!important;background-image:none!important;border-color:#494d4d!important;box-shadow:none!important;transition:none!important;}#sc-page-container #p13n-uf-anchor li.a-carousel-card:not(.a-carousel-card-empty):not(:has(.p13n-uf)):not(:has(img[src]))>* :is(div,span){background-color:#303335!important;border-color:#494d4d!important;box-shadow:none!important;transition:none!important;}"
         // v7.251: Cart probe identifies the actual white loading boxes as Amazon's
         // li.a-carousel-card.a-carousel-card-empty > .a-loading-static (120x120),
         // not the eventual product IMG/compositor. Own that transient card directly.
@@ -1205,11 +1193,7 @@ static NSString *ADStandalonePaintJS7104(void){
           * this exact standalone identity lane to TWB; do not widen the generic
           * logo exclusions that protect Prime, stars, badges and UI glyphs. */
          "html[data-ad7104-standalone] [data-acei-id=brnd-logo] img,"
-         "html[data-ad7104-standalone] [data-testid=logo] img[alt=\"Brand logo\"],"
-         /* v7.309: current XL/large 430x358 standalone probe exposes the authored
-          * company identity raster as data-testid=simple-brand-logo-picture -> IMG.
-          * Extend only the existing standalone brand-identity TWB lane. */
-         "html[data-ad7104-standalone] [data-testid=simple-brand-logo-picture] img"
+         "html[data-ad7104-standalone] [data-testid=logo] img[alt=\"Brand logo\"]"
          "{filter:brightness(%.4f)!important;-webkit-filter:brightness(%.4f)!important;}"
          /* v7.108: exact first-party 300x250 Swiper carousel media. Both the
           * active product tile and the neighboring custom-image tile expose the
@@ -1270,7 +1254,7 @@ static NSString *ADTWBJS(void){
     CGFloat factor=1.0-shade;
     NSString *built=[NSString stringWithFormat:
         @"(function(){try{var host='';try{host=String(location.hostname||'').toLowerCase();}catch(_){}if(host==='flashtalking.com'||/\\.flashtalking\\.com$/.test(host))return;var child=0;try{child=window.top!==window;}catch(_){child=1;}if(child&&document.documentElement)document.documentElement.setAttribute('data-ad7-twb-child','1');if(child&&document.documentElement&&document.documentElement.hasAttribute('data-ad7104-standalone'))return;function put(id,css){var s=document.getElementById(id);if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}s.textContent=css;return s;}function relink(s){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}if(child){put('ad7-twb-child-min',\"html[data-ad7-twb-child=\\\"1\\\"] :is(img,video,canvas):not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=sponsored]):not([class*=ad-feedback]):not([class*=adFeedback]):not([class"
-        @"*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)),html[data-ad7-twb-child=\\\"1\\\"] [data-testid=simple-brand-logo-picture] img{filter:brightness(%.3f)!important;}\");return;}var p='';try{p=String(location.pathname||'');}catch(_){}var s=null;if(p==='/autocomplete'||p.indexOf('/autocomplete/')===0){s=put('ad7-search-pane-twb',\"img.ufs_tiles_card_widget-sug-image,img.s-entity-pd-carousel-tile-element-image,#attach-to-me img.s-image,#attach-to-me img.s-product-image,.s-suggestion-container img.s-image,.s-suggestion-container img.s-product-image{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}\");}else if(p==='/s'||p.indexOf('/s/')===0){s=put('ad7-product-feed-twb',\"#search img.scx-stt-image,#search img._c2Itd_image_3UiYm,#search [class*=_bXVsd_image_],#search [class*=_bXVsd_lifestyleImage_],#search [class*=_bXVsd_lifestyleimage_],#search img.s-image,#search img.s-product-image,#search [data-component-type=s-product-image] img,#search img.ufs_tiles_card_widget-sug-image,#search img.haul-puis-portrait-img,#search img._c2Itd_image_pQREQ,#search ._c2Itd_cardContent_3OGkG.sbv-ad-content-container img:not([class*=_trackingPixel_]):not([class*=ad-feedback]):not([class*=sprite]){filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}#search video.sbv-video-player-ecx,#search video._"
+        @"*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)){filter:brightness(%.3f)!important;}\");return;}var p='';try{p=String(location.pathname||'');}catch(_){}var s=null;if(p==='/autocomplete'||p.indexOf('/autocomplete/')===0){s=put('ad7-search-pane-twb',\"img.ufs_tiles_card_widget-sug-image,img.s-entity-pd-carousel-tile-element-image,#attach-to-me img.s-image,#attach-to-me img.s-product-image,.s-suggestion-container img.s-image,.s-suggestion-container img.s-product-image{filter:none!important;-webkit-filter:none!important;opacity:%.3f!important;}\");}else if(p==='/s'||p.indexOf('/s/')===0){s=put('ad7-product-feed-twb',\"#search img.scx-stt-image,#search img._c2Itd_image_3UiYm,#search [class*=_bXVsd_image_],#search [class*=_bXVsd_lifestyleImage_],#search [class*=_bXVsd_lifestyleimage_],#search img.s-image,#search img.s-product-image,#search [data-component-type=s-product-image] img,#search img.ufs_tiles_card_widget-sug-image,#search img.nice-cat-card_image,#search img.haul-puis-portrait-img,#search img._c2Itd_image_pQREQ,#search ._c2Itd_cardContent_3OGkG.sbv-ad-content-container img:not([class*=_trackingPixel_]):not([class*=ad-feedback]):not([class*=sprite]){filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}#search video.sbv-video-player-ecx,#search video._"
         @"c2Itd_video_17g-f{filter:none!important;-webkit-filter:none!important;}#search .sbv-video-overlay{background-color:rgba(0,0,0,%.3f)!important;}#search ._c2Itd_videoOverlay_1H_Jm{top:0!important;left:0!important;right:0!important;bottom:0!important;width:100%%!important;height:100%%!important;pointer-events:none!important;z-index:6!important;background-color:rgba(0,0,0,%.3f)!important;}#search .s-widget-container[class*=\\\"template=FEATURED_ASINS_VIDEO_LIST\\\"] video[class*=_video_1m98b_]{filter:none!important;-webkit-filter:none!important;}#search .s-widget-container[class*=\\\"template=FEATURED_ASINS_VIDEO_LIST\\\"] [class*=_videoOverlay_1m98b_],#search [class*=_videoPlayerContainer_8wyx7_] [class*=_videoWrapper_8wyx7_] [class*=_videoContainer_1m98b_] [class*=_videoLink_1m98b_] > [class*=_videoOverlay_1m98b_]{background-color:rgba(0,0,0,%.3f)!important;}#search [class*=_navigationWrapper_8wyx7_] > [class*=_container_avw36_][class*=_Horizontal_avw36_]{background:#4a4f51!important;background-color:#4a4f51!important;}\");}else{s=put('ad7-menu-twb',\".ape-placement.is-image-oo[style*=\\\"aspect-ratio: 300 / 250\\\"]>iframe,[id^=ape_gateway_dynamic-][id$=_mshop_placement].is-image-oo[style*=\\\"aspect-ratio: 300 / 250\\\"]>iframe{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}body:has(#sc-page-container) .a-sheet-web:has(.ssf-customize-container-one) #ssf-preview-container,body:has(#sc-page-container) .a-sheet-web:has(.ssf-customize-container-one) img[id^=ssf-share-channel-],body:has(#sc-page-container) .a-sheet-web [id^=p13n-uf-bottom-sheet_] img.p13n-product-image,#sc-page-container [class*=_sp-cart-mobile-carousel_style_spMobileCarousel__] [class*=_sp-cart-mobile-carousel_style_imageContainer__] img.sp-dynamic-image,img.ufs_tiles_card_widget-sug-image,img.s-image,img.s-product-image,#landingImage,#imgBlkFront,#imgTagWrapperId img,img[data-a-dynamic-image],img.a-dynamic-image,[data-component-type=s-product-image] img,[class*=product-image] img,[class*=asin-image] img,.p13n-sc-uncoverable-faceout img,[data-asin] img.s-image,[data-csa-c-asin] img.s-image,#sc-page-container .sc-returns-are-easy-container img,#sc-page-container .maple-banner__image img,:is(#gwm-Deck-btf,.gwm-dashboard-container) :is(.a-cardui,[class*=asin-container],[class*=mosaic-card],[class*=p13n-uf]) img:not([class*=logo]):not([class*=avatar]):not([class*=profile]):not([class*=merchant]):not([class*=seller]):not([class*=brand]):not([class*=store]):not([class*=rating]):not([class*=star]):not([class*=sprite]):not([class*=pixel]):not([class*=icon]):not([class*=glyph]):not([class*"
         @"=badge]):not([class*=checkbox]):not([class*=heart]):not([class*=wishlist]):not([class*=search-icon]):not([class*=microphone]):not([class*=camera]):not([class*=location]):not([class*=chevron]):not([class*=nav-icon]):not([class*=tab-icon]):not([class*=header-icon]):not([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr]):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),"
         @"#gwm-Deck-btf :is([class*=mobile-mshop-ad],[class*=mobile-ad-container],[class*=ape-wrapper],[class*=ape-placement]) :is(img,video,canvas):not([class*=logo]):not([class*=prime]):not([class*=rating]):not([class*=star]):not([class*=icon]):not([class*=glyph]):not([class*=badge]):not(:where([class*=logo] *)):not(:whe"
@@ -1439,42 +1423,6 @@ static NSString *ADHomeFrameProbeBridgeJS7265(void){
         @"s.length<48)c2.responses.push(x)}else parent.postMessage(x,'*')}}catch(_){}},false);}catch(_){}})();";
 }
 
-// v7.311 Cart transition recorder.  The bridge itself is inert: it installs no
-// observer, listener, timer, or RAF until the user explicitly arms the Cart probe.
-// While armed it keeps a bounded privacy-safe ring across same-origin reloads so
-// the white strip/skeleton owners are captured during their real paint lifetime,
-// rather than inferred from a settled page after the transition has disappeared.
-static NSString *ADCartTransitionBridgeJS7310(void){
-    return
-        @"(function(){try{if(window.top!==window||window.__adCartTransitionBridge7310)return;window.__adCartTransitionBridge7310=1;"
-        @"var ARM='__adCartTransitionArm7310',STORE='__adCartTransitionLog7310',MAX=3200000;"
-        @"function clean(v,n){v=String(v==null?'':v).replace(/[\\r\\n\\t]+/g,' ').replace(/\\|/g,'¦').replace(/\\\\/g,'/').replace(/url\\([^)]*\\)/ig,'url(redacted)');n=n||220;return v.length>n?v.slice(0,n)+'…':v}"
-        @"function hash(s){s=String(s||'');var h=2166136261>>>0;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(16)}"
-        @"function cls(e){try{var c=typeof e.className==='string'?e.className:(e.className&&e.className.baseVal)||'';return clean(c,240)}catch(_){return ''}}"
-        @"function sig(e){if(!e)return '?';var t=String(e.tagName||e.nodeName||'?').toLowerCase(),id='';try{id=e.id||''}catch(_){}var c=cls(e).trim().split(/\\s+/).filter(Boolean).slice(0,4).join('.');return t+(id?'#'+clean(id,100):'')+(c?'.'+clean(c,140):'')}"
-        @"function chain(e){var a=[],x=e;for(var i=0;x&&i<10;i++,x=x.parentElement)a.push(sig(x));return a.join('<-')}"
-        @"function attr(e,n){try{return clean(e.getAttribute(n)||'',160)}catch(_){return ''}}function rect(e){try{var r=e.getBoundingClientRect();return [+r.left.toFixed(1),+r.top.toFixed(1),+r.width.toFixed(1),+r.height.toFixed(1)]}catch(_){return [0,0,0,0]}}"
-        @"function rgba(v){var m=/rgba?\\(([^)]+)\\)/i.exec(String(v||''));if(!m)return null;var q=m[1].split(',').map(parseFloat);return {l:(q[0]*.2126+q[1]*.7152+q[2]*.0722)/255,a:q.length>3?q[3]:1}}function bright(v){var q=rgba(v);return !!q&&q.a>.04&&q.l>.62}"
-        @"function pseudo(e,p){try{var c=getComputedStyle(e,p);return {content:String(c.content||'').length,bg:clean(c.backgroundColor,60),bgImg:clean(c.backgroundImage,100),border:clean(c.borderTop,100),outline:clean(c.outline,100),shadow:clean(c.boxShadow,130),opacity:clean(c.opacity,18),display:clean(c.display,24)}}catch(_){return {err:1}}}"
-        @"function technical(e){var ns=['role','data-testid','data-component-type','data-csa-c-type','data-csa-c-content-id','data-csa-c-slot-id','data-csa-c-painter','data-cel-widget','cel_widget_id','name','type','aria-hidden','aria-busy'],o={};for(var i=0;i<ns.length;i++){var v=attr(e,ns[i]);if(v)o[ns[i]]=v}try{var a=e.getAttribute('data-asin');if(a)o['data-asin']=String(a).length+'/'+hash(a);if(e.hasAttribute('src'))o.src=1;if(e.hasAttribute('href'))o.href=1;var al=e.getAttribute('aria-label');if(al!=null)o.ariaLabel=String(al).length+'/'+hash(al);var alt=e.getAttribute('alt');if(alt!=null)o.alt=String(alt).length+'/'+hash(alt)}catch(_){}return o}"
-        @"function state(e){try{var c=getComputedStyle(e),r=rect(e),b=pseudo(e,'::before'),a=pseudo(e,'::after'),id=String(e.id||''),cl=cls(e),semantic=/(skeleton|shimmer|loading|placeholder|carousel-card|p13n|sc-saved-cart|sc-cart-spinner|spinner)/i.test(id+' '+cl);var paints=[c.backgroundColor,c.borderTopColor,c.borderRightColor,c.borderBottomColor,c.borderLeftColor,c.outlineColor,b.bg,b.border,a.bg,a.border],isBright=false;for(var i=0;i<paints.length;i++)if(bright(paints[i])){isBright=true;break}if(!isBright&&!semantic)return null;var inline='';try{inline=clean(e.getAttribute('style')||'',360)}catch(_){}var tag=String(e.tagName||'').toUpperCase(),media=null;if(tag==='IMG')media={kind:'img',natural:[Number(e.naturalWidth||0),Number(e.naturalHeight||0)],complete:e.complete?1:0};else if(tag==='CANVAS')media={kind:'canvas',size:[Number(e.width||0),Number(e.height||0)]};else if(tag==='SVG')media={kind:'svg',viewBox:clean(attr(e,'viewBox'),80)};return {key:hash(sig(e)+'|'+r.join(',')+'|'+c.backgroundColor+'|'+c.backgroundImage+'|'+c.borderTop+'|'+c.borderBottom+'|'+c.boxShadow+'|'+c.opacity+'|'+b.bg+'|'+a.bg),sig:sig(e),chain:clean(chain(e),760),rect:r,bright:isBright?1:0,semantic:semantic?1:0,display:clean(c.display,24),visibility:clean(c.visibility,24),opacity:clean(c.opacity,18),position:clean(c.position,24),z:clean(c.zIndex,24),overflow:[clean(c.overflowX,20),clean(c.overflowY,20)],bg:clean(c.backgroundColor,60),bgImg:clean(c.backgroundImage,150),border:[clean(c.borderTop,100),clean(c.borderRight,100),clean(c.borderBottom,100),clean(c.borderLeft,100)],radius:clean(c.borderRadius,70),outline:clean(c.outline,110),shadow:clean(c.boxShadow,150),filter:clean(c.filter,100),transform:clean(c.transform,120),inline:inline,attrs:technical(e),before:b,after:a,media:media,el:e}}catch(_){return null}}"
-        @"function rules(e){var out=[],seen=0;function walk(rs,owner){if(!rs||seen>7000||out.length>=24)return;for(var i=0;i<rs.length&&seen++<7000&&out.length<24;i++){var r=rs[i];try{if(r.selectorText&&e.matches(r.selectorText)){var d=String(r.style&&r.style.cssText||'');if(/background|border|outline|box-shadow|filter|opacity|display|visibility/i.test(d))out.push({owner:owner,selector:clean(r.selectorText,260),decl:clean(d,520)})}if(r.cssRules)walk(r.cssRules,owner)}catch(_){}}}var ss=document.styleSheets;for(var i=0;i<ss.length&&i<180&&out.length<24;i++){var owner='sheet'+i;try{var n=ss[i].ownerNode;if(n)owner=sig(n);walk(ss[i].cssRules,owner)}catch(_){out.push({owner:owner,inaccessible:1})}}return out}"
-        @"function sheets(){var o=[],ss=document.styleSheets;for(var i=0;i<ss.length&&i<220;i++){var x={index:i};try{var n=ss[i].ownerNode;x.owner=n?sig(n):'none';x.media=clean(ss[i].media&&ss[i].media.mediaText||'',100);x.disabled=ss[i].disabled?1:0;x.rules=ss[i].cssRules?ss[i].cssRules.length:0}catch(_){x.inaccessible=1}o.push(x)}return o}"
-        @"function animations(){var o=[];try{var a=document.getAnimations?document.getAnimations():[];for(var i=0;i<a.length&&i<100;i++){var x=a[i],ef=x.effect,t=ef&&ef.target;o.push({target:sig(t),playState:clean(x.playState,30),current:Math.round(Number(x.currentTime||0)),rate:Number(x.playbackRate||0),delay:Math.round(Number(ef&&ef.getTiming?ef.getTiming().delay||0:0)),duration:Math.round(Number(ef&&ef.getTiming?ef.getTiming().duration||0:0))})}}catch(_){}return o}"
-        @"function start(cfg,why){try{var old=sessionStorage.getItem(STORE)||'',st={active:1,cfg:cfg,buf:old,chars:old.length,frame:0,dirty:1,mut:0,seen:{},lastPersist:0,lastDigest:'',raf:0};window.__adCartTransitionState7310=st;function log(kind,obj){if(!st.active)return;var line='T '+(Date.now()-cfg.at)+' '+kind+' '+clean(JSON.stringify(obj||{}),12000)+'\\n';st.buf+=line;st.chars+=line.length;if(st.chars>MAX){st.buf=st.buf.slice(st.chars-MAX);st.chars=st.buf.length}if(Date.now()-st.lastPersist>350){st.lastPersist=Date.now();try{sessionStorage.setItem(STORE,st.buf)}catch(_){}}}"
-        @"function add(set,e){for(var n=0;e&&n<4;n++,e=e.parentElement)try{if(!set.has(e))set.add(e)}catch(_){}}function collect(){var set=new Set(),vw=Math.max(1,innerWidth||0),vh=Math.max(1,innerHeight||0);for(var y=4;y<vh;y+=12)for(var x=8;x<vw;x+=40)try{var es=document.elementsFromPoint(x,y);for(var z=0;z<es.length&&z<8;z++)add(set,es[z])}catch(_){}if(st.dirty||st.frame%8===0){var root=document.getElementById('sc-page-container')||document.body||document.documentElement,all=root?root.querySelectorAll('*'):[];for(var i=0;i<all.length&&i<7500;i++){var e=all[i],id=String(e.id||''),cl=cls(e);if(/skeleton|shimmer|loading|placeholder|carousel-card|p13n|sc-saved-cart|sc-cart-spinner|spinner/i.test(id+' '+cl))add(set,e)}}var out=[];set.forEach(function(e){var q=state(e);if(q)out.push(q)});out.sort(function(a,b){return a.rect[1]-b.rect[1]||a.rect[0]-b.rect[0]});return out}"
-        @"function snap(reason){if(!st.active)return;st.dirty=0;var cs=collect(),keys=[];for(var i=0;i<cs.length;i++)keys.push(cs[i].key);var digest=hash(keys.join('|')+'|'+String(document.readyState||'')+'|'+document.getElementsByTagName('*').length);if(digest!==st.lastDigest||reason!=='frame'){st.lastDigest=digest;log('FRAME',{reason:reason,frame:st.frame,ready:String(document.readyState||''),viewport:[innerWidth,innerHeight,devicePixelRatio],scroll:[Number(scrollX||0),Number(scrollY||0)],nodes:document.getElementsByTagName('*').length,styles:document.styleSheets.length,ad7:document.getElementById('ad7-static-theme')?1:0,candidates:cs.length,digest:digest,animations:animations()});for(var i=0;i<cs.length;i++){var q=cs[i],el=q.el;delete q.el;log('OWNER',q);if(q.bright&&!st.seen[q.sig]){st.seen[q.sig]=1;log('RULES',{sig:q.sig,matches:rules(el)})}}}}"
-        @"function event(ev){var o={type:ev.type,target:sig(ev.target)};if('animationName'in ev)o.animationName=clean(ev.animationName,100);if('propertyName'in ev)o.propertyName=clean(ev.propertyName,100);if('elapsedTime'in ev)o.elapsed=Number(ev.elapsedTime||0);log('EVENT',o);st.dirty=1}var evs=['animationstart','animationiteration','animationend','animationcancel','transitionrun','transitionstart','transitionend','transitioncancel'];for(var i=0;i<evs.length;i++)document.addEventListener(evs[i],event,true);"
-        @"document.addEventListener('readystatechange',function(){log('READY',{state:document.readyState});st.dirty=1},true);document.addEventListener('DOMContentLoaded',function(){log('DOM_CONTENT_LOADED',{nodes:document.getElementsByTagName('*').length});st.dirty=1},true);window.addEventListener('load',function(){log('LOAD',{nodes:document.getElementsByTagName('*').length});st.dirty=1},true);window.addEventListener('pageshow',function(e){log('PAGESHOW',{persisted:e.persisted?1:0});st.dirty=1},true);window.addEventListener('pagehide',function(e){log('PAGEHIDE',{persisted:e.persisted?1:0});try{sessionStorage.setItem(STORE,st.buf)}catch(_){}},true);document.addEventListener('visibilitychange',function(){log('VISIBILITY',{state:document.visibilityState})},true);"
-        @"try{var mo=new MutationObserver(function(ms){st.mut+=ms.length;var sample=[];for(var i=0;i<ms.length&&i<24;i++){var m=ms[i],x={type:m.type,target:sig(m.target)};if(m.type==='attributes')x.attribute=clean(m.attributeName,80);else{x.added=m.addedNodes?m.addedNodes.length:0;x.removed=m.removedNodes?m.removedNodes.length:0}sample.push(x)}log('MUTATION',{batch:ms.length,total:st.mut,sample:sample});st.dirty=1});mo.observe(document,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden','aria-busy','aria-hidden']});st.mo=mo}catch(e){log('MUTATION_ERROR',{name:String(e&&e.name||'error')})}"
-        @"try{var po=new PerformanceObserver(function(ls){var es=ls.getEntries(),o=[];for(var i=0;i<es.length&&i<80;i++){var e=es[i],x={type:clean(e.entryType,40),start:+Number(e.startTime||0).toFixed(2),duration:+Number(e.duration||0).toFixed(2)};if(e.entryType==='paint')x.name=clean(e.name,50);if(e.entryType==='layout-shift'){x.value=Number(e.value||0);x.hadRecentInput=e.hadRecentInput?1:0}if(e.element)x.element=sig(e.element);o.push(x)}if(o.length)log('PERFORMANCE',{entries:o})});po.observe({entryTypes:['paint','largest-contentful-paint','layout-shift','longtask']});st.po=po}catch(_){}"
-        @"st.snap=snap;log('DOC_START',{why:why,ready:String(document.readyState||''),viewport:[innerWidth,innerHeight,devicePixelRatio],nodes:document.getElementsByTagName('*').length,styleSheets:sheets()});function tick(){if(!st.active)return;st.frame++;if(Date.now()>cfg.until||st.frame>3600){snap('deadline');log('STOP',{reason:'deadline',frame:st.frame});st.active=0;try{sessionStorage.setItem(STORE,st.buf)}catch(_){}return}if(st.frame<=4||st.frame%2===0||st.dirty)snap(st.dirty?'mutation':'frame');st.raf=requestAnimationFrame(tick)}st.raf=requestAnimationFrame(tick);return 'ARMED token='+clean(cfg.token,80)+' until='+cfg.until}catch(e){return 'ARM_ERROR '+String(e&&e.name||'error')}}"
-        @"window.__adCartTransitionArm7310=function(token){try{sessionStorage.removeItem(STORE);var now=Date.now(),cfg={token:String(token||''),at:now,until:now+45000};sessionStorage.setItem(ARM,JSON.stringify(cfg));localStorage.setItem(ARM,JSON.stringify(cfg));return start(cfg,'explicit-arm')}catch(e){return 'ARM_ERROR '+String(e&&e.name||'error')}};"
-        @"window.__adCartTransitionExport7310=function(){try{var st=window.__adCartTransitionState7310;if(st&&st.active){st.dirty=1;st.lastDigest='';if(st.snap)st.snap('export');try{sessionStorage.setItem(STORE,st.buf)}catch(_){}}var x=(st&&st.buf)||sessionStorage.getItem(STORE)||'';return 'TRANSITION_LOG_BEGIN\\n'+x+'TRANSITION_LOG_END\\n'}catch(e){return 'EXPORT_ERROR '+String(e&&e.name||'error')}};"
-        @"window.__adCartTransitionClear7310=function(){try{var st=window.__adCartTransitionState7310;if(st){st.active=0;if(st.mo)st.mo.disconnect();if(st.po)st.po.disconnect();if(st.raf)cancelAnimationFrame(st.raf)}sessionStorage.removeItem(ARM);sessionStorage.removeItem(STORE);localStorage.removeItem(ARM);return 'CLEARED'}catch(e){return 'CLEAR_ERROR '+String(e&&e.name||'error')}};"
-        @"var raw=null;try{raw=sessionStorage.getItem(ARM)||localStorage.getItem(ARM)}catch(_){}if(raw){try{var cfg=JSON.parse(raw);if(cfg&&Date.now()<Number(cfg.until||0))start(cfg,'document-start-reload');else{sessionStorage.removeItem(ARM);localStorage.removeItem(ARM)}}catch(_){}}}catch(_){}})();";
-}
-
 // One immutable document-start program per strength replaces four separately
 // allocated/compiled WKUserScripts while preserving their proven execution order.
 static long gADCoreWebJSStrength7271=-1;
@@ -1483,9 +1431,8 @@ static NSString *ADCoreWebJS7271(void){
     long strength=MAX(0,MIN(100,gP.whiteTameStrength));
     if(gADCoreWebJSCached7271&&gADCoreWebJSStrength7271==strength)return gADCoreWebJSCached7271;
     gADCoreWebJSStrength7271=strength;
-    gADCoreWebJSCached7271=[NSString stringWithFormat:@"%@%@%@%@%@",ADFullRasterHostBridgeJS7266(),
-        ADHomeFrameProbeBridgeJS7265(),ADStandalonePaintJS7104(),ADFloorJS(),
-        ADCartTransitionBridgeJS7310()];
+    gADCoreWebJSCached7271=[NSString stringWithFormat:@"%@%@%@%@",ADFullRasterHostBridgeJS7266(),
+        ADHomeFrameProbeBridgeJS7265(),ADStandalonePaintJS7104(),ADFloorJS()];
     return gADCoreWebJSCached7271;
 }
 
@@ -2146,46 +2093,91 @@ static BOOL ADInCNMErrorView7301(UIView *v){
     } @catch(...) {}
     return NO;
 }
-// v7.309: the probe identifies the no-internet dog uniquely as a 640x524
-// raster on the direct UIStackView UIImageView inside CNMErrorView. Apply the
-// existing native TWB shade to that image only. Preserve the source pixels and
-// authored white field; do not crop, key, rewrite, or broaden image eligibility.
-static const void *kADCNMDogTWB7309=&kADCNMDogTWB7309;
-static BOOL ADCNMExactDog7309(UIImageView *iv,UIImage *im){
-    if(!iv||!im)return NO;
+static BOOL ADCNMErrorHero7301(UIImageView *iv,UIImage *im){
+    if(!iv||!im||!ADInCNMErrorView7301((UIView *)iv))return NO;
     @try {
-        CGImageRef cg=im.CGImage;
-        if(!cg||CGImageGetWidth(cg)!=640||CGImageGetHeight(cg)!=524)return NO;
         UIView *p=iv.superview;
-        return p&&ADClassNameIs7183(p,"UIStackView")&&ADInCNMErrorView7301((UIView *)iv);
+        if(!p||!ADClassNameIs7183(p,"UIStackView"))return NO;
+        CGFloat w=iv.bounds.size.width,h=iv.bounds.size.height;
+        if(w<280.0||h<240.0)return NO;
+        CGImageRef cg=im.CGImage; if(!cg)return NO;
+        return CGImageGetWidth(cg)>=300&&CGImageGetHeight(cg)>=240;
     } @catch(...) {}
     return NO;
 }
-static void ADApplyCNMExactDogTWB7309(UIImageView *iv){
-    if(!iv)return;
+static inline BOOL ADCNMNearWhitePixel7301(const unsigned char *p){
+    if(!p)return NO;
+    unsigned char r=p[0],g=p[1],b=p[2],a=p[3];
+    unsigned char hi=MAX(r,MAX(g,b)),lo=MIN(r,MIN(g,b));
+    return a>32&&r>=205&&g>=205&&b>=205&&(hi-lo)<=45;
+}
+// The probe proves the 640x524 hero sits in a transparent UIImageView, while the
+// supplied artwork presents with a large white surrounding field. Only attempt
+// backdrop removal when the image edges are substantially opaque near-white, then
+// remove only edge-connected near-white pixels. Transparent/non-white variants are
+// left untouched and interior light fur is protected from a global color key. This
+// runs once per rare CNM hero assignment and is cached on the UIImageView.
+static UIImage *ADCNMKnockoutWhiteBackdrop7301(UIImage *im){
+    if(!im||!im.CGImage)return im;
+    CGImageRef src=im.CGImage;
+    size_t w=CGImageGetWidth(src),h=CGImageGetHeight(src);
+    if(w<300||h<240||w>1024||h>1024)return im;
+    size_t pixels=w*h,row=w*4,total=row*h;
+    if(!pixels||total/4!=pixels)return im;
+    unsigned char *buf=(unsigned char *)calloc(total,1);
+    unsigned char *seen=(unsigned char *)calloc(pixels,1);
+    uint32_t *queue=(uint32_t *)malloc(pixels*sizeof(uint32_t));
+    CGColorSpaceRef cs=CGColorSpaceCreateDeviceRGB();
+    CGContextRef ctx=(buf&&seen&&queue&&cs)?CGBitmapContextCreate(buf,w,h,8,row,cs,kCGImageAlphaPremultipliedLast|kCGBitmapByteOrder32Big):NULL;
+    if(cs)CGColorSpaceRelease(cs);
+    if(!ctx){ if(buf)free(buf); if(seen)free(seen); if(queue)free(queue); return im; }
+    CGContextDrawImage(ctx,CGRectMake(0,0,w,h),src);
+    size_t edgeTotal=(w+h)*2,edgeWhite=0;
+    for(size_t x=0;x<w;x++){
+        if(ADCNMNearWhitePixel7301(buf+x*4))edgeWhite++;
+        if(ADCNMNearWhitePixel7301(buf+((h-1)*w+x)*4))edgeWhite++;
+    }
+    for(size_t y=0;y<h;y++){
+        if(ADCNMNearWhitePixel7301(buf+(y*w)*4))edgeWhite++;
+        if(ADCNMNearWhitePixel7301(buf+(y*w+w-1)*4))edgeWhite++;
+    }
+    // Transparent/non-white artwork does not need destructive processing.
+    if(edgeTotal==0||edgeWhite*5<edgeTotal){
+        CGContextRelease(ctx); free(buf); free(seen); free(queue); return im;
+    }
+    size_t head=0,tail=0;
+    #define AD7301_ENQ(_i) do{ size_t __i=(size_t)(_i); if(!seen[__i]&&ADCNMNearWhitePixel7301(buf+__i*4)){seen[__i]=1;queue[tail++]=(uint32_t)__i;} }while(0)
+    for(size_t x=0;x<w;x++){ AD7301_ENQ(x); AD7301_ENQ((h-1)*w+x); }
+    for(size_t y=0;y<h;y++){ AD7301_ENQ(y*w); AD7301_ENQ(y*w+w-1); }
+    while(head<tail){
+        size_t i=queue[head++],x=i%w,y=i/w; unsigned char *px=buf+i*4;
+        px[0]=px[1]=px[2]=px[3]=0;
+        if(x)AD7301_ENQ(i-1); if(x+1<w)AD7301_ENQ(i+1);
+        if(y)AD7301_ENQ(i-w); if(y+1<h)AD7301_ENQ(i+w);
+    }
+    #undef AD7301_ENQ
+    CGImageRef out=CGBitmapContextCreateImage(ctx);
+    UIImage *result=out?[UIImage imageWithCGImage:out scale:im.scale orientation:im.imageOrientation]:nil;
+    if(out)CGImageRelease(out);
+    CGContextRelease(ctx); free(buf); free(seen); free(queue);
+    if(result&&result.renderingMode!=im.renderingMode)result=[result imageWithRenderingMode:im.renderingMode];
+    return result?:im;
+}
+static const void *kADCNMProcessedImage7301=&kADCNMProcessedImage7301;
+static __thread BOOL gADCNMImageWrite7301=NO;
+static void ADOwnCNMErrorHero7301(UIImageView *iv){
+    if(!gP.enabled||!iv||!iv.window||!iv.image||!ADCNMErrorHero7301(iv,iv.image))return;
     @try {
-        CALayer *ov=objc_getAssociatedObject(iv,kADCNMDogTWB7309);
-        BOOL own=gP.enabled&&gP.whiteTame&&iv.window&&ADCNMExactDog7309(iv,iv.image);
-        if(!own){
-            if(ov){
-                [ov removeFromSuperlayer];
-                objc_setAssociatedObject(iv,kADCNMDogTWB7309,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            }
-            return;
+        ADSetViewBackground7226(iv,ADOLED(),YES);
+        if(objc_getAssociatedObject(iv,kADCNMProcessedImage7301)==iv.image)return;
+        UIImage *clean=ADCNMKnockoutWhiteBackdrop7301(iv.image);
+        if(clean&&clean!=iv.image){
+            gADCNMImageWrite7301=YES;
+            iv.image=clean;
+            gADCNMImageWrite7301=NO;
+            objc_setAssociatedObject(iv,kADCNMProcessedImage7301,clean,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
-        if(!ov){
-            ov=[CALayer layer];
-            ov.name=@"AmazonDarkCNMExactDogTWB7309";
-            ov.actions=@{@"bounds":[NSNull null],@"position":[NSNull null],@"backgroundColor":[NSNull null],@"zPosition":[NSNull null]};
-            [iv.layer addSublayer:ov];
-            objc_setAssociatedObject(iv,kADCNMDogTWB7309,ov,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        } else if(ov.superlayer!=iv.layer){
-            [iv.layer addSublayer:ov];
-        }
-        ov.frame=iv.bounds;
-        ov.backgroundColor=ADNativeTWBOverlayColor7146().CGColor;
-        ov.zPosition=FLT_MAX;
-    } @catch(...) {}
+    } @catch(...) { gADCNMImageWrite7301=NO; }
 }
 static void ADOwnCNMErrorView7301(UIView *v,UIColor *candidate){
     if(!gP.enabled||!v||!ADInCNMErrorView7301(v))return;
@@ -5819,11 +5811,11 @@ static void ADAlexaOwnPlusCircle7291(UIView *v){
         ring.path=[UIBezierPath bezierPathWithOvalInRect:CGRectInset(b,0.5,0.5)].CGPath;
     } @catch(...) {}
 }
-// v7.326: preserve Amazon's measured 32x32 voice-button frame and the stock SVG's
-// full paint geometry. The v7.307 ownership correction put our fill/ring on the
-// right button, but also masked and clipped that RNSVG owner. The decorative layers
-// stay centered on the exact stock button; no frame, bounds, center, transform,
-// corner-radius, clipping, or layer-mask property is written on the glyph owner.
+// v7.295: v7.294 Alexa r1 proves the alternate hydration leaves the voice button
+// at 32x32 gray/radius=0 while its RNSVGCircle backing is already hidden. Own the
+// exact anonymous 32x32 wrapper directly under #InputBoxContainer with durable
+// shape layers, matching the proven Plus architecture without relying on React radius.
+static const void *kADAlexaVoiceCircleMask7295=&kADAlexaVoiceCircleMask7295;
 static const void *kADAlexaVoiceCircleFill7295=&kADAlexaVoiceCircleFill7295;
 static const void *kADAlexaVoiceCircleRing7295=&kADAlexaVoiceCircleRing7295;
 static void ADAlexaOwnVoiceCircle7295(UIView *v){
@@ -5832,9 +5824,10 @@ static void ADAlexaOwnVoiceCircle7295(UIView *v){
         if(![v.accessibilityIdentifier isEqualToString:@"TextBoxSearchVoiceComponentButton"]||
            !ADAlexaAncestorAid7285(v,@"navigation-root",14))return;
 
-        // v7.307 correctly found the actual button/SVG at 32x32, x=384. Keep that
-        // ancestry and center only our paint layers on it; Amazon remains sole owner
-        // of the view and SVG geometry.
+        // v7.307 probe correction: the actual voice button/SVG is 32x32 at x=384 while
+        // the old anonymous circle host is 32x32 at x=386. That 2pt ownership mismatch
+        // made the glyph look off-center even though Amazon's own button geometry is right.
+        // Keep the proven ancestry gate, but center fill/mask/ring on the actual button.
         UIView *component=v.superview;
         UIView *inner=component.superview;
         UIView *wrap=inner.superview;
@@ -5848,6 +5841,9 @@ static void ADAlexaOwnVoiceCircle7295(UIView *v){
         ADSetViewBackground7226(v,[UIColor clearColor],YES);
         v.layer.backgroundColor=[UIColor clearColor].CGColor;
         v.layer.borderWidth=0.0;
+        v.layer.cornerRadius=16.0;
+        v.layer.masksToBounds=YES;
+        v.clipsToBounds=YES;
 
         UIColor *fill=ADMenuButtonFill7255();
         CAShapeLayer *fillLayer=(CAShapeLayer *)objc_getAssociatedObject(v,kADAlexaVoiceCircleFill7295);
@@ -5865,6 +5861,16 @@ static void ADAlexaOwnVoiceCircle7295(UIView *v){
         fillLayer.frame=b;
         fillLayer.fillColor=fill.CGColor;
         fillLayer.path=[UIBezierPath bezierPathWithOvalInRect:b].CGPath;
+
+        CAShapeLayer *mask=(CAShapeLayer *)objc_getAssociatedObject(v,kADAlexaVoiceCircleMask7295);
+        if(!mask){
+            mask=[CAShapeLayer layer];
+            mask.name=@"AmazonDarkAlexaVoiceCircleMask7295";
+            objc_setAssociatedObject(v,kADAlexaVoiceCircleMask7295,mask,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        mask.frame=b;
+        mask.path=[UIBezierPath bezierPathWithOvalInRect:b].CGPath;
+        if(v.layer.mask!=mask)v.layer.mask=mask;
 
         CAShapeLayer *ring=(CAShapeLayer *)objc_getAssociatedObject(v,kADAlexaVoiceCircleRing7295);
         if(!ring){
@@ -5912,7 +5918,7 @@ static void ADAlexaOwnReactControl7285(UIView *v){
 
 // 0 untouched, 1 OLED row/card with one gray border, 2 custom gray shortcut with
 // one gray border, 3 retired React border shell, 4 OLED structural floor,
-// 5 footer visible inner surface: OLED with no visible edge,
+// 5 footer visible inner surface: OLED + the same one gray edge as category rows,
 // 6 footer action leaf: transparent so it cannot repaint over the rounded surface.
 static int ADMenuViewRole7255(UIView *v){
     if(!v||!ADClassNameIs7183(v,"RCTView"))return 0;
@@ -5961,19 +5967,16 @@ static void ADMenuApplyRole7281(UIView *v,int role){
     @try {
         UIColor *fill=(role==2)?ADMenuButtonFill7255():((role==3||role==6)?[UIColor clearColor]:ADOLED());
         ADSetViewBackground7226(v,fill,YES);
-        if(role==1||role==2){
+        if(role==1||role==2||role==5){
             UIColor *edge=(role==2)?ADMenuButtonBorder7255():ADBorderGray706();
             ADMenuSetSingleRCTBorder7258(v,1.0,edge);
-        } else if(role==5){
-            // v7.309: only the three exact footer action surfaces lose their
-            // border. Keep the existing OLED floor/radius and Menu text owner.
-            ADMenuSetSingleRCTBorder7258(v,0.0,[UIColor clearColor]);
         } else {
             ADMenuSetSingleRCTBorder7258(v,0.0,ADBorderGray706());
         }
         if(role==5){
-            // The real visible 406x48.7 surface keeps its final r16 geometry and
-            // clipping while its fill is OLED and every border channel is clear.
+            // Match the category cards above on the real visible 406x48.7 surface:
+            // OLED fill, one gray edge, r16, and clipping. This preserves the
+            // geometry from Amazon while replacing its white/teal paint only.
             v.layer.cornerRadius=16.0;
             v.layer.masksToBounds=YES;
         }
@@ -5981,48 +5984,6 @@ static void ADMenuApplyRole7281(UIView *v,int role){
 }
 static void ADMenuOwnView7255(UIView *v){
     if(gP.enabled&&v)ADMenuApplyRole7281(v,ADMenuViewRole7255(v));
-}
-
-// v7.311: the v7.309 Menu probe proves the missing "Explore more for you"
-// carousel is mounted and correctly laid out.  The affected vector tiles have
-// one exact physical shape only:
-//
-//   RCTView (58x58, alpha 0.06-0.08)
-//     <- RCTView#featured-programs-tile-image-container_N
-//
-// and the wrapper owns one direct RNSVGSvgView.  Raster tiles in the same rail
-// remain alpha 1 and use the existing Menu image/TWB path.  Restore opacity only
-// for this exact vector wrapper; do not touch SVG paint, raster rendering mode,
-// TWB eligibility, category glyphs, or any other Menu view.
-static BOOL gADMenuFeaturedVectorOpacityWrite7310=NO;
-static BOOL ADMenuFeaturedVectorWrapper7310(UIView *v){
-    if(!v||!v.window||!ADClassNameIs7183(v,"RCTView"))return NO;
-    @try {
-        CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
-        if(w<56.0||w>60.0||h<56.0||h>60.0)return NO;
-        UIView *host=v.superview; NSString *aid=host.accessibilityIdentifier?:@"";
-        if(!ADClassNameIs7183(host,"RCTView")||
-           ![aid hasPrefix:@"featured-programs-tile-image-container_"])return NO;
-        if(!ADMenuRoot7255(v))return NO;
-        NSUInteger vectors=0,rasters=0;
-        for(UIView *c in v.subviews){
-            if(ADClassNameIs7183(c,"RNSVGSvgView"))vectors++;
-            if([c isKindOfClass:[UIImageView class]]||ADClassNameIs7183(c,"RCTImageView"))rasters++;
-        }
-        return vectors==1&&rasters==0;
-    } @catch(...) { return NO; }
-}
-static void ADMenuOwnFeaturedVectorOpacity7310(UIView *v){
-    if(!gP.enabled||gADMenuFeaturedVectorOpacityWrite7310||
-       !ADMenuFeaturedVectorWrapper7310(v))return;
-    @try {
-        if(v.alpha<0.999||v.layer.opacity<0.999){
-            gADMenuFeaturedVectorOpacityWrite7310=YES;
-            v.alpha=1.0;
-            v.layer.opacity=1.0;
-            gADMenuFeaturedVectorOpacityWrite7310=NO;
-        }
-    } @catch(...) { gADMenuFeaturedVectorOpacityWrite7310=NO; }
 }
 // v7.282: the paired cold/warm probes show the final React radius transaction is
 // the first moment all three footer rows have both their exact descendant IDs and
@@ -6091,7 +6052,6 @@ static void ADOwnReactView7226(UIView *v){
         }
         if(surface==ADReactSurfaceMenu7255){
             ADMenuOwnView7255(v);
-            ADMenuOwnFeaturedVectorOpacity7310(v);
             return;
         }
         if(ADClassNameIs7183(v.window,"AppCXWindow")){
@@ -6117,18 +6077,6 @@ static void ADOwnReactView7226(UIView *v){
 - (void)layoutSubviews {
     %orig;
     ADOwnReactView7226((UIView *)self);
-}
-- (void)setAlpha:(CGFloat)value {
-    UIView *v=(UIView *)self;
-    if(gADMenuFeaturedVectorOpacityWrite7310){
-        %orig(value);
-        return;
-    }
-    if(gP.enabled&&ADMenuFeaturedVectorWrapper7310(v)){
-        %orig(1.0);
-        return;
-    }
-    %orig(value);
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if(ADInternalPaintWrite7226()){
@@ -6217,9 +6165,7 @@ static void ADOwnReactView7226(UIView *v){
         return;
     }
     if(alexaRole==2){
-        // v7.326: Amazon owns the voice button's radius and SVG geometry. Our
-        // separate fill/ring layers provide the dark paint without rewriting it.
-        %orig(value);
+        %orig(16.0);
         ADAlexaOwnReactControl7285((UIView *)self);
         return;
     }
@@ -6322,19 +6268,14 @@ static void ADAlexaOwnVector7285(UIView *svg){
 - (void)didMoveToWindow {
     %orig;
     ADAlexaOwnVector7285((UIView *)self);
-    ADMenuOwnFeaturedVectorOpacity7310(((UIView *)self).superview);
 }
 - (void)didMoveToSuperview {
     %orig;
-    if(((UIView *)self).window){
-        ADAlexaOwnVector7285((UIView *)self);
-        ADMenuOwnFeaturedVectorOpacity7310(((UIView *)self).superview);
-    }
+    if(((UIView *)self).window)ADAlexaOwnVector7285((UIView *)self);
 }
 - (void)layoutSubviews {
     %orig;
     ADAlexaOwnVector7285((UIView *)self);
-    ADMenuOwnFeaturedVectorOpacity7310(((UIView *)self).superview);
 }
 %end
 
@@ -7244,87 +7185,16 @@ static void ADOwnBottomBar708(UIView *v){
 }
 %end
 
-// v7.329 task-switcher snapshot cover retained in v7.330. SpringBoard's launch overlay owns the live
-// foreground transition, but it is not part of the app-rendered scene image that
-// UIKit persists for the app switcher. UIKit documents the did-enter-background
-// boundary as the place to synchronously prepare that image. Keep one opaque
-// black/logo view on each full-size Amazon window only while the app is backgrounded.
-static const void *kADTaskSwitcherCoverKey7329=&kADTaskSwitcherCoverKey7329;
-static BOOL gADTaskSwitcherCoverActive7329=NO;
-
-static UIImage *ADTaskSwitcherLogo7329(void){
-    static UIImage *image; static dispatch_once_t once;
-    dispatch_once(&once,^{
-        image=[UIImage imageWithContentsOfFile:@"/var/jb/Library/Application Support/AmazonDark/splash-logo.png"];
-        if(!image)image=[UIImage imageWithContentsOfFile:@"/Library/Application Support/AmazonDark/splash-logo.png"];
-    });
-    return image;
-}
-static void ADAttachTaskSwitcherCover7329(UIWindow *window){
-    if(!window||CGRectGetWidth(window.bounds)<160.0||CGRectGetHeight(window.bounds)<240.0)return;
-    @try {
-        UIView *cover=(UIView *)objc_getAssociatedObject(window,kADTaskSwitcherCoverKey7329);
-        if(!cover){
-            cover=[[UIView alloc] initWithFrame:window.bounds];
-            cover.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
-            cover.backgroundColor=UIColor.blackColor;
-            cover.opaque=YES;
-            cover.userInteractionEnabled=NO;
-            UIImage *image=ADTaskSwitcherLogo7329();
-            if(image){
-                UIImageView *logo=[[UIImageView alloc] initWithImage:image];
-                logo.contentMode=UIViewContentModeScaleAspectFit;
-                logo.translatesAutoresizingMaskIntoConstraints=NO;
-                [cover addSubview:logo];
-                CGFloat width=MAX(CGRectGetWidth(window.bounds),200.0)*0.62;
-                CGFloat height=width*(image.size.height/MAX(image.size.width,1.0));
-                [NSLayoutConstraint activateConstraints:@[[logo.centerXAnchor constraintEqualToAnchor:cover.centerXAnchor],[logo.centerYAnchor constraintEqualToAnchor:cover.centerYAnchor],[logo.widthAnchor constraintEqualToConstant:width],[logo.heightAnchor constraintEqualToConstant:height]]];
-            }
-            objc_setAssociatedObject(window,kADTaskSwitcherCoverKey7329,cover,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            [window addSubview:cover];
-        }
-        cover.frame=window.bounds;
-        cover.hidden=NO;
-        cover.alpha=1.0;
-        [window bringSubviewToFront:cover];
-        [cover setNeedsLayout];
-        [cover layoutIfNeeded];
-    } @catch(...) {}
-}
-static NSUInteger ADSetTaskSwitcherCoverActive7329(BOOL active){
-    gADTaskSwitcherCoverActive7329=active;
-    NSUInteger count=0;
-    @try {
-        for(UIWindow *window in UIApplication.sharedApplication.windows){
-            if(active){
-                ADAttachTaskSwitcherCover7329(window);
-                if(objc_getAssociatedObject(window,kADTaskSwitcherCoverKey7329))count++;
-            } else {
-                UIView *cover=(UIView *)objc_getAssociatedObject(window,kADTaskSwitcherCoverKey7329);
-                if(cover){
-                    count++;
-                    [cover removeFromSuperview];
-                    objc_setAssociatedObject(window,kADTaskSwitcherCoverKey7329,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                }
-            }
-        }
-    } @catch(...) {}
-    return count;
-}
-
-// Do not black every UIWindow during normal foreground use. Screenshot/share/input
-// windows are intentionally excluded; only Amazon's primary navigation window receives
-// the ordinary OLED backing. The snapshot cover above exists only while backgrounded.
+// Do not black every UIWindow. Screenshot/share/input windows are intentionally excluded;
+// only Amazon's primary navigation window receives the OLED backing.
 %hook UIWindow
 - (void)setRootViewController:(UIViewController *)vc {
     %orig;
     if(gP.enabled && ADPrimaryAmazonWindow713(self,vc)) ADSetViewBackground7226(self,ADOLED(),YES);
-    if(gP.enabled&&gADTaskSwitcherCoverActive7329)ADAttachTaskSwitcherCover7329(self);
 }
 - (void)makeKeyAndVisible {
     if(gP.enabled && ADPrimaryAmazonWindow713(self,nil)) ADSetViewBackground7226(self,ADOLED(),YES);
     %orig;
-    if(gP.enabled&&gADTaskSwitcherCoverActive7329)ADAttachTaskSwitcherCover7329(self);
 }
 %end
 
@@ -7396,8 +7266,8 @@ static void ADPersonOwnScrollIndicator7238(UIView *v){
 %end
 
 // v7.307: distinguish a normal warm foreground of the already-connected Amazon scene
-// from an actual scene reconstruction inside the same process. SpringBoard now owns only
-// the v7.330 cold first-frame shim; warm behavior is owned inside Amazon only.
+// from an actual scene reconstruction inside the same process. SpringBoard remains the
+// exact v7.301 cold-launch implementation; warm behavior is owned inside Amazon only.
 //
 // Stock-like contract:
 //   * first process launch / real scene reconstruction: the exact Amazon splash controller
@@ -7405,25 +7275,6 @@ static void ADPersonOwnScrollIndicator7238(UIView *v){
 //   * ordinary background -> foreground of the same connected scene: if Amazon attempts to
 //     replay its native splash controller, suppress only that exact splash view so the saved/
 //     already-live interface remains visible instead of showing another loading transition.
-// v7.330 probe-only app-side launch recorder. Event timestamps use system uptime so they
-// correlate directly with the SpringBoard launch recorder without relying on wall-clock ordering.
-static dispatch_queue_t ADLaunchAppProbeQueue7317(void){
-    static dispatch_queue_t q; static dispatch_once_t once; dispatch_once(&once,^{q=dispatch_queue_create("com.colindavidr.amazondark.launchprobe.app",DISPATCH_QUEUE_SERIAL);}); return q;
-}
-static NSString *ADLaunchAppProbePath7317(void){
-    static NSString *p; static dispatch_once_t once; dispatch_once(&once,^{NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];p=[(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:@"AmazonDark-v7.330-launch-app-probe.txt"];}); return p;
-}
-static void ADLaunchAppProbeLog7317(NSString *event,NSString *detail){
-    @try {
-        NSTimeInterval wall=CFAbsoluteTimeGetCurrent(),up=NSProcessInfo.processInfo.systemUptime;
-        NSString *line=[NSString stringWithFormat:@"%.6f up=%.6f pid=%d main=%d event=%@ %@\n",wall,up,NSProcessInfo.processInfo.processIdentifier,[NSThread isMainThread]?1:0,event?:@"?",detail?:@""];
-        dispatch_async(ADLaunchAppProbeQueue7317(),^{@autoreleasepool{@try{NSString *path=ADLaunchAppProbePath7317();NSData *d=[line dataUsingEncoding:NSUTF8StringEncoding];NSFileManager *fm=[NSFileManager defaultManager];if(![fm fileExistsAtPath:path])[fm createFileAtPath:path contents:nil attributes:nil];NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:path];if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];}}@catch(__unused NSException *e){}}});
-    } @catch(__unused NSException *e){}
-}
-static NSString *ADLaunchSplashState7317(UIViewController *vc){
-    @try { UIView *v=vc.view; return [NSString stringWithFormat:@"cls=%@ view=%p win=%p hidden=%d alpha=%.3f bg=%@",NSStringFromClass(vc.class)?:@"?",v,v.window,v.hidden?1:0,v.alpha,v.backgroundColor]; } @catch(...) { return @"state-exception"; }
-}
-
 static BOOL gADLifecycleEverActive7307=NO;
 static BOOL gADLifecycleBackgrounded7307=NO;
 static BOOL gADSceneReconnectedWhileBackgrounded7307=NO;
@@ -7442,7 +7293,7 @@ static void ADOwnAmazonSplash7307(UIViewController *vc){
             return;
         }
         // Cold launch / true scene reconstruction: keep Amazon's normal splash contents but
-        // own its earliest floor dark. v7.330 SpringBoard bridges only the pre-process frame.
+        // own its earliest floor dark. v7.301 SpringBoard still supplies the cold logo cover.
         vc.view.hidden=NO;
         vc.view.alpha=1.0;
         ADSetViewBackground7226(vc.view,ADOLED(),YES);
@@ -7465,9 +7316,6 @@ static void ADInstallWarmResumeLifecycle7307(void){
     @try {
         NSNotificationCenter *nc=[NSNotificationCenter defaultCenter];
         [nc addObserverForName:UIApplicationDidEnterBackgroundNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){
-            NSUInteger covered=gP.enabled?ADSetTaskSwitcherCoverActive7329(YES):0;
-            ADLaunchAppProbeLog7317(@"task-switcher.attach",[NSString stringWithFormat:@"windows=%lu logo=%d",(unsigned long)covered,ADTaskSwitcherLogo7329()?1:0]);
-            ADLaunchAppProbeLog7317(@"UIApplicationDidEnterBackground",[NSString stringWithFormat:@"ever=%d snapshotCovers=%lu",gADLifecycleEverActive7307?1:0,(unsigned long)covered]);
             gADLifecycleBackgrounded7307=YES;
             gADSceneReconnectedWhileBackgrounded7307=NO;
             gADOrdinaryWarmResume7307=NO;
@@ -7475,20 +7323,15 @@ static void ADInstallWarmResumeLifecycle7307(void){
         [nc addObserverForName:UISceneWillConnectNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){
             // If the process has already been active and a scene connection occurs while it
             // is in the background lifecycle, this is not an ordinary same-scene resume.
-            ADLaunchAppProbeLog7317(@"UISceneWillConnect",[NSString stringWithFormat:@"ever=%d bg=%d",gADLifecycleEverActive7307?1:0,gADLifecycleBackgrounded7307?1:0]);
             if(gADLifecycleEverActive7307&&gADLifecycleBackgrounded7307){
                 gADSceneReconnectedWhileBackgrounded7307=YES;
                 gADOrdinaryWarmResume7307=NO;
             }
         }];
         [nc addObserverForName:UIApplicationWillEnterForegroundNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){
-            NSUInteger removed=ADSetTaskSwitcherCoverActive7329(NO);
-            ADLaunchAppProbeLog7317(@"task-switcher.remove",[NSString stringWithFormat:@"windows=%lu",(unsigned long)removed]);
             gADOrdinaryWarmResume7307=(gADLifecycleEverActive7307&&gADLifecycleBackgrounded7307&&!gADSceneReconnectedWhileBackgrounded7307);
-            ADLaunchAppProbeLog7317(@"UIApplicationWillEnterForeground",[NSString stringWithFormat:@"ever=%d bg=%d reconnect=%d ordinaryWarm=%d",gADLifecycleEverActive7307?1:0,gADLifecycleBackgrounded7307?1:0,gADSceneReconnectedWhileBackgrounded7307?1:0,gADOrdinaryWarmResume7307?1:0]);
         }];
         [nc addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){
-            ADLaunchAppProbeLog7317(@"UIApplicationDidBecomeActive",[NSString stringWithFormat:@"before ever=%d bg=%d ordinaryWarm=%d",gADLifecycleEverActive7307?1:0,gADLifecycleBackgrounded7307?1:0,gADOrdinaryWarmResume7307?1:0]);
             gADLifecycleEverActive7307=YES;
             gADLifecycleBackgrounded7307=NO;
             // Keep gADOrdinaryWarmResume7307 latched for this foreground session so a late
@@ -7497,162 +7340,14 @@ static void ADInstallWarmResumeLifecycle7307(void){
     } @catch(...) {}
 }
 
-// -----------------------------------------------------------------------------
-// Launch transition handoff retained in v7.330. The SpringBoard side keeps the
-// 1.40 s minimum and 0.55 s fade; Amazon releases it only after the bounded,
-// stable real-Home check below. Do not purge SplashBoard's cache: iOS owns the
-// pre-process launch surface, and the scene overlay now covers that surface.
-// -----------------------------------------------------------------------------
-static BOOL gADReadyPosted706=NO;
-static BOOL gADReadyScheduled706=NO;
-static BOOL gADReadyEvaluating706=NO;
-static BOOL gADReadyDwell706=NO;
-static NSUInteger gADReadyAttempts706=0;
-static NSUInteger gADReadyStable706=0;
-
-static BOOL ADVisibleSplashController706(void){
-    @try {
-        for(UIWindow *w in UIApplication.sharedApplication.windows){
-            if(!w || w.hidden || w.alpha<0.01)continue;
-            UIViewController *vc=w.rootViewController;
-            NSMutableArray *q=[NSMutableArray array]; if(vc)[q addObject:vc];
-            for(NSUInteger i=0;i<q.count&&i<24;i++){
-                UIViewController *x=q[i];
-                NSString *xn=NSStringFromClass(x.class).lowercaseString?:@"";
-                if(([xn containsString:@"splash"]||[xn containsString:@"launchscreen"]||[xn containsString:@"loading"]) && x.isViewLoaded && x.view.window && !x.view.hidden && x.view.alpha>0.01) return YES;
-                if(x.presentedViewController)[q addObject:x.presentedViewController];
-                for(UIViewController *c in x.childViewControllers) if(c)[q addObject:c];
-            }
-        }
-    } @catch(...) {}
-    return NO;
-}
-// v7.326: restore the v7.185 correctness-only launch gate. A black Home WebView can already exist underneath
-// Amazon's transient stock white loading plane, so controller naming alone is not sufficient.
-// During the one-shot cold-launch handoff only, reject any large visible bright-neutral native plane.
-static BOOL ADVisibleBrightLaunchPlane7185(void){
-    @try {
-        CGRect screen=UIScreen.mainScreen.bounds;
-        CGFloat screenArea=MAX(1.0,screen.size.width*screen.size.height);
-        for(UIWindow *w in UIApplication.sharedApplication.windows){
-            if(!w||w.hidden||w.alpha<0.02||fabs(w.windowLevel-UIWindowLevelNormal)>0.1)continue;
-            NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:w];
-            for(NSUInteger i=0;i<q.count&&i<220;i++){
-                UIView *v=q[i]; if(!v||v.hidden||v.alpha<0.02)continue;
-                CGRect r=[v convertRect:v.bounds toView:nil], ir=CGRectIntersection(r,screen);
-                CGFloat area=MAX(0.0,ir.size.width)*MAX(0.0,ir.size.height);
-                if(area>=screenArea*0.30 && ir.size.width>=screen.size.width*0.80){
-                    UIColor *c=v.backgroundColor;
-                    if((!c||CGColorGetAlpha(c.CGColor)<0.02)&&v.layer.backgroundColor)c=[UIColor colorWithCGColor:v.layer.backgroundColor];
-                    if(ADBrightNeutral7130(c))return YES;
-                }
-                for(UIView *child in (v.subviews.copy?:@[])) if(child)[q addObject:child];
-            }
-        }
-    } @catch(...) {}
-    return NO;
-}
-static void ADPostReadyOnce(void){
-    if(gADReadyPosted706)return; gADReadyPosted706=YES;
-    NSInteger pid=NSProcessInfo.processInfo.processIdentifier;
-    NSString *channel=[NSString stringWithFormat:@"com.colindavidr.amazondark.ready.%ld",(long)pid];
-    ADLaunchAppProbeLog7317(@"home-ready.post",[NSString stringWithFormat:@"pid=%ld channel=%@ attempts=%lu stable=%lu",(long)pid,channel,(unsigned long)gADReadyAttempts706,(unsigned long)gADReadyStable706]);
-    @try { notify_post(channel.UTF8String); } @catch(...) {}
-}
-
-// v7.326: restore the proven v7.170 pre-v7.115 launch-readiness contract. v7.115 replaced
-// this bounded launch-only gate with an event-only handoff; the device now proves
-// that the ready signal can arrive while Amazon's stock white splash composite is
-// still on screen. Do not release the SpringBoard cover until a real, finished,
-// OLED Home document is stable. This work exists only during cold-launch handoff.
-static WKWebView *ADLaunchReadyWebView706(void){
-    WKWebView *best=nil; CGFloat bestArea=0;
-    @try {
-        for(WKWebView *wv in ADTrackedWebViews()){
-            if(!wv||!wv.window||wv.hidden||wv.alpha<0.01||wv.loading)continue;
-            CGRect r=[wv convertRect:wv.bounds toView:nil];
-            CGRect ir=CGRectIntersection(r,UIScreen.mainScreen.bounds);
-            CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height);
-            if(a>bestArea){ bestArea=a; best=wv; }
-        }
-    } @catch(...) {}
-    return bestArea>=100000.0?best:nil;
-}
-static NSString *ADLaunchReadyJS706(void){
-    return @"(function(){try{"
-           "if(document.readyState!=='interactive'&&document.readyState!=='complete')return 0;"
-           "var root=document.querySelector('#gwm-PageContent,#gwm-Deck,.gwm-dashboard-container,#a-page,[role=main],main');"
-           "if(!root)return 0;var r=root.getBoundingClientRect(),h=Math.max(r.height||0,root.scrollHeight||0);"
-           "if(r.width<300||h<300)return 0;var c=getComputedStyle(root).backgroundColor||'',m=c.match(/rgba?\\(\\s*([\\d.]+)\\s*,\\s*([\\d.]+)\\s*,\\s*([\\d.]+)/i);"
-           "if(!m||(+m[1]>8)||(+m[2]>8)||(+m[3]>8))return 0;"
-           "var media=root.querySelector('img,video,canvas');"
-           "if(!media&&(root.children||[]).length<3&&h<innerHeight*.75)return 0;return 1;"
-           "}catch(e){return 0}})();";
-}
-static void ADRunLaunchReadyCheck706(void);
-static void ADScheduleLaunchReadyCheck706(NSTimeInterval delay){
-    if(gADReadyPosted706||!gP.enabled||gADReadyScheduled706||gADReadyEvaluating706||gADReadyDwell706)return;
-    if(gADReadyAttempts706>=120)return;
-    gADReadyScheduled706=YES;
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(MAX(0.0,delay)*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-        gADReadyScheduled706=NO;
-        ADRunLaunchReadyCheck706();
-    });
-}
-static void ADLaunchReadyFailure706(void){
-    gADReadyStable706=0;
-    gADReadyEvaluating706=NO;
-    gADReadyDwell706=NO;
-    ADScheduleLaunchReadyCheck706(0.125);
-}
-static void ADRunLaunchReadyCheck706(void){
-    if(gADReadyPosted706||!gP.enabled||gADReadyEvaluating706||gADReadyDwell706)return;
-    if(gADReadyAttempts706>=120)return;
-    gADReadyAttempts706++;
-    if(ADVisibleSplashController706()||ADVisibleBrightLaunchPlane7185()){ ADLaunchReadyFailure706(); return; }
-    WKWebView *wv=ADLaunchReadyWebView706();
-    if(!wv){ ADLaunchReadyFailure706(); return; }
-    gADReadyEvaluating706=YES;
-    [wv evaluateJavaScript:ADLaunchReadyJS706() completionHandler:^(id v,NSError *e){
-        gADReadyEvaluating706=NO;
-        if(gADReadyPosted706||!gP.enabled)return;
-        BOOL ok=(!e&&[v respondsToSelector:@selector(integerValue)]&&[v integerValue]==1&&!wv.loading&&!ADVisibleSplashController706()&&!ADVisibleBrightLaunchPlane7185());
-        if(!ok){ ADLaunchReadyFailure706(); return; }
-        gADReadyStable706++;
-        if(gADReadyStable706<3){ ADScheduleLaunchReadyCheck706(0.125); return; }
-        gADReadyDwell706=YES;
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.250*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
-            if(gADReadyPosted706||!gP.enabled){ gADReadyDwell706=NO; return; }
-            if(ADVisibleSplashController706()||ADVisibleBrightLaunchPlane7185()){ ADLaunchReadyFailure706(); return; }
-            WKWebView *finalWV=ADLaunchReadyWebView706();
-            if(!finalWV){ ADLaunchReadyFailure706(); return; }
-            gADReadyEvaluating706=YES; gADReadyDwell706=NO;
-            [finalWV evaluateJavaScript:ADLaunchReadyJS706() completionHandler:^(id fv,NSError *fe){
-                gADReadyEvaluating706=NO;
-                BOOL finalOK=(!fe&&[fv respondsToSelector:@selector(integerValue)]&&[fv integerValue]==1&&!finalWV.loading&&!ADVisibleSplashController706()&&!ADVisibleBrightLaunchPlane7185());
-                if(finalOK)ADPostReadyOnce(); else ADLaunchReadyFailure706();
-            }];
-        });
-    }];
-}
-static void ADConsiderLaunchReady706(void){
-    if(gADReadyPosted706||!gP.enabled)return;
-    if(gADReadyAttempts706==0)ADLaunchAppProbeLog7317(@"home-ready.start",@"");
-    // Multiple existing lifecycle hooks may arrive; this scheduler deduplicates them.
-    ADScheduleLaunchReadyCheck706(0.0);
-}
-
-
 %hook AXUSplashScreenViewController
 - (void)viewDidLoad {
     %orig;
     ADOwnAmazonSplash7307(self);
-    ADLaunchAppProbeLog7317(@"AXUSplashScreenViewController.viewDidLoad",ADLaunchSplashState7317(self));
 }
 - (void)viewWillAppear:(BOOL)animated {
     %orig;
     ADOwnAmazonSplash7307(self);
-    ADLaunchAppProbeLog7317(@"AXUSplashScreenViewController.viewWillAppear",ADLaunchSplashState7317(self));
 }
 - (void)viewDidLayoutSubviews {
     %orig;
@@ -7661,11 +7356,9 @@ static void ADConsiderLaunchReady706(void){
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
     ADOwnAmazonSplash7307(self);
-    ADLaunchAppProbeLog7317(@"AXUSplashScreenViewController.viewDidAppear",ADLaunchSplashState7317(self));
 }
 - (void)viewDidDisappear:(BOOL)animated {
     %orig;
-    ADLaunchAppProbeLog7317(@"AXUSplashScreenViewController.viewDidDisappear",ADLaunchSplashState7317(self));
     ADReleaseWarmSplash7307(self);
     ADConsiderLaunchReady706();
 }
@@ -7674,12 +7367,10 @@ static void ADConsiderLaunchReady706(void){
 - (void)viewDidLoad {
     %orig;
     ADOwnAmazonSplash7307(self);
-    ADLaunchAppProbeLog7317(@"TezBaseSplashScreenViewController.viewDidLoad",ADLaunchSplashState7317(self));
 }
 - (void)viewWillAppear:(BOOL)animated {
     %orig;
     ADOwnAmazonSplash7307(self);
-    ADLaunchAppProbeLog7317(@"TezBaseSplashScreenViewController.viewWillAppear",ADLaunchSplashState7317(self));
 }
 - (void)viewDidLayoutSubviews {
     %orig;
@@ -7688,11 +7379,9 @@ static void ADConsiderLaunchReady706(void){
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
     ADOwnAmazonSplash7307(self);
-    ADLaunchAppProbeLog7317(@"TezBaseSplashScreenViewController.viewDidAppear",ADLaunchSplashState7317(self));
 }
 - (void)viewDidDisappear:(BOOL)animated {
     %orig;
-    ADLaunchAppProbeLog7317(@"TezBaseSplashScreenViewController.viewDidDisappear",ADLaunchSplashState7317(self));
     ADReleaseWarmSplash7307(self);
     ADConsiderLaunchReady706();
 }
@@ -8074,11 +7763,12 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
 
 %hook UIImageView
 - (void)setImage:(UIImage *)image {
-    if(gADTabImageWriting724||gADPersonOriginalImageWriting7218||gADSearchImageWrite706||gADPersonOrderMagnifierWrite7243||gADMenuImageWrite7255){
+    if(gADTabImageWriting724||gADPersonOriginalImageWriting7218||gADSearchImageWrite706||gADPersonOrderMagnifierWrite7243||gADMenuImageWrite7255||gADCNMImageWrite7301){
         %orig(image);
         return;
     }
     objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(self,kADCNMProcessedImage7301,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     // v7.263: React/FastImage may recycle this leaf across refresh hydration.
     // Never let a prior surface classification suppress the new Person ancestry.
     objc_setAssociatedObject(self,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -8090,33 +7780,33 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
         UIImage *tpl=[finalImage imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]; if(tpl)finalImage=tpl;
     }
     %orig(finalImage);
+    ADOwnCNMErrorHero7301(self);
     ADOwnSearchLeadingMagnifier7229(self);
     ADPersonOwnOrderSearchMagnifierLeaf7243(self);
     ADOwnImageView7226(self,YES);
     ADSchedulePersonImageSettle7227(self);
-    ADApplyCNMExactDogTWB7309(self);
 }
 - (void)didMoveToWindow {
     %orig;
     objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    ADOwnCNMErrorHero7301(self);
     ADOwnSearchLeadingMagnifier7229(self);
     ADPersonOwnOrderSearchMagnifierLeaf7243(self);
     ADOwnImageView7226(self,YES);
     ADSchedulePersonImageSettle7227(self);
-    ADApplyCNMExactDogTWB7309(self);
 }
 - (void)didMoveToSuperview {
     %orig;
     objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     if(self.window){
+        ADOwnCNMErrorHero7301(self);
         ADOwnSearchLeadingMagnifier7229(self);
         ADPersonOwnOrderSearchMagnifierLeaf7243(self);
         ADOwnImageView7226(self,YES);
         ADSchedulePersonImageSettle7227(self);
     }
-    ADApplyCNMExactDogTWB7309(self);
 }
 - (void)setTintColor:(UIColor *)color {
     if(gP.enabled && ADInAuthoredVisualSubNav7175((UIView *)self)){
@@ -8176,7 +7866,6 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
         ADOwnImageView7226(self,YES);
     ADMenuFinalizeImage7255(self,objc_getAssociatedObject(self,kADMenuFinalRasterKind7255)==nil);
     ADLayoutImageOverlays7226(self);
-    ADApplyCNMExactDogTWB7309(self);
 }
 %end
 
@@ -8411,9 +8100,148 @@ static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
 %end
 
 // -----------------------------------------------------------------------------
-// v7.330 launch hooks are owned by the exact Amazon splash controllers and the
-// bounded Home-readiness gate above; no additional launch owner is declared here.
+// Launch transition handoff. The SpringBoard side retains v6.0.185's 1.40 s
+// minimum presentation and 0.55 s fade; Amazon only tells it that the black root
+// is mounted. Cached light launch snapshots are cleared exactly as in v6.0.185.
 // -----------------------------------------------------------------------------
+static BOOL gADReadyPosted706=NO;
+static BOOL gADReadyScheduled706=NO;
+static BOOL gADReadyEvaluating706=NO;
+static BOOL gADReadyDwell706=NO;
+static NSUInteger gADReadyAttempts706=0;
+static NSUInteger gADReadyStable706=0;
+
+static BOOL ADVisibleSplashController706(void){
+    @try {
+        for(UIWindow *w in UIApplication.sharedApplication.windows){
+            if(!w || w.hidden || w.alpha<0.01)continue;
+            UIViewController *vc=w.rootViewController;
+            NSMutableArray *q=[NSMutableArray array]; if(vc)[q addObject:vc];
+            for(NSUInteger i=0;i<q.count&&i<24;i++){
+                UIViewController *x=q[i];
+                NSString *xn=NSStringFromClass(x.class).lowercaseString?:@"";
+                if(([xn containsString:@"splash"]||[xn containsString:@"launchscreen"]||[xn containsString:@"loading"]) && x.isViewLoaded && x.view.window && !x.view.hidden && x.view.alpha>0.01) return YES;
+                if(x.presentedViewController)[q addObject:x.presentedViewController];
+                for(UIViewController *c in x.childViewControllers) if(c)[q addObject:c];
+            }
+        }
+    } @catch(...) {}
+    return NO;
+}
+// v7.185: correctness-only launch gate. A black Home WebView can already exist underneath
+// Amazon's transient stock white loading plane, so controller naming alone is not sufficient.
+// During the one-shot cold-launch handoff only, reject any large visible bright-neutral native plane.
+static BOOL ADVisibleBrightLaunchPlane7185(void){
+    @try {
+        CGRect screen=UIScreen.mainScreen.bounds;
+        CGFloat screenArea=MAX(1.0,screen.size.width*screen.size.height);
+        for(UIWindow *w in UIApplication.sharedApplication.windows){
+            if(!w||w.hidden||w.alpha<0.02||fabs(w.windowLevel-UIWindowLevelNormal)>0.1)continue;
+            NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:w];
+            for(NSUInteger i=0;i<q.count&&i<220;i++){
+                UIView *v=q[i]; if(!v||v.hidden||v.alpha<0.02)continue;
+                CGRect r=[v convertRect:v.bounds toView:nil], ir=CGRectIntersection(r,screen);
+                CGFloat area=MAX(0.0,ir.size.width)*MAX(0.0,ir.size.height);
+                if(area>=screenArea*0.30 && ir.size.width>=screen.size.width*0.80){
+                    UIColor *c=v.backgroundColor;
+                    if((!c||CGColorGetAlpha(c.CGColor)<0.02)&&v.layer.backgroundColor)c=[UIColor colorWithCGColor:v.layer.backgroundColor];
+                    if(ADBrightNeutral7130(c))return YES;
+                }
+                for(UIView *child in (v.subviews.copy?:@[])) if(child)[q addObject:child];
+            }
+        }
+    } @catch(...) {}
+    return NO;
+}
+static void ADPostReadyOnce(void){
+    if(gADReadyPosted706)return; gADReadyPosted706=YES;
+    @try { notify_post("com.colindavidr.amazondark.ready"); } @catch(...) {}
+}
+
+// v7.170: restore the proven pre-v7.115 launch-readiness contract. v7.115 replaced
+// this bounded launch-only gate with an event-only handoff; the device now proves
+// that the ready signal can arrive while Amazon's stock white splash composite is
+// still on screen. Do not release the SpringBoard cover until a real, finished,
+// OLED Home document is stable. This work exists only during cold-launch handoff.
+static WKWebView *ADLaunchReadyWebView706(void){
+    WKWebView *best=nil; CGFloat bestArea=0;
+    @try {
+        for(WKWebView *wv in ADTrackedWebViews()){
+            if(!wv||!wv.window||wv.hidden||wv.alpha<0.01||wv.loading)continue;
+            CGRect r=[wv convertRect:wv.bounds toView:nil];
+            CGRect ir=CGRectIntersection(r,UIScreen.mainScreen.bounds);
+            CGFloat a=MAX(0,ir.size.width)*MAX(0,ir.size.height);
+            if(a>bestArea){ bestArea=a; best=wv; }
+        }
+    } @catch(...) {}
+    return bestArea>=100000.0?best:nil;
+}
+static NSString *ADLaunchReadyJS706(void){
+    return @"(function(){try{"
+           "if(document.readyState!=='interactive'&&document.readyState!=='complete')return 0;"
+           "var root=document.querySelector('#gwm-PageContent,#gwm-Deck,.gwm-dashboard-container,#a-page,[role=main],main');"
+           "if(!root)return 0;var r=root.getBoundingClientRect(),h=Math.max(r.height||0,root.scrollHeight||0);"
+           "if(r.width<300||h<300)return 0;var c=getComputedStyle(root).backgroundColor||'',m=c.match(/rgba?\\(\\s*([\\d.]+)\\s*,\\s*([\\d.]+)\\s*,\\s*([\\d.]+)/i);"
+           "if(!m||(+m[1]>8)||(+m[2]>8)||(+m[3]>8))return 0;"
+           "var media=root.querySelector('img,video,canvas');"
+           "if(!media&&(root.children||[]).length<3&&h<innerHeight*.75)return 0;return 1;"
+           "}catch(e){return 0}})();";
+}
+static void ADRunLaunchReadyCheck706(void);
+static void ADScheduleLaunchReadyCheck706(NSTimeInterval delay){
+    if(gADReadyPosted706||!gP.enabled||gADReadyScheduled706||gADReadyEvaluating706||gADReadyDwell706)return;
+    if(gADReadyAttempts706>=120)return;
+    gADReadyScheduled706=YES;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(MAX(0.0,delay)*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+        gADReadyScheduled706=NO;
+        ADRunLaunchReadyCheck706();
+    });
+}
+static void ADLaunchReadyFailure706(void){
+    gADReadyStable706=0;
+    gADReadyEvaluating706=NO;
+    gADReadyDwell706=NO;
+    ADScheduleLaunchReadyCheck706(0.125);
+}
+static void ADRunLaunchReadyCheck706(void){
+    if(gADReadyPosted706||!gP.enabled||gADReadyEvaluating706||gADReadyDwell706)return;
+    if(gADReadyAttempts706>=120)return;
+    gADReadyAttempts706++;
+    if(ADVisibleSplashController706()||ADVisibleBrightLaunchPlane7185()){ ADLaunchReadyFailure706(); return; }
+    WKWebView *wv=ADLaunchReadyWebView706();
+    if(!wv){ ADLaunchReadyFailure706(); return; }
+    gADReadyEvaluating706=YES;
+    [wv evaluateJavaScript:ADLaunchReadyJS706() completionHandler:^(id v,NSError *e){
+        gADReadyEvaluating706=NO;
+        if(gADReadyPosted706||!gP.enabled)return;
+        BOOL ok=(!e&&[v respondsToSelector:@selector(integerValue)]&&[v integerValue]==1&&!wv.loading&&!ADVisibleSplashController706()&&!ADVisibleBrightLaunchPlane7185());
+        if(!ok){ ADLaunchReadyFailure706(); return; }
+        gADReadyStable706++;
+        if(gADReadyStable706<3){ ADScheduleLaunchReadyCheck706(0.125); return; }
+        gADReadyDwell706=YES;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.250*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+            if(gADReadyPosted706||!gP.enabled){ gADReadyDwell706=NO; return; }
+            if(ADVisibleSplashController706()||ADVisibleBrightLaunchPlane7185()){ ADLaunchReadyFailure706(); return; }
+            WKWebView *finalWV=ADLaunchReadyWebView706();
+            if(!finalWV){ ADLaunchReadyFailure706(); return; }
+            gADReadyEvaluating706=YES; gADReadyDwell706=NO;
+            [finalWV evaluateJavaScript:ADLaunchReadyJS706() completionHandler:^(id fv,NSError *fe){
+                gADReadyEvaluating706=NO;
+                BOOL finalOK=(!fe&&[fv respondsToSelector:@selector(integerValue)]&&[fv integerValue]==1&&!finalWV.loading&&!ADVisibleSplashController706()&&!ADVisibleBrightLaunchPlane7185());
+                if(finalOK)ADPostReadyOnce(); else ADLaunchReadyFailure706();
+            }];
+        });
+    }];
+}
+static void ADConsiderLaunchReady706(void){
+    if(gADReadyPosted706||!gP.enabled)return;
+    // Multiple existing lifecycle hooks may arrive; this scheduler deduplicates them.
+    ADScheduleLaunchReadyCheck706(0.0);
+}
+
+
+
+
 
 
 %group ADPrivacyHooks7271
@@ -8504,14 +8332,29 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
     }
 }
 
+static void ADPurgeSplashSnapshots7271(void){
+    @autoreleasepool {
+        @try {
+            NSString *lib=[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,NSUserDomainMask,YES) firstObject];
+            NSString *snap=[lib stringByAppendingPathComponent:@"SplashBoard/Snapshots"];
+            NSFileManager *fm=[NSFileManager defaultManager];
+            for(NSString *dir in [fm contentsOfDirectoryAtPath:snap error:nil]){
+                NSString *sub=[snap stringByAppendingPathComponent:dir];
+                for(NSString *file in [fm contentsOfDirectoryAtPath:sub error:nil])
+                    [fm removeItemAtPath:[sub stringByAppendingPathComponent:file] error:nil];
+            }
+        } @catch(...) {}
+    }
+}
+
 %ctor {
     if(strcmp(__progname,"Amazon")!=0)return;
-    ADLaunchAppProbeLog7317(@"Amazon.ctor",[NSString stringWithFormat:@"version=%s",AD_VERSION]);
     ADLoadPrefs();
     ADInstallWarmResumeLifecycle7307();
     if(gP.enabled)ADInstallMainHooks7271();
     if(gP.enabled&&gP.force120Hz)ADInstallPromotionHooks7271();
     if(gP.enabled){
+        dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY,0),^{ ADPurgeSplashSnapshots7271(); });
         ADInstallThreeTabProbes7254();
     }
     if(gP.enabled&&gP.privacyMode){
@@ -8707,9 +8550,9 @@ static void ADProbeAppend7233(NSString *path,NSString *text){
 static NSString *ADProbePath7233(NSUInteger run){
     @try {
         NSDateFormatter *f=[NSDateFormatter new]; f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]; f.timeZone=[NSTimeZone localTimeZone]; f.dateFormat=@"yyyyMMdd-HHmmss-SSS";
-        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.330-person-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.307-person-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];
-    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.330-person-ui-probe-r%lu.txt",(unsigned long)run]]; }
+    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.307-person-ui-probe-r%lu.txt",(unsigned long)run]]; }
 }
 static NSString *ADPersonSnapshot7233(UIView *wrap,UIScrollView *root,NSUInteger step,CGFloat targetY){
     NSMutableString *m=[NSMutableString string]; if(!root||!wrap)return @"PERSON_SNAPSHOT_NO_ROOT\n";
@@ -8897,7 +8740,7 @@ static void ADCapturePersonProbe7233(NSString *trigger){
     gADPersonProbeBusy7233=YES; NSUInteger run=++gADPersonProbeRun7233; NSString *path=ADProbePath7233(run);
     CGPoint original=root.contentOffset; BOOL originalScroll=root.scrollEnabled; root.scrollEnabled=NO;
     CGFloat viewport=MAX(1.0,root.bounds.size.height),stride=MAX(320.0,MIN(600.0,viewport*0.58));
-    ADProbeAppend7233(path,[NSString stringWithFormat:@"AMAZONDARK v7.330 PERSON UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\npolicy=no visible text strings, no accessibilityLabel text, no typed query, no web DOM, no network payloads\nroot wrapper is exact RCTScrollView aid=me; real scroll descendant is walked non-animated and restored\nexternal modal discovery=all AppCX roots are scored by visible sheet area; top roots plus best foreign modal are snapshotted\noriginalOffset=(%.1f,%.1f) content=(%.1fx%.1f) viewport=%.1f stride=%.1f maxSteps=40\n",
+    ADProbeAppend7233(path,[NSString stringWithFormat:@"AMAZONDARK v7.307 PERSON UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\npolicy=no visible text strings, no accessibilityLabel text, no typed query, no web DOM, no network payloads\nroot wrapper is exact RCTScrollView aid=me; real scroll descendant is walked non-animated and restored\nexternal modal discovery=all AppCX roots are scored by visible sheet area; top roots plus best foreign modal are snapshotted\noriginalOffset=(%.1f,%.1f) content=(%.1fx%.1f) viewport=%.1f stride=%.1f maxSteps=40\n",
         AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADPersonProbeCap7233,original.x,original.y,root.contentSize.width,root.contentSize.height,viewport,stride]);
     ADProbeAppend7233(path,ADPersonExternalSnapshots7258());
     __block NSUInteger step=0; __block CGFloat targetY=0,lastY=-999999; __block void (^next)(void)=nil;
@@ -8926,16 +8769,13 @@ static void ADCapturePersonProbe7233(NSString *trigger){
 // dispatcher with Person and Hamburger/Menu, and remains dormant outside a matching active tab.
 // GitHub history/current web ownership identifies Cart as a WKWebView document (#cart-page /
 // #sc-active-cart / #sc-saved-cart), not the React RCTScrollView#me used by Person.
-// This subsystem is dormant until screenshot/SIGUSR2. v7.311 uses a two-trigger transaction:
-// trigger one arms the bounded document-start lifecycle recorder, the user reproduces the Cart
-// refresh/transition, and trigger two exports the transient paint ring plus settled DOM/native state.
-// The old post-hoc scroll walk could only see the page after the white surfaces had disappeared.
+// This subsystem is dormant until screenshot/SIGUSR2. A trigger selects only the active Cart
+// WKWebView, performs a finite non-animated top-to-bottom WKScrollView walk to hydrate the sheet,
+// captures viewport DOM computed paint plus native WebKit/UIKit hierarchy, takes one final full-DOM
+// inventory, and restores the original offset. No MutationObserver/timer/RAF/scroll listener is added.
 static NSUInteger gADCartProbeRun7241=0;
 static BOOL gADCartProbeBusy7241=NO;
-static BOOL gADCartTransitionArmed7310=NO;
-static NSString *gADCartTransitionPath7310=nil;
-static WKWebView *gADCartTransitionWebView7310=nil;
-static const unsigned long long kADCartProbeCap7241=64ULL*1024ULL*1024ULL;
+static const unsigned long long kADCartProbeCap7241=48ULL*1024ULL*1024ULL;
 
 static NSString *ADCartProbeSafe7241(NSString *x){
     if(!x.length)return @"";
@@ -8986,7 +8826,7 @@ static void ADCartProbeAppend7241(NSString *path,NSString *text){
     if(!path.length||!text.length)return; @try {NSFileManager *fm=[NSFileManager defaultManager];[fm createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES attributes:nil error:nil];unsigned long long cur=[[[fm attributesOfItemAtPath:path error:nil] objectForKey:NSFileSize] unsignedLongLongValue];if(cur>=kADCartProbeCap7241)return;NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding];unsigned long long remain=kADCartProbeCap7241-cur;if((unsigned long long)d.length>remain)d=[d subdataWithRange:NSMakeRange(0,(NSUInteger)remain)];if(![fm fileExistsAtPath:path]){[d writeToFile:path atomically:YES];return;}NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:path];if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];}} @catch(...) {}
 }
 static NSString *ADCartProbePath7241(NSUInteger run){
-    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.330-cart-transition-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.330-cart-transition-probe-r%lu.txt",(unsigned long)run]];}
+    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.307-cart-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.307-cart-ui-probe-r%lu.txt",(unsigned long)run]];}
 }
 static NSString *ADCartProbeDetectJS7241(void){
     return
@@ -9071,62 +8911,18 @@ static void ADCartProbeEvalAppend7241(WKWebView *wv,NSString *path,NSString *js,
     [wv evaluateJavaScript:js completionHandler:^(id result,NSError *error){ if([result isKindOfClass:[NSString class]])ADCartProbeAppend7241(path,(NSString *)result);else ADCartProbeAppend7241(path,[NSString stringWithFormat:@"%@_EVAL_ERROR %@\n",label?:@"JS",error.localizedDescription?:@"non-string"]); if(done)dispatch_async(dispatch_get_main_queue(),done); }];
 }
 static void ADCaptureCartProbe7241(NSString *trigger){
-    if(!gP.enabled||gADCartProbeBusy7241)return;
-    gADCartProbeBusy7241=YES;
-
-    if(!gADCartTransitionArmed7310){
-        NSUInteger run=++gADCartProbeRun7241; NSString *path=ADCartProbePath7241(run);
-        ADCartProbeAppend7241(path,[NSString stringWithFormat:@"AMAZONDARK v7.330 SHOPPING CART TRANSITION FORENSICS PROBE\nversion=%s\nstage=ARM\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=Cart is a WKWebView document; target signatures #cart-page/#sc-active-cart/#sc-saved-cart plus Cart URL path\npolicy=no visible text strings, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes and privacy-safe hashes retained\nrecorder=45-second explicit-arm window; same-origin reload-persistent bounded ring; frame hit-test stacks; computed background/border/outline/shadow/pseudo paint; exact bright/loading candidates; matched CSS rules; stylesheet inventory; DOM mutation summaries; animation/transition/performance events; final full DOM plus native UIKit/WebKit snapshots\nnormal_runtime=bridge is inert outside an explicit Cart arm; no recurring production scan/listener/observer/timer/RAF\nworkflow=after this ARM completes, immediately reproduce the exact Cart refresh or tab transition; after the page settles (or take a screenshot during the white state), trigger once more to EXPORT\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADCartProbeCap7241]);
-        ADCartProbeFindWebView7241(path,^(WKWebView *wv,NSString *meta){
-            if(!wv||ADCartProbeScore7241(meta)<=0){
-                ADCartProbeAppend7241(path,[NSString stringWithFormat:@"CART_ARM_NO_TARGET meta=%@\nCART_TRANSITION_PROBE_END reason=no-target\n================ END RUN ================\n",ADCartProbeSafe7241(meta)]);
-                gADCartProbeBusy7241=NO; return;
-            }
-            CGRect wr=CGRectZero; @try { wr=[wv convertRect:wv.bounds toView:nil]; } @catch(...) {}
-            ADCartProbeAppend7241(path,[NSString stringWithFormat:@"ARM_TARGET ptr=%p meta=%@ frame=(%.1f,%.1f %.1fx%.1f) offset=(%.1f,%.1f) nativeContent=(%.1fx%.1f)\n",wv,ADCartProbeSafe7241(meta),wr.origin.x,wr.origin.y,wr.size.width,wr.size.height,wv.scrollView.contentOffset.x,wv.scrollView.contentOffset.y,wv.scrollView.contentSize.width,wv.scrollView.contentSize.height]);
-            ADCartProbeAppend7241(path,ADCartNativeSnapshot7241(wv.window?:wv,wv,@"arm"));
-            NSString *token=[NSString stringWithFormat:@"r%lu-%llu",(unsigned long)run,(unsigned long long)(NSDate.date.timeIntervalSince1970*1000.0)];
-            NSString *arm=[NSString stringWithFormat:@"%@\n(function(){try{return window.__adCartTransitionArm7310?window.__adCartTransitionArm7310('%@'):'ARM_BRIDGE_MISSING'}catch(e){return 'ARM_EVAL_ERROR '+String(e&&e.name||'error')}})();",ADCartTransitionBridgeJS7310(),token];
-            [wv evaluateJavaScript:arm completionHandler:^(id result,NSError *error){
-                NSString *r=[result isKindOfClass:[NSString class]]?(NSString *)result:@"(non-string)";
-                BOOL ok=!error&&[r hasPrefix:@"ARMED"];
-                ADCartProbeAppend7241(path,[NSString stringWithFormat:@"ARM_RESULT ok=%d error=%@ result=%@\nARM_READY reproduce-now=1 window-seconds=45\n",ok?1:0,error?ADCartProbeSafe7241(error.localizedDescription):@"none",ADCartProbeSafe7241(r)]);
-                if(ok){gADCartTransitionArmed7310=YES;gADCartTransitionPath7310=path;gADCartTransitionWebView7310=wv;}
-                else ADCartProbeAppend7241(path,@"CART_TRANSITION_PROBE_END reason=arm-failed\n================ END RUN ================\n");
-                gADCartProbeBusy7241=NO;
-            }];
-        });
-        return;
-    }
-
-    NSString *path=gADCartTransitionPath7310;
-    if(!path.length){
-        gADCartTransitionArmed7310=NO; gADCartTransitionWebView7310=nil;
-        gADCartProbeBusy7241=NO; return;
-    }
-    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"\n===== EXPORT TRIGGER =====\nstage=EXPORT trigger=%@ date=%@\n",trigger?:@"unknown",[NSDate date]]);
-    ADCartProbeFindWebView7241(path,^(WKWebView *found,NSString *meta){
-        WKWebView *wv=(found&&ADCartProbeScore7241(meta)>0)?found:gADCartTransitionWebView7310;
-        if(!wv){
-            ADCartProbeAppend7241(path,[NSString stringWithFormat:@"CART_EXPORT_NO_TARGET meta=%@\nCART_TRANSITION_PROBE_END reason=export-no-target\n================ END RUN ================\n",ADCartProbeSafe7241(meta)]);
-            gADCartTransitionArmed7310=NO;gADCartTransitionPath7310=nil;gADCartTransitionWebView7310=nil;gADCartProbeBusy7241=NO;return;
-        }
-        CGRect wr=CGRectZero; @try { wr=[wv convertRect:wv.bounds toView:nil]; } @catch(...) {}
-        ADCartProbeAppend7241(path,[NSString stringWithFormat:@"EXPORT_TARGET ptr=%p meta=%@ frame=(%.1f,%.1f %.1fx%.1f) offset=(%.1f,%.1f) nativeContent=(%.1fx%.1f)\n",wv,ADCartProbeSafe7241(meta),wr.origin.x,wr.origin.y,wr.size.width,wr.size.height,wv.scrollView.contentOffset.x,wv.scrollView.contentOffset.y,wv.scrollView.contentSize.width,wv.scrollView.contentSize.height]);
-        ADCartProbeAppend7241(path,ADCartNativeSnapshot7241(wv.window?:wv,wv,@"export"));
-        NSString *exportJS=[NSString stringWithFormat:@"%@\n(function(){try{return window.__adCartTransitionExport7310?window.__adCartTransitionExport7310():'EXPORT_BRIDGE_MISSING'}catch(e){return 'EXPORT_EVAL_ERROR '+String(e&&e.name||'error')}})();",ADCartTransitionBridgeJS7310()];
-        [wv evaluateJavaScript:exportJS completionHandler:^(id result,NSError *error){
-            ADCartProbeAppend7241(path,[NSString stringWithFormat:@"EXPORT_RESULT error=%@\n",error?ADCartProbeSafe7241(error.localizedDescription):@"none"]);
-            if([result isKindOfClass:[NSString class]])ADCartProbeAppend7241(path,[(NSString *)result stringByAppendingString:@"\n"]);
-            else ADCartProbeAppend7241(path,@"TRANSITION_LOG_UNAVAILABLE\n");
-            ADCartProbeEvalAppend7241(wv,path,ADCartProbeDOMJS7241(999,YES),@"FINAL_FULL_DOM",^{
-                NSString *clear=@"(function(){try{return window.__adCartTransitionClear7310?window.__adCartTransitionClear7310():'CLEAR_BRIDGE_MISSING'}catch(e){return 'CLEAR_EVAL_ERROR'}})();";
-                [wv evaluateJavaScript:clear completionHandler:^(__unused id cleared,__unused NSError *clearError){
-                    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"CART_TRANSITION_PROBE_END reason=exported finalOffset=(%.1f,%.1f) finalContent=(%.1fx%.1f)\n================ END RUN ================\n",wv.scrollView.contentOffset.x,wv.scrollView.contentOffset.y,wv.scrollView.contentSize.width,wv.scrollView.contentSize.height]);
-                    gADCartTransitionArmed7310=NO;gADCartTransitionPath7310=nil;gADCartTransitionWebView7310=nil;gADCartProbeBusy7241=NO;
-                }];
-            });
-        }];
+    if(!gP.enabled||gADCartProbeBusy7241)return; gADCartProbeBusy7241=YES; NSUInteger run=++gADCartProbeRun7241; NSString *path=ADCartProbePath7241(run);
+    ADCartProbeAppend7241(path,[NSString stringWithFormat:@"AMAZONDARK v7.307 SHOPPING CART UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=Cart is a WKWebView document; target signatures #cart-page/#sc-active-cart/#sc-saved-cart plus cart URL path\npolicy=no visible text strings, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes and privacy-safe text hashes retained\nscan=finite explicit-trigger WKScrollView walk + viewport computed-style DOM snapshots + final full DOM inventory + native UIKit/WebKit snapshots; original offset restored\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADCartProbeCap7241]);
+    ADCartProbeFindWebView7241(path,^(WKWebView *wv,NSString *meta){
+        if(!wv||ADCartProbeScore7241(meta)<=0){ADCartProbeAppend7241(path,[NSString stringWithFormat:@"CART_PROBE_NO_TARGET meta=%@\n================ END RUN ================\n",ADCartProbeSafe7241(meta)]);gADCartProbeBusy7241=NO;return;}
+        UIScrollView *sv=wv.scrollView; CGPoint original=sv.contentOffset; BOOL originalScroll=sv.scrollEnabled; sv.scrollEnabled=NO; CGFloat viewport=MAX(1.0,sv.bounds.size.height),stride=MAX(300.0,MIN(620.0,viewport*0.60)); CGRect wr=CGRectZero;@try{wr=[wv convertRect:wv.bounds toView:nil];}@catch(...){}
+        ADCartProbeAppend7241(path,[NSString stringWithFormat:@"TARGET ptr=%p meta=%@ frame=(%.1f,%.1f %.1fx%.1f) originalOffset=(%.1f,%.1f) nativeContent=(%.1fx%.1f) viewport=%.1f stride=%.1f maxSteps=60\n",wv,ADCartProbeSafe7241(meta),wr.origin.x,wr.origin.y,wr.size.width,wr.size.height,original.x,original.y,sv.contentSize.width,sv.contentSize.height,viewport,stride]);
+        UIView *nativeRoot=wv.window?:wv; ADCartProbeAppend7241(path,ADCartNativeSnapshot7241(nativeRoot,wv,@"initial"));
+        __block NSUInteger step=0; __block CGFloat targetY=0,lastY=-999999; __block BOOL finishing=NO; __block void (^next)(void)=nil; __block void (^finish)(NSString *)=nil;
+        finish=^(NSString *reason){ if(finishing)return;finishing=YES;@try{[sv setContentOffset:original animated:NO];[sv layoutIfNeeded];sv.scrollEnabled=originalScroll;}@catch(...){}ADCartProbeAppend7241(path,[NSString stringWithFormat:@"\nCART_PROBE_END reason=%@ steps=%lu restoredOffset=(%.1f,%.1f) finalContent=(%.1fx%.1f)\n================ END RUN ================\n",reason?:@"done",(unsigned long)step,sv.contentOffset.x,sv.contentOffset.y,sv.contentSize.width,sv.contentSize.height]);gADCartProbeBusy7241=NO;next=nil;finish=nil;};
+        void (^fullAndFinish)(NSString *)=^(NSString *reason){ ADCartProbeAppend7241(path,ADCartNativeSnapshot7241(nativeRoot,wv,@"bottom")); ADCartProbeEvalAppend7241(wv,path,ADCartProbeDOMJS7241(step,YES),@"FULL_DOM",^{finish(reason);}); };
+        next=^{ if(finishing)return;if(!wv.window||!sv.superview){fullAndFinish(@"cart-left-window");return;}if(step>=60){fullAndFinish(@"step-cap");return;}CGFloat maxY=MAX(0.0,sv.contentSize.height-sv.bounds.size.height+sv.adjustedContentInset.bottom);targetY=MIN(MAX(0.0,targetY),maxY);if(step>0&&fabs(targetY-lastY)<0.5&&fabs(targetY-maxY)<0.5){fullAndFinish(@"bottom");return;}@try{[sv setContentOffset:CGPointMake(original.x,targetY) animated:NO];[sv layoutIfNeeded];}@catch(...){}NSUInteger thisStep=step++;CGFloat thisY=targetY;lastY=targetY;dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.32*NSEC_PER_SEC)),dispatch_get_main_queue(),^{ADCartProbeEvalAppend7241(wv,path,ADCartProbeDOMJS7241(thisStep,NO),@"VIEWPORT_DOM",^{CGFloat newMax=MAX(0.0,sv.contentSize.height-sv.bounds.size.height+sv.adjustedContentInset.bottom);if(fabs(thisY-newMax)<0.5){fullAndFinish(@"bottom");return;}targetY=MIN(newMax,thisY+stride);dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.06*NSEC_PER_SEC)),dispatch_get_main_queue(),next);});}); };
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.05*NSEC_PER_SEC)),dispatch_get_main_queue(),next);
     });
 }
 
@@ -9186,7 +8982,7 @@ static void ADMenuProbeAppend7252(NSString *path,NSString *text){
     if(!path.length||!text.length)return; @try {NSFileManager *fm=[NSFileManager defaultManager];[fm createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES attributes:nil error:nil];unsigned long long cur=[[[fm attributesOfItemAtPath:path error:nil] objectForKey:NSFileSize] unsignedLongLongValue];if(cur>=kADMenuProbeCap7252)return;NSData *d=[text dataUsingEncoding:NSUTF8StringEncoding];unsigned long long remain=kADMenuProbeCap7252-cur;if((unsigned long long)d.length>remain)d=[d subdataWithRange:NSMakeRange(0,(NSUInteger)remain)];if(![fm fileExistsAtPath:path]){[d writeToFile:path atomically:YES];return;}NSFileHandle *h=[NSFileHandle fileHandleForWritingAtPath:path];if(h){[h seekToEndOfFile];[h writeData:d];[h closeFile];}} @catch(...) {}
 }
 static NSString *ADMenuProbePath7252(NSUInteger run){
-    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.330-menu-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.330-menu-ui-probe-r%lu.txt",(unsigned long)run]];}
+    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.307-menu-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.307-menu-ui-probe-r%lu.txt",(unsigned long)run]];}
 }
 static NSString *ADMenuProbeDetectJS7252(void){
     return
@@ -9378,7 +9174,7 @@ static void ADMenuProbeScanNative7252(UIScrollView *sv,NSString *path,void (^don
 }
 static void ADCaptureMenuProbe7252(NSString *trigger){
     if(!gP.enabled||gADMenuProbeBusy7252)return;gADMenuProbeBusy7252=YES;NSUInteger run=++gADMenuProbeRun7252;NSString *path=ADMenuProbePath7252(run);
-    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.330 HAMBURGER MENU UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; stable native tab owner is ANXTabBarButton#menuTab, content renderer is discovered at trigger time\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes and privacy-safe text lengths/hashes retained\nscan=finite explicit-trigger WebKit full-document walk plus finite native/React scroll walk when present; original offsets and scrollEnabled restored; bounded pre-trigger lifecycle ring captures footer-sized RCTView/RNCEKV setter/mount ordering\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADMenuProbeCap7252]);
+    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.307 HAMBURGER MENU UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; stable native tab owner is ANXTabBarButton#menuTab, content renderer is discovered at trigger time\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes and privacy-safe text lengths/hashes retained\nscan=finite explicit-trigger WebKit full-document walk plus finite native/React scroll walk when present; original offsets and scrollEnabled restored; bounded pre-trigger lifecycle ring captures footer-sized RCTView/RNCEKV setter/mount ordering\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADMenuProbeCap7252]);
     ADMenuProbeAppend7252(path,ADMenuLifecycleSnapshot7280(@"PRE_TRIGGER")); ADMenuLifecycleClear7280();
     ADMenuProbeLogTab7252(path); UIScrollView *native=ADMenuProbeFindNativeScroll7252(path); UIWindow *root=UIApplication.sharedApplication.keyWindow?:UIApplication.sharedApplication.windows.firstObject; if(root)ADMenuProbeAppend7252(path,ADMenuNativeSnapshot7252(root,native?:root,@"initial-window"));
     ADMenuProbeFindWebView7252(path,^(WKWebView *wv,NSString *meta){
@@ -9420,7 +9216,7 @@ static NSUInteger gADAlexaProbeRun7269=0;
 static BOOL gADAlexaProbeBusy7269=NO;
 static const unsigned long long kADAlexaProbeCap7269=64ULL*1024ULL*1024ULL;
 static NSString *ADAlexaProbePath7269(NSUInteger run){
-    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.330-alexa-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.330-alexa-ui-probe-r%lu.txt",(unsigned long)run]];}
+    @try {NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.307-alexa-ui-probe-%@-r%lu.txt",stamp,(unsigned long)run];NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];} @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.307-alexa-ui-probe-r%lu.txt",(unsigned long)run]];}
 }
 static void ADAlexaProbeLogTabs7269(NSString *path){
     for(NSString *aid in @[@"rufusTab"]){
@@ -9458,7 +9254,7 @@ static void ADAlexaProbeScanNative7269(UIScrollView *sv,NSString *path,void (^do
 }
 static void ADCaptureAlexaProbe7269(NSString *trigger){
     if(!gP.enabled||gADAlexaProbeBusy7269)return;gADAlexaProbeBusy7269=YES;NSUInteger run=++gADAlexaProbeRun7269;NSString *path=ADAlexaProbePath7269(run);
-    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.330 ALEXA/RUFUS UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; selected native tab owner is ANXTabBarButton#rufusTab; content renderer is discovered at trigger time\nhistory=v7.162 proved Alexa/Rufus surfaces can use WebKit nice-widget/Rufus containers and pseudo-element painters; no current Alexa visual ownership is assumed\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes plus privacy-safe text lengths/hashes retained\nweb=all visible WKWebViews scored; chosen document gets finite top-to-bottom viewport snapshots plus final full DOM inventory (max 6200 nodes), open-shadow-root and accessible-iframe recursion, computed colors/backgrounds/images/masks/borders/radii/outlines/shadows/fonts/SVG/filter/transform/pseudo-elements/media and style-owner inventory; original offset restored\nnative=all visible native scroll candidates inventoried; best non-WebKit content scroll gets finite top-to-bottom UIKit/React snapshots including view/layer geometry, colors, borders, gradients/shapes, RCT edge props, text runs, controls, image/TWB state; original offset restored\nnormal_runtime=no observer/timer/RAF/scroll listener/recurring hierarchy scan is added by this probe\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADAlexaProbeCap7269]);
+    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.307 ALEXA/RUFUS UI FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=hybrid discovery; selected native tab owner is ANXTabBarButton#rufusTab; content renderer is discovered at trigger time\nhistory=v7.162 proved Alexa/Rufus surfaces can use WebKit nice-widget/Rufus containers and pseudo-element painters; no current Alexa visual ownership is assumed\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URLs, no network payloads; technical ids/classes/testids/component attributes plus privacy-safe text lengths/hashes retained\nweb=all visible WKWebViews scored; chosen document gets finite top-to-bottom viewport snapshots plus final full DOM inventory (max 6200 nodes), open-shadow-root and accessible-iframe recursion, computed colors/backgrounds/images/masks/borders/radii/outlines/shadows/fonts/SVG/filter/transform/pseudo-elements/media and style-owner inventory; original offset restored\nnative=all visible native scroll candidates inventoried; best non-WebKit content scroll gets finite top-to-bottom UIKit/React snapshots including view/layer geometry, colors, borders, gradients/shapes, RCT edge props, text runs, controls, image/TWB state; original offset restored\nnormal_runtime=no observer/timer/RAF/scroll listener/recurring hierarchy scan is added by this probe\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADAlexaProbeCap7269]);
     ADAlexaProbeLogTabs7269(path);UIScrollView *native=ADMenuProbeFindNativeScroll7252(path);UIWindow *root=UIApplication.sharedApplication.keyWindow?:UIApplication.sharedApplication.windows.firstObject;if(root)ADMenuProbeAppend7252(path,ADAlexaNativeSnapshot7269(root,native?:root,@"initial-window"));
     ADAlexaProbeFindWebView7269(path,^(WKWebView *wv,NSString *meta){ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"ALEXA_WEB_SELECTION ptr=%p meta=%@\n",wv,ADMenuProbeSafe7252(meta)]);void (^finishAll)(void)=^{UIWindow *r=UIApplication.sharedApplication.keyWindow?:UIApplication.sharedApplication.windows.firstObject;if(r)ADMenuProbeAppend7252(path,ADAlexaNativeSnapshot7269(r,native?:r,@"final-window"));ADMenuProbeAppend7252(path,@"ALEXA_PROBE_END\n================ END RUN ================\n");gADAlexaProbeBusy7269=NO;};void (^runNative)(void)=^{if(native){ADAlexaProbeScanNative7269(native,path,^(__unused NSString *reason){finishAll();});}else finishAll();};if(wv){ADMenuProbeEvalAppend7252(wv,path,ADAlexaProbeStylesJS7269(@"initial"),@"ALEXA_STYLE_INITIAL",^{ADMenuProbeScanWeb7252(wv,path,^(__unused NSString *reason){ADMenuProbeEvalAppend7252(wv,path,ADAlexaProbeStylesJS7269(@"post-web-scan"),@"ALEXA_STYLE_FINAL",^{runNative();});});});}else runNative();});
 }
@@ -9482,11 +9278,11 @@ static NSString *ADPersonSubmenuProbePath7298(NSUInteger run){
         NSDateFormatter *f=[NSDateFormatter new]; f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
         f.timeZone=[NSTimeZone localTimeZone]; f.dateFormat=@"yyyyMMdd-HHmmss-SSS";
         NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown";
-        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.330-person-submenu-hybrid-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *name=[NSString stringWithFormat:@"AmazonDark-v7.307-person-submenu-hybrid-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];
     } @catch(...) {
-        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.330-person-submenu-hybrid-probe-r%lu.txt",(unsigned long)run]];
+        return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.307-person-submenu-hybrid-probe-r%lu.txt",(unsigned long)run]];
     }
 }
 
@@ -9628,7 +9424,7 @@ static BOOL ADPersonSubmenuLikelyActive7298(void){
 static void ADCapturePersonSubmenuProbe7298(NSString *trigger){
     if(!gP.enabled||gADPersonSubmenuProbeBusy7298)return; gADPersonSubmenuProbeBusy7298=YES;
     NSUInteger run=++gADPersonSubmenuProbeRun7298; NSString *path=ADPersonSubmenuProbePath7298(run);
-    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.330 PERSON SUBMENU HYBRID FULL-DOCUMENT PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=selected native tab owner is ANXTabBarButton#meTab; this probe is used only when the exact main Person RCTScrollView#me is absent/covered by redirected or modal content\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URL values, no network payloads; technical ids/classes/testids/component attributes plus privacy-safe text lengths/hashes retained\nweb=EVERY plausible visible WKWebView (max 6) is scanned sequentially from top to bottom; every document receives viewport computed-paint snapshots, open-shadow-root/accessibly reachable iframe recursion, style-owner inventory, final full DOM inventory (max 6200 nodes), and its original offset/scrollEnabled are restored\nnative=EVERY plausible visible non-WebKit native/React scroll root (max 6, ancestry-deduped, main #me root excluded) is scanned sequentially top-to-bottom; full-window snapshots capture non-scrollable native content, UIKit/React hierarchy, layers, colors, borders, gradients/shapes, RCT edge props, text runs, controls, images/TWB state; all original offsets restored\nnormal_runtime=single existing screenshot/SIGUSR2 dispatcher only; no second observer/signal source, no MutationObserver/timer/RAF/web-scroll listener/recurring hierarchy scan\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADPersonSubmenuProbeCap7298]);
+    ADMenuProbeAppend7252(path,[NSString stringWithFormat:@"AMAZONDARK v7.307 PERSON SUBMENU HYBRID FULL-DOCUMENT PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\ncap_bytes=%llu\nclassification=selected native tab owner is ANXTabBarButton#meTab; this probe is used only when the exact main Person RCTScrollView#me is absent/covered by redirected or modal content\npolicy=no visible text strings, no accessibilityLabel text, no aria-label/alt/value contents, no href/src URL values, no network payloads; technical ids/classes/testids/component attributes plus privacy-safe text lengths/hashes retained\nweb=EVERY plausible visible WKWebView (max 6) is scanned sequentially from top to bottom; every document receives viewport computed-paint snapshots, open-shadow-root/accessibly reachable iframe recursion, style-owner inventory, final full DOM inventory (max 6200 nodes), and its original offset/scrollEnabled are restored\nnative=EVERY plausible visible non-WebKit native/React scroll root (max 6, ancestry-deduped, main #me root excluded) is scanned sequentially top-to-bottom; full-window snapshots capture non-scrollable native content, UIKit/React hierarchy, layers, colors, borders, gradients/shapes, RCT edge props, text runs, controls, images/TWB state; all original offsets restored\nnormal_runtime=single existing screenshot/SIGUSR2 dispatcher only; no second observer/signal source, no MutationObserver/timer/RAF/web-scroll listener/recurring hierarchy scan\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,kADPersonSubmenuProbeCap7298]);
     UIWindow *root=UIApplication.sharedApplication.keyWindow?:UIApplication.sharedApplication.windows.firstObject;
     if(root)ADMenuProbeAppend7252(path,ADPersonSubmenuNativeSnapshot7298(root,root,@"initial-window"));
     NSArray<WKWebView *> *webs=ADPersonSubmenuVisibleWebViews7298(path); NSArray<UIScrollView *> *natives=ADPersonSubmenuNativeScrolls7298(path);
@@ -9662,9 +9458,9 @@ static const unsigned long long kADHomeFrameProbeCap7265=12ull*1024ull*1024ull;
 static NSString *ADHomeFrameProbePath7265(NSUInteger run){
     @try {
         NSDateFormatter *f=[NSDateFormatter new]; f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"]; f.timeZone=[NSTimeZone localTimeZone]; f.dateFormat=@"yyyyMMdd-HHmmss-SSS";
-        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.330-home-frame-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.307-home-frame-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject]; return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];
-    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.330-home-frame-probe-r%lu.txt",(unsigned long)run]]; }
+    } @catch(...) { return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.307-home-frame-probe-r%lu.txt",(unsigned long)run]]; }
 }
 static void ADHomeFrameProbeAppend7265(NSString *path,NSString *text){
     if(!path.length||!text.length)return;
@@ -9710,9 +9506,9 @@ static NSUInteger gADProductScrollProbeRun7272=0;
 static NSString *ADProductScrollProbePath7272(NSUInteger run){
     @try {
         NSDateFormatter *f=[NSDateFormatter new];f.locale=[NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];f.timeZone=[NSTimeZone localTimeZone];f.dateFormat=@"yyyyMMdd-HHmmss-SSS";
-        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.330-product-scroll-probe-%@-r%lu.txt",stamp,(unsigned long)run];
+        NSString *stamp=[f stringFromDate:[NSDate date]]?:@"unknown",*name=[NSString stringWithFormat:@"AmazonDark-v7.307-product-scroll-probe-%@-r%lu.txt",stamp,(unsigned long)run];
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];return [(docs.length?docs:NSTemporaryDirectory()) stringByAppendingPathComponent:name];
-    } @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.330-product-scroll-probe-r%lu.txt",(unsigned long)run]];}
+    } @catch(...) {return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.307-product-scroll-probe-r%lu.txt",(unsigned long)run]];}
 }
 static WKWebView *ADProductScrollWebView7272(void){
     @try {
@@ -9735,7 +9531,7 @@ static NSString *ADProductScrollHitGridJS7280(void){
 }
 static void ADCaptureProductScrollProbe7272(NSString *trigger){
     if(!gP.enabled||gADProductScrollProbeBusy7272)return;WKWebView *wv=ADProductScrollWebView7272();if(!wv)return;gADProductScrollProbeBusy7272=YES;NSUInteger run=++gADProductScrollProbeRun7272;NSString *path=ADProductScrollProbePath7272(run);UIScrollView *sv=wv.scrollView;CGRect wr=CGRectZero;@try{wr=[wv convertRect:wv.bounds toView:nil];}@catch(...){}
-    ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"AMAZONDARK v7.330 PRODUCT SHOPPING/SCROLLING WIDE FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\nroute=/s only\npolicy=no typed query strings/no visible element strings/no URL values/no src/href values/no network payloads; technical ids/classes/testids/roles plus privacy-safe text lengths/hashes retained\nscan=explicit-trigger only; NO scrolling; all current/near-viewport DOM nodes up to 2600 with computed paint/pseudo/media/ancestry plus painted-rounded candidate inventory and viewport elementsFromPoint hit grid\nnormal_runtime=no second screenshot observer, no second SIGUSR2 source, no observer/timer/RAF/web-scroll listener/recurring DOM scan\nWEB_TARGET frame=(%.1f,%.1f %.1fx%.1f) offset=(%.1f,%.1f) content=(%.1fx%.1f) -- OFFSET NOT MODIFIED\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,wr.origin.x,wr.origin.y,wr.size.width,wr.size.height,sv.contentOffset.x,sv.contentOffset.y,sv.contentSize.width,sv.contentSize.height]);
+    ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"AMAZONDARK v7.307 PRODUCT SHOPPING/SCROLLING WIDE FORENSICS PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\nroute=/s only\npolicy=no typed query strings/no visible element strings/no URL values/no src/href values/no network payloads; technical ids/classes/testids/roles plus privacy-safe text lengths/hashes retained\nscan=explicit-trigger only; NO scrolling; all current/near-viewport DOM nodes up to 2600 with computed paint/pseudo/media/ancestry plus painted-rounded candidate inventory and viewport elementsFromPoint hit grid\nnormal_runtime=no second screenshot observer, no second SIGUSR2 source, no observer/timer/RAF/web-scroll listener/recurring DOM scan\nWEB_TARGET frame=(%.1f,%.1f %.1fx%.1f) offset=(%.1f,%.1f) content=(%.1fx%.1f) -- OFFSET NOT MODIFIED\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent,wr.origin.x,wr.origin.y,wr.size.width,wr.size.height,sv.contentOffset.x,sv.contentOffset.y,sv.contentSize.width,sv.contentSize.height]);
     ADHomeFrameProbeAppend7265(path,ADHomeFrameNativeSnapshot7265());
     [wv evaluateJavaScript:ADProductScrollProbeJS7272() completionHandler:^(id result,NSError *error){
         ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"MAIN_DOCUMENT_WIDE error=%@\n",error?error.localizedDescription:@"none"]);
@@ -9750,7 +9546,7 @@ static void ADCaptureProductScrollProbe7272(NSString *trigger){
 
 static void ADCaptureHomeFrameProbe7265(NSString *trigger){
     if(!gP.enabled||gADHomeFrameProbeBusy7265)return;gADHomeFrameProbeBusy7265=YES;NSUInteger run=++gADHomeFrameProbeRun7265;NSString *path=ADHomeFrameProbePath7265(run);WKWebView *wv=ADHomeFrameVisibleWebView7265();
-    ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"AMAZONDARK v7.330 HOME CURRENT-FRAME PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\npolicy=current visible screen only; NO scrolling; NO full Home-document scan; privacy-safe text lengths/hashes in WebKit; native accessibility labels not emitted\nweb=bounded visible-branch recursion max 700 nodes per frame; cross-origin child frames respond only to this explicit trigger\nnative=bounded visible-branch walk max 1000 logged nodes\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent]);
+    ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"AMAZONDARK v7.307 HOME CURRENT-FRAME PROBE\nversion=%s\ntrigger=%@\ndate=%@\nfile=%@\npolicy=current visible screen only; NO scrolling; NO full Home-document scan; privacy-safe text lengths/hashes in WebKit; native accessibility labels not emitted\nweb=bounded visible-branch recursion max 700 nodes per frame; cross-origin child frames respond only to this explicit trigger\nnative=bounded visible-branch walk max 1000 logged nodes\n",AD_VERSION,trigger?:@"unknown",[NSDate date],path.lastPathComponent]);
     ADHomeFrameProbeAppend7265(path,ADHomeFrameNativeSnapshot7265());
     if(!wv){ADHomeFrameProbeAppend7265(path,@"WEB_NO_VISIBLE_WKWEBVIEW\nHOME_FRAME_PROBE_END\n================ END RUN ================\n");gADHomeFrameProbeBusy7265=NO;return;}
     CGRect wr=CGRectZero;@try{wr=[wv convertRect:wv.bounds toView:nil];}@catch(...){}UIScrollView *sv=wv.scrollView;ADHomeFrameProbeAppend7265(path,[NSString stringWithFormat:@"WEB_TARGET ptr=%p frame=(%.1f,%.1f %.1fx%.1f) offset=(%.1f,%.1f) content=(%.1fx%.1f) -- OFFSET NOT MODIFIED\n",wv,wr.origin.x,wr.origin.y,wr.size.width,wr.size.height,sv.contentOffset.x,sv.contentOffset.y,sv.contentSize.width,sv.contentSize.height]);
