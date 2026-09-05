@@ -1,3 +1,19 @@
+# AmazonDark v7.338 — startup crash hotfix
+
+Package identity: `7.338~v7307-constructor-safe-artwork`.
+Parent: the exact v7.337 handoff in this thread; UI baseline remains v7.307 (`4bbbbd9`).
+
+- The supplied SpringBoard crash report identifies UIKit image loading during dylib initialization. The `logo=` constructor diagnostic eagerly called `ADSplashImage7191()`, which reached `+[UIScreen mainScreen]` before SpringBoard completed startup and aborted inside the dispatch-once callout.
+- Removes that constructor call. The constructor now reports `logo=deferred` without loading an image. The logo is loaded only when the existing artwork renderer needs it.
+- Contains a logo-load exception inside its `dispatch_once` block, allowing the existing opaque-black rendering fallback if loading fails. It cannot escape that block into libdispatch's terminating callout.
+- App runtime, UI, warm handling, source-image selection, saved-scene vetoes, geometry, hook surface and timing are unchanged from v7.337. No timer, delayed initialization, new lifecycle hook or overlay is added.
+
+Install the macOS Actions package and respring. If `AmazonDarkSB.dylib` was renamed using the prior recovery command, package installation supplies the new active file; leave the disabled v7.337 backup disabled. Probe: `/var/mobile/AmazonDark-v7.338-launch-sb-probe.txt`. Its constructor must report the full new version and `logo=deferred`.
+
+Verification: `python3 tests/test_startup_safety.py`, `python3 tests/test_cold_launch_policy.py`, Logos lint and compile/link/package. The startup guard follows this source's static helper calls and rejects the exact previous constructor error; it does not execute UIKit on an iPhone. See [LAUNCH-AUDIT.md](LAUNCH-AUDIT.md) for limits.
+
+## Prior implementation notes — v7.337's startup bug is corrected above
+
 # AmazonDark v7.337 — v7.307 UI, iOS-owned cold-launch timing
 
 Package identity: `7.337~v7307-stock-timing-cold-artwork`.

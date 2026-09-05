@@ -1,4 +1,4 @@
-// AmazonDarkSB.xm — v7.337, cold-launch artwork with iOS-owned presentation.
+// AmazonDarkSB.xm — v7.338, constructor-safe cold-launch artwork.
 // UI baseline: exact v7.307 (4bbbbd9). Injected only into SpringBoard.
 // Replace only positively identified Amazon launch resources. Saved scene images
 // and live views pass through. No scene cover, PID/cold classification, ready
@@ -27,7 +27,12 @@ static UIImage *ADSplashImage7191(void) {
     static UIImage *image;
     static dispatch_once_t once;
     dispatch_once(&once, ^{
-        image=[UIImage imageWithContentsOfFile:@"/var/jb/Library/Application Support/AmazonDark/splash-logo.png"];
+        // Called only by the artwork renderer, never by the dylib constructor.
+        // Catch HERE: exceptions escaping dispatch_once terminate the process
+        // before an outer caller's catch can recover (v7.337 crash report).
+        @try {
+            image=[UIImage imageWithContentsOfFile:@"/var/jb/Library/Application Support/AmazonDark/splash-logo.png"];
+        } @catch (__unused NSException *e) { image=nil; }
     });
     return image;
 }
@@ -59,7 +64,7 @@ static void ADLaunchLog7337(NSString *event,NSString *detail){
         NSString *line=[NSString stringWithFormat:@"%.6f up=%.6f pid=%d event=%@ %@\n",
             CFAbsoluteTimeGetCurrent(),NSProcessInfo.processInfo.systemUptime,getpid(),event,detail?:@""];
         dispatch_async(queue,^{@autoreleasepool{@try{
-            NSString *path=@"/var/mobile/AmazonDark-v7.337-launch-sb-probe.txt";
+            NSString *path=@"/var/mobile/AmazonDark-v7.338-launch-sb-probe.txt";
             NSFileManager *fm=NSFileManager.defaultManager;
             if(![fm fileExistsAtPath:path])[fm createFileAtPath:path contents:nil attributes:@{NSFilePosixPermissions:@0666}];
             NSFileHandle *file=[NSFileHandle fileHandleForWritingAtPath:path];
@@ -258,9 +263,11 @@ static UIImage *ADLaunchSnapshotImage7337(XBApplicationSnapshot *snapshot,UIImag
     if(!ADSBEnabled())return;
     BOOL factory=class_getClassMethod(objc_getClass("XBApplicationSnapshotManifestImpl"),@selector(_configureSnapshot:withCompatibilityInfo:forLaunchRequest:))!=NULL;
     BOOL wrapper=class_getInstanceMethod(objc_getClass("XBApplicationSnapshotImage"),@selector(initWithSnapshot:interfaceOrientation:))!=NULL;
-    ADLaunchLog7337(@"ctor",[NSString stringWithFormat:@"version=7.337~v7307-stock-timing-cold-artwork base=4bbbbd9 mode=artwork-only snapshotClass=%d xibClass=%d factory=%d wrapper=%d logo=%d",
+    // Image loading consults UIScreen; UIKit is not ready during dyld startup.
+    // Keep startup diagnostics free of UIKit calls, including helper arguments.
+    ADLaunchLog7337(@"ctor",[NSString stringWithFormat:@"version=7.338~v7307-constructor-safe-artwork base=4bbbbd9 mode=artwork-only snapshotClass=%d xibClass=%d factory=%d wrapper=%d logo=deferred",
         objc_getClass("XBApplicationSnapshot")!=Nil,
-        objc_getClass("SBDeviceApplicationSceneViewPlaceholderContentViewProvider")!=Nil,factory,wrapper,ADSplashImage7191()!=nil]);
+        objc_getClass("SBDeviceApplicationSceneViewPlaceholderContentViewProvider")!=Nil,factory,wrapper]);
     @autoreleasepool {
         @try { %init; } @catch (__unused NSException *e) {}
         if(factory){ @try { %init(ADLaunchFactory7337); } @catch(__unused NSException *e){} }

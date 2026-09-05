@@ -1,3 +1,34 @@
+# v7.338 startup crash hotfix
+
+Date: 2026-09-05. Scope: correct the supplied SpringBoard crash on the exact v7.337 source. The following v7.337 launch-policy audit is retained as history; device acceptance remains outstanding.
+
+## Crash evidence and source match
+
+The user-provided `text.txt` is a SpringBoard `EXC_CRASH (SIGABRT)` report on iOS 17.0, roughly 0.402 seconds after process launch. Its last-exception stack is UIKit `+[UIScreen mainScreen]`, UIKit image-path resolution, `+[UIImage imageWithContentsOfFile:]`, AmazonDarkSB, `dispatch_once`, then AmazonDarkSB called from dyld initializers. The terminating thread also records libdispatch's callout entering `std::terminate`.
+
+This matches the v7.337 constructor's `ADSplashImage7191()!=nil` argument used only to print `logo=%d`. Evaluating that argument loads the logo through UIKit before the diagnostic function or hook installation executes. The argument itself can therefore abort the process before the probe is written. No image-source hook or Amazon launch is needed to trigger this particular failure.
+
+## Narrow correction
+
+- Remove the eager image-load argument. Constructor diagnostics record `logo=deferred` and only use Foundation plus Objective-C runtime metadata.
+- Keep logo loading at its existing artwork-renderer call site. Do not schedule a delayed preload or create any new startup/warm/switcher handler.
+- Catch UIImage-loading exceptions inside the `dispatch_once` callback. The report shows why an outer caller's catch is insufficient. A failed load yields nil, which the existing renderer handles by painting opaque black.
+- Bump metadata and probe filename to `7.338~v7307-constructor-safe-artwork` / `AmazonDark-v7.338-launch-sb-probe.txt`.
+
+The complete app-side file is identical to v7.337 after normalizing its version/header. Snapshot policy, image geometry, XIB replacement, hook surface and all presentation-removal decisions are unchanged. The inherited v7.307 UI/warm comparison and workflow/asset hashes remain enforced.
+
+## Verification and limits
+
+`test_startup_safety.py` checks the constructor and its reachable local C helpers for UIKit image/screen work. Negative controls restore the exact failing v7.337 expression and hide it inside the logger; both must be rejected. It also verifies exception containment inside the logo-loader callback. The guard is a source check, not an on-device runtime test.
+
+The existing 79 production resource-policy cases, full-file v7.307 preservation check, normalized v7.337 app identity, Logos lint and whitespace checks are required. Both architectures compile/link/package locally. The existing Linux arm64e ABI warning still means this local binary is not the installation deliverable: use the unchanged macOS Actions build.
+
+Acceptance: install the new package and respring, first confirm stable SpringBoard startup and the new constructor marker, then exercise cold launches and ordinary warm/switcher behavior. This hotfix removes the crash-causing startup call; it does not constitute device validation of permanent zero-white launch behavior or every private framework path.
+
+The prior disabled `AmazonDarkSB.dylib.v7337-disabled` backup must not be renamed over the new package's active dylib. No deletion of snapshots or older crash/probe files is needed.
+
+## Previous v7.337 audit
+
 # v7.337 launch correction and regression audit
 
 Date: 2026-09-05. Audience: AmazonDark source handoff and device verification.

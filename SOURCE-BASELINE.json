@@ -1,5 +1,5 @@
 {
-  "version": "7.337~v7307-stock-timing-cold-artwork",
+  "version": "7.338~v7307-constructor-safe-artwork",
   "base_commit": "4bbbbd9ae7c5dc0a9d4dc1455235da3feeb706f7",
   "baseline_sha256": {
     ".github/workflows/build.yml": "e3e886241ff13aa23b567c9b396958c3c90a241a2e47041caddb49b45f0b6b82",
@@ -58,8 +58,11 @@
   "tweak_changes": "Exact v7.307 UI/warm behavior, with explicit removal of launch-readiness polling/call sites and snapshot deletion. Full-file allowlisted transformation verified against base commit.",
   "scope": "No SpringBoard scene/icon/process hooks, overlay lifetime, readiness listener, hard cap, or cache deletion. Confirmed launch artwork only; v7.307 native UI and warm-splash policy retained.",
   "delivery_sha256": {
-    "src/Tweak.xm": "303f492a522085dfa0f3d42863e95749c7414f0fe487014294ac2ff2fb0b115c",
-    "src/AmazonDarkSB.xm": "fdfd5184386afbc461db311dd3d34e15fa5fef87f23619bd125bf4bb2f5e7a23",
-    "layout/DEBIAN/control": "c0709e75b3820dcda1a7725f821dfe99f14ec0268e0c0c4a356064183a13c052"
-  }
+    "src/Tweak.xm": "758234094103816aaf10f51dd8574047fee3eedfc5b38c31bdc2935cf5020905",
+    "src/AmazonDarkSB.xm": "076a9bc1c1cc0424e4bd79e79306b5791da90bfd66f5c973ddbb86c1215f3806",
+    "layout/DEBIAN/control": "f4a029183a974ad0f5a32880ec900643487fe323acf04ceb89eefd3220611420"
+  },
+  "parent_version": "7.337~v7307-stock-timing-cold-artwork",
+  "hotfix": "Remove eager UIKit image load from SB constructor; contain logo-load exceptions inside dispatch_once. No app runtime changes beyond version/header. No launch policy, hook surface, warm/switcher, image geometry, or timing changes.",
+  "parent_tweak_sha256": "303f492a522085dfa0f3d42863e95749c7414f0fe487014294ac2ff2fb0b115c"
 }

@@ -90,8 +90,8 @@ def main():
         assert method in source
     assert 'format.opaque=YES' in source
     assert '[[UIColor blackColor] setFill]' in source
-    assert 'version=7.337~v7307-stock-timing-cold-artwork base=4bbbbd9 mode=artwork-only' in source
-    assert "Version: 7.337~v7307-stock-timing-cold-artwork\n" in (ROOT / "layout/DEBIAN/control").read_text()
+    assert 'version=7.338~v7307-constructor-safe-artwork base=4bbbbd9 mode=artwork-only' in source
+    assert "Version: 7.338~v7307-constructor-safe-artwork\n" in (ROOT / "layout/DEBIAN/control").read_text()
     try:
         baseline = subprocess.check_output(
             ["git", "show", f"{BASE}:src/Tweak.xm"], cwd=ROOT,
@@ -108,6 +108,9 @@ def main():
             assert (ROOT / path).read_bytes() == subprocess.check_output(
                 ["git", "show", f"{BASE}:{path}"], cwd=ROOT), path
     manifest = json.loads((ROOT / "SOURCE-BASELINE.json").read_text())
+    previous = tweak.replace("v7.338 —", "v7.337 —").replace(
+        '"v7.338-v7307-constructor-safe-artwork"', '"v7.337-v7307-stock-timing-cold-artwork"')
+    assert hashlib.sha256(previous.encode()).hexdigest() == manifest["parent_tweak_sha256"], "App runtime changed in hotfix"
     for path in manifest["unchanged_files"]:
         assert hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == manifest["baseline_sha256"][path], path
     for path, digest in manifest["delivery_sha256"].items():
@@ -115,6 +118,7 @@ def main():
     print("PASS: exact v7.307 UI/warm behavior outside explicit launch removals")
     print("PASS: no SB presentation hooks, hard cap, ready listener, or snapshot purge")
     print("PASS: source identity and unchanged build/push wiring")
+    print("PASS: v7.337 app runtime unchanged by startup hotfix")
 
 
 def expected_app(base):
@@ -124,9 +128,9 @@ def expected_app(base):
     result = base
     replacements = {
         " * AmazonDark v7.307 — v7.301 baseline + warm-resume splash bypass + Alexa mic centering":
-            " * AmazonDark v7.337 — v7.307 UI / warm behavior, iOS-owned cold-launch timing",
+            " * AmazonDark v7.338 — v7.307 UI / warm behavior, iOS-owned cold-launch timing",
         '"v7.307-warm-resume-bypass-mic-center"':
-            '"v7.337-v7307-stock-timing-cold-artwork"',
+            '"v7.338-v7307-constructor-safe-artwork"',
         "// from an actual scene reconstruction inside the same process. SpringBoard remains the\n"
         "// exact v7.301 cold-launch implementation; warm behavior is owned inside Amazon only.":
             "// from an actual scene reconstruction inside the same process. Keep this approved\n"

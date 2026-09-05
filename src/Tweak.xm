@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.337 — v7.307 UI / warm behavior, iOS-owned cold-launch timing
+ * AmazonDark v7.338 — v7.307 UI / warm behavior, iOS-owned cold-launch timing
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.337-v7307-stock-timing-cold-artwork"
+#define AD_VERSION "v7.338-v7307-constructor-safe-artwork"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
