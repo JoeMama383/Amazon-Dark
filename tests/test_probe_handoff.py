@@ -15,7 +15,7 @@ import tempfile
 
 ROOT=Path(__file__).resolve().parents[1]
 HELPER=ROOT/'scripts/skeleton-probe.sh'
-VERSION='7.346~v7344-cart-strip-button'
+VERSION='7.347~cart-strip-owner-forensics'
 
 with tempfile.TemporaryDirectory(prefix='ad-probe-handoff-') as temp:
     root=Path(temp);mobile=root/'mobile';containers=mobile/'Containers/Data/Application'
@@ -42,7 +42,7 @@ else:sys.exit(1)
     dpkg=bin/'dpkg-query'
     dpkg.write_text('''#!/usr/bin/env python3
 import os,sys
-v=os.environ.get('AD_INSTALLED','7.346~v7344-cart-strip-button')
+v=os.environ.get('AD_INSTALLED','7.347~cart-strip-owner-forensics')
 print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '')+v,end='')
 ''');dpkg.chmod(0o755)
     env=dict(os.environ,PATH=str(bin)+':'+os.environ['PATH'],AD_PROBE_ROOT=str(mobile),AD_PROBE_CONTAINERS=str(containers),AD_PROBE_DOCS=str(docs),AD_GZIP_CALLED=str(root/'gzip-called'))
@@ -50,7 +50,7 @@ print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '
         r=subprocess.run(['sh',str(HELPER),*args],env=dict(env,**extra),text=True,capture_output=True)
         assert (r.returncode==0)==ok,(args,r.stdout,r.stderr)
         return r.stdout+r.stderr
-    arm=amazon/'Documents/AmazonDark-v7.346-probe.arm'
+    arm=amazon/'Documents/AmazonDark-v7.347-probe.arm'
     for style in ['extract','xml','pretty']:
         run('arm','both',AD_PLUTIL_STYLE=style)
         assert arm.read_text().split()[1]=='both'
@@ -69,10 +69,10 @@ print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '
         assert VERSION in report and 'Amazon container matches: 1' in report
     run('arm','launch')
     assert arm.read_text().split()[1]=='launch'
-    log=amazon/'Documents/AmazonDark-v7.346-skeleton-1-77-launch.jsonl'
+    log=amazon/'Documents/AmazonDark-v7.347-skeleton-1-77-launch.jsonl'
     log.write_text('{"event":"SESSION_START","label":"launch"}\n')
-    receipt=amazon/'Documents/AmazonDark-v7.346-probe-status.json'
-    receipt.write_text(json.dumps({'event':'PROBE_BOOTSTRAP','bundle':'com.amazon.Amazon','reason':'capture-started','version':'v7.346-v7344-cart-strip-button'}))
+    receipt=amazon/'Documents/AmazonDark-v7.347-probe-status.json'
+    receipt.write_text(json.dumps({'event':'PROBE_BOOTSTRAP','bundle':'com.amazon.Amazon','reason':'capture-started','version':'v7.347-cart-strip-owner-forensics'}))
     old=mobile/'AmazonDark-v7.340-skeleton-1-55-both.jsonl';old.write_text('old capture\n')
     sb=mobile/'AmazonDark-v7.338-launch-sb-probe.txt';sb.write_text('snapshot.dark\n')
     unrelated=other/'Documents';unrelated.mkdir()
@@ -98,15 +98,23 @@ print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '
         'event':'PROBE_BOOTSTRAP','bundle':'com.example.other','version':'v7.346-v7344-cart-strip-button'}))
     run('arm','launch',AD_PLUTIL_STYLE='unavailable')
     assert arm.read_text().split()[1]=='launch'
-    assert not (other/'Documents/AmazonDark-v7.346-probe.arm').exists()
+    assert not (other/'Documents/AmazonDark-v7.347-probe.arm').exists()
     status=run('status',AD_PLUTIL_STYLE='unavailable')
     assert 'Verified Amazon startup receipts: 1' in status and 'Amazon container matches: 1' in status
     text=run('export',AD_PLUTIL_STYLE='unavailable')
     archive=Path(text.splitlines()[1]);assert archive.suffix=='.tar'
     with tarfile.open(archive) as t:
         assert t.extractfile('./AMAZON/'+log.name).read()==log.read_bytes()
-    # During upgrade, the v7.344 receipt must locate Amazon before v7.346 runs.
+    # During upgrade, the immediately previous v7.346 receipt must locate Amazon before v7.347 runs.
     receipt.unlink()
+    previous346=amazon/'Documents/AmazonDark-v7.346-probe-status.json'
+    previous346.write_text(json.dumps({'event':'PROBE_BOOTSTRAP','bundle':'com.amazon.Amazon',
+        'version':'v7.346-v7344-cart-strip-button','reason':'arm-missing-or-unreadable'}))
+    run('arm','transition',AD_PLUTIL_STYLE='unavailable')
+    assert arm.read_text().split()[1]=='transition'
+    run('disarm'); previous346.unlink()
+
+    # The older v7.344 receipt must also remain a valid upgrade locator.
     previous=amazon/'Documents/AmazonDark-v7.344-probe-status.json'
     previous.write_text(json.dumps({'event':'PROBE_BOOTSTRAP','bundle':'com.amazon.Amazon',
         'version':'v7.344-cart-loader-image-preservation','reason':'arm-missing-or-unreadable'}))
@@ -116,7 +124,7 @@ print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '
     text=run('export',AD_PLUTIL_STYLE='unavailable')
     with tarfile.open(Path(text.splitlines()[1])) as t:
         assert t.extractfile('./AMAZON/'+previous.name).read()==previous.read_bytes()
-    print('PASS: v7.344 upgrade receipt discovers Amazon; transition arms v7.346; both versions export')
+    print('PASS: v7.346/v7.344 upgrade receipts discover Amazon; transition arms v7.347')
     # Even a broken tar returns the actual logs and status in a plain text file.
     run('arm','both',AD_PLUTIL_STYLE='unavailable')
     text=run('export',AD_PLUTIL_STYLE='unavailable',AD_TAR_FAIL='1')

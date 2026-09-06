@@ -1,7 +1,7 @@
 """Regression for v7.339's Actions compile failure, plus exact JS byte identity.
 
 Compile the actual shipped include, not an imitation, in C99 and C++98. Execute
-both outputs and require exactly the shipped v7.346 probe bytes.
+both outputs and require exactly the inherited v7.346 JavaScript probe bytes.
 """
 import hashlib
 import json
@@ -32,7 +32,7 @@ def main():
                             '-Wall', '-Wextra', '-Werror', '-I', str(inc.parent),
                             str(bridge), '-o', str(output)], check=True)
             assert subprocess.check_output([str(output)]) == source, standard
-            print(f"PASS: shipped include compiles in {standard}; emitted JS bytes equal v7.346")
+            print(f"PASS: shipped include compiles in {standard}; emitted JS bytes equal inherited v7.346 payload")
 
         # Reject the exact former representation in the old dialect. Without this
         # negative control, a default-modern compiler could conceal the regression.
@@ -46,9 +46,9 @@ def main():
     control = (ROOT / 'scripts/skeleton-probe.sh').read_text()
     assert 'NSDocumentDirectory,NSUserDomainMask' in native
     assert '@"/var/mobile/' not in native
-    assert 'AmazonDark-v7.346-probe.arm' in native
-    assert 'AD_PROBE_NAME=AmazonDark-v7.346' in control
-    print("PASS: native capture uses app Documents; v7.346 helper identity agrees")
+    assert 'AmazonDark-v7.347-probe.arm' in native
+    assert 'AD_PROBE_NAME=AmazonDark-v7.347' in control
+    print("PASS: native capture uses app Documents; v7.347 helper identity agrees")
 
 
 

@@ -1,3 +1,15 @@
+# AmazonDark v7.347~cart-strip-owner-forensics
+
+## Probe-only Cart strip ownership diagnosis on exact v7.346 visuals
+
+- Production paint behavior is intentionally unchanged from v7.346. The existing `AWLoadingIndicatorBarView` black-cover implementation remains the same decision path; v7.347 only records whether that path actually runs and what state it sees.
+- The armed transition recorder now emits `CART_STRIP_OWNER` records containing the production latched Cart state, the live `cartTab` selected/state/accessibility-trait state, exact-hook and global-mount witnesses, native bar geometry/contents, and black-cover existence/visibility/frame/background/z-position.
+- Native frame records now include layer name, z-position, and sublayer count so `AmazonDarkCartLoadingBar7345` can be distinguished from Amazon's content-backed layer.
+- The already-existing global `UIView didMoveToWindow` hook gains a probe-only exact-class witness for `AWLoadingIndicatorBarView`. It performs no paint and lets us distinguish a late-loaded class/exact-hook installation gap from a Cart-selection gating failure.
+- No new production MutationObserver, timer, interval, RAF loop, Web scroll listener, recurring hierarchy scan, or class-wide Home loading-bar repaint is added.
+
+---
+
 # AmazonDark v7.346
 
 Package: `7.346~v7344-cart-strip-button`.

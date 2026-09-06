@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.346 — exact v7.344 base + Cart loading-strip and buying-options paint
+ * AmazonDark v7.347 — v7.346 visuals + Cart strip owner/gate forensics
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.346-v7344-cart-strip-button"
+#define AD_VERSION "v7.347-cart-strip-owner-forensics"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1327,6 +1327,10 @@ static NSArray *ADTrackedWebViews(void){
 
 // BEGIN v7.339 diagnostic integration
 #include "ADSkeletonProbe7339.h"
+
+// v7.347 probe-only forward declaration. This records late-loaded AWLoadingIndicatorBarView
+// mounts from the already-existing global UIView lifecycle hook; it does not paint them.
+static void ADCartStripGlobalMountDiag7347(UIView *v);
 // END v7.339 diagnostic integration
 static WKContentRuleList *gADPrivacyRuleList7117=nil;
 static NSString *gADPrivacyRuleError7117=nil;
@@ -2317,6 +2321,10 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
 %hook UIView
 - (void)didMoveToWindow {
     %orig;
+    // v7.347 probe-only late-load witness. If the exact AWLoadingIndicatorBarView Logos
+    // hook was unavailable when %init ran, this inherited UIView hook can still prove the
+    // class mounted. No production paint or state change occurs here.
+    if(ADSkelActive7339()&&ADClassNameIs7183(self,"AWLoadingIndicatorBarView"))ADCartStripGlobalMountDiag7347(self);
     if(!gP.enabled||!self.window)return;
     // Exact universal native error owner gets first refusal. Avoid even React/AppCX
     // classification on the CNM subtree; this surface is probe-proven UIKit.
@@ -2770,13 +2778,80 @@ static void ADOwnAppLoadingSurface7130(UIView *v){
 }
 %end
 
-// v7.345 — transition capture identifies the persistent Cart white line as
-// AWLoadingIndicatorBarView (430x5, content-backed) under AWLoadingIndicatorWidgets_Indicator.
-// Cover only while Amazon's exact cartTab is selected. The CALayer overlay follows the
-// bar's own animation/geometry and leaves Home's authored progress bar untouched.
+// v7.345 production behavior retained byte-for-byte in intent: transition capture identifies
+// the persistent Cart white line as AWLoadingIndicatorBarView (430x5, content-backed) under
+// AWLoadingIndicatorWidgets_Indicator. v7.347 adds read-only, explicitly-armed diagnostics
+// around this owner so the phone can prove whether the hook, Cart gate, or overlay attachment
+// is the missing link. No normal-runtime scan/timer/observer is added.
 static BOOL gADCartTabSelected7345=NO;
 static NSHashTable<UIView *> *gADCartLoadingBars7345=nil;
 static const void *kADCartLoadingBarCover7345=&kADCartLoadingBarCover7345;
+static BOOL gADCartExactHookSeen7347=NO;
+static BOOL gADCartGlobalMountSeen7347=NO;
+static __weak UIControl *gADCartLiveTab7347=nil;
+
+static UIControl *ADCartLiveTab7347(void){
+    if(!ADSkelActive7339())return nil;
+    @try {
+        UIControl *cached=gADCartLiveTab7347;
+        if(cached&&cached.window&&[cached.accessibilityIdentifier isEqualToString:@"cartTab"])return cached;
+        for(UIWindow *w in UIApplication.sharedApplication.windows){
+            if(!w||w.hidden||w.alpha<0.01)continue;
+            NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:w]; NSUInteger seen=0;
+            while(q.count&&seen++<1800){
+                UIView *v=q.firstObject;[q removeObjectAtIndex:0];
+                if([v isKindOfClass:UIControl.class]&&[v.accessibilityIdentifier isEqualToString:@"cartTab"]){gADCartLiveTab7347=(UIControl *)v;return (UIControl *)v;}
+                if(q.count<1600)for(UIView *c in v.subviews)[q addObject:c];
+            }
+        }
+    } @catch(...) {}
+    return nil;
+}
+static BOOL ADCartLiveSelected7347(UIControl *b){
+    if(!b)return NO;
+    @try{return b.selected||((b.state&UIControlStateSelected)!=0)||((b.accessibilityTraits&UIAccessibilityTraitSelected)!=0);}@catch(...){return NO;}
+}
+static void ADCartStripDiag7347(NSString *reason,UIView *bar){
+    if(!ADSkelActive7339())return;
+    @try {
+        UIControl *tab=ADCartLiveTab7347();
+        CALayer *cover=bar?objc_getAssociatedObject(bar,kADCartLoadingBarCover7345):nil;
+        NSMutableDictionary *r=[ADSkelEvent7339(@"CART_STRIP_OWNER") mutableCopy];
+        r[@"reason"]=reason?:@"";
+        r[@"latchedCartSelected"]=@(gADCartTabSelected7345);
+        r[@"liveCartFound"]=@(tab!=nil);
+        r[@"liveCartSelected"]=@(ADCartLiveSelected7347(tab));
+        r[@"liveCartState"]=tab?@(tab.state):(id)[NSNull null];
+        r[@"liveCartTraits"]=tab?@(tab.accessibilityTraits):(id)[NSNull null];
+        r[@"exactHookSeen"]=@(gADCartExactHookSeen7347);
+        r[@"globalMountSeen"]=@(gADCartGlobalMountSeen7347);
+        if(bar){
+            r[@"barClass"]=NSStringFromClass(bar.class)?:@"";
+            r[@"barWindow"]=@(bar.window!=nil);
+            r[@"barSuperview"]=bar.superview?(NSStringFromClass(bar.superview.class)?:@""):@"";
+            r[@"barRect"]=ADSkelRect7339([bar convertRect:bar.bounds toView:nil]);
+            r[@"barBounds"]=ADSkelRect7339(bar.bounds);
+            r[@"barHidden"]=@(bar.hidden);r[@"barAlpha"]=@(bar.alpha);
+            r[@"barLayerContents"]=@(bar.layer.contents!=nil);
+            r[@"barLayerBG"]=ADSkelColor7339(bar.layer.backgroundColor);
+            r[@"barSublayers"]=@(bar.layer.sublayers.count);
+            r[@"coverExists"]=@(cover!=nil);
+            if(cover){
+                r[@"coverHidden"]=@(cover.hidden);r[@"coverOpacity"]=@(cover.opacity);
+                r[@"coverFrame"]=ADSkelRect7339(cover.frame);r[@"coverBounds"]=ADSkelRect7339(cover.bounds);
+                r[@"coverBG"]=ADSkelColor7339(cover.backgroundColor);
+                r[@"coverName"]=cover.name?:@"";r[@"coverZ"]=@(cover.zPosition);
+                r[@"coverOnBarLayer"]=@(cover.superlayer==bar.layer);
+            }
+        }
+        ADSkelWrite7339(r);
+    } @catch(...) {ADSkelWrite7339(ADSkelEvent7339(@"CART_STRIP_DIAG_EXCEPTION"));}
+}
+static void ADCartStripGlobalMountDiag7347(UIView *v){
+    gADCartGlobalMountSeen7347=YES;
+    ADCartStripDiag7347(@"global.UIView.didMoveToWindow",v);
+}
+
 static void ADOwnCartLoadingBar7345(UIView *v){
     if(!v)return;
     @try {
@@ -2785,6 +2860,7 @@ static void ADOwnCartLoadingBar7345(UIView *v){
         CALayer *cover=objc_getAssociatedObject(v,kADCartLoadingBarCover7345);
         if(!gP.enabled||!gADCartTabSelected7345||!v.window){
             if(cover)cover.hidden=YES;
+            ADCartStripDiag7347(@"owner.gateClosed",v);
             return;
         }
         if(!cover){
@@ -2802,10 +2878,12 @@ static void ADOwnCartLoadingBar7345(UIView *v){
         cover.backgroundColor=ADOLED().CGColor;
         cover.hidden=NO;
         [CATransaction commit];
+        ADCartStripDiag7347(@"owner.coverVisible",v);
     } @catch(...) {}
 }
 static void ADSetCartTabSelected7345(BOOL selected){
     gADCartTabSelected7345=selected;
+    if(ADSkelActive7339())ADCartStripDiag7347(selected?@"tab.latchedSelected":@"tab.latchedDeselected",nil);
     @try {
         for(UIView *v in (gADCartLoadingBars7345.allObjects?:@[]))ADOwnCartLoadingBar7345(v);
     } @catch(...) {}
@@ -2813,11 +2891,15 @@ static void ADSetCartTabSelected7345(BOOL selected){
 %hook AWLoadingIndicatorBarView
 - (void)didMoveToWindow {
     %orig;
+    gADCartExactHookSeen7347=YES;
     ADOwnCartLoadingBar7345((UIView *)self);
+    ADCartStripDiag7347(@"exact.didMoveToWindow",(UIView *)self);
 }
 - (void)layoutSubviews {
     %orig;
+    gADCartExactHookSeen7347=YES;
     ADOwnCartLoadingBar7345((UIView *)self);
+    ADCartStripDiag7347(@"exact.layoutSubviews",(UIView *)self);
 }
 %end
 

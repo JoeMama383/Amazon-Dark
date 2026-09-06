@@ -1,87 +1,60 @@
-# AmazonDark v7.346 — full-source handoff
+# AmazonDark v7.347 — Cart strip owner forensics
 
-Exact source base: v7.344, commit `5bf6c356489bef37783fe25cee127799fa4f7578`.
-Package: `7.346~v7344-cart-strip-button`.
+Exact production visual base: v7.346 (`4d207ed`). This build is diagnostic-only for the persistent Cart white strip.
 
-Save `AmazonDark-v7.346-source.zip` in the usual shared Documents folder. This is
-the complete source tree, including the existing Actions workflow and assets.
-Run the established replacement-and-push command in NewTerm:
+## Push full source from current v7.346 main
+
+Save `AmazonDark-v7.347-cart-strip-owner-forensics-source.zip` in the usual shared Documents folder, then run:
 
 ```sh
 cd /var/mobile/Amazon-Dark-phone && \
 git checkout -q main && \
+git fetch origin main && \
+git merge --ff-only origin/main && \
+grep -qx 'Version: 7.346~v7344-cart-strip-button' layout/DEBIAN/control && \
 D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents && \
-rm -rf /var/mobile/t7346 && mkdir -p /var/mobile/t7346 && \
-unzip -q "$D/AmazonDark-v7.346-source.zip" -d /var/mobile/t7346 && \
+T=/var/mobile/t7347 && rm -rf "$T" && mkdir -p "$T" && \
+unzip -q "$D/AmazonDark-v7.347-cart-strip-owner-forensics-source.zip" -d "$T" && \
 find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} + && \
-cp -a /var/mobile/t7346/AmazonDark-v7.346-source/. . && \
-grep '^Version:' layout/DEBIAN/control && \
-git add -A && \
-git commit -q -m "v7.346: restore v7.344 base and fix Cart strip and buying-options button" && \
+cp -a "$T/AmazonDark-v7.347-cart-strip-owner-forensics-source/." . && \
+grep -qx 'Version: 7.347~cart-strip-owner-forensics' layout/DEBIAN/control && \
+grep -q '#define AD_VERSION "v7.347-cart-strip-owner-forensics"' src/Tweak.xm && \
+grep -q 'CART_STRIP_OWNER' src/Tweak.xm && \
+git diff --check && \
+git add -A && git status --short && \
+git commit -m 'v7.347: instrument persistent Cart strip owner and gate' && \
 git push origin main
 ```
 
-Install the package from the usual macOS Actions build and respring as usual.
-Check the installed package:
+Install the resulting Actions package and run `sbreload`.
 
-```sh
-dpkg-query -W -f='${Package} ${Version}\n' com.joemama383.amazondark
-```
+## Decisive Cart strip capture
 
-## Record startup and the Cart strip/button
-
-Force-close Amazon, then arm the combined capture:
+1. Force-close Amazon.
+2. Arm the transition recorder:
 
 ```sh
 cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh arm transition
 ```
 
-Open Amazon within five minutes. Each fresh process records startup and Home/Cart
-for up to 45 seconds, stopping on background. Go to Cart, reproduce the loading
-strip, and bring the recommendation row with “See all buying options” into view.
-The recorder watches native layers and WebKit paint; no timed screenshot is needed.
-The recording deadline does not hold, dismiss or retime any UI. A warm resume does
-not restart recording. To repeat, force-close and reopen within the arm window.
-
-Export after the run:
+3. Launch Amazon within five minutes, open Cart, and reproduce the white strip several times inside the 45-second recording window. While the strip is visibly white, take **one iOS screenshot**; the armed recorder treats that as an exact-moment `USER_MARK` and suppresses the old scrolling screenshot probe.
+4. Export:
 
 ```sh
 cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh export
 ```
 
-Upload the printed `AmazonDark-v7.346-probes-*.tar` from shared Documents.
-Compression/Gzip is not required. If tar fails, the helper exports a `.txt` containing
-the same logs and status. The original captures remain on the phone. Export disarms
-future launches. Older captures may also be included; each identifies its version
-and session, so report which run showed the issue.
+Upload the printed `AmazonDark-v7.347-probes-*.tar`.
 
-## Longer Home/Cart skeleton capture
+## What this run resolves
 
-For two minutes of Home/Cart observation, force-close Amazon and use:
+- `globalMountSeen=1`, `exactHookSeen=0` -> exact Logos class hook did not run; use the global lifecycle path as the production late-load fallback.
+- `exactHookSeen=1`, `liveCartSelected=1`, `latchedCartSelected=0` -> production's `setSelected:` latch is wrong; switch the cover gate to the live Cart control state.
+- `coverExists=0` or `coverHidden=1` while live Cart is selected -> owner/gate timing failure; synchronize on mount/selection and pre-window superview state.
+- `coverExists=1`, `coverHidden=0`, black cover frame matches the 430x5 bar, yet the screenshot is white -> the captured `AWLoadingIndicatorBarView` is not the topmost visible strip; inspect the same-frame parent/sibling/native compositor records and Web strip candidates instead of changing this gate again.
 
-```sh
-cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh arm both
-```
-
-Open within five minutes; refresh Home, swipe the hero cards, then visit and refresh
-Cart. Export using the command above. `arm launch` remains available for native-only
-startup capture lasting up to 20 seconds per fresh process.
-
-## Check capture status
+Status if needed:
 
 ```sh
 cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh status
-```
-
-The current receipt should report `v7.346-v7344-cart-strip-button` and
-`capture-started`; the current JSONL begins with `SESSION_START`. A v7.344 receipt
-can identify Amazon's container during upgrade, but it does not prove v7.346 is
-loaded. Arming requires the installed v7.346 package. If no capture exists, run
-`export` anyway: its diagnostic report explains package/container/receipt failures.
-The SpringBoard source and its inherited v7.338 log identity remain unchanged.
-
-To disarm future launches manually:
-
-```sh
-cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh disarm
 ```
