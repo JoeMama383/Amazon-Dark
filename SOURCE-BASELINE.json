@@ -1,5 +1,5 @@
 {
-  "version": "7.340~v7309-portable-skeleton-probe",
+  "version": "7.341~container-capture-startup-diagnostics",
   "base_commit": "1bd6d82bdff18ebba012794ef70e7c288a21336e",
   "base_title": "v7.309: exact dog, Cart, footer, and XL brand fixes",
   "baseline_sha256": {
@@ -60,17 +60,17 @@
   "transition_donor_zip_sha256": "ebc81c698ab46d290ba8135eef28fc7b204364090b471aace1fc871379befb58",
   "transition_donor_sb_sha256": "076a9bc1c1cc0424e4bd79e79306b5791da90bfd66f5c973ddbb86c1215f3806",
   "ported_tweak_without_probe_sha256": "6f64b4411b28febe1ab73cadc4b17a753ed09073fe7c8255857e84afa71a5e66",
-  "scope": "Exact v7.309 UI with successful v7.338 transition source, matching obsolete readiness/purge removals, and opt-in read-only transient skeleton probe. No new color, image, geometry, warm, switcher, animation or launch changes. No newer branch used.",
+  "scope": "Exact v7.309 UI plus inherited v7.338 transition source. Probe handoff moves into Amazon Documents with startup status and always-available diagnostic export. Adds opt-in native launch/fade observations; no production paint/geometry/animation/presentation changes.",
   "delivery_sha256": {
-    "src/Tweak.xm": "06088ca933d1cae06ba1e38858164af9406c4ed35a9cbcca26f0fdc8cfd1a939",
+    "src/Tweak.xm": "eed0c6f124b1761c81ebcd3e5e365b3ae39e2b670b44d8aa3132e9ad0abb7487",
     "src/AmazonDarkSB.xm": "076a9bc1c1cc0424e4bd79e79306b5791da90bfd66f5c973ddbb86c1215f3806",
-    "src/ADSkeletonProbe7339.h": "e3f2b34dd50ca416ac68ea3e8a6bc242b36285d0f98bb418b7eccae69b0e69f1",
+    "src/ADSkeletonProbe7339.h": "535188ef36b1df83ee6925196fc173254f5dfbce9592eed0a472a7837678b8cc",
     "src/ADSkeletonProbe7339.js.inc": "5e34d53094be04278d71c7305f0ee7e59f4e18c2e1c04110cd04aac9e5768823",
-    "layout/DEBIAN/control": "3975b8c64e4d7e0dcecedef2d342d0c712b6f7dd835e058bb0cbf1fa3c601d34",
-    "scripts/skeleton-probe.sh": "b19546aa700bbb71dcf77ae23ecc0d95f23b74f339f2550f2f4fc12212a2a286"
+    "layout/DEBIAN/control": "8ec143815982db2672585b0e8d92c185a6afb32c33f41d12cd5b526782a3edff",
+    "scripts/skeleton-probe.sh": "86fad8f4fe6fd830b64c70e9b9550e58cb33ca79bf92d195eb53caf51246faa8"
   },
-  "parent_version": "7.339~v7309-transition-skeleton-probe",
-  "parent_zip_sha256": "11c3ecc495cc122f8ee119712f8589cec4b499f04609a4a8a03a51d60b84c471",
-  "hotfix": "Ordinary C string embedding replaces the C++11 raw wrapper rejected by the Actions compiler. The compiled JavaScript bytes are identical; only version labels and probe filenames otherwise change. Build/workflow/UI/transition files retain their prior behavior.",
+  "parent_version": "7.340~v7309-portable-skeleton-probe",
+  "parent_zip_sha256": "5e19b3e3242afd3503d521db452efd57fe9d6342d30b996dced2836ce993fae7",
+  "hotfix": "Repair app-container arm/log paths and expose bootstrap/write failures. Add launch diagnostic mode using native frames, lifecycle observations and before/after splash-owner reads. SpringBoard source remains byte-identical; skeleton JS bytes remain identical.",
   "embedded_js_sha256": "b4a265b6044c0fbc5aa077f77a2eb4686b610bee557640abb8404d53d92f229b"
 }

@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.340 — v7.309 UI + v7.338 transition fix + portable skeleton probe
+ * AmazonDark v7.341 — v7.309 UI + container capture + startup diagnostics
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.340-v7309-portable-skeleton-probe"
+#define AD_VERSION "v7.341-container-capture-startup-diagnostics"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -7249,6 +7249,7 @@ static const void *kADWarmSplashSuppressed7307=&kADWarmSplashSuppressed7307;
 
 static void ADOwnAmazonSplash7307(UIViewController *vc){
     if(!gP.enabled||!vc||!vc.view)return;
+    ADSkelSplash7339(vc,@"own.before"); // v7.341 read-only splash diagnostics
     @try {
         BOOL latched=[objc_getAssociatedObject(vc,kADWarmSplashSuppressed7307) boolValue];
         if(gADOrdinaryWarmResume7307||latched){
@@ -7264,6 +7265,7 @@ static void ADOwnAmazonSplash7307(UIViewController *vc){
         vc.view.alpha=1.0;
         ADSetViewBackground7226(vc.view,ADOLED(),YES);
     } @catch(...) {}
+    @finally { ADSkelSplash7339(vc,@"own.after"); } // v7.341 read-only splash diagnostics
 }
 static void ADReleaseWarmSplash7307(UIViewController *vc){
     if(!vc||!vc.view)return;

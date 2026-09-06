@@ -1,3 +1,33 @@
+# AmazonDark v7.341 — container capture and startup diagnostics
+
+Package: `7.341~container-capture-startup-diagnostics`. Builds on the delivered
+v7.340 source, retaining the exact v7.309 UI selected by the user and the v7.338
+SpringBoard artwork implementation. The reported brief launch flash and abrupt
+handoff remain under investigation; this is a diagnostic build.
+
+The probe now reads its arm file and writes captures in Amazon's own Documents
+directory. A startup receipt reports the loaded version and bootstrap failures.
+The phone helper resolves Amazon by container metadata, checks the installed
+package before arming, and exports a status report even when no capture ran.
+It also recovers older outside-container logs and includes the existing
+SpringBoard artwork log. See [COMMANDS.md](COMMANDS.md) for the exact workflow.
+
+`arm both` records Home/Cart skeletons for up to two minutes. `arm launch` records
+only native startup state for at most 20 seconds per fresh process, ending at
+background. This deadline stops recording; it never holds a view or delays Home.
+Launch capture includes model/presentation opacity, animation timing and existing
+splash-owner state before/after painting. It installs no WebKit observer in launch
+mode and performs no UI writes. The two modes should be captured separately.
+
+The full-file baseline checks verify the app's production code after removing
+only the explicitly listed diagnostic calls. SpringBoard source and skeleton
+JavaScript are byte-identical to the preceding source. Local arm64/arm64e source
+compilation/link/package succeeded, with C++98 explicitly selected for validation.
+Use the usual macOS Actions package for installation. Phone rendering and capture
+still need the returned probe files. See [CAPTURE-AUDIT.md](CAPTURE-AUDIT.md).
+
+The entries below are historical descriptions of inherited versions.
+
 # AmazonDark v7.340 — probe compilation repair
 
 Package: `7.340~v7309-portable-skeleton-probe`. This corrects the v7.339

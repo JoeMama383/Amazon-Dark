@@ -44,10 +44,12 @@ def main():
 
     native = (ROOT / 'src/ADSkeletonProbe7339.h').read_text()
     control = (ROOT / 'scripts/skeleton-probe.sh').read_text()
-    for text in [native, control]:
-        assert 'AmazonDark-v7.340-skeleton' in text
-        assert 'AmazonDark-v7.339-skeleton' not in text
-    print("PASS: native capture and phone helper agree on v7.340 filenames")
+    assert 'NSDocumentDirectory,NSUserDomainMask' in native
+    assert '@"/var/mobile/' not in native
+    assert 'AmazonDark-v7.341-probe.arm' in native
+    assert 'AD_PROBE_NAME=AmazonDark-v7.341' in control
+    print("PASS: native capture uses app Documents; v7.341 helper identity agrees")
+
 
 
 if __name__ == '__main__':
