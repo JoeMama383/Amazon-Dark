@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.342 — v7.309 UI + dual launch-transition capture diagnostics
+ * AmazonDark v7.344 — v7.343 skeleton fixes + Cart authored-loader/image preservation
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.342-dual-transition-capture-diagnostics"
+#define AD_VERSION "v7.344-cart-loader-image-preservation"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -917,6 +917,13 @@ static NSString *ADFloorJS(void){
         @"adow:none!important;}#gwm-CardLoadingIndicator.gwm-LoadingIndicator::after{background:#000!important;background-color:#000!important;box-shadow:none!important;}::-webkit-scrollbar{"
         @"background-color:transparent!important;}::-webkit-scrollbar-track{background-color:transparent!important;}::-webkit-scrollbar-thumb{background-color:#6f6f6f!important;border-radius"
         @":8px!important;border:2px solid transparent!important;background-clip:content-box!important;}::-webkit-scrollbar-thumb:hover{background-color:#8a8a8a!important;}"
+        // v7.343: temporal probes captured the current Home hero and Cart recommendation
+        // shimmer painters directly. Own only those exact transient families at document start.
+        // No IMG/PICTURE/media leaf is hidden or recolored by these rules.
+        @"li.gwm-window-tile.gwm-window-skeleton,li.gwm-window-tile.gwm-window-skeleton::before,li.gwm-window-tile.gwm-window-skeleton::after{background:#181a1b!important;background-color:#181a1b!important;background-image:none!important;border-color:#494d4d!important;box-shadow:none!important;}li.gwm-window-tile.gwm-window-skeleton :is([class*=SkeletonAnimation],[class*=skeletonAnimation],[class*=skeleton-animation]),li.gwm-window-tile.gwm-window-skeleton :is([class*=SkeletonAnimation],[class*=skeletonAnimation],[class*=skeleton-animation])::before,li.gwm-window-tile.gwm-window-skeleton :is([class*=SkeletonAnimation],[class*=skeletonAnimation],[class*=skeleton-animation])::after{background-color:#303335!important;background-image:linear-gradient(90deg,#181a1b,#303335,#181a1b)!important;border-color:#494d4d!important;box-shadow:none!important;}"
+        // v7.344: keep the new shimmer shell dark without erasing an Amazon-authored
+        // image/background on the image-bearing shimmer lane. Text/button shimmer stays dark.
+        @"#sc-page-container #sc-recs-atf-shimmer-placeholder,#sc-page-container .sc-recs-cards-row-shimmer{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}#sc-page-container .sc-rec-card-shimmer{background:#181a1b!important;background-color:#181a1b!important;background-image:none!important;border-color:#494d4d!important;box-shadow:none!important;}#sc-page-container .sc-rec-card-shimmer .sc-rec-card-image-shimmer{background-color:transparent!important;border-color:#494d4d!important;box-shadow:none!important;}#sc-page-container .sc-rec-card-shimmer :is(.sc-rec-card-text-shimmer,.sc-rec-card-button-shimmer){background:#303335!important;background-color:#303335!important;background-image:none!important;border-color:#494d4d!important;box-shadow:none!important;}"
         // v7.245: Cart-probe-backed first-paint ownership. Exact Cart selectors only.
         // Product/media filters are intentionally not touched here; TWB remains in ADTWBJS.
         @"#sc-page-container,#sc-page-content,#sc-buy-box,#sc-mini-buy-box,#sc-active-cart,#sc-saved-cart,#sc-page-container .sc-list-item,#sc-page-container .sc-list-item-content,#sc-page-container .swipe-item-content,#sc-page-container [class*=sc-][class*=content],#sc-page-container [class*=sc-][class*=container],#sc-page-container .a-cardui.sc-card-style,#sc-page-container .a-cardui-deck.sc-background-dark,#sc-page-container .sc-cart-overwrap,#sc-page-container .sc-undo-slide-reveal,#sc-page-container .swipe-button,#sc-page-container .sc-returns-are-easy-container,#sc-page-container .maple-banner__container,#sc-page-container .p13n-sc-shoveler,#sc-page-container .a-carousel-container.p13n-sc-shoveler{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}#sc-page-content>*{background-color:#000!important;}#sc-buy-box *,#sc-buy-box *::before,#sc-buy-box *::after,#sc-mini-buy-box *,#sc-mini-buy-box *::before,#sc-mini-buy-box *::after{background-color:transparent!important;box-shadow:none!important;transition-property:none!important;}#sc-buy-box :not(.a-spinner):not(.a-icon),#sc-mini-buy-box :not(.a-spinner):not(.a-icon),#sc-buy-box *::before,#sc-buy-box *::after,#sc-mini-buy-box *::before,#sc-mini-buy-box *::after{background-image:none!important;}#sc-saved-cart{border-top-color:#000!important;border-bottom-color:#000!important;}#sc-page-container>.sc-cart-spinner{background:#000!important;background-color:#000!important;box-shadow:none!important;top:0!important;right:0!important;bottom:0!important;left:0!important;width:auto!important;height:auto!important;}#sc-page-container>.sc-cart-spinner>.a-spinner{background-color:transparent!important;}"
@@ -933,7 +940,10 @@ static NSString *ADFloorJS(void){
         // lane also exposes the earlier empty/pre-product skeleton family before the
         // later .a-loading-static / hydrated .p13n-uf states. Keep this strictly under
         // #sc-page-container; do not restore v7.302's rejected global transition work.
-        @"#sc-page-container #sc-saved-cart,#sc-page-container #sc-saved-cart::before,#sc-page-container #sc-saved-cart::after,#sc-page-container #sc-saved-cart>*{background:#000!important;background-color:#000!important;background-image:none!important;border-top-color:#000!important;border-bottom-color:#000!important;box-shadow:none!important;transition:none!important;}#sc-page-container #p13n-uf-anchor li.a-carousel-card.a-carousel-card-empty{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#494d4d!important;box-shadow:none!important;transition:none!important;}#sc-page-container #p13n-uf-anchor li.a-carousel-card.a-carousel-card-empty>*{background:#181a1b!important;background-color:#181a1b!important;background-image:none!important;border-color:#494d4d!important;box-shadow:none!important;transition:none!important;}#sc-page-container #p13n-uf-anchor li.a-carousel-card:not(:has(.p13n-uf)):not(:has(img[src]))>* :is(div,span){background-color:#303335!important;border-color:#494d4d!important;box-shadow:none!important;transition:none!important;}"
+        // v7.344: restore the known-good v7.326/v7.251 loader contract. The empty card
+        // shell stays dark, but its children are NOT flattened and their background-image
+        // is NOT cleared. Restrict the later pre-product gray painter to non-empty cards.
+        @"#sc-page-container #sc-saved-cart,#sc-page-container #sc-saved-cart::before,#sc-page-container #sc-saved-cart::after,#sc-page-container #sc-saved-cart>*{background:#000!important;background-color:#000!important;background-image:none!important;border-top-color:#000!important;border-bottom-color:#000!important;box-shadow:none!important;transition:none!important;}#sc-page-container #p13n-uf-anchor li.a-carousel-card.a-carousel-card-empty{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#494d4d!important;box-shadow:none!important;transition:none!important;}#sc-page-container #p13n-uf-anchor li.a-carousel-card:not(.a-carousel-card-empty):not(:has(.p13n-uf)):not(:has(img[src]))>* :is(div,span){background-color:#303335!important;border-color:#494d4d!important;box-shadow:none!important;transition:none!important;}"
         // v7.251: Cart probe identifies the actual white loading boxes as Amazon's
         // li.a-carousel-card.a-carousel-card-empty > .a-loading-static (120x120),
         // not the eventual product IMG/compositor. Own that transient card directly.
@@ -7325,9 +7335,17 @@ static void ADInstallWarmResumeLifecycle7307(void){
     %orig;
     ADOwnAmazonSplash7307(self);
 }
-- (void)viewDidDisappear:(BOOL)animated {
+- (void)viewWillDisappear:(BOOL)animated {
+    ADSkelSplash7339(self,@"lifecycle.willDisappear.before");
     %orig;
+    ADSkelSplash7339(self,@"lifecycle.willDisappear.after");
+}
+- (void)viewDidDisappear:(BOOL)animated {
+    ADSkelSplash7339(self,@"lifecycle.didDisappear.before");
+    %orig;
+    ADSkelSplash7339(self,@"lifecycle.didDisappear.afterOrig");
     ADReleaseWarmSplash7307(self);
+    ADSkelSplash7339(self,@"lifecycle.didDisappear.afterRelease");
 }
 %end
 %hook TezBaseSplashScreenViewController
@@ -7347,9 +7365,17 @@ static void ADInstallWarmResumeLifecycle7307(void){
     %orig;
     ADOwnAmazonSplash7307(self);
 }
-- (void)viewDidDisappear:(BOOL)animated {
+- (void)viewWillDisappear:(BOOL)animated {
+    ADSkelSplash7339(self,@"lifecycle.willDisappear.before");
     %orig;
+    ADSkelSplash7339(self,@"lifecycle.willDisappear.after");
+}
+- (void)viewDidDisappear:(BOOL)animated {
+    ADSkelSplash7339(self,@"lifecycle.didDisappear.before");
+    %orig;
+    ADSkelSplash7339(self,@"lifecycle.didDisappear.afterOrig");
     ADReleaseWarmSplash7307(self);
+    ADSkelSplash7339(self,@"lifecycle.didDisappear.afterRelease");
 }
 %end
 
