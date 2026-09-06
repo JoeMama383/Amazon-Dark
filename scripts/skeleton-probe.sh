@@ -1,11 +1,11 @@
 #!/bin/sh
 # NewTerm/mobile. Resolve Amazon's data container; never write probe data into another app.
 set -eu
-AD_PROBE_VERSION=7.347
+AD_PROBE_VERSION=7.348
 AD_PROBE_ROOT=${AD_PROBE_ROOT:-/var/mobile}
 AD_PROBE_CONTAINERS=${AD_PROBE_CONTAINERS:-$AD_PROBE_ROOT/Containers/Data/Application}
 AD_PROBE_DOCS=${AD_PROBE_DOCS:-/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents}
-AD_PROBE_NAME=AmazonDark-v7.347
+AD_PROBE_NAME=AmazonDark-v7.348
 AD_PROBE_TARGETS=$(mktemp)
 trap 'rm -f "$AD_PROBE_TARGETS"' EXIT HUP INT TERM
 AD_PROBE_SEEN=0
@@ -36,7 +36,7 @@ for AD_PROBE_RECEIPT in "$AD_PROBE_CONTAINERS"/*/Documents/"$AD_PROBE_NAME-probe
     [ -f "$AD_PROBE_RECEIPT" ] || continue
     if LC_ALL=C grep -Eq '"bundle"[[:space:]]*:[[:space:]]*"com[.]amazon[.]Amazon"' "$AD_PROBE_RECEIPT" &&
        LC_ALL=C grep -Eq '"event"[[:space:]]*:[[:space:]]*"PROBE_BOOTSTRAP"' "$AD_PROBE_RECEIPT" &&
-       LC_ALL=C grep -Eq '"version"[[:space:]]*:[[:space:]]*"v7[.](344|346|347)-' "$AD_PROBE_RECEIPT"; then
+       LC_ALL=C grep -Eq '"version"[[:space:]]*:[[:space:]]*"v7[.](344|346|347|348)-' "$AD_PROBE_RECEIPT"; then
         AD_PROBE_RECEIPTS=$((AD_PROBE_RECEIPTS+1))
         AD_PROBE_DIR=${AD_PROBE_RECEIPT%/*}
         if ! grep -Fqx "$AD_PROBE_DIR" "$AD_PROBE_TARGETS"; then
@@ -79,7 +79,7 @@ case "${1:-}" in
     case "$AD_PROBE_LABEL" in home|cart|both|launch|transition) ;; *) printf 'Use arm home, cart, both, launch, or transition.\n' >&2; exit 1;; esac
     [ -s "$AD_PROBE_TARGETS" ] || { ad_report; printf 'Cannot identify Amazon data container. Open Amazon once, then retry; send this output if still missing.\n' >&2; exit 1; }
     AD_PROBE_INSTALLED=$(dpkg-query -W -f='${Version}' com.joemama383.amazondark 2>/dev/null || true)
-    case "$AD_PROBE_INSTALLED" in 7.347~*) ;; *) printf 'Install the v7.347 Actions package first. Installed: %s\n' "$AD_PROBE_INSTALLED" >&2; exit 1;; esac
+    case "$AD_PROBE_INSTALLED" in 7.348~*) ;; *) printf 'Install the v7.348 Actions package first. Installed: %s\n' "$AD_PROBE_INSTALLED" >&2; exit 1;; esac
     umask 077
     while IFS= read -r AD_PROBE_DIR; do
         mkdir -p "$AD_PROBE_DIR"

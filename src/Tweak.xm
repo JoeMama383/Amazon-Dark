@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.347 — v7.346 visuals + Cart strip owner/gate forensics
+ * AmazonDark v7.348 — native loading-gradient strip fix + retained Cart forensics
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.347-cart-strip-owner-forensics"
+#define AD_VERSION "v7.348-cart-native-gradient-strip-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -76,6 +76,9 @@ extern char *__progname;
 // v7.130: exact owners proven by the v7.129 transition probe.
 @interface AWLoadingIndicatorFullScreenModalBar : UIView @end
 @interface AWLoadingIndicatorWidgets_BkgView : UIView @end
+// v7.348: exact native loading-strip renderer family proven by the v7.347 temporal capture.
+@interface AWLoadingIndicatorWidgets_Indicator : UIView @end
+@interface AWLoadingIndicatorWidgets_HighlightView : UIView @end
 // v7.345: the 430x5 content-backed Cart progress/strip owner captured by the transition recorder.
 @interface AWLoadingIndicatorBarView : UIView @end
 @interface AWLoadingIndicatorWidgets_LoadingText : UILabel @end
@@ -2710,6 +2713,27 @@ static CALayer *ADBlackBackingLayer7130(UIView *v,const void *key){
     back.hidden=NO;
     return back;
 }
+// v7.348: v7.347 proves AWLoadingIndicatorWidgets_BkgView is backed by a
+// CAGradientLayer whose authored colors remain ~#ededed -> #dedede even after
+// v7.130 sets UIView/CALayer backgroundColor black.  The black backing therefore
+// sits UNDER an active light renderer.  Complete v7.130's exact-floor contract by
+// neutralizing the gradient itself whenever this exact app-loading surface is live.
+static void ADBlackenLoadingGradient7348(UIView *v){
+    if(!v)return;
+    @try {
+        CALayer *layer=v.layer;
+        if(![layer isKindOfClass:[CAGradientLayer class]])return;
+        CAGradientLayer *g=(CAGradientLayer *)layer;
+        NSArray *old=g.colors;
+        NSUInteger n=old.count; if(n<2)n=2;
+        id black=(__bridge id)ADOLED().CGColor;
+        NSMutableArray *colors=[NSMutableArray arrayWithCapacity:n];
+        for(NSUInteger i=0;i<n;i++)[colors addObject:black];
+        g.colors=colors;
+        g.backgroundColor=ADOLED().CGColor;
+    } @catch(...) {}
+}
+
 static BOOL ADAppLoadingSurface7130(UIView *v){
     if(!gP.enabled||!v||!v.window)return NO;
     @try {
@@ -2758,20 +2782,24 @@ static void ADOwnAppLoadingSurface7130(UIView *v){
 - (void)didMoveToWindow {
     %orig;
     ADOwnAppLoadingSurface7130((UIView *)self);
+    if(ADAppLoadingSurface7130((UIView *)self))ADBlackenLoadingGradient7348((UIView *)self);
 }
 - (void)layoutSubviews {
     %orig;
     ADOwnAppLoadingSurface7130((UIView *)self);
+    if(ADAppLoadingSurface7130((UIView *)self))ADBlackenLoadingGradient7348((UIView *)self);
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if(ADInternalPaintWrite7226()){
         %orig(color);
+        if(ADAppLoadingSurface7130((UIView *)self))ADBlackenLoadingGradient7348((UIView *)self);
         return;
     }
     if(ADAppLoadingSurface7130((UIView *)self)){
         UIColor *black=ADOLED();
         %orig(black);
         ADBlackBackingLayer7130((UIView *)self,kADLoadingBacking7130);
+        ADBlackenLoadingGradient7348((UIView *)self);
         return;
     }
     %orig(color);
@@ -2872,6 +2900,12 @@ static void ADOwnCartLoadingBar7345(UIView *v){
         }else if(cover.superlayer!=v.layer){
             [v.layer addSublayer:cover];
         }
+        // v7.348: do not rely on a child overlay alone. The v7.347 capture proves
+        // this bar keeps authored layer.contents while a sibling BkgView owns a separate
+        // gradient renderer. On Cart, make the exact bar plane itself OLED and remove
+        // only its transient authored strip contents. Home remains untouched by this gate.
+        ADSetViewBackground7226(v,ADOLED(),YES);
+        v.layer.contents=nil;
         [CATransaction begin];
         [CATransaction setDisableActions:YES];
         cover.frame=v.bounds;
@@ -2900,6 +2934,39 @@ static void ADSetCartTabSelected7345(BOOL selected){
     gADCartExactHookSeen7347=YES;
     ADOwnCartLoadingBar7345((UIView *)self);
     ADCartStripDiag7347(@"exact.layoutSubviews",(UIView *)self);
+}
+%end
+
+// v7.348: the temporal recorder also catches an 860x5 CAGradientLayer
+// AWLoadingIndicatorWidgets_HighlightView inside the Cart bar.  Neutralize that exact
+// animated progress gradient only while cartTab is selected.  The 2.5pt Indicator
+// parent receives an OLED floor as a final exact-family seal; no geometry/animation is changed.
+static void ADOwnCartLoadingNativeLeaf7348(UIView *v){
+    if(!v||!gP.enabled||!gADCartTabSelected7345||!v.window)return;
+    @try {
+        ADSetViewBackground7226(v,ADOLED(),YES);
+        if([v.layer isKindOfClass:[CAGradientLayer class]])ADBlackenLoadingGradient7348(v);
+    } @catch(...) {}
+}
+%hook AWLoadingIndicatorWidgets_Indicator
+- (void)didMoveToWindow {
+    %orig;
+    ADOwnCartLoadingNativeLeaf7348((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADOwnCartLoadingNativeLeaf7348((UIView *)self);
+}
+%end
+
+%hook AWLoadingIndicatorWidgets_HighlightView
+- (void)didMoveToWindow {
+    %orig;
+    ADOwnCartLoadingNativeLeaf7348((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADOwnCartLoadingNativeLeaf7348((UIView *)self);
 }
 %end
 

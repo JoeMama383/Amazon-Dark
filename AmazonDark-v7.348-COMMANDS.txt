@@ -1,0 +1,45 @@
+AmazonDark v7.348 — phone workflow
+====================================
+
+PUSH / REPLACE v7.347 WITH v7.348
+---------------------------------
+D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents
+cd /var/mobile/Amazon-Dark-phone && \
+git checkout -q main && \
+git fetch origin main && \
+git merge --ff-only origin/main && \
+grep -qx 'Version: 7.347~cart-strip-owner-forensics' layout/DEBIAN/control && \
+T=/var/mobile/t7348 && rm -rf "$T" && mkdir -p "$T" && \
+unzip -q "$D/AmazonDark-v7.348-cart-native-gradient-strip-fix-source.zip" -d "$T" && \
+find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} + && \
+cp -a "$T/AmazonDark-v7.348-cart-native-gradient-strip-fix-source/." . && \
+grep -qx 'Version: 7.348~cart-native-gradient-strip-fix' layout/DEBIAN/control && \
+grep -q '#define AD_VERSION "v7.348-cart-native-gradient-strip-fix"' src/Tweak.xm && \
+grep -q 'ADBlackenLoadingGradient7348' src/Tweak.xm && \
+grep -q '%hook AWLoadingIndicatorWidgets_HighlightView' src/Tweak.xm && \
+grep -q 'v.layer.contents=nil' src/Tweak.xm && \
+git diff --check && \
+git add -A && git status --short && \
+git commit -m 'v7.348: fix persistent Cart native gradient strip' && \
+git push origin main
+
+AFTER INSTALL
+-------------
+sbreload
+
+VERIFY THE FIX — TRANSITION PROBE
+---------------------------------
+1. Force-close Amazon.
+2. Arm:
+
+cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh arm transition
+
+3. Launch Amazon, enter Cart, and refresh/reload the Cart several times.
+   Expected: no bright horizontal loading strip.
+   If ANY bright strip is visible, take one iOS screenshot while it is visible so the armed recorder has the exact moment.
+
+4. Export:
+
+cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh export
+
+Send the resulting AmazonDark-v7.348-probes-*.tar if the strip survives or if you want the fixed-state capture audited.

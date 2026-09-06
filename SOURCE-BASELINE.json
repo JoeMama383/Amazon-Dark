@@ -1,5 +1,5 @@
 {
-  "version": "7.347~cart-strip-owner-forensics",
+  "version": "7.348~cart-native-gradient-strip-fix",
   "parent_commit": "4d207ed20d679e91c25ffd9366ed8de6a0fc0d5b",
   "parent_title": "v7.346: restore v7.344 base and fix Cart strip and buying-options button",
   "underlying_visual_base_commit": "5bf6c356489bef37783fe25cee127799fa4f7578",
