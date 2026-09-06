@@ -1,7 +1,7 @@
 """Regression for v7.339's Actions compile failure, plus exact JS byte identity.
 
 Compile the actual shipped include, not an imitation, in C99 and C++98. Execute
-both outputs and require the same bytes as the prior v7.339 raw-string payload.
+both outputs and require exactly the shipped v7.346 probe bytes.
 """
 import hashlib
 import json
@@ -10,7 +10,7 @@ import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-PAYLOAD_SHA256 = "b4a265b6044c0fbc5aa077f77a2eb4686b610bee557640abb8404d53d92f229b"
+PAYLOAD_SHA256 = "01b809ef43f3b970d8eda61468db6d8bad693dd1bc36d424fd0b01ebe48b270f"
 
 
 def main():
@@ -32,7 +32,7 @@ def main():
                             '-Wall', '-Wextra', '-Werror', '-I', str(inc.parent),
                             str(bridge), '-o', str(output)], check=True)
             assert subprocess.check_output([str(output)]) == source, standard
-            print(f"PASS: shipped include compiles in {standard}; emitted JS bytes equal v7.339")
+            print(f"PASS: shipped include compiles in {standard}; emitted JS bytes equal v7.346")
 
         # Reject the exact former representation in the old dialect. Without this
         # negative control, a default-modern compiler could conceal the regression.
@@ -46,9 +46,9 @@ def main():
     control = (ROOT / 'scripts/skeleton-probe.sh').read_text()
     assert 'NSDocumentDirectory,NSUserDomainMask' in native
     assert '@"/var/mobile/' not in native
-    assert 'AmazonDark-v7.341-probe.arm' in native
-    assert 'AD_PROBE_NAME=AmazonDark-v7.341' in control
-    print("PASS: native capture uses app Documents; v7.341 helper identity agrees")
+    assert 'AmazonDark-v7.346-probe.arm' in native
+    assert 'AD_PROBE_NAME=AmazonDark-v7.346' in control
+    print("PASS: native capture uses app Documents; v7.346 helper identity agrees")
 
 
 

@@ -1,90 +1,87 @@
-# v7.341 source handoff
+# AmazonDark v7.346 — full-source handoff
 
-UI base: `1bd6d82` — `v7.309: exact dog, Cart, footer, and XL brand fixes`.
-Parent: the delivered v7.340 source. SpringBoard remains the v7.338 artwork source.
-This build repairs the missing capture/export path and adds startup/fade
-observations. It does not claim a new white-flash, fade, or skeleton color fix.
+Exact source base: v7.344, commit `5bf6c356489bef37783fe25cee127799fa4f7578`.
+Package: `7.346~v7344-cart-strip-button`.
 
-Save `AmazonDark-v7.341-source.zip` in the usual shared Documents folder, then run:
+Save `AmazonDark-v7.346-source.zip` in the usual shared Documents folder. This is
+the complete source tree, including the existing Actions workflow and assets.
+Run the established replacement-and-push command in NewTerm:
 
 ```sh
 cd /var/mobile/Amazon-Dark-phone && \
 git checkout -q main && \
 D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents && \
-rm -rf /var/mobile/t7341 && mkdir -p /var/mobile/t7341 && \
-unzip -q "$D/AmazonDark-v7.341-source.zip" -d /var/mobile/t7341 && \
+rm -rf /var/mobile/t7346 && mkdir -p /var/mobile/t7346 && \
+unzip -q "$D/AmazonDark-v7.346-source.zip" -d /var/mobile/t7346 && \
 find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} + && \
-cp -a /var/mobile/t7341/AmazonDark-v7.341-source/. . && \
+cp -a /var/mobile/t7346/AmazonDark-v7.346-source/. . && \
 grep '^Version:' layout/DEBIAN/control && \
 git add -A && \
-git commit -q -m "v7.341: repair capture export and add startup fade diagnostics" && \
+git commit -q -m "v7.346: restore v7.344 base and fix Cart strip and buying-options button" && \
 git push origin main
 ```
 
 Install the package from the usual macOS Actions build and respring as usual.
-Arming verifies the installed version before writing any request.
-
-## Transition capture
-
-Force-close Amazon, then run in NewTerm:
+Check the installed package:
 
 ```sh
-cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh arm launch
+dpkg-query -W -f='${Package} ${Version}\n' com.joemama383.amazondark
 ```
 
-Open Amazon within five minutes. Let it reach Home, then force-close and relaunch
-as needed until the brief white flash or abrupt handoff occurs. Multiple fresh
-processes within the five-minute arm window produce separate logs. Re-arm if the
-window expires. Each process records up to 20 seconds and stops on background;
-the deadline only ends diagnostics and does not control the loading screen.
-Warm resumes do not restart this capture.
+## Record startup and the Cart strip/button
 
-After reproducing, export:
+Force-close Amazon, then arm the combined capture:
+
+```sh
+cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh arm transition
+```
+
+Open Amazon within five minutes. Each fresh process records startup and Home/Cart
+for up to 45 seconds, stopping on background. Go to Cart, reproduce the loading
+strip, and bring the recommendation row with “See all buying options” into view.
+The recorder watches native layers and WebKit paint; no timed screenshot is needed.
+The recording deadline does not hold, dismiss or retime any UI. A warm resume does
+not restart recording. To repeat, force-close and reopen within the arm window.
+
+Export after the run:
 
 ```sh
 cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh export
 ```
 
-Upload `AmazonDark-v7.341-probes-*.tar.gz` from the usual shared Documents folder.
-It includes startup/fade observations and the last 4 MiB of the existing v7.338
-SpringBoard artwork log. Tell us whether the last cold launch flashed, ended
-abruptly, or faded normally. No precisely timed screenshot is required.
+Upload the printed `AmazonDark-v7.346-probes-*.tar` from shared Documents.
+Compression/Gzip is not required. If tar fails, the helper exports a `.txt` containing
+the same logs and status. The original captures remain on the phone. Export disarms
+future launches. Older captures may also be included; each identifies its version
+and session, so report which run showed the issue.
 
-## Home/Cart skeleton capture
+## Longer Home/Cart skeleton capture
 
-Run separately from launch capture. Force-close Amazon, then:
+For two minutes of Home/Cart observation, force-close Amazon and use:
 
 ```sh
 cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh arm both
 ```
 
-Open within five minutes. Over the next two minutes, refresh Home and swipe the
-hero carousel, then refresh Cart and let its ads load. Export with the same block
-above. `arm home` or `arm cart` can label separate runs; both observe the same
-renderers. Do not run the older scrolling probe during this capture.
+Open within five minutes; refresh Home, swipe the hero cards, then visit and refresh
+Cart. Export using the command above. `arm launch` remains available for native-only
+startup capture lasting up to 20 seconds per fresh process.
 
-## Capture status and recovery
-
-After opening Amazon, this shows the loaded tweak's startup receipt and the first
-record of each capture:
+## Check capture status
 
 ```sh
 cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh status
 ```
 
-Expect `capture-started`, version `v7.341-container-capture-startup-diagnostics`,
-and `SESSION_START`. If no capture exists, **run export anyway and upload its
-archive**. It now includes package identity, metadata discovery counts, receipt
-errors and available SpringBoard evidence instead of stopping with no export.
-A package version alone does not prove the running process loaded that version;
-the receipt supplies the process version and PID.
+The current receipt should report `v7.346-v7344-cart-strip-button` and
+`capture-started`; the current JSONL begins with `SESSION_START`. A v7.344 receipt
+can identify Amazon's container during upgrade, but it does not prove v7.346 is
+loaded. Arming requires the installed v7.346 package. If no capture exists, run
+`export` anyway: its diagnostic report explains package/container/receipt failures.
+The SpringBoard source and its inherited v7.338 log identity remain unchanged.
 
-Export disarms future launches and preserves log originals. To cancel arming:
+To disarm future launches manually:
 
 ```sh
 cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh disarm
 ```
-
-Unarmed processes write only a small startup receipt for troubleshooting; no new
-observer, display link or WebKit capture is installed. Launch mode never changes
-views, animation timing, snapshots, process lifetime or readiness behavior.

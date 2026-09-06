@@ -13,7 +13,7 @@ const raw = fs.readFileSync(path.join(root,'src/ADSkeletonProbe7339.js.inc'),'ut
 // compares these bytes in both C99 and the older C++98 language mode.
 const code = raw.trim().split(/\r?\n/).map(line=>JSON.parse(line)).join('');
 assert.equal(require('node:crypto').createHash('sha256').update(code).digest('hex'),
-    'b4a265b6044c0fbc5aa077f77a2eb4686b610bee557640abb8404d53d92f229b');
+    '01b809ef43f3b970d8eda61468db6d8bad693dd1bc36d424fd0b01ebe48b270f');
 
 async function server() {
     const s=http.createServer((req,res)=>{

@@ -1,8 +1,8 @@
 """Exercise the production cold-launch decision without UIKit.
 
-Enforce v7.309 UI/warm behavior with only the explicit launch-handoff removals. This is a host
+Enforce exact v7.344 outside the reviewed Cart paint additions. This is a host
 regression test, not proof of device rendering or private-selector invocation.
-Run from a Git checkout containing base 1bd6d82, or use SOURCE-BASELINE.json.
+Runs from a Git checkout or the complete source handoff using its manifest.
 """
 import ctypes as c
 import hashlib
@@ -12,7 +12,7 @@ import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE = "1bd6d82bdff18ebba012794ef70e7c288a21336e"
+BASE = "5bf6c356489bef37783fe25cee127799fa4f7578"
 SB = ROOT / "src/AmazonDarkSB.xm"
 
 
@@ -91,100 +91,39 @@ def main():
     assert 'format.opaque=YES' in source
     assert '[[UIColor blackColor] setFill]' in source
     assert 'version=7.338~v7307-constructor-safe-artwork base=4bbbbd9 mode=artwork-only' in source
-    assert "Version: 7.341~container-capture-startup-diagnostics\n" in (ROOT / "layout/DEBIAN/control").read_text()
-    # The successful SpringBoard source is BYTE-IDENTICAL, including its v7.338
-    # diagnostic identity. The new package changes Amazon-only diagnostics.
-    assert hashlib.sha256(SB.read_bytes()).hexdigest() == "076a9bc1c1cc0424e4bd79e79306b5791da90bfd66f5c973ddbb86c1215f3806"
-    parent_tweak = without_skeleton_probe(tweak)
-    try:
-        baseline = subprocess.check_output(
-            ["git", "show", f"{BASE}:src/Tweak.xm"], cwd=ROOT,
-            stderr=subprocess.DEVNULL).decode()
-    except subprocess.CalledProcessError:
-        baseline = None
-    if baseline:
-        assert hashlib.sha256(baseline.encode()).hexdigest() == (
-            "0c2fdca8976e6047128127b9eb3837301fd16e94d5ac0c258edca56ef94a58a1")
-        assert parent_tweak == expected_app(baseline), "Unexpected change to v7.309 UI/warm behavior"
-        for path in [".github/workflows/build.yml", "Makefile",
-                     "AmazonDark.plist", "AmazonDarkSB.plist",
-                     "layout/DEBIAN/postinst", "prefs/ADPrefsController.xm"]:
-            assert (ROOT / path).read_bytes() == subprocess.check_output(
-                ["git", "show", f"{BASE}:{path}"], cwd=ROOT), path
+    assert "Version: 7.346~v7344-cart-strip-button\n" in (ROOT / "layout/DEBIAN/control").read_text()
     manifest = json.loads((ROOT / "SOURCE-BASELINE.json").read_text())
-    assert hashlib.sha256(parent_tweak.encode()).hexdigest() == manifest["ported_tweak_without_probe_sha256"] == "6f64b4411b28febe1ab73cadc4b17a753ed09073fe7c8255857e84afa71a5e66", "UI changed outside reviewed transition port and diagnostic integrations"
     assert manifest['base_commit'] == BASE
-    for path in manifest["unchanged_files"]:
-        assert hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == manifest["baseline_sha256"][path], path
-    for path, digest in manifest["delivery_sha256"].items():
-        assert hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == digest, path
-    print("PASS: exact v7.309 UI/warm behavior outside explicit launch removals")
-    print("PASS: no SB presentation hooks, hard cap, ready listener, or snapshot purge")
-    print("PASS: source identity and unchanged build/push wiring")
-    print("PASS: exact v7.309 plus v7.338 transition port outside explicit diagnostic integrations and two splash observations")
-    print("PASS: SpringBoard source byte-identical to delivered v7.338")
+    assert hashlib.sha256(SB.read_bytes()).hexdigest() == "076a9bc1c1cc0424e4bd79e79306b5791da90bfd66f5c973ddbb86c1215f3806"
+    restored = without_cart_changes(tweak)
+    assert hashlib.sha256(restored.encode()).hexdigest() == manifest['baseline_sha256']['src/Tweak.xm'], "Unexpected changes outside the reviewed Cart patch"
+    for path in manifest['unchanged_files']:
+        assert hashlib.sha256((ROOT/path).read_bytes()).hexdigest() == manifest['baseline_sha256'][path], path
+    for path, digest in manifest['delivery_sha256'].items():
+        assert hashlib.sha256((ROOT/path).read_bytes()).hexdigest() == digest, path
+    print("PASS: full Tweak.xm restores byte-for-byte to v7.344 after removing only the reviewed Cart additions")
+    print("PASS: SpringBoard, launch behavior, image/skeleton rules and build/install wiring preserve v7.344")
 
 
-def without_skeleton_probe(tweak):
-    """Remove only exact reviewable diagnostic entry points, then check the ENTIRE
-    remaining app against the reviewed v7.309-to-v7.338-transition transformation.
-    This does not normalize arbitrary comments, code, styles or new hook bodies.
-    """
+def without_cart_changes(tweak):
     replacements = {
-        '    ADSkelSplash7339(vc,@"own.before"); // v7.341 read-only splash diagnostics\n': '',
-        '    @finally { ADSkelSplash7339(vc,@"own.after"); } // v7.341 read-only splash diagnostics\n': '',
-        " * AmazonDark v7.341 — v7.309 UI + container capture + startup diagnostics":
-            " * AmazonDark v7.339 — v7.309 UI + v7.338 transition fix + opt-in skeleton probe",
-        '"v7.341-container-capture-startup-diagnostics"': '"v7.339-v7309-transition-skeleton-probe"',
-        '// BEGIN v7.339 diagnostic integration\n#include "ADSkeletonProbe7339.h"\n// END v7.339 diagnostic integration\n': '',
-        '    ADSkelAttach7339(ucc); // v7.339 diagnostic integration\n': '',
-        '    if(ADSkelTrigger7339(trigger))return; // v7.339 diagnostic integration\n': '',
-        '        ADSkelInstall7339(); // v7.339 diagnostic integration\n': '',
+        " * AmazonDark v7.346 — exact v7.344 base + Cart loading-strip and buying-options paint":
+            " * AmazonDark v7.344 — v7.343 skeleton fixes + Cart authored-loader/image preservation",
+        '"v7.346-v7344-cart-strip-button"': '"v7.344-cart-loader-image-preservation"',
+        '// v7.345: the 430x5 content-backed Cart progress/strip owner captured by the transition recorder.\n@interface AWLoadingIndicatorBarView : UIView @end\n': '',
+        '- (void)setSelected:(BOOL)selected {\n    UIView *v=(UIView *)self;\n    @try {\n        NSString *aid=v.accessibilityIdentifier?:@"";\n        if([aid isEqualToString:@"cartTab"])ADSetCartTabSelected7345(gP.enabled&&selected);\n        else if(selected)ADSetCartTabSelected7345(NO);\n    } @catch(...) {}\n    %orig;':
+            '- (void)setSelected:(BOOL)selected {\n    %orig;\n    UIView *v=(UIView *)self;',
     }
-    for old, new in replacements.items():
-        assert tweak.count(old) == 1, old
-        tweak = tweak.replace(old, new)
+    for old,new in replacements.items():
+        assert tweak.count(old)==1, old
+        tweak=tweak.replace(old,new)
+    for begin,end in [
+        ('        // v7.345: exact p13n buying-options fallback', '        // Cart item action controls:'),
+        ('// v7.345 — transition capture identifies', '%hook AWLoadingIndicatorWidgets_LoadingText')]:
+        assert tweak.count(begin)==1 and tweak.count(end)==1
+        a=tweak.index(begin);b=tweak.index(end,a)
+        tweak=tweak[:a]+tweak[b:]
     return tweak
-
-
-def expected_app(base):
-    """Only permitted runtime edits are removal of the obsolete handoff/purge.
-    The full-file comparison catches ALL other changes, including UI/geometry.
-    """
-    result = base
-    replacements = {
-        " * AmazonDark v7.309 — v7.307 baseline + four probe-exact corrections":
-            " * AmazonDark v7.339 — v7.309 UI + v7.338 transition fix + opt-in skeleton probe",
-        '"v7.309-probe-exact-dog-cart-footer-xl-brand"':
-            '"v7.339-v7309-transition-skeleton-probe"',
-        "// from an actual scene reconstruction inside the same process. SpringBoard remains the\n"
-        "// exact v7.301 cold-launch implementation; warm behavior is owned inside Amazon only.":
-            "// from an actual scene reconstruction inside the same process. Keep this approved\n"
-            "// warm behavior unchanged; SpringBoard now supplies cold-launch artwork only.",
-        "// own its earliest floor dark. v7.301 SpringBoard still supplies the cold logo cover.":
-            "// own its earliest floor dark. Amazon/iOS retain presentation and dismissal.",
-        "static void ADPostReadyOnce(void);\n": "",
-        "static void ADConsiderLaunchReady706(void);\n": "",
-        "- (void)didMoveToWindow {\n    %orig;\n"
-        "    if(gP.enabled && self.window)ADConsiderLaunchReady706();\n}\n": "",
-        "        if(ADPrimaryAmazonController713(self))ADConsiderLaunchReady706();\n": "",
-        "    ADConsiderLaunchReady706();\n": "",
-        "        dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY,0),^{ ADPurgeSplashSnapshots7271(); });\n": "",
-    }
-    for old, new in replacements.items():
-        assert old in result, old
-        result = result.replace(old, new)
-    start = result.index("// -----------------------------------------------------------------------------\n// Launch transition handoff.")
-    last = result.index("static void ADConsiderLaunchReady706(void){", start)
-    end = result.index("\n}", last) + 2
-    result = result[:start] + (
-        "// Launch artwork is supplied at the system image source. No app-side readiness\n"
-        "// polling or cross-process handoff is needed; Amazon/iOS own presentation timing."
-    ) + result[end:]
-    start = result.index("static void ADPurgeSplashSnapshots7271(void){")
-    end = result.index("\n}", start) + 3
-    result = result[:start] + result[end:]
-    return result
 
 
 if __name__ == "__main__":

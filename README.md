@@ -1,3 +1,38 @@
+# AmazonDark v7.346
+
+Package: `7.346~v7344-cart-strip-button`.
+Built directly on **v7.344**, commit `5bf6c356489bef37783fe25cee127799fa4f7578`.
+This full-source release retains v7.344's Home/Cart skeleton rules, authored Cart
+loading imagery, UI and existing launch behavior.
+
+The Cart loading strip is painted OLED black at the captured native
+`AWLoadingIndicatorBarView`, only while `cartTab` is selected. It follows the
+existing view bounds and animation. Cart recommendation “See all buying options”
+buttons receive the same black fill, gray border and light text as adjacent primary
+buttons, preserving their stock dimensions and pill radius.
+
+The probe helper now agrees with the package/native v7.346 identity and exposes the
+existing combined `transition` recorder. It can discover Amazon from the prior
+v7.344 startup receipt during upgrade. Export uses uncompressed tar with a text
+fallback. The JavaScript strip scanner no longer treats zero-width borders as
+visible bright strips.
+
+See [COMMANDS.md](COMMANDS.md) for the exact source ZIP → NewTerm push → macOS Actions
+workflow and capture/export commands. See [CART-FIX-AUDIT.md](CART-FIX-AUDIT.md) for
+probe evidence, the v7.344/v7.345 baseline reconciliation and validation limits.
+`SOURCE-BASELINE.json` records exact baseline and delivery hashes. Other audit
+files describe inherited historical work; this README and COMMANDS.md are current.
+
+Validation uses the existing host tests plus a browser comparison of the actual
+injected CSS. Local Theos compilation checks arm64/arm64e source compatibility;
+install the usual macOS Actions artifact. Physical-device confirmation is still
+required for the native strip, stock transitions and current Amazon rendering.
+
+---
+
+The release notes below are retained from v7.344 as historical context. Use the
+v7.346 commands above and in COMMANDS.md for this release.
+
 # AmazonDark v7.341 — container capture and startup diagnostics
 
 Package: `7.341~container-capture-startup-diagnostics`. Builds on the delivered

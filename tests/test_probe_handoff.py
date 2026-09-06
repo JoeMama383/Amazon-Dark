@@ -5,6 +5,7 @@ export those exact files, recover old paths, and deliver diagnostics on failure.
 No iPhone runtime or successful UIKit capture is simulated by these tests.
 """
 import json
+import shutil
 import os
 from pathlib import Path
 import plistlib
@@ -14,7 +15,7 @@ import tempfile
 
 ROOT=Path(__file__).resolve().parents[1]
 HELPER=ROOT/'scripts/skeleton-probe.sh'
-VERSION='7.341~container-capture-startup-diagnostics'
+VERSION='7.346~v7344-cart-strip-button'
 
 with tempfile.TemporaryDirectory(prefix='ad-probe-handoff-') as temp:
     root=Path(temp);mobile=root/'mobile';containers=mobile/'Containers/Data/Application'
@@ -32,18 +33,24 @@ elif args[0]=='-convert' and style in ('extract','xml'):sys.stdout.buffer.write(
 elif args[0]=='-p' and style=='pretty':print(json.dumps(data,indent=2))
 else:sys.exit(1)
 ''');plutil.chmod(0o755)
+    # A broken/missing gzip must have no effect on the new export path.
+    gzip=bin/'gzip'
+    gzip.write_text('#!/bin/sh\nprintf called > "$AD_GZIP_CALLED"\nexit 127\n');gzip.chmod(0o755)
+    real_tar=shutil.which('tar');assert real_tar
+    tar=bin/'tar'
+    tar.write_text('#!/bin/sh\n[ "${AD_TAR_FAIL:-0}" = 1 ] && exit 2\nexec '+real_tar+' "$@"\n');tar.chmod(0o755)
     dpkg=bin/'dpkg-query'
     dpkg.write_text('''#!/usr/bin/env python3
 import os,sys
-v=os.environ.get('AD_INSTALLED','7.341~container-capture-startup-diagnostics')
+v=os.environ.get('AD_INSTALLED','7.346~v7344-cart-strip-button')
 print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '')+v,end='')
 ''');dpkg.chmod(0o755)
-    env=dict(os.environ,PATH=str(bin)+':'+os.environ['PATH'],AD_PROBE_ROOT=str(mobile),AD_PROBE_CONTAINERS=str(containers),AD_PROBE_DOCS=str(docs))
+    env=dict(os.environ,PATH=str(bin)+':'+os.environ['PATH'],AD_PROBE_ROOT=str(mobile),AD_PROBE_CONTAINERS=str(containers),AD_PROBE_DOCS=str(docs),AD_GZIP_CALLED=str(root/'gzip-called'))
     def run(*args,ok=True,**extra):
         r=subprocess.run(['sh',str(HELPER),*args],env=dict(env,**extra),text=True,capture_output=True)
         assert (r.returncode==0)==ok,(args,r.stdout,r.stderr)
         return r.stdout+r.stderr
-    arm=amazon/'Documents/AmazonDark-v7.341-probe.arm'
+    arm=amazon/'Documents/AmazonDark-v7.346-probe.arm'
     for style in ['extract','xml','pretty']:
         run('arm','both',AD_PLUTIL_STYLE=style)
         assert arm.read_text().split()[1]=='both'
@@ -56,16 +63,16 @@ print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '
     assert not arm.exists()
     text=run('export')
     assert 'No app capture ran' in text
-    archive=sorted(docs.glob('*.tar.gz'))[-1]
+    archive=sorted(docs.glob('*.tar'))[-1]
     with tarfile.open(archive) as t:
         report=t.extractfile('./diagnostic-status.txt').read().decode()
         assert VERSION in report and 'Amazon container matches: 1' in report
     run('arm','launch')
     assert arm.read_text().split()[1]=='launch'
-    log=amazon/'Documents/AmazonDark-v7.341-skeleton-1-77-launch.jsonl'
+    log=amazon/'Documents/AmazonDark-v7.346-skeleton-1-77-launch.jsonl'
     log.write_text('{"event":"SESSION_START","label":"launch"}\n')
-    receipt=amazon/'Documents/AmazonDark-v7.341-probe-status.json'
-    receipt.write_text(json.dumps({'reason':'capture-started','version':VERSION}))
+    receipt=amazon/'Documents/AmazonDark-v7.346-probe-status.json'
+    receipt.write_text(json.dumps({'event':'PROBE_BOOTSTRAP','bundle':'com.amazon.Amazon','reason':'capture-started','version':'v7.346-v7344-cart-strip-button'}))
     old=mobile/'AmazonDark-v7.340-skeleton-1-55-both.jsonl';old.write_text('old capture\n')
     sb=mobile/'AmazonDark-v7.338-launch-sb-probe.txt';sb.write_text('snapshot.dark\n')
     unrelated=other/'Documents';unrelated.mkdir()
@@ -85,6 +92,40 @@ print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '
     archive=Path(text.splitlines()[1])
     with tarfile.open(archive) as t:
         assert 'Amazon container matches: 0' in t.extractfile('./diagnostic-status.txt').read().decode()
+    # Exact installed receipt restores arming with every plutil operation failing.
+    (amazon/'.com.apple.mobile_container_manager.metadata.plist').unlink()
+    (other/'Documents/AmazonDark-v7.346-probe-status.json').write_text(json.dumps({
+        'event':'PROBE_BOOTSTRAP','bundle':'com.example.other','version':'v7.346-v7344-cart-strip-button'}))
+    run('arm','launch',AD_PLUTIL_STYLE='unavailable')
+    assert arm.read_text().split()[1]=='launch'
+    assert not (other/'Documents/AmazonDark-v7.346-probe.arm').exists()
+    status=run('status',AD_PLUTIL_STYLE='unavailable')
+    assert 'Verified Amazon startup receipts: 1' in status and 'Amazon container matches: 1' in status
+    text=run('export',AD_PLUTIL_STYLE='unavailable')
+    archive=Path(text.splitlines()[1]);assert archive.suffix=='.tar'
+    with tarfile.open(archive) as t:
+        assert t.extractfile('./AMAZON/'+log.name).read()==log.read_bytes()
+    # During upgrade, the v7.344 receipt must locate Amazon before v7.346 runs.
+    receipt.unlink()
+    previous=amazon/'Documents/AmazonDark-v7.344-probe-status.json'
+    previous.write_text(json.dumps({'event':'PROBE_BOOTSTRAP','bundle':'com.amazon.Amazon',
+        'version':'v7.344-cart-loader-image-preservation','reason':'arm-missing-or-unreadable'}))
+    run('arm','transition',AD_PLUTIL_STYLE='unavailable')
+    assert arm.read_text().split()[1]=='transition'
+    assert not (amazon/'Documents/AmazonDark-v7.344-probe.arm').exists()
+    text=run('export',AD_PLUTIL_STYLE='unavailable')
+    with tarfile.open(Path(text.splitlines()[1])) as t:
+        assert t.extractfile('./AMAZON/'+previous.name).read()==previous.read_bytes()
+    print('PASS: v7.344 upgrade receipt discovers Amazon; transition arms v7.346; both versions export')
+    # Even a broken tar returns the actual logs and status in a plain text file.
+    run('arm','both',AD_PLUTIL_STYLE='unavailable')
+    text=run('export',AD_PLUTIL_STYLE='unavailable',AD_TAR_FAIL='1')
+    out=Path(text.splitlines()[1]);assert out.suffix=='.txt'
+    data=out.read_text();assert 'SESSION_START' in data and 'snapshot.dark' in data and previous.read_text() in data
+    assert not arm.exists() and not list(docs.glob('*.partial'))
+    assert not (root/'gzip-called').exists(), 'Helper attempted to invoke gzip'
+    print('PASS: receipt discovery works without metadata/plutil; rejects another bundle; de-duplicates paths')
+    print('PASS: no gzip invocation; uncompressed archive contains captures; tar failure exports plain-text evidence')
     print('PASS: extract/XML/pretty plist discovery; Amazon-only arming; version/invalid-mode guards')
     print('PASS: real tar exports captures, receipts and SB logs; recovers old paths; disarms; preserves logs')
     print('PASS: missing capture/container still exports actionable status; unrelated app files excluded')
