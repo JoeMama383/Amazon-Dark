@@ -8,6 +8,7 @@
 static NSString *ADSkelArmPath7339=nil;
 static NSString *ADSkelStatusPath7339=nil;
 static BOOL ADSkelLaunchOnly7339=NO;
+static BOOL ADSkelTransition7339=NO;
 static void ADSkelStatus7339(NSString *reason,NSInteger code){
     @try {
         if(!ADSkelStatusPath7339)return;
@@ -29,6 +30,9 @@ static NSString *ADSkelPath7339=nil;
 
 static BOOL ADSkelActive7339(void){
     return ADSkelUntil7339>0 && [NSDate timeIntervalSinceReferenceDate]+978307200.0<ADSkelUntil7339;
+}
+static BOOL ADSkelLaunchDetail7339(void){
+    return ADSkelLaunchOnly7339||ADSkelTransition7339;
 }
 static void ADSkelWrite7339(NSDictionary *record){
     if(!ADSkelWriter7339||!record)return;
@@ -104,7 +108,7 @@ static NSArray *ADSkelAnimations7339(CALayer *layer){
     return out;
 }
 static void ADSkelSplash7339(UIViewController *vc,NSString *phase){
-    if(!ADSkelLaunchOnly7339||!ADSkelActive7339()||!vc.isViewLoaded)return;
+    if(!ADSkelLaunchDetail7339()||!ADSkelActive7339()||!vc.isViewLoaded)return;
     @try {
         UIView *v=vc.view;CALayer *p=v.layer.presentationLayer;
         NSMutableDictionary *r=[ADSkelEvent7339(@"SPLASH_OWNER") mutableCopy];
@@ -149,15 +153,16 @@ static ADSkeletonProbe7339 *ADSkelProbe7339=nil;
 }
 - (void)tick:(CADisplayLink *)link {
     if(!ADSkelActive7339()){[self finish];return;}
-    if(!ADSkelLaunchOnly7339&&UIApplication.sharedApplication.applicationState!=UIApplicationStateActive)return;
+    BOOL launchDetail=ADSkelLaunchDetail7339();
+    if(!launchDetail&&UIApplication.sharedApplication.applicationState!=UIApplicationStateActive)return;
     CFTimeInterval began=CACurrentMediaTime();self.ticks++;
     NSMutableDictionary *now=[NSMutableDictionary dictionary];NSMutableArray *events=[NSMutableArray array];
     NSMutableArray *queue=[NSMutableArray array];NSString *tab=@"unknown";NSUInteger index=0;
     @try {
-        for(UIWindow *w in UIApplication.sharedApplication.windows)if(!w.hidden&&(w.alpha>.01||(ADSkelLaunchOnly7339&&w.layer.presentationLayer.opacity>.01)))[queue addObject:w];
-        NSUInteger visitCap=ADSkelLaunchOnly7339?220:1400;
+        for(UIWindow *w in UIApplication.sharedApplication.windows)if(!w.hidden&&(w.alpha>.01||(launchDetail&&w.layer.presentationLayer.opacity>.01)))[queue addObject:w];
+        NSUInteger visitCap=launchDetail?220:1400;
         while(index<queue.count&&index<visitCap){
-            UIView *v=queue[index++];if(v.hidden||(v.alpha<.01&&!(ADSkelLaunchOnly7339&&v.layer.presentationLayer.opacity>.01)))continue;
+            UIView *v=queue[index++];if(v.hidden||(v.alpha<.01&&!(launchDetail&&v.layer.presentationLayer.opacity>.01)))continue;
             if([v isKindOfClass:UIControl.class]&&[(UIControl *)v isSelected]&&v.accessibilityIdentifier.length)
                 tab=ADSkelName7339(v.accessibilityIdentifier);
             CGRect r=[v convertRect:v.bounds toView:nil];CGRect screen=v.window.bounds;
@@ -169,13 +174,13 @@ static ADSkeletonProbe7339 *ADSkelProbe7339=nil;
             NSMutableArray *layers=[NSMutableArray arrayWithObject:v.layer];
             NSUInteger layerIndex=0;
             while(layerIndex<layers.count&&layerIndex<20){
-                CALayer *l=layers[layerIndex++];if(l.hidden||(l.opacity<.01&&!(ADSkelLaunchOnly7339&&l.presentationLayer.opacity>.01)))continue;
+                CALayer *l=layers[layerIndex++];if(l.hidden||(l.opacity<.01&&!(launchDetail&&l.presentationLayer.opacity>.01)))continue;
                 if(l==v.layer)for(CALayer *s in l.sublayers)if(![s.delegate isKindOfClass:UIView.class]&&layers.count<20)[layers addObject:s];
                 CALayer *present=l.presentationLayer;
                 id bg=ADSkelColor7339(l.backgroundColor),pb=ADSkelColor7339(present.backgroundColor),bc=ADSkelColor7339(l.borderColor);
                 NSString *key=[NSString stringWithFormat:@"%p/%p",v,l];
                 NSString *name=NSStringFromClass(v.class);
-                BOOL hint=(ADSkelLaunchOnly7339&&(r.size.width>=screen.size.width*.65&&r.size.height>=screen.size.height*.3))||[name rangeOfString:@"skeleton" options:NSCaseInsensitiveSearch].location!=NSNotFound||
+                BOOL hint=(launchDetail&&(r.size.width>=screen.size.width*.65&&r.size.height>=screen.size.height*.3))||[name rangeOfString:@"skeleton" options:NSCaseInsensitiveSearch].location!=NSNotFound||
                     [name rangeOfString:@"loading" options:NSCaseInsensitiveSearch].location!=NSNotFound;
                 BOOL gradient=[l isKindOfClass:CAGradientLayer.class];
                 BOOL image=[v isKindOfClass:UIImageView.class]||l.contents!=nil;
@@ -190,7 +195,7 @@ static ADSkeletonProbe7339 *ADSkelProbe7339=nil;
                     @"parentClass":v.superview?NSStringFromClass(v.superview.class):@"",@"parentID":ADSkelName7339(v.superview.accessibilityIdentifier)} mutableCopy];
                 if(gradient){NSMutableArray *colors=[NSMutableArray array];for(id c in [(CAGradientLayer *)l colors])if(colors.count<12)[colors addObject:ADSkelColor7339((__bridge CGColorRef)c)];node[@"gradient"]=colors;}
                 if([v isKindOfClass:UIImageView.class]){UIImage *i=[(UIImageView *)v image];node[@"imageSize"]=@[@(i.size.width),@(i.size.height)];}
-                if(ADSkelLaunchOnly7339){
+                if(launchDetail){
                     node[@"presentationOpacity"]=present?(id)@(present.opacity):[NSNull null];
                     node[@"presentationFrame"]=present?ADSkelRect7339(present.frame):(id)[NSNull null];
                     node[@"animations"]=ADSkelAnimations7339(l);
@@ -201,13 +206,13 @@ static ADSkeletonProbe7339 *ADSkelProbe7339=nil;
                 now[key]=node;
                 if(![self.previous[key] isEqual:node])[events addObject:node];
             }
-            if(CACurrentMediaTime()-began>(ADSkelLaunchOnly7339?.002:.005)){self.clipped++;break;}
+            if(CACurrentMediaTime()-began>(launchDetail?.002:.005)){self.clipped++;break;}
         }
         if(index<queue.count)self.clipped++;
         // Do not claim nodes disappeared if this frame's traversal was capped.
         if(index>=queue.count&&now.count<160)for(NSString *key in self.previous)if(!now[key])[events addObject:@{@"key":key,@"gone":@YES}];
         self.previous=now;self.maxMS=MAX(self.maxMS,(CACurrentMediaTime()-began)*1000);
-        if(ADSkelLaunchOnly7339||events.count||self.ticks%60==0){
+        if(launchDetail||events.count||self.ticks%60==0){
             NSMutableDictionary *out=[ADSkelEvent7339(@"NATIVE_FRAME") mutableCopy];
             out[@"appState"]=@(UIApplication.sharedApplication.applicationState);
             out[@"displayTimestamp"]=@(link.timestamp);out[@"targetTimestamp"]=@(link.targetTimestamp);
@@ -219,6 +224,7 @@ static ADSkeletonProbe7339 *ADSkelProbe7339=nil;
 - (void)finish {
     if(self.finished)return;self.finished=YES;
     [self.link invalidate];self.link=nil;self.previous=nil;ADSkelUntil7339=0;
+    ADSkelTransition7339=NO;
     for(id token in self.observers)[NSNotificationCenter.defaultCenter removeObserver:token];
     self.observers=nil;
     ADSkelWrite7339(ADSkelEvent7339(@"SESSION_END"));
@@ -232,8 +238,8 @@ static void ADSkelInstall7339(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(!docs.length)return;
-        ADSkelArmPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.341-probe.arm"];
-        ADSkelStatusPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.341-probe-status.json"];
+        ADSkelArmPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.342-probe.arm"];
+        ADSkelStatusPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.342-probe-status.json"];
         NSError *error=nil;
         NSString *arm=[NSString stringWithContentsOfFile:ADSkelArmPath7339 encoding:NSUTF8StringEncoding error:&error];
         if(!arm){ADSkelStatus7339(@"arm-missing-or-unreadable",error.code);return;}
@@ -243,11 +249,12 @@ static void ADSkelInstall7339(void){
         if(parts.count!=2){ADSkelStatus7339(@"arm-invalid-format",0);return;}
         NSTimeInterval now=NSDate.date.timeIntervalSince1970,expiry=[parts[0] doubleValue];
         if(!isfinite(expiry)||expiry<=now||expiry>now+300){ADSkelStatus7339(@"arm-expired-or-invalid",0);return;}
-        NSString *label=parts[1];if(![@[@"home",@"cart",@"both",@"launch"] containsObject:label]){ADSkelStatus7339(@"arm-invalid-mode",0);return;}
+        NSString *label=parts[1];if(![@[@"home",@"cart",@"both",@"launch",@"transition"] containsObject:label]){ADSkelStatus7339(@"arm-invalid-mode",0);return;}
         ADSkelLaunchOnly7339=[label isEqualToString:@"launch"];
-        ADSkelUntil7339=MIN(expiry,now+(ADSkelLaunchOnly7339?20:120));
+        ADSkelTransition7339=[label isEqualToString:@"transition"];
+        ADSkelUntil7339=MIN(expiry,now+(ADSkelLaunchOnly7339?20:(ADSkelTransition7339?25:120)));
         ADSkelSession7339=[NSString stringWithFormat:@"%.0f-%d-%@",now*1000,getpid(),label];
-        ADSkelPath7339=[docs stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.341-skeleton-%@.jsonl",ADSkelSession7339]];
+        ADSkelPath7339=[docs stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.342-skeleton-%@.jsonl",ADSkelSession7339]];
         int fd=open(ADSkelPath7339.fileSystemRepresentation,O_WRONLY|O_CREAT|O_EXCL,0600);
         if(fd<0){ADSkelStatus7339(@"capture-create-failed",errno);ADSkelUntil7339=0;return;}
         close(fd);ADSkelStatus7339(@"capture-started",0);
@@ -263,10 +270,10 @@ static void ADSkelInstall7339(void){
         ADSkelProbe7339=[ADSkeletonProbe7339 new];ADSkelProbe7339.previous=[NSMutableDictionary dictionary];
         NSMutableDictionary *record=[ADSkelEvent7339(@"SESSION_START") mutableCopy];
         record[@"version"]=@AD_VERSION;record[@"until"]=@(ADSkelUntil7339*1000);record[@"label"]=label;
-        record[@"mode"]=label;record[@"policy"]=@"read-only; no text/URLs/pixels; skeleton=max120s; launch=native-only max20s/end-on-background; max20MiB; truncation explicit; no fade or timing writes";
+        record[@"mode"]=label;record[@"policy"]=@"read-only; no text/URLs/pixels; transition=web+launch-detail max25s; skeleton=max120s; launch=native-only max20s; max20MiB; truncation explicit; no fade or timing writes";
         ADSkelWrite7339(record);
         // Foundation notification observers are opt-in. No lifecycle state is modified.
-        if(ADSkelLaunchOnly7339){
+        if(ADSkelLaunchDetail7339()){
             ADSkelProbe7339.observers=[NSMutableArray array];
             for(NSString *name in @[UIApplicationDidFinishLaunchingNotification,UISceneWillConnectNotification,
                 UIApplicationDidBecomeActiveNotification,UIApplicationWillResignActiveNotification,UIApplicationDidEnterBackgroundNotification]){
@@ -280,7 +287,7 @@ static void ADSkelInstall7339(void){
         dispatch_async(dispatch_get_main_queue(),^{
             if(!ADSkelActive7339()||ADSkelProbe7339.finished)return;
             ADSkelProbe7339.link=[CADisplayLink displayLinkWithTarget:ADSkelProbe7339 selector:@selector(tick:)];
-            ADSkelProbe7339.link.preferredFramesPerSecond=ADSkelLaunchOnly7339?UIScreen.mainScreen.maximumFramesPerSecond:60;
+            ADSkelProbe7339.link.preferredFramesPerSecond=ADSkelLaunchDetail7339()?UIScreen.mainScreen.maximumFramesPerSecond:60;
             [ADSkelProbe7339.link addToRunLoop:NSRunLoop.mainRunLoop forMode:NSRunLoopCommonModes];
         });
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)((ADSkelUntil7339-now)*NSEC_PER_SEC)),dispatch_get_main_queue(),^{[ADSkelProbe7339 finish];});

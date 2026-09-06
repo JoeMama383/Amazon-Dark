@@ -1,7 +1,7 @@
 #!/bin/sh
 # NewTerm/mobile. Resolve Amazon's data container; never write probe data into another app.
 set -eu
-AD_PROBE_VERSION=7.341
+AD_PROBE_VERSION=7.341-helper2
 AD_PROBE_ROOT=${AD_PROBE_ROOT:-/var/mobile}
 AD_PROBE_CONTAINERS=${AD_PROBE_CONTAINERS:-$AD_PROBE_ROOT/Containers/Data/Application}
 AD_PROBE_DOCS=${AD_PROBE_DOCS:-/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents}
@@ -29,12 +29,28 @@ for AD_PROBE_META in "$AD_PROBE_CONTAINERS"/*/.com.apple.mobile_container_manage
         printf '%s\n' "${AD_PROBE_META%/*}/Documents" >> "$AD_PROBE_TARGETS"
     fi
 done
+# v7.341 already writes this receipt from inside the Amazon process. It avoids
+# relying on plutil's format or access to MobileContainerManager metadata.
+AD_PROBE_RECEIPTS=0
+for AD_PROBE_RECEIPT in "$AD_PROBE_CONTAINERS"/*/Documents/"$AD_PROBE_NAME-probe-status.json"; do
+    [ -f "$AD_PROBE_RECEIPT" ] || continue
+    if LC_ALL=C grep -Eq '"bundle"[[:space:]]*:[[:space:]]*"com[.]amazon[.]Amazon"' "$AD_PROBE_RECEIPT" &&
+       LC_ALL=C grep -Eq '"event"[[:space:]]*:[[:space:]]*"PROBE_BOOTSTRAP"' "$AD_PROBE_RECEIPT" &&
+       LC_ALL=C grep -Eq '"version"[[:space:]]*:[[:space:]]*"v7[.]341-' "$AD_PROBE_RECEIPT"; then
+        AD_PROBE_RECEIPTS=$((AD_PROBE_RECEIPTS+1))
+        AD_PROBE_DIR=${AD_PROBE_RECEIPT%/*}
+        if ! grep -Fqx "$AD_PROBE_DIR" "$AD_PROBE_TARGETS"; then
+            printf '%s\n' "$AD_PROBE_DIR" >> "$AD_PROBE_TARGETS"
+        fi
+    fi
+done
 ad_report() {
     printf 'Helper version: %s\nUTC: ' "$AD_PROBE_VERSION"
     date -u
     printf 'Installed package: '
     dpkg-query -W -f='${Package} ${Version}\n' com.joemama383.amazondark 2>&1 || true
     printf 'plutil: %s; metadata files seen=%s readable=%s\n' "$(command -v plutil || printf missing)" "$AD_PROBE_SEEN" "$AD_PROBE_READABLE"
+    printf 'Verified Amazon startup receipts: %s\n' "$AD_PROBE_RECEIPTS"
     printf 'Amazon container matches: %s\n' "$(wc -l < "$AD_PROBE_TARGETS" | tr -d ' ')"
     while IFS= read -r AD_PROBE_DIR; do
         printf 'Amazon Documents: %s\n' "$AD_PROBE_DIR"
@@ -102,8 +118,21 @@ case "${1:-}" in
     if [ -f "$AD_PROBE_ROOT/AmazonDark-v7.338-launch-sb-probe.txt" ]; then
         tail -c 4194304 "$AD_PROBE_ROOT/AmazonDark-v7.338-launch-sb-probe.txt" > "$AD_PROBE_STAGE/launch-springboard-last4MiB.txt"
     fi
-    AD_PROBE_ARCHIVE="$AD_PROBE_DOCS/$AD_PROBE_NAME-probes-$(date +%Y%m%d-%H%M%S)-$$.tar.gz"
-    tar -czf "$AD_PROBE_ARCHIVE" -C "$AD_PROBE_STAGE" .
+    AD_PROBE_ARCHIVE="$AD_PROBE_DOCS/$AD_PROBE_NAME-probes-$(date +%Y%m%d-%H%M%S)-$$.tar"
+    # No gzip child process or compression dependency. Publish only after success.
+    if tar -cf "$AD_PROBE_ARCHIVE.partial" -C "$AD_PROBE_STAGE" .; then
+        mv "$AD_PROBE_ARCHIVE.partial" "$AD_PROBE_ARCHIVE"
+    else
+        rm -f "$AD_PROBE_ARCHIVE.partial"
+        AD_PROBE_ARCHIVE="${AD_PROBE_ARCHIVE%.tar}.txt"
+        # Keep the failure evidence obtainable even if archiving itself fails.
+        cat "$AD_PROBE_STAGE/diagnostic-status.txt" > "$AD_PROBE_ARCHIVE"
+        for AD_PROBE_FILE in "$AD_PROBE_STAGE"/*.jsonl "$AD_PROBE_STAGE"/*/*.jsonl "$AD_PROBE_STAGE"/*/*-probe-status.json "$AD_PROBE_STAGE/launch-springboard-last4MiB.txt"; do
+            [ -f "$AD_PROBE_FILE" ] || continue
+            printf '\nFILE: %s\n' "${AD_PROBE_FILE#"$AD_PROBE_STAGE"/}" >> "$AD_PROBE_ARCHIVE"
+            cat "$AD_PROBE_FILE" >> "$AD_PROBE_ARCHIVE"
+        done
+    fi
     while IFS= read -r AD_PROBE_DIR; do rm -f "$AD_PROBE_DIR/$AD_PROBE_NAME-probe.arm"; done < "$AD_PROBE_TARGETS"
     printf 'Exported %s app capture(s), status report and available SpringBoard log:\n%s\n' "$AD_PROBE_COUNT" "$AD_PROBE_ARCHIVE"
     if [ "$AD_PROBE_COUNT" -eq 0 ]; then printf 'No app capture ran. Upload this archive anyway: it contains the failure diagnostics.\n'; fi

@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.341 — v7.309 UI + container capture + startup diagnostics
+ * AmazonDark v7.342 — v7.309 UI + dual launch-transition capture diagnostics
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.341-container-capture-startup-diagnostics"
+#define AD_VERSION "v7.342-dual-transition-capture-diagnostics"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
