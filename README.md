@@ -1,3 +1,21 @@
+# AmazonDark v7.340 — probe compilation repair
+
+Package: `7.340~v7309-portable-skeleton-probe`. This corrects the v7.339
+Actions failure reported in this conversation. The JavaScript include now uses
+ordinary adjacent C strings instead of a C++11 raw-string literal. Compiling and
+executing that include in C99 and C++98 produces exactly the v7.339 JavaScript
+bytes. The build settings and Actions workflow are retained.
+
+The UI base remains **v7.309: exact dog, Cart, footer, and XL brand fixes**
+(`1bd6d82bdff18ebba012794ef70e7c288a21336e`), with the v7.338 transition fix.
+This correction changes the probe's source representation, package labels and
+capture filenames. The skeleton work remains diagnostic; OLED-black paint rules
+await the early Home/Cart capture requested by the user.
+
+Use [COMMANDS.md](COMMANDS.md) for the v7.340 source push and capture commands.
+See [BUILD-FIX.md](BUILD-FIX.md) for the regression test and verification limits.
+The older v7.339 description below documents the inherited implementation.
+
 # AmazonDark v7.339 — v7.309 UI, successful transition fix, skeleton probe
 
 Package: `7.339~v7309-transition-skeleton-probe`.

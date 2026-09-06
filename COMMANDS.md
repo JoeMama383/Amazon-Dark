@@ -1,24 +1,28 @@
-# v7.339 source handoff
+# v7.340 source handoff
 
 UI base: `1bd6d82` — `v7.309: exact dog, Cart, footer, and XL brand fixes`.
 Transition: successful v7.338 source from this conversation, including its startup
 crash fix. New skeleton work: prearmed diagnosis; target is OLED black, no guessed
 paint rule is added.
 
-Save `AmazonDark-v7.339-source.zip` in the same shared Documents folder used for
+v7.340 repairs v7.339's compiler rejection of the JavaScript raw-string wrapper.
+The compiled script bytes are identical; the existing Actions build settings are
+retained.
+
+Save `AmazonDark-v7.340-source.zip` in the same shared Documents folder used for
 previous source pushes, then run this in NewTerm:
 
 ```sh
 cd /var/mobile/Amazon-Dark-phone && \
 git checkout -q main && \
 D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents && \
-rm -rf /var/mobile/t7339 && mkdir -p /var/mobile/t7339 && \
-unzip -q "$D/AmazonDark-v7.339-source.zip" -d /var/mobile/t7339 && \
+rm -rf /var/mobile/t7340 && mkdir -p /var/mobile/t7340 && \
+unzip -q "$D/AmazonDark-v7.340-source.zip" -d /var/mobile/t7340 && \
 find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} + && \
-cp -a /var/mobile/t7339/AmazonDark-v7.339-source/. . && \
+cp -a /var/mobile/t7340/AmazonDark-v7.340-source/. . && \
 grep '^Version:' layout/DEBIAN/control && \
 git add -A && \
-git commit -q -m "v7.339: v7.309 UI with v7.338 transition fix and skeleton probe" && \
+git commit -q -m "v7.340: fix probe embedding for existing Actions compiler" && \
 git push origin main
 ```
 
@@ -29,7 +33,7 @@ usual. Confirm the installed identity:
 dpkg-query -W -f='${Package} ${Version}\n' com.joemama383.amazondark
 ```
 
-Expected: `7.339~v7309-transition-skeleton-probe`. The unchanged SpringBoard log
+Expected: `7.340~v7309-portable-skeleton-probe`. The unchanged SpringBoard log
 still identifies its donor code as v7.338; that is intentional.
 
 ## Prearm the transient capture
@@ -58,7 +62,7 @@ After reproducing the white state, return to NewTerm and run:
 cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh export
 ```
 
-Upload the resulting `AmazonDark-v7.339-skeleton-probes-*.tar.gz` from the usual
+Upload the resulting `AmazonDark-v7.340-skeleton-probes-*.tar.gz` from the usual
 shared Documents folder. It contains the saved runs. Export also disarms future
 launches. A running session stops at its deadline or when Amazon is closed.
 
@@ -68,7 +72,7 @@ If no file appears:
 cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh status
 ```
 
-The first record must say `SESSION_START`, version `v7.339-v7309-transition-skeleton-probe`,
+The first record must say `SESSION_START`, version `v7.340-v7309-portable-skeleton-probe`,
 followed by `UCC_ATTACHED` and `WEB` / `FRAME_START` for WebKit coverage. An arm file
 alone is not evidence that capture ran. No raw text, input values, URL values,
 screenshots, network payloads or image pixels are recorded.

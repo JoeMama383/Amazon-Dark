@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.339 — v7.309 UI + v7.338 transition fix + opt-in skeleton probe
+ * AmazonDark v7.340 — v7.309 UI + v7.338 transition fix + portable skeleton probe
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.339-v7309-transition-skeleton-probe"
+#define AD_VERSION "v7.340-v7309-portable-skeleton-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;

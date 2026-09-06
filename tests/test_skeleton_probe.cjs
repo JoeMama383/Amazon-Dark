@@ -9,7 +9,11 @@ const pkg = process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES;
 const pw = require(pkg ? path.join(pkg, 'playwright') : 'playwright');
 const engine = process.env.AD_PROBE_BROWSER || 'webkit';
 const raw = fs.readFileSync(path.join(root,'src/ADSkeletonProbe7339.js.inc'),'utf8');
-const code = raw.match(/^R"AD7339JS\(\n([\s\S]*)\n\)AD7339JS"\s*$/)[1];
+// Ordinary adjacent C strings; the embedding test independently compiles and
+// compares these bytes in both C99 and the older C++98 language mode.
+const code = raw.trim().split(/\r?\n/).map(line=>JSON.parse(line)).join('');
+assert.equal(require('node:crypto').createHash('sha256').update(code).digest('hex'),
+    'b4a265b6044c0fbc5aa077f77a2eb4686b610bee557640abb8404d53d92f229b');
 
 async function server() {
     const s=http.createServer((req,res)=>{

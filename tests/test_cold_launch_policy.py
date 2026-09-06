@@ -91,7 +91,7 @@ def main():
     assert 'format.opaque=YES' in source
     assert '[[UIColor blackColor] setFill]' in source
     assert 'version=7.338~v7307-constructor-safe-artwork base=4bbbbd9 mode=artwork-only' in source
-    assert "Version: 7.339~v7309-transition-skeleton-probe\n" in (ROOT / "layout/DEBIAN/control").read_text()
+    assert "Version: 7.340~v7309-portable-skeleton-probe\n" in (ROOT / "layout/DEBIAN/control").read_text()
     # The successful SpringBoard source is BYTE-IDENTICAL, including its v7.338
     # diagnostic identity. The new package changes Amazon-only diagnostics.
     assert hashlib.sha256(SB.read_bytes()).hexdigest() == "076a9bc1c1cc0424e4bd79e79306b5791da90bfd66f5c973ddbb86c1215f3806"
@@ -131,6 +131,9 @@ def without_skeleton_probe(tweak):
     This does not normalize arbitrary comments, code, styles or new hook bodies.
     """
     replacements = {
+        " * AmazonDark v7.340 — v7.309 UI + v7.338 transition fix + portable skeleton probe":
+            " * AmazonDark v7.339 — v7.309 UI + v7.338 transition fix + opt-in skeleton probe",
+        '"v7.340-v7309-portable-skeleton-probe"': '"v7.339-v7309-transition-skeleton-probe"',
         '// BEGIN v7.339 diagnostic integration\n#include "ADSkeletonProbe7339.h"\n// END v7.339 diagnostic integration\n': '',
         '    ADSkelAttach7339(ucc); // v7.339 diagnostic integration\n': '',
         '    if(ADSkelTrigger7339(trigger))return; // v7.339 diagnostic integration\n': '',

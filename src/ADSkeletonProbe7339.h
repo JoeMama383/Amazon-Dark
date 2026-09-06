@@ -4,7 +4,7 @@
 #import <sys/stat.h>
 #import <fcntl.h>
 
-static NSString *const ADSkelArmPath7339=@"/var/mobile/AmazonDark-v7.339-skeleton.arm";
+static NSString *const ADSkelArmPath7339=@"/var/mobile/AmazonDark-v7.340-skeleton.arm";
 static const void *ADSkelScriptKey7339=&ADSkelScriptKey7339;
 static NSString *ADSkelSource7339=nil;
 static NSTimeInterval ADSkelUntil7339=0;
@@ -173,7 +173,7 @@ static void ADSkelInstall7339(void){
         NSString *label=parts[1];if(![@[@"home",@"cart",@"both"] containsObject:label])return;
         ADSkelUntil7339=MIN(expiry,now+120);
         ADSkelSession7339=[NSString stringWithFormat:@"%.0f-%d-%@",now*1000,getpid(),label];
-        ADSkelPath7339=[NSString stringWithFormat:@"/var/mobile/AmazonDark-v7.339-skeleton-%@.jsonl",ADSkelSession7339];
+        ADSkelPath7339=[NSString stringWithFormat:@"/var/mobile/AmazonDark-v7.340-skeleton-%@.jsonl",ADSkelSession7339];
         ADSkelWriter7339=dispatch_queue_create("com.colindavidr.amazondark.skeleton.writer",DISPATCH_QUEUE_SERIAL);
         NSDictionary *config=@{@"session":ADSkelSession7339,@"until":@(ADSkelUntil7339*1000)};
         NSString *json=[[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:config options:0 error:nil] encoding:NSUTF8StringEncoding];
