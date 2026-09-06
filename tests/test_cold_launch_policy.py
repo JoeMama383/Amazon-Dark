@@ -89,7 +89,7 @@ def main():
     assert 'format.opaque=YES' in source
     assert '[[UIColor blackColor] setFill]' in source
     assert 'version=7.338~v7307-constructor-safe-artwork base=4bbbbd9 mode=artwork-only' in source
-    assert "Version: 7.348~cart-native-gradient-strip-fix\n" in (ROOT / "layout/DEBIAN/control").read_text()
+    assert "Version: 7.349~cart-shimmer-border-strip-fix\n" in (ROOT / "layout/DEBIAN/control").read_text()
     assert hashlib.sha256(SB.read_bytes()).hexdigest() == "076a9bc1c1cc0424e4bd79e79306b5791da90bfd66f5c973ddbb86c1215f3806"
     print("PASS: v7.348 leaves the inherited SpringBoard/cold-launch source byte-identical")
 

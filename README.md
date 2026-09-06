@@ -1,3 +1,10 @@
+# AmazonDark v7.349~cart-shimmer-border-strip-fix
+
+- Fixes the persistent 13pt Cart white strip proven by the v7.348 screenshot + transition probe to be the `#sc-recs-atf-shimmer-placeholder` 13px top border (`rgb(234,237,237)`). The existing rule already darkened the placeholder background but never its border. v7.349 owns that exact border OLED black from document start.
+- Retains all v7.348 native loading-gradient work and Cart diagnostics.
+
+---
+
 # AmazonDark v7.348~cart-native-gradient-strip-fix
 
 ## Probe-proven Cart strip repair
