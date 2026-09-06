@@ -1,35 +1,59 @@
-# AmazonDark v7.338 — startup crash hotfix
+# AmazonDark v7.339 — v7.309 UI, successful transition fix, skeleton probe
 
-Package identity: `7.338~v7307-constructor-safe-artwork`.
-Parent: the exact v7.337 handoff in this thread; UI baseline remains v7.307 (`4bbbbd9`).
+Package: `7.339~v7309-transition-skeleton-probe`.
+Exact UI base: `1bd6d82bdff18ebba012794ef70e7c288a21336e`, **v7.309: exact dog,
+Cart, footer, and XL brand fixes**, selected by the user. Transition donor: the
+successful v7.338 source from this conversation. No newer branch is used.
 
-- The supplied SpringBoard crash report identifies UIKit image loading during dylib initialization. The `logo=` constructor diagnostic eagerly called `ADSplashImage7191()`, which reached `+[UIScreen mainScreen]` before SpringBoard completed startup and aborted inside the dispatch-once callout.
-- Removes that constructor call. The constructor now reports `logo=deferred` without loading an image. The logo is loaded only when the existing artwork renderer needs it.
-- Contains a logo-load exception inside its `dispatch_once` block, allowing the existing opaque-black rendering fallback if loading fails. It cannot escape that block into libdispatch's terminating callout.
-- App runtime, UI, warm handling, source-image selection, saved-scene vetoes, geometry, hook surface and timing are unchanged from v7.337. No timer, delayed initialization, new lifecycle hook or overlay is added.
+The dog image, Cart rules, footer behavior, XL brand taming, image pipeline,
+preferences, Alexa geometry and existing explicit probes remain as in v7.309.
+The successful `src/AmazonDarkSB.xm` is copied byte-for-byte from v7.338. The
+obsolete app-side launch-readiness polling and snapshot purge are removed using
+the exact v7.338 transformation. No new launch/warm/switcher mechanism is added.
+Its embedded SB version and launch-probe filename intentionally remain v7.338.
 
-Install the macOS Actions package and respring. If `AmazonDarkSB.dylib` was renamed using the prior recovery command, package installation supplies the new active file; leave the disabled v7.337 backup disabled. Probe: `/var/mobile/AmazonDark-v7.338-launch-sb-probe.txt`. Its constructor must report the full new version and `logo=deferred`.
+For the newly reported white Home hero and Cart skeletons, this is a **diagnostic
+build**, not a claimed color fix. The intended repair is OLED-black loading
+backgrounds and strip, after identifying the actual early paint owners. The old
+Cart probes selected a loading document but captured detailed DOM paint only
+after `ready=complete`; `#sc-saved-cart` was already black then. Its old v7.309
+rules are preserved, not reintroduced as a new unverified fix.
 
-Verification: `python3 tests/test_startup_safety.py`, `python3 tests/test_cold_launch_policy.py`, Logos lint and compile/link/package. The startup guard follows this source's static helper calls and rejects the exact previous constructor error; it does not execute UIKit on an iPhone. See [LAUNCH-AUDIT.md](LAUNCH-AUDIT.md) for limits.
+Follow [COMMANDS.md](COMMANDS.md) for the existing source ZIP → NewTerm push →
+Actions workflow and capture/export commands. Before a capture, force-close
+Amazon, arm the probe in NewTerm, then open Amazon within five minutes. A fresh
+process guarantees installation before document creation in all WebKit frames.
+Capture runs for up to two minutes without screenshots or automatic scrolling.
 
-## Prior implementation notes — v7.337's startup bug is corrected above
+The probe records computed backgrounds/borders/gradients, pseudo-elements,
+technical DOM and native owners, accessible CSS declarations, frame changes and
+native presentation-layer colors. It never changes CSS, geometry, images, scroll
+offsets, navigation, animation or launch timing. No valid arm file means no new
+script, observer, display link or capture file. At expiry, observers and callbacks
+stop; future documents return immediately. Export removes the arm file.
 
-# AmazonDark v7.337 — v7.307 UI, iOS-owned cold-launch timing
+Existing screenshot/SIGUSR2 probes are preserved. During an armed capture they
+only add a log marker, preventing their older scrolling scans from disturbing
+the transient. Outside that window their original routing remains unchanged.
 
-Package identity: `7.337~v7307-stock-timing-cold-artwork`.
-Direct base: `4bbbbd9ae7c5dc0a9d4dc1455235da3feeb706f7` (v7.307).
+See [SKELETON-AUDIT.md](SKELETON-AUDIT.md) for evidence and limits. Tests verify the
+entire v7.309 app outside the exact transition removals and four diagnostic entry
+points. Build workflow, installer and preference files are unchanged.
 
-- Removes the entire SpringBoard scene-cover implementation, including its minimum duration, settle/fade overrides, ready listener and 20-second cap. No icon, process, scene-view or switcher hook remains.
-- Supplies OLED-black/custom-logo images for positively identified Amazon launch resources. Normal saved-scene images and the original lazy image wrapper pass through. iOS owns presentation, replacement, animation and dismissal.
-- Removes the obsolete app-side Home-ready polling/call sites and launch-time snapshot-file deletion. There is no replacement readiness mechanism.
-- Preserves v7.307's UI, Cart/image ownership, Alexa geometry, preferences, existing app-native warm-splash handling and explicit UI probes. The existing warm suppression is retained, not replaced with another warm/switcher experiment.
-- Existing Makefile, Actions workflow, injection filters and installer are unchanged. Use the established source ZIP -> NewTerm push -> Actions package workflow.
+## Selected UI baseline
 
-Source probe: `/var/mobile/AmazonDark-v7.337-launch-sb-probe.txt`. Install the resulting package and respring before testing. Its constructor must report the full package identity plus `mode=artwork-only`. This is distinct from `7.332~process-scoped-ready-continuity` and the separate `7.332~v7307-launch-image-correction` archive.
+# AmazonDark v7.309~probe-exact-dog-cart-footer-xl-brand
 
-Run `python3 tests/test_cold_launch_policy.py` and `bash scripts/lint-logos.sh src/Tweak.xm src/AmazonDarkSB.xm`. See [LAUNCH-AUDIT.md](LAUNCH-AUDIT.md) for evidence, exact preservation/removal scope, build limitations and device acceptance. A compile or source-level test is not a permanent zero-white device result.
+## Four narrow corrections on the v7.307 baseline
 
-## Historical changelog — launch descriptions below are superseded by v7.337
+- Direct production base: v7.307~warm-resume-bypass-mic-center. Its launch/warm-resume behavior, Alexa microphone geometry, and all existing theming/image-taming paths are retained.
+- No-internet dog: removes v7.301's pixel knockout and applies the existing TWB shade only to the probe-proven 640x524 image directly under `UIStackView` inside `CNMErrorView`. The authored raster and white field remain intact.
+- Cart refresh: owns only the probe-proven `#sc-saved-cart` 430x26 hydration band and empty/pre-hydration cards below `#p13n-uf-anchor` at document start. Hydrated products and imagery remain excluded.
+- Hamburger footer: the exact `account_switcher`, `so`, and `cs` rows keep OLED floors, white text, r16 geometry, and clipping while their visible React border channel is cleared. Category-row borders above remain unchanged.
+- XL standalone ads: adds TWB only to the probe-proven `[data-testid=simple-brand-logo-picture] img` company raster, through the existing standalone and child-frame TWB lanes.
+- No generic image/logo/glyph selector, broad CNM traversal, pixel rewrite, MutationObserver, timer, RAF, polling loop, scroll listener, or recurring scan is added.
+
+---
 
 # AmazonDark v7.307~warm-resume-bypass-mic-center
 

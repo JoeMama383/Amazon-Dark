@@ -1,16 +1,17 @@
 {
-  "version": "7.338~v7307-constructor-safe-artwork",
-  "base_commit": "4bbbbd9ae7c5dc0a9d4dc1455235da3feeb706f7",
+  "version": "7.339~v7309-transition-skeleton-probe",
+  "base_commit": "1bd6d82bdff18ebba012794ef70e7c288a21336e",
+  "base_title": "v7.309: exact dog, Cart, footer, and XL brand fixes",
   "baseline_sha256": {
     ".github/workflows/build.yml": "e3e886241ff13aa23b567c9b396958c3c90a241a2e47041caddb49b45f0b6b82",
     ".gitignore": "28131937d10f9f5a108d83b713efaba58fa5c534fd15cb0db056cdecd1d8a1d8",
     "AmazonDark.plist": "e08f0d838b8b84a192937c56a61fe9fb745389eec10ca26c15978bd6d8621c7f",
     "AmazonDarkSB.plist": "4f6dc3dfce77d213ff2a80a92a6918cb0a9ecd358e80579ce2a64daffd928d17",
     "Makefile": "3a6253d2430426bd0cc156dae40591e8b7bed7c00805506169cdd2ea133edbe6",
-    "README.md": "d085e489ed78a249ab7b954026306da801cacc90050950dd306da385f3edfb97",
+    "README.md": "33fab57b931b2f90bc26e9d9053afc282775e1e5407c7d118a79b0569e4e7131",
     "SILEO_DESCRIPTION.txt": "1eab2bb24da854d2945cc9e92ff9da061463e5f0c3cf962cce4784f1d75f4e80",
     "SileoIcon.png": "664096cbfde49eed9f57a136a1c5bcf432f4f2bbece75d01e874417f5552dbc7",
-    "layout/DEBIAN/control": "3dbc6ad57eb8ebce66325e2404d952436ffbb083af1393b9c0886d6bb54a68b3",
+    "layout/DEBIAN/control": "5021e46aa54a9006c07048bb750458b0eefd4cc08a7eff256e3d701e6758dcdc",
     "layout/DEBIAN/postinst": "eb0d042ca37b146aa5c38bac4df5279e07b7b8b800b96c936b4041172c73f9cc",
     "layout/Library/Application Support/AmazonDark/splash-logo.png": "4d5ab25256f6badd0649b23cfef385b9700e529762474bb463d81f43a5bc9fff",
     "layout/Library/PreferenceLoader/Preferences/AmazonDark.plist": "140246f2bed120e795af1c3d5327a10ec30b85ff622ff3197f5071bdc492dccb",
@@ -25,7 +26,7 @@
     "prefs/icon@3x.png": "664096cbfde49eed9f57a136a1c5bcf432f4f2bbece75d01e874417f5552dbc7",
     "scripts/lint-logos.sh": "71a2058f74ff75b3bb756a1cf5a686052734ca890b2548eea8877f71ff9dac10",
     "src/AmazonDarkSB.xm": "017a50d3bddc3aa2f146a3ac98858b85ad5d39855d1e6f16ee1e5bcd726cd42e",
-    "src/Tweak.xm": "d2c5a71fe41bf5542447c1bd3f2a0e32c3642964691a4c8724451203078f1686"
+    "src/Tweak.xm": "0c2fdca8976e6047128127b9eb3837301fd16e94d5ac0c258edca56ef94a58a1"
   },
   "original_files_changed": [
     "README.md",
@@ -55,14 +56,17 @@
     "prefs/icon@3x.png",
     "scripts/lint-logos.sh"
   ],
-  "tweak_changes": "Exact v7.307 UI/warm behavior, with explicit removal of launch-readiness polling/call sites and snapshot deletion. Full-file allowlisted transformation verified against base commit.",
-  "scope": "No SpringBoard scene/icon/process hooks, overlay lifetime, readiness listener, hard cap, or cache deletion. Confirmed launch artwork only; v7.307 native UI and warm-splash policy retained.",
+  "transition_donor_version": "7.338~v7307-constructor-safe-artwork",
+  "transition_donor_zip_sha256": "ebc81c698ab46d290ba8135eef28fc7b204364090b471aace1fc871379befb58",
+  "transition_donor_sb_sha256": "076a9bc1c1cc0424e4bd79e79306b5791da90bfd66f5c973ddbb86c1215f3806",
+  "ported_tweak_without_probe_sha256": "6f64b4411b28febe1ab73cadc4b17a753ed09073fe7c8255857e84afa71a5e66",
+  "scope": "Exact v7.309 UI with successful v7.338 transition source, matching obsolete readiness/purge removals, and opt-in read-only transient skeleton probe. No new color, image, geometry, warm, switcher, animation or launch changes. No newer branch used.",
   "delivery_sha256": {
-    "src/Tweak.xm": "758234094103816aaf10f51dd8574047fee3eedfc5b38c31bdc2935cf5020905",
+    "src/Tweak.xm": "db8e7450bb8f5396943cd5c693ac7c4bc0b15c34e89721faa9e3b3a835559fdb",
     "src/AmazonDarkSB.xm": "076a9bc1c1cc0424e4bd79e79306b5791da90bfd66f5c973ddbb86c1215f3806",
-    "layout/DEBIAN/control": "f4a029183a974ad0f5a32880ec900643487fe323acf04ceb89eefd3220611420"
-  },
-  "parent_version": "7.337~v7307-stock-timing-cold-artwork",
-  "hotfix": "Remove eager UIKit image load from SB constructor; contain logo-load exceptions inside dispatch_once. No app runtime changes beyond version/header. No launch policy, hook surface, warm/switcher, image geometry, or timing changes.",
-  "parent_tweak_sha256": "303f492a522085dfa0f3d42863e95749c7414f0fe487014294ac2ff2fb0b115c"
+    "src/ADSkeletonProbe7339.h": "aca7d193df15a2f7a5f514fc2dfc91ceb2b065833346d3d770b9e3b8e9596bb2",
+    "src/ADSkeletonProbe7339.js.inc": "39a7d672d87cbb28fd0d4b2109e9ad8ff048062ec4b34662778282f5e8f7b955",
+    "layout/DEBIAN/control": "d388128ca4c25e694c4dda965ebec3e77d331cc50a579723065aeb753e78992b",
+    "scripts/skeleton-probe.sh": "58faebfc4a953a2768cff5d183cfe0df9d589fd8b1bf0f1931c1383e7f3f97b5"
+  }
 }

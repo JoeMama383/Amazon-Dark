@@ -1,8 +1,8 @@
 """Exercise the production cold-launch decision without UIKit.
 
-Enforce v7.307 UI/warm behavior with only the explicit launch-handoff removals. This is a host
+Enforce v7.309 UI/warm behavior with only the explicit launch-handoff removals. This is a host
 regression test, not proof of device rendering or private-selector invocation.
-Run from a Git checkout containing base 4bbbbd9, or use SOURCE-BASELINE.json.
+Run from a Git checkout containing base 1bd6d82, or use SOURCE-BASELINE.json.
 """
 import ctypes as c
 import hashlib
@@ -12,7 +12,7 @@ import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE = "4bbbbd9ae7c5dc0a9d4dc1455235da3feeb706f7"
+BASE = "1bd6d82bdff18ebba012794ef70e7c288a21336e"
 SB = ROOT / "src/AmazonDarkSB.xm"
 
 
@@ -91,7 +91,11 @@ def main():
     assert 'format.opaque=YES' in source
     assert '[[UIColor blackColor] setFill]' in source
     assert 'version=7.338~v7307-constructor-safe-artwork base=4bbbbd9 mode=artwork-only' in source
-    assert "Version: 7.338~v7307-constructor-safe-artwork\n" in (ROOT / "layout/DEBIAN/control").read_text()
+    assert "Version: 7.339~v7309-transition-skeleton-probe\n" in (ROOT / "layout/DEBIAN/control").read_text()
+    # The successful SpringBoard source is BYTE-IDENTICAL, including its v7.338
+    # diagnostic identity. The new package changes Amazon-only diagnostics.
+    assert hashlib.sha256(SB.read_bytes()).hexdigest() == "076a9bc1c1cc0424e4bd79e79306b5791da90bfd66f5c973ddbb86c1215f3806"
+    parent_tweak = without_skeleton_probe(tweak)
     try:
         baseline = subprocess.check_output(
             ["git", "show", f"{BASE}:src/Tweak.xm"], cwd=ROOT,
@@ -100,25 +104,42 @@ def main():
         baseline = None
     if baseline:
         assert hashlib.sha256(baseline.encode()).hexdigest() == (
-            "d2c5a71fe41bf5542447c1bd3f2a0e32c3642964691a4c8724451203078f1686")
-        assert tweak == expected_app(baseline), "Unexpected change to v7.307 UI/warm behavior"
+            "0c2fdca8976e6047128127b9eb3837301fd16e94d5ac0c258edca56ef94a58a1")
+        assert parent_tweak == expected_app(baseline), "Unexpected change to v7.309 UI/warm behavior"
         for path in [".github/workflows/build.yml", "Makefile",
                      "AmazonDark.plist", "AmazonDarkSB.plist",
                      "layout/DEBIAN/postinst", "prefs/ADPrefsController.xm"]:
             assert (ROOT / path).read_bytes() == subprocess.check_output(
                 ["git", "show", f"{BASE}:{path}"], cwd=ROOT), path
     manifest = json.loads((ROOT / "SOURCE-BASELINE.json").read_text())
-    previous = tweak.replace("v7.338 —", "v7.337 —").replace(
-        '"v7.338-v7307-constructor-safe-artwork"', '"v7.337-v7307-stock-timing-cold-artwork"')
-    assert hashlib.sha256(previous.encode()).hexdigest() == manifest["parent_tweak_sha256"], "App runtime changed in hotfix"
+    assert hashlib.sha256(parent_tweak.encode()).hexdigest() == manifest["ported_tweak_without_probe_sha256"] == "6f64b4411b28febe1ab73cadc4b17a753ed09073fe7c8255857e84afa71a5e66", "UI changed outside reviewed transition port and diagnostic integrations"
+    assert manifest['base_commit'] == BASE
     for path in manifest["unchanged_files"]:
         assert hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == manifest["baseline_sha256"][path], path
     for path, digest in manifest["delivery_sha256"].items():
         assert hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == digest, path
-    print("PASS: exact v7.307 UI/warm behavior outside explicit launch removals")
+    print("PASS: exact v7.309 UI/warm behavior outside explicit launch removals")
     print("PASS: no SB presentation hooks, hard cap, ready listener, or snapshot purge")
     print("PASS: source identity and unchanged build/push wiring")
-    print("PASS: v7.337 app runtime unchanged by startup hotfix")
+    print("PASS: exact v7.309 plus v7.338 transition port outside four explicit diagnostic integrations")
+    print("PASS: SpringBoard source byte-identical to delivered v7.338")
+
+
+def without_skeleton_probe(tweak):
+    """Remove only exact reviewable diagnostic entry points, then check the ENTIRE
+    remaining app against the reviewed v7.309-to-v7.338-transition transformation.
+    This does not normalize arbitrary comments, code, styles or new hook bodies.
+    """
+    replacements = {
+        '// BEGIN v7.339 diagnostic integration\n#include "ADSkeletonProbe7339.h"\n// END v7.339 diagnostic integration\n': '',
+        '    ADSkelAttach7339(ucc); // v7.339 diagnostic integration\n': '',
+        '    if(ADSkelTrigger7339(trigger))return; // v7.339 diagnostic integration\n': '',
+        '        ADSkelInstall7339(); // v7.339 diagnostic integration\n': '',
+    }
+    for old, new in replacements.items():
+        assert tweak.count(old) == 1, old
+        tweak = tweak.replace(old, new)
+    return tweak
 
 
 def expected_app(base):
@@ -127,10 +148,10 @@ def expected_app(base):
     """
     result = base
     replacements = {
-        " * AmazonDark v7.307 — v7.301 baseline + warm-resume splash bypass + Alexa mic centering":
-            " * AmazonDark v7.338 — v7.307 UI / warm behavior, iOS-owned cold-launch timing",
-        '"v7.307-warm-resume-bypass-mic-center"':
-            '"v7.338-v7307-constructor-safe-artwork"',
+        " * AmazonDark v7.309 — v7.307 baseline + four probe-exact corrections":
+            " * AmazonDark v7.339 — v7.309 UI + v7.338 transition fix + opt-in skeleton probe",
+        '"v7.309-probe-exact-dog-cart-footer-xl-brand"':
+            '"v7.339-v7309-transition-skeleton-probe"',
         "// from an actual scene reconstruction inside the same process. SpringBoard remains the\n"
         "// exact v7.301 cold-launch implementation; warm behavior is owned inside Amazon only.":
             "// from an actual scene reconstruction inside the same process. Keep this approved\n"
