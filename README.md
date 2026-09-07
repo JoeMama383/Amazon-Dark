@@ -1,3 +1,15 @@
+# AmazonDark v7.350~native-splash-image-seal
+
+- Direct base: exact v7.349~cart-shimmer-border-strip-fix. The accepted Cart 13pt strip fix and all v7.349 UI behavior are retained.
+- The paired v7.349 launch capture contains one known-good cold launch followed by one known-bad cold launch. SpringBoard reports dark `GeneratedDefault` launch artwork in both runs, eliminating the system launch resource as the differentiator.
+- Only the bad run exposes `AXUSplashScreenViewController` on-window with a full-screen `UIImageView` (`430x932`, source image `2400x2400`, `contents=true`). The good run never exposes that image plane.
+- v7.350 seals only the exact Amazon native splash controller during cold/scene-reconstruction presentation: an OLED-black noninteractive top view plus the existing AmazonDark splash logo is installed during `viewDidLoad`/appearance ownership before window attachment and brought to front on layout. Amazon still owns the controller lifetime and dismissal.
+- Ordinary warm resume behavior is unchanged: if Amazon attempts to replay the splash on the existing scene, the retained v7.307 warm suppression hides the whole controller and the seal with it.
+- No SpringBoard scene overlay, PID classifier, Home-readiness poll, timer, hard cap, recurring scan, observer, RAF, or transition delay is introduced.
+- Transition probe retained and bumped to v7.350 for acceptance. Named layers `AmazonDarkSplashSeal7350` / `AmazonDarkSplashSealLogo7350` make the new owner visible in the existing native-frame recorder.
+
+---
+
 # AmazonDark v7.349~cart-shimmer-border-strip-fix
 
 - Fixes the persistent 13pt Cart white strip proven by the v7.348 screenshot + transition probe to be the `#sc-recs-atf-shimmer-placeholder` 13px top border (`rgb(234,237,237)`). The existing rule already darkened the placeholder background but never its border. v7.349 owns that exact border OLED black from document start.

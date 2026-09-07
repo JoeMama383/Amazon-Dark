@@ -1,3 +1,9 @@
+# v7.350 paired-launch native splash image seal
+
+The paired v7.349 transition archive finally resolves the intermittent stock-white cold frame. Both the good and bad launches receive the same dark SpringBoard `GeneratedDefault` launch artwork. Only the bad launch exposes `AXUSplashScreenViewController` on-window with an opaque full-screen `UIImageView` (`430x932`, source `2400x2400`, `contents=true`) above the already-black controller floor. v7.350 installs an OLED-black top seal plus the existing AmazonDark splash logo inside that exact native splash controller before window presentation. Amazon retains dismissal timing; no SpringBoard scene overlay/readiness state machine is restored. See `AmazonDark-v7.350-AUDIT.txt` for the complete timeline and validation.
+
+---
+
 # v7.338 startup crash hotfix
 
 Date: 2026-09-05. Scope: correct the supplied SpringBoard crash on the exact v7.337 source. The following v7.337 launch-policy audit is retained as history; device acceptance remains outstanding.

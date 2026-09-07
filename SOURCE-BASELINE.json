@@ -1,9 +1,9 @@
 {
-  "version": "7.348~cart-native-gradient-strip-fix",
+  "version": "7.350~native-splash-image-seal",
   "parent_commit": "4d207ed20d679e91c25ffd9366ed8de6a0fc0d5b",
   "parent_title": "v7.346: restore v7.344 base and fix Cart strip and buying-options button",
   "underlying_visual_base_commit": "5bf6c356489bef37783fe25cee127799fa4f7578",
-  "scope": "Probe-only Cart strip owner/gate diagnostics on exact v7.346 production visuals. No new production strip paint.",
+  "scope": "Exact v7.349 UI baseline plus deterministic app-side seal of the probe-proven AXUSplash full-screen image plane. SpringBoard artwork policy unchanged.",
   "parent_tweak_sha256": "47043edbaae3a5bfd3c285ca830f13659c8c08134410224f8c407f3a5422a97a",
   "unchanged_critical_sha256": {
     "src/AmazonDarkSB.xm": "076a9bc1c1cc0424e4bd79e79306b5791da90bfd66f5c973ddbb86c1215f3806",
@@ -13,8 +13,9 @@
   },
   "changed_files": [
     "README.md",
-    "COMMANDS.md",
-    "CART-STRIP-FORENSICS.md",
+    "AmazonDark-v7.350-AUDIT.txt",
+    "AmazonDark-v7.350-COMMANDS.txt",
+    "LAUNCH-AUDIT.md",
     "SOURCE-BASELINE.json",
     "layout/DEBIAN/control",
     "scripts/skeleton-probe.sh",
@@ -23,7 +24,7 @@
     "tests/test_cold_launch_policy.py",
     "tests/test_probe_embedding.py",
     "tests/test_probe_handoff.py",
-    "tests/test_v7347_probe_only.py",
-    "tests/fixtures/v7346-cart-strip-block.txt"
+    "tests/test_v7348_cart_gradient_fix.py",
+    "tests/test_v7350_splash_seal.py"
   ]
 }

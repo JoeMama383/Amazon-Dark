@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.349 — exact Cart shimmer-border strip fix + retained native loading fix
+ * AmazonDark v7.350 — deterministic native splash image seal + retained v7.349 UI fixes
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.349-cart-shimmer-border-strip-fix"
+#define AD_VERSION "v7.350-native-splash-image-seal"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -7467,6 +7467,75 @@ static BOOL gADSceneReconnectedWhileBackgrounded7307=NO;
 static BOOL gADOrdinaryWarmResume7307=NO;
 static const void *kADWarmSplashSuppressed7307=&kADWarmSplashSuppressed7307;
 
+// v7.350: the good/bad v7.349 transition pair proves the intermittent stock-white
+// cold frame is not the SpringBoard GeneratedDefault resource. In the bad run,
+// AXUSplashScreenViewController alone reaches the window with an opaque full-screen
+// UIImageView (430x932, source image 2400x2400, layer contents present). The good run
+// never exposes that image plane. Owning only vc.view.backgroundColor cannot cover an
+// opaque child UIImageView, so seal the exact Amazon native splash controller itself
+// before window attachment. Amazon still owns controller lifetime/dismissal; this adds
+// no timer, readiness poll, scene cover, or warm-resume fabrication.
+static const void *kADNativeSplashSeal7350=&kADNativeSplashSeal7350;
+static const void *kADNativeSplashSealLogo7350=&kADNativeSplashSealLogo7350;
+static UIImage *ADNativeSplashLogo7350(void){
+    static UIImage *image=nil; static dispatch_once_t once;
+    dispatch_once(&once,^{
+        @try { image=[UIImage imageWithContentsOfFile:@"/var/jb/Library/Application Support/AmazonDark/splash-logo.png"]; }
+        @catch(...) { image=nil; }
+    });
+    return image;
+}
+static UIView *ADNativeSplashSealView7350(UIViewController *vc,BOOL create){
+    if(!vc||!vc.view)return nil;
+    @try {
+        UIView *seal=objc_getAssociatedObject(vc,kADNativeSplashSeal7350);
+        if(!seal&&create){
+            seal=[[UIView alloc] initWithFrame:vc.view.bounds];
+            seal.backgroundColor=ADOLED();
+            seal.userInteractionEnabled=NO;
+            seal.accessibilityElementsHidden=YES;
+            seal.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+            seal.layer.name=@"AmazonDarkSplashSeal7350";
+            seal.layer.zPosition=FLT_MAX;
+            UIImage *logo=ADNativeSplashLogo7350();
+            if(logo){
+                UIImageView *iv=[[UIImageView alloc] initWithImage:logo];
+                iv.contentMode=UIViewContentModeScaleAspectFit;
+                iv.userInteractionEnabled=NO;
+                iv.accessibilityElementsHidden=YES;
+                iv.layer.name=@"AmazonDarkSplashSealLogo7350";
+                [seal addSubview:iv];
+                objc_setAssociatedObject(vc,kADNativeSplashSealLogo7350,iv,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            }
+            [vc.view addSubview:seal];
+            objc_setAssociatedObject(vc,kADNativeSplashSeal7350,seal,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        return seal;
+    } @catch(...) { return nil; }
+}
+static void ADLayoutNativeSplashSeal7350(UIViewController *vc,BOOL visible){
+    if(!vc||!vc.view)return;
+    @try {
+        UIView *seal=ADNativeSplashSealView7350(vc,visible);
+        if(!seal)return;
+        seal.frame=vc.view.bounds;
+        seal.backgroundColor=ADOLED();
+        seal.hidden=!visible;
+        seal.alpha=visible?1.0:0.0;
+        seal.layer.zPosition=FLT_MAX;
+        if(visible)[vc.view bringSubviewToFront:seal];
+        UIImageView *iv=objc_getAssociatedObject(vc,kADNativeSplashSealLogo7350);
+        if(iv){
+            CGFloat w=CGRectGetWidth(seal.bounds)*0.62;
+            UIImage *im=iv.image;
+            CGFloat ratio=(im&&im.size.width>0)?(im.size.height/im.size.width):(310.0/831.0);
+            CGFloat h=w*ratio;
+            iv.frame=CGRectMake((CGRectGetWidth(seal.bounds)-w)*0.5,
+                                (CGRectGetHeight(seal.bounds)-h)*0.5,w,h);
+        }
+    } @catch(...) {}
+}
+
 static void ADOwnAmazonSplash7307(UIViewController *vc){
     if(!gP.enabled||!vc||!vc.view)return;
     ADSkelSplash7339(vc,@"own.before"); // v7.341 read-only splash diagnostics
@@ -7475,15 +7544,18 @@ static void ADOwnAmazonSplash7307(UIViewController *vc){
         if(gADOrdinaryWarmResume7307||latched){
             if(!latched)objc_setAssociatedObject(vc,kADWarmSplashSuppressed7307,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             // Do not fabricate another warm transition. The running scene remains underneath.
+            ADLayoutNativeSplashSeal7350(vc,NO);
             vc.view.hidden=YES;
             vc.view.alpha=0.0;
             return;
         }
-        // Cold launch / true scene reconstruction: keep Amazon's normal splash contents but
-        // own its earliest floor dark. Amazon/iOS retain presentation and dismissal.
+        // Cold launch / true scene reconstruction: seal the exact native splash above
+        // Amazon's opaque stock image child before the controller can present. Amazon/iOS
+        // retain presentation timing and dismissal; only the pixels are deterministically dark.
         vc.view.hidden=NO;
         vc.view.alpha=1.0;
         ADSetViewBackground7226(vc.view,ADOLED(),YES);
+        ADLayoutNativeSplashSeal7350(vc,YES);
     } @catch(...) {}
     @finally { ADSkelSplash7339(vc,@"own.after"); } // v7.341 read-only splash diagnostics
 }
