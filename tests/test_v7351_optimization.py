@@ -2,8 +2,8 @@ from pathlib import Path
 import hashlib,re
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text(); sb=(ROOT/'src/AmazonDarkSB.xm').read_text(); sh=(ROOT/'scripts/skeleton-probe.sh').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.351~aggressive-theme-neutral-optimization' in ctl
-assert '#define AD_VERSION "v7.351-aggressive-theme-neutral-optimization"' in t
+assert 'Version: 7.352~search-product-ui-repair' in ctl
+assert '#define AD_VERSION "v7.352-search-product-ui-repair"' in t
 
 def static_block(src,name):
     m=re.search(r'^static[^\n;{}]*\b'+re.escape(name)+r'\([^;{}]*\)\s*\{',src,re.M);assert m,name
@@ -24,18 +24,17 @@ def static_block(src,name):
 # Critical visual payloads remain byte-identical to accepted v7.350 except the exact Cart text restoration below.
 expected={
  'ADStandalonePaintJS7104':'fb6a4cf9057c2f5262d4f2cd2d9d161f5b82661229671be0040bdd4f2dedc3db',
- 'ADTWBJS':'99973b4ca0a8331a077152dfc3bae70d6e718d0d206dc3389974c6d74d121b9e',
  'ADNativeSplashLogo7350':'27f26ded352c76f6bb39c68bda07c086004ff950c0dfa667ad14166966e16448',
  'ADLayoutNativeSplashSeal7350':'24fa17d2501f723c9037d57269c6ca95200e206c4ca4b5ce31acbc90d0765d05',
  'ADReleaseWarmSplash7307':'de3cd1a6602a293bf9d1fc2b34c3ec10549e50181b37615791495ad3bf7aa51c',
 }
 for name,digest in expected.items(): assert hashlib.sha256(static_block(t,name).encode()).hexdigest()==digest,name
 
-# ADFloorJS differs from accepted v7.350 only by the exact active-Cart swipe-right text restoration.
-active_rule='        @"#sc-page-container form#activeCartViewForm .sc-list-item .swipe-button.swipe-right-button,#sc-page-container form#activeCartViewForm .sc-list-item .swipe-button.swipe-right-button>div{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"\n'
-floor=static_block(t,'ADFloorJS')
-assert floor.count(active_rule)==1
-assert hashlib.sha256(floor.replace(active_rule,'',1).encode()).hexdigest()=='40b9d2419dcfe04ef305fb332f512a549e8acb8e25b09fb9a9716430f5790c42'
+# ADFloorJS/ADTWBJS intentionally change in v7.352 for exact Search/product UI owners.
+# The v7.351 active-Cart restoration remains present and broad swipe recoloring remains absent.
+active_rule='#sc-page-container form#activeCartViewForm .sc-list-item .swipe-button.swipe-right-button,#sc-page-container form#activeCartViewForm .sc-list-item .swipe-button.swipe-right-button>div{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}'
+assert t.count(active_rule)==1
+assert '.swipe-button{color:#e8e6e3' not in t
 
 # Accepted Cart and splash owners remain.
 for token in ['#sc-recs-atf-shimmer-placeholder{border-top-color:#000!important','ADBlackenLoadingGradient7348','AmazonDarkCartLoadingBar7345','AmazonDarkSplashSeal7350']:
@@ -52,5 +51,5 @@ assert 'if(!ADLaunchProbeArmed7351())return;' in sb
 assert 'AmazonDark-launch-probe.arm' in sh
 assert 'prefs/Resources/icon@3x.png' in ctl
 assert not (ROOT/'prefs/icon@3x.png').exists()
-print('PASS: v7.351 optimization retains critical v7.350 visual payload hashes and exact accepted Cart/splash owners')
+print('PASS: v7.352 retains v7.351 optimization architecture and unchanged critical non-Search payload hashes')
 print('PASS: CNM hot path, UIView classification reuse, probe writer/path consolidation, dead Menu ring removal, probe-only SB logging present')

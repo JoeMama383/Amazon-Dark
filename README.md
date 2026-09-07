@@ -1,3 +1,16 @@
+# AmazonDark v7.352~search-product-ui-repair
+
+- Direct base: accepted `v7.351~aggressive-theme-neutral-optimization`; its runtime/probe simplifications, v7.350 native splash seal, v7.349 Cart strip fix, and Cart Save-for-later restoration remain intact.
+- Search autocomplete: adds the current `cards_carousel_widget-sug-*` recommendation-card family to the existing `/autocomplete` first-paint stylesheet. Floors become OLED black, neutral text becomes `#e8e6e3`, and its product rasters join the existing Search-pane TWB lane.
+- Product result action controls: releases the current Amazon Lists heart and More-like-this/two-card families from AmazonDark filter ownership. The old exact MLT dark-filter rule and MAB chevron inversion are removed; known action-family descendants receive only a filter reset so Amazon's authored circle, glyph, geometry and state remain authoritative.
+- Featured Search video: themes only the probe-proven `_controls_1m98b_` / `_button_1wlc7_` oval label to OLED black, standard `#747a7c` edge, and light text.
+- Product certification metadata: `s-pc-certification-faceout` stays transparent and its 16px `img.s-image` is explicitly excluded from TWB/filter ownership, restoring authored Recycled-materials/feature-badge artwork.
+- `s-trft` / Top-reviewed module: OLED black structural floors, `#494d4d` standard borders, light neutral text, and the module's real product images join the existing product TWB lane.
+- Screenshot/SIGUSR2 dispatcher: a visible `/s` product WKWebView now wins before native tab dispatch. This fixes the current Search-results overlay being mislabeled as the Menu probe merely because `menuTab` remained selected underneath. No new recurring probe or scanner is added.
+- Probe infrastructure is retained and bumped to v7.352. Production still has no MutationObserver, polling loop, recurring hierarchy scan, RAF loop, or Web scroll listener.
+
+---
+
 # AmazonDark v7.351~aggressive-theme-neutral-optimization
 
 - Direct base: accepted v7.350 visuals. The optimization pass is theme-neutral **except for one explicit historical Cart regression restoration**: active-cart swipe-right `Save for later` text is returned to the standard light foreground.
