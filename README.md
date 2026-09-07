@@ -1,96 +1,14 @@
-# AmazonDark v7.354~search-carousel-store-spotlight-fix
+# AmazonDark v7.355~cart-same-day-search-strip-fix
 
-- Direct base: accepted `v7.353~search-carousel-media-header-fix`; all v7.353 Top-reviewed header, v7.352 Search/product UI, v7.351 optimization, Cart, and splash work remains intact.
-- Search autocomplete: removes the remaining broad `cards_carousel_widget-sug-*` descendant floor owner that could sit over Amazon's image-bearing sublayers. The card/column floor stays OLED black, text stays light, and `cards_carousel_widget-sug-im*` media surfaces are explicitly transparent/visible and remain brightness-tamed.
-- Historical parity: working v5.440 captures show `IMG.cards_carousel_widget-sug-im` rasters rendered under brightness TWB. v7.354 restores that exact ownership principle rather than adding a scanner or image replacement.
-- Product results Store Spotlight v2: the probe identifies `data-csa-c-painter=store-spotlight-v2-creative-mobile-cards`. Its brand logo and three product rasters all use the same `_c3Rvc_image_*` family and were `filter=none`; all visible authored images in this painter are now tamed, while the hidden 1x1 `_c3Rvc_pixel_*` tracker is excluded.
-- No new hook, MutationObserver, timer, RAF, Web scroll listener, polling loop, or recurring DOM scan.
+Direct base: accepted `v7.354~search-carousel-store-spotlight-fix`. All v7.354 Search media/Store Spotlight work, v7.353 Top-reviewed repair, v7.352 product-action ownership, v7.351 optimization, Cart loader work, and v7.350 splash seal remain intact.
 
----
+## Changes
 
-# AmazonDark v7.353~search-carousel-media-header-fix
+- **Cart Same-Day Delivery incentive:** the current Cart probe identifies `#ssd-ca-buy-box` as the 430×126 light-blue owner. v7.355 makes that exact owner OLED black and flips its neutral copy to the standard light foreground. The `a-meter` track becomes black while Amazon's green `a-meter-bar` and green edge remain green.
+- **Find eligible items:** the exact `#dex-basket-building-bottom-sheet-link` AUI button now uses the same Cart button palette already used elsewhere: `#303335` fill, `#747a7c` edge, light text, stock Amazon geometry/radius.
+- **Search YOU MIGHT ALSO NEED title strips:** v7.354 successfully restored/tamed the carousel images but left the stock white title strip. v7.355 does **not** restore the rejected broad `cards_carousel_widget-sug-*` floor rule. It darkens only the structural sibling immediately following the `cards_carousel_widget-sug-im*` media owner, keeping media transparent/visible and brightness-tamed.
+- No new hook, MutationObserver, timer, RAF, Web scroll listener, polling loop, or recurring DOM/native scan.
 
-- Direct base: accepted `v7.352~search-product-ui-repair`; all successful v7.352 product action-control, video-pill, certification-badge, TRFT tile, probe-dispatch, v7.351 optimization, Cart and splash work remains intact.
-- Search autocomplete carousel correction: v7.352 correctly blackened the current `cards_carousel_widget-sug-*` floors but its broad structural wildcard also reached media-named leaves, and its new TWB lane used opacity. v7.353 excludes IMG/PICTURE/SOURCE from that structural owner, explicitly keeps media visible/transparent, and returns this historical carousel family to brightness-based TWB using the configured strength.
-- Historical parity: the older working v5.440 capture showed `cards_carousel_widget-sug-column` cards with gray edges and their `IMG.cards_carousel_widget-sug-im…` rasters rendered under `brightness(0.5) saturate(1)`. v7.353 restores that proven rendering principle without bringing back the old runtime scanner.
-- Top-reviewed header correction: the probe showed both a 12px `s-result-item::before` gradient and the 430x56 `.s-tiles-header` gradient. v7.353 seals both to OLED black, removes their background images, and keeps `.s-tiles-header-title` light. Existing black TRFT tiles, #494d4d edges and tamed product images remain unchanged.
-- No new hook, MutationObserver, timer, RAF, Web scroll listener, polling loop, or recurring DOM scan. These are still route-local document-start CSS/TWB corrections.
-- Probe infrastructure is retained and bumped to v7.353. The v7.352 visible-`/s` product-probe dispatch fix is retained.
+## Probe workflow
 
----
-
-# AmazonDark v7.352~search-product-ui-repair
-
-- Direct base: accepted `v7.351~aggressive-theme-neutral-optimization`; its runtime/probe simplifications, v7.350 native splash seal, v7.349 Cart strip fix, and Cart Save-for-later restoration remain intact.
-- Search autocomplete: adds the current `cards_carousel_widget-sug-*` recommendation-card family to the existing `/autocomplete` first-paint stylesheet. Floors become OLED black, neutral text becomes `#e8e6e3`, and its product rasters join the existing Search-pane TWB lane.
-- Product result action controls: releases the current Amazon Lists heart and More-like-this/two-card families from AmazonDark filter ownership. The old exact MLT dark-filter rule and MAB chevron inversion are removed; known action-family descendants receive only a filter reset so Amazon's authored circle, glyph, geometry and state remain authoritative.
-- Featured Search video: themes only the probe-proven `_controls_1m98b_` / `_button_1wlc7_` oval label to OLED black, standard `#747a7c` edge, and light text.
-- Product certification metadata: `s-pc-certification-faceout` stays transparent and its 16px `img.s-image` is explicitly excluded from TWB/filter ownership, restoring authored Recycled-materials/feature-badge artwork.
-- `s-trft` / Top-reviewed module: OLED black structural floors, `#494d4d` standard borders, light neutral text, and the module's real product images join the existing product TWB lane.
-- Screenshot/SIGUSR2 dispatcher: a visible `/s` product WKWebView now wins before native tab dispatch. This fixes the current Search-results overlay being mislabeled as the Menu probe merely because `menuTab` remained selected underneath. No new recurring probe or scanner is added.
-- Probe infrastructure is retained and bumped to v7.352. Production still has no MutationObserver, polling loop, recurring hierarchy scan, RAF loop, or Web scroll listener.
-
----
-
-# AmazonDark v7.351~aggressive-theme-neutral-optimization
-
-- Direct base: accepted v7.350 visuals. The optimization pass is theme-neutral **except for one explicit historical Cart regression restoration**: active-cart swipe-right `Save for later` text is returned to the standard light foreground.
-- Restores the exact active-Cart swipe owner proven by the old Cart probes: `form#activeCartViewForm .swipe-button.swipe-right-button > div`. Its stock `rgb(17,17,17)` text is forced to `#e8e6e3`, matching the previously-correct v5-era Cart appearance and the parallel v7.294 Saved-for-later swipe rule. This is document-start CSS only; no observer or runtime traversal is added.
-- Restores the previously proven v7.302 O(1) CNM/error-screen fast path so normal global UIView mount/background traffic no longer walks up to 18 ancestors when no CNM root exists.
-- Reuses the already-computed React classification in the global UIView mount hook and converts six production bounded BFS helpers from array-front deletion to cursor queues.
-- Makes probe bootstrap receipt I/O one-time per installed version instead of rewriting an `arm-missing` status file on every ordinary Amazon launch.
-- Makes SpringBoard launch-artwork file logging truly probe-only. `launch` / `transition` arming creates a 5-minute `/var/mobile/AmazonDark-launch-probe.arm`; ordinary launches no longer format/queue/append launch diagnostic lines.
-- Collapses seven probe path builders and four capped append writers into shared helpers while preserving exact probe filenames, caps and capture entrypoints. Removes the stale Menu lifecycle-ring code whose writer had no call sites; the active Menu native/Web collector remains.
-- Removes duplicate source-only preference icon copies, points Sileo metadata at the packaged `prefs/Resources` copy, and removes stale per-build delivery/audit duplicates from the working source tree.
-- Existing `-Os`, function/data sections and linker dead-strip flags were already optimal and are retained unchanged.
-
----
-
-# AmazonDark v7.350~native-splash-image-seal
-
-- Direct base: exact v7.349~cart-shimmer-border-strip-fix. The accepted Cart 13pt strip fix and all v7.349 UI behavior are retained.
-- The paired v7.349 launch capture contains one known-good cold launch followed by one known-bad cold launch. SpringBoard reports dark `GeneratedDefault` launch artwork in both runs, eliminating the system launch resource as the differentiator.
-- Only the bad run exposes `AXUSplashScreenViewController` on-window with a full-screen `UIImageView` (`430x932`, source image `2400x2400`, `contents=true`). The good run never exposes that image plane.
-- v7.350 seals only the exact Amazon native splash controller during cold/scene-reconstruction presentation: an OLED-black noninteractive top view plus the existing AmazonDark splash logo is installed during `viewDidLoad`/appearance ownership before window attachment and brought to front on layout. Amazon still owns the controller lifetime and dismissal.
-- Ordinary warm resume behavior is unchanged: if Amazon attempts to replay the splash on the existing scene, the retained v7.307 warm suppression hides the whole controller and the seal with it.
-- No SpringBoard scene overlay, PID classifier, Home-readiness poll, timer, hard cap, recurring scan, observer, RAF, or transition delay is introduced.
-- Transition probe retained and bumped to v7.350 for acceptance. Named layers `AmazonDarkSplashSeal7350` / `AmazonDarkSplashSealLogo7350` make the new owner visible in the existing native-frame recorder.
-
----
-
-# AmazonDark v7.349~cart-shimmer-border-strip-fix
-
-- Fixes the persistent 13pt Cart white strip proven by the v7.348 screenshot + transition probe to be the `#sc-recs-atf-shimmer-placeholder` 13px top border (`rgb(234,237,237)`). The existing rule already darkened the placeholder background but never its border. v7.349 owns that exact border OLED black from document start.
-- Retains all v7.348 native loading-gradient work and Cart diagnostics.
-
----
-
-# AmazonDark v7.348~cart-native-gradient-strip-fix
-
-## Probe-proven Cart strip repair
-
-Direct source base: v7.347~cart-strip-owner-forensics, whose production visuals were v7.346 plus read-only armed telemetry.
-
-The v7.347 temporal capture disproves the prior gate/hook theory: `AWLoadingIndicatorBarView` hooks fire, Cart selection becomes true, and `AmazonDarkCartLoadingBar7345` is repeatedly present as an opaque black 430x5 layer at `FLT_MAX` while the user still sees the strip.
-
-The same capture exposes the missing renderer plane. `AWLoadingIndicatorWidgets_BkgView` is backed by a `CAGradientLayer` whose authored colors remain approximately 0.929 gray -> 0.871 gray even though v7.130 already forces the UIView/layer background black and inserts an OLED backing layer. The black backing is below an active light gradient. `AWLoadingIndicatorWidgets_BkgView` is a sibling renderer under `AWLoadingIndicatorFullScreenModalBar`, so a high-z child cover inside `AWLoadingIndicatorBarView` cannot reliably overpaint that separate sibling subtree.
-
-v7.348 completes the exact native loading-family ownership:
-
-- `AWLoadingIndicatorWidgets_BkgView`: when it qualifies as the existing v7.130 app-loading surface, its `CAGradientLayer.colors` are replaced with same-length OLED-black colors in addition to the existing black UIView/background/backing ownership. This is route-safe because v7.130 already intended this exact loading backdrop to be OLED black.
-- `AWLoadingIndicatorBarView`: while `cartTab` is selected, the exact bar plane is itself forced OLED black and its transient `layer.contents` strip is cleared. The existing black cover remains as a defensive seal.
-- `AWLoadingIndicatorWidgets_Indicator`: Cart-only OLED floor.
-- `AWLoadingIndicatorWidgets_HighlightView`: the captured 860x5 animated gradient is recolored OLED black only while Cart is selected. Geometry and animation are untouched.
-- v7.347 `CART_STRIP_OWNER` telemetry and the transition recorder remain available for verification. The recorder already reports gradient colors, bar contents, hierarchy, and the cover layer, so no additional recurring production machinery is required.
-
-Preserved unchanged:
-
-- v7.344 authored Cart loader-image preservation.
-- v7.343 Home hero and current Cart shimmer skeleton fixes.
-- v7.346 buying-options button correction.
-- AmazonDarkSB.xm / cold-launch production behavior.
-- No production MutationObserver, polling loop, RAF loop, interval, Web scroll listener, or recurring hierarchy scan is added.
-
-## Verification target
-
-After installing v7.348, arm `transition`, reproduce several Cart refreshes, and export. A correct capture should show the loading backdrop/highlight gradients as black and the Cart bar `contents` absent while selected. If a bright line is still physically visible with those conditions proven, the remaining owner is outside this exact AW loading family and the retained recorder will expose the next sibling/compositor.
+Screenshot or `SIGUSR2` triggers the current UI probe. Historical filenames remain `v7.309-*`, while the file header reports the installed v7.355 runtime.

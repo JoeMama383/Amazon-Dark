@@ -1,9 +1,9 @@
 {
-  "version": "7.354~search-carousel-store-spotlight-fix",
-  "parent_version": "7.353~search-carousel-media-header-fix",
-  "scope": "Two targeted UI ownership corrections: restore Search autocomplete carousel image-bearing descendants and tame Store Spotlight v2 brand/product rasters. Preserve all other v7.353 behavior.",
+  "version": "7.355~cart-same-day-search-strip-fix",
+  "parent_version": "7.354~search-carousel-store-spotlight-fix",
+  "scope": "Two targeted UI ownership corrections: theme the Cart Same-Day Delivery incentive owner and darken only the Search autocomplete carousel title strip adjacent to its restored media. Preserve all other v7.354 behavior.",
   "parent_sha256": {
-    "src/Tweak.xm": "de7ca4dfd9a39e3e2331bef7faaab63e98be863aa183fcfc448a876c813b9894",
+    "src/Tweak.xm": "f39b3111eee6e13e065bd3e3fad74efeb23112fc60123ae859e91eb784272bb2",
     "src/AmazonDarkSB.xm": "1453e4efc45cfe95af044668234c0b6c25ea8e50ca51e3e66033f0d5161e111e",
     "src/ADSkeletonProbe7339.js.inc": "1fbf2ea9d404d6bc96832ce8c2933094717008dec3e403db93baa261d2aeb1df",
     "Makefile": "3a6253d2430426bd0cc156dae40591e8b7bed7c00805506169cdd2ea133edbe6",
@@ -17,16 +17,16 @@
     "layout/Library/Application Support/AmazonDark/splash-logo.png": "4d5ab25256f6badd0649b23cfef385b9700e529762474bb463d81f43a5bc9fff"
   },
   "intentional_visual_changes": [
-    "Search /autocomplete cards_carousel_widget: retain OLED outer/card floors and light text while releasing media-bearing sug-im descendants from broad black descendant-floor ownership; authored rasters stay visible and brightness-tamed.",
-    "Product /s Store Spotlight v2: tame the brand logo and visible product rasters under data-csa-c-painter=store-spotlight-v2-creative-mobile-cards; exclude hidden 1x1 tracking pixel."
+    "Cart Same-Day Delivery #ssd-ca-buy-box: light-blue floor becomes OLED black; neutral text becomes light; the authored green progress value/border is preserved; the exact Find eligible items button uses the established Cart #303335 / #747a7c / light-text palette.",
+    "Search /autocomplete cards_carousel_widget: keep restored/tamed media untouched and darken only the title sibling immediately following the exact sug-im media family, with light title text."
   ],
-  "preserved_v7353": [
+  "preserved_v7354": [
+    "Search autocomplete product images remain visible and brightness-tamed; no broad descendant floor owner is restored.",
+    "Store Spotlight v2 company logo and visible product rasters remain brightness-tamed while tracker imagery is excluded.",
     "Top-reviewed header/gradient remains OLED black; tiles remain black with #494d4d borders and tamed product images.",
     "Stock Lists Heart / More-like-this / MAB action controls remain Amazon-authored.",
-    "Featured video pill remains OLED black with standard gray edge.",
-    "s-pc-certification-faceout authored icon remains untamed and transparent.",
-    "Visible /s product WKWebView probe dispatch remains ahead of native-tab dispatch.",
-    "v7.351 optimized production/probe architecture, Cart fixes, and v7.350 splash seal remain unchanged."
+    "Featured video pill remains OLED black with standard gray edge; certification badge remains untamed/transparent.",
+    "v7.351 optimized architecture, Cart loader/image contracts, v7.349 strip fix and v7.350 splash seal remain unchanged."
   ],
-  "performance_note": "No new native hook, MutationObserver, timer, RAF, Web scroll listener, polling or recurring DOM scan. Changes stay inside existing route-local document-start CSS/TWB payloads."
+  "performance_note": "No new native hook, MutationObserver, timer, RAF, Web scroll listener, polling or recurring DOM scan. Changes stay inside existing document-start CSS payloads."
 }
