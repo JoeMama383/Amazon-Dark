@@ -1,27 +1,30 @@
-# AmazonDark v7.357~search-footer-shop-style-fix
+# AmazonDark v7.358~search-row-shop-style-leaf-fix
 
-Direct base: **v7.356~product-inline-ad-controls-fix**.
+Direct base: **v7.357~search-footer-shop-style-fix**.
 
-This is the correction build for the two surfaces that v7.356 still missed on-device. The v7.356 static test proved that guessed selectors were present in source, but that was not proof that those selectors matched Amazon's live renderer. v7.357 removes both failed assumptions instead of stacking more guesses on them.
+This is a narrow correction build for three on-device findings from v7.357. It preserves the Search footer fix and all accepted product/Cart work while removing the Search-row regression and replacing temporary Shop-by-style discovery with the exact renderer captured by the current v7.357 product probe.
 
 ## UI corrections
 
-- **Search autocomplete delivery-day footer:** the surviving white full-width plane is no longer gated on a descendant whose class/id contains `delivery`. The `/autocomplete` lane owns only the first two structural layers under `#a-page` / `#attach-to-me` by `background-color`, leaving media/background-image ownership alone. DOM buttons in that pane use OLED black, `#747a7c` neutral borders and light text.
-- **YOU MIGHT ALSO NEED media remains protected:** the working `cards_carousel_widget-sug-im*` transparency/visibility and brightness-TWB lane is unchanged. The rejected broad `cards_carousel_widget-sug-*` descendant-floor rule is still absent.
-- **Shop by style:** v7.356's guessed `shop-by-style` / `shopByStyle` class/data selectors are removed because the live card did not match them. On `/s`, v7.357 performs a bounded load/pageshow text-node walk (maximum 7000 nodes) for the exact authored heading `Shop by style`, then marks the nearest compact image-bearing widget. Only that marked widget receives OLED structural floors, light neutral text, standard gray edges, and brightness TWB on its raster `IMG` leaves. There is no global product-image sweep.
+- **Search recent-history rows:** v7.357 made the autocomplete footer black, but its broad structural border/outline rule and broad all-button rule also exposed rectangular borders around recent-search text and X controls. v7.358 keeps the first-two-layer OLED background seal but no longer changes structural borders/outlines/shadows. Button chrome returns to the earlier **delivery-scoped** rule only, so the delivery footer controls stay dark while stock recent-history rows keep only Amazon's original horizontal separators.
+- **YOU MIGHT ALSO NEED:** the working `cards_carousel_widget-sug-im*` transparency/visibility and brightness-TWB ownership remains unchanged.
+- **Shop by style:** the current product probe finally captures the real renderer: `data-component-type=s-tiles-carousel-component-shoppable_image`, with `scx-si-image` raster leaves. v7.358 directly owns this exact Search Tiles family and removes v7.357's temporary heading `TreeWalker`. The card/header/carousel structure is OLED black with light text and standard gray edges; `scx-si-image` keeps normal configured brightness TWB. The probe-captured large `s-tiles-carousel::before` backing plane and the enclosing Search-result `::before` gradient/separator are explicitly made OLED black, eliminating the remaining top/bottom bright bands.
+- **Forestry practices / certification leaf:** the current probe shows `.s-pc-certification-faceout` and its 16x16 `img.s-image` already have transparent CSS backgrounds and no filter, so the visible white square is inside the raster itself. v7.358 keeps the DOM shell transparent and applies `invert(1) hue-rotate(180deg)` only to this exact certification raster, visually turning the baked white background black while approximately preserving the green leaf hue. It does not alter general product imagery.
 
-## Preserved v7.356 work
+## Preserved work
 
-- Theme-collection / ear-cleaning ad edge -> `#494d4d`.
-- Product option/count pills -> OLED/light/gray with Amazon blue selected ring preserved.
-- IES / Continue-shopping expansion -> OLED structural surfaces, dark category tabs, dark Add-to-cart, dynamic Prime/star/deal/coupon/savings colors preserved, and IES product rasters brightness-tamed.
-- Product quantity stepper -> `#303335` / `#747a7c` / light value and +/- glyphs.
-- v7.355 Cart Same-Day, v7.354 Store Spotlight/Search carousel media, v7.353 Top-reviewed, v7.352 product-control hands-off rules, v7.351 optimization/Save-for-later, v7.350 splash, v7.349 Cart strip and v7.348 Cart gradients remain.
+- v7.357 Search autocomplete footer OLED floor.
+- v7.356 theme-collection border, option/count pills, IES expansion, IES image TWB, dark category/Add-to-cart controls, and product quantity stepper.
+- v7.355 Cart Same-Day.
+- v7.354 Search carousel media restoration and Store Spotlight company-logo/product TWB.
+- v7.353 Top-reviewed/TRFT treatment.
+- v7.352 product-action hands-off ownership, featured-video pill and other established product contracts.
+- v7.351 optimization and Cart Save-for-later; v7.350 splash; v7.349 Cart strip; v7.348 Cart gradient/loading fixes.
 
 ## Runtime character
 
-No production `MutationObserver`, interval, RAF loop, Web scroll listener, polling loop or recurring native/DOM scan is introduced. The Shop-by-style discovery is bounded and event-limited to document load/pageshow; once the marker exists later calls return immediately.
+No production `MutationObserver`, interval, RAF loop, Web scroll listener, polling loop, recurring DOM scan or recurring native hierarchy scan is introduced. The temporary v7.357 Shop-by-style text walk is removed; v7.358 uses exact route-local CSS/TWB ownership.
 
 ## Probe workflow
 
-Screenshot-triggered UI probes remain enabled. Historical filenames remain `AmazonDark-v7.309-*`; the header inside reports the installed v7.357 runtime. The product-scroll probe remains current/near-viewport only, while the Search/Menu scanner remains the heavy full-document engine.
+Screenshot-triggered UI probes remain enabled. Historical filenames remain `AmazonDark-v7.309-*`; the header inside a new capture reports `v7.358-search-row-shop-style-leaf-fix`. The product-scroll probe remains current/near-viewport only; the Search/Menu scanner remains the heavier full-document engine.

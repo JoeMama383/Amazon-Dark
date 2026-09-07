@@ -1,8 +1,8 @@
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.357~search-footer-shop-style-fix' in ctl
-assert '#define AD_VERSION "v7.357-search-footer-shop-style-fix"' in t
+assert 'Version: 7.358~search-row-shop-style-leaf-fix' in ctl
+assert '#define AD_VERSION "v7.358-search-row-shop-style-leaf-fix"' in t
 # Search autocomplete large carousel owner + TWB.
 for token in [
  '.cards_carousel_widget-sug-container-top{background:#000!important',
@@ -13,10 +13,10 @@ for token in [
  '.feature-asins-video-list-loader [class*=_controls_1m98b_] span[class*=_button_1wlc7_]{background:#000!important',
  'span[class*=_button_1wlc7_] .a-button-text{background:transparent!important',
 ]: assert token in t,token
-# Sustainability/certification image is transparent and excluded from TWB.
+# Certification shell remains transparent and outside broad TWB. v7.358 intentionally
+# gives only the exact leaf raster its dedicated white-square neutralization filter.
 assert '.s-pc-certification-faceout img.s-image{background:transparent!important' in t
-assert '.s-pc-certification-faceout img.s-image{filter:none!important' in t or '#search .s-pc-certification-faceout img.s-image{background:transparent!important' in t
-assert '#search .s-pc-certification-faceout img.s-image{filter:none!important' in t
+assert '#search .s-pc-certification-faceout img.s-image{filter:invert(1) hue-rotate(180deg)!important' in t
 # Top-reviewed tiles.
 for token in [
  '#search .s-widget-container:has(.s-trft)',

@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.357~search-footer-shop-style-fix' in ctl
-assert '#define AD_VERSION "v7.357-search-footer-shop-style-fix"' in t
+assert 'Version: 7.358~search-row-shop-style-leaf-fix' in ctl
+assert '#define AD_VERSION "v7.358-search-row-shop-style-leaf-fix"' in t
 # Current Cart probe exact owners.
 for token in [
     '#sc-page-container #ssd-ca-buy-box{background:#000!important',
@@ -21,7 +21,7 @@ for token in [
     '.cards_carousel_widget-sug-container-top img,.cards_carousel_widget-sug-container-top img[class*=cards_carousel_widget-sug-im]{background:transparent!important',
     '.cards_carousel_widget-sug-container-top img{filter:brightness(var(--ad7-cards-twb)) saturate(1)!important',
     '#search [data-csa-c-painter=store-spotlight-v2-creative-mobile-cards] img:not([class*=_pixel_]):not([class*=tracking])',
-    '#search .s-pc-certification-faceout img.s-image{filter:none!important',
+    '#search .s-pc-certification-faceout img.s-image{filter:invert(1) hue-rotate(180deg)!important',
     'AmazonDarkSplashSeal7350',
     '#sc-recs-atf-shimmer-placeholder{border-top-color:#000!important',
 ]: assert token in t, token

@@ -1,8 +1,8 @@
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.357~search-footer-shop-style-fix' in ctl
-assert '#define AD_VERSION "v7.357-search-footer-shop-style-fix"' in t
+assert 'Version: 7.358~search-row-shop-style-leaf-fix' in ctl
+assert '#define AD_VERSION "v7.358-search-row-shop-style-leaf-fix"' in t
 # Search: outer/card floor retained; broad descendant floor owner removed.
 assert '.cards_carousel_widget-sug-container-top{background:#000!important' in t
 assert '.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-column{background:#000!important' in t
@@ -19,7 +19,7 @@ assert '{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!impor
 for token in [
  'AmazonDarkSplashSeal7350',
  '#sc-recs-atf-shimmer-placeholder{border-top-color:#000!important',
- '#search .s-pc-certification-faceout img.s-image{filter:none!important',
+ '#search .s-pc-certification-faceout img.s-image{filter:invert(1) hue-rotate(180deg)!important',
  '#search .lists-framework-action-button.puis-heart-icon-container',
  '#search .s-result-item:has([data-component-type=s-tiles-grid-component-top_reviewed_for])::before{background:#000!important',
 ]: assert token in t,token

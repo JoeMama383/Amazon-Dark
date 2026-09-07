@@ -1,36 +1,39 @@
-AmazonDark v7.357 — Search footer + Shop-by-style correction workflow
+AmazonDark v7.358 — Search rows + Shop-by-style floors + certification leaf
 
 SOURCE ZIP
 ==========
-AmazonDark-v7.357-search-footer-shop-style-fix-source.zip
+AmazonDark-v7.358-search-row-shop-style-leaf-fix-source.zip
 
 1) STAGE
 ========
 D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents
-T=/var/mobile/t7357
+T=/var/mobile/t7358
 
 cd /var/mobile/Amazon-Dark-phone
 git checkout -q main
 git fetch origin main
 git merge --ff-only origin/main
-grep -qx 'Version: 7.356~product-inline-ad-controls-fix' layout/DEBIAN/control
+grep -qx 'Version: 7.357~search-footer-shop-style-fix' layout/DEBIAN/control
 
 rm -rf "$T"
 mkdir -p "$T"
-unzip -q "$D/AmazonDark-v7.357-search-footer-shop-style-fix-source.zip" -d "$T"
+unzip -q "$D/AmazonDark-v7.358-search-row-shop-style-leaf-fix-source.zip" -d "$T"
 find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
-cp -a "$T/AmazonDark-v7.357-search-footer-shop-style-fix-source/." .
+cp -a "$T/AmazonDark-v7.358-search-row-shop-style-leaf-fix-source/." .
 
 2) VERIFY
 =========
 cd /var/mobile/Amazon-Dark-phone
-grep -qx 'Version: 7.357~search-footer-shop-style-fix' layout/DEBIAN/control
-grep -q '#define AD_VERSION "v7.357-search-footer-shop-style-fix"' src/Tweak.xm
-grep -q 'data-ad7-shop-by-style' src/Tweak.xm
-grep -q '#a-page>:is(div,section,main,footer)' src/Tweak.xm
+grep -qx 'Version: 7.358~search-row-shop-style-leaf-fix' layout/DEBIAN/control
+grep -q '#define AD_VERSION "v7.358-search-row-shop-style-leaf-fix"' src/Tweak.xm
+grep -q 's-tiles-carousel-component-shoppable_image' src/Tweak.xm
+grep -q 's-tiles-carousel::before' src/Tweak.xm
+grep -q 's-pc-certification-faceout img.s-image' src/Tweak.xm
 grep -q 'cards_carousel_widget-sug-im' src/Tweak.xm
 grep -q 'ccs-ies-card-image-container' src/Tweak.xm
 grep -q 'AmazonDarkSplashSeal7350' src/Tweak.xm
+! grep -q 'data-ad7-shop-by-style' src/Tweak.xm
+! grep -q 'function ad7357ShopByStyle' src/Tweak.xm
 git diff --check
 git status --short
 
@@ -38,7 +41,7 @@ git status --short
 ===============
 cd /var/mobile/Amazon-Dark-phone
 git add -A
-git commit -m 'v7.357: fix Search footer and Shop by style'
+git commit -m 'v7.358: fix Search rows, Shop by style floors and leaf icon'
 git push origin main
 
 AFTER INSTALL
