@@ -1,13 +1,9 @@
 {
-  "version": "7.355~cart-same-day-search-strip-fix",
-  "parent_version": "7.354~search-carousel-store-spotlight-fix",
-  "scope": "Two targeted UI ownership corrections: theme the Cart Same-Day Delivery incentive owner and darken only the Search autocomplete carousel title strip adjacent to its restored media. Preserve all other v7.354 behavior.",
+  "version": "7.356~product-inline-ad-controls-fix",
+  "parent_version": "7.355~cart-same-day-search-strip-fix",
+  "scope": "Probe-backed product /s inline-expansion, quantity/variation, theme-collection border, Search-carousel media/title ownership and narrow Shop-by-style visual-search theming. No new scanner.",
   "parent_sha256": {
-    "src/Tweak.xm": "f39b3111eee6e13e065bd3e3fad74efeb23112fc60123ae859e91eb784272bb2",
-    "src/AmazonDarkSB.xm": "1453e4efc45cfe95af044668234c0b6c25ea8e50ca51e3e66033f0d5161e111e",
-    "src/ADSkeletonProbe7339.js.inc": "1fbf2ea9d404d6bc96832ce8c2933094717008dec3e403db93baa261d2aeb1df",
-    "Makefile": "3a6253d2430426bd0cc156dae40591e8b7bed7c00805506169cdd2ea133edbe6",
-    ".github/workflows/build.yml": "e3e886241ff13aa23b567c9b396958c3c90a241a2e47041caddb49b45f0b6b82"
+    "src/Tweak.xm": "ecfcb7469b9864e703038b68f6eaddb2ba0aabd64d47823be63dda08f5864c0e"
   },
   "unchanged_critical_sha256": {
     "src/AmazonDarkSB.xm": "1453e4efc45cfe95af044668234c0b6c25ea8e50ca51e3e66033f0d5161e111e",
@@ -17,16 +13,17 @@
     "layout/Library/Application Support/AmazonDark/splash-logo.png": "4d5ab25256f6badd0649b23cfef385b9700e529762474bb463d81f43a5bc9fff"
   },
   "intentional_visual_changes": [
-    "Cart Same-Day Delivery #ssd-ca-buy-box: light-blue floor becomes OLED black; neutral text becomes light; the authored green progress value/border is preserved; the exact Find eligible items button uses the established Cart #303335 / #747a7c / light-text palette.",
-    "Search /autocomplete cards_carousel_widget: keep restored/tamed media untouched and darken only the title sibling immediately following the exact sug-im media family, with light title text."
+    "Search autocomplete title-strip owner moved from the v7.355 image-adjacent wildcard to exact .cards_carousel_widget-sug-text; raster lane remains brightness-tamed.",
+    "Autocomplete delivery footer/list shell is OLED black; contained buttons are black/light with #747a7c borders.",
+    "Theme-collection sponsored card outer border _c2Itd_themeCollectionAsinItem_* changes from stock near-white to #494d4d.",
+    "Product variation/count toggle buttons are OLED/light/#747a7c; selected state preserves #2162a1 ring.",
+    "IES inline-expansion shell/card floors are OLED; neutral text light; dynamic Prime/star/deal/coupon/promotion/savings/success/discount families excluded; category tabs and Add-to-cart use established dark button chrome.",
+    "IES product rasters under .ccs-ies-card-image-container are brightness-tamed.",
+    "Product quantity stepper uses #303335 floor, #747a7c edge and white plus/minus.",
+    "Shop-by-style visual-search semantic owner is darkened and its raster media brightness-tamed; exact live class remains pending a screenshot-matched probe capture."
   ],
-  "preserved_v7354": [
-    "Search autocomplete product images remain visible and brightness-tamed; no broad descendant floor owner is restored.",
-    "Store Spotlight v2 company logo and visible product rasters remain brightness-tamed while tracker imagery is excluded.",
-    "Top-reviewed header/gradient remains OLED black; tiles remain black with #494d4d borders and tamed product images.",
-    "Stock Lists Heart / More-like-this / MAB action controls remain Amazon-authored.",
-    "Featured video pill remains OLED black with standard gray edge; certification badge remains untamed/transparent.",
-    "v7.351 optimized architecture, Cart loader/image contracts, v7.349 strip fix and v7.350 splash seal remain unchanged."
+  "probe_identity_changes": [
+    "Skeleton/transition arm, status and capture filenames bumped from v7.355 to v7.356; v7.355 receipt remains an upgrade locator."
   ],
-  "performance_note": "No new native hook, MutationObserver, timer, RAF, Web scroll listener, polling or recurring DOM scan. Changes stay inside existing document-start CSS payloads."
+  "performance_note": "No new native hook, MutationObserver, timer, RAF, Web scroll listener, polling loop, recurring DOM scan, recurring native hierarchy scan, or Cart scanner. Visual additions remain route-local document-start CSS/TWB selectors."
 }
