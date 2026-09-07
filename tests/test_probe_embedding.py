@@ -46,9 +46,9 @@ def main():
     control = (ROOT / 'scripts/skeleton-probe.sh').read_text()
     assert 'NSDocumentDirectory,NSUserDomainMask' in native
     assert '@"/var/mobile/' not in native
-    assert 'AmazonDark-v7.356-probe.arm' in native
-    assert 'AD_PROBE_NAME=AmazonDark-v7.356' in control
-    print("PASS: native capture uses app Documents; v7.356 helper identity agrees")
+    assert 'AmazonDark-v7.357-probe.arm' in native
+    assert 'AD_PROBE_NAME=AmazonDark-v7.357' in control
+    print("PASS: native capture uses app Documents; v7.357 helper identity agrees")
 
 
 

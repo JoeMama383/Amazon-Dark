@@ -1,15 +1,14 @@
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.356~product-inline-ad-controls-fix' in ctl
-assert '#define AD_VERSION "v7.356-product-inline-ad-controls-fix"' in t
+assert 'Version: 7.357~search-footer-shop-style-fix' in ctl
+assert '#define AD_VERSION "v7.357-search-footer-shop-style-fix"' in t
 # Search carousel: exact text strip; rejected image-adjacent black sibling rule gone.
 assert '.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-text{background:#000!important' in t
 assert '.cards_carousel_widget-sug-column :is(img,picture,[class*=cards_carousel_widget-sug-im]) + *{background:#000!important' not in t
 assert '.cards_carousel_widget-sug-container-top img{filter:brightness(var(--ad7-cards-twb)) saturate(1)!important' in t
-# Search delivery footer owner is inside the autocomplete route string and not spliced through a CSS token.
-assert '#attach-to-me :is(div,section,article,main,footer,ul,ol,li,span):has(:is([class*=delivery],[id*=delivery])){background:#000!important' in t
-assert 'sug-text *{co"\n        @"lor:#fff' in t
+# v7.357 intentionally replaces v7.356's missed delivery-class footer owner; title-strip/media contracts remain.
+assert '.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-text{background:#000!important' in t
 # Current /s theme collection card edge only.
 assert '#search#search [class*=_c2Itd_themeCollectionAsinItem_]{border-color:#494d4d!important' in t
 # Product variation/count toggle, selected blue ring.
@@ -32,10 +31,10 @@ for token in ['not([class*=prime])','not([class*=star])','not([class*=deal])','n
 assert '#search#search .puis-card-container .a-stepper-inner-container{background:#303335!important' in t
 assert 'border:1px solid #747a7c!important' in t
 assert ':is(.a-icon-small-add,.a-icon-small-remove,.a-icon-small-subtract,.a-icon-small-trash){filter:brightness(0) invert(1)!important' in t
-# Shop-by-style fallback stays semantic, no generic #search image sweep is added by this build.
-assert '[data-csa-c-painter*=shop-by-style]' in t
-assert ':has(:is([class*=shop-by-style],[class*=shopByStyle]' in t
+# v7.357 intentionally retires the disproven guessed Shop-by-style class tokens.
+assert '[data-csa-c-painter*=shop-by-style]' not in t
+assert 'data-ad7-shop-by-style' in t
 # Existing critical contracts remain.
 for token in ['AmazonDarkSplashSeal7350','#sc-recs-atf-shimmer-placeholder{border-top-color:#000!important','#ssd-ca-buy-box{background:#000!important']:
     assert token in t, token
-print('PASS: v7.356 product inline-ad controls/media, theme-card edge, Search carousel and delivery-footer owners present')
+print('PASS: v7.356 inline-ad/control fixes remain while v7.357 replaces the two disproven selector guesses')

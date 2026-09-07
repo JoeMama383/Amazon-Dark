@@ -1,67 +1,63 @@
-AmazonDark v7.356 — Product inline-ad controls/media workflow
+AmazonDark v7.357 — Search footer + Shop-by-style correction workflow
 
 SOURCE ZIP
-  AmazonDark-v7.356-product-inline-ad-controls-fix-source.zip
+==========
+AmazonDark-v7.357-search-footer-shop-style-fix-source.zip
 
-SPLIT PUSH
+1) STAGE
+========
+D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents
+T=/var/mobile/t7357
 
-1) Stage
-  D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents
-  T=/var/mobile/t7356
-  cd /var/mobile/Amazon-Dark-phone
-  git checkout -q main
-  git fetch origin main
-  git merge --ff-only origin/main
-  grep -qx 'Version: 7.355~cart-same-day-search-strip-fix' layout/DEBIAN/control
-  rm -rf "$T"
-  mkdir -p "$T"
-  unzip -q "$D/AmazonDark-v7.356-product-inline-ad-controls-fix-source.zip" -d "$T"
-  find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
-  cp -a "$T/AmazonDark-v7.356-product-inline-ad-controls-fix-source/." .
+cd /var/mobile/Amazon-Dark-phone
+git checkout -q main
+git fetch origin main
+git merge --ff-only origin/main
+grep -qx 'Version: 7.356~product-inline-ad-controls-fix' layout/DEBIAN/control
 
-2) Verify
-  cd /var/mobile/Amazon-Dark-phone
-  grep -qx 'Version: 7.356~product-inline-ad-controls-fix' layout/DEBIAN/control
-  grep -q '#define AD_VERSION "v7.356-product-inline-ad-controls-fix"' src/Tweak.xm
-  grep -q 'ies-wrapper' src/Tweak.xm
-  grep -q '_c2Itd_themeCollectionAsinItem_' src/Tweak.xm
-  grep -q 'ccs-ies-card-image-container' src/Tweak.xm
-  grep -q 'a-stepper-inner-container' src/Tweak.xm
-  grep -q 'shop-by-style' src/Tweak.xm
-  grep -q 'AmazonDarkSplashSeal7350' src/Tweak.xm
-  git diff --check
-  git status --short
+rm -rf "$T"
+mkdir -p "$T"
+unzip -q "$D/AmazonDark-v7.357-search-footer-shop-style-fix-source.zip" -d "$T"
+find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+cp -a "$T/AmazonDark-v7.357-search-footer-shop-style-fix-source/." .
 
-3) Commit/push
-  cd /var/mobile/Amazon-Dark-phone
-  git add -A
-  git commit -m 'v7.356: theme product inline ads and controls'
-  git push origin main
+2) VERIFY
+=========
+cd /var/mobile/Amazon-Dark-phone
+grep -qx 'Version: 7.357~search-footer-shop-style-fix' layout/DEBIAN/control
+grep -q '#define AD_VERSION "v7.357-search-footer-shop-style-fix"' src/Tweak.xm
+grep -q 'data-ad7-shop-by-style' src/Tweak.xm
+grep -q '#a-page>:is(div,section,main,footer)' src/Tweak.xm
+grep -q 'cards_carousel_widget-sug-im' src/Tweak.xm
+grep -q 'ccs-ies-card-image-container' src/Tweak.xm
+grep -q 'AmazonDarkSplashSeal7350' src/Tweak.xm
+git diff --check
+git status --short
 
-PRODUCT /s PROBE
+3) COMMIT / PUSH
+===============
+cd /var/mobile/Amazon-Dark-phone
+git add -A
+git commit -m 'v7.357: fix Search footer and Shop by style'
+git push origin main
 
-Trigger while the problem is visible:
-  PID=$(pgrep -x Amazon | head -n 1)
-  kill -USR2 "$PID"
+AFTER INSTALL
+=============
+sbreload
 
-Export newest product-scroll capture:
-  D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents
-  files=(/var/mobile/Containers/Data/Application/*/Documents/AmazonDark-v7.309-product-scroll-probe-*.txt(N.om[1]))
-  if (( ${#files} )); then P=$files[1]; cp -f "$P" "$D/"; chmod 666 "$D/${P:t}"; ls -lh "$D/${P:t}"; else echo "No product-scroll screenshot probe found."; fi
+SEARCH SCREENSHOT PROBE EXPORT
+==============================
+D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents
+files=(/var/mobile/Containers/Data/Application/*/Documents/AmazonDark-v7.309-menu-ui-probe-*.txt(N.om[1]))
+if (( ${#files} )); then P=$files[1]; cp -f "$P" "$D/"; chmod 666 "$D/${P:t}"; ls -lh "$D/${P:t}"; else echo "No Search/Menu screenshot probe found."; fi
 
-SEARCH / AUTOCOMPLETE PROBE
+PRODUCT / SHOP-BY-STYLE SCREENSHOT PROBE EXPORT
+===============================================
+D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents
+files=(/var/mobile/Containers/Data/Application/*/Documents/AmazonDark-v7.309-product-scroll-probe-*.txt(N.om[1]))
+if (( ${#files} )); then P=$files[1]; cp -f "$P" "$D/"; chmod 666 "$D/${P:t}"; ls -lh "$D/${P:t}"; else echo "No product-scroll screenshot probe found."; fi
 
-Trigger while the problem is visible:
-  PID=$(pgrep -x Amazon | head -n 1)
-  kill -USR2 "$PID"
-
-Export newest Search/Menu capture:
-  D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents
-  files=(/var/mobile/Containers/Data/Application/*/Documents/AmazonDark-v7.309-menu-ui-probe-*.txt(N.om[1]))
-  if (( ${#files} )); then P=$files[1]; cp -f "$P" "$D/"; chmod 666 "$D/${P:t}"; ls -lh "$D/${P:t}"; else echo "No Search/Menu screenshot probe found."; fi
-
-SKELETON / TRANSITION PROBE (unchanged architecture, v7.356 helper identity)
-  cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh arm transition
-
-Export:
-  cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh export
+SKELETON / TRANSITION PROBE
+===========================
+cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh arm transition
+cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh export
