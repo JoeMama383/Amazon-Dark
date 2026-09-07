@@ -2,8 +2,8 @@ from pathlib import Path
 import hashlib,re
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text(); sb=(ROOT/'src/AmazonDarkSB.xm').read_text(); sh=(ROOT/'scripts/skeleton-probe.sh').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.352~search-product-ui-repair' in ctl
-assert '#define AD_VERSION "v7.352-search-product-ui-repair"' in t
+assert 'Version: 7.353~search-carousel-media-header-fix' in ctl
+assert '#define AD_VERSION "v7.353-search-carousel-media-header-fix"' in t
 
 def static_block(src,name):
     m=re.search(r'^static[^\n;{}]*\b'+re.escape(name)+r'\([^;{}]*\)\s*\{',src,re.M);assert m,name
@@ -51,5 +51,5 @@ assert 'if(!ADLaunchProbeArmed7351())return;' in sb
 assert 'AmazonDark-launch-probe.arm' in sh
 assert 'prefs/Resources/icon@3x.png' in ctl
 assert not (ROOT/'prefs/icon@3x.png').exists()
-print('PASS: v7.352 retains v7.351 optimization architecture and unchanged critical non-Search payload hashes')
+print('PASS: v7.353 retains v7.351 optimization architecture and unchanged critical non-Search payload hashes')
 print('PASS: CNM hot path, UIView classification reuse, probe writer/path consolidation, dead Menu ring removal, probe-only SB logging present')

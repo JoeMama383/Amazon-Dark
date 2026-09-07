@@ -1,3 +1,14 @@
+# AmazonDark v7.353~search-carousel-media-header-fix
+
+- Direct base: accepted `v7.352~search-product-ui-repair`; all successful v7.352 product action-control, video-pill, certification-badge, TRFT tile, probe-dispatch, v7.351 optimization, Cart and splash work remains intact.
+- Search autocomplete carousel correction: v7.352 correctly blackened the current `cards_carousel_widget-sug-*` floors but its broad structural wildcard also reached media-named leaves, and its new TWB lane used opacity. v7.353 excludes IMG/PICTURE/SOURCE from that structural owner, explicitly keeps media visible/transparent, and returns this historical carousel family to brightness-based TWB using the configured strength.
+- Historical parity: the older working v5.440 capture showed `cards_carousel_widget-sug-column` cards with gray edges and their `IMG.cards_carousel_widget-sug-im…` rasters rendered under `brightness(0.5) saturate(1)`. v7.353 restores that proven rendering principle without bringing back the old runtime scanner.
+- Top-reviewed header correction: the probe showed both a 12px `s-result-item::before` gradient and the 430x56 `.s-tiles-header` gradient. v7.353 seals both to OLED black, removes their background images, and keeps `.s-tiles-header-title` light. Existing black TRFT tiles, #494d4d edges and tamed product images remain unchanged.
+- No new hook, MutationObserver, timer, RAF, Web scroll listener, polling loop, or recurring DOM scan. These are still route-local document-start CSS/TWB corrections.
+- Probe infrastructure is retained and bumped to v7.353. The v7.352 visible-`/s` product-probe dispatch fix is retained.
+
+---
+
 # AmazonDark v7.352~search-product-ui-repair
 
 - Direct base: accepted `v7.351~aggressive-theme-neutral-optimization`; its runtime/probe simplifications, v7.350 native splash seal, v7.349 Cart strip fix, and Cart Save-for-later restoration remain intact.

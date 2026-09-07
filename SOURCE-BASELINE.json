@@ -1,9 +1,9 @@
 {
-  "version": "7.352~search-product-ui-repair",
-  "parent_version": "7.351~aggressive-theme-neutral-optimization",
-  "scope": "Targeted Search autocomplete and product-scroll UI repair on the accepted optimized v7.351 baseline; no launch, Cart, Person, Menu, Alexa, preference, or production probe architecture redesign.",
+  "version": "7.353~search-carousel-media-header-fix",
+  "parent_version": "7.352~search-product-ui-repair",
+  "scope": "Two targeted on-device follow-up corrections: restore current Search autocomplete carousel media with brightness-based TWB and seal the Top-reviewed header gradient. Preserve all other v7.352/v7.351 behavior.",
   "parent_sha256": {
-    "src/Tweak.xm": "93c94c0560fca50cf874bdea079f770fa458da52278098c81f5f7a9c3adc6547",
+    "src/Tweak.xm": "c1d305e855d44e1df1df3958fc8de280daced3de989c77dc83663b4779939f55",
     "src/AmazonDarkSB.xm": "1453e4efc45cfe95af044668234c0b6c25ea8e50ca51e3e66033f0d5161e111e",
     "src/ADSkeletonProbe7339.js.inc": "1fbf2ea9d404d6bc96832ce8c2933094717008dec3e403db93baa261d2aeb1df",
     "Makefile": "3a6253d2430426bd0cc156dae40591e8b7bed7c00805506169cdd2ea133edbe6",
@@ -17,12 +17,15 @@
     "layout/Library/Application Support/AmazonDark/splash-logo.png": "4d5ab25256f6badd0649b23cfef385b9700e529762474bb463d81f43a5bc9fff"
   },
   "intentional_visual_changes": [
-    "Current /autocomplete cards_carousel_widget-sug-* family: OLED black floors, light neutral text, TWB product rasters.",
-    "Current Search product heart / More-like-this / MAB action families: release from AmazonDark glyph/filter ownership; Amazon-authored button appearance remains authoritative.",
-    "Featured Search video `_button_1wlc7_` pill: OLED black, #747a7c edge, light text.",
-    "s-pc-certification-faceout: transparent shell and untamed authored badge image.",
-    "s-trft Top-reviewed tiles: OLED black, #494d4d edge, light text, TWB images."
+    "Search /autocomplete cards_carousel_widget media: keep structural floors OLED black, release media leaves from structural floor ownership, force authored rasters visible, and tame with brightness at configured TWB strength.",
+    "Product /s Top-reviewed module: .s-tiles-header and its authored gradient are sealed OLED black; title text remains light."
   ],
-  "probe_change": "Visible /s product WKWebView is dispatched before native-tab selection so current Search overlay captures route to the dedicated product-scroll probe.",
-  "performance_note": "All changes are route-local document-start CSS/TWB or explicit-trigger probe dispatch. No new MutationObserver, polling, recurring timer, RAF, Web scroll listener, or native lifecycle hook is added."
+  "preserved_v7352": [
+    "Stock Lists Heart / More-like-this / MAB action controls remain Amazon-authored.",
+    "Featured video pill remains OLED black with standard gray edge.",
+    "s-pc-certification-faceout authored image remains untamed.",
+    "s-trft tiles remain OLED black with #494d4d edges and tamed product images.",
+    "Visible /s product WKWebView probe dispatch remains ahead of native-tab dispatch."
+  ],
+  "performance_note": "No new native hook, MutationObserver, timer, RAF, Web scroll listener, polling or recurring DOM scan. Changes stay inside existing route-local document-start CSS/TWB payloads."
 }
