@@ -1,5 +1,5 @@
-AmazonDark v7.353 — Search carousel media + Top-reviewed header fix workflow
-=========================================================================
+AmazonDark v7.354 — Search carousel + Store Spotlight TWB workflow
+===============================================================
 
 PUSH / APPLY
 ------------
@@ -9,19 +9,19 @@ cd /var/mobile/Amazon-Dark-phone && \
 git checkout -q main && \
 git fetch origin main && \
 git merge --ff-only origin/main && \
-grep -qx 'Version: 7.352~search-product-ui-repair' layout/DEBIAN/control && \
-T=/var/mobile/t7353 && rm -rf "$T" && mkdir -p "$T" && \
-unzip -q "$D/AmazonDark-v7.353-search-carousel-media-header-fix-source.zip" -d "$T" && \
-find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} + && \
-cp -a "$T/AmazonDark-v7.353-search-carousel-media-header-fix-source/." . && \
 grep -qx 'Version: 7.353~search-carousel-media-header-fix' layout/DEBIAN/control && \
-grep -q '#define AD_VERSION "v7.353-search-carousel-media-header-fix"' src/Tweak.xm && \
-grep -q 'cards_carousel_widget-sug-container-top img{filter:brightness(var(--ad7-cards-twb))' src/Tweak.xm && \
-grep -q 's-tiles-grid-component-top_reviewed_for' src/Tweak.xm && \
+T=/var/mobile/t7354 && rm -rf "$T" && mkdir -p "$T" && \
+unzip -q "$D/AmazonDark-v7.354-search-carousel-store-spotlight-fix-source.zip" -d "$T" && \
+find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} + && \
+cp -a "$T/AmazonDark-v7.354-search-carousel-store-spotlight-fix-source/." . && \
+grep -qx 'Version: 7.354~search-carousel-store-spotlight-fix' layout/DEBIAN/control && \
+grep -q '#define AD_VERSION "v7.354-search-carousel-store-spotlight-fix"' src/Tweak.xm && \
+grep -q 'store-spotlight-v2-creative-mobile-cards' src/Tweak.xm && \
+grep -q 'cards_carousel_widget-sug-im' src/Tweak.xm && \
 grep -q 'AmazonDarkSplashSeal7350' src/Tweak.xm && \
 git diff --check && \
 git add -A && git status --short && \
-git commit -m 'v7.353: restore Search carousel media and seal Top-reviewed header' && \
+git commit -m 'v7.354: restore Search carousel media and tame Store Spotlight' && \
 git push origin main
 
 AFTER INSTALL
@@ -30,8 +30,9 @@ sbreload
 
 PROBES
 ------
-Manual screenshot-equivalent trigger:
-  PID=$(pgrep -x Amazon | head -n 1); kill -USR2 "$PID"
+Screenshot/SIGUSR2 trigger:
+  PID=$(pgrep -x Amazon | head -n 1)
+  kill -USR2 "$PID"
 
 Search/autocomplete export:
   D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents

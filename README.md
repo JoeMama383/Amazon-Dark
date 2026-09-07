@@ -1,3 +1,13 @@
+# AmazonDark v7.354~search-carousel-store-spotlight-fix
+
+- Direct base: accepted `v7.353~search-carousel-media-header-fix`; all v7.353 Top-reviewed header, v7.352 Search/product UI, v7.351 optimization, Cart, and splash work remains intact.
+- Search autocomplete: removes the remaining broad `cards_carousel_widget-sug-*` descendant floor owner that could sit over Amazon's image-bearing sublayers. The card/column floor stays OLED black, text stays light, and `cards_carousel_widget-sug-im*` media surfaces are explicitly transparent/visible and remain brightness-tamed.
+- Historical parity: working v5.440 captures show `IMG.cards_carousel_widget-sug-im` rasters rendered under brightness TWB. v7.354 restores that exact ownership principle rather than adding a scanner or image replacement.
+- Product results Store Spotlight v2: the probe identifies `data-csa-c-painter=store-spotlight-v2-creative-mobile-cards`. Its brand logo and three product rasters all use the same `_c3Rvc_image_*` family and were `filter=none`; all visible authored images in this painter are now tamed, while the hidden 1x1 `_c3Rvc_pixel_*` tracker is excluded.
+- No new hook, MutationObserver, timer, RAF, Web scroll listener, polling loop, or recurring DOM scan.
+
+---
+
 # AmazonDark v7.353~search-carousel-media-header-fix
 
 - Direct base: accepted `v7.352~search-product-ui-repair`; all successful v7.352 product action-control, video-pill, certification-badge, TRFT tile, probe-dispatch, v7.351 optimization, Cart and splash work remains intact.

@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 sb=ROOT/'src/AmazonDarkSB.xm'
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.353~search-carousel-media-header-fix' in ctl
-assert '#define AD_VERSION "v7.353-search-carousel-media-header-fix"' in t
+assert 'Version: 7.354~search-carousel-store-spotlight-fix' in ctl
+assert '#define AD_VERSION "v7.354-search-carousel-store-spotlight-fix"' in t
 for s in [
     'AmazonDarkSplashSeal7350',
     'AmazonDarkSplashSealLogo7350',
@@ -24,4 +24,4 @@ for forbidden in ['dispatch_after(', 'setInterval(', 'requestAnimationFrame(', '
     assert forbidden not in block,forbidden
 assert 'ADLaunchProbeArmed7351' in sb.read_text()
 assert '#sc-recs-atf-shimmer-placeholder{border-top-color:#000!important' in t
-print('PASS: v7.353 retains the accepted v7.350 splash seal and v7.349 Cart strip fix')
+print('PASS: v7.354 retains the accepted v7.350 splash seal and v7.349 Cart strip fix')

@@ -1,12 +1,11 @@
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.353~search-carousel-media-header-fix' in ctl
-assert '#define AD_VERSION "v7.353-search-carousel-media-header-fix"' in t
+assert 'Version: 7.354~search-carousel-store-spotlight-fix' in ctl
+assert '#define AD_VERSION "v7.354-search-carousel-store-spotlight-fix"' in t
 # Search autocomplete large carousel owner + TWB.
 for token in [
  '.cards_carousel_widget-sug-container-top{background:#000!important',
- '.cards_carousel_widget-sug-container-top [class*=cards_carousel_widget-sug-]:not(img):not(picture):not(source)',
  '.cards_carousel_widget-sug-container-top img{filter:brightness(var(--ad7-cards-twb)) saturate(1)!important',
 ]: assert token in t,token
 # Current featured-video label pill.
@@ -44,11 +43,11 @@ assert dispatch.index('if(ADProductScrollWebView7272())') < dispatch.index('ADPr
 for token in ['AmazonDarkSplashSeal7350','#sc-recs-atf-shimmer-placeholder{border-top-color:#000!important','ADBlackenLoadingGradient7348']:
  assert token in t,token
 # v7.353 on-device corrections: media remains visible/tamed and TRFT header gradient is sealed.
-assert '.cards_carousel_widget-sug-container-top img{background:transparent!important;background-color:transparent!important;visibility:visible!important;opacity:1!important' in t
+assert '.cards_carousel_widget-sug-container-top img,.cards_carousel_widget-sug-container-top img[class*=cards_carousel_widget-sug-im]{background:transparent!important;background-color:transparent!important;visibility:visible!important;opacity:1!important' in t
 assert '.cards_carousel_widget-sug-container-top{--ad7-cards-twb:%.3f;}' in t
 assert '.cards_carousel_widget-sug-container-top img{filter:brightness(var(--ad7-cards-twb)) saturate(1)!important' in t
 assert '#search .s-result-item:has([data-component-type=s-tiles-grid-component-top_reviewed_for])::before{background:#000!important' in t
 assert '#search .s-widget-container:has(.s-trft) .s-tiles-header' in t
 assert '[data-component-type=s-tiles-grid-component-top_reviewed_for] .s-tiles-header{background:#000!important' in t
 assert '.s-tiles-header{background:#000!important;background-color:#000!important;background-image:none!important' in t
-print('PASS: v7.353 preserves v7.352 UI owners and corrects Search carousel media + TRFT header')
+print('PASS: v7.354 preserves v7.353 UI owners and TRFT header while narrowing Search carousel floor ownership')

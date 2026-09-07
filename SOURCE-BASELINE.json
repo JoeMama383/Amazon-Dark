@@ -1,9 +1,9 @@
 {
-  "version": "7.353~search-carousel-media-header-fix",
-  "parent_version": "7.352~search-product-ui-repair",
-  "scope": "Two targeted on-device follow-up corrections: restore current Search autocomplete carousel media with brightness-based TWB and seal the Top-reviewed header gradient. Preserve all other v7.352/v7.351 behavior.",
+  "version": "7.354~search-carousel-store-spotlight-fix",
+  "parent_version": "7.353~search-carousel-media-header-fix",
+  "scope": "Two targeted UI ownership corrections: restore Search autocomplete carousel image-bearing descendants and tame Store Spotlight v2 brand/product rasters. Preserve all other v7.353 behavior.",
   "parent_sha256": {
-    "src/Tweak.xm": "c1d305e855d44e1df1df3958fc8de280daced3de989c77dc83663b4779939f55",
+    "src/Tweak.xm": "de7ca4dfd9a39e3e2331bef7faaab63e98be863aa183fcfc448a876c813b9894",
     "src/AmazonDarkSB.xm": "1453e4efc45cfe95af044668234c0b6c25ea8e50ca51e3e66033f0d5161e111e",
     "src/ADSkeletonProbe7339.js.inc": "1fbf2ea9d404d6bc96832ce8c2933094717008dec3e403db93baa261d2aeb1df",
     "Makefile": "3a6253d2430426bd0cc156dae40591e8b7bed7c00805506169cdd2ea133edbe6",
@@ -17,15 +17,16 @@
     "layout/Library/Application Support/AmazonDark/splash-logo.png": "4d5ab25256f6badd0649b23cfef385b9700e529762474bb463d81f43a5bc9fff"
   },
   "intentional_visual_changes": [
-    "Search /autocomplete cards_carousel_widget media: keep structural floors OLED black, release media leaves from structural floor ownership, force authored rasters visible, and tame with brightness at configured TWB strength.",
-    "Product /s Top-reviewed module: .s-tiles-header and its authored gradient are sealed OLED black; title text remains light."
+    "Search /autocomplete cards_carousel_widget: retain OLED outer/card floors and light text while releasing media-bearing sug-im descendants from broad black descendant-floor ownership; authored rasters stay visible and brightness-tamed.",
+    "Product /s Store Spotlight v2: tame the brand logo and visible product rasters under data-csa-c-painter=store-spotlight-v2-creative-mobile-cards; exclude hidden 1x1 tracking pixel."
   ],
-  "preserved_v7352": [
+  "preserved_v7353": [
+    "Top-reviewed header/gradient remains OLED black; tiles remain black with #494d4d borders and tamed product images.",
     "Stock Lists Heart / More-like-this / MAB action controls remain Amazon-authored.",
     "Featured video pill remains OLED black with standard gray edge.",
-    "s-pc-certification-faceout authored image remains untamed.",
-    "s-trft tiles remain OLED black with #494d4d edges and tamed product images.",
-    "Visible /s product WKWebView probe dispatch remains ahead of native-tab dispatch."
+    "s-pc-certification-faceout authored icon remains untamed and transparent.",
+    "Visible /s product WKWebView probe dispatch remains ahead of native-tab dispatch.",
+    "v7.351 optimized production/probe architecture, Cart fixes, and v7.350 splash seal remain unchanged."
   ],
   "performance_note": "No new native hook, MutationObserver, timer, RAF, Web scroll listener, polling or recurring DOM scan. Changes stay inside existing route-local document-start CSS/TWB payloads."
 }
