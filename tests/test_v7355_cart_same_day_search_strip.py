@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.358~search-row-shop-style-leaf-fix' in ctl
-assert '#define AD_VERSION "v7.358-search-row-shop-style-leaf-fix"' in t
+assert 'Version: 7.360~search-tiles-cart-coupon-fix' in ctl
+assert '#define AD_VERSION "v7.360-search-tiles-cart-coupon-fix"' in t
 # Current Cart probe exact owners.
 for token in [
     '#sc-page-container #ssd-ca-buy-box{background:#000!important',

@@ -1,9 +1,9 @@
 {
-  "version": "7.358~search-row-shop-style-leaf-fix",
-  "parent_version": "7.357~search-footer-shop-style-fix",
-  "scope": "Three v7.357 on-device corrections: remove the Search recent-row box regression while retaining the fixed autocomplete footer, replace temporary Shop-by-style text discovery with the probe-proven SEARCH_TILES/shoppable-image renderer and seal its pseudo floors, and neutralize the baked white square in the exact certification/Forestry raster without broad product-media ownership.",
+  "version": "7.359~product-mab-controls-menu-fix",
+  "parent_version": "7.358~search-row-shop-style-leaf-fix",
+  "scope": "Probe-proven /s PUiS MAB action-control theming: OLED-black dropdown with standard separators/light symbols, neutral gray heart/chevron/two-card More-like-this spotlight buttons, and preservation of the authored blue open-chevron ring. No blind ownership of the hidden compare-checkbox experiment.",
   "parent_sha256": {
-    "src/Tweak.xm": "10eb27fcd3370b6c0d8c6bb86a9d30ba654c00f05e84acbe0c4f672cc480baa1"
+    "src/Tweak.xm": "aa16f988a3687ab57ec761596980f1dcf0b4f192e638da35e693323f795c8c0a"
   },
   "unchanged_critical_sha256": {
     "src/AmazonDarkSB.xm": "1453e4efc45cfe95af044668234c0b6c25ea8e50ca51e3e66033f0d5161e111e",
@@ -13,13 +13,14 @@
     "layout/Library/Application Support/AmazonDark/splash-logo.png": "4d5ab25256f6badd0649b23cfef385b9700e529762474bb463d81f43a5bc9fff"
   },
   "intentional_visual_changes": [
-    "Search autocomplete: keep the v7.357 first-two-layer OLED background seal, but stop assigning border/outline/shadow to those structural layers. Remove the broad all-button styling that boxed recent-history rows and X controls; retain the earlier delivery-scoped button treatment only for the footer controls. Stock horizontal recent-row separators are left Amazon-owned.",
-    "Shop by style: current v7.357 /s probe identifies data-component-type=s-tiles-carousel-component-shoppable_image with scx-si-image rasters. Own that exact Search Tiles renderer directly, make its structural/header/carousel planes OLED/light/gray, and force the probe-captured s-tiles-carousel::before plus enclosing s-result-item::before floor/gradient painters OLED black. Existing scx-si-image TWB strength remains configured brightness.",
-    "Certification/Forestry leaf: the exact s-pc-certification-faceout shell and 16x16 img.s-image are already CSS-transparent in the current probe, proving the visible white square is raster-internal. Keep the shell transparent and apply only that raster leaf invert(1) hue-rotate(180deg) so the baked white square visually becomes black while the authored green hue remains approximately preserved.",
-    "Remove v7.357's temporary Shop-by-style TreeWalker/text marker now that the live technical family is known; no replacement scanner is added."
+    "Product /s MAB dropdown `.puis-mab-overlay`: OLED black outer/row floors, #494d4d outer and row separators, light labels and exact Save/Select/More-like-this/Share glyph owners.",
+    "Product card `.lists-framework-heart-background`: #303335 fill / #747a7c edge with light unfilled-heart glyph.",
+    "Product card `.puis-mab-chevron`: #303335 fill / #747a7c neutral edge and light chevron; `.puis-mab-container.puis-mab-open` preserves authored rgb(28,137,227) selected ring.",
+    "Exact `.puis-mab-spotlight-slot-mlt .mlt-icon-container` two-card/More-like-this button: #303335 / #747a7c with light raster. The dropdown MLT glyph remains transparent/light.",
+    "Hidden `.puis-mab-spotlight-slot-compare` compare-checkbox experiment is not repurposed or restyled as the requested two-card control."
   ],
   "probe_identity_changes": [
-    "Skeleton/transition helper identity bumped to v7.358; v7.357 receipt is the immediate upgrade locator. Historical screenshot UI probe filenames remain v7.309 names while their header reports the installed v7.358 runtime."
+    "Skeleton/transition helper identity bumped to v7.359; v7.358 receipt is the immediate upgrade locator. Historical screenshot UI probe filenames remain v7.309 while their headers report the installed v7.359 runtime."
   ],
-  "performance_note": "No new native hook, production MutationObserver, interval, RAF, Web scroll listener, polling loop, recurring DOM scan or recurring native hierarchy scan. Removing the temporary v7.357 Shop-by-style TreeWalker makes production simpler; new ownership is route-local document-start CSS/TWB only."
+  "performance_note": "No new native hook, MutationObserver, timer, RAF, Web scroll listener, polling loop, recurring DOM scan or native hierarchy scan; changes are route-local document-start CSS in the existing /s payload."
 }
