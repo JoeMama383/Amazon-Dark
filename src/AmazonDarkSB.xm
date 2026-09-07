@@ -57,7 +57,21 @@ static UIImage *ADSplashImage7191(void) {
 @end
 static const char kADGeneratedLaunch7337=0;
 
+static BOOL ADLaunchProbeArmed7351(void){
+    // Explicit NewTerm helper marker only. Normal launches pay one cheap existence check
+    // at each diagnostic site and perform no formatting, queue creation, or log-file writes.
+    static const char *path="/var/mobile/AmazonDark-launch-probe.arm";
+    if(access(path,R_OK)!=0)return NO;
+    @try {
+        NSString *s=[NSString stringWithContentsOfFile:@"/var/mobile/AmazonDark-launch-probe.arm" encoding:NSUTF8StringEncoding error:nil];
+        NSTimeInterval expiry=s.doubleValue,now=NSDate.date.timeIntervalSince1970;
+        if(isfinite(expiry)&&expiry>now&&expiry<=now+600.0)return YES;
+        unlink(path);
+    } @catch(...) {}
+    return NO;
+}
 static void ADLaunchLog7337(NSString *event,NSString *detail){
+    if(!ADLaunchProbeArmed7351())return;
     @try {
         static dispatch_queue_t queue; static dispatch_once_t once;
         dispatch_once(&once,^{queue=dispatch_queue_create("com.colindavidr.amazondark.launch-artwork",DISPATCH_QUEUE_SERIAL);});

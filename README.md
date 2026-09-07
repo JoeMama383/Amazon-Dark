@@ -1,3 +1,17 @@
+# AmazonDark v7.351~aggressive-theme-neutral-optimization
+
+- Direct base: accepted v7.350 visuals. The optimization pass is theme-neutral **except for one explicit historical Cart regression restoration**: active-cart swipe-right `Save for later` text is returned to the standard light foreground.
+- Restores the exact active-Cart swipe owner proven by the old Cart probes: `form#activeCartViewForm .swipe-button.swipe-right-button > div`. Its stock `rgb(17,17,17)` text is forced to `#e8e6e3`, matching the previously-correct v5-era Cart appearance and the parallel v7.294 Saved-for-later swipe rule. This is document-start CSS only; no observer or runtime traversal is added.
+- Restores the previously proven v7.302 O(1) CNM/error-screen fast path so normal global UIView mount/background traffic no longer walks up to 18 ancestors when no CNM root exists.
+- Reuses the already-computed React classification in the global UIView mount hook and converts six production bounded BFS helpers from array-front deletion to cursor queues.
+- Makes probe bootstrap receipt I/O one-time per installed version instead of rewriting an `arm-missing` status file on every ordinary Amazon launch.
+- Makes SpringBoard launch-artwork file logging truly probe-only. `launch` / `transition` arming creates a 5-minute `/var/mobile/AmazonDark-launch-probe.arm`; ordinary launches no longer format/queue/append launch diagnostic lines.
+- Collapses seven probe path builders and four capped append writers into shared helpers while preserving exact probe filenames, caps and capture entrypoints. Removes the stale Menu lifecycle-ring code whose writer had no call sites; the active Menu native/Web collector remains.
+- Removes duplicate source-only preference icon copies, points Sileo metadata at the packaged `prefs/Resources` copy, and removes stale per-build delivery/audit duplicates from the working source tree.
+- Existing `-Os`, function/data sections and linker dead-strip flags were already optimal and are retained unchanged.
+
+---
+
 # AmazonDark v7.350~native-splash-image-seal
 
 - Direct base: exact v7.349~cart-shimmer-border-strip-fix. The accepted Cart 13pt strip fix and all v7.349 UI behavior are retained.

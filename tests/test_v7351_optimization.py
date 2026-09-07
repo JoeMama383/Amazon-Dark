@@ -1,0 +1,56 @@
+from pathlib import Path
+import hashlib,re
+ROOT=Path(__file__).resolve().parents[1]
+t=(ROOT/'src/Tweak.xm').read_text(); sb=(ROOT/'src/AmazonDarkSB.xm').read_text(); sh=(ROOT/'scripts/skeleton-probe.sh').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
+assert 'Version: 7.351~aggressive-theme-neutral-optimization' in ctl
+assert '#define AD_VERSION "v7.351-aggressive-theme-neutral-optimization"' in t
+
+def static_block(src,name):
+    m=re.search(r'^static[^\n;{}]*\b'+re.escape(name)+r'\([^;{}]*\)\s*\{',src,re.M);assert m,name
+    st=m.end()-1;d=0;ins=False;esc=False
+    for i in range(st,len(src)):
+        c=src[i]
+        if ins:
+            if esc:esc=False
+            elif c=='\\':esc=True
+            elif c=='"':ins=False
+        else:
+            if c=='"':ins=True
+            elif c=='{':d+=1
+            elif c=='}':
+                d-=1
+                if d==0:return src[m.start():i+1]
+    raise AssertionError(name)
+# Critical visual payloads remain byte-identical to accepted v7.350 except the exact Cart text restoration below.
+expected={
+ 'ADStandalonePaintJS7104':'fb6a4cf9057c2f5262d4f2cd2d9d161f5b82661229671be0040bdd4f2dedc3db',
+ 'ADTWBJS':'99973b4ca0a8331a077152dfc3bae70d6e718d0d206dc3389974c6d74d121b9e',
+ 'ADNativeSplashLogo7350':'27f26ded352c76f6bb39c68bda07c086004ff950c0dfa667ad14166966e16448',
+ 'ADLayoutNativeSplashSeal7350':'24fa17d2501f723c9037d57269c6ca95200e206c4ca4b5ce31acbc90d0765d05',
+ 'ADReleaseWarmSplash7307':'de3cd1a6602a293bf9d1fc2b34c3ec10549e50181b37615791495ad3bf7aa51c',
+}
+for name,digest in expected.items(): assert hashlib.sha256(static_block(t,name).encode()).hexdigest()==digest,name
+
+# ADFloorJS differs from accepted v7.350 only by the exact active-Cart swipe-right text restoration.
+active_rule='        @"#sc-page-container form#activeCartViewForm .sc-list-item .swipe-button.swipe-right-button,#sc-page-container form#activeCartViewForm .sc-list-item .swipe-button.swipe-right-button>div{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"\n'
+floor=static_block(t,'ADFloorJS')
+assert floor.count(active_rule)==1
+assert hashlib.sha256(floor.replace(active_rule,'',1).encode()).hexdigest()=='40b9d2419dcfe04ef305fb332f512a549e8acb8e25b09fb9a9716430f5790c42'
+
+# Accepted Cart and splash owners remain.
+for token in ['#sc-recs-atf-shimmer-placeholder{border-top-color:#000!important','ADBlackenLoadingGradient7348','AmazonDarkCartLoadingBar7345','AmazonDarkSplashSeal7350']:
+    assert token in t,token
+# Hot-path / simplification wins.
+assert 'kADCNMRootGetter7351' in t and 'objc_getAssociatedObject(w,kADCNMRootGetter7351)' in t
+cnm=static_block(t,'ADInCNMErrorView7301'); assert 'for(int d=0;n&&d<18' not in cnm and 'if(!root||root.window!=w' in cnm
+u=t[t.index('%hook UIView'):t.index('%end',t.index('%hook UIView'))]
+assert '||react||ADExactBackgroundOwner7226' in u
+assert 'ADMenuLifecycleTrace7280' not in t and 'gADMenuLifecycleRing7280' not in t
+assert 'ADThemeReactAttributedText7271' not in t and 'ADPersonOfflineFallbackButtonString7299' not in t and 'ADAlexaSuggestionPillLightString7288' not in t
+assert t.count('static NSString *ADProbePath7351')==1 and t.count('static void ADProbeAppend7351')==1
+assert 'if(!ADLaunchProbeArmed7351())return;' in sb
+assert 'AmazonDark-launch-probe.arm' in sh
+assert 'prefs/Resources/icon@3x.png' in ctl
+assert not (ROOT/'prefs/icon@3x.png').exists()
+print('PASS: v7.351 optimization retains critical v7.350 visual payload hashes and exact accepted Cart/splash owners')
+print('PASS: CNM hot path, UIView classification reuse, probe writer/path consolidation, dead Menu ring removal, probe-only SB logging present')

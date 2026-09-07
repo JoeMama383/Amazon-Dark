@@ -1,12 +1,13 @@
 #!/bin/sh
 # NewTerm/mobile. Resolve Amazon's data container; never write probe data into another app.
 set -eu
-AD_PROBE_VERSION=7.350
+AD_PROBE_VERSION=7.351
 AD_PROBE_ROOT=${AD_PROBE_ROOT:-/var/mobile}
 AD_PROBE_CONTAINERS=${AD_PROBE_CONTAINERS:-$AD_PROBE_ROOT/Containers/Data/Application}
 AD_PROBE_DOCS=${AD_PROBE_DOCS:-/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents}
-AD_PROBE_NAME=AmazonDark-v7.350
+AD_PROBE_NAME=AmazonDark-v7.351
 AD_PROBE_TARGETS=$(mktemp)
+AD_PROBE_LAUNCH_ARM="$AD_PROBE_ROOT/AmazonDark-launch-probe.arm"
 trap 'rm -f "$AD_PROBE_TARGETS"' EXIT HUP INT TERM
 AD_PROBE_SEEN=0
 AD_PROBE_READABLE=0
@@ -16,12 +17,14 @@ for AD_PROBE_META in "$AD_PROBE_CONTAINERS"/*/.com.apple.mobile_container_manage
     AD_PROBE_SEEN=$((AD_PROBE_SEEN+1))
     if [ -r "$AD_PROBE_META" ]; then AD_PROBE_READABLE=$((AD_PROBE_READABLE+1)); fi
     AD_PROBE_ID=$(plutil -extract MCMMetadataIdentifier raw -o - "$AD_PROBE_META" 2>/dev/null || true)
-    if [ "$AD_PROBE_ID" != com.amazon.Amazon ]; then
+    # A successful non-Amazon identifier is definitive. Fall back to alternate plutil
+    # dialects only when the preferred extraction was unsupported/empty.
+    if [ -z "$AD_PROBE_ID" ]; then
         AD_PROBE_ID=$(plutil -convert xml1 -o - "$AD_PROBE_META" 2>/dev/null | awk '
           /<key>MCMMetadataIdentifier<\/key>/ {take=1}
           take && /<string>/ {s=$0;sub(/^.*<string>/,"",s);sub(/<\/string>.*$/,"",s);print s;exit}' || true)
     fi
-    if [ "$AD_PROBE_ID" != com.amazon.Amazon ]; then
+    if [ -z "$AD_PROBE_ID" ]; then
         AD_PROBE_ID=$(plutil -p "$AD_PROBE_META" 2>/dev/null | awk '
           /"MCMMetadataIdentifier"/ && /"com[.]amazon[.]Amazon"/ {print "com.amazon.Amazon";exit}' || true)
     fi
@@ -29,14 +32,14 @@ for AD_PROBE_META in "$AD_PROBE_CONTAINERS"/*/.com.apple.mobile_container_manage
         printf '%s\n' "${AD_PROBE_META%/*}/Documents" >> "$AD_PROBE_TARGETS"
     fi
 done
-# Read the current receipt or verified v7.346/v7.344 receipts left during upgrade.
+# Read the current receipt or verified recent receipts left during upgrade.
 # These identify Amazon without relying on the phone's plutil implementation.
 AD_PROBE_RECEIPTS=0
-for AD_PROBE_RECEIPT in "$AD_PROBE_CONTAINERS"/*/Documents/"$AD_PROBE_NAME-probe-status.json" "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.346-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.344-probe-status.json; do
+for AD_PROBE_RECEIPT in "$AD_PROBE_CONTAINERS"/*/Documents/"$AD_PROBE_NAME-probe-status.json" "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.350-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.346-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.344-probe-status.json; do
     [ -f "$AD_PROBE_RECEIPT" ] || continue
     if LC_ALL=C grep -Eq '"bundle"[[:space:]]*:[[:space:]]*"com[.]amazon[.]Amazon"' "$AD_PROBE_RECEIPT" &&
        LC_ALL=C grep -Eq '"event"[[:space:]]*:[[:space:]]*"PROBE_BOOTSTRAP"' "$AD_PROBE_RECEIPT" &&
-       LC_ALL=C grep -Eq '"version"[[:space:]]*:[[:space:]]*"v7[.](344|346|347|348)-' "$AD_PROBE_RECEIPT"; then
+       LC_ALL=C grep -Eq '"version"[[:space:]]*:[[:space:]]*"v7[.](344|346|347|348|349|350|351)-' "$AD_PROBE_RECEIPT"; then
         AD_PROBE_RECEIPTS=$((AD_PROBE_RECEIPTS+1))
         AD_PROBE_DIR=${AD_PROBE_RECEIPT%/*}
         if ! grep -Fqx "$AD_PROBE_DIR" "$AD_PROBE_TARGETS"; then
@@ -54,7 +57,7 @@ ad_report() {
     printf 'Amazon container matches: %s\n' "$(wc -l < "$AD_PROBE_TARGETS" | tr -d ' ')"
     while IFS= read -r AD_PROBE_DIR; do
         printf 'Amazon Documents: %s\n' "$AD_PROBE_DIR"
-        for AD_PROBE_FILE in "$AD_PROBE_DIR/$AD_PROBE_NAME-probe.arm" "$AD_PROBE_DIR/$AD_PROBE_NAME-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.346-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.344-probe-status.json"; do
+        for AD_PROBE_FILE in "$AD_PROBE_DIR/$AD_PROBE_NAME-probe.arm" "$AD_PROBE_DIR/$AD_PROBE_NAME-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.350-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.346-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.344-probe-status.json"; do
             if [ -f "$AD_PROBE_FILE" ]; then
                 printf '%s: ' "${AD_PROBE_FILE##*/}"
                 cat "$AD_PROBE_FILE"
@@ -79,13 +82,19 @@ case "${1:-}" in
     case "$AD_PROBE_LABEL" in home|cart|both|launch|transition) ;; *) printf 'Use arm home, cart, both, launch, or transition.\n' >&2; exit 1;; esac
     [ -s "$AD_PROBE_TARGETS" ] || { ad_report; printf 'Cannot identify Amazon data container. Open Amazon once, then retry; send this output if still missing.\n' >&2; exit 1; }
     AD_PROBE_INSTALLED=$(dpkg-query -W -f='${Version}' com.joemama383.amazondark 2>/dev/null || true)
-    case "$AD_PROBE_INSTALLED" in 7.350~*) ;; *) printf 'Install the v7.350 Actions package first. Installed: %s\n' "$AD_PROBE_INSTALLED" >&2; exit 1;; esac
+    case "$AD_PROBE_INSTALLED" in 7.351~*) ;; *) printf 'Install the v7.351 Actions package first. Installed: %s\n' "$AD_PROBE_INSTALLED" >&2; exit 1;; esac
     umask 077
     while IFS= read -r AD_PROBE_DIR; do
         mkdir -p "$AD_PROBE_DIR"
         printf '%s %s\n' "$(( $(date +%s) + 300 ))" "$AD_PROBE_LABEL" > "$AD_PROBE_DIR/$AD_PROBE_NAME-probe.arm"
         printf 'Armed %s in %s\n' "$AD_PROBE_LABEL" "$AD_PROBE_DIR"
     done < "$AD_PROBE_TARGETS"
+    if [ "$AD_PROBE_LABEL" = launch ] || [ "$AD_PROBE_LABEL" = transition ]; then
+        printf '%s\n' "$(( $(date +%s) + 300 ))" > "$AD_PROBE_LAUNCH_ARM"
+        chmod 600 "$AD_PROBE_LAUNCH_ARM" 2>/dev/null || true
+    else
+        rm -f "$AD_PROBE_LAUNCH_ARM"
+    fi
     if [ "$AD_PROBE_LABEL" = launch ]; then
         printf 'Force-close and open Amazon within 5 minutes. Repeat cold launches as needed within that window. Each process records at most 20 seconds and stops on background.\n'
     elif [ "$AD_PROBE_LABEL" = transition ]; then
@@ -105,7 +114,7 @@ case "${1:-}" in
     while IFS= read -r AD_PROBE_DIR; do
         AD_PROBE_UUID=${AD_PROBE_DIR%/Documents}; AD_PROBE_UUID=${AD_PROBE_UUID##*/}
         mkdir -p "$AD_PROBE_STAGE/$AD_PROBE_UUID"
-        for AD_PROBE_FILE in "$AD_PROBE_DIR"/AmazonDark-v7.*-skeleton-*.jsonl "$AD_PROBE_DIR/$AD_PROBE_NAME-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.346-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.344-probe-status.json"; do
+        for AD_PROBE_FILE in "$AD_PROBE_DIR"/AmazonDark-v7.*-skeleton-*.jsonl "$AD_PROBE_DIR/$AD_PROBE_NAME-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.350-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.346-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.344-probe-status.json"; do
             [ -f "$AD_PROBE_FILE" ] || continue
             cp "$AD_PROBE_FILE" "$AD_PROBE_STAGE/$AD_PROBE_UUID/"
             case "$AD_PROBE_FILE" in *.jsonl) AD_PROBE_COUNT=$((AD_PROBE_COUNT+1));; esac
@@ -136,11 +145,13 @@ case "${1:-}" in
         done
     fi
     while IFS= read -r AD_PROBE_DIR; do rm -f "$AD_PROBE_DIR/$AD_PROBE_NAME-probe.arm"; done < "$AD_PROBE_TARGETS"
+    rm -f "$AD_PROBE_LAUNCH_ARM"
     printf 'Exported %s app capture(s), status report and available SpringBoard log:\n%s\n' "$AD_PROBE_COUNT" "$AD_PROBE_ARCHIVE"
     if [ "$AD_PROBE_COUNT" -eq 0 ]; then printf 'No app capture ran. Upload this archive anyway: it contains the failure diagnostics.\n'; fi
     ;;
  disarm)
     while IFS= read -r AD_PROBE_DIR; do rm -f "$AD_PROBE_DIR/$AD_PROBE_NAME-probe.arm"; done < "$AD_PROBE_TARGETS"
+    rm -f "$AD_PROBE_LAUNCH_ARM"
     printf 'Future launches disarmed. Existing capture stops at its deadline or app close.\n'
     ;;
  *) printf 'Usage: sh scripts/skeleton-probe.sh arm [home|cart|both|launch|transition] | status | export | disarm\n' >&2; exit 1;;

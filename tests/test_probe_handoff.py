@@ -15,23 +15,25 @@ import tempfile
 
 ROOT=Path(__file__).resolve().parents[1]
 HELPER=ROOT/'scripts/skeleton-probe.sh'
-VERSION='7.350~native-splash-image-seal'
+VERSION='7.351~aggressive-theme-neutral-optimization'
 
 with tempfile.TemporaryDirectory(prefix='ad-probe-handoff-') as temp:
     root=Path(temp);mobile=root/'mobile';containers=mobile/'Containers/Data/Application'
     amazon=containers/'AMAZON';other=containers/'OTHER';docs=root/'shared Documents';docs.mkdir()
     for p,bid in [(amazon,'com.amazon.Amazon'),(other,'com.example.other')]:
         p.mkdir(parents=True)
-        (p/'.com.apple.mobile_container_manager.metadata.plist').write_bytes(plistlib.dumps({'MCMMetadataIdentifier':bid},fmt=plistlib.FMT_BINARY))
+        (p/'.com.apple.mobile_container_manager.metadata.plist').write_bytes(plistlib.dumps({'MCMMetadataIdentifier':bid},fmt=plistlib.FMT_XML))
     bin=root/'bin';bin.mkdir()
     plutil=bin/'plutil'
-    plutil.write_text('''#!/usr/bin/env python3
-import json,os,plistlib,sys
-args=sys.argv[1:];data=plistlib.load(open(args[-1],'rb'));style=os.environ.get('AD_PLUTIL_STYLE','extract')
-if args[0]=='-extract' and style=='extract':print(data[args[1]])
-elif args[0]=='-convert' and style in ('extract','xml'):sys.stdout.buffer.write(plistlib.dumps(data))
-elif args[0]=='-p' and style=='pretty':print(json.dumps(data,indent=2))
-else:sys.exit(1)
+    plutil.write_text(r'''#!/bin/sh
+style=${AD_PLUTIL_STYLE:-extract}; last=""; for a in "$@"; do last=$a; done
+value=$(awk '/<key>MCMMetadataIdentifier<\/key>/{take=1;next} take&&/<string>/{s=$0;sub(/^.*<string>/,"",s);sub(/<\/string>.*$/,"",s);print s;exit}' "$last")
+case "$1:$style" in
+  -extract:extract) printf '%s\n' "$value" ;;
+  -convert:extract|-convert:xml) cat "$last" ;;
+  -p:pretty) printf '  "MCMMetadataIdentifier" => "%s"\n' "$value" ;;
+  *) exit 1 ;;
+esac
 ''');plutil.chmod(0o755)
     # A broken/missing gzip must have no effect on the new export path.
     gzip=bin/'gzip'
@@ -42,7 +44,7 @@ else:sys.exit(1)
     dpkg=bin/'dpkg-query'
     dpkg.write_text('''#!/usr/bin/env python3
 import os,sys
-v=os.environ.get('AD_INSTALLED','7.350~native-splash-image-seal')
+v=os.environ.get('AD_INSTALLED','7.351~aggressive-theme-neutral-optimization')
 print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '')+v,end='')
 ''');dpkg.chmod(0o755)
     env=dict(os.environ,PATH=str(bin)+':'+os.environ['PATH'],AD_PROBE_ROOT=str(mobile),AD_PROBE_CONTAINERS=str(containers),AD_PROBE_DOCS=str(docs),AD_GZIP_CALLED=str(root/'gzip-called'))
@@ -50,10 +52,12 @@ print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '
         r=subprocess.run(['sh',str(HELPER),*args],env=dict(env,**extra),text=True,capture_output=True)
         assert (r.returncode==0)==ok,(args,r.stdout,r.stderr)
         return r.stdout+r.stderr
-    arm=amazon/'Documents/AmazonDark-v7.350-probe.arm'
+    arm=amazon/'Documents/AmazonDark-v7.351-probe.arm'
+    launch_arm=mobile/'AmazonDark-launch-probe.arm'
     for style in ['extract','xml','pretty']:
         run('arm','both',AD_PLUTIL_STYLE=style)
         assert arm.read_text().split()[1]=='both'
+        assert not launch_arm.exists(), 'non-launch probe must not arm SpringBoard logging'
         assert not (other/'Documents').exists()
         run('disarm')
         assert not arm.exists()
@@ -69,10 +73,11 @@ print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '
         assert VERSION in report and 'Amazon container matches: 1' in report
     run('arm','launch')
     assert arm.read_text().split()[1]=='launch'
-    log=amazon/'Documents/AmazonDark-v7.350-skeleton-1-77-launch.jsonl'
+    assert launch_arm.exists(), 'launch probe must arm SpringBoard launch logging'
+    log=amazon/'Documents/AmazonDark-v7.351-skeleton-1-77-launch.jsonl'
     log.write_text('{"event":"SESSION_START","label":"launch"}\n')
-    receipt=amazon/'Documents/AmazonDark-v7.350-probe-status.json'
-    receipt.write_text(json.dumps({'event':'PROBE_BOOTSTRAP','bundle':'com.amazon.Amazon','reason':'capture-started','version':'v7.350-native-splash-image-seal'}))
+    receipt=amazon/'Documents/AmazonDark-v7.351-probe-status.json'
+    receipt.write_text(json.dumps({'event':'PROBE_BOOTSTRAP','bundle':'com.amazon.Amazon','reason':'capture-started','version':'v7.351-aggressive-theme-neutral-optimization'}))
     old=mobile/'AmazonDark-v7.340-skeleton-1-55-both.jsonl';old.write_text('old capture\n')
     sb=mobile/'AmazonDark-v7.338-launch-sb-probe.txt';sb.write_text('snapshot.dark\n')
     unrelated=other/'Documents';unrelated.mkdir()
@@ -85,7 +90,7 @@ print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '
         assert t.extractfile('./'+old.name).read()==old.read_bytes()
         assert t.extractfile('./launch-springboard-last4MiB.txt').read()==sb.read_bytes()
         assert not any('OTHER' in m.name for m in t.getmembers())
-    assert not arm.exists() and log.exists()
+    assert not arm.exists() and not launch_arm.exists() and log.exists()
     # No container metadata: export still carries a report instead of dead-ending.
     missing=root/'missing';missing.mkdir()
     text=run('export',AD_PROBE_CONTAINERS=str(missing))
@@ -98,13 +103,15 @@ print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '
         'event':'PROBE_BOOTSTRAP','bundle':'com.example.other','version':'v7.346-v7344-cart-strip-button'}))
     run('arm','launch',AD_PLUTIL_STYLE='unavailable')
     assert arm.read_text().split()[1]=='launch'
-    assert not (other/'Documents/AmazonDark-v7.350-probe.arm').exists()
+    assert launch_arm.exists()
+    assert not (other/'Documents/AmazonDark-v7.351-probe.arm').exists()
     status=run('status',AD_PLUTIL_STYLE='unavailable')
     assert 'Verified Amazon startup receipts: 1' in status and 'Amazon container matches: 1' in status
     text=run('export',AD_PLUTIL_STYLE='unavailable')
     archive=Path(text.splitlines()[1]);assert archive.suffix=='.tar'
     with tarfile.open(archive) as t:
         assert t.extractfile('./AMAZON/'+log.name).read()==log.read_bytes()
+    assert not launch_arm.exists()
     # During upgrade, the immediately previous v7.346 receipt must locate Amazon before v7.348 runs.
     receipt.unlink()
     previous346=amazon/'Documents/AmazonDark-v7.346-probe-status.json'
@@ -112,7 +119,8 @@ print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '
         'version':'v7.346-v7344-cart-strip-button','reason':'arm-missing-or-unreadable'}))
     run('arm','transition',AD_PLUTIL_STYLE='unavailable')
     assert arm.read_text().split()[1]=='transition'
-    run('disarm'); previous346.unlink()
+    assert launch_arm.exists(), 'transition probe must include SpringBoard launch logging'
+    run('disarm'); assert not launch_arm.exists(); previous346.unlink()
 
     # The older v7.344 receipt must also remain a valid upgrade locator.
     previous=amazon/'Documents/AmazonDark-v7.344-probe-status.json'
@@ -120,11 +128,13 @@ print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '
         'version':'v7.344-cart-loader-image-preservation','reason':'arm-missing-or-unreadable'}))
     run('arm','transition',AD_PLUTIL_STYLE='unavailable')
     assert arm.read_text().split()[1]=='transition'
+    assert launch_arm.exists()
     assert not (amazon/'Documents/AmazonDark-v7.344-probe.arm').exists()
     text=run('export',AD_PLUTIL_STYLE='unavailable')
     with tarfile.open(Path(text.splitlines()[1])) as t:
         assert t.extractfile('./AMAZON/'+previous.name).read()==previous.read_bytes()
-    print('PASS: v7.346/v7.344 upgrade receipts discover Amazon; transition arms v7.350')
+    assert not launch_arm.exists()
+    print('PASS: v7.346/v7.344 upgrade receipts discover Amazon; transition arms v7.351')
     # Even a broken tar returns the actual logs and status in a plain text file.
     run('arm','both',AD_PLUTIL_STYLE='unavailable')
     text=run('export',AD_PLUTIL_STYLE='unavailable',AD_TAR_FAIL='1')

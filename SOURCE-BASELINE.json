@@ -1,30 +1,54 @@
 {
-  "version": "7.350~native-splash-image-seal",
-  "parent_commit": "4d207ed20d679e91c25ffd9366ed8de6a0fc0d5b",
-  "parent_title": "v7.346: restore v7.344 base and fix Cart strip and buying-options button",
-  "underlying_visual_base_commit": "5bf6c356489bef37783fe25cee127799fa4f7578",
-  "scope": "Exact v7.349 UI baseline plus deterministic app-side seal of the probe-proven AXUSplash full-screen image plane. SpringBoard artwork policy unchanged.",
-  "parent_tweak_sha256": "47043edbaae3a5bfd3c285ca830f13659c8c08134410224f8c407f3a5422a97a",
-  "unchanged_critical_sha256": {
+  "version": "7.351~aggressive-theme-neutral-optimization",
+  "optimization_parent_version": "7.350~native-splash-image-seal",
+  "scope": "Accepted v7.350 visual/theming behavior with theme-neutral runtime/probe/source simplification, plus the exact historical active-Cart swipe-right Save-for-later foreground restoration.",
+  "optimization_parent_sha256": {
+    "src/Tweak.xm": "045aa25cb3cbbf92553320bcaf81aa2b7e144b885d2b0c44b0cb7c00e18e5dd3",
     "src/AmazonDarkSB.xm": "076a9bc1c1cc0424e4bd79e79306b5791da90bfd66f5c973ddbb86c1215f3806",
     "src/ADSkeletonProbe7339.js.inc": "1fbf2ea9d404d6bc96832ce8c2933094717008dec3e403db93baa261d2aeb1df",
-    ".github/workflows/build.yml": "e3e886241ff13aa23b567c9b396958c3c90a241a2e47041caddb49b45f0b6b82",
-    "Makefile": "3a6253d2430426bd0cc156dae40591e8b7bed7c00805506169cdd2ea133edbe6"
+    "Makefile": "3a6253d2430426bd0cc156dae40591e8b7bed7c00805506169cdd2ea133edbe6",
+    ".github/workflows/build.yml": "e3e886241ff13aa23b567c9b396958c3c90a241a2e47041caddb49b45f0b6b82"
   },
-  "changed_files": [
-    "README.md",
-    "AmazonDark-v7.350-AUDIT.txt",
-    "AmazonDark-v7.350-COMMANDS.txt",
-    "LAUNCH-AUDIT.md",
-    "SOURCE-BASELINE.json",
-    "layout/DEBIAN/control",
-    "scripts/skeleton-probe.sh",
-    "src/ADSkeletonProbe7339.h",
+  "unchanged_critical_sha256": {
+    "src/ADSkeletonProbe7339.js.inc": "1fbf2ea9d404d6bc96832ce8c2933094717008dec3e403db93baa261d2aeb1df",
+    "Makefile": "3a6253d2430426bd0cc156dae40591e8b7bed7c00805506169cdd2ea133edbe6",
+    ".github/workflows/build.yml": "e3e886241ff13aa23b567c9b396958c3c90a241a2e47041caddb49b45f0b6b82",
+    "layout/Library/Application Support/AmazonDark/splash-logo.png": "4d5ab25256f6badd0649b23cfef385b9700e529762474bb463d81f43a5bc9fff"
+  },
+  "changed_runtime_files": [
     "src/Tweak.xm",
+    "src/AmazonDarkSB.xm",
+    "src/ADSkeletonProbe7339.h",
+    "scripts/skeleton-probe.sh"
+  ],
+  "changed_metadata_files": [
+    "COMMANDS.md",
+    "README.md",
+    "SOURCE-BASELINE.json",
+    "layout/DEBIAN/control"
+  ],
+  "changed_test_files": [
+    "tests/test_cart_button.cjs",
     "tests/test_cold_launch_policy.py",
     "tests/test_probe_embedding.py",
     "tests/test_probe_handoff.py",
-    "tests/test_v7348_cart_gradient_fix.py",
-    "tests/test_v7350_splash_seal.py"
-  ]
+    "tests/test_v7350_splash_seal.py",
+    "tests/test_v7351_cart_save_for_later.py",
+    "tests/test_v7351_optimization.py"
+  ],
+  "removed_source_clutter": [
+    "stale per-build audit/command markdown/text files",
+    "unused root SileoIcon.png",
+    "duplicate prefs/icon.png",
+    "duplicate prefs/icon@2x.png",
+    "duplicate prefs/icon@3x.png",
+    "tests/fixtures/v7346-cart-strip-block.txt"
+  ],
+  "springboard_note": "Launch artwork policy/render/selection functions are hash-pinned byte-identical to accepted v7.350; only optional diagnostic file logging is gated behind an explicit probe arm marker.",
+  "intentional_visual_delta": {
+    "owner": "#sc-page-container form#activeCartViewForm .sc-list-item .swipe-button.swipe-right-button and its direct div child",
+    "change": "color and -webkit-text-fill-color -> #e8e6e3 !important",
+    "reason": "Historical active-Cart Save for later swipe label regression; old probes show the same owner with stock rgb(17,17,17), while earlier working Cart probes show the visible Save for later text light.",
+    "runtime_cost": "declarative document-start CSS only"
+  }
 }

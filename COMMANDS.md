@@ -1,5 +1,5 @@
-AmazonDark v7.350 — exact phone workflow
-========================================
+AmazonDark v7.351 — optimized full-source workflow
+===================================================
 
 PUSH / APPLY
 ------------
@@ -9,36 +9,31 @@ cd /var/mobile/Amazon-Dark-phone && \
 git checkout -q main && \
 git fetch origin main && \
 git merge --ff-only origin/main && \
-grep -qx 'Version: 7.349~cart-shimmer-border-strip-fix' layout/DEBIAN/control && \
-T=/var/mobile/t7350 && rm -rf "$T" && mkdir -p "$T" && \
-unzip -q "$D/AmazonDark-v7.350-native-splash-image-seal-source.zip" -d "$T" && \
-find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} + && \
-cp -a "$T/AmazonDark-v7.350-native-splash-image-seal-source/." . && \
 grep -qx 'Version: 7.350~native-splash-image-seal' layout/DEBIAN/control && \
-grep -q '#define AD_VERSION "v7.350-native-splash-image-seal"' src/Tweak.xm && \
+T=/var/mobile/t7351 && rm -rf "$T" && mkdir -p "$T" && \
+unzip -q "$D/AmazonDark-v7.351-aggressive-theme-neutral-optimization-source.zip" -d "$T" && \
+find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} + && \
+cp -a "$T/AmazonDark-v7.351-aggressive-theme-neutral-optimization-source/." . && \
+grep -qx 'Version: 7.351~aggressive-theme-neutral-optimization' layout/DEBIAN/control && \
+grep -q '#define AD_VERSION "v7.351-aggressive-theme-neutral-optimization"' src/Tweak.xm && \
+grep -q 'form#activeCartViewForm .sc-list-item .swipe-button.swipe-right-button' src/Tweak.xm && \
 grep -q 'AmazonDarkSplashSeal7350' src/Tweak.xm && \
-grep -q 'ADLayoutNativeSplashSeal7350(vc,YES)' src/Tweak.xm && \
+grep -q '#sc-recs-atf-shimmer-placeholder{border-top-color:#000!important' src/Tweak.xm && \
 git diff --check && \
 git add -A && git status --short && \
-git commit -m 'v7.350: seal intermittent stock native splash image' && \
+git commit -m 'v7.351: simplify hot paths and restore Cart Save for later text' && \
 git push origin main
 
 AFTER INSTALL
 -------------
 sbreload
 
-V7.350 COLD-LAUNCH VERIFY PROBE
--------------------------------
-Force-close Amazon first, then arm:
+PROBES
+------
+Transition / launch / skeleton capture:
+  cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh arm transition
 
-cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh arm transition
+Export armed capture:
+  cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh export
 
-Repeat genuine cold launches. Expected visual chain:
-  dark system launch artwork -> dark AmazonDark splash/logo -> dark Amazon Home
-There must be no stock-white frame.
-
-If ANY white frame appears, stop launching Amazon immediately and export:
-
-cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh export
-
-Send the resulting AmazonDark-v7.350-probes-*.tar.
+The existing screenshot/SIGUSR2 Home, Person, Cart, Menu, Alexa and product probes remain in the tweak.

@@ -1,6 +1,6 @@
 """Exercise the production cold-launch decision without UIKit.
 
-Preserve the inherited cold-launch policy while v7.350 changes only the app-side exact native splash owner. This is a host regression test, not proof of device rendering
+Preserve the inherited cold-launch policy while v7.351 makes diagnostics probe-only and leaves artwork decisions unchanged. This is a host regression test, not proof of device rendering
 or private-selector invocation.
 """
 import ctypes as c
@@ -88,9 +88,37 @@ def main():
     assert 'format.opaque=YES' in source
     assert '[[UIColor blackColor] setFill]' in source
     assert 'version=7.338~v7307-constructor-safe-artwork base=4bbbbd9 mode=artwork-only' in source
-    assert "Version: 7.350~native-splash-image-seal\n" in (ROOT / "layout/DEBIAN/control").read_text()
-    assert hashlib.sha256(SB.read_bytes()).hexdigest() == "076a9bc1c1cc0424e4bd79e79306b5791da90bfd66f5c973ddbb86c1215f3806"
-    print("PASS: v7.350 leaves the inherited SpringBoard/cold-launch source byte-identical")
+    assert "Version: 7.351~aggressive-theme-neutral-optimization\n" in (ROOT / "layout/DEBIAN/control").read_text()
+    # v7.351 changes only the optional file logger gate in SpringBoard. The actual
+    # launch-artwork policy/render/selection functions remain byte-identical to accepted v7.350.
+    def static_block(name):
+        m = re.search(r"^static[^\n;{}]*\b"+re.escape(name)+r"\([^;{}]*\)\s*\{", source, re.M)
+        assert m, name
+        start=m.end()-1;depth=0;in_string=False;escape=False
+        for i in range(start,len(source)):
+            ch=source[i]
+            if in_string:
+                if escape: escape=False
+                elif ch=="\\": escape=True
+                elif ch=='"': in_string=False
+            else:
+                if ch=='"': in_string=True
+                elif ch=="{": depth+=1
+                elif ch=="}":
+                    depth-=1
+                    if depth==0:return source[m.start():i+1]
+        raise AssertionError(name)
+    expected={
+        "ADSplashImage7191":"99c8b19cb2ff7bcbdd78458efb4eb013b6be354a60a84af34047103778ca6406",
+        "ADLaunchArtwork7337":"94dfe5123ab394a3acecfb838f7b7fca6c0baad1e3d5c56664f33a1853bfa796",
+        "ADContentKind7337":"e08f74d8f315600781fd8a20e9b97d1f08805814d0be2c005fc88475a0691374",
+        "ADIsColdLaunchArtwork7337":"bd8311ceda134ef0c2a211603d67134122ebfb9c614c99c138d6dca910b2025e",
+        "ADLaunchSnapshotImage7337":"c3da835b9279e22962327a0412e7136a888af51d742dfeee99047b17cf5bc85f",
+    }
+    for name,digest in expected.items():
+        assert hashlib.sha256(static_block(name).encode()).hexdigest()==digest,name
+    assert 'if(!ADLaunchProbeArmed7351())return;' in source
+    print("PASS: v7.351 preserves accepted v7.350 cold-launch policy/artwork bytes; only logging is probe-gated")
 
 
 
