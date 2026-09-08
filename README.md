@@ -1,49 +1,29 @@
-# AmazonDark v7.362 — universal dual UI probes
+# AmazonDark v7.363 — Search pane media, Related Searches, and Cart coupon-state polish
 
-Direct source base: **v7.361~probed-renderer-paint-fix**, the current GitHub `main` source at the start of this build.
+Direct source base: **v7.362~universal-dual-ui-probes**.
 
-v7.362 does **not** change AmazonDark's visual theming. It replaces the accumulated route-specific UI probe architecture with exactly two universal probe categories that work across Home, Search/autocomplete, product Search, Cart, Person/submenus, Hamburger/Menu, Alexa/Rufus, sheets and other current app surfaces.
+This build keeps the v7.362 universal dual-probe architecture unchanged in behavior and adds only the probe-backed UI corrections requested from the latest Search/autocomplete, Search-results, and Cart captures.
 
-## Probe 1 — FULL
+## Visual changes
 
-**Trigger:** take a screenshot inside Amazon.
+- Search autocomplete product-thumbnail rows: stop the generic suggestion-floor rule from turning image-layer owners opaque black; keep the loaded product thumbnails visible and inside the existing autocomplete TWB strength lane.
+- Search autocomplete Rufus/Alexa row: stop the generic autocomplete floor from erasing the authored icon background artwork. No replacement SVG/icon is injected.
+- Product Search `Related searches`: exact `textref` cards now use OLED-black floors, `#494d4d` borders, white copy, and white search icons.
+- Cart Apex coupon: both unclaimed and claimed states are anchored to the state-stable coupon container. The claimed state stays true green with white copy; its SVG circle is OLED black and its check remains white.
+- Cart unified-promotion savings badges: lime green is replaced with `#5a9e43`; badge copy is OLED black.
 
-Output: `AmazonDark-v7.362-ui-full-probe-...txt`
+## Probe architecture retained
 
-The FULL probe captures:
-- every current on-screen `WKWebView` without route assumptions;
-- the entire mounted DOM for each WebView, including offscreen and hidden DOM nodes;
-- computed foreground/background/border/outline/shadow/filter/mask/SVG/pseudo-element/media paint;
-- open shadow roots and same-origin frame DOM;
-- viewport hit-test stacks;
-- the complete mounted native UIKit/React hierarchy from every visible app window, including offscreen/hidden descendants and direct CALayer paint.
+**FULL universal probe:** take one screenshot while the issue is visible. It captures all current on-screen WKWebViews, their entire mounted DOM, and the full mounted native hierarchy.
 
-It does not log visible text strings, accessibility-label/value strings, URL/src/href values, network payloads or clipboard content. Text is represented only by length and a stable local hash.
+**VIEWPORT universal probe:**
 
-## Probe 2 — VIEWPORT
-
-**Trigger:** while the exact bad state is visible, run:
-
-```sh
+```zsh
 cd /var/mobile/Amazon-Dark-phone && sh scripts/ui-probe.sh arm
 ```
 
-Output: `AmazonDark-v7.362-ui-viewport-probe-...txt`
+It captures only elements intersecting the current screen and does not scroll.
 
-The helper writes a one-shot arm in Amazon's own Documents container and immediately sends `SIGUSR2`. The VIEWPORT probe then captures only the current visual screen frame:
-- screen-intersecting UIKit/React views and layer paint;
-- every current on-screen WebView;
-- only DOM elements intersecting the visual viewport, plus painted pseudo-elements;
-- media/computed paint and a viewport `elementsFromPoint` hit grid.
+The helper command shapes are unchanged from v7.362; only the versioned output identity advances to v7.363.
 
-No scrolling or content offset changes occur in VIEWPORT mode.
-
-## Architecture cleanup
-
-The old Person, Cart, Hamburger/Menu, Alexa, Person-submenu, Home-frame and Product-scroll probe dispatchers are removed. There is no longer a `menuTab`/`cartTab`/`meTab`/`rufusTab` decision tree and no historical `AmazonDark-v7.309-*` UI-probe filename reuse.
-
-Normal runtime keeps only one screenshot notification observer and one SIGUSR2 dispatch source. Probe scans run only on an explicit trigger. No probe `MutationObserver`, timer, RAF loop, web-scroll listener, polling loop or recurring native/DOM scan was added.
-
-The existing launch/transition/skeleton recorder remains separate and unchanged in behavior; its versioned helper identity advances to v7.362 and still takes precedence when that recorder is armed.
-
-See `COMMANDS.md` for the short device commands and `AUDIT-v7.362.md` for validation details.
+See `COMMANDS.md` for push/probe commands and `AUDIT-v7.363.md` for validation details.

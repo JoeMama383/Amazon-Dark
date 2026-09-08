@@ -1,13 +1,13 @@
-# AmazonDark v7.362 commands
+# AmazonDark v7.363 commands
 
 ## Push
 
-Once the v7.362 source is in `/var/mobile/Amazon-Dark-phone`:
+Once this source is in `/var/mobile/Amazon-Dark-phone`:
 
 ```zsh
 cd /var/mobile/Amazon-Dark-phone
 git add -A
-git commit -m "v7.362: consolidate universal full and viewport UI probes"
+git commit -m "v7.363: fix Search pane media, related searches, and Cart claimed coupon"
 git push origin main
 ```
 
@@ -15,9 +15,9 @@ git push origin main
 
 Leave the problem visible and **take one screenshot**.
 
-That writes:
+Output family:
 
-`AmazonDark-v7.362-ui-full-probe-...txt`
+`AmazonDark-v7.363-ui-full-probe-...txt`
 
 ## VIEWPORT universal probe
 
@@ -27,11 +27,9 @@ Leave the problem visible and run:
 cd /var/mobile/Amazon-Dark-phone && sh scripts/ui-probe.sh arm
 ```
 
-That writes:
+Output family:
 
-`AmazonDark-v7.362-ui-viewport-probe-...txt`
-
-It captures the current screen only and does not scroll.
+`AmazonDark-v7.363-ui-viewport-probe-...txt`
 
 ## Export newest FULL + VIEWPORT captures
 
