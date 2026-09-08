@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.369 — isolated checkout theming on the stable v7.367 baseline
+ * AmazonDark v7.370 — reliable isolated checkout theming on v7.369
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.369-checkout-isolated-theme"
+#define AD_VERSION "v7.370-checkout-script-reinstall-theme"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1384,30 +1384,34 @@ static NSString *ADTWBJS(void){
     return built;
 }
 
+
 // v7.369: checkout theming is deliberately isolated from ADFloorJS/ADTWBJS.
-// v7.368 inserted checkout selectors directly into the shared ADFloorJS JavaScript string;
-// Objective-C \" escapes became raw JavaScript quotes inside that already-open CSS string,
-// making the entire shared floor program fail to parse. Keeping checkout in independent
-// WKUserScripts means a future checkout mistake cannot disable Home/Cart/Search/Menu theming.
+// v7.368 inserted checkout selectors into the shared ADFloorJS JavaScript string;
+// raw runtime quotes from attribute selectors broke that whole shared program.
+// Independent document-start scripts make checkout incapable of disabling other WebUI.
 static NSString *ADCheckoutFloorJS7369(void){
     return
         @"(function(){try{function put(id,css){var s=document.getElementById(id);if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}s.textContent=css;return s;}function relink(s){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}var css=`"
         @"#checkoutDisplayPage.checkout-display-page{background:#000!important;background-color:#000!important;color:#e8e6e3!important;}"
-        // Before-you-go / recommendation grid. The fixed footer is a sibling of the product-grid
-        // container, so it must be owned independently.
+        // Before-you-go recommendation grid. The fixed footer is a sibling of the grid.
         @"#checkoutDisplayPage .checkout-byg-mobile-container,#checkoutDisplayPage .checkout-byg-mobile-container :is(.a-cardui,.a-section,.a-row,.a-carousel-container,.a-carousel-viewport,.a-carousel-card,[class*=_mobileDenseGridLayoutContainer_],[class*=_mobileDenseGridAsinFaceout_],[class*=_imageAndAtcContainer_],.productDetailsContainer),#checkoutDisplayPage>.checkout-byg-continue-button-shadow-mobile,#checkoutDisplayPage>.checkout-byg-continue-button-shadow-mobile>.a-box-inner{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
-        // Neutral checkout copy is light; authored red/green/link/Prime families are explicitly
-        // excluded and therefore keep Amazon's colors.
-        @"#checkoutDisplayPage .checkout-byg-mobile-container :is(h1,h2,h3,h4,h5,h6,p,span,div,strong,b):not(.a-color-price):not(.a-color-success):not(.a-color-link):not([class*=_badgeMessage_]):not(:where(.a-color-price *)):not(:where(.a-color-success *)):not(:where(.a-color-link *)):not(:where([class*=_badgeMessage_] *)):not(:where(a *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container i.a-icon-prime{filter:none!important;-webkit-filter:none!important;}"
+        // v7.370: preserve authored link descendants generally, then target the probe-proven black
+        // dense-grid product-title family explicitly. Textual leaves get text-fill; structural DIVs
+        // get color only so semantic red/green/blue descendants never inherit a forced white fill.
+        @"#checkoutDisplayPage .checkout-byg-mobile-container :is(h1,h2,h3,h4,h5,h6,p,span,strong,b):not(.a-color-price):not(.a-color-success):not(.a-color-link):not([class*=_badgeMessage_]):not([class*=deal]):not([class*=coupon]):not([class*=promotion]):not([class*=saving]):not([class*=discount]):not(:where(.a-color-price *)):not(:where(.a-color-success *)):not(:where(.a-color-link *)):not(:where([class*=_badgeMessage_] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=promotion] *)):not(:where([class*=saving] *)):not(:where([class*=discount] *)):not(:where(a *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container div:not(.a-color-price):not(.a-color-success):not(.a-color-link):not([class*=_badgeMessage_]):not([class*=deal]):not([class*=coupon]):not([class*=promotion]):not([class*=saving]):not([class*=discount]):not(:where(a *)){color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container [class*=_mobileDenseGridProductTitle_],#checkoutDisplayPage .checkout-byg-mobile-container [class*=_mobileDenseGridProductTitle_] *{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container :is(.a-color-price,.a-color-success,.a-color-link,[class*=_badgeMessage_],[class*=deal],[class*=coupon],[class*=promotion],[class*=saving],[class*=discount]),#checkoutDisplayPage .checkout-byg-mobile-container :is(.a-color-price,.a-color-success,.a-color-link,[class*=_badgeMessage_],[class*=deal],[class*=coupon],[class*=promotion],[class*=saving],[class*=discount]) *{-webkit-text-fill-color:currentColor!important;}#checkoutDisplayPage .checkout-byg-mobile-container i.a-icon-prime{filter:none!important;-webkit-filter:none!important;}"
+        // Continue button: same OLED/gray/light treatment used elsewhere.
         @"#checkoutDisplayPage #checkout-byg-ptc-button.a-button-primary{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage #checkout-byg-ptc-button .a-button-inner{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;}#checkoutDisplayPage #checkout-byg-ptc-button .a-button-text{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-        @"#checkoutDisplayPage .checkout-byg-mobile-container [class*=_denseGridAxSpotAtcButton_] button[name='submit.addToCart']{background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container [class*=_denseGridAxSpotAtcButton_] .a-icon-small-add{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;}"
-        // Place Your Order / checkout experience structural floors.
+        // Dense-grid plus: exact shared control palette (#303335 fill / #747a7c edge / white glyph).
+        @"#checkoutDisplayPage .checkout-byg-mobile-container [class*=_denseGridAxSpotAtcButton_] button[name='submit.addToCart']{background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container [class*=_denseGridAxSpotAtcButton_] .a-icon-small-add{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+        // Place Your Order structural ownership.
         @"#checkoutDisplayPage #checkout-experience-container,#checkoutDisplayPage .checkout-experience-panel,#checkoutDisplayPage .checkout-experience-block,#checkoutDisplayPage .rcx-checkout-custom-card,#checkoutDisplayPage .rcx-checkout-custom-card-deck,#checkoutDisplayPage .checkout-card-color,#checkoutDisplayPage .lineitem-container,#checkoutDisplayPage .checkout-card-color>.a-box-inner,#checkoutDisplayPage .checkout-experience-block>.a-box-inner{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;border-color:#494d4d!important;}#checkoutDisplayPage .rcx-checkout-custom-card,#checkoutDisplayPage .lineitem-container.checkout-card-color{border-color:#494d4d!important;outline-color:#494d4d!important;}"
-        @"#checkoutDisplayPage :is(h1,h2,h3,h4,h5,h6,p,span,div,label,strong,b,li):not(.a-color-price):not(.a-color-success):not(.a-color-link):not(.a-link-normal):not([class*=_badgeMessage_]):not(:where(.a-color-price *)):not(:where(.a-color-success *)):not(:where(.a-color-link *)):not(:where([class*=_badgeMessage_] *)):not(:where(a *)):not(:where(.a-icon-prime *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage :is(a,.a-link-normal,.a-link-legal,.pipeline-link),#checkoutDisplayPage :is(a,.a-link-normal,.a-link-legal,.pipeline-link) *{color:rgb(33,98,161)!important;-webkit-text-fill-color:rgb(33,98,161)!important;}#checkoutDisplayPage .a-color-success,#checkoutDisplayPage .a-color-success *{color:rgb(11,123,60)!important;-webkit-text-fill-color:rgb(11,123,60)!important;}#checkoutDisplayPage i.a-icon-prime{filter:none!important;-webkit-filter:none!important;}#checkoutDisplayPage img.sustainability-green-leaf-alignment-updated{filter:none!important;-webkit-filter:none!important;background-color:transparent!important;}"
+        // Neutral checkout copy. Anchor descendants stay authored so Amazon's blue link families survive.
+        // a-color-base anchors are the probe-proven black expander/sustainability links and are flipped white.
+        @"#checkoutDisplayPage :is(h1,h2,h3,h4,h5,h6,p,span,label,strong,b,li):not(.a-color-price):not(.a-color-success):not(.a-color-link):not(.a-link-normal):not([class*=_badgeMessage_]):not([class*=deal]):not([class*=coupon]):not([class*=promotion]):not([class*=saving]):not([class*=discount]):not(:where(.a-color-price *)):not(:where(.a-color-success *)):not(:where(.a-color-link *)):not(:where([class*=_badgeMessage_] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=promotion] *)):not(:where([class*=saving] *)):not(:where([class*=discount] *)):not(:where(a *)):not(:where(.a-icon-prime *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage div:not(.a-color-price):not(.a-color-success):not(.a-color-link):not([class*=_badgeMessage_]):not([class*=deal]):not([class*=coupon]):not([class*=promotion]):not([class*=saving]):not([class*=discount]):not(:where(a *)){color:#e8e6e3!important;}#checkoutDisplayPage :is(.a-color-price,.a-color-success,.a-color-link,[class*=_badgeMessage_],[class*=deal],[class*=coupon],[class*=promotion],[class*=saving],[class*=discount]),#checkoutDisplayPage :is(.a-color-price,.a-color-success,.a-color-link,[class*=_badgeMessage_],[class*=deal],[class*=coupon],[class*=promotion],[class*=saving],[class*=discount]) *{-webkit-text-fill-color:currentColor!important;}#checkoutDisplayPage a.a-color-base,#checkoutDisplayPage a.a-color-base *{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage i.a-icon-prime{filter:none!important;-webkit-filter:none!important;}#checkoutDisplayPage img.sustainability-green-leaf-alignment-updated{filter:none!important;-webkit-filter:none!important;background-color:transparent!important;}"
+        // Place-order buttons.
         @"#checkoutDisplayPage :is(#placeYourOrder,#placeYourOrderSecondary,#animated-disabled-pyob-top,#animated-disabled-pyob-bottom,.place-order-button-link,.place-your-order-button,.continue-button.a-button-primary){background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage :is(#placeYourOrder,#placeYourOrderSecondary,#animated-disabled-pyob-top,#animated-disabled-pyob-bottom,.place-order-button-link,.continue-button.a-button-primary) .a-button-inner{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;}#checkoutDisplayPage :is(#placeYourOrder,#placeYourOrderSecondary,#animated-disabled-pyob-top,#animated-disabled-pyob-bottom,.place-order-button-link,.continue-button.a-button-primary) :is(.a-button-text,span){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-        // The probe shows the quantity fieldset itself is stock white outside its inner control.
-        // Own both layers with the same Cart stepper treatment.
-        @"#checkoutDisplayPage fieldset[name='checkout-quantity-stepper']{background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;}#checkoutDisplayPage fieldset[name='checkout-quantity-stepper'] .a-stepper-inner-container{background:#303335!important;background-color:#303335!important;background-image:none!important;border:0!important;box-shadow:none!important;}#checkoutDisplayPage fieldset[name='checkout-quantity-stepper'] .a-stepper-controls,#checkoutDisplayPage fieldset[name='checkout-quantity-stepper'] .a-stepper-controls :is(button,div,span){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage fieldset[name='checkout-quantity-stepper'] :is(.a-icon-small-trash,.a-icon-small-add){filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;}"
+        // Checkout quantity control: same Cart / product-scroll stepper treatment.
+        @"#checkoutDisplayPage fieldset[name='checkout-quantity-stepper']{background:transparent!important;background-color:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;color:#e8e6e3!important;}#checkoutDisplayPage fieldset[name='checkout-quantity-stepper'] .a-stepper-inner-container{background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;}#checkoutDisplayPage fieldset[name='checkout-quantity-stepper'] .a-stepper-controls,#checkoutDisplayPage fieldset[name='checkout-quantity-stepper'] .a-stepper-controls :is(button,div,span){background-color:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage fieldset[name='checkout-quantity-stepper'] :is(.a-icon-small-trash,.a-icon-small-add){filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
         @"`;var s=put('ad7-checkout7369-floor',css);if(document.readyState==='loading')window.addEventListener('load',function(){relink(s)},{once:true});else relink(s);}catch(e){}})();";
 }
 
@@ -1680,6 +1684,10 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
     if(gP.enabled){
         objc_setAssociatedObject(self,kADCoreWebUS7271,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADTWBUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        // v7.370: removeAllUserScripts deletes the actual isolated checkout scripts too.
+        // Clear their installation receipts before reattachment or checkout silently loses them.
+        objc_setAssociatedObject(self,kADCheckoutFloorUS7369,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(self,kADCheckoutTWBUS7369,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADPrivacyUS7117,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADAttachScriptsToUCC710(self);
     }
@@ -7267,27 +7275,30 @@ static void ADOwnBottomBar708(UIView *v){
 %end
 
 static const void *kADCheckoutNavImageHidden7369=&kADCheckoutNavImageHidden7369;
+static const void *kADCheckoutNavOldTint7369=&kADCheckoutNavOldTint7369;
+static const void *kADCheckoutNavLabelOldColor7370=&kADCheckoutNavLabelOldColor7370;
+
 static BOOL ADCheckoutTitleMatches7369(UINavigationBar *nav){
     if(!nav)return NO;
     @try {
         NSString *title=nav.topItem.title;
-        if(!title.length){
-            for(UIView *v in nav.subviews){
-                NSMutableArray *stack=[NSMutableArray arrayWithObject:v];
-                while(stack.count){
-                    UIView *n=[stack lastObject]; [stack removeLastObject];
-                    if([n isKindOfClass:[UILabel class]]){
-                        NSString *t=((UILabel *)n).text;
-                        if(t.length){ title=t; break; }
-                    }
-                    if(stack.count<24)[stack addObjectsFromArray:n.subviews];
-                }
-                if(title.length)break;
+        if(title.length&&[title rangeOfString:@"Place Your Order" options:NSCaseInsensitiveSearch].location!=NSNotFound)return YES;
+        // v7.370: do not stop at the first label (often DONE). Search every nav descendant
+        // until the actual Place Your Order title is found.
+        NSMutableArray *stack=[NSMutableArray arrayWithArray:nav.subviews];
+        NSUInteger visited=0;
+        while(stack.count&&visited++<64){
+            UIView *n=[stack lastObject]; [stack removeLastObject];
+            if([n isKindOfClass:[UILabel class]]){
+                NSString *t=((UILabel *)n).text;
+                if(t.length&&[t rangeOfString:@"Place Your Order" options:NSCaseInsensitiveSearch].location!=NSNotFound)return YES;
             }
+            [stack addObjectsFromArray:n.subviews];
         }
-        return title.length&&[title rangeOfString:@"Place Your Order" options:NSCaseInsensitiveSearch].location!=NSNotFound;
-    } @catch(...) { return NO; }
+    } @catch(...) {}
+    return NO;
 }
+
 static BOOL ADCheckoutControllerChain7369(UIView *v){
     @try {
         UIResponder *r=v;
@@ -7298,13 +7309,15 @@ static BOOL ADCheckoutControllerChain7369(UIView *v){
     } @catch(...) {}
     return NO;
 }
+
 static void ADOwnCheckoutNav7369(_UIBarBackground *bar){
-    if(!gP.enabled||!bar||!bar.window)return;
+    if(!bar||!bar.window)return;
     @try {
         UIView *n=(UIView *)bar.superview;
         while(n&&![n isKindOfClass:[UINavigationBar class]])n=n.superview;
         UINavigationBar *nav=[n isKindOfClass:[UINavigationBar class]]?(UINavigationBar *)n:nil;
-        BOOL checkout=nav&&ADCheckoutControllerChain7369((UIView *)bar)&&ADCheckoutTitleMatches7369(nav);
+        BOOL checkout=gP.enabled&&nav&&ADCheckoutControllerChain7369((UIView *)bar)&&ADCheckoutTitleMatches7369(nav);
+
         for(UIView *x in ((UIView *)bar).subviews){
             if(![x isKindOfClass:[UIImageView class]])continue;
             NSNumber *old=objc_getAssociatedObject(x,kADCheckoutNavImageHidden7369);
@@ -7316,7 +7329,34 @@ static void ADOwnCheckoutNav7369(_UIBarBackground *bar){
                 objc_setAssociatedObject(x,kADCheckoutNavImageHidden7369,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             }
         }
-        if(checkout)nav.tintColor=ADLightText706();
+
+        UIColor *oldTint=objc_getAssociatedObject(nav,kADCheckoutNavOldTint7369);
+        if(checkout){
+            if(!oldTint)objc_setAssociatedObject(nav,kADCheckoutNavOldTint7369,nav.tintColor?:[NSNull null],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            nav.tintColor=ADLightText706();
+        }else if(oldTint){
+            if((id)oldTint==[NSNull null])nav.tintColor=nil; else nav.tintColor=oldTint;
+            objc_setAssociatedObject(nav,kADCheckoutNavOldTint7369,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+
+        // Exact checkout nav only: keep both the title and DONE label light and restore if reused.
+        NSMutableArray *labels=[NSMutableArray arrayWithArray:nav.subviews];
+        NSUInteger visited=0;
+        while(labels.count&&visited++<64){
+            UIView *x=[labels lastObject]; [labels removeLastObject];
+            if([x isKindOfClass:[UILabel class]]){
+                UILabel *label=(UILabel *)x;
+                id old=objc_getAssociatedObject(label,kADCheckoutNavLabelOldColor7370);
+                if(checkout){
+                    if(!old)objc_setAssociatedObject(label,kADCheckoutNavLabelOldColor7370,label.textColor?:[NSNull null],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                    label.textColor=ADLightText706();
+                }else if(old){
+                    label.textColor=(old==[NSNull null])?nil:(UIColor *)old;
+                    objc_setAssociatedObject(label,kADCheckoutNavLabelOldColor7370,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                }
+            }
+            [labels addObjectsFromArray:x.subviews];
+        }
     } @catch(...) {}
 }
 

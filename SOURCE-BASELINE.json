@@ -1,37 +1,24 @@
 {
-  "version": "7.369~checkout-isolated-theme",
-  "direct_parent": "7.367~sns-zero-base-wrapper-parity",
-  "rejected_intermediate": "7.368~checkout-byg-order-theme",
-  "parent_tweak_sha256": "a08b11ba26c70a0fa5c0c33d8598acfcd7039a4d695f28de870e9952718d3bad",
-  "regression_diagnosis": [
-    "v7.368 inserted checkout CSS into the shared ADFloorJS JavaScript string with raw runtime double quotes from Objective-C attribute-selector escaping, breaking shared JavaScript parsing.",
-    "Shared WebUI floors therefore failed app-wide while the separate TWB program still ran, explaining white WebUI plus over-dark/covered-looking Home hero product imagery."
+  "version": "7.370~checkout-script-reinstall-theme",
+  "direct_parent": "7.369~checkout-isolated-theme",
+  "parent_tweak_sha256": "6ae2a20245f24ef0338c92c7dfbc1d7f86120a3bff0028831ee28d36a4e9f59e",
+  "v7369_failure_diagnosis": [
+    "Amazon removeAllUserScripts removed the real isolated checkout WKUserScripts, but v7.369 did not clear kADCheckoutFloorUS7369/kADCheckoutTWBUS7369 receipts before ADAttachScriptsToUCC710, so checkout scripts could silently stay absent.",
+    "BYG product-title spans live inside a-link-normal anchors; v7.369 excluded all anchor descendants from neutral whitening.",
+    "v7.369 forced all checkout a-link-normal blue, but the probe shows sustainability/expander anchors with a-color-base are stock black and should become light."
   ],
   "intentional_changes": [
-    "Rebuild from v7.367 rather than v7.368.",
-    "Keep ADFloorJS, ADTWBJS and ADCoreWebJS7271 byte-identical to v7.367.",
-    "Inject checkout floor/TWB as independent document-start WKUserScripts scoped to #checkoutDisplayPage.",
-    "Theme probe-backed before-you-go grid plus its fixed footer; preserve Prime/red/green/blue authored colors; checkout-only product TWB.",
-    "Theme Place Your Order structural cards/buttons and the outer checkout quantity fieldset using Cart gray-control treatment.",
-    "Limit native checkout banner ownership to AMSModalLayoutFullScreenViewController with a Place Your Order navigation title.",
-    "Operational universal probe identity advances to v7.369; FULL/VIEWPORT architecture is unchanged.",
-    "v7.368 and v7.367 receipts are accepted as immediate upgrade locators by probe helpers."
+    "Clear both checkout WKUserScript associated-object receipts inside removeAllUserScripts and reattach immediately.",
+    "Allow neutral BYG text inside anchors to become light while preserving semantic authored color families via currentColor text-fill.",
+    "Keep checkout anchor descendants authored; explicitly flip only probe-proven a.a-color-base black anchors light.",
+    "Harden exact checkout native header title discovery and label lightness without broadening bar ownership.",
+    "Keep shared ADFloorJS, ADTWBJS and ADCoreWebJS7271 byte-identical to v7.369.",
+    "Advance universal probe operational identity to v7.370 without changing FULL/VIEWPORT architecture."
   ],
-  "unchanged_critical_sha256": {
-    "src/AmazonDarkSB.xm": "1453e4efc45cfe95af044668234c0b6c25ea8e50ca51e3e66033f0d5161e111e",
-    "src/ADSkeletonProbe7339.js.inc": "1fbf2ea9d404d6bc96832ce8c2933094717008dec3e403db93baa261d2aeb1df",
-    "Makefile": "3a6253d2430426bd0cc156dae40591e8b7bed7c00805506169cdd2ea133edbe6",
-    ".github/workflows/build.yml": "e3e886241ff13aa23b567c9b396958c3c90a241a2e47041caddb49b45f0b6b82"
-  },
-  "shared_web_hashes_from_v7367": {
+  "shared_web_hashes": {
     "ADFloorJS": "5fcc2badb75d385b84a9e67a1daab376c1dd277479c6c1071ead93e3ee96221d",
     "ADTWBJS": "74035e2572891f3b6014522bf4838d19a72a1dc1dfb894363eb8fec53cae5dd9",
     "ADCoreWebJS7271": "e3d9e2edec398c434986eb423aa1d9a4a4fbde73db21d19be5727934a517f480"
   },
-  "probe_contract": [
-    "Screenshot -> AmazonDark-v7.369-ui-full-probe: finite universal Web/native full sweep, final inventories, original offsets/scrollEnabled restored.",
-    "scripts/ui-probe.sh arm -> one-shot SIGUSR2 -> AmazonDark-v7.369-ui-viewport-probe: current screen-intersecting Web/native elements only, no scrolling.",
-    "scripts/ui-probe.sh export exports only completed captures."
-  ],
-  "performance_contract": "No new MutationObserver, interval, RAF loop, web scroll listener, recurring hierarchy scanner, or renderer polling."
+  "performance_contract": "No MutationObserver, interval, RAF loop, web scroll listener, recurring hierarchy scanner, or renderer polling."
 }

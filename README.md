@@ -1,31 +1,31 @@
-# AmazonDark v7.369 — isolated checkout theming on v7.367
+# AmazonDark v7.370 — checkout script reinstall + probe-correct colors
 
-Direct production base: **v7.367~sns-zero-base-wrapper-parity**. **v7.368 is rejected and is not the code base for this release.**
+Direct production base: **v7.369~checkout-isolated-theme**. This release fixes the remaining two checkout menus without changing the shared Home/Search/Cart/Menu/Alexa WebUI programs.
 
-## Why v7.368 regressed unrelated WebUI
+## Root cause fixed from v7.369
 
-The checkout CSS was inserted into the existing `ADFloorJS()` JavaScript/CSS string. Two attribute selectors were written with Objective-C `\"...\"` escaping. At runtime those became raw double quotes inside an already-open JavaScript double-quoted CSS string, so the entire shared floor script failed to parse. Because `ADFloorJS()` owns the normal dark WebUI floors, unrelated Amazon WebUI pages fell back to stock white. `ADTWBJS()` still ran, which made the pre-existing Home/hero taming visually appear to cover imagery while its matching floor program was absent.
+v7.369 correctly isolated checkout into `ADCheckoutFloorJS7369` / `ADCheckoutTWBJS7369`, but Amazon can call `WKUserContentController removeAllUserScripts`. The hook restored the shared core/TWB/privacy installation receipts but forgot the two checkout receipts. The real checkout scripts were removed while their associated-object flags still said “installed,” so they were not re-added. v7.370 clears both checkout receipts and immediately reattaches them with the rest of the document-start scripts.
 
-v7.369 starts again from v7.367 and leaves `ADFloorJS()`, `ADTWBJS()`, and `ADCoreWebJS7271()` **byte-for-byte identical to v7.367**. Checkout is delivered in independent document-start user scripts. A future checkout syntax mistake therefore cannot disable Home, Cart, Search, Menu, Person, Alexa, or other shared WebUI theming.
+## Before-you-go / product recommendations
 
-## Checkout recommendation / before-you-go menu
+- OLED black structural/card/header/footer floors.
+- Neutral black product/header copy becomes light, including product titles nested inside `a-link-normal`.
+- Authored red/green/blue semantic families retain their own `color`; AmazonDark only resets text-fill to `currentColor` for those families.
+- Prime remains authored/unfiltered.
+- Product images use the isolated checkout TWB lane.
+- `Continue to checkout`: OLED black, `#747a7c` edge, light text.
+- Circular add button: `#303335` fill, `#747a7c` edge, white plus.
 
-Probe-backed owners are `#checkoutDisplayPage`, `.checkout-byg-mobile-container`, the dense-grid renderer families, and the fixed `.checkout-byg-continue-button-shadow-mobile` footer which sits outside the grid container.
+## Place Your Order
 
-- OLED black structural floors.
-- Neutral dark copy becomes light.
-- Authored red deal copy, green/success copy, blue links, and Prime artwork are preserved.
-- Product images use a dedicated checkout-only TWB rule; Home/hero selectors are not touched.
-- `Continue to checkout` becomes OLED black with `#747a7c` gray edge and light text.
-- Dense-grid Add-to-Cart circles become `#303335` with `#747a7c` edge and a white plus.
+- Checkout cards/panels/line-item surfaces are OLED black.
+- Neutral black copy becomes light while authored links/success colors are left authored.
+- Probe-proven `a.a-color-base` expander/sustainability links (stock black) are explicitly flipped light instead of being incorrectly forced blue.
+- Prime and sustainability leaf remain unfiltered.
+- Place Order controls use OLED black / gray border / light text.
+- Quantity stepper keeps the Cart treatment: transparent outer fieldset, `#303335` inner control, `#747a7c` edge, white trash/plus.
+- Native checkout banner suppression stays scoped to `AMSModalLayoutFullScreenViewController` + a `Place Your Order` title. Title detection now searches all nav labels instead of stopping on `DONE`, and the exact checkout nav labels are kept light with restoration if reused.
 
-## Place Your Order menu
+## Regression boundary
 
-- `#checkout-experience-container`, checkout panels/cards, line-item cards and their structural inner surfaces become OLED black with standard gray edges where appropriate.
-- Neutral dark text becomes light; Amazon blue links and success green are explicitly preserved.
-- Prime stays authored; the sustainability leaf remains unfiltered.
-- Place Order buttons use OLED black / gray-border / white-text treatment.
-- The quantity control now owns the **outer** `fieldset[name='checkout-quantity-stepper']` as well as its inner stepper. It matches the Cart control: `#303335`, `#747a7c`, white trash/plus.
-- The native yellow banner fix is restricted to the probed `AMSModalLayoutFullScreenViewController` **and** a navigation title containing `Place Your Order`; unrelated modal/navigation bars are not targeted.
-
-Universal FULL/VIEWPORT probe architecture remains unchanged; only operational output identity advances to v7.369.
+`ADFloorJS()`, `ADTWBJS()`, and `ADCoreWebJS7271()` remain byte-identical to v7.369/v7.367. No MutationObserver, interval, RAF loop, web scroll listener, recurring hierarchy scanner, or renderer polling was added. Universal FULL/VIEWPORT probe architecture is unchanged; only operational identity advances to v7.370.
