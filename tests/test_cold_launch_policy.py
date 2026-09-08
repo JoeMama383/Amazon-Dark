@@ -88,7 +88,7 @@ def main():
     assert 'format.opaque=YES' in source
     assert '[[UIColor blackColor] setFill]' in source
     assert 'version=7.338~v7307-constructor-safe-artwork base=4bbbbd9 mode=artwork-only' in source
-    assert "Version: 7.364~universal-full-sweep-probes\n" in (ROOT / "layout/DEBIAN/control").read_text()
+    assert "Version: 7.365~probe-backed-cart-sameday-sustainability\n" in (ROOT / "layout/DEBIAN/control").read_text()
     # v7.351 changes only the optional file logger gate in SpringBoard. The actual
     # launch-artwork policy/render/selection functions remain byte-identical to accepted v7.350.
     def static_block(name):

@@ -1,52 +1,33 @@
-# AmazonDark v7.364 — robust universal FULL-sweep UI probes
+# AmazonDark v7.365 — probe-backed Cart same-day + Sustainability sheet
 
-Direct source base: **v7.363~search-pane-related-cart-claimed**.
+Direct base: **v7.364~universal-full-sweep-probes**.
 
-This build keeps the v7.363 Search/Related Searches/Cart visual fixes intact and repairs the v7.362 universal-probe convergence. The v7.362 FULL probe captured the entire *currently mounted* Web/native tree, but it removed the finite renderer scroll walks that made the older menu-specific probes useful on lazy/virtualized interfaces. v7.364 restores that behavior without bringing back per-menu probe categories.
+This release uses the new universal FULL probes to fix only the exact owners captured in the supplied Cart and Product Search runs. The v7.364 universal FULL/VIEWPORT architecture, launch behavior, TWB policy, and all earlier theming remain intact.
 
-## Two universal probe categories only
+## Cart
 
-### FULL universal sweep — screenshot trigger
+- **Same-day progress track:** the FULL probe captured `div.a-meter.p13n-same-day-bar-v2` with a stock-white `rgb(255,255,255)` background even though its current `.a-meter-bar` child filled the entire width green. v7.365 paints only that underlying track OLED black. Amazon's authored green fill is not recolored.
+- **Same-day sentence:** exact `p13n-same-day-info-text-before-price`, `p13n-same-day-info-text-after-price`, `p13n-same-day-amount-left-v2`, and `p13n-same-day-threshold-price-v2` neutral lanes become light.
+- **Saved-item history metadata:** the probe-captured bare `.a-size-small` product-history lane (hash `078d1d2f`) becomes light without touching success/link/price semantic lanes.
+- **Empty/removed state:** the stock-dark Cart header and removed-message neutral copy become light. The embedded `.sc-removed-msg-title` stays Amazon blue, and the existing Undo button treatment is unchanged.
 
-Leave the target menu/screen visible and take **one screenshot**.
+## Product Search Sustainability bottom sheet
 
-The probe dynamically discovers the current renderer ownership instead of dispatching by Home/Cart/Menu/Person/Alexa route:
+The FULL probe captured the actual visible AUI sheet, including:
 
-- initial full native hierarchy for every visible `UIWindow`;
-- every current on-screen `WKWebView`;
-- initial full mounted DOM for each WebView;
-- finite top-to-bottom `WKScrollView` sweep with per-step current-viewport DOM/paint snapshots so lazy and virtualized content can hydrate;
-- final full DOM inventory after the sweep;
-- dynamically discovered non-WebKit `UIScrollView` renderers (React scrolls, collection/table views, and generic scroll surfaces), swept over each genuinely scrollable axis with per-step native subtree/layer snapshots;
-- final full native hierarchy;
-- every Web/native `contentOffset` and `scrollEnabled` value restored before completion.
+- stock-white `.a-sheet-web` and `.a-sheet-content-container`
+- stock-white sticky footer
+- stock-white `s-pc-bottom-sheet-carousel-inner` cards with 1px `rgb(213,217,217)` borders and 15px radius
+- the visible `Sustainability features` heading and neutral certification copy
 
-The scan is finite and explicit-trigger only. It adds no steady-state MutationObserver, timer, RAF loop, web scroll listener, polling loop, or recurring native hierarchy scan.
+v7.365 changes those exact sheet planes to OLED black, gives the certification cards the standard **1px `#494d4d`** AmazonDark border, and makes neutral copy light. The Sustainability program artwork/glyph lane is not filtered, the program parent retains Amazon's green `rgb(4,112,91)`, and the explicit `a-color-link` lane remains Amazon blue.
 
-### VIEWPORT universal probe — command-armed SIGUSR2
+## Probes
 
-Leave the target visible and run:
+Exactly two universal UI probe categories remain:
 
-```zsh
-cd /var/mobile/Amazon-Dark-phone && sh scripts/ui-probe.sh arm
-```
+- **FULL:** take one screenshot. The finite Web/native full sweep runs and restores every original scroll position.
+- **VIEWPORT:** `sh scripts/ui-probe.sh arm`, then one-shot SIGUSR2 captures only the current screen frame with no scrolling.
+- **Export both:** `sh scripts/ui-probe.sh export`.
 
-This remains a fast one-shot current-screen capture. It does **not** mutate scroll offsets.
-
-## Export behavior
-
-```zsh
-cd /var/mobile/Amazon-Dark-phone && sh scripts/ui-probe.sh export
-```
-
-Because FULL sweeps can take longer than the old mounted-tree capture, export now refuses to hand off a partial file. Keep Amazon foregrounded until the scan finishes, then rerun export if it reports that the probe is still sweeping.
-
-## Preserved v7.363 visual fixes
-
-- autocomplete product thumbnails remain visible/tamed rather than being blacked out;
-- authored Rufus/Alexa autocomplete artwork is preserved;
-- Related Searches cards remain OLED black with `#494d4d` borders, white copy, and white search glyphs;
-- claimed Cart Apex coupon remains green with white copy, OLED-black circle, and white check;
-- Cart unified-promotion badge remains the calmer `#5a9e43` with OLED-black copy.
-
-See `COMMANDS.md` and `AUDIT-v7.364.md`.
+No route-specific probe engines were reintroduced.
