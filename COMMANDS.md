@@ -1,61 +1,62 @@
-# AmazonDark v7.361 source handoff
+# AmazonDark v7.362 commands
 
-Save `AmazonDark-v7.361-probed-renderer-paint-fix-source.zip` in the usual shared Documents folder.
+## Push
 
-Import the source in NewTerm:
+Once the v7.362 source is in `/var/mobile/Amazon-Dark-phone`:
 
-```sh
-D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents
-cd /var/mobile/Amazon-Dark-phone &&
-git checkout -q main && git pull --ff-only origin main &&
-unzip -oq "$D/AmazonDark-v7.361-probed-renderer-paint-fix-source.zip" -d /var/mobile/t7361 &&
-cp -a /var/mobile/t7361/AmazonDark-v7.361-probed-renderer-paint-fix-source/. .
-```
-
-Commit and push:
-
-```sh
-git add -A &&
-git commit -m 'v7.361: fix probed card, icon, coupon and carousel paint' &&
+```zsh
+cd /var/mobile/Amazon-Dark-phone
+git add -A
+git commit -m "v7.362: consolidate universal full and viewport UI probes"
 git push origin main
 ```
 
-Install the resulting GitHub Actions package, then run `sbreload` as usual. Open Amazon again so the new injected styles load.
+## FULL universal probe
 
-## Screenshot probes
+Leave the problem visible and **take one screenshot**.
 
-Take one screenshot while each issue is visible inside Amazon. The Product Search probe records the visible area without scrolling; the Cart probe performs its existing finite scan. Keep Amazon foregrounded while Cart finishes.
+That writes:
 
-Export the newest Product Search and completed Cart captures in NewTerm **zsh**:
+`AmazonDark-v7.362-ui-full-probe-...txt`
+
+## VIEWPORT universal probe
+
+Leave the problem visible and run:
 
 ```zsh
-D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents
-for kind in product-scroll cart-ui; do
-  files=(/var/mobile/Containers/Data/Application/*/Documents/AmazonDark-v7.309-${kind}-probe-*.txt(N.om[1]))
-  if (( ! ${#files} )); then echo "No $kind capture found."; continue; fi
-  P=$files[1]
-  if [[ $kind == cart-ui ]] && ! grep -q CART_PROBE_END "$P"; then
-    echo 'Cart scan is still running. Keep Amazon foregrounded, then rerun export.'
-    continue
-  fi
-  cp -f "$P" "$D/" && chmod 666 "$D/${P:t}" && ls -lh "$D/${P:t}"
-done
+cd /var/mobile/Amazon-Dark-phone && sh scripts/ui-probe.sh arm
 ```
 
-The v7.309 filename is intentional. Check the second line for `version=v7.361-probed-renderer-paint-fix` before sending a new capture. No gzip is needed.
+That writes:
 
-## Existing transition/skeleton probe
+`AmazonDark-v7.362-ui-viewport-probe-...txt`
 
-If needed, force-close Amazon, arm, then open it and reproduce:
+It captures the current screen only and does not scroll.
 
-```sh
+## Export newest FULL + VIEWPORT captures
+
+```zsh
+cd /var/mobile/Amazon-Dark-phone && sh scripts/ui-probe.sh export
+```
+
+## Probe status / disarm
+
+```zsh
+cd /var/mobile/Amazon-Dark-phone && sh scripts/ui-probe.sh status
+```
+
+```zsh
+cd /var/mobile/Amazon-Dark-phone && sh scripts/ui-probe.sh disarm
+```
+
+## Existing transition/skeleton recorder
+
+```zsh
 cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh arm transition
 ```
 
 Export:
 
-```sh
+```zsh
 cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh export
 ```
-
-Use `arm home`, `arm cart`, or `arm both` for the existing skeleton capture modes.

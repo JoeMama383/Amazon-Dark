@@ -1,9 +1,9 @@
 from pathlib import Path
 import hashlib,re
 ROOT=Path(__file__).resolve().parents[1]
-t=(ROOT/'src/Tweak.xm').read_text(); sb=(ROOT/'src/AmazonDarkSB.xm').read_text(); sh=(ROOT/'scripts/skeleton-probe.sh').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.361~probed-renderer-paint-fix' in ctl
-assert '#define AD_VERSION "v7.361-probed-renderer-paint-fix"' in t
+t=(ROOT/'src/Tweak.xm').read_text(); ui=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text(); sb=(ROOT/'src/AmazonDarkSB.xm').read_text(); sh=(ROOT/'scripts/skeleton-probe.sh').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
+assert 'Version: 7.362~universal-dual-ui-probes' in ctl
+assert '#define AD_VERSION "v7.362-universal-dual-ui-probes"' in t
 
 def static_block(src,name):
     m=re.search(r'^static[^\n;{}]*\b'+re.escape(name)+r'\([^;{}]*\)\s*\{',src,re.M);assert m,name
@@ -46,10 +46,11 @@ u=t[t.index('%hook UIView'):t.index('%end',t.index('%hook UIView'))]
 assert '||react||ADExactBackgroundOwner7226' in u
 assert 'ADMenuLifecycleTrace7280' not in t and 'gADMenuLifecycleRing7280' not in t
 assert 'ADThemeReactAttributedText7271' not in t and 'ADPersonOfflineFallbackButtonString7299' not in t and 'ADAlexaSuggestionPillLightString7288' not in t
-assert t.count('static NSString *ADProbePath7351')==1 and t.count('static void ADProbeAppend7351')==1
+assert 'ADProbePath7351' not in t and 'ADProbeAppend7351' not in t
+assert ui.count('static NSString *ADUIProbePath7362')==1 and ui.count('static void ADUIAppend7362')==1
 assert 'if(!ADLaunchProbeArmed7351())return;' in sb
 assert 'AmazonDark-launch-probe.arm' in sh
 assert 'prefs/Resources/icon@3x.png' in ctl
 assert not (ROOT/'prefs/icon@3x.png').exists()
 print('PASS: v7.354 retains v7.351 optimization architecture and unchanged critical non-Search payload hashes')
-print('PASS: CNM hot path, UIView classification reuse, probe writer/path consolidation, dead Menu ring removal, probe-only SB logging present')
+print('PASS: CNM hot path, UIView classification reuse, universal probe writer/path consolidation, dead Menu ring removal, probe-only SB logging present')

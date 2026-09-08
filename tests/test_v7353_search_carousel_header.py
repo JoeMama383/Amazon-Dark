@@ -1,8 +1,8 @@
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
-t=(ROOT/'src/Tweak.xm').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.361~probed-renderer-paint-fix' in ctl
-assert '#define AD_VERSION "v7.361-probed-renderer-paint-fix"' in t
+t=(ROOT/'src/Tweak.xm').read_text(); ui=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
+assert 'Version: 7.362~universal-dual-ui-probes' in ctl
+assert '#define AD_VERSION "v7.362-universal-dual-ui-probes"' in t
 # Search autocomplete large carousel owner + TWB.
 for token in [
  '.cards_carousel_widget-sug-container-top{background:#000!important',
@@ -34,11 +34,9 @@ assert '.lists-framework-action-button.puis-heart-icon-container' in prod
 assert '.mlt-icon-container,.puis-mab-chevron' in prod
 # Broad product TWB is overridden for stock action/certification images.
 assert '#search .mlt-icon-container img,#search .lists-framework-action-button.puis-heart-icon-container img' in t
-# Search overlay product probe dispatch beats stale underlying menuTab selection.
-da=t.index('static void ADCaptureThreeTabProbe7254(NSString *trigger){')
-dispatch=t[da:t.index('static void ADInstallThreeTabProbes7254',da)]
-assert dispatch.index('if(ADProductScrollWebView7272())') < dispatch.index('ADProbeTabSelected7254(@"home")')
-assert dispatch.index('if(ADProductScrollWebView7272())') < dispatch.index('ADProbeTabSelected7254(@"menuTab")')
+# v7.362 removes route precedence entirely: both probe categories are universal across the current screen.
+assert 'ADUIWebViews7362' in ui and 'ADTrackedWebViews()' in ui
+assert 'ADProbeTabSelected7254' not in ui and 'ADProductScrollWebView7272' not in ui
 # Accepted launch/cart protections survive.
 for token in ['AmazonDarkSplashSeal7350','#sc-recs-atf-shimmer-placeholder{border-top-color:#000!important','ADBlackenLoadingGradient7348']:
  assert token in t,token

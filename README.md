@@ -1,16 +1,49 @@
-# AmazonDark v7.361 — probed renderer paint fixes
+# AmazonDark v7.362 — universal dual UI probes
 
-Built directly on **v7.360**, commit `aab59b0370eeec3ea4e4cff7741e200950f85db1`.
-The recovered v7.360 source ZIP matches this commit byte for byte for every ZIP member.
+Direct source base: **v7.361~probed-renderer-paint-fix**, the current GitHub `main` source at the start of this build.
 
-- **Everything you need for everyday:** the captured Featured Brands mobile card family has OLED-black structural floors, white neutral title/price/review copy, and product images using the configured TWB strength. Semantic and inline colored copy, Prime artwork, and stars retain their colors.
-- **Heart and More like this:** standalone and spotlight buttons paint matching gray shells from document start. The placeholder's duplicate background heart is removed only when its image child is present. Hydrated heart background artwork is preserved; a single inversion of the small monochrome control produces a white glyph and the same gray shell for both parent-art and legacy image renderers. Stock hit areas and state artwork remain owned by Amazon.
-- **Select in the chevron menu:** restore opaque light ink to Amazon's existing mask. The former transparent background made the mask invisible.
-- **Cart Coupon price:** target the captured Apex coupon tile, giving it the existing `#008000` product-coupon green and white copy/price. Checkbox behavior, geometry, and animation remain stock.
-- **Researched by Alexa:** tame all five captured `nice-cat-card_image` leaves through the existing media-strength lane. The Alexa symbol and other glyphs are excluded.
+v7.362 does **not** change AmazonDark's visual theming. It replaces the accumulated route-specific UI probe architecture with exactly two universal probe categories that work across Home, Search/autocomplete, product Search, Cart, Person/submenus, Hamburger/Menu, Alexa/Rufus, sheets and other current app surfaces.
 
-The application change is confined to the existing `ADFloorJS` and `ADTWBJS` payloads plus the version string. SpringBoard, native splash/launch behavior, warm boots, app switcher, standalone ads, skeleton capture payload, Makefile and GitHub Actions workflow are unchanged. There are no new hooks, observers, timers, scans or readiness machinery.
+## Probe 1 — FULL
 
-Screenshot probes remain active. Historical filenames still start with `AmazonDark-v7.309`; their capture header reports the installed runtime. Skeleton/transition helper receipts and guards now consistently use v7.361 and accept v7.360 during upgrade.
+**Trigger:** take a screenshot inside Amazon.
 
-See [COMMANDS.md](COMMANDS.md) for the short source handoff, push, and probe-export commands, and [AUDIT-v7.361.md](AUDIT-v7.361.md) for evidence and validation limits.
+Output: `AmazonDark-v7.362-ui-full-probe-...txt`
+
+The FULL probe captures:
+- every current on-screen `WKWebView` without route assumptions;
+- the entire mounted DOM for each WebView, including offscreen and hidden DOM nodes;
+- computed foreground/background/border/outline/shadow/filter/mask/SVG/pseudo-element/media paint;
+- open shadow roots and same-origin frame DOM;
+- viewport hit-test stacks;
+- the complete mounted native UIKit/React hierarchy from every visible app window, including offscreen/hidden descendants and direct CALayer paint.
+
+It does not log visible text strings, accessibility-label/value strings, URL/src/href values, network payloads or clipboard content. Text is represented only by length and a stable local hash.
+
+## Probe 2 — VIEWPORT
+
+**Trigger:** while the exact bad state is visible, run:
+
+```sh
+cd /var/mobile/Amazon-Dark-phone && sh scripts/ui-probe.sh arm
+```
+
+Output: `AmazonDark-v7.362-ui-viewport-probe-...txt`
+
+The helper writes a one-shot arm in Amazon's own Documents container and immediately sends `SIGUSR2`. The VIEWPORT probe then captures only the current visual screen frame:
+- screen-intersecting UIKit/React views and layer paint;
+- every current on-screen WebView;
+- only DOM elements intersecting the visual viewport, plus painted pseudo-elements;
+- media/computed paint and a viewport `elementsFromPoint` hit grid.
+
+No scrolling or content offset changes occur in VIEWPORT mode.
+
+## Architecture cleanup
+
+The old Person, Cart, Hamburger/Menu, Alexa, Person-submenu, Home-frame and Product-scroll probe dispatchers are removed. There is no longer a `menuTab`/`cartTab`/`meTab`/`rufusTab` decision tree and no historical `AmazonDark-v7.309-*` UI-probe filename reuse.
+
+Normal runtime keeps only one screenshot notification observer and one SIGUSR2 dispatch source. Probe scans run only on an explicit trigger. No probe `MutationObserver`, timer, RAF loop, web-scroll listener, polling loop or recurring native/DOM scan was added.
+
+The existing launch/transition/skeleton recorder remains separate and unchanged in behavior; its versioned helper identity advances to v7.362 and still takes precedence when that recorder is armed.
+
+See `COMMANDS.md` for the short device commands and `AUDIT-v7.362.md` for validation details.

@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 sb=ROOT/'src/AmazonDarkSB.xm'
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.361~probed-renderer-paint-fix' in ctl
-assert '#define AD_VERSION "v7.361-probed-renderer-paint-fix"' in t
+assert 'Version: 7.362~universal-dual-ui-probes' in ctl
+assert '#define AD_VERSION "v7.362-universal-dual-ui-probes"' in t
 for s in [
     'AmazonDarkSplashSeal7350',
     'AmazonDarkSplashSealLogo7350',
