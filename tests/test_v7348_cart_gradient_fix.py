@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 c=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.367~sns-zero-base-wrapper-parity' in c
-assert '#define AD_VERSION "v7.367-sns-zero-base-wrapper-parity"' in t
+assert 'Version: 7.368~checkout-byg-order-theme' in c
+assert '#define AD_VERSION "v7.368-checkout-byg-order-theme"' in t
 assert 'ADBlackenLoadingGradient7348' in t
 assert '%hook AWLoadingIndicatorWidgets_BkgView' in t
 assert '%hook AWLoadingIndicatorWidgets_Indicator' in t

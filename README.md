@@ -1,9 +1,28 @@
-# AmazonDark v7.367 — Subscribe & Save renderer parity
+# AmazonDark v7.368 — checkout recommendations + Place Order theming
 
-Direct base: **v7.366~cart-empty-caption-fix**.
+Direct base: **v7.367~sns-zero-base-wrapper-parity**.
 
-The v7.366 FULL probes captured two distinct Cart Subscribe & Save renderers. The correctly themed `sns-upsell-base-and-tiered` renderer owns its `.a-box` directly under `.sns-mobile-cart-improvements-container`. The bad white `sns-upsell-zero-base` renderer inserts one `span.a-declarative` between the container and the same `.a-box`. The existing direct-child CSS therefore never reached the zero-base card.
+This build themes two probe-captured checkout renderer families without changing the universal probe architecture or the v7.367 Subscribe & Save parity fix.
 
-v7.367 extends only that established Subscribe & Save card ownership to the exact wrapped path. Both renderer families now receive the same `#303335` card floor and `#747a7c` border. Existing switch rules are unchanged: OFF remains Amazon gray, ON remains Amazon blue, and the white thumb is preserved. No switch replacement, observer, timer, or renderer polling is added.
+## Before-you-go / recommendation menu
 
-All v7.366 Cart empty-caption work, v7.365 same-day/Sustainability fixes, TWB, launch behavior, and the universal FULL/VIEWPORT probe architecture are retained.
+- Exact owner: `checkout-byg-mobile-container` / dense-grid recommendation renderer.
+- OLED-black page/card floors and light neutral copy.
+- Preserves Amazon-authored Prime blue, link colors and the captured red deal/badge lane.
+- Recommendation product images enter the existing user-controlled TWB lane.
+- `Continue to checkout` becomes OLED black with the standard gray control border and white text.
+- Exact dense-grid Add-to-Cart plus control uses the same `#303335` / `#747a7c` / white-glyph language as AmazonDark's other controls.
+
+## Place Your Order
+
+- Exact `checkoutDisplayPage` / `checkout-experience-container` cards and line-item surfaces become OLED black with standard gray structural borders.
+- Neutral dark copy becomes light while Amazon blue links/Prime and success green remain authored/dynamic.
+- Place-order controls use OLED black, gray border and white text.
+- Exact checkout quantity stepper gets Cart-equivalent `#303335` / `#747a7c` treatment with white trash/add glyphs.
+- Exact `sustainability-green-leaf-alignment-updated` image stays unfiltered so the existing green leaf survives.
+- Checkout product images use the configured TWB lane.
+- The probe-captured `AMSModalLayoutFullScreenViewController` / `AMIWebViewController` navigation backing is made OLED black; the authored yellow raster backing is suppressed only in that modal and the navigation tint is light for Done/title chrome.
+
+## Probe / performance contract
+
+FULL remains screenshot-triggered and VIEWPORT remains one-shot SIGUSR2. There is no route-specific probe dispatcher, MutationObserver, interval, RAF loop, web scroll listener, or recurring hierarchy scanner added by this build.

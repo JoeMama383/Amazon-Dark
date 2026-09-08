@@ -1,18 +1,21 @@
 {
-  "version": "7.367~sns-zero-base-wrapper-parity",
-  "direct_parent": "7.366~cart-empty-caption-fix",
-  "parent_tweak_sha256": "c1b82e33b35dd4b79b9c0ff3f7de3e4eaa38e7cf35c34569f458d64a3b8f0ce6",
+  "version": "7.368~checkout-byg-order-theme",
+  "direct_parent": "7.367~sns-zero-base-wrapper-parity",
+  "parent_tweak_sha256": "a08b11ba26c70a0fa5c0c33d8598acfcd7039a4d695f28de870e9952718d3bad",
   "probe_evidence": {
-    "incorrect_off": "v7.366 r1: sns-upsell-zero-base inserts span.a-declarative before .a-box; card computed white rgb(255,255,255) / border rgb(213,217,217); OFF switch remained rgb(136,140,140)",
-    "incorrect_on": "v7.366 r2: same sns-upsell-zero-base wrapper; card remained white while a-switch-row.a-active switch correctly became rgb(33,98,161)",
-    "correct": "v7.366 r4: sns-upsell-base-and-tiered owns .a-box directly; existing AmazonDark selector computes card rgb(48,51,53) / border rgb(116,122,124)"
+    "before_you_go": "v7.367 r1: checkout-byg-mobile-container owns three dense-grid recommendation card families; product images are _mobileDenseGridImage_; exact primary continuation button is checkout-byg-ptc-button; dense-grid AddToCart buttons own the yellow plus controls; captured deal badgeMessage family is Amazon red rgb(204,12,57).",
+    "place_order": "v7.367 r2: checkoutDisplayPage / checkout-experience-container owns the order summary, payment, address, line-item and place-order cards; neutral copy is rgb(15,17,17), links are rgb(33,98,161), success copy is rgb(11,123,60), Prime is authored background artwork, quantity controls use fieldset[name=checkout-quantity-stepper], and sustainability-green-leaf-alignment-updated is the authored leaf image.",
+    "native_checkout_header": "v7.367 r2: checkout appears under AMSModalLayoutFullScreenViewController / AMIWebViewController; UINavigationBar contains _UIBarBackground and a direct authored UIImageView backing. Title text is already light; navigation tint/backing is the exact native ownership lane for removing the yellow strip and keeping Done/title light."
   },
   "intentional_changes": [
-    "Extend the existing Subscribe & Save Cart card selector to the exact sns-upsell-zero-base path with one span.a-declarative wrapper.",
-    "Retain the existing direct-child sns-upsell-base-and-tiered path unchanged.",
-    "Preserve Amazon's OFF gray switch, ON blue switch, white thumb, label/info behavior, geometry, and state transitions.",
-    "Operational universal probe output/version identity advances to v7.367; FULL/VIEWPORT scanner architecture is unchanged.",
-    "v7.366 startup receipt is accepted as the immediate upgrade locator by probe helpers."
+    "Theme the exact checkout-byg recommendation renderer to OLED black/light neutral copy while preserving Prime blue, Amazon link colors and the red deal badge family.",
+    "Apply existing user-configured TWB only to exact recommendation/checkout product image families.",
+    "Theme Continue to checkout and dense-grid plus controls using AmazonDark black/gray/white control language.",
+    "Theme exact checkout experience cards and place-order controls while preserving Amazon blue links/Prime and success green.",
+    "Theme exact checkout quantity stepper like Cart and preserve exact sustainability leaf artwork.",
+    "Theme only the probe-captured checkout modal navigation backing OLED black and keep its navigation tint light.",
+    "Operational universal probe output/version identity advances to v7.368; FULL/VIEWPORT architecture is unchanged.",
+    "v7.367 startup receipt is accepted as the immediate upgrade locator by probe helpers."
   ],
   "unchanged_critical_sha256": {
     "src/AmazonDarkSB.xm": "1453e4efc45cfe95af044668234c0b6c25ea8e50ca51e3e66033f0d5161e111e",
@@ -21,9 +24,9 @@
     ".github/workflows/build.yml": "e3e886241ff13aa23b567c9b396958c3c90a241a2e47041caddb49b45f0b6b82"
   },
   "probe_contract": [
-    "Screenshot -> AmazonDark-v7.367-ui-full-probe: finite universal Web/native full sweep, final inventories, original offsets/scrollEnabled restored.",
-    "scripts/ui-probe.sh arm -> one-shot SIGUSR2 -> AmazonDark-v7.367-ui-viewport-probe: current screen-intersecting Web/native elements only, no scrolling.",
+    "Screenshot -> AmazonDark-v7.368-ui-full-probe: finite universal Web/native full sweep, final inventories, original offsets/scrollEnabled restored.",
+    "scripts/ui-probe.sh arm -> one-shot SIGUSR2 -> AmazonDark-v7.368-ui-viewport-probe: current screen-intersecting Web/native elements only, no scrolling.",
     "scripts/ui-probe.sh export exports only completed captures."
   ],
-  "performance_contract": "No new MutationObserver, interval, RAF loop, web scroll listener, recurring hierarchy scanner, or renderer polling; fix is declarative CSS selector parity only."
+  "performance_contract": "No new MutationObserver, interval, RAF loop, web scroll listener, recurring hierarchy scanner, or renderer polling; theming remains event-driven native ownership plus declarative exact CSS/TWB selectors."
 }

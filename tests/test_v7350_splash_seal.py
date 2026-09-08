@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 sb=ROOT/'src/AmazonDarkSB.xm'
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.367~sns-zero-base-wrapper-parity' in ctl
-assert '#define AD_VERSION "v7.367-sns-zero-base-wrapper-parity"' in t
+assert 'Version: 7.368~checkout-byg-order-theme' in ctl
+assert '#define AD_VERSION "v7.368-checkout-byg-order-theme"' in t
 for s in [
     'AmazonDarkSplashSeal7350',
     'AmazonDarkSplashSealLogo7350',
