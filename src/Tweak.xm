@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.371-checkout-residual-ui-fix"
+#define AD_VERSION "v7.373-checkout-delivery-press-state"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1412,6 +1412,14 @@ static NSString *ADCheckoutFloorJS7369(void){
         @"#checkoutDisplayPage #checkout-byg-ptc-button.a-button-primary{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage #checkout-byg-ptc-button .a-button-inner{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;}#checkoutDisplayPage #checkout-byg-ptc-button .a-button-text{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
         // Dense-grid plus: exact shared control palette (#303335 fill / #747a7c edge / white glyph).
         @"#checkoutDisplayPage .checkout-byg-mobile-container [class*=_denseGridAxSpotAtcButton_] button[name='submit.addToCart']{background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container [class*=_denseGridAxSpotAtcButton_] .a-icon-small-add{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+        // v7.372 FULL r1: BYG uses the same Amazon empty-card loader family as Cart:
+        // li.a-carousel-card.a-carousel-card-empty > .a-loading-static > .a-loading-static-inner.
+        // Reuse the proven Cart loader paint exactly, scoped only to checkout BYG.
+        @"#checkoutDisplayPage .checkout-byg-mobile-container li.a-carousel-card.a-carousel-card-empty>.a-loading-static{background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #494d4d!important;border-color:#494d4d!important;box-shadow:none!important;filter:none!important;-webkit-filter:none!important;transition:none!important;}#checkoutDisplayPage .checkout-byg-mobile-container li.a-carousel-card.a-carousel-card-empty>.a-loading-static>.a-loading-static-inner{background-color:transparent!important;filter:brightness(0) invert(1) brightness(.62)!important;-webkit-filter:brightness(0) invert(1) brightness(.62)!important;opacity:.72!important;box-shadow:none!important;transition:none!important;}"
+        // v7.372 FULL r1: the exact countdown/deal message itself is rgb(250,250,250)
+        // while Amazon's authored red text is correct. Remove only that white chip floor.
+        @"#checkoutDisplayPage .checkout-byg-mobile-container [class*=_badgeMessage_]{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}"
+
         // Place Your Order structural ownership.
         @"#checkoutDisplayPage #checkout-experience-container,#checkoutDisplayPage .checkout-experience-panel,#checkoutDisplayPage .checkout-experience-block,#checkoutDisplayPage .rcx-checkout-custom-card,#checkoutDisplayPage .rcx-checkout-custom-card-deck,#checkoutDisplayPage .checkout-card-color,#checkoutDisplayPage .lineitem-container,#checkoutDisplayPage .checkout-card-color>.a-box-inner,#checkoutDisplayPage .checkout-experience-block>.a-box-inner{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;border-color:#494d4d!important;}#checkoutDisplayPage .rcx-checkout-custom-card,#checkoutDisplayPage .lineitem-container.checkout-card-color{border-color:#494d4d!important;outline-color:#494d4d!important;}"
         // Neutral checkout copy. Anchor descendants stay authored so Amazon's blue link families survive.
@@ -1451,6 +1459,16 @@ static NSString *ADCheckoutFloorJS7369(void){
         "#checkoutDisplayPage #sns-item-sfco-t1-0 .a-checkbox-label *"
         "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
         "#checkoutDisplayPage #sns-item-sfco-t1-0 .a-icon-checkbox"
+        "{filter:none!important;-webkit-filter:none!important;}"
+        // v7.373 FULL r1/r2: checkout delivery-option press painter computes
+        // rgb(246,246,246). Own only that press floor; preserve authored radio art/color.
+        @"#checkoutDisplayPage .rcx-checkout-delivery-option-a-control-row-new.a-touch-press,"
+        "#checkoutDisplayPage .rcx-checkout-delivery-option-a-control-row-new:active"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+        "#checkoutDisplayPage .rcx-checkout-delivery-option-a-control-row-new.a-touch-press>label,"
+        "#checkoutDisplayPage .rcx-checkout-delivery-option-a-control-row-new.a-touch-press>label.a-touch-press"
+        "{background:transparent!important;background-color:transparent!important;background-image:none!important;}"
+        "#checkoutDisplayPage .rcx-checkout-delivery-option-a-control-row-new.a-touch-press .a-icon-radio"
         "{filter:none!important;-webkit-filter:none!important;}"
 
         @"`;var s=put('ad7-checkout7369-floor',css);if(document.readyState==='loading')window.addEventListener('load',function(){relink(s)},{once:true});else relink(s);}catch(e){}})();";

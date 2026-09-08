@@ -1,6 +1,6 @@
 Package: com.joemama383.amazondark
 Name: AmazonDark
-Version: 7.371~checkout-residual-ui-fix
+Version: 7.373~checkout-delivery-press-state
 Architecture: iphoneos-arm64
 Description: Amazon Dark Mode for rootless jailbreaks, iOS 15+
 Maintainer: JoeMama383
