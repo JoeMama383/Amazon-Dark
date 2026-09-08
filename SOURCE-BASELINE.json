@@ -1,7 +1,11 @@
 {
-  "version": "7.373~checkout-delivery-press-state",
-  "direct_parent": "7.372~byg-loader-badge-parity",
-  "parent_tweak_sha256": "a43bb960295aabccbb89ebc2bc6963e6785dcc2a13bdedc397df1f29b4b2a813",
-  "probe_selector": ".rcx-checkout-delivery-option-a-control-row-new.a-touch-press",
-  "pressed_background": "rgb(246,246,246)"
+  "version": "7.374~byg-price-checkout-first-paint",
+  "direct_parent": "7.373~checkout-delivery-press-state",
+  "parent_tweak_sha256": "bd4d29a9e14bc5b1977890d545781e707ddbb7e731f848a3b8932f9c3f41534d",
+  "probe_evidence": {
+    "byg_price": "span.a-price[class*=_mobileDenseGridPriceToPay_] computes rgb(15,17,17)",
+    "missing_plus": "center lower faceout has imageAndAtcContainer but no submit.addToCart / denseGridAxSpotAtcButton descendant",
+    "checkout_initial": "_UIBarBackground black; direct image UIImageView hidden=0",
+    "checkout_after_layout": "same direct image UIImageView hidden=1 after finite sweep/layout"
+  }
 }

@@ -2,8 +2,8 @@ from pathlib import Path
 import hashlib,re
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text(); ui=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text(); sb=(ROOT/'src/AmazonDarkSB.xm').read_text(); sh=(ROOT/'scripts/skeleton-probe.sh').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.373~checkout-delivery-press-state' in ctl
-assert '#define AD_VERSION "v7.373-checkout-delivery-press-state"' in t
+assert 'Version: 7.374~byg-price-checkout-first-paint' in ctl
+assert '#define AD_VERSION "v7.374-byg-price-checkout-first-paint"' in t
 
 def static_block(src,name):
     m=re.search(r'^static[^\n;{}]*\b'+re.escape(name)+r'\([^;{}]*\)\s*\{',src,re.M);assert m,name

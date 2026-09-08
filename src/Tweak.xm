@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.373-checkout-delivery-press-state"
+#define AD_VERSION "v7.374-byg-price-checkout-first-paint"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1407,7 +1407,7 @@ static NSString *ADCheckoutFloorJS7369(void){
         // v7.370: preserve authored link descendants generally, then target the probe-proven black
         // dense-grid product-title family explicitly. Textual leaves get text-fill; structural DIVs
         // get color only so semantic red/green/blue descendants never inherit a forced white fill.
-        @"#checkoutDisplayPage .checkout-byg-mobile-container :is(h1,h2,h3,h4,h5,h6,p,span,strong,b):not(.a-color-price):not(.a-color-success):not(.a-color-link):not([class*=_badgeMessage_]):not([class*=deal]):not([class*=coupon]):not([class*=promotion]):not([class*=saving]):not([class*=discount]):not(:where(.a-color-price *)):not(:where(.a-color-success *)):not(:where(.a-color-link *)):not(:where([class*=_badgeMessage_] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=promotion] *)):not(:where([class*=saving] *)):not(:where([class*=discount] *)):not(:where(a *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container div:not(.a-color-price):not(.a-color-success):not(.a-color-link):not([class*=_badgeMessage_]):not([class*=deal]):not([class*=coupon]):not([class*=promotion]):not([class*=saving]):not([class*=discount]):not(:where(a *)){color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container [class*=_mobileDenseGridProductTitle_],#checkoutDisplayPage .checkout-byg-mobile-container [class*=_mobileDenseGridProductTitle_] *{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container :is(.a-color-price,.a-color-success,.a-color-link,[class*=_badgeMessage_],[class*=deal],[class*=coupon],[class*=promotion],[class*=saving],[class*=discount]),#checkoutDisplayPage .checkout-byg-mobile-container :is(.a-color-price,.a-color-success,.a-color-link,[class*=_badgeMessage_],[class*=deal],[class*=coupon],[class*=promotion],[class*=saving],[class*=discount]) *{-webkit-text-fill-color:currentColor!important;}#checkoutDisplayPage .checkout-byg-mobile-container i.a-icon-prime{filter:none!important;-webkit-filter:none!important;}"
+        @"#checkoutDisplayPage .checkout-byg-mobile-container :is(h1,h2,h3,h4,h5,h6,p,span,strong,b):not(.a-color-price):not(.a-color-success):not(.a-color-link):not([class*=_badgeMessage_]):not([class*=deal]):not([class*=coupon]):not([class*=promotion]):not([class*=saving]):not([class*=discount]):not(:where(.a-color-price *)):not(:where(.a-color-success *)):not(:where(.a-color-link *)):not(:where([class*=_badgeMessage_] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=promotion] *)):not(:where([class*=saving] *)):not(:where([class*=discount] *)):not(:where(a *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container div:not(.a-color-price):not(.a-color-success):not(.a-color-link):not([class*=_badgeMessage_]):not([class*=deal]):not([class*=coupon]):not([class*=promotion]):not([class*=saving]):not([class*=discount]):not(:where(a *)){color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container [class*=_mobileDenseGridProductTitle_],#checkoutDisplayPage .checkout-byg-mobile-container [class*=_mobileDenseGridProductTitle_] *{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container span.a-price[class*=_mobileDenseGridPriceToPay_],#checkoutDisplayPage .checkout-byg-mobile-container span.a-price[class*=_mobileDenseGridPriceToPay_] *{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container :is(.a-color-price,.a-color-success,.a-color-link,[class*=_badgeMessage_],[class*=deal],[class*=coupon],[class*=promotion],[class*=saving],[class*=discount]),#checkoutDisplayPage .checkout-byg-mobile-container :is(.a-color-price,.a-color-success,.a-color-link,[class*=_badgeMessage_],[class*=deal],[class*=coupon],[class*=promotion],[class*=saving],[class*=discount]) *{-webkit-text-fill-color:currentColor!important;}#checkoutDisplayPage .checkout-byg-mobile-container i.a-icon-prime{filter:none!important;-webkit-filter:none!important;}"
         // Continue button: same OLED/gray/light treatment used elsewhere.
         @"#checkoutDisplayPage #checkout-byg-ptc-button.a-button-primary{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage #checkout-byg-ptc-button .a-button-inner{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;}#checkoutDisplayPage #checkout-byg-ptc-button .a-button-text{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
         // Dense-grid plus: exact shared control palette (#303335 fill / #747a7c edge / white glyph).
@@ -7499,6 +7499,35 @@ static void ADOwnCheckoutNavImage7371(UIImageView *iv){
         return;
     }
     %orig;
+}
+%end
+
+
+// v7.374 FULL r2: first native snapshot already has the Place Your Order title,
+// but the direct _UIBarBackground UIImageView is still visible. The finite probe sweep
+// (which causes a layout pass) hides it, matching the user's "turns black after scroll"
+// observation. Reassert checkout ownership from UINavigationBar itself so the image leaf
+// is hidden in the initial layout pass before first composited paint.
+%hook UINavigationBar
+- (void)didMoveToWindow {
+    %orig;
+    if(!gP.enabled||!self.window)return;
+    for(UIView *v in self.subviews){
+        if([NSStringFromClass(v.class) isEqualToString:@"_UIBarBackground"]){
+            ADOwnCheckoutNav7369((_UIBarBackground *)v);
+            break;
+        }
+    }
+}
+- (void)layoutSubviews {
+    %orig;
+    if(!gP.enabled||!self.window)return;
+    for(UIView *v in self.subviews){
+        if([NSStringFromClass(v.class) isEqualToString:@"_UIBarBackground"]){
+            ADOwnCheckoutNav7369((_UIBarBackground *)v);
+            break;
+        }
+    }
 }
 %end
 

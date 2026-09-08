@@ -1,11 +1,11 @@
 #!/bin/sh
 # NewTerm/mobile. Resolve Amazon's data container; never write probe data into another app.
 set -eu
-AD_PROBE_VERSION=7.373
+AD_PROBE_VERSION=7.374
 AD_PROBE_ROOT=${AD_PROBE_ROOT:-/var/mobile}
 AD_PROBE_CONTAINERS=${AD_PROBE_CONTAINERS:-$AD_PROBE_ROOT/Containers/Data/Application}
 AD_PROBE_DOCS=${AD_PROBE_DOCS:-/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents}
-AD_PROBE_NAME=AmazonDark-v7.373
+AD_PROBE_NAME=AmazonDark-v7.374
 AD_PROBE_TARGETS=$(mktemp)
 AD_PROBE_LAUNCH_ARM="$AD_PROBE_ROOT/AmazonDark-launch-probe.arm"
 trap 'rm -f "$AD_PROBE_TARGETS"' EXIT HUP INT TERM
@@ -35,11 +35,11 @@ done
 # Read the current receipt or verified recent receipts left during upgrade.
 # These identify Amazon without relying on the phone's plutil implementation.
 AD_PROBE_RECEIPTS=0
-for AD_PROBE_RECEIPT in "$AD_PROBE_CONTAINERS"/*/Documents/"$AD_PROBE_NAME-probe-status.json" "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.372-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.371-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.370-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.369-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.368-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.367-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.366-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.365-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.364-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.363-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.362-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.361-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.360-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.359-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.358-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.357-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.356-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.355-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.354-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.350-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.346-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.344-probe-status.json; do
+for AD_PROBE_RECEIPT in "$AD_PROBE_CONTAINERS"/*/Documents/"$AD_PROBE_NAME-probe-status.json" "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.373-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.372-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.371-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.370-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.369-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.368-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.367-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.366-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.365-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.364-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.363-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.362-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.361-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.360-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.359-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.358-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.357-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.356-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.355-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.354-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.350-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.346-probe-status.json "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.344-probe-status.json; do
     [ -f "$AD_PROBE_RECEIPT" ] || continue
     if LC_ALL=C grep -Eq '"bundle"[[:space:]]*:[[:space:]]*"com[.]amazon[.]Amazon"' "$AD_PROBE_RECEIPT" &&
        LC_ALL=C grep -Eq '"event"[[:space:]]*:[[:space:]]*"PROBE_BOOTSTRAP"' "$AD_PROBE_RECEIPT" &&
-       LC_ALL=C grep -Eq '"version"[[:space:]]*:[[:space:]]*"v7[.](344|346|347|348|349|350|351|352|353|354|355|356|357|358|359|360|361|362|363|364|365|366|367|368|369|370|371|372|373)-' "$AD_PROBE_RECEIPT"; then
+       LC_ALL=C grep -Eq '"version"[[:space:]]*:[[:space:]]*"v7[.](344|346|347|348|349|350|351|352|353|354|355|356|357|358|359|360|361|362|363|364|365|366|367|368|369|370|371|372|373|374)-' "$AD_PROBE_RECEIPT"; then
         AD_PROBE_RECEIPTS=$((AD_PROBE_RECEIPTS+1))
         AD_PROBE_DIR=${AD_PROBE_RECEIPT%/*}
         if ! grep -Fqx "$AD_PROBE_DIR" "$AD_PROBE_TARGETS"; then
@@ -57,7 +57,7 @@ ad_report() {
     printf 'Amazon container matches: %s\n' "$(wc -l < "$AD_PROBE_TARGETS" | tr -d ' ')"
     while IFS= read -r AD_PROBE_DIR; do
         printf 'Amazon Documents: %s\n' "$AD_PROBE_DIR"
-        for AD_PROBE_FILE in "$AD_PROBE_DIR/$AD_PROBE_NAME-probe.arm" "$AD_PROBE_DIR/$AD_PROBE_NAME-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.372-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.371-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.370-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.369-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.368-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.367-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.366-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.365-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.364-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.363-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.362-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.361-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.360-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.359-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.358-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.357-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.356-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.355-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.354-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.350-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.346-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.344-probe-status.json"; do
+        for AD_PROBE_FILE in "$AD_PROBE_DIR/$AD_PROBE_NAME-probe.arm" "$AD_PROBE_DIR/$AD_PROBE_NAME-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.373-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.372-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.371-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.370-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.369-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.368-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.367-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.366-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.365-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.364-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.363-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.362-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.361-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.360-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.359-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.358-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.357-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.356-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.355-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.354-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.350-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.346-probe-status.json" "$AD_PROBE_DIR/AmazonDark-v7.344-probe-status.json"; do
             if [ -f "$AD_PROBE_FILE" ]; then
                 printf '%s: ' "${AD_PROBE_FILE##*/}"
                 cat "$AD_PROBE_FILE"
@@ -82,7 +82,7 @@ case "${1:-}" in
     case "$AD_PROBE_LABEL" in home|cart|both|launch|transition) ;; *) printf 'Use arm home, cart, both, launch, or transition.\n' >&2; exit 1;; esac
     [ -s "$AD_PROBE_TARGETS" ] || { ad_report; printf 'Cannot identify Amazon data container. Open Amazon once, then retry; send this output if still missing.\n' >&2; exit 1; }
     AD_PROBE_INSTALLED=$(dpkg-query -W -f='${Version}' com.joemama383.amazondark 2>/dev/null || true)
-    case "$AD_PROBE_INSTALLED" in 7.373~*) ;; *) printf 'Install the v7.373 Actions package first. Installed: %s\n' "$AD_PROBE_INSTALLED" >&2; exit 1;; esac
+    case "$AD_PROBE_INSTALLED" in 7.374~*) ;; *) printf 'Install the v7.374 Actions package first. Installed: %s\n' "$AD_PROBE_INSTALLED" >&2; exit 1;; esac
     umask 077
     while IFS= read -r AD_PROBE_DIR; do
         mkdir -p "$AD_PROBE_DIR"
