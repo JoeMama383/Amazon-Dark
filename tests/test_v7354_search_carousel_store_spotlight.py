@@ -1,8 +1,8 @@
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.366~cart-empty-caption-fix' in ctl
-assert '#define AD_VERSION "v7.366-cart-empty-caption-fix"' in t
+assert 'Version: 7.367~sns-zero-base-wrapper-parity' in ctl
+assert '#define AD_VERSION "v7.367-sns-zero-base-wrapper-parity"' in t
 # Search: outer/card floor retained; broad descendant floor owner removed.
 assert '.cards_carousel_widget-sug-container-top{background:#000!important' in t
 assert '.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-column{background:#000!important' in t

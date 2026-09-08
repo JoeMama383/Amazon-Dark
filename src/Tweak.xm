@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.366 — probe-backed Cart empty-caption text fix on v7.365
+ * AmazonDark v7.367 — Cart Subscribe & Save zero-base wrapper parity on v7.366
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.366-cart-empty-caption-fix"
+#define AD_VERSION "v7.367-sns-zero-base-wrapper-parity"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1052,9 +1052,11 @@ static NSString *ADFloorJS(void){
         @"#sc-page-container .apex-coupon-tile-container.apex-coupon-tile-mobile .apex-coupon-tile{background:#008000!important;background-color:#008000!important;background-image:none!important;border-color:#008000!important;color:#fff!important;-webkit-text-fill-color:#fff!important;box-shadow:none!important;}#sc-page-container .apex-coupon-tile-container.apex-coupon-tile-mobile .apex-coupon-tile :is(.apex-coupon-checkbox-label,.apex-coupon-tile-text-content,.apex-coupon-tile-text-content span,.apex-coupon-tile-price-content,.apex-coupon-tile-price-content span){color:#fff!important;-webkit-text-fill-color:#fff!important;}#sc-page-container .apex-coupon-tile-container.apex-coupon-tile-mobile .apex-coupon-tile.claimed svg.apex-coupon-success{filter:none!important;-webkit-filter:none!important;}#sc-page-container .apex-coupon-tile-container.apex-coupon-tile-mobile .apex-coupon-tile.claimed svg.apex-coupon-success path.apex-coupon-icon-background{fill:#000!important;stroke:none!important;}#sc-page-container .apex-coupon-tile-container.apex-coupon-tile-mobile .apex-coupon-tile.claimed svg.apex-coupon-success path:not(.apex-coupon-icon-background){fill:#fff!important;stroke:none!important;}"
         // v7.363: Cart unified-promotion savings badges use a calmer dark green and OLED-black copy.
         @"#sc-page-container#sc-page-container .sc-unified-promotion-message-badge{background:#5a9e43!important;background-color:#5a9e43!important;background-image:none!important;border-color:#5a9e43!important;color:#000!important;-webkit-text-fill-color:#000!important;box-shadow:none!important;}#sc-page-container#sc-page-container .sc-unified-promotion-message-badge,#sc-page-container#sc-page-container .sc-unified-promotion-message-badge :is(span,a,div,strong,b,em,.a-color-base,.a-text-normal,.sc-unified-promotion-message-text){color:#000!important;-webkit-text-fill-color:#000!important;}"
-        // Subscribe & Save: own only the surrounding Cart card. The switch itself keeps Amazon's
-        // probe-captured stock OFF gray and ON blue states, with the stock white thumb.
-        @"#sc-page-container .sns-mobile-cart-improvements-container>.a-box{background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;}#sc-page-container .sns-mobile-cart-improvements-container>.a-box>.a-box-inner{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#sc-page-container .sns-mobile-cart-improvements-container .a-switch-row:not(.a-active) .a-switch{background:rgb(136,140,140)!important;background-color:rgb(136,140,140)!important;border-color:rgb(136,140,140)!important;box-shadow:none!important;}#sc-page-container .sns-mobile-cart-improvements-container .a-switch-row.a-active .a-switch{background:rgb(33,98,161)!important;background-color:rgb(33,98,161)!important;border-color:rgb(33,98,161)!important;box-shadow:none!important;}#sc-page-container .sns-mobile-cart-improvements-container .a-switch-control{background:#fff!important;background-color:#fff!important;box-shadow:none!important;}"
+        // v7.367 probes: Amazon serves two Subscribe & Save Cart renderers. sns-upsell-base-and-tiered
+        // owns .a-box directly; sns-upsell-zero-base inserts one span.a-declarative wrapper. Theme both
+        // exact card paths identically. The switch itself keeps Amazon's probe-captured stock OFF gray
+        // and ON blue states, with the stock white thumb.
+        @"#sc-page-container .sns-mobile-cart-improvements-container>.a-box,#sc-page-container .sns-mobile-cart-improvements-container>span.a-declarative>.a-box{background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;}#sc-page-container .sns-mobile-cart-improvements-container>.a-box>.a-box-inner,#sc-page-container .sns-mobile-cart-improvements-container>span.a-declarative>.a-box>.a-box-inner{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#sc-page-container .sns-mobile-cart-improvements-container .a-switch-row:not(.a-active) .a-switch{background:rgb(136,140,140)!important;background-color:rgb(136,140,140)!important;border-color:rgb(136,140,140)!important;box-shadow:none!important;}#sc-page-container .sns-mobile-cart-improvements-container .a-switch-row.a-active .a-switch{background:rgb(33,98,161)!important;background-color:rgb(33,98,161)!important;border-color:rgb(33,98,161)!important;box-shadow:none!important;}#sc-page-container .sns-mobile-cart-improvements-container .a-switch-control{background:#fff!important;background-color:#fff!important;box-shadow:none!important;}"
         // The quantity decrement is the sprite-backed a-icon-small-remove leaf. It needs the same
         // white sprite transform already applied to a-icon-small-add.
         @"#sc-page-container .sc-item-actions .a-icon-small-remove{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"

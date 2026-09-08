@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.366~cart-empty-caption-fix' in ctl
-assert '#define AD_VERSION "v7.366-cart-empty-caption-fix"' in t
+assert 'Version: 7.367~sns-zero-base-wrapper-parity' in ctl
+assert '#define AD_VERSION "v7.367-sns-zero-base-wrapper-parity"' in t
 selector='#sc-page-container #sc-active-cart form#activeCartViewForm>.sc-list-caption>p.a-spacing-base.a-size-medium'
 assert selector in t
 frag=t.split('// v7.366 FULL-probe correction:',1)[1].split('// v7.361 Cart r1:',1)[0]

@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/"src/Tweak.xm").read_text()
 ctl=(ROOT/"layout/DEBIAN/control").read_text()
-assert "Version: 7.366~cart-empty-caption-fix" in ctl
-assert "#define AD_VERSION \"v7.366-cart-empty-caption-fix\"" in t
+assert "Version: 7.367~sns-zero-base-wrapper-parity" in ctl
+assert "#define AD_VERSION \"v7.367-sns-zero-base-wrapper-parity\"" in t
 # Search autocomplete: broad black-plane ownership must skip image/icon artwork owners.
 assert "[class*=autocomplete]:not([class*=icon]):not([class*=glyph]):not([class*=image])" in t
 assert "[class*=suggestion]:not([class*=icon]):not([class*=glyph]):not([class*=image])" in t

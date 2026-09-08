@@ -8,8 +8,8 @@ jsinc=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
 helper=(ROOT/'scripts/ui-probe.sh').read_text()
 
-assert 'Version: 7.366~cart-empty-caption-fix' in ctl
-assert '#define AD_VERSION "v7.366-cart-empty-caption-fix"' in t
+assert 'Version: 7.367~sns-zero-base-wrapper-parity' in ctl
+assert '#define AD_VERSION "v7.367-sns-zero-base-wrapper-parity"' in t
 assert '#include "ADUniversalUIProbe7362.inc"' in t
 
 # Architectural convergence: the old per-menu capture engines and historical v7.309 output stems are removed.
@@ -28,7 +28,7 @@ assert inc.count('UIApplicationUserDidTakeScreenshotNotification') == 1
 assert inc.count('dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2') == 1
 assert 'ADCaptureUniversalUIProbe7362(NO,trigger)' in inc
 assert 'ADUIConsumeViewportArm7362()' in inc and 'ADCaptureUniversalUIProbe7362(YES,@"armed-SIGUSR2")' in inc
-assert 'AmazonDark-v7.366-ui-viewport.arm' in inc
+assert 'AmazonDark-v7.367-ui-viewport.arm' in inc
 assert 'ADSkelTrigger7339(trigger)' in inc  # skeleton/transition SIGUSR2 behavior still wins when armed
 
 # Universal scope: every current on-screen WKWebView plus native hierarchy, no tab routing.
@@ -85,6 +85,6 @@ assert 'still sweeping' in helper
 assert 'screenshot' not in helper.lower() or 'FULL capture is intentionally screenshot-only' in helper
 subprocess.run(['sh','-n',str(ROOT/'scripts/ui-probe.sh')],check=True)
 
-print('PASS: v7.366 has exactly two universal UI probe categories and no route-specific dispatcher')
+print('PASS: v7.367 has exactly two universal UI probe categories and no route-specific dispatcher')
 print('PASS: screenshot -> finite universal Web/native full sweep with restoration; armed SIGUSR2 -> current viewport only')
 print('PASS: universal JS string compiles in gnu++98, parses in Node, and has no recurring/live scan machinery')
