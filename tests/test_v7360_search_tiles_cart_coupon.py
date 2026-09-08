@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.360~search-tiles-cart-coupon-fix' in ctl
-assert '#define AD_VERSION "v7.360-search-tiles-cart-coupon-fix"' in t
+assert 'Version: 7.361~probed-renderer-paint-fix' in ctl
+assert '#define AD_VERSION "v7.361-probed-renderer-paint-fix"' in t
 
 # Current Search Tiles probe proves the IMG itself already had brightness TWB while
 # its exact image container still retained Amazon's gradient painter. Remove only

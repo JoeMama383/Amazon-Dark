@@ -23,8 +23,8 @@ body{margin:0;background:black;color:white}
 .a-button-text{display:block;font:16px Arial;text-align:center;color:rgb(15,17,17);padding:6px 10px}
 #sc-recs-atf-shimmer-placeholder{border-top:13px solid rgb(234,237,237);background:#fff}
 .sc-rec-card-shimmer{width:127px;height:250px;background:#fff}
-.sc-rec-card-image-shimmer{width:100px;height:100px;background-image:url(data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='100'%20height='100'%3E%3Crect%20width='100'%20height='100'%20fill='white'/%3E%3C/svg%3E);background-color:#eee}
-.a-loading-static-inner{width:50px;height:50px;background:transparent url(data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='50'%20height='50'%3E%3Cpath%20d='M5%2045L25%205L45%2045Z'%20fill='black'/%3E%3C/svg%3E)}
+.sc-rec-card-image-shimmer{width:100px;height:100px;background-image:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='100'%20height='100'%3E%3Crect%20width='100'%20height='100'%20fill='white'/%3E%3C/svg%3E");background-color:#eee}
+.a-loading-static-inner{width:50px;height:50px;background:transparent url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='50'%20height='50'%3E%3Cpath%20d='M5%2045L25%205L45%2045Z'%20fill='black'/%3E%3C/svg%3E")}
 </style>
 <div id="sc-page-container"><div id="p13n-uf-anchor"><div class="p13n-sc-uncoverable-faceout"><div class="p13n-sc-sunk-container"><div class="a-section a-spacing-base">${button('buying')}${button('primary',true)}</div></div></div>
 <div class="a-loading-static"><div id="artwork" class="a-loading-static-inner"></div></div></div>

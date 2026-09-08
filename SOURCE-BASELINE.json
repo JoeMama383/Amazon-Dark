@@ -1,9 +1,9 @@
 {
-  "version": "7.359~product-mab-controls-menu-fix",
-  "parent_version": "7.358~search-row-shop-style-leaf-fix",
-  "scope": "Probe-proven /s PUiS MAB action-control theming: OLED-black dropdown with standard separators/light symbols, neutral gray heart/chevron/two-card More-like-this spotlight buttons, and preservation of the authored blue open-chevron ring. No blind ownership of the hidden compare-checkbox experiment.",
+  "version": "7.361~probed-renderer-paint-fix",
+  "parent_version": "7.360~search-tiles-cart-coupon-fix",
+  "scope": "Existing document-start CSS/TWB only: Featured Brands everyday cards; all captured Heart/MLT paint paths and Select mask; Cart Apex coupon; Nice category carousel images.",
   "parent_sha256": {
-    "src/Tweak.xm": "aa16f988a3687ab57ec761596980f1dcf0b4f192e638da35e693323f795c8c0a"
+    "src/Tweak.xm": "64b69c20fd6dab3970eb37970b8dcdf0fae8984331f9a64c6fc58136d9fc5a9c"
   },
   "unchanged_critical_sha256": {
     "src/AmazonDarkSB.xm": "1453e4efc45cfe95af044668234c0b6c25ea8e50ca51e3e66033f0d5161e111e",
@@ -13,14 +13,19 @@
     "layout/Library/Application Support/AmazonDark/splash-logo.png": "4d5ab25256f6badd0649b23cfef385b9700e529762474bb463d81f43a5bc9fff"
   },
   "intentional_visual_changes": [
-    "Product /s MAB dropdown `.puis-mab-overlay`: OLED black outer/row floors, #494d4d outer and row separators, light labels and exact Save/Select/More-like-this/Share glyph owners.",
-    "Product card `.lists-framework-heart-background`: #303335 fill / #747a7c edge with light unfilled-heart glyph.",
-    "Product card `.puis-mab-chevron`: #303335 fill / #747a7c neutral edge and light chevron; `.puis-mab-container.puis-mab-open` preserves authored rgb(28,137,227) selected ring.",
-    "Exact `.puis-mab-spotlight-slot-mlt .mlt-icon-container` two-card/More-like-this button: #303335 / #747a7c with light raster. The dropdown MLT glyph remains transparent/light.",
-    "Hidden `.puis-mab-spotlight-slot-compare` compare-checkbox experiment is not repurposed or restyled as the requested two-card control."
+    "Everyday Featured Brands structural floors OLED black; white neutral copy; product/brand image media tamed; dynamic copy, Prime and stars preserved.",
+    "Heart legacy/placeholder/parent-art renderers retain authored glyphs; gray shells and white glyphs from document start. Standalone and spotlight MLT share gray shell and white image glyph.",
+    "Select dropdown retains Amazon mask with opaque light ink.",
+    "Cart Apex coupon tile uses #008000 and white text/price without changing checkbox or geometry.",
+    "Nice category carousel img.nice-cat-card_image follows the configured TWB strength; Alexa glyph unchanged."
   ],
   "probe_identity_changes": [
-    "Skeleton/transition helper identity bumped to v7.359; v7.358 receipt is the immediate upgrade locator. Historical screenshot UI probe filenames remain v7.309 while their headers report the installed v7.359 runtime."
+    "v7.361 native filenames and helper guards/receipts; v7.360 upgrade receipt accepted. Historical screenshot probe names/capture logic retained."
   ],
-  "performance_note": "No new native hook, MutationObserver, timer, RAF, Web scroll listener, polling loop, recurring DOM scan or native hierarchy scan; changes are route-local document-start CSS in the existing /s payload."
+  "performance_note": "No new native hook, MutationObserver, timer, RAF, Web scroll listener, polling loop, recurring DOM scan or native hierarchy scan; changes are route-local document-start CSS in the existing /s payload.",
+  "parent_commit": "aab59b0370eeec3ea4e4cff7741e200950f85db1",
+  "validation_notes": [
+    "See AUDIT-v7.361.md for evidence, renderer tests, build conditions and live-device limitation.",
+    "No new native hooks or runtime observers/timers/scans."
+  ]
 }
