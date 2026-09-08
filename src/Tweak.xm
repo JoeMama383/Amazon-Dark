@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.363 — Search pane media, Related Searches and Cart coupon-state polish on v7.362
+ * AmazonDark v7.364 — robust universal full-sweep UI probes on v7.363
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.363-search-pane-related-cart-claimed"
+#define AD_VERSION "v7.364-universal-full-sweep-probes"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;

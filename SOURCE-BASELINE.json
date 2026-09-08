@@ -1,9 +1,9 @@
 {
-  "version": "7.363~search-pane-related-cart-claimed",
-  "parent_version": "7.362~universal-dual-ui-probes",
-  "scope": "Probe-backed Search/autocomplete media ownership, Search Related Searches textref cards, Cart Apex claimed coupon state, and Cart unified-promotion badge palette. Universal dual-probe architecture and launch behavior are preserved.",
+  "version": "7.364~universal-full-sweep-probes",
+  "parent_version": "7.363~search-pane-related-cart-claimed",
+  "scope": "Restore finite full-renderer Web/native traversal to the two-category universal UI probe architecture while preserving all v7.363 theming.",
   "parent_sha256": {
-    "src/Tweak.xm": "803055a0b9d9abfbb4c3315388fb8368de0194703bd5c2ba5a6e4779ace2bdae"
+    "src/Tweak.xm": "14cb9b5478a9000dae08ac429e126880335b01ac8be677d1dc071e7f679e02db"
   },
   "unchanged_critical_sha256": {
     "src/AmazonDarkSB.xm": "1453e4efc45cfe95af044668234c0b6c25ea8e50ca51e3e66033f0d5161e111e",
@@ -12,22 +12,17 @@
     ".github/workflows/build.yml": "e3e886241ff13aa23b567c9b396958c3c90a241a2e47041caddb49b45f0b6b82",
     "layout/Library/Application Support/AmazonDark/splash-logo.png": "4d5ab25256f6badd0649b23cfef385b9700e529762474bb463d81f43a5bc9fff"
   },
-  "intentional_visual_changes": [
-    "Search autocomplete suggestion image layers no longer become opaque black; exact suggestion product thumbnails remain visible and use existing autocomplete TWB opacity.",
-    "Rufus/Alexa autocomplete icon artwork is preserved rather than replaced.",
-    "Related Searches textref cards: OLED black floor, #494d4d border, white copy/search icon.",
-    "Cart claimed Apex coupon: true-green tile, white copy, OLED-black SVG circle, white check.",
-    "Cart unified-promotion badge: #5a9e43 background with OLED-black copy."
+  "preserved_visual_changes": [
+    "v7.363 Search autocomplete media/Rufus ownership fixes",
+    "v7.363 Related Searches OLED cards",
+    "v7.363 claimed Cart Apex coupon styling",
+    "v7.363 Cart unified-promotion badge palette"
   ],
   "probe_architecture": [
-    "Screenshot -> AmazonDark-v7.363-ui-full-probe: every current on-screen WKWebView, entire mounted DOM, full mounted native hierarchy.",
-    "scripts/ui-probe.sh arm -> one-shot SIGUSR2 -> AmazonDark-v7.363-ui-viewport-probe: only current screen-intersecting Web/native elements, no scrolling.",
-    "No route-specific UI-probe dispatcher reintroduced."
+    "Screenshot -> AmazonDark-v7.364-ui-full-probe: initial full mounted inventories, finite sweep of every current on-screen WKWebView, dynamic non-WebKit native scroll discovery/sweeps, final inventories, original offsets/scrollEnabled restored.",
+    "scripts/ui-probe.sh arm -> one-shot SIGUSR2 -> AmazonDark-v7.364-ui-viewport-probe: current screen-intersecting Web/native elements only, no scrolling.",
+    "No Home/Cart/Menu/Person/Alexa/Product route-specific UI-probe dispatcher."
   ],
-  "performance_note": "No MutationObserver, timer, RAF, web-scroll listener, recurring DOM scan, or recurring native hierarchy scan was added.",
-  "validation_notes": [
-    "All shipped Python regression scripts pass when executed directly.",
-    "A local Chromium renderer harness reproduces the v7.362 failures and verifies the v7.363 computed-paint corrections for Search autocomplete, Related Searches, claimed Cart coupon, and promotion badges.",
-    "Local Linux environment does not include Theos/iOS SDK; GitHub Actions remains the authoritative rootless package compile/link check."
-  ]
+  "performance_note": "No steady-state MutationObserver, timer, RAF, web-scroll listener, polling loop, recurring DOM scan, or recurring native hierarchy scan is added; finite renderer traversal exists only after explicit FULL screenshot capture.",
+  "build_note": "Local environment has no Theos/iOS SDK; GitHub Actions/on-device Theos is authoritative for compile/link/package."
 }

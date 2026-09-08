@@ -1,43 +1,41 @@
-# AmazonDark v7.363 commands
+# AmazonDark v7.364 commands
 
-## Push
-
-Once this source is in `/var/mobile/Amazon-Dark-phone`:
+## Stage + push
 
 ```zsh
+D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents
+T=/var/mobile/AmazonDark-v7.364
 cd /var/mobile/Amazon-Dark-phone
+rm -rf "$T" && mkdir -p "$T"
+unzip -q "$D/AmazonDark-v7.364-universal-full-sweep-probes-source.zip" -d "$T"
+find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+cp -a "$T/AmazonDark-v7.364-universal-full-sweep-probes-source/." .
 git add -A
-git commit -m "v7.363: fix Search pane media, related searches, and Cart claimed coupon"
+git commit -m "v7.364: restore robust universal full-sweep UI probes"
 git push origin main
 ```
 
-## FULL universal probe
+## FULL universal sweep
 
-Leave the problem visible and **take one screenshot**.
+Leave the target menu/screen visible and **take one screenshot**. Keep Amazon foregrounded while the finite sweep runs.
 
-Output family:
-
-`AmazonDark-v7.363-ui-full-probe-...txt`
+Output: `AmazonDark-v7.364-ui-full-probe-...txt`
 
 ## VIEWPORT universal probe
-
-Leave the problem visible and run:
 
 ```zsh
 cd /var/mobile/Amazon-Dark-phone && sh scripts/ui-probe.sh arm
 ```
 
-Output family:
+Output: `AmazonDark-v7.364-ui-viewport-probe-...txt`
 
-`AmazonDark-v7.363-ui-viewport-probe-...txt`
-
-## Export newest FULL + VIEWPORT captures
+## Export newest completed FULL + VIEWPORT captures
 
 ```zsh
 cd /var/mobile/Amazon-Dark-phone && sh scripts/ui-probe.sh export
 ```
 
-## Probe status / disarm
+## Status / disarm
 
 ```zsh
 cd /var/mobile/Amazon-Dark-phone && sh scripts/ui-probe.sh status
@@ -52,8 +50,6 @@ cd /var/mobile/Amazon-Dark-phone && sh scripts/ui-probe.sh disarm
 ```zsh
 cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh arm transition
 ```
-
-Export:
 
 ```zsh
 cd /var/mobile/Amazon-Dark-phone && sh scripts/skeleton-probe.sh export

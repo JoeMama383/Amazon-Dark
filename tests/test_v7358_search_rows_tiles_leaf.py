@@ -1,8 +1,8 @@
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.363~search-pane-related-cart-claimed' in ctl
-assert '#define AD_VERSION "v7.363-search-pane-related-cart-claimed"' in t
+assert 'Version: 7.364~universal-full-sweep-probes' in ctl
+assert '#define AD_VERSION "v7.364-universal-full-sweep-probes"' in t
 # Search regression: v7.357 structural seal must not recolor stock row/close-button borders or outlines.
 needle='body>:is(div,section,main,footer),#a-page>:is(div,section,main,footer),#attach-to-me>:is(div,section,main,footer)'
 i=t.index(needle); rule=t[i:t.index('}',i)+1]
