@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.365 — probe-backed Cart same-day and Sustainability-sheet polish on v7.364
+ * AmazonDark v7.366 — probe-backed Cart empty-caption text fix on v7.365
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.365-probe-backed-cart-sameday-sustainability"
+#define AD_VERSION "v7.366-cart-empty-caption-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1040,9 +1040,13 @@ static NSString *ADFloorJS(void){
         // v7.253 Cart probe: exact remaining control/sheet owners.
         // Undo and Clip-to-Save join the existing medium-neutral Cart action family.
         @"#sc-page-container .sc-list-item-removed-msg .sc-undo-delete-btn{background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#sc-page-container .sc-list-item-removed-msg .sc-undo-delete-btn>.a-button-inner{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;}#sc-page-container .sc-list-item-removed-msg .sc-undo-delete-btn .a-button-text{background:transparent!important;background-color:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#sc-page-container :is(.sc-clipcoupon-container,[data-csa-c-painter=cart-coupon]) .sc-coupon-wrapper>.a-button{background:#008000!important;background-color:#008000!important;background-image:none!important;border:1px solid #008000!important;border-color:#008000!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#sc-page-container :is(.sc-clipcoupon-container,[data-csa-c-painter=cart-coupon]) .sc-coupon-wrapper>.a-button>.a-button-inner{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;}#sc-page-container :is(.sc-clipcoupon-container,[data-csa-c-painter=cart-coupon]) .sc-coupon-wrapper>.a-button .a-button-text{background:transparent!important;background-color:transparent!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#sc-page-container :is(.sc-clipcoupon-container,[data-csa-c-painter=cart-coupon]) .sc-coupon-wrapper>.a-button .a-button-text :is(i,svg,img,[class*=icon],[class*=glyph],[class*=checkbox]){filter:none!important;-webkit-filter:none!important;}"
-        // v7.365 Cart empty/removed state. The probe captured the neutral sc-cart-header and
-        // sc-list-item-removed-msg copy as stock-dark while the embedded product title is authored blue.
+        // v7.365 Cart empty/removed state. The older probe-backed .sc-cart-header owner is retained
+        // for its phase, while removed-message copy stays light and the product title stays authored blue.
         @"#sc-page-container #sc-active-cart .sc-cart-header,#sc-page-container #sc-active-cart .sc-cart-header :is(span,div,h1,h2,h3,strong,b){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#sc-page-container .sc-list-item-removed-msg .sc-undo-slide-content,#sc-page-container .sc-list-item-removed-msg [id^=sc-list-item-removed-msg-text-]{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#sc-page-container .sc-list-item-removed-msg .sc-removed-msg-title,#sc-page-container .sc-list-item-removed-msg .sc-removed-msg-title *{color:rgb(33,98,161)!important;-webkit-text-fill-color:rgb(33,98,161)!important;}"
+        // v7.366 FULL-probe correction: the visible empty-cart sentence is not owned by .sc-cart-header.
+        // Hit-testing and computed paint identify the live leaf as the direct p.a-spacing-base.a-size-medium
+        // under form#activeCartViewForm > .sc-list-caption. Own only that neutral sentence.
+        @"#sc-page-container #sc-active-cart form#activeCartViewForm>.sc-list-caption>p.a-spacing-base.a-size-medium{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
         // v7.361 Cart r1: Apex owns the pink coupon; there is no legacy a-button here.
         // Match both current coupon states without changing checkbox, label geometry or animation.
         @"#sc-page-container .apex-coupon-tile-container.apex-coupon-tile-mobile .apex-coupon-tile{background:#008000!important;background-color:#008000!important;background-image:none!important;border-color:#008000!important;color:#fff!important;-webkit-text-fill-color:#fff!important;box-shadow:none!important;}#sc-page-container .apex-coupon-tile-container.apex-coupon-tile-mobile .apex-coupon-tile :is(.apex-coupon-checkbox-label,.apex-coupon-tile-text-content,.apex-coupon-tile-text-content span,.apex-coupon-tile-price-content,.apex-coupon-tile-price-content span){color:#fff!important;-webkit-text-fill-color:#fff!important;}#sc-page-container .apex-coupon-tile-container.apex-coupon-tile-mobile .apex-coupon-tile.claimed svg.apex-coupon-success{filter:none!important;-webkit-filter:none!important;}#sc-page-container .apex-coupon-tile-container.apex-coupon-tile-mobile .apex-coupon-tile.claimed svg.apex-coupon-success path.apex-coupon-icon-background{fill:#000!important;stroke:none!important;}#sc-page-container .apex-coupon-tile-container.apex-coupon-tile-mobile .apex-coupon-tile.claimed svg.apex-coupon-success path:not(.apex-coupon-icon-background){fill:#fff!important;stroke:none!important;}"

@@ -1,12 +1,12 @@
 {
-  "version": "7.365~probe-backed-cart-sameday-sustainability",
-  "direct_parent": "7.364~universal-full-sweep-probes",
-  "parent_tweak_sha256": "d87a2f2ea16581da180850e6ff1ebe8e117e632253d81cecde273ec161a3b0e9",
+  "version": "7.366~cart-empty-caption-fix",
+  "direct_parent": "7.365~probe-backed-cart-sameday-sustainability",
+  "parent_tweak_sha256": "40829c39e2a65e5296f4d165d462b0b5aca4fdb97eb3edddd748569b07be978f",
   "intentional_changes": [
-    "Probe-backed Cart p13n same-day underlying meter track OLED ownership and neutral text correction.",
-    "Probe-backed Saved Cart product-history metadata and empty/removed neutral-copy correction with authored blue link preservation.",
-    "Probe-backed Product Search Sustainability bottom-sheet OLED floors, standard gray card borders and neutral text correction with authored accents/media preserved.",
-    "Operational universal probe output/version identity advanced to v7.365; scanner architecture remains v7.364 behavior."
+    "Probe-backed correction for the visible empty-Cart caption: exact form#activeCartViewForm > .sc-list-caption > p.a-spacing-base.a-size-medium is now light.",
+    "Retains v7.365 Cart same-day progress/text, Saved Cart, Sustainability sheet, and all prior UI fixes unchanged.",
+    "Operational universal probe output/version identity advanced to v7.366; FULL/VIEWPORT scanner architecture is unchanged.",
+    "v7.365 startup receipt is accepted as the immediate upgrade locator by both probe helpers."
   ],
   "unchanged_critical_sha256": {
     "src/AmazonDarkSB.xm": "1453e4efc45cfe95af044668234c0b6c25ea8e50ca51e3e66033f0d5161e111e",
@@ -15,9 +15,9 @@
     ".github/workflows/build.yml": "e3e886241ff13aa23b567c9b396958c3c90a241a2e47041caddb49b45f0b6b82"
   },
   "probe_contract": [
-    "Screenshot -> AmazonDark-v7.365-ui-full-probe: finite universal Web/native full sweep, final inventories, original offsets/scrollEnabled restored.",
-    "scripts/ui-probe.sh arm -> one-shot SIGUSR2 -> AmazonDark-v7.365-ui-viewport-probe: current screen-intersecting Web/native elements only, no scrolling.",
+    "Screenshot -> AmazonDark-v7.366-ui-full-probe: finite universal Web/native full sweep, final inventories, original offsets/scrollEnabled restored.",
+    "scripts/ui-probe.sh arm -> one-shot SIGUSR2 -> AmazonDark-v7.366-ui-viewport-probe: current screen-intersecting Web/native elements only, no scrolling.",
     "scripts/ui-probe.sh export exports only completed captures."
   ],
-  "performance_contract": "No new MutationObserver, interval, RAF loop, web scroll listener, recurring hierarchy scanner, or broad image taming rule."
+  "performance_contract": "No new MutationObserver, interval, RAF loop, web scroll listener, recurring hierarchy scanner, or broad image/text taming rule."
 }
