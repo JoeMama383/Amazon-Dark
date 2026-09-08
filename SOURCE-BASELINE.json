@@ -1,0 +1,20 @@
+{
+  "version": "7.371~checkout-residual-ui-fix",
+  "direct_parent": "7.370~checkout-script-reinstall-theme",
+  "parent_tweak_sha256": "c6a6dd0dcbead983bfe4d785eff407f7dfd94768a0a8139b9506c41d3517607b",
+  "probe_evidence": {
+    "r1": "BYG atc-faceout-container + ax-replace are 32px opaque overlay rows at plus-button height over full-height product images",
+    "r3_header": "_UIBarBackground is black; direct image-bearing UIImageView remains visible",
+    "r3_payment": "payment-option-text-default / payment-option-text-1 compute rgb(15,17,17)",
+    "r3_dropdown": "concealmentDropdown-0-dropdown and inner compute rgb(255,255,255)",
+    "r3_press": "sns-item-sfco checkbox row computes rgb(246,246,246) during press"
+  },
+  "intentional_changes": [
+    "transparent BYG ATC overlay plumbing only",
+    "exact payment summary light text",
+    "exact manufacturer dropdown OLED/single gray border/light text",
+    "exact pressed SNS checkbox row OLED/light while preserving checkbox ring",
+    "reassert exact Place Your Order native background-image leaf hidden"
+  ],
+  "performance_contract": "No MutationObserver, interval, RAF loop, web scroll listener, recurring hierarchy scanner, or renderer polling."
+}
