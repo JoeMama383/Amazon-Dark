@@ -1,28 +1,31 @@
-# AmazonDark v7.368 — checkout recommendations + Place Order theming
+# AmazonDark v7.369 — isolated checkout theming on v7.367
 
-Direct base: **v7.367~sns-zero-base-wrapper-parity**.
+Direct production base: **v7.367~sns-zero-base-wrapper-parity**. **v7.368 is rejected and is not the code base for this release.**
 
-This build themes two probe-captured checkout renderer families without changing the universal probe architecture or the v7.367 Subscribe & Save parity fix.
+## Why v7.368 regressed unrelated WebUI
 
-## Before-you-go / recommendation menu
+The checkout CSS was inserted into the existing `ADFloorJS()` JavaScript/CSS string. Two attribute selectors were written with Objective-C `\"...\"` escaping. At runtime those became raw double quotes inside an already-open JavaScript double-quoted CSS string, so the entire shared floor script failed to parse. Because `ADFloorJS()` owns the normal dark WebUI floors, unrelated Amazon WebUI pages fell back to stock white. `ADTWBJS()` still ran, which made the pre-existing Home/hero taming visually appear to cover imagery while its matching floor program was absent.
 
-- Exact owner: `checkout-byg-mobile-container` / dense-grid recommendation renderer.
-- OLED-black page/card floors and light neutral copy.
-- Preserves Amazon-authored Prime blue, link colors and the captured red deal/badge lane.
-- Recommendation product images enter the existing user-controlled TWB lane.
-- `Continue to checkout` becomes OLED black with the standard gray control border and white text.
-- Exact dense-grid Add-to-Cart plus control uses the same `#303335` / `#747a7c` / white-glyph language as AmazonDark's other controls.
+v7.369 starts again from v7.367 and leaves `ADFloorJS()`, `ADTWBJS()`, and `ADCoreWebJS7271()` **byte-for-byte identical to v7.367**. Checkout is delivered in independent document-start user scripts. A future checkout syntax mistake therefore cannot disable Home, Cart, Search, Menu, Person, Alexa, or other shared WebUI theming.
 
-## Place Your Order
+## Checkout recommendation / before-you-go menu
 
-- Exact `checkoutDisplayPage` / `checkout-experience-container` cards and line-item surfaces become OLED black with standard gray structural borders.
-- Neutral dark copy becomes light while Amazon blue links/Prime and success green remain authored/dynamic.
-- Place-order controls use OLED black, gray border and white text.
-- Exact checkout quantity stepper gets Cart-equivalent `#303335` / `#747a7c` treatment with white trash/add glyphs.
-- Exact `sustainability-green-leaf-alignment-updated` image stays unfiltered so the existing green leaf survives.
-- Checkout product images use the configured TWB lane.
-- The probe-captured `AMSModalLayoutFullScreenViewController` / `AMIWebViewController` navigation backing is made OLED black; the authored yellow raster backing is suppressed only in that modal and the navigation tint is light for Done/title chrome.
+Probe-backed owners are `#checkoutDisplayPage`, `.checkout-byg-mobile-container`, the dense-grid renderer families, and the fixed `.checkout-byg-continue-button-shadow-mobile` footer which sits outside the grid container.
 
-## Probe / performance contract
+- OLED black structural floors.
+- Neutral dark copy becomes light.
+- Authored red deal copy, green/success copy, blue links, and Prime artwork are preserved.
+- Product images use a dedicated checkout-only TWB rule; Home/hero selectors are not touched.
+- `Continue to checkout` becomes OLED black with `#747a7c` gray edge and light text.
+- Dense-grid Add-to-Cart circles become `#303335` with `#747a7c` edge and a white plus.
 
-FULL remains screenshot-triggered and VIEWPORT remains one-shot SIGUSR2. There is no route-specific probe dispatcher, MutationObserver, interval, RAF loop, web scroll listener, or recurring hierarchy scanner added by this build.
+## Place Your Order menu
+
+- `#checkout-experience-container`, checkout panels/cards, line-item cards and their structural inner surfaces become OLED black with standard gray edges where appropriate.
+- Neutral dark text becomes light; Amazon blue links and success green are explicitly preserved.
+- Prime stays authored; the sustainability leaf remains unfiltered.
+- Place Order buttons use OLED black / gray-border / white-text treatment.
+- The quantity control now owns the **outer** `fieldset[name='checkout-quantity-stepper']` as well as its inner stepper. It matches the Cart control: `#303335`, `#747a7c`, white trash/plus.
+- The native yellow banner fix is restricted to the probed `AMSModalLayoutFullScreenViewController` **and** a navigation title containing `Place Your Order`; unrelated modal/navigation bars are not targeted.
+
+Universal FULL/VIEWPORT probe architecture remains unchanged; only operational output identity advances to v7.369.

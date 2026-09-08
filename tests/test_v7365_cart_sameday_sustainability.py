@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.368~checkout-byg-order-theme' in ctl
-assert '#define AD_VERSION "v7.368-checkout-byg-order-theme"' in t
+assert 'Version: 7.369~checkout-isolated-theme' in ctl
+assert '#define AD_VERSION "v7.369-checkout-isolated-theme"' in t
 
 # Probe-backed p13n same-day meter: repaint only the stock-white underlying track.
 assert '#sc-page-container .p13n-same-day-progress-container .a-meter.p13n-same-day-bar-v2{background:#000!important' in t

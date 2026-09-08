@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.368~checkout-byg-order-theme' in ctl
-assert '#define AD_VERSION "v7.368-checkout-byg-order-theme"' in t
+assert 'Version: 7.369~checkout-isolated-theme' in ctl
+assert '#define AD_VERSION "v7.369-checkout-isolated-theme"' in t
 # Correct base-and-tiered renderer: direct card owner retained.
 assert '#sc-page-container .sns-mobile-cart-improvements-container>.a-box' in t
 # Bad zero-base renderer: one declarative wrapper is the only structural difference that caused the miss.
