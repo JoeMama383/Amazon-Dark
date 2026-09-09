@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.375-checkout-prepaint-snapshot-hydration"
+#define AD_VERSION "v7.376-warm-switcher-noninterference"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -8053,21 +8053,23 @@ static void ADPersonOwnScrollIndicator7238(UIView *v){
 }
 %end
 
-// v7.307: distinguish a normal warm foreground of the already-connected Amazon scene
-// from an actual scene reconstruction inside the same process. Keep this approved
-// warm behavior unchanged; SpringBoard now supplies cold-launch artwork only.
+// v7.376: restore the proven v6.0.185 / v7.335-v7.336 warm-resume and
+// app-switcher non-interference contract. AmazonDark must not manufacture, hide,
+// reveal, cover, or otherwise substitute content when an already-running Amazon
+// scene backgrounds or foregrounds. UIKit should snapshot the already-themed live
+// hierarchy, and a warm resume should continue from that live scene naturally.
 //
-// Stock-like contract:
-//   * first process launch / real scene reconstruction: the exact Amazon splash controller
-//     may present, but its floor is owned dark before first appearance;
-//   * ordinary background -> foreground of the same connected scene: if Amazon attempts to
-//     replay its native splash controller, suppress only that exact splash view so the saved/
-//     already-live interface remains visible instead of showing another loading transition.
-static BOOL gADLifecycleEverActive7307=NO;
-static BOOL gADLifecycleBackgrounded7307=NO;
-static BOOL gADSceneReconnectedWhileBackgrounded7307=NO;
-static BOOL gADOrdinaryWarmResume7307=NO;
-static const void *kADWarmSplashSuppressed7307=&kADWarmSplashSuppressed7307;
+// The later v7.307-derived warm-splash suppression state machine was accidentally
+// carried back into the current launch branch when v7.337 rebased launch work onto
+// v7.307. Its inherited warm-resume latch changed AXU/Tez splash hidden/alpha
+// state across lifecycle transitions. That is exactly the class of hierarchy
+// mutation v7.335/v7.336 had already removed. No app-switcher/snapshot cover is
+// present in this build and no UIApplication background/foreground observer paints
+// or changes visibility.
+//
+// Cold/native splash theming remains independently owned by the probe-proven v7.350
+// exact-controller seal below. If Amazon itself presents AXU/Tez, we theme that
+// controller's pixels but do not decide whether it is visible or how long it lives.
 
 // v7.350: the good/bad v7.349 transition pair proves the intermittent stock-white
 // cold frame is not the SpringBoard GeneratedDefault resource. In the bad run,
@@ -8138,125 +8140,34 @@ static void ADLayoutNativeSplashSeal7350(UIViewController *vc,BOOL visible){
     } @catch(...) {}
 }
 
-static void ADOwnAmazonSplash7307(UIViewController *vc){
+static void ADOwnAmazonSplash7376(UIViewController *vc){
     if(!gP.enabled||!vc||!vc.view)return;
-    ADSkelSplash7339(vc,@"own.before"); // v7.341 read-only splash diagnostics
+    ADSkelSplash7339(vc,@"own.before");
     @try {
-        BOOL latched=[objc_getAssociatedObject(vc,kADWarmSplashSuppressed7307) boolValue];
-        if(gADOrdinaryWarmResume7307||latched){
-            if(!latched)objc_setAssociatedObject(vc,kADWarmSplashSuppressed7307,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            // Do not fabricate another warm transition. The running scene remains underneath.
-            ADLayoutNativeSplashSeal7350(vc,NO);
-            vc.view.hidden=YES;
-            vc.view.alpha=0.0;
-            return;
-        }
-        // Cold launch / true scene reconstruction: seal the exact native splash above
-        // Amazon's opaque stock image child before the controller can present. Amazon/iOS
-        // retain presentation timing and dismissal; only the pixels are deterministically dark.
-        vc.view.hidden=NO;
-        vc.view.alpha=1.0;
+        // Pixel ownership only. Do not write vc.view.hidden or vc.view.alpha and do not
+        // infer warm/cold from UIApplication lifecycle. Amazon/UIKit own presentation.
         ADSetViewBackground7226(vc.view,ADOLED(),YES);
         ADLayoutNativeSplashSeal7350(vc,YES);
     } @catch(...) {}
-    @finally { ADSkelSplash7339(vc,@"own.after"); } // v7.341 read-only splash diagnostics
-}
-static void ADReleaseWarmSplash7307(UIViewController *vc){
-    if(!vc||!vc.view)return;
-    @try {
-        if(objc_getAssociatedObject(vc,kADWarmSplashSuppressed7307)){
-            vc.view.hidden=NO;
-            vc.view.alpha=1.0;
-            objc_setAssociatedObject(vc,kADWarmSplashSuppressed7307,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
-    } @catch(...) {}
-}
-static const void *kADWarmSnapshotCover7375=&kADWarmSnapshotCover7375;
-static void ADSetWarmSnapshotCover7375(UIWindow *w,BOOL visible){
-    if(!w)return;
-    // Removal must remain possible even if the tweak preference changes while the app is
-    // backgrounded; otherwise a previously installed privacy/snapshot cover could strand
-    // the foreground UI black. Only installation is gated by the enabled preference.
-    if(visible&&!gP.enabled)return;
-    @try {
-        if(!ADPrimaryAmazonWindow713(w,nil)&&!ADClassNameIs7183(w,"AppCXWindow"))return;
-        UIView *cover=objc_getAssociatedObject(w,kADWarmSnapshotCover7375);
-        if(visible){
-            ADSetViewBackground7226(w,ADOLED(),YES);
-            if(!cover){
-                cover=[[UIView alloc] initWithFrame:w.bounds];
-                cover.userInteractionEnabled=NO;
-                cover.accessibilityElementsHidden=YES;
-                cover.opaque=YES;
-                cover.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
-                cover.layer.name=@"AmazonDarkWarmSnapshotCover7375";
-                cover.layer.zPosition=FLT_MAX;
-                ADSetViewBackground7226(cover,ADOLED(),YES);
-                [w addSubview:cover];
-                objc_setAssociatedObject(w,kADWarmSnapshotCover7375,cover,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            }
-            cover.frame=w.bounds; cover.hidden=NO; cover.alpha=1.0; cover.layer.zPosition=FLT_MAX;
-            [w bringSubviewToFront:cover];
-        }else if(cover){
-            [cover removeFromSuperview];
-            objc_setAssociatedObject(w,kADWarmSnapshotCover7375,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
-    } @catch(...) {}
-}
-static void ADSetAllWarmSnapshotCovers7375(BOOL visible){
-    @try {
-        for(UIWindow *w in UIApplication.sharedApplication.windows)ADSetWarmSnapshotCover7375(w,visible);
-    } @catch(...) {}
-}
-static BOOL gADWarmResumeLifecycleInstalled7307=NO;
-static void ADInstallWarmResumeLifecycle7307(void){
-    if(gADWarmResumeLifecycleInstalled7307)return;
-    gADWarmResumeLifecycleInstalled7307=YES;
-    @try {
-        NSNotificationCenter *nc=[NSNotificationCenter defaultCenter];
-        [nc addObserverForName:UIApplicationDidEnterBackgroundNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){
-            ADSetAllWarmSnapshotCovers7375(YES);
-            gADLifecycleBackgrounded7307=YES;
-            gADSceneReconnectedWhileBackgrounded7307=NO;
-            gADOrdinaryWarmResume7307=NO;
-        }];
-        [nc addObserverForName:UISceneWillConnectNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){
-            // If the process has already been active and a scene connection occurs while it
-            // is in the background lifecycle, this is not an ordinary same-scene resume.
-            if(gADLifecycleEverActive7307&&gADLifecycleBackgrounded7307){
-                gADSceneReconnectedWhileBackgrounded7307=YES;
-                gADOrdinaryWarmResume7307=NO;
-            }
-        }];
-        [nc addObserverForName:UIApplicationWillEnterForegroundNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){
-            gADOrdinaryWarmResume7307=(gADLifecycleEverActive7307&&gADLifecycleBackgrounded7307&&!gADSceneReconnectedWhileBackgrounded7307);
-        }];
-        [nc addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){
-            gADLifecycleEverActive7307=YES;
-            gADLifecycleBackgrounded7307=NO;
-            ADSetAllWarmSnapshotCovers7375(NO);
-            // Keep gADOrdinaryWarmResume7307 latched for this foreground session so a late
-            // Amazon splash appearance cannot replay after DidBecomeActive.
-        }];
-    } @catch(...) {}
+    @finally { ADSkelSplash7339(vc,@"own.after"); }
 }
 
 %hook AXUSplashScreenViewController
 - (void)viewDidLoad {
     %orig;
-    ADOwnAmazonSplash7307(self);
+    ADOwnAmazonSplash7376(self);
 }
 - (void)viewWillAppear:(BOOL)animated {
     %orig;
-    ADOwnAmazonSplash7307(self);
+    ADOwnAmazonSplash7376(self);
 }
 - (void)viewDidLayoutSubviews {
     %orig;
-    ADOwnAmazonSplash7307(self);
+    ADOwnAmazonSplash7376(self);
 }
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
-    ADOwnAmazonSplash7307(self);
+    ADOwnAmazonSplash7376(self);
 }
 - (void)viewWillDisappear:(BOOL)animated {
     ADSkelSplash7339(self,@"lifecycle.willDisappear.before");
@@ -8267,26 +8178,24 @@ static void ADInstallWarmResumeLifecycle7307(void){
     ADSkelSplash7339(self,@"lifecycle.didDisappear.before");
     %orig;
     ADSkelSplash7339(self,@"lifecycle.didDisappear.afterOrig");
-    ADReleaseWarmSplash7307(self);
-    ADSkelSplash7339(self,@"lifecycle.didDisappear.afterRelease");
 }
 %end
 %hook TezBaseSplashScreenViewController
 - (void)viewDidLoad {
     %orig;
-    ADOwnAmazonSplash7307(self);
+    ADOwnAmazonSplash7376(self);
 }
 - (void)viewWillAppear:(BOOL)animated {
     %orig;
-    ADOwnAmazonSplash7307(self);
+    ADOwnAmazonSplash7376(self);
 }
 - (void)viewDidLayoutSubviews {
     %orig;
-    ADOwnAmazonSplash7307(self);
+    ADOwnAmazonSplash7376(self);
 }
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
-    ADOwnAmazonSplash7307(self);
+    ADOwnAmazonSplash7376(self);
 }
 - (void)viewWillDisappear:(BOOL)animated {
     ADSkelSplash7339(self,@"lifecycle.willDisappear.before");
@@ -8297,8 +8206,6 @@ static void ADInstallWarmResumeLifecycle7307(void){
     ADSkelSplash7339(self,@"lifecycle.didDisappear.before");
     %orig;
     ADSkelSplash7339(self,@"lifecycle.didDisappear.afterOrig");
-    ADReleaseWarmSplash7307(self);
-    ADSkelSplash7339(self,@"lifecycle.didDisappear.afterRelease");
 }
 %end
 
@@ -9126,7 +9033,6 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 %ctor {
     if(strcmp(__progname,"Amazon")!=0)return;
     ADLoadPrefs();
-    ADInstallWarmResumeLifecycle7307();
     if(gP.enabled)ADInstallMainHooks7271();
     if(gP.enabled&&gP.force120Hz)ADInstallPromotionHooks7271();
     if(gP.enabled){

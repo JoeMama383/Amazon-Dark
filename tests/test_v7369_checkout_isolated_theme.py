@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.375~checkout-prepaint-snapshot-hydration' in CTRL
-assert '#define AD_VERSION "v7.375-checkout-prepaint-snapshot-hydration"' in S
+assert 'Version: 7.376~warm-switcher-noninterference' in CTRL
+assert '#define AD_VERSION "v7.376-warm-switcher-noninterference"' in S
 
 def func(name):
     st=S.index(f'static NSString *{name}')

@@ -7,8 +7,8 @@ C=(ROOT/'layout/DEBIAN/control').read_text()
 W=(ROOT/'.github/workflows/build.yml').read_text()
 CMD=(ROOT/'COMMANDS.md').read_text()
 
-assert 'Version: 7.375~checkout-prepaint-snapshot-hydration' in C
-assert '#define AD_VERSION "v7.375-checkout-prepaint-snapshot-hydration"' in S
+assert 'Version: 7.376~warm-switcher-noninterference' in C
+assert '#define AD_VERSION "v7.376-warm-switcher-noninterference"' in S
 
 # Claude audit: ADStandalonePaintJS7104 is semantically clean.
 stand=S[S.index('static NSString *ADStandalonePaintJS7104'):S.index('static NSString *ADTWBJS')]
@@ -41,11 +41,18 @@ assert 'gADCheckoutPresentationActive7375' in vc
 for bad in ['CACurrentMediaTime','3.0','dispatch_after']:
     assert bad not in vc
 
-# Warm switcher/resume: dedicated black per-window cover, installed on background and removed active.
-assert 'AmazonDarkWarmSnapshotCover7375' in S
-life=S[S.index('static void ADInstallWarmResumeLifecycle7307'):S.index('%hook AXUSplashScreenViewController')]
-assert 'UIApplicationDidEnterBackgroundNotification' in life and 'ADSetAllWarmSnapshotCovers7375(YES)' in life
-assert 'UIApplicationDidBecomeActiveNotification' in life and 'ADSetAllWarmSnapshotCovers7375(NO)' in life
+# v7.376 warm/app-switcher contract: production does not inject snapshot covers or
+# suppress/reveal splash views based on UIApplication lifecycle. UIKit snapshots the live app.
+for bad in ['AmazonDarkWarmSnapshotCover7375','ADSetWarmSnapshotCover7375','ADSetAllWarmSnapshotCovers7375',
+            'ADInstallWarmResumeLifecycle7307','gADOrdinaryWarmResume7307','kADWarmSplashSuppressed7307',
+            'ADReleaseWarmSplash7307']:
+    assert bad not in S,bad
+splash=S[S.index('static void ADOwnAmazonSplash7376'):S.index('%hook AXUSplashScreenViewController')]
+for bad in ['vc.view.hidden=','vc.view.alpha=','UIApplicationDidEnterBackgroundNotification',
+            'UIApplicationWillEnterForegroundNotification','UIApplicationDidBecomeActiveNotification']:
+    assert bad not in splash,bad
+assert 'ADSetViewBackground7226(vc.view,ADOLED(),YES);' in splash
+assert 'ADLayoutNativeSplashSeal7350(vc,YES);' in splash
 
 # Missing BYG plus: only Amazon's real subtree is requested to rehydrate. No fake button/reload/recurring mechanism.
 hyd=S[S.index('static NSString *ADCheckoutBYGHydrateJS7375'):S.index('static NSString *ADPrivacyModeJS7117')]
@@ -57,10 +64,11 @@ for bad in ['location.reload','MutationObserver','setInterval','setTimeout','req
 # Phone push stays dependency-free; CI is strict and explicitly provisions Python.
 assert 'actions/setup-python@v5' in W
 assert 'AD_STRICT_VALIDATE=1 sh scripts/validate.sh' in W
-assert 'sh scripts/validate.sh' in CMD
+assert 'bash scripts/lint-logos.sh' in CMD
+assert 'AmazonDark-v7.376-warm-switcher-noninterference-source.zip' in CMD
 V=(ROOT/'scripts/validate.sh').read_text()
 assert 'scripts/lint-logos.sh' in V and 'tests/test_*.py' in V
 assert 'command -v python3' in V and 'AD_STRICT_VALIDATE' in V
 assert 'python3 unavailable on this device; GitHub CI enforces them' in V
 
-print('PASS: v7.375 checkout prepaint / duplicate guard / warm snapshot / BYG hydration / TWB semantics')
+print('PASS: v7.376 checkout/BYG fixes retained; warm/app-switcher non-interference restored')

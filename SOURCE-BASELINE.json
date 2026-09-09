@@ -1,13 +1,13 @@
 {
-  "version": "7.375~checkout-prepaint-snapshot-hydration",
   "direct_parent": "7.374~byg-price-checkout-first-paint",
-  "parent_tweak_sha256": "9b320db93e2bdae3b416e8ca0958821bc54e1fcc6b6048caf2694db1b302c743",
   "evidence": {
+    "adtwb": "three video overlay alpha format arguments used factor instead of shade",
+    "byg_atc": "bad card lacks Amazon ATC subtree; refreshed card contains normal dense-grid ATC controls",
+    "checkout_back": "settled navigation/button tint recorded dark while header is OLED",
     "checkout_header": "_UIBarBackground black early; direct 430x103 image leaf visible until later",
     "checkout_tan": "plain native backing plane rgba(0.929,0.733,0.506,1), model height can be zero during presentation",
-    "checkout_back": "settled navigation/button tint recorded dark while header is OLED",
-    "warm_snapshot": "app switcher/warm entry teal while contemporaneous live native hierarchy is black",
-    "byg_atc": "bad card lacks Amazon ATC subtree; refreshed card contains normal dense-grid ATC controls",
-    "adtwb": "three video overlay alpha format arguments used factor instead of shade"
-  }
+    "warm_snapshot": "app switcher/warm entry teal while contemporaneous live native hierarchy is black"
+  },
+  "parent_tweak_sha256": "9b320db93e2bdae3b416e8ca0958821bc54e1fcc6b6048caf2694db1b302c743",
+  "version": "7.376~warm-switcher-noninterference"
 }

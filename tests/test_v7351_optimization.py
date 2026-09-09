@@ -2,8 +2,8 @@ from pathlib import Path
 import hashlib,re
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text(); ui=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text(); sb=(ROOT/'src/AmazonDarkSB.xm').read_text(); sh=(ROOT/'scripts/skeleton-probe.sh').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.375~checkout-prepaint-snapshot-hydration' in ctl
-assert '#define AD_VERSION "v7.375-checkout-prepaint-snapshot-hydration"' in t
+assert 'Version: 7.376~warm-switcher-noninterference' in ctl
+assert '#define AD_VERSION "v7.376-warm-switcher-noninterference"' in t
 
 def static_block(src,name):
     m=re.search(r'^static[^\n;{}]*\b'+re.escape(name)+r'\([^;{}]*\)\s*\{',src,re.M);assert m,name
@@ -26,7 +26,6 @@ expected={
  'ADStandalonePaintJS7104':'fb6a4cf9057c2f5262d4f2cd2d9d161f5b82661229671be0040bdd4f2dedc3db',
  'ADNativeSplashLogo7350':'27f26ded352c76f6bb39c68bda07c086004ff950c0dfa667ad14166966e16448',
  'ADLayoutNativeSplashSeal7350':'24fa17d2501f723c9037d57269c6ca95200e206c4ca4b5ce31acbc90d0765d05',
- 'ADReleaseWarmSplash7307':'de3cd1a6602a293bf9d1fc2b34c3ec10549e50181b37615791495ad3bf7aa51c',
 }
 for name,digest in expected.items(): assert hashlib.sha256(static_block(t,name).encode()).hexdigest()==digest,name
 

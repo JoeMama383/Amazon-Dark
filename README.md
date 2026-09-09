@@ -1,3 +1,17 @@
+# AmazonDark v7.376 — warm/app-switcher non-interference
+
+Direct parent: **v7.375~checkout-prepaint-snapshot-hydration**.
+
+This is a surgical lifecycle correction. All v7.375 checkout prepaint, duplicate-presentation, BYG hydration, back-arrow, ADTWBJS factor/shade, and CI fixes remain.
+
+- **No app-switcher cover.** The v7.375 black `AmazonDarkWarmSnapshotCover7375` workaround is removed completely. UIKit once again snapshots the already-themed live Amazon scene.
+- **No warm splash suppression.** The inherited v7.307 `gADOrdinaryWarmResume7307` / hidden+alpha state machine is removed. AmazonDark no longer hides or reveals AXU/Tez based on background/foreground state.
+- **Root-cause backtrack.** v7.335/v7.336 had already established the good v6.0.185 contract: no switcher owner and no warm hierarchy mutation. The later v7.337 launch rebase onto v7.307 accidentally reintroduced warm suppression, and v7.350 explicitly retained it. v7.376 removes that architectural regression while preserving the later cold-splash seal.
+- **Cold splash remains dark.** If Amazon actually presents `AXUSplashScreenViewController` or `TezBaseSplashScreenViewController`, the v7.350 exact-controller black/logo seal still themes its pixels, but Amazon/UIKit alone own visibility, timing, and dismissal.
+- **No new timers/observers/scanners.** This release removes lifecycle mutation code rather than adding another workaround.
+
+---
+
 # AmazonDark v7.375 — checkout prepaint / warm snapshot / BYG hydration
 
 Direct parent: **v7.374~byg-price-checkout-first-paint**  
