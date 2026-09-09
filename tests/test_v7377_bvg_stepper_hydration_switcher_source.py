@@ -6,8 +6,8 @@ C=(ROOT/'layout/DEBIAN/control').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 
-assert 'Version: 7.377~byg-stepper-hydration-switcher-source-fix' in C
-assert '#define AD_VERSION "v7.377-byg-stepper-hydration-switcher-source-fix"' in S
+assert 'Version: 7.378~byg-outline-one-shot-reload' in C
+assert '#define AD_VERSION "v7.378-byg-outline-one-shot-reload"' in S
 
 # BYG expanded quantity control is the same dark/gray/light contract as Cart.
 for token in [
@@ -23,13 +23,12 @@ checkout=S[S.index("#checkoutDisplayPage fieldset[name='checkout-quantity-steppe
 for token in ['.a-icon-small-trash','.a-icon-small-add','.a-icon-small-remove','.a-icon-small-subtract','brightness(0) invert(1)']:
     assert token in checkout, token
 
-# The bad Crayon-class faceout is image+title only: old price-gated recovery was impossible.
-hyd=S[S.index('static NSString *ADCheckoutBYGHydrateJS7377'):S.index('static NSString *ADPrivacyModeJS7117')]
+# The v7.377 sparse-card classification remains, while v7.378 replaces only the disproven nudge.
+hyd=S[S.index('static NSString *ADCheckoutBYGHydrateJS7378'):S.index('static NSString *ADPrivacyModeJS7117')]
 for token in ['function base(c)', "c.querySelector('img')", '_mobileDenseGridProductTitle_', 'function priced(c)',
-              'sparse!==1', 'healthy<cards.length-1', 'data-ad7377-byg-hydration-nudged',
-              "vp.dispatchEvent(new Event('scroll'", "window.dispatchEvent(new Event('resize'))"]:
+              'sparse!==1', 'healthy!==cards.length-1', 'sessionStorage', 'location.reload']:
     assert token in hyd, token
-for bad in ['location.reload','MutationObserver','setInterval','setTimeout','requestAnimationFrame','createElement(\'button\')','createElement("button")']:
+for bad in ['MutationObserver','setInterval','setTimeout','requestAnimationFrame','createElement(\'button\')','createElement("button")']:
     assert bad not in hyd, bad
 
 # Warm/switcher source correction: only provenance-bearing snapshot resources are mutated.
@@ -37,13 +36,13 @@ assert '%hook SBDeviceApplicationSceneViewPlaceholderContentViewProvider' not in
 assert '_loadLiveXIBViewForApplication:(id)application {' not in SB
 assert '%hook XBApplicationSnapshot' in SB
 assert 'kind==ADKindScene7337)return 0;' in SB
-assert 'version=7.377~cold-artwork-no-generic-xib base=v7.338' in SB
+assert 'version=7.378~cold-artwork-no-generic-xib base=v7.338' in SB
 for bad in ['task-switcher','switcher-release','WarmSnapshotCover','UIApplicationDidEnterBackgroundNotification']:
     assert bad not in S, bad
 
 # Probe identity must match the installed build; v7.376 shipped a stale v7.375/7.374 header/body label.
-assert 'AMAZONDARK v7.377 UNIVERSAL' in INC
-assert "version:'7.377'" in JS
-assert 'AmazonDark-v7.377-ui-viewport.arm' in INC
+assert 'AMAZONDARK v7.378 UNIVERSAL' in INC
+assert "version:'7.378'" in JS
+assert 'AmazonDark-v7.378-ui-viewport.arm' in INC
 
-print('PASS: v7.377 BYG/checkout stepper, sparse renderer recovery, switcher source non-interference, and probe identity')
+print('PASS: v7.377-established BYG stepper/switcher/probe contracts remain under v7.378')

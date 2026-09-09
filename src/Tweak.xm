@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.377-byg-stepper-hydration-switcher-source-fix"
+#define AD_VERSION "v7.378-byg-outline-one-shot-reload"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1415,7 +1415,11 @@ static NSString *ADCheckoutFloorJS7369(void){
         // Dense-grid add/quantity controls: exact Cart contract. The v7.376 FULL pair proves
         // the expanded BYG stepper is a plain .a-stepper-expanding-fieldset under
         // .byg-dense-grid-atc-container; stock paints its inner pill white with a 3px yellow edge.
-        @"#checkoutDisplayPage .checkout-byg-mobile-container [class*=_denseGridAxSpotAtcButton_] button[name='submit.addToCart']{background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container [class*=_denseGridAxSpotAtcButton_] .a-icon-small-add{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+        // v7.378 FULL r1: after the BYG stepper collapses, Amazon leaves keyboard focus on the
+        // real submit.addToCart button and its :focus rule paints a 2px rgb(136,140,140) outline.
+        // The button itself is already the correct 32x32 circle; that outline renders as four gray
+        // corners outside the 100px radius. Own only this exact BYG ATC focus ring, not all buttons.
+        @"#checkoutDisplayPage .checkout-byg-mobile-container [class*=_denseGridAxSpotAtcButton_] button[name='submit.addToCart']{background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline:none!important;outline-color:transparent!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-tap-highlight-color:transparent!important;}#checkoutDisplayPage .checkout-byg-mobile-container [class*=_denseGridAxSpotAtcButton_] button[name='submit.addToCart']:is(:focus,:focus-visible,:active){outline:none!important;outline-color:transparent!important;box-shadow:none!important;}#checkoutDisplayPage .checkout-byg-mobile-container [class*=_denseGridAxSpotAtcButton_] .a-icon-small-add{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
         @"#checkoutDisplayPage .checkout-byg-mobile-container .byg-dense-grid-atc-container .a-stepper-expanding-fieldset{background:transparent!important;background-color:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container .byg-dense-grid-atc-container .a-stepper-inner-container{background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container .byg-dense-grid-atc-container .a-stepper-controls,#checkoutDisplayPage .checkout-byg-mobile-container .byg-dense-grid-atc-container .a-stepper-controls :is(button,div,span){background-color:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container .byg-dense-grid-atc-container .a-stepper-controls :is(.a-icon-small-trash,.a-icon-small-add,.a-icon-small-remove,.a-icon-small-subtract){filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
         // v7.372 FULL r1: BYG uses the same Amazon empty-card loader family as Cart:
         // li.a-carousel-card.a-carousel-card-empty > .a-loading-static > .a-loading-static-inner.
@@ -1487,21 +1491,21 @@ static NSString *ADCheckoutTWBJS7369(void){
         @"(function(){try{function put(id,css){var s=document.getElementById(id);if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}s.textContent=css;return s;}function relink(s){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}var css=`#checkoutDisplayPage .checkout-byg-mobile-container img[class*=_mobileDenseGridImage_],#checkoutDisplayPage img.checkout-product-image{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}#checkoutDisplayPage i.a-icon-prime,#checkoutDisplayPage img.sustainability-green-leaf-alignment-updated{filter:none!important;-webkit-filter:none!important;}`;var s=put('ad7-checkout7369-twb',css);if(document.readyState==='loading')window.addEventListener('load',function(){relink(s)},{once:true});else relink(s);}catch(e){}})();",factor,factor];
 }
 
-// v7.377: the old good probe has 14/14 ATC trees in anonCarousel3, including row-2/col-2
-// ASIN B0096XWNNY; both v7.376 captures have the same row-2/col-2 faceout but only image+title:
-// no ATC subtree and no price/details tail. The v7.375 recovery incorrectly required .a-price
-// before it would recognize a card as incomplete, so it categorically skipped this exact failure.
-// Recognize one image+title / no-price / no-ATC sparse faceout while every sibling is healthy,
-// then nudge Amazon's existing horizontal renderer exactly once. No fake control, reload, observer,
-// timer, interval, RAF loop, or recurring scan is introduced.
-static NSString *ADCheckoutBYGHydrateJS7377(void){
+// v7.378: the v7.377 FULL r1 proves the one-pixel synchronous renderer nudge is not enough:
+// the document remains 24 dense-grid faceouts / 23 ATC subtrees through the probe's complete
+// finite sweep, and row-2/col-2 remains image+title only with no price/details tail. A normal
+// refresh historically hydrates Amazon's real ATC subtree. Use that proven recovery exactly once
+// for the narrow one-sparse-card signature, guarded by sessionStorage so a persistently bad
+// renderer cannot enter a reload loop. No fake control, MutationObserver, timer, interval, RAF,
+// scroll listener, or recurring scanner is introduced.
+static NSString *ADCheckoutBYGHydrateJS7378(void){
     return
-        @"(function(){try{var K='data-ad7377-byg-hydration-nudged';"
-         @"function atc(c){try{return !!c.querySelector('.byg-dense-grid-atc-container,[class*=_denseGridAxSpotAtcOverlay_],[class*=_denseGridAxSpotAtcButton_] button[name=\\\"submit.addToCart\\\"]')}catch(_){return false}}"
+        @"(function(){try{var K='ad7-byg-atc-retry-7378';"
+         @"function atc(c){try{return !!c.querySelector('.byg-dense-grid-atc-container,[class*=_denseGridAxSpotAtcOverlay_],[class*=_denseGridAxSpotAtcButton_] button[name=\"submit.addToCart\"]')}catch(_){return false}}"
          @"function base(c){try{return !!(c.querySelector('img')&&c.querySelector('[class*=_mobileDenseGridProductTitle_]'))}catch(_){return false}}"
          @"function priced(c){try{return !!c.querySelector('.a-price,[class*=_mobileDenseGridPriceToPay_]')}catch(_){return false}}"
-         @"function heal(){try{var page=document.getElementById('checkoutDisplayPage');if(!page||page.hasAttribute(K))return;var root=page.querySelector('.checkout-byg-mobile-container');if(!root)return;var cards=root.querySelectorAll('[class*=_mobileDenseGridAsinFaceout_]');if(cards.length<6)return;var miss=null,sparse=0,healthy=0;for(var i=0;i<cards.length;i++){var c=cards[i];if(atc(c)){healthy++;continue}if(base(c)&&!priced(c)){sparse++;miss=c}}if(sparse!==1||healthy<cards.length-1||!miss)return;page.setAttribute(K,'1');try{miss.getBoundingClientRect()}catch(_){}var vp=null;try{vp=miss.closest('.a-carousel-viewport')||root.querySelector('.a-carousel-viewport')||root}catch(_){}if(vp){try{var x=Number(vp.scrollLeft||0),max=Math.max(0,Number(vp.scrollWidth||0)-Number(vp.clientWidth||0));if(max>1){var d=x<max?1:-1;vp.scrollLeft=Math.max(0,Math.min(max,x+d));vp.dispatchEvent(new Event('scroll',{bubbles:true}));vp.scrollLeft=x;vp.dispatchEvent(new Event('scroll',{bubbles:true}))}}catch(_){}}try{root.dispatchEvent(new Event('scroll',{bubbles:true}));window.dispatchEvent(new Event('resize'))}catch(_){}}catch(_){}}"
-         @"if(document.readyState==='complete')heal();else window.addEventListener('load',heal,{once:true,passive:true});window.addEventListener('pageshow',heal,{once:true,passive:true});}catch(_){}})();";
+         @"function check(){try{var root=document.querySelector('#checkoutDisplayPage .checkout-byg-mobile-container');if(!root)return;var cards=root.querySelectorAll('[class*=_mobileDenseGridAsinFaceout_]');if(cards.length<6)return;var healthy=0,sparse=0,miss=null;for(var i=0;i<cards.length;i++){var c=cards[i];if(atc(c)){healthy++;continue}if(base(c)&&!priced(c)){sparse++;miss=c}}if(healthy===cards.length){try{sessionStorage.removeItem(K)}catch(_){}return}if(sparse!==1||healthy!==cards.length-1||!miss)return;var tried=false;try{tried=sessionStorage.getItem(K)==='1'}catch(_){}if(tried)return;try{sessionStorage.setItem(K,'1')}catch(_){}location.reload()}catch(_){}}"
+         @"if(document.readyState==='complete')check();else window.addEventListener('load',check,{once:true,passive:true});window.addEventListener('pageshow',check,{once:true,passive:true});}catch(_){}})();";
 }
 
 static NSString *ADPrivacyModeJS7117(void){
@@ -1705,7 +1709,7 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
             objc_setAssociatedObject(ucc,kADCheckoutTWBUS7369,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
         if(!objc_getAssociatedObject(ucc,kADCheckoutBYGHydrateUS7375)){
-            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADCheckoutBYGHydrateJS7377() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:YES];
+            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADCheckoutBYGHydrateJS7378() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:YES];
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADCheckoutBYGHydrateUS7375,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }

@@ -3,8 +3,8 @@ import re
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.377~byg-stepper-hydration-switcher-source-fix' in C
-assert '#define AD_VERSION "v7.377-byg-stepper-hydration-switcher-source-fix"' in S
+assert 'Version: 7.378~byg-outline-one-shot-reload' in C
+assert '#define AD_VERSION "v7.378-byg-outline-one-shot-reload"' in S
 
 # r1: ATC overlay plumbing must stay transparent so it cannot cut across product photos.
 for tok in [

@@ -1,3 +1,18 @@
+# AmazonDark v7.378 — BYG focus-outline cleanup / one-shot real-renderer recovery
+
+Direct parent: **v7.377~byg-stepper-hydration-switcher-source-fix**.
+
+This release is intentionally limited to the two defects proven by the new v7.377 FULL capture. It does not change Cart, Search, Person, Alexa, checkout navigation, cold-launch ownership, warm/app-switcher ownership, TWB, or shared WebUI behavior.
+
+- **Collapsed BYG `+` no longer keeps four gray corners.** The FULL capture identifies the exact real `button[name=submit.addToCart]` under `_denseGridAxSpotAtcButton_` after a quantity stepper collapses. Its circle is already correct (`#303335`, 1px `#747a7c`, radius `100px`), but Amazon leaves it focused and applies a `2px rgb(136,140,140) solid` outline. v7.378 removes only that exact BYG button's focus/active outline and tap highlight. The correct circular border is preserved.
+- **Crayola sparse-card recovery now uses the proven recovery action.** The new v7.377 FULL capture remains incomplete after the complete finite sweep: the BYG grid still has exactly one image+title card with no price/details tail and no ATC subtree. This proves v7.377's synchronous 1px scroll/resize nudge does not trigger Amazon's renderer. A normal document refresh is the historical action that restores Amazon's real ATC subtree, so v7.378 uses one guarded `location.reload()` only for the exact one-sparse-card / all-other-siblings-healthy signature. `sessionStorage` prevents a second reload if the renderer remains incomplete. A complete render clears the guard for a genuinely later navigation.
+- **No fake `+` and no recurring work.** No synthetic controls, MutationObserver, interval, timeout, RAF loop, DOM polling loop, or recurring scanner are added.
+- **Launch/switcher logic is unchanged.** `AmazonDarkSB.xm` production policy remains the v7.377 provenance-only cold-artwork path; only its diagnostic version/log filename advances to v7.378.
+
+Universal probe workflow remains exactly two UI categories: screenshot-triggered **FULL** and armed **VIEWPORT**.
+
+---
+
 # AmazonDark v7.377 — BYG controls / sparse renderer recovery / switcher source ownership
 
 Direct parent: **v7.376~warm-switcher-noninterference**.

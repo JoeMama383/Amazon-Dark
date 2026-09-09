@@ -85,8 +85,8 @@ def main():
         assert method in source
     assert 'format.opaque=YES' in source
     assert '[[UIColor blackColor] setFill]' in source
-    assert 'version=7.377~cold-artwork-no-generic-xib base=v7.338' in source
-    assert "Version: 7.377~byg-stepper-hydration-switcher-source-fix\n" in (ROOT / "layout/DEBIAN/control").read_text()
+    assert 'version=7.378~cold-artwork-no-generic-xib base=v7.338' in source
+    assert "Version: 7.378~byg-outline-one-shot-reload\n" in (ROOT / "layout/DEBIAN/control").read_text()
     # v7.351 changes only the optional file logger gate in SpringBoard. The actual
     # launch-artwork policy/render/selection functions remain byte-identical to accepted v7.350.
     def static_block(name):
@@ -116,7 +116,7 @@ def main():
     for name,digest in expected.items():
         assert hashlib.sha256(static_block(name).encode()).hexdigest()==digest,name
     assert 'if(!ADLaunchProbeArmed7351())return;' in source
-    print("PASS: v7.377 preserves accepted snapshot cold-artwork policy while removing generic XIB mutation")
+    print("PASS: v7.378 preserves accepted snapshot cold-artwork policy while removing generic XIB mutation")
 
 
 

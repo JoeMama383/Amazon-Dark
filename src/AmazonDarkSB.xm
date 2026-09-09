@@ -1,4 +1,4 @@
-// AmazonDarkSB.xm — v7.377, cold-artwork only; no unscoped live-XIB replacement.
+// AmazonDarkSB.xm — v7.378, cold-artwork only; no unscoped live-XIB replacement.
 // UI baseline: exact v7.307 (4bbbbd9). Injected only into SpringBoard.
 // Replace only positively identified Amazon snapshot launch resources. Saved SceneContent,
 // live views, and the generic scene placeholder/XIB provider pass through untouched.
@@ -77,7 +77,7 @@ static void ADLaunchLog7337(NSString *event,NSString *detail){
         NSString *line=[NSString stringWithFormat:@"%.6f up=%.6f pid=%d event=%@ %@\n",
             CFAbsoluteTimeGetCurrent(),NSProcessInfo.processInfo.systemUptime,getpid(),event,detail?:@""];
         dispatch_async(queue,^{@autoreleasepool{@try{
-            NSString *path=@"/var/mobile/AmazonDark-v7.377-launch-sb-probe.txt";
+            NSString *path=@"/var/mobile/AmazonDark-v7.378-launch-sb-probe.txt";
             NSFileManager *fm=NSFileManager.defaultManager;
             if(![fm fileExistsAtPath:path])[fm createFileAtPath:path contents:nil attributes:@{NSFilePosixPermissions:@0666}];
             NSFileHandle *file=[NSFileHandle fileHandleForWritingAtPath:path];
@@ -246,7 +246,7 @@ static UIImage *ADLaunchSnapshotImage7337(XBApplicationSnapshot *snapshot,UIImag
 %end
 %end
 
-// v7.377 source correction: do not hook SBDeviceApplicationSceneViewPlaceholderContentViewProvider.
+// v7.378 retained source correction: do not hook SBDeviceApplicationSceneViewPlaceholderContentViewProvider.
 // Unlike XBApplicationSnapshot, _loadLiveXIBViewForApplication: carries no snapshot kind or
 // launch-request provenance. The v7.337 artwork branch replaced that generic provider for every
 // Amazon invocation, including invocations that can participate in scene placeholder continuity.
@@ -260,7 +260,7 @@ static UIImage *ADLaunchSnapshotImage7337(XBApplicationSnapshot *snapshot,UIImag
     BOOL wrapper=class_getInstanceMethod(objc_getClass("XBApplicationSnapshotImage"),@selector(initWithSnapshot:interfaceOrientation:))!=NULL;
     // Image loading consults UIScreen; UIKit is not ready during dyld startup.
     // Keep startup diagnostics free of UIKit calls, including helper arguments.
-    ADLaunchLog7337(@"ctor",[NSString stringWithFormat:@"version=7.377~cold-artwork-no-generic-xib base=v7.338 snapshotClass=%d factory=%d wrapper=%d logo=deferred",
+    ADLaunchLog7337(@"ctor",[NSString stringWithFormat:@"version=7.378~cold-artwork-no-generic-xib base=v7.338 snapshotClass=%d factory=%d wrapper=%d logo=deferred",
         objc_getClass("XBApplicationSnapshot")!=Nil,factory,wrapper]);
     @autoreleasepool {
         @try { %init; } @catch (__unused NSException *e) {}

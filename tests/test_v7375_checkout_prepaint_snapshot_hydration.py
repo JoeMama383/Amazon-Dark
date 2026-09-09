@@ -7,8 +7,8 @@ C=(ROOT/'layout/DEBIAN/control').read_text()
 W=(ROOT/'.github/workflows/build.yml').read_text()
 CMD=(ROOT/'COMMANDS.md').read_text()
 
-assert 'Version: 7.377~byg-stepper-hydration-switcher-source-fix' in C
-assert '#define AD_VERSION "v7.377-byg-stepper-hydration-switcher-source-fix"' in S
+assert 'Version: 7.378~byg-outline-one-shot-reload' in C
+assert '#define AD_VERSION "v7.378-byg-outline-one-shot-reload"' in S
 
 # Claude audit: ADStandalonePaintJS7104 is semantically clean.
 stand=S[S.index('static NSString *ADStandalonePaintJS7104'):S.index('static NSString *ADTWBJS')]
@@ -54,21 +54,21 @@ for bad in ['vc.view.hidden=','vc.view.alpha=','UIApplicationDidEnterBackgroundN
 assert 'ADSetViewBackground7226(vc.view,ADOLED(),YES);' in splash
 assert 'ADLayoutNativeSplashSeal7350(vc,YES);' in splash
 
-# Missing BYG plus: only Amazon's real subtree is requested to rehydrate. No fake button/reload/recurring mechanism.
-hyd=S[S.index('static NSString *ADCheckoutBYGHydrateJS7377'):S.index('static NSString *ADPrivacyModeJS7117')]
-for token in ['_mobileDenseGridAsinFaceout_','_denseGridAxSpotAtcOverlay_','submit.addToCart','sparse!==1','window.dispatchEvent(new Event(\'resize\'))']:
+# Missing BYG plus: current recovery still uses Amazon's real subtree and adds no recurring mechanism.
+hyd=S[S.index('static NSString *ADCheckoutBYGHydrateJS7378'):S.index('static NSString *ADPrivacyModeJS7117')]
+for token in ['_mobileDenseGridAsinFaceout_','_denseGridAxSpotAtcOverlay_','submit.addToCart','sparse!==1','sessionStorage','location.reload']:
     assert token in hyd,token
-for bad in ['location.reload','MutationObserver','setInterval','setTimeout','requestAnimationFrame','createElement(\'button\')','createElement("button")']:
+for bad in ['MutationObserver','setInterval','setTimeout','requestAnimationFrame','createElement(\'button\')','createElement("button")']:
     assert bad not in hyd,bad
 
 # Phone push stays dependency-free; CI is strict and explicitly provisions Python.
 assert 'actions/setup-python@v5' in W
 assert 'AD_STRICT_VALIDATE=1 sh scripts/validate.sh' in W
 assert 'bash scripts/lint-logos.sh' in CMD
-assert 'AmazonDark-v7.377-byg-stepper-hydration-switcher-source-fix-source.zip' in CMD
+assert 'AmazonDark-v7.378-byg-outline-one-shot-reload-source.zip' in CMD
 V=(ROOT/'scripts/validate.sh').read_text()
 assert 'scripts/lint-logos.sh' in V and 'tests/test_*.py' in V
 assert 'command -v python3' in V and 'AD_STRICT_VALIDATE' in V
 assert 'python3 unavailable on this device; GitHub CI enforces them' in V
 
-print('PASS: v7.377 checkout/BYG fixes retained; warm/app-switcher non-interference restored')
+print('PASS: checkout/TWB/CI contracts retained under v7.378; BYG recovery remains real-control/no-recurring')
