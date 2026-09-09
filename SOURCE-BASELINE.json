@@ -1,5 +1,5 @@
 {
-  "version": "7.384~sponsored-logos-build-fix",
+  "version": "7.385~sponsored-c-linkage-fix",
   "direct_parent": "7.383~sponsored-selector-rules",
   "parent_tweak_sha256": "29e3f96264cfcf1b0e5288e0caa9de2ed0752bd3374c6186f777a0aa0be21f4e",
   "parent_sb_sha256": "b544e1b668114cc9f7fae4759b70902311b70dc739f35ad72da4e7cb9297928c",
@@ -13,7 +13,7 @@
     "move the sponsored selector payload/function from Tweak.xm to src/ADSponsored.m",
     "compile src/ADSponsored.m as a normal Objective-C source alongside Tweak.xm",
     "retain the same document-start sponsored injection and selector behavior",
-    "bump probe/package identity to v7.384 and preserve postinst mode 0755"
+    "bump probe/package identity to v7.385 and preserve postinst mode 0755"
   ],
   "runtime_contract": "Compile-boundary correction only for sponsored payload; no recurring DOM work, app-switcher cover, warm splash suppression, fake UI, or broad theming change."
 }

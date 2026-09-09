@@ -4,8 +4,8 @@ S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 
-assert 'Version: 7.384~sponsored-logos-build-fix' in C
-assert '#define AD_VERSION "v7.384-sponsored-logos-build-fix"' in S
+assert 'Version: 7.385~sponsored-c-linkage-fix' in C
+assert '#define AD_VERSION "v7.385-sponsored-c-linkage-fix"' in S
 
 # New FULL capture: collapsed BYG add circle is correct except for Amazon's retained focus outline.
 sel="#checkoutDisplayPage .checkout-byg-mobile-container [class*=_denseGridAxSpotAtcButton_] button[name='submit.addToCart']"

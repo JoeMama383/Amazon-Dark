@@ -1,7 +1,7 @@
 // AmazonDark sponsored-content CSS payload.
 // Kept in an ordinary Objective-C translation unit so Logos never has to parse
 // the very large selector string. This is intentionally pure data/no hooks.
-#import <Foundation/Foundation.h>
+#import "ADSponsored.h"
 
 NSString *ADKillerSponsoredJS7384(void){
     return @"(function(){try{var d=document;if(d.getElementById('ad7384-killer'))return;var s=d.createElement('style');s.id='ad7384-killer';s.textContent=\"#gwm-dashboard>li.gwm-tile:has(>span.a-list-item>div[data-ad-id]){display:none!important;width:0!important;min-width:0!important;max-width:0!important;height:0!important;min-height:0!important;max-height:0!important;flex:0 0 0!important;margin:0!important;padding:0!important;border:0!important;overflow:hidden!important;}\\n#gwm-dashboard>li.gwm-tile:has(>span.a-list-item>div[data-cel-widget^=\\\"mobile-ads-\\\"]){display:none!important;width:0!important;min-width:0!important;max-width:0!important;height:0!important;min-height:0!important;max-height:0!important;flex:0 0 0!important;margin:0!important;padding:0!important;border:0!important;overflow:hidden!i"

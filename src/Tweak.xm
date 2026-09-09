@@ -26,8 +26,9 @@
 #import <string.h>
 #import <float.h>
 #import <signal.h>
+#import "ADSponsored.h"
 
-#define AD_VERSION "v7.384-sponsored-logos-build-fix"
+#define AD_VERSION "v7.385-sponsored-c-linkage-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1680,23 +1681,24 @@ static NSString *ADHomeFrameProbeBridgeJS7265(void){
 }
 
 
-// v7.384 probe-backed Home dashboard shell floor. This remains in the single
+// v7.385 probe-backed Home dashboard shell floor. This remains in the single
 // immutable core document-start program so it does not add another WKUserScript.
 static NSString *ADHomeAdShellFloorJS7381(void){
     return @"(function(){try{var d=document;if(d.getElementById('ad7381-home-ad-shell-floor'))return;var s=d.createElement('style');s.id='ad7381-home-ad-shell-floor';s.textContent=\"#gwm-dashboard>li.gwm-tile{background:#000!important;background-color:#000!important;}\";(d.head||d.documentElement).appendChild(s)}catch(_){}})();";
 }
 
-// v7.384: Sponsored-content filtering follows AmznKiller's selector-level
+// v7.385: Sponsored-content filtering follows AmznKiller's selector-level
 // ownership model instead of promoting any nested Sponsored marker to its
 // carousel/mosaic parent. Every selector is emitted as its own CSS rule: an
 // unsupported or malformed family cannot invalidate the rest of the blocker.
 // The only AmazonDark-specific outer owners are the probe-confirmed Home
 // dashboard shells whose immediate widget root is itself an explicit ad.
 // No MutationObserver, timers, RAF, scrolling hook or recurring DOM scan.
-// v7.384 build boundary: the large sponsored CSS payload is compiled as plain
+// v7.385 build boundary: the large sponsored CSS payload is compiled as plain
 // Objective-C in ADSponsored.m. Keeping this payload out of the Logos input
 // avoids the Logos parser failure seen at the closing brace of v7.383.
-extern NSString *ADKillerSponsoredJS7384(void);
+// Declaration lives in ADSponsored.h so this Objective-C++ translation unit
+// uses C linkage matching ADSponsored.m.
 
 static NSString *ADPriceHistoryJS7380(void){
     return @"(function(){try{function run(){try{var d=document;if(d.getElementById('ad7380-price-history'))return;"
