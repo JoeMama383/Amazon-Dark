@@ -1,7 +1,8 @@
-// AmazonDarkSB.xm — v7.378, cold-artwork only; no unscoped live-XIB replacement.
+// AmazonDarkSB.xm — v7.379, cold-artwork only; no unscoped live-XIB replacement.
 // UI baseline: exact v7.307 (4bbbbd9). Injected only into SpringBoard.
-// Replace only positively identified Amazon snapshot launch resources. Saved SceneContent,
-// live views, and the generic scene placeholder/XIB provider pass through untouched.
+// Replace only positively identified Amazon snapshot launch resources. Saved SceneContent
+// and live views pass through unchanged. The generic scene placeholder/XIB provider is
+// read-only observed only while an explicit transition probe is armed; its return is untouched.
 // No scene cover, PID/cold classification, ready listener, deadline, minimum duration,
 // animation override, warm/switcher handler, or snapshot deletion.
 
@@ -54,6 +55,7 @@ static UIImage *ADSplashImage7191(void) {
 @end
 @interface XBApplicationSnapshotManifestImpl : NSObject @end
 @interface XBApplicationSnapshotImage : UIImage @end
+@interface SBDeviceApplicationSceneViewPlaceholderContentViewProvider : NSObject @end
 static const char kADGeneratedLaunch7337=0;
 
 static BOOL ADLaunchProbeArmed7351(void){
@@ -77,13 +79,50 @@ static void ADLaunchLog7337(NSString *event,NSString *detail){
         NSString *line=[NSString stringWithFormat:@"%.6f up=%.6f pid=%d event=%@ %@\n",
             CFAbsoluteTimeGetCurrent(),NSProcessInfo.processInfo.systemUptime,getpid(),event,detail?:@""];
         dispatch_async(queue,^{@autoreleasepool{@try{
-            NSString *path=@"/var/mobile/AmazonDark-v7.378-launch-sb-probe.txt";
+            NSString *path=@"/var/mobile/AmazonDark-v7.379-launch-sb-probe.txt";
             NSFileManager *fm=NSFileManager.defaultManager;
             if(![fm fileExistsAtPath:path])[fm createFileAtPath:path contents:nil attributes:@{NSFilePosixPermissions:@0666}];
             NSFileHandle *file=[NSFileHandle fileHandleForWritingAtPath:path];
             if(file){[file seekToEndOfFile];[file writeData:[line dataUsingEncoding:NSUTF8StringEncoding]];[file closeFile];}
         }@catch(__unused NSException *e){}}});
     }@catch(__unused NSException *e){}
+}
+
+
+// Probe-only formatting for the generic scene-placeholder return. This never
+// authorizes replacement and is called only while the explicit transition arm exists.
+static NSString *ADProbeColor7379(UIColor *color){
+    if(!color)return @"nil";
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0;
+        if([color getRed:&r green:&g blue:&b alpha:&a])
+            return [NSString stringWithFormat:@"%.3f,%.3f,%.3f,%.3f",r,g,b,a];
+        if([color getWhite:&w alpha:&a])
+            return [NSString stringWithFormat:@"%.3f,%.3f,%.3f,%.3f",w,w,w,a];
+    } @catch(__unused NSException *e){}
+    return @"unresolved";
+}
+static void ADObservePlaceholder7379(id application,id original){
+    if(!ADLaunchProbeArmed7351())return;
+    @try {
+        NSString *bundle=nil;
+        @try { bundle=[application valueForKey:@"bundleIdentifier"]; } @catch(__unused NSException *e){}
+        if(![bundle isEqual:kAMZ])return;
+        UIView *root=[original isKindOfClass:UIView.class]?(UIView *)original:nil;
+        if(!root){ADLaunchLog7337(@"xib.observe",@"return=nil-or-nonview");return;}
+        NSMutableArray *parts=[NSMutableArray array];
+        NSMutableArray *queue=[NSMutableArray arrayWithObject:root];
+        NSUInteger visited=0;
+        while(queue.count&&visited++<24){
+            UIView *v=queue.firstObject;[queue removeObjectAtIndex:0];
+            UIColor *layerColor=v.layer.backgroundColor?[UIColor colorWithCGColor:v.layer.backgroundColor]:nil;
+            [parts addObject:[NSString stringWithFormat:@"d=%lu cls=%@ f=%@ b=%@ bg=%@ lbg=%@ a=%.3f h=%d sub=%lu",
+                (unsigned long)visited-1,NSStringFromClass(v.class),NSStringFromCGRect(v.frame),NSStringFromCGRect(v.bounds),
+                ADProbeColor7379(v.backgroundColor),ADProbeColor7379(layerColor),v.alpha,v.hidden?1:0,(unsigned long)v.subviews.count]];
+            if(queue.count<24&&v.subviews.count)[queue addObjectsFromArray:v.subviews];
+        }
+        ADLaunchLog7337(@"xib.observe",[parts componentsJoinedByString:@" | "]);
+    } @catch(__unused NSException *e){ADLaunchLog7337(@"xib.observe.error",nil);}
 }
 
 // UIKit image drawing uses a local context and works for background snapshot
@@ -246,7 +285,21 @@ static UIImage *ADLaunchSnapshotImage7337(XBApplicationSnapshot *snapshot,UIImag
 %end
 %end
 
-// v7.378 retained source correction: do not hook SBDeviceApplicationSceneViewPlaceholderContentViewProvider.
+// v7.379 transition probe: observe the generic scene-placeholder provider without
+// changing its return value. The old v7.337 bug replaced this object; this hook is
+// read-after-%orig only and logs at most 24 view nodes while the explicit arm exists.
+%group ADPlaceholderProbe7379
+%hook SBDeviceApplicationSceneViewPlaceholderContentViewProvider
+- (id)_loadLiveXIBViewForApplication:(id)application {
+    id original=%orig;
+    ADObservePlaceholder7379(application,original);
+    return original;
+}
+%end
+%end
+
+// v7.379 retained production correction: do not replace or mutate the generic placeholder.
+// The probe-only group above may observe its post-%orig return while explicitly armed.
 // Unlike XBApplicationSnapshot, _loadLiveXIBViewForApplication: carries no snapshot kind or
 // launch-request provenance. The v7.337 artwork branch replaced that generic provider for every
 // Amazon invocation, including invocations that can participate in scene placeholder continuity.
@@ -258,13 +311,15 @@ static UIImage *ADLaunchSnapshotImage7337(XBApplicationSnapshot *snapshot,UIImag
     if(!ADSBEnabled())return;
     BOOL factory=class_getClassMethod(objc_getClass("XBApplicationSnapshotManifestImpl"),@selector(_configureSnapshot:withCompatibilityInfo:forLaunchRequest:))!=NULL;
     BOOL wrapper=class_getInstanceMethod(objc_getClass("XBApplicationSnapshotImage"),@selector(initWithSnapshot:interfaceOrientation:))!=NULL;
+    BOOL placeholder=class_getInstanceMethod(objc_getClass("SBDeviceApplicationSceneViewPlaceholderContentViewProvider"),@selector(_loadLiveXIBViewForApplication:))!=NULL;
     // Image loading consults UIScreen; UIKit is not ready during dyld startup.
     // Keep startup diagnostics free of UIKit calls, including helper arguments.
-    ADLaunchLog7337(@"ctor",[NSString stringWithFormat:@"version=7.378~cold-artwork-no-generic-xib base=v7.338 snapshotClass=%d factory=%d wrapper=%d logo=deferred",
-        objc_getClass("XBApplicationSnapshot")!=Nil,factory,wrapper]);
+    ADLaunchLog7337(@"ctor",[NSString stringWithFormat:@"version=7.379~cold-artwork-no-generic-xib base=v7.338 snapshotClass=%d factory=%d wrapper=%d placeholderProbe=%d logo=deferred",
+        objc_getClass("XBApplicationSnapshot")!=Nil,factory,wrapper,placeholder]);
     @autoreleasepool {
         @try { %init; } @catch (__unused NSException *e) {}
         if(factory){ @try { %init(ADLaunchFactory7337); } @catch(__unused NSException *e){} }
         if(wrapper){ @try { %init(ADLaunchImageWrapper7337); } @catch(__unused NSException *e){} }
+        if(placeholder){ @try { %init(ADPlaceholderProbe7379); } @catch(__unused NSException *e){} }
     }
 }

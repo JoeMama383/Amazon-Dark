@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 sb=ROOT/'src/AmazonDarkSB.xm'
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.378~byg-outline-one-shot-reload' in ctl
-assert '#define AD_VERSION "v7.378-byg-outline-one-shot-reload"' in t
+assert 'Version: 7.379~teal-transition-forensics-claude-audit' in ctl
+assert '#define AD_VERSION "v7.379-teal-transition-forensics-claude-audit"' in t
 for s in [
     'AmazonDarkSplashSeal7350',
     'AmazonDarkSplashSealLogo7350',

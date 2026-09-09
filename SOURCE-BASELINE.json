@@ -1,17 +1,23 @@
 {
-  "version": "7.378~byg-outline-one-shot-reload",
-  "direct_parent": "7.377~byg-stepper-hydration-switcher-source-fix",
-  "parent_tweak_sha256": "5c6e822b12cb05665f202a0e326d4eba8082878d1a08701f01cff537d4100b2f",
-  "parent_sb_sha256": "c09de10cd78e9524d45543766b798d3c5d36c08df01f8cd030aa8b9649f385c5",
+  "version": "7.379~teal-transition-forensics-claude-audit",
+  "direct_parent": "7.378~byg-outline-one-shot-reload",
+  "parent_tweak_sha256": "9634b267097c3d18445b265efa3e8f4412e3f54bb88ac1212907aefd85f39c09",
+  "parent_sb_sha256": "f75490927eadb6461f7bfc7f095319a9f081166e6272e44e01fa684b506bc7ad",
   "evidence": {
-    "collapsed_plus_outline": "v7.377 FULL: B07MHJFRBJ submit.addToCart is 32x32 radius 100px with correct #303335/#747a7c paint but focused outline 2px rgb(136,140,140) solid",
-    "crayola_sparse": "v7.377 FULL remains 24 faceouts / 23 ATC trees through post-sweep; row2/col2 is image+title only, no price/details tail and no ATC subtree",
-    "v7377_nudge_failed": "the same sparse card survives the full finite DOM/scroll sweep, proving synchronous 1px scroll/resize activation does not recover the renderer",
-    "historical_recovery": "manual/document refresh previously produces the real Amazon ATC subtree; one reload can therefore be evidence-scoped and guarded against loops"
+    "teal_live_vs_switcher": "prior FULL/native evidence shows Amazon live hierarchy black while switcher/warm artifact is ~RGB(9,87,99); v7.377 removal of generic XIB replacement did not eliminate the device symptom",
+    "probe_gap": "v7.378 transition mode terminates at UIApplicationDidEnterBackground, so it cannot correlate the same process through switcher dwell and warm return",
+    "remaining_springboard_paths": "XBApplicationSnapshot accessors are provenance-aware and veto SceneContent; generic placeholder provider now passes through but was not being passively observed",
+    "claude_adtwb": "three ADTWB video-overlay alpha slots require shade, not factor",
+    "claude_standalone": "ADStandalonePaintJS7104 uses 12 mixed %.4f/%.3f slots; positional audit maps brightness to factor and rgba alpha to shade",
+    "claude_ci": "GitHub ship path must run lint plus the Python regression suite before Theos packaging"
   },
   "intentional_changes": [
-    "remove only the exact checkout BYG add-button focus/active outline and tap highlight",
-    "replace failed synchronous renderer nudge with one sessionStorage-guarded reload for exact one-sparse-card signature",
-    "advance package/app/probe diagnostic identity to v7.378; no launch/switcher production-policy change"
+    "no production teal/switcher visual mutation is added; current v7.378 launch/snapshot behavior is preserved while evidence is collected",
+    "transition probe survives background and warm return for up to 120 seconds in the same Amazon process",
+    "record a synchronous lifecycle-window census so transient model/presentation background planes cannot hide between display-link frames",
+    "add read-after-%orig, arm-gated logging of the generic SpringBoard live-XIB placeholder return without modifying it",
+    "retain provenance-only XBApplicationSnapshot production policy and SceneContent/protected veto",
+    "lock Claude's ADStandalone/ADTWB factor-vs-shade positional mappings in a regression test",
+    "retain strict CI enforcement through actions/setup-python and AD_STRICT_VALIDATE=1 scripts/validate.sh"
   ]
 }

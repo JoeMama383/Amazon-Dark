@@ -1,6 +1,9 @@
 // Opt-in diagnostics only. Included in Amazon's Tweak.xm, never AmazonDarkSB.
 // A valid arm file must exist BEFORE this Amazon process starts. No arming on
-// warm resume, no new lifecycle hooks, no CSS/geometry/scroll/snapshot writes.
+// warm resume, no production lifecycle mutation, no CSS/geometry/scroll/snapshot writes.
+// v7.379 transition mode is intentionally multi-cycle: it survives one or more
+// background/foreground passes so the app-switcher snapshot and warm return can be
+// correlated in one fresh-process trace. Launch mode still stops at first background.
 #import <sys/stat.h>
 #import <fcntl.h>
 #import <errno.h>
@@ -78,6 +81,47 @@ static BOOL ADSkelBright7339(id c){
     return [c isKindOfClass:NSArray.class]&&[(NSArray *)c count]==4&&[c[3] doubleValue]>.15&&
         [c[0] doubleValue]*.2126+[c[1] doubleValue]*.7152+[c[2] doubleValue]*.0722>.59;
 }
+// v7.379 teal trace: take a synchronous, read-only census at lifecycle boundaries.
+// The switcher snapshot is requested immediately around resignation/backgrounding, so a
+// display-link-only recorder can miss a transient window/background plane. Record every
+// current UIWindow plus its root and top direct child without changing any hierarchy state.
+static NSArray *ADSkelLifecycleWindows7379(void){
+    NSMutableArray *out=[NSMutableArray array];
+    @try {
+        for(UIWindow *w in UIApplication.sharedApplication.windows){
+            if(out.count>=16)break;
+            CALayer *wp=w.layer.presentationLayer;
+            UIView *top=w.subviews.lastObject;
+            CALayer *tp=top.layer.presentationLayer;
+            NSMutableDictionary *d=[@{
+                @"ptr":[NSString stringWithFormat:@"%p",w],
+                @"class":NSStringFromClass(w.class)?:@"",
+                @"frame":ADSkelRect7339(w.frame),
+                @"level":@(w.windowLevel),
+                @"hidden":@(w.hidden),
+                @"alpha":@(w.alpha),
+                @"bg":ADSkelColor7339(w.backgroundColor.CGColor),
+                @"layerBG":ADSkelColor7339(w.layer.backgroundColor),
+                @"presentationBG":ADSkelColor7339(wp.backgroundColor),
+                @"presentationOpacity":wp?(id)@(wp.opacity):[NSNull null],
+                @"root":w.rootViewController?NSStringFromClass(w.rootViewController.class):@"",
+                @"subviews":@(w.subviews.count)
+            } mutableCopy];
+            if(top){
+                d[@"topClass"]=NSStringFromClass(top.class)?:@"";
+                d[@"topFrame"]=ADSkelRect7339(top.frame);
+                d[@"topHidden"]=@(top.hidden);
+                d[@"topAlpha"]=@(top.alpha);
+                d[@"topBG"]=ADSkelColor7339(top.backgroundColor.CGColor);
+                d[@"topLayerBG"]=ADSkelColor7339(top.layer.backgroundColor);
+                d[@"topPresentationBG"]=ADSkelColor7339(tp.backgroundColor);
+                d[@"topPresentationOpacity"]=tp?(id)@(tp.opacity):[NSNull null];
+            }
+            [out addObject:d];
+        }
+    } @catch(...) {}
+    return out;
+}
 static NSString *ADSkelName7339(NSString *s){
     // Technical identifiers/classes only. No labels, text, view descriptions or URLs.
     if(![s isKindOfClass:NSString.class])return @"";
@@ -126,6 +170,8 @@ static void ADSkelSplash7339(UIViewController *vc,NSString *phase){
 @property(nonatomic,strong) CADisplayLink *link;
 @property(nonatomic,strong) NSMutableArray *observers;
 @property(nonatomic) BOOL finished;
+@property(nonatomic) NSUInteger backgroundCycles;
+@property(nonatomic) NSUInteger foregroundCycles;
 @property(nonatomic,strong) NSMutableDictionary *previous;
 @property(nonatomic) NSUInteger ticks;
 @property(nonatomic) NSUInteger clipped;
@@ -239,8 +285,8 @@ static void ADSkelInstall7339(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(!docs.length)return;
-        ADSkelArmPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.378-probe.arm"];
-        ADSkelStatusPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.378-probe-status.json"];
+        ADSkelArmPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.379-probe.arm"];
+        ADSkelStatusPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.379-probe-status.json"];
         NSError *error=nil;
         NSString *arm=[NSString stringWithContentsOfFile:ADSkelArmPath7339 encoding:NSUTF8StringEncoding error:&error];
         if(!arm){
@@ -258,9 +304,9 @@ static void ADSkelInstall7339(void){
         NSString *label=parts[1];if(![@[@"home",@"cart",@"both",@"launch",@"transition"] containsObject:label]){ADSkelStatus7339(@"arm-invalid-mode",0);return;}
         ADSkelLaunchOnly7339=[label isEqualToString:@"launch"];
         ADSkelTransition7339=[label isEqualToString:@"transition"];
-        ADSkelUntil7339=MIN(expiry,now+(ADSkelLaunchOnly7339?20:(ADSkelTransition7339?45:120)));
+        ADSkelUntil7339=MIN(expiry,now+(ADSkelLaunchOnly7339?20:(ADSkelTransition7339?120:120)));
         ADSkelSession7339=[NSString stringWithFormat:@"%.0f-%d-%@",now*1000,getpid(),label];
-        ADSkelPath7339=[docs stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.378-skeleton-%@.jsonl",ADSkelSession7339]];
+        ADSkelPath7339=[docs stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.379-skeleton-%@.jsonl",ADSkelSession7339]];
         int fd=open(ADSkelPath7339.fileSystemRepresentation,O_WRONLY|O_CREAT|O_EXCL,0600);
         if(fd<0){ADSkelStatus7339(@"capture-create-failed",errno);ADSkelUntil7339=0;return;}
         close(fd);ADSkelStatus7339(@"capture-started",0);
@@ -276,7 +322,7 @@ static void ADSkelInstall7339(void){
         ADSkelProbe7339=[ADSkeletonProbe7339 new];ADSkelProbe7339.previous=[NSMutableDictionary dictionary];
         NSMutableDictionary *record=[ADSkelEvent7339(@"SESSION_START") mutableCopy];
         record[@"version"]=@AD_VERSION;record[@"until"]=@(ADSkelUntil7339*1000);record[@"label"]=label;
-        record[@"mode"]=label;record[@"policy"]=@"read-only; no text/URLs/pixels; transition=web+launch-detail max45s; skeleton=max120s; launch=native-only max20s; max20MiB; truncation explicit; no fade or timing writes";
+        record[@"mode"]=label;record[@"policy"]=@"read-only; no text/URLs/pixels; transition=web+launch-detail max120s and survives background/warm-return cycles; skeleton=max120s; launch=native-only max20s; max20MiB; truncation explicit; no fade or timing writes";
         ADSkelWrite7339(record);
         // Foundation notification observers are opt-in. No lifecycle state is modified.
         if(ADSkelLaunchDetail7339()){
@@ -284,8 +330,23 @@ static void ADSkelInstall7339(void){
             for(NSString *name in @[UIApplicationDidFinishLaunchingNotification,UISceneWillConnectNotification,
                 UIApplicationWillEnterForegroundNotification,UIApplicationDidBecomeActiveNotification,UIApplicationWillResignActiveNotification,UIApplicationDidEnterBackgroundNotification]){
                 id token=[NSNotificationCenter.defaultCenter addObserverForName:name object:nil queue:NSOperationQueue.mainQueue usingBlock:^(NSNotification *n){
-                    NSMutableDictionary *r=[ADSkelEvent7339(@"APP_LIFECYCLE") mutableCopy];r[@"notification"]=n.name;ADSkelWrite7339(r);
-                    if([n.name isEqualToString:UIApplicationDidEnterBackgroundNotification])[ADSkelProbe7339 finish];
+                    NSMutableDictionary *r=[ADSkelEvent7339(@"APP_LIFECYCLE") mutableCopy];
+                    r[@"notification"]=n.name;
+                    r[@"applicationState"]=@(UIApplication.sharedApplication.applicationState);
+                    r[@"windows"]=ADSkelLifecycleWindows7379();
+                    if([n.name isEqualToString:UIApplicationDidEnterBackgroundNotification]){
+                        ADSkelProbe7339.backgroundCycles++;
+                        r[@"backgroundCycle"]=@(ADSkelProbe7339.backgroundCycles);
+                    } else if([n.name isEqualToString:UIApplicationDidBecomeActiveNotification]){
+                        ADSkelProbe7339.foregroundCycles++;
+                        r[@"foregroundCycle"]=@(ADSkelProbe7339.foregroundCycles);
+                    }
+                    ADSkelWrite7339(r);
+                    // Launch capture is complete once the fresh process backgrounds.
+                    // Transition capture deliberately remains armed so the same PID can
+                    // record the app-switcher dwell and the subsequent warm return.
+                    if(ADSkelLaunchOnly7339&&[n.name isEqualToString:UIApplicationDidEnterBackgroundNotification])
+                        [ADSkelProbe7339 finish];
                 }];
                 if(token)[ADSkelProbe7339.observers addObject:token];
             }

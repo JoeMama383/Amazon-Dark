@@ -4,8 +4,8 @@ import hashlib,re,subprocess,tempfile
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.378~byg-outline-one-shot-reload' in CTRL
-assert '#define AD_VERSION "v7.378-byg-outline-one-shot-reload"' in S
+assert 'Version: 7.379~teal-transition-forensics-claude-audit' in CTRL
+assert '#define AD_VERSION "v7.379-teal-transition-forensics-claude-audit"' in S
 
 def func(name):
     st=S.index(f'static NSString *{name}')

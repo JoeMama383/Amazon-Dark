@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.378-byg-outline-one-shot-reload"
+#define AD_VERSION "v7.379-teal-transition-forensics-claude-audit"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;

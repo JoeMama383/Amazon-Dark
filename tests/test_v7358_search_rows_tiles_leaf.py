@@ -1,8 +1,8 @@
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.378~byg-outline-one-shot-reload' in ctl
-assert '#define AD_VERSION "v7.378-byg-outline-one-shot-reload"' in t
+assert 'Version: 7.379~teal-transition-forensics-claude-audit' in ctl
+assert '#define AD_VERSION "v7.379-teal-transition-forensics-claude-audit"' in t
 # Search regression: v7.357 structural seal must not recolor stock row/close-button borders or outlines.
 needle='body>:is(div,section,main,footer),#a-page>:is(div,section,main,footer),#attach-to-me>:is(div,section,main,footer)'
 i=t.index(needle); rule=t[i:t.index('}',i)+1]

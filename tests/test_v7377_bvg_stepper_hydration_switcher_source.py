@@ -6,8 +6,8 @@ C=(ROOT/'layout/DEBIAN/control').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 
-assert 'Version: 7.378~byg-outline-one-shot-reload' in C
-assert '#define AD_VERSION "v7.378-byg-outline-one-shot-reload"' in S
+assert 'Version: 7.379~teal-transition-forensics-claude-audit' in C
+assert '#define AD_VERSION "v7.379-teal-transition-forensics-claude-audit"' in S
 
 # BYG expanded quantity control is the same dark/gray/light contract as Cart.
 for token in [
@@ -32,17 +32,23 @@ for bad in ['MutationObserver','setInterval','setTimeout','requestAnimationFrame
     assert bad not in hyd, bad
 
 # Warm/switcher source correction: only provenance-bearing snapshot resources are mutated.
-assert '%hook SBDeviceApplicationSceneViewPlaceholderContentViewProvider' not in SB
-assert '_loadLiveXIBViewForApplication:(id)application {' not in SB
+# v7.379 adds a passive read-after-%orig placeholder observer for the armed transition probe,
+# but it never replaces or recolors the returned live view.
+xib=SB[SB.index('%hook SBDeviceApplicationSceneViewPlaceholderContentViewProvider'):
+       SB.index('%end',SB.index('%hook SBDeviceApplicationSceneViewPlaceholderContentViewProvider'))]
+assert 'id original=%orig;' in xib and 'return original;' in xib
+assert 'ADObservePlaceholder7379(application,original);' in xib
+for bad in ['UIImageView *replacement','ADLaunchArtwork7337(','addSubview','removeFromSuperview','backgroundColor=']:
+    assert bad not in xib,bad
 assert '%hook XBApplicationSnapshot' in SB
 assert 'kind==ADKindScene7337)return 0;' in SB
-assert 'version=7.378~cold-artwork-no-generic-xib base=v7.338' in SB
+assert 'version=7.379~cold-artwork-no-generic-xib base=v7.338' in SB
 for bad in ['task-switcher','switcher-release','WarmSnapshotCover','UIApplicationDidEnterBackgroundNotification']:
     assert bad not in S, bad
 
 # Probe identity must match the installed build; v7.376 shipped a stale v7.375/7.374 header/body label.
-assert 'AMAZONDARK v7.378 UNIVERSAL' in INC
-assert "version:'7.378'" in JS
-assert 'AmazonDark-v7.378-ui-viewport.arm' in INC
+assert 'AMAZONDARK v7.379 UNIVERSAL' in INC
+assert "version:'7.379'" in JS
+assert 'AmazonDark-v7.379-ui-viewport.arm' in INC
 
-print('PASS: v7.377-established BYG stepper/switcher/probe contracts remain under v7.378')
+print('PASS: v7.377-established BYG stepper/switcher/probe contracts remain under v7.379')

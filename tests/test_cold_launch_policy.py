@@ -64,6 +64,7 @@ def main():
         "XBApplicationSnapshot",
         "XBApplicationSnapshotManifestImpl",
         "XBApplicationSnapshotImage",
+        "SBDeviceApplicationSceneViewPlaceholderContentViewProvider",
     ], hooks
     forbidden = [
         "SBIconView", "SBSceneView", "processState", "isRunning",
@@ -85,8 +86,16 @@ def main():
         assert method in source
     assert 'format.opaque=YES' in source
     assert '[[UIColor blackColor] setFill]' in source
-    assert 'version=7.378~cold-artwork-no-generic-xib base=v7.338' in source
-    assert "Version: 7.378~byg-outline-one-shot-reload\n" in (ROOT / "layout/DEBIAN/control").read_text()
+    # v7.379 may passively observe the generic placeholder only while the explicit
+    # transition arm exists; it must always return %orig unchanged.
+    xib=source[source.index('%hook SBDeviceApplicationSceneViewPlaceholderContentViewProvider'):
+               source.index('%end',source.index('%hook SBDeviceApplicationSceneViewPlaceholderContentViewProvider'))]
+    assert 'id original=%orig;' in xib and 'ADObservePlaceholder7379(application,original);' in xib
+    assert 'return original;' in xib
+    for bad in ['UIImageView *replacement','ADLaunchArtwork7337(','addSubview','removeFromSuperview','backgroundColor=']:
+        assert bad not in xib,bad
+    assert 'version=7.379~cold-artwork-no-generic-xib base=v7.338' in source
+    assert "Version: 7.379~teal-transition-forensics-claude-audit\n" in (ROOT / "layout/DEBIAN/control").read_text()
     # v7.351 changes only the optional file logger gate in SpringBoard. The actual
     # launch-artwork policy/render/selection functions remain byte-identical to accepted v7.350.
     def static_block(name):
@@ -116,7 +125,7 @@ def main():
     for name,digest in expected.items():
         assert hashlib.sha256(static_block(name).encode()).hexdigest()==digest,name
     assert 'if(!ADLaunchProbeArmed7351())return;' in source
-    print("PASS: v7.378 preserves accepted snapshot cold-artwork policy while removing generic XIB mutation")
+    print("PASS: v7.379 preserves accepted snapshot cold-artwork policy; generic XIB is passive probe-only")
 
 
 

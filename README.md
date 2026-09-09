@@ -1,3 +1,20 @@
+# AmazonDark v7.379 — teal transition forensics / Claude audit lock
+
+Direct parent: **v7.378~byg-outline-one-shot-reload**.
+
+This build deliberately does **not** add another app-switcher cover or guessed teal painter. The teal card still exists after v7.377 removed the unscoped live-XIB replacement, while earlier FULL/native evidence shows the live Amazon hierarchy black. v7.379 therefore closes the remaining evidence gap before changing production snapshot ownership.
+
+- **Transition probe now follows the same Amazon process through the switcher and warm return.** `transition` stays armed for up to 120 seconds instead of terminating at `UIApplicationDidEnterBackground`. It records background/foreground cycle numbers and a synchronous census of every current `UIWindow`, root controller, top direct child, model/presentation backgrounds, opacity, level, frame, alpha and hidden state at each lifecycle notification. This is read-only.
+- **SpringBoard generic placeholder is observed, never replaced.** While the explicit transition arm is valid, `_loadLiveXIBViewForApplication:` is hooked read-after-`%orig` solely to log the returned view tree (bounded to 24 nodes). The exact original object is returned unchanged. No view is inserted, recolored, hidden or substituted.
+- **Production snapshot policy is unchanged from v7.378.** `XBApplicationSnapshot` remains the only SpringBoard image replacement owner; `SceneContent` and protected snapshots are still hard vetoes. The v7.350 exact AXU/Tez cold-splash seal remains.
+- **Claude ADTWB finding was already fixed.** The three video-overlay `rgba(0,0,0,alpha)` slots use `shade`, not `factor`. v7.379 adds a static regression so that positional mapping cannot drift.
+- **Claude's open `ADStandalonePaintJS7104` audit is now closed clean.** Its 12 float slots are `%.4f, %.4f, %.3f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.3f`; the exact argument mapping is `factor,factor,shade,factor,factor,factor,factor,factor,factor,factor,factor,shade`. Both alpha slots use `shade`; all brightness slots use `factor`. No production change is needed there.
+- **The CI disconnect was already repaired and is now regression-locked.** GitHub Actions installs Python and runs `AD_STRICT_VALIDATE=1 sh scripts/validate.sh` before Theos packaging; the validator always runs Logos lint and requires all Python tests in strict/CI mode. The phone push remains dependency-free.
+
+v7.378's BYG focus-outline and one-shot sparse-card recovery are unchanged. No MutationObserver, recurring timer, RAF loop, polling scanner, snapshot cover, warm splash visibility state machine, or fake control is introduced.
+
+---
+
 # AmazonDark v7.378 — BYG focus-outline cleanup / one-shot real-renderer recovery
 
 Direct parent: **v7.377~byg-stepper-hydration-switcher-source-fix**.
