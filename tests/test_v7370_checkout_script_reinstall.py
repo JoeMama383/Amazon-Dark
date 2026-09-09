@@ -4,8 +4,8 @@ import hashlib,re,subprocess,tempfile
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.374~byg-price-checkout-first-paint' in CTRL
-assert '#define AD_VERSION "v7.374-byg-price-checkout-first-paint"' in S
+assert 'Version: 7.375~checkout-prepaint-snapshot-hydration' in CTRL
+assert '#define AD_VERSION "v7.375-checkout-prepaint-snapshot-hydration"' in S
 
 def func(name):
     st=S.index(f'static NSString *{name}')
@@ -19,7 +19,7 @@ def func(name):
 
 # v7.370 must not modify the shared WebUI/TWB programs that v7.369 restored from v7.367.
 assert hashlib.sha256(func('ADFloorJS').encode()).hexdigest() == '5fcc2badb75d385b84a9e67a1daab376c1dd277479c6c1071ead93e3ee96221d'
-assert hashlib.sha256(func('ADTWBJS').encode()).hexdigest() == '74035e2572891f3b6014522bf4838d19a72a1dc1dfb894363eb8fec53cae5dd9'
+assert hashlib.sha256(func('ADTWBJS').encode()).hexdigest() == 'a86f3c1257f32380057eb6c8c99c1c75e2c98f1fc5529364f4304feaa33821a3'
 assert hashlib.sha256(func('ADCoreWebJS7271').encode()).hexdigest() == 'e3d9e2edec398c434986eb423aa1d9a4a4fbde73db21d19be5727934a517f480'
 
 floor=func('ADCheckoutFloorJS7369')
@@ -69,7 +69,7 @@ assert 'i.a-icon-prime' in twb and 'sustainability-green-leaf-alignment-updated'
 for forbidden in ['#gwm-Deck','hp-mosaic','single-creative-card','video.vjs-tech']:
     assert forbidden not in twb
 
-# Native header: exact checkout scope, all-label title search, and light title/DONE restoration.
+# Native header: exact checkout scope, all-label title search, and light title/DONE/back ownership.
 for token in ['AMSModalLayoutFullScreenViewController','ADCheckoutTitleMatches7369','Place Your Order',
               'ADOwnCheckoutNav7369','kADCheckoutNavLabelOldColor7370']:
     assert token in S,token
@@ -77,7 +77,8 @@ title=S[S.index('static BOOL ADCheckoutTitleMatches7369'):S.index('static BOOL A
 assert 'return YES' in title and 'while(stack.count&&visited++<64)' in title
 nav=S[S.index('static void ADOwnCheckoutNav7369'):S.index('%hook _UIBarBackground')]
 assert 'label.textColor=ADLightText706();' in nav
-assert 'objc_setAssociatedObject(label,kADCheckoutNavLabelOldColor7370,nil' in nav
+assert 'ADMarkCheckoutNav7375(nav);' in nav
+assert 'nav.tintColor=[UIColor whiteColor];' in nav
 
 # Checkout floor program itself must be valid JavaScript after concatenating Objective-C literals.
 # This specifically guards against the v7.368 quote/string regression.

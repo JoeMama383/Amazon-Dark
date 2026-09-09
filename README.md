@@ -1,21 +1,16 @@
-# AmazonDark v7.374 — BYG neutral price + checkout first paint
+# AmazonDark v7.375 — checkout prepaint / warm snapshot / BYG hydration
 
-Direct parent: **v7.373~checkout-delivery-press-state**
-Parent `src/Tweak.xm` SHA-256: `bd4d29a9e14bc5b1977890d545781e707ddbb7e731f848a3b8932f9c3f41534d`
+Direct parent: **v7.374~byg-price-checkout-first-paint**  
+Parent `src/Tweak.xm` SHA-256: `9b320db93e2bdae3b416e8ca0958821bc54e1fcc6b6048caf2694db1b302c743`
 
-The supplied v7.373 probes isolate the remaining issues:
+This is a narrow stabilization release. It preserves the working v7.374 menu, checkout-body, BYG price, dynamic Prime/red/green/blue, loader, press-state, and quantity-control styling while addressing the remaining timing defects.
 
-- BYG current-price text uses `span.a-price[class*=_mobileDenseGridPriceToPay_]` and
-  computes stock `rgb(15,17,17)`. v7.374 flips only that neutral current-price family
-  light. Authored red discounts/deals remain untouched.
-- The center/lower recommendation card shown without a plus button has no
-  `submit.addToCart`, `_denseGridAxSpotAtcButton_`, or other ATC descendant in the captured
-  DOM. v7.374 does not synthesize a fake control Amazon did not provide.
-- Checkout FULL r2 proves the initial `_UIBarBackground` is already OLED black but its
-  direct image-bearing `UIImageView` is still `hidden=0`; after the probe's finite sweep
-  it becomes `hidden=1`. v7.374 runs the existing checkout-nav owner from
-  `UINavigationBar`'s initial `didMoveToWindow` / `layoutSubviews`, so the yellow image
-  plane is suppressed during initial layout instead of waiting for a scroll-triggered
-  relayout.
+- **Checkout transition first paint:** the incoming `AMSModalLayoutFullScreenViewController` now primes its OLED root/navigation appearance before UIKit composites the presentation. The direct `_UIBarBackground` image leaf is hidden by structural modal ownership, and the exact Amazon tan `rgba(0.929,0.733,0.506,1)` transition plane is claimed even when its model height is zero.
+- **Duplicate checkout pass:** v7.374's `UINavigationBar` / `_UIBarBackground` checkout `layoutSubviews` reassertions are removed. Ownership is event-driven before the transition instead of mutating the hierarchy during the animation. A state/identity guard only rejects a provably redundant second request from the same presenter while the first checkout is still live; there is no time debounce.
+- **Checkout back arrow:** all checkout `UINavigationBarAppearance` states and late tint writes are scoped to OLED + white bar-button/back-button tint.
+- **Warm app switcher/resume:** a per-primary-window black snapshot cover is installed synchronously when the app backgrounds and is removed at `DidBecomeActive`, eliminating the stale teal task-switcher/warm-entry plane without adding another modal.
+- **Missing BYG `+`:** no fake control is created. At normal load/pageshow, one exact sparse-card signature can trigger one synchronous layout/carousel/resize nudge so Amazon's own dense-grid renderer gets one chance to insert the real ATC subtree. No reload, MutationObserver, timer, RAF, or recurring scanner is used.
+- **TWB video overlays:** fixes Claude's confirmed `factor`/`shade` swap in the three `rgba(0,0,0,alpha)` search/video overlay slots. `ADStandalonePaintJS7104` was audited position-by-position and remains correct.
+- **Release validation:** the phone-safe push flow always runs `scripts/lint-logos.sh` and runs the Python regression suite when `python3` is installed. GitHub Actions explicitly installs Python and runs `AD_STRICT_VALIDATE=1 sh scripts/validate.sh`, so all 28 Python regressions are mandatory before packaging. The Playwright-based `.cjs` render fixtures remain developer tests rather than a phone/ship-path dependency.
 
-No shared WebUI renderer is broadened and no recurring runtime mechanism is added.
+Universal probe workflow remains two categories only: screenshot-triggered **FULL** and armed **VIEWPORT**.

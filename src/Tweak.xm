@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.371 — reliable isolated checkout theming on v7.369
+ * AmazonDark v7.375 — checkout prepaint, single-pass transition, warm snapshot, and BYG hydration
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.374-byg-price-checkout-first-paint"
+#define AD_VERSION "v7.375-checkout-prepaint-snapshot-hydration"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -61,6 +61,7 @@ extern char *__progname;
 @interface SBMultilineSearchView : UIView @end
 @interface A9VSScanItSearchWidget : UIView @end
 @interface GlowIngressView : UIView @end
+@interface AMSModalLayoutFullScreenViewController : UIViewController @end
 
 // v7.129: exact UIKit transition / WebKit text-selection surfaces proven by the
 // v7.128 held-row probe. These remain Amazon-process-local through the tweak filter.
@@ -555,6 +556,7 @@ static const void *kADCoreWebUS7271=&kADCoreWebUS7271;
 static const void *kADTWBUS=&kADTWBUS;
 static const void *kADCheckoutFloorUS7369=&kADCheckoutFloorUS7369;
 static const void *kADCheckoutTWBUS7369=&kADCheckoutTWBUS7369;
+static const void *kADCheckoutBYGHydrateUS7375=&kADCheckoutBYGHydrateUS7375;
 static const void *kADPrivacyUS7117=&kADPrivacyUS7117;
 static const void *kADPrivacyRule7117=&kADPrivacyRule7117;
 static const void *kADTrackedWebView7191=&kADTrackedWebView7191;
@@ -1378,7 +1380,7 @@ static NSString *ADTWBJS(void){
         @"re([class*=prime] *)):not(:where([class*=rating] *)):not(:where([class*=star] *)):not(:where([class*=sponsored] *)):not(:where([class*=ad-feedback] *)):not(:where([class*=adFeedback] *)):not(:where([data-testid=prime-badge] *)):not(:where([data-testid=ratings-stars] *)):not(:where([id^=ad-feedback-] *)):not(:where([id^=af-label-] *)),[class*=hp-mosaic-container] :is(img,svg):not([class*=next]):not([class*=prev]):not([class*=chevron]):not([class*=arrow]):not(:where([class*=next] *)):not(:where([class*=prev] *)):not(:where([class*=chevron] *)):not(:where([class*=arrow] *)):not([class*=header-icon]):not([class*=ad-feedback]):not([class*=sponsored]):not([class*=spr]),[class*=_mosaic-container_style_widgetContainer] :is(img,svg):not([class*=next]):not([class*=prev]):not([class*=chevron]):not([class*=arrow]):not(:where([class*=next] *)):not(:where([class*=prev] *)):not(:where([class*=chevron] *)):not(:where([class*=arrow] *)):not([class*=header-icon]):not([class*=ad-feedback]):not([class*=sp"
         @"onsored]):not([class*=spr]),#gwm-window [id^=wd-shoppable-] :is(img,video,canvas):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([class*=logo]):not([class*=badge]):not(:where([data-ad-feedback-label-id] *)):not(:where([class*=ad-feedback] *)),#gwm-Deck-atf [id^=ape_][id$=_mshop_placement][style*=\\\"320 / 50\\\"] img.ad-background-image.mrc-btr-creative,img[class*=_single-creative-card],img[class*=_single-video-card],[class*=single-creative-card] img,[class*=single-video-card] img,[class*=single-video-card] video,[class*=canvas-card] canvas,video.vjs-tech,video[class*=_npack-asin-card_style_background-video__],[class*=_npack-asin-card_style_background-video-container__] > video[class*=_npack-asin-card_style_motion-content__]{filter:brightness(%.3f)!important;}:is([class*=theming-card-background],[class*=_npack-asin-card_style_theming-background-override__]) [class*=_npack-asin-card_style_asin-container-white__]{background:#000!important;background-color:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;transition"
         @"-property:none!important;}[class*=theming-card-background],[class*=vjs-poster],[class*=single-creative-card-background],[class*=single-video-card-background],[class*=single-creative-card] [class*=theming-card-background],[class*=single-video-card] [class*=theming-card-background],[class*=single-video-card] [class*=vjs-poster],:is([class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=_npack-asin-card],[class*=npack-asin-card],[class*=canvas-card],[class*=canvas-container]):is([style*=background-image],[style*=backgroundImage]),:is([class*=single-creative-card],[class*=single-video-card],[class*=theming-card],[class*=_npack-asin-card],[class*=npack-asin-card],[class*=canvas-card],[class*=canvas-container]) :is([style*=background-image],[style*=backgroundImage]){box-shadow:inset 0 0 0 9999px rgba(0,0,0,%.3f)!important;transition-property:none!important;}.video-js .vjs-poster[style*=background-image],.vjs-poster.vjs-poster[style*=background-image]{box-shadow:none!important;filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;transition:none!important;}\");}if(document.readyState==='loading')window.addEventListener('load',function(){relink(s);},{once:true});else relink(s);}catch(e){}})();",
-        factor,factor,factor,factor,factor,factor,factor,factor,factor,factor,factor,shade,factor,factor];
+        factor,factor,factor,factor,factor,shade,shade,shade,factor,factor,factor,shade,factor,factor];
     gADTWBJSStrength7191=strengthKey;
     gADTWBJSCached7191=built;
     return built;
@@ -1480,6 +1482,20 @@ static NSString *ADCheckoutTWBJS7369(void){
     CGFloat factor=1.0-(0.10+(0.48*t));
     return [NSString stringWithFormat:
         @"(function(){try{function put(id,css){var s=document.getElementById(id);if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}s.textContent=css;return s;}function relink(s){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}var css=`#checkoutDisplayPage .checkout-byg-mobile-container img[class*=_mobileDenseGridImage_],#checkoutDisplayPage img.checkout-product-image{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}#checkoutDisplayPage i.a-icon-prime,#checkoutDisplayPage img.sustainability-green-leaf-alignment-updated{filter:none!important;-webkit-filter:none!important;}`;var s=put('ad7-checkout7369-twb',css);if(document.readyState==='loading')window.addEventListener('load',function(){relink(s)},{once:true});else relink(s);}catch(e){}})();",factor,factor];
+}
+
+// v7.375: the bad/good BYG pair proves that Amazon sometimes publishes one otherwise
+// complete dense-grid faceout without its authored ATC subtree. Do not synthesize a plus and
+// do not reload the page. At the normal top-document load/pageshow boundary, detect only the
+// exact one-card sparse state and give Amazon's existing lazy renderer one synchronous layout /
+// carousel activation nudge. The document marker makes the actual recovery run at most once.
+static NSString *ADCheckoutBYGHydrateJS7375(void){
+    return
+        @"(function(){try{var K='data-ad7375-byg-hydration-nudged';"
+         @"function atc(c){try{return !!c.querySelector('.byg-dense-grid-atc-container,[class*=_denseGridAxSpotAtcOverlay_],[class*=_denseGridAxSpotAtcButton_] button[name=\\\"submit.addToCart\\\"]')}catch(_){return false}}"
+         @"function complete(c){try{return !!(c.querySelector('img')&&c.querySelector('[class*=_mobileDenseGridProductTitle_]')&&c.querySelector('.a-price'))}catch(_){return false}}"
+         @"function heal(){try{var page=document.getElementById('checkoutDisplayPage');if(!page||page.hasAttribute(K))return;var root=page.querySelector('.checkout-byg-mobile-container');if(!root)return;var cards=root.querySelectorAll('[class*=_mobileDenseGridAsinFaceout_]');if(cards.length<6)return;var miss=null,missing=0,healthy=0;for(var i=0;i<cards.length;i++){var c=cards[i];if(atc(c)){healthy++;continue}if(complete(c)){missing++;miss=c}}if(missing!==1||healthy<cards.length-1||!miss)return;page.setAttribute(K,'1');try{miss.getBoundingClientRect()}catch(_){}var vp=null;try{vp=miss.closest('.a-carousel-viewport')||root.querySelector('.a-carousel-viewport')||root}catch(_){}if(vp){try{var x=Number(vp.scrollLeft||0),can=Number(vp.scrollWidth||0)>Number(vp.clientWidth||0)+1;if(can){var d=(x+1<vp.scrollWidth-vp.clientWidth)?1:-1;vp.scrollLeft=x+d;vp.dispatchEvent(new Event('scroll',{bubbles:true}));vp.scrollLeft=x}vp.dispatchEvent(new Event('scroll',{bubbles:true}))}catch(_){}}try{root.dispatchEvent(new Event('scroll',{bubbles:true}));window.dispatchEvent(new Event('resize'))}catch(_){}}catch(_){}}"
+         @"if(document.readyState==='complete')heal();else window.addEventListener('load',heal,{once:true,passive:true});window.addEventListener('pageshow',heal,{once:true,passive:true});}catch(_){}})();";
 }
 
 static NSString *ADPrivacyModeJS7117(void){
@@ -1682,6 +1698,11 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADCheckoutTWBUS7369,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
+        if(!objc_getAssociatedObject(ucc,kADCheckoutBYGHydrateUS7375)){
+            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADCheckoutBYGHydrateJS7375() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:YES];
+            [ucc addUserScript:us];
+            objc_setAssociatedObject(ucc,kADCheckoutBYGHydrateUS7375,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
         if(gP.privacyMode && !objc_getAssociatedObject(ucc,kADPrivacyUS7117)){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADPrivacyModeJS7117() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
@@ -1747,6 +1768,7 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
         // Clear their installation receipts before reattachment or checkout silently loses them.
         objc_setAssociatedObject(self,kADCheckoutFloorUS7369,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADCheckoutTWBUS7369,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(self,kADCheckoutBYGHydrateUS7375,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADPrivacyUS7117,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADAttachScriptsToUCC710(self);
     }
@@ -2002,6 +2024,62 @@ static BOOL ADBrightNeutral7130(UIColor *c){
 // floor through the existing UIView lifecycle/setBackgroundColor hook.
 static const void *kADTransitionBacking7133=&kADTransitionBacking7133;
 static const void *kADPrimaryWindow713=&kADPrimaryWindow713;
+static const void *kADCheckoutTransitionTan7375=&kADCheckoutTransitionTan7375;
+static BOOL gADCheckoutPresentationActive7375=NO;
+static __weak UIViewController *gADCheckoutPresenter7375=nil;
+static __weak UIViewController *gADCheckoutLiveModal7375=nil;
+
+static BOOL ADCheckoutModalController7375(UIViewController *vc){
+    if(!vc)return NO;
+    @try { return [NSStringFromClass(vc.class) isEqualToString:@"AMSModalLayoutFullScreenViewController"]; }
+    @catch(...) { return NO; }
+}
+static BOOL ADCheckoutTransitionTanColor7375(UIColor *c){
+    if(!c)return NO;
+    @try {
+        CGFloat r=0,g=0,b=0,a=0;
+        if(![c getRed:&r green:&g blue:&b alpha:&a])return NO;
+        const CGFloat e=0.012;
+        return a>0.97&&fabs(r-0.929)<e&&fabs(g-0.733)<e&&fabs(b-0.506)<e;
+    } @catch(...) { return NO; }
+}
+static BOOL ADCheckoutTransitionTanPlane7375(UIView *v,UIColor *candidate){
+    if(!gP.enabled||!gADCheckoutPresentationActive7375||!v)return NO;
+    @try {
+        if(objc_getAssociatedObject(v,kADCheckoutTransitionTan7375))return YES;
+        const char *cn=object_getClassName(v);
+        if(!cn||strcmp(cn,"UIView")!=0)return NO;
+        UIColor *c=candidate?:v.backgroundColor;
+        if(!ADCheckoutTransitionTanColor7375(c)){
+            CGColorRef cg=v.layer.backgroundColor;
+            if(!cg)return NO;
+            c=[UIColor colorWithCGColor:cg];
+            if(!ADCheckoutTransitionTanColor7375(c))return NO;
+        }
+        UIWindow *w=v.window;
+        if(w&&!ADPrimaryAmazonWindow713(w,nil)&&!ADClassNameIs7183(w,"AppCXWindow"))return NO;
+        CGFloat sw=w?CGRectGetWidth(w.bounds):CGRectGetWidth(UIScreen.mainScreen.bounds);
+        CGFloat vw=MAX(CGRectGetWidth(v.bounds),CGRectGetWidth(v.frame));
+        // The probe-proven plane can report model height == 0 while its presentation layer
+        // is already moving onscreen. Width + exact color + active checkout is the gate.
+        if(sw>1.0&&vw>1.0&&vw<sw*0.78)return NO;
+        objc_setAssociatedObject(v,kADCheckoutTransitionTan7375,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        return YES;
+    } @catch(...) { return NO; }
+}
+static void ADOwnCheckoutTransitionTanPlanes7375(UIWindow *w){
+    if(!gP.enabled||!gADCheckoutPresentationActive7375||!w)return;
+    @try {
+        if(!ADPrimaryAmazonWindow713(w,nil)&&!ADClassNameIs7183(w,"AppCXWindow"))return;
+        NSMutableArray *stack=[NSMutableArray arrayWithObject:w];
+        NSUInteger visited=0;
+        while(stack.count&&visited++<128){
+            UIView *v=[stack lastObject]; [stack removeLastObject];
+            if(ADCheckoutTransitionTanPlane7375(v,v.backgroundColor))ADSetViewBackground7226(v,ADOLED(),YES);
+            [stack addObjectsFromArray:(v.subviews.copy?:@[])];
+        }
+    } @catch(...) {}
+}
 static BOOL ADMarkedTransitionBacking7133(UIView *v){
     return v && objc_getAssociatedObject(v,kADTransitionBacking7133)!=nil;
 }
@@ -2570,6 +2648,9 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
     // class mounted. No production paint or state change occurs here.
     if(ADSkelActive7339()&&ADClassNameIs7183(self,"AWLoadingIndicatorBarView"))ADCartStripGlobalMountDiag7347(self);
     if(!gP.enabled||!self.window)return;
+    if(ADCheckoutTransitionTanPlane7375(self,self.backgroundColor)){
+        ADSetViewBackground7226(self,ADOLED(),YES); return;
+    }
     // Exact universal native error owner gets first refusal. Avoid even React/AppCX
     // classification on the CNM subtree; this surface is probe-proven UIKit.
     if(ADInCNMErrorView7301(self)){
@@ -2603,6 +2684,11 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
     }
     if(!gP.enabled){
         %orig(color);
+        return;
+    }
+    if(ADCheckoutTransitionTanPlane7375(self,color)){
+        UIColor *black=ADOLED();
+        %orig(black);
         return;
     }
     // Keep CNM ownership ahead of generic React/AppCX classification.
@@ -7339,14 +7425,15 @@ static const void *kADCheckoutNavLabelOldColor7370=&kADCheckoutNavLabelOldColor7
 static const void *kADCheckoutNavButtonOldTint7371=&kADCheckoutNavButtonOldTint7371;
 static const void *kADCheckoutNavButtonOldTitle7371=&kADCheckoutNavButtonOldTitle7371;
 static const void *kADCheckoutNavButtonOldHighlightTitle7371=&kADCheckoutNavButtonOldHighlightTitle7371;
+static const void *kADCheckoutModalOwned7375=&kADCheckoutModalOwned7375;
+static const void *kADCheckoutNavOwned7375=&kADCheckoutNavOwned7375;
+static BOOL gADCheckoutAppearanceWrite7375=NO;
 
 static BOOL ADCheckoutTitleMatches7369(UINavigationBar *nav){
     if(!nav)return NO;
     @try {
         NSString *title=nav.topItem.title;
         if(title.length&&[title rangeOfString:@"Place Your Order" options:NSCaseInsensitiveSearch].location!=NSNotFound)return YES;
-        // v7.370: do not stop at the first label (often DONE). Search every nav descendant
-        // until the actual Place Your Order title is found.
         NSMutableArray *stack=[NSMutableArray arrayWithArray:nav.subviews];
         NSUInteger visited=0;
         while(stack.count&&visited++<64){
@@ -7360,26 +7447,84 @@ static BOOL ADCheckoutTitleMatches7369(UINavigationBar *nav){
     } @catch(...) {}
     return NO;
 }
-
 static BOOL ADCheckoutControllerChain7369(UIView *v){
     @try {
-        UIResponder *r=v;
-        for(int i=0;r&&i<16;i++,r=r.nextResponder){
-            NSString *cn=NSStringFromClass(r.class)?:@"";
-            if([cn rangeOfString:@"AMSModalLayoutFullScreenViewController" options:NSCaseInsensitiveSearch].location!=NSNotFound)return YES;
+        for(UIView *a=v;a;a=a.superview){
+            UIResponder *r=a;
+            for(int i=0;r&&i<8;i++,r=r.nextResponder){
+                NSString *cn=NSStringFromClass(r.class)?:@"";
+                if([cn isEqualToString:@"AMSModalLayoutFullScreenViewController"])return YES;
+            }
         }
     } @catch(...) {}
     return NO;
 }
-
+static BOOL ADCheckoutNavMarked7375(UINavigationBar *nav){
+    return nav&&[objc_getAssociatedObject(nav,kADCheckoutNavOwned7375) boolValue];
+}
+static void ADMarkCheckoutNav7375(UINavigationBar *nav){
+    if(nav)objc_setAssociatedObject(nav,kADCheckoutNavOwned7375,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+static BOOL ADCheckoutNavActive7375(UINavigationBar *nav){
+    return gP.enabled&&nav&&(ADCheckoutNavMarked7375(nav)||ADCheckoutControllerChain7369(nav)||ADCheckoutTitleMatches7369(nav));
+}
+static UINavigationBarAppearance *ADOLEDCheckoutAppearance7375(UINavigationBarAppearance *source){
+    @try {
+        UINavigationBarAppearance *a=source?[source copy]:[[UINavigationBarAppearance alloc] init];
+        [a configureWithOpaqueBackground];
+        a.backgroundEffect=nil;
+        a.backgroundImage=nil;
+        a.backgroundColor=ADOLED();
+        a.shadowImage=nil;
+        a.shadowColor=[UIColor clearColor];
+        NSMutableDictionary *title=[NSMutableDictionary dictionaryWithDictionary:(a.titleTextAttributes?:@{})];
+        title[NSForegroundColorAttributeName]=ADLightText706(); a.titleTextAttributes=title;
+        NSMutableDictionary *large=[NSMutableDictionary dictionaryWithDictionary:(a.largeTitleTextAttributes?:@{})];
+        large[NSForegroundColorAttributeName]=ADLightText706(); a.largeTitleTextAttributes=large;
+        UIColor *white=[UIColor whiteColor];
+        NSDictionary *attrs=@{NSForegroundColorAttributeName:white};
+        NSArray *aps=@[a.buttonAppearance?:[[UIBarButtonItemAppearance alloc] initWithStyle:UIBarButtonItemStylePlain],
+                       a.backButtonAppearance?:[[UIBarButtonItemAppearance alloc] initWithStyle:UIBarButtonItemStylePlain],
+                       a.doneButtonAppearance?:[[UIBarButtonItemAppearance alloc] initWithStyle:UIBarButtonItemStyleDone]];
+        for(UIBarButtonItemAppearance *bp in aps){
+            bp.normal.titleTextAttributes=attrs;
+            bp.highlighted.titleTextAttributes=attrs;
+            bp.disabled.titleTextAttributes=attrs;
+            bp.focused.titleTextAttributes=attrs;
+        }
+        a.buttonAppearance=aps[0]; a.backButtonAppearance=aps[1]; a.doneButtonAppearance=aps[2];
+        return a;
+    } @catch(...) { return source; }
+}
+static void ADCheckoutNavAppearances7375(UINavigationBar *nav){
+    if(!ADCheckoutNavActive7375(nav))return;
+    @try {
+        ADMarkCheckoutNav7375(nav);
+        gADCheckoutAppearanceWrite7375=YES;
+        [CATransaction begin]; [CATransaction setDisableActions:YES];
+        nav.standardAppearance=ADOLEDCheckoutAppearance7375(nav.standardAppearance);
+        nav.scrollEdgeAppearance=ADOLEDCheckoutAppearance7375(nav.scrollEdgeAppearance?:nav.standardAppearance);
+        nav.compactAppearance=ADOLEDCheckoutAppearance7375(nav.compactAppearance?:nav.standardAppearance);
+        if(@available(iOS 15.0,*))nav.compactScrollEdgeAppearance=ADOLEDCheckoutAppearance7375(nav.compactScrollEdgeAppearance?:nav.compactAppearance?:nav.standardAppearance);
+        nav.tintColor=[UIColor whiteColor];
+        [CATransaction commit];
+        gADCheckoutAppearanceWrite7375=NO;
+    } @catch(...) { gADCheckoutAppearanceWrite7375=NO; }
+}
 static void ADOwnCheckoutNav7369(_UIBarBackground *bar){
-    if(!bar||!bar.window)return;
+    if(!bar)return;
     @try {
         UIView *n=(UIView *)bar.superview;
         while(n&&![n isKindOfClass:[UINavigationBar class]])n=n.superview;
         UINavigationBar *nav=[n isKindOfClass:[UINavigationBar class]]?(UINavigationBar *)n:nil;
-        BOOL checkout=gP.enabled&&nav&&ADCheckoutTitleMatches7369(nav);
-
+        BOOL modalOwned=[objc_getAssociatedObject(bar,kADCheckoutModalOwned7375) boolValue];
+        BOOL checkout=gP.enabled&&nav&&(modalOwned||ADCheckoutNavActive7375(nav));
+        if(checkout){
+            objc_setAssociatedObject(bar,kADCheckoutModalOwned7375,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            ADMarkCheckoutNav7375(nav);
+            ADSetViewBackground7226((UIView *)bar,ADOLED(),YES);
+            ADCheckoutNavAppearances7375(nav);
+        }
         for(UIView *x in ((UIView *)bar).subviews){
             if(![x isKindOfClass:[UIImageView class]])continue;
             NSNumber *old=objc_getAssociatedObject(x,kADCheckoutNavImageHidden7369);
@@ -7391,44 +7536,28 @@ static void ADOwnCheckoutNav7369(_UIBarBackground *bar){
                 objc_setAssociatedObject(x,kADCheckoutNavImageHidden7369,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             }
         }
-
+        if(!checkout)return;
         UIColor *oldTint=objc_getAssociatedObject(nav,kADCheckoutNavOldTint7369);
-        if(checkout){
-            if(!oldTint)objc_setAssociatedObject(nav,kADCheckoutNavOldTint7369,nav.tintColor?:[NSNull null],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            nav.tintColor=ADLightText706();
-        }else if(oldTint){
-            if((id)oldTint==[NSNull null])nav.tintColor=nil; else nav.tintColor=oldTint;
-            objc_setAssociatedObject(nav,kADCheckoutNavOldTint7369,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
-
-        // Exact checkout nav only: keep both the title and DONE label light and restore if reused.
-        // r3 showed the UIButtonLabel light but _UIModernBarButton's own titleColor/tint still dark,
-        // so also own UIButton title state while this exact Place Your Order nav is active.
+        if(!oldTint)objc_setAssociatedObject(nav,kADCheckoutNavOldTint7369,nav.tintColor?:[NSNull null],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        nav.tintColor=[UIColor whiteColor];
         NSMutableArray *buttons=[NSMutableArray arrayWithArray:nav.subviews];
         NSUInteger buttonVisited=0;
         while(buttons.count&&buttonVisited++<64){
             UIView *x=[buttons lastObject]; [buttons removeLastObject];
             if([x isKindOfClass:[UIButton class]]){
                 UIButton *button=(UIButton *)x;
-                id oldTint=objc_getAssociatedObject(button,kADCheckoutNavButtonOldTint7371);
-                id oldTitle=objc_getAssociatedObject(button,kADCheckoutNavButtonOldTitle7371);
-                id oldHi=objc_getAssociatedObject(button,kADCheckoutNavButtonOldHighlightTitle7371);
-                if(checkout){
-                    if(!oldTint)objc_setAssociatedObject(button,kADCheckoutNavButtonOldTint7371,button.tintColor?:[NSNull null],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                    if(!oldTitle)objc_setAssociatedObject(button,kADCheckoutNavButtonOldTitle7371,[button titleColorForState:UIControlStateNormal]?:[NSNull null],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                    if(!oldHi)objc_setAssociatedObject(button,kADCheckoutNavButtonOldHighlightTitle7371,[button titleColorForState:UIControlStateHighlighted]?:[NSNull null],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                    button.tintColor=ADLightText706();
-                    [button setTitleColor:ADLightText706() forState:UIControlStateNormal];
-                    [button setTitleColor:ADLightText706() forState:UIControlStateHighlighted];
-                }else{
-                    if(oldTint){ button.tintColor=(oldTint==[NSNull null])?nil:(UIColor *)oldTint; objc_setAssociatedObject(button,kADCheckoutNavButtonOldTint7371,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
-                    if(oldTitle){ [button setTitleColor:(oldTitle==[NSNull null])?nil:(UIColor *)oldTitle forState:UIControlStateNormal]; objc_setAssociatedObject(button,kADCheckoutNavButtonOldTitle7371,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
-                    if(oldHi){ [button setTitleColor:(oldHi==[NSNull null])?nil:(UIColor *)oldHi forState:UIControlStateHighlighted]; objc_setAssociatedObject(button,kADCheckoutNavButtonOldHighlightTitle7371,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
-                }
+                id oldB=objc_getAssociatedObject(button,kADCheckoutNavButtonOldTint7371);
+                id oldT=objc_getAssociatedObject(button,kADCheckoutNavButtonOldTitle7371);
+                id oldH=objc_getAssociatedObject(button,kADCheckoutNavButtonOldHighlightTitle7371);
+                if(!oldB)objc_setAssociatedObject(button,kADCheckoutNavButtonOldTint7371,button.tintColor?:[NSNull null],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                if(!oldT)objc_setAssociatedObject(button,kADCheckoutNavButtonOldTitle7371,[button titleColorForState:UIControlStateNormal]?:[NSNull null],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                if(!oldH)objc_setAssociatedObject(button,kADCheckoutNavButtonOldHighlightTitle7371,[button titleColorForState:UIControlStateHighlighted]?:[NSNull null],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                button.tintColor=[UIColor whiteColor];
+                [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                [button setTitleColor:[UIColor whiteColor] forState:UIControlStateHighlighted];
             }
             [buttons addObjectsFromArray:x.subviews];
         }
-
         NSMutableArray *labels=[NSMutableArray arrayWithArray:nav.subviews];
         NSUInteger visited=0;
         while(labels.count&&visited++<64){
@@ -7436,31 +7565,22 @@ static void ADOwnCheckoutNav7369(_UIBarBackground *bar){
             if([x isKindOfClass:[UILabel class]]){
                 UILabel *label=(UILabel *)x;
                 id old=objc_getAssociatedObject(label,kADCheckoutNavLabelOldColor7370);
-                if(checkout){
-                    if(!old)objc_setAssociatedObject(label,kADCheckoutNavLabelOldColor7370,label.textColor?:[NSNull null],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                    label.textColor=ADLightText706();
-                }else if(old){
-                    label.textColor=(old==[NSNull null])?nil:(UIColor *)old;
-                    objc_setAssociatedObject(label,kADCheckoutNavLabelOldColor7370,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                }
+                if(!old)objc_setAssociatedObject(label,kADCheckoutNavLabelOldColor7370,label.textColor?:[NSNull null],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                label.textColor=ADLightText706();
             }
             [labels addObjectsFromArray:x.subviews];
         }
     } @catch(...) {}
 }
-
-
-// v7.371: r3 proves the exact _UIBarBackground is black but its direct 430x103 UIImageView
-// remains visible with image contents. Reassert hiding at the image leaf as UIKit updates it.
 static BOOL ADCheckoutNavImageMatches7371(UIImageView *iv){
-    if(!iv||!gP.enabled||!iv.window)return NO;
+    if(!iv||!gP.enabled)return NO;
     @try {
         UIView *bar=(UIView *)iv.superview;
         if(!bar||![NSStringFromClass(bar.class) isEqualToString:@"_UIBarBackground"])return NO;
         UIView *n=bar.superview;
         while(n&&![n isKindOfClass:[UINavigationBar class]])n=n.superview;
         UINavigationBar *nav=[n isKindOfClass:[UINavigationBar class]]?(UINavigationBar *)n:nil;
-        return nav&&ADCheckoutTitleMatches7369(nav);
+        return nav&&([objc_getAssociatedObject(bar,kADCheckoutModalOwned7375) boolValue]||ADCheckoutNavActive7375(nav));
     } @catch(...) { return NO; }
 }
 static void ADOwnCheckoutNavImage7371(UIImageView *iv){
@@ -7477,17 +7597,66 @@ static void ADOwnCheckoutNavImage7371(UIImageView *iv){
         }
     } @catch(...) {}
 }
+static void ADOwnCheckoutModalPrepaint7375(UIViewController *vc){
+    if(!gP.enabled||!ADCheckoutModalController7375(vc)||!vc.isViewLoaded)return;
+    @try {
+        gADCheckoutLiveModal7375=vc;
+        ADSetViewBackground7226(vc.view,ADOLED(),YES);
+        NSMutableArray *stack=[NSMutableArray arrayWithObject:vc.view];
+        NSUInteger visited=0;
+        while(stack.count&&visited++<72){
+            UIView *v=[stack lastObject]; [stack removeLastObject];
+            if([v isKindOfClass:[UINavigationBar class]]){
+                UINavigationBar *nav=(UINavigationBar *)v; ADMarkCheckoutNav7375(nav); ADCheckoutNavAppearances7375(nav);
+            }
+            if([NSStringFromClass(v.class) isEqualToString:@"_UIBarBackground"]){
+                objc_setAssociatedObject(v,kADCheckoutModalOwned7375,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                ADSetViewBackground7226(v,ADOLED(),YES);
+                ADOwnCheckoutNav7369((_UIBarBackground *)v);
+            }
+            [stack addObjectsFromArray:(v.subviews.copy?:@[])];
+        }
+        UIWindow *w=vc.view.window?:gADCheckoutPresenter7375.viewIfLoaded.window;
+        if(w)ADOwnCheckoutTransitionTanPlanes7375(w);
+    } @catch(...) {}
+}
+
+%hook AMSModalLayoutFullScreenViewController
+- (void)viewDidLoad {
+    %orig;
+    ADOwnCheckoutModalPrepaint7375(self);
+}
+- (void)viewWillAppear:(BOOL)animated {
+    gADCheckoutLiveModal7375=self;
+    ADOwnCheckoutModalPrepaint7375(self);
+    %orig(animated);
+    ADOwnCheckoutModalPrepaint7375(self);
+}
+- (void)viewDidAppear:(BOOL)animated {
+    %orig(animated);
+    ADOwnCheckoutModalPrepaint7375(self);
+    gADCheckoutPresentationActive7375=NO;
+}
+- (void)viewDidDisappear:(BOOL)animated {
+    %orig(animated);
+    if(gADCheckoutLiveModal7375==self)gADCheckoutLiveModal7375=nil;
+    gADCheckoutPresentationActive7375=NO;
+}
+%end
 
 %hook _UIBarBackground
+- (void)didMoveToSuperview {
+    %orig;
+    ADOwnCheckoutNav7369(self);
+}
 - (void)didMoveToWindow {
     %orig;
     ADOwnBottomBar708((UIView *)self);
     ADOwnCheckoutNav7369(self);
 }
-- (void)layoutSubviews {
-    %orig;
-    ADOwnCheckoutNav7369(self);
-}
+// Deliberately no checkout layoutSubviews mutation. v7.374's nav/bar-wide layout
+// reassertion dirtied the same hierarchy UIKit was animating and is removed in favor of
+// controller prepaint + exact setter/lifecycle ownership.
 - (void)setBackgroundColor:(UIColor *)color {
     if(ADInternalPaintWrite7226()){
         %orig(color);
@@ -7502,32 +7671,91 @@ static void ADOwnCheckoutNavImage7371(UIImageView *iv){
 }
 %end
 
-
-// v7.374 FULL r2: first native snapshot already has the Place Your Order title,
-// but the direct _UIBarBackground UIImageView is still visible. The finite probe sweep
-// (which causes a layout pass) hides it, matching the user's "turns black after scroll"
-// observation. Reassert checkout ownership from UINavigationBar itself so the image leaf
-// is hidden in the initial layout pass before first composited paint.
 %hook UINavigationBar
+- (void)willMoveToWindow:(UIWindow *)newWindow {
+    BOOL checkout=gP.enabled&&newWindow&&ADCheckoutNavActive7375(self);
+    if(checkout){ ADMarkCheckoutNav7375(self); ADCheckoutNavAppearances7375(self); }
+    %orig(newWindow);
+}
 - (void)didMoveToWindow {
     %orig;
-    if(!gP.enabled||!self.window)return;
-    for(UIView *v in self.subviews){
-        if([NSStringFromClass(v.class) isEqualToString:@"_UIBarBackground"]){
-            ADOwnCheckoutNav7369((_UIBarBackground *)v);
-            break;
-        }
+    if(ADCheckoutNavActive7375(self)){
+        ADMarkCheckoutNav7375(self); ADCheckoutNavAppearances7375(self);
+        for(UIView *v in self.subviews)if([NSStringFromClass(v.class) isEqualToString:@"_UIBarBackground"]){ADOwnCheckoutNav7369((_UIBarBackground *)v);break;}
     }
 }
-- (void)layoutSubviews {
-    %orig;
-    if(!gP.enabled||!self.window)return;
-    for(UIView *v in self.subviews){
-        if([NSStringFromClass(v.class) isEqualToString:@"_UIBarBackground"]){
-            ADOwnCheckoutNav7369((_UIBarBackground *)v);
-            break;
-        }
+- (void)setItems:(NSArray *)items animated:(BOOL)animated {
+    BOOL checkout=ADCheckoutNavMarked7375(self);
+    if(!checkout){
+        @try { UINavigationItem *item=items.lastObject; NSString *title=item.title; checkout=title.length&&[title rangeOfString:@"Place Your Order" options:NSCaseInsensitiveSearch].location!=NSNotFound; } @catch(...) {}
     }
+    if(checkout){ ADMarkCheckoutNav7375(self); ADCheckoutNavAppearances7375(self); }
+    %orig(items,animated);
+}
+- (void)pushNavigationItem:(UINavigationItem *)item animated:(BOOL)animated {
+    BOOL checkout=ADCheckoutNavMarked7375(self);
+    @try { if(!checkout&&item.title.length)checkout=[item.title rangeOfString:@"Place Your Order" options:NSCaseInsensitiveSearch].location!=NSNotFound; } @catch(...) {}
+    if(checkout){ ADMarkCheckoutNav7375(self); ADCheckoutNavAppearances7375(self); }
+    %orig(item,animated);
+}
+- (void)setTintColor:(UIColor *)color {
+    if(gP.enabled&&ADCheckoutNavMarked7375(self)){
+        UIColor *white=[UIColor whiteColor];
+        %orig(white);
+        return;
+    }
+    %orig(color);
+}
+- (void)setStandardAppearance:(UINavigationBarAppearance *)appearance {
+    if(gADCheckoutAppearanceWrite7375){
+        %orig(appearance);
+        return;
+    }
+    if(gP.enabled&&ADCheckoutNavMarked7375(self)){
+        UINavigationBarAppearance *owned=ADOLEDCheckoutAppearance7375(appearance);
+        %orig(owned);
+        return;
+    }
+    %orig(appearance);
+}
+- (void)setScrollEdgeAppearance:(UINavigationBarAppearance *)appearance {
+    if(gADCheckoutAppearanceWrite7375){
+        %orig(appearance);
+        return;
+    }
+    if(gP.enabled&&ADCheckoutNavMarked7375(self)){
+        UINavigationBarAppearance *base=appearance?:self.standardAppearance;
+        UINavigationBarAppearance *owned=ADOLEDCheckoutAppearance7375(base);
+        %orig(owned);
+        return;
+    }
+    %orig(appearance);
+}
+- (void)setCompactAppearance:(UINavigationBarAppearance *)appearance {
+    if(gADCheckoutAppearanceWrite7375){
+        %orig(appearance);
+        return;
+    }
+    if(gP.enabled&&ADCheckoutNavMarked7375(self)){
+        UINavigationBarAppearance *base=appearance?:self.standardAppearance;
+        UINavigationBarAppearance *owned=ADOLEDCheckoutAppearance7375(base);
+        %orig(owned);
+        return;
+    }
+    %orig(appearance);
+}
+- (void)setCompactScrollEdgeAppearance:(UINavigationBarAppearance *)appearance {
+    if(gADCheckoutAppearanceWrite7375){
+        %orig(appearance);
+        return;
+    }
+    if(gP.enabled&&ADCheckoutNavMarked7375(self)){
+        UINavigationBarAppearance *base=appearance?:self.compactAppearance?:self.standardAppearance;
+        UINavigationBarAppearance *owned=ADOLEDCheckoutAppearance7375(base);
+        %orig(owned);
+        return;
+    }
+    %orig(appearance);
 }
 %end
 
@@ -7689,6 +7917,25 @@ static void ADOwnCheckoutNavImage7371(UIImageView *iv){
 // Status-bar ownership from the v5.446/v6.0.5 lineage. This generic lifecycle hook
 // does NOT paint controller views; it only installs a cached per-class light-content claim.
 %hook UIViewController
+- (void)presentViewController:(UIViewController *)viewControllerToPresent animated:(BOOL)animated completion:(void (^)(void))completion {
+    BOOL checkout=gP.enabled&&ADCheckoutModalController7375(viewControllerToPresent);
+    if(checkout){
+        @try {
+            // Suppress only a provably redundant request from the same presenter while the
+            // first checkout modal is still live and not dismissing. No clock/debounce is used.
+            BOOL duplicate=(gADCheckoutPresenter7375==self&&gADCheckoutLiveModal7375&&
+                            !gADCheckoutLiveModal7375.isBeingDismissed&&
+                            (gADCheckoutPresentationActive7375||gADCheckoutLiveModal7375.viewIfLoaded.window));
+            if(duplicate){ if(completion)completion(); return; }
+            gADCheckoutPresenter7375=self;
+            gADCheckoutLiveModal7375=viewControllerToPresent;
+            gADCheckoutPresentationActive7375=YES;
+            UIWindow *w=self.viewIfLoaded.window;
+            if(w)ADOwnCheckoutTransitionTanPlanes7375(w);
+        } @catch(...) {}
+    }
+    %orig(viewControllerToPresent,animated,completion);
+}
 - (void)viewWillAppear:(BOOL)animated {
     %orig;
     if(gP.enabled){
@@ -7924,6 +8171,43 @@ static void ADReleaseWarmSplash7307(UIViewController *vc){
         }
     } @catch(...) {}
 }
+static const void *kADWarmSnapshotCover7375=&kADWarmSnapshotCover7375;
+static void ADSetWarmSnapshotCover7375(UIWindow *w,BOOL visible){
+    if(!w)return;
+    // Removal must remain possible even if the tweak preference changes while the app is
+    // backgrounded; otherwise a previously installed privacy/snapshot cover could strand
+    // the foreground UI black. Only installation is gated by the enabled preference.
+    if(visible&&!gP.enabled)return;
+    @try {
+        if(!ADPrimaryAmazonWindow713(w,nil)&&!ADClassNameIs7183(w,"AppCXWindow"))return;
+        UIView *cover=objc_getAssociatedObject(w,kADWarmSnapshotCover7375);
+        if(visible){
+            ADSetViewBackground7226(w,ADOLED(),YES);
+            if(!cover){
+                cover=[[UIView alloc] initWithFrame:w.bounds];
+                cover.userInteractionEnabled=NO;
+                cover.accessibilityElementsHidden=YES;
+                cover.opaque=YES;
+                cover.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+                cover.layer.name=@"AmazonDarkWarmSnapshotCover7375";
+                cover.layer.zPosition=FLT_MAX;
+                ADSetViewBackground7226(cover,ADOLED(),YES);
+                [w addSubview:cover];
+                objc_setAssociatedObject(w,kADWarmSnapshotCover7375,cover,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            }
+            cover.frame=w.bounds; cover.hidden=NO; cover.alpha=1.0; cover.layer.zPosition=FLT_MAX;
+            [w bringSubviewToFront:cover];
+        }else if(cover){
+            [cover removeFromSuperview];
+            objc_setAssociatedObject(w,kADWarmSnapshotCover7375,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+    } @catch(...) {}
+}
+static void ADSetAllWarmSnapshotCovers7375(BOOL visible){
+    @try {
+        for(UIWindow *w in UIApplication.sharedApplication.windows)ADSetWarmSnapshotCover7375(w,visible);
+    } @catch(...) {}
+}
 static BOOL gADWarmResumeLifecycleInstalled7307=NO;
 static void ADInstallWarmResumeLifecycle7307(void){
     if(gADWarmResumeLifecycleInstalled7307)return;
@@ -7931,6 +8215,7 @@ static void ADInstallWarmResumeLifecycle7307(void){
     @try {
         NSNotificationCenter *nc=[NSNotificationCenter defaultCenter];
         [nc addObserverForName:UIApplicationDidEnterBackgroundNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){
+            ADSetAllWarmSnapshotCovers7375(YES);
             gADLifecycleBackgrounded7307=YES;
             gADSceneReconnectedWhileBackgrounded7307=NO;
             gADOrdinaryWarmResume7307=NO;
@@ -7949,6 +8234,7 @@ static void ADInstallWarmResumeLifecycle7307(void){
         [nc addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(__unused NSNotification *n){
             gADLifecycleEverActive7307=YES;
             gADLifecycleBackgrounded7307=NO;
+            ADSetAllWarmSnapshotCovers7375(NO);
             // Keep gADOrdinaryWarmResume7307 latched for this foreground session so a late
             // Amazon splash appearance cannot replay after DidBecomeActive.
         }];

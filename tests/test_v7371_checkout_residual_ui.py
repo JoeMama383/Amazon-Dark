@@ -3,8 +3,8 @@ import re
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.374~byg-price-checkout-first-paint' in C
-assert '#define AD_VERSION "v7.374-byg-price-checkout-first-paint"' in S
+assert 'Version: 7.375~checkout-prepaint-snapshot-hydration' in C
+assert '#define AD_VERSION "v7.375-checkout-prepaint-snapshot-hydration"' in S
 
 # r1: ATC overlay plumbing must stay transparent so it cannot cut across product photos.
 for tok in [
@@ -33,7 +33,7 @@ assert '#checkoutDisplayPage #sns-item-sfco-t1-0 .a-icon-checkbox' in S and '{fi
 assert 'ADOwnCheckoutNavImage7371' in S
 assert 'ADCheckoutNavImageMatches7371' in S
 assert '- (void)setHidden:(BOOL)hidden {' in S
-assert 'BOOL checkout=gP.enabled&&nav&&ADCheckoutTitleMatches7369(nav);' in S
+assert 'BOOL checkout=gP.enabled&&nav&&(modalOwned||ADCheckoutNavActive7375(nav));' in S
 assert 'gP.enabled&&nav&&ADCheckoutControllerChain7369((UIView *)bar)&&ADCheckoutTitleMatches7369(nav)' not in S
 for lifecycle in ['%orig(finalImage);\n    ADOwnCheckoutNavImage7371(self);',
                   '- (void)didMoveToWindow {\n    %orig;\n    ADOwnCheckoutNavImage7371(self);',
@@ -43,8 +43,8 @@ for lifecycle in ['%orig(finalImage);\n    ADOwnCheckoutNavImage7371(self);',
 
 # DONE button: r3 exposed a dark _UIModernBarButton titleColor/tint even while its UILabel was light.
 for tok in ['kADCheckoutNavButtonOldTint7371','kADCheckoutNavButtonOldTitle7371',
-            '[button setTitleColor:ADLightText706() forState:UIControlStateNormal]',
-            '[button setTitleColor:ADLightText706() forState:UIControlStateHighlighted]']:
+            '[button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal]',
+            '[button setTitleColor:[UIColor whiteColor] forState:UIControlStateHighlighted]']:
     assert tok in S, tok
 
 # Keep checkout isolated; no recurring production scanner.

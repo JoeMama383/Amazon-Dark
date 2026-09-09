@@ -17,6 +17,14 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Validate source regressions
+        run: AD_STRICT_VALIDATE=1 sh scripts/validate.sh
+
       - name: Install Theos
         run: |
           export THEOS=$HOME/theos
