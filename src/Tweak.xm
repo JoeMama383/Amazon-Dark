@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.380-amznkiller-features-optimization-audit"
+#define AD_VERSION "v7.381-sponsored-slot-collapse-ad-floor"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -559,7 +559,7 @@ static void ADRefreshPromotionState611(void){
 // OLED floor — no Dark Reader, no DOM observer, no visual-component classifier.
 // -----------------------------------------------------------------------------
 static const void *kADCoreWebUS7271=&kADCoreWebUS7271;
-static const void *kADKillerUS7380=&kADKillerUS7380;
+static const void *kADKillerUS7381=&kADKillerUS7381;
 static const void *kADPriceHistoryUS7380=&kADPriceHistoryUS7380;
 static const void *kADTWBUS=&kADTWBUS;
 static const void *kADCheckoutFloorUS7369=&kADCheckoutFloorUS7369;
@@ -1680,19 +1680,33 @@ static NSString *ADHomeFrameProbeBridgeJS7265(void){
 }
 
 
-// v7.380: AmznKiller-inspired optional features, independently implemented for iOS.
-// Both are declarative/one-shot only: no MutationObserver, timer, RAF, polling or scroll hook.
-static NSString *ADKillerSponsoredJS7380(void){
-    return @"(function(){try{var d=document;if(d.getElementById('ad7380-killer'))return;var s=d.createElement('style');s.id='ad7380-killer';s.textContent=\""
+// v7.381 probe-backed Home dashboard shell floor. This remains in the single
+// immutable core document-start program so it does not add another WKUserScript.
+static NSString *ADHomeAdShellFloorJS7381(void){
+    return @"(function(){try{var d=document;if(d.getElementById('ad7381-home-ad-shell-floor'))return;var s=d.createElement('style');s.id='ad7381-home-ad-shell-floor';s.textContent=\"#gwm-dashboard>li.gwm-tile{background:#000!important;background-color:#000!important;}\";(d.head||d.documentElement).appendChild(s)}catch(_){}})();";
+}
+
+// v7.381: retain the independently implemented AmznKiller-inspired optional features.
+// Sponsored blocking now collapses the owning Home layout slot, not only the inner ad.
+// Both features remain declarative/one-shot only: no MutationObserver, timer, RAF, polling or scroll hook.
+static NSString *ADKillerSponsoredJS7381(void){
+    // v7.381 viewport probe: blocked Home ads were leaving their outer list-item
+    // shells alive. Dashboard shells were white 161x215 cards; the Home mosaic
+    // shell was a 327x468 black empty card. Collapse the owning slot only when
+    // a positive ad marker remains anywhere below it. Hidden descendants still
+    // satisfy :has(), so no observer or post-hydration scan is needed.
+    return @"(function(){try{var d=document;if(d.getElementById('ad7381-killer'))return;var s=d.createElement('style');s.id='ad7381-killer';s.textContent=\""
+    @"#gwm-dashboard>li.gwm-tile:has(:is([data-ad-id],[data-ad-feedback],[data-ad-feedback-label-id],[data-ad-placement-metadata],[data-cel-widget^='mobile-ads-'],[cel_widget_id^='adplacements:'],[class*='mobile-gateway-atf_ad-'],[class*='SponsoredProducts'],[data-a-carousel-options*='isSponsoredProduct'],[data-csa-c-painter='sp-cart-mobile-carousel-cards'],.p13n-sc-sponsored-label,#mobile-mshop-ad,#sponsoredProducts_feature_div,#sponsoredProducts2_feature_div,#detailILM_feature_div)),"
+    @"#gwm-window>li.gwm-window-tile:has(:is([data-ad-id],[data-ad-feedback],[data-ad-feedback-label-id],[data-ad-placement-metadata],[data-cel-widget^='mobile-ads-'],[cel_widget_id^='adplacements:'],[class*='mobile-gateway-atf_ad-'],[class*='SponsoredProducts'],[data-a-carousel-options*='isSponsoredProduct'],[data-csa-c-painter='sp-cart-mobile-carousel-cards'],.p13n-sc-sponsored-label,#mobile-mshop-ad,#sponsoredProducts_feature_div,#sponsoredProducts2_feature_div,#detailILM_feature_div)),"
+    @"li[class*='_hp-mosaic-container_style_widgetContainer']:has(:is([data-ad-id],[data-ad-feedback],[data-ad-feedback-label-id],[data-ad-placement-metadata],[data-cel-widget^='mobile-ads-'],[cel_widget_id^='adplacements:'],[class*='mobile-gateway-atf_ad-'],[class*='SponsoredProducts'],[data-a-carousel-options*='isSponsoredProduct'],[data-csa-c-painter='sp-cart-mobile-carousel-cards'],.p13n-sc-sponsored-label,#mobile-mshop-ad,#sponsoredProducts_feature_div,#sponsoredProducts2_feature_div,#detailILM_feature_div)),"
     @".s-result-item.AdHolder,.s-result-item:has([data-ad-feedback]),.s-result-item:has([data-ad-feedback-label-id]),"
     @".a-carousel-card:has(.p13n-sc-sponsored-label),.dp-widget-card-deck:has([data-ad-placement-metadata]),"
     @"#mobile-mshop-ad,#sponsoredProducts_feature_div,#sponsoredProducts2_feature_div,#detailILM_feature_div,"
     @"[data-ad-id],div[cel_widget_id^='adplacements:'],div[data-cel-widget^='mobile-ads-'],div[class*='SponsoredProducts'],"
-    @"div[data-a-carousel-options*=\\\"isSponsoredProduct\\\"],div[data-csa-c-painter='sp-cart-mobile-carousel-cards'],"
+    @"div[class*='mobile-gateway-atf_ad-'],div[data-a-carousel-options*=\\\"isSponsoredProduct\\\"],div[data-csa-c-painter='sp-cart-mobile-carousel-cards'],"
     @"div[data-csa-c-painter='single-creative-card']:has([data-ad-feedback-label-id]),"
-    @"div[data-csa-c-painter='single-video-card']:has([data-ad-feedback-label-id]),"
-    @"li.gwm-window-tile:has([data-ad-feedback-label-id])"
-    @"{display:none!important;height:0!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;}\";"
+    @"div[data-csa-c-painter='single-video-card']:has([data-ad-feedback-label-id])"
+    @"{display:none!important;width:0!important;min-width:0!important;max-width:0!important;height:0!important;min-height:0!important;max-height:0!important;flex:0 0 0!important;margin:0!important;padding:0!important;border:0!important;overflow:hidden!important;}\";"
     @"(d.head||d.documentElement).appendChild(s)}catch(_){}})();";
 }
 
@@ -1726,8 +1740,8 @@ static NSString *ADCoreWebJS7271(void){
     long strength=MAX(0,MIN(100,gP.whiteTameStrength));
     if(gADCoreWebJSCached7271&&gADCoreWebJSStrength7271==strength)return gADCoreWebJSCached7271;
     gADCoreWebJSStrength7271=strength;
-    gADCoreWebJSCached7271=[NSString stringWithFormat:@"%@%@%@%@",ADFullRasterHostBridgeJS7266(),
-        ADHomeFrameProbeBridgeJS7265(),ADStandalonePaintJS7104(),ADFloorJS()];
+    gADCoreWebJSCached7271=[NSString stringWithFormat:@"%@%@%@%@%@",ADFullRasterHostBridgeJS7266(),
+        ADHomeFrameProbeBridgeJS7265(),ADStandalonePaintJS7104(),ADFloorJS(),ADHomeAdShellFloorJS7381()];
     return gADCoreWebJSCached7271;
 }
 
@@ -1740,10 +1754,10 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADCoreWebUS7271,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
-        if(gP.hideSponsored && !objc_getAssociatedObject(ucc,kADKillerUS7380)){
-            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADKillerSponsoredJS7380() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+        if(gP.hideSponsored && !objc_getAssociatedObject(ucc,kADKillerUS7381)){
+            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADKillerSponsoredJS7381() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
-            objc_setAssociatedObject(ucc,kADKillerUS7380,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(ucc,kADKillerUS7381,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
         if(gP.priceHistory && !objc_getAssociatedObject(ucc,kADPriceHistoryUS7380)){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADPriceHistoryJS7380() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:YES];
@@ -1830,7 +1844,7 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
     %orig;
     if(gP.enabled){
         objc_setAssociatedObject(self,kADCoreWebUS7271,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(self,kADKillerUS7380,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(self,kADKillerUS7381,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADPriceHistoryUS7380,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADTWBUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         // v7.370: removeAllUserScripts deletes the actual isolated checkout scripts too.

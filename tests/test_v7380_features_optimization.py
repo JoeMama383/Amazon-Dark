@@ -8,16 +8,16 @@ W=(ROOT/'.github/workflows/build.yml').read_text()
 V=(ROOT/'scripts/validate.sh').read_text()
 SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 
-assert 'Version: 7.380~amznkiller-features-optimization-audit' in C
-assert '#define AD_VERSION "v7.380-amznkiller-features-optimization-audit"' in S
+assert 'Version: 7.381~sponsored-slot-collapse-ad-floor' in C
+assert '#define AD_VERSION "v7.381-sponsored-slot-collapse-ad-floor"' in S
 for key in ['hideSponsored','priceHistory']:
     assert key in S and f'<string>{key}</string>' in P
 assert '<string>Hide Sponsored Content</string>' in P
 assert '<string>Price History</string>' in P
-assert 'ADKillerSponsoredJS7380' in S and 'ADPriceHistoryJS7380' in S
-assert 'MutationObserver' not in S[S.index('static NSString *ADKillerSponsoredJS7380'):S.index('// One immutable document-start program')]
+assert 'ADKillerSponsoredJS7381' in S and 'ADPriceHistoryJS7380' in S
+assert 'MutationObserver' not in S[S.index('static NSString *ADKillerSponsoredJS7381'):S.index('// One immutable document-start program')]
 for bad in ['setInterval(', 'setTimeout(', 'requestAnimationFrame(', 'scroll-listener-sentinel']:
-    assert bad not in S[S.index('static NSString *ADKillerSponsoredJS7380'):S.index('// One immutable document-start program')]
+    assert bad not in S[S.index('static NSString *ADKillerSponsoredJS7381'):S.index('// One immutable document-start program')]
 for token in ['.s-result-item.AdHolder','[data-ad-feedback-label-id]','sp-cart-mobile-carousel-cards','SponsoredProducts']:
     assert token in S
 for token in ['graph.keepa.com/pricehistory.png','charts.camelcamelcamel.com','range=90','loading=\'lazy\'','encodeURIComponent(asin)']:
@@ -40,4 +40,4 @@ for name in funcs:
 # Hook classes should be unique; grouped hooks are explicitly allowed via %group but current source has none duplicated.
 hooks=re.findall(r'(?m)^%hook\s+([A-Za-z_]\w*)',S)
 assert len(hooks)==len(set(hooks)), 'duplicate %hook class block'
-print('PASS: v7.380 features, structural checkout dedupe, switcher non-interference, packaging guard, dead/duplicate static audit')
+print('PASS: v7.381 features, structural checkout dedupe, switcher non-interference, packaging guard, dead/duplicate static audit')

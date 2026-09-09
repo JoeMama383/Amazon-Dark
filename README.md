@@ -1,37 +1,24 @@
-# AmazonDark v7.380 — AmznKiller features + optimization audit
+# AmazonDark v7.381 — sponsored slot collapse + Home ad first-paint floor
 
-Direct parent: `7.379~teal-transition-forensics-claude-audit`.
+Direct parent: `7.380~amznkiller-features-optimization-audit`.
 
-This release preserves the existing probe-proven AmazonDark visual contract while adding two default-off shopping features, hardening checkout presentation dedupe, fixing package-script permissions, and auditing the production source for dead/duplicate hot-path code.
+This is a narrow follow-up to the new sponsored-content preference. It preserves the v7.380 theming, price-history feature, checkout dedupe, teal transition forensics, launch policy and universal probes.
 
-## Optional shopping enhancements
+## Probe-proven Home issue
 
-- **Hide Sponsored Content**: one declarative document-start stylesheet. It collapses high-confidence Amazon sponsored/ad containers and does not block network requests. No MutationObserver, timer, RAF, scroll listener, polling, or recurring scan.
-- **Price History**: one main-frame, one-shot product-page injector. It extracts the current ASIN and adds an OLED-styled collapsible panel with lazy Keepa and CamelCamelCamel chart images. The ASIN is sent to those third-party services when enabled.
+The v7.380 VIEWPORT capture identified the blank ad placeholders as real Home DOM layout slots, not UIKit/WebKit backing planes:
 
-Both preferences default to off and live under **Shopping Enhancements** in AmazonDark settings.
+- the first dashboard `li.gwm-tile` is about 161x215 and still paints white after its sponsored child is hidden;
+- the second dashboard `li.gwm-tile` is the same white shell, with `md-grid-2` beneath it carrying the `mobile-gateway-atf_ad-...` family;
+- the lower empty card is the center `li[class*=_hp-mosaic-container_style_widgetContainer]`, about 327x468, whose inner sponsored content has been hidden while the owning list item remains.
 
-## Theming architecture decision
+## v7.381 correction
 
-AmznKiller's Android Force Dark is not ported. Its broad coverage relies on Android GPU-level force-dark behavior, which has no equivalent safe iOS API for this tweak. AmazonDark therefore retains its current cheap global OLED WebKit/native floors plus narrow probe-proven interface owners instead of reintroducing global inversion/filter heuristics.
+- The always-on document-start theme owns `#gwm-dashboard > li.gwm-tile` background as OLED black. This is deliberately independent of the sponsored-content preference, so ads that are allowed to load no longer sit on a bright-white transition shell.
+- With **Hide Sponsored Content** enabled, AmazonDark now collapses the owning dashboard/window/mosaic list item when it contains a positive ad descendant. Hidden descendants still satisfy CSS `:has()`, so the parent disappears without a MutationObserver, timer, polling pass or DOM removal loop.
+- Positive markers include Amazon ad metadata already used by the v7.380 blocker plus the probe-captured `mobile-gateway-atf_ad-` family.
+- The outer-slot rule intentionally does **not** use a generic `[class*=sponsored]` heuristic. The probe shows ordinary mosaic product cards can contain an `asin-sponsored-badge-empty` placeholder, so treating every `sponsored` class as proof would delete legitimate cards.
 
-## Checkout duplicate-loading/presentation hardening
+## Runtime contract
 
-The checkout dedupe is now structural rather than tied only to one remembered presenter. A new AMS checkout presentation is rejected only when another live, non-dismissing `AMSModalLayoutFullScreenViewController` is already in the current presentation chain. No time debounce or timer is used.
-
-## Teal app-switcher issue
-
-No cover, fake snapshot, warm hide/show behavior, or scene replacement is introduced. The v7.379 120-second cross-background transition recorder and passive SpringBoard XIB observation remain intact so the next bad run can identify the real source. Saved `SceneContent` remains pass-through.
-
-## Optimization / source cleanup
-
-- production uses `-Os`, `-ffunction-sections`, `-fdata-sections`, and linker dead stripping;
-- no duplicate `%hook` class blocks or duplicate static function definitions;
-- no obviously dead static production function (every static definition has a live reference);
-- optional new features add no recurring runtime work;
-- old release-audit/probe-diff documents were removed from this handoff because Git history already preserves them;
-- current universal FULL/VIEWPORT and transition probes are retained.
-
-## Build reliability
-
-`layout/DEBIAN/postinst` is mode `0755`. CI normalizes that mode before validation and packaging, and `scripts/validate.sh` rejects a non-executable maintainer script. Strict CI continues to run Logos lint and the full Python regression suite before Theos packaging.
+No new MutationObserver, timer, RAF, scroll listener, recurring scan, network hook, fake control, app-switcher cover, warm-splash suppression or broad image/theming rule is added. The change is declarative CSS installed at document start.

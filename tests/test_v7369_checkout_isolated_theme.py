@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.380~amznkiller-features-optimization-audit' in CTRL
-assert '#define AD_VERSION "v7.380-amznkiller-features-optimization-audit"' in S
+assert 'Version: 7.381~sponsored-slot-collapse-ad-floor' in CTRL
+assert '#define AD_VERSION "v7.381-sponsored-slot-collapse-ad-floor"' in S
 
 def func(name):
     st=S.index(f'static NSString *{name}')
@@ -17,10 +17,10 @@ def func(name):
             if d==0: return S[st:i+1]
     raise AssertionError(name)
 
-# Critical shared programs must remain identical to stable v7.367.
+# Critical shared theming programs remain stable; v7.381 changes only the core concatenation to append the tiny Home ad-shell floor.
 assert hashlib.sha256(func('ADFloorJS').encode()).hexdigest() == '5fcc2badb75d385b84a9e67a1daab376c1dd277479c6c1071ead93e3ee96221d'
 assert hashlib.sha256(func('ADTWBJS').encode()).hexdigest() == 'a86f3c1257f32380057eb6c8c99c1c75e2c98f1fc5529364f4304feaa33821a3'
-assert hashlib.sha256(func('ADCoreWebJS7271').encode()).hexdigest() == 'e3d9e2edec398c434986eb423aa1d9a4a4fbde73db21d19be5727934a517f480'
+assert hashlib.sha256(func('ADCoreWebJS7271').encode()).hexdigest() == '2248b10b0d5ac1d4cd2b4f8cba11e760d7bb20aaa22c437248be0e770cd2d467'
 
 for x in ['ADCheckoutFloorJS7369','ADCheckoutTWBJS7369','kADCheckoutFloorUS7369','kADCheckoutTWBUS7369',
           'initWithSource:ADCheckoutFloorJS7369()','initWithSource:ADCheckoutTWBJS7369()']:

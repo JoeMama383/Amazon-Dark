@@ -8,8 +8,8 @@ jsinc=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
 helper=(ROOT/'scripts/ui-probe.sh').read_text()
 
-assert 'Version: 7.380~amznkiller-features-optimization-audit' in ctl
-assert '#define AD_VERSION "v7.380-amznkiller-features-optimization-audit"' in t
+assert 'Version: 7.381~sponsored-slot-collapse-ad-floor' in ctl
+assert '#define AD_VERSION "v7.381-sponsored-slot-collapse-ad-floor"' in t
 assert '#include "ADUniversalUIProbe7362.inc"' in t
 
 # Architectural convergence: the old per-menu capture engines and historical v7.309 output stems are removed.
@@ -28,7 +28,7 @@ assert inc.count('UIApplicationUserDidTakeScreenshotNotification') == 1
 assert inc.count('dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2') == 1
 assert 'ADCaptureUniversalUIProbe7362(NO,trigger)' in inc
 assert 'ADUIConsumeViewportArm7362()' in inc and 'ADCaptureUniversalUIProbe7362(YES,@"armed-SIGUSR2")' in inc
-assert 'AmazonDark-v7.380-ui-viewport.arm' in inc
+assert 'AmazonDark-v7.381-ui-viewport.arm' in inc
 assert 'ADSkelTrigger7339(trigger)' in inc  # skeleton/transition SIGUSR2 behavior still wins when armed
 
 # Universal scope: every current on-screen WKWebView plus native hierarchy, no tab routing.

@@ -15,7 +15,7 @@ import tempfile
 
 ROOT=Path(__file__).resolve().parents[1]
 HELPER=ROOT/'scripts/skeleton-probe.sh'
-VERSION='7.380~amznkiller-features-optimization-audit'
+VERSION='7.381~sponsored-slot-collapse-ad-floor'
 
 with tempfile.TemporaryDirectory(prefix='ad-probe-handoff-') as temp:
     root=Path(temp);mobile=root/'mobile';containers=mobile/'Containers/Data/Application'
@@ -44,7 +44,7 @@ esac
     dpkg=bin/'dpkg-query'
     dpkg.write_text('''#!/usr/bin/env python3
 import os,sys
-v=os.environ.get('AD_INSTALLED','7.380~amznkiller-features-optimization-audit')
+v=os.environ.get('AD_INSTALLED','7.381~sponsored-slot-collapse-ad-floor')
 print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '')+v,end='')
 ''');dpkg.chmod(0o755)
     env=dict(os.environ,PATH=str(bin)+':'+os.environ['PATH'],AD_PROBE_ROOT=str(mobile),AD_PROBE_CONTAINERS=str(containers),AD_PROBE_DOCS=str(docs),AD_GZIP_CALLED=str(root/'gzip-called'))
@@ -52,7 +52,7 @@ print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '
         r=subprocess.run(['sh',str(HELPER),*args],env=dict(env,**extra),text=True,capture_output=True)
         assert (r.returncode==0)==ok,(args,r.stdout,r.stderr)
         return r.stdout+r.stderr
-    arm=amazon/'Documents/AmazonDark-v7.380-probe.arm'
+    arm=amazon/'Documents/AmazonDark-v7.381-probe.arm'
     launch_arm=mobile/'AmazonDark-launch-probe.arm'
     for style in ['extract','xml','pretty']:
         run('arm','both',AD_PLUTIL_STYLE=style)
@@ -74,12 +74,12 @@ print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '
     run('arm','launch')
     assert arm.read_text().split()[1]=='launch'
     assert launch_arm.exists(), 'launch probe must arm SpringBoard launch logging'
-    log=amazon/'Documents/AmazonDark-v7.380-skeleton-1-77-launch.jsonl'
+    log=amazon/'Documents/AmazonDark-v7.381-skeleton-1-77-launch.jsonl'
     log.write_text('{"event":"SESSION_START","label":"launch"}\n')
-    receipt=amazon/'Documents/AmazonDark-v7.380-probe-status.json'
-    receipt.write_text(json.dumps({'event':'PROBE_BOOTSTRAP','bundle':'com.amazon.Amazon','reason':'capture-started','version':'v7.380-amznkiller-features-optimization-audit'}))
+    receipt=amazon/'Documents/AmazonDark-v7.381-probe-status.json'
+    receipt.write_text(json.dumps({'event':'PROBE_BOOTSTRAP','bundle':'com.amazon.Amazon','reason':'capture-started','version':'v7.381-sponsored-slot-collapse-ad-floor'}))
     old=mobile/'AmazonDark-v7.340-skeleton-1-55-both.jsonl';old.write_text('old capture\n')
-    sb=mobile/'AmazonDark-v7.380-launch-sb-probe.txt';sb.write_text('snapshot.dark\n')
+    sb=mobile/'AmazonDark-v7.381-launch-sb-probe.txt';sb.write_text('snapshot.dark\n')
     unrelated=other/'Documents';unrelated.mkdir()
     (unrelated/log.name).write_text('MUST NOT EXPORT')
     status=run('status');assert 'SESSION_START' in status and 'capture-started' in status
@@ -104,7 +104,7 @@ print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '
     run('arm','launch',AD_PLUTIL_STYLE='unavailable')
     assert arm.read_text().split()[1]=='launch'
     assert launch_arm.exists()
-    assert not (other/'Documents/AmazonDark-v7.380-probe.arm').exists()
+    assert not (other/'Documents/AmazonDark-v7.381-probe.arm').exists()
     status=run('status',AD_PLUTIL_STYLE='unavailable')
     assert 'Verified Amazon startup receipts: 1' in status and 'Amazon container matches: 1' in status
     text=run('export',AD_PLUTIL_STYLE='unavailable')
