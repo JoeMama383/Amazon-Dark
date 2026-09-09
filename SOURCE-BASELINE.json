@@ -1,22 +1,19 @@
 {
-  "version": "7.383~sponsored-selector-rules",
-  "direct_parent": "7.382~sponsored-carousel-precision",
-  "parent_tweak_sha256": "1f13e454235d743435dcc913c71eab7617864bd149689336a5a164f9d94cba4f",
-  "parent_sb_sha256": "0ef22176756e2a87d675d7a2babad6cac0efe5d4eaf91a8f5bd5eca4c4b4d89d",
+  "version": "7.384~sponsored-logos-build-fix",
+  "direct_parent": "7.383~sponsored-selector-rules",
+  "parent_tweak_sha256": "29e3f96264cfcf1b0e5288e0caa9de2ed0752bd3374c6186f777a0aa0be21f4e",
+  "parent_sb_sha256": "b544e1b668114cc9f7fae4759b70902311b70dc739f35ad72da4e7cb9297928c",
   "evidence": [
-    "v7.382 source contained nested :has() selectors inside the shared sponsored CSS selector list",
-    "Selectors Level 4 forbids nested :has(); an invalid member invalidates an ordinary comma-separated selector rule",
-    "v7.382 screenshot shows sponsored content rendered while the preference is enabled",
-    "v7.380 probe confirms mobile-gateway-atf_ad- as a direct Home dashboard ad-slot identity",
-    "current AmznKiller static selector list includes multiple sponsored families omitted by the partial v7.380-v7.382 port"
+    "GitHub Actions v7.383 failed in Logos preprocessing at src/Tweak.xm line 1730 before Clang compilation",
+    "the extracted v7.383 sponsored function parses successfully under clang as Objective-C++",
+    "the failure boundary is the closing brace immediately after the very large adjacent Objective-C string payload",
+    "v7.383 sponsored selector semantics are therefore retained while the payload is moved outside Logos"
   ],
   "changes": [
-    "replace nested :has() dashboard selectors with legal single-:has ownership selectors",
-    "emit each sponsored selector as an independent CSS rule",
-    "cover the current AmznKiller sponsored/ad selector families",
-    "preserve explicit isSponsoredProduct:true matching",
-    "retain only narrow probe-backed Home dashboard outer-slot collapse",
-    "retain v7.381 OLED loading floor and all unrelated theming/launch/probe behavior"
+    "move the sponsored selector payload/function from Tweak.xm to src/ADSponsored.m",
+    "compile src/ADSponsored.m as a normal Objective-C source alongside Tweak.xm",
+    "retain the same document-start sponsored injection and selector behavior",
+    "bump probe/package identity to v7.384 and preserve postinst mode 0755"
   ],
-  "runtime_contract": "One document-start stylesheet only; no recurring DOM work, app-switcher cover, warm splash suppression, fake UI, or broad theming change."
+  "runtime_contract": "Compile-boundary correction only for sponsored payload; no recurring DOM work, app-switcher cover, warm splash suppression, fake UI, or broad theming change."
 }

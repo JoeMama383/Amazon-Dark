@@ -2,24 +2,25 @@ from pathlib import Path
 import re, subprocess, tempfile
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
+A=(ROOT/'src/ADSponsored.m').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 P=(ROOT/'prefs/Resources/Root.plist').read_text()
 W=(ROOT/'.github/workflows/build.yml').read_text()
 V=(ROOT/'scripts/validate.sh').read_text()
 SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 
-assert 'Version: 7.383~sponsored-selector-rules' in C
-assert '#define AD_VERSION "v7.383-sponsored-selector-rules"' in S
+assert 'Version: 7.384~sponsored-logos-build-fix' in C
+assert '#define AD_VERSION "v7.384-sponsored-logos-build-fix"' in S
 for key in ['hideSponsored','priceHistory']:
     assert key in S and f'<string>{key}</string>' in P
 assert '<string>Hide Sponsored Content</string>' in P
 assert '<string>Price History</string>' in P
-assert 'ADKillerSponsoredJS7382' in S and 'ADPriceHistoryJS7380' in S
-assert 'MutationObserver' not in S[S.index('static NSString *ADKillerSponsoredJS7382'):S.index('// One immutable document-start program')]
+assert 'ADKillerSponsoredJS7384' in S and 'ADKillerSponsoredJS7384' in A and 'ADPriceHistoryJS7380' in S
+assert 'MutationObserver' not in A
 for bad in ['setInterval(', 'setTimeout(', 'requestAnimationFrame(', 'scroll-listener-sentinel']:
-    assert bad not in S[S.index('static NSString *ADKillerSponsoredJS7382'):S.index('// One immutable document-start program')]
+    assert bad not in A
 for token in ['.s-result-item.AdHolder','[data-ad-feedback-label-id]','sp-cart-mobile-carousel-cards','SponsoredProducts']:
-    assert token in S
+    assert token in A
 for token in ['graph.keepa.com/pricehistory.png','charts.camelcamelcamel.com','range=90','loading=\'lazy\'','encodeURIComponent(asin)']:
     assert token in S
 assert 'ADActiveCheckoutModal7380' in S
@@ -40,4 +41,4 @@ for name in funcs:
 # Hook classes should be unique; grouped hooks are explicitly allowed via %group but current source has none duplicated.
 hooks=re.findall(r'(?m)^%hook\s+([A-Za-z_]\w*)',S)
 assert len(hooks)==len(set(hooks)), 'duplicate %hook class block'
-print('PASS: v7.383 features, structural checkout dedupe, switcher non-interference, packaging guard, dead/duplicate static audit')
+print('PASS: v7.384 features, structural checkout dedupe, switcher non-interference, packaging guard, dead/duplicate static audit')

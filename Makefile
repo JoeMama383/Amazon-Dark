@@ -7,7 +7,7 @@ include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = AmazonDark AmazonDarkSB
 
-AmazonDark_FILES      = src/Tweak.xm
+AmazonDark_FILES      = src/Tweak.xm src/ADSponsored.m
 AmazonDark_CFLAGS     = -fobjc-arc -fexceptions -Os -ffunction-sections -fdata-sections -Wno-unused-variable -Wno-unused-function -Wno-deprecated-declarations -Wno-error
 AmazonDark_LDFLAGS    = -Wl,-dead_strip
 AmazonDark_FRAMEWORKS = UIKit Foundation WebKit QuartzCore CoreFoundation

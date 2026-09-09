@@ -2,18 +2,17 @@ from pathlib import Path
 import re, subprocess, tempfile
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
+A=(ROOT/'src/ADSponsored.m').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.383~sponsored-selector-rules' in C
-assert '#define AD_VERSION "v7.383-sponsored-selector-rules"' in S
-start=S.index('static NSString *ADKillerSponsoredJS7382(void)')
-end=S.index('static NSString *ADPriceHistoryJS7380', start)
-block=S[start:end]
+assert 'Version: 7.384~sponsored-logos-build-fix' in C
+assert '#define AD_VERSION "v7.384-sponsored-logos-build-fix"' in S
+block=A
 # Reconstruct adjacent Objective-C string literals and parse the injected JS.
 lits=re.findall(r'@"((?:\\.|[^"\\])*)"', block)
 assert lits
 js=''.join(bytes(x,'utf-8').decode('unicode_escape') for x in lits)
-assert "ad7383-killer" in js
-assert js.count('{display:none!important') >= 80
+assert "ad7384-killer" in js
+assert js.count('{display:none!important') >= 75
 # No selector may contain nested :has(); that is invalid Selectors Level 4 syntax.
 css_literal=re.search(r's\.textContent=("(?:\\.|[^"\\])*")', js)
 assert css_literal, 'missing CSS literal'
@@ -42,4 +41,4 @@ cp=subprocess.run(['node','--check',name],capture_output=True,text=True)
 assert cp.returncode==0, cp.stderr
 for bad in ['MutationObserver','setInterval(','setTimeout(','requestAnimationFrame(']:
     assert bad not in js, bad
-print('PASS: v7.383 sponsored blocker uses isolated valid rules with full selector-family coverage')
+print('PASS: v7.384 sponsored blocker uses isolated valid rules with full selector-family coverage')

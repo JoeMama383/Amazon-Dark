@@ -3,8 +3,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.383~sponsored-selector-rules' in C
-assert '#define AD_VERSION "v7.383-sponsored-selector-rules"' in S
+assert 'Version: 7.384~sponsored-logos-build-fix' in C
+assert '#define AD_VERSION "v7.384-sponsored-logos-build-fix"' in S
 # No app-process switcher/snapshot cover and no warm lifecycle visibility state machine.
 for token in [
     'AmazonDarkWarmSnapshotCover7375','kADWarmSnapshotCover7375','ADSetWarmSnapshotCover7375',

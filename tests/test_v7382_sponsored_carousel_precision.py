@@ -2,13 +2,12 @@ from pathlib import Path
 import re, json
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
+A=(ROOT/'src/ADSponsored.m').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.383~sponsored-selector-rules' in C
-assert '#define AD_VERSION "v7.383-sponsored-selector-rules"' in S
-start=S.index('static NSString *ADKillerSponsoredJS7382(void)')
-end=S.index('static NSString *ADPriceHistoryJS7380', start)
-block=S[start:end]
+assert 'Version: 7.384~sponsored-logos-build-fix' in C
+assert '#define AD_VERSION "v7.384-sponsored-logos-build-fix"' in S
+block=A
 lits=re.findall(r'@"((?:\\.|[^"\\])*)"', block)
 js=''.join(bytes(x,'utf-8').decode('unicode_escape') for x in lits)
 m=re.search(r's\.textContent=("(?:\\.|[^"\\])*")', js)
@@ -28,12 +27,12 @@ assert '#gwm-dashboard>li.gwm-tile:has(:is(' not in css
 assert 'li.gwm-window-tile:has(div[data-csa-c-painter="single-creative-card"] [data-ad-feedback-label-id])' in css
 assert 'li.gwm-window-tile:has(div[data-csa-c-painter="single-video-card"] [data-ad-feedback-label-id])' in css
 
-# v7.383 must not reintroduce illegal nested :has() syntax.
+# v7.384 must not reintroduce illegal nested :has() syntax.
 for rule in [x for x in css.splitlines() if x.strip()]:
     sel=rule.split('{',1)[0]
     assert sel.count(':has(') <= 1, sel
 
 for bad in ['MutationObserver','setInterval(','setTimeout(','requestAnimationFrame(']:
     assert bad not in js, bad
-assert 'ADKillerSponsoredJS7382() injectionTime:WKUserScriptInjectionTimeAtDocumentStart' in S
-print('PASS: v7.382 precision contracts survive v7.383 without nested :has or broad carousel promotion')
+assert 'ADKillerSponsoredJS7384() injectionTime:WKUserScriptInjectionTimeAtDocumentStart' in S
+print('PASS: v7.382 precision contracts survive v7.384 without nested :has or broad carousel promotion')

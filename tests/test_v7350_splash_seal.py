@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 sb=ROOT/'src/AmazonDarkSB.xm'
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.383~sponsored-selector-rules' in ctl
-assert '#define AD_VERSION "v7.383-sponsored-selector-rules"' in t
+assert 'Version: 7.384~sponsored-logos-build-fix' in ctl
+assert '#define AD_VERSION "v7.384-sponsored-logos-build-fix"' in t
 for s in [
     'AmazonDarkSplashSeal7350',
     'AmazonDarkSplashSealLogo7350',
