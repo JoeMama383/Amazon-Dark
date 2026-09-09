@@ -1,7 +1,7 @@
 // Opt-in diagnostics only. Included in Amazon's Tweak.xm, never AmazonDarkSB.
 // A valid arm file must exist BEFORE this Amazon process starts. No arming on
 // warm resume, no production lifecycle mutation, no CSS/geometry/scroll/snapshot writes.
-// v7.385 transition mode is intentionally multi-cycle: it survives one or more
+// v7.386 transition mode is intentionally multi-cycle: it survives one or more
 // background/foreground passes so the app-switcher snapshot and warm return can be
 // correlated in one fresh-process trace. Launch mode still stops at first background.
 #import <sys/stat.h>
@@ -81,7 +81,7 @@ static BOOL ADSkelBright7339(id c){
     return [c isKindOfClass:NSArray.class]&&[(NSArray *)c count]==4&&[c[3] doubleValue]>.15&&
         [c[0] doubleValue]*.2126+[c[1] doubleValue]*.7152+[c[2] doubleValue]*.0722>.59;
 }
-// v7.385 teal trace: take a synchronous, read-only census at lifecycle boundaries.
+// v7.386 teal trace: take a synchronous, read-only census at lifecycle boundaries.
 // The switcher snapshot is requested immediately around resignation/backgrounding, so a
 // display-link-only recorder can miss a transient window/background plane. Record every
 // current UIWindow plus its root and top direct child without changing any hierarchy state.
@@ -285,8 +285,8 @@ static void ADSkelInstall7339(void){
     @try {
         NSString *docs=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) firstObject];
         if(!docs.length)return;
-        ADSkelArmPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.385-probe.arm"];
-        ADSkelStatusPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.385-probe-status.json"];
+        ADSkelArmPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.386-probe.arm"];
+        ADSkelStatusPath7339=[docs stringByAppendingPathComponent:@"AmazonDark-v7.386-probe-status.json"];
         NSError *error=nil;
         NSString *arm=[NSString stringWithContentsOfFile:ADSkelArmPath7339 encoding:NSUTF8StringEncoding error:&error];
         if(!arm){
@@ -306,7 +306,7 @@ static void ADSkelInstall7339(void){
         ADSkelTransition7339=[label isEqualToString:@"transition"];
         ADSkelUntil7339=MIN(expiry,now+(ADSkelLaunchOnly7339?20:(ADSkelTransition7339?120:120)));
         ADSkelSession7339=[NSString stringWithFormat:@"%.0f-%d-%@",now*1000,getpid(),label];
-        ADSkelPath7339=[docs stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.385-skeleton-%@.jsonl",ADSkelSession7339]];
+        ADSkelPath7339=[docs stringByAppendingPathComponent:[NSString stringWithFormat:@"AmazonDark-v7.386-skeleton-%@.jsonl",ADSkelSession7339]];
         int fd=open(ADSkelPath7339.fileSystemRepresentation,O_WRONLY|O_CREAT|O_EXCL,0600);
         if(fd<0){ADSkelStatus7339(@"capture-create-failed",errno);ADSkelUntil7339=0;return;}
         close(fd);ADSkelStatus7339(@"capture-started",0);

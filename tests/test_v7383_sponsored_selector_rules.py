@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 A=(ROOT/'src/ADSponsored.m').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.385~sponsored-c-linkage-fix' in C
-assert '#define AD_VERSION "v7.385-sponsored-c-linkage-fix"' in S
+assert 'Version: 7.386~sponsored-shell-ownership' in C
+assert '#define AD_VERSION "v7.386-sponsored-shell-ownership"' in S
 block=A
 # Reconstruct adjacent Objective-C string literals and parse the injected JS.
 lits=re.findall(r'@"((?:\\.|[^"\\])*)"', block)
@@ -41,4 +41,4 @@ cp=subprocess.run(['node','--check',name],capture_output=True,text=True)
 assert cp.returncode==0, cp.stderr
 for bad in ['MutationObserver','setInterval(','setTimeout(','requestAnimationFrame(']:
     assert bad not in js, bad
-print('PASS: v7.385 sponsored blocker uses isolated valid rules with full selector-family coverage')
+print('PASS: v7.386 sponsored blocker uses isolated valid rules with full selector-family coverage')

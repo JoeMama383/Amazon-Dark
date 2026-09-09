@@ -7,8 +7,8 @@ C=(ROOT/'layout/DEBIAN/control').read_text()
 W=(ROOT/'.github/workflows/build.yml').read_text()
 CMD=(ROOT/'COMMANDS.md').read_text()
 
-assert 'Version: 7.385~sponsored-c-linkage-fix' in C
-assert '#define AD_VERSION "v7.385-sponsored-c-linkage-fix"' in S
+assert 'Version: 7.386~sponsored-shell-ownership' in C
+assert '#define AD_VERSION "v7.386-sponsored-shell-ownership"' in S
 
 # Claude audit: ADStandalonePaintJS7104 is semantically clean.
 stand=S[S.index('static NSString *ADStandalonePaintJS7104'):S.index('static NSString *ADTWBJS')]
@@ -65,10 +65,10 @@ for bad in ['MutationObserver','setInterval','setTimeout','requestAnimationFrame
 assert 'actions/setup-python@v5' in W
 assert 'AD_STRICT_VALIDATE=1 sh scripts/validate.sh' in W
 assert 'sh scripts/validate.sh' in CMD
-assert 'AmazonDark-v7.385-sponsored-c-linkage-fix-source.zip' in CMD
+assert 'AmazonDark-v7.386-sponsored-shell-ownership-source.zip' in CMD
 V=(ROOT/'scripts/validate.sh').read_text()
 assert 'scripts/lint-logos.sh' in V and 'tests/test_*.py' in V
 assert 'command -v python3' in V and 'AD_STRICT_VALIDATE' in V
 assert 'python3 unavailable on this device; GitHub CI enforces them' in V
 
-print('PASS: checkout/TWB/CI contracts retained under v7.385; BYG recovery remains real-control/no-recurring')
+print('PASS: checkout/TWB/CI contracts retained under v7.386; BYG recovery remains real-control/no-recurring')

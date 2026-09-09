@@ -94,8 +94,8 @@ def main():
     assert 'return original;' in xib
     for bad in ['UIImageView *replacement','ADLaunchArtwork7337(','addSubview','removeFromSuperview','backgroundColor=']:
         assert bad not in xib,bad
-    assert 'version=7.385~cold-artwork-no-generic-xib base=v7.338' in source
-    assert "Version: 7.385~sponsored-c-linkage-fix\n" in (ROOT / "layout/DEBIAN/control").read_text()
+    assert 'version=7.386~cold-artwork-no-generic-xib base=v7.338' in source
+    assert "Version: 7.386~sponsored-shell-ownership\n" in (ROOT / "layout/DEBIAN/control").read_text()
     # v7.351 changes only the optional file logger gate in SpringBoard. The actual
     # launch-artwork policy/render/selection functions remain byte-identical to accepted v7.350.
     def static_block(name):
@@ -125,7 +125,7 @@ def main():
     for name,digest in expected.items():
         assert hashlib.sha256(static_block(name).encode()).hexdigest()==digest,name
     assert 'if(!ADLaunchProbeArmed7351())return;' in source
-    print("PASS: v7.385 preserves accepted snapshot cold-artwork policy; generic XIB is passive probe-only")
+    print("PASS: v7.386 preserves accepted snapshot cold-artwork policy; generic XIB is passive probe-only")
 
 
 

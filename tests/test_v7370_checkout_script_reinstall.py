@@ -4,8 +4,8 @@ import hashlib,re,subprocess,tempfile
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.385~sponsored-c-linkage-fix' in CTRL
-assert '#define AD_VERSION "v7.385-sponsored-c-linkage-fix"' in S
+assert 'Version: 7.386~sponsored-shell-ownership' in CTRL
+assert '#define AD_VERSION "v7.386-sponsored-shell-ownership"' in S
 
 def func(name):
     st=S.index(f'static NSString *{name}')

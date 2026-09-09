@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 sb=ROOT/'src/AmazonDarkSB.xm'
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.385~sponsored-c-linkage-fix' in ctl
-assert '#define AD_VERSION "v7.385-sponsored-c-linkage-fix"' in t
+assert 'Version: 7.386~sponsored-shell-ownership' in ctl
+assert '#define AD_VERSION "v7.386-sponsored-shell-ownership"' in t
 for s in [
     'AmazonDarkSplashSeal7350',
     'AmazonDarkSplashSealLogo7350',

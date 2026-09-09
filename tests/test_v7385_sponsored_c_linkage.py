@@ -7,8 +7,8 @@ H=(ROOT/'src/ADSponsored.h').read_text()
 M=(ROOT/'Makefile').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.385~sponsored-c-linkage-fix' in C
-assert '#define AD_VERSION "v7.385-sponsored-c-linkage-fix"' in S
+assert 'Version: 7.386~sponsored-shell-ownership' in C
+assert '#define AD_VERSION "v7.386-sponsored-shell-ownership"' in S
 assert '#import "ADSponsored.h"' in S
 assert '#import "ADSponsored.h"' in A
 assert '#ifdef __cplusplus' in H
