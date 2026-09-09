@@ -12,7 +12,7 @@ AmazonDark_CFLAGS     = -fobjc-arc -fexceptions -Os -ffunction-sections -fdata-s
 AmazonDark_LDFLAGS    = -Wl,-dead_strip
 AmazonDark_FRAMEWORKS = UIKit Foundation WebKit QuartzCore CoreFoundation
 
-# SpringBoard launch cover / transition / custom artwork.
+# SpringBoard cold-artwork policy + passive transition diagnostics; no switcher cover.
 AmazonDarkSB_FILES      = src/AmazonDarkSB.xm
 AmazonDarkSB_CFLAGS     = -fobjc-arc -fexceptions -Os -ffunction-sections -fdata-sections -Wno-unused-variable -Wno-error
 AmazonDarkSB_LDFLAGS    = -Wl,-dead_strip

@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.379-teal-transition-forensics-claude-audit"
+#define AD_VERSION "v7.380-amznkiller-features-optimization-audit"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -104,6 +104,8 @@ typedef struct {
     BOOL whiteTame;
     BOOL force120Hz;
     BOOL privacyMode;
+    BOOL hideSponsored;
+    BOOL priceHistory;
     long whiteTameStrength;
 } ADPrefs;
 
@@ -121,6 +123,8 @@ static void ADLoadPrefs(void){
     gP.whiteTame=NO;
     gP.force120Hz=NO;
     gP.privacyMode=NO;
+    gP.hideSponsored=NO;
+    gP.priceHistory=NO;
     gP.whiteTameStrength=45;
     @try {
         NSString *path=[NSString stringWithFormat:@"/var/jb/var/mobile/Library/Preferences/%s.plist",AD_PREF_DOMAIN];
@@ -130,6 +134,8 @@ static void ADLoadPrefs(void){
         gP.whiteTame=ADPrefBool(d,@"whiteTame",gP.whiteTame);
         gP.force120Hz=ADPrefBool(d,@"force120Hz",gP.force120Hz);
         gP.privacyMode=ADPrefBool(d,@"privacyMode",gP.privacyMode);
+        gP.hideSponsored=ADPrefBool(d,@"hideSponsored",gP.hideSponsored);
+        gP.priceHistory=ADPrefBool(d,@"priceHistory",gP.priceHistory);
         gP.whiteTameStrength=ADPrefLong(d,@"whiteTameStrength",gP.whiteTameStrength);
     } @catch(...) {}
 }
@@ -553,6 +559,8 @@ static void ADRefreshPromotionState611(void){
 // OLED floor — no Dark Reader, no DOM observer, no visual-component classifier.
 // -----------------------------------------------------------------------------
 static const void *kADCoreWebUS7271=&kADCoreWebUS7271;
+static const void *kADKillerUS7380=&kADKillerUS7380;
+static const void *kADPriceHistoryUS7380=&kADPriceHistoryUS7380;
 static const void *kADTWBUS=&kADTWBUS;
 static const void *kADCheckoutFloorUS7369=&kADCheckoutFloorUS7369;
 static const void *kADCheckoutTWBUS7369=&kADCheckoutTWBUS7369;
@@ -1671,6 +1679,45 @@ static NSString *ADHomeFrameProbeBridgeJS7265(void){
         @"s.length<48)c2.responses.push(x)}else parent.postMessage(x,'*')}}catch(_){}},false);}catch(_){}})();";
 }
 
+
+// v7.380: AmznKiller-inspired optional features, independently implemented for iOS.
+// Both are declarative/one-shot only: no MutationObserver, timer, RAF, polling or scroll hook.
+static NSString *ADKillerSponsoredJS7380(void){
+    return @"(function(){try{var d=document;if(d.getElementById('ad7380-killer'))return;var s=d.createElement('style');s.id='ad7380-killer';s.textContent=\""
+    @".s-result-item.AdHolder,.s-result-item:has([data-ad-feedback]),.s-result-item:has([data-ad-feedback-label-id]),"
+    @".a-carousel-card:has(.p13n-sc-sponsored-label),.dp-widget-card-deck:has([data-ad-placement-metadata]),"
+    @"#mobile-mshop-ad,#sponsoredProducts_feature_div,#sponsoredProducts2_feature_div,#detailILM_feature_div,"
+    @"[data-ad-id],div[cel_widget_id^='adplacements:'],div[data-cel-widget^='mobile-ads-'],div[class*='SponsoredProducts'],"
+    @"div[data-a-carousel-options*=\\\"isSponsoredProduct\\\"],div[data-csa-c-painter='sp-cart-mobile-carousel-cards'],"
+    @"div[data-csa-c-painter='single-creative-card']:has([data-ad-feedback-label-id]),"
+    @"div[data-csa-c-painter='single-video-card']:has([data-ad-feedback-label-id]),"
+    @"li.gwm-window-tile:has([data-ad-feedback-label-id])"
+    @"{display:none!important;height:0!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;}\";"
+    @"(d.head||d.documentElement).appendChild(s)}catch(_){}})();";
+}
+
+static NSString *ADPriceHistoryJS7380(void){
+    return @"(function(){try{function run(){try{var d=document;if(d.getElementById('ad7380-price-history'))return;"
+    @"var asin='';var a=d.getElementById('ASIN')||d.querySelector('input[name=ASIN]')||d.getElementById('twister-plus-asin')||d.getElementById('a');"
+    @"if(a)asin=String(a.value||a.getAttribute('value')||'').trim();if(!asin){var m=location.pathname.match(/\\/(?:dp|gp\\/product|gp\\/aw\\/d)\\/([A-Z0-9]{10})(?:[\\/?]|$)/i);if(m)asin=m[1].toUpperCase()}"
+    @"if(!/^[A-Z0-9]{10}$/.test(asin))return;var h=location.hostname.toLowerCase(),dom='',camel='',kid='';"
+    @"if(/amazon\\.com$/.test(h)){dom='com';camel='us';kid='1'}else if(/amazon\\.co\\.uk$/.test(h)){dom='uk';camel='uk';kid='2'}"
+    @"else if(/amazon\\.de$/.test(h)){dom='de';camel='de';kid='3'}else if(/amazon\\.fr$/.test(h)){dom='fr';camel='fr';kid='4'}"
+    @"else if(/amazon\\.co\\.jp$/.test(h)){dom='co.jp';camel='jp';kid='5'}else if(/amazon\\.ca$/.test(h)){dom='ca';camel='ca';kid='6'}"
+    @"else if(/amazon\\.it$/.test(h)){dom='it';camel='it';kid='8'}else if(/amazon\\.es$/.test(h)){dom='es';camel='es';kid='9'}"
+    @"else if(/amazon\\.in$/.test(h)){dom='in';camel='in';kid='10'}else if(/amazon\\.com\\.mx$/.test(h)){dom='mx';camel='mx';kid='11'}"
+    @"else if(/amazon\\.com\\.br$/.test(h)){dom='br';camel='br';kid='12'}else if(/amazon\\.com\\.au$/.test(h)){dom='com.au';camel='au'}else return;"
+    @"var host=d.getElementById('unifiedPrice_feature_div')||d.getElementById('olpLinkWidget_feature_div')||d.getElementById('MediaMatrix')||d.getElementById('dp-container')||d.getElementById('ppd');if(!host)return;"
+    @"var box=d.createElement('details');box.id='ad7380-price-history';box.style.cssText='margin:12px 0;padding:10px;border:1px solid #494d4d;border-radius:8px;background:#000;color:#e8e6e3';"
+    @"var sm=d.createElement('summary');sm.textContent='Price history';sm.style.cssText='font-weight:700;color:#e8e6e3;cursor:pointer';box.appendChild(sm);"
+    @"function chart(label,href,src){var w=d.createElement('div');w.style.cssText='margin-top:10px';var t=d.createElement('div');t.textContent=label;t.style.cssText='margin-bottom:5px;color:#e8e6e3;font-weight:600';"
+    @"var l=d.createElement('a');l.href=href;l.target='_blank';l.rel='noopener noreferrer';var im=d.createElement('img');im.loading='lazy';im.decoding='async';im.alt=label+' price history';im.src=src;im.style.cssText='display:block;width:100%;height:auto;background:#111;border-radius:6px';l.appendChild(im);w.appendChild(t);w.appendChild(l);box.appendChild(w)}"
+    @"if(kid)chart('Keepa','https://keepa.com/#!product/'+kid+'-'+asin,'https://graph.keepa.com/pricehistory.png?asin='+encodeURIComponent(asin)+'&domain='+encodeURIComponent(dom)+'&amazon=1&new=1&used=1&range=90');"
+    @"chart('CamelCamelCamel','https://'+camel+'.camelcamelcamel.com/product/'+asin,'https://charts.camelcamelcamel.com/'+camel+'/'+asin+'/amazon-new-used.png?force=1&zero=0&w=720&h=420&desired=false&legend=1&ilt=1&tp=all&fo=0');"
+    @"host.insertAdjacentElement('afterend',box)}catch(_){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run()}catch(_){}})();";
+}
+
+
 // One immutable document-start program per strength replaces four separately
 // allocated/compiled WKUserScripts while preserving their proven execution order.
 static long gADCoreWebJSStrength7271=-1;
@@ -1692,6 +1739,16 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADCoreWebJS7271() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADCoreWebUS7271,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        if(gP.hideSponsored && !objc_getAssociatedObject(ucc,kADKillerUS7380)){
+            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADKillerSponsoredJS7380() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+            [ucc addUserScript:us];
+            objc_setAssociatedObject(ucc,kADKillerUS7380,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        if(gP.priceHistory && !objc_getAssociatedObject(ucc,kADPriceHistoryUS7380)){
+            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADPriceHistoryJS7380() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:YES];
+            [ucc addUserScript:us];
+            objc_setAssociatedObject(ucc,kADPriceHistoryUS7380,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
         if(gP.whiteTame && !objc_getAssociatedObject(ucc,kADTWBUS)){
             WKUserScript *us=[[WKUserScript alloc] initWithSource:ADTWBJS() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
@@ -1773,6 +1830,8 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
     %orig;
     if(gP.enabled){
         objc_setAssociatedObject(self,kADCoreWebUS7271,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(self,kADKillerUS7380,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(self,kADPriceHistoryUS7380,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADTWBUS,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         // v7.370: removeAllUserScripts deletes the actual isolated checkout scripts too.
         // Clear their installation receipts before reattachment or checkout silently loses them.
@@ -7924,6 +7983,23 @@ static void ADOwnCheckoutModalPrepaint7375(UIViewController *vc){
 // exact cell-floor hook above. No controller-level repaint path is installed.
 
 
+// v7.380: structural checkout dedupe. The old guard depended on one remembered presenter;
+// this also detects an already-presented live AMS checkout anywhere in the current window chain.
+// It runs only when a presentation is requested and adds no timer/debounce/polling.
+static UIViewController *ADActiveCheckoutModal7380(UIViewController *presenter){
+    @try {
+        UIViewController *r=presenter.viewIfLoaded.window.rootViewController?:presenter;
+        for(NSUInteger i=0;r&&i<16;i++){
+            if(ADCheckoutModalController7375(r)&&!r.isBeingDismissed)return r;
+            UIViewController *n=r.presentedViewController;
+            if(!n||n==r)break;
+            r=n;
+        }
+        if(gADCheckoutLiveModal7375&&!gADCheckoutLiveModal7375.isBeingDismissed&&gADCheckoutLiveModal7375.viewIfLoaded.window)return gADCheckoutLiveModal7375;
+    } @catch(...) {}
+    return nil;
+}
+
 // Status-bar ownership from the v5.446/v6.0.5 lineage. This generic lifecycle hook
 // does NOT paint controller views; it only installs a cached per-class light-content claim.
 %hook UIViewController
@@ -7933,9 +8009,8 @@ static void ADOwnCheckoutModalPrepaint7375(UIViewController *vc){
         @try {
             // Suppress only a provably redundant request from the same presenter while the
             // first checkout modal is still live and not dismissing. No clock/debounce is used.
-            BOOL duplicate=(gADCheckoutPresenter7375==self&&gADCheckoutLiveModal7375&&
-                            !gADCheckoutLiveModal7375.isBeingDismissed&&
-                            (gADCheckoutPresentationActive7375||gADCheckoutLiveModal7375.viewIfLoaded.window));
+            UIViewController *active=ADActiveCheckoutModal7380(self);
+            BOOL duplicate=(active&&active!=viewControllerToPresent);
             if(duplicate){ if(completion)completion(); return; }
             gADCheckoutPresenter7375=self;
             gADCheckoutLiveModal7375=viewControllerToPresent;

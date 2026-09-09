@@ -1,23 +1,15 @@
 {
-  "version": "7.379~teal-transition-forensics-claude-audit",
-  "direct_parent": "7.378~byg-outline-one-shot-reload",
-  "parent_tweak_sha256": "9634b267097c3d18445b265efa3e8f4412e3f54bb88ac1212907aefd85f39c09",
-  "parent_sb_sha256": "f75490927eadb6461f7bfc7f095319a9f081166e6272e44e01fa684b506bc7ad",
-  "evidence": {
-    "teal_live_vs_switcher": "prior FULL/native evidence shows Amazon live hierarchy black while switcher/warm artifact is ~RGB(9,87,99); v7.377 removal of generic XIB replacement did not eliminate the device symptom",
-    "probe_gap": "v7.378 transition mode terminates at UIApplicationDidEnterBackground, so it cannot correlate the same process through switcher dwell and warm return",
-    "remaining_springboard_paths": "XBApplicationSnapshot accessors are provenance-aware and veto SceneContent; generic placeholder provider now passes through but was not being passively observed",
-    "claude_adtwb": "three ADTWB video-overlay alpha slots require shade, not factor",
-    "claude_standalone": "ADStandalonePaintJS7104 uses 12 mixed %.4f/%.3f slots; positional audit maps brightness to factor and rgba alpha to shade",
-    "claude_ci": "GitHub ship path must run lint plus the Python regression suite before Theos packaging"
-  },
-  "intentional_changes": [
-    "no production teal/switcher visual mutation is added; current v7.378 launch/snapshot behavior is preserved while evidence is collected",
-    "transition probe survives background and warm return for up to 120 seconds in the same Amazon process",
-    "record a synchronous lifecycle-window census so transient model/presentation background planes cannot hide between display-link frames",
-    "add read-after-%orig, arm-gated logging of the generic SpringBoard live-XIB placeholder return without modifying it",
-    "retain provenance-only XBApplicationSnapshot production policy and SceneContent/protected veto",
-    "lock Claude's ADStandalone/ADTWB factor-vs-shade positional mappings in a regression test",
-    "retain strict CI enforcement through actions/setup-python and AD_STRICT_VALIDATE=1 scripts/validate.sh"
-  ]
+  "version": "7.380~amznkiller-features-optimization-audit",
+  "direct_parent": "7.379~teal-transition-forensics-claude-audit",
+  "parent_tweak_sha256": "15bba253176fa4760c0fe78086ca6812ff3f79b3e9d8f1f4f7a81548659925ce",
+  "parent_sb_sha256": "9f2b39a788c33fcf9fdc1ace290f1bd7d19528f6cb717e44bad7f8b9ef56f349",
+  "features": [
+    "hideSponsored preference + declarative CSS",
+    "priceHistory preference + one-shot Keepa/Camel charts",
+    "structural duplicate checkout guard",
+    "teal transition forensics retained",
+    "postinst permission guard",
+    "dead/duplicate static audit + source-handoff pruning"
+  ],
+  "runtime_contract": "No new MutationObserver, interval, timeout, RAF, scroll listener, polling loop, app-switcher cover, warm hide/show owner, or fake ATC control."
 }

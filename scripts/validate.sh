@@ -3,6 +3,11 @@ set -eu
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$ROOT"
 
+
+# Debian maintainer scripts must be executable or dpkg-deb refuses to package.
+mode=$(stat -c '%a' layout/DEBIAN/postinst 2>/dev/null || stat -f '%Lp' layout/DEBIAN/postinst 2>/dev/null || echo 0)
+case "$mode" in 5??|7??) ;; *) echo "validate: layout/DEBIAN/postinst must be executable (mode=$mode)" >&2; exit 1;; esac
+
 # Always available on the jailbroken-device push path.
 bash scripts/lint-logos.sh
 

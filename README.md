@@ -1,78 +1,37 @@
-# AmazonDark v7.379 — teal transition forensics / Claude audit lock
+# AmazonDark v7.380 — AmznKiller features + optimization audit
 
-Direct parent: **v7.378~byg-outline-one-shot-reload**.
+Direct parent: `7.379~teal-transition-forensics-claude-audit`.
 
-This build deliberately does **not** add another app-switcher cover or guessed teal painter. The teal card still exists after v7.377 removed the unscoped live-XIB replacement, while earlier FULL/native evidence shows the live Amazon hierarchy black. v7.379 therefore closes the remaining evidence gap before changing production snapshot ownership.
+This release preserves the existing probe-proven AmazonDark visual contract while adding two default-off shopping features, hardening checkout presentation dedupe, fixing package-script permissions, and auditing the production source for dead/duplicate hot-path code.
 
-- **Transition probe now follows the same Amazon process through the switcher and warm return.** `transition` stays armed for up to 120 seconds instead of terminating at `UIApplicationDidEnterBackground`. It records background/foreground cycle numbers and a synchronous census of every current `UIWindow`, root controller, top direct child, model/presentation backgrounds, opacity, level, frame, alpha and hidden state at each lifecycle notification. This is read-only.
-- **SpringBoard generic placeholder is observed, never replaced.** While the explicit transition arm is valid, `_loadLiveXIBViewForApplication:` is hooked read-after-`%orig` solely to log the returned view tree (bounded to 24 nodes). The exact original object is returned unchanged. No view is inserted, recolored, hidden or substituted.
-- **Production snapshot policy is unchanged from v7.378.** `XBApplicationSnapshot` remains the only SpringBoard image replacement owner; `SceneContent` and protected snapshots are still hard vetoes. The v7.350 exact AXU/Tez cold-splash seal remains.
-- **Claude ADTWB finding was already fixed.** The three video-overlay `rgba(0,0,0,alpha)` slots use `shade`, not `factor`. v7.379 adds a static regression so that positional mapping cannot drift.
-- **Claude's open `ADStandalonePaintJS7104` audit is now closed clean.** Its 12 float slots are `%.4f, %.4f, %.3f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.3f`; the exact argument mapping is `factor,factor,shade,factor,factor,factor,factor,factor,factor,factor,factor,shade`. Both alpha slots use `shade`; all brightness slots use `factor`. No production change is needed there.
-- **The CI disconnect was already repaired and is now regression-locked.** GitHub Actions installs Python and runs `AD_STRICT_VALIDATE=1 sh scripts/validate.sh` before Theos packaging; the validator always runs Logos lint and requires all Python tests in strict/CI mode. The phone push remains dependency-free.
+## Optional shopping enhancements
 
-v7.378's BYG focus-outline and one-shot sparse-card recovery are unchanged. No MutationObserver, recurring timer, RAF loop, polling scanner, snapshot cover, warm splash visibility state machine, or fake control is introduced.
+- **Hide Sponsored Content**: one declarative document-start stylesheet. It collapses high-confidence Amazon sponsored/ad containers and does not block network requests. No MutationObserver, timer, RAF, scroll listener, polling, or recurring scan.
+- **Price History**: one main-frame, one-shot product-page injector. It extracts the current ASIN and adds an OLED-styled collapsible panel with lazy Keepa and CamelCamelCamel chart images. The ASIN is sent to those third-party services when enabled.
 
----
+Both preferences default to off and live under **Shopping Enhancements** in AmazonDark settings.
 
-# AmazonDark v7.378 — BYG focus-outline cleanup / one-shot real-renderer recovery
+## Theming architecture decision
 
-Direct parent: **v7.377~byg-stepper-hydration-switcher-source-fix**.
+AmznKiller's Android Force Dark is not ported. Its broad coverage relies on Android GPU-level force-dark behavior, which has no equivalent safe iOS API for this tweak. AmazonDark therefore retains its current cheap global OLED WebKit/native floors plus narrow probe-proven interface owners instead of reintroducing global inversion/filter heuristics.
 
-This release is intentionally limited to the two defects proven by the new v7.377 FULL capture. It does not change Cart, Search, Person, Alexa, checkout navigation, cold-launch ownership, warm/app-switcher ownership, TWB, or shared WebUI behavior.
+## Checkout duplicate-loading/presentation hardening
 
-- **Collapsed BYG `+` no longer keeps four gray corners.** The FULL capture identifies the exact real `button[name=submit.addToCart]` under `_denseGridAxSpotAtcButton_` after a quantity stepper collapses. Its circle is already correct (`#303335`, 1px `#747a7c`, radius `100px`), but Amazon leaves it focused and applies a `2px rgb(136,140,140) solid` outline. v7.378 removes only that exact BYG button's focus/active outline and tap highlight. The correct circular border is preserved.
-- **Crayola sparse-card recovery now uses the proven recovery action.** The new v7.377 FULL capture remains incomplete after the complete finite sweep: the BYG grid still has exactly one image+title card with no price/details tail and no ATC subtree. This proves v7.377's synchronous 1px scroll/resize nudge does not trigger Amazon's renderer. A normal document refresh is the historical action that restores Amazon's real ATC subtree, so v7.378 uses one guarded `location.reload()` only for the exact one-sparse-card / all-other-siblings-healthy signature. `sessionStorage` prevents a second reload if the renderer remains incomplete. A complete render clears the guard for a genuinely later navigation.
-- **No fake `+` and no recurring work.** No synthetic controls, MutationObserver, interval, timeout, RAF loop, DOM polling loop, or recurring scanner are added.
-- **Launch/switcher logic is unchanged.** `AmazonDarkSB.xm` production policy remains the v7.377 provenance-only cold-artwork path; only its diagnostic version/log filename advances to v7.378.
+The checkout dedupe is now structural rather than tied only to one remembered presenter. A new AMS checkout presentation is rejected only when another live, non-dismissing `AMSModalLayoutFullScreenViewController` is already in the current presentation chain. No time debounce or timer is used.
 
-Universal probe workflow remains exactly two UI categories: screenshot-triggered **FULL** and armed **VIEWPORT**.
+## Teal app-switcher issue
 
----
+No cover, fake snapshot, warm hide/show behavior, or scene replacement is introduced. The v7.379 120-second cross-background transition recorder and passive SpringBoard XIB observation remain intact so the next bad run can identify the real source. Saved `SceneContent` remains pass-through.
 
-# AmazonDark v7.377 — BYG controls / sparse renderer recovery / switcher source ownership
+## Optimization / source cleanup
 
-Direct parent: **v7.376~warm-switcher-noninterference**.
+- production uses `-Os`, `-ffunction-sections`, `-fdata-sections`, and linker dead stripping;
+- no duplicate `%hook` class blocks or duplicate static function definitions;
+- no obviously dead static production function (every static definition has a live reference);
+- optional new features add no recurring runtime work;
+- old release-audit/probe-diff documents were removed from this handoff because Git history already preserves them;
+- current universal FULL/VIEWPORT and transition probes are retained.
 
-This release stays narrow and preserves the accepted checkout, Cart, Search, Person, Alexa, TWB, launch-seal, and universal-probe behavior outside the four proven corrections below.
+## Build reliability
 
-- **BYG quantity control now matches Cart exactly.** The expanded dense-grid stepper is scoped under `.checkout-byg-mobile-container .byg-dense-grid-atc-container`: `#303335` fill, `#747a7c` 1px border, transparent plumbing, and white trash/minus/plus sprites.
-- **Checkout decrement sprite is white.** The existing checkout quantity rule now includes `a-icon-small-remove` and `a-icon-small-subtract`, matching the already-correct Cart implementation.
-- **Sparse BYG hydration recovery recognizes the actual failure.** The v7.374 good capture has row-2/col-2 ASIN `B0096XWNNY` with its normal ATC and price/details tail. Both v7.376 captures have that same faceout position with only image+title. v7.375 incorrectly required `.a-price` before it would attempt recovery, so the bad Crayon card could never qualify. v7.377 recognizes exactly one image+title / no-price / no-ATC sparse card with otherwise healthy siblings and nudges Amazon's real horizontal renderer once. It does not create a button, reload, observe mutations, poll, schedule timers, or run an RAF loop.
-- **Teal warm/app-switcher regression is attacked at the upstream source owner, not covered.** v7.376 correctly removed all app-side warm/switcher covers and splash visibility suppression, yet the teal snapshot remained. The remaining SpringBoard branch inherited from v7.337 still hooked `_loadLiveXIBViewForApplication:` and replaced every Amazon return despite that selector carrying no snapshot kind or launch-request provenance. v7.377 removes that generic placeholder hook completely. Saved `SceneContent` and live placeholder/XIB views are untouched; only provenance-bearing `XBApplicationSnapshot` launch resources remain eligible for dark artwork. The probe-proven v7.350 AXU/Tez cold-splash seal remains in the Amazon process.
-- **Probe identity is corrected.** The v7.376 universal probe files were named v7.376 but their header/body still reported v7.375/v7.374. v7.377 reports one consistent identity.
-
-No app-switcher cover, warm splash hide/show state machine, background lifecycle painter, new UIWindow, snapshot deletion, MutationObserver, recurring timer, polling loop, or fake ATC control is added.
-
----
-
-# AmazonDark v7.376 — warm/app-switcher non-interference
-
-Direct parent: **v7.375~checkout-prepaint-snapshot-hydration**.
-
-This is a surgical lifecycle correction. All v7.375 checkout prepaint, duplicate-presentation, BYG hydration, back-arrow, ADTWBJS factor/shade, and CI fixes remain.
-
-- **No app-switcher cover.** The v7.375 black `AmazonDarkWarmSnapshotCover7375` workaround is removed completely. UIKit once again snapshots the already-themed live Amazon scene.
-- **No warm splash suppression.** The inherited v7.307 `gADOrdinaryWarmResume7307` / hidden+alpha state machine is removed. AmazonDark no longer hides or reveals AXU/Tez based on background/foreground state.
-- **Root-cause backtrack.** v7.335/v7.336 had already established the good v6.0.185 contract: no switcher owner and no warm hierarchy mutation. The later v7.337 launch rebase onto v7.307 accidentally reintroduced warm suppression, and v7.350 explicitly retained it. v7.376 removes that architectural regression while preserving the later cold-splash seal.
-- **Cold splash remains dark.** If Amazon actually presents `AXUSplashScreenViewController` or `TezBaseSplashScreenViewController`, the v7.350 exact-controller black/logo seal still themes its pixels, but Amazon/UIKit alone own visibility, timing, and dismissal.
-- **No new timers/observers/scanners.** This release removes lifecycle mutation code rather than adding another workaround.
-
----
-
-# AmazonDark v7.375 — checkout prepaint / warm snapshot / BYG hydration
-
-Direct parent: **v7.374~byg-price-checkout-first-paint**  
-Parent `src/Tweak.xm` SHA-256: `9b320db93e2bdae3b416e8ca0958821bc54e1fcc6b6048caf2694db1b302c743`
-
-This is a narrow stabilization release. It preserves the working v7.374 menu, checkout-body, BYG price, dynamic Prime/red/green/blue, loader, press-state, and quantity-control styling while addressing the remaining timing defects.
-
-- **Checkout transition first paint:** the incoming `AMSModalLayoutFullScreenViewController` now primes its OLED root/navigation appearance before UIKit composites the presentation. The direct `_UIBarBackground` image leaf is hidden by structural modal ownership, and the exact Amazon tan `rgba(0.929,0.733,0.506,1)` transition plane is claimed even when its model height is zero.
-- **Duplicate checkout pass:** v7.374's `UINavigationBar` / `_UIBarBackground` checkout `layoutSubviews` reassertions are removed. Ownership is event-driven before the transition instead of mutating the hierarchy during the animation. A state/identity guard only rejects a provably redundant second request from the same presenter while the first checkout is still live; there is no time debounce.
-- **Checkout back arrow:** all checkout `UINavigationBarAppearance` states and late tint writes are scoped to OLED + white bar-button/back-button tint.
-- **Warm app switcher/resume:** a per-primary-window black snapshot cover is installed synchronously when the app backgrounds and is removed at `DidBecomeActive`, eliminating the stale teal task-switcher/warm-entry plane without adding another modal.
-- **Missing BYG `+`:** no fake control is created. At normal load/pageshow, one exact sparse-card signature can trigger one synchronous layout/carousel/resize nudge so Amazon's own dense-grid renderer gets one chance to insert the real ATC subtree. No reload, MutationObserver, timer, RAF, or recurring scanner is used.
-- **TWB video overlays:** fixes Claude's confirmed `factor`/`shade` swap in the three `rgba(0,0,0,alpha)` search/video overlay slots. `ADStandalonePaintJS7104` was audited position-by-position and remains correct.
-- **Release validation:** the phone-safe push flow always runs `scripts/lint-logos.sh` and runs the Python regression suite when `python3` is installed. GitHub Actions explicitly installs Python and runs `AD_STRICT_VALIDATE=1 sh scripts/validate.sh`, so all 28 Python regressions are mandatory before packaging. The Playwright-based `.cjs` render fixtures remain developer tests rather than a phone/ship-path dependency.
-
-Universal probe workflow remains two categories only: screenshot-triggered **FULL** and armed **VIEWPORT**.
+`layout/DEBIAN/postinst` is mode `0755`. CI normalizes that mode before validation and packaging, and `scripts/validate.sh` rejects a non-executable maintainer script. Strict CI continues to run Logos lint and the full Python regression suite before Theos packaging.

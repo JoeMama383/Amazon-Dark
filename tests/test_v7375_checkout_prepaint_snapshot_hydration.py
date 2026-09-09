@@ -7,8 +7,8 @@ C=(ROOT/'layout/DEBIAN/control').read_text()
 W=(ROOT/'.github/workflows/build.yml').read_text()
 CMD=(ROOT/'COMMANDS.md').read_text()
 
-assert 'Version: 7.379~teal-transition-forensics-claude-audit' in C
-assert '#define AD_VERSION "v7.379-teal-transition-forensics-claude-audit"' in S
+assert 'Version: 7.380~amznkiller-features-optimization-audit' in C
+assert '#define AD_VERSION "v7.380-amznkiller-features-optimization-audit"' in S
 
 # Claude audit: ADStandalonePaintJS7104 is semantically clean.
 stand=S[S.index('static NSString *ADStandalonePaintJS7104'):S.index('static NSString *ADTWBJS')]
@@ -36,8 +36,8 @@ assert 'backButtonAppearance' in S and 'doneButtonAppearance' in S
 vci=S.index('\n%hook UIViewController\n')+1
 vc=S[vci:S.index('%end',vci)]
 assert 'presentViewController:' in vc
-assert 'gADCheckoutPresenter7375==self' in vc
-assert 'gADCheckoutPresentationActive7375' in vc
+assert 'ADActiveCheckoutModal7380' in vc
+assert 'BOOL duplicate=(active&&active!=viewControllerToPresent);' in vc
 for bad in ['CACurrentMediaTime','3.0','dispatch_after']:
     assert bad not in vc
 
@@ -64,11 +64,11 @@ for bad in ['MutationObserver','setInterval','setTimeout','requestAnimationFrame
 # Phone push stays dependency-free; CI is strict and explicitly provisions Python.
 assert 'actions/setup-python@v5' in W
 assert 'AD_STRICT_VALIDATE=1 sh scripts/validate.sh' in W
-assert 'bash scripts/lint-logos.sh' in CMD
-assert 'AmazonDark-v7.379-teal-transition-forensics-claude-audit-source.zip' in CMD
+assert 'sh scripts/validate.sh' in CMD
+assert 'AmazonDark-v7.380-amznkiller-features-optimization-audit-source.zip' in CMD
 V=(ROOT/'scripts/validate.sh').read_text()
 assert 'scripts/lint-logos.sh' in V and 'tests/test_*.py' in V
 assert 'command -v python3' in V and 'AD_STRICT_VALIDATE' in V
 assert 'python3 unavailable on this device; GitHub CI enforces them' in V
 
-print('PASS: checkout/TWB/CI contracts retained under v7.379; BYG recovery remains real-control/no-recurring')
+print('PASS: checkout/TWB/CI contracts retained under v7.380; BYG recovery remains real-control/no-recurring')
