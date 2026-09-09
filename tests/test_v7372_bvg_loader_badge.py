@@ -3,8 +3,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.382~sponsored-carousel-precision' in C
-assert '#define AD_VERSION "v7.382-sponsored-carousel-precision"' in S
+assert 'Version: 7.383~sponsored-selector-rules' in C
+assert '#define AD_VERSION "v7.383-sponsored-selector-rules"' in S
 
 loader = "#checkoutDisplayPage .checkout-byg-mobile-container li.a-carousel-card.a-carousel-card-empty>.a-loading-static"
 inner = "#checkoutDisplayPage .checkout-byg-mobile-container li.a-carousel-card.a-carousel-card-empty>.a-loading-static>.a-loading-static-inner"

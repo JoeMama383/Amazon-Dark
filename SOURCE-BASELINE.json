@@ -1,21 +1,22 @@
 {
-  "version": "7.382~sponsored-carousel-precision",
-  "direct_parent": "7.381~sponsored-slot-collapse-ad-floor",
-  "parent_tweak_sha256": "a347ae74e7d9e994d6cef9bcb79445c590938628958a70b47f6c53e485ee2290",
-  "parent_sb_sha256": "3d2e14877ed77068af70642e0ab9eab7a357faf99870704a9bfa6c6c7056a15b",
+  "version": "7.383~sponsored-selector-rules",
+  "direct_parent": "7.382~sponsored-carousel-precision",
+  "parent_tweak_sha256": "1f13e454235d743435dcc913c71eab7617864bd149689336a5a164f9d94cba4f",
+  "parent_sb_sha256": "0ef22176756e2a87d675d7a2babad6cac0efe5d4eaf91a8f5bd5eca4c4b4d89d",
   "evidence": [
-    "v7.380 probe shows Home dashboard card shells themselves can remain after blocked inner content",
-    "v7.381 screenshots show broad ancestor :has(any ad descendant) collapse removes later mixed carousel cards",
-    "v7.380 blocker matched any data-a-carousel-options containing isSponsoredProduct, while AmznKiller requires the explicit JSON value true",
-    "AmznKiller current list only promotes single-creative/single-video feedback ownership to a full gwm-window tile"
+    "v7.382 source contained nested :has() selectors inside the shared sponsored CSS selector list",
+    "Selectors Level 4 forbids nested :has(); an invalid member invalidates an ordinary comma-separated selector rule",
+    "v7.382 screenshot shows sponsored content rendered while the preference is enabled",
+    "v7.380 probe confirms mobile-gateway-atf_ad- as a direct Home dashboard ad-slot identity",
+    "current AmznKiller static selector list includes multiple sponsored families omitted by the partial v7.380-v7.382 port"
   ],
   "changes": [
-    "preserve v7.381 OLED first-paint floor for Home dashboard shells",
-    "require explicit isSponsoredProduct:true instead of key-presence matching",
-    "remove generic descendant-driven collapse for gwm-window and Home mosaic list items",
-    "collapse dashboard/mosaic owners only when their immediate widget root has explicit ad-slot identity",
-    "use narrow single-creative/single-video feedback-label ownership for gwm-window tiles",
-    "retain individual sponsored-card removal without MutationObserver/timer/RAF/polling"
+    "replace nested :has() dashboard selectors with legal single-:has ownership selectors",
+    "emit each sponsored selector as an independent CSS rule",
+    "cover the current AmznKiller sponsored/ad selector families",
+    "preserve explicit isSponsoredProduct:true matching",
+    "retain only narrow probe-backed Home dashboard outer-slot collapse",
+    "retain v7.381 OLED loading floor and all unrelated theming/launch/probe behavior"
   ],
-  "runtime_contract": "No recurring DOM work, app-switcher cover, warm splash suppression, fake UI, or broad theming change."
+  "runtime_contract": "One document-start stylesheet only; no recurring DOM work, app-switcher cover, warm splash suppression, fake UI, or broad theming change."
 }
