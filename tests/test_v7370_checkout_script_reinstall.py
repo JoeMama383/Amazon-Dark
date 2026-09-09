@@ -4,8 +4,8 @@ import hashlib,re,subprocess,tempfile
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.381~sponsored-slot-collapse-ad-floor' in CTRL
-assert '#define AD_VERSION "v7.381-sponsored-slot-collapse-ad-floor"' in S
+assert 'Version: 7.382~sponsored-carousel-precision' in CTRL
+assert '#define AD_VERSION "v7.382-sponsored-carousel-precision"' in S
 
 def func(name):
     st=S.index(f'static NSString *{name}')

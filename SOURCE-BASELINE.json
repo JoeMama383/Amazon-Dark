@@ -1,19 +1,21 @@
 {
-  "version": "7.381~sponsored-slot-collapse-ad-floor",
-  "direct_parent": "7.380~amznkiller-features-optimization-audit",
-  "parent_tweak_sha256": "a2ac8186b284bae8ffaad2e0a559e7314b112c2d6206bad2cef58a448dd3b8a9",
-  "parent_sb_sha256": "74b874c529588b9f8ee5552c7159da90c493d9b09e57efaf1afb8b5abe332133",
+  "version": "7.382~sponsored-carousel-precision",
+  "direct_parent": "7.381~sponsored-slot-collapse-ad-floor",
+  "parent_tweak_sha256": "a347ae74e7d9e994d6cef9bcb79445c590938628958a70b47f6c53e485ee2290",
+  "parent_sb_sha256": "3d2e14877ed77068af70642e0ab9eab7a357faf99870704a9bfa6c6c7056a15b",
   "evidence": [
-    "viewport probe shows first Home dashboard li.gwm-tile at 16,135.6 161x214.7 with white floor",
-    "viewport probe shows second Home dashboard li.gwm-tile at 185,135.6 161x214.7 with white floor",
-    "md-grid-2 child carries mobile-gateway-atf_ad-pl marker inside the second white slot",
-    "center Home mosaic slot remains as an empty 326.8x467.8 list item after inner sponsored content is hidden"
+    "v7.380 probe shows Home dashboard card shells themselves can remain after blocked inner content",
+    "v7.381 screenshots show broad ancestor :has(any ad descendant) collapse removes later mixed carousel cards",
+    "v7.380 blocker matched any data-a-carousel-options containing isSponsoredProduct, while AmznKiller requires the explicit JSON value true",
+    "AmznKiller current list only promotes single-creative/single-video feedback ownership to a full gwm-window tile"
   ],
   "changes": [
-    "always-on document-start OLED floor for #gwm-dashboard > li.gwm-tile",
-    "sponsored blocker collapses owning dashboard/window/mosaic list item when positive ad descendants exist",
-    "no generic sponsored-class heuristic because normal cards can contain sponsored-badge-empty placeholders",
-    "no MutationObserver, timer, RAF, polling, scroll listener, or post-hydration scan"
+    "preserve v7.381 OLED first-paint floor for Home dashboard shells",
+    "require explicit isSponsoredProduct:true instead of key-presence matching",
+    "remove generic descendant-driven collapse for gwm-window and Home mosaic list items",
+    "collapse dashboard/mosaic owners only when their immediate widget root has explicit ad-slot identity",
+    "use narrow single-creative/single-video feedback-label ownership for gwm-window tiles",
+    "retain individual sponsored-card removal without MutationObserver/timer/RAF/polling"
   ],
-  "runtime_contract": "No app-switcher cover, warm splash suppression, fake controls, recurring DOM work, or broad theming change."
+  "runtime_contract": "No recurring DOM work, app-switcher cover, warm splash suppression, fake UI, or broad theming change."
 }

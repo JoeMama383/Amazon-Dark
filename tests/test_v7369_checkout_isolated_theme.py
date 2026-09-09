@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.381~sponsored-slot-collapse-ad-floor' in CTRL
-assert '#define AD_VERSION "v7.381-sponsored-slot-collapse-ad-floor"' in S
+assert 'Version: 7.382~sponsored-carousel-precision' in CTRL
+assert '#define AD_VERSION "v7.382-sponsored-carousel-precision"' in S
 
 def func(name):
     st=S.index(f'static NSString *{name}')
@@ -17,7 +17,7 @@ def func(name):
             if d==0: return S[st:i+1]
     raise AssertionError(name)
 
-# Critical shared theming programs remain stable; v7.381 changes only the core concatenation to append the tiny Home ad-shell floor.
+# Critical shared theming programs remain stable; v7.382 changes only the core concatenation to append the tiny Home ad-shell floor.
 assert hashlib.sha256(func('ADFloorJS').encode()).hexdigest() == '5fcc2badb75d385b84a9e67a1daab376c1dd277479c6c1071ead93e3ee96221d'
 assert hashlib.sha256(func('ADTWBJS').encode()).hexdigest() == 'a86f3c1257f32380057eb6c8c99c1c75e2c98f1fc5529364f4304feaa33821a3'
 assert hashlib.sha256(func('ADCoreWebJS7271').encode()).hexdigest() == '2248b10b0d5ac1d4cd2b4f8cba11e760d7bb20aaa22c437248be0e770cd2d467'

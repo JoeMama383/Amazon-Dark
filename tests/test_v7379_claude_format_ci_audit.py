@@ -7,8 +7,8 @@ W=(ROOT/'.github/workflows/build.yml').read_text()
 V=(ROOT/'scripts/validate.sh').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.381~sponsored-slot-collapse-ad-floor' in C
-assert '#define AD_VERSION "v7.381-sponsored-slot-collapse-ad-floor"' in S
+assert 'Version: 7.382~sponsored-carousel-precision' in C
+assert '#define AD_VERSION "v7.382-sponsored-carousel-precision"' in S
 
 def block(name,next_name):
     return S[S.index(f'static NSString *{name}'):S.index(f'static NSString *{next_name}')]
