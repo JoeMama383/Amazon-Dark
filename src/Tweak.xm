@@ -27,7 +27,7 @@
 #import <float.h>
 #import <signal.h>
 
-#define AD_VERSION "v7.376-warm-switcher-noninterference"
+#define AD_VERSION "v7.377-byg-stepper-hydration-switcher-source-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1412,8 +1412,11 @@ static NSString *ADCheckoutFloorJS7369(void){
         @"#checkoutDisplayPage .checkout-byg-mobile-container :is(h1,h2,h3,h4,h5,h6,p,span,strong,b):not(.a-color-price):not(.a-color-success):not(.a-color-link):not([class*=_badgeMessage_]):not([class*=deal]):not([class*=coupon]):not([class*=promotion]):not([class*=saving]):not([class*=discount]):not(:where(.a-color-price *)):not(:where(.a-color-success *)):not(:where(.a-color-link *)):not(:where([class*=_badgeMessage_] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=promotion] *)):not(:where([class*=saving] *)):not(:where([class*=discount] *)):not(:where(a *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container div:not(.a-color-price):not(.a-color-success):not(.a-color-link):not([class*=_badgeMessage_]):not([class*=deal]):not([class*=coupon]):not([class*=promotion]):not([class*=saving]):not([class*=discount]):not(:where(a *)){color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container [class*=_mobileDenseGridProductTitle_],#checkoutDisplayPage .checkout-byg-mobile-container [class*=_mobileDenseGridProductTitle_] *{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container span.a-price[class*=_mobileDenseGridPriceToPay_],#checkoutDisplayPage .checkout-byg-mobile-container span.a-price[class*=_mobileDenseGridPriceToPay_] *{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container :is(.a-color-price,.a-color-success,.a-color-link,[class*=_badgeMessage_],[class*=deal],[class*=coupon],[class*=promotion],[class*=saving],[class*=discount]),#checkoutDisplayPage .checkout-byg-mobile-container :is(.a-color-price,.a-color-success,.a-color-link,[class*=_badgeMessage_],[class*=deal],[class*=coupon],[class*=promotion],[class*=saving],[class*=discount]) *{-webkit-text-fill-color:currentColor!important;}#checkoutDisplayPage .checkout-byg-mobile-container i.a-icon-prime{filter:none!important;-webkit-filter:none!important;}"
         // Continue button: same OLED/gray/light treatment used elsewhere.
         @"#checkoutDisplayPage #checkout-byg-ptc-button.a-button-primary{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage #checkout-byg-ptc-button .a-button-inner{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;}#checkoutDisplayPage #checkout-byg-ptc-button .a-button-text{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-        // Dense-grid plus: exact shared control palette (#303335 fill / #747a7c edge / white glyph).
+        // Dense-grid add/quantity controls: exact Cart contract. The v7.376 FULL pair proves
+        // the expanded BYG stepper is a plain .a-stepper-expanding-fieldset under
+        // .byg-dense-grid-atc-container; stock paints its inner pill white with a 3px yellow edge.
         @"#checkoutDisplayPage .checkout-byg-mobile-container [class*=_denseGridAxSpotAtcButton_] button[name='submit.addToCart']{background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container [class*=_denseGridAxSpotAtcButton_] .a-icon-small-add{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+        @"#checkoutDisplayPage .checkout-byg-mobile-container .byg-dense-grid-atc-container .a-stepper-expanding-fieldset{background:transparent!important;background-color:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container .byg-dense-grid-atc-container .a-stepper-inner-container{background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container .byg-dense-grid-atc-container .a-stepper-controls,#checkoutDisplayPage .checkout-byg-mobile-container .byg-dense-grid-atc-container .a-stepper-controls :is(button,div,span){background-color:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container .byg-dense-grid-atc-container .a-stepper-controls :is(.a-icon-small-trash,.a-icon-small-add,.a-icon-small-remove,.a-icon-small-subtract){filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
         // v7.372 FULL r1: BYG uses the same Amazon empty-card loader family as Cart:
         // li.a-carousel-card.a-carousel-card-empty > .a-loading-static > .a-loading-static-inner.
         // Reuse the proven Cart loader paint exactly, scoped only to checkout BYG.
@@ -1430,7 +1433,7 @@ static NSString *ADCheckoutFloorJS7369(void){
         // Place-order buttons.
         @"#checkoutDisplayPage :is(#placeYourOrder,#placeYourOrderSecondary,#animated-disabled-pyob-top,#animated-disabled-pyob-bottom,.place-order-button-link,.place-your-order-button,.continue-button.a-button-primary){background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage :is(#placeYourOrder,#placeYourOrderSecondary,#animated-disabled-pyob-top,#animated-disabled-pyob-bottom,.place-order-button-link,.continue-button.a-button-primary) .a-button-inner{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;}#checkoutDisplayPage :is(#placeYourOrder,#placeYourOrderSecondary,#animated-disabled-pyob-top,#animated-disabled-pyob-bottom,.place-order-button-link,.continue-button.a-button-primary) :is(.a-button-text,span){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
         // Checkout quantity control: same Cart / product-scroll stepper treatment.
-        @"#checkoutDisplayPage fieldset[name='checkout-quantity-stepper']{background:transparent!important;background-color:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;color:#e8e6e3!important;}#checkoutDisplayPage fieldset[name='checkout-quantity-stepper'] .a-stepper-inner-container{background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;}#checkoutDisplayPage fieldset[name='checkout-quantity-stepper'] .a-stepper-controls,#checkoutDisplayPage fieldset[name='checkout-quantity-stepper'] .a-stepper-controls :is(button,div,span){background-color:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage fieldset[name='checkout-quantity-stepper'] :is(.a-icon-small-trash,.a-icon-small-add){filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+        @"#checkoutDisplayPage fieldset[name='checkout-quantity-stepper']{background:transparent!important;background-color:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;color:#e8e6e3!important;}#checkoutDisplayPage fieldset[name='checkout-quantity-stepper'] .a-stepper-inner-container{background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;}#checkoutDisplayPage fieldset[name='checkout-quantity-stepper'] .a-stepper-controls,#checkoutDisplayPage fieldset[name='checkout-quantity-stepper'] .a-stepper-controls :is(button,div,span){background-color:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage fieldset[name='checkout-quantity-stepper'] :is(.a-icon-small-trash,.a-icon-small-add,.a-icon-small-remove,.a-icon-small-subtract){filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
         // v7.371 probe r3: exact payment summary text immediately below Order total remained
         // stock rgb(15,17,17) despite the broad neutral rule.
         @"#checkoutDisplayPage #payment-option-text-default,#checkoutDisplayPage #payment-option-text-default *,"
@@ -1484,17 +1487,20 @@ static NSString *ADCheckoutTWBJS7369(void){
         @"(function(){try{function put(id,css){var s=document.getElementById(id);if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}s.textContent=css;return s;}function relink(s){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}var css=`#checkoutDisplayPage .checkout-byg-mobile-container img[class*=_mobileDenseGridImage_],#checkoutDisplayPage img.checkout-product-image{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}#checkoutDisplayPage i.a-icon-prime,#checkoutDisplayPage img.sustainability-green-leaf-alignment-updated{filter:none!important;-webkit-filter:none!important;}`;var s=put('ad7-checkout7369-twb',css);if(document.readyState==='loading')window.addEventListener('load',function(){relink(s)},{once:true});else relink(s);}catch(e){}})();",factor,factor];
 }
 
-// v7.375: the bad/good BYG pair proves that Amazon sometimes publishes one otherwise
-// complete dense-grid faceout without its authored ATC subtree. Do not synthesize a plus and
-// do not reload the page. At the normal top-document load/pageshow boundary, detect only the
-// exact one-card sparse state and give Amazon's existing lazy renderer one synchronous layout /
-// carousel activation nudge. The document marker makes the actual recovery run at most once.
-static NSString *ADCheckoutBYGHydrateJS7375(void){
+// v7.377: the old good probe has 14/14 ATC trees in anonCarousel3, including row-2/col-2
+// ASIN B0096XWNNY; both v7.376 captures have the same row-2/col-2 faceout but only image+title:
+// no ATC subtree and no price/details tail. The v7.375 recovery incorrectly required .a-price
+// before it would recognize a card as incomplete, so it categorically skipped this exact failure.
+// Recognize one image+title / no-price / no-ATC sparse faceout while every sibling is healthy,
+// then nudge Amazon's existing horizontal renderer exactly once. No fake control, reload, observer,
+// timer, interval, RAF loop, or recurring scan is introduced.
+static NSString *ADCheckoutBYGHydrateJS7377(void){
     return
-        @"(function(){try{var K='data-ad7375-byg-hydration-nudged';"
+        @"(function(){try{var K='data-ad7377-byg-hydration-nudged';"
          @"function atc(c){try{return !!c.querySelector('.byg-dense-grid-atc-container,[class*=_denseGridAxSpotAtcOverlay_],[class*=_denseGridAxSpotAtcButton_] button[name=\\\"submit.addToCart\\\"]')}catch(_){return false}}"
-         @"function complete(c){try{return !!(c.querySelector('img')&&c.querySelector('[class*=_mobileDenseGridProductTitle_]')&&c.querySelector('.a-price'))}catch(_){return false}}"
-         @"function heal(){try{var page=document.getElementById('checkoutDisplayPage');if(!page||page.hasAttribute(K))return;var root=page.querySelector('.checkout-byg-mobile-container');if(!root)return;var cards=root.querySelectorAll('[class*=_mobileDenseGridAsinFaceout_]');if(cards.length<6)return;var miss=null,missing=0,healthy=0;for(var i=0;i<cards.length;i++){var c=cards[i];if(atc(c)){healthy++;continue}if(complete(c)){missing++;miss=c}}if(missing!==1||healthy<cards.length-1||!miss)return;page.setAttribute(K,'1');try{miss.getBoundingClientRect()}catch(_){}var vp=null;try{vp=miss.closest('.a-carousel-viewport')||root.querySelector('.a-carousel-viewport')||root}catch(_){}if(vp){try{var x=Number(vp.scrollLeft||0),can=Number(vp.scrollWidth||0)>Number(vp.clientWidth||0)+1;if(can){var d=(x+1<vp.scrollWidth-vp.clientWidth)?1:-1;vp.scrollLeft=x+d;vp.dispatchEvent(new Event('scroll',{bubbles:true}));vp.scrollLeft=x}vp.dispatchEvent(new Event('scroll',{bubbles:true}))}catch(_){}}try{root.dispatchEvent(new Event('scroll',{bubbles:true}));window.dispatchEvent(new Event('resize'))}catch(_){}}catch(_){}}"
+         @"function base(c){try{return !!(c.querySelector('img')&&c.querySelector('[class*=_mobileDenseGridProductTitle_]'))}catch(_){return false}}"
+         @"function priced(c){try{return !!c.querySelector('.a-price,[class*=_mobileDenseGridPriceToPay_]')}catch(_){return false}}"
+         @"function heal(){try{var page=document.getElementById('checkoutDisplayPage');if(!page||page.hasAttribute(K))return;var root=page.querySelector('.checkout-byg-mobile-container');if(!root)return;var cards=root.querySelectorAll('[class*=_mobileDenseGridAsinFaceout_]');if(cards.length<6)return;var miss=null,sparse=0,healthy=0;for(var i=0;i<cards.length;i++){var c=cards[i];if(atc(c)){healthy++;continue}if(base(c)&&!priced(c)){sparse++;miss=c}}if(sparse!==1||healthy<cards.length-1||!miss)return;page.setAttribute(K,'1');try{miss.getBoundingClientRect()}catch(_){}var vp=null;try{vp=miss.closest('.a-carousel-viewport')||root.querySelector('.a-carousel-viewport')||root}catch(_){}if(vp){try{var x=Number(vp.scrollLeft||0),max=Math.max(0,Number(vp.scrollWidth||0)-Number(vp.clientWidth||0));if(max>1){var d=x<max?1:-1;vp.scrollLeft=Math.max(0,Math.min(max,x+d));vp.dispatchEvent(new Event('scroll',{bubbles:true}));vp.scrollLeft=x;vp.dispatchEvent(new Event('scroll',{bubbles:true}))}}catch(_){}}try{root.dispatchEvent(new Event('scroll',{bubbles:true}));window.dispatchEvent(new Event('resize'))}catch(_){}}catch(_){}}"
          @"if(document.readyState==='complete')heal();else window.addEventListener('load',heal,{once:true,passive:true});window.addEventListener('pageshow',heal,{once:true,passive:true});}catch(_){}})();";
 }
 
@@ -1699,7 +1705,7 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
             objc_setAssociatedObject(ucc,kADCheckoutTWBUS7369,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
         if(!objc_getAssociatedObject(ucc,kADCheckoutBYGHydrateUS7375)){
-            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADCheckoutBYGHydrateJS7375() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:YES];
+            WKUserScript *us=[[WKUserScript alloc] initWithSource:ADCheckoutBYGHydrateJS7377() injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:YES];
             [ucc addUserScript:us];
             objc_setAssociatedObject(ucc,kADCheckoutBYGHydrateUS7375,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
@@ -8053,7 +8059,7 @@ static void ADPersonOwnScrollIndicator7238(UIView *v){
 }
 %end
 
-// v7.376: restore the proven v6.0.185 / v7.335-v7.336 warm-resume and
+// v7.377: retain the proven v6.0.185 / v7.335-v7.336 warm-resume and
 // app-switcher non-interference contract. AmazonDark must not manufacture, hide,
 // reveal, cover, or otherwise substitute content when an already-running Amazon
 // scene backgrounds or foregrounds. UIKit should snapshot the already-themed live
@@ -8140,7 +8146,7 @@ static void ADLayoutNativeSplashSeal7350(UIViewController *vc,BOOL visible){
     } @catch(...) {}
 }
 
-static void ADOwnAmazonSplash7376(UIViewController *vc){
+static void ADOwnAmazonSplash7377(UIViewController *vc){
     if(!gP.enabled||!vc||!vc.view)return;
     ADSkelSplash7339(vc,@"own.before");
     @try {
@@ -8155,19 +8161,19 @@ static void ADOwnAmazonSplash7376(UIViewController *vc){
 %hook AXUSplashScreenViewController
 - (void)viewDidLoad {
     %orig;
-    ADOwnAmazonSplash7376(self);
+    ADOwnAmazonSplash7377(self);
 }
 - (void)viewWillAppear:(BOOL)animated {
     %orig;
-    ADOwnAmazonSplash7376(self);
+    ADOwnAmazonSplash7377(self);
 }
 - (void)viewDidLayoutSubviews {
     %orig;
-    ADOwnAmazonSplash7376(self);
+    ADOwnAmazonSplash7377(self);
 }
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
-    ADOwnAmazonSplash7376(self);
+    ADOwnAmazonSplash7377(self);
 }
 - (void)viewWillDisappear:(BOOL)animated {
     ADSkelSplash7339(self,@"lifecycle.willDisappear.before");
@@ -8183,19 +8189,19 @@ static void ADOwnAmazonSplash7376(UIViewController *vc){
 %hook TezBaseSplashScreenViewController
 - (void)viewDidLoad {
     %orig;
-    ADOwnAmazonSplash7376(self);
+    ADOwnAmazonSplash7377(self);
 }
 - (void)viewWillAppear:(BOOL)animated {
     %orig;
-    ADOwnAmazonSplash7376(self);
+    ADOwnAmazonSplash7377(self);
 }
 - (void)viewDidLayoutSubviews {
     %orig;
-    ADOwnAmazonSplash7376(self);
+    ADOwnAmazonSplash7377(self);
 }
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
-    ADOwnAmazonSplash7376(self);
+    ADOwnAmazonSplash7377(self);
 }
 - (void)viewWillDisappear:(BOOL)animated {
     ADSkelSplash7339(self,@"lifecycle.willDisappear.before");

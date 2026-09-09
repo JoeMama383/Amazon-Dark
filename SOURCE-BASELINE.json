@@ -1,13 +1,13 @@
 {
-  "direct_parent": "7.374~byg-price-checkout-first-paint",
+  "direct_parent": "7.376~warm-switcher-noninterference",
   "evidence": {
-    "adtwb": "three video overlay alpha format arguments used factor instead of shade",
-    "byg_atc": "bad card lacks Amazon ATC subtree; refreshed card contains normal dense-grid ATC controls",
-    "checkout_back": "settled navigation/button tint recorded dark while header is OLED",
-    "checkout_header": "_UIBarBackground black early; direct 430x103 image leaf visible until later",
-    "checkout_tan": "plain native backing plane rgba(0.929,0.733,0.506,1), model height can be zero during presentation",
-    "warm_snapshot": "app switcher/warm entry teal while contemporaneous live native hierarchy is black"
+    "byg_sparse": "v7.374 good anonCarousel3 row2/col2 has ASIN B0096XWNNY ATC + price tail; v7.376 r1/r2 same faceout has image+title only, no ATC and no price tail",
+    "byg_stepper": "v7.376 FULL r1/r2: active dense-grid stepper inner is rgb(255,255,255) with 3px rgb(255,216,20) edge; trash/remove/add sprite leaves have filter:none",
+    "checkout_minus": "Cart probe identifies decrement leaf as a-icon-small-remove; checkout selector only included trash/add",
+    "hydration_bug": "v7.375 healer required .a-price before classifying a missing-ATC card, so it categorically ignored the observed sparse Crayon faceout",
+    "switcher_upstream": "v7.337/338 introduced generic SBDeviceApplicationSceneViewPlaceholderContentViewProvider replacement without snapshot-kind/launch-request provenance; known-good v7.335/v7.336 did not own warm/switcher placeholders"
   },
-  "parent_tweak_sha256": "9b320db93e2bdae3b416e8ca0958821bc54e1fcc6b6048caf2694db1b302c743",
-  "version": "7.376~warm-switcher-noninterference"
+  "parent_sb_sha256": "1453e4efc45cfe95af044668234c0b6c25ea8e50ca51e3e66033f0d5161e111e",
+  "parent_tweak_sha256": "2f585184c34a47517820231a9d060fa8cf93d8a98f73a016714c1f86b90d2ebc",
+  "version": "7.377~byg-stepper-hydration-switcher-source-fix"
 }

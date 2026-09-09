@@ -1,8 +1,9 @@
-// AmazonDarkSB.xm — v7.338, constructor-safe cold-launch artwork.
+// AmazonDarkSB.xm — v7.377, cold-artwork only; no unscoped live-XIB replacement.
 // UI baseline: exact v7.307 (4bbbbd9). Injected only into SpringBoard.
-// Replace only positively identified Amazon launch resources. Saved scene images
-// and live views pass through. No scene cover, PID/cold classification, ready
-// listener, deadline, minimum duration, animation override, or snapshot deletion.
+// Replace only positively identified Amazon snapshot launch resources. Saved SceneContent,
+// live views, and the generic scene placeholder/XIB provider pass through untouched.
+// No scene cover, PID/cold classification, ready listener, deadline, minimum duration,
+// animation override, warm/switcher handler, or snapshot deletion.
 
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
@@ -53,8 +54,6 @@ static UIImage *ADSplashImage7191(void) {
 @end
 @interface XBApplicationSnapshotManifestImpl : NSObject @end
 @interface XBApplicationSnapshotImage : UIImage @end
-@interface SBDeviceApplicationSceneViewPlaceholderContentViewProvider : NSObject
-@end
 static const char kADGeneratedLaunch7337=0;
 
 static BOOL ADLaunchProbeArmed7351(void){
@@ -78,7 +77,7 @@ static void ADLaunchLog7337(NSString *event,NSString *detail){
         NSString *line=[NSString stringWithFormat:@"%.6f up=%.6f pid=%d event=%@ %@\n",
             CFAbsoluteTimeGetCurrent(),NSProcessInfo.processInfo.systemUptime,getpid(),event,detail?:@""];
         dispatch_async(queue,^{@autoreleasepool{@try{
-            NSString *path=@"/var/mobile/AmazonDark-v7.338-launch-sb-probe.txt";
+            NSString *path=@"/var/mobile/AmazonDark-v7.377-launch-sb-probe.txt";
             NSFileManager *fm=NSFileManager.defaultManager;
             if(![fm fileExistsAtPath:path])[fm createFileAtPath:path contents:nil attributes:@{NSFilePosixPermissions:@0666}];
             NSFileHandle *file=[NSFileHandle fileHandleForWritingAtPath:path];
@@ -247,31 +246,13 @@ static UIImage *ADLaunchSnapshotImage7337(XBApplicationSnapshot *snapshot,UIImag
 %end
 %end
 
-// A missing disk launch snapshot can be supplied by the launch XIB instead.
-// Replace only that detached return value; never insert/remove scene children
-// inside willMoveToWindow:, or alter the provider's saved-user-content branch.
-%hook SBDeviceApplicationSceneViewPlaceholderContentViewProvider
-- (id)_loadLiveXIBViewForApplication:(id)application {
-    id original=%orig;
-    @try {
-        if(![[application valueForKey:@"bundleIdentifier"] isEqual:kAMZ])return original;
-        UIView *source=[original isKindOfClass:UIView.class]?(UIView *)original:nil;
-        CGRect bounds=source.bounds;
-        if(CGRectIsEmpty(bounds))bounds=UIScreen.mainScreen.bounds;
-        CGFloat scale=source?source.contentScaleFactor:UIScreen.mainScreen.scale;
-        UIImage *image=ADLaunchArtwork7337(bounds.size,scale);
-        if(!image){ADLaunchLog7337(@"xib.fallback",@"reason=no-artwork");return original;}
-        UIImageView *replacement=[[UIImageView alloc] initWithImage:image];
-        replacement.frame=source&&!CGRectIsEmpty(source.frame)?source.frame:bounds;
-        replacement.bounds=bounds;
-        replacement.autoresizingMask=source?source.autoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
-        replacement.contentMode=UIViewContentModeScaleToFill;
-        replacement.userInteractionEnabled=NO;
-        ADLaunchLog7337(@"xib.dark",NSStringFromCGSize(bounds.size));
-        return replacement;
-    }@catch(__unused NSException *e){ADLaunchLog7337(@"xib.error",nil);return original;}
-}
-%end
+// v7.377 source correction: do not hook SBDeviceApplicationSceneViewPlaceholderContentViewProvider.
+// Unlike XBApplicationSnapshot, _loadLiveXIBViewForApplication: carries no snapshot kind or
+// launch-request provenance. The v7.337 artwork branch replaced that generic provider for every
+// Amazon invocation, including invocations that can participate in scene placeholder continuity.
+// That violates the v7.335/v7.336 warm/switcher non-interference contract. The later v7.350
+// app-side AXU/Tez seal independently owns the probe-proven cold native splash child, so the
+// unproven generic XIB replacement is no longer needed for that failure.
 
 %ctor {
     if(!ADSBEnabled())return;
@@ -279,9 +260,8 @@ static UIImage *ADLaunchSnapshotImage7337(XBApplicationSnapshot *snapshot,UIImag
     BOOL wrapper=class_getInstanceMethod(objc_getClass("XBApplicationSnapshotImage"),@selector(initWithSnapshot:interfaceOrientation:))!=NULL;
     // Image loading consults UIScreen; UIKit is not ready during dyld startup.
     // Keep startup diagnostics free of UIKit calls, including helper arguments.
-    ADLaunchLog7337(@"ctor",[NSString stringWithFormat:@"version=7.338~v7307-constructor-safe-artwork base=4bbbbd9 mode=artwork-only snapshotClass=%d xibClass=%d factory=%d wrapper=%d logo=deferred",
-        objc_getClass("XBApplicationSnapshot")!=Nil,
-        objc_getClass("SBDeviceApplicationSceneViewPlaceholderContentViewProvider")!=Nil,factory,wrapper]);
+    ADLaunchLog7337(@"ctor",[NSString stringWithFormat:@"version=7.377~cold-artwork-no-generic-xib base=v7.338 snapshotClass=%d factory=%d wrapper=%d logo=deferred",
+        objc_getClass("XBApplicationSnapshot")!=Nil,factory,wrapper]);
     @autoreleasepool {
         @try { %init; } @catch (__unused NSException *e) {}
         if(factory){ @try { %init(ADLaunchFactory7337); } @catch(__unused NSException *e){} }

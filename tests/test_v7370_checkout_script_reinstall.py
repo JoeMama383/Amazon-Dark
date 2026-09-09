@@ -4,8 +4,8 @@ import hashlib,re,subprocess,tempfile
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.376~warm-switcher-noninterference' in CTRL
-assert '#define AD_VERSION "v7.376-warm-switcher-noninterference"' in S
+assert 'Version: 7.377~byg-stepper-hydration-switcher-source-fix' in CTRL
+assert '#define AD_VERSION "v7.377-byg-stepper-hydration-switcher-source-fix"' in S
 
 def func(name):
     st=S.index(f'static NSString *{name}')

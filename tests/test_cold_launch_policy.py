@@ -64,7 +64,6 @@ def main():
         "XBApplicationSnapshot",
         "XBApplicationSnapshotManifestImpl",
         "XBApplicationSnapshotImage",
-        "SBDeviceApplicationSceneViewPlaceholderContentViewProvider",
     ], hooks
     forbidden = [
         "SBIconView", "SBSceneView", "processState", "isRunning",
@@ -79,7 +78,6 @@ def main():
                   'notify_post("com.colindavidr.amazondark.ready']:
         assert token not in tweak, token
     assert 'if(![bundle isEqual:kAMZ])return original;' in source
-    assert 'if(![[application valueForKey:@"bundleIdentifier"] isEqual:kAMZ])return original;' in source
     assert 'producingImage=NO;' in source and '@finally' in source
     for method in ["imageForInterfaceOrientation:(long long)orientation {",
                    "imageForInterfaceOrientation:(long long)orientation generationOptions:",
@@ -87,8 +85,8 @@ def main():
         assert method in source
     assert 'format.opaque=YES' in source
     assert '[[UIColor blackColor] setFill]' in source
-    assert 'version=7.338~v7307-constructor-safe-artwork base=4bbbbd9 mode=artwork-only' in source
-    assert "Version: 7.376~warm-switcher-noninterference\n" in (ROOT / "layout/DEBIAN/control").read_text()
+    assert 'version=7.377~cold-artwork-no-generic-xib base=v7.338' in source
+    assert "Version: 7.377~byg-stepper-hydration-switcher-source-fix\n" in (ROOT / "layout/DEBIAN/control").read_text()
     # v7.351 changes only the optional file logger gate in SpringBoard. The actual
     # launch-artwork policy/render/selection functions remain byte-identical to accepted v7.350.
     def static_block(name):
@@ -118,7 +116,7 @@ def main():
     for name,digest in expected.items():
         assert hashlib.sha256(static_block(name).encode()).hexdigest()==digest,name
     assert 'if(!ADLaunchProbeArmed7351())return;' in source
-    print("PASS: v7.354 preserves accepted v7.350 cold-launch policy/artwork bytes; only logging is probe-gated")
+    print("PASS: v7.377 preserves accepted snapshot cold-artwork policy while removing generic XIB mutation")
 
 
 

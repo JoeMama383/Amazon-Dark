@@ -1,3 +1,19 @@
+# AmazonDark v7.377 — BYG controls / sparse renderer recovery / switcher source ownership
+
+Direct parent: **v7.376~warm-switcher-noninterference**.
+
+This release stays narrow and preserves the accepted checkout, Cart, Search, Person, Alexa, TWB, launch-seal, and universal-probe behavior outside the four proven corrections below.
+
+- **BYG quantity control now matches Cart exactly.** The expanded dense-grid stepper is scoped under `.checkout-byg-mobile-container .byg-dense-grid-atc-container`: `#303335` fill, `#747a7c` 1px border, transparent plumbing, and white trash/minus/plus sprites.
+- **Checkout decrement sprite is white.** The existing checkout quantity rule now includes `a-icon-small-remove` and `a-icon-small-subtract`, matching the already-correct Cart implementation.
+- **Sparse BYG hydration recovery recognizes the actual failure.** The v7.374 good capture has row-2/col-2 ASIN `B0096XWNNY` with its normal ATC and price/details tail. Both v7.376 captures have that same faceout position with only image+title. v7.375 incorrectly required `.a-price` before it would attempt recovery, so the bad Crayon card could never qualify. v7.377 recognizes exactly one image+title / no-price / no-ATC sparse card with otherwise healthy siblings and nudges Amazon's real horizontal renderer once. It does not create a button, reload, observe mutations, poll, schedule timers, or run an RAF loop.
+- **Teal warm/app-switcher regression is attacked at the upstream source owner, not covered.** v7.376 correctly removed all app-side warm/switcher covers and splash visibility suppression, yet the teal snapshot remained. The remaining SpringBoard branch inherited from v7.337 still hooked `_loadLiveXIBViewForApplication:` and replaced every Amazon return despite that selector carrying no snapshot kind or launch-request provenance. v7.377 removes that generic placeholder hook completely. Saved `SceneContent` and live placeholder/XIB views are untouched; only provenance-bearing `XBApplicationSnapshot` launch resources remain eligible for dark artwork. The probe-proven v7.350 AXU/Tez cold-splash seal remains in the Amazon process.
+- **Probe identity is corrected.** The v7.376 universal probe files were named v7.376 but their header/body still reported v7.375/v7.374. v7.377 reports one consistent identity.
+
+No app-switcher cover, warm splash hide/show state machine, background lifecycle painter, new UIWindow, snapshot deletion, MutationObserver, recurring timer, polling loop, or fake ATC control is added.
+
+---
+
 # AmazonDark v7.376 — warm/app-switcher non-interference
 
 Direct parent: **v7.375~checkout-prepaint-snapshot-hydration**.
