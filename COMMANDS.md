@@ -1,23 +1,23 @@
-# AmazonDark v7.391 commands
+# AmazonDark v7.392 commands
 
 ## PUSH
 ```zsh
 cd /var/mobile/Amazon-Dark-phone
 D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents
-rm -rf /var/mobile/t7391 && mkdir -p /var/mobile/t7391
-unzip -q "$D/AmazonDark-v7.391-ui-completion-audit-fix-source.zip" -d /var/mobile/t7391
+rm -rf /var/mobile/t7392 && mkdir -p /var/mobile/t7392
+unzip -q "$D/AmazonDark-v7.392-probe-handoff-ci-fix-source.zip" -d /var/mobile/t7392
 find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
-cp -a /var/mobile/t7391/AmazonDark-v7.391-ui-completion-audit-fix-source/. .
+cp -a /var/mobile/t7392/AmazonDark-v7.392-probe-handoff-ci-fix-source/. .
 chmod 755 layout/DEBIAN/postinst
 sh scripts/validate.sh
 git add -A
-git commit -m "v7.391: close probe-audit UI gaps"
+git commit -m "v7.392: fix probe receipt handoff and strict CI"
 git push origin main
 ```
 
 ## FULL PROBE
-Open the target Amazon UI and take one iOS screenshot. The finite universal native + WebUI
-sweep runs from the screenshot trigger.
+Open the target Amazon UI and take one iOS screenshot. The finite universal native + WebUI sweep
+runs from the screenshot trigger.
 
 ## VIEWPORT PROBE
 ```zsh

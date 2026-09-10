@@ -4,8 +4,8 @@ S=(ROOT/'src/Tweak.xm').read_text()
 A=(ROOT/'src/ADSponsored.m').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.391~ui-completion-audit-fix' in C
-assert '#define AD_VERSION "v7.391-ui-completion-audit-fix"' in S
+assert 'Version: 7.392~probe-handoff-ci-fix' in C
+assert '#define AD_VERSION "v7.392-probe-handoff-ci-fix"' in S
 
 # Preserve the successful v7.381 first-paint repair: the Home dashboard shell
 # itself owns the stock white loading floor, and that floor remains OLED at

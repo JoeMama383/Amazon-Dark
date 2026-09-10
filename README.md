@@ -1,23 +1,33 @@
-# AmazonDark v7.391 — UI completion audit fix
+# AmazonDark v7.392 — probe handoff CI fix
 
-Direct parent: `7.390~checkout-ui-completion`.
+Direct parent: `7.391~ui-completion-audit-fix`.
 
-This is a probe-audit hardening pass over the seven Sep. 10 checkout/support surfaces and the
-Subscribe & Save loading transition introduced in v7.390. It retains every v7.390 target plus the
-v7.389 Subscribe-sheet and checkout app-switcher fixes.
+This is a **probe-helper / CI-only correction** on top of v7.391. The seven-menu UI completion,
+Subscribe & Save loading treatment, checkout Maple/TWB work, and checkout app-switcher fix are
+unchanged. No production theming selector, color, image rule, native view ownership rule, or timing
+policy is intentionally changed in this release.
 
-A second element-by-element comparison against all eight FULL captures found three residual paint
-owners that v7.390 did not fully claim: the top Help page heading, direct text nodes inside both
-Maple banner text containers, and the delivery-address break/divider painters. v7.391 closes only
-those gaps. The Help heading becomes light without touching the search/logo/orange greeting; Maple
-neutral direct copy becomes light while authored blue links remain blue; and the address divider
-loses its stock gradient/white `or` backing and uses the standard `#747a7c` divider on OLED.
+GitHub Actions exposed a real bug in `scripts/skeleton-probe.sh`: when `plutil` was unavailable,
+the helper attempted to recover Amazon's container from probe receipts, but v7.391's candidate list
+skipped the immediately previous v7.390 receipt and its version regex stopped at v7.390. As a
+result, the freshly written v7.391 receipt was ignored and `arm launch` failed with
+`Amazon container matches: 0`.
 
-All v7.390 payment-card, gift-options, carbon sheet, Subscribe loader, recurrence, address-button,
-checkout Maple image/TWB, dynamic-color, radio/checkbox/switch and selection-state rules remain
-unchanged.
+v7.392 removes the duplicated per-version receipt filename lists. Receipt discovery now scans only
+`AmazonDark-v7.*-probe-status.json`, then requires all of the following before trusting a path:
+Amazon bundle identity, `PROBE_BOOTSTRAP` event, a numeric supported receipt version, and exact
+filename/payload version agreement. This preserves the Amazon-only safety boundary while preventing
+a normal version bump from silently making current/previous receipts undiscoverable. Report/export use the same globbed receipt family, eliminating the second omission path. The universal
+`ui-probe.sh` helper used the same fragile explicit-version pattern, so v7.392 applies the same
+filename/payload-validated receipt discovery there too; this prevents viewport/export discovery from
+drifting on future version bumps.
 
-No MutationObserver, interval, RAF loop, scroll listener, polling loop, recurring hierarchy scan,
-additional WKUserScript, or generic app-switcher painter is added.
+The handoff regression now explicitly covers: current-receipt fallback with every `plutil` dialect
+failing; immediate v7.391 and v7.390 upgrade receipts; another-bundle rejection; filename/payload
+version mismatch rejection; de-duplication; archive/export fallback; and the older compatibility
+receipts.
 
-See `AUDIT-v7.391.md` and `COMMANDS.md`.
+No MutationObserver, timer, RAF loop, Web scroll listener, recurring hierarchy scan, additional
+WKUserScript, or app-switcher painter is added.
+
+See `AUDIT-v7.392.md` and `COMMANDS.md`.

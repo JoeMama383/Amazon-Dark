@@ -1,9 +1,9 @@
 #!/bin/sh
-# AmazonDark v7.391 universal UI probe helper.
+# AmazonDark v7.392 universal UI probe helper.
 # `arm` is a one-shot VIEWPORT capture: create the app-local arm then signal Amazon.
 # FULL capture is intentionally screenshot-only and needs no shell command.
 set -eu
-VER=7.391
+VER=7.392
 NAME=AmazonDark-v$VER
 ROOT=${AD_UI_ROOT:-/var/mobile}
 CONTAINERS=${AD_UI_CONTAINERS:-$ROOT/Containers/Data/Application}
@@ -13,10 +13,20 @@ trap 'rm -f "$TARGETS"' EXIT HUP INT TERM
 
 add_target(){ [ -n "$1" ] || return 0; grep -Fqx "$1" "$TARGETS" 2>/dev/null || printf '%s\n' "$1" >> "$TARGETS"; }
 
-# Best source after the package has run once: the signed-in-app bootstrap receipt.
-for r in "$CONTAINERS"/*/Documents/"$NAME-probe-status.json" "$CONTAINERS"/*/Documents/AmazonDark-v7.387-probe-status.json "$CONTAINERS"/*/Documents/AmazonDark-v7.386-probe-status.json "$CONTAINERS"/*/Documents/AmazonDark-v7.376-probe-status.json "$CONTAINERS"/*/Documents/AmazonDark-v7.375-probe-status.json "$CONTAINERS"/*/Documents/AmazonDark-v7.374-probe-status.json "$CONTAINERS"/*/Documents/AmazonDark-v7.373-probe-status.json "$CONTAINERS"/*/Documents/AmazonDark-v7.372-probe-status.json "$CONTAINERS"/*/Documents/AmazonDark-v7.371-probe-status.json "$CONTAINERS"/*/Documents/AmazonDark-v7.370-probe-status.json "$CONTAINERS"/*/Documents/AmazonDark-v7.369-probe-status.json "$CONTAINERS"/*/Documents/AmazonDark-v7.368-probe-status.json "$CONTAINERS"/*/Documents/AmazonDark-v7.367-probe-status.json "$CONTAINERS"/*/Documents/AmazonDark-v7.366-probe-status.json "$CONTAINERS"/*/Documents/AmazonDark-v7.365-probe-status.json "$CONTAINERS"/*/Documents/AmazonDark-v7.364-probe-status.json "$CONTAINERS"/*/Documents/AmazonDark-v7.363-probe-status.json "$CONTAINERS"/*/Documents/AmazonDark-v7.362-probe-status.json; do
+# Best source after the package has run once: a signed-in-app bootstrap receipt.
+# Scan one stable receipt family and require filename/payload version agreement; this avoids
+# per-release allowlists drifting when AmazonDark is version-bumped.
+for r in "$CONTAINERS"/*/Documents/AmazonDark-v7.*-probe-status.json; do
   [ -f "$r" ] || continue
-  if grep -Eq '"bundle"[[:space:]]*:[[:space:]]*"com[.]amazon[.]Amazon"' "$r" 2>/dev/null; then add_target "${r%/*}"; fi
+  rv=${r##*/}; rv=${rv#AmazonDark-v7.}; rv=${rv%-probe-status.json}
+  case "$rv" in ''|*[!0-9]*) continue;; esac
+  [ "$rv" -ge 344 ] 2>/dev/null || continue
+  [ "$rv" -le 399 ] 2>/dev/null || continue
+  if grep -Eq '"bundle"[[:space:]]*:[[:space:]]*"com[.]amazon[.]Amazon"' "$r" 2>/dev/null &&
+     grep -Eq '"event"[[:space:]]*:[[:space:]]*"PROBE_BOOTSTRAP"' "$r" 2>/dev/null &&
+     grep -Eq '"version"[[:space:]]*:[[:space:]]*"v7[.]'"$rv"'-' "$r" 2>/dev/null; then
+    add_target "${r%/*}"
+  fi
 done
 
 # Metadata fallback for a clean install before a current receipt exists.

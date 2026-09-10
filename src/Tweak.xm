@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.391 — UI completion audit fix
+ * AmazonDark v7.392 — probe handoff CI fix
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.391-ui-completion-audit-fix"
+#define AD_VERSION "v7.392-probe-handoff-ci-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;

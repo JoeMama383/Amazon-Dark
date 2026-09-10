@@ -1,15 +1,15 @@
 {
-  "version": "7.391~ui-completion-audit-fix",
-  "direct_parent": "7.390~checkout-ui-completion",
-  "source": "AmazonDark-v7.390-checkout-ui-completion-source.zip generated in this conversation and re-audited against all eight supplied v7.389 FULL captures",
-  "parent_source_zip_sha256": "4bf65540796a871fd62f4e5ed689b0e75116a6c7850d11320b4dad744c2a5236",
+  "version": "7.392~probe-handoff-ci-fix",
+  "direct_parent": "7.391~ui-completion-audit-fix",
+  "source": "AmazonDark-v7.391-ui-completion-audit-fix-source.zip generated in this conversation; v7.392 changes probe-helper/CI handoff logic only",
+  "parent_source_zip_sha256": "40aa422d1b019685219b3a5530aa627793f6f7f6f75075f8c38e9cf61a9852de",
   "parent_files_sha256": {
-    "src/Tweak.xm": "5b25458e7663226fa411355befc18559a6b8d6f52ab3abc5311dd79c19c6fc71",
-    "src/AmazonDarkSB.xm": "b71bb37a6d5b157121f423b91a6bbe8853eec88e2ef3d0720e558367d9bd61c7",
+    "src/Tweak.xm": "3cbf7c73f221432b27cd26690c087474fe31ded9eaad2b22ee0d00bb90875929",
+    "src/AmazonDarkSB.xm": "2946628351fa378f089cdac4cc1c5f9164b978425f1a81958721fe98805ff98f",
     "src/ADSponsored.m": "45e4825bb0c025016633c026740fc02a969f0a3d6aafa6d2be79a58e81f97fa7",
-    "scripts/ui-probe.sh": "23fc970083badc381cc8b69216a544aae8df80972c02fda1692a9948f26747da",
-    "scripts/skeleton-probe.sh": "bf11016db02d1abac853133e091aed1256f57eead587e04330775bdfeb9e8203"
+    "scripts/ui-probe.sh": "cba7afe4179aac68b5538e3d08f0aa5875e2f8f18dd674c25730969b229d1b5f",
+    "scripts/skeleton-probe.sh": "05b31b9f144d48a52f4c43dbbd622f0814caa412f29946937ed29b6ff8ed5e0a"
   },
-  "runtime_contract": "Retain the complete v7.390 seven-surface checkout/support UI pass and Subscribe loader while closing only probe-confirmed residual Help-heading, Maple direct-text, and delivery-divider paint gaps.",
-  "device_validation": "Pending; audit corrections are derived directly from the supplied v7.389 FULL probes. Local source/static regression proof only until installed on device."
+  "runtime_contract": "Retain v7.391 UI/theming behavior unchanged. Fix only skeleton-probe receipt discovery/report/export version handoff so current and upgrade receipts remain usable when plutil fails.",
+  "device_validation": "No visual behavior is intentionally changed; GitHub strict validation and phone helper behavior remain the release proof targets."
 }

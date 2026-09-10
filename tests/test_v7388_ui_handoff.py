@@ -21,7 +21,9 @@ with tempfile.TemporaryDirectory(prefix='ad-ui-handoff-') as td:
         'pgrep':'exit 1',
     }.items():
         p=bin/script;p.write_text('#!/bin/sh\n'+text+'\n');p.chmod(0o755)
-    def receipt(p,bundle):p.write_text(json.dumps({'bundle':bundle,'event':'PROBE_BOOTSTRAP','version':'v'+version.replace('~','-')}))
+    def receipt(p,bundle,rv=None):
+        rv=rv or version
+        p.write_text(json.dumps({'bundle':bundle,'event':'PROBE_BOOTSTRAP','version':'v'+rv.replace('~','-')}))
     receipt(other/(name+'-probe-status.json'),'com.example.other')
     child=subprocess.Popen([sys.executable,'-u','-c',
         'import signal\nsignal.signal(signal.SIGUSR2,lambda *_:print("signal",flush=True))\nprint("ready",flush=True)\nwhile True:signal.pause()'],stdout=subprocess.PIPE,text=True)
@@ -50,9 +52,11 @@ with tempfile.TemporaryDirectory(prefix='ad-ui-handoff-') as td:
         assert 'Viewport arm:' not in run('status')  # status must also succeed when unarmed.
         # Upgrade receipts locate Amazon before this build writes a new receipt.
         (amazon/(name+'-probe-status.json')).unlink()
-        for previous in ['7.387','7.386']:
-            old=amazon/('AmazonDark-v'+previous+'-probe-status.json');receipt(old,'com.amazon.Amazon')
+        for previous,slug in [('7.391','ui-completion-audit-fix'),('7.390','checkout-ui-completion'),('7.389','checkout-sheet-switcher-fix'),('7.388','native-work-optimization'),('7.387','runtime-css-optimization'),('7.386','sponsored-shell-ownership')]:
+            old=amazon/('AmazonDark-v'+previous+'-probe-status.json');receipt(old,'com.amazon.Amazon',previous+'~'+slug)
             run('arm');output('signal');assert arm.exists();run('disarm');old.unlink()
+        bad=amazon/'AmazonDark-v7.391-probe-status.json';receipt(bad,'com.amazon.Amazon','7.390~checkout-ui-completion')
+        run('arm',ok=False);assert not arm.exists();bad.unlink()
         receipt(amazon/(name+'-probe-status.json'),'com.amazon.Amazon')
         assert 'v'+short in run('export',ok=False)
         terminal='================ END RUN ================\n'
