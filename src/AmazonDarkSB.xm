@@ -1,4 +1,4 @@
-// AmazonDarkSB.xm — v7.386, cold-artwork only; no unscoped live-XIB replacement.
+// AmazonDarkSB.xm — v7.387, cold-artwork only; no unscoped live-XIB replacement.
 // UI baseline: exact v7.307 (4bbbbd9). Injected only into SpringBoard.
 // Replace only positively identified Amazon snapshot launch resources. Saved SceneContent
 // and live views pass through unchanged. The generic scene placeholder/XIB provider is
@@ -79,7 +79,7 @@ static void ADLaunchLog7337(NSString *event,NSString *detail){
         NSString *line=[NSString stringWithFormat:@"%.6f up=%.6f pid=%d event=%@ %@\n",
             CFAbsoluteTimeGetCurrent(),NSProcessInfo.processInfo.systemUptime,getpid(),event,detail?:@""];
         dispatch_async(queue,^{@autoreleasepool{@try{
-            NSString *path=@"/var/mobile/AmazonDark-v7.386-launch-sb-probe.txt";
+            NSString *path=@"/var/mobile/AmazonDark-v7.387-launch-sb-probe.txt";
             NSFileManager *fm=NSFileManager.defaultManager;
             if(![fm fileExistsAtPath:path])[fm createFileAtPath:path contents:nil attributes:@{NSFilePosixPermissions:@0666}];
             NSFileHandle *file=[NSFileHandle fileHandleForWritingAtPath:path];
@@ -109,7 +109,7 @@ static void ADObservePlaceholder7379(id application,id original){
         @try { bundle=[application valueForKey:@"bundleIdentifier"]; } @catch(__unused NSException *e){}
         if(![bundle isEqual:kAMZ])return;
         UIView *root=[original isKindOfClass:UIView.class]?(UIView *)original:nil;
-        if(!root){ADLaunchLog7337(@"xib.observe",@"return=nil-or-nonview");return;}
+        if(!root){if(ADLaunchProbeArmed7351()) ADLaunchLog7337(@"xib.observe",@"return=nil-or-nonview");return;}
         NSMutableArray *parts=[NSMutableArray array];
         NSMutableArray *queue=[NSMutableArray arrayWithObject:root];
         NSUInteger visited=0;
@@ -121,8 +121,8 @@ static void ADObservePlaceholder7379(id application,id original){
                 ADProbeColor7379(v.backgroundColor),ADProbeColor7379(layerColor),v.alpha,v.hidden?1:0,(unsigned long)v.subviews.count]];
             if(queue.count<24&&v.subviews.count)[queue addObjectsFromArray:v.subviews];
         }
-        ADLaunchLog7337(@"xib.observe",[parts componentsJoinedByString:@" | "]);
-    } @catch(__unused NSException *e){ADLaunchLog7337(@"xib.observe.error",nil);}
+        if(ADLaunchProbeArmed7351()) ADLaunchLog7337(@"xib.observe",[parts componentsJoinedByString:@" | "]);
+    } @catch(__unused NSException *e){if(ADLaunchProbeArmed7351()) ADLaunchLog7337(@"xib.observe.error",nil);}
 }
 
 // UIKit image drawing uses a local context and works for background snapshot
@@ -227,15 +227,15 @@ static UIImage *ADLaunchSnapshotImage7337(XBApplicationSnapshot *snapshot,UIImag
         NSString *kindName=kind==ADKindGenerated7337?@"GeneratedDefault":kind==ADKindDefault7337?@"Default":kind==ADKindScene7337?@"SceneContent":@"Unknown";
         // Optional diagnostics must never turn a completed replacement back
         // into the original white image if a metadata getter is unavailable.
-        @try { ADLaunchLog7337(dark?@"snapshot.dark":@"snapshot.keep",[NSString stringWithFormat:
+        @try { if(ADLaunchProbeArmed7351()) ADLaunchLog7337(dark?@"snapshot.dark":@"snapshot.keep",[NSString stringWithFormat:
             @"snapshot=%p accessor=%@ provider=%@ type=%lld kind=%@ interface=%d request=%d protected=%d image=%@ size=%@ scale=%.2f reason=%@",
             snapshot,accessor,provider?:@"nil",snapshot.contentType,kindName,snapshot.launchInterfaceIdentifier.length>0,fromLaunchRequest,protectedContent,
             imageOK?NSStringFromClass(original.class):@"nil",NSStringFromCGSize(size),scale,
             protectedContent?@"protected":kind==ADKindScene7337?@"saved-scene-unchanged":!launch?@"not-confirmed-launch":dark?@"launch-artwork":@"artwork-failed"]);
-        }@catch(__unused NSException *e){ADLaunchLog7337(dark?@"snapshot.dark":@"snapshot.keep",@"detail=unavailable");}
+        }@catch(__unused NSException *e){if(ADLaunchProbeArmed7351()) ADLaunchLog7337(dark?@"snapshot.dark":@"snapshot.keep",@"detail=unavailable");}
         return dark?:original;
         }@finally {producingImage=NO;}
-    }@catch(__unused NSException *e){ADLaunchLog7337(@"snapshot.error",accessor);return original;}
+    }@catch(__unused NSException *e){if(ADLaunchProbeArmed7351()) ADLaunchLog7337(@"snapshot.error",accessor);return original;}
 }
 
 %hook XBApplicationSnapshot
@@ -262,7 +262,7 @@ static UIImage *ADLaunchSnapshotImage7337(XBApplicationSnapshot *snapshot,UIImag
     @try {
         if(request&&[[snapshot.containerIdentity valueForKey:@"bundleIdentifier"] isEqual:kAMZ]){
             objc_setAssociatedObject(snapshot,&kADGeneratedLaunch7337,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            ADLaunchLog7337(@"launch.configure",[NSString stringWithFormat:@"snapshot=%p type=%lld",snapshot,snapshot.contentType]);
+            if(ADLaunchProbeArmed7351()) ADLaunchLog7337(@"launch.configure",[NSString stringWithFormat:@"snapshot=%p type=%lld",snapshot,snapshot.contentType]);
         }
     }@catch(__unused NSException *e){}
 }
@@ -278,7 +278,7 @@ static UIImage *ADLaunchSnapshotImage7337(XBApplicationSnapshot *snapshot,UIImag
     id original=%orig;
     @try {
         if([[snapshot.containerIdentity valueForKey:@"bundleIdentifier"] isEqual:kAMZ])
-            ADLaunchLog7337(@"image.wrapper",[NSString stringWithFormat:@"snapshot=%p orientation=%lld native=%d",snapshot,orientation,original!=nil]);
+            if(ADLaunchProbeArmed7351()) ADLaunchLog7337(@"image.wrapper",[NSString stringWithFormat:@"snapshot=%p orientation=%lld native=%d",snapshot,orientation,original!=nil]);
     }@catch(__unused NSException *e){}
     return original;
 }
@@ -314,7 +314,7 @@ static UIImage *ADLaunchSnapshotImage7337(XBApplicationSnapshot *snapshot,UIImag
     BOOL placeholder=class_getInstanceMethod(objc_getClass("SBDeviceApplicationSceneViewPlaceholderContentViewProvider"),@selector(_loadLiveXIBViewForApplication:))!=NULL;
     // Image loading consults UIScreen; UIKit is not ready during dyld startup.
     // Keep startup diagnostics free of UIKit calls, including helper arguments.
-    ADLaunchLog7337(@"ctor",[NSString stringWithFormat:@"version=7.386~cold-artwork-no-generic-xib base=v7.338 snapshotClass=%d factory=%d wrapper=%d placeholderProbe=%d logo=deferred",
+    if(ADLaunchProbeArmed7351()) ADLaunchLog7337(@"ctor",[NSString stringWithFormat:@"version=7.387~cold-artwork-no-generic-xib base=v7.338 snapshotClass=%d factory=%d wrapper=%d placeholderProbe=%d logo=deferred",
         objc_getClass("XBApplicationSnapshot")!=Nil,factory,wrapper,placeholder]);
     @autoreleasepool {
         @try { %init; } @catch (__unused NSException *e) {}

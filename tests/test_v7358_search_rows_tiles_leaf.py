@@ -1,8 +1,8 @@
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.386~sponsored-shell-ownership' in ctl
-assert '#define AD_VERSION "v7.386-sponsored-shell-ownership"' in t
+assert 'Version: 7.387~runtime-css-optimization' in ctl
+assert '#define AD_VERSION "v7.387-runtime-css-optimization"' in t
 # Search regression: v7.357 structural seal must not recolor stock row/close-button borders or outlines.
 needle='body>:is(div,section,main,footer),#a-page>:is(div,section,main,footer),#attach-to-me>:is(div,section,main,footer)'
 i=t.index(needle); rule=t[i:t.index('}',i)+1]
@@ -23,7 +23,7 @@ assert 'function ad7357ShopByStyle()' not in t
 assert 'document.createTreeWalker(r,NodeFilter.SHOW_TEXT)' not in t
 # Certification/Forestry leaf: DOM shell stays transparent, exact 16px raster neutralizes its baked white square.
 assert '#search .s-pc-certification-faceout,#search .s-pc-attribute-pill-text.s-pc-certification-faceout{background:transparent!important' in t
-assert '#search .s-pc-certification-faceout img.s-image{background:transparent!important;background-color:transparent!important;filter:invert(1) hue-rotate(180deg)!important' in t
+assert '#search .s-pc-certification-faceout img.s-image{background:transparent!important;filter:invert(1) hue-rotate(180deg)!important' in t
 assert '#search .s-pc-certification-faceout img.s-image{filter:invert(1) hue-rotate(180deg)!important' in t
 # No new recurring production mechanism.
 assert 'setInterval(' not in t

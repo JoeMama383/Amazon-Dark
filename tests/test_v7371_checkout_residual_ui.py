@@ -3,14 +3,14 @@ import re
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.386~sponsored-shell-ownership' in C
-assert '#define AD_VERSION "v7.386-sponsored-shell-ownership"' in S
+assert 'Version: 7.387~runtime-css-optimization' in C
+assert '#define AD_VERSION "v7.387-runtime-css-optimization"' in S
 
 # r1: ATC overlay plumbing must stay transparent so it cannot cut across product photos.
 for tok in [
     '.byg-dense-grid-atc-container :is(.atc-faceout-container,.ax-replace)',
     '[class*=_denseGridAxSpotAtcOverlay_] :is(.atc-faceout-container,.ax-replace)',
-    '{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}',
+    '{background:transparent!important;box-shadow:none!important;}',
 ]:
     assert tok in S, tok
 

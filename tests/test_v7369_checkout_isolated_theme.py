@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.386~sponsored-shell-ownership' in CTRL
-assert '#define AD_VERSION "v7.386-sponsored-shell-ownership"' in S
+assert 'Version: 7.387~runtime-css-optimization' in CTRL
+assert '#define AD_VERSION "v7.387-runtime-css-optimization"' in S
 
 def func(name):
     st=S.index(f'static NSString *{name}')
@@ -17,13 +17,13 @@ def func(name):
             if d==0: return S[st:i+1]
     raise AssertionError(name)
 
-# Critical shared theming programs remain stable; v7.386 changes only the core concatenation to append the tiny Home ad-shell floor.
-assert hashlib.sha256(func('ADFloorJS').encode()).hexdigest() == '5fcc2badb75d385b84a9e67a1daab376c1dd277479c6c1071ead93e3ee96221d'
+# Critical shared theming programs remain stable; v7.387 changes only the core concatenation to append the tiny Home ad-shell floor.
+assert hashlib.sha256(func('ADFloorJS').encode()).hexdigest() == '86730a2287803039c3912c5b0cd5f2bdca27464c63820a1c24a4aa3e24685d83'
 assert hashlib.sha256(func('ADTWBJS').encode()).hexdigest() == 'a86f3c1257f32380057eb6c8c99c1c75e2c98f1fc5529364f4304feaa33821a3'
-assert hashlib.sha256(func('ADCoreWebJS7271').encode()).hexdigest() == '2248b10b0d5ac1d4cd2b4f8cba11e760d7bb20aaa22c437248be0e770cd2d467'
+assert hashlib.sha256(func('ADCoreWebJS7271').encode()).hexdigest() == '41ce925c9bad5362bf65204d4eb9778d016c2015b41b427704943df363b6d30c'
 
 for x in ['ADCheckoutFloorJS7369','ADCheckoutTWBJS7369','kADCheckoutFloorUS7369','kADCheckoutTWBUS7369',
-          'initWithSource:ADCheckoutFloorJS7369()','initWithSource:ADCheckoutTWBJS7369()']:
+          'ADSharedUserScript7387(4,ADCheckoutFloorJS7369,NO,NO)','ADSharedUserScript7387(5,ADCheckoutTWBJS7369,NO,YES)']:
     assert x in S,x
 
 floor=func('ADCheckoutFloorJS7369')

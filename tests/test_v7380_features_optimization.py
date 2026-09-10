@@ -9,8 +9,8 @@ W=(ROOT/'.github/workflows/build.yml').read_text()
 V=(ROOT/'scripts/validate.sh').read_text()
 SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 
-assert 'Version: 7.386~sponsored-shell-ownership' in C
-assert '#define AD_VERSION "v7.386-sponsored-shell-ownership"' in S
+assert 'Version: 7.387~runtime-css-optimization' in C
+assert '#define AD_VERSION "v7.387-runtime-css-optimization"' in S
 for key in ['hideSponsored','priceHistory']:
     assert key in S and f'<string>{key}</string>' in P
 assert '<string>Hide Sponsored Content</string>' in P
@@ -41,4 +41,4 @@ for name in funcs:
 # Hook classes should be unique; grouped hooks are explicitly allowed via %group but current source has none duplicated.
 hooks=re.findall(r'(?m)^%hook\s+([A-Za-z_]\w*)',S)
 assert len(hooks)==len(set(hooks)), 'duplicate %hook class block'
-print('PASS: v7.386 features, structural checkout dedupe, switcher non-interference, packaging guard, dead/duplicate static audit')
+print('PASS: v7.387 features, structural checkout dedupe, switcher non-interference, packaging guard, dead/duplicate static audit')

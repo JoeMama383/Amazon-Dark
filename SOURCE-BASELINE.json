@@ -1,22 +1,13 @@
 {
-  "version": "7.386~sponsored-shell-ownership",
-  "direct_parent": "7.383~sponsored-selector-rules",
-  "parent_tweak_sha256": "29e3f96264cfcf1b0e5288e0caa9de2ed0752bd3374c6186f777a0aa0be21f4e",
-  "parent_sb_sha256": "b544e1b668114cc9f7fae4759b70902311b70dc739f35ad72da4e7cb9297928c",
-  "evidence": [
-    "GitHub Actions v7.383 failed in Logos preprocessing at src/Tweak.xm line 1730 before Clang compilation",
-    "the extracted v7.383 sponsored function parses successfully under clang as Objective-C++",
-    "the failure boundary is the closing brace immediately after the very large adjacent Objective-C string payload",
-    "v7.383 sponsored selector semantics are therefore retained while the payload is moved outside Logos"
-  ],
-  "changes": [
-    "move the sponsored selector payload/function from Tweak.xm to src/ADSponsored.m",
-    "compile src/ADSponsored.m as a normal Objective-C source alongside Tweak.xm",
-    "retain the same document-start sponsored injection and selector behavior",
-    "bump probe/package identity to v7.386 and preserve postinst mode 0755"
-  ],
-  "runtime_contract": "Compile-boundary correction only for sponsored payload; no recurring DOM work, app-switcher cover, warm splash suppression, fake UI, or broad theming change.",
-  "notes": [
-    "v7.386 probe-backed sponsored shell ownership: collapse dashboard li only when direct gwm-asin-tile root carries mobile-gateway-atf_Spons; collapse mosaic li only when direct npack card owns a sponsored header"
-  ]
+  "version": "7.387~runtime-css-optimization",
+  "direct_parent": "7.386~sponsored-shell-ownership",
+  "source": "user-uploaded v7.386 source archive",
+  "source_zip_sha256": "1cc0bf9589064c0f230439b731d735cf3b207d87d3b31eafd07745699e943216",
+  "parent_files_sha256": {
+    "src/Tweak.xm": "956b3a2a0153313796edd7938207e5446b3e3335e785ef07a983d9b9e8501c16",
+    "src/AmazonDarkSB.xm": "6da0fbe2bafe641e83ce9a7943564e9fa124361d02e7bc54c403a0e410716cb9",
+    "src/ADSponsored.m": "dc5abe6e22b2cea0e37a625e627ddac2d9fa05720a7ad3d524e5d6963d06e20a"
+  },
+  "validation": "41 regression scripts; local arm64/arm64e compile/link; device package and performance require Actions/phone verification",
+  "runtime_contract": "Preserve theme, existing cache policy, universal probes and transition capture; compact CSS, share scripts and bound recovery."
 }

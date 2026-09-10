@@ -1,10 +1,10 @@
 #!/bin/sh
-# AmazonDark v7.386 universal UI probe helper.
+# AmazonDark v7.387 universal UI probe helper.
 # `arm` is a one-shot VIEWPORT capture: create the app-local arm then signal Amazon.
 # FULL capture is intentionally screenshot-only and needs no shell command.
 set -eu
 VER=7.386
-NAME=AmazonDark-v7.386
+NAME=AmazonDark-v7.387
 ROOT=${AD_UI_ROOT:-/var/mobile}
 CONTAINERS=${AD_UI_CONTAINERS:-$ROOT/Containers/Data/Application}
 SHARED=${AD_UI_SHARED:-/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents}
@@ -36,7 +36,7 @@ find_pid(){
 
 case "${1:-}" in
   arm)
-    case "$installed" in 7.386~*) ;; *) printf 'Install/open the v7.386 package first. Installed: %s\n' "$installed" >&2; exit 1;; esac
+    case "$installed" in 7.386~*) ;; *) printf 'Install/open the v7.387 package first. Installed: %s\n' "$installed" >&2; exit 1;; esac
     [ -s "$TARGETS" ] || { printf 'Amazon Documents not found. Open Amazon once, then rerun.\n' >&2; exit 1; }
     pid=$(find_pid); [ -n "$pid" ] || { printf 'Amazon is not running. Leave the target screen open, then rerun.\n' >&2; exit 1; }
     while IFS= read -r d; do mkdir -p "$d"; printf 'viewport %s\n' "$(date +%s)" > "$d/$NAME-ui-viewport.arm"; chmod 600 "$d/$NAME-ui-viewport.arm" 2>/dev/null || true; done < "$TARGETS"
@@ -49,7 +49,7 @@ case "${1:-}" in
     while IFS= read -r d; do
       for kind in ui-full-probe ui-viewport-probe; do
         newest=""
-        for f in $(ls -1t "$d"/AmazonDark-v7.386-${kind}-*.txt 2>/dev/null || true); do
+        for f in $(ls -1t "$d"/AmazonDark-v7.387-${kind}-*.txt 2>/dev/null || true); do
           if grep -q '================ END RUN ================' "$f" 2>/dev/null; then newest=$f; break; fi
           partial=1
         done
@@ -64,7 +64,7 @@ case "${1:-}" in
     ;;
   status)
     printf 'Installed: %s\n' "$installed"
-    while IFS= read -r d; do printf 'Amazon Documents: %s\n' "$d"; ls -1t "$d"/AmazonDark-v7.386-ui-*-probe-*.txt 2>/dev/null | head -6 || true; [ -f "$d/$NAME-ui-viewport.arm" ] && printf 'Viewport arm: '; [ -f "$d/$NAME-ui-viewport.arm" ] && cat "$d/$NAME-ui-viewport.arm"; done < "$TARGETS"
+    while IFS= read -r d; do printf 'Amazon Documents: %s\n' "$d"; ls -1t "$d"/AmazonDark-v7.387-ui-*-probe-*.txt 2>/dev/null | head -6 || true; [ -f "$d/$NAME-ui-viewport.arm" ] && printf 'Viewport arm: '; [ -f "$d/$NAME-ui-viewport.arm" ] && cat "$d/$NAME-ui-viewport.arm"; done < "$TARGETS"
     ;;
   disarm)
     while IFS= read -r d; do rm -f "$d/$NAME-ui-viewport.arm"; done < "$TARGETS"; printf 'Viewport UI probe disarmed.\n'
