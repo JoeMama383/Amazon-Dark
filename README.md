@@ -1,22 +1,23 @@
-# AmazonDark v7.389 — checkout sheet + switcher snapshot fix
+# AmazonDark v7.391 — UI completion audit fix
 
-Direct parent: `7.388~native-work-optimization`.
+Direct parent: `7.390~checkout-ui-completion`.
 
-This is a narrow theming release based on two v7.388 probe captures. It darkens the
-portal-mounted checkout Subscribe & Save bottom sheet and removes the exact teal
-checkout-only background shield that was being captured in the iOS app switcher.
+This is a probe-audit hardening pass over the seven Sep. 10 checkout/support surfaces and the
+Subscribe & Save loading transition introduced in v7.390. It retains every v7.390 target plus the
+v7.389 Subscribe-sheet and checkout app-switcher fixes.
 
-The Subscribe & Save sheet uses the existing AmazonDark visual contract: OLED black
-sheet floors, light neutral text, `#303335` controls, `#747a7c` borders, light control
-text/glyphs, and authored link colors.
+A second element-by-element comparison against all eight FULL captures found three residual paint
+owners that v7.390 did not fully claim: the top Help page heading, direct text nodes inside both
+Maple banner text containers, and the delivery-address break/divider painters. v7.391 closes only
+those gaps. The Help heading becomes light without touching the search/logo/orange greeting; Maple
+neutral direct copy becomes light while authored blue links remain blue; and the address divider
+loses its stock gradient/white `or` backing and uses the standard `#747a7c` divider on OLED.
 
-The switcher fix is not a generic app-switcher cover. It matches only the
-probe-proven full-screen checkout `UIVisualEffectView` containing the exact teal
-background child while Amazon is inactive/backgrounded. Normal snapshots outside
-checkout remain untouched.
+All v7.390 payment-card, gift-options, carbon sheet, Subscribe loader, recurrence, address-button,
+checkout Maple image/TWB, dynamic-color, radio/checkbox/switch and selection-state rules remain
+unchanged.
 
-No new timer, polling loop, MutationObserver, recurring DOM scan, generic snapshot
-replacement, or SpringBoard scene painter is introduced. Existing v7.388 runtime
-optimizations and all other theming are preserved.
+No MutationObserver, interval, RAF loop, scroll listener, polling loop, recurring hierarchy scan,
+additional WKUserScript, or generic app-switcher painter is added.
 
-See `AUDIT-v7.389.md` and `COMMANDS.md`.
+See `AUDIT-v7.391.md` and `COMMANDS.md`.

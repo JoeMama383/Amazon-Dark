@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.389 — checkout Subscribe & Save sheet + checkout switcher snapshot fix
+ * AmazonDark v7.391 — UI completion audit fix
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.389-checkout-sheet-switcher-fix"
+#define AD_VERSION "v7.391-ui-completion-audit-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1515,6 +1515,149 @@ static NSString *ADCheckoutFloorJS7369(void){
         "{background:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
         "body:has(#checkoutDisplayPage) .a-sheet-web:has(#sns-item-t1-bottomsheet-0) .bottom-sheet-recurrence-period-selector .a-icon-dropdown"
         "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+        // v7.390 FULL r1: Help & Contact Us topic cards are an isolated AUI family under
+        // #csg-support-topics. Keep Amazon's orange state/greeting authored, but own only the
+        // bright topic-card rows, separators and touch-link chevrons.
+        @"#csg-support-topics .a-box.a-vertical,#csg-support-topics .a-box.a-vertical>.a-box-inner,#csg-support-topics .a-box.a-vertical .a-box-list,#csg-support-topics .a-box.a-vertical .a-touch-link{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+        "#csg-support-topics .a-box.a-vertical{border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;}"
+        "#csg-support-topics .a-box.a-vertical .a-box-list>li{border-color:#747a7c!important;}"
+        ".cs-help-content>article.help-content>h1,#csg-support-topics .a-box.a-vertical .a-touch-link,#csg-support-topics .a-box.a-vertical .a-touch-link :is(span,p,strong,b),#csg-support-topics>h3:not(.a-color-state),#csg-support-topics .a-spacing-small:not(.a-color-state){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#csg-support-topics .a-box.a-vertical i.a-icon-touch-link{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+        "#csg-support-topics .a-color-state,#csg-support-topics .a-color-state *{-webkit-text-fill-color:currentColor!important;}"
+
+        // v7.390 FULL r2: Subscribe & Save loading transition. The live painter is the
+        // 430x800 #loading-spinner-blocker-doc plus a 100x100 IMG. Own that exact transition:
+        // dark translucent blocker, OLED spinner tile, preserve Amazon's animation/geometry.
+        @"body:has(#checkoutDisplayPage) #loading-spinner-blocker-doc.loading-spinner-blocker,"
+        "body:has(#checkoutDisplayPage) .loading-spinner-spp-blocker"
+        "{background:rgba(0,0,0,.74)!important;background-color:rgba(0,0,0,.74)!important;background-image:none!important;opacity:1!important;}"
+        "body:has(#checkoutDisplayPage) :is(.loading-spinner-inner.loading-spinner-inner-no-box,.loading-spinner-spp-inner)"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#747a7c!important;box-shadow:none!important;}"
+        "body:has(#checkoutDisplayPage) :is(#loading-spinner-img.loading-spinner-img,.loading-spinner-spp-img)"
+        "{background:#000!important;background-color:#000!important;filter:invert(1) hue-rotate(180deg)!important;-webkit-filter:invert(1) hue-rotate(180deg)!important;mix-blend-mode:normal!important;opacity:1!important;}"
+
+        // v7.390 FULL r3: Lower carbon delivery is a portal AUI sheet, sibling of checkout.
+        // Theme only the sheet owning #ad-sm-program-modal; retain its existing dark lightbox and
+        // authored white close control.
+        @"body:has(#checkoutDisplayPage) .a-sheet-web:has(#ad-sm-program-modal),"
+        "body:has(#checkoutDisplayPage) .a-sheet-web:has(#ad-sm-program-modal)>.a-sheet-content-container,"
+        "body:has(#checkoutDisplayPage) .a-sheet-web:has(#ad-sm-program-modal) #ad-sm-program-modal"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;color:#e8e6e3!important;}"
+        "body:has(#checkoutDisplayPage) .a-sheet-web:has(#ad-sm-program-modal) #ad-sm-program-modal :is(h1,h2,h3,h4,h5,h6,p,span,strong,b,div):not(:where(a *))"
+        "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "body:has(#checkoutDisplayPage) .a-sheet-web:has(#ad-sm-program-modal) #ad-sm-program-modal a,"
+        "body:has(#checkoutDisplayPage) .a-sheet-web:has(#ad-sm-program-modal) #ad-sm-program-modal a *{-webkit-text-fill-color:currentColor!important;}"
+
+        // v7.390 FULL r1 (14:23): gift-options page. Own the two actual white AUI cards,
+        // normalize one gray border per control, and leave product art / authored checkbox sprite
+        // untouched. The old yellow Continue control joins the established OLED/gray/light style.
+        @"#checkoutDisplayPage #giftForm .a-box-group.a-spacing-base>.a-box.a-first,#checkoutDisplayPage #giftForm #gift-options-box-0,"
+        "#checkoutDisplayPage #giftForm .a-box-group.a-spacing-base>.a-box.a-first>.a-box-inner,#checkoutDisplayPage #giftForm #gift-options-box-0>.a-box-inner"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+        "#checkoutDisplayPage #giftForm :is(.a-box-group.a-spacing-base>.a-box.a-first,#gift-options-box-0)"
+        "{border-color:#747a7c!important;outline-color:#747a7c!important;}"
+        "#checkoutDisplayPage #giftForm .gift-message-textarea"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-bottom:0!important;border-color:#747a7c!important;outline:0!important;box-shadow:none!important;}"
+        "#checkoutDisplayPage #giftForm .gift-message-textarea>textarea,"
+        "#checkoutDisplayPage #giftForm .sender-name-text-input,"
+        "#checkoutDisplayPage #giftForm .sender-name-text-input>input"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;border:0!important;outline:0!important;box-shadow:none!important;}"
+        "#checkoutDisplayPage #giftForm .sender-name-input-group"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline:0!important;box-shadow:none!important;}"
+        "#checkoutDisplayPage #giftForm .sender-name-input-addon{background:#000!important;background-color:#000!important;background-image:none!important;}"
+        "#checkoutDisplayPage #giftForm .chewbacca-save-gift-options-buttons.a-button-primary"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#checkoutDisplayPage #giftForm .chewbacca-save-gift-options-buttons>.a-button-inner{background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;}"
+        "#checkoutDisplayPage #giftForm .chewbacca-save-gift-options-buttons .a-button-text{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#checkoutDisplayPage #giftForm :is(.a-icon-checkbox,.toggle-gift-checkbox .a-icon){filter:none!important;-webkit-filter:none!important;}"
+
+        // v7.390 FULL r2 (14:26): checkout Prime Business Card Maple upsell. The enclosing
+        // checkout panel was already black; its nested .a-cardui and Maple banner remained white.
+        // Keep the authored blue Learn more descendant and handle the card raster in checkout TWB.
+        @"#checkoutDisplayPage #checkout-maple-upsell>.a-cardui,"
+        "#checkoutDisplayPage #checkout-maple-upsell .maple-banner,"
+        "#checkoutDisplayPage #checkout-maple-upsell .maple-banner__container,"
+        "#checkoutDisplayPage #checkout-maple-upsell .maple-banner__row,"
+        "#checkoutDisplayPage #checkout-maple-upsell .maple-banner__col"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+        "#checkoutDisplayPage #checkout-maple-upsell .maple-banner__container{border-color:#494d4d!important;outline-color:#494d4d!important;}"
+        "#checkoutDisplayPage #checkout-maple-upsell .maple-banner__text,"
+        "#checkoutDisplayPage #checkout-maple-upsell .maple-banner__text :is(span,strong,b):not(.a-color-link):not(:where(.a-color-link *))"
+        "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#checkoutDisplayPage #checkout-maple-upsell .maple-banner__text .a-color-link,"
+        "#checkoutDisplayPage #checkout-maple-upsell .maple-banner__text .a-color-link *{-webkit-text-fill-color:currentColor!important;}"
+
+        // v7.390 FULL r3 (14:29): Select a Payment Method is React content mounted inside
+        // checkout. Own its probe-stable semantic testids instead of generated css-* classes.
+        // The selected card keeps Amazon's blue border; all brand art and on/off switch painters
+        // remain authored. Unselected/utility cards get the standard gray edge.
+        @"#checkoutDisplayPage form.pmts-select-payment-instrument-form [data-testid='selectFrameContentTestId'],"
+        "#checkoutDisplayPage form.pmts-select-payment-instrument-form [data-testid='boxGroup'],"
+        "#checkoutDisplayPage form.pmts-select-payment-instrument-form [data-testid='sticky-footer']"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+        "#checkoutDisplayPage form.pmts-select-payment-instrument-form [data-testid='selected-primary-pm-card']"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+        "#checkoutDisplayPage form.pmts-select-payment-instrument-form :is([data-testid='unselected-primary-pm-card'],[data-testid='unselected-primary-pm-loan'],[data-testid='selected-balance-pm-giftcard'],[data-testid='claim-code'])"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;}"
+        "#checkoutDisplayPage form.pmts-select-payment-instrument-form :is([data-testid='art'],[data-testid='image'],[data-testid*='switch'],[data-testid*='knob'],[data-testid*='outline']){filter:none!important;-webkit-filter:none!important;}"
+        "#checkoutDisplayPage form.pmts-select-payment-instrument-form a,"
+        "#checkoutDisplayPage form.pmts-select-payment-instrument-form a *,"
+        "#checkoutDisplayPage form.pmts-select-payment-instrument-form [data-testid='link'],"
+        "#checkoutDisplayPage form.pmts-select-payment-instrument-form [data-testid='link'] *{-webkit-text-fill-color:currentColor!important;}"
+        // The gift-card cross-sell is an iframe. The checkout user script runs in all frames;
+        // #cruise is the exact frame root captured by r3, so it can be themed without parent access.
+        "#cruise,#cruise .cruise-upx-box,#cruise .cruise-upx-box>.a-box-inner,#cruise .maple-banner,#cruise .maple-banner__container,#cruise .maple-banner__row,#cruise .maple-banner__col"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+        "#cruise .cruise-upx-box,#cruise .maple-banner__container{border-color:#747a7c!important;outline-color:#747a7c!important;}"
+        "#cruise .maple-banner__text,#cruise .maple-banner__text :is(span,strong,b):not(.a-color-link):not(:where(.a-color-link *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#cruise .maple-banner__text .a-color-link,#cruise .maple-banner__text .a-color-link *{-webkit-text-fill-color:currentColor!important;}"
+
+        // v7.390 FULL r4 (14:31): Select a delivery address. The deck, address cards and
+        // selected accordion are neutral white/gray owners. Keep blue links and Amazon radio
+        // sprites, while standardizing primary and secondary button surfaces independently.
+        @"#checkoutDisplayPage #shipping-address-select-page-card-deck,"
+        "#checkoutDisplayPage #shipping-address-select-page-card-deck .a-cardui,"
+        "#checkoutDisplayPage #shipping-address-select-page-card-deck .a-cardui-header,"
+        "#checkoutDisplayPage #shipping-address-select-page-card-deck .a-cardui-body,"
+        "#checkoutDisplayPage #shipping-address-select-page-card-deck .destination-accordion-row,"
+        "#checkoutDisplayPage #shipping-address-select-page-card-deck .destination-accordion-row>.a-box-inner,"
+        "#checkoutDisplayPage #shipping-address-select-page-card-deck .destination-accordion-row-header,"
+        "#checkoutDisplayPage #shipping-address-select-page-card-deck .destination-accordion-row-content"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+        "#checkoutDisplayPage #shipping-address-select-page-card-deck .destination-accordion-row{border-color:#494d4d!important;outline-color:#494d4d!important;}"
+        "#checkoutDisplayPage #shipping-address-select-page-card-deck .a-button-primary"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#checkoutDisplayPage #shipping-address-select-page-card-deck .a-button-base"
+        "{background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#checkoutDisplayPage #shipping-address-select-page-card-deck :is(.a-button-primary,.a-button-base)>.a-button-inner{background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;}"
+        "#checkoutDisplayPage #shipping-address-select-page-card-deck :is(.a-button-primary,.a-button-base) .a-button-text{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#checkoutDisplayPage #shipping-address-select-page-card-deck .shipping-address-select-card-divider .a-divider-inner{border-color:#747a7c!important;}"
+        "#checkoutDisplayPage #shipping-address-select-page-card-deck .shipping-address-select-card-divider .a-divider-inner:before,"
+        "#checkoutDisplayPage #shipping-address-select-page-card-deck .shipping-address-select-card-divider .a-divider-inner:after"
+        "{background:#747a7c!important;background-color:#747a7c!important;background-image:none!important;border-color:#747a7c!important;}"
+        "#checkoutDisplayPage #shipping-address-select-page-card-deck .a-divider.a-divider-break:after{border-color:#747a7c!important;}"
+        "#checkoutDisplayPage #shipping-address-select-page-card-deck .a-divider.a-divider-break>h5{background:#000!important;background-color:#000!important;background-image:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#checkoutDisplayPage #shipping-address-select-page-card-deck :is(.a-icon-radio-active,.a-icon-radio-inactive,.a-icon-radio){filter:none!important;-webkit-filter:none!important;}"
+        "#checkoutDisplayPage #shipping-address-select-page-card-deck a,#checkoutDisplayPage #shipping-address-select-page-card-deck a *{-webkit-text-fill-color:currentColor!important;}"
+
+        // v7.390 FULL r6 (14:37): recurrence dropdown is an AUI popover rather than a sheet.
+        // Theme only the popover containing this SNS recurrence id family. The selected row keeps
+        // its authored blue border widths/color; only its pale-blue fill becomes OLED.
+        @".a-popover.a-dropdown:has(a[id^='sns-recurrence-period-bottomsheet-dropdown-sfco-0_']) .a-popover-wrapper,"
+        ".a-popover.a-dropdown:has(a[id^='sns-recurrence-period-bottomsheet-dropdown-sfco-0_']) .a-popover-header,"
+        ".a-popover.a-dropdown:has(a[id^='sns-recurrence-period-bottomsheet-dropdown-sfco-0_']) .a-popover-inner,"
+        ".a-popover.a-dropdown:has(a[id^='sns-recurrence-period-bottomsheet-dropdown-sfco-0_']) ul.a-list-link,"
+        ".a-popover.a-dropdown:has(a[id^='sns-recurrence-period-bottomsheet-dropdown-sfco-0_']) li,"
+        ".a-popover.a-dropdown:has(a[id^='sns-recurrence-period-bottomsheet-dropdown-sfco-0_']) a.a-dropdown-link"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+        ".a-popover.a-dropdown:has(a[id^='sns-recurrence-period-bottomsheet-dropdown-sfco-0_']) .a-popover-wrapper{border-color:#747a7c!important;outline-color:#747a7c!important;}"
+        ".a-popover.a-dropdown:has(a[id^='sns-recurrence-period-bottomsheet-dropdown-sfco-0_']) li{border-color:#747a7c!important;}"
+        ".a-popover.a-dropdown:has(a[id^='sns-recurrence-period-bottomsheet-dropdown-sfco-0_']) :is(.a-popover-header-content,a.a-dropdown-link),"
+        ".a-popover.a-dropdown:has(a[id^='sns-recurrence-period-bottomsheet-dropdown-sfco-0_']) a.a-dropdown-link :is(span,strong,b)"
+        "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        ".a-popover.a-dropdown:has(a[id^='sns-recurrence-period-bottomsheet-dropdown-sfco-0_']) a.a-dropdown-link.a-active{background:#000!important;background-color:#000!important;}"
+        ".a-popover.a-dropdown:has(a[id^='sns-recurrence-period-bottomsheet-dropdown-sfco-0_']) .a-icon-close{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+
         // v7.373 FULL r1/r2: checkout delivery-option press painter computes
         // rgb(246,246,246). Own only that press floor; preserve authored radio art/color.
         @"#checkoutDisplayPage .rcx-checkout-delivery-option-a-control-row-new.a-touch-press,"
@@ -1534,7 +1677,7 @@ static NSString *ADCheckoutTWBJS7369(void){
     CGFloat t=((CGFloat)strengthKey)/100.0;
     CGFloat factor=1.0-(0.10+(0.48*t));
     return [NSString stringWithFormat:
-        @"(function(){try{function put(id,css){var s=document.getElementById(id);if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}s.textContent=css;return s;}function relink(s){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}var css=`#checkoutDisplayPage .checkout-byg-mobile-container img[class*=_mobileDenseGridImage_],#checkoutDisplayPage img.checkout-product-image{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}#checkoutDisplayPage i.a-icon-prime,#checkoutDisplayPage img.sustainability-green-leaf-alignment-updated{filter:none!important;-webkit-filter:none!important;}`;var s=put('ad7-checkout7369-twb',css);if(document.readyState==='loading')window.addEventListener('load',function(){relink(s)},{once:true});else relink(s);}catch(e){}})();",factor,factor];
+        @"(function(){try{function put(id,css){var s=document.getElementById(id);if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}s.textContent=css;return s;}function relink(s){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}var css=`#checkoutDisplayPage .checkout-byg-mobile-container img[class*=_mobileDenseGridImage_],#checkoutDisplayPage img.checkout-product-image,#checkoutDisplayPage #checkout-maple-upsell .maple-banner__image img{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}#checkoutDisplayPage i.a-icon-prime,#checkoutDisplayPage img.sustainability-green-leaf-alignment-updated{filter:none!important;-webkit-filter:none!important;}`;var s=put('ad7-checkout7369-twb',css);if(document.readyState==='loading')window.addEventListener('load',function(){relink(s)},{once:true});else relink(s);}catch(e){}})();",factor,factor];
 }
 
 // v7.378: the v7.377 FULL r1 proves the one-pixel synchronous renderer nudge is not enough:

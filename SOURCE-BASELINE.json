@@ -1,15 +1,15 @@
 {
-  "version": "7.389~checkout-sheet-switcher-fix",
-  "direct_parent": "7.388~native-work-optimization",
-  "source": "AmazonDark-v7.388-native-work-optimization-source.zip recovered from the conversation Library and used as the direct edit baseline",
-  "parent_source_zip_sha256": "c873bb69265a599d13a2f431c04eba2e699dfd3365e5f2f6d702f6db0990dfc4",
+  "version": "7.391~ui-completion-audit-fix",
+  "direct_parent": "7.390~checkout-ui-completion",
+  "source": "AmazonDark-v7.390-checkout-ui-completion-source.zip generated in this conversation and re-audited against all eight supplied v7.389 FULL captures",
+  "parent_source_zip_sha256": "4bf65540796a871fd62f4e5ed689b0e75116a6c7850d11320b4dad744c2a5236",
   "parent_files_sha256": {
-    "src/Tweak.xm": "e7a270e95d2dbae2493e0ee5a04ddbaf07de98882810584055d418d03d0517a8",
-    "src/AmazonDarkSB.xm": "ad7aedafcbcd737760654dd8f7fda80e55cf66b2dad0b3fdb7d1c66b2ec0e186",
+    "src/Tweak.xm": "5b25458e7663226fa411355befc18559a6b8d6f52ab3abc5311dd79c19c6fc71",
+    "src/AmazonDarkSB.xm": "b71bb37a6d5b157121f423b91a6bbe8853eec88e2ef3d0720e558367d9bd61c7",
     "src/ADSponsored.m": "45e4825bb0c025016633c026740fc02a969f0a3d6aafa6d2be79a58e81f97fa7",
-    "scripts/ui-probe.sh": "e89d833d167ed0961caf9944d4279c826dcfd5ad44dbaffff9e42a62c3f2135e",
-    "scripts/skeleton-probe.sh": "5584d51443537ed611dca65ae66e3ec6933f33e3ee021821c7a83e563d1ab7d0"
+    "scripts/ui-probe.sh": "23fc970083badc381cc8b69216a544aae8df80972c02fda1692a9948f26747da",
+    "scripts/skeleton-probe.sh": "bf11016db02d1abac853133e091aed1256f57eead587e04330775bdfeb9e8203"
   },
-  "runtime_contract": "Darken only the probe-identified checkout Subscribe & Save portal sheet and suppress only the probe-identified checkout-owned teal background visual-effect shield; preserve normal switcher snapshots and all v7.388 theming/performance behavior.",
-  "device_validation": "Pending; probe-backed implementation and local regression/static validation only; Theos is unavailable in this execution environment."
+  "runtime_contract": "Retain the complete v7.390 seven-surface checkout/support UI pass and Subscribe loader while closing only probe-confirmed residual Help-heading, Maple direct-text, and delivery-divider paint gaps.",
+  "device_validation": "Pending; audit corrections are derived directly from the supplied v7.389 FULL probes. Local source/static regression proof only until installed on device."
 }
