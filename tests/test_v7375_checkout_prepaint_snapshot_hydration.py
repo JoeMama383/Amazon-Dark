@@ -7,8 +7,8 @@ C=(ROOT/'layout/DEBIAN/control').read_text()
 W=(ROOT/'.github/workflows/build.yml').read_text()
 CMD=(ROOT/'COMMANDS.md').read_text()
 
-assert 'Version: 7.387~runtime-css-optimization' in C
-assert '#define AD_VERSION "v7.387-runtime-css-optimization"' in S
+assert 'Version: 7.388~native-work-optimization' in C
+assert '#define AD_VERSION "v7.388-native-work-optimization"' in S
 
 # Claude audit: ADStandalonePaintJS7104 is semantically clean.
 stand=S[S.index('static NSString *ADStandalonePaintJS7104'):S.index('static NSString *ADTWBJS')]
@@ -65,10 +65,10 @@ for bad in ['MutationObserver','setInterval','setTimeout','requestAnimationFrame
 assert 'actions/setup-python@v5' in W
 assert 'AD_STRICT_VALIDATE=1 sh scripts/validate.sh' in W
 assert 'sh scripts/validate.sh' in CMD
-assert 'AmazonDark-v7.387-runtime-css-optimization-source.zip' in CMD
+assert 'AmazonDark-v7.388-native-work-optimization-source.zip' in CMD
 V=(ROOT/'scripts/validate.sh').read_text()
 assert 'scripts/lint-logos.sh' in V and 'tests/test_*.py' in V
 assert 'command -v python3' in V and 'AD_STRICT_VALIDATE' in V
 assert 'python3 unavailable on this device; GitHub CI enforces them' in V
 
-print('PASS: checkout/TWB/CI contracts retained under v7.387; BYG recovery remains real-control/no-recurring')
+print('PASS: checkout/TWB/CI contracts retained under v7.388; BYG recovery remains real-control/no-recurring')

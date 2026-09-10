@@ -4,15 +4,15 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 A=(ROOT/'src/ADSponsored.m').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.387~runtime-css-optimization' in C
-assert '#define AD_VERSION "v7.387-runtime-css-optimization"' in S
+assert 'Version: 7.388~native-work-optimization' in C
+assert '#define AD_VERSION "v7.388-native-work-optimization"' in S
 block=A
 # Reconstruct adjacent Objective-C string literals and parse the injected JS.
 lits=re.findall(r'@"((?:\\.|[^"\\])*)"', block)
 assert lits
 js=''.join(bytes(x,'utf-8').decode('unicode_escape') for x in lits)
 assert "ad7384-killer" in js
-assert js.count('{display:none!important') == 33  # all 86 selectors checked separately in v7.387 semantic test
+assert js.count('{display:none!important') == 33  # all 86 selectors checked separately in v7.388 semantic test
 # No selector may contain nested :has(); that is invalid Selectors Level 4 syntax.
 css_literal=re.search(r's\.textContent=("(?:\\.|[^"\\])*")', js)
 assert css_literal, 'missing CSS literal'
@@ -41,4 +41,4 @@ cp=subprocess.run(['node','--check',name],capture_output=True,text=True)
 assert cp.returncode==0, cp.stderr
 for bad in ['MutationObserver','setInterval(','setTimeout(','requestAnimationFrame(']:
     assert bad not in js, bad
-print('PASS: v7.387 sponsored blocker uses isolated valid rules with full selector-family coverage')
+print('PASS: v7.388 sponsored blocker uses isolated valid rules with full selector-family coverage')

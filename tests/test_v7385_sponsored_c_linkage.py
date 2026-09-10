@@ -7,8 +7,8 @@ H=(ROOT/'src/ADSponsored.h').read_text()
 M=(ROOT/'Makefile').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.387~runtime-css-optimization' in C
-assert '#define AD_VERSION "v7.387-runtime-css-optimization"' in S
+assert 'Version: 7.388~native-work-optimization' in C
+assert '#define AD_VERSION "v7.388-native-work-optimization"' in S
 assert '#import "ADSponsored.h"' in S
 assert '#import "ADSponsored.h"' in A
 assert '#ifdef __cplusplus' in H

@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.387 — cached scripts, compact CSS, bounded recovery, preserved theming
+ * AmazonDark v7.388 — selective prefs, idempotent native work, preserved theming
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.387-runtime-css-optimization"
+#define AD_VERSION "v7.388-native-work-optimization"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -111,6 +111,17 @@ typedef struct {
 } ADPrefs;
 
 static ADPrefs gP;
+
+enum { ADPrefsFloors7388=1, ADPrefsPromotion7388=2, ADPrefsTWB7388=4, ADPrefsPrivacy7388=8 };
+static unsigned ADPreferenceChanges7388(ADPrefs before,ADPrefs after){
+    unsigned changes=0;
+    if(!before.enabled&&after.enabled)changes|=ADPrefsFloors7388;
+    if((before.enabled&&before.force120Hz)!=(after.enabled&&after.force120Hz))changes|=ADPrefsPromotion7388;
+    BOOL oldTWB=before.enabled&&before.whiteTame,newTWB=after.enabled&&after.whiteTame;
+    if(oldTWB!=newTWB || (newTWB&&MAX(0,MIN(100,before.whiteTameStrength))!=MAX(0,MIN(100,after.whiteTameStrength))))changes|=ADPrefsTWB7388;
+    if((before.enabled&&before.privacyMode)!=(after.enabled&&after.privacyMode))changes|=ADPrefsPrivacy7388;
+    return changes;
+}
 
 static long ADPrefLong(NSDictionary *d, NSString *k, long def){
     id v=d[k]; return (v && [v respondsToSelector:@selector(longValue)]) ? [v longValue] : def;
@@ -227,10 +238,10 @@ static void ADRegisterPrivacyProtocol7117(void){
 static void ADPrivacyInstallProtocolOnConfig7117(NSURLSessionConfiguration *cfg){
     if(!cfg||!gP.enabled||!gP.privacyMode)return;
     @try {
-        NSMutableArray *a=[cfg.protocolClasses mutableCopy]?:[NSMutableArray array];
-        if(![a containsObject:[ADPrivacyURLProtocol7117 class]]){
-            [a insertObject:[ADPrivacyURLProtocol7117 class] atIndex:0];
-        }
+        NSArray *classes=cfg.protocolClasses;
+        if([classes containsObject:[ADPrivacyURLProtocol7117 class]])return;
+        NSMutableArray *a=[classes mutableCopy]?:[NSMutableArray array];
+        [a insertObject:[ADPrivacyURLProtocol7117 class] atIndex:0];
         cfg.protocolClasses=a;
     } @catch(...) {}
 }
@@ -1645,23 +1656,23 @@ static NSString *ADFullRasterHostBridgeJS7266(void){
     return @"(function(){try{if(window.__adFullRasterHostBridge7266)return;window.__adFullRasterHostBridge7266=1;window.addEventListener('message',function(ev){try{var x=ev.data;if(!x||x.__adFullRaster7266!==1)return;var a=document.getElementsByTagName('iframe'),f=null;for(var i=0;i<a.length&&i<64;i++){if(a[i].contentWindow===ev.source){f=a[i];break}}if(f){function clear(e){try{if(!e)return;e.setAttribute('data-ad7266-full-raster-host','1');var s=e.style;if(s){s.setProperty('border','0','important');s.setProperty('border-width','0','important');s.setProperty('border-color','transparent','important');s.setProperty('outline','0','important');s.setProperty('box-shadow','none','important')}}catch(_){}}clear(f);var p=f;for(var d=0;d<5&&p;d++,p=p.parentElement){var id=String(p.id||''),cl=String(p.className||'');if(cl.indexOf('ape-placement')>=0||(id.indexOf('ape_')===0&&id.indexOf('_placement')>0)){clear(p);var b=p.getElementsByClassName('border-enforcement');for(var j=0;j<b.length&&j<8;j++){clear(b[j]);b[j].style.setProperty('display','none','important');b[j].style.setProperty('height','0','important');b[j].style.setProperty('margin','0','important');b[j].style.setProperty('padding','0','important')}break}}}if(window!==top)try{parent.postMessage({__adFullRaster7266:1},'*')}catch(_){}}catch(_){}} ,false)}catch(_){}})();";
 }
 
-// v7.387: obsolete Home-only bridge removed; universal probes inject their own capture.
+// v7.388: obsolete Home-only bridge removed; universal probes inject their own capture.
 
 
-// v7.387 probe-backed Home dashboard shell floor. This remains in the single
+// v7.388 probe-backed Home dashboard shell floor. This remains in the single
 // immutable core document-start program so it does not add another WKUserScript.
 static NSString *ADHomeAdShellFloorJS7381(void){
     return @"(function(){try{var d=document;if(d.getElementById('ad7381-home-ad-shell-floor'))return;var s=d.createElement('style');s.id='ad7381-home-ad-shell-floor';s.textContent=\"#gwm-dashboard>li.gwm-tile{background:#000!important;background-color:#000!important;}\";(d.head||d.documentElement).appendChild(s)}catch(_){}})();";
 }
 
-// v7.387: Sponsored-content filtering follows AmznKiller's selector-level
+// v7.388: Sponsored-content filtering follows AmznKiller's selector-level
 // ownership model instead of promoting any nested Sponsored marker to its
 // carousel/mosaic parent. Every selector is emitted as its own CSS rule: an
 // unsupported or malformed family cannot invalidate the rest of the blocker.
 // The only AmazonDark-specific outer owners are the probe-confirmed Home
 // dashboard shells whose immediate widget root is itself an explicit ad.
 // No MutationObserver, timers, RAF, scrolling hook or recurring DOM scan.
-// v7.387 build boundary: the large sponsored CSS payload is compiled as plain
+// v7.388 build boundary: the large sponsored CSS payload is compiled as plain
 // Objective-C in ADSponsored.m. Keeping this payload out of the Logos input
 // avoids the Logos parser failure seen at the closing brace of v7.383.
 // Declaration lives in ADSponsored.h so this Objective-C++ translation unit
@@ -1702,7 +1713,7 @@ static NSString *ADCoreWebJS7271(void){
     return gADCoreWebJSCached7271;
 }
 
-// v7.387: WKUserScript is immutable. Each controller retains the same program;
+// v7.388: WKUserScript is immutable. Each controller retains the same program;
 // allocate only once per slot (or once when that slot's TWB strength changes).
 // UIKit/WebKit owners call this on main; no controller or webview is retained here.
 static WKUserScript *ADSharedUserScript7387(NSUInteger slot,NSString *(*source)(void),BOOL mainOnly,BOOL strengthDependent){
@@ -2161,7 +2172,7 @@ static BOOL ADInMarkedSearchDeliveryBand7139(UIView *v){
 }
 static inline void ADMarkSearchDeliveryDescendant7139(UIView *v){
     if(!v)return;
-    @try { objc_setAssociatedObject(v,kADSearchDeliveryDescendant7139,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC); } @catch(...) {}
+    @try { if(!objc_getAssociatedObject(v,kADSearchDeliveryDescendant7139))objc_setAssociatedObject(v,kADSearchDeliveryDescendant7139,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC); } @catch(...) {}
 }
 
 // v7.140: the screenshot-triggered v7.139 native probe names the visible 430x44
@@ -2233,16 +2244,16 @@ static void ADInstallGlowFloorView7192(UIView *host){
             objc_setAssociatedObject(host,kADGlowFloorView7192,floor,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
         UIColor *black=ADOLED();
-        floor.frame=host.bounds;
+        if(!CGRectEqualToRect(floor.frame,host.bounds))floor.frame=host.bounds;
         if(![floor.backgroundColor isEqual:black])ADSetViewBackground7226(floor,black,YES);
-        floor.hidden=NO;
-        floor.alpha=1.0;
+        if(floor.hidden)floor.hidden=NO;
+        if(floor.alpha!=1.0)floor.alpha=1.0;
         if(floor.superview!=host)[host insertSubview:floor atIndex:0];
         else if(host.subviews.count && host.subviews.firstObject!=floor)[host insertSubview:floor atIndex:0];
     } @catch(...) {}
 }
 static void ADInstallGlowFloorTree7141(UIView *root){
-    if(!ADExactGlowIngress7140(root))return;
+    // The sole caller has already checked the exact class/window/geometry owner.
     @try {
         NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger seen=0;
         while(seen<q.count&&seen<96){
@@ -2258,9 +2269,9 @@ static void ADOwnGlowIngress7140(UIView *root){
     if(!ADExactGlowIngress7140(root))return;
     @try {
         UIColor *black=ADOLED(), *light=ADLightText706();
-        objc_setAssociatedObject(root,kADSearchDeliveryBand7139,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        if(!objc_getAssociatedObject(root,kADSearchDeliveryBand7139))objc_setAssociatedObject(root,kADSearchDeliveryBand7139,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADSetViewBackground7226(root,black,YES);
-        root.tintColor=light;
+        if(![root.tintColor isEqual:light])root.tintColor=light;
         // One bounded event-driven pass catches descendants that were mounted before
         // the exact root was marked. Later image/background writes are handled by hooks.
         NSMutableArray *q=[NSMutableArray arrayWithArray:root.subviews?:@[]]; NSUInteger seen=0;
@@ -2268,11 +2279,11 @@ static void ADOwnGlowIngress7140(UIView *root){
             UIView *x=q[seen++]; if(!x)continue;
             ADMarkSearchDeliveryDescendant7139(x);
             if([x isKindOfClass:[UIImageView class]]) ADTintSearchDeliveryGlyph7139((UIImageView *)x);
-            else if([x isKindOfClass:[UILabel class]]) ((UILabel *)x).textColor=light;
+            else if([x isKindOfClass:[UILabel class]]){ UILabel *label=(UILabel *)x; if(![label.textColor isEqual:light]||label.attributedText.length)label.textColor=light; }
             else if(ADWarmDeliveryColor7139(x.backgroundColor)||ADBrightNeutral7130(x.backgroundColor)){
                 ADSetViewBackground7226(x,black,YES);
             }
-            x.tintColor=light;
+            if(![x.tintColor isEqual:light])x.tintColor=light;
             if(q.count-seen<96&&x.subviews.count)[q addObjectsFromArray:x.subviews];
         }
         ADInstallGlowFloorTree7141(root);
@@ -2280,17 +2291,8 @@ static void ADOwnGlowIngress7140(UIView *root){
 }
 // Home visual-category cells are Amazon-authored stock UI and stay isolated from
 // Search delivery-band ownership so the global UILabel owner cannot recolor them.
-static BOOL ADInAuthoredVisualSubNav7175(UIView *v){
-    if(!v)return NO;
-    @try {
-        for(UIView *n=v;n;n=n.superview){
-            if(ADClassNameIs7183(n,"ANXVisualSubNavTextCollectionViewCell"))return YES;
-            if([n isKindOfClass:[UIWindow class]])break;
-        }
-    } @catch(...) {}
-    return NO;
-}
-// Home visual-category text/icon ink stays authored, while the exact cell owns one\n// uniform medium-gray floor. No generic UIKit/Search owner is allowed in this subtree.
+// Home visual-category text/icon ink stays authored, while the exact cell owns one
+// uniform medium-gray floor. No generic UIKit/Search owner is allowed in this subtree.
 static UIView *ADHomeVisualSubNavCell7211(UIView *v){
     if(!v)return nil;
     @try {
@@ -2301,6 +2303,7 @@ static UIView *ADHomeVisualSubNavCell7211(UIView *v){
     } @catch(...) {}
     return nil;
 }
+static BOOL ADInAuthoredVisualSubNav7175(UIView *v){ return ADHomeVisualSubNavCell7211(v)!=nil; }
 static void ADOwnHomeVisualSubNavCell7211(UIView *v){
     if(!gP.enabled||!v||!v.window)return;
     UIView *cell=ADHomeVisualSubNavCell7211(v);
@@ -3613,7 +3616,8 @@ static void ADTintSearchGlyph706(UIImageView *iv){
             UIImage *tpl=[im imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
             if(tpl){ gADSearchImageWrite706=YES; iv.image=tpl; gADSearchImageWrite706=NO; }
         }
-        iv.tintColor=ADLightText706();
+        UIColor *light=ADLightText706();
+        if(![iv.tintColor isEqual:light])iv.tintColor=light;
     } @catch(...) { gADSearchImageWrite706=NO; }
 }
 
@@ -3626,7 +3630,8 @@ static void ADTintSearchDeliveryGlyph7139(UIImageView *iv){
             UIImage *tpl=[im imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
             if(tpl){ gADSearchImageWrite706=YES; iv.image=tpl; gADSearchImageWrite706=NO; }
         }
-        iv.tintColor=ADLightText706();
+        UIColor *light=ADLightText706();
+        if(![iv.tintColor isEqual:light])iv.tintColor=light;
     } @catch(...) { gADSearchImageWrite706=NO; }
 }
 
@@ -6532,7 +6537,7 @@ static int ADReactSurface7226(UIView *v){
                 objc_setAssociatedObject(v,kADReactSurfaceCache7232,@(ADReactSurfaceMenu7255),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
                 return ADReactSurfaceMenu7255;
             }
-            if([n.accessibilityIdentifier isEqualToString:@"me"]&&ADClassNameIs7183(n,"RCTScrollView")){
+            if([aid isEqualToString:@"me"]&&ADClassNameIs7183(n,"RCTScrollView")){
                 objc_setAssociatedObject(v,kADReactSurfaceCache7232,@(ADReactSurfacePerson7226),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
                 return ADReactSurfacePerson7226;
             }
@@ -7514,13 +7519,33 @@ static BOOL ADCheckoutNavMarked7375(UINavigationBar *nav){
     return nav&&[objc_getAssociatedObject(nav,kADCheckoutNavOwned7375) boolValue];
 }
 static void ADMarkCheckoutNav7375(UINavigationBar *nav){
-    if(nav)objc_setAssociatedObject(nav,kADCheckoutNavOwned7375,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    if(nav&&!ADCheckoutNavMarked7375(nav))objc_setAssociatedObject(nav,kADCheckoutNavOwned7375,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 static BOOL ADCheckoutNavActive7375(UINavigationBar *nav){
     return gP.enabled&&nav&&(ADCheckoutNavMarked7375(nav)||ADCheckoutControllerChain7369(nav)||ADCheckoutTitleMatches7369(nav));
 }
+static BOOL ADCheckoutWhiteState7388(UIBarButtonItemStateAppearance *state){
+    NSDictionary *attrs=state.titleTextAttributes;
+    return attrs.count==1&&[attrs[NSForegroundColorAttributeName] isEqual:[UIColor whiteColor]];
+}
+static BOOL ADCheckoutWhiteButton7388(UIBarButtonItemAppearance *button){
+    return button&&ADCheckoutWhiteState7388(button.normal)&&ADCheckoutWhiteState7388(button.highlighted)&&
+        ADCheckoutWhiteState7388(button.disabled)&&ADCheckoutWhiteState7388(button.focused);
+}
+// Read the current properties, including every Done/back/plain state. Never use a
+// permanent "already themed" receipt: Amazon can mutate or replace an appearance later.
+static BOOL ADCheckoutAppearanceReady7388(UINavigationBarAppearance *a){
+    return a&&!a.backgroundEffect&&!a.backgroundImage&&!a.shadowImage&&
+        a.backgroundImageContentMode==UIViewContentModeScaleToFill&&
+        [a.backgroundColor isEqual:ADOLED()]&&[a.shadowColor isEqual:[UIColor clearColor]]&&
+        [a.titleTextAttributes[NSForegroundColorAttributeName] isEqual:ADLightText706()]&&
+        [a.largeTitleTextAttributes[NSForegroundColorAttributeName] isEqual:ADLightText706()]&&
+        ADCheckoutWhiteButton7388(a.buttonAppearance)&&ADCheckoutWhiteButton7388(a.backButtonAppearance)&&
+        ADCheckoutWhiteButton7388(a.doneButtonAppearance);
+}
 static UINavigationBarAppearance *ADOLEDCheckoutAppearance7375(UINavigationBarAppearance *source){
     @try {
+        if(ADCheckoutAppearanceReady7388(source))return source;
         UINavigationBarAppearance *a=source?[source copy]:[[UINavigationBarAppearance alloc] init];
         [a configureWithOpaqueBackground];
         a.backgroundEffect=nil;
@@ -7549,18 +7574,24 @@ static UINavigationBarAppearance *ADOLEDCheckoutAppearance7375(UINavigationBarAp
 }
 static void ADCheckoutNavAppearances7375(UINavigationBar *nav){
     if(!ADCheckoutNavActive7375(nav))return;
+    BOOL previousWrite=gADCheckoutAppearanceWrite7375,transaction=NO;
     @try {
         ADMarkCheckoutNav7375(nav);
+        if(ADCheckoutAppearanceReady7388(nav.standardAppearance)&&ADCheckoutAppearanceReady7388(nav.scrollEdgeAppearance)&&
+           ADCheckoutAppearanceReady7388(nav.compactAppearance)&&ADCheckoutAppearanceReady7388(nav.compactScrollEdgeAppearance)&&
+           [nav.tintColor isEqual:[UIColor whiteColor]])return;
         gADCheckoutAppearanceWrite7375=YES;
-        [CATransaction begin]; [CATransaction setDisableActions:YES];
+        [CATransaction begin]; transaction=YES; [CATransaction setDisableActions:YES];
         nav.standardAppearance=ADOLEDCheckoutAppearance7375(nav.standardAppearance);
         nav.scrollEdgeAppearance=ADOLEDCheckoutAppearance7375(nav.scrollEdgeAppearance?:nav.standardAppearance);
         nav.compactAppearance=ADOLEDCheckoutAppearance7375(nav.compactAppearance?:nav.standardAppearance);
         if(@available(iOS 15.0,*))nav.compactScrollEdgeAppearance=ADOLEDCheckoutAppearance7375(nav.compactScrollEdgeAppearance?:nav.compactAppearance?:nav.standardAppearance);
-        nav.tintColor=[UIColor whiteColor];
-        [CATransaction commit];
-        gADCheckoutAppearanceWrite7375=NO;
-    } @catch(...) { gADCheckoutAppearanceWrite7375=NO; }
+        if(![nav.tintColor isEqual:[UIColor whiteColor]])nav.tintColor=[UIColor whiteColor];
+    } @catch(...) {}
+    @finally {
+        if(transaction)[CATransaction commit];
+        gADCheckoutAppearanceWrite7375=previousWrite;
+    }
 }
 static void ADOwnCheckoutNav7369(_UIBarBackground *bar){
     if(!bar)return;
@@ -7920,6 +7951,8 @@ static void ADOwnCheckoutModalPrepaint7375(UIViewController *vc){
 }
 - (void)didAddSubview:(UIView *)subview {
     %orig;
+    // Our own backing is already configured. Its insertion must not start another tree pass.
+    if(objc_getAssociatedObject(subview,kADGlowFloorSentinel7192))return;
     if(gP.enabled&&self.window)ADOwnGlowIngress7140(self);
 }
 - (void)setBackgroundColor:(UIColor *)color {
@@ -9032,10 +9065,12 @@ static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
 - (void)setProtocolClasses:(NSArray *)protocolClasses {
     if(gP.enabled&&gP.privacyMode){
         @try {
-            NSMutableArray *a=[protocolClasses mutableCopy]?:[NSMutableArray array];
-            if(![a containsObject:[ADPrivacyURLProtocol7117 class]]){
-                [a insertObject:[ADPrivacyURLProtocol7117 class] atIndex:0];
+            if([protocolClasses containsObject:[ADPrivacyURLProtocol7117 class]]){
+                %orig(protocolClasses);
+                return;
             }
+            NSMutableArray *a=[protocolClasses mutableCopy]?:[NSMutableArray array];
+            [a insertObject:[ADPrivacyURLProtocol7117 class] atIndex:0];
             %orig(a);
             return;
         } @catch(...) {}
@@ -9087,12 +9122,17 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
         dispatch_async(dispatch_get_main_queue(),^{ ADPrefsChanged(NULL,NULL,NULL,NULL,NULL); });
         return;
     }
-    BOOL wasPrivacy=gP.privacyMode;
+    ADPrefs before=gP;
     ADLoadPrefs();
+    unsigned changes=ADPreferenceChanges7388(before,gP);
+    if(!changes)return;
     if(gP.enabled){ ADInstallMainHooks7271(); ADInstallThreeTabProbes7254(); }
     if(gP.enabled&&gP.force120Hz)ADInstallPromotionHooks7271();
     if(gP.enabled&&gP.privacyMode)ADInstallPrivacyHooks7271();
-    ADRefreshRuntimeState7115(YES);
+    if(changes&ADPrefsFloors7388)ADApplyAllFloors();
+    if(changes&ADPrefsPromotion7388)ADRefreshPromotionState611();
+    if(changes&ADPrefsTWB7388)ADRefreshWebTWBPrefs791();
+    if(!(changes&ADPrefsPrivacy7388))return;
     if(gP.enabled&&gP.privacyMode){
         ADRegisterPrivacyProtocol7117();
         ADCompilePrivacyContentRules7117();
@@ -9100,7 +9140,7 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
             @try { ADAttachScriptsToUCC710(wv.configuration.userContentController); [wv evaluateJavaScript:ADPrivacyModeJS7117() completionHandler:nil]; } @catch(...) {}
         }
         ADSetLoadedWebPrivacyEnabled7117(YES);
-    } else if(wasPrivacy){
+    } else {
         ADSetLoadedWebPrivacyEnabled7117(NO);
     }
 }

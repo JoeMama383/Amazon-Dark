@@ -1,13 +1,15 @@
 {
-  "version": "7.387~runtime-css-optimization",
-  "direct_parent": "7.386~sponsored-shell-ownership",
-  "source": "user-uploaded v7.386 source archive",
-  "source_zip_sha256": "1cc0bf9589064c0f230439b731d735cf3b207d87d3b31eafd07745699e943216",
+  "version": "7.388~native-work-optimization",
+  "direct_parent": "7.387~runtime-css-optimization",
+  "source": "v7.387 source handoff from this conversation, preserved locally before edits",
+  "source_zip_sha256": "4852812538c39cd8284e5ee2e056d02118c9b57bb9cdf5a91b3755173f4b43e5",
   "parent_files_sha256": {
-    "src/Tweak.xm": "956b3a2a0153313796edd7938207e5446b3e3335e785ef07a983d9b9e8501c16",
-    "src/AmazonDarkSB.xm": "6da0fbe2bafe641e83ce9a7943564e9fa124361d02e7bc54c403a0e410716cb9",
-    "src/ADSponsored.m": "dc5abe6e22b2cea0e37a625e627ddac2d9fa05720a7ad3d524e5d6963d06e20a"
+    "src/Tweak.xm": "0b3af64783f195ddf5dd0a3e855491ad45d1223e86dd37b60c223174455e94fc",
+    "src/AmazonDarkSB.xm": "5f8dd1f6ce16c0ebfe17cba3204da7934fb2c655799e733e6f6146dcd591be3b",
+    "src/ADSponsored.m": "45e4825bb0c025016633c026740fc02a969f0a3d6aafa6d2be79a58e81f97fa7",
+    "scripts/ui-probe.sh": "7ba6368a39add22cce486d1979e0a4d884ee90ce1de510a21c2f46cb42ab9a4d"
   },
-  "validation": "41 regression scripts; local arm64/arm64e compile/link; device package and performance require Actions/phone verification",
-  "runtime_contract": "Preserve theme, existing cache policy, universal probes and transition capture; compact CSS, share scripts and bound recovery."
+  "validation": "43 strict regression scripts; local clean-source arm64/arm64e compile and link; Actions required for device package because local compiler warns about arm64e ABI",
+  "runtime_contract": "Preserve theme and production JavaScript; reduce no-op native work and unrelated preference refreshes; fix Search re-entry, checkout transaction cleanup and viewport helper version gating.",
+  "device_validation": "Not performed; no measured runtime-speed claim."
 }

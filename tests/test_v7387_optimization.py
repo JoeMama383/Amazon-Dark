@@ -33,7 +33,9 @@ for group,body in re.findall(r'([^{}]+)\{([^{}]+)\}',css):
 assert len(rules)==golden['sponsored_selectors']==86
 assert digest(json.dumps(rules,separators=(',',':')))==golden['sponsored_rules_sha256'],'sponsored scope, specificity, cascade order or declaration changed'
 for name,h in golden['probe_sha256'].items():
-    assert hashlib.sha256((ROOT/'src'/name).read_bytes()).hexdigest()==h, name
+    data=(ROOT/'src'/name).read_bytes()
+    if name=='ADUniversalUIProbe7362.js.inc':data=data.replace(b"version:'7.388'",b"version:'7.386'")  # capture-version metadata only
+    assert hashlib.sha256(data).hexdigest()==h, name
 assert 'ADHomeFrameProbeBridgeJS7265' not in S and '__adHomeProbeReq7265' not in S
 # Script sharing is bounded, maintains order, document-start timing and frame scope.
 expected=[('ADCoreWebJS7271','NO','YES'),('ADKillerSponsoredJS7384','NO','NO'),('ADPriceHistoryJS7380','YES','NO'),('ADTWBJS','NO','YES'),('ADCheckoutFloorJS7369','NO','NO'),('ADCheckoutTWBJS7369','NO','YES'),('ADCheckoutBYGHydrateJS7378','YES','NO'),('ADPrivacyModeJS7117','NO','NO')]

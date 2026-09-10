@@ -1,17 +1,20 @@
-# AmazonDark v7.387 — runtime and CSS optimization
+# AmazonDark v7.388 — native work optimization
 
-Built directly from the supplied **v7.386 sponsored-shell-ownership source**.
+Built directly from the v7.387 source handoff in this conversation.
 
-This release reduces document-start code and repeated native work while preserving
-the current theme, all 86 sponsored selectors, universal UI probes, and transition
-capture. It fixes the BYG reload guard when storage fails, checkout TWB settings
-refresh/cleanup, and stale script-installation receipts after a disabled clear.
+This release skips unrelated settings refreshes, avoids duplicate privacy protocol
+array copies, prevents Search backing insertion from starting a nested theme pass,
+and avoids rebuilding checkout appearances when their current properties already
+match. It also fixes checkout transaction cleanup and the viewport helper's stale
+package-version gate. The existing CSS/theme programs and probe capture scope are
+preserved.
 
-Measured with the same local toolchain: main tweak dylib 1,579,056 → 1,513,280 bytes
-(4.2% smaller). Default document-start programs: 169,397 → 151,581 bytes (10.5%
-smaller); all features enabled: 215,176 → 183,817 bytes (14.6% smaller).
-These are size measurements, not claimed FPS or launch-time improvements.
+All 43 regression scripts pass. A clean local build compiles and links arm64 and
+arm64e; the main fat dylib remains 1,513,280 bytes, equal to v7.387. The available
+local compiler warns about arm64e ABI compatibility, so GitHub Actions remains the
+required build for the installable rootless package. Device rendering and speed
+have not been measured for this release.
 
-See **AUDIT-v7.387.md** for changes, validation and limitations, and **COMMANDS.md**
-for the established phone push/probe workflow. Run `sh scripts/validate.sh` before
-pushing. GitHub Actions builds the installable rootless package.
+See **AUDIT-v7.388.md** for scope, measurements and remaining opportunities, and
+**COMMANDS.md** for the phone push/probe workflow. Run `sh scripts/validate.sh`
+before pushing. Install the resulting Actions package, then open Amazon once.

@@ -5,8 +5,8 @@ S=(ROOT/'src/Tweak.xm').read_text()
 A=(ROOT/'src/ADSponsored.m').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.387~runtime-css-optimization' in C
-assert '#define AD_VERSION "v7.387-runtime-css-optimization"' in S
+assert 'Version: 7.388~native-work-optimization' in C
+assert '#define AD_VERSION "v7.388-native-work-optimization"' in S
 block=A
 lits=re.findall(r'@"((?:\\.|[^"\\])*)"', block)
 js=''.join(bytes(x,'utf-8').decode('unicode_escape') for x in lits)
@@ -27,7 +27,7 @@ assert '#gwm-dashboard>li.gwm-tile:has(:is(' not in css
 assert 'li.gwm-window-tile:has(div[data-csa-c-painter="single-creative-card"] [data-ad-feedback-label-id])' in css
 assert 'li.gwm-window-tile:has(div[data-csa-c-painter="single-video-card"] [data-ad-feedback-label-id])' in css
 
-# v7.387 must not reintroduce illegal nested :has() syntax.
+# v7.388 must not reintroduce illegal nested :has() syntax.
 for rule in [x for x in css.splitlines() if x.strip()]:
     sel=rule.split('{',1)[0]
     assert sel.count(':has(') <= 1, sel
@@ -35,4 +35,4 @@ for rule in [x for x in css.splitlines() if x.strip()]:
 for bad in ['MutationObserver','setInterval(','setTimeout(','requestAnimationFrame(']:
     assert bad not in js, bad
 assert 'ADSharedUserScript7387(1,ADKillerSponsoredJS7384,NO,NO)' in S and 'injectionTime:WKUserScriptInjectionTimeAtDocumentStart' in S
-print('PASS: v7.382 precision contracts survive v7.387 without nested :has or broad carousel promotion')
+print('PASS: v7.382 precision contracts survive v7.388 without nested :has or broad carousel promotion')

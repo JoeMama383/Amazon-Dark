@@ -1,8 +1,8 @@
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text(); ui=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.387~runtime-css-optimization' in ctl
-assert '#define AD_VERSION "v7.387-runtime-css-optimization"' in t
+assert 'Version: 7.388~native-work-optimization' in ctl
+assert '#define AD_VERSION "v7.388-native-work-optimization"' in t
 # Search autocomplete large carousel owner + TWB.
 for token in [
  '.cards_carousel_widget-sug-container-top{background:#000!important',
