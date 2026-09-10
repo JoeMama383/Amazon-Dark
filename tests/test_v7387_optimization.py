@@ -8,8 +8,16 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text();A=(ROOT/'src/ADSponsored.m').read_text()
 golden=json.loads((ROOT/'tests/v7386_semantic_baseline.json').read_text())
 def digest(s):return hashlib.sha256(s.encode()).hexdigest()
+# v7.389 intentionally appends one probe-scoped checkout bottom-sheet block.
+# Remove only that exact source span before verifying the v7.386/v7.387 golden programs.
+S_golden=S
+_m1='        // v7.389 FULL probe:'
+_m2='        // v7.373 FULL r1/r2:'
+if _m1 in S_golden:
+    a=S_golden.index(_m1); b=S_golden.index(_m2,a)
+    S_golden=S_golden[:a]+S_golden[b:]
 for name,expected in golden['programs'].items():
-    assert digest(payload(S,name))==expected, name+' changed beyond the approved CSS shorthand compaction'
+    assert digest(payload(S_golden,name))==expected, name+' changed beyond the approved CSS shorthand compaction / v7.389 scoped append'
 # Expand comma lists without splitting inside quotes, attributes or pseudo-classes.
 def selectors(s):
     out=[];start=0;quote=None;escape=False;depth=0
@@ -34,7 +42,7 @@ assert len(rules)==golden['sponsored_selectors']==86
 assert digest(json.dumps(rules,separators=(',',':')))==golden['sponsored_rules_sha256'],'sponsored scope, specificity, cascade order or declaration changed'
 for name,h in golden['probe_sha256'].items():
     data=(ROOT/'src'/name).read_bytes()
-    if name=='ADUniversalUIProbe7362.js.inc':data=data.replace(b"version:'7.388'",b"version:'7.386'")  # capture-version metadata only
+    if name=='ADUniversalUIProbe7362.js.inc':data=data.replace(b"version:'7.389'",b"version:'7.386'")  # capture-version metadata only
     assert hashlib.sha256(data).hexdigest()==h, name
 assert 'ADHomeFrameProbeBridgeJS7265' not in S and '__adHomeProbeReq7265' not in S
 # Script sharing is bounded, maintains order, document-start timing and frame scope.

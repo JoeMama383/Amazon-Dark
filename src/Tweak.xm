@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.388 — selective prefs, idempotent native work, preserved theming
+ * AmazonDark v7.389 — checkout Subscribe & Save sheet + checkout switcher snapshot fix
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.388-native-work-optimization"
+#define AD_VERSION "v7.389-checkout-sheet-switcher-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1489,6 +1489,32 @@ static NSString *ADCheckoutFloorJS7369(void){
         "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
         "#checkoutDisplayPage #sns-item-sfco-t1-0 .a-icon-checkbox"
         "{filter:none!important;-webkit-filter:none!important;}"
+        // v7.389 FULL probe: the checkout Subscribe & Save chooser is portal-mounted
+        // as a sibling .a-sheet-web, so #checkoutDisplayPage descendant rules can never
+        // reach it. :has() scopes this one exact sns-item-t1-bottomsheet family while
+        // remaining synchronous at mount time (no observer/repair scan).
+        @"body:has(#checkoutDisplayPage) .a-sheet-web:has(#sns-item-t1-bottomsheet-0),"
+        "body:has(#checkoutDisplayPage) .a-sheet-web:has(#sns-item-t1-bottomsheet-0)>.a-sheet-heading-container,"
+        "body:has(#checkoutDisplayPage) .a-sheet-web:has(#sns-item-t1-bottomsheet-0)>.a-sheet-content-container"
+        "{background:#000!important;box-shadow:none!important;color:#e8e6e3!important;}"
+        "body:has(#checkoutDisplayPage) .a-sheet-web:has(#sns-item-t1-bottomsheet-0) #sns-item-t1-bottomsheet-0,"
+        "body:has(#checkoutDisplayPage) .a-sheet-web:has(#sns-item-t1-bottomsheet-0) #sns-item-t1-bottomsheet-0 :is(.a-section,.a-row,[class*=a-column],.button-container)"
+        "{background-color:transparent!important;background-image:none!important;box-shadow:none!important;}"
+        "body:has(#checkoutDisplayPage) .a-sheet-web:has(#sns-item-t1-bottomsheet-0) :is(.a-sheet-heading,h1,h2,h3,h4,h5,h6,p,label,strong,b),"
+        "body:has(#checkoutDisplayPage) .a-sheet-web:has(#sns-item-t1-bottomsheet-0) #sns-item-t1-bottomsheet-0 span:not(.a-color-link):not(:where(a *))"
+        "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "body:has(#checkoutDisplayPage) .a-sheet-web:has(#sns-item-t1-bottomsheet-0) #sns-item-t1-bottomsheet-0 div:not(:where(a *)){color:#e8e6e3!important;}"
+        "body:has(#checkoutDisplayPage) .a-sheet-web:has(#sns-item-t1-bottomsheet-0) #sns-item-t1-bottomsheet-0 :is(a,.a-color-link),"
+        "body:has(#checkoutDisplayPage) .a-sheet-web:has(#sns-item-t1-bottomsheet-0) #sns-item-t1-bottomsheet-0 :is(a,.a-color-link) *{-webkit-text-fill-color:currentColor!important;}"
+        "body:has(#checkoutDisplayPage) .a-sheet-web:has(#sns-item-t1-bottomsheet-0) .bottom-sheet-recurrence-period-selector,"
+        "body:has(#checkoutDisplayPage) .a-sheet-web:has(#sns-item-t1-bottomsheet-0) #sns-item-t1-bottomsheet-0 .button-container .a-button"
+        "{background:#303335!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;filter:none!important;-webkit-filter:none!important;}"
+        "body:has(#checkoutDisplayPage) .a-sheet-web:has(#sns-item-t1-bottomsheet-0) :is(.bottom-sheet-recurrence-period-selector,#sns-item-t1-bottomsheet-0 .button-container .a-button)>.a-button-inner"
+        "{background:transparent!important;border-color:transparent!important;box-shadow:none!important;}"
+        "body:has(#checkoutDisplayPage) .a-sheet-web:has(#sns-item-t1-bottomsheet-0) :is(.bottom-sheet-recurrence-period-selector,#sns-item-t1-bottomsheet-0 .button-container .a-button) :is(.a-button-text,.a-dropdown-prompt,.subscribe-button,.unsubscribe-button)"
+        "{background:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "body:has(#checkoutDisplayPage) .a-sheet-web:has(#sns-item-t1-bottomsheet-0) .bottom-sheet-recurrence-period-selector .a-icon-dropdown"
+        "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
         // v7.373 FULL r1/r2: checkout delivery-option press painter computes
         // rgb(246,246,246). Own only that press floor; preserve authored radio art/color.
         @"#checkoutDisplayPage .rcx-checkout-delivery-option-a-control-row-new.a-touch-press,"
@@ -2143,6 +2169,85 @@ static void ADOwnCheckoutTransitionTanPlanes7375(UIWindow *w){
         }
     } @catch(...) {}
 }
+
+// v7.389: the paired checkout/background transition probe proves Amazon mounts a
+// separate full-screen UIVisualEffectView *after* UIApplicationDidEnterBackground.
+// Its content view receives one exact teal UIView (0,.51,.588,.60), and SpringBoard
+// snapshots the scene roughly a tenth of a second later. This is not the checkout
+// presentation tan plane and it does not exist when backgrounding outside checkout.
+// Own only that exact inactive/background checkout shield so the switcher snapshots
+// the already-themed checkout underneath. No generic app-switcher cover or polling.
+static const void *kADCheckoutBackgroundShield7389=&kADCheckoutBackgroundShield7389;
+static BOOL ADCheckoutBackgroundTealColor7389(UIColor *c){
+    if(!c)return NO;
+    @try {
+        CGFloat r=0,g=0,b=0,a=0;
+        if(![c getRed:&r green:&g blue:&b alpha:&a])return NO;
+        const CGFloat e=0.018;
+        return fabs(r-0.0)<e&&fabs(g-0.510)<e&&fabs(b-0.588)<e&&fabs(a-0.600)<e;
+    } @catch(...) { return NO; }
+}
+static BOOL ADCheckoutResponderChain7389(UIView *v){
+    @try {
+        for(UIView *a=v;a;a=a.superview){
+            UIResponder *r=a;
+            for(int i=0;r&&i<8;i++,r=r.nextResponder){
+                if([NSStringFromClass(r.class) isEqualToString:@"AMSModalLayoutFullScreenViewController"])return YES;
+            }
+            if([a isKindOfClass:[UIWindow class]])break;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADCheckoutBackgroundFullScreen7389(UIView *v){
+    if(!v)return NO;
+    @try {
+        UIWindow *w=v.window;
+        if(!w||(!ADClassNameIs7183(w,"AppCXWindow")&&!ADPrimaryAmazonWindow713(w,nil)))return NO;
+        CGFloat ww=CGRectGetWidth(w.bounds),wh=CGRectGetHeight(w.bounds);
+        CGFloat vw=MAX(CGRectGetWidth(v.bounds),CGRectGetWidth(v.frame));
+        CGFloat vh=MAX(CGRectGetHeight(v.bounds),CGRectGetHeight(v.frame));
+        return ww>1&&wh>1&&vw>=ww*0.96&&vh>=wh*0.96;
+    } @catch(...) { return NO; }
+}
+static UIVisualEffectView *ADCheckoutBackgroundEffectForTeal7389(UIView *v,UIColor *candidate){
+    if(!gP.enabled||!gADCheckoutLiveModal7375||!v)return nil;
+    @try {
+        if(UIApplication.sharedApplication.applicationState==UIApplicationStateActive)return nil;
+        const char *cn=object_getClassName(v);
+        if(!cn||strcmp(cn,"UIView")!=0||!ADCheckoutBackgroundTealColor7389(candidate?:v.backgroundColor))return nil;
+        UIView *content=v.superview;
+        if(!content||![NSStringFromClass(content.class) isEqualToString:@"_UIVisualEffectContentView"])return nil;
+        UIView *effect=content.superview;
+        if(![effect isKindOfClass:[UIVisualEffectView class]]||!ADCheckoutBackgroundFullScreen7389(effect)||!ADCheckoutResponderChain7389(effect))return nil;
+        return (UIVisualEffectView *)effect;
+    } @catch(...) { return nil; }
+}
+static BOOL ADCheckoutBackgroundEffectMatches7389(UIVisualEffectView *effect){
+    if(!gP.enabled||!gADCheckoutLiveModal7375||!effect)return NO;
+    @try {
+        if([objc_getAssociatedObject(effect,kADCheckoutBackgroundShield7389) boolValue])return YES;
+        if(UIApplication.sharedApplication.applicationState==UIApplicationStateActive||!ADCheckoutBackgroundFullScreen7389(effect)||!ADCheckoutResponderChain7389(effect))return NO;
+        UIView *content=effect.contentView;
+        for(UIView *v in content.subviews){
+            const char *cn=object_getClassName(v);
+            if(cn&&strcmp(cn,"UIView")==0&&ADCheckoutBackgroundTealColor7389(v.backgroundColor)){
+                objc_setAssociatedObject(effect,kADCheckoutBackgroundShield7389,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                return YES;
+            }
+        }
+    } @catch(...) {}
+    return NO;
+}
+static void ADOwnCheckoutBackgroundEffect7389(UIVisualEffectView *effect){
+    if(!ADCheckoutBackgroundEffectMatches7389(effect))return;
+    @try {
+        effect.effect=nil;
+        effect.hidden=YES;
+        effect.alpha=0.0;
+        effect.layer.opacity=0.0;
+    } @catch(...) {}
+}
 static BOOL ADMarkedTransitionBacking7133(UIView *v){
     return v && objc_getAssociatedObject(v,kADTransitionBacking7133)!=nil;
 }
@@ -2703,6 +2808,12 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
     // class mounted. No production paint or state change occurs here.
     if(ADSkelActive7339()&&ADClassNameIs7183(self,"AWLoadingIndicatorBarView"))ADCartStripGlobalMountDiag7347(self);
     if(!gP.enabled||!self.window)return;
+    UIVisualEffectView *checkoutShield=ADCheckoutBackgroundEffectForTeal7389(self,self.backgroundColor);
+    if(checkoutShield){
+        objc_setAssociatedObject(checkoutShield,kADCheckoutBackgroundShield7389,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        ADOwnCheckoutBackgroundEffect7389(checkoutShield);
+        return;
+    }
     if(ADCheckoutTransitionTanPlane7375(self,self.backgroundColor)){
         ADSetViewBackground7226(self,ADOLED(),YES); return;
     }
@@ -2739,6 +2850,14 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
     }
     if(!gP.enabled){
         %orig(color);
+        return;
+    }
+    UIVisualEffectView *checkoutShield=ADCheckoutBackgroundEffectForTeal7389(self,color);
+    if(checkoutShield){
+        UIColor *clear=[UIColor clearColor];
+        %orig(clear);
+        objc_setAssociatedObject(checkoutShield,kADCheckoutBackgroundShield7389,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        ADOwnCheckoutBackgroundEffect7389(checkoutShield);
         return;
     }
     if(ADCheckoutTransitionTanPlane7375(self,color)){
@@ -7440,6 +7559,8 @@ static void ADOwnBottomBar708(UIView *v){
 %hook UIVisualEffectView
 - (void)didMoveToWindow {
     %orig;
+    ADOwnCheckoutBackgroundEffect7389(self);
+    if(self.hidden&&[objc_getAssociatedObject(self,kADCheckoutBackgroundShield7389) boolValue])return;
     BOOL bottom=NO; BOOL bar=ADBarGeometry713(self,&bottom);
     if(gP.enabled && self.window && (ADInBottomNav706(self)||ADTopChromeClass713(self)||bar)){
         self.effect=nil;
@@ -7448,6 +7569,8 @@ static void ADOwnBottomBar708(UIView *v){
 }
 - (void)layoutSubviews {
     %orig;
+    ADOwnCheckoutBackgroundEffect7389(self);
+    if(self.hidden&&[objc_getAssociatedObject(self,kADCheckoutBackgroundShield7389) boolValue])return;
     BOOL bottom=NO; BOOL bar=ADBarGeometry713(self,&bottom);
     if(gP.enabled && self.window && (ADInBottomNav706(self)||ADTopChromeClass713(self)||bar)){
         self.effect=nil;

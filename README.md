@@ -1,20 +1,22 @@
-# AmazonDark v7.388 — native work optimization
+# AmazonDark v7.389 — checkout sheet + switcher snapshot fix
 
-Built directly from the v7.387 source handoff in this conversation.
+Direct parent: `7.388~native-work-optimization`.
 
-This release skips unrelated settings refreshes, avoids duplicate privacy protocol
-array copies, prevents Search backing insertion from starting a nested theme pass,
-and avoids rebuilding checkout appearances when their current properties already
-match. It also fixes checkout transaction cleanup and the viewport helper's stale
-package-version gate. The existing CSS/theme programs and probe capture scope are
-preserved.
+This is a narrow theming release based on two v7.388 probe captures. It darkens the
+portal-mounted checkout Subscribe & Save bottom sheet and removes the exact teal
+checkout-only background shield that was being captured in the iOS app switcher.
 
-All 43 regression scripts pass. A clean local build compiles and links arm64 and
-arm64e; the main fat dylib remains 1,513,280 bytes, equal to v7.387. The available
-local compiler warns about arm64e ABI compatibility, so GitHub Actions remains the
-required build for the installable rootless package. Device rendering and speed
-have not been measured for this release.
+The Subscribe & Save sheet uses the existing AmazonDark visual contract: OLED black
+sheet floors, light neutral text, `#303335` controls, `#747a7c` borders, light control
+text/glyphs, and authored link colors.
 
-See **AUDIT-v7.388.md** for scope, measurements and remaining opportunities, and
-**COMMANDS.md** for the phone push/probe workflow. Run `sh scripts/validate.sh`
-before pushing. Install the resulting Actions package, then open Amazon once.
+The switcher fix is not a generic app-switcher cover. It matches only the
+probe-proven full-screen checkout `UIVisualEffectView` containing the exact teal
+background child while Amazon is inactive/backgrounded. Normal snapshots outside
+checkout remain untouched.
+
+No new timer, polling loop, MutationObserver, recurring DOM scan, generic snapshot
+replacement, or SpringBoard scene painter is introduced. Existing v7.388 runtime
+optimizations and all other theming are preserved.
+
+See `AUDIT-v7.389.md` and `COMMANDS.md`.

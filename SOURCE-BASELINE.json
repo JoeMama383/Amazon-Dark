@@ -1,15 +1,15 @@
 {
-  "version": "7.388~native-work-optimization",
-  "direct_parent": "7.387~runtime-css-optimization",
-  "source": "v7.387 source handoff from this conversation, preserved locally before edits",
-  "source_zip_sha256": "4852812538c39cd8284e5ee2e056d02118c9b57bb9cdf5a91b3755173f4b43e5",
+  "version": "7.389~checkout-sheet-switcher-fix",
+  "direct_parent": "7.388~native-work-optimization",
+  "source": "AmazonDark-v7.388-native-work-optimization-source.zip recovered from the conversation Library and used as the direct edit baseline",
+  "parent_source_zip_sha256": "c873bb69265a599d13a2f431c04eba2e699dfd3365e5f2f6d702f6db0990dfc4",
   "parent_files_sha256": {
-    "src/Tweak.xm": "0b3af64783f195ddf5dd0a3e855491ad45d1223e86dd37b60c223174455e94fc",
-    "src/AmazonDarkSB.xm": "5f8dd1f6ce16c0ebfe17cba3204da7934fb2c655799e733e6f6146dcd591be3b",
+    "src/Tweak.xm": "e7a270e95d2dbae2493e0ee5a04ddbaf07de98882810584055d418d03d0517a8",
+    "src/AmazonDarkSB.xm": "ad7aedafcbcd737760654dd8f7fda80e55cf66b2dad0b3fdb7d1c66b2ec0e186",
     "src/ADSponsored.m": "45e4825bb0c025016633c026740fc02a969f0a3d6aafa6d2be79a58e81f97fa7",
-    "scripts/ui-probe.sh": "7ba6368a39add22cce486d1979e0a4d884ee90ce1de510a21c2f46cb42ab9a4d"
+    "scripts/ui-probe.sh": "e89d833d167ed0961caf9944d4279c826dcfd5ad44dbaffff9e42a62c3f2135e",
+    "scripts/skeleton-probe.sh": "5584d51443537ed611dca65ae66e3ec6933f33e3ee021821c7a83e563d1ab7d0"
   },
-  "validation": "43 strict regression scripts; local clean-source arm64/arm64e compile and link; Actions required for device package because local compiler warns about arm64e ABI",
-  "runtime_contract": "Preserve theme and production JavaScript; reduce no-op native work and unrelated preference refreshes; fix Search re-entry, checkout transaction cleanup and viewport helper version gating.",
-  "device_validation": "Not performed; no measured runtime-speed claim."
+  "runtime_contract": "Darken only the probe-identified checkout Subscribe & Save portal sheet and suppress only the probe-identified checkout-owned teal background visual-effect shield; preserve normal switcher snapshots and all v7.388 theming/performance behavior.",
+  "device_validation": "Pending; probe-backed implementation and local regression/static validation only; Theos is unavailable in this execution environment."
 }

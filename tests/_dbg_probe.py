@@ -48,7 +48,9 @@ v=os.environ.get('AD_INSTALLED','7.389~checkout-sheet-switcher-fix')
 print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '')+v,end='')
 ''');dpkg.chmod(0o755)
     env=dict(os.environ,PATH=str(bin)+':'+os.environ['PATH'],AD_PROBE_ROOT=str(mobile),AD_PROBE_CONTAINERS=str(containers),AD_PROBE_DOCS=str(docs),AD_GZIP_CALLED=str(root/'gzip-called'))
+    _n=[0]
     def run(*args,ok=True,**extra):
+        _n[0]+=1; print('RUN',_n[0],args,extra,flush=True)
         r=subprocess.run(['sh',str(HELPER),*args],env=dict(env,**extra),text=True,capture_output=True)
         assert (r.returncode==0)==ok,(args,r.stdout,r.stderr)
         return r.stdout+r.stderr
