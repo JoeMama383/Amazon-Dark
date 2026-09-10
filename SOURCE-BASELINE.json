@@ -1,15 +1,15 @@
 {
-  "version": "7.392~probe-handoff-ci-fix",
-  "direct_parent": "7.391~ui-completion-audit-fix",
-  "source": "AmazonDark-v7.391-ui-completion-audit-fix-source.zip generated in this conversation; v7.392 changes probe-helper/CI handoff logic only",
-  "parent_source_zip_sha256": "40aa422d1b019685219b3a5530aa627793f6f7f6f75075f8c38e9cf61a9852de",
+  "version": "7.395~ui-coverage-audit-fix",
+  "direct_parent": "7.394~checkout-address-pickup-help-fix",
+  "source": "AmazonDark-v7.394-checkout-address-pickup-help-fix-source.zip generated in this conversation",
+  "parent_source_zip_sha256": null,
   "parent_files_sha256": {
-    "src/Tweak.xm": "3cbf7c73f221432b27cd26690c087474fe31ded9eaad2b22ee0d00bb90875929",
-    "src/AmazonDarkSB.xm": "2946628351fa378f089cdac4cc1c5f9164b978425f1a81958721fe98805ff98f",
+    "src/Tweak.xm": "9655b2ffbe63569a94f12641d1d26380440411be0e83d09321534a4d01740f42",
+    "src/AmazonDarkSB.xm": "e50d009dcdb012a83ef6311747c56406ef92531f33dd6efdbfda644e4034ca63",
     "src/ADSponsored.m": "45e4825bb0c025016633c026740fc02a969f0a3d6aafa6d2be79a58e81f97fa7",
-    "scripts/ui-probe.sh": "cba7afe4179aac68b5538e3d08f0aa5875e2f8f18dd674c25730969b229d1b5f",
-    "scripts/skeleton-probe.sh": "05b31b9f144d48a52f4c43dbbd622f0814caa412f29946937ed29b6ff8ed5e0a"
+    "scripts/ui-probe.sh": "16db78c8641c187870e1e80275f2cb1d69098dc0a4020fd3d13aa678bccba844",
+    "scripts/skeleton-probe.sh": "cc1db931b63f74e94c9075bfb39d722674987c72d24596bf2c622f22216b94c0"
   },
-  "runtime_contract": "Retain v7.391 UI/theming behavior unchanged. Fix only skeleton-probe receipt discovery/report/export version handoff so current and upgrade receipts remain usable when plutil fails.",
-  "device_validation": "No visual behavior is intentionally changed; GitHub strict validation and phone helper behavior remain the release proof targets."
+  "runtime_contract": "Preserve all v7.394 behavior. Close three latent probe-backed states found by full re-audit: typed help-search #help_srch_sggst, Add-address location feedback/error surfaces, and pre-mounted Bolt success/error alerts. Preserve dynamic links, selected accents, red/green alert borders, switches/radios/checkboxes, and all existing v7.390-v7.394 theming.",
+  "device_validation": "Install the Actions/phone package and test Add an address, Select a pickup location, checkout Delivery/Pickup toggles, and Subscribe & Save Terms/help search with keyboard. Verify black/gray/light surfaces, selected state colors, map legibility and dark keyboard/accessory bar. Use universal FULL screenshot probe for settled residuals and transition probe only for transient states."
 }

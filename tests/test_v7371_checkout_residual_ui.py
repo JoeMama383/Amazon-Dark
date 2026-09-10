@@ -3,8 +3,8 @@ import re
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.392~probe-handoff-ci-fix' in C
-assert '#define AD_VERSION "v7.392-probe-handoff-ci-fix"' in S
+assert 'Version: 7.395~ui-coverage-audit-fix' in C
+assert '#define AD_VERSION "v7.395-ui-coverage-audit-fix"' in S
 
 # r1: ATC overlay plumbing must stay transparent so it cannot cut across product photos.
 for tok in [

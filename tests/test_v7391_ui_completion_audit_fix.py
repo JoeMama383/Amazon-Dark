@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.392~probe-handoff-ci-fix' in C
-assert '#define AD_VERSION "v7.392-probe-handoff-ci-fix"' in S
+assert 'Version: 7.395~ui-coverage-audit-fix' in C
+assert '#define AD_VERSION "v7.395-ui-coverage-audit-fix"' in S
 floor=S[S.index('static NSString *ADCheckoutFloorJS7369'):S.index('static NSString *ADCheckoutTWBJS7369')]
 # Audit miss 1: visible Help H1 is outside #csg-support-topics.
 assert '.cs-help-content>article.help-content>h1' in floor
@@ -19,7 +19,7 @@ assert 'background-image:none!important;border-color:#747a7c!important' in floor
 assert '.a-divider.a-divider-break:after{border-color:#747a7c!important;}' in floor
 assert '.a-divider.a-divider-break>h5{background:#000!important' in floor
 # All seven v7.390 surface owners and loader still exist.
-for x in ['#csg-support-topics','#loading-spinner-blocker-doc.loading-spinner-blocker','#ad-sm-program-modal','#giftForm','#checkout-maple-upsell',"form.pmts-select-payment-instrument-form",'#shipping-address-select-page-card-deck',"sns-recurrence-period-bottomsheet-dropdown-sfco-0_"]:
+for x in ['#csg-support-topics','#loading-spinner-blocker-doc.loading-spinner-blocker','#ad-sm-program-modal','#giftForm','#checkout-maple-upsell',"[data-testid='selectFrameContentTestId']",'#shipping-address-select-page-card-deck',"sns-recurrence-period-bottomsheet-dropdown-sfco-0_"]:
     assert x in floor,x
 # Selected payment and recurrence blue borders must not be hard-recolored by the audit patch.
 audit=floor[floor.index('// v7.390 FULL r1:'):floor.index('// v7.373 FULL r1/r2:')]

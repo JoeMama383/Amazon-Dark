@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.392 — probe handoff CI fix
+ * AmazonDark v7.395 — UI coverage audit fix
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.392-probe-handoff-ci-fix"
+#define AD_VERSION "v7.395-ui-coverage-audit-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1525,6 +1525,73 @@ static NSString *ADCheckoutFloorJS7369(void){
         "#csg-support-topics .a-box.a-vertical i.a-icon-touch-link{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
         "#csg-support-topics .a-color-state,#csg-support-topics .a-color-state *{-webkit-text-fill-color:currentColor!important;}"
 
+        // v7.393 FULL r2/r3/r4 (16:59, 17:08, 17:09): Privacy Notice, Returns and
+        // Refunds, and Consumer Use Tax all share the stable
+        // .cs-help-v4 > .cs-help-content > article.help-content shell. Flip only ordinary
+        // neutral-dark article ink. Preserve Amazon's authored blue links and the probe-proven
+        // gray .lead / a-color-secondary families rather than flattening them to white.
+        @".cs-help-v4 .cs-help-content>.a-subheader h4,"
+        ".cs-help-v4 .cs-help-content>article.help-content,"
+        ".cs-help-v4 .cs-help-content>article.help-content :is(h1,h2,h3,h4,h5,h6,p,ul,ol,li,section,div,span,strong,b,em,small,label)"
+        ":not(.lead):not(:where(.lead *)):not(.a-color-secondary):not(:where(.a-color-secondary *)):not(.a-color-tertiary):not(:where(.a-color-tertiary *)):not(:where(a *)):not(.a-color-link):not(:where(.a-color-link *))"
+        "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        ".cs-help-v4 .cs-help-content>article.help-content :is(.lead,.lead *,.a-color-secondary,.a-color-secondary *,.a-color-tertiary,.a-color-tertiary *){-webkit-text-fill-color:currentColor!important;}"
+        ".cs-help-v4 .cs-help-content>article.help-content :is(a,.a-color-link),"
+        ".cs-help-v4 .cs-help-content>article.help-content :is(a,.a-color-link) *{-webkit-text-fill-color:currentColor!important;}"
+        // r3: Returns landing cards are DIV.a-box owners containing AUI list rows. Own only
+        // those card DIVs (not the row A.a-box links), keep one standard gray card edge, gray
+        // existing row separators, white row copy and white touch-link chevrons.
+        ".cs-help-v4 .cs-help-content>article.help-content .cs-help-landing-section div.a-box"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;}"
+        ".cs-help-v4 .cs-help-content>article.help-content .cs-help-landing-section div.a-box>.a-box-inner,"
+        ".cs-help-v4 .cs-help-content>article.help-content .cs-help-landing-section .a-box-list"
+        "{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}"
+        ".cs-help-v4 .cs-help-content>article.help-content .cs-help-landing-section .a-box-list>li{border-color:#747a7c!important;}"
+        ".cs-help-v4 .cs-help-content>article.help-content .cs-help-landing-section a.a-touch-link,"
+        ".cs-help-v4 .cs-help-content>article.help-content .cs-help-landing-section a.a-touch-link :is(div,span,p,strong,b)"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}"
+        ".cs-help-v4 .cs-help-content>article.help-content .cs-help-landing-section i.a-icon-touch-link"
+        "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+        // r3/r4: the bright horizontal rules outside the white Returns cards / Tax table are
+        // the existing bottom borders of p.lead and cs-help-landing-section. Keep their layout
+        // thickness but make those pixels OLED black instead of introducing a new gray divider.
+        ".cs-help-v4 .cs-help-content>article.help-content p.lead,"
+        ".cs-help-v4 .cs-help-content>article.help-content .cs-help-landing-section{border-bottom-color:#000!important;}"
+        // r4: Consumer Use Tax is one table.a-bordered with white TH/TD cell painters.
+        // Keep Amazon's table geometry and widths; own only floor/ink/border colors.
+        ".cs-help-v4 .cs-help-content>article.help-content table.a-bordered"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;}"
+        ".cs-help-v4 .cs-help-content>article.help-content table.a-bordered :is(thead,tbody,tr)"
+        "{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:#747a7c!important;color:#e8e6e3!important;}"
+        ".cs-help-v4 .cs-help-content>article.help-content table.a-bordered :is(th,td)"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#747a7c!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        ".cs-help-v4 .cs-help-content>article.help-content table.a-bordered a,"
+        ".cs-help-v4 .cs-help-content>article.help-content table.a-bordered a *{-webkit-text-fill-color:currentColor!important;}"
+        // r2/r3/r4: the visible Was-this-info-helpful block and its already-mounted hidden
+        // follow-up states are one exact hmd-* family. Theme the complete family so Yes/No cannot
+        // reveal another white surface. Radio controls remain Amazon-authored; only neutral
+        // shells, copy, text-entry wrapper and AUI button chrome are owned.
+        ".cs-help-v4 .cs-help-content :is(#hmd-FeedbackBox,#hmd-ConfirmYesBox,#hmd-ReasonBox,#hmd-ConfirmNoBox,#hmd-CustomerServiceHub)"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        ".cs-help-v4 .cs-help-content :is(#hmd-FeedbackBox,#hmd-ConfirmYesBox,#hmd-ReasonBox,#hmd-ConfirmNoBox,#hmd-CustomerServiceHub)>.a-box-inner"
+        "{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}"
+        ".cs-help-v4 .cs-help-content :is(#hmd-FeedbackBox,#hmd-ConfirmYesBox,#hmd-ReasonBox,#hmd-ConfirmNoBox,#hmd-CustomerServiceHub) :is(h1,h2,h3,h4,h5,h6,p,div,span,strong,b,em,small,label):not(.a-color-secondary):not(:where(.a-color-secondary *)):not(:where(a *)):not(.a-color-link):not(:where(.a-color-link *))"
+        "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        ".cs-help-v4 .cs-help-content :is(#hmd-FeedbackBox,#hmd-ConfirmYesBox,#hmd-ReasonBox,#hmd-ConfirmNoBox,#hmd-CustomerServiceHub) .a-color-secondary,"
+        ".cs-help-v4 .cs-help-content :is(#hmd-FeedbackBox,#hmd-ConfirmYesBox,#hmd-ReasonBox,#hmd-ConfirmNoBox,#hmd-CustomerServiceHub) .a-color-secondary *{-webkit-text-fill-color:currentColor!important;}"
+        ".cs-help-v4 .cs-help-content :is(#hmd-FeedbackBox,#hmd-ConfirmYesBox,#hmd-ReasonBox,#hmd-ConfirmNoBox,#hmd-CustomerServiceHub) .a-button.a-button-base"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        ".cs-help-v4 .cs-help-content :is(#hmd-FeedbackBox,#hmd-ConfirmYesBox,#hmd-ReasonBox,#hmd-ConfirmNoBox,#hmd-CustomerServiceHub) .a-button.a-button-base>.a-button-inner"
+        "{background:transparent!important;background-color:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;}"
+        ".cs-help-v4 .cs-help-content :is(#hmd-FeedbackBox,#hmd-ConfirmYesBox,#hmd-ReasonBox,#hmd-ConfirmNoBox,#hmd-CustomerServiceHub) .a-button.a-button-base .a-button-text"
+        "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        ".cs-help-v4 .cs-help-content #hmd-ReasonBox .a-input-text-wrapper"
+        "{background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;}"
+        ".cs-help-v4 .cs-help-content #hmd-ReasonBox textarea"
+        "{background:#303335!important;background-color:#303335!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;border-color:#747a7c!important;outline-color:#747a7c!important;}"
+        ".cs-help-v4 .cs-help-content :is(#hmd-FeedbackBox,#hmd-ConfirmYesBox,#hmd-ReasonBox,#hmd-ConfirmNoBox,#hmd-CustomerServiceHub) a,"
+        ".cs-help-v4 .cs-help-content :is(#hmd-FeedbackBox,#hmd-ConfirmYesBox,#hmd-ReasonBox,#hmd-ConfirmNoBox,#hmd-CustomerServiceHub) a *{-webkit-text-fill-color:currentColor!important;}"
+
         // v7.390 FULL r2: Subscribe & Save loading transition. The live painter is the
         // 430x800 #loading-spinner-blocker-doc plus a 100x100 IMG. Own that exact transition:
         // dark translucent blocker, OLED spinner tile, preserve Amazon's animation/geometry.
@@ -1587,23 +1654,33 @@ static NSString *ADCheckoutFloorJS7369(void){
         "#checkoutDisplayPage #checkout-maple-upsell .maple-banner__text .a-color-link,"
         "#checkoutDisplayPage #checkout-maple-upsell .maple-banner__text .a-color-link *{-webkit-text-fill-color:currentColor!important;}"
 
-        // v7.390 FULL r3 (14:29): Select a Payment Method is React content mounted inside
-        // checkout. Own its probe-stable semantic testids instead of generated css-* classes.
-        // The selected card keeps Amazon's blue border; all brand art and on/off switch painters
-        // remain authored. Unselected/utility cards get the standard gray edge.
-        @"#checkoutDisplayPage form.pmts-select-payment-instrument-form [data-testid='selectFrameContentTestId'],"
-        "#checkoutDisplayPage form.pmts-select-payment-instrument-form [data-testid='boxGroup'],"
-        "#checkoutDisplayPage form.pmts-select-payment-instrument-form [data-testid='sticky-footer']"
+        // v7.393 FULL r1 (16:46) correction: the hidden pmts form is a SIBLING of the
+        // rendered React payment tree, not its ancestor. v7.390-v7.392 therefore matched none
+        // of the semantic payment-card rules even though the testids were correct. Anchor on the
+        // checkout-owned testids themselves. Direct !important floor ownership is enough to beat
+        // React inline paint; avoid an enormous inset-shadow layer. The selected card's authored
+        // blue 2px border remains untouched.
+        @"#checkoutDisplayPage [data-testid='selectFrameContentTestId'],"
+        "#checkoutDisplayPage [data-testid='boxGroup'],"
+        "#checkoutDisplayPage [data-testid='sticky-footer']"
         "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
-        "#checkoutDisplayPage form.pmts-select-payment-instrument-form [data-testid='selected-primary-pm-card']"
+        "#checkoutDisplayPage [data-testid='selected-primary-pm-card']"
         "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
-        "#checkoutDisplayPage form.pmts-select-payment-instrument-form :is([data-testid='unselected-primary-pm-card'],[data-testid='unselected-primary-pm-loan'],[data-testid='selected-balance-pm-giftcard'],[data-testid='claim-code'])"
+        "#checkoutDisplayPage :is([data-testid='unselected-primary-pm-card'],[data-testid='unselected-primary-pm-loan'],[data-testid='selected-balance-pm-giftcard'],[data-testid='claim-code'])"
         "{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;}"
-        "#checkoutDisplayPage form.pmts-select-payment-instrument-form :is([data-testid='art'],[data-testid='image'],[data-testid*='switch'],[data-testid*='knob'],[data-testid*='outline']){filter:none!important;-webkit-filter:none!important;}"
-        "#checkoutDisplayPage form.pmts-select-payment-instrument-form a,"
-        "#checkoutDisplayPage form.pmts-select-payment-instrument-form a *,"
-        "#checkoutDisplayPage form.pmts-select-payment-instrument-form [data-testid='link'],"
-        "#checkoutDisplayPage form.pmts-select-payment-instrument-form [data-testid='link'] *{-webkit-text-fill-color:currentColor!important;}"
+        // The odd purple rectangle is the exact RN heading focus outline captured as
+        // 3px rgb(203,160,221) auto. It is not a selected-payment indicator.
+        "#checkoutDisplayPage [data-testid='selectFrameContentTestId'] [data-testid='heading']{outline:0!important;outline-color:transparent!important;box-shadow:none!important;}"
+        // Payment neutral copy is intentionally pure white here. Links/dynamic blue text and
+        // their descendants stay authored, as do info glyphs and the actual on/off switch sprites.
+        "#checkoutDisplayPage [data-testid='selectFrameContentTestId'] :is(h1,h2,h3,h4,h5,h6,p,span,label):not(:where(a *)),"
+        "#checkoutDisplayPage [data-testid='selectFrameContentTestId'] [data-testid='text']:not(:where(a *)),"
+        "#checkoutDisplayPage :is([data-testid='selected-balance-pm-giftcard'],[data-testid='claim-code'],[data-testid='sticky-footer']) :is(h1,h2,h3,h4,h5,h6,p,span,label):not(:where(a *))"
+        "{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+        "#checkoutDisplayPage [data-testid='selectFrameContentTestId'] :is([data-testid*='switch'],[data-testid*='knob'],[data-testid*='outline']),#checkoutDisplayPage :is([data-testid='selected-balance-pm-giftcard'],[data-testid='claim-code']) :is([data-testid*='switch'],[data-testid*='knob'],[data-testid*='outline']){filter:none!important;-webkit-filter:none!important;}"
+        "#checkoutDisplayPage [data-testid='selectFrameContentTestId'] a,#checkoutDisplayPage [data-testid='selectFrameContentTestId'] a *,"
+        "#checkoutDisplayPage [data-testid='selectFrameContentTestId'] [data-testid='link'],#checkoutDisplayPage [data-testid='selectFrameContentTestId'] [data-testid='link'] *,"
+        "#checkoutDisplayPage :is([data-testid='selected-balance-pm-giftcard'],[data-testid='claim-code'],[data-testid='sticky-footer']) a,#checkoutDisplayPage :is([data-testid='selected-balance-pm-giftcard'],[data-testid='claim-code'],[data-testid='sticky-footer']) a *{-webkit-text-fill-color:currentColor!important;}"
         // The gift-card cross-sell is an iframe. The checkout user script runs in all frames;
         // #cruise is the exact frame root captured by r3, so it can be themed without parent access.
         "#cruise,#cruise .cruise-upx-box,#cruise .cruise-upx-box>.a-box-inner,#cruise .maple-banner,#cruise .maple-banner__container,#cruise .maple-banner__row,#cruise .maple-banner__col"
@@ -1658,6 +1735,106 @@ static NSString *ADCheckoutFloorJS7369(void){
         ".a-popover.a-dropdown:has(a[id^='sns-recurrence-period-bottomsheet-dropdown-sfco-0_']) a.a-dropdown-link.a-active{background:#000!important;background-color:#000!important;}"
         ".a-popover.a-dropdown:has(a[id^='sns-recurrence-period-bottomsheet-dropdown-sfco-0_']) .a-icon-close{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
 
+        // v7.394 FULL r5 (17:20): Add an address. Own only the exact white AUI
+        // dropdown/action/touch-link controls inside the enter-address form. Existing dark text
+        // fields and checkbox/radio artwork remain authored. Clear/chevron raster glyphs are
+        // normalized to light ink because the probe shows they remain black on the dark fields.
+        @"#checkoutDisplayPage #address-ui-widgets-enterAddressFormContainer :is(#address-ui-widgets-countryCode,#address-ui-widgets-DetectLocationButton,#address-ui-widgets-enterAddressStateOrRegion,#address-ui-widgets-delivery-instructions-mobile-touch-link)"
+        "{background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#checkoutDisplayPage #address-ui-widgets-enterAddressFormContainer :is(#address-ui-widgets-countryCode,#address-ui-widgets-DetectLocationButton,#address-ui-widgets-enterAddressStateOrRegion)>.a-button-inner"
+        "{background:transparent!important;background-color:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;}"
+        "#checkoutDisplayPage #address-ui-widgets-enterAddressFormContainer :is(#address-ui-widgets-countryCode,#address-ui-widgets-DetectLocationButton,#address-ui-widgets-enterAddressStateOrRegion) :is(.a-button-text,.a-dropdown-prompt),"
+        "#checkoutDisplayPage #address-ui-widgets-enterAddressFormContainer #address-ui-widgets-delivery-instructions-mobile-touch-link :is(span,div,p,strong,b)"
+        "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#checkoutDisplayPage #address-ui-widgets-enterAddressFormContainer :is(#address-ui-widgets-countryCode,#address-ui-widgets-enterAddressStateOrRegion) .a-icon-dropdown,"
+        "#checkoutDisplayPage #address-ui-widgets-enterAddressFormContainer .address-ui-widgets-clear-icon .a-icon-close,"
+        "#checkoutDisplayPage #address-ui-widgets-enterAddressFormContainer #address-ui-widgets-delivery-instructions-mobile-touch-link .a-icon-touch-link"
+        "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+        // v7.395 re-audit: the location-assisted address flow keeps its error/feedback shells
+        // mounted while hidden. Theme those exact latent owners so Use my location cannot reveal
+        // a fresh white panel on success/error. Preserve authored links and status accents.
+        "#checkoutDisplayPage #address-ui-widgets-address-form-location-autofill-feedback-message .a-changeover-inner,"
+        "#checkoutDisplayPage #address-ui-widgets-location-detection-error-touch-link,"
+        "#checkoutDisplayPage #address-ui-widgets-location-detection-error-touch-link>.a-box-inner"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#checkoutDisplayPage #address-ui-widgets-location-detection-error-touch-link{border-color:#747a7c!important;outline-color:#747a7c!important;}"
+        "#checkoutDisplayPage #address-ui-widgets-location-detection-error-touch-link a,#checkoutDisplayPage #address-ui-widgets-location-detection-error-touch-link a *{-webkit-text-fill-color:currentColor!important;}"
+
+        // v7.394 FULL r7 (17:25): Select a pickup location is a standalone Bolt/AUI page
+        // rooted at #bolt-widget-amazon_us_checkout_generic_mobile. Keep the teal country header,
+        // Microsoft labels/pins, accessibility icon and selected-card orange accent authored.
+        // Only neutral controls/card floors/text are owned here; the base map raster is TWB-tamed
+        // separately below so labels/markers do not dim with the imagery.
+        @"#bolt-widget-amazon_us_checkout_generic_mobile #country-dropdown"
+        "{background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#bolt-widget-amazon_us_checkout_generic_mobile #country-dropdown>.a-button-inner{background:transparent!important;background-color:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;}"
+        "#bolt-widget-amazon_us_checkout_generic_mobile #country-dropdown :is(.a-button-text,.a-dropdown-prompt){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#bolt-widget-amazon_us_checkout_generic_mobile #country-dropdown .a-icon-dropdown{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+        "#bolt-widget-amazon_us_checkout_generic_mobile #bolt-widget-map .a-row:has(.sort-by-container),"
+        "#bolt-widget-amazon_us_checkout_generic_mobile #bolt-widget-map .sort-by-container,"
+        "#bolt-widget-amazon_us_checkout_generic_mobile #bolt-widget-map .sort-buttons-group"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;color:#e8e6e3!important;}"
+        "#bolt-widget-amazon_us_checkout_generic_mobile :is(#hubOrderingByRecommendationFilterByMobileId,#hubOrderingByDistanceFilterByMobileId,#hubOrderingByFastestFilterByMobileId)"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#bolt-widget-amazon_us_checkout_generic_mobile :is(#hubOrderingByRecommendationFilterByMobileId,#hubOrderingByDistanceFilterByMobileId,#hubOrderingByFastestFilterByMobileId)>.a-button-inner"
+        "{background:transparent!important;background-color:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;color:#e8e6e3!important;}"
+        "#bolt-widget-amazon_us_checkout_generic_mobile :is(#hubOrderingByRecommendationFilterByMobileId,#hubOrderingByDistanceFilterByMobileId,#hubOrderingByFastestFilterByMobileId) .a-button-text"
+        "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        // Preserve a visible Amazon-blue selection cue without restoring the pale-blue floor.
+        "#bolt-widget-amazon_us_checkout_generic_mobile :is(#hubOrderingByRecommendationFilterByMobileId,#hubOrderingByDistanceFilterByMobileId,#hubOrderingByFastestFilterByMobileId).a-button-selected"
+        "{box-shadow:inset 0 0 0 2px #007185!important;}"
+        // The handicap/low-locker glyph and its authored divider are explicitly outside our paint.
+        "#bolt-widget-amazon_us_checkout_generic_mobile #hubUseLowerLockerPrefBottomSheetTriggerButtonId{filter:none!important;-webkit-filter:none!important;}"
+        "#bolt-widget-amazon_us_checkout_generic_mobile #bolt-widget-card-panel,"
+        "#bolt-widget-amazon_us_checkout_generic_mobile #bolt-widget-card-panel>[id^='bolt-widget-card-'],"
+        "#bolt-widget-amazon_us_checkout_generic_mobile #bolt-widget-card-panel>[id^='bolt-widget-card-']>.a-section,"
+        "#bolt-widget-amazon_us_checkout_generic_mobile #bolt-widget-card-panel>[id^='bolt-widget-card-'] .a-padding-medium"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+        "#bolt-widget-amazon_us_checkout_generic_mobile #bolt-widget-card-panel>[id^='bolt-widget-card-'] :is(p,span,strong,b):not(.a-color-tertiary):not(:where(.a-color-tertiary *)):not(.a-color-secondary):not(:where(.a-color-secondary *)):not(.a-color-link):not(:where(.a-color-link *)):not(:where(a *))"
+        "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#bolt-widget-amazon_us_checkout_generic_mobile #bolt-widget-card-panel :is(.a-color-tertiary,.a-color-tertiary *,.a-color-secondary,.a-color-secondary *){-webkit-text-fill-color:currentColor!important;}"
+        "#bolt-widget-amazon_us_checkout_generic_mobile #bolt-widget-card-panel :is(a,.a-color-link),#bolt-widget-amazon_us_checkout_generic_mobile #bolt-widget-card-panel :is(a,.a-color-link) *{-webkit-text-fill-color:currentColor!important;}"
+        "#bolt-widget-amazon_us_checkout_generic_mobile #bolt-widget-card-panel hr{border-color:#747a7c!important;background-color:#747a7c!important;}"
+        "#bolt-widget-amazon_us_checkout_generic_mobile #bolt-widget-card-panel .a-button-primary"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#bolt-widget-amazon_us_checkout_generic_mobile #bolt-widget-card-panel .a-button-primary>.a-button-inner{background:transparent!important;background-color:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;}"
+        "#bolt-widget-amazon_us_checkout_generic_mobile #bolt-widget-card-panel .a-button-primary .a-button-text{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        // v7.395 re-audit: Bolt also pre-mounts zero-rect success/error alert cards. They were
+        // still stock white in r7. Keep Amazon's green/red accent borders authored while making
+        // any subsequently exposed alert floor/readable neutral copy dark-mode safe.
+        "#bolt-widget-amazon_us_checkout_generic_mobile :is(.a-alert-success,.a-alert-error),"
+        "#bolt-widget-amazon_us_checkout_generic_mobile :is(.a-alert-success,.a-alert-error)>.a-box-inner"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;color:#e8e6e3!important;}"
+        "#bolt-widget-amazon_us_checkout_generic_mobile :is(.a-alert-success,.a-alert-error) :is(p,span,div,strong,b):not(:where(a *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#bolt-widget-amazon_us_checkout_generic_mobile :is(.a-alert-success,.a-alert-error) a,#bolt-widget-amazon_us_checkout_generic_mobile :is(.a-alert-success,.a-alert-error) a *{-webkit-text-fill-color:currentColor!important;}"
+
+        // v7.394 FULL r1 (17:28): checkout Delivery/Pickup toggle pair. Both floors become
+        // OLED and copy becomes light; only the unselected edge is standardized gray. The
+        // selected button's probe-authored Amazon-blue edge is deliberately not overwritten.
+        @"#checkoutDisplayPage .edg-delivery-type-toggle-button"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}"
+        "#checkoutDisplayPage .edg-delivery-type-toggle-button:not(.a-button-selected){border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;}"
+        "#checkoutDisplayPage .edg-delivery-type-toggle-button>.a-button-inner{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+        "#checkoutDisplayPage .edg-delivery-type-toggle-button .a-button-text{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+
+        // v7.394 FULL r1 (17:38): the HTML help-search suggested-topics sheet is a white
+        // positioned sibling under .cs-help-content. Theme that exact suggestion family only.
+        @".cs-help-v4 .cs-help-content #suggested-help-topics-wrapper"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;color:#e8e6e3!important;}"
+        ".cs-help-v4 .cs-help-content #suggested-help-topics-wrapper .suggested-help-topics-title"
+        "{background:#000!important;background-color:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        ".cs-help-v4 .cs-help-content #suggested-help-topics-wrapper .suggested-help-topics-button"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#747a7c!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        ".cs-help-v4 .cs-help-content #suggested-help-topics-wrapper .star-note-icon{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+        // v7.395 re-audit: the alternate typed-query suggestion list is already mounted but hidden
+        // in the same help-search probe. It can replace the suggested-topics panel once text is
+        // entered, so theme that exact list family as well instead of leaving a latent white state.
+        ".cs-help-v4 .cs-help-content #help_srch_sggst,"
+        ".cs-help-v4 .cs-help-content #help_srch_sggst :is(li,a,div,span)"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}"
+        ".cs-help-v4 .cs-help-content #help_srch_sggst :is(li,a){border-color:#747a7c!important;}"
+        ".cs-help-v4 .cs-help-content #help_srch_sggst a.a-color-link,.cs-help-v4 .cs-help-content #help_srch_sggst a.a-color-link *{-webkit-text-fill-color:currentColor!important;}"
+
         // v7.373 FULL r1/r2: checkout delivery-option press painter computes
         // rgb(246,246,246). Own only that press floor; preserve authored radio art/color.
         @"#checkoutDisplayPage .rcx-checkout-delivery-option-a-control-row-new.a-touch-press,"
@@ -1677,7 +1854,7 @@ static NSString *ADCheckoutTWBJS7369(void){
     CGFloat t=((CGFloat)strengthKey)/100.0;
     CGFloat factor=1.0-(0.10+(0.48*t));
     return [NSString stringWithFormat:
-        @"(function(){try{function put(id,css){var s=document.getElementById(id);if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}s.textContent=css;return s;}function relink(s){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}var css=`#checkoutDisplayPage .checkout-byg-mobile-container img[class*=_mobileDenseGridImage_],#checkoutDisplayPage img.checkout-product-image,#checkoutDisplayPage #checkout-maple-upsell .maple-banner__image img{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}#checkoutDisplayPage i.a-icon-prime,#checkoutDisplayPage img.sustainability-green-leaf-alignment-updated{filter:none!important;-webkit-filter:none!important;}`;var s=put('ad7-checkout7369-twb',css);if(document.readyState==='loading')window.addEventListener('load',function(){relink(s)},{once:true});else relink(s);}catch(e){}})();",factor,factor];
+        @"(function(){try{function put(id,css){var s=document.getElementById(id);if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}s.textContent=css;return s;}function relink(s){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}var css=`#checkoutDisplayPage .checkout-byg-mobile-container img[class*=_mobileDenseGridImage_],#checkoutDisplayPage img.checkout-product-image,#checkoutDisplayPage #checkout-maple-upsell .maple-banner__image img{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}#checkoutDisplayPage :is([data-testid='selected-primary-pm-card'],[data-testid='unselected-primary-pm-card']) [data-testid='image']{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}#bolt-widget-amazon_us_checkout_generic_mobile #bolt-widget-map canvas#Microsoft\\.Maps\\.Imagery\\.LiteRoad{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}#checkoutDisplayPage i.a-icon-prime,#checkoutDisplayPage img.sustainability-green-leaf-alignment-updated{filter:none!important;-webkit-filter:none!important;}`;var s=put('ad7-checkout7369-twb',css);if(document.readyState==='loading')window.addEventListener('load',function(){relink(s)},{once:true});else relink(s);}catch(e){}})();",factor,factor,factor,factor,factor,factor];
 }
 
 // v7.378: the v7.377 FULL r1 proves the one-pixel synchronous renderer nudge is not enough:
@@ -2101,7 +2278,18 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
 }
 %end
 
+static void ADPrepareSearchKeyboard7120(UIView *v);
+
 %hook WKContentView
+- (BOOL)becomeFirstResponder {
+    // v7.394 FULL r1 (17:38): HTML help search focuses through WKContentView rather
+    // than UITextField/UITextView. Request the same dark keyboard trait used everywhere
+    // else before UIKit asks the remote keyboard service to materialize its key skins.
+    if(gP.enabled)ADPrepareSearchKeyboard7120((UIView *)self);
+    BOOL became=%orig;
+    if(became&&gP.enabled)ADPrepareSearchKeyboard7120((UIView *)self);
+    return became;
+}
 - (void)setBackgroundColor:(UIColor *)color {
     if(ADInternalPaintWrite7226()){
         %orig(color);
@@ -3667,11 +3855,90 @@ static void ADOwnLowerKeyboardSurface7130(UIView *v){
     if(!ADLowerKeyboardSurface7130(v))return;
     @try {
         UIColor *black=ADOLED();
+        if(@available(iOS 13.0,*))v.overrideUserInterfaceStyle=UIUserInterfaceStyleDark;
         v.opaque=YES;
         ADSetViewBackground7226(v,black,YES);
         ADBlackBackingLayer7130(v,kADKeyboardBacking7130);
     } @catch(...) {}
 }
+
+// v7.394 FULL r1 (17:38): WebKit's HTML form accessory is not the normal
+// navigation toolbar. The probe shows its _UIBarBackground model color is already black,
+// but a direct 430x44 stretchable UIImageView (3x132 source raster) paints the visible gray
+// strip and the toolbar tint drives purple Done/arrow controls. Own only a UIToolbar whose
+// ancestor chain contains UIWebFormAccessory; no navigation/toolbars elsewhere are touched.
+static const void *kADWebFormBarImageHidden7394=&kADWebFormBarImageHidden7394;
+static BOOL ADInWebFormAccessory7394(UIView *v){
+    @try {
+        NSUInteger d=0;
+        for(UIView *p=v;p&&d++<8;p=p.superview)if(ADClassNameIs7183(p,"UIWebFormAccessory"))return YES;
+    } @catch(...) {}
+    return NO;
+}
+static void ADRestoreWebFormBarImages7394(UIView *root){
+    if(!root)return;
+    @try {
+        NSMutableArray *stack=[NSMutableArray arrayWithObject:root]; NSUInteger seen=0;
+        while(stack.count&&seen++<32){
+            UIView *v=[stack lastObject]; [stack removeLastObject];
+            if([v isKindOfClass:[UIImageView class]]){
+                NSNumber *old=objc_getAssociatedObject(v,kADWebFormBarImageHidden7394);
+                if(old){ v.hidden=old.boolValue; objc_setAssociatedObject(v,kADWebFormBarImageHidden7394,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC); }
+            }
+            [stack addObjectsFromArray:(v.subviews.copy?:@[])];
+        }
+    } @catch(...) {}
+}
+static void ADOwnWebFormAccessory7394(UIToolbar *bar){
+    if(!bar||!ADInWebFormAccessory7394((UIView *)bar))return;
+    @try {
+        if(!gP.enabled){ ADRestoreWebFormBarImages7394((UIView *)bar); return; }
+        UIColor *black=ADOLED(),*white=[UIColor whiteColor];
+        if(@available(iOS 13.0,*))bar.overrideUserInterfaceStyle=UIUserInterfaceStyleDark;
+        ADSetViewBackground7226((UIView *)bar,black,YES);
+        if(![bar.tintColor isEqual:white])bar.tintColor=white;
+        NSMutableArray *stack=[NSMutableArray arrayWithObject:(UIView *)bar]; NSUInteger seen=0;
+        while(stack.count&&seen++<40){
+            UIView *v=[stack lastObject]; [stack removeLastObject];
+            if(ADClassNameIs7183(v,"_UIBarBackground")){
+                ADSetViewBackground7226(v,black,YES);
+                for(UIView *child in (v.subviews.copy?:@[]))if([child isKindOfClass:[UIImageView class]]){
+                    UIImageView *iv=(UIImageView *)child;
+                    CGRect r=[iv convertRect:iv.bounds toView:bar];
+                    if(r.size.width>=bar.bounds.size.width*0.90&&r.size.height>=bar.bounds.size.height*0.80){
+                        if(!objc_getAssociatedObject(iv,kADWebFormBarImageHidden7394))objc_setAssociatedObject(iv,kADWebFormBarImageHidden7394,@(iv.hidden),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                        iv.hidden=YES;
+                    }
+                }
+            }
+            if([v isKindOfClass:[UIButton class]]){
+                UIButton *b=(UIButton *)v; b.tintColor=white;
+                [b setTitleColor:white forState:UIControlStateNormal];
+                [b setTitleColor:white forState:UIControlStateDisabled];
+                [b setTitleColor:white forState:UIControlStateHighlighted];
+            }
+            [stack addObjectsFromArray:(v.subviews.copy?:@[])];
+        }
+    } @catch(...) {}
+}
+
+%hook UIToolbar
+- (void)didMoveToWindow {
+    %orig;
+    ADOwnWebFormAccessory7394(self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADOwnWebFormAccessory7394(self);
+}
+- (void)setTintColor:(UIColor *)color {
+    if(gP.enabled&&ADInWebFormAccessory7394((UIView *)self)){
+        %orig([UIColor whiteColor]);
+        return;
+    }
+    %orig(color);
+}
+%end
 
 %hook UIInputSetHostView
 - (void)didMoveToWindow {

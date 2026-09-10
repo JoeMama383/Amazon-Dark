@@ -5,8 +5,8 @@ S=(ROOT/'src/Tweak.xm').read_text()
 A=(ROOT/'src/ADSponsored.m').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.392~probe-handoff-ci-fix' in C
-assert '#define AD_VERSION "v7.392-probe-handoff-ci-fix"' in S
+assert 'Version: 7.395~ui-coverage-audit-fix' in C
+assert '#define AD_VERSION "v7.395-ui-coverage-audit-fix"' in S
 block=A
 lits=re.findall(r'@"((?:\\.|[^"\\])*)"', block)
 js=''.join(bytes(x,'utf-8').decode('unicode_escape') for x in lits)

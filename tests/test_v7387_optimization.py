@@ -18,6 +18,8 @@ if _m1 in S_golden:
     a=S_golden.index(_m1); b=S_golden.index(_m2,a)
     S_golden=S_golden[:a]+S_golden[b:]
 S_golden=S_golden.replace(",#checkoutDisplayPage #checkout-maple-upsell .maple-banner__image img","")
+S_golden=S_golden.replace("#checkoutDisplayPage :is([data-testid='selected-primary-pm-card'],[data-testid='unselected-primary-pm-card']) [data-testid='image']{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}","")
+S_golden=S_golden.replace("#bolt-widget-amazon_us_checkout_generic_mobile #bolt-widget-map canvas#Microsoft\\\\.Maps\\\\.Imagery\\\\.LiteRoad{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}","")
 for name,expected in golden['programs'].items():
     assert digest(payload(S_golden,name))==expected, name+' changed beyond the approved CSS shorthand compaction / v7.389-v7.390 scoped append'
 # Expand comma lists without splitting inside quotes, attributes or pseudo-classes.
@@ -44,7 +46,7 @@ assert len(rules)==golden['sponsored_selectors']==86
 assert digest(json.dumps(rules,separators=(',',':')))==golden['sponsored_rules_sha256'],'sponsored scope, specificity, cascade order or declaration changed'
 for name,h in golden['probe_sha256'].items():
     data=(ROOT/'src'/name).read_bytes()
-    if name=='ADUniversalUIProbe7362.js.inc':data=data.replace(b"version:'7.391'",b"version:'7.386'")  # capture-version metadata only
+    if name=='ADUniversalUIProbe7362.js.inc':data=data.replace(b"version:'7.395'",b"version:'7.386'")  # capture-version metadata only
     assert hashlib.sha256(data).hexdigest()==h, name
 assert 'ADHomeFrameProbeBridgeJS7265' not in S and '__adHomeProbeReq7265' not in S
 # Script sharing is bounded, maintains order, document-start timing and frame scope.

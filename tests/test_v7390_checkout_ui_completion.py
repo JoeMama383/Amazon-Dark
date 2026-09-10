@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.392~probe-handoff-ci-fix' in C
-assert '#define AD_VERSION "v7.392-probe-handoff-ci-fix"' in S
+assert 'Version: 7.395~ui-coverage-audit-fix' in C
+assert '#define AD_VERSION "v7.395-ui-coverage-audit-fix"' in S
 floor=S[S.index('static NSString *ADCheckoutFloorJS7369'):S.index('static NSString *ADCheckoutTWBJS7369')]
 twb=S[S.index('static NSString *ADCheckoutTWBJS7369'):S.index('// v7.378:',S.index('static NSString *ADCheckoutTWBJS7369'))]
 # Help & Contact Us exact topic-card family; orange state stays authored.
@@ -23,9 +23,10 @@ for x in ['#checkout-maple-upsell','.maple-banner__container','.maple-banner__te
     assert x in floor,x
 assert '#checkoutDisplayPage #checkout-maple-upsell .maple-banner__image img' in twb
 assert 'filter:brightness(%.3f)!important' in twb
-# Select Payment Method: stable testids, black selected fill while preserving blue selection border and switch/art painters.
-for x in ["form.pmts-select-payment-instrument-form","[data-testid='selectFrameContentTestId']","[data-testid='boxGroup']","[data-testid='selected-primary-pm-card']","[data-testid='unselected-primary-pm-card']","[data-testid='unselected-primary-pm-loan']","[data-testid='selected-balance-pm-giftcard']","[data-testid='claim-code']","[data-testid='sticky-footer']","[data-testid='art']","[data-testid='image']","[data-testid*='switch']","#cruise",".cruise-upx-box"]:
+# Select Payment Method: stable testids remain present after v7.393 corrects the false form-ancestor gate.
+for x in ["[data-testid='selectFrameContentTestId']","[data-testid='boxGroup']","[data-testid='selected-primary-pm-card']","[data-testid='unselected-primary-pm-card']","[data-testid='unselected-primary-pm-loan']","[data-testid='selected-balance-pm-giftcard']","[data-testid='claim-code']","[data-testid='sticky-footer']","[data-testid*='switch']","#cruise",".cruise-upx-box"]:
     assert x in floor,x
+assert "[data-testid='image']" in twb
 assert "[data-testid='selected-primary-pm-card']" in floor and "border-color:rgb(33,98,161)!important" not in floor
 # Delivery-address cards/buttons and radio/link preservation.
 for x in ['#shipping-address-select-page-card-deck','.destination-accordion-row','.a-button-primary','.a-button-base','.shipping-address-select-card-divider','.a-icon-radio-active']:
