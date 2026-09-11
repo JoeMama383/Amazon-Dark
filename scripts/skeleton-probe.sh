@@ -1,11 +1,12 @@
 #!/bin/sh
 # NewTerm/mobile. Resolve Amazon's data container; never write probe data into another app.
 set -eu
-AD_PROBE_VERSION=7.399
+AD_PROBE_VERSION=7.400
+AD_PROBE_CUR=${AD_PROBE_VERSION#7.}
 AD_PROBE_ROOT=${AD_PROBE_ROOT:-/var/mobile}
 AD_PROBE_CONTAINERS=${AD_PROBE_CONTAINERS:-$AD_PROBE_ROOT/Containers/Data/Application}
 AD_PROBE_DOCS=${AD_PROBE_DOCS:-/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents}
-AD_PROBE_NAME=AmazonDark-v7.399
+AD_PROBE_NAME=AmazonDark-v7.400
 AD_PROBE_TARGETS=$(mktemp)
 AD_PROBE_LAUNCH_ARM="$AD_PROBE_ROOT/AmazonDark-launch-probe.arm"
 trap 'rm -f "$AD_PROBE_TARGETS"' EXIT HUP INT TERM
@@ -44,7 +45,7 @@ for AD_PROBE_RECEIPT in "$AD_PROBE_CONTAINERS"/*/Documents/AmazonDark-v7.*-probe
     AD_PROBE_RECEIPT_VER=${AD_PROBE_RECEIPT_VER%-probe-status.json}
     case "$AD_PROBE_RECEIPT_VER" in ''|*[!0-9]*) continue;; esac
     [ "$AD_PROBE_RECEIPT_VER" -ge 344 ] 2>/dev/null || continue
-    [ "$AD_PROBE_RECEIPT_VER" -le 399 ] 2>/dev/null || continue
+    [ "$AD_PROBE_RECEIPT_VER" -le "$AD_PROBE_CUR" ] 2>/dev/null || continue
     if LC_ALL=C grep -Eq '"bundle"[[:space:]]*:[[:space:]]*"com[.]amazon[.]Amazon"' "$AD_PROBE_RECEIPT" &&
        LC_ALL=C grep -Eq '"event"[[:space:]]*:[[:space:]]*"PROBE_BOOTSTRAP"' "$AD_PROBE_RECEIPT" &&
        LC_ALL=C grep -Eq '"version"[[:space:]]*:[[:space:]]*"v7[.]'"$AD_PROBE_RECEIPT_VER"'-' "$AD_PROBE_RECEIPT"; then
@@ -79,10 +80,10 @@ ad_report() {
         done
     done < "$AD_PROBE_TARGETS"
     printf 'SpringBoard artwork log:\n'
-    if [ -f "$AD_PROBE_ROOT/AmazonDark-v7.399-launch-sb-probe.txt" ]; then
-        ls -ln "$AD_PROBE_ROOT/AmazonDark-v7.399-launch-sb-probe.txt"
-        tail -n 12 "$AD_PROBE_ROOT/AmazonDark-v7.399-launch-sb-probe.txt"
-    else printf 'Missing: AmazonDark-v7.399-launch-sb-probe.txt\n'; fi
+    if [ -f "$AD_PROBE_ROOT/AmazonDark-v7.400-launch-sb-probe.txt" ]; then
+        ls -ln "$AD_PROBE_ROOT/AmazonDark-v7.400-launch-sb-probe.txt"
+        tail -n 12 "$AD_PROBE_ROOT/AmazonDark-v7.400-launch-sb-probe.txt"
+    else printf 'Missing: AmazonDark-v7.400-launch-sb-probe.txt\n'; fi
 }
 case "${1:-}" in
  arm)
@@ -90,7 +91,7 @@ case "${1:-}" in
     case "$AD_PROBE_LABEL" in home|cart|both|launch|transition) ;; *) printf 'Use arm home, cart, both, launch, or transition.\n' >&2; exit 1;; esac
     [ -s "$AD_PROBE_TARGETS" ] || { ad_report; printf 'Cannot identify Amazon data container. Open Amazon once, then retry; send this output if still missing.\n' >&2; exit 1; }
     AD_PROBE_INSTALLED=$(dpkg-query -W -f='${Version}' com.joemama383.amazondark 2>/dev/null || true)
-    case "$AD_PROBE_INSTALLED" in 7.399~*) ;; *) printf 'Install the v7.399 Actions package first. Installed: %s\n' "$AD_PROBE_INSTALLED" >&2; exit 1;; esac
+    case "$AD_PROBE_INSTALLED" in 7.400~*) ;; *) printf 'Install the v7.400 Actions package first. Installed: %s\n' "$AD_PROBE_INSTALLED" >&2; exit 1;; esac
     umask 077
     while IFS= read -r AD_PROBE_DIR; do
         mkdir -p "$AD_PROBE_DIR"
@@ -134,8 +135,8 @@ case "${1:-}" in
         cp "$AD_PROBE_FILE" "$AD_PROBE_STAGE/"
         AD_PROBE_COUNT=$((AD_PROBE_COUNT+1))
     done
-    if [ -f "$AD_PROBE_ROOT/AmazonDark-v7.399-launch-sb-probe.txt" ]; then
-        tail -c 4194304 "$AD_PROBE_ROOT/AmazonDark-v7.399-launch-sb-probe.txt" > "$AD_PROBE_STAGE/launch-springboard-last4MiB.txt"
+    if [ -f "$AD_PROBE_ROOT/AmazonDark-v7.400-launch-sb-probe.txt" ]; then
+        tail -c 4194304 "$AD_PROBE_ROOT/AmazonDark-v7.400-launch-sb-probe.txt" > "$AD_PROBE_STAGE/launch-springboard-last4MiB.txt"
     fi
     AD_PROBE_ARCHIVE="$AD_PROBE_DOCS/$AD_PROBE_NAME-probes-$(date +%Y%m%d-%H%M%S)-$$.tar"
     # No gzip child process or compression dependency. Publish only after success.

@@ -2,9 +2,9 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.399~add-address-form-completion' in C
-assert '#define AD_VERSION "v7.399-add-address-form-completion"' in S
-block=S.split('// v7.399 FULL r1 (21:44):',1)[1].split('// v7.395 re-audit:',1)[0]
+assert 'Version: 7.400~delivery-instructions-completion' in C
+assert '#define AD_VERSION "v7.400-delivery-instructions-completion"' in S
+block=S.split('// v7.399 FULL r1 (21:44):',1)[1].split('// v7.400 FULL r1 + v7.398 FULL r5/r6:',1)[0]
 # Probe-proven bright field wrapper family, scoped only to the Add-address form.
 assert '#checkoutDisplayPage #address-ui-widgets-enterAddressFormContainer .a-input-text-wrapper.addrui-form-text-input-container' in block
 assert 'background:#181a1b!important' in block

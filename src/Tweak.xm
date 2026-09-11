@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.399-add-address-form-completion"
+#define AD_VERSION "v7.400-delivery-instructions-completion"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1803,6 +1803,80 @@ static NSString *ADCheckoutFloorJS7369(void){
         "#checkoutDisplayPage #address-ui-widgets-enterAddressFormContainer .a-box.a-alert.a-alert-warning,"
         "#checkoutDisplayPage #address-ui-widgets-enterAddressFormContainer .a-box.a-alert.a-alert-warning>.a-box-inner.a-alert-container"
         "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+        // v7.400 FULL r1 + v7.398 FULL r5/r6: Delivery Instructions is not part of
+        // #address-ui-widgets-enterAddressFormContainer. Amazon mounts it as a separate AUI
+        // secondary popover containing .ma-cdp-form. Theme that exact pre-mounted family so the
+        // sheet is already dark before it opens. Preserve links and radio/checkbox artwork,
+        // authored semantic alert edges, and selected Amazon-blue property-type state.
+        @".a-popover.a-popover-secondary:has(.ma-cdp-form),"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form)>.a-popover-wrapper,"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form)>.a-popover-wrapper>.a-popover-inner,"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .a-secondary-view-inner"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;color:#e8e6e3!important;}"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .a-popover-header-secondary"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border-bottom:1px solid #747a7c!important;box-shadow:none!important;color:#e8e6e3!important;}"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .a-popover-header-secondary :is(a,p,span,div)"
+        "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .a-popover-header-secondary .a-icon-page-back"
+        "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) #a-page,"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form,"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form .expander-form,"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form .ma-property-type-form-block"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+        // Neutral text is light, while authored links and semantic status colors remain authored.
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form :is(h1,h2,h3,h4,h5,h6,p,div,span,label,strong,b,small,em):not(a):not(:where(a *)):not(.a-color-link):not(:where(.a-color-link *)):not(.a-color-secondary):not(:where(.a-color-secondary *)):not(.a-color-tertiary):not(:where(.a-color-tertiary *)):not(.a-color-error):not(:where(.a-color-error *)):not(.a-color-success):not(:where(.a-color-success *))"
+        "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form :is(.a-color-secondary,.a-color-tertiary),"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form :is(.a-color-secondary,.a-color-tertiary) *"
+        "{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form a,"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form a *{-webkit-text-fill-color:currentColor!important;}"
+        // Accordion owners: OLED body/header, standard gray structure, white prompt and chevrons.
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form .ma-attribute-group-expander"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;}"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form .ma-attribute-group-expander>.a-expander-section-header,"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form .ma-attribute-group-expander>.a-expander-section-content"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form .ma-attribute-group-expander :is(.a-expander-prompt,h5,.a-form-label,.a-label)"
+        "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form .ma-attribute-group-expander :is(.a-icon-section-collapse,.a-icon-section-expand)"
+        "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+        // Security/call-box/free-text wrappers were the same white-shell/dark-input split as v7.399.
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form :is(.ma-security-code-input,.ma-call-box-input,.ma-address-instructions-input)"
+        "{background:#181a1b!important;background-color:#181a1b!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form :is(.ma-security-code-input,.ma-call-box-input,.ma-address-instructions-input)>:is(input,textarea)"
+        "{background:transparent!important;background-color:transparent!important;background-image:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form :is(.ma-security-code-input,.ma-call-box-input,.ma-address-instructions-input):focus-within"
+        "{border-color:#007185!important;outline-color:#007185!important;}"
+        // Pre-mounted property type, dropdown, business-hours and dog-risk controls are neutral buttons.
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form :is(.ma-property-type-button,.a-button-dropdown,.a-button-toggle,#cdp-close-button)"
+        "{background:#303335!important;background-color:#303335!important;background-image:none!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form :is(.ma-property-type-button,.a-button-dropdown,.a-button-toggle,#cdp-close-button):not(.a-button-selected)"
+        "{border-color:#747a7c!important;outline-color:#747a7c!important;}"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form .ma-property-type-button.a-button-selected"
+        "{background:#303335!important;background-color:#303335!important;background-image:none!important;}"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form :is(.ma-property-type-button,.a-button-dropdown,.a-button-toggle,#cdp-close-button)>.a-button-inner"
+        "{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form :is(.ma-property-type-button,.a-button-dropdown,.a-button-toggle,#cdp-close-button) :is(.a-button-text,.a-dropdown-prompt)"
+        "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form .a-button-dropdown .a-icon-dropdown"
+        "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+        // Primary Save/Edit actions match the existing AmazonDark oval-button treatment.
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form :is(.ma-cdp-form-save-button,#cdp-edit-button)"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form :is(.ma-cdp-form-save-button,#cdp-edit-button)>.a-button-inner"
+        "{background:transparent!important;background-color:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;}"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form :is(.ma-cdp-form-save-button,#cdp-edit-button) .a-button-text"
+        "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        // Validation cards keep Amazon's red/orange semantic edge; only their neutral floor/copy changes.
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form :is(.a-alert-error,.a-alert-warning),"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form :is(.a-alert-error,.a-alert-warning)>.a-box-inner.a-alert-container"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+        // Radio/checkbox sprites are authored assets and must not be filtered by the surrounding dark pass.
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form :is(.a-icon-radio,.a-icon-checkbox)"
+        "{filter:none!important;-webkit-filter:none!important;}"
+
         // v7.395 re-audit: the location-assisted address flow keeps its error/feedback shells
         // mounted while hidden. Theme those exact latent owners so Use my location cannot reveal
         // a fresh white panel on success/error. Preserve authored links and status accents.

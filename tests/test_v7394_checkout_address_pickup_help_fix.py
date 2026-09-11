@@ -8,8 +8,8 @@ INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 JSINC=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 
-assert 'Version: 7.399~add-address-form-completion' in C
-assert '#define AD_VERSION "v7.399-add-address-form-completion"' in S
+assert 'Version: 7.400~delivery-instructions-completion' in C
+assert '#define AD_VERSION "v7.400-delivery-instructions-completion"' in S
 
 # Add-address: exact stable AUI ids only, standard controls, visible raster glyphs.
 for token in [
@@ -20,7 +20,7 @@ for token in [
     '#address-ui-widgets-delivery-instructions-mobile-touch-link',
     '.address-ui-widgets-clear-icon .a-icon-close',
 ]: assert token in S, token
-addr=S.split('// v7.394 FULL r5 (17:20):',1)[1].split('// v7.394 FULL r7 (17:25):',1)[0]
+addr=S.split('// v7.394 FULL r5 (17:20):',1)[1].split('// v7.400 FULL r1 + v7.398 FULL r5/r6:',1)[0]
 assert '#303335' in addr and '#747a7c' in addr and '#e8e6e3' in addr
 assert '.a-icon-dropdown' in addr and '.a-icon-touch-link' in addr
 assert '.a-icon-checkbox' not in addr and '.a-icon-radio' not in addr
@@ -80,8 +80,8 @@ for forbidden in ['new MutationObserver(', 'setInterval(', 'requestAnimationFram
     assert forbidden not in new
 
 # Probe identities all roll together.
-assert 'VER=7.399' in UI and 'AD_PROBE_VERSION=7.399' in SK and 'AD_PROBE_NAME=AmazonDark-v7.399' in SK
-assert 'AMAZONDARK v7.399 UNIVERSAL' in INC
-assert "version:'7.399'" in JSINC
-assert 'AmazonDark-v7.399-launch-sb-probe.txt' in SB
+assert 'VER=7.400' in UI and 'AD_PROBE_VERSION=7.400' in SK and 'AD_PROBE_NAME=AmazonDark-v7.400' in SK
+assert 'AMAZONDARK v7.400 UNIVERSAL' in INC
+assert "version:'7.400'" in JSINC
+assert 'AmazonDark-v7.400-launch-sb-probe.txt' in SB
 print('PASS: v7.394 covers add-address, pickup/map/card, delivery/pickup toggle and suggested-help/WebKit keyboard accessory with exact probe-backed ownership')

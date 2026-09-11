@@ -6,8 +6,8 @@ C=(ROOT/'layout/DEBIAN/control').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 
-assert 'Version: 7.399~add-address-form-completion' in C
-assert '#define AD_VERSION "v7.399-add-address-form-completion"' in S
+assert 'Version: 7.400~delivery-instructions-completion' in C
+assert '#define AD_VERSION "v7.400-delivery-instructions-completion"' in S
 
 # BYG expanded quantity control is the same dark/gray/light contract as Cart.
 for token in [
@@ -42,13 +42,13 @@ for bad in ['UIImageView *replacement','ADLaunchArtwork7337(','addSubview','remo
     assert bad not in xib,bad
 assert '%hook XBApplicationSnapshot' in SB
 assert 'kind==ADKindScene7337)return 0;' in SB
-assert 'version=7.399~cold-artwork-no-generic-xib base=v7.338' in SB
+assert 'version=7.400~cold-artwork-no-generic-xib base=v7.338' in SB
 for bad in ['task-switcher','switcher-release','WarmSnapshotCover','UIApplicationDidEnterBackgroundNotification']:
     assert bad not in S, bad
 
 # Probe identity must match the installed build; v7.376 shipped a stale v7.375/7.374 header/body label.
-assert 'AMAZONDARK v7.399 UNIVERSAL' in INC
-assert "version:'7.399'" in JS
-assert 'AmazonDark-v7.399-ui-viewport.arm' in INC
+assert 'AMAZONDARK v7.400 UNIVERSAL' in INC
+assert "version:'7.400'" in JS
+assert 'AmazonDark-v7.400-ui-viewport.arm' in INC
 
 print('PASS: v7.377-established BYG stepper/switcher/probe contracts remain under v7.388')

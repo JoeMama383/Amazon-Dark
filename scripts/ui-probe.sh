@@ -1,9 +1,10 @@
 #!/bin/sh
-# AmazonDark v7.398 universal UI probe helper.
+# AmazonDark v7.400 universal UI probe helper.
 # `arm` is a one-shot VIEWPORT capture: create the app-local arm then signal Amazon.
 # FULL capture is intentionally screenshot-only and needs no shell command.
 set -eu
-VER=7.399
+VER=7.400
+CUR=${VER#7.}
 NAME=AmazonDark-v$VER
 ROOT=${AD_UI_ROOT:-/var/mobile}
 CONTAINERS=${AD_UI_CONTAINERS:-$ROOT/Containers/Data/Application}
@@ -21,7 +22,7 @@ for r in "$CONTAINERS"/*/Documents/AmazonDark-v7.*-probe-status.json; do
   rv=${r##*/}; rv=${rv#AmazonDark-v7.}; rv=${rv%-probe-status.json}
   case "$rv" in ''|*[!0-9]*) continue;; esac
   [ "$rv" -ge 344 ] 2>/dev/null || continue
-  [ "$rv" -le 399 ] 2>/dev/null || continue
+  [ "$rv" -le "$CUR" ] 2>/dev/null || continue
   if grep -Eq '"bundle"[[:space:]]*:[[:space:]]*"com[.]amazon[.]Amazon"' "$r" 2>/dev/null &&
      grep -Eq '"event"[[:space:]]*:[[:space:]]*"PROBE_BOOTSTRAP"' "$r" 2>/dev/null &&
      grep -Eq '"version"[[:space:]]*:[[:space:]]*"v7[.]'"$rv"'-' "$r" 2>/dev/null; then

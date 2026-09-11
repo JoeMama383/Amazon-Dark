@@ -1,15 +1,15 @@
 {
-  "version": "7.399~add-address-form-completion",
-  "direct_parent": "7.398~legal-help-completion",
-  "source": "AmazonDark-v7.398-legal-help-completion-source.zip recovered from the conversation Library and used as the exact direct edit baseline",
-  "parent_source_zip_sha256": "799d70403e3e7a759c4a965f5e857204fd09a08a50368b8c25ef253cfbfa89d8",
+  "version": "7.400~delivery-instructions-completion",
+  "direct_parent": "7.399~add-address-form-completion",
+  "source": "AmazonDark-v7.399-add-address-form-completion-source.zip generated in the prior turn and used as the exact direct edit baseline",
+  "parent_source_zip_sha256": "df984bbe68a76fa7ff9354a4749229786b9da199d311edba9e319d289499ce58",
   "parent_files_sha256": {
-    "src/Tweak.xm": "1a682b31993c70d8cc636c8843807be586ac38ab6e75eb98203619cae72ea395",
-    "src/AmazonDarkSB.xm": "1f147332a2a99c465da124a7193a19163e74797192cc8647d6e9766a19a062aa",
+    "src/Tweak.xm": "f0bfda84a066ed0c03a5e37024d41c669cc6106080bf185ab09ad60537e72021",
+    "src/AmazonDarkSB.xm": "29aa3cc6de263addc4081ddaaacafa13563b75ba3dfaf115a9b6d06dc3a5af49",
     "src/ADSponsored.m": "45e4825bb0c025016633c026740fc02a969f0a3d6aafa6d2be79a58e81f97fa7",
-    "scripts/ui-probe.sh": "643d2109a1c90d2240181adf40e2aac1044d8f09b330ce142d01095e53a58fda",
-    "scripts/skeleton-probe.sh": "1686d009a8041f41e7e39ce1db9c52705a2fd9cd557283159d6d7f76f54cec26"
+    "scripts/ui-probe.sh": "2f8857257e115518ed718863c25d2bba326a8992844625a91df48ea45cccfc17",
+    "scripts/skeleton-probe.sh": "36bbf2031c61961e216b8b521863e3cf319d58872fd90effdba5d6fa4883671a"
   },
-  "runtime_contract": "Preserve every v7.398 theme/transition/help/payment fix. Complete the probe-captured Add-an-address screen by darkening only the stock-white addrui text-field wrappers (including the mounted hidden Urbanization field) and the stock-white warning AUI shell. Keep field geometry, existing light text/placeholders, clear/dropdown icons, checkbox art, location states, links, the warning orange semantic edge, and the checkout Continue control unchanged.",
-  "device_validation": "Install and re-open Add an address. Every text field should have a dark #181a1b shell with standard #747a7c edge, focused field retains a blue cue, warning card floor is OLED while its orange edge remains authored, and no other checkout/address state regresses."
+  "runtime_contract": "Preserve every v7.399 and earlier theme/transition/performance fix. Fully theme only the probe-proven Delivery Instructions secondary-popover renderer family identified by .a-popover.a-popover-secondary:has(.ma-cdp-form), including its pre-mounted hidden states. Use OLED neutral floors, standard dark/gray control styling and light neutral copy while preserving authored links, semantic red/orange/blue states, radio/checkbox sprites, geometry and interaction behavior.",
+  "device_validation": "Install and reopen Delivery Instructions. The Back strip, full popover, accordion cards/bodies and validation surfaces should be dark from presentation; neutral text should be light; helper text readable gray; security/call-box/instruction fields dark; Save instructions should match AmazonDark's black oval button treatment; semantic links/state colors and authored control sprites should remain intact."
 }
