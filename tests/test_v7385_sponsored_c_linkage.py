@@ -7,8 +7,8 @@ H=(ROOT/'src/ADSponsored.h').read_text()
 M=(ROOT/'Makefile').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.398~legal-help-completion' in C
-assert '#define AD_VERSION "v7.398-legal-help-completion"' in S
+assert 'Version: 7.399~add-address-form-completion' in C
+assert '#define AD_VERSION "v7.399-add-address-form-completion"' in S
 assert '#import "ADSponsored.h"' in S
 assert '#import "ADSponsored.h"' in A
 assert '#ifdef __cplusplus' in H

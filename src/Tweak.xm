@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.398 — legal/help completion
+ * AmazonDark v7.399 — add-address form completion
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.398-legal-help-completion"
+#define AD_VERSION "v7.399-add-address-form-completion"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1789,6 +1789,20 @@ static NSString *ADCheckoutFloorJS7369(void){
         "#checkoutDisplayPage #address-ui-widgets-enterAddressFormContainer .address-ui-widgets-clear-icon .a-icon-close,"
         "#checkoutDisplayPage #address-ui-widgets-enterAddressFormContainer #address-ui-widgets-delivery-instructions-mobile-touch-link .a-icon-touch-link"
         "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+        // v7.399 FULL r1 (21:44): Add an address still had two stock-white owner families.
+        // Every text input itself was already dark from the shared form-input rule, but its
+        // 404x44 addrui wrapper remained white; the mounted warning AUI box and its inner shell
+        // were also white. Own only those exact address-form shells. Keep the warning's authored
+        // orange semantic edge, checkbox artwork, links, clear/dropdown glyphs and all field geometry.
+        "#checkoutDisplayPage #address-ui-widgets-enterAddressFormContainer .a-input-text-wrapper.addrui-form-text-input-container"
+        "{background:#181a1b!important;background-color:#181a1b!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#checkoutDisplayPage #address-ui-widgets-enterAddressFormContainer .a-input-text-wrapper.addrui-form-text-input-container>input:not([type='checkbox']):not([type='hidden'])"
+        "{background:transparent!important;background-color:transparent!important;background-image:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}"
+        "#checkoutDisplayPage #address-ui-widgets-enterAddressFormContainer .a-input-text-wrapper.addrui-form-text-input-container:focus-within"
+        "{border-color:#007185!important;outline-color:#007185!important;}"
+        "#checkoutDisplayPage #address-ui-widgets-enterAddressFormContainer .a-box.a-alert.a-alert-warning,"
+        "#checkoutDisplayPage #address-ui-widgets-enterAddressFormContainer .a-box.a-alert.a-alert-warning>.a-box-inner.a-alert-container"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
         // v7.395 re-audit: the location-assisted address flow keeps its error/feedback shells
         // mounted while hidden. Theme those exact latent owners so Use my location cannot reveal
         // a fresh white panel on success/error. Preserve authored links and status accents.

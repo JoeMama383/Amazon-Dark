@@ -3,8 +3,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.398~legal-help-completion' in C
-assert '#define AD_VERSION "v7.398-legal-help-completion"' in S
+assert 'Version: 7.399~add-address-form-completion' in C
+assert '#define AD_VERSION "v7.399-add-address-form-completion"' in S
 
 # Probe-proven incoming checkout child: plain UIView root directly owned by AMIWebViewController.
 for token in [

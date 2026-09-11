@@ -8,17 +8,17 @@ H=(ROOT/'src/ADSkeletonProbe7339.h').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 
-assert 'Version: 7.398~legal-help-completion' in C
-assert '#define AD_VERSION "v7.398-legal-help-completion"' in T
-assert 'AD_PROBE_VERSION=7.398' in S and 'AD_PROBE_NAME=AmazonDark-v7.398' in S
-assert 'VER=7.398' in U
+assert 'Version: 7.399~add-address-form-completion' in C
+assert '#define AD_VERSION "v7.399-add-address-form-completion"' in T
+assert 'AD_PROBE_VERSION=7.399' in S and 'AD_PROBE_NAME=AmazonDark-v7.399' in S
+assert 'VER=7.399' in U
 assert '"$CONTAINERS"/*/Documents/AmazonDark-v7.*-probe-status.json' in U
 assert 'rv=${r##*/}; rv=${rv#AmazonDark-v7.}; rv=${rv%-probe-status.json}' in U
 assert '[ "$rv" -ge 344 ]' in U and '[ "$rv" -le 399 ]' in U
 assert 'version"[[:space:]]*:[[:space:]]*"v7[.]' in U and '$rv' in U
-assert 'AmazonDark-v7.398-probe.arm' in H and 'AmazonDark-v7.398-probe-status.json' in H
-assert 'AMAZONDARK v7.398 UNIVERSAL' in INC and 'AmazonDark-v7.398-ui-viewport.arm' in INC
-assert 'AmazonDark-v7.398-launch-sb-probe.txt' in SB
+assert 'AmazonDark-v7.399-probe.arm' in H and 'AmazonDark-v7.399-probe-status.json' in H
+assert 'AMAZONDARK v7.399 UNIVERSAL' in INC and 'AmazonDark-v7.399-ui-viewport.arm' in INC
+assert 'AmazonDark-v7.399-launch-sb-probe.txt' in SB
 
 # The v7.391 failure was caused by duplicated explicit receipt-version lists drifting during a bump.
 # Discovery/report/export now share globbed status families; payload version must agree with filename.

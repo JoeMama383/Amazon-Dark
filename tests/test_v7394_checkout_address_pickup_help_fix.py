@@ -8,8 +8,8 @@ INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 JSINC=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 
-assert 'Version: 7.398~legal-help-completion' in C
-assert '#define AD_VERSION "v7.398-legal-help-completion"' in S
+assert 'Version: 7.399~add-address-form-completion' in C
+assert '#define AD_VERSION "v7.399-add-address-form-completion"' in S
 
 # Add-address: exact stable AUI ids only, standard controls, visible raster glyphs.
 for token in [
@@ -80,8 +80,8 @@ for forbidden in ['new MutationObserver(', 'setInterval(', 'requestAnimationFram
     assert forbidden not in new
 
 # Probe identities all roll together.
-assert 'VER=7.398' in UI and 'AD_PROBE_VERSION=7.398' in SK and 'AD_PROBE_NAME=AmazonDark-v7.398' in SK
-assert 'AMAZONDARK v7.398 UNIVERSAL' in INC
-assert "version:'7.398'" in JSINC
-assert 'AmazonDark-v7.398-launch-sb-probe.txt' in SB
+assert 'VER=7.399' in UI and 'AD_PROBE_VERSION=7.399' in SK and 'AD_PROBE_NAME=AmazonDark-v7.399' in SK
+assert 'AMAZONDARK v7.399 UNIVERSAL' in INC
+assert "version:'7.399'" in JSINC
+assert 'AmazonDark-v7.399-launch-sb-probe.txt' in SB
 print('PASS: v7.394 covers add-address, pickup/map/card, delivery/pickup toggle and suggested-help/WebKit keyboard accessory with exact probe-backed ownership')

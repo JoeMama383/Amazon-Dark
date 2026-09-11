@@ -3,7 +3,7 @@
 # `arm` is a one-shot VIEWPORT capture: create the app-local arm then signal Amazon.
 # FULL capture is intentionally screenshot-only and needs no shell command.
 set -eu
-VER=7.398
+VER=7.399
 NAME=AmazonDark-v$VER
 ROOT=${AD_UI_ROOT:-/var/mobile}
 CONTAINERS=${AD_UI_CONTAINERS:-$ROOT/Containers/Data/Application}
