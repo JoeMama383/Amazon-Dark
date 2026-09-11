@@ -1,15 +1,15 @@
 {
-  "version": "7.404~product-scroll-video-alexa-polish",
-  "direct_parent": "7.403~product-share-sheet-probe-control",
-  "source": "AmazonDark-v7.403-product-share-sheet-probe-control-source.zip generated in this conversation",
-  "parent_source_zip_sha256": "c033a58c03e3e22b4deebba56486e3fef03b0c5123cda4235e8454794aa9eed4",
+  "version": "7.405~pdp-completion",
+  "direct_parent": "7.404~product-scroll-video-alexa-polish",
+  "source": "AmazonDark-v7.404-product-scroll-video-alexa-polish-source.zip generated in this conversation",
+  "parent_source_zip_sha256": "3ca984f5be8fae5c1830209983d57a752a3d1a83f1a6d252553dffa769731c69",
   "parent_files_sha256": {
-    "src/Tweak.xm": "72f1b409d81e1dbaa055aaf222003035655fb3dfcb50bb26b2707113903b002a",
-    "src/AmazonDarkSB.xm": "af9646ee23fdb03fded633a56de3a9e24c65c55c1f3c4404cfaccb601d7f9042",
+    "src/Tweak.xm": "8568f691effec19b560253497ea4584f10d4a87bfba733a3f266ed624ec7ecf5",
+    "src/AmazonDarkSB.xm": "9ec6d1c1b8016c956d01e7d431f43a6f8ab454359d6f4e96fd69ab473686eede",
     "src/ADSponsored.m": "45e4825bb0c025016633c026740fc02a969f0a3d6aafa6d2be79a58e81f97fa7",
-    "scripts/ui-probe.sh": "bd33cfbc072f4e54e2d0fc2dffeceab8ae22650bd344291d9c869c1cc144fbf0",
-    "scripts/skeleton-probe.sh": "ff97c985e99f1414698d5f8ecc33ebc04aa9b62a15d609dcae4703028699eae7"
+    "scripts/ui-probe.sh": "12603ffe429e8577512b31bb8d9da94538cc8e879c202ee3e7b1427ddef87d5e",
+    "scripts/skeleton-probe.sh": "abc6d61f69a918663050c5cfa53f5cf80730e9d26c5f5ab8deeadc900c2fb90a"
   },
-  "runtime_contract": "Preserve v7.403. In Product Search VIDEO_SINGLE_PRODUCT, keep the existing outer s-card-border as the sole frame and remove the nested mobile-video-product-view frame so video + text read as one card. Restyle only the probe-proven c2Itd Alexa cue pill to #303335/#747a7c/white with dark pressed state while preserving the authored Alexa icon. Regenerate FULL/VIEWPORT/transition probes as v7.404.",
-  "device_validation": "Product Search video ads show one outer gray border around combined video+copy with no inner text-card frame. Alexa prompt pill is dark gray with gray edge and white text; Alexa icon remains authored. FULL/VIEWPORT/transition exports identify as v7.404."
+  "runtime_contract": "Preserve v7.404. Normalize the second c2Itd Product Search video-ad family to one #494d4d frame on the short-product owner (video + product copy only), with no root/footer-spanning or nested text frame. Complete the Product Detail Page from v7.403 FULL r2+r3: OLED all probe-proven structural card/deck floors; make neutral copy readable while preserving authored blue/green/red/orange/badge/star/Prime states; standardize neutral controls to #303335/#747a7c/white and large oval actions to OLED/#747a7c/white including dark pressed states; make main PDP pagination OLED with white dots; make neutral heart/share glyphs light; tame only probe-proven PDP product/A+/video/review media with the existing brightness algorithm; and make neutral text in direct PDP child ad frames readable without inverting brand art. Regenerate FULL/VIEWPORT/transition probes as v7.405.",
+  "device_validation": "Verify the c2Itd video ad has one border around video + product copy ending above Sponsored. Verify PDP top APE copy is readable, all structural cards/decks are OLED, neutral text is light, semantic colors/stars/Prime remain authored, large oval actions are OLED/gray/white, smaller pills/controls are #303335/gray/white, product carousel dots are white on OLED, share glyphs are light, and main/A+/review/product media are tamed. FULL/VIEWPORT/transition exports identify as v7.405."
 }

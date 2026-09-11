@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.404~product-scroll-video-alexa-polish' in C
-assert '#define AD_VERSION "v7.404-product-scroll-video-alexa-polish"' in S
+assert 'Version: 7.405~pdp-completion' in C
+assert '#define AD_VERSION "v7.405-pdp-completion"' in S
 
 # v7.400 FULL r1 proves the Delivery Instructions key/fob row becomes stock light via .a-touch-press.
 block=S.split('// v7.401 interaction-state policy:',1)[1].split('// v7.395 re-audit:',1)[0]

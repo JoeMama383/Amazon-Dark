@@ -8,17 +8,17 @@ H=(ROOT/'src/ADSkeletonProbe7339.h').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 
-assert 'Version: 7.404~product-scroll-video-alexa-polish' in C
-assert '#define AD_VERSION "v7.404-product-scroll-video-alexa-polish"' in T
-assert 'AD_PROBE_VERSION=7.404' in S and 'AD_PROBE_CUR=${AD_PROBE_VERSION#7.}' in S and 'AD_PROBE_NAME=AmazonDark-v7.404' in S
-assert 'VER=7.404' in U and 'CUR=${VER#7.}' in U
+assert 'Version: 7.405~pdp-completion' in C
+assert '#define AD_VERSION "v7.405-pdp-completion"' in T
+assert 'AD_PROBE_VERSION=7.405' in S and 'AD_PROBE_CUR=${AD_PROBE_VERSION#7.}' in S and 'AD_PROBE_NAME=AmazonDark-v7.405' in S
+assert 'VER=7.405' in U and 'CUR=${VER#7.}' in U
 assert '"$CONTAINERS"/*/Documents/AmazonDark-v7.*-probe-status.json' in U
 assert 'rv=${r##*/}; rv=${rv#AmazonDark-v7.}; rv=${rv%-probe-status.json}' in U
 assert '[ "$rv" -ge 344 ]' in U and '[ "$rv" -le "$CUR" ]' in U
 assert 'version"[[:space:]]*:[[:space:]]*"v7[.]' in U and '$rv' in U
-assert 'AmazonDark-v7.404-probe.arm' in H and 'AmazonDark-v7.404-probe-status.json' in H
-assert 'AMAZONDARK v7.404 UNIVERSAL' in INC and 'AmazonDark-v7.404-ui-viewport.arm' in INC
-assert 'AmazonDark-v7.404-launch-sb-probe.txt' in SB
+assert 'AmazonDark-v7.405-probe.arm' in H and 'AmazonDark-v7.405-probe-status.json' in H
+assert 'AMAZONDARK v7.405 UNIVERSAL' in INC and 'AmazonDark-v7.405-ui-viewport.arm' in INC
+assert 'AmazonDark-v7.405-launch-sb-probe.txt' in SB
 
 # The v7.391 failure was caused by duplicated explicit receipt-version lists drifting during a bump.
 # Discovery/report/export now share globbed status families; payload version must agree with filename.

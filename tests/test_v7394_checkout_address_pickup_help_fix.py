@@ -8,8 +8,8 @@ INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 JSINC=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 
-assert 'Version: 7.404~product-scroll-video-alexa-polish' in C
-assert '#define AD_VERSION "v7.404-product-scroll-video-alexa-polish"' in S
+assert 'Version: 7.405~pdp-completion' in C
+assert '#define AD_VERSION "v7.405-pdp-completion"' in S
 
 # Add-address: exact stable AUI ids only, standard controls, visible raster glyphs.
 for token in [
@@ -80,8 +80,8 @@ for forbidden in ['new MutationObserver(', 'setInterval(', 'requestAnimationFram
     assert forbidden not in new
 
 # Probe identities all roll together.
-assert 'VER=7.404' in UI and 'AD_PROBE_VERSION=7.404' in SK and 'AD_PROBE_NAME=AmazonDark-v7.404' in SK
-assert 'AMAZONDARK v7.404 UNIVERSAL' in INC
-assert "version:'7.404'" in JSINC
-assert 'AmazonDark-v7.404-launch-sb-probe.txt' in SB
+assert 'VER=7.405' in UI and 'AD_PROBE_VERSION=7.405' in SK and 'AD_PROBE_NAME=AmazonDark-v7.405' in SK
+assert 'AMAZONDARK v7.405 UNIVERSAL' in INC
+assert "version:'7.405'" in JSINC
+assert 'AmazonDark-v7.405-launch-sb-probe.txt' in SB
 print('PASS: v7.394 covers add-address, pickup/map/card, delivery/pickup toggle and suggested-help/WebKit keyboard accessory with exact probe-backed ownership')
