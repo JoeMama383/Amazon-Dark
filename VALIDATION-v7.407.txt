@@ -1,0 +1,63 @@
+AmazonDark v7.407 validation / self-audit
+=========================================
+
+Release
+-------
+Version:       7.407~pdp-transition-skeleton-dark
+Runtime:       v7.407-pdp-transition-skeleton-dark
+Direct parent: 7.406~video-sponsored-footer-restore
+
+Probe-backed diagnosis
+----------------------
+Input: AmazonDark-v7.406-probes-20260911-181456-15904.tar
+Current transition session: AmazonDark-v7.406-skeleton-1789164833529-15879-transition.jsonl
+
+The Product Search -> PDP transition records:
+- incoming AMIWebViewController / WKWebView floors already OLED black;
+- exact IESSkeletonView under AWLoadingIndicatorFullScreenModalBar;
+- skeleton rect 430 x 810.5 in AppCXWindow;
+- IESSkeletonView stock background = opaque white;
+- direct UIImageView child = 420 x 960 view geometry, imageSize 448 x 1024;
+- the skeleton is image-backed, explaining why destination PDP CSS cannot correct it.
+
+v7.407 correction
+-----------------
+- Exact IESSkeletonView owner only under AWLoadingIndicatorFullScreenModalBar.
+- Near-full-screen AppCXWindow geometry gate.
+- Exact skeleton-raster size/aspect gate (captured 448x1024, bounded tolerance).
+- Skeleton UIView floor becomes OLED black.
+- Grayscale skeleton raster is transformed once: white floor -> black; gray placeholder bars -> medium/dark gray.
+- Amazon yellow progress/loading strip remains authored and untouched.
+- Original raster is cached/restorable if the UIImageView is ever reused outside this exact owner.
+- No generic full-screen image inversion.
+
+Performance / architecture
+--------------------------
+- Event-driven UIKit lifecycle/image assignment only.
+- One raster transform per exact skeleton image assignment.
+- No MutationObserver.
+- No interval / polling loop.
+- No requestAnimationFrame loop.
+- No Web scroll listener.
+- No recurring hierarchy scan.
+- No new WKUserScript.
+- Explicit CoreGraphics link added for the one-time raster blend transform.
+
+Validation
+----------
+- scripts/lint-logos.sh: PASS
+- Python regressions excluding exhaustive handoff: PASS 71/71
+- tests/test_probe_handoff.py: PASS
+- Total Python regression files: PASS 72/72
+- tests/test_v7407_pdp_transition_skeleton_dark.py: PASS
+- tests/test_v7407_skeleton_direct_parent_handoff.py: PASS
+- scripts/ui-probe.sh syntax: PASS
+- scripts/skeleton-probe.sh syntax: PASS
+- XML preference plists parse: PASS
+- AmazonDark/AmazonDarkSB filter plist syntax preserved
+- FULL / VIEWPORT / TRANSITION probe identities regenerated as v7.407
+
+Build limitation
+----------------
+Theos is not installed in this environment, so no local .deb compile is claimed.
+The source/lint/regression handoff is complete; device testing is required to confirm Amazon's live IESSkeletonView raster behaves identically to the captured transition evidence.

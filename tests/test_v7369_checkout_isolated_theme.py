@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.406~video-sponsored-footer-restore' in CTRL
-assert '#define AD_VERSION "v7.406-video-sponsored-footer-restore"' in S
+assert 'Version: 7.408~permission-location-switcher-hardening' in CTRL
+assert '#define AD_VERSION "v7.408-permission-location-switcher-hardening"' in S
 
 def func(name):
     st=S.index(f'static NSString *{name}')

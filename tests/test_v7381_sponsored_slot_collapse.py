@@ -4,8 +4,8 @@ S=(ROOT/'src/Tweak.xm').read_text()
 A=(ROOT/'src/ADSponsored.m').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.406~video-sponsored-footer-restore' in C
-assert '#define AD_VERSION "v7.406-video-sponsored-footer-restore"' in S
+assert 'Version: 7.408~permission-location-switcher-hardening' in C
+assert '#define AD_VERSION "v7.408-permission-location-switcher-hardening"' in S
 
 # Preserve the successful v7.381 first-paint repair: the Home dashboard shell
 # itself owns the stock white loading floor, and that floor remains OLED at

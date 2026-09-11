@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.406 — restore Sponsored footer below second video-ad border
+ * AmazonDark v7.408 — permission sheets + location outer-floor completion
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.406-video-sponsored-footer-restore"
+#define AD_VERSION "v7.408-permission-location-switcher-hardening"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -79,6 +79,8 @@ extern char *__progname;
 // v7.130: exact owners proven by the v7.129 transition probe.
 @interface AWLoadingIndicatorFullScreenModalBar : UIView @end
 @interface AWLoadingIndicatorWidgets_BkgView : UIView @end
+// v7.407: exact Product Search -> PDP image-backed skeleton owner from transition probe.
+@interface IESSkeletonView : UIView @end
 // v7.348: exact native loading-strip renderer family proven by the v7.347 temporal capture.
 @interface AWLoadingIndicatorWidgets_Indicator : UIView @end
 @interface AWLoadingIndicatorWidgets_HighlightView : UIView @end
@@ -2991,6 +2993,123 @@ static void ADOwnCheckoutPaymentBackgroundEffect7402(UIVisualEffectView *effect)
     if(!ADCheckoutPaymentEffectMatches7402(effect))return;
     @try { effect.effect=nil; effect.hidden=YES; effect.alpha=0.0; effect.layer.opacity=0.0; } @catch(...) {}
 }
+
+
+// v7.408 switcher hardening: the same iOS/Amazon lifecycle pattern has now surfaced
+// with several colors/controllers (checkout teal, payment gray/white, and location gray).
+// The invariant is not the route: while Amazon is inactive, AppCXWindow may mount a
+// near-full-screen UIVisualEffectView whose neutral bright tint is intended as a privacy/
+// background shield. On an OLED-themed app that shield becomes a gray/white app-switcher
+// card. Own that *inactive-only* visual-effect family by window + geometry + neutral tint,
+// independent of the foreground sheet/controller that happened to trigger backgrounding.
+// Active UI effects, small/local blurs, keyboard effects, dark dimmers, and chromatic
+// authored effects do not qualify. The older exact teal owner remains for that historical
+// non-neutral signature. This is suppression of Amazon's transient shield, not a fake
+// snapshot cover or SpringBoard painter.
+static const void *kADInactiveNeutralSnapshotShield7408=&kADInactiveNeutralSnapshotShield7408;
+static const void *kADInactiveNeutralOldEffect7408=&kADInactiveNeutralOldEffect7408;
+static const void *kADInactiveNeutralOldHidden7408=&kADInactiveNeutralOldHidden7408;
+static const void *kADInactiveNeutralOldAlpha7408=&kADInactiveNeutralOldAlpha7408;
+static const void *kADInactiveNeutralOldLayerOpacity7408=&kADInactiveNeutralOldLayerOpacity7408;
+static BOOL ADInactiveNeutralTint7408(UIColor *c){
+    if(!c)return NO;
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0; UIColor *q=c;
+        if([q respondsToSelector:@selector(resolvedColorWithTraitCollection:)])q=[q resolvedColorWithTraitCollection:UIScreen.mainScreen.traitCollection];
+        if([q getRed:&r green:&g blue:&b alpha:&a]){
+            CGFloat hi=MAX(r,MAX(g,b)),lo=MIN(r,MIN(g,b));
+            // Accept medium-gray through white shields, but only if genuinely neutral.
+            // A white .30 overlay over OLED appears gray in the switcher; the source tint
+            // is still neutral/bright and is caught here before compositing.
+            return a>=0.18&&(hi-lo)<=0.065&&lo>=0.45;
+        }
+        return [q getWhite:&w alpha:&a]&&a>=0.18&&w>=0.45;
+    } @catch(...) { return NO; }
+}
+static BOOL ADInactiveSnapshotGeometry7408(UIVisualEffectView *effect){
+    if(!gP.enabled||!effect||!effect.window)return NO;
+    @try {
+        if(UIApplication.sharedApplication.applicationState==UIApplicationStateActive)return NO;
+        UIWindow *w=effect.window;
+        if(!ADClassNameIs7183(w,"AppCXWindow"))return NO;
+        if(ADClassNameIs7183(effect,"UIKBVisualEffectView"))return NO;
+        CGFloat ww=CGRectGetWidth(w.bounds),wh=CGRectGetHeight(w.bounds);
+        CGFloat ew=MAX(CGRectGetWidth(effect.bounds),CGRectGetWidth(effect.frame));
+        CGFloat eh=MAX(CGRectGetHeight(effect.bounds),CGRectGetHeight(effect.frame));
+        if(ww<1.0||wh<1.0||ew<ww*0.94||eh<wh*0.78)return NO;
+        return YES;
+    } @catch(...) { return NO; }
+}
+static BOOL ADInactiveSnapshotEffectHasNeutral7408(UIVisualEffectView *effect){
+    if(!ADInactiveSnapshotGeometry7408(effect))return NO;
+    @try {
+        if(ADInactiveNeutralTint7408(effect.backgroundColor))return YES;
+        for(UIView *v in effect.subviews){
+            if(ADInactiveNeutralTint7408(v.backgroundColor))return YES;
+        }
+        UIView *content=effect.contentView;
+        for(UIView *v in content.subviews){
+            const char *cn=object_getClassName(v);
+            if((!cn||strcmp(cn,"UIView")==0||strcmp(cn,"_UIVisualEffectSubview")==0)&&ADInactiveNeutralTint7408(v.backgroundColor))return YES;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static UIVisualEffectView *ADInactiveSnapshotEffectForTint7408(UIView *v,UIColor *candidate){
+    if(!gP.enabled||!v||UIApplication.sharedApplication.applicationState==UIApplicationStateActive||!ADInactiveNeutralTint7408(candidate?:v.backgroundColor))return nil;
+    @try {
+        UIView *n=v; NSUInteger d=0;
+        while(n&&d++<4){
+            if([n isKindOfClass:[UIVisualEffectView class]]){
+                UIVisualEffectView *effect=(UIVisualEffectView *)n;
+                return ADInactiveSnapshotGeometry7408(effect)?effect:nil;
+            }
+            n=n.superview;
+        }
+    } @catch(...) {}
+    return nil;
+}
+static void ADRestoreInactiveSnapshotShield7408(UIVisualEffectView *effect){
+    if(!effect||![objc_getAssociatedObject(effect,kADInactiveNeutralSnapshotShield7408) boolValue])return;
+    @try {
+        id oldEffect=objc_getAssociatedObject(effect,kADInactiveNeutralOldEffect7408);
+        NSNumber *oldHidden=objc_getAssociatedObject(effect,kADInactiveNeutralOldHidden7408);
+        NSNumber *oldAlpha=objc_getAssociatedObject(effect,kADInactiveNeutralOldAlpha7408);
+        NSNumber *oldLayer=objc_getAssociatedObject(effect,kADInactiveNeutralOldLayerOpacity7408);
+        effect.effect=(oldEffect==[NSNull null])?nil:oldEffect;
+        if(oldHidden)effect.hidden=oldHidden.boolValue;
+        if(oldAlpha)effect.alpha=oldAlpha.doubleValue;
+        if(oldLayer)effect.layer.opacity=oldLayer.floatValue;
+        objc_setAssociatedObject(effect,kADInactiveNeutralSnapshotShield7408,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(effect,kADInactiveNeutralOldEffect7408,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(effect,kADInactiveNeutralOldHidden7408,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(effect,kADInactiveNeutralOldAlpha7408,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(effect,kADInactiveNeutralOldLayerOpacity7408,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    } @catch(...) {}
+}
+static BOOL ADOwnInactiveSnapshotShield7408(UIVisualEffectView *effect){
+    if(!effect)return NO;
+    @try {
+        BOOL marked=[objc_getAssociatedObject(effect,kADInactiveNeutralSnapshotShield7408) boolValue];
+        if(UIApplication.sharedApplication.applicationState==UIApplicationStateActive){
+            if(marked)ADRestoreInactiveSnapshotShield7408(effect);
+            return NO;
+        }
+        if(!marked&&!ADInactiveSnapshotEffectHasNeutral7408(effect))return NO;
+        if(!marked){
+            objc_setAssociatedObject(effect,kADInactiveNeutralSnapshotShield7408,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(effect,kADInactiveNeutralOldEffect7408,effect.effect?:[NSNull null],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(effect,kADInactiveNeutralOldHidden7408,@(effect.hidden),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(effect,kADInactiveNeutralOldAlpha7408,@(effect.alpha),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(effect,kADInactiveNeutralOldLayerOpacity7408,@(effect.layer.opacity),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        effect.effect=nil;
+        effect.hidden=YES;
+        effect.alpha=0.0;
+        effect.layer.opacity=0.0;
+        return YES;
+    } @catch(...) { return NO; }
+}
 static BOOL ADMarkedTransitionBacking7133(UIView *v){
     return v && objc_getAssociatedObject(v,kADTransitionBacking7133)!=nil;
 }
@@ -3203,7 +3322,7 @@ static BOOL ADExactBackgroundOwner7226(UIView *v){
     const char *cn=class_getName(cls); if(!cn)return NO;
     static const char *names[]={
         "UILayoutContainerView","UITransitionView","UINavigationTransitionView","UIViewControllerWrapperView",
-        "AWLoadingIndicatorFullScreenModalBar","AWLoadingIndicatorWidgets_BkgView",
+        "AWLoadingIndicatorFullScreenModalBar","AWLoadingIndicatorWidgets_BkgView","IESSkeletonView",
         "UIInputSetHostView","_UIRemoteKeyboardPlaceholderView",
         "SBSearchField","SBMultilineSearchView","A9VSScanItSearchWidget","ANPSearchBarRightButton",
         "UITabBar","_UIBarBackground","CXIStoreModesBottomNavToolbar","CXIStoreModesTabBarView",
@@ -3551,6 +3670,8 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
     // class mounted. No production paint or state change occurs here.
     if(ADSkelActive7339()&&ADClassNameIs7183(self,"AWLoadingIndicatorBarView"))ADCartStripGlobalMountDiag7347(self);
     if(!gP.enabled||!self.window)return;
+    UIVisualEffectView *inactiveShield=ADInactiveSnapshotEffectForTint7408(self,self.backgroundColor);
+    if(inactiveShield){ ADOwnInactiveSnapshotShield7408(inactiveShield); return; }
     UIVisualEffectView *checkoutShield=ADCheckoutBackgroundEffectForTeal7389(self,self.backgroundColor);
     if(checkoutShield){
         objc_setAssociatedObject(checkoutShield,kADCheckoutBackgroundShield7389,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -3602,6 +3723,12 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
     }
     if(!gP.enabled){
         %orig(color);
+        return;
+    }
+    UIVisualEffectView *inactiveShield=ADInactiveSnapshotEffectForTint7408(self,color);
+    if(inactiveShield){
+        %orig(color);
+        ADOwnInactiveSnapshotShield7408(inactiveShield);
         return;
     }
     UIVisualEffectView *checkoutShield=ADCheckoutBackgroundEffectForTeal7389(self,color);
@@ -4004,6 +4131,98 @@ static void ADBlackenLoadingGradient7348(UIView *v){
     } @catch(...) {}
 }
 
+// v7.407 transition probe: Product Search -> PDP mounts a full-screen
+// IESSkeletonView under AWLoadingIndicatorFullScreenModalBar. Its only visible child
+// is a 448x1024 grayscale skeleton UIImageView. The surrounding loading surface is
+// already OLED; this authored raster is the remaining light painter. Convert only this
+// exact raster family into the same dark-skeleton language used by Home hero cards:
+// OLED base with visible medium-gray placeholder bars. This is a one-time image
+// transform when the skeleton mounts; no observer, timer or hierarchy scan is added.
+static const void *kADPDPSkeletonOriginal7407=&kADPDPSkeletonOriginal7407;
+static const void *kADPDPSkeletonDark7407=&kADPDPSkeletonDark7407;
+static BOOL gADPDPSkeletonImageWrite7407=NO;
+static BOOL ADPDPTransitionSkeletonView7407(UIView *v){
+    if(!gP.enabled||!v||!v.window||!ADClassNameIs7183(v,"IESSkeletonView"))return NO;
+    @try {
+        UIView *p=v.superview;
+        if(!ADClassNameIs7183(p,"AWLoadingIndicatorFullScreenModalBar"))return NO;
+        if(!ADClassNameIs7183(v.window,"AppCXWindow"))return NO;
+        CGRect r=[v convertRect:v.bounds toView:v.window];
+        CGFloat sw=v.window.bounds.size.width,sh=v.window.bounds.size.height;
+        return sw>0.0&&sh>0.0&&r.size.width>=sw*0.95&&r.size.height>=sh*0.72;
+    } @catch(...) { return NO; }
+}
+static BOOL ADPDPTransitionSkeletonImage7407(UIImageView *iv){
+    if(!iv||!ADPDPTransitionSkeletonView7407(iv.superview)||!iv.image)return NO;
+    @try {
+        UIImage *im=iv.image;
+        size_t pw=im.CGImage?CGImageGetWidth(im.CGImage):0;
+        size_t ph=im.CGImage?CGImageGetHeight(im.CGImage):0;
+        // Exact v7.406 transition capture: 448x1024. Keep a modest density tolerance
+        // for equivalent Amazon assets without claiming arbitrary full-screen media.
+        if(pw<400||pw>560||ph<880||ph>1200)return NO;
+        CGFloat ar=(ph>0)?((CGFloat)pw/(CGFloat)ph):0.0;
+        return ar>0.36&&ar<0.50;
+    } @catch(...) { return NO; }
+}
+static UIImage *ADPDPDarkSkeletonRaster7407(UIImage *im){
+    if(!im)return nil;
+    @try {
+        CGSize size=im.size;
+        if(size.width<=0||size.height<=0)return nil;
+        UIGraphicsBeginImageContextWithOptions(size,NO,im.scale>0?im.scale:UIScreen.mainScreen.scale);
+        CGContextRef ctx=UIGraphicsGetCurrentContext();
+        if(!ctx){ UIGraphicsEndImageContext(); return nil; }
+        CGRect rect=(CGRect){CGPointZero,size};
+        [im drawInRect:rect];
+        // White stock floor -> OLED black; stock gray placeholder bars -> lighter gray.
+        CGContextSetBlendMode(ctx,kCGBlendModeDifference);
+        [[UIColor whiteColor] setFill]; UIRectFill(rect);
+        // Bring the inverted gray bars down near Home's #303335 skeleton language.
+        CGContextSetBlendMode(ctx,kCGBlendModeNormal);
+        [[UIColor colorWithWhite:0 alpha:0.28] setFill]; UIRectFill(rect);
+        UIImage *out=UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        return out;
+    } @catch(...) { @try{UIGraphicsEndImageContext();}@catch(...){} return nil; }
+}
+static void ADOwnPDPTransitionSkeletonImage7407(UIImageView *iv){
+    if(!iv)return;
+    @try {
+        UIImage *old=objc_getAssociatedObject(iv,kADPDPSkeletonOriginal7407);
+        UIImage *dark=objc_getAssociatedObject(iv,kADPDPSkeletonDark7407);
+        BOOL own=ADPDPTransitionSkeletonImage7407(iv);
+        if(!own){
+            if(old&&dark&&iv.image==dark&&!gADPDPSkeletonImageWrite7407){
+                gADPDPSkeletonImageWrite7407=YES; iv.image=old; gADPDPSkeletonImageWrite7407=NO;
+            }
+            if(old||dark){
+                objc_setAssociatedObject(iv,kADPDPSkeletonOriginal7407,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                objc_setAssociatedObject(iv,kADPDPSkeletonDark7407,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            }
+            return;
+        }
+        ADSetViewBackground7226(iv,ADOLED(),YES);
+        UIImage *cur=iv.image;
+        if(cur==dark&&dark)return;
+        if(!old||cur!=old){
+            old=cur; dark=ADPDPDarkSkeletonRaster7407(old);
+            objc_setAssociatedObject(iv,kADPDPSkeletonOriginal7407,old,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADPDPSkeletonDark7407,dark,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        if(dark&&iv.image!=dark&&!gADPDPSkeletonImageWrite7407){
+            gADPDPSkeletonImageWrite7407=YES; iv.image=dark; gADPDPSkeletonImageWrite7407=NO;
+        }
+    } @catch(...) { gADPDPSkeletonImageWrite7407=NO; }
+}
+static void ADOwnPDPTransitionSkeletonView7407(UIView *v){
+    if(!ADPDPTransitionSkeletonView7407(v))return;
+    @try {
+        v.opaque=YES; ADSetViewBackground7226(v,ADOLED(),YES);
+        for(UIView *c in v.subviews)if([c isKindOfClass:[UIImageView class]])ADOwnPDPTransitionSkeletonImage7407((UIImageView *)c);
+    } @catch(...) {}
+}
+
 static BOOL ADAppLoadingSurface7130(UIView *v){
     if(!gP.enabled||!v||!v.window)return NO;
     @try {
@@ -4070,6 +4289,33 @@ static void ADOwnAppLoadingSurface7130(UIView *v){
         %orig(black);
         ADBlackBackingLayer7130((UIView *)self,kADLoadingBacking7130);
         ADBlackenLoadingGradient7348((UIView *)self);
+        return;
+    }
+    %orig(color);
+}
+%end
+
+%hook IESSkeletonView
+- (void)didMoveToWindow {
+    %orig;
+    ADOwnPDPTransitionSkeletonView7407((UIView *)self);
+}
+- (void)didMoveToSuperview {
+    %orig;
+    ADOwnPDPTransitionSkeletonView7407((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADOwnPDPTransitionSkeletonView7407((UIView *)self);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    if(ADInternalPaintWrite7226()){
+        %orig(color);
+        return;
+    }
+    if(ADPDPTransitionSkeletonView7407((UIView *)self)){
+        UIColor *black=ADOLED();
+        %orig(black);
         return;
     }
     %orig(color);
@@ -7488,6 +7734,185 @@ static void ADMenuOwnText7255(UIView *v){
 }
 
 
+
+// v7.408 FULL r1/r2: camera and microphone permission prompts are foreground
+// React `sheet-view` families in AppCXWindow.  They are not the older hidden
+// AppCXBottomSheet tree, so own them only after an exact probe marker appears.
+// Once marked, one bounded mount-time pass repairs already-mounted siblings;
+// normal paint/text ownership remains event-driven through the existing React hooks.
+static const void *kADPermissionSheetKind7408=&kADPermissionSheetKind7408;
+static const void *kADPermissionSheetPrimed7408=&kADPermissionSheetPrimed7408;
+static const void *kADPermissionMicFilterOwned7408=&kADPermissionMicFilterOwned7408;
+static const void *kADPermissionMicOldFilters7408=&kADPermissionMicOldFilters7408;
+static void ADPermissionPrimeSheet7408(UIView *root,int kind);
+static UIView *ADPermissionSheetRoot7408(UIView *v){
+    if(!v||!v.window||!ADClassNameIs7183(v.window,"AppCXWindow"))return nil;
+    @try {
+        NSUInteger d=0;
+        for(UIView *n=v;n&&d++<32;n=n.superview){
+            if(ADClassNameIs7183(n,"RCTView")&&[n.accessibilityIdentifier isEqualToString:@"sheet-view"]){
+                CGRect r=[n convertRect:n.bounds toView:v.window],wb=v.window.bounds;
+                if(r.size.width>=wb.size.width*0.95&&r.size.height>=250.0&&r.size.height<=430.0&&CGRectGetMinY(r)>=wb.size.height*0.50)return n;
+                return nil;
+            }
+            if([n isKindOfClass:[UIWindow class]])break;
+        }
+    } @catch(...) {}
+    return nil;
+}
+static int ADPermissionDetectKind7408(UIView *root){
+    if(!root)return 0;
+    NSNumber *cached=objc_getAssociatedObject(root,kADPermissionSheetKind7408);
+    if(cached)return cached.intValue;
+    @try {
+        NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger seen=0; BOOL camera=NO,micButton=NO,micTitle=NO;
+        while(seen<q.count&&seen<128){
+            UIView *x=q[seen++]; if(!x)continue;
+            NSString *aid=x.accessibilityIdentifier?:@"";
+            if([aid isEqualToString:@"inflight-prompt"]||[aid isEqualToString:@"inflight-prompt-allow-button"]||[aid isEqualToString:@"allow-all-CAMERA"]){ camera=YES; break; }
+            if([aid isEqualToString:@"actionButton"])micButton=YES;
+            if([aid isEqualToString:@"allowTitle"])micTitle=YES;
+            if(x.subviews.count)[q addObjectsFromArray:x.subviews];
+        }
+        int kind=camera?1:((micButton&&micTitle)?2:0);
+        if(kind){
+            objc_setAssociatedObject(root,kADPermissionSheetKind7408,@(kind),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            if(!objc_getAssociatedObject(root,kADPermissionSheetPrimed7408)){
+                objc_setAssociatedObject(root,kADPermissionSheetPrimed7408,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                ADPermissionPrimeSheet7408(root,kind);
+            }
+        }
+        return kind;
+    } @catch(...) { return 0; }
+}
+static int ADPermissionSheetKind7408(UIView *v){
+    UIView *root=ADPermissionSheetRoot7408(v); return root?ADPermissionDetectKind7408(root):0;
+}
+static BOOL ADPermissionHasAncestorAid7408(UIView *v,NSString *aid,NSUInteger maxDepth){
+    if(!v||!aid.length)return NO;
+    @try {
+        NSUInteger d=0;
+        for(UIView *n=v.superview;n&&d++<maxDepth;n=n.superview){
+            if([n.accessibilityIdentifier isEqualToString:aid])return YES;
+            if([n.accessibilityIdentifier isEqualToString:@"sheet-view"]||[n isKindOfClass:[UIWindow class]])break;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADPermissionCameraCheckbox7408(UIView *v){
+    if(!v||!ADClassNameIs7183(v,"RCTView")||ADPermissionSheetKind7408(v)!=1)return NO;
+    @try {
+        CGRect b=v.bounds;
+        return b.size.width>=20.0&&b.size.width<=28.0&&b.size.height>=20.0&&b.size.height<=28.0&&
+               ADPermissionHasAncestorAid7408(v,@"allow-all-CAMERA",4);
+    } @catch(...) { return NO; }
+}
+static UIColor *ADPermissionTargetBackground7408(UIView *v,UIColor *candidate,int kind){
+    if(!v||!kind)return nil;
+    NSString *aid=v.accessibilityIdentifier?:@"";
+    if(kind==1){
+        if([aid isEqualToString:@"inflight-prompt-dismiss-button"])return ADMenuButtonFill7255();
+        if([aid isEqualToString:@"inflight-prompt-allow-button"])return ADOLED();
+        if(ADPermissionCameraCheckbox7408(v))return ADMenuButtonFill7255();
+    } else if(kind==2 && [aid isEqualToString:@"actionButton"])return ADOLED();
+    UIColor *layerBG=nil; @try{ if(v.layer.backgroundColor)layerBG=[UIColor colorWithCGColor:v.layer.backgroundColor]; }@catch(...){}
+    if(ADNeutralNearWhite7255(candidate)||ADNeutralNearWhite7255(v.backgroundColor)||ADNeutralNearWhite7255(layerBG))return ADOLED();
+    return nil;
+}
+static void ADPermissionOwnView7408(UIView *v){
+    if(!gP.enabled||!v||!v.window)return;
+    int kind=ADPermissionSheetKind7408(v); if(!kind)return;
+    @try {
+        NSString *aid=v.accessibilityIdentifier?:@"";
+        UIColor *want=ADPermissionTargetBackground7408(v,v.backgroundColor,kind);
+        if(want)ADSetViewBackground7226(v,want,YES);
+        BOOL button=(kind==2&&[aid isEqualToString:@"actionButton"])||
+                    (kind==1&&([aid isEqualToString:@"inflight-prompt-dismiss-button"]||[aid isEqualToString:@"inflight-prompt-allow-button"]));
+        if(button){
+            v.layer.borderWidth=1.0; v.layer.borderColor=ADBorderGray706().CGColor; v.layer.shadowOpacity=0.0;
+            if(v.layer.cornerRadius<7.0)v.layer.cornerRadius=8.0;
+        } else if(kind==1&&ADPermissionCameraCheckbox7408(v)){
+            v.layer.borderWidth=1.0; v.layer.borderColor=ADBorderGray706().CGColor;
+        }
+    } @catch(...) {}
+}
+static BOOL ADPermissionDarkNeutral7408(UIColor *c){ return ADDarkNeutral7259(c,YES); }
+static NSAttributedString *ADPermissionLightString7408(NSAttributedString *in){ return ADLightNeutralString7271(in,ADPermissionDarkNeutral7408); }
+static void ADPermissionLightStorage7408(NSTextStorage *ts){ ADLightNeutralStorage7271(ts,ADPermissionDarkNeutral7408); }
+static void ADPermissionOwnText7408(UIView *v){
+    if(!gP.enabled||!v||!v.window||!ADPermissionSheetKind7408(v))return;
+    NSTextStorage *ts=ADPersonTextStorage7206(v); if(ts)ADPermissionLightStorage7408(ts);
+}
+static BOOL ADPermissionCameraCloseWrapper7408(UIView *v){
+    return v&&ADClassNameIs7183(v,"RCTImageView")&&ADPermissionSheetKind7408(v)==1&&[v.accessibilityIdentifier isEqualToString:@"closeButtonIcon"];
+}
+static BOOL ADPermissionMicImageWrapper7408(UIView *v){
+    if(!v||!ADClassNameIs7183(v,"RCTImageView")||ADPermissionSheetKind7408(v)!=2)return NO;
+    @try { CGRect b=v.bounds; return !v.accessibilityIdentifier.length&&b.size.width>=40.0&&b.size.width<=48.0&&b.size.height>=40.0&&b.size.height<=48.0; } @catch(...) { return NO; }
+}
+static BOOL ADPermissionMicImageLeaf7408(UIImageView *iv){
+    if(!iv||!iv.superview||!ADPermissionMicImageWrapper7408(iv.superview))return NO;
+    @try {
+        UIImage *im=iv.image; if(!im)return NO;
+        size_t w=im.CGImage?CGImageGetWidth(im.CGImage):0,h=im.CGImage?CGImageGetHeight(im.CGImage):0;
+        return w>=80&&w<=180&&h>=80&&h<=180;
+    } @catch(...) { return NO; }
+}
+static void ADPermissionOwnImage7408(UIImageView *iv){
+    if(!iv)return;
+    @try {
+        BOOL own=ADPermissionMicImageLeaf7408(iv);
+        if(own){
+            if(!objc_getAssociatedObject(iv,kADPermissionMicFilterOwned7408)){
+                objc_setAssociatedObject(iv,kADPermissionMicOldFilters7408,iv.layer.filters?:[NSNull null],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                objc_setAssociatedObject(iv,kADPermissionMicFilterOwned7408,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            }
+            Class F=NSClassFromString(@"CAFilter"); SEL ft=sel_registerName("filterWithType:");
+            if(F&&[F respondsToSelector:ft]){
+                id inv=((id(*)(id,SEL,id))objc_msgSend)(F,ft,@"colorInvert");
+                if(inv)iv.layer.filters=@[inv];
+            }
+        } else if(objc_getAssociatedObject(iv,kADPermissionMicFilterOwned7408)){
+            id old=objc_getAssociatedObject(iv,kADPermissionMicOldFilters7408);
+            iv.layer.filters=(old==[NSNull null])?nil:old;
+            objc_setAssociatedObject(iv,kADPermissionMicFilterOwned7408,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(iv,kADPermissionMicOldFilters7408,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+    } @catch(...) {}
+}
+static void ADPermissionPrimeSheet7408(UIView *root,int kind){
+    if(!root||!kind)return;
+    @try {
+        NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger seen=0;
+        while(seen<q.count&&seen<160){
+            UIView *x=q[seen++]; if(!x)continue;
+            if(ADClassNameIs7183(x,"RCTView"))ADPermissionOwnView7408(x);
+            if(ADClassNameIs7183(x,"RCTTextView")||ADClassNameIs7183(x,"RCTParagraphComponentView"))ADPermissionOwnText7408(x);
+            if(ADPermissionCameraCloseWrapper7408(x)){
+                x.tintColor=ADLightText706();
+                for(UIView *c in x.subviews)if([c isKindOfClass:[UIImageView class]])((UIImageView *)c).tintColor=ADLightText706();
+            }
+            if([x isKindOfClass:[UIImageView class]])ADPermissionOwnImage7408((UIImageView *)x);
+            if(x.subviews.count)[q addObjectsFromArray:x.subviews];
+        }
+    } @catch(...) {}
+}
+
+// v7.408 r4: the location sheet interior was already correct, including Amazon's
+// orange selected-address edge and blue action links.  One anonymous 430x376 React
+// backing remained white, which appeared only as the two vertical side strips because
+// the inner scroller is 394pt wide.  Own that exact full-width shell after the proven
+// location root has been marked; bypass the older cached surface classification so a
+// shell mounted before the address wrappers cannot stay white for the rest of its life.
+static BOOL ADLocationOuterWhiteShell7408(UIView *v,UIColor *candidate){
+    if(!gP.enabled||!v||!v.window||!ADClassNameIs7183(v,"RCTView")||!ADBrightNeutralColor708(candidate))return NO;
+    UIView *root=nil; if(!ADLocationRootActive7202(v,&root)||!root)return NO;
+    @try {
+        CGRect r=[v convertRect:v.bounds toView:v.window],wb=v.window.bounds;
+        return r.size.width>=wb.size.width*0.98&&r.size.height>=300.0&&r.size.height<=430.0&&
+               CGRectGetMinY(r)>=wb.size.height*0.54&&CGRectGetMinY(r)<=wb.size.height*0.68;
+    } @catch(...) { return NO; }
+}
 // v7.401 FULL r5/r6: the two checkout payment menus are native React sheets, not
 // WebUI. They share RCTView#bottom-sheet, but ownership is not granted by that generic
 // id alone. The sheet is marked only after one of the probe-proven payment families
@@ -7819,6 +8244,14 @@ static void ADOwnReactView7226(UIView *v){
     if(!gP.enabled||!v||!v.window)return;
     @try {
         ADAlexaOwnReactControl7285(v);
+        if(ADPermissionSheetKind7408(v)){
+            ADPermissionOwnView7408(v);
+            return;
+        }
+        if(ADLocationOuterWhiteShell7408(v,v.backgroundColor)){
+            ADSetLocationBlack7202(v);
+            return;
+        }
         if(ADInPaymentSheet7401(v)){
             ADPaymentOwnView7401(v);
             return;
@@ -7877,6 +8310,21 @@ static void ADOwnReactView7226(UIView *v){
         }
         @finally { if(gADPaintWriteDepth7226)gADPaintWriteDepth7226--; }
         ADAlexaOwnReactControl7285(v);
+        return;
+    }
+    if(gP.enabled&&v.window&&ADPermissionSheetKind7408(v)){
+        %orig(color);
+        ADPermissionOwnView7408(v);
+        return;
+    }
+    if(gP.enabled&&v.window&&ADLocationOuterWhiteShell7408(v,color)){
+        UIColor *black=ADOLED();
+        gADPaintWriteDepth7226++;
+        @try {
+            %orig(black);
+            self.layer.backgroundColor=black.CGColor;
+        }
+        @finally { if(gADPaintWriteDepth7226)gADPaintWriteDepth7226--; }
         return;
     }
     if(gP.enabled&&v.window&&ADInPaymentSheet7401(v)){
@@ -7967,6 +8415,14 @@ static void ADOwnReactView7226(UIView *v){
     if(alexaRole)ADAlexaOwnReactControl7285((UIView *)self);
 }
 - (void)setBorderWidth:(CGFloat)value {
+    UIView *pv=(UIView *)self; int pk=(gP.enabled&&pv.window)?ADPermissionSheetKind7408(pv):0;
+    NSString *paid=pv.accessibilityIdentifier?:@"";
+    if(pk&&([paid isEqualToString:@"actionButton"]||[paid isEqualToString:@"inflight-prompt-dismiss-button"]||[paid isEqualToString:@"inflight-prompt-allow-button"])){
+        %orig(1.0);
+        pv.layer.borderWidth=1.0;
+        pv.layer.borderColor=ADBorderGray706().CGColor;
+        return;
+    }
     int alexaRole=gP.enabled?ADAlexaReactControlRole7285((UIView *)self):0;
     if(alexaRole==1||alexaRole==2||alexaRole==4){
         // Keep React's own border channel off; one CALayer ring is the sole owner.
@@ -7977,6 +8433,14 @@ static void ADOwnReactView7226(UIView *v){
     %orig(value);
 }
 - (void)setBorderColor:(UIColor *)value {
+    UIView *pv=(UIView *)self; int pk=(gP.enabled&&pv.window)?ADPermissionSheetKind7408(pv):0;
+    NSString *paid=pv.accessibilityIdentifier?:@"";
+    if(pk&&([paid isEqualToString:@"actionButton"]||[paid isEqualToString:@"inflight-prompt-dismiss-button"]||[paid isEqualToString:@"inflight-prompt-allow-button"])){
+        UIColor *gray=ADBorderGray706();
+        %orig(gray);
+        pv.layer.borderColor=gray.CGColor;
+        return;
+    }
     int alexaRole=gP.enabled?ADAlexaReactControlRole7285((UIView *)self):0;
     if(alexaRole==3){
         UIColor *gray=ADBorderGray706();
@@ -8074,16 +8538,19 @@ static void ADAlexaOwnVector7285(UIView *svg){
     %orig;
     UIView *v=(UIView *)self;
     ADPrimeLocationWrapper7202(v);
+    if([v.accessibilityIdentifier isEqualToString:@"inflight-prompt"]){ UIView *r=ADPermissionSheetRoot7408(v); if(r)ADPermissionDetectKind7408(r); }
 }
 - (void)setFrame:(CGRect)frame {
     %orig(frame);
     UIView *v=(UIView *)self;
     ADPrimeLocationWrapper7202(v);
+    if([v.accessibilityIdentifier isEqualToString:@"inflight-prompt"]){ UIView *r=ADPermissionSheetRoot7408(v); if(r)ADPermissionDetectKind7408(r); }
 }
 %end
 
 static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOOL includeBuyAgain){
     if(!gP.enabled||!v.window)return NO;
+    if(ADPermissionSheetKind7408(v)){ ADPermissionLightStorage7408(textStorage); return YES; }
     if(ADInPaymentSheet7401(v)){ ADPaymentLightStorage7401(textStorage); return YES; }
     if(ADAlexaSuggestionPillText7288(v)){ ADAlexaSuggestionPillLightStorage7288(textStorage); return YES; }
     int surface=ADReactSurface7226(v);
@@ -8104,6 +8571,7 @@ static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOO
 }
 static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     if(!gP.enabled||!v.window)return;
+    if(ADPermissionSheetKind7408(v)){ ADPermissionOwnText7408(v); return; }
     if(ADInPaymentSheet7401(v)){ ADPaymentOwnText7401(v); return; }
     if(ADAlexaSuggestionPillText7288(v)){ NSTextStorage *ts=ADPersonTextStorage7206(v); if(ts)ADAlexaSuggestionPillLightStorage7288(ts); return; }
     int surface=ADReactSurface7226(v);
@@ -8120,7 +8588,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 %hook RCTParagraphComponentView
 - (void)setAttributedText:(NSAttributedString *)attributedText {
     NSAttributedString *r=nil;
-    if(gP.enabled&&((UIView *)self).window&&ADInPaymentSheet7401((UIView *)self)) r=ADPaymentLightString7401(attributedText);
+    if(gP.enabled&&((UIView *)self).window&&ADPermissionSheetKind7408((UIView *)self)) r=ADPermissionLightString7408(attributedText);
+    else if(gP.enabled&&((UIView *)self).window&&ADInPaymentSheet7401((UIView *)self)) r=ADPaymentLightString7401(attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)) r=ADPersonHeaderLeaf7221((UIView *)self)?ADPersonHeaderString7221(attributedText):ADPersonLightString7206(attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADInMenuTab7255((UIView *)self)) r=ADMenuLightString7255(attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADInLocationSheetContent7196((UIView *)self)) r=ADLocationSheetLightString7196((UIView *)self,attributedText);
@@ -8131,7 +8600,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 }
 - (void)_setAttributedString:(NSAttributedString *)attributedString {
     NSAttributedString *r=nil;
-    if(gP.enabled&&((UIView *)self).window&&ADInPaymentSheet7401((UIView *)self)) r=ADPaymentLightString7401(attributedString);
+    if(gP.enabled&&((UIView *)self).window&&ADPermissionSheetKind7408((UIView *)self)) r=ADPermissionLightString7408(attributedString);
+    else if(gP.enabled&&((UIView *)self).window&&ADInPaymentSheet7401((UIView *)self)) r=ADPaymentLightString7401(attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)) r=ADPersonHeaderLeaf7221((UIView *)self)?ADPersonHeaderString7221(attributedString):ADPersonLightString7206(attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADInMenuTab7255((UIView *)self)) r=ADMenuLightString7255(attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADInLocationSheetContent7196((UIView *)self)) r=ADLocationSheetLightString7196((UIView *)self,attributedString);
@@ -8144,7 +8614,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     %orig;
     if(!gP.enabled||!((UIView *)self).window)return;
     UIView *v=(UIView *)self;
-    if(ADInPaymentSheet7401(v))ADPaymentOwnText7401(v);
+    if(ADPermissionSheetKind7408(v))ADPermissionOwnText7408(v);
+    else if(ADInPaymentSheet7401(v))ADPaymentOwnText7401(v);
     else if(ADInPersonTab7206(v))ADPersonOwnText7206(v);
     else if(ADInMenuTab7255(v))ADMenuOwnText7255(v);
     else if(ADInLocationSheetContent7196(v))ADLocationSheetOwnText7196(v);
@@ -8176,7 +8647,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     UIView *v=(UIView *)self;
     if(gP.enabled&&v.window){
         NSTextStorage *ts=ADPersonTextStorage7206(v);
-        if(ADInPaymentSheet7401(v)){ if(ts)ADPaymentLightStorage7401(ts); }
+        if(ADPermissionSheetKind7408(v)){ if(ts)ADPermissionLightStorage7408(ts); }
+        else if(ADInPaymentSheet7401(v)){ if(ts)ADPaymentLightStorage7401(ts); }
         if(ADAlexaSuggestionPillText7288(v)){ if(ts)ADAlexaSuggestionPillLightStorage7288(ts); }
         if(ADClassNameIs7183(v.window,"AppCXWindow")){
             if(ADInAppCXBottomSheet7255(v)){ if(ts)ADAppCXSheetLightStorage7255(ts); }
@@ -8754,9 +9226,10 @@ static void ADOwnBottomBar708(UIView *v){
 %hook UIVisualEffectView
 - (void)didMoveToWindow {
     %orig;
+    if(ADOwnInactiveSnapshotShield7408(self))return;
     ADOwnCheckoutBackgroundEffect7389(self);
     ADOwnCheckoutPaymentBackgroundEffect7402(self);
-    if(self.hidden&&([objc_getAssociatedObject(self,kADCheckoutBackgroundShield7389) boolValue]||[objc_getAssociatedObject(self,kADCheckoutPaymentBackgroundShield7402) boolValue]))return;
+    if(self.hidden&&([objc_getAssociatedObject(self,kADInactiveNeutralSnapshotShield7408) boolValue]||[objc_getAssociatedObject(self,kADCheckoutBackgroundShield7389) boolValue]||[objc_getAssociatedObject(self,kADCheckoutPaymentBackgroundShield7402) boolValue]))return;
     BOOL bottom=NO; BOOL bar=ADBarGeometry713(self,&bottom);
     if(gP.enabled && self.window && (ADInBottomNav706(self)||ADTopChromeClass713(self)||bar)){
         self.effect=nil;
@@ -8765,9 +9238,10 @@ static void ADOwnBottomBar708(UIView *v){
 }
 - (void)layoutSubviews {
     %orig;
+    if(ADOwnInactiveSnapshotShield7408(self))return;
     ADOwnCheckoutBackgroundEffect7389(self);
     ADOwnCheckoutPaymentBackgroundEffect7402(self);
-    if(self.hidden&&([objc_getAssociatedObject(self,kADCheckoutBackgroundShield7389) boolValue]||[objc_getAssociatedObject(self,kADCheckoutPaymentBackgroundShield7402) boolValue]))return;
+    if(self.hidden&&([objc_getAssociatedObject(self,kADInactiveNeutralSnapshotShield7408) boolValue]||[objc_getAssociatedObject(self,kADCheckoutBackgroundShield7389) boolValue]||[objc_getAssociatedObject(self,kADCheckoutPaymentBackgroundShield7402) boolValue]))return;
     BOOL bottom=NO; BOOL bar=ADBarGeometry713(self,&bottom);
     if(gP.enabled && self.window && (ADInBottomNav706(self)||ADTopChromeClass713(self)||bar)){
         self.effect=nil;
@@ -10018,7 +10492,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
     %orig(hidden);
 }
 - (void)setImage:(UIImage *)image {
-    if(gADTabImageWriting724||gADPersonOriginalImageWriting7218||gADSearchImageWrite706||gADPersonOrderMagnifierWrite7243||gADMenuImageWrite7255){
+    if(gADTabImageWriting724||gADPersonOriginalImageWriting7218||gADSearchImageWrite706||gADPersonOrderMagnifierWrite7243||gADMenuImageWrite7255||gADPDPSkeletonImageWrite7407){
         %orig(image);
         return;
     }
@@ -10035,6 +10509,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
     }
     %orig(finalImage);
     ADOwnCheckoutNavImage7371(self);
+    ADOwnPDPTransitionSkeletonImage7407(self);
     ADOwnSearchLeadingMagnifier7229(self);
     ADPersonOwnOrderSearchMagnifierLeaf7243(self);
     ADOwnImageView7226(self,YES);
@@ -10044,6 +10519,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
 - (void)didMoveToWindow {
     %orig;
     ADOwnCheckoutNavImage7371(self);
+    ADOwnPDPTransitionSkeletonImage7407(self);
     objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     ADOwnSearchLeadingMagnifier7229(self);
@@ -10054,6 +10530,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
 }
 - (void)didMoveToSuperview {
     %orig;
+    ADOwnPDPTransitionSkeletonImage7407(self);
     objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     if(self.window){
@@ -10113,6 +10590,7 @@ static void ADSchedulePersonImageSettle7227(UIImageView *iv){
 - (void)layoutSubviews {
     %orig;
     ADOwnCheckoutNavImage7371(self);
+    ADOwnPDPTransitionSkeletonImage7407(self);
     // React rewrites rendering mode after assignment for these five exact visible
     // owners. Reassert only those small components at final layout; product/media
     // classification outside them remains off the scrolling hot path.
@@ -10287,6 +10765,7 @@ static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
     ADMenuFinalizeImage7255((UIImageView *)self,YES);
     ADAlexaFinalizeSuggestionImage7285((UIImageView *)self,YES);
     ADPaymentFinalizeCreateImage7402((UIImageView *)self,YES);
+    ADPermissionOwnImage7408((UIImageView *)self);
 }
 - (void)didMoveToSuperview {
     objc_setAssociatedObject(self,kADPersonFinalRasterKind7235,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -10300,6 +10779,7 @@ static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
         ADMenuFinalizeImage7255((UIImageView *)self,YES);
         ADAlexaFinalizeSuggestionImage7285((UIImageView *)self,YES);
         ADPaymentFinalizeCreateImage7402((UIImageView *)self,YES);
+        ADPermissionOwnImage7408((UIImageView *)self);
     }
 }
 - (void)didMoveToWindow {
@@ -10310,6 +10790,7 @@ static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
         ADMenuFinalizeImage7255((UIImageView *)self,YES);
         ADAlexaFinalizeSuggestionImage7285((UIImageView *)self,YES);
         ADPaymentFinalizeCreateImage7402((UIImageView *)self,YES);
+        ADPermissionOwnImage7408((UIImageView *)self);
     } else {
         objc_setAssociatedObject(self,kADPersonFinalRasterKind7235,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -10326,6 +10807,7 @@ static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
     ADAlexaFinalizeSuggestionImage7285((UIImageView *)self,objc_getAssociatedObject(self,kADAlexaSuggestionIndex7285)==nil);
     NSNumber *payCached=objc_getAssociatedObject(self,kADPaymentCreateImageKind7402);
     ADPaymentFinalizeCreateImage7402((UIImageView *)self,(payCached&&payCached.intValue>0)?NO:YES);
+    ADPermissionOwnImage7408((UIImageView *)self);
 }
 %end
 
@@ -10338,6 +10820,10 @@ static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
     %orig;
     objc_setAssociatedObject(self,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     if(ADPersonOrderSearchMagnifierWrapper7243((UIView *)self))((UIView *)self).tintColor=ADLightText706();
+    if(ADPermissionCameraCloseWrapper7408((UIView *)self)){
+        ((UIView *)self).tintColor=ADLightText706();
+        for(UIView *c in ((UIView *)self).subviews)if([c isKindOfClass:[UIImageView class]])((UIImageView *)c).tintColor=ADLightText706();
+    }
     ADPersonOwnHighlightWrapper7229((UIView *)self);
     ADMenuOwnImageWrapper7255((UIView *)self);
 }
@@ -10347,10 +10833,19 @@ static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
         ((UIView *)self).tintColor=ADLightText706();
         for(UIView *child in ((UIView *)self).subviews)if([child isKindOfClass:[UIImageView class]])ADPersonOwnOrderSearchMagnifierLeaf7243((UIImageView *)child);
     }
+    if(ADPermissionCameraCloseWrapper7408((UIView *)self)){
+        ((UIView *)self).tintColor=ADLightText706();
+        for(UIView *c in ((UIView *)self).subviews)if([c isKindOfClass:[UIImageView class]])((UIImageView *)c).tintColor=ADLightText706();
+    }
     ADPersonOwnHighlightWrapper7229((UIView *)self);
     ADMenuOwnImageWrapper7255((UIView *)self);
 }
 - (void)setTintColor:(UIColor *)color {
+    if(gP.enabled&&((UIView *)self).window&&ADPermissionCameraCloseWrapper7408((UIView *)self)){
+        UIColor *permissionLight=ADLightText706();
+        %orig(permissionLight);
+        return;
+    }
     if(gP.enabled&&((UIView *)self).window&&ADPersonOrderSearchMagnifierWrapper7243((UIView *)self)){
         UIColor *light=ADLightText706();
         %orig(light);

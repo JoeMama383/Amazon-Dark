@@ -7,8 +7,8 @@ UI=(ROOT/'scripts/ui-probe.sh').read_text()
 SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
-assert 'Version: 7.406~video-sponsored-footer-restore' in C
-assert '#define AD_VERSION "v7.406-video-sponsored-footer-restore"' in S
+assert 'Version: 7.408~permission-location-switcher-hardening' in C
+assert '#define AD_VERSION "v7.408-permission-location-switcher-hardening"' in S
 # Shared SSF ownership is no longer Cart-route limited.
 block=S.split('static NSString *ADProductShareThemeJS7403(void){',1)[1].split('static NSString *ADProductShareTWBJS7403(void){',1)[0]
 assert '.a-sheet-web:has(.ssf-customize-container-one)' in block
@@ -32,10 +32,10 @@ assert 'ADProductShareThemeJS7403()' in S and 'ADProductShareTWBJS7403()' in S a
 assert '<string>disableShareSheetForProbes</string>' in P
 assert '<string>Hide Share Sheet for Probes</string>' in P
 # Probe identities regenerated for this release.
-assert 'VER=7.406' in UI
-assert 'AD_PROBE_VERSION=7.406' in SK and 'AD_PROBE_NAME=AmazonDark-v7.406' in SK
-assert 'AMAZONDARK v7.406 UNIVERSAL' in INC
-assert "version:'7.406'" in JS
+assert 'VER=7.408' in UI
+assert 'AD_PROBE_VERSION=7.408' in SK and 'AD_PROBE_NAME=AmazonDark-v7.408' in SK
+assert 'AMAZONDARK v7.408 UNIVERSAL' in INC
+assert "version:'7.408'" in JS
 # Static share theming/suppression must not add recurring Web machinery.
 new=S.split('static NSString *ADProductShareThemeJS7403(void){',1)[1].split('// One immutable document-start program',1)[0]
 for bad in ('new MutationObserver(', 'setInterval(', 'requestAnimationFrame(', "addEventListener('scroll'"):

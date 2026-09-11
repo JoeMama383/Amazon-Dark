@@ -1,15 +1,15 @@
 {
-  "version": "7.406~video-sponsored-footer-restore",
-  "direct_parent": "7.405~pdp-completion",
-  "source": "AmazonDark-v7.405-pdp-completion-source.zip generated in this conversation",
-  "parent_source_zip_sha256": "b4495ee9a022f70b82cfd0035089407c3dd709958d5a9e58257d013ed79ecb4d",
+  "version": "7.408~permission-location-switcher-hardening",
+  "direct_parent": "7.407~pdp-transition-skeleton-dark",
+  "source": "AmazonDark-v7.407-pdp-transition-skeleton-dark-source.zip generated in this conversation",
+  "parent_source_zip_sha256": "d364ed06a0ab855a19f75bdce286bce3d09c30ecee44f89a9a4cdbfb89fb9211",
   "parent_files_sha256": {
-    "src/Tweak.xm": "3cacb45a158336d01ace8f7686f4ec34b2c486d5aa7ec6dce88f5ce66d5ae217",
-    "src/AmazonDarkSB.xm": "767d4c3894d6d558be7ccfdb0b8961b336566806d871711c450fb59ee39e3af9",
+    "src/Tweak.xm": "00d8ba80e84abf97e1fd0ab32c38539b682eed625a2a95dcbca60ffb5a5a3be3",
+    "src/AmazonDarkSB.xm": "efcb3355a03aae446a4b4d73c5b2f6728d5bad4d05cdfc8c5da800a9fcfc7924",
     "src/ADSponsored.m": "45e4825bb0c025016633c026740fc02a969f0a3d6aafa6d2be79a58e81f97fa7",
-    "scripts/ui-probe.sh": "e74a6d496d698ca88dd9a398c47babc0ced99646480bff9e39043342670ebc2b",
-    "scripts/skeleton-probe.sh": "db3ed94a45f45c5c23b69f1837420aa6284e2dab25a64f502d3c797839ce3214"
+    "scripts/ui-probe.sh": "f2ddfde7fde068fef9cd5659786c65fc02c021702f542f4cb6c5bdf3931377a3",
+    "scripts/skeleton-probe.sh": "9755f6643d32df80d533f7b2b87bf384726890b57a28cd19e837d39456bf6b4a"
   },
-  "runtime_contract": "Preserve all v7.405 PDP and Product Search behavior. Correct only the second c2Itd video-ad single-border rule: keep the one #494d4d border on the shortProduct owner around video + product copy, keep the root/footer-spanning and nested singleAsin borders removed, but do not clip the authored Sponsored text/info-glyph footer below the border. Replace the v7.405 overflow:hidden on shortProduct with overflow:visible. Regenerate FULL/VIEWPORT/transition probes as v7.406.",
-  "device_validation": "Verify the second c2Itd video ad still has exactly one border around video + product copy ending above Sponsored, and that the Sponsored text plus info glyph remain visible immediately below it. Recheck v7.405 PDP theming for regressions. FULL/VIEWPORT/transition exports must identify as v7.406."
+  "runtime_contract": "Preserve all v7.407 and earlier behavior. Theme only the three probe-proven native React Camera, Microphone and Choose-your-location families: OLED bright floors, light neutral text, preserve semantic/dynamic colors and the location selected orange outline; Camera Allow and Microphone Continue use OLED + gray edge + light text; Camera Not now uses dark-gray + gray edge + light text. Darken only the exact full-width bright location outer shell. Replace route-specific neutral app-switcher assumptions with one inactive-only AppCXWindow near-full-screen neutral UIVisualEffectView shield invariant, excluding active effects, keyboard effects, chromatic effects, dark dimmers, small/local effects and restoring marked effects if reused active. Keep historical teal/payment owners as compatibility fallbacks. Add no observer, timer, RAF, polling, scroll listener, recurring hierarchy scan, fake snapshot, SpringBoard painter or new WKUserScript. Regenerate FULL/VIEWPORT/transition probes as v7.408.",
+  "device_validation": "Verify Camera sheet OLED/light with dark-gray Not now and OLED Allow; Microphone sheet OLED/light with OLED Continue; Choose-your-location has OLED outer side strips while blue links and orange selected edge remain authored. Background Amazon from location, payment, checkout and ordinary themed screens and verify the app-switcher card never receives a gray/white neutral cover; return to foreground and verify normal UI effects are not left hidden. FULL/VIEWPORT/transition exports must identify as v7.408."
 }

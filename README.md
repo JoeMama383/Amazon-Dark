@@ -1,7 +1,7 @@
-# AmazonDark v7.406
+# AmazonDark v7.408 — permission/location completion + switcher hardening
 
-Direct parent: **v7.405~pdp-completion**.
+Direct parent: **v7.407~pdp-transition-skeleton-dark**.
 
-This release fixes one regression in the second Product Search video-ad family: the single border remains around video + product copy, but the authored Sponsored text/info glyph below it is no longer clipped. All v7.405 PDP theming is preserved.
+This release themes the three probe-captured native React sheets requested after v7.407: Camera access, Microphone/voice access, and Choose your location. It also closes the repeated gray/white app-switcher regression at the architectural level: neutral bright, near-full-screen `UIVisualEffectView` shields inside Amazon `AppCXWindow` are suppressed only while the app is inactive, regardless of which foreground sheet/controller caused backgrounding. Active UI effects are restored if reused.
 
-All universal probes are regenerated for v7.406. See `COMMANDS.md`.
+See `AUDIT-v7.408.md` for the exact ownership and preservation rules.

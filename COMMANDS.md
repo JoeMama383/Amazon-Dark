@@ -1,44 +1,51 @@
-# AmazonDark v7.406 commands
+# AmazonDark v7.408 commands
 
 ## PUSH
 ```zsh
 cd /var/mobile/Amazon-Dark-phone
 D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents
-rm -rf /var/mobile/t7406 && mkdir -p /var/mobile/t7406
-unzip -q "$D/AmazonDark-v7.406-video-sponsored-footer-restore-source.zip" -d /var/mobile/t7406
+rm -rf /var/mobile/t7408 && mkdir -p /var/mobile/t7408
+unzip -q "$D/AmazonDark-v7.408-permission-location-switcher-hardening-source.zip" -d /var/mobile/t7408
 find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
-cp -a /var/mobile/t7406/AmazonDark-v7.406-video-sponsored-footer-restore-source/. .
+cp -a /var/mobile/t7408/AmazonDark-v7.408-permission-location-switcher-hardening-source/. .
 chmod 755 layout/DEBIAN/postinst
 AD_STRICT_VALIDATE=1 sh scripts/validate.sh
 git add -A
-git commit -m "v7.406: restore Sponsored footer below video card"
+git commit -m "v7.408: theme permission/location sheets and harden switcher snapshots"
 git push origin main
 ```
 
-## FULL — screenshot trigger
-Leave the target UI visible and take one iOS screenshot, then export:
+## FULL probe
+Leave Amazon on the target screen and take an iOS screenshot. Then export:
 ```zsh
 cd /var/mobile/Amazon-Dark-phone
 sh scripts/ui-probe.sh export
 ```
 
-## VIEWPORT — armed current-screen capture
+## VIEWPORT probe — arm
+With Amazon already open on the target screen:
 ```zsh
 cd /var/mobile/Amazon-Dark-phone
 sh scripts/ui-probe.sh arm
 ```
-Show the target UI, then:
+
+## VIEWPORT probe — export
+Return to Amazon and leave the exact target frame visible. Then:
 ```zsh
+cd /var/mobile/Amazon-Dark-phone
 sh scripts/ui-probe.sh export
 ```
 
-## TRANSITION / lifecycle
-Force-close Amazon first, then:
+## TRANSITION probe — arm
+Force-close Amazon first:
 ```zsh
 cd /var/mobile/Amazon-Dark-phone
 sh scripts/skeleton-probe.sh arm transition
 ```
-Reproduce the transition and export:
+
+## TRANSITION probe — export
+Reproduce the transition/backgrounding issue, then:
 ```zsh
+cd /var/mobile/Amazon-Dark-phone
 sh scripts/skeleton-probe.sh export
 ```
