@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 M=(ROOT/'Makefile').read_text()
-assert 'Version: 7.409~permission-controls-location-rails-fix' in C
-assert '#define AD_VERSION "v7.409-permission-controls-location-rails-fix"' in S
+assert 'Version: 7.410~permission-text-location-firstpaint' in C
+assert '#define AD_VERSION "v7.410-permission-text-location-firstpaint"' in S
 assert '@interface IESSkeletonView : UIView @end' in S
 assert '"AWLoadingIndicatorFullScreenModalBar","AWLoadingIndicatorWidgets_BkgView","IESSkeletonView"' in S
 for fn in ['ADPDPTransitionSkeletonView7407','ADPDPTransitionSkeletonImage7407','ADPDPDarkSkeletonRaster7407','ADOwnPDPTransitionSkeletonImage7407','ADOwnPDPTransitionSkeletonView7407']:

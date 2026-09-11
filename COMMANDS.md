@@ -1,17 +1,17 @@
-# AmazonDark v7.409 commands
+# AmazonDark v7.410 commands
 
 ## PUSH
 ```zsh
 cd /var/mobile/Amazon-Dark-phone
 D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents
-rm -rf /var/mobile/t7409 && mkdir -p /var/mobile/t7409
-unzip -q "$D/AmazonDark-v7.409-permission-controls-location-rails-fix-source.zip" -d /var/mobile/t7409
+rm -rf /var/mobile/t7410 && mkdir -p /var/mobile/t7410
+unzip -q "$D/AmazonDark-v7.410-permission-text-location-firstpaint-source.zip" -d /var/mobile/t7410
 find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
-cp -a /var/mobile/t7409/AmazonDark-v7.409-permission-controls-location-rails-fix-source/. .
+cp -a /var/mobile/t7410/AmazonDark-v7.410-permission-text-location-firstpaint-source/. .
 chmod 755 layout/DEBIAN/postinst
 AD_STRICT_VALIDATE=1 sh scripts/validate.sh
 git add -A
-git commit -m "v7.409: fix permission controls and location side rails"
+git commit -m "v7.410: fix permission text and location first paint"
 git push origin main
 ```
 

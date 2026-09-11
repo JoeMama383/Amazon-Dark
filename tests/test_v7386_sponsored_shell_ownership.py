@@ -3,8 +3,8 @@ ROOT=Path(__file__).resolve().parents[1]
 A=(ROOT/'src/ADSponsored.m').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 S=(ROOT/'src/Tweak.xm').read_text()
-assert 'Version: 7.409~permission-controls-location-rails-fix' in C
-assert '#define AD_VERSION "v7.409-permission-controls-location-rails-fix"' in S
+assert 'Version: 7.410~permission-text-location-firstpaint' in C
+assert '#define AD_VERSION "v7.410-permission-text-location-firstpaint"' in S
 assert 'mobile-gateway-atf_Spons' in A
 assert 'npack-asin-card-cards' in A
 assert '_widget-sponsored-badge-container_' in A

@@ -1,15 +1,7 @@
 {
-  "version": "7.409~permission-controls-location-rails-fix",
-  "direct_parent": "7.408~permission-location-switcher-hardening",
-  "source": "AmazonDark-v7.408-permission-location-switcher-hardening-source.zip from Library/current project handoff",
-  "parent_files_sha256": {
-    "src/Tweak.xm": "5c7cba3fdadaa4d6821189ff9f9b6fc5b2fdd918f420434dfb5aab03a82b44bc",
-    "src/AmazonDarkSB.xm": "1f45d3410b48eacc887146c1bc3f16a952b8a64cf564bdf395b1838ab5121983",
-    "src/ADSponsored.m": "45e4825bb0c025016633c026740fc02a969f0a3d6aafa6d2be79a58e81f97fa7",
-    "scripts/ui-probe.sh": "aae73077d660ae2d7f10751970175ff5237e71638e0b3a82e9f24aa8143f54ad",
-    "scripts/skeleton-probe.sh": "b1e73d8cd00934ac86133b7ebfe3648d8872c3f1b66d06bac768b89255adc365"
-  },
-  "runtime_contract": "Preserve all v7.408 and earlier behavior. Correct only the probe-proven Camera/Microphone permission controls and Choose-your-location outer rails: force exact button label descendants light at assignment and final draw; recolor the existing React border to gray with the authored 8pt radius and remove the competing CALayer ring; preserve the Camera 24x24 checkbox fill/edge/state exactly; darken the exact 430pt bright location shell when it contains the inset ~394pt dark RCTScrollView even if the address-card marker arrives late. Preserve semantic blue links, selected orange address edge, microphone artwork, v7.408 inactive switcher invariant, and all prior theming. Add no observer, timer, RAF, polling, scroll listener, recurring scan or WKUserScript. Regenerate FULL/VIEWPORT/transition probes as v7.409.",
-  "device_validation": "Verify Camera: both button labels white, right Allow border single gray rounded edge, checkbox square preserved stock. Verify Microphone: Continue has one gray rounded border with no yellow under-ring and white label. Verify Choose-your-location: both white vertical rails are OLED while blue links/orange selection remain authored. Recheck app-switcher backgrounding and PDP skeleton from v7.408/v7.407. FULL/VIEWPORT/TRANSITION exports identify as v7.409.",
-  "parent_source_zip_sha256": "76a45b7fa3ecf2f2eec4dcc0d20ebf17843759ab4118f7d2ab66c1e096265bbb"
+  "version": "7.410~permission-text-location-firstpaint",
+  "direct_parent": "7.409~permission-controls-location-rails-fix",
+  "source": "AmazonDark-v7.409-permission-controls-location-rails-fix-source.zip from current conversation handoff",
+  "runtime_contract": "Preserve all v7.409 and earlier behavior. Fix the transition-probe-proven timing gaps only: Camera classifies from inflight-prompt-title/description before its buttons exist; Microphone classifies from allowTitle before actionButton; every neutral permission text run is repaired white at assignment and final paint/layout across both RCTTextView and RCTParagraphComponentView while saturated semantic links remain authored. Choose-your-location owns the exact full-width bright clipping shell from the already-mounted ~394pt dark inset RCTScrollView before any location root marker is required, plus its adjacent 18pt bright top rail. Preserve Camera checkbox art/state, single gray rounded permission button border, selected orange address edge, blue links, v7.408 inactive switcher invariant, v7.407 PDP skeleton, and all prior theming. Add no observer, timer, RAF, polling, scroll listener, recurring scan or WKUserScript. Regenerate FULL/VIEWPORT/TRANSITION probes as v7.410.",
+  "device_validation": "Open Camera and Microphone permission sheets repeatedly and verify all neutral text is white from first visible frame while authored blue links remain blue. Open Choose-your-location repeatedly and verify no white top strip or side rails appear during the upward transition; selected orange address edge and blue links remain authored. Recheck app-switcher backgrounding and PDP skeleton. FULL/VIEWPORT/TRANSITION exports identify as v7.410."
 }

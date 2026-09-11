@@ -1,0 +1,88 @@
+AmazonDark v7.410 validation / self-audit
+=========================================
+
+Release
+-------
+Version:       7.410~permission-text-location-firstpaint
+Runtime:       v7.410-permission-text-location-firstpaint
+Direct parent: 7.409~permission-controls-location-rails-fix
+
+Probe-backed corrections
+------------------------
+1. Camera permission intermittent dark text
+   - supplied v7.406 transition probe proves sheet-view at tick 193
+   - inflight-prompt-title becomes visible at tick 195
+   - inflight-prompt-description becomes visible at tick 196
+   - camera buttons do not arrive until tick 206 (~134 ms after the title)
+   - camera family now classifies from title/description immediately rather than waiting for final controls
+   - neutral copy is repaired at assignment and final paint/layout
+
+2. Microphone permission intermittent dark text
+   - v7.409 transition evidence proves allowTitle precedes actionButton
+   - microphone family classifies from allowTitle immediately
+   - neutral copy is repaired at assignment and final paint/layout
+
+3. React text-renderer hardening
+   - RCTTextView retains NSTextStorage assignment + drawRect final-paint ownership
+   - RCTParagraphComponentView now also repairs its current attributed string at final layout
+   - saturated semantic links remain authored; neutral black/gray permission copy becomes light
+
+4. Choose-your-location transition first paint
+   - exact local 394pt dark inset RCTScrollView can identify the bright 430pt clipping shell without waiting for a location root marker
+   - adjacent ~18pt top rail is claimed from the same sibling witness
+   - old marked-root/final-geometry path remains only as compatibility fallback
+   - orange selected-address edge and blue links remain authored
+
+Inherited v7.409 control corrections
+------------------------------------
+- Camera checkbox remains authored/stock.
+- Camera/Mic buttons use the existing React border as the only 1pt gray rounded border.
+- No yellow under-border / duplicate CALayer ring.
+- Button labels remain white.
+
+Architecture / performance
+--------------------------
+- no new MutationObserver
+- no interval / polling loop
+- no requestAnimationFrame loop
+- no Web scroll listener
+- no recurring hierarchy scan
+- no delayed retry loop
+- no new WKUserScript family
+- all new work is event-driven through existing React lifecycle/setter/final-paint hooks
+
+Probe regeneration
+------------------
+- universal FULL identity/output: v7.410
+- universal VIEWPORT arm/output: v7.410
+- transition/lifecycle helper identity: v7.410
+- SpringBoard launch-probe identity: v7.410
+- exact direct-parent v7.409 receipt -> v7.410 handoff: PASS
+
+Validation performed
+--------------------
+- sh -n scripts/ui-probe.sh: PASS
+- sh -n scripts/skeleton-probe.sh: PASS
+- sh -n layout/DEBIAN/postinst: PASS
+- bash -n scripts/lint-logos.sh: PASS
+- bash scripts/lint-logos.sh: PASS
+- targeted v7.410 permission/location first-paint regression: PASS
+- inherited v7.409 permission-control/location regression: PASS
+- inherited v7.408 permission/location/switcher regression: PASS
+- targeted v7.410 direct-parent probe handoff: PASS
+- bounded Python regression files excluding exhaustive handoff: 78/78 PASS
+- tests/test_probe_handoff.py exhaustive historical handoff suite: PASS independently
+- all Python regression files including exhaustive handoff in bounded parallel run: 79/79 PASS
+- serial scripts/validate.sh: no assertion failure observed before 120s environment timeout
+
+Build note
+----------
+Theos is not installed/configured in this environment (`/makefiles/common.mk` missing), so no local rootless .deb compile is claimed. The phone/GitHub Actions build remains authoritative for packaging.
+
+Device verification targets
+---------------------------
+1. Open Camera permission repeatedly: heading/body/checkbox-copy/button labels are light from the first visible frame; authored permission-settings links stay blue; checkbox square remains authored.
+2. Open Microphone permission repeatedly: all neutral copy remains light from first paint; Continue has one gray rounded border with no yellow under-ring.
+3. Open Choose your location repeatedly: no white top strip or side rails during the upward presentation animation; settled state remains OLED.
+4. Recheck location-sheet app-switcher backgrounding and Product Search -> PDP skeleton transition.
+5. FULL, VIEWPORT and TRANSITION exports identify as v7.410.

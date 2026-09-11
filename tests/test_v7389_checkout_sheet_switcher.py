@@ -3,8 +3,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.409~permission-controls-location-rails-fix' in C
-assert '#define AD_VERSION "v7.409-permission-controls-location-rails-fix"' in S
+assert 'Version: 7.410~permission-text-location-firstpaint' in C
+assert '#define AD_VERSION "v7.410-permission-text-location-firstpaint"' in S
 
 # Exact portal-mounted Subscribe & Save family; no generic sheet takeover.
 for token in [

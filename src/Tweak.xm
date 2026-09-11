@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.409 — permission controls + location rail completion
+ * AmazonDark v7.410 — deterministic permission text + location transition first paint
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.409-permission-controls-location-rails-fix"
+#define AD_VERSION "v7.410-permission-text-location-firstpaint"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -7766,12 +7766,19 @@ static int ADPermissionDetectKind7408(UIView *root){
         while(seen<q.count&&seen<128){
             UIView *x=q[seen++]; if(!x)continue;
             NSString *aid=x.accessibilityIdentifier?:@"";
-            if([aid isEqualToString:@"inflight-prompt"]||[aid isEqualToString:@"inflight-prompt-allow-button"]||[aid isEqualToString:@"allow-all-CAMERA"]){ camera=YES; break; }
+            // v7.410 transition capture: the first unique text marker arrives before
+            // the final action control. Classify from that earliest stable identity so
+            // no stock-dark text can reach first paint while waiting for hydration.
+            if([aid isEqualToString:@"inflight-prompt"]||[aid isEqualToString:@"inflight-prompt-allow-button"]||
+               [aid isEqualToString:@"allow-all-CAMERA"]||[aid isEqualToString:@"inflight-prompt-title"]||
+               [aid isEqualToString:@"inflight-prompt-description"]){ camera=YES; break; }
             if([aid isEqualToString:@"actionButton"])micButton=YES;
             if([aid isEqualToString:@"allowTitle"])micTitle=YES;
             if(x.subviews.count)[q addObjectsFromArray:x.subviews];
         }
-        int kind=camera?1:((micButton&&micTitle)?2:0);
+        // `allowTitle` is unique to the probe-proven voice permission sheet and
+        // precedes actionButton by two display frames. Do not wait for both.
+        int kind=camera?1:(micTitle?2:0);
         if(kind){
             objc_setAssociatedObject(root,kADPermissionSheetKind7408,@(kind),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             if(!objc_getAssociatedObject(root,kADPermissionSheetPrimed7408)){
@@ -7852,7 +7859,25 @@ static BOOL ADPermissionButtonText7409(UIView *v){
     } @catch(...) {}
     return NO;
 }
-static BOOL ADPermissionDarkNeutral7408(UIColor *c){ return ADDarkNeutral7259(c,YES); }
+static BOOL ADPermissionNeutralText7410(UIColor *color){
+    // Permission copy is intentionally neutral white on OLED. Preserve authored
+    // saturated semantic runs (permissions/settings/Privacy/Learn more links), but
+    // normalize every neutral gray/black run regardless of Amazon's hydration shade.
+    if(!color)return YES;
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0; UIColor *probe=color;
+        if([probe respondsToSelector:@selector(resolvedColorWithTraitCollection:)])
+            probe=[probe resolvedColorWithTraitCollection:UIScreen.mainScreen.traitCollection];
+        if([probe getRed:&r green:&g blue:&b alpha:&a]){
+            if(a<0.08)return NO;
+            CGFloat hi=MAX(r,MAX(g,b)),lo=MIN(r,MIN(g,b));
+            return (hi-lo)<=0.18&&hi<0.92;
+        }
+        if([probe getWhite:&w alpha:&a])return a>=0.08&&w<0.92;
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADPermissionDarkNeutral7408(UIColor *c){ return ADPermissionNeutralText7410(c); }
 static NSAttributedString *ADPermissionLightString7408(NSAttributedString *in){ return ADLightNeutralString7271(in,ADPermissionDarkNeutral7408); }
 static NSAttributedString *ADPermissionTextString7409(UIView *v,NSAttributedString *in){
     if(!in.length||!ADPermissionButtonText7409(v))return ADPermissionLightString7408(in);
@@ -7864,9 +7889,36 @@ static void ADPermissionTextStorage7409(UIView *v,NSTextStorage *ts){
     if(!ADPermissionButtonText7409(v)){ ADPermissionLightStorage7408(ts); return; }
     @try { [ts beginEditing]; [ts addAttribute:NSForegroundColorAttributeName value:ADLightText706() range:NSMakeRange(0,ts.length)]; [ts endEditing]; } @catch(...) {}
 }
+static NSAttributedString *ADPermissionAttributedString7410(UIView *v){
+    if(!v)return nil;
+    @try {
+        SEL getSel=NSSelectorFromString(@"attributedText");
+        if([v respondsToSelector:getSel]){
+            id a=((id(*)(id,SEL))objc_msgSend)(v,getSel);
+            if([a isKindOfClass:[NSAttributedString class]])return (NSAttributedString *)a;
+        }
+        const char *names[]={"_attributedText","_attributedString"};
+        for(size_t i=0;i<sizeof(names)/sizeof(names[0]);i++){
+            Ivar iv=class_getInstanceVariable([v class],names[i]);
+            if(iv){ id a=object_getIvar(v,iv); if([a isKindOfClass:[NSAttributedString class]])return (NSAttributedString *)a; }
+        }
+    } @catch(...) {}
+    return nil;
+}
 static void ADPermissionOwnText7408(UIView *v){
     if(!gP.enabled||!v||!v.window||!ADPermissionSheetKind7408(v))return;
-    NSTextStorage *ts=ADPersonTextStorage7206(v); if(ts)ADPermissionTextStorage7409(v,ts);
+    NSTextStorage *ts=ADPersonTextStorage7206(v);
+    if(ts){ ADPermissionTextStorage7409(v,ts); return; }
+    // v7.410: some React loads use ParagraphComponentView rather than RCTTextView.
+    // Repair its current attributed string at final layout as well as at assignment,
+    // so a late hydration rewrite cannot leave neutral Camera/Mic copy stock-dark.
+    @try {
+        NSAttributedString *a=ADPermissionAttributedString7410(v); if(!a.length)return;
+        NSAttributedString *r=ADPermissionTextString7409(v,a);
+        if(!r||[r isEqualToAttributedString:a])return;
+        SEL setSel=[v respondsToSelector:NSSelectorFromString(@"setAttributedText:")]?NSSelectorFromString(@"setAttributedText:"):NSSelectorFromString(@"_setAttributedString:");
+        if([v respondsToSelector:setSel])((void(*)(id,SEL,id))objc_msgSend)(v,setSel,r);
+    } @catch(...) {}
 }
 static BOOL ADPermissionCameraCloseWrapper7408(UIView *v){
     return v&&ADClassNameIs7183(v,"RCTImageView")&&ADPermissionSheetKind7408(v)==1&&[v.accessibilityIdentifier isEqualToString:@"closeButtonIcon"];
@@ -7930,16 +7982,23 @@ static void ADPermissionPrimeSheet7408(UIView *root,int kind){
 // location root has been marked; bypass the older cached surface classification so a
 // shell mounted before the address wrappers cannot stay white for the rest of its life.
 static BOOL ADLocationInsetScrollerWitness7409(UIView *v){
-    if(!v)return NO;
+    if(!v||!v.window)return NO;
     @try {
+        CGRect wb=v.window.bounds,vr=[v convertRect:v.bounds toView:v.window];
         NSMutableArray *q=[NSMutableArray arrayWithArray:v.subviews?:@[]]; NSUInteger seen=0;
         while(seen<q.count&&seen<12){
             UIView *x=q[seen++]; if(!x)continue;
             if(ADClassNameIs7183(x,"RCTScrollView")){
-                CGRect xr=[x convertRect:x.bounds toView:v.window],vr=[v convertRect:v.bounds toView:v.window];
-                UIColor *bg=x.backgroundColor;
-                if(xr.size.width>=vr.size.width*0.89&&xr.size.width<=vr.size.width*0.94&&
-                   fabs(xr.size.height-vr.size.height)<=8.0&&ADDarkNeutral7259(bg,NO))return YES;
+                CGRect xr=[x convertRect:x.bounds toView:v.window]; UIColor *bg=x.backgroundColor;
+                // v7.410 transition probe: the inset scroller is already at its final
+                // 394x375.7 geometry while the clipping outer shell is still expanding
+                // from 10.7pt upward. Compare against the window/final scroller geometry,
+                // never against the shell's transient presentation height.
+                if(xr.size.width>=wb.size.width*0.89&&xr.size.width<=wb.size.width*0.94&&
+                   xr.size.height>=330.0&&xr.size.height<=430.0&&
+                   CGRectGetMinX(xr)>=14.0&&CGRectGetMinX(xr)<=22.0&&
+                   fabs(CGRectGetMinX(xr)-CGRectGetMinX(vr)-18.0)<=4.0&&
+                   ADDarkNeutral7259(bg,NO))return YES;
             }
             if(x.subviews.count&&seen<8)[q addObjectsFromArray:x.subviews];
         }
@@ -7947,19 +8006,35 @@ static BOOL ADLocationInsetScrollerWitness7409(UIView *v){
     return NO;
 }
 static BOOL ADLocationOuterWhiteShell7408(UIView *v,UIColor *candidate){
-    if(!gP.enabled||!v||!v.window||!ADClassNameIs7183(v,"RCTView")||!ADBrightNeutralColor708(candidate))return NO;
-    UIView *root=ADLocationRootAny7202(v); if(!root)return NO;
+    if(!gP.enabled||!v||!v.window||!ADClassNameIs7183(v.window,"AppCXWindow")||!ADClassNameIs7183(v,"RCTView")||!ADBrightNeutralColor708(candidate))return NO;
     @try {
         CGRect r=[v convertRect:v.bounds toView:v.window],wb=v.window.bounds;
-        BOOL geometry=r.size.width>=wb.size.width*0.98&&r.size.height>=300.0&&r.size.height<=430.0&&
-                      CGRectGetMinY(r)>=wb.size.height*0.54&&CGRectGetMinY(r)<=wb.size.height*0.68;
-        if(!geometry||!v.clipsToBounds||v.subviews.count!=1)return NO;
-        // Prefer the historical marked location root, but also accept the exact r4
-        // local witness: a full-width bright shell containing the ~394pt dark
-        // vertical RCTScrollView. This closes the timing hole where the shell can
-        // paint before the address-card marker is attached.
-        return objc_getAssociatedObject(root,kADLocationRootFirstPaint7202)!=nil||ADLocationInsetScrollerWitness7409(v);
+        if(r.size.width<wb.size.width*0.98||!v.clipsToBounds||v.subviews.count!=1)return NO;
+        // v7.410 transition proof: the exact 394pt inset dark scroller is sufficient
+        // identity before the location root marker/hydration state is available. Claim
+        // this bright clipping shell immediately, then retain the old marked-root path
+        // only as a settled-state compatibility fallback.
+        if(ADLocationInsetScrollerWitness7409(v))return YES;
+        UIView *root=ADLocationRootAny7202(v); if(!root)return NO;
+        BOOL finalGeometry=r.size.height>=300.0&&r.size.height<=430.0&&
+                           CGRectGetMinY(r)>=wb.size.height*0.54&&CGRectGetMinY(r)<=wb.size.height*0.68;
+        return finalGeometry&&objc_getAssociatedObject(root,kADLocationRootFirstPaint7202)!=nil;
     } @catch(...) { return NO; }
+}
+static BOOL ADLocationTransitionTopRail7410(UIView *v,UIColor *candidate){
+    if(!gP.enabled||!v||!v.window||!ADClassNameIs7183(v.window,"AppCXWindow")||!ADClassNameIs7183(v,"RCTView")||!ADBrightNeutralColor708(candidate)||!v.superview)return NO;
+    @try {
+        CGRect vr=[v convertRect:v.bounds toView:v.window],wb=v.window.bounds;
+        if(vr.size.width<wb.size.width*0.98||vr.size.height<14.0||vr.size.height>22.0||
+           CGRectGetMinY(vr)<wb.size.height*0.50)return NO;
+        for(UIView *sib in v.superview.subviews){
+            if(sib==v||!ADClassNameIs7183(sib,"RCTView")||!sib.clipsToBounds)continue;
+            CGRect sr=[sib convertRect:sib.bounds toView:v.window];
+            if(sr.size.width<wb.size.width*0.98||fabs(CGRectGetMaxY(vr)-CGRectGetMinY(sr))>4.0)continue;
+            if(ADLocationInsetScrollerWitness7409(sib))return YES;
+        }
+    } @catch(...) {}
+    return NO;
 }
 // v7.401 FULL r5/r6: the two checkout payment menus are native React sheets, not
 // WebUI. They share RCTView#bottom-sheet, but ownership is not granted by that generic
@@ -8296,7 +8371,7 @@ static void ADOwnReactView7226(UIView *v){
             ADPermissionOwnView7408(v);
             return;
         }
-        if(ADLocationOuterWhiteShell7408(v,v.backgroundColor)){
+        if(ADLocationOuterWhiteShell7408(v,v.backgroundColor)||ADLocationTransitionTopRail7410(v,v.backgroundColor)){
             ADSetLocationBlack7202(v);
             return;
         }
@@ -8365,7 +8440,7 @@ static void ADOwnReactView7226(UIView *v){
         ADPermissionOwnView7408(v);
         return;
     }
-    if(gP.enabled&&v.window&&ADLocationOuterWhiteShell7408(v,color)){
+    if(gP.enabled&&v.window&&(ADLocationOuterWhiteShell7408(v,color)||ADLocationTransitionTopRail7410(v,color))){
         UIColor *black=ADOLED();
         gADPaintWriteDepth7226++;
         @try {
@@ -8673,6 +8748,11 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     else if(ADInMenuTab7255(v))ADMenuOwnText7255(v);
     else if(ADInLocationSheetContent7196(v))ADLocationSheetOwnText7196(v);
     else if(ADInPersonSavingsSheet7259(v)){ NSTextStorage *ts=ADPersonTextStorage7206(v); if(ts)ADPersonSavingsLightStorage7259(ts); }
+}
+- (void)layoutSubviews {
+    %orig;
+    UIView *v=(UIView *)self;
+    if(gP.enabled&&v.window&&ADPermissionSheetKind7408(v))ADPermissionOwnText7408(v);
 }
 %end
 

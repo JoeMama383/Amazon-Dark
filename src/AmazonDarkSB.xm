@@ -79,7 +79,7 @@ static void ADLaunchLog7337(NSString *event,NSString *detail){
         NSString *line=[NSString stringWithFormat:@"%.6f up=%.6f pid=%d event=%@ %@\n",
             CFAbsoluteTimeGetCurrent(),NSProcessInfo.processInfo.systemUptime,getpid(),event,detail?:@""];
         dispatch_async(queue,^{@autoreleasepool{@try{
-            NSString *path=@"/var/mobile/AmazonDark-v7.409-launch-sb-probe.txt";
+            NSString *path=@"/var/mobile/AmazonDark-v7.410-launch-sb-probe.txt";
             NSFileManager *fm=NSFileManager.defaultManager;
             if(![fm fileExistsAtPath:path])[fm createFileAtPath:path contents:nil attributes:@{NSFilePosixPermissions:@0666}];
             NSFileHandle *file=[NSFileHandle fileHandleForWritingAtPath:path];
@@ -314,7 +314,7 @@ static UIImage *ADLaunchSnapshotImage7337(XBApplicationSnapshot *snapshot,UIImag
     BOOL placeholder=class_getInstanceMethod(objc_getClass("SBDeviceApplicationSceneViewPlaceholderContentViewProvider"),@selector(_loadLiveXIBViewForApplication:))!=NULL;
     // Image loading consults UIScreen; UIKit is not ready during dyld startup.
     // Keep startup diagnostics free of UIKit calls, including helper arguments.
-    if(ADLaunchProbeArmed7351()) ADLaunchLog7337(@"ctor",[NSString stringWithFormat:@"version=7.409~cold-artwork-no-generic-xib base=v7.338 snapshotClass=%d factory=%d wrapper=%d placeholderProbe=%d logo=deferred",
+    if(ADLaunchProbeArmed7351()) ADLaunchLog7337(@"ctor",[NSString stringWithFormat:@"version=7.410~cold-artwork-no-generic-xib base=v7.338 snapshotClass=%d factory=%d wrapper=%d placeholderProbe=%d logo=deferred",
         objc_getClass("XBApplicationSnapshot")!=Nil,factory,wrapper,placeholder]);
     @autoreleasepool {
         @try { %init; } @catch (__unused NSException *e) {}
