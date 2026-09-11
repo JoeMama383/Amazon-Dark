@@ -9,8 +9,8 @@ W=(ROOT/'.github/workflows/build.yml').read_text()
 V=(ROOT/'scripts/validate.sh').read_text()
 SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 
-assert 'Version: 7.402~payment-first-paint-switcher-fix' in C
-assert '#define AD_VERSION "v7.402-payment-first-paint-switcher-fix"' in S
+assert 'Version: 7.403~product-share-sheet-probe-control' in C
+assert '#define AD_VERSION "v7.403-product-share-sheet-probe-control"' in S
 for key in ['hideSponsored','priceHistory']:
     assert key in S and f'<string>{key}</string>' in P
 assert '<string>Hide Sponsored Content</string>' in P

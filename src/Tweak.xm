@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.402 — payment first-paint + switcher fix
+ * AmazonDark v7.403 — product Share sheet completion + probe testing control
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.402-payment-first-paint-switcher-fix"
+#define AD_VERSION "v7.403-product-share-sheet-probe-control"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -112,6 +112,7 @@ typedef struct {
 } ADPrefs;
 
 static ADPrefs gP;
+static BOOL gADDisableShareSheetForProbes7403=NO;
 
 enum { ADPrefsFloors7388=1, ADPrefsPromotion7388=2, ADPrefsTWB7388=4, ADPrefsPrivacy7388=8 };
 static unsigned ADPreferenceChanges7388(ADPrefs before,ADPrefs after){
@@ -138,6 +139,7 @@ static void ADLoadPrefs(void){
     gP.privacyMode=NO;
     gP.hideSponsored=NO;
     gP.priceHistory=NO;
+    gADDisableShareSheetForProbes7403=NO;
     gP.whiteTameStrength=45;
     @try {
         NSString *path=[NSString stringWithFormat:@"/var/jb/var/mobile/Library/Preferences/%s.plist",AD_PREF_DOMAIN];
@@ -149,6 +151,7 @@ static void ADLoadPrefs(void){
         gP.privacyMode=ADPrefBool(d,@"privacyMode",gP.privacyMode);
         gP.hideSponsored=ADPrefBool(d,@"hideSponsored",gP.hideSponsored);
         gP.priceHistory=ADPrefBool(d,@"priceHistory",gP.priceHistory);
+        gADDisableShareSheetForProbes7403=ADPrefBool(d,@"disableShareSheetForProbes",gADDisableShareSheetForProbes7403);
         gP.whiteTameStrength=ADPrefLong(d,@"whiteTameStrength",gP.whiteTameStrength);
     } @catch(...) {}
 }
@@ -2268,6 +2271,34 @@ static NSString *ADPriceHistoryJS7380(void){
 }
 
 
+// v7.403 FULL r2 + historical v7.254/v7.257: Product Share uses the same SSF AUI
+// renderer as Cart Share. Keep the old shared ADFloor/ADTWB programs hash-stable and append
+// this tiny exact-family delta through the existing immutable core program.
+static NSString *ADProductShareThemeJS7403(void){
+    return @"(function(){try{var d=document;function put(){var s=d.getElementById('ad7403-ssf-product-share');if(!s){s=d.createElement('style');s.id='ad7403-ssf-product-share';(d.head||d.documentElement||d).appendChild(s);}s.textContent='.a-sheet-web:has(.ssf-customize-container-one),.a-sheet-web:has(.ssf-customize-container-one) .a-sheet-content-container,.a-sheet-web:has(.ssf-customize-container-one) .a-sheet-heading-container,.a-sheet-web:has(.ssf-customize-container-one) .ssf-customize-container-one,.a-sheet-web:has(.ssf-customize-container-one) .ssf-two-row-custom-channels-container,.a-sheet-web:has(.ssf-customize-container-one) .ssf-custom-share-options-two-row-container,.a-sheet-web:has(.ssf-customize-container-one) .a-padding-base:not(#ssf-preview-container),.a-sheet-web:has(.ssf-customize-container-one) .ssf-product-title-text{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}.a-sheet-web:has(.ssf-customize-container-one) .ssf-preview-box{background:#000!important;background-color:#000!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;}.a-sheet-web:has(.ssf-customize-container-one) :is(.a-sheet-heading,#ssf-title-label,.ssf-product-title-text,.ssf-custom-share-option .label,#ssf-reviews-count,h1,h2,h3,h4,h5,h6){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}.a-sheet-web:has(.ssf-customize-container-one) :is(a,.a-color-link),.a-sheet-web:has(.ssf-customize-container-one) :is(a,.a-color-link) *{-webkit-text-fill-color:currentColor!important;}.a-sheet-web:has(.ssf-customize-container-one) .ssf-custom-share-option,.a-sheet-web:has(.ssf-customize-container-one) .ssf-custom-share-option :is(div,span){background-color:transparent!important;-webkit-tap-highlight-color:transparent!important;}.a-sheet-web:has(.ssf-customize-container-one) .ssf-custom-share-option:is(:active,:focus,:focus-visible,:focus-within),.a-sheet-web:has(.ssf-customize-container-one) .ssf-custom-share-option:is(:active,:focus,:focus-visible,:focus-within) :is(div,span){background:#000!important;background-color:#000!important;box-shadow:none!important;-webkit-tap-highlight-color:transparent!important;}';}put();}catch(_){}})();";
+}
+
+// Tame only the probe-proven bright imagery. The backend preview is a single authored raster
+// containing product + orange stars, so brightness preserves hue rather than inverting it. If
+// Amazon switches to the pre-mounted HTML fallback, only the product image is tamed and the
+// separate star raster remains untouched. Share-channel app artwork is brightness-tamed too.
+static NSString *ADProductShareTWBJS7403(void){
+    if(!gP.whiteTame)return @"";
+    long strengthKey=MAX(0,MIN(100,gP.whiteTameStrength));
+    CGFloat t=((CGFloat)strengthKey)/100.0;
+    CGFloat shade=0.10+(0.48*t);
+    CGFloat factor=1.0-shade;
+    return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7403-ssf-product-share-twb');if(!s){s=d.createElement('style');s.id='ad7403-ssf-product-share-twb';(d.head||d.documentElement||d).appendChild(s);}s.textContent='.a-sheet-web:has(.ssf-customize-container-one) .ssf-backend-preview #ssf-preview-container,.a-sheet-web:has(.ssf-customize-container-one) .ssf-html-preview #ssf-img-main-image,.a-sheet-web:has(.ssf-customize-container-one) img[id^=ssf-share-channel-]{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;mix-blend-mode:normal!important;}.a-sheet-web:has(.ssf-customize-container-one) #ssf-img-reviews-stars{filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;}';}catch(_){}})();",factor,factor];
+}
+
+// Testing preference: screenshot-triggered FULL probes must be able to inspect the underlying
+// Amazon UI without the Product Share SSF sheet covering it. Default OFF. Settings already
+// requires a respring, so this needs no observer, polling, or live reinjection machinery.
+static NSString *ADShareProbeSuppressJS7403(void){
+    if(!gADDisableShareSheetForProbes7403)return @"";
+    return @"(function(){try{var d=document,s=d.getElementById('ad7403-share-probe-suppress');if(!s){s=d.createElement('style');s.id='ad7403-share-probe-suppress';(d.head||d.documentElement||d).appendChild(s);}s.textContent='.a-sheet-web-container:has(.ssf-customize-container-one),.a-sheet-web:has(.ssf-customize-container-one){display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}body:has(.ssf-customize-container-one)>.a-sheet-lightbox{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}';}catch(_){}})();";
+}
+
 // One immutable document-start program per strength replaces four separately
 // allocated/compiled WKUserScripts while preserving their proven execution order.
 static long gADCoreWebJSStrength7271=-1;
@@ -2276,8 +2307,9 @@ static NSString *ADCoreWebJS7271(void){
     long strength=MAX(0,MIN(100,gP.whiteTameStrength));
     if(gADCoreWebJSCached7271&&gADCoreWebJSStrength7271==strength)return gADCoreWebJSCached7271;
     gADCoreWebJSStrength7271=strength;
-    gADCoreWebJSCached7271=[NSString stringWithFormat:@"%@%@%@%@",ADFullRasterHostBridgeJS7266(),
-        ADStandalonePaintJS7104(),ADFloorJS(),ADHomeAdShellFloorJS7381()];
+    gADCoreWebJSCached7271=[NSString stringWithFormat:@"%@%@%@%@%@%@%@",ADFullRasterHostBridgeJS7266(),
+        ADStandalonePaintJS7104(),ADFloorJS(),ADHomeAdShellFloorJS7381(),ADProductShareThemeJS7403(),
+        ADProductShareTWBJS7403(),ADShareProbeSuppressJS7403()];
     return gADCoreWebJSCached7271;
 }
 

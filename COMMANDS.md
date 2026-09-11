@@ -1,51 +1,47 @@
-# AmazonDark v7.402 commands
+# AmazonDark v7.403 commands
 
 ## PUSH
-
-```sh
+```zsh
 cd /var/mobile/Amazon-Dark-phone
 D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents
-rm -rf /var/mobile/t7402 && mkdir -p /var/mobile/t7402
-unzip -q "$D/AmazonDark-v7.402-payment-first-paint-switcher-fix-source.zip" -d /var/mobile/t7402
+rm -rf /var/mobile/t7403 && mkdir -p /var/mobile/t7403
+unzip -q "$D/AmazonDark-v7.403-product-share-sheet-probe-control-source.zip" -d /var/mobile/t7403
 find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
-cp -a /var/mobile/t7402/AmazonDark-v7.402-payment-first-paint-switcher-fix-source/. .
+cp -a /var/mobile/t7403/AmazonDark-v7.403-product-share-sheet-probe-control-source/. .
 chmod 755 layout/DEBIAN/postinst
 AD_STRICT_VALIDATE=1 sh scripts/validate.sh
 git add -A
-git commit -m "v7.402: fix payment first paint, switcher, and pickup transition"
+git commit -m "v7.403: complete Product Share sheet and add probe control"
 git push origin main
 ```
 
-## FULL UI PROBE
-
-Leave the target Amazon screen visible and take one iOS screenshot, then:
-
-```sh
+## FULL PROBE
+Open the target Amazon UI and take one iOS screenshot. The universal native + WebUI full sweep runs from the screenshot trigger. Then export:
+```zsh
 cd /var/mobile/Amazon-Dark-phone
 sh scripts/ui-probe.sh export
 ```
 
-## VIEWPORT UI PROBE
-
-```sh
+## VIEWPORT PROBE
+```zsh
 cd /var/mobile/Amazon-Dark-phone
 sh scripts/ui-probe.sh arm
 ```
-
-Then export with `sh scripts/ui-probe.sh export`.
+Show the target screen, then export:
+```zsh
+sh scripts/ui-probe.sh export
+```
 
 ## TRANSITION PROBE
-
-Force-close Amazon first, then:
-
-```sh
+Force-close Amazon, then:
+```zsh
 cd /var/mobile/Amazon-Dark-phone
 sh scripts/skeleton-probe.sh arm transition
 ```
-
 Reproduce within about 120 seconds, return to Amazon, then:
-
-```sh
-cd /var/mobile/Amazon-Dark-phone
+```zsh
 sh scripts/skeleton-probe.sh export
 ```
+
+## SCREENSHOT-SHARE TESTING CONTROL
+Settings → AmazonDark → Probe Testing → **Hide Share Sheet for Probes** → Respring. Enable only while collecting screenshot-triggered FULL probes; disable afterward to restore normal Share.

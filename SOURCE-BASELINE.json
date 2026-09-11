@@ -1,15 +1,15 @@
 {
-  "version": "7.402~payment-first-paint-switcher-fix",
-  "direct_parent": "7.401~native-payment-sheets-completion",
-  "source": "AmazonDark-v7.401-native-payment-sheets-completion-source.zip generated in the prior turn and used as the exact direct edit baseline",
-  "parent_source_zip_sha256": "870eddca7855aa7e998e0ee1331e338da49bea8df178ce209b09478223b06433",
+  "version": "7.403~product-share-sheet-probe-control",
+  "direct_parent": "7.402~payment-first-paint-switcher-fix",
+  "source": "AmazonDark-v7.402-payment-first-paint-switcher-fix-source.zip generated in this conversation",
+  "parent_source_zip_sha256": "797e0f102c95fa9c4ee25029c1d488cc8c6326f653fa2df7dbf452f9fda1a179",
   "parent_files_sha256": {
-    "src/Tweak.xm": "47af19d198671157fedc5190dae232f21a276446094676a3ffce4a705b56d8b2",
-    "src/AmazonDarkSB.xm": "e911a6f3661f8b0066e48738c934881b51b924b9318a82372c611b3cbbb7dab2",
+    "src/Tweak.xm": "5fa446e106390fbce8f017770482872663bc109e3087c3cf044a4ba8167ad229",
+    "src/AmazonDarkSB.xm": "562fe3ef6d8b10a1212dc7dc7136fe6ef65f471e9d389093d115847600ba198b",
     "src/ADSponsored.m": "45e4825bb0c025016633c026740fc02a969f0a3d6aafa6d2be79a58e81f97fa7",
-    "scripts/ui-probe.sh": "2ab7f208688e6fe5d8572bb969ee4ac33cf79b3b0e238d99c4cd8f90060eac07",
-    "scripts/skeleton-probe.sh": "18a8a24c8137d1689f6e883a606ee0d2094201396e408a9f63d57202fa363fff"
+    "scripts/ui-probe.sh": "042de2e7ad92f56ba350c0e913ba260f87bad3379cb3eb6ecf9f8d1938617e80",
+    "scripts/skeleton-probe.sh": "d5f90e89f9463f419e7a151722faa9c9c664f5c9b8822d3a543b3fa53306803d"
   },
-  "runtime_contract": "Preserve v7.401 and earlier behavior. Fix only probe-proven first-paint/lifecycle owners: the Maple payment skeleton/shimmer, early Add-new payment bottom-sheet header while preserving the authored orange Amazon SVG, the exact inactive neutral payment visual-effect shields, the exact Place Your Order pickup-expander chevron, the exact SPC pickup z-index-100 white/.75 transition plane, and the exact Add-new creatable-sleeve payment icon rasters. Keep the four monochrome Card/EBT/Bank/OTC image wrappers transparent and render those icons light; preserve the authored FSA/HSA raster. Preserve semantic colors, brand/payment artwork, spinner rendering, press-state policy, and the no-recurring-work performance architecture.",
-  "device_validation": "Verify payment-method reserved-card first paint, Add-new header first frame plus orange Amazon logo, payment-section app switcher dark snapshot, Place Your Order pickup chevron visibility, Place Your Order-to-pickup transition OLED floor, and Add-new Card/EBT/Bank/OTC icons visible with FSA/HSA artwork preserved."
+  "runtime_contract": "Preserve v7.402. Generalize the exact SSF Share renderer contract from Cart-only to Product+Cart, keep floors OLED/neutral copy light/gray edges, tame only product/share-channel imagery through TWB while preserving authored blue/brand/star colors and dark pressed states. Add default-off probe testing preference that hides only SSF Share during screenshot probe collection. Regenerate FULL/VIEWPORT/transition probes as v7.403.",
+  "device_validation": "Product Share OLED/light/gray; product preview and app art tamed without color inversion; orange stars preserved; press states stay dark; testing toggle suppresses SSF after respring while screenshot FULL probe still exports underlying target."
 }

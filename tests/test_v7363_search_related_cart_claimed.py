@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/"src/Tweak.xm").read_text()
 ctl=(ROOT/"layout/DEBIAN/control").read_text()
-assert "Version: 7.402~payment-first-paint-switcher-fix" in ctl
-assert "#define AD_VERSION \"v7.402-payment-first-paint-switcher-fix\"" in t
+assert "Version: 7.403~product-share-sheet-probe-control" in ctl
+assert "#define AD_VERSION \"v7.403-product-share-sheet-probe-control\"" in t
 # Search autocomplete: broad black-plane ownership must skip image/icon artwork owners.
 assert "[class*=autocomplete]:not([class*=icon]):not([class*=glyph]):not([class*=image])" in t
 assert "[class*=suggestion]:not([class*=icon]):not([class*=glyph]):not([class*=image])" in t

@@ -54,7 +54,7 @@ print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '
         r=subprocess.run(['sh',str(HELPER),*args],env=dict(env,**extra),text=True,capture_output=True)
         assert (r.returncode==0)==ok,(args,r.stdout,r.stderr)
         return r.stdout+r.stderr
-    arm=amazon/'Documents/AmazonDark-v7.402-probe.arm'
+    arm=amazon/'Documents/AmazonDark-v7.403-probe.arm'
     launch_arm=mobile/'AmazonDark-launch-probe.arm'
     for style in ['extract','xml','pretty']:
         run('arm','both',AD_PLUTIL_STYLE=style)
@@ -76,12 +76,12 @@ print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '
     run('arm','launch')
     assert arm.read_text().split()[1]=='launch'
     assert launch_arm.exists(), 'launch probe must arm SpringBoard launch logging'
-    log=amazon/'Documents/AmazonDark-v7.402-skeleton-1-77-launch.jsonl'
+    log=amazon/'Documents/AmazonDark-v7.403-skeleton-1-77-launch.jsonl'
     log.write_text('{"event":"SESSION_START","label":"launch"}\n')
-    receipt=amazon/'Documents/AmazonDark-v7.402-probe-status.json'
+    receipt=amazon/'Documents/AmazonDark-v7.403-probe-status.json'
     receipt.write_text(json.dumps({'event':'PROBE_BOOTSTRAP','bundle':'com.amazon.Amazon','reason':'capture-started','version':'v7.402-native-payment-sheets-completion'}))
     old=mobile/'AmazonDark-v7.340-skeleton-1-55-both.jsonl';old.write_text('old capture\n')
-    sb=mobile/'AmazonDark-v7.402-launch-sb-probe.txt';sb.write_text('snapshot.dark\n')
+    sb=mobile/'AmazonDark-v7.403-launch-sb-probe.txt';sb.write_text('snapshot.dark\n')
     unrelated=other/'Documents';unrelated.mkdir()
     (unrelated/log.name).write_text('MUST NOT EXPORT')
     status=run('status');assert 'SESSION_START' in status and 'capture-started' in status
@@ -106,7 +106,7 @@ print(('com.joemama383.amazondark ' if '${Package}' in ' '.join(sys.argv) else '
     run('arm','launch',AD_PLUTIL_STYLE='unavailable')
     assert arm.read_text().split()[1]=='launch'
     assert launch_arm.exists()
-    assert not (other/'Documents/AmazonDark-v7.402-probe.arm').exists()
+    assert not (other/'Documents/AmazonDark-v7.403-probe.arm').exists()
     status=run('status',AD_PLUTIL_STYLE='unavailable')
     assert 'Verified Amazon startup receipts: 1' in status and 'Amazon container matches: 1' in status
     text=run('export',AD_PLUTIL_STYLE='unavailable')

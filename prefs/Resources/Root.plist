@@ -108,6 +108,28 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>
+			<string>Probe Testing</string>
+			<key>footerText</key>
+			<string>Testing only. Hides Amazon’s Share this product sheet so screenshot-triggered FULL probes can scan the UI underneath. Manual Share is also hidden while enabled. Respring after changing this toggle.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.colindavidr.amazondark</string>
+			<key>key</key>
+			<string>disableShareSheetForProbes</string>
+			<key>label</key>
+			<string>Hide Share Sheet for Probes</string>
+			<key>PostNotification</key>
+			<string>com.colindavidr.amazondark/prefs-changed</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
 			<string>Privacy</string>
 			<key>footerText</key>
 			<string>Blocks known Amazon analytics, crash telemetry, and ad-measurement endpoints. Late NSURLSession configuration and WebKit pixel blocking. May slightly reduce background network/CPU work.</string>
