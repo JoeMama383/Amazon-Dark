@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>footerText</key>
+			<string>Respring to take effect.</string>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Enabled</string>
+			<key>key</key>
+			<string>enabled</string>
+			<key>default</key>
+			<string>1</string>
+			<key>defaults</key>
+			<string>com.colindavidr.amazondark</string>
+			<key>PostNotification</key>
+			<string>com.colindavidr.amazondark/prefs-changed</string>
+		</dict>
+		<dict>
+			<key>label</key>
+			<string>Light backgrounds</string>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>Dims bright product and ad imagery. Strength now spans a useful minimum-to-maximum range; use the toggle to turn the effect completely off.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Tame Light Backgrounds</string>
+			<key>key</key>
+			<string>whiteTame</string>
+			<key>default</key>
+			<string>0</string>
+			<key>defaults</key>
+			<string>com.colindavidr.amazondark</string>
+			<key>PostNotification</key>
+			<string>com.colindavidr.amazondark/prefs-changed</string>
+		</dict>
+		<dict>
+			<key>showValue</key>
+			<string>1</string>
+			<key>min</key>
+			<string>0</string>
+			<key>defaults</key>
+			<string>com.colindavidr.amazondark</string>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>isSegmented</key>
+			<string>0</string>
+			<key>label</key>
+			<string>Strength</string>
+			<key>key</key>
+			<string>whiteTameStrength</string>
+			<key>max</key>
+			<string>100</string>
+			<key>PostNotification</key>
+			<string>com.colindavidr.amazondark/prefs-changed</string>
+			<key>default</key>
+			<string>45</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Shopping Enhancements</string>
+			<key>footerText</key>
+			<string>Optional lightweight WebUI features inspired by AmznKiller. Sponsored-content hiding is cosmetic only. Price History loads third-party Keepa/CamelCamelCamel charts and sends the current product ASIN to those services.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.colindavidr.amazondark</string>
+			<key>key</key>
+			<string>hideSponsored</string>
+			<key>label</key>
+			<string>Hide Sponsored Content</string>
+			<key>PostNotification</key>
+			<string>com.colindavidr.amazondark/prefs-changed</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.colindavidr.amazondark</string>
+			<key>key</key>
+			<string>priceHistory</string>
+			<key>label</key>
+			<string>Price History</string>
+			<key>PostNotification</key>
+			<string>com.colindavidr.amazondark/prefs-changed</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Probe Testing</string>
+			<key>footerText</key>
+			<string>Testing only. Hides Amazon’s Share this product sheet so screenshot-triggered FULL probes can scan the UI underneath. Manual Share is also hidden while enabled. Respring after changing this toggle.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.colindavidr.amazondark</string>
+			<key>key</key>
+			<string>disableShareSheetForProbes</string>
+			<key>label</key>
+			<string>Hide Share Sheet for Probes</string>
+			<key>PostNotification</key>
+			<string>com.colindavidr.amazondark/prefs-changed</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Privacy</string>
+			<key>footerText</key>
+			<string>Blocks known Amazon analytics, crash telemetry, and ad-measurement endpoints. Late NSURLSession configuration and WebKit pixel blocking. May slightly reduce background network/CPU work.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.colindavidr.amazondark</string>
+			<key>key</key>
+			<string>privacyMode</string>
+			<key>label</key>
+			<string>Privacy Mode</string>
+			<key>PostNotification</key>
+			<string>com.colindavidr.amazondark/prefs-changed</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Performance</string>
+			<key>footerText</key>
+			<string>Forces 120 Hz on supported ProMotion displays for smoother scrolling and animations. Depending on the device or the device’s current thermal state, forcing a higher refresh rate may increase battery use and can adversely affect performance or make it worse rather than improve it.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.colindavidr.amazondark</string>
+			<key>key</key>
+			<string>force120Hz</string>
+			<key>label</key>
+			<string>Force 120 Hz</string>
+			<key>PostNotification</key>
+			<string>com.colindavidr.amazondark/prefs-changed</string>
+		</dict>
+	</array>
+	<key>title</key>
+	<string>AmazonDark</string>
+</dict>
+</plist>

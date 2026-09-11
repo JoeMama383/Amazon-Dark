@@ -1,0 +1,15 @@
+{
+  "version": "7.406~video-sponsored-footer-restore",
+  "direct_parent": "7.405~pdp-completion",
+  "source": "AmazonDark-v7.405-pdp-completion-source.zip generated in this conversation",
+  "parent_source_zip_sha256": "b4495ee9a022f70b82cfd0035089407c3dd709958d5a9e58257d013ed79ecb4d",
+  "parent_files_sha256": {
+    "src/Tweak.xm": "3cacb45a158336d01ace8f7686f4ec34b2c486d5aa7ec6dce88f5ce66d5ae217",
+    "src/AmazonDarkSB.xm": "767d4c3894d6d558be7ccfdb0b8961b336566806d871711c450fb59ee39e3af9",
+    "src/ADSponsored.m": "45e4825bb0c025016633c026740fc02a969f0a3d6aafa6d2be79a58e81f97fa7",
+    "scripts/ui-probe.sh": "e74a6d496d698ca88dd9a398c47babc0ced99646480bff9e39043342670ebc2b",
+    "scripts/skeleton-probe.sh": "db3ed94a45f45c5c23b69f1837420aa6284e2dab25a64f502d3c797839ce3214"
+  },
+  "runtime_contract": "Preserve all v7.405 PDP and Product Search behavior. Correct only the second c2Itd video-ad single-border rule: keep the one #494d4d border on the shortProduct owner around video + product copy, keep the root/footer-spanning and nested singleAsin borders removed, but do not clip the authored Sponsored text/info-glyph footer below the border. Replace the v7.405 overflow:hidden on shortProduct with overflow:visible. Regenerate FULL/VIEWPORT/transition probes as v7.406.",
+  "device_validation": "Verify the second c2Itd video ad still has exactly one border around video + product copy ending above Sponsored, and that the Sponsored text plus info glyph remain visible immediately below it. Recheck v7.405 PDP theming for regressions. FULL/VIEWPORT/transition exports must identify as v7.406."
+}

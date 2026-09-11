@@ -1,0 +1,69 @@
+name: AmazonDark rootless package
+
+on:
+  push:
+    branches: [ main, master, stable ]
+    paths-ignore: [ '**.md', 'LICENSE' ]
+  workflow_dispatch:
+  release:
+    types: [ created ]
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Normalize package script permissions
+        run: chmod 755 layout/DEBIAN/postinst
+
+      - name: Validate source regressions
+        run: AD_STRICT_VALIDATE=1 sh scripts/validate.sh
+
+      - name: Install Theos
+        run: |
+          export THEOS=$HOME/theos
+          git clone --quiet --recursive https://github.com/theos/theos.git "$THEOS"
+          echo "THEOS=$THEOS" >> "$GITHUB_ENV"
+
+      - name: Install ldid
+        run: brew install ldid
+
+      - name: Install patched iOS 16.5 SDK
+        run: |
+          git clone -n --depth=1 --filter=tree:0 https://github.com/theos/sdks.git /tmp/sdks
+          cd /tmp/sdks
+          git sparse-checkout set --no-cone "iPhoneOS16.5.sdk"
+          git checkout --quiet
+          mkdir -p "$THEOS/sdks"
+          cp -R /tmp/sdks/iPhoneOS16.5.sdk "$THEOS/sdks/"
+
+      - name: Build rootless package
+        run: |
+          chmod 755 layout/DEBIAN/postinst
+          make clean || true
+          make THEOS_PACKAGE_SCHEME=rootless package FINALPACKAGE=1
+          ls -l packages/
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AmazonDark-rootless-deb
+          path: packages/*.deb
+          if-no-files-found: error
+
+      - name: Attach .deb to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: packages/*.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
