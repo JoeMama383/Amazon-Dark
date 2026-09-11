@@ -6,8 +6,8 @@ UI=(ROOT/'scripts/ui-probe.sh').read_text()
 SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
-assert 'Version: 7.395~ui-coverage-audit-fix' in C
-assert '#define AD_VERSION "v7.395-ui-coverage-audit-fix"' in S
+assert 'Version: 7.398~legal-help-completion' in C
+assert '#define AD_VERSION "v7.398-legal-help-completion"' in S
 # latent help typed-query list
 assert '#help_srch_sggst' in S and '#suggested-help-topics-wrapper' in S
 # add-address latent location feedback/error states
@@ -18,12 +18,12 @@ seg=S.split('// v7.395 re-audit: Bolt also pre-mounts zero-rect success/error al
 assert '.a-alert-success' in seg and '.a-alert-error' in seg
 assert 'border-color:' not in seg
 # Current probe identity aligned
-assert 'VER=7.395' in UI
-assert 'AD_PROBE_VERSION=7.395' in SK and 'AD_PROBE_NAME=AmazonDark-v7.395' in SK
-assert 'AMAZONDARK v7.395 UNIVERSAL' in INC
-assert "version:'7.395'" in JS
+assert 'VER=7.398' in UI
+assert 'AD_PROBE_VERSION=7.398' in SK and 'AD_PROBE_NAME=AmazonDark-v7.398' in SK
+assert 'AMAZONDARK v7.398 UNIVERSAL' in INC
+assert "version:'7.398'" in JS
 # Architecture remains static/event-driven
 new=S.split('// v7.395 re-audit:',1)[1]
 for bad in ['MutationObserver(', 'setInterval(', 'requestAnimationFrame(']:
     assert bad not in new
-print('PASS: v7.395 closes typed-help, address-location, and pickup-alert latent white states without broadening dynamic-state ownership')
+print('PASS: v7.398 retains v7.395 typed-help, address-location, and pickup-alert latent white-state fixes')

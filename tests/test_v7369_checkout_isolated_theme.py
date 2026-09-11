@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.395~ui-coverage-audit-fix' in CTRL
-assert '#define AD_VERSION "v7.395-ui-coverage-audit-fix"' in S
+assert 'Version: 7.398~legal-help-completion' in CTRL
+assert '#define AD_VERSION "v7.398-legal-help-completion"' in S
 
 def func(name):
     st=S.index(f'static NSString *{name}')

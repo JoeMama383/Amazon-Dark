@@ -1,15 +1,15 @@
 {
-  "version": "7.395~ui-coverage-audit-fix",
-  "direct_parent": "7.394~checkout-address-pickup-help-fix",
-  "source": "AmazonDark-v7.394-checkout-address-pickup-help-fix-source.zip generated in this conversation",
-  "parent_source_zip_sha256": null,
+  "version": "7.398~legal-help-completion",
+  "direct_parent": "7.397~checkout-payment-aux-controls",
+  "source": "AmazonDark-v7.397-checkout-payment-aux-controls-source tree generated in this conversation",
+  "parent_source_zip_sha256": "d692d5a1b7872542ab55a37a29f79c1f8f9d797b6be3ec818072b727929b2752",
   "parent_files_sha256": {
-    "src/Tweak.xm": "9655b2ffbe63569a94f12641d1d26380440411be0e83d09321534a4d01740f42",
-    "src/AmazonDarkSB.xm": "e50d009dcdb012a83ef6311747c56406ef92531f33dd6efdbfda644e4034ca63",
+    "src/Tweak.xm": "6e15483608d68f7fc0e631213dd01e10cea9fd3822e0391d45f430ca89466f16",
+    "src/AmazonDarkSB.xm": "c8fc5083a50cf43f1ae967f68b8a4161f4bb121eb00f89ed6a63befdd85fbfc8",
     "src/ADSponsored.m": "45e4825bb0c025016633c026740fc02a969f0a3d6aafa6d2be79a58e81f97fa7",
-    "scripts/ui-probe.sh": "16db78c8641c187870e1e80275f2cb1d69098dc0a4020fd3d13aa678bccba844",
-    "scripts/skeleton-probe.sh": "cc1db931b63f74e94c9075bfb39d722674987c72d24596bf2c622f22216b94c0"
+    "scripts/ui-probe.sh": "28c7640fcfaec9b78bcfd6d2fed1eff6884566cea44771341558048b7f8b65cd",
+    "scripts/skeleton-probe.sh": "cdb45ca08808e7bb31912ff814dc7e25c8892354c5f5fe15359564a4fc06a084"
   },
-  "runtime_contract": "Preserve all v7.394 behavior. Close three latent probe-backed states found by full re-audit: typed help-search #help_srch_sggst, Add-address location feedback/error surfaces, and pre-mounted Bolt success/error alerts. Preserve dynamic links, selected accents, red/green alert borders, switches/radios/checkboxes, and all existing v7.390-v7.394 theming.",
-  "device_validation": "Install the Actions/phone package and test Add an address, Select a pickup location, checkout Delivery/Pickup toggles, and Subscribe & Save Terms/help search with keyboard. Verify black/gray/light surfaces, selected state colors, map legibility and dark keyboard/accessory bar. Use universal FULL screenshot probe for settled residuals and transition probe only for transient states."
+  "runtime_contract": "Preserve all v7.397 behavior and close the probe-confirmed legal/help ownership gaps: wrapped Privacy/Conditions articles, legal separators, shared help-search magnifier, mounted Help submenu cards, nested feedback reason shell, instructional figure frame, LLM-summary/related-help shells, and latent checkout installment/loading surfaces. Preserve authored blue links, explicit secondary/tertiary gray text, radios/checkboxes, payment blue rings, switch art, thumb feedback art, and images unless already in TWB.",
+  "device_validation": "Recheck Privacy Notice, Conditions of Use, Help submenus/articles, Returns, Consumer Use Tax, feedback No-state, LLM/related-help cards when present, Select a Payment Method installment state, and checkout loading. Ordinary legal text should be white; search magnifier gray; article separators OLED; dynamic colors/art remain authored."
 }

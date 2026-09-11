@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.395 — UI coverage audit fix
+ * AmazonDark v7.398 — legal/help completion
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.395-ui-coverage-audit-fix"
+#define AD_VERSION "v7.398-legal-help-completion"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1525,52 +1525,80 @@ static NSString *ADCheckoutFloorJS7369(void){
         "#csg-support-topics .a-box.a-vertical i.a-icon-touch-link{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
         "#csg-support-topics .a-color-state,#csg-support-topics .a-color-state *{-webkit-text-fill-color:currentColor!important;}"
 
-        // v7.393 FULL r2/r3/r4 (16:59, 17:08, 17:09): Privacy Notice, Returns and
-        // Refunds, and Consumer Use Tax all share the stable
-        // .cs-help-v4 > .cs-help-content > article.help-content shell. Flip only ordinary
-        // neutral-dark article ink. Preserve Amazon's authored blue links and the probe-proven
-        // gray .lead / a-color-secondary families rather than flattening them to white.
+        // v7.393 FULL r2/r3/r4 (16:59, 17:08, 17:09), corrected by v7.398:
+        // Privacy Notice and Conditions of Use mount article.help-content beneath one or more
+        // wrapper nodes, while Returns/Tax can mount it directly. Descendant ownership therefore
+        // replaces the old direct-child assumption. Ordinary neutral article ink is white per the
+        // current legal/help contract; authored blue links and explicit secondary/tertiary gray
+        // families remain authored. The stock lead separator is hidden on OLED rather than moved.
         @".cs-help-v4 .cs-help-content>.a-subheader h4,"
-        ".cs-help-v4 .cs-help-content>article.help-content,"
-        ".cs-help-v4 .cs-help-content>article.help-content :is(h1,h2,h3,h4,h5,h6,p,ul,ol,li,section,div,span,strong,b,em,small,label)"
-        ":not(.lead):not(:where(.lead *)):not(.a-color-secondary):not(:where(.a-color-secondary *)):not(.a-color-tertiary):not(:where(.a-color-tertiary *)):not(:where(a *)):not(.a-color-link):not(:where(.a-color-link *))"
-        "{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-        ".cs-help-v4 .cs-help-content>article.help-content :is(.lead,.lead *,.a-color-secondary,.a-color-secondary *,.a-color-tertiary,.a-color-tertiary *){-webkit-text-fill-color:currentColor!important;}"
-        ".cs-help-v4 .cs-help-content>article.help-content :is(a,.a-color-link),"
-        ".cs-help-v4 .cs-help-content>article.help-content :is(a,.a-color-link) *{-webkit-text-fill-color:currentColor!important;}"
-        // r3: Returns landing cards are DIV.a-box owners containing AUI list rows. Own only
-        // those card DIVs (not the row A.a-box links), keep one standard gray card edge, gray
-        // existing row separators, white row copy and white touch-link chevrons.
-        ".cs-help-v4 .cs-help-content>article.help-content .cs-help-landing-section div.a-box"
+        ".cs-help-v4 .cs-help-content article.help-content,"
+        ".cs-help-v4 .cs-help-content article.help-content :is(h1,h2,h3,h4,h5,h6,p,pre,ul,ol,li,section,div,span,strong,b,em,small,label)"
+        ":not(.a-color-secondary):not(:where(.a-color-secondary *)):not(.a-color-tertiary):not(:where(.a-color-tertiary *)):not(:where(a *)):not(.a-color-link):not(:where(.a-color-link *))"
+        "{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+        ".cs-help-v4 .cs-help-content article.help-content :is(.a-color-secondary,.a-color-secondary *,.a-color-tertiary,.a-color-tertiary *){-webkit-text-fill-color:currentColor!important;}"
+        ".cs-help-v4 .cs-help-content article.help-content :is(a,.a-color-link),"
+        ".cs-help-v4 .cs-help-content article.help-content :is(a,.a-color-link) *{-webkit-text-fill-color:currentColor!important;}"
+        // Returns landing cards: own DIV shells, row separators, neutral copy and chevrons only.
+        ".cs-help-v4 .cs-help-content article.help-content .cs-help-landing-section div.a-box"
         "{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;}"
-        ".cs-help-v4 .cs-help-content>article.help-content .cs-help-landing-section div.a-box>.a-box-inner,"
-        ".cs-help-v4 .cs-help-content>article.help-content .cs-help-landing-section .a-box-list"
+        ".cs-help-v4 .cs-help-content article.help-content .cs-help-landing-section div.a-box>.a-box-inner,"
+        ".cs-help-v4 .cs-help-content article.help-content .cs-help-landing-section .a-box-list"
         "{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}"
-        ".cs-help-v4 .cs-help-content>article.help-content .cs-help-landing-section .a-box-list>li{border-color:#747a7c!important;}"
-        ".cs-help-v4 .cs-help-content>article.help-content .cs-help-landing-section a.a-touch-link,"
-        ".cs-help-v4 .cs-help-content>article.help-content .cs-help-landing-section a.a-touch-link :is(div,span,p,strong,b)"
-        "{background:#000!important;background-color:#000!important;background-image:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}"
-        ".cs-help-v4 .cs-help-content>article.help-content .cs-help-landing-section i.a-icon-touch-link"
+        ".cs-help-v4 .cs-help-content article.help-content .cs-help-landing-section .a-box-list>li{border-color:#747a7c!important;}"
+        ".cs-help-v4 .cs-help-content article.help-content .cs-help-landing-section a.a-touch-link,"
+        ".cs-help-v4 .cs-help-content article.help-content .cs-help-landing-section a.a-touch-link :is(div,span,p,strong,b)"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;box-shadow:none!important;}"
+        ".cs-help-v4 .cs-help-content article.help-content .cs-help-landing-section i.a-icon-touch-link"
         "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
-        // r3/r4: the bright horizontal rules outside the white Returns cards / Tax table are
-        // the existing bottom borders of p.lead and cs-help-landing-section. Keep their layout
-        // thickness but make those pixels OLED black instead of introducing a new gray divider.
-        ".cs-help-v4 .cs-help-content>article.help-content p.lead,"
-        ".cs-help-v4 .cs-help-content>article.help-content .cs-help-landing-section{border-bottom-color:#000!important;}"
-        // r4: Consumer Use Tax is one table.a-bordered with white TH/TD cell painters.
-        // Keep Amazon's table geometry and widths; own only floor/ink/border colors.
-        ".cs-help-v4 .cs-help-content>article.help-content table.a-bordered"
-        "{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;}"
-        ".cs-help-v4 .cs-help-content>article.help-content table.a-bordered :is(thead,tbody,tr)"
-        "{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:#747a7c!important;color:#e8e6e3!important;}"
-        ".cs-help-v4 .cs-help-content>article.help-content table.a-bordered :is(th,td)"
-        "{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#747a7c!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-        ".cs-help-v4 .cs-help-content>article.help-content table.a-bordered a,"
-        ".cs-help-v4 .cs-help-content>article.help-content table.a-bordered a *{-webkit-text-fill-color:currentColor!important;}"
-        // r2/r3/r4: the visible Was-this-info-helpful block and its already-mounted hidden
-        // follow-up states are one exact hmd-* family. Theme the complete family so Yes/No cannot
-        // reveal another white surface. Radio controls remain Amazon-authored; only neutral
-        // shells, copy, text-entry wrapper and AUI button chrome are owned.
+        // Stock bright article separators stay in layout but contribute no visible light pixels.
+        ".cs-help-v4 .cs-help-content article.help-content p.lead,"
+        ".cs-help-v4 .cs-help-content article.help-content .cs-help-landing-section{border-bottom-color:#000!important;}"
+        // Consumer Use Tax: preserve table geometry while owning white cell floors and neutral ink.
+        ".cs-help-v4 .cs-help-content article.help-content table.a-bordered"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#fff!important;}"
+        ".cs-help-v4 .cs-help-content article.help-content table.a-bordered :is(thead,tbody,tr)"
+        "{background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:#747a7c!important;color:#fff!important;}"
+        ".cs-help-v4 .cs-help-content article.help-content table.a-bordered :is(th,td)"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#747a7c!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+        ".cs-help-v4 .cs-help-content article.help-content table.a-bordered a,"
+        ".cs-help-v4 .cs-help-content article.help-content table.a-bordered a *{-webkit-text-fill-color:currentColor!important;}"
+        // v7.398 FULL r5 self-audit: two additional help surfaces stay outside the earlier card owners.
+        // The LLM summary is inside article.help-content but owns its own near-white floor; the
+        // related-help AUI box is a direct cs-help-content child after the article. Own only those
+        // probe-proven shells, keep list links authored blue, and leave summary thumb artwork alone.
+        ".cs-help-v4 .cs-help-content article.help-content #llm-summary-box"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;}"
+        ".cs-help-v4 .cs-help-content>.a-box.a-spacing-base.a-spacing-top-base.a-width-auto"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+        ".cs-help-v4 .cs-help-content>.a-box.a-spacing-base.a-spacing-top-base.a-width-auto>.a-box-inner"
+        "{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}"
+        ".cs-help-v4 .cs-help-content>.a-box.a-spacing-base.a-spacing-top-base.a-width-auto :is(h1,h2,h3,h4,h5,h6,p,ul,ol,li,div,span,strong,b,em,small,label):not(.a-color-secondary):not(:where(.a-color-secondary *)):not(.a-color-tertiary):not(:where(.a-color-tertiary *)):not(:where(a *)):not(.a-color-link):not(:where(.a-color-link *))"
+        "{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+        ".cs-help-v4 .cs-help-content>.a-box.a-spacing-base.a-spacing-top-base.a-width-auto :is(a,.a-color-link),"
+        ".cs-help-v4 .cs-help-content>.a-box.a-spacing-base.a-spacing-top-base.a-width-auto :is(a,.a-color-link) *{-webkit-text-fill-color:currentColor!important;}"
+        // v7.398 FULL r3/r2: every help/legal page uses the same stock image-backed search glyph.
+        // Remove only that dark raster and redraw a static gray magnifier matching placeholder ink.
+        ".cs-help-v4 form#search-help.search-form-container{position:relative!important;}"
+        ".cs-help-v4 form#search-help #helpsearch{background-image:none!important;}"
+        ".cs-help-v4 form#search-help #helpsearch::placeholder{color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;opacity:1!important;}"
+        ".cs-help-v4 form#search-help.search-form-container::before{content:'';position:absolute!important;right:17px!important;top:50%!important;width:12px!important;height:12px!important;border:2px solid #b1aaa0!important;border-radius:50%!important;background:transparent!important;transform:translateY(-58%)!important;z-index:2!important;pointer-events:none!important;}"
+        ".cs-help-v4 form#search-help.search-form-container::after{content:'';position:absolute!important;right:12px!important;top:57%!important;width:7px!important;height:2px!important;border:0!important;border-radius:1px!important;background:#b1aaa0!important;transform:rotate(45deg)!important;transform-origin:center!important;z-index:2!important;pointer-events:none!important;}"
+        // v7.398 FULL r7: Help submenus are pre-mounted white AUI cards. Theme the complete
+        // stable help-content-submenu family so opening any topic cannot reveal a white card.
+        ".cs-help-v4 .cs-help-content h1[class*='help-content-submenu']{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+        ".cs-help-v4 .cs-help-content [class*='help-content-submenu'].a-section .a-box.a-vertical,"
+        ".cs-help-v4 .cs-help-content [class*='help-content-submenu'].a-section .a-box.a-vertical>.a-box-inner,"
+        ".cs-help-v4 .cs-help-content [class*='help-content-submenu'].a-section .a-box-list,"
+        ".cs-help-v4 .cs-help-content [class*='help-content-submenu'].a-section a.a-touch-link"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+        ".cs-help-v4 .cs-help-content [class*='help-content-submenu'].a-section .a-box.a-vertical{border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;}"
+        ".cs-help-v4 .cs-help-content [class*='help-content-submenu'].a-section .a-box-list>li{border-color:#747a7c!important;}"
+        ".cs-help-v4 .cs-help-content [class*='help-content-submenu'].a-section a.a-touch-link,"
+        ".cs-help-v4 .cs-help-content [class*='help-content-submenu'].a-section a.a-touch-link :is(div,span,p,strong,b)"
+        "{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+        ".cs-help-v4 .cs-help-content [class*='help-content-submenu'].a-section i.a-icon-touch-link{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+        // r2/r3/r4 feedback family: visible box plus every already-mounted follow-up state.
         ".cs-help-v4 .cs-help-content :is(#hmd-FeedbackBox,#hmd-ConfirmYesBox,#hmd-ReasonBox,#hmd-ConfirmNoBox,#hmd-CustomerServiceHub)"
         "{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
         ".cs-help-v4 .cs-help-content :is(#hmd-FeedbackBox,#hmd-ConfirmYesBox,#hmd-ReasonBox,#hmd-ConfirmNoBox,#hmd-CustomerServiceHub)>.a-box-inner"
@@ -1589,13 +1617,24 @@ static NSString *ADCheckoutFloorJS7369(void){
         "{background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;}"
         ".cs-help-v4 .cs-help-content #hmd-ReasonBox textarea"
         "{background:#303335!important;background-color:#303335!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;border-color:#747a7c!important;outline-color:#747a7c!important;}"
+        // v7.398 audit: ReasonBox keeps an additional nested stock-white AUI radio shell.
+        ".cs-help-v4 .cs-help-content #hmd-ReasonBox fieldset.a-box-group>.a-box"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;}"
+        ".cs-help-v4 .cs-help-content #hmd-ReasonBox fieldset.a-box-group>.a-box>.a-box-inner{background:transparent!important;background-color:transparent!important;background-image:none!important;}"
+        ".cs-help-v4 .cs-help-content #hmd-ReasonBox .a-icon-radio{filter:none!important;-webkit-filter:none!important;}"
         ".cs-help-v4 .cs-help-content :is(#hmd-FeedbackBox,#hmd-ConfirmYesBox,#hmd-ReasonBox,#hmd-ConfirmNoBox,#hmd-CustomerServiceHub) a,"
         ".cs-help-v4 .cs-help-content :is(#hmd-FeedbackBox,#hmd-ConfirmYesBox,#hmd-ReasonBox,#hmd-ConfirmNoBox,#hmd-CustomerServiceHub) a *{-webkit-text-fill-color:currentColor!important;}"
+        // v7.398 FULL r6: instructional figure shells are ordinary stock white AUI boxes.
+        // Darken the frame only; preserve the authored instructional raster itself untouched.
+        ".cs-help-v4 .cs-help-content .cs-help-content-frame .a-box.a-first,"
+        ".cs-help-v4 .cs-help-content .cs-help-content-frame .a-box.a-first>.a-box-inner"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border-color:#747a7c!important;box-shadow:none!important;}"
 
         // v7.390 FULL r2: Subscribe & Save loading transition. The live painter is the
         // 430x800 #loading-spinner-blocker-doc plus a 100x100 IMG. Own that exact transition:
         // dark translucent blocker, OLED spinner tile, preserve Amazon's animation/geometry.
         @"body:has(#checkoutDisplayPage) #loading-spinner-blocker-doc.loading-spinner-blocker,"
+        "body:has(#checkoutDisplayPage) .loading-spinner-blocker,"
         "body:has(#checkoutDisplayPage) .loading-spinner-spp-blocker"
         "{background:rgba(0,0,0,.74)!important;background-color:rgba(0,0,0,.74)!important;background-image:none!important;opacity:1!important;}"
         "body:has(#checkoutDisplayPage) :is(.loading-spinner-inner.loading-spinner-inner-no-box,.loading-spinner-spp-inner)"
@@ -1834,6 +1873,47 @@ static NSString *ADCheckoutFloorJS7369(void){
         "{background:#000!important;background-color:#000!important;background-image:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}"
         ".cs-help-v4 .cs-help-content #help_srch_sggst :is(li,a){border-color:#747a7c!important;}"
         ".cs-help-v4 .cs-help-content #help_srch_sggst a.a-color-link,.cs-help-v4 .cs-help-content #help_srch_sggst a.a-color-link *{-webkit-text-fill-color:currentColor!important;}"
+
+        // v7.397 FULL r1/r2 (20:17/20:18): three residual checkout/payment control
+        // floors remained stock white after the broader v7.393 payment-owner correction.
+        // Keep authored blue selection/info borders and checkbox art; only own the neutral
+        // white floors, neutral copy, financing edge/shadow and its black chevron path.
+        @"#checkoutDisplayPage [data-testid='feature-financing-link-content-wrapper-outline']"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+        "#checkoutDisplayPage [data-testid='feature-financing-link'] [data-testid='text'],"
+        "#checkoutDisplayPage [data-testid='feature-financing-link'] [data-testid='text'] *"
+        "{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+        "#checkoutDisplayPage [data-testid='feature-financing-link'] svg path{fill:#fff!important;}"
+        // Prime Store Card delivery upsell: preserve its probe-authored 3px Amazon-blue border.
+        "#checkoutDisplayPage #percolate-upsell-widget [class*='_bannerBlue_']"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+        "#checkoutDisplayPage #percolate-upsell-widget [class*='_bannerBlue_'] :is(p,span,b,strong)"
+        "{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+        // Purchase-level default-ordering message: preserve asymmetric Amazon-blue alert edge
+        // and preserve the stock checkbox sprite/glyph while removing both nested white owners.
+        "#checkoutDisplayPage #purchase-level-messages .a-alert.a-alert-info,"
+        "#checkoutDisplayPage #purchase-level-messages .a-alert.a-alert-info>.a-box-inner.a-alert-container"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;color:#fff!important;}"
+        "#checkoutDisplayPage #purchase-level-messages .a-alert.a-alert-info .a-alert-content :is(span,label,p,div):not(:where(a *))"
+        "{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+        "#checkoutDisplayPage #purchase-level-messages .a-alert.a-alert-info :is(.a-icon-checkbox,#setOrderingPrefsCheckbox)"
+        "{filter:none!important;-webkit-filter:none!important;}"
+
+        // v7.398 FULL r1 audit: the payment probe also captured an already-mounted hidden
+        // installments sheet whose footer and base/primary buttons remain stock white/yellow.
+        // Theme only that exact installments_bottomsheet_content_ family; keep checkbox/radio art
+        // and authored blue links dynamic.
+        "#checkoutDisplayPage [id^='installments_bottomsheet_content_'] .installments-bottomsheet-button-wrapper"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;color:#fff!important;box-shadow:none!important;}"
+        "#checkoutDisplayPage [id^='installments_bottomsheet_content_'] .installments-bottomsheet-button-wrapper .a-divider-normal{border-color:#747a7c!important;background-color:#747a7c!important;}"
+        "#checkoutDisplayPage [id^='installments_bottomsheet_content_'] .installments-bottomsheet-button-wrapper :is(.a-button.a-button-base,.a-button.a-button-primary)"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+        "#checkoutDisplayPage [id^='installments_bottomsheet_content_'] .installments-bottomsheet-button-wrapper :is(.a-button.a-button-base,.a-button.a-button-primary)>.a-button-inner"
+        "{background:transparent!important;background-color:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;}"
+        "#checkoutDisplayPage [id^='installments_bottomsheet_content_'] .installments-bottomsheet-button-wrapper :is(.a-button.a-button-base,.a-button.a-button-primary) .a-button-text"
+        "{color:#fff!important;-webkit-text-fill-color:#fff!important;}"
+        "#checkoutDisplayPage [id^='installments_bottomsheet_content_'] :is(a,.a-color-link),#checkoutDisplayPage [id^='installments_bottomsheet_content_'] :is(a,.a-color-link) *{-webkit-text-fill-color:currentColor!important;}"
+        "#checkoutDisplayPage [id^='installments_bottomsheet_content_'] :is(.a-icon-checkbox,.a-icon-radio){filter:none!important;-webkit-filter:none!important;}"
 
         // v7.373 FULL r1/r2: checkout delivery-option press painter computes
         // rgb(246,246,246). Own only that press floor; preserve authored radio art/color.
@@ -2501,6 +2581,45 @@ static void ADOwnCheckoutTransitionTanPlanes7375(UIWindow *w){
     } @catch(...) {}
 }
 
+// v7.396 transition probe: pushing Change delivery address mounts the incoming
+// AMIWebViewController with a plain UIView root at 430x834.3 below the checkout
+// navigation bar. Amazon paints that root opaque white for roughly half a second
+// while UIKit slides it over the already-dark checkout. The outgoing AMI root is
+// already black, so this is a distinct incoming-controller floor, not DOM paint.
+// Own only a bright-neutral *root UIView* whose direct responder is
+// AMIWebViewController while the live AMS checkout modal exists. Once claimed,
+// later Amazon background writes stay OLED for the lifetime of that exact root.
+// No animation timing, transform, alpha, navigation, or WebKit content is changed.
+static const void *kADCheckoutAMIWebRoot7396=&kADCheckoutAMIWebRoot7396;
+static BOOL ADCheckoutAMIWebRoot7396(UIView *v,UIColor *candidate){
+    if(!gP.enabled||!gADCheckoutLiveModal7375||!v)return NO;
+    @try {
+        if([objc_getAssociatedObject(v,kADCheckoutAMIWebRoot7396) boolValue])return YES;
+        const char *cn=object_getClassName(v);
+        if(!cn||strcmp(cn,"UIView")!=0)return NO;
+        UIResponder *r=v.nextResponder;
+        if(!r||![NSStringFromClass(r.class) isEqualToString:@"AMIWebViewController"])return NO;
+        UIColor *c=candidate?:v.backgroundColor;
+        if(!ADBrightNeutral7130(c))return NO;
+        UIWindow *w=v.window;
+        UIWindow *checkoutWindow=gADCheckoutLiveModal7375.viewIfLoaded.window;
+        if(w&&checkoutWindow&&w!=checkoutWindow)return NO;
+        if(w&&!ADClassNameIs7183(w,"AppCXWindow")&&!ADPrimaryAmazonWindow713(w,nil))return NO;
+        // The captured incoming root is full content width and nearly the entire
+        // area below the 97.7pt checkout navigation region. Geometry is a guard
+        // when laid out, but a zero-sized pre-layout root may still be claimed by
+        // its exact controller/responder identity before the first visible frame.
+        CGFloat vw=MAX(CGRectGetWidth(v.bounds),CGRectGetWidth(v.frame));
+        CGFloat vh=MAX(CGRectGetHeight(v.bounds),CGRectGetHeight(v.frame));
+        CGFloat sw=w?CGRectGetWidth(w.bounds):CGRectGetWidth(UIScreen.mainScreen.bounds);
+        CGFloat sh=w?CGRectGetHeight(w.bounds):CGRectGetHeight(UIScreen.mainScreen.bounds);
+        if(vw>1.0&&sw>1.0&&vw<sw*0.94)return NO;
+        if(vh>1.0&&sh>1.0&&vh<sh*0.65)return NO;
+        objc_setAssociatedObject(v,kADCheckoutAMIWebRoot7396,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        return YES;
+    } @catch(...) { return NO; }
+}
+
 // v7.389: the paired checkout/background transition probe proves Amazon mounts a
 // separate full-screen UIVisualEffectView *after* UIApplicationDidEnterBackground.
 // Its content view receives one exact teal UIView (0,.51,.588,.60), and SpringBoard
@@ -3148,6 +3267,9 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
     if(ADCheckoutTransitionTanPlane7375(self,self.backgroundColor)){
         ADSetViewBackground7226(self,ADOLED(),YES); return;
     }
+    if(ADCheckoutAMIWebRoot7396(self,self.backgroundColor)){
+        ADSetViewBackground7226(self,ADOLED(),YES); return;
+    }
     // Exact universal native error owner gets first refusal. Avoid even React/AppCX
     // classification on the CNM subtree; this surface is probe-proven UIKit.
     if(ADInCNMErrorView7301(self)){
@@ -3192,6 +3314,11 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
         return;
     }
     if(ADCheckoutTransitionTanPlane7375(self,color)){
+        UIColor *black=ADOLED();
+        %orig(black);
+        return;
+    }
+    if(ADCheckoutAMIWebRoot7396(self,color)){
         UIColor *black=ADOLED();
         %orig(black);
         return;
