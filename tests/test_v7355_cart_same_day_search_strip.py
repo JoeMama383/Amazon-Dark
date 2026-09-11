@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.401~native-payment-sheets-completion' in ctl
-assert '#define AD_VERSION "v7.401-native-payment-sheets-completion"' in t
+assert 'Version: 7.402~payment-first-paint-switcher-fix' in ctl
+assert '#define AD_VERSION "v7.402-payment-first-paint-switcher-fix"' in t
 # Current Cart probe exact owners.
 for token in [
     '#sc-page-container #ssd-ca-buy-box{background:#000!important',

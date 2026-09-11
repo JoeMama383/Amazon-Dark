@@ -4,8 +4,8 @@ S=(ROOT/'src/Tweak.xm').read_text()
 A=(ROOT/'src/ADSponsored.m').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.401~native-payment-sheets-completion' in C
-assert '#define AD_VERSION "v7.401-native-payment-sheets-completion"' in S
+assert 'Version: 7.402~payment-first-paint-switcher-fix' in C
+assert '#define AD_VERSION "v7.402-payment-first-paint-switcher-fix"' in S
 
 # Preserve the successful v7.381 first-paint repair: the Home dashboard shell
 # itself owns the stock white loading floor, and that floor remains OLED at

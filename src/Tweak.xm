@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.401 — native payment sheets completion
+ * AmazonDark v7.402 — payment first-paint + switcher fix
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.401-native-payment-sheets-completion"
+#define AD_VERSION "v7.402-payment-first-paint-switcher-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1455,6 +1455,20 @@ static NSString *ADCheckoutFloorJS7369(void){
         // Neutral checkout copy. Anchor descendants stay authored so Amazon's blue link families survive.
         // a-color-base anchors are the probe-proven black expander/sustainability links and are flipped white.
         @"#checkoutDisplayPage :is(h1,h2,h3,h4,h5,h6,p,span,label,strong,b,li):not(.a-color-price):not(.a-color-success):not(.a-color-link):not(.a-link-normal):not([class*=_badgeMessage_]):not([class*=deal]):not([class*=coupon]):not([class*=promotion]):not([class*=saving]):not([class*=discount]):not(:where(.a-color-price *)):not(:where(.a-color-success *)):not(:where(.a-color-link *)):not(:where([class*=_badgeMessage_] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=promotion] *)):not(:where([class*=saving] *)):not(:where([class*=discount] *)):not(:where(a *)):not(:where(.a-icon-prime *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage div:not(.a-color-price):not(.a-color-success):not(.a-color-link):not([class*=_badgeMessage_]):not([class*=deal]):not([class*=coupon]):not([class*=promotion]):not([class*=saving]):not([class*=discount]):not(:where(a *)){color:#e8e6e3!important;}#checkoutDisplayPage :is(.a-color-price,.a-color-success,.a-color-link,[class*=_badgeMessage_],[class*=deal],[class*=coupon],[class*=promotion],[class*=saving],[class*=discount]),#checkoutDisplayPage :is(.a-color-price,.a-color-success,.a-color-link,[class*=_badgeMessage_],[class*=deal],[class*=coupon],[class*=promotion],[class*=saving],[class*=discount]) *{-webkit-text-fill-color:currentColor!important;}#checkoutDisplayPage a.a-color-base,#checkoutDisplayPage a.a-color-base *{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage i.a-icon-prime{filter:none!important;-webkit-filter:none!important;}#checkoutDisplayPage img.sustainability-green-leaf-alignment-updated{filter:none!important;-webkit-filter:none!important;background-color:transparent!important;}"
+        // v7.402 FULL/transition reconciliation (23:17): the Place Your Order pickup upsell's
+        // 16x16 AUI expander sprite is still the stock dark raster even though the surrounding
+        // link is authored blue. Own only the icon inside the exact ap-spc destination upsell so
+        // the pickup chevron remains visible on OLED without recoloring the blue link text.
+        @"#checkoutDisplayPage #ap-spc-dest-schs-upsell .a-expander-header>.a-icon"
+        "{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+
+        // v7.402 transition probe (23:17): Place Your Order -> Select a pickup location mounts a
+        // 430x800 absolute white/.75 loading plane under the experiment-specific SPC Bolt root.
+        // The surrounding native AMI root and #a-page are already OLED, so own only this exact
+        // inline z-index-100 white transition painter; keep the spinner itself authored.
+        @"[id^='bolt-widget-amazon_us_checkout_spc_mobile-']>.a-section.a-spacing-none>.a-section[style*='z-index: 100'][style*='background-color: white']"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+
         // Place-order buttons.
         @"#checkoutDisplayPage :is(#placeYourOrder,#placeYourOrderSecondary,#animated-disabled-pyob-top,#animated-disabled-pyob-bottom,.place-order-button-link,.place-your-order-button,.continue-button.a-button-primary){background:#000!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage :is(#placeYourOrder,#placeYourOrderSecondary,#animated-disabled-pyob-top,#animated-disabled-pyob-bottom,.place-order-button-link,.continue-button.a-button-primary) .a-button-inner{background:transparent!important;border-color:transparent!important;box-shadow:none!important;}#checkoutDisplayPage :is(#placeYourOrder,#placeYourOrderSecondary,#animated-disabled-pyob-top,#animated-disabled-pyob-bottom,.place-order-button-link,.continue-button.a-button-primary) :is(.a-button-text,span){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
         // Checkout quantity control: same Cart / product-scroll stepper treatment.
@@ -1756,6 +1770,14 @@ static NSString *ADCheckoutFloorJS7369(void){
         "#checkoutDisplayPage #shipping-address-select-page-card-deck .a-divider.a-divider-break>h5{background:#000!important;background-color:#000!important;background-image:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
         "#checkoutDisplayPage #shipping-address-select-page-card-deck :is(.a-icon-radio-active,.a-icon-radio-inactive,.a-icon-radio){filter:none!important;-webkit-filter:none!important;}"
         "#checkoutDisplayPage #shipping-address-select-page-card-deck a,#checkoutDisplayPage #shipping-address-select-page-card-deck a *{-webkit-text-fill-color:currentColor!important;}"
+
+        // v7.402 transition probe (23:07): Select Payment Method briefly mounts a 380x100
+        // React-Web skeleton immediately before iframe#maple-advertisement. Its child owns a
+        // stock white shimmer gradient. Own only that exact sibling relationship at document start
+        // so the reserved card is OLED before the advertisement hydrates.
+        @"#checkoutDisplayPage div:has(+ iframe#maple-advertisement),"
+        "#checkoutDisplayPage div:has(+ iframe#maple-advertisement)>div"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
 
         // v7.390 FULL r6 (14:37): recurrence dropdown is an AUI popover rather than a sheet.
         // Theme only the popover containing this SNS recurrence id family. The selected row keeps
@@ -2818,6 +2840,82 @@ static void ADOwnCheckoutBackgroundEffect7389(UIVisualEffectView *effect){
         effect.layer.opacity=0.0;
     } @catch(...) {}
 }
+
+// v7.402 transition probe: payment backgrounding no longer uses the v7.389 teal shield.
+// Two exact neutral visual-effect shields are mounted while the app is inactive:
+// (1) 430x834 under the AMIWebViewController root, with a ~97%% white / .8 tint; and
+// (2) 430x932 under SNPViewController, with a white / .3 tint. Both are present only
+// while the proven native payment sheet is live in the checkout modal. Hide only those
+// inactive payment shields so SpringBoard captures the already-themed content underneath.
+static const void *kADCheckoutPaymentBackgroundShield7402=&kADCheckoutPaymentBackgroundShield7402;
+static __weak UIView *gADPaymentLiveSheet7402=nil;
+static BOOL ADPaymentSheetLive7402(UIWindow *w){
+    @try {
+        UIView *r=gADPaymentLiveSheet7402;
+        return r&&r.window&&(!w||r.window==w)&&[r.accessibilityIdentifier isEqualToString:@"bottom-sheet"];
+    } @catch(...) { return NO; }
+}
+static BOOL ADResponderIs7402(UIView *v,NSString *name){
+    if(!v||!name.length)return NO;
+    @try { UIResponder *r=v.nextResponder; return r&&[NSStringFromClass(r.class) isEqualToString:name]; } @catch(...) { return NO; }
+}
+static BOOL ADNeutralEffectTint7402(UIColor *c){
+    if(!c)return NO;
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0; UIColor *q=c;
+        if([q respondsToSelector:@selector(resolvedColorWithTraitCollection:)])q=[q resolvedColorWithTraitCollection:UIScreen.mainScreen.traitCollection];
+        if([q getRed:&r green:&g blue:&b alpha:&a]){
+            CGFloat hi=MAX(r,MAX(g,b)),lo=MIN(r,MIN(g,b));
+            return a>=0.20&&(hi-lo)<=0.05&&lo>=0.90;
+        }
+        return [q getWhite:&w alpha:&a]&&a>=0.20&&w>=0.90;
+    } @catch(...) { return NO; }
+}
+static BOOL ADCheckoutPaymentEffectGeometry7402(UIVisualEffectView *effect,BOOL *web){
+    if(web)*web=NO; if(!effect||!effect.window)return NO;
+    @try {
+        UIWindow *w=effect.window; if(!ADClassNameIs7183(w,"AppCXWindow")||!ADPaymentSheetLive7402(w))return NO;
+        CGFloat ww=CGRectGetWidth(w.bounds),wh=CGRectGetHeight(w.bounds),ew=CGRectGetWidth(effect.bounds),eh=CGRectGetHeight(effect.bounds);
+        if(ww<1||wh<1||ew<ww*0.96)return NO;
+        UIView *host=effect.superview;
+        if(ADResponderIs7402(host,@"AMIWebViewController")){
+            if(eh<wh*0.82||eh>wh*0.94)return NO; if(web)*web=YES; return YES;
+        }
+        if(ADResponderIs7402(host,@"SNPViewController")){
+            return eh>=wh*0.96;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADCheckoutPaymentEffectMatches7402(UIVisualEffectView *effect){
+    if(!gP.enabled||!gADCheckoutLiveModal7375||!effect)return NO;
+    @try {
+        if([objc_getAssociatedObject(effect,kADCheckoutPaymentBackgroundShield7402) boolValue])return YES;
+        if(UIApplication.sharedApplication.applicationState==UIApplicationStateActive)return NO;
+        BOOL web=NO; if(!ADCheckoutPaymentEffectGeometry7402(effect,&web))return NO;
+        for(UIView *v in effect.subviews){
+            if(ADClassNameIs7183(v,"_UIVisualEffectSubview")&&ADNeutralEffectTint7402(v.backgroundColor)){
+                objc_setAssociatedObject(effect,kADCheckoutPaymentBackgroundShield7402,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                return YES;
+            }
+        }
+    } @catch(...) {}
+    return NO;
+}
+static UIVisualEffectView *ADCheckoutPaymentEffectForTint7402(UIView *v,UIColor *candidate){
+    if(!gP.enabled||!v||UIApplication.sharedApplication.applicationState==UIApplicationStateActive)return nil;
+    @try {
+        if(!ADClassNameIs7183(v,"_UIVisualEffectSubview")||!ADNeutralEffectTint7402(candidate?:v.backgroundColor))return nil;
+        UIView *p=v.superview; if(![p isKindOfClass:[UIVisualEffectView class]])return nil;
+        UIVisualEffectView *effect=(UIVisualEffectView *)p;
+        BOOL web=NO; if(!ADCheckoutPaymentEffectGeometry7402(effect,&web))return nil;
+        return effect;
+    } @catch(...) { return nil; }
+}
+static void ADOwnCheckoutPaymentBackgroundEffect7402(UIVisualEffectView *effect){
+    if(!ADCheckoutPaymentEffectMatches7402(effect))return;
+    @try { effect.effect=nil; effect.hidden=YES; effect.alpha=0.0; effect.layer.opacity=0.0; } @catch(...) {}
+}
 static BOOL ADMarkedTransitionBacking7133(UIView *v){
     return v && objc_getAssociatedObject(v,kADTransitionBacking7133)!=nil;
 }
@@ -3384,6 +3482,12 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
         ADOwnCheckoutBackgroundEffect7389(checkoutShield);
         return;
     }
+    UIVisualEffectView *paymentShield=ADCheckoutPaymentEffectForTint7402(self,self.backgroundColor);
+    if(paymentShield){
+        objc_setAssociatedObject(paymentShield,kADCheckoutPaymentBackgroundShield7402,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        ADOwnCheckoutPaymentBackgroundEffect7402(paymentShield);
+        return;
+    }
     if(ADCheckoutTransitionTanPlane7375(self,self.backgroundColor)){
         ADSetViewBackground7226(self,ADOLED(),YES); return;
     }
@@ -3431,6 +3535,14 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
         %orig(clear);
         objc_setAssociatedObject(checkoutShield,kADCheckoutBackgroundShield7389,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADOwnCheckoutBackgroundEffect7389(checkoutShield);
+        return;
+    }
+    UIVisualEffectView *paymentShield=ADCheckoutPaymentEffectForTint7402(self,color);
+    if(paymentShield){
+        UIColor *clear=[UIColor clearColor];
+        %orig(clear);
+        objc_setAssociatedObject(paymentShield,kADCheckoutPaymentBackgroundShield7402,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        ADOwnCheckoutPaymentBackgroundEffect7402(paymentShield);
         return;
     }
     if(ADCheckoutTransitionTanPlane7375(self,color)){
@@ -7310,7 +7422,23 @@ static void ADMenuOwnText7255(UIView *v){
 static const void *kADPaymentSheet7401=&kADPaymentSheet7401;
 static const void *kADPaymentSheetPrimed7401=&kADPaymentSheetPrimed7401;
 static const void *kADPaymentVectorOwned7401=&kADPaymentVectorOwned7401;
+static const void *kADPaymentCreateImageKind7402=&kADPaymentCreateImageKind7402;
+static BOOL gADPaymentImageWrite7402=NO;
 static void ADPaymentPrimeSheet7401(UIView *root);
+static void ADPaymentFinalizeCreateImage7402(UIImageView *iv,BOOL discover);
+static BOOL ADPaymentHeaderBrandLogo7402(UIView *v){
+    if(!v||!ADClassNameIs7183(v,"RNSVGSvgView"))return NO;
+    @try {
+        NSString *aid=v.accessibilityIdentifier?:@""; if(aid.length)return NO;
+        CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
+        if(w<48.0||w>54.0||h<10.0||h>14.0)return NO;
+        UIView *header=v.superview,*root=header.superview;
+        if(!header||!root||!ADClassNameIs7183(header,"RCTView")||!ADClassNameIs7183(root,"RCTView"))return NO;
+        if(![root.accessibilityIdentifier isEqualToString:@"bottom-sheet"])return NO;
+        CGFloat rw=root.bounds.size.width,hh=header.bounds.size.height;
+        return rw>=420.0&&rw<=440.0&&hh>=56.0&&hh<=72.0;
+    } @catch(...) { return NO; }
+}
 static UIView *ADPaymentBottomSheet7401(UIView *v){
     if(!v||!v.window||!ADClassNameIs7183(v.window,"AppCXWindow"))return nil;
     @try {
@@ -7337,6 +7465,10 @@ static BOOL ADPaymentMarker7401(UIView *v){
     if(!v)return NO;
     @try {
         NSString *aid=v.accessibilityIdentifier?:@"";
+        // v7.402: the centered 51x12 Amazon smile mounts while the sheet is still mostly
+        // offscreen. It is a payment-specific early marker, allowing the white root/header to
+        // be claimed before the slide-up reaches the visible viewport.
+        if(ADPaymentHeaderBrandLogo7402(v))return YES;
         if([aid isEqualToString:@"card-wrapper"]&&ADPaymentHasAncestorAid7401(v,@"card-pressable-wrapper",5))return YES;
         if([aid isEqualToString:@"input-wrapper"]&&ADPaymentHasAncestorAid7401(v,@"input-pressable-wrapper",5))return YES;
         if([aid hasPrefix:@"creatable-sleeve-"]&&![aid hasSuffix:@"-image-wrapper"]&&
@@ -7352,11 +7484,13 @@ static BOOL ADInPaymentSheet7401(UIView *v){
     if(objc_getAssociatedObject(v,kADPaymentSheet7401))return YES;
     UIView *root=ADPaymentBottomSheet7401(v); if(!root)return NO;
     if(objc_getAssociatedObject(root,kADPaymentSheet7401)){
+        gADPaymentLiveSheet7402=root;
         objc_setAssociatedObject(v,kADPaymentSheet7401,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         return YES;
     }
     if(!ADPaymentMarker7401(v))return NO;
     objc_setAssociatedObject(root,kADPaymentSheet7401,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    gADPaymentLiveSheet7402=root;
     objc_setAssociatedObject(v,kADPaymentSheet7401,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     if(!objc_getAssociatedObject(root,kADPaymentSheetPrimed7401)){
         objc_setAssociatedObject(root,kADPaymentSheetPrimed7401,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -7453,9 +7587,55 @@ static BOOL ADPaymentIsSelectedRowFill7401(UIView *v){
                ADNeutralNearWhite7255(v.backgroundColor);
     } @catch(...) { return NO; }
 }
+// v7.402 FULL r6 + device screenshot: the five left-side payment-method artworks are
+// raster RCTUIImageViewAnimated leaves under exact creatable-sleeve-*-image-wrapper
+// owners. Card/EBT/BankAccount/DirectedSpend are monochrome transparent icons and
+// disappear on OLED when left in their stock dark ink. HealthBenefits is a wider
+// authored raster whose white-backed shield is already legible; preserve it exactly.
+// This classifier never touches payment card/logo artwork outside the Add-new chooser.
+static int ADPaymentCreateImageKind7402(UIImageView *iv,BOOL discover){
+    if(!iv||!gP.enabled||!iv.window||!iv.image||!ADClassNameIs7183(iv,"RCTUIImageViewAnimated")||!ADInPaymentSheet7401(iv))return 0;
+    @try {
+        NSNumber *cached=objc_getAssociatedObject(iv,kADPaymentCreateImageKind7402);
+        if(cached&&cached.intValue>0)return cached.intValue;
+        if(!discover)return 0;
+        NSString *wrapper=@""; NSUInteger d=0;
+        for(UIView *n=iv.superview;n&&d++<6;n=n.superview){
+            NSString *aid=n.accessibilityIdentifier?:@"";
+            if([aid hasPrefix:@"creatable-sleeve-"]&&[aid hasSuffix:@"-image-wrapper"]){ wrapper=aid; break; }
+            if([aid isEqualToString:@"bottom-sheet"])break;
+        }
+        int kind=0;
+        if([wrapper isEqualToString:@"creatable-sleeve-Card-image-wrapper"]||
+           [wrapper isEqualToString:@"creatable-sleeve-ElectronicBenefitTransfer-image-wrapper"]||
+           [wrapper isEqualToString:@"creatable-sleeve-BankAccount-image-wrapper"]||
+           [wrapper isEqualToString:@"creatable-sleeve-DirectedSpendBenefitsCard-image-wrapper"])kind=1;
+        else if([wrapper isEqualToString:@"creatable-sleeve-HealthBenefitsCard-image-wrapper"])kind=2;
+        if(kind)objc_setAssociatedObject(iv,kADPaymentCreateImageKind7402,@(kind),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        return kind;
+    } @catch(...) { return 0; }
+}
+static void ADPaymentFinalizeCreateImage7402(UIImageView *iv,BOOL discover){
+    int kind=ADPaymentCreateImageKind7402(iv,discover); if(!kind||!iv.image)return;
+    @try {
+        UIImage *im=iv.image; UIImageRenderingMode want=(kind==1)?UIImageRenderingModeAlwaysTemplate:UIImageRenderingModeAlwaysOriginal;
+        if(im.renderingMode!=want&&!gADPaymentImageWrite7402){
+            UIImage *fixed=[im imageWithRenderingMode:want];
+            if(fixed){ gADPaymentImageWrite7402=YES; iv.image=fixed; gADPaymentImageWrite7402=NO; }
+        }
+        if(kind==1)iv.tintColor=ADLightText706();
+        // These exact 24pt control artworks already fall below the generic native-TWB media
+        // threshold, so no broad product/media eligibility override is needed here.
+    } @catch(...) { gADPaymentImageWrite7402=NO; }
+}
 static void ADPaymentOwnView7401(UIView *v){
     if(!gP.enabled||!v||!v.window||!ADInPaymentSheet7401(v))return;
     @try {
+        NSString *aid=v.accessibilityIdentifier?:@"";
+        if([aid hasPrefix:@"creatable-sleeve-"]&&[aid hasSuffix:@"-image-wrapper"]){
+            // Icon/image wrapper itself must stay transparent on the OLED row.
+            ADSetViewBackground7226(v,[UIColor clearColor],YES); v.layer.backgroundColor=nil;
+        }
         if(ADPaymentIsRowDivider7401(v)){
             ADSetViewBackground7226(v,ADMenuButtonBorder7255(),YES); return;
         }
@@ -7499,11 +7679,16 @@ static void ADPaymentOwnText7401(UIView *v){
 static void ADPaymentOwnVector7401(UIView *svg){
     if(!gP.enabled||!svg||!svg.window||!ADClassNameIs7183(svg,"RNSVGSvgView")||!ADInPaymentSheet7401(svg))return;
     @try {
-        // Probe-proven neutral vectors are the privacy glyph, 16x16 row chevrons/close glyph,
-        // and the compact 51x12 sheet handle.  Do not invert full-width decorative SVG planes or
-        // future semantic/brand artwork merely because it lives in the same sheet.
+        // v7.402 probe correction: the centered 51x12 SVG is Amazon's authored orange smile,
+        // not a neutral sheet handle. Never color-invert/filter it. It doubles as the early
+        // payment-sheet marker above. Neutral privacy/close/chevron glyphs remain lightened.
+        if(ADPaymentHeaderBrandLogo7402(svg)){
+            if(objc_getAssociatedObject(svg,kADPaymentVectorOwned7401))svg.layer.filters=nil;
+            objc_setAssociatedObject(svg,kADPaymentVectorOwned7401,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            return;
+        }
         NSString *aid=svg.accessibilityIdentifier?:@""; CGFloat w=svg.bounds.size.width,h=svg.bounds.size.height;
-        BOOL neutral=[aid isEqualToString:@"privacy-icon"]||((w<=64.0&&h<=24.0)&&(w>=7.0&&h>=7.0));
+        BOOL neutral=[aid isEqualToString:@"privacy-icon"]||((w<=24.0&&h<=24.0)&&(w>=7.0&&h>=7.0));
         if(!neutral)return;
         Class F=NSClassFromString(@"CAFilter"); if(!F)return; SEL ft=sel_registerName("filterWithType:"); if(![F respondsToSelector:ft])return;
         id inv=((id(*)(id,SEL,id))objc_msgSend)(F,ft,@"colorInvert"); if(!inv)return;
@@ -7520,6 +7705,7 @@ static void ADPaymentPrimeSheet7401(UIView *root){
             UIView *v=q[seen++];
             objc_setAssociatedObject(v,kADPaymentSheet7401,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             ADPaymentOwnView7401(v); ADPaymentOwnText7401(v); if(ADClassNameIs7183(v,"RNSVGSvgView"))ADPaymentOwnVector7401(v);
+            if([v isKindOfClass:[UIImageView class]])ADPaymentFinalizeCreateImage7402((UIImageView *)v,YES);
             if(v.subviews.count&&q.count-seen<192)[q addObjectsFromArray:v.subviews];
         }
     } @catch(...) {}
@@ -8494,7 +8680,8 @@ static void ADOwnBottomBar708(UIView *v){
 - (void)didMoveToWindow {
     %orig;
     ADOwnCheckoutBackgroundEffect7389(self);
-    if(self.hidden&&[objc_getAssociatedObject(self,kADCheckoutBackgroundShield7389) boolValue])return;
+    ADOwnCheckoutPaymentBackgroundEffect7402(self);
+    if(self.hidden&&([objc_getAssociatedObject(self,kADCheckoutBackgroundShield7389) boolValue]||[objc_getAssociatedObject(self,kADCheckoutPaymentBackgroundShield7402) boolValue]))return;
     BOOL bottom=NO; BOOL bar=ADBarGeometry713(self,&bottom);
     if(gP.enabled && self.window && (ADInBottomNav706(self)||ADTopChromeClass713(self)||bar)){
         self.effect=nil;
@@ -8504,7 +8691,8 @@ static void ADOwnBottomBar708(UIView *v){
 - (void)layoutSubviews {
     %orig;
     ADOwnCheckoutBackgroundEffect7389(self);
-    if(self.hidden&&[objc_getAssociatedObject(self,kADCheckoutBackgroundShield7389) boolValue])return;
+    ADOwnCheckoutPaymentBackgroundEffect7402(self);
+    if(self.hidden&&([objc_getAssociatedObject(self,kADCheckoutBackgroundShield7389) boolValue]||[objc_getAssociatedObject(self,kADCheckoutPaymentBackgroundShield7402) boolValue]))return;
     BOOL bottom=NO; BOOL bar=ADBarGeometry713(self,&bottom);
     if(gP.enabled && self.window && (ADInBottomNav706(self)||ADTopChromeClass713(self)||bar)){
         self.effect=nil;
@@ -10010,29 +10198,33 @@ static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
 
 %hook RCTUIImageViewAnimated
 - (void)setImage:(UIImage *)image {
-    if(gADPersonOriginalImageWriting7218||gADMenuImageWrite7255){
+    if(gADPersonOriginalImageWriting7218||gADMenuImageWrite7255||gADPaymentImageWrite7402){
         %orig(image);
         return;
     }
     objc_setAssociatedObject(self,kADPersonFinalRasterKind7235,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADAlexaSuggestionIndex7285,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(self,kADPaymentCreateImageKind7402,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     %orig(image);
     ADPersonFinalizePersonImage7235((UIImageView *)self,YES);
     ADMenuFinalizeImage7255((UIImageView *)self,YES);
     ADAlexaFinalizeSuggestionImage7285((UIImageView *)self,YES);
+    ADPaymentFinalizeCreateImage7402((UIImageView *)self,YES);
 }
 - (void)didMoveToSuperview {
     objc_setAssociatedObject(self,kADPersonFinalRasterKind7235,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADAlexaSuggestionIndex7285,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(self,kADPaymentCreateImageKind7402,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADReactSurfaceCache7232,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     %orig;
     if(((UIView *)self).window){
         ADPersonFinalizePersonImage7235((UIImageView *)self,YES);
         ADMenuFinalizeImage7255((UIImageView *)self,YES);
         ADAlexaFinalizeSuggestionImage7285((UIImageView *)self,YES);
+        ADPaymentFinalizeCreateImage7402((UIImageView *)self,YES);
     }
 }
 - (void)didMoveToWindow {
@@ -10042,10 +10234,12 @@ static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
         ADPersonFinalizePersonImage7235((UIImageView *)self,YES);
         ADMenuFinalizeImage7255((UIImageView *)self,YES);
         ADAlexaFinalizeSuggestionImage7285((UIImageView *)self,YES);
+        ADPaymentFinalizeCreateImage7402((UIImageView *)self,YES);
     } else {
         objc_setAssociatedObject(self,kADPersonFinalRasterKind7235,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADMenuFinalRasterKind7255,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(self,kADAlexaSuggestionIndex7285,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(self,kADPaymentCreateImageKind7402,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
 }
 - (void)layoutSubviews {
@@ -10055,6 +10249,8 @@ static void ADAlexaFinalizeSuggestionImage7285(UIImageView *iv,BOOL discover){
     NSNumber *menuCached=objc_getAssociatedObject(self,kADMenuFinalRasterKind7255);
     ADMenuFinalizeImage7255((UIImageView *)self,(menuCached&&menuCached.intValue>0)?NO:YES);
     ADAlexaFinalizeSuggestionImage7285((UIImageView *)self,objc_getAssociatedObject(self,kADAlexaSuggestionIndex7285)==nil);
+    NSNumber *payCached=objc_getAssociatedObject(self,kADPaymentCreateImageKind7402);
+    ADPaymentFinalizeCreateImage7402((UIImageView *)self,(payCached&&payCached.intValue>0)?NO:YES);
 }
 %end
 

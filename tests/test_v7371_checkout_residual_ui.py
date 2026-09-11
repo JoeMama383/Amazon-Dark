@@ -3,8 +3,8 @@ import re
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.401~native-payment-sheets-completion' in C
-assert '#define AD_VERSION "v7.401-native-payment-sheets-completion"' in S
+assert 'Version: 7.402~payment-first-paint-switcher-fix' in C
+assert '#define AD_VERSION "v7.402-payment-first-paint-switcher-fix"' in S
 
 # r1: ATC overlay plumbing must stay transparent so it cannot cut across product photos.
 for tok in [

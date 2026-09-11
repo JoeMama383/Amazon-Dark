@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.401~native-payment-sheets-completion' in CTRL
-assert '#define AD_VERSION "v7.401-native-payment-sheets-completion"' in S
+assert 'Version: 7.402~payment-first-paint-switcher-fix' in CTRL
+assert '#define AD_VERSION "v7.402-payment-first-paint-switcher-fix"' in S
 
 def func(name):
     st=S.index(f'static NSString *{name}')

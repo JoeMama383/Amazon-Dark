@@ -2,14 +2,13 @@ from pathlib import Path
 import json, os, subprocess, tempfile
 ROOT=Path(__file__).resolve().parents[1]
 HELPER=ROOT/'scripts/skeleton-probe.sh'
-with tempfile.TemporaryDirectory(prefix='ad7401-parent-handoff-') as td:
+with tempfile.TemporaryDirectory(prefix='ad7402-parent-handoff-') as td:
     root=Path(td); containers=root/'Containers/Data/Application'; amazon=containers/'AMAZON'/'Documents'; amazon.mkdir(parents=True)
     shared=root/'shared'; shared.mkdir(); bin=root/'bin'; bin.mkdir()
-    # Force metadata discovery to fail so the direct-parent receipt is the only locator.
     (bin/'plutil').write_text('#!/bin/sh\nexit 1\n'); (bin/'plutil').chmod(0o755)
     (bin/'dpkg-query').write_text('#!/bin/sh\nprintf "7.402~payment-first-paint-switcher-fix"\n'); (bin/'dpkg-query').chmod(0o755)
-    receipt=amazon/'AmazonDark-v7.400-probe-status.json'
-    receipt.write_text(json.dumps({'event':'PROBE_BOOTSTRAP','bundle':'com.amazon.Amazon','version':'v7.400-delivery-instructions-completion'}))
+    receipt=amazon/'AmazonDark-v7.401-probe-status.json'
+    receipt.write_text(json.dumps({'event':'PROBE_BOOTSTRAP','bundle':'com.amazon.Amazon','version':'v7.401-native-payment-sheets-completion'}))
     env=dict(os.environ,PATH=str(bin)+':'+os.environ['PATH'],AD_PROBE_ROOT=str(root),AD_PROBE_CONTAINERS=str(containers),AD_PROBE_DOCS=str(shared))
     r=subprocess.run(['sh',str(HELPER),'arm','transition'],env=env,text=True,capture_output=True,timeout=8)
     assert r.returncode==0,(r.stdout,r.stderr)
@@ -18,4 +17,4 @@ with tempfile.TemporaryDirectory(prefix='ad7401-parent-handoff-') as td:
     assert launch.exists()
     r=subprocess.run(['sh',str(HELPER),'disarm'],env=env,text=True,capture_output=True,timeout=8)
     assert r.returncode==0 and not arm.exists() and not launch.exists()
-print('PASS: current skeleton helper still discovers Amazon from historical v7.400 receipt with metadata/plutil unavailable')
+print('PASS: v7.402 skeleton helper discovers Amazon from exact direct-parent v7.401 receipt with metadata/plutil unavailable')

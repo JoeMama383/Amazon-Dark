@@ -1,15 +1,15 @@
 {
-  "version": "7.401~native-payment-sheets-completion",
-  "direct_parent": "7.400~delivery-instructions-completion",
-  "source": "AmazonDark-v7.400-delivery-instructions-completion-source.zip generated in the prior turn and used as the exact direct edit baseline",
-  "parent_source_zip_sha256": "c3de626d4eca98e7d2c3672db8f1eecd729cd31aba295ccf833ecd695ab6f24b",
+  "version": "7.402~payment-first-paint-switcher-fix",
+  "direct_parent": "7.401~native-payment-sheets-completion",
+  "source": "AmazonDark-v7.401-native-payment-sheets-completion-source.zip generated in the prior turn and used as the exact direct edit baseline",
+  "parent_source_zip_sha256": "870eddca7855aa7e998e0ee1331e338da49bea8df178ce209b09478223b06433",
   "parent_files_sha256": {
-    "src/Tweak.xm": "d2a6fbc750f424935c65a7fac74a534f2544e0bf35a4604a85b3a684162bb725",
-    "src/AmazonDarkSB.xm": "5d6c46949f3350f5031eb1a1cbfb2be2dc9055a1c66b542b1c1d9e9220fa3820",
+    "src/Tweak.xm": "47af19d198671157fedc5190dae232f21a276446094676a3ffce4a705b56d8b2",
+    "src/AmazonDarkSB.xm": "e911a6f3661f8b0066e48738c934881b51b924b9318a82372c611b3cbbb7dab2",
     "src/ADSponsored.m": "45e4825bb0c025016633c026740fc02a969f0a3d6aafa6d2be79a58e81f97fa7",
-    "scripts/ui-probe.sh": "f3222fc997994bba0d730354b202d94a4201c0fb3c7a96a5abf9affdc6a2a23f",
-    "scripts/skeleton-probe.sh": "050bc3621d1034dd97ddfb3944602cbae6cc64b85fb5e722738eb60f526c8172"
+    "scripts/ui-probe.sh": "2ab7f208688e6fe5d8572bb969ee4ac33cf79b3b0e238d99c4cd8f90060eac07",
+    "scripts/skeleton-probe.sh": "18a8a24c8137d1689f6e883a606ee0d2094201396e408a9f63d57202fa363fff"
   },
-  "runtime_contract": "Preserve v7.400 and earlier behavior. Fully theme only the two probe-proven native payment-sheet families identified by r5 card/input wrapper markers or r6 creatable-sleeve rows. Neutral sheet/input/button/row surfaces become OLED/dark with standard gray edges and light neutral text while payment artwork and saturated semantic states remain authored. Treat neutral press/highlight row paint as part of the permanent AmazonDark UI algorithm: already-owned AUI touch rows and proven RN payment rows must remain dark through touch-down/pressed/highlight states without recurring runtime work.",
-  "device_validation": "Verify both native payment sheets and press/hold states. Payment-entry fields and primary oval must be dark; payment-method rows must stay dark when held; payment logos remain stock. Delivery Instructions, Add-address, Help/topic/submenu/suggestion and other explicitly owned AUI touch rows must not flash white during press/highlight."
+  "runtime_contract": "Preserve v7.401 and earlier behavior. Fix only probe-proven first-paint/lifecycle owners: the Maple payment skeleton/shimmer, early Add-new payment bottom-sheet header while preserving the authored orange Amazon SVG, the exact inactive neutral payment visual-effect shields, the exact Place Your Order pickup-expander chevron, the exact SPC pickup z-index-100 white/.75 transition plane, and the exact Add-new creatable-sleeve payment icon rasters. Keep the four monochrome Card/EBT/Bank/OTC image wrappers transparent and render those icons light; preserve the authored FSA/HSA raster. Preserve semantic colors, brand/payment artwork, spinner rendering, press-state policy, and the no-recurring-work performance architecture.",
+  "device_validation": "Verify payment-method reserved-card first paint, Add-new header first frame plus orange Amazon logo, payment-section app switcher dark snapshot, Place Your Order pickup chevron visibility, Place Your Order-to-pickup transition OLED floor, and Add-new Card/EBT/Bank/OTC icons visible with FSA/HSA artwork preserved."
 }

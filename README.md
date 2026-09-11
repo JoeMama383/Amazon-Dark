@@ -1,15 +1,16 @@
-# AmazonDark v7.401 — native payment sheets + press-state completion
+# AmazonDark v7.402 — payment first-paint, switcher, and pickup-transition fixes
 
-v7.401 is built directly on `7.400~delivery-instructions-completion` and preserves the completed Delivery Instructions renderer, Add-an-address form, legal/help coverage, checkout/address transition seal, pickup UI, keyboard/accessory fixes, sponsored ownership, universal probes, and the established low-overhead performance architecture.
+v7.402 is built directly on `7.401~native-payment-sheets-completion`. It preserves the completed native payment sheets, permanent dark press/highlight policy, Delivery Instructions, Add-address, checkout/help/pickup theming, transition ownership, universal probes, and the existing low-overhead architecture.
 
-This release closes the two native React Native payment sheets captured in the supplied v7.398 FULL r5/r6 probes and adds a permanent interaction-state rule for already-owned neutral text/touch rows.
+This release is driven by the supplied v7.401 transition traces plus the previously captured FULL Place Your Order hierarchy. It closes six transient/residual paint gaps without introducing a broad overlay or generic image inversion:
 
-The r5 payment-entry sheet is a native `RCTView#bottom-sheet` in `AppCXWindow`. Its stable payment markers are `card-pressable-wrapper > ... > card-wrapper` and `input-pressable-wrapper > ... > input-wrapper`; the probe also shows stock-white `RCTSinglelineTextInputView` interiors, dark neutral labels, a yellow full-width oval action, and a neutral privacy glyph. v7.401 makes the sheet OLED, uses the existing dark control fill + gray edge for the two inputs, converts the yellow primary action to the standard AmazonDark black/gray oval treatment, lightens only neutral text, and makes only the probe-proven neutral vectors visible. Payment/card artwork is untouched.
+1. **Select Payment Method first paint:** the React-Web skeleton immediately before `iframe#maple-advertisement`, including its white shimmer child, is OLED at document start.
+2. **Add-new payment sheet first paint:** the native `RCTView#bottom-sheet` can be recognized while still mostly offscreen from its exact centered 51×12 Amazon-smile SVG, allowing the root/header to be claimed before the slide-up becomes visible. That SVG is explicitly treated as authored brand art and is never inverted, so the Amazon smile remains orange.
+3. **Payment-section app switcher:** the transition probe captured two neutral inactive `UIVisualEffectView` shields (checkout Web and React payment controller) that replaced the older teal signature. v7.402 hides only those exact payment-owned neutral shields while the proven payment sheet is live; normal snapshots remain untouched.
+4. **Place Your Order pickup chevron:** the exact AUI expander icon under `#ap-spc-dest-schs-upsell` is made light while the surrounding Amazon-blue pickup link remains authored.
+5. **Place Your Order → Select a pickup location transition:** the experiment-specific `bolt-widget-amazon_us_checkout_spc_mobile-*` renderer mounts a 430×800 inline white/75%-opacity z-index-100 loading plane over an already-black page. Only that exact transition plane is forced OLED; the spinner remains authored.
+6. **Add-new payment method icons:** the r6 FULL probe identifies five exact raster leaves. Card/EBT/Bank/OTC are transparent monochrome icons and are rendered as light templates on transparent wrappers; the already-legible FSA/HSA authored raster remains original.
 
-The r6 payment-method chooser is another native `RCTView#bottom-sheet`, identified by the five `creatable-sleeve-*` row families. Its selected/pressed row is the probe-captured pale `*-content-wrapper-outline`. v7.401 keeps the sheet OLED, neutral text light, row separators gray, chevrons visible, and neutral pressed/selected row fill dark. The payment logos/images remain authored and are not filtered.
+No MutationObserver, interval, RAF loop, Web scroll listener, polling loop, recurring hierarchy scan, generic app-switcher cover, generic transition overlay, or extra WKUserScript is added. All Web fixes are static rules in the existing checkout document-start program; native fixes reuse existing event-driven hooks.
 
-The new interaction-state policy also prevents Amazon's stock `.a-touch-press` / `:active` painter from turning already-themed AUI text rows white during touch-down. It is scoped to renderer families AmazonDark already owns: Delivery Instructions, Add-an-address touch rows, Help/topic/submenu/suggestion rows, plus the existing Subscribe checkbox and checkout delivery-option families. Authored semantic selection colors and checkbox/radio sprites remain untouched. Native React payment rows are protected through the existing `RCTView -setBackgroundColor:` event path, so a near-white press repaint is reclaimed immediately without polling.
-
-No MutationObserver, interval, RAF loop, Web scroll listener, polling loop, recurring hierarchy scan, generic bottom-sheet recolor, image sweep, or new WKUserScript is added. The one new native payment-sheet bootstrap is a bounded one-time pass after an exact payment marker proves ownership; normal steady-state handling remains event-driven.
-
-See `AUDIT-v7.401.md` and `COMMANDS.md`.
+See `AUDIT-v7.402.md` and `COMMANDS.md`.

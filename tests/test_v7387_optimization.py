@@ -17,6 +17,13 @@ _m2='        // v7.373 FULL r1/r2:'
 if _m1 in S_golden:
     a=S_golden.index(_m1); b=S_golden.index(_m2,a)
     S_golden=S_golden[:a]+S_golden[b:]
+# v7.402 adds two later probe-scoped Place Your Order/pickup floor rules outside the
+# v7.389-v7.398 append span. Strip that exact documented block before comparing to v7.386.
+_v402a='        // v7.402 FULL/transition reconciliation (23:17):'
+_v402b='        // Place-order buttons.'
+if _v402a in S_golden:
+    a=S_golden.index(_v402a); b=S_golden.index(_v402b,a)
+    S_golden=S_golden[:a]+S_golden[b:]
 S_golden=S_golden.replace(",#checkoutDisplayPage #checkout-maple-upsell .maple-banner__image img","")
 S_golden=S_golden.replace("#checkoutDisplayPage :is([data-testid='selected-primary-pm-card'],[data-testid='unselected-primary-pm-card']) [data-testid='image']{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}","")
 S_golden=S_golden.replace("#bolt-widget-amazon_us_checkout_generic_mobile #bolt-widget-map canvas#Microsoft\\\\.Maps\\\\.Imagery\\\\.LiteRoad{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}","")
@@ -46,7 +53,7 @@ assert len(rules)==golden['sponsored_selectors']==86
 assert digest(json.dumps(rules,separators=(',',':')))==golden['sponsored_rules_sha256'],'sponsored scope, specificity, cascade order or declaration changed'
 for name,h in golden['probe_sha256'].items():
     data=(ROOT/'src'/name).read_bytes()
-    if name=='ADUniversalUIProbe7362.js.inc':data=data.replace(b"version:'7.401'",b"version:'7.386'")  # capture-version metadata only
+    if name=='ADUniversalUIProbe7362.js.inc':data=data.replace(b"version:'7.402'",b"version:'7.386'")  # capture-version metadata only
     assert hashlib.sha256(data).hexdigest()==h, name
 assert 'ADHomeFrameProbeBridgeJS7265' not in S and '__adHomeProbeReq7265' not in S
 # Script sharing is bounded, maintains order, document-start timing and frame scope.
