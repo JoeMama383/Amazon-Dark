@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.408~permission-location-switcher-hardening' in C
-assert '#define AD_VERSION "v7.408-permission-location-switcher-hardening"' in S
+assert 'Version: 7.409~permission-controls-location-rails-fix' in C
+assert '#define AD_VERSION "v7.409-permission-controls-location-rails-fix"' in S
 block=S.split('// v7.399 FULL r1 (21:44):',1)[1].split('// v7.400 FULL r1 + v7.398 FULL r5/r6:',1)[0]
 # Probe-proven bright field wrapper family, scoped only to the Add-address form.
 assert '#checkoutDisplayPage #address-ui-widgets-enterAddressFormContainer .a-input-text-wrapper.addrui-form-text-input-container' in block

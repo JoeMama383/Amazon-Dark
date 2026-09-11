@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.408 — permission sheets + location outer-floor completion
+ * AmazonDark v7.409 — permission controls + location rail completion
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.408-permission-location-switcher-hardening"
+#define AD_VERSION "v7.409-permission-controls-location-rails-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2911,7 +2911,8 @@ static BOOL ADCheckoutBackgroundEffectMatches7389(UIVisualEffectView *effect){
 static void ADOwnCheckoutBackgroundEffect7389(UIVisualEffectView *effect){
     if(!ADCheckoutBackgroundEffectMatches7389(effect))return;
     @try {
-        effect.effect=nil;
+        // Do not mutate the authored effect object itself. Hidden/alpha suppression is enough
+        // for the inactive snapshot and lets foreground reuse restore without reconstructing blur state.
         effect.hidden=YES;
         effect.alpha=0.0;
         effect.layer.opacity=0.0;
@@ -3007,7 +3008,6 @@ static void ADOwnCheckoutPaymentBackgroundEffect7402(UIVisualEffectView *effect)
 // non-neutral signature. This is suppression of Amazon's transient shield, not a fake
 // snapshot cover or SpringBoard painter.
 static const void *kADInactiveNeutralSnapshotShield7408=&kADInactiveNeutralSnapshotShield7408;
-static const void *kADInactiveNeutralOldEffect7408=&kADInactiveNeutralOldEffect7408;
 static const void *kADInactiveNeutralOldHidden7408=&kADInactiveNeutralOldHidden7408;
 static const void *kADInactiveNeutralOldAlpha7408=&kADInactiveNeutralOldAlpha7408;
 static const void *kADInactiveNeutralOldLayerOpacity7408=&kADInactiveNeutralOldLayerOpacity7408;
@@ -3072,16 +3072,13 @@ static UIVisualEffectView *ADInactiveSnapshotEffectForTint7408(UIView *v,UIColor
 static void ADRestoreInactiveSnapshotShield7408(UIVisualEffectView *effect){
     if(!effect||![objc_getAssociatedObject(effect,kADInactiveNeutralSnapshotShield7408) boolValue])return;
     @try {
-        id oldEffect=objc_getAssociatedObject(effect,kADInactiveNeutralOldEffect7408);
         NSNumber *oldHidden=objc_getAssociatedObject(effect,kADInactiveNeutralOldHidden7408);
         NSNumber *oldAlpha=objc_getAssociatedObject(effect,kADInactiveNeutralOldAlpha7408);
         NSNumber *oldLayer=objc_getAssociatedObject(effect,kADInactiveNeutralOldLayerOpacity7408);
-        effect.effect=(oldEffect==[NSNull null])?nil:oldEffect;
         if(oldHidden)effect.hidden=oldHidden.boolValue;
         if(oldAlpha)effect.alpha=oldAlpha.doubleValue;
         if(oldLayer)effect.layer.opacity=oldLayer.floatValue;
         objc_setAssociatedObject(effect,kADInactiveNeutralSnapshotShield7408,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(effect,kADInactiveNeutralOldEffect7408,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(effect,kADInactiveNeutralOldHidden7408,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(effect,kADInactiveNeutralOldAlpha7408,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(effect,kADInactiveNeutralOldLayerOpacity7408,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -3098,12 +3095,12 @@ static BOOL ADOwnInactiveSnapshotShield7408(UIVisualEffectView *effect){
         if(!marked&&!ADInactiveSnapshotEffectHasNeutral7408(effect))return NO;
         if(!marked){
             objc_setAssociatedObject(effect,kADInactiveNeutralSnapshotShield7408,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            objc_setAssociatedObject(effect,kADInactiveNeutralOldEffect7408,effect.effect?:[NSNull null],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             objc_setAssociatedObject(effect,kADInactiveNeutralOldHidden7408,@(effect.hidden),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             objc_setAssociatedObject(effect,kADInactiveNeutralOldAlpha7408,@(effect.alpha),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             objc_setAssociatedObject(effect,kADInactiveNeutralOldLayerOpacity7408,@(effect.layer.opacity),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
-        effect.effect=nil;
+        // Preserve the authored effect object. Hidden/alpha suppression is sufficient for
+        // the inactive snapshot and avoids reconstructing blur state if this instance survives.
         effect.hidden=YES;
         effect.alpha=0.0;
         effect.layer.opacity=0.0;
@@ -7813,7 +7810,9 @@ static UIColor *ADPermissionTargetBackground7408(UIView *v,UIColor *candidate,in
     if(kind==1){
         if([aid isEqualToString:@"inflight-prompt-dismiss-button"])return ADMenuButtonFill7255();
         if([aid isEqualToString:@"inflight-prompt-allow-button"])return ADOLED();
-        if(ADPermissionCameraCheckbox7408(v))return ADMenuButtonFill7255();
+        // v7.409: the 24x24 camera opt-in square is authored checkbox UI, not a
+        // neutral sheet floor. Preserve its stock fill/edge/state exactly.
+        if(ADPermissionCameraCheckbox7408(v))return nil;
     } else if(kind==2 && [aid isEqualToString:@"actionButton"])return ADOLED();
     UIColor *layerBG=nil; @try{ if(v.layer.backgroundColor)layerBG=[UIColor colorWithCGColor:v.layer.backgroundColor]; }@catch(...){}
     if(ADNeutralNearWhite7255(candidate)||ADNeutralNearWhite7255(v.backgroundColor)||ADNeutralNearWhite7255(layerBG))return ADOLED();
@@ -7829,19 +7828,45 @@ static void ADPermissionOwnView7408(UIView *v){
         BOOL button=(kind==2&&[aid isEqualToString:@"actionButton"])||
                     (kind==1&&([aid isEqualToString:@"inflight-prompt-dismiss-button"]||[aid isEqualToString:@"inflight-prompt-allow-button"]));
         if(button){
-            v.layer.borderWidth=1.0; v.layer.borderColor=ADBorderGray706().CGColor; v.layer.shadowOpacity=0.0;
-            if(v.layer.cornerRadius<7.0)v.layer.cornerRadius=8.0;
-        } else if(kind==1&&ADPermissionCameraCheckbox7408(v)){
-            v.layer.borderWidth=1.0; v.layer.borderColor=ADBorderGray706().CGColor;
+            // v7.409: React already owns the rounded button border. Rewrite that
+            // existing owner instead of adding a second CALayer ring (which left
+            // Amazon yellow visible underneath and produced mismatched corners).
+            UIColor *gray=ADBorderGray706();
+            SEL sw=NSSelectorFromString(@"setBorderWidth:"),sc=NSSelectorFromString(@"setBorderColor:"),sr=NSSelectorFromString(@"setBorderRadius:");
+            if([v respondsToSelector:sw])((void(*)(id,SEL,CGFloat))objc_msgSend)(v,sw,1.0);
+            if([v respondsToSelector:sc])((void(*)(id,SEL,id))objc_msgSend)(v,sc,gray);
+            if([v respondsToSelector:sr])((void(*)(id,SEL,CGFloat))objc_msgSend)(v,sr,8.0);
+            v.layer.borderWidth=0.0; v.layer.borderColor=nil; v.layer.shadowOpacity=0.0;
         }
     } @catch(...) {}
 }
+static BOOL ADPermissionButtonText7409(UIView *v){
+    if(!v)return NO;
+    @try {
+        NSUInteger d=0;
+        for(UIView *n=v.superview;n&&d++<6;n=n.superview){
+            NSString *aid=n.accessibilityIdentifier?:@"";
+            if([aid isEqualToString:@"actionButton"]||[aid isEqualToString:@"inflight-prompt-dismiss-button"]||[aid isEqualToString:@"inflight-prompt-allow-button"])return YES;
+            if([aid isEqualToString:@"sheet-view"]||[n isKindOfClass:[UIWindow class]])break;
+        }
+    } @catch(...) {}
+    return NO;
+}
 static BOOL ADPermissionDarkNeutral7408(UIColor *c){ return ADDarkNeutral7259(c,YES); }
 static NSAttributedString *ADPermissionLightString7408(NSAttributedString *in){ return ADLightNeutralString7271(in,ADPermissionDarkNeutral7408); }
+static NSAttributedString *ADPermissionTextString7409(UIView *v,NSAttributedString *in){
+    if(!in.length||!ADPermissionButtonText7409(v))return ADPermissionLightString7408(in);
+    @try { NSMutableAttributedString *m=[in mutableCopy]; [m addAttribute:NSForegroundColorAttributeName value:ADLightText706() range:NSMakeRange(0,m.length)]; return m; } @catch(...) { return in; }
+}
 static void ADPermissionLightStorage7408(NSTextStorage *ts){ ADLightNeutralStorage7271(ts,ADPermissionDarkNeutral7408); }
+static void ADPermissionTextStorage7409(UIView *v,NSTextStorage *ts){
+    if(!ts.length)return;
+    if(!ADPermissionButtonText7409(v)){ ADPermissionLightStorage7408(ts); return; }
+    @try { [ts beginEditing]; [ts addAttribute:NSForegroundColorAttributeName value:ADLightText706() range:NSMakeRange(0,ts.length)]; [ts endEditing]; } @catch(...) {}
+}
 static void ADPermissionOwnText7408(UIView *v){
     if(!gP.enabled||!v||!v.window||!ADPermissionSheetKind7408(v))return;
-    NSTextStorage *ts=ADPersonTextStorage7206(v); if(ts)ADPermissionLightStorage7408(ts);
+    NSTextStorage *ts=ADPersonTextStorage7206(v); if(ts)ADPermissionTextStorage7409(v,ts);
 }
 static BOOL ADPermissionCameraCloseWrapper7408(UIView *v){
     return v&&ADClassNameIs7183(v,"RCTImageView")&&ADPermissionSheetKind7408(v)==1&&[v.accessibilityIdentifier isEqualToString:@"closeButtonIcon"];
@@ -7904,13 +7929,36 @@ static void ADPermissionPrimeSheet7408(UIView *root,int kind){
 // the inner scroller is 394pt wide.  Own that exact full-width shell after the proven
 // location root has been marked; bypass the older cached surface classification so a
 // shell mounted before the address wrappers cannot stay white for the rest of its life.
+static BOOL ADLocationInsetScrollerWitness7409(UIView *v){
+    if(!v)return NO;
+    @try {
+        NSMutableArray *q=[NSMutableArray arrayWithArray:v.subviews?:@[]]; NSUInteger seen=0;
+        while(seen<q.count&&seen<12){
+            UIView *x=q[seen++]; if(!x)continue;
+            if(ADClassNameIs7183(x,"RCTScrollView")){
+                CGRect xr=[x convertRect:x.bounds toView:v.window],vr=[v convertRect:v.bounds toView:v.window];
+                UIColor *bg=x.backgroundColor;
+                if(xr.size.width>=vr.size.width*0.89&&xr.size.width<=vr.size.width*0.94&&
+                   fabs(xr.size.height-vr.size.height)<=8.0&&ADDarkNeutral7259(bg,NO))return YES;
+            }
+            if(x.subviews.count&&seen<8)[q addObjectsFromArray:x.subviews];
+        }
+    } @catch(...) {}
+    return NO;
+}
 static BOOL ADLocationOuterWhiteShell7408(UIView *v,UIColor *candidate){
     if(!gP.enabled||!v||!v.window||!ADClassNameIs7183(v,"RCTView")||!ADBrightNeutralColor708(candidate))return NO;
-    UIView *root=nil; if(!ADLocationRootActive7202(v,&root)||!root)return NO;
+    UIView *root=ADLocationRootAny7202(v); if(!root)return NO;
     @try {
         CGRect r=[v convertRect:v.bounds toView:v.window],wb=v.window.bounds;
-        return r.size.width>=wb.size.width*0.98&&r.size.height>=300.0&&r.size.height<=430.0&&
-               CGRectGetMinY(r)>=wb.size.height*0.54&&CGRectGetMinY(r)<=wb.size.height*0.68;
+        BOOL geometry=r.size.width>=wb.size.width*0.98&&r.size.height>=300.0&&r.size.height<=430.0&&
+                      CGRectGetMinY(r)>=wb.size.height*0.54&&CGRectGetMinY(r)<=wb.size.height*0.68;
+        if(!geometry||!v.clipsToBounds||v.subviews.count!=1)return NO;
+        // Prefer the historical marked location root, but also accept the exact r4
+        // local witness: a full-width bright shell containing the ~394pt dark
+        // vertical RCTScrollView. This closes the timing hole where the shell can
+        // paint before the address-card marker is attached.
+        return objc_getAssociatedObject(root,kADLocationRootFirstPaint7202)!=nil||ADLocationInsetScrollerWitness7409(v);
     } @catch(...) { return NO; }
 }
 // v7.401 FULL r5/r6: the two checkout payment menus are native React sheets, not
@@ -8394,6 +8442,12 @@ static void ADOwnReactView7226(UIView *v){
     if(menuRole)ADMenuOwnView7255(v);
 }
 - (void)setBorderRadius:(CGFloat)value {
+    UIView *pv=(UIView *)self; int pk=(gP.enabled&&pv.window)?ADPermissionSheetKind7408(pv):0;
+    NSString *paid=pv.accessibilityIdentifier?:@"";
+    if(pk&&([paid isEqualToString:@"actionButton"]||[paid isEqualToString:@"inflight-prompt-dismiss-button"]||[paid isEqualToString:@"inflight-prompt-allow-button"])){
+        %orig(8.0);
+        return;
+    }
     int alexaRole=gP.enabled?ADAlexaReactControlRole7285((UIView *)self):0;
     if(alexaRole==1){
         %orig(value);
@@ -8419,8 +8473,7 @@ static void ADOwnReactView7226(UIView *v){
     NSString *paid=pv.accessibilityIdentifier?:@"";
     if(pk&&([paid isEqualToString:@"actionButton"]||[paid isEqualToString:@"inflight-prompt-dismiss-button"]||[paid isEqualToString:@"inflight-prompt-allow-button"])){
         %orig(1.0);
-        pv.layer.borderWidth=1.0;
-        pv.layer.borderColor=ADBorderGray706().CGColor;
+        pv.layer.borderWidth=0.0; pv.layer.borderColor=nil;
         return;
     }
     int alexaRole=gP.enabled?ADAlexaReactControlRole7285((UIView *)self):0;
@@ -8438,7 +8491,7 @@ static void ADOwnReactView7226(UIView *v){
     if(pk&&([paid isEqualToString:@"actionButton"]||[paid isEqualToString:@"inflight-prompt-dismiss-button"]||[paid isEqualToString:@"inflight-prompt-allow-button"])){
         UIColor *gray=ADBorderGray706();
         %orig(gray);
-        pv.layer.borderColor=gray.CGColor;
+        pv.layer.borderWidth=0.0; pv.layer.borderColor=nil;
         return;
     }
     int alexaRole=gP.enabled?ADAlexaReactControlRole7285((UIView *)self):0;
@@ -8550,7 +8603,7 @@ static void ADAlexaOwnVector7285(UIView *svg){
 
 static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOOL includeBuyAgain){
     if(!gP.enabled||!v.window)return NO;
-    if(ADPermissionSheetKind7408(v)){ ADPermissionLightStorage7408(textStorage); return YES; }
+    if(ADPermissionSheetKind7408(v)){ ADPermissionTextStorage7409(v,textStorage); return YES; }
     if(ADInPaymentSheet7401(v)){ ADPaymentLightStorage7401(textStorage); return YES; }
     if(ADAlexaSuggestionPillText7288(v)){ ADAlexaSuggestionPillLightStorage7288(textStorage); return YES; }
     int surface=ADReactSurface7226(v);
@@ -8588,7 +8641,7 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 %hook RCTParagraphComponentView
 - (void)setAttributedText:(NSAttributedString *)attributedText {
     NSAttributedString *r=nil;
-    if(gP.enabled&&((UIView *)self).window&&ADPermissionSheetKind7408((UIView *)self)) r=ADPermissionLightString7408(attributedText);
+    if(gP.enabled&&((UIView *)self).window&&ADPermissionSheetKind7408((UIView *)self)) r=ADPermissionTextString7409((UIView *)self,attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADInPaymentSheet7401((UIView *)self)) r=ADPaymentLightString7401(attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)) r=ADPersonHeaderLeaf7221((UIView *)self)?ADPersonHeaderString7221(attributedText):ADPersonLightString7206(attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADInMenuTab7255((UIView *)self)) r=ADMenuLightString7255(attributedText);
@@ -8600,7 +8653,7 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 }
 - (void)_setAttributedString:(NSAttributedString *)attributedString {
     NSAttributedString *r=nil;
-    if(gP.enabled&&((UIView *)self).window&&ADPermissionSheetKind7408((UIView *)self)) r=ADPermissionLightString7408(attributedString);
+    if(gP.enabled&&((UIView *)self).window&&ADPermissionSheetKind7408((UIView *)self)) r=ADPermissionTextString7409((UIView *)self,attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADInPaymentSheet7401((UIView *)self)) r=ADPaymentLightString7401(attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)) r=ADPersonHeaderLeaf7221((UIView *)self)?ADPersonHeaderString7221(attributedString):ADPersonLightString7206(attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADInMenuTab7255((UIView *)self)) r=ADMenuLightString7255(attributedString);
@@ -8647,7 +8700,7 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     UIView *v=(UIView *)self;
     if(gP.enabled&&v.window){
         NSTextStorage *ts=ADPersonTextStorage7206(v);
-        if(ADPermissionSheetKind7408(v)){ if(ts)ADPermissionLightStorage7408(ts); }
+        if(ADPermissionSheetKind7408(v)){ if(ts)ADPermissionTextStorage7409(v,ts); }
         else if(ADInPaymentSheet7401(v)){ if(ts)ADPaymentLightStorage7401(ts); }
         if(ADAlexaSuggestionPillText7288(v)){ if(ts)ADAlexaSuggestionPillLightStorage7288(ts); }
         if(ADClassNameIs7183(v.window,"AppCXWindow")){
@@ -9247,6 +9300,25 @@ static void ADOwnBottomBar708(UIView *v){
         self.effect=nil;
         ADSetViewBackground7226(self,ADOLED(),YES);
     }
+}
+- (void)setHidden:(BOOL)hidden {
+    // Once a large inactive neutral shield is claimed, Amazon/UIKit may try to re-show
+    // the same view while composing the background snapshot. Keep it suppressed until
+    // the app is active again; foreground lifecycle/layout then restores authored state.
+    if(gP.enabled&&[objc_getAssociatedObject(self,kADInactiveNeutralSnapshotShield7408) boolValue]&&
+       UIApplication.sharedApplication.applicationState!=UIApplicationStateActive){
+        %orig(YES);
+        return;
+    }
+    %orig(hidden);
+}
+- (void)setAlpha:(CGFloat)alpha {
+    if(gP.enabled&&[objc_getAssociatedObject(self,kADInactiveNeutralSnapshotShield7408) boolValue]&&
+       UIApplication.sharedApplication.applicationState!=UIApplicationStateActive){
+        %orig(0.0);
+        return;
+    }
+    %orig(alpha);
 }
 %end
 

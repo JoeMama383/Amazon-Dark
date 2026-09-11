@@ -1,0 +1,110 @@
+AmazonDark v7.408 validation / self-audit
+========================================
+
+Release
+-------
+Version:       7.408~permission-location-switcher-hardening
+Runtime:       v7.408-permission-location-switcher-hardening
+Direct parent: 7.407~pdp-transition-skeleton-dark
+
+Probe-backed menu coverage
+--------------------------
+The three supplied v7.406 FULL probes were independently mapped:
+- r1 (18:26:09): Camera-access prompt.
+- r2 (18:26:52): Microphone / voice-access prompt.
+- r4 (18:31:05): Choose-your-location sheet.
+
+Camera-access prompt
+- exact React sheet-view family identified through inflight-prompt / CAMERA markers
+- neutral white floors -> OLED
+- neutral dark copy -> light
+- authored blue permission/settings links preserved
+- Allow access -> OLED + #747a7c edge + light text
+- Not now -> #303335 + #747a7c edge + light text
+- neutral checkbox edge standardized gray
+- close glyph made light without broad image filtering
+
+Microphone / voice-access prompt
+- exact React sheet-view family identified through actionButton + allowTitle markers
+- neutral white floors -> OLED
+- neutral dark copy -> light while authored blue links remain semantic
+- Continue -> OLED + #747a7c edge + light text
+- exact monochrome microphone raster made legible on OLED without broadening image taming
+
+Choose-your-location
+- existing blue links and selected orange address edge retained
+- exact anonymous full-width lower bright shell darkened to remove the two visible white side rails
+- existing location cards/seams/selection logic otherwise retained
+
+Gray/white app-switcher regression: exact probe witness
+--------------------------------------------------------
+The supplied transition capture shows the failing inactive state directly:
+- UIApplicationDidEnterBackgroundNotification; applicationState=2
+- AppCXWindow 430x932
+- controller: SNPViewController
+- UIVisualEffectView 430x932
+- direct _UIVisualEffectSubview 430x932
+- tint/presentation background: rgba(1,1,1,0.30)
+
+Root cause of prior regression coverage
+---------------------------------------
+v7.389 intentionally matched one exact teal checkout shield.
+v7.402 intentionally matched neutral payment shields, but required live checkout/payment state.
+Those source-contract tests passed because those narrow contracts were still present. They did not prove
+that a different foreground React sheet could never trigger the same inactive visual-effect mechanism.
+The location sheet therefore bypassed both older owners even though the resulting switcher card looked
+nearly identical to the payment regression.
+
+v7.408 switcher invariant
+-------------------------
+Neutral switcher protection is now based on the common lifecycle/geometry invariant instead of route names:
+- AmazonDark enabled
+- app state is not Active
+- exact Amazon AppCXWindow
+- UIVisualEffectView >=94% of window width and >=78% of window height
+- effect or immediate effect/content child has neutral gray-to-white tint with meaningful alpha
+- keyboard visual effects excluded
+- no checkout modal, payment sheet, bottom-sheet, SNPViewController or AMIWebViewController prerequisite
+
+The claimed transient view is hidden / alpha-zero / layer-opacity-zero only while inactive. Its authored
+UIVisualEffect object is not destroyed or replaced. If the same view survives foregrounding, its original
+hidden/alpha/layer-opacity values are restored. Re-show / re-alpha writes are rejected only while inactive.
+The old exact teal and payment-specific owners remain only as compatibility fallbacks.
+
+New regression strategy
+-----------------------
+- test_v7408_permission_location_switcher_hardening.py asserts the generalized owner has no route/payment prerequisite.
+- tests/fixtures/v7408-location-switcher-shield.json records the exact failing probe witness.
+- test_v7408_location_switcher_probe_fixture.py proves that witness satisfies the generalized invariant and would fail if
+  the owner becomes route/payment-specific again.
+
+Performance / architecture
+--------------------------
+No new MutationObserver, interval, RAF loop, Web scroll listener, polling loop, recurring hierarchy scan,
+fake app-switcher snapshot, SpringBoard scene painter, or WKUserScript family was introduced.
+All new native work is event-driven from existing UIView / React / UIVisualEffectView lifecycle hooks.
+
+Probe refresh
+-------------
+- universal FULL helper: v7.408
+- universal VIEWPORT helper: v7.408
+- transition/lifecycle helper: v7.408
+- direct-parent handoff from v7.407 receipt: PASS
+
+Validation performed
+--------------------
+- bash scripts/lint-logos.sh: PASS
+- sh -n scripts/ui-probe.sh: PASS
+- sh -n scripts/skeleton-probe.sh: PASS
+- sh -n layout/DEBIAN/postinst: PASS
+- 74/74 bounded non-exhaustive Python regression files: PASS
+- tests/test_probe_handoff.py exhaustive historical handoff suite: PASS
+- exact v7.408 location-switcher probe-fixture regression: PASS
+- scripts/validate.sh strict serial run: progressed through inherited tests with no assertion failure, but the wrapper
+  exceeded the execution environment time ceiling before completing; every Python test file was therefore executed
+  separately/bounded above, including the exhaustive handoff suite.
+
+Build status
+------------
+Theos is not installed/configured in this environment (`/makefiles/common.mk` missing), so a local .deb compile is not claimed.
+Device validation remains required for the live iOS renderers and SpringBoard snapshot timing.

@@ -1,0 +1,70 @@
+AmazonDark v7.409 validation / self-audit
+=========================================
+
+Release
+-------
+Version:       7.409~permission-controls-location-rails-fix
+Runtime:       v7.409-permission-controls-location-rails-fix
+Direct parent: 7.408~permission-location-switcher-hardening
+
+Probe-backed corrections
+------------------------
+1. Camera permission sheet
+   - exact button labels forced light through assignment/storage/final-draw paths
+   - existing React border is the only button border owner
+   - border = 1pt AmazonDark gray with authored 8pt radius
+   - no competing CALayer border
+   - 24x24 camera opt-in checkbox is explicitly preserved stock
+
+2. Microphone permission sheet
+   - actionButton uses the same single rounded React gray border
+   - no yellow under-ring / gray square-ring duplication
+   - button label forced light
+   - exact microphone artwork handling inherited unchanged
+
+3. Choose-your-location
+   - r4 430x375.7 bright outer shell can now be owned by its exact local 394x375.7 dark RCTScrollView witness
+   - does not depend solely on the historical address-card marker arriving first
+   - blue links and orange selected-address edge remain authored
+
+Architecture / performance
+--------------------------
+- no new MutationObserver
+- no interval / polling loop
+- no requestAnimationFrame loop
+- no Web scroll listener
+- no recurring hierarchy scan
+- no new WKUserScript family
+- all new ownership is event-driven through existing React lifecycle/setter paths
+
+Probe regeneration
+------------------
+- universal FULL identity/output: v7.409
+- universal VIEWPORT arm/output: v7.409
+- transition/lifecycle helper identity: v7.409
+- SpringBoard launch-probe identity: v7.409
+- exact direct-parent v7.408 receipt -> v7.409 handoff: PASS
+
+Validation performed
+--------------------
+- sh -n scripts/ui-probe.sh: PASS
+- sh -n scripts/skeleton-probe.sh: PASS
+- sh -n layout/DEBIAN/postinst: PASS
+- bash -n scripts/lint-logos.sh: PASS
+- bash scripts/lint-logos.sh: PASS
+- targeted v7.409 permission/location regression: PASS
+- targeted v7.409 direct-parent probe handoff: PASS
+- bounded Python regression files excluding exhaustive handoff: 76/76 PASS
+- tests/test_probe_handoff.py exhaustive historical handoff suite: PASS when run independently
+
+Build note
+----------
+Theos is not installed/configured in this environment, so no local rootless .deb compile is claimed. The phone/GitHub Actions build remains authoritative for packaging.
+
+Device verification targets
+---------------------------
+1. Camera: both button labels white; Allow has one gray rounded border; no yellow border; checkbox square remains authored/stock.
+2. Microphone: Continue has one gray rounded border; no yellow under-ring or second square gray ring; label white.
+3. Choose your location: both white vertical side rails are OLED black; blue links and orange selected-address edge stay authored.
+4. Recheck background/app-switcher from the location sheet and confirm v7.408 switcher protection still holds.
+5. FULL, VIEWPORT and TRANSITION exports identify as v7.409.

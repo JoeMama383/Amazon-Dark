@@ -1,7 +1,7 @@
-# AmazonDark v7.408 — permission/location completion + switcher hardening
+# AmazonDark v7.409 — permission controls + location rail completion
 
-Direct parent: **v7.407~pdp-transition-skeleton-dark**.
+Direct parent: **v7.408~permission-location-switcher-hardening**.
 
-This release themes the three probe-captured native React sheets requested after v7.407: Camera access, Microphone/voice access, and Choose your location. It also closes the repeated gray/white app-switcher regression at the architectural level: neutral bright, near-full-screen `UIVisualEffectView` shields inside Amazon `AppCXWindow` are suppressed only while the app is inactive, regardless of which foreground sheet/controller caused backgrounding. Active UI effects are restored if reused.
+This release is a narrow correction to the probe-backed v7.408 Camera, Microphone and Choose-your-location work: button labels are forced light at final React paint, the existing React button border is recolored gray as the sole border owner, the Camera opt-in checkbox is preserved stock, and the exact full-width location backing shell is darkened using its local inset-scroller witness so the two white side rails cannot survive marker timing. All v7.408 switcher hardening and earlier theming are preserved.
 
-See `AUDIT-v7.408.md` for the exact ownership and preservation rules.
+See `VALIDATION-v7.409.txt` for regression and device-verification details.

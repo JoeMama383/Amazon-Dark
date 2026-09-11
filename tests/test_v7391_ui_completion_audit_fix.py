@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.408~permission-location-switcher-hardening' in C
-assert '#define AD_VERSION "v7.408-permission-location-switcher-hardening"' in S
+assert 'Version: 7.409~permission-controls-location-rails-fix' in C
+assert '#define AD_VERSION "v7.409-permission-controls-location-rails-fix"' in S
 floor=S[S.index('static NSString *ADCheckoutFloorJS7369'):S.index('static NSString *ADCheckoutTWBJS7369')]
 # Audit miss 1: visible Help H1 is outside #csg-support-topics.
 assert '.cs-help-content>article.help-content>h1' in floor

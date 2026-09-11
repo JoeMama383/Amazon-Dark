@@ -7,8 +7,8 @@ H=(ROOT/'src/ADSponsored.h').read_text()
 M=(ROOT/'Makefile').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.408~permission-location-switcher-hardening' in C
-assert '#define AD_VERSION "v7.408-permission-location-switcher-hardening"' in S
+assert 'Version: 7.409~permission-controls-location-rails-fix' in C
+assert '#define AD_VERSION "v7.409-permission-controls-location-rails-fix"' in S
 assert '#import "ADSponsored.h"' in S
 assert '#import "ADSponsored.h"' in A
 assert '#ifdef __cplusplus' in H

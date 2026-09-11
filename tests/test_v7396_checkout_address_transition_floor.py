@@ -3,8 +3,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.408~permission-location-switcher-hardening' in C
-assert '#define AD_VERSION "v7.408-permission-location-switcher-hardening"' in S
+assert 'Version: 7.409~permission-controls-location-rails-fix' in C
+assert '#define AD_VERSION "v7.409-permission-controls-location-rails-fix"' in S
 
 # Probe-proven incoming checkout child: plain UIView root directly owned by AMIWebViewController.
 for token in [

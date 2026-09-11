@@ -46,7 +46,7 @@ A new owner handles the common lifecycle behavior instead of route names:
 - effect or immediate visual-effect/content child has a neutral gray-to-white tint with meaningful alpha;
 - keyboard effects are excluded.
 
-When all of those are true, the transient effect is suppressed synchronously. There is no fake snapshot, no SpringBoard painter, no generic app-switcher cover, no timer, and no polling. Chromatic effects and dark dimmers do not qualify. If the same effect object survives into the active app, its original effect/hidden/alpha/layer-opacity state is restored.
+When all of those are true, the transient view is suppressed synchronously by hidden/alpha/layer-opacity ownership without mutating its authored blur/effect object. Re-show/re-alpha writes are rejected only while the app remains inactive. There is no fake snapshot, no SpringBoard painter, no generic app-switcher cover, no timer, and no polling. Chromatic effects and dark dimmers do not qualify. If the same effect object survives into the active app, its original hidden/alpha/layer-opacity state is restored.
 
 The older exact teal owner is retained as a compatibility fallback because teal is intentionally outside the new neutral-tint gate. The old payment owner remains as historical fallback/testing coverage, but neutral shield correctness no longer depends on payment or checkout state.
 

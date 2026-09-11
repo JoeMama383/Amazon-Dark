@@ -1,0 +1,12 @@
+{
+  "source": "AmazonDark-v7.406-skeleton-1789166545299-22936-transition.jsonl",
+  "event": "NATIVE_FRAME",
+  "applicationState": 2,
+  "windowClass": "AppCXWindow",
+  "controller": "SNPViewController",
+  "effectClass": "UIVisualEffectView",
+  "windowRect": [0, 0, 430, 932],
+  "effectRect": [0, 0, 430, 932],
+  "tintClass": "_UIVisualEffectSubview",
+  "tintRGBA": [1, 1, 1, 0.3]
+}
