@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.399 — add-address form completion
+ * AmazonDark v7.401 — native payment sheets completion
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.400-delivery-instructions-completion"
+#define AD_VERSION "v7.401-native-payment-sheets-completion"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -49,6 +49,7 @@ extern char *__progname;
 @interface RCTRootContentView : UIView @end
 @interface SNPRootView : UIView @end
 @interface RCTView : UIView @end
+@interface RCTSinglelineTextInputView : UIView @end
 @interface RCTScrollView : UIScrollView @end
 @interface RCTParagraphComponentView : UIView @end
 @interface RCTTextView : UIView @end
@@ -1876,6 +1877,37 @@ static NSString *ADCheckoutFloorJS7369(void){
         // Radio/checkbox sprites are authored assets and must not be filtered by the surrounding dark pass.
         ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form :is(.a-icon-radio,.a-icon-checkbox)"
         "{filter:none!important;-webkit-filter:none!important;}"
+        // v7.401 interaction-state policy: Amazon AUI adds .a-touch-press during touch-down and
+        // paints neutral tappable rows rgb(246,246,246). Keep every already-themed neutral-row
+        // family dark through press/active states instead of fixing these one screen at a time.
+        // Semantic selection colors are not included here; authored radio/checkbox art stays stock.
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form .ma-physical-key-fob-checkbox.a-touch-press,"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form .ma-physical-key-fob-checkbox:active,"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form :is(.a-touch-checkbox,.a-touch-radio,.a-touch-link).a-touch-press,"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form :is(.a-touch-checkbox,.a-touch-radio,.a-touch-link):active,"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form .ma-attribute-group-expander>.a-expander-section-header.a-touch-press,"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form .ma-attribute-group-expander>.a-expander-section-header:active"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form :is(.a-touch-checkbox,.a-touch-radio,.a-touch-link).a-touch-press>label,"
+        ".a-popover.a-popover-secondary:has(.ma-cdp-form) .ma-cdp-form :is(.a-touch-checkbox,.a-touch-radio,.a-touch-link)>label.a-touch-press"
+        "{background:transparent!important;background-color:transparent!important;background-image:none!important;}"
+        // Retrospective coverage for the other AUI text/touch-row menus AmazonDark already owns.
+        "#checkoutDisplayPage #address-ui-widgets-enterAddressFormContainer :is(.a-touch-link,.a-touch-checkbox,.a-touch-radio).a-touch-press,"
+        "#checkoutDisplayPage #address-ui-widgets-enterAddressFormContainer :is(.a-touch-link,.a-touch-checkbox,.a-touch-radio):active,"
+        "#checkoutDisplayPage #address-ui-widgets-delivery-instructions-mobile-touch-link.a-touch-press,"
+        "#checkoutDisplayPage #address-ui-widgets-delivery-instructions-mobile-touch-link:active,"
+        "#checkoutDisplayPage #address-ui-widgets-location-detection-error-touch-link.a-touch-press,"
+        "#checkoutDisplayPage #address-ui-widgets-location-detection-error-touch-link:active,"
+        "#csg-support-topics .a-touch-link.a-touch-press,#csg-support-topics .a-touch-link:active,"
+        ".cs-help-v4 .cs-help-content article.help-content .cs-help-landing-section a.a-touch-link.a-touch-press,"
+        ".cs-help-v4 .cs-help-content article.help-content .cs-help-landing-section a.a-touch-link:active,"
+        ".cs-help-v4 .cs-help-content [class*='help-content-submenu'].a-section a.a-touch-link.a-touch-press,"
+        ".cs-help-v4 .cs-help-content [class*='help-content-submenu'].a-section a.a-touch-link:active,"
+        ".cs-help-v4 .cs-help-content #suggested-help-topics-wrapper .suggested-help-topics-button.a-touch-press,"
+        ".cs-help-v4 .cs-help-content #suggested-help-topics-wrapper .suggested-help-topics-button:active,"
+        ".cs-help-v4 .cs-help-content #help_srch_sggst :is(li,a).a-touch-press,"
+        ".cs-help-v4 .cs-help-content #help_srch_sggst :is(li,a):active"
+        "{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
 
         // v7.395 re-audit: the location-assisted address flow keeps its error/feedback shells
         // mounted while hidden. Theme those exact latent owners so Use my location cannot reveal
@@ -7269,6 +7301,231 @@ static void ADMenuOwnText7255(UIView *v){
 }
 
 
+// v7.401 FULL r5/r6: the two checkout payment menus are native React sheets, not
+// WebUI. They share RCTView#bottom-sheet, but ownership is not granted by that generic
+// id alone. The sheet is marked only after one of the probe-proven payment families
+// mounts: r5's card/input field wrappers or r6's creatable-sleeve payment rows.
+// Once marked, one bounded mount-time pass repairs already-mounted siblings; normal
+// steady-state ownership remains event-driven through the existing React hooks.
+static const void *kADPaymentSheet7401=&kADPaymentSheet7401;
+static const void *kADPaymentSheetPrimed7401=&kADPaymentSheetPrimed7401;
+static const void *kADPaymentVectorOwned7401=&kADPaymentVectorOwned7401;
+static void ADPaymentPrimeSheet7401(UIView *root);
+static UIView *ADPaymentBottomSheet7401(UIView *v){
+    if(!v||!v.window||!ADClassNameIs7183(v.window,"AppCXWindow"))return nil;
+    @try {
+        NSUInteger d=0;
+        for(UIView *n=v;n&&d++<32;n=n.superview){
+            if(ADClassNameIs7183(n,"RCTView")&&[n.accessibilityIdentifier isEqualToString:@"bottom-sheet"])return n;
+            if([n isKindOfClass:[UIWindow class]])break;
+        }
+    } @catch(...) {}
+    return nil;
+}
+static BOOL ADPaymentHasAncestorAid7401(UIView *v,NSString *wanted,NSUInteger maxDepth){
+    if(!v||!wanted.length)return NO;
+    @try {
+        NSUInteger d=0;
+        for(UIView *n=v.superview;n&&d++<maxDepth;n=n.superview){
+            if([n.accessibilityIdentifier isEqualToString:wanted])return YES;
+            if([n.accessibilityIdentifier isEqualToString:@"bottom-sheet"]||[n isKindOfClass:[UIWindow class]])break;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADPaymentMarker7401(UIView *v){
+    if(!v)return NO;
+    @try {
+        NSString *aid=v.accessibilityIdentifier?:@"";
+        if([aid isEqualToString:@"card-wrapper"]&&ADPaymentHasAncestorAid7401(v,@"card-pressable-wrapper",5))return YES;
+        if([aid isEqualToString:@"input-wrapper"]&&ADPaymentHasAncestorAid7401(v,@"input-pressable-wrapper",5))return YES;
+        if([aid hasPrefix:@"creatable-sleeve-"]&&![aid hasSuffix:@"-image-wrapper"]&&
+           ![aid hasSuffix:@"-content-wrapper"]&&![aid hasSuffix:@"-content-wrapper-outline"])return YES;
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADInPaymentSheet7401(UIView *v){
+    if(!v||!v.window||!ADClassNameIs7183(v.window,"AppCXWindow"))return NO;
+    // A view is marked the first time it is proven to belong to the payment sheet.  This keeps
+    // subsequent paint/text callbacks O(1); only a newly mounted unmarked view pays the bounded
+    // ancestor walk once.
+    if(objc_getAssociatedObject(v,kADPaymentSheet7401))return YES;
+    UIView *root=ADPaymentBottomSheet7401(v); if(!root)return NO;
+    if(objc_getAssociatedObject(root,kADPaymentSheet7401)){
+        objc_setAssociatedObject(v,kADPaymentSheet7401,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        return YES;
+    }
+    if(!ADPaymentMarker7401(v))return NO;
+    objc_setAssociatedObject(root,kADPaymentSheet7401,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(v,kADPaymentSheet7401,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    if(!objc_getAssociatedObject(root,kADPaymentSheetPrimed7401)){
+        objc_setAssociatedObject(root,kADPaymentSheetPrimed7401,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        ADPaymentPrimeSheet7401(root);
+    }
+    return YES;
+}
+static BOOL ADPaymentNeutralDark7401(UIColor *c){
+    if(!c)return NO;
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0; UIColor *q=c;
+        if([q respondsToSelector:@selector(resolvedColorWithTraitCollection:)])q=[q resolvedColorWithTraitCollection:UIScreen.mainScreen.traitCollection];
+        if([q getRed:&r green:&g blue:&b alpha:&a]){
+            if(a<0.08)return NO;
+            CGFloat hi=MAX(r,MAX(g,b)),lo=MIN(r,MIN(g,b));
+            return (hi-lo)<=0.16&&hi<0.62;
+        }
+        if([q getWhite:&w alpha:&a])return a>=0.08&&w<0.62;
+    } @catch(...) {}
+    return NO;
+}
+static UIColor *ADPaymentTextColor7401(UIColor *old){
+    if(!ADPaymentNeutralDark7401(old))return old;
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0; UIColor *q=old;
+        if([q respondsToSelector:@selector(resolvedColorWithTraitCollection:)])q=[q resolvedColorWithTraitCollection:UIScreen.mainScreen.traitCollection];
+        CGFloat hi=0;
+        if([q getRed:&r green:&g blue:&b alpha:&a])hi=MAX(r,MAX(g,b));
+        else if([q getWhite:&w alpha:&a])hi=w;
+        return hi<0.25?ADLightText706():ADPersonSecondary7206();
+    } @catch(...) { return ADLightText706(); }
+}
+static NSAttributedString *ADPaymentLightString7401(NSAttributedString *in){
+    if(!in.length)return in;
+    @try {
+        __block NSMutableAttributedString *m=nil;
+        [in enumerateAttribute:NSForegroundColorAttributeName inRange:NSMakeRange(0,in.length) options:0 usingBlock:^(id value,NSRange range,BOOL *stop){
+            UIColor *old=[value isKindOfClass:[UIColor class]]?value:nil,*want=ADPaymentTextColor7401(old);
+            if(!want||want==old||[want isEqual:old])return;
+            if(!m)m=[in mutableCopy]; [m addAttribute:NSForegroundColorAttributeName value:want range:range];
+        }];
+        return m?:in;
+    } @catch(...) { return in; }
+}
+static void ADPaymentLightStorage7401(NSTextStorage *ts){
+    if(!ts.length)return;
+    @try {
+        __block NSMutableArray<NSValue *> *ranges=nil; __block NSMutableArray<UIColor *> *colors=nil;
+        [ts enumerateAttribute:NSForegroundColorAttributeName inRange:NSMakeRange(0,ts.length) options:0 usingBlock:^(id value,NSRange range,BOOL *stop){
+            UIColor *old=[value isKindOfClass:[UIColor class]]?value:nil,*want=ADPaymentTextColor7401(old);
+            if(!want||want==old||[want isEqual:old])return;
+            if(!ranges){ranges=[NSMutableArray array];colors=[NSMutableArray array];}
+            [ranges addObject:[NSValue valueWithRange:range]];[colors addObject:want];
+        }];
+        if(!ranges.count)return;
+        [ts beginEditing];
+        for(NSUInteger i=0;i<ranges.count;i++)[ts addAttribute:NSForegroundColorAttributeName value:colors[i] range:ranges[i].rangeValue];
+        [ts endEditing];
+    } @catch(...) {}
+}
+static BOOL ADPaymentIsInput7401(UIView *v){
+    if(!v)return NO;
+    @try {
+        NSString *aid=v.accessibilityIdentifier?:@"";
+        if([aid isEqualToString:@"card-wrapper"]||[aid isEqualToString:@"input-wrapper"])return YES;
+        return ADClassNameIs7183(v,"RCTSinglelineTextInputView")&&
+               (ADPaymentHasAncestorAid7401(v,@"card-wrapper",3)||ADPaymentHasAncestorAid7401(v,@"input-wrapper",3));
+    } @catch(...) { return NO; }
+}
+static BOOL ADPaymentIsPrimaryButtonFill7401(UIView *v){
+    if(!v||!ADClassNameIs7183(v,"RCTView"))return NO;
+    @try {
+        return v.superview&&[v.superview.accessibilityIdentifier isEqualToString:@"button"]&&
+               v.bounds.size.width>=300.0&&v.bounds.size.height>=36.0&&v.bounds.size.height<=60.0;
+    } @catch(...) { return NO; }
+}
+static BOOL ADPaymentIsRowDivider7401(UIView *v){
+    if(!v||!ADClassNameIs7183(v,"RCTView"))return NO;
+    @try {
+        if(v.bounds.size.height>1.5||v.bounds.size.width<300.0)return NO;
+        for(UIView *n=v.superview;n;n=n.superview){
+            NSString *aid=n.accessibilityIdentifier?:@"";
+            if([aid hasPrefix:@"creatable-sleeve-"])return YES;
+            if([aid isEqualToString:@"bottom-sheet"]||[n isKindOfClass:[UIWindow class]])break;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADPaymentIsSelectedRowFill7401(UIView *v){
+    if(!v||!ADClassNameIs7183(v,"RCTView"))return NO;
+    @try {
+        NSString *aid=v.accessibilityIdentifier?:@"";
+        return [aid hasPrefix:@"creatable-sleeve-"]&&[aid hasSuffix:@"-content-wrapper-outline"]&&
+               ADNeutralNearWhite7255(v.backgroundColor);
+    } @catch(...) { return NO; }
+}
+static void ADPaymentOwnView7401(UIView *v){
+    if(!gP.enabled||!v||!v.window||!ADInPaymentSheet7401(v))return;
+    @try {
+        if(ADPaymentIsRowDivider7401(v)){
+            ADSetViewBackground7226(v,ADMenuButtonBorder7255(),YES); return;
+        }
+        if(ADPaymentIsInput7401(v)){
+            UIColor *fill=ADMenuButtonFill7255(); ADSetViewBackground7226(v,fill,YES);
+            if([v.accessibilityIdentifier isEqualToString:@"card-wrapper"]||[v.accessibilityIdentifier isEqualToString:@"input-wrapper"]){
+                // Install the neutral resting edge, but do not flatten a future authored chromatic
+                // focus/validation edge if React has already supplied one.
+                CGColorRef edge=v.layer.borderColor;
+                BOOL neutralEdge=!edge||CGColorGetAlpha(edge)<=0.05||ADNeutralCGColor706(edge);
+                v.layer.borderWidth=MAX(1.0,v.layer.borderWidth);
+                if(neutralEdge)v.layer.borderColor=ADMenuButtonBorder7255().CGColor;
+                v.layer.cornerRadius=8.0; v.layer.masksToBounds=YES;
+            }
+            return;
+        }
+        if(ADPaymentIsPrimaryButtonFill7401(v)){
+            ADSetViewBackground7226(v,ADOLED(),YES);
+            v.layer.borderWidth=1.0; v.layer.borderColor=ADMenuButtonBorder7255().CGColor;
+            v.layer.cornerRadius=MIN(24.0,v.bounds.size.height*0.5); v.layer.masksToBounds=YES; v.layer.shadowOpacity=0.0;
+            return;
+        }
+        if(ADPaymentIsSelectedRowFill7401(v)){
+            ADSetViewBackground7226(v,ADMenuButtonFill7255(),YES); return;
+        }
+        UIColor *bg=v.backgroundColor,*lbg=v.layer.backgroundColor?[UIColor colorWithCGColor:v.layer.backgroundColor]:nil;
+        if([v.accessibilityIdentifier isEqualToString:@"bottom-sheet"]||ADNeutralNearWhite7255(bg)||ADNeutralNearWhite7255(lbg))
+            ADSetViewBackground7226(v,ADOLED(),YES);
+    } @catch(...) {}
+}
+static void ADPaymentOwnText7401(UIView *v){
+    if(!gP.enabled||!v||!v.window||!ADInPaymentSheet7401(v))return;
+    @try {
+        NSTextStorage *ts=ADPersonTextStorage7206(v); if(ts){ADPaymentLightStorage7401(ts);[v setNeedsDisplay];[v.layer setNeedsDisplay];}
+        if([v isKindOfClass:[UILabel class]]){
+            UILabel *l=(UILabel *)v; UIColor *want=ADPaymentTextColor7401(l.textColor); if(want&&![want isEqual:l.textColor])l.textColor=want;
+            if(l.attributedText.length){NSAttributedString *r=ADPaymentLightString7401(l.attributedText);if(r)l.attributedText=r;}
+        }
+    } @catch(...) {}
+}
+static void ADPaymentOwnVector7401(UIView *svg){
+    if(!gP.enabled||!svg||!svg.window||!ADClassNameIs7183(svg,"RNSVGSvgView")||!ADInPaymentSheet7401(svg))return;
+    @try {
+        // Probe-proven neutral vectors are the privacy glyph, 16x16 row chevrons/close glyph,
+        // and the compact 51x12 sheet handle.  Do not invert full-width decorative SVG planes or
+        // future semantic/brand artwork merely because it lives in the same sheet.
+        NSString *aid=svg.accessibilityIdentifier?:@""; CGFloat w=svg.bounds.size.width,h=svg.bounds.size.height;
+        BOOL neutral=[aid isEqualToString:@"privacy-icon"]||((w<=64.0&&h<=24.0)&&(w>=7.0&&h>=7.0));
+        if(!neutral)return;
+        Class F=NSClassFromString(@"CAFilter"); if(!F)return; SEL ft=sel_registerName("filterWithType:"); if(![F respondsToSelector:ft])return;
+        id inv=((id(*)(id,SEL,id))objc_msgSend)(F,ft,@"colorInvert"); if(!inv)return;
+        id hue=((id(*)(id,SEL,id))objc_msgSend)(F,ft,@"hueRotate");
+        @try { if(hue)[hue setValue:@(3.141592653589793) forKey:@"inputAngle"]; } @catch(...) { hue=nil; }
+        svg.layer.filters=hue?@[inv,hue]:@[inv]; objc_setAssociatedObject(svg,kADPaymentVectorOwned7401,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    } @catch(...) {}
+}
+static void ADPaymentPrimeSheet7401(UIView *root){
+    if(!root||!root.window)return;
+    @try {
+        NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:root]; NSUInteger seen=0;
+        while(seen<q.count&&seen<192){
+            UIView *v=q[seen++];
+            objc_setAssociatedObject(v,kADPaymentSheet7401,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            ADPaymentOwnView7401(v); ADPaymentOwnText7401(v); if(ADClassNameIs7183(v,"RNSVGSvgView"))ADPaymentOwnVector7401(v);
+            if(v.subviews.count&&q.count-seen<192)[q addObjectsFromArray:v.subviews];
+        }
+    } @catch(...) {}
+}
+
+
 static int ADReactSurface7226(UIView *v){
     if(!v)return ADReactSurfaceNone7226;
     @try {
@@ -7301,6 +7558,10 @@ static void ADOwnReactView7226(UIView *v){
     if(!gP.enabled||!v||!v.window)return;
     @try {
         ADAlexaOwnReactControl7285(v);
+        if(ADInPaymentSheet7401(v)){
+            ADPaymentOwnView7401(v);
+            return;
+        }
         int surface=ADReactSurface7226(v);
         if(surface==ADReactSurfacePerson7226){
             ADPersonOwnView7206(v);
@@ -7355,6 +7616,11 @@ static void ADOwnReactView7226(UIView *v){
         }
         @finally { if(gADPaintWriteDepth7226)gADPaintWriteDepth7226--; }
         ADAlexaOwnReactControl7285(v);
+        return;
+    }
+    if(gP.enabled&&v.window&&ADInPaymentSheet7401(v)){
+        %orig(color);
+        ADPaymentOwnView7401(v);
         return;
     }
     int surface=(gP.enabled&&v.window)?ADReactSurface7226(v):ADReactSurfaceNone7226;
@@ -7529,14 +7795,16 @@ static void ADAlexaOwnVector7285(UIView *svg){
 - (void)didMoveToWindow {
     %orig;
     ADAlexaOwnVector7285((UIView *)self);
+    ADPaymentOwnVector7401((UIView *)self);
 }
 - (void)didMoveToSuperview {
     %orig;
-    if(((UIView *)self).window)ADAlexaOwnVector7285((UIView *)self);
+    if(((UIView *)self).window){ ADAlexaOwnVector7285((UIView *)self); ADPaymentOwnVector7401((UIView *)self); }
 }
 - (void)layoutSubviews {
     %orig;
     ADAlexaOwnVector7285((UIView *)self);
+    ADPaymentOwnVector7401((UIView *)self);
 }
 %end
 
@@ -7555,6 +7823,7 @@ static void ADAlexaOwnVector7285(UIView *svg){
 
 static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOOL includeBuyAgain){
     if(!gP.enabled||!v.window)return NO;
+    if(ADInPaymentSheet7401(v)){ ADPaymentLightStorage7401(textStorage); return YES; }
     if(ADAlexaSuggestionPillText7288(v)){ ADAlexaSuggestionPillLightStorage7288(textStorage); return YES; }
     int surface=ADReactSurface7226(v);
     if(surface==ADReactSurfacePerson7226||(includeBuyAgain&&ADPersonBuyAgain7208(v))){
@@ -7574,6 +7843,7 @@ static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOO
 }
 static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     if(!gP.enabled||!v.window)return;
+    if(ADInPaymentSheet7401(v)){ ADPaymentOwnText7401(v); return; }
     if(ADAlexaSuggestionPillText7288(v)){ NSTextStorage *ts=ADPersonTextStorage7206(v); if(ts)ADAlexaSuggestionPillLightStorage7288(ts); return; }
     int surface=ADReactSurface7226(v);
     if(surface==ADReactSurfacePerson7226||(includeBuyAgain&&ADPersonBuyAgain7208(v))){ ADPersonOwnText7206(v); return; }
@@ -7589,7 +7859,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 %hook RCTParagraphComponentView
 - (void)setAttributedText:(NSAttributedString *)attributedText {
     NSAttributedString *r=nil;
-    if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)) r=ADPersonHeaderLeaf7221((UIView *)self)?ADPersonHeaderString7221(attributedText):ADPersonLightString7206(attributedText);
+    if(gP.enabled&&((UIView *)self).window&&ADInPaymentSheet7401((UIView *)self)) r=ADPaymentLightString7401(attributedText);
+    else if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)) r=ADPersonHeaderLeaf7221((UIView *)self)?ADPersonHeaderString7221(attributedText):ADPersonLightString7206(attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADInMenuTab7255((UIView *)self)) r=ADMenuLightString7255(attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADInLocationSheetContent7196((UIView *)self)) r=ADLocationSheetLightString7196((UIView *)self,attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADInAppCXBottomSheet7255((UIView *)self)) r=ADAppCXSheetLightString7255(attributedText);
@@ -7599,7 +7870,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 }
 - (void)_setAttributedString:(NSAttributedString *)attributedString {
     NSAttributedString *r=nil;
-    if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)) r=ADPersonHeaderLeaf7221((UIView *)self)?ADPersonHeaderString7221(attributedString):ADPersonLightString7206(attributedString);
+    if(gP.enabled&&((UIView *)self).window&&ADInPaymentSheet7401((UIView *)self)) r=ADPaymentLightString7401(attributedString);
+    else if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)) r=ADPersonHeaderLeaf7221((UIView *)self)?ADPersonHeaderString7221(attributedString):ADPersonLightString7206(attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADInMenuTab7255((UIView *)self)) r=ADMenuLightString7255(attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADInLocationSheetContent7196((UIView *)self)) r=ADLocationSheetLightString7196((UIView *)self,attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADInAppCXBottomSheet7255((UIView *)self)) r=ADAppCXSheetLightString7255(attributedString);
@@ -7611,7 +7883,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     %orig;
     if(!gP.enabled||!((UIView *)self).window)return;
     UIView *v=(UIView *)self;
-    if(ADInPersonTab7206(v))ADPersonOwnText7206(v);
+    if(ADInPaymentSheet7401(v))ADPaymentOwnText7401(v);
+    else if(ADInPersonTab7206(v))ADPersonOwnText7206(v);
     else if(ADInMenuTab7255(v))ADMenuOwnText7255(v);
     else if(ADInLocationSheetContent7196(v))ADLocationSheetOwnText7196(v);
     else if(ADInPersonSavingsSheet7259(v)){ NSTextStorage *ts=ADPersonTextStorage7206(v); if(ts)ADPersonSavingsLightStorage7259(ts); }
@@ -7642,6 +7915,7 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     UIView *v=(UIView *)self;
     if(gP.enabled&&v.window){
         NSTextStorage *ts=ADPersonTextStorage7206(v);
+        if(ADInPaymentSheet7401(v)){ if(ts)ADPaymentLightStorage7401(ts); }
         if(ADAlexaSuggestionPillText7288(v)){ if(ts)ADAlexaSuggestionPillLightStorage7288(ts); }
         if(ADClassNameIs7183(v.window,"AppCXWindow")){
             if(ADInAppCXBottomSheet7255(v)){ if(ts)ADAppCXSheetLightStorage7255(ts); }
@@ -7673,6 +7947,11 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
             return;
         }
         if(v.window){
+            if(ADInPaymentSheet7401(v)){
+                NSAttributedString *themed=ADPaymentLightString7401(attributedText);
+                %orig(themed);
+                return;
+            }
             if(ADClassNameIs7183(v.window,"AppCXWindow")){
                 if(ADInAppCXBottomSheet7255(v)){
                     NSAttributedString *themed=ADAppCXSheetLightString7255(attributedText);
@@ -7713,6 +7992,12 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 }
 - (void)setTextColor:(UIColor *)color {
     UIView *v=(UIView *)self;
+    if(gP.enabled&&v.window&&ADInPaymentSheet7401(v)){
+        UIColor *want=ADPaymentTextColor7401(color);
+        UIColor *paint=want?:color;
+        %orig(paint);
+        return;
+    }
     if(gP.enabled){
         if(ADInAuthoredVisualSubNav7175(v)){
             %orig(color);
@@ -7852,6 +8137,30 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
         }
         ADPersonRepairOrderSearchAncestors7242((UIView *)self);
     }
+}
+%end
+
+// v7.401 r5: the visible card/input field plate is owned by RCTSinglelineTextInputView
+// inside the exact payment sheet wrappers. Keep the field interior on the standard control fill
+// even when React rewrites its background after the wrapper has been themed.
+%hook RCTSinglelineTextInputView
+- (void)didMoveToWindow {
+    %orig;
+    if(gP.enabled&&((UIView *)self).window&&ADInPaymentSheet7401((UIView *)self))ADPaymentOwnView7401((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    if(gP.enabled&&((UIView *)self).window&&ADInPaymentSheet7401((UIView *)self))ADPaymentOwnView7401((UIView *)self);
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    UIView *v=(UIView *)self;
+    if(gP.enabled&&v.window&&ADInPaymentSheet7401(v)&&ADPaymentIsInput7401(v)){
+        UIColor *fill=ADMenuButtonFill7255();
+        %orig(fill);
+        v.layer.backgroundColor=fill.CGColor;
+        return;
+    }
+    %orig(color);
 }
 %end
 

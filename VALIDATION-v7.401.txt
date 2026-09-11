@@ -1,0 +1,86 @@
+AmazonDark v7.401 validation
+============================
+Release: 7.401~native-payment-sheets-completion
+Direct parent: 7.400~delivery-instructions-completion
+
+Probe-backed targets
+--------------------
+1. v7.398 FULL r5 native payment-entry sheet
+   - exact native family: AppCXWindow -> RCTView#bottom-sheet
+   - ownership proof: card-wrapper under card-pressable-wrapper OR input-wrapper under input-pressable-wrapper
+   - stock-white bottom-sheet/root neutral planes -> OLED black
+   - white card/input wrappers + RCTSinglelineTextInputView interiors -> standard dark control fill
+   - neutral resting field edge -> #747a7c; future authored chromatic focus/validation edge is not overwritten
+   - neutral dark labels/headings -> light; secondary neutral copy -> readable secondary gray
+   - stock yellow 398x46.7 primary oval -> OLED black / standard gray edge / light text
+   - compact neutral privacy/control vectors -> visible light treatment
+   - payment/card imagery untouched
+
+2. v7.398 FULL r6 native payment-method chooser
+   - exact native family: AppCXWindow -> RCTView#bottom-sheet with base creatable-sleeve-* payment rows
+   - five probe-proven row families covered: Card, EBT, BankAccount, DirectedSpendBenefitsCard, HealthBenefitsCard
+   - root/neutral planes -> OLED black
+   - neutral text -> light; structural dividers -> standard gray
+   - near-white neutral content-wrapper-outline press/selection repaint -> dark neutral treatment
+   - compact neutral chevrons -> visible light
+   - RCTImageView/RCTUIImageViewAnimated payment logos/artwork untouched
+
+3. Permanent neutral press/highlight policy
+   - v7.400 FULL r1 proves ma-physical-key-fob-checkbox receives .a-touch-press and a stock-light fill while held
+   - Delivery Instructions .ma-cdp-form touch/checkbox/radio/accordion rows remain dark through .a-touch-press and :active
+   - Add-address touch rows plus delivery/location feedback touch links remain dark on press
+   - Help topic/landing/submenu/suggested-topic/search-suggestion rows remain dark on press
+   - existing Subscribe/Gift Options checkbox press repair preserved
+   - existing checkout delivery-option press repair preserved
+   - native RN payment rows reclaim any near-white press repaint through the exact marked-sheet RCTView background path
+   - semantic selected-state colors and checkbox/radio/payment artwork remain authored
+
+Architecture / performance
+--------------------------
+- regular Logos hooks: v7.400 75 -> v7.401 76
+  (one exact RCTSinglelineTextInputView owner for the two payment input interiors)
+- %hookf: 2 -> 2
+- production new MutationObserver: 0
+- setInterval: 0
+- requestAnimationFrame: 0
+- Web scroll listeners: 0
+- recurring polling/timer loop: 0
+- recurring DOM/native hierarchy scanner: 0
+- new WKUserScript family: 0
+- generic AppCX bottom-sheet payment ownership: 0; exact r5/r6 payment marker required first
+- generic payment-image taming: 0
+- first exact payment proof performs one bounded BFS over at most 192 already-mounted descendants
+- payment membership is then associated/cached on each visited view; steady-state handling is event-driven
+
+Validation completed
+--------------------
+- bash scripts/lint-logos.sh src/Tweak.xm src/AmazonDarkSB.xm: PASS
+- sh -n scripts/ui-probe.sh: PASS
+- sh -n scripts/skeleton-probe.sh: PASS
+- sh -n layout/DEBIAN/postinst: PASS
+- test_v7401_native_payment_sheets_completion.py: PASS
+- test_v7401_interaction_press_policy.py: PASS
+- test_v7401_skeleton_direct_parent_handoff.py: PASS
+  (exact direct-parent v7.400 receipt locates Amazon with metadata/plutil unavailable)
+- test_v7388_ui_handoff.py: PASS with direct-parent/current recent receipt coverage through v7.400
+- test_v7392_probe_handoff_ci_fix.py: PASS
+- all 59 Python regression scripts other than exhaustive test_probe_handoff.py: PASS in bounded parallel execution
+- all 4 shipped .cjs files: node --check PASS
+- git diff --no-index --check: no whitespace diagnostics
+
+Exhaustive handoff stress-test boundary
+---------------------------------------
+- tests/test_probe_handoff.py is the exhaustive historical receipt/archive stress test. A 40-second bounded run exceeded this environment's command-time ceiling without reporting an assertion failure before termination.
+- The current release boundaries are independently covered by the passing lightweight UI handoff, dynamic-receipt CI test, and the new exact v7.400 -> v7.401 skeleton direct-parent handoff test.
+
+Build boundary
+--------------
+- No local Theos/iOS SDK toolchain is installed in this execution environment.
+- Source/static/regression validation is complete here; phone/GitHub Actions remains authoritative for Logos preprocess + arm64/arm64e compile/link/sign/package proof.
+
+Required device verification
+----------------------------
+1. r5 payment-entry sheet: OLED shell; both inputs dark/gray; labels light; primary oval black/gray/light; privacy/legal content readable; no payment-art regression.
+2. r6 payment-method chooser: OLED shell; light text; gray separators; visible chevrons; logos unchanged; hold/press a row and confirm it never turns white.
+3. Delivery Instructions: hold Key/fob and accordion/touch rows; row stays dark and checkbox remains authored.
+4. Add-address and Help-family neutral touch rows: hold/press; no stock-white flash.

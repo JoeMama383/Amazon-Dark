@@ -9,8 +9,8 @@ W=(ROOT/'.github/workflows/build.yml').read_text()
 V=(ROOT/'scripts/validate.sh').read_text()
 SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 
-assert 'Version: 7.400~delivery-instructions-completion' in C
-assert '#define AD_VERSION "v7.400-delivery-instructions-completion"' in S
+assert 'Version: 7.401~native-payment-sheets-completion' in C
+assert '#define AD_VERSION "v7.401-native-payment-sheets-completion"' in S
 for key in ['hideSponsored','priceHistory']:
     assert key in S and f'<string>{key}</string>' in P
 assert '<string>Hide Sponsored Content</string>' in P

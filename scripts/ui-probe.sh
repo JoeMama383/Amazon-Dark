@@ -1,9 +1,9 @@
 #!/bin/sh
-# AmazonDark v7.400 universal UI probe helper.
+# AmazonDark v7.401 universal UI probe helper.
 # `arm` is a one-shot VIEWPORT capture: create the app-local arm then signal Amazon.
 # FULL capture is intentionally screenshot-only and needs no shell command.
 set -eu
-VER=7.400
+VER=7.401
 CUR=${VER#7.}
 NAME=AmazonDark-v$VER
 ROOT=${AD_UI_ROOT:-/var/mobile}

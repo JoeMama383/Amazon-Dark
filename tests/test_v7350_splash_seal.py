@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 sb=ROOT/'src/AmazonDarkSB.xm'
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.400~delivery-instructions-completion' in ctl
-assert '#define AD_VERSION "v7.400-delivery-instructions-completion"' in t
+assert 'Version: 7.401~native-payment-sheets-completion' in ctl
+assert '#define AD_VERSION "v7.401-native-payment-sheets-completion"' in t
 for s in [
     'AmazonDarkSplashSeal7350',
     'AmazonDarkSplashSealLogo7350',

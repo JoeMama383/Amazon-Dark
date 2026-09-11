@@ -52,7 +52,7 @@ with tempfile.TemporaryDirectory(prefix='ad-ui-handoff-') as td:
         assert 'Viewport arm:' not in run('status')  # status must also succeed when unarmed.
         # Upgrade receipts locate Amazon before this build writes a new receipt.
         (amazon/(name+'-probe-status.json')).unlink()
-        for previous,slug in [('7.391','ui-completion-audit-fix'),('7.390','checkout-ui-completion'),('7.389','checkout-sheet-switcher-fix'),('7.388','native-work-optimization'),('7.387','runtime-css-optimization'),('7.386','sponsored-shell-ownership')]:
+        for previous,slug in [('7.400','delivery-instructions-completion'),('7.399','add-address-form-completion'),('7.398','legal-help-completion'),('7.397','checkout-payment-aux-controls'),('7.396','checkout-address-transition-floor-fix'),('7.395','ui-coverage-audit-fix'),('7.394','checkout-address-pickup-help-fix'),('7.393','payment-help-ui-fix'),('7.392','probe-handoff-ci-fix'),('7.391','ui-completion-audit-fix'),('7.390','checkout-ui-completion'),('7.389','checkout-sheet-switcher-fix'),('7.388','native-work-optimization'),('7.387','runtime-css-optimization'),('7.386','sponsored-shell-ownership')]:
             old=amazon/('AmazonDark-v'+previous+'-probe-status.json');receipt(old,'com.amazon.Amazon',previous+'~'+slug)
             run('arm');output('signal');assert arm.exists();run('disarm');old.unlink()
         bad=amazon/'AmazonDark-v7.391-probe-status.json';receipt(bad,'com.amazon.Amazon','7.390~checkout-ui-completion')
