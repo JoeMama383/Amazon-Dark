@@ -1,7 +1,0 @@
-.theos/
-packages/
-obj/
-*.deb
-.DS_Store
-__pycache__/
-*.pyc
