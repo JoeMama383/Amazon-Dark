@@ -1,15 +1,15 @@
 {
-  "version": "7.403~product-share-sheet-probe-control",
-  "direct_parent": "7.402~payment-first-paint-switcher-fix",
-  "source": "AmazonDark-v7.402-payment-first-paint-switcher-fix-source.zip generated in this conversation",
-  "parent_source_zip_sha256": "797e0f102c95fa9c4ee25029c1d488cc8c6326f653fa2df7dbf452f9fda1a179",
+  "version": "7.404~product-scroll-video-alexa-polish",
+  "direct_parent": "7.403~product-share-sheet-probe-control",
+  "source": "AmazonDark-v7.403-product-share-sheet-probe-control-source.zip generated in this conversation",
+  "parent_source_zip_sha256": "c033a58c03e3e22b4deebba56486e3fef03b0c5123cda4235e8454794aa9eed4",
   "parent_files_sha256": {
-    "src/Tweak.xm": "5fa446e106390fbce8f017770482872663bc109e3087c3cf044a4ba8167ad229",
-    "src/AmazonDarkSB.xm": "562fe3ef6d8b10a1212dc7dc7136fe6ef65f471e9d389093d115847600ba198b",
+    "src/Tweak.xm": "72f1b409d81e1dbaa055aaf222003035655fb3dfcb50bb26b2707113903b002a",
+    "src/AmazonDarkSB.xm": "af9646ee23fdb03fded633a56de3a9e24c65c55c1f3c4404cfaccb601d7f9042",
     "src/ADSponsored.m": "45e4825bb0c025016633c026740fc02a969f0a3d6aafa6d2be79a58e81f97fa7",
-    "scripts/ui-probe.sh": "042de2e7ad92f56ba350c0e913ba260f87bad3379cb3eb6ecf9f8d1938617e80",
-    "scripts/skeleton-probe.sh": "d5f90e89f9463f419e7a151722faa9c9c664f5c9b8822d3a543b3fa53306803d"
+    "scripts/ui-probe.sh": "bd33cfbc072f4e54e2d0fc2dffeceab8ae22650bd344291d9c869c1cc144fbf0",
+    "scripts/skeleton-probe.sh": "ff97c985e99f1414698d5f8ecc33ebc04aa9b62a15d609dcae4703028699eae7"
   },
-  "runtime_contract": "Preserve v7.402. Generalize the exact SSF Share renderer contract from Cart-only to Product+Cart, keep floors OLED/neutral copy light/gray edges, tame only product/share-channel imagery through TWB while preserving authored blue/brand/star colors and dark pressed states. Add default-off probe testing preference that hides only SSF Share during screenshot probe collection. Regenerate FULL/VIEWPORT/transition probes as v7.403.",
-  "device_validation": "Product Share OLED/light/gray; product preview and app art tamed without color inversion; orange stars preserved; press states stay dark; testing toggle suppresses SSF after respring while screenshot FULL probe still exports underlying target."
+  "runtime_contract": "Preserve v7.403. In Product Search VIDEO_SINGLE_PRODUCT, keep the existing outer s-card-border as the sole frame and remove the nested mobile-video-product-view frame so video + text read as one card. Restyle only the probe-proven c2Itd Alexa cue pill to #303335/#747a7c/white with dark pressed state while preserving the authored Alexa icon. Regenerate FULL/VIEWPORT/transition probes as v7.404.",
+  "device_validation": "Product Search video ads show one outer gray border around combined video+copy with no inner text-card frame. Alexa prompt pill is dark gray with gray edge and white text; Alexa icon remains authored. FULL/VIEWPORT/transition exports identify as v7.404."
 }

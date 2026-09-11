@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.403~product-share-sheet-probe-control' in C
-assert '#define AD_VERSION "v7.403-product-share-sheet-probe-control"' in S
+assert 'Version: 7.404~product-scroll-video-alexa-polish' in C
+assert '#define AD_VERSION "v7.404-product-scroll-video-alexa-polish"' in S
 block=S.split('// v7.400 FULL r1 + v7.398 FULL r5/r6:',1)[1].split('// v7.395 re-audit:',1)[0]
 root='.a-popover.a-popover-secondary:has(.ma-cdp-form)'
 assert root in block

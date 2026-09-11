@@ -4,8 +4,8 @@ import hashlib,re,subprocess,tempfile
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.403~product-share-sheet-probe-control' in CTRL
-assert '#define AD_VERSION "v7.403-product-share-sheet-probe-control"' in S
+assert 'Version: 7.404~product-scroll-video-alexa-polish' in CTRL
+assert '#define AD_VERSION "v7.404-product-scroll-video-alexa-polish"' in S
 
 def func(name):
     st=S.index(f'static NSString *{name}')
@@ -21,7 +21,7 @@ def func(name):
 # Semantic v7.386 CSS/palette parity is also checked by test_v7387_optimization.py.
 assert hashlib.sha256(func('ADFloorJS').encode()).hexdigest() == '86730a2287803039c3912c5b0cd5f2bdca27464c63820a1c24a4aa3e24685d83'
 assert hashlib.sha256(func('ADTWBJS').encode()).hexdigest() == 'a86f3c1257f32380057eb6c8c99c1c75e2c98f1fc5529364f4304feaa33821a3'
-core=func('ADCoreWebJS7271').replace('@"%@%@%@%@%@%@%@"','@"%@%@%@%@"').replace(',ADProductShareThemeJS7403(),\n        ADProductShareTWBJS7403(),ADShareProbeSuppressJS7403()','')
+core=func('ADCoreWebJS7271').replace('@"%@%@%@%@%@%@%@%@"','@"%@%@%@%@"').replace(',ADProductShareThemeJS7403(),\n        ADProductShareTWBJS7403(),ADShareProbeSuppressJS7403(),ADProductScrollPolishJS7404()','')
 assert hashlib.sha256(core.encode()).hexdigest() == '41ce925c9bad5362bf65204d4eb9778d016c2015b41b427704943df363b6d30c'
 
 floor=func('ADCheckoutFloorJS7369')

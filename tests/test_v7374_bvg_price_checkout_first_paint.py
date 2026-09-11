@@ -4,8 +4,8 @@ ROOT = Path(__file__).resolve().parents[1]
 S = (ROOT / "src/Tweak.xm").read_text()
 C = (ROOT / "layout/DEBIAN/control").read_text()
 
-assert "Version: 7.403~product-share-sheet-probe-control" in C
-assert '#define AD_VERSION "v7.403-product-share-sheet-probe-control"' in S
+assert "Version: 7.404~product-scroll-video-alexa-polish" in C
+assert '#define AD_VERSION "v7.404-product-scroll-video-alexa-polish"' in S
 
 # FULL r1: current price-to-pay family is neutral stock black and must be light.
 price = "span.a-price[class*=_mobileDenseGridPriceToPay_]"

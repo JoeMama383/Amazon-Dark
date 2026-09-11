@@ -1,8 +1,8 @@
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.403~product-share-sheet-probe-control' in ctl
-assert '#define AD_VERSION "v7.403-product-share-sheet-probe-control"' in t
+assert 'Version: 7.404~product-scroll-video-alexa-polish' in ctl
+assert '#define AD_VERSION "v7.404-product-scroll-video-alexa-polish"' in t
 # Search regression: v7.357 structural seal must not recolor stock row/close-button borders or outlines.
 needle='body>:is(div,section,main,footer),#a-page>:is(div,section,main,footer),#attach-to-me>:is(div,section,main,footer)'
 i=t.index(needle); rule=t[i:t.index('}',i)+1]

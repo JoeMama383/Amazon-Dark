@@ -4,8 +4,8 @@ S=(ROOT/'src/Tweak.xm').read_text()
 A=(ROOT/'src/ADSponsored.m').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.403~product-share-sheet-probe-control' in C
-assert '#define AD_VERSION "v7.403-product-share-sheet-probe-control"' in S
+assert 'Version: 7.404~product-scroll-video-alexa-polish' in C
+assert '#define AD_VERSION "v7.404-product-scroll-video-alexa-polish"' in S
 
 # Preserve the successful v7.381 first-paint repair: the Home dashboard shell
 # itself owns the stock white loading floor, and that floor remains OLED at

@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.403 — product Share sheet completion + probe testing control
+ * AmazonDark v7.404 — product-scroll video border + Alexa button polish
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.403-product-share-sheet-probe-control"
+#define AD_VERSION "v7.404-product-scroll-video-alexa-polish"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2299,6 +2299,16 @@ static NSString *ADShareProbeSuppressJS7403(void){
     return @"(function(){try{var d=document,s=d.getElementById('ad7403-share-probe-suppress');if(!s){s=d.createElement('style');s.id='ad7403-share-probe-suppress';(d.head||d.documentElement||d).appendChild(s);}s.textContent='.a-sheet-web-container:has(.ssf-customize-container-one),.a-sheet-web:has(.ssf-customize-container-one){display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}body:has(.ssf-customize-container-one)>.a-sheet-lightbox{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}';}catch(_){}})();";
 }
 
+// v7.404 FULL r1: VIDEO_SINGLE_PRODUCT currently has two nested card borders: the outer
+// s-card-border encloses video + product copy, while the inner mobile-video-product-view
+// adds a second 1px frame around only the product-copy half. Keep the outer owner and
+// explicitly zero the inner frame. The same probe exposes the Alexa cue as a baby-blue
+// cueContainer inside the exact c2Itd Alexa button family; restyle only that pill while
+// preserving the authored Alexa icon. This is static document-start CSS only.
+static NSString *ADProductScrollPolishJS7404(void){
+    return @"(function(){try{var d=document,s=d.getElementById('ad7404-product-scroll-polish');if(!s){s=d.createElement('style');s.id='ad7404-product-scroll-polish';(d.head||d.documentElement||d).appendChild(s);}s.textContent='#search#search .sbv-video-single-product.sb-video-creative .sbv-product-container .puis-card-container.mobile-video-product-view.puis-card-border{border:0!important;border-width:0!important;border-color:transparent!important;outline:0!important;outline-color:transparent!important;box-shadow:none!important;}#search#search button[class*=_c2Itd_buttonAlexaWithIcon_]{background:transparent!important;background-color:transparent!important;border:0!important;box-shadow:none!important;}#search#search button[class*=_c2Itd_buttonAlexaWithIcon_] [class*=_c2Itd_cueContainerAlexa_]{background:#303335!important;background-color:#303335!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}#search#search button[class*=_c2Itd_buttonAlexaWithIcon_] [class*=_c2Itd_cueContainerAlexa_] :is(span,div){color:#fff!important;-webkit-text-fill-color:#fff!important;background-color:transparent!important;}#search#search button[class*=_c2Itd_buttonAlexaWithIcon_] img[class*=_c2Itd_alexaIcon_]{background-color:transparent!important;filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;}#search#search button[class*=_c2Itd_buttonAlexaWithIcon_]:is(:active,:focus,:focus-visible,:focus-within) [class*=_c2Itd_cueContainerAlexa_]{background:#202324!important;background-color:#202324!important;border-color:#747a7c!important;}';}catch(_){}})();";
+}
+
 // One immutable document-start program per strength replaces four separately
 // allocated/compiled WKUserScripts while preserving their proven execution order.
 static long gADCoreWebJSStrength7271=-1;
@@ -2307,9 +2317,9 @@ static NSString *ADCoreWebJS7271(void){
     long strength=MAX(0,MIN(100,gP.whiteTameStrength));
     if(gADCoreWebJSCached7271&&gADCoreWebJSStrength7271==strength)return gADCoreWebJSCached7271;
     gADCoreWebJSStrength7271=strength;
-    gADCoreWebJSCached7271=[NSString stringWithFormat:@"%@%@%@%@%@%@%@",ADFullRasterHostBridgeJS7266(),
+    gADCoreWebJSCached7271=[NSString stringWithFormat:@"%@%@%@%@%@%@%@%@",ADFullRasterHostBridgeJS7266(),
         ADStandalonePaintJS7104(),ADFloorJS(),ADHomeAdShellFloorJS7381(),ADProductShareThemeJS7403(),
-        ADProductShareTWBJS7403(),ADShareProbeSuppressJS7403()];
+        ADProductShareTWBJS7403(),ADShareProbeSuppressJS7403(),ADProductScrollPolishJS7404()];
     return gADCoreWebJSCached7271;
 }
 

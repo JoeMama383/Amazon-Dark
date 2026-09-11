@@ -3,8 +3,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.403~product-share-sheet-probe-control' in C
-assert '#define AD_VERSION "v7.403-product-share-sheet-probe-control"' in S
+assert 'Version: 7.404~product-scroll-video-alexa-polish' in C
+assert '#define AD_VERSION "v7.404-product-scroll-video-alexa-polish"' in S
 
 loader = "#checkoutDisplayPage .checkout-byg-mobile-container li.a-carousel-card.a-carousel-card-empty>.a-loading-static"
 inner = "#checkoutDisplayPage .checkout-byg-mobile-container li.a-carousel-card.a-carousel-card-empty>.a-loading-static>.a-loading-static-inner"

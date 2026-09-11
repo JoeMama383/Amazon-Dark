@@ -94,8 +94,8 @@ def main():
     assert 'return original;' in xib
     for bad in ['UIImageView *replacement','ADLaunchArtwork7337(','addSubview','removeFromSuperview','backgroundColor=']:
         assert bad not in xib,bad
-    assert 'version=7.403~cold-artwork-no-generic-xib base=v7.338' in source
-    assert "Version: 7.403~product-share-sheet-probe-control\n" in (ROOT / "layout/DEBIAN/control").read_text()
+    assert 'version=7.404~cold-artwork-no-generic-xib base=v7.338' in source
+    assert "Version: 7.404~product-scroll-video-alexa-polish\n" in (ROOT / "layout/DEBIAN/control").read_text()
     # v7.351 changes only the optional file logger gate in SpringBoard. The actual
     # launch-artwork policy/render/selection functions remain byte-identical to accepted v7.350.
     def static_block(name):
