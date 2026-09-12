@@ -4,9 +4,9 @@ S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 
-assert 'Version: 7.413~address-location-compile-fix' in C
-assert '#define AD_VERSION "v7.413-address-location-compile-fix"' in S
-assert "version:'7.413'" in UI and "version:'7.391'" not in UI
+assert 'Version: 7.414~location-navigation-renderer-fix' in C
+assert '#define AD_VERSION "v7.414-location-navigation-renderer-fix"' in S
+assert "version:'7.414'" in UI and "version:'7.391'" not in UI
 
 # v7.392 FULL r1 proved the pmts form is a sibling of the rendered React tree.
 payment=S.split('// v7.393 FULL r1 (16:46) correction:',1)[1].split('// The gift-card cross-sell is an iframe.',1)[0]

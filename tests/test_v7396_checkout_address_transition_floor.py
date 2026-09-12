@@ -3,8 +3,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.413~address-location-compile-fix' in C
-assert '#define AD_VERSION "v7.413-address-location-compile-fix"' in S
+assert 'Version: 7.414~location-navigation-renderer-fix' in C
+assert '#define AD_VERSION "v7.414-location-navigation-renderer-fix"' in S
 
 # Probe-proven incoming checkout child: plain UIView root directly owned by AMIWebViewController.
 for token in [

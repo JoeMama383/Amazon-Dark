@@ -6,8 +6,8 @@ C=(ROOT/'layout/DEBIAN/control').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 
-assert 'Version: 7.413~address-location-compile-fix' in C
-assert '#define AD_VERSION "v7.413-address-location-compile-fix"' in S
+assert 'Version: 7.414~location-navigation-renderer-fix' in C
+assert '#define AD_VERSION "v7.414-location-navigation-renderer-fix"' in S
 
 # BYG expanded quantity control is the same dark/gray/light contract as Cart.
 for token in [
@@ -47,8 +47,8 @@ for bad in ['task-switcher','switcher-release','WarmSnapshotCover','UIApplicatio
     assert bad not in S, bad
 
 # Probe identity must match the installed build; v7.376 shipped a stale v7.375/7.374 header/body label.
-assert 'AMAZONDARK v7.413 UNIVERSAL' in INC
-assert "version:'7.413'" in JS
-assert 'AmazonDark-v7.413-ui-viewport.arm' in INC
+assert 'AMAZONDARK v7.414 UNIVERSAL' in INC
+assert "version:'7.414'" in JS
+assert 'AmazonDark-v7.414-ui-viewport.arm' in INC
 
 print('PASS: v7.377-established BYG stepper/switcher/probe contracts remain under v7.388')

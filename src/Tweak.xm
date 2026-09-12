@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.413-address-location-compile-fix"
+#define AD_VERSION "v7.414-location-navigation-renderer-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -8665,6 +8665,207 @@ static void ADLocationAuxTryMark7412(UIView *v){
 }
 
 
+// v7.414: current AppCX/Nile location navigation ownership.
+// The v7.413 FULL/VIEWPORT captures prove the current location renderer lives in an
+// AppCXBottomSheet SNPRootView (~430x763) below RCTView#navigation-root.  Older
+// location ownership required an >=85% screen-height SNPRootView, so it rejected this
+// real bottom-sheet root before card/input/list ownership could run.  Mark the exact
+// bottom-sheet Nile root from structural ancestry only; no route strings or recurring
+// traversal are used.  One bounded prime closes child-before-root hydration ordering.
+static const void *kADLocationNileRoot7414=&kADLocationNileRoot7414;
+static const void *kADLocationNilePrimed7414=&kADLocationNilePrimed7414;
+static const void *kADLocationNileApply7414=&kADLocationNileApply7414;
+static void ADLocationNilePrime7414(UIView *root);
+
+static UIView *ADLocationNileBottomRoot7414(UIView *v){
+    if(!v||!v.window||!ADClassNameIs7183(v.window,"AppCXWindow"))return nil;
+    @try {
+        UIView *root=nil;
+        for(UIView *n=v;n;n=n.superview){
+            if(ADClassNameIs7183(n,"SNPRootView")){ root=n; break; }
+            if([n isKindOfClass:[UIWindow class]])break;
+        }
+        if(!root)return nil;
+        BOOL bottom=NO;
+        for(UIView *n=root.superview;n;n=n.superview){
+            NSString *aid=n.accessibilityIdentifier?:@"";
+            if([aid isEqualToString:@"AppCXBottomSheetContentView"]||[aid isEqualToString:@"AppCXBottomSheet"]){ bottom=YES; break; }
+            if([n isKindOfClass:[UIWindow class]])break;
+        }
+        return bottom?root:nil;
+    } @catch(...) { return nil; }
+}
+static UIView *ADLocationNileTryMark7414(UIView *v){
+    if(!gP.enabled||!v||!v.window)return nil;
+    UIView *root=ADLocationNileBottomRoot7414(v); if(!root)return nil;
+    if(objc_getAssociatedObject(root,kADLocationNileRoot7414))return root;
+    @try {
+        BOOL nav=NO,wrapped=NO;
+        for(UIView *n=v;n&&n!=root;n=n.superview){
+            NSString *aid=n.accessibilityIdentifier?:@"";
+            if([aid isEqualToString:@"navigation-root"])nav=YES;
+            if([aid isEqualToString:@"WrappedNileFeatureContainer"])wrapped=YES;
+        }
+        // Both are present in the probe-proven Search location stack.  Requiring
+        // both keeps Alexa/other AppCX React sheets out of this family.
+        if(!nav||!wrapped)return nil;
+        objc_setAssociatedObject(root,kADLocationNileRoot7414,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        ADLocationNilePrime7414(root);
+        return root;
+    } @catch(...) { return nil; }
+}
+static BOOL ADInLocationNile7414(UIView *v){ return ADLocationNileTryMark7414(v)!=nil; }
+static BOOL ADLocationNileNeutral7414(UIColor *c){ return ADLocationAuxNeutralText7412(c); }
+static BOOL ADLocationNileNeutralBorder7414(UIColor *c){ return c&&ADLocationAuxNeutralText7412(c); }
+static NSAttributedString *ADLocationNileLightString7414(NSAttributedString *s){ return ADLightNeutralString7271(s,ADLocationNileNeutral7414); }
+static void ADLocationNileLightStorage7414(NSTextStorage *ts){ ADLightNeutralStorage7271(ts,ADLocationNileNeutral7414); }
+
+static BOOL ADLocationNileHasAncestorClass7414(UIView *v,const char *cls,NSUInteger maxDepth){
+    if(!v||!cls)return NO;
+    @try { NSUInteger d=0; for(UIView *n=v.superview;n&&d++<maxDepth;n=n.superview)if(ADClassNameIs7183(n,cls))return YES; } @catch(...) {}
+    return NO;
+}
+static BOOL ADLocationNileCard7414(UIView *v){
+    if(!v||!ADClassNameIs7183(v,"RCTView")||!ADInLocationNile7414(v))return NO;
+    @try {
+        CGRect b=v.bounds;
+        if(b.size.width<118.0||b.size.width>165.0||b.size.height<108.0||b.size.height>155.0)return NO;
+        return ADLocationNileHasAncestorClass7414(v,"RNCEKVExternalKeyboardView",3)&&
+               ADLocationNileHasAncestorClass7414(v,"RCTScrollView",8);
+    } @catch(...) { return NO; }
+}
+static BOOL ADLocationNileInput7414(UIView *v){
+    if(!v||!ADClassNameIs7183(v,"RCTSinglelineTextInputView")||!ADInLocationNile7414(v))return NO;
+    @try { CGRect b=v.bounds; return b.size.width>=388.0&&b.size.width<=402.0&&b.size.height>=40.0&&b.size.height<=50.0; } @catch(...) { return NO; }
+}
+static BOOL ADLocationNileApply7414(UIView *v){
+    if(!v||!ADClassNameIs7183(v,"RCTView")||!ADInLocationNile7414(v))return NO;
+    if(objc_getAssociatedObject(v,kADLocationNileApply7414))return YES;
+    @try {
+        CGRect b=v.bounds;
+        BOOL shape=b.size.width>=388.0&&b.size.width<=402.0&&b.size.height>=40.0&&b.size.height<=52.0;
+        if(shape&&ADLocationNileHasAncestorClass7414(v,"RNCEKVExternalKeyboardView",3)){
+            objc_setAssociatedObject(v,kADLocationNileApply7414,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            return YES;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADLocationNileHeader7414(UIView *v){
+    if(!v||!ADClassNameIs7183(v,"RCTView")||!ADInLocationNile7414(v))return NO;
+    @try {
+        CGRect b=v.bounds; CGFloat bw=ADLocationAuxRCTMetric7412(v,"borderBottomWidth");
+        return b.size.width>=388.0&&b.size.width<=402.0&&b.size.height>=28.0&&b.size.height<=50.0&&bw>=0.5&&bw<=2.5&&
+               ADLocationAuxDescendantShape7412(v,YES,16)&&ADLocationAuxDescendantShape7412(v,NO,16);
+    } @catch(...) { return NO; }
+}
+static BOOL ADLocationNileWideRow7414(UIView *v){
+    if(!v||!ADClassNameIs7183(v,"RCTView")||!ADInLocationNile7414(v))return NO;
+    @try { CGRect b=v.bounds; return b.size.width>=380.0&&b.size.width<=402.0&&b.size.height>=28.0&&b.size.height<=90.0; } @catch(...) { return NO; }
+}
+static BOOL ADLocationNileThinDivider7414(UIView *v){
+    if(!v||!ADClassNameIs7183(v,"RCTView")||!ADInLocationNile7414(v))return NO;
+    @try { CGRect b=v.bounds; return b.size.width>=350.0&&b.size.height>0.0&&b.size.height<=2.5; } @catch(...) { return NO; }
+}
+static void ADLocationNileCommitBackground7414(UIView *v,UIColor *color){
+    if(!v||!color)return;
+    @try {
+        [CATransaction begin]; [CATransaction setDisableActions:YES];
+        [v.layer removeAnimationForKey:@"backgroundColor"];
+        gADPaintWriteDepth7226++;
+        @try {
+            SEL s=@selector(setBackgroundColor:);
+            if([v respondsToSelector:s])((void(*)(id,SEL,UIColor *))objc_msgSend)(v,s,color);
+            else v.backgroundColor=color;
+            v.layer.backgroundColor=color.CGColor;
+        } @finally { if(gADPaintWriteDepth7226)gADPaintWriteDepth7226--; }
+        [v setNeedsDisplay]; [v.layer setNeedsDisplay];
+        [CATransaction commit];
+    } @catch(...) {}
+}
+static void ADLocationNileSetReactBorder7414(UIView *v,const char *selector,UIColor *color){
+    if(!v||!selector||!color)return;
+    @try { SEL s=sel_registerName(selector); if([v respondsToSelector:s])((void(*)(id,SEL,UIColor *))objc_msgSend)(v,s,color); } @catch(...) {}
+}
+static void ADLocationNileOwnText7414(UIView *v){
+    if(!gP.enabled||!v||!ADInLocationNile7414(v))return;
+    @try {
+        NSTextStorage *ts=ADPersonTextStorage7206(v);
+        if(ts){ ADLocationNileLightStorage7414(ts); [v setNeedsDisplay]; [v.layer setNeedsDisplay]; return; }
+        if([v isKindOfClass:[UILabel class]]){
+            UILabel *l=(UILabel *)v;
+            if(ADLocationNileNeutral7414(l.textColor))l.textColor=ADLightText706();
+            if(l.attributedText.length)l.attributedText=ADLocationNileLightString7414(l.attributedText);
+        }
+    } @catch(...) {}
+}
+static void ADLocationNileOwnInput7414(UIView *v){
+    if(!ADLocationNileInput7414(v))return;
+    UIColor *fill=ADMenuButtonFill7255(),*edge=ADMenuButtonBorder7255();
+    ADLocationNileCommitBackground7414(v,fill);
+    @try {
+        SEL sw=sel_registerName("setBorderWidth:"); if([v respondsToSelector:sw])((void(*)(id,SEL,CGFloat))objc_msgSend)(v,sw,1.0);
+        ADLocationNileSetReactBorder7414(v,"setBorderColor:",edge);
+        v.layer.borderWidth=0.0; v.layer.borderColor=nil; v.layer.shadowOpacity=0.0;
+    } @catch(...) {}
+}
+static void ADLocationNileOwnField7414(UITextField *f){
+    if(!f||!ADInLocationNile7414((UIView *)f))return;
+    @try {
+        f.textColor=ADLightText706();
+        NSString *ph=f.placeholder;
+        if(ph.length)f.attributedPlaceholder=[[NSAttributedString alloc] initWithString:ph attributes:@{NSForegroundColorAttributeName:ADLightText706()}];
+        f.backgroundColor=[UIColor clearColor];
+    } @catch(...) {}
+}
+static void ADLocationNileOwnView7414(UIView *v){
+    if(!gP.enabled||!v||!ADInLocationNile7414(v))return;
+    @try {
+        if(ADClassNameIs7183(v,"RCTSinglelineTextInputView")){ if(ADLocationNileInput7414(v))ADLocationNileOwnInput7414(v); return; }
+        if([v isKindOfClass:[UITextField class]]){ ADLocationNileOwnField7414((UITextField *)v); return; }
+        if(ADClassNameIs7183(v,"RCTTextView")||ADClassNameIs7183(v,"RCTParagraphComponentView")||[v isKindOfClass:[UILabel class]]){ ADLocationNileOwnText7414(v); return; }
+        if(!ADClassNameIs7183(v,"RCTView")&&!ADClassNameIs7183(v,"RCTScrollContentView"))return;
+        UIColor *bg=v.backgroundColor,*lbg=v.layer.backgroundColor?[UIColor colorWithCGColor:v.layer.backgroundColor]:nil;
+        if(ADLocationNileThinDivider7414(v)){ ADLocationNileCommitBackground7414(v,ADMenuButtonBorder7255()); return; }
+        if(ADLocationNileApply7414(v)){
+            ADLocationNileCommitBackground7414(v,ADOLED());
+            SEL sw=sel_registerName("setBorderWidth:"); if([v respondsToSelector:sw])((void(*)(id,SEL,CGFloat))objc_msgSend)(v,sw,1.0);
+            ADLocationNileSetReactBorder7414(v,"setBorderColor:",ADMenuButtonBorder7255());
+            v.layer.borderWidth=0.0; v.layer.borderColor=nil; v.layer.shadowOpacity=0.0;
+            return;
+        }
+        if(ADLocationNileCard7414(v)){
+            // The r2 FULL probe shows these cards already report model-layer black while
+            // their RCT border raster (`layer.contents=1`) can remain visually white.
+            // Always recommit React's own background and invalidate its display raster.
+            ADLocationNileCommitBackground7414(v,ADOLED());
+            return;
+        }
+        if(ADLocationNileHeader7414(v)){
+            ADLocationNileCommitBackground7414(v,ADOLED());
+            ADLocationNileSetReactBorder7414(v,"setBorderBottomColor:",ADMenuButtonBorder7255());
+            [v setNeedsDisplay]; [v.layer setNeedsDisplay];
+            return;
+        }
+        if(ADLocationNileWideRow7414(v)||ADBrightNeutralColor708(bg)||ADBrightNeutralColor708(lbg)){
+            ADLocationNileCommitBackground7414(v,ADOLED());
+        }
+    } @catch(...) {}
+}
+static void ADLocationNilePrime7414(UIView *root){
+    if(!root||objc_getAssociatedObject(root,kADLocationNilePrimed7414))return;
+    objc_setAssociatedObject(root,kADLocationNilePrimed7414,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    @try {
+        NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:root]; NSUInteger seen=0;
+        while(seen<q.count&&seen<640){
+            UIView *x=q[seen++]; if(!x)continue;
+            ADLocationNileOwnView7414(x);
+            if(x.subviews.count&&q.count-seen<640)[q addObjectsFromArray:x.subviews];
+        }
+    } @catch(...) {}
+}
+
+
 static int ADReactSurface7226(UIView *v){
     if(!v)return ADReactSurfaceNone7226;
     @try {
@@ -8697,6 +8898,11 @@ static void ADOwnReactView7226(UIView *v){
     if(!gP.enabled||!v||!v.window)return;
     @try {
         ADAlexaOwnReactControl7285(v);
+        ADLocationNileTryMark7414(v);
+        if(ADInLocationNile7414(v)){
+            ADLocationNileOwnView7414(v);
+            return;
+        }
         ADLocationAuxTryMark7412(v);
         if(ADInLocationAux7412(v)){
             ADLocationAuxOwnView7412(v);
@@ -8759,6 +8965,19 @@ static void ADOwnReactView7226(UIView *v){
     }
     UIView *v=(UIView *)self;
     if(gP.enabled&&v.window){
+        ADLocationNileTryMark7414(v);
+        if(ADInLocationNile7414(v)){
+            UIColor *paint=color;
+            if(ADLocationNileThinDivider7414(v))paint=ADMenuButtonBorder7255();
+            else if(ADLocationNileApply7414(v)||ADLocationNileCard7414(v)||ADLocationNileHeader7414(v)||ADLocationNileWideRow7414(v)||ADBrightNeutralColor708(color))paint=ADOLED();
+            gADPaintWriteDepth7226++;
+            @try {
+                %orig(paint);
+                if(paint&&paint!=color)v.layer.backgroundColor=paint.CGColor;
+            } @finally { if(gADPaintWriteDepth7226)gADPaintWriteDepth7226--; }
+            ADLocationNileOwnView7414(v);
+            return;
+        }
         ADLocationAuxTryMark7412(v);
         if(ADInLocationAux7412(v)){
             UIColor *paint=color;
@@ -8896,7 +9115,12 @@ static void ADOwnReactView7226(UIView *v){
     if(alexaRole)ADAlexaOwnReactControl7285((UIView *)self);
 }
 - (void)setBorderWidth:(CGFloat)value {
-    UIView *pv=(UIView *)self; int pk=(gP.enabled&&pv.window)?ADPermissionSheetKind7408(pv):0;
+    UIView *pv=(UIView *)self;
+    if(gP.enabled&&pv.window&&ADInLocationNile7414(pv)&&ADLocationNileApply7414(pv)){
+        %orig(1.0);
+        return;
+    }
+    int pk=(gP.enabled&&pv.window)?ADPermissionSheetKind7408(pv):0;
     NSString *paid=pv.accessibilityIdentifier?:@"";
     if(pk&&([paid isEqualToString:@"actionButton"]||[paid isEqualToString:@"inflight-prompt-dismiss-button"]||[paid isEqualToString:@"inflight-prompt-allow-button"])){
         %orig(1.0);
@@ -8915,6 +9139,12 @@ static void ADOwnReactView7226(UIView *v){
 - (void)setBorderColor:(UIColor *)value {
     UIView *pv=(UIView *)self;
     if(gP.enabled&&pv.window){
+        ADLocationNileTryMark7414(pv);
+        if(ADInLocationNile7414(pv)){
+            UIColor *paint=(ADLocationNileApply7414(pv)||ADLocationNileNeutralBorder7414(value))?ADMenuButtonBorder7255():value;
+            %orig(paint);
+            return;
+        }
         ADLocationAuxTryMark7412(pv);
         if(ADInLocationAux7412(pv)){
             UIColor *edge=ADMenuButtonBorder7255();
@@ -8942,6 +9172,12 @@ static void ADOwnReactView7226(UIView *v){
 - (void)setBorderBottomColor:(UIColor *)value {
     UIView *v=(UIView *)self;
     if(gP.enabled&&v.window){
+        ADLocationNileTryMark7414(v);
+        if(ADInLocationNile7414(v)){
+            UIColor *paint=ADLocationNileNeutralBorder7414(value)?ADMenuButtonBorder7255():value;
+            %orig(paint);
+            return;
+        }
         ADLocationAuxTryMark7412(v);
         if(ADInLocationAux7412(v)&&ADLocationAuxRCTMetric7412(v,"borderBottomWidth")>0.05){
             UIColor *edge=ADMenuButtonBorder7255();
@@ -9038,12 +9274,14 @@ static void ADAlexaOwnVector7285(UIView *svg){
 - (void)didMoveToWindow {
     %orig;
     UIView *v=(UIView *)self;
+    ADLocationNileTryMark7414(v);
     ADPrimeLocationWrapper7202(v);
     if([v.accessibilityIdentifier isEqualToString:@"inflight-prompt"]){ UIView *r=ADPermissionSheetRoot7408(v); if(r)ADPermissionDetectKind7408(r); }
 }
 - (void)setFrame:(CGRect)frame {
     %orig(frame);
     UIView *v=(UIView *)self;
+    ADLocationNileTryMark7414(v);
     ADPrimeLocationWrapper7202(v);
     if([v.accessibilityIdentifier isEqualToString:@"inflight-prompt"]){ UIView *r=ADPermissionSheetRoot7408(v); if(r)ADPermissionDetectKind7408(r); }
 }
@@ -9054,6 +9292,8 @@ static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOO
     // v7.411 exact button owner: ancestry is enough even before window/sheet hydration.
     if(ADPermissionButtonText7409(v)){ ADPermissionTextStorage7409(v,textStorage); return YES; }
     if(!v.window)return NO;
+    ADLocationNileTryMark7414(v);
+    if(ADInLocationNile7414(v)){ ADLocationNileLightStorage7414(textStorage); return YES; }
     ADLocationAuxTryMark7412(v);
     if(ADInLocationAux7412(v)){ ADLocationAuxLightStorage7412(textStorage); return YES; }
     if(ADPermissionSheetKind7408(v)){ ADPermissionTextStorage7409(v,textStorage); return YES; }
@@ -9077,6 +9317,8 @@ static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOO
 }
 static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     if(!gP.enabled||!v.window)return;
+    ADLocationNileTryMark7414(v);
+    if(ADInLocationNile7414(v)){ ADLocationNileOwnText7414(v); return; }
     ADLocationAuxTryMark7412(v);
     if(ADInLocationAux7412(v)){ ADLocationAuxOwnText7412(v); return; }
     if(ADPermissionButtonText7409(v)){ ADPermissionOwnText7408(v); return; }
@@ -9098,8 +9340,9 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 - (void)setAttributedText:(NSAttributedString *)attributedText {
     NSAttributedString *r=nil;
     UIView *v=(UIView *)self;
-    if(gP.enabled&&v.window){ ADLocationAuxTryMark7412(v); }
-    if(gP.enabled&&v.window&&ADInLocationAux7412(v)) r=ADLocationAuxLightString7412(attributedText);
+    if(gP.enabled&&v.window){ ADLocationNileTryMark7414(v); ADLocationAuxTryMark7412(v); }
+    if(gP.enabled&&v.window&&ADInLocationNile7414(v)) r=ADLocationNileLightString7414(attributedText);
+    else if(gP.enabled&&v.window&&ADInLocationAux7412(v)) r=ADLocationAuxLightString7412(attributedText);
     else if(gP.enabled&&ADPermissionButtonText7409(v)) r=ADPermissionTextString7409(v,attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADPermissionSheetKind7408((UIView *)self)) r=ADPermissionTextString7409((UIView *)self,attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADInPaymentSheet7401((UIView *)self)) r=ADPaymentLightString7401(attributedText);
@@ -9114,8 +9357,9 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 - (void)_setAttributedString:(NSAttributedString *)attributedString {
     NSAttributedString *r=nil;
     UIView *v=(UIView *)self;
-    if(gP.enabled&&v.window){ ADLocationAuxTryMark7412(v); }
-    if(gP.enabled&&v.window&&ADInLocationAux7412(v)) r=ADLocationAuxLightString7412(attributedString);
+    if(gP.enabled&&v.window){ ADLocationNileTryMark7414(v); ADLocationAuxTryMark7412(v); }
+    if(gP.enabled&&v.window&&ADInLocationNile7414(v)) r=ADLocationNileLightString7414(attributedString);
+    else if(gP.enabled&&v.window&&ADInLocationAux7412(v)) r=ADLocationAuxLightString7412(attributedString);
     else if(gP.enabled&&ADPermissionButtonText7409(v)) r=ADPermissionTextString7409(v,attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADPermissionSheetKind7408((UIView *)self)) r=ADPermissionTextString7409((UIView *)self,attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADInPaymentSheet7401((UIView *)self)) r=ADPaymentLightString7401(attributedString);
@@ -9131,8 +9375,10 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     %orig;
     if(!gP.enabled||!((UIView *)self).window)return;
     UIView *v=(UIView *)self;
+    ADLocationNileTryMark7414(v);
     ADLocationAuxTryMark7412(v);
-    if(ADInLocationAux7412(v))ADLocationAuxOwnText7412(v);
+    if(ADInLocationNile7414(v))ADLocationNileOwnText7414(v);
+    else if(ADInLocationAux7412(v))ADLocationAuxOwnText7412(v);
     else if(ADPermissionButtonText7409(v)||ADPermissionSheetKind7408(v))ADPermissionOwnText7408(v);
     else if(ADInPaymentSheet7401(v))ADPaymentOwnText7401(v);
     else if(ADInPersonTab7206(v))ADPersonOwnText7206(v);
@@ -9144,8 +9390,10 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     %orig;
     UIView *v=(UIView *)self;
     if(gP.enabled&&v.window){
+        ADLocationNileTryMark7414(v);
         ADLocationAuxTryMark7412(v);
-        if(ADInLocationAux7412(v))ADLocationAuxOwnText7412(v);
+        if(ADInLocationNile7414(v))ADLocationNileOwnText7414(v);
+        else if(ADInLocationAux7412(v))ADLocationAuxOwnText7412(v);
         else if(ADPermissionButtonText7409(v)||ADPermissionSheetKind7408(v))ADPermissionOwnText7408(v);
     }
 }
@@ -9175,8 +9423,10 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     UIView *v=(UIView *)self;
     if(gP.enabled&&v.window){
         NSTextStorage *ts=ADPersonTextStorage7206(v);
+        ADLocationNileTryMark7414(v);
         ADLocationAuxTryMark7412(v);
-        if(ADInLocationAux7412(v)){ if(ts)ADLocationAuxLightStorage7412(ts); }
+        if(ADInLocationNile7414(v)){ if(ts)ADLocationNileLightStorage7414(ts); }
+        else if(ADInLocationAux7412(v)){ if(ts)ADLocationAuxLightStorage7412(ts); }
         else if(ADPermissionButtonText7409(v)){ if(ts)ADPermissionTextStorage7409(v,ts); }
         else if(ADPermissionSheetKind7408(v)){ if(ts)ADPermissionTextStorage7409(v,ts); }
         else if(ADInPaymentSheet7401(v)){ if(ts)ADPaymentLightStorage7401(ts); }
@@ -9412,6 +9662,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     %orig;
     UIView *v=(UIView *)self;
     if(gP.enabled&&v.window){
+        ADLocationNileTryMark7414(v);
+        if(ADLocationNileInput7414(v)){ ADLocationNileOwnInput7414(v); return; }
         ADLocationAuxTryMark7412(v);
         if(ADLocationAuxInput7412(v)){ ADLocationAuxOwnInput7412(v); return; }
         if(ADInPaymentSheet7401(v))ADPaymentOwnView7401(v);
@@ -9421,6 +9673,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     %orig;
     UIView *v=(UIView *)self;
     if(gP.enabled&&v.window){
+        ADLocationNileTryMark7414(v);
+        if(ADLocationNileInput7414(v)){ ADLocationNileOwnInput7414(v); return; }
         ADLocationAuxTryMark7412(v);
         if(ADLocationAuxInput7412(v)){ ADLocationAuxOwnInput7412(v); return; }
         if(ADInPaymentSheet7401(v))ADPaymentOwnView7401(v);
@@ -9433,6 +9687,17 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
         return;
     }
     if(gP.enabled&&v.window){
+        ADLocationNileTryMark7414(v);
+        if(ADLocationNileInput7414(v)){
+            UIColor *fill=ADMenuButtonFill7255();
+            gADPaintWriteDepth7226++;
+            @try {
+                %orig(fill);
+                v.layer.backgroundColor=fill.CGColor;
+            }
+            @finally { if(gADPaintWriteDepth7226)gADPaintWriteDepth7226--; }
+            ADLocationNileOwnInput7414(v); return;
+        }
         ADLocationAuxTryMark7412(v);
         if(ADLocationAuxInput7412(v)){
             UIColor *fill=ADMenuButtonFill7255();
@@ -9474,6 +9739,11 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 }
 - (void)setTextColor:(UIColor *)color {
     UIView *v=(UIView *)self;
+    if(gP.enabled&&v.window&&ADInLocationNile7414(v)){
+        UIColor *light=ADLightText706();
+        %orig(light);
+        return;
+    }
     if(gP.enabled&&v.window&&ADInLocationAux7412(v)){
         UIColor *light=ADLightText706();
         %orig(light);
@@ -9483,6 +9753,11 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 }
 - (void)setAttributedPlaceholder:(NSAttributedString *)placeholder {
     UIView *v=(UIView *)self;
+    if(gP.enabled&&v.window&&ADInLocationNile7414(v)&&placeholder.length){
+        NSAttributedString *light=ADLocationNileLightString7414(placeholder);
+        %orig(light);
+        return;
+    }
     if(gP.enabled&&v.window&&ADInLocationAux7412(v)&&placeholder.length){
         NSAttributedString *light=ADLocationAuxLightString7412(placeholder);
         %orig(light);
@@ -9494,8 +9769,10 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     %orig;
     if(gP.enabled&&((UIView *)self).window){
         UIView *v=(UIView *)self;
+        ADLocationNileTryMark7414(v);
         ADLocationAuxTryMark7412(v);
-        if(ADInLocationAux7412(v))ADLocationAuxOwnField7412((UITextField *)self);
+        if(ADInLocationNile7414(v))ADLocationNileOwnField7414((UITextField *)self);
+        else if(ADInLocationAux7412(v))ADLocationAuxOwnField7412((UITextField *)self);
         ADPrepareSearchKeyboard7120(v);
         ADPersonRepairOrderSearchAncestors7242(v);
     }
@@ -9503,7 +9780,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 - (void)layoutSubviews {
     %orig;
     UIView *v=(UIView *)self;
-    if(gP.enabled&&v.window&&ADInLocationAux7412(v))ADLocationAuxOwnField7412((UITextField *)self);
+    if(gP.enabled&&v.window&&ADInLocationNile7414(v))ADLocationNileOwnField7414((UITextField *)self);
+    else if(gP.enabled&&v.window&&ADInLocationAux7412(v))ADLocationAuxOwnField7412((UITextField *)self);
 }
 %end
 
@@ -10543,12 +10821,12 @@ static void ADPersonOwnScrollIndicator7238(UIView *v){
 - (void)didMoveToWindow {
     %orig;
     UIView *v=(UIView *)self;
-    if(gP.enabled&&v.window){ ADLocationAuxTryMark7412(v); if(ADInLocationAux7412(v))ADLocationAuxOwnView7412(v); }
+    if(gP.enabled&&v.window){ ADLocationNileTryMark7414(v); if(ADInLocationNile7414(v))ADLocationNileOwnView7414(v); else { ADLocationAuxTryMark7412(v); if(ADInLocationAux7412(v))ADLocationAuxOwnView7412(v); } }
 }
 - (void)layoutSubviews {
     %orig;
     UIView *v=(UIView *)self;
-    if(gP.enabled&&v.window){ ADLocationAuxTryMark7412(v); if(ADInLocationAux7412(v))ADLocationAuxOwnView7412(v); }
+    if(gP.enabled&&v.window){ ADLocationNileTryMark7414(v); if(ADInLocationNile7414(v))ADLocationNileOwnView7414(v); else { ADLocationAuxTryMark7412(v); if(ADInLocationAux7412(v))ADLocationAuxOwnView7412(v); } }
 }
 - (void)setBackgroundColor:(UIColor *)color {
     UIView *v=(UIView *)self;
@@ -10557,6 +10835,18 @@ static void ADPersonOwnScrollIndicator7238(UIView *v){
         return;
     }
     if(gP.enabled&&v.window){
+        ADLocationNileTryMark7414(v);
+        if(ADInLocationNile7414(v)&&ADBrightNeutralColor708(color)){
+            UIColor *black=ADOLED(); gADPaintWriteDepth7226++;
+            @try {
+                %orig(black);
+                v.layer.backgroundColor=black.CGColor;
+                [v setNeedsDisplay];
+                [v.layer setNeedsDisplay];
+            }
+            @finally { if(gADPaintWriteDepth7226)gADPaintWriteDepth7226--; }
+            return;
+        }
         ADLocationAuxTryMark7412(v);
         if(ADInLocationAux7412(v)&&ADBrightNeutralColor708(color)){
             UIColor *black=ADOLED(); gADPaintWriteDepth7226++;
@@ -10577,12 +10867,14 @@ static void ADPersonOwnScrollIndicator7238(UIView *v){
     %orig;
     if(gP.enabled&&self.window){
         ADSetViewBackground7226((UIView *)self,ADOLED(),YES);
+        ADLocationNileTryMark7414((UIView *)self);
         ADLocationAuxTryMark7412((UIView *)self);
     }
 }
 - (void)layoutSubviews {
     %orig;
     if(gP.enabled&&self.window){
+        ADLocationNileTryMark7414((UIView *)self);
         ADLocationAuxTryMark7412((UIView *)self);
         ADPaintLocationSheetStable7196((UIView *)self);
     }

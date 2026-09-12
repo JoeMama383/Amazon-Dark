@@ -5,10 +5,10 @@ S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text(
 UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text(); JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 F=json.loads((ROOT/'tests/fixtures/v7412-location-aux-zip.json').read_text())
-assert 'Version: 7.413~address-location-compile-fix' in C
-assert '#define AD_VERSION "v7.413-address-location-compile-fix"' in S
-assert 'VER=7.413' in UI and 'AD_PROBE_VERSION=7.413' in SK and 'AD_PROBE_NAME=AmazonDark-v7.413' in SK
-assert 'AMAZONDARK v7.413 UNIVERSAL' in INC and 'AmazonDark-v7.413-ui-viewport.arm' in INC and "version:'7.413'" in JS
+assert 'Version: 7.414~location-navigation-renderer-fix' in C
+assert '#define AD_VERSION "v7.414-location-navigation-renderer-fix"' in S
+assert 'VER=7.414' in UI and 'AD_PROBE_VERSION=7.414' in SK and 'AD_PROBE_NAME=AmazonDark-v7.414' in SK
+assert 'AMAZONDARK v7.414 UNIVERSAL' in INC and 'AmazonDark-v7.414-ui-viewport.arm' in INC and "version:'7.414'" in JS
 
 # FULL r1 exact ZIP renderer evidence.
 assert F['aux_scroll']['rect']==[18.0,752.7,394.0,179.3]
