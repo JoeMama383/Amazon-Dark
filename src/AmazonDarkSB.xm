@@ -79,7 +79,7 @@ static void ADLaunchLog7337(NSString *event,NSString *detail){
         NSString *line=[NSString stringWithFormat:@"%.6f up=%.6f pid=%d event=%@ %@\n",
             CFAbsoluteTimeGetCurrent(),NSProcessInfo.processInfo.systemUptime,getpid(),event,detail?:@""];
         dispatch_async(queue,^{@autoreleasepool{@try{
-            NSString *path=@"/var/mobile/AmazonDark-v7.412-launch-sb-probe.txt";
+            NSString *path=@"/var/mobile/AmazonDark-v7.413-launch-sb-probe.txt";
             NSFileManager *fm=NSFileManager.defaultManager;
             if(![fm fileExistsAtPath:path])[fm createFileAtPath:path contents:nil attributes:@{NSFilePosixPermissions:@0666}];
             NSFileHandle *file=[NSFileHandle fileHandleForWritingAtPath:path];

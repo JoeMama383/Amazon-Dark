@@ -1,8 +1,8 @@
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.412~address-location-aux-theme' in ctl
-assert '#define AD_VERSION "v7.412-address-location-aux-theme"' in t
+assert 'Version: 7.413~address-location-compile-fix' in ctl
+assert '#define AD_VERSION "v7.413-address-location-compile-fix"' in t
 # v7.357 fixed the white autocomplete footer by removing the failed delivery-class gate.
 assert '#attach-to-me :is(div,section,article,main,footer,ul,ol,li,span):has(:is([class*=delivery],[id*=delivery])){background:#000!important' not in t
 assert 'body>:is(div,section,main,footer),#a-page>:is(div,section,main,footer),#attach-to-me>:is(div,section,main,footer)' in t

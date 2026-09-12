@@ -3,8 +3,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.412~address-location-aux-theme' in C
-assert '#define AD_VERSION "v7.412-address-location-aux-theme"' in S
+assert 'Version: 7.413~address-location-compile-fix' in C
+assert '#define AD_VERSION "v7.413-address-location-compile-fix"' in S
 
 block=S.split('// v7.393 FULL r2/r3/r4 (16:59, 17:08, 17:09), corrected by v7.398:',1)[1].split('// v7.390 FULL r2: Subscribe & Save loading transition.',1)[0]
 

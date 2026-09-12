@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 sb=ROOT/'src/AmazonDarkSB.xm'
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.412~address-location-aux-theme' in ctl
-assert '#define AD_VERSION "v7.412-address-location-aux-theme"' in t
+assert 'Version: 7.413~address-location-compile-fix' in ctl
+assert '#define AD_VERSION "v7.413-address-location-compile-fix"' in t
 for s in [
     'AmazonDarkSplashSeal7350',
     'AmazonDarkSplashSealLogo7350',

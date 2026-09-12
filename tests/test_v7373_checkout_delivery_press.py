@@ -2,8 +2,8 @@ from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text()
 C=(R/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.412~address-location-aux-theme' in C
-assert '#define AD_VERSION "v7.412-address-location-aux-theme"' in S
+assert 'Version: 7.413~address-location-compile-fix' in C
+assert '#define AD_VERSION "v7.413-address-location-compile-fix"' in S
 sel='#checkoutDisplayPage .rcx-checkout-delivery-option-a-control-row-new.a-touch-press'
 assert sel in S
 f=S[S.index(sel):S.index(sel)+1000]

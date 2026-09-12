@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.412 — address + location auxiliary UI theme
+ * AmazonDark v7.413 — address/location compile fix
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.412-address-location-aux-theme"
+#define AD_VERSION "v7.413-address-location-compile-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -7787,7 +7787,7 @@ static int ADPermissionDetectKind7408(UIView *root){
     NSNumber *cached=objc_getAssociatedObject(root,kADPermissionSheetKind7408);
     if(cached)return cached.intValue;
     @try {
-        NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger seen=0; BOOL camera=NO,micButton=NO,micTitle=NO;
+        NSMutableArray *q=[NSMutableArray arrayWithObject:root]; NSUInteger seen=0; BOOL camera=NO,micTitle=NO;
         while(seen<q.count&&seen<128){
             UIView *x=q[seen++]; if(!x)continue;
             NSString *aid=x.accessibilityIdentifier?:@"";
@@ -7797,7 +7797,6 @@ static int ADPermissionDetectKind7408(UIView *root){
             if([aid isEqualToString:@"inflight-prompt"]||[aid isEqualToString:@"inflight-prompt-allow-button"]||
                [aid isEqualToString:@"allow-all-CAMERA"]||[aid isEqualToString:@"inflight-prompt-title"]||
                [aid isEqualToString:@"inflight-prompt-description"]){ camera=YES; break; }
-            if([aid isEqualToString:@"actionButton"])micButton=YES;
             if([aid isEqualToString:@"allowTitle"])micTitle=YES;
             if(x.subviews.count)[q addObjectsFromArray:x.subviews];
         }
@@ -8798,7 +8797,7 @@ static void ADOwnReactView7226(UIView *v){
         gADPaintWriteDepth7226++;
         @try {
             %orig(black);
-            self.layer.backgroundColor=black.CGColor;
+            v.layer.backgroundColor=black.CGColor;
         }
         @finally { if(gADPaintWriteDepth7226)gADPaintWriteDepth7226--; }
         return;
@@ -10563,7 +10562,7 @@ static void ADPersonOwnScrollIndicator7238(UIView *v){
             UIColor *black=ADOLED(); gADPaintWriteDepth7226++;
             @try {
                 %orig(black);
-                self.layer.backgroundColor=black.CGColor;
+                v.layer.backgroundColor=black.CGColor;
             }
             @finally { if(gADPaintWriteDepth7226)gADPaintWriteDepth7226--; }
             return;
