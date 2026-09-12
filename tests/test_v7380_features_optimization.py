@@ -9,8 +9,8 @@ W=(ROOT/'.github/workflows/build.yml').read_text()
 V=(ROOT/'scripts/validate.sh').read_text()
 SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 
-assert 'Version: 7.411~permission-firstpaint-owner-fix' in C
-assert '#define AD_VERSION "v7.411-permission-firstpaint-owner-fix"' in S
+assert 'Version: 7.412~address-location-aux-theme' in C
+assert '#define AD_VERSION "v7.412-address-location-aux-theme"' in S
 for key in ['hideSponsored','priceHistory']:
     assert key in S and f'<string>{key}</string>' in P
 assert '<string>Hide Sponsored Content</string>' in P

@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.411 — permission first-paint owner fix
+ * AmazonDark v7.412 — address + location auxiliary UI theme
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.411-permission-firstpaint-owner-fix"
+#define AD_VERSION "v7.412-address-location-aux-theme"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2343,6 +2343,31 @@ static NSString *ADPDPCompletionTWBJS7405(void){
     return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7405-pdp-twb');if(!s){s=d.createElement('style');s.id='ad7405-pdp-twb';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`#dp #horizontalMediaCarousel :is(img.a-amazon-image,img.video-slate-img),#dp #aplus_feature_div .aplus-v2 img,#dp #sponsoredProducts_feature_div img,#dp #product-image-gallery img,#dp img[class*=_dnNlL_vseThumbnailPreviewImg_],#dp img[class*=_Y3Itb_media-thumbnail-image_],#dp img[class*=_Y3Itd_notable-quote-thumbnail-image_],#dp img[id^=inline-twister-image-],#dp img[class*=_c2Itb_image_],#dp [class*=_rufus-comparison-card_style_pillImageWrapper__] img{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}`;}catch(_){}})();",factor,factor];
 }
 
+// v7.412 FULL r1 (20:26): Your Addresses is a standalone AUI account page,
+// not the checkout delivery-address deck. Own only its stable ya-myab address-manager
+// family. Neutral controls/cards become dark with gray edges and light copy; authored
+// links, Amazon art, SVGs, sprites and chevrons retain their stock rendering/colors.
+static NSString *ADAddressManagementJS7412(void){
+    return @"(function(){try{var d=document,s=d.getElementById('ad7412-address-management');if(!s){s=d.createElement('style');s.id='ad7412-address-management';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`"
+        "#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-]){color:#e8e6e3!important;}"
+        "#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-]) :is(h1,h2,h3,h4,h5,.id-addr-ux-search-text):not(.a-color-link):not(:where(a *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-]) :is(.a-color-secondary,.a-color-tertiary,.default-line-item,#address-ui-widgets-arf-info-message){color:#b1aaa0!important;-webkit-text-fill-color:#b1aaa0!important;}"
+        "#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-]) :is(#ya-myab-address-add-link,#ya-myab-store-address-add-link-mobile){background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-]) :is(#ya-myab-address-add-link,#ya-myab-store-address-add-link-mobile)>.a-box-inner{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-]) [id^=ya-myab-display-address-block-].single-address-view{background:#000!important;background-color:#000!important;background-image:none!important;border:1px solid #494d4d!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;color:#e8e6e3!important;}"
+        "#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-]) [id^=ya-myab-display-address-block-].single-address-view>.a-box-inner,#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-]) [id^=ya-myab-display-address-block-].single-address-view .a-box-inner.a-padding-none{background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}"
+        "#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-]) [id^=ya-myab-display-address-block-] .default-section-mobile{border-bottom-color:#747a7c!important;}"
+        "#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-]) [id^=ya-myab-display-address-block-] :is(hr.a-divider-normal,.a-divider-inner){background:#747a7c!important;background-color:#747a7c!important;border-color:#747a7c!important;background-image:none!important;}"
+        "#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-]) :is([id^=ya-myab-address-edit-btn-],[id^=ya-myab-address-delete-btn-],[id^=ya-myab-set-default-shipping-btn-]).a-button,#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-]) [id^=deleteAddressModal-].address-bottom-sheet-container :is(.a-button-base,.a-button-primary){background:#303335!important;background-color:#303335!important;background-image:none!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-]) :is([id^=ya-myab-address-edit-btn-],[id^=ya-myab-address-delete-btn-],[id^=ya-myab-set-default-shipping-btn-]).a-button>.a-button-inner,#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-]) [id^=deleteAddressModal-].address-bottom-sheet-container :is(.a-button-base,.a-button-primary)>.a-button-inner{background:transparent!important;background-color:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;}"
+        "#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-]) :is([id^=ya-myab-address-edit-btn-],[id^=ya-myab-address-delete-btn-],[id^=ya-myab-set-default-shipping-btn-]) .a-button-text,#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-]) [id^=deleteAddressModal-].address-bottom-sheet-container .a-button-text{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-]) :is(#ya-myab-address-add-link,#ya-myab-store-address-add-link-mobile,[id^=ya-myab-address-edit-btn-],[id^=ya-myab-address-delete-btn-],[id^=ya-myab-set-default-shipping-btn-]):is(:active,:focus,:focus-visible,:focus-within,.a-touch-press){background:#202324!important;background-color:#202324!important;border-color:#747a7c!important;box-shadow:none!important;-webkit-tap-highlight-color:transparent!important;}"
+        "#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-]) [id^=deleteAddressModal-].address-bottom-sheet-container{background:#000!important;background-color:#000!important;background-image:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-]) a,#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-]) a *{-webkit-text-fill-color:currentColor!important;}"
+        "#a-page:has(#ya-myab-address-add-link):has([id^=ya-myab-display-address-block-]) :is(img,svg,.amazon-logo,[class*=sprite],.a-icon){filter:none!important;-webkit-filter:none!important;mix-blend-mode:normal!important;}"
+        "`;}catch(_){}})();";
+}
+
 // One immutable document-start program per strength replaces four separately
 // allocated/compiled WKUserScripts while preserving their proven execution order.
 static long gADCoreWebJSStrength7271=-1;
@@ -2351,10 +2376,10 @@ static NSString *ADCoreWebJS7271(void){
     long strength=MAX(0,MIN(100,gP.whiteTameStrength));
     if(gADCoreWebJSCached7271&&gADCoreWebJSStrength7271==strength)return gADCoreWebJSCached7271;
     gADCoreWebJSStrength7271=strength;
-    gADCoreWebJSCached7271=[NSString stringWithFormat:@"%@%@%@%@%@%@%@%@%@%@%@",ADFullRasterHostBridgeJS7266(),
+    gADCoreWebJSCached7271=[NSString stringWithFormat:@"%@%@%@%@%@%@%@%@%@%@%@%@",ADFullRasterHostBridgeJS7266(),
         ADStandalonePaintJS7104(),ADFloorJS(),ADHomeAdShellFloorJS7381(),ADProductShareThemeJS7403(),
         ADProductShareTWBJS7403(),ADShareProbeSuppressJS7403(),ADProductScrollPolishJS7404(),
-        ADProductScrollVideoBorderJS7405(),ADPDPCompletionJS7405(),ADPDPCompletionTWBJS7405()];
+        ADProductScrollVideoBorderJS7405(),ADPDPCompletionJS7405(),ADPDPCompletionTWBJS7405(),ADAddressManagementJS7412()];
     return gADCoreWebJSCached7271;
 }
 
@@ -8380,6 +8405,267 @@ static void ADPaymentPrimeSheet7401(UIView *root){
 }
 
 
+// v7.412 FULL r1 (20:35) + screenshots: "Ship outside the US" and
+// "Enter a US zip code" are not Web/AUI. They are a separate lower native React
+// navigation family inside AppCXWindow. The ZIP probe proves the exact renderer:
+// an inset ~394pt RCTScrollView, a ~35pt header row with a 1pt bottom border,
+// authored back-chevron image + React text, followed by either a country-list
+// plate or a 394x44 RCTSinglelineTextInputView and 394x45 yellow Apply control.
+// Mark only that structural family. Do not use text strings, route names, timers,
+// recurring scans or image/vector filters; the authored chevron/SVG/sprite art is preserved.
+static const void *kADLocationAuxScroll7412=&kADLocationAuxScroll7412;
+static const void *kADLocationAuxPrimed7412=&kADLocationAuxPrimed7412;
+static const void *kADLocationAuxHeader7412=&kADLocationAuxHeader7412;
+static const void *kADLocationAuxApply7412=&kADLocationAuxApply7412;
+static const void *kADLocationAuxKind7412=&kADLocationAuxKind7412;
+
+static CGFloat ADLocationAuxRCTMetric7412(UIView *v,const char *name){
+    if(!v||!name)return 0.0;
+    @try { SEL s=sel_registerName(name); if([v respondsToSelector:s])return ((CGFloat(*)(id,SEL))objc_msgSend)(v,s); } @catch(...) {}
+    return 0.0;
+}
+static BOOL ADLocationAuxWarmYellow7412(UIColor *c){
+    if(!c)return NO;
+    @try {
+        CGFloat r=0,g=0,b=0,a=0; UIColor *p=c;
+        if([p respondsToSelector:@selector(resolvedColorWithTraitCollection:)])p=[p resolvedColorWithTraitCollection:UIScreen.mainScreen.traitCollection];
+        if(![p getRed:&r green:&g blue:&b alpha:&a]||a<0.70)return NO;
+        return r>=0.72&&g>=0.50&&g<=0.90&&b<=0.48&&(r-b)>=0.30;
+    } @catch(...) {}
+    return NO;
+}
+static UIView *ADLocationAuxCandidateScroll7412(UIView *v){
+    if(!v||!v.window||!ADClassNameIs7183(v.window,"AppCXWindow"))return nil;
+    @try {
+        CGRect wb=v.window.bounds;
+        for(UIView *n=v;n;n=n.superview){
+            if(ADClassNameIs7183(n,"RCTScrollView")){
+                CGRect r=[n convertRect:n.bounds toView:v.window];
+                BOOL inset=r.size.width>=388.0&&r.size.width<=402.0&&
+                           CGRectGetMinX(r)>=12.0&&CGRectGetMinX(r)<=24.0&&
+                           CGRectGetMinY(r)>=wb.size.height*0.45&&
+                           r.size.height>=125.0&&r.size.height<=540.0;
+                return inset?n:nil;
+            }
+            if(ADClassNameIs7183(n,"SNPRootView")||[n isKindOfClass:[UIWindow class]])break;
+        }
+    } @catch(...) {}
+    return nil;
+}
+static BOOL ADLocationAuxDescendantShape7412(UIView *root,BOOL wantImage,NSUInteger limit){
+    if(!root)return NO;
+    @try {
+        NSMutableArray<UIView *> *q=[NSMutableArray arrayWithArray:root.subviews?:@[]]; NSUInteger seen=0;
+        while(seen<q.count&&seen<limit){
+            UIView *x=q[seen++]; if(!x)continue;
+            CGRect b=x.bounds;
+            if(wantImage){
+                if((ADClassNameIs7183(x,"RCTImageView")||[x isKindOfClass:[UIImageView class]])&&
+                   b.size.width>=16.0&&b.size.width<=34.0&&b.size.height>=16.0&&b.size.height<=34.0)return YES;
+            } else if((ADClassNameIs7183(x,"RCTTextView")||ADClassNameIs7183(x,"RCTParagraphComponentView"))&&
+                      b.size.width>=120.0&&b.size.height>=12.0&&b.size.height<=42.0)return YES;
+            if(x.subviews.count&&q.count<limit+8)[q addObjectsFromArray:x.subviews];
+        }
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADLocationAuxHeaderShape7412(UIView *v,UIView *scroll){
+    if(!v||!scroll||!ADClassNameIs7183(v,"RCTView"))return NO;
+    @try {
+        CGRect r=[v convertRect:v.bounds toView:v.window],sr=[scroll convertRect:scroll.bounds toView:v.window];
+        if(r.size.width<388.0||r.size.width>402.0||r.size.height<28.0||r.size.height>50.0)return NO;
+        if(fabs(CGRectGetMinX(r)-CGRectGetMinX(sr))>3.0||CGRectGetMinY(r)<CGRectGetMinY(sr)-3.0||CGRectGetMinY(r)>CGRectGetMinY(sr)+18.0)return NO;
+        CGFloat bw=ADLocationAuxRCTMetric7412(v,"borderBottomWidth");
+        if(bw<0.5||bw>2.5)return NO;
+        return ADLocationAuxDescendantShape7412(v,YES,16)&&ADLocationAuxDescendantShape7412(v,NO,16);
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADLocationAuxZIPInputShape7412(UIView *v,UIView *scroll){
+    if(!v||!scroll||!ADClassNameIs7183(v,"RCTSinglelineTextInputView"))return NO;
+    @try {
+        CGRect r=[v convertRect:v.bounds toView:v.window],sr=[scroll convertRect:scroll.bounds toView:v.window];
+        return r.size.width>=388.0&&r.size.width<=402.0&&r.size.height>=40.0&&r.size.height<=50.0&&
+               fabs(CGRectGetMinX(r)-CGRectGetMinX(sr))<=3.0;
+    } @catch(...) { return NO; }
+}
+static BOOL ADLocationAuxApplyShape7412(UIView *v,UIView *scroll){
+    if(!v||!scroll||!ADClassNameIs7183(v,"RCTView"))return NO;
+    @try {
+        CGRect r=[v convertRect:v.bounds toView:v.window],sr=[scroll convertRect:scroll.bounds toView:v.window];
+        if(r.size.width<388.0||r.size.width>402.0||r.size.height<40.0||r.size.height>52.0||fabs(CGRectGetMinX(r)-CGRectGetMinX(sr))>3.0)return NO;
+        UIColor *bg=v.backgroundColor,*lbg=v.layer.backgroundColor?[UIColor colorWithCGColor:v.layer.backgroundColor]:nil;
+        return (ADLocationAuxWarmYellow7412(bg)||ADLocationAuxWarmYellow7412(lbg))&&ADLocationAuxDescendantShape7412(v,NO,12);
+    } @catch(...) { return NO; }
+}
+static NSUInteger ADLocationAuxTextLeafCount7412(UIView *root,NSUInteger limit){
+    if(!root)return 0;
+    @try {
+        NSMutableArray<UIView *> *q=[NSMutableArray arrayWithArray:root.subviews?:@[]]; NSUInteger seen=0,count=0;
+        while(seen<q.count&&seen<limit){
+            UIView *x=q[seen++]; if(!x)continue;
+            if(ADClassNameIs7183(x,"RCTTextView")||ADClassNameIs7183(x,"RCTParagraphComponentView")){ if(++count>=5)return count; }
+            if(x.subviews.count&&q.count<limit+16)[q addObjectsFromArray:x.subviews];
+        }
+        return count;
+    } @catch(...) { return 0; }
+}
+static BOOL ADLocationAuxCountryPlate7412(UIView *v,UIView *scroll){
+    if(!v||!scroll||(!ADClassNameIs7183(v,"RCTView")&&!ADClassNameIs7183(v,"RCTScrollContentView")))return NO;
+    @try {
+        CGRect r=[v convertRect:v.bounds toView:v.window],sr=[scroll convertRect:scroll.bounds toView:v.window];
+        UIColor *bg=v.backgroundColor,*lbg=v.layer.backgroundColor?[UIColor colorWithCGColor:v.layer.backgroundColor]:nil;
+        BOOL bright=ADBrightNeutralColor708(bg)||ADBrightNeutralColor708(lbg);
+        return bright&&r.size.width>=388.0&&r.size.width<=402.0&&r.size.height>=170.0&&r.size.height<=620.0&&
+               fabs(CGRectGetMinX(r)-CGRectGetMinX(sr))<=3.0&&ADLocationAuxTextLeafCount7412(v,96)>=5;
+    } @catch(...) { return NO; }
+}
+static BOOL ADLocationAuxBrightRow7412(UIView *v,UIView *scroll){
+    if(!v||!scroll||!ADClassNameIs7183(v,"RCTView"))return NO;
+    @try {
+        CGRect r=[v convertRect:v.bounds toView:v.window],sr=[scroll convertRect:scroll.bounds toView:v.window];
+        UIColor *bg=v.backgroundColor,*lbg=v.layer.backgroundColor?[UIColor colorWithCGColor:v.layer.backgroundColor]:nil;
+        return (ADBrightNeutralColor708(bg)||ADBrightNeutralColor708(lbg))&&r.size.width>=380.0&&r.size.width<=402.0&&
+               r.size.height>=32.0&&r.size.height<=82.0&&fabs(CGRectGetMinX(r)-CGRectGetMinX(sr))<=8.0;
+    } @catch(...) { return NO; }
+}
+static BOOL ADInLocationAux7412(UIView *v){
+    if(!v||!v.window||!ADClassNameIs7183(v.window,"AppCXWindow"))return NO;
+    @try {
+        for(UIView *n=v;n;n=n.superview){
+            if(ADClassNameIs7183(n,"RCTScrollView"))return objc_getAssociatedObject(n,kADLocationAuxScroll7412)!=nil;
+            if(ADClassNameIs7183(n,"SNPRootView")||[n isKindOfClass:[UIWindow class]])break;
+        }
+    } @catch(...) {}
+    return NO;
+}
+static BOOL ADLocationAuxNeutralText7412(UIColor *color){
+    if(!color)return YES;
+    @try {
+        CGFloat r=0,g=0,b=0,a=0,w=0; UIColor *p=color;
+        if([p respondsToSelector:@selector(resolvedColorWithTraitCollection:)])p=[p resolvedColorWithTraitCollection:UIScreen.mainScreen.traitCollection];
+        if([p getRed:&r green:&g blue:&b alpha:&a]){
+            if(a<0.08)return NO; CGFloat hi=MAX(r,MAX(g,b)),lo=MIN(r,MIN(g,b));
+            return (hi-lo)<=0.18;
+        }
+        if([p getWhite:&w alpha:&a])return a>=0.08;
+    } @catch(...) {}
+    return NO;
+}
+static NSAttributedString *ADLocationAuxLightString7412(NSAttributedString *in){ return ADLightNeutralString7271(in,ADLocationAuxNeutralText7412); }
+static void ADLocationAuxLightStorage7412(NSTextStorage *ts){ ADLightNeutralStorage7271(ts,ADLocationAuxNeutralText7412); }
+static void ADLocationAuxGrayExistingBorders7412(UIView *v){
+    if(!v||!ADClassNameIs7183(v,"RCTView"))return;
+    @try {
+        const char *widths[]={"borderWidth","borderTopWidth","borderRightWidth","borderBottomWidth","borderLeftWidth","borderStartWidth","borderEndWidth"};
+        const char *colors[]={"setBorderColor:","setBorderTopColor:","setBorderRightColor:","setBorderBottomColor:","setBorderLeftColor:","setBorderStartColor:","setBorderEndColor:"};
+        UIColor *gray=ADMenuButtonBorder7255();
+        for(size_t i=0;i<7;i++){
+            CGFloat w=ADLocationAuxRCTMetric7412(v,widths[i]); if(w<=0.05)continue;
+            SEL cs=sel_registerName(colors[i]); if([v respondsToSelector:cs])((void(*)(id,SEL,UIColor *))objc_msgSend)(v,cs,gray);
+        }
+    } @catch(...) {}
+}
+static BOOL ADLocationAuxThinDivider7412(UIView *v){
+    if(!v||!ADInLocationAux7412(v))return NO;
+    @try { CGRect b=v.bounds; return b.size.width>=350.0&&b.size.height>0.0&&b.size.height<=2.5; } @catch(...) { return NO; }
+}
+static BOOL ADLocationAuxInput7412(UIView *v){
+    if(!v||!ADInLocationAux7412(v)||!ADClassNameIs7183(v,"RCTSinglelineTextInputView"))return NO;
+    @try { CGRect b=v.bounds; return b.size.width>=388.0&&b.size.width<=402.0&&b.size.height>=40.0&&b.size.height<=50.0; } @catch(...) { return NO; }
+}
+static BOOL ADLocationAuxApply7412(UIView *v){ return v&&objc_getAssociatedObject(v,kADLocationAuxApply7412)!=nil&&ADInLocationAux7412(v); }
+static BOOL ADLocationAuxHeader7412(UIView *v){ return v&&objc_getAssociatedObject(v,kADLocationAuxHeader7412)!=nil&&ADInLocationAux7412(v); }
+
+static void ADLocationAuxOwnText7412(UIView *v){
+    if(!gP.enabled||!v||!ADInLocationAux7412(v))return;
+    @try {
+        NSTextStorage *ts=ADPersonTextStorage7206(v);
+        if(ts){ ADLocationAuxLightStorage7412(ts); [v setNeedsDisplay]; [v.layer setNeedsDisplay]; return; }
+        if([v isKindOfClass:[UILabel class]]){
+            UILabel *l=(UILabel *)v; if(ADLocationAuxNeutralText7412(l.textColor))l.textColor=ADLightText706();
+            if(l.attributedText.length)l.attributedText=ADLocationAuxLightString7412(l.attributedText);
+        }
+    } @catch(...) {}
+}
+static void ADLocationAuxOwnInput7412(UIView *v){
+    if(!gP.enabled||!ADLocationAuxInput7412(v))return;
+    @try {
+        UIColor *fill=ADMenuButtonFill7255(),*edge=ADMenuButtonBorder7255();
+        ADSetViewBackground7226(v,fill,YES);
+        SEL sw=sel_registerName("setBorderWidth:"),sc=sel_registerName("setBorderColor:");
+        if([v respondsToSelector:sw])((void(*)(id,SEL,CGFloat))objc_msgSend)(v,sw,1.0);
+        if([v respondsToSelector:sc])((void(*)(id,SEL,UIColor *))objc_msgSend)(v,sc,edge);
+        v.layer.borderWidth=0.0; v.layer.borderColor=nil; v.layer.shadowOpacity=0.0;
+    } @catch(...) {}
+}
+static void ADLocationAuxOwnField7412(UITextField *f){
+    if(!gP.enabled||!f||!ADInLocationAux7412((UIView *)f))return;
+    @try {
+        f.textColor=ADLightText706();
+        NSString *ph=f.placeholder; if(ph.length)f.attributedPlaceholder=[[NSAttributedString alloc] initWithString:ph attributes:@{NSForegroundColorAttributeName:ADLightText706()}];
+        f.backgroundColor=[UIColor clearColor];
+    } @catch(...) {}
+}
+static void ADLocationAuxOwnView7412(UIView *v){
+    if(!gP.enabled||!v||!ADInLocationAux7412(v))return;
+    @try {
+        if(ADClassNameIs7183(v,"RCTSinglelineTextInputView")){ ADLocationAuxOwnInput7412(v); return; }
+        if([v isKindOfClass:[UITextField class]]){ ADLocationAuxOwnField7412((UITextField *)v); return; }
+        if(ADClassNameIs7183(v,"RCTTextView")||ADClassNameIs7183(v,"RCTParagraphComponentView")||[v isKindOfClass:[UILabel class]]){ ADLocationAuxOwnText7412(v); return; }
+        if(!ADClassNameIs7183(v,"RCTView")&&!ADClassNameIs7183(v,"RCTScrollContentView"))return;
+        if(ADLocationAuxThinDivider7412(v)){ ADSetViewBackground7226(v,ADMenuButtonBorder7255(),YES); return; }
+        if(ADLocationAuxApply7412(v)){
+            ADSetViewBackground7226(v,ADOLED(),YES);
+            SEL sw=sel_registerName("setBorderWidth:"),sc=sel_registerName("setBorderColor:");
+            if([v respondsToSelector:sw])((void(*)(id,SEL,CGFloat))objc_msgSend)(v,sw,1.0);
+            if([v respondsToSelector:sc])((void(*)(id,SEL,UIColor *))objc_msgSend)(v,sc,ADMenuButtonBorder7255());
+            v.layer.borderWidth=0.0; v.layer.borderColor=nil; v.layer.shadowOpacity=0.0;
+            return;
+        }
+        UIColor *bg=v.backgroundColor,*lbg=v.layer.backgroundColor?[UIColor colorWithCGColor:v.layer.backgroundColor]:nil;
+        if(ADLocationAuxHeader7412(v)||ADBrightNeutralColor708(bg)||ADBrightNeutralColor708(lbg))ADSetViewBackground7226(v,ADOLED(),YES);
+        ADLocationAuxGrayExistingBorders7412(v);
+    } @catch(...) {}
+}
+static void ADLocationAuxPrime7412(UIView *scroll){
+    if(!scroll||objc_getAssociatedObject(scroll,kADLocationAuxPrimed7412))return;
+    objc_setAssociatedObject(scroll,kADLocationAuxPrimed7412,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    @try {
+        NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:scroll]; NSUInteger seen=0;
+        while(seen<q.count&&seen<320){
+            UIView *x=q[seen++]; if(!x)continue;
+            ADLocationAuxOwnView7412(x);
+            if(x.subviews.count&&q.count-seen<320)[q addObjectsFromArray:x.subviews];
+        }
+    } @catch(...) {}
+}
+static void ADLocationAuxTryMark7412(UIView *v){
+    if(!gP.enabled||!v||!v.window||!ADClassNameIs7183(v.window,"AppCXWindow"))return;
+    UIView *scroll=ADLocationAuxCandidateScroll7412(v); if(!scroll||objc_getAssociatedObject(scroll,kADLocationAuxScroll7412))return;
+    @try {
+        NSMutableArray<UIView *> *q=[NSMutableArray arrayWithObject:scroll]; NSUInteger seen=0;
+        UIView *header=nil,*apply=nil; BOOL input=NO,countryPlate=NO; NSUInteger rows=0;
+        while(seen<q.count&&seen<220){
+            UIView *x=q[seen++]; if(!x)continue;
+            if(!header&&ADLocationAuxHeaderShape7412(x,scroll))header=x;
+            if(!input&&ADLocationAuxZIPInputShape7412(x,scroll))input=YES;
+            if(!apply&&ADLocationAuxApplyShape7412(x,scroll))apply=x;
+            if(!countryPlate&&ADLocationAuxCountryPlate7412(x,scroll))countryPlate=YES;
+            if(rows<5&&ADLocationAuxBrightRow7412(x,scroll))rows++;
+            if(x.subviews.count&&q.count-seen<220)[q addObjectsFromArray:x.subviews];
+        }
+        int kind=(header&&input&&apply)?1:((header&&(countryPlate||rows>=4))?2:0);
+        if(!kind)return;
+        objc_setAssociatedObject(scroll,kADLocationAuxScroll7412,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(scroll,kADLocationAuxKind7412,@(kind),OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        if(header)objc_setAssociatedObject(header,kADLocationAuxHeader7412,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        if(apply)objc_setAssociatedObject(apply,kADLocationAuxApply7412,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        ADLocationAuxPrime7412(scroll);
+    } @catch(...) {}
+}
+
+
 static int ADReactSurface7226(UIView *v){
     if(!v)return ADReactSurfaceNone7226;
     @try {
@@ -8412,6 +8698,11 @@ static void ADOwnReactView7226(UIView *v){
     if(!gP.enabled||!v||!v.window)return;
     @try {
         ADAlexaOwnReactControl7285(v);
+        ADLocationAuxTryMark7412(v);
+        if(ADInLocationAux7412(v)){
+            ADLocationAuxOwnView7412(v);
+            return;
+        }
         if(ADPermissionSheetKind7408(v)){
             ADPermissionOwnView7408(v);
             return;
@@ -8468,6 +8759,23 @@ static void ADOwnReactView7226(UIView *v){
         return;
     }
     UIView *v=(UIView *)self;
+    if(gP.enabled&&v.window){
+        ADLocationAuxTryMark7412(v);
+        if(ADInLocationAux7412(v)){
+            UIColor *paint=color;
+            if(ADLocationAuxApply7412(v)||ADLocationAuxHeader7412(v))paint=ADOLED();
+            else if(ADLocationAuxThinDivider7412(v))paint=ADMenuButtonBorder7255();
+            else if(ADBrightNeutralColor708(color))paint=ADOLED();
+            gADPaintWriteDepth7226++;
+            @try {
+                %orig(paint);
+                if(paint!=color)self.layer.backgroundColor=paint.CGColor;
+            }
+            @finally { if(gADPaintWriteDepth7226)gADPaintWriteDepth7226--; }
+            ADLocationAuxOwnView7412(v);
+            return;
+        }
+    }
     int alexaRole=gP.enabled?ADAlexaReactControlRole7285(v):0;
     if(alexaRole==1||alexaRole==2||alexaRole==4){
         UIColor *paint=(alexaRole==1)?[UIColor clearColor]:ADMenuButtonFill7255();
@@ -8606,7 +8914,16 @@ static void ADOwnReactView7226(UIView *v){
     %orig(value);
 }
 - (void)setBorderColor:(UIColor *)value {
-    UIView *pv=(UIView *)self; int pk=(gP.enabled&&pv.window)?ADPermissionSheetKind7408(pv):0;
+    UIView *pv=(UIView *)self;
+    if(gP.enabled&&pv.window){
+        ADLocationAuxTryMark7412(pv);
+        if(ADInLocationAux7412(pv)){
+            UIColor *edge=ADMenuButtonBorder7255();
+            %orig(edge);
+            return;
+        }
+    }
+    int pk=(gP.enabled&&pv.window)?ADPermissionSheetKind7408(pv):0;
     NSString *paid=pv.accessibilityIdentifier?:@"";
     if(pk&&([paid isEqualToString:@"actionButton"]||[paid isEqualToString:@"inflight-prompt-dismiss-button"]||[paid isEqualToString:@"inflight-prompt-allow-button"])){
         UIColor *gray=ADBorderGray706();
@@ -8622,6 +8939,18 @@ static void ADOwnReactView7226(UIView *v){
     }
     %orig(value);
     if(alexaRole==1||alexaRole==2||alexaRole==4)ADAlexaOwnReactControl7285((UIView *)self);
+}
+- (void)setBorderBottomColor:(UIColor *)value {
+    UIView *v=(UIView *)self;
+    if(gP.enabled&&v.window){
+        ADLocationAuxTryMark7412(v);
+        if(ADInLocationAux7412(v)&&ADLocationAuxRCTMetric7412(v,"borderBottomWidth")>0.05){
+            UIColor *edge=ADMenuButtonBorder7255();
+            %orig(edge);
+            return;
+        }
+    }
+    %orig(value);
 }
 %end
 
@@ -8726,6 +9055,8 @@ static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOO
     // v7.411 exact button owner: ancestry is enough even before window/sheet hydration.
     if(ADPermissionButtonText7409(v)){ ADPermissionTextStorage7409(v,textStorage); return YES; }
     if(!v.window)return NO;
+    ADLocationAuxTryMark7412(v);
+    if(ADInLocationAux7412(v)){ ADLocationAuxLightStorage7412(textStorage); return YES; }
     if(ADPermissionSheetKind7408(v)){ ADPermissionTextStorage7409(v,textStorage); return YES; }
     if(ADInPaymentSheet7401(v)){ ADPaymentLightStorage7401(textStorage); return YES; }
     if(ADAlexaSuggestionPillText7288(v)){ ADAlexaSuggestionPillLightStorage7288(textStorage); return YES; }
@@ -8747,6 +9078,8 @@ static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOO
 }
 static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     if(!gP.enabled||!v.window)return;
+    ADLocationAuxTryMark7412(v);
+    if(ADInLocationAux7412(v)){ ADLocationAuxOwnText7412(v); return; }
     if(ADPermissionButtonText7409(v)){ ADPermissionOwnText7408(v); return; }
     if(ADPermissionSheetKind7408(v)){ ADPermissionOwnText7408(v); return; }
     if(ADInPaymentSheet7401(v)){ ADPaymentOwnText7401(v); return; }
@@ -8765,7 +9098,10 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 %hook RCTParagraphComponentView
 - (void)setAttributedText:(NSAttributedString *)attributedText {
     NSAttributedString *r=nil;
-    if(gP.enabled&&ADPermissionButtonText7409((UIView *)self)) r=ADPermissionTextString7409((UIView *)self,attributedText);
+    UIView *v=(UIView *)self;
+    if(gP.enabled&&v.window){ ADLocationAuxTryMark7412(v); }
+    if(gP.enabled&&v.window&&ADInLocationAux7412(v)) r=ADLocationAuxLightString7412(attributedText);
+    else if(gP.enabled&&ADPermissionButtonText7409(v)) r=ADPermissionTextString7409(v,attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADPermissionSheetKind7408((UIView *)self)) r=ADPermissionTextString7409((UIView *)self,attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADInPaymentSheet7401((UIView *)self)) r=ADPaymentLightString7401(attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)) r=ADPersonHeaderLeaf7221((UIView *)self)?ADPersonHeaderString7221(attributedText):ADPersonLightString7206(attributedText);
@@ -8778,7 +9114,10 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 }
 - (void)_setAttributedString:(NSAttributedString *)attributedString {
     NSAttributedString *r=nil;
-    if(gP.enabled&&ADPermissionButtonText7409((UIView *)self)) r=ADPermissionTextString7409((UIView *)self,attributedString);
+    UIView *v=(UIView *)self;
+    if(gP.enabled&&v.window){ ADLocationAuxTryMark7412(v); }
+    if(gP.enabled&&v.window&&ADInLocationAux7412(v)) r=ADLocationAuxLightString7412(attributedString);
+    else if(gP.enabled&&ADPermissionButtonText7409(v)) r=ADPermissionTextString7409(v,attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADPermissionSheetKind7408((UIView *)self)) r=ADPermissionTextString7409((UIView *)self,attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADInPaymentSheet7401((UIView *)self)) r=ADPaymentLightString7401(attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)) r=ADPersonHeaderLeaf7221((UIView *)self)?ADPersonHeaderString7221(attributedString):ADPersonLightString7206(attributedString);
@@ -8793,7 +9132,9 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     %orig;
     if(!gP.enabled||!((UIView *)self).window)return;
     UIView *v=(UIView *)self;
-    if(ADPermissionButtonText7409(v)||ADPermissionSheetKind7408(v))ADPermissionOwnText7408(v);
+    ADLocationAuxTryMark7412(v);
+    if(ADInLocationAux7412(v))ADLocationAuxOwnText7412(v);
+    else if(ADPermissionButtonText7409(v)||ADPermissionSheetKind7408(v))ADPermissionOwnText7408(v);
     else if(ADInPaymentSheet7401(v))ADPaymentOwnText7401(v);
     else if(ADInPersonTab7206(v))ADPersonOwnText7206(v);
     else if(ADInMenuTab7255(v))ADMenuOwnText7255(v);
@@ -8803,7 +9144,11 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 - (void)layoutSubviews {
     %orig;
     UIView *v=(UIView *)self;
-    if(gP.enabled&&v.window&&(ADPermissionButtonText7409(v)||ADPermissionSheetKind7408(v)))ADPermissionOwnText7408(v);
+    if(gP.enabled&&v.window){
+        ADLocationAuxTryMark7412(v);
+        if(ADInLocationAux7412(v))ADLocationAuxOwnText7412(v);
+        else if(ADPermissionButtonText7409(v)||ADPermissionSheetKind7408(v))ADPermissionOwnText7408(v);
+    }
 }
 %end
 
@@ -8831,7 +9176,9 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     UIView *v=(UIView *)self;
     if(gP.enabled&&v.window){
         NSTextStorage *ts=ADPersonTextStorage7206(v);
-        if(ADPermissionButtonText7409(v)){ if(ts)ADPermissionTextStorage7409(v,ts); }
+        ADLocationAuxTryMark7412(v);
+        if(ADInLocationAux7412(v)){ if(ts)ADLocationAuxLightStorage7412(ts); }
+        else if(ADPermissionButtonText7409(v)){ if(ts)ADPermissionTextStorage7409(v,ts); }
         else if(ADPermissionSheetKind7408(v)){ if(ts)ADPermissionTextStorage7409(v,ts); }
         else if(ADInPaymentSheet7401(v)){ if(ts)ADPaymentLightStorage7401(ts); }
         if(ADAlexaSuggestionPillText7288(v)){ if(ts)ADAlexaSuggestionPillLightStorage7288(ts); }
@@ -9064,14 +9411,41 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 %hook RCTSinglelineTextInputView
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled&&((UIView *)self).window&&ADInPaymentSheet7401((UIView *)self))ADPaymentOwnView7401((UIView *)self);
+    UIView *v=(UIView *)self;
+    if(gP.enabled&&v.window){
+        ADLocationAuxTryMark7412(v);
+        if(ADLocationAuxInput7412(v)){ ADLocationAuxOwnInput7412(v); return; }
+        if(ADInPaymentSheet7401(v))ADPaymentOwnView7401(v);
+    }
 }
 - (void)layoutSubviews {
     %orig;
-    if(gP.enabled&&((UIView *)self).window&&ADInPaymentSheet7401((UIView *)self))ADPaymentOwnView7401((UIView *)self);
+    UIView *v=(UIView *)self;
+    if(gP.enabled&&v.window){
+        ADLocationAuxTryMark7412(v);
+        if(ADLocationAuxInput7412(v)){ ADLocationAuxOwnInput7412(v); return; }
+        if(ADInPaymentSheet7401(v))ADPaymentOwnView7401(v);
+    }
 }
 - (void)setBackgroundColor:(UIColor *)color {
     UIView *v=(UIView *)self;
+    if(ADInternalPaintWrite7226()){
+        %orig(color);
+        return;
+    }
+    if(gP.enabled&&v.window){
+        ADLocationAuxTryMark7412(v);
+        if(ADLocationAuxInput7412(v)){
+            UIColor *fill=ADMenuButtonFill7255();
+            gADPaintWriteDepth7226++;
+            @try {
+                %orig(fill);
+                v.layer.backgroundColor=fill.CGColor;
+            }
+            @finally { if(gADPaintWriteDepth7226)gADPaintWriteDepth7226--; }
+            ADLocationAuxOwnInput7412(v); return;
+        }
+    }
     if(gP.enabled&&v.window&&ADInPaymentSheet7401(v)&&ADPaymentIsInput7401(v)){
         UIColor *fill=ADMenuButtonFill7255();
         %orig(fill);
@@ -9099,12 +9473,38 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     }
     %orig(appearance);
 }
+- (void)setTextColor:(UIColor *)color {
+    UIView *v=(UIView *)self;
+    if(gP.enabled&&v.window&&ADInLocationAux7412(v)){
+        UIColor *light=ADLightText706();
+        %orig(light);
+        return;
+    }
+    %orig(color);
+}
+- (void)setAttributedPlaceholder:(NSAttributedString *)placeholder {
+    UIView *v=(UIView *)self;
+    if(gP.enabled&&v.window&&ADInLocationAux7412(v)&&placeholder.length){
+        NSAttributedString *light=ADLocationAuxLightString7412(placeholder);
+        %orig(light);
+        return;
+    }
+    %orig(placeholder);
+}
 - (void)didMoveToWindow {
     %orig;
     if(gP.enabled&&((UIView *)self).window){
-        ADPrepareSearchKeyboard7120((UIView *)self);
-        ADPersonRepairOrderSearchAncestors7242((UIView *)self);
+        UIView *v=(UIView *)self;
+        ADLocationAuxTryMark7412(v);
+        if(ADInLocationAux7412(v))ADLocationAuxOwnField7412((UITextField *)self);
+        ADPrepareSearchKeyboard7120(v);
+        ADPersonRepairOrderSearchAncestors7242(v);
     }
+}
+- (void)layoutSubviews {
+    %orig;
+    UIView *v=(UIView *)self;
+    if(gP.enabled&&v.window&&ADInLocationAux7412(v))ADLocationAuxOwnField7412((UITextField *)self);
 }
 %end
 
@@ -10140,14 +10540,53 @@ static void ADPersonOwnScrollIndicator7238(UIView *v){
 }
 %end
 
-%hook RCTScrollView
+%hook RCTScrollContentView
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled&&self.window) ADSetViewBackground7226((UIView *)self,ADOLED(),YES);
+    UIView *v=(UIView *)self;
+    if(gP.enabled&&v.window){ ADLocationAuxTryMark7412(v); if(ADInLocationAux7412(v))ADLocationAuxOwnView7412(v); }
 }
 - (void)layoutSubviews {
     %orig;
-    if(gP.enabled&&self.window)ADPaintLocationSheetStable7196((UIView *)self);
+    UIView *v=(UIView *)self;
+    if(gP.enabled&&v.window){ ADLocationAuxTryMark7412(v); if(ADInLocationAux7412(v))ADLocationAuxOwnView7412(v); }
+}
+- (void)setBackgroundColor:(UIColor *)color {
+    UIView *v=(UIView *)self;
+    if(ADInternalPaintWrite7226()){
+        %orig(color);
+        return;
+    }
+    if(gP.enabled&&v.window){
+        ADLocationAuxTryMark7412(v);
+        if(ADInLocationAux7412(v)&&ADBrightNeutralColor708(color)){
+            UIColor *black=ADOLED(); gADPaintWriteDepth7226++;
+            @try {
+                %orig(black);
+                self.layer.backgroundColor=black.CGColor;
+            }
+            @finally { if(gADPaintWriteDepth7226)gADPaintWriteDepth7226--; }
+            return;
+        }
+    }
+    %orig(color);
+}
+%end
+
+%hook RCTScrollView
+- (void)didMoveToWindow {
+    %orig;
+    if(gP.enabled&&self.window){
+        ADSetViewBackground7226((UIView *)self,ADOLED(),YES);
+        ADLocationAuxTryMark7412((UIView *)self);
+    }
+}
+- (void)layoutSubviews {
+    %orig;
+    if(gP.enabled&&self.window){
+        ADLocationAuxTryMark7412((UIView *)self);
+        ADPaintLocationSheetStable7196((UIView *)self);
+    }
 }
 %end
 

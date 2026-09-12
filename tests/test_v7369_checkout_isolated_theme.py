@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.411~permission-firstpaint-owner-fix' in CTRL
-assert '#define AD_VERSION "v7.411-permission-firstpaint-owner-fix"' in S
+assert 'Version: 7.412~address-location-aux-theme' in CTRL
+assert '#define AD_VERSION "v7.412-address-location-aux-theme"' in S
 
 def func(name):
     st=S.index(f'static NSString *{name}')
@@ -20,7 +20,7 @@ def func(name):
 # Critical shared theming programs remain stable; v7.388 changes only the core concatenation to append the tiny Home ad-shell floor.
 assert hashlib.sha256(func('ADFloorJS').encode()).hexdigest() == '86730a2287803039c3912c5b0cd5f2bdca27464c63820a1c24a4aa3e24685d83'
 assert hashlib.sha256(func('ADTWBJS').encode()).hexdigest() == 'a86f3c1257f32380057eb6c8c99c1c75e2c98f1fc5529364f4304feaa33821a3'
-core=func('ADCoreWebJS7271').replace('@"%@%@%@%@%@%@%@%@%@%@%@"','@"%@%@%@%@"').replace(',ADProductShareThemeJS7403(),\n        ADProductShareTWBJS7403(),ADShareProbeSuppressJS7403(),ADProductScrollPolishJS7404(),\n        ADProductScrollVideoBorderJS7405(),ADPDPCompletionJS7405(),ADPDPCompletionTWBJS7405()','')
+core=func('ADCoreWebJS7271').replace('@"%@%@%@%@%@%@%@%@%@%@%@%@"','@"%@%@%@%@"').replace(',ADProductShareThemeJS7403(),\n        ADProductShareTWBJS7403(),ADShareProbeSuppressJS7403(),ADProductScrollPolishJS7404(),\n        ADProductScrollVideoBorderJS7405(),ADPDPCompletionJS7405(),ADPDPCompletionTWBJS7405(),ADAddressManagementJS7412()','')
 assert hashlib.sha256(core.encode()).hexdigest() == '41ce925c9bad5362bf65204d4eb9778d016c2015b41b427704943df363b6d30c'
 
 for x in ['ADCheckoutFloorJS7369','ADCheckoutTWBJS7369','kADCheckoutFloorUS7369','kADCheckoutTWBUS7369',

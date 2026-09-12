@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.411~permission-firstpaint-owner-fix' in ctl
-assert '#define AD_VERSION "v7.411-permission-firstpaint-owner-fix"' in t
+assert 'Version: 7.412~address-location-aux-theme' in ctl
+assert '#define AD_VERSION "v7.412-address-location-aux-theme"' in t
 # Current Cart probe exact owners.
 for token in [
     '#sc-page-container #ssd-ca-buy-box{background:#000!important',
