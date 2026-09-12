@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.410 — deterministic permission text + location transition first paint
+ * AmazonDark v7.411 — permission first-paint owner fix
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.410-permission-text-location-firstpaint"
+#define AD_VERSION "v7.411-permission-firstpaint-owner-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -7906,7 +7906,13 @@ static NSAttributedString *ADPermissionAttributedString7410(UIView *v){
     return nil;
 }
 static void ADPermissionOwnText7408(UIView *v){
-    if(!gP.enabled||!v||!v.window||!ADPermissionSheetKind7408(v))return;
+    if(!gP.enabled||!v||!v.window)return;
+    // v7.411: button labels have exact, probe-proven parent IDs. Do not make
+    // their white text depend on the surrounding sheet having finished hydrating
+    // or being classified first; that late dependency caused the intermittent
+    // stock-dark Continue / Not now / Allow access labels.
+    BOOL exactButton=ADPermissionButtonText7409(v);
+    if(!exactButton&&!ADPermissionSheetKind7408(v))return;
     NSTextStorage *ts=ADPersonTextStorage7206(v);
     if(ts){ ADPermissionTextStorage7409(v,ts); return; }
     // v7.410: some React loads use ParagraphComponentView rather than RCTTextView.
@@ -7981,6 +7987,42 @@ static void ADPermissionPrimeSheet7408(UIView *root,int kind){
 // the inner scroller is 394pt wide.  Own that exact full-width shell after the proven
 // location root has been marked; bypass the older cached surface classification so a
 // shell mounted before the address wrappers cannot stay white for the rest of its life.
+// v7.411 transition replay correction: v7.410's regression fixture accidentally
+// combined observations from different frames. In the real failing sequence the
+// 18pt white rail appears first, then the white clipping shell, and only later does
+// the 394pt RCTScrollView itself mount. Own the two earliest neutral transition
+// plates directly, and recognize the already-mounted 394pt scroll-content child
+// before the concrete RCTScrollView class exists.
+static BOOL ADAppCXNeutralTransitionPlate7411(UIView *v,UIColor *candidate){
+    if(!gP.enabled||!v||!v.window||!ADClassNameIs7183(v.window,"AppCXWindow")||
+       !ADClassNameIs7183(v,"RCTView")||!ADBrightNeutralColor708(candidate))return NO;
+    @try {
+        CGRect r=[v convertRect:v.bounds toView:v.window],wb=v.window.bounds;
+        return r.size.width>=wb.size.width*0.98&&fabs(CGRectGetMinX(r))<=2.0&&
+               r.size.height>=8.0&&r.size.height<=24.0&&CGRectGetMinY(r)>=wb.size.height*0.50;
+    } @catch(...) { return NO; }
+}
+static BOOL ADLocationInsetContentWitness7411(UIView *v){
+    if(!v||!v.window||!ADClassNameIs7183(v.window,"AppCXWindow"))return NO;
+    @try {
+        CGRect wb=v.window.bounds,vr=[v convertRect:v.bounds toView:v.window];
+        NSMutableArray *q=[NSMutableArray arrayWithArray:v.subviews?:@[]]; NSUInteger seen=0;
+        while(seen<q.count&&seen<24){
+            UIView *x=q[seen++]; if(!x)continue;
+            CGRect xr=[x convertRect:x.bounds toView:v.window];
+            BOOL inset=xr.size.width>=wb.size.width*0.89&&xr.size.width<=wb.size.width*0.94&&
+                       xr.size.height>=300.0&&xr.size.height<=430.0&&
+                       CGRectGetMinX(xr)>=14.0&&CGRectGetMinX(xr)<=22.0&&
+                       fabs(CGRectGetMinX(xr)-CGRectGetMinX(vr)-18.0)<=4.0;
+            if(inset){
+                if(ADClassNameIs7183(x,"RCTScrollView"))return YES;
+                if(ADClassNameIs7183(x,"RCTView")&&x.superview&&ADClassNameIs7183(x.superview,"RCTScrollContentView"))return YES;
+            }
+            if(x.subviews.count&&q.count<40)[q addObjectsFromArray:x.subviews];
+        }
+    } @catch(...) {}
+    return NO;
+}
 static BOOL ADLocationInsetScrollerWitness7409(UIView *v){
     if(!v||!v.window)return NO;
     @try {
@@ -8010,11 +8052,10 @@ static BOOL ADLocationOuterWhiteShell7408(UIView *v,UIColor *candidate){
     @try {
         CGRect r=[v convertRect:v.bounds toView:v.window],wb=v.window.bounds;
         if(r.size.width<wb.size.width*0.98||!v.clipsToBounds||v.subviews.count!=1)return NO;
-        // v7.410 transition proof: the exact 394pt inset dark scroller is sufficient
-        // identity before the location root marker/hydration state is available. Claim
-        // this bright clipping shell immediately, then retain the old marked-root path
-        // only as a settled-state compatibility fallback.
-        if(ADLocationInsetScrollerWitness7409(v))return YES;
+        // v7.411: the early 394pt RCTScrollContentView child is present roughly ten
+        // frames before the RCTScrollView object. Use either witness; never wait for
+        // the final scroller class or final shell height.
+        if(ADLocationInsetContentWitness7411(v)||ADLocationInsetScrollerWitness7409(v))return YES;
         UIView *root=ADLocationRootAny7202(v); if(!root)return NO;
         BOOL finalGeometry=r.size.height>=300.0&&r.size.height<=430.0&&
                            CGRectGetMinY(r)>=wb.size.height*0.54&&CGRectGetMinY(r)<=wb.size.height*0.68;
@@ -8022,6 +8063,10 @@ static BOOL ADLocationOuterWhiteShell7408(UIView *v,UIColor *candidate){
     } @catch(...) { return NO; }
 }
 static BOOL ADLocationTransitionTopRail7410(UIView *v,UIColor *candidate){
+    // The first bad frame exists before any location-specific child is available.
+    // A full-width 8-24pt neutral plate in the lower half of AppCXWindow is sheet
+    // transition chrome, not semantic content; own it immediately.
+    if(ADAppCXNeutralTransitionPlate7411(v,candidate))return YES;
     if(!gP.enabled||!v||!v.window||!ADClassNameIs7183(v.window,"AppCXWindow")||!ADClassNameIs7183(v,"RCTView")||!ADBrightNeutralColor708(candidate)||!v.superview)return NO;
     @try {
         CGRect vr=[v convertRect:v.bounds toView:v.window],wb=v.window.bounds;
@@ -8677,7 +8722,10 @@ static void ADAlexaOwnVector7285(UIView *svg){
 %end
 
 static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOOL includeBuyAgain){
-    if(!gP.enabled||!v.window)return NO;
+    if(!gP.enabled)return NO;
+    // v7.411 exact button owner: ancestry is enough even before window/sheet hydration.
+    if(ADPermissionButtonText7409(v)){ ADPermissionTextStorage7409(v,textStorage); return YES; }
+    if(!v.window)return NO;
     if(ADPermissionSheetKind7408(v)){ ADPermissionTextStorage7409(v,textStorage); return YES; }
     if(ADInPaymentSheet7401(v)){ ADPaymentLightStorage7401(textStorage); return YES; }
     if(ADAlexaSuggestionPillText7288(v)){ ADAlexaSuggestionPillLightStorage7288(textStorage); return YES; }
@@ -8699,6 +8747,7 @@ static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOO
 }
 static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     if(!gP.enabled||!v.window)return;
+    if(ADPermissionButtonText7409(v)){ ADPermissionOwnText7408(v); return; }
     if(ADPermissionSheetKind7408(v)){ ADPermissionOwnText7408(v); return; }
     if(ADInPaymentSheet7401(v)){ ADPaymentOwnText7401(v); return; }
     if(ADAlexaSuggestionPillText7288(v)){ NSTextStorage *ts=ADPersonTextStorage7206(v); if(ts)ADAlexaSuggestionPillLightStorage7288(ts); return; }
@@ -8716,7 +8765,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 %hook RCTParagraphComponentView
 - (void)setAttributedText:(NSAttributedString *)attributedText {
     NSAttributedString *r=nil;
-    if(gP.enabled&&((UIView *)self).window&&ADPermissionSheetKind7408((UIView *)self)) r=ADPermissionTextString7409((UIView *)self,attributedText);
+    if(gP.enabled&&ADPermissionButtonText7409((UIView *)self)) r=ADPermissionTextString7409((UIView *)self,attributedText);
+    else if(gP.enabled&&((UIView *)self).window&&ADPermissionSheetKind7408((UIView *)self)) r=ADPermissionTextString7409((UIView *)self,attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADInPaymentSheet7401((UIView *)self)) r=ADPaymentLightString7401(attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)) r=ADPersonHeaderLeaf7221((UIView *)self)?ADPersonHeaderString7221(attributedText):ADPersonLightString7206(attributedText);
     else if(gP.enabled&&((UIView *)self).window&&ADInMenuTab7255((UIView *)self)) r=ADMenuLightString7255(attributedText);
@@ -8728,7 +8778,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 }
 - (void)_setAttributedString:(NSAttributedString *)attributedString {
     NSAttributedString *r=nil;
-    if(gP.enabled&&((UIView *)self).window&&ADPermissionSheetKind7408((UIView *)self)) r=ADPermissionTextString7409((UIView *)self,attributedString);
+    if(gP.enabled&&ADPermissionButtonText7409((UIView *)self)) r=ADPermissionTextString7409((UIView *)self,attributedString);
+    else if(gP.enabled&&((UIView *)self).window&&ADPermissionSheetKind7408((UIView *)self)) r=ADPermissionTextString7409((UIView *)self,attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADInPaymentSheet7401((UIView *)self)) r=ADPaymentLightString7401(attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADInPersonTab7206((UIView *)self)) r=ADPersonHeaderLeaf7221((UIView *)self)?ADPersonHeaderString7221(attributedString):ADPersonLightString7206(attributedString);
     else if(gP.enabled&&((UIView *)self).window&&ADInMenuTab7255((UIView *)self)) r=ADMenuLightString7255(attributedString);
@@ -8742,7 +8793,7 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     %orig;
     if(!gP.enabled||!((UIView *)self).window)return;
     UIView *v=(UIView *)self;
-    if(ADPermissionSheetKind7408(v))ADPermissionOwnText7408(v);
+    if(ADPermissionButtonText7409(v)||ADPermissionSheetKind7408(v))ADPermissionOwnText7408(v);
     else if(ADInPaymentSheet7401(v))ADPaymentOwnText7401(v);
     else if(ADInPersonTab7206(v))ADPersonOwnText7206(v);
     else if(ADInMenuTab7255(v))ADMenuOwnText7255(v);
@@ -8752,7 +8803,7 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 - (void)layoutSubviews {
     %orig;
     UIView *v=(UIView *)self;
-    if(gP.enabled&&v.window&&ADPermissionSheetKind7408(v))ADPermissionOwnText7408(v);
+    if(gP.enabled&&v.window&&(ADPermissionButtonText7409(v)||ADPermissionSheetKind7408(v)))ADPermissionOwnText7408(v);
 }
 %end
 
@@ -8780,7 +8831,8 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     UIView *v=(UIView *)self;
     if(gP.enabled&&v.window){
         NSTextStorage *ts=ADPersonTextStorage7206(v);
-        if(ADPermissionSheetKind7408(v)){ if(ts)ADPermissionTextStorage7409(v,ts); }
+        if(ADPermissionButtonText7409(v)){ if(ts)ADPermissionTextStorage7409(v,ts); }
+        else if(ADPermissionSheetKind7408(v)){ if(ts)ADPermissionTextStorage7409(v,ts); }
         else if(ADInPaymentSheet7401(v)){ if(ts)ADPaymentLightStorage7401(ts); }
         if(ADAlexaSuggestionPillText7288(v)){ if(ts)ADAlexaSuggestionPillLightStorage7288(ts); }
         if(ADClassNameIs7183(v.window,"AppCXWindow")){

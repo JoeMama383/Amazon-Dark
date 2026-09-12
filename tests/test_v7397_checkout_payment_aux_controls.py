@@ -4,9 +4,9 @@ S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 
-assert 'Version: 7.410~permission-text-location-firstpaint' in C
-assert '#define AD_VERSION "v7.410-permission-text-location-firstpaint"' in S
-assert "version:'7.410'" in UI
+assert 'Version: 7.411~permission-firstpaint-owner-fix' in C
+assert '#define AD_VERSION "v7.411-permission-firstpaint-owner-fix"' in S
+assert "version:'7.411'" in UI
 
 new=S.split('// v7.397 FULL r1/r2 (20:17/20:18):',1)[1].split('// v7.398 FULL r1 audit:',1)[0]
 

@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.410~permission-text-location-firstpaint' in C
-assert '#define AD_VERSION "v7.410-permission-text-location-firstpaint"' in S
+assert 'Version: 7.411~permission-firstpaint-owner-fix' in C
+assert '#define AD_VERSION "v7.411-permission-firstpaint-owner-fix"' in S
 
 # 1) Checkout payment skeleton immediately preceding the Maple iframe is OLED at document start,
 # including its white shimmer child. This must use the stable iframe relationship rather than the

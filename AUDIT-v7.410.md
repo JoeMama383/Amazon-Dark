@@ -2,8 +2,8 @@
 
 ## Release
 
-- Version: `7.410~permission-text-location-firstpaint`
-- Runtime: `v7.410-permission-text-location-firstpaint`
+- Version: `7.411~permission-firstpaint-owner-fix`
+- Runtime: `v7.411-permission-firstpaint-owner-fix`
 - Direct parent: `v7.409-permission-controls-location-rails-fix`
 
 ## Probe evidence reconciled

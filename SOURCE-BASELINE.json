@@ -1,5 +1,5 @@
 {
-  "version": "7.410~permission-text-location-firstpaint",
+  "version": "7.411~permission-firstpaint-owner-fix",
   "direct_parent": "7.409~permission-controls-location-rails-fix",
   "source": "AmazonDark-v7.409-permission-controls-location-rails-fix-source.zip from current conversation handoff",
   "runtime_contract": "Preserve all v7.409 and earlier behavior. Fix the transition-probe-proven timing gaps only: Camera classifies from inflight-prompt-title/description before its buttons exist; Microphone classifies from allowTitle before actionButton; every neutral permission text run is repaired white at assignment and final paint/layout across both RCTTextView and RCTParagraphComponentView while saturated semantic links remain authored. Choose-your-location owns the exact full-width bright clipping shell from the already-mounted ~394pt dark inset RCTScrollView before any location root marker is required, plus its adjacent 18pt bright top rail. Preserve Camera checkbox art/state, single gray rounded permission button border, selected orange address edge, blue links, v7.408 inactive switcher invariant, v7.407 PDP skeleton, and all prior theming. Add no observer, timer, RAF, polling, scroll listener, recurring scan or WKUserScript. Regenerate FULL/VIEWPORT/TRANSITION probes as v7.410.",

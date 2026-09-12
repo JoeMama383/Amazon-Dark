@@ -7,11 +7,11 @@ SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 
-assert 'Version: 7.410~permission-text-location-firstpaint' in C
-assert '#define AD_VERSION "v7.410-permission-text-location-firstpaint"' in S
-assert 'VER=7.410' in UI
-assert 'AD_PROBE_VERSION=7.410' in SK and 'AD_PROBE_NAME=AmazonDark-v7.410' in SK
-assert 'AMAZONDARK v7.410 UNIVERSAL' in INC and "version:'7.410'" in JS
+assert 'Version: 7.411~permission-firstpaint-owner-fix' in C
+assert '#define AD_VERSION "v7.411-permission-firstpaint-owner-fix"' in S
+assert 'VER=7.411' in UI
+assert 'AD_PROBE_VERSION=7.411' in SK and 'AD_PROBE_NAME=AmazonDark-v7.411' in SK
+assert 'AMAZONDARK v7.411 UNIVERSAL' in INC and "version:'7.411'" in JS
 
 # r5/r6 payment sheets: prove ownership only after a stable payment marker under RCTView#bottom-sheet.
 for token in [

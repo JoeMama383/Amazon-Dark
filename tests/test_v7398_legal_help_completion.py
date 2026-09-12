@@ -6,11 +6,11 @@ UI=(ROOT/'scripts/ui-probe.sh').read_text()
 SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 
-assert 'Version: 7.410~permission-text-location-firstpaint' in C
-assert '#define AD_VERSION "v7.410-permission-text-location-firstpaint"' in S
-assert 'VER=7.410' in UI
-assert 'AD_PROBE_VERSION=7.410' in SK and 'AD_PROBE_NAME=AmazonDark-v7.410' in SK
-assert 'AMAZONDARK v7.410 UNIVERSAL' in INC
+assert 'Version: 7.411~permission-firstpaint-owner-fix' in C
+assert '#define AD_VERSION "v7.411-permission-firstpaint-owner-fix"' in S
+assert 'VER=7.411' in UI
+assert 'AD_PROBE_VERSION=7.411' in SK and 'AD_PROBE_NAME=AmazonDark-v7.411' in SK
+assert 'AMAZONDARK v7.411 UNIVERSAL' in INC
 
 helpblock=S.split('// v7.393 FULL r2/r3/r4 (16:59, 17:08, 17:09), corrected by v7.398:',1)[1].split('// v7.390 FULL r2: Subscribe & Save loading transition.',1)[0]
 # Legal/help fixes from probes r2/r3/r6/r7.
