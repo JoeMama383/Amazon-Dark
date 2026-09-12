@@ -1,8 +1,8 @@
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.414~location-navigation-renderer-fix' in ctl
-assert '#define AD_VERSION "v7.414-location-navigation-renderer-fix"' in t
+assert 'Version: 7.415~location-text-finalize-fix' in ctl
+assert '#define AD_VERSION "v7.415-location-text-finalize-fix"' in t
 # Search carousel: exact text strip; rejected image-adjacent black sibling rule gone.
 assert '.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-text{background:#000!important' in t
 assert '.cards_carousel_widget-sug-column :is(img,picture,[class*=cards_carousel_widget-sug-im]) + *{background:#000!important' not in t

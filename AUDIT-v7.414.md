@@ -1,8 +1,8 @@
 # AmazonDark v7.414 audit — location navigation renderer fix
 
 ## Release
-- Version: `7.414~location-navigation-renderer-fix`
-- Runtime: `v7.414-location-navigation-renderer-fix`
+- Version: `7.415~location-text-finalize-fix`
+- Runtime: `v7.415-location-text-finalize-fix`
 - Direct parent: `7.413~address-location-compile-fix`
 
 ## Supplied evidence and root cause

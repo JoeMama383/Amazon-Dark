@@ -3,8 +3,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.414~location-navigation-renderer-fix' in C
-assert '#define AD_VERSION "v7.414-location-navigation-renderer-fix"' in S
+assert 'Version: 7.415~location-text-finalize-fix' in C
+assert '#define AD_VERSION "v7.415-location-text-finalize-fix"' in S
 
 loader = "#checkoutDisplayPage .checkout-byg-mobile-container li.a-carousel-card.a-carousel-card-empty>.a-loading-static"
 inner = "#checkoutDisplayPage .checkout-byg-mobile-container li.a-carousel-card.a-carousel-card-empty>.a-loading-static>.a-loading-static-inner"

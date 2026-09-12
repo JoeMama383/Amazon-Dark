@@ -1,17 +1,17 @@
-# AmazonDark v7.414 commands
+# AmazonDark v7.415 commands
 
 ## PUSH
 ```zsh
 cd /var/mobile/Amazon-Dark-phone
 D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents
-rm -rf /var/mobile/t7414 && mkdir -p /var/mobile/t7414
-unzip -q "$D/AmazonDark-v7.414-location-navigation-renderer-fix-source.zip" -d /var/mobile/t7414
+rm -rf /var/mobile/t7415 && mkdir -p /var/mobile/t7415
+unzip -q "$D/AmazonDark-v7.415-location-text-finalize-fix-source.zip" -d /var/mobile/t7415
 find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
-cp -a /var/mobile/t7414/AmazonDark-v7.414-location-navigation-renderer-fix-source/. .
+cp -a /var/mobile/t7415/AmazonDark-v7.415-location-text-finalize-fix-source/. .
 chmod 755 layout/DEBIAN/postinst
 sh scripts/validate.sh
 git add -A
-git commit -m "v7.414: fix location navigation renderers"
+git commit -m "v7.415: fix location text finalization race"
 git push origin main
 ```
 

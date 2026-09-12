@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 M=(ROOT/'Makefile').read_text()
-assert 'Version: 7.414~location-navigation-renderer-fix' in C
-assert '#define AD_VERSION "v7.414-location-navigation-renderer-fix"' in S
+assert 'Version: 7.415~location-text-finalize-fix' in C
+assert '#define AD_VERSION "v7.415-location-text-finalize-fix"' in S
 assert '@interface IESSkeletonView : UIView @end' in S
 assert '"AWLoadingIndicatorFullScreenModalBar","AWLoadingIndicatorWidgets_BkgView","IESSkeletonView"' in S
 for fn in ['ADPDPTransitionSkeletonView7407','ADPDPTransitionSkeletonImage7407','ADPDPDarkSkeletonRaster7407','ADOwnPDPTransitionSkeletonImage7407','ADOwnPDPTransitionSkeletonView7407']:

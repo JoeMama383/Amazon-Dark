@@ -1,0 +1,47 @@
+AmazonDark v7.415 validation / audit
+=====================================
+
+Direct parent: v7.414~location-navigation-renderer-fix
+
+Probe diff diagnosis
+--------------------
+- bad FULL r1 and good FULL r2 use the same RCTTextView hashes, geometry, and ancestry.
+- Choose-your-location heading hash f1c585fa: bad ~#111, good AmazonDark light.
+- description hash 25a87f27: bad ~#555, good AmazonDark light.
+- both address-name leaves hash d80f7ca5: bad ~#111, good pure white.
+- address body/default neutral runs: bad gray, good pure white.
+- semantic blue link hash 3a0ba573 is identical in both captures.
+
+Fix
+---
+- intercept RCTTextView setTextStorage:contentFrame:descendantViews:, the React final-commit path missing from v7.414.
+- normalize only neutral Nile/location attributed runs to white before the React commit.
+- immediately re-own the installed storage after the React commit.
+- existing one-argument setTextStorage:, drawRect, didMoveToWindow, and bounded root-prime paths remain.
+- saturated semantic colors remain authored.
+
+Architecture
+------------
+- new MutationObserver: 0
+- new timer / interval / polling: 0
+- new RAF: 0
+- new Web scroll listener: 0
+- new recurring hierarchy scan: 0
+- new hook class: 0 (one method added to existing RCTTextView hook)
+
+Device target
+-------------
+Repeat Choose your location openings and verify no dark heading/description/address text state can persist. Blue links and orange selected edge must remain authored.
+
+Validation performed
+--------------------
+- scripts/lint-logos.sh: PASS
+- scripts/ui-probe.sh syntax: PASS
+- scripts/skeleton-probe.sh syntax: PASS
+- layout/DEBIAN/postinst syntax: PASS; mode 0755
+- tests/test_v7415_location_text_finalize_fix.py: PASS
+- 86/86 Python regression files excluding exhaustive test_probe_handoff.py: PASS in bounded parallel run
+- tests/test_probe_handoff.py: PASS separately
+- tests/test_cart_button.cjs runtime: NOT RUN (Playwright module unavailable); node --check syntax: PASS
+- tests/test_skeleton_probe.cjs runtime: NOT RUN (Playwright module unavailable); node --check syntax: PASS
+- local Theos/iOS SDK compile/link is unavailable in this environment; GitHub Actions/device build remains authoritative

@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.414-location-navigation-renderer-fix"
+#define AD_VERSION "v7.415-location-text-finalize-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -8717,8 +8717,39 @@ static UIView *ADLocationNileTryMark7414(UIView *v){
 static BOOL ADInLocationNile7414(UIView *v){ return ADLocationNileTryMark7414(v)!=nil; }
 static BOOL ADLocationNileNeutral7414(UIColor *c){ return ADLocationAuxNeutralText7412(c); }
 static BOOL ADLocationNileNeutralBorder7414(UIColor *c){ return c&&ADLocationAuxNeutralText7412(c); }
-static NSAttributedString *ADLocationNileLightString7414(NSAttributedString *s){ return ADLightNeutralString7271(s,ADLocationNileNeutral7414); }
-static void ADLocationNileLightStorage7414(NSTextStorage *ts){ ADLightNeutralStorage7271(ts,ADLocationNileNeutral7414); }
+// v7.415 good/bad FULL diff: the exact same RCTTextView leaves can end in two
+// foreground states.  Good address-card leaves are pure white while authored
+// Amazon-blue links are byte-for-byte identical in both captures.  Normalize only
+// neutral location-Nile runs to white; saturated semantic colors remain authored.
+static NSAttributedString *ADLocationNileLightString7414(NSAttributedString *in){
+    if(!in.length)return in;
+    @try {
+        UIColor *white=[UIColor whiteColor]; __block NSMutableAttributedString *m=nil;
+        [in enumerateAttribute:NSForegroundColorAttributeName inRange:NSMakeRange(0,in.length) options:0 usingBlock:^(id value,NSRange range,BOOL *stop){
+            UIColor *c=[value isKindOfClass:[UIColor class]]?value:nil;
+            if(!ADLocationNileNeutral7414(c)||[c isEqual:white])return;
+            if(!m)m=[in mutableCopy];
+            [m addAttribute:NSForegroundColorAttributeName value:white range:range];
+        }];
+        return m?:in;
+    } @catch(...) { return in; }
+}
+static void ADLocationNileLightStorage7414(NSTextStorage *ts){
+    if(!ts.length)return;
+    @try {
+        UIColor *white=[UIColor whiteColor]; __block NSMutableArray<NSValue *> *ranges=nil;
+        [ts enumerateAttribute:NSForegroundColorAttributeName inRange:NSMakeRange(0,ts.length) options:0 usingBlock:^(id value,NSRange range,BOOL *stop){
+            UIColor *c=[value isKindOfClass:[UIColor class]]?value:nil;
+            if(!ADLocationNileNeutral7414(c)||[c isEqual:white])return;
+            if(!ranges)ranges=[NSMutableArray array];
+            [ranges addObject:[NSValue valueWithRange:range]];
+        }];
+        if(!ranges.count)return;
+        [ts beginEditing];
+        for(NSValue *range in ranges)[ts addAttribute:NSForegroundColorAttributeName value:white range:range.rangeValue];
+        [ts endEditing];
+    } @catch(...) {}
+}
 
 static BOOL ADLocationNileHasAncestorClass7414(UIView *v,const char *cls,NSUInteger maxDepth){
     if(!v||!cls)return NO;
@@ -9400,6 +9431,23 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 %end
 
 %hook RCTTextView
+// v7.415: current Amazon React Native can finalize text through the legacy
+// three-argument RCTTextView commit API.  v7.414 intercepted only setTextStorage:,
+// which left a race where the final stock black/gray attributed storage could win
+// after our location ownership.  Own the same storage before React commits it and
+// re-read/repaint the installed storage immediately afterward.  This is event-driven
+// and runs only when React itself commits text; there is no timer or recurring scan.
+- (void)setTextStorage:(NSTextStorage *)textStorage contentFrame:(CGRect)contentFrame descendantViews:(NSArray *)descendantViews {
+    UIView *v=(UIView *)self;
+    BOOL nile=NO;
+    if(gP.enabled&&v.window){
+        ADLocationNileTryMark7414(v);
+        nile=ADInLocationNile7414(v);
+        if(nile&&textStorage.length)ADLocationNileLightStorage7414(textStorage);
+    }
+    %orig(textStorage,contentFrame,descendantViews);
+    if(nile&&v.window)ADLocationNileOwnText7414(v);
+}
 - (void)setTextStorage:(NSTextStorage *)textStorage {
     if(ADThemeReactTextStorage7271((UIView *)self,textStorage,YES)){
         %orig;

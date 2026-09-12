@@ -6,8 +6,8 @@ UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text(); JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 F=json.loads((ROOT/'tests/fixtures/v7414-location-navigation-renderer.json').read_text())
 
-assert 'Version: 7.414~location-navigation-renderer-fix' in C
-assert '#define AD_VERSION "v7.414-location-navigation-renderer-fix"' in S
+assert 'Version: 7.415~location-text-finalize-fix' in C
+assert '#define AD_VERSION "v7.415-location-text-finalize-fix"' in S
 
 # Current probes prove the real Nile location root is an AppCX bottom-sheet root only
 # ~81.9% of screen height. The v7.414 owner must not inherit the old >=85% rejection.
@@ -62,8 +62,8 @@ for bad in ('new MutationObserver(', 'setInterval(', 'requestAnimationFrame(', "
 assert 'seen<640' in block
 
 # All diagnostic identities are current and workflows remain universal.
-assert 'VER=7.414' in UI
-assert 'AD_PROBE_VERSION=7.414' in SK and 'AD_PROBE_NAME=AmazonDark-v7.414' in SK
-assert 'AMAZONDARK v7.414 UNIVERSAL' in INC and 'AmazonDark-v7.414-ui-viewport.arm' in INC
-assert "version:'7.414'" in JS
+assert 'VER=7.415' in UI
+assert 'AD_PROBE_VERSION=7.415' in SK and 'AD_PROBE_NAME=AmazonDark-v7.415' in SK
+assert 'AMAZONDARK v7.415 UNIVERSAL' in INC and 'AmazonDark-v7.415-ui-viewport.arm' in INC
+assert "version:'7.415'" in JS
 print('PASS: v7.414 owns the current Nile bottom-sheet renderer early, repaints stale card rasters, fixes ZIP/country surfaces/text, preserves semantic colors, and keeps universal probes')

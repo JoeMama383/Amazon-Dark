@@ -3,8 +3,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text(); JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
-assert 'Version: 7.414~location-navigation-renderer-fix' in C
-assert '#define AD_VERSION "v7.414-location-navigation-renderer-fix"' in S
+assert 'Version: 7.415~location-text-finalize-fix' in C
+assert '#define AD_VERSION "v7.415-location-text-finalize-fix"' in S
 # The failing Logos hook has self typed as forward-declared RCTScrollContentView.
 # Layer access must go through its known UIView base pointer, never self.layer.
 hook=S[S.index('%hook RCTScrollContentView'):S.index('%hook RCTScrollView')]
@@ -19,9 +19,9 @@ assert 'BOOL camera=NO,micTitle=NO;' in detect
 for tok in ('ADAddressManagementJS7412','ADLocationAuxTryMark7412','ADLocationAuxOwnView7412','ADLocationAuxOwnInput7412'):
     assert tok in S,tok
 # Probe identities are regenerated for this build.
-assert 'VER=7.414' in UI
-assert 'AD_PROBE_VERSION=7.414' in SK and 'AD_PROBE_NAME=AmazonDark-v7.414' in SK
-assert 'AMAZONDARK v7.414 UNIVERSAL' in INC
-assert 'AmazonDark-v7.414-ui-viewport.arm' in INC
-assert "version:'7.414'" in JS
+assert 'VER=7.415' in UI
+assert 'AD_PROBE_VERSION=7.415' in SK and 'AD_PROBE_NAME=AmazonDark-v7.415' in SK
+assert 'AMAZONDARK v7.415 UNIVERSAL' in INC
+assert 'AmazonDark-v7.415-ui-viewport.arm' in INC
+assert "version:'7.415'" in JS
 print('PASS: v7.413 fixes the RCTScrollContentView forward-class compile error without changing address/location theming')
