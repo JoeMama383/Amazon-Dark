@@ -1,7 +1,7 @@
 {
-  "version": "7.415~location-text-finalize-fix",
-  "direct_parent": "7.414~location-navigation-renderer-fix",
-  "source": "AmazonDark-v7.414-location-navigation-renderer-fix-source.zip generated in the prior handoff",
-  "runtime_contract": "Preserve v7.414 and earlier theming. Fix only the probe-proven intermittent Nile/location neutral text race: same RCTTextView nodes can end stock-dark or correctly light depending on React finalization order. Intercept the real three-argument RCTTextView setTextStorage:contentFrame:descendantViews: final commit, normalize neutral Nile runs to white before commit, reassert installed storage immediately after, preserve saturated semantic colors such as Amazon blue, and add no recurring work. Regenerate FULL/VIEWPORT/TRANSITION probes as v7.415.",
-  "device_validation": "Open Choose your location repeatedly. Header/description/address names/address body/default text must remain light/white on every load while blue links and selected orange border remain authored. Recheck ZIP/country menus and card first-paint behavior. Probe exports identify as v7.415."
+  "version": "7.416~location-canonical-owner",
+  "direct_parent": "7.415~location-text-finalize-fix",
+  "source": "AmazonDark-v7.415-location-text-finalize-fix-source.zip",
+  "runtime_contract": "Preserve v7.415 and all earlier theming. Replace the competing v7.412 Aux and v7.414 Nile location ownership systems with one event-driven canonical owner for the probe-proven full-screen SNPRootView plus lower inset ~394pt RCTScrollView used by Choose your location, Enter a US zip code, Ship outside the US, and Use my current location. Directly own address-card first paint, neutral text finalization, ZIP input/Apply styling, country rows, neutral dividers/borders and transition floors while preserving blue links, orange selected borders, chevrons, icons, SVGs and sprites. Add no recurring work. Regenerate FULL/VIEWPORT/TRANSITION probes as v7.416.",
+  "device_validation": "Open/close Choose your location repeatedly and navigate repeatedly into ZIP, Ship outside the US and Use my current location. No address card may flash/stick white; neutral header/card/body text must never settle dark; ZIP input must be gray with light text, Apply OLED with gray edge/light text; country rows must be OLED with light text and gray separators. Blue links/orange selected edge/back chevrons remain authored. Probe exports identify as v7.416."
 }

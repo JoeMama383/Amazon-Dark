@@ -1,18 +1,17 @@
 from pathlib import Path
-import json, os, subprocess, tempfile
+import json,os,subprocess,tempfile
 ROOT=Path(__file__).resolve().parents[1]; HELPER=ROOT/'scripts/skeleton-probe.sh'
-with tempfile.TemporaryDirectory(prefix='ad7411-parent-handoff-') as td:
-    root=Path(td); containers=root/'Containers/Data/Application'; amazon=containers/'AMAZON'/'Documents'; amazon.mkdir(parents=True)
+with tempfile.TemporaryDirectory(prefix='ad7416-parent-') as td:
+    root=Path(td); containers=root/'Containers/Data/Application'; docs=containers/'AMAZON'/'Documents'; docs.mkdir(parents=True)
     shared=root/'shared'; shared.mkdir(); bin=root/'bin'; bin.mkdir()
     (bin/'plutil').write_text('#!/bin/sh\nexit 1\n'); (bin/'plutil').chmod(0o755)
     (bin/'dpkg-query').write_text('#!/bin/sh\nprintf "7.416~location-canonical-owner"\n'); (bin/'dpkg-query').chmod(0o755)
-    receipt=amazon/'AmazonDark-v7.410-probe-status.json'
-    receipt.write_text(json.dumps({'event':'PROBE_BOOTSTRAP','bundle':'com.amazon.Amazon','version':'v7.410-permission-text-location-firstpaint'}))
+    (docs/'AmazonDark-v7.415-probe-status.json').write_text(json.dumps({'event':'PROBE_BOOTSTRAP','bundle':'com.amazon.Amazon','version':'v7.415-location-text-finalize-fix'}))
     env=dict(os.environ,PATH=str(bin)+':'+os.environ['PATH'],AD_PROBE_ROOT=str(root),AD_PROBE_CONTAINERS=str(containers),AD_PROBE_DOCS=str(shared))
     r=subprocess.run(['sh',str(HELPER),'arm','transition'],env=env,text=True,capture_output=True,timeout=8)
     assert r.returncode==0,(r.stdout,r.stderr)
-    arm=amazon/'AmazonDark-v7.416-probe.arm'; launch=root/'AmazonDark-launch-probe.arm'
+    arm=docs/'AmazonDark-v7.416-probe.arm'; launch=root/'AmazonDark-launch-probe.arm'
     assert arm.exists() and arm.read_text().split()[1]=='transition' and launch.exists()
     r=subprocess.run(['sh',str(HELPER),'disarm'],env=env,text=True,capture_output=True,timeout=8)
     assert r.returncode==0 and not arm.exists() and not launch.exists()
-print('PASS: v7.411 helper accepts exact direct-parent v7.410 receipt')
+print('PASS: v7.416 helper accepts the v7.415 direct-parent receipt')

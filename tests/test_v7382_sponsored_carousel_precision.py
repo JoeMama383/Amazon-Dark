@@ -5,8 +5,8 @@ S=(ROOT/'src/Tweak.xm').read_text()
 A=(ROOT/'src/ADSponsored.m').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.415~location-text-finalize-fix' in C
-assert '#define AD_VERSION "v7.415-location-text-finalize-fix"' in S
+assert 'Version: 7.416~location-canonical-owner' in C
+assert '#define AD_VERSION "v7.416-location-canonical-owner"' in S
 block=A
 lits=re.findall(r'@"((?:\\.|[^"\\])*)"', block)
 js=''.join(bytes(x,'utf-8').decode('unicode_escape') for x in lits)

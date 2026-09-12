@@ -1,8 +1,8 @@
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text(); ui=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.415~location-text-finalize-fix' in ctl
-assert '#define AD_VERSION "v7.415-location-text-finalize-fix"' in t
+assert 'Version: 7.416~location-canonical-owner' in ctl
+assert '#define AD_VERSION "v7.416-location-canonical-owner"' in t
 # Search autocomplete large carousel owner + TWB.
 for token in [
  '.cards_carousel_widget-sug-container-top{background:#000!important',
