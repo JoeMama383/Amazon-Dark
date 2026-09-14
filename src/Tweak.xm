@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.413 — address/location compile fix
+ * AmazonDark v7.420 — Cart top-nav / payment divider fix
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.419-payment-giftcard-art-input-fill"
+#define AD_VERSION "v7.420-cart-topnav-payment-divider-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1739,7 +1739,7 @@ static NSString *ADCheckoutFloorJS7369(void){
         "#checkoutDisplayPage [data-testid='selectFrameContentTestId'] :is([data-testid*='switch'],[data-testid*='knob'],[data-testid*='outline']),#checkoutDisplayPage :is([data-testid='selected-balance-pm-giftcard'],[data-testid='unselected-balance-pm-giftcard'],[data-testid='claim-code']) :is([data-testid*='switch'],[data-testid*='knob'],[data-testid*='outline']){filter:none!important;-webkit-filter:none!important;}"
         "#checkoutDisplayPage [data-testid='selectFrameContentTestId'] a,#checkoutDisplayPage [data-testid='selectFrameContentTestId'] a *,"
         "#checkoutDisplayPage [data-testid='selectFrameContentTestId'] [data-testid='link'],#checkoutDisplayPage [data-testid='selectFrameContentTestId'] [data-testid='link'] *,"
-        "#checkoutDisplayPage :is([data-testid='selected-balance-pm-giftcard'],[data-testid='unselected-balance-pm-giftcard'],[data-testid='claim-code'],[data-testid='sticky-footer']) a,#checkoutDisplayPage :is([data-testid='selected-balance-pm-giftcard'],[data-testid='unselected-balance-pm-giftcard'],[data-testid='claim-code'],[data-testid='sticky-footer']) a *{-webkit-text-fill-color:currentColor!important;}#checkoutDisplayPage [data-testid='input-claim-code-wrapper']{background:#181a1b!important;background-color:#181a1b!important;background-image:none!important;box-shadow:none!important;}"
+        "#checkoutDisplayPage :is([data-testid='selected-balance-pm-giftcard'],[data-testid='unselected-balance-pm-giftcard'],[data-testid='claim-code'],[data-testid='sticky-footer']) a,#checkoutDisplayPage :is([data-testid='selected-balance-pm-giftcard'],[data-testid='unselected-balance-pm-giftcard'],[data-testid='claim-code'],[data-testid='sticky-footer']) a *{-webkit-text-fill-color:currentColor!important;}#checkoutDisplayPage [data-testid='input-claim-code-wrapper']{background:#181a1b!important;background-color:#181a1b!important;background-image:none!important;box-shadow:none!important;}#checkoutDisplayPage [data-testid='sticky-footer']>div:first-child{display:none!important;height:0!important;min-height:0!important;max-height:0!important;margin:0!important;padding:0!important;background:transparent!important;background-color:transparent!important;border:0!important;outline:0!important;box-shadow:none!important;}"
         // The gift-card cross-sell is an iframe. The checkout user script runs in all frames;
         // #cruise is the exact frame root captured by r3, so it can be themed without parent access.
         "#cruise,#cruise .cruise-upx-box,#cruise .cruise-upx-box>.a-box-inner,#cruise .maple-banner,#cruise .maple-banner__container,#cruise .maple-banner__row,#cruise .maple-banner__col"
@@ -2769,6 +2769,7 @@ static BOOL ADBrightNeutral7130(UIColor *c){
 static const void *kADTransitionBacking7133=&kADTransitionBacking7133;
 static const void *kADPrimaryWindow713=&kADPrimaryWindow713;
 static const void *kADCheckoutTransitionTan7375=&kADCheckoutTransitionTan7375;
+static const void *kADTopNavTan7420=&kADTopNavTan7420;
 static BOOL gADCheckoutPresentationActive7375=NO;
 static __weak UIViewController *gADCheckoutPresenter7375=nil;
 static __weak UIViewController *gADCheckoutLiveModal7375=nil;
@@ -2787,6 +2788,46 @@ static BOOL ADCheckoutTransitionTanColor7375(UIColor *c){
         return a>0.97&&fabs(r-0.929)<e&&fabs(g-0.733)<e&&fabs(b-0.506)<e;
     } @catch(...) { return NO; }
 }
+// v7.420 Cart FULL r1: the same exact Amazon tan used by the checkout transition
+// also exists as a full-width plain UIView directly hosted by ANXTabRootViewController.
+// On Cart its model height is 0 while the presentation layer can cover the 44pt sub-nav
+// band, so the checkout-active gate leaves a visible #EDBB81 strip. Own only this exact
+// color + direct tab-root host. This is event-driven through the existing UIView lifecycle
+// and background setter; no scan, timer, or route dispatcher is added.
+static BOOL ADTopNavTanPlane7420(UIView *v,UIColor *candidate){
+    if(!gP.enabled||!v)return NO;
+    @try {
+        if(objc_getAssociatedObject(v,kADTopNavTan7420))return YES;
+        const char *cn=object_getClassName(v);
+        if(!cn||strcmp(cn,"UIView")!=0)return NO;
+        UIColor *c=candidate?:v.backgroundColor;
+        if(!ADCheckoutTransitionTanColor7375(c)){
+            CGColorRef cg=v.layer.backgroundColor;
+            if(!cg)return NO;
+            c=[UIColor colorWithCGColor:cg];
+            if(!ADCheckoutTransitionTanColor7375(c))return NO;
+        }
+        UIWindow *w=v.window;
+        if(!w||(!ADPrimaryAmazonWindow713(w,nil)&&!ADClassNameIs7183(w,"AppCXWindow")))return NO;
+        UIView *host=v.superview;
+        if(!host||host.window!=w)return NO;
+        CGFloat sw=CGRectGetWidth(w.bounds),sh=CGRectGetHeight(w.bounds);
+        CGFloat vw=MAX(CGRectGetWidth(v.bounds),CGRectGetWidth(v.frame));
+        CGFloat hw=MAX(CGRectGetWidth(host.bounds),CGRectGetWidth(host.frame));
+        CGFloat hh=MAX(CGRectGetHeight(host.bounds),CGRectGetHeight(host.frame));
+        if(sw>1.0&&(vw<sw*0.94||hw<sw*0.94))return NO;
+        if(sh>1.0&&hh<sh*0.80)return NO;
+        UIResponder *r=host.nextResponder;
+        BOOL tabRoot=NO;
+        for(int i=0;r&&i<3;i++,r=r.nextResponder){
+            if([NSStringFromClass(r.class) isEqualToString:@"ANXTabRootViewController"]){tabRoot=YES;break;}
+        }
+        if(!tabRoot)return NO;
+        objc_setAssociatedObject(v,kADTopNavTan7420,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        return YES;
+    } @catch(...) { return NO; }
+}
+
 static BOOL ADCheckoutTransitionTanPlane7375(UIView *v,UIColor *candidate){
     if(!gP.enabled||!gADCheckoutPresentationActive7375||!v)return NO;
     @try {
@@ -3706,6 +3747,9 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
         ADOwnCheckoutPaymentBackgroundEffect7402(paymentShield);
         return;
     }
+    if(ADTopNavTanPlane7420(self,self.backgroundColor)){
+        ADSetViewBackground7226(self,ADOLED(),YES); return;
+    }
     if(ADCheckoutTransitionTanPlane7375(self,self.backgroundColor)){
         ADSetViewBackground7226(self,ADOLED(),YES); return;
     }
@@ -3767,6 +3811,11 @@ static void ADOwnPersonSavingsFloor7259(UIView *v){
         %orig(clear);
         objc_setAssociatedObject(paymentShield,kADCheckoutPaymentBackgroundShield7402,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         ADOwnCheckoutPaymentBackgroundEffect7402(paymentShield);
+        return;
+    }
+    if(ADTopNavTanPlane7420(self,color)){
+        UIColor *black=ADOLED();
+        %orig(black);
         return;
     }
     if(ADCheckoutTransitionTanPlane7375(self,color)){

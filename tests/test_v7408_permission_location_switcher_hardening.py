@@ -4,9 +4,9 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
-assert 'Version: 7.419~payment-giftcard-art-input-fill' in C
-assert '#define AD_VERSION "v7.419-payment-giftcard-art-input-fill"' in S
-assert 'VER=7.419' in UI and 'AD_PROBE_VERSION=7.419' in SK
+assert 'Version: 7.420~cart-topnav-payment-divider-fix' in C
+assert '#define AD_VERSION "v7.420-cart-topnav-payment-divider-fix"' in S
+assert 'VER=7.420' in UI and 'AD_PROBE_VERSION=7.420' in SK
 
 # Three FULL-probe permission/location families remain exact and semantic.
 for tok in [

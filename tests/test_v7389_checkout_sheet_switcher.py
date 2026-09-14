@@ -3,8 +3,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.419~payment-giftcard-art-input-fill' in C
-assert '#define AD_VERSION "v7.419-payment-giftcard-art-input-fill"' in S
+assert 'Version: 7.420~cart-topnav-payment-divider-fix' in C
+assert '#define AD_VERSION "v7.420-cart-topnav-payment-divider-fix"' in S
 
 # Exact portal-mounted Subscribe & Save family; no generic sheet takeover.
 for token in [

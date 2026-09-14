@@ -6,7 +6,7 @@ SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 SH=(ROOT/'scripts/skeleton-probe.sh').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.419~payment-giftcard-art-input-fill' in C
+assert 'Version: 7.420~cart-topnav-payment-divider-fix' in C
 assert 'ADSkelTransition7339?120:120' in H
 assert 'ADSkelLaunchOnly7339&&[n.name isEqualToString:UIApplicationDidEnterBackgroundNotification]' in H
 assert 'ADSkelProbe7339.backgroundCycles++' in H
