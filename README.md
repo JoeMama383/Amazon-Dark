@@ -1,9 +1,13 @@
-# AmazonDark v7.416 — canonical location-menu owner
+# AmazonDark v7.418 — payment gift-card / switch cleanup
 
-Direct parent: **v7.415~location-text-finalize-fix**.
+Direct shipped parent: **v7.416~location-canonical-owner**. The unshipped v7.417 Search-carousel caption repair is folded into this release, so v7.418 contains both deltas in one device build.
 
-v7.416 consolidates the location-menu work from the recent v7.408–v7.415 cycle. The supplied FULL, VIEWPORT and TRANSITION probes show two React trees can coexist, but the pixels for **Choose your location**, **Enter a US zip code**, **Ship outside the US**, and **Use my current location** live under the full-screen `SNPRootView` and a lower inset ~394 pt `RCTScrollView`. The later `AppCXBottomSheet/WrappedNileFeatureContainer` tree is a parallel sibling and is no longer used as the menu owner.
+## Changes
 
-The location family now has one event-driven owner. Main address cards are intercepted at their own background setter so stock-white cannot win first paint; React's cached background raster is invalidated on ownership. Neutral location text is repaired at assignment, legacy three-argument text finalization, and final draw/layout, while authored saturated semantic colors remain unchanged. ZIP input uses the standard gray fill/gray border/light text; Apply is OLED with a gray React border and white text. Country rows and neutral list/header surfaces are OLED with light text and gray separators. Existing orange selected-address edges, Amazon-blue links, back chevrons, icons, SVGs and sprites remain authored.
+- **Search autocomplete carousel:** retains the old exact `.cards_carousel_widget-sug-text` owner and adds only non-media structural caption fallbacks. Product images remain transparent/visible and use the existing brightness-only TWB path.
+- **Payment gift-card row:** the current probe uses `unselected-balance-pm-giftcard`, which the historical selected-only rule did not own. This exact family is now OLED with standard gray edge and pure-white neutral text.
+- **Gift-card artwork:** the exact gift-card image wrapper joins the existing checkout TWB brightness factor. Switch/glyph paint remains authored.
+- **Enter code:** `input-claim-code-wrapper` is OLED, removing the probe-captured white strip around the already-dark input.
+- **Switch outline cleanup:** `outline-outer` and `outline-inner` are stripped only when they are descendants of `[role=switch]`. This removes the app-wide Web/React checked-switch ring without changing the authored track/knob or unrelated text-input outline nodes.
 
-The obsolete v7.412 `ADLocationAux*` and v7.414 `ADLocationNile*` systems are removed. No MutationObserver, timer, RAF loop, Web scroll listener, polling loop, delayed retry, recurring hierarchy scan, route-string classifier, or new WKUserScript family is added. `src/Tweak.xm` drops from 806,985 bytes in v7.415 to about 782 KB in v7.416 while retaining the universal FULL, VIEWPORT and TRANSITION probes.
+No MutationObserver, timer, RAF, polling loop, Web scroll listener, recurring hierarchy scan, or new WKUserScript family is added. FULL, VIEWPORT, and TRANSITION probe identities are regenerated to v7.418.

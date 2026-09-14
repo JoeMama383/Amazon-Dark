@@ -4,16 +4,16 @@ S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 
-assert 'Version: 7.416~location-canonical-owner' in C
-assert '#define AD_VERSION "v7.416-location-canonical-owner"' in S
-assert "version:'7.416'" in UI and "version:'7.391'" not in UI
+assert 'Version: 7.418~payment-giftcard-switch-cleanup' in C
+assert '#define AD_VERSION "v7.418-payment-giftcard-switch-cleanup"' in S
+assert "version:'7.418'" in UI and "version:'7.391'" not in UI
 
 # v7.392 FULL r1 proved the pmts form is a sibling of the rendered React tree.
 payment=S.split('// v7.393 FULL r1 (16:46) correction:',1)[1].split('// The gift-card cross-sell is an iframe.',1)[0]
 assert 'form.pmts-select-payment-instrument-form' not in payment
 for tid in (
     'selectFrameContentTestId','boxGroup','sticky-footer','selected-primary-pm-card',
-    'unselected-primary-pm-card','unselected-primary-pm-loan','selected-balance-pm-giftcard','claim-code'
+    'unselected-primary-pm-card','unselected-primary-pm-loan','selected-balance-pm-giftcard','unselected-balance-pm-giftcard','claim-code'
 ):
     assert f"[data-testid='{tid}']" in payment
 
@@ -36,14 +36,13 @@ assert '-webkit-text-fill-color:currentColor!important' in payment
 # Switch/knob/outline sprites remain untouched.
 assert "[data-testid*='switch']" in payment and "[data-testid*='knob']" in payment and 'filter:none!important' in payment
 
-# Credit-card art joins checkout TWB through the semantic image wrapper. Gift-card/loan art is not broadened.
+# Primary-card art and the probe-captured unselected gift-card art use the existing brightness-only checkout TWB path. Loan art remains excluded.
 twb=S.split('static NSString *ADCheckoutTWBJS7369(void){',1)[1].split('// v7.378:',1)[0]
-assert ":is([data-testid='selected-primary-pm-card'],[data-testid='unselected-primary-pm-card']) [data-testid='image']" in twb
+assert ":is([data-testid='selected-primary-pm-card'],[data-testid='unselected-primary-pm-card'],[data-testid='unselected-balance-pm-giftcard']) [data-testid='image']" in twb
 assert "[data-testid='unselected-primary-pm-loan']) [data-testid='image']" not in twb
-assert "[data-testid='selected-balance-pm-giftcard']) [data-testid='image']" not in twb
 assert 'factor,factor,factor,factor' in twb
 
 # No recurring production scanner/timer was introduced.
 for bad in ('new MutationObserver(', 'setInterval(', 'requestAnimationFrame('):
     assert bad not in S
-print('PASS: v7.393 directly owns rendered payment cards, preserves blue/dynamic/switch paint, removes purple focus outline, and tames primary card art via existing TWB')
+print('PASS: payment owners preserve blue/dynamic/switch paint while current unselected gift-card art joins the existing brightness-only TWB path')

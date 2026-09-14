@@ -3,7 +3,7 @@ import json
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text()
 F=json.loads((ROOT/'tests/fixtures/v7414-location-navigation-renderer.json').read_text())
-assert 'Version: 7.416~location-canonical-owner' in C
+assert 'Version: 7.418~payment-giftcard-switch-cleanup' in C
 # Probe documented the misleading parallel AppCX/Nile tree. It must no longer be production ownership.
 assert F['bottom_sheet_root']['rect'][3]==763.0
 assert 'ADLocationNileTryMark7414' not in S and 'kADLocationNileRoot7414' not in S
@@ -16,4 +16,4 @@ assert '[v setNeedsDisplay]' in canon and '[v.layer setNeedsDisplay]' in canon
 # No runtime traversal/observer was introduced.
 for bad in ('new MutationObserver(', 'setInterval(', 'requestAnimationFrame(', "addEventListener('scroll'",'seen<640'):
     assert bad not in canon,bad
-print('PASS: v7.416 removes the wrong Nile sibling owner and retains the actual card/ZIP/list visual contracts')
+print('PASS: v7.418 removes the wrong Nile sibling owner and retains the actual card/ZIP/list visual contracts')

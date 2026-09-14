@@ -4,9 +4,9 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
-assert 'Version: 7.416~location-canonical-owner' in C
-assert '#define AD_VERSION "v7.416-location-canonical-owner"' in S
-assert 'VER=7.416' in UI and 'AD_PROBE_VERSION=7.416' in SK
+assert 'Version: 7.418~payment-giftcard-switch-cleanup' in C
+assert '#define AD_VERSION "v7.418-payment-giftcard-switch-cleanup"' in S
+assert 'VER=7.418' in UI and 'AD_PROBE_VERSION=7.418' in SK
 
 # Three FULL-probe permission/location families remain exact and semantic.
 for tok in [

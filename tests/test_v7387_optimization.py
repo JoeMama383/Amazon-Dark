@@ -12,6 +12,8 @@ def digest(s):return hashlib.sha256(s.encode()).hexdigest()
 # Remove that exact floor span and the one v7.390 checkout-TWB Maple selector before
 # verifying the older v7.386/v7.387 golden programs.
 S_golden=S
+# v7.417/v7.418 approved shared-floor deltas are normalized away for the v7.386 semantic golden.
+S_golden=S_golden.replace('if(!child)put(\'ad7418-switch-outline-clean\',\\"[role=switch] [data-testid=outline-outer],[role=switch] [data-testid=outline-inner]{border:0!important;border-color:transparent!important;outline:0!important;outline-color:transparent!important;box-shadow:none!important;}\\");','').replace('.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-column>:is(img,picture,[class*=cards_carousel_widget-sug-im])+*:not(:has(img,picture,source,[class*=cards_carousel_widget-sug-im])),.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-column>:has(>:is(img,picture,source,[class*=cards_carousel_widget-sug-im]))+*:not(:has(img,picture,source,[class*=cards_carousel_widget-sug-im])),.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-column>*:last-child:not(:has(img,picture,source,[class*=cards_carousel_widget-sug-im])){background:#000!important;background-color:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;border-color:#494d4d!important;box-shadow:none!important;}','')
 _m1='        // v7.389 FULL probe:'
 _m2='        // v7.373 FULL r1/r2:'
 if _m1 in S_golden:
@@ -25,7 +27,7 @@ if _v402a in S_golden:
     a=S_golden.index(_v402a); b=S_golden.index(_v402b,a)
     S_golden=S_golden[:a]+S_golden[b:]
 S_golden=S_golden.replace(",#checkoutDisplayPage #checkout-maple-upsell .maple-banner__image img","")
-S_golden=S_golden.replace("#checkoutDisplayPage :is([data-testid='selected-primary-pm-card'],[data-testid='unselected-primary-pm-card']) [data-testid='image']{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}","")
+S_golden=S_golden.replace("#checkoutDisplayPage :is([data-testid='selected-primary-pm-card'],[data-testid='unselected-primary-pm-card'],[data-testid='unselected-balance-pm-giftcard']) [data-testid='image']{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}","")
 S_golden=S_golden.replace("#bolt-widget-amazon_us_checkout_generic_mobile #bolt-widget-map canvas#Microsoft\\\\.Maps\\\\.Imagery\\\\.LiteRoad{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;}","")
 for name,expected in golden['programs'].items():
     assert digest(payload(S_golden,name))==expected, name+' changed beyond the approved CSS shorthand compaction / v7.389-v7.390 scoped append'
@@ -53,7 +55,7 @@ assert len(rules)==golden['sponsored_selectors']==86
 assert digest(json.dumps(rules,separators=(',',':')))==golden['sponsored_rules_sha256'],'sponsored scope, specificity, cascade order or declaration changed'
 for name,h in golden['probe_sha256'].items():
     data=(ROOT/'src'/name).read_bytes()
-    if name=='ADUniversalUIProbe7362.js.inc':data=data.replace(b"version:'7.416'",b"version:'7.386'")  # capture-version metadata only
+    if name=='ADUniversalUIProbe7362.js.inc':data=data.replace(b"version:'7.418'",b"version:'7.386'")  # capture-version metadata only
     assert hashlib.sha256(data).hexdigest()==h, name
 assert 'ADHomeFrameProbeBridgeJS7265' not in S and '__adHomeProbeReq7265' not in S
 # Script sharing is bounded, maintains order, document-start timing and frame scope.
