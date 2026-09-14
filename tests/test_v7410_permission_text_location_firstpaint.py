@@ -4,10 +4,10 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh').read_text(); INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 F=json.loads((ROOT/'tests/fixtures/v7410-permission-location-transition.json').read_text())
-assert 'Version: 7.418~payment-giftcard-switch-cleanup' in C
-assert '#define AD_VERSION "v7.418-payment-giftcard-switch-cleanup"' in S
-assert 'VER=7.418' in UI and 'AD_PROBE_VERSION=7.418' in SK and 'AD_PROBE_NAME=AmazonDark-v7.418' in SK
-assert 'AMAZONDARK v7.418 UNIVERSAL' in INC and 'AmazonDark-v7.418-ui-viewport.arm' in INC
+assert 'Version: 7.419~payment-giftcard-art-input-fill' in C
+assert '#define AD_VERSION "v7.419-payment-giftcard-art-input-fill"' in S
+assert 'VER=7.419' in UI and 'AD_PROBE_VERSION=7.419' in SK and 'AD_PROBE_NAME=AmazonDark-v7.419' in SK
+assert 'AMAZONDARK v7.419 UNIVERSAL' in INC and 'AmazonDark-v7.419-ui-viewport.arm' in INC
 perm=S[S.index('// v7.408 FULL r1/r2: camera and microphone permission prompts'):S.index('// v7.408 r4: the location sheet interior')]
 # Earliest unique markers must classify before the late action control.
 assert '@"inflight-prompt-title"' in perm and '@"inflight-prompt-description"' in perm

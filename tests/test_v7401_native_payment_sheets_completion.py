@@ -7,11 +7,11 @@ SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 
-assert 'Version: 7.418~payment-giftcard-switch-cleanup' in C
-assert '#define AD_VERSION "v7.418-payment-giftcard-switch-cleanup"' in S
-assert 'VER=7.418' in UI
-assert 'AD_PROBE_VERSION=7.418' in SK and 'AD_PROBE_NAME=AmazonDark-v7.418' in SK
-assert 'AMAZONDARK v7.418 UNIVERSAL' in INC and "version:'7.418'" in JS
+assert 'Version: 7.419~payment-giftcard-art-input-fill' in C
+assert '#define AD_VERSION "v7.419-payment-giftcard-art-input-fill"' in S
+assert 'VER=7.419' in UI
+assert 'AD_PROBE_VERSION=7.419' in SK and 'AD_PROBE_NAME=AmazonDark-v7.419' in SK
+assert 'AMAZONDARK v7.419 UNIVERSAL' in INC and "version:'7.419'" in JS
 
 # r5/r6 payment sheets: prove ownership only after a stable payment marker under RCTView#bottom-sheet.
 for token in [

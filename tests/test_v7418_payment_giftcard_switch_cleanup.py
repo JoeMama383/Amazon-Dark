@@ -3,8 +3,8 @@ import json
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text()
 F=json.loads((ROOT/'tests/fixtures/v7418-payment-giftcard-switch.json').read_text())
-assert 'Version: 7.418~payment-giftcard-switch-cleanup' in C
-assert '#define AD_VERSION "v7.418-payment-giftcard-switch-cleanup"' in S
+assert 'Version: 7.419~payment-giftcard-art-input-fill' in C
+assert '#define AD_VERSION "v7.419-payment-giftcard-art-input-fill"' in S
 # Probe evidence: current visible family was unselected-balance, not the older selected-balance owner.
 assert F['gift_card']['testid']=='unselected-balance-pm-giftcard'
 assert F['gift_card']['bg']=='rgb(255, 255, 255)'
@@ -13,12 +13,13 @@ assert F['switch']['outline_outer_border'].startswith('2px') and F['switch']['ou
 # Exact current gift-card card is now owned alongside historical selected-balance family.
 payment=S.split('// v7.393 FULL r1 (16:46) correction:',1)[1].split('// The gift-card cross-sell is an iframe.',1)[0]
 assert "[data-testid='unselected-balance-pm-giftcard']" in payment
-assert "[data-testid='input-claim-code-wrapper']{background:#000!important" in payment
+assert "[data-testid='input-claim-code-wrapper']{background:#181a1b!important" in payment
 assert "[data-testid='selected-balance-pm-giftcard'],[data-testid='unselected-balance-pm-giftcard'],[data-testid='claim-code'],[data-testid='sticky-footer']" in payment
 assert 'color:#fff!important;-webkit-text-fill-color:#fff!important' in payment
 # Gift-card art joins the existing brightness-only checkout TWB path; no image inversion/glyph filter.
 twb=S.split('static NSString *ADCheckoutTWBJS7369(void){',1)[1].split('// v7.378:',1)[0]
-assert ":is([data-testid='selected-primary-pm-card'],[data-testid='unselected-primary-pm-card'],[data-testid='unselected-balance-pm-giftcard']) [data-testid='image']" in twb
+assert ":is([data-testid='selected-primary-pm-card'],[data-testid='unselected-primary-pm-card']) [data-testid='image']" in twb
+assert ":is([data-testid='selected-balance-pm-giftcard'],[data-testid='unselected-balance-pm-giftcard']) [data-testid='art']" in twb
 assert 'filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important' in twb
 # App-wide web switch cleanup removes only the React outline chrome *inside role=switch*.
 # It must not globally kill outline-inner/outer because text inputs use the same testids.

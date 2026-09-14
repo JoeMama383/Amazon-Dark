@@ -1,8 +1,8 @@
 # AmazonDark v7.418 audit — Search caption + payment gift-card / switch cleanup
 
 ## Release
-- Version: `7.418~payment-giftcard-switch-cleanup`
-- Runtime: `v7.418-payment-giftcard-switch-cleanup`
+- Version: `7.419~payment-giftcard-art-input-fill`
+- Runtime: `v7.419-payment-giftcard-art-input-fill`
 - Direct shipped parent: `7.416~location-canonical-owner`
 - The unshipped v7.417 Search-carousel title-strip delta is folded into this release.
 

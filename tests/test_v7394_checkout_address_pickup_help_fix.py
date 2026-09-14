@@ -8,8 +8,8 @@ INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 JSINC=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 
-assert 'Version: 7.418~payment-giftcard-switch-cleanup' in C
-assert '#define AD_VERSION "v7.418-payment-giftcard-switch-cleanup"' in S
+assert 'Version: 7.419~payment-giftcard-art-input-fill' in C
+assert '#define AD_VERSION "v7.419-payment-giftcard-art-input-fill"' in S
 
 # Add-address: exact stable AUI ids only, standard controls, visible raster glyphs.
 for token in [
@@ -80,8 +80,8 @@ for forbidden in ['new MutationObserver(', 'setInterval(', 'requestAnimationFram
     assert forbidden not in new
 
 # Probe identities all roll together.
-assert 'VER=7.418' in UI and 'AD_PROBE_VERSION=7.418' in SK and 'AD_PROBE_NAME=AmazonDark-v7.418' in SK
-assert 'AMAZONDARK v7.418 UNIVERSAL' in INC
-assert "version:'7.418'" in JSINC
-assert 'AmazonDark-v7.418-launch-sb-probe.txt' in SB
+assert 'VER=7.419' in UI and 'AD_PROBE_VERSION=7.419' in SK and 'AD_PROBE_NAME=AmazonDark-v7.419' in SK
+assert 'AMAZONDARK v7.419 UNIVERSAL' in INC
+assert "version:'7.419'" in JSINC
+assert 'AmazonDark-v7.419-launch-sb-probe.txt' in SB
 print('PASS: v7.394 covers add-address, pickup/map/card, delivery/pickup toggle and suggested-help/WebKit keyboard accessory with exact probe-backed ownership')

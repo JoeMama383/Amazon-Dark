@@ -4,8 +4,8 @@ S=(ROOT/'src/Tweak.xm').read_text()
 A=(ROOT/'src/ADSponsored.m').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.418~payment-giftcard-switch-cleanup' in C
-assert '#define AD_VERSION "v7.418-payment-giftcard-switch-cleanup"' in S
+assert 'Version: 7.419~payment-giftcard-art-input-fill' in C
+assert '#define AD_VERSION "v7.419-payment-giftcard-art-input-fill"' in S
 
 # Preserve the successful v7.381 first-paint repair: the Home dashboard shell
 # itself owns the stock white loading floor, and that floor remains OLED at

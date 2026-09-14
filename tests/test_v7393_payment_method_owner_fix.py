@@ -4,9 +4,9 @@ S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 
-assert 'Version: 7.418~payment-giftcard-switch-cleanup' in C
-assert '#define AD_VERSION "v7.418-payment-giftcard-switch-cleanup"' in S
-assert "version:'7.418'" in UI and "version:'7.391'" not in UI
+assert 'Version: 7.419~payment-giftcard-art-input-fill' in C
+assert '#define AD_VERSION "v7.419-payment-giftcard-art-input-fill"' in S
+assert "version:'7.419'" in UI and "version:'7.391'" not in UI
 
 # v7.392 FULL r1 proved the pmts form is a sibling of the rendered React tree.
 payment=S.split('// v7.393 FULL r1 (16:46) correction:',1)[1].split('// The gift-card cross-sell is an iframe.',1)[0]
@@ -38,7 +38,8 @@ assert "[data-testid*='switch']" in payment and "[data-testid*='knob']" in payme
 
 # Primary-card art and the probe-captured unselected gift-card art use the existing brightness-only checkout TWB path. Loan art remains excluded.
 twb=S.split('static NSString *ADCheckoutTWBJS7369(void){',1)[1].split('// v7.378:',1)[0]
-assert ":is([data-testid='selected-primary-pm-card'],[data-testid='unselected-primary-pm-card'],[data-testid='unselected-balance-pm-giftcard']) [data-testid='image']" in twb
+assert ":is([data-testid='selected-primary-pm-card'],[data-testid='unselected-primary-pm-card']) [data-testid='image']" in twb
+assert ":is([data-testid='selected-balance-pm-giftcard'],[data-testid='unselected-balance-pm-giftcard']) [data-testid='art']" in twb
 assert "[data-testid='unselected-primary-pm-loan']) [data-testid='image']" not in twb
 assert 'factor,factor,factor,factor' in twb
 

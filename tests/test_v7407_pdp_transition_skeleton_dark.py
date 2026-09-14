@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 M=(ROOT/'Makefile').read_text()
-assert 'Version: 7.418~payment-giftcard-switch-cleanup' in C
-assert '#define AD_VERSION "v7.418-payment-giftcard-switch-cleanup"' in S
+assert 'Version: 7.419~payment-giftcard-art-input-fill' in C
+assert '#define AD_VERSION "v7.419-payment-giftcard-art-input-fill"' in S
 assert '@interface IESSkeletonView : UIView @end' in S
 assert '"AWLoadingIndicatorFullScreenModalBar","AWLoadingIndicatorWidgets_BkgView","IESSkeletonView"' in S
 for fn in ['ADPDPTransitionSkeletonView7407','ADPDPTransitionSkeletonImage7407','ADPDPDarkSkeletonRaster7407','ADOwnPDPTransitionSkeletonImage7407','ADOwnPDPTransitionSkeletonView7407']:

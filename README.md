@@ -1,13 +1,11 @@
-# AmazonDark v7.418 — payment gift-card / switch cleanup
+# AmazonDark v7.419 — payment gift-card art / claim-code fill
 
-Direct shipped parent: **v7.416~location-canonical-owner**. The unshipped v7.417 Search-carousel caption repair is folded into this release, so v7.418 contains both deltas in one device build.
+Direct parent: **v7.418~payment-giftcard-switch-cleanup**. All v7.418 payment/switch cleanup, the folded Search-carousel caption repair, and the v7.416 canonical location architecture remain intact.
 
 ## Changes
 
-- **Search autocomplete carousel:** retains the old exact `.cards_carousel_widget-sug-text` owner and adds only non-media structural caption fallbacks. Product images remain transparent/visible and use the existing brightness-only TWB path.
-- **Payment gift-card row:** the current probe uses `unselected-balance-pm-giftcard`, which the historical selected-only rule did not own. This exact family is now OLED with standard gray edge and pure-white neutral text.
-- **Gift-card artwork:** the exact gift-card image wrapper joins the existing checkout TWB brightness factor. Switch/glyph paint remains authored.
-- **Enter code:** `input-claim-code-wrapper` is OLED, removing the probe-captured white strip around the already-dark input.
-- **Switch outline cleanup:** `outline-outer` and `outline-inner` are stripped only when they are descendants of `[role=switch]`. This removes the app-wide Web/React checked-switch ring without changing the authored track/knob or unrelated text-input outline nodes.
+- **Enter code fill continuity:** the probe shows `input-claim-code-text-input` is `rgb(24,26,27)` (`#181a1b`). v7.418 removed the white sliver by making `input-claim-code-wrapper` OLED black, which left a visible black notch. v7.419 instead paints the exact wrapper `#181a1b`, matching the field fill exactly while leaving its gray outline ownership unchanged.
+- **Enabled Amazon gift-card art:** checkout TWB now owns the exact gift-card `data-testid=art` wrapper for **both** `selected-balance-pm-giftcard` and `unselected-balance-pm-giftcard`. This covers the enabled-state SVG/background-image renderer while keeping the switch track/knob authored. The previous primary-payment-card image TWB remains separate.
+- **No broad media or switch changes:** switch outline cleanup from v7.418 is retained; no additional glyph/sprite recoloring or inversion is introduced.
 
-No MutationObserver, timer, RAF, polling loop, Web scroll listener, recurring hierarchy scan, or new WKUserScript family is added. FULL, VIEWPORT, and TRANSITION probe identities are regenerated to v7.418.
+No MutationObserver, timer, RAF, polling loop, Web scroll listener, recurring hierarchy scan, new native hook class, or new WKUserScript family is added. FULL, VIEWPORT, and TRANSITION probe identities are regenerated to v7.419.
