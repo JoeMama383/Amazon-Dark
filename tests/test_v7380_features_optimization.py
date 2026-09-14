@@ -9,8 +9,8 @@ W=(ROOT/'.github/workflows/build.yml').read_text()
 V=(ROOT/'scripts/validate.sh').read_text()
 SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 
-assert 'Version: 7.420~cart-topnav-payment-divider-fix' in C
-assert '#define AD_VERSION "v7.420-cart-topnav-payment-divider-fix"' in S
+assert 'Version: 7.421~byg-carousel-theme-restore' in C
+assert '#define AD_VERSION "v7.421-byg-carousel-theme-restore"' in S
 for key in ['hideSponsored','priceHistory']:
     assert key in S and f'<string>{key}</string>' in P
 assert '<string>Hide Sponsored Content</string>' in P

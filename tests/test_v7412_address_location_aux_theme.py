@@ -3,8 +3,8 @@ import json
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text()
 F=json.loads((ROOT/'tests/fixtures/v7412-location-aux-zip.json').read_text())
-assert 'Version: 7.420~cart-topnav-payment-divider-fix' in C
-assert '#define AD_VERSION "v7.420-cart-topnav-payment-divider-fix"' in S
+assert 'Version: 7.421~byg-carousel-theme-restore' in C
+assert '#define AD_VERSION "v7.421-byg-carousel-theme-restore"' in S
 # Historical ZIP evidence remains the geometry contract.
 assert F['aux_scroll']['rect']==[18.0,752.7,394.0,179.3]
 assert F['input']['class']=='RCTSinglelineTextInputView' and F['input']['background']==[1,1,1,1]

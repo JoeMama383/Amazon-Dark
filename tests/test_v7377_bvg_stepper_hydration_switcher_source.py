@@ -6,12 +6,12 @@ C=(ROOT/'layout/DEBIAN/control').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 
-assert 'Version: 7.420~cart-topnav-payment-divider-fix' in C
-assert '#define AD_VERSION "v7.420-cart-topnav-payment-divider-fix"' in S
+assert 'Version: 7.421~byg-carousel-theme-restore' in C
+assert '#define AD_VERSION "v7.421-byg-carousel-theme-restore"' in S
 
 # BYG expanded quantity control is the same dark/gray/light contract as Cart.
 for token in [
-    '#checkoutDisplayPage .checkout-byg-mobile-container .byg-dense-grid-atc-container .a-stepper-inner-container',
+    '#checkoutDisplayPage .checkout-byg-mobile-container .a-stepper-inner-container',
     'background:#303335!important', 'border:1px solid #747a7c!important',
     '.a-icon-small-trash,.a-icon-small-add,.a-icon-small-remove,.a-icon-small-subtract',
     'filter:brightness(0) invert(1)!important'
@@ -47,8 +47,8 @@ for bad in ['task-switcher','switcher-release','WarmSnapshotCover','UIApplicatio
     assert bad not in S, bad
 
 # Probe identity must match the installed build; v7.376 shipped a stale v7.375/7.374 header/body label.
-assert 'AMAZONDARK v7.420 UNIVERSAL' in INC
-assert "version:'7.420'" in JS
-assert 'AmazonDark-v7.420-ui-viewport.arm' in INC
+assert 'AMAZONDARK v7.421 UNIVERSAL' in INC
+assert "version:'7.421'" in JS
+assert 'AmazonDark-v7.421-ui-viewport.arm' in INC
 
 print('PASS: v7.377-established BYG stepper/switcher/probe contracts remain under v7.388')

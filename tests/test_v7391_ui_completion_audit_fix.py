@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.420~cart-topnav-payment-divider-fix' in C
-assert '#define AD_VERSION "v7.420-cart-topnav-payment-divider-fix"' in S
+assert 'Version: 7.421~byg-carousel-theme-restore' in C
+assert '#define AD_VERSION "v7.421-byg-carousel-theme-restore"' in S
 floor=S[S.index('static NSString *ADCheckoutFloorJS7369'):S.index('static NSString *ADCheckoutTWBJS7369')]
 # Audit miss 1: visible Help H1 is outside #csg-support-topics.
 assert '.cs-help-content>article.help-content>h1' in floor

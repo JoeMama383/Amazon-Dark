@@ -1,18 +1,18 @@
-# AmazonDark v7.420 commands
+# AmazonDark v7.421 commands
 
 ## PUSH
 
 ```zsh
 cd /var/mobile/Amazon-Dark-phone
 D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents
-rm -rf /var/mobile/t7420 && mkdir -p /var/mobile/t7420
-unzip -q "$D/AmazonDark-v7.420-cart-topnav-payment-divider-fix-source.zip" -d /var/mobile/t7420
+rm -rf /var/mobile/t7421 && mkdir -p /var/mobile/t7421
+unzip -q "$D/AmazonDark-v7.421-byg-carousel-theme-restore-source.zip" -d /var/mobile/t7421
 find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
-cp -a /var/mobile/t7420/AmazonDark-v7.420-cart-topnav-payment-divider-fix-source/. .
+cp -a /var/mobile/t7421/AmazonDark-v7.421-byg-carousel-theme-restore-source/. .
 chmod 755 layout/DEBIAN/postinst
 sh scripts/validate.sh
 git add -A
-git commit -m "v7.420: fix Cart tan plane and payment divider"
+git commit -m "v7.421: restore BYG carousel theming"
 git push origin main
 ```
 

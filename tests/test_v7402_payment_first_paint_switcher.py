@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.420~cart-topnav-payment-divider-fix' in C
-assert '#define AD_VERSION "v7.420-cart-topnav-payment-divider-fix"' in S
+assert 'Version: 7.421~byg-carousel-theme-restore' in C
+assert '#define AD_VERSION "v7.421-byg-carousel-theme-restore"' in S
 
 # 1) Checkout payment skeleton immediately preceding the Maple iframe is OLED at document start,
 # including its white shimmer child. This must use the stable iframe relationship rather than the

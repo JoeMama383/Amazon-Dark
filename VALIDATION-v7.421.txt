@@ -1,0 +1,78 @@
+AmazonDark v7.421 validation
+============================
+
+Release
+-------
+Version:       7.421~byg-carousel-theme-restore
+Runtime:       v7.421-byg-carousel-theme-restore
+Direct parent: 7.420~cart-topnav-payment-divider-fix
+
+Probe-backed root cause
+-----------------------
+The v7.420 FULL probe on checkout "Need anything else? / Buy again" shows Amazon mounted the alternate speed-byg-sf-mobile-carousel renderer rather than the older dense-grid BYG renderer that the existing control selector expected.
+
+Probe evidence:
+- outer class: _speed-byg-sf-mobile-carousel_style_carouselContainer__2CmIF
+- outer carousel background: rgb(255,255,255)
+- add-to-cart wrapper: _speed-byg-sf-mobile-carousel_PlusButtonAtc-style_auiStepperSpotAtcButton__36opy
+- actual control: button[name='submit.addToCart']
+- actual control geometry: 32x32
+- actual control background: rgb(255,216,20)
+- plus glyph: .a-icon-small-add
+
+Fix
+---
+1. Add only the speed-byg-sf-mobile-carousel carousel shell to the existing checkout BYG OLED floor owner.
+2. Replace the dense-grid-only ATC selector with the stable semantic button[name='submit.addToCart'] selector under checkout-byg-mobile-container.
+3. Preserve the stock circular geometry while applying #303335 fill, #747a7c border, light/white plus glyph, and #202324 pressed/focus fill.
+4. Generalize existing BYG stepper styling from the old dense-grid wrapper to checkout-byg-mobile-container so both renderer variants keep dark controls.
+5. Retain the old dense-grid ATC overlay transparency exception so product images cannot regain the historical black horizontal cut.
+6. Preserve product images and authored semantic colors.
+
+Runtime / performance
+---------------------
+- new MutationObserver: 0
+- new timer / setInterval: 0
+- new requestAnimationFrame loop: 0
+- new Web scroll listener: 0
+- new recurring hierarchy scan: 0
+- new native hook class: 0
+- new WKUserScript family: 0
+- implementation: selector-only reuse inside the existing checkout document-start stylesheet
+
+Validation performed on source tree
+-----------------------------------
+- bash scripts/lint-logos.sh: PASS
+- sh -n scripts/ui-probe.sh: PASS
+- sh -n scripts/skeleton-probe.sh: PASS
+- sh -n layout/DEBIAN/postinst: PASS
+- postinst mode: 755
+- 97/97 bounded non-exhaustive Python regression files: PASS
+- tests/test_probe_handoff.py: PASS, all 6 scenarios
+- v7.421 direct-parent v7.420 transition receipt handoff: PASS
+- v7.421 BYG alternate-renderer regression: PASS
+- inherited v7.420 Cart/payment regression: PASS
+- inherited v7.419 payment gift-card regression: PASS
+- inherited v7.417 Search carousel regression: PASS
+- inherited v7.416 location canonical-owner regression: PASS
+
+Source size
+-----------
+Tweak.xm v7.420 parent: 786,380 bytes / 11,568 lines
+Tweak.xm v7.421:        786,265 bytes / 11,568 lines
+Net: -115 bytes. No runtime subsystem was added.
+
+Compile status
+--------------
+Theos/iOS SDK is not available in this model environment, so no local arm64 .deb compile is claimed. GitHub Actions/device build remains the compile/link verification.
+
+Device verification
+-------------------
+Open checkout -> Need anything else / Buy again and confirm:
+- exposed horizontal/vertical carousel gaps are OLED black;
+- each + control is #303335 with #747a7c edge and a white plus;
+- press/focus remains dark;
+- quantity stepper stays dark after adding an item;
+- product images remain visible/tamed;
+- Continue to checkout remains unchanged;
+- v7.420 Cart tan-plane and payment-divider fixes remain intact.

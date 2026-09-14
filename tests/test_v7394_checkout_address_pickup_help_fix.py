@@ -8,8 +8,8 @@ INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 JSINC=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 
-assert 'Version: 7.420~cart-topnav-payment-divider-fix' in C
-assert '#define AD_VERSION "v7.420-cart-topnav-payment-divider-fix"' in S
+assert 'Version: 7.421~byg-carousel-theme-restore' in C
+assert '#define AD_VERSION "v7.421-byg-carousel-theme-restore"' in S
 
 # Add-address: exact stable AUI ids only, standard controls, visible raster glyphs.
 for token in [
@@ -80,8 +80,8 @@ for forbidden in ['new MutationObserver(', 'setInterval(', 'requestAnimationFram
     assert forbidden not in new
 
 # Probe identities all roll together.
-assert 'VER=7.420' in UI and 'AD_PROBE_VERSION=7.420' in SK and 'AD_PROBE_NAME=AmazonDark-v7.420' in SK
-assert 'AMAZONDARK v7.420 UNIVERSAL' in INC
-assert "version:'7.420'" in JSINC
-assert 'AmazonDark-v7.420-launch-sb-probe.txt' in SB
+assert 'VER=7.421' in UI and 'AD_PROBE_VERSION=7.421' in SK and 'AD_PROBE_NAME=AmazonDark-v7.421' in SK
+assert 'AMAZONDARK v7.421 UNIVERSAL' in INC
+assert "version:'7.421'" in JSINC
+assert 'AmazonDark-v7.421-launch-sb-probe.txt' in SB
 print('PASS: v7.394 covers add-address, pickup/map/card, delivery/pickup toggle and suggested-help/WebKit keyboard accessory with exact probe-backed ownership')

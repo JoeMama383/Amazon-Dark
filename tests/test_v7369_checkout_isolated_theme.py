@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.420~cart-topnav-payment-divider-fix' in CTRL
-assert '#define AD_VERSION "v7.420-cart-topnav-payment-divider-fix"' in S
+assert 'Version: 7.421~byg-carousel-theme-restore' in CTRL
+assert '#define AD_VERSION "v7.421-byg-carousel-theme-restore"' in S
 
 def func(name):
     st=S.index(f'static NSString *{name}')
@@ -35,10 +35,12 @@ twb=func('ADCheckoutTWBJS7369')
 # Probe-backed BYG owners, exact footer and plus button.
 for x in ['#checkoutDisplayPage.checkout-display-page','.checkout-byg-mobile-container',
           '.checkout-byg-continue-button-shadow-mobile','#checkout-byg-ptc-button.a-button-primary',
-          '[class*=_denseGridAxSpotAtcButton_]',"button[name='submit.addToCart']",
+          "button[name='submit.addToCart']",
           '[class*=_badgeMessage_]']:
     assert x in floor,x
 assert "#303335!important" in floor and "#747a7c!important" in floor
+assert '[class*=_denseGridAxSpotAtcOverlay_]' in floor
+assert '[class*=_speed-byg-sf-mobile-carousel_style_carouselContainer_]' in floor
 assert "filter:brightness(0) invert(1)!important" in floor
 
 # Probe-backed checkout owners and exact Cart stepper geometry/palette.

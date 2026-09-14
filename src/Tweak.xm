@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.420 — Cart top-nav / payment divider fix
+ * AmazonDark v7.421 — BYG carousel theme restore
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.420-cart-topnav-payment-divider-fix"
+#define AD_VERSION "v7.421-byg-carousel-theme-restore"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1422,7 +1422,7 @@ static NSString *ADCheckoutFloorJS7369(void){
         @"(function(){try{function put(id,css){var s=document.getElementById(id);if(!s){s=document.createElement('style');s.id=id;(document.head||document.documentElement||document).appendChild(s);}s.textContent=css;return s;}function relink(s){try{if(s&&!s.isConnected)(document.head||document.documentElement).appendChild(s)}catch(_){}}var css=`"
         @"#checkoutDisplayPage.checkout-display-page{background:#000!important;color:#e8e6e3!important;}"
         // Before-you-go recommendation grid. The fixed footer is a sibling of the grid.
-        @"#checkoutDisplayPage .checkout-byg-mobile-container,#checkoutDisplayPage .checkout-byg-mobile-container :is(.a-cardui,.a-section,.a-row,.a-carousel-container,.a-carousel-viewport,.a-carousel-card,[class*=_mobileDenseGridLayoutContainer_],[class*=_mobileDenseGridAsinFaceout_],[class*=_imageAndAtcContainer_],.productDetailsContainer),#checkoutDisplayPage>.checkout-byg-continue-button-shadow-mobile,#checkoutDisplayPage>.checkout-byg-continue-button-shadow-mobile>.a-box-inner{background:#000!important;box-shadow:none!important;}"
+        @"#checkoutDisplayPage .checkout-byg-mobile-container,#checkoutDisplayPage .checkout-byg-mobile-container :is(.a-cardui,.a-section,.a-row,.a-carousel-container,.a-carousel-viewport,.a-carousel-card,[class*=_mobileDenseGridLayoutContainer_],[class*=_mobileDenseGridAsinFaceout_],[class*=_imageAndAtcContainer_],[class*=_speed-byg-sf-mobile-carousel_style_carouselContainer_],.productDetailsContainer),#checkoutDisplayPage>.checkout-byg-continue-button-shadow-mobile,#checkoutDisplayPage>.checkout-byg-continue-button-shadow-mobile>.a-box-inner{background:#000!important;box-shadow:none!important;}"
         // v7.371 probe r1: the dense-grid ATC overlay lives on top of the product image.
         // The broad .a-section floor rule painted its 32px inner rows black, creating the
         // horizontal "cut" through every photo at the plus-button height. Only the circular
@@ -1445,8 +1445,8 @@ static NSString *ADCheckoutFloorJS7369(void){
         // real submit.addToCart button and its :focus rule paints a 2px rgb(136,140,140) outline.
         // The button itself is already the correct 32x32 circle; that outline renders as four gray
         // corners outside the 100px radius. Own only this exact BYG ATC focus ring, not all buttons.
-        @"#checkoutDisplayPage .checkout-byg-mobile-container [class*=_denseGridAxSpotAtcButton_] button[name='submit.addToCart']{background:#303335!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline:none!important;outline-color:transparent!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-tap-highlight-color:transparent!important;}#checkoutDisplayPage .checkout-byg-mobile-container [class*=_denseGridAxSpotAtcButton_] button[name='submit.addToCart']:is(:focus,:focus-visible,:active){outline:none!important;outline-color:transparent!important;box-shadow:none!important;}#checkoutDisplayPage .checkout-byg-mobile-container [class*=_denseGridAxSpotAtcButton_] .a-icon-small-add{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
-        @"#checkoutDisplayPage .checkout-byg-mobile-container .byg-dense-grid-atc-container .a-stepper-expanding-fieldset{background:transparent!important;border:0!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container .byg-dense-grid-atc-container .a-stepper-inner-container{background:#303335!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container .byg-dense-grid-atc-container .a-stepper-controls,#checkoutDisplayPage .checkout-byg-mobile-container .byg-dense-grid-atc-container .a-stepper-controls :is(button,div,span){background-color:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container .byg-dense-grid-atc-container .a-stepper-controls :is(.a-icon-small-trash,.a-icon-small-add,.a-icon-small-remove,.a-icon-small-subtract){filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+        @"#checkoutDisplayPage .checkout-byg-mobile-container button[name='submit.addToCart']{background:#303335!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline:none!important;outline-color:transparent!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-tap-highlight-color:transparent!important;}#checkoutDisplayPage .checkout-byg-mobile-container button[name='submit.addToCart']:is(:focus,:focus-visible,:active){background:#202324!important;border-color:#747a7c!important;outline:none!important;outline-color:transparent!important;box-shadow:none!important;}#checkoutDisplayPage .checkout-byg-mobile-container button[name='submit.addToCart'] .a-icon-small-add{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
+        @"#checkoutDisplayPage .checkout-byg-mobile-container .a-stepper-expanding-fieldset{background:transparent!important;border:0!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container .a-stepper-inner-container{background:#303335!important;border:1px solid #747a7c!important;border-color:#747a7c!important;outline-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container .a-stepper-controls,#checkoutDisplayPage .checkout-byg-mobile-container .a-stepper-controls :is(button,div,span){background-color:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#checkoutDisplayPage .checkout-byg-mobile-container .a-stepper-controls :is(.a-icon-small-trash,.a-icon-small-add,.a-icon-small-remove,.a-icon-small-subtract){filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;opacity:1!important;}"
         // v7.372 FULL r1: BYG uses the same Amazon empty-card loader family as Cart:
         // li.a-carousel-card.a-carousel-card-empty > .a-loading-static > .a-loading-static-inner.
         // Reuse the proven Cart loader paint exactly, scoped only to checkout BYG.
