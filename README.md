@@ -1,9 +1,10 @@
-# AmazonDark v7.421 — BYG carousel theme restore
+# AmazonDark v7.422 — Returns and Medical Care repair
 
-Direct parent: **v7.420~cart-topnav-payment-divider-fix**.
+Based on GitHub e68da09219c7297727ef37d89576f1f367cd5c69 (v7.421).
 
-v7.421 restores the alternate checkout **Before You Go / Need anything else** renderer captured by the v7.420 FULL probe. The current Amazon DOM uses the `speed-byg-sf-mobile-carousel` family rather than the older dense-grid family that the existing CSS was scoped to.
+- Your Returns: recognize the exact yr-titlettl parent so its narrow native heading receives white text at final draw.
+- Medical Care: extend all five existing card/media/text ownership gates to yhw_ppv_1 and yhw_pharmacy_2, retaining both older IDs. Telehealth and Prescriptions receive the same OLED floor, gray border, white bold header, gray regular subtitle, and authored image rendering as the left card.
+- No new hook, observer, timer, recurring scan, or rendering subsystem.
+- FULL, VIEWPORT and TRANSITION identities regenerated for v7.422.
 
-The exact carousel shell is now OLED black so its stock white background cannot leak through around/below the product tiles. The add-to-cart rule is simplified to the stable semantic `button[name=submit.addToCart]` within `checkout-byg-mobile-container`, so both dense-grid and speed-carousel variants use the standard AmazonDark gray control, gray border, white plus glyph, and dark pressed state. Existing BYG stepper rules are similarly generalized to the stable BYG container. Product images and semantic red/green/blue/Prime states are preserved.
-
-No new observer, timer, RAF loop, polling loop, recurring hierarchy scan, native hook class, or WKUserScript family is introduced. v7.420 Cart/payment fixes and all earlier theming remain inherited. FULL, VIEWPORT, and TRANSITION probes are regenerated to v7.421.
+See COMMANDS.md for source installation, manual GitHub push, and separate probe workflows. Device validation remains required.

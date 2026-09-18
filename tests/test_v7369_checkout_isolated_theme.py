@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.421~byg-carousel-theme-restore' in CTRL
-assert '#define AD_VERSION "v7.421-byg-carousel-theme-restore"' in S
+assert 'Version: 7.422~person-returns-medical-fix' in CTRL
+assert '#define AD_VERSION "v7.422-person-returns-medical-fix"' in S
 
 def func(name):
     st=S.index(f'static NSString *{name}')

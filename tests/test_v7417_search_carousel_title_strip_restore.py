@@ -1,8 +1,8 @@
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.421~byg-carousel-theme-restore' in C
-assert '#define AD_VERSION "v7.421-byg-carousel-theme-restore"' in S
+assert 'Version: 7.422~person-returns-medical-fix' in C
+assert '#define AD_VERSION "v7.422-person-returns-medical-fix"' in S
 # v7.417 repair retained in v7.418: keep exact old text owner and add narrow structural fallbacks.
 assert '.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-text{background:#000!important' in S
 for token in [

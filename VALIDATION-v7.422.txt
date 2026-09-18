@@ -1,0 +1,12 @@
+AmazonDark v7.422 — person-returns-medical-fix
+Parent: e68da09219c7297727ef37d89576f1f367cd5c69 / v7.421.
+Evidence: supplied September 18 FULL probe and screenshots.
+Your Returns: yr-titlettl direct child RCTTextView 132.7x50.7, 25pt bold, dark foreground.
+Medical: yhw_ppv_1 and yhw_pharmacy_2, 150x124, zero borders; 18pt bold title, 16pt regular subtitle; image leaves renderingMode=2 (template).
+Change: extend five existing Medical Care exact-ID gates and direct heading parent rule. Retain old IDs, existing color hierarchy, authored image rendering, and existing final draw/layout hooks.
+Validation: Logos lint PASS; 98 Python regression scripts PASS, zero failures. Includes exhaustive probe handoff and new v7.421-to-v7.422 receipt handoff.
+One test skipped: test_v7385_sponsored_c_linkage.py requires unavailable clang/clang++.
+Full validate.sh stopped at that environment dependency; remaining tests were run individually.
+Shell syntax and git diff whitespace checks PASS.
+No Theos/iOS SDK build or phone visual validation claimed. GitHub Actions/device build required.
+FULL/VIEWPORT/TRANSITION versions all regenerated to 7.422.

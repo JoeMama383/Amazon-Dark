@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.421 — BYG carousel theme restore
+ * AmazonDark v7.422 — BYG carousel theme restore
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.421-byg-carousel-theme-restore"
+#define AD_VERSION "v7.422-person-returns-medical-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -5844,7 +5844,7 @@ static BOOL ADPersonInternalMediaPlate7213(UIView *v){
     @try {
         NSString *aid=(v.accessibilityIdentifier?:@"").lowercaseString;
         // v7.235 probe: these exact React views are physical cards, not media plates.
-        if([aid isEqualToString:@"yhw_healthai_0"]||[aid isEqualToString:@"yhw_pharmacy_1"]||
+        if([aid isEqualToString:@"yhw_healthai_0"]||[aid isEqualToString:@"yhw_pharmacy_1"]||[aid isEqualToString:@"yhw_ppv_1"]||[aid isEqualToString:@"yhw_pharmacy_2"]||
            [aid isEqualToString:@"yo_btn"])return NO;
         if(objc_getAssociatedObject(v,kADPersonInternalMedia7213))return YES;
         CGFloat w=v.bounds.size.width,h=v.bounds.size.height;
@@ -6106,7 +6106,7 @@ static BOOL ADPersonOuterCardFloor7213(UIView *v){
         if(ADPersonTopMenuPill7208(v))return YES;
         if(ADPersonBuyAgainItem7218(v))return YES;
         if([aid isEqualToString:@"carousel-item-view"])return YES;
-        if([aid isEqualToString:@"yhw_healthai_0"]||[aid isEqualToString:@"yhw_pharmacy_1"]||[aid isEqualToString:@"yo_btn"])return YES;
+        if([aid isEqualToString:@"yhw_healthai_0"]||[aid isEqualToString:@"yhw_pharmacy_1"]||[aid isEqualToString:@"yhw_ppv_1"]||[aid isEqualToString:@"yhw_pharmacy_2"]||[aid isEqualToString:@"yo_btn"])return YES;
         if([aid hasPrefix:@"tile-widget-"]||[aid isEqualToString:@"ya0"]||[aid isEqualToString:@"ya1"]||
            [aid isEqualToString:@"ya2"]||[aid isEqualToString:@"gc0"]||[aid isEqualToString:@"gc1"]||
            [aid isEqualToString:@"cvmlink"]||[aid isEqualToString:@"emptyordersstring_btn_0"])return YES;
@@ -6122,7 +6122,7 @@ static BOOL ADPersonSemanticRoundedOwner7212(UIView *v){
         if(ADPersonTopMenuPill7208(v))return YES;
         if(ADPersonBuyAgainItem7218(v))return YES;
         if([aid isEqualToString:@"carousel-item-view"])return YES;
-        if([aid isEqualToString:@"yhw_healthai_0"]||[aid isEqualToString:@"yhw_pharmacy_1"]||[aid isEqualToString:@"yo_btn"])return YES;
+        if([aid isEqualToString:@"yhw_healthai_0"]||[aid isEqualToString:@"yhw_pharmacy_1"]||[aid isEqualToString:@"yhw_ppv_1"]||[aid isEqualToString:@"yhw_pharmacy_2"]||[aid isEqualToString:@"yo_btn"])return YES;
         if([aid hasPrefix:@"tile-widget-"])return YES;
         if([aid isEqualToString:@"cvmlink"]||[aid isEqualToString:@"emptyordersstring_btn_0"]||
            [aid isEqualToString:@"ya0"]||[aid isEqualToString:@"ya1"]||[aid isEqualToString:@"ya2"]||
@@ -6474,7 +6474,9 @@ static BOOL ADPersonHeaderLeaf7221(UIView *v){
         // raster. Own only that direct semantic relationship, then keep the
         // established geometry owner for every ordinary Person heading.
         UIView *parent=v.superview;
-        if(parent&&[parent.accessibilityIdentifier isEqualToString:@"gctitlettl"])return YES;
+        // v7.422: Returns uses a narrow 132.7x50.7 text leaf under its exact title band.
+        if(parent&&([parent.accessibilityIdentifier isEqualToString:@"gctitlettl"]||
+                    [parent.accessibilityIdentifier isEqualToString:@"yr-titlettl"]))return YES;
         CGRect r=[v convertRect:v.bounds toView:v.window];
         // Probe-proven current renderer: normal headers are 374/390pt wide;
         // offline/error rehydration mounts the same 25pt heading leaves at 414pt.
@@ -6737,7 +6739,7 @@ static int ADPersonSectionKind7218(UIView *v){
         for(int up=0;p&&up<8&&ADInPersonTab7206(p);up++,p=p.superview){
             NSString *aid=(p.accessibilityIdentifier?:@"").lowercaseString;
             int direct=ADPersonTitleKind7218(aid); if(direct)return direct;
-            if([aid isEqualToString:@"yhw_healthai_0"]||[aid isEqualToString:@"yhw_pharmacy_1"])return 1;
+            if([aid isEqualToString:@"yhw_healthai_0"]||[aid isEqualToString:@"yhw_pharmacy_1"]||[aid isEqualToString:@"yhw_ppv_1"]||[aid isEqualToString:@"yhw_pharmacy_2"])return 1;
             if([aid isEqualToString:@"carousel-item-view"]||[aid isEqualToString:@"buy-again-flow-card"]||
                [aid isEqualToString:@"cardwrapperview"]||[aid isEqualToString:@"tmpwrapperview"])return 2;
             if([aid hasPrefix:@"tile-widget-"])return 4;
@@ -6956,7 +6958,7 @@ static BOOL ADPersonMedicalAuthoredIcon7231(UIImageView *iv){
         if(w<32.0||w>60.0||h<32.0||h>60.0)return NO;
         for(UIView *n=iv.superview;n&&n!=iv.window;n=n.superview){
             NSString *aid=(n.accessibilityIdentifier?:@"").lowercaseString;
-            if([aid isEqualToString:@"yhw_healthai_0"]||[aid isEqualToString:@"yhw_pharmacy_1"])return YES;
+            if([aid isEqualToString:@"yhw_healthai_0"]||[aid isEqualToString:@"yhw_pharmacy_1"]||[aid isEqualToString:@"yhw_ppv_1"]||[aid isEqualToString:@"yhw_pharmacy_2"])return YES;
             if([n.accessibilityIdentifier isEqualToString:@"me"])break;
         }
     } @catch(...) {}

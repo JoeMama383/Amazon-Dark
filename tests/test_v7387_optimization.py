@@ -12,7 +12,7 @@ def digest(s):return hashlib.sha256(s.encode()).hexdigest()
 # Remove that exact floor span and the one v7.390 checkout-TWB Maple selector before
 # verifying the older v7.386/v7.387 golden programs.
 S_golden=S
-# v7.421 broadens only the BYG renderer ownership. Normalize those exact approved
+# v7.422 broadens only the BYG renderer ownership. Normalize those exact approved
 # checkout-floor deltas back to v7.420 before comparing the v7.386 semantic golden.
 S_golden=S_golden.replace(
     ",[class*=_speed-byg-sf-mobile-carousel_style_carouselContainer_]", "")
@@ -65,7 +65,7 @@ assert len(rules)==golden['sponsored_selectors']==86
 assert digest(json.dumps(rules,separators=(',',':')))==golden['sponsored_rules_sha256'],'sponsored scope, specificity, cascade order or declaration changed'
 for name,h in golden['probe_sha256'].items():
     data=(ROOT/'src'/name).read_bytes()
-    if name=='ADUniversalUIProbe7362.js.inc':data=data.replace(b"version:'7.421'",b"version:'7.386'")  # capture-version metadata only
+    if name=='ADUniversalUIProbe7362.js.inc':data=data.replace(b"version:'7.422'",b"version:'7.386'")  # capture-version metadata only
     assert hashlib.sha256(data).hexdigest()==h, name
 assert 'ADHomeFrameProbeBridgeJS7265' not in S and '__adHomeProbeReq7265' not in S
 # Script sharing is bounded, maintains order, document-start timing and frame scope.
