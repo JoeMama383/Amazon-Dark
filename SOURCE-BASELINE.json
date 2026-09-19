@@ -1,9 +1,9 @@
 {
-  "version": "7.427~native-ai-results-oled",
-  "direct_parent": "7.426~pdp-oled-attach-sheet-fix",
-  "source_archive": "AmazonDark-v7.426-pdp-oled-attach-sheet-fix-source.zip",
-  "source_sha256": "216d90be24db880a9cba13e52e1f1d3b933c05b935af4675e8dcf1c1e73239cb",
-  "probe": "AmazonDark-v7.426-ui-full-probe-20260919-093424-046-r1.txt",
-  "runtime_delta": "Native AI results ownership: cardboard header, search, product cards, neutral text and SVG brushes, Ask anything. Web theme unchanged.",
+  "version": "7.429~compact-stripe-taming",
+  "direct_parent": "7.428~pdp-media-native-icon-fix",
+  "source_archive": "AmazonDark-v7.428-pdp-media-native-icon-fix-source.zip",
+  "source_sha256": "42d83512f05ae761f4ac6fcc18669b601cd79bb46967ac890a8c398f4c215858",
+  "probe": "AmazonDark-v7.427-ui-full-probe-20260919-130604-194-r1.txt",
+  "runtime_delta": "Existing menu TWB sheet adds exact hp-stripe banner root brightness and resets leaf media brightness to prevent double dimming.",
   "device_validation": "Pending"
 }

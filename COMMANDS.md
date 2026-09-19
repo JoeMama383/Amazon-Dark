@@ -1,17 +1,17 @@
-# AmazonDark v7.427 commands
+# AmazonDark v7.429 commands
 
 ## PUSH
 
 ```zsh
-cd /var/mobile/Amazon-Dark-phone
-D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents
-mkdir -p /var/mobile/t7427
-unzip -oq "$D/AmazonDark-v7.427-native-ai-results-oled-source.zip" -d /var/mobile/t7427
-cp -a /var/mobile/t7427/AmazonDark-v7.427-native-ai-results-oled-source/. .
-chmod 755 layout/DEBIAN/postinst
-sh scripts/validate.sh
-git add -A
-git commit -m "v7.427: theme native Alexa AI results"
+cd /var/mobile/Amazon-Dark-phone &&
+D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents &&
+mkdir -p /var/mobile/t7429 &&
+unzip -oq "$D/AmazonDark-v7.429-compact-stripe-taming-source.zip" -d /var/mobile/t7429 &&
+cp -a /var/mobile/t7429/AmazonDark-v7.429-compact-stripe-taming-source/. . &&
+chmod 755 layout/DEBIAN/postinst &&
+sh scripts/validate.sh &&
+git add -A &&
+git commit -m "v7.429: tame compact stripe ad family" &&
 git push origin main
 ```
 

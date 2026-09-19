@@ -1,8 +1,8 @@
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text(); ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.427~native-ai-results-oled' in ctl
-assert '#define AD_VERSION "v7.427-native-ai-results-oled"' in t
+assert 'Version: 7.429~compact-stripe-taming' in ctl
+assert '#define AD_VERSION "v7.429-compact-stripe-taming"' in t
 # Search: outer/card floor retained; broad descendant floor owner removed.
 assert '.cards_carousel_widget-sug-container-top{background:#000!important' in t
 assert '.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-column{background:#000!important' in t

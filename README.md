@@ -1,17 +1,9 @@
-# AmazonDark v7.427 — native Alexa AI results
+# AmazonDark v7.429 — compact stripe banner taming
 
-Exact parent: the delivered v7.426 source archive. Previous PDP, Cart, Medical Care and video fixes are retained.
+Exact source parent: delivered v7.428. All prior fixes retained.
 
-The supplied v7.426 FULL r1 contains a native React Native results screen and zero on-screen webviews. This release owns only a root-container with its shallow cardboard-background header marker. It does not add web CSS.
+The supplied v7.427 FULL probe identifies the pictured blue banner as hp-stripe > hp-lucid-wrapper > a.stripe, containing stripe-headline and stripe-media-container/video. The banner and video both have filter:none; video is playing and ready. This is mounted main-document content, not the separate iframe ad above it.
 
-Changes:
-- Flat OLED header; suppress only its three decorative stripe/gradient stacks.
-- Search bar uses the existing gray control fill, gray border, light neutral text and neutral-light SVG search/back icons.
-- White card floors and neutral floors become OLED. Product image wash overlays remain transparent so artwork stays visible.
-- Yellow Add to cart controls become OLED with light text and standard gray borders. Ask anything gets OLED fill and a gray border; its decorative blue-white footer fade is suppressed.
-- Existing neutral text conversion runs at React text commit and final draw, preserving saturated semantic runs.
-- Solid neutral SVG brushes become light. Gradient brushes and saturated fills/strokes remain authored, including Alexa, Prime, stars and blue chevrons.
+The existing menu White Tame Brightness sheet now dims this exact banner family as one unit at the configured strength. Its image/video/canvas children have their own filter/opacity reset to prevent compounded dimming. Colors, playback, links, dimensions and layout remain intact. The same existing preference-refresh and cleanup paths apply. No additional scripts, observers, timers or capture changes.
 
-Validation: 105 available regression checks passed (104 existing/handoff scripts plus the new native fixture test), Logos lint passed, probe shell syntax passed. A topology fixture verifies all 429 initial AI results nodes are owned and unrelated roots are rejected; compiled neutral-palette checks preserve representative semantic colors. No iOS SDK/Theos build or on-device rendering was available here.
-
-Probes are versioned to v7.427. Capture behavior is unchanged. The supplied v7.426 probe reached the native scroll edge in 10 steps and restored the original offset. See COMMANDS.md for separate workflows.
+FULL/VIEWPORT/TRANSITION identities advance to v7.429. No device rendering or iOS compilation is claimed. See VALIDATION-v7.429.md and COMMANDS.md.
