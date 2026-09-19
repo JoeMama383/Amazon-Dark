@@ -4,8 +4,11 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.422~person-returns-medical-fix' in CTRL
-assert '#define AD_VERSION "v7.422-person-returns-medical-fix"' in S
+assert 'Version: 7.423~cart-message-banner-fix' in CTRL
+assert '#define AD_VERSION "v7.423-cart-message-banner-fix"' in S
+
+from cart7423_delta import strip_cart7423
+S=strip_cart7423(S)
 
 def func(name):
     st=S.index(f'static NSString *{name}')

@@ -1,10 +1,9 @@
-# AmazonDark v7.422 — Returns and Medical Care repair
+# AmazonDark v7.423 — Cart and BYG UI repairs
 
-Based on GitHub e68da09219c7297727ef37d89576f1f367cd5c69 (v7.421).
+Based on GitHub 72196f8 / v7.422. The confirmed Returns/Medical Care fixes are inherited unchanged.
 
-- Your Returns: recognize the exact yr-titlettl parent so its narrow native heading receives white text at final draw.
-- Medical Care: extend all five existing card/media/text ownership gates to yhw_ppv_1 and yhw_pharmacy_2, retaining both older IDs. Telehealth and Prescriptions receive the same OLED floor, gray border, white bold header, gray regular subtitle, and authored image rendering as the left card.
-- No new hook, observer, timer, recurring scan, or rendering subsystem.
-- FULL, VIEWPORT and TRANSITION identities regenerated for v7.422.
+- Cart messages banner: OLED outer/inner background, light heading/chevron; preserve authored blue border and thick left rail.
+- Cart action row: white share and three-dot image glyphs; three-dot control gray fill/border with dark pressed/focus state; preserve geometry.
+- Need anything else / Buy again: exact speed-carousel description panels and sponsored spacers OLED; clear add-to-cart-section/add-to-cart-button wrappers behind the gray circular + controls. Preserve existing neutral light text, authored semantic red/green/blue text, Prime artwork, product images, and steppers.
 
-See COMMANDS.md for source installation, manual GitHub push, and separate probe workflows. Device validation remains required.
+Eight static CSS rules added to existing programs; no new hooks/scripts/observers/timers/scans. FULL, VIEWPORT and TRANSITION regenerated to v7.423. See COMMANDS.md.

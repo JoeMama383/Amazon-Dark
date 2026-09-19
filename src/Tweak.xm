@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.422 — BYG carousel theme restore
+ * AmazonDark v7.423 — BYG carousel theme restore
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.422-person-returns-medical-fix"
+#define AD_VERSION "v7.423-cart-message-banner-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -1024,6 +1024,13 @@ static NSString *ADFloorJS(void){
         // v7.344: keep the new shimmer shell dark without erasing an Amazon-authored
         // image/background on the image-bearing shimmer lane. Text/button shimmer stays dark.
         @"#sc-page-container #sc-recs-atf-shimmer-placeholder,#sc-page-container .sc-recs-cards-row-shimmer{background:#000!important;border-color:#000!important;outline-color:#000!important;box-shadow:none!important;}#sc-page-container #sc-recs-atf-shimmer-placeholder{border-top-color:#000!important;border-bottom-color:#000!important;}#sc-page-container .sc-rec-card-shimmer{background:#181a1b!important;border-color:#494d4d!important;box-shadow:none!important;}#sc-page-container .sc-rec-card-shimmer .sc-rec-card-image-shimmer{background-color:transparent!important;border-color:#494d4d!important;box-shadow:none!important;}#sc-page-container .sc-rec-card-shimmer :is(.sc-rec-card-text-shimmer,.sc-rec-card-button-shimmer){background:#303335!important;border-color:#494d4d!important;box-shadow:none!important;}"
+        // v7.423: probe-proven Cart message banner. Keep its authored blue frame/rail.
+        @"#sc-page-container #sc-important-message-alert,#sc-page-container #sc-important-message-alert :is(.a-box-inner,.sc-imb-ingress){background:#000!important;}"
+        @"#sc-page-container #sc-important-message-alert .sc-imb-ingress,#sc-page-container #sc-important-message-alert .sc-imb-ingress h4{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        @"#sc-page-container #sc-important-message-alert .sc-imb-ingress .a-icon-touch-link{border-color:#e8e6e3!important;background-image:none!important;filter:none!important;-webkit-filter:none!important;}"
+        // v7.423: exact Cart action raster leaves; never filter their button shells or product media.
+        @"#sc-page-container .sc-item-actions .sc-share-icon img,#sc-page-container .sc-item-actions .sc-nested-actions-ingress-icon img{filter:brightness(0) invert(1)!important;-webkit-filter:brightness(0) invert(1)!important;}"
+        @"#sc-page-container .sc-item-actions .sc-nested-actions-ingress-icon{background:#303335!important;border-color:#747a7c!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#sc-page-container .sc-item-actions .sc-nested-actions-ingress-icon:is(:active,:focus,:focus-visible){background:#202324!important;border-color:#747a7c!important;}"
         // v7.245: Cart-probe-backed first-paint ownership. Exact Cart selectors only.
         // Product/media filters are intentionally not touched here; TWB remains in ADTWBJS.
         @"#sc-page-container,#sc-page-content,#sc-buy-box,#sc-mini-buy-box,#sc-active-cart,#sc-saved-cart,#sc-page-container .sc-list-item,#sc-page-container .sc-list-item-content,#sc-page-container .swipe-item-content,#sc-page-container [class*=sc-][class*=content],#sc-page-container [class*=sc-][class*=container],#sc-page-container .a-cardui.sc-card-style,#sc-page-container .a-cardui-deck.sc-background-dark,#sc-page-container .sc-cart-overwrap,#sc-page-container .sc-undo-slide-reveal,#sc-page-container .swipe-button,#sc-page-container .sc-returns-are-easy-container,#sc-page-container .maple-banner__container,#sc-page-container .p13n-sc-shoveler,#sc-page-container .a-carousel-container.p13n-sc-shoveler{background:#000!important;box-shadow:none!important;}#sc-page-content>*{background-color:#000!important;}#sc-buy-box *,#sc-buy-box *::before,#sc-buy-box *::after,#sc-mini-buy-box *,#sc-mini-buy-box *::before,#sc-mini-buy-box *::after{background-color:transparent!important;box-shadow:none!important;transition-property:none!important;}#sc-buy-box :not(.a-spinner):not(.a-icon),#sc-mini-buy-box :not(.a-spinner):not(.a-icon),#sc-buy-box *::before,#sc-buy-box *::after,#sc-mini-buy-box *::before,#sc-mini-buy-box *::after{background-image:none!important;}#sc-saved-cart{border-top-color:#000!important;border-bottom-color:#000!important;}#sc-page-container>.sc-cart-spinner{background:#000!important;box-shadow:none!important;top:0!important;right:0!important;bottom:0!important;left:0!important;width:auto!important;height:auto!important;}#sc-page-container>.sc-cart-spinner>.a-spinner{background-color:transparent!important;}#sc-page-container #ssd-ca-buy-box{background:#000!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;box-shadow:none!important;}#sc-page-container #ssd-ca-buy-box :is(.a-text-bold,#ssd-ca-buy-box-delivery-message,.a-color-secondary,.a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,span,div,p,strong,b):not(.a-meter):not(.a-meter-bar){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#sc-page-container #ssd-ca-buy-box .a-meter{background:#000!important;box-shadow:none!important;}#sc-page-container #ssd-ca-buy-box .a-meter-bar{background:rgb(11,123,60)!important;filter:none!important;-webkit-filter:none!important;}#sc-page-container #ssd-ca-buy-box #dex-basket-building-bottom-sheet-link.a-button{background:#303335!important;border:1px solid #747a7c!important;border-color:#747a7c!important;box-shadow:none!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}#sc-page-container #ssd-ca-buy-box #dex-basket-building-bottom-sheet-link.a-button .a-button-inner{background:transparent!important;border-color:transparent!important;box-shadow:none!important;}#sc-page-container #ssd-ca-buy-box #dex-basket-building-bottom-sheet-link.a-button .a-button-text{background:transparent!important;color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
@@ -1431,6 +1438,10 @@ static NSString *ADCheckoutFloorJS7369(void){
         "#checkoutDisplayPage .checkout-byg-mobile-container .byg-dense-grid-atc-container :is(.atc-faceout-container,.ax-replace),"
         "#checkoutDisplayPage .checkout-byg-mobile-container [class*=_denseGridAxSpotAtcOverlay_] :is(.atc-faceout-container,.ax-replace)"
         "{background:transparent!important;box-shadow:none!important;}"
+
+        // v7.423: speed-carousel detail floors and transparent ATC plumbing, from FULL r3.
+        @"#checkoutDisplayPage .checkout-byg-mobile-container :is([class*=_speed-byg-sf-mobile-carousel_style_mobile-detail-container_],[class*=_speed-byg-sf-mobile-carousel_style_sponsoredLabelSpacer_]){background:#000!important;}"
+        @"#checkoutDisplayPage .checkout-byg-mobile-container [class*=_speed-byg-sf-mobile-carousel_style_atcComponentsContainer_] :is(.add-to-cart-section,.add-to-cart-button){background:transparent!important;box-shadow:none!important;}"
 
         // v7.370: preserve authored link descendants generally, then target the probe-proven black
         // dense-grid product-title family explicitly. Textual leaves get text-fill; structural DIVs
@@ -6474,7 +6485,7 @@ static BOOL ADPersonHeaderLeaf7221(UIView *v){
         // raster. Own only that direct semantic relationship, then keep the
         // established geometry owner for every ordinary Person heading.
         UIView *parent=v.superview;
-        // v7.422: Returns uses a narrow 132.7x50.7 text leaf under its exact title band.
+        // v7.423: Returns uses a narrow 132.7x50.7 text leaf under its exact title band.
         if(parent&&([parent.accessibilityIdentifier isEqualToString:@"gctitlettl"]||
                     [parent.accessibilityIdentifier isEqualToString:@"yr-titlettl"]))return YES;
         CGRect r=[v convertRect:v.bounds toView:v.window];

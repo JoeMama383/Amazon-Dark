@@ -1,8 +1,9 @@
 {
-  "version": "7.422~person-returns-medical-fix",
-  "direct_parent": "7.421~byg-carousel-theme-restore",
-  "source_commit": "e68da09219c7297727ef37d89576f1f367cd5c69",
-  "probe": "AmazonDark-v7.421-ui-full-probe-20260918-103745-890-r1.txt",
-  "runtime_contract": "Extend existing exact native owners only; preserve prior theming and authored medical icon pixels.",
-  "device_validation": "Your Returns light; all Medical Care cards OLED/gray border, bold white title, regular gray subtitle, detailed authored artwork; swipe and revisit."
+  "version": "7.423~cart-message-banner-fix",
+  "direct_parent": "7.422~person-returns-medical-fix",
+  "source_commit": "72196f8b9c1f9b27c9cd15effd498a96d2d1b96f",
+  "probe": "AmazonDark-v7.422-ui-full-probe-20260918-104913-985-r1.txt",
+  "runtime_contract": "Only exact sc-important-message-alert banner CSS; preserve blue border/rail, stock chevron geometry, and all v7.422 fixes. Exact sc-share-icon and sc-nested-actions-ingress-icon image leaves light; three-dot shell gray, dark pressed/focus fill. BYG exact detail/spacer floors black, exact ATC wrappers transparent; no text color rule added to BYG, preserving existing neutral light paint and semantic colors.",
+  "device_validation": "Banner OLED, text/chevron light, blue border/left rail retained, press/focus stays dark. Probes 7.423.",
+  "additional_probe": "AmazonDark-v7.422-ui-full-probe-20260918-105547-645-r3.txt"
 }

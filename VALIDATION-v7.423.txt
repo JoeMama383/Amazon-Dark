@@ -1,0 +1,14 @@
+AmazonDark v7.423 — cart-message-banner-fix
+Base: GitHub 72196f8, v7.422 (user confirmed Returns/Medical Care fixed).
+Probe: AmazonDark-v7.422-ui-full-probe-20260918-104913-985-r1.txt.
+Banner: sc-important-message-alert and inner alert-container were white; preserve authored rgb(36,111,182) border including 12px left rail. Set backgrounds black, ingress/h4 light; recolor existing border-drawn a-icon-touch-link without changing widths or transform.
+Actions: sc-share-icon img and sc-nested-actions-ingress-icon img are dark image leaves. Apply glyph-only brightness(0) invert(1); no parent/product image filter. Three-dot 32x32 shell keeps geometry/100px radius/1px border; gray fill and border with dark pressed/focus state.
+Implementation: eight static CSS rules added to existing ADFloorJS. No new hooks/scripts/observers/timers or runtime traversal.
+Validation: 99 Python regression scripts pass. Historical hash checks normalize only the approved new CSS block and verify its fixed SHA256 before preserving the older golden checks. New direct-parent transition receipt handoff passes.
+Logos lint, shell syntax, emitted JavaScript syntax, git diff whitespace: PASS.
+Unavailable: clang/clang++ linkage test; local browser binaries; Theos/iOS SDK. No rendered/device test or .deb build claimed.
+FULL, VIEWPORT, TRANSITION probe identities regenerated to 7.423.
+
+Additional FULL r3: speed-carousel mobile-detail-container and sponsoredLabelSpacer have rgb(250,250,250) backgrounds. Spacer has zero text. Post-sweep neutral text fills are rgb(232,230,227), discounts retain red. Recolor only backgrounds, no text hiding or forced color added.
+The black .add-to-cart-section and .add-to-cart-button wrappers are inside the exact speed-carousel atcComponentsContainer; make only those wrappers transparent. Keep button/stepper styling untouched.
+Rechecked inherited BYG regression and historical semantic program test: PASS. Checkout emitted JavaScript syntax: PASS.
