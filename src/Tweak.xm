@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.423 — BYG carousel theme restore
+ * AmazonDark v7.424 — BYG carousel theme restore
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.423-cart-message-banner-fix"
+#define AD_VERSION "v7.424-native-header-oled-fix"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -10259,6 +10259,21 @@ static void ADOwnCheckoutModalPrepaint7375(UIViewController *vc){
 }
 %end
 
+// v7.424 FULL r1: ANXTopNavBackgroundView owns decorative image/gradient layers
+// above its already-black backing. The transparent 44pt sub-nav exposes those layers.
+// Only this background-only view is touched; search and navigation content are siblings.
+static void ADOwnTopNavBackdrop7424(UIView *v){
+    if(!gP.enabled||!v)return;
+    ADSetViewBackground7226(v,ADOLED(),YES);
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    v.layer.contents=nil;
+    for(CALayer *layer in v.layer.sublayers){
+        if(!layer.hidden)layer.hidden=YES;
+    }
+    [CATransaction commit];
+}
+
 // v7.0.14: exact v6.0.28-style adaptive top-nav owner.
 %hook ANXTopNavBackgroundView
 - (void)setBackgroundColor:(UIColor *)color {
@@ -10275,7 +10290,11 @@ static void ADOwnCheckoutModalPrepaint7375(UIViewController *vc){
 }
 - (void)didMoveToWindow {
     %orig;
-    if(gP.enabled&&self.window){ ADSetViewBackground7226(self,ADOLED(),YES); }
+    ADOwnTopNavBackdrop7424((UIView *)self);
+}
+- (void)layoutSubviews {
+    %orig;
+    ADOwnTopNavBackdrop7424((UIView *)self);
 }
 %end
 

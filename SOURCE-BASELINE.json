@@ -1,9 +1,9 @@
 {
-  "version": "7.423~cart-message-banner-fix",
-  "direct_parent": "7.422~person-returns-medical-fix",
-  "source_commit": "72196f8b9c1f9b27c9cd15effd498a96d2d1b96f",
-  "probe": "AmazonDark-v7.422-ui-full-probe-20260918-104913-985-r1.txt",
-  "runtime_contract": "Only exact sc-important-message-alert banner CSS; preserve blue border/rail, stock chevron geometry, and all v7.422 fixes. Exact sc-share-icon and sc-nested-actions-ingress-icon image leaves light; three-dot shell gray, dark pressed/focus fill. BYG exact detail/spacer floors black, exact ATC wrappers transparent; no text color rule added to BYG, preserving existing neutral light paint and semantic colors.",
-  "device_validation": "Banner OLED, text/chevron light, blue border/left rail retained, press/focus stays dark. Probes 7.423.",
-  "additional_probe": "AmazonDark-v7.422-ui-full-probe-20260918-105547-645-r3.txt"
+  "version": "7.424~native-header-oled-fix",
+  "direct_parent": "7.423~cart-message-banner-fix",
+  "source_archive": "AmazonDark-v7.423-cart-message-banner-fix-source.zip",
+  "source_sha256": "2e6712f05a73d908ecfd1cff02e0de8175f2186f48f316b9be1b892f84ce703d",
+  "probe": "AmazonDark-v7.423-ui-full-probe-20260918-211716-343-r1.txt",
+  "runtime_contract": "Exact ANXTopNavBackgroundView decoration suppression on mount/layout; no content sibling changes.",
+  "device_validation": "Pending"
 }

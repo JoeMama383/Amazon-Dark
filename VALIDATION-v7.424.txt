@@ -1,0 +1,7 @@
+v7.424 native-header-oled-fix
+Base: exact delivered v7.423 source archive (SHA256 in SOURCE-BASELINE.json).
+Evidence: v7.423 FULL r1, initial native ANXTopNavBackgroundView 430x163 black backing; direct image contents layer and two gradient layers remain visible; transparent ANXSubNavContainer occupies y119..163. Final snapshot contracts header to 119pt.
+Change: existing exact background-view hook owns decorative sublayers on mount and after layout. Disable implicit layer animations. Search and navigation content are siblings, untouched. No global layer hook, observer, timer, or tree scan.
+Validation: 99 existing Python regression scripts pass; new v7.424 direct-parent receipt test passes; Logos lint and shell syntax pass.
+Unavailable: clang linkage check and Theos/iOS SDK. No compiled package or device rendering claim. Confirm on iPhone.
+All FULL, VIEWPORT and TRANSITION identities bumped to v7.424.
