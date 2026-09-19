@@ -1,17 +1,17 @@
-# AmazonDark v7.424 commands
+# AmazonDark v7.426 commands
 
 ## PUSH
 
 ```zsh
 cd /var/mobile/Amazon-Dark-phone
 D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents
-mkdir -p /var/mobile/t7424
-unzip -oq "$D/AmazonDark-v7.424-native-header-oled-fix-source.zip" -d /var/mobile/t7424
-cp -a /var/mobile/t7424/AmazonDark-v7.424-native-header-oled-fix-source/. .
+mkdir -p /var/mobile/t7426
+unzip -oq "$D/AmazonDark-v7.426-pdp-oled-attach-sheet-fix-source.zip" -d /var/mobile/t7426
+cp -a /var/mobile/t7426/AmazonDark-v7.426-pdp-oled-attach-sheet-fix-source/. .
 chmod 755 layout/DEBIAN/postinst
 sh scripts/validate.sh
 git add -A
-git commit -m "v7.424: fix native header decorative tan strip"
+git commit -m "v7.426: fix PDP OLED floors and add-to-cart sheet"
 git push origin main
 ```
 

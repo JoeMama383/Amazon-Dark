@@ -3,7 +3,7 @@ import json
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text()
 F=json.loads((ROOT/'tests/fixtures/v7414-location-navigation-renderer.json').read_text())
-assert 'Version: 7.424~native-header-oled-fix' in C
+assert 'Version: 7.426~pdp-oled-attach-sheet-fix' in C
 # Probe documented the misleading parallel AppCX/Nile tree. It must no longer be production ownership.
 assert F['bottom_sheet_root']['rect'][3]==763.0
 assert 'ADLocationNileTryMark7414' not in S and 'kADLocationNileRoot7414' not in S

@@ -1,7 +1,7 @@
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.424~native-header-oled-fix' in C
+assert 'Version: 7.426~pdp-oled-attach-sheet-fix' in C
 hook=S[S.index('%hook RCTScrollContentView'):S.index('%hook RCTScrollView')]
 assert 'UIView *v=(UIView *)self;' in hook
 assert 'v.layer.backgroundColor=black.CGColor;' in hook

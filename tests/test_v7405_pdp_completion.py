@@ -4,8 +4,8 @@ S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text(); JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
-assert 'Version: 7.424~native-header-oled-fix' in C
-assert '#define AD_VERSION "v7.424-native-header-oled-fix"' in S
+assert 'Version: 7.426~pdp-oled-attach-sheet-fix' in C
+assert '#define AD_VERSION "v7.426-pdp-oled-attach-sheet-fix"' in S
 block=S.split('static NSString *ADPDPCompletionJS7405(void){',1)[1].split('static NSString *ADPDPCompletionTWBJS7405',1)[0]
 video_border=S.split('static NSString *ADProductScrollVideoBorderJS7405(void){',1)[1].split('static NSString *ADPDPCompletionJS7405',1)[0]
 twb=S.split('static NSString *ADPDPCompletionTWBJS7405(void){',1)[1].split('// One immutable document-start program',1)[0]
@@ -50,8 +50,8 @@ assert 'ADProductScrollVideoBorderJS7405()' in core and 'ADPDPCompletionJS7405()
 for bad in ('new MutationObserver(', 'setInterval(', 'requestAnimationFrame(', "addEventListener('scroll'"):
     assert bad not in video_border and bad not in block and bad not in twb, bad
 # Release probes regenerated.
-assert 'VER=7.424' in UI
-assert 'AD_PROBE_VERSION=7.424' in SK and 'AD_PROBE_NAME=AmazonDark-v7.424' in SK
-assert 'AMAZONDARK v7.424 UNIVERSAL' in INC and 'AmazonDark-v7.424-ui-viewport.arm' in INC
-assert "version:'7.424'" in JS
+assert 'VER=7.426' in UI
+assert 'AD_PROBE_VERSION=7.426' in SK and 'AD_PROBE_NAME=AmazonDark-v7.426' in SK
+assert 'AMAZONDARK v7.426 UNIVERSAL' in INC and 'AmazonDark-v7.426-ui-viewport.arm' in INC
+assert "version:'7.426'" in JS
 print('PASS: inherited v7.405 PDP completion remains probe-backed PDP floors/text/controls/media/share/pagination/top-ad treatment and regenerates all probes')

@@ -1,0 +1,9 @@
+AmazonDark v7.425 — SWV video taming
+Base: exact delivered v7.424 archive; SHA256 in SOURCE-BASELINE.json.
+Probe: v7.424 FULL 20260918-233537-180-r1.
+Video: .swv-container _videoLink_x4voi_ > _videoOverlay_x4voi_, transparent 414x232.9 overlay above playing video. Existing configurable shade now applies here. Controls are separate and untouched.
+Chapters: _navigationWrapper_1qmu7_ > _container_avw36_._Horizontal_avw36_, 414x48, rgba(245,245,245,.78). Extend existing #4a4f51 chapter-background rule to this renderer. Preserve labels, three button elements, authored progress-fill widths/backgrounds, separators and interaction.
+Production delta: only two selector additions to ADTWBJS. No new format parameters, runtime traversal, hooks, timers, observers or script injection.
+Validation: 101 Python regression scripts pass. Historical golden checks reverse only the two approved additions before comparison. Generated ADTWBJS executed in Node at strengths 0,45,100; exact overlay shade and chapter background verified. Logos lint and shell syntax pass.
+Unavailable: clang linkage test, Theos/iOS SDK and device rendering. Build/install and visual confirmation pending.
+FULL, VIEWPORT and TRANSITION identities updated to v7.425.

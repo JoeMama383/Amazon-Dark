@@ -1,9 +1,12 @@
 {
-  "version": "7.424~native-header-oled-fix",
-  "direct_parent": "7.423~cart-message-banner-fix",
-  "source_archive": "AmazonDark-v7.423-cart-message-banner-fix-source.zip",
-  "source_sha256": "2e6712f05a73d908ecfd1cff02e0de8175f2186f48f316b9be1b892f84ce703d",
-  "probe": "AmazonDark-v7.423-ui-full-probe-20260918-211716-343-r1.txt",
-  "runtime_contract": "Exact ANXTopNavBackgroundView decoration suppression on mount/layout; no content sibling changes.",
+  "version": "7.426~pdp-oled-attach-sheet-fix",
+  "direct_parent": "7.425~swv-video-taming",
+  "source_archive": "AmazonDark-v7.425-swv-video-taming-source.zip",
+  "source_sha256": "bbf2818cc61eba0ce9550a1d7ca44e1adbcab8262c2bf30dfef7602013e3d808",
+  "probes": [
+    "v7.424 FULL r2 PDP",
+    "v7.424 FULL r4 attach sheet"
+  ],
+  "runtime_delta": "Scoped PDP and accessory-sheet CSS, media brightness leaf selectors, exact native AXF action-bar lifecycle ownership.",
   "device_validation": "Pending"
 }
