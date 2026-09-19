@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.426 — PDP OLED and accessory sheet fixes
+ * AmazonDark v7.427 — native AI results OLED
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,11 +28,12 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.426-pdp-oled-attach-sheet-fix"
+#define AD_VERSION "v7.427-native-ai-results-oled"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
 @interface RNSVGSvgView : UIView @end
+@interface RNSVGRenderable : UIView @end
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
@@ -8615,6 +8616,129 @@ static int ADReactSurface7226(UIView *v){
     } @catch(...) {}
     return ADReactSurfaceNone7226;
 }
+// v7.427 FULL r1: the AI results screen is native, not a WK product page.
+// root-container alone is not unique: require its shallow cardboard header marker.
+static UIView *ADAlexaResultsRoot7427(UIView *v){
+    UIView *n=v;
+    for(int depth=0;n&&depth<40;depth++,n=n.superview){
+            if(![n.accessibilityIdentifier isEqualToString:@"root-container"])continue;
+            NSUInteger seen=0;
+            for(UIView *section in n.subviews){
+                if(++seen>24)return nil;
+                for(UIView *wrapper in section.subviews){
+                    if(++seen>24)return nil;
+                    for(UIView *leaf in wrapper.subviews){
+                        if(++seen>24)return nil;
+                        if([leaf.accessibilityIdentifier isEqualToString:@"cardboard-background"])return n;
+                    }
+                }
+            }
+            return nil;
+    }
+    return nil;
+}
+static BOOL ADAlexaResultsHasChild7427(UIView *v,const char *cls,NSString *aid){
+    for(UIView *c in v.subviews){
+        if(cls&&ADClassNameIs7183(c,cls))return YES;
+        if(aid&&[c.accessibilityIdentifier isEqualToString:aid])return YES;
+    }
+    return NO;
+}
+static const void *kADAlexaResultsButton7427=&kADAlexaResultsButton7427;
+static BOOL ADAlexaResultsNeutral7427(UIColor *c){
+    CGFloat r=0,g=0,b=0,a=0;
+    if(!c||![c getRed:&r green:&g blue:&b alpha:&a])return NO;
+    return a>0.005&&MAX(r,MAX(g,b))-MIN(r,MIN(g,b))<0.16;
+}
+static UIColor *ADAlexaResultsFill7427(UIView *v,UIColor *incoming){
+    if(!ADAlexaResultsRoot7427(v))return nil;
+    if([v.accessibilityIdentifier isEqualToString:@"cardboard-background"])return ADOLED();
+    // The translucent image wash must stay transparent; an OLED overlay hides art.
+    if(ADAlexaResultsHasChild7427(v.superview,"RCTImageView",nil)&&!ADAlexaResultsHasChild7427(v,"RCTImageView",nil))return UIColor.clearColor;
+    if(ADAlexaResultsHasChild7427(v.superview,NULL,@"back-button")&&ADAlexaResultsHasChild7427(v,"RCTTextView",nil))return ADMenuButtonFill7255();
+    if(ADAlexaResultsHasChild7427(v.superview,"RCTMultilineTextInputView",nil))return ADOLED();
+    CGFloat r=0,g=0,b=0,a=0;
+    BOOL yellow=incoming&&[incoming getRed:&r green:&g blue:&b alpha:&a]&&a>0.1&&r>0.9&&g>0.65&&b<0.35;
+    BOOL label=ADAlexaResultsHasChild7427(v,"RCTTextView",nil);
+    if(label&&(yellow||objc_getAssociatedObject(v,kADAlexaResultsButton7427))){
+        objc_setAssociatedObject(v,kADAlexaResultsButton7427,@YES,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        return ADOLED();
+    }
+    if(ADAlexaResultsNeutral7427(incoming))return ADOLED();
+    return nil;
+}
+static void ADAlexaResultsOwnView7427(UIView *v){
+    if(!gP.enabled||!v||!ADAlexaResultsRoot7427(v))return;
+    UIColor *fill=ADAlexaResultsFill7427(v,v.backgroundColor);
+    if(fill)ADSetViewBackground7226(v,fill,YES);
+    if([v.accessibilityIdentifier isEqualToString:@"cardboard-background"]){
+        // Only the three decorative stripe/gradient stacks, never header controls.
+        for(UIView *decoration in v.subviews)decoration.hidden=YES;
+    }
+    BOOL search=ADAlexaResultsHasChild7427(v.superview,NULL,@"back-button")&&ADAlexaResultsHasChild7427(v,"RCTTextView",nil);
+    BOOL input=ADAlexaResultsHasChild7427(v.superview,"RCTMultilineTextInputView",nil)&&ADClassNameIs7183(v,"RCTView");
+    BOOL button=objc_getAssociatedObject(v,kADAlexaResultsButton7427)!=nil;
+    if(search||input||button||ADPersonRCTBorderWidth7208(v)>0){
+        UIColor *edge=(search||input||button)?ADMenuButtonBorder7255():ADBorderGray706();
+        ADMenuSetSingleRCTBorder7258(v,1.0,edge);
+        v.layer.shadowOpacity=0;
+    }
+}
+static void ADAlexaResultsOwnText7427(UIView *v){
+    if(!gP.enabled||!ADAlexaResultsRoot7427(v))return;
+    ADMenuLightStorage7255(ADPersonTextStorage7206(v));
+}
+// Read only solid UIColor brushes. Gradient/painter references (Alexa/ratings)
+// and authored saturated colors never enter the neutral-text conversion.
+static id ADAlexaResultsBrush7427(UIView *v,id brush){
+    if(!gP.enabled||!brush||!ADAlexaResultsRoot7427(v))return brush;
+    @try {
+        if(![NSStringFromClass([brush class]) isEqualToString:@"RNSVGSolidColorBrush"])return brush;
+        id color=[brush valueForKey:@"color"];
+        if(![color isKindOfClass:UIColor.class]||!ADMenuDarkNeutral7255(color))return brush;
+        Class c=[brush class];SEL init=sel_registerName("initWithColor:");
+        if(![c instancesRespondToSelector:init])return brush;
+        return ((id(*)(id,SEL,id))objc_msgSend)([c alloc],init,ADLightText706());
+    } @catch(...) {return brush;}
+}
+static BOOL ADAlexaResultsFooterVector7427(UIView *svg){
+    UIView *root=ADAlexaResultsRoot7427(svg);if(!root||root.subviews.count!=3)return NO;
+    UIView *footer=root.subviews.lastObject;
+    return [svg isDescendantOfView:footer]&&svg.bounds.size.width>=root.bounds.size.width*0.9&&svg.bounds.size.height<=80;
+}
+static void ADAlexaResultsOwnVector7427(UIView *svg){
+    if(!gP.enabled||!ADAlexaResultsRoot7427(svg))return;
+    if(ADAlexaResultsFooterVector7427(svg)){
+        // Decorative blue/white fade underneath Ask anything; retain input siblings.
+        svg.hidden=YES;
+        ADSetViewBackground7226(svg.superview,ADOLED(),YES);
+        return;
+    }
+    @try {
+        NSMutableArray<UIView *> *queue=[NSMutableArray arrayWithObject:svg];NSUInteger i=0;
+        while(i<queue.count&&i<128){
+            UIView *node=queue[i++];
+            for(NSString *key in @[@"fill",@"stroke"]){
+                SEL setter=NSSelectorFromString([key isEqualToString:@"fill"]?@"setFill:":@"setStroke:");
+                if(![node respondsToSelector:setter])continue;
+                id old=[node valueForKey:key],want=ADAlexaResultsBrush7427(node,old);
+                if(want!=old)[node setValue:want forKey:key];
+            }
+            if(queue.count+node.subviews.count<=128)[queue addObjectsFromArray:node.subviews];
+        }
+    } @catch(...) {}
+}
+%hook RNSVGRenderable
+- (void)setFill:(id)brush {
+    id paint=ADAlexaResultsBrush7427((UIView *)self,brush);
+    %orig(paint);
+}
+- (void)setStroke:(id)brush {
+    id paint=ADAlexaResultsBrush7427((UIView *)self,brush);
+    %orig(paint);
+}
+%end
+
 // v7.426: native PDP action bar from FULL r2; never classify unrelated RN buttons.
 static BOOL ADInPDPActionBar7426(UIView *v){
     UIView *n=v;
@@ -8649,6 +8773,7 @@ static void ADPDPActionBarOwn7426(UIView *v){
 static void ADOwnReactView7226(UIView *v){
     if(!gP.enabled||!v||!v.window)return;
     @try {
+        if(ADAlexaResultsRoot7427(v)){ ADAlexaResultsOwnView7427(v); return; }
         if(ADInPDPActionBar7426(v)){ ADPDPActionBarOwn7426(v); return; }
         ADAlexaOwnReactControl7285(v);
         if(ADLocationCard7416(v)||ADInLocationCanonical7416(v)){
@@ -8711,6 +8836,11 @@ static void ADOwnReactView7226(UIView *v){
         return;
     }
     UIView *v=(UIView *)self;
+    if(gP.enabled&&ADAlexaResultsRoot7427(v)){
+        UIColor *paint=ADAlexaResultsFill7427(v,color)?:color;
+        %orig(paint);
+        return;
+    }
     if(gP.enabled&&ADInPDPActionBar7426(v)){
         UIColor *paint=ADOLED();
         %orig(paint);
@@ -9010,15 +9140,17 @@ static void ADAlexaOwnVector7285(UIView *svg){
     %orig;
     ADAlexaOwnVector7285((UIView *)self);
     ADPaymentOwnVector7401((UIView *)self);
+    ADAlexaResultsOwnVector7427((UIView *)self);
 }
 - (void)didMoveToSuperview {
     %orig;
-    if(((UIView *)self).window){ ADAlexaOwnVector7285((UIView *)self); ADPaymentOwnVector7401((UIView *)self); }
+    if(((UIView *)self).window){ ADAlexaOwnVector7285((UIView *)self); ADPaymentOwnVector7401((UIView *)self); ADAlexaResultsOwnVector7427((UIView *)self); }
 }
 - (void)layoutSubviews {
     %orig;
     ADAlexaOwnVector7285((UIView *)self);
     ADPaymentOwnVector7401((UIView *)self);
+    ADAlexaResultsOwnVector7427((UIView *)self);
 }
 %end
 
@@ -9039,6 +9171,7 @@ static void ADAlexaOwnVector7285(UIView *svg){
 
 static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOOL includeBuyAgain){
     if(!gP.enabled)return NO;
+    if(ADAlexaResultsRoot7427(v)){ ADMenuLightStorage7255(textStorage); return YES; }
     if(ADInPDPActionBar7426(v)){ ADMenuLightStorage7255(textStorage); return YES; }
     // v7.411 exact button owner: ancestry is enough even before window/sheet hydration.
     if(ADPermissionButtonText7409(v)){ ADPermissionTextStorage7409(v,textStorage); return YES; }
@@ -9065,6 +9198,7 @@ static BOOL ADThemeReactTextStorage7271(UIView *v,NSTextStorage *textStorage,BOO
 }
 static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     if(!gP.enabled||!v.window)return;
+    if(ADAlexaResultsRoot7427(v)){ ADAlexaResultsOwnText7427(v); return; }
     if(ADInPDPActionBar7426(v)){ ADMenuLightStorage7255(ADPersonTextStorage7206(v)); return; }
     if(ADInLocationCanonical7416(v)){ ADLocationSheetOwnText7196(v); return; }
     if(ADPermissionButtonText7409(v)){ ADPermissionOwnText7408(v); return; }
@@ -9144,11 +9278,14 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
 // and runs only when React itself commits text; there is no timer or recurring scan.
 - (void)setTextStorage:(NSTextStorage *)textStorage contentFrame:(CGRect)contentFrame descendantViews:(NSArray *)descendantViews {
     UIView *v=(UIView *)self;
+    BOOL alexaResults=gP.enabled&&ADAlexaResultsRoot7427(v);
+    if(alexaResults)ADMenuLightStorage7255(textStorage);
     BOOL actionBar=gP.enabled&&ADInPDPActionBar7426(v);
     if(actionBar)ADMenuLightStorage7255(textStorage);
     BOOL location=gP.enabled&&ADInLocationCanonical7416(v);
     if(location&&textStorage.length)ADLocationSheetLightStorage7196(v,textStorage);
     %orig(textStorage,contentFrame,descendantViews);
+    if(alexaResults)ADAlexaResultsOwnText7427(v);
     if(actionBar)ADMenuLightStorage7255(ADPersonTextStorage7206(v));
     if(location&&v.window)ADLocationSheetOwnText7196(v);
 }
@@ -9175,6 +9312,7 @@ static void ADOwnReactText7271(UIView *v,BOOL includeBuyAgain){
     UIView *v=(UIView *)self;
     if(gP.enabled&&v.window){
         NSTextStorage *ts=ADPersonTextStorage7206(v);
+        if(ADAlexaResultsRoot7427(v)&&ts)ADMenuLightStorage7255(ts);
         if(ADInPDPActionBar7426(v)&&ts)ADMenuLightStorage7255(ts);
         if(ADInLocationCanonical7416(v)){ if(ts)ADLocationSheetLightStorage7196(v,ts); }
         else if(ADPermissionButtonText7409(v)){ if(ts)ADPermissionTextStorage7409(v,ts); }

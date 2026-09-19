@@ -4,8 +4,8 @@ S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 
-assert 'Version: 7.426~pdp-oled-attach-sheet-fix' in C
-assert '#define AD_VERSION "v7.426-pdp-oled-attach-sheet-fix"' in S
+assert 'Version: 7.427~native-ai-results-oled' in C
+assert '#define AD_VERSION "v7.427-native-ai-results-oled"' in S
 
 # New FULL capture: collapsed BYG add circle is correct except for Amazon's retained focus outline.
 sel="#checkoutDisplayPage .checkout-byg-mobile-container button[name='submit.addToCart']"

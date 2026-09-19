@@ -1,11 +1,17 @@
-# AmazonDark v7.426 — PDP OLED and accessory sheet fixes
+# AmazonDark v7.427 — native Alexa AI results
 
-Based on the exact delivered v7.425 archive; all previous Cart, Medical Care, native header and SWV video fixes are retained.
+Exact parent: the delivered v7.426 source archive. Previous PDP, Cart, Medical Care and video fixes are retained.
 
-This release targets the supplied product-page FULL r2 and add-to-cart accessory-sheet FULL r4 probes. Structural PDP containers become OLED; neutral headings, brand links and secondary text become white. Semantic colors, Prime and rating artwork remain excluded. Rufus pill interiors become transparent over their gray controls; the review expander fade is removed. The location pin and report flag are whitened at their image leaves.
+The supplied v7.426 FULL r1 contains a native React Native results screen and zero on-screen webviews. This release owns only a root-container with its shallow cardboard-background header marker. It does not add web CSS.
 
-The accessory sheet outside #dp gets its own OLED floors, gray controls and light text. The native AXF action bar gets an exact owner for its black button/backing and gray button edge. Existing text-storage commit/draw paths keep its neutral label light. No timers or document-wide runtime scans are added.
+Changes:
+- Flat OLED header; suppress only its three decorative stripe/gradient stacks.
+- Search bar uses the existing gray control fill, gray border, light neutral text and neutral-light SVG search/back icons.
+- White card floors and neutral floors become OLED. Product image wash overlays remain transparent so artwork stays visible.
+- Yellow Add to cart controls become OLED with light text and standard gray borders. Ask anything gets OLED fill and a gray border; its decorative blue-white footer fade is suppressed.
+- Existing neutral text conversion runs at React text commit and final draw, preserving saturated semantic runs.
+- Solid neutral SVG brushes become light. Gradient brushes and saturated fills/strokes remain authored, including Alexa, Prime, stars and blue chevrons.
 
-Existing configurable media brightness now also covers the observed product/review video thumbnails, multi-brand video leaves, inline product ad images and accessory-sheet images. Image visibility, loading and source attributes are not changed. Undecoded lazy review thumbnails need device verification; this release does not claim to repair a missing image download. Cross-origin ad interiors were absent from the probes, so their existing child stylesheet plus the neutral-color refinement also need device verification.
+Validation: 105 available regression checks passed (104 existing/handoff scripts plus the new native fixture test), Logos lint passed, probe shell syntax passed. A topology fixture verifies all 429 initial AI results nodes are owned and unrelated roots are rejected; compiled neutral-palette checks preserve representative semantic colors. No iOS SDK/Theos build or on-device rendering was available here.
 
-Validation: 103 Python checks passed, Logos lint passed, probe shell syntax passed, generated JavaScript executed for main/child contexts and brightness 0/45/100. iOS build/link and device rendering were not available here. See VALIDATION-v7.426.md and COMMANDS.md.
+Probes are versioned to v7.427. Capture behavior is unchanged. The supplied v7.426 probe reached the native scroll edge in 10 steps and restored the original offset. See COMMANDS.md for separate workflows.

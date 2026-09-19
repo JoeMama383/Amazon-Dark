@@ -5,8 +5,8 @@ S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text(
 UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text(); JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 F=json.loads((ROOT/'tests/fixtures/v7421-byg-carousel-theme-restore.json').read_text())
-assert 'Version: 7.426~pdp-oled-attach-sheet-fix' in C
-assert '#define AD_VERSION "v7.426-pdp-oled-attach-sheet-fix"' in S
+assert 'Version: 7.427~native-ai-results-oled' in C
+assert '#define AD_VERSION "v7.427-native-ai-results-oled"' in S
 # Probe evidence for the alternate BYG renderer.
 assert 'speed-byg-sf-mobile-carousel_style_carouselContainer' in F['carousel_class']
 assert F['carousel_background']=='rgb(255, 255, 255)'
@@ -30,7 +30,7 @@ assert '[class*=_denseGridAxSpotAtcOverlay_]' in S
 delta=S.split('static NSString *ADCheckoutFloorJS7369(void){',1)[1].split('static NSString *ADCheckoutTWBJS7369',1)[0]
 for bad in ('new MutationObserver(', 'setInterval(', 'requestAnimationFrame('): assert bad not in delta,bad
 # Probe identities current.
-assert 'VER=7.426' in UI and 'AD_PROBE_VERSION=7.426' in SK and 'AD_PROBE_NAME=AmazonDark-v7.426' in SK
-assert 'AMAZONDARK v7.426 UNIVERSAL' in INC and 'AmazonDark-v7.426-ui-viewport.arm' in INC and "version:'7.426'" in JS
-assert 'in 7.426~*)' in SK and 'Install the v7.426 Actions package first.' in SK
-print('PASS: v7.426 restores the speed-BYG carousel shell and semantic gray/white add-to-cart controls while retaining the old dense-grid path')
+assert 'VER=7.427' in UI and 'AD_PROBE_VERSION=7.427' in SK and 'AD_PROBE_NAME=AmazonDark-v7.427' in SK
+assert 'AMAZONDARK v7.427 UNIVERSAL' in INC and 'AmazonDark-v7.427-ui-viewport.arm' in INC and "version:'7.427'" in JS
+assert 'in 7.427~*)' in SK and 'Install the v7.427 Actions package first.' in SK
+print('PASS: v7.427 restores the speed-BYG carousel shell and semantic gray/white add-to-cart controls while retaining the old dense-grid path')

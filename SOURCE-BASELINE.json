@@ -1,12 +1,9 @@
 {
-  "version": "7.426~pdp-oled-attach-sheet-fix",
-  "direct_parent": "7.425~swv-video-taming",
-  "source_archive": "AmazonDark-v7.425-swv-video-taming-source.zip",
-  "source_sha256": "bbf2818cc61eba0ce9550a1d7ca44e1adbcab8262c2bf30dfef7602013e3d808",
-  "probes": [
-    "v7.424 FULL r2 PDP",
-    "v7.424 FULL r4 attach sheet"
-  ],
-  "runtime_delta": "Scoped PDP and accessory-sheet CSS, media brightness leaf selectors, exact native AXF action-bar lifecycle ownership.",
+  "version": "7.427~native-ai-results-oled",
+  "direct_parent": "7.426~pdp-oled-attach-sheet-fix",
+  "source_archive": "AmazonDark-v7.426-pdp-oled-attach-sheet-fix-source.zip",
+  "source_sha256": "216d90be24db880a9cba13e52e1f1d3b933c05b935af4675e8dcf1c1e73239cb",
+  "probe": "AmazonDark-v7.426-ui-full-probe-20260919-093424-046-r1.txt",
+  "runtime_delta": "Native AI results ownership: cardboard header, search, product cards, neutral text and SVG brushes, Ask anything. Web theme unchanged.",
   "device_validation": "Pending"
 }

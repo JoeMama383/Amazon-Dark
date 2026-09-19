@@ -1,4 +1,4 @@
-"""Approved v7.426 selector extensions; retain the older TWB golden contract."""
+"""Approved v7.427 selector extensions; retain the older TWB golden contract."""
 def strip_video7425(source):
     assert source.count('#search [class*=_navigationWrapper_8wyx7_] > [class*=_container_avw36_][class*=_Horizontal_avw36_],#search .swv-container [class*=_navigationWrapper_1qmu7_] > [class*=_container_avw36_][class*=_Horizontal_avw36_]{')==1
     source=source.replace('#search [class*=_navigationWrapper_8wyx7_] > [class*=_container_avw36_][class*=_Horizontal_avw36_],#search .swv-container [class*=_navigationWrapper_1qmu7_] > [class*=_container_avw36_][class*=_Horizontal_avw36_]{','#search [class*=_navigationWrapper_8wyx7_] > [class*=_container_avw36_][class*=_Horizontal_avw36_]{')
