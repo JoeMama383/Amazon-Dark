@@ -7,8 +7,8 @@ H=(ROOT/'src/ADSponsored.h').read_text()
 M=(ROOT/'Makefile').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.429~compact-stripe-taming' in C
-assert '#define AD_VERSION "v7.429-compact-stripe-taming"' in S
+assert 'Version: 7.431~pdp-r2-r5-fix' in C
+assert '#define AD_VERSION "v7.431-pdp-r2-r5-fix"' in S
 assert '#import "ADSponsored.h"' in S
 assert '#import "ADSponsored.h"' in A
 assert '#ifdef __cplusplus' in H

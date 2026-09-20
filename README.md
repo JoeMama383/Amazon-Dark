@@ -1,9 +1,15 @@
-# AmazonDark v7.429 — compact stripe banner taming
+# AmazonDark v7.431 — PDP r2-r5 completion
 
-Exact source parent: delivered v7.428. All prior fixes retained.
+Exact parent: v7.430 `native-review-menu`. All earlier fixes are retained.
 
-The supplied v7.427 FULL probe identifies the pictured blue banner as hp-stripe > hp-lucid-wrapper > a.stripe, containing stripe-headline and stripe-media-container/video. The banner and video both have filter:none; video is playing and ready. This is mounted main-document content, not the separate iframe ad above it.
+This build addresses the four outstanding v7.429 FULL r2-r5 screenshot/probe misses without adding a new runtime engine:
 
-The existing menu White Tame Brightness sheet now dims this exact banner family as one unit at the configured strength. Its image/video/canvas children have their own filter/opacity reset to prevent compounded dimming. Colors, playback, links, dimensions and layout remain intact. The same existing preference-refresh and cleanup paths apply. No additional scripts, observers, timers or capture changes.
+- **Sponsored hero video ad:** themes the exact `universal-hero-quick-promo` / APE shell and lets neutral structural wrappers inside PDP ad frames inherit the OLED body, while leaving video/photo media under existing TWB handling.
+- **Product image gallery:** catches the actual AUI expander heading/prompt family so the header renders light instead of dark-on-black.
+- **Yellow / Blue inline swatches:** forces the live `image-swatch-button sml-image-swatch-button` floors to OLED black while leaving selected-outline ownership intact.
+- **$59.97 ad / related product family:** themes the exact lower `btf2` APE placement and keeps neutral sponsored-carousel prices light without overriding authored `.a-color-price` colors.
+- **Similar brands on Amazon:** changes the exact multi-brand video card/container edges to AmazonDark's standard `#494d4d` gray without changing the video/image treatment.
 
-FULL/VIEWPORT/TRANSITION identities advance to v7.429. No device rendering or iOS compilation is claimed. See VALIDATION-v7.429.md and COMMANDS.md.
+The fix remains event/document-injection based. No new MutationObserver, timer, RAF loop, web scroll listener, or recurring hierarchy sweep is added. FULL, VIEWPORT, and TRANSITION probe identities advance to v7.431.
+
+See `AUDIT-v7.431.md`, `VALIDATION-v7.431.md`, and `COMMANDS.md`.

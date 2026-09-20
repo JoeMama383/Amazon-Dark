@@ -6,8 +6,8 @@ UI=(ROOT/'scripts/ui-probe.sh').read_text()
 SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
-assert 'Version: 7.429~compact-stripe-taming' in C
-assert '#define AD_VERSION "v7.429-compact-stripe-taming"' in S
+assert 'Version: 7.431~pdp-r2-r5-fix' in C
+assert '#define AD_VERSION "v7.431-pdp-r2-r5-fix"' in S
 block=S.split('static NSString *ADProductScrollPolishJS7404(void){',1)[1].split('// One immutable document-start program',1)[0]
 # VIDEO_SINGLE_PRODUCT: keep the outer card as the only border and clear only the nested product-detail frame.
 assert '#search#search .sbv-video-single-product.sb-video-creative .sbv-product-container .puis-card-container.mobile-video-product-view.puis-card-border' in block
@@ -29,8 +29,8 @@ assert 'ADProductScrollPolishJS7404()' in core
 for bad in ('new MutationObserver(', 'setInterval(', 'requestAnimationFrame(', "addEventListener(\'scroll\'"):
     assert bad not in block, bad
 # All probe identities are regenerated for this release.
-assert 'VER=7.429' in UI
-assert 'AD_PROBE_VERSION=7.429' in SK and 'AD_PROBE_NAME=AmazonDark-v7.429' in SK
-assert 'AMAZONDARK v7.429 UNIVERSAL' in INC and 'AmazonDark-v7.429-ui-viewport.arm' in INC
-assert "version:'7.429'" in JS
+assert 'VER=7.431' in UI
+assert 'AD_PROBE_VERSION=7.431' in SK and 'AD_PROBE_NAME=AmazonDark-v7.431' in SK
+assert 'AMAZONDARK v7.431 UNIVERSAL' in INC and 'AmazonDark-v7.431-ui-viewport.arm' in INC
+assert "version:'7.431'" in JS
 print('PASS: v7.404 leaves one VIDEO_SINGLE_PRODUCT outer border, restyles exact Alexa cue to AmazonDark control palette, preserves Alexa artwork, and regenerates probes')

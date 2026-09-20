@@ -1,9 +1,14 @@
 {
-  "version": "7.429~compact-stripe-taming",
-  "direct_parent": "7.428~pdp-media-native-icon-fix",
-  "source_archive": "AmazonDark-v7.428-pdp-media-native-icon-fix-source.zip",
-  "source_sha256": "42d83512f05ae761f4ac6fcc18669b601cd79bb46967ac890a8c398f4c215858",
-  "probe": "AmazonDark-v7.427-ui-full-probe-20260919-130604-194-r1.txt",
-  "runtime_delta": "Existing menu TWB sheet adds exact hp-stripe banner root brightness and resets leaf media brightness to prevent double dimming.",
-  "device_validation": "Pending"
+  "version": "7.431~pdp-r2-r5-fix",
+  "direct_parent": "7.430~native-review-menu",
+  "source_archive": "AmazonDark-v7.430-native-review-menu-source.zip",
+  "source_sha256": "ed7fd2521f588735c10391ed7a3860b9bd00b5dd01e77d2ebc4f4172478c96d9",
+  "probes": [
+    "AmazonDark-v7.429-ui-full-probe-20260919-143208-818-r2.txt",
+    "AmazonDark-v7.429-ui-full-probe-20260919-143324-763-r3.txt",
+    "AmazonDark-v7.429-ui-full-probe-20260919-143419-357-r4.txt",
+    "AmazonDark-v7.429-ui-full-probe-20260919-143457-007-r5.txt"
+  ],
+  "runtime_delta": "Probe-backed PDP selector completion: hero/BTf2 APE ad surfaces, Product image gallery expander text, OLED inline image swatches, neutral sponsored prices, and standard-gray Similar Brands video card edges.",
+  "device_validation": "Pending v7.431 install"
 }

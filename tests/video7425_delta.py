@@ -1,6 +1,6 @@
-"""Approved v7.429 selector extensions; retain the older TWB golden contract."""
+"""Approved v7.430 selector extensions; retain the older TWB golden contract."""
 def strip_video7425(source):
-    # v7.429 compact stripe delta: preserve the historical golden elsewhere.
+    # v7.430 compact stripe delta: preserve the historical golden elsewhere.
     prefix='#a-page hp-stripe hp-lucid-wrapper > a.stripe,'
     reset='#a-page hp-stripe hp-lucid-wrapper > a.stripe :is(img,video,canvas){filter:none!important;-webkit-filter:none!important;opacity:1!important;mix-blend-mode:normal!important;}'
     assert source.count(prefix)==1 and source.count(reset)==1
