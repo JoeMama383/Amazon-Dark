@@ -1,57 +1,54 @@
-# AmazonDark v7.433 commands
+# AmazonDark v7.435 commands
 
-## PUSH
+## Push
 
-```zsh
-cd /var/mobile/Amazon-Dark-phone &&
-D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents &&
-mkdir -p /var/mobile/t7433 &&
-unzip -oq "$D/AmazonDark-v7.433-universal-crossframe-probe-source.zip" -d /var/mobile/t7433 &&
-cp -a /var/mobile/t7433/AmazonDark-v7.433-universal-crossframe-probe-source/. . &&
-chmod 755 layout/DEBIAN/postinst &&
-sh scripts/validate.sh &&
-git add -A &&
-git commit -m "v7.433: expand universal UI probe across SafeFrames" &&
+```sh
+cd /var/mobile/Amazon-Dark-phone
+D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents
+rm -rf /var/mobile/t7435
+mkdir -p /var/mobile/t7435
+unzip -oq "$D/AmazonDark-v7.435-probe-backed-pdp-search-fixes-source.zip" -d /var/mobile/t7435
+cp -a /var/mobile/t7435/AmazonDark-v7.435-probe-backed-pdp-search-fixes-source/. .
+chmod 755 layout/DEBIAN/postinst
+sh scripts/validate.sh
+git add -A
+git commit -m "v7.435: fix probe-backed PDP and search surfaces"
 git push origin main
 ```
 
-## FULL — TRIGGER
+## FULL
 
-Leave the exact target visible and take an iOS screenshot. FULL now captures the main Web document, every injected child/SafeFrame document, and the native hierarchy, then performs the existing finite Web/native sweeps.
+Take an iOS screenshot on the target screen, wait for the finite sweep, then:
 
-## FULL — EXPORT
-
-```zsh
+```sh
 cd /var/mobile/Amazon-Dark-phone
 sh scripts/ui-probe.sh export
 ```
 
-## VIEWPORT — ARM
+## VIEWPORT
 
-```zsh
+```sh
 cd /var/mobile/Amazon-Dark-phone
 sh scripts/ui-probe.sh arm
 ```
 
-VIEWPORT now includes visible child/SafeFrame DOM paint state in addition to main-frame Web and native UI.
+Then export:
 
-## VIEWPORT — EXPORT
-
-```zsh
+```sh
 cd /var/mobile/Amazon-Dark-phone
 sh scripts/ui-probe.sh export
 ```
 
-## TRANSITION — ARM
+## TRANSITION
 
-```zsh
+```sh
 cd /var/mobile/Amazon-Dark-phone
 sh scripts/skeleton-probe.sh arm transition
 ```
 
-## TRANSITION — EXPORT
+After reproducing:
 
-```zsh
+```sh
 cd /var/mobile/Amazon-Dark-phone
 sh scripts/skeleton-probe.sh export
 ```

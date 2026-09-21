@@ -13,7 +13,8 @@ def digest(s):return hashlib.sha256(s.encode()).hexdigest()
 # verifying the older v7.386/v7.387 golden programs.
 from cart7423_delta import strip_cart7423, strip_byg7423
 from video7425_delta import strip_video7425
-S_golden=strip_video7425(strip_byg7423(strip_cart7423(S)))
+from search7435_delta import strip_search7435
+S_golden=strip_search7435(strip_video7425(strip_byg7423(strip_cart7423(S))))
 # v7.424 broadens only the BYG renderer ownership. Normalize those exact approved
 # checkout-floor deltas back to v7.420 before comparing the v7.386 semantic golden.
 S_golden=S_golden.replace(
@@ -68,9 +69,9 @@ assert digest(json.dumps(rules,separators=(',',':')))==golden['sponsored_rules_s
 for name,h in golden['probe_sha256'].items():
     data=(ROOT/'src'/name).read_bytes()
     if name=='ADUniversalUIProbe7362.js.inc':
-        # v7.433 intentionally expands the universal UI probe with cross-frame dispatch
+        # v7.435 intentionally expands the universal UI probe with cross-frame dispatch
         # and paint-risk metadata; the production theming programs remain golden-locked.
-        assert hashlib.sha256(data).hexdigest()=='95c9a09c5a8e755575e7b63fee28f5117d10c65410ec5e09a8e6a68eb31a214c'
+        assert hashlib.sha256(data.replace(b"7.435",b"7.433")).hexdigest()=='95c9a09c5a8e755575e7b63fee28f5117d10c65410ec5e09a8e6a68eb31a214c'
         continue
     assert hashlib.sha256(data).hexdigest()==h, name
 assert 'ADHomeFrameProbeBridgeJS7265' not in S and '__adHomeProbeReq7265' not in S

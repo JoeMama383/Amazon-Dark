@@ -4,12 +4,13 @@ import hashlib,re,subprocess,tempfile
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 CTRL=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.433~universal-crossframe-probe' in CTRL
-assert '#define AD_VERSION "v7.433-universal-crossframe-probe"' in S
+assert 'Version: 7.435~probe-backed-pdp-search-fixes' in CTRL
+assert '#define AD_VERSION "v7.435-probe-backed-pdp-search-fixes"' in S
 
 from cart7423_delta import strip_cart7423
 from video7425_delta import strip_video7425
-S=strip_video7425(strip_cart7423(S))
+from search7435_delta import strip_search7435
+S=strip_search7435(strip_video7425(strip_cart7423(S)))
 
 def func(name):
     st=S.index(f'static NSString *{name}')

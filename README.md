@@ -1,17 +1,16 @@
-# AmazonDark v7.433 — universal cross-frame UI probe
+# AmazonDark v7.435 — probe-backed PDP/search fixes
 
-Exact parent: v7.432 `pdp-safeframe-ad-fix`. All v7.432 theming is retained unchanged; this build expands the diagnostic architecture so the next UI fix can be based on the actual inner renderer rather than inferred iframe ownership.
+Exact parent: v7.433 `universal-crossframe-probe`.
 
-## What changed
+This build uses the v7.433 FULL/VIEWPORT evidence to correct the remaining PDP and Search renderer failures without adding a new runtime engine.
 
-- **Cross-origin SafeFrames are now inspectable.** A dormant document-start bridge is injected into every Web document frame. On an explicit FULL or VIEWPORT trigger, each child frame inspects its own DOM/computed paint and returns sanitized technical results to native code. This avoids the browser security boundary that prevents the main frame from reading `iframe.contentDocument` across origins.
-- **FULL and VIEWPORT remain universal.** Main-frame Web DOM, child/SafeFrame DOM, shadow roots, UIKit/React views, media metadata, scroll geometry, technical classes/IDs/test IDs, backgrounds, borders, text foreground/fill colors, filters, and pseudo-elements are included.
-- **Contrast diagnostics.** Text-bearing Web nodes now include an effective-background/foreground luminance diagnostic and a `dark-on-dark`, `light-on-light`, `contrast-ok`, or `unknown` paint-risk classification. This is specifically intended to expose invisible text over OLED floors.
-- **Privacy remains intact.** Visible text is not recorded; only length and FNV hash are kept. URL/src/href values are not recorded. Child-frame origin, path, and referrer are hash-only.
-- **No polling architecture.** Normal runtime adds one inert `message` listener per Web document frame. There is no MutationObserver, timer, interval, RAF loop, Web scroll listener, polling loop, or recurring hierarchy scan. Scanning only runs after a screenshot FULL trigger or an armed SIGUSR2 VIEWPORT trigger.
+## Fixes
 
-Because the all-frame bridge is a document-start user script, force-close/reopen Amazon after installing v7.433 before collecting the first probe so every existing SafeFrame is created with the bridge present.
+- PDP standalone sponsored ads: OLED child renderer floors, light neutral text, frameless outer APE shell, and visible white-circle/black-`i` feedback glyph.
+- `Product image gallery`: fixes the actual `.a-truncate` / `.a-truncate-cut` leaves that the probe reports as `dark-on-dark`.
+- `Customers also bought` / multi-product bundle: removes AmazonDark's `brightness(.42)` image filter from the exact p13n bundle product images so loaded images render normally.
+- Safety-documents / lower APE carousel: OLED outer shell, no duplicate/white outer border, child ad renderer dark treatment.
+- Search sponsored result family: OLED inner containers, no white vertical rails, white neutral copy.
+- Search `Shop by brand`: tame the large brand-logo tiles with the standard image brightness treatment.
 
-FULL, VIEWPORT, and TRANSITION identities are regenerated to v7.433.
-
-See `AUDIT-v7.433.md`, `VALIDATION-v7.433.md`, and `COMMANDS.md`.
+FULL, VIEWPORT and TRANSITION identities are regenerated to v7.435.

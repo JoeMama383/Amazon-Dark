@@ -3,8 +3,8 @@ import re
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.433~universal-crossframe-probe' in C
-assert '#define AD_VERSION "v7.433-universal-crossframe-probe"' in S
+assert 'Version: 7.435~probe-backed-pdp-search-fixes' in C
+assert '#define AD_VERSION "v7.435-probe-backed-pdp-search-fixes"' in S
 
 # r1: ATC overlay plumbing must stay transparent so it cannot cut across product photos.
 for tok in [

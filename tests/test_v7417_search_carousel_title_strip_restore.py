@@ -1,8 +1,8 @@
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.433~universal-crossframe-probe' in C
-assert '#define AD_VERSION "v7.433-universal-crossframe-probe"' in S
+assert 'Version: 7.435~probe-backed-pdp-search-fixes' in C
+assert '#define AD_VERSION "v7.435-probe-backed-pdp-search-fixes"' in S
 # v7.417 repair retained in v7.418: keep exact old text owner and add narrow structural fallbacks.
 assert '.cards_carousel_widget-sug-container-top .cards_carousel_widget-sug-text{background:#000!important' in S
 for token in [

@@ -1,8 +1,8 @@
 {
-  "version": "7.433~universal-crossframe-probe",
-  "direct_parent": "7.432~pdp-safeframe-ad-fix",
-  "source_archive": "AmazonDark-v7.432-pdp-safeframe-ad-fix-source.zip",
-  "source_sha256": "c3481332ffe076239fbb5340be8059e13184d144b2132454b0f9a87b4a27a4c0",
-  "runtime_delta": "Universal FULL/VIEWPORT probe gains an inert all-frame documentStart bridge so cross-origin SafeFrames self-report sanitized DOM/computed-paint data; no theming changes.",
-  "device_validation": "Pending v7.433 install and cross-frame probe capture"
+  "version": "7.435~probe-backed-pdp-search-fixes",
+  "direct_parent": "7.433~universal-crossframe-probe",
+  "source_archive": "AmazonDark-v7.433-universal-crossframe-probe-source.zip",
+  "source_sha256": "ea950ad801e0ea68c91a68020e9c7f115f5cda55d6b65405084cdb3805968864",
+  "runtime_delta": "Selector-only PDP/Search theming fixes plus v7.435 probe identity bump; no new observer, polling loop, RAF loop, web scroll listener, or recurring hierarchy scan.",
+  "device_validation": "Pending v7.435 install and live visual verification"
 }

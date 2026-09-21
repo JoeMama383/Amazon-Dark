@@ -1,0 +1,22 @@
+# AmazonDark v7.435 validation
+
+- Exact source parent: `7.433~universal-crossframe-probe`.
+- Parent archive SHA256: `ea950ad801e0ea68c91a68020e9c7f115f5cda55d6b65405084cdb3805968864`.
+- Package identity: `7.435~probe-backed-pdp-search-fixes`.
+- FULL / VIEWPORT / TRANSITION probe identities: `7.435`.
+- Python regressions: **117/117 PASS**. 115 completed in the bounded parallel pass; `test_probe_handoff.py` and `test_v7380_features_optimization.py` were rerun individually and both passed.
+- Probe-backed PDP regression: PASS.
+- PDP emitted-JS execution / child-frame isolation regression: PASS.
+- PDP CSS cascade fixture: PASS.
+- v7.431 r2-r5 owner regression: PASS.
+- v7.432 SafeFrame regression: PASS.
+- v7.433 cross-frame universal probe regression: PASS.
+- Historical semantic/optimization golden checks: PASS after stripping the documented intentional v7.435 Search-only delta and normalizing the probe version identity.
+- `scripts/lint-logos.sh`: PASS.
+- `sh -n scripts/ui-probe.sh`: PASS.
+- `sh -n scripts/skeleton-probe.sh`: PASS.
+- `sh -n scripts/validate.sh`: PASS.
+- Main and cross-frame probe JavaScript C-string includes compile under the regression C++98 fixture and parse under Node: PASS.
+- No new MutationObserver, interval/poll loop, RAF loop, Web scroll listener, or recurring hierarchy scan.
+- Full Theos compile/link is not available in this container; GitHub Actions/device build remains compile/link proof.
+- Device visual validation: pending v7.435 install.

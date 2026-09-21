@@ -16,8 +16,8 @@ assert.equal(Object.keys(c.styles).length,1);let css=c.styles['ad7405-pdp-comple
 assert(css.includes('#attach-accessory-card-deck .attach-atc-button{background:#303335'));
 assert(css.includes('#dp#dp .ape-placement{background-color:#000'));
 assert(!css.includes('#dp img{'));
-let unrelated=context(true,'https://www.amazon.com/gp/cart/view.html');vm.runInNewContext(payload.js,unrelated.ctx);assert.equal(Object.keys(unrelated.styles).length,0);
-let child=context(true,'https://www.amazon.com/dp/B012345678');vm.runInNewContext(payload.js,child.ctx);assert(child.styles['ad7405-pdp-child-ad']);assert(!child.styles['ad7405-pdp-completion']);
+let unrelated=context(true,'https://www.amazon.com/gp/cart/view.html');vm.runInNewContext(payload.js,unrelated.ctx);assert.equal(Object.keys(unrelated.styles).length,1);assert(unrelated.styles['ad7435-pdp-child-ad-exact']);assert(!unrelated.styles['ad7405-pdp-child-ad']);
+let child=context(true,'https://www.amazon.com/dp/B012345678');vm.runInNewContext(payload.js,child.ctx);assert.equal(Object.keys(child.styles).length,2);assert(child.styles['ad7435-pdp-child-ad-exact']);assert(child.styles['ad7405-pdp-child-ad']);assert(!child.styles['ad7405-pdp-completion']);
 for(const item of payload.taming){let c=context(false,'');vm.runInNewContext(item.js,c.ctx);vm.runInNewContext(item.js,c.ctx);assert.equal(Object.keys(c.styles).length,1);let css=c.styles['ad7405-pdp-twb'].textContent;assert(css.includes('brightness('+item.factor+')'));assert(!css.includes('trackingPixel'));assert(!css.includes('display:'));assert(!css.includes('visibility:'));}
 '''
 taming=[]

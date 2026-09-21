@@ -10,11 +10,11 @@ CTL=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text()
 SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 
-assert 'Version: 7.433~universal-crossframe-probe' in CTL
-assert '#define AD_VERSION "v7.433-universal-crossframe-probe"' in S
-assert 'VER=7.433' in UI
-assert 'AD_PROBE_VERSION=7.433' in SK and 'AD_PROBE_NAME=AmazonDark-v7.433' in SK
-assert 'AmazonDark-v7.433-ui-viewport.arm' in INC
+assert 'Version: 7.435~probe-backed-pdp-search-fixes' in CTL
+assert '#define AD_VERSION "v7.435-probe-backed-pdp-search-fixes"' in S
+assert 'VER=7.435' in UI
+assert 'AD_PROBE_VERSION=7.435' in SK and 'AD_PROBE_NAME=AmazonDark-v7.435' in SK
+assert 'AmazonDark-v7.435-ui-viewport.arm' in INC
 
 # The bridge must exist before any frame document loads, including cross-origin SafeFrames.
 assert 'ADUIProbeAttach7362(ucc);' in S
@@ -61,4 +61,4 @@ with tempfile.TemporaryDirectory(prefix='ad7433-frame-') as td:
         assert emitted==expected
         subprocess.run(['node','--check'],input=emitted,text=True,check=True)
 
-print('PASS: v7.433 universal FULL/VIEWPORT bridge captures sanitized computed UI state inside cross-origin and nested frames')
+print('PASS: v7.435 universal FULL/VIEWPORT bridge captures sanitized computed UI state inside cross-origin and nested frames')
