@@ -1,14 +1,8 @@
 {
-  "version": "7.432~pdp-safeframe-ad-fix",
-  "direct_parent": "7.431~pdp-r2-r5-fix",
-  "source_archive": "AmazonDark-v7.431-pdp-r2-r5-fix-source.zip",
-  "source_sha256": "2f0bd3fd59769e26d70a171007c8386903c2e48b190a0f336c23dca5f9635bd2",
-  "probes": [
-    "AmazonDark-v7.429-ui-full-probe-20260919-143208-818-r2.txt",
-    "AmazonDark-v7.429-ui-full-probe-20260919-143324-763-r3.txt",
-    "AmazonDark-v7.429-ui-full-probe-20260919-143419-357-r4.txt",
-    "AmazonDark-v7.429-ui-full-probe-20260919-143457-007-r5.txt"
-  ],
-  "runtime_delta": "PDP SafeFrame child ad theming no longer depends on direct PDP referrer; marker-gated OLED floors/light neutral text plus exact mobile ILM iframe backing.",
-  "device_validation": "Pending v7.432 install"
+  "version": "7.433~universal-crossframe-probe",
+  "direct_parent": "7.432~pdp-safeframe-ad-fix",
+  "source_archive": "AmazonDark-v7.432-pdp-safeframe-ad-fix-source.zip",
+  "source_sha256": "c3481332ffe076239fbb5340be8059e13184d144b2132454b0f9a87b4a27a4c0",
+  "runtime_delta": "Universal FULL/VIEWPORT probe gains an inert all-frame documentStart bridge so cross-origin SafeFrames self-report sanitized DOM/computed-paint data; no theming changes.",
+  "device_validation": "Pending v7.433 install and cross-frame probe capture"
 }

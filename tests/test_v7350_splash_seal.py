@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 sb=ROOT/'src/AmazonDarkSB.xm'
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.432~pdp-safeframe-ad-fix' in ctl
-assert '#define AD_VERSION "v7.432-pdp-safeframe-ad-fix"' in t
+assert 'Version: 7.433~universal-crossframe-probe' in ctl
+assert '#define AD_VERSION "v7.433-universal-crossframe-probe"' in t
 for s in [
     'AmazonDarkSplashSeal7350',
     'AmazonDarkSplashSealLogo7350',

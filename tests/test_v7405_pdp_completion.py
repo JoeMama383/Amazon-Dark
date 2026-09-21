@@ -4,8 +4,8 @@ S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text(); JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
-assert 'Version: 7.432~pdp-safeframe-ad-fix' in C
-assert '#define AD_VERSION "v7.432-pdp-safeframe-ad-fix"' in S
+assert 'Version: 7.433~universal-crossframe-probe' in C
+assert '#define AD_VERSION "v7.433-universal-crossframe-probe"' in S
 block=S.split('static NSString *ADPDPCompletionJS7405(void){',1)[1].split('static NSString *ADPDPCompletionTWBJS7405',1)[0]
 video_border=S.split('static NSString *ADProductScrollVideoBorderJS7405(void){',1)[1].split('static NSString *ADPDPCompletionJS7405',1)[0]
 twb=S.split('static NSString *ADPDPCompletionTWBJS7405(void){',1)[1].split('// One immutable document-start program',1)[0]
@@ -45,13 +45,13 @@ for token in ('#horizontalMediaCarousel','img.a-amazon-image','#aplus_feature_di
 assert 'brightness(%.3f)' in twb
 # Core integration has no new slot/family or recurring machinery.
 core=S.split('static NSString *ADCoreWebJS7271(void){',1)[1].split('static WKUserScript *ADSharedUserScript7387',1)[0]
-assert '@"%@%@%@%@%@%@%@%@%@%@%@%@%@"' in core  # v7.432 adds the marker-gated PDP SafeFrame program as the 13th core program
+assert '@"%@%@%@%@%@%@%@%@%@%@%@%@%@"' in core  # v7.433 adds the marker-gated PDP SafeFrame program as the 13th core program
 assert 'ADProductScrollVideoBorderJS7405()' in core and 'ADPDPCompletionJS7405()' in core and 'ADPDPSafeFrameJS7432()' in core and 'ADPDPCompletionTWBJS7405()' in core
 for bad in ('new MutationObserver(', 'setInterval(', 'requestAnimationFrame(', "addEventListener('scroll'"):
     assert bad not in video_border and bad not in block and bad not in twb, bad
 # Release probes regenerated.
-assert 'VER=7.432' in UI
-assert 'AD_PROBE_VERSION=7.432' in SK and 'AD_PROBE_NAME=AmazonDark-v7.432' in SK
-assert 'AMAZONDARK v7.432 UNIVERSAL' in INC and 'AmazonDark-v7.432-ui-viewport.arm' in INC
-assert "version:'7.432'" in JS
+assert 'VER=7.433' in UI
+assert 'AD_PROBE_VERSION=7.433' in SK and 'AD_PROBE_NAME=AmazonDark-v7.433' in SK
+assert 'AMAZONDARK v7.433 UNIVERSAL' in INC and 'AmazonDark-v7.433-ui-viewport.arm' in INC
+assert "version:'7.433'" in JS
 print('PASS: inherited v7.405 PDP completion remains probe-backed PDP floors/text/controls/media/share/pagination/top-ad treatment and regenerates all probes')

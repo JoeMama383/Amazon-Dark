@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.432 — PDP SafeFrame ad completion
+ * AmazonDark v7.433 — universal cross-frame UI probe
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.432-pdp-safeframe-ad-fix"
+#define AD_VERSION "v7.433-universal-crossframe-probe"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -588,6 +588,8 @@ static const void *kADCheckoutBYGHydrateUS7375=&kADCheckoutBYGHydrateUS7375;
 static const void *kADPrivacyUS7117=&kADPrivacyUS7117;
 static const void *kADPrivacyRule7117=&kADPrivacyRule7117;
 static const void *kADTrackedWebView7191=&kADTrackedWebView7191;
+static const void *kADUniversalProbeUS7433=&kADUniversalProbeUS7433;
+static void ADUIProbeAttach7362(WKUserContentController *ucc);
 static NSHashTable *gADWebViews=nil;
 // v7.0.68 production: no diagnostic touch probe is installed.
 
@@ -2435,6 +2437,7 @@ static WKUserScript *ADSharedUserScript7387(NSUInteger slot,NSString *(*source)(
 static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
     if(!ucc || !gP.enabled)return;
     ADSkelAttach7339(ucc); // v7.339 diagnostic integration
+    ADUIProbeAttach7362(ucc); // v7.433 dormant all-frame FULL/VIEWPORT bridge
     @try {
         if(!objc_getAssociatedObject(ucc,kADCoreWebUS7271)){
             WKUserScript *us=ADSharedUserScript7387(0,ADCoreWebJS7271,NO,YES);
@@ -2539,6 +2542,7 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
     objc_setAssociatedObject(self,kADCheckoutTWBUS7369,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADCheckoutBYGHydrateUS7375,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     objc_setAssociatedObject(self,kADPrivacyUS7117,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(self,kADUniversalProbeUS7433,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     if(gP.enabled)ADAttachScriptsToUCC710(self);
 }
 - (void)removeAllContentRuleLists {
@@ -11909,8 +11913,8 @@ static void ADPrefsChanged(CFNotificationCenterRef c,void *o,CFStringRef n,const
 }
 
 
-// v7.362: universal dual UI forensics subsystem.
-// Screenshot = full mounted DOM/native hierarchy. scripts/ui-probe.sh arm = current viewport only.
+// v7.433: universal native/main-Web/cross-frame UI forensics subsystem.
+// Screenshot = FULL finite sweep. scripts/ui-probe.sh arm = current VIEWPORT only.
 #include "ADUniversalUIProbe7362.inc"
 
 // v7.272 optimized keeps the same visual contract/probes while removing alternate owners, dead code and redundant hot-path work.

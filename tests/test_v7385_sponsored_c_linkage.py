@@ -7,8 +7,8 @@ H=(ROOT/'src/ADSponsored.h').read_text()
 M=(ROOT/'Makefile').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.432~pdp-safeframe-ad-fix' in C
-assert '#define AD_VERSION "v7.432-pdp-safeframe-ad-fix"' in S
+assert 'Version: 7.433~universal-crossframe-probe' in C
+assert '#define AD_VERSION "v7.433-universal-crossframe-probe"' in S
 assert '#import "ADSponsored.h"' in S
 assert '#import "ADSponsored.h"' in A
 assert '#ifdef __cplusplus' in H

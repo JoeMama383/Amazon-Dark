@@ -5,11 +5,12 @@ ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 inc=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 jsinc=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
+frameinc=(ROOT/'src/ADUniversalUIProbe7362.frame.js.inc').read_text()
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
 helper=(ROOT/'scripts/ui-probe.sh').read_text()
 
-assert 'Version: 7.432~pdp-safeframe-ad-fix' in ctl
-assert '#define AD_VERSION "v7.432-pdp-safeframe-ad-fix"' in t
+assert 'Version: 7.433~universal-crossframe-probe' in ctl
+assert '#define AD_VERSION "v7.433-universal-crossframe-probe"' in t
 assert '#include "ADUniversalUIProbe7362.inc"' in t
 
 # Architectural convergence: the old per-menu capture engines and historical v7.309 output stems are removed.
@@ -28,7 +29,7 @@ assert inc.count('UIApplicationUserDidTakeScreenshotNotification') == 1
 assert inc.count('dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL,SIGUSR2') == 1
 assert 'ADCaptureUniversalUIProbe7362(NO,trigger)' in inc
 assert 'ADUIConsumeViewportArm7362()' in inc and 'ADCaptureUniversalUIProbe7362(YES,@"armed-SIGUSR2")' in inc
-assert 'AmazonDark-v7.432-ui-viewport.arm' in inc
+assert 'AmazonDark-v7.433-ui-viewport.arm' in inc
 assert 'ADSkelTrigger7339(trigger)' in inc  # skeleton/transition SIGUSR2 behavior still wins when armed
 
 # Universal scope: every current on-screen WKWebView plus native hierarchy, no tab routing.
@@ -43,8 +44,10 @@ assert "viewportOnly=mode==='viewport'" in js
 assert 'walkRoot(document.documentElement' in js
 assert 'if(!viewportOnly||(visible&&intersects(r)))' in js
 assert 'elementsFromPoint' in js
-assert 'shadowRoot' in js and 'contentDocument' in js
+assert 'shadowRoot' in js and 'contentDocument' not in js
+assert 'broadcastFrames' in js and '__adUIProbe7433' in js and 'window.__adUIProbeNonce7433' in js
 assert 'textContent' in js and 'ownHash' in js and 'allHash' in js
+assert 'paintRisk' in js and 'dark-on-dark' in js and 'effectiveBg' in js
 for bad in ['setInterval(', 'requestAnimationFrame(', 'MutationObserver(', "addEventListener('scroll'", 'scrollTo(', 'scrollBy(']:
     assert bad not in js, bad
 
@@ -62,7 +65,23 @@ assert 'if(viewportOnly){ADUIFinishCapture7364(YES' in inc
 assert 'ADUINativeScrollCandidates7364(path,cap)' in inc
 assert 'sv.scrollEnabled=originalScroll' in inc
 assert 'WEB_SWEEP_END' in inc and 'restoredOffset=' in inc
-assert 'all scrolling/traversal is finite and exists only after an explicit trigger' in inc
+assert 'all scanning/traversal is finite and exists only after an explicit trigger' in inc
+
+# Cross-origin frame coverage is provided by a dormant all-frame documentStart bridge.
+framejs=''.join(json.loads(line) for line in frameinc.splitlines())
+for token in ['adUniversalUI7433','window.addEventListener(\'message\'','forMainFrameOnly:NO','CROSS_FRAME_DOM','frame origin/path/referrer are hash-only']:
+    if token=='forMainFrameOnly:NO': assert token in inc
+    elif token=='CROSS_FRAME_DOM': assert token in inc
+    elif token=='frame origin/path/referrer are hash-only': assert token in inc
+    else: assert token in framejs, token
+assert 'contentDocument' not in framejs
+assert 'textContent' in framejs and 'ownHash' in framejs and 'allHash' in framejs
+assert 'paintRisk' in framejs and 'dark-on-dark' in framejs and 'light-on-light' in framejs
+assert 'originHash' in framejs and 'pathHash' in framejs and 'referrerHash' in framejs
+assert 'payload.slice' in framejs and 'chunkSize=96000' in framejs
+assert 'document.querySelectorAll(\'iframe\')' in framejs
+for bad in ['setInterval(', 'requestAnimationFrame(', 'MutationObserver(', "addEventListener('scroll'"]:
+    assert bad not in framejs, bad
 
 # The C string include emits exactly the intended JavaScript in the C++98 dialect used by the tweak.
 with tempfile.TemporaryDirectory(prefix='ad-ui-inc-') as td:
@@ -74,6 +93,13 @@ with tempfile.TemporaryDirectory(prefix='ad-ui-inc-') as td:
     emitted=subprocess.check_output([str(out)]).decode()
     assert emitted==js
     subprocess.run(['node','--check'],input=emitted,text=True,check=True)
+    fbridge=td/'frame.cpp'
+    fbridge.write_text('#include <cstdio>\nstatic const char s[]=\n#include "ADUniversalUIProbe7362.frame.js.inc"\n;\nint main(){return std::fwrite(s,1,sizeof(s)-1,stdout)==sizeof(s)-1?0:1;}\n')
+    fout=td/'frame-probe'
+    subprocess.run(['c++','-std=gnu++98','-Wall','-Wextra','-Werror','-I',str(ROOT/'src'),str(fbridge),'-o',str(fout)],check=True)
+    femitted=subprocess.check_output([str(fout)]).decode()
+    assert femitted==framejs
+    subprocess.run(['node','--check'],input=femitted,text=True,check=True)
 
 # Arming helper is one-shot viewport only; screenshot full capture intentionally needs no helper mode.
 assert 'Usage: sh scripts/ui-probe.sh arm | export | status | disarm' in helper
@@ -85,6 +111,6 @@ assert 'still sweeping' in helper
 assert 'screenshot' not in helper.lower() or 'FULL capture is intentionally screenshot-only' in helper
 subprocess.run(['sh','-n',str(ROOT/'scripts/ui-probe.sh')],check=True)
 
-print('PASS: v7.370 has exactly two universal UI probe categories and no route-specific dispatcher')
-print('PASS: screenshot -> finite universal Web/native full sweep with restoration; armed SIGUSR2 -> current viewport only')
-print('PASS: universal JS string compiles in gnu++98, parses in Node, and has no recurring/live scan machinery')
+print('PASS: v7.433 has exactly two universal UI probe categories and no route-specific dispatcher')
+print('PASS: screenshot -> finite native/main-Web/child-SafeFrame full sweep; armed SIGUSR2 -> universal viewport only')
+print('PASS: main + cross-frame probe programs compile in gnu++98, parse in Node, and have no recurring scan machinery')

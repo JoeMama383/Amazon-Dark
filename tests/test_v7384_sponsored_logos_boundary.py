@@ -5,8 +5,8 @@ A=(ROOT/'src/ADSponsored.m').read_text()
 H=(ROOT/'src/ADSponsored.h').read_text()
 M=(ROOT/'Makefile').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.432~pdp-safeframe-ad-fix' in C
-assert '#define AD_VERSION "v7.432-pdp-safeframe-ad-fix"' in S
+assert 'Version: 7.433~universal-crossframe-probe' in C
+assert '#define AD_VERSION "v7.433-universal-crossframe-probe"' in S
 assert 'AmazonDark_FILES      = src/Tweak.xm src/ADSponsored.m' in M
 assert '#import "ADSponsored.h"' in S
 assert 'extern "C" {' in H
