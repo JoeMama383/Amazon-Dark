@@ -9,8 +9,8 @@ W=(ROOT/'.github/workflows/build.yml').read_text()
 V=(ROOT/'scripts/validate.sh').read_text()
 SB=(ROOT/'src/AmazonDarkSB.xm').read_text()
 
-assert 'Version: 7.441~pdp-site-isolated-frames' in C
-assert '#define AD_VERSION "v7.441-pdp-site-isolated-frames"' in S
+assert 'Version: 7.442~user-style-ad-ownership' in C
+assert '#define AD_VERSION "v7.442-user-style-ad-ownership"' in S
 for key in ['hideSponsored','priceHistory']:
     assert key in S and f'<string>{key}</string>' in P
 assert '<string>Hide Sponsored Content</string>' in P

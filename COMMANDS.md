@@ -1,18 +1,18 @@
-# AmazonDark v7.441 commands
+# AmazonDark v7.442 commands
 
 ## PUSH
 
 ```zsh
 cd /var/mobile/Amazon-Dark-phone &&
 D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents &&
-rm -rf /var/mobile/t7441 &&
-mkdir -p /var/mobile/t7441 &&
-unzip -oq "$D/AmazonDark-v7.441-pdp-site-isolated-frames-source.zip" -d /var/mobile/t7441 &&
-cp -a /var/mobile/t7441/AmazonDark-v7.441-pdp-site-isolated-frames-source/. . &&
+rm -rf /var/mobile/t7442 &&
+mkdir -p /var/mobile/t7442 &&
+unzip -oq "$D/AmazonDark-v7.442-user-style-ad-ownership-source.zip" -d /var/mobile/t7442 &&
+cp -a /var/mobile/t7442/AmazonDark-v7.442-user-style-ad-ownership-source/. . &&
 chmod 755 layout/DEBIAN/postinst &&
 sh scripts/validate.sh &&
 git add -A &&
-git commit -m "v7.441: fix site-isolated PDP ad frames" &&
+git commit -m "v7.442: use all-frame user stylesheet for PDP ads" &&
 git push origin main
 ```
 
