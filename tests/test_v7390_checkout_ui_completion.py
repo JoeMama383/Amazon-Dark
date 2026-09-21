@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.435~probe-backed-pdp-search-fixes' in C
-assert '#define AD_VERSION "v7.435-probe-backed-pdp-search-fixes"' in S
+assert 'Version: 7.437~pdp-standalone-ad-treatment' in C
+assert '#define AD_VERSION "v7.437-pdp-standalone-ad-treatment"' in S
 floor=S[S.index('static NSString *ADCheckoutFloorJS7369'):S.index('static NSString *ADCheckoutTWBJS7369')]
 twb=S[S.index('static NSString *ADCheckoutTWBJS7369'):S.index('// v7.378:',S.index('static NSString *ADCheckoutTWBJS7369'))]
 # Help & Contact Us exact topic-card family; orange state stays authored.

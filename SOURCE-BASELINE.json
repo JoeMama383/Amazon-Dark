@@ -1,8 +1,8 @@
 {
-  "version": "7.435~probe-backed-pdp-search-fixes",
-  "direct_parent": "7.433~universal-crossframe-probe",
-  "source_archive": "AmazonDark-v7.433-universal-crossframe-probe-source.zip",
-  "source_sha256": "ea950ad801e0ea68c91a68020e9c7f115f5cda55d6b65405084cdb3805968864",
-  "runtime_delta": "Selector-only PDP/Search theming fixes plus v7.435 probe identity bump; no new observer, polling loop, RAF loop, web scroll listener, or recurring hierarchy scan.",
-  "device_validation": "Pending v7.435 install and live visual verification"
+  "version": "7.437~pdp-standalone-ad-treatment",
+  "direct_parent": "7.436~probe-backed-pdp-search-fixes",
+  "source_archive": "AmazonDark-v7.436-search-sponsored-rails-fix-source.zip",
+  "source_sha256": "d91f285956f0619290d603ea7d039c4e9f3fefacb458093041c69220147003b8",
+  "runtime_delta": "Probe-backed PDP standalone-ad CSS/SafeFrame treatment plus v7.437 probe identity bump; no new observer, polling loop, RAF loop, web scroll listener, or recurring hierarchy scan.",
+  "device_validation": "Pending v7.437 install and live visual verification"
 }

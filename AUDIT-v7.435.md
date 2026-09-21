@@ -1,4 +1,4 @@
-# AmazonDark v7.435 audit — probe-backed PDP/Search fixes
+# AmazonDark v7.436 audit — probe-backed PDP/Search fixes
 
 ## Exact parent
 

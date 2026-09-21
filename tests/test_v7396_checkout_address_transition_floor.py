@@ -3,8 +3,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.435~probe-backed-pdp-search-fixes' in C
-assert '#define AD_VERSION "v7.435-probe-backed-pdp-search-fixes"' in S
+assert 'Version: 7.437~pdp-standalone-ad-treatment' in C
+assert '#define AD_VERSION "v7.437-pdp-standalone-ad-treatment"' in S
 
 # Probe-proven incoming checkout child: plain UIView root directly owned by AMIWebViewController.
 for token in [

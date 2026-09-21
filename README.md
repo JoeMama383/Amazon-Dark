@@ -1,16 +1,17 @@
-# AmazonDark v7.435 — probe-backed PDP/search fixes
+# AmazonDark v7.437 — PDP standalone ad treatment
 
-Exact parent: v7.433 `universal-crossframe-probe`.
+Exact parent: v7.436 `search-sponsored-rails-fix`.
 
-This build uses the v7.433 FULL/VIEWPORT evidence to correct the remaining PDP and Search renderer failures without adding a new runtime engine.
+v7.437 applies the established standalone-ad dark treatment to the three PDP ad renderers exposed by the latest v7.435 FULL probes while retaining the v7.436 Search sponsored-rail correction.
 
-## Fixes
+## Probe-backed fixes
 
-- PDP standalone sponsored ads: OLED child renderer floors, light neutral text, frameless outer APE shell, and visible white-circle/black-`i` feedback glyph.
-- `Product image gallery`: fixes the actual `.a-truncate` / `.a-truncate-cut` leaves that the probe reports as `dark-on-dark`.
-- `Customers also bought` / multi-product bundle: removes AmazonDark's `brightness(.42)` image filter from the exact p13n bundle product images so loaded images render normally.
-- Safety-documents / lower APE carousel: OLED outer shell, no duplicate/white outer border, child ad renderer dark treatment.
-- Search sponsored result family: OLED inner containers, no white vertical rails, white neutral copy.
-- Search `Shop by brand`: tame the large brand-logo tiles with the standard image brightness treatment.
+- Product-image-gallery video sponsored card (`universal-hero-quick-promo` / `ape_detail_mobile-hero-quick-promo`): OLED child-frame structural floors, light neutral copy, existing border recolored to standard gray, product raster taming, dynamic Prime/star/deal/link colors preserved.
+- Top standalone carousel (`mobile-app-detail-ilm` / `text/x-APE-lightAds` / `sb-collections-ilm-mobile`): OLED card/container floors, light neutral price/copy, one standard gray outer edge, authored semantic colors preserved, `_c2ItY_asinImage_` product rasters moved into the existing configurable white-tamer and forced to normal blend mode.
+- Safety-documents standalone card (`mobile-ads-middle-app-dramabot` / `ape_detail_btf_mshop`): current middle/btf ownership added; outer wrapper/iframe stay frameless while the embedded renderer gets OLED planes, light neutral text, gray existing border color, and tamed product imagery.
+- SafeFrame activation is still declarative and inert until an Amazon ad-renderer signature exists. Additional signatures cover `#dynamic-bb`, `gridContainer`, `prod-img`, product-description, brand-product-description and product-image families.
+- Sponsored info glyph remains the established white circle with a black `i`.
 
-FULL, VIEWPORT and TRANSITION identities are regenerated to v7.435.
+No MutationObserver, polling interval, RAF loop, Web scroll listener, or recurring hierarchy scan is added. FULL, VIEWPORT and TRANSITION probe identities are regenerated to v7.437.
+
+See `AUDIT-v7.437.md`, `VALIDATION-v7.437.md`, and `COMMANDS.md`.

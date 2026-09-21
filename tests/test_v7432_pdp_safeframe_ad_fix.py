@@ -5,8 +5,8 @@ S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text(); SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text(); JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
-assert 'Version: 7.435~probe-backed-pdp-search-fixes' in C
-assert '#define AD_VERSION "v7.435-probe-backed-pdp-search-fixes"' in S
+assert 'Version: 7.437~pdp-standalone-ad-treatment' in C
+assert '#define AD_VERSION "v7.437-pdp-standalone-ad-treatment"' in S
 
 # r2 proves two distinct PDP APE placements. All three known PDP APE frames now get a black main-frame backing.
 pdp=S[S.index('static NSString *ADPDPCompletionJS7405'):S.index('static NSString *ADPDPCompletionTWBJS7405')]
@@ -45,7 +45,7 @@ for tok in [
 # Semantic colors/media remain out of the neutral conversion lane.
 for tok in ['.a-color-link','.a-color-price','[class*=prime]','[class*=star]','[class*=rating]','img,video,canvas,picture,svg']:
     assert tok in sf,tok
-assert 'filter:brightness(' not in sf and 'filter:invert(' not in sf
+assert 'filter:brightness(' in sf and 'filter:invert(' not in sf
 
 # No recurring mechanism was introduced.
 for bad in ('MutationObserver(', 'setInterval(', 'requestAnimationFrame(', "addEventListener('scroll'"):
@@ -67,8 +67,8 @@ Path(path).unlink(missing_ok=True)
 assert r.returncode==0,r.stderr
 
 # Probe identities are regenerated for this release.
-assert 'VER=7.435' in UI
-assert 'AD_PROBE_VERSION=7.435' in SK and 'AD_PROBE_NAME=AmazonDark-v7.435' in SK
-assert 'AMAZONDARK v7.435 UNIVERSAL' in INC and 'AmazonDark-v7.435-ui-viewport.arm' in INC
-assert "version:'7.435'" in JS
-print('PASS: v7.435 themes hydrated PDP SafeFrame ad floors/text without a referrer dependency or recurring runtime work')
+assert 'VER=7.437' in UI
+assert 'AD_PROBE_VERSION=7.437' in SK and 'AD_PROBE_NAME=AmazonDark-v7.437' in SK
+assert 'AMAZONDARK v7.437 UNIVERSAL' in INC and 'AmazonDark-v7.437-ui-viewport.arm' in INC
+assert "version:'7.437'" in JS
+print('PASS: v7.437 themes hydrated PDP SafeFrame ad floors/text/media without a referrer dependency or recurring runtime work')
