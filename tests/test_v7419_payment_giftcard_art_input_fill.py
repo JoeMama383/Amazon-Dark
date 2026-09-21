@@ -3,8 +3,8 @@ import json
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text(); C=(ROOT/'layout/DEBIAN/control').read_text()
 F=json.loads((ROOT/'tests/fixtures/v7419-payment-giftcard-art-input-fill.json').read_text())
-assert 'Version: 7.440~pdp-frame-ownership' in C
-assert '#define AD_VERSION "v7.440-pdp-frame-ownership"' in S
+assert 'Version: 7.441~pdp-site-isolated-frames' in C
+assert '#define AD_VERSION "v7.441-pdp-site-isolated-frames"' in S
 # Exact probe-proven fill: wrapper now matches the already-correct text input interior.
 assert F['claim_code']['input_bg']=='rgb(24, 26, 27)' and F['claim_code']['target_hex']=='#181a1b'
 payment=S.split('// v7.393 FULL r1 (16:46) correction:',1)[1].split('// The gift-card cross-sell is an iframe.',1)[0]

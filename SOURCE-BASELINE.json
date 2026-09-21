@@ -1,5 +1,5 @@
 {
-  "version": "7.440~pdp-frame-ownership",
+  "version": "7.441~pdp-site-isolated-frames",
   "parent": "7.439~pdp-ui-completion",
   "source_parent": "AmazonDark-v7.439-pdp-ui-completion-release-source.zip",
   "runtime_delta": "Native WebKit child-frame page-world injection for PDP APE/SafeFrame ad ownership plus exact main-document ad/comparison residuals; no MutationObserver, polling loop, RAF loop, web scroll listener, or recurring hierarchy scan.",
