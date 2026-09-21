@@ -2,9 +2,9 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.437' in C
-assert '#define AD_VERSION "v7.437' in S
-needle='.s-widget-container[class*="widgetId=container-search-results_sponsored"]>.s-container-results'
+assert 'Version: 7.438' in C
+assert '#define AD_VERSION "v7.438' in S
+needle=".s-widget-container[class*=\'widgetId=container-search-results_sponsored\']>.s-container-results"
 assert needle in S
 seg=S[S.index(needle):S.index(needle)+1000]
 for tok in ['background:#000!important','background-color:#000!important','border-left-color:#000!important','border-right-color:#000!important']:

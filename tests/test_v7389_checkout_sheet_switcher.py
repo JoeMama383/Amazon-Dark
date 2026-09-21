@@ -3,8 +3,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.437~pdp-standalone-ad-treatment' in C
-assert '#define AD_VERSION "v7.437-pdp-standalone-ad-treatment"' in S
+assert 'Version: 7.438~compile-fix' in C
+assert '#define AD_VERSION "v7.438-compile-fix"' in S
 
 # Exact portal-mounted Subscribe & Save family; no generic sheet takeover.
 for token in [

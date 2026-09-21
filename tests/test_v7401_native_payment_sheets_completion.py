@@ -7,11 +7,11 @@ SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 INC=(ROOT/'src/ADUniversalUIProbe7362.inc').read_text()
 JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 
-assert 'Version: 7.437~pdp-standalone-ad-treatment' in C
-assert '#define AD_VERSION "v7.437-pdp-standalone-ad-treatment"' in S
-assert 'VER=7.437' in UI
-assert 'AD_PROBE_VERSION=7.437' in SK and 'AD_PROBE_NAME=AmazonDark-v7.437' in SK
-assert 'AMAZONDARK v7.437 UNIVERSAL' in INC and "version:'7.437'" in JS
+assert 'Version: 7.438~compile-fix' in C
+assert '#define AD_VERSION "v7.438-compile-fix"' in S
+assert 'VER=7.438' in UI
+assert 'AD_PROBE_VERSION=7.438' in SK and 'AD_PROBE_NAME=AmazonDark-v7.438' in SK
+assert 'AMAZONDARK v7.438 UNIVERSAL' in INC and "version:'7.438'" in JS
 
 # r5/r6 payment sheets: prove ownership only after a stable payment marker under RCTView#bottom-sheet.
 for token in [
