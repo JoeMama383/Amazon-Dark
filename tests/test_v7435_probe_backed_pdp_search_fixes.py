@@ -7,11 +7,11 @@ SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 JS=(ROOT/'src/ADUniversalUIProbe7362.js.inc').read_text()
 FJS=(ROOT/'src/ADUniversalUIProbe7362.frame.js.inc').read_text()
 
-assert 'Version: 7.442~user-style-ad-ownership' in C
-assert '#define AD_VERSION "v7.442-user-style-ad-ownership"' in S
-assert 'VER=7.442' in UI
-assert 'AD_PROBE_VERSION=7.442' in SK and 'AD_PROBE_NAME=AmazonDark-v7.442' in SK
-assert "version:'7.442'" in JS and "version:'7.442'" in FJS
+assert 'Version: 7.443~user-style-ad-ownership-validation-fix' in C
+assert '#define AD_VERSION "v7.443-user-style-ad-ownership-validation-fix"' in S
+assert 'VER=7.443' in UI
+assert 'AD_PROBE_VERSION=7.443' in SK and 'AD_PROBE_NAME=AmazonDark-v7.443' in SK
+assert "version:'7.443'" in JS and "version:'7.443'" in FJS
 
 f=S[S.index('static NSString *ADPDPCompletionJS7405'):S.index('static NSString *ADPDPCompletionTWBJS7405')]
 for tok in [

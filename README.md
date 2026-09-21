@@ -1,11 +1,9 @@
-# AmazonDark v7.442 — PDP frame ownership correction
+# AmazonDark v7.443 — user-style ownership validation fix
 
-v7.442 is cut from the exact v7.439 release source. It changes the delivery path for stubborn PDP APE/SafeFrame ads instead of adding another parent-document selector layer.
+v7.443 is cut from the exact v7.442 user-style-ad-ownership source. It does **not** add another PDP selector family or replace the v7.442 user-level all-frame stylesheet. The purpose of this release is to repair the release/validation inconsistency exposed by strict CI while preserving the smoother v7.440-derived runtime architecture.
 
-The v7.435 FULL probes contain the offending `ape_detail_btf_mshop_iframe`, but none of the three captures contains a `CROSS_FRAME_DOM` section. v7.442 therefore does not trust all-frame WKUserScript delivery for those ad documents. Native WebKit frame-tree enumeration now installs a persistent ad stylesheet directly into child-frame page worlds, and a single main-document iframe-load/lifecycle bridge reapplies that stylesheet after lazy frame navigation. The injected stylesheet is inert until ad/product markers appear, so it can survive later hydration without an observer or polling loop.
+The v7.442 core program retired `ADFrameOwnerTriggerJS7440()` but accidentally left `ADCoreWebJS7271()` with sixteen `%@` format conversions for only fifteen active program arguments. v7.443 corrects that concatenation to fifteen conversions and updates the frozen v7.369/v7.370 normalization tests to remove the current fifteen-program delta before comparing their historical hashes.
 
-The child-frame treatment provides OLED floors, light neutral copy, standard gray edges, tamed product media, visible ad-feedback controls, dark neutral carousel controls, and preservation of Prime/star/rating/deal/coupon/promotion colors. Main-document residual ownership also strengthens the `_c2ItY_` lightAds carousel and lifts the probe-confirmed Rufus comparison insight copy from `rgb(86,89,89)` while preserving green insight dots.
+The retired v7.440 child-frame traversal/message-bridge implementation is also removed from the production translation unit instead of being retained as dead static code. The exact v7.440 main-document residual remains, and embedded APE/SafeFrame ad delivery remains owned by the v7.442 `_WKUserStyleSheet` path with `forMainFrameOnly:NO`. No frame walking, frame-targeted reinjection, MutationObserver, polling interval, RAF loop, or web scroll listener is active.
 
-The already successful Product image gallery heading, multi-bundle image release, Search sponsored rails, Search sponsored text/floors, and Shop-by-brand treatment remain in place.
-
-No MutationObserver, interval polling, RAF loop, web scroll listener, or recurring hierarchy scan is added. FULL, VIEWPORT, and TRANSITION identities are bumped to v7.442.
+FULL, VIEWPORT, and TRANSITION probe identities are bumped to v7.443. Device visual verification of the standalone ads remains pending; this build should be judged from the same top standalone-ad screenshot/probes used for v7.441/v7.442.

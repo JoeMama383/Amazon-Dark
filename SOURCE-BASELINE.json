@@ -1,7 +1,7 @@
 {
-  "version": "7.440~pdp-frame-ownership",
-  "parent": "7.439~pdp-ui-completion",
-  "source_parent": "AmazonDark-v7.439-pdp-ui-completion-release-source.zip",
-  "runtime_delta": "Native WebKit child-frame page-world injection for PDP APE/SafeFrame ad ownership plus exact main-document ad/comparison residuals; no MutationObserver, polling loop, RAF loop, web scroll listener, or recurring hierarchy scan.",
-  "device_validation": "Pending v7.440 install and live visual verification"
+  "version": "7.443~user-style-ad-ownership-validation-fix",
+  "parent": "7.442~user-style-ad-ownership",
+  "source_parent": "AmazonDark-v7.442-user-style-ad-ownership-source.zip",
+  "runtime_delta": "Fix ADCoreWebJS7271 to 15 format conversions for 15 active programs after retiring the v7.440 frame-owner trigger; remove the now-dead v7.440 frame traversal/message bridge; preserve the v7.442 user-level all-frame stylesheet and v7.440 main-document residual.",
+  "device_validation": "Pending v7.443 install and live visual verification; no standalone-ad visual fix is claimed until device-proven"
 }

@@ -1,18 +1,18 @@
-# AmazonDark v7.442 commands
+# AmazonDark v7.443 commands
 
 ## PUSH
 
 ```zsh
 cd /var/mobile/Amazon-Dark-phone &&
 D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents &&
-rm -rf /var/mobile/t7442 &&
-mkdir -p /var/mobile/t7442 &&
-unzip -oq "$D/AmazonDark-v7.442-user-style-ad-ownership-source.zip" -d /var/mobile/t7442 &&
-cp -a /var/mobile/t7442/AmazonDark-v7.442-user-style-ad-ownership-source/. . &&
+rm -rf /var/mobile/t7443 &&
+mkdir -p /var/mobile/t7443 &&
+unzip -oq "$D/AmazonDark-v7.443-user-style-ad-ownership-validation-fix-source.zip" -d /var/mobile/t7443 &&
+cp -a /var/mobile/t7443/AmazonDark-v7.443-user-style-ad-ownership-validation-fix-source/. . &&
 chmod 755 layout/DEBIAN/postinst &&
 sh scripts/validate.sh &&
 git add -A &&
-git commit -m "v7.442: use all-frame user stylesheet for PDP ads" &&
+git commit -m "v7.443: repair core concat validation and retire dead frame walker" &&
 git push origin main
 ```
 

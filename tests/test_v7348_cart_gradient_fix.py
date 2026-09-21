@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 c=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.442~user-style-ad-ownership' in c
-assert '#define AD_VERSION "v7.442-user-style-ad-ownership"' in t
+assert 'Version: 7.443~user-style-ad-ownership-validation-fix' in c
+assert '#define AD_VERSION "v7.443-user-style-ad-ownership-validation-fix"' in t
 assert 'ADBlackenLoadingGradient7348' in t
 assert '%hook AWLoadingIndicatorWidgets_BkgView' in t
 assert '%hook AWLoadingIndicatorWidgets_Indicator' in t
