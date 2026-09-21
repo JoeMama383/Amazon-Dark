@@ -2,8 +2,8 @@ from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text()
 C=(R/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.439~pdp-ui-completion' in C
-assert '#define AD_VERSION "v7.439-pdp-ui-completion"' in S
+assert 'Version: 7.440~pdp-frame-ownership' in C
+assert '#define AD_VERSION "v7.440-pdp-frame-ownership"' in S
 sel='#checkoutDisplayPage .rcx-checkout-delivery-option-a-control-row-new.a-touch-press'
 assert sel in S
 f=S[S.index(sel):S.index(sel)+1000]

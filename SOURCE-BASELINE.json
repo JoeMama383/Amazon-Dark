@@ -1,8 +1,7 @@
 {
-  "version": "7.439~pdp-ui-completion",
-  "direct_parent": "7.438~compile-fix",
-  "source_archive": "AmazonDark-v7.438-compile-fix-source.zip",
-  "source_sha256": "93c1fb62cc3ed812177e97c25d11ecf1d8df1e0de1ed01385536cc19c79325be",
-  "runtime_delta": "Probe-backed PDP standalone-ad completion plus v7.439 probe identity bump; no new observer, polling loop, RAF loop, web scroll listener, or recurring hierarchy scan.",
-  "device_validation": "Pending v7.439 install and live visual verification"
+  "version": "7.440~pdp-frame-ownership",
+  "parent": "7.439~pdp-ui-completion",
+  "source_parent": "AmazonDark-v7.439-pdp-ui-completion-release-source.zip",
+  "runtime_delta": "Native WebKit child-frame page-world injection for PDP APE/SafeFrame ad ownership plus exact main-document ad/comparison residuals; no MutationObserver, polling loop, RAF loop, web scroll listener, or recurring hierarchy scan.",
+  "device_validation": "Pending v7.440 install and live visual verification"
 }

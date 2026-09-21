@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.439~pdp-ui-completion' in C
-assert '#define AD_VERSION "v7.439-pdp-ui-completion"' in S
+assert 'Version: 7.440~pdp-frame-ownership' in C
+assert '#define AD_VERSION "v7.440-pdp-frame-ownership"' in S
 block=S.split('// v7.393 FULL r2/r3/r4 (16:59, 17:08, 17:09), corrected by v7.398:',1)[1].split('// v7.390 FULL r2: Subscribe & Save loading transition.',1)[0]
 
 # Returns and Refunds: descendant article ownership covers direct or OAS-wrapped content.

@@ -71,7 +71,7 @@ for name,h in golden['probe_sha256'].items():
     if name=='ADUniversalUIProbe7362.js.inc':
         # v7.437 intentionally expands the universal UI probe with cross-frame dispatch
         # and paint-risk metadata; the production theming programs remain golden-locked.
-        assert hashlib.sha256(data.replace(b"7.439",b"7.433")).hexdigest()=='95c9a09c5a8e755575e7b63fee28f5117d10c65410ec5e09a8e6a68eb31a214c'
+        assert hashlib.sha256(data.replace(b"7.440",b"7.433")).hexdigest()=='95c9a09c5a8e755575e7b63fee28f5117d10c65410ec5e09a8e6a68eb31a214c'
         continue
     assert hashlib.sha256(data).hexdigest()==h, name
 assert 'ADHomeFrameProbeBridgeJS7265' not in S and '__adHomeProbeReq7265' not in S

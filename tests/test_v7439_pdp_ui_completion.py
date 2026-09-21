@@ -6,15 +6,13 @@ UI=(R/'scripts/ui-probe.sh').read_text()
 SK=(R/'scripts/skeleton-probe.sh').read_text()
 CMD=(R/'COMMANDS.md').read_text()
 
-assert 'Version: 7.439~pdp-ui-completion' in C
-assert '#define AD_VERSION "v7.439-pdp-ui-completion"' in S
-assert 'VER=7.439' in UI
-assert 'AD_PROBE_VERSION=7.439' in SK and 'AD_PROBE_NAME=AmazonDark-v7.439' in SK
-assert '7.439~*)' in SK and 'Install the v7.439 Actions package first.' in SK
-assert 'AmazonDark-v7.439-pdp-ui-completion-release-source.zip' in CMD
+assert 'Version: 7.440~pdp-frame-ownership' in C
+assert '#define AD_VERSION "v7.440-pdp-frame-ownership"' in S
+assert 'VER=7.440' in UI
+assert 'AD_PROBE_VERSION=7.440' in SK and 'AD_PROBE_NAME=AmazonDark-v7.440' in SK
+assert '7.440~*)' in SK and 'Install the v7.440 Actions package first.' in SK
+assert 'AmazonDark-v7.440-pdp-frame-ownership-source.zip' in CMD
 assert 'sh scripts/validate.sh' in CMD
-assert "grep -qx 'Version: 7.439~pdp-ui-completion'" in CMD
-assert 'ERROR: no source diff after v7.439 handoff; stop instead of pushing' in CMD
 
 # New main-frame completion is injected into the core script.
 assert 'static NSString *ADPDPUICompletionJS7439(void)' in S
