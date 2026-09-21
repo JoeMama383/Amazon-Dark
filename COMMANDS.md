@@ -1,17 +1,17 @@
-# AmazonDark v7.431 commands
+# AmazonDark v7.432 commands
 
 ## PUSH
 
 ```zsh
 cd /var/mobile/Amazon-Dark-phone &&
 D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents &&
-mkdir -p /var/mobile/t7431 &&
-unzip -oq "$D/AmazonDark-v7.431-pdp-r2-r5-fix-source.zip" -d /var/mobile/t7431 &&
-cp -a /var/mobile/t7431/AmazonDark-v7.431-pdp-r2-r5-fix-source/. . &&
+mkdir -p /var/mobile/t7432 &&
+unzip -oq "$D/AmazonDark-v7.432-pdp-safeframe-ad-fix-source.zip" -d /var/mobile/t7432 &&
+cp -a /var/mobile/t7432/AmazonDark-v7.432-pdp-safeframe-ad-fix-source/. . &&
 chmod 755 layout/DEBIAN/postinst &&
 sh scripts/validate.sh &&
 git add -A &&
-git commit -m "v7.431: finish PDP r2-r5 theming" &&
+git commit -m "v7.432: fix PDP SafeFrame sponsored ads" &&
 git push origin main
 ```
 

@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.431~pdp-r2-r5-fix' in ctl
-assert '#define AD_VERSION "v7.431-pdp-r2-r5-fix"' in t
+assert 'Version: 7.432~pdp-safeframe-ad-fix' in ctl
+assert '#define AD_VERSION "v7.432-pdp-safeframe-ad-fix"' in t
 
 # Current Search Tiles probe proves the IMG itself already had brightness TWB while
 # its exact image container still retained Amazon's gradient painter. Remove only

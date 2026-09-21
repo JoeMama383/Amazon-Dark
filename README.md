@@ -1,15 +1,14 @@
-# AmazonDark v7.431 — PDP r2-r5 completion
+# AmazonDark v7.432 — PDP SafeFrame ad fix
 
-Exact parent: v7.430 `native-review-menu`. All earlier fixes are retained.
+Exact parent: v7.431 `pdp-r2-r5-fix`. All prior UI/native fixes are retained.
 
-This build addresses the four outstanding v7.429 FULL r2-r5 screenshot/probe misses without adding a new runtime engine:
+This build corrects the remaining PDP sponsored-ad failure that v7.431 did not actually reach inside the embedded ad document:
 
-- **Sponsored hero video ad:** themes the exact `universal-hero-quick-promo` / APE shell and lets neutral structural wrappers inside PDP ad frames inherit the OLED body, while leaving video/photo media under existing TWB handling.
-- **Product image gallery:** catches the actual AUI expander heading/prompt family so the header renders light instead of dark-on-black.
-- **Yellow / Blue inline swatches:** forces the live `image-swatch-button sml-image-swatch-button` floors to OLED black while leaving selected-outline ownership intact.
-- **$59.97 ad / related product family:** themes the exact lower `btf2` APE placement and keeps neutral sponsored-carousel prices light without overriding authored `.a-color-price` colors.
-- **Similar brands on Amazon:** changes the exact multi-brand video card/container edges to AmazonDark's standard `#494d4d` gray without changing the video/image treatment.
+- **Hero sponsored video/product footer:** the nested APE/SafeFrame child no longer depends on a direct `/dp/` `document.referrer`. A marker-gated child-frame stylesheet activates only when the hydrated document proves an Amazon ad renderer, making neutral white structural floors OLED black and neutral dark copy light.
+- **Top mobile ILM sponsored ad:** the exact `mobile-app-detail-ilm` iframe now has the same OLED main-frame backing as the hero/btf2 APE frames, while the marker-gated child lane themes its internal neutral floors/text.
+- **Preservation:** authored link/price/status colors, Prime, ratings/stars, badges/deals/coupons, images, video, canvas, picture and SVG media remain outside the neutral conversion lane.
+- **Performance:** no MutationObserver, timer, interval, RAF loop, web scroll listener, or recurring hierarchy scan was added.
 
-The fix remains event/document-injection based. No new MutationObserver, timer, RAF loop, web scroll listener, or recurring hierarchy sweep is added. FULL, VIEWPORT, and TRANSITION probe identities advance to v7.431.
+FULL, VIEWPORT, and TRANSITION probe identities are regenerated to v7.432.
 
-See `AUDIT-v7.431.md`, `VALIDATION-v7.431.md`, and `COMMANDS.md`.
+See `AUDIT-v7.432.md`, `VALIDATION-v7.432.md`, and `COMMANDS.md`.
