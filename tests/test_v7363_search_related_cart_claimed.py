@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/"src/Tweak.xm").read_text()
 ctl=(ROOT/"layout/DEBIAN/control").read_text()
-assert "Version: 7.438~compile-fix" in ctl
-assert "#define AD_VERSION \"v7.438-compile-fix\"" in t
+assert "Version: 7.439~pdp-ui-completion" in ctl
+assert "#define AD_VERSION \"v7.439-pdp-ui-completion\"" in t
 # Search autocomplete: broad black-plane ownership must skip image/icon artwork owners.
 assert "[class*=autocomplete]:not([class*=icon]):not([class*=glyph]):not([class*=image])" in t
 assert "[class*=suggestion]:not([class*=icon]):not([class*=glyph]):not([class*=image])" in t

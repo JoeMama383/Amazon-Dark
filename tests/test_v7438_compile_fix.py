@@ -2,8 +2,8 @@ from pathlib import Path
 R=Path(__file__).resolve().parents[1]
 S=(R/'src/Tweak.xm').read_text()
 C=(R/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.438~compile-fix' in C
-assert '#define AD_VERSION "v7.438-compile-fix"' in S
+assert 'Version: 7.439~pdp-ui-completion' in C
+assert '#define AD_VERSION "v7.439-pdp-ui-completion"' in S
 assert 'class*="widgetId=container-search-results_sponsored"' not in S
 assert "class*='widgetId=container-search-results_sponsored'" in S
 start=S.index('static NSString *ADCheckoutTWBJS7369')

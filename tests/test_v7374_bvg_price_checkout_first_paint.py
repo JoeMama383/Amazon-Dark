@@ -4,8 +4,8 @@ ROOT = Path(__file__).resolve().parents[1]
 S = (ROOT / "src/Tweak.xm").read_text()
 C = (ROOT / "layout/DEBIAN/control").read_text()
 
-assert "Version: 7.438~compile-fix" in C
-assert '#define AD_VERSION "v7.438-compile-fix"' in S
+assert "Version: 7.439~pdp-ui-completion" in C
+assert '#define AD_VERSION "v7.439-pdp-ui-completion"' in S
 
 # FULL r1: current price-to-pay family is neutral stock black and must be light.
 price = "span.a-price[class*=_mobileDenseGridPriceToPay_]"

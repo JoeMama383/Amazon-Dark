@@ -1,17 +1,12 @@
 # AmazonDark v7.438 validation
 
-- Exact v7.437 source parent: PASS.
-- Search sponsored-results Objective-C literal: repaired by using CSS single quotes inside the attribute selector; exact repaired literal parses with clang Objective-C syntax check: PASS.
-- `ADCheckoutTWBJS7369`: 8 `%.3f` conversions / 8 `factor` arguments: PASS.
-- Dedicated `test_v7438_compile_fix.py`: PASS.
-- v7.437 standalone-ad regression: PASS.
-- v7.436 sponsored-search rail regression: PASS.
-- v7.433 cross-frame probe regression: PASS.
-- v7.432 SafeFrame regression: PASS.
-- PDP completion/core regression: PASS.
-- Checkout isolated-theme/native-payment/BYG regressions: PASS.
-- Representative transition helper direct-parent tests: PASS.
-- `sh -n scripts/ui-probe.sh`: PASS.
-- `sh -n scripts/skeleton-probe.sh`: PASS.
+- Exact source parent: v7.437 `pdp-standalone-ad-treatment`.
+- Clang/Objective-C string compile regression for the sponsored-search rail selector: PASS.
+- Checkout TWB format conversion/argument count regression: PASS (8 conversions / 8 arguments).
+- Strict handoff contract regression (`test_v7375_checkout_prepaint_snapshot_hydration.py`): PASS after restoring `sh scripts/validate.sh` to `COMMANDS.md`.
+- v7.387 optimization/probe golden normalization: PASS after normalizing the current v7.438 probe version back to the v7.433 golden identity.
+- `test_probe_handoff.py`: PASS.
+- Full production Python regression inventory: 120 scripts accounted for; 118 passed in the bounded parallel pass, the two remaining/failed strict cases were rerun after correction and both PASS.
 - `scripts/lint-logos.sh`: PASS.
-- Full Theos compile/link is not available in this container; GitHub Actions remains final compile/link proof.
+- UI/skeleton shell syntax: PASS.
+- Full Theos compile/link remains GitHub/device proof; the source-level compiler blocker reported at `Tweak.xm:809` is corrected.

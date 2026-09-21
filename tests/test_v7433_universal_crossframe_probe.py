@@ -10,11 +10,11 @@ CTL=(ROOT/'layout/DEBIAN/control').read_text()
 UI=(ROOT/'scripts/ui-probe.sh').read_text()
 SK=(ROOT/'scripts/skeleton-probe.sh').read_text()
 
-assert 'Version: 7.438~compile-fix' in CTL
-assert '#define AD_VERSION "v7.438-compile-fix"' in S
-assert 'VER=7.438' in UI
-assert 'AD_PROBE_VERSION=7.438' in SK and 'AD_PROBE_NAME=AmazonDark-v7.438' in SK
-assert 'AmazonDark-v7.438-ui-viewport.arm' in INC
+assert 'Version: 7.439~pdp-ui-completion' in CTL
+assert '#define AD_VERSION "v7.439-pdp-ui-completion"' in S
+assert 'VER=7.439' in UI
+assert 'AD_PROBE_VERSION=7.439' in SK and 'AD_PROBE_NAME=AmazonDark-v7.439' in SK
+assert 'AmazonDark-v7.439-ui-viewport.arm' in INC
 
 # The bridge must exist before any frame document loads, including cross-origin SafeFrames.
 assert 'ADUIProbeAttach7362(ucc);' in S

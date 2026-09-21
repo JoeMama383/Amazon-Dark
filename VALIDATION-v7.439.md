@@ -1,0 +1,22 @@
+# AmazonDark v7.439 validation
+
+- Exact source parent: corrected v7.438 `compile-fix` source (`AmazonDark-v7.438-compile-fix-source.zip`, SHA256 `93c1fb62cc3ed812177e97c25d11ecf1d8df1e0de1ed01385536cc19c79325be`).
+- Package/control identity: `7.439~pdp-ui-completion`.
+- Final handoff archive: `AmazonDark-v7.439-pdp-ui-completion-release-source.zip` (unique filename; package identity remains `7.439~pdp-ui-completion`).
+- `AD_VERSION`: `v7.439-pdp-ui-completion`.
+- FULL / VIEWPORT / TRANSITION identities: v7.439.
+- Packaged-source regression inventory: **121/121 production `tests/test_*.py` PASS**. The long `test_probe_handoff.py` completed PASS; the remaining inventory was executed in bounded batches, with the final v7.430-v7.439 regressions rerun individually.
+- `scripts/lint-logos.sh`: **PASS**.
+- `sh -n scripts/ui-probe.sh`: **PASS**.
+- `sh -n scripts/skeleton-probe.sh`: **PASS**.
+- `sh -n scripts/validate.sh`: **PASS**.
+- v7.439 dedicated PDP UI completion regression: **PASS**.
+- v7.438 compile-format regression: **PASS**.
+- v7.437 standalone-ad regression: **PASS**.
+- v7.436 sponsored-search rail regression: **PASS**.
+- v7.435 probe-backed PDP/Search regression: **PASS**.
+- v7.433 cross-frame probe regression: **PASS**.
+- New/strengthened Objective-C/JavaScript payload compile-format guards: **PASS**.
+- No new MutationObserver, polling interval, RAF loop, Web scroll listener, or recurring hierarchy scan.
+- Full Theos SDK/link step is not available in this container; GitHub Actions/device remains final Theos compile/link proof.
+- Device visual confirmation of the new v7.439 selectors remains pending installation.
