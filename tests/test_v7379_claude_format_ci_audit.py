@@ -7,8 +7,8 @@ W=(ROOT/'.github/workflows/build.yml').read_text()
 V=(ROOT/'scripts/validate.sh').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.443~user-style-ad-ownership-validation-fix' in C
-assert '#define AD_VERSION "v7.443-user-style-ad-ownership-validation-fix"' in S
+assert 'Version: 7.444~pdp-proven-media' in C
+assert '#define AD_VERSION "v7.444-pdp-proven-media"' in S
 
 def block(name,next_name):
     return S[S.index(f'static NSString *{name}'):S.index(f'static NSString *{next_name}')]

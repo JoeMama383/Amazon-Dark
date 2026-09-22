@@ -6,12 +6,12 @@ UI=(R/'scripts/ui-probe.sh').read_text()
 SK=(R/'scripts/skeleton-probe.sh').read_text()
 CMD=(R/'COMMANDS.md').read_text()
 
-assert 'Version: 7.443~user-style-ad-ownership-validation-fix' in C
-assert '#define AD_VERSION "v7.443-user-style-ad-ownership-validation-fix"' in S
-assert 'VER=7.443' in UI
-assert 'AD_PROBE_VERSION=7.443' in SK and 'AD_PROBE_NAME=AmazonDark-v7.443' in SK
-assert '7.443~*)' in SK and 'Install the v7.443 Actions package first.' in SK
-assert 'AmazonDark-v7.443-user-style-ad-ownership-validation-fix-source.zip' in CMD
+assert 'Version: 7.444~pdp-proven-media' in C
+assert '#define AD_VERSION "v7.444-pdp-proven-media"' in S
+assert 'VER=7.444' in UI
+assert 'AD_PROBE_VERSION=7.444' in SK and 'AD_PROBE_NAME=AmazonDark-v7.444' in SK
+assert '7.444~*)' in SK and 'Install the v7.444 Actions package first.' in SK
+assert 'AmazonDark-v7.444-pdp-proven-media-source.zip' in CMD
 assert 'sh scripts/validate.sh' in CMD
 
 # New main-frame completion is injected into the core script.

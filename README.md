@@ -1,9 +1,13 @@
-# AmazonDark v7.443 — user-style ownership validation fix
+# AmazonDark v7.444 — probe-confirmed media fixes
 
-v7.443 is cut from the exact v7.442 user-style-ad-ownership source. It does **not** add another PDP selector family or replace the v7.442 user-level all-frame stylesheet. The purpose of this release is to repair the release/validation inconsistency exposed by strict CI while preserving the smoother v7.440-derived runtime architecture.
+Exact parent: v7.440, not v7.441–v7.443.
 
-The v7.442 core program retired `ADFrameOwnerTriggerJS7440()` but accidentally left `ADCoreWebJS7271()` with sixteen `%@` format conversions for only fifteen active program arguments. v7.443 corrects that concatenation to fifteen conversions and updates the frozen v7.369/v7.370 normalization tests to remove the current fifteen-program delta before comparing their historical hashes.
+- Restore Customers also bought images by removing multiply blending from the exact image-display wrapper. The probe shows completed 210x210 images, normal leaf blending, but multiply on the wrapper against black.
+- Apply the existing configurable image-taming strength to those images and From the brand images. Dim the portrait background artwork using background blending, so live text and controls are not dimmed with a whole-container filter.
+- Advance FULL, VIEWPORT and TRANSITION identities and export/package guards.
 
-The retired v7.440 child-frame traversal/message-bridge implementation is also removed from the production translation unit instead of being retained as dead static code. The exact v7.440 main-document residual remains, and embedded APE/SafeFrame ad delivery remains owned by the v7.442 `_WKUserStyleSheet` path with `forMainFrameOnly:NO`. No frame walking, frame-targeted reinjection, MutationObserver, polling interval, RAF loop, or web scroll listener is active.
+Still unresolved: white medium ad internals; duplicate border within another embedded ad; compact top-ad title and info glyph; light search-to-product transition. All supplied v7.440 UI captures lack CROSS_FRAME_DOM. The transition tar is a historical export, newest actual transition recordings v7.433, despite its v7.443 archive name. No current transition fix is claimed.
 
-FULL, VIEWPORT, and TRANSITION probe identities are bumped to v7.443. Device visual verification of the standalone ads remains pending; this build should be judged from the same top standalone-ad screenshot/probes used for v7.441/v7.442.
+Runtime: only additions to two existing stylesheets; no additional scripts, observers, callbacks, frame walks, scans or timers. The inherited v7.440 frame-ownership implementation is unchanged; this release does not claim that the entire parent is walker-free or stock-performance verified.
+
+Build/install through your existing Actions workflow. See COMMANDS.md. On-device visual acceptance is required.

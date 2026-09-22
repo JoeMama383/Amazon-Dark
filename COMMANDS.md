@@ -1,18 +1,19 @@
-# AmazonDark v7.443 commands
+# AmazonDark v7.444 commands
 
 ## PUSH
 
 ```zsh
 cd /var/mobile/Amazon-Dark-phone &&
 D=/private/var/mobile/Containers/Shared/AppGroup/D846D8DE-EE0F-4B82-9676-C68769E519CD/Documents &&
-rm -rf /var/mobile/t7443 &&
-mkdir -p /var/mobile/t7443 &&
-unzip -oq "$D/AmazonDark-v7.443-user-style-ad-ownership-validation-fix-source.zip" -d /var/mobile/t7443 &&
-cp -a /var/mobile/t7443/AmazonDark-v7.443-user-style-ad-ownership-validation-fix-source/. . &&
+rm -rf /var/mobile/t7444 &&
+mkdir -p /var/mobile/t7444 &&
+unzip -oq "$D/AmazonDark-v7.444-pdp-proven-media-source.zip" -d /var/mobile/t7444 &&
+cp -a /var/mobile/t7444/AmazonDark-v7.444-pdp-proven-media-source/. . &&
+rm -f tests/test_v7441_pdp_site_isolated_frames.py tests/test_v7442_user_style_ad_ownership.py tests/test_v7443_core_concat_validation_fix.py &&
 chmod 755 layout/DEBIAN/postinst &&
 sh scripts/validate.sh &&
 git add -A &&
-git commit -m "v7.443: repair core concat validation and retire dead frame walker" &&
+git commit -m "v7.444: restore bundle images and tame brand artwork" &&
 git push origin main
 ```
 

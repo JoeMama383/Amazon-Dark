@@ -3,8 +3,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.443~user-style-ad-ownership-validation-fix' in C
-assert '#define AD_VERSION "v7.443-user-style-ad-ownership-validation-fix"' in S
+assert 'Version: 7.444~pdp-proven-media' in C
+assert '#define AD_VERSION "v7.444-pdp-proven-media"' in S
 
 # Exact portal-mounted Subscribe & Save family; no generic sheet takeover.
 for token in [

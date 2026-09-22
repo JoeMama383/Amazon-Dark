@@ -1,5 +1,5 @@
 /*
- * AmazonDark v7.443 — user-style PDP ad ownership
+ * AmazonDark v7.444 — PDP frame ownership correction
  *
  * Architecture:
  *   - document-start, route-exclusive web CSS/JS owners
@@ -28,7 +28,7 @@
 #import <signal.h>
 #import "ADSponsored.h"
 
-#define AD_VERSION "v7.443-user-style-ad-ownership-validation-fix"
+#define AD_VERSION "v7.444-pdp-proven-media"
 #define AD_PREF_DOMAIN "com.colindavidr.amazondark"
 
 extern char *__progname;
@@ -2357,7 +2357,7 @@ static NSString *ADPDPCompletionTWBJS7405(void){
     CGFloat t=((CGFloat)strengthKey)/100.0;
     CGFloat shade=0.10+(0.48*t);
     CGFloat factor=1.0-shade;
-    return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7405-pdp-twb');if(!s){s=d.createElement('style');s.id='ad7405-pdp-twb';(d.head||d.documentElement||d).appendChild(s);}var child=window.top!==window,ref=String(d.referrer||'');var embedded=child&&/(\\/dp\\/|\\/gp\\/product\\/|\\/gp\\/aw\\/d\\/)/i.test(ref);s.textContent=(embedded?`html body video,html body .vjs-poster,html body [data-testid=product-image] img,html body img[data-testid=product-image],html body img.product-image{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;mix-blend-mode:normal!important;}`:'')+`#dp :is([class*=_c3Atb_image-display-small_],[class*=_c3Atb_image-display-full_],[class*=_rufus-comparison-card_style_cardImage__]) img,#dp #horizontalMediaCarousel :is(img.a-amazon-image,img.video-slate-img),#dp #aplus_feature_div .aplus-v2 img,#dp #sponsoredProducts_feature_div img,#dp #ape_detail_mobile-app-detail-ilm_mshop_placement [data-csa-c-painter=sb-collections-ilm-mobile] img[class*=_c2ItY_asinImage_],#dp #product-image-gallery img,#dp img[class*=_dnNlL_vseThumbnailPreviewImg_],#dp img[class*=_Y3Itb_media-thumbnail-image_],#dp img[class*=_Y3Itd_notable-quote-thumbnail-image_],#dp img[id^=inline-twister-image-],#dp img[class*=_c2Itb_image_],#dp [class*=_rufus-comparison-card_style_pillImageWrapper__] img,#dp video.pjs-tech,#dp img.vftp-hoc-thumbnail,#dp #value-pick-image,#dp #sp_phoneapp_detail_image_container img,#dp #thumbnail-product-image-container img,#dp video[class*=_multi-brand-video-mobile_style_video__],#dp img[class*=_multi-brand-video-mobile_style_image__],#dp .vse-video-thumbnail-wrapper[class*=_dnNlL_vseVideoImageWrapper_]::before,#attach-accessory-card-deck img.attach-accessory-image,#attach-accessory-card-deck .attach-primary-atc-confirm-box img{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}`;}catch(_){}})();",factor,factor,factor,factor];
+    return [NSString stringWithFormat:@"(function(){try{var d=document,s=d.getElementById('ad7405-pdp-twb');if(!s){s=d.createElement('style');s.id='ad7405-pdp-twb';(d.head||d.documentElement||d).appendChild(s);}var child=window.top!==window,ref=String(d.referrer||'');var embedded=child&&/(\\/dp\\/|\\/gp\\/product\\/|\\/gp\\/aw\\/d\\/)/i.test(ref);s.textContent=(embedded?`html body video,html body .vjs-poster,html body [data-testid=product-image] img,html body img[data-testid=product-image],html body img.product-image{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;mix-blend-mode:normal!important;}`:'')+`#dp #aplusBrandStory_feature_div img,#dp [class*=_p13n-mobile-sims-multi-bundle_multi-bundle-mobile_image-display__] img.p13n-product-image,#dp :is([class*=_c3Atb_image-display-small_],[class*=_c3Atb_image-display-full_],[class*=_rufus-comparison-card_style_cardImage__]) img,#dp #horizontalMediaCarousel :is(img.a-amazon-image,img.video-slate-img),#dp #aplus_feature_div .aplus-v2 img,#dp #sponsoredProducts_feature_div img,#dp #ape_detail_mobile-app-detail-ilm_mshop_placement [data-csa-c-painter=sb-collections-ilm-mobile] img[class*=_c2ItY_asinImage_],#dp #product-image-gallery img,#dp img[class*=_dnNlL_vseThumbnailPreviewImg_],#dp img[class*=_Y3Itb_media-thumbnail-image_],#dp img[class*=_Y3Itd_notable-quote-thumbnail-image_],#dp img[id^=inline-twister-image-],#dp img[class*=_c2Itb_image_],#dp [class*=_rufus-comparison-card_style_pillImageWrapper__] img,#dp video.pjs-tech,#dp img.vftp-hoc-thumbnail,#dp #value-pick-image,#dp #sp_phoneapp_detail_image_container img,#dp #thumbnail-product-image-container img,#dp video[class*=_multi-brand-video-mobile_style_video__],#dp img[class*=_multi-brand-video-mobile_style_image__],#dp .vse-video-thumbnail-wrapper[class*=_dnNlL_vseVideoImageWrapper_]::before,#attach-accessory-card-deck img.attach-accessory-image,#attach-accessory-card-deck .attach-primary-atc-confirm-box img{filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;opacity:1!important;mix-blend-mode:normal!important;}#dp#dp #aplusBrandStory_feature_div .container-with-background-image.hero-portrait-image{background-color:rgb(%.0f,%.0f,%.0f)!important;background-blend-mode:multiply!important;filter:none!important;-webkit-filter:none!important;}`;}catch(_){}})();",factor,factor,factor,factor,factor*255.0,factor*255.0,factor*255.0];
 }
 
 // v7.432: PDP APE/SafeFrame child documents can be nested behind an intermediate
@@ -2394,7 +2394,7 @@ static NSString *ADPDPSafeFrameJS7432(void){
 // the one standard gray edge; wrappers/iframes and the ILM inner shell are frameless so there is
 // no duplicate square. Neutral copy is light, authored semantic colors remain untouched.
 static NSString *ADPDPUICompletionJS7439(void){
-    return @"(function(){try{if(window.top!==window)return;var d=document,s=d.getElementById('ad7439-pdp-ui-completion');if(!s){s=d.createElement('style');s.id='ad7439-pdp-ui-completion';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`"
+    return @"(function(){try{if(window.top!==window)return;var d=document,s=d.getElementById('ad7439-pdp-ui-completion');if(!s){s=d.createElement('style');s.id='ad7439-pdp-ui-completion';(d.head||d.documentElement||d).appendChild(s);}s.textContent=`#dp#dp [class*=_p13n-mobile-sims-multi-bundle_multi-bundle-mobile_image-display__]{mix-blend-mode:normal!important;background:transparent!important;opacity:1!important;}"
         "#dp#dp :is(#ape_detail_mobile-hero-quick-promo_mshop_placement,#ape_detail_btf_mshop_placement,#ape_detail_btf2_mshop_placement,#ape_detail_mobile-app-detail-ilm_mshop_placement){background:#000!important;background-color:#000!important;border:1px solid #494d4d!important;border-color:#494d4d!important;outline:0!important;box-shadow:none!important;box-sizing:border-box!important;}"
         "#dp#dp :is(#ape_detail_mobile-hero-quick-promo_mshop_wrapper,#ape_detail_btf_mshop_wrapper,#ape_detail_btf2_mshop_wrapper,#ape_detail_mobile-app-detail-ilm_mshop_wrapper,#ape_detail_mobile-hero-quick-promo_mshop_iframe,#ape_detail_btf_mshop_iframe,#ape_detail_btf2_mshop_iframe,#ape_detail_mobile-app-detail-ilm_mshop_iframe){background:#000!important;background-color:#000!important;border:0!important;border-width:0!important;border-color:transparent!important;outline:0!important;box-shadow:none!important;}"
         "#dp#dp #ape_detail_mobile-app-detail-ilm_mshop_placement :is([data-csa-c-painter='sb-collections-ilm-mobile'],[class*=_c2ItY_cardWrapper_],[class*=_c2ItY_container_],[class*=_c2ItY_containerInner_]){background:#000!important;background-color:#000!important;background-image:none!important;border:0!important;border-width:0!important;outline:0!important;box-shadow:none!important;}"
@@ -2411,16 +2411,98 @@ static NSString *ADPDPUICompletionJS7439(void){
 
 
 
-// v7.440: The v7.435 FULL captures never emitted a CROSS_FRAME_DOM section even
+// v7.444: The v7.435 FULL captures never emitted a CROSS_FRAME_DOM section even
 // though the offending APE/SafeFrame iframe was present. Do not rely on all-frame
 // WKUserScript delivery for those renderer processes. Instead, use WebKit's frame
 // tree and frame-targeted JavaScript evaluation to install one persistent, inert-
 // until-ad-markers-match stylesheet in every child document. The stylesheet stays
 // resident through later renderer hydration; no MutationObserver, polling, RAF,
 // web scroll listener, or recurring hierarchy scan is introduced.
-// v7.443: retired v7.440 child-frame traversal/message-bridge implementation removed entirely.
-// The exact main-document residual below remains; embedded ad delivery is owned by the v7.442 user stylesheet.
-// v7.440 main-document residue proven by the v7.435 probes and current device shots:
+static NSString *ADForcedPDPFrameThemeJS7440(void){
+    CGFloat factor=1.0;
+    if(gP.whiteTame){
+        CGFloat t=((CGFloat)MAX(0,MIN(100,gP.whiteTameStrength)))/100.0;
+        factor=1.0-(0.10+(0.48*t));
+    }
+    return [NSString stringWithFormat:@"(function(){try{var d=document,h=d.documentElement;if(!h)return 'ad7440-no-root';h.setAttribute('data-ad7440-frame-owner','1');var s=d.getElementById('ad7440-forced-frame-theme');if(!s){s=d.createElement('style');s.id='ad7440-forced-frame-theme';(d.head||h||d).appendChild(s);}var A=\"html[data-ad7440-frame-owner]:is(:has(#ad),:has(#dynamic-bb),:has([data-testid=renderer-factory-ad-container]),:has([data-testid=ad-background-container]),:has([data-testid=gridContainer]),:has([data-testid=product-card]),:has([data-testid=product-details]),:has([data-testid=product-description]),:has([data-testid=brand-product-description]),:has([data-testid*=product-image]),:has([data-testid*=product-picture]),:has([data-acei-id=prod-img]),:has([data-ad-feedback-label-id]),:has([id^=ad-feedback-]),:has(.creative-container),:has(.swiper-wrapper),:has([class*=product]),:has(.a-price),:has(video))\";s.textContent=`"
+        "${A},${A} body{background:#000!important;background-color:#000!important;color:#e8e6e3!important;color-scheme:dark!important;}"
+        "${A} :is(div,section,article,main,header,footer,ul,ol,li,table,tbody,thead,tfoot,tr,td){background-color:transparent!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}"
+        "${A} :is(#ad,#dynamic-bb,[data-testid=renderer-factory-ad-container],[data-testid=ad-background-container],[data-testid=main-content],[data-testid=content],[data-testid=gridContainer],[data-testid=product-details],[data-testid=product-card],[data-testid=product-description],[data-testid=brand-product-description],.creative-container,.product-details,.product-info,.product-card,.carousel-container,.swiper-wrapper,.swiper-slide,[class*=cardWrapper],[class*=productCard],[class*=product-card],[class*=productDetails],[class*=product-details],[class*=productInfo],[class*=product-info]){background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;border-color:#494d4d!important;outline-color:#494d4d!important;}"
+        "${A} :is(div,section,article,main,header,footer,li,td,a,span)[style*=\"background-color: rgb(255, 255, 255)\"],${A} :is(div,section,article,main,header,footer,li,td,a,span)[style*=\"background-color:#fff\"],${A} :is(div,section,article,main,header,footer,li,td,a,span)[style*=\"background: rgb(255, 255, 255)\"]{background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;}"
+        "${A} :is([class*=card],[class*=Card],[class*=container],[class*=Container],[class*=wrapper],[class*=Wrapper],[class*=panel],[class*=Panel]){border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}"
+        "${A} :is(h1,h2,h3,h4,h5,h6,p,span,strong,b,em,small,label,div,a,.a-color-base,.a-color-secondary,.a-color-tertiary,.a-text-normal,.a-size-base,.a-size-small,.a-size-medium,.a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen):not(.a-color-link):not(.a-color-price):not([class*=prime]):not([class*=star]):not([class*=rating]):not([class*=deal]):not([class*=coupon]):not([class*=saving]):not([class*=savings]):not([class*=discount]):not([class*=promotion]):not([class*=promo]):not([class*=badge]):not([class*=success]):not(:where(.a-color-link *)):not(:where(.a-color-price *)):not(:where([class*=prime] *)):not(:where([class*=star] *)):not(:where([class*=rating] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=saving] *)):not(:where([class*=savings] *)):not(:where([class*=discount] *)):not(:where([class*=promotion] *)):not(:where([class*=promo] *)):not(:where([class*=badge] *)):not(:where([class*=success] *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "${A} :is(a,p,span,div,strong,b)[style*=\"color: rgb(15, 17, 17)\"],${A} :is(a,p,span,div,strong,b)[style*=\"color: rgb(17, 17, 17)\"],${A} :is(a,p,span,div,strong,b)[style*=\"color: rgb(0, 0, 0)\"],${A} :is(a,p,span,div,strong,b)[style*=\"color: rgb(86, 89, 89)\"]{color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
+        "${A} :is(.a-color-link,[class*=prime],[class*=star],[class*=rating],[class*=deal],[class*=coupon],[class*=saving],[class*=savings],[class*=discount],[class*=promotion],[class*=promo],[class*=badge],[class*=success],[data-testid=prime-badge],[data-testid=ratings-stars],[data-testid=deal-badge]),${A} :is(.a-color-link,[class*=prime],[class*=star],[class*=rating],[class*=deal],[class*=coupon],[class*=saving],[class*=savings],[class*=discount],[class*=promotion],[class*=promo],[class*=badge],[class*=success],[data-testid=prime-badge],[data-testid=ratings-stars],[data-testid=deal-badge]) *{-webkit-text-fill-color:currentColor!important;}"
+        "${A} :is([class*=sponsored],[data-testid*=sponsored],[data-ad-feedback-label-id],[class*=ad-feedback],[class*=adFeedback],[id^=ad-feedback-text-],[id^=af-label-primary-link-]){background:transparent!important;color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important;}"
+        "${A} :is([id^=ad-feedback-sprite-],b[class*=ad-feedback-sprite],i[class*=ad-feedback-sprite],[class*=ad-feedback-sprite-mobile-grey_]){position:relative!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;width:12px!important;height:12px!important;min-width:12px!important;min-height:12px!important;background:#fff!important;background-image:none!important;border:0!important;border-radius:999px!important;color:#000!important;-webkit-text-fill-color:#000!important;filter:none!important;-webkit-filter:none!important;opacity:1!important;font-size:0!important;}"
+        "${A} :is([id^=ad-feedback-sprite-],b[class*=ad-feedback-sprite],i[class*=ad-feedback-sprite],[class*=ad-feedback-sprite-mobile-grey_])::after{content:'i'!important;color:#000!important;-webkit-text-fill-color:#000!important;font:700 9px/12px -apple-system,BlinkMacSystemFont,sans-serif!important;}"
+        "${A} :is(button,[role=button],.swiper-button-next,.swiper-button-prev,[class*=arrowButton],[class*=carouselButton]){background:#303335!important;background-color:#303335!important;border-color:#747a7c!important;outline-color:#747a7c!important;color:#fff!important;-webkit-text-fill-color:#fff!important;box-shadow:none!important;}"
+        "${A} :is(button,[role=button],.swiper-button-next,.swiper-button-prev,[class*=arrowButton],[class*=carouselButton]) :is(svg,path,polyline,line){color:#fff!important;fill:none!important;stroke:#fff!important;}"
+        "${A} img:not([class*=logo]):not([class*=prime]):not([class*=star]):not([class*=rating]):not([class*=badge]):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([data-testid*=logo]):not([data-testid*=prime]):not([data-testid*=rating]){filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;mix-blend-mode:normal!important;opacity:1!important;}"
+        "${A} :is(video,canvas,picture){mix-blend-mode:normal!important;}"
+        "`;try{if(window.CSSStyleSheet&&'adoptedStyleSheets' in d){var sh=window.__ad7440ForcedSheet;if(!sh){sh=new CSSStyleSheet();window.__ad7440ForcedSheet=sh;}sh.replaceSync(s.textContent);var aa=d.adoptedStyleSheets||[];if(aa.indexOf(sh)<0)d.adoptedStyleSheets=aa.concat([sh]);}}catch(_){}return 'ad7440-installed';}catch(e){return 'ad7440-error:'+String(e&&e.message||e);}})();",factor,factor];
+}
+
+// Main-frame event bridge. A single capture-phase iframe load listener plus finite
+// document/page lifecycle notifications asks native code to re-apply the persistent
+// child stylesheet after lazy APE/SafeFrame navigations. This is event-driven only.
+static NSString *ADFrameOwnerTriggerJS7440(void){
+    return @"(function(){try{if(window.top!==window||window.__ad7440FrameOwnerBridge)return;window.__ad7440FrameOwnerBridge=1;function ping(reason){try{var h=window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.adFrameOwner7440;if(h)h.postMessage({reason:String(reason||'event')});}catch(_){}}document.addEventListener('load',function(e){try{var t=e&&e.target;if(t&&String(t.tagName||'').toUpperCase()==='IFRAME')ping('iframe-load');}catch(_){}},true);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){ping('dom-content-loaded');},{once:true});else ping('document-ready');window.addEventListener('load',function(){ping('window-load');},{once:true});window.addEventListener('pageshow',function(){ping('pageshow');});ping('document-start');}catch(_){}})();";
+}
+
+static id ADPageWorld7440(void){
+    @try {
+        Class c=NSClassFromString(@"WKContentWorld"); SEL sel=NSSelectorFromString(@"pageWorld");
+        if(c&&[c respondsToSelector:sel])return ((id(*)(id,SEL))objc_msgSend)(c,sel);
+    } @catch(...) {}
+    return nil;
+}
+
+static void ADInjectFrameNode7440(WKWebView *wv,id node,NSString *js,id world){
+    if(!wv||!node||!js.length||!world)return;
+    @try {
+        id info=[node valueForKey:@"info"];
+        if(info&&[info respondsToSelector:@selector(isMainFrame)]&&![(WKFrameInfo *)info isMainFrame]){
+            SEL eval=NSSelectorFromString(@"evaluateJavaScript:inFrame:inContentWorld:completionHandler:");
+            if([wv respondsToSelector:eval])((void(*)(id,SEL,id,id,id,id))objc_msgSend)(wv,eval,js,info,world,nil);
+        }
+        id kids=[node valueForKey:@"childFrames"];
+        if([kids isKindOfClass:NSArray.class])for(id child in (NSArray *)kids)ADInjectFrameNode7440(wv,child,js,world);
+    } @catch(...) {}
+}
+
+static void ADForceChildFrameTheme7440(WKWebView *wv){
+    if(!gP.enabled||!wv)return;
+    @try {
+        SEL frames=NSSelectorFromString(@"_frames:"); if(![wv respondsToSelector:frames])return;
+        NSString *js=ADForcedPDPFrameThemeJS7440(); id world=ADPageWorld7440(); if(!world||!js.length)return;
+        void (^completion)(id)=^(id root){ ADInjectFrameNode7440(wv,root,js,world); };
+        ((void(*)(id,SEL,id))objc_msgSend)(wv,frames,completion);
+    } @catch(...) {}
+}
+
+@interface ADFrameOwnerBridge7440 : NSObject <WKScriptMessageHandler>
+@end
+static ADFrameOwnerBridge7440 *gADFrameOwnerBridge7440=nil;
+@implementation ADFrameOwnerBridge7440
+- (void)userContentController:(WKUserContentController *)ucc didReceiveScriptMessage:(WKScriptMessage *)message {
+    if(!gP.enabled||![message.name isEqualToString:@"adFrameOwner7440"])return;
+    WKWebView *wv=message.webView; if(!wv)return;
+    if([NSThread isMainThread])ADForceChildFrameTheme7440(wv);
+    else dispatch_async(dispatch_get_main_queue(),^{ ADForceChildFrameTheme7440(wv); });
+}
+@end
+
+static void ADFrameOwnerAttach7440(WKUserContentController *ucc){
+    if(!ucc||!gP.enabled)return;
+    @try {
+        if(!gADFrameOwnerBridge7440)gADFrameOwnerBridge7440=[ADFrameOwnerBridge7440 new];
+        @try{[ucc removeScriptMessageHandlerForName:@"adFrameOwner7440"];}@catch(...){}
+        [ucc addScriptMessageHandler:gADFrameOwnerBridge7440 name:@"adFrameOwner7440"];
+    } @catch(...) {}
+}
+
+// v7.444 main-document residue proven by the v7.435 probes and current device shots:
 // the ILM lightAds carousel is main-document content, while Rufus comparison insight
 // copy was still rgb(86,89,89) on OLED. Own those exact families without touching
 // green insight dots, stars, Prime, links, deal colors, or other semantic accents.
@@ -2471,50 +2553,11 @@ static NSString *ADCoreWebJS7271(void){
     long strength=MAX(0,MIN(100,gP.whiteTameStrength));
     if(gADCoreWebJSCached7271&&gADCoreWebJSStrength7271==strength)return gADCoreWebJSCached7271;
     gADCoreWebJSStrength7271=strength;
-    gADCoreWebJSCached7271=[NSString stringWithFormat:@"%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@",ADFullRasterHostBridgeJS7266(),
+    gADCoreWebJSCached7271=[NSString stringWithFormat:@"%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@%@",ADFullRasterHostBridgeJS7266(),
         ADStandalonePaintJS7104(),ADFloorJS(),ADHomeAdShellFloorJS7381(),ADProductShareThemeJS7403(),
         ADProductShareTWBJS7403(),ADShareProbeSuppressJS7403(),ADProductScrollPolishJS7404(),
-        ADProductScrollVideoBorderJS7405(),ADPDPCompletionJS7405(),ADPDPSafeFrameJS7432(),ADPDPCompletionTWBJS7405(),ADPDPUICompletionJS7439(),ADPDPMainResidualJS7440(),ADAddressManagementJS7412()];
+        ADProductScrollVideoBorderJS7405(),ADPDPCompletionJS7405(),ADPDPSafeFrameJS7432(),ADPDPCompletionTWBJS7405(),ADPDPUICompletionJS7439(),ADPDPMainResidualJS7440(),ADFrameOwnerTriggerJS7440(),ADAddressManagementJS7412()];
     return gADCoreWebJSCached7271;
-}
-
-
-// v7.443: Replace the v7.440/v7.441 frame enumeration/reinjection experiment with
-// WebKit's native user-level stylesheet. WKUserContentController distributes a
-// user stylesheet to all frames when forMainFrameOnly=NO; user origin also wins
-// over Amazon author-origin declarations. One immutable sheet per controller,
-// no frame traversal, message bridge, polling, observers, RAF, or scroll work.
-static const void *kADUserStyle7442=&kADUserStyle7442;
-static NSString *ADPDPAdUserCSS7442(void){
-    CGFloat factor=1.0;
-    if(gP.whiteTame){CGFloat t=((CGFloat)MAX(0,MIN(100,gP.whiteTameStrength)))/100.0;factor=1.0-(0.10+(0.48*t));}
-    NSString *A=@"html:is(:has(#ad),:has(#dynamic-bb),:has([data-testid=renderer-factory-ad-container]),:has([data-testid=ad-background-container]),:has([data-testid=gridContainer]),:has([data-testid=product-card]),:has([data-testid=product-details]),:has([data-testid=product-description]),:has([data-testid=brand-product-description]),:has([data-testid*=product-image]),:has([data-testid*=product-picture]),:has([data-acei-id=prod-img]),:has([data-ad-feedback-label-id]),:has([id^=ad-feedback-]),:has(.creative-container),:has(.swiper-wrapper),:has([class*=product]),:has(.a-price),:has(video))";
-    return [NSString stringWithFormat:
-        @"%@,%@ body{background:#000!important;background-color:#000!important;color:#e8e6e3!important;color-scheme:dark!important;}"
-         "%@ :is(div,section,article,main,header,footer,ul,ol,li,table,tbody,thead,tfoot,tr,td){background-color:transparent!important;border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}"
-         "%@ :is(#ad,#dynamic-bb,[data-testid=renderer-factory-ad-container],[data-testid=ad-background-container],[data-testid=main-content],[data-testid=content],[data-testid=gridContainer],[data-testid=product-details],[data-testid=product-card],[data-testid=product-description],[data-testid=brand-product-description],.creative-container,.product-details,.product-info,.product-card,.carousel-container,.swiper-wrapper,.swiper-slide,[class*=cardWrapper],[class*=productCard],[class*=product-card],[class*=productDetails],[class*=product-details],[class*=productInfo],[class*=product-info]){background:#000!important;background-color:#000!important;background-image:none!important;box-shadow:none!important;border-color:#494d4d!important;outline-color:#494d4d!important;}"
-         "%@ :is([class*=card],[class*=Card],[class*=container],[class*=Container],[class*=wrapper],[class*=Wrapper],[class*=panel],[class*=Panel]){border-color:#494d4d!important;outline-color:#494d4d!important;box-shadow:none!important;}"
-         "%@ :is(h1,h2,h3,h4,h5,h6,p,span,strong,b,em,small,label,div,a,.a-color-base,.a-color-secondary,.a-color-tertiary,.a-text-normal,.a-size-base,.a-size-small,.a-size-medium,.a-price,.a-price-whole,.a-price-symbol,.a-price-fraction,.a-offscreen):not(.a-color-link):not(.a-color-price):not([class*=prime]):not([class*=star]):not([class*=rating]):not([class*=deal]):not([class*=coupon]):not([class*=saving]):not([class*=savings]):not([class*=discount]):not([class*=promotion]):not([class*=promo]):not([class*=badge]):not([class*=success]):not(:where(.a-color-link *)):not(:where(.a-color-price *)):not(:where([class*=prime] *)):not(:where([class*=star] *)):not(:where([class*=rating] *)):not(:where([class*=deal] *)):not(:where([class*=coupon] *)):not(:where([class*=saving] *)):not(:where([class*=savings] *)):not(:where([class*=discount] *)):not(:where([class*=promotion] *)):not(:where([class*=promo] *)):not(:where([class*=badge] *)):not(:where([class*=success] *)){color:#e8e6e3!important;-webkit-text-fill-color:#e8e6e3!important;}"
-         "%@ :is(.a-color-link,[class*=prime],[class*=star],[class*=rating],[class*=deal],[class*=coupon],[class*=saving],[class*=savings],[class*=discount],[class*=promotion],[class*=promo],[class*=badge],[class*=success],[data-testid=prime-badge],[data-testid=ratings-stars],[data-testid=deal-badge]),%@ :is(.a-color-link,[class*=prime],[class*=star],[class*=rating],[class*=deal],[class*=coupon],[class*=saving],[class*=savings],[class*=discount],[class*=promotion],[class*=promo],[class*=badge],[class*=success],[data-testid=prime-badge],[data-testid=ratings-stars],[data-testid=deal-badge]) *{-webkit-text-fill-color:currentColor!important;}"
-         "%@ :is([class*=sponsored],[data-testid*=sponsored],[data-ad-feedback-label-id],[class*=ad-feedback],[class*=adFeedback],[id^=ad-feedback-text-],[id^=af-label-primary-link-]){background:transparent!important;color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important;}"
-         "%@ :is(button,[role=button],.swiper-button-next,.swiper-button-prev,[class*=arrowButton],[class*=carouselButton]){background:#303335!important;background-color:#303335!important;border-color:#747a7c!important;color:#fff!important;-webkit-text-fill-color:#fff!important;box-shadow:none!important;}"
-         "%@ :is(button,[role=button],.swiper-button-next,.swiper-button-prev,[class*=arrowButton],[class*=carouselButton]) :is(svg,path,polyline,line){color:#fff!important;fill:none!important;stroke:#fff!important;}"
-         "%@ img:not([class*=logo]):not([class*=prime]):not([class*=star]):not([class*=rating]):not([class*=badge]):not([class*=icon]):not([class*=glyph]):not([class*=sprite]):not([class*=pixel]):not([data-testid*=logo]):not([data-testid*=prime]):not([data-testid*=rating]){filter:brightness(%.3f)!important;-webkit-filter:brightness(%.3f)!important;mix-blend-mode:normal!important;opacity:1!important;}"
-         "%@ :is(video,canvas,picture){mix-blend-mode:normal!important;}",
-        A,A,A,A,A,A,A,A,A,A,A,A,factor,factor,A];
-}
-static void ADUserStyleAttach7442(WKUserContentController *ucc){
-    if(!ucc||!gP.enabled||objc_getAssociatedObject(ucc,kADUserStyle7442))return;
-    @try{
-        Class c=NSClassFromString(@"_WKUserStyleSheet");
-        SEL init=NSSelectorFromString(@"initWithSource:forWKWebView:forMainFrameOnly:includeMatchPatternStrings:excludeMatchPatternStrings:baseURL:level:contentWorld:");
-        SEL add=NSSelectorFromString(@"_addUserStyleSheet:");
-        if(!c||![ucc respondsToSelector:add])return;
-        id obj=[c alloc];
-        if([obj respondsToSelector:init])obj=((id(*)(id,SEL,id,id,BOOL,id,id,id,NSInteger,id))objc_msgSend)(obj,init,ADPDPAdUserCSS7442(),nil,NO,nil,nil,nil,0,nil);
-        else {SEL legacy=NSSelectorFromString(@"initWithSource:forMainFrameOnly:"); if([obj respondsToSelector:legacy])obj=((id(*)(id,SEL,id,BOOL))objc_msgSend)(obj,legacy,ADPDPAdUserCSS7442(),NO);}
-        if(obj){((void(*)(id,SEL,id))objc_msgSend)(ucc,add,obj);objc_setAssociatedObject(ucc,kADUserStyle7442,obj,OBJC_ASSOCIATION_RETAIN_NONATOMIC);}
-    }@catch(...){}
 }
 
 // v7.388: WKUserScript is immutable. Each controller retains the same program;
@@ -2535,7 +2578,7 @@ static void ADAttachScriptsToUCC710(WKUserContentController *ucc){
     if(!ucc || !gP.enabled)return;
     ADSkelAttach7339(ucc); // v7.339 diagnostic integration
     ADUIProbeAttach7362(ucc); // universal FULL/VIEWPORT bridge
-    ADUserStyleAttach7442(ucc); // v7.443 one-shot user-level all-frame ad stylesheet
+    ADFrameOwnerAttach7440(ucc); // v7.444 event-driven child-frame ownership bridge
     @try {
         if(!objc_getAssociatedObject(ucc,kADCoreWebUS7271)){
             WKUserScript *us=ADSharedUserScript7387(0,ADCoreWebJS7271,NO,YES);
@@ -2669,7 +2712,7 @@ static void ADRefreshRuntimeState7115(BOOL refreshTWB){
 }
 - (void)didMoveToSuperview {
     %orig;
-    if(gP.enabled && self.superview){ ADApplyWebFloor(self); }
+    if(gP.enabled && self.superview){ ADApplyWebFloor(self); ADForceChildFrameTheme7440(self); }
 }
 - (void)setBackgroundColor:(UIColor *)color {
     if(ADInternalPaintWrite7226()){

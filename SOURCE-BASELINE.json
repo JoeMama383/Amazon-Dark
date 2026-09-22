@@ -1,7 +1,6 @@
 {
-  "version": "7.443~user-style-ad-ownership-validation-fix",
-  "parent": "7.442~user-style-ad-ownership",
-  "source_parent": "AmazonDark-v7.442-user-style-ad-ownership-source.zip",
-  "runtime_delta": "Fix ADCoreWebJS7271 to 15 format conversions for 15 active programs after retiring the v7.440 frame-owner trigger; remove the now-dead v7.440 frame traversal/message bridge; preserve the v7.442 user-level all-frame stylesheet and v7.440 main-document residual.",
-  "device_validation": "Pending v7.443 install and live visual verification; no standalone-ad visual fix is claimed until device-proven"
+  "version": "7.444~pdp-proven-media",
+  "parent": "7.440~pdp-frame-ownership",
+  "parent_sha256": "218e0f24847ac034ffddb3c9cd6ad746a467b85870bc50f8bef849190fa808d3",
+  "scope": "Two probe-confirmed media fixes only; standalone ad interiors and current transition remain unresolved."
 }

@@ -4,8 +4,8 @@ ROOT=Path(__file__).resolve().parents[1]
 S=(ROOT/'src/Tweak.xm').read_text()
 A=(ROOT/'src/ADSponsored.m').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.443~user-style-ad-ownership-validation-fix' in C
-assert '#define AD_VERSION "v7.443-user-style-ad-ownership-validation-fix"' in S
+assert 'Version: 7.444~pdp-proven-media' in C
+assert '#define AD_VERSION "v7.444-pdp-proven-media"' in S
 block=A
 # Reconstruct adjacent Objective-C string literals and parse the injected JS.
 lits=re.findall(r'@"((?:\\.|[^"\\])*)"', block)

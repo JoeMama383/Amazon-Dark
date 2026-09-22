@@ -7,8 +7,8 @@ H=(ROOT/'src/ADSponsored.h').read_text()
 M=(ROOT/'Makefile').read_text()
 C=(ROOT/'layout/DEBIAN/control').read_text()
 
-assert 'Version: 7.443~user-style-ad-ownership-validation-fix' in C
-assert '#define AD_VERSION "v7.443-user-style-ad-ownership-validation-fix"' in S
+assert 'Version: 7.444~pdp-proven-media' in C
+assert '#define AD_VERSION "v7.444-pdp-proven-media"' in S
 assert '#import "ADSponsored.h"' in S
 assert '#import "ADSponsored.h"' in A
 assert '#ifdef __cplusplus' in H

@@ -2,8 +2,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 t=(ROOT/'src/Tweak.xm').read_text()
 ctl=(ROOT/'layout/DEBIAN/control').read_text()
-assert 'Version: 7.443~user-style-ad-ownership-validation-fix' in ctl
-assert '#define AD_VERSION "v7.443-user-style-ad-ownership-validation-fix"' in t
+assert 'Version: 7.444~pdp-proven-media' in ctl
+assert '#define AD_VERSION "v7.444-pdp-proven-media"' in t
 # Correct base-and-tiered renderer: direct card owner retained.
 assert '#sc-page-container .sns-mobile-cart-improvements-container>.a-box' in t
 # Bad zero-base renderer: one declarative wrapper is the only structural difference that caused the miss.
