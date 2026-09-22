@@ -70,8 +70,20 @@ with tempfile.TemporaryDirectory(prefix='ad-v7445-transition-') as temp:
     (docs/'AmazonDark-v7.446-probe-status.json').write_text(json.dumps({'event':'PROBE_BOOTSTRAP','bundle':'com.amazon.Amazon','version':'v7.446-probe-responsiveness','reason':'capture-started'}))
     (mobile/'AmazonDark-v7.446-launch-sb-probe.txt').write_text('switcher evidence\n')
 
+    # Fixture order must not depend on rapid writes having distinct mtimes.
+    # Whole-second spacing also exercises shells/filesystems with coarse comparisons.
+    marker_epoch=int(state.stat().st_mtime)
+    os.utime(state,(marker_epoch,marker_epoch))
+    os.utime(fresh,(marker_epoch,marker_epoch))
+    ambiguous=run('export')
+    assert 'exported diagnostics only' in ambiguous, ambiguous
+    with zipfile.ZipFile(Path(ambiguous.strip().splitlines()[-1])) as z:
+        assert not [n for n in z.namelist() if '-skeleton-' in n]
+    os.utime(old,(marker_epoch-4,marker_epoch-4))
+    os.utime(hist,(marker_epoch+4,marker_epoch+4))
+    os.utime(fresh,(marker_epoch+4,marker_epoch+4))
     text=run('export')
-    assert 'Exported exactly one current v7.446 transition capture' in text
+    assert 'Exported exactly one current v7.446 transition capture' in text, text
     archive=Path(text.strip().splitlines()[-1]); assert archive.suffix=='.zip' and archive.exists()
     with zipfile.ZipFile(archive) as z:
         names=z.namelist(); skeletons=[n for n in names if '-skeleton-' in n and n.endswith('.jsonl')]
@@ -86,6 +98,9 @@ with tempfile.TemporaryDirectory(prefix='ad-v7445-transition-') as temp:
     # A new arm with no resulting app capture still returns a small diagnostic ZIP, not old data.
     run('arm','transition')
     label2,armed2=state.read_text().split(); assert int(armed2)>=armed
+    # Model a prior-session capture explicitly; the fixture above used a future mtime.
+    prior_epoch=int(state.stat().st_mtime)-4
+    os.utime(fresh,(prior_epoch,prior_epoch))
     text=run('export')
     archive=Path(text.strip().splitlines()[-1]); assert archive.suffix=='.zip'
     with zipfile.ZipFile(archive) as z:
